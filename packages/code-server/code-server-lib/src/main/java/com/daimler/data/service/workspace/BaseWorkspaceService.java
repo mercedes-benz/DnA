@@ -1755,6 +1755,14 @@ import com.daimler.data.util.ConstantsUtility;
 					 buildDeployRepo.save(auditLogEntity);
 					 
 					if(branch.isEmpty() && !version.isEmpty()){
+						deploymentDetails.setSecureWithIAMRequired(isSecureWithIAMRequired);
+						deploymentDetails.setOneApiVersionShortName(oneApiVersionShortName);
+						deploymentDetails.setIsSecuredWithCookie(isSecuredWithCookie);
+						deploymentDetails.setDeploymentType(isApiRecipe ? ConstantsUtility.API : ConstantsUtility.UI);
+						deploymentDetails.setClientId(clientID);
+						deploymentDetails.setRedirectUri(redirectUri);
+						deploymentDetails.setIgnorePaths(ignorePaths);
+						deploymentDetails.setScope(scope);
 					authenticatorClient.callingKongApis(workspaceId, serviceName, environment, isApiRecipe, clientID,clientSecret,redirectUri, ignorePaths, scope, oneApiVersionShortName, isSecuredWithCookie, isSecureWithIAMRequired, cloudServiceProvider);
 					}
 					deploymentDetails.setLastDeploymentStatus("DEPLOY_REQUESTED");
@@ -3617,7 +3625,7 @@ import com.daimler.data.util.ConstantsUtility;
 				 }
 				 Boolean isValutInjectorEnable = false;
 				 try{
-					// isValutInjectorEnable = VaultClient.enableVaultInjector(projectName.toLowerCase(), environment);
+					isValutInjectorEnable = VaultClient.enableVaultInjector(projectName.toLowerCase(), environment);
 				 }catch(Exception e){
 					MessageDescription error = new MessageDescription();
 					error.setMessage("Some error occured during deployment, with exception " + e.getMessage());

@@ -482,7 +482,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 
 			updateQuery += "where data->'projectDetails'->>'projectName' = '" + projectName + "'";
 
-			log.info("updateQuery {}",updateQuery);
+			// log.info("updateQuery {}",updateQuery);
 
 		try {
 			Query q = em.createNativeQuery(updateQuery);
