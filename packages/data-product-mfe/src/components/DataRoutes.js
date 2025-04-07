@@ -6,7 +6,7 @@ import Progress from 'dna-container/Progress';
 import NotFoundPage from 'dna-container/NotFound';
 import UnAuthorised from 'dna-container/UnAuthorised';
 import DataWorkspaces from 'dna-container/DataWorkspace';
-import DataLayer from 'dna-container/DataLayer';
+//import DataLayer from 'dna-container/DataLayer';
 import DataGovernance from 'dna-container/DataGovernance';
 
 import ProviderForm from './dataTransfer/ProviderForm';
@@ -31,12 +31,12 @@ export const protectedRoutes = [
     exact: true,
     path: '/',
   },
-  {
-    component: DataLayer,
-    exact: true,
-    path: '/datalayer',
-    title: 'Data Layer',
-  },
+  // {
+  //   component: DataLayer,
+  //   exact: true,
+  //   path: '/datalayer',
+  //   title: 'Data Layer',
+  // },
   {
     component: DataGovernance,
     exact: true,
