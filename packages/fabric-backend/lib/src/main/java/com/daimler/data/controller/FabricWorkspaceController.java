@@ -702,18 +702,10 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 
 			existingFabricWorkspace.setRelatedReports(workspaceUpdateRequestVO.getRelatedReports());
 			existingFabricWorkspace.setRelatedSolutions(workspaceUpdateRequestVO.getRelatedSolutions());
-			// existingFabricWorkspace.setLastModifiedOn(LocalDateTime.now());
 			try {
 				SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
 				Date now = isoFormat.parse(isoFormat.format(new Date()));
 				existingFabricWorkspace.setLastModifiedOn(now);
-			} catch (ParseException e) {
-				System.err.println("Failed to parse date for lastModifiedOn. Using current date instead.");
-				e.printStackTrace();
-				existingFabricWorkspace.setLastModifiedOn(new Date());
-			}
-			
-			try {
 				FabricWorkspaceVO updatedRecord = service.updateFabricProject(existingFabricWorkspace);
 				responseVO.setData(updatedRecord);
 				responses.setSuccess("SUCCESS");
@@ -723,6 +715,7 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 				log.info("Fabric workspace {} {}  updated successfully",id,existingFabricWorkspace.getName());
 				return new ResponseEntity<>(responseVO, HttpStatus.OK);
 			}catch(Exception e) {
+				existingFabricWorkspace.setLastModifiedOn(new Date());
 				errors.add(new MessageDescription("Failed to update record with exception " + e.getMessage()));
 				responseVO.setData(null);
 				responses.setErrors(errors);

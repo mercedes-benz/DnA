@@ -357,12 +357,6 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 			SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
 			Date now = isoFormat.parse(isoFormat.format(new Date()));
 		    vo.setLastModifiedOn(now);
-		}catch (ParseException e) {
-			System.err.println("Failed to parse date for lastModifiedOn.");
-			e.printStackTrace();
-			vo.setLastModifiedOn(new Date());
-		}
-		try {
 			WorkspaceDetailDto createResponse = fabricWorkspaceClient.createWorkspace(createRequest);
 			if(createResponse!=null ) {
 				if(createResponse.getErrorCode() != null ) {
@@ -477,6 +471,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 				
 			}
 		}catch(Exception e) {
+			vo.setLastModifiedOn(new Date());
 			GenericMessage failedResponse = new GenericMessage();
 			List<MessageDescription> messages = new ArrayList<>();
 			MessageDescription message = new MessageDescription();
@@ -1338,8 +1333,6 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 					Date now = isoFormat.parse(isoFormat.format(new Date()));
 					existingWorkspace.setLastModifiedOn(now);
 				} catch (ParseException e) {
-					System.err.println("Failed to parse date for lastModifiedOn");
-					e.printStackTrace();
 					existingWorkspace.setLastModifiedOn(new Date());
 				}
 				FabricWorkspaceNsql updatedEntity = assembler.toEntity(existingWorkspace);

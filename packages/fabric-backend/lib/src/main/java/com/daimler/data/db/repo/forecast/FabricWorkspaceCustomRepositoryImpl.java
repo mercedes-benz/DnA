@@ -90,34 +90,18 @@ public class FabricWorkspaceCustomRepositoryImpl extends CommonDataRepositoryImp
 
 	public FabricWorkspaceNsql getById(String workspaceId) {
 		String getByIdStmt = "SELECT cast(id AS text), cast(data AS text) FROM fabric_workspace_nsql " +
-							 "WHERE id = :workspaceId " +
-							 "AND lower(jsonb_extract_path_text(data, 'state')) <> 'deleted'";
-	
-		Query q = em.createNativeQuery(getByIdStmt);
-		q.setParameter("workspaceId", workspaceId);
-	
-		List<Object[]> results = q.getResultList();
-		if (results.isEmpty()) {
-			return null; 
-		}
-	
-		ObjectMapper mapper = new ObjectMapper();
-		Object[] temp = results.get(0);
-		
-		FabricWorkspaceNsql entity = new FabricWorkspaceNsql();
-		try {
-			String jsonData = temp[1] != null ? temp[1].toString() : "";
-			FabricWorkspace workspaceData = mapper.readValue(jsonData, FabricWorkspace.class);
-			entity.setData(workspaceData);
-		} catch (Exception e) {
-			log.error("Failed to get workspace data with exception {}", e.getMessage());
-		}
-		
-		String id = temp[0] != null ? temp[0].toString() : "";
-		entity.setId(id);
-		
-		return entity;
-	}
-	
+				"WHERE id = :workspaceId " +
+				"AND lower(jsonb_extract_path_text(data, 'state')) <> 'deleted'";
 
+		Query q = em.createNativeQuery(getByIdStmt, FabricWorkspaceNsql.class);
+		q.setParameter("workspaceId", workspaceId);
+		FabricWorkspaceNsql workspace = null;
+		try {
+			workspace = (FabricWorkspaceNsql) q.getSingleResult();
+			return workspace;
+		} catch (Exception e) {
+			log.error("Failed while fetching workspace information: {}", e.getMessage());
+			return null;
+		}
+	}
 }

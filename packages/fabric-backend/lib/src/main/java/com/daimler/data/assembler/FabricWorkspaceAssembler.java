@@ -62,7 +62,7 @@ public class FabricWorkspaceAssembler implements GenericAssembler<FabricWorkspac
 		return vo;
 	}
 	
-	private static final Logger log = LoggerFactory.getLogger(FabricWorkspaceAssembler.class);
+	private static Logger log = LoggerFactory.getLogger(FabricWorkspaceAssembler.class);
 
 	
 	@Override
