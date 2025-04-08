@@ -1131,7 +1131,7 @@ import org.springframework.beans.factory.annotation.Value;
 				   deployRequestDto.setRepo(vo.getProjectDetails().getRecipeDetails().getRepodetails());
 				}
 				String environment = "int";
-				String branch = "";
+				String branch = "main";
 				if (deployRequestDto != null && !"int".equalsIgnoreCase(deployRequestDto.getTargetEnvironment().name())) {
 					environment = "prod";
 				}
@@ -1234,7 +1234,7 @@ import org.springframework.beans.factory.annotation.Value;
 						   deployRequestDto.getClientSecret(), deployRequestDto.getRedirectUri(),
 						   deployRequestDto.getIgnorePaths(), deployRequestDto.getScope(),
 						   deployRequestDto.isIsApiRecipe(), deployRequestDto.getOneApiVersionShortName(),
-						   deployRequestDto.isIsSecuredWithCookie(), isPrivateRecipe,deployRequestDto.getVersion());
+						   deployRequestDto.isIsSecuredWithCookie(), isPrivateRecipe,deployRequestDto.getVersion(),"deploy");
 				   log.info("User {} deployed workspace {} project {}", userId, vo.getWorkspaceId(),
 						   vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
 			   }
@@ -2904,10 +2904,10 @@ import org.springframework.beans.factory.annotation.Value;
 				 return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
 			 }
 			 String status = vo.getProjectDetails().getProdDeploymentDetails().getLastDeploymentStatus();
-			 if (status==null || !status.equalsIgnoreCase("APPROVAL_REQUESTED")) {
+			 if (status==null || !status.equalsIgnoreCase("APPROVAL_PENDING")) {
 				 MessageDescription invalidTypeMsg = new MessageDescription();
 				 invalidTypeMsg.setMessage(
-						 "cannot reject workspace deployment since it is not in APPROVAL_REQUESTED state.");
+						 "cannot reject workspace deployment since it is not in APPROVAL_PENDING state.");
 				 GenericMessage errorMessage = new GenericMessage();
 				 errorMessage.addErrors(invalidTypeMsg);
 				 log.info("User {} cannot reject project deployment of recipe {} for workspace {}, since it is not in APPROVAL_REQUESTED state.", userId,

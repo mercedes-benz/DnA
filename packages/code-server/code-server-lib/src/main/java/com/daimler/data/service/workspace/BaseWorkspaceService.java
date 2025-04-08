@@ -1525,7 +1525,7 @@ import com.daimler.data.util.ConstantsUtility;
 	 	public GenericMessage deployWorkspace(String userId, String id, String environment, String branch,
 				boolean isSecureWithIAMRequired, String clientID, String clientSecret, String redirectUri,
 				String ignorePaths, String scope, boolean isApiRecipe,
-				String oneApiVersionShortName, boolean isSecuredWithCookie, boolean isprivateRecipe,String version) {
+				String oneApiVersionShortName, boolean isSecuredWithCookie, boolean isprivateRecipe,String version,String deployType) {
 		 GenericMessage responseMessage = new GenericMessage();
 		 String status = "FAILED";
 		 List<MessageDescription> warnings = new ArrayList<>();
@@ -1602,9 +1602,9 @@ import com.daimler.data.util.ConstantsUtility;
 						 deploymentDetails = entity.getData().getProjectDetails().getProdDeploymentDetails();
 					 }
 					 		 
-			 
-			 if(!branch.isEmpty() && version.isEmpty()){
-
+			 //buildAndDeploy flow
+			 if(version == null || version.isEmpty() || version.isBlank()){
+				
 				deploymentDetails.setSecureWithIAMRequired(isSecureWithIAMRequired);
 					 deploymentDetails.setOneApiVersionShortName(oneApiVersionShortName);
 					 deploymentDetails.setIsSecuredWithCookie(isSecuredWithCookie);
@@ -1613,7 +1613,6 @@ import com.daimler.data.util.ConstantsUtility;
 					 deploymentDetails.setRedirectUri(redirectUri);
 					 deploymentDetails.setIgnorePaths(ignorePaths);
 					 deploymentDetails.setScope(scope);
-
 				String lastBuildType = "buildAndDeploy";
 				ManageBuildRequestDto buildRequestDto = new ManageBuildRequestDto();
 				buildRequestDto.setBranch(branch);
@@ -1628,6 +1627,7 @@ import com.daimler.data.util.ConstantsUtility;
 					status = "FAILED";
 				}
 			}else{
+				//deploy flow
 				if (isprivateRecipe) {
 					repoUrl = entity.getData().getProjectDetails().getRecipeDetails().getRepodetails();
 					if(Objects.nonNull(repoUrl) && repoUrl.contains(".git")){
@@ -1755,7 +1755,7 @@ import com.daimler.data.util.ConstantsUtility;
 					 buildDeployRepo.save(auditLogEntity);
 					 
 					 //only deploy flow
-					if(branch.isEmpty() && !version.isEmpty()){
+					if(deployType.equalsIgnoreCase("deploy")){
 						deploymentDetails.setSecureWithIAMRequired(isSecureWithIAMRequired);
 						deploymentDetails.setOneApiVersionShortName(oneApiVersionShortName);
 						deploymentDetails.setIsSecuredWithCookie(isSecuredWithCookie);
@@ -1763,17 +1763,20 @@ import com.daimler.data.util.ConstantsUtility;
 						deploymentDetails.setClientId(clientID);
 						deploymentDetails.setRedirectUri(redirectUri);
 						deploymentDetails.setIgnorePaths(ignorePaths);
-						deploymentDetails.setScope(scope);
+						deploymentDetails.setScope(scope);						
 					authenticatorClient.callingKongApis(workspaceId, serviceName, environment, isApiRecipe, clientID,clientSecret,redirectUri, ignorePaths, scope, oneApiVersionShortName, isSecuredWithCookie, isSecureWithIAMRequired, cloudServiceProvider);
 					}
+					deploymentDetails.setLastDeployedBranch(branch);
+					deploymentDetails.setLastDeployedVersion(version);					
 					deploymentDetails.setLastDeploymentStatus("DEPLOY_REQUESTED");
-					workspaceCustomRepository.updateDeploymentDetails(projectName, environment,deploymentDetails);
+					
 					status = "SUCCESS";
 				 } else {
 					 status = "FAILED";
 					 errors.addAll(jobResponse.getErrors());
 				 }
 			 }
+			 workspaceCustomRepository.updateDeploymentDetails(projectName, environment,deploymentDetails);
 			 }
 		 } catch (Exception e) {
 			 MessageDescription error = new MessageDescription();
@@ -2572,7 +2575,7 @@ import com.daimler.data.util.ConstantsUtility;
 						   "", "",
 						   "", "",
 						   false, "",
-						   false, isPrivateRecipe,version);
+						   false, isPrivateRecipe,version,"buildAndDeploy");
 				   log.info("User {} deployed workspace {} project {}", userId, wsId,
 						   entity.getData().getProjectDetails().getRecipeDetails().getRecipeId());
 							   
