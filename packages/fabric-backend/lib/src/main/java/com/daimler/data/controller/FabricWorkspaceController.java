@@ -1,6 +1,8 @@
 package com.daimler.data.controller;
 
+import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.text.ParseException;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Date;
@@ -700,8 +702,10 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 
 			existingFabricWorkspace.setRelatedReports(workspaceUpdateRequestVO.getRelatedReports());
 			existingFabricWorkspace.setRelatedSolutions(workspaceUpdateRequestVO.getRelatedSolutions());
-			
 			try {
+				SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
+				Date now = isoFormat.parse(isoFormat.format(new Date()));
+				existingFabricWorkspace.setLastModifiedOn(now);
 				FabricWorkspaceVO updatedRecord = service.updateFabricProject(existingFabricWorkspace);
 				responseVO.setData(updatedRecord);
 				responses.setSuccess("SUCCESS");
@@ -711,6 +715,7 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 				log.info("Fabric workspace {} {}  updated successfully",id,existingFabricWorkspace.getName());
 				return new ResponseEntity<>(responseVO, HttpStatus.OK);
 			}catch(Exception e) {
+				existingFabricWorkspace.setLastModifiedOn(new Date());
 				errors.add(new MessageDescription("Failed to update record with exception " + e.getMessage()));
 				responseVO.setData(null);
 				responses.setErrors(errors);

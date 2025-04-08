@@ -1,5 +1,9 @@
 package com.daimler.data.assembler;
 
+import java.text.SimpleDateFormat;
+import java.text.ParseException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -58,74 +62,86 @@ public class FabricWorkspaceAssembler implements GenericAssembler<FabricWorkspac
 		return vo;
 	}
 	
+	private static Logger log = LoggerFactory.getLogger(FabricWorkspaceAssembler.class);
+
 	
 	@Override
 	public FabricWorkspaceVO toVo(FabricWorkspaceNsql entity) {
 		FabricWorkspaceVO vo = null;
-		if(entity!=null) {
-			vo = new FabricWorkspaceVO();
-			vo.setId(entity.getId());
-			FabricWorkspace data = entity.getData();
-			if(data!=null) {
-				BeanUtils.copyProperties(data, vo);
-				Capacity capacity = data.getCapacity();
-				CapacityVO capacityVO = new CapacityVO();
-				if(capacity != null) {
-					BeanUtils.copyProperties(capacity, capacityVO);
-				}
-				vo.setCapacity(capacityVO);
-				
-				UserDetails creator = data.getCreatedBy();
-				CreatedByVO createdByVO = new CreatedByVO();
-				if(creator!=null) {
-					BeanUtils.copyProperties(creator, createdByVO);
-				}
-				
-				List<ProjectReferenceDetailsVO> relatedReportsVO = toProjectDetailVOs(data.getRelatedReports());
-				vo.setRelatedReports(relatedReportsVO);
-				
-				List<ProjectReferenceDetailsVO> relatedSolutionsVO = toProjectDetailVOs(data.getRelatedSolutions());
-				vo.setRelatedSolutions(relatedSolutionsVO);
-				
-				List<FabricLakehouseVO> lakehouseVOs = new ArrayList<>();
-				List<Lakehouse> lakehouses = data.getLakehouses();
-				if(lakehouses!=null && !lakehouses.isEmpty()) {
-					lakehouseVOs = lakehouses.stream().map(n -> toLakehouseVO(n)).collect(Collectors.toList());
-				}
-				vo.setLakehouses(lakehouseVOs);
-				
-				FabricWorkspaceStatus workspaceStatus = data.getStatus();
-				FabricWorkspaceStatusVO workspaceStatusVO = new FabricWorkspaceStatusVO();
-				if(workspaceStatus!=null) {
-					workspaceStatusVO.setState(workspaceStatus.getState());
-					List<EntitlementDetails> entitlements = workspaceStatus.getEntitlements();
-					List<EntitlementDetailsVO> entitlementsVO = new ArrayList<>();
-					if(entitlements!=null && !entitlements.isEmpty()) {
-						entitlementsVO = entitlements.stream().map(n -> toEntitlementDetailsVO(n)).collect(Collectors.toList());
+		SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
+		try {
+			if (entity != null) {
+				vo = new FabricWorkspaceVO();
+				vo.setId(entity.getId());
+				FabricWorkspace data = entity.getData();
+				if (data != null) {
+					BeanUtils.copyProperties(data, vo);
+					Capacity capacity = data.getCapacity();
+					CapacityVO capacityVO = new CapacityVO();
+					if (capacity != null) {
+						BeanUtils.copyProperties(capacity, capacityVO);
 					}
-					workspaceStatusVO.setEntitlements(entitlementsVO);
-					
-					List<RoleDetails> roles = workspaceStatus.getRoles();
-					List<RoleDetailsVO> rolesVO = new ArrayList<>();
-					if(roles!=null && !roles.isEmpty()) {
-						rolesVO = roles.stream().map(n -> toRoleDetailsVO(n)).collect(Collectors.toList());
+					vo.setCapacity(capacityVO);
+
+					UserDetails creator = data.getCreatedBy();
+					CreatedByVO createdByVO = new CreatedByVO();
+					if (creator != null) {
+						BeanUtils.copyProperties(creator, createdByVO);
 					}
-					workspaceStatusVO.setRoles(rolesVO);
-					
-					List<GroupDetails> groups = workspaceStatus.getMicrosoftGroups();
-					List<GroupDetailsVO> groupDetailsVO = new ArrayList<>();
-					if(groups!=null && !groups.isEmpty()) {
-						groupDetailsVO = groups.stream().map(n -> toGroupDetailsVO(n)).collect(Collectors.toList());
+
+					if (data.getLastModifiedOn() != null) {
+						vo.setLastModifiedOn(isoFormat.parse(isoFormat.format(data.getLastModifiedOn())));
 					}
-					workspaceStatusVO.setMicrosoftGroups(groupDetailsVO);
-					
-				}else {
-					workspaceStatusVO.setState(null);
+					List<ProjectReferenceDetailsVO> relatedReportsVO = toProjectDetailVOs(data.getRelatedReports());
+					vo.setRelatedReports(relatedReportsVO);
+
+					List<ProjectReferenceDetailsVO> relatedSolutionsVO = toProjectDetailVOs(data.getRelatedSolutions());
+					vo.setRelatedSolutions(relatedSolutionsVO);
+
+					List<FabricLakehouseVO> lakehouseVOs = new ArrayList<>();
+					List<Lakehouse> lakehouses = data.getLakehouses();
+					if (lakehouses != null && !lakehouses.isEmpty()) {
+						lakehouseVOs = lakehouses.stream().map(n -> toLakehouseVO(n)).collect(Collectors.toList());
+					}
+					vo.setLakehouses(lakehouseVOs);
+
+					FabricWorkspaceStatus workspaceStatus = data.getStatus();
+					FabricWorkspaceStatusVO workspaceStatusVO = new FabricWorkspaceStatusVO();
+					if (workspaceStatus != null) {
+						workspaceStatusVO.setState(workspaceStatus.getState());
+						List<EntitlementDetails> entitlements = workspaceStatus.getEntitlements();
+						List<EntitlementDetailsVO> entitlementsVO = new ArrayList<>();
+						if (entitlements != null && !entitlements.isEmpty()) {
+							entitlementsVO = entitlements.stream().map(n -> toEntitlementDetailsVO(n))
+									.collect(Collectors.toList());
+						}
+						workspaceStatusVO.setEntitlements(entitlementsVO);
+
+						List<RoleDetails> roles = workspaceStatus.getRoles();
+						List<RoleDetailsVO> rolesVO = new ArrayList<>();
+						if (roles != null && !roles.isEmpty()) {
+							rolesVO = roles.stream().map(n -> toRoleDetailsVO(n)).collect(Collectors.toList());
+						}
+						workspaceStatusVO.setRoles(rolesVO);
+
+						List<GroupDetails> groups = workspaceStatus.getMicrosoftGroups();
+						List<GroupDetailsVO> groupDetailsVO = new ArrayList<>();
+						if (groups != null && !groups.isEmpty()) {
+							groupDetailsVO = groups.stream().map(n -> toGroupDetailsVO(n)).collect(Collectors.toList());
+						}
+						workspaceStatusVO.setMicrosoftGroups(groupDetailsVO);
+
+					} else {
+						workspaceStatusVO.setState(null);
+					}
+					vo.setStatus(workspaceStatusVO);
+					vo.setCreatedBy(createdByVO);
+					vo.setHasPii(data.getHasPii());
 				}
-				vo.setStatus(workspaceStatusVO);
-				vo.setCreatedBy(createdByVO);
-				vo.setHasPii(data.getHasPii());
 			}
+		} catch (ParseException e) {
+			log.error("Error parsing lastModifiedOn: {}", e.getMessage());
+			vo.setLastModifiedOn(null);
 		}
 		return vo;
 	}

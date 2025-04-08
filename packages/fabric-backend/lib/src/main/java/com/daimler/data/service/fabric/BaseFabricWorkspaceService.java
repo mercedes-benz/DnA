@@ -1,6 +1,7 @@
 package com.daimler.data.service.fabric;
 
 import java.text.SimpleDateFormat;
+import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
@@ -353,6 +354,9 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		createRequest.setDescription(vo.getDescription());
 		createRequest.setDisplayName(vo.getName());
 		try {
+			SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
+			Date now = isoFormat.parse(isoFormat.format(new Date()));
+		    vo.setLastModifiedOn(now);
 			WorkspaceDetailDto createResponse = fabricWorkspaceClient.createWorkspace(createRequest);
 			if(createResponse!=null ) {
 				if(createResponse.getErrorCode() != null ) {
@@ -467,6 +471,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 				
 			}
 		}catch(Exception e) {
+			vo.setLastModifiedOn(new Date());
 			GenericMessage failedResponse = new GenericMessage();
 			List<MessageDescription> messages = new ArrayList<>();
 			MessageDescription message = new MessageDescription();
@@ -1319,12 +1324,21 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 					}
 				}
 			}
-			super.deleteById(id);
+			// super.deleteById(id);
+			if (existingWorkspace != null) {
+				existingWorkspace.getStatus().setState("DELETED");
+					SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
+					Date now = isoFormat.parse(isoFormat.format(new Date()));
+					existingWorkspace.setLastModifiedOn(now);
+					FabricWorkspaceNsql updatedEntity = assembler.toEntity(existingWorkspace);
+					jpaRepo.save(updatedEntity);
+			}
 			responseMessage.setSuccess("SUCCESS");
 			responseMessage.setErrors(errors);
 			responseMessage.setWarnings(warnings);
 			return responseMessage;
 		}catch(Exception e) {
+			existingWorkspace.setLastModifiedOn(new Date());
 			MessageDescription message = new MessageDescription();
 			message.setMessage("Failed to delete workspace with error : " + e.getMessage());
 			errors.add(message);
@@ -1342,7 +1356,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		WorkspaceUpdateDto updateRequest = new WorkspaceUpdateDto();
 		try {
 			updateRequest.setDescription(existingFabricWorkspace.getDescription());
-			updateRequest.setDisplayName(existingFabricWorkspace.getName());
+			updateRequest.setDisplayName(existingFabricWorkspace.getName());		
 			WorkspaceDetailDto updateResponse = fabricWorkspaceClient.updateWorkspace(existingFabricWorkspace.getId(), updateRequest);
 		}catch(Exception e) {
 			log.error("Failed to update project {} details in MicrosoftFabric, Will be updated in next action.", existingFabricWorkspace.getId());

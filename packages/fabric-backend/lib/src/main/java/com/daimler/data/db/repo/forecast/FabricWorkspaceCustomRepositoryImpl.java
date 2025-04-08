@@ -50,10 +50,8 @@ public class FabricWorkspaceCustomRepositoryImpl extends CommonDataRepositoryImp
 	@Override
 	public long getTotalCount(String userId) {
 		String user = userId.toLowerCase();
-		String getCountStmt = "SELECT count(*) FROM fabric_workspace_nsql " + 
-                      "WHERE (lower(jsonb_extract_path_text(data, 'createdBy', 'id')) = '" + user + "' " + 
-                      "OR lower(COALESCE(jsonb_extract_path_text(data, 'initiatedBy'), '')) = '" + user + "')";
-
+		String getCountStmt = " select count(*) from fabric_workspace_nsql where  (lower(jsonb_extract_path_text(data,'createdBy','id')) = '"
+				+ user + "') " + "AND lower(jsonb_extract_path_text(data, 'state')) <> 'DELETED'";
 		Query q = em.createNativeQuery(getCountStmt);
 		BigInteger results = (BigInteger) q.getSingleResult();
 		return results.longValue();
@@ -64,7 +62,8 @@ public class FabricWorkspaceCustomRepositoryImpl extends CommonDataRepositoryImp
 		String user = userId.toLowerCase();
 		String getAllStmt = "SELECT cast(id AS text), cast(data AS text) FROM fabric_workspace_nsql " + 
                     "WHERE (lower(COALESCE(jsonb_extract_path_text(data, 'createdBy', 'id'), '')) = '" + user + "' " +
-                    "OR lower(COALESCE(jsonb_extract_path_text(data, 'initiatedBy'), '')) = '" + user + "')";
+                    "OR lower(COALESCE(jsonb_extract_path_text(data, 'initiatedBy'), '')) = '" + user + "')" +
+					"AND lower(jsonb_extract_path_text(data, 'state')) <> 'DELETED'";
 
 		if (limit > 0)
 			getAllStmt = getAllStmt + " limit " + limit;
@@ -89,4 +88,20 @@ public class FabricWorkspaceCustomRepositoryImpl extends CommonDataRepositoryImp
 		return convertedResults;
 	}
 
+	public FabricWorkspaceNsql getById(String workspaceId) {
+		String getByIdStmt = "SELECT cast(id AS text), cast(data AS text) FROM fabric_workspace_nsql " +
+				"WHERE id = :workspaceId " +
+				"AND lower(jsonb_extract_path_text(data, 'state')) <> 'deleted'";
+
+		Query q = em.createNativeQuery(getByIdStmt, FabricWorkspaceNsql.class);
+		q.setParameter("workspaceId", workspaceId);
+		FabricWorkspaceNsql workspace = null;
+		try {
+			workspace = (FabricWorkspaceNsql) q.getSingleResult();
+			return workspace;
+		} catch (Exception e) {
+			log.error("Failed while fetching workspace information: {}", e.getMessage());
+			return null;
+		}
+	}
 }
