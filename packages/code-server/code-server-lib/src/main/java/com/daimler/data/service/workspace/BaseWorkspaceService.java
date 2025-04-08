@@ -1766,8 +1766,8 @@ import com.daimler.data.util.ConstantsUtility;
 						deploymentDetails.setScope(scope);						
 					authenticatorClient.callingKongApis(workspaceId, serviceName, environment, isApiRecipe, clientID,clientSecret,redirectUri, ignorePaths, scope, oneApiVersionShortName, isSecuredWithCookie, isSecureWithIAMRequired, cloudServiceProvider);
 					}
-					deploymentDetails.setLastDeployedBranch(branch);
-					deploymentDetails.setLastDeployedVersion(version);					
+					// deploymentDetails.setLastDeployedBranch(branch);
+					// deploymentDetails.setLastDeployedVersion(version);					
 					deploymentDetails.setLastDeploymentStatus("DEPLOY_REQUESTED");
 					
 					status = "SUCCESS";
