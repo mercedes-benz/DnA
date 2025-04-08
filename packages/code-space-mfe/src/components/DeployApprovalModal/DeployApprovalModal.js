@@ -36,6 +36,7 @@ const DeployApprovalModal = (props) => {
       // technicalUserDetailsForIAMLogin: secureWithIAMSelected ? iamTechnicalUserID : null,
       targetEnvironment: 'prod', // int or prod
       branch: auditLogs?.[0]?.branch,
+      version: auditLogs?.[0]?.version || '',
       // valutInjectorEnable: vaultEnabled,
       clientID: deploymentDetails?.secureWithIAMRequired ? deploymentDetails?.clientId : '',
       clientSecret: clientSecret,
@@ -136,7 +137,7 @@ const DeployApprovalModal = (props) => {
                   <div>
                     <label className={classNames(Styles.label)}>Branch</label>
                     <div>
-                      <label className={classNames('chips', Styles.Chips)}>{auditLogs?.[0]?.branch || 'N/A'}</label>
+                      <label className={classNames('chips', Styles.Chips)}>{auditLogs?.[0]?.branch ? `${auditLogs?.[0]?.branch}${auditLogs?.[0]?.version?.length ? ` | ${auditLogs?.[0]?.version}` :''}` : 'N/A'}</label>
                     </div>
                   </div>
                   <div>

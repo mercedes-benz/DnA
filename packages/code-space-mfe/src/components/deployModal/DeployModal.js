@@ -72,6 +72,7 @@ const DeployModal = (props) => {
   const projectDetails = props.codeSpaceData?.projectDetails;
   const collaborator = projectDetails?.projectCollaborators?.find((collaborator) => {return collaborator?.id === props?.userInfo?.id });
   const isOwner = projectDetails?.projectOwner?.id === props.userInfo.id || collaborator?.isAdmin;
+  const isApprover = projectDetails?.projectOwner?.id === props.userInfo.id || collaborator?.isApprover;
   const intDeployLogs = (projectDetails?.intDeploymentDetails?.deploymentAuditLogs)?.filter((item) => item?.branch) || [] ;
   const prodDeployLogs = (projectDetails?.prodDeploymentDetails?.deploymentAuditLogs)?.filter((item) => item?.branch) || [];
   const intDeploymentMigrated = projectDetails?.intDeploymentDetails?.deploymentUrl?.includes(Envs.CODESPACE_OIDC_POPUP_URL);
@@ -438,7 +439,7 @@ const DeployModal = (props) => {
               )}
             </div>
           </div>
-          {/* {(props.enableSecureWithIAM || props.isUIRecipe) && ( */}
+          {(!projectDetails?.dataGovernance?.enableDeployApproval || isApprover)  && (
             <>
                   <div className={classNames(Styles.threeColumnFlexLayout)}>
                     <div>
@@ -652,7 +653,7 @@ const DeployModal = (props) => {
                     </>
                   )}
             </>
-
+          )}
           {props.startDeployLivelinessCheck && (
             <div>
               <label className="checkbox">
