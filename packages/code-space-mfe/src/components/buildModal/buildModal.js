@@ -10,12 +10,13 @@ import { CodeSpaceApiClient } from '../../apis/codespace.api';
 import SelectBox from 'dna-container/SelectBox';
 import Modal from 'dna-container/Modal';
 import { SESSION_STORAGE_KEYS } from '../../Utility/constants.js';
-import { regionalDateAndTimeConversionSolution } from '../../Utility/utils';
+import { regionalDateAndTimeConversionSolution, buildGitJobLogViewURL, buildGitJobLogViewAWSURL } from '../../Utility/utils';
 import TextBox from 'dna-container/TextBox';
 import Tags from 'dna-container/Tags';
 import Tooltip from '../../common/modules/uilab/js/src/tooltip';
 import Pagination from 'dna-container/Pagination';
 import DeployModal from '../deployModal/DeployModal';
+import { Envs } from '../../Utility/envs';
 
 const BuildModal = (props) => {
 
@@ -37,6 +38,8 @@ const BuildModal = (props) => {
   const [buildDetails, setBuildDetails] = useState('');
 
   const projectDetails = props.codeSpaceData?.projectDetails;
+  const intDeploymentMigrated = props.codeSpaceData?.projectDetails?.intDeploymentDetails?.deploymentUrl?.includes(Envs.CODESPACE_AWS_POPUP_URL);
+  const prodDeploymentMigrated = props.codeSpaceData?.projectDetails?.prodDeploymentDetails?.deploymentUrl?.includes(Envs.CODESPACE_AWS_POPUP_URL);
 
   useEffect(() => {
     Tooltip.defaultSetup();
@@ -256,10 +259,13 @@ const BuildModal = (props) => {
               </div>
               <div className={Styles.btnGrp}>
                 <button
-                  className={'btn btn-primary ' + classNames(allLogs[0]?.buildStatus==='BUILD_REQUESTED' ? '' : Styles.triggerBtn)}
+                  className={
+                    'btn btn-primary ' +
+                    classNames(allLogs[0]?.buildStatus === 'BUILD_REQUESTED' ? '' : Styles.triggerBtn)
+                  }
                   type="button"
                   onClick={onBuildTrigger}
-                  disabled={allLogs[0]?.buildStatus==='BUILD_REQUESTED'}
+                  disabled={allLogs[0]?.buildStatus === 'BUILD_REQUESTED'}
                 >
                   Build
                 </button>
@@ -322,19 +328,42 @@ const BuildModal = (props) => {
                         <td>
                           <a
                             target="_blank"
-                            href={''}
+                            href={
+                              buildEnvironment === 'int'
+                                ? projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' &&
+                                  intDeploymentMigrated
+                                  ? buildGitJobLogViewAWSURL(projectDetails?.intBuildDetails?.gitjobRunID)
+                                  : buildGitJobLogViewURL(projectDetails?.intBuildDetails?.gitjobRunID)
+                                : projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' &&
+                                  prodDeploymentMigrated
+                                ? buildGitJobLogViewAWSURL(projectDetails?.prodBuildDetails?.gitjobRunID)
+                                : buildGitJobLogViewURL(projectDetails?.prodBuildDetails?.gitjobRunID)
+                            }
                             rel="noreferrer"
                             className={classNames(Styles.newLink)}
-                            style={{ color: item?.buildStatus === 'BUILD_SUCCESS' ? '#12e7ab' : item?.buildStatus === 'BUILD_FAILED' ? '#e94d47' : '#f3e537' }}
+                            style={{
+                              color:
+                                item?.buildStatus === 'BUILD_SUCCESS'
+                                  ? '#12e7ab'
+                                  : item?.buildStatus === 'BUILD_FAILED'
+                                  ? '#e94d47'
+                                  : '#f3e537',
+                            }}
                           >
-                            {item?.buildStatus === 'BUILD_SUCCESS' ? 'Success' : item?.buildStatus === 'BUILD_FAILED' ? 'Failed' : 'In Progress'}
+                            {item?.buildStatus === 'BUILD_SUCCESS'
+                              ? 'Success'
+                              : item?.buildStatus === 'BUILD_FAILED'
+                              ? 'Failed'
+                              : 'In Progress'}
                             <i className="icon mbc-icon new-tab small" />
                           </a>
                         </td>
                         <td>{item?.buildOn ? regionalDateAndTimeConversionSolution(item?.buildOn) : 'N/A'}</td>
                         <td>{item?.commitId || 'N/A'}</td>
                         <td>{item?.version || 'N/A'}</td>
-                        <td><label>{item?.comments || 'N/A'}</label></td>
+                        <td>
+                          <label>{item?.comments || 'N/A'}</label>
+                        </td>
                         <td>
                           {item?.buildStatus === 'BUILD_SUCCESS' ? (
                             <button
