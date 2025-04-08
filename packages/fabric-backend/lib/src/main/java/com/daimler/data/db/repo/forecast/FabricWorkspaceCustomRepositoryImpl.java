@@ -51,7 +51,7 @@ public class FabricWorkspaceCustomRepositoryImpl extends CommonDataRepositoryImp
 	public long getTotalCount(String userId) {
 		String user = userId.toLowerCase();
 		String getCountStmt = " select count(*) from fabric_workspace_nsql where  (lower(jsonb_extract_path_text(data,'createdBy','id')) = '"
-				+ user + "') " + "AND lower(jsonb_extract_path_text(data, 'state')) <> 'DELETED'";
+				+ user + "') " + "AND lower(jsonb_extract_path_text(data, 'status', 'state')) <> 'DELETED'";
 		Query q = em.createNativeQuery(getCountStmt);
 		BigInteger results = (BigInteger) q.getSingleResult();
 		return results.longValue();
@@ -63,7 +63,7 @@ public class FabricWorkspaceCustomRepositoryImpl extends CommonDataRepositoryImp
 		String getAllStmt = "SELECT cast(id AS text), cast(data AS text) FROM fabric_workspace_nsql " + 
                     "WHERE (lower(COALESCE(jsonb_extract_path_text(data, 'createdBy', 'id'), '')) = '" + user + "' " +
                     "OR lower(COALESCE(jsonb_extract_path_text(data, 'initiatedBy'), '')) = '" + user + "')" +
-					"AND lower(jsonb_extract_path_text(data, 'state')) <> 'DELETED'";
+					"AND lower(jsonb_extract_path_text(data, 'status', 'state')) <> 'DELETED'";
 
 		if (limit > 0)
 			getAllStmt = getAllStmt + " limit " + limit;
@@ -91,7 +91,7 @@ public class FabricWorkspaceCustomRepositoryImpl extends CommonDataRepositoryImp
 	public FabricWorkspaceNsql getById(String workspaceId) {
 		String getByIdStmt = "SELECT cast(id AS text), cast(data AS text) FROM fabric_workspace_nsql " +
 				"WHERE id = :workspaceId " +
-				"AND lower(jsonb_extract_path_text(data, 'state')) <> 'DELETED'";
+				"AND lower(jsonb_extract_path_text(data, 'status', 'state')) <> 'DELETED'";
 
 		Query q = em.createNativeQuery(getByIdStmt, FabricWorkspaceNsql.class);
 		q.setParameter("workspaceId", workspaceId);
