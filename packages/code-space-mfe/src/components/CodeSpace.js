@@ -375,6 +375,7 @@ const CodeSpace = (props) => {
         const deployingInProgress =
           intDeploymentDetails.lastDeploymentStatus === 'DEPLOY_REQUESTED' ||
           prodDeploymentDetails?.lastDeploymentStatus === 'APPROVAL_PENDING' ||
+          projectDetails?.lastBuildOrDeployedStatus === 'APPROVAL_PENDING' ||
           prodDeploymentDetails.lastDeploymentStatus === 'DEPLOY_REQUESTED';
         // const deployed =
         //   intDeploymentDetails.lastDeploymentStatus === 'DEPLOYED' ||
@@ -539,6 +540,7 @@ const CodeSpace = (props) => {
   const deployingInProgress =
     projectDetails?.intDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED' ||
     prodDeploymentDetails?.lastDeploymentStatus === 'APPROVAL_PENDING' ||
+    projectDetails?.lastBuildOrDeployedStatus === 'APPROVAL_PENDING' ||
     projectDetails?.prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED';
   const securedWithIAMContent = (
     <svg

@@ -23,6 +23,7 @@ import BuildModal from './buildModal/buildModal';
 import { Envs } from '../Utility/envs';
 import ConfirmModal from 'dna-container/ConfirmModal';
 import InfoModal from 'dna-container/InfoModal';
+import DeployApprovalModal from './DeployApprovalModal/DeployApprovalModal';
 
 // export interface IAllCodeSpacesProps {
 //   user: IUserInfo;
@@ -40,6 +41,7 @@ const AllCodeSpaces = (props) => {
         [showNewCodeSpaceModal, setShowNewCodeSpaceModal] = useState(false),
         [showDeployCodeSpaceModal, setShowDeployCodeSpaceModal] = useState(false),
         [showBuildCodeSpaceModal, setShowBuildCodeSpaceModal] = useState(false),
+        [showDeployApprovalModal, setShowDeployApprovalModal] = useState(false),
         [isRetryRequest, setIsRetryRequest] = useState(false),
         [isApiCallTakeTime, setIsApiCallTakeTime] = useState(false),
         [onBoardCodeSpace, setOnBoardCodeSpace] = useState(),
@@ -169,6 +171,11 @@ const AllCodeSpaces = (props) => {
     const onCodeSpaceBuild = (codeSpace) => {
         setOnDeployCodeSpace(codeSpace);
         setShowBuildCodeSpaceModal(true);
+    };
+
+    const onShowDeployApprovalModal = (codeSpace) => {
+        setOnDeployCodeSpace(codeSpace);
+        setShowDeployApprovalModal(true);
     };
 
     const onStartStopCodeSpace = (codeSpace, startSuccessCB, env, manual = false) => {
@@ -462,6 +469,7 @@ const AllCodeSpaces = (props) => {
                                                         onCodeSpaceEdit={onCodeSpaceEdit}
                                                         onShowDeployModal={onCodeSpaceDeploy}
                                                         onShowBuildModal={onCodeSpaceBuild}
+                                                        onShowDeployApprovalModal={onShowDeployApprovalModal}
                                                         onStartStopCodeSpace={onStartStopCodeSpace}
                                                     />
                                                 );
@@ -491,6 +499,7 @@ const AllCodeSpaces = (props) => {
                                                         onCodeSpaceEdit={onCodeSpaceEdit}
                                                         onShowDeployModal={onCodeSpaceDeploy}
                                                         onShowBuildModal={onCodeSpaceBuild}
+                                                        onShowDeployApprovalModal={onShowDeployApprovalModal}
                                                         onStartStopCodeSpace={onStartStopCodeSpace}
                                                     />
                                                 );
@@ -591,6 +600,15 @@ const AllCodeSpaces = (props) => {
                     setIsApiCallTakeTime={setIsApiCallTakeTime}
                     navigateSecurityConfig={navigateSecurityConfig}
                 />
+            )}
+            {showDeployApprovalModal && (
+                    <DeployApprovalModal
+                      show={showDeployApprovalModal}
+                      setShowDeployApprovalModal={setShowDeployApprovalModal}
+                      codeSpaceData = {onDeployCodeSpace}
+                      setCodeDeploying={() => getCodeSpacesData()}
+                      setIsApiCallTakeTime={setIsApiCallTakeTime}
+                    />
             )}
             {isApiCallTakeTime && (
                 <ProgressWithMessage
