@@ -13,10 +13,10 @@ image:
   ##
   pullPolicy: IfNotPresent
 
-fullnameOverride: "minerva-db-dev"
+fullnameOverride: "minerva-db-prod"
 ## PostgreSQL replica count
 ##
-replicaCount: 1
+replicaCount: 2
 
 printEnv: true
 
@@ -335,7 +335,7 @@ backup:
     size: 1Gi
     # storageClass: cinder
   file:
-    name: minerva-dev-backup
+    name: minerva-prod-backup
     # label: test
 
 ## PostgreSQL restore configuration
@@ -471,7 +471,8 @@ antiAffinity:
   enabled: true
 
 podDisruptionBudget:
-  enabled: false
+  enabled: true
+  maxUnavailable: "50%"
 
 terminationGracePeriodSeconds: 300
 
