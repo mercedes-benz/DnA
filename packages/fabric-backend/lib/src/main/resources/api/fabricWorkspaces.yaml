@@ -838,7 +838,8 @@ definitions:
           roleName:
             type: string
             pattern: "^[A-Za-z0-9]+[A-Za-z0-9._-]{1,60}$"
-
+          isDynamic:
+            type: boolean
   DnaRoleCollectionVO:
     type: object
     properties:
@@ -847,8 +848,17 @@ definitions:
         properties:
           roles:
             type: array
-            items: 
-              type: string
+            items:
+              $ref: "#/definitions/DnaRolesVO" 
+               
+
+  DnaRolesVO:
+    type: object
+    properties:
+        isDynamic:
+          type: boolean
+        roleID:
+          type: string
 
 
     
