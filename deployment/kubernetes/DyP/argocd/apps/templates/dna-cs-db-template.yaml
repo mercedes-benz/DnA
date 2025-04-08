@@ -1,0 +1,46 @@
+{{- if eq .Values.env "prod" }} 
+{{- $annotations := .Values.annotations -}}
+{{- $ns := .Values.namespace -}}
+{{- $env := .Values.env -}}
+{{- $server := .Values.server -}}
+{{- $repoURL := .Values.repoURL -}}
+{{- $repoBranch := .Values.branch -}}
+{{- range .Values.db }}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  {{- with $annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  name: dna-cs-{{.name}}-db-{{.env}}
+  namespace: {{ $ns }}
+  labels:
+    name: db
+    env: {{ $env }}
+    project: {{ $env }}-dna
+spec:
+  destination:
+    namespace: cs-apps-services
+    server: {{ $server | squote }}
+  source:
+    path: deployment/kubernetes/DyP/i3/postgresql-helm
+    repoURL: {{ $repoURL | squote }}
+    targetRevision: {{ $repoBranch }}
+    plugin:
+      name: argocd-vault-plugin-helm
+      env:
+        - name: HELM_ARGS
+          value: -f values-minerva-db-dev.yaml --set namespace=cs-apps-services             
+  project: {{ $env }}-dna
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - ApplyOutOfSyncOnly=true
+      - CreateNamespace=true
+      - RespectIgnoreDifferences=true
+---
+{{- end }}  
+{{- end -}}
