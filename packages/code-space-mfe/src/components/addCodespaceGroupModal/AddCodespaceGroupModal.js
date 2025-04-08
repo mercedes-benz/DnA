@@ -86,11 +86,11 @@ const AddCodespaceGroupModal = ({ edit, group, onSave }) => {
     let success = true;
     if(groupName.length === 0) {
       success = false;
-      setErrors({...errors, groupName: '*Missing entry'});
+      setErrors(prevError => { return {...prevError, groupName: '*Missing entry'}});
     }
     if(selectedCodeSpaces.length === 0) {
       success = false;
-      setErrors({...errors, codespaces: '*Missing entry'});
+      setErrors(prevError => { return {...prevError, codespaces: '*Missing entry'}});
     }
     return success;
   }
