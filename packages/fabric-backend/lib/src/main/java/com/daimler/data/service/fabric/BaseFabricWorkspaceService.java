@@ -1327,22 +1327,18 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 			// super.deleteById(id);
 			if (existingWorkspace != null) {
 				existingWorkspace.getStatus().setState("DELETED");
-			
-				try {
 					SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
 					Date now = isoFormat.parse(isoFormat.format(new Date()));
 					existingWorkspace.setLastModifiedOn(now);
-				} catch (ParseException e) {
-					existingWorkspace.setLastModifiedOn(new Date());
-				}
-				FabricWorkspaceNsql updatedEntity = assembler.toEntity(existingWorkspace);
-				jpaRepo.save(updatedEntity);
+					FabricWorkspaceNsql updatedEntity = assembler.toEntity(existingWorkspace);
+					jpaRepo.save(updatedEntity);
 			}
 			responseMessage.setSuccess("SUCCESS");
 			responseMessage.setErrors(errors);
 			responseMessage.setWarnings(warnings);
 			return responseMessage;
 		}catch(Exception e) {
+			existingWorkspace.setLastModifiedOn(new Date());
 			MessageDescription message = new MessageDescription();
 			message.setMessage("Failed to delete workspace with error : " + e.getMessage());
 			errors.add(message);
