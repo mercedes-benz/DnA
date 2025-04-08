@@ -30,7 +30,6 @@ import { setRippleAnimation } from '../../common/modules/uilab/js/src/util';
 import { marked } from 'marked';
 import { Envs } from '../../Utility/envs';
 import Tooltip from '../../common/modules/uilab/js/src/tooltip';
-import DeployApprovalModal from '../DeployApprovalModal/DeployApprovalModal';
 
 // interface CodeSpaceCardItemProps {
 //   userInfo: IUserInfo;
@@ -92,7 +91,6 @@ const CodeSpaceCardItem = (props) => {
   const enableReadMe =  Envs.CODESPACE_RECIEPES_ENABLE_README?.split(',')?.includes(codeSpace?.projectDetails?.recipeDetails?.Id) || false;
   const [showMigrateOrStartModal, setShowMigrateOrStartModal] = useState(false);
   const [showOnPremStartModal, setShowOnPremStartModal] = useState(false);
-  const [showDeployApprovalModal, setShowDeployApprovalModal] = useState(false);
 
   useEffect(() => {
     CodeSpaceApiClient.getBuildAndDeployLogs(codeSpace?.projectDetails?.projectName)
@@ -159,9 +157,6 @@ const CodeSpaceCardItem = (props) => {
     }
   };
 
-  const handleDeployApprovalClick = () => {
-    setShowDeployApprovalModal(true); 
-  };
   
   useEffect(() => {
     Tooltip.defaultSetup();
@@ -1462,11 +1457,11 @@ const CodeSpaceCardItem = (props) => {
                     <i className="icon mbc-icon edit"></i>
                   </button>
                 )}
-                 {isApprover && !disableDeployment && approvalPending && (
+                 {isApprover && !disableDeployment && prodDeploymentDetails?.lastDeploymentStatus === 'APPROVAL_PENDING' && (
                     <button
-                      className={classNames('btn btn-primary', Styles.tutorials)}
+                      className={classNames('btn btn-primary')}
                       tooltip-data="Deployment Approval"
-                      onClick={handleDeployApprovalClick}
+                      onClick={()=>{props.onShowDeployApprovalModal(codeSpace)}}
                     >
                       <i className={classNames('icon mbc-icon back_files', Styles.trainingIcon)} />
                     </button>
@@ -1577,14 +1572,6 @@ const CodeSpaceCardItem = (props) => {
           setShowRestartModal(false);
         }}
       />)}
-
-      {showDeployApprovalModal && (
-        <DeployApprovalModal
-          show={showDeployApprovalModal}
-          setShowDeployApprovalModal={setShowDeployApprovalModal}
-          codeSpaceData = {codeSpace}
-        />
-      )}
 
       { showMigrateOrStartModal && (
         <ConfirmModal
