@@ -91,7 +91,7 @@ public class FabricWorkspaceCustomRepositoryImpl extends CommonDataRepositoryImp
 	public FabricWorkspaceNsql getById(String workspaceId) {
 		String getByIdStmt = "SELECT cast(id AS text), cast(data AS text) FROM fabric_workspace_nsql " +
 				"WHERE id = :workspaceId " +
-				"AND lower(jsonb_extract_path_text(data, 'state')) <> 'deleted'";
+				"AND lower(jsonb_extract_path_text(data, 'state')) <> 'DELETED'";
 
 		Query q = em.createNativeQuery(getByIdStmt, FabricWorkspaceNsql.class);
 		q.setParameter("workspaceId", workspaceId);
