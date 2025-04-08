@@ -64,7 +64,7 @@ public interface WorkspaceService {
 	GenericMessage update(String userId, String name, String projectName, String existingStatus, String latestStatus, String targetEnv, String branch, String gitJobRunId,String version);
 
 	GenericMessage approveRequestWorkspace(String userId, String id, String environment, String branch, boolean isSecureWithIAMRequired, 
-		String clientID, String clientSecret, String redirectUri, String ignorePaths, String scope,boolean isApiRecipe,String oneApiVersionShortName, boolean isSecuredWithCookie, boolean isprivateRecipe);
+		String clientID, String clientSecret, String redirectUri, String ignorePaths, String scope,boolean isApiRecipe,String oneApiVersionShortName, boolean isSecuredWithCookie, boolean isprivateRecipe,String version);
 
 	GenericMessage deployWorkspace(String userId, String id, String environment, String branch, boolean isSecureWithIAMRequired, 
 		String clientID, String clientSecret, String redirectUri, String ignorePaths, String scope,boolean isApiRecipe,String oneApiVersionShortName, boolean isSecuredWithCookie, boolean isprivateRecipe,String version);
