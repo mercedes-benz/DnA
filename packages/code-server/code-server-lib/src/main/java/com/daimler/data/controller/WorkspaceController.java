@@ -1131,7 +1131,7 @@ import org.springframework.beans.factory.annotation.Value;
 				   deployRequestDto.setRepo(vo.getProjectDetails().getRecipeDetails().getRepodetails());
 				}
 				String environment = "int";
-				String branch = "main";
+				String branch = "";
 				if (deployRequestDto != null && !"int".equalsIgnoreCase(deployRequestDto.getTargetEnvironment().name())) {
 					environment = "prod";
 				}
@@ -1211,7 +1211,7 @@ import org.springframework.beans.factory.annotation.Value;
 						   deployRequestDto.getClientSecret(), deployRequestDto.getRedirectUri(),
 						   deployRequestDto.getIgnorePaths(), deployRequestDto.getScope(),
 						   deployRequestDto.isIsApiRecipe(), deployRequestDto.getOneApiVersionShortName(),
-						   deployRequestDto.isIsSecuredWithCookie(), isPrivateRecipe);
+						   deployRequestDto.isIsSecuredWithCookie(), isPrivateRecipe,deployRequestDto.getVersion());
 				   log.info("User {} deployed workspace {} project {}", userId, vo.getWorkspaceId(),
 						   vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
 				   log.info("workspace deployment requires approval");

@@ -1430,7 +1430,7 @@ import com.daimler.data.util.ConstantsUtility;
      public GenericMessage approveRequestWorkspace(String userId, String id, String environment, String branch,
 	 		boolean isSecureWithIAMRequired, String clientID, String clientSecret, String redirectUri,
 	 		String ignorePaths, String scope, boolean isApiRecipe,
-	 		String oneApiVersionShortName, boolean isSecuredWithCookie, boolean isprivateRecipe) {
+	 		String oneApiVersionShortName, boolean isSecuredWithCookie, boolean isprivateRecipe,String version) {
          GenericMessage responseMessage = new GenericMessage();
          String status = "FAILED";
          List<MessageDescription> warnings = new ArrayList<>();
@@ -1480,6 +1480,7 @@ import com.daimler.data.util.ConstantsUtility;
                  auditLog.setTriggeredBy(entity.getData().getWorkspaceOwner().getGitUserName());
                  auditLog.setBranch(branch);
                  auditLog.setDeploymentStatus("APPROVAL_PENDING");
+				 auditLog.setVersion(version);
                  auditLogs.add(auditLog);
 
 				 CodeServerBuildDeploy buildDeployLogs = null;
@@ -1702,7 +1703,6 @@ import com.daimler.data.util.ConstantsUtility;
 						auditLog.setTriggeredOn(now);
 						auditLog.setTriggeredBy(entity.getData().getWorkspaceOwner().getGitUserName());
 						auditLog.setBranch(branch);					
-						auditLog.setDeploymentStatus("DEPLOY_REQUESTED");
 					 }
 
 					 GitLatestCommitIdDto commitId =null;
@@ -1754,6 +1754,7 @@ import com.daimler.data.util.ConstantsUtility;
 					 auditLogEntity.setData(buildDeployLogs);
 					 buildDeployRepo.save(auditLogEntity);
 					 
+					 //only deploy flow
 					if(branch.isEmpty() && !version.isEmpty()){
 						deploymentDetails.setSecureWithIAMRequired(isSecureWithIAMRequired);
 						deploymentDetails.setOneApiVersionShortName(oneApiVersionShortName);
