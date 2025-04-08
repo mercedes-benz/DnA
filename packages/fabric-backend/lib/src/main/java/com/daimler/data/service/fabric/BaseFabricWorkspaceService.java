@@ -75,6 +75,7 @@ import com.daimler.data.dto.fabricWorkspace.ShortcutVO;
 import com.daimler.data.service.common.BaseCommonService;
 import com.daimler.data.util.ConstantsUtility;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.daimler.data.dto.fabricWorkspace.DnaRolesVO;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -1626,7 +1627,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 					log.error("Failed to create role, Role Already Exists");
 					return response;
 			}else{
-				RoleDetailsVO roleDetail = this.callGenericRoleCreate(roleRequestVO.getData().getRoleName());
+				RoleDetailsVO roleDetail = this.callGenericRoleCreate(roleRequestVO.getData().getRoleName(), roleRequestVO.getData().isIsDynamic());
 				if(ConstantsUtility.CREATED_STATE.equalsIgnoreCase(roleDetail.getState())) {
 					//assign Role Owner privileges
 					if(roleDetail.getRoleOwner()==null || "".equalsIgnoreCase(roleDetail.getRoleOwner())) {
@@ -1742,7 +1743,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		return requestedEntitlement;
 	}
 
-	public CreateRoleRequestDto prepareGenericRoleCreateRequestDto(String roleName) {
+	public CreateRoleRequestDto prepareGenericRoleCreateRequestDto(String roleName, boolean isDynamic) {
 		String[] communityAvailabilitySplits = communityAvailability.split(",");
 		AccessReviewDto accessReview = new AccessReviewDto();
 		accessReview.setEnabled(true);
@@ -1765,7 +1766,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		roleRequestDto.setDefaultValidityType("OPTIONAL");
 		roleRequestDto.setDeprovisioning(false);
 		roleRequestDto.setDescription("Generic DNA role");
-		roleRequestDto.setDynamic(false);
+		roleRequestDto.setDynamic(isDynamic);
 		roleRequestDto.setGlobalCentralAvailable(true);
 		roleRequestDto.setId(roleName);
 		roleRequestDto.setJobTitle(false);
@@ -1783,8 +1784,8 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		return roleRequestDto;
 	}
 	
-	public RoleDetailsVO callGenericRoleCreate(String roleName) {
-		CreateRoleRequestDto createRequestDto = this.prepareGenericRoleCreateRequestDto(roleName);
+	public RoleDetailsVO callGenericRoleCreate(String roleName, boolean isDynamic) {
+		CreateRoleRequestDto createRequestDto = this.prepareGenericRoleCreateRequestDto(roleName, isDynamic);
 		RoleDetailsVO createRoleVO = new RoleDetailsVO();
 		createRoleVO.setName(roleName);
 		try {
@@ -1810,11 +1811,11 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 public DnaRoleCollectionVO getAllUserDnaRoles(String id, String authToken) {
     DnaRoleCollectionVO dnaRoleCollection = new DnaRoleCollectionVO();
 	DnaRoleCollectionVOData data = new DnaRoleCollectionVOData();
-    List<String> roles = new ArrayList<>();
+    List<DnaRolesVO> roles = new ArrayList<>();
     try {
-        List<String> roleList = identityClient.getAllUserManagableRoles(id, authToken);
+        List<DnaRolesVO> roleList = identityClient.getAllUserManagableRoles(id, authToken);
         roles = roleList.stream()
-                        .filter(role -> role.startsWith("DNA_"))
+                        .filter(role -> role.getData().getRoleID().startsWith("DNA_"))
                         .collect(Collectors.toList());
         	data.setRoles(roles);
         dnaRoleCollection.setData(data);
