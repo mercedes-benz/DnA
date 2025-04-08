@@ -723,6 +723,58 @@ const AllCodeSpaces = (props) => {
                     </div>
                 )}
             </div>
+            {showAddCodespaceGroupModal && (
+                <Modal
+                    title={'Add Code Space Group'}
+                    hiddenTitle={true}
+                    showAcceptButton={false}
+                    showCancelButton={false}
+                    modalWidth="800px"
+                    show={showAddCodespaceGroupModal}
+                    content={<AddCodespaceGroupModal onSave={() => { setShowAddCodespaceGroupModal(false); getCodeSpaceGroupsData(); getCodeSpacesData(); }}/>}
+                    scrollableContent={true}
+                    onCancel={() => { setShowAddCodespaceGroupModal(false) }}
+                />
+            )}
+            {showEditCodespaceGroupModal && (
+                <Modal
+                    title={'Edit Code Space Group'}
+                    hiddenTitle={true}
+                    showAcceptButton={false}
+                    showCancelButton={false}
+                    modalWidth="800px"
+                    show={showEditCodespaceGroupModal}
+                    content={<AddCodespaceGroupModal edit={true} group={selectedCodeSpaceGroup} onSave={() => { setShowEditCodespaceGroupModal(false); getCodeSpaceGroupsData(); getCodeSpacesData(); }}/>}
+                    scrollableContent={true}
+                    onCancel={() => { setShowEditCodespaceGroupModal(false) }}
+                />
+            )}
+            {showCodespacesModal && (
+                <Modal
+                    title={'Codespaces'}
+                    hiddenTitle={true}
+                    showAcceptButton={false}
+                    showCancelButton={false}
+                    modalWidth="90%"
+                    show={showCodespacesModal}
+                    content={codespacesModalContent}
+                    scrollableContent={true}
+                    onCancel={() => { setShowCodespacesModal(false) }}
+                />
+            )}
+            {showDeleteCodespaceGroupModal && (
+                <ConfirmModal
+                    title={'Delete Code Space Group'}
+                    acceptButtonTitle="Yes"
+                    cancelButtonTitle={'No'}
+                    showAcceptButton={true}
+                    showCancelButton={true}
+                    show={showDeleteCodespaceGroupModal}
+                    content={deleteCodeSpaceGroupContent}
+                    onCancel={() => setShowDeleteCodespaceGroupModal(false)}
+                    onAccept={deleteCodeSpaceGroupAccept}
+                />
+            )}
             {showNewCodeSpaceModal && (
                 <Modal
                     title={''}
@@ -829,58 +881,6 @@ const AllCodeSpaces = (props) => {
                     show={showAwsFAQModal}
                     content={FAQModalContent}
                     onCancel={() => setShowAwsFAQModal(false)}
-                />
-            )}
-            {showAddCodespaceGroupModal && (
-                <Modal
-                    title={'Add Code Space Group'}
-                    hiddenTitle={true}
-                    showAcceptButton={false}
-                    showCancelButton={false}
-                    modalWidth="800px"
-                    show={showAddCodespaceGroupModal}
-                    content={<AddCodespaceGroupModal onSave={() => { setShowAddCodespaceGroupModal(false); getCodeSpaceGroupsData(); getCodeSpacesData(); }}/>}
-                    scrollableContent={true}
-                    onCancel={() => { setShowAddCodespaceGroupModal(false) }}
-                />
-            )}
-            {showEditCodespaceGroupModal && (
-                <Modal
-                    title={'Edit Code Space Group'}
-                    hiddenTitle={true}
-                    showAcceptButton={false}
-                    showCancelButton={false}
-                    modalWidth="800px"
-                    show={showEditCodespaceGroupModal}
-                    content={<AddCodespaceGroupModal edit={true} group={selectedCodeSpaceGroup} onSave={() => { setShowEditCodespaceGroupModal(false); getCodeSpaceGroupsData(); getCodeSpacesData(); }}/>}
-                    scrollableContent={true}
-                    onCancel={() => { setShowEditCodespaceGroupModal(false) }}
-                />
-            )}
-            {showCodespacesModal && (
-                <Modal
-                    title={'Codespaces'}
-                    hiddenTitle={true}
-                    showAcceptButton={false}
-                    showCancelButton={false}
-                    modalWidth="90%"
-                    show={showCodespacesModal}
-                    content={codespacesModalContent}
-                    scrollableContent={true}
-                    onCancel={() => { setShowCodespacesModal(false) }}
-                />
-            )}
-            {showDeleteCodespaceGroupModal && (
-                <ConfirmModal
-                    title={'Delete Code Space Group'}
-                    acceptButtonTitle="Yes"
-                    cancelButtonTitle={'No'}
-                    showAcceptButton={true}
-                    showCancelButton={true}
-                    show={showDeleteCodespaceGroupModal}
-                    content={deleteCodeSpaceGroupContent}
-                    onCancel={() => setShowDeleteCodespaceGroupModal(false)}
-                    onAccept={deleteCodeSpaceGroupAccept}
                 />
             )}
         </div>
