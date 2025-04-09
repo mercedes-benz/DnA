@@ -1259,7 +1259,7 @@ const CodeSpaceCardItem = (props) => {
                           </a>
                         </span>
                       )}
-                      {approvalPending && (
+                      {projectDetails?.lastBuildOrDeployedStatus === 'APPROVAL_PENDING' && (
                         
                         <span className={classNames(Styles.statusIndicator, Styles.deploying)}>
 
@@ -1272,11 +1272,11 @@ const CodeSpaceCardItem = (props) => {
                               `Deploment to production requires approval`
                             }
                           >
-                            PENDING...
+                            Pending...
                           </a>
                         </span>
                       )}
-                      {approvalRejected && (
+                      {projectDetails?.lastBuildOrDeployedStatus === 'APPROVAL_REJECTED' && (
                         <span className={classNames(Styles.statusIndicator, Styles.deployFailLink)}>
                           <a
                             href={(codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' && prodDeploymentMigrated) ? buildGitJobLogViewAWSURL(projectDetails?.prodDeploymentDetails?.gitjobRunID) : buildGitJobLogViewURL(projectDetails?.prodDeploymentDetails?.gitjobRunID)}
