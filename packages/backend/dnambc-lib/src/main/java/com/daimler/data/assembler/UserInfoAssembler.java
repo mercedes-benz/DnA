@@ -146,24 +146,28 @@ public class UserInfoAssembler implements GenericAssembler<UserInfoVO, UserInfoN
 			}
 		}
 		String id = vo.getId();
-		UserInfoNsql existingEntity = customRepo.findById(vo.getId()).orElse(null);
+		UserInfoNsql existingEntity = customRepo.findById(id).orElse(null);
 		/* entity.setToken(vo.getToken()); */
 		UserInfo jsonData = new UserInfo();
 		BeanUtils.copyProperties(vo, jsonData);
 
 		List<UserInfoRole> jsonRoles = new ArrayList<>();
+		if(existingEntity == null){
+			jsonData.setRoles(null);
+			jsonData.setFavoriteUsecases(null);
+			jsonData.setIsDeleted(null);
+			jsonData.setDivisionAdmins(null);
+		}
+		else{
 		if (vo.getRoles() != null) {
 			vo.getRoles().stream().forEach(userRoleVO -> {
 				UserInfoRole jsonRole = new UserInfoRole(userRoleVO.getId(), userRoleVO.getName());
 				jsonRoles.add(jsonRole);
 			});
 			jsonData.setRoles(jsonRoles);
-		} else if (existingEntity == null) {
-			jsonData.setRoles(null);
 		} else {
 			jsonData.setRoles(existingEntity.getData().getRoles());
 		}
-
 		if (vo.getFavoriteUsecases() != null) {
 			List<UserFavoriteUseCase> jsonFavUsecases = new ArrayList<>();
 			vo.getFavoriteUsecases().stream().forEach(usecaseVO -> {
@@ -172,26 +176,14 @@ public class UserInfoAssembler implements GenericAssembler<UserInfoVO, UserInfoN
 				jsonFavUsecases.add(jsonFavUsecase);
 			});
 			jsonData.setFavoriteUsecases(jsonFavUsecases);
-		} else if (existingEntity == null) {
-			jsonData.setFavoriteUsecases(null);
 		} else {
 			jsonData.setFavoriteUsecases(existingEntity.getData().getFavoriteUsecases());
 		}
-
-
-		if (existingEntity == null) {
-			jsonData.setIsDeleted(null);
-		} else {
-			jsonData.setIsDeleted(existingEntity.getData().getIsDeleted());
-		}
-
-
-		if(existingEntity == null){
-			jsonData.setDivisionAdmins(null);
-		}
-		else if(vo.getDivisionAdmins() == null){
+		jsonData.setIsDeleted(existingEntity.getData().getIsDeleted());
+		if(vo.getDivisionAdmins() == null){
 			jsonData.setDivisionAdmins(existingEntity.getData().getDivisionAdmins());
 		}
+	}
 		entity.setData(jsonData);
 		return entity;
 	}
