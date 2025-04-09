@@ -83,7 +83,6 @@ const DeployModal = (props) => {
   const version = props?.buildDetails?.version || '';
   const buildOn = regionalDateAndTimeConversionSolution(props?.buildDetails?.buildOn) || '';
   const buildBranch = props?.buildDetails?.branch || '';
-  const artifactId = props?.buildDetails?.artifactId || '';
   const triggeredBy = props?.buildDetails?.triggeredBy || '';
   const buildEnvironment = props?.buildDetails?.environment || '';
   const comment = props?.buildDetails?.comments || '';
@@ -415,8 +414,7 @@ const DeployModal = (props) => {
                       <b>Environment: </b> {buildEnvironment} | 
                       <b> Branch: </b> {buildBranch} | 
                       <b> Triggered By: </b> {triggeredBy} | 
-                      <b> Build On: </b> {buildOn} | 
-                      <b> Artifact id: </b> {artifactId} | 
+                      <b> Build On: </b> {buildOn} |  
                       <b> Version: </b> {version} |
                       <b> Comment: </b> {comment} 
                     </label>
@@ -439,7 +437,7 @@ const DeployModal = (props) => {
               )}
             </div>
           </div>
-          {(!projectDetails?.dataGovernance?.enableDeployApproval || isApprover)  && (
+          {(!projectDetails?.dataGovernance?.enableDeployApproval || isApprover || deployEnvironment==='staging')  && (
             <>
                   <div className={classNames(Styles.threeColumnFlexLayout)}>
                     <div>
