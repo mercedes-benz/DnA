@@ -39,6 +39,8 @@ import com.daimler.data.dto.fabric.RoleIdDto;
 import com.daimler.data.dto.fabric.RoleOwnerPrivilegesDto;
 import com.daimler.data.dto.fabric.UserRoleRequestDto;
 import com.daimler.data.dto.fabricWorkspace.CreatedByVO;
+import com.daimler.data.dto.fabricWorkspace.DnaRolesVO;
+
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -542,9 +544,9 @@ public class AuthoriserClient {
 		return HttpStatus.INTERNAL_SERVER_ERROR;
 	}
 
-	public List<String> getAllUserManagableRoles(String id, String authToken){
+	public List<DnaRolesVO> getAllUserManagableRoles(String id, String authToken){
 
-		List<String> roles = new ArrayList<>();
+		List<DnaRolesVO> roles = new ArrayList<>();
 		try {
 			String token = "";
 			if(authToken!=null && !authToken.trim().equalsIgnoreCase("")) {
@@ -572,8 +574,12 @@ public class AuthoriserClient {
                     if (rolesNode.isArray()) {
                         for (JsonNode roleNode : rolesNode) {
                             String roleId = roleNode.path("id").asText();
+							Boolean isDynamic = roleNode.path("isDynamic").asBoolean();
                             if (!roleId.isEmpty()) {
-                                roles.add(roleId);
+								DnaRolesVO role = new DnaRolesVO();
+								role.setRoleID(roleId);
+								role.setIsDynamic(isDynamic);
+                                roles.add(role);
                             }
                         }
                     }
