@@ -40,7 +40,7 @@ db:
  - name: wbv
    env: dev
  - name: wbv
-   env: int
+   env: test
  - name: wbv
    env: uat 
  - name: minerva
