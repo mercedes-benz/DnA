@@ -294,7 +294,7 @@ const ViewShortcutsModalContent = ({ workspaceId, lakehouseId }) => {
         </div>
         {shortcuts?.map((shortcut) => 
           <div key={shortcut?.name} className={Styles.shortcut}>
-            <div className={classNames(Styles.col1)}>{shortcut?.bucketname}<br />{shortcut?.connectionName && 'Connection Name: ' + shortcut?.connectionName}</div>
+            <div className={classNames(Styles.col1)}><a target="_blank" href={`/#/storage/explorer/${shortcut?.bucketname}`} rel="noreferrer" className={Styles.bucketLink}>{shortcut?.bucketname}</a><br />{shortcut?.connectionName && 'Connection Name: ' + shortcut?.connectionName}</div>
             <div className={classNames(Styles.col2)}>{shortcut?.name} - {shortcut?.path}</div>
             <div className={classNames(Styles.col3)}>
               { shortcut?.bucketpath && <button className={'btn'}><i className="icon mbc-icon new-tab" onClick={() => window.open(shortcut?.bucketpath)} /> Go to Bucket</button> }
