@@ -35,3 +35,15 @@ repositories:
 
   - name: byron-chat
     url: https://git.i.mercedes-benz.com/DNA-CodeSpaces/byron-chat-bot.git
+
+db:
+ - name: wbv
+   env: dev
+ - name: wbv
+   env: int
+ - name: wbv
+   env: uat 
+ - name: minerva
+   env: dev
+ - name: minerva
+   env: prod       
