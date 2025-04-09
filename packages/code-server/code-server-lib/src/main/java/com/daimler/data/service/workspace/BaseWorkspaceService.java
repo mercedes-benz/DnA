@@ -3885,6 +3885,7 @@ import com.daimler.data.util.ConstantsUtility;
 				 deploymentDetails.setLastDeploymentStatus("APPROVAL_REJECTED");
 					workspaceCustomRepository.updateDeploymentDetails(projectName, "prod",
 					deploymentDetails,"APPROVAL_REJECTED");
+					status = "SUCCESS";
 			}
 		} catch (Exception e) {
 			MessageDescription error = new MessageDescription();
