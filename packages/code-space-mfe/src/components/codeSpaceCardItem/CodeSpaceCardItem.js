@@ -1277,7 +1277,7 @@ const CodeSpaceCardItem = (props) => {
                         </span>
                       )}
                       {projectDetails?.lastBuildOrDeployedStatus === 'APPROVAL_REJECTED' && (
-                        <span className={classNames(Styles.statusIndicator, Styles.deployFailLink)}>
+                        <span className={classNames(Styles.statusIndicator, Styles.deployFailed)}>
                           <a
                             href={(codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' && prodDeploymentMigrated) ? buildGitJobLogViewAWSURL(projectDetails?.prodDeploymentDetails?.gitjobRunID) : buildGitJobLogViewURL(projectDetails?.prodDeploymentDetails?.gitjobRunID)}
                             target="_blank"
