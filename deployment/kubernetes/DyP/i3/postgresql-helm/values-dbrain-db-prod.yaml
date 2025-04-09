@@ -1,4 +1,4 @@
-namespace: prod-dna-cs-apps
+namespace: cs-apps-services
 annotations:
   argocdvault: "dna_aws_kv/data/prod/kubernetesSecret/rainDB"
 ## I³ PostgreSQL image version
