@@ -57,7 +57,7 @@ public interface WorkspaceCustomRepository extends CommonDataRepository<CodeServ
 	CodeServerWorkspaceNsql findbyProjectName(String userId, String projectName);
 
 	GenericMessage updateDeploymentDetails(String projectName, String environment,
-			CodeServerDeploymentDetails deploymentDetails);
+			CodeServerDeploymentDetails deploymentDetails,String lastBuildOrDeployStatus);
 
 	GenericMessage updateBuildDetails(String projectName, String environment,CodeServerBuildDetails buildDetails);		
 
