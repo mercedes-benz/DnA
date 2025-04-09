@@ -49,7 +49,8 @@ const AliceRoleRequest = () => {
       const value = Envs.ALICE_APP_ID + "_" + roleName
       const data = {
         "data": {
-          "roleName": value
+          "roleName": value,
+          "isDynamic": isDynamicRole
         }
       }
 
