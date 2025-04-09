@@ -31,7 +31,7 @@ spec:
       name: argocd-vault-plugin-helm
       env:
         - name: HELM_ARGS
-          value: -f values-minerva-db-dev.yaml --set namespace=cs-apps-services             
+          value: -f values-{{.name}}-db-{{.env}}.yaml --set namespace=cs-apps-services             
   project: {{ $env }}-dna
   syncPolicy:
     automated:
