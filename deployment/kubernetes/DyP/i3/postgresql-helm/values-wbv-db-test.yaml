@@ -13,7 +13,7 @@ image:
   ##
   pullPolicy: IfNotPresent
 
-fullnameOverride: "wbv-db-int"
+fullnameOverride: "dna-cs-wbv-db-int"
 ## PostgreSQL replica count
 ##
 replicaCount: 1
