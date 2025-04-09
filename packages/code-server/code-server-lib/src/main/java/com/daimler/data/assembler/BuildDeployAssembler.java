@@ -96,6 +96,7 @@ public class BuildDeployAssembler implements GenericAssembler<CodeServerBuildDep
                         auditDetails.setTriggeredOn(isoFormat.parse(isoFormat.format(audit.getTriggeredOn())));
                     auditDetails.setBranch(audit.getBranch());
                     auditDetails.setCommitId(audit.getCommitId());
+                    auditDetails.setVersion(audit.getVersion());
                     auditDetailsVO.add(auditDetails);
                 }
             }

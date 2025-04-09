@@ -366,7 +366,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 
 	
 	@Override
-	public GenericMessage updateDeploymentDetails(String projectName, String environment, CodeServerDeploymentDetails deploymentDetails) {
+	public GenericMessage updateDeploymentDetails(String projectName, String environment, CodeServerDeploymentDetails deploymentDetails,String lastBuildOrDeployStatus) {
 		GenericMessage updateResponse = new GenericMessage();
 		updateResponse.setSuccess("FAILED");
 		List<MessageDescription> errors = new ArrayList<>();
@@ -405,7 +405,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 				" \"lastDeploymentStatus\": " + addQuotes(deploymentDetails.getLastDeploymentStatus()) +"}'),\r\n" + 
 				"'{projectDetails,lastBuildOrDeployedOn}', '" + longdate + "'),\r\n" +
 				"'{projectDetails,lastBuildOrDeployedEnv}', '" + addQuotes(environment) + "'),\r\n" +
-				"'{projectDetails,lastBuildOrDeployedStatus}', '" + addQuotes(deploymentDetails.getLastDeploymentStatus()) + "')\r\n"  ;
+				"'{projectDetails,lastBuildOrDeployedStatus}', '" + addQuotes(lastBuildOrDeployStatus) + "')\r\n"  ;
 
 			// List<DeploymentAudit> deploymentAuditLogs = deploymentDetails.getDeploymentAuditLogs();
 			// updateQuery += ", \"deploymentAuditLogs\" : ";
@@ -483,7 +483,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 
 			updateQuery += "where data->'projectDetails'->>'projectName' = '" + projectName + "'";
 
-			// log.info("updateQuery {}",updateQuery);
+			log.info("updateQuery {}",updateQuery);
 
 		try {
 			Query q = em.createNativeQuery(updateQuery);

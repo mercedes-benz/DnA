@@ -1461,7 +1461,7 @@ import com.daimler.data.util.ConstantsUtility;
                  // deploymentDetails.setTechnicalUserDetailsForIAMLogin(technicalUserDetailsForIAMLogin);
 				 
 				workspaceCustomRepository.updateDeploymentDetails(projectName, environmentJsonbName,
-							 deploymentDetails);
+							 deploymentDetails,"APPROVAL_PENDING");
 				 List<DeploymentAudit> auditLogs = new ArrayList<>();
 					Optional<CodeServerBuildDeployNsql> optionalBuildDeployentity =  buildDeployRepo.findById(projectName.toLowerCase());	
 					if(optionalBuildDeployentity.isPresent()){						
@@ -1596,15 +1596,15 @@ import com.daimler.data.util.ConstantsUtility;
 			 }	
 			 String serviceName = projectName;
 			 String workspaceId = entity.getData().getWorkspaceId();
-
+			 
 			 CodeServerDeploymentDetails deploymentDetails = entity.getData().getProjectDetails().getIntDeploymentDetails();
 					 if (!"int".equalsIgnoreCase(environment)) {
 						 deploymentDetails = entity.getData().getProjectDetails().getProdDeploymentDetails();
 					 }
+			String lastBuildOrDeployStatus = "";		 
 					 		 
 			 //buildAndDeploy flow
 			 if(version == null || version.isEmpty() || version.isBlank()){
-				
 				deploymentDetails.setSecureWithIAMRequired(isSecureWithIAMRequired);
 					 deploymentDetails.setOneApiVersionShortName(oneApiVersionShortName);
 					 deploymentDetails.setIsSecuredWithCookie(isSecuredWithCookie);
@@ -1614,6 +1614,7 @@ import com.daimler.data.util.ConstantsUtility;
 					 deploymentDetails.setIgnorePaths(ignorePaths);
 					 deploymentDetails.setScope(scope);
 				String lastBuildType = "buildAndDeploy";
+				
 				ManageBuildRequestDto buildRequestDto = new ManageBuildRequestDto();
 				buildRequestDto.setBranch(branch);
 				buildRequestDto.setEnvironment(environment);
@@ -1623,6 +1624,7 @@ import com.daimler.data.util.ConstantsUtility;
 				if(responseMessage.getSuccess().equalsIgnoreCase("SUCCESS")){
 					authenticatorClient.callingKongApis(workspaceId, serviceName, environment, isApiRecipe, clientID,clientSecret,redirectUri, ignorePaths, scope, oneApiVersionShortName, isSecuredWithCookie, isSecureWithIAMRequired, cloudServiceProvider);
 					status = "SUCCESS";
+					lastBuildOrDeployStatus = "BUILD_REQUESTED";
 				}else{
 					status = "FAILED";
 				}
@@ -1763,7 +1765,8 @@ import com.daimler.data.util.ConstantsUtility;
 						deploymentDetails.setClientId(clientID);
 						deploymentDetails.setRedirectUri(redirectUri);
 						deploymentDetails.setIgnorePaths(ignorePaths);
-						deploymentDetails.setScope(scope);						
+						deploymentDetails.setScope(scope);
+						lastBuildOrDeployStatus = "DEPLOY_REQUESTED";						
 					authenticatorClient.callingKongApis(workspaceId, serviceName, environment, isApiRecipe, clientID,clientSecret,redirectUri, ignorePaths, scope, oneApiVersionShortName, isSecuredWithCookie, isSecureWithIAMRequired, cloudServiceProvider);
 					}
 					// deploymentDetails.setLastDeployedBranch(branch);
@@ -1776,7 +1779,7 @@ import com.daimler.data.util.ConstantsUtility;
 					 errors.addAll(jobResponse.getErrors());
 				 }
 			 }
-			 workspaceCustomRepository.updateDeploymentDetails(projectName, environment,deploymentDetails);
+			 workspaceCustomRepository.updateDeploymentDetails(projectName, environment,deploymentDetails,lastBuildOrDeployStatus);
 			 }
 		 } catch (Exception e) {
 			 MessageDescription error = new MessageDescription();
@@ -2171,7 +2174,7 @@ import com.daimler.data.util.ConstantsUtility;
 					 }
 					 deploymentDetails.setLastDeploymentStatus("UNDEPLOY_REQUESTED");
 					workspaceCustomRepository.updateDeploymentDetails(projectName, environment,
-							 deploymentDetails);
+							 deploymentDetails,deploymentDetails.getLastDeploymentStatus());
 
 					 List<DeploymentAudit> auditLogs = new ArrayList<>();
 					Optional<CodeServerBuildDeployNsql> optionalBuildDeployentity =  buildDeployRepo.findById(projectName.toLowerCase());	
@@ -2478,7 +2481,7 @@ import com.daimler.data.util.ConstantsUtility;
 					 deploymentDetails.setGitjobRunID(gitJobRunId);	
 					 deploymentDetails.setLastDeployedVersion(version);	
 						 workspaceCustomRepository.updateDeploymentDetails(projectName, targetEnv,
-							 deploymentDetails);	 
+							 deploymentDetails,latestStatus);	 
 						 
 						 //setting audit log details
 					 if(optionalBuildDeployentity.isPresent()){
@@ -2518,7 +2521,7 @@ import com.daimler.data.util.ConstantsUtility;
 					}
 					 
 						 workspaceCustomRepository.updateDeploymentDetails(projectName, targetEnv,
-						 deploymentDetails);
+						 deploymentDetails,latestStatus);
 					 if(optionalBuildDeployentity.isPresent()){
 						 buildDeployentity = optionalBuildDeployentity.get();
 						 buildDeployData = buildDeployentity.getData();
@@ -2590,7 +2593,7 @@ import com.daimler.data.util.ConstantsUtility;
 					 deploymentDetails.setGitjobRunID(gitJobRunId);
 					
 						 workspaceCustomRepository.updateDeploymentDetails(projectName, targetEnv,
-						 deploymentDetails);
+						 deploymentDetails,latestStatus);
 					 if(optionalBuildDeployentity.isPresent()){
 						 buildDeployentity = optionalBuildDeployentity.get();
 						 buildDeployData = buildDeployentity.getData();
@@ -3881,7 +3884,7 @@ import com.daimler.data.util.ConstantsUtility;
 				 buildDeployRepo.save(auditLogEntity);
 				 deploymentDetails.setLastDeploymentStatus("APPROVAL_REJECTED");
 					workspaceCustomRepository.updateDeploymentDetails(projectName, "prod",
-					deploymentDetails);
+					deploymentDetails,"APPROVAL_REJECTED");
 			}
 		} catch (Exception e) {
 			MessageDescription error = new MessageDescription();
