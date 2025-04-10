@@ -14,7 +14,7 @@ metadata:
     project: {{ .Values.env }}-dna
 spec:
   destination:
-    namespace: prod-dna-cs-apps
+    namespace: cs-apps-services
     server: {{ .Values.server | squote }}
   source:
     path: deployment/kubernetes/DyP/i3/postgresql-helm
@@ -24,7 +24,7 @@ spec:
       name: argocd-vault-plugin-helm
       env:
         - name: HELM_ARGS
-          value: -f values-dbrain-db-{{ .Values.env }}.yaml --set namespace={{ .Values.env }}-dna-cs-apps
+          value: -f values-dbrain-db-{{ .Values.env }}.yaml --set namespace=cs-apps-services
   project: {{ .Values.env }}-dna
 {{- if .Values.enableSync }}
   syncPolicy:
