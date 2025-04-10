@@ -42,13 +42,11 @@ public class WorkspaceLogsMigrate {
 				// CodeServerWorkspaceNsql codeserverNsql = customRepository.findByWorkspaceId("ws2572");
 				List<CodeServerWorkspaceNsql> workspaceNsql = customRepository.findAll();
 				for(CodeServerWorkspaceNsql codeserverNsql: workspaceNsql){
-					 if(Objects.nonNull(codeserverNsql)){
-						if(Objects.isNull(codeserverNsql.getData().getIsWorkspaceMigrated()) || !codeserverNsql.getData().getIsWorkspaceMigrated()) {							
+					 if(Objects.nonNull(codeserverNsql)){							
 							if(codeserverNsql.getData().getWorkspaceOwner().getId().equalsIgnoreCase(codeserverNsql.getData().getProjectDetails().getProjectOwner().getId())){
 								log.info("Workspace logs Migration Started for Workspace "+ codeserverNsql.getData().getWorkspaceId());														
 								migrateWorkspaceMsg = service.migrateWorkspaceLogs(codeserverNsql);							
 							}
-						}
 						if(Objects.nonNull(migrateWorkspaceMsg)) {
 							if(Objects.nonNull(migrateWorkspaceMsg.getErrors()) && migrateWorkspaceMsg.getErrors().size() > 0){ 
 							List<MessageDescription> error =	migrateWorkspaceMsg.getErrors();

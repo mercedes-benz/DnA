@@ -3906,9 +3906,22 @@ import com.daimler.data.util.ConstantsUtility;
 		String status = "FAILED";
 		List<MessageDescription> warnings = new ArrayList<>();
 		List<MessageDescription> errors = new ArrayList<>();
+		Boolean deployingInProgress = false;
+			Boolean intDeployingInProgress = false;
+			Boolean prodDeployingInProgress = false;
+			Boolean intDeployed = false;
+			Boolean intCodeDeployFailed = false;
+			Date intLastDeployedTime = new Date(0);
+			Boolean prodDeployed = false;
+			Boolean prodCodeDeployFailed = false;
+			Date prodLastDeployedTime = new Date(0);
+			Boolean deployed = false;
+			Date lastBuildOrDeployedOn = null;
+			String lastBuildOrDeployedStatus = null;
+			String lastBuildOrDeployedEnv = null;
 		try{
-			List<DeploymentAudit> intAuditLogs =  new ArrayList<>();;
-			List<DeploymentAudit> prodAuditLogs =  new ArrayList<>();;
+			List<DeploymentAudit> intAuditLogs =  new ArrayList<>();
+			List<DeploymentAudit> prodAuditLogs =  new ArrayList<>();
 			String projectName = entity.getData().getProjectDetails().getProjectName();
 			if(entity.getData().getProjectDetails().getIntDeploymentDetails().getDeploymentAuditLogs() != null){
 				intAuditLogs.addAll(entity.getData().getProjectDetails().getIntDeploymentDetails().getDeploymentAuditLogs());
@@ -3938,20 +3951,7 @@ import com.daimler.data.util.ConstantsUtility;
 					
 					 auditLogEntity.setData(buildDeployLogs);
 					 buildDeployRepo.save(auditLogEntity);	
-					 
-			Boolean deployingInProgress = false;
-			Boolean intDeployingInProgress = false;
-			Boolean prodDeployingInProgress = false;
-			Boolean intDeployed = false;
-			Boolean intCodeDeployFailed = false;
-			Date intLastDeployedTime	= null;
-			Boolean prodDeployed = false;
-			Boolean prodCodeDeployFailed = false;
-			Date prodLastDeployedTime = null;
-			Boolean deployed = false;
-			Date lastBuildOrDeployedOn;
-			String lastBuildOrDeployedStatus;
-			String lastBuildOrDeployedEnv;
+					
 
 			  if(projectDetails.getIntDeploymentDetails().getLastDeploymentStatus() != null &&
 			  !projectDetails.getIntDeploymentDetails().getLastDeploymentStatus().isBlank()){
@@ -3963,7 +3963,7 @@ import com.daimler.data.util.ConstantsUtility;
 						intLastDeployedTime = projectDetails.getIntDeploymentDetails().getLastDeployedOn();
 					}else if(lastStatus.equalsIgnoreCase("DEPLOYMENT_FAILED")){
 						intCodeDeployFailed = true;
-					}else if(projectDetails.getIntDeploymentDetails().getDeploymentUrl() != null && projectDetails.getIntDeploymentDetails() != "null"){
+					}else if(projectDetails.getIntDeploymentDetails().getDeploymentUrl() != null && projectDetails.getIntDeploymentDetails().getDeploymentUrl() != "null"){
 						intDeployed = true;
 					}
 			  }
@@ -4000,6 +4000,42 @@ import com.daimler.data.util.ConstantsUtility;
 			  if(intDeployed || prodDeployed || intCodeDeployFailed || prodCodeDeployFailed){
 				deployed = true;
 			  }
+			  String wsStatus = entity.getData().getStatus();
+			  if(wsStatus != "CREATE_REQUESTED" && wsStatus != "CREATE_FAILED"){
+					if(deployingInProgress){
+					if(intDeployingInProgress){
+						lastBuildOrDeployedEnv = "int";
+						lastBuildOrDeployedOn = intLastDeployedTime;
+					}else{
+						lastBuildOrDeployedEnv = "prod";
+						lastBuildOrDeployedOn = prodLastDeployedTime;
+					}
+					lastBuildOrDeployedStatus = "DEPLOY_REQUESTED";
+					}else if(deployed){
+						if(intLastDeployedTime.compareTo(prodLastDeployedTime) > 0){
+							if(intCodeDeployFailed){
+								lastBuildOrDeployedStatus = "DEPLOYMENT_FAILED";
+							}else{
+								lastBuildOrDeployedStatus = "DEPLOYED";
+							}
+							lastBuildOrDeployedEnv = "int";
+							lastBuildOrDeployedOn = intLastDeployedTime;
+
+						}else{
+							if(prodCodeDeployFailed){
+								lastBuildOrDeployedStatus = "DEPLOYMENT_FAILED";
+							}else{
+								lastBuildOrDeployedStatus = "DEPLOYED";
+							}
+							lastBuildOrDeployedEnv = "prod";
+							lastBuildOrDeployedOn = prodLastDeployedTime;
+
+						}
+					}
+			  }
+
+			  workspaceCustomRepository.updateLatestBuildOrDeployStatus(lastBuildOrDeployedStatus,lastBuildOrDeployedEnv,
+			  					lastBuildOrDeployedOn,projectDetails.getProjectName());
 
 
 
