@@ -362,10 +362,10 @@ restore:
   s3:
     # subfolder: postgresql-cluster
     ## fill in the bucket name you have ordered!
-    bucketName: dev-db-backups/dbrain-db-backups
+    bucketName: manual-db-changes
 
   ## Complete (including label) file name of backup file that has to be restored.
-  recoveryFile: dbrain-backup-2025-02-23_00-00-17.tar.zst
+  recoveryFile: dbrain-backup-2025-04-10_09-55-14.tar.zst
   image:
     repository: registry-emea.app.corpintra.net/i3-releases/postgresql-backup
     tag: 13.8-5.5.0-2023.2.20
