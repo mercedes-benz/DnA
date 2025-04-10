@@ -124,7 +124,7 @@ public class UiLiciousClient {
                 }else{
                     response.setResponseStatus(httpResponse.getStatusCode());
                     response.setRunId(null);
-                    log.info(" failed while calling uilicious for create subscription with status{}",httpResponse.getStatusCode());
+                    log.info(" failed while calling uilicious for create subscription with status {} and body {}",httpResponse.getStatusCode(),httpResponse.getBody());
                 }
             }
         }catch( JsonProcessingException e){
