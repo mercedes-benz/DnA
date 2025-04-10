@@ -204,7 +204,7 @@ dbusers:
     password: <path:dna_aws_kv/data/prod/kubernetesSecret/rainDB#backup.password>
   ## the database (not the instance) owner
   dbadm:
-    username: db
+    username: dbrain
     password: <path:dna_aws_kv/data/prod/kubernetesSecret/rainDB#dbadm.password>
 
     createSchema:
