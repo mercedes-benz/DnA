@@ -35,8 +35,10 @@ import org.springframework.boot.builder.SpringApplicationBuilder;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.web.WebApplicationInitializer;
+import org.springframework.scheduling.annotation.EnableAsync;
 
 @SpringBootApplication
+@EnableAsync
 @ComponentScan({ "com.daimler.data.db.entities", "com.daimler.data.db.repo", "com.daimler.data.controller",
 		"com.daimler.data.graphql", "com.daimler.data.service", "com.daimler.data.assembler",
 		"com.daimler.data.logging", "com.daimler.data.application.config", "com.daimler.data.util",
@@ -44,7 +46,8 @@ import org.springframework.web.WebApplicationInitializer;
 		"com.daimler.data.application.filter", "com.daimler.data.client.dataiku",
 		"com.daimler.data.application.intercepter", "com.daimler.dna.notifications",
 		"com.daimler.data.application.logging", "com.daimler.data.client.dashboard",
-		"com.daimler.data.adapter.hasura","com.daimler.data.client.teamsApi", "com.daimler.data.client.dnaDss"})
+		"com.daimler.data.adapter.hasura","com.daimler.data.client.teamsApi", "com.daimler.data.client.dnaDss","com.daimler.data.client.uiLicious",
+		"com.daimler.data.application.auth.vault,com.daimler.data.client.promptCraft", "com.daimler.data.client"})
 public class Application extends SpringBootServletInitializer implements WebApplicationInitializer {
 
 	private static final Logger LOG = LoggerFactory.getLogger(Application.class);

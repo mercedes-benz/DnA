@@ -133,6 +133,8 @@ export interface IDescriptionRequest {
   requestedFTECount: number;
   additionalResource: string;
   department: string;
+  leanIXDetails: any;
+  appId: string;
 }
 
 export default class Provisionsolution extends React.Component<IProvisionSolutionProps, IProvisionSolutionState> {
@@ -202,7 +204,9 @@ export default class Provisionsolution extends React.Component<IProvisionSolutio
           dataStrategyDomain: '',
           requestedFTECount: 0,
           additionalResource: '',
-          department: ''
+          department: '',
+          leanIXDetails: {},
+          appId: '',
         },
         openSegments: [],
         team: [],
@@ -551,7 +555,9 @@ export default class Provisionsolution extends React.Component<IProvisionSolutio
         requestedFTECount: solution.description.requestedFTECount,
         skills: solution.neededRoles,
         additionalResource: solution.description.additionalResource,
-        department: solution.description.department
+        department: solution.description.department,
+        leanIXDetails: solution.description.leanIXDetails,
+        appId: solution.description.appId,
       },
     };
     ProgressIndicator.show();
