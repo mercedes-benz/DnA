@@ -244,7 +244,7 @@ service:
 persistence:
   enabled: true
   size: <path:dna_aws_kv/data/prod/kubernetesSecret/rainDB#size>
-  # storageClass: dhc-gp3
+  storageClass: dhc-gp3-retain
   # PVCName: name
   wal:
     enabled: false
@@ -288,7 +288,7 @@ decryptBackupWal:
 ##
 backup:
   enabled: false
-  successfulJobsHistoryLimit: "1"
+  # successfulJobsHistoryLimit: "1"
   ## the storage type, either fs or s3.
   ## This is the target storage where the compressed backup archive file will be stored.
   storage: s3
@@ -301,7 +301,7 @@ backup:
       accessModes:
       - ReadWriteMany
       size: 1Gi
-      storageClass: dhc-gp3
+      storageClass: dhc-gp3-retain
   s3:
     ## Configuration for S3 storage
     # subfolder: postgresql-cluster
