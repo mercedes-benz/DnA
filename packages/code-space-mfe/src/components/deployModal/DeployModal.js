@@ -72,6 +72,7 @@ const DeployModal = (props) => {
   const projectDetails = props.codeSpaceData?.projectDetails;
   const collaborator = projectDetails?.projectCollaborators?.find((collaborator) => {return collaborator?.id === props?.userInfo?.id });
   const isOwner = projectDetails?.projectOwner?.id === props.userInfo.id || collaborator?.isAdmin;
+  const isApprover = projectDetails?.projectOwner?.id === props.userInfo.id || collaborator?.isApprover;
   const intDeployLogs = (projectDetails?.intDeploymentDetails?.deploymentAuditLogs)?.filter((item) => item?.branch) || [] ;
   const prodDeployLogs = (projectDetails?.prodDeploymentDetails?.deploymentAuditLogs)?.filter((item) => item?.branch) || [];
   const intDeploymentMigrated = projectDetails?.intDeploymentDetails?.deploymentUrl?.includes(Envs.CODESPACE_OIDC_POPUP_URL);
@@ -82,7 +83,6 @@ const DeployModal = (props) => {
   const version = props?.buildDetails?.version || '';
   const buildOn = regionalDateAndTimeConversionSolution(props?.buildDetails?.buildOn) || '';
   const buildBranch = props?.buildDetails?.branch || '';
-  const artifactId = props?.buildDetails?.artifactId || '';
   const triggeredBy = props?.buildDetails?.triggeredBy || '';
   const buildEnvironment = props?.buildDetails?.environment || '';
   const comment = props?.buildDetails?.comments || '';
@@ -414,8 +414,7 @@ const DeployModal = (props) => {
                       <b>Environment: </b> {buildEnvironment} | 
                       <b> Branch: </b> {buildBranch} | 
                       <b> Triggered By: </b> {triggeredBy} | 
-                      <b> Build On: </b> {buildOn} | 
-                      <b> Artifact id: </b> {artifactId} | 
+                      <b> Build On: </b> {buildOn} |  
                       <b> Version: </b> {version} |
                       <b> Comment: </b> {comment} 
                     </label>
@@ -438,7 +437,7 @@ const DeployModal = (props) => {
               )}
             </div>
           </div>
-          {/* {(props.enableSecureWithIAM || props.isUIRecipe) && ( */}
+          {(!projectDetails?.dataGovernance?.enableDeployApproval || isApprover || deployEnvironment==='staging')  && (
             <>
                   <div className={classNames(Styles.threeColumnFlexLayout)}>
                     <div>
@@ -652,7 +651,7 @@ const DeployModal = (props) => {
                     </>
                   )}
             </>
-
+          )}
           {props.startDeployLivelinessCheck && (
             <div>
               <label className="checkbox">
