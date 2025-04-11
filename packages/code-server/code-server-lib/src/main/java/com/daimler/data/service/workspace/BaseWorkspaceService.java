@@ -69,7 +69,8 @@ import com.daimler.data.db.json.CodeServerBuildDeploy;
 import com.daimler.data.db.json.CodeServerBuildDetails;
 import com.daimler.data.db.json.CodeServerDeploymentDetails;
  import com.daimler.data.db.json.CodeServerLeanGovernanceFeilds;
- import com.daimler.data.db.json.CodeServerWorkspace;
+import com.daimler.data.db.json.CodeServerProjectDetails;
+import com.daimler.data.db.json.CodeServerWorkspace;
  import com.daimler.data.db.json.CodespaceSecurityConfig;
  import com.daimler.data.db.json.UserInfo;
 import com.daimler.data.db.repo.workspace.WorkSpaceCodeServerBuildDeployRepository;
@@ -3905,20 +3906,30 @@ import com.daimler.data.util.ConstantsUtility;
 		String status = "FAILED";
 		List<MessageDescription> warnings = new ArrayList<>();
 		List<MessageDescription> errors = new ArrayList<>();
-		// CodeServerBuildDeploy buildDeployLogs = null;
-		// 		 CodeServerBuildDeployNsql auditLogEntity = null;
+		Boolean deployingInProgress = false;
+			Boolean intDeployingInProgress = false;
+			Boolean prodDeployingInProgress = false;
+			Boolean intDeployed = false;
+			Boolean intCodeDeployFailed = false;
+			Date intLastDeployedTime = new Date(0);
+			Boolean prodDeployed = false;
+			Boolean prodCodeDeployFailed = false;
+			Date prodLastDeployedTime = new Date(0);
+			Boolean deployed = false;
+			Date lastBuildOrDeployedOn = null;
+			String lastBuildOrDeployedStatus = null;
+			String lastBuildOrDeployedEnv = null;
 		try{
-			List<DeploymentAudit> intAuditLogs =  new ArrayList<>();;
-			List<DeploymentAudit> prodAuditLogs =  new ArrayList<>();;
+			List<DeploymentAudit> intAuditLogs =  new ArrayList<>();
+			List<DeploymentAudit> prodAuditLogs =  new ArrayList<>();
 			String projectName = entity.getData().getProjectDetails().getProjectName();
 			if(entity.getData().getProjectDetails().getIntDeploymentDetails().getDeploymentAuditLogs() != null){
-				// buildDeployLogs.getIntDeploymentAuditLogs().addAll(entity.getData().getProjectDetails().getIntDeploymentDetails().getDeploymentAuditLogs());
 				intAuditLogs.addAll(entity.getData().getProjectDetails().getIntDeploymentDetails().getDeploymentAuditLogs());
 			 }
 			 if(entity.getData().getProjectDetails().getProdDeploymentDetails().getDeploymentAuditLogs() != null){
-				// buildDeployLogs.getProdDeploymentAuditLogs().addAll(entity.getData().getProjectDetails().getProdDeploymentDetails().getDeploymentAuditLogs());
 				prodAuditLogs.addAll(entity.getData().getProjectDetails().getProdDeploymentDetails().getDeploymentAuditLogs());
 			 }
+			 CodeServerProjectDetails projectDetails = entity.getData().getProjectDetails();
 			 if(null == intAuditLogs){
 				 intAuditLogs = new ArrayList<>();
 			 }
@@ -3939,7 +3950,95 @@ import com.daimler.data.util.ConstantsUtility;
 					 buildDeployLogs.getProdDeploymentAuditLogs().addAll(prodAuditLogs);
 					
 					 auditLogEntity.setData(buildDeployLogs);
-					 buildDeployRepo.save(auditLogEntity);	 
+					 buildDeployRepo.save(auditLogEntity);	
+					
+
+			  if(projectDetails.getIntDeploymentDetails().getLastDeploymentStatus() != null &&
+			  !projectDetails.getIntDeploymentDetails().getLastDeploymentStatus().isBlank()){
+				String lastStatus = projectDetails.getIntDeploymentDetails().getLastDeploymentStatus();
+					if(lastStatus.equalsIgnoreCase("DEPLOY_REQUESTED")){
+						intDeployingInProgress = true;
+					}else if(lastStatus.equalsIgnoreCase("DEPLOYED")){
+						intDeployed = true;
+						intLastDeployedTime = projectDetails.getIntDeploymentDetails().getLastDeployedOn();
+					}else if(lastStatus.equalsIgnoreCase("DEPLOYMENT_FAILED")){
+						intCodeDeployFailed = true;
+					}else if(projectDetails.getIntDeploymentDetails().getDeploymentUrl() != null && projectDetails.getIntDeploymentDetails().getDeploymentUrl() != "null"){
+						intDeployed = true;
+					}
+			  }
+			  if(intLastDeployedTime == null && !projectDetails.getIntDeploymentDetails().getDeploymentAuditLogs().isEmpty()){
+				int size = projectDetails.getIntDeploymentDetails().getDeploymentAuditLogs().size();
+				intLastDeployedTime = 	projectDetails.getIntDeploymentDetails().getDeploymentAuditLogs().get(size -1).getTriggeredOn();				
+
+			  }
+
+			  if(projectDetails.getProdDeploymentDetails().getLastDeploymentStatus() != null &&
+			  !projectDetails.getProdDeploymentDetails().getLastDeploymentStatus().isBlank()){
+				String lastStatus = projectDetails.getProdDeploymentDetails().getLastDeploymentStatus();
+					if(lastStatus.equalsIgnoreCase("DEPLOY_REQUESTED")){
+						prodDeployingInProgress = true;
+					}else if(lastStatus.equalsIgnoreCase("DEPLOYED")){						
+						prodDeployed = true;
+						prodLastDeployedTime = projectDetails.getProdDeploymentDetails().getLastDeployedOn();
+					}else if(lastStatus.equalsIgnoreCase("DEPLOYMENT_FAILED")){
+						prodCodeDeployFailed = true;
+					}else if(projectDetails.getProdDeploymentDetails().getDeploymentUrl() != null && projectDetails.getProdDeploymentDetails().getDeploymentUrl() != "null"){
+						prodDeployed = true;
+					}
+			  }
+
+			  if(prodLastDeployedTime == null && !projectDetails.getProdDeploymentDetails().getDeploymentAuditLogs().isEmpty()){
+				int size = projectDetails.getProdDeploymentDetails().getDeploymentAuditLogs().size();
+				prodLastDeployedTime = 	projectDetails.getProdDeploymentDetails().getDeploymentAuditLogs().get(size -1).getTriggeredOn();				
+			  }
+
+			  if(intDeployingInProgress || prodDeployingInProgress){
+				deployingInProgress = true;
+			  }
+
+			  if(intDeployed || prodDeployed || intCodeDeployFailed || prodCodeDeployFailed){
+				deployed = true;
+			  }
+			  String wsStatus = entity.getData().getStatus();
+			  if(wsStatus != "CREATE_REQUESTED" && wsStatus != "CREATE_FAILED"){
+					if(deployingInProgress){
+					if(intDeployingInProgress){
+						lastBuildOrDeployedEnv = "int";
+						lastBuildOrDeployedOn = intLastDeployedTime;
+					}else{
+						lastBuildOrDeployedEnv = "prod";
+						lastBuildOrDeployedOn = prodLastDeployedTime;
+					}
+					lastBuildOrDeployedStatus = "DEPLOY_REQUESTED";
+					}else if(deployed){
+						if(intLastDeployedTime.compareTo(prodLastDeployedTime) > 0){
+							if(intCodeDeployFailed){
+								lastBuildOrDeployedStatus = "DEPLOYMENT_FAILED";
+							}else{
+								lastBuildOrDeployedStatus = "DEPLOYED";
+							}
+							lastBuildOrDeployedEnv = "int";
+							lastBuildOrDeployedOn = intLastDeployedTime;
+
+						}else{
+							if(prodCodeDeployFailed){
+								lastBuildOrDeployedStatus = "DEPLOYMENT_FAILED";
+							}else{
+								lastBuildOrDeployedStatus = "DEPLOYED";
+							}
+							lastBuildOrDeployedEnv = "prod";
+							lastBuildOrDeployedOn = prodLastDeployedTime;
+
+						}
+					}
+			  }
+
+			  workspaceCustomRepository.updateLatestBuildOrDeployStatus(lastBuildOrDeployedStatus,lastBuildOrDeployedEnv,
+			  					lastBuildOrDeployedOn,projectDetails.getProjectName());
+
+
+
 				 
 				 status = "SUCCESS";
 

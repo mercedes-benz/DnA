@@ -449,6 +449,43 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 	}
 
 	@Override
+	public GenericMessage updateLatestBuildOrDeployStatus(String status, String environment,Date date,String projectName){
+
+		GenericMessage updateResponse = new GenericMessage();
+		updateResponse.setSuccess("FAILED");
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+		String longdate = null;
+		if(date!=null)
+			longdate = String.valueOf(date.getTime()) ;
+			
+			String updateQuery = "update workspace_nsql " +
+				"set data =   jsonb_set(jsonb_set(jsonb_set(data,"+ 
+				"'{projectDetails,lastBuildOrDeployedOn}', '" + longdate + "'),\r\n" +
+				"'{projectDetails,lastBuildOrDeployedEnv}', '" + addQuotes(environment) + "'),\r\n" +
+				"'{projectDetails,lastBuildOrDeployedStatus}', '" + addQuotes(status) + "')\r\n"  ;
+
+			updateQuery += "where data->'projectDetails'->>'projectName' = '" + projectName + "'";
+
+			log.info("updateQuery {}",updateQuery);
+
+		try {
+			Query q = em.createNativeQuery(updateQuery);
+			q.executeUpdate();
+			updateResponse.setSuccess("SUCCESS");
+			updateResponse.setErrors(new ArrayList<>());
+			updateResponse.setWarnings(new ArrayList<>());
+			log.info("Latest Build Or Deploy Status successfully for project {} ", projectName);
+		}catch(Exception e) {
+			MessageDescription errMsg = new MessageDescription("Failed while updating Latest Build Or Deploy Status.");
+			errors.add(errMsg);
+			log.error("failed to update Latest Build Or Deploy Status for project {} and environment {} ", projectName,environment);
+		}
+		return updateResponse;
+
+	}
+
+	@Override
 	public GenericMessage updateBuildDetails(String projectName, String environment,CodeServerBuildDetails buildDetails) {
 		GenericMessage updateResponse = new GenericMessage();
 		updateResponse.setSuccess("FAILED");

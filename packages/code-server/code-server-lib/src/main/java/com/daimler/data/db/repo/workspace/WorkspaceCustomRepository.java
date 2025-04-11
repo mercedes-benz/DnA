@@ -27,6 +27,7 @@
 
 package com.daimler.data.db.repo.workspace;
 
+import java.util.Date;
 import java.util.List;
 
 import com.daimler.data.controller.exceptions.GenericMessage;
@@ -59,7 +60,9 @@ public interface WorkspaceCustomRepository extends CommonDataRepository<CodeServ
 	GenericMessage updateDeploymentDetails(String projectName, String environment,
 			CodeServerDeploymentDetails deploymentDetails,String lastBuildOrDeployStatus);
 
-	GenericMessage updateBuildDetails(String projectName, String environment,CodeServerBuildDetails buildDetails);		
+	GenericMessage updateBuildDetails(String projectName, String environment,CodeServerBuildDetails buildDetails);
+	
+	GenericMessage updateLatestBuildOrDeployStatus(String status, String environment,Date date,String projectName);
 
 	GenericMessage  updateRecipeDetails(CodeServerWorkspaceNsql codeServerWorkspaceNsql);
 
