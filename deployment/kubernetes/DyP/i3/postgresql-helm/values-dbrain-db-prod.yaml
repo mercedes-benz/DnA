@@ -287,7 +287,7 @@ decryptBackupWal:
 ## PostgreSQL backup configuration
 ##
 backup:
-  enabled: true
+  enabled: false
   successfulJobsHistoryLimit: "1"
   ## the storage type, either fs or s3.
   ## This is the target storage where the compressed backup archive file will be stored.
@@ -332,7 +332,7 @@ backup:
   tempPgdataVolume:
     ## recommended
     enabled: true
-    size: 1Gi
+    size: 50Gi
     # storageClass: dhc-gp3
   file:
     name: dbrain-db-backup
@@ -342,9 +342,9 @@ backup:
 ##
 restore:
   ## whether to create the restore job or not
-  createRestoreJob: false
+  createRestoreJob: true
   ## whether to create the list backup job or not
-  createListBackupJob: false
+  createListBackupJob: true
   ## if neither targetTime nor targetTimeline has been set, the recovery_target is 'immediate' which means that there will be no point-in-time-recovery (PITR) done
   ## the format is YYYY-MM-DD HH:mm:ss, e.g. 2020-12-31 23:59:59
   #targetTime: 2020-12-31 23:59:59
@@ -365,7 +365,7 @@ restore:
     bucketName: manual-db-changes
 
   ## Complete (including label) file name of backup file that has to be restored.
-  recoveryFile: dbrain-backup-2025-04-10_09-55-14.tar.zst
+  recoveryFile: dbrain-backup-2025-04-11_06-19-03.tar.zst
   image:
     repository: registry-emea.app.corpintra.net/i3-releases/postgresql-backup
     tag: 13.8-5.5.0-2023.2.20
@@ -409,7 +409,7 @@ bypassApiService:
 createGlobalResources: false
 
 statefulSet:
-  enabled: true
+  enabled: false
 
 pgmonitoring:
   enabled: true
