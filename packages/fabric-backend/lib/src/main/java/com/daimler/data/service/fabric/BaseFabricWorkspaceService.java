@@ -227,7 +227,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 	public FabricWorkspacesCollectionVO getAll( int limit,  int offset, String user, List<String> allEntitlementsList, Boolean isTechnicalUser) {
 		FabricWorkspacesCollectionVO collectionVO = new FabricWorkspacesCollectionVO();
 		List<FabricWorkspaceVO> vos = new ArrayList<>();
-		List<FabricWorkspaceNsql> allEntities = customRepo.findAll(0,0);
+		List<FabricWorkspaceNsql> allEntities = customRepo.getAll(user,offset,limit);
 		List<FabricWorkspaceNsql> filteredEntities = new ArrayList<>();
 		if(allEntities!=null && !allEntities.isEmpty()) {
 			if(user!=null && !"".equalsIgnoreCase(user.trim())){

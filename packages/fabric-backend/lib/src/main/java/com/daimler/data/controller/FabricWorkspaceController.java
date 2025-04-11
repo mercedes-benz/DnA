@@ -271,6 +271,17 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 				log.warn("Fabric workspace {} {} doesnt belong to User {} , Not authorized to use others project",id,existingFabricWorkspace.getName(),requestUser.getId()	);
 				return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
 		}else {
+			if ("DELETED".equalsIgnoreCase(existingFabricWorkspace.getStatus().getState())) {
+				log.warn("Fabric Workspace with id {} is already deleted.", id);
+				GenericMessage response = new GenericMessage();
+				response.setSuccess("FAILED");
+
+				MessageDescription errMsg = new MessageDescription();
+				errMsg.setMessage("Workspace is already deleted.");
+				response.setErrors(List.of(errMsg));
+
+				return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+			}
 			GenericMessage deleteResponse = service.delete(id,false);
 			if(deleteResponse!=null) {
 				if("SUCCESS".equalsIgnoreCase(deleteResponse.getSuccess())) {
