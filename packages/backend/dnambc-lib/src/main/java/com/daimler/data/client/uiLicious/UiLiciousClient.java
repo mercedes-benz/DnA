@@ -130,10 +130,12 @@ public class UiLiciousClient {
         }catch( JsonProcessingException e){
             response.setResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR);
             response.setRunId(null);
+            response.setErrorMessage(e.getMessage());
             log.error(" Exception occured while calling uilicious for create subscription with message{}",e.getMessage());
         }catch(Exception e){
             response.setResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR);
             response.setRunId(null);
+            response.setErrorMessage(e.getMessage());
             log.error(" Exception occured while calling uilicious for create subscription with message{}",e.getMessage());
         }
 
