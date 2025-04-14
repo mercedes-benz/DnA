@@ -3981,7 +3981,6 @@ import com.daimler.data.util.ConstantsUtility;
 						prodDeployingInProgress = true;
 					}else if(lastStatus.equalsIgnoreCase("DEPLOYED")){						
 						prodDeployed = true;
-						prodLastDeployedTime = projectDetails.getProdDeploymentDetails().getLastDeployedOn();
 					}else if(lastStatus.equalsIgnoreCase("DEPLOYMENT_FAILED")){
 						prodCodeDeployFailed = true;
 					}else if(projectDetails.getProdDeploymentDetails().getDeploymentUrl() != null && projectDetails.getProdDeploymentDetails().getDeploymentUrl() != "null"){
@@ -3990,10 +3989,10 @@ import com.daimler.data.util.ConstantsUtility;
 			  }
 
 			  if(projectDetails.getProdDeploymentDetails().getLastDeploymentStatus().equalsIgnoreCase("DEPLOYED")){
-				intLastDeployedTime = projectDetails.getProdDeploymentDetails().getLastDeployedOn();
+				prodLastDeployedTime = projectDetails.getProdDeploymentDetails().getLastDeployedOn();
 			  }else if(!projectDetails.getProdDeploymentDetails().getDeploymentAuditLogs().isEmpty()){
 				int size = projectDetails.getProdDeploymentDetails().getDeploymentAuditLogs().size();
-				intLastDeployedTime = 	projectDetails.getProdDeploymentDetails().getDeploymentAuditLogs().get(size -1).getTriggeredOn();
+				prodLastDeployedTime = 	projectDetails.getProdDeploymentDetails().getDeploymentAuditLogs().get(size -1).getTriggeredOn();
 			  }
 
 			  if(intDeployingInProgress || prodDeployingInProgress){
