@@ -161,13 +161,16 @@ const AliceRoleRequest = () => {
                     onChange={onRoleNameChange}
                   />
                   <div className="form-group">
-                    <label>
+                    <label className="checkbox">
+                      <span className="wrapper">
                       <input
                         type="checkbox"
+                          className="ff-only"
                         checked={isDynamicRole}
                         onChange={(e) => setIsDynamicRole(e.target.checked)}
                       />
-                      &nbsp;Dynamic Role
+                      </span>
+                      <span className="label">Dynamic Role</span>
                     </label>
                   </div>
                 </div>
