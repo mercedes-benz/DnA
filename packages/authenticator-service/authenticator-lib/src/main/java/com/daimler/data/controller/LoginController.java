@@ -31,10 +31,16 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import io.swagger.annotations.Api;
 import lombok.AllArgsConstructor;
@@ -120,41 +126,27 @@ public class LoginController {
 	@Data
 	@NoArgsConstructor
 	@JsonIgnoreProperties(ignoreUnknown = true)
-	public static class DRDResponse implements Serializable {
+	public static class AuthoriserResponse implements Serializable {
 		private String id;
-		private String firstName;
-		private String lastName;
-		private String email;
+		private String givenname;
+		private String surname;
+		private String mailAddress;
 		private String mobileNumber;
-		private String department;
+		private String departmentNumber;
 
-		private Attrs attrs;
+		public AuthoriserResponse(JsonNode userInfo) {
+			
+            ObjectMapper objectMapper = new ObjectMapper();
+            AuthoriserResponse mappedResponse = objectMapper.convertValue(userInfo, AuthoriserResponse.class);
 
-		private void setAttrs(Attrs attrs) {
-			this.id = attrs.getUid() != null ? attrs.getUid().get(0) : "";
-			this.firstName = attrs.getGivenName() != null ? attrs.getGivenName().get(0) : "";
-			this.lastName = attrs.getSn() != null ? attrs.getSn().get(0) : "";
-			this.email = attrs.getMail() != null ? attrs.getMail().get(0) : "";
-			this.mobileNumber = attrs.getMobile() != null ? attrs.getMobile().get(0) : "";
-			this.department = attrs.getDepartmentNumber() != null ? attrs.getDepartmentNumber().get(0) : "";
-		}
+            this.id = mappedResponse.getId();
+            this.givenname = mappedResponse.getGivenname();
+            this.surname = mappedResponse.getSurname();
+            this.mailAddress = mappedResponse.getMailAddress();
+            this.mobileNumber = mappedResponse.getMobileNumber();
+            this.departmentNumber = mappedResponse.getDepartmentNumber();
 
-		@NoArgsConstructor
-		@Data
-		@JsonIgnoreProperties(ignoreUnknown = true)
-		private class Attrs {
-			private List<String> dcxCompanyID;
-			private List<String> objectClass;
-			private List<String> c;
-			private List<String> dcxUserSuspended;
-			private List<String> cn;
 
-			private List<String> uid;
-			private List<String> departmentNumber;
-			private List<String> mobile;
-			private List<String> mail;
-			private List<String> givenName;
-			private List<String> sn;
 		}
 	}
 }
