@@ -3959,18 +3959,19 @@ import com.daimler.data.util.ConstantsUtility;
 					if(lastStatus.equalsIgnoreCase("DEPLOY_REQUESTED")){
 						intDeployingInProgress = true;
 					}else if(lastStatus.equalsIgnoreCase("DEPLOYED")){
-						intDeployed = true;
-						intLastDeployedTime = projectDetails.getIntDeploymentDetails().getLastDeployedOn();
+						intDeployed = true;						
 					}else if(lastStatus.equalsIgnoreCase("DEPLOYMENT_FAILED")){
 						intCodeDeployFailed = true;
 					}else if(projectDetails.getIntDeploymentDetails().getDeploymentUrl() != null && projectDetails.getIntDeploymentDetails().getDeploymentUrl() != "null"){
 						intDeployed = true;
 					}
 			  }
-			  if(intLastDeployedTime == null && !projectDetails.getIntDeploymentDetails().getDeploymentAuditLogs().isEmpty()){
+				
+			  if(projectDetails.getIntDeploymentDetails().getLastDeploymentStatus().equalsIgnoreCase("DEPLOYED")){
+				intLastDeployedTime = projectDetails.getIntDeploymentDetails().getLastDeployedOn();
+			  }else if(!projectDetails.getIntDeploymentDetails().getDeploymentAuditLogs().isEmpty()){
 				int size = projectDetails.getIntDeploymentDetails().getDeploymentAuditLogs().size();
-				intLastDeployedTime = 	projectDetails.getIntDeploymentDetails().getDeploymentAuditLogs().get(size -1).getTriggeredOn();				
-
+				intLastDeployedTime = 	projectDetails.getIntDeploymentDetails().getDeploymentAuditLogs().get(size -1).getTriggeredOn();
 			  }
 
 			  if(projectDetails.getProdDeploymentDetails().getLastDeploymentStatus() != null &&
@@ -3988,9 +3989,11 @@ import com.daimler.data.util.ConstantsUtility;
 					}
 			  }
 
-			  if(prodLastDeployedTime == null && !projectDetails.getProdDeploymentDetails().getDeploymentAuditLogs().isEmpty()){
+			  if(projectDetails.getProdDeploymentDetails().getLastDeploymentStatus().equalsIgnoreCase("DEPLOYED")){
+				intLastDeployedTime = projectDetails.getProdDeploymentDetails().getLastDeployedOn();
+			  }else if(!projectDetails.getProdDeploymentDetails().getDeploymentAuditLogs().isEmpty()){
 				int size = projectDetails.getProdDeploymentDetails().getDeploymentAuditLogs().size();
-				prodLastDeployedTime = 	projectDetails.getProdDeploymentDetails().getDeploymentAuditLogs().get(size -1).getTriggeredOn();				
+				intLastDeployedTime = 	projectDetails.getProdDeploymentDetails().getDeploymentAuditLogs().get(size -1).getTriggeredOn();
 			  }
 
 			  if(intDeployingInProgress || prodDeployingInProgress){
