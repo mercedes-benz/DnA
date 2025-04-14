@@ -50,8 +50,9 @@ public class FabricWorkspaceCustomRepositoryImpl extends CommonDataRepositoryImp
 	@Override
 	public long getTotalCount(String userId) {
 		String user = userId.toLowerCase();
-		String getCountStmt = " select count(*) from fabric_workspace_nsql where  (lower(jsonb_extract_path_text(data,'createdBy','id')) = '"
-				+ user + "') " + "AND lower(jsonb_extract_path_text(data, 'status', 'state')) <> 'deleted'";
+		String getCountStmt = "select count(*) from fabric_workspace_nsql where (lower(jsonb_extract_path_text(data,'createdBy','id')) = '"
+				+ user + "' OR lower(COALESCE(jsonb_extract_path_text(data, 'initiatedBy'), '')) = '" + user + "') "
+				+ "AND lower(jsonb_extract_path_text(data, 'status', 'state')) <> 'deleted'";
 		Query q = em.createNativeQuery(getCountStmt);
 		BigInteger results = (BigInteger) q.getSingleResult();
 		return results.longValue();
