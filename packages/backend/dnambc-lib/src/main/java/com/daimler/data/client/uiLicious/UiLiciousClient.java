@@ -78,8 +78,6 @@ public class UiLiciousClient {
     public UiliciousStartCreationResponseDTO startCreation (String orgName, String projectName, List<MemberInfoVO> memberDetails){
         UiliciousStartCreationResponseDTO response = new UiliciousStartCreationResponseDTO();
 
-         String httpResponseBody = "";
-
         try{
             HttpHeaders headers = new HttpHeaders();
             headers.set("Content-Type", "application/json");
@@ -109,7 +107,7 @@ public class UiLiciousClient {
             if (httpResponse != null && httpResponse.getStatusCode() != null) {
                 if (httpResponse.getStatusCode().equals(HttpStatus.OK)) {
                     String runId = null;
-                    httpResponseBody = httpResponse.getBody();
+                    String httpResponseBody = httpResponse.getBody();
                     ObjectMapper objectMapper = new ObjectMapper();
                     JsonNode jsonResponse = objectMapper.readTree(httpResponseBody);
 
@@ -132,11 +130,13 @@ public class UiLiciousClient {
         }catch( JsonProcessingException e){
             response.setResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR);
             response.setRunId(null);
-            log.error("Exception occured while calling uilicious for create subscription with message {} and body {}",e.getMessage(),httpResponseBody);
+            response.setErrorMessage(e.getMessage());
+            log.error(" Exception occured while calling uilicious for create subscription with message{}",e.getMessage());
         }catch(Exception e){
             response.setResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR);
             response.setRunId(null);
-            log.error("Exception occured while calling uilicious for create subscription with message {} and body {}",e.getMessage(),httpResponseBody);
+            response.setErrorMessage(e.getMessage());
+            log.error(" Exception occured while calling uilicious for create subscription with message{}",e.getMessage());
         }
 
         return response;
