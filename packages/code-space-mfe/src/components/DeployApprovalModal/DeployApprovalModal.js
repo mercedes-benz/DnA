@@ -7,6 +7,7 @@ import { regionalDateAndTimeConversionSolution } from '../../Utility/utils';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 import { trackEvent } from '../../Utility/utils';
 import { CodeSpaceApiClient } from '../../apis/codespace.api';
+import Notification from '../../common/modules/uilab/js/src/notification';
 
 const DeployApprovalModal = (props) => {
   const codeSpace = props.codeSpaceData;
@@ -62,11 +63,11 @@ const DeployApprovalModal = (props) => {
         if (res.data.success === 'SUCCESS') {
           // setCreatedCodeSpaceName(res.data.name);
           props.setCodeDeploying(true);
-          props.setIsApiCallTakeTime(true);
-          props.startDeployLivelinessCheck &&
-            props.startDeployLivelinessCheck(props.codeSpaceData.workspaceId, 'production');
+          ProgressIndicator.hide();
+          Notification.show(
+            'Production deployment of your project ' + codeSpace.projectDetails?.projectName +' is approved.'
+          );
         } else {
-          props.setIsApiCallTakeTime(false);
           ProgressIndicator.hide();
           Notification.show(
             'Error in deploying code space. Please try again later.\n' + res.data.errors[0].message,
@@ -97,8 +98,9 @@ const DeployApprovalModal = (props) => {
     ProgressIndicator.show();
     CodeSpaceApiClient.rejectDeployApproval(props.codeSpaceData.id)
       .then((res) => {
-        if (res.data.success === 'SUCCESS') {
+        if (res?.data?.success === 'SUCCESS') {
           ProgressIndicator.hide();
+          props.setCodeDeploying(true);
           Notification.show(
             'Production deployment of your project ' + codeSpace.projectDetails?.projectName +' is rejected.'
           );
@@ -116,9 +118,11 @@ const DeployApprovalModal = (props) => {
           'Error in rejecting production deployment. Please try again later.\n' + err?.response?.data?.errors[0]?.message,
           'alert',
         );
-      });
-      setShowCredentialsModal(false);
-      props.setShowDeployApprovalModal(false);
+      })
+      .finally(() => {
+        setShowCredentialsModal(false);
+        props.setShowDeployApprovalModal(false);
+      })
   };
 
   return (
