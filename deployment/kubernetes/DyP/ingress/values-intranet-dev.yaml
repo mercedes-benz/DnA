@@ -534,6 +534,8 @@ globalArguments:
 - '--api.dashboard=true'
 - '--providers.kubernetesingress.ingressclass=dev-ingress-intranet'
 - '--providers.kubernetescrd.ingressclass=dev-ingress-intranet'
+- '--entryPoints.pgdb.address=:64000/tcp'
+
 
 # -- Additional arguments to be passed at Traefik's binary
 # See [CLI Reference](https://docs.traefik.io/reference/static-configuration/cli/)
