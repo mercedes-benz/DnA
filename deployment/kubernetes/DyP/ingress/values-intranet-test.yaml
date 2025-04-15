@@ -534,6 +534,8 @@ globalArguments:
 - '--api.dashboard=true'
 - '--providers.kubernetesingress.ingressclass=test-ingress-intranet'
 - '--providers.kubernetescrd.ingressclass=test-ingress-intranet'
+- '--entryPoints.pgdb.address=:64000/tcp'
+
 
 # -- Additional arguments to be passed at Traefik's binary
 # See [CLI Reference](https://docs.traefik.io/reference/static-configuration/cli/)
@@ -559,6 +561,29 @@ env:
 envFrom: []
 
 ports:
+  pgdb:
+    port: 64000
+    # -- Use hostPort if set.
+    # hostPort: 9000
+    #
+    # -- Use hostIP if set. If not set, Kubernetes will default to 0.0.0.0, which
+    # means it's listening on all your interfaces and all your IPs. You may want
+    # to set this value if you need traefik to listen on specific interface
+    # only.
+    # hostIP: 192.168.100.10
+
+    # Defines whether the port is exposed if service.type is LoadBalancer or
+    # NodePort.
+    #
+    # -- You SHOULD NOT expose the traefik port on production deployments.
+    # If you want to access it from outside your cluster,
+    # use `kubectl port-forward` or create a secure ingress
+    expose:
+      default: true
+    # -- The exposed port for this service
+    exposedPort: 64000
+    # -- The port protocol (TCP/UDP)
+    protocol: TCP
   traefik:
     port: 9000
     # -- Use hostPort if set.
