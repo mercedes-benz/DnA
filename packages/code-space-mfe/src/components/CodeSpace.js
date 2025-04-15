@@ -145,9 +145,6 @@ const CodeSpace = (props) => {
   const [prodCodeDeployFailed, setProdCodeDeployFailed] = useState(false);
   const [livelinessInterval, setLivelinessInterval] = useState();
   const [isStaging, setIsStaging] = useState(false);
-  const [logsList, setlogsList] = useState([]);
-  const [intDeployAuditLogs, setIntDeployAuditLogs] = useState([]);
-  const [prodDeployAuditLogs, setProdDeployAuditLogs] = useState([]);
   const [codeBuilding, setCodeBuilding] = useState(false);
   const [showVaultManagementModal, setShowVaultManagementModal] = useState(false);
   const [showAuditLogsModal, setShowAuditLogsModal] = useState(false);
@@ -400,15 +397,6 @@ const CodeSpace = (props) => {
 
         setCodeBuilding(res?.data?.projectDetails?.lastBuildOrDeployedStatus === 'BUILD_REQUESTED');
 
-        CodeSpaceApiClient.getBuildAndDeployLogs(res?.data?.projectDetails?.projectName)
-          .then((res) => { 
-            setIntDeployAuditLogs(res?.data?.data?.intDeploymentAuditLogs || []);
-            setProdDeployAuditLogs(res?.data?.data?.prodDeploymentAuditLogs || []);
-          })
-          .catch((err) => {
-            Notification.show('Error in getting build audit logs - ' + err.message, 'alert');
-          });
-
         Tooltip.defaultSetup();
         Tabs.defaultSetup();
         if (deployingInProgress) {
@@ -539,7 +527,7 @@ const CodeSpace = (props) => {
   const disableDeployment = !projectDetails?.recipeDetails?.isDeployEnabled;
   const deployingInProgress =
     projectDetails?.intDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED' ||
-    prodDeploymentDetails?.lastDeploymentStatus === 'APPROVAL_PENDING' ||
+    projectDetails?.prodDeploymentDetails?.lastDeploymentStatus === 'APPROVAL_PENDING' ||
     projectDetails?.lastBuildOrDeployedStatus === 'APPROVAL_PENDING' ||
     projectDetails?.prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED';
   const securedWithIAMContent = (
@@ -730,7 +718,7 @@ const CodeSpace = (props) => {
                           className={classNames('btn btn-secondary', (codeDeploying || codeBuilding) ? 'disable' : '')}
                           onClick={onShowCodeDeployModal}
                         >
-                          {codeBuilding ? 'Building' : `Deploy${codeDeploying && 'ing...'}`}
+                          {codeBuilding ? 'Building' : `Deploy${codeDeploying ? 'ing...' : ''}`}
                         </button>
                       </div>
                       {(intDeploymentDetails.lastDeploymentStatus || prodDeploymentDetails.lastDeploymentStatus) && (
@@ -794,7 +782,7 @@ const CodeSpace = (props) => {
                               className={classNames(
                                 'btn btn-primary',
                                 Styles.btnOutline,
-                                !((projectDetails?.recipeDetails?.isDeployEnabled && isOwner) || intDeployAuditLogs) &&
+                                !((projectDetails?.recipeDetails?.isDeployEnabled && isOwner) || intDeploymentDetails?.lastDeploymentStatus) &&
                                   Styles.btnDisabled,
                               )}
                               onClick={() => {
@@ -815,7 +803,7 @@ const CodeSpace = (props) => {
                                 ref={stagingWrapperRef}
                                 className={classNames(Styles.collapseIcon, showStagingActions ? Styles.open : '')}
                               >
-                                {((projectDetails?.recipeDetails?.isDeployEnabled && isOwner) || intDeployAuditLogs) && (
+                                {((projectDetails?.recipeDetails?.isDeployEnabled && isOwner) || intDeploymentDetails?.lastDeploymentStatus) && (
                                   <>
                                     <span className={classNames('animation-wrapper', Styles.animationWrapper)}></span>
                                     <i className={classNames('icon down-up-flip')}></i>
@@ -889,13 +877,12 @@ const CodeSpace = (props) => {
                                   </a>
                                 </li>
                               )}
-                              {intDeployAuditLogs?.length && (
+                              {intDeploymentDetails?.lastDeploymentStatus && (
                                 <li>
                                   <span
                                     onClick={() => {
                                       setShowAuditLogsModal(true);
                                       setIsStaging(true);
-                                      setlogsList(intDeployAuditLogs);
                                     }}
                                   >
                                     Deploy & Action Audit Logs
@@ -932,7 +919,7 @@ const CodeSpace = (props) => {
                               className={classNames(
                                 'btn btn-primary',
                                 Styles.btnOutline,
-                                !((projectDetails?.recipeDetails?.isDeployEnabled && isOwner) || prodDeployAuditLogs) &&
+                                !((projectDetails?.recipeDetails?.isDeployEnabled && isOwner) || prodDeploymentDetails?.lastDeploymentStatus) &&
                                   Styles.btnDisabled,
                               )}
                               onClick={() => {
@@ -953,7 +940,7 @@ const CodeSpace = (props) => {
                                 ref={prodWrapperRef}
                                 className={classNames(Styles.collapseIcon, showProdActions ? Styles.open : '')}
                               >
-                                {((projectDetails?.recipeDetails?.isDeployEnabled && isOwner) || prodDeployAuditLogs) && (
+                                {((projectDetails?.recipeDetails?.isDeployEnabled && isOwner) || prodDeploymentDetails?.lastDeploymentStatus) && (
                                   <>
                                     <span className={classNames('animation-wrapper', Styles.animationWrapper)}></span>
                                     <i className={classNames('icon down-up-flip')}></i>
@@ -1025,13 +1012,12 @@ const CodeSpace = (props) => {
                                   </a>
                                 </li>
                               )}
-                              {prodDeployAuditLogs?.length && (
+                              {prodDeploymentDetails?.lastDeploymentStatus && (
                                 <li>
                                   <span
                                     onClick={() => {
                                       setShowAuditLogsModal(true);
                                       setIsStaging(false);
-                                      setlogsList(prodDeployAuditLogs);
                                     }}
                                   >
                                     Deploy & Action Audit Logs
@@ -1220,7 +1206,6 @@ const CodeSpace = (props) => {
           deployedEnvInfo={isStaging ? 'Staging' : 'Production'}
           show={showAuditLogsModal}
           setShowAuditLogsModal={setShowAuditLogsModal}
-          logsList={logsList}
           projectName={projectDetails.projectName.toLowerCase()}
         />
       )}
