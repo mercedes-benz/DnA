@@ -535,6 +535,13 @@ globalArguments:
 - '--providers.kubernetesingress.ingressclass=test-ingress-intranet'
 - '--providers.kubernetescrd.ingressclass=test-ingress-intranet'
 - '--entryPoints.pgdb.address=:64000/tcp'
+- '--entryPoints.pgdba.address=:64010/tcp'
+- '--entryPoints.pgdbb.address=:64020/tcp'
+- '--entryPoints.pgdbc.address=:64030/tcp'
+- '--entryPoints.pgdbd.address=:64040/tcp'
+- '--entryPoints.pgdbe.address=:64050/tcp'
+- '--entryPoints.pgdbf.address=:64060/tcp'
+- '--entryPoints.pgdbg.address=:64070/tcp'
 
 
 # -- Additional arguments to be passed at Traefik's binary
@@ -584,6 +591,48 @@ ports:
     exposedPort: 64000
     # -- The port protocol (TCP/UDP)
     protocol: TCP
+  pgdba:
+    port: 64010
+    expose:
+      default: true
+    exposedPort: 64010    
+    protocol: TCP
+  pgdbb:
+    port: 64020
+    expose:
+      default: true
+    exposedPort: 64020    
+    protocol: TCP  
+  pgdbc:
+    port: 64030
+    expose:
+      default: true
+    exposedPort: 64030    
+    protocol: TCP
+  pgdbd:
+    port: 64040
+    expose:
+      default: true
+    exposedPort: 64040    
+    protocol: TCP 
+  pgdbe:
+    port: 64050
+    expose:
+      default: true
+    exposedPort: 64050    
+    protocol: TCP
+  pgdbf:
+    port: 64060
+    expose:
+      default: true
+    exposedPort: 64060    
+    protocol: TCP
+  pgdbg:
+    port: 64070
+    expose:
+      default: true
+    exposedPort: 64070    
+    protocol: TCP  
   traefik:
     port: 9000
     # -- Use hostPort if set.
