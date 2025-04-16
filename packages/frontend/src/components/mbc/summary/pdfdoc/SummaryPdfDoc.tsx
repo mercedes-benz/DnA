@@ -630,8 +630,7 @@ const dataComplianceProcessFlow = (dataCompliance: IDataCompliance) => {
     );
   return <View style={styles.imageSection}>{image}</View>;
 };
-
-const getPhaseItemView = (phaseItem: IPhasesItem, phaseImageFileName: string, firstItem?: boolean) => {
+const getPhaseItemView = (phaseItem: IPhasesItem, phaseImageFileName: string, currentPhase: IPhase, firstItem?: boolean) => {
   const canShowPhase = phaseItem ? phaseItem.month && phaseItem.year : false;
   const activeState = { backgroundColor: canShowPhase ? '#697582' : '#C0C8D0' };
   if (!phaseItem) {
@@ -639,8 +638,9 @@ const getPhaseItemView = (phaseItem: IPhasesItem, phaseImageFileName: string, fi
     const phase: IPhase = { id: '1', name: 'Kick-off' };
     phaseItem = { month: 1, year: 1971, description: '', phase };
   }
+  const isCurrentPhase = phaseItem?.phase?.id === currentPhase?.id;
   return (
-    <View style={styles.milestoneCol}>
+    <View style={[styles.milestoneCol, isCurrentPhase ? { borderTopWidth: 2, borderTopColor: 'black',  marginTop: -2  } : {}]}>
       <Image style={{ width: 25, opacity: canShowPhase ? 1 : 0 }} src={phaseImageFileName} />
       <View style={[styles.milestoneValueView, { opacity: canShowPhase ? 1 : 0 }]}>
         <Text style={[styles.sectionTitle, styles.setMarginTop15, styles.noMarginBottom]}>{phaseItem.phase.name}</Text>
@@ -670,16 +670,16 @@ const getPhaseItemView = (phaseItem: IPhasesItem, phaseImageFileName: string, fi
   );
 };
 
-const milestonesView = (milestones: IMilestonesList) => {
+const milestonesView = (milestones: IMilestonesList, currentPhase: IPhase) => {
   const phases = milestones.phases;
   return (
     <View style={{ display: 'flex', flexDirection: 'row', marginBottom: 25 }}>
-      {getPhaseItemView(phases[0], ImgKickOff, true)}
-      {getPhaseItemView(phases[1], ImgIdeation)}
-      {getPhaseItemView(phases[2], ImgPOC)}
-      {getPhaseItemView(phases[3], ImgPilot)}
-      {getPhaseItemView(phases[4], ImgProfessionalization)}
-      {getPhaseItemView(phases[5], ImgRollout)}
+      {getPhaseItemView(phases[0], ImgKickOff, currentPhase, true)}
+      {getPhaseItemView(phases[1], ImgIdeation, currentPhase)}
+      {getPhaseItemView(phases[2], ImgPOC, currentPhase)}
+      {getPhaseItemView(phases[3], ImgPilot, currentPhase)}
+      {getPhaseItemView(phases[4], ImgProfessionalization, currentPhase)}
+      {getPhaseItemView(phases[5], ImgRollout, currentPhase)}
     </View>
   );
 };
@@ -873,6 +873,20 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
               <Text>NA</Text>
             )}
           </View>
+          <View style={[styles.flexCol2, styles.firstCol, { marginRight: 20 }]}>
+            <Text style={styles.sectionTitle}>LeanIX App ID</Text>
+            {props?.solution?.description?.leanIXDetails?.appReferenceStr ? (
+              <Link 
+              to="#"
+              src={`${Envs.LEANIX_BASEURL}/${props?.solution?.description?.leanIXDetails?.appReferenceStr}`}
+              style={{ color: 'blue', textDecoration: 'underline' }}
+            >
+              {props?.solution?.description?.appId}
+            </Link>
+            ) : (
+              <Text>{props?.solution?.description?.appId ? `${props?.solution?.description?.appId}` : 'NA'}</Text>
+            )}
+          </View>
           <View style={[styles.flexCol2]}>
             <Text style={styles.sectionTitle}>Business Goals</Text>
             {props.solution.description.businessGoal ? (
@@ -1039,11 +1053,12 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
         ) : (
           <View />
         )}
+        {/* here */}
         {props.canShowMilestones ? (
           <View>
             <View wrap={false}>
               <Text style={[styles.subTitle, styles.setMarginTop]}>Milestones</Text>
-              <View style={styles.setMarginTop}>{milestonesView(props.solution.milestones)}</View>
+              <View style={styles.setMarginTop}>{milestonesView(props.solution.milestones, props.solution.currentPhase)}</View>
             </View>
             {props.solution.milestones?.rollouts?.details && props.solution.milestones?.rollouts?.details.length > 0 ? (
               <View>

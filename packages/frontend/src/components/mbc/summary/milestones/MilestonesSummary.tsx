@@ -25,10 +25,11 @@ export interface IMileStonesState {
   pilot?: IPhasesItem;
   prof?: IPhasesItem;
   ops?: IPhasesItem;
+  currentPhase: IPhase;
 }
 export interface IMilestonesProps {
   phases: IPhase[];
-  // currentPhase: IPhase;
+  currentPhase: IPhase;
   milestones?: IMilestonesList;
 }
 const defaultKickOff: IPhasesItem = {
@@ -136,6 +137,7 @@ export default class MilestonesSummary extends React.Component<IMilestonesProps,
         pilot: defaultPilot,
         prof: defaultProf,
         ops: defaultOps,
+        currentPhase: props.currentPhase,
       };
     }
     return null;
@@ -207,6 +209,7 @@ export default class MilestonesSummary extends React.Component<IMilestonesProps,
           name: 'Operations / Rollout',
         },
       },
+      currentPhase: props.currentPhase,
     };
     const milestones = this.state.milestones.phases;
     milestones.push(this.state.kickoff);
@@ -253,11 +256,12 @@ export default class MilestonesSummary extends React.Component<IMilestonesProps,
                         className={classNames(
                           Styles.info,
                           showPhase ? '' : canShowPhasesPlaceHolder ? 'hidden' : 'hide',
+                          milestone.phase.id === this.state.currentPhase?.id ? Styles.currentPhase : ''
                         )}
                       >
                         <div>{this.mileStoneIcons[index]}</div>
-                        <div className={classNames(Styles.phase, '')}>{milestone.phase.name}</div>
-                        <div className={Styles.monthYear}>
+                        <div className={classNames(Styles.phase, milestone.phase.id === this.state.currentPhase?.id ? Styles.currentPhaseText : '')}>{milestone.phase.name}</div>
+                        <div className={classNames(Styles.monthYear, milestone.phase.id === this.state.currentPhase?.id ? Styles.currentPhaseText : '')}>
                           {/* {milestone.month >= 10 ? milestone.month : '0' + milestone.month}/{milestone.year} */}
                           {milestone.month > 0 && milestone.year > 0
                             ? regionalForMonthAndYear(milestone.month + '/' + '01' + '/' + milestone.year)
