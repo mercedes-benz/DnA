@@ -12,7 +12,12 @@ module.exports = {
   module: {
     rules: [
       {
-        test: /\.(eot|woff2|woff|svg|otf)/,
+        test: /\.svg$/i,
+        resourceQuery: /raw/, // *.svg?raw
+        type: 'asset/source',
+      },
+      {
+        test: /\.(eot|woff2|woff|otf)/,
         dependency: { not: ['url'] },
         use: [
           {
