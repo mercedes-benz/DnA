@@ -15,11 +15,13 @@ import { buildGitJobLogViewAWSURL, buildGitUrl, buildLogViewAWSURL } from '../..
 import { Envs } from '../../Utility/envs';
 
 function escapeHTML(str) {
-  return str.replace(/&/g, '&amp;')
-            .replace(/</g, '&lt;')
-            .replace(/>/g, '&gt;')
-            .replace(/"/g, '&quot;')
-            .replace(/'/g, '&#39;');
+  if(str) {
+    return str.replace(/&/g, '&amp;')
+              .replace(/</g, '&lt;')
+              .replace(/>/g, '&gt;')
+              .replace(/"/g, '&quot;')
+              .replace(/'/g, '&#39;');
+  }
 }
 
 const linkIcon = btoa(link);
@@ -37,57 +39,109 @@ const pythonIcon = btoa(python);
 const nodejsIcon = btoa(nodejs);
 
 const additionalServicesConfig = [
-  { match: "redis", icon: "img/lib/mscae/Cache_Redis_Product.svg", x: 878, y: 282.4, width: 23.81, height: 20, textX: 909.5, textY: 278.86, isImage: true },
-  { match: "rabbitmq", icon: `${rabbitmqIcon}`, x: 1027.2, y: 281.4, width: 20.8, height: 22, textX: 1057.44, textY: 281.36, isSvg: true },
-  { match: "kafka", icon: `${kafkaIcon}`, x: 1160.3, y: 282.4, width: 15.4, height: 25, textX: 1183, textY: 280.86, isSvg: true },
-  { match: "postgresql", icon: `${postgresIcon}`, x: 880.47, y: 320, width: 21.34, height: 22, textX: 911.5, textY: 316.46, isSvg: true },
-  { match: "minio", icon: `${minioIcon}`, x: 1027.2, y: 320, width: 12.42, height: 25, textX: 1052.72, textY: 316.46, isSvg: true },
-  { match: "zookeeper", icon: "mxgraph.aws3.toolkit_for_visual_studio", x: 1154.23, y: 319.5, width: 20, height: 25, textX: 1183, textY: 317.5, isShape: true, fillColor: "#53B1CB" },
+  { match: "redis", icon: "img/lib/mscae/Cache_Redis_Product.svg", width: 23.81, height: 20, isImage: true },
+  { match: "rabbitmq", icon: `${rabbitmqIcon}`, width: 20.8, height: 22, isSvg: true },
+  { match: "kafka", icon: `${kafkaIcon}`, width: 15.4, height: 25, isSvg: true },
+  { match: "postgresql", icon: `${postgresIcon}`, width: 21.34, height: 22, isSvg: true },
+  { match: "minio", icon: `${minioIcon}`, width: 12.42, height: 25, isSvg: true },
 ];
 
-const softwareConfig = [ 
-  { match: "react", icon: `${reactIcon}`, x: 666.67, y: 334.31, width: 21.94, height: 25, textX: 696.44, textY: 333.5, isSvg: true }, 
-  { match: "net", icon: `${dotNetIcon}`, x: 379.5, y: 376.54, width: 26.18, height: 25, textX: 408.13, textY: 377.27, isSvg: true }, 
-  { match: "java", icon: `${javaIcon}`, x: 381, y: 280.4, width: 22.12, height: 30, textX: 408.13, textY: 286.86, isSvg: true }, 
-  { match: "python", icon: `${pythonIcon}`, x: 379.5, y: 334.27, width: 22.11, height: 22, textX: 408.13, textY: 334.27, isSvg: true }, 
-  { match: "gradle", icon: `${gradleIcon}`, x: 520.03, y: 335.81, width: 21.89, height: 22, textX: 545.44, textY: 333.5, isSvg: true }, 
-  { match: "node", icon: `${nodejsIcon}`, x: 521, y: 288.4, width: 19.96, height: 22, textX: 544.44, textY: 287.63, isSvg: true }, 
-  { match: "angular", icon: `${angularIcon}`, x: 666.67, y: 289.17, width: 20.75, height: 22, textX: 695.44, textY: 287.63, isSvg: true }, 
-  { match: "go", icon: `${goIcon}`, x: 520.03, y: 381.54, width: 39.65, height: 15, textX: 565, textY: 375, isSvg: true }, 
-  { match: "other software 1", icon: "mxgraph.aws3.toolkit_for_visual_studio", x: 666.67, y: 375, width: 22.6, height: 25, textX: 695.44, textY: 373, isShape: true, fillColor: "#53B1CB" }
+const softwareConfig = [
+  { match: "react", icon: `${reactIcon}`, width: 21.94, height: 25, isSvg: true },
+  { match: "net", icon: `${dotNetIcon}`, width: 26.18, height: 25, isSvg: true },
+  { match: "java", icon: `${javaIcon}`, width: 22.12, height: 30, isSvg: true },
+  { match: "python", icon: `${pythonIcon}`, width: 22.11, height: 22, isSvg: true },
+  { match: "gradle", icon: `${gradleIcon}`, width: 21.89, height: 22, isSvg: true },
+  { match: "node", icon: `${nodejsIcon}`, width: 19.96, height: 22, isSvg: true },
+  { match: "angular", icon: `${angularIcon}`, width: 20.75, height: 22, isSvg: true },
+  { match: "go", icon: `${goIcon}`, width: 39.65, height: 15, isSvg: true },
 ];
+
+const defaultOtherIcon = {
+  match: "other",
+  icon: "mxgraph.aws3.toolkit_for_visual_studio",
+  width: 22.6,
+  height: 25,
+  isShape: true,
+  fillColor: "#53B1CB"
+};
 
 const renderAdditionalServices = (additionalServices, isSoftware) => {
   let output = "";
-  let config = isSoftware ? [...softwareConfig] : [...additionalServicesConfig];
+  let baseConfig = isSoftware ? [...softwareConfig] : [...additionalServicesConfig];
 
-  config.forEach((service, index) => {
-    const matchValue = additionalServices?.find(
-      s => s.toLowerCase().includes(service.match)
-    );
+  // Layout parameters
+  const layout = {
+    software: {
+      baseX: 380,
+      baseY: 280,
+      gapX: 140,
+      gapY: 55,
+      columns: 3,
+    },
+    services: {
+      baseX: 880,
+      baseY: 280,
+      gapX: 140,
+      gapY: 45,
+      columns: 3,
+    }
+  };
 
-    if (matchValue) {
-      let iconStyle = '';
-      if(service.isShape) iconStyle = `outlineConnect=0;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;shape=${service.icon};fillColor=#53B1CB;gradientColor=none;aspect=fixed;`;
+  const { baseX, baseY, gapX, gapY, columns } = isSoftware ? layout.software : layout.services;
+  // let currentIndex = 0;
 
-      if(service.isImage) iconStyle = `image;sketch=0;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=${service.icon};`;
-      
-      if(service.isSvg) iconStyle = `shape=image;verticalLabelPosition=bottom;labelBackgroundColor=default;verticalAlign=top;aspect=fixed;imageAspect=0;editableCssRules=.*;image=data:image/svg+xml,${service.icon};`;
+  const matchedServices = [];
+  const unmatchedServices = [];
 
-      const textStyle = `text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=Verdana;fontStyle=0;fontSize=10;`;
-
-      output += `
-      <mxCell id="icon-${index}" value="" style="${iconStyle}" parent="1" vertex="1">
-        <mxGeometry x="${service.x}" y="${service.y}" width="${service.width}" height="${service.height}" as="geometry" />
-      </mxCell>
-      <mxCell id="label-${index}" value="${matchValue}" style="${textStyle}" parent="1" vertex="1">
-        <mxGeometry x="${service.textX}" y="${service.textY}" width="90.56" height="23.54" as="geometry" />
-      </mxCell>\n`;
+  additionalServices?.forEach(service => {
+    const match = baseConfig.find(config => service.toLowerCase().includes(config.match));
+    if (match) {
+      matchedServices.push({ ...match, actualValue: service });
+    } else {
+      unmatchedServices.push({
+        ...defaultOtherIcon,
+        actualValue: service
+      });
     }
   });
 
+  const allServices = [...matchedServices, ...unmatchedServices];
+
+  allServices.forEach((service, index) => {
+    const col = index % columns;
+    const row = Math.floor(index / columns);
+
+    const x = baseX + col * gapX;
+    const y = baseY + row * gapY;
+    const textX = x + 30;
+    const textY = y - 5;
+
+    let iconStyle = '';
+    if (service.isShape) {
+      iconStyle = `outlineConnect=0;dashed=0;verticalLabelPosition=bottom;verticalAlign=top;align=center;html=1;shape=${service.icon};fillColor=${service.fillColor || "#53B1CB"};gradientColor=none;aspect=fixed;`;
+    } else if (service.isImage) {
+      iconStyle = `image;sketch=0;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=${service.icon};`;
+    } else if (service.isSvg) {
+      iconStyle = `shape=image;verticalLabelPosition=bottom;labelBackgroundColor=default;verticalAlign=top;aspect=fixed;imageAspect=0;editableCssRules=.*;image=data:image/svg+xml,${service.icon};`;
+    }
+
+    const textStyle = `text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=Verdana;fontStyle=0;fontSize=10;`;
+
+    output += `
+    <mxCell id="icon-${Math.random(index)}" value="" style="${iconStyle}" parent="1" vertex="1">
+      <mxGeometry x="${x}" y="${y}" width="${service.width}" height="${service.height}" as="geometry" />
+    </mxCell>
+    <mxCell id="label-${Math.random(index)}" value="${service.actualValue}" style="${textStyle}" parent="1" vertex="1">
+      <mxGeometry x="${textX}" y="${textY}" width="90.56" height="23.54" as="geometry" />
+    </mxCell>\n`;
+  });
+
   return output;
-}
+};
+
+
+
 
 export const blueprintTemplate = (codespace) => {
   const intDeploymentDetails = codespace?.projectDetails?.intDeploymentDetails;
@@ -112,13 +166,13 @@ export const blueprintTemplate = (codespace) => {
         <mxCell id="ujUrj7wP6LcdkLsmr5C5-3" value="${codespace?.projectDetails?.projectName}" style="text;html=1;align=center;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=0;fontSize=16;fontFamily=Verdana;" parent="1" vertex="1">
           <mxGeometry x="310" y="65.46" width="1080" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="ujUrj7wP6LcdkLsmr5C5-4" value="&lt;a href=&quot;${codespace?.workspaceUrl}&quot;&gt;&lt;font style=&quot;color: light-dark(rgb(0, 0, 0), rgb(0, 173, 239));&quot;&gt;Workspace URL&lt;/font&gt;&lt;/a&gt;" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontColor=light-dark(#000000,#00ADEF);fontFamily=Verdana;fontStyle=0" parent="1" vertex="1">
+        <mxCell id="ujUrj7wP6LcdkLsmr5C5-4" value="&lt;a href=&quot;${escapeHTML(codespace?.workspaceUrl)}&quot;&gt;&lt;font style=&quot;color: light-dark(rgb(0, 0, 0), rgb(0, 173, 239));&quot;&gt;Workspace URL&lt;/font&gt;&lt;/a&gt;" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontColor=light-dark(#000000,#00ADEF);fontFamily=Verdana;fontStyle=0" parent="1" vertex="1">
           <mxGeometry x="752" y="95.46" width="98" height="30" as="geometry" />
         </mxCell>
         <mxCell id="ujUrj7wP6LcdkLsmr5C5-35" value="" style="verticalLabelPosition=bottom;html=1;verticalAlign=top;align=center;strokeColor=none;fillColor=#00BEF2;shape=mxgraph.azure.github_code;pointerEvents=1;" parent="1" vertex="1">
           <mxGeometry x="864" y="98.46000000000001" width="22" height="22" as="geometry" />
         </mxCell>
-        <mxCell id="ujUrj7wP6LcdkLsmr5C5-34" value="&lt;a href=&quot;${buildGitUrl(codespace.projectDetails?.gitRepoName)}&quot;&gt;&lt;font style=&quot;color: light-dark(rgb(0, 0, 0), rgb(0, 173, 239));&quot;&gt;Go to Repo&lt;/font&gt;&lt;/a&gt;" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontColor=light-dark(#000000,#00ADEF);fontFamily=Verdana;fontStyle=0" parent="1" vertex="1">
+        <mxCell id="ujUrj7wP6LcdkLsmr5C5-34" value="&lt;a href=&quot;${escapeHTML(buildGitUrl(codespace.projectDetails?.gitRepoName))}&quot;&gt;&lt;font style=&quot;color: light-dark(rgb(0, 0, 0), rgb(0, 173, 239));&quot;&gt;Go to Repo&lt;/font&gt;&lt;/a&gt;" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontColor=light-dark(#000000,#00ADEF);fontFamily=Verdana;fontStyle=0" parent="1" vertex="1">
           <mxGeometry x="890.05" y="95.46000000000001" width="100" height="30" as="geometry" />
         </mxCell>
         ${{/* Header Section End */}}
@@ -131,6 +185,9 @@ export const blueprintTemplate = (codespace) => {
         </mxCell>
         <mxCell id="ujUrj7wP6LcdkLsmr5C5-5" value="${codespace?.projectDetails?.recipeDetails?.cloudServiceProvider}" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=0;fontFamily=Verdana;" parent="1" vertex="1">
           <mxGeometry x="354" y="142.96" width="396" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="ujUrj7wP6LcdkLsmr5C5-23" value="" style="pointerEvents=1;shadow=0;dashed=0;html=1;strokeColor=none;fillColor=#4495D1;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;align=center;outlineConnect=0;shape=mxgraph.veeam.ram;" parent="1" vertex="1">
+          <mxGeometry x="1100" y="200.36" width="30" height="15.2" as="geometry" />
         </mxCell>
         <mxCell id="ujUrj7wP6LcdkLsmr5C5-7" value="${codespace?.projectDetails?.recipeDetails?.ramSize}GB RAM" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=Verdana;fontStyle=0" parent="1" vertex="1">
           <mxGeometry x="1150" y="192.96" width="120" height="30" as="geometry" />
@@ -164,9 +221,6 @@ export const blueprintTemplate = (codespace) => {
         </mxCell>
         <mxCell id="ujUrj7wP6LcdkLsmr5C5-22" value="" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/azure2/compute/OS_Images_Classic.svg;" parent="1" vertex="1">
           <mxGeometry x="950" y="199.96" width="21.56" height="20" as="geometry" />
-        </mxCell>
-        <mxCell id="ujUrj7wP6LcdkLsmr5C5-23" value="" style="pointerEvents=1;shadow=0;dashed=0;html=1;strokeColor=none;fillColor=#4495D1;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;align=center;outlineConnect=0;shape=mxgraph.veeam.ram;" parent="1" vertex="1">
-          <mxGeometry x="1070" y="200.36" width="30" height="15.2" as="geometry" />
         </mxCell>
         <mxCell id="ujUrj7wP6LcdkLsmr5C5-24" value="" style="pointerEvents=1;shadow=0;dashed=0;html=1;strokeColor=none;fillColor=#4495D1;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;align=center;outlineConnect=0;shape=mxgraph.veeam.cpu;" parent="1" vertex="1">
           <mxGeometry x="1230" y="195.56" width="30" height="24.8" as="geometry" />
@@ -208,21 +262,21 @@ export const blueprintTemplate = (codespace) => {
         <mxCell id="ujUrj7wP6LcdkLsmr5C5-38" value="" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/azure2/management_governance/Activity_Log.svg;" parent="1" vertex="1">
           <mxGeometry x="379.61" y="667.5" width="18.39" height="22" as="geometry" />
         </mxCell>
-        <mxCell id="ujUrj7wP6LcdkLsmr5C5-37" value="&lt;a href=&quot;${intDeploymentDetails?.deploymentUrl}&quot;&gt;&lt;font style=&quot;color: light-dark(rgb(0, 0, 0), rgb(0, 173, 239));&quot;&gt;Deployed App URL&lt;/font&gt;&lt;/a&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=none;fontFamily=Verdana;fontStyle=0;align=left;spacingTop=0;spacingLeft=0;spacing=0;strokeWidth=0;" parent="1" vertex="1">
+        <mxCell id="ujUrj7wP6LcdkLsmr5C5-37" value="&lt;a href=&quot;${escapeHTML(intDeploymentDetails?.deploymentUrl)}&quot;&gt;&lt;font style=&quot;color: light-dark(rgb(0, 0, 0), rgb(0, 173, 239));&quot;&gt;Deployed App URL&lt;/font&gt;&lt;/a&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=none;fontFamily=Verdana;fontStyle=0;align=left;spacingTop=0;spacingLeft=0;spacing=0;strokeWidth=0;" parent="1" vertex="1">
           <mxGeometry x="407.61" y="669" width="270" height="19" as="geometry" />
         </mxCell>
 
         <mxCell id="ujUrj7wP6LcdkLsmr5C5-40" value="" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/azure2/management_governance/Activity_Log.svg;" parent="1" vertex="1">
           <mxGeometry x="380.81" y="586.5" width="18.39" height="22" as="geometry" />
         </mxCell>
-        <mxCell id="ujUrj7wP6LcdkLsmr5C5-39" value="&lt;a href=&quot;${buildGitJobLogViewAWSURL(intDeploymentDetails?.gitjobRunID)}&quot;&gt;&lt;font style=&quot;color: light-dark(rgb(0, 0, 0), rgb(0, 173, 239));&quot;&gt;Last Build &amp;amp; Deploy Logs&lt;/font&gt;&lt;/a&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=none;fontFamily=Verdana;fontStyle=0;align=left;spacingTop=0;spacingLeft=0;strokeWidth=0;spacing=0;" parent="1" vertex="1">
+        <mxCell id="ujUrj7wP6LcdkLsmr5C5-39" value="&lt;a href=&quot;${escapeHTML(buildGitJobLogViewAWSURL(intDeploymentDetails?.gitjobRunID))}&quot;&gt;&lt;font style=&quot;color: light-dark(rgb(0, 0, 0), rgb(0, 173, 239));&quot;&gt;Last Build &amp;amp; Deploy Logs&lt;/font&gt;&lt;/a&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=none;fontFamily=Verdana;fontStyle=0;align=left;spacingTop=0;spacingLeft=0;strokeWidth=0;spacing=0;" parent="1" vertex="1">
           <mxGeometry x="407.61" y="585" width="270" height="25" as="geometry" />
         </mxCell>
 
         <mxCell id="ujUrj7wP6LcdkLsmr5C5-42" value="" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/azure2/management_governance/Activity_Log.svg;" parent="1" vertex="1">
           <mxGeometry x="379" y="707.5" width="18.39" height="22" as="geometry" />
         </mxCell>
-        <mxCell id="ujUrj7wP6LcdkLsmr5C5-41" value="&lt;a href=&quot;${buildLogViewAWSURL(intDeploymentDetails?.deploymentUrl || codespace.projectDetails?.projectName.toLowerCase(), true)}&quot;&gt;&lt;font style=&quot;color: light-dark(rgb(0, 0, 0), rgb(0, 173, 239));&quot;&gt;Application Logs&lt;/font&gt;&lt;/a&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=none;fontFamily=Verdana;fontStyle=0;align=left;spacingTop=0;spacingLeft=0;strokeWidth=0;spacing=0;" parent="1" vertex="1">
+        <mxCell id="ujUrj7wP6LcdkLsmr5C5-41" value="&lt;a href=&quot;${escapeHTML(buildLogViewAWSURL(intDeploymentDetails?.deploymentUrl || codespace.projectDetails?.projectName.toLowerCase(), true))}&quot;&gt;&lt;font style=&quot;color: light-dark(rgb(0, 0, 0), rgb(0, 173, 239));&quot;&gt;Application Logs&lt;/font&gt;&lt;/a&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=none;fontFamily=Verdana;fontStyle=0;align=left;spacingTop=0;spacingLeft=0;strokeWidth=0;spacing=0;" parent="1" vertex="1">
           <mxGeometry x="407.61" y="709" width="270" height="19" as="geometry" />
         </mxCell>
         
@@ -249,21 +303,21 @@ export const blueprintTemplate = (codespace) => {
         <mxCell id="yNrRxmF-IllQESKTyaMv-10" value="" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/azure2/management_governance/Activity_Log.svg;" vertex="1" parent="1">
           <mxGeometry x="879.61" y="667.5" width="18.39" height="22" as="geometry" />
         </mxCell>
-        <mxCell id="yNrRxmF-IllQESKTyaMv-9" value="&lt;a href=&quot;${prodDeploymentDetails?.deploymentUrl}&quot;&gt;&lt;font style=&quot;color: light-dark(rgb(0, 0, 0), rgb(0, 173, 239));&quot;&gt;Deployed App URL&lt;/font&gt;&lt;/a&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=none;fontFamily=Verdana;fontStyle=0;align=left;spacingTop=0;spacingLeft=0;spacing=0;strokeWidth=0;" vertex="1" parent="1">
+        <mxCell id="yNrRxmF-IllQESKTyaMv-9" value="&lt;a href=&quot;${escapeHTML(prodDeploymentDetails?.deploymentUrl)}&quot;&gt;&lt;font style=&quot;color: light-dark(rgb(0, 0, 0), rgb(0, 173, 239));&quot;&gt;Deployed App URL&lt;/font&gt;&lt;/a&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=none;fontFamily=Verdana;fontStyle=0;align=left;spacingTop=0;spacingLeft=0;spacing=0;strokeWidth=0;" vertex="1" parent="1">
           <mxGeometry x="907.61" y="669" width="270" height="19" as="geometry" />
         </mxCell>
         
         <mxCell id="yNrRxmF-IllQESKTyaMv-12" value="" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/azure2/management_governance/Activity_Log.svg;" vertex="1" parent="1">
           <mxGeometry x="880.81" y="586.5" width="18.39" height="22" as="geometry" />
         </mxCell>
-        <mxCell id="yNrRxmF-IllQESKTyaMv-11" value="&lt;a href=&quot;${buildGitJobLogViewAWSURL(prodDeploymentDetails?.gitjobRunID)}&quot;&gt;&lt;font style=&quot;color: light-dark(rgb(0, 0, 0), rgb(0, 173, 239));&quot;&gt;Last Build &amp;amp; Deploy Logs&lt;/font&gt;&lt;/a&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=none;fontFamily=Verdana;fontStyle=0;align=left;spacingTop=0;spacingLeft=0;strokeWidth=0;spacing=0;" vertex="1" parent="1">
+        <mxCell id="yNrRxmF-IllQESKTyaMv-11" value="&lt;a href=&quot;${escapeHTML(buildGitJobLogViewAWSURL(prodDeploymentDetails?.gitjobRunID))}&quot;&gt;&lt;font style=&quot;color: light-dark(rgb(0, 0, 0), rgb(0, 173, 239));&quot;&gt;Last Build &amp;amp; Deploy Logs&lt;/font&gt;&lt;/a&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=none;fontFamily=Verdana;fontStyle=0;align=left;spacingTop=0;spacingLeft=0;strokeWidth=0;spacing=0;" vertex="1" parent="1">
           <mxGeometry x="907.61" y="585" width="270" height="25" as="geometry" />
         </mxCell>
         
         <mxCell id="yNrRxmF-IllQESKTyaMv-14" value="" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/azure2/management_governance/Activity_Log.svg;" vertex="1" parent="1">
           <mxGeometry x="879" y="707.5" width="18.39" height="22" as="geometry" />
         </mxCell>
-        <mxCell id="yNrRxmF-IllQESKTyaMv-13" value="&lt;a href=&quot;${buildLogViewAWSURL(prodDeploymentDetails?.deploymentUrl || codespace.projectDetails?.projectName.toLowerCase(), true)}&quot;&gt;&lt;font style=&quot;color: light-dark(rgb(0, 0, 0), rgb(0, 173, 239));&quot;&gt;Application Logs&lt;/font&gt;&lt;/a&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=none;fontFamily=Verdana;fontStyle=0;align=left;spacingTop=0;spacingLeft=0;strokeWidth=0;spacing=0;" vertex="1" parent="1">
+        <mxCell id="yNrRxmF-IllQESKTyaMv-13" value="&lt;a href=&quot;${escapeHTML(buildLogViewAWSURL(prodDeploymentDetails?.deploymentUrl || codespace.projectDetails?.projectName.toLowerCase(), true))}&quot;&gt;&lt;font style=&quot;color: light-dark(rgb(0, 0, 0), rgb(0, 173, 239));&quot;&gt;Application Logs&lt;/font&gt;&lt;/a&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=none;fontFamily=Verdana;fontStyle=0;align=left;spacingTop=0;spacingLeft=0;strokeWidth=0;spacing=0;" vertex="1" parent="1">
           <mxGeometry x="907.61" y="709" width="270" height="19" as="geometry" />
         </mxCell>
         
@@ -306,6 +360,6 @@ export const blueprintTemplate = (codespace) => {
       </root>
     </mxGraphModel>
   `;
-  console.log(template);
+  
   return template;
 };
