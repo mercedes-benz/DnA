@@ -88,7 +88,7 @@ const RoleCard = ({ role, onAdd, type }) => {
               type="button"
               onClick={handleAddRole}
             >
-              Add Role
+              {role?.isSelected ? 'Update Validity' : 'Select Role'}
             </button>
           </div>
         </div>

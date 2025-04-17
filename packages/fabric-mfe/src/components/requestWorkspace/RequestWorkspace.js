@@ -97,12 +97,19 @@ const RequestWorkspace = ({ onRefresh }) => {
   }
 
   const handleReasonNext = () => {
-    if(reason.length > 20) {
-      setCurrentStep('summary')
+    if (reason.length >= 20) {
+      setCurrentStep('summary');
     } else {
       setReasonError(true);
     }
-  }
+  };
+  
+  useEffect(() => {
+    if (reason.length >= 20) {
+      setReasonError(false);
+    }
+  }, [reason]);
+  
 
   const handleSubmit = () => {
     const data = {
@@ -133,25 +140,25 @@ const RequestWorkspace = ({ onRefresh }) => {
       <div>
         <div className={Styles.stepsContainer}>
           <div className={classNames(Styles.step, (currentStep === 'workspace-selection' || currentStep === 'role-selection' || currentStep === 'reason' || currentStep === 'summary') && Styles.complete)}>
-            <div className={Styles.stepIcon}>
+            <div className={classNames(Styles.stepIcon, currentStep === 'workspace-selection' && Styles.activeIcon)}>
               <i className="icon mbc-icon tools-mini"></i>
             </div>
             <div className={Styles.stepLabel}>Workspace Selection</div>
           </div>
           <div className={classNames(Styles.step, (currentStep === 'role-selection' || currentStep === 'reason' || currentStep === 'summary') && Styles.complete)}>
-            <div className={Styles.stepIcon}>
+            <div className={classNames(Styles.stepIcon, currentStep === 'role-selection' && Styles.activeIcon)}>
               <i className="icon mbc-icon tools-mini"></i>
             </div>
             <div className={Styles.stepLabel}>Role Selection</div>
           </div>
           <div className={classNames(Styles.step, (currentStep === 'reason' || currentStep === 'summary') && Styles.complete)}>
-            <div className={Styles.stepIcon}>
+            <div className={classNames(Styles.stepIcon, currentStep === 'reason' && Styles.activeIcon)}>
               <i className="icon mbc-icon tools-mini"></i>
             </div>
             <div className={Styles.stepLabel}>Reason</div>
           </div>
           <div className={classNames(Styles.step, (currentStep === 'summary') && Styles.complete)}>
-            <div className={Styles.stepIcon}>
+            <div className={classNames(Styles.stepIcon, currentStep === 'summary' && Styles.activeIcon)}>
               <i className="icon mbc-icon tools-mini"></i>
             </div>
             <div className={Styles.stepLabel}>Summary</div>
@@ -196,6 +203,20 @@ const RequestWorkspace = ({ onRefresh }) => {
       {currentStep === 'role-selection' &&
         <div className={Styles.rolesContainer}>
           <h3 className={Styles.subTitle}>Select Role(s)</h3>
+          {roleList.length === 0 ? (
+  <p style={{ color: 'var(--color-orange)' }}>
+    <i className="icon mbc-icon alert circle"></i>
+    &nbsp;Note: Please fill the validity and select the role.
+  </p>
+) : (
+  <p style={{ color: 'var(--color-orange)' }}>
+    <i className="icon mbc-icon alert circle"></i>
+    &nbsp;Note: Check your selected roles for the access.
+  </p>
+)}
+
+
+
           <div className={Styles.flex}>
             {/* No roles */}
             {(selectedWorkspace?.status?.roles === null || selectedWorkspace?.status?.roles?.length === 0) &&
@@ -228,27 +249,30 @@ const RequestWorkspace = ({ onRefresh }) => {
           </div>
         </div>
       }
-      
+
       {/* Fill reason */}
       {currentStep === 'reason' &&
         <div className={Styles.rolesForm}>
           <h3 className={Styles.subTitle}>Reason</h3>
           <div className={Styles.flex}>
             <div className={Styles.col}>
-              {/* <div className={classNames('input-field-group include-error area', errors.reason ? 'error' : '')}> */}
-              <div className={classNames('input-field-group include-error area')}>
+              <div className={classNames('input-field-group include-error area', reasonError && 'error')}>
                 <label id="reason" className="input-label" htmlFor="reason">
                   Reason <sup>*</sup>
                 </label>
                 <textarea
                   id="reason"
-                  className={'input-field-area'}
-                  type="text"
-                  rows={50}
+                  className="input-field-area"
+                  rows={5}
+                  maxLength={100}
                   value={reason}
                   onChange={(e) => setReason(e.target.value)}
+                  placeholder="Please describe your reason for access..."
                 />
-                {reasonError && <span className={'error-message'}>Min 20 characters</span>}
+                <div className={Styles.charCount}>
+                  {reason.length} / 100
+                </div>
+                {reasonError && <span className="error-message">Minimum 20 characters required.</span>}
               </div>
             </div>
           </div>

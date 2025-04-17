@@ -14,17 +14,20 @@
   justify-content: flex-end;
 
   button {
-    background: unset;
+    background:#00adef ;
     border: 0;
     padding: 0;
     height: auto;
-    color: #00adef;
+    color: white;
     font-size: var(--font-size-default);
     font-family: var(--font-family-medium);
+    margin-right: 10px;
+    padding: 6px 12px;
 
     &:hover {
-      background: unset;
+      background:#008abf;
     }
+    
   }
 }
 
@@ -81,4 +84,8 @@
   padding: 20px 20px 13px;
   margin-bottom: 15px;
   margin-top: -15px;
+}
+.selected {
+  border: 2px solid #00adef !important;
+  border-radius: 8px;
 }
