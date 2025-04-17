@@ -2,7 +2,7 @@ spring:
   mvc.pathmatch.matching-strategy: ant_path_matcher
   application:
     name: dna-fabric-workspace-service
-    version: 1.2.15
+    version: 1.2.16
   profile:
     active: production
 
@@ -31,6 +31,13 @@ spring:
     username: ${API_DB_USER:dbuser}
     password: ${API_DB_PASS:dbpassword}
     driverClassName: org.postgresql.Driver
+
+  ssl:
+    enabled: false
+    trust:
+      store:
+        path: ${CA_TRUSTSTORE_PATH:XXXX}
+        password: ${CA_TRUSTSTORE_PASSWORD:XXXX}
 
 fabricWorkspaces:
   clientId: ${FABRIC_OAUTH_CLIENT_ID:XXXX}
