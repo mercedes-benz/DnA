@@ -29,7 +29,7 @@
 
  import org.slf4j.Logger;
  import org.slf4j.LoggerFactory;
- 
+ import org.springframework.boot.ConfigurableBootstrapContext;
  import org.springframework.boot.SpringApplication;
  import org.springframework.boot.SpringApplicationRunListener;
  import org.springframework.context.ConfigurableApplicationContext;
@@ -44,12 +44,12 @@
      }
  
      @Override
-     public void environmentPrepared(ConfigurableEnvironment environment) {
+     public void environmentPrepared(ConfigurableBootstrapContext bootstrapContext,ConfigurableEnvironment environment) {
  
          LOGGER.info("Adding CA Trust Store....");
          String trustStorePath = environment.getProperty("spring.ssl.trust.store.path");
          String trustStorePassword = environment.getProperty("spring.ssl.trust.store.password");
-         
+ 
          if (trustStorePath != null && trustStorePassword != null) {
              System.setProperty("javax.net.ssl.trustStore", trustStorePath);
              System.setProperty("javax.net.ssl.trustStorePassword", trustStorePassword);
@@ -58,4 +58,3 @@
      }
  
  } 
- 
