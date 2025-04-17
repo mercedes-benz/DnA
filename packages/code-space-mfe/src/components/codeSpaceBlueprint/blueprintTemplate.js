@@ -306,6 +306,6 @@ export const blueprintTemplate = (codespace) => {
       </root>
     </mxGraphModel>
   `;
-
+  console.log(template);
   return template;
 };
