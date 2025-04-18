@@ -171,7 +171,6 @@ backendResources:
     cpu: 10m
   limits:
     memory: 512Mi
-    cpu:
 volumes:
   logsPath: /usr/local/airflow/logs
   dagsPath: /usr/local/airflow/dags/git-sync/dags
