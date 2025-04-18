@@ -5,7 +5,6 @@ import Styles from './CodeSpaceBlueprint.scss';
 import { blueprintTemplate } from './blueprintTemplate';
 
 const CodeSpaceBlueprint = ({ codespace }) => {
-  console.log('blueprint template', blueprintTemplate(codespace));
   return (
     <div className={classNames(Styles.csbWrapper)}>
       <DrawIoEmbed
