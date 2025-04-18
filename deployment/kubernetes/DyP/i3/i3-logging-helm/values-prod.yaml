@@ -378,8 +378,8 @@ opensearch:
   resources:
     requests:
       memory: "4710Mi"
-    limits:
       cpu: 464m
+    limits:
       memory: "4710Mi"
 
   sysctl:
