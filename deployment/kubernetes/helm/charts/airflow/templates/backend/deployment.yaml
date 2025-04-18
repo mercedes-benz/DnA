@@ -144,7 +144,6 @@ spec:
               cpu: {{ .Values.backendResources.requests.cpu | quote }}
             limits:
               memory: {{ .Values.backendResources.limits.memory | quote }}
-              cpu: {{ .Values.backendResources.limits.cpu | quote }}
           volumeMounts:
             - mountPath: /git
               name: dag-repo
