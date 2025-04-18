@@ -106,7 +106,6 @@ s3:
 resources:
   limits:
     enabled: true
-    cpu:
     memory: 428Mi
   request:
     enabled: true
