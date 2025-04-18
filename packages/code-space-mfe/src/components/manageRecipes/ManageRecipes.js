@@ -6,7 +6,7 @@ import { CodeSpaceApiClient } from '../../apis/codespace.api';
 import RecipeList from './RecipeList';
 import Pagination from 'dna-container/Pagination';
 import Modal from 'dna-container/Modal';
-// import { IconGear } from 'dna-container/IconGear';
+import { IconGear } from 'dna-container/IconGear';
 import { SESSION_STORAGE_KEYS } from '../../Utility/constants';
 import { getQueryParameterByName } from 'dna-container/Query';
 import Caption from 'dna-container/Caption';
@@ -16,9 +16,13 @@ import { ProgressIndicator } from '../../common/modules/uilab/bundle/js/uilab.bu
 import { regionalDateAndTimeConversionSolution } from '../../Utility/utils';
 import ViewRecipe from '../codeSpaceRecipe/ViewRecipe';
 import RecipeCard from '../recipeCard/RecipeCard';
+import { USER_ROLE } from '../../Utility/constants';
 
-const ManageRecipes = () => {
+const ManageRecipes = ({ user }) => {
   const history = useHistory();
+
+  const isAdmin = user.roles.find((role) => role.id === USER_ROLE.CODESPACEADMIN) !== undefined;
+
   const [loading, setLoading] = useState(true);
   const [recipes, setRecipes] = useState([]);
 
@@ -196,16 +200,18 @@ const ManageRecipes = () => {
         <div className={Styles.wrapper}>
           <Caption title="Manage Recipes" onBackClick={() => history.push('/')}>
             <div className={classNames(Styles.listHeader)}>
-              {/* <div className={Styles.actionBtns}>
-                <button
-                  className={classNames('btn btn-primary', Styles.btnOutline)}
-                  type="button"
-                  onClick={() => history.push('/administration')}
-                >
-                  <IconGear size={'14'} />
-                  <span>Administration</span>
-                </button>
-              </div> */}
+              {isAdmin && 
+                <div className={Styles.actionBtns}>
+                  <button
+                    className={classNames('btn btn-primary', Styles.btnOutline)}
+                    type="button"
+                    onClick={() => history.push('/administration')}
+                  >
+                    <IconGear size={'14'} />
+                    <span>Administration</span>
+                  </button>
+                </div>
+              }
               <div>
                 <button className={classNames('btn btn-primary', Styles.refreshBtn)} tooltip-data="Refresh" onClick={getCodespaceRecipes}>
                   <i className="icon mbc-icon refresh"></i>

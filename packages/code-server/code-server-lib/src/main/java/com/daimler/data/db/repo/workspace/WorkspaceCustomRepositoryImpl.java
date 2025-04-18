@@ -92,7 +92,10 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 		Predicate p2 = cb.notEqual(cb.lower(
 				cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("status"))),
 				"DELETED".toLowerCase());
-		Predicate pMain = cb.and(p1,p2);
+		Predicate p3 = cb.equal(cb.lower(
+				cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("activeInGroup"))),
+				"FALSE".toLowerCase());		
+		Predicate pMain = cb.and(p1,p2,p3);
 		cq.where(pMain);		
 		cq.orderBy(cb.asc(cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("projectDetails"), cb.literal("projectName"))));
 		TypedQuery<CodeServerWorkspaceNsql> getAllQuery = em.createQuery(getAll);
@@ -115,7 +118,10 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 		Predicate p2 = cb.notEqual(cb.lower(
 				cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("status"))),
 				"DELETED".toLowerCase());
-		Predicate pMain = cb.and(p1,p2);
+		Predicate p3 = cb.equal(cb.lower(
+				cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("activeInGroup"))),
+				"FALSE".toLowerCase());		
+		Predicate pMain = cb.and(p1,p2,p3);
 		cq.where(pMain);
 		TypedQuery<Long> getAllQuery = em.createQuery(getAll);
 		Long count = getAllQuery.getSingleResult();

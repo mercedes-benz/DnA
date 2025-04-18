@@ -1,0 +1,291 @@
+.group {
+    width: calc(25% - 12px);
+    padding: 25px 20px 50px 20px;
+    position: relative;
+    background: #252a33;
+    border: 1px solid #252a33;
+  
+    .groupHeader {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-bottom: 20px;
+        margin-bottom: 20px;
+        border-bottom: 1px solid #404c56;
+  
+        h2 {
+            font-size: var(--font-size-headline);
+            color: #99a5b3;
+            margin-bottom: 0;
+  
+            &:hover {
+                color: #00adef;
+                cursor: pointer;
+            }
+        }
+  
+        button {
+            background: unset;
+            border: unset;
+            padding: 0;
+            height: unset;
+            color: #c0c8d0;
+            font-size: var(--font-size-small);
+  
+            &:hover {
+                color: #00adef;
+            }
+        }
+    }
+  }
+  
+  .groupWarning {
+    margin-bottom: 7px;
+    margin-top: -10px;
+    button {
+        color: #ffff4c;
+        font-size: var(--font-size-smallest);
+        background: unset;
+        width: 100%;
+        height: unset;
+        border: 0;
+        padding: 0;
+        text-align: left;
+  
+        &:hover {
+            background: unset;
+        }
+    }
+  }
+  .groupBody {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .codeSpaceItem {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    border-bottom: 1px solid #2e3740;
+    padding: 0 0 10px 0;
+  
+    button {
+        position: relative;
+        min-width: 20px;
+        width: 20px;
+        height: 20px;
+        border: 1px solid #00adef;
+        border-radius: 50%;
+        background: unset;
+        padding: 0;
+        overflow: hidden;
+  
+        &:hover {
+            border: 1px solid #00adef;
+            background: unset;
+        }
+  
+        > span {
+            display: block;
+            width: 6px;
+            height: 6px;
+            background-color: #00adef;
+            transform: rotate(45deg);
+            margin-left: 4px;
+  
+            &::before {
+                content: "";
+                background-color: #282e39;
+                width: 7px;
+                height: 10px;
+                display: block;
+                transform: rotate(-45deg) translate(-3px, -2px);
+            }
+        }
+    }
+  
+    button.stop {
+        border-color: #e84d47;
+  
+        > span {
+            display: block;
+            width: 6px;
+            height: 6px;
+            transform: unset;
+            margin: auto;
+            background-color: #e84d47;
+  
+            &::before {
+                display: none;
+            }
+        }
+    }
+  
+    h3 {
+        font-size: var(--font-size-default);
+        margin: 0;
+        color: #99a5b3;
+        line-height: 1.5;  
+        white-space: nowrap;
+        text-overflow: ellipsis;
+        
+        &:hover {
+          color:#00adef;
+          cursor: pointer;
+        }
+    }
+  
+    .btnOutline {
+      display: flex;
+      background: none;
+      border: none !important;
+      color: #c0c8d0;
+      height: auto;
+      outline: none;
+      padding: 0 2px;
+      width: -webkit-fill-available;
+      justify-content: space-between;
+      border-radius: unset;
+      &:hover {
+          background: unset;
+      }
+    }
+  
+    .flexDisplay {
+      display: flex;
+    }
+  }
+  
+  .workspaceType {
+      margin-bottom: 0;
+      font-size: var(--font-size-smallest);
+      color: #708195;
+  }
+  
+  .csOpenNewTab {
+      border: 1px solid #acb8c4;
+      width: 20px;
+      height: 20px;
+      font-size: 9px;
+      margin-left: 5px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      i {
+          color: #acb8c4!important;
+          margin: -3px 0 0 !important;
+      }
+      &.active {
+          border: 2px solid #00ADEF;
+          color: #00ADEF;
+      }
+      &:hover {
+        border-color:#00adef;
+  
+        i {
+          color: #00adef!important;
+        }
+      }
+  }
+  
+  .btnContainer {
+      position: absolute;
+      left: 20px;
+      right: 20px;
+      bottom: 14px;
+      display: flex;
+      justify-content: flex-end;
+      align-items: center;
+  
+      > button {
+          margin-left: 15px;
+          background: unset;
+          border: unset;
+          padding: 0;
+          height: unset;
+          color: #99a5b3;
+          font-size: var(--font-size-small);
+  
+          &:hover {
+              background-color: unset;
+          }
+      }
+  }
+  
+  .statusIndicator {
+      padding: 2px 8px;
+      border: 1px solid #0AE6AB;
+      color: #0AE6AB;
+      font-size: var(--font-size-icon-small);
+      letter-spacing: 1px;
+      border-radius: 2px;
+      margin-right: 5px;
+  
+      &.wsStartStop {
+          border: 1px solid #00adef;
+          color: #00adef;
+          cursor: pointer;
+  
+          &.wsStarted {
+          border: 1px solid #e84d47;
+          color: #e84d47;
+          }
+      }
+  
+      &.colloboration {
+          border: 1px solid #35ADAC;
+          color: #35ADAC;
+      }
+  
+      &.deploying {
+          border: 1px solid #f3e537;
+          color: #f3e537;
+      }
+  
+      &.deployFailed {
+          border: 1px solid #e84d47;
+          color: #e84d47;
+      }
+  
+      &.deleting {
+          border: 1px solid #e84d47;
+          color: #e84d47;
+      }
+  
+      &.creating {
+          border: 1px solid #00adef;
+          color: #00adef;
+      }
+  }
+  
+  .trigger {
+      display: inline-block;
+      padding-top: 1px;
+      position: relative;
+      &.open {
+        z-index: 10;
+      }
+      cursor: pointer;
+      &:hover {
+        color: #00adef;
+      }
+    }
+  
+    .contextMenu {
+      hr {
+        width: 100%;
+      }
+  
+      i {
+        font-size: var(--font-size-tiny);
+      }
+    }
+  
+  .highlight {
+      border-color: #00adef;
+  }
+  
+  
