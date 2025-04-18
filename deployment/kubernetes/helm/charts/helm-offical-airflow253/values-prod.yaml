@@ -671,13 +671,12 @@ workers:
     args: ["bash", "/clean-logs"]
     # Number of days to retain logs
     retentionDays: 15
-    resources: {}
-    #  limits:
-    #   cpu: 100m
-    #   memory: 128Mi
-    #  requests:
-    #   cpu: 100m
-    #   memory: 128Mi
+    resources:
+     limits:
+      memory: 252Mi
+     requests:
+      cpu: 40m
+      memory: 252Mi
 
 
   waitForMigrations:
@@ -759,11 +758,10 @@ scheduler:
 
   resources:
    limits:
-    cpu: 3000m
-    memory: 3500Mi
+    memory: 1181Mi
    requests:
-    cpu: 2500m
-    memory: 3000Mi
+    cpu: 1784m
+    memory: 1181Mi
 
   # This setting tells kubernetes that its ok to evict
   # when it wants to scale a node down.
@@ -1097,13 +1095,12 @@ webserver:
       ports:
         - port: "{{ .Values.ports.airflowUI }}"
 
-  resources: {}
-  #   limits:
-  #     cpu: 100m
-  #     memory: 128Mi
-  #   requests:
-  #     cpu: 100m
-  #     memory: 128Mi
+  resources:
+    limits:
+      memory: 1492Mi
+    requests:
+      cpu: 10m
+      memory: 1492Mi
 
   # Create initial user.
   defaultUser:
@@ -1734,13 +1731,13 @@ pgbouncer:
   # Example:
   #
   # resource:
-  #   limits:
-  #     cpu: 100m
-  #     memory: 128Mi
-  #   requests:
-  #     cpu: 100m
-  #     memory: 128Mi
-  resources: {}
+
+  resources:
+    limits:
+      memory: 305Mi
+    requests:
+      cpu: 45m
+      memory: 305Mi
 
   service:
     extraAnnotations: {}
@@ -2192,13 +2189,12 @@ dags:
     # - name: ""
     #   value: ""
 
-    resources: {}
-    #  limits:
-    #   cpu: 100m
-    #   memory: 128Mi
-    #  requests:
-    #   cpu: 100m
-    #   memory: 128Mi
+    resources:
+     limits:
+      memory: 128Mi
+     requests:
+      cpu: 14m
+      memory: 128Mi
 
 logs:
   persistence:
