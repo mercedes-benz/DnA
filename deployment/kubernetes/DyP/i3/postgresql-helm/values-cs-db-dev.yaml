@@ -371,14 +371,15 @@ restore:
     tag: 13.8-5.5.0-2023.2.20
     pullPolicy: IfNotPresent
   resources:
-    enabled: true
+    enabled: false
     limits:
-      enabled: true
-      memory: 100Mi
+      enabled: false
+      # cpu: 500m
+      # memory: 512Mi
     request:
-      enabled: true
-      cpu: 10m
-      memory: 100Mi
+      enabled: false
+      # cpu: 250m
+      # memory: 256Mi
 
   ## false for dry-run
   targetVolume:
@@ -417,15 +418,14 @@ pgmonitoring:
     tag: v0.10.1
     pullPolicy: IfNotPresent
   resources:
-    enabled: false
+    enabled: true
     limits:
-      enabled: false
-      # cpu: 500m
-      # memory: 512Mi
+      enabled: true
+      memory: 100Mi
     request:
-      enabled: false
-      # cpu: 250m
-      # memory: 256Mi
+      enabled: true
+      cpu: 10m
+      memory: 100Mi
   queryMonitoring:
     enabled: true
   customQueries: {}

@@ -418,15 +418,14 @@ pgmonitoring:
     tag: v0.10.1
     pullPolicy: IfNotPresent
   resources:
-    enabled: false
+    enabled: true
     limits:
-      enabled: false
-      # cpu: 500m
-      # memory: 512Mi
+      enabled: true
+      memory: 100Mi
     request:
-      enabled: false
-      # cpu: 250m
-      # memory: 256Mi
+      enabled: true
+      cpu: 10m
+      memory: 100Mi
   queryMonitoring:
     enabled: true
   customQueries: {}
@@ -483,14 +482,15 @@ mountPGLibs:
     tag: 13.8-5.3.0-2022.11.4
     pullPolicy: IfNotPresent
   resources:
-    enabled: true
+    enabled: false
     limits:
-      enabled: true
-      memory: 100Mi
+      enabled: false
+      # cpu: 500m
+      # memory: 512Mi
     request:
-      enabled: true
-      cpu: 10m
-      memory: 100Mi
+      enabled: false
+      # cpu: 250m
+      # memory: 256Mi
 
 ## Start master and slave(s) pod(s) without limitations on shm memory.
 ## By default docker and containerd (and possibly other container runtimes)
