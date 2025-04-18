@@ -48,7 +48,7 @@ prometheus:
       repository: registry-emea.app.corpintra.net/dockerhub/prom/prometheus
     extraArgs:
       # Limit persistent data size (experimental)
-      storage.tsdb.retention.size: "10GB"
+      storage.tsdb.retention.size: "90GB"
     # Adjust securityContext for non-root
     securityContext:
       runAsUser: 65534
@@ -56,9 +56,9 @@ prometheus:
       fsGroup: 65534
     persistentVolume:
      storageClass: dhc-gp3
-     size: 30Gi
+     size: 100Gi
     #podLabels for adding label for network policy
-    retention: "30d"
+    retention: "10d"
     podLabels:
       i3.monitoring.app: prometheus
     resources: 
