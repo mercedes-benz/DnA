@@ -140,10 +140,8 @@ const renderAdditionalServices = (additionalServices, isSoftware) => {
   return output;
 };
 
-
-
-
 export const blueprintTemplate = (codespace) => {
+  const resources = codespace?.projectDetails?.recipeDetails?.resource?.split(',');
   const intDeploymentDetails = codespace?.projectDetails?.intDeploymentDetails;
   const prodDeploymentDetails = codespace?.projectDetails?.prodDeploymentDetails;
   const software = codespace?.projectDetails?.recipeDetails?.software;
@@ -152,7 +150,8 @@ export const blueprintTemplate = (codespace) => {
     return `${collaborator?.firstName} ${collaborator?.lastName} (${collaborator?.id})`;
   });
 
-  const resourceUsageUrl = Envs.MONITORING_DASHBOARD_BASE_URL + `codespace-cpu-and-memory-usage?orgId=1&from=now-1h&to=now&var-namespace=${Envs.CODESERVER_NAMESPACE}&var-pod=${codespace.workspaceId}&var-container=notebook`;
+  const intAppResourceUsageUrl = Envs.MONITORING_DASHBOARD_APP_BASE_URL + `codespace-app-cpu-and-memory-usage?orgId=1&var-namespace=${Envs.CODESERVER_APP_NAMESPACE}&var-app=${codespace?.projectDetails?.projectName}-int&var-container=`;
+  const prodAppResourceUsageUrl = Envs.MONITORING_DASHBOARD_APP_BASE_URL + `codespace-app-cpu-and-memory-usage?orgId=1&var-namespace=${Envs.CODESERVER_APP_NAMESPACE}&var-app=${codespace?.projectDetails?.projectName}-prod&var-container=`;
 
   const template = `
     <mxGraphModel dx="1428" dy="751" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1700" pageHeight="1100" math="0" shadow="0">
@@ -189,10 +188,22 @@ export const blueprintTemplate = (codespace) => {
         <mxCell id="ujUrj7wP6LcdkLsmr5C5-23" value="" style="pointerEvents=1;shadow=0;dashed=0;html=1;strokeColor=none;fillColor=#4495D1;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;align=center;outlineConnect=0;shape=mxgraph.veeam.ram;" parent="1" vertex="1">
           <mxGeometry x="1100" y="200.36" width="30" height="15.2" as="geometry" />
         </mxCell>
-        <mxCell id="ujUrj7wP6LcdkLsmr5C5-7" value="${codespace?.projectDetails?.recipeDetails?.ramSize}GB RAM" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=Verdana;fontStyle=0" parent="1" vertex="1">
+        <mxCell id="ujUrj7wP6LcdkLsmr5C5-7" value="${(resources[3]?.split('M')[0])/1000}GB RAM" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=Verdana;fontStyle=0" parent="1" vertex="1">
           <mxGeometry x="1150" y="192.96" width="120" height="30" as="geometry" />
         </mxCell>
-        
+        <mxCell id="ujUrj7wP6LcdkLsmr5C5-24" value="" style="pointerEvents=1;shadow=0;dashed=0;html=1;strokeColor=none;fillColor=#4495D1;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;align=center;outlineConnect=0;shape=mxgraph.veeam.cpu;" parent="1" vertex="1">
+          <mxGeometry x="1230" y="195.56" width="30" height="24.8" as="geometry" />
+        </mxCell>
+        <mxCell id="ujUrj7wP6LcdkLsmr5C5-25" value="" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/azure2/management_governance/Blueprints.svg;" parent="1" vertex="1">
+          <mxGeometry x="833" y="31" width="35" height="34.46" as="geometry" />
+        </mxCell>
+        <mxCell id="ujUrj7wP6LcdkLsmr5C5-26" value="${resources[4]} CPU" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=Verdana;fontStyle=0" parent="1" vertex="1">
+          <mxGeometry x="1270" y="192.96" width="80" height="30" as="geometry" />
+        </mxCell>
+        <mxCell id="ujUrj7wP6LcdkLsmr5C5-27" value="${codespace?.projectDetails?.recipeDetails?.operatingSystem}" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=Verdana;fontStyle=0" parent="1" vertex="1">
+          <mxGeometry x="980" y="192.96" width="120" height="30" as="geometry" />
+        </mxCell>
+
         <mxCell id="ujUrj7wP6LcdkLsmr5C5-2" value="Recipe: ${codespace?.projectDetails?.recipeDetails?.recipeName}" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=0;fontSize=13;fontFamily=Verdana;" parent="1" vertex="1">
           <mxGeometry x="392" y="192.46" width="528" height="30" as="geometry" />
         </mxCell>
@@ -207,7 +218,7 @@ export const blueprintTemplate = (codespace) => {
         <mxCell id="ujUrj7wP6LcdkLsmr5C5-16" value="Software" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=0;fontFamily=Verdana;" parent="1" vertex="1">
           <mxGeometry x="368" y="241" width="460" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="ujUrj7wP6LcdkLsmr5C5-17" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=light-dark(#FFFFFF,#252A33);strokeColor=light-dark(#000000,#6C8EBF);fontFamily=Verdana;fontStyle=0" parent="1" vertex="1">
+        <mxCell id="ujUrj7wP6LcdkLsmr5C5-17" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=light-dark(#FFFFFF,#252A33);strokeColor=light-dark(#FFFFFF,#6C8EBF);fontFamily=Verdana;fontStyle=0" parent="1" vertex="1">
           <mxGeometry x="868" y="271" width="460" height="89" as="geometry" />
         </mxCell>
         <mxCell id="ujUrj7wP6LcdkLsmr5C5-18" value="Additional Services" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=0;fontFamily=Verdana;" parent="1" vertex="1">
@@ -221,18 +232,6 @@ export const blueprintTemplate = (codespace) => {
         </mxCell>
         <mxCell id="ujUrj7wP6LcdkLsmr5C5-22" value="" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/azure2/compute/OS_Images_Classic.svg;" parent="1" vertex="1">
           <mxGeometry x="950" y="199.96" width="21.56" height="20" as="geometry" />
-        </mxCell>
-        <mxCell id="ujUrj7wP6LcdkLsmr5C5-24" value="" style="pointerEvents=1;shadow=0;dashed=0;html=1;strokeColor=none;fillColor=#4495D1;labelPosition=center;verticalLabelPosition=bottom;verticalAlign=top;align=center;outlineConnect=0;shape=mxgraph.veeam.cpu;" parent="1" vertex="1">
-          <mxGeometry x="1230" y="195.56" width="30" height="24.8" as="geometry" />
-        </mxCell>
-        <mxCell id="ujUrj7wP6LcdkLsmr5C5-25" value="" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/azure2/management_governance/Blueprints.svg;" parent="1" vertex="1">
-          <mxGeometry x="833" y="31" width="35" height="34.46" as="geometry" />
-        </mxCell>
-        <mxCell id="ujUrj7wP6LcdkLsmr5C5-26" value="${codespace?.projectDetails?.recipeDetails?.cpuCapacity} CPU" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=Verdana;fontStyle=0" parent="1" vertex="1">
-          <mxGeometry x="1270" y="192.96" width="80" height="30" as="geometry" />
-        </mxCell>
-        <mxCell id="ujUrj7wP6LcdkLsmr5C5-27" value="${codespace?.projectDetails?.recipeDetails?.operatingSystem}" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=Verdana;fontStyle=0" parent="1" vertex="1">
-          <mxGeometry x="980" y="192.96" width="120" height="30" as="geometry" />
         </mxCell>
         ${renderAdditionalServices(software, true)}
         ${renderAdditionalServices(additionalServices, false)}
@@ -255,7 +254,7 @@ export const blueprintTemplate = (codespace) => {
         <mxCell id="ujUrj7wP6LcdkLsmr5C5-36" value="" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/azure2/general/Branch.svg;" parent="1" vertex="1">
           <mxGeometry x="379" y="547.5" width="22" height="22" as="geometry" />
         </mxCell>
-        <mxCell id="ujUrj7wP6LcdkLsmr5C5-13" value="&lt;span style=&quot;&quot;&gt;Deployed: [Branch - ${intDeploymentDetails?.lastDeployedBranch}]&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=none;fontFamily=Verdana;fontStyle=0;align=left;spacingTop=0;spacingLeft=0;strokeWidth=0;spacing=0;" parent="1" vertex="1">
+        <mxCell id="ujUrj7wP6LcdkLsmr5C5-13" value="&lt;span style=&quot;&quot;&gt;Deployed: [Branch - ${intDeploymentDetails?.lastDeployedBranch ? intDeploymentDetails?.lastDeployedBranch : 'No Deployment'}]&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=none;fontFamily=Verdana;fontStyle=0;align=left;spacingTop=0;spacingLeft=0;strokeWidth=0;spacing=0;" parent="1" vertex="1">
           <mxGeometry x="407.61" y="550" width="270" height="17" as="geometry" />
         </mxCell>
 
@@ -283,7 +282,7 @@ export const blueprintTemplate = (codespace) => {
         <mxCell id="ujUrj7wP6LcdkLsmr5C5-44" value="" style="image;sketch=0;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/mscae/LogDiagnostics.svg;" parent="1" vertex="1">
           <mxGeometry x="381" y="630" width="18" height="20" as="geometry" />
         </mxCell>
-        <mxCell id="ujUrj7wP6LcdkLsmr5C5-43" value="&lt;a href=&quot;${escapeHTML(resourceUsageUrl)}&quot;&gt;&lt;font style=&quot;color: light-dark(rgb(0, 0, 0), rgb(0, 173, 239));&quot;&gt;Deployed App Resource Usage&lt;/font&gt;&lt;/a&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=none;fontFamily=Verdana;fontStyle=0;align=left;spacingTop=0;spacingLeft=0;spacing=0;strokeWidth=0;" parent="1" vertex="1">
+        <mxCell id="ujUrj7wP6LcdkLsmr5C5-43" value="&lt;a href=&quot;${escapeHTML(intAppResourceUsageUrl)}&quot;&gt;&lt;font style=&quot;color: light-dark(rgb(0, 0, 0), rgb(0, 173, 239));&quot;&gt;Deployed App Resource Usage&lt;/font&gt;&lt;/a&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=none;fontFamily=Verdana;fontStyle=0;align=left;spacingTop=0;spacingLeft=0;spacing=0;strokeWidth=0;" parent="1" vertex="1">
           <mxGeometry x="407.61" y="630.5" width="270" height="19" as="geometry" />
         </mxCell>
         ${{ /* Staging section end */ }}
@@ -296,7 +295,7 @@ export const blueprintTemplate = (codespace) => {
         <mxCell id="yNrRxmF-IllQESKTyaMv-8" value="" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/azure2/general/Branch.svg;" vertex="1" parent="1">
           <mxGeometry x="879" y="547.5" width="22" height="22" as="geometry" />
         </mxCell>
-        <mxCell id="yNrRxmF-IllQESKTyaMv-6" value="&lt;span style=&quot;&quot;&gt;Deployed: [Branch - ${prodDeploymentDetails?.lastDeployedBranch}]&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=none;fontFamily=Verdana;fontStyle=0;align=left;spacingTop=0;spacingLeft=0;strokeWidth=0;spacing=0;" vertex="1" parent="1">
+        <mxCell id="yNrRxmF-IllQESKTyaMv-6" value="&lt;span style=&quot;&quot;&gt;Deployed: [Branch - ${prodDeploymentDetails?.lastDeployedBranch ? prodDeploymentDetails?.lastDeployedBranch : 'No Deployment'}]&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=none;fontFamily=Verdana;fontStyle=0;align=left;spacingTop=0;spacingLeft=0;strokeWidth=0;spacing=0;" vertex="1" parent="1">
           <mxGeometry x="907.61" y="550" width="270" height="17" as="geometry" />
         </mxCell>
         
@@ -324,7 +323,7 @@ export const blueprintTemplate = (codespace) => {
         <mxCell id="yNrRxmF-IllQESKTyaMv-16" value="" style="image;sketch=0;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/mscae/LogDiagnostics.svg;" vertex="1" parent="1">
           <mxGeometry x="881" y="630" width="18" height="20" as="geometry" />
         </mxCell>
-        <mxCell id="yNrRxmF-IllQESKTyaMv-15" value="&lt;a href=&quot;${escapeHTML(resourceUsageUrl)}&quot;&gt;&lt;font style=&quot;color: light-dark(rgb(0, 0, 0), rgb(0, 173, 239));&quot;&gt;Deployed App Resource Usage&lt;/font&gt;&lt;/a&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=none;fontFamily=Verdana;fontStyle=0;align=left;spacingTop=0;spacingLeft=0;spacing=0;strokeWidth=0;" vertex="1" parent="1">
+        <mxCell id="yNrRxmF-IllQESKTyaMv-15" value="&lt;a href=&quot;${escapeHTML(prodAppResourceUsageUrl)}&quot;&gt;&lt;font style=&quot;color: light-dark(rgb(0, 0, 0), rgb(0, 173, 239));&quot;&gt;Deployed App Resource Usage&lt;/font&gt;&lt;/a&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=none;fontFamily=Verdana;fontStyle=0;align=left;spacingTop=0;spacingLeft=0;spacing=0;strokeWidth=0;" vertex="1" parent="1">
           <mxGeometry x="907.61" y="630.5" width="270" height="19" as="geometry" />
         </mxCell>
         ${{ /* Production section start */ }}
@@ -347,7 +346,7 @@ export const blueprintTemplate = (codespace) => {
         <mxCell id="ujUrj7wP6LcdkLsmr5C5-11" value="${codespace?.projectDetails?.projectOwner?.firstName} ${codespace?.projectDetails?.projectOwner?.lastName} (${codespace?.projectDetails?.projectOwner?.id}) ${codespace?.projectDetails?.projectOwner?.isAdmin ? ' - Admin' : ''}" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontFamily=Verdana;fontStyle=0" parent="1" vertex="1">
           <mxGeometry x="381" y="864" width="252" height="40" as="geometry" />
         </mxCell>
-        <mxCell id="ujUrj7wP6LcdkLsmr5C5-31" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=light-dark(#000000,#252A33);strokeColor=light-dark(#FFFFFF,#6C8EBF);fillStyle=auto;fontFamily=Verdana;fontStyle=0" parent="1" vertex="1">
+        <mxCell id="ujUrj7wP6LcdkLsmr5C5-31" value="" style="rounded=0;whiteSpace=wrap;html=1;fillColor=light-dark(#FFFFFF,#252A33);strokeColor=light-dark(#FFFFFF,#6C8EBF);fillStyle=auto;fontFamily=Verdana;fontStyle=0" parent="1" vertex="1">
           <mxGeometry x="368" y="954" width="962" height="40" as="geometry" />
         </mxCell>
         <mxCell id="ujUrj7wP6LcdkLsmr5C5-33" value="Collaborator(s)" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=0;fontFamily=Verdana;" parent="1" vertex="1">
