@@ -190,8 +190,8 @@ ingress:
 resources:
   requests:
     memory: "283Mi"
-  limits:
     cpu: "10m"
+  limits:
     memory: "283Mi"
 
 autoscaling:
