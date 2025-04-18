@@ -120,7 +120,7 @@ vaultInjector:
   jarName: dnambc*.jar
 resources:
   requests:
-    memory: 100Mi
+    memory: 956Mi
     cpu: 10m
   limits:
-    memory: 100Mi
+    memory: 956Mi
