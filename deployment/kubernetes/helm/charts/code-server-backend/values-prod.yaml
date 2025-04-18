@@ -65,7 +65,12 @@ ingress:
     - hosts:
         - api.code-spaces.dna.app.corpintra.net
       secretName: cs-tls-secret
-resources: {}
+resources:
+  requests:
+    memory: 747Mi
+    cpu: 10m
+  limits:
+    memory: 747Mi
 autoscaling:
   enabled: false
   minReplicas: 1

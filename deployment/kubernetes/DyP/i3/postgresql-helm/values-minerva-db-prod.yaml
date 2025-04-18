@@ -104,16 +104,16 @@ s3:
 ## ref: http://kubernetes.io/docs/user-guide/compute-resources/
 ##
 resources:
-  enabled: false
+  enabled: true
   ## uncomment fitting parts when you wand to enable setting cpu and memory requests and limits
   limits:
-    enabled: false
-    # cpu: 1.5
-    # memory: 1Gi
+    enabled: true
+    cpu:
+    memory: 138Mi
   request:
-    enabled: false
-    # cpu: 1.2
-    # memory: 1Gi
+    enabled: true
+    cpu: 10m
+    memory: 138Mi
 
 ## Configure additional env variables
 env:
@@ -484,15 +484,15 @@ mountPGLibs:
     tag: 13.8-5.3.0-2022.11.4
     pullPolicy: IfNotPresent
   resources:
-    enabled: false
+    enabled: true
     limits:
-      enabled: false
-      # cpu: 500m
-      # memory: 512Mi
+      enabled: true
+      cpu:
+      memory: 100Mi
     request:
-      enabled: false
-      # cpu: 250m
-      # memory: 256Mi
+      enabled: true
+      cpu: 10m
+      memory: 100Mi
 
 ## Start master and slave(s) pod(s) without limitations on shm memory.
 ## By default docker and containerd (and possibly other container runtimes)

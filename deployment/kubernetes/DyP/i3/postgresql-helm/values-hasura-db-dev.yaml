@@ -104,16 +104,16 @@ s3:
 ## ref: http://kubernetes.io/docs/user-guide/compute-resources/
 ##
 resources:
-  enabled: false
+  enabled: true
   ## uncomment fitting parts when you wand to enable setting cpu and memory requests and limits
   limits:
-    enabled: false
-    # cpu: 1.5
-    # memory: 1Gi
+    enabled: true
+    cpu:
+    memory: 100Mi
   request:
-    enabled: false
-    # cpu: 1.2
-    # memory: 1Gi
+    enabled: true
+    cpu: 10m
+    memory: 100Mi
 
 ## Configure additional env variables
 env:
@@ -418,15 +418,15 @@ pgmonitoring:
     tag: v0.10.1
     pullPolicy: IfNotPresent
   resources:
-    enabled: false
+    enabled: true
     limits:
-      enabled: false
-      # cpu: 500m
-      # memory: 512Mi
+      enabled: true
+      cpu:
+      memory: 100Mi
     request:
-      enabled: false
-      # cpu: 250m
-      # memory: 256Mi
+      enabled: true
+      cpu: 10m
+      memory: 100Mi
   queryMonitoring:
     enabled: true
   customQueries: {}

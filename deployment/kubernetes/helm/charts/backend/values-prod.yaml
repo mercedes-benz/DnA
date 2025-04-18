@@ -123,3 +123,9 @@ vaultInjector:
 podDisruptionBudget:
   enabled: true
   minAvailable: 50%
+resources:
+  requests:
+    memory: 1039Mi
+    cpu: 25m
+  limits:
+    memory: 1039Mi

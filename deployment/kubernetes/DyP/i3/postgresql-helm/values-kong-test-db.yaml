@@ -104,16 +104,16 @@ s3:
 ## ref: http://kubernetes.io/docs/user-guide/compute-resources/
 ##
 resources:
-  enabled: false
+  enabled: true
   ## uncomment fitting parts when you wand to enable setting cpu and memory requests and limits
   limits:
-    enabled: false
-    # cpu: 1.5
-    # memory: 1Gi
+    enabled: true
+    cpu:
+    memory: 111Mi
   request:
-    enabled: false
-    # cpu: 1.2
-    # memory: 1Gi
+    enabled: true
+    cpu: 10m
+    memory: 111Mi
 
 ## Configure additional env variables
 env:

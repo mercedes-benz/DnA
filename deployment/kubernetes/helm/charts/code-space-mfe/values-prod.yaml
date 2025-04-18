@@ -43,11 +43,10 @@ ingress:
       secretName: code-space-tls-secret
 resources:
   limits:
-    cpu: 100m
-    memory: 128Mi
+    memory: 210Mi
   requests:
-    cpu: 100m
-    memory: 128Mi
+    cpu: 16m
+    memory: 210Mi
 vaultInjector:
   enable: true
   annotations:

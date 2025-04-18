@@ -196,7 +196,8 @@ spec:
           {{- end }}  
           ports:
             - containerPort: 7171
-          resources: {}
+          resources:
+            {{- toYaml .Values.resources | nindent 12 }}
           livenessProbe:
             initialDelaySeconds: {{ .Values.app.probes.initialDelaySeconds }}
             timeoutSeconds: {{ .Values.app.probes.timeoutSeconds }}

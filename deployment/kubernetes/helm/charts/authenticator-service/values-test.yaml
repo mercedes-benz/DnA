@@ -50,7 +50,12 @@ ingress:
     - hosts:
         - api.auth.test.dna.app.corpintra.net
       secretName: auth-service-tls
-resources: {}
+resources:
+  requests:
+    memory: 398Mi
+    cpu: 10m
+  limits:
+    memory: 398Mi
 autoscaling:
   enabled: false
   minReplicas: 1

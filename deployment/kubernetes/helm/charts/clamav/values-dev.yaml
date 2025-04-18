@@ -54,6 +54,13 @@ app:
     readinessProbe:
       path: /actuator/health/readiness
       port: api
+    resources:
+      requests:
+        memory: 747Mi
+        cpu: 10m
+      limits:
+        memory: 747Mi
+        cpu:
 image:
   repo: registry-emea.app.corpintra.net/dnaplatform/clamav:2024-12-09
   replicaCount: 1
@@ -80,11 +87,10 @@ Storage:
   size: 5G
 resources:
   requests:
-    memory: 500Mi
-    cpu: 500m
+    memory: 1531Mi
+    cpu: 10m
   limits:
-    memory: 5000Mi
-    cpu: 3
+    memory: 1531Mi
 vaultInjector:
   enable: true
   annotations:

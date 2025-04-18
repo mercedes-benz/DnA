@@ -78,7 +78,12 @@ ingress:
         - path: /webjars
           pathType: Prefix
   tls: null
-resources: {}
+resources:
+  requests:
+    memory: 402Mi
+    cpu: 10m
+  limits:
+    memory: 402Mi
 autoscaling:
   enabled: false
   minReplicas: 1
