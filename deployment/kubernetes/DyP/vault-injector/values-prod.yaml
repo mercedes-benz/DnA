@@ -267,14 +267,12 @@ injector:
     pod: {}
     container: {}
 
-  resources: {}
-  # resources:
-  #   requests:
-  #     memory: 256Mi
-  #     cpu: 250m
-  #   limits:
-  #     memory: 256Mi
-  #     cpu: 250m
+  resources:
+    requests:
+      memory: 100Mi
+      cpu: 10m
+    limits:
+      memory: 100Mi
 
   # extraEnvironmentVars is a list of extra environment variables to set in the
   # injector deployment.
