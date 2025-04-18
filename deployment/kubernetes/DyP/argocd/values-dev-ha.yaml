@@ -1215,8 +1215,8 @@ dex:
   resources:
      requests:
        memory: 100Mi
-     limits:
        cpu: 10m
+     limits:
        memory: 100Mi
 
   # Dex container ports
@@ -1529,8 +1529,8 @@ redis:
   resources: 
      requests:
        memory: 100Mi
-     limits:
        cpu: 10m
+     limits:
        memory: 100Mi
 
   # -- Redis pod-level security context
@@ -2056,8 +2056,8 @@ server:
   resources: 
      requests:
        memory: 139Mi
-     limits:
        cpu: 23m
+     limits:
        memory: 139Mi
 
   # Server container ports
@@ -3199,8 +3199,8 @@ applicationSet:
   resources: 
      requests:
        memory: 100Mi
-     limits:
        cpu: 18m
+     limits:
        memory: 100Mi
 
   # ApplicationSet controller container ports
@@ -3573,8 +3573,8 @@ notifications:
   resources: 
      requests:
        memory: 100Mi
-     limits:
        cpu: 18m
+     limits:
        memory: 100Mi
 
   # Notification controller container ports
