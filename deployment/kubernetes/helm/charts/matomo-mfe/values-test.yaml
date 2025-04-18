@@ -42,10 +42,9 @@ ingress:
       secretName: matomo-tls-secret
 resources:
   limits:
-    cpu: 100m
     memory: 128Mi
   requests:
-    cpu: 100m
+    cpu: 10m
     memory: 128Mi
 vaultInjector:
   enable: true
