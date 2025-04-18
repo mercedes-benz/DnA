@@ -2109,7 +2109,7 @@ dags:
     # If using a custom storageClass, pass name here
     storageClassName: nfs-sc
     # access mode of the persistent volume
-    accessMode: ReadWriteOnce
+    accessMode: ReadWriteMany
     ## the name of an existing PVC to use
     existingClaim:
     ## optional subpath for dag volume mount
