@@ -155,7 +155,10 @@ import com.daimler.data.dto.workspace.UserInfoVO;
  
 	 @Value("${codeServer.codespace.filename}")
 	 private String codespaceFileName;
-  
+
+	 @Value("${codeServer.technical.id}")
+	 private String technicalId;
+ 
 	 @Autowired
 	 private WorkspaceAssembler workspaceAssembler;
 	 @Autowired
@@ -213,12 +216,19 @@ import com.daimler.data.dto.workspace.UserInfoVO;
 		 GenericMessage responseMessage = new GenericMessage();
 		 List<MessageDescription> errors = new ArrayList<>();
 		 List<MessageDescription> warnings = new ArrayList<>();
-		 CodeServerWorkspaceNsql entity = workspaceCustomRepository.findById(userId, id);
+		 CodeServerWorkspaceNsql entity = new CodeServerWorkspaceNsql();
+
+		 if(technicalId.equalsIgnoreCase(userId)){
+			 entity = workspaceCustomRepository.findByWorkspaceId(id);
+			}
+		 else{
+		  entity = workspaceCustomRepository.findById(userId, id);
+		 }
 		 String cloudServiceProvider = entity.getData().getProjectDetails().getRecipeDetails().getCloudServiceProvider();
 		 boolean isProjectOwner = false;
 		 boolean isCodespaceDeployed = false;
 		 String projectOwnerId = entity.getData().getProjectDetails().getProjectOwner().getId();
-		 if (projectOwnerId.equalsIgnoreCase(userId)) {
+		 if (projectOwnerId.equalsIgnoreCase(userId)|| technicalId.equalsIgnoreCase(userId)) {
 			 isProjectOwner = true;
 		 }
   
@@ -417,6 +427,13 @@ import com.daimler.data.dto.workspace.UserInfoVO;
 		 // if(isProjectOwner) {
 		 // workspaceCustomRepository.updateDeletedStatusForProject(projectName);
 		 // }else {
+		 if(technicalId.equalsIgnoreCase(userId) && entity.getData().getProjectDetails().getDataGovernance().getTypeOfProject().equalsIgnoreCase("Playground")){
+			entity.getData().setStatus("DELETED");
+			jpaRepo.save(entity);
+		 }
+
+
+		 else {
 		 entity.getData().setStatus("DELETED");
 		 entity.getData().setActiveInGroup(Boolean.FALSE);
 
@@ -445,6 +462,7 @@ import com.daimler.data.dto.workspace.UserInfoVO;
 		 }
 		 jpaRepo.save(entity);
 		 workspaceCustomRepository.updateCollaboratorDetails(projectName, removeUser, true);
+		}
 		 // }
 		 // Deleting Kong route
 		 if((entity.getData().getProjectDetails().getIntDeploymentDetails().getDeploymentUrl() != null
@@ -1351,7 +1369,13 @@ import com.daimler.data.dto.workspace.UserInfoVO;
   
 	 @Override
 	 public CodeServerWorkspaceVO getById(String userId, String id) {
-		 CodeServerWorkspaceNsql entity = workspaceCustomRepository.findById(userId, id);
+		CodeServerWorkspaceNsql entity = new CodeServerWorkspaceNsql();
+		 if(technicalId.equalsIgnoreCase(userId)){
+			 entity = workspaceCustomRepository.findByWorkspaceId(id);
+			}
+		 else{
+		  entity = workspaceCustomRepository.findById(userId, id);
+		 }
 		 return workspaceAssembler.toVo(entity);
 	 }
   
