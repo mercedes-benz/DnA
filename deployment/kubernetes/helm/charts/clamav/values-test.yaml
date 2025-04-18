@@ -46,7 +46,6 @@ app:
         cpu: 10m
       limits:
         memory: 701Mi
-        cpu:
   vault:
     secret:
       rootToken: null

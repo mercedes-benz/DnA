@@ -60,7 +60,6 @@ app:
         cpu: 10m
       limits:
         memory: 747Mi
-        cpu:
 image:
   repo: registry-emea.app.corpintra.net/dnaplatform/clamav:2024-12-09
   replicaCount: 1

@@ -107,9 +107,9 @@ spec:
         resources:
           {{- if .Values.resources.limits.enabled }}
           limits:
-            {{- if .Values.resources.limits.cpu  }}
-            cpu: {{ .Values.resources.limits.cpu | quote }}
-            {{- end }}
+            #{{- if .Values.resources.limits.cpu  }}
+            #cpu: {{ .Values.resources.limits.cpu | quote }}
+            #{{- end }}
             {{- if .Values.resources.limits.memory  }}
             memory: {{ .Values.resources.limits.memory | quote }}
             {{- end }}
@@ -148,9 +148,9 @@ spec:
         resources:
           {{- if .Values.resources.limits.enabled }}
           limits:
-            {{- if .Values.resources.limits.cpu  }}
-            cpu: {{ .Values.resources.limits.cpu | quote }}
-            {{- end }}
+            #{{- if .Values.resources.limits.cpu  }}
+            #cpu: {{ .Values.resources.limits.cpu | quote }}
+            #{{- end }}
             {{- if .Values.resources.limits.memory  }}
             memory: {{ .Values.resources.limits.memory | quote }}
             {{- end }}
@@ -526,9 +526,9 @@ spec:
         resources:
           {{- if .Values.pgmonitoring.resources.limits.enabled }}
           limits:
-            {{- if .Values.pgmonitoring.resources.limits.cpu  }}
-            cpu: {{ .Values.pgmonitoring.resources.limits.cpu | quote }}
-            {{- end }}
+            #{{- if .Values.pgmonitoring.resources.limits.cpu  }}
+            #cpu: {{ .Values.pgmonitoring.resources.limits.cpu | quote }}
+            #{{- end }}
             {{- if .Values.pgmonitoring.resources.limits.memory  }}
             memory: {{ .Values.pgmonitoring.resources.limits.memory | quote }}
             {{- end }}

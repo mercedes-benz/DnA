@@ -18,9 +18,9 @@ spec:
       resources:
         {{- if .Values.resources.limits.enabled }}
         limits:
-          {{- if .Values.resources.limits.cpu  }}
-          cpu: {{ .Values.resources.limits.cpu | quote }}
-          {{- end }}
+          #{{- if .Values.resources.limits.cpu  }}
+          #cpu: {{ .Values.resources.limits.cpu | quote }}
+          #{{- end }}
           {{- if .Values.resources.limits.memory  }}
           memory: {{ .Values.resources.limits.memory | quote }}
           {{- end }}

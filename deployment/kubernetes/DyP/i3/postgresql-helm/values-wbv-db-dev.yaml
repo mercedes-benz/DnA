@@ -419,7 +419,6 @@ pgmonitoring:
     enabled: true
     limits:
       enabled: true
-      cpu:
       memory: 100Mi
     request:
       enabled: true
