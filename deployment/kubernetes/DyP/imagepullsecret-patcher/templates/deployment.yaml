@@ -63,11 +63,10 @@ spec:
               readOnly: true
           resources:
             requests:
-              cpu: 0.1
-              memory: 15Mi
+              cpu: 10m
+              memory: 100Mi
             limits:
-              cpu: 0.2
-              memory: 30Mi
+              memory: 100Mi
       volumes:
         - name: src-dockerconfigjson
           secret: 
