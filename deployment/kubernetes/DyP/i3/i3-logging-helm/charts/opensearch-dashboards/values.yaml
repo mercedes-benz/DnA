@@ -189,11 +189,10 @@ ingress:
 
 resources:
   requests:
-    cpu: "100m"
-    memory: "512M"
+    memory: "283Mi"
   limits:
-    cpu: "100m"
-    memory: "512M"
+    cpu: "10m"
+    memory: "283Mi"
 
 autoscaling:
   # This requires metrics server to be installed, to install use kubectl apply -f https://github.com/kubernetes-sigs/metrics-server/releases/latest/download/components.yaml

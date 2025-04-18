@@ -873,13 +873,12 @@ controller:
   podLabels: {}
 
   # -- Resource limits and requests for the application controller pods
-  resources: {}
-  #  limits:
-  #    cpu: 500m
-  #    memory: 512Mi
-  #  requests:
-  #    cpu: 250m
-  #    memory: 256Mi
+  resources: 
+   limits:
+     memory: 967Mi
+   requests:
+     cpu: 1.6
+     memory: 967Mi
 
   # Application controller container ports
   containerPorts:
@@ -1213,13 +1212,12 @@ dex:
   podLabels: {}
 
   # -- Resource limits and requests for dex
-  resources: {}
-  #  limits:
-  #    cpu: 50m
-  #    memory: 64Mi
-  #  requests:
-  #    cpu: 10m
-  #    memory: 32Mi
+  resources:
+     requests:
+       memory: 100Mi
+     limits:
+       cpu: 10m
+       memory: 100Mi
 
   # Dex container ports
   # NOTE: These ports are currently hardcoded and cannot be changed
@@ -1528,13 +1526,12 @@ redis:
   podLabels: {}
 
   # -- Resource limits and requests for redis
-  resources: {}
-  #  limits:
-  #    cpu: 200m
-  #    memory: 128Mi
-  #  requests:
-  #    cpu: 100m
-  #    memory: 64Mi
+  resources: 
+     requests:
+       memory: 100Mi
+     limits:
+       cpu: 10m
+       memory: 100Mi
 
   # -- Redis pod-level security context
   # @default -- See [values.yaml]
@@ -2056,13 +2053,12 @@ server:
   podLabels: {}
 
   # -- Resource limits and requests for the Argo CD server
-  resources: {}
-  #  limits:
-  #    cpu: 100m
-  #    memory: 128Mi
-  #  requests:
-  #    cpu: 50m
-  #    memory: 64Mi
+  resources: 
+     requests:
+       memory: 146Mi
+     limits:
+       cpu: 23m
+       memory: 146Mi
 
   # Server container ports
   containerPorts:
@@ -2641,6 +2637,12 @@ repoServer:
       securityContext:
         runAsNonRoot: true
         runAsUser: 999
+      resources:
+        requests:
+          cpu: 249m
+          memory: 1303Mi
+        limits:
+          memory: 1303Mi
       volumeMounts:
       - mountPath: /var/run/argocd
         name: var-files
@@ -2677,6 +2679,12 @@ repoServer:
       securityContext:
         runAsNonRoot: true
         runAsUser: 999
+      resources:
+        requests:
+          cpu: 10m
+          memory: 106Mi
+        limits:
+          memory: 106Mi        
       volumeMounts:
       - mountPath: /var/run/argocd
         name: var-files
@@ -2823,11 +2831,10 @@ repoServer:
   # -- Resource limits and requests for the repo server pods
   resources: 
    limits:
-     cpu: 1300m
-     memory: 1000Mi
+     memory: 1086Mi
    requests:
-     cpu: 1
-     memory: 800Mi  
+     cpu: 502m
+     memory: 1086Mi  
 
   # Repo server container ports
   containerPorts:
@@ -3189,13 +3196,12 @@ applicationSet:
   podLabels: {}
 
   # -- Resource limits and requests for the ApplicationSet controller pods.
-  resources: {}
-    # limits:
-    #   cpu: 100m
-    #   memory: 128Mi
-    # requests:
-    #   cpu: 100m
-    #   memory: 128Mi
+  resources: 
+     requests:
+       memory: 119Mi
+     limits:
+       cpu: 15m
+       memory: 119Mi
 
   # ApplicationSet controller container ports
   containerPorts:
@@ -3564,13 +3570,12 @@ notifications:
   podLabels: {}
 
   # -- Resource limits and requests for the notifications controller
-  resources: {}
-    # limits:
-    #   cpu: 100m
-    #   memory: 128Mi
-    # requests:
-    #   cpu: 100m
-    #   memory: 128Mi
+  resources: 
+     requests:
+       memory: 100Mi
+     limits:
+       cpu: 11m
+       memory: 100Mi
 
   # Notification controller container ports
   containerPorts:

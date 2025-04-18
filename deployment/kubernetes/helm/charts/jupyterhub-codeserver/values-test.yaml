@@ -172,10 +172,10 @@ hub:
           # user_pvc_name = spawner.pvc_name
 
           spawner.storage_capacity = spawner.user_options.get("storage_capacity", "1Gi")       
-          spawner.mem_guarantee = spawner.user_options.get("mem_guarantee", "256M")       
-          spawner.mem_limit = spawner.user_options.get("mem_limit", "4G")       
-          spawner.cpu_limit = spawner.user_options.get("cpu_limit", 3)       
-          spawner.cpu_guarantee = spawner.user_options.get("cpu_guarantee", 0.2) 
+          spawner.mem_guarantee = spawner.user_options.get("mem_guarantee", "500M")       
+          spawner.mem_limit = spawner.user_options.get("mem_guarantee", "500M")       
+          # spawner.cpu_limit = spawner.user_options.get("cpu_limit", 3)       
+          spawner.cpu_guarantee = spawner.user_options.get("cpu_guarantee", 0.3) 
           spawner.extra_containers = spawner.user_options.get("extra_containers",[])
           # expand_pvc_command = f'kubectl patch pvc {user_pvc_name} -p \'{{"spec":{{"resources":{{"requests":{{"storage":"{user_storage_capacity}"}}}}}}}}\''
           # os.system(expand_pvc_command)           
@@ -207,7 +207,12 @@ hub:
     tag: "4.0.0"
     pullPolicy:
     pullSecrets: []
-  resources: {}
+  resources: 
+      limits:
+        memory: 210Mi
+      requests:
+        cpu: 16m
+        memory: 210Mi
   podSecurityContext:
     runAsNonRoot: true
     fsGroup: 1000
@@ -369,7 +374,12 @@ proxy:
       periodSeconds: 2
       failureThreshold: 1000
       timeoutSeconds: 1
-    resources: {}
+    resources: 
+      limits:
+        memory: 100Mi
+      requests:
+        cpu: 10m
+        memory: 100Mi
     defaultTarget:
     errorTarget:
     extraEnv: {}
@@ -774,7 +784,12 @@ scheduling:
       enabled: true
       maxUnavailable: 1
       minAvailable:
-    resources: {}
+    resources: 
+      limits:
+        memory: 108Mi
+      requests:
+        cpu: 10m
+        memory: 108Mi
     serviceAccount:
       create: true
       name:
@@ -842,7 +857,12 @@ prePuller:
   revisionHistoryLimit:
   labels: {}
   annotations: {}
-  resources: {}
+  resources: 
+    limits:
+      memory: 100Mi
+    requests:
+      cpu: 10m
+      memory: 100Mi
   containerSecurityContext:
     runAsNonRoot: true
     runAsUser: 65534 # nobody user
