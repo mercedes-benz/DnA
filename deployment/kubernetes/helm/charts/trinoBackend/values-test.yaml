@@ -73,7 +73,7 @@ resources:
     cpu: 10m
   limits:
     memory: 438Mi
-    cpu: ''
+    cpu:
 probes:
   initialDelaySeconds: 120
   timeoutSeconds: 10
