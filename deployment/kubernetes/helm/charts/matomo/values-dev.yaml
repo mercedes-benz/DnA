@@ -307,9 +307,10 @@ nodeSelector: {}
 ##
 resources:
   requests:
-    memory: 512Mi
-    cpu: 300m
-  limits: {}
+    memory: 350Mi
+    cpu: 26m
+  limits:
+    memory: 350Mi
 ## Configure Pods Security Context
 ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod
 ## @param podSecurityContext.enabled Enable Matomo pods' Security Context
