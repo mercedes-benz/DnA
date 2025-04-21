@@ -323,25 +323,6 @@ const AllCodeSpaces = (props) => {
     const [showEditCodespaceGroupModal, setShowEditCodespaceGroupModal]  = useState(false);
     const [showCodespacesModal, setShowCodespacesModal] = useState(false);
     const [selectedCodeSpaceGroup, setSelectedCodeSpaceGroup] = useState();
-    const [selectedCodespaces, setSelectedCodespaces] = useState();
-
-    useEffect(() => {
-      if(showCodespacesModal) {
-        ProgressIndicator.show();
-        CodeSpaceApiClient.getCodeSpaceGroup(selectedCodeSpaceGroup?.groupId).then((res) => {
-            setSelectedCodespaces(res?.data?.data);
-            ProgressIndicator.hide();
-        }).catch((err) => {
-            ProgressIndicator.hide();
-            Notification.show(
-                err.response.data.errors?.length
-                ? err.response.data.errors[0].message
-                : 'Loading code spaces failed! Please try again.',
-                'alert',
-            );
-        });
-    }
-    }, [showCodespacesModal, selectedCodeSpaceGroup?.groupId]);
 
     const codespacesModalContent = <>
     <h2 className={classNames(Styles.modalTitle)}>{selectedCodeSpaceGroup?.name}</h2>
@@ -352,7 +333,7 @@ const AllCodeSpaces = (props) => {
     ) : (
         <div className={Styles.csCardsContainer}>
             <div>
-                {selectedCodespaces?.workspaces?.length === 0 ? (
+                {selectedCodeSpaceGroup?.workspaces?.length === 0 ? (
                     <div className={classNames(Styles.content)}>
                         <div className={Styles.listContent}>
                             <div className={Styles.emptyCodeSpaces}>
@@ -377,7 +358,7 @@ const AllCodeSpaces = (props) => {
                         </div>
                         <div className={Styles.allCodeSpacesContent}>
                             <div className={classNames('cardSolutions', Styles.allCodeSpacesCardviewContent)}>
-                                {selectedCodespaces?.workspaces?.filter((workspace) => workspace?.projectDetails?.projectOwner?.id === props.user.id)?.map((workspace, index) => {
+                                {selectedCodeSpaceGroup?.workspaces?.filter((workspace) => workspace?.projectDetails?.projectOwner?.id === props.user.id)?.map((workspace, index) => {
                                     return (
                                         <CodeSpaceCardItem
                                             key={index}
@@ -395,7 +376,7 @@ const AllCodeSpaces = (props) => {
 
                             </div>
                         </div>
-                        {(selectedCodespaces?.workspaces?.some(workspace => workspace?.projectDetails?.projectOwner?.id !== props.user.id)) && (
+                        {(selectedCodeSpaceGroup?.workspaces?.some(workspace => workspace?.projectDetails?.projectOwner?.id !== props.user.id)) && (
                                    
                             <div className={Styles.cardsSeparator}>
                                 <h5 className="sub-title-text">Collaborated Code Spaces</h5>
@@ -405,7 +386,7 @@ const AllCodeSpaces = (props) => {
                         )}
                         <div className={Styles.allCodeSpacesContent}>
                             <div className={classNames('cardSolutions', Styles.allCodeSpacesCardviewContent)}>
-                                {selectedCodespaces?.workspaces?.filter((workspace) => workspace?.projectDetails?.projectOwner?.id !== props.user.id)?.map((workspace, index) => {
+                                {selectedCodeSpaceGroup?.workspaces?.filter((workspace) => workspace?.projectDetails?.projectOwner?.id !== props.user.id)?.map((workspace, index) => {
                                     return (
                                         <CodeSpaceCardItem
                                             key={index}
