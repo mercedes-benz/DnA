@@ -101,14 +101,14 @@ const AddCodespaceGroupModal = ({ edit, group, onSave }) => {
       groupId: group?.groupId,
       name: group?.name,
       order: 0,
-      wsAdded: addedCodespaces?.map((codespace) => { return { name: codespace?.projectDetails?.projectName, order: 0, workspaceId: codespace?.workspaceId }}),
-      wsRemoved: removedCodespaces
+      wsAdded: addedCodespaces?.map((codespace) => { return { name: codespace?.projectDetails?.projectName, order: 0, wsId: codespace?.workspaceId }}),
+      wsRemoved: removedCodespaces?.map((codespace) => { return { name: codespace?.projectDetails?.projectName, order: 0, wsId: codespace?.workspaceId }}),
     }
     if(validate()) {
       ProgressIndicator.show();
       CodeSpaceApiClient.editCodeSpaceGroup(data)
-        .then((res) => {
-          Notification.show(`Code Space Group ${res?.data?.data?.name} edited successfully`);
+        .then(() => {
+          Notification.show(`Code Space Group edited successfully`);
           onSave();
           ProgressIndicator.hide();
         })
