@@ -76,6 +76,9 @@ public class AuthoriserClient {
 	private RestTemplate restTemplate;
 
 	@Autowired
+	private RestTemplate insecureRestTemplate;
+
+	@Autowired
 	private UserStore userStore;
 	
 	public String getToken() {
@@ -119,7 +122,7 @@ public class AuthoriserClient {
 			headers.setContentType(MediaType.APPLICATION_JSON);
 			HttpEntity requestEntity = new HttpEntity<>(headers);
 			String uri = authoriserBaseUrl+"/applications/"+applicationId+"/entitlements";
-			ResponseEntity<EntitlementsDto> response = proxyRestTemplate.exchange(uri , HttpMethod.GET,
+			ResponseEntity<EntitlementsDto> response = insecureRestTemplate.exchange(uri , HttpMethod.GET,
 					requestEntity, EntitlementsDto.class);
 			if (response !=null && response.hasBody()) {
 				entitlementsDto = response.getBody();
@@ -148,7 +151,7 @@ public class AuthoriserClient {
 			headers.set("Authorization", "Bearer "+token);
 			headers.setContentType(MediaType.APPLICATION_JSON);
 			HttpEntity<CreateEntitlementRequestDto> requestEntity = new HttpEntity<>(createRequest,headers);
-			ResponseEntity<EntiltlemetDetailsDto> response = proxyRestTemplate.exchange(uri, HttpMethod.POST,
+			ResponseEntity<EntiltlemetDetailsDto> response = insecureRestTemplate.exchange(uri, HttpMethod.POST,
 					requestEntity, EntiltlemetDetailsDto.class);
 			if (response!=null && response.hasBody()) {
                 entiltlemetDetailsDto = response.getBody();
@@ -175,7 +178,7 @@ public class AuthoriserClient {
 			headers.set("Authorization", "Bearer "+token);
 			headers.setContentType(MediaType.APPLICATION_JSON);
 			HttpEntity requestEntity = new HttpEntity<>(headers);
-			ResponseEntity<EntiltlemetDetailsDto> response = proxyRestTemplate.exchange(uri, HttpMethod.GET,
+			ResponseEntity<EntiltlemetDetailsDto> response = insecureRestTemplate.exchange(uri, HttpMethod.GET,
 					requestEntity, EntiltlemetDetailsDto.class);
 			if (response!=null && response.hasBody()) {
                 entiltlemetDetailsDto = response.getBody();
@@ -208,7 +211,7 @@ public class AuthoriserClient {
 			headers.set("Authorization", "Bearer "+token);
 			headers.setContentType(MediaType.APPLICATION_JSON);
 			HttpEntity requestEntity = new HttpEntity<>(headers);
-			ResponseEntity<Object> deleteEntitlementResponse = proxyRestTemplate.exchange(uri, HttpMethod.DELETE,
+			ResponseEntity<Object> deleteEntitlementResponse = insecureRestTemplate.exchange(uri, HttpMethod.DELETE,
 					requestEntity, Object.class);
 			if (deleteEntitlementResponse!=null && deleteEntitlementResponse.getStatusCode().is2xxSuccessful()) {
 				log.info("Entitlement with displayName {} deleted successfully", entitlementId);
@@ -244,7 +247,7 @@ public class AuthoriserClient {
 			headers.set("Authorization", "Bearer "+token);
 			headers.setContentType(MediaType.APPLICATION_JSON);
 			HttpEntity requestEntity = new HttpEntity<>(headers);
-			ResponseEntity<Object> deleteRoleResponse = proxyRestTemplate.exchange(uri, HttpMethod.DELETE,
+			ResponseEntity<Object> deleteRoleResponse = insecureRestTemplate.exchange(uri, HttpMethod.DELETE,
 					requestEntity, Object.class);
 			if (deleteRoleResponse!=null && deleteRoleResponse.getStatusCode().is2xxSuccessful()) {
 				log.info("Role with displayName {} deleted successfully", roleId);
@@ -272,7 +275,7 @@ public class AuthoriserClient {
 			headers.set("Authorization", "Bearer "+token);
 			headers.setContentType(MediaType.APPLICATION_JSON);
 			HttpEntity requestEntity = new HttpEntity<>(headers);
-			ResponseEntity<CreateRoleResponseDto> response = proxyRestTemplate.exchange(uri+"/"+roleId, HttpMethod.GET,
+			ResponseEntity<CreateRoleResponseDto> response = insecureRestTemplate.exchange(uri+"/"+roleId, HttpMethod.GET,
 					requestEntity, CreateRoleResponseDto.class);
 			if (response!=null && response.hasBody()) {
                 roleResponseDto = response.getBody();
@@ -300,7 +303,7 @@ public class AuthoriserClient {
 			headers.set("Authorization", "Bearer "+token);
 			headers.setContentType(MediaType.APPLICATION_JSON);
 			HttpEntity<CreateRoleRequestDto> requestEntity = new HttpEntity<>(createRequest,headers);
-			ResponseEntity<CreateRoleResponseDto> response = proxyRestTemplate.exchange(uri, HttpMethod.POST,
+			ResponseEntity<CreateRoleResponseDto> response = insecureRestTemplate.exchange(uri, HttpMethod.POST,
 					requestEntity, CreateRoleResponseDto.class);
 			if (response!=null && response.hasBody()) {
                 roleResponseDto = response.getBody();
@@ -329,7 +332,7 @@ public class AuthoriserClient {
 			headers.set("Authorization", "Bearer "+token);
 			headers.setContentType(MediaType.APPLICATION_JSON);
 			HttpEntity requestEntity = new HttpEntity<>(headers);
-			ResponseEntity<String> response = proxyRestTemplate.exchange(uri, HttpMethod.POST,
+			ResponseEntity<String> response = insecureRestTemplate.exchange(uri, HttpMethod.POST,
 			requestEntity, String.class);
 			if (response != null && response.getStatusCode() != null) {
 				if(response.getStatusCode().is2xxSuccessful()){
@@ -362,7 +365,7 @@ public class AuthoriserClient {
 			headers.set("Authorization", "Bearer "+token);
 			headers.setContentType(MediaType.APPLICATION_JSON);
 			HttpEntity requestEntity = new HttpEntity<>(headers);
-			ResponseEntity<String> response = proxyRestTemplate.exchange(uri, HttpMethod.DELETE,
+			ResponseEntity<String> response = insecureRestTemplate.exchange(uri, HttpMethod.DELETE,
 			requestEntity, String.class);
 			if (response != null && response.getStatusCode() != null) {
 				if(response.getStatusCode().is2xxSuccessful()){
@@ -394,7 +397,7 @@ public class AuthoriserClient {
 				headers.set("Authorization", "Bearer "+token);
 				headers.setContentType(MediaType.APPLICATION_JSON);
 				HttpEntity requestEntity = new HttpEntity<>(headers);
-				ResponseEntity<EntiltlemetGroupDto> response = proxyRestTemplate.exchange(entitlementGroupUri, HttpMethod.POST,
+				ResponseEntity<EntiltlemetGroupDto> response = insecureRestTemplate.exchange(entitlementGroupUri, HttpMethod.POST,
 						requestEntity, EntiltlemetGroupDto.class);
 				if (response!=null && response.hasBody()) {
 					entitlementGroup = response.getBody();
@@ -426,7 +429,7 @@ public class AuthoriserClient {
 			headers.set("Authorization", "Bearer "+token);
 			headers.setContentType(MediaType.APPLICATION_JSON);
 			HttpEntity requestEntity = new HttpEntity<>(roleOwnerPrivileges,headers);
-			ResponseEntity<String> response = proxyRestTemplate.exchange(uri, HttpMethod.PUT,
+			ResponseEntity<String> response = insecureRestTemplate.exchange(uri, HttpMethod.PUT,
 			requestEntity, String.class);
 			if (response != null && response.getStatusCode() != null) {
 				if(response.getStatusCode().is2xxSuccessful()){
@@ -460,7 +463,7 @@ public class AuthoriserClient {
 			headers.set("Authorization", "Bearer "+token);
 			headers.setContentType(MediaType.APPLICATION_JSON);
 			HttpEntity requestEntity = new HttpEntity<>(roleAssignerPrivileges,headers);
-			ResponseEntity<String> response = proxyRestTemplate.exchange(uri, HttpMethod.PUT,
+			ResponseEntity<String> response = insecureRestTemplate.exchange(uri, HttpMethod.PUT,
 			requestEntity, String.class);
 			if (response != null && response.getStatusCode() != null) {
 				if(response.getStatusCode().is2xxSuccessful()){
@@ -495,7 +498,7 @@ public class AuthoriserClient {
 			headers.set("Authorization", "Bearer "+token);
 			headers.setContentType(MediaType.APPLICATION_JSON);
 			HttpEntity requestEntity = new HttpEntity<>(roleApproverPrivileges,headers);
-			ResponseEntity<String> response = proxyRestTemplate.exchange(uri, HttpMethod.PUT,
+			ResponseEntity<String> response = insecureRestTemplate.exchange(uri, HttpMethod.PUT,
 			requestEntity, String.class);
 			if (response != null && response.getStatusCode() != null) {
 				if(response.getStatusCode().is2xxSuccessful()){
@@ -528,7 +531,7 @@ public class AuthoriserClient {
 			headers.set("Authorization", "Bearer "+token);
 			headers.setContentType(MediaType.APPLICATION_JSON);
 			HttpEntity requestEntity = new HttpEntity<>(requestDto,headers);
-			ResponseEntity<String> response = proxyRestTemplate.exchange(uri, HttpMethod.POST,
+			ResponseEntity<String> response = insecureRestTemplate.exchange(uri, HttpMethod.POST,
 			requestEntity, String.class);
 			if (response != null && response.getStatusCode() != null) {
 				if(response.getStatusCode().is2xxSuccessful()){
@@ -562,7 +565,7 @@ public class AuthoriserClient {
             headers.set("Authorization", "Bearer " + token);
             headers.setContentType(MediaType.APPLICATION_JSON);
             HttpEntity<?> requestEntity = new HttpEntity<>(headers);
-            ResponseEntity<String> response = proxyRestTemplate.exchange(uri, HttpMethod.GET, requestEntity, String.class);
+            ResponseEntity<String> response = insecureRestTemplate.exchange(uri, HttpMethod.GET, requestEntity, String.class);
             if (response != null && response.getStatusCode() != null) {
                 if (response.getStatusCode().is2xxSuccessful()) {
                     log.info("Successfully got roles for user {}", id);
@@ -603,7 +606,7 @@ public class AuthoriserClient {
 				headers.setContentType(MediaType.APPLICATION_JSON);
 				String uri = authoriserBaseUrl + "/users/"+ id;
 				HttpEntity requestEntity = new HttpEntity<>(headers);
-				ResponseEntity<String> response = proxyRestTemplate.exchange(uri, HttpMethod.GET,
+				ResponseEntity<String> response = insecureRestTemplate.exchange(uri, HttpMethod.GET,
 						requestEntity, String.class);
 				if (response != null && response.getStatusCode() != null) {
 					if (response.getStatusCode().is2xxSuccessful()) {
