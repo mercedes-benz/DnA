@@ -70,15 +70,15 @@ const RoleCard = ({ role, onAdd, type }) => {
                 <label htmlFor="validTo" className="input-label">
                   Valid Until
                 </label>
-                  <DatePicker
-                    label="Valid Until"
-                    name={'validTo'}
-                    minDate={minDate}
-                    value={validTo}
-                    onChange={(value) => {
-                      setValidTo(new Date(value).toLocaleDateString('en-CA'));
-                    }}
-                  />
+                <DatePicker
+                  label="Valid Until"
+                  name={'validTo'}
+                  minDate={validFrom ? new Date(validFrom) : minDate}
+                  value={validTo}
+                  onChange={(value) => {
+                    setValidTo(new Date(value).toLocaleDateString('en-CA'));
+                  }}
+                />
               </div>
             </div>
           </div>
