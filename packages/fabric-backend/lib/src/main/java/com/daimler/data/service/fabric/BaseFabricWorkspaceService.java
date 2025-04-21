@@ -166,6 +166,9 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 	
 	@Value("${authoriser.role.fabricRoleName}")
 	private String fabricOperationsRoleName;
+
+	@Value("${authoriser.appIdPrefix}")
+	private String authoriserAppIdPrefix;
 	
 	public BaseFabricWorkspaceService() {
 		super();
@@ -1814,7 +1817,7 @@ public DnaRoleCollectionVO getAllUserDnaRoles(String id, String authToken) {
     try {
         List<String> roleList = identityClient.getAllUserManagableRoles(id, authToken);
         roles = roleList.stream()
-                        .filter(role -> role.startsWith("DNA_"))
+                        .filter(role -> role.startsWith(authoriserAppIdPrefix))
                         .collect(Collectors.toList());
         	data.setRoles(roles);
         dnaRoleCollection.setData(data);

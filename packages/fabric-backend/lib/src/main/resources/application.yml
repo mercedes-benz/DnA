@@ -96,6 +96,7 @@ authoriser:
   clientId: ${IDENTITY_CLIENT_ID:XXXX}
   clientSecret: ${IDENTITY_CLIENT_SECRET:XXXX}
   role.fabricRoleName: ${IDENTITY_FABRIC_OPERATIONS_ROLENAME:XXXX}
+  appIdPrefix: ${IDENTITY_APPID_PREFIX:XXXX}
   
 server:
   port: 9292
