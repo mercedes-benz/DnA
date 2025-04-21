@@ -231,11 +231,11 @@
 
   .modalContentWrapper {
     text-align: left !important;
-    .modalMainTitle {
+    .awsModalMainTitle {
         font-size: var(--font-size-section-headline);
         font-weight: var(--font-weight-bold);
     }
-    .modalTitle {
+    .awsModalTitle {
         font-size: var(--font-size-sub-headline);
         font-weight: var(--font-weight-bold);
     }
@@ -244,6 +244,9 @@
         .warning {
             color: #f3e537;
         }
+    }
+    .important {
+        color: #e84d47;
     }
   }
 

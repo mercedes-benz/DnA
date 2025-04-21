@@ -16,6 +16,7 @@ import 'dayjs/locale/nl';
 import 'dayjs/locale/nb';
 import 'dayjs/locale/ko';
 
+import dayjs from 'dayjs';
 import { DatePicker as MUIDatePicker } from '@mui/x-date-pickers/DatePicker';
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs';
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider';
@@ -27,32 +28,52 @@ type IDatePickerProps = {
   value: string;
   onChange: (value: string) => void;
   requiredError: string;
+  minDate?: typeof Date;
 };
 
-const DatePicker = ({ label, value, onChange, requiredError, ...restProps }: IDatePickerProps) => {
+const DatePicker = ({ label, value, onChange, minDate, requiredError, ...restProps }: IDatePickerProps) => {
   const browserLang = navigator.language.toLowerCase();
   const datePickerLang = language.includes(browserLang) ? browserLang : navigator.language.split('-')?.[0];
 
   return (
-    <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale={datePickerLang}>
-      <MUIDatePicker
-        label={label}
-        value={value || ''}
-        views={['year', 'month', 'day']}
-        {...restProps}
-        onChange={(newValue: string) => {
-          onChange(newValue);
-        }}
-        renderInput={({ inputRef, inputProps, InputProps }) => {
-          return (
-            <div className={classNames(Styles.datePicker, requiredError ? 'CalendarIcon-position' : '')}>
-              <input className="input-field" ref={inputRef} {...inputProps} />
-              {InputProps?.endAdornment}
-            </div>
-          );
-        }}
-      />
-    </LocalizationProvider>
+    <>
+      <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale={datePickerLang}>
+        <MUIDatePicker
+          // label={label}
+          value={value ? dayjs(value) : null}
+          disablePast={minDate ? true : false}
+          views={['year', 'month', 'day']}
+          onChange={(newValue) => onChange(newValue)}
+          renderInput={({ inputRef, inputProps, InputProps }) => {
+            return (
+              <div className={classNames(Styles.datePicker, requiredError ? 'CalendarIcon-position' : '')}>
+                <input className="input-field" ref={inputRef} {...inputProps} />
+                {InputProps?.endAdornment}
+              </div>
+            );
+          }}
+        />
+      </LocalizationProvider>
+      {/* <LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale={datePickerLang}>
+        <MUIDatePicker
+          label={label}
+          value={value || ''}
+          views={['year', 'month', 'day']}
+          // {...restProps}
+          onChange={(newValue: string) => {
+            onChange(newValue);
+          }}
+          renderInput={({ inputRef, inputProps, InputProps }) => {
+            return (
+              <div className={classNames(Styles.datePicker, requiredError ? 'CalendarIcon-position' : '')}>
+                <input className="input-field" ref={inputRef} {...inputProps} />
+                {InputProps?.endAdornment}
+              </div>
+            );
+          }}
+        /> 
+      </LocalizationProvider>*/}
+    </>
   );
 };
 

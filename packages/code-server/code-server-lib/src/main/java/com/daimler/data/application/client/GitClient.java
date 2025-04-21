@@ -276,40 +276,59 @@ public class GitClient {
 		return HttpStatus.INTERNAL_SERVER_ERROR;
 	}
 	
-	public GitBranchesCollectionDto getBranchesFromRepo( String username, String repo) {
+	public GitBranchesCollectionDto getBranchesFromRepo(String username, String repo) {
+		GitBranchesCollectionDto allBranches = new GitBranchesCollectionDto();
 		try {
 			String repoName = null;
 			String gitOrg = null;
+			int page = 1;
+			int pageSize = 100;
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");
-			headers.set("Authorization", "token "+ personalAccessToken);
-			if(repo.contains(HTTP_HEADER)){
-				if(!repo.endsWith("/") && repo.contains(".git")){
-					repo = repo.replace(".git","/");
-				} else if(!repo.endsWith("/")){
+			headers.set("Authorization", "token " + personalAccessToken);
+			if (repo.contains(HTTP_HEADER)) {
+				if (!repo.endsWith("/") && repo.contains(".git")) {
+					repo = repo.replace(".git", "/");
+				} else if (!repo.endsWith("/")) {
 					repo.concat("/");
 				}
 				List<String> repoDetails = CommonUtils.getDetailsFromUrl(repo);
-				if(repoDetails.size() > 0 && repoDetails !=null){
+				if (repoDetails.size() > 0 && repoDetails != null) {
 					repoName = repoDetails.get(2);
 					gitOrg = repoDetails.get(1);
 				}
-			}else {
-				repoName =  repo;
+			} else {
+				repoName = repo;
 			}
 			String OrgName = Objects.nonNull(gitOrg) ? gitOrg : gitOrgName;
-			String url = gitBaseUri+"/repos/" + OrgName + "/"+ repoName+ "/branches?per_page=100";
-			HttpEntity entity = new HttpEntity<>(headers);
-			ResponseEntity<GitBranchesCollectionDto> response = restTemplate.exchange(url, HttpMethod.GET, entity, GitBranchesCollectionDto.class);
-			if (response != null && response.getStatusCode()!=null) {
-				log.info("completed fetching branches from git repo {} by user {} ",repoName, username);
-				return response.getBody();
+
+			while (true) {
+				String url = gitBaseUri + "/repos/" + OrgName + "/" + repoName + "/branches?per_page=" + pageSize
+						+ "&page=" + page;
+				HttpEntity<String> entity = new HttpEntity<>(headers);
+				ResponseEntity<GitBranchesCollectionDto> response = restTemplate.exchange(url, HttpMethod.GET, entity,
+						GitBranchesCollectionDto.class);
+
+				if (response != null && response.getStatusCode() != null && response.getBody() != null) {
+					GitBranchesCollectionDto branches = response.getBody();
+					allBranches.addAll(branches);
+
+					if (branches.size() < pageSize) {
+						break; // No more pages to fetch
+					}
+					page++;
+				} else {
+					break; // Exit loop if response is null or status code is not OK
+				}
 			}
+
+			log.info("Completed fetching branches from git repo {} by user {}", repoName, username);
 		} catch (Exception e) {
-			log.error("Error occured while fetching branches from git repo {} with exception {}", username, gitOrgName, e.getMessage());
+			log.error("Error occurred while fetching branches from git repo {} with exception {}", username, gitOrgName,
+					e.getMessage());
 		}
-		return new GitBranchesCollectionDto();
+		return allBranches;
 	}
 	
 	
