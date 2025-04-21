@@ -150,7 +150,7 @@ hivemetastore:
     cpu: 2
   limits:
     memory: "8G"
-    cpu: 2
+  #  cpu: 2
   minio:
     host: ""
     accessKey: ""

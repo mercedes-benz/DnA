@@ -104,7 +104,7 @@ s3:
 ## ref: http://kubernetes.io/docs/user-guide/compute-resources/
 ##
 resources:
-  enabled: false
+  enabled: true
   ## uncomment fitting parts when you wand to enable setting cpu and memory requests and limits
   limits:
     enabled: true

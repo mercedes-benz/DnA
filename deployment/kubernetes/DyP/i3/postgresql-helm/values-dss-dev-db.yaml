@@ -112,7 +112,7 @@ resources:
   request:
     enabled: true
     cpu: 10m
-    memory: 109i
+    memory: 109Mi
 
 ## Configure additional env variables
 env:
