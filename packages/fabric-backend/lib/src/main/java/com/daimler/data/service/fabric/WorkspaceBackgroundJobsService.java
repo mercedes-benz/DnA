@@ -152,7 +152,7 @@ public class WorkspaceBackgroundJobsService {
 							FabricWorkspaceStatusVO updatedStatus = new FabricWorkspaceStatusVO();
 							FabricWorkspaceVO tempWorkspaceVO =  workspaceVO;
 							try {
-								updatedStatus = fabricService.processWorkspaceUserManagement(currentStatus,updatedName, workspaceVO.getCreatedBy().getId(), workspaceVO.getId());
+								updatedStatus = fabricService.processWorkspaceUserManagement(currentStatus,updatedName, workspaceVO.getCreatedBy().getId(), workspaceVO.getId(),workspaceVO.getCustomGroupName());
 								tempWorkspaceVO.setStatus(updatedStatus);
 								try {
 									tempWorkspaceVO.setName(updatedName);
@@ -168,7 +168,7 @@ public class WorkspaceBackgroundJobsService {
 						}
 						if(workspaceVO!=null && workspaceVO.getStatus()!=null && ConstantsUtility.COMPLETED_STATE.equalsIgnoreCase(workspaceVO.getStatus().getState())){
 							FabricWorkspaceVO tempWorkspaceVO =  workspaceVO;
-							List<GroupDetailsVO> updatedGroupDetails = fabricService.autoProcessGroupsUsers(workspaceVO.getStatus().getMicrosoftGroups(), updatedName, workspaceVO.getCreatedBy().getId(), workspaceVO.getId());
+							List<GroupDetailsVO> updatedGroupDetails = fabricService.autoProcessGroupsUsers(workspaceVO.getStatus().getMicrosoftGroups(), updatedName, workspaceVO.getCreatedBy().getId(), workspaceVO.getId(), workspaceVO.getCustomGroupName());
 							tempWorkspaceVO.getStatus().setMicrosoftGroups(updatedGroupDetails);
 							try {
 								tempWorkspaceVO.setName(updatedName);

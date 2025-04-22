@@ -1,6 +1,6 @@
 {
   "name": "code-space-mfe",
-  "version": "1.4.7",
+  "version": "1.4.9",
   "private": true,
   "scripts": {
     "start": "env-cmd -f .env webpack server --config config/webpack.config.js",
