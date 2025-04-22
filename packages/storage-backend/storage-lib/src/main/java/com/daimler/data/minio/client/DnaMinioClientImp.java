@@ -622,6 +622,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 						data = data.concat(line).concat(",");
 					}
 				}
+				LOGGER.debug("mc Response bucket objects : "+ data);
 				LOGGER.info("finished reading response from mc list bucket objects");
 				MinioObjectMetadataCollection listBucketObjectsCollectionDto = new MinioObjectMetadataCollection();
 				if(data!=null && !"".equalsIgnoreCase(data)) { 
