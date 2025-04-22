@@ -874,6 +874,12 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 									AttachPluginVO attachOIDCPluginVO = new AttachPluginVO();
 									AttachPluginConfigVO attachOIDCPluginConfigVO = new AttachPluginConfigVO();
 
+
+									//for now we removed the prefunction so disabling the prefunction if any...
+									//change function plugin status to disable if any
+									changePluginStatusResponse = changePluginStatus(serviceName.toLowerCase()+"-"+env,PRE_FUNCTION_PLUGIN,false);
+									LOGGER.info("calling kong to change the plugin status to disable for service: {} and status is {}, if warings any {}, if error any {}",serviceName,changePluginStatusResponse.getSuccess(), changePluginStatusResponse.getWarnings(),changePluginStatusResponse.getErrors());
+
 									attachOIDCPluginVO.setName(OIDC_PLUGIN);
 
 									String authRecovery_page_path = "https://" + codeServerEnvUrl + "/" + serviceName.toLowerCase() + "/"+env+"/";	
