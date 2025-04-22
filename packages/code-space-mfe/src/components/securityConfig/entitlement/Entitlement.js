@@ -151,11 +151,11 @@ export default class Entitlement extends React.Component {
       let errors = [];
       if (parsedData.entitlements) {
         parsedData.entitlements.forEach((entitlement, index) => {
-          const { apiPattern, httpMethod } = entitlement;
+          const { httpMethod } = entitlement;
 
-          if (apiPattern && !apiPattern.startsWith('/api/')) {
-            errors.push(`Error in entitlement ${index + 1}: API Path should start with '/api/'`);
-          }
+          // if (apiPattern && !apiPattern.startsWith('/api/')) {
+          //   errors.push(`Error in entitlement ${index + 1}: API Path should start with '/api/'`);
+          // }
 
           if (
             httpMethod &&
@@ -719,9 +719,9 @@ export default class Entitlement extends React.Component {
                   <li>
                     Ensure the <strong>appId</strong> field is unique and identifies the application.
                   </li>
-                  <li>
+                  {/* <li>
                     Always start the <strong>apiPattern</strong> with <code>/api/</code>.
-                  </li>
+                  </li> */}
                   <li>
                     Use only valid HTTP methods: {' '}
                     <strong>GET</strong>, <strong>POST</strong>, <strong>PUT</strong>, <strong>DELETE</strong>,{' '}
