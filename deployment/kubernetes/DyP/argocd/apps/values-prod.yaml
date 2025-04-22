@@ -46,4 +46,6 @@ db:
  - name: minerva
    env: dev
  - name: minerva
-   env: prod       
+   env: prod
+ - name: seatsync
+   env: dev
