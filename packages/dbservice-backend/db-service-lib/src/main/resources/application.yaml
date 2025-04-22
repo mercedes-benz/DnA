@@ -1,0 +1,96 @@
+spring:
+  mvc:
+    pathmatch:
+      matching-strategy: ant_path_matcher
+  flyway:
+        baseline-on-migrate: ${FLYWAY_BASELINE_ON_MIGRATE:true}
+        baseline-version: ${FLYWAY_BASELINEVERSION:0}
+        enabled: ${FLYWAY_ENABLED:true}
+        locations: classpath:db/migration
+        schemas: ${FLYWAY_SCHEMA:tts}
+  throw-exception-if-no-handler-found: true
+  resource:
+    add-mappings: false
+
+  messages:
+    basename: i18n/messages
+    cache-seconds: 0
+    encoding: UTF-8
+
+
+  datasource:
+    hikari:
+      connection-timeout: 4000
+    platform: postgres
+    url: ${API_DB_URL:jdbc:xxxx}
+    username: ${API_DB_USER:code_server}
+    password: ${API_DB_PASS:xxxx}
+    driverClassName: org.postgresql.Driver
+
+    jpa:
+        database: POSTGRESQL
+        hibernate:
+            ddl-auto: none
+            properties:
+                hibernate:
+                  dialect: org.hibernate.dialect.PostgreSQLDialect
+                  temp:
+                      use_jdbc_metadata_defaults: false
+                  format_sql: true
+                  sql_comments: true
+            format_sql: true
+        show_sql: true
+
+  servlet:
+    multipart:
+      max-file-size: 20MB
+      max-request-size: 20MB
+  graphql:
+    path: /minified
+
+proxy:
+  port: ${CUSTOMPROXY_PORT:xxxx}
+  host: ${CUSTOMPROXY_HOST:xxxx}
+
+server:
+  port: 8081
+
+allowedCorsOriginPatternUrl: https://*
+
+logging:
+  level:
+    # org.springframework: DEBUG
+    com.zaxxer.hikari: DEBUG
+    org.springframework.security: DEBUG
+    # org.springframework: DEBUG
+    # graphql: DEBUG
+    # org.springframework.security.oauth2: DEBUG
+    # org.apache.hc.client5: DEBUG
+    # org.springframework.web.client: DEBUG
+    # org.hibernate: DEBUG
+    # org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+    # org.hibernate.SQL: DEBUG
+    # org.hibernate.type.descriptor.sql: TRACE
+
+
+
+# springdoc:
+#     api-docs:
+#         path: /api-docs
+#     swagger-ui:
+#         enabled: true
+springdoc:
+  api-docs:
+    path: /api-docs
+  swagger-ui:
+    path: /swagger-ui.html
+    enabled: true
+    url: /api-docs  # Explicitly set the API docs URL
+
+generic:
+  logging-api-url: ${LOGGING_API_URL:xxx}
+  header-login-api-url: ${HEADER_API_URL:xxxx}
+  api-url: ${GENERIC_API_URL:xxxx}
+constant-value:
+  max-attachments: ${MAX_ATTACHMENTS:25}
+  max-comments: ${MAX_COMMENTS:25}
