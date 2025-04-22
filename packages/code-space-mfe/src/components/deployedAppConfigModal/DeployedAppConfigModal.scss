@@ -1,0 +1,123 @@
+.securityConfigMainPanel {
+    padding-top: 10px;
+
+    .wrapper {
+        background: #1C2026 !important;
+        margin-top: 15px !important;
+        margin-bottom: 15px !important;
+        padding: 20px 20px;
+    }
+
+    .warning {
+        color: #f3e537;
+    }
+
+    .flexLayout {
+      display: flex;
+      justify-content: space-between;
+  
+      >div {
+        width: calc(50% - 7px);
+      }
+  
+      .oneAPILink {
+        align-self: center;
+        // background-color: #090909 !important;
+      }
+  
+      .redirectFlexLayout {
+        display: flex;
+        justify-content: space-between;
+    
+        >div:first-child {
+          width: calc(90% - 3px);
+        }
+    
+        >div:last-child {
+          width: calc(10% - 3px);
+          align-self: center;
+        }
+      }
+  
+    }
+
+    .threeColumnFlexLayout {
+        display: flex;
+        justify-content: space-between;
+    
+        >div:first-child {
+          width: calc(40% - 7px);
+        }
+    
+        >div:nth-child(2) {
+          width: calc(20% - 7px);
+          align-self: center;
+        }
+    
+        >div:last-child {
+          width: calc(40% - 7px);
+        }
+
+        // .oneApi {
+        //   padding-left: 30px;
+        // }
+    }
+
+    .credentialsFlexLayout {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      width: 100%; /* Ensure the container takes full width */
+      .credentialsLink {
+        align-self: flex-start;
+      }
+      .linkButton {
+        color: #00ADEF; /* Style it like a link */
+        cursor: pointer;
+        &:hover{
+          text-decoration: underline;
+        }
+      }
+    }
+
+    .disableText {
+        color: #697582;
+        font-size: var(--font-size-small);
+    }
+
+    .configLink {
+        cursor: pointer;
+    
+        a {
+          color: #00ADEF !important;
+        }
+    }
+
+    .chip {
+      background-color: #16181B;
+      &:hover {
+        background-color: #3D4146;
+      }
+    }
+
+    .saveSettingsBtn {
+      background-color: #00adef;
+      padding: 0 15px;
+      font-size: var(--font-size-default);
+      letter-spacing: 1px;
+      margin-right: 12px;
+    }
+
+    .align {
+      margin-left: 1%;
+    }
+
+    .saveButton {
+      display: flex;
+      justify-content: flex-end;
+      width: 100%;
+      padding-right: 10px;
+    }
+
+
+}

@@ -30,6 +30,7 @@ import { setRippleAnimation } from '../../common/modules/uilab/js/src/util';
 import { marked } from 'marked';
 import { Envs } from '../../Utility/envs';
 import Tooltip from '../../common/modules/uilab/js/src/tooltip';
+import DeployedAppConfigModal from '../deployedAppConfigModal/DeployedAppConfigModal';
 
 // interface CodeSpaceCardItemProps {
 //   userInfo: IUserInfo;
@@ -88,6 +89,7 @@ const CodeSpaceCardItem = (props) => {
   const enableReadMe =  Envs.CODESPACE_RECIEPES_ENABLE_README?.split(',')?.includes(codeSpace?.projectDetails?.recipeDetails?.Id) || false;
   const [showMigrateOrStartModal, setShowMigrateOrStartModal] = useState(false);
   const [showOnPremStartModal, setShowOnPremStartModal] = useState(false);
+  const [showSecurityConfigModal, setShowSecurityConfigModal] = useState(false);
 
   useEffect(() => {
 
@@ -254,7 +256,7 @@ const CodeSpaceCardItem = (props) => {
     props.onShowCodeSpaceOnBoard(codeSpace, true);
   };
 
-  const onCodeSpaceSecurityConfigClick = (codeSpace) => {
+  const onCodeSpaceAuthorizationConfigClick = (codeSpace) => {
     if (codeSpace?.projectDetails?.publishedSecuirtyConfig) {
       history.push(
         `/codespace/publishedSecurityconfig/${codeSpace.id}?name=${codeSpace.projectDetails.projectName}?intIAM=${projectDetails?.intDeploymentDetails?.secureWithIAMRequired ? 'true' : 'false'}?prodIAM=${projectDetails?.prodDeploymentDetails?.secureWithIAMRequired ? 'true' : 'false'}`,
@@ -477,6 +479,14 @@ const CodeSpaceCardItem = (props) => {
     </div>
   );
 
+  const navigateSecurityConfig = () => {
+    if (projectDetails?.publishedSecuirtyConfig) {
+        window.open(`${window.location.pathname}#/codespaces/codespace/publishedSecurityconfig/${props?.codeSpace?.id}?name=${projectDetails?.projectName}?intIAM=${projectDetails?.intDeploymentDetails?.secureWithIAMRequired ? 'true' : 'false'}?prodIAM=${projectDetails?.prodDeploymentDetails?.secureWithIAMRequired ? 'true' : 'false'}`, '_blank');
+        return;
+    }
+    window.open(`${window.location.pathname}#/codespaces/codespace/securityconfig/${props?.codeSpace?.id}?name=${projectDetails?.projectName}?intIAM=${projectDetails?.intDeploymentDetails?.secureWithIAMRequired ? 'true' : 'false'}?prodIAM=${projectDetails?.prodDeploymentDetails?.secureWithIAMRequired ? 'true' : 'false'}`, '_blank');
+  }
+
   return (
     <>
       <div
@@ -607,6 +617,18 @@ const CodeSpaceCardItem = (props) => {
                             </span>
                           </li>
                         )}
+                        {codeSpace?.projectDetails?.recipeDetails?.isDeployEnabled && isOwner && (
+                          <li>
+                            <span
+                              onClick={() => {
+                                setShowSecurityConfigModal(true);
+                                setIsStaging(true);
+                              }}
+                            >
+                              Deployed Application Config
+                            </span>
+                          </li>
+                        )}
                         {intDeploymentDetails?.gitjobRunID && (
                           <li>
                             <a
@@ -714,6 +736,18 @@ const CodeSpaceCardItem = (props) => {
                               }}
                             >
                               Environment variables config
+                            </span>
+                          </li>
+                        )}
+                        {codeSpace?.projectDetails?.recipeDetails?.isDeployEnabled && isOwner && (
+                          <li>
+                            <span
+                              onClick={() => {
+                                setShowSecurityConfigModal(true);
+                                setIsStaging(false);
+                              }}
+                            >
+                              Deployed Application Config
                             </span>
                           </li>
                         )}
@@ -1225,10 +1259,10 @@ const CodeSpaceCardItem = (props) => {
                   !creationFailed &&
                   isIAMRecipe &&
                   isOwner && (
-                    <button className="btn btn-primary" onClick={() => onCodeSpaceSecurityConfigClick(codeSpace)}>
+                    <button className="btn btn-primary" onClick={() => onCodeSpaceAuthorizationConfigClick(codeSpace)}>
                       <IconGear size={'18'} />
                     </button>
-                  )}
+                )}
                 {enableReadMe && (
                   <button className="btn btn-primary" onClick={() =>  getReadMeFile()}>
                     <i className={classNames("icon mbc-icon help", Styles.helpIcon)} tooltip-data="Steps to set up"></i>
@@ -1376,6 +1410,31 @@ const CodeSpaceCardItem = (props) => {
           show={showOnPremStartModal}
           content={onShowOnPremStartModal}
           onCancel={() => setShowOnPremStartModal(false)}
+        />
+      )}
+      {showSecurityConfigModal && (
+        <Modal
+          title={`Manage ${isStaging ? 'Staging' : 'Production'} Security Config`}
+          hiddenTitle={false}
+          showAcceptButton={false}
+          showCancelButton={false}
+          modalWidth="1200px"
+          buttonAlignment="right"
+          show={showSecurityConfigModal}
+          content={
+            <DeployedAppConfigModal
+              userInfo={props?.userInfo}
+              workspaceId={props?.codeSpace?.id}
+              projectName={props?.codeSpace?.projectDetails?.projectName}
+              deploymentDetails={isStaging ? props?.codeSpace?.projectDetails?.intDeploymentDetails : props?.codeSpace?.projectDetails?.prodDeploymentDetails}
+              securityConfig={props?.codeSpace?.projectDetails?.securityConfig}
+              publishedSecuirtyConfig={props?.codeSpace?.projectDetails?.publishedSecuirtyConfig}
+              navigateSecurityConfig={navigateSecurityConfig}
+              isStaging={isStaging}
+            />
+          }
+        scrollableContent={true}
+        onCancel={() => {setShowSecurityConfigModal(false);}}
         />
       )}
     </>
