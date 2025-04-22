@@ -26,13 +26,12 @@ const EditOrCreateEntitlement = (props) => {
     if (entitlPath.length === 0) {
       setmissingEntryEntlPath(errorMissingEntry);
       formValid = false;
+    } else if (entitlPath.length < 4 || !entitlPath.startsWith('/api/') || entitlPath === '/api/') {
+      setmissingEntryEntlPath(
+        'enter valid API path/pattern eg:/api/books or /api/books/{id} or /api/books?bookName={value}',
+      );
+      formValid = false;
     }
-    // } else if (entitlPath.length < 4 || !entitlPath.startsWith('/api/') || entitlPath === '/api/') {
-    //   setmissingEntryEntlPath(
-    //     'enter valid API path/pattern eg:/api/books or /api/books/{id} or /api/books?bookName={value}',
-    //   );
-    //   formValid = false;
-    // }
     if (httpMethod === '0' || httpMethod?.trim()?.length === 0) {
       setmissingEntryEntlMethod(errorMissingEntry);
       formValid = false;
@@ -73,10 +72,9 @@ const EditOrCreateEntitlement = (props) => {
   const validateEntitlPath = (value) => {
     const length = value.length;
     setTimeout(() => {
-      // if (length >= 4 && !value.includes('/api')) {
-      //   setmissingEntryEntlPath('API Path Should Start With /api');
-      // } else 
-      if (value[length - 2] === '=' && !(value[value.length - 1] === '{')) {
+      if (length >= 4 && !value.includes('/api')) {
+        setmissingEntryEntlPath('API Path Should Start With /api');
+      } else if (value[length - 2] === '=' && !(value[value.length - 1] === '{')) {
         setmissingEntryEntlPath('query params value should be enclosed in {}, eg: /api/books?bookName={value}');
       } else if (value.includes('{') && !value.includes('}')) {
         setmissingEntryEntlPath('query params value should be enclosed in {}, eg: /api/books?bookName={value}');
