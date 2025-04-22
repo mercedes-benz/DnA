@@ -1,0 +1,84 @@
+.dbServiceConnection {
+  header {
+    padding-bottom: 20px;
+    h3 {
+      text-align: center;
+    }
+  }
+
+  section {
+    padding-bottom: 20px;
+    .item {
+      display: flex;
+      align-items: center;
+    }
+
+    .itemKey {
+      &::after {
+        content: ':'
+      }
+      min-width: 150px;
+    }
+  }
+
+  footer {
+    margin-top: 20px;
+    text-align: right;
+  }
+}
+
+.column1 {
+  width: 15%;
+  max-width: 15%;
+  min-width: 15%;
+  word-break: break-all;
+}
+.column2 {
+  width: 30%;
+  max-width: 30%;
+  min-width: 30%;
+  word-break: break-all;
+}
+.column3 {
+  width: 50%;
+  max-width: 50%;
+  min-width: 50%;
+  word-break: break-all;
+}
+.column4 {
+  width: 5%;
+  max-width: 5%;
+  min-width: 5%;
+  word-break: break-all;
+}
+.noLincense {
+  text-align: center;
+  padding: 20px;
+}
+.checkBoxDisable {
+  opacity: 0.5;
+  pointer-events: none;
+}
+.inputGrp {
+  min-height: unset!important;
+}
+.tabsContentWrapper {
+  margin-top: 0!important;
+}
+.tabContentContainer {
+  position: relative;
+  min-height: 300px;
+  padding: 10px;
+  span {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    cursor: pointer;
+  }
+}
+
+:global {
+  .modal-content > div {
+    margin-top: 0!important;
+  }
+}
