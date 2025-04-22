@@ -1,0 +1,38 @@
+{{- if and (.Values.otelCollector.autoscaling.enabled) (not .Values.otelCollector.autoscaling.keda.enabled) -}}
+apiVersion: {{ .Capabilities.APIVersions.Has "autoscaling/v2" | ternary "autoscaling/v2" "autoscaling/v2beta2" }}
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ include "otelCollector.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ include "otelCollector.fullname" . }}     # Mandatory. Must be in the same namespace as the ScaledObject
+  minReplicas: {{ .Values.otelCollector.autoscaling.minReplicas }}
+  maxReplicas: {{ .Values.otelCollector.autoscaling.maxReplicas }}
+  metrics:
+  {{- with .Values.otelCollector.autoscaling.targetMemoryUtilizationPercentage }}
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: {{ . }}
+  {{- end }}
+  {{- with .Values.otelCollector.autoscaling.targetCPUUtilizationPercentage }}
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: {{ . }}
+  {{- end }}
+  {{- with .Values.otelCollector.autoscaling.autoscalingTemplate }}
+  {{- toYaml . | nindent 2 }}
+  {{- end }}
+  {{- with .Values.otelCollector.autoscaling.behavior }}
+  behavior:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+{{- end }}

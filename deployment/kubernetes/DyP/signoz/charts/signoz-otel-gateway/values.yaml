@@ -1,0 +1,261 @@
+# Default values for signoz-otel-gateway.
+replicaCount: 1
+image:
+  repository: docker.io/signoz/signoz-otel-gateway
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  tag: ""
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Automatically mount a ServiceAccount's API credentials?
+  automount: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+podAnnotations: {}
+podLabels: {}
+podSecurityContext: {}
+# fsGroup: 2000
+
+securityContext: {}
+# capabilities:
+#   drop:
+#   - ALL
+# readOnlyRootFilesystem: true
+# runAsNonRoot: true
+# runAsUser: 1000
+
+service:
+  type: ClusterIP
+  annotations: {}
+  ports:
+    healthz:
+      enabled: true
+      containerPort: 13133
+      servicePort: 13133
+      protocol: TCP
+    signoz-admin:
+      enabled: true
+      containerPort: 8001
+      servicePort: 8001
+      protocol: TCP
+    otlp-grpc:
+      enabled: true
+      containerPort: 4317
+      servicePort: 4317
+      protocol: TCP
+    otlp-http:
+      enabled: true
+      containerPort: 4318
+      servicePort: 4318
+      protocol: TCP
+    metrics:
+      enabled: true
+      containerPort: 8888
+      servicePort: 8888
+      protocol: TCP
+    httplog-heroku:
+      enabled: true
+      containerPort: 8081
+      servicePort: 8081
+      protocol: TCP
+    httplog-json:
+      enabled: true
+      containerPort: 8082
+      servicePort: 8082
+      protocol: TCP
+resources: {}
+# We usually recommend not to specify default resources and to leave this as a conscious
+# choice for the user. This also increases chances charts run on environments with little
+# resources, such as Minikube. If you do want to specify resources, uncomment the following
+# lines, adjust them as necessary, and remove the curly braces after 'resources:'.
+# limits:
+#   cpu: 100m
+#   memory: 128Mi
+# requests:
+#   cpu: 100m
+#   memory: 128Mi
+
+livenessProbe:
+  httpGet:
+    path: /healthz
+    port: 13133
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 6
+  successThreshold: 1
+readinessProbe:
+  httpGet:
+    path: /healthz
+    port: 13133
+  initialDelaySeconds: 5
+  periodSeconds: 10
+  timeoutSeconds: 5
+  failureThreshold: 6
+  successThreshold: 1
+# Additional volumes on the output Deployment definition.
+volumes: []
+# - name: foo
+#   secret:
+#     secretName: mysecret
+#     optional: false
+
+# Additional volumeMounts on the output Deployment definition.
+volumeMounts: []
+# - name: foo
+#   mountPath: "/etc/foo"
+#   readOnly: true
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+# Define env as key value pairs
+env: {}
+args: {}
+# -
+
+config:
+  # Create the config map
+  create: true
+  # Set the values of the config map
+  # extensions:
+  #   health_check:
+  # receivers:
+  #   otlp:
+  #     protocols:
+  #       grpc:
+  #         endpoint: 0.0.0.0:4317
+  #         include_metadata: true
+  #         max_recv_msg_size_mib: 16
+  #       http:
+  #         cors:
+  #           allowed_origins:
+  #             - '*'
+  #         endpoint: 0.0.0.0:4318
+  #         include_metadata: true
+  # processors:
+  #   batch:
+  #     send_batch_max_size: 10000
+  #     send_batch_size: 10000
+  #     timeout: 10s
+  #   memory_limiter: null
+  # exporters:
+  #   debug: {}
+  # service:
+  #   extensions:
+  #     - health_check
+  #   pipelines:
+  #     logs:
+  #       exporters:
+  #         - debug
+  #       processors:
+  #         - memory_limiter
+  #         - batch
+  #       receivers:
+  #         - otlp
+  #     metrics:
+  #       exporters:
+  #         - debug
+  #       processors:
+  #         - memory_limiter
+  #         - batch
+  #       receivers:
+  #         - otlp
+  #     traces:
+  #       exporters:
+  #         - debug
+  #       processors:
+  #         - memory_limiter
+  #         - batch
+  #       receivers:
+  #         - otlp
+
+externalSecrets:
+  # Add integration with external secrets
+  create: false
+  secretStoreRef:
+    kind: ClusterSecretStore
+    name: cluster-secret-store
+  # Add secrets here
+  # secrets:
+  #   # Name of the secret to be created
+  #   secret-1:
+  #     # Name of the secret in the cluster store, for example, in secrets manager
+  #     dataFrom: name-of-secret
+  #     env:
+  #       # The env variable to mount it as: the key from the secret to use
+  #       postgres_host: host
+
+ingress:
+  - name: healthz
+    ingressClassName: nginx
+    annotations: {}
+    hosts:
+      - host: gateway.example.com
+        paths:
+          - path: /healthz
+            pathType: ImplementationSpecific
+            port: 13133
+    tls:
+      - secretName: gateway-tls
+        hosts:
+          - gateway.example.com
+  - name: http
+    ingressClassName: nginx
+    annotations: {}
+    hosts:
+      - host: gateway.example.com
+        paths:
+          - path: /v1/logs
+            pathType: ImplementationSpecific
+            port: 4318
+          - path: /v1/metrics
+            pathType: ImplementationSpecific
+            port: 4318
+          - path: /v1/traces
+            pathType: ImplementationSpecific
+            port: 4318
+      - host: gateway.example.com
+        paths:
+          - path: /logs/json
+            pathType: ImplementationSpecific
+            port: 8082
+      - host: gateway.example.com
+        paths:
+          - path: /logs/heroku
+            pathType: ImplementationSpecific
+            port: 8081
+  - name: grpc
+    ingressClassName: nginx
+    annotations:
+      nginx.ingress.kubernetes.io/backend-protocol: "GRPC"
+    hosts:
+      - host: gateway.example.com
+        paths:
+          - path: /opentelemetry.proto.collector.logs.v1.LogsService/Export
+            pathType: ImplementationSpecific
+            port: 4317
+          - path: /opentelemetry.proto.collector.metrics.v1.MetricsService/Export
+            pathType: ImplementationSpecific
+            port: 4317
+          - path: /opentelemetry.proto.collector.trace.v1.TraceService/Export
+            pathType: ImplementationSpecific
+            port: 4317
+postgresql:
+  enabled: false
+  auth:
+    username: otelgateway
+    password: password
+    database: otelgateway
+  image:
+    tag: 15.0.0
+  service:
+    ports:
+      postgresql: "5432"
