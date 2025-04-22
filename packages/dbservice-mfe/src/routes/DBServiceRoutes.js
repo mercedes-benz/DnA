@@ -7,7 +7,6 @@ import NotFoundPage from 'dna-container/NotFound';
 import UnAuthorised from 'dna-container/UnAuthorised';
 
 import DBServices from '../pages/dbServices/DBServices';
-import DBService from '../pages/dbService/DBService';
 import { ProtectedRoute } from './ProtectedRoutes';
 import { history } from '../store';
 
@@ -19,11 +18,6 @@ export const protectedRoutes = [
     component: DBServices,
     exact: true,
     path: '/',
-  },
-  {
-    component: DBService,
-    exact: true,
-    path: '/workspace/:id',
   },
 ];
 
