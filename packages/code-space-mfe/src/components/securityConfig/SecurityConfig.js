@@ -331,7 +331,11 @@ export default class SecurityConfig extends React.Component {
           <span>
             <p style={{ color: 'var(--color-orange)' }}>
               <i className="icon mbc-icon alert circle"></i>
-              Note: These features are currently only enabled for api recipes. They will be made available for the UI recipes in the future.
+              Note: These features are currently only enabled for API recipes. They will be made available for the UI recipes in the future.
+            </p>
+            <p style={{ color: 'var(--color-orange)' }}>
+              <i className="icon mbc-icon alert circle"></i>
+              Note: Please ensure that all your API&apos;s are prefixed with /api.
             </p>
           </span>
           <div className={classNames(Styles.publishedConfig)}>
