@@ -134,8 +134,8 @@ const AddCodespaceGroupModal = ({ edit, group, onSave }) => {
     if(validate()) {
       ProgressIndicator.show();
       CodeSpaceApiClient.createCodeSpaceGroup(data)
-        .then((res) => {
-          Notification.show(`Code Space Group ${res?.data?.data?.name} created successfully`);
+        .then(() => {
+          Notification.show(`Code Space Group created successfully`);
           onSave();
           ProgressIndicator.hide();
         })
