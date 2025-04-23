@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useHistory } from 'react-router-dom';
 import classNames from 'classnames';
 import Styles from './code-space-group-card.scss';
@@ -29,6 +29,10 @@ const CodeSpaceGCard = ({ codeSpace, userInfo, onStartStopCodeSpace, onShowDeplo
   const [serverStarted, setServerStarted] = useState(false);
   const [serverFailed, setServerFailed] = useState(false);
   const [serverProgress, setServerProgress] = useState(0);
+
+  useEffect(() => {
+      handleServerStatusAndProgress();
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const onStartStopCodeSpaceLocal = (codespace) => {
     if(codespace?.projectDetails?.recipeDetails?.cloudServiceProvider ==='DHC-CaaS-AWS'){
