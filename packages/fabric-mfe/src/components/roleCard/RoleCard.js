@@ -11,7 +11,7 @@ const RoleCard = ({ role, onAdd, type }) => {
   const [dateError, setDateError] = useState('');
 
 
-  const minDate = new Date();
+  const minDate = new Date();   
 
   const handleAddRole = () => {
     if (!validFrom || !validTo) {

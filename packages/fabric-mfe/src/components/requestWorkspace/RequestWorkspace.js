@@ -70,9 +70,9 @@ const RequestWorkspace = ({ onRefresh }) => {
       setFilteredWorkspaces(workspaces);
     }
   }
-
+ 
   useEffect(() => {
-    reason.length > 20 && setReasonError(false); 
+    reason.length > 20 && setReasonError(false);   
   }, [reason]);
 
   const handleAddRole = (role) => {
