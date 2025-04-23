@@ -8,17 +8,27 @@ const RoleCard = ({ role, onAdd, type }) => {
   const [validFrom, setValidFrom] = useState(role?.isSelected ? role?.validFrom: '');
   const [validTo, setValidTo] = useState(role?.isSelected ? role?.validTo: '');
   const [toggle, setToggle] = useState(false);
+  const [dateError, setDateError] = useState('');
+
 
   const minDate = new Date();
 
   const handleAddRole = () => {
-    if(validFrom && validTo) {
-      setToggle(!toggle);
-      onAdd({roleID: role?.id, validFrom: validFrom, validTo: validTo});
-    } else {
-      Notification.show('Please select Valid From and Valid Until to add role', 'alert');
+    if (!validFrom || !validTo) {
+      setDateError('Both dates must be selected.');
+      return;
     }
-  }
+  
+    if (new Date(validTo) <= new Date(validFrom)) {
+      setDateError('Valid Until date must be after Valid From date.');
+      return;
+    }
+  
+    setDateError('');
+    onAdd ({ roleID: role?.id, validFrom, validTo});
+    setToggle(false);
+  };
+  
 
   const handleToggle = () => {
     type === undefined && setToggle(!toggle);
@@ -91,6 +101,11 @@ const RoleCard = ({ role, onAdd, type }) => {
               {role?.isSelected ? 'Update Validity' : 'Select Role'}
             </button>
           </div>
+          {dateError && (
+            <div style={{ color: 'red', marginTop: '0.5rem' }}>
+              <i className="icon mbc-icon alert circle"></i> {dateError}
+            </div>
+          )}
         </div>
       }
     </>

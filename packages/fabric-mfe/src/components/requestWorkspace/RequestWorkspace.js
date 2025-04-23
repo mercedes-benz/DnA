@@ -89,12 +89,26 @@ const RequestWorkspace = ({ onRefresh }) => {
   }
 
   const handleRoleSelectionNext = () => {
-    if(roleList?.length > 0) {
-      setCurrentStep('reason');
-    } else {
+    if (roleList.length === 0) {
       Notification.show('Please select a role and proceed', 'alert');
+      return;
     }
-  }
+  
+    const invalidRoles = roleList.filter(role =>
+      !role.validFrom || !role.validTo || new Date(role.validTo) <= new Date(role.validFrom)
+    );
+  
+    if (invalidRoles.length > 0) {
+      Notification.show(
+        'One or more roles have invalid date ranges. Please ensure Valid Until is after Valid From.',
+        'alert'
+      );
+      return;
+    }
+  c
+    setCurrentStep('reason');
+  };
+  
 
   const handleReasonNext = () => {
     if (reason.length >= 20) {
