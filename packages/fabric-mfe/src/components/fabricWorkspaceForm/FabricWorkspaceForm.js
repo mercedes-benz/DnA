@@ -600,7 +600,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
                         autoComplete="off"
                         maxLength={55}
                         defaultValue={archerId}
-                        {...register('archerId', { pattern: { value: /^INFO-\d+$/, message: 'Archer ID must be in the format INFO- followed by digits only' }, onChange: (e) => { setArcherID(e.target.value) } })}
+                        {...register('archerId', { pattern: { value: /^INFO-\d+$/ }, onChange: (e) => { setArcherID(e.target.value) } })}
                       />
                       <span className={'error-message'}>{errors.archerId?.type === 'pattern' && 'Archer ID should be of type INFO-XXXXX'}</span>
                     </div>
