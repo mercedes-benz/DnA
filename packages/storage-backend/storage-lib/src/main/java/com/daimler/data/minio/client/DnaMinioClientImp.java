@@ -627,7 +627,9 @@ public class DnaMinioClientImp implements DnaMinioClient {
 				MinioObjectMetadataCollection listBucketObjectsCollectionDto = new MinioObjectMetadataCollection();
 				if(data!=null && !"".equalsIgnoreCase(data)) { 
 				data = jsonprefix.concat(data.substring(0, data.length() - 1)).concat(suffix);
+				LOGGER.debug("data after adding prefix and sufix : "+ data);
 				listBucketObjectsCollectionDto = mapper.readValue(data, MinioObjectMetadataCollection.class);
+				LOGGER.debug("data after parsing : "+ listBucketObjectsCollectionDto);
 				LOGGER.info("Success from minio list bucket {} objects for user:{}", bucketName, userId);
 				}else {
 					LOGGER.info("Success from minio list bucket {} objects for user:{}. No data found, no objects present", bucketName, userId);
@@ -649,6 +651,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 				minioObjectResponse.setHttpStatus(HttpStatus.OK);
 				minioObjectResponse.setStatus("SUCCESS");
 				minioObjectResponse.setObjects(objects);
+				LOGGER.debug("minioObjectResponse : "+ minioObjectResponse);
 				LOGGER.info("Success from minio list bucket {} objects setting to dto", bucketName);
 			} else {
 					LOGGER.info("User:{} not available in vault.", userId);
