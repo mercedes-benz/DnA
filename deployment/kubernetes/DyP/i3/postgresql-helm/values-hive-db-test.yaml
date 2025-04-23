@@ -109,7 +109,7 @@ resources:
   limits:
     enabled: true
     memory: 203Mi
-  request:s
+  request:
     enabled: true
     cpu: 10m
     memory: 203Mi
