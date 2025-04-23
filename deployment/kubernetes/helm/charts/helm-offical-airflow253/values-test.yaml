@@ -255,10 +255,13 @@ executor: "KubernetesExecutor"
 allowPodLaunching: true
 
 # Environment variables for all airflow containers
-env: []
+env:
 # - name: ""
 #   value: ""
-
+  - name: REQUESTS_CA_BUNDLE
+    value: /usr/local/share/ca-certificates/ca-bundle.crt	
+  - name: SSL_CERT_FILE
+    value: /usr/local/share/ca-certificates/ca-bundle.crt
 # Volumes for all airflow containers
 volumes:
   - name: officalairflow-webserver-config
