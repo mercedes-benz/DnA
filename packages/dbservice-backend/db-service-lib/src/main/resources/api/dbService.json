@@ -6,14 +6,9 @@
 	"modelPackage": "com.daimler.data.dto.dbService",
 	"apiPackage": "com.daimler.data.api.dbService",
 	"invokerPackage": "com.daimler.data.service.dbService",
+	"globalProperties": {
+        "supportingFiles":"ApiUtil.java"
+    },
 	"importMappings": {
-		// "BindingResult": "org.springframework.validation.BindingResult",
-		// "GenericMessage": "com.daimler.data.controller.exceptions.GenericMessage",
-		// "MessageDescription": "com.daimler.data.controller.exceptions.MessageDescription",
-		// "ByteArrayResource" : "org.springframework.core.io.ByteArrayResource",
-		// "MultipartFile" : "org.springframework.web.multipart.MultipartFile",
-		// "BucketObjectDetailsDto":"com.daimler.data.dto.storage.BucketObjectDetailsDto",
-		// "BucketObjectsCollectionDto":"com.daimler.data.dto.storage.BucketObjectsCollectionDto",
-		// "BucketObjectsCollectionWrapperDto" : "com.daimler.data.dto.storage.BucketObjectsCollectionWrapperDto"
 	}
 }

@@ -16,8 +16,10 @@ pluginManagement {
         }
     }
     plugins {
+        
       id 'org.hidetake.swagger.generator' version '2.18.2'
       id 'maven' version '3.1.2'
+    //   id 'io.spring.dependency-management' version '1.0.15.RELEASE'
     }
 }
  

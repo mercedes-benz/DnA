@@ -1,139 +1,245 @@
-# LICENSE START
-#
-# MIT License
-#
-# Copyright (c) 2019 Daimler TSS GmbH
-#
-# Permission is hereby granted, free of charge, to any person obtaining a copy
-# of this software and associated documentation files (the "Software"), to deal
-# in the Software without restriction, including without limitation the rights
-# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-# copies of the Software, and to permit persons to whom the Software is
-# furnished to do so, subject to the following conditions:
-#
-# The above copyright notice and this permission notice shall be included in all
-# copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-# SOFTWARE.
-#
-# LICENSE END
-#
-#-----------------------------------------------------------------------------------------------------
-#  **
-#  ** File Name  : dbService.yaml
-#  **
-#  ** Module     : core
-#  **
-
-#  -------------------------------------------------------------------------------------------------------
-#
-#  CHANGE HISTORY
-#
-#  Created By         :  snehaks
-#
-#  Bug Number         :
-#  Changed By         :
-#  Change Description :
-#  Change On          :
-#  Search String      :
-#
-#  -------------------------------------------------------------------------------------------------------
-
-
-swagger: "2.0"
+openapi: 3.0.1
 info:
-  version: "1.0.0"
-  title: "Chronos Workspace Service"
-host: "localhost:8989"
-basePath: "/api/1.0"
-consumes:
-  - "application/json"
-produces:
-  - "application/json"
+  title: Db Service
+  version: 1.0.0
+servers:
+- url: https://localhost:8089/api/1.0
 tags:
-  - name: "forecasts"
-    description: "This service is used to maintain forecasts information."
-
-schemes:
-  - "https"
-
+- name: fccockpit
+  description: This service is used to maintain dbService information.
 paths:
-  
-  # Fetch all valid userinfo or by intent
-  #
-  #  supported http methods GET, POST, PUT
-  #
-  # path example ../forecasts
-  
-  /forecasts:
+  /dbService:
     get:
       tags:
-        - "forecast-projects"
-      summary: "Get all forecast projects for the user."
-      description:  "Get all forecasts projects for the user."
-      operationId: "getAll"
+      - dbService
+      summary: Get all dbService for the user.
+      description: Get all dbService for the user.
+      operationId: getAll
       parameters:
-        - name: offset
-          in: query
-          description: page number from which listing of forecasts should start. Offset. Example 2
-          required: false
+      - name: offset
+        in: query
+        description: page number from which listing of dbService should start.
+          Offset. Example 2
+        schema:
           type: integer
-        - name: limit
-          in: query
-          description: page size to limit the number of forecasts, Example 15
-          required: false
+      - name: limit
+        in: query
+        description: page size to limit the number of dbService, Example 15
+        schema:
           type: integer
       responses:
-        201:
-          description: "Returns message of success or failure"
-          schema:
-            $ref: "#/definitions/ForecastCollectionVO"
-        204:
-          description: "Fetch complete, no content found."
-        400:
-          description: "Bad request."
-        401:
-          description: "Request does not have sufficient credentials."
-        403:
-          description: "Request is not authorized."
-        405:
-          description: "Method not allowed"
-        500:
-          description: "Internal error"
-    
+        "201":
+          description: Returns message of success or failure
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CodeServerGovernanceVO'
+        "204":
+          description: Fetch complete, no content found.
+          content: {}
+        "400":
+          description: Bad request.
+          content: {}
+        "401":
+          description: Request does not have sufficient credentials.
+          content: {}
+        "403":
+          description: Request is not authorized.
+          content: {}
+        "405":
+          description: Method not allowed
+          content: {}
+        "500":
+          description: Internal error
+          content: {}
     post:
       tags:
-        - "forecast-projects"
-      summary: "Initialize/Create forecast project for user."
-      description: "Create forecast project for user "
-      operationId: "createForecastProject"
-      parameters:
-        - name: "forecastRequestVO"
-          in: "body"
-          description: "Request Body that contains data required for intialize chronos project for user"
-          required: true
-          schema:
-            $ref: "#/definitions/ForecastProjectCreateRequestWrapperVO"
+      - dbService
+      summary: 'Initialize/Create dbService. '
+      description: 'Initialize/Create dbService '
+      operationId: createdbService
+      requestBody:
+        description: Request Body that contains data required to initialize 
+          dbService for user
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CodeServerGovernanceVO'
+        required: true
       responses:
-        201:
-          description: "Returns message of success or failure "
-          schema:
-            $ref: "#/definitions/ForecastProjectResponseVO"
-        400:
-          description: "Bad Request"
-          schema:
-            $ref: "#/definitions/GenericMessage"
-        401:
-          description: "Request does not have sufficient credentials."
-        403:
-          description: "Request is not authorized."
-        405:
-          description: "Method not allowed"
-        500:
-          description: "Internal error"
+        "201":
+          description: 'Returns message of success or failure '
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CodeServerGovernanceVO'
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericMessage'
+        "401":
+          description: Request does not have sufficient credentials.
+          content: {}
+        "403":
+          description: Request is not authorized.
+          content: {}
+        "405":
+          description: Method not allowed
+          content: {}
+        "500":
+          description: Internal error
+          content: {}
+      x-codegen-request-body-name: CodeServerGovernanceVO
+components:
+  schemas:
+    DataGovernanceRequestInfo:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/CodeServerGovernanceVO'
+
+    CodeServerGovernanceVO:
+      type: object
+      properties:
+        description:
+          type: string
+          description: description type for codespace
+        classificationType:
+          type: string
+          description: Classification type for codespace
+        divisionId:
+          type: string
+          description: division Id for the codespace
+        division:
+          type: string
+          description: division for the codespace
+        subDivisionId:
+          type: string
+          description: sub division Id for the codespace
+        subDivision:
+          type: string
+          description: sub division for the codespace
+        department:
+          type: string
+          description: department for the codespace
+        archerId:
+          type: string
+          description: archerId for the codespace
+        procedureID:
+          type: string
+          description: producerId for the codespace
+        tags:
+          type: array
+          items:
+            type: string
+        typeOfProject:
+          type: string
+          description: typeOfProject for the codespace
+        piiData:
+          type: boolean
+          description: If codespace contains personally identifiable information
+        enableDeployApproval:
+          type: boolean
+          description: If deployment approval workflow is enabled for the codespace
+
+    GenericMessage:
+      type: object
+      properties:
+        success:
+          type: string
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/MessageDescription'
+        warnings:
+          type: array
+          items:
+            $ref: '#/components/schemas/MessageDescription'
+    MessageDescription:
+      type: object
+      properties:
+        message:
+          type: string
+          description: message
+    CreatedByVO:
+      type: object
+      properties:
+        id:
+          type: string
+          description: ID of user
+        firstName:
+          type: string
+          description: First Name of the user
+        lastName:
+          type: string
+          description: Last Name of the user
+        department:
+          type: string
+          description: Department of the user
+        email:
+          type: string
+          description: E-Mail of the user
+        mobileNumber:
+          type: string
+          description: Mobile number of the user
+
+    DbServiceVO:
+      type: object
+      properties:
+        id: 
+          type: string
+          description: Unique technical ID of workspace
+        dataGovernance:
+          $ref: '#/components/schemas/CodeServerGovernanceVO'
+        serviceName:
+          type: string
+        ProjectType:
+          type: string
+        projectOwner:
+          $ref: '#/components/schemas/UserInfoVO'
+        Description:
+          type: string
+        permission:
+          type: array
+          items:
+            type: string    
+        projectCollaborators:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserInfoVO'
+
+    UserInfoVO:
+      type: object
+      properties:
+        id:
+          type: string
+          description: ID of user
+        firstName:
+          type: string
+          description: First Name of the user
+        lastName:
+          type: string
+          description: Last Name of the user
+        department:
+          type: string
+          description: Department of the user
+        email:
+          type: string
+          description: E-Mail of the user
+        mobileNumber:
+          type: string
+          description: Mobile number of the user 
+        gitUserName:
+          type: string
+          description: git Username
+        isAdmin:
+          type: boolean
+          description: is the user has Admin rights
+          default: false
+        isApprover:
+          type: boolean
+          description: does the user have approver rights
+          default: false                             
+              

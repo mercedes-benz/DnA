@@ -30,32 +30,30 @@
  import java.io.Serializable;
  import java.util.List;
  
- import org.slf4j.Logger;
- import org.slf4j.LoggerFactory;
  import org.springframework.stereotype.Component;
  
- import com.daimler.data.dto.forecast.CreatedByVO;
+ import com.daimler.data.dto.dbService.CreatedByVO;
  import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  
  import lombok.AllArgsConstructor;
  import lombok.Builder;
  import lombok.Data;
  import lombok.NoArgsConstructor;
+ import lombok.extern.slf4j.Slf4j;
  import lombok.ToString;
  
  @Component
  @Data
  @AllArgsConstructor
  @NoArgsConstructor
+ @Slf4j
  public class UserStore {
  
      private UserInfo userInfo;
  
-     private static Logger LOGGER = LoggerFactory.getLogger(UserStore.class);
- 
      public void clear() {
          this.userInfo = null;
-         LOGGER.debug("In UserStore.clear , clearing user");
+         log.debug("In UserStore.clear , clearing user");
      }
  
      public CreatedByVO getVO() {

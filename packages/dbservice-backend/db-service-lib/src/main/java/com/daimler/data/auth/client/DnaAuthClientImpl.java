@@ -39,7 +39,7 @@
  import org.springframework.http.ResponseEntity;
  import org.springframework.stereotype.Component;
  import org.springframework.web.client.RestTemplate;
- import javax.servlet.http.HttpServletRequest;
+ import jakarta.servlet.http.HttpServletRequest;
  
  @Component
  public class DnaAuthClientImpl implements DnaAuthClient {
