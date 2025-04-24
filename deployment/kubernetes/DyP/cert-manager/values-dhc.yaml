@@ -27,9 +27,21 @@ volumeMounts:
 webhook:
   image:
     repository: registry-emea.app.corpintra.net/publicquay/jetstack/cert-manager-webhook
+  resources:
+    limits:
+      memory: 100Mi
+    requests:
+      cpu: 10m
+      memory: 100Mi
 cainjector:
   image:
     repository: registry-emea.app.corpintra.net/publicquay/jetstack/cert-manager-cainjector
+  resources:
+    limits:
+      memory: 100Mi
+    requests:
+      cpu: 10m
+      memory: 100Mi    
 startupapicheck:
   enabled: false
 
@@ -37,3 +49,10 @@ installCRDs: true
 
 extraObjects:
   cert: <path:dna_aws_kv/data/dev/kubernetesSecret/infra#croppem | base64encode>
+
+resources:
+  limits:
+    memory: 100Mi
+  requests:
+    cpu: 10m
+    memory: 100Mi

@@ -128,13 +128,11 @@ ingress:
   succeedingPaths: []
 
 resources:
-  {}
-  # limits:
-  #   cpu: 200m
-  #   memory: 512Mi
-  # requests:
-  #   cpu: 200m
-  #   memory: 256Mi
+  limits:
+    memory: 427Mi
+  requests:
+    cpu: 10m
+    memory: 427Mi
 
 autoscaling:
   enabled: false

@@ -5,6 +5,12 @@ prometheus:
   alertmanager:
     image:
       repository: registry-emea.app.corpintra.net/dockerhub/prom/alertmanager
+    resources: 
+      limits:
+        memory: 100Mi
+      requests:
+        cpu: 10m
+        memory: 100Mi
     # Adjust securityContext for non-root
     securityContext:
       runAsUser: 65534
@@ -16,6 +22,12 @@ prometheus:
     prometheus:
       image:
         repository: registry-emea.app.corpintra.net/ghcrcache/prometheus-operator/prometheus-config-reloader
+      resources: 
+        limits:
+          memory: 100Mi
+        requests:
+          cpu: 10m
+          memory: 100Mi 
   initChownData:
     enabled: false
     image:
@@ -30,13 +42,13 @@ prometheus:
       fsGroup: 65534
   # DHC CaaS already provides nodeExporter
   prometheus-node-exporter:
-    enabled: false
+    enabled: false     
   server:
     image:
       repository: registry-emea.app.corpintra.net/dockerhub/prom/prometheus
     extraArgs:
       # Limit persistent data size (experimental)
-      storage.tsdb.retention.size: "10GB"
+      storage.tsdb.retention.size: "90GB"
     # Adjust securityContext for non-root
     securityContext:
       runAsUser: 65534
@@ -44,11 +56,17 @@ prometheus:
       fsGroup: 65534
     persistentVolume:
      storageClass: dhc-gp3
-     size: 30Gi
+     size: 100Gi
     #podLabels for adding label for network policy
-    retention: "30d"
+    retention: "10d"
     podLabels:
       i3.monitoring.app: prometheus
+    resources: 
+        limits:
+          memory: 8841Mi
+        requests:
+          cpu: 169m
+          memory: 8841Mi       
     global:
       # Adjust scrape_interval to 1m
       scrape_interval: 1m
@@ -91,7 +109,10 @@ prometheus:
             value: POST
         resources:
           limits:
-            memory: "128Mi"
+            memory: 100Mi
+          requests:
+            cpu: 10m
+            memory: 100Mi  
         volumeMounts:
         - name: alert-storage-volume
           mountPath: /alerts
@@ -859,7 +880,12 @@ prometheus:
     #podLabels for adding label for network policy
     podLabels:
       i3.monitoring.app: prometheus
-            
+    resources: 
+       limits:
+         memory: 100Mi
+       requests:
+         cpu: 10m
+         memory: 100Mi            
     ingress:
       enabled: true
       ingressClassName: dev-ingress-intranet
@@ -889,6 +915,12 @@ grafana:
     imageRegistry: registry-emea.app.corpintra.net/dockerhub
   deploymentStrategy:
     type: Recreate
+  resources: 
+    limits:
+      memory: 415Mi
+    requests:
+      cpu: 10m
+      memory: 415Mi    
   ingress:
     enabled: true
     ingressClassName: dev-ingress-intranet
@@ -1182,6 +1214,12 @@ prom2teams:
     repository: registry-emea.app.corpintra.net/dockerhub/idealista/prom2teams
     tag: 4.2.1
     pullPolicy: IfNotPresent
+    resources: 
+        limits:
+          memory: 100Mi
+        requests:
+          cpu: 10m
+          memory: 100Mi     
   prom2teams:
     connector: {}
     connectors: {}
@@ -1208,10 +1246,37 @@ tempo-distributed:
       size: 5Gi
       storageClass: dhc-gp3    
     complete_block_timeout: 720h
+  distributor:
+    resources: 
+      limits:
+        memory: 100Mi
+      requests:
+        cpu: 10m
+        memory: 100Mi   
+  querier:
+    resources: 
+      limits:
+        memory: 100Mi
+      requests:
+        cpu: 10m
+        memory: 100Mi
+  queryFrontend:
+    resources: 
+      limits:
+        memory: 100Mi
+      requests:
+        cpu: 10m
+        memory: 100Mi    
   compactor:    
     config:
       compaction:
-        block_retention: 720h    
+        block_retention: 720h   
+    resources: 
+        limits:
+          memory: 100Mi
+        requests:
+          cpu: 10m
+          memory: 100Mi            
   traces:
     otlp:
       grpc:
@@ -1279,17 +1344,50 @@ loki:
     enabled: false         
   sidecar:
     image:
-      repository: registry-emea.app.corpintra.net/dockerhub/kiwigrid/k8s-sidecar     
+      repository: registry-emea.app.corpintra.net/dockerhub/kiwigrid/k8s-sidecar   
+  lokiCanary: 
+    resources: 
+      limits:
+        memory: 100Mi
+      requests:
+        cpu: 10m
+        memory: 100Mi        
   memcached:
     image:
-      repository: registry-emea.app.corpintra.net/dockerhub/memcached      
+      repository: registry-emea.app.corpintra.net/dockerhub/memcached   
+    resources: 
+      limits:
+        memory: 100Mi
+      requests:
+        cpu: 10m
+        memory: 100Mi         
   memcachedExporter:
     enabled: true
     image:
       repository: registry-emea.app.corpintra.net/dockerhub/prom/memcached-exporter  
   write:
     replicas: 0
+  resultCache:
+    resources: 
+      limits:
+        memory: 100Mi
+      requests:
+        cpu: 10m
+        memory: 100Mi
+  chunksCache:
+    resources: 
+      limits:
+        memory: 100Mi
+      requests:
+        cpu: 10m
+        memory: 100Mi
   loki:
+    resources: 
+      limits:
+        memory: 100Mi
+      requests:
+        cpu: 10m
+        memory: 100Mi     
     auth_enabled: false
     compactor:
       retention_enabled: true
@@ -1352,6 +1450,12 @@ loki:
     replicas: 0
   ingester:
     replicas: 0
+    resources: 
+      limits:
+        memory: 100Mi
+      requests:
+        cpu: 10m
+        memory: 100Mi
   querier:
     replicas: 0
   queryFrontend:
@@ -1367,7 +1471,14 @@ loki:
   bloomCompactor:
     replicas: 0
   bloomGateway:
-    replicas: 0    
+    replicas: 0  
+  gateway:
+    resources: 
+      limits:
+        memory: 100Mi
+      requests:
+        cpu: 83m
+        memory: 100Mi     
   extraObjects:
     - apiVersion: networking.k8s.io/v1
       kind: NetworkPolicy

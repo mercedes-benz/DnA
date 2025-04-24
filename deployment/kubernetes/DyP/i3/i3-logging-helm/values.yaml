@@ -282,13 +282,7 @@ opensearch:
     runAsUser: 1000
     fsGroup: 1000
 
-  resources:
-    requests:
-      cpu: "500m"
-      memory: "100Mi"
-    limits:
-      cpu: "1000m"
-      memory: "2Gi"
+  resources: {}
 
   sysctl:
     enabled: false

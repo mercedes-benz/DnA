@@ -2,7 +2,12 @@
 # The default values of the subchart already meet the requirements for DHC CaaS
 fluent-bit:
   enabled: true
-
+  resources: {}
+    # requests:
+    #   cpu: "229m"
+    #   memory: "100Mi"
+    # limits:
+    #   memory: "100Mi"
   # the labels are required by OpenSearch networkPolicy to enable access to OpenSearch
   labels:
     i3-logging-opensearch-master-transport-client: "true"
@@ -372,11 +377,10 @@ opensearch:
 
   resources:
     requests:
-      cpu: "2000m"
-      memory: "2Gi"
+      memory: "4710Mi"
+      cpu: 464m
     limits:
-      cpu: "4000m"
-      memory: "4Gi"
+      memory: "4710Mi"
 
   sysctl:
     enabled: false
