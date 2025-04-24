@@ -503,14 +503,14 @@ const CreateBucket = ({ user }) => {
   const onArcherIdChange = (e) => {
     const currentValue = e.currentTarget.value;
     setArcherId(currentValue);
-    const pattern = /^(INFO)-\d{5}$/.test(currentValue);
+    const pattern = /^(INFO)-\d{10}$/.test(currentValue);
     setArcherIdError(currentValue.length && !pattern ? 'Archer ID should be of type INFO-XXXXX' : '');
   };
 
   const onProcedureIDChange = (e) => {
     const currentValue = e.currentTarget.value;
     setProcedureID(currentValue);
-    const pattern = /^(PO|ITPLC)-\d{5}$/.test(currentValue);
+    const pattern = /^(PO|ITPLC)-\d{10}$/.test(currentValue);
     setProcedureIDError(currentValue.length && !pattern ? 'Procedure ID should be of type PO-XXXXX / ITPLC-XXXXX' : '');
   };
 
