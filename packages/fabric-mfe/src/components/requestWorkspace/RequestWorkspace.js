@@ -105,7 +105,7 @@ const RequestWorkspace = ({ onRefresh }) => {
       );
       return;
     }
-  c
+  
     setCurrentStep('reason');
   };
   
