@@ -1,0 +1,101 @@
+
+
+spring:
+    cloud:
+        vault:
+            authentication: ${VAULT_AUTHENTICATION:TOKEN}
+            host: ${VAULT_HOST:localhost}
+            kv:
+                enabled: 'true  '
+            mountpath: ${VAULT_MOUNTPATH:secret}
+            port: ${VAULT_PORT:8200}
+            scheme: ${VAULT_SCHEME:http}
+            token: ${VAULT_TOKEN:00000000-0000-0000-0000-000000000000}
+            vaultpath: ${VAULT_PATH:dna}
+    datasource:
+        driver-class-name: org.postgresql.Driver
+        hikari:
+            connection-timeout: 4000
+            data-source-properties: stringtype=unspecified
+        password: ${API_DB_PASS:XXXXXX}
+        tomcat:
+            connection-properties: stringtype=unspecified
+        url: ${API_DB_URL:jdbc:postgresql://localhost:5432/dbname}
+        username: ${API_DB_USER:XXXXXX}
+    flyway:
+        baseline-on-migrate: ${FLYWAY_BASELINE_ON_MIGRATE:false}
+        baseline-version: ${FLYWAY_BASELINEVERSION:0}
+        enabled: ${FLYWAY_ENABLED:false}
+        locations: classpath:db/migration
+        schemas: ${FLYWAY_SCHEMA:public}
+
+    http:
+        multipart:
+            enabled: false        
+
+    servlet:
+        multipart:
+            max-file-size: ${MAX_FILE_SIZE:3000MB}
+            max-request-size: ${MAX_REQUEST_SIZE:3000MB}      
+    graphql:
+        path: /api/minified
+    jpa:
+        database: POSTGRESQL
+        hibernate:
+            ddl-auto: none
+        properties:
+            hibernate:
+                dialect: org.hibernate.dialect.PostgreSQLDialect
+                temp:
+                    use_jdbc_metadata_defaults: false
+
+    
+    mvc:
+        pathmatch:
+            matching-strategy: ant_path_matcher
+
+server:
+    forward-headers-strategy: framework
+    port: 8081
+
+
+management:
+    endpoint:
+        health:
+            probes:
+                enabled: true
+            show-details: always
+        loggers:
+            enabled: true
+    endpoints:
+        web:
+            exposure:
+                include: loggers,health
+ 
+
+springdoc:
+    api-docs:
+        path: /api-docs
+    swagger-ui:
+        enabled: true
+
+swagger:
+    headers:
+        authorization:
+            apiKey: ${SWAGGER_HEADER_AUTH_APPKEY:XXXXXX}
+            appId: ${SWAGGER_HEADER_AUTH_APPID:XXXXXX}
+            token: ${SWAGGER_HEADER_AUTH:XXXXXX}
+
+technical:
+    user:
+        password: ${TECHNICAL_USER_PASSWORD:XXXXXX}
+        username: ${TECHNICAL_USER_USERNAME:XXXXXX}
+
+allowedCorsOriginPatternUrl: http://*
+
+proxy:
+    port: ${CUSTOMPROXY_PORT:3128}
+    host: ${CUSTOMPROXY_HOST:xxxx}
+
+dna:
+  uri: ${DNA_URI:XXXXXX}     

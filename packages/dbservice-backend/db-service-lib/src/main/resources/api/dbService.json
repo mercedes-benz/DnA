@@ -1,0 +1,14 @@
+{
+	"library": "spring-mvc",
+	"dateLibrary": "legacy",
+	"hideGenerationTimestamp": true,
+	"useTags": true,
+	"modelPackage": "com.daimler.data.dto.dbService",
+	"apiPackage": "com.daimler.data.api.dbService",
+	"invokerPackage": "com.daimler.data.service.dbService",
+	"globalProperties": {
+        "supportingFiles":"ApiUtil.java"
+    },
+	"importMappings": {
+	}
+}
