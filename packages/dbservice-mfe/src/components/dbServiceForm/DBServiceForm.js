@@ -8,6 +8,7 @@ import Styles from './db-service-form.scss';
 import Tags from 'dna-container/Tags';
 import SelectBox from 'dna-container/SelectBox';
 import AddUser from 'dna-container/AddUser';
+import ConfirmModal from 'dna-container/ConfirmModal';
 // App components
 import Notification from '../../common/modules/uilab/js/src/notification';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
@@ -30,7 +31,7 @@ const DBServiceForm = ({ user, workspace, edit, onSave }) => {
     formState: { errors },
   } = methods;
 
-  const isOwner = user.id === user.id;
+  const isOwner = user?.id === user?.id;
 
   // lean governance fields
   const [nameOfWorkspace, setNameOfWorkspace] = useState(edit && workspace?.name !== null ? workspace?.name : '');
@@ -53,7 +54,10 @@ const DBServiceForm = ({ user, workspace, edit, onSave }) => {
   const [procedureId, setProcedureID] = useState(edit && workspace?.procedureId ? workspace?.procedureId : '');
   const [termsOfUse, setTermsOfUse] = useState(edit && workspace?.termsOfUse ? [workspace?.termsOfUse] : false);
 
-  const [userLincenses, setUserLicenses] = useState([]);
+  const [collaborators, setCollaborators] = useState([]);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [bucketName] = useState(edit && workspace?.name !== null ? workspace?.name : '');
+  const [ownerId, setOwnerId] = useState();
 
   useEffect(() => {
     Tooltip.defaultSetup();
@@ -73,7 +77,7 @@ const DBServiceForm = ({ user, workspace, edit, onSave }) => {
     };
 
     let duplicateMember = false;
-    duplicateMember = userLincenses?.filter((license) => license.userDetails.id === developer.shortId)?.length ? true : false;
+    duplicateMember = collaborators?.filter((license) => license.userDetails.id === developer.shortId)?.length ? true : false;
 
     const isCreator = user?.id === developer?.id;
 
@@ -81,27 +85,27 @@ const DBServiceForm = ({ user, workspace, edit, onSave }) => {
         Notification.show('User License already added.', 'warning');
     } else if (isCreator) {
         Notification.show(
-            `${developer.givenName} ${developer.surName} is a creator. Creator can't be added to user lincense.`,
+            `${developer.firstName} ${developer.lastName} is a creator. Creator can't be added to user lincense.`,
             'warning',
         );
     } else {
-        userLincenses?.push(userLicenseData);
-        setUserLicenses([...userLincenses]);
+        collaborators?.push(userLicenseData);
+        setCollaborators([...collaborators]);
     }
   }
 
   // const onUserLicenseClick = (value, userId) => {
-  //   const updatedUserLincenses = userLincenses.map(userLicense => {
+  //   const updatedUserLincenses = collaborators.map(userLicense => {
   //     if (userLicense?.userDetails?.id === userId) {
   //       return Object.assign({}, userLicense, { license: value });
   //     }
   //     return userLicense;
   //   });
-  //   setUserLicenses(updatedUserLincenses);
+  //   setCollaborators(updatedUserLincenses);
   // };
 
   const onCollaboratorPermission = (e, userName) => {
-    const bucketList = userLincenses.find((item) => {
+    const bucketList = collaborators.find((item) => {
       return item.accesskey == userName;
     });
 
@@ -110,15 +114,15 @@ const DBServiceForm = ({ user, workspace, edit, onSave }) => {
     } else {
       bucketList.permission.write = false;
     }
-    setUserLicenses([...userLincenses]);
+    setCollaborators([...collaborators]);
   };
 
   const onUserLicenseDelete = (userId) => {
     return () => {
-      const updatedUserLicenses = userLincenses.filter((userLicense) => {
+      const updatedUserLicenses = collaborators.filter((userLicense) => {
         return userLicense?.userDetails?.id !== userId;
       });
-      setUserLicenses(updatedUserLicenses);
+      setCollaborators(updatedUserLicenses);
     };
   };
 
@@ -208,6 +212,27 @@ const DBServiceForm = ({ user, workspace, edit, onSave }) => {
     }
   };
 
+  const onTransferOwnership = (userId) => {
+    setOwnerId(userId);
+    setShowConfirmModal(true);
+  };
+
+  const onAcceptTransferOwnership = () => {
+    ProgressIndicator.show();
+    dbServiceApi
+      .transferOwnership(bucketName, ownerId)
+      .then(() => {
+        ProgressIndicator.hide();
+        Notification.show('Ownership transferred successfully.');
+        setShowConfirmModal(false);
+        history.push('/');
+      })
+      .catch(() => {
+        ProgressIndicator.hide();
+        Notification.show('Error while transferring ownership', 'alert');
+      });
+  };
+
   const handleCreateWorkspace = (values) => {
     ProgressIndicator.show();
     const data = {
@@ -275,7 +300,7 @@ const DBServiceForm = ({ user, workspace, edit, onSave }) => {
         <div className={classNames(Styles.form)}>
           <div className={Styles.formHeader}>
             <h3>{edit ? 'Edit' : 'Create'} your DB Service</h3>
-            <p>{edit ? 'Edit the information and save!' : 'Enter the information to start creating!'}</p>
+            <p>{edit ? 'Edit the information and save!' : 'Enter the information to create your PostgreSQL DB!'}</p>
           </div>
           <div className={Styles.flex}>
             <div className={Styles.col2}>
@@ -325,9 +350,27 @@ const DBServiceForm = ({ user, workspace, edit, onSave }) => {
                   autoComplete="off"
                   maxLength={256}
                   defaultValue={nameOfWorkspace}
-                  {...register('name', { required: '*Missing entry', pattern: /^(?!Admin monitoring$)(?!^\s+$)[\w\d-_]+$/, onChange: (e) => { setNameOfWorkspace(e.target.value) } })}
+                  {...register('name', { required: '*Missing entry', validate: {
+                    minLength: (value) =>
+                      value.length >= 3 || 'DB name should be minimum 3 characters.',
+                    validChars: (value) =>
+                      /^[a-z\d.-]*$/.test(value) ||
+                      'DB name can consist only of lowercase letters, numbers, dots ( . ), and hyphens ( - ).',
+                    startsCorrectly: (value) =>
+                      /^[a-z\d]/.test(value) ||
+                      'DB name must start with a lowercase letter or number.',
+                    noTrailingHyphen: (value) =>
+                      !/-$/.test(value) || 'DB name must end with letter or a number.',
+                    noTrailingDot: (value) =>
+                      !/\.$/.test(value) || 'DB name must end with letter or a number.',
+                    noConsecutiveDots: (value) =>
+                      !/\.+\./.test(value) || `DB name can't have consecutive dots.`,
+                    notIpAddress: (value) =>
+                      !/^(?:(?:^|\.)(?:2(?:5[0-5]|[0-4]\d)|1?\d?\d)){4}$/.test(value) ||
+                      'DB name can’t be an IP address.',
+                  }, onChange: (e) => { setNameOfWorkspace(e.target.value) } })}
                 />
-                <span className={'error-message'}>{errors?.name?.message}{errors.name?.type === 'pattern' && 'Workspace names must contain alphanumeric characters only - and _ are allowed. \'Admin monitoring\' name and spaces are not allowed.'}</span>
+                <span className={'error-message'}>{errors?.name?.message}</span>
               </div>
             </div>
             <div className={Styles.col}>
@@ -624,22 +667,22 @@ const DBServiceForm = ({ user, workspace, edit, onSave }) => {
               <div className={classNames('input-field-group include-error')}>
                 <AddUser getCollabarators={getDevelopers} isRequired={false} isUserprivilegeSearch={false} title={'Users'} />
               </div>
-              {userLincenses?.length === 0 &&
+              {collaborators?.length === 0 &&
                 <div className={Styles.noLincense}>
                   <p>No Users Selected</p>
                 </div>
               }
               <div>
-                {userLincenses?.length > 0 && (
+                {collaborators?.length > 0 && (
                   <>
                     <div className={Styles.colHeader}>
                         <div className={Styles.column1}>User ID</div>
                         <div className={Styles.column2}>Name</div>
                         <div className={Styles.column3}>Permissions</div>
-                        <div className={Styles.column4}></div>
+                        <div className={Styles.column4}>Actions</div>
                     </div>
                     <div>
-                        {userLincenses?.map((userLicense) => {
+                        {collaborators?.map((userLicense) => {
                           return (
                               <div key={userLicense?.userDetails?.id} className={Styles.userRow}>
                                   <div className={Styles.column1}>
@@ -680,6 +723,12 @@ const DBServiceForm = ({ user, workspace, edit, onSave }) => {
                                     </div>
                                   </div>
                                   <div className={Styles.column4}>
+                                    {edit && isOwner &&
+                                      <div className={Styles.deleteEntry} onClick={() => onTransferOwnership(userLicense?.accesskey)}>
+                                        <i className="icon mbc-icon comparison" />
+                                        Transfer Ownership
+                                      </div>
+                                    }
                                     <div className={Styles.deleteEntry} onClick={onUserLicenseDelete(userLicense?.userDetails?.id)}>
                                       <i className="icon mbc-icon trash-outline" tooltip-data={'Delete'} />
                                     </div>
@@ -746,6 +795,38 @@ const DBServiceForm = ({ user, workspace, edit, onSave }) => {
           </div>
         </div>
       </FormProvider>
+      {showConfirmModal && (
+        <ConfirmModal
+          title={'Transfer Ownership'}
+          showAcceptButton={false}
+          showCancelButton={false}
+          show={showConfirmModal}
+          removalConfirmation={true}
+          showIcon={false}
+          showCloseIcon={true}
+          content={
+            <div className={Styles.transferOwnership}>
+              <div className={Styles.transferIcon}>
+                <i className={classNames('icon mbc-icon comparison')} />
+              </div>
+              <div>
+                You are going to transfer ownership.<br />You will no longer be the owner of this Database.<br />
+                Are you sure you want to proceed?
+              </div>
+              <div className={Styles.yesBtn}>
+                <button
+                  className={'btn btn-secondary'}
+                  type="button"
+                  onClick={onAcceptTransferOwnership}
+                >
+                  Yes
+                </button>
+              </div>
+            </div>
+          }
+          onCancel={() => setShowConfirmModal(false)}
+        />
+      )}
     </>
   );
 }

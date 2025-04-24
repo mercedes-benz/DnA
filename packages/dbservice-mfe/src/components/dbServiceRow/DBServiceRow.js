@@ -1,13 +1,11 @@
 import classNames from 'classnames';
 import React, { useEffect } from 'react';
-import { useHistory } from 'react-router-dom';
 import Styles from './db-service-row.scss';
 import Tooltip from '../../common/modules/uilab/js/src/tooltip';
 import { regionalDateAndTimeConversionSolution } from '../../utilities/utils';
-import Spinner from '../spinner/Spinner';
 
-const DBServiceRow = ({user, dbservice, onSelectDbService, onEditDbService, onDeleteDbService}) => {
-  const history = useHistory();
+const DBServiceRow = ({user, dbservice, onEditDbService, onDeleteDbService, onShowDetailsModal}) => {
+  // const history = useHistory();
   const isOwner = user?.id === dbservice?.createdBy?.id;
 
   useEffect(() => {
@@ -15,7 +13,7 @@ const DBServiceRow = ({user, dbservice, onSelectDbService, onEditDbService, onDe
   }, []);
 
   const handleOpenDbService = () => {
-    history.push(`/dbservice/${dbservice?.id}`);
+    onShowDetailsModal(dbservice);
   }
 
   const displayPermission = (item) => {
@@ -36,16 +34,6 @@ const DBServiceRow = ({user, dbservice, onSelectDbService, onEditDbService, onDe
         <span>
           {dbservice?.bucketName}
         </span>
-        {dbservice?.status?.state === 'IN_PROGRESS' &&
-          <button className={Styles.stateBtn} tooltip-data={'Click for more information'} onClick={(e) => { e.stopPropagation(); onSelectDbService(dbservice) }}>
-            <Spinner /> <span>&nbsp;</span>
-          </button>
-        }
-        {dbservice?.status?.state === 'COMPLETED' && 
-          <button className={Styles.completedStatus}>
-            <i className={'icon mbc-icon check circle'}></i> <span>Provisioned</span>
-          </button>
-        }
       </div>
       <div className={Styles.col2}>
         {displayPermission(dbservice?.permission) || 'N/A'}
@@ -66,23 +54,26 @@ const DBServiceRow = ({user, dbservice, onSelectDbService, onEditDbService, onDe
             <button
               className={classNames('btn btn-primary', Styles.projectLink)}
               onClick={(e) => { e.stopPropagation(); onEditDbService(dbservice); }}
+              tooltip-data={'Edit'}
             >
               <i className="icon mbc-icon edit"></i>
-              <span>Edit</span>
+              {/* <span>Edit</span> */}
             </button>
             <button
               className={classNames('btn btn-primary', Styles.projectLink)}
               onClick={(e) => { e.stopPropagation(); onDeleteDbService(dbservice); }}
+              tooltip-data={'Delete'}
             >
               <i className="icon delete"></i>
-              <span>Delete</span>
+              {/* <span>Delete</span> */}
             </button>
             <button
               className={classNames('btn btn-primary', Styles.projectLink)}
               onClick={(e) => { e.stopPropagation(); onDeleteDbService(dbservice); }}
+              tooltip-data={'Connect'}
             >
               <i className="icon mbc-icon comparison"></i>
-              <span>Connect</span>
+              {/* <span>Connect</span> */}
             </button>
           </div>
         }

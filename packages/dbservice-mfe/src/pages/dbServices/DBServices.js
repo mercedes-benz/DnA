@@ -11,10 +11,11 @@ import Pagination from 'dna-container/Pagination';
 import { getQueryParameterByName } from '../../utilities/utils';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 import { SESSION_STORAGE_KEYS } from '../../utilities/constants';
-import DBServiceCard from '../../components/DBServiceCard/DBServiceCard';
+import DBServiceCard from '../../components/dbServiceCard/DBServiceCard';
 import DBServiceRow from '../../components/dbServiceRow/DBServiceRow';
-import DBServiceForm from '../../components/DBServiceForm/DBServiceForm';
+import DBServiceForm from '../../components/dbServiceForm/DBServiceForm';
 import ConnectionModal from '../../components/connectionModal/ConnectionModal';
+import DetailsModal from '../../components/detailsModal/DetailsModal';
 
 const DBServices = ({user}) => {
   const listViewSelected = sessionStorage.getItem('storageListViewModeEnable') || false;
@@ -25,6 +26,9 @@ const DBServices = ({user}) => {
   const [showDeleteModal, setDeleteModal] = useState(false);
   const [selectedDbService, setSelectedDbService] = useState({});
   const [editDbService, setEditDbService]  = useState(false);
+
+  const [showConnectionalModal, setShowConnectionModal] = useState(false);
+  const [showDetailsModal, setShowDetailsModal] = useState(false);
 
   // Pagination 
   const [totalNumberOfPages, setTotalNumberOfPages] = useState(1);
@@ -127,8 +131,6 @@ const DBServices = ({user}) => {
         });
   };
 
-  const [showConnectionalModal, setShowConnectionModal] = useState(false);
-
   const handleConnectionModalClose = () => {
     setShowConnectionModal(false);
   }
@@ -136,6 +138,10 @@ const DBServices = ({user}) => {
   const handleSelectDbService = (dbservice) => { 
     setSelectedDbService(dbservice);
     setShowConnectionModal(true);
+  }
+
+  const handleDetailsModalClose = () => {
+    setShowDetailsModal(false);
   }
 
   return (
@@ -226,6 +232,10 @@ const DBServices = ({user}) => {
                         setSelectedDbService(dbservice);
                         setDeleteModal(true);
                       }}
+                      onShowDetailsModal={(dbservice) => {
+                        setSelectedDbService(dbservice);
+                        setShowDetailsModal(true);
+                      }}
                     />
                   )}
                 </div>
@@ -269,6 +279,10 @@ const DBServices = ({user}) => {
                     onDeleteDbService={(dbservice) => {
                       setSelectedDbService(dbservice);
                       setDeleteModal(true);
+                    }}
+                    onShowDetailsModal={(dbservice) => {
+                      setSelectedDbService(dbservice);
+                      setShowDetailsModal(true);
                     }}
                   />
                 )}
@@ -335,6 +349,17 @@ const DBServices = ({user}) => {
           content={<ConnectionModal user={user} />}
           hiddenTitle={true}
           onCancel={handleConnectionModalClose}
+        />
+      )}
+      {showDetailsModal && (
+        <InfoModal
+          title="Details"
+          modalCSS={Styles.header}
+          show={showDetailsModal}
+          modalWidth={'800px'}
+          content={<DetailsModal dbservice={selectedDbService} />}
+          hiddenTitle={true}
+          onCancel={handleDetailsModalClose}
         />
       )}
     </>

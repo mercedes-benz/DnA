@@ -7,7 +7,9 @@
   cursor: pointer;
   div {
       &:last-child {
-        text-align: right;
+        display: flex;
+        justify-content: right;
+        column-gap: 10px;
       }
       button {
           color: #acb8c4;
