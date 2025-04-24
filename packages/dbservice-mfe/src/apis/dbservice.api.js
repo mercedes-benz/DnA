@@ -28,6 +28,10 @@ const deleteDBService = (id) => {
   });
 };
 
+const transferOwnership = (bucketName, userId) => {
+  return server.patch(`/dbservices/${bucketName}/reAssignOwner/${userId}`, {});
+};
+
 const getLovData = () => {
   return Promise.all([
     storageServer.get(`/classifications`, {
@@ -46,5 +50,6 @@ export const dbServiceApi = {
   createDBService,
   updateDBService,
   deleteDBService,
+  transferOwnership,
   getLovData,
 };

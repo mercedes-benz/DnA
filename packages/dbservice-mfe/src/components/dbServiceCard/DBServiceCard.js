@@ -1,23 +1,24 @@
 import classNames from 'classnames';
 import React, { useEffect } from 'react';
 import Styles from './db-service-card.scss';
-import { useHistory } from 'react-router-dom';
+// import { useHistory } from 'react-router-dom';
 import { regionalDateAndTimeConversionSolution } from '../../utilities/utils';
 import Tooltip from '../../common/modules/uilab/js/src/tooltip';
 import Spinner from '../spinner/Spinner';
 import Popper from 'popper.js';
 
-const DBServiceCard = ({user, dbservice, onSelectDbService, onEditDbService, onDeleteDbService}) => {
-  const history = useHistory();
+const DBServiceCard = ({user, dbservice, onSelectDbService, onShowDetailsModal, onEditDbService, onDeleteDbService}) => {
+  // const history = useHistory();
   let popperObj, tooltipElem = null;
   const isOwner = user?.id === dbservice?.createdBy?.id;
+  const isAdmin = user.roles.find((role) => role.id === 3);
   
   useEffect(() => {
     Tooltip.defaultSetup();
   }, [dbservice]);
 
   const handleOpenDbService = () => {
-    history.push(`/dbservice/${dbservice?.id}`);
+    onShowDetailsModal(dbservice);
   }
 
   const displayPermission = (item) => {
@@ -72,6 +73,15 @@ const DBServiceCard = ({user, dbservice, onSelectDbService, onEditDbService, onD
       <div className={Styles.cardBodySection}>
         <div>
           <div>
+            <div>Link</div>
+            <div>
+              <a href={`https://link.com/${dbservice.id}`} target='_blank' rel='noopener noreferrer'>
+                Go to pgAdmin
+                <i className={classNames('icon mbc-icon new-tab')} />
+              </a>
+            </div>
+          </div>
+          <div>
             <div>Created on</div>
             <div>{dbservice?.createdDate && regionalDateAndTimeConversionSolution(dbservice?.createdDate)}</div>
           </div>
@@ -88,15 +98,6 @@ const DBServiceCard = ({user, dbservice, onSelectDbService, onEditDbService, onD
             <div>
               {displayPermission(dbservice?.permission) || 'N/A'}
               {isOwner && ` (Owner)`}
-            </div>
-          </div>
-          <div>
-            <div>DB Service Link</div>
-            <div>
-              <a href={`https://link.com/${dbservice.id}`} target='_blank' rel='noopener noreferrer'>
-                Go to DB Service
-                <i className={classNames('icon mbc-icon new-tab')} />
-              </a>
             </div>
           </div>
           <div>
@@ -153,8 +154,17 @@ const DBServiceCard = ({user, dbservice, onSelectDbService, onEditDbService, onD
               {/* {isRequestedWorkspace && dbservice?.status?.state === 'IN_PROGRESS' && <p className={Styles.requestStatus}>Workspace Accesss Requested</p>} */}
             </div>
           </div>
-          {user?.id === dbservice?.createdBy?.id &&
-            <div className={Styles.btnGrp}>
+          <div className={Styles.btnGrp}>
+          <button
+            className={'btn btn-primary'}
+            type="button"
+            onClick={handleConnect}
+          >
+            <i className="icon mbc-icon comparison"></i>
+            <span>Connect</span>
+          </button>
+          {(isOwner || isAdmin) &&
+            <>
               <button
                 className={'btn btn-primary'}
                 type="button"
@@ -171,16 +181,9 @@ const DBServiceCard = ({user, dbservice, onSelectDbService, onEditDbService, onD
                 <i className="icon delete"></i>
                 <span>Delete</span>
               </button>
-              <button
-                className={'btn btn-primary'}
-                type="button"
-                onClick={handleConnect}
-              >
-                <i className="icon mbc-icon comparison"></i>
-                <span>Connect</span>
-              </button>
-            </div>
+            </>
           }
+          </div>
         </>
       </div>
     </div>

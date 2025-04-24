@@ -99,16 +99,19 @@
   word-break: break-all;
 }
 .column3 {
-  width: 50%;
-  max-width: 50%;
-  min-width: 50%;
+  width: 30%;
+  max-width: 30%;
+  min-width: 30%;
   word-break: break-all;
 }
 .column4 {
-  width: 5%;
-  max-width: 5%;
-  min-width: 5%;
+  width: 25%;
+  max-width: 25%;
+  min-width: 25%;
   word-break: break-all;
+  display: flex;
+  justify-content: flex-end;
+  column-gap: 14px;
 }
 .deleteEntry {
   float: right;

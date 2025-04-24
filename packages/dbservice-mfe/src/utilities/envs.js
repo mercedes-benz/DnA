@@ -7,8 +7,8 @@
 // };
 
 const getInjectedEnv = (key) => {
-  if (window.FABRIC_INJECTED_ENVIRONMENT) {
-    return window.FABRIC_INJECTED_ENVIRONMENT[key];
+  if (window.DB_SERVICE_INJECTED_ENVIRONMENT) {
+    return window.DB_SERVICE_INJECTED_ENVIRONMENT[key];
   }
   return undefined;
 };
@@ -26,6 +26,9 @@ const getDNAInjectedEnv = (key) => {
 export const Envs = {
   DB_SERVICE_API_BASEURL: getInjectedEnv('DB_SERVICE_API_BASEURL') || process.env.DB_SERVICE_API_BASEURL,
   API_BASEURL: getDNAInjectedEnv('API_BASEURL') || process.env.API_BASEURL,
+  REPORTS_API_BASEURL: getDNAInjectedEnv('REPORTS_API_BASEURL') || process.env.REPORTS_API_BASEURL,
+  STORAGE_API_BASEURL: getDNAInjectedEnv('STORAGE_API_BASEURL') || process.env.STORAGE_API_BASEURL,
   DNA_BRAND_LOGO_URL: getDNAInjectedEnv('DNA_BRAND_LOGO_URL') || process.env.DNA_BRAND_LOGO_URL,
   DNA_APP_LOGO_URL: getDNAInjectedEnv('DNA_APP_LOGO_URL') || process.env.DNA_APP_LOGO_URL,
+  TOU_HTML: getInjectedEnv('TOU_HTML') || process.env.TOU_HTML,
 };

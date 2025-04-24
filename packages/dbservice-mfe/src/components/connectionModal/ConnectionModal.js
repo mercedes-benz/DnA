@@ -51,9 +51,6 @@ const ConnectionModal = ({ dbservice, onOk }) => {
           <div className={Styles.itemKey}>Connection String</div>
           <div className={Styles.itemValue}>heres the connection string</div>
         </div>
-        <div className={Styles.item}>
-          <div className={Styles.itemKey}>Users</div>
-        </div>
       </section>
       <div>
         {dbservice?.collaborators?.length > 0 && (
@@ -122,6 +119,16 @@ const ConnectionModal = ({ dbservice, onOk }) => {
               <ul className="tabs">
                 <li className={'tab active'}>
                   <a href="#tab-content-1" id="jupyterNotebook">
+                    <strong>How to Connect with Python</strong>
+                  </a>
+                </li>
+                <li className={'tab'}>
+                  <a href="#tab-content-2" id="jupyterNotebook">
+                    <strong>How to Connect with SpringBoot</strong>
+                  </a>
+                </li>
+                <li className={'tab'}>
+                  <a href="#tab-content-3" id="jupyterNotebook">
                     <strong>How to Connect from Fabric</strong>
                   </a>
                 </li>
@@ -140,7 +147,31 @@ const ConnectionModal = ({ dbservice, onOk }) => {
               <span
                 className={Styles.copyIcon}
                 onClick={() => {
+                  const content = document.getElementById('tab-content-1')?.innerText;
+                  copyToClipboard(content);
+                }}
+              >
+                <i className="icon mbc-icon copy" />
+              </span>
+              <div className={Styles.connectionCode}>Python</div>
+            </div>
+            <div id="tab-content-2" className={classNames('tab-content mbc-scroll', Styles.tabContentContainer)}>
+              <span
+                className={Styles.copyIcon}
+                onClick={() => {
                   const content = document.getElementById('tab-content-2')?.innerText;
+                  copyToClipboard(content);
+                }}
+              >
+                <i className="icon mbc-icon copy" />
+              </span>
+              <div className={Styles.connectionCode}>SpringBoot</div>
+            </div>
+            <div id="tab-content-3" className={classNames('tab-content mbc-scroll', Styles.tabContentContainer)}>
+              <span
+                className={Styles.copyIcon}
+                onClick={() => {
+                  const content = document.getElementById('tab-content-3')?.innerText;
                   copyToClipboard(content);
                 }}
               >

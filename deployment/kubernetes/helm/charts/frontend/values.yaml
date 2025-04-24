@@ -210,6 +210,9 @@ configJs: |
         CONTAINER_APP_URL:'http://localhost:9090',
         API_BASEURL: 'http://localhost:7171/api',
         DB_SERVICE_API_BASEURL: 'YOUR_DB_SERVICE_API_BASEURL',
+        STORAGE_API_BASEURL: 'http://localhost:7175/api',
+        REPORTS_API_BASEURL: 'http://localhost:7173/api',
+        TOU_HTML: "<div>I agree to <a href=\"#\" target=\"_blank\" rel=\"noopener noreferrer\">terms of use</a></div>",
     };
 
 probes:
