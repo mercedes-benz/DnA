@@ -207,7 +207,7 @@ public class WorkspaceJobStatusUpdateController  {
 					log.info("Latest status is {}, and eventType is {}",latestStatus,eventType);
 					message = "Sucessfully Restarted the Codespace " + projectName + " with branch " + branch +" on " + environment + " triggered by " +userId;
 				}
-				if(latestStatus.equalsIgnoreCase("RESTARt_FAILED")) {
+				if(latestStatus.equalsIgnoreCase("RESTART_FAILED")) {
 					eventType = "Codespace-Restart Failed";
 					log.info("Latest status is {}, and eventType is {}",latestStatus,eventType);
 					message = "Failed to Restart Codespace " + projectName + " with branch " + branch +" on " + environment + " triggered by " +userId;
