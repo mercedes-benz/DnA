@@ -600,7 +600,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
                         autoComplete="off"
                         maxLength={55}
                         defaultValue={archerId}
-                        {...register('archerId', { pattern: /^(INFO)-\d{10}$/, onChange: (e) => { setArcherID(e.target.value) } })}
+                        {...register('archerId', { pattern: /^(INFO)-\d{1,10}$/, onChange: (e) => { setArcherID(e.target.value) } })}
                       />
                       <span className={'error-message'}>{errors.archerId?.type === 'pattern' && 'Archer ID should be of type INFO-XXXXX'}</span>
                     </div>
@@ -620,7 +620,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
                         autoComplete="off"
                         maxLength={55}
                         defaultValue={procedureId}
-                        {...register('procedureId', { pattern: /^(PO|ITPLC)-\d{10}$/, onChange: (e) => { setProcedureID(e.target.value) } })}
+                        {...register('procedureId', { pattern: /^(PO|ITPLC)-\d{1,10}$/, onChange: (e) => { setProcedureID(e.target.value) } })}
                       />
                       <span className={'error-message'}>{errors.procedureId?.type === 'pattern' && 'Procedure ID should be of type PO-XXXXX / ITPLC-XXXXX'}</span>
                     </div>
