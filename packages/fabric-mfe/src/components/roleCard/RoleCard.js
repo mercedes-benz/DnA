@@ -2,7 +2,6 @@ import classNames from "classnames";
 import React, { useState } from "react";
 import Styles from './role-card.scss';
 import DatePicker from 'dna-container/DatePicker';
-import Notification from "../../common/modules/uilab/js/src/notification";
 
 const RoleCard = ({ role, onAdd, type }) => {
   const [validFrom, setValidFrom] = useState(role?.isSelected ? role?.validFrom: '');
@@ -31,7 +30,7 @@ const RoleCard = ({ role, onAdd, type }) => {
   
 
   const handleToggle = () => {
-    type === undefined && setToggle(!toggle);
+    type === undefined && setToggle(!toggle); 
   }
 
   return (
