@@ -10,7 +10,7 @@ chronosbackend: http://chronos-be.prod-dna-chronos.svc.cluster.local:80
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/chronos-mfe
   pullPolicy: IfNotPresent
-  tag: 1.7.5
+  tag: 1.7.6
 imagePullSecrets:
   - name: imagepullsecret
 nameOverride: ''
@@ -26,7 +26,7 @@ ingress:
   className: prod-ingress-intranet
   annotations:
     traefik.frontend.rule.type: PathPrefix
-    kubernetes.io/ingress.class: prod-ingress-intranet    
+    kubernetes.io/ingress.class: prod-ingress-intranet
     traefik.ingress.kubernetes.io/router.tls: 'true'
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     cert-manager.io/cluster-issuer: mercedes-benz-acme
@@ -50,7 +50,7 @@ vaultInjector:
   enable: true
   annotations:
     vault.hashicorp.com/agent-inject: 'true'
-    vault.hashicorp.com/role: 'dna_aws_prod_k8_role'
+    vault.hashicorp.com/role: dna_aws_prod_k8_role
     vault.hashicorp.com/agent-pre-populate-only: 'true'
     vault.hashicorp.com/agent-inject-secret-configjs: dna_aws_kv/prod/kubernetesSecret/chronosMFE
     vault.hashicorp.com/agent-inject-file-configjs: config.js
