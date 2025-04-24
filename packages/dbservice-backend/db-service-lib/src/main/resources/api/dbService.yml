@@ -209,6 +209,23 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/UserInfoVO'
+        createdOn:
+          type: string
+          format: date 
+        modifiedOn:
+          type: string
+          format: date 
+        modifiedBy:
+          $ref: '#/components/schemas/UserInfoVO'
+        ipAddress:
+          type: string
+        port:
+          type: string
+        dbName:
+          type: string
+        dbUserName:
+          type: string
+
 
     UserInfoVO:
       type: object
