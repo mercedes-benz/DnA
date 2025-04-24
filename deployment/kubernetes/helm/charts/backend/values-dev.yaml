@@ -118,3 +118,9 @@ vaultInjector:
       {{- end }}      
   saName: default
   jarName: dnambc*.jar
+resources:
+  requests:
+    memory: 956Mi
+    cpu: 10m
+  limits:
+    memory: 956Mi

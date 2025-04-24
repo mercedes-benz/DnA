@@ -43,11 +43,10 @@ ingress:
       secretName: data-product-tls-secret
 resources:
   limits:
-    cpu: 100m
-    memory: 128Mi
+    memory: 100Mi
   requests:
-    cpu: 100m
-    memory: 128Mi
+    cpu: 10m
+    memory: 100Mi
 vaultInjector:
   enable: true
   annotations:

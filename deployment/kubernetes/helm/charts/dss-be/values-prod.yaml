@@ -42,7 +42,12 @@ ingress:
     - hosts:
         - api.dss.dna.app.corpintra.net
       secretName: api-dss-tls-secret
-resources: {}
+resources:
+  requests:
+    memory: 496Mi
+    cpu: 10m
+  limits:
+    memory: 496Mi
 autoscaling:
   enabled: false
   minReplicas: 1

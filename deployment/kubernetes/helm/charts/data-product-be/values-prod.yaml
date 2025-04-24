@@ -104,7 +104,12 @@ ingress:
     - hosts:
         - api.data-product.dna.app.corpintra.net
       secretName: data-product-be-tls
-resources: {}
+resources:
+  requests:
+    memory: 1283Mi
+    cpu: 33m
+  limits:
+    memory: 1283Mi
 nodeSelector: {}
 tolerations: []
 affinity: {}

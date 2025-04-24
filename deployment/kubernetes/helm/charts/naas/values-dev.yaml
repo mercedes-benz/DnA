@@ -30,11 +30,10 @@ app:
       corsOriginUrl: null
   resources:
     requests:
-      memory: 512Mi
-      cpu: 250m
+      memory: 474Mi
+      cpu: 10m
     limits:
-      memory: 1000Mi
-      cpu: 500m
+      memory: 474Mi
   probes:
     initialDelaySeconds: 900
     timeoutSeconds: 10

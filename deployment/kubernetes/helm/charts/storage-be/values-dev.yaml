@@ -164,7 +164,12 @@ ingress:
         - path: /webjars
           pathType: Prefix
   tls: null
-resources: {}
+resources:
+  requests:
+    memory: 1022Mi
+    cpu: 10m
+  limits:
+    memory: 1022Mi
 vaultInjector:
   enable: true
   annotations:
