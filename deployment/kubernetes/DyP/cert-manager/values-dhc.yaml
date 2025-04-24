@@ -38,10 +38,10 @@ cainjector:
     repository: registry-emea.app.corpintra.net/publicquay/jetstack/cert-manager-cainjector
   resources:
     limits:
-      memory: 100Mi
+      memory: 300Mi
     requests:
       cpu: 10m
-      memory: 100Mi    
+      memory: 300Mi    
 startupapicheck:
   enabled: false
 
