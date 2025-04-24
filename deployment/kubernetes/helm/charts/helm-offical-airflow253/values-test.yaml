@@ -671,13 +671,12 @@ workers:
     args: ["bash", "/clean-logs"]
     # Number of days to retain logs
     retentionDays: 15
-    resources: {}
-    #  limits:
-    #   cpu: 100m
-    #   memory: 128Mi
-    #  requests:
-    #   cpu: 100m
-    #   memory: 128Mi
+    resources:
+     limits:
+      memory: 454Mi
+     requests:
+      cpu: 32m
+      memory: 454Mi
 
 
   waitForMigrations:
@@ -759,11 +758,10 @@ scheduler:
 
   resources:
    limits:
-    cpu: 2000m
-    memory: 2500Mi
+    memory: 1397Mi
    requests:
     cpu: 1800m
-    memory: 2000Mi
+    memory: 1397Mi
 
   # This setting tells kubernetes that its ok to evict
   # when it wants to scale a node down.
@@ -1097,13 +1095,12 @@ webserver:
       ports:
         - port: "{{ .Values.ports.airflowUI }}"
 
-  resources: {}
-  #   limits:
-  #     cpu: 100m
-  #     memory: 128Mi
-  #   requests:
-  #     cpu: 100m
-  #     memory: 128Mi
+  resources:
+    limits:
+      memory: 1024Mi
+    requests:
+      cpu: 10m
+      memory: 1024Mi
 
   # Create initial user.
   defaultUser:
@@ -1629,13 +1626,12 @@ statsd:
 
   # Additional network policies as needed
   extraNetworkPolicies: []
-  resources: {}
-  #   limits:
-  #     cpu: 100m
-  #     memory: 128Mi
-  #   requests:
-  #     cpu: 100m
-  #     memory: 128Mi
+  resources:
+    limits:
+      memory: 128Mi
+    requests:
+      cpu: 10m
+      memory: 128Mi
 
   service:
     extraAnnotations: {}
@@ -2116,7 +2112,7 @@ dags:
     # If using a custom storageClass, pass name here
     storageClassName: nfs-sc
     # access mode of the persistent volume
-    accessMode: ReadWriteOnce
+    accessMode: ReadWriteMany
     ## the name of an existing PVC to use
     existingClaim:
     ## optional subpath for dag volume mount
@@ -2190,13 +2186,12 @@ dags:
     # - name: ""
     #   value: ""
 
-    resources: {}
-    #  limits:
-    #   cpu: 100m
-    #   memory: 128Mi
-    #  requests:
-    #   cpu: 100m
-    #   memory: 128Mi
+    resources:
+     limits:
+      memory: 100Mi
+     requests:
+      cpu: 16m
+      memory: 100Mi
 
 logs:
   persistence:

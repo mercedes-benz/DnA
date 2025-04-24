@@ -66,7 +66,12 @@ securityContext:
 service:
   type: ClusterIP
   port: 8080
-resources: {}
+resources:
+  limits:
+    memory: 1576Mi
+  requests:
+    cpu: 10m
+    memory: 1576Mi
 nodeSelector: {}
 tolerations: []
 affinity: {}
@@ -100,11 +105,10 @@ hivemetastore:
     thrift:
       http_timeout: 2h
   requests:
-    memory: 8G
-    cpu: 2
+    memory: 303Mi
+    cpu: 10m
   limits:
-    memory: 8G
-    cpu: 2
+    memory: 303Mi
   minio:
     host: my-release-minio.minio.svc.cluster.local:9000
     accessKey: <path:dna_aws_kv/data/dev/kubernetesSecret/trino#minio.accessKey>

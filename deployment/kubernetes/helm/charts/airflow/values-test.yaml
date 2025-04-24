@@ -168,10 +168,9 @@ gitContainer:
 backendResources:
   requests:
     memory: 512Mi
-    cpu: 250m
+    cpu: 10m
   limits:
-    memory: 1000Mi
-    cpu: 500m
+    memory: 512Mi
 volumes:
   logsPath: /usr/local/airflow/logs
   dagsPath: /usr/local/airflow/dags/git-sync/dags

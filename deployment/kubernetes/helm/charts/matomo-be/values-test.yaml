@@ -42,7 +42,12 @@ ingress:
     - hosts:
         - api.matomo.test.dna.app.corpintra.net
       secretName: api-matomo-tls-secret
-resources: {}
+resources:
+  requests:
+    memory: 428Mi
+    cpu: 10m
+  limits:
+    memory: 428Mi
 autoscaling:
   enabled: false
   minReplicas: 1
