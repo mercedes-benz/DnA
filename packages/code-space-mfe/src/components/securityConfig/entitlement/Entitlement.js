@@ -77,6 +77,7 @@ export default class Entitlement extends React.Component {
 
   componentDidUpdate(prevProps, prevState) {
     if (this.props.config !== prevProps.config) {
+      const envKey = this.props.env === 'int' ? 'stagingEntitlement' : 'productionEntitlement';
       if (this.props.config?.entitlements?.length > 0) {
         const records = this.props.config.entitlements;
         const totalNumberOfPages = Math.ceil(records?.length / this.state.maxItemsPerPage);
@@ -120,11 +121,9 @@ export default class Entitlement extends React.Component {
 
 
   handleToggle() {
-
     const envKey =
       this.props.env === 'int' ? 'publishedData_staging' : 'publishedData_production';
     const storedPublishedData = localStorage.getItem(envKey);
-
 
     this.setState((prevState) => ({
       showJson: !prevState.showJson,
@@ -170,6 +169,7 @@ export default class Entitlement extends React.Component {
             entitelmentList: [...parsedData.entitlements],
             entitelmentListResponse: [...parsedData.entitlements],
             jsonError: [],
+            appId: parsedData.appId
           });
         } else {
           this.setState({ jsonError: errors });
@@ -183,13 +183,11 @@ export default class Entitlement extends React.Component {
 
 
   onSave() {
-
     if (this.state.jsonError?.length === 0) {
       try {
         const parsedData = JSON.parse(this.state.jsonData);
         const newAppId = parsedData.appId;
         const newEntitlements = parsedData.entitlements;
-
 
         this.setState({
           appId: newAppId,
@@ -816,3 +814,5 @@ export default class Entitlement extends React.Component {
     );
   }
 }
+
+
