@@ -378,7 +378,7 @@ opensearch:
   resources:
     requests:
       memory: "5405Mi"
-      cpu: 464m
+      cpu: 626m
     limits:
       memory: "5405Mi"
 
