@@ -1228,7 +1228,7 @@ prom2teams:
           cpu: 10m
           memory: 100Mi     
   prom2teams:
-    connector: {}
+    connector: https://corpdir.webhook.office.com/webhookb2/xxx/IncomingWebhook/xxx/xxx
     connectors: {}
     # group_alerts_by can be one of
     # ("name" | "description" | "instance" | "severity" | "status" | "summary" | "fingerprint" | "runbook_url")
