@@ -2225,23 +2225,34 @@ import com.daimler.data.util.ConstantsUtility;
  //					return responseMessage;
  //				}
  //				String projectOwnerWsId = ownerEntity.getData().getWorkspaceId();
-				 String deploymentUrl = "";
-				 deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/";
-				 if (pythonRecipeId.equalsIgnoreCase(projectRecipe)) {
-					 deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/docs";
-				 }
-				 if (reactRecipeId.equalsIgnoreCase(projectRecipe) || angularRecipeId.equalsIgnoreCase(projectRecipe) 
-				 || vueRecipeId.equalsIgnoreCase(projectRecipe) || dashRecipeId.equalsIgnoreCase(projectRecipe)
-				 || streamlitRecipeId.equalsIgnoreCase(projectRecipe) || nestjsRecipeId.equalsIgnoreCase(projectRecipe) ||
-				 expressjsRecipeId.equalsIgnoreCase(projectRecipe)) {
-					 deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/";
-				 }
-				 if (quarkusRecipeId.equalsIgnoreCase(projectRecipe)) {
-					 deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/q/swagger-ui";
-				 }
-				 if(micronautRecipeId.equalsIgnoreCase(projectRecipe)) {
-					  deploymentUrl = codeServerBaseUri+"/"+projectName.toLowerCase() +"/"+ targetEnv +"/swagger-ui/index.html";
-				 }
+				String deploymentUrl = "";
+				if (("int".equalsIgnoreCase(targetEnv)
+						&& entity.getData().getProjectDetails().getIntDeploymentDetails().getDeploymentUrl() != null)
+						|| ("prod".equalsIgnoreCase(targetEnv)
+								&& entity.getData().getProjectDetails().getProdDeploymentDetails().getDeploymentUrl() != null)) {
+					deploymentUrl = "int".equalsIgnoreCase(targetEnv)
+							? entity.getData().getProjectDetails().getIntDeploymentDetails().getDeploymentUrl()
+							: entity.getData().getProjectDetails().getProdDeploymentDetails().getDeploymentUrl();
+				} else {
+					deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/";
+					if (pythonRecipeId.equalsIgnoreCase(projectRecipe)) {
+						deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/docs";
+					}
+					if (reactRecipeId.equalsIgnoreCase(projectRecipe) || angularRecipeId.equalsIgnoreCase(projectRecipe)
+							|| vueRecipeId.equalsIgnoreCase(projectRecipe) || dashRecipeId.equalsIgnoreCase(projectRecipe)
+							|| streamlitRecipeId.equalsIgnoreCase(projectRecipe) || nestjsRecipeId.equalsIgnoreCase(projectRecipe)
+							||
+							expressjsRecipeId.equalsIgnoreCase(projectRecipe)) {
+						deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/";
+					}
+					if (quarkusRecipeId.equalsIgnoreCase(projectRecipe)) {
+						deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/q/swagger-ui";
+					}
+					if (micronautRecipeId.equalsIgnoreCase(projectRecipe)) {
+						deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv
+								+ "/swagger-ui/index.html";
+					}
+				}
 				 String environmentJsonbName = "intDeploymentDetails";
 				 CodeServerDeploymentDetails deploymentDetails = new CodeServerDeploymentDetails();
 				 if ("int".equalsIgnoreCase(targetEnv)) {
