@@ -149,7 +149,12 @@ public class KafkaCoreCampaignService {
 					}
 					if(message.getEventType().contains(CODESPACE_NOTIFICATION_KEY)) {
 						appNotificationPreferenceFlag = preferenceVO.getCodespaceNotificationPref().isEnableAppNotifications();
+						if(message.getEventType().contains("Playground Project")){
+							emailNotificationPreferenceFlag = true;
+						}
+						else{
 						emailNotificationPreferenceFlag =  preferenceVO.getCodespaceNotificationPref().isEnableEmailNotifications();
+						}
 					}
 					if(message.getEventType().contains(AIRFLOW_NOTIFICATION_KEY)) {
 						appNotificationPreferenceFlag = preferenceVO.getAirflowNotificationPref().isEnableAppNotifications();
@@ -236,7 +241,6 @@ public class KafkaCoreCampaignService {
 						String userEmail = usersEmails.get(userListPivot);
 						if(userEmail!= null && !"".equalsIgnoreCase(userEmail)) {
 							String emailSubject = message.getEventType()+" Email Notification";
-							
 							mailer.sendSimpleMail(message.getUuid(),userEmail, emailSubject , emailBody);
 							LOGGER.info("Sent email as per user preference, Details: user {}, eventType {}, uuid {}", user,
 									message.getEventType(), message.getUuid());
