@@ -147,6 +147,7 @@ const AllCodeSpaces = (props) => {
             history.push(`codespace/${codeSpaceData.workspaceId}`);
         } else {
             getCodeSpacesData();
+            getCodeSpaceGroupsData();
         }
     };
 
@@ -157,6 +158,7 @@ const AllCodeSpaces = (props) => {
     const onNewCodeSpaceModalCancel = () => {
         if (onEditCodeSpace) {
             getCodeSpacesData();
+            getCodeSpaceGroupsData();
         }
         setShowNewCodeSpaceModal(false);
         setOnBoardCodeSpace(undefined);
@@ -166,6 +168,7 @@ const AllCodeSpaces = (props) => {
 
     const onDeleteSuccess = () => {
         getCodeSpacesData();
+        getCodeSpaceGroupsData();
     };
 
     const onShowCodeSpaceOnBoard = (codeSpace, isRetryRequest = false) => { //isRetry optional
@@ -230,6 +233,7 @@ const AllCodeSpaces = (props) => {
         setIsApiCallTakeTime(false);
         ProgressIndicator.hide();
         getCodeSpacesData();
+        getCodeSpaceGroupsData();
     };
 
     const navigateSecurityConfig = () => {
@@ -482,7 +486,7 @@ const AllCodeSpaces = (props) => {
                             <button
                                 className={'btn btn-primary'}
                                 tooltip-data="Refresh"
-                                onClick={getCodeSpacesData}
+                                onClick={() => { getCodeSpacesData(); getCodeSpaceGroupsData(); }}
                             >
                                 <i className="icon mbc-icon refresh" />
                             </button>
@@ -765,6 +769,7 @@ const AllCodeSpaces = (props) => {
                                 setIsRetryRequest(false);
                                 setShowNewCodeSpaceModal(false);
                                 getCodeSpacesData();
+                                getCodeSpaceGroupsData();
                             }}
                         />
                     }
@@ -783,7 +788,7 @@ const AllCodeSpaces = (props) => {
                         onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'springbootwithmaven'
                     }
                     setShowCodeDeployModal={(isVisible) => setShowDeployCodeSpaceModal(isVisible)}
-                    setCodeDeploying={() => getCodeSpacesData()}
+                    setCodeDeploying={() => { getCodeSpacesData(); getCodeSpaceGroupsData(); }}
                     setIsApiCallTakeTime={setIsApiCallTakeTime}
                     navigateSecurityConfig={navigateSecurityConfig}
                 />
