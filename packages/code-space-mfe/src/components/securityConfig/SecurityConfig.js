@@ -452,7 +452,7 @@ export default class SecurityConfig extends React.Component {
             show={this.state.editModeNavigateModal}
             content={<div id="contentparentdiv">Unsaved Changes if any will be discared on navigation. Are you sure you want to Navigate ?</div>}
             onCancel={() => {
-              this.setState({
+              this.setState({ 
                 editModeNavigateModal: !this.state.editModeNavigateModal,
               });
             }}
