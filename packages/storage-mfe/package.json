@@ -1,6 +1,6 @@
 {
   "name": "storage",
-  "version": "3.3.4",
+  "version": "3.3.5",
   "private": true,
   "dependencies": {
     "@babel/runtime": "^7.17.8",
