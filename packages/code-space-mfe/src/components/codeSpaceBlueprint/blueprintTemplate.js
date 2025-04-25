@@ -241,7 +241,7 @@ export const blueprintTemplate = (codespace) => {
         <mxCell id="yNrRxmF-IllQESKTyaMv-1" value="Deployments" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=0;fontSize=13;fontFamily=Verdana;" vertex="1" parent="1">
           <mxGeometry x="384" y="461" width="156" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="ujUrj7wP6LcdkLsmr5C5-14" value="Staging" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=0;fontSize=12;fontFamily=Verdana;" parent="1" vertex="1">
+        <mxCell id="ujUrj7wP6LcdkLsmr5C5-14" value="Staging - ${intDeploymentDetails?.lastDeployedBranch ? 'Deployed' : 'No Deployment'}" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=0;fontSize=12;fontFamily=Verdana;" parent="1" vertex="1">
           <mxGeometry x="368" y="504" width="140" height="30" as="geometry" />
         </mxCell>
         <mxCell id="ujUrj7wP6LcdkLsmr5C5-30" value="" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/azure2/other/Azure_Deployment_Environments.svg;" parent="1" vertex="1">
@@ -288,7 +288,7 @@ export const blueprintTemplate = (codespace) => {
         ${{ /* Staging section end */ }}
 
         ${{ /* Production section start */ }}
-        <mxCell id="yNrRxmF-IllQESKTyaMv-7" value="Production" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=0;fontSize=12;fontFamily=Verdana;" vertex="1" parent="1">
+        <mxCell id="yNrRxmF-IllQESKTyaMv-7" value="Production - ${prodDeploymentDetails?.lastDeployedBranch ? 'Deployed' : 'No Deployment'}" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=0;fontSize=12;fontFamily=Verdana;" vertex="1" parent="1">
           <mxGeometry x="868" y="504" width="140" height="30" as="geometry" />
         </mxCell>
         
