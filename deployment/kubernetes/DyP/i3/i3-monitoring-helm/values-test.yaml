@@ -986,7 +986,7 @@ prom2teams:
     tag: 4.2.1
     pullPolicy: IfNotPresent
   prom2teams:
-    connector: {}
+    connector: https://corpdir.webhook.office.com/webhookb2/xxx/IncomingWebhook/xxx/xxx
     connectors: {}
     # group_alerts_by can be one of
     # ("name" | "description" | "instance" | "severity" | "status" | "summary" | "fingerprint" | "runbook_url")
