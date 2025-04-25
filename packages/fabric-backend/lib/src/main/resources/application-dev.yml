@@ -51,6 +51,7 @@ fabricWorkspaces:
   gateway.id: ${FABRIC_GATEWAY_ID:XXXX}
   gateway.encryption.publickey.modulus: ${FABRIC_ENCRYPTION_PUBLICKEY_MODULUS:XXXXX}
   gateway.encryption.publickey.exponent: ${FABRIC_ENCRYPTION_PUBLICKEY_EXPONENT:XXXX}
+  allowed.divsions.fabric.enabled: ${FABRIC_ENABLED_ENTITLEMENT:XXXX}
   datasource:
     credentialType: ${FABRIC_DS_CREDENTIALTYPE:Basic}
     encryptedConnection: ${FABRIC_DS_ENCRYPTEDCONN:Any}

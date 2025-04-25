@@ -166,7 +166,14 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 	
 	@Value("${authoriser.role.fabricRoleName}")
 	private String fabricOperationsRoleName;
+
+	@Value("${fabricWorkspaces.allowed.divisions.fabric.enabled}")
+	private String[] allowedDivisionsArray;
 	
+	public List<String> getAllowedDivisions() {
+		return Arrays.asList(allowedDivisionsArray);
+	}
+
 	public BaseFabricWorkspaceService() {
 		super();
 	}
@@ -352,6 +359,10 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		CreateWorkspaceDto createRequest = new CreateWorkspaceDto();
 		createRequest.setDescription(vo.getDescription());
 		createRequest.setDisplayName(vo.getName());
+		List<String> allowedDivisionsForFabricEnbaledEntilement = getAllowedDivisions();
+		//FABRIC_ENABLED entitelment assigned only to FC, MBM & MO divison while creating workspace
+		String divisions = vo.getDivision();
+		boolean isDivisionAllowed = (divisions != null && allowedDivisionsForFabricEnbaledEntilement.contains(divisions.toLowerCase()));
 		try {
 			WorkspaceDetailDto createResponse = fabricWorkspaceClient.createWorkspace(createRequest);
 			if(createResponse!=null ) {
@@ -424,7 +435,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 					FabricWorkspaceStatusVO currentStatus = new FabricWorkspaceStatusVO();
 					currentStatus.setState(ConstantsUtility.INPROGRESS_STATE);
 					String creatorId = vo.getCreatedBy().getId();
-					data.setStatus(this.processWorkspaceUserManagement(currentStatus, vo.getName(), creatorId,createResponse.getId(), vo.getCustomGroupName()));
+					data.setStatus(this.processWorkspaceUserManagement(currentStatus, vo.getName(), creatorId,createResponse.getId(), vo.getCustomGroupName(), isDivisionAllowed));
 					FabricWorkspaceVO savedRecord = null;
 					try{
 						savedRecord = super.create(data);
@@ -612,7 +623,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		return createRoleVO;
 	}
 	
-	public RoleDetailsVO updateRoleDetails(EntitlementDetailsVO roleEntitlementVO, RoleDetailsVO existingRoleVO, String workspaceName, String permissionName, String creatorId) {
+	public RoleDetailsVO updateRoleDetails(EntitlementDetailsVO roleEntitlementVO, RoleDetailsVO existingRoleVO, String workspaceName, String permissionName, String creatorId, boolean isDivisionAllowed) {
 		EntitlementDetailsVO dnaFabricEntitlementVO = new EntitlementDetailsVO();
 		dnaFabricEntitlementVO.setDisplayName(dnaFabricEntitlementName);
 		dnaFabricEntitlementVO.setEntitlementId(dnaFabricEntitlementId);
@@ -638,13 +649,21 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		if(isRoleAvailable) {
 			//add entitlements
 			List<EntitlementDetailsVO> adminEntitlementsVO = new ArrayList<>();
-			adminEntitlementsVO.add(dnaFabricEntitlementVO);
+			if (isDivisionAllowed) {
+				adminEntitlementsVO.add(dnaFabricEntitlementVO);
+			}
 			adminEntitlementsVO.add(roleEntitlementVO);
 			if(!ConstantsUtility.ASSIGNED_STATE.equalsIgnoreCase(updatedRole.getAssignEntitlementsState())) {
 				HttpStatus assignAdminEntitlementStatus = identityClient.AssignEntitlementToRole(roleEntitlementVO.getEntitlementId(), updatedRole.getId());
-				HttpStatus assignDnaEntitlementStatus = identityClient.AssignEntitlementToRole(dnaFabricEntitlementVO.getEntitlementId(), updatedRole.getId());
-				if((assignAdminEntitlementStatus.is2xxSuccessful() || (assignAdminEntitlementStatus.compareTo(HttpStatus.CONFLICT) == 0)) && 
-						(assignDnaEntitlementStatus.is2xxSuccessful() || (assignDnaEntitlementStatus.compareTo(HttpStatus.CONFLICT) == 0))) {
+				HttpStatus assignDnaEntitlementStatus = HttpStatus.OK;
+				if (isDivisionAllowed) {
+					identityClient.AssignEntitlementToRole(dnaFabricEntitlementVO.getEntitlementId(), updatedRole.getId());
+				}
+
+				boolean adminEntitlementSuccess = (assignAdminEntitlementStatus.is2xxSuccessful() || (assignAdminEntitlementStatus.compareTo(HttpStatus.CONFLICT) == 0));
+				boolean dnaEntitlementSuccess = (assignDnaEntitlementStatus.is2xxSuccessful() || (assignDnaEntitlementStatus.compareTo(HttpStatus.CONFLICT) == 0));
+
+				if(adminEntitlementSuccess && dnaEntitlementSuccess) {
 					updatedRole.setAssignEntitlementsState(ConstantsUtility.ASSIGNED_STATE);
 					// isEntitlementsAssigned = true;
 				}else {
@@ -803,7 +822,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 	
 	
 	@Override
-	public FabricWorkspaceStatusVO processWorkspaceUserManagement(FabricWorkspaceStatusVO currentStatus, String workspaceName, String creatorId, String workspaceId, String customGroupName) {
+	public FabricWorkspaceStatusVO processWorkspaceUserManagement(FabricWorkspaceStatusVO currentStatus, String workspaceName, String creatorId, String workspaceId, String customGroupName, boolean isDivisionAllowed) {
 				if(ConstantsUtility.INPROGRESS_STATE.equalsIgnoreCase(currentStatus.getState())) {
 					boolean isAdminEntitlementAvailable = false;
 					boolean isContributorEntitlementAvailable = false;
@@ -931,7 +950,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 								existingAdminRoleVO.setState(ConstantsUtility.PENDING_STATE);
 								existingAdminRoleVO.setLink(identityRoleUrl+workspaceName + "_" + ConstantsUtility.PERMISSION_ADMIN);
 							}
-							RoleDetailsVO updatedAdminRoleVO = this.updateRoleDetails(adminEntitlement, existingAdminRoleVO, workspaceName, ConstantsUtility.PERMISSION_ADMIN, creatorId);
+							RoleDetailsVO updatedAdminRoleVO = this.updateRoleDetails(adminEntitlement, existingAdminRoleVO, workspaceName, ConstantsUtility.PERMISSION_ADMIN, creatorId, isDivisionAllowed);
 							adminRole = updatedAdminRoleVO;
 							updatedRoles.add(adminRole);
 						//check for contributor Role
@@ -944,7 +963,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 								existingContributorRoleVO.setState(ConstantsUtility.PENDING_STATE);
 								existingContributorRoleVO.setLink(identityRoleUrl+workspaceName + "_" + ConstantsUtility.PERMISSION_CONTRIBUTOR);
 							}
-							RoleDetailsVO updatedContributorRoleVO = this.updateRoleDetails(contributorEntitlement, existingContributorRoleVO, workspaceName, ConstantsUtility.PERMISSION_CONTRIBUTOR, creatorId);
+							RoleDetailsVO updatedContributorRoleVO = this.updateRoleDetails(contributorEntitlement, existingContributorRoleVO, workspaceName, ConstantsUtility.PERMISSION_CONTRIBUTOR, creatorId, isDivisionAllowed);
 							contributorRole = updatedContributorRoleVO;
 							updatedRoles.add(contributorRole);
 						//check for member Role
@@ -957,7 +976,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 								existingMemberRoleVO.setState(ConstantsUtility.PENDING_STATE);
 								existingMemberRoleVO.setLink(identityRoleUrl+workspaceName + "_" + ConstantsUtility.PERMISSION_MEMBER);
 							}
-							RoleDetailsVO updatedMemberRoleVO = this.updateRoleDetails(memberEntitlement, existingMemberRoleVO, workspaceName, ConstantsUtility.PERMISSION_MEMBER, creatorId);
+							RoleDetailsVO updatedMemberRoleVO = this.updateRoleDetails(memberEntitlement, existingMemberRoleVO, workspaceName, ConstantsUtility.PERMISSION_MEMBER, creatorId, isDivisionAllowed);
 							memberRole = updatedMemberRoleVO;
 							updatedRoles.add(memberRole);
 						//check for viewer Role
@@ -970,7 +989,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 								existingViewerRoleVO.setState(ConstantsUtility.PENDING_STATE);
 								existingViewerRoleVO.setLink(identityRoleUrl+workspaceName + "_" + ConstantsUtility.PERMISSION_VIEWER);
 							}
-							RoleDetailsVO updatedViewerRoleVO = this.updateRoleDetails(viewerEntitlement, existingViewerRoleVO, workspaceName, ConstantsUtility.PERMISSION_VIEWER, creatorId);
+							RoleDetailsVO updatedViewerRoleVO = this.updateRoleDetails(viewerEntitlement, existingViewerRoleVO, workspaceName, ConstantsUtility.PERMISSION_VIEWER, creatorId, isDivisionAllowed);
 							viewerRole = updatedViewerRoleVO;
 							updatedRoles.add(viewerRole);
 					currentStatus.setRoles(updatedRoles);
