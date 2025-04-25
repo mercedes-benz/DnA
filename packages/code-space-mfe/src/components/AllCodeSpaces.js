@@ -221,30 +221,16 @@ const AllCodeSpaces = (props) => {
 
     const AWSWarningModalContent = (
         <div className={Styles.modalContentWrapper}>
-            <div className={Styles.modalMainTitle}><i className="icon mbc-icon alert circle" />Heads Up! Codespaces is Moving to DyPCaaS AWS <i className="icon mbc-icon alert circle" /></div>
-            <p>We&apos;re improving Codespaces! Here&apos;s what you need to know:</p>
-            <div className={Styles.modalTitle}>DyPCaaS On-Prem is Retiring</div>
-            <p>On October 31st, 2025, DyPCaaS On-Prem will no longer be available (details here: <a href={Envs.AWS_MOVE_DOC_URL} target='_blank' rel='noopener noreferrer'>DyP CaaS Moves to AWS</a>).</p>
-            {/* <div className={Styles.modalTitle}>Moving to DyPCaaS AWS</div>
-            <p>To keep things running smoothly, we&apos;ll be migrating everything to DyPCaaS AWS. This means better performance and more features for you!</p>
-            <div className={Styles.modalTitle}>What this means for you (if you use Codespaces):</div>
-            <p>
-                <ul>
-                    <li><b>New Workspaces:</b> All new Codespaces will automatically be created on DyPCaaS AWS.</li>
-                    <li><b>Existing Workspaces:</b> You&apos;ll need to migrate your current Codespaces to DyPCaaS AWS before <span className={classNames(Styles.warning)}>January 20th, 2025</span>. We&apos;ve made it easy with a <b>self-service migration process</b> that starts when you launch your workspace. There&apos;s also a helpful <a href={`#/codespaces/tutorials/awsMigration`} target="_blank" rel="noreferrer">video guide</a> to walk you through it.</li>
-                </ul>
-            </p> */}
-            <div className={Styles.modalTitle}>Migrating your Existing Codespace:</div>
-            <p>
-                <ol>
-                    {/* <li><b>Don&apos;t forget your changes!</b> Before migrating, commit all changes (including untracked files) to your Git repository.</li> */}
-                    <li><b>Auto Migration:</b> We have migrated all your existing workspaces to DyPCaaS AWS.</li>
-                    <li><b>Old Workspace Access:</b> You can still access your old workspace on DyPCaaS On-Prem (from the context menu) until <span className={classNames(Styles.warning)}>January 31st, 2025</span>.</li>
-                </ol>
-            </p>
-            <div className={Styles.modalTitle}>Need Assistance?:</div>
+            <div className={Styles.awsModalMainTitle}><i className="icon mbc-icon alert circle" />DnA Platform successfully migrated<i className="icon mbc-icon alert circle" /></div>
+            <br/>
+            <div className={Styles.awsModalTitle}>Old Workspace Access:</div>
+            <p>You can still access your old workspace on DyPCaaS On-Prem (from the context menu) until <span className={classNames(Styles.warning)}>April 30th, 2025</span>.</p>
+            <div className={Styles.awsModalTitle}>Migrating your Deployed Applications: <span className={classNames(Styles.important)}>URGENT!!</span></div>
+            <p>Please be aware that you must migrate your deployed applications before <span className={classNames(Styles.warning)}> April 30th, 2025</span>.
+                For migration, please reach out to us.</p>            
+            <div className={Styles.awsModalTitle}>Need Assistance?:</div>
             <p>Please refer to the <span className={classNames(Styles.warning)}>AWS migration FAQs</span> on our landing page. You can also join our <a href={Envs.CODESPACE_TEAMS_LINK} target='_blank' rel='noopener noreferrer'>Teams channel</a> or <a href={Envs.CODESPACE_MATTERMOST_LINK} target='_blank' rel='noopener noreferrer'>Mattermost channel</a> for help or to discuss any concerns.</p>
-            <p><strong>Note:</strong> Upon initiating the migration, only your workspace will be migrated. Deployed applications will be migrated to AWS based on the support request. If there were no prior deployments before the migration, any new deployments will automatically be directed to AWS.</p>
+            <p><strong>Note:</strong> Deployed applications will be migrated to AWS based on the support request. If there were no prior deployments before the migration, any new deployments will automatically be directed to AWS.</p>
         </div>
     );
 

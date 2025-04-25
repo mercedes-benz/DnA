@@ -488,6 +488,18 @@ definitions:
         type: array
         items:
           $ref: "#/definitions/FabricLakehouseVO"
+      initiatedBy:
+        type: string
+        default: string
+      # secondaryRoleApproverId: 
+      #   type: string
+      #   default: null
+      # customEntitlementName: 
+      #   type: string
+      #   default: null
+      customGroupName: 
+        type: string
+        default: null
   
   FabricWorkspaceStatusVO:
     type: object
@@ -536,6 +548,9 @@ definitions:
         type: string
       roleApprover:
         type: string
+      # secondaryRoleApprover: 
+      #   type: string
+      #   default: null
       entitlements:
         type: array
         items:
@@ -628,6 +643,11 @@ definitions:
     properties:
       data:
         $ref: "#/definitions/FabricWorkspaceVO"
+      aliasOwnerId: 
+        type: string
+        default: null
+      
+      
   
   FabricWorkspaceResponseVO:
     description: "Response object for fabric workspace operations"
@@ -817,7 +837,7 @@ definitions:
         properties:
           roleName:
             type: string
-            pattern: "^[A-Z0-9]+[A-Z0-9._-]{1,60}$"
+            pattern: "^[A-Za-z0-9]+[A-Za-z0-9._-]{1,60}$"
 
   DnaRoleCollectionVO:
     type: object

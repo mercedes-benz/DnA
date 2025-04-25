@@ -1,7 +1,7 @@
 spring:
   application:
     name: dna-storage-service
-    version: 3.2.20
+    version: 3.2.32
   profile:
     active: production
   cache:
@@ -109,6 +109,7 @@ storage:
   mc.timeout.alias: ${MC_ALIAS_TIMEOUT:10}
   mc.timeout.listpolicies: ${MC_LISTPOLICIES_TIMEOUT:10}
   mc.timeout.listbuckets: ${MC_LISTBUCKETS_TIMEOUT:1}
+  technical.id: ${DNA_TECHNICAL_USERID:XXXXX}
       
  
 minio:
