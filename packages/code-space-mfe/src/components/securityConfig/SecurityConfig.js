@@ -101,20 +101,22 @@ export default class SecurityConfig extends React.Component {
 
   componentDidUpdate(prevProps, prevState) {
     if (this.state.currentTab !== prevState.currentTab) {
-      // this.setState({ isSaved: false });
+      const envKey = this.state.currentTab === 'stagingEntitlement' ? 'int' : 'prod'; // Determine environment based on the tab
       const path = getPath();
       SelectBox.defaultSetup();
       InputFields.defaultSetup();
+  
       if (path.includes('publishedSecurityconfig')) {
         this.setState({
           readOnlyMode: true,
         });
-        !this.state.showStagingModal ? this.getPublishedConfig(this.state.id, 'prod') : this.getPublishedConfig(this.state.id, 'int');
+        !this.state.showStagingModal ? this.getPublishedConfig(this.state.id, envKey) : this.getPublishedConfig(this.state.id, 'int');
       } else {
-        !this.state.showStagingModal ? this.getConfig(this.state.id, 'prod') : this.getConfig(this.state.id, 'int');
+        !this.state.showStagingModal ? this.getConfig(this.state.id, envKey) : this.getConfig(this.state.id, 'int');
       }
     }
   }
+  
 
   getPublishedConfig = (id, env) => {
     ProgressIndicator.show();
@@ -140,6 +142,7 @@ export default class SecurityConfig extends React.Component {
         ProgressIndicator.hide();
       });
   };
+  
 
   getConfig = (id, env) => {
     ProgressIndicator.show();
@@ -243,24 +246,25 @@ export default class SecurityConfig extends React.Component {
     const currentState = this.state.currentState;
     // const showAlertChangesModal = !this.state.isSaved && !this.state.readOnlyMode;
     const showAlertChangesModal = !this.state.readOnlyMode;
-
+  
     if (!currentState || saveActionType === 'btn' || _.isEqual(newState, currentState)) {
       if (target.id !== this.state.currentTab) {
-        !this.state.readOnlyMode
-          ? this.setState({
-              clickedTab: target.id,
-              showAlertChangesModal: showAlertChangesModal,
-            })
-          : this.setState({
-            currentTab: target.id,
-            saveActionType: '',
-            nextTab: target.id === 'stagingEntitlement' ? 'productionEntitlement' : 'stagingEntitlement',
-            showStagingModal: target.id === 'stagingEntitlement' ? true : false,
-            showAlertChangesModal: false,
-          });
+        const envKey = target.id === 'stagingEntitlement' ? 'int' : 'prod'; 
+        this.setState({
+          clickedTab: target.id,
+          showAlertChangesModal: showAlertChangesModal,
+        });
+  
+        
+        if (this.state.readOnlyMode) {
+          this.getPublishedConfig(this.state.id, envKey); 
+        } else {
+          this.getConfig(this.state.id, envKey); 
+        }
       }
     }
   };
+  
 
   callApiToSave = (env, callPublishApi) => {
     const config = this.state.config;

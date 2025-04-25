@@ -77,6 +77,7 @@ export default class Entitlement extends React.Component {
 
   componentDidUpdate(prevProps, prevState) {
     if (this.props.config !== prevProps.config) {
+      const envKey = this.props.env === 'int' ? 'stagingEntitlement' : 'productionEntitlement';
       if (this.props.config?.entitlements?.length > 0) {
         const records = this.props.config.entitlements;
         const totalNumberOfPages = Math.ceil(records?.length / this.state.maxItemsPerPage);
@@ -94,7 +95,7 @@ export default class Entitlement extends React.Component {
         });
       }
     }
-
+  
     if (
       !this.state.isJsonTouched &&
       (prevState.appId !== this.state.appId ||
@@ -112,7 +113,7 @@ export default class Entitlement extends React.Component {
         this.setState({ jsonData });
       }
     }
-  }
+  } 
   showErrorNotification(message) {
     ProgressIndicator.hide();
     Notification.show(message, 'alert');
@@ -120,12 +121,10 @@ export default class Entitlement extends React.Component {
 
 
   handleToggle() {
-
     const envKey =
       this.props.env === 'int' ? 'publishedData_staging' : 'publishedData_production';
     const storedPublishedData = localStorage.getItem(envKey);
-
-
+  
     this.setState((prevState) => ({
       showJson: !prevState.showJson,
       jsonData: this.props.readOnlyMode
@@ -170,6 +169,7 @@ export default class Entitlement extends React.Component {
             entitelmentList: [...parsedData.entitlements],
             entitelmentListResponse: [...parsedData.entitlements],
             jsonError: [],
+            appId: parsedData.appId
           });
         } else {
           this.setState({ jsonError: errors });
@@ -183,14 +183,12 @@ export default class Entitlement extends React.Component {
 
 
   onSave() {
-
     if (this.state.jsonError?.length === 0) {
       try {
         const parsedData = JSON.parse(this.state.jsonData);
         const newAppId = parsedData.appId;
         const newEntitlements = parsedData.entitlements;
-
-
+  
         this.setState({
           appId: newAppId,
           entitelmentListResponse: newEntitlements,
@@ -198,7 +196,7 @@ export default class Entitlement extends React.Component {
           isJsonTouched: false,
           toggleError: '',
         });
-
+  
         Notification.show('JSON changes saved successfully');
 
         if (this.props.onSaveDraft) {
@@ -584,24 +582,24 @@ export default class Entitlement extends React.Component {
                         Application Id<sup>*</sup>
                       </label>
                       <input
-                        type="text"
-                        className="input-field"
-                        required={!this.props.readOnlyMode}
-                        id="AppId"
-                        maxLength={50}
-                        placeholder="Application id registered in Alice"
-                        autoComplete="off"
-                        onChange={(e) => {
-                          e.target.value.length !== 0
-                            ? this.setState({ appId: e.target.value, appIdErrorMessage: '' })
-                            : this.setState({
-                              appId: e.target.value,
-                              appIdErrorMessage: '*Missing entry',
-                            });
-                        }}
-                        value={this.state.appId}
-                        readOnly={this.props.readOnlyMode}
-                      />
+  type="text"
+  className="input-field"
+  required={!this.props.readOnlyMode}
+  id="AppId"
+  maxLength={50}
+  placeholder="Application id registered in Alice"
+  autoComplete="off"
+  onChange={(e) => {
+    e.target.value.length !== 0
+    ? this.setState({ appId: e.target.value, appIdErrorMessage: '' })
+    : this.setState({
+      appId: e.target.value,
+      appIdErrorMessage: '*Missing entry',
+    });
+  }}
+  value={this.state.appId}
+  readOnly={this.props.readOnlyMode}
+/>
                       <span
                         className={classNames(
                           'error-message',
