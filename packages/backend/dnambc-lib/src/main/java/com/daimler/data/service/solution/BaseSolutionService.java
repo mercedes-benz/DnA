@@ -1249,7 +1249,7 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 
 
 			if (solution.getOpenSegments() == null || !solution.getOpenSegments().contains("Milestones")) {
-				errorMessage.setMessage("Solution does not have required open segments.");
+				errorMessage.setMessage("Solution does not have required open segments to port.");
 				LOGGER.warn("Solution {} does not have required open segments.", id);
 				List<MessageDescription> errorMessages = new ArrayList<>();
 				errorMessages.add(errorMessage);
