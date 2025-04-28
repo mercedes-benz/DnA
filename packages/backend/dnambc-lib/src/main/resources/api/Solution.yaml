@@ -472,6 +472,37 @@ paths:
         500:
           description: "Internal error"
 
+  /solutions/port-solution/{id}:
+    post:
+      tags:
+        - "solutions"
+      summary: "Port a solution to GenAI"
+      description: "Triggers the process of porting the specified solution to the GenAI system."
+      operationId: "portToGenAISolution"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "ID of the solution to be ported to GenAI"
+          required: true
+          type: "string"
+        - name: "revert"
+          in: "query"
+          description: "If true, reverts the GenAI solution back to a regular solution"
+          required: false
+          type: "boolean"
+          default: false
+      responses:
+        200:
+          description: Solution successfully ported to GenAI.
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        400:
+          description: Bad request. Invalid or missing parameters.
+        404:
+          description: Solution not found for the provided ID.
+        500:
+          description: Internal server error. Something went wrong during processing.
+
 definitions:
   TransparencyVO:
     type: object
