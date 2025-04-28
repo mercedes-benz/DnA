@@ -68,6 +68,7 @@ import { Envs } from 'globals/Envs';
 import { getDateTimeFromTimestamp, regionalForMonthAndYear } from '../../../../services/utils';
 import { ICreateNewSolutionData } from '../../createNewSolution/CreateNewSolution';
 import { IntlProvider, FormattedNumber } from 'react-intl';
+import { filter } from 'lodash';
 
 Font.register({
   family: 'Roboto-Regular',
@@ -778,7 +779,14 @@ interface SummaryPdfDocProps {
   children?: any;
   createdBy?: IUserInfo;
 }
-export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
+export const SummaryPdfDoc = (props: SummaryPdfDocProps) => {
+
+  const specificName = 'DNA Internal Notebook';
+   const filteredValue = props.solution?.portfolio?.platforms?.filter(
+    platform => platform.name !== specificName
+  );
+  const hasFilteredPlatforms = filteredValue && filteredValue.length > 0;
+  return(
   // @ts-ignore
   <Document>
     {/* @ts-ignore */}
@@ -951,7 +959,7 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
               </View>
               <View style={styles.flexCol4}>
                 <Text style={styles.sectionTitle}>Usage Of {Envs.DNA_COMPANY_NAME} Platforms</Text>
-                {props.solution.portfolio.usesExistingInternalPlatforms ? (
+                {props.solution.portfolio.usesExistingInternalPlatforms && hasFilteredPlatforms ? (
                   <Text style={{ paddingLeft: 13 }}>
                     <Image src={ImgTick} style={{ width: 15 }} />
                   </Text>
@@ -1016,7 +1024,7 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
               </View>
               <View style={styles.flexCol4}>
                 <Text style={styles.sectionTitle}>Platform</Text>
-                {props.solution.portfolio.platforms && props.solution.portfolio.platforms.length > 0 ? (
+                {props.solution.portfolio.platforms && props.solution.portfolio.platforms.length > 0 && hasFilteredPlatforms ? (
                   processDataValuesFromObj(props.solution.portfolio.platforms)
                 ) : (
                   <Text>NA</Text>
@@ -1731,4 +1739,5 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => (
       </View>
     </Page>
   </Document>
-);
+  );
+};

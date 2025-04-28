@@ -158,7 +158,7 @@ export default class SolutionListRowItem extends React.Component<ISolutionListRo
               </div>{' '}
               <div className={Styles.solutionNameDivide}>
                 {solution.productName}
-                {solution.portfolio?.dnaNotebookId && (
+                {/* {solution.portfolio?.dnaNotebookId && (
                   <React.Fragment>
                     {this.props.noteBookData?.solutionId === solution.id ? (
                       <label className={Styles.goToLink} title="Go to notebook" onClick={this.goToNotebook}>
@@ -170,7 +170,7 @@ export default class SolutionListRowItem extends React.Component<ISolutionListRo
                       </label>
                     )}
                   </React.Fragment>
-                )}
+                )} */}
                 {solution.portfolio?.dnaDataikuProjectId !== null && (
                   <a
                     href={Envs.DATAIKU_LIVE_APP_URL + '/projects/' + solution.portfolio?.dnaDataikuProjectId + '/'}

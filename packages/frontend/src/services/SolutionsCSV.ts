@@ -363,13 +363,19 @@ export const getDataForCSV = (
                 : 'NA',
             solutionOnCloud: solution.portfolio ? (solution.portfolio.solutionOnCloud ? 'Yes' : 'No') : 'NA',
             usageOfInternal: solution.portfolio
-              ? solution.portfolio.usesExistingInternalPlatforms
-                ? 'Yes'
-                : 'No'
-              : 'NA',
+              ? solution.portfolio.usesExistingInternalPlatforms &&
+    solution.portfolio.platforms?.filter(p => p.name !== "DNA Internal Notebook")?.length > 0
+              ? 'Yes'
+              : 'No'
+             : 'NA',
             platform:
-              solution.portfolio && solution.portfolio.platforms && solution.portfolio.platforms.length > 0
-                ? sanitize(solution.portfolio.platforms.map((platform) => platform.name).join('|'))
+              solution.portfolio && solution.portfolio.platforms && solution.portfolio.platforms.length > 0 && solution.portfolio?.platforms?.filter(p => p.name !== "DNA Internal Notebook")?.length > 0
+                ? sanitize(
+                    solution.portfolio.platforms
+                      .filter(p => p.name !== "DNA Internal Notebook")
+                      .map(p => p.name)
+                      .join('|')
+                  )
                 : 'NA',
             languages:
               solution.analytics && solution.analytics.languages && solution.analytics.languages.length > 0

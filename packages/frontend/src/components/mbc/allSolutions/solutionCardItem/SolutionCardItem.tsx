@@ -31,10 +31,10 @@ const goToSummary = (solutionId: string) => {
   };
 };
 
-const goTonotebook = (event: any) => {
-  history.push('/notebook/');
-  event.stopPropagation();
-};
+// const goTonotebook = (event: any) => {
+//   history.push('/notebook/');
+//   event.stopPropagation();
+// };
 
 let isTouch = false;
 
@@ -293,7 +293,7 @@ const SolutionCardItem = (props: ISolutionCardItemProps) => {
         <div className={Styles.solInfo}>{attachEllipsis(solution.description, 125)}</div>
         <div className={Styles.solLink}>
           <div>
-            {solution.portfolio?.dnaNotebookId != null && (
+            {/* {solution.portfolio?.dnaNotebookId != null && (
               <React.Fragment>
                 {props.noteBookData?.solutionId === solution.id ? (
                   <label className={Styles.goToLink} title="Go to notebook" onClick={goTonotebook}>
@@ -305,7 +305,7 @@ const SolutionCardItem = (props: ISolutionCardItemProps) => {
                   </label>
                 )}
               </React.Fragment>
-            )}
+            )} */}
             {solution.portfolio?.dnaDataikuProjectId !== null && (
               <a
                 href={Envs.DATAIKU_LIVE_APP_URL + '/projects/' + solution.portfolio?.dnaDataikuProjectId + '/'}

@@ -17,19 +17,20 @@ export interface ITeamProps {
 }
 
 export default function PlatformSummary(props: ITeamProps) {
+  const filteredPlatforms = props.portfolio?.platforms?.filter(p => p.name !== "DNA Internal Notebook");
   const platformChips =
-    props.portfolio?.platforms && props.portfolio?.platforms.length > 0
-      ? props.portfolio?.platforms.map((chip: any, index: any) => {
-        const lastIndex: boolean = index === props.portfolio?.platforms.length - 1;
-        return (
-          <React.Fragment key={index}>
-            {chip.name}&nbsp;{!lastIndex && `\u002F\xa0`}
-          </React.Fragment>
-        );
-      })
+    filteredPlatforms && filteredPlatforms.length > 0
+      ? filteredPlatforms.map((chip: any, index: any) => {
+          const lastIndex: boolean = index === filteredPlatforms.length - 1;
+          return (
+            <React.Fragment key={index}>
+              {chip.name}&nbsp;{!lastIndex && `\u002F\xa0`}
+            </React.Fragment>
+          );
+        })
       : 'NA';
   const solOnCloud = props.portfolio?.solutionOnCloud ? <IconTick /> : 'NA';
-  const usageOfDaimler = props.portfolio?.usesExistingInternalPlatforms ? <IconTick /> : 'NA';
+  const usageOfDaimler = props.portfolio?.usesExistingInternalPlatforms && filteredPlatforms && filteredPlatforms.length > 0 ? <IconTick /> : 'NA';
   return (
     <React.Fragment>
       <div className={classNames(Styles.flexLayout, Styles.mainPanel, 'mainPanelSection')}>

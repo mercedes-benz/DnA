@@ -4,7 +4,7 @@ import { ComputeFixedTag, ProvisionSource } from 'globals/Enums';
 import { IDataiku, INotebookInfo, IPortfolio, ITag, IUserInfo } from 'globals/types';
 import Tags from 'components/formElements/tags/Tags';
 import DataikuInfo, { IDataikuInfoRef } from './dataikuInfo/DataikuInfo';
-import NotebookInfo, { INotebookInfoRef } from './notebookInfo/NotebookInfo';
+// import NotebookInfo, { INotebookInfoRef } from './notebookInfo/NotebookInfo';
 import Styles from './Platform.scss';
 import { Envs } from 'globals/Envs';
 import { getDataikuInstanceTag } from '../../../../services/utils';
@@ -26,7 +26,7 @@ export interface IPlatformState {
 }
 
 export default class Platform extends React.Component<IPlatformProps, IPlatformState> {
-  private notebookInfoRef = React.createRef<INotebookInfoRef>();
+  // private notebookInfoRef = React.createRef<INotebookInfoRef>();
   private dataikuInfoRef = React.createRef<IDataikuInfoRef>();
   public static getDerivedStateFromProps(props: IPlatformProps, state: IPlatformState) {
     if (props.portfolio !== state.portfolio) {
@@ -61,10 +61,10 @@ export default class Platform extends React.Component<IPlatformProps, IPlatformS
     const { dnaNotebookId, dnaDataikuProjectId, dnaDataikuProjectInstance, solutionOnCloud, usesExistingInternalPlatforms } = this.props.portfolio;
     let { dnaComputeMode } = this.state;
     let fixedChips: string[] = [];
-    if (dnaNotebookId) {
-      fixedChips = [ComputeFixedTag.NOTEBOOK];
-      dnaComputeMode = ProvisionSource.NOTEBOOK;
-    }
+    // if (dnaNotebookId) {
+    //   fixedChips = [ComputeFixedTag.NOTEBOOK];
+    //   dnaComputeMode = ProvisionSource.NOTEBOOK;
+    // }
 
     if (dnaDataikuProjectId) {
       fixedChips = [ComputeFixedTag.DATAIKU];
@@ -86,18 +86,19 @@ export default class Platform extends React.Component<IPlatformProps, IPlatformS
     );
 
     if (usesExistingInternalPlatforms) {
-      if (dnaNotebookId || dnaComputeMode === ProvisionSource.NOTEBOOK) {
-        rightSectionContent = (
-          <NotebookInfo
-            ref={this.notebookInfoRef}
-            notebookId={dnaNotebookId}
-            solutionId={this.props.solutionId}
-            userFirstName={this.props?.user?.firstName}
-            onNoteBookCreationSuccess={this.onNoteBookCreationSuccess}
-            onNoteBookLinkRemove={this.onNoteBookLinkRemove}
-          />
-        );
-      } else if (dnaDataikuProjectId || dnaComputeMode === ProvisionSource.DATAIKU) {
+      // if (dnaNotebookId || dnaComputeMode === ProvisionSource.NOTEBOOK) {
+      //   rightSectionContent = (
+      //     <NotebookInfo
+      //       ref={this.notebookInfoRef}
+      //       notebookId={dnaNotebookId}
+      //       solutionId={this.props.solutionId}
+      //       userFirstName={this.props?.user?.firstName}
+      //       onNoteBookCreationSuccess={this.onNoteBookCreationSuccess}
+      //       onNoteBookLinkRemove={this.onNoteBookLinkRemove}
+      //     />
+      //   );
+      // } else 
+      if (dnaDataikuProjectId || dnaComputeMode === ProvisionSource.DATAIKU) {
         rightSectionContent = (
           <DataikuInfo
             ref={this.dataikuInfoRef}
@@ -161,7 +162,7 @@ export default class Platform extends React.Component<IPlatformProps, IPlatformS
                         Please remove link of notebook or dataiku project to enable editing.
                       </p>
                     )}
-                    {Envs.ENABLE_JUPYTER_WORKSPACE ? (
+                    {/* {Envs.ENABLE_JUPYTER_WORKSPACE ? (
                       <div>
                         <label className="radio">
                           <span className="wrapper">
@@ -180,7 +181,7 @@ export default class Platform extends React.Component<IPlatformProps, IPlatformS
                       </div>
                     ) : (
                       ''
-                    )}
+                    )} */}
 
                     {Envs.ENABLE_DATAIKU_WORKSPACE ? (
                       <div>
@@ -331,9 +332,10 @@ export default class Platform extends React.Component<IPlatformProps, IPlatformS
   protected onPlatformSubmit = () => {
     const { dnaComputeMode, portfolio } = this.state;
     if (portfolio.usesExistingInternalPlatforms) {
-      if (dnaComputeMode === ProvisionSource.NOTEBOOK) {
-        this.notebookInfoRef.current.triggerNoteBookCreation();
-      } else if (dnaComputeMode === ProvisionSource.DATAIKU) {
+      // if (dnaComputeMode === ProvisionSource.NOTEBOOK) {
+      //   this.notebookInfoRef.current.triggerNoteBookCreation();
+      // } else 
+      if (dnaComputeMode === ProvisionSource.DATAIKU) {
         this.dataikuInfoRef.current.triggerDataikuProjectLink();
       } else {
         this.savePlatformTabInfo();
