@@ -328,6 +328,18 @@ const AllCodeSpaces = (props) => {
     const [showCodespacesModal, setShowCodespacesModal] = useState(false);
     const [selectedCodeSpaceGroup, setSelectedCodeSpaceGroup] = useState();
 
+    useEffect(() => {
+        if (selectedCodeSpaceGroup) {
+          const updatedGroup = codeSpaceGroups.find(
+            (group) => group.id === selectedCodeSpaceGroup.id
+          );
+          if (updatedGroup && updatedGroup !== selectedCodeSpaceGroup) {
+            setSelectedCodeSpaceGroup(updatedGroup);
+          }
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+      }, [codeSpaceGroups]);
+
     const codespacesModalContent = <>
     <h2 className={classNames(Styles.modalTitle)}>{selectedCodeSpaceGroup?.name}</h2>
     {loading ? (
