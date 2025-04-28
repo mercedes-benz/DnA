@@ -183,7 +183,7 @@ const CodeSpaceGCard = ({ codeSpace, userInfo, onStartStopCodeSpace, onShowDeplo
     if (enableOnboard) {
       onShowCodeSpaceOnBoard(codeSpace);
     } else if (!serverStarted) {
-      onStartStopCodeSpace(codeSpace);
+      onStartStopCodeSpaceLocal(codeSpace);
     } else {
       history.push(`codespace/${codeSpace.workspaceId}`);
     }
