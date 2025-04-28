@@ -182,6 +182,8 @@ const CodeSpaceGCard = ({ codeSpace, userInfo, onStartStopCodeSpace, onShowDeplo
   const onCardNameClick = () => {
     if (enableOnboard) {
       onShowCodeSpaceOnBoard(codeSpace);
+    } else if (!serverStarted) {
+      onStartStopCodeSpace(codeSpace);
     } else {
       history.push(`codespace/${codeSpace.workspaceId}`);
     }
