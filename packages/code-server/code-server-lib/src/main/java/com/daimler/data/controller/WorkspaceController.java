@@ -403,7 +403,7 @@ import org.springframework.beans.factory.annotation.Value;
 				List<CodespaceSecurityEntitlementVO> entilements = data.getEntitlements();
 
 				for (CodespaceSecurityEntitlementVO entitlement : entilements) {
-						String key = entitlement.getHttpMethod().toString()+"-"+entitlement.getApiPattern();
+						String key = entitlement.getHttpMethod().toString()+","+entitlement.getApiPattern();
 						if(entitlmentMap.get(key)!=null){
 							List<String> namesList = entitlmentMap.get(key);
 							List<String> names = entitlement.getName();
@@ -417,7 +417,7 @@ import org.springframework.beans.factory.annotation.Value;
 				CodespaceSecurityConfigDetailVO newCodeCodespaceSecurityConfigDetailVO = new CodespaceSecurityConfigDetailVO();
 				entitlmentMap.forEach((key, value) -> {
 					CodespaceSecurityEntitlementVO entitlementVO = new CodespaceSecurityEntitlementVO ();
-					String[] separatedStrings = key.split("-");
+					String[] separatedStrings = key.split(",");
 					entitlementVO.setHttpMethod(CodespaceSecurityEntitlementVO.HttpMethodEnum.valueOf(separatedStrings[0]));
 					entitlementVO.apiPattern(separatedStrings[1]);
 					entitlementVO.setName(value);
