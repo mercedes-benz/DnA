@@ -156,6 +156,13 @@ const NewCodeSpace = (props) => {
         setRecipeMaster(res.data.data);
         SelectBox.defaultSetup();
         ProgressIndicator.hide();
+        if(props.isJupyter){
+          const notebook = res?.data?.data?.filter((obj) => { return obj?.
+            recipeName === "Jupyter Notebook"
+            });
+        setRecipeValue(notebook[0]?.id);
+        getRecipeDetails(notebook[0]?.id);
+        }
       })
       .catch(() => {
         ProgressIndicator.hide();
