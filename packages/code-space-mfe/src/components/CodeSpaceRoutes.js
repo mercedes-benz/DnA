@@ -21,7 +21,7 @@ export const protectedRoutes = [
     {
         component: AllCodeSpaces,
         exact: true,
-        path: '/',
+        path: '/:jupyter?',
     },
     {
         component: CodeSpace,

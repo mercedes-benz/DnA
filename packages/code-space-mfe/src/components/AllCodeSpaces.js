@@ -26,6 +26,7 @@ import InfoModal from 'dna-container/InfoModal';
 // export interface IAllCodeSpacesProps {
 //   user: IUserInfo;
 // }
+import { useLocation } from 'react-router-dom';
 
 const AllCodeSpaces = (props) => {
     const [loading, setLoading] = useState(true);
@@ -52,7 +53,17 @@ const AllCodeSpaces = (props) => {
         History.goBack();
     };
     const [showAWSWarningModal, setShowAWSWarningModal] = useState(false);
-
+    const [isJupyter, setIsJupyter] = useState(false);
+    const location = useLocation();
+    useEffect(() => {
+        const params = new URLSearchParams(location.search);
+        const action = params.get('jupyter');
+        if (action === 'true') {
+            setShowNewCodeSpaceModal(true);
+            setIsJupyter(true);
+        }
+    }, [location.search]);
+   
     const getCodeSpacesData = () => {
         setLoading(true);
         CodeSpaceApiClient.getCodeSpacesList()
@@ -499,6 +510,7 @@ const AllCodeSpaces = (props) => {
                     content={
                         <NewCodeSpace
                             user={props.user}
+                            isJupyter={isJupyter}
                             onBoardingCodeSpace={onBoardCodeSpace}
                             onEditingCodeSpace={onEditCodeSpace}
                             isRetryRequest={isRetryRequest}
