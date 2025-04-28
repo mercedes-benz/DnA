@@ -6,6 +6,7 @@ import Styles from './NotebookInfo.scss';
 import Newsandbox, { INewSandBoxRef } from 'components/mbc/newSandbox/NewSandbox';
 import { getDateFromTimestamp } from '../../../../../services/utils';
 import { Link } from 'react-router-dom';
+import { history } from '../../../../../router/History';
 
 const classNames = cn.bind(Styles);
 
@@ -96,10 +97,12 @@ const NotebookInfo = forwardRef((props: INotebookInfoProps, ref: Ref<INotebookIn
       <p>
         👉 Click below to open the Codespaces dashboard and get started:
       </p>
-
-       <Link to="/codespaces?jupyter=true">
-        Open Codespaces
-      </Link>
+      <button
+              className={'btn btn-tertiary ' + classNames(Styles.publishBtn)}
+              type="button"
+              onClick={() => {history.push('/codespaces/JupyterNotebook')}}>
+              Go to Codespaces
+            </button>
           <Newsandbox
             ref={newSandBoxRef}
             namePrefix={props.userFirstName}
