@@ -81,13 +81,6 @@ const NotebookInfo = forwardRef((props: INotebookInfoProps, ref: Ref<INotebookIn
               )}
             </div>
           </div>
-          <p className={classNames(Styles.computeInfo, restrictNotebookLink ? 'error-message' : '')}>
-            {restrictNotebookLink
-              ? 'Your notebook is already linked to another solution. Please select any other compute options or unlink the notebook from the another solution before linking it to this solution.'
-              : props.notebookId === null
-              ? 'On Save & Next your notebook will be linked to this solution.'
-              : "Click on close 'x' button and Save & Next to unlink the notebook."}
-          </p>
         </>
       ) : notebookInfo !== null ? (
         <div className="text-center">
@@ -95,10 +88,18 @@ const NotebookInfo = forwardRef((props: INotebookInfoProps, ref: Ref<INotebookIn
         </div>
       ) : (
         <div className={Styles.noteBookWrapper}>
-          <p>
-            You don't have any notebook workspace to link to the solution.
-            <br /> Please provide the details for your new Jupyter Notebook workspace.
-          </p>
+          
+             <p>
+        To create and use Jupyter Notebooks, you need to launch a{' '}
+        <strong>Codespace</strong> with the <strong>Jupyter Notebook</strong> recipe.
+      </p>
+      <p>
+        👉 Click below to open the Codespaces dashboard and get started:
+      </p>
+
+       <Link to="/codespaces?jupyter=true">
+        Open Codespaces
+      </Link>
           <Newsandbox
             ref={newSandBoxRef}
             namePrefix={props.userFirstName}

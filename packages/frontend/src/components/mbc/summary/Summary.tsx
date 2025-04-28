@@ -760,7 +760,7 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
                   ApiClient.getNotebooksDetails(res.portfolio.dnaNotebookId).then((res) => {
                     this.setState({
                       noteBookInfo: res,
-                      dnaNotebookEnabled: true,
+                      dnaNotebookEnabled: false,
                       notebookAndDataIkuNotEnabled: false,
                     });
                   });
