@@ -14,6 +14,7 @@ import java.util.stream.Collectors;
 import com.daimler.data.dto.workspace.recipe.RecipeVO.OSNameEnum;
 import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.RecipeIdEnum;
 import com.daimler.data.dto.workspace.UserInfoVO;
+import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.db.entities.CodeServerRecipeNsql;
 import com.daimler.data.db.json.CodeServerRecipe;
 import com.daimler.data.db.json.RecipeSoftware;
@@ -35,7 +36,27 @@ public class SoftwareAssembler implements GenericAssembler<SoftwareCollection, C
         CodeServerSoftware data = entity.getData();
         if(Objects.nonNull(data))
         {
-            vo.setSoftwareName(entity.getData().getSoftwareName());
+            // vo.setSoftwareName(entity.getData().getSoftwareName());
+            // vo.setAdditionalProperties(entity.getData().getAdditionalProperties());
+            // vo.setCreatedOn(entity.getData().getCreatedOn());
+            // vo.setCreatedBy(entity.getData().getCreatedBy());
+            // vo.setUpdatedOn(entity.getData().getUpdatedOn());
+            // vo.setUpdatedBy(entity.getData().getUpdatedBy());
+            BeanUtils.copyProperties(entity.getData(), vo);
+            vo.setId(entity.getId());
+
+            if(data.getCreatedBy() != null){
+                UserInfoVO createdBy = new UserInfoVO();
+                BeanUtils.copyProperties(data.getCreatedBy(), createdBy);
+                vo.setCreatedBy(createdBy);
+            }
+            if(data.getUpdatedBy() != null){
+                UserInfoVO updatedBy =  new UserInfoVO();
+                BeanUtils.copyProperties(data.getUpdatedBy(), updatedBy);
+                vo.setUpdatedBy(updatedBy);
+            }
+
+
         }
 		return vo;
 	}
@@ -46,8 +67,28 @@ public class SoftwareAssembler implements GenericAssembler<SoftwareCollection, C
         CodeServerSoftware data = new CodeServerSoftware();
         if(vo!=null)
         {
-           data.setSoftwareName(vo.getSoftwareName());
+           
+        //    data.setSoftwareName(vo.getSoftwareName());
+        //    data.setAdditionalProperties(vo.getAdditionalProperties());
+        //    data.setCreatedOn(vo.getCreatedOn());
+        //    data.setCreatedBy(vo.getCreatedBy());
+        //    data.setUpdatedOn(vo.getUpdatedOn());
+        //    data.setUpdatedBy(vo.getUpdatedBy());
+            BeanUtils.copyProperties(vo, data);
+            entity.setId(vo.getId());
             entity.setData(data);
+
+            if(vo.getCreatedBy() != null) {
+                UserInfo createdBy = new UserInfo();
+                BeanUtils.copyProperties(vo.getCreatedBy(), createdBy);
+                data.setCreatedBy(createdBy);
+            }
+            if(vo.getUpdatedBy() != null){
+                UserInfo updatedBy = new UserInfo();
+                BeanUtils.copyProperties(vo.getUpdatedBy(), updatedBy);
+                data.setUpdatedBy(updatedBy);
+            }
+
         }
         return entity;
 	}
