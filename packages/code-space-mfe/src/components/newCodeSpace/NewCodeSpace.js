@@ -156,9 +156,9 @@ const NewCodeSpace = (props) => {
         setRecipeMaster(res.data.data);
         SelectBox.defaultSetup();
         ProgressIndicator.hide();
-        if(props.isJupyter){
+        if(props.RecipeName){
           const notebook = res?.data?.data?.filter((obj) => { return obj?.
-            recipeName === "Jupyter Notebook"
+            aliasId === "JupyterNotebook"
             });
         setRecipeValue(notebook[0]?.id);
         getRecipeDetails(notebook[0]?.id);

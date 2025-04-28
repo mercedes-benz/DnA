@@ -21,7 +21,12 @@ export const protectedRoutes = [
     {
         component: AllCodeSpaces,
         exact: true,
-        path: '/:jupyter?',
+        path: '/',
+    },
+    {
+        component: AllCodeSpaces,
+        exact: true,
+        path: '/:recipeName?',
     },
     {
         component: CodeSpace,

@@ -22,13 +22,14 @@ import CodeSpaceTutorials from './codeSpaceTutorials/CodeSpaceTutorials';
 import { Envs } from '../Utility/envs';
 import ConfirmModal from 'dna-container/ConfirmModal';
 import InfoModal from 'dna-container/InfoModal';
+import { getParams } from '../Utility/utils';
 
 // export interface IAllCodeSpacesProps {
 //   user: IUserInfo;
 // }
-import { useLocation } from 'react-router-dom';
 
 const AllCodeSpaces = (props) => {
+    const { recipeName } = getParams();
     const [loading, setLoading] = useState(true);
     const [codeSpaces, setCodeSpaces] = useState([]),
         // [codeSpacesListResponse, setCodeSpacesListResponse] = useState([]),
@@ -53,16 +54,6 @@ const AllCodeSpaces = (props) => {
         History.goBack();
     };
     const [showAWSWarningModal, setShowAWSWarningModal] = useState(false);
-    const [isJupyter, setIsJupyter] = useState(false);
-    const location = useLocation();
-    useEffect(() => {
-        const params = new URLSearchParams(location.search);
-        const action = params.get('jupyter');
-        if (action === 'true') {
-            setShowNewCodeSpaceModal(true);
-            setIsJupyter(true);
-        }
-    }, [location.search]);
    
     const getCodeSpacesData = () => {
         setLoading(true);
@@ -82,6 +73,9 @@ const AllCodeSpaces = (props) => {
     useEffect(() => {
         setShowAWSWarningModal(Envs.SHOW_AWS_MIGRATION_WARNING);
         getCodeSpacesData();
+        if(recipeName?.length > 0){
+            setShowNewCodeSpaceModal(true);
+        }
     }, []);
 
     useEffect(() => {
@@ -510,7 +504,7 @@ const AllCodeSpaces = (props) => {
                     content={
                         <NewCodeSpace
                             user={props.user}
-                            isJupyter={isJupyter}
+                            RecipeName={recipeName}
                             onBoardingCodeSpace={onBoardCodeSpace}
                             onEditingCodeSpace={onEditCodeSpace}
                             isRetryRequest={isRetryRequest}
