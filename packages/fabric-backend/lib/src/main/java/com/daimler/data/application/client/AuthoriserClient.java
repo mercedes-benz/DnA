@@ -38,6 +38,8 @@ import com.daimler.data.dto.fabric.RoleApproverPrivilegesDto;
 import com.daimler.data.dto.fabric.RoleIdDto;
 import com.daimler.data.dto.fabric.RoleOwnerPrivilegesDto;
 import com.daimler.data.dto.fabric.UserRoleRequestDto;
+import com.daimler.data.dto.fabricWorkspace.AuthoriserRoleDetailsVO;
+import com.daimler.data.dto.fabricWorkspace.MembersVO;
 import com.daimler.data.dto.fabricWorkspace.CreatedByVO;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -624,6 +626,72 @@ public class AuthoriserClient {
 				log.error("Failed to get user detail   with error {} ", e.getMessage());
 			}
 		return userDetail;
+	}
+
+	public AuthoriserRoleDetailsVO getRoleDetails(String roleId){
+		AuthoriserRoleDetailsVO response = new AuthoriserRoleDetailsVO();
+		try{
+
+			String token = getToken();
+			if(!Objects.nonNull(token)) {
+				log.error("Failed to fetch token to invoke fabric Apis");
+				return response;
+			}
+
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Authorization", "Bearer "+token);
+			headers.setContentType(MediaType.APPLICATION_JSON);
+			String uri = authoriserBaseUrl + "/roles/"+ roleId;
+			HttpEntity requestEntity = new HttpEntity<>(headers);
+			ResponseEntity<AuthoriserRoleDetailsVO> roleDetailsResponse = proxyRestTemplate.exchange(uri, HttpMethod.GET,
+					requestEntity, AuthoriserRoleDetailsVO.class);
+					if(roleDetailsResponse.getBody() != null){
+						response = roleDetailsResponse.getBody();
+					}
+				
+		}catch(Exception e) {
+			log.error("Failed to get roles detail with error {} ", e.getMessage());
+		}
+		return response;
+	}
+
+	public List<MembersVO> getUsersForRole(String roleId){
+		List<MembersVO> response = new ArrayList<>();
+		try{
+
+			String token = getToken();
+			if(!Objects.nonNull(token)) {
+				log.error("Failed to fetch token to invoke fabric Apis");
+				return response;
+			}
+
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Authorization", "Bearer "+token);
+			headers.setContentType(MediaType.APPLICATION_JSON);
+			String uri = authoriserBaseUrl + "/roles/"+ roleId +"/users";
+			HttpEntity requestEntity = new HttpEntity<>(headers);
+			ResponseEntity<String> apiResponse = proxyRestTemplate.exchange(uri, HttpMethod.GET,
+					requestEntity, String.class);
+			if (apiResponse.getStatusCode().is2xxSuccessful()) {
+				ObjectMapper objectMapper = new ObjectMapper();
+				JsonNode jsonData = objectMapper.readTree(apiResponse.getBody());
+				JsonNode usersNode = jsonData.get("users");
+
+				if (usersNode.isArray()) {
+					for (JsonNode userNode : usersNode) {
+						JsonNode userObject = userNode.get("user");
+						MembersVO member = objectMapper.treeToValue(userObject, MembersVO.class);
+						response.add(member);
+					}
+				}
+			}
+				
+		}catch(Exception e) {
+			log.error("Failed to get users for role with error {} ", e.getMessage());
+		}
+		return response;
 	}
 
 }
