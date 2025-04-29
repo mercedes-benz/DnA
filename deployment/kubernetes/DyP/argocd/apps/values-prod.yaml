@@ -49,3 +49,5 @@ db:
    env: prod
  - name: seatsync
    env: dev
+ - name: profit-support
+   env: prod
