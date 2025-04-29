@@ -1,441 +1,119 @@
-.notebookwarpper {
-  color: #c5c5c5;
-  padding: 20px 75px 30px 75px;
-  .notenbookwarppaerContent {
-    color: #c5c5c5;
-    padding: 0;
-    background-color: #252a33;
-    position: relative;
-    .nbworkspace {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      max-height: 700px;
-      min-height: 600px;
-      .btnPrimary {
-        cursor: pointer;
-      }
-      .preloaderCutomnize {
-        position: absolute;
-        background-color: #252a33;
-      }
-    }
+.mainPanel {
+  padding: 72px 75px 30px 75px;
+
+  .wrapper {
+    width: 100%;
   }
-  .loader {
-    position: absolute;
+
+  .content {
     background-color: #252a33;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 9;
-  }
-  .nbheader {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: 25px;
-    position: relative;
-    align-items: center;
-    .Logo {
-      display: none;
-    }
-    h6 {
-      color: #8f969e;
-      font-size: var(--font-size-tiny);
-      margin-bottom: 10px;
-    }
-    h2 {
-      font-size: var(--font-size-headline);
-      color: #acb8c4;
-      word-break: break-word;
-    }
-    p {
-      color: #acb8c4;
-      font-size: var(--font-size-default);
-      line-height: var(--font-size-headline);
-    }
-    i {
-      font-size: var(--font-size-icon-nav);
-      margin: 0 10px;
-    }
-    .nbtitle {
-      padding-right: 30px;
-      border-right: 2px solid #252a33;
-      max-width: 250px;
-      min-width: 210px;
-    }
-    .nbDescr {
-      padding: 0 20px;
-      max-width: 250px;
-      min-width: 210px;
-    }
-    .nbeditmode {
-      padding-left: 20px;
-      color: #acb8c4;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      i {
-        &:hover {
-          color: #fff;
-        }
-      }
-      .openSolution {
-        color: #acb8c4;
-        font-size: var(--font-size-sub-headline);
+    padding: 25px 0;
+
+    .NoSubscription {
+      padding: 0 32px;
+
+      .addApiKeys {
+        align-items: flex-start;
         display: flex;
-        align-items: center;
-        line-height: var(--font-size-sub-headline);
-        i {
-          font-size: var(--font-size-icon-highlight);
-          color: #acb8c4;
-          margin: 0 3px;
-          transition: 0.5s;
+        justify-content: space-between;
+        margin: 0 0 9px 0;
+        position: relative;
+
+        p {
+          color: #979baf;
+          width: 80%;
+          text-align: left;
+          line-height: 17px;
+          margin-bottom: 10px;
+          margin-left: 0px;
         }
-        &:hover {
-          color: #fff;
-          i {
-            color: #fff;
-            margin: 0 6px;
-            transition: 0.5s;
+
+        i {
+          font-size: var(--font-size-icon-content);
+        }
+
+        .iconsmd {
+          color: #8c8787;
+          cursor: pointer;
+          font-size: var(--font-size-icon-medium);
+          position: absolute;
+          right: -6px;
+          top: -17px;
+        }
+
+        div {
+          button {
+            background: none;
+            border: none;
+            margin: 0;
+            outline: none;
+            padding: 0 10px;
+            height: auto;
+            color: #c0c8d0;
+
+            i {
+              margin-top: 2px;
+            }
+
+            a {
+              color: #c0c8d0;
+            }
+
+            &:first-child {
+              padding-left: 0;
+              ;
+            }
           }
         }
       }
-      .notebookgrpicon {
-        position: relative;
-        .filterStatus {
-          position: absolute;
-          border: 3px solid #000000;
-          width: 10px;
-          height: 10px;
-          background-color: #00adef;
-          border-radius: 50%;
-          display: block;
-          top: 6px;
-          right: 9px;
+
+      text-align: right;
+
+      .addNewSubcibtn {
+        margin: 0 0 10px 0;
+        outline: none;
+        vertical-align: middle;
+
+        i {
+          color: #00adef;
+          margin-right: 10px;
+          vertical-align: top;
+        }
+
+        &:hover {
+          span {
+            text-decoration: underline;
+          }
+        }
+      }
+
+      .subsriContent {
+        min-height: 325px;
+        margin: 0 -32px;
+
+        .malwaresubscriptionListEmpty {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          flex-direction: column;
+          height: 300px;
+          position: relative;
+          border: 1px solid #383f49;
+          margin: 0 32px;
+        }
+
+        button {
+          a {
+            color: #fff;
+          }
+        }
+
+        .malwaresubscriptionListEmpty {
+          i {
+            font-size: 80px;
+          }
         }
       }
     }
-    .headerright {
-      display: flex;
-      align-items: center;
-      justify-content: flex-end;
-    }
-    .stopNbbtn {
-      width: 40px;
-      height: 40px;
-      color: #acb8c4;
-      border: 2px solid #3e444e;
-      margin-left: 12px;
-      position: relative;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      &:hover span {
-        animation: stopNb 1s infinite;
-      }
-      span {
-        display: inline-block;
-        width: 14px;
-        height: 14px;
-        margin: 0px 2px;
-        background-color: #9fa3a7;
-        margin-top: 2px;
-      }
-    }
-    .toggleNotebook {
-      width: 40px;
-      height: 40px;
-      color: #acb8c4;
-      border: 2px solid #3e444e;
-      margin-left: 12px;
-      position: relative;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      i {
-        font-size: var(--font-size-icon-medium);
-        margin-top: -4px !important;
-      }
-    }
-    .active {
-      .toggleNotebook {
-        cursor: pointer;
-      }
-    }
-    .OpenNewTab {
-      width: 40px;
-      height: 40px;
-      color: #acb8c4;
-      border: 2px solid #383f49;
-      margin-left: 12px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      cursor: pointer;
-      position: relative;
-      &:hover i {
-        animation: OpenNewTab 1s infinite;
-      }
-      i {
-        color: #c0c8d0 !important;
-        font-size: var(--font-size-default) !important;
-        margin: 0 !important;
-        transform: rotate(315deg);
-        top: 7px;
-        left: 12.9px;
-        position: absolute;
-      }
-      span {
-        width: 16px;
-        height: 1px;
-        background-color: #c0c8d0;
-        position: absolute;
-        transform: rotate(314deg);
-        top: 19px;
-        left: 10px;
-      }
-    }
-    .stopActive {
-      color: #fff;
-      padding: 0 10px;
-      background-color: #00ADEF;
-      border-color: #00ADEF;
-    }
   }
-}
-.notebookwarpperFs {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  padding: 0;
-  z-index: 9999;
-  background-color: #897667;
-}
-.notenbookwarppaerFsmode {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100vh;
-  z-index: 999;
-  padding: 0;
-  margin: 0;
-  background-color: #252a33;
-  .headerdetails {
-    width: calc(100% - 90px);
-  }
-  .nbheader {
-    height: 60px;
-    margin: 0;
-    display: flex;
-    margin-bottom: 0 !important;
-    padding: 0 15px;
-    background-color: #000000;
-    justify-content: space-between;
-
-    align-items: center;
-    .headerright {
-      top: 11px !important;
-      right: 15px !important;
-
-      .OpenNewTab {
-        display: none;
-      }
-      .stopNbbtn {
-        display: none;
-      }
-      .toggleNotebook {
-        display: none;
-      }
-    }
-    .Logo {
-      display: block;
-      max-width: 135px;
-      max-height: 40px;
-    }
-    .nbtitle {
-      width: calc(100% - 200px);
-      text-align: center;
-      h2 {
-        color: #acb8c4;
-        font-size: var(--font-size-headline);
-        padding-top: 10px;
-      }
-      h6 {
-        display: none;
-      }
-    }
-    .nbDescr {
-      display: none;
-    }
-    .nbeditmode {
-      display: none;
-    }
-    .nbstopbtn {
-      display: none;
-    }
-  }
-  i {
-    position: absolute;
-    color: #acb8c4;
-    font-size: var(--font-size-default);
-    margin: 0;
-  }
-}
-
-.headerdetails {
-  display: flex;
-  align-items: center;
-}
-.navigation {
-  display: flex;
-  align-items: center;
-}
-@keyframes fsbtn11 {
-  0% {
-    right: 3px;
-    top: 10px;
-  }
-  50% {
-    bottom: 1px;
-    left: 5px;
-  }
-  100% {
-    right: 3px;
-    top: 10px;
-  }
-}
-
-@keyframes fsbtn22 {
-  0% {
-    left: 5px;
-    top: 14px;
-  }
-  50% {
-    right: 5px;
-    top: 2px;
-  }
-  100% {
-    left: 5px;
-    top: 14px;
-  }
-}
-@-webkit-keyframes fsbtn11 {
-  0% {
-    right: 3px;
-    top: 10px;
-  }
-  50% {
-    bottom: 1px;
-    left: 5px;
-  }
-  100% {
-    right: 3px;
-    top: 10px;
-  }
-}
-@-webkit-keyframes fsbtn22 {
-  0% {
-    left: 5px;
-    top: 14px;
-  }
-  50% {
-    right: 5px;
-    top: 2px;
-  }
-  100% {
-    left: 5px;
-    top: 14px;
-  }
-}
-
-@keyframes OpenNewTab {
-  0% {
-    left: 12.9px;
-    top: 7px;
-  }
-  50% {
-    left: 15.9px;
-    top: 4px;
-  }
-  100% {
-    left: 12.9px;
-    top: 7px;
-  }
-}
-
-@-webkit-keyframes OpenNewTab {
-  0% {
-    left: 12.9px;
-    top: 7px;
-  }
-  50% {
-    left: 15.9px;
-    top: 4px;
-  }
-  100% {
-    left: 12.9px;
-    top: 7px;
-  }
-}
-
-@keyframes fsbtn1 {
-  0% {
-    bottom: 6px;
-    left: 9px;
-  }
-  50% {
-    bottom: 1px;
-    left: 5px;
-  }
-  100% {
-    bottom: 6px;
-    left: 9px;
-  }
-}
-
-@keyframes fsbtn2 {
-  0% {
-    right: 9px;
-    top: 6px;
-  }
-  50% {
-    right: 5px;
-    top: 2px;
-  }
-  100% {
-    right: 9px;
-    top: 6px;
-  }
-}
-
-@keyframes stopNb {
-  0% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(0.8);
-  }
-  100% {
-    transform: scale(1);
-  }
-}
-
-@-webkit-keyframes stopNb {
-  0% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(0.8);
-  }
-  100% {
-    transform: scale(1);
-  }
-}
-.tooltip {
-  top: -6px !important;
 }
