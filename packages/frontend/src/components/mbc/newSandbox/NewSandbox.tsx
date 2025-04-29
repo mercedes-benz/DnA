@@ -6,6 +6,7 @@ import Notification from '../../../assets/modules/uilab/js/src/notification';
 import ProgressIndicator from '../../../assets/modules/uilab/js/src/progress-indicator';
 import { INotebookInfo } from 'globals/types';
 import { history } from '../../../router/History';
+import { SESSION_STORAGE_KEYS } from 'globals/constants';
 
 export interface INewSanboxProps {
   namePrefix: string;
@@ -37,7 +38,7 @@ const Newsandbox = forwardRef((props: INewSanboxProps, ref: Ref<INewSandBoxRef>)
          <button
               className={'btn btn-tertiary'}
               type="button"
-              onClick={() => {history.push('/codespaces/JupyterNotebook')}}>
+              onClick={() => {history.push('/codespaces'); sessionStorage.setItem(SESSION_STORAGE_KEYS.NAVIGATE_CODESPACE_RECIPE, "JupyterNotebook")}}>
               Go to Codespaces
             </button>
           </>

@@ -22,14 +22,14 @@ import CodeSpaceTutorials from './codeSpaceTutorials/CodeSpaceTutorials';
 import { Envs } from '../Utility/envs';
 import ConfirmModal from 'dna-container/ConfirmModal';
 import InfoModal from 'dna-container/InfoModal';
-import { getParams } from '../Utility/utils';
+import { SESSION_STORAGE_KEYS } from '../Utility/constants';
 // export interface IAllCodeSpacesProps {
 //   user: IUserInfo;
 // }
 
 
 const AllCodeSpaces = (props) => {
-    const { recipeName } = getParams();
+    const recipeName = sessionStorage.getItem(SESSION_STORAGE_KEYS.NAVIGATE_CODESPACE_RECIPE);
     const [loading, setLoading] = useState(true);
     const [codeSpaces, setCodeSpaces] = useState([]),
         // [codeSpacesListResponse, setCodeSpacesListResponse] = useState([]),

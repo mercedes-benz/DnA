@@ -787,6 +787,7 @@ const NewCodeSpace = (props) => {
             // setCreatedCodeSpaceName(res.data.name);
             props.toggleProgressMessage(true);
             enableLivelinessCheck(res.data.data.workspaceId);
+            sessionStorage.removeItem('navigateCodespaceRecipe');
           } else {
             props.toggleProgressMessage(false);
             ProgressIndicator.hide();

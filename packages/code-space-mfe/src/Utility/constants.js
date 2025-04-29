@@ -22,6 +22,7 @@ export const HTTP_METHOD = {
     PAGINATION_MAX_ITEMS_PER_PAGE : 'paginationMaxItemsPerPage',
     AUDIT_LOGS_MAX_ITEMS_PER_PAGE : 'auditLogsMaxItemsPerPage',
     JWT: 'jwt',
+    NAVIGATE_CODESPACE_RECIPE : 'navigateCodespaceRecipe'
   }
   
   export const PRIVATE_RECIPES = [
