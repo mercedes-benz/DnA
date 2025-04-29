@@ -7,6 +7,7 @@ import Newsandbox, { INewSandBoxRef } from 'components/mbc/newSandbox/NewSandbox
 import { getDateFromTimestamp } from '../../../../../services/utils';
 import { Link } from 'react-router-dom';
 import { history } from '../../../../../router/History';
+import { SESSION_STORAGE_KEYS } from 'globals/constants';
 
 const classNames = cn.bind(Styles);
 
@@ -100,7 +101,7 @@ const NotebookInfo = forwardRef((props: INotebookInfoProps, ref: Ref<INotebookIn
       <button
               className={'btn btn-tertiary'}
               type="button"
-              onClick={() => {history.push('/codespaces/JupyterNotebook')}}>
+              onClick={() => {history.push('/codespaces'); sessionStorage.setItem(SESSION_STORAGE_KEYS.NAVIGATE_CODESPACE_RECIPE, "JupyterNotebook")}}>
               Go to Codespaces
             </button>
           <Newsandbox
