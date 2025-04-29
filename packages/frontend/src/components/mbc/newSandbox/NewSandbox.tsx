@@ -6,8 +6,6 @@ import Notification from '../../../assets/modules/uilab/js/src/notification';
 import ProgressIndicator from '../../../assets/modules/uilab/js/src/progress-indicator';
 import { INotebookInfo } from 'globals/types';
 import { history } from '../../../router/History';
-import cn from 'classnames';
-const classNames = cn.bind(Styles);
 
 export interface INewSanboxProps {
   namePrefix: string;
@@ -37,7 +35,7 @@ const Newsandbox = forwardRef((props: INewSanboxProps, ref: Ref<INewSandBoxRef>)
       👉 Click the link below to go to the Codespaces dashboard and start your workspace:
           </p>
          <button
-              className={'btn btn-tertiary ' + classNames(Styles.publishBtn)}
+              className={'btn btn-tertiary'}
               type="button"
               onClick={() => {history.push('/codespaces/JupyterNotebook')}}>
               Go to Codespaces

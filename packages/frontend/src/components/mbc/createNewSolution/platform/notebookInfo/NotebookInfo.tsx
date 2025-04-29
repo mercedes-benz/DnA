@@ -98,7 +98,7 @@ const NotebookInfo = forwardRef((props: INotebookInfoProps, ref: Ref<INotebookIn
         👉 Click below to open the Codespaces dashboard and get started:
       </p>
       <button
-              className={'btn btn-tertiary ' + classNames(Styles.publishBtn)}
+              className={'btn btn-tertiary'}
               type="button"
               onClick={() => {history.push('/codespaces/JupyterNotebook')}}>
               Go to Codespaces
