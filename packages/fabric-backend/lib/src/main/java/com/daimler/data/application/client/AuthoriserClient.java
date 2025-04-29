@@ -42,7 +42,9 @@ import com.daimler.data.dto.fabricWorkspace.AuthoriserRoleDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.MembersVO;
 import com.daimler.data.dto.fabricWorkspace.CreatedByVO;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -676,6 +678,7 @@ public class AuthoriserClient {
 					requestEntity, String.class);
 			if (apiResponse.getStatusCode().is2xxSuccessful()) {
 				ObjectMapper objectMapper = new ObjectMapper();
+				objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 				JsonNode jsonData = objectMapper.readTree(apiResponse.getBody());
 				JsonNode usersNode = jsonData.get("users");
 
