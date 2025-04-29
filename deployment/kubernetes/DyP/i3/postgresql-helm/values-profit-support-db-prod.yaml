@@ -329,8 +329,8 @@ backup:
   ## for small databases its ok to set this to false, the required space is equals to the used space of the master node.
   tempPgdataVolume:
     ## recommended
-    enabled: false
-    size: 1Gi
+    enabled: true
+    size: 20Gi
     # storageClass: dhc-gp3
   file:
     name: profit-support-db-backup
@@ -360,7 +360,7 @@ restore:
   s3:
     # subfolder: postgresql-cluster
     ## fill in the bucket name you have ordered!
-    bucketName: emeas3
+    bucketName: profit-support-db-backup
 
   ## Complete (including label) file name of backup file that has to be restored.
   recoveryFile: postgresql-backup*.tar.gz
