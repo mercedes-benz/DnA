@@ -302,7 +302,7 @@ backup:
       storageClass: dhc-gp3
   s3:
     ## Configuration for S3 storage
-    # subfolder: postgresql-cluster
+    subfolder: profit-support-db-backup
     ## fill in the bucket name you have ordered!
     bucketName: <path:dna_aws_kv/data/prod/cs-services/profit-support-db#bucketName>
   ## general configuration for backup
