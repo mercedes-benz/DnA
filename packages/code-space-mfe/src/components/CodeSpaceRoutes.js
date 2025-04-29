@@ -24,11 +24,6 @@ export const protectedRoutes = [
         path: '/',
     },
     {
-        component: AllCodeSpaces,
-        exact: true,
-        path: '/:recipeName?',
-    },
-    {
         component: CodeSpace,
         exact: true,
         path: '/codespace/:id?',

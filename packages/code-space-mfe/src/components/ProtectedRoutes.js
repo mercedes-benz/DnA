@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Route } from 'react-router-dom';
 import { hostServer } from '../server/api';
 import { LocalWrapper } from './LocalWrapper';
-import { SESSION_STORAGE_KEYS } from '../Utility/constants';
+import { SESSION_STORAGE_KEYS } from '../Utility/constants';  //
 
 export const ProtectedRoute = ({ component: Component, ...rest }) => {
   const [hasJwt, setJwt] = useState(!!sessionStorage.getItem(SESSION_STORAGE_KEYS.JWT));
