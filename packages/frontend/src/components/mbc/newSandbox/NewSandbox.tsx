@@ -5,7 +5,7 @@ import Notification from '../../../assets/modules/uilab/js/src/notification';
 // @ts-ignore
 import ProgressIndicator from '../../../assets/modules/uilab/js/src/progress-indicator';
 import { INotebookInfo } from 'globals/types';
-import { Link } from 'react-router-dom';
+import { history } from '../../../router/History';
 
 export interface INewSanboxProps {
   namePrefix: string;
@@ -34,9 +34,12 @@ const Newsandbox = forwardRef((props: INewSanboxProps, ref: Ref<INewSandBoxRef>)
           <p>
       👉 Click the link below to go to the Codespaces dashboard and start your workspace:
           </p>
-         <Link to="/codespaces?jupyter=true">
-           Open Codespaces
-        </Link>
+         <button
+              className={'btn btn-tertiary'}
+              type="button"
+              onClick={() => {history.push('/codespaces/JupyterNotebook')}}>
+              Go to Codespaces
+            </button>
           </>
         )}
       </div>
