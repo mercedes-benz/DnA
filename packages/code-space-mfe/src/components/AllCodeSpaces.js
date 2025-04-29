@@ -72,10 +72,12 @@ const AllCodeSpaces = (props) => {
     };
 
     useEffect(() => {
-        setShowAWSWarningModal(Envs.SHOW_AWS_MIGRATION_WARNING);
         getCodeSpacesData();
         if(recipeName?.length > 0){
             setShowNewCodeSpaceModal(true);
+        }
+        else{
+            setShowAWSWarningModal(Envs.SHOW_AWS_MIGRATION_WARNING);
         }
     }, []);
 
@@ -143,6 +145,7 @@ const AllCodeSpaces = (props) => {
             getCodeSpacesData();
         }
         setShowNewCodeSpaceModal(false);
+        setShowAWSWarningModal(Envs.SHOW_AWS_MIGRATION_WARNING);
         setOnBoardCodeSpace(undefined);
         setIsRetryRequest(false);
         setOnEditCodeSpace(undefined);
