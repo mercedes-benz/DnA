@@ -906,7 +906,6 @@ definitions:
  
   MembersVO:
     type: object
-    x-java-ignores-unknown: true
     properties:
       departmentNumber:
         type: string
