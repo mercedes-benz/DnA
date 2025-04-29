@@ -145,7 +145,7 @@ const AllCodeSpaces = (props) => {
             getCodeSpacesData();
         }
         setShowNewCodeSpaceModal(false);
-        setShowAWSWarningModal(true);
+        setShowAWSWarningModal(Envs.SHOW_AWS_MIGRATION_WARNING);
         setOnBoardCodeSpace(undefined);
         setIsRetryRequest(false);
         setOnEditCodeSpace(undefined);
