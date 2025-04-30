@@ -151,10 +151,10 @@ tenant:
       #
       # We recommend disabling recursive permission changes by setting ``fsGroupChangePolicy`` to ``OnRootMismatch`` as those operations can be expensive for certain workloads (e.g. large volumes with many small files).
         limits:
-          memory: 5000Mi
+          memory: 5739Mi
         requests:
           cpu: 1
-          memory: 5000Mi 
+          memory: 5739Mi 
       securityContext:
         runAsUser: 1000
         runAsGroup: 1000
@@ -211,10 +211,10 @@ tenant:
       ## Configure resource requests and limits for MinIO containers
       resources:
         limits:
-          memory: 5000Mi
+          memory: 5739Mi
         requests:
           cpu: 1
-          memory: 5000Mi   
+          memory: 5739Mi   
       ## Configure security context
       securityContext:
         runAsUser: 1000
@@ -294,10 +294,10 @@ tenant:
       #
       # We recommend disabling recursive permission changes by setting ``fsGroupChangePolicy`` to ``OnRootMismatch`` as those operations can be expensive for certain workloads (e.g. large volumes with many small files).
         limits:
-          memory: 5000Mi
+          memory: 5739Mi
         requests:
           cpu: "1"
-          memory: 5000Mi
+          memory: 5739Mi
       securityContext:
         runAsUser: 1000
         runAsGroup: 1000
