@@ -10,11 +10,11 @@ const DetailsModal = ({ dbservice }) => {
       <h3>DB Service Details</h3>
         <div className={classNames(Styles.flex)}>
           <div className={Styles.col3}>
-            <p className={Styles.label}>DB Service Name</p> {dbservice?.name || 'null'}
+            <p className={Styles.label}>DB Service Name</p> {dbservice?.bucketName || 'null'}
           </div>
           <div className={Styles.col3}>
             <p className={Styles.label}>Created on</p>
-            {dbservice?.createdOn !== undefined && regionalDateAndTimeConversionSolution(dbservice?.createdOn)}
+            {dbservice?.createdDate !== undefined && regionalDateAndTimeConversionSolution(dbservice?.createdDate)}
           </div>
           <div className={Styles.col3}>
             <p className={Styles.label}>Created by</p>
@@ -27,7 +27,7 @@ const DetailsModal = ({ dbservice }) => {
           </div>
           <div className={Styles.col2}>
             <p className={Styles.label}>Description</p>
-            {dbservice?.description ? dbservice?.description : 'N/A'}
+            {dbservice?.description ? dbservice?.description : 'Test description'}
           </div>
           <div className={Styles.col3}>
             <p className={Styles.label}>Permission</p>
@@ -54,7 +54,7 @@ const DetailsModal = ({ dbservice }) => {
           </div>
           <div className={Styles.col3}>
             <p className={Styles.label}>Data Classification</p>
-            {dbservice?.dataClassification === '0' || !dbservice?.dataClassification ? 'N/A' : dbservice?.dataClassification}
+            {dbservice?.dataClassification === '0' || !dbservice?.dataClassification ? 'Internal' : dbservice?.dataClassification}
           </div>
 
           <div className={Styles.col3}>
@@ -78,8 +78,8 @@ const DetailsModal = ({ dbservice }) => {
             }
             {dbservice?.collaborators?.length > 0 && dbservice?.collaborators?.map((collaborator) => {
               return (
-                <p key={collaborator?.userDetails?.id}>
-                  {collaborator?.userDetails?.firstName + ' ' + collaborator?.userDetails?.lastName} ({collaborator?.userDetails?.id}) - Read, {collaborator?.permission?.write && 'Write'}
+                <p key={collaborator?.accessKey}>
+                  {collaborator?.firstName + ' ' + collaborator?.lastName} ({collaborator?.accesskey}) - Read, {collaborator?.permission?.write && 'Write'}
                 </p>
               );
             })}
