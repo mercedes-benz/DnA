@@ -1,6 +1,6 @@
 .mainPanel {
   padding: 32px 75px 30px 75px;
-
+ 
   .wrapper {
     width: 100%;
     position: relative;
@@ -13,12 +13,12 @@
       }
     }
   }
-
+ 
   .content {
     background-color: #252a33;
     padding: 36px;
     margin-top: 10px;
-    padding-bottom: 30px; 
+    padding-bottom: 30px;
     p{
       margin-bottom: 13px;
       font-size: 13px;
@@ -29,53 +29,53 @@
     .roleRequest {
       width: calc(50% - 7px);
       display: flex;
-      flex-direction: column; 
-      justify-content: space-between; 
-    
+      flex-direction: column;
+      justify-content: space-between;
+   
       .roleSection {
         display: flex;
-        justify-content: space-between; 
+        justify-content: space-between;
       }
-    
+   
       .roleName {
         width: calc(50% - 9px);
         margin-right: 20px;
       }
-    
+   
       .disabledSection {
         opacity: 0.5;
         pointer-events: none;
       }
       button {
-        align-self: flex-end; 
-        margin-right: 20px; 
+        align-self: flex-end;
+        margin-right: 20px;
       }
     }
-    
+   
     .rolesListSection {
       width: calc(50% - 7px);
       border-left: 2px solid #383f49;
       display: flex;
-      flex-direction: column; 
+      flex-direction: column;
       min-height: 200px;
     }
-    
+   
     .rolesList {
       margin-left: 20px;
     }
-    
+   
     .noRolesCreated {
       display: flex;
       justify-content: center;
       align-items: center;
-      height: 100%; 
+      height: 100%;
       margin-top: 0;
     }
   }
 }
-
-
-
+ 
+ 
+ 
 .header{
   margin-bottom: 15px;
 }
@@ -86,5 +86,95 @@
   > div {
     margin: 5px 5px 5px 0;
     cursor: pointer;
+  }
+}
+ 
+.roleContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 12px;
+}
+ 
+.roleItem {
+  background-color: #353f4a;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  width: fit-content;
+  border: 1px solid #444;
+}
+ 
+.outlineBtn {
+  background: none;
+  border: none !important;
+  color: #c0c8d0;
+  height: auto;
+  outline: none;
+  padding: 0 2px;
+  color: #00adef;
+ 
+  &:hover {
+    color: #00adef;
+    background: unset;
+    text-decoration: underline;
+  }
+}
+ 
+.userDetails {
+  display: flex;
+  flex-direction: column;
+  width: 160px;
+  word-break: break-word;
+  gap: 4px;
+}
+ 
+.flexDetailsSection {
+  margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+ 
+.modalContentSection {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 12px;
+}
+ 
+.flexLayout {
+  display: flex;
+  justify-content: space-between;
+  > div {
+    width: calc(50% - 7px);
+  }
+  &.fourColumn {
+    > div {
+      width: calc(25% - 7px);
+    }
+  }
+  &.threeColumn {
+    > div {
+      width: calc(33% - 7px);
+    }
+  }
+}
+ 
+.divider{
+  margin-right: 25px !important;
+  margin-left: 0px !important;
+  background-color: #697582;
+}
+ 
+:global {
+  label.input-label.summary {
+    color: #99A5B3;
+    font-size: var(--font-size-small);
+    font-weight: bold;
   }
 }

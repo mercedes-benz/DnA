@@ -7,7 +7,9 @@ import TextBox from '../shared/textBox/TextBox';
 import ProgressIndicator from '../../../assets/modules/uilab/js/src/progress-indicator';
 import { ApiClient } from '../../../services/ApiClient';
 import Notification from '../../../assets/modules/uilab/js/src/notification';
-
+import Modal from 'components/formElements/modal/Modal';
+import { TEAMS_PROFILE_LINK_URL_PREFIX } from 'globals/constants';
+ 
 const AliceRoleRequest = () => {
   const goback = () => {
     history.goBack();
@@ -16,13 +18,15 @@ const AliceRoleRequest = () => {
   const [roleNameError, setRoleNameError] = useState('');
   const [rolesCreated, setRolesCreated] = useState({ static: [], dynamic: [] });
   const [isDynamicRole, setIsDynamicRole] = useState(false);
-
+  const [showRoleModal, setShowRoleModal] = useState(false);
+  const [selectedRoleDetails, setSelectedRoleDetails] = useState<any>(null);
+ 
   const onRoleNameChange = (e: React.FormEvent<HTMLInputElement>) => {
     const roleNameVal = e.currentTarget.value;
     setRoleName(roleNameVal);
     setRoleNameError('');
   };
-
+ 
   const validateRole = () => {
     const specialCharPattern = /[^A-Za-z0-9\-_./]/;
     if (roleName.trim() === "") {
@@ -39,11 +43,11 @@ const AliceRoleRequest = () => {
     }
     return true;
   }
-
+ 
   useEffect(() => {
     fetchRole();
   }, []);
-
+ 
   const createRole = () => {
     if (validateRole()) {
       const value = Envs.ALICE_APP_ID + "_" + roleName
@@ -53,7 +57,7 @@ const AliceRoleRequest = () => {
           "isDynamic": isDynamicRole
         }
       }
-
+ 
       ProgressIndicator.show();
       ApiClient.createAliceRole(data)
         .then((res: any) => {
@@ -80,7 +84,7 @@ const AliceRoleRequest = () => {
         });
     }
   };
-
+ 
   const fetchRole = () => {
     ProgressIndicator.show();
     ApiClient.getExistingRoles(Envs.ALICE_APP_ID)
@@ -106,7 +110,32 @@ const AliceRoleRequest = () => {
         Notification.show(err?.message || 'Something went wrong', 'alert');
       });
   };
-
+ 
+  const handleRoleClick = (role: string) => {
+    setShowRoleModal(true);
+    setSelectedRoleDetails(null);
+ 
+    ApiClient.getRoleDetails(role)
+      .then((res: any) => {
+        if (res?.data) {
+          setSelectedRoleDetails({
+            id: res.data.id,
+            name: res.data.name,
+            description: res.data.description,
+            isDynamic: res.data.isDynamic,
+            isSelfRequestable: res.data.isSelfRequestable,
+            roleOwners: res.data.roleOwners || [],
+            roleMembers: res.data.roleMembers || []
+          });
+        } else {
+          Notification.show(res?.errors[0]?.message || 'Error fetching role details', 'alert');
+        }
+      })
+      .catch((err) => {
+        Notification.show(err?.message || 'Error fetching role details', 'alert');
+      });
+  };
+ 
   return (
     <div className={Styles.mainPanel}>
       <div className={Styles.wrapper}>
@@ -120,7 +149,7 @@ const AliceRoleRequest = () => {
             {")"}
           </h3>
         </div>
-
+ 
         <div className={classNames(Styles.content)}>
           <p>
             On this page, you can create Alice roles within the DNA platform (Application ID: {Envs.ALICE_APP_ID}) .
@@ -138,14 +167,14 @@ const AliceRoleRequest = () => {
             </a>.
           </p>
         </div>
-
+ 
         <div className={classNames(Styles.content)}>
           <div className={classNames(Styles.inputWrapper)}>
             <div className={classNames(Styles.roleRequest)}>
               <div className={classNames(Styles.header)}>
                 <h5>Enter the role</h5>
               </div>
-
+ 
               <div className={classNames(Styles.roleSection)}>
                 <div className={classNames(Styles.roleName)}>
                   <TextBox
@@ -174,7 +203,7 @@ const AliceRoleRequest = () => {
                     </label>
                   </div>
                 </div>
-
+ 
                 <div className={classNames(Styles.roleName, Styles.disabledSection)}>
                   <TextBox
                     type="text"
@@ -189,13 +218,13 @@ const AliceRoleRequest = () => {
                   />
                 </div>
               </div>
-
+ 
               <button className="btn btn-tertiary" type="button" onClick={createRole}>
                 create Role
               </button>
             </div>
-
-            <div className={classNames(Styles.rolesListSection)} >
+ 
+            <div className={classNames(Styles.rolesListSection)}>
               {(rolesCreated.static.length > 0 || rolesCreated.dynamic.length > 0) ? (
                 <>
                   {rolesCreated.static.length > 0 && (
@@ -205,17 +234,23 @@ const AliceRoleRequest = () => {
                       </div>
                       <div className={Styles.infoLinks}>
                         {rolesCreated.static.map((item, key) => (
-                          <div className="chips read-only" key={key} onClick={() => {
-                            const url = Envs.ALICE_BASE_URL + '/admin/roles/' + item;
-                            window.open(url, '_blank');
-                          }}>
-                            <label className="name">{item}</label>
+                          <div key={key} className={classNames(Styles.roleItem)}>
+                            <h3 className={classNames('btn btn-primary', Styles.outlineBtn)} onClick={() => handleRoleClick(item)} style={{ cursor: 'pointer' }}>{item}</h3>
+                            <div>
+                              <a
+                                href={`${Envs.ALICE_BASE_URL}/admin/roles/${item}`}
+                                target="_blank"
+                                rel="noreferrer"
+                              >
+                                View in Alice <i className="icon mbc-icon new-tab" style={{ fontSize: '10px' }}/>
+                              </a>
+                            </div>
                           </div>
                         ))}
                       </div>
                     </div>
                   )}
-
+ 
                   {rolesCreated.dynamic.length > 0 && (
                     <div className={classNames(Styles.rolesList)}>
                       <div className={classNames(Styles.header)}>
@@ -223,11 +258,17 @@ const AliceRoleRequest = () => {
                       </div>
                       <div className={Styles.infoLinks}>
                         {rolesCreated.dynamic.map((item, key) => (
-                          <div className="chips read-only" key={key} onClick={() => {
-                            const url = Envs.ALICE_BASE_URL + '/admin/roles/' + item;
-                            window.open(url, '_blank');
-                          }}>
-                            <label className="name">{item}</label>
+                          <div key={key} className={classNames(Styles.roleItem)}>
+                            <h3 className={classNames('btn btn-primary', Styles.outlineBtn)} onClick={() => handleRoleClick(item)} style={{ cursor: 'pointer' }}>{item}</h3>
+                            <div>
+                              <a
+                                href={`${Envs.ALICE_BASE_URL}/admin/roles/${item}`}
+                                target="_blank"
+                                rel="noreferrer"
+                              >
+                                View in Alice <i className="icon mbc-icon new-tab" style={{ fontSize: '10px' }}/>
+                              </a>
+                            </div>
                           </div>
                         ))}
                       </div>
@@ -241,8 +282,79 @@ const AliceRoleRequest = () => {
           </div>
         </div>
       </div>
+      <Modal
+        title={selectedRoleDetails?.id}
+        content={
+          <div>
+            <div className={Styles.flexDetailsSection}>
+              <div id="Sub-Title" >
+                <h5>Role Details</h5>
+              </div>
+              <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
+                <div id="Description" >
+                  <label className="input-label summary">Description</label>
+                  <br />
+                  {selectedRoleDetails?.description || 'No description available.'}
+                </div>
+                <div id="Dynamic Role">
+                  <label className="input-label summary">Dynamic Role</label>
+                  <br />
+                  {selectedRoleDetails?.isDynamic ? 'Yes' : 'No'}
+                </div>
+                <div id="Self-Requestable">
+                  <label className="input-label summary">Self Requestable Role</label>
+                  <br />
+                  {selectedRoleDetails?.isSelfRequestable ? 'Yes' : 'No'}
+                </div>
+              </div>
+            </div>
+            <hr className={Styles.divider} />
+            <h5>Role Owners</h5>
+            <div className={Styles.modalContentSection}>
+              {selectedRoleDetails?.roleOwners?.length > 0 ? (
+                selectedRoleDetails.roleOwners.map((owner: any, index: number) => (
+                  <div key={index} className={Styles.roleItem}>
+                    <div className={Styles.userDetails}>
+                      <a
+                        href={`${TEAMS_PROFILE_LINK_URL_PREFIX}${owner.id}`}
+                      >{owner.completeName}</a>
+                      <p>{owner.departmentNumber}</p>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p>No owners found.</p>
+              )}
+            </div>
+            <hr className={Styles.divider} />
+            <h5>Members of this role</h5>
+            <div className={Styles.modalContentSection}>
+              {selectedRoleDetails?.roleMembers?.length > 0 ? (
+                selectedRoleDetails.roleMembers.map((member: any, index: number) => (
+                  <div key={index} className={Styles.roleItem}>
+                    <div className={Styles.userDetails}>
+                      <a
+                        href={`${TEAMS_PROFILE_LINK_URL_PREFIX}${member.id}`}
+                      >{member.completeName}</a>
+                      <p>{member.departmentNumber}</p>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p>No members found.</p>
+              )}
+            </div>
+          </div>
+        }
+        show={showRoleModal}
+        onCancel={() => setShowRoleModal(false)}
+        buttonAlignment="right"
+        showAcceptButton={false}
+        showCancelButton={false}
+        scrollableContent={true}
+      />
     </div>
   );
 };
-
+ 
 export default AliceRoleRequest;
