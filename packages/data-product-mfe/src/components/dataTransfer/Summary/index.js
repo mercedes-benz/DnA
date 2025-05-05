@@ -392,6 +392,16 @@ const Summary = ({ history }) => {
                           <div>
                             <h5>Contact Information</h5>
                           </div>
+                          <span
+                            className={Styles.editicon}
+                            onClick={() => {
+                              history.push(`/datasharing/consume/${dataTransferId}`);
+                            }}
+                              style={{ cursor: "pointer" }}>
+                              <div>
+                                <i className="icon mbc-icon edit small" />
+                              </div>
+                          </span>
                         </div>
                         <div className={classNames(Styles.flexLayout, Styles.fourColumn)}>
                           <div>
