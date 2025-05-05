@@ -855,10 +855,30 @@ definitions:
   DnaRolesVO:
     type: object
     properties:
-        isDynamic:
-          type: boolean
-        roleID:
-          type: string
+      description:
+        type: string
+      isDynamic:
+        type: boolean
+      isSelfRequestable:
+        type: boolean
+      roleOwners:
+        type: array
+        items:
+          $ref: "#/definitions/MembersVO"
+      roleMembers:
+        type: array
+        items:
+          $ref: "#/definitions/MembersVO"
+ 
+  MembersVO:
+    type: object
+    properties:
+      departmentNumber:
+        type: string
+      id:
+        type: string
+      completeName:
+        type: string
 
 
     
