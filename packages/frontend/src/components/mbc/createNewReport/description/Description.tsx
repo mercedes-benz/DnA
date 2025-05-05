@@ -231,7 +231,7 @@ export default class Description extends React.PureComponent<IDescriptionProps, 
 
   public onArcherIdChange = (e: React.FocusEvent<HTMLInputElement>) => {
     const archerId = e.currentTarget.value;
-    const pattern = /^(INFO)-\d{5}$/.test(archerId);
+    const pattern = /^(INFO)-\d{1,10}$/.test(archerId);
     const description = this.props.description;
     description.archerId = archerId;
     this.setState({ archerId: archerId, archerIdError: (archerId.length && !pattern ? 'Archer ID should be of type INFO-XXXXX' : '') });

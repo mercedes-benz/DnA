@@ -136,7 +136,7 @@ public class BasePromptCraftSubscriptionsService extends BaseCommonService<Promp
 				response.setData(vo);
 				response.setSuccess("FAILED");
 				MessageDescription msg = new MessageDescription();
-				msg.setMessage("Failed while calling UiLicious to create Subscription. Please try again...");
+				msg.setMessage("Failed while calling UiLicious to create Subscription with error "+ uiLiciousResponse.getErrorMessage() +". Please try again..." );
 				errors.add(msg);
 				response.setErrors(errors);
 				return response;
