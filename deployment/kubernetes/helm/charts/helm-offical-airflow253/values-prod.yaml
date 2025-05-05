@@ -1099,7 +1099,7 @@ webserver:
     limits:
       memory: 1492Mi
     requests:
-      cpu: 30m
+      cpu: 10m
       memory: 1492Mi
 
   # Create initial user.

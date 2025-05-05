@@ -144,9 +144,9 @@ hivemetastore:
     thrift:
       http_timeout: "2h"
   requests:
-    memory: 393Mi
+    memory: 407Mi
   limits:
-    memory: 393Mi
+    memory: 407Mi
     cpu: 10m
 #Don`t start the minio host name with http:// as http prefix was already present in the metastore-cfg.file
   minio:

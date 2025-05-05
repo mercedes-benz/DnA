@@ -167,10 +167,10 @@ ingress:
   tls: null
 resources:
   requests:
-    memory: 2952Mi
+    memory: 945Mi
     cpu: 12m
   limits:
-    memory: 2952Mi
+    memory: 945Mi
 vaultInjector:
   enable: true
   annotations:

@@ -1,5 +1,5 @@
 # Author: Sathishkumar - PALANSA
-FROM registry-emea.app.corpintra.net/dockerhub/codercom/code-server:4.98.2
+FROM registry-emea.app.corpintra.net/dockerhub/codercom/code-server:4.99.3
 
 COPY proxy.conf /etc/apt/apt.conf.d/proxy.conf
 
@@ -56,7 +56,8 @@ RUN sudo apt-get update \
     libatspi2.0-0 \
     portaudio19-dev \
     python3-pyaudio \
-    poppler-utils
+    poppler-utils \
+    libreoffice
 
 # Manually download and add the Microsoft repository key
 RUN curl -fsSL https://packages.microsoft.com/keys/microsoft.asc | gpg --dearmor -o /usr/share/keyrings/microsoft-prod.gpg

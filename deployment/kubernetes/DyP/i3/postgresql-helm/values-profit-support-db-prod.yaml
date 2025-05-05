@@ -1,6 +1,6 @@
-namespace: code-server
+namespace: cs-apps-services
 annotations:
-  argocdvault: "dna_aws_kv/data/staging/kubernetesSecret/csdb"
+  argocdvault: "dna_aws_kv/data/prod/cs-services/profit-support-db"
 ## I³ PostgreSQL image version
 ## ref: https://registry-emea.app.corpintra.net/repository/i3-releases/postgresql?tab=tags
 ##
@@ -13,10 +13,10 @@ image:
   ##
   pullPolicy: IfNotPresent
 
-fullnameOverride: "cs-hub-db"
+fullnameOverride: "profit-support-db"
 ## PostgreSQL replica count
 ##
-replicaCount: <path:dna_aws_kv/data/staging/kubernetesSecret/csdb#replicaCount | jsonParse>
+replicaCount: 1
 
 printEnv: true
 
@@ -80,19 +80,19 @@ SSL:
 
 ## Specify PGDATABASE
 ##
-DBName: jupyterhub
+DBName: profit_support
 
 ## Configure S3 properties if S3 storage will be used
 ##
 s3:
   ## provided by s3 provider
-  accesskey: <path:dna_aws_kv/data/staging/kubernetesSecret/csdb#accesskey>
+  accesskey: <path:dna_aws_kv/data/prod/cs-services/profit-support-db#accesskey>
   ## provided by s3 provider
-  secretkey: <path:dna_aws_kv/data/staging/kubernetesSecret/csdb#secretkey>
+  secretkey: <path:dna_aws_kv/data/prod/cs-services/profit-support-db#secretkey>
   ## internally used
   hostAlias: s3
   ## url of the S3 endpoint
-  host: <path:dna_aws_kv/data/staging/kubernetesSecret/csdb#s3.host>
+  host: <path:dna_aws_kv/data/prod/cs-services/profit-support-db#s3.host>
   ## use rclone client in insecure mode
   ## recommended is false, the postgres image already has daimler certificates installed and is able to verify Daimler certificates.
   ## in some cases, e.g. if you want to test with your own S3 service hosted on your own hardware, the certificate might not be verifiable.
@@ -108,11 +108,11 @@ resources:
   ## uncomment fitting parts when you wand to enable setting cpu and memory requests and limits
   limits:
     enabled: true
-    memory: 203Mi
+    memory: 139Mi
   request:
     enabled: true
     cpu: 10m
-    memory: 203Mi
+    memory: 139Mi
 
 ## Configure additional env variables
 env:
@@ -143,9 +143,9 @@ walArchiving:
       storageClass: dhc-backup-nfs
   s3:
     ## Configuration for S3 storage
-    subfolder: dev-db-backups
+    subfolder: postgresql-cluster
     ## fill in the bucket name you have ordered!
-    bucketName: <path:dna_aws_kv/data/staging/kubernetesSecret/csdb#bucketName>
+    bucketName: <path:dna_aws_kv/data/prod/cs-services/profit-support-db#bucketName>
 
 ## Configure extra options for liveness and readiness probes
 ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#configure-probes)
@@ -200,32 +200,31 @@ dbusers:
   ## backup user, will be used for synchronizing between the cluster nodes and for backup
   backup:
     username: backupuser
-    password: <path:dna_aws_kv/data/staging/kubernetesSecret/csdb#backup.password>
+    password: <path:dna_aws_kv/data/prod/cs-services/profit-support-db#backup.password>
   ## the database (not the instance) owner
   dbadm:
-    username: jovyan
-    password: <path:dna_aws_kv/data/staging/kubernetesSecret/csdb#dbadm.password>
+    username: profit_support
+    password: <path:dna_aws_kv/data/prod/cs-services/profit-support-db#dbadm.password>
 
     createSchema:
       # Usually this is required if you use an ORM and do not create the table via the initdb script
       enabled: false
-      # name: customschema
-  ## technical user, e.g. to do switchover and other cluster operations
+      # name: customschema  ## technical user, e.g. to do switchover and other cluster operations
   patroni:
-    password: <path:dna_aws_kv/data/staging/kubernetesSecret/csdb#patroni.password>
+    password: <path:dna_aws_kv/data/prod/cs-services/profit-support-db#patroni.password>
   ## technical user for postgresql monitoring
   pgmon:
     username: pgmon
-    password: <path:dna_aws_kv/data/staging/kubernetesSecret/csdb#pgmon.password>
+    password: <path:dna_aws_kv/data/prod/cs-services/profit-support-db#pgmon.password>
   ## if a technical user for Debezium is needed, then set a password
   ## otherwise no user for Debezium is created
   debezium:
     username: debezium
-    password: <path:dna_aws_kv/data/staging/kubernetesSecret/csdb#debezium.password>
+    password: <path:dna_aws_kv/data/prod/cs-services/profit-support-db#debezium.password>
   ## if technical user 'DATA_CATALOG' for CORPORATE DATA CATALOG is needed, then set a password
   ## otherwise no user for CORPORATE DATA CATALOG is created
   dataCatalog:
-    password: <path:dna_aws_kv/data/staging/kubernetesSecret/csdb#dataCatalog.password>
+    password: <path:dna_aws_kv/data/prod/cs-services/profit-support-db#dataCatalog.password>
 
 ## Enable PostgreSQL service
 ##
@@ -242,13 +241,13 @@ service:
 ##
 persistence:
   enabled: true
-  size: <path:dna_aws_kv/data/staging/kubernetesSecret/csdb#size>
-  # storageClass: cinder
+  size: <path:dna_aws_kv/data/prod/cs-services/profit-support-db#size>
+  # storageClass: dhc-gp3
   # PVCName: name
   wal:
     enabled: false
     size: 1Gi
-    # storageClass: cinder
+    # storageClass: dhc-gp3
     # PVCName: name
 
 ## Network Policy to be applied
@@ -287,7 +286,6 @@ decryptBackupWal:
 ##
 backup:
   enabled: true
-  successfulJobsHistoryLimit: "1"
 
   ## the storage type, either fs or s3.
   ## This is the target storage where the compressed backup archive file will be stored.
@@ -301,15 +299,15 @@ backup:
       accessModes:
       - ReadWriteMany
       size: 1Gi
-      storageClass: cinder-retain
+      storageClass: dhc-gp3
   s3:
     ## Configuration for S3 storage
-    subfolder: jupyterhub-db-backups
+    subfolder: profit-support-db-backup
     ## fill in the bucket name you have ordered!
-    bucketName: <path:dna_aws_kv/data/staging/kubernetesSecret/csdb#bucketName>
+    bucketName: <path:dna_aws_kv/data/prod/cs-services/profit-support-db#bucketName>
   ## general configuration for backup
-  schedule: "@weekly"
-  retention: <path:dna_aws_kv/data/staging/kubernetesSecret/csdb#retention>
+  schedule: "1 0 * * *"
+  retention: <path:dna_aws_kv/data/prod/cs-services/profit-support-db#retention>
   ## Please read documentation at docs/operations/operations.md#cleanup-wal-archives before enabling this feature
   cleanupWalArchives: false
   image:
@@ -332,10 +330,10 @@ backup:
   tempPgdataVolume:
     ## recommended
     enabled: true
-    size: 1Gi
-    # storageClass: cinder
+    size: 20Gi
+    # storageClass: dhc-gp3
   file:
-    name: jupyterhub-backup
+    name: profit-support-db-backup
     # label: test
 
 ## PostgreSQL restore configuration
@@ -354,21 +352,21 @@ restore:
   targetInclusive: true
   ## the kind of storage where the backups are stored
   ## fs | s3
-  storage: s3
+  storage: fs
   fs:
     volume:
       ## if volume.enabled is true, it is expected that a PersistentVolumeClaims exists with the backups and that it can be mounted.
-      enabled: false
+      enabled: true
   s3:
     # subfolder: postgresql-cluster
     ## fill in the bucket name you have ordered!
-    bucketName: db-backup
+    bucketName: profit-support-db-backup
 
   ## Complete (including label) file name of backup file that has to be restored.
-  recoveryFile: jupyterhub-db-backups/jupyterhub-backup-2024-11-07_07-04-20.tar.zst
+  recoveryFile: postgresql-backup*.tar.gz
   image:
     repository: registry-emea.app.corpintra.net/i3-releases/postgresql-backup
-    tag: 13.8-5.5.0-2023.2.20
+    tag: 13.8-5.3.0-2022.11.4
     pullPolicy: IfNotPresent
   resources:
     enabled: false
@@ -391,7 +389,8 @@ restore:
 initdbScripts:
   enabled: true
   name: init_db.sh
-  script: <path:dna_aws_kv/data/staging/kubernetesSecret/csdb#init-db>
+  script: <path:dna_aws_kv/data/prod/cs-services/profit-support-db#init-db>
+
 
 test:
   enabled: true
@@ -421,7 +420,6 @@ pgmonitoring:
     enabled: true
     limits:
       enabled: true
-      cpu:
       memory: 100Mi
     request:
       enabled: true
@@ -511,5 +509,4 @@ lb:
   port: 4400
 
 ## define permanent replication slots. These slots will be preserved during switchover/failover
-## for details see [documentation](https://patroni.readthedocs.io/en/latest/SETTINGS.html)
 slots:
