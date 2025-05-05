@@ -54,6 +54,8 @@ import com.daimler.data.dto.fabric.UserRoleRequestDto;
 import com.daimler.data.dto.fabric.WorkflowDefinitionDto;
 import com.daimler.data.dto.fabric.WorkspaceDetailDto;
 import com.daimler.data.dto.fabric.WorkspaceUpdateDto;
+import com.daimler.data.dto.fabricWorkspace.AuthoriserRoleDetailsVO;
+import com.daimler.data.dto.fabricWorkspace.MembersVO;
 import com.daimler.data.dto.fabricWorkspace.CapacityVO;
 import com.daimler.data.dto.fabricWorkspace.CreateRoleRequestVO;
 import com.daimler.data.dto.fabricWorkspace.EntitlementDetailsVO;
@@ -1808,21 +1810,31 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 	}
 
 	@Override
-public DnaRoleCollectionVO getAllUserDnaRoles(String id, String authToken) {
-    DnaRoleCollectionVO dnaRoleCollection = new DnaRoleCollectionVO();
-	DnaRoleCollectionVOData data = new DnaRoleCollectionVOData();
-    List<DnaRolesVO> roles = new ArrayList<>();
-    try {
-        List<DnaRolesVO> roleList = identityClient.getAllUserManagableRoles(id, authToken);
-        roles = roleList.stream()
-                        .filter(role -> role.getRoleID().startsWith("DNA_"))
-                        .collect(Collectors.toList());
-        	data.setRoles(roles);
-        dnaRoleCollection.setData(data);
-    } catch (Exception e) {
-        log.error("Error occurred while getting user roles: {}", e.getMessage());
-    }
-    return dnaRoleCollection;
-}
+  public DnaRoleCollectionVO getAllUserDnaRoles(String id, String authToken) {
+      DnaRoleCollectionVO dnaRoleCollection = new DnaRoleCollectionVO();
+    DnaRoleCollectionVOData data = new DnaRoleCollectionVOData();
+      List<DnaRolesVO> roles = new ArrayList<>();
+      try {
+          List<DnaRolesVO> roleList = identityClient.getAllUserManagableRoles(id, authToken);
+          roles = roleList.stream()
+                          .filter(role -> role.getRoleID().startsWith("DNA_"))
+                          .collect(Collectors.toList());
+            data.setRoles(roles);
+          dnaRoleCollection.setData(data);
+      } catch (Exception e) {
+          log.error("Error occurred while getting user roles: {}", e.getMessage());
+      }
+      return dnaRoleCollection;
+  }
+
+	@Override
+	public AuthoriserRoleDetailsVO getRoleDetails(String roleId){
+		AuthoriserRoleDetailsVO roleDetailVO = new  AuthoriserRoleDetailsVO();
+
+		roleDetailVO = identityClient.getRoleDetails(roleId);
+		List<MembersVO> members = identityClient.getUsersForRole(roleId);
+		roleDetailVO.setRoleMembers(members);
+		return roleDetailVO;
+	}
 
 }
