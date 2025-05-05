@@ -1,0 +1,245 @@
+openapi: 3.0.1
+info:
+  title: Db Service
+  version: 1.0.0
+servers:
+- url: https://localhost:8089/api/1.0
+tags:
+- name: fccockpit
+  description: This service is used to maintain dbService information.
+paths:
+  /dbService:
+    get:
+      tags:
+      - dbService
+      summary: Get all dbService for the user.
+      description: Get all dbService for the user.
+      operationId: getAll
+      parameters:
+      - name: offset
+        in: query
+        description: page number from which listing of dbService should start.
+          Offset. Example 2
+        schema:
+          type: integer
+      - name: limit
+        in: query
+        description: page size to limit the number of dbService, Example 15
+        schema:
+          type: integer
+      responses:
+        "201":
+          description: Returns message of success or failure
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CodeServerGovernanceVO'
+        "204":
+          description: Fetch complete, no content found.
+          content: {}
+        "400":
+          description: Bad request.
+          content: {}
+        "401":
+          description: Request does not have sufficient credentials.
+          content: {}
+        "403":
+          description: Request is not authorized.
+          content: {}
+        "405":
+          description: Method not allowed
+          content: {}
+        "500":
+          description: Internal error
+          content: {}
+    post:
+      tags:
+      - dbService
+      summary: 'Initialize/Create dbService. '
+      description: 'Initialize/Create dbService '
+      operationId: createdbService
+      requestBody:
+        description: Request Body that contains data required to initialize 
+          dbService for user
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CodeServerGovernanceVO'
+        required: true
+      responses:
+        "201":
+          description: 'Returns message of success or failure '
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CodeServerGovernanceVO'
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericMessage'
+        "401":
+          description: Request does not have sufficient credentials.
+          content: {}
+        "403":
+          description: Request is not authorized.
+          content: {}
+        "405":
+          description: Method not allowed
+          content: {}
+        "500":
+          description: Internal error
+          content: {}
+      x-codegen-request-body-name: CodeServerGovernanceVO
+components:
+  schemas:
+    DataGovernanceRequestInfo:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/CodeServerGovernanceVO'
+
+    CodeServerGovernanceVO:
+      type: object
+      properties:
+        description:
+          type: string
+          description: description type for codespace
+        classificationType:
+          type: string
+          description: Classification type for codespace
+        divisionId:
+          type: string
+          description: division Id for the codespace
+        division:
+          type: string
+          description: division for the codespace
+        subDivisionId:
+          type: string
+          description: sub division Id for the codespace
+        subDivision:
+          type: string
+          description: sub division for the codespace
+        department:
+          type: string
+          description: department for the codespace
+        archerId:
+          type: string
+          description: archerId for the codespace
+        procedureID:
+          type: string
+          description: producerId for the codespace
+        tags:
+          type: array
+          items:
+            type: string
+        typeOfProject:
+          type: string
+          description: typeOfProject for the codespace
+        piiData:
+          type: boolean
+          description: If codespace contains personally identifiable information
+        enableDeployApproval:
+          type: boolean
+          description: If deployment approval workflow is enabled for the codespace
+
+    GenericMessage:
+      type: object
+      properties:
+        success:
+          type: string
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/MessageDescription'
+        warnings:
+          type: array
+          items:
+            $ref: '#/components/schemas/MessageDescription'
+    MessageDescription:
+      type: object
+      properties:
+        message:
+          type: string
+          description: message
+    CreatedByVO:
+      type: object
+      properties:
+        id:
+          type: string
+          description: ID of user
+        firstName:
+          type: string
+          description: First Name of the user
+        lastName:
+          type: string
+          description: Last Name of the user
+        department:
+          type: string
+          description: Department of the user
+        email:
+          type: string
+          description: E-Mail of the user
+        mobileNumber:
+          type: string
+          description: Mobile number of the user
+
+    DbServiceVO:
+      type: object
+      properties:
+        id: 
+          type: string
+          description: Unique technical ID of workspace
+        dataGovernance:
+          $ref: '#/components/schemas/CodeServerGovernanceVO'
+        serviceName:
+          type: string
+        ProjectType:
+          type: string
+        projectOwner:
+          $ref: '#/components/schemas/UserInfoVO'
+        Description:
+          type: string
+        permission:
+          type: array
+          items:
+            type: string    
+        projectCollaborators:
+          type: array
+          items:
+            $ref: '#/components/schemas/UserInfoVO'
+
+    UserInfoVO:
+      type: object
+      properties:
+        id:
+          type: string
+          description: ID of user
+        firstName:
+          type: string
+          description: First Name of the user
+        lastName:
+          type: string
+          description: Last Name of the user
+        department:
+          type: string
+          description: Department of the user
+        email:
+          type: string
+          description: E-Mail of the user
+        mobileNumber:
+          type: string
+          description: Mobile number of the user 
+        gitUserName:
+          type: string
+          description: git Username
+        isAdmin:
+          type: boolean
+          description: is the user has Admin rights
+          default: false
+        isApprover:
+          type: boolean
+          description: does the user have approver rights
+          default: false                             
+              
