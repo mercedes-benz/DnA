@@ -1230,6 +1230,7 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 	}
 
 	@Override
+	// @Transactional
 	public GenericMessage portSolution(String id, boolean revert) {
 		GenericMessage responseMessage = new GenericMessage();
 		MessageDescription errorMessage = new MessageDescription();
@@ -1259,27 +1260,28 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 			}
 
 			if (revert) {
-				if (solution.isPublish() && solution.getOpenSegments() != null
-						&& solution.getOpenSegments().contains("MILESTONES")) {
-					List<String> solutionSegmentNames = Arrays.asList(
-							"DESCRIPTION", "PLATFORM", "TEAMS", "MILESTONES", "DATASOURCES",
-							"ANALYTICS", "SHARING", "DATACOMPLIANCE", "MARKETING", "DIGITALVALUE");
-					List<String> currentSegments = new ArrayList<>();
-					solution.getOpenSegments().forEach(openSegment -> currentSegments.add(openSegment.name()));
+				List<String> solutionSegmentNames = Arrays.asList(
+						"DESCRIPTION", "PLATFORM", "TEAMS", "MILESTONES", "DATASOURCES",
+						"ANALYTICS", "SHARING", "DATACOMPLIANCE", "MARKETING", "DIGITALVALUE");
+				List<String> currentSegments = new ArrayList<>();
+				solution.getOpenSegments().forEach(openSegment -> currentSegments.add(openSegment.name()));
 
-					String lastFilledSegment = currentSegments.get(currentSegments.size() - 1);
-					int lastIndexInSolutionList = solutionSegmentNames.indexOf(lastFilledSegment);
-					List<SolutionVO.OpenSegmentsEnum> openSegmentsEnumList = new ArrayList<>();
-					for (int i = 0; i <= lastIndexInSolutionList; i++) {
-						String segment = solutionSegmentNames.get(i);
-						if (currentSegments.contains(segment)) {
-							openSegmentsEnumList.add(SolutionVO.OpenSegmentsEnum.valueOf(segment));
-						}
+				String lastFilledSegment = currentSegments.get(currentSegments.size() - 1);
+				int lastIndexInSolutionList = solutionSegmentNames.indexOf(lastFilledSegment);
+				List<SolutionVO.OpenSegmentsEnum> openSegmentsEnumList = new ArrayList<>();
+				for (int i = 0; i <= lastIndexInSolutionList; i++) {
+					String segment = solutionSegmentNames.get(i);
+					if (currentSegments.contains(segment)) {
+						openSegmentsEnumList.add(SolutionVO.OpenSegmentsEnum.valueOf(segment));
 					}
-					solution.setOpenSegments(openSegmentsEnumList);
-				} else {
-					solution.setOpenSegments(null);
-					solution.setTags(Arrays.asList("REVERTED"));
+				}
+				solution.setOpenSegments(openSegmentsEnumList);
+				if (solution.getTags() != null) {
+					solution.setTags(
+						solution.getTags().stream()
+							.filter(tag -> !"GenAI".equalsIgnoreCase(tag))
+							.collect(Collectors.toList())
+					);
 				}
 
 				if (solution.isPublish() && solution.getOpenSegments() != null
@@ -1288,8 +1290,6 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 				} else {
 					solution.setPublish(false);
 				}
-				//customRepo.update(solutionNsql);
-				 
 				SolutionNsql solutionNsql = solutionAssembler.toEntity(solution);
 				jpaRepo.save(solutionNsql);
 				LOGGER.info("Solution {} successfully reverted from GenAI.", id);
@@ -1318,6 +1318,12 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 				}
 
 				solution.setOpenSegments(openSegmentsEnumList);
+				List<String> tags = solution.getTags() != null ? new ArrayList<>(solution.getTags())
+						: new ArrayList<>();
+				if (!tags.contains("GenAI")) {
+					tags.add("GenAI");
+				}
+				solution.setTags(tags);
 
 				SolutionNsql solutionNsql = solutionAssembler.toEntity(solution);
 				jpaRepo.save(solutionNsql);
