@@ -953,46 +953,89 @@ public class SolutionController implements SolutionsApi, ChangelogsApi, Malwares
 
     }
 
+    // @Override
+    // @ApiOperation(value = "Port a solution to GenAI", nickname = "port-solution", notes = "Triggers the process of porting the specified solution to the GenAI system.", response = GenericMessage.class, tags = {
+    //         "solutions", })
+    // @ApiResponses(value = {
+    //         @ApiResponse(code = 200, message = "Solution successfully ported to GenAI.", response = GenericMessage.class),
+    //         @ApiResponse(code = 400, message = "Bad request. Invalid or missing parameters."),
+    //         @ApiResponse(code = 404, message = "Solution not found for the provided ID."),
+    //         @ApiResponse(code = 500, message = "Internal server error. Something went wrong during processing.") })
+    // @RequestMapping(value = "/solutions/{id}/portSolution", produces = { "application/json" }, consumes = {
+    //         "application/json" }, method = RequestMethod.POST)
+    // public ResponseEntity<GenericMessage> portToGenAISolution(
+    //         @ApiParam(value = "ID of the solution to be ported to GenAI", required = true) @PathVariable("Id") String id,
+    //         @ApiParam(value = "If true, reverts the GenAI solution back to a regular solution") @RequestParam(value = "revert", required = false) Boolean revert) {
+
+    //     GenericMessage responseMessage = new GenericMessage();
+    //     MessageDescription errorMessage = new MessageDescription();
+    //     try {
+    //         CreatedByVO currentUser = this.userStore.getVO();
+    //         String userId = currentUser != null ? currentUser.getId() : "";
+    //         boolean revertFlag = revert != null && revert;
+    //         GenericMessage portResponse = solutionService.portSolution(id, revertFlag);
+    //         if ("SUCCESS".equals(portResponse.getSuccess())) {
+    //             return new ResponseEntity<>(portResponse, HttpStatus.OK);
+    //         } else {
+    //             return new ResponseEntity<>(portResponse, HttpStatus.NOT_FOUND);
+    //         }
+            
+    //     } catch (IllegalArgumentException e) {
+    //         errorMessage.setMessage("Solution doesn't exist for ID: {} " + e.getMessage());
+    //         LOGGER.info("Solution doesn't exist for ID: {}", e.getMessage());
+    //         responseMessage.setErrors(Collections.singletonList(errorMessage));
+    //         responseMessage.setSuccess("FAILED");
+    //         return new ResponseEntity<>(responseMessage, HttpStatus.BAD_REQUEST);
+
+    //     } catch (Exception e) {
+    //         errorMessage.setMessage("Internal server error while porting to GenAI.");
+    //         LOGGER.error("Exception while porting solution to GenAI: {}", e.getMessage(), e);
+    //         responseMessage.setErrors(Collections.singletonList(errorMessage));
+    //         responseMessage.setSuccess("FAILED");
+    //         return new ResponseEntity<>(responseMessage, HttpStatus.INTERNAL_SERVER_ERROR);
+    //     }
+    // }
+
     @Override
-    @ApiOperation(value = "Port a solution to GenAI", nickname = "port-solution", notes = "Triggers the process of porting the specified solution to the GenAI system.", response = GenericMessage.class, tags = {
-            "solutions", })
-    @ApiResponses(value = {
-            @ApiResponse(code = 200, message = "Solution successfully ported to GenAI.", response = GenericMessage.class),
-            @ApiResponse(code = 400, message = "Bad request. Invalid or missing parameters."),
-            @ApiResponse(code = 404, message = "Solution not found for the provided ID."),
-            @ApiResponse(code = 500, message = "Internal server error. Something went wrong during processing.") })
-    @RequestMapping(value = "/solutions/{id}/port-solution", produces = { "application/json" }, consumes = {
-            "application/json" }, method = RequestMethod.POST)
-    public ResponseEntity<GenericMessage> portToGenAISolution(
-            @ApiParam(value = "ID of the solution to be ported to GenAI", required = true) @PathVariable("Id") String id,
-            @ApiParam(value = "If true, reverts the GenAI solution back to a regular solution") @RequestParam(value = "revert", required = false) Boolean revert) {
-
+    @ApiOperation(value = "Reassigining the owner from the list of collaborators.", nickname = "portSolution", notes = "Reassigining the owner from the list of collaborators.", response = GenericMessage.class, tags={ "solutions", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns message of success or failure", response = GenericMessage.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/solutions/{id}/port-solution",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.PATCH)
+    public ResponseEntity<GenericMessage> portToGenAISolution(@ApiParam(value = "Solution ID to be fetched",required=true) @PathVariable("id") String id, @ApiParam(value = "", required = true) @Valid @RequestParam(value = "revert", required = true) Boolean revert){
         GenericMessage responseMessage = new GenericMessage();
-        MessageDescription errorMessage = new MessageDescription();
-        try {
-            CreatedByVO currentUser = this.userStore.getVO();
-            String userId = currentUser != null ? currentUser.getId() : "";
-            boolean revertFlag = revert != null && revert;
-            GenericMessage portResponse = solutionService.portSolution(id, revertFlag);
-            if ("SUCCESS".equals(portResponse.getSuccess())) {
-                return new ResponseEntity<>(portResponse, HttpStatus.OK);
-            } else {
-                return new ResponseEntity<>(portResponse, HttpStatus.NOT_FOUND);
+            MessageDescription errorMessage = new MessageDescription();
+            try {
+                CreatedByVO currentUser = this.userStore.getVO();
+                String userId = currentUser != null ? currentUser.getId() : "";
+                boolean revertFlag = revert != null && revert;
+                GenericMessage portResponse = solutionService.portSolution(id, revertFlag);
+                if ("SUCCESS".equals(portResponse.getSuccess())) {
+                    return new ResponseEntity<>(portResponse, HttpStatus.OK);
+                } else {
+                    return new ResponseEntity<>(portResponse, HttpStatus.NOT_FOUND);
+                }
+            } catch (IllegalArgumentException e) {
+                errorMessage.setMessage("Solution doesn't exist for ID: {} " + e.getMessage());
+                LOGGER.info("Solution doesn't exist for ID: {}", e.getMessage());
+                responseMessage.setErrors(Collections.singletonList(errorMessage));
+                responseMessage.setSuccess("FAILED");
+                return new ResponseEntity<>(responseMessage, HttpStatus.BAD_REQUEST);
+    
+            } catch (Exception e) {
+                errorMessage.setMessage("Internal server error while porting to GenAI.");
+                LOGGER.error("Exception while porting solution to GenAI: {}", e.getMessage(), e);
+                responseMessage.setErrors(Collections.singletonList(errorMessage));
+                responseMessage.setSuccess("FAILED");
+                return new ResponseEntity<>(responseMessage, HttpStatus.INTERNAL_SERVER_ERROR);
             }
-
-        } catch (IllegalArgumentException e) {
-            errorMessage.setMessage("Solution doesn't exist for ID: {} " + e.getMessage());
-            LOGGER.info("Solution doesn't exist for ID: {}", e.getMessage());
-            responseMessage.setErrors(Collections.singletonList(errorMessage));
-            responseMessage.setSuccess("FAILED");
-            return new ResponseEntity<>(responseMessage, HttpStatus.BAD_REQUEST);
-
-        } catch (Exception e) {
-            errorMessage.setMessage("Internal server error while porting to GenAI.");
-            LOGGER.error("Exception while porting solution to GenAI: {}", e.getMessage(), e);
-            responseMessage.setErrors(Collections.singletonList(errorMessage));
-            responseMessage.setSuccess("FAILED");
-            return new ResponseEntity<>(responseMessage, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
     }
 }

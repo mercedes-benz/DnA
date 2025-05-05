@@ -1230,7 +1230,7 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 	}
 
 	@Override
-	// @Transactional
+	@Transactional
 	public GenericMessage portSolution(String id, boolean revert) {
 		GenericMessage responseMessage = new GenericMessage();
 		MessageDescription errorMessage = new MessageDescription();
