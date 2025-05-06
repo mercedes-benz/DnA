@@ -117,6 +117,10 @@ const getLovData = () => {
   ]);
 }
 
+const getLeanIX = (searchTerm) => {
+  return server.get(`/planningit?searchTerm=${searchTerm}`, { data: {} });
+};
+
 export const fabricApi = {
   getFabricWorkspaces,
   getFabricWorkspace,
@@ -135,4 +139,5 @@ export const fabricApi = {
   getAllBuckets,
   getConnectionInfo,
   getLovData,
+  getLeanIX,
 };
