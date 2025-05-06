@@ -5,15 +5,17 @@ import { HTTP_OPTIONS } from '../../../Utility/constants';
 import SelectBox from 'dna-container/SelectBox';
 import Tags from 'dna-container/Tags';
 const classNames = cn.bind(Styles);
+
 const EditOrCreateEntitlement = (props) => {
   const [entitlementName, setEntitlementName] = useState([]);
   const [entitlementNameError, setEntitlementNameError] = useState('');
-  const [beforeUpdateEntitlName, setbeforeUpdateEntitlName] = useState([]);
+  // const [beforeUpdateEntitlName, setbeforeUpdateEntitlName] = useState([]);
   const [entitlPath, setEntitlPath] = useState('');
   const [missingEntryEntlPath, setmissingEntryEntlPath] = useState('');
   const [missingEntryEntlMethod, setmissingEntryEntlMethod] = useState('');
   const [httpMethod, setHttpMethod] = useState('');
   const [currentEntitlement, setCurrentEntitlement] = useState({});
+
   const validateForm = () => {
     let formValid = true;
     const errorMissingEntry = '*Missing entry';
@@ -43,6 +45,7 @@ const EditOrCreateEntitlement = (props) => {
     }, 100);
     return formValid;
   };
+
   const onEntitlementSubmit = () => {
     if (validateForm()) {
       let currentEntitlementList = currentEntitlement || {};
@@ -55,14 +58,17 @@ const EditOrCreateEntitlement = (props) => {
       props.submitEntitlement({
         ...currentEntitlementList,
         name: entitlementName,
+        // beforeUpdateEntitlName: beforeUpdateEntitlName,
       });
     }
   };
+
   const ontEntitlPatOnChange = (e) => {
     setEntitlPath(e.currentTarget.value);
     validateEntitlPath(e.currentTarget.value);
     setmissingEntryEntlPath('');
   };
+
   const validateEntitlPath = (value) => {
     const length = value.length;
     setTimeout(() => {
@@ -75,25 +81,29 @@ const EditOrCreateEntitlement = (props) => {
       }
     }, 10);
   };
+
   const onChangeHttp = (e) => {
     setHttpMethod(e.currentTarget.value);
     setmissingEntryEntlMethod('');
   };
+
   useEffect(() => {
     if (props?.editEntitlementModal) {
       setEntitlementName(props.editEntitlementList.name);
       setEntitlPath(props.editEntitlementList.apiPattern);
       setHttpMethod(props.editEntitlementList.httpMethod);
-      setbeforeUpdateEntitlName(props.editEntitlementList.name);
+      // setbeforeUpdateEntitlName(props.editEntitlementList.name);
     }
     setCurrentEntitlement(props.editEntitlementList);
   }, [props?.editEntitlementModal, props?.editEntitlementList?.name]);// eslint-disable-line react-hooks/exhaustive-deps
+
   useEffect(() => {
     setTimeout(() => {
       SelectBox.defaultSetup();
     }, 200);
     setEntitlementNameError('');
   }, []);
+
   return (
     <React.Fragment>
       <div className={classNames(Styles.mainPanel)}>
