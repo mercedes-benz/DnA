@@ -43,7 +43,6 @@ const WorkspaceDetails = ({ workspace }) => {
                 <p className={Styles.label}>Description</p>
                 {workspace?.description ? workspace?.description : 'N/A'}
               </div>
-
               <div className={Styles.col3}>
                 <p className={Styles.label}>Cost Center</p>
                 {workspace?.costCenter ? workspace?.costCenter : 'N/A'}
@@ -51,6 +50,10 @@ const WorkspaceDetails = ({ workspace }) => {
               <div className={Styles.col3}>
                 <p className={Styles.label}>Internal Order</p>
                 {workspace?.internalOrder ? workspace?.internalOrder : 'N/A'}
+              </div>
+              <div className={Styles.col3}>
+                <p className={Styles.label}>LeanIX App ID</p>
+                {workspace?.appId ? workspace?.appId : 'N/A'}
               </div>
               <div className={Styles.col3}>
                 <p className={Styles.label}>Related Solutions</p>
