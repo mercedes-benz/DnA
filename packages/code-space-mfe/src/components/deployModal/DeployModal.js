@@ -98,9 +98,10 @@ const DeployModal = (props) => {
         setSecureWithIAMSelected(deploymentDetails?.secureWithIAMRequired || false);
         setOneApiSelected(deploymentDetails?.oneApiVersionShortName?.length || false);
         setOneApiVersionShortName(deploymentDetails?.oneApiVersionShortName || '');
-        setCookieSelected(deploymentDetails?.isSecuredWithCookie || false);
+        // setCookieSelected(deploymentDetails?.isSecuredWithCookie || false);
+        setCookieSelected(false);
         setClientId(deploymentDetails?.clientId || '');
-        setRedirectUri(deploymentDetails?.redirectUri ? `${envUrl}/${deploymentDetails?.redirectUri}` : (deploymentDetails?.deploymentType ==='UI' ? `${envUrl}/${projectDetails?.projectName}/int/cb` : '' ));
+        setRedirectUri(deploymentDetails?.redirectUri ? `${envUrl}${deploymentDetails?.redirectUri}` : (deploymentDetails?.deploymentType ==='UI' ? `${envUrl}/${projectDetails?.projectName}/int/cb` : '' ));
         deploymentDetails?.ignorePaths?.length && setIgnorePath(deploymentDetails?.ignorePaths?.split(','));
         deploymentDetails?.scope?.length && setScope(deploymentDetails?.scope?.split(' '));
         setDeploymentType(deploymentDetails?.deploymentType || 'API');
@@ -156,7 +157,7 @@ const DeployModal = (props) => {
       setScope(['openid', 'offline_access']);
     } else {
       setClientId(deploymentDetails?.clientId || '');
-      setRedirectUri(deploymentDetails?.redirectUri ? `${envUrl}/${deploymentDetails?.redirectUri}` : redirectUri);
+      setRedirectUri(deploymentDetails?.redirectUri ? `${envUrl}${deploymentDetails?.redirectUri}` : redirectUri);
       deploymentDetails?.ignorePaths?.length && setIgnorePath(deploymentDetails?.ignorePaths?.split(','));
       deploymentDetails?.scope?.length && setScope(deploymentDetails?.scope?.split(' '));
     }
@@ -220,10 +221,11 @@ const DeployModal = (props) => {
     getPublishedConfig(props?.codeSpaceData?.id, deployEnv === 'staging' ? 'int' : 'prod');
     setOneApiSelected(deploymentDetails?.oneApiVersionShortName?.length || false);
     setOneApiVersionShortName(deploymentDetails?.oneApiVersionShortName || '');
-    setCookieSelected(deploymentDetails?.isSecuredWithCookie || false);
+    // setCookieSelected(deploymentDetails?.isSecuredWithCookie || false);
+    setCookieSelected(false);
     setClientId(deploymentDetails?.clientId || '');
     const redirectUri = deploymentDetails?.deploymentType === 'UI' ? `${envUrl}/${projectDetails?.projectName}/${deployEnv === 'staging' ? 'int' : 'prod'}/cb` : '';
-    setRedirectUri(deploymentDetails?.redirectUri ? `${envUrl}/${deploymentDetails?.redirectUri}` : redirectUri);
+    setRedirectUri(deploymentDetails?.redirectUri ? `${envUrl}${deploymentDetails?.redirectUri}` : redirectUri);
     deploymentDetails?.ignorePaths?.length && setIgnorePath(deploymentDetails?.ignorePaths?.split(','));
     deploymentDetails?.scope?.length && setScope(deploymentDetails?.scope?.split(' '));
     setDeploymentType(deploymentDetails?.deploymentType || 'API');
@@ -273,7 +275,8 @@ const DeployModal = (props) => {
         scope: secureWithIAMSelected ? scope?.join(' ') : '',
         isApiRecipe: deploymentType === 'API',
         oneApiVersionShortName: oneApiSelected ? oneApiVersionShortName : '',
-        isSecuredWithCookie : (secureWithIAMSelected && deploymentType === 'API' && cookieSelected) || false,
+        // isSecuredWithCookie : (secureWithIAMSelected && deploymentType === 'API' && cookieSelected) || false,
+        isSecuredWithCookie: false,
       };
       ProgressIndicator.show();
       CodeSpaceApiClient.deployCodeSpace(props.codeSpaceData.id, deployRequest)
@@ -476,7 +479,7 @@ const DeployModal = (props) => {
                   )}
                   {secureWithIAMSelected && (
                     <div>
-                      {!isUiRecipe && (<div className={Styles.flexLayout}>
+                      {/* {!isUiRecipe && (<div className={Styles.flexLayout}>
                         <div className={Styles.infoIcon}>
                           <label className={classNames("switch", cookieSelected ? 'on' : '')}>
                             <span className="label" style={{ marginRight: '5px' }}>
@@ -495,12 +498,12 @@ const DeployModal = (props) => {
                           </label>
                         </div>
                         <div className={Styles.oneAPILink}><label className="chips">{cookieSelected ? 'Cookie based authentication enabled' : 'OIDC based authentication enabled (default)'}</label></div>
-                      </div>)}
+                      </div>)} */}
                       { (!deploymentDetails?.secureWithIAMRequired || changeSelected || resetRequired ? (
                         <>
                           <div className={classNames(Styles.wrapper)}>
                             <span className="label">
-                              <p>Authorization Code Flow</p>
+                              <p>{isUiRecipe ? 'Authorization Code Flow' : 'Client Credentials Grant / Authorization Code Flow'}</p>
                             </span>
                             <div className={classNames(Styles.flexLayout)}>
                               <TextBox
