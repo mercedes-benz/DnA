@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
+import org.springframework.util.ObjectUtils;
 
 import com.daimler.data.db.entities.FabricWorkspaceNsql;
 import com.daimler.data.db.json.Capacity;
@@ -14,6 +15,7 @@ import com.daimler.data.db.json.FabricWorkspace;
 import com.daimler.data.db.json.FabricWorkspaceStatus;
 import com.daimler.data.db.json.GroupDetails;
 import com.daimler.data.db.json.Lakehouse;
+import com.daimler.data.db.json.LeanIXDetails;
 import com.daimler.data.db.json.ProjectDetails;
 import com.daimler.data.db.json.RoleDetails;
 import com.daimler.data.db.json.Shortcut;
@@ -30,6 +32,7 @@ import com.daimler.data.dto.fabricWorkspace.GroupDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.ProjectReferenceDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.RoleDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.ShortcutVO;
+import com.daimler.data.dto.fabricWorkspace.LeanIXDetailsVO;
 
 @Component
 public class FabricWorkspaceAssembler implements GenericAssembler<FabricWorkspaceVO, FabricWorkspaceNsql> {
@@ -68,6 +71,11 @@ public class FabricWorkspaceAssembler implements GenericAssembler<FabricWorkspac
 			FabricWorkspace data = entity.getData();
 			if(data!=null) {
 				BeanUtils.copyProperties(data, vo);
+				 if (!ObjectUtils.isEmpty(data.getLeanIXDetails())) {
+					LeanIXDetailsVO leanIXDetails = new LeanIXDetailsVO();
+					BeanUtils.copyProperties(data.getLeanIXDetails(), leanIXDetails);
+					vo.setLeanIXDetails(leanIXDetails);
+				}
 				Capacity capacity = data.getCapacity();
 				CapacityVO capacityVO = new CapacityVO();
 				if(capacity != null) {
@@ -331,6 +339,11 @@ public class FabricWorkspaceAssembler implements GenericAssembler<FabricWorkspac
 				lakehouses = lakehouseVOs.stream().map(n -> toLakehouse(n)).collect(Collectors.toList());
 			}
 			data.setLakehouses(lakehouses);
+			if (!ObjectUtils.isEmpty(vo.getLeanIXDetails())) {
+				LeanIXDetails leanIXDetails = new LeanIXDetails();
+				BeanUtils.copyProperties(vo.getLeanIXDetails(), leanIXDetails);
+				data.setLeanIXDetails(leanIXDetails);
+			}
 			
 			entity.setData(data);
 		}

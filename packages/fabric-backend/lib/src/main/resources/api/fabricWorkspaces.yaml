@@ -500,6 +500,10 @@ definitions:
       customGroupName: 
         type: string
         default: null
+      appId:
+        type: string
+      leanIXDetails:
+        $ref: "#/definitions/LeanIXDetailsVO"
   
   FabricWorkspaceStatusVO:
     type: object
@@ -850,5 +854,29 @@ definitions:
             items: 
               type: string
 
+  LeanIXDetailsVO:
+    type: object
+    properties :
+      appReferenceStr:
+        type: string
+      name:
+        type: string
+        description: "Name of the LeanIX"
+        minLength: 1
+      shortName:
+        type: string
+        description: "Short Name of the LeanIX"
+      ObjectState:
+        type: string
+        description: "State of the LeanIX"
+      providerOrgRefstr:
+        type: string
+        description: "Details of provider Org of the LeanIX"
+      providerOrgId:
+        type: string
+      providerOrgShortname:
+        type: string
+      providerOrgDeptid:
+        type: string
 
     
