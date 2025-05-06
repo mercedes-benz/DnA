@@ -30,3 +30,4 @@ e83921239fad007446d12626f8c2beef80439e25:deployment/docker-compose-local-basic.y
 e83921239fad007446d12626f8c2beef80439e25:deployment/docker-compose-local-basic.yml:jwt:193
 52b37d749709cdebbd610f0628d1771eb451c8f1:deployment/docker-compose-local-basic.yml:jwt:223
 789a4ceb56e7813572da33e7476265ff19124c23:packages/backend/dnambc-lib/src/main/java/com/daimler/data/application/config/SwaggerConfig.java:jwt:61
+80ed454801c082c8628825231c1a59026795a294:deployment/kubernetes/DyP/i3/i3-monitoring-helm/values-prod.yaml:microsoft-teams-webhook:1183
