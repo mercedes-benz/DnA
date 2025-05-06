@@ -438,16 +438,19 @@ import com.daimler.data.dto.workspace.UserInfoVO;
 		 entity.getData().setActiveInGroup(Boolean.FALSE);
 
 		 //remove from group
-		 List<String> groupEntity = workspaceCustomUserGroupRepo.findByWsid(entity.getData().getWorkspaceId(), userId);
-		 log.info("groupEntity {}",groupEntity.toString());
+		 // List<String> groupEntity = workspaceCustomUserGroupRepo.findByWsid(entity.getData().getWorkspaceId(), userId);
+		 // log.info("groupEntity {}",groupEntity.toString());
 		 String wsId = entity.getData().getWorkspaceId();
-		 groupEntity.forEach( i ->{
-			 CodeServerUserGroupNsql group = userGroupRepository.findById(i).get();
+		 // groupEntity.forEach( i ->{
+			 Optional<CodeServerUserGroupNsql> groupOptional = userGroupRepository.findById(userId);
+			 if(groupOptional.isPresent()){
+				CodeServerUserGroupNsql group = groupOptional.get();
 			 group.getData().getGroups().forEach( g -> {
 				 g.getWorkspaces().removeIf( w -> w.getWorkSpaceId().equalsIgnoreCase(wsId));
 			 });
 			 userGroupRepository.save(group);
-		 });
+			}
+		 // });
   
 		 UserInfo removeUser = new UserInfo();
 		 if (entity.getData().getProjectDetails().getProjectCollaborators() != null) {
