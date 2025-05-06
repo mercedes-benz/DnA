@@ -8,7 +8,6 @@ const classNames = cn.bind(Styles);
 const EditOrCreateEntitlement = (props) => {
   const [entitlementName, setEntitlementName] = useState([]);
   const [entitlementNameError, setEntitlementNameError] = useState('');
-  const [beforeUpdateEntitlName, setbeforeUpdateEntitlName] = useState([]);
   const [entitlPath, setEntitlPath] = useState('');
   const [missingEntryEntlPath, setmissingEntryEntlPath] = useState('');
   const [missingEntryEntlMethod, setmissingEntryEntlMethod] = useState('');
@@ -84,7 +83,6 @@ const EditOrCreateEntitlement = (props) => {
       setEntitlementName(props.editEntitlementList.name);
       setEntitlPath(props.editEntitlementList.apiPattern);
       setHttpMethod(props.editEntitlementList.httpMethod);
-      setbeforeUpdateEntitlName(props.editEntitlementList.name);
     }
     setCurrentEntitlement(props.editEntitlementList);
   }, [props?.editEntitlementModal, props?.editEntitlementList?.name]);// eslint-disable-line react-hooks/exhaustive-deps

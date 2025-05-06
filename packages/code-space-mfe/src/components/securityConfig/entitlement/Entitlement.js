@@ -85,7 +85,6 @@ export default class Entitlement extends React.Component {
 
   componentDidUpdate(prevProps, prevState) {
     if (this.props.config !== prevProps.config) {
-      //const envKey = this.props.env === 'int' ? 'stagingEntitlement' : 'productionEntitlement';
       if (this.props.config?.entitlements?.length > 0) {
         const records = this.props.config.entitlements;
         const totalNumberOfPages = Math.ceil(records?.length / this.state.maxItemsPerPage);
