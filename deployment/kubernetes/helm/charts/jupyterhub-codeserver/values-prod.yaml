@@ -177,7 +177,7 @@ hub:
           spawner.mem_guarantee = spawner.user_options.get("mem_guarantee", "500M")       
           spawner.mem_limit = spawner.user_options.get("mem_guarantee", "500M")       
           # spawner.cpu_limit = spawner.user_options.get("cpu_limit", 3)       
-          spawner.cpu_guarantee = spawner.user_options.get("cpu_guarantee", 0.3) 
+          spawner.cpu_guarantee = 0.2 
           spawner.extra_containers = spawner.user_options.get("extra_containers",[])
           # expand_pvc_command = f'kubectl patch pvc {user_pvc_name} -p \'{{"spec":{{"resources":{{"requests":{{"storage":"{user_storage_capacity}"}}}}}}}}\''
           # os.system(expand_pvc_command)           
