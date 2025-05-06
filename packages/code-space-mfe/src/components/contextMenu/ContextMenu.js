@@ -175,6 +175,15 @@ const ContextMenu = (props) => {
         className={classNames('contextMenuWrapper', Styles.contextMenu, props?.showContextMenu ? '' : 'hide')}
       >
         <ul>
+          <li>
+            <span
+              onClick={() => {
+                props.onShowBlueprintModal(codeSpace);
+              }}
+            >
+              Show Blueprint
+            </span>
+          </li>
           <li className={classNames(deployingInProgress ? 'inactive' : '')}>
             <span
               onClick={() => {

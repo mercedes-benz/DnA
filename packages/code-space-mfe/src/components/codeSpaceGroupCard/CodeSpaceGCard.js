@@ -3,24 +3,25 @@ import { useHistory } from 'react-router-dom';
 import classNames from 'classnames';
 import Styles from './code-space-group-card.scss';
 import {
-  buildLogViewURL,
-  buildGitJobLogViewURL,
-  buildLogViewAWSURL,
-  buildGitJobLogViewAWSURL,
-  buildGitUrl,
+  // buildLogViewURL,
+  // buildGitJobLogViewURL,
+  // buildLogViewAWSURL,
+  // buildGitJobLogViewAWSURL,
+  // buildGitUrl,
   trackEvent
 } from '../../Utility/utils';
-import ConfirmModal from 'dna-container/ConfirmModal';
-import Modal from 'dna-container/Modal';
-import DoraMetrics from '../doraMetrics/DoraMetrics';
-import VaultManagement from '../vaultManagement/VaultManagement';
-import DeployAuditLogsModal from '../deployAuditLogsModal/DeployAuditLogsModal';
+// import ConfirmModal from 'dna-container/ConfirmModal';
+// import Modal from 'dna-container/Modal';
+// import DoraMetrics from '../doraMetrics/DoraMetrics';
+// import VaultManagement from '../vaultManagement/VaultManagement';
+// import DeployAuditLogsModal from '../deployAuditLogsModal/DeployAuditLogsModal';
 import { setRippleAnimation } from '../../common/modules/uilab/js/src/util';
-import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
+// import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 import { CodeSpaceApiClient } from '../../apis/codespace.api';
-import { Envs } from '../../Utility/envs';
+// import { Envs } from '../../Utility/envs';
+import ContextMenu from '../contextMenu/ContextMenu';
 
-const CodeSpaceGCard = ({ codeSpace, userInfo, onStartStopCodeSpace, onShowDeployModal, onShowCodeSpaceOnBoard }) => {
+const CodeSpaceGCard = ({ codeSpace, userInfo, onStartStopCodeSpace, onShowDeployModal, onShowCodeSpaceOnBoard, onShowBlueprintModal }) => {
   const history = useHistory();
   const enableOnboard = codeSpace ? codeSpace.status === 'COLLABORATION_REQUESTED' : false;
   const createInProgress = codeSpace.status === 'CREATE_REQUESTED';
@@ -63,112 +64,112 @@ const CodeSpaceGCard = ({ codeSpace, userInfo, onStartStopCodeSpace, onShowDeplo
     });
   };
 
-  const projectDetails = codeSpace?.projectDetails;
-  const intDeploymentDetails = projectDetails?.intDeploymentDetails;
-  const prodDeploymentDetails = projectDetails?.prodDeploymentDetails;
-  const intDeployedUrl = intDeploymentDetails?.deploymentUrl;
+  // const projectDetails = codeSpace?.projectDetails;
+  // const intDeploymentDetails = projectDetails?.intDeploymentDetails;
+  // const prodDeploymentDetails = projectDetails?.prodDeploymentDetails;
+  // const intDeployedUrl = intDeploymentDetails?.deploymentUrl;
   // const intLastDeployedOn = intDeploymentDetails?.lastDeployedOn;
-  const prodDeployedUrl = prodDeploymentDetails?.deploymentUrl;
+  // const prodDeployedUrl = prodDeploymentDetails?.deploymentUrl;
   // const prodLastDeployedOn = prodDeploymentDetails?.lastDeployedOn;
-  const deployingInProgress =
-    intDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED' ||
-    prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED';
-  const intDeployed =
-    intDeploymentDetails?.lastDeploymentStatus === 'DEPLOYED' ||
-    (intDeployedUrl !== null && intDeployedUrl !== 'null') ||
-    false;
-  const intCodeDeployFailed = intDeploymentDetails?.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
-  const prodDeployed =
-    prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOYED' ||
-    (prodDeployedUrl !== null && prodDeployedUrl !== 'null') ||
-    false;
-  const prodCodeDeployFailed = prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
+  // const deployingInProgress =
+  //   intDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED' ||
+  //   prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED';
+  // const intDeployed =
+  //   intDeploymentDetails?.lastDeploymentStatus === 'DEPLOYED' ||
+  //   (intDeployedUrl !== null && intDeployedUrl !== 'null') ||
+  //   false;
+  // const intCodeDeployFailed = intDeploymentDetails?.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
+  // const prodDeployed =
+  //   prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOYED' ||
+  //   (prodDeployedUrl !== null && prodDeployedUrl !== 'null') ||
+  //   false;
+  // const prodCodeDeployFailed = prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
 
-  const deploymentMigrated = !(codeSpace?.projectDetails?.intDeploymentDetails?.deploymentUrl?.includes(Envs.CODESPACE_OIDC_POPUP_URL) || codeSpace?.projectDetails?.prodDeploymentDetails?.deploymentUrl?.includes(Envs.CODESPACE_OIDC_POPUP_URL));
+  // const deploymentMigrated = !(codeSpace?.projectDetails?.intDeploymentDetails?.deploymentUrl?.includes(Envs.CODESPACE_OIDC_POPUP_URL) || codeSpace?.projectDetails?.prodDeploymentDetails?.deploymentUrl?.includes(Envs.CODESPACE_OIDC_POPUP_URL));
   
-  const securedWithIAMContent = (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      stroke="#00adef"
-      fill="#00adef"
-      strokeWidth="0"
-      viewBox="0 0 30 30"
-      width="15px"
-      height="15px"
-    >
-      {' '}
-      <path d="M 15 2 C 11.145666 2 8 5.1456661 8 9 L 8 11 L 6 11 C 4.895 11 4 11.895 4 13 L 4 25 C 4 26.105 4.895 27 6 27 L 24 27 C 25.105 27 26 26.105 26 25 L 26 13 C 26 11.895 25.105 11 24 11 L 22 11 L 22 9 C 22 5.2715823 19.036581 2.2685653 15.355469 2.0722656 A 1.0001 1.0001 0 0 0 15 2 z M 15 4 C 17.773666 4 20 6.2263339 20 9 L 20 11 L 10 11 L 10 9 C 10 6.2263339 12.226334 4 15 4 z" />
-    </svg>
-  );
+  // const securedWithIAMContent = (
+  //   <svg
+  //     xmlns="http://www.w3.org/2000/svg"
+  //     stroke="#00adef"
+  //     fill="#00adef"
+  //     strokeWidth="0"
+  //     viewBox="0 0 30 30"
+  //     width="15px"
+  //     height="15px"
+  //   >
+  //     {' '}
+  //     <path d="M 15 2 C 11.145666 2 8 5.1456661 8 9 L 8 11 L 6 11 C 4.895 11 4 11.895 4 13 L 4 25 C 4 26.105 4.895 27 6 27 L 24 27 C 25.105 27 26 26.105 26 25 L 26 13 C 26 11.895 25.105 11 24 11 L 22 11 L 22 9 C 22 5.2715823 19.036581 2.2685653 15.355469 2.0722656 A 1.0001 1.0001 0 0 0 15 2 z M 15 4 C 17.773666 4 20 6.2263339 20 9 L 20 11 L 10 11 L 10 9 C 10 6.2263339 12.226334 4 15 4 z" />
+  //   </svg>
+  // );
 
   const disableDeployment = !codeSpace?.projectDetails?.recipeDetails?.isDeployEnabled;
-  const collaborator = codeSpace.projectDetails?.projectCollaborators?.find((collaborator) => {return collaborator?.id === userInfo?.id });
-  const isOwner = codeSpace.projectDetails?.projectOwner?.id === userInfo.id || collaborator?.isAdmin;
+  // const collaborator = codeSpace.projectDetails?.projectCollaborators?.find((collaborator) => {return collaborator?.id === userInfo?.id });
+  // const isOwner = codeSpace.projectDetails?.projectOwner?.id === userInfo.id || collaborator?.isAdmin;
 
-  const [showDoraMetricsModal, setShowDoraMetricsModal] = useState(false);
-  const [isStaging, setIsStaging] = useState(false);
-  const [logsList, setlogsList] = useState([]);
-  const [showVaultManagementModal, setShowVaultManagementModal] = useState(false);
-  const [showAuditLogsModal, setShowAuditLogsModal] = useState(false);
+  // const [showDoraMetricsModal, setShowDoraMetricsModal] = useState(false);
+  // const [isStaging, setIsStaging] = useState(false);
+  // const [logsList, setlogsList] = useState([]);
+  // const [showVaultManagementModal, setShowVaultManagementModal] = useState(false);
+  // const [showAuditLogsModal, setShowAuditLogsModal] = useState(false);
   const [showContextMenu, setShowContextMenu] = useState(false);
   const [contextMenuOffsetTop, setContextMenuOffsetTop] = useState(0);
   const [contextMenuOffsetLeft, setContextMenuOffsetLeft] = useState(0);
-  const [showStagingActions, setShowStagingActions] = useState(false);
-  const [showProdActions, setShowProdActions] = useState(false);
+  // const [showStagingActions, setShowStagingActions] = useState(false);
+  // const [showProdActions, setShowProdActions] = useState(false);
   const stagingWrapperRef = useRef(null);
   const prodWrapperRef = useRef(null);
-  const [showRestartModal, setShowRestartModal] = useState(false);
-  const [env, setEnv] = useState("");
-  const [showOnPremStartModal, setShowOnPremStartModal] = useState(false);
+  // const [showRestartModal, setShowRestartModal] = useState(false);
+  // const [env, setEnv] = useState("");
+  // const [showOnPremStartModal, setShowOnPremStartModal] = useState(false);
 
-  const RestartContent = (
-    <div>
-      <h3>Are you sure you want to restart your deployed application?</h3>
-      <p>Note: Please refresh and check the application restart status under action audit logs.</p>
-    </div>
-  );
+  // const RestartContent = (
+  //   <div>
+  //     <h3>Are you sure you want to restart your deployed application?</h3>
+  //     <p>Note: Please refresh and check the application restart status under action audit logs.</p>
+  //   </div>
+  // );
 
-  const onShowOnPremStartModal = (
-    <div>
-      <p>
-        Click on the Start button to start your workspace incase the link is inaccessible. If you have already started before then access your workspace through the link provided. Please note that the link may take some time to be accessible after the start.
-      </p>
-      <div className={Styles.manualStart}>
-        <div>
-          <button
-            className={classNames('btn btn-tertiary')}
-            onClick={() => {onStartStopCodeSpace(codeSpace, handleServerStatusAndProgress, 'DHC-CaaS', true);}}
-          >
-            Start your old workspace
-          </button>
-        </div>
-        <div><a target="_blank" href={Envs.CODESPACE_OIDC_POPUP_URL+"user/"+codeSpace?.workspaceOwner?.id.toLowerCase()+"/"+codeSpace?.workspaceId+"/?folder=/home/coder/app"} rel="noreferrer">Your old workspace URL</a></div>
-      </div>
-    </div>
-  );
+  // const onShowOnPremStartModal = (
+  //   <div>
+  //     <p>
+  //       Click on the Start button to start your workspace incase the link is inaccessible. If you have already started before then access your workspace through the link provided. Please note that the link may take some time to be accessible after the start.
+  //     </p>
+  //     <div className={Styles.manualStart}>
+  //       <div>
+  //         <button
+  //           className={classNames('btn btn-tertiary')}
+  //           onClick={() => {onStartStopCodeSpace(codeSpace, handleServerStatusAndProgress, 'DHC-CaaS', true);}}
+  //         >
+  //           Start your old workspace
+  //         </button>
+  //       </div>
+  //       <div><a target="_blank" href={Envs.CODESPACE_OIDC_POPUP_URL+"user/"+codeSpace?.workspaceOwner?.id.toLowerCase()+"/"+codeSpace?.workspaceId+"/?folder=/home/coder/app"} rel="noreferrer">Your old workspace URL</a></div>
+  //     </div>
+  //   </div>
+  // );
 
-  const onRestart = (env) => {
-    ProgressIndicator.show();
-    CodeSpaceApiClient.restartDeployments(codeSpace?.id, env)
-    .then((res) => {
-      if (res.data.success === 'SUCCESS') {
-        ProgressIndicator.hide();
-        Notification.show("Restart requested successfully")
-      } else {
-          ProgressIndicator.hide();
-          Notification.show('Error in Restarting deployed application. Please try again later.\n' + res.data.errors[0].message, 'alert');
-        }
-      })
-      .catch((err) => {
-        ProgressIndicator.hide();
-        Notification.show('Error in Restarting deployed application. Please try again later.\n' + err.message, 'alert');
-      });
-    setShowRestartModal(false);
-  }
+  // const onRestart = (env) => {
+  //   ProgressIndicator.show();
+  //   CodeSpaceApiClient.restartDeployments(codeSpace?.id, env)
+  //   .then((res) => {
+  //     if (res.data.success === 'SUCCESS') {
+  //       ProgressIndicator.hide();
+  //       Notification.show("Restart requested successfully")
+  //     } else {
+  //         ProgressIndicator.hide();
+  //         Notification.show('Error in Restarting deployed application. Please try again later.\n' + res.data.errors[0].message, 'alert');
+  //       }
+  //     })
+  //     .catch((err) => {
+  //       ProgressIndicator.hide();
+  //       Notification.show('Error in Restarting deployed application. Please try again later.\n' + err.message, 'alert');
+  //     });
+  //   setShowRestartModal(false);
+  // }
   
-  const handleOpenDoraMetrics = () => {
-    setShowDoraMetricsModal(true);
-  };
+  // const handleOpenDoraMetrics = () => {
+  //   setShowDoraMetricsModal(true);
+  // };
 
   const toggleContextMenu = (e) => {
     e.stopPropagation();
@@ -246,7 +247,22 @@ const CodeSpaceGCard = ({ codeSpace, userInfo, onStartStopCodeSpace, onShowDeplo
               >
                 <i className="icon mbc-icon listItem context" />
               </span>
-              <div
+              <ContextMenu
+                  codeSpace={codeSpace}
+                  userInfo={userInfo}
+                  showContextMenu={showContextMenu}
+                  // toggleContextMenu={toggleContextMenu}
+                  contextMenuOffsetTop={contextMenuOffsetTop}
+                  contextMenuOffsetLeft={contextMenuOffsetLeft}
+                  stagingWrapperRef={stagingWrapperRef}
+                  prodWrapperRef={prodWrapperRef}
+                  onShowDeployModal={onShowDeployModal}
+                  serverStarted={serverStarted}
+                  onStartStopCodeSpace={onStartStopCodeSpace}
+                  handleServerStatusAndProgress={handleServerStatusAndProgress}
+                  onShowBlueprintModal={onShowBlueprintModal}
+              />
+              {/* <div
                 style={{
                   top: contextMenuOffsetTop + 'px',
                   left: contextMenuOffsetLeft + 'px',
@@ -492,12 +508,12 @@ const CodeSpaceGCard = ({ codeSpace, userInfo, onStartStopCodeSpace, onShowDeplo
                     </>
                   )}
                 </ul>
-              </div>
+              </div> */}
             </div>
           )}
         </div>
       </div>
-      {showVaultManagementModal && (
+      {/* {showVaultManagementModal && (
         <Modal
           title={isStaging ? 'Secret Management - Staging' : 'Secret Management - Production'}
           hiddenTitle={false}
@@ -513,8 +529,8 @@ const CodeSpaceGCard = ({ codeSpace, userInfo, onStartStopCodeSpace, onShowDeplo
           scrollableContent={true}
           onCancel={() => setShowVaultManagementModal(false)}
         />
-      )}
-      {showAuditLogsModal && (
+      )} */}
+      {/* {showAuditLogsModal && (
         <DeployAuditLogsModal
           deployedEnvInfo={isStaging ? 'Staging' : 'Production'}
           show={showAuditLogsModal}
@@ -522,9 +538,9 @@ const CodeSpaceGCard = ({ codeSpace, userInfo, onStartStopCodeSpace, onShowDeplo
           logsList={logsList}
           projectName={projectDetails.projectName.toLowerCase()}
         />
-      )}
+      )} */}
 
-      {showDoraMetricsModal && (
+      {/* {showDoraMetricsModal && (
         <Modal
           title={`DORA Metrics for ` + projectDetails.projectName}
           showAcceptButton={true}
@@ -543,8 +559,8 @@ const CodeSpaceGCard = ({ codeSpace, userInfo, onStartStopCodeSpace, onShowDeplo
             width: '60%',
           }}
         />
-      )}
-      { showRestartModal && (
+      )} */}
+      {/* { showRestartModal && (
       <ConfirmModal
         title={''}
         acceptButtonTitle="Yes"
@@ -561,8 +577,8 @@ const CodeSpaceGCard = ({ codeSpace, userInfo, onStartStopCodeSpace, onShowDeplo
           onRestart(env);
           setShowRestartModal(false);
         }}
-      />)}
-      {showOnPremStartModal && (
+      />)} */}
+      {/* {showOnPremStartModal && (
         <Modal
           title={'Manual Start'}
           showAcceptButton={false}
@@ -578,7 +594,7 @@ const CodeSpaceGCard = ({ codeSpace, userInfo, onStartStopCodeSpace, onShowDeplo
           content={onShowOnPremStartModal}
           onCancel={() => setShowOnPremStartModal(false)}
         />
-      )}
+      )} */}
     </>
   )
 }

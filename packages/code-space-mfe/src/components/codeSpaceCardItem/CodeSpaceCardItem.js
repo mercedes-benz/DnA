@@ -537,6 +537,7 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
                   serverStarted={serverStarted}
                   onStartStopCodeSpace={props?.onStartStopCodeSpace}
                   handleServerStatusAndProgress={handleServerStatusAndProgress}
+                  onShowBlueprintModal={props?.onShowBlueprintModal}
                 />
                 {/*<div
                   style={{
