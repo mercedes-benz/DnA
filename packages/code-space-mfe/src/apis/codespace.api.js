@@ -55,6 +55,28 @@ const unDeployCodeSpace = (id, data) => { //not implemented yet
         data,
     });
 };
+
+const buildCodeSpace = (id, data) => {
+    return server.post(`/workspaces/${id}/build`, data);
+};
+
+const getBuildAndDeployLogs = (projectName) => {
+    return server.get(`workspace/logs/${projectName}`, {
+        data: {},
+    });
+};
+
+const buildVersionLov = (projectName) => { //not used for now
+    return server.get(`workspace/buildVersion/${projectName}`, {
+        data: {},
+    });
+}
+
+const rejectDeployApproval = (id) => {
+    return server.post(`workspaces/${id}/deploymentReject`, {
+        data: {},
+    });
+};
   
 const onBoardCollaborator = (id, data) => { 
     return server.put(`workspaces/${id}`, 
@@ -84,6 +106,12 @@ const assignAdminRole = (id, userId, data) => {
   return server.post(`workspaces/${id}/collaborator/${userId}/admin?isAdmin=${data}`, {
     data: {},
   });
+};
+
+const assignApproverRole = (id, userId, data) => {
+    return server.post(`workspaces/${id}/collaborator/${userId}/approver?isApprover=${data}`, {
+      data: {},
+    });
 };
 
 //   // Usage statistics
@@ -301,11 +329,16 @@ export const CodeSpaceApiClient = {
     getCodeSpacesGitBranchList,
     deployCodeSpace,
     unDeployCodeSpace,
+    buildCodeSpace,
+    getBuildAndDeployLogs,
+    buildVersionLov,
+    rejectDeployApproval,
     onBoardCollaborator,
     addCollaborator,
     deleteCollaborator,
     transferOwnership,
     assignAdminRole,
+    assignApproverRole,
     // getWorkSpacesTransparency,
     createOrUpdateCodeSpaceConfig,
     getCodeSpaceConfig,

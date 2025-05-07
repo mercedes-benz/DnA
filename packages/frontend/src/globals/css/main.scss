@@ -1491,6 +1491,9 @@
     &.dublicate::before{
       content: "\e947";
     }
+    &.deploy::before {
+      content: "\e996";
+    }
     &.localcomplianceofficer::before{
       content: '\e977'
     }

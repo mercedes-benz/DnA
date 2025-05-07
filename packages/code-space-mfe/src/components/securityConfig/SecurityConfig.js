@@ -52,8 +52,8 @@ export default class SecurityConfig extends React.Component {
     this.state = {
       id: '',
       projectName: '',
-      intIAM:'false',
-      prodIAM:'false',
+      intIAM: 'false',
+      prodIAM: 'false',
       showRedeployWarningModal: false,
       editMode: false,
       currentTab: 'stagingEntitlement',
@@ -82,7 +82,7 @@ export default class SecurityConfig extends React.Component {
     const name = getQueryParam('name');
     const intIAMEnabled = getQueryParam('intIAM');
     const prodIAMEnabled = getQueryParam('prodIAM');
-    this.setState({projectName: name, intIAM: intIAMEnabled, prodIAM: prodIAMEnabled});
+    this.setState({ projectName: name, intIAM: intIAMEnabled, prodIAM: prodIAMEnabled });
     const path = getPath();
     SelectBox.defaultSetup();
     InputFields.defaultSetup();
@@ -101,20 +101,22 @@ export default class SecurityConfig extends React.Component {
 
   componentDidUpdate(prevProps, prevState) {
     if (this.state.currentTab !== prevState.currentTab) {
-      // this.setState({ isSaved: false });
+      const envKey = this.state.currentTab === 'stagingEntitlement' ? 'int' : 'prod'; 
       const path = getPath();
       SelectBox.defaultSetup();
       InputFields.defaultSetup();
+
       if (path.includes('publishedSecurityconfig')) {
         this.setState({
           readOnlyMode: true,
         });
-        !this.state.showStagingModal ? this.getPublishedConfig(this.state.id, 'prod') : this.getPublishedConfig(this.state.id, 'int');
+        !this.state.showStagingModal ? this.getPublishedConfig(this.state.id, envKey) : this.getPublishedConfig(this.state.id, 'int');
       } else {
-        !this.state.showStagingModal ? this.getConfig(this.state.id, 'prod') : this.getConfig(this.state.id, 'int');
+        !this.state.showStagingModal ? this.getConfig(this.state.id, envKey) : this.getConfig(this.state.id, 'int');
       }
     }
   }
+
 
   getPublishedConfig = (id, env) => {
     ProgressIndicator.show();
@@ -140,6 +142,7 @@ export default class SecurityConfig extends React.Component {
         ProgressIndicator.hide();
       });
   };
+
 
   getConfig = (id, env) => {
     ProgressIndicator.show();
@@ -212,19 +215,19 @@ export default class SecurityConfig extends React.Component {
 
   onPublish = (config, env) => {
     CodeSpaceApiClient.getPublishedConfig(this.state.id, env)
-    .then((res) => {
-      let IAMEnabled = 'false';
-      if(env === 'int'){
-        IAMEnabled = this.state.intIAM
-      } 
-      else{
-        IAMEnabled = this.state.prodIAM
-      }
-      ((!res?.data) && IAMEnabled === 'true' )? this.setState({showRedeployWarningModal:true}) : this.setState({showRedeployWarningModal:false});
-    })
-    .catch((error) => {
-      this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
-    });
+      .then((res) => {
+        let IAMEnabled = 'false';
+        if (env === 'int') {
+          IAMEnabled = this.state.intIAM
+        }
+        else {
+          IAMEnabled = this.state.prodIAM
+        }
+        ((!res?.data) && IAMEnabled === 'true') ? this.setState({ showRedeployWarningModal: true }) : this.setState({ showRedeployWarningModal: false });
+      })
+      .catch((error) => {
+        this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
+      });
     this.setState(
       {
         config: config,
@@ -246,21 +249,22 @@ export default class SecurityConfig extends React.Component {
 
     if (!currentState || saveActionType === 'btn' || _.isEqual(newState, currentState)) {
       if (target.id !== this.state.currentTab) {
-        !this.state.readOnlyMode
-          ? this.setState({
-              clickedTab: target.id,
-              showAlertChangesModal: showAlertChangesModal,
-            })
-          : this.setState({
-            currentTab: target.id,
-            saveActionType: '',
-            nextTab: target.id === 'stagingEntitlement' ? 'productionEntitlement' : 'stagingEntitlement',
-            showStagingModal: target.id === 'stagingEntitlement' ? true : false,
-            showAlertChangesModal: false,
-          });
+        const envKey = target.id === 'stagingEntitlement' ? 'int' : 'prod';
+        this.setState({
+          clickedTab: target.id,
+          showAlertChangesModal: showAlertChangesModal,
+        });
+
+
+        if (this.state.readOnlyMode) {
+          this.getPublishedConfig(this.state.id, envKey);
+        } else {
+          this.getConfig(this.state.id, envKey);
+        }
       }
     }
   };
+
 
   callApiToSave = (env, callPublishApi) => {
     const config = this.state.config;
@@ -278,7 +282,7 @@ export default class SecurityConfig extends React.Component {
           //   this.setState({
           //     config: response?.data,
           //   });
-            this.getConfig(this.state.id, env);
+          this.getConfig(this.state.id, env);
           // }
           Notification.show('Saved successfully.');
 
@@ -290,7 +294,7 @@ export default class SecurityConfig extends React.Component {
                 this.getConfig(this.state.id, env);
                 Notification.show('Published successfully.');
               })
-              .catch((error) => { 
+              .catch((error) => {
                 ProgressIndicator.hide();
                 this.showErrorNotification(error.response.status === 400 ? 'APPID and Entitlement should not be empty while publishing.' : error.message ? error.message : 'Some Error Occured');
               });
@@ -328,6 +332,16 @@ export default class SecurityConfig extends React.Component {
       <React.Fragment>
         <div className={classNames(Styles.mainPanel)}>
           <Caption title={title} />
+          <span>
+            <p style={{ color: 'var(--color-orange)' }}>
+              <i className="icon mbc-icon alert circle"></i>
+              Note: These features are currently only enabled for API recipes. They will be made available for the UI recipes in the future.
+            </p>
+            <p style={{ color: 'var(--color-orange)' }}>
+              <i className="icon mbc-icon alert circle"></i>
+              Note: Please ensure that all your API&apos;s are prefixed with /api.
+            </p>
+          </span>
           <div className={classNames(Styles.publishedConfig)}>
             <button
               className={classNames('btn add-dataiku-container btn-primary', Styles.editOrViewMode)}
@@ -414,8 +428,8 @@ export default class SecurityConfig extends React.Component {
             showAcceptButton={true}
             showCancelButton={false}
             show={this.state.showRedeployWarningModal}
-            content={<div id="contentparentdiv">Please redeploy by reentering the client id and client secret for the authorization changes to be reflected. Note that only authentication will be handled unless you redeploy.</div>}
-            onAccept={() => {this.setState({showRedeployWarningModal: false})}}
+            content={<div id="contentparentdiv">Please redeploy by reentering the client id, client secret and the required ignore paths, scopes and redirect uri if any for the authorization changes to be reflected. Note that only authentication will be handled unless you redeploy.</div>}
+            onAccept={() => { this.setState({ showRedeployWarningModal: false }) }}
           />
           <ConfirmModal
             title="Are you sure you want to Navigate ?"
@@ -436,10 +450,9 @@ export default class SecurityConfig extends React.Component {
             showAcceptButton={true}
             showCancelButton={true}
             show={this.state.editModeNavigateModal}
-            // content={<div id="contentparentdiv">Please save your changes before Navigating.</div>}
             content={<div id="contentparentdiv">Unsaved Changes if any will be discared on navigation. Are you sure you want to Navigate ?</div>}
             onCancel={() => {
-              this.setState({
+              this.setState({ 
                 editModeNavigateModal: !this.state.editModeNavigateModal,
               });
             }}
@@ -453,3 +466,4 @@ export default class SecurityConfig extends React.Component {
     );
   }
 }
+
