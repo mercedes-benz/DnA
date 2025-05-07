@@ -1,5 +1,5 @@
 import React, { Suspense } from 'react';
-import { Route, Router, Switch } from 'react-router-dom';
+import { Route, Router, Switch, Link } from 'react-router-dom';
 
 // import component from container app
 import Progress from 'dna-container/Progress';
@@ -133,7 +133,16 @@ const Routes = ({ user, hostHistory }) => {
                 hostHistory={hostHistory}
               />
             ))}
-            <Route exact path={'/unauthorized'} component={UnAuthorised} />
+              <Route
+                exact
+                path="/unauthorized/:from?"
+                render={() => (
+                  <UnAuthorised
+                    RedirectLink={<Link to="/datasharing">Go to Data Sharing Page</Link>}
+                  />
+                )}
+              />
+
             <Route component={NotFoundPage} />
           </Switch>
         ) : (
