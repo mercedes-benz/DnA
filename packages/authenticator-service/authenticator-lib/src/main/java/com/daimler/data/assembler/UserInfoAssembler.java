@@ -106,6 +106,7 @@ public class UserInfoAssembler implements GenericAssembler<UserInfoVO, UserInfoN
 		userData.setMobileNumber(userInfo.getMobileNumber());
 		userData.setFavoriteUsecases(new ArrayList<>());
 		userData.setRoles(userRoles);
+		userData.setIsDeleted(false);
 		entity.setData(userData);
 		return entity;
 	}
