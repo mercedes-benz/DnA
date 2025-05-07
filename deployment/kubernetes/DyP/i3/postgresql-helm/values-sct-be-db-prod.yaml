@@ -330,7 +330,7 @@ backup:
   tempPgdataVolume:
     ## recommended
     enabled: true
-    size: 20Gi
+    size: 5Gi
     # storageClass: dhc-gp3
   file:
     name: sct-be-db-backup
