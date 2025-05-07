@@ -397,15 +397,27 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		String projectName = workspaceNsql.getData().getProjectDetails().getProjectName();
 		Boolean intSecureIAM = false;
 		Boolean prodSecureIAM = false;
+		Boolean prevSecureIAM = false;
+		String prevOneApiShortName = null;
+		//for now making it as false once we enble cookie way will remove this.
+		isSecuredWithCookie = false;
 		LOGGER.info("serviceProvider "+cloudServiceProvider);
 		if("prod".equalsIgnoreCase(env)){
 			if(Objects.nonNull(prodDeploymentDetails)) {
 				prodSecureIAM = secureWithIAM;
+				if(Objects.nonNull(prodDeploymentDetails.getSecureWithIAMRequired())){
+					prevSecureIAM = prodDeploymentDetails.getSecureWithIAMRequired();
+				}
+				prevOneApiShortName = prodDeploymentDetails.getOneApiVersionShortName();
 			}
 		}
 		if("int".equalsIgnoreCase(env)){
 			if(Objects.nonNull(intDeploymentDetails)) {
 				intSecureIAM = secureWithIAM;
+				if(Objects.nonNull(intDeploymentDetails.getSecureWithIAMRequired())){
+					prevSecureIAM = intDeploymentDetails.getSecureWithIAMRequired();
+				}
+				prevOneApiShortName = intDeploymentDetails.getOneApiVersionShortName();
 			}
 		}
 		LOGGER.info("Codespace deployed to production with enabling secureIAM is :{}",prodSecureIAM);
@@ -640,7 +652,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 								deleteAllPlugin = true;
 						}
 						
-						if(deleteAllPlugin){
+						if(deleteAllPlugin && (Boolean.TRUE.equals(prevSecureIAM) || (Objects.nonNull(prevOneApiShortName) && !prevOneApiShortName.isBlank()))){
 
 							//delete oneapi plugin if any
 							deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,ONE_API_PLUGIN,cloudServiceProvider);
@@ -791,7 +803,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 								LOGGER.info("kongApiForDeploymentURL is {} and apiRecipe is :{}, calling apiAuthoriser plugin and status {}: ",kongApiForDeploymentURL, apiRecipe, attachApiAuthoriserPluginResponse.getSuccess());
 
 							}
-						}else{
+						}else if (Boolean.TRUE.equals(prevSecureIAM)){
 							deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,API_AUTHORISER_PLUGIN,cloudServiceProvider);
 							LOGGER.info("kong deleting api authorizer plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
 							deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
@@ -872,6 +884,12 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 									AttachPluginVO attachOIDCPluginVO = new AttachPluginVO();
 									AttachPluginConfigVO attachOIDCPluginConfigVO = new AttachPluginConfigVO();
 
+
+									//for now we removed the prefunction so disabling the prefunction if any...
+									//change function plugin status to disable if any
+									changePluginStatusResponse = changePluginStatus(serviceName.toLowerCase()+"-"+env,PRE_FUNCTION_PLUGIN,false);
+									LOGGER.info("calling kong to change the plugin status to disable for service: {} and status is {}, if warings any {}, if error any {}",serviceName,changePluginStatusResponse.getSuccess(), changePluginStatusResponse.getWarnings(),changePluginStatusResponse.getErrors());
+
 									attachOIDCPluginVO.setName(OIDC_PLUGIN);
 
 									String authRecovery_page_path = "https://" + codeServerEnvUrl + "/" + serviceName.toLowerCase() + "/"+env+"/";	
@@ -906,8 +924,8 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 									attachOIDCPluginConfigVO.setRecovery_page_path(authRecovery_page_path);
 									attachOIDCPluginConfigVO.setFilters(ignorePaths.isBlank()?null:ignorePaths);
 									attachOIDCPluginConfigVO.setIgnore_auth_filters(ignorePaths.isBlank()?null:ignorePaths);
-									attachOIDCPluginConfigVO.setAccess_token_as_bearer(accessTokenAsBearer);
-									attachOIDCPluginConfigVO.setAccess_token_header_name(accessTokenHeaderName);
+									attachOIDCPluginConfigVO.setAccess_token_as_bearer("no");
+									attachOIDCPluginConfigVO.setAccess_token_header_name("X-Access-Token");
 									attachOIDCPluginVO.setConfig(attachOIDCPluginConfigVO);
 									attachOIDCPluginRequestVO.setData(attachOIDCPluginVO);
 
@@ -915,44 +933,45 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 									LOGGER.info("kongApiForDeploymentURL is {} and apiRecipe is {}, calling oidc plugin ",kongApiForDeploymentURL, apiRecipe, attachPluginResponse.getSuccess());
 									
 									//attaching pre and post function for frontend recipes if already exsits will make the plugin status enable else adding new plugin
-									
-									AttachFunctionPluginRequestVO preFunctionRequestVO = new AttachFunctionPluginRequestVO();
+									//removing prefunction for now....
+
+									//AttachFunctionPluginRequestVO preFunctionRequestVO = new AttachFunctionPluginRequestVO();
 									AttachFunctionPluginRequestVO postFunctionRequestVO = new AttachFunctionPluginRequestVO();
 
-									AttachFunctionPluginVO preFunctionPluginVO = new AttachFunctionPluginVO();
+									//AttachFunctionPluginVO preFunctionPluginVO = new AttachFunctionPluginVO();
 									AttachFunctionPluginVO postFunctionPluginVO = new AttachFunctionPluginVO();
 
-									AttachFunctionPluginConfigVO preFunctionConfigVO = new AttachFunctionPluginConfigVO();
+									//AttachFunctionPluginConfigVO preFunctionConfigVO = new AttachFunctionPluginConfigVO();
 									AttachFunctionPluginConfigVO postFunctionConfigVO = new AttachFunctionPluginConfigVO();
 
 									List<String>gitDetails = CommonUtils.getDetailsFromUrl(functionPluginGitUrl);
 
-									changePluginStatusResponse = changePluginStatus(serviceName.toLowerCase()+"-"+env,PRE_FUNCTION_PLUGIN,true);
-									LOGGER.info("calling kong to change the plugin status to enable for service: {} and status is {}, if warings any {}, if error any {}",serviceName,changePluginStatusResponse.getSuccess(), changePluginStatusResponse.getWarnings(),changePluginStatusResponse.getErrors());
-									if(!changePluginStatusResponse.getErrors().isEmpty() && "NOT_FOUND".equalsIgnoreCase(changePluginStatusResponse.getSuccess())){
-										try{
-											JSONObject jsonResponse = gitClient.getFileContent(gitDetails.get(2), gitDetails.get(1), gitDetails.get(0), functionPluginsFolderPath,preFunctionFrontendFileName,codeServerEnvRef);
-											if(jsonResponse !=null && jsonResponse.has("name") && jsonResponse.has("content")) {
-												LOGGER.info("Retrieved a Function plugins SHA was successfull from Git.");
+									// changePluginStatusResponse = changePluginStatus(serviceName.toLowerCase()+"-"+env,PRE_FUNCTION_PLUGIN,true);
+									// LOGGER.info("calling kong to change the plugin status to enable for service: {} and status is {}, if warings any {}, if error any {}",serviceName,changePluginStatusResponse.getSuccess(), changePluginStatusResponse.getWarnings(),changePluginStatusResponse.getErrors());
+									// if(!changePluginStatusResponse.getErrors().isEmpty() && "NOT_FOUND".equalsIgnoreCase(changePluginStatusResponse.getSuccess())){
+									// 	try{
+									// 		JSONObject jsonResponse = gitClient.getFileContent(gitDetails.get(2), gitDetails.get(1), gitDetails.get(0), functionPluginsFolderPath,preFunctionFrontendFileName,codeServerEnvRef);
+									// 		if(jsonResponse !=null && jsonResponse.has("name") && jsonResponse.has("content")) {
+									// 			LOGGER.info("Retrieved a Function plugins SHA was successfull from Git.");
 												
-												String content = jsonResponse.getString("content");
-												String preFunctionContent = base64DecodeAandMinifyString(content);
+									// 			String content = jsonResponse.getString("content");
+									// 			String preFunctionContent = base64DecodeAandMinifyString(content);
 
-												List<String> preFunctionValue =  new ArrayList<>();
-												preFunctionValue.add(preFunctionContent);
-												preFunctionConfigVO.setAccess(preFunctionValue);
+									// 			List<String> preFunctionValue =  new ArrayList<>();
+									// 			preFunctionValue.add(preFunctionContent);
+									// 			preFunctionConfigVO.setAccess(preFunctionValue);
 
-												preFunctionPluginVO.setName(PRE_FUNCTION_PLUGIN);
-												preFunctionPluginVO.setConfig(preFunctionConfigVO);
-												preFunctionRequestVO.setData(preFunctionPluginVO);
+									// 			preFunctionPluginVO.setName(PRE_FUNCTION_PLUGIN);
+									// 			preFunctionPluginVO.setConfig(preFunctionConfigVO);
+									// 			preFunctionRequestVO.setData(preFunctionPluginVO);
 
-												attachPluginResponse = attachFunctionPluginToService(preFunctionRequestVO,serviceName.toLowerCase()+"-"+env);
-												LOGGER.info("calling kong to attach pre function plugin for service: {} env: {} and staus is: {}, errors if any: {}, warnings if any: {}",serviceName,env, attachPluginResponse.getSuccess(),attachPluginResponse.getErrors(),attachPluginResponse.getWarnings());
-											}
-										}catch(Exception e) {
-											LOGGER.error("Error Occured While fetching preFunction file from Git : {} ",e.getMessage());
-										}
-									}
+									// 			attachPluginResponse = attachFunctionPluginToService(preFunctionRequestVO,serviceName.toLowerCase()+"-"+env);
+									// 			LOGGER.info("calling kong to attach pre function plugin for service: {} env: {} and staus is: {}, errors if any: {}, warnings if any: {}",serviceName,env, attachPluginResponse.getSuccess(),attachPluginResponse.getErrors(),attachPluginResponse.getWarnings());
+									// 		}
+									// 	}catch(Exception e) {
+									// 		LOGGER.error("Error Occured While fetching preFunction file from Git : {} ",e.getMessage());
+									// 	}
+									// }
 									changePluginStatusResponse = changePluginStatus(serviceName.toLowerCase()+"-"+env,POST_FUNCTION_PLUGIN,true);
 									LOGGER.info("calling kong to change the plugin status to enable for service: {} and status is {}, if warings any {}, if error any {}",serviceName,changePluginStatusResponse.getSuccess(), changePluginStatusResponse.getWarnings(),changePluginStatusResponse.getErrors());
 									if(!changePluginStatusResponse.getErrors().isEmpty() && "NOT_FOUND".equalsIgnoreCase(changePluginStatusResponse.getSuccess())){
@@ -983,7 +1002,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 								}
 							}
 						}
-						else{
+						else if (Boolean.TRUE.equals(prevSecureIAM)){
 							//deleting oidc plugin if any
 							deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,OIDC_PLUGIN,cloudServiceProvider);
 							LOGGER.info("kong deleting OIDC plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),

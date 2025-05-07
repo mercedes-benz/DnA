@@ -112,7 +112,7 @@ const DeployModal = (props) => {
         // setCookieSelected(deploymentDetails?.isSecuredWithCookie || false);
         setCookieSelected(false);
         setClientId(deploymentDetails?.clientId || '');
-        setRedirectUri(deploymentDetails?.redirectUri ? `${envUrl}/${deploymentDetails?.redirectUri}` : (deploymentDetails?.deploymentType ==='UI' ? `${envUrl}/${projectDetails?.projectName}/${env}/cb` : '' ));
+        setRedirectUri(deploymentDetails?.redirectUri ? `${envUrl}${deploymentDetails?.redirectUri}` : (deploymentDetails?.deploymentType ==='UI' ? `${envUrl}/${projectDetails?.projectName}/${env}/cb` : '' ));
         deploymentDetails?.ignorePaths?.length && setIgnorePath(deploymentDetails?.ignorePaths?.split(','));
         deploymentDetails?.scope?.length && setScope(deploymentDetails?.scope?.split(' '));
         setDeploymentType(deploymentDetails?.deploymentType || 'API');
@@ -168,7 +168,7 @@ const DeployModal = (props) => {
       setScope(['openid', 'offline_access']);
     } else {
       setClientId(deploymentDetails?.clientId || '');
-      setRedirectUri(deploymentDetails?.redirectUri ? `${envUrl}/${deploymentDetails?.redirectUri}` : redirectUri);
+      setRedirectUri(deploymentDetails?.redirectUri ? `${envUrl}${deploymentDetails?.redirectUri}` : redirectUri);
       deploymentDetails?.ignorePaths?.length && setIgnorePath(deploymentDetails?.ignorePaths?.split(','));
       deploymentDetails?.scope?.length && setScope(deploymentDetails?.scope?.split(' '));
     }
@@ -236,7 +236,7 @@ const DeployModal = (props) => {
     setCookieSelected(false);
     setClientId(deploymentDetails?.clientId || '');
     const redirectUri = deploymentDetails?.deploymentType === 'UI' ? `${envUrl}/${projectDetails?.projectName}/${deployEnv === 'staging' ? 'int' : 'prod'}/cb` : '';
-    setRedirectUri(deploymentDetails?.redirectUri ? `${envUrl}/${deploymentDetails?.redirectUri}` : redirectUri);
+    setRedirectUri(deploymentDetails?.redirectUri ? `${envUrl}${deploymentDetails?.redirectUri}` : redirectUri);
     deploymentDetails?.ignorePaths?.length && setIgnorePath(deploymentDetails?.ignorePaths?.split(','));
     deploymentDetails?.scope?.length && setScope(deploymentDetails?.scope?.split(' '));
     setDeploymentType(deploymentDetails?.deploymentType || 'API');
@@ -531,7 +531,7 @@ const DeployModal = (props) => {
                         <>
                           <div className={classNames(Styles.wrapper)}>
                             <span className="label">
-                              <p>Authorization Code Flow</p>
+                              <p>{isUiRecipe ? 'Authorization Code Flow' : 'Client Credentials Grant / Authorization Code Flow'}</p>
                             </span>
                             <div className={classNames(Styles.flexLayout)}>
                               <TextBox
