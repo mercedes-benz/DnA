@@ -1,0 +1,86 @@
+.BuildModal {
+  .fourColumnFlexLayout {
+    display: flex;
+    justify-content: space-between;
+    margin: 10px;
+  
+    >div:nth-child(1){
+      width: calc(22% - 7px);
+    }
+    > div {
+      width: calc(34% - 7px); 
+    }
+
+    > div:last-child {
+      width: calc(10% - 7px);
+      align-self: center;
+    }
+  }
+
+  .btnGrp {
+    // display: flex;
+    // justify-content: center;
+    // align-self: center;
+    .triggerBtn {
+      background: #00adef;
+    }
+
+  }
+
+  .wrapper {
+    background: #1C2026 !important;
+    margin-top: 15px !important;
+    margin-bottom: 15px !important;
+    padding: 20px 20px;
+
+    .flexLayout {
+      display: flex;
+      justify-content: space-between;
+      width: 100%;
+
+      >div {
+        width: auto;
+      }
+    }
+    .refreshBtn {
+      background: none;
+      border: none;
+      width:10px;
+    }
+
+  }
+
+  .codeSpaceBuildListviewContent {
+    background-color: #252a33;
+    padding-top: 15px;
+    // overflow-x:auto
+
+    .codeSpaceBuildMargininone {
+      // border: 1px solid;
+      // border-collapse: collapse;
+      // border-color:#383f49;
+      position: relative;
+      margin-top: 20px;
+
+      .newLink {
+        i{
+          font-size: var(--font-size-tiny);
+        }
+      }
+
+      .actionBtn {
+        background: none;
+        border: none;
+        padding: 0;
+        
+        i{
+          font-size: var(--font-size-icon-big);
+        }
+
+        &:hover {
+          color: #00adef;
+        }
+      }
+    }
+  }
+}

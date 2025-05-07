@@ -145,7 +145,7 @@ const CodeSpace = (props) => {
   const [prodCodeDeployFailed, setProdCodeDeployFailed] = useState(false);
   const [livelinessInterval, setLivelinessInterval] = useState();
   const [isStaging, setIsStaging] = useState(false);
-  const [logsList, setlogsList] = useState([]);
+  const [codeBuilding, setCodeBuilding] = useState(false);
   const [showVaultManagementModal, setShowVaultManagementModal] = useState(false);
   const [showAuditLogsModal, setShowAuditLogsModal] = useState(false);
 
@@ -182,16 +182,27 @@ const CodeSpace = (props) => {
   //   codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'nestjs' ||
   //   codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'springbootwithmaven';
 
-  const isIAMRecipe =
-    codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'springboot' ||
-    codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'py-fastapi' ||
-    codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'expressjs' ||
-    codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'springbootwithmaven';
+  // const isIAMRecipe =
+  //   codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'springboot' ||
+  //   codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'py-fastapi' ||
+  //   codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'expressjs' ||
+  //   codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'springbootwithmaven';
 
-  const resources = codeSpaceData?.projectDetails?.recipeDetails?.resource?.split(',');
-  const resourceUsageUrl = Envs.MONITORING_DASHBOARD_BASE_URL + `codespace-cpu-and-memory-usage?orgId=1&from=now-1h&to=now&var-namespace=${Envs.CODESERVER_NAMESPACE}&var-pod=${codeSpaceData?.workspaceId}&var-container=notebook`;
-  const intAppResourceUsageUrl = Envs.MONITORING_DASHBOARD_APP_BASE_URL + `codespace-app-cpu-and-memory-usage?orgId=1&var-namespace=${Envs.CODESERVER_APP_NAMESPACE}&var-app=${codeSpaceData?.projectDetails?.projectName}-int&var-container=`;
-  const prodAppResourceUsageUrl = Envs.MONITORING_DASHBOARD_APP_BASE_URL + `codespace-app-cpu-and-memory-usage?orgId=1&var-namespace=${Envs.CODESERVER_APP_NAMESPACE}&var-app=${codeSpaceData?.projectDetails?.projectName}-prod&var-container=`;
+  // const isUIRecipe = 
+  //   codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'dash' ||
+  //   codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'streamlit' ||
+  //   codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'nestjs' ||
+  //   codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'vuejs' ||
+  //   codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'angular' ||
+  //   codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'react';
+  
+    const resources = codeSpaceData?.projectDetails?.recipeDetails?.resource?.split(',');
+    const resourceUsageUrl = Envs.MONITORING_DASHBOARD_BASE_URL + `codespace-cpu-and-memory-usage?orgId=1&from=now-1h&to=now&var-namespace=${Envs.CODESERVER_NAMESPACE}&var-pod=${codeSpaceData?.workspaceId}&var-container=notebook`;
+    const intAppResourceUsageUrl = Envs.MONITORING_DASHBOARD_APP_BASE_URL + `codespace-app-cpu-and-memory-usage?orgId=1&var-namespace=${Envs.CODESERVER_APP_NAMESPACE}&var-app=${codeSpaceData?.projectDetails?.projectName}-int&var-container=`;
+    const prodAppResourceUsageUrl = Envs.MONITORING_DASHBOARD_APP_BASE_URL + `codespace-app-cpu-and-memory-usage?orgId=1&var-namespace=${Envs.CODESERVER_APP_NAMESPACE}&var-app=${codeSpaceData?.projectDetails?.projectName}-prod&var-container=`;
+
+    const intSecuredWithOneApi = codeSpaceData?.projectDetails?.intDeploymentDetails?.oneApiVersionShortName?.length || false;
+    const prodSecuredWithOneApi = codeSpaceData?.projectDetails?.prodDeploymentDetails?.oneApiVersionShortName?.length || false;
 
   useEffect(() => {
     document.addEventListener('touchend', handleContextMenuOutside, true);
@@ -360,12 +371,14 @@ const CodeSpace = (props) => {
         const prodDeployFailed = prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
         const deployingInProgress =
           intDeploymentDetails.lastDeploymentStatus === 'DEPLOY_REQUESTED' ||
+          prodDeploymentDetails?.lastDeploymentStatus === 'APPROVAL_PENDING' ||
+          projectDetails?.lastBuildOrDeployedStatus === 'APPROVAL_PENDING' ||
           prodDeploymentDetails.lastDeploymentStatus === 'DEPLOY_REQUESTED';
         // const deployed =
         //   intDeploymentDetails.lastDeploymentStatus === 'DEPLOYED' ||
         //   prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYED' ||
         //   (intDeployedUrl !== null && intDeployedUrl !== 'null') ||
-        //   (prodDeployedUrl !== null && prodDeployedUrl !== 'null');
+        //   (prodDeployedUrl !== null && prodDeployedUrl !== 'null'); 
 
         setCodeSpaceData({
           ...res.data,
@@ -381,6 +394,8 @@ const CodeSpace = (props) => {
         setProdCodeDeployedBranch(prodDeploymentDetails.lastDeployedBranch);
         setProdCodeDeployed(prodDeployed);
         setProdCodeDeployFailed(prodDeployFailed);
+
+        setCodeBuilding(res?.data?.projectDetails?.lastBuildOrDeployedStatus === 'BUILD_REQUESTED');
 
         Tooltip.defaultSetup();
         Tabs.defaultSetup();
@@ -512,6 +527,8 @@ const CodeSpace = (props) => {
   const disableDeployment = !projectDetails?.recipeDetails?.isDeployEnabled;
   const deployingInProgress =
     projectDetails?.intDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED' ||
+    projectDetails?.prodDeploymentDetails?.lastDeploymentStatus === 'APPROVAL_PENDING' ||
+    projectDetails?.lastBuildOrDeployedStatus === 'APPROVAL_PENDING' ||
     projectDetails?.prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED';
   const securedWithIAMContent = (
     <svg
@@ -593,7 +610,7 @@ const CodeSpace = (props) => {
                 <div className={Styles.headerright}>
                   {!disableDeployment && (
                     <>
-                      {(isOwner && !deployingInProgress && isIAMRecipe) && (
+                      {(isOwner && !deployingInProgress && !codeBuilding) && (
                         <div
                           className={classNames(Styles.configLink, Styles.pointer)}
                           onClick={() => navigateSecurityConfig()}
@@ -698,10 +715,10 @@ const CodeSpace = (props) => {
                       )} */}
                       <div>
                         <button
-                          className={classNames('btn btn-secondary', codeDeploying ? 'disable' : '')}
+                          className={classNames('btn btn-secondary', (codeDeploying || codeBuilding) ? 'disable' : '')}
                           onClick={onShowCodeDeployModal}
                         >
-                          Deploy{codeDeploying && 'ing...'}
+                          {codeBuilding ? 'Building' : `Deploy${codeDeploying ? 'ing...' : ''}`}
                         </button>
                       </div>
                       {(intDeploymentDetails.lastDeploymentStatus || prodDeploymentDetails.lastDeploymentStatus) && (
@@ -765,7 +782,7 @@ const CodeSpace = (props) => {
                               className={classNames(
                                 'btn btn-primary',
                                 Styles.btnOutline,
-                                !((projectDetails?.recipeDetails?.isDeployEnabled && isOwner) || intDeploymentDetails?.deploymentAuditLogs) &&
+                                !((projectDetails?.recipeDetails?.isDeployEnabled && isOwner) || intDeploymentDetails?.lastDeploymentStatus) &&
                                   Styles.btnDisabled,
                               )}
                               onClick={() => {
@@ -786,7 +803,7 @@ const CodeSpace = (props) => {
                                 ref={stagingWrapperRef}
                                 className={classNames(Styles.collapseIcon, showStagingActions ? Styles.open : '')}
                               >
-                                {((projectDetails?.recipeDetails?.isDeployEnabled && isOwner) || intDeploymentDetails?.deploymentAuditLogs) && (
+                                {((projectDetails?.recipeDetails?.isDeployEnabled && isOwner) || intDeploymentDetails?.lastDeploymentStatus) && (
                                   <>
                                     <span className={classNames('animation-wrapper', Styles.animationWrapper)}></span>
                                     <i className={classNames('icon down-up-flip')}></i>
@@ -827,11 +844,18 @@ const CodeSpace = (props) => {
                               )}
                               {codeDeployed && (
                                 <li>
-                                  <a href={codeDeployedUrl} target="_blank" rel="noreferrer">
-                                    Deployed App URL{' '}
-                                    {intDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
-                                    <i className="icon mbc-icon new-tab" />
-                                  </a>
+                                  {intSecuredWithOneApi ? (
+                                    <span className={classNames(Styles.oneAPILink)}>
+                                      Deployed App URL (oneAPI){' '} 
+                                      <i className="icon mbc-icon new-tab" />
+                                    </span>
+                                  ) : (
+                                    <a href={codeDeployedUrl} target="_blank" rel="noreferrer">
+                                      Deployed App URL{' '}
+                                      {intDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
+                                      <i className="icon mbc-icon new-tab" />
+                                    </a>
+                                  )}
                                 </li>
                               )}
                               {intDeploymentDetails?.lastDeploymentStatus && (
@@ -853,13 +877,12 @@ const CodeSpace = (props) => {
                                   </a>
                                 </li>
                               )}
-                              {intDeploymentDetails?.deploymentAuditLogs && (
+                              {intDeploymentDetails?.lastDeploymentStatus && (
                                 <li>
                                   <span
                                     onClick={() => {
                                       setShowAuditLogsModal(true);
                                       setIsStaging(true);
-                                      setlogsList(intDeploymentDetails?.deploymentAuditLogs);
                                     }}
                                   >
                                     Deploy & Action Audit Logs
@@ -896,7 +919,7 @@ const CodeSpace = (props) => {
                               className={classNames(
                                 'btn btn-primary',
                                 Styles.btnOutline,
-                                !((projectDetails?.recipeDetails?.isDeployEnabled && isOwner) || prodDeploymentDetails?.deploymentAuditLogs) &&
+                                !((projectDetails?.recipeDetails?.isDeployEnabled && isOwner) || prodDeploymentDetails?.lastDeploymentStatus) &&
                                   Styles.btnDisabled,
                               )}
                               onClick={() => {
@@ -917,7 +940,7 @@ const CodeSpace = (props) => {
                                 ref={prodWrapperRef}
                                 className={classNames(Styles.collapseIcon, showProdActions ? Styles.open : '')}
                               >
-                                {((projectDetails?.recipeDetails?.isDeployEnabled && isOwner) || prodDeploymentDetails?.deploymentAuditLogs) && (
+                                {((projectDetails?.recipeDetails?.isDeployEnabled && isOwner) || prodDeploymentDetails?.lastDeploymentStatus) && (
                                   <>
                                     <span className={classNames('animation-wrapper', Styles.animationWrapper)}></span>
                                     <i className={classNames('icon down-up-flip')}></i>
@@ -958,11 +981,18 @@ const CodeSpace = (props) => {
                               )}
                               {prodCodeDeployed && (
                                 <li>
-                                  <a href={prodCodeDeployedUrl} target="_blank" rel="noreferrer">
-                                    Deployed App URL{' '}
-                                    {prodDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
-                                    <i className="icon mbc-icon new-tab" />
-                                  </a>
+                                  {prodSecuredWithOneApi ? (
+                                    <span className={classNames(Styles.oneAPILink)}>
+                                      Deployed App URL (oneAPI){' '} 
+                                      <i className="icon mbc-icon new-tab" />
+                                    </span>
+                                  ) : (
+                                    <a href={prodCodeDeployedUrl} target="_blank" rel="noreferrer">
+                                      Deployed App URL{' '}
+                                      {prodDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
+                                      <i className="icon mbc-icon new-tab" />
+                                    </a>
+                                  )}
                                 </li>
                               )}
                               {prodDeploymentDetails?.lastDeploymentStatus && (
@@ -982,13 +1012,12 @@ const CodeSpace = (props) => {
                                   </a>
                                 </li>
                               )}
-                              {prodDeploymentDetails?.deploymentAuditLogs && (
+                              {prodDeploymentDetails?.lastDeploymentStatus && (
                                 <li>
                                   <span
                                     onClick={() => {
                                       setShowAuditLogsModal(true);
                                       setIsStaging(false);
-                                      setlogsList(prodDeploymentDetails?.deploymentAuditLogs);
                                     }}
                                   >
                                     Deploy & Action Audit Logs
@@ -1177,7 +1206,6 @@ const CodeSpace = (props) => {
           deployedEnvInfo={isStaging ? 'Staging' : 'Production'}
           show={showAuditLogsModal}
           setShowAuditLogsModal={setShowAuditLogsModal}
-          logsList={logsList}
           projectName={projectDetails.projectName.toLowerCase()}
         />
       )}
@@ -1186,7 +1214,8 @@ const CodeSpace = (props) => {
         <DeployModal
           userInfo={props.user}
           codeSpaceData={codeSpaceData}
-          enableSecureWithIAM={isIAMRecipe}
+          // enableSecureWithIAM={isIAMRecipe}
+          // isUIRecipe={isUIRecipe}
           setShowCodeDeployModal={setShowCodeDeployModal}
           startDeployLivelinessCheck={enableDeployLivelinessCheck}
           setCodeDeploying={setCodeDeploying}

@@ -1094,6 +1094,46 @@ paths:
         500:
           description: "Internal error"
 
+  /workspaces/{id}/collaborator/{collabUserId}/approver:
+    post:
+      tags:
+        - "code-server"
+      summary: "make or remove collaborator approver for workspace project ."
+      description: "make or remove collaborator approver for workspace project."
+      operationId: "makeApprover"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Workspace ID to be fetched"
+          required: true
+          type: "string"
+        - name: "collabUserId"
+          in: "path"
+          description: "Collaborator user id"
+          required: true
+          type: "string"
+        - name: isApprover
+          in: query
+          required: true
+          type: "boolean"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
   /workspaces/{id}/restart:        
     post:
       tags:
@@ -1163,6 +1203,37 @@ paths:
           description: "Method not allowed"
         500:
           description: "Internal error"
+
+  /workspaces/{id}/deploymentReject:
+    post:
+      tags:
+        - "code-server"
+      summary: "Reject production deployment for a workspace of a given Id."
+      description: "Reject workspace production deployment for a given identifier."
+      operationId: "deploymentRejectWorkspaceProject"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Workspace ID to be fetched"
+          required: true
+          type: "string"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"         
 
           
 definitions:
@@ -1246,14 +1317,18 @@ definitions:
 #        description: "Date of last deployment"  
       status:
         type: string
-        enum: ["CREATED","CREATE_FAILED","DELETED","DELETE_FAILED","DEPLOYED","DEPLOYMENT_FAILED","UNDEPLOYED","UNDEPLOY_FAILED","RESTARTED","RESTART_FAILED"]
-        description: "Status of workspace job action create/delete/deploy/restart request"
+        enum: ["CREATED","CREATE_FAILED","DELETED","DELETE_FAILED","DEPLOYED","DEPLOYMENT_FAILED","UNDEPLOYED","UNDEPLOY_FAILED","RESTARTED","RESTART_FAILED","BUILD_SUCCESS","BUILD_FAILED"]
+        description: "Status of workspace job action create/delete/build/deploy/restart request"
       targetEnvironment:
         type: string
       branch:
         type: string
       gitjobRunID:
         type: string
+      wsId:
+        type: string
+      appVersion:
+        type: string    
       required:
           -status
   CodeServerWorkspaceValidateVO:
@@ -1314,7 +1389,11 @@ definitions:
       projectCollaborators:
         type: array
         items:
-          $ref: "#/definitions/UserInfoVO" 
+          $ref: "#/definitions/UserInfoVO"
+      prodBuildDetails:
+        $ref: "#/definitions/CodeServerBuildDetailsVO"
+      intBuildDetails:
+        $ref: "#/definitions/CodeServerBuildDetailsVO"  
       prodDeploymentDetails:
         $ref: "#/definitions/CodeServerDeploymentDetailsVO"
       intDeploymentDetails:
@@ -1326,6 +1405,13 @@ definitions:
       projectCreatedOn:
         type: string
         format: date
+      lastBuildOrDeployedOn:
+        type: string
+        format: date
+      lastBuildOrDeployedStatus:
+        type: string
+      lastBuildOrDeployedEnv:
+        type: string    
       securityConfig:
         $ref: "#/definitions/CodespaceSecurityConfigVO"
       publishedSecuirtyConfig:
@@ -1346,8 +1432,8 @@ definitions:
         type: string
       secureWithIAMRequired:
         type: boolean
-      technicalUserDetailsForIAMLogin:
-        type: string
+      # technicalUserDetailsForIAMLogin:
+      #   type: string
       # valutInjectorEnable:  # Corrected property name
       #   type: boolean
         default: false  # This should now work as expected
@@ -1355,8 +1441,24 @@ definitions:
         type: string
       clientSecret:
         type: string
-      repo:
+      redirectUri:
         type: string
+      ignorePaths:
+        type: string
+      scope:
+        type: string
+      isApiRecipe:
+        type: boolean
+        required: true
+      oneApiVersionShortName:
+        type: string
+      isSecuredWithCookie :
+        type: boolean
+      repo :
+        type: string
+      version:
+        type: string
+#if it is from an existing build I will send both version and branch otherwise I'll send only branch.
 
 
            
@@ -1385,10 +1487,47 @@ definitions:
       gitjobRunID:
         type: string
         description: "git job run Id of project deployed"
+      oneApiVersionShortName:
+        type: string
+      isSecuredWithCookie:
+        type: boolean
+      deploymentType:
+        type: string
+        enum: [API, UI]
+      clientId:
+        type: string
+      redirectUri:
+        type: string
+      ignorePaths:
+        type: string
+      scope:
+        type: string
       deploymentAuditLogs:
         type: array
         items:
           $ref: "#/definitions/DeploymentAuditVO"
+
+  CodeServerBuildDetailsVO:
+    type: object
+    properties:
+      lastBuildOn:
+        type: string
+        format: date
+        description: "Date of last build"   
+      lastBuildBy:
+        $ref: "#/definitions/UserInfoVO" 
+      lastBuildBranch:
+        type: string
+        description: "Branch used for last build"
+      lastBuildStatus:
+        type: string
+        description: "Status of last build"
+      gitjobRunID:
+        type: string
+        description: "git job run Id of project deployed"
+      version:
+        type: string
+        description: "version of the last build"
          
   CodeServerRecipeDetailsVO:
     type: object
@@ -1638,6 +1777,10 @@ definitions:
         type: boolean
         description: "is the user has Admin rights"
         default: false
+      isApprover:
+        type: boolean
+        description: "does the user have approver rights"
+        default: false
       required:
         -id
         -gitUserName
@@ -1788,6 +1931,9 @@ definitions:
       piiData:
         type: boolean
         description: "If codespace contains personally identifiable information"
+      enableDeployApproval:
+        type: boolean
+        description: "If deployment approval workflow is enabled for the codespace"
       required:
         -description
         - division
@@ -1821,6 +1967,9 @@ definitions:
       commitId:
         type: string
         description: "commit id one which codespace is deployed"
+      approvedBy:
+        type: string
+        description: "User who approved the deployment"
 
   CodespaceSecurityConfigDetailVO:
     type: object  
@@ -1846,3 +1995,11 @@ definitions:
             $ref: "#/definitions/CodespaceSecurityConfigDetailVO"
       published:
             $ref: "#/definitions/CodespaceSecurityConfigDetailVO"
+
+  BuildWorkSpaceResponse:
+    type: object
+    properties:
+      appVersion:
+        type: string
+      genricMessage:        
+          $ref: "#/definitions/GenericMessage"  

@@ -19,9 +19,11 @@ import Tooltip from '../common/modules/uilab/js/src/tooltip';
 import DeployModal from './deployModal/DeployModal';
 import { history } from '../store';
 import CodeSpaceTutorials from './codeSpaceTutorials/CodeSpaceTutorials';
+import BuildModal from './buildModal/buildModal';
 import { Envs } from '../Utility/envs';
 import ConfirmModal from 'dna-container/ConfirmModal';
 import InfoModal from 'dna-container/InfoModal';
+import DeployApprovalModal from './DeployApprovalModal/DeployApprovalModal';
 
 // export interface IAllCodeSpacesProps {
 //   user: IUserInfo;
@@ -38,6 +40,8 @@ const AllCodeSpaces = (props) => {
         // }),
         [showNewCodeSpaceModal, setShowNewCodeSpaceModal] = useState(false),
         [showDeployCodeSpaceModal, setShowDeployCodeSpaceModal] = useState(false),
+        [showBuildCodeSpaceModal, setShowBuildCodeSpaceModal] = useState(false),
+        [showDeployApprovalModal, setShowDeployApprovalModal] = useState(false),
         [isRetryRequest, setIsRetryRequest] = useState(false),
         [isApiCallTakeTime, setIsApiCallTakeTime] = useState(false),
         [onBoardCodeSpace, setOnBoardCodeSpace] = useState(),
@@ -164,6 +168,16 @@ const AllCodeSpaces = (props) => {
         setShowDeployCodeSpaceModal(true);
     };
 
+    const onCodeSpaceBuild = (codeSpace) => {
+        setOnDeployCodeSpace(codeSpace);
+        setShowBuildCodeSpaceModal(true);
+    };
+
+    const onShowDeployApprovalModal = (codeSpace) => {
+        setOnDeployCodeSpace(codeSpace);
+        setShowDeployApprovalModal(true);
+    };
+
     const onStartStopCodeSpace = (codeSpace, startSuccessCB, env, manual = false) => {
         Tooltip.clear();
         const serverStarted = codeSpace.serverStatus === 'SERVER_STARTED';
@@ -223,10 +237,8 @@ const AllCodeSpaces = (props) => {
         <div className={Styles.modalContentWrapper}>
             <div className={Styles.awsModalMainTitle}><i className="icon mbc-icon alert circle" />DnA Platform successfully migrated<i className="icon mbc-icon alert circle" /></div>
             <br/>
-            <div className={Styles.awsModalTitle}>Old Workspace Access:</div>
-            <p>You can still access your old workspace on DyPCaaS On-Prem (from the context menu) until <span className={classNames(Styles.warning)}>April 30th, 2025</span>.</p>
             <div className={Styles.awsModalTitle}>Migrating your Deployed Applications: <span className={classNames(Styles.important)}>URGENT!!</span></div>
-            <p>Please be aware that you must migrate your deployed applications before <span className={classNames(Styles.warning)}> April 30th, 2025</span>.
+            <p>Please be aware that you must migrate your deployed applications before <span className={classNames(Styles.warning)}> May 9th, 2025</span>.
                 For migration, please reach out to us.</p>            
             <div className={Styles.awsModalTitle}>Need Assistance?:</div>
             <p>Please refer to the <span className={classNames(Styles.warning)}>AWS migration FAQs</span> on our landing page. You can also join our <a href={Envs.CODESPACE_TEAMS_LINK} target='_blank' rel='noopener noreferrer'>Teams channel</a> or <a href={Envs.CODESPACE_MATTERMOST_LINK} target='_blank' rel='noopener noreferrer'>Mattermost channel</a> for help or to discuss any concerns.</p>
@@ -437,6 +449,8 @@ const AllCodeSpaces = (props) => {
                                                         onShowCodeSpaceOnBoard={onShowCodeSpaceOnBoard}
                                                         onCodeSpaceEdit={onCodeSpaceEdit}
                                                         onShowDeployModal={onCodeSpaceDeploy}
+                                                        onShowBuildModal={onCodeSpaceBuild}
+                                                        onShowDeployApprovalModal={onShowDeployApprovalModal}
                                                         onStartStopCodeSpace={onStartStopCodeSpace}
                                                         navigateSecurityConfig={navigateSecurityConfig}
                                                     />
@@ -466,6 +480,8 @@ const AllCodeSpaces = (props) => {
                                                         onShowCodeSpaceOnBoard={onShowCodeSpaceOnBoard}
                                                         onCodeSpaceEdit={onCodeSpaceEdit}
                                                         onShowDeployModal={onCodeSpaceDeploy}
+                                                        onShowBuildModal={onCodeSpaceBuild}
+                                                        onShowDeployApprovalModal={onShowDeployApprovalModal}
                                                         onStartStopCodeSpace={onStartStopCodeSpace}
                                                     />
                                                 );
@@ -522,17 +538,59 @@ const AllCodeSpaces = (props) => {
                 <DeployModal
                     userInfo={props.user}
                     codeSpaceData={onDeployCodeSpace}
-                    enableSecureWithIAM={
-                        onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'springboot' ||
-                        onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'py-fastapi' ||
-                        onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'expressjs' ||
-                        onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'springbootwithmaven'
-                    }
+                    // enableSecureWithIAM={
+                    //     onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'springboot' ||
+                    //     onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'py-fastapi' ||
+                    //     onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'expressjs' ||
+                    //     onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'springbootwithmaven'
+                    // }
+                    // isUIRecipe={
+                    //     onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'dash' ||
+                    //     onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'streamlit' ||
+                    //     onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'nestjs' ||
+                    //     onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'vuejs' ||
+                    //     onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'angular' ||
+                    //     onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'react'
+                    // }
                     setShowCodeDeployModal={(isVisible) => setShowDeployCodeSpaceModal(isVisible)}
                     setCodeDeploying={() => getCodeSpacesData()}
                     setIsApiCallTakeTime={setIsApiCallTakeTime}
                     navigateSecurityConfig={navigateSecurityConfig}
                 />
+            )}
+            {showBuildCodeSpaceModal && (
+                <BuildModal
+                    userInfo={props.user}
+                    codeSpaceData={onDeployCodeSpace}
+                    setShowCodeBuildModal={(isVisible) => setShowBuildCodeSpaceModal(isVisible)}
+                    // enableSecureWithIAM={
+                    //     onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'springboot' ||
+                    //     onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'py-fastapi' ||
+                    //     onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'expressjs' ||
+                    //     onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'springbootwithmaven'
+                    // }
+                    // isUIRecipe={
+                    //     onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'dash' ||
+                    //     onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'streamlit' ||
+                    //     onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'nestjs' ||
+                    //     onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'vuejs' ||
+                    //     onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'angular' ||
+                    //     onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'react'
+                    // }
+                    setShowCodeDeployModal={(isVisible) => setShowDeployCodeSpaceModal(isVisible)}
+                    setCodeDeploying={() => getCodeSpacesData()}
+                    setIsApiCallTakeTime={setIsApiCallTakeTime}
+                    navigateSecurityConfig={navigateSecurityConfig}
+                />
+            )}
+            {showDeployApprovalModal && (
+                    <DeployApprovalModal
+                      show={showDeployApprovalModal}
+                      setShowDeployApprovalModal={setShowDeployApprovalModal}
+                      codeSpaceData = {onDeployCodeSpace}
+                      setCodeDeploying={() => getCodeSpacesData()}
+                      setIsApiCallTakeTime={setIsApiCallTakeTime}
+                    />
             )}
             {isApiCallTakeTime && (
                 <ProgressWithMessage
