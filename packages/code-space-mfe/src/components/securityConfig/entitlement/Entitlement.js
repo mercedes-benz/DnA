@@ -57,6 +57,14 @@ export default class Entitlement extends React.Component {
         null,
         2
       ),
+      originalJsonData: JSON.stringify(
+        {
+          appId: (props.config && props.config.appId) || '',
+          entitlements: (props.config && props.config.entitlements) || [],
+        },
+        null,
+        2
+      ),
       jsonError: '',
       isJsonTouched: false,
       toggleError: ''
@@ -109,7 +117,7 @@ export default class Entitlement extends React.Component {
         2
       );
       if (jsonData !== this.state.jsonData) {
-        this.setState({ jsonData });
+        this.setState({ jsonData, originalJsonData: jsonData });
       }
     }
   }
@@ -120,21 +128,43 @@ export default class Entitlement extends React.Component {
 
 
   handleToggle() {
-
     const envKey =
       this.props.env === 'int' ? 'publishedData_staging' : 'publishedData_production';
     const storedPublishedData = localStorage.getItem(envKey);
 
+    const showJsonNext = !this.state.showJson;
 
-    this.setState((prevState) => ({
-      showJson: !prevState.showJson,
-      jsonData: this.props.readOnlyMode
-        ? storedPublishedData || '// No Published Data Available'
-        : this.state.jsonData,
-      publishedData: storedPublishedData || '',
-      isJsonTouched: false,
-    }));
+    if (!showJsonNext && this.state.isJsonTouched) {
+      try {
+        const parsedData = JSON.parse(this.state.jsonData);
+        this.setState({
+          showJson: showJsonNext,
+          appId: parsedData.appId || '',
+          entitelmentList: parsedData.entitlements || [],
+          entitelmentListResponse: parsedData.entitlements || [],
+          jsonError: '',
+          appIdErrorMessage: parsedData.appId?.trim()?.length ? '' : '*Missing entry',
+          isJsonTouched: false,
+        });
+      } catch (e) {
+        this.setState({
+          showJson: showJsonNext,
+          jsonError: ['Invalid JSON format: ' + e.message],
+        });
+      }
+    } else {
+      this.setState({
+        showJson: showJsonNext,
+        jsonData: this.props.readOnlyMode
+          ? storedPublishedData || '// No Published Data Available'
+          : this.state.jsonData,
+        publishedData: storedPublishedData || '',
+        isJsonTouched: false,
+        originalJsonData: this.state.jsonData,
+      });
+    }
   }
+
 
   handleJsonChange(newValue) {
     try {
@@ -170,6 +200,7 @@ export default class Entitlement extends React.Component {
             entitelmentList: [...parsedData.entitlements],
             entitelmentListResponse: [...parsedData.entitlements],
             jsonError: [],
+            appId: parsedData.appId
           });
         } else {
           this.setState({ jsonError: errors });
@@ -183,13 +214,11 @@ export default class Entitlement extends React.Component {
 
 
   onSave() {
-
     if (this.state.jsonError?.length === 0) {
       try {
         const parsedData = JSON.parse(this.state.jsonData);
         const newAppId = parsedData.appId;
         const newEntitlements = parsedData.entitlements;
-
 
         this.setState({
           appId: newAppId,
@@ -221,27 +250,28 @@ export default class Entitlement extends React.Component {
   }
 
   confirmDiscard() {
+    try {
+      const parsedOriginal = JSON.parse(this.state.originalJsonData);
 
-    const jsonData = JSON.stringify(
-      {
-        appId: this.state.appId,
-        entitlements: this.state.entitelmentListResponse,
-      },
-      null,
-      2
-    );
+      this.setState({
+        jsonData: this.state.originalJsonData,
+        isJsonTouched: false,
+        jsonError: '',
+        toggleError: '',
+        showDiscardModal: false,
+        appId: parsedOriginal.appId || '',
+        entitelmentList: parsedOriginal.entitlements || [],
+        entitelmentListResponse: parsedOriginal.entitlements || [],
+      });
 
-    this.setState({
-      jsonData,
-      isJsonTouched: false,
-      jsonError: '',
-      toggleError: '',
-      showDiscardModal: false,
-    });
-
-    Notification.show('Changes discarded successfully');
+      Notification.show('Changes discarded successfully');
+    } catch (e) {
+      this.setState({
+        jsonError: ['Error while discarding changes: ' + e.message],
+        showDiscardModal: false,
+      });
+    }
   }
-
 
   editCreateEditEntitlementModal = () => {
     this.setState({
@@ -423,8 +453,12 @@ export default class Entitlement extends React.Component {
     let formValid = true;
     if (this.state.appId.trim().length === 0) {
       formValid = false;
+      this.setState({ appIdErrorMessage: '*Missing entry' });
       this.showErrorNotification('Application Id is Missing');
+    } else {
+      this.setState({ appIdErrorMessage: '' });
     }
+
 
     if (formValid) {
       let newAppId = this.state.appId;
@@ -568,7 +602,6 @@ export default class Entitlement extends React.Component {
                   )}
                 </div>
 
-
                 <div className={Styles.parentEntitlement}>
                   <div className={Styles.checkboxWrapper}>
                     <div
@@ -592,13 +625,13 @@ export default class Entitlement extends React.Component {
                         placeholder="Application id registered in Alice"
                         autoComplete="off"
                         onChange={(e) => {
-                          e.target.value.length !== 0
-                            ? this.setState({ appId: e.target.value, appIdErrorMessage: '' })
-                            : this.setState({
-                              appId: e.target.value,
-                              appIdErrorMessage: '*Missing entry',
-                            });
+                          const val = e.target.value.trim();
+                          this.setState({
+                            appId: e.target.value,
+                            appIdErrorMessage: val.length === 0 ? '*Missing entry' : '',
+                          });
                         }}
+
                         value={this.state.appId}
                         readOnly={this.props.readOnlyMode}
                       />
@@ -623,8 +656,6 @@ export default class Entitlement extends React.Component {
                       Note that the old credentials will be used until then.
                     </p>
                   )}
-
-
 
                 {this.state.entitelmentListResponse?.length > 0 ? (
                   <div className={classNames(Styles.subList)} style={{ padding: '25px' }}>
@@ -655,7 +686,6 @@ export default class Entitlement extends React.Component {
 
               <div
                 className={classNames(Styles.titleWrapper)}
-
               >
                 <div>
                   <h3 className={classNames(Styles.title)} >
@@ -674,7 +704,6 @@ export default class Entitlement extends React.Component {
                   className={classNames('btn-primary', Styles.actionBtn)}
                   type="button"
                   title="Copy JSON"
-
                 >
                   <i className={classNames('icon mbc-icon copy', Styles.copyIcon)} />
                 </button>
@@ -816,3 +845,5 @@ export default class Entitlement extends React.Component {
     );
   }
 }
+
+
