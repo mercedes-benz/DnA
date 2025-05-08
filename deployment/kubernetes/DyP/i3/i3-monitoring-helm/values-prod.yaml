@@ -1270,20 +1270,20 @@ tempo-distributed:
   queryFrontend:
     resources: 
       limits:
-        memory: 100Mi
+        memory: 1269Mi
       requests:
         cpu: 10m
-        memory: 100Mi    
+        memory: 1269Mi    
   compactor:    
     config:
       compaction:
         block_retention: 720h   
     resources: 
         limits:
-          memory: 100Mi
+          memory: 728Mi
         requests:
           cpu: 10m
-          memory: 100Mi            
+          memory: 728Mi            
   traces:
     otlp:
       grpc:
@@ -1384,10 +1384,10 @@ loki:
   chunksCache:
     resources: 
       limits:
-        memory: 100Mi
+        memory: 9482Mi
       requests:
         cpu: 10m
-        memory: 100Mi
+        memory: 9482Mi
   loki:
     resources: 
       limits:

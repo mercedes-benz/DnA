@@ -377,10 +377,10 @@ opensearch:
 
   resources:
     requests:
-      memory: "5405Mi"
-      cpu: 626m
+      memory: "6171Mi"
+      cpu: 533m
     limits:
-      memory: "5405Mi"
+      memory: "6171Mi"
 
   sysctl:
     enabled: false
