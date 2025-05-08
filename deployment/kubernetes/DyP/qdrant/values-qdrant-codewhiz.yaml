@@ -3,7 +3,7 @@ replicaCount: 1
 image:
   repository: registry-emea.app.corpintra.net/dockerhub/qdrant/qdrant
   pullPolicy: IfNotPresent
-  tag: ""
+  tag: v1.13.0
   useUnprivilegedImage: false
 
 imagePullSecrets: []
