@@ -51,3 +51,5 @@ db:
    env: dev
  - name: profit-support
    env: prod
+ - name: sct-be
+   env: prod
