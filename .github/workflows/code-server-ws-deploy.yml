@@ -144,11 +144,12 @@ jobs:
         echo ${{ secrets.HARBOR_DNA_REPO_SECRET }} | docker login $REGISTRY -u $REGISTRY_DNA_USER --password-stdin
         docker push registry-emea.app.corpintra.net/dnaplatform/code-server/codespaces-apps:${{ github.event.inputs.projectName }}-${{ github.event.inputs.target_env }}       
     - name: Deploy App
-      uses: vimeda/helm@v1.7.0
+      uses: deler-aziz/helm-deploy-action@v1.0.1
       with:
         release: '${{ github.event.inputs.projectName }}-${{ github.event.inputs.target_env }}'
         namespace: '${{ vars.K8S_NAMESPACE }}'
         chart: 'workspace-repo/deploy/helm'
+        timeout: '10m0s'
         values: |
           fullnameOverride: ${{ github.event.inputs.projectName }}-${{ github.event.inputs.target_env }}
           namespace: ${{ vars.K8S_NAMESPACE }}
