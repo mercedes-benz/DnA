@@ -123,6 +123,35 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 	}
 
 	@Override
+	public Integer getCountByRecipeName(String userId, String recipeName) {
+		CriteriaBuilder cb = em.getCriteriaBuilder();
+		CriteriaQuery<Long> cq = cb.createQuery(Long.class);
+		Root<CodeServerWorkspaceNsql> root = cq.from(CodeServerWorkspaceNsql.class);
+		cq.select(cb.count(root));
+	
+		Predicate p1 = cb.equal(cb.lower(
+			cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("workspaceOwner"), cb.literal("id"))),
+			userId.toLowerCase());
+	
+		Predicate p2 = cb.notEqual(cb.lower(
+			cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("status"))),
+			"deleted");
+	
+		Predicate p3 = cb.equal(
+			cb.function("jsonb_extract_path_text", String.class, root.get("data"),
+				cb.literal("projectDetails"), cb.literal("recipeDetails"), cb.literal("recipeName")),
+			recipeName
+		);
+	
+		cq.where(cb.and(p1, p2, p3));
+	
+		TypedQuery<Long> query = em.createQuery(cq);
+		Long count = query.getSingleResult();
+		return count.intValue();
+	}
+	
+
+	@Override
 	public CodeServerWorkspaceNsql findbyProjectName(String userId, String projectName) {
 		CriteriaBuilder cb = em.getCriteriaBuilder();
 		CriteriaQuery<CodeServerWorkspaceNsql> cq = cb.createQuery(CodeServerWorkspaceNsql.class);
@@ -759,6 +788,33 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
         return result != null ? result : new ArrayList<>();
 	}
 
+	   @Override
+		public List<CodeServerWorkspaceNsql> findByRecipeName(String userId, int limit, int offset, String recipeName) {
+			CriteriaBuilder cb = em.getCriteriaBuilder();
+		CriteriaQuery<CodeServerWorkspaceNsql> cq = cb.createQuery(CodeServerWorkspaceNsql.class);
+		Root<CodeServerWorkspaceNsql> root = cq.from(entityClass);
+		CriteriaQuery<CodeServerWorkspaceNsql> getAll = cq.select(root);
+		Predicate p1 = cb.equal(cb.lower(
+				cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("workspaceOwner"), cb.literal("id"))),
+				userId.toLowerCase());
+		Predicate p2 = cb.notEqual(cb.lower(
+				cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("status"))),
+				"DELETED".toLowerCase());
+		Predicate p3 = cb.equal(cb.lower(
+				cb.function("jsonb_extract_path_text", String.class, root.get("data"),
+				cb.literal("projectDetails"), cb.literal("recipeDetails"), cb.literal("recipeName"))
+				), recipeName.toLowerCase());
+		Predicate pMain = cb.and(p1,p2,p3);
+		cq.where(pMain);		
+		cq.orderBy(cb.asc(cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("projectDetails"), cb.literal("projectName"))));
+		TypedQuery<CodeServerWorkspaceNsql> getAllQuery = em.createQuery(getAll);
+		if (offset >= 0)
+			getAllQuery.setFirstResult(offset);
+		if (limit > 0)
+			getAllQuery.setMaxResults(limit);
+		return getAllQuery.getResultList();
+	
+		}
 
 }
 

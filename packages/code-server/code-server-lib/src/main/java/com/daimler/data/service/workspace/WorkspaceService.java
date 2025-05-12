@@ -49,6 +49,8 @@ public interface WorkspaceService {
 
 	Integer getCount(String userId);
 
+	Integer getCountByRecipeName(String userId, String recipeName);
+
 	CodeSpaceReadmeVo getCodeSpaceReadmeFile(String id) throws Exception;
 
 	InitializeWorkspaceResponseVO createWorkspace(CodeServerWorkspaceVO vo, String pat);
@@ -104,5 +106,7 @@ public interface WorkspaceService {
 	GenericMessage restartWorkspace(String userId, String id, String env);
 
 	GenericMessage migrateWorkspace(CodeServerWorkspaceNsql entity);
+
+	List<CodeServerWorkspaceVO> getWorkspacebyRecipeName(String userId,int offset,int limit, String recipeName);
 	
 }
