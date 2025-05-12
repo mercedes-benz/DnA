@@ -2689,7 +2689,7 @@ import org.springframework.beans.factory.annotation.Value;
         produces = { "application/json" }, 
         consumes = { "application/json" },
         method = RequestMethod.GET)
-    public ResponseEntity<WorkspaceCollectionVO> getAllRecipe(@ApiParam(value = "Workspace ID to be fetched",required=true) @PathVariable("recipeName") String recipeName,@ApiParam(value = "page number from which listing of workspaces should start. Offset. Example 2") @Valid @RequestParam(value = "offset", required = false) Integer offset,@ApiParam(value = "page size to limit the number of workspaces, Example 15") @Valid @RequestParam(value = "limit", required = false) Integer limit){
+    public ResponseEntity<WorkspaceCollectionVO> getAllRecipe(@ApiParam(value = "recipeName to be fetched",required=true) @PathVariable("recipeName") String recipeName,@ApiParam(value = "page number from which listing of workspaces should start. Offset. Example 2") @Valid @RequestParam(value = "offset", required = false) Integer offset,@ApiParam(value = "page size to limit the number of workspaces, Example 15") @Valid @RequestParam(value = "limit", required = false) Integer limit){
 		CreatedByVO currentUser = this.userStore.getVO();
 		 String userId = currentUser != null ? currentUser.getId() : "";
 		 if (offset == null) {
