@@ -1,6 +1,6 @@
-namespace: dna
+namespace: cs-apps-services
 annotations:
-  argocdvault: "dna_aws_kv/data/staging/kubernetesSecret/dnadb"
+  argocdvault: "dna_aws_kv/data/prod/cs-services/sct-be-db"
 ## I³ PostgreSQL image version
 ## ref: https://registry-emea.app.corpintra.net/repository/i3-releases/postgresql?tab=tags
 ##
@@ -13,8 +13,7 @@ image:
   ##
   pullPolicy: IfNotPresent
 
-fullnameOverride: "dna-db"
-# nameOverride: "postgresql"
+fullnameOverride: "sct-be-db"
 ## PostgreSQL replica count
 ##
 replicaCount: 1
@@ -26,7 +25,7 @@ printEnv: true
 ##
 pgconnectionconfig:
   enabled: true
-  maxconnections: 1500
+  maxconnections: 700
 
 ## PostgreSQL memory resource limits - shared buffers
 ## ref: https://www.postgresql.org/docs/current/runtime-config-resource.html#GUC-SHARED-BUFFERS
@@ -81,19 +80,19 @@ SSL:
 
 ## Specify PGDATABASE
 ##
-DBName: db
+DBName: sctbe
 
 ## Configure S3 properties if S3 storage will be used
 ##
 s3:
   ## provided by s3 provider
-  accesskey: <path:dna_aws_kv/data/staging/kubernetesSecret/dnadb#accesskey>
+  accesskey: <path:dna_aws_kv/data/prod/cs-services/sct-be-db#accesskey>
   ## provided by s3 provider
-  secretkey: <path:dna_aws_kv/data/staging/kubernetesSecret/dnadb#secretkey>
+  secretkey: <path:dna_aws_kv/data/prod/cs-services/sct-be-db#secretkey>
   ## internally used
   hostAlias: s3
   ## url of the S3 endpoint
-  host: <path:dna_aws_kv/data/staging/kubernetesSecret/dnadb#s3.host>
+  host: <path:dna_aws_kv/data/prod/cs-services/sct-be-db#s3.host>
   ## use rclone client in insecure mode
   ## recommended is false, the postgres image already has daimler certificates installed and is able to verify Daimler certificates.
   ## in some cases, e.g. if you want to test with your own S3 service hosted on your own hardware, the certificate might not be verifiable.
@@ -109,11 +108,11 @@ resources:
   ## uncomment fitting parts when you wand to enable setting cpu and memory requests and limits
   limits:
     enabled: true
-    memory: 625Mi
+    memory: 139Mi
   request:
     enabled: true
     cpu: 10m
-    memory: 625Mi
+    memory: 139Mi
 
 ## Configure additional env variables
 env:
@@ -144,9 +143,9 @@ walArchiving:
       storageClass: dhc-backup-nfs
   s3:
     ## Configuration for S3 storage
-    subfolder: dev-db-backups
+    subfolder: postgresql-cluster
     ## fill in the bucket name you have ordered!
-    bucketName: <path:dna_aws_kv/data/staging/kubernetesSecret/dnadb#bucketName>
+    bucketName: <path:dna_aws_kv/data/prod/cs-services/sct-be-db#bucketName>
 
 ## Configure extra options for liveness and readiness probes
 ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#configure-probes)
@@ -201,32 +200,31 @@ dbusers:
   ## backup user, will be used for synchronizing between the cluster nodes and for backup
   backup:
     username: backupuser
-    password: <path:dna_aws_kv/data/staging/kubernetesSecret/dnadb#backup.password>
+    password: <path:dna_aws_kv/data/prod/cs-services/sct-be-db#backup.password>
   ## the database (not the instance) owner
   dbadm:
-    username: admin
-    password: <path:dna_aws_kv/data/staging/kubernetesSecret/dnadb#dbadm.password>
+    username: sctbe
+    password: <path:dna_aws_kv/data/prod/cs-services/sct-be-db#dbadm.password>
 
     createSchema:
       # Usually this is required if you use an ORM and do not create the table via the initdb script
       enabled: false
-      # name: customschema
-  ## technical user, e.g. to do switchover and other cluster operations
+      # name: customschema  ## technical user, e.g. to do switchover and other cluster operations
   patroni:
-    password: <path:dna_aws_kv/data/staging/kubernetesSecret/dnadb#patroni.password>
+    password: <path:dna_aws_kv/data/prod/cs-services/sct-be-db#patroni.password>
   ## technical user for postgresql monitoring
   pgmon:
     username: pgmon
-    password: <path:dna_aws_kv/data/staging/kubernetesSecret/dnadb#pgmon.password>
+    password: <path:dna_aws_kv/data/prod/cs-services/sct-be-db#pgmon.password>
   ## if a technical user for Debezium is needed, then set a password
   ## otherwise no user for Debezium is created
   debezium:
     username: debezium
-    password: <path:dna_aws_kv/data/staging/kubernetesSecret/dnadb#debezium.password>
+    password: <path:dna_aws_kv/data/prod/cs-services/sct-be-db#debezium.password>
   ## if technical user 'DATA_CATALOG' for CORPORATE DATA CATALOG is needed, then set a password
   ## otherwise no user for CORPORATE DATA CATALOG is created
   dataCatalog:
-    password:
+    password: <path:dna_aws_kv/data/prod/cs-services/sct-be-db#dataCatalog.password>
 
 ## Enable PostgreSQL service
 ##
@@ -243,8 +241,8 @@ service:
 ##
 persistence:
   enabled: true
-  size: 4Gi
-  storageClass: dhc-gp3
+  size: <path:dna_aws_kv/data/prod/cs-services/sct-be-db#size>
+  # storageClass: dhc-gp3
   # PVCName: name
   wal:
     enabled: false
@@ -288,7 +286,6 @@ decryptBackupWal:
 ##
 backup:
   enabled: true
-  successfulJobsHistoryLimit: "1"
 
   ## the storage type, either fs or s3.
   ## This is the target storage where the compressed backup archive file will be stored.
@@ -305,12 +302,12 @@ backup:
       storageClass: dhc-gp3
   s3:
     ## Configuration for S3 storage
-    # subfolder: postgresql-cluster
+    subfolder: sct-be-db-backup
     ## fill in the bucket name you have ordered!
-    bucketName: <path:dna_aws_kv/data/staging/kubernetesSecret/dnadb#bucketName>
+    bucketName: <path:dna_aws_kv/data/prod/cs-services/sct-be-db#bucketName>
   ## general configuration for backup
   schedule: "1 0 * * *"
-  retention: <path:dna_aws_kv/data/staging/kubernetesSecret/dnadb#retention>
+  retention: <path:dna_aws_kv/data/prod/cs-services/sct-be-db#retention>
   ## Please read documentation at docs/operations/operations.md#cleanup-wal-archives before enabling this feature
   cleanupWalArchives: false
   image:
@@ -333,10 +330,10 @@ backup:
   tempPgdataVolume:
     ## recommended
     enabled: true
-    size: 1Gi
+    size: 5Gi
     # storageClass: dhc-gp3
   file:
-    name: dnadb-backup
+    name: sct-be-db-backup
     # label: test
 
 ## PostgreSQL restore configuration
@@ -355,21 +352,21 @@ restore:
   targetInclusive: true
   ## the kind of storage where the backups are stored
   ## fs | s3
-  storage: s3
+  storage: fs
   fs:
     volume:
       ## if volume.enabled is true, it is expected that a PersistentVolumeClaims exists with the backups and that it can be mounted.
-      enabled: false
+      enabled: true
   s3:
     # subfolder: postgresql-cluster
     ## fill in the bucket name you have ordered!
-    bucketName: test-db-restore
+    bucketName: sct-be-db-backup
 
   ## Complete (including label) file name of backup file that has to be restored.
-  recoveryFile: dna-db/dnadb-backup-2025-01-10_12-13-35.tar.zst
+  recoveryFile: postgresql-backup*.tar.gz
   image:
     repository: registry-emea.app.corpintra.net/i3-releases/postgresql-backup
-    tag: 13.8-5.5.0-2023.2.20
+    tag: 13.8-5.3.0-2022.11.4
     pullPolicy: IfNotPresent
   resources:
     enabled: false
@@ -392,7 +389,8 @@ restore:
 initdbScripts:
   enabled: true
   name: init_db.sh
-  script: <path:dna_aws_kv/data/staging/kubernetesSecret/dnadb#init-db>
+  script: <path:dna_aws_kv/data/prod/cs-services/sct-be-db#init-db>
+
 
 test:
   enabled: true
@@ -511,5 +509,4 @@ lb:
   port: 4400
 
 ## define permanent replication slots. These slots will be preserved during switchover/failover
-## for details see [documentation](https://patroni.readthedocs.io/en/latest/SETTINGS.html)
 slots:
