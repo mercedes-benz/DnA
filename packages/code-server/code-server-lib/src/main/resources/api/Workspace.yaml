@@ -1174,7 +1174,7 @@ paths:
       parameters:
           - name: "recipeName"
             in: "path"
-            description: "Workspace ID to be fetched"
+            description: "recipeName to be fetched"
             required: true
             type: "string"
           - name: offset
