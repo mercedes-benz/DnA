@@ -2675,4 +2675,50 @@ import org.springframework.beans.factory.annotation.Value;
 		}
 	}
 
+	@Override
+	@ApiOperation(value = "Get all workspaces for given recipeName", nickname = "getAllRecipe", notes = "retuns a list of workspaces for the given recipeName", response = WorkspaceCollectionVO.class, tags={ "code-server", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns message of success or failure", response = WorkspaceCollectionVO.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/workspaces/recipeName/{recipeName}",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.GET)
+    public ResponseEntity<WorkspaceCollectionVO> getAllRecipe(@ApiParam(value = "recipeName to be fetched",required=true) @PathVariable("recipeName") String recipeName,@ApiParam(value = "page number from which listing of workspaces should start. Offset. Example 2") @Valid @RequestParam(value = "offset", required = false) Integer offset,@ApiParam(value = "page size to limit the number of workspaces, Example 15") @Valid @RequestParam(value = "limit", required = false) Integer limit){
+		CreatedByVO currentUser = this.userStore.getVO();
+		 String userId = currentUser != null ? currentUser.getId() : "";
+		 if (offset == null) {
+			 offset = 0;
+		 }
+		 if (limit == null) {
+			 limit = 0;
+		 }
+		 final List<CodeServerWorkspaceVO> workspaces = service.getWorkspacebyRecipeName(userId, offset, limit, recipeName);
+		 List<CodeServerWorkspaceVO> workspacesWithDeployEnabled = new ArrayList<>();
+		 WorkspaceCollectionVO collection = new WorkspaceCollectionVO();
+		 collection.setTotalCount(service.getCountByRecipeName(userId, recipeName));
+		 log.debug("Sending all workspaces");
+		 if (workspaces != null && workspaces.size() > 0) {
+			for(CodeServerWorkspaceVO vo :workspaces ){
+				if(vo.getProjectDetails().getRecipeDetails().isIsDeployEnabled() == null || !vo.getProjectDetails().getRecipeDetails().isIsDeployEnabled()) {
+					if(vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private")||vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")||vo.getProjectDetails().getRecipeDetails().getRecipeId().name().equalsIgnoreCase("template")){
+						vo.getProjectDetails().getRecipeDetails().setIsDeployEnabled(false);
+					}else{
+						vo.getProjectDetails().getRecipeDetails().setIsDeployEnabled(true);
+					}
+				}
+				workspacesWithDeployEnabled.add(vo);
+			}
+			 collection.setRecords(workspacesWithDeployEnabled);
+			 return new ResponseEntity<>(collection, HttpStatus.OK);
+		 } else {
+			 return new ResponseEntity<>(collection, HttpStatus.NO_CONTENT);
+		 }
+	 }
+
  }

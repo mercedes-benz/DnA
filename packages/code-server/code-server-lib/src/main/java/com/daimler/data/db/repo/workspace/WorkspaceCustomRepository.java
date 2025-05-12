@@ -48,6 +48,8 @@ public interface WorkspaceCustomRepository extends CommonDataRepository<CodeServ
 	List<CodeServerWorkspaceNsql>  findAll();
 
 	Integer getCount(String userId);
+	
+	Integer getCountByRecipeName(String userId, String recipeName);
 
 	CodeServerWorkspaceNsql findbyUniqueLiteral(String userId, String uniqueLiteral, String value);
 
@@ -91,4 +93,6 @@ public interface WorkspaceCustomRepository extends CommonDataRepository<CodeServ
 	CodeServerWorkspaceNsql findbyProjectName(String projectName);
 
 	List<CodeServerWorkspaceNsql> findAllByUniqueLiteral();
+
+	List<CodeServerWorkspaceNsql> findByRecipeName(String userId, int limit, int offset, String recipeName);
 }

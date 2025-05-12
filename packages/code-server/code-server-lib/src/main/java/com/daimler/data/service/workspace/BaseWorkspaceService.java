@@ -1400,6 +1400,11 @@ import com.daimler.data.util.ConstantsUtility;
 	 public Integer getCount(String userId) {
 		 return workspaceCustomRepository.getCount(userId);
 	 }
+
+	 @Override
+	 public Integer getCountByRecipeName(String userId, String recipeName){
+		return workspaceCustomRepository.getCountByRecipeName(userId, recipeName);
+	 }
  
 	 @Override
 	 public CodeServerWorkspaceVO getByUniqueliteral(String userId, String uniqueLiteral, String value) {
@@ -3170,6 +3175,25 @@ import com.daimler.data.util.ConstantsUtility;
 		responseMessage.setWarnings(warnings);
 		responseMessage.setSuccess(status);
 		return responseMessage;
+	}
+
+	@Override
+	public List<CodeServerWorkspaceVO> getWorkspacebyRecipeName(String userId, int offset, int limit, String recipeName) {
+		List<CodeServerWorkspaceNsql> entities = workspaceCustomRepository.findByRecipeName(userId, limit, offset, recipeName);
+		entities.forEach(entity -> {
+			CodeServerWorkspaceVO vo = workspaceAssembler.toVo(entity);
+			String serverStatus = getServerStatus(vo); // Update server status
+			if(serverStatus.equalsIgnoreCase("true"))
+			{
+				vo.setServerStatus("SERVER_STARTED");
+			}
+			else
+			{
+				vo.setServerStatus("SERVER_STOPPED");
+			}
+		});
+
+		return entities.stream().map(workspaceAssembler::toVo).collect(Collectors.toList());
 	}
 
 }
