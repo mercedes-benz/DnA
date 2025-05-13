@@ -762,6 +762,42 @@ public class KongClientImpl implements KongClient {
 		return pluginIdMap;
 	}
 
+	public Map<String,Boolean> getPluginStatus(String serviceName, String pluginName){
+		Map<String,Boolean>pluginStatusMap = new HashMap<>();
+		try {
+			String kongUri = kongBaseUri + "/services/" + serviceName + "/plugins";
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Content-Type", "application/x-www-form-urlencoded");
+			HttpEntity entity = new HttpEntity<>(headers);
+			ResponseEntity<String> response = restTemplate.exchange(kongUri, HttpMethod.GET, entity, String.class);
+			response = restTemplate.exchange(kongUri, HttpMethod.GET, entity, String.class);
+			if (response != null) {
+				HttpStatus statusCode = response.getStatusCode();
+				if (statusCode.is2xxSuccessful()) {
+					ObjectMapper objectMapper = new ObjectMapper();
+					 objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+					try{
+						JsonNode rootNode = objectMapper.readTree(response.getBody());
+						JsonNode data = rootNode.get("data");
+						if (data != null && data.isArray()) {
+							for (JsonNode plugin : (ArrayNode) data) 
+							{
+								pluginStatusMap.put(plugin.get("name").asText(),plugin.get("enabled").asBoolean());
+							}
+						}
+					}catch(Exception e){
+						LOGGER.debug("Exception occured during fetching plugin list");
+					}
+				}
+			}
+		}
+		catch(Exception e) {
+			LOGGER.error("Error: {} while fetching plugin: {} details", e.getMessage(), pluginName);			
+		}
+		return pluginStatusMap;
+	}
+
   @Override
   public  GenericMessage attachFunctionPluginToService(AttachFunctionPluginVO attachFunctionPluginVO, String serviceName){
 
