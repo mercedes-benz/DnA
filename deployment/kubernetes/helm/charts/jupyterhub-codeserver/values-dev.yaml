@@ -172,7 +172,7 @@ hub:
           # user_pvc_name = spawner.pvc_name
 
           spawner.storage_capacity = spawner.user_options.get("storage_capacity", "1Gi")       
-          spawner.mem_guarantee = "2000M"       
+          spawner.mem_guarantee = "1000M"       
           #spawner.mem_limit = spawner.user_options.get("mem_guarantee", "500M")       
           # spawner.cpu_limit = spawner.user_options.get("cpu_limit", 3)       
           spawner.cpu_guarantee = 0.2
