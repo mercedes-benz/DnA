@@ -641,7 +641,7 @@ public class KongGatewayController implements KongApi{
         @ApiResponse(code = 403, message = "Request is not authorized."),
         @ApiResponse(code = 405, message = "Method not allowed"),
         @ApiResponse(code = 500, message = "Internal error") })
-    @RequestMapping(value = "/kong/services/{serviceName}/plugin/{pluginName}",
+    @RequestMapping(value = "/kong/services/{serviceName}/plugin/{pluginName}/status",
         produces = { "application/json" }, 
         consumes = { "application/json" },
         method = RequestMethod.GET)
@@ -649,12 +649,15 @@ public class KongGatewayController implements KongApi{
 		try{
 			Map<String, Boolean> statusMap = kongClient.getPluginStatus(serviceName, pluginName);
 			if (statusMap.isEmpty()) {
+				LOGGER.info("Error while finding status of plugin {} for service {}",pluginName,serviceName);
                 return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
             }
-            
             PluginStatusResponseVO pluginStatusResponse = new PluginStatusResponseVO();
+			if(statusMap.get(pluginName) == null){
+				LOGGER.info("Status of plugin {} for service {} is null.",pluginName,serviceName);
+                return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+			}
             pluginStatusResponse.setEnabled(statusMap.get(pluginName));
-            
             return new ResponseEntity<>(pluginStatusResponse, HttpStatus.OK);
 		}catch(Exception e){
 			LOGGER.error("Failed to get plugin status for plugin {} and service {} with error {}", pluginName, serviceName, e.getMessage());

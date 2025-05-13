@@ -665,7 +665,7 @@ paths:
         500:
           description: "Internal error" 
 
- /kong/services/{serviceName}/plugin/{pluginName}:
+ /kong/services/{serviceName}/plugin/{pluginName}/status:
     get:
         tags:
           - "kong"
