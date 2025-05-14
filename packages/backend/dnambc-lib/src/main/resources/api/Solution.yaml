@@ -497,11 +497,15 @@ paths:
           schema:
             $ref: "#/definitions/GenericMessage"
         400:
-          description: Bad request. Invalid or missing parameters.
-        404:
-          description: Solution not found for the provided ID.
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
         500:
-          description: Internal server error. Something went wrong during processing.
+          description: "Internal error"
 
 definitions:
   TransparencyVO:

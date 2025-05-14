@@ -98,6 +98,7 @@ import com.daimler.data.service.notebook.NotebookService;
 import com.daimler.data.service.platform.PlatformService;
 import com.daimler.data.service.relatedproduct.RelatedProductService;
 import com.daimler.data.service.skill.SkillService;
+import com.daimler.data.service.solution.SolutionService.TAG_CATEGORY;
 import com.daimler.data.service.tag.TagService;
 import com.daimler.data.service.userinfo.UserInfoService;
 import com.daimler.data.service.visualization.VisualizationService;
@@ -105,6 +106,7 @@ import com.daimler.data.service.analyticsSolution.AnalyticsSolutionService;
 import com.daimler.dna.notifications.common.producer.KafkaProducerService;
 import com.daimler.data.dto.SolutionNotifyTeamMemberVO;
 import com.daimler.data.dto.NotifyTeamMemberVO;
+import com.daimler.data.dto.solution.SolutionVO.OpenSegmentsEnum;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
@@ -1248,8 +1250,7 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 				return responseMessage;
 			}
 
-
-			if (solution.getOpenSegments() == null || !solution.getOpenSegments().contains("Milestones")) {
+			if (solution.getOpenSegments() == null || solution.getOpenSegments().stream().noneMatch(segment -> segment.equals(OpenSegmentsEnum.MILESTONES))) {
 				errorMessage.setMessage("Solution does not have required open segments to port.");
 				LOGGER.warn("Solution {} does not have required open segments.", id);
 				List<MessageDescription> errorMessages = new ArrayList<>();
