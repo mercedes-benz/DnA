@@ -33,7 +33,7 @@ import LogoManager from './logoManager/LogoManager';
 import Tags from 'components/formElements/tags/Tags';
 import InfoModal from 'components/formElements/modal/infoModal/InfoModal';
 import { Envs } from 'globals/Envs';
-import { DataStrategyDomainInfoList, AdditionalResourceTooltipContent, SOLUTION_FIXED_TAGS } from 'globals/constants';
+import { DataStrategyDomainInfoList, AdditionalResourceTooltipContent } from 'globals/constants';
 import { InfoList } from 'components/formElements/modal/infoModal/InfoList';
 // @ts-ignore
 import Tooltip from '../../../../assets/modules/uilab/js/src/tooltip';
@@ -66,6 +66,12 @@ export interface IDescriptionProps {
   isProvision: boolean;
   isGenAI: boolean;
   id: string;
+  showPortButton?:boolean;
+  publish?: boolean;
+  openSegments?: string[];
+  isPublished: boolean;
+  mandatoryTabsFilled: boolean;
+  onStateChange?: () => void;
 }
 
 export interface IDescriptionState {
@@ -122,6 +128,8 @@ export interface IDescriptionState {
   additionalResource: string;
   departmentTags: string[];
   showGenAIWarningModal: boolean;
+  showConfirmGenAIRemovalModal: boolean;
+  tempTagsAfterRemoval?: string[];
   selectedSimilarSolutionsType: string;
   showSimilarSolutionsModal: boolean;
   lastSearchedDescriptionInput: string;
@@ -135,6 +143,8 @@ export interface IDescriptionState {
   leanIXData: any;
   leanIXDetails: any;
   appId: string;
+  publish?: boolean;
+  openSegments?: string[];
 }
 
 export interface IDescriptionRequest {
@@ -159,6 +169,8 @@ export interface IDescriptionRequest {
   appId: string;
   leanIXDetails: any,
   createdBy?: IUserInfo;
+  publish?: boolean;
+  openSegments?: string[];
 }
 
 export default class Description extends React.Component<IDescriptionProps, IDescriptionState> {
@@ -245,6 +257,7 @@ export default class Description extends React.Component<IDescriptionProps, IDes
       additionalResource: 'No',
       departmentTags: [],
       showGenAIWarningModal: false,
+      showConfirmGenAIRemovalModal: false,
       selectedSimilarSolutionsType: "Description",
       showSimilarSolutionsModal: false,
       lastSearchedDescriptionInput: '',
@@ -258,6 +271,8 @@ export default class Description extends React.Component<IDescriptionProps, IDes
       leanIXDetails: {},
       leanIXData: {},
       appId: '',
+      publish: false, 
+      openSegments: [],
     };
 
     // this.onProductNameOnChange = this.onProductNameOnChange.bind(this);
@@ -605,6 +620,25 @@ export default class Description extends React.Component<IDescriptionProps, IDes
     }
     this.setState({ selectedSimilarSolutionsType: type, showSimilarSolutionsModal: true, similarSolutionstoShow });
   };
+   handlePortToGenAI = () => {
+    if (this.props.id) {
+      ProgressIndicator.show();
+      ApiClient.portSolution(this.props.id)
+        .then((response) => {
+            this.showNotification('Successfully ported to GenAI!');
+          ProgressIndicator.hide();
+        })
+        .catch((error) => {
+          console.error('Error while porting to GenAI:', error);
+          ProgressIndicator.hide();
+          this.showErrorNotification(error?.message || 'Some error occurred while porting to GenAI.');
+        })
+        .finally(()=>{
+          this.setState({ showGenAIWarningModal: false });
+        })
+    }
+  };
+  
 
   public render() {
     const productNameError = this.state.productNameError || '';
@@ -674,26 +708,37 @@ export default class Description extends React.Component<IDescriptionProps, IDes
       }
     }, 500);
 
+    const canPortToGenAI = this.props.publish === true || this.props.openSegments.includes("Milestones");
     return (
       <React.Fragment>
         <ConfirmModal
           title={'Confirm to add GenAI tag'}
           showAcceptButton={true}
           showCancelButton={true}
+          showPortButton={canPortToGenAI}          
           acceptButtonTitle="Navigate to GenAI"
+          portToGenAITitle="Port to GenAI"
           cancelButtonTitle="Cancel"
           show={this.state.showGenAIWarningModal}
+          modalStyle={{maxWidth: '60%'}}
           content={
-            <div id="contentparentdiv">
+            <div id="contentparentdiv" style={{ fontSize: 'var(--font-small)'}}>
               {this.props.id && this.props.id?.length > 0 ? (
                 <>
-                  Solution already created. Adding GenAI tags to this solution is not allowed. Press &#187;Navigate to
-                  GenAI&#187; to create a new solution with GenAI tagging. (Please note: the current solution will also
+                  Solution already created. Adding GenAI tags to this solution is not allowed.<br /><br />Use &#187;Navigate to
+                  GenAI&#187; to create a new solution with GenAI tagging.(Please note: the current solution will also
                   be retained. Delete it if it's no longer needed.)
-                </>
+                  {canPortToGenAI && (
+                      <>
+                        <br /><br />
+                        Use »Port to GenAI» to convert this solution with GenAI tagging.
+                        (Please note: the current solution will not be retained.)
+                      </>
+                    )}
+              </>
               ) : (
                 <>
-                  Press &#187;Navigate to GenAI &#187; to create a new solution with GenAI tagging.
+                  Use &#187;Navigate to GenAI &#187; to create a new solution with GenAI tagging.
                   <br />
                   Details entered here will be lost. Are you sure you want to proceed?
                 </>
@@ -704,6 +749,72 @@ export default class Description extends React.Component<IDescriptionProps, IDes
           }
           onCancel={() => this.setState({ showGenAIWarningModal: false })}
           onAccept={() => history.push('/createnewgenaisolution')}
+          onPort={this.handlePortToGenAI}
+        />
+        
+        <ConfirmModal
+          title="Confirm GenAI Tag Removal"
+          showAcceptButton={false}
+          showCancelButton={false}
+          show={this.state.showConfirmGenAIRemovalModal}
+          modalStyle={{maxWidth: '60%'}}
+          content={
+            <div id="contentparentdiv" style={{ fontSize: 'var(--font-small)'}}>
+              Do you want to remove the GenAI tag?
+              <br />
+              Using this tag, your solution is listed as part of GenAI Solutions.
+              <br />
+              Click on the Port Option to remove the GenAI tag, once removed your GenAI solution will be ported to a DnA Solution.Please reload once the action is complete.
+              {this.props.isPublished && !this.props.description?.tags?.includes('DigitalValue') && (
+                <>
+                  <br />
+                  Note: Once you port solution, if the solution is not filled till Value Calculation it will be moved to draft state.
+                </>
+              )}
+              <div style={{ marginTop: '20px' }}>
+                <button
+                  className="btn btn-tertiary" type="button"
+                  style={{ marginRight: '10px' }}
+                  onClick={() => {
+                    const description = this.props.description;
+                    description.tags = description.tags.filter(tag => tag !== 'GenAI');
+
+                    this.setState({
+                      showConfirmGenAIRemovalModal: false,
+                      showTagsMissingError: description.tags.length === 0,
+                    });
+
+                    const revert = true;
+
+                    ApiClient.portSolution(this.props.id, revert)
+                      .then(response => {
+                        console.log('Successfully ported to GenAI:', response);
+                      })
+                      .catch(error => {
+                        console.error('Error while porting to GenAI:', error);
+                        Notification.show(error?.message || 'Some error occurred while porting to GenAI.', 'alert');
+                      });
+                  }}
+                >
+                  To Port
+                </button>
+                <button
+                  className="btn btn-tertiary" type="button"
+                  onClick={() => {
+                    const description = { ...this.props.description };
+                    if (!description.tags.includes('GenAI')) {
+                      description.tags.push('GenAI');
+                    }
+                    this.setState({
+                      showConfirmGenAIRemovalModal: false,
+                    });
+                  }}
+                >
+                  Cancel
+                </button>
+              </div>
+            </div>
+          }
         />
         <div className={classNames(this.props.isProvision && Styles.provisionStyles)}>
           <div className={classNames(Styles.wrapper)}>
@@ -1182,11 +1293,12 @@ export default class Description extends React.Component<IDescriptionProps, IDes
                         setTags={this.setTags}
                         isMandatory={false}
                         showMissingEntryError={this.state.showTagsMissingError}
-                        fixedChips={
-                          this.props.isGenAI
-                            ? [...SOLUTION_FIXED_TAGS, ...SOLUTION_FIXED_TAGS.map((tag) => tag.toLowerCase())]
-                            : []
-                        }
+                        // fixedChips={
+                        //   this.props.isGenAI
+                        //     ? [...SOLUTION_FIXED_TAGS, ...SOLUTION_FIXED_TAGS.map((tag) => tag.toLowerCase())]
+                        //     : []
+                        // }
+                        fixedChips={[]}
                         {...this.props}
                       />
                     </div>
@@ -1279,6 +1391,14 @@ export default class Description extends React.Component<IDescriptionProps, IDes
     }
   };
 
+    protected showErrorNotification(message: string) {
+      Notification.show(message, 'alert');
+    }
+  
+    protected showNotification(message: string) {
+      Notification.show(message);
+    }
+
   protected validateDescriptionForm = () => {
     let formValid = true;
     const errorMissingEntry = '*Missing entry';
@@ -1370,13 +1490,21 @@ export default class Description extends React.Component<IDescriptionProps, IDes
 
   protected setTags = (arr: string[]) => {
     const description = this.props.description;
-    if (!this.props.isGenAI && arr && isSolutionFixedTagIncludedInArray(arr)) {
+    const hasGenAITagNow = arr.includes('#GenAI');
+
+    const hasMilestones = this.props.openSegments.includes('Milestones');
+
+    if (this.props.isGenAI && !hasGenAITagNow && hasMilestones) {
+      this.setState({
+        showConfirmGenAIRemovalModal: true,
+        tempTagsAfterRemoval: arr,
+      });
+    } else if (!this.props.isGenAI && arr && isSolutionFixedTagIncludedInArray(arr)) {
       this.setState({ showGenAIWarningModal: true });
       description.tags = arr.filter((tag) => !isSolutionFixedTagIncluded(tag)) || [];
     } else {
       description.tags = arr;
     }
-    // this.props.onStateChange();
     this.setState({ showTagsMissingError: arr.length === 0 });
   };
 
