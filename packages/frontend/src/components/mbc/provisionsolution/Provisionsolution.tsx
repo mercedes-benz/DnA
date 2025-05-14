@@ -86,6 +86,8 @@ export interface IProvisionSolutionState {
   departmentTags: IDepartment[];
   isGenAI: boolean;
   id: string;
+  isPublished: boolean;         
+  mandatoryTabsFilled: boolean;
 }
 
 export interface IProvisionSolutionProps {
@@ -271,6 +273,8 @@ export default class Provisionsolution extends React.Component<IProvisionSolutio
         neededRoles: [],
       },
       // stateChanged: false,
+      isPublished: false,
+      mandatoryTabsFilled: false,
       showAlertChangesModal: false,
       publishFlag: false,
       businessGoalsList: [],
@@ -308,6 +312,8 @@ export default class Provisionsolution extends React.Component<IProvisionSolutio
               isProvision={this.state.isProvision}
               isGenAI={this.state.isGenAI}
               id={this.state.id}
+              isPublished={this.state.isPublished}
+              mandatoryTabsFilled={this.state.mandatoryTabsFilled} 
             />
           </div>
         </div>

@@ -16,6 +16,8 @@ export interface IConfirmModalProps {
   /** Label of the Accept button */
   acceptButtonTitle?: string;
   /** Label of the Cancel button */
+  showPortButton?: boolean;
+  portToGenAITitle?:string;
   cancelButtonTitle?: string;
   /** should the content be scrollable */
   scrollableContent?: boolean;
@@ -30,6 +32,7 @@ export interface IConfirmModalProps {
   /** action to be done on clicking Cancel button */
   onCancel?: () => void;
   /** accept button disabled */
+  onPort?: () => void;
   acceptButtonDisabled?: boolean;
 }
 /**
@@ -65,6 +68,11 @@ const ConfirmModal = (props: IConfirmModalProps) => (
           >
             {props.cancelButtonTitle}
           </button>
+          {props.showPortButton && (
+            <button className="btn btn-tertiary" type="button" onClick={props.onPort}>
+              {props.portToGenAITitle || 'Port to GenAI'}
+            </button>
+          )}
           {props.removalConfirmation ? (
             <button
               className={props.showAcceptButton ? 'btn btn-tertiary' : `${Styles.hide}`}
