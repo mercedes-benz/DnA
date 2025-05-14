@@ -720,24 +720,25 @@ export default class Description extends React.Component<IDescriptionProps, IDes
           portToGenAITitle="Port to GenAI"
           cancelButtonTitle="Cancel"
           show={this.state.showGenAIWarningModal}
+          modalStyle={{maxWidth: '60%'}}
           content={
-            <div id="contentparentdiv">
+            <div id="contentparentdiv" style={{ fontSize: 'var(--font-small)'}}>
               {this.props.id && this.props.id?.length > 0 ? (
                 <>
-                  Solution already created. Adding GenAI tags to this solution is not allowed. Press &#187;Navigate to
-                  GenAI&#187; to create a new solution with GenAI tagging. (Please note: the current solution will also
+                  Solution already created. Adding GenAI tags to this solution is not allowed.<br /><br />Use &#187;Navigate to
+                  GenAI&#187; to create a new solution with GenAI tagging.(Please note: the current solution will also
                   be retained. Delete it if it's no longer needed.)
                   {canPortToGenAI && (
                       <>
                         <br /><br />
-                        Press »Port to GenAI» to convert this solution with GenAI tagging.
+                        Use »Port to GenAI» to convert this solution with GenAI tagging.
                         (Please note: the current solution will not be retained.)
                       </>
                     )}
               </>
               ) : (
                 <>
-                  Press &#187;Navigate to GenAI &#187; to create a new solution with GenAI tagging.
+                  Use &#187;Navigate to GenAI &#187; to create a new solution with GenAI tagging.
                   <br />
                   Details entered here will be lost. Are you sure you want to proceed?
                 </>
@@ -756,8 +757,9 @@ export default class Description extends React.Component<IDescriptionProps, IDes
           showAcceptButton={false}
           showCancelButton={false}
           show={this.state.showConfirmGenAIRemovalModal}
+          modalStyle={{maxWidth: '60%'}}
           content={
-            <div id="contentparentdiv">
+            <div id="contentparentdiv" style={{ fontSize: 'var(--font-small)'}}>
               Do you want to remove the GenAI tag?
               <br />
               Using this tag, your solution is listed as part of GenAI Solutions.
@@ -1485,18 +1487,6 @@ export default class Description extends React.Component<IDescriptionProps, IDes
       selectElemets[i].remove();
     }
   };
-
-  // protected setTags = (arr: string[]) => {
-  //   const description = this.props.description;
-  //   if (!this.props.isGenAI && arr && isSolutionFixedTagIncludedInArray(arr)) {
-  //     this.setState({ showGenAIWarningModal: true });
-  //     description.tags = arr.filter((tag) => !isSolutionFixedTagIncluded(tag)) || [];
-  //   } else {
-  //     description.tags = arr;
-  //   }
-  //   // this.props.onStateChange();
-  //   this.setState({ showTagsMissingError: arr.length === 0 });
-  // };
 
   protected setTags = (arr: string[]) => {
     const description = this.props.description;

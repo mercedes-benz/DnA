@@ -34,6 +34,8 @@ export interface IConfirmModalProps {
   /** accept button disabled */
   onPort?: () => void;
   acceptButtonDisabled?: boolean;
+  /** custom styles for the modal */
+  modalStyle?: React.CSSProperties;
 }
 /**
  * User Confirmation Modal
@@ -41,7 +43,7 @@ export interface IConfirmModalProps {
  */
 const ConfirmModal = (props: IConfirmModalProps) => (
   <div className={props.show ? 'mbc-cfm-modal-wrapper' : Styles.hide}>
-    <div className={'mbc-cfm-modal'}>
+    <div className={'mbc-cfm-modal'} style={{...props?.modalStyle}}>
       <header>
         <div>{props.showIcon === false ? '' : <IconAttention />}</div>
         {props.showCancelButton && (
