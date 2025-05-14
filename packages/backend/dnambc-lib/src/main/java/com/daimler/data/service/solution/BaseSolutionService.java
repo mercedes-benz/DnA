@@ -98,6 +98,7 @@ import com.daimler.data.service.notebook.NotebookService;
 import com.daimler.data.service.platform.PlatformService;
 import com.daimler.data.service.relatedproduct.RelatedProductService;
 import com.daimler.data.service.skill.SkillService;
+import com.daimler.data.service.solution.SolutionService.TAG_CATEGORY;
 import com.daimler.data.service.tag.TagService;
 import com.daimler.data.service.userinfo.UserInfoService;
 import com.daimler.data.service.visualization.VisualizationService;
@@ -105,6 +106,7 @@ import com.daimler.data.service.analyticsSolution.AnalyticsSolutionService;
 import com.daimler.dna.notifications.common.producer.KafkaProducerService;
 import com.daimler.data.dto.SolutionNotifyTeamMemberVO;
 import com.daimler.data.dto.NotifyTeamMemberVO;
+import com.daimler.data.dto.solution.SolutionVO.OpenSegmentsEnum;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
@@ -1227,5 +1229,118 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 		responseMessage.setSuccess("SUCCESS");
 		return responseMessage;
 
+	}
+
+	@Override
+	// @Transactional
+	public GenericMessage portSolution(String id, boolean revert) {
+		GenericMessage responseMessage = new GenericMessage();
+		MessageDescription errorMessage = new MessageDescription();
+		
+		try {
+			SolutionVO solution = this.getById(id);
+
+			if (solution == null) {
+				errorMessage.setMessage("Solution not found for porting: " + id);
+				LOGGER.warn("Solution not found for porting: {}", id);
+				List<MessageDescription> errorMessages = new ArrayList<>();
+				errorMessages.add(errorMessage);
+				responseMessage.setErrors(errorMessages);
+				responseMessage.setSuccess("FAILED");
+				return responseMessage;
+			}
+
+			if (solution.getOpenSegments() == null || solution.getOpenSegments().stream().noneMatch(segment -> segment.equals(OpenSegmentsEnum.MILESTONES))) {
+				errorMessage.setMessage("Solution does not have required open segments to port.");
+				LOGGER.warn("Solution {} does not have required open segments.", id);
+				List<MessageDescription> errorMessages = new ArrayList<>();
+				errorMessages.add(errorMessage);
+				responseMessage.setErrors(errorMessages);
+				responseMessage.setSuccess("FAILED");
+				return responseMessage;
+			}
+
+			if (revert) {
+				List<String> solutionSegmentNames = Arrays.asList(
+						"DESCRIPTION", "PLATFORM", "TEAMS", "MILESTONES", "DATASOURCES",
+						"ANALYTICS", "SHARING", "DATACOMPLIANCE", "MARKETING", "DIGITALVALUE");
+				List<String> currentSegments = new ArrayList<>();
+				solution.getOpenSegments().forEach(openSegment -> currentSegments.add(openSegment.name()));
+
+				String lastFilledSegment = currentSegments.get(currentSegments.size() - 1);
+				int lastIndexInSolutionList = solutionSegmentNames.indexOf(lastFilledSegment);
+				List<SolutionVO.OpenSegmentsEnum> openSegmentsEnumList = new ArrayList<>();
+				for (int i = 0; i <= lastIndexInSolutionList; i++) {
+					String segment = solutionSegmentNames.get(i);
+					if (currentSegments.contains(segment)) {
+						openSegmentsEnumList.add(SolutionVO.OpenSegmentsEnum.valueOf(segment));
+					}
+				}
+				solution.setOpenSegments(openSegmentsEnumList);
+				if (solution.getTags() != null) {
+					solution.setTags(
+						solution.getTags().stream()
+							.filter(tag -> !"GenAI".equalsIgnoreCase(tag))
+							.collect(Collectors.toList())
+					);
+				}
+
+				if (solution.isPublish() && solution.getOpenSegments() != null
+						&& solution.getOpenSegments().contains(SolutionVO.OpenSegmentsEnum.DIGITALVALUE)) {
+					solution.setPublish(true);
+				} else {
+					solution.setPublish(false);
+				}
+				SolutionNsql solutionNsql = solutionAssembler.toEntity(solution);
+				jpaRepo.save(solutionNsql);
+				LOGGER.info("Solution {} successfully reverted from GenAI.", id);
+				responseMessage.setSuccess("SUCCESS");
+				return responseMessage;
+			}
+
+			else {
+				List<String> genAiSegmentNames = Arrays.asList(
+						"DESCRIPTION", "TEAMS", "MILESTONES", "ANALYTICS", "PLATFORM",
+						"DATASOURCES", "SHARING", "DATACOMPLIANCE", "MARKETING", "DIGITALVALUE");
+
+				List<String> currentSegments = new ArrayList<>();
+				if (solution.getOpenSegments() != null) {
+					solution.getOpenSegments().forEach(openSegment -> currentSegments.add(openSegment.name()));
+				}
+				String lastFilledSegment = currentSegments.get(currentSegments.size() - 1);
+				int lastIndexInGenAiList = genAiSegmentNames.indexOf(lastFilledSegment);
+
+				List<SolutionVO.OpenSegmentsEnum> openSegmentsEnumList = new ArrayList<>();
+				for (int i = 0; i <= lastIndexInGenAiList; i++) {
+					String segment = genAiSegmentNames.get(i);
+					if (currentSegments.contains(segment)) {
+						openSegmentsEnumList.add(SolutionVO.OpenSegmentsEnum.valueOf(segment));
+					}
+				}
+
+				solution.setOpenSegments(openSegmentsEnumList);
+				List<String> tags = solution.getTags() != null ? new ArrayList<>(solution.getTags())
+						: new ArrayList<>();
+				if (!tags.contains("GenAI")) {
+					tags.add("GenAI");
+				}
+				solution.setTags(tags);
+
+				SolutionNsql solutionNsql = solutionAssembler.toEntity(solution);
+				jpaRepo.save(solutionNsql);
+				LOGGER.info("Solution {} successfully ported to GenAI.", id);
+				responseMessage.setSuccess("SUCCESS");
+				return responseMessage;
+
+			}
+		} catch (Exception e) {
+			errorMessage.setMessage("Error while porting solution: " + e.getMessage());
+			LOGGER.error("Error while porting solution {}: {}", id, e.getMessage(), e);
+			List<MessageDescription> errorMessages = new ArrayList<>();
+			errorMessages.add(errorMessage);
+			responseMessage.setErrors(errorMessages);
+			responseMessage.setSuccess("FAILED");
+			return responseMessage;
+		}
 	}
 }

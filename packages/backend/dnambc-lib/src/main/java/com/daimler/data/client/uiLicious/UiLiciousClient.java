@@ -124,16 +124,18 @@ public class UiLiciousClient {
                 }else{
                     response.setResponseStatus(httpResponse.getStatusCode());
                     response.setRunId(null);
-                    log.info(" failed while calling uilicious for create subscription with status{}",httpResponse.getStatusCode());
+                    log.info(" failed while calling uilicious for create subscription with status {} and body {}",httpResponse.getStatusCode(),httpResponse.getBody());
                 }
             }
         }catch( JsonProcessingException e){
             response.setResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR);
             response.setRunId(null);
+            response.setErrorMessage(e.getMessage());
             log.error(" Exception occured while calling uilicious for create subscription with message{}",e.getMessage());
         }catch(Exception e){
             response.setResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR);
             response.setRunId(null);
+            response.setErrorMessage(e.getMessage());
             log.error(" Exception occured while calling uilicious for create subscription with message{}",e.getMessage());
         }
 
