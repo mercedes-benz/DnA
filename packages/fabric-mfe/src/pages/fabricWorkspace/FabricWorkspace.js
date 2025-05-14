@@ -58,14 +58,14 @@ const WorkspaceDetails = ({ workspace }) => {
               <div className={Styles.col3}>
                 <p className={Styles.label}>Related Solutions</p>
                 {workspace?.relatedSolutions.length > 0 ? workspace.relatedSolutions?.map((chip) =>
-                  <><label className="chips">{chip.name}</label>&nbsp;&nbsp;</>
+                  <a key={chip.id} href={`${Envs.CONTAINER_APP_URL}/#/summary/${chip.id}`} target={'_blank'} rel={'noopener noreferrer'}><label className="chips">{chip.name}</label>&nbsp;&nbsp;</a>
                 ) : 'N/A'}
               </div>
 
               <div className={Styles.col3}>
                 <p className={Styles.label}>Related Reports</p>
                 {workspace?.relatedReports.length > 0 ? workspace.relatedReports?.map((chip) => 
-                    <><label className="chips">{chip.name}</label>&nbsp;&nbsp;</>
+                    <a key={chip.id} href={`${Envs.CONTAINER_APP_URL}/#/reportsummary/${chip.id}`} target={'_blank'} rel={'noopener noreferrer'}><label className="chips">{chip.name}</label>&nbsp;&nbsp;</a>
                  ) : 'N/A'}
               </div>
               <div className={Styles.col3}>
