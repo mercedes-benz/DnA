@@ -473,7 +473,7 @@ paths:
           description: "Internal error"
 
   /solutions/{id}/port-solution:
-    post:
+    patch:
       tags:
         - "solutions"
       summary: "Port a solution to GenAI"
