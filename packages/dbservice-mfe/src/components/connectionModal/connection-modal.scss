@@ -77,6 +77,26 @@
   }
 }
 
+.connectionCode {
+  h6 {
+    font-size: 14px;
+    margin-top: 10px;
+  }
+  pre {
+    background-color: #31353d;
+    padding: 10px 20px;
+    display: block;
+    border-radius: 4px;
+    margin-bottom: 20px;
+  }
+}
+
+.connectionSection {
+  background-color: #1d242b;
+  padding: 10px 20px;
+  margin-bottom: 10px;
+}
+
 :global {
   .modal-content > div {
     margin-top: 0!important;

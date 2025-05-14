@@ -36,11 +36,11 @@ const ConnectionModal = ({ dbservice, onOk }) => {
   return (
     <div className={Styles.dbServiceConnection}>
       <header>
-        <h3>Connection Details</h3>
+        <h3>DB Connection Details</h3>
       </header>
-      <section>
+      <section className={Styles.connectionSection}>
         <div className={Styles.item}>
-          <div className={Styles.itemKey}>Host</div>
+          <div className={Styles.itemKey}>DB Host</div>
           <div className={Styles.itemValue}>123.223.23.3</div>
         </div>
         <div className={Styles.item}>
@@ -153,7 +153,30 @@ const ConnectionModal = ({ dbservice, onOk }) => {
               >
                 <i className="icon mbc-icon copy" />
               </span>
-              <div className={Styles.connectionCode}>Python</div>
+              <div className={Styles.connectionCode}>
+                <h6>Install psycopg2 (PostgreSQL adapter)</h6>
+                  <pre>
+                    pip install psycopg2-binary
+                  </pre>
+                <h6>Import and Connect</h6>
+                  <pre>
+                  import psycopg2<br /><br />
+
+                  conn = psycopg2.connect(<br />
+                      host=&quot;your_host&quot;,       # e.g., &quot;localhost&quot; or cloud endpoint<br />
+                      port=&quot;5432&quot;,<br />
+                      database=&quot;your_db&quot;,<br />
+                      user=&quot;your_username&quot;,<br />
+                      password=&quot;your_password&quot;<br />
+                  )
+                  </pre>
+                <h6>Create Cursor and Execute Query</h6>
+                  <pre>
+                  cur = conn.cursor()<br />
+                  cur.execute(&quot;SELECT version();&quot;)<br />
+                  print(cur.fetchone())
+                  </pre>
+              </div>
             </div>
             <div id="tab-content-2" className={classNames('tab-content mbc-scroll', Styles.tabContentContainer)}>
               <span
@@ -165,7 +188,25 @@ const ConnectionModal = ({ dbservice, onOk }) => {
               >
                 <i className="icon mbc-icon copy" />
               </span>
-              <div className={Styles.connectionCode}>SpringBoot</div>
+              <div className={Styles.connectionCode}>
+                <h6>Add PostgreSQL Dependency (in pom.xml)</h6>
+                  <pre>
+{`<dependency>
+  <groupId>org.postgresql</groupId>
+  <artifactId>postgresql</artifactId>
+  <version>42.7.1</version> <!-- or latest -->
+</dependency>`}
+                  </pre>
+                <h6>Configure application.properties or application.yml</h6>
+                  <pre>
+{`spring.datasource.url=jdbc:postgresql://localhost:5432/your_db
+spring.datasource.username=your_username
+spring.datasource.password=your_password
+spring.datasource.driver-class-name=org.postgresql.Driver
+spring.jpa.hibernate.ddl-auto=update
+spring.jpa.show-sql=true`}
+                  </pre>
+              </div>
             </div>
             <div id="tab-content-3" className={classNames('tab-content mbc-scroll', Styles.tabContentContainer)}>
               <span
@@ -177,7 +218,33 @@ const ConnectionModal = ({ dbservice, onOk }) => {
               >
                 <i className="icon mbc-icon copy" />
               </span>
-              <div className={Styles.connectionCode}>Fabric</div>
+              <div className={Styles.connectionCode}>
+                <h6>Connect using OneLake</h6>
+                <pre>
+                <ol>
+<li>
+<p>In <strong>Fabric → Data Factory</strong>, create a new <strong>Pipeline</strong>.</p>
+</li>
+<li>
+<p>Add a <strong>Copy Data activity</strong>.</p>
+</li>
+<li>
+<p>Configure:</p>
+<ul>
+<li>
+<p><strong>Source</strong>: PostgreSQL</p>
+</li>
+<li>
+<p><strong>Sink</strong>: OneLake (Lakehouse or Parquet/Delta format)</p>
+</li>
+</ul>
+</li>
+<li>
+<p>Schedule or trigger as needed.</p>
+</li>
+</ol>
+</pre>
+              </div>
             </div>
             <div id="tab-content-2" className={classNames('tab-content mbc-scroll', Styles.tabContentContainer)}>
               <div className={classNames(Styles.connectionCode)}>
