@@ -1,7 +1,7 @@
 import classNames from 'classnames';
 import React, { useState, useEffect } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
-import { useHistory, useParams } from "react-router-dom";
+import { useHistory } from "react-router-dom";
 // styles
 import Styles from './db-service-form.scss';
 // import from DNA Container
@@ -21,7 +21,6 @@ import { dbServiceApi } from '../../apis/dbservice.api';
 
 const DBServiceForm = ({ user, workspace, edit, onSave }) => {
   let history = useHistory();
-  const { id } = useParams();
   
   const methods = useForm();
   const {
@@ -34,7 +33,8 @@ const DBServiceForm = ({ user, workspace, edit, onSave }) => {
   const isOwner = user?.id === user?.id;
 
   // lean governance fields
-  const [nameOfWorkspace, setNameOfWorkspace] = useState(edit && workspace?.name !== null ? workspace?.name : '');
+  const [dbserviceName, setDbServiceName] = useState(edit && workspace?.name !== null ? workspace?.name : '');
+  const [dbName, setDbName] = useState(edit && workspace?.name !== null ? workspace?.name : '');
 
   const [divisions, setDivisions] = useState([]);
   const [subDivisions, setSubDivisions] = useState([]);
@@ -193,25 +193,6 @@ const DBServiceForm = ({ user, workspace, edit, onSave }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [departmentName[0]]);
 
-  const [bucketPermission, setBucketPermission] = useState({
-    read: true,
-    write: true,
-  });
-
-  const handleCheckbox = (e) => {
-    if (e.target.checked) {
-      setBucketPermission({
-        ...bucketPermission,
-        [e.target.name]: true,
-      });
-    } else {
-      setBucketPermission({
-        ...bucketPermission,
-        [e.target.name]: false,
-      });
-    }
-  };
-
   const onTransferOwnership = (userId) => {
     setOwnerId(userId);
     setShowConfirmModal(true);
@@ -236,7 +217,8 @@ const DBServiceForm = ({ user, workspace, edit, onSave }) => {
   const handleCreateWorkspace = (values) => {
     ProgressIndicator.show();
     const data = {
-      name: values.name.trim(),
+      dbServiceName: values.dbServiceName.trim(),
+      dbName: values.dbname.trim(),
       tags: tags,
       hasPii: values?.pii,
       archerId: values?.archerId,
@@ -265,7 +247,8 @@ const DBServiceForm = ({ user, workspace, edit, onSave }) => {
   };
   const handleEditWorkspace = (values) => {
     const data = {
-      name: values.name.trim(),
+      dbServiceName: values.dbServiceName.trim(),
+      dbName: values.dbname.trim(),
       tags: tags,
       hasPii: values?.pii,
       archerId: values?.archerId,
@@ -338,19 +321,55 @@ const DBServiceForm = ({ user, workspace, edit, onSave }) => {
               </div>
             </div>
             <div className={Styles.col2}>
-              <div className={classNames('input-field-group include-error', errors?.name ? 'error' : '')}>
+              <div className={classNames('input-field-group include-error', errors?.dbServiceName ? 'error' : '')}>
                 <label className={'input-label'}>
-                  Name <sup>*</sup>
+                  DB Service Name <sup>*</sup>
                 </label>
                 <input
                   type="text"
                   className={'input-field'}
-                  id="workspaceName"
+                  id="dbServiceName"
                   placeholder="Type here"
                   autoComplete="off"
                   maxLength={256}
-                  defaultValue={nameOfWorkspace}
-                  {...register('name', { required: '*Missing entry', validate: {
+                  defaultValue={dbserviceName}
+                  {...register('dbServiceName', { required: '*Missing entry', validate: {
+                    minLength: (value) =>
+                      value.length >= 3 || 'DB service name should be minimum 3 characters.',
+                    validChars: (value) =>
+                      /^[a-z\d.-]*$/.test(value) ||
+                      'DB service name can consist only of lowercase letters, numbers, dots ( . ), and hyphens ( - ).',
+                    startsCorrectly: (value) =>
+                      /^[a-z\d]/.test(value) ||
+                      'DB service name must start with a lowercase letter or number.',
+                    noTrailingHyphen: (value) =>
+                      !/-$/.test(value) || 'DB service name must end with letter or a number.',
+                    noTrailingDot: (value) =>
+                      !/\.$/.test(value) || 'DB service name must end with letter or a number.',
+                    noConsecutiveDots: (value) =>
+                      !/\.+\./.test(value) || `DB service name can't have consecutive dots.`,
+                    notIpAddress: (value) =>
+                      !/^(?:(?:^|\.)(?:2(?:5[0-5]|[0-4]\d)|1?\d?\d)){4}$/.test(value) ||
+                      'DB service name can’t be an IP address.',
+                  }, onChange: (e) => { setDbServiceName(e.target.value) } })}
+                />
+                <span className={'error-message'}>{errors?.dbServiceName?.message}</span>
+              </div>
+            </div>
+            <div className={Styles.col2}>
+              <div className={classNames('input-field-group include-error', errors?.dbName ? 'error' : '')}>
+                <label className={'input-label'}>
+                  DB Name <sup>*</sup>
+                </label>
+                <input
+                  type="text"
+                  className={'input-field'}
+                  id="dbName"
+                  placeholder="Type here"
+                  autoComplete="off"
+                  maxLength={256}
+                  defaultValue={dbName}
+                  {...register('dbName', { required: '*Missing entry', validate: {
                     minLength: (value) =>
                       value.length >= 3 || 'DB name should be minimum 3 characters.',
                     validChars: (value) =>
@@ -368,9 +387,9 @@ const DBServiceForm = ({ user, workspace, edit, onSave }) => {
                     notIpAddress: (value) =>
                       !/^(?:(?:^|\.)(?:2(?:5[0-5]|[0-4]\d)|1?\d?\d)){4}$/.test(value) ||
                       'DB name can’t be an IP address.',
-                  }, onChange: (e) => { setNameOfWorkspace(e.target.value) } })}
+                  }, onChange: (e) => { setDbName(e.target.value) } })}
                 />
-                <span className={'error-message'}>{errors?.name?.message}</span>
+                <span className={'error-message'}>{errors?.dbName?.message}</span>
               </div>
             </div>
             <div className={Styles.col}>
@@ -387,43 +406,6 @@ const DBServiceForm = ({ user, workspace, edit, onSave }) => {
                   {...register('description', { required: '*Missing entry', pattern: /^(?!\s+$)(\s*\S+\s*)+$/, onChange: (e) => { setDescription(e.target.value) } })}
                 />
                 <span className={'error-message'}>{errors?.description?.message}{errors.description?.type === 'pattern' && `Spaces (and special characters) not allowed as field value.`}</span>
-              </div>
-            </div>
-            <div className={Styles.col}>
-              <div className={classNames('input-field-group include-error', id && !isOwner ? 'disabled' : '',)}>
-                <label className={classNames(Styles.inputLabel, 'input-label')}>
-                  Permission <sup>*</sup>
-                </label>
-                <div className={Styles.permissionField}>
-                  <div className={Styles.checkboxContainer}>
-                    <label className={classNames('checkbox', Styles.checkBoxDisable)}>
-                      <span className="wrapper">
-                        <input
-                          name="read"
-                          type="checkbox"
-                          className="ff-only"
-                          checked={!!bucketPermission?.read}
-                          onChange={handleCheckbox}
-                        />
-                      </span>
-                      <span className="label">Read</span>
-                    </label>
-                  </div>
-                  <div className={Styles.checkboxContainer}>
-                    <label className={classNames('checkbox', Styles.checkBoxDisable)}>
-                      <span className="wrapper">
-                        <input
-                          name="write"
-                          type="checkbox"
-                          className="ff-only"
-                          checked={!!bucketPermission?.write}
-                          onChange={handleCheckbox}
-                        />
-                      </span>
-                      <span className="label">Write</span>
-                    </label>
-                  </div>
-                </div>
               </div>
             </div>
             <div className={Styles.col2}>
@@ -719,6 +701,21 @@ const DBServiceForm = ({ user, workspace, edit, onSave }) => {
                                           />
                                         </span>
                                         <span className="label">Write</span>
+                                      </label>
+                                    </div>
+                                    &nbsp;&nbsp;&nbsp;
+                                    <div className={classNames('input-field-group include-error ' + Styles.inputGrp)}>
+                                      <label className={'checkbox'}>
+                                        <span className="wrapper">
+                                          <input
+                                            type="checkbox"
+                                            className="ff-only"
+                                            value="admin"
+                                            checked={userLicense?.permission !== null ? userLicense?.permission?.admin : false}
+                                            onChange={(e) => onCollaboratorPermission(e, userLicense.accesskey)}
+                                          />
+                                        </span>
+                                        <span className="label">Admin</span>
                                       </label>
                                     </div>
                                   </div>

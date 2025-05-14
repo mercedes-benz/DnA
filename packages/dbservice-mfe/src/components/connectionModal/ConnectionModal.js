@@ -36,11 +36,11 @@ const ConnectionModal = ({ dbservice, onOk }) => {
   return (
     <div className={Styles.dbServiceConnection}>
       <header>
-        <h3>Connection Details</h3>
+        <h3>DB Connection Details</h3>
       </header>
-      <section>
+      <section className={Styles.connectionSection}>
         <div className={Styles.item}>
-          <div className={Styles.itemKey}>Host</div>
+          <div className={Styles.itemKey}>DB Host</div>
           <div className={Styles.itemValue}>123.223.23.3</div>
         </div>
         <div className={Styles.item}>

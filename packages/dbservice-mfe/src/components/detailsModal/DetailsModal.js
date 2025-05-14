@@ -1,5 +1,6 @@
 import classNames from 'classnames';
 import React from 'react';
+import TeamMemberListItem from 'dna-container/TeamMemberListItem';
 import Styles from './details-modal.scss';
 import { regionalDateAndTimeConversionSolution } from '../../utilities/utils.js';
 
@@ -10,7 +11,10 @@ const DetailsModal = ({ dbservice }) => {
       <h3>DB Service Details</h3>
         <div className={classNames(Styles.flex)}>
           <div className={Styles.col3}>
-            <p className={Styles.label}>DB Service Name</p> {dbservice?.bucketName || 'null'}
+            <p className={Styles.label}>DB Service Name</p> {dbservice?.dbServiceName || 'null'}
+          </div>
+          <div className={Styles.col3}>
+            <p className={Styles.label}>DB Name</p> {dbservice?.dbName || 'null'}
           </div>
           <div className={Styles.col3}>
             <p className={Styles.label}>Created on</p>
@@ -28,10 +32,6 @@ const DetailsModal = ({ dbservice }) => {
           <div className={Styles.col2}>
             <p className={Styles.label}>Description</p>
             {dbservice?.description ? dbservice?.description : 'Test description'}
-          </div>
-          <div className={Styles.col3}>
-            <p className={Styles.label}>Permission</p>
-            Read, {dbservice.permission.write && 'Write'}
           </div>
           <div className={Styles.col3}>
             <p className={Styles.label}>Division</p>
@@ -76,11 +76,12 @@ const DetailsModal = ({ dbservice }) => {
                 <p>No Collaborators</p>
               </div>
             }
-            {dbservice?.collaborators?.length > 0 && dbservice?.collaborators?.map((collaborator) => {
+            {dbservice?.collaborators?.length > 0 && dbservice?.collaborators?.map((collaborator, index) => {
               return (
-                <p key={collaborator?.accessKey}>
-                  {collaborator?.firstName + ' ' + collaborator?.lastName} ({collaborator?.accesskey}) - Read, {collaborator?.permission?.write && 'Write'}
-                </p>
+                <TeamMemberListItem key={collaborator?.id} itemIndex={index} teamMember={collaborator} />
+                // <p key={collaborator?.accessKey}>
+                //   {collaborator?.firstName + ' ' + collaborator?.lastName} ({collaborator?.accesskey}) - Read, {collaborator?.permission?.write && 'Write'}
+                // </p>
               );
             })}
           </div>
