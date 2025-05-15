@@ -47,6 +47,8 @@ import com.daimler.data.dto.fabric.LakehouseS3ShortcutCollectionDto;
 import com.daimler.data.dto.fabric.LakehouseS3ShortcutDto;
 import com.daimler.data.dto.fabric.LakehouseS3ShortcutResponseDto;
 import com.daimler.data.dto.fabric.MicrosoftGroupDetailDto;
+import com.daimler.data.dto.fabric.MicrosoftGroupMemberCollectionDto;
+import com.daimler.data.dto.fabric.MicrosoftGroupMembersDto;
 import com.daimler.data.dto.fabric.ReviewerConfigDto;
 import com.daimler.data.dto.fabric.S3CompatibleTargetDto;
 import com.daimler.data.dto.fabric.ShortcutTargetDto;
@@ -59,6 +61,8 @@ import com.daimler.data.dto.fabricWorkspace.MembersVO;
 import com.daimler.data.dto.fabricWorkspace.CapacityVO;
 import com.daimler.data.dto.fabricWorkspace.CreateRoleRequestVO;
 import com.daimler.data.dto.fabricWorkspace.EntitlementDetailsVO;
+import com.daimler.data.dto.fabricWorkspace.EntraGroupMembersVO;
+import com.daimler.data.dto.fabricWorkspace.EntraGroupResponseVO;
 import com.daimler.data.dto.fabricWorkspace.FabricLakehouseCreateRequestVO;
 import com.daimler.data.dto.fabricWorkspace.FabricLakehouseVO;
 import com.daimler.data.dto.fabricWorkspace.FabricShortcutsCollectionVO;
@@ -1835,6 +1839,28 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		List<MembersVO> members = identityClient.getUsersForRole(roleId);
 		roleDetailVO.setRoleMembers(members);
 		return roleDetailVO;
+	}
+
+	@Override
+	public EntraGroupResponseVO getEntraGroupMembers(String roleName) {
+        MicrosoftGroupDetailDto groupDetail = fabricWorkspaceClient.searchGroup(roleName);
+        if (groupDetail == null || groupDetail.getId() == null) {
+            return null; 
+        }
+
+        MicrosoftGroupMemberCollectionDto memberCollection = fabricWorkspaceClient.getGroupMembers(groupDetail.getId());
+        List<EntraGroupMembersVO> memberVOs = new ArrayList<>();
+        if (memberCollection != null && memberCollection.getValue() != null) {
+            for (MicrosoftGroupMembersDto member : memberCollection.getValue()) {
+                EntraGroupMembersVO vo = new EntraGroupMembersVO();
+                vo.setId(member.getId());
+                vo.setDisplayName(member.getDisplayName());
+                memberVOs.add(vo);
+            }
+        }
+		EntraGroupResponseVO response = new EntraGroupResponseVO();
+        response.setMembers(memberVOs);
+        return response;
 	}
 
 }
