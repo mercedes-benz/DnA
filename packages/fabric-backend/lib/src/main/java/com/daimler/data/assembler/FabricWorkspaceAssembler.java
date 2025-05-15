@@ -76,7 +76,6 @@ public class FabricWorkspaceAssembler implements GenericAssembler<FabricWorkspac
 				FabricWorkspace data = entity.getData();
 				if(data!=null) {
 					BeanUtils.copyProperties(data, vo);
-						vo.setAppId(data.getAppId());
 					Capacity capacity = data.getCapacity();
 					CapacityVO capacityVO = new CapacityVO();
 				if(capacity != null) {
@@ -356,7 +355,6 @@ public class FabricWorkspaceAssembler implements GenericAssembler<FabricWorkspac
 				BeanUtils.copyProperties(vo.getLeanIXDetails(), leanIXDetails);
 				data.setLeanIXDetails(leanIXDetails);
 			}
-			data.setAppId(vo.getAppId());
 			entity.setData(data);
 		}
 		return entity;
