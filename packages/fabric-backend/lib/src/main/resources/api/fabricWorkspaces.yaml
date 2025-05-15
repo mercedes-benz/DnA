@@ -421,13 +421,13 @@ paths:
           500:
             description: "Internal error"
 
-  /fabric-workspaces/entraGroupMembers/{roleName}:
+  /fabric-workspaces/{roleName}/entraGroupMembers:
     get:
         tags:
           - "fabric-workspaces"
-        summary: "get the role EntraID group details."
-        description: "get the group details."
-        operationId: "getGroupDetails"
+        summary: "get the EntraID group member details."
+        description: "get the group member details."
+        operationId: "getGroupMemberDetails"
         parameters:
           - name: "roleName"
             in: "path"

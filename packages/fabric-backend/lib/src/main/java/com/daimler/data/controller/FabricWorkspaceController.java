@@ -918,7 +918,7 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
     }
 
 	@Override
-	@ApiOperation(value = "get the role EntraID group details.", nickname = "getGroupDetails", notes = "get the group details.", response = EntraGroupResponseVO.class, tags={ "fabric-workspaces", })
+    @ApiOperation(value = "get the EntraID group member details.", nickname = "getGroupMemberDetails", notes = "get the group member details.", response = EntraGroupResponseVO.class, tags={ "fabric-workspaces", })
     @ApiResponses(value = { 
         @ApiResponse(code = 200, message = "Returns message of succes or failure ", response = EntraGroupResponseVO.class),
         @ApiResponse(code = 400, message = "Bad Request"),
@@ -926,11 +926,11 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
         @ApiResponse(code = 403, message = "Request is not authorized."),
         @ApiResponse(code = 405, message = "Method not allowed"),
         @ApiResponse(code = 500, message = "Internal error") })
-    @RequestMapping(value = "/fabric-workspaces/entraGroupMembers/{roleName}",
+    @RequestMapping(value = "/fabric-workspaces/{roleName}/entraGroupMembers",
         produces = { "application/json" }, 
         consumes = { "application/json" },
         method = RequestMethod.GET)
-    public ResponseEntity<EntraGroupResponseVO> getGroupDetails(@ApiParam(value = "",required=true) @PathVariable("roleName") String roleName){
+     public ResponseEntity<EntraGroupResponseVO> getGroupMemberDetails(@ApiParam(value = "",required=true) @PathVariable("roleName") String roleName){
 		try {
 			EntraGroupResponseVO groupResponse = service.getEntraGroupMembers(roleName);
 
