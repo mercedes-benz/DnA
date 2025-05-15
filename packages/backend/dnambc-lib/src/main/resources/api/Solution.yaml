@@ -472,7 +472,7 @@ paths:
         500:
           description: "Internal error"
 
-  /solutions/{id}/port-solution:
+    /solutions/{id}/port-solution:
     patch:
       tags:
         - "solutions"
@@ -480,22 +480,21 @@ paths:
       description: "Triggers the process of porting the specified solution to the GenAI system."
       operationId: "portToGenAISolution"
       parameters:
-        - name: "id"
-          in: "path"
+        - name: id
+          in: path
           description: "ID of the solution to be ported to GenAI"
           required: true
-          type: "string"
+          type: string
         - name: "revert"
           in: "query"
-          description: "If true, reverts the GenAI solution back to a regular solution"
-          required: false
-          type: "boolean"
-          default: false
+          type: boolean
       responses:
         200:
-          description: Solution successfully ported to GenAI.
+          description: "Solution successfully ported to GenAI."
           schema:
             $ref: "#/definitions/GenericMessage"
+        204:
+          description: "Fetch complete, no content found."
         400:
           description: "Bad request."
         401:
