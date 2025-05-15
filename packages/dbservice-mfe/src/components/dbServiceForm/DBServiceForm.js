@@ -19,7 +19,7 @@ import { Envs } from '../../utilities/envs';
 import { hostServer } from '../../server/api';
 import { dbServiceApi } from '../../apis/dbservice.api';
 
-const DBServiceForm = ({ user, workspace, edit, onSave }) => {
+const DBServiceForm = ({ user, dbservice, edit, onSave }) => {
   let history = useHistory();
   
   const methods = useForm();
@@ -33,8 +33,8 @@ const DBServiceForm = ({ user, workspace, edit, onSave }) => {
   const isOwner = user?.id === user?.id;
 
   // lean governance fields
-  const [dbserviceName, setDbServiceName] = useState(edit && workspace?.name !== null ? workspace?.name : '');
-  const [dbName, setDbName] = useState(edit && workspace?.name !== null ? workspace?.name : '');
+  const [dbserviceName, setDbServiceName] = useState(edit && dbservice?.name !== null ? dbservice?.name : '');
+  const [dbName, setDbName] = useState(edit && dbservice?.name !== null ? dbservice?.name : '');
 
   const [divisions, setDivisions] = useState([]);
   const [subDivisions, setSubDivisions] = useState([]);
@@ -42,21 +42,21 @@ const DBServiceForm = ({ user, workspace, edit, onSave }) => {
   const [dataClassificationDropdown, setDataClassificationDropdown] = useState([]);
   const [fabricTags] = useState([]);
 
-  const [division, setDivision] = useState(edit ? (workspace?.divisionId ? workspace?.divisionId + '@-@' + workspace?.division : '0') : '');
-  const [subDivision, setSubDivision] = useState(edit ? (workspace?.subDivisionId ? workspace?.subDivisionId + '@-@' + workspace?.subDivision : '0') : '');
-  const [description, setDescription] = useState(edit && workspace?.description ? workspace?.description : '');
-  const [departmentName, setDepartmentName] = useState(edit && workspace?.department ? [workspace?.department] : []);
-  const [typeOfProject, setTypeOfProject] = useState(edit && workspace?.typeOfProject ? workspace?.typeOfProject : '0');
-  const [dataClassification, setDataClassification] = useState(edit && workspace?.dataClassification ? workspace?.dataClassification : '0');
-  const [PII, setPII] = useState(edit && workspace?.hasPii ? workspace?.hasPii : false);
-  const [tags, setTags] = useState(edit && workspace?.tags !== null ? [...workspace.tags] : []);
-  const [archerId, setArcherID] = useState(edit && workspace?.archerId ? workspace?.archerId : '');
-  const [procedureId, setProcedureID] = useState(edit && workspace?.procedureId ? workspace?.procedureId : '');
-  const [termsOfUse, setTermsOfUse] = useState(edit && workspace?.termsOfUse ? [workspace?.termsOfUse] : false);
+  const [division, setDivision] = useState(edit ? (dbservice?.divisionId ? dbservice?.divisionId + '@-@' + dbservice?.division : '0') : '');
+  const [subDivision, setSubDivision] = useState(edit ? (dbservice?.subDivisionId ? dbservice?.subDivisionId + '@-@' + dbservice?.subDivision : '0') : '');
+  const [description, setDescription] = useState(edit && dbservice?.description ? dbservice?.description : '');
+  const [departmentName, setDepartmentName] = useState(edit && dbservice?.department ? [dbservice?.department] : []);
+  const [typeOfProject, setTypeOfProject] = useState(edit && dbservice?.typeOfProject ? dbservice?.typeOfProject : '0');
+  const [dataClassification, setDataClassification] = useState(edit && dbservice?.dataClassification ? dbservice?.dataClassification : '0');
+  const [PII, setPII] = useState(edit && dbservice?.hasPii ? dbservice?.hasPii : false);
+  const [tags, setTags] = useState(edit && dbservice?.tags !== null ? [...dbservice.tags] : []);
+  const [archerId, setArcherID] = useState(edit && dbservice?.archerId ? dbservice?.archerId : '');
+  const [procedureId, setProcedureID] = useState(edit && dbservice?.procedureId ? dbservice?.procedureId : '');
+  const [termsOfUse, setTermsOfUse] = useState(edit && dbservice?.termsOfUse ? [dbservice?.termsOfUse] : false);
 
   const [collaborators, setCollaborators] = useState([]);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [bucketName] = useState(edit && workspace?.name !== null ? workspace?.name : '');
+  const [bucketName] = useState(edit && dbservice?.name !== null ? dbservice?.name : '');
   const [ownerId, setOwnerId] = useState();
 
   useEffect(() => {
@@ -64,32 +64,29 @@ const DBServiceForm = ({ user, workspace, edit, onSave }) => {
   }, []);
 
   const getDevelopers = (developer) => {
-    const userLicenseData = {
-      userDetails: {
+    const userData = {
         id: developer?.shortId,
         firstName: developer?.firstName,
         lastName: developer?.lastName,
         department: developer?.department,
         mobileNumber: developer?.mobileNumber,
         email: developer?.email,
-      },
-      license: 'POWER-APPS-PREMIUM-USER'
     };
 
     let duplicateMember = false;
-    duplicateMember = collaborators?.filter((license) => license.userDetails.id === developer.shortId)?.length ? true : false;
+    duplicateMember = collaborators?.filter((collab) => collab.id === developer.shortId)?.length ? true : false;
 
-    const isCreator = user?.id === developer?.id;
+    const isCreator = user?.id === developer?.shortId;
 
     if (duplicateMember) {
-        Notification.show('User License already added.', 'warning');
+        Notification.show('User already added.', 'warning');
     } else if (isCreator) {
         Notification.show(
-            `${developer.firstName} ${developer.lastName} is a creator. Creator can't be added to user lincense.`,
+            `${developer.firstName} ${developer.lastName} is a creator. Creator can't be added to user list.`,
             'warning',
         );
     } else {
-        collaborators?.push(userLicenseData);
+        collaborators?.push(userData);
         setCollaborators([...collaborators]);
     }
   }
@@ -134,7 +131,7 @@ const DBServiceForm = ({ user, workspace, edit, onSave }) => {
         setDataClassificationDropdown(response[0]?.data?.data || []);
         setDivisions(response[1]?.data || []);
         setDepartments(response[2]?.data?.data || []);
-        edit && setDivision(workspace?.divisionId !== null ? workspace?.divisionId + '@-@' + workspace?.division : '0');
+        edit && setDivision(dbservice?.divisionId !== null ? dbservice?.divisionId + '@-@' + dbservice?.division : '0');
         SelectBox.defaultSetup();
       })
       .catch((err) => {
@@ -174,13 +171,13 @@ const DBServiceForm = ({ user, workspace, edit, onSave }) => {
 
   useEffect(() => {
     divisions.length > 0 && 
-    edit && setDivision(workspace?.divisionId !== null ? workspace?.divisionId + '@-@' + workspace?.division : '0');
+    edit && setDivision(dbservice?.divisionId !== null ? dbservice?.divisionId + '@-@' + dbservice?.division : '0');
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [divisions]);
 
   useEffect(() => {
     subDivisions.length > 0 &&
-    edit && setSubDivision(workspace?.subDivisionId !== null ? workspace?.subDivisionId + '@-@' + workspace?.subDivision : '0');
+    edit && setSubDivision(dbservice?.subDivisionId !== null ? dbservice?.subDivisionId + '@-@' + dbservice?.subDivision : '0');
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [subDivisions]);
 
@@ -264,7 +261,7 @@ const DBServiceForm = ({ user, workspace, edit, onSave }) => {
       dataClassification: values?.dataClassification,
     }
     ProgressIndicator.show();
-    dbServiceApi.updateDBService(workspace.id, data).then(() => {
+    dbServiceApi.updateDBService(dbservice.id, data).then(() => {
       ProgressIndicator.hide();
       Notification.show('DB Service successfully updated');
       onSave();
@@ -308,7 +305,7 @@ const DBServiceForm = ({ user, workspace, edit, onSave }) => {
                     <option id="typeOfProjectOption" value={0}>
                       Choose
                     </option>
-                    {(!edit || workspace?.typeOfProject === 'Playground') && <option value={'Playground'}>Playground</option>}
+                    {(!edit || dbservice?.typeOfProject === 'Playground') && <option value={'Playground'}>Playground</option>}
                     <option value={'Proof of Concept'}>Proof of Concept</option>
                     <option value={'Production'}>Production</option>
                   </select>
@@ -534,7 +531,7 @@ const DBServiceForm = ({ user, workspace, edit, onSave }) => {
                   <select
                     id="classificationField"
                     defaultValue={dataClassification}
-                    value={workspace?.dataClassification}
+                    value={dbservice?.dataClassification}
                     {...register('dataClassification', {
                       required: '*Missing entry',
                       validate: (value) => value !== '0' || '*Missing entry',
@@ -664,14 +661,14 @@ const DBServiceForm = ({ user, workspace, edit, onSave }) => {
                         <div className={Styles.column4}>Actions</div>
                     </div>
                     <div>
-                        {collaborators?.map((userLicense) => {
+                        {collaborators?.map((user) => {
                           return (
-                              <div key={userLicense?.userDetails?.id} className={Styles.userRow}>
+                              <div key={user?.id} className={Styles.userRow}>
                                   <div className={Styles.column1}>
-                                    <p>{userLicense?.userDetails?.id}</p>
+                                    <p>{user?.id}</p>
                                   </div>
                                   <div className={Styles.column2}>
-                                    <p>{userLicense?.userDetails?.firstName + ' ' + userLicense?.userDetails?.lastName}</p>
+                                    <p>{user?.firstName + ' ' + user?.lastName}</p>
                                   </div>
                                   <div className={classNames(Styles.column3, Styles.lincenseContainer)}>
                                     <div className={classNames('input-field-group include-error ', Styles.inputGrp)}>
@@ -696,8 +693,8 @@ const DBServiceForm = ({ user, workspace, edit, onSave }) => {
                                             type="checkbox"
                                             className="ff-only"
                                             value="write"
-                                            checked={userLicense?.permission !== null ? userLicense?.permission?.write : false}
-                                            onChange={(e) => onCollaboratorPermission(e, userLicense.accesskey)}
+                                            checked={user?.permission !== null ? user?.permission?.write : false}
+                                            onChange={(e) => onCollaboratorPermission(e, user.accesskey)}
                                           />
                                         </span>
                                         <span className="label">Write</span>
@@ -711,8 +708,8 @@ const DBServiceForm = ({ user, workspace, edit, onSave }) => {
                                             type="checkbox"
                                             className="ff-only"
                                             value="admin"
-                                            checked={userLicense?.permission !== null ? userLicense?.permission?.admin : false}
-                                            onChange={(e) => onCollaboratorPermission(e, userLicense.accesskey)}
+                                            checked={user?.permission !== null ? user?.permission?.admin : false}
+                                            onChange={(e) => onCollaboratorPermission(e, user.accesskey)}
                                           />
                                         </span>
                                         <span className="label">Admin</span>
@@ -721,12 +718,12 @@ const DBServiceForm = ({ user, workspace, edit, onSave }) => {
                                   </div>
                                   <div className={Styles.column4}>
                                     {edit && isOwner &&
-                                      <div className={Styles.deleteEntry} onClick={() => onTransferOwnership(userLicense?.accesskey)}>
+                                      <div className={Styles.deleteEntry} onClick={() => onTransferOwnership(user?.accesskey)}>
                                         <i className="icon mbc-icon comparison" />
                                         Transfer Ownership
                                       </div>
                                     }
-                                    <div className={Styles.deleteEntry} onClick={onUserLicenseDelete(userLicense?.userDetails?.id)}>
+                                    <div className={Styles.deleteEntry} onClick={onUserLicenseDelete(user?.id)}>
                                       <i className="icon mbc-icon trash-outline" tooltip-data={'Delete'} />
                                     </div>
                                   </div>
