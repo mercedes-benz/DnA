@@ -15,12 +15,16 @@
     align-items: center;
     flex-wrap: wrap;
     row-gap: 40px;
+    column-gap: 20px;
 
+    .col {
+      width: 100%;
+    }
     .col2 {
-      width: calc(50% - 7px);
+      width: calc(50% - 10px);
     }
     .col3 {
-      width: calc(33% - 7px);
+      width: calc(33% - 10px);
     }
   }
 
@@ -29,6 +33,28 @@
     font-size: var(--font-size-small);
     font-weight: 700;
     margin-bottom: 8px;
+  }
+}
+
+.userContainer {
+  row-gap: 20px!important;
+}
+.userCard {
+  background-color: #323743;
+  padding: 10px;
+  display: flex;
+  column-gap: 15px;
+  align-items: center;
+
+  p {
+    margin-bottom: 0;
+    font-size: var(--font-size-medium);
+
+    > span {
+      display: block;
+      font-size: var(--font-size-small);
+      color: #99a5b3;
+    }
   }
 }
 

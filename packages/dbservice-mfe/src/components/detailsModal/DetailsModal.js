@@ -1,11 +1,11 @@
 import classNames from 'classnames';
 import React from 'react';
-import TeamMemberListItem from 'dna-container/TeamMemberListItem';
 import Styles from './details-modal.scss';
+import { IconAvatarNew } from '../icons/iconAvatarNew/IconAvatarNew.js';
 import { regionalDateAndTimeConversionSolution } from '../../utilities/utils.js';
 
 const DetailsModal = ({ dbservice }) => {
-  console.log(dbservice);
+  
   return (
     <div className={Styles.panel}>
       <h3>DB Service Details</h3>
@@ -29,7 +29,7 @@ const DetailsModal = ({ dbservice }) => {
             <p className={Styles.label}>Type of Project</p>
             {dbservice?.typeOfProject ? dbservice?.typeOfProject : 'N/A'}
           </div>
-          <div className={Styles.col2}>
+          <div className={Styles.col3}>
             <p className={Styles.label}>Description</p>
             {dbservice?.description ? dbservice?.description : 'Test description'}
           </div>
@@ -69,21 +69,23 @@ const DetailsModal = ({ dbservice }) => {
             <p className={Styles.label}>Procedure ID</p>
             {dbservice?.procedureId ? dbservice?.procedureId : 'N/A'}
           </div>
-          <div className={Styles.col2}>
+          <div className={Styles.col}>
             <p className={Styles.label}>Collaborators</p>
             {dbservice?.collaborators?.length === 0 &&
               <div className={Styles.noLincense}>
                 <p>No Collaborators</p>
               </div>
             }
-            {dbservice?.collaborators?.length > 0 && dbservice?.collaborators?.map((collaborator, index) => {
-              return (
-                <TeamMemberListItem key={collaborator?.id} itemIndex={index} teamMember={collaborator} />
-                // <p key={collaborator?.accessKey}>
-                //   {collaborator?.firstName + ' ' + collaborator?.lastName} ({collaborator?.accesskey}) - Read, {collaborator?.permission?.write && 'Write'}
-                // </p>
-              );
-            })}
+            <div className={classNames(Styles.flex, Styles.userContainer)}>
+              {dbservice?.collaborators?.length > 0 && dbservice?.collaborators?.map((collaborator) =>
+                <div key={collaborator?.id} className={classNames(Styles.col3, Styles.userCard)}>
+                  <div><IconAvatarNew /></div>
+                  <div>
+                    <p>{collaborator?.firstName + ' ' + collaborator?.lastName} ({collaborator?.accesskey}) <span>Read{collaborator?.permission?.write && ', Write'}{collaborator?.permission?.admin && ', Admin'}</span></p>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
         </div>
     </div>

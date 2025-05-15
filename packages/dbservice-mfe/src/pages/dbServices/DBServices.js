@@ -335,7 +335,7 @@ const DBServices = ({user}) => {
           modalWidth={'800px'}
           buttonAlignment="right"
           show={editDbService}
-          content={<DBServiceForm edit={true} workspace={selectedDbService} onSave={() => {setEditDbService(false); getDbServices(); }} />}
+          content={<DBServiceForm edit={true} dbservice={selectedDbService} onSave={() => {setEditDbService(false); getDbServices(); }} />}
           scrollableContent={true}
           onCancel={() => setEditDbService(false)}
         />
