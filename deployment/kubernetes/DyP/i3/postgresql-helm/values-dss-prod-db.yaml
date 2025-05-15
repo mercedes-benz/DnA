@@ -234,7 +234,11 @@ service:
   ## The service name has to be unique inside a namespace!
   ## Otherwise there will be a clash of endpoint and the service will not work!
   # name: postgres
-  port: 64000
+  ports:
+  - name: postgresql
+    port: 64000
+  - name: postgresql-tcp
+    port: 64030
 
 ## PostgreSQL persistence layer
 ## storageClassName: <storageClass>
