@@ -962,7 +962,7 @@ public class SolutionController implements SolutionsApi, ChangelogsApi, Malwares
             @ApiResponse(code = 404, message = "Solution not found for the provided ID."),
             @ApiResponse(code = 500, message = "Internal server error. Something went wrong during processing.") })
     @RequestMapping(value = "/solutions/{id}/port-solution", produces = { "application/json" }, consumes = {
-            "application/json" }, method = RequestMethod.POST)
+            "application/json" }, method = RequestMethod.PATCH)
     public ResponseEntity<GenericMessage> portToGenAISolution(
             @ApiParam(value = "ID of the solution to be ported to GenAI", required = true) @PathVariable("Id") String id,
             @ApiParam(value = "If true, reverts the GenAI solution back to a regular solution") @RequestParam(value = "revert", required = false) Boolean revert) {
