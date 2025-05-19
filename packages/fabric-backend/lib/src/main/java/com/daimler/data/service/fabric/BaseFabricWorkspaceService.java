@@ -168,10 +168,10 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 	private String fabricOperationsRoleName;
 
 	@Value("${fabricWorkspaces.allowed.divisions.fabric.enabled}")
-	private String[] allowedDivisionsArray;
+	private String allowedDivisions;
 	
 	public List<String> getAllowedDivisions() {
-		return Arrays.asList(allowedDivisionsArray);
+		return List.of(allowedDivisions.toLowerCase().split(","));
 	}
 
 	public BaseFabricWorkspaceService() {
