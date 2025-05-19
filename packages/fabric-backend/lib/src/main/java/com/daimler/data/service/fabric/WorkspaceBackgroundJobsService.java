@@ -48,6 +48,13 @@ public class WorkspaceBackgroundJobsService {
 	
 	@Value("${fabricWorkspaces.startup.onboardOwnersToFabricOperationsRole}")
 	private String enableOwnersOnboardingToFabricRoleOnStartup;
+
+	@Value("${fabricWorkspaces.allowed.divisions.fabric.enabled}")
+	private String allowedDivisions;
+	
+	public List<String> getAllowedDivisions() {
+		return List.of(allowedDivisions.toLowerCase().split(","));
+	}
 	
 	private SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 	
@@ -133,6 +140,9 @@ public class WorkspaceBackgroundJobsService {
 					String updatedName = workspaceVO.getName();
 					String updatedDescription = workspaceVO.getDescription();
 					boolean isDeleted = false;
+					List<String> allowedDivisionsForFabricEnbaledEntilement = getAllowedDivisions();
+					String divisions = workspaceVO.getDivision();
+					boolean isDivisionAllowed = (divisions != null && allowedDivisionsForFabricEnbaledEntilement.contains(divisions.toLowerCase()));
 					if(dtosFromFabric!=null && !dtosFromFabric.isEmpty()) {
 						Optional<WorkspaceDetailDto> fabricWorkspaceDtoOptional = dtosFromFabric.stream().filter(n -> n.getId().equals(workspaceVO.getId())).findFirst();
 						if(fabricWorkspaceDtoOptional!=null && fabricWorkspaceDtoOptional.isPresent()) {
@@ -152,7 +162,7 @@ public class WorkspaceBackgroundJobsService {
 							FabricWorkspaceStatusVO updatedStatus = new FabricWorkspaceStatusVO();
 							FabricWorkspaceVO tempWorkspaceVO =  workspaceVO;
 							try {
-								updatedStatus = fabricService.processWorkspaceUserManagement(currentStatus,updatedName, workspaceVO.getCreatedBy().getId(), workspaceVO.getId(),workspaceVO.getCustomGroupName(), false);
+								updatedStatus = fabricService.processWorkspaceUserManagement(currentStatus,updatedName, workspaceVO.getCreatedBy().getId(), workspaceVO.getId(),workspaceVO.getCustomGroupName(), isDivisionAllowed);
 								tempWorkspaceVO.setStatus(updatedStatus);
 								try {
 									tempWorkspaceVO.setName(updatedName);
