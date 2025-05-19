@@ -167,7 +167,7 @@ ingress:
   tls: null
 resources:
   requests:
-    memory: 945Mi
+    memory: 500Mi
     cpu: 12m
   limits:
     memory: 945Mi
@@ -216,3 +216,7 @@ vaultInjector:
 podDisruptionBudget:
   enabled: true
   minAvailable: 50%
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 4

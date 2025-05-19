@@ -86,10 +86,10 @@ Storage:
   size: 5G
 resources:
   requests:
-    memory: 1532Mi
+    memory: 2024Mi
     cpu: 13m
   limits:
-    memory: 1532Mi
+    memory: 1024Mi
 vaultInjector:
   enable: true
   annotations:
