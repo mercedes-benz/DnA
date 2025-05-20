@@ -136,11 +136,11 @@ import com.daimler.data.util.ConstantsUtility;
 	 @Value("${codeServer.workspace.url.aws}")
 	 private String codespaceUrlAWS;
 
-	 @Value("${codeServer.collab.pid}")
-	 private String collabPid;
-
 	 @Value("${codeServer.codespace.filename}")
 	 private String codespaceFileName;
+   
+	 @Value("${codeServer.collab.pid}")
+	 private String collabPid;
 
 	 @Value("${codeServer.technical.id}")
 	 private String technicalId;

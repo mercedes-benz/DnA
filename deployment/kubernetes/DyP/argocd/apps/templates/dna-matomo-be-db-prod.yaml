@@ -1,0 +1,48 @@
+{{- if eq .Values.env "prod" }} 
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  {{- with .Values.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  name: {{ .Values.env }}-dna-matomo-be-db
+  namespace: {{ .Values.namespace }}
+  labels:
+    name: matomo-be-db
+    env: {{ .Values.env }}
+    project: {{ .Values.env }}-dna
+spec:
+  destination:
+    namespace: {{ .Values.env }}-dna-matomo
+    server: {{ .Values.server | squote }}
+  source:
+    path: deployment/kubernetes/DyP/i3/postgresql-helm
+    repoURL: {{ .Values.repoURL | squote }}
+    targetRevision: {{ .Values.branch }}
+    plugin:
+      name: argocd-vault-plugin-helm
+      env:
+        - name: HELM_ARGS
+          {{- if ne .Values.env "prod" }}
+          value: -f values-matomo-be-db-prod.yaml --set namespace={{ .Values.env }}-dna-matomo
+          {{ else }}
+          value: -f values-matomo-be-db-{{ .Values.env }}.yaml --set namespace={{ .Values.env }}-dna-matomo
+          {{- end }}                          
+  project: {{ .Values.env }}-dna
+{{- if .Values.enableSync }}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - ApplyOutOfSyncOnly=true
+      - CreateNamespace=true
+      - RespectIgnoreDifferences=true
+{{- end }}
+  ignoreDifferences:
+    - group: apiextensions.k8s.io
+      kind: Endpoints
+      jsonPointers:
+        - /subsets      
+{{- end }}

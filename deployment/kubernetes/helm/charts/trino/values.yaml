@@ -15,6 +15,7 @@ image:
 
 ingress:
   enabled: true
+  className: "traefik" 
   host: ""
   annotations:
     traefik.frontend.rule.type: PathPrefix
@@ -149,7 +150,7 @@ hivemetastore:
     cpu: 2
   limits:
     memory: "8G"
-    cpu: 2
+  #  cpu: 2
   minio:
     host: ""
     accessKey: ""

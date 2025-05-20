@@ -1,0 +1,29 @@
+{{- if .Values.external.alertmanager.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  labels:
+    {{- include "dhc-monitoring-netpols.metadata.labels" . | nindent 4}}
+  name: {{ template "dhc-monitoring-netpols.fullname" . }}-alertmanager-incoming
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "dhc-monitoring-netpols.alertmanager.matchLabels" . | nindent 6 }}
+  policyTypes:
+  - Ingress
+{{- if .Values.external.alertmanager.ingresses }}
+  # Allow from specific ports or namespaces to port 9093
+  ingress:
+  {{- range .Values.external.alertmanager.ingresses }}
+  - from:
+{{ .from | toYaml | indent 4 }}
+    ports:
+      - port: 9093
+  {{- end -}}
+{{- else }}
+  # Allow traffic from all pods to port 9093
+  ingress:
+  - ports: 
+    - port: 9093
+{{- end }}
+{{- end }}

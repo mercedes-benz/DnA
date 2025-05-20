@@ -6965,7 +6965,7 @@ spec:
                             required:
                               - monitors
                             type: object
-                          cinder:
+                          dhc-gp3:
                             properties:
                               fsType:
                                 type: string
@@ -13015,7 +13015,7 @@ spec:
                             required:
                               - monitors
                             type: object
-                          cinder:
+                          dhc-gp3:
                             properties:
                               fsType:
                                 type: string
@@ -15290,7 +15290,7 @@ spec:
                             required:
                               - monitors
                             type: object
-                          cinder:
+                          dhc-gp3:
                             properties:
                               fsType:
                                 type: string
