@@ -81,7 +81,9 @@ public class RecipeController implements CodeServerRecipeApi {
 		String id = recipeRequestVO.getId() != null ? recipeRequestVO.getId() : null;
 		String recipeName = recipeRequestVO.getRecipeName() != null ? recipeRequestVO.getRecipeName() : null;
 		//RecipeVO vo = service.getByRecipeName(recipeName);
-		recipeRequestVO.setIsDeployEnabled(false);
+		if(recipeRequestVO.isIsDeployEnabled() == null){
+			recipeRequestVO.setIsDeployEnabled(false);
+		}
 		InitializeRecipeVo responseMessage = new InitializeRecipeVo();
 		String name = service.getRecipeById(id)!= null ? service.getRecipeById(id).getRecipeName() : null;
 		if (name == null) {
@@ -135,7 +137,9 @@ public class RecipeController implements CodeServerRecipeApi {
 		String id = recipeRequestVO.getId() != null ? recipeRequestVO.getId() : null;
 		String recipeName = recipeRequestVO.getRecipeName() != null ? recipeRequestVO.getRecipeName() : null;
 		//RecipeVO vo = service.getByRecipeName(recipeName);
+		if(recipeRequestVO.isIsDeployEnabled() == null){
 		recipeRequestVO.setIsDeployEnabled(false);
+		}
 		InitializeRecipeVo responseMessage = new InitializeRecipeVo();
 		String name = service.getRecipeById(id)!= null ? service.getRecipeById(id).getRecipeName() : null;
 		if(name!=null) {

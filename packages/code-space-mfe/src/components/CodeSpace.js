@@ -182,16 +182,27 @@ const CodeSpace = (props) => {
   //   codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'nestjs' ||
   //   codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'springbootwithmaven';
 
-  const isIAMRecipe =
-    codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'springboot' ||
-    codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'py-fastapi' ||
-    codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'expressjs' ||
-    codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'springbootwithmaven';
+  // const isIAMRecipe =
+  //   codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'springboot' ||
+  //   codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'py-fastapi' ||
+  //   codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'expressjs' ||
+  //   codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'springbootwithmaven';
 
-  const resources = codeSpaceData?.projectDetails?.recipeDetails?.resource?.split(',');
-  const resourceUsageUrl = Envs.MONITORING_DASHBOARD_BASE_URL + `codespace-cpu-and-memory-usage?orgId=1&from=now-1h&to=now&var-namespace=${Envs.CODESERVER_NAMESPACE}&var-pod=${codeSpaceData?.workspaceId}&var-container=notebook`;
+  // const isUIRecipe = 
+  //   codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'dash' ||
+  //   codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'streamlit' ||
+  //   codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'nestjs' ||
+  //   codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'vuejs' ||
+  //   codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'angular' ||
+  //   codeSpaceData?.projectDetails?.recipeDetails?.recipeId === 'react';
+  
+    const resources = codeSpaceData?.projectDetails?.recipeDetails?.resource?.split(',');
+    const resourceUsageUrl = Envs.MONITORING_DASHBOARD_BASE_URL + `codespace-cpu-and-memory-usage?orgId=1&from=now-1h&to=now&var-namespace=${Envs.CODESERVER_NAMESPACE}&var-pod=${codeSpaceData?.workspaceId}&var-container=notebook`;
   const intAppResourceUsageUrl = Envs.MONITORING_DASHBOARD_APP_BASE_URL + `codespace-app-cpu-and-memory-usage?orgId=1&var-namespace=${Envs.CODESERVER_APP_NAMESPACE}&var-app=${codeSpaceData?.projectDetails?.projectName}-int&var-container=`;
   const prodAppResourceUsageUrl = Envs.MONITORING_DASHBOARD_APP_BASE_URL + `codespace-app-cpu-and-memory-usage?orgId=1&var-namespace=${Envs.CODESERVER_APP_NAMESPACE}&var-app=${codeSpaceData?.projectDetails?.projectName}-prod&var-container=`;
+
+    const intSecuredWithOneApi = codeSpaceData?.projectDetails?.intDeploymentDetails?.oneApiVersionShortName?.length || false;
+    const prodSecuredWithOneApi = codeSpaceData?.projectDetails?.prodDeploymentDetails?.oneApiVersionShortName?.length || false;
 
   useEffect(() => {
     document.addEventListener('touchend', handleContextMenuOutside, true);
@@ -593,7 +604,7 @@ const CodeSpace = (props) => {
                 <div className={Styles.headerright}>
                   {!disableDeployment && (
                     <>
-                      {(isOwner && !deployingInProgress && isIAMRecipe) && (
+                      {(isOwner && !deployingInProgress) && (
                         <div
                           className={classNames(Styles.configLink, Styles.pointer)}
                           onClick={() => navigateSecurityConfig()}
@@ -827,11 +838,18 @@ const CodeSpace = (props) => {
                               )}
                               {codeDeployed && (
                                 <li>
-                                  <a href={codeDeployedUrl} target="_blank" rel="noreferrer">
-                                    Deployed App URL{' '}
-                                    {intDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
-                                    <i className="icon mbc-icon new-tab" />
-                                  </a>
+                                  {intSecuredWithOneApi ? (
+                                    <span className={classNames(Styles.oneAPILink)}>
+                                      Deployed App URL (oneAPI){' '} 
+                                      <i className="icon mbc-icon new-tab" />
+                                    </span>
+                                  ) : (
+                                    <a href={codeDeployedUrl} target="_blank" rel="noreferrer">
+                                      Deployed App URL{' '}
+                                      {intDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
+                                      <i className="icon mbc-icon new-tab" />
+                                    </a>
+                                  )}
                                 </li>
                               )}
                               {intDeploymentDetails?.lastDeploymentStatus && (
@@ -958,11 +976,18 @@ const CodeSpace = (props) => {
                               )}
                               {prodCodeDeployed && (
                                 <li>
-                                  <a href={prodCodeDeployedUrl} target="_blank" rel="noreferrer">
-                                    Deployed App URL{' '}
-                                    {prodDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
-                                    <i className="icon mbc-icon new-tab" />
-                                  </a>
+                                  {prodSecuredWithOneApi ? (
+                                    <span className={classNames(Styles.oneAPILink)}>
+                                      Deployed App URL (oneAPI){' '} 
+                                      <i className="icon mbc-icon new-tab" />
+                                    </span>
+                                  ) : (
+                                    <a href={prodCodeDeployedUrl} target="_blank" rel="noreferrer">
+                                      Deployed App URL{' '}
+                                      {prodDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
+                                      <i className="icon mbc-icon new-tab" />
+                                    </a>
+                                  )}
                                 </li>
                               )}
                               {prodDeploymentDetails?.lastDeploymentStatus && (
@@ -1186,7 +1211,8 @@ const CodeSpace = (props) => {
         <DeployModal
           userInfo={props.user}
           codeSpaceData={codeSpaceData}
-          enableSecureWithIAM={isIAMRecipe}
+          // enableSecureWithIAM={isIAMRecipe}
+          // isUIRecipe={isUIRecipe}
           setShowCodeDeployModal={setShowCodeDeployModal}
           startDeployLivelinessCheck={enableDeployLivelinessCheck}
           setCodeDeploying={setCodeDeploying}
