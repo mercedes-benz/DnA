@@ -216,3 +216,7 @@ vaultInjector:
       {{- end }}             
   saName: default
   jarName: storage-lib*.jar
+autoscaling:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 4
