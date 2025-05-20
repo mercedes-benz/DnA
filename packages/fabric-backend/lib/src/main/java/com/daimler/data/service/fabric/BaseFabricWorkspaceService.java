@@ -162,7 +162,8 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 	@Value("${fabricWorkspaces.datasource.encryptionAlgorithm}")
 	private String datasourceEncryptionAlgorithm;
 	
-	private SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");  
+	@Value("${fabricWorkspaces.technicalUser.id}")
+	private String fabricTechUserId;
 	
 	@Value("${authoriser.role.fabricRoleName}")
 	private String fabricOperationsRoleName;
@@ -170,6 +171,8 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 	public BaseFabricWorkspaceService() {
 		super();
 	}
+
+	private SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");  
 	
 	@Override
 	@Transactional
@@ -694,13 +697,16 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 					updatedRole.setRoleOwner(creatorId);
 				}
 			}
-			//assign Global Role Assigner privileges
+			//assign Global Role Assigner privileges to creator and Tech user
 			if(updatedRole.getRoleOwner()!=null && !"".equalsIgnoreCase(updatedRole.getRoleOwner()) 
 					&& (updatedRole.getGlobalRoleAssigner()==null || "".equalsIgnoreCase(updatedRole.getGlobalRoleAssigner()))) {
 				HttpStatus globalRoleAssignerPrivilegesStatus = identityClient.AssignGlobalRoleAssignerPrivilegesToCreator(creatorId, updatedRole.getId());
 				if(globalRoleAssignerPrivilegesStatus.is2xxSuccessful()) {
-					updatedRole.setGlobalRoleAssigner(creatorId);
-				}
+					HttpStatus globalRoleAssignerPrivilegesStatus = identityClient.AssignGlobalRoleAssignerPrivilegesToCreator(fabricTechUserId, updatedRole.getId());
+					if(globalRoleAssignerPrivilegesStatus.is2xxSuccessful()) {
+						updatedRole.setGlobalRoleAssigner(creatorId);
+					}
+				}	
 			}
 			//assign Role Approver privileges
 			if(updatedRole.getRoleOwner()!=null && !"".equalsIgnoreCase(updatedRole.getRoleOwner()) 
@@ -1638,12 +1644,17 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 							warnings.add(new MessageDescription("Failed to assign role owner privilage role for user, please contact admin."));
 						}
 					}
-					//assign Global Role Assigner privileges
+					//assign Global Role Assigner privileges to creator and Technical user
 					if(roleDetail.getRoleOwner()!=null && !"".equalsIgnoreCase(roleDetail.getRoleOwner()) 
 							&& (roleDetail.getGlobalRoleAssigner()==null || "".equalsIgnoreCase(roleDetail.getGlobalRoleAssigner()))) {
 						HttpStatus globalRoleAssignerPrivilegesStatus = identityClient.AssignGlobalRoleAssignerPrivilegesToCreator(creatorId, roleDetail.getId());
 						if(globalRoleAssignerPrivilegesStatus.is2xxSuccessful()) {
-							roleDetail.setGlobalRoleAssigner(creatorId);
+							HttpStatus globalRoleAssignerPrivilegesStatus = identityClient.AssignGlobalRoleAssignerPrivilegesToCreator(fabricTecnicalUser, roleDetail.getId());
+							if(globalRoleAssignerPrivilegesStatus.is2xxSuccessful()) {
+								roleDetail.setGlobalRoleAssigner(creatorId);
+							}else{
+								warnings.add(new MessageDescription("Failed to assign global role assigner privilage role for tech user, please contact admin."));
+							}
 						}else{
 							warnings.add(new MessageDescription("Failed to assign global role assigner privilage role for user, please contact admin."));
 						}

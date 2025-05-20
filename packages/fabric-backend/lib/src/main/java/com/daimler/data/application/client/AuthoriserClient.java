@@ -510,18 +510,15 @@ public class AuthoriserClient {
 	}
 
 
-	public HttpStatus RequestRoleForUser(UserRoleRequestDto requestDto,String userId, String roleId, String authToken){
+	public HttpStatus RequestRoleForUser(UserRoleRequestDto requestDto,String userId, String roleId){
 		try {
-			String token = "";
-			if(authToken!=null && !authToken.trim().equalsIgnoreCase("")) {
-				token = authToken;
-			}else {
-				token = getToken();
-				if(!Objects.nonNull(token)) {
-					log.error("Failed to fetch token to invoke fabric Apis");
-					return HttpStatus.INTERNAL_SERVER_ERROR;
-				}
+			
+			String token = getToken();
+			if(!Objects.nonNull(token)) {
+				log.error("Failed to fetch token to invoke fabric Apis");
+				return HttpStatus.INTERNAL_SERVER_ERROR;
 			}
+
 			String uri = authoriserBaseUrl+"/users/"+userId+"/roles/"+roleId;
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
