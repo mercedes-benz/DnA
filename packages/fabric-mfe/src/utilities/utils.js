@@ -1,5 +1,6 @@
 import dagre from 'dagre';
 import { FLOW_DIAGRAM_TYPES, FLOW_DIAGRAM_MEASUREMENTS } from "./constants";
+import { Envs } from './envs';
 
 // Function to generatae nodes and edges for the flow diagram
 export const generateNodesAndEdges = (data) => {
@@ -34,10 +35,10 @@ export const generateNodesAndEdges = (data) => {
   roles.forEach((role) => {
     // Create a single entitlement node for the role
     const entitlementNodeId = createNode({ 
-      name: role?.entitlements[0]?.displayName, 
+      name: role?.entitlements[0]?.displayName === Envs.FABRIC_ENTITLEMENT_IGNORE ? role?.entitlements[1]?.displayName : role?.entitlements[0]?.displayName, 
       label: 'Entitlement', 
       type: FLOW_DIAGRAM_TYPES.ENTITLEMENT, 
-      state: role?.entitlements[0]?.state
+      state: role?.entitlements[0]?.displayName === Envs.FABRIC_ENTITLEMENT_IGNORE ? role?.entitlements[1]?.state : role?.entitlements[0]?.state
     });
 
     // Create role node
