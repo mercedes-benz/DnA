@@ -34,9 +34,12 @@ import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.dto.kongGateway.AttachAppAuthoriserPluginVO;
 import com.daimler.data.dto.kongGateway.AttachApiAuthoriserPluginVO;
 import com.daimler.data.dto.kongGateway.AttachJwtPluginVO;
+import com.daimler.data.dto.kongGateway.AttachOneApiPluginVO;
 import com.daimler.data.dto.kongGateway.AttachPluginVO;
 import com.daimler.data.dto.kongGateway.CreateRouteResponseVO;
 import com.daimler.data.dto.kongGateway.CreateRouteVO;
+import com.daimler.data.dto.kongGateway.AttachFunctionPluginVO;
+import com.daimler.data.dto.kongGateway.AttachRequestTransformerPluginVO;
 
 public interface KongClient {
 
@@ -65,5 +68,13 @@ public interface KongClient {
 	public Map<String,String> getPluginIds(String serviceName, String pluginName);
 	
 	public GenericMessage deleteService(String serviceName);
-	
+
+	public  GenericMessage updatePluginStatus(String serviceName, String pluginName, Boolean enable);
+  
+	public  GenericMessage attachFunctionPluginToService(AttachFunctionPluginVO attachFunctionPluginVO, String serviceName);
+
+	public  GenericMessage attachRequestTransformerPluginToService(AttachRequestTransformerPluginVO attachRequestTransformerPluginVO, String serviceName);
+
+	public  GenericMessage attachOneApiPluginToService(AttachOneApiPluginVO attachOneApiPluginVO, String serviceName);
+
 }
