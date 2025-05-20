@@ -32,6 +32,7 @@ const CodeSpaceRecipe = (props) => {
 
   const [recipeName, setRecipeName] = useState('');
   const [isPublic, setIsPublic] = useState(false);
+  const [isDeployEnabled, setIsDeployEnabled] =  useState(false);
   const [gitUrl, setGitUrl] = useState('');
   const [hardware, setHardware] = useState('small');
   const [software, setSoftware] = useState([]);
@@ -92,6 +93,7 @@ const CodeSpaceRecipe = (props) => {
           recipe?.maxCpu === '1' && setHardware('medium');
           recipe?.maxCpu === '1.5' && setHardware('large');
           setIsPublic(recipe?.isPublic);
+          setIsDeployEnabled(recipe?.isDeployEnabled ?? false);
           setGitRepoLoc(recipe?.gitRepoLoc);
           setDeployPath(recipe?.deployPath);
           setSelectedAdditionalServices(additionalServices?.filter(service => recipe?.additionalServices.includes(service?.serviceName)));
@@ -324,6 +326,7 @@ const CodeSpaceRecipe = (props) => {
         repodetails: gitUrl,
         software: software,
         isPublic: isPublic,
+        isDeployEnabled: isDeployEnabled,
         gitPath: gitPath,
         gitRepoLoc: gitRepoLoc,
         deployPath: deployPath,
@@ -383,6 +386,7 @@ const CodeSpaceRecipe = (props) => {
         repodetails: gitUrl,
         software: software,
         isPublic: isPublic,
+        isDeployEnabled: isDeployEnabled,
         gitPath: gitPath,
         gitRepoLoc: gitRepoLoc,
         deployPath: deployPath,
@@ -733,12 +737,43 @@ const CodeSpaceRecipe = (props) => {
                   </div>
                 </div>
 
-                <div className={Styles.btnConatiner}>
-                  <button className={classNames(enableCreate ? 'btn-tertiary' : Styles.disableVerifyButton, 'btn')} type="button" disabled={!enableCreate} onClick={() => edit ? setShowUpdateRecipeModal(true) : onCreateRecipe()}>
-                    {edit ? 'Update Recipe' : 'Create Recipe'}
-                  </button>
-                </div>
               </div>
+            </div>
+            <div className={classNames(Styles.deployWrapper)}>
+              <div className={classNames(Styles.smallPanel)}>
+                <h3>Deployment Config</h3>
+                <div className={classNames(Styles.formWrapper)}>
+                  <div className={Styles.checkboxWrapper}>
+                      <label className="checkbox">
+                          <span className="wrapper">
+                          <input
+                            type="checkbox"
+                            className="ff-only"
+                            checked={isDeployEnabled}
+                            onChange={(e) => setIsDeployEnabled(e.target.checked)}
+                          />
+                          </span>
+                          <span className={classNames("label")}>Enable deployment through codespace </span>
+                      </label>
+                  </div>
+                  {isDeployEnabled && (
+                    <div className={Styles.description}>
+                      <div className={Styles.imageContainer}>
+                        <p><strong>Kindly follow the folder structure below to make the Codespaces take care of your deployments:</strong></p>
+                        <img src="images/codeSpaceMfeImages/Deploy-folder-stuct.jpg" />
+                      </div>
+                      <p>For further help kindly reach us through our communication channels mentioned below. </p>
+                      <p>Mattermost: <a href={Envs.CODESPACE_MATTERMOST_LINK} target="_blank" rel="noreferrer">{Envs.CODESPACE_MATTERMOST_LINK}</a></p>
+                      <p>Email: <a href={`mailto:${Envs.CODESPACE_EMAIL_LINK}`} target="_blank" rel="noreferrer">{Envs.CODESPACE_EMAIL_LINK}</a></p>
+                    </div>
+                  )}
+                </div>  
+              </div>              
+            </div> 
+            <div className={Styles.btnConatiner}>
+              <button className={classNames(enableCreate ? 'btn-tertiary' : Styles.disableVerifyButton, 'btn')} type="button" disabled={!enableCreate} onClick={() => edit ? setShowUpdateRecipeModal(true) : onCreateRecipe()}>
+                {edit ? 'Update Recipe' : 'Create Recipe'}
+              </button>
             </div>
           </div>
         </div>
