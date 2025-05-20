@@ -2,7 +2,7 @@
 apiVersion: autoscaling/v2
 kind: HorizontalPodAutoscaler
 metadata:
-  name: {{ .Chart.Name }}
+  name: {{ .Values.fullnameOverride }}
   namespace: {{ .Values.namespace }}
 spec:
   scaleTargetRef:
@@ -17,5 +17,5 @@ spec:
       name: memory
       target:
         type: Utilization
-        averageUtilization: 50  
+        averageUtilization: 70  
 {{- end }}
