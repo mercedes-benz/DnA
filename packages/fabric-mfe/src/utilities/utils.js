@@ -34,10 +34,10 @@ export const generateNodesAndEdges = (data) => {
   roles.forEach((role) => {
     // Create a single entitlement node for the role
     const entitlementNodeId = createNode({ 
-      name: role?.entitlements[1]?.displayName, 
+      name: role?.entitlements[0]?.displayName, 
       label: 'Entitlement', 
       type: FLOW_DIAGRAM_TYPES.ENTITLEMENT, 
-      state: role?.entitlements[1]?.state
+      state: role?.entitlements[0]?.state
     });
 
     // Create role node
