@@ -39,5 +39,6 @@
  public class UiliciousStartCreationResponseDTO {
      private HttpStatus responseStatus;
      private String runId;
+     private String errorMessage;
  }
  
