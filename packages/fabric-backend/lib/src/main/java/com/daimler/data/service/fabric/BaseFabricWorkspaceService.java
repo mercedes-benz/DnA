@@ -369,7 +369,9 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 					log.error("Error occurred:{} while creating fabric workspace project {} ", createResponse.getErrorCode(), vo.getName());
 					if("409".equalsIgnoreCase(createResponse.getErrorCode())) {
 						return new ResponseEntity<>(responseData, HttpStatus.CONFLICT);
-					}else {
+					}else if("429".equalsIgnoreCase(createResponse.getErrorCode())){
+						return new ResponseEntity<>(responseData, HttpStatus.TOO_MANY_REQUESTS);
+					}else{
 						return new ResponseEntity<>(responseData, HttpStatus.INTERNAL_SERVER_ERROR);
 					}
 				}
