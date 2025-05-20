@@ -74,8 +74,8 @@ fabricWorkspaces:
     datasourceUrl: ${FABRIC_CREATEDATASOURCE_URL:https://api.powerbi.com/v1.0/myorg/gateways/id/datasources}
     datasourceUserUrl: ${FABRIC_DATASOURCE_ADDUSER_URL:https://api.powerbi.com/v1.0/myorg/gateways/id/datasources/connectionid/users}
     shortcutUrl: ${FABRIC_SHORTCUT_URL:https://api.fabric.microsoft.com/v1/workspaces/id/items/lakehouseid/shortcuts}
-technicalUser:
-  id: ${AUTHORISER_TECH_USER_ID:XXXX}
+  technicalUser:
+    id: ${AUTHORISER_TECH_USER_ID:XXXX}
 
 authoriser:
   uri: ${IDENTITY_AUTH_URI:XXXX}
