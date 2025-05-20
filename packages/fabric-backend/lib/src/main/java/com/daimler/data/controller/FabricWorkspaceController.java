@@ -741,7 +741,6 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 		List<MessageDescription> errors = new ArrayList<>();
 		List<MessageDescription> warnings = new ArrayList<>();
 		UserInfo userInfo = this.userStore.getUserInfo();
-		String authToken = userInfo.getAuthToken();
 		try{
 
 			if(roleRequestVO.getData().getRoleList()==null || roleRequestVO.getData().getRoleList().isEmpty()){
@@ -774,7 +773,7 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 					log.error("Failed to request roles for the user,  validTo date must be after validFrom date. Bad Request");
 					return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
 				}
-				response = service.requestRoles(roleRequestVO,userInfo.getId(),authToken);
+				response = service.requestRoles(roleRequestVO,userInfo.getId());
 				log.info("Sucessfully requested roles for  user {}, Fabric workspace {} ",id,userInfo.getId());
 				return new ResponseEntity<>(response, HttpStatus.OK);
 

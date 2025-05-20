@@ -452,7 +452,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 						roleRequestDto.setReason("Onboarding owner to role to enable fabric operations.");
 						roleRequestDto.setValidTo(validTo);
 						roleRequestDto.setValidFrom(validFrom);
-						HttpStatus status = identityClient.RequestRoleForUser(roleRequestDto, ownerId, fabricOperationsRoleName,null);
+						HttpStatus status = identityClient.RequestRoleForUser(roleRequestDto, ownerId, fabricOperationsRoleName);
 						if(status.is2xxSuccessful()){
 				            log.info("Successfully onboarded owner {} of workspace {} : {} to role {} for enabling fabric operations", ownerId, vo.getId(), vo.getName(), fabricOperationsRoleName);
 				        }else {
@@ -702,8 +702,8 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 					&& (updatedRole.getGlobalRoleAssigner()==null || "".equalsIgnoreCase(updatedRole.getGlobalRoleAssigner()))) {
 				HttpStatus globalRoleAssignerPrivilegesStatus = identityClient.AssignGlobalRoleAssignerPrivilegesToCreator(creatorId, updatedRole.getId());
 				if(globalRoleAssignerPrivilegesStatus.is2xxSuccessful()) {
-					HttpStatus globalRoleAssignerPrivilegesStatus = identityClient.AssignGlobalRoleAssignerPrivilegesToCreator(fabricTechUserId, updatedRole.getId());
-					if(globalRoleAssignerPrivilegesStatus.is2xxSuccessful()) {
+					HttpStatus globalRoleAssignerPrivilegesStatusforTechUser = identityClient.AssignGlobalRoleAssignerPrivilegesToCreator(fabricTechUserId, updatedRole.getId());
+					if(globalRoleAssignerPrivilegesStatusforTechUser.is2xxSuccessful()) {
 						updatedRole.setGlobalRoleAssigner(creatorId);
 					}
 				}	
@@ -1586,7 +1586,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 	}
 	
 	@Override
-    public GenericMessage requestRoles(FabricWorkspaceRoleRequestVO roleRequestVO, String userId, String authToken){
+    public GenericMessage requestRoles(FabricWorkspaceRoleRequestVO roleRequestVO, String userId){
         GenericMessage response = new GenericMessage();
         List<MessageDescription> errors = new ArrayList<>();
         List<MessageDescription> warnings = new ArrayList<>();
@@ -1598,7 +1598,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
                 roleRequestDto.setReason(roleRequestVO.getData().getReason());
                 roleRequestDto.setValidFrom(role.getValidFrom());
                 roleRequestDto.setValidTo(role.getValidTo());
-                HttpStatus status = identityClient.RequestRoleForUser(roleRequestDto, userId, role.getRoleID(),authToken);
+                HttpStatus status = identityClient.RequestRoleForUser(roleRequestDto, userId, role.getRoleID());
                 if(!status.is2xxSuccessful()){
                     warnings.add(new MessageDescription("Failed to request role for role id : "+role.getRoleID()+" please request role manually or try after sometime"));
                 }
@@ -1649,8 +1649,8 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 							&& (roleDetail.getGlobalRoleAssigner()==null || "".equalsIgnoreCase(roleDetail.getGlobalRoleAssigner()))) {
 						HttpStatus globalRoleAssignerPrivilegesStatus = identityClient.AssignGlobalRoleAssignerPrivilegesToCreator(creatorId, roleDetail.getId());
 						if(globalRoleAssignerPrivilegesStatus.is2xxSuccessful()) {
-							HttpStatus globalRoleAssignerPrivilegesStatus = identityClient.AssignGlobalRoleAssignerPrivilegesToCreator(fabricTecnicalUser, roleDetail.getId());
-							if(globalRoleAssignerPrivilegesStatus.is2xxSuccessful()) {
+							HttpStatus globalRoleAssignerPrivilegesStatusforTechUser = identityClient.AssignGlobalRoleAssignerPrivilegesToCreator(fabricTechUserId, roleDetail.getId());
+							if(globalRoleAssignerPrivilegesStatusforTechUser.is2xxSuccessful()) {
 								roleDetail.setGlobalRoleAssigner(creatorId);
 							}else{
 								warnings.add(new MessageDescription("Failed to assign global role assigner privilage role for tech user, please contact admin."));

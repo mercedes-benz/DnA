@@ -75,7 +75,7 @@ public class WorkspaceBackgroundJobsService {
 						roleRequestDto.setReason("Onboarding owner to role to enable fabric operations.");
 						roleRequestDto.setValidTo(validTo);
 						roleRequestDto.setValidFrom(validFrom);
-						HttpStatus status = identityClient.RequestRoleForUser(roleRequestDto, ownerId, fabricOperationsRoleName,null);
+						HttpStatus status = identityClient.RequestRoleForUser(roleRequestDto, ownerId, fabricOperationsRoleName);
 						if(status.is2xxSuccessful()){
 				            log.info("Successfully onboarded owner {} of workspace {} : {} to role {} for enabling fabric operations", ownerId, workspaceVO.getId(), workspaceVO.getName(), fabricOperationsRoleName);
 				        }else {

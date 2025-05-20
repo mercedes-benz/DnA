@@ -49,7 +49,7 @@ public interface FabricWorkspaceService extends CommonService<FabricWorkspaceVO,
 
 	FabricWorkspacesCollectionVO getAll(int limit, int offset, String user, List<String> allEntitlementsList, Boolean isTechnicalUser);
 	
-	GenericMessage requestRoles(FabricWorkspaceRoleRequestVO roleRequestVO, String userId, String authToken);
+	GenericMessage requestRoles(FabricWorkspaceRoleRequestVO roleRequestVO, String userId);
 	
 	FabricWorkspaceStatusVO fixBugsInWorkspaceUserManagement(FabricWorkspaceStatusVO currentStatus, String workspaceName,
 			String creatorId, String workspaceId);
