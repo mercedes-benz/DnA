@@ -361,8 +361,8 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 		if (notebookAllowed) {
 			if (responseSolutionVO != null && responseSolutionVO.getId() != null && vo.getPortfolio() != null) {
 				LOGGER.info("Updating Solution Id in DnA Notebook...");
-				notebookService.updateSolutionIdofDnaNotebook(notebookEvent, vo.getPortfolio().getDnaNotebookId(),
-						responseSolutionVO.getId());
+				// notebookService.updateSolutionIdofDnaNotebook(notebookEvent, vo.getPortfolio().getDnaNotebookId(),
+				// 		responseSolutionVO.getId());
 			}
 		}
 		// if (dataikuAllowed) {
