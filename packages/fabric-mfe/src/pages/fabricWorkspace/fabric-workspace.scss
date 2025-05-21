@@ -73,6 +73,13 @@
   font-weight: 700;
   margin-bottom: 8px;
 }
+
+a > label {
+  cursor: pointer;
+}
+a:hover {
+  text-decoration: none;
+}
 .content {
   background: #252a33;
   margin: 15px 0;
