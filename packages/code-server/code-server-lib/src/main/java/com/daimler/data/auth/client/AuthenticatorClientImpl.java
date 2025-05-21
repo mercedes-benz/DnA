@@ -806,7 +806,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 								LOGGER.info("kongApiForDeploymentURL is {} and apiRecipe is :{}, calling apiAuthoriser plugin and status {}: ",kongApiForDeploymentURL, apiRecipe, attachApiAuthoriserPluginResponse.getSuccess());
 
 							}
-						}else if ((storedClientId!=null)&& ("int".equalsIgnoreCase(env) && !intSecureIAM) || ("prod".equalsIgnoreCase(env) && !prodSecureIAM)){
+						}else if ((storedClientId!=null) && (("int".equalsIgnoreCase(env) && !intSecureIAM) || ("prod".equalsIgnoreCase(env) && !prodSecureIAM))){
 							deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,API_AUTHORISER_PLUGIN,cloudServiceProvider);
 							LOGGER.info("kong deleting api authorizer plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
 							deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
@@ -1005,7 +1005,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 								}
 							}
 						}
-						else if ((storedClientId!=null)&& ("int".equalsIgnoreCase(env) && !intSecureIAM) || ("prod".equalsIgnoreCase(env) && !prodSecureIAM)){
+						else if ((storedClientId!=null) && (("int".equalsIgnoreCase(env) && !intSecureIAM) || ("prod".equalsIgnoreCase(env) && !prodSecureIAM))){
 							//deleting oidc plugin if any
 							deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,OIDC_PLUGIN,cloudServiceProvider);
 							LOGGER.info("kong deleting OIDC plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
