@@ -1302,7 +1302,6 @@ export default class Description extends React.Component<IDescriptionProps, IDes
                         //     ? [...SOLUTION_FIXED_TAGS, ...SOLUTION_FIXED_TAGS.map((tag) => tag.toLowerCase())]
                         //     : []
                         // }
-                        //fixedChips={[]}
                         {...this.props}
                       />
                     </div>
