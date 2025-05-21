@@ -1302,7 +1302,7 @@ export default class Description extends React.Component<IDescriptionProps, IDes
                         //     ? [...SOLUTION_FIXED_TAGS, ...SOLUTION_FIXED_TAGS.map((tag) => tag.toLowerCase())]
                         //     : []
                         // }
-                        fixedChips={[]}
+                        //fixedChips={[]}
                         {...this.props}
                       />
                     </div>
@@ -1497,13 +1497,19 @@ export default class Description extends React.Component<IDescriptionProps, IDes
     const hasGenAITagNow = arr.includes('#GenAI');
 
     const hasMilestones = this.props.openSegments.includes('Milestones');
-
+    const notHasMilestones = !this.props.openSegments.includes('Milestones');
     if (this.props.isGenAI && !hasGenAITagNow && hasMilestones) {
       this.setState({
         showConfirmGenAIRemovalModal: true,
         tempTagsAfterRemoval: arr,
       });
-    } else if (!this.props.isGenAI && arr && isSolutionFixedTagIncludedInArray(arr)) {
+    } 
+    else if (this.props.isGenAI && !hasGenAITagNow && notHasMilestones) {
+      description.tags.push('#GenAI');
+      Notification.show('Cannot remove GenAI tag. Please complete required segments up to MILESTONES.', 'alert');
+      this.setState({ showTagsMissingError: arr.length === 0 });
+    }
+    else if (!this.props.isGenAI && arr && isSolutionFixedTagIncludedInArray(arr)) {
       this.setState({ showGenAIWarningModal: true });
       description.tags = arr.filter((tag) => !isSolutionFixedTagIncluded(tag)) || [];
     } else {
