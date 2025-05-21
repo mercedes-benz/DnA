@@ -807,6 +807,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 
 							}
 						}else if ((storedClientId!=null && !storedClientId.isBlank() )&& ("int".equalsIgnoreCase(env) && !intSecureIAM) || ("prod".equalsIgnoreCase(env) && !prodSecureIAM)){
+							LOGGER.info("storedClientId value is "+ storedClientId +" and Secure with IAM is false so deleteing plugins");
 							deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,API_AUTHORISER_PLUGIN,cloudServiceProvider);
 							LOGGER.info("kong deleting api authorizer plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
 							deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
