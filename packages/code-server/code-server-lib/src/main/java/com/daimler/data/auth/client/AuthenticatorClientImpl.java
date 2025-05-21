@@ -835,9 +835,9 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 									deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
 
 									// //attaching request transformer plugin 
-									// attachRequestTransformerPluginResponse = attachRequestTransformerPluginToService(attachRequestTransformerPluginRequestVO,serviceName.toLowerCase()+"-"+env);
-									// LOGGER.info("calling kong to attach request transformer  plugin to service status is: {} and errors if any: {}, warnings if any:", attachRequestTransformerPluginResponse.getSuccess(),
-									// attachRequestTransformerPluginResponse.getErrors(), attachRequestTransformerPluginResponse.getWarnings());
+									attachRequestTransformerPluginResponse = attachRequestTransformerPluginToService(attachRequestTransformerPluginRequestVO,serviceName.toLowerCase()+"-"+env);
+									LOGGER.info("calling kong to attach request transformer  plugin to service status is: {} and errors if any: {}, warnings if any:", attachRequestTransformerPluginResponse.getSuccess(),
+									attachRequestTransformerPluginResponse.getErrors(), attachRequestTransformerPluginResponse.getWarnings());
 
 									//attaching oneapi plugin
 									AttachOneApiPluginRequestVO requestVO = new AttachOneApiPluginRequestVO();
@@ -866,10 +866,10 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 							deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,ONE_API_PLUGIN,cloudServiceProvider);
 							LOGGER.info("kong deleting one api plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
 							deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
-							//deleteing request transformer plugin if any
-							deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,REQUEST_TRANSFORMER_PLUGIN,cloudServiceProvider);
-							LOGGER.info("kong deleting request transformer plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
-							deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
+							// //deleteing request transformer plugin if any
+							// deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,REQUEST_TRANSFORMER_PLUGIN,cloudServiceProvider);
+							// LOGGER.info("kong deleting request transformer plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
+							// deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
 						}
 					}else{
 
