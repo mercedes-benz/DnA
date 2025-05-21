@@ -7,7 +7,7 @@ on:
         required: true    
       reviewers:
         description: 'Reviewers for staging and main branch'  
-        default: 'AMARIAR,BEALURI,POOJAMS,VKURAPA'
+        default: 'AMARIAR,ARAARUM,POOJAMS,VKURAPA'
         required: true   
 
 permissions:                    
