@@ -1837,7 +1837,7 @@ public class BaseForecastService extends BaseCommonService<ForecastVO, ForecastN
 					if (limit == 0){
 						newSubList = tempExistingRuns.subList(offset,tempExistingRuns.size());
 					}
-					totalCount = newSubList.size();
+					totalCount = tempExistingRuns.size();
 					updatedRunVOList = this.assembler.toRunsVO(newSubList);
 				}
 			}
