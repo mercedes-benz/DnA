@@ -24,6 +24,7 @@ const getDNAInjectedEnv = (key) => {
 // BUT using in direct statements like === will result in direct expansion in builds this means the variable is lost
 // we have to make sure that the string value of process.env is placed here.
 export const Envs = {
+  CONTAINER_APP_URL: getInjectedEnv('CONTAINER_APP_URL') || process.env.CONTAINER_APP_URL,
   FABRIC_API_BASEURL: getInjectedEnv('FABRIC_API_BASEURL') || process.env.FABRIC_API_BASEURL,
   ALICE_URL: getInjectedEnv('ALICE_URL') || process.env.ALICE_URL,
   API_BASEURL: getDNAInjectedEnv('API_BASEURL') || process.env.API_BASEURL,
