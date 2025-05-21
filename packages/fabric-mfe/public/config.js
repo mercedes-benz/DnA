@@ -8,4 +8,5 @@ window['FABRIC_INJECTED_ENVIRONMENT'] = {
   DATA_PRODUCT_API_BASEURL: 'YOUR_DATA_PRODUCT_API_BASEURL',
   TOU_HTML: "<div>I agree to <a href=\"#\" target=\"_blank\" rel=\"noopener noreferrer\">terms of use</a></div>", 
   FABRIC_ENTITLEMENT_PREFIX: 'YOUR_FABRIC_ENTITLEMENT_PREFIX',
+  FABRIC_ENTITLEMENT_IGNORE: 'YOUR_FABRIC_ENTITLEMENT_IGNORE',
 };

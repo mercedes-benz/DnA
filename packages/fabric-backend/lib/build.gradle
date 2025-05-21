@@ -166,11 +166,14 @@ dependencies {
 
     implementation group: 'net.minidev', name: 'json-smart', version: '2.4.7'
     
-	 implementation("com.squareup.okhttp3:okhttp") {
+    implementation("com.squareup.okhttp3:okhttp") {
         version {
             strictly '4.9.0'
         }
     }
+
+    implementation ('net.javacrumbs.shedlock:shedlock-spring:6.3.1')
+    implementation ('net.javacrumbs.shedlock:shedlock-provider-jdbc-template:6.3.1')
 }
 
 tasks.named('test') {
