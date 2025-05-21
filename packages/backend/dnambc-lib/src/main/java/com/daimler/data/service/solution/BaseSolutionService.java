@@ -1267,6 +1267,9 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 				List<String> currentSegments = new ArrayList<>();
 				solution.getOpenSegments().forEach(openSegment -> currentSegments.add(openSegment.name()));
 
+				if (!currentSegments.contains("MILESTONES")) {
+					throw new IllegalArgumentException("Cannot remove GenAI tag. Please complete required segments up to MILESTONES.");
+				}
 				String lastFilledSegment = currentSegments.get(currentSegments.size() - 1);
 				int lastIndexInSolutionList = solutionSegmentNames.indexOf(lastFilledSegment);
 				List<SolutionVO.OpenSegmentsEnum> openSegmentsEnumList = new ArrayList<>();
@@ -1284,7 +1287,6 @@ public class BaseSolutionService extends BaseCommonService<SolutionVO, SolutionN
 							.collect(Collectors.toList())
 					);
 				}
-
 				if (solution.isPublish() && solution.getOpenSegments() != null
 						&& solution.getOpenSegments().contains(SolutionVO.OpenSegmentsEnum.DIGITALVALUE)) {
 					solution.setPublish(true);
