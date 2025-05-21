@@ -785,11 +785,15 @@ export default class Description extends React.Component<IDescriptionProps, IDes
                     });
 
                     const revert = true;
-
                     ApiClient.portSolution(this.props.id, revert)
-                      .then(response => {
-                        console.log('Successfully ported to GenAI:', response);
-                      })
+                    .then(response => {
+                      Notification.show(
+                        revert
+                          ? 'Solution successfully reverted from GenAI'
+                          : `Successfully ported to GenAI: ${response}`,
+                        'success'
+                      );
+                    })
                       .catch(error => {
                         console.error('Error while porting to GenAI:', error);
                         Notification.show(error?.message || 'Some error occurred while porting to GenAI.', 'alert');
