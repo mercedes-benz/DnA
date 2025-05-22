@@ -181,7 +181,7 @@ const DeployModal = (props) => {
   };
 
   const onChangeSecureWithIAM = (e) => {
-    const deploymentDetails = deployEnvironment === 'int' ? projectDetails?.intDeploymentDetails : projectDetails?.prodDeploymentDetails;
+    const deploymentDetails = deployEnvironment === 'staging' ? projectDetails?.intDeploymentDetails : projectDetails?.prodDeploymentDetails;
     if(!e.target.checked && deploymentDetails?.secureWithIAMRequired){
       setSecuredWithIAMWarning(true);
     }
