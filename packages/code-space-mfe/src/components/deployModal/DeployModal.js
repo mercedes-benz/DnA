@@ -670,7 +670,7 @@ const DeployModal = (props) => {
         modalWidth={'40%'}
         content={
           <div>
-            <h3>Please note that once you uncheck this your application will not be secured anymore. Do you wish to continue?</h3>
+            <h3>Please note that once you uncheck this your application will not be secured with SSO Authentication anymore. Do you wish to continue?</h3>
             <p>If your application was secured by us please contact us on our <a href={Envs.CODESPACE_TEAMS_LINK} target='_blank' rel='noopener noreferrer'>Teams channel</a> or <a href={Envs.CODESPACE_MATTERMOST_LINK} target='_blank' rel='noopener noreferrer'>Mattermost channel</a> before performing this action.</p>
           </div>
         }
