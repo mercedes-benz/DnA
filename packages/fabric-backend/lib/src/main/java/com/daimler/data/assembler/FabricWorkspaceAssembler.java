@@ -6,6 +6,7 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
+import org.springframework.util.ObjectUtils;
 
 import com.daimler.data.db.entities.FabricWorkspaceNsql;
 import com.daimler.data.db.json.Capacity;
@@ -30,6 +31,9 @@ import com.daimler.data.dto.fabricWorkspace.GroupDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.ProjectReferenceDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.RoleDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.ShortcutVO;
+import com.daimler.data.db.json.LeanIXDetails;
+import com.daimler.data.dto.fabricWorkspace.LeanIXDetailsVO;
+
 
 @Component
 public class FabricWorkspaceAssembler implements GenericAssembler<FabricWorkspaceVO, FabricWorkspaceNsql> {
@@ -125,6 +129,11 @@ public class FabricWorkspaceAssembler implements GenericAssembler<FabricWorkspac
 				vo.setStatus(workspaceStatusVO);
 				vo.setCreatedBy(createdByVO);
 				vo.setHasPii(data.getHasPii());
+				if (!ObjectUtils.isEmpty(data.getLeanIXDetails())) {
+					LeanIXDetailsVO leanIXDetails = new LeanIXDetailsVO();
+					BeanUtils.copyProperties(data.getLeanIXDetails(), leanIXDetails);
+					vo.setLeanIXDetails(leanIXDetails);
+				}
 			}
 		}
 		return vo;
@@ -331,7 +340,11 @@ public class FabricWorkspaceAssembler implements GenericAssembler<FabricWorkspac
 				lakehouses = lakehouseVOs.stream().map(n -> toLakehouse(n)).collect(Collectors.toList());
 			}
 			data.setLakehouses(lakehouses);
-			
+			if (!ObjectUtils.isEmpty(vo.getLeanIXDetails())) {
+				LeanIXDetails leanIXDetails = new LeanIXDetails();
+				BeanUtils.copyProperties(vo.getLeanIXDetails(), leanIXDetails);
+				data.setLeanIXDetails(leanIXDetails);
+			}
 			entity.setData(data);
 		}
 		return entity;

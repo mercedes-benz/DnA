@@ -119,10 +119,10 @@ public class UserStore {
 		}
 
 		public boolean hasProjectAdminAccess(String wsId) {
-			String entitlementName = "DNA.FC_" + wsId + "_Admin";
-			return this.getEntitlement_group().stream().anyMatch(s -> entitlementName.equalsIgnoreCase(s));
+		    String entitlementName = wsId + "_Admin";
+		    return this.getEntitlement_group().stream()
+        		.anyMatch(s -> s.toLowerCase().contains(entitlementName.toLowerCase()));
 		}
-
 	}
 
 	@Data

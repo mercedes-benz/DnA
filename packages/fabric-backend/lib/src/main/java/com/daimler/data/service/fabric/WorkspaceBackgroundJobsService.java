@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Optional;
 
 import javax.annotation.PostConstruct;
+import javax.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,6 +29,7 @@ import com.daimler.data.dto.fabricWorkspace.GroupDetailsVO;
 import com.daimler.data.util.ConstantsUtility;
 
 import lombok.extern.slf4j.Slf4j;
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 
 @ConditionalOnProperty(value="fabricWorkspaces.startup.workspaceprovisioning", havingValue = "true", matchIfMissing = false)
 @Component
@@ -123,6 +125,7 @@ public class WorkspaceBackgroundJobsService {
 //	}
 	
 	@Scheduled(cron = "0 0/7 * * * *")
+	@SchedulerLock(name = "updateWorkspacesJob", lockAtMostFor = "PT7M", lockAtLeastFor = "PT5M")
 	public void updateWorkspacesJob() {	
 		try {
 			FabricWorkspacesCollectionVO collection = fabricService.getAllLov(0,0);
