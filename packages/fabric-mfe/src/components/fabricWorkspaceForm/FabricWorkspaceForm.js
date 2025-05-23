@@ -269,7 +269,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
       );
     });
   };
-  const isLeanIXRequired = typeOfProject === 'Production' && division === 'FC';
+  const isLeanIXRequired = typeOfProject === 'Production' && division?.name === 'FC';
   return (
     <>
       <FormProvider {...methods}>
