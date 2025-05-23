@@ -269,7 +269,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
       );
     });
   };
-
+  const isLeanIXRequired = typeOfProject === 'Production' && division?.name === 'FC';
   return (
     <>
       <FormProvider {...methods}>
@@ -418,7 +418,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
                             field.onChange(leanIXData);
                           }}
                           onInputChange={handleLeanIXSearch}
-                          required={false}
+                          required={isLeanIXRequired}
                           showError={errors.leanIX?.message}
                           render={(item) => (
                             <div className={Styles.optionContainer}>
