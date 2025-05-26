@@ -20,7 +20,7 @@ import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indica
 import { CodeSpaceApiClient } from '../../apis/codespace.api';
 import { Envs } from '../../Utility/envs';
 
-const CodeSpaceGCard = ({ codeSpace, userInfo, onStartStopCodeSpace, onShowDeployModal, onShowCodeSpaceOnBoard }) => {
+const CodeSpaceGCard = ({ codeSpace, userInfo, onStartStopCodeSpace, onShowDeployModal, onShowCodeSpaceOnBoard, onShowBlueprintModal }) => {
   const history = useHistory();
   const enableOnboard = codeSpace ? codeSpace.status === 'COLLABORATION_REQUESTED' : false;
   const createInProgress = codeSpace.status === 'CREATE_REQUESTED';
@@ -255,6 +255,15 @@ const CodeSpaceGCard = ({ codeSpace, userInfo, onStartStopCodeSpace, onShowDeplo
                 className={classNames('contextMenuWrapper', Styles.contextMenu, showContextMenu ? '' : 'hide')}
               >
                 <ul>
+                  <li>
+                    <span
+                      onClick={() => {
+                        onShowBlueprintModal(codeSpace);
+                      }}
+                    >
+                      Show Blueprint
+                    </span>
+                  </li>
                   <li className={classNames(deployingInProgress ? 'inactive' : '')}>
                     <span
                       onClick={() => {

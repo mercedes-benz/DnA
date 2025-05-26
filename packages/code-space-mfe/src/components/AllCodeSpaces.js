@@ -392,6 +392,7 @@ const AllCodeSpaces = (props) => {
                                             onCodeSpaceEdit={onCodeSpaceEdit}
                                             onShowDeployModal={onCodeSpaceDeploy}
                                             onStartStopCodeSpace={onStartStopCodeSpace}
+                                            onShowBlueprintModal={onCodeSpaceShowBlueprint}
                                         />
                                     );
                                 })}
@@ -420,6 +421,7 @@ const AllCodeSpaces = (props) => {
                                             onCodeSpaceEdit={onCodeSpaceEdit}
                                             onShowDeployModal={onCodeSpaceDeploy}
                                             onStartStopCodeSpace={onStartStopCodeSpace}
+                                            onShowBlueprintModal={onCodeSpaceShowBlueprint}
                                         />
                                     );
                                 })}
@@ -610,6 +612,7 @@ const AllCodeSpaces = (props) => {
                                 onStartStopCodeSpace={onStartStopCodeSpace}
                                 onShowDeployModal={onCodeSpaceDeploy}
                                 onShowCodeSpaceOnBoard={onShowCodeSpaceOnBoard}
+                                onShowBlueprintModal={onCodeSpaceShowBlueprint}
                             />
                         )}
                     </div>
