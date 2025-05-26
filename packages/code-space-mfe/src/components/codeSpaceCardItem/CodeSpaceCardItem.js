@@ -391,11 +391,11 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
   //   props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'nestjs' ||
   //   props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'springbootwithmaven' ;
 
-  const isIAMRecipe =
-    props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'springboot' ||
-    props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'py-fastapi' ||
-    props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'expressjs' ||
-    props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'springbootwithmaven' ;
+  // const isIAMRecipe =
+  //   props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'springboot' ||
+  //   props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'py-fastapi' ||
+  //   props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'expressjs' ||
+  //   props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'springbootwithmaven' ;
 
   const resources = projectDetails?.recipeDetails?.resource?.split(',');
 
@@ -405,6 +405,9 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
 
   const intDeploymentMigrated = codeSpace?.projectDetails?.intDeploymentDetails?.deploymentUrl?.includes(Envs.CODESPACE_AWS_POPUP_URL);
   const prodDeploymentMigrated = codeSpace?.projectDetails?.prodDeploymentDetails?.deploymentUrl?.includes(Envs.CODESPACE_AWS_POPUP_URL);
+
+  const intSecuredWithOneApi = projectDetails?.intDeploymentDetails?.oneApiVersionShortName?.length || false;
+  const prodSecuredWithOneApi = projectDetails?.prodDeploymentDetails?.oneApiVersionShortName?.length || false;
 
   const securedWithIAMContent = (
     <svg
@@ -532,6 +535,15 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
                   className={classNames('contextMenuWrapper', Styles.contextMenu, showContextMenu ? '' : 'hide')}
                 >
                   <ul>
+                    <li>
+                      <span
+                        onClick={() => {
+                          props.onShowBlueprintModal(codeSpace);
+                        }}
+                      >
+                        Show Blueprint
+                      </span>
+                    </li>
                     <li className={classNames(deployingInProgress ? 'inactive' : '')}>
                       <span
                         onClick={() => {
@@ -629,10 +641,16 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
                         )}
                         {intDeployed && (
                           <li>
-                            <a href={intDeployedUrl} target="_blank" rel="noreferrer">
-                              Deployed App URL {intDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
-                              <i className="icon mbc-icon new-tab" />
-                            </a>
+                            {intSecuredWithOneApi ? (
+                              <span className={classNames(Styles.oneAPILink)}>
+                                Deployed App URL (oneAPI) <i className="icon mbc-icon new-tab" />
+                              </span>
+                            ) : (
+                              <a href={intDeployedUrl} target="_blank" rel="noreferrer">
+                                Deployed App URL {intDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
+                                <i className="icon mbc-icon new-tab" />
+                              </a>
+                            )}
                           </li>
                         )}
                         {intDeploymentDetails?.lastDeploymentStatus && (
@@ -739,10 +757,16 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
                         )}
                         {prodDeployed && (
                           <li>
-                            <a href={prodDeployedUrl} target="_blank" rel="noreferrer">
-                              Deployed App URL {prodDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
-                              <i className="icon mbc-icon new-tab" />
-                            </a>
+                            {prodSecuredWithOneApi ? (
+                              <span className={classNames(Styles.oneAPILink)}>
+                                Deployed App URL (oneAPI) <i className="icon mbc-icon new-tab" />
+                              </span>
+                            ) : (
+                              <a href={prodDeployedUrl} target="_blank" rel="noreferrer">
+                                Deployed App URL {prodDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
+                                <i className="icon mbc-icon new-tab" />
+                              </a>
+                            )}
                           </li>
                         )}
                         {prodDeploymentDetails?.lastDeploymentStatus && (
@@ -1230,7 +1254,6 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
                   !createInProgress &&
                   !deployingInProgress &&
                   !creationFailed &&
-                  isIAMRecipe &&
                   isOwner && (
                     <button className="btn btn-primary" onClick={() => onCodeSpaceSecurityConfigClick(codeSpace)}>
                       <IconGear size={'18'} />
