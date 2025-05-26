@@ -40,7 +40,7 @@ public interface FabricWorkspaceService extends CommonService<FabricWorkspaceVO,
 
 	CreateRoleRequestDto prepareRoleCreateRequestDto(String workspaceName, String permissionName);
 
-	RoleDetailsVO callRoleCreate(String workspaceName, String permissionName);
+	RoleDetailsVO callRoleCreate(String workspaceName, String permissionName, String creatorId);
 
 	GroupDetailsVO callGroupAssign(GroupDetailsVO existingGroupDetailsVO, String workspaceId, String permissionName);
 
@@ -72,6 +72,6 @@ public interface FabricWorkspaceService extends CommonService<FabricWorkspaceVO,
 
 	GenericMessage createGenericRole(CreateRoleRequestVO roleRequestVO, String userId);
 
-	DnaRoleCollectionVO getAllUserDnaRoles(String id,String authToken);
+	DnaRoleCollectionVO getAllUserDnaRoles(String id);
 
 }

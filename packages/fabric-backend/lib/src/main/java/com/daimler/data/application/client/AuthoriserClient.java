@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Objects;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.persistence.PersistenceException;
+import javax.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,6 +28,7 @@ import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.application.auth.UserStore.UserInfo;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
+import com.daimler.data.db.repo.roles.AuthoriserRolesRepository;
 import com.daimler.data.dto.fabric.CreateEntitlementRequestDto;
 import com.daimler.data.dto.fabric.CreateRoleRequestDto;
 import com.daimler.data.dto.fabric.CreateRoleResponseDto;
@@ -39,6 +42,8 @@ import com.daimler.data.dto.fabric.RoleIdDto;
 import com.daimler.data.dto.fabric.RoleOwnerPrivilegesDto;
 import com.daimler.data.dto.fabric.UserRoleRequestDto;
 import com.daimler.data.dto.fabricWorkspace.CreatedByVO;
+import com.daimler.data.db.json.AuthoriserRoleDeatils;
+import com.daimler.data.db.entities.AuthoriserRolesNsql;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -77,6 +82,9 @@ public class AuthoriserClient {
 
 	@Autowired
 	private UserStore userStore;
+
+	@Autowired
+	private AuthoriserRolesRepository jpaRepo;
 	
 	public String getToken() {
             MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
@@ -283,9 +291,8 @@ public class AuthoriserClient {
 		return roleResponseDto;
     }
     
-    public CreateRoleResponseDto  createRole(CreateRoleRequestDto createRequest){
+    public CreateRoleResponseDto  createRole(CreateRoleRequestDto createRequest, String creatorId){
         CreateRoleResponseDto roleResponseDto = new CreateRoleResponseDto();
-
         try {
 
 			String token = getToken();
@@ -302,9 +309,12 @@ public class AuthoriserClient {
 			HttpEntity<CreateRoleRequestDto> requestEntity = new HttpEntity<>(createRequest,headers);
 			ResponseEntity<CreateRoleResponseDto> response = proxyRestTemplate.exchange(uri, HttpMethod.POST,
 					requestEntity, CreateRoleResponseDto.class);
-			if (response!=null && response.hasBody()) {
+			if ( response.getStatusCode().is2xxSuccessful() && response!=null && response.hasBody()) {
                 roleResponseDto = response.getBody();
+				saveCreatedRoleDetails(createRequest.getId(), creatorId, createRequest.isDynamic());
 			}
+		} catch (PersistenceException e){
+			log.warn("Error occured while saving the created role in DB : {}",e.getMessage());
 		}catch(HttpClientErrorException.Conflict e) {
 			log.error("Failed to create Role with Name {} with conflict error {} ", createRequest.getName(), e.getMessage());
 		}catch(Exception e) {
@@ -621,6 +631,19 @@ public class AuthoriserClient {
 				log.error("Failed to get user detail   with error {} ", e.getMessage());
 			}
 		return userDetail;
+	}
+
+	@Transactional
+	public void saveCreatedRoleDetails(String roleName, String creatorId, Boolean isDynamic) throws PersistenceException{
+		AuthoriserRolesNsql  roleEntity = new AuthoriserRolesNsql();
+		AuthoriserRoleDeatils roleDetails = new AuthoriserRoleDeatils();
+		roleDetails.setCreatorId(creatorId);
+		roleDetails.setIsDynamic(isDynamic);
+
+		roleEntity.setId(roleName);
+		roleEntity.setData(roleDetails);
+		
+		jpaRepo.save(roleEntity);
 	}
 
 }

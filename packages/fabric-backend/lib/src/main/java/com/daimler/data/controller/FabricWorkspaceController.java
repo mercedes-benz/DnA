@@ -852,9 +852,9 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 		DnaRoleCollectionVO roleCollection = new DnaRoleCollectionVO();
 		try{
 
-			roleCollection = service.getAllUserDnaRoles(id,authToken);
+			roleCollection = service.getAllUserDnaRoles(id);
 
-			if(roleCollection.getData().getRoles().isEmpty()){
+			if(roleCollection.getRoles().isEmpty()){
 				return new ResponseEntity<>(roleCollection, HttpStatus.NO_CONTENT);
 			}else{
 				return new ResponseEntity<>(roleCollection, HttpStatus.OK);

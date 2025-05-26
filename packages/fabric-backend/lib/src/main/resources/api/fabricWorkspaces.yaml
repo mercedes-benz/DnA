@@ -840,15 +840,19 @@ definitions:
             pattern: "^[A-Za-z0-9]+[A-Za-z0-9._-]{1,60}$"
 
   DnaRoleCollectionVO:
+      type: object
+      properties:
+        roles:
+          type: array
+          items:
+            $ref: "#/definitions/DnaRolesVO" 
+  
+  DnaRolesVO:
     type: object
     properties:
-      data:
-        type: object
-        properties:
-          roles:
-            type: array
-            items: 
-              type: string
-
+        isDynamic:
+          type: boolean
+        roleID:
+          type: string
 
     
