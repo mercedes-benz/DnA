@@ -39,7 +39,7 @@ import org.springframework.web.WebApplicationInitializer;
 @SpringBootApplication
 @ComponentScan({ "com.daimler.data.db.entities", "com.daimler.data.db.repo", "com.daimler.data.controller", "com.daimler.data.service", "com.daimler.data.assembler",
 		"com.daimler.data.logging", "com.daimler.data.application.config", "com.daimler.data.util",
-		"com.daimler.data.application.filter", "com.daimler.data.application.intercepter", "com.daimler.data.application.logging", "com.daimler.data.kong.client"})
+		"com.daimler.data.application.filter", "com.daimler.data.application.intercepter", "com.daimler.data.application.logging", "com.daimler.data.kong.client", "com.daimler.data.client"})
 public class Application extends SpringBootServletInitializer implements WebApplicationInitializer {
 
 	private static final Logger LOG = LoggerFactory.getLogger(Application.class);
