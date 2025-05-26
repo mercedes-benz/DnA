@@ -1,0 +1,2 @@
+org.springframework.boot.SpringApplicationRunListener=\
+com.daimler.data.application.config.TrustStoreApplicationRunListener

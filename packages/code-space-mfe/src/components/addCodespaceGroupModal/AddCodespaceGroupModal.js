@@ -86,11 +86,14 @@ const AddCodespaceGroupModal = ({ edit, group, onSave }) => {
     let success = true;
     if(groupName.length === 0) {
       success = false;
-      setErrors({...errors, groupName: '*Missing entry'});
+      setErrors(prevError => { return {...prevError, groupName: '*Missing entry'}});
+    } else if(groupName.trim() === '') {
+      success = false;
+      setErrors(prevError => { return {...prevError, groupName: '*Only spaces are not allowed. Please add a valid group name.'}});
     }
     if(selectedCodeSpaces.length === 0) {
       success = false;
-      setErrors({...errors, codespaces: '*Missing entry'});
+      setErrors(prevError => { return {...prevError, codespaces: '*Missing entry'}});
     }
     return success;
   }
@@ -101,14 +104,14 @@ const AddCodespaceGroupModal = ({ edit, group, onSave }) => {
       groupId: group?.groupId,
       name: group?.name,
       order: 0,
-      wsAdded: addedCodespaces?.map((codespace) => { return { name: codespace?.projectDetails?.projectName, order: 0, workspaceId: codespace?.workspaceId }}),
-      wsRemoved: removedCodespaces
+      wsAdded: addedCodespaces?.map((codespace) => { return { name: codespace?.projectDetails?.projectName, order: 0, wsId: codespace?.workspaceId }}),
+      wsRemoved: removedCodespaces?.map((codespace) => { return { name: codespace?.projectDetails?.projectName, order: 0, wsId: codespace?.workspaceId }}),
     }
     if(validate()) {
       ProgressIndicator.show();
       CodeSpaceApiClient.editCodeSpaceGroup(data)
-        .then((res) => {
-          Notification.show(`Code Space Group ${res?.data?.data?.name} edited successfully`);
+        .then(() => {
+          Notification.show(`Code Space Group edited successfully`);
           onSave();
           ProgressIndicator.hide();
         })
@@ -127,15 +130,15 @@ const AddCodespaceGroupModal = ({ edit, group, onSave }) => {
   const handleCreateGroup = () => {
     const data = {
       groupId: '',
-      name: groupName,
+      name: groupName.trim(),
       order: 0,
       workspaces: selectedCodeSpaces?.map((codespace) => { return { name: codespace?.projectDetails?.projectName, order: 0, workspaceId: codespace?.workspaceId }})
     }
     if(validate()) {
       ProgressIndicator.show();
       CodeSpaceApiClient.createCodeSpaceGroup(data)
-        .then((res) => {
-          Notification.show(`Code Space Group ${res?.data?.data?.name} created successfully`);
+        .then(() => {
+          Notification.show(`Code Space Group created successfully`);
           onSave();
           ProgressIndicator.hide();
         })
@@ -181,7 +184,7 @@ const AddCodespaceGroupModal = ({ edit, group, onSave }) => {
                 defaultValue={groupName}
                 onChange={onGroupNameChange}
               />
-              <span className={'error-message'}>{errors.groupName?.length > 0 && '*Missing entry'}</span>
+              <span className={'error-message'}>{errors.groupName?.length > 0 && errors.groupName}</span>
             </div>
           </div>
           <div className={Styles.col}>

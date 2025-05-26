@@ -488,6 +488,22 @@ definitions:
         type: array
         items:
           $ref: "#/definitions/FabricLakehouseVO"
+      initiatedBy:
+        type: string
+        default: string
+      # secondaryRoleApproverId: 
+      #   type: string
+      #   default: null
+      # customEntitlementName: 
+      #   type: string
+      #   default: null
+      customGroupName: 
+        type: string
+        default: null
+      appId:
+        type: string
+      leanIXDetails:
+        $ref: "#/definitions/LeanIXDetailsVO"
   
   FabricWorkspaceStatusVO:
     type: object
@@ -536,6 +552,9 @@ definitions:
         type: string
       roleApprover:
         type: string
+      # secondaryRoleApprover: 
+      #   type: string
+      #   default: null
       entitlements:
         type: array
         items:
@@ -628,6 +647,11 @@ definitions:
     properties:
       data:
         $ref: "#/definitions/FabricWorkspaceVO"
+      aliasOwnerId: 
+        type: string
+        default: null
+      
+      
   
   FabricWorkspaceResponseVO:
     description: "Response object for fabric workspace operations"
@@ -829,6 +853,31 @@ definitions:
             type: array
             items: 
               type: string
+              
+  LeanIXDetailsVO:
+    type: object
+    properties :
+      appReferenceStr:
+        type: string
+      name:
+        type: string
+        description: "Name of the LeanIX"
+        minLength: 1
+      shortName:
+        type: string
+        description: "Short Name of the LeanIX"
+      ObjectState:
+        type: string
+        description: "State of the LeanIX"
+      providerOrgRefstr:
+        type: string
+        description: "Details of provider Org of the LeanIX"
+      providerOrgId:
+        type: string
+      providerOrgShortname:
+        type: string
+      providerOrgDeptid:
+        type: string
 
 
     

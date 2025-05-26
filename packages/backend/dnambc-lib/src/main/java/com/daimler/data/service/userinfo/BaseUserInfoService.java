@@ -58,6 +58,8 @@ import com.daimler.data.dto.userinfo.UserInfoVO;
 import com.daimler.data.service.common.BaseCommonService;
 import com.daimler.data.service.solution.SolutionService;
 //import com.daimler.data.util.JWTGenerator;
+import com.daimler.data.dto.userinfo.UserRoleVO;
+import com.daimler.data.service.userinfo.UserInfoService;
 import com.daimler.dna.notifications.common.producer.KafkaProducerService;
 
 import io.jsonwebtoken.Claims;
@@ -113,6 +115,22 @@ public class BaseUserInfoService extends BaseCommonService<UserInfoVO, UserInfoN
 		return true;
 
 	}
+
+	public UserInfoVO onboardTechnicalUser(UserInfoVO userInfoVO) {
+
+		UserInfo userInfo = new UserInfo();
+		UserRoleVO role = new UserRoleVO();
+		role.setId("1");
+		role.setName("User");
+		List<UserRoleVO> roles = new ArrayList<>();
+		roles.add(role);
+		userInfoVO.setRoles(roles);
+		userInfoVO.setFavoriteUsecases(new ArrayList<>());
+		UserInfoNsql entity = userinfoAssembler.toEntity(userInfoVO);
+		this.addUser(entity);
+		return userInfoVO;
+	}
+
 
 	@Override
 	public UserInfoVO updateBookMarkedSolutions(final String id, List<String> bookmarks, boolean deleteBookmarks) {

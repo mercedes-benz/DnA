@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Optional;
 
 import javax.annotation.PostConstruct;
+import javax.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,6 +29,7 @@ import com.daimler.data.dto.fabricWorkspace.GroupDetailsVO;
 import com.daimler.data.util.ConstantsUtility;
 
 import lombok.extern.slf4j.Slf4j;
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 
 @ConditionalOnProperty(value="fabricWorkspaces.startup.workspaceprovisioning", havingValue = "true", matchIfMissing = false)
 @Component
@@ -116,6 +118,7 @@ public class WorkspaceBackgroundJobsService {
 //	}
 	
 	@Scheduled(cron = "0 0/7 * * * *")
+	@SchedulerLock(name = "updateWorkspacesJob", lockAtMostFor = "PT7M", lockAtLeastFor = "PT5M")
 	public void updateWorkspacesJob() {	
 		try {
 			FabricWorkspacesCollectionVO collection = fabricService.getAllLov(0,0);
@@ -152,7 +155,7 @@ public class WorkspaceBackgroundJobsService {
 							FabricWorkspaceStatusVO updatedStatus = new FabricWorkspaceStatusVO();
 							FabricWorkspaceVO tempWorkspaceVO =  workspaceVO;
 							try {
-								updatedStatus = fabricService.processWorkspaceUserManagement(currentStatus,updatedName, workspaceVO.getCreatedBy().getId(), workspaceVO.getId());
+								updatedStatus = fabricService.processWorkspaceUserManagement(currentStatus,updatedName, workspaceVO.getCreatedBy().getId(), workspaceVO.getId(),workspaceVO.getCustomGroupName());
 								tempWorkspaceVO.setStatus(updatedStatus);
 								try {
 									tempWorkspaceVO.setName(updatedName);
@@ -168,7 +171,7 @@ public class WorkspaceBackgroundJobsService {
 						}
 						if(workspaceVO!=null && workspaceVO.getStatus()!=null && ConstantsUtility.COMPLETED_STATE.equalsIgnoreCase(workspaceVO.getStatus().getState())){
 							FabricWorkspaceVO tempWorkspaceVO =  workspaceVO;
-							List<GroupDetailsVO> updatedGroupDetails = fabricService.autoProcessGroupsUsers(workspaceVO.getStatus().getMicrosoftGroups(), updatedName, workspaceVO.getCreatedBy().getId(), workspaceVO.getId());
+							List<GroupDetailsVO> updatedGroupDetails = fabricService.autoProcessGroupsUsers(workspaceVO.getStatus().getMicrosoftGroups(), updatedName, workspaceVO.getCreatedBy().getId(), workspaceVO.getId(), workspaceVO.getCustomGroupName());
 							tempWorkspaceVO.getStatus().setMicrosoftGroups(updatedGroupDetails);
 							try {
 								tempWorkspaceVO.setName(updatedName);

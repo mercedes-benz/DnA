@@ -296,6 +296,7 @@ export interface IUserInfo {
   favoriteUsecases?: IUserFavoriteUseCase[];
   roles?: IRole[];
   divisionAdmins?: string[];
+  entitlementGroup?: string[];
 }
 export interface IUserRequestVO {
   data: IUserInfo;
@@ -596,6 +597,8 @@ export interface ICreateNewSolution {
   skills: INeededRoleObject[];
   additionalResource: string;
   department: string;
+  leanIXDetails: any;
+  appId: string;
 }
 
 export interface INeededRoleObject {
@@ -936,6 +939,8 @@ export interface INeededRoleObject {
 }
 
 export interface IAllSolutionsListItemCSV {
+  appId: string;
+  leanIXDetails: any;
   id?: string;
   businessNeed: string;
   businessGoals: string[];

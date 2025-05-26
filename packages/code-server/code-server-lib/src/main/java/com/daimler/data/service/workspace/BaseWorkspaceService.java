@@ -155,7 +155,10 @@ import com.daimler.data.dto.workspace.UserInfoVO;
  
 	 @Value("${codeServer.codespace.filename}")
 	 private String codespaceFileName;
-  
+
+	 @Value("${codeServer.technical.id}")
+	 private String technicalId;
+ 
 	 @Autowired
 	 private WorkspaceAssembler workspaceAssembler;
 	 @Autowired
@@ -213,12 +216,19 @@ import com.daimler.data.dto.workspace.UserInfoVO;
 		 GenericMessage responseMessage = new GenericMessage();
 		 List<MessageDescription> errors = new ArrayList<>();
 		 List<MessageDescription> warnings = new ArrayList<>();
-		 CodeServerWorkspaceNsql entity = workspaceCustomRepository.findById(userId, id);
+		 CodeServerWorkspaceNsql entity = new CodeServerWorkspaceNsql();
+
+		 if(technicalId.equalsIgnoreCase(userId)){
+			 entity = workspaceCustomRepository.findByWorkspaceId(id);
+			}
+		 else{
+		  entity = workspaceCustomRepository.findById(userId, id);
+		 }
 		 String cloudServiceProvider = entity.getData().getProjectDetails().getRecipeDetails().getCloudServiceProvider();
 		 boolean isProjectOwner = false;
 		 boolean isCodespaceDeployed = false;
 		 String projectOwnerId = entity.getData().getProjectDetails().getProjectOwner().getId();
-		 if (projectOwnerId.equalsIgnoreCase(userId)) {
+		 if (projectOwnerId.equalsIgnoreCase(userId)|| technicalId.equalsIgnoreCase(userId)) {
 			 isProjectOwner = true;
 		 }
   
@@ -417,20 +427,30 @@ import com.daimler.data.dto.workspace.UserInfoVO;
 		 // if(isProjectOwner) {
 		 // workspaceCustomRepository.updateDeletedStatusForProject(projectName);
 		 // }else {
+		 if(technicalId.equalsIgnoreCase(userId) && entity.getData().getProjectDetails().getDataGovernance().getTypeOfProject().equalsIgnoreCase("Playground")){
+			entity.getData().setStatus("DELETED");
+			jpaRepo.save(entity);
+		 }
+
+
+		 else {
 		 entity.getData().setStatus("DELETED");
 		 entity.getData().setActiveInGroup(Boolean.FALSE);
 
 		 //remove from group
-		 List<String> groupEntity = workspaceCustomUserGroupRepo.findByWsid(entity.getData().getWorkspaceId(), userId);
-		 log.info("groupEntity {}",groupEntity.toString());
+		 // List<String> groupEntity = workspaceCustomUserGroupRepo.findByWsid(entity.getData().getWorkspaceId(), userId);
+		 // log.info("groupEntity {}",groupEntity.toString());
 		 String wsId = entity.getData().getWorkspaceId();
-		 groupEntity.forEach( i ->{
-			 CodeServerUserGroupNsql group = userGroupRepository.findById(i).get();
+		 // groupEntity.forEach( i ->{
+			 Optional<CodeServerUserGroupNsql> groupOptional = userGroupRepository.findById(userId);
+			 if(groupOptional.isPresent()){
+				CodeServerUserGroupNsql group = groupOptional.get();
 			 group.getData().getGroups().forEach( g -> {
 				 g.getWorkspaces().removeIf( w -> w.getWorkSpaceId().equalsIgnoreCase(wsId));
 			 });
 			 userGroupRepository.save(group);
-		 });
+			}
+		 // });
   
 		 UserInfo removeUser = new UserInfo();
 		 if (entity.getData().getProjectDetails().getProjectCollaborators() != null) {
@@ -445,6 +465,7 @@ import com.daimler.data.dto.workspace.UserInfoVO;
 		 }
 		 jpaRepo.save(entity);
 		 workspaceCustomRepository.updateCollaboratorDetails(projectName, removeUser, true);
+		}
 		 // }
 		 // Deleting Kong route
 		 if((entity.getData().getProjectDetails().getIntDeploymentDetails().getDeploymentUrl() != null
@@ -1351,7 +1372,13 @@ import com.daimler.data.dto.workspace.UserInfoVO;
   
 	 @Override
 	 public CodeServerWorkspaceVO getById(String userId, String id) {
-		 CodeServerWorkspaceNsql entity = workspaceCustomRepository.findById(userId, id);
+		CodeServerWorkspaceNsql entity = new CodeServerWorkspaceNsql();
+		 if(technicalId.equalsIgnoreCase(userId)){
+			 entity = workspaceCustomRepository.findByWorkspaceId(id);
+			}
+		 else{
+		  entity = workspaceCustomRepository.findById(userId, id);
+		 }
 		 return workspaceAssembler.toVo(entity);
 	 }
   
@@ -1429,7 +1456,9 @@ import com.daimler.data.dto.workspace.UserInfoVO;
 	 @Override
 	 @Transactional
 	 public GenericMessage deployWorkspace(String userId, String id, String environment, String branch,
-			 boolean isSecureWithIAMRequired, String clientID, String clientSecret, boolean isprivateRecipe) {
+			 boolean isSecureWithIAMRequired, String clientID, String clientSecret, String redirectUri, String ignorePaths, String scope, boolean isApiRecipe,
+			 	String oneApiVersionShortName, boolean isSecuredWithCookie , boolean isprivateRecipe) {
+
 		 GenericMessage responseMessage = new GenericMessage();
 		 String status = "FAILED";
 		 List<MessageDescription> warnings = new ArrayList<>();
@@ -1442,6 +1471,9 @@ import com.daimler.data.dto.workspace.UserInfoVO;
 			 String repoName = null;
 			 String repoUrl = null;
 			 String gitOrg = null;
+			//  if (isApiRecipe != null){
+			// 	is ApiRecipe = true;
+			//  }
 			 CodeServerWorkspaceNsql entity = workspaceCustomRepository.findById(userId, id);
 			 if (entity != null ) {
 				 DeploymentManageDto deploymentJobDto = new DeploymentManageDto();
@@ -1473,12 +1505,21 @@ import com.daimler.data.dto.workspace.UserInfoVO;
 				 String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
 				 deployJobInputDto.setShortid(workspaceOwner);
 				 deployJobInputDto.setTarget_env(environment);
-  //				if (Objects.nonNull(isSecureWithIAMRequired) && isSecureWithIAMRequired
-  //						&& Objects.nonNull(technicalUserDetailsForIAMLogin)) {
-  //					deployJobInputDto.setSecure_iam("true");
-  //				} else {
-  //					deployJobInputDto.setSecure_iam("false");
-  //				}
+ //				if (Objects.nonNull(isSecureWithIAMRequired) && isSecureWithIAMRequired
+ //						&& Objects.nonNull(technicalUserDetailsForIAMLogin)) {
+ //					deployJobInputDto.setSecure_iam("true");
+ //				} else {
+ //					deployJobInputDto.setSecure_iam("false");
+ //				}
+				 if((!isApiRecipe && !oneApiVersionShortName.isBlank()) || (isSecureWithIAMRequired && !oneApiVersionShortName.isBlank()) ){
+					MessageDescription error = new MessageDescription();
+					error.setMessage("Failed while deploying codeserver workspace project, couldn't deploy for this combination. BAD REQUEST. ");
+					errors.add(error);
+					responseMessage.setErrors(errors);
+					responseMessage.setWarnings(warnings);
+					responseMessage.setSuccess(status);
+					return responseMessage;
+				 }
 				 if(entity.getData().getProjectDetails().getRecipeDetails().getToDeployType()!=null){
 					 deployJobInputDto.setType(entity.getData().getProjectDetails().getRecipeDetails().getToDeployType());
 				 } else {
@@ -1553,8 +1594,6 @@ import com.daimler.data.dto.workspace.UserInfoVO;
 						 environmentJsonbName = "prodDeploymentDetails";
 						 deploymentDetails = entity.getData().getProjectDetails().getProdDeploymentDetails();
 					 }
-					 deploymentDetails.setLastDeploymentStatus("DEPLOY_REQUESTED");
-					 deploymentDetails.setSecureWithIAMRequired(isSecureWithIAMRequired);
 					 // deploymentDetails.setTechnicalUserDetailsForIAMLogin(technicalUserDetailsForIAMLogin);
 					 
 					 List<DeploymentAudit> auditLogs = deploymentDetails.getDeploymentAuditLogs();
@@ -1584,8 +1623,6 @@ import com.daimler.data.dto.workspace.UserInfoVO;
 					 auditLog.setDeploymentStatus("DEPLOY_REQUESTED");
 					 auditLogs.add(auditLog);
 					 deploymentDetails.setDeploymentAuditLogs(auditLogs);
-					 workspaceCustomRepository.updateDeploymentDetails(projectName, environmentJsonbName,
-							 deploymentDetails);
 					 //calling kong to create service, route and plugins
 					 boolean apiRecipe = false;
 					 String serviceName = projectName;
@@ -1597,17 +1634,28 @@ import com.daimler.data.dto.workspace.UserInfoVO;
 					 String streamlitRecipeId = RecipeIdEnum.STREAMLIT.toString();
 					 String nestjsRecipeId = RecipeIdEnum.NESTJS.toString();
 					 String workspaceId = entity.getData().getWorkspaceId();
-					 if (projectRecipe.equalsIgnoreCase(reactRecipeId)
-							 || projectRecipe.equalsIgnoreCase(angularRecipeId) || projectRecipe.equalsIgnoreCase(dashRecipeId)
-							 || projectRecipe.equalsIgnoreCase(expressjsRecipeId) || projectRecipe.equalsIgnoreCase(streamlitRecipeId)
-							 || projectRecipe.equalsIgnoreCase(nestjsRecipeId)) {
-						 log.info("projectRecipe: {} and service name is : {}", projectRecipe, serviceName);
-						 authenticatorClient.callingKongApis(workspaceId, serviceName, environment, apiRecipe, clientID,clientSecret, cloudServiceProvider);
-					 } else {
-						 apiRecipe = true;
-						 log.info("projectRecipe: {} and service name is : {}", projectRecipe, serviceName);
-						 authenticatorClient.callingKongApis(workspaceId, serviceName, environment, apiRecipe, clientID,clientSecret, cloudServiceProvider);
-					 }
+					//  if (projectRecipe.equalsIgnoreCase(reactRecipeId)
+					// 		 || projectRecipe.equalsIgnoreCase(angularRecipeId) || projectRecipe.equalsIgnoreCase(dashRecipeId)
+					// 		 || projectRecipe.equalsIgnoreCase(expressjsRecipeId) || projectRecipe.equalsIgnoreCase(streamlitRecipeId)
+					// 		 || projectRecipe.equalsIgnoreCase(nestjsRecipeId)) {
+					// 	 log.info("projectRecipe: {} and service name is : {}", projectRecipe, serviceName);
+					// 	 authenticatorClient.callingKongApis(workspaceId, serviceName, environment, apiRecipe, clientID,clientSecret);
+					//  } else {
+					// 	 apiRecipe = true;
+					// 	 log.info("projectRecipe: {} and service name is : {}", projectRecipe, serviceName);
+					// 	 authenticatorClient.callingKongApis(workspaceId, serviceName, environment, apiRecipe, clientID,clientSecret);
+					//  }
+					authenticatorClient.callingKongApis(workspaceId, serviceName, environment, isApiRecipe, clientID,clientSecret,redirectUri, ignorePaths, scope, oneApiVersionShortName, isSecuredWithCookie, isSecureWithIAMRequired, cloudServiceProvider);
+					deploymentDetails.setLastDeploymentStatus("DEPLOY_REQUESTED");
+					deploymentDetails.setSecureWithIAMRequired(isSecureWithIAMRequired);
+					deploymentDetails.setOneApiVersionShortName(oneApiVersionShortName);
+					deploymentDetails.setIsSecuredWithCookie(isSecuredWithCookie);
+					deploymentDetails.setDeploymentType(isApiRecipe ? ConstantsUtility.API : ConstantsUtility.UI);
+					deploymentDetails.setClientId(clientID);
+					deploymentDetails.setRedirectUri(redirectUri);
+					deploymentDetails.setIgnorePaths(ignorePaths);
+					deploymentDetails.setScope(scope);
+					workspaceCustomRepository.updateDeploymentDetails(projectName, environmentJsonbName,deploymentDetails);
 					status = "SUCCESS";
 				 } else {
 					 status = "FAILED";
@@ -2208,35 +2256,46 @@ import com.daimler.data.dto.workspace.UserInfoVO;
 				 }
 				 SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
 				 Date now = isoFormat.parse(isoFormat.format(new Date()));
-  //				CodeServerWorkspaceNsql ownerEntity = workspaceCustomRepository.findbyProjectName(projectOwner,
-  //						projectName);
-  //				if (ownerEntity == null || ownerEntity.getData() == null
-  //						|| ownerEntity.getData().getWorkspaceId() == null) {
-  //					MessageDescription error = new MessageDescription();
-  //					error.setMessage(
-  //							"Failed while deploying codeserver workspace project, couldnt fetch project owner details");
-  //					errors.add(error);
-  //					responseMessage.setErrors(errors);
-  //					return responseMessage;
-  //				}
-  //				String projectOwnerWsId = ownerEntity.getData().getWorkspaceId();
-				 String deploymentUrl = "";
-				 deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/api";
-				 if (pythonRecipeId.equalsIgnoreCase(projectRecipe)) {
-					 deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/api/docs";
-				 }
-				 if (reactRecipeId.equalsIgnoreCase(projectRecipe) || angularRecipeId.equalsIgnoreCase(projectRecipe) 
-				 || vueRecipeId.equalsIgnoreCase(projectRecipe) || dashRecipeId.equalsIgnoreCase(projectRecipe)
-				 || streamlitRecipeId.equalsIgnoreCase(projectRecipe) || nestjsRecipeId.equalsIgnoreCase(projectRecipe) ||
-				 expressjsRecipeId.equalsIgnoreCase(projectRecipe)) {
-					 deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/";
-				 }
-				 if (quarkusRecipeId.equalsIgnoreCase(projectRecipe)) {
-					 deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/q/swagger-ui";
-				 }
-				 if(micronautRecipeId.equalsIgnoreCase(projectRecipe)) {
-					  deploymentUrl = codeServerBaseUri+"/"+projectName.toLowerCase() +"/"+ targetEnv +"/swagger-ui/index.html";
-				 }
+ //				CodeServerWorkspaceNsql ownerEntity = workspaceCustomRepository.findbyProjectName(projectOwner,
+ //						projectName);
+ //				if (ownerEntity == null || ownerEntity.getData() == null
+ //						|| ownerEntity.getData().getWorkspaceId() == null) {
+ //					MessageDescription error = new MessageDescription();
+ //					error.setMessage(
+ //							"Failed while deploying codeserver workspace project, couldnt fetch project owner details");
+ //					errors.add(error);
+ //					responseMessage.setErrors(errors);
+ //					return responseMessage;
+ //				}
+ //				String projectOwnerWsId = ownerEntity.getData().getWorkspaceId();
+				String deploymentUrl = "";
+				if (("int".equalsIgnoreCase(targetEnv)
+						&& entity.getData().getProjectDetails().getIntDeploymentDetails().getDeploymentUrl() != null)
+						|| ("prod".equalsIgnoreCase(targetEnv)
+								&& entity.getData().getProjectDetails().getProdDeploymentDetails().getDeploymentUrl() != null)) {
+					deploymentUrl = "int".equalsIgnoreCase(targetEnv)
+							? entity.getData().getProjectDetails().getIntDeploymentDetails().getDeploymentUrl()
+							: entity.getData().getProjectDetails().getProdDeploymentDetails().getDeploymentUrl();
+				} else {
+					deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/";
+					if (pythonRecipeId.equalsIgnoreCase(projectRecipe)) {
+						deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/docs";
+					}
+					if (reactRecipeId.equalsIgnoreCase(projectRecipe) || angularRecipeId.equalsIgnoreCase(projectRecipe)
+							|| vueRecipeId.equalsIgnoreCase(projectRecipe) || dashRecipeId.equalsIgnoreCase(projectRecipe)
+							|| streamlitRecipeId.equalsIgnoreCase(projectRecipe) || nestjsRecipeId.equalsIgnoreCase(projectRecipe)
+							||
+							expressjsRecipeId.equalsIgnoreCase(projectRecipe)) {
+						deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/";
+					}
+					if (quarkusRecipeId.equalsIgnoreCase(projectRecipe)) {
+						deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/q/swagger-ui";
+					}
+					if (micronautRecipeId.equalsIgnoreCase(projectRecipe)) {
+						deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv
+								+ "/swagger-ui/index.html";
+					}
+				}
 				 String environmentJsonbName = "intDeploymentDetails";
 				 CodeServerDeploymentDetails deploymentDetails = new CodeServerDeploymentDetails();
 				 if ("int".equalsIgnoreCase(targetEnv)) {

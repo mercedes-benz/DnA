@@ -13,6 +13,7 @@ import { fabricApi } from '../../apis/fabric.api';
 import Spinner from '../../components/spinner/Spinner';
 import RoleCreationModal from '../../components/roleCreationModal/RoleCreationModal';
 import Lakehouses from '../../components/Lakehouses/Lakehouses';
+import { Envs } from '../../utilities/envs';
 
 const WorkspaceDetails = ({ workspace }) => {
   return (
@@ -42,7 +43,6 @@ const WorkspaceDetails = ({ workspace }) => {
                 <p className={Styles.label}>Description</p>
                 {workspace?.description ? workspace?.description : 'N/A'}
               </div>
-
               <div className={Styles.col3}>
                 <p className={Styles.label}>Cost Center</p>
                 {workspace?.costCenter ? workspace?.costCenter : 'N/A'}
@@ -52,16 +52,20 @@ const WorkspaceDetails = ({ workspace }) => {
                 {workspace?.internalOrder ? workspace?.internalOrder : 'N/A'}
               </div>
               <div className={Styles.col3}>
+                <p className={Styles.label}>LeanIX App ID</p>
+                {workspace?.appId ? workspace?.appId : 'N/A'}
+              </div>
+              <div className={Styles.col3}>
                 <p className={Styles.label}>Related Solutions</p>
                 {workspace?.relatedSolutions.length > 0 ? workspace.relatedSolutions?.map((chip) =>
-                  <><label className="chips">{chip.name}</label>&nbsp;&nbsp;</>
+                  <a key={chip.id} href={`${Envs.CONTAINER_APP_URL}/#/summary/${chip.id}`} target={'_blank'} rel={'noopener noreferrer'}><label className="chips">{chip.name}</label>&nbsp;&nbsp;</a>
                 ) : 'N/A'}
               </div>
 
               <div className={Styles.col3}>
                 <p className={Styles.label}>Related Reports</p>
                 {workspace?.relatedReports.length > 0 ? workspace.relatedReports?.map((chip) => 
-                    <><label className="chips">{chip.name}</label>&nbsp;&nbsp;</>
+                    <a key={chip.id} href={`${Envs.CONTAINER_APP_URL}/#/reportsummary/${chip.id}`} target={'_blank'} rel={'noopener noreferrer'}><label className="chips">{chip.name}</label>&nbsp;&nbsp;</a>
                  ) : 'N/A'}
               </div>
               <div className={Styles.col3}>
@@ -151,6 +155,9 @@ const FabricWorkspace = ({ user }) => {
           }
         });
   };
+  const userRoles = user?.entitlementGroup
+      ?.filter(ent => ent.startsWith(`${Envs.FABRIC_ENTITLEMENT_PREFIX}${workspace?.id}`))
+      ?.map(ent => ent.split('_').at(-1)) || ['N/A'];
 
   return (
     <React.Fragment>
@@ -158,6 +165,11 @@ const FabricWorkspace = ({ user }) => {
         <div className={classNames(Styles.wrapper)}>
           {!loading && 
             <Caption title={`Fabric Workspace - ${workspace?.name || 'null'}`}>
+              <div className={Styles.draftIndicatorCol}>
+                {userRoles.map((role, index) => (
+                  <span key={index} className={Styles.draftIndicator}>{role}</span>
+                ))}
+              </div>
               <div>
                 <button className={classNames('btn btn-primary', Styles.refreshBtn)} tooltip-data="Refresh" onClick={getWorkspace}>
                   <i className="icon mbc-icon refresh"></i>

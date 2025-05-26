@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useHistory } from 'react-router-dom';
 import classNames from 'classnames';
 import Styles from './code-space-group-card.scss';
@@ -20,7 +20,7 @@ import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indica
 import { CodeSpaceApiClient } from '../../apis/codespace.api';
 import { Envs } from '../../Utility/envs';
 
-const CodeSpaceGCard = ({ codeSpace, userInfo, onStartStopCodeSpace, onShowDeployModal, onShowCodeSpaceOnBoard }) => {
+const CodeSpaceGCard = ({ codeSpace, userInfo, onStartStopCodeSpace, onShowDeployModal, onShowCodeSpaceOnBoard, onShowBlueprintModal }) => {
   const history = useHistory();
   const enableOnboard = codeSpace ? codeSpace.status === 'COLLABORATION_REQUESTED' : false;
   const createInProgress = codeSpace.status === 'CREATE_REQUESTED';
@@ -29,6 +29,10 @@ const CodeSpaceGCard = ({ codeSpace, userInfo, onStartStopCodeSpace, onShowDeplo
   const [serverStarted, setServerStarted] = useState(false);
   const [serverFailed, setServerFailed] = useState(false);
   const [serverProgress, setServerProgress] = useState(0);
+
+  useEffect(() => {
+      handleServerStatusAndProgress();
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const onStartStopCodeSpaceLocal = (codespace) => {
     if(codespace?.projectDetails?.recipeDetails?.cloudServiceProvider ==='DHC-CaaS-AWS'){
@@ -178,6 +182,8 @@ const CodeSpaceGCard = ({ codeSpace, userInfo, onStartStopCodeSpace, onShowDeplo
   const onCardNameClick = () => {
     if (enableOnboard) {
       onShowCodeSpaceOnBoard(codeSpace);
+    } else if (!serverStarted) {
+      onStartStopCodeSpaceLocal(codeSpace);
     } else {
       history.push(`codespace/${codeSpace.workspaceId}`);
     }
@@ -249,6 +255,15 @@ const CodeSpaceGCard = ({ codeSpace, userInfo, onStartStopCodeSpace, onShowDeplo
                 className={classNames('contextMenuWrapper', Styles.contextMenu, showContextMenu ? '' : 'hide')}
               >
                 <ul>
+                  <li>
+                    <span
+                      onClick={() => {
+                        onShowBlueprintModal(codeSpace);
+                      }}
+                    >
+                      Show Blueprint
+                    </span>
+                  </li>
                   <li className={classNames(deployingInProgress ? 'inactive' : '')}>
                     <span
                       onClick={() => {
