@@ -269,7 +269,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
       );
     });
   };
-  const isLeanIXRequired = typeOfProject === 'Production' && division?.name === 'FC';
+  const isLeanIXRequired = typeOfProject === 'Production' && divisions.some(div => div.id === '3');
   return (
     <>
       <FormProvider {...methods}>
@@ -394,6 +394,9 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
                     <Controller
                       control={control}
                       name="leanIX"
+                      rules={{
+                        required: isLeanIXRequired ? '*Missing entry' : false,
+                      }}
                       render={({ field }) => (
                         <TypeAheadBox
                           label={'LeanIX App-ID'}
