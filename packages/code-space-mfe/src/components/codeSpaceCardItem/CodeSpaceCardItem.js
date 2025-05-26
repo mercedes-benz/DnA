@@ -528,6 +528,15 @@ const CodeSpaceCardItem = (props) => {
                   className={classNames('contextMenuWrapper', Styles.contextMenu, showContextMenu ? '' : 'hide')}
                 >
                   <ul>
+                    <li>
+                      <span
+                        onClick={() => {
+                          props.onShowBlueprintModal(codeSpace);
+                        }}
+                      >
+                        Show Blueprint
+                      </span>
+                    </li>
                     <li className={classNames(deployingInProgress ? 'inactive' : '')}>
                       <span
                         onClick={() => {
