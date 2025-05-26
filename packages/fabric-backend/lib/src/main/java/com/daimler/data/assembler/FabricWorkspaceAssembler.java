@@ -92,6 +92,7 @@ public class FabricWorkspaceAssembler implements GenericAssembler<FabricWorkspac
 					if (data.getLastModifiedOn() != null) {
 						vo.setLastModifiedOn(isoFormat.parse(isoFormat.format(data.getLastModifiedOn())));
 					}
+					
 					List<ProjectReferenceDetailsVO> relatedReportsVO = toProjectDetailVOs(data.getRelatedReports());
 					vo.setRelatedReports(relatedReportsVO);
 
