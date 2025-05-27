@@ -22,10 +22,10 @@ import CodeSpaceTutorials from './codeSpaceTutorials/CodeSpaceTutorials';
 import { Envs } from '../Utility/envs';
 import ConfirmModal from 'dna-container/ConfirmModal';
 import InfoModal from 'dna-container/InfoModal';
+import CodeSpaceBlueprint from './codeSpaceBlueprint/CodeSpaceBlueprint';
 import AddCodespaceGroupModal from './addCodespaceGroupModal/AddCodespaceGroupModal';
 import CodeSpaceGroupCard from './codeSpaceGroupCard/CodeSpaceGroupCard';
 import Spinner from './spinner/Spinner';
-import CodeSpaceBlueprint from './codeSpaceBlueprint/CodeSpaceBlueprint';
 
 // export interface IAllCodeSpacesProps {
 //   user: IUserInfo;
