@@ -43,6 +43,11 @@ spring:
       max-file-size: ${MAX_FILE_SIZE:3000MB}
       max-request-size: ${MAX_REQUEST_SIZE:3000MB}
 
+  # Spring MVC timeout 
+  mvc:
+    async:
+      request-timeout : 600000
+
   kafka:
     producer:
     properties:
@@ -81,6 +86,14 @@ spring:
           store:
             path: ${CA_TRUSTSTORE_PATH:/XXXX/XXXX/truststore.p12}
             password: ${CA_TRUSTSTORE_PASSWORD:XXXX}
+
+# generic server timeout
+server: 
+  tomcat:
+    connection-timeout : 600000
+    keep-alive-timeout : 600000
+  connection-timeout : 600000
+  max-http-header-size : 65536
 
 kafka:
   centralTopic:
