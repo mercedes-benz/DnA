@@ -814,6 +814,11 @@ public class DnaMinioClientImp implements DnaMinioClient {
 				// Adding new policies to existing one
 				for (String policy : policies) {
 					String policyResponse = this.attachPolicyToUser(userId, policy, false);
+					try {
+						TimeUnit.SECONDS.sleep(5);
+					} catch (InterruptedException e) {
+						LOGGER.error("Policy attachment interrupted: " + e.getMessage());
+					}  
 					LOGGER.info("mc attach policy response: "+ policyResponse);
 					existingPolicy = StorageUtility.addPolicy(existingPolicy, policy);
 				}
