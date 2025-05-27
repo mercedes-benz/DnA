@@ -84,7 +84,7 @@ imagePullSecret:
   name: harbor-pull-secrets
 
 Storage:
-  storageClass: cinder
+  storageClass: dhc-gp3
   accessModes: ReadWriteOnce
   size: 5G
 
