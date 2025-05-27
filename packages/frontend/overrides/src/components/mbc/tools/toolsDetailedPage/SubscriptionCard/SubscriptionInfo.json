@@ -1,0 +1,52 @@
+[
+    {
+        "id": "powerPlatform",
+        "name": "Power Platform",
+        "tiles":[
+            {
+                "title": "Default environment",
+                "subTitle": "New here ? Get your first experience",
+                "icon": "codespace",
+                "info":{
+                    "feature" : "feature to be implimented",
+                    "classification": "classfication",
+                    "cost": "0.2 FTE /Month"
+                },
+                "link": ""
+            },
+            {
+                "title": "Citizen Developer Account",
+                "subTitle": "Are you ready to build the application?",
+                "icon": "profile",
+                "info":{
+                    "feature" : "feature to be implimented",
+                    "classification": "classfication",
+                    "cost": "0.2 FTE /Month"
+                },
+                "link": ""
+            },
+            {
+                "title": "Shared Development Account",
+                "subTitle": "Want to use premium features?",
+                "icon": "trino_shared-folder",
+                "info":{
+                    "feature" : "feature to be implimented",
+                    "classification": "classfication",
+                    "cost": "0.2 FTE /Month"
+                },
+                "link":""
+            },
+            {
+                "title": "Full Development Account",
+                "subTitle": "All features for teams",
+                "icon": "localcomplianceofficer",
+                "info":{
+                    "feature" : "feature to be implimented",
+                    "classification": "classfication",
+                    "cost": "0.2 FTE /Month"
+                },
+                "link": ""
+            }
+        ]
+    }
+]

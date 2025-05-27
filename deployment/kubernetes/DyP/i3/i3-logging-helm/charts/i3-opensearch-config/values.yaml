@@ -1,0 +1,52 @@
+# Apply i3 specific configuration such as ISM policy
+enabled: true
+
+# Opensearch Hosts to apply the policy to. Supports comma seperated values.
+opensearchHosts: "http://i3-logging-opensearch-master:9200"
+
+# Opensearch Dashboards to apply the policy to.Supports comma seperated values.
+opensearchDashboardHosts: "http://i3-logging-opensearch-dashboards:5601"
+
+# Opensearch dashboard version
+opensearchDashboardVersion: "2.11.1"
+
+opensearchUsername: ""
+opensearchPassword: ""
+
+# Apply Index management policy
+ism:
+  enabled: true
+
+# Apply i3-access anomaly detector to Opensearch dashboards.
+i3AccessAnomaly:
+  enabled: false
+  
+# Apply reusable saved objects.Global tenent is used by default
+savedObjectApi:
+  enabled: false
+
+  # Path of saved objects api
+  path: "/_plugins/_saved_objects/_import"
+
+  # Additional url parameters.Supports comma seperated values.
+  additionalUrlParams: ""
+    
+  # List your configmaps 
+  # Case 1
+  # If you added your ndjson to savedobjects folder those will be installed automatically. 
+  # or Case 2
+  # Create your configmaps! Your configmaps will be instaled after your ndjson in savedobjects folder. List your external configmaps in additionalConfigMapNames.
+  # Your configmap needs to be in the same namespace as the namespace where you installed i3-logging
+  # apiVersion: v1
+  # kind: ConfigMap
+  # metadata:
+  #   name: replaceMeWithANameForYourConfigmap
+  # data:
+  #   replaceMeWithANameForYourSavedObject: |
+  #     <value>
+  #
+  # then in the fild below add those names
+  #
+  # additionalConfigMapNames
+  #   - replaceMeWithANameForYourConfigmap
+  additionalConfigMapNames: []
