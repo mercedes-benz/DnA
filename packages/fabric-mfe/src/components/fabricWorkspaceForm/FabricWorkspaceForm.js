@@ -1,12 +1,13 @@
 import classNames from 'classnames';
 import React, { useState, useEffect } from 'react';
-import { useForm, FormProvider } from 'react-hook-form';
+import { useForm, FormProvider, Controller } from 'react-hook-form';
 import { useHistory } from "react-router-dom";
 // styles
 import Styles from './fabric-workspace-form.scss';
 // import from DNA Container
 import Tags from 'dna-container/Tags';
 import SelectBox from 'dna-container/SelectBox';
+import TypeAheadBox from 'dna-container/TypeAheadBox';
 // App components
 import Notification from '../../common/modules/uilab/js/src/notification';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
@@ -24,6 +25,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
     register,
     handleSubmit,
     setValue,
+    control,
     formState: { errors },
   } = methods;
 
@@ -57,6 +59,8 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
   const [archerId, setArcherID] = useState(edit && workspace?.archerId ? workspace?.archerId : '');
   const [procedureId, setProcedureID] = useState(edit && workspace?.procedureId ? workspace?.procedureId : '');
   const [termsOfUse, setTermsOfUse] = useState(edit && workspace?.termsOfUse ? [workspace?.termsOfUse] : false);
+  const [leanIXList, setLeanIXList] = useState([]);
+  const [selectedLeanIX, setSelectedLeanIX] = useState([]);
 
   useEffect(() => {
     ProgressIndicator.show();
@@ -176,6 +180,25 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
     setRelatedReportsTags(tempReports.map(rep => rep.name));
   }
 
+  const handleLeanIXSearch = (searchTerm, showSpinner) => {
+    if (searchTerm.length > 3) {
+      showSpinner(true);
+      fabricApi
+        .getLeanIX(searchTerm)
+        .then((res) => {
+          setLeanIXList(res.data.data || []);
+          showSpinner(false);
+        })
+        .catch((e) => {
+          showSpinner(false);
+          Notification.show(
+            e.response?.data?.errors?.[0]?.message || 'Error while fethcing planning IT list.',
+            'alert',
+          );
+        });
+    }
+  };
+
   const handleCreateWorkspace = (values) => {
     ProgressIndicator.show();
     const data = {
@@ -197,6 +220,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
       internalOrder: values?.internalOrder.trim(),
       relatedSolutions: relatedSolutions,
       relatedReports: relatedReports,
+      ...(values.leanIX || {})
     };
     fabricApi.createFabricWorkspace(data).then((res) => {
       ProgressIndicator.hide();
@@ -230,6 +254,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
       internalOrder: values?.internalOrder.trim(),
       relatedSolutions: relatedSolutions,
       relatedReports: relatedReports,
+      ...(values.leanIX || {})
     }
     ProgressIndicator.show();
     fabricApi.updateFabricWorkspace(workspace.id, data).then(() => {
@@ -362,6 +387,57 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
                   </div>
                 </div>
             </div>
+            {(typeOfProject !== 'Playground' && typeOfProject !== 'Proof of Concept') && 
+              (
+                <div className={Styles.col2}>
+                  <div className={classNames('input-field-group')}>
+                    <Controller
+                      control={control}
+                      name="leanIX"
+                      render={({ field }) => (
+                        <TypeAheadBox
+                          label={'LeanIX App-ID'}
+                          placeholder={'Select App-ID (Enter minimum 4 characters)'}
+                          defaultValue={selectedLeanIX.appId}
+                          list={leanIXList}
+                          setSelected={(selectedTags) => {
+                            const leanIXData = {
+                              appId: selectedTags.id,
+                              leanIXDetails: {
+                                objectState: selectedTags.ObjectState,
+                                appReferenceStr: selectedTags.appReferenceStr,
+                                name: selectedTags.name,
+                                providerOrgDeptid: selectedTags.providerOrgDeptid,
+                                providerOrgId: selectedTags.providerOrgId,
+                                providerOrgRefstr: selectedTags.providerOrgRefstr,
+                                providerOrgShortname: selectedTags.providerOrgShortname,
+                                shortName: selectedTags.shortName,
+                              },
+                            };
+                            setSelectedLeanIX(selectedTags || {});
+                            field.onChange(leanIXData);
+                          }}
+                          onInputChange={handleLeanIXSearch}
+                          required={false}
+                          showError={errors.leanIX?.message}
+                          render={(item) => (
+                            <div className={Styles.optionContainer}>
+                              <div>
+                                <span className={Styles.optionText}>
+                                  {item?.id} {item.shortName ? `(${item?.shortName})` : null}
+                                </span>
+                                <span className={Styles.suggestionListBadge}>{item?.providerOrgShortname}</span>
+                              </div>
+                              <span className={Styles.optionText}>{item?.name}</span>
+                            </div>
+                          )}
+                        />
+                      )}
+                    />
+                  </div>
+                </div>
+              )
+            }
             {typeOfProject !== 'Playground' && 
               <>
                 <div className={Styles.col2}>
