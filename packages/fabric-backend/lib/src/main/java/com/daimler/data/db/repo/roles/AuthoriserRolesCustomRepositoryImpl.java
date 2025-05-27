@@ -28,11 +28,13 @@
 package com.daimler.data.db.repo.roles;
 
 import java.math.BigInteger;
+import java.util.Collections;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Root;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.TypedQuery;
@@ -52,19 +54,29 @@ import lombok.extern.slf4j.Slf4j;
 public class AuthoriserRolesCustomRepositoryImpl extends CommonDataRepositoryImpl<AuthoriserRolesNsql, String>
 		implements AuthoriserRolesCustomRepository {
 
-	@Override
-	public List<AuthoriserRolesNsql> getAll(String userId) {
-		CriteriaBuilder cb = em.getCriteriaBuilder();
-		CriteriaQuery<AuthoriserRolesNsql> cq = cb.createQuery(AuthoriserRolesNsql.class);
-		Root<AuthoriserRolesNsql> root = cq.from(AuthoriserRolesNsql.class);
-		CriteriaQuery<AuthoriserRolesNsql> byName = cq.select(root);
-		Predicate con1 = cb.equal(cb.lower(
-				cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("creatorId"))),
-				userId.toLowerCase());
-		cq.where(con1);
-		TypedQuery<AuthoriserRolesNsql> byNameQuery = em.createQuery(byName);
-		List<AuthoriserRolesNsql> entities = byNameQuery.getResultList();
-		return (entities != null && !entities.isEmpty()) ? entities : null;
-	}
+			@Override
+			public List<AuthoriserRolesNsql> getAll(String userId) {
+				try {
+					CriteriaBuilder cb = em.getCriteriaBuilder();
+					CriteriaQuery<AuthoriserRolesNsql> cq = cb.createQuery(AuthoriserRolesNsql.class);
+					Root<AuthoriserRolesNsql> root = cq.from(AuthoriserRolesNsql.class);
+					
+					Expression<String> creatorIdPath = cb.function("jsonb_extract_path_text", String.class, 
+						root.get("data"), 
+						cb.literal("creatorId"));
+					
+					Predicate condition = cb.equal(creatorIdPath, userId); 
+					cq.where(condition);
+					
+					List<AuthoriserRolesNsql> entities = em.createQuery(cq).getResultList();
+					
+					log.debug("Found {} roles for user {}", entities.size(), userId);
+					return entities;
+					
+				} catch (Exception e) {
+					log.error("Error querying roles for user {}: {}", userId, e.getMessage());
+					return Collections.emptyList(); 
+				}
+			}
 
 }
