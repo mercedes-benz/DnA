@@ -33,13 +33,14 @@ const ContextMenu = (props) => {
   const [showVaultManagementModal, setShowVaultManagementModal] = useState(false);
   const [isStaging, setIsStaging] = useState(false);
   const [showAuditLogsModal, setShowAuditLogsModal] = useState(false);
-  const [logsList, setlogsList] = useState([]);
   const [env, setEnv] = useState('');
   const [showRestartModal, setShowRestartModal] = useState(false);
 
   const deployingInProgress =
     intDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED' ||
     prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED';
+
+  const buildInProgress = projectDetails?.lastBuildOrDeployedStatus === 'BUILD_REQUESTED';
 
   const resourceUsageUrl =
     Envs.MONITORING_DASHBOARD_BASE_URL +
@@ -73,6 +74,9 @@ const ContextMenu = (props) => {
     return collaborator?.id === props?.userInfo?.id;
   });
   const isOwner = codeSpace.projectDetails?.projectOwner?.id === props.userInfo.id || collaborator?.isAdmin;
+
+  const intSecuredWithOneApi = intDeploymentDetails?.oneApiVersionShortName?.length || false;
+  const prodSecuredWithOneApi = prodDeploymentDetails?.oneApiVersionShortName?.length || false;
 
   const onRestart = (env) => {
     ProgressIndicator.show();
@@ -184,7 +188,16 @@ const ContextMenu = (props) => {
               Show Blueprint
             </span>
           </li>
-          <li className={classNames(deployingInProgress ? 'inactive' : '')}>
+          <li>
+            <span
+              onClick={() => {
+                props.onShowBuildModal(codeSpace);
+              }}
+            >
+              Manage Build
+            </span>
+          </li>
+          <li className={classNames((deployingInProgress || buildInProgress) ? 'inactive' : '')}>
             <span
               onClick={() => {
                 props.onShowDeployModal(codeSpace);
@@ -230,7 +243,7 @@ const ContextMenu = (props) => {
                 Styles.btnOutline,
                 !(
                   (codeSpace?.projectDetails?.recipeDetails?.isDeployEnabled && isOwner) ||
-                  intDeploymentDetails?.deploymentAuditLogs
+                  intDeploymentDetails?.lastDeploymentStatus
                 ) && Styles.btnDisabled,
               )}
               onClick={() => {
@@ -248,7 +261,7 @@ const ContextMenu = (props) => {
                 className={classNames(Styles.collapseIcon, showStagingActions ? Styles.open : '')}
               >
                 {((codeSpace?.projectDetails?.recipeDetails?.isDeployEnabled && isOwner) ||
-                  intDeploymentDetails?.deploymentAuditLogs) && (
+                  intDeploymentDetails?.lastDeploymentStatus) && (
                   <>
                     <span className={classNames('animation-wrapper', Styles.animationWrapper)}></span>
                     <i className={classNames('icon down-up-flip')}></i>
@@ -294,10 +307,16 @@ const ContextMenu = (props) => {
               )}
               {intDeployed && (
                 <li>
-                  <a href={intDeployedUrl} target="_blank" rel="noreferrer">
-                    Deployed App URL {intDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
-                    <i className="icon mbc-icon new-tab" />
-                  </a>
+                  {intSecuredWithOneApi ? (
+                    <span className={classNames(Styles.oneAPILink)}>
+                      Deployed App URL (oneAPI) <i className="icon mbc-icon new-tab" />
+                    </span>
+                  ) : (
+                    <a href={intDeployedUrl} target="_blank" rel="noreferrer">
+                      Deployed App URL {intDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
+                      <i className="icon mbc-icon new-tab" />
+                    </a>
+                  )}
                 </li>
               )}
               {intDeploymentDetails?.lastDeploymentStatus && (
@@ -316,13 +335,12 @@ const ContextMenu = (props) => {
                   </a>
                 </li>
               )}
-              {intDeploymentDetails?.deploymentAuditLogs && (
+              {intDeploymentDetails?.lastDeploymentStatus && (
                 <li>
                   <span
                     onClick={() => {
                       setShowAuditLogsModal(true);
                       setIsStaging(true);
-                      setlogsList(intDeploymentDetails?.deploymentAuditLogs);
                     }}
                   >
                     Deploy & Action Audit Logs
@@ -361,7 +379,7 @@ const ContextMenu = (props) => {
                 Styles.btnOutline,
                 !(
                   (codeSpace?.projectDetails?.recipeDetails?.isDeployEnabled && isOwner) ||
-                  prodDeploymentDetails?.deploymentAuditLogs
+                  prodDeploymentDetails?.lastDeploymentStatus
                 ) && Styles.btnDisabled,
               )}
               onClick={() => {
@@ -379,7 +397,7 @@ const ContextMenu = (props) => {
                 className={classNames(Styles.collapseIcon, showProdActions ? Styles.open : '')}
               >
                 {((codeSpace?.projectDetails?.recipeDetails?.isDeployEnabled && isOwner) ||
-                  prodDeploymentDetails?.deploymentAuditLogs) && (
+                  prodDeploymentDetails?.lastDeploymentStatus) && (
                   <>
                     <span className={classNames('animation-wrapper', Styles.animationWrapper)}></span>
                     <i className={classNames('icon down-up-flip')}></i>
@@ -425,10 +443,16 @@ const ContextMenu = (props) => {
               )}
               {prodDeployed && (
                 <li>
-                  <a href={prodDeployedUrl} target="_blank" rel="noreferrer">
-                    Deployed App URL {prodDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
-                    <i className="icon mbc-icon new-tab" />
-                  </a>
+                  {prodSecuredWithOneApi ? (
+                    <span className={classNames(Styles.oneAPILink)}>
+                      Deployed App URL (oneAPI) <i className="icon mbc-icon new-tab" />
+                    </span>
+                  ) : (
+                    <a href={prodDeployedUrl} target="_blank" rel="noreferrer">
+                      Deployed App URL {prodDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
+                      <i className="icon mbc-icon new-tab" />
+                    </a>
+                  )}
                 </li>
               )}
               {prodDeploymentDetails?.lastDeploymentStatus && (
@@ -447,13 +471,12 @@ const ContextMenu = (props) => {
                   </a>
                 </li>
               )}
-              {prodDeploymentDetails?.deploymentAuditLogs && (
+              {prodDeploymentDetails?.lastDeploymentStatus && (
                 <li>
                   <span
                     onClick={() => {
                       setShowAuditLogsModal(true);
                       setIsStaging(false);
-                      setlogsList(prodDeploymentDetails?.deploymentAuditLogs);
                     }}
                   >
                     Deploy & Action Audit Logs
@@ -543,7 +566,6 @@ const ContextMenu = (props) => {
           deployedEnvInfo={isStaging ? 'Staging' : 'Production'}
           show={showAuditLogsModal}
           setShowAuditLogsModal={setShowAuditLogsModal}
-          logsList={logsList}
           projectName={projectDetails.projectName.toLowerCase()}
         />
       )}

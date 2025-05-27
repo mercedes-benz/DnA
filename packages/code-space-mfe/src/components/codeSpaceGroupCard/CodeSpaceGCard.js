@@ -21,7 +21,7 @@ import { CodeSpaceApiClient } from '../../apis/codespace.api';
 // import { Envs } from '../../Utility/envs';
 import ContextMenu from '../contextMenu/ContextMenu';
 
-const CodeSpaceGCard = ({ codeSpace, userInfo, onStartStopCodeSpace, onShowDeployModal, onShowCodeSpaceOnBoard, onShowBlueprintModal }) => {
+const CodeSpaceGCard = ({ codeSpace, userInfo, onStartStopCodeSpace, onShowDeployModal, onShowCodeSpaceOnBoard, onShowBlueprintModal, onShowBuildModal }) => {
   const history = useHistory();
   const enableOnboard = codeSpace ? codeSpace.status === 'COLLABORATION_REQUESTED' : false;
   const createInProgress = codeSpace.status === 'CREATE_REQUESTED';
@@ -261,6 +261,7 @@ const CodeSpaceGCard = ({ codeSpace, userInfo, onStartStopCodeSpace, onShowDeplo
                   onStartStopCodeSpace={onStartStopCodeSpace}
                   handleServerStatusAndProgress={handleServerStatusAndProgress}
                   onShowBlueprintModal={onShowBlueprintModal}
+                  onShowBuildModal={onShowBuildModal}
               />
               {/* <div
                 style={{

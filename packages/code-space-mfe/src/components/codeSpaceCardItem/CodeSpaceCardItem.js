@@ -518,6 +518,7 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
                   onStartStopCodeSpace={props?.onStartStopCodeSpace}
                   handleServerStatusAndProgress={handleServerStatusAndProgress}
                   onShowBlueprintModal={props?.onShowBlueprintModal}
+                  onShowBuildModal={props?.onShowBuildModal}
                 />
                 {/*<div
                   style={{
@@ -641,10 +642,7 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
                             </a>
                           </li>
                         )}
-                        {intDeployed && (
-                          <li>
-                            {intSecuredWithOneApi ? (
-                              <span className={classNames(Styles.oneAPILink)}>
+                        n className={classNames(Styles.oneAPILink)}>
                                 Deployed App URL (oneAPI) <i className="icon mbc-icon new-tab" />
                               </span>
                             ) : (
@@ -680,7 +678,10 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
                         )}
                         {intDeployed && (
                           <li>
-                            <span
+                            <sp{intDeployed && (
+                          <li>
+                            {intSecuredWithOneApi ? (
+                              <spaan
                               onClick={() => {setEnv("int"); setShowRestartModal(true);}}
                             >
                               Restart Deployed Application
