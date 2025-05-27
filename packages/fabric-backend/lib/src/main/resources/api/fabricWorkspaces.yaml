@@ -838,6 +838,9 @@ definitions:
           roleName:
             type: string
             pattern: "^[A-Za-z0-9]+[A-Za-z0-9._-]{1,60}$"
+          isDynamic:
+            type: boolean
+            default: false
 
   DnaRoleCollectionVO:
       type: object

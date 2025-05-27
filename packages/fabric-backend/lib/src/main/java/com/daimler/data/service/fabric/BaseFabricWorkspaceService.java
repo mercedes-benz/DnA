@@ -1640,7 +1640,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 					log.error("Failed to create role, Role Already Exists");
 					return response;
 			}else{
-				RoleDetailsVO roleDetail = this.callGenericRoleCreate(roleRequestVO.getData().getRoleName(),creatorId);
+				RoleDetailsVO roleDetail = this.callGenericRoleCreate(roleRequestVO.getData().getRoleName(),creatorId,roleRequestVO.getData().isIsDynamic());
 				if(ConstantsUtility.CREATED_STATE.equalsIgnoreCase(roleDetail.getState())) {
 					//assign Role Owner privileges
 					if(roleDetail.getRoleOwner()==null || "".equalsIgnoreCase(roleDetail.getRoleOwner())) {
@@ -1761,7 +1761,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		return requestedEntitlement;
 	}
 
-	public CreateRoleRequestDto prepareGenericRoleCreateRequestDto(String roleName) {
+	public CreateRoleRequestDto prepareGenericRoleCreateRequestDto(String roleName, boolean isDynamic) {
 		String[] communityAvailabilitySplits = communityAvailability.split(",");
 		AccessReviewDto accessReview = new AccessReviewDto();
 		accessReview.setEnabled(true);
@@ -1784,7 +1784,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		roleRequestDto.setDefaultValidityType("OPTIONAL");
 		roleRequestDto.setDeprovisioning(false);
 		roleRequestDto.setDescription("Generic DNA role");
-		roleRequestDto.setDynamic(false);
+		roleRequestDto.setDynamic(isDynamic);
 		roleRequestDto.setGlobalCentralAvailable(true);
 		roleRequestDto.setId(roleName);
 		roleRequestDto.setJobTitle(false);
@@ -1802,8 +1802,8 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		return roleRequestDto;
 	}
 	
-	public RoleDetailsVO callGenericRoleCreate(String roleName, String creatorId) {
-		CreateRoleRequestDto createRequestDto = this.prepareGenericRoleCreateRequestDto(roleName);
+	public RoleDetailsVO callGenericRoleCreate(String roleName, String creatorId, boolean isDynamic) {
+		CreateRoleRequestDto createRequestDto = this.prepareGenericRoleCreateRequestDto(roleName, isDynamic);
 		RoleDetailsVO createRoleVO = new RoleDetailsVO();
 		createRoleVO.setName(roleName);
 		try {
