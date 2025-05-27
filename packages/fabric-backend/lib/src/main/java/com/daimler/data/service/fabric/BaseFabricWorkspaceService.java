@@ -1625,7 +1625,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
     }
 
 	@Override
-	public GenericMessage createGenericRole(CreateRoleRequestVO roleRequestVO, String creatorId, boolean isDynamic){
+	public GenericMessage createGenericRole(CreateRoleRequestVO roleRequestVO, String creatorId){
 		GenericMessage response = new GenericMessage();
 		List<MessageDescription> errors = new ArrayList<>();
 		List<MessageDescription> warnings = new ArrayList<>();
@@ -1640,7 +1640,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 					log.error("Failed to create role, Role Already Exists");
 					return response;
 			}else{
-				RoleDetailsVO roleDetail = this.callGenericRoleCreate(roleRequestVO.getData().getRoleName(),creatorId,isDynamic);
+				RoleDetailsVO roleDetail = this.callGenericRoleCreate(roleRequestVO.getData().getRoleName(),creatorId,roleRequestVO.getData().isIsDynamic());
 				if(ConstantsUtility.CREATED_STATE.equalsIgnoreCase(roleDetail.getState())) {
 					//assign Role Owner privileges
 					if(roleDetail.getRoleOwner()==null || "".equalsIgnoreCase(roleDetail.getRoleOwner())) {
