@@ -344,9 +344,9 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
   const projectDetails = codeSpace?.projectDetails;
   const intDeploymentDetails = projectDetails?.intDeploymentDetails;
   const prodDeploymentDetails = projectDetails?.prodDeploymentDetails;
-  const intDeployedUrl = intDeploymentDetails?.deploymentUrl;
+  // const intDeployedUrl = intDeploymentDetails?.deploymentUrl;
   // const intLastDeployedOn = intDeploymentDetails?.lastDeployedOn;
-  const prodDeployedUrl = prodDeploymentDetails?.deploymentUrl;
+  // const prodDeployedUrl = prodDeploymentDetails?.deploymentUrl;
   // const prodLastDeployedOn = prodDeploymentDetails?.lastDeployedOn;
   const deployingInProgress =
     intDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED' ||
@@ -354,16 +354,6 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
     prodDeploymentDetails?.lastDeploymentStatus === 'APPROVAL_PENDING' ||
     projectDetails?.lastBuildOrDeployedStatus === 'APPROVAL_PENDING';
   const buildInProgress = projectDetails?.lastBuildOrDeployedStatus === 'BUILD_REQUESTED';
-  const intDeployed =
-    intDeploymentDetails?.lastDeploymentStatus === 'DEPLOYED' ||
-    (intDeployedUrl !== null && intDeployedUrl !== 'null') ||
-    false;
-  const intCodeDeployFailed = intDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
-  const prodDeployed =
-    prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOYED' ||
-    (prodDeployedUrl !== null && prodDeployedUrl !== 'null') ||
-    false;
-  const prodCodeDeployFailed = prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
   const allowDelete = codeSpace?.projectDetails?.projectOwner?.id === props.userInfo.id ? !hasCollaborators : true;
   const isPublicRecipe = projectDetails?.recipeDetails?.recipeId?.startsWith('public');
   // const isAPIRecipe =
