@@ -155,6 +155,9 @@ import com.daimler.data.dto.workspace.UserInfoVO;
  
 	 @Value("${codeServer.codespace.filename}")
 	 private String codespaceFileName;
+   
+	 @Value("${codeServer.collab.pid}")
+	 private String collabPid;
 
 	 @Value("${codeServer.technical.id}")
 	 private String technicalId;
