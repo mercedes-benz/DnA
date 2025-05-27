@@ -1060,7 +1060,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 				data = prefix.concat(data.substring(0, data.length() - 1)).concat(suffix);
 				users = new HashMap<>();
 				List<UserInfoDto> userInfoDto = new ArrayList<>();
-				LOGGER.info("Policies data from minio to update cache is {} ", data);
+				LOGGER.debug("Policies data from minio to update cache is {} ", data);
 				UserInfoWrapperDto userInfoWrapperDto = mapper.readValue(data, UserInfoWrapperDto.class);
 				userInfoDto = userInfoWrapperDto.getData();
 				if (userInfoDto != null && !userInfoDto.isEmpty()) {
