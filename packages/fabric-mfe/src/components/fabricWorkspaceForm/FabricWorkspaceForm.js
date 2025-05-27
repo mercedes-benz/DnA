@@ -269,7 +269,13 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
       );
     });
   };
-  const isLeanIXRequired = typeOfProject === 'Production' && division?.name === 'FC';
+  
+const divisionId = division ? division.split('@-@')[0] : null;
+const mandate = divisionId && Envs.MANDATE_LEANIX_FOR_DIVISIONS 
+  ? Envs.MANDATE_LEANIX_FOR_DIVISIONS.split(',').includes(divisionId) 
+  : false;
+const isLeanIXRequired = typeOfProject === 'Production' && mandate;
+
   return (
     <>
       <FormProvider {...methods}>
@@ -394,6 +400,9 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
                     <Controller
                       control={control}
                       name="leanIX"
+                      rules={{
+                        required: isLeanIXRequired ? '*Missing entry' : false,
+                      }}
                       render={({ field }) => (
                         <TypeAheadBox
                           label={'LeanIX App-ID'}
