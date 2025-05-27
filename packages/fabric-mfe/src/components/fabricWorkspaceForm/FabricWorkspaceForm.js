@@ -271,7 +271,9 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
   };
   
 const divisionId = division ? division.split('@-@')[0] : null;
-const mandate = divisionId ? Envs.MandateLeanIXForDivisions.includes(divisionId) : false;
+const mandate = divisionId && Envs.MANDATE_LEANIX_FOR_DIVISIONS 
+  ? Envs.MANDATE_LEANIX_FOR_DIVISIONS.split(',').includes(divisionId) 
+  : false;
 const isLeanIXRequired = typeOfProject === 'Production' && mandate;
 
   return (
