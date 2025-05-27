@@ -357,7 +357,7 @@ public class FabricWorkspaceAssembler implements GenericAssembler<FabricWorkspac
   		DnaRolesVO roleDetail = new DnaRolesVO();
 		AuthoriserRoleDeatils data = entity.getData();
 		if(entity != null && data!=null){
-			roleDetail.setRoleID(data.getCreatorId());
+			roleDetail.setRoleID(entity.getId());
 			roleDetail.setIsDynamic(data.getIsDynamic());
 		}
 			return roleDetail;
