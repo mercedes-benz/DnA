@@ -347,6 +347,10 @@ paths:
             required: true
             schema:
               $ref: "#/definitions/createRoleRequestVO"    
+          - name: isDynamic
+            in: query
+            required: true
+            type: "boolean"
         responses:
           201:
             description: "Returns message of succes or failure "
