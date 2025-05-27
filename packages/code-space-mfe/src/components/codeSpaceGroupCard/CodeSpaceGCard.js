@@ -271,6 +271,15 @@ const CodeSpaceGCard = ({ codeSpace, userInfo, onStartStopCodeSpace, onShowDeplo
                 className={classNames('contextMenuWrapper', Styles.contextMenu, showContextMenu ? '' : 'hide')}
               >
                 <ul>
+                  <li>
+                    <span
+                      onClick={() => {
+                        onShowBlueprintModal(codeSpace);
+                      }}
+                    >
+                      Show Blueprint
+                    </span>
+                  </li>
                   <li className={classNames(deployingInProgress ? 'inactive' : '')}>
                     <span
                       onClick={() => {
