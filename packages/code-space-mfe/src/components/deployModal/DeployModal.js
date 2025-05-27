@@ -68,6 +68,7 @@ const DeployModal = (props) => {
   const [isUiRecipe, setIsUiRecipe] = useState(false);
   const [deploymentDetails, setDeploymentDetails] = useState();
   const [resetRequired, setResetRequired] = useState(false);
+  const [securedWithIAMWarning, setSecuredWithIAMWarning] = useState(false);
 
   const projectDetails = props.codeSpaceData?.projectDetails;
   const collaborator = projectDetails?.projectCollaborators?.find((collaborator) => {return collaborator?.id === props?.userInfo?.id });
@@ -191,7 +192,13 @@ const DeployModal = (props) => {
   };
 
   const onChangeSecureWithIAM = (e) => {
-    setSecureWithIAMSelected(e.target.checked);
+    const deploymentDetails = deployEnvironment === 'staging' ? projectDetails?.intDeploymentDetails : projectDetails?.prodDeploymentDetails;
+    if(!e.target.checked && deploymentDetails?.secureWithIAMRequired){
+      setSecuredWithIAMWarning(true);
+    }
+    else{
+      setSecureWithIAMSelected(e.target.checked);
+    }
     e.target.checked ? setOneApiSelected(false) : '';
   };
 
@@ -325,6 +332,7 @@ const DeployModal = (props) => {
   };
 
   return (
+    <>
     <Modal
       title={'Deploy Code'}
       showAcceptButton={true}
@@ -375,6 +383,39 @@ const DeployModal = (props) => {
                 </div>
               </div>
             </div>}
+            <div>
+              <div id="deployTypeContainer" className="input-field-group">
+                <label className="input-label">Deployment Type</label>
+                <div>
+                  <label className={classNames('radio')}>
+                    <span className="wrapper">
+                      <input
+                        type="radio"
+                        className="ff-only"
+                        value="API"
+                        name="deploymentType"
+                        onChange={(e) => {setDeploymentType(e.currentTarget.value.trim())}}
+                        checked={deploymentType === 'API'}
+                      />
+                    </span>
+                    <span className="label">API recipe</span>
+                  </label>
+                  <label className={classNames('radio')}>
+                  <span className="wrapper">
+                      <input
+                        type="radio"
+                        className="ff-only"
+                        value="UI"
+                        name="deploymentType"
+                        onChange={(e) => {setDeploymentType(e.currentTarget.value.trim())}}
+                        checked={deploymentType === 'UI'}
+                      />
+                    </span>
+                    <span className="label">UI recipe</span>
+                  </label>
+                </div>
+              </div>
+            </div>
             <div>
               <div id="deployTypeContainer" className="input-field-group">
                 <label className="input-label">Deployment Type</label>
@@ -654,7 +695,7 @@ const DeployModal = (props) => {
                     </>
                   )}
             </>
-          )}
+
           {props.startDeployLivelinessCheck && (
             <div>
               <label className="checkbox">
@@ -676,6 +717,33 @@ const DeployModal = (props) => {
       scrollableBox={true}
       onCancel={() => props.setShowCodeDeployModal(false)}
     />
+    {securedWithIAMWarning && (
+      <Modal 
+        title={''}
+        showAcceptButton={true}
+        acceptButtonTitle={'Yes'}
+        cancelButtonTitle={'Cancel'}
+        onAccept={() => {
+          setSecuredWithIAMWarning(false);
+          setSecureWithIAMSelected(false);
+        }}
+        showCancelButton={true}
+        modalWidth={'40%'}
+        content={
+          <div>
+            <h3>Please note that once you uncheck this your application will not be secured with SSO Authentication anymore. Do you wish to continue?</h3>
+            <p>If your application was secured by us please contact us on our <a href={Envs.CODESPACE_TEAMS_LINK} target='_blank' rel='noopener noreferrer'>Teams channel</a> or <a href={Envs.CODESPACE_MATTERMOST_LINK} target='_blank' rel='noopener noreferrer'>Mattermost channel</a> before performing this action.</p>
+          </div>
+        }
+        buttonAlignment="center"
+        modalStyle={{
+          maxWidth: '40%'
+        }}
+        show={securedWithIAMWarning}
+        onCancel={() => setSecuredWithIAMWarning(false)}
+      />
+    )}
+    </>
   );
 };
 

@@ -11,6 +11,7 @@ import com.daimler.data.dto.workspace.recipe.SoftwareCollection;
 import com.daimler.dna.notifications.common.producer.KafkaProducerService;
 
 import org.json.JSONObject;
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -22,10 +23,12 @@ import com.daimler.data.assembler.AdditionalServiceAssembler;
 import com.daimler.data.assembler.RecipeAssembler;
 import com.daimler.data.db.entities.CodeServerAdditionalServiceNsql;
 import com.daimler.data.db.entities.CodeServerRecipeNsql;
+import com.daimler.data.db.repo.workspace.WorkspaceAdditionalServiceRepo;
 import com.daimler.data.db.repo.workspace.WorkspaceCustomAdditionalServiceRepo;
 import com.daimler.data.db.repo.workspace.WorkspaceCustomAdditionalServiceRepoImpl;
 import com.daimler.data.db.repo.workspace.WorkspaceCustomRecipeRepo;
 import com.daimler.data.db.repo.workspace.WorkspaceRecipeRepository;
+import com.daimler.data.db.repo.workspace.WorkspaceSoftwareRepository;
 import com.daimler.data.dto.workspace.recipe.RecipeVO;
 import com.daimler.data.db.json.CodeServerAdditionalService;
 import com.daimler.data.db.json.CodeServerSoftware;
@@ -45,8 +48,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.daimler.data.dto.CodeServerRecipeDto;
 import com.daimler.dna.notifications.common.producer.KafkaProducerService;
 import com.daimler.data.application.auth.UserStore;
+import com.daimler.data.application.auth.UserStore.UserInfo;
 import com.daimler.data.application.client.GitClient;
 import com.daimler.data.dto.solution.ChangeLogVO;
+import com.daimler.data.dto.workspace.CreatedByVO;
+import com.daimler.data.dto.workspace.UserInfoVO;
 import org.springframework.http.HttpStatus;
 import com.daimler.data.application.client.GitClient;
 
@@ -60,6 +66,12 @@ public class BaseRecipeService implements RecipeService{
 	private WorkspaceRecipeRepository recipeJpaRepo;
 
 	@Autowired
+	private WorkspaceSoftwareRepository softwareJpaRepo;
+
+	@Autowired
+	private WorkspaceAdditionalServiceRepo serviceJpaRepo;
+
+	@Autowired
 	private RecipeAssembler recipeAssembler;
 
 	@Autowired
@@ -67,6 +79,9 @@ public class BaseRecipeService implements RecipeService{
 
 	@Autowired
 	private WorkspaceCustomSoftwareRepo workspaceCustomSoftwareRepo;
+
+	@Autowired
+	private WorkspaceCustomAdditionalServiceRepo workspaceCustomAdditionalServiceRepo;
 
 	@Autowired
 	private SoftwareAssembler softwareAssembler;
@@ -443,6 +458,128 @@ public class BaseRecipeService implements RecipeService{
             return new GenericMessage("Recipe deleted successfully");
         } else {
             return new GenericMessage("Recipe not found");
+        }
+
+	}
+
+    @Override
+	@Transactional
+	public SoftwareCollection createSoftware(SoftwareCollection softwareRequestVO) {
+		UserInfo currentUser = userStore.getUserInfo();
+		Date currentTime = new Date();
+		softwareRequestVO.setCreatedOn(currentTime);
+    	CreatedByVO currentUserVO = userStore.getVO();
+		UserInfoVO createdByUser = new UserInfoVO();
+		BeanUtils.copyProperties(currentUserVO, createdByUser);
+		softwareRequestVO.setCreatedBy(createdByUser);
+		softwareRequestVO.setUpdatedOn(currentTime);
+    	softwareRequestVO.setUpdatedBy(createdByUser);
+		CodeServerSoftwareNsql softwareEntity = softwareAssembler.toEntity(softwareRequestVO);
+		CodeServerSoftwareNsql savedSoftwareEntity = softwareJpaRepo.save(softwareEntity);
+		return softwareAssembler.toVo(savedSoftwareEntity);
+	}
+
+	@Override
+	@Transactional
+	public SoftwareCollection getSoftwareByName(String softwareName) {
+		CodeServerSoftwareNsql entity = workspaceCustomSoftwareRepo.findBySoftwareName(softwareName);
+		if (entity!=null){
+			return softwareAssembler.toVo(entity);
+		}
+		return null;
+	}
+    
+	@Override
+	@Transactional
+	public SoftwareCollection getSoftwareById(String id) {
+		CodeServerSoftwareNsql entity = workspaceCustomSoftwareRepo.findBySoftwareId(id);
+		if (entity!=null){
+			return softwareAssembler.toVo(entity);
+		}
+		return null;
+	}
+
+	@Override
+	@Transactional
+	public SoftwareCollection updateSoftware(SoftwareCollection softwareRequestVO) {
+		UserInfo currentUser = userStore.getUserInfo();
+		Date currentTime = new Date();
+		CreatedByVO currentUserVO = userStore.getVO();
+		UserInfoVO updatedByUser = new UserInfoVO();
+		BeanUtils.copyProperties(currentUserVO, updatedByUser);
+		softwareRequestVO.setUpdatedOn(currentTime);
+    	softwareRequestVO.setUpdatedBy(updatedByUser);
+		CodeServerSoftwareNsql softwareEntity = softwareAssembler.toEntity(softwareRequestVO);
+		CodeServerSoftwareNsql savedSoftwareEntity = softwareJpaRepo.save(softwareEntity);
+		return softwareAssembler.toVo(savedSoftwareEntity);
+	}
+
+	@Override
+	public GenericMessage deleteSoftware(String id)
+	{
+		GenericMessage msg = new GenericMessage();
+		CodeServerSoftwareNsql software = workspaceCustomSoftwareRepo.findBySoftwareId(id);
+        if (software != null) {
+			GenericMessage val =  workspaceCustomSoftwareRepo.deleteSoftware(software);
+            return new GenericMessage("Software deleted successfully");
+        } else {
+            return new GenericMessage("Software not found");
+        }
+
+	}
+
+	@Override
+	@Transactional
+	public AdditionalServiceLovVo createAdditionalService(AdditionalServiceLovVo addServiceRequestVO) {
+		UserInfo currentUser = userStore.getUserInfo();
+		Date currentTime = new Date();
+		addServiceRequestVO.setCreatedOn(currentTime);
+    	CreatedByVO currentUserVO = userStore.getVO();
+		UserInfoVO createdByUser = new UserInfoVO();
+		BeanUtils.copyProperties(currentUserVO, createdByUser);
+		addServiceRequestVO.setCreatedBy(createdByUser);
+    	addServiceRequestVO.setUpdatedOn(currentTime);
+    	addServiceRequestVO.setUpdatedBy(createdByUser);
+		CodeServerAdditionalServiceNsql serviceEntity = additionalServiceAssembler.toEntity(addServiceRequestVO);
+		CodeServerAdditionalServiceNsql savedServiceEntity = serviceJpaRepo.save(serviceEntity);
+		return additionalServiceAssembler.toVo(savedServiceEntity);
+	}
+
+	@Override
+	@Transactional
+	public AdditionalServiceLovVo updateAddService(AdditionalServiceLovVo addServiceRequestVO) {
+		UserInfo currentUser = userStore.getUserInfo();
+		Date currentTime = new Date();
+		addServiceRequestVO.setUpdatedOn(currentTime);
+    	CreatedByVO currentUserVO = userStore.getVO();
+		UserInfoVO createdByUser = new UserInfoVO();
+		BeanUtils.copyProperties(currentUserVO, createdByUser);
+		addServiceRequestVO.setUpdatedBy(createdByUser);
+		CodeServerAdditionalServiceNsql serviceEntity = additionalServiceAssembler.toEntity(addServiceRequestVO);
+		CodeServerAdditionalServiceNsql savedServiceEntity = serviceJpaRepo.save(serviceEntity);
+		return additionalServiceAssembler.toVo(savedServiceEntity);
+	}
+
+	@Override
+	@Transactional
+	public AdditionalServiceLovVo getServiceByName(String serviceName) {
+		CodeServerAdditionalServiceNsql entity = additionalServiceRepo.findByAddServiceName(serviceName);
+		if (entity!=null){
+			return additionalServiceAssembler.toVo(entity);
+		}
+		return null;
+	}
+
+	@Override
+	public GenericMessage deleteAddService(String id)
+	{
+		GenericMessage msg = new GenericMessage();
+		CodeServerAdditionalServiceNsql addService = workspaceCustomAdditionalServiceRepo.findByAddServiceId(id);
+        if (addService != null) {
+			GenericMessage val =  workspaceCustomAdditionalServiceRepo.deleteAddService(addService);
+            return new GenericMessage("Additional Services deleted successfully");
+        } else {
+            return new GenericMessage("Additional Services not found");
         }
 
 	}
