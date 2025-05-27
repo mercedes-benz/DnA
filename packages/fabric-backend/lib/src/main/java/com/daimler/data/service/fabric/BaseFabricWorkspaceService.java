@@ -1827,19 +1827,25 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 
 	@Override
 	public DnaRoleCollectionVO getAllUserDnaRoles(String id) {
-	DnaRoleCollectionVO dnaRoleCollection = new DnaRoleCollectionVO();
-
-	List<DnaRolesVO> roles = new ArrayList<>();
-	try {
-		List<AuthoriserRolesNsql> entities = rolesCustomRepo.getAll(id);
-		roles = entities.stream().map(n -> assembler.toDnaRolesVO(n)).collect(Collectors.toList());
-		if(!roles.isEmpty()){
+		DnaRoleCollectionVO dnaRoleCollection = new DnaRoleCollectionVO();
+		
+		try {
+			List<AuthoriserRolesNsql> entities = rolesCustomRepo.getAll(id);
+			if (entities == null || entities.isEmpty()) {
+				log.warn("No roles found for user {}", id);
+				return dnaRoleCollection; 
+			}
+			
+			List<DnaRolesVO> roles = entities.stream()
+				.map(n -> assembler.toDnaRolesVO(n))
+				.collect(Collectors.toList());
+			
 			dnaRoleCollection.setRoles(roles);
+			
+		} catch (Exception e) {
+			log.error("Error getting roles for user {}: {}", id, e.getMessage());
 		}
-	} catch (Exception e) {
-		log.error("Error occurred while getting user roles: {}", e.getMessage());
-	}
-	return dnaRoleCollection;
+		return dnaRoleCollection;
 	}
 
 }
