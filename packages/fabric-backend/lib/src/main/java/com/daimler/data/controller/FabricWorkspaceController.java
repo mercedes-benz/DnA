@@ -805,14 +805,14 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
         produces = { "application/json" }, 
         consumes = { "application/json" },
         method = RequestMethod.POST)
-    public ResponseEntity<GenericMessage> createRole(@ApiParam(value = "Request Body that contains data required for requesting a workspace role" ,required=true )  @Valid @RequestBody CreateRoleRequestVO roleRequestVO,@Valid @RequestParam(value = "isDynamic", required = true) Boolean isDynamic){
+    public ResponseEntity<GenericMessage> createRole(@ApiParam(value = "Request Body that contains data required for requesting a workspace role" ,required=true )  @Valid @RequestBody CreateRoleRequestVO roleRequestVO){
 		GenericMessage response = new GenericMessage();
 		List<MessageDescription> errors = new ArrayList<>();
 		List<MessageDescription> warnings = new ArrayList<>();
 		UserInfo userInfo = this.userStore.getUserInfo();
 		try{
 
-			response = service.createGenericRole(roleRequestVO,userInfo.getId(),isDynamic);
+			response = service.createGenericRole(roleRequestVO,userInfo.getId());
 			if("SUCCESS".equalsIgnoreCase(response.getSuccess())){
 				log.info("Sucessfully created role for  user {}",userInfo.getId());
 				return new ResponseEntity<>(response, HttpStatus.OK);
