@@ -357,6 +357,13 @@
       }
     }
   }
+
+  .oneAPILink{
+    color: #99a5b3;
+    &:hover {
+      color: #99a5b3 !important; 
+    }
+  }
   
   @keyframes OpenNewTab {
     0% {
@@ -372,3 +379,8 @@
       top: -2px;
     }
   }
+  .btnOutline{
+    &:hover {
+      color: #00adef;
+  }
+   }

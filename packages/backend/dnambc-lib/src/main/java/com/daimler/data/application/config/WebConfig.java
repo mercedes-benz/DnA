@@ -66,6 +66,7 @@ import java.io.IOException;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
+import org.apache.http.HttpHost;
 
 @Configuration
 //@EnableWebMvc
@@ -83,6 +84,12 @@ public class WebConfig implements WebMvcConfigurer {
 
 	@Value("${allowedCorsOriginPatternUrl}")
 	private String corsOriginUrl;
+
+	@Value("${proxy.host}")
+    private String proxyHost;
+   
+    @Value("${proxy.port}")
+    private String proxyPort;
 
 	@Autowired
 	private JWTAuthenticationFilter filter;
@@ -118,39 +125,27 @@ public class WebConfig implements WebMvcConfigurer {
 		return restTemplate;
 	}
 
-	@Bean
-	@Lazy
-	public RestTemplate drdRestTemplate() throws KeyStoreException, NoSuchAlgorithmException, KeyManagementException,
-			IOException, CertificateException, UnrecoverableKeyException {
+@Bean
+public RestTemplate proxyRestTemplate() throws KeyStoreException, NoSuchAlgorithmException, KeyManagementException {
+	TrustStrategy acceptingTrustStrategy = (X509Certificate[] chain, String authType) -> true;
 
-		KeyStore clientStore = KeyStore.getInstance("PKCS12");
-		// if(env.equalsIgnoreCase("local")){
-		Resource resource = new ClassPathResource(certificateFile);
-		clientStore.load(resource.getInputStream(), certificatePass.toCharArray());
-//        }else{
-//            clientStore.load(new FileInputStream(certificateFile), certificatePass.toCharArray());
-//        }
+	SSLContext sslContext = null;
+		sslContext = org.apache.http.ssl.SSLContexts.custom().loadTrustMaterial(null, acceptingTrustStrategy)
+				.build();
+	SSLConnectionSocketFactory csf = new SSLConnectionSocketFactory(sslContext);
+	int port = Integer.parseInt(proxyPort);
+	HttpHost proxy = new HttpHost(proxyHost, port);
+	CloseableHttpClient httpClient = HttpClients.custom().setSSLSocketFactory(csf).setProxy(proxy).build();
 
-		SSLContext sslContext = org.apache.http.ssl.SSLContexts.custom().useProtocol("TLS")
-				.loadTrustMaterial(new TrustSelfSignedStrategy())
-				.loadKeyMaterial(clientStore, certificatePass.toCharArray()).build();
-
-		SSLConnectionSocketFactory csf = new SSLConnectionSocketFactory(sslContext);
-
-		CloseableHttpClient httpClient = HttpClients.custom().setSSLSocketFactory(csf).build();
-
-		HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
-
-		requestFactory.setConnectTimeout(10000); // 10 seconds
-		requestFactory.setReadTimeout(10000); // 10 seconds
-		requestFactory.setHttpClient(httpClient);
-
-		RestTemplate restTemplate = new RestTemplate(requestFactory);
-		MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
-		converter.setObjectMapper(new ObjectMapper());
-		restTemplate.getMessageConverters().add(converter);
-		return restTemplate;
-	}
+	HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
+	requestFactory.setHttpClient(httpClient);
+   
+	RestTemplate restTemplate = new RestTemplate(requestFactory);
+	MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
+	converter.setObjectMapper(new ObjectMapper());
+	restTemplate.getMessageConverters().add(converter);
+	return restTemplate;
+}
 
 	@Bean
 	public FilterRegistrationBean corsFilter() {
