@@ -183,6 +183,7 @@ configJs: |
         ALICE_URL: 'YOUR_ALICE_URL',
         STORAGE_API_BASEURL: 'http://localhost:7175/api',
         REPORTS_API_BASEURL: 'http://localhost:7173/api',
+        DATA_PRODUCT_API_BASEURL: 'http://localhost:7175/api',
         TOU_HTML: "<div>I agree to <a href=\"#\" target=\"_blank\" rel=\"noopener noreferrer\">terms of use</a></div>", 
     };
 
