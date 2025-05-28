@@ -81,6 +81,11 @@ spring:
           store:
             path: ${CA_TRUSTSTORE_PATH:/XXXX/XXXX/truststore.p12}
             password: ${CA_TRUSTSTORE_PASSWORD:XXXX}
+  
+  # Spring MVC timeout 
+  mvc:
+    async:
+      request-timeout : 600000
 
 kafka:
   centralTopic:
