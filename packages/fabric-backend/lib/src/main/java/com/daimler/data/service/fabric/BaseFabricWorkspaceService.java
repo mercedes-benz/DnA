@@ -1833,6 +1833,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 			List<AuthoriserRolesNsql> entities = rolesCustomRepo.getAll(id);
 			if (entities == null || entities.isEmpty()) {
 				log.warn("No roles found for user {}", id);
+				dnaRoleCollection.setRoles(new ArrayList<>()); 
 				return dnaRoleCollection; 
 			}
 			
