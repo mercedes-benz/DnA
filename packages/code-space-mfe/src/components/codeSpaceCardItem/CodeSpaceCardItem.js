@@ -1284,6 +1284,76 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
                           </a>
                         </span>
                       )}
+                      {projectDetails?.lastBuildOrDeployedStatus === 'RESTART_REQUESTED' && (
+                        <span className={classNames(Styles.statusIndicator, Styles.deploying)}>
+                          <a
+                            href={(projectDetails?.lastBuildOrDeployedEnv === 'int')
+                              ? (codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' && intDeploymentMigrated)
+                                ? buildGitJobLogViewAWSURL(projectDetails?.intDeploymentDetails?.gitjobRunID)
+                                : buildGitJobLogViewURL(projectDetails?.intDeploymentDetails?.gitjobRunID)
+                              : (codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' && prodDeploymentMigrated)
+                                ? buildGitJobLogViewAWSURL(projectDetails?.prodDeploymentDetails?.gitjobRunID)
+                                : buildGitJobLogViewURL(projectDetails?.prodDeploymentDetails?.gitjobRunID)
+                            }
+                            target="_blank"
+                            rel="noreferrer"
+                            className={Styles.deployingLink}
+                            tooltip-data={
+                              projectDetails?.lastBuildOrDeployedEnv === 'int'
+                                ? 'Restarting Staging deployment'
+                                : 'Restarting Production deployment'
+                            }
+                          >
+                            <span className={classNames(Styles.statusIndicator, Styles.deploying)}>Restarting...</span>
+                          </a>
+                        </span>
+                      )}
+                      {projectDetails?.lastBuildOrDeployedStatus === 'RESTART_FAILED' && (
+                        <span className={classNames(Styles.statusIndicator, Styles.deployFailed)}>
+                          <a
+                            href={(projectDetails?.lastBuildOrDeployedEnv === 'int')
+                              ? (codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' && intDeploymentMigrated)
+                                ? buildGitJobLogViewAWSURL(projectDetails?.intDeploymentDetails?.gitjobRunID)
+                                : buildGitJobLogViewURL(projectDetails?.intDeploymentDetails?.gitjobRunID)
+                              : (codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' && prodDeploymentMigrated)
+                                ? buildGitJobLogViewAWSURL(projectDetails?.prodDeploymentDetails?.gitjobRunID)
+                                : buildGitJobLogViewURL(projectDetails?.prodDeploymentDetails?.gitjobRunID)
+                            }
+                            target="_blank"
+                            rel="noreferrer"
+                            className={Styles.deployFailLink}
+                            tooltip-data={
+                             `${projectDetails?.lastBuildOrDeployedEnv === 'int' ? 'Staging' : 'Production'} restart failed on ` +
+                              regionalDateAndTimeConversionSolution(projectDetails?.lastBuildOrDeployedOn)
+                            }
+                          >
+                           Failed
+                          </a>
+                        </span>
+                      )}
+                      {projectDetails?.lastBuildOrDeployedStatus === 'RESTARTED' && (
+                        <span className={Styles.statusIndicator}>
+                          <a
+                            href={(projectDetails?.lastBuildOrDeployedEnv === 'int')
+                              ? (codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' && intDeploymentMigrated)
+                                ? buildGitJobLogViewAWSURL(projectDetails?.intDeploymentDetails?.gitjobRunID)
+                                : buildGitJobLogViewURL(projectDetails?.intDeploymentDetails?.gitjobRunID)
+                              : (codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' && prodDeploymentMigrated)
+                                ? buildGitJobLogViewAWSURL(projectDetails?.prodDeploymentDetails?.gitjobRunID)
+                                : buildGitJobLogViewURL(projectDetails?.prodDeploymentDetails?.gitjobRunID)
+                            }
+                            target="_blank"
+                            rel="noreferrer"
+                            className={Styles.deployedLink}
+                            tooltip-data={
+                              `${projectDetails?.lastBuildOrDeployedEnv === 'int' ? 'Staging' : 'Production'} deployment restarted on ` +
+                              regionalDateAndTimeConversionSolution(projectDetails?.lastBuildOrDeployedOn)
+                            }
+                          >
+                            Restarted
+                          </a>
+                        </span>
+                      )}
                     </>
                   ) 
                 )}
