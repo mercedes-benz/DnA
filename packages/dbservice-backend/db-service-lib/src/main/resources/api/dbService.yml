@@ -5,7 +5,7 @@ info:
 servers:
 - url: https://localhost:8089/api/1.0
 tags:
-- name: fccockpit
+- name: dbService
   description: This service is used to maintain dbService information.
 paths:
   /dbService:
@@ -33,7 +33,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CodeServerGovernanceVO'
+                $ref: '#/components/schemas/DbServiceCollectionVO'
         "204":
           description: Fetch complete, no content found.
           content: {}
@@ -51,12 +51,12 @@ paths:
           content: {}
         "500":
           description: Internal error
-          content: {}
+          content: {}      
     post:
       tags:
       - dbService
-      summary: 'Initialize/Create dbService. '
-      description: 'Initialize/Create dbService '
+      summary: Initialize/Create dbService.
+      description: Initialize/Create dbService.
       operationId: createdbService
       requestBody:
         description: Request Body that contains data required to initialize 
@@ -64,7 +64,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CodeServerGovernanceVO'
+              $ref: '#/components/schemas/DbServiceVO'
         required: true
       responses:
         "201":
@@ -72,7 +72,7 @@ paths:
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/CodeServerGovernanceVO'
+                $ref: '#/components/schemas/InitializeResponseVo'
         "400":
           description: Bad Request
           content:
@@ -91,58 +91,179 @@ paths:
         "500":
           description: Internal error
           content: {}
-      x-codegen-request-body-name: CodeServerGovernanceVO
+      x-codegen-request-body-name: ServiceVO
+    patch:
+      tags:
+      - dbService
+      summary: 'edit dbService. '
+      description: 'edit dbService '
+      operationId: editdbService
+      requestBody:
+        description: Request Body that contains data required to initialize 
+          dbService for user
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/DbServiceVO'
+        required: true
+      responses:
+        "201":
+          description: 'Returns message of success or failure '
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InitializeResponseVo'
+        "400":
+          description: Bad Request
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericMessage'
+        "401":
+          description: Request does not have sufficient credentials.
+          content: {}
+        "403":
+          description: Request is not authorized.
+          content: {}
+        "405":
+          description: Method not allowed
+          content: {}
+        "500":
+          description: Internal error
+          content: {}
+      x-codegen-request-body-name: ServiceVO
+
+  /dbService/{id}:
+    get:
+      tags:
+      - dbService
+      summary: Get dbService by id for the user.
+      description: Get dbService by id for the user.
+      operationId: getById
+      parameters:
+        - name: id
+          in: path
+          description: dbService id
+          required: true
+          schema:
+            type: string
+      responses:
+        "201":
+          description: Returns message of success or failure
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/InitializeResponseVo'
+        "204":
+          description: Fetch complete, no content found.
+          content: {}
+        "400":
+          description: Bad request.
+          content: {}
+        "401":
+          description: Request does not have sufficient credentials.
+          content: {}
+        "403":
+          description: Request is not authorized.
+          content: {}
+        "405":
+          description: Method not allowed
+          content: {}
+        "500":
+          description: Internal error
+          content: {}
+    delete:
+      tags:
+      - dbService
+      summary: Delete dbService by id for the user.
+      description: Delete dbService by id for the user.
+      operationId: deleteById
+      parameters:
+        - name: id
+          in: path
+          description: dbService id
+          required: true
+          schema:
+            type: string
+      responses:
+        201:
+          description: Returns message of success or failure
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericMessage'
+        204:
+          description: Fetch complete, no content found.
+        400:
+          description: Bad request.
+        401:
+          description: Request does not have sufficient credentials.
+        403:
+          description: Request is not authorized.
+        405:
+          description: Method not allowed
+        500:
+          description: Internal error            
 components:
   schemas:
-    DataGovernanceRequestInfo:
+    DbServiceCollectionVO:
       type: object
       properties:
         data:
-          $ref: '#/components/schemas/CodeServerGovernanceVO'
+          type: array
+          items:
+            $ref: '#/components/schemas/DbServiceVO'
+        count:
+          type: integer
+          description: "total number of records"    
+        success:
+          type: string
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/MessageDescription'
+        warnings:
+          type: array
+          items:
+            $ref: '#/components/schemas/MessageDescription'     
 
-    CodeServerGovernanceVO:
+    GovernanceVO:
       type: object
       properties:
-        description:
-          type: string
-          description: description type for codespace
         classificationType:
           type: string
-          description: Classification type for codespace
+          description: Classification type for dbService
         divisionId:
           type: string
-          description: division Id for the codespace
+          description: division Id for the dbService
         division:
           type: string
-          description: division for the codespace
+          description: division for the dbService
         subDivisionId:
           type: string
-          description: sub division Id for the codespace
+          description: sub division Id for the dbService
         subDivision:
           type: string
-          description: sub division for the codespace
+          description: sub division for the dbService
         department:
           type: string
-          description: department for the codespace
+          description: department for the dbService
         archerId:
           type: string
-          description: archerId for the codespace
+          description: archerId for the dbService
         procedureID:
           type: string
-          description: producerId for the codespace
+          description: producerId for the dbService
         tags:
           type: array
           items:
             type: string
         typeOfProject:
           type: string
-          description: typeOfProject for the codespace
+          description: typeOfProject for the dbService
         piiData:
           type: boolean
-          description: If codespace contains personally identifiable information
-        enableDeployApproval:
-          type: boolean
-          description: If deployment approval workflow is enabled for the codespace
+          description: If dbService contains personally identifiable information
 
     GenericMessage:
       type: object
@@ -157,12 +278,14 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/MessageDescription'
+
     MessageDescription:
       type: object
       properties:
         message:
           type: string
           description: message
+
     CreatedByVO:
       type: object
       properties:
@@ -192,19 +315,19 @@ components:
           type: string
           description: Unique technical ID of workspace
         dataGovernance:
-          $ref: '#/components/schemas/CodeServerGovernanceVO'
+          $ref: '#/components/schemas/GovernanceVO'
         serviceName:
           type: string
-        ProjectType:
+        status:
+          type: string  
+        dbName:
+          type: string  
+        projectType:
           type: string
         projectOwner:
           $ref: '#/components/schemas/UserInfoVO'
-        Description:
-          type: string
-        permission:
-          type: array
-          items:
-            type: string    
+        description:
+          type: string            
         projectCollaborators:
           type: array
           items:
@@ -216,16 +339,15 @@ components:
           type: string
           format: date 
         modifiedBy:
-          $ref: '#/components/schemas/UserInfoVO'
-        ipAddress:
-          type: string
+          $ref: '#/components/schemas/UserInfoVO'        
         port:
           type: string
-        dbName:
-          type: string
-        dbUserName:
-          type: string
-
+        credentials:
+          type: array
+          items:
+            $ref: '#/components/schemas/CredentialsVO'  
+        url:
+          type: string    
 
     UserInfoVO:
       type: object
@@ -258,5 +380,49 @@ components:
         isApprover:
           type: boolean
           description: does the user have approver rights
-          default: false                             
+          default: false
+        isRead:
+          type: boolean
+          description: is the user has Admin rights
+          default: false
+        isWrite:
+          type: boolean
+          description: is the user has Admin rights
+          default: false    
+
+    InitializeResponseVo:
+      type: object
+      properties:
+        data:
+          $ref: '#/components/schemas/DbServiceVO'
+        success:
+          type: string
+        errors:
+          type: array
+          items:
+            $ref: '#/components/schemas/MessageDescription'
+        warnings:
+          type: array
+          items:
+            $ref: '#/components/schemas/MessageDescription'
+
+    CredentialsVO:
+      type: object
+      properties:
+        userName:
+          type: string
+        password:
+          type: string
+
+    SubscriptionkeysVO:
+      type: object
+      properties:
+        privateKey:
+          type: string
+        publicKey:
+          type: string
+        userID:
+          type: string                
+
+
               

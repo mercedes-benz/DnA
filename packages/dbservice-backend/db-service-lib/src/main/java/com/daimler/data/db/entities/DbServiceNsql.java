@@ -9,7 +9,7 @@ import jakarta.persistence.Table;
 
 
 @Entity
-@Table(name = "dbService_nsql")
+@Table(name = "db_service_nsql")
 public class DbServiceNsql  extends BaseEntity<DbService> implements Serializable{
 	private static final long serialVersionUID = 1L;
 

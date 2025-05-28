@@ -17,18 +17,16 @@ public class DbService {
 
     private CodeServerLeanGovernanceFeilds dataGovernance;
     private String serviceName;
+    private String status;
+    private String dbName;
     private List<UserInfo> projectCollaborators;
     private String description;
-    private String ProjectType;
+    private String projectType;
     private UserInfo projectOwner;
     private Date createdOn;
     private Date modifiedOn;
     private UserInfo modifiedBy;
-    private List<String> permission;
-    private String ipAddress;
-    private String port;
-    private String dbPassword;
-    private String dbName;
-    private String dbUserName;
+    private String argocdAppId;
+
 
 }
