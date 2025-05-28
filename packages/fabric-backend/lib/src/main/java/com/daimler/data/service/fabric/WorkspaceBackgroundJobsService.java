@@ -55,7 +55,7 @@ public class WorkspaceBackgroundJobsService {
 	private String allowedDivisions;
 	
 	public List<String> getAllowedDivisions() {
-		return List.of(allowedDivisions.toLowerCase().split(","));
+		return List.of(allowedDivisions.split(","));
 	}
 	
 	private SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
@@ -144,8 +144,8 @@ public class WorkspaceBackgroundJobsService {
 					String updatedDescription = workspaceVO.getDescription();
 					boolean isDeleted = false;
 					List<String> allowedDivisionsForFabricEnbaledEntilement = getAllowedDivisions();
-					String divisions = workspaceVO.getDivision();
-					boolean isDivisionAllowed = (divisions != null && allowedDivisionsForFabricEnbaledEntilement.contains(divisions.toLowerCase()));
+					String divisions = workspaceVO.getDivisionId();
+					boolean isDivisionAllowed = (divisions != null && allowedDivisionsForFabricEnbaledEntilement.contains(divisions));
 					if(dtosFromFabric!=null && !dtosFromFabric.isEmpty()) {
 						Optional<WorkspaceDetailDto> fabricWorkspaceDtoOptional = dtosFromFabric.stream().filter(n -> n.getId().equals(workspaceVO.getId())).findFirst();
 						if(fabricWorkspaceDtoOptional!=null && fabricWorkspaceDtoOptional.isPresent()) {
