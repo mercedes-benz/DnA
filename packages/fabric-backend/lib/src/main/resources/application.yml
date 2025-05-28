@@ -3,7 +3,7 @@ spring:
   application:
     name: dna-fabric-workspace-service
 
-    version: 1.3.4
+    version: 1.3.5
 
   profile:
     active: production
