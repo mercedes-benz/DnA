@@ -3602,6 +3602,295 @@ import com.daimler.data.dto.workspace.buildDeploy.*;
 	}
  
 	@Override
+	public CodeServerUserGroupCollectionVO createWorkSpaceGroup(CodeServerUserGroupVO vo){
+		String status = "FAILED";
+		List<MessageDescription> warnings = new ArrayList<>();
+		List<MessageDescription> errors = new ArrayList<>();
+		CreatedByVO currentUser = this.userStore.getVO();
+		try {
+			SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
+			Date now = isoFormat.parse(isoFormat.format(new Date()));			
+			CodeServerUserGroupNsql entity = null;
+			CodeServerUserGroupList data = null;
+			Optional<CodeServerUserGroupNsql> entityOptional = userGroupRepository.findById(currentUser.getId());
+			if(entityOptional.isPresent()){
+				entity = entityOptional.get();
+				data = entity.getData();
+			}else{
+				entity = new CodeServerUserGroupNsql();
+				data = new CodeServerUserGroupList();
+				List<CodeServerUserGroup> groupList = new ArrayList<>();
+				data.setGroups(groupList);
+			}
+			CodeServerUserGroup userGroup = new CodeServerUserGroup();
+			String id = UUID.randomUUID().toString();
+				userGroup.setCreatedBy(currentUser.getId());
+				userGroup.setCreatedDate(now);
+				userGroup.setName(vo.getName());
+				userGroup.setOrder(vo.getOrder());
+				userGroup.setGroupId(id);
+				userGroup.setUpdatedBy(currentUser.getId());
+				userGroup.setUpdatedDate(now);
+
+				//remove workspace from other groups
+				if(data.getGroups() != null || !data.getGroups().isEmpty()){
+				data.getGroups().forEach(group ->{
+					if(group.getWorkspaces() != null || !group.getWorkspaces().isEmpty()){
+					vo.getWorkspaces().forEach(workSpaceInReq ->{
+						group.getWorkspaces().removeIf(i -> i.getWorkSpaceId().equals(workSpaceInReq.getWorkspaceId()));
+					});
+					}
+				});
+				}
+				List<CodeServerUserGroupWsDetails> workspaceList = new ArrayList<>();
+				vo.getWorkspaces().forEach(workSpaceInReq ->{
+					CodeServerUserGroupWsDetails workSpace = new CodeServerUserGroupWsDetails();
+					workSpace.setWorkSpaceId(workSpaceInReq.getWorkspaceId());
+					workSpace.setOrder(0);
+					workspaceList.add(workSpace);
+					CodeServerWorkspaceVO workspaceVo = this.getByUniqueliteral(currentUser.getId(), "workspaceId", workSpaceInReq.getWorkspaceId() );                            
+						if (workspaceVo != null) {
+							workspaceVo.setActiveInGroup(Boolean.TRUE);
+							CodeServerWorkspaceNsql workSpaceEntity = workspaceAssembler.toEntity(workspaceVo);
+							jpaRepo.save(workSpaceEntity);
+
+						}
+					
+				});
+				userGroup.setWorkspaces(workspaceList);
+
+				data.getGroups().add(userGroup);
+				entity.setData(data);
+				entity.setId(currentUser.getId());
+				CodeServerUserGroupNsql savedEntity = userGroupRepository.save(entity);
+				CodeServerUserGroupCollectionVO responseData = groupassembler.toVo(savedEntity);
+				responseData.getData().forEach(group ->{
+					List<CodeServerWorkspaceVO> workspaceListt = new ArrayList<>(); 
+					group.getWorkspaces().forEach(workSpace ->{                           
+						CodeServerWorkspaceVO workspaceVo = this.getByUniqueliteral(currentUser.getId(), "workspaceId", workSpace.getWorkspaceId() );                           
+						if(null != workspaceVo && null != workspaceVo.getId())
+							workspaceListt.add(workspaceVo);
+					});
+					group.setWorkspaces(workspaceListt);
+				});
+
+				return responseData;
+		} catch (Exception e) {
+			log.info("Failed while creating codeserver workspace group with exception " + e.getMessage());
+			return  null;
+		}
+
+
+	}
+
+	@Override
+	public CodeServerUserGroupCollectionVO updateWorkSpaceGroup(UpdateUserGroupRequestVO vo){
+		String status = "FAILED";
+		List<MessageDescription> warnings = new ArrayList<>();
+		List<MessageDescription> errors = new ArrayList<>();
+		CreatedByVO currentUser = this.userStore.getVO();
+		try {
+			SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
+			Date now = isoFormat.parse(isoFormat.format(new Date()));
+			String id = "";
+			CodeServerUserGroupNsql entity = null;
+			CodeServerUserGroupList data = null;
+			Optional<CodeServerUserGroupNsql> entityOptional = userGroupRepository.findById(currentUser.getId());
+			if(entityOptional.isPresent()){
+				entity = entityOptional.get();
+				data = entity.getData();
+			}else{
+				return null;
+			}
+			CodeServerUserGroup userGroup = data.getGroups().stream().filter(i -> i.getGroupId().equals(vo.getGroupId())).findFirst().orElse(null);
+				if(userGroup != null){
+				userGroup.setName(vo.getName());
+				userGroup.setUpdatedBy(currentUser.getId());
+				userGroup.setUpdatedDate(now);
+
+				//remove newly added workspace from other groups
+				if(data.getGroups() != null || !data.getGroups().isEmpty()){
+				data.getGroups().forEach(group ->{
+					vo.getWsAdded().forEach(workSpaceInReq ->{
+						group.getWorkspaces().removeIf(i -> i.getWorkSpaceId().equals(workSpaceInReq.getWsId()));
+					});
+				});
+				}
+				List<CodeServerUserGroupWsDetails> workspaceList = userGroup.getWorkspaces();
+				vo.getWsAdded().forEach(workSpaceInReq ->{
+					CodeServerUserGroupWsDetails workSpace = new CodeServerUserGroupWsDetails();
+					workSpace.setWorkSpaceId(workSpaceInReq.getWsId());
+					workSpace.setOrder(0);
+					workspaceList.add(workSpace);
+					CodeServerWorkspaceVO workspaceVo = this.getByUniqueliteral(currentUser.getId(), "workspaceId", workSpaceInReq.getWsId() );                            
+						if (workspaceVo != null ) {
+							workspaceVo.setActiveInGroup(Boolean.TRUE);
+							CodeServerWorkspaceNsql workSpaceEntity = workspaceAssembler.toEntity(workspaceVo);
+							jpaRepo.save(workSpaceEntity);
+
+						}
+				});
+
+				//remove workspace from exisitng group
+				vo.getWsRemoved().forEach(workSpaceInReq ->{
+					workspaceList.removeIf(i -> i.getWorkSpaceId().equals(workSpaceInReq.getWsId()));
+					CodeServerWorkspaceVO workspaceVo = this.getByUniqueliteral(currentUser.getId(), "workspaceId", workSpaceInReq.getWsId() );                            
+						if (workspaceVo != null) {
+							workspaceVo.setActiveInGroup(Boolean.FALSE);
+							CodeServerWorkspaceNsql workSpaceEntity = workspaceAssembler.toEntity(workspaceVo);
+							jpaRepo.save(workSpaceEntity);
+
+						}
+				});
+				userGroup.setWorkspaces(workspaceList);
+				data.getGroups().removeIf(i -> i.getGroupId().equals(vo.getGroupId()));
+				data.getGroups().add(userGroup);
+				entity.setData(data);
+				CodeServerUserGroupNsql savedEntity = userGroupRepository.save(entity);
+				CodeServerUserGroupCollectionVO responseData = groupassembler.toVo(savedEntity);
+				responseData.getData().forEach(group ->{
+					List<CodeServerWorkspaceVO> workspaceListt = new ArrayList<>(); 
+					group.getWorkspaces().forEach(workSpace ->{                           
+						CodeServerWorkspaceVO workspaceVo = this.getByUniqueliteral(currentUser.getId(), "workspaceId", workSpace.getWorkspaceId() );                           
+						if(null != workspaceVo && null != workspaceVo.getId())
+							workspaceListt.add(workspaceVo);
+					});
+					group.setWorkspaces(workspaceListt);
+				});
+				return responseData;
+			}else
+				return null;
+		} catch (Exception e) {
+			log.info("Failed while updating codeserver workspace group with exception " + e.getMessage());
+			return  null;
+		}
+	}
+
+	@Override
+	public CodeServerUserGroupCollectionVO getAllWorkSpaceGroup(){
+		try {
+			CreatedByVO currentUser = this.userStore.getVO();
+			CodeServerUserGroupCollectionVO responseData = null;
+			Optional<CodeServerUserGroupNsql> entity = userGroupRepository.findById(currentUser.getId());
+			if(entity.isPresent()){
+				responseData = groupassembler.toVo(entity.get());
+				responseData.getData().forEach(group ->{
+					List<CodeServerWorkspaceVO> workspaceListt = new ArrayList<>(); 
+					group.getWorkspaces().forEach(workSpace ->{                           
+						CodeServerWorkspaceVO workspaceVo = this.getByUniqueliteral(currentUser.getId(), "workspaceId", workSpace.getWorkspaceId() );                           
+						if(null != workspaceVo && null != workspaceVo.getId()){
+							if(workspaceVo.getProjectDetails().getRecipeDetails().isIsDeployEnabled() == null || !workspaceVo.getProjectDetails().getRecipeDetails().isIsDeployEnabled()) {
+								if(workspaceVo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private")||workspaceVo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")||workspaceVo.getProjectDetails().getRecipeDetails().getRecipeId().name().equalsIgnoreCase("template")){
+									workspaceVo.getProjectDetails().getRecipeDetails().setIsDeployEnabled(false);
+								}else{
+									workspaceVo.getProjectDetails().getRecipeDetails().setIsDeployEnabled(true);
+								}
+							}
+							String serverStatus = getServerStatus(workspaceVo); // Update server status
+			 				if(serverStatus.equalsIgnoreCase("true"))
+			 				{
+								workspaceVo.setServerStatus("SERVER_STARTED");
+			 				}
+			 				else
+			 				{
+								workspaceVo.setServerStatus("SERVER_STOPPED");
+			 				}
+							workspaceListt.add(workspaceVo);
+						}
+					});
+					group.setWorkspaces(workspaceListt);
+				});
+			}else{
+				responseData = new CodeServerUserGroupCollectionVO();
+				responseData.setUserId(currentUser.getId());
+				responseData.setData(new ArrayList<>());
+			}
+			return responseData;
+		} catch (Exception e) {
+			log.info("Failed while getAllWorkSpaceGroup codeserver workspace group with exception " + e.getMessage());
+			return  null;
+		}
+	}
+
+	@Override
+	public CodeServerUserGroupByIdVO getWorkSpaceGroupById(String id){
+		try {
+			CreatedByVO currentUser = this.userStore.getVO();
+			CodeServerUserGroupByIdVO responseData = null;
+			List<CodeServerWorkspaceVO> workspaceList = new ArrayList<>();
+			Optional<CodeServerUserGroupNsql> optionalEntity = userGroupRepository.findById(currentUser.getId());
+			if(optionalEntity.isPresent()){
+				responseData = new CodeServerUserGroupByIdVO();
+				CodeServerUserGroupNsql entity = optionalEntity.get();
+				    Optional<CodeServerUserGroup> optionalGroup = entity.getData().getGroups().stream().filter(i -> i.getGroupId().equalsIgnoreCase(id)).findFirst();
+					if(optionalGroup.isPresent()){
+						CodeServerUserGroup group = optionalGroup.get();
+						responseData.setGroupId(group.getGroupId());
+                        responseData.setName(group.getName());
+                        responseData.setOrder(group.getOrder());						
+						group.getWorkspaces().forEach(workSpace ->{                           
+                            CodeServerWorkspaceVO workspaceVo = this.getByUniqueliteral(currentUser.getId(), "workspaceId", workSpace.getWorkSpaceId() );                             
+                            if(null != workspaceVo && null != workspaceVo.getId())
+								workspaceList.add(workspaceVo);
+                        });
+					}
+					responseData.setWorkspaces(workspaceList);        
+			}
+			return responseData;
+		} catch (Exception e) {
+			log.info("Failed while getWorkSpaceGroupById codeserver workspace group with exception " + e.getMessage());
+			return  null;
+		}
+	}
+
+	@Override
+	public CodeServerUserGroupCollectionVO deleteWorkSpaceGroup(String id){
+		String status = "FAILED";
+		List<MessageDescription> warnings = new ArrayList<>();
+		List<MessageDescription> errors = new ArrayList<>();
+		CreatedByVO currentUser = this.userStore.getVO();
+		try {
+			CodeServerUserGroupNsql entity = null;
+			CodeServerUserGroupList data = null;
+			Optional<CodeServerUserGroupNsql> entityOptional = userGroupRepository.findById(currentUser.getId());
+			if(entityOptional.isPresent()){
+				entity = entityOptional.get();
+				data = entity.getData();
+			}
+			data.getGroups().forEach(group ->{
+				if(group.getGroupId().equals(id)){
+					 group.getWorkspaces().forEach(workSpace ->{
+						CodeServerWorkspaceVO workspaceVo = this.getByUniqueliteral(currentUser.getId(), "workspaceId", workSpace.getWorkSpaceId() );                            
+						if (workspaceVo != null) {
+							workspaceVo.setActiveInGroup(Boolean.FALSE);
+							CodeServerWorkspaceNsql workSpaceEntity = workspaceAssembler.toEntity(workspaceVo);
+							jpaRepo.save(workSpaceEntity);
+
+						}
+					 });	
+				}
+			} );
+			data.getGroups().removeIf(i -> i.getGroupId().equals(id));
+			entity.setData(data);
+			CodeServerUserGroupNsql savedEntity = userGroupRepository.save(entity);
+			CodeServerUserGroupCollectionVO responseData = groupassembler.toVo(savedEntity);
+			responseData.getData().forEach(group ->{
+				List<CodeServerWorkspaceVO> workspaceListt = new ArrayList<>(); 
+					group.getWorkspaces().forEach(workSpace ->{                           
+						CodeServerWorkspaceVO workspaceVo = this.getByUniqueliteral(currentUser.getId(), "workspaceId", workSpace.getWorkspaceId() );                           
+						if(null != workspaceVo && null != workspaceVo.getId())
+							workspaceListt.add(workspaceVo);
+					});
+					group.setWorkspaces(workspaceListt);
+			});
+			return responseData;
+		} catch (Exception e) {
+			log.info("Failed while deleting codeserver workspace group with exception " + e.getMessage());
+			return  null;
+		}
+	}
+
+	@Override
 	@Transactional
 	public GenericMessage buildWorkSpace(String userId,String id,String branch,ManageBuildRequestDto buildRequestDto,boolean isPrivateRecipe,String environment,String lastBuildType){
 		GenericMessage responseMessage = new GenericMessage();
@@ -4112,293 +4401,4 @@ import com.daimler.data.dto.workspace.buildDeploy.*;
 	}
 
 	
-	@Override
-	public CodeServerUserGroupCollectionVO createWorkSpaceGroup(CodeServerUserGroupVO vo){
-		String status = "FAILED";
-		List<MessageDescription> warnings = new ArrayList<>();
-		List<MessageDescription> errors = new ArrayList<>();
-		CreatedByVO currentUser = this.userStore.getVO();
-		try {
-			SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
-			Date now = isoFormat.parse(isoFormat.format(new Date()));			
-			CodeServerUserGroupNsql entity = null;
-			CodeServerUserGroupList data = null;
-			Optional<CodeServerUserGroupNsql> entityOptional = userGroupRepository.findById(currentUser.getId());
-			if(entityOptional.isPresent()){
-				entity = entityOptional.get();
-				data = entity.getData();
-			}else{
-				entity = new CodeServerUserGroupNsql();
-				data = new CodeServerUserGroupList();
-				List<CodeServerUserGroup> groupList = new ArrayList<>();
-				data.setGroups(groupList);
-			}
-			CodeServerUserGroup userGroup = new CodeServerUserGroup();
-			String id = UUID.randomUUID().toString();
-				userGroup.setCreatedBy(currentUser.getId());
-				userGroup.setCreatedDate(now);
-				userGroup.setName(vo.getName());
-				userGroup.setOrder(vo.getOrder());
-				userGroup.setGroupId(id);
-				userGroup.setUpdatedBy(currentUser.getId());
-				userGroup.setUpdatedDate(now);
-
-				//remove workspace from other groups
-				if(data.getGroups() != null || !data.getGroups().isEmpty()){
-				data.getGroups().forEach(group ->{
-					if(group.getWorkspaces() != null || !group.getWorkspaces().isEmpty()){
-					vo.getWorkspaces().forEach(workSpaceInReq ->{
-						group.getWorkspaces().removeIf(i -> i.getWorkSpaceId().equals(workSpaceInReq.getWorkspaceId()));
-					});
-					}
-				});
-				}
-				List<CodeServerUserGroupWsDetails> workspaceList = new ArrayList<>();
-				vo.getWorkspaces().forEach(workSpaceInReq ->{
-					CodeServerUserGroupWsDetails workSpace = new CodeServerUserGroupWsDetails();
-					workSpace.setWorkSpaceId(workSpaceInReq.getWorkspaceId());
-					workSpace.setOrder(0);
-					workspaceList.add(workSpace);
-					CodeServerWorkspaceVO workspaceVo = this.getByUniqueliteral(currentUser.getId(), "workspaceId", workSpaceInReq.getWorkspaceId() );                            
-						if (workspaceVo != null) {
-							workspaceVo.setActiveInGroup(Boolean.TRUE);
-							CodeServerWorkspaceNsql workSpaceEntity = workspaceAssembler.toEntity(workspaceVo);
-							jpaRepo.save(workSpaceEntity);
-
-						}
-					
-				});
-				userGroup.setWorkspaces(workspaceList);
-
-				data.getGroups().add(userGroup);
-				entity.setData(data);
-				entity.setId(currentUser.getId());
-				CodeServerUserGroupNsql savedEntity = userGroupRepository.save(entity);
-				CodeServerUserGroupCollectionVO responseData = groupassembler.toVo(savedEntity);
-				responseData.getData().forEach(group ->{
-					List<CodeServerWorkspaceVO> workspaceListt = new ArrayList<>(); 
-					group.getWorkspaces().forEach(workSpace ->{                           
-						CodeServerWorkspaceVO workspaceVo = this.getByUniqueliteral(currentUser.getId(), "workspaceId", workSpace.getWorkspaceId() );                           
-						if(null != workspaceVo && null != workspaceVo.getId())
-							workspaceListt.add(workspaceVo);
-					});
-					group.setWorkspaces(workspaceListt);
-				});
-
-				return responseData;
-		} catch (Exception e) {
-			log.info("Failed while creating codeserver workspace group with exception " + e.getMessage());
-			return  null;
-		}
-
-
-	}
-
-	@Override
-	public CodeServerUserGroupCollectionVO updateWorkSpaceGroup(UpdateUserGroupRequestVO vo){
-		String status = "FAILED";
-		List<MessageDescription> warnings = new ArrayList<>();
-		List<MessageDescription> errors = new ArrayList<>();
-		CreatedByVO currentUser = this.userStore.getVO();
-		try {
-			SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
-			Date now = isoFormat.parse(isoFormat.format(new Date()));
-			String id = "";
-			CodeServerUserGroupNsql entity = null;
-			CodeServerUserGroupList data = null;
-			Optional<CodeServerUserGroupNsql> entityOptional = userGroupRepository.findById(currentUser.getId());
-			if(entityOptional.isPresent()){
-				entity = entityOptional.get();
-				data = entity.getData();
-			}else{
-				return null;
-			}
-			CodeServerUserGroup userGroup = data.getGroups().stream().filter(i -> i.getGroupId().equals(vo.getGroupId())).findFirst().orElse(null);
-				if(userGroup != null){
-				userGroup.setName(vo.getName());
-				userGroup.setUpdatedBy(currentUser.getId());
-				userGroup.setUpdatedDate(now);
-
-				//remove newly added workspace from other groups
-				if(data.getGroups() != null || !data.getGroups().isEmpty()){
-				data.getGroups().forEach(group ->{
-					vo.getWsAdded().forEach(workSpaceInReq ->{
-						group.getWorkspaces().removeIf(i -> i.getWorkSpaceId().equals(workSpaceInReq.getWsId()));
-					});
-				});
-				}
-				List<CodeServerUserGroupWsDetails> workspaceList = userGroup.getWorkspaces();
-				vo.getWsAdded().forEach(workSpaceInReq ->{
-					CodeServerUserGroupWsDetails workSpace = new CodeServerUserGroupWsDetails();
-					workSpace.setWorkSpaceId(workSpaceInReq.getWsId());
-					workSpace.setOrder(0);
-					workspaceList.add(workSpace);
-					CodeServerWorkspaceVO workspaceVo = this.getByUniqueliteral(currentUser.getId(), "workspaceId", workSpaceInReq.getWsId() );                            
-						if (workspaceVo != null ) {
-							workspaceVo.setActiveInGroup(Boolean.TRUE);
-							CodeServerWorkspaceNsql workSpaceEntity = workspaceAssembler.toEntity(workspaceVo);
-							jpaRepo.save(workSpaceEntity);
-
-						}
-				});
-
-				//remove workspace from exisitng group
-				vo.getWsRemoved().forEach(workSpaceInReq ->{
-					workspaceList.removeIf(i -> i.getWorkSpaceId().equals(workSpaceInReq.getWsId()));
-					CodeServerWorkspaceVO workspaceVo = this.getByUniqueliteral(currentUser.getId(), "workspaceId", workSpaceInReq.getWsId() );                            
-						if (workspaceVo != null) {
-							workspaceVo.setActiveInGroup(Boolean.FALSE);
-							CodeServerWorkspaceNsql workSpaceEntity = workspaceAssembler.toEntity(workspaceVo);
-							jpaRepo.save(workSpaceEntity);
-
-						}
-				});
-				userGroup.setWorkspaces(workspaceList);
-				data.getGroups().removeIf(i -> i.getGroupId().equals(vo.getGroupId()));
-				data.getGroups().add(userGroup);
-				entity.setData(data);
-				CodeServerUserGroupNsql savedEntity = userGroupRepository.save(entity);
-				CodeServerUserGroupCollectionVO responseData = groupassembler.toVo(savedEntity);
-				responseData.getData().forEach(group ->{
-					List<CodeServerWorkspaceVO> workspaceListt = new ArrayList<>(); 
-					group.getWorkspaces().forEach(workSpace ->{                           
-						CodeServerWorkspaceVO workspaceVo = this.getByUniqueliteral(currentUser.getId(), "workspaceId", workSpace.getWorkspaceId() );                           
-						if(null != workspaceVo && null != workspaceVo.getId())
-							workspaceListt.add(workspaceVo);
-					});
-					group.setWorkspaces(workspaceListt);
-				});
-				return responseData;
-			}else
-				return null;
-		} catch (Exception e) {
-			log.info("Failed while updating codeserver workspace group with exception " + e.getMessage());
-			return  null;
-		}
-	}
-
-	@Override
-	public CodeServerUserGroupCollectionVO getAllWorkSpaceGroup(){
-		try {
-			CreatedByVO currentUser = this.userStore.getVO();
-			CodeServerUserGroupCollectionVO responseData = null;
-			Optional<CodeServerUserGroupNsql> entity = userGroupRepository.findById(currentUser.getId());
-			if(entity.isPresent()){
-				responseData = groupassembler.toVo(entity.get());
-				responseData.getData().forEach(group ->{
-					List<CodeServerWorkspaceVO> workspaceListt = new ArrayList<>(); 
-					group.getWorkspaces().forEach(workSpace ->{                           
-						CodeServerWorkspaceVO workspaceVo = this.getByUniqueliteral(currentUser.getId(), "workspaceId", workSpace.getWorkspaceId() );                           
-						if(null != workspaceVo && null != workspaceVo.getId()){
-							if(workspaceVo.getProjectDetails().getRecipeDetails().isIsDeployEnabled() == null || !workspaceVo.getProjectDetails().getRecipeDetails().isIsDeployEnabled()) {
-								if(workspaceVo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private")||workspaceVo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")||workspaceVo.getProjectDetails().getRecipeDetails().getRecipeId().name().equalsIgnoreCase("template")){
-									workspaceVo.getProjectDetails().getRecipeDetails().setIsDeployEnabled(false);
-								}else{
-									workspaceVo.getProjectDetails().getRecipeDetails().setIsDeployEnabled(true);
-								}
-							}
-							String serverStatus = getServerStatus(workspaceVo); // Update server status
-			 				if(serverStatus.equalsIgnoreCase("true"))
-			 				{
-								workspaceVo.setServerStatus("SERVER_STARTED");
-			 				}
-			 				else
-			 				{
-								workspaceVo.setServerStatus("SERVER_STOPPED");
-			 				}
-							workspaceListt.add(workspaceVo);
-						}
-					});
-					group.setWorkspaces(workspaceListt);
-				});
-			}else{
-				responseData = new CodeServerUserGroupCollectionVO();
-				responseData.setUserId(currentUser.getId());
-				responseData.setData(new ArrayList<>());
-			}
-			return responseData;
-		} catch (Exception e) {
-			log.info("Failed while getAllWorkSpaceGroup codeserver workspace group with exception " + e.getMessage());
-			return  null;
-		}
-	}
-
-	@Override
-	public CodeServerUserGroupByIdVO getWorkSpaceGroupById(String id){
-		try {
-			CreatedByVO currentUser = this.userStore.getVO();
-			CodeServerUserGroupByIdVO responseData = null;
-			List<CodeServerWorkspaceVO> workspaceList = new ArrayList<>();
-			Optional<CodeServerUserGroupNsql> optionalEntity = userGroupRepository.findById(currentUser.getId());
-			if(optionalEntity.isPresent()){
-				responseData = new CodeServerUserGroupByIdVO();
-				CodeServerUserGroupNsql entity = optionalEntity.get();
-				    Optional<CodeServerUserGroup> optionalGroup = entity.getData().getGroups().stream().filter(i -> i.getGroupId().equalsIgnoreCase(id)).findFirst();
-					if(optionalGroup.isPresent()){
-						CodeServerUserGroup group = optionalGroup.get();
-						responseData.setGroupId(group.getGroupId());
-                        responseData.setName(group.getName());
-                        responseData.setOrder(group.getOrder());						
-						group.getWorkspaces().forEach(workSpace ->{                           
-                            CodeServerWorkspaceVO workspaceVo = this.getByUniqueliteral(currentUser.getId(), "workspaceId", workSpace.getWorkSpaceId() );                             
-                            if(null != workspaceVo && null != workspaceVo.getId())
-								workspaceList.add(workspaceVo);
-                        });
-					}
-					responseData.setWorkspaces(workspaceList);        
-			}
-			return responseData;
-		} catch (Exception e) {
-			log.info("Failed while getWorkSpaceGroupById codeserver workspace group with exception " + e.getMessage());
-			return  null;
-		}
-	}
-
-	@Override
-	public CodeServerUserGroupCollectionVO deleteWorkSpaceGroup(String id){
-		String status = "FAILED";
-		List<MessageDescription> warnings = new ArrayList<>();
-		List<MessageDescription> errors = new ArrayList<>();
-		CreatedByVO currentUser = this.userStore.getVO();
-		try {
-			CodeServerUserGroupNsql entity = null;
-			CodeServerUserGroupList data = null;
-			Optional<CodeServerUserGroupNsql> entityOptional = userGroupRepository.findById(currentUser.getId());
-			if(entityOptional.isPresent()){
-				entity = entityOptional.get();
-				data = entity.getData();
-			}
-			data.getGroups().forEach(group ->{
-				if(group.getGroupId().equals(id)){
-					 group.getWorkspaces().forEach(workSpace ->{
-						CodeServerWorkspaceVO workspaceVo = this.getByUniqueliteral(currentUser.getId(), "workspaceId", workSpace.getWorkSpaceId() );                            
-						if (workspaceVo != null) {
-							workspaceVo.setActiveInGroup(Boolean.FALSE);
-							CodeServerWorkspaceNsql workSpaceEntity = workspaceAssembler.toEntity(workspaceVo);
-							jpaRepo.save(workSpaceEntity);
-
-						}
-					 });	
-				}
-			} );
-			data.getGroups().removeIf(i -> i.getGroupId().equals(id));
-			entity.setData(data);
-			CodeServerUserGroupNsql savedEntity = userGroupRepository.save(entity);
-			CodeServerUserGroupCollectionVO responseData = groupassembler.toVo(savedEntity);
-			responseData.getData().forEach(group ->{
-				List<CodeServerWorkspaceVO> workspaceListt = new ArrayList<>(); 
-					group.getWorkspaces().forEach(workSpace ->{                           
-						CodeServerWorkspaceVO workspaceVo = this.getByUniqueliteral(currentUser.getId(), "workspaceId", workSpace.getWorkspaceId() );                           
-						if(null != workspaceVo && null != workspaceVo.getId())
-							workspaceListt.add(workspaceVo);
-					});
-					group.setWorkspaces(workspaceListt);
-			});
-			return responseData;
-		} catch (Exception e) {
-			log.info("Failed while deleting codeserver workspace group with exception " + e.getMessage());
-			return  null;
-		}
-	}
-
 }
