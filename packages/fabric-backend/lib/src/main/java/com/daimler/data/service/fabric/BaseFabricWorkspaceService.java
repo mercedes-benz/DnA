@@ -167,13 +167,6 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 	@Value("${authoriser.role.fabricRoleName}")
 	private String fabricOperationsRoleName;
 
-	@Value("${fabricWorkspaces.allowed.divisions.fabric.enabled}")
-	private String allowedDivisions;
-	
-	public List<String> getAllowedDivisions() {
-		return List.of(allowedDivisions.toLowerCase().split(","));
-	}
-
 	public BaseFabricWorkspaceService() {
 		super();
 	}
@@ -359,10 +352,6 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		CreateWorkspaceDto createRequest = new CreateWorkspaceDto();
 		createRequest.setDescription(vo.getDescription());
 		createRequest.setDisplayName(vo.getName());
-		List<String> allowedDivisionsForFabricEnbaledEntilement = getAllowedDivisions();
-		//FABRIC_ENABLED entitelment assigned only to FC, MBM & MO divison while creating workspace
-		String divisions = vo.getDivision();
-		boolean isDivisionAllowed = (divisions != null && allowedDivisionsForFabricEnbaledEntilement.contains(divisions.toLowerCase()));
 		try {
 			WorkspaceDetailDto createResponse = fabricWorkspaceClient.createWorkspace(createRequest);
 			if(createResponse!=null ) {
