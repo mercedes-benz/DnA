@@ -18,5 +18,8 @@ public class MicrosoftGroupMembersDto  implements Serializable{
 
 	private String id;
 	private String displayName;
+	private String mail;
+	private String userPrincipalName;
+	private String shortId;
 	
 }

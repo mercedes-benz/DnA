@@ -969,4 +969,8 @@ definitions:
         type: string
       displayName:
         type: string
+      mail:
+        type: string
+      shortId:
+        type: string
       

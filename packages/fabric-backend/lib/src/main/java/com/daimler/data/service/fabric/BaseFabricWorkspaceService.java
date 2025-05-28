@@ -1855,6 +1855,11 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
                 EntraGroupMembersVO vo = new EntraGroupMembersVO();
                 vo.setId(member.getId());
                 vo.setDisplayName(member.getDisplayName());
+				vo.setMail(member.getMail());
+				if (member.getUserPrincipalName() != null && member.getUserPrincipalName().contains("@")) {
+					String shortId = member.getUserPrincipalName().split("@")[0];
+					vo.setShortId(shortId);
+				}
                 memberVOs.add(vo);
             }
         }
