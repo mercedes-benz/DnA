@@ -1,14 +1,14 @@
 import classNames from 'classnames';
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, forwardRef } from 'react';
 import Styles from './CodeSpaceCardItem.scss';
 import {
   // recipesMaster,
   regionalDateAndTimeConversionSolution,
-  buildLogViewURL,
+  // buildLogViewURL,
   buildGitJobLogViewURL,
-  buildLogViewAWSURL,
+  // buildLogViewAWSURL,
   buildGitJobLogViewAWSURL,
-  buildGitUrl,
+  // buildGitUrl,
 } from '../../Utility/utils';
 import ConfirmModal from 'dna-container/ConfirmModal';
 import Modal from 'dna-container/Modal';
@@ -23,13 +23,14 @@ import Notification from '../../common/modules/uilab/js/src/notification';
 // import { IUserInfo } from 'globals/types';
 import { IconGear } from 'dna-container/IconGear';
 // import { DEPLOYMENT_DISABLED_RECIPE_IDS } from '../../Utility/constants';
-import DoraMetrics from '../doraMetrics/DoraMetrics';
-import VaultManagement from '../vaultManagement/VaultManagement';
-import DeployAuditLogsModal from '../deployAuditLogsModal/DeployAuditLogsModal';
+// import DoraMetrics from '../doraMetrics/DoraMetrics';
+// import VaultManagement from '../vaultManagement/VaultManagement';
+// import DeployAuditLogsModal from '../deployAuditLogsModal/DeployAuditLogsModal';
 import { setRippleAnimation } from '../../common/modules/uilab/js/src/util';
 import { marked } from 'marked';
 import { Envs } from '../../Utility/envs';
 import Tooltip from '../../common/modules/uilab/js/src/tooltip';
+import ContextMenu from '../contextMenu/ContextMenu';
 
 // interface CodeSpaceCardItemProps {
 //   userInfo: IUserInfo;
@@ -44,7 +45,7 @@ import Tooltip from '../../common/modules/uilab/js/src/tooltip';
 
 let isTouch = false;
 
-const CodeSpaceCardItem = (props) => {
+const CodeSpaceCardItem = forwardRef((props, ref) => {
   let codeSpace = props.codeSpace;
   // const collaborationCodeSpace = codeSpace.projectDetails.projectCollaborators?.find((user: ICodeCollaborator) => user.id === props.userInfo.id);
   const enableOnboard = codeSpace ? codeSpace.status === 'COLLABORATION_REQUESTED' : false;
@@ -55,8 +56,8 @@ const CodeSpaceCardItem = (props) => {
   // const serverStarted = codeSpace.serverStatus === 'SERVER_STARTED';
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [showVaultManagementModal, setShowVaultManagementModal] = useState(false);
-  const [showAuditLogsModal, setShowAuditLogsModal] = useState(false);
+  // const [showVaultManagementModal, setShowVaultManagementModal] = useState(false);
+  // const [showAuditLogsModal, setShowAuditLogsModal] = useState(false);
   // const recipes = recipesMaster;
   const collaborator = codeSpace.projectDetails?.projectCollaborators?.find((collaborator) => {return collaborator?.id === props?.userInfo?.id });
   const isOwner = codeSpace.projectDetails?.projectOwner?.id === props.userInfo.id || collaborator?.isAdmin;
@@ -66,8 +67,9 @@ const CodeSpaceCardItem = (props) => {
   //   codeSpace?.projectDetails?.recipeDetails?.recipeId.startsWith('public') ||
   //   DEPLOYMENT_DISABLED_RECIPE_IDS.includes(codeSpace?.projectDetails?.recipeDetails?.recipeId);
   const disableDeployment = !codeSpace?.projectDetails?.recipeDetails?.isDeployEnabled;
-  const [showDoraMetricsModal, setShowDoraMetricsModal] = useState(false);
-  const [isStaging, setIsStaging] = useState(false);
+  // const [showDoraMetricsModal, setShowDoraMetricsModal] = useState(false);
+  // const [isStaging, setIsStaging] = useState(false);
+  // const [logsList, setlogsList] = useState([]);
 
   const [showContextMenu, setShowContextMenu] = useState(false);
   const [contextMenuOffsetTop, setContextMenuOffsetTop] = useState(0);
@@ -77,17 +79,17 @@ const CodeSpaceCardItem = (props) => {
   const [serverFailed, setServerFailed] = useState(false);
   const [serverProgress, setServerProgress] = useState(0);
 
-  const [showStagingActions, setShowStagingActions] = useState(false);
-  const [showProdActions, setShowProdActions] = useState(false);
+  // const [showStagingActions, setShowStagingActions] = useState(false);
+  // const [showProdActions, setShowProdActions] = useState(false);
   const stagingWrapperRef = useRef(null);
   const prodWrapperRef = useRef(null);
-  const [showRestartModal, setShowRestartModal] = useState(false);
-  const [env, setEnv] = useState("");
+  // const [showRestartModal, setShowRestartModal] = useState(false);
+  // const [env, setEnv] = useState("");
   const [showReadMeModal, setShowReadMeModal] = useState(false);
   const [readMeContent, setReadMeContent] = useState('');
   const enableReadMe =  Envs.CODESPACE_RECIEPES_ENABLE_README?.split(',')?.includes(codeSpace?.projectDetails?.recipeDetails?.Id) || false;
   const [showMigrateOrStartModal, setShowMigrateOrStartModal] = useState(false);
-  const [showOnPremStartModal, setShowOnPremStartModal] = useState(false);
+  // const [showOnPremStartModal, setShowOnPremStartModal] = useState(false);
 
   useEffect(() => {
     handleServerStatusAndProgress();
@@ -272,9 +274,9 @@ const CodeSpaceCardItem = (props) => {
     }
   };
 
-  const handleOpenDoraMetrics = () => {
-    setShowDoraMetricsModal(true);
-  };
+  // const handleOpenDoraMetrics = () => {
+  //   setShowDoraMetricsModal(true);
+  // };
 
   const onStartStopCodeSpace = (codespace) => {
     if(codespace?.projectDetails?.recipeDetails?.cloudServiceProvider ==='DHC-CaaS-AWS'){
@@ -340,11 +342,11 @@ const CodeSpaceCardItem = (props) => {
   };
 
   const projectDetails = codeSpace?.projectDetails;
-  const intDeploymentDetails = projectDetails.intDeploymentDetails;
-  const prodDeploymentDetails = projectDetails.prodDeploymentDetails;
-  const intDeployedUrl = intDeploymentDetails?.deploymentUrl;
+  const intDeploymentDetails = projectDetails?.intDeploymentDetails;
+  const prodDeploymentDetails = projectDetails?.prodDeploymentDetails;
+  // const intDeployedUrl = intDeploymentDetails?.deploymentUrl;
   // const intLastDeployedOn = intDeploymentDetails?.lastDeployedOn;
-  const prodDeployedUrl = prodDeploymentDetails?.deploymentUrl;
+  // const prodDeployedUrl = prodDeploymentDetails?.deploymentUrl;
   // const prodLastDeployedOn = prodDeploymentDetails?.lastDeployedOn;
   const deployingInProgress =
     intDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED' ||
@@ -352,18 +354,8 @@ const CodeSpaceCardItem = (props) => {
     prodDeploymentDetails?.lastDeploymentStatus === 'APPROVAL_PENDING' ||
     projectDetails?.lastBuildOrDeployedStatus === 'APPROVAL_PENDING';
   const buildInProgress = projectDetails?.lastBuildOrDeployedStatus === 'BUILD_REQUESTED';
-  const intDeployed =
-    intDeploymentDetails?.lastDeploymentStatus === 'DEPLOYED' ||
-    (intDeployedUrl !== null && intDeployedUrl !== 'null') ||
-    false;
-  const intCodeDeployFailed = intDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
-  const prodDeployed =
-    prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOYED' ||
-    (prodDeployedUrl !== null && prodDeployedUrl !== 'null') ||
-    false;
-  const prodCodeDeployFailed = prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
   const allowDelete = codeSpace?.projectDetails?.projectOwner?.id === props.userInfo.id ? !hasCollaborators : true;
-  const isPublicRecipe = projectDetails.recipeDetails?.recipeId?.startsWith('public');
+  const isPublicRecipe = projectDetails?.recipeDetails?.recipeId?.startsWith('public');
   // const isAPIRecipe =
   //   props.codeSpace.projectDetails.recipeDetails.recipeId === 'springboot' ||
   //   props.codeSpace.projectDetails.recipeDetails.recipeId === 'py-fastapi' ||
@@ -380,40 +372,42 @@ const CodeSpaceCardItem = (props) => {
   //   props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'py-fastapi' ||
   //   props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'expressjs' ||
   //   props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'springbootwithmaven' ;
+  // const isIAMRecipe =
+  //   props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'springboot' ||
+  //   props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'py-fastapi' ||
+  //   props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'expressjs' ||
+  //   props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'springbootwithmaven' ;
 
   const resources = projectDetails?.recipeDetails?.resource?.split(',');
 
   const resourceUsageUrl = Envs.MONITORING_DASHBOARD_BASE_URL + `codespace-cpu-and-memory-usage?orgId=1&from=now-1h&to=now&var-namespace=${Envs.CODESERVER_NAMESPACE}&var-pod=${codeSpace.workspaceId}&var-container=notebook`;
-  const intAppResourceUsageUrl = Envs.MONITORING_DASHBOARD_APP_BASE_URL + `codespace-app-cpu-and-memory-usage?orgId=1&var-namespace=${Envs.CODESERVER_APP_NAMESPACE}&var-app=${projectDetails?.projectName}-int&var-container=`;
-  const prodAppResourceUsageUrl = Envs.MONITORING_DASHBOARD_APP_BASE_URL + `codespace-app-cpu-and-memory-usage?orgId=1&var-namespace=${Envs.CODESERVER_APP_NAMESPACE}&var-app=${projectDetails?.projectName}-prod&var-container=`;
+  // const intAppResourceUsageUrl = Envs.MONITORING_DASHBOARD_APP_BASE_URL + `codespace-app-cpu-and-memory-usage?orgId=1&var-namespace=${Envs.CODESERVER_APP_NAMESPACE}&var-app=${projectDetails?.projectName}-int&var-container=`;
+  // const prodAppResourceUsageUrl = Envs.MONITORING_DASHBOARD_APP_BASE_URL + `codespace-app-cpu-and-memory-usage?orgId=1&var-namespace=${Envs.CODESERVER_APP_NAMESPACE}&var-app=${projectDetails?.projectName}-prod&var-container=`;
 
   const intDeploymentMigrated = codeSpace?.projectDetails?.intDeploymentDetails?.deploymentUrl?.includes(Envs.CODESPACE_AWS_POPUP_URL);
   const prodDeploymentMigrated = codeSpace?.projectDetails?.prodDeploymentDetails?.deploymentUrl?.includes(Envs.CODESPACE_AWS_POPUP_URL);
 
-  const intSecuredWithOneApi = projectDetails?.intDeploymentDetails?.oneApiVersionShortName?.length || false;
-  const prodSecuredWithOneApi = projectDetails?.prodDeploymentDetails?.oneApiVersionShortName?.length || false;
+  // const securedWithIAMContent = (
+  //   <svg
+  //     xmlns="http://www.w3.org/2000/svg"
+  //     stroke="#00adef"
+  //     fill="#00adef"
+  //     strokeWidth="0"
+  //     viewBox="0 0 30 30"
+  //     width="15px"
+  //     height="15px"
+  //   >
+  //     {' '}
+  //     <path d="M 15 2 C 11.145666 2 8 5.1456661 8 9 L 8 11 L 6 11 C 4.895 11 4 11.895 4 13 L 4 25 C 4 26.105 4.895 27 6 27 L 24 27 C 25.105 27 26 26.105 26 25 L 26 13 C 26 11.895 25.105 11 24 11 L 22 11 L 22 9 C 22 5.2715823 19.036581 2.2685653 15.355469 2.0722656 A 1.0001 1.0001 0 0 0 15 2 z M 15 4 C 17.773666 4 20 6.2263339 20 9 L 20 11 L 10 11 L 10 9 C 10 6.2263339 12.226334 4 15 4 z" />
+  //   </svg>
+  // );
 
-  const securedWithIAMContent = (
-    <svg
-      xmlns="http://www.w3.org/2000/svg"
-      stroke="#00adef"
-      fill="#00adef"
-      strokeWidth="0"
-      viewBox="0 0 30 30"
-      width="15px"
-      height="15px"
-    >
-      {' '}
-      <path d="M 15 2 C 11.145666 2 8 5.1456661 8 9 L 8 11 L 6 11 C 4.895 11 4 11.895 4 13 L 4 25 C 4 26.105 4.895 27 6 27 L 24 27 C 25.105 27 26 26.105 26 25 L 26 13 C 26 11.895 25.105 11 24 11 L 22 11 L 22 9 C 22 5.2715823 19.036581 2.2685653 15.355469 2.0722656 A 1.0001 1.0001 0 0 0 15 2 z M 15 4 C 17.773666 4 20 6.2263339 20 9 L 20 11 L 10 11 L 10 9 C 10 6.2263339 12.226334 4 15 4 z" />
-    </svg>
-  );
-
-  const RestartContent = (
-    <div>
-      <h3>Are you sure you want to restart your deployed application?</h3>
-      <p>Note: Please refresh and check the application restart status under action audit logs.</p>
-    </div>
-  );
+  // const RestartContent = (
+  //   <div>
+  //     <h3>Are you sure you want to restart your deployed application?</h3>
+  //     <p>Note: Please refresh and check the application restart status under action audit logs.</p>
+  //   </div>
+  // );
 
   const migrateOrStartContent = (
     <div className={Styles.modalContentWrapper}>
@@ -426,49 +420,56 @@ const CodeSpaceCardItem = (props) => {
     </div>
   );
 
-  const onRestart = (env) => {
-    ProgressIndicator.show();
-    CodeSpaceApiClient.restartDeployments(codeSpace?.id, env)
-    .then((res) => {
-      if (res.data.success === 'SUCCESS') {
-        ProgressIndicator.hide();
-        Notification.show("Restart requested successfully")
-      } else {
-          ProgressIndicator.hide();
-          Notification.show('Error in Restarting deployed application. Please try again later.\n' + res?.data?.errors[0]?.message, 'alert');
-        }
-      })
-      .catch((err) => {
-        ProgressIndicator.hide();
-        Notification.show('Error in Restarting deployed application. Please try again later.\n' + err?.response?.data?.errors[0]?.message, 'alert');
-      });
-    setShowRestartModal(false);
-  }
+  // const onRestart = (env) => {
+  //   ProgressIndicator.show();
+  //   CodeSpaceApiClient.restartDeployments(codeSpace?.id, env)
+  //   .then((res) => {
+  //     if (res.data.success === 'SUCCESS') {
+  //       ProgressIndicator.hide();
+  //       Notification.show("Restart requested successfully")
+  //     } else {
+  //         ProgressIndicator.hide();
+  //         Notification.show('Error in Restarting deployed application. Please try again later.\n' + res?.data?.errors[0]?.message, 'alert');
+  //       }
+  //     })
+  //     .catch((err) => {
+  //       ProgressIndicator.hide();
+  //       Notification.show('Error in Restarting deployed application. Please try again later.\n' + err?.response?.data?.errors[0]?.message, 'alert');
+  //     });
+  //   setShowRestartModal(false);
+  // }
 
-  const onShowOnPremStartModal = (
-    <div>
-      <p>
-        Click on the Start button to start your workspace incase the link is inaccessible. If you have already started before then access your workspace through the link provided. Please note that the link may take some time to be accessible after the start.
-      </p>
-      <div className={Styles.manualStart}>
-        <div>
-          <button
-            className={classNames('btn btn-tertiary')}
-            onClick={() => {props.onStartStopCodeSpace(codeSpace, handleServerStatusAndProgress, 'DHC-CaaS', true);}}
-          >
-            Start your old workspace
-          </button>
-        </div>
-        <div><a target="_blank" href={Envs.CODESPACE_OIDC_POPUP_URL+"user/"+codeSpace?.workspaceOwner?.id.toLowerCase()+"/"+codeSpace?.workspaceId+"/?folder=/home/coder/app"} rel="noreferrer">Your old workspace URL</a></div>
-      </div>
-    </div>
-  );
+  // const onShowOnPremStartModal = (
+  //   <div>
+  //     <p>
+  //       Click on the Start button to start your workspace incase the link is inaccessible. If you have already started before then access your workspace through the link provided. Please note that the link may take some time to be accessible after the start.
+  //     </p>
+  //     <div className={Styles.manualStart}>
+  //       <div>
+  //         <button
+  //           className={classNames('btn btn-tertiary')}
+  //           onClick={() => {props.onStartStopCodeSpace(codeSpace, handleServerStatusAndProgress, 'DHC-CaaS', true);}}
+  //         >
+  //           Start your old workspace
+  //         </button>
+  //       </div>
+  //       <div><a target="_blank" href={Envs.CODESPACE_OIDC_POPUP_URL+"user/"+codeSpace?.workspaceOwner?.id.toLowerCase()+"/"+codeSpace?.workspaceId+"/?folder=/home/coder/app"} rel="noreferrer">Your old workspace URL</a></div>
+  //     </div>
+  //   </div>
+  // );
+
+  const handleDragStart = (e) => {
+    e.dataTransfer.setData("application/json", JSON.stringify(codeSpace));
+  }
 
   return (
     <>
       <div
         id={'card-' + codeSpace.id}
+        draggable={true}
+        ref={ref}
         key={codeSpace.id}
+        onDragStart={handleDragStart}
         className={classNames(Styles.codeSpaceCard, deleteInProgress || createInProgress ? Styles.disable : null)}
       >
         <div className={Styles.cardHead}>
@@ -479,7 +480,7 @@ const CodeSpaceCardItem = (props) => {
             )}
           >
             <div className={classNames('btn btn-text', Styles.cardHeadTitle)}>
-              <label onClick={onCardNameClick}>{projectDetails.projectName}</label>
+              <label onClick={onCardNameClick}>{projectDetails?.projectName}</label>
               {!enableOnboard && !creationFailed && serverStarted && (
                 <a
                   className={Styles.OpenNewTab}
@@ -503,7 +504,23 @@ const CodeSpaceCardItem = (props) => {
                 >
                   <i className="icon mbc-icon listItem context" />
                 </span>
-                <div
+                <ContextMenu
+                  codeSpace={props?.codeSpace}
+                  userInfo={props?.userInfo}
+                  showContextMenu={showContextMenu}
+                  // toggleContextMenu={toggleContextMenu}
+                  contextMenuOffsetTop={contextMenuOffsetTop}
+                  contextMenuOffsetLeft={contextMenuOffsetLeft}
+                  stagingWrapperRef={stagingWrapperRef}
+                  prodWrapperRef={prodWrapperRef}
+                  onShowDeployModal={props?.onShowDeployModal}
+                  serverStarted={serverStarted}
+                  onStartStopCodeSpace={props?.onStartStopCodeSpace}
+                  handleServerStatusAndProgress={handleServerStatusAndProgress}
+                  onShowBlueprintModal={props?.onShowBlueprintModal}
+                  onShowBuildModal={props?.onShowBuildModal}
+                />
+                {/*<div
                   style={{
                     top: contextMenuOffsetTop + 'px',
                     left: contextMenuOffsetLeft + 'px',
@@ -512,6 +529,15 @@ const CodeSpaceCardItem = (props) => {
                   className={classNames('contextMenuWrapper', Styles.contextMenu, showContextMenu ? '' : 'hide')}
                 >
                   <ul>
+                    <li>
+                      <span
+                        onClick={() => {
+                          props.onShowBlueprintModal(codeSpace);
+                        }}
+                      >
+                        Show Blueprint
+                      </span>
+                    </li>
                     <li>
                       <span
                         onClick={() => {
@@ -616,10 +642,7 @@ const CodeSpaceCardItem = (props) => {
                             </a>
                           </li>
                         )}
-                        {intDeployed && (
-                          <li>
-                            {intSecuredWithOneApi ? (
-                              <span className={classNames(Styles.oneAPILink)}>
+                        n className={classNames(Styles.oneAPILink)}>
                                 Deployed App URL (oneAPI) <i className="icon mbc-icon new-tab" />
                               </span>
                             ) : (
@@ -655,7 +678,10 @@ const CodeSpaceCardItem = (props) => {
                         )}
                         {intDeployed && (
                           <li>
-                            <span
+                            <sp{intDeployed && (
+                          <li>
+                            {intSecuredWithOneApi ? (
+                              <spaan
                               onClick={() => {setEnv("int"); setShowRestartModal(true);}}
                             >
                               Restart Deployed Application
@@ -791,7 +817,8 @@ const CodeSpaceCardItem = (props) => {
                       </>
                     )}
                   </ul>
-                </div>
+                </div>*/}
+                
               </div>
             )}
             {!enableOnboard && !creationFailed && !createInProgress && disableDeployment && serverStarted && (
@@ -816,11 +843,11 @@ const CodeSpaceCardItem = (props) => {
             </div>
             <div>
               <div>Environment</div>
-              <div>{(projectDetails.recipeDetails.cloudServiceProvider === 'DHC-CaaS-AWS' || enableOnboard) ? 'DyP-CaaS AWS' : 'DyP-CaaS On-Prem'}</div>
+              <div>{(projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' || enableOnboard) ? 'DyP-CaaS AWS' : 'DyP-CaaS On-Prem'}</div>
             </div>
             <div>
               <div>Created on</div>
-              <div>{regionalDateAndTimeConversionSolution(codeSpace?.projectDetails.projectCreatedOn)}</div>
+              <div>{regionalDateAndTimeConversionSolution(codeSpace?.projectDetails?.projectCreatedOn)}</div>
             </div>
             <div>
               <div>Owner</div>
@@ -1313,7 +1340,7 @@ const CodeSpaceCardItem = (props) => {
           )}
         </div>
       </div>
-      {showVaultManagementModal && (
+      {/* {showVaultManagementModal && (
         <Modal
           title={isStaging ? 'Secret Management - Staging' : 'Secret Management - Production'}
           hiddenTitle={false}
@@ -1329,15 +1356,15 @@ const CodeSpaceCardItem = (props) => {
           scrollableContent={true}
           onCancel={() => setShowVaultManagementModal(false)}
         />
-      )}
-      {showAuditLogsModal && (
+      )} */}
+      {/* {showAuditLogsModal && (
         <DeployAuditLogsModal
           deployedEnvInfo={isStaging ? 'Staging' : 'Production'}
           show={showAuditLogsModal}
           setShowAuditLogsModal={setShowAuditLogsModal}
           projectName={projectDetails.projectName.toLowerCase()}
         />
-      )}
+      )} */}
       <ConfirmModal
         title={''}
         acceptButtonTitle="Yes"
@@ -1365,7 +1392,7 @@ const CodeSpaceCardItem = (props) => {
         />
       )}
 
-      {showDoraMetricsModal && (
+      {/* {showDoraMetricsModal && (
         <Modal
           title={`DORA Metrics for ` + projectDetails.projectName}
           showAcceptButton={true}
@@ -1384,8 +1411,8 @@ const CodeSpaceCardItem = (props) => {
             width: '60%',
           }}
         />
-      )}
-      { showRestartModal && (
+      )} */}
+      {/* { showRestartModal && (
       <ConfirmModal
         title={''}
         acceptButtonTitle="Yes"
@@ -1402,8 +1429,7 @@ const CodeSpaceCardItem = (props) => {
           onRestart(env);
           setShowRestartModal(false);
         }}
-      />)}
-
+      />)} */}
       { showMigrateOrStartModal && (
         <ConfirmModal
           title={''}
@@ -1420,7 +1446,7 @@ const CodeSpaceCardItem = (props) => {
           onAccept={onMigrateWorkplace}
         />
       )}
-      {showOnPremStartModal && (
+      {/* {showOnPremStartModal && (
         <Modal
           title={'Manual Start'}
           showAcceptButton={false}
@@ -1436,8 +1462,11 @@ const CodeSpaceCardItem = (props) => {
           content={onShowOnPremStartModal}
           onCancel={() => setShowOnPremStartModal(false)}
         />
-      )}
+      )} */}
     </>
   );
-};
+});
+
+// Add a displayName for debugging
+CodeSpaceCardItem.displayName = 'CodeSpaceCardItem';
 export default CodeSpaceCardItem;

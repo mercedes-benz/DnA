@@ -1,4 +1,7 @@
-CREATE TABLE IF NOT EXISTS build_deploy_nsql (
+CREATE TABLE IF NOT EXISTS user_wsgroup_nsql (
     id text NOT NULL PRIMARY KEY,
     data jsonb NOT NULL
 );
+
+UPDATE workspace_nsql
+	SET data = data || '{"activeInGroup": false}'::jsonb;

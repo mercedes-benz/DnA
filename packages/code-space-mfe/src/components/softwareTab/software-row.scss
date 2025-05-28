@@ -1,0 +1,27 @@
+.actionColumn {
+  > div {
+    display: flex;
+    justify-content: flex-end;
+    padding-right: 14px;
+  }
+}
+.actionBtn{
+  background: unset;
+  border: unset;
+  padding: 0;
+  margin-left: 15px;
+  &:hover{
+    color: #00adef;
+    background: unset;
+  }
+}
+.chips {
+  margin: 4px;
+  padding: 8px 16px;
+}  
+.dataRow {
+  &:hover {
+    background-color: #333841;
+    cursor: pointer;
+  }
+}

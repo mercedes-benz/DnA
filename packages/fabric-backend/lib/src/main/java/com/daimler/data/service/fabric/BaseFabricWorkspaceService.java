@@ -424,7 +424,8 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 					FabricWorkspaceStatusVO currentStatus = new FabricWorkspaceStatusVO();
 					currentStatus.setState(ConstantsUtility.INPROGRESS_STATE);
 					String creatorId = vo.getCreatedBy().getId();
-					data.setStatus(this.processWorkspaceUserManagement(currentStatus, vo.getName(), creatorId,createResponse.getId(), vo.getCustomGroupName()));
+					data.setStatus(currentStatus);
+					//data.setStatus(this.processWorkspaceUserManagement(currentStatus, vo.getName(), creatorId,createResponse.getId(), vo.getCustomGroupName()));
 					FabricWorkspaceVO savedRecord = null;
 					try{
 						savedRecord = super.create(data);
