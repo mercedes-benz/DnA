@@ -198,8 +198,8 @@ const CodeSpace = (props) => {
   
     const resources = codeSpaceData?.projectDetails?.recipeDetails?.resource?.split(',');
     const resourceUsageUrl = Envs.MONITORING_DASHBOARD_BASE_URL + `codespace-cpu-and-memory-usage?orgId=1&from=now-1h&to=now&var-namespace=${Envs.CODESERVER_NAMESPACE}&var-pod=${codeSpaceData?.workspaceId}&var-container=notebook`;
-    const intAppResourceUsageUrl = Envs.MONITORING_DASHBOARD_APP_BASE_URL + `codespace-app-cpu-and-memory-usage?orgId=1&var-namespace=${Envs.CODESERVER_APP_NAMESPACE}&var-app=${codeSpaceData?.projectDetails?.projectName}-int&var-container=`;
-    const prodAppResourceUsageUrl = Envs.MONITORING_DASHBOARD_APP_BASE_URL + `codespace-app-cpu-and-memory-usage?orgId=1&var-namespace=${Envs.CODESERVER_APP_NAMESPACE}&var-app=${codeSpaceData?.projectDetails?.projectName}-prod&var-container=`;
+  const intAppResourceUsageUrl = Envs.MONITORING_DASHBOARD_APP_BASE_URL + `codespace-app-cpu-and-memory-usage?orgId=1&var-namespace=${Envs.CODESERVER_APP_NAMESPACE}&var-app=${codeSpaceData?.projectDetails?.projectName}-int&var-container=`;
+  const prodAppResourceUsageUrl = Envs.MONITORING_DASHBOARD_APP_BASE_URL + `codespace-app-cpu-and-memory-usage?orgId=1&var-namespace=${Envs.CODESERVER_APP_NAMESPACE}&var-app=${codeSpaceData?.projectDetails?.projectName}-prod&var-container=`;
 
     const intSecuredWithOneApi = codeSpaceData?.projectDetails?.intDeploymentDetails?.oneApiVersionShortName?.length || false;
     const prodSecuredWithOneApi = codeSpaceData?.projectDetails?.prodDeploymentDetails?.oneApiVersionShortName?.length || false;

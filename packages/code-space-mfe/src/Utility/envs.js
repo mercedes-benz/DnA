@@ -44,4 +44,5 @@ const getInjectedEnv = (key) => {
     ONE_API_URL: getInjectedEnv('ONE_API_URL') || process.env.ONE_API_URL,
     CODESPACE_DEPLOYMENT_URL: getInjectedEnv('CODESPACE_DEPLOYMENT_URL') || process.env.CODESPACE_DEPLOYMENT_URL,
     CODESPACE_AWS_DEPLOYMENT_URL: getInjectedEnv('CODESPACE_AWS_DEPLOYMENT_URL') || process.env.CODESPACE_AWS_DEPLOYMENT_URL,
+    CODESPACE_EMAIL_LINK: getInjectedEnv('CODESPACE_EMAIL_LINK') || process.env.CODESPACE_EMAIL_LINK,
   };
