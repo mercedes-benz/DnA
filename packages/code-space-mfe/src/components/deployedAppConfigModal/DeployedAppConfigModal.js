@@ -9,6 +9,8 @@ import { CodeSpaceApiClient } from '../../apis/codespace.api';
 import { Envs } from '../../Utility/envs';
 
 import Styles from './DeployedAppConfigModal.scss';
+import { ProgressIndicator } from '../../common/modules/uilab/bundle/js/uilab.bundle';
+import Notification from '../../common/modules/uilab/js/src/notification';
 
 const DeployedAppConfigModal = (props) => {
   const [deploymentType, setDeploymentType] = useState(props?.deploymentDetails?.deploymentType || 'API');
@@ -24,14 +26,15 @@ const DeployedAppConfigModal = (props) => {
   const [clientSecretError, setClientSecretError] = useState('');
   const [redirectUriError, setRedirectUriError] = useState('');
 
-  const [disableIAM, setDisableIAM] = useState(true);
+  // const [disableIAM, setDisableIAM] = useState(true);
   const [resetRequired, setResetRequired] = useState(false);
   const [changeSelected, setChangeSelected] = useState(false);
   const [clientSecret, setClientSecret] = useState('');
   const [ignorePath, setIgnorePath] = useState([]);
   const [redirectUri, setRedirectUri] = useState('');
   const [scope, setScope] = useState(['openid', 'offline_access']);
-  const [ssoType, setSsoType] = useState(props?.deploymentDetails?.ssoType === 'prod' ? 'prod' : 'int');
+  const [ssoType, setSsoType] = useState(props?.deploymentDetails?.ssoType === 'SSO_PROD' ? 'SSO_PROD' : 'SSO_INT');
+  const [pluginEnabled, setPluginEnabled] = useState(true);
 
   const ignorePaths = [
     { id: '1', name: '/favicon.ico' },
@@ -61,24 +64,48 @@ const DeployedAppConfigModal = (props) => {
 
   useEffect(() => {
     Tooltip.defaultSetup();
-    let appId;
-    let entitlements;
+    setCookieSelected(false);//remove once cookie enabled
+    // let appId;
+    // let entitlements;
     // ProgressIndicator.show();
-    CodeSpaceApiClient.getPublishedConfig(props?.workspaceId, props?.isStaging ? 'int' : 'prod').then((res) => {
-      appId = res.data.appID || '';
-      entitlements = res.data.entitlements || [];
-      appId.length !== 0 && entitlements.length !== 0 ? setDisableIAM(false) : setDisableIAM(true);
-    });
+    // CodeSpaceApiClient.getPublishedConfig(props?.workspaceId, props?.isStaging ? 'int' : 'prod')
+    //   .then((res) => {
+    //     appId = res.data.appID || '';
+    //     entitlements = res.data.entitlements || [];
+    //     appId.length !== 0 && entitlements.length !== 0 ? setDisableIAM(false) : setDisableIAM(true);
+    //   })
+    //   .catch((err) => {
+    //     ProgressIndicator.hide();
+    //     Notification.show(
+    //       'Error in fetching published config. Please try again later.\n' +
+    //         err?.response?.data?.errors[0]?.message,
+    //       'alert',
+    //     );
+    //   });
     const env = props?.isStaging ? 'int' : 'prod';
     setRedirectUri(
       props?.deploymentDetails?.redirectUri
-        ? `${envUrl}/${props?.deploymentDetails?.redirectUri}`
+        ? `${envUrl}${props?.deploymentDetails?.redirectUri}`
         : props?.deploymentDetails?.deploymentType === 'UI'
-          ? `${envUrl}/${props?.projectName}/${env}/cb`
-          : '',
+        ? `${envUrl}/${props?.projectName}/${env}/cb`
+        : '',
     );
     props?.deploymentDetails?.ignorePaths?.length && setIgnorePath(props?.deploymentDetails?.ignorePaths?.split(','));
     props?.deploymentDetails?.scope?.length && setScope(props?.deploymentDetails?.scope?.split(' '));
+    props?.deploymentDetails?.secureWithIAMRequired && 
+      CodeSpaceApiClient.getPluginStatus(props?.workspaceId, props?.isStaging ? 'int' : 'prod', 'OIDC_PLUGIN')
+        .then((res) => {
+          console.log('here');
+          setPluginEnabled(res?.data?.enabled || false);
+        })
+        .catch((err) => {
+          ProgressIndicator.hide();
+          // Notification.show(
+          //   'Error in fetching OIDC plugin status. Please try again later.\n' + err?.response?.data?.errors[0]?.message,
+          //   'alert',
+          // );
+          Notification.show('Error in fetching plugin status. Please try again later.','alert');
+        });
     return Tooltip.clear();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -123,7 +150,7 @@ const DeployedAppConfigModal = (props) => {
     } else {
       setClientId(props?.deploymentDetails?.clientId || '');
       setRedirectUri(
-        props?.deploymentDetails?.redirectUri ? `${envUrl}/${props?.deploymentDetails?.redirectUri}` : redirectUri,
+        props?.deploymentDetails?.redirectUri ? `${envUrl}${props?.deploymentDetails?.redirectUri}` : redirectUri,
       );
       props?.deploymentDetails?.ignorePaths?.length && setIgnorePath(props?.deploymentDetails?.ignorePaths?.split(','));
       props?.deploymentDetails?.scope?.length && setScope(props?.deploymentDetails?.scope?.split(' '));
@@ -150,9 +177,8 @@ const DeployedAppConfigModal = (props) => {
 
   const onSaveConfig = () => {
     let formValid = true;
-    const secureWithIAMValidation = secureWithIAMSelected &&
-      ((!props?.deploymentDetails?.secureWithIAMRequired ||
-        changeSelected || resetRequired));
+    const secureWithIAMValidation =
+      secureWithIAMSelected && (!props?.deploymentDetails?.secureWithIAMRequired || changeSelected || resetRequired);
     if (secureWithIAMValidation && clientId.length === 0) {
       formValid = false;
       setClientIdError('*Missing Entry');
@@ -165,7 +191,10 @@ const DeployedAppConfigModal = (props) => {
       formValid = false;
       setRedirectUriError('*Missing Entry');
     }
-    if (ignorePath.length !== 0 && ignorePath.some(item => item.endsWith('/') || item.includes(' ') || !item.startsWith('/'))) {
+    if (
+      ignorePath.length !== 0 &&
+      ignorePath.some((item) => item.endsWith('/') || item.includes(' ') || !item.startsWith('/'))
+    ) {
       formValid = false;
     }
     if (oneApiSelected && oneApiVersionShortName?.length === 0) {
@@ -177,17 +206,65 @@ const DeployedAppConfigModal = (props) => {
         secureWithIAMRequired: secureWithIAMSelected,
         clientID: secureWithIAMSelected ? clientId : '',
         clientSecret: clientSecret,
-        redirectUri: (secureWithIAMSelected && deploymentType === 'UI' && redirectUri?.length) ? redirectUri?.split(envUrl)[1] : '',
+        redirectUri:
+          secureWithIAMSelected && deploymentType === 'UI' && redirectUri?.length ? redirectUri?.split(envUrl)[1] : '',
         ignorePaths: secureWithIAMSelected && ignorePath?.length ? ignorePath?.join(',') : '',
         scope: secureWithIAMSelected ? scope?.join(' ') : '',
         isApiRecipe: deploymentType === 'API',
         oneApiVersionShortName: oneApiSelected ? oneApiVersionShortName : '',
-        isSecuredWithCookie: (secureWithIAMSelected && deploymentType === 'API' && cookieSelected) || false,
+        // isSecuredWithCookie: (secureWithIAMSelected && deploymentType === 'API' && cookieSelected) || false,
+        isSecuredWithCookie: false,
         ssoType: secureWithIAMSelected ? ssoType : '',
       };
-      console.log("save ", configRequest);
+      ProgressIndicator.show();
+      CodeSpaceApiClient.updateDeployedAppConfig(props?.workspaceId, configRequest)
+        .then((res) => {
+          ProgressIndicator.hide();
+          if (res?.data?.success === 'SUCCESS') {
+            Notification.show(`Code space '${props?.projectName}' updated successfully. Please Refresh.`);
+          } else {
+            Notification.show(
+              'Error in updating deployed app config. Please try again later.\n' + res?.data?.errors[0]?.message,
+              'alert',
+            );
+          }
+        })
+        .catch((err) => {
+          ProgressIndicator.hide();
+          Notification.show(
+            'Error in updating deployed app config. Please try again later.\n' +
+              err?.response?.data?.errors[0]?.message,
+            'alert',
+          );
+        });
     }
   };
+
+  const onPluginStatusChange = () => {
+    ProgressIndicator.show();
+    CodeSpaceApiClient.updatePluginStatus(props?.workspaceId, props?.isStaging ? 'int' : 'prod', 'OIDC_PLUGIN', !pluginEnabled)
+      .then((res) => {
+        if (res?.data?.success === 'SUCCESS') {
+          Notification.show(`Oidc plugin updated successfully`);
+          setPluginEnabled(!pluginEnabled);
+        } else {
+          // Notification.show(
+          //   'Error in updating deployed app config. Please try again later.\n' + res?.data?.errors[0]?.message,
+          //   'alert',
+          // );
+          Notification.show('Error in updating OIDC plugin','alert',);
+        }
+      })
+      .catch((err) => {
+        ProgressIndicator.hide();
+        // Notification.show(
+        //   'Error in updating deployed app config. Please try again later.\n' +
+        //     err?.response?.data?.errors[0]?.message,
+        //   'alert',
+        // );
+        Notification.show('Error in updating OIDC Plugin. Please try again later.','alert',);
+      });
+  }
 
   return (
     <React.Fragment>
@@ -233,6 +310,27 @@ const DeployedAppConfigModal = (props) => {
             </label>
           </div>
         </div>
+        {props?.deploymentDetails?.secureWithIAMRequired && !changeSelected && !resetRequired && secureWithIAMSelected && (
+          <div className={classNames(Styles.pluginStatus)}>
+            <div className={Styles.infoIcon}>
+              <label className={classNames('switch', pluginEnabled ? 'on' : '')}>
+                <span className="label" style={{ marginRight: '5px' }}>
+                  OIDC plugin enabled
+                </span>
+                <span className="wrapper">
+                  <input
+                    value={pluginEnabled}
+                    type="checkbox"
+                    className="ff-only"
+                    onChange={onPluginStatusChange}
+                    checked={pluginEnabled}
+                    maxLength={63}
+                  />
+                </span>
+              </label>
+            </div>
+          </div>
+        )}
         <div className={classNames(Styles.wrapper)}>
           <div className={classNames(Styles.credentialsFlexLayout)}>
             <div>
@@ -291,8 +389,8 @@ const DeployedAppConfigModal = (props) => {
                         checked={oneApiSelected}
                         onChange={onChangeOpenApi}
                         disabled={secureWithIAMSelected}
-                      // disabled={projectDetails?.intDeploymentDetails?.secureWithIAMRequired}
-                      // disabled={disableIntIAM && !projectDetails?.intDeploymentDetails?.secureWithIAMRequired}
+                        // disabled={projectDetails?.intDeploymentDetails?.secureWithIAMRequired}
+                        // disabled={disableIntIAM && !projectDetails?.intDeploymentDetails?.secureWithIAMRequired}
                       />
                     </span>
                     <span className={classNames('label', secureWithIAMSelected ? Styles.disableText : '')}>
@@ -312,13 +410,17 @@ const DeployedAppConfigModal = (props) => {
             //     <i className="icon mbc-icon alert circle"></i> You can configure your authorization config <a target="_blank" rel="noreferrer" onClick={props?.navigateSecurityConfig}>here</a>.
             //   </p>
             // </span>
-            <span className={classNames(Styles.configLink, Styles.align, disableIAM && secureWithIAMSelected ? '' : 'hide')} onClick={props?.navigateSecurityConfig}>
+            <span
+              className={classNames(Styles.configLink, Styles.align, props?.deploymentDetails?.secureWithIAMRequired ? '' : 'hide')}
+              // className={classNames(Styles.configLink, Styles.align, disableIAM && secureWithIAMSelected ? '' : 'hide')}
+              onClick={props?.navigateSecurityConfig}
+            >
               <a target="_blank" rel="noreferrer">
                 Configure your authorization config
               </a>
             </span>
           )}
-          {secureWithIAMSelected && !isUiRecipe && (
+          {/* {secureWithIAMSelected && !isUiRecipe && (
             <div className={classNames(Styles.align, Styles.flexLayout)}>
               <div className={Styles.infoIcon}>
                 <label className={classNames('switch', cookieSelected ? 'on' : '')}>
@@ -347,7 +449,7 @@ const DeployedAppConfigModal = (props) => {
                 </label>
               </div>
             </div>
-          )}
+          )} */}
         </div>
         {(!props?.deploymentDetails?.secureWithIAMRequired || changeSelected || resetRequired) &&
           secureWithIAMSelected && (
@@ -362,34 +464,30 @@ const DeployedAppConfigModal = (props) => {
                       <input
                         type="radio"
                         className="ff-only"
-                        value="int"
+                        value="SSO_INT"
                         name="ssoType"
                         onChange={(e) => {
                           setSsoType(e.currentTarget.value.trim());
                         }}
-                        checked={ssoType === 'int'}
+                        checked={ssoType === 'SSO_INT'}
                       />
                     </span>
-                    <span className="label">
-                      MB SSO int
-                    </span>
+                    <span className="label">MB SSO int</span>
                   </label>
                   <label className={classNames('radio')}>
                     <span className="wrapper">
                       <input
                         type="radio"
                         className="ff-only"
-                        value="prod"
+                        value="SSO_PROD"
                         name="ssoType"
                         onChange={(e) => {
                           setSsoType(e.currentTarget.value.trim());
                         }}
-                        checked={ssoType === 'prod'}
+                        checked={ssoType === 'SSO_PROD'}
                       />
                     </span>
-                    <span className="label">
-                      MB SSO prod
-                    </span>
+                    <span className="label">MB SSO prod</span>
                   </label>
                 </div>
               </div>
@@ -524,11 +622,7 @@ const DeployedAppConfigModal = (props) => {
           </div>
         )}
         <div className={Styles.saveButton}>
-          <button
-            className={'btn btn-tertiary'}
-            type="button"
-            onClick={onSaveConfig}
-          >
+          <button className={'btn btn-tertiary'} type="button" onClick={onSaveConfig}>
             Save
           </button>
         </div>

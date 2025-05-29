@@ -77,6 +77,24 @@ const rejectDeployApproval = (id) => {
         data: {},
     });
 };
+
+const updateDeployedAppConfig = (id, data) => {
+    return server.post(`workspaces/${id}/deployed-app-config`,
+        data,
+    );
+};
+
+const getPluginStatus = (id, env, pluginName) => {
+    return server.get(`workspaces/${id}/pluginStatus?env=${env}?pluginName=${pluginName}`,{
+        data: {},
+    });
+};
+
+const updatePluginStatus = (id, env, pluginName, enable) => {
+    return server.get(`workspaces/${id}/pluginStatus?env=${env}?pluginName=${pluginName}?enable=${enable}`,{
+        data: {},
+    });
+};
   
 const onBoardCollaborator = (id, data) => { 
     return server.put(`workspaces/${id}`, 
@@ -333,6 +351,9 @@ export const CodeSpaceApiClient = {
     getBuildAndDeployLogs,
     buildVersionLov,
     rejectDeployApproval,
+    updateDeployedAppConfig,
+    getPluginStatus,
+    updatePluginStatus,
     onBoardCollaborator,
     addCollaborator,
     deleteCollaborator,
