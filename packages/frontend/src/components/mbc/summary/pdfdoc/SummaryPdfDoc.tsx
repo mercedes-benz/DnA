@@ -68,7 +68,7 @@ import { Envs } from 'globals/Envs';
 import { getDateTimeFromTimestamp, regionalForMonthAndYear } from '../../../../services/utils';
 import { ICreateNewSolutionData } from '../../createNewSolution/CreateNewSolution';
 import { IntlProvider, FormattedNumber } from 'react-intl';
-import { filter } from 'lodash';
+// import { filter } from 'lodash';
 
 Font.register({
   family: 'Roboto-Regular',
@@ -781,11 +781,6 @@ interface SummaryPdfDocProps {
 }
 export const SummaryPdfDoc = (props: SummaryPdfDocProps) => {
 
-  const specificName = 'DNA Internal Notebook';
-   const filteredValue = props.solution?.portfolio?.platforms?.filter(
-    platform => platform.name !== specificName
-  );
-  const hasFilteredPlatforms = filteredValue && filteredValue.length > 0;
   return(
   // @ts-ignore
   <Document>
@@ -959,7 +954,7 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => {
               </View>
               <View style={styles.flexCol4}>
                 <Text style={styles.sectionTitle}>Usage Of {Envs.DNA_COMPANY_NAME} Platforms</Text>
-                {props.solution.portfolio.usesExistingInternalPlatforms && hasFilteredPlatforms ? (
+                {props.solution.portfolio.usesExistingInternalPlatforms  ? (
                   <Text style={{ paddingLeft: 13 }}>
                     <Image src={ImgTick} style={{ width: 15 }} />
                   </Text>
@@ -976,7 +971,7 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => {
                         </View>
                         <View>
                           <Text style={[styles.sectionTitle, { marginBottom: 2 }]}>
-                            {(props.dnaNotebookEnabled && props.noteBookInfo.name) ||
+                            {(props.dnaNotebookEnabled && props.noteBookInfo.projectDetails.projectName) ||
                               (props.dnaDataIkuProjectEnabled && (
                                 <Link
                                   src={
@@ -997,7 +992,7 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => {
                           </Text>
                           <View>
                             <Text>
-                              {(props?.dnaNotebookEnabled && props?.noteBookInfo?.createdOn) ||
+                              {(props?.dnaNotebookEnabled && props?.noteBookInfo?.projectDetails?.prodDeploymentDetails?.projectCreatedOn) ||
                                 (props?.dnaDataIkuProjectEnabled && props?.dataIkuInfo?.creationTag?.lastModifiedOn)
                                 ? `Created on ${getDateFromTimestamp(
                                   (props.dnaNotebookEnabled && props.noteBookInfo.createdOn) ||
@@ -1005,14 +1000,14 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => {
                                   '.',
                                 )}`
                                 : ''}{' '}
-                              {(props.dnaNotebookEnabled &&
-                                props.noteBookInfo.createdBy.firstName &&
-                                'by ' + props.dataIkuInfo?.ownerDisplayName) ||
+                              {props.dnaNotebookEnabled ? 
+                                'by ' + props.noteBookInfo.projectDetails.projectOwner.firstName  :
+                                'by ' + props.dataIkuInfo?.ownerDisplayName ||
                                 props.dataIkuInfo?.ownerLogin ||
                                 ''}
                             </Text>
                             <Text>
-                              {(props.dnaNotebookEnabled && props.noteBookInfo.description) ||
+                              {(props.dnaNotebookEnabled && props.noteBookInfo.projectDetails?.dataGovernance?.description) ||
                                 (props.dnaDataIkuProjectEnabled && props.dataIkuInfo.shortDesc)}
                             </Text>
                           </View>
@@ -1024,7 +1019,7 @@ export const SummaryPdfDoc = (props: SummaryPdfDocProps) => {
               </View>
               <View style={styles.flexCol4}>
                 <Text style={styles.sectionTitle}>Platform</Text>
-                {props.solution.portfolio.platforms && props.solution.portfolio.platforms.length > 0 && hasFilteredPlatforms ? (
+                {props.solution.portfolio.platforms && props.solution.portfolio.platforms.length > 0 ? (
                   processDataValuesFromObj(props.solution.portfolio.platforms)
                 ) : (
                   <Text>NA</Text>

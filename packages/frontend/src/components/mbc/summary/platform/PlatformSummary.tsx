@@ -6,6 +6,7 @@ import Styles from './PlatformSummary.scss';
 const classNames = cn.bind(Styles);
 import { getDataikuInstanceTag, getDateFromTimestamp } from '../../../../services/utils';
 import { Envs } from 'globals/Envs';
+import { history } from '../../../..//router/History';
 
 export interface ITeamProps {
   portfolio: IPortfolio;
@@ -17,11 +18,10 @@ export interface ITeamProps {
 }
 
 export default function PlatformSummary(props: ITeamProps) {
-  const filteredPlatforms = props.portfolio?.platforms?.filter(p => p.name !== "DNA Internal Notebook");
   const platformChips =
-    filteredPlatforms && filteredPlatforms.length > 0
-      ? filteredPlatforms.map((chip: any, index: any) => {
-          const lastIndex: boolean = index === filteredPlatforms.length - 1;
+  props.portfolio?.platforms && props.portfolio?.platforms.length > 0
+      ? props.portfolio?.platforms.map((chip: any, index: any) => {
+          const lastIndex: boolean = index === props.portfolio?.platforms.length - 1;
           return (
             <React.Fragment key={index}>
               {chip.name}&nbsp;{!lastIndex && `\u002F\xa0`}
@@ -30,7 +30,7 @@ export default function PlatformSummary(props: ITeamProps) {
         })
       : 'NA';
   const solOnCloud = props.portfolio?.solutionOnCloud ? <IconTick /> : 'NA';
-  const usageOfDaimler = props.portfolio?.usesExistingInternalPlatforms && filteredPlatforms && filteredPlatforms.length > 0 ? <IconTick /> : 'NA';
+  const usageOfDaimler = props.portfolio?.usesExistingInternalPlatforms  ? <IconTick /> : 'NA';
   return (
     <React.Fragment>
       <div className={classNames(Styles.flexLayout, Styles.mainPanel, 'mainPanelSection')}>
@@ -57,7 +57,19 @@ export default function PlatformSummary(props: ITeamProps) {
                     </div>
                     <div className={Styles.jupeterCardContent}>
                       <h6>
-                        {(props.dnaNotebookEnabled && props.noteBookInfo.name) ||
+                        {(props.dnaNotebookEnabled && (
+                     <a
+                     className={Styles.goToLink}
+                     title="Go to notebook"
+                     onClick={(e) => {
+                       e.preventDefault();
+                       history.push(`/codespaces/codespace/${props.noteBookInfo.workspaceId}`);
+                     }}
+                     href={`/codespaces/codespace/${props.noteBookInfo.id}`} 
+                   >
+                     {props.noteBookInfo.projectDetails?.projectName}
+                   </a>
+                  )) ||
                           (props.dnaDataIkuProjectEnabled && (
                             <a
                               href={props.dataIkuInfo?.cloudProfile?.toLowerCase().includes('extollo')
@@ -72,17 +84,19 @@ export default function PlatformSummary(props: ITeamProps) {
                         {props.dnaDataIkuProjectEnabled && <>{' '}({getDataikuInstanceTag(props.dataIkuInfo?.cloudProfile)})</>}
                       </h6>
                       <label>
-                        {(props?.dnaNotebookEnabled && props?.noteBookInfo.createdOn) ||
+                        {(props?.dnaNotebookEnabled && props?.noteBookInfo.projectDetails?.prodDeploymentDetails?.projectCreatedOn) ||
                           (props?.dnaDataIkuProjectEnabled && props?.dataIkuInfo?.creationTag?.lastModifiedOn) ?
                           `Created on ${getDateFromTimestamp(
-                            (props.dnaNotebookEnabled && props.noteBookInfo.createdOn) ||
+                            (props.dnaNotebookEnabled && props.noteBookInfo.projectDetails?.prodDeploymentDetails?.projectCreatedOn) ||
                             (props.dnaDataIkuProjectEnabled && props.dataIkuInfo.creationTag?.lastModifiedOn),
                             '.',
                           )}` : ''}{' '}
-                        {props.dnaNotebookEnabled && props.noteBookInfo.createdBy.firstName && 'by ' + props.dataIkuInfo?.ownerDisplayName || props.dataIkuInfo?.ownerLogin || ''}
+                        {props.dnaNotebookEnabled 
+                          ? 'by ' + props.noteBookInfo.projectDetails.projectOwner.firstName + ' ' + props.noteBookInfo.projectDetails.projectOwner.lastName
+                         : props.dataIkuInfo?.ownerDisplayName || props.dataIkuInfo?.ownerLogin || ''}
                       </label>
                       <div className={Styles.JuperterCardDesc}>
-                        {(props.dnaNotebookEnabled && props.noteBookInfo.description) ||
+                        {(props.dnaNotebookEnabled && props.noteBookInfo.projectDetails?.dataGovernance?.description) ||
                           (props.dnaDataIkuProjectEnabled && props.dataIkuInfo.shortDesc)}
                       </div>
                     </div>

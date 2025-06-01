@@ -9,6 +9,7 @@ import { attachEllipsis } from '../../../../services/utils';
 import { Envs } from 'globals/Envs';
 import { DataFormater } from '../../../../services/utils';
 import { TOTAL_LOCATIONS_COUNT } from 'globals/constants';
+import { CodeSpaceApiClient } from '../../../../../src/services/CodeSpaceApiClient';
 
 const classNames = cn.bind(Styles);
 
@@ -31,11 +32,6 @@ const goToSummary = (solutionId: string) => {
   };
 };
 
-// const goTonotebook = (event: any) => {
-//   history.push('/notebook/');
-//   event.stopPropagation();
-// };
-
 let isTouch = false;
 
 const SolutionCardItem = (props: ISolutionCardItemProps) => {
@@ -45,6 +41,7 @@ const SolutionCardItem = (props: ISolutionCardItemProps) => {
   const [showLocationsContextMenu, setShowLocationsContextMenu] = useState<boolean>(false);
   const [contextMenuOffsetTop, setContextMenuOffsetTop] = useState<number>(0);
   const [contextMenuOffsetLeft, setContextMenuOffsetLeft] = useState<number>(0);
+  const [selectedNotebook, setSelectedNotebook] = useState<any | null>(null);
 
   const handleContextMenuOutside = (event: MouseEvent | TouchEvent) => {
     if (event.type === 'touchend') {
@@ -110,6 +107,11 @@ const SolutionCardItem = (props: ISolutionCardItemProps) => {
     };
   }, []);
 
+  useEffect(() => {
+    getWorkspaceByID();
+
+  }, [solution?.portfolio?.dnaNotebookId])
+
   const toggleContextMenu = (e: React.FormEvent<HTMLSpanElement>) => {
     e.stopPropagation();
     setContextMenuOffsetTop(e.currentTarget.offsetTop - 10);
@@ -149,6 +151,20 @@ const SolutionCardItem = (props: ISolutionCardItemProps) => {
     setShowContextMenu(false);
     props.updateBookmark(props.solutionId, true);
   };
+
+  const getWorkspaceByID = async () => {
+    try {
+      const res = await CodeSpaceApiClient.getWorkspaceById(solution?.portfolio?.dnaNotebookId);
+      if (res) {
+        setSelectedNotebook({
+          WorkspaceId: res?.workspaceId
+        });
+      }
+    } catch (err) {
+      console.error("Failed to fetch workspace:", err);
+    }
+  };
+  
   return (
     <div id={'card-' + solution.id} key={solution.id} className={Styles.solCard}>
       <div className={Styles.solHead} onClick={goToSummary(solution.id)}>
@@ -293,10 +309,12 @@ const SolutionCardItem = (props: ISolutionCardItemProps) => {
         <div className={Styles.solInfo}>{attachEllipsis(solution.description, 125)}</div>
         <div className={Styles.solLink}>
           <div>
-            {/* {solution.portfolio?.dnaNotebookId != null && (
+            {solution.portfolio?.dnaNotebookId != null && (
               <React.Fragment>
-                {props.noteBookData?.solutionId === solution.id ? (
-                  <label className={Styles.goToLink} title="Go to notebook" onClick={goTonotebook}>
+                { solution.portfolio?.dnaNotebookId != null && selectedNotebook?.WorkspaceId ? (
+                  <label className={Styles.goToLink} title="Go to notebook" onClick={() =>{
+                    (history.push(`/codespaces/codespace/${selectedNotebook.WorkspaceId}`))
+                    }}>
                     <i className="icon mbc-icon jupyter" />
                   </label>
                 ) : (
@@ -305,7 +323,7 @@ const SolutionCardItem = (props: ISolutionCardItemProps) => {
                   </label>
                 )}
               </React.Fragment>
-            )} */}
+            )}
             {solution.portfolio?.dnaDataikuProjectId !== null && (
               <a
                 href={Envs.DATAIKU_LIVE_APP_URL + '/projects/' + solution.portfolio?.dnaDataikuProjectId + '/'}
