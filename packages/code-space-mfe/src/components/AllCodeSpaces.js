@@ -95,15 +95,16 @@ const AllCodeSpaces = (props) => {
     };
 
     useEffect(() => {
+        setShowAWSWarningModal(Envs.SHOW_AWS_MIGRATION_WARNING);
         getCodeSpacesData();
         getCodeSpaceGroupsData();
-        if(recipeName?.length > 0){
+    }, []);
+
+    useEffect(() => {
+        if(!loading && !groupLoading && recipeName?.length > 0){
             setShowNewCodeSpaceModal(true);
         }
-        else{
-            setShowAWSWarningModal(Envs.SHOW_AWS_MIGRATION_WARNING);
-        }
-    }, []);
+    },[loading, groupLoading]);
 
     useEffect(() => {
         Tooltip.defaultSetup();
@@ -169,6 +170,9 @@ const AllCodeSpaces = (props) => {
         if (onEditCodeSpace) {
             getCodeSpacesData();
             getCodeSpaceGroupsData();
+        }
+        if(recipeName?.length > 0){
+            sessionStorage.removeItem('navigateCodespaceRecipe');
         }
         setShowNewCodeSpaceModal(false);
         setShowAWSWarningModal(Envs.SHOW_AWS_MIGRATION_WARNING);
