@@ -1,5 +1,5 @@
 import classNames from 'classnames';
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, forwardRef } from 'react';
 import Styles from './CodeSpaceCardItem.scss';
 import {
   // recipesMaster,
@@ -44,7 +44,7 @@ import Tooltip from '../../common/modules/uilab/js/src/tooltip';
 
 let isTouch = false;
 
-const CodeSpaceCardItem = (props) => {
+const CodeSpaceCardItem = forwardRef((props, ref) => {
   let codeSpace = props.codeSpace;
   // const collaborationCodeSpace = codeSpace.projectDetails.projectCollaborators?.find((user: ICodeCollaborator) => user.id === props.userInfo.id);
   const enableOnboard = codeSpace ? codeSpace.status === 'COLLABORATION_REQUESTED' : false;
@@ -340,8 +340,8 @@ const CodeSpaceCardItem = (props) => {
   };
 
   const projectDetails = codeSpace?.projectDetails;
-  const intDeploymentDetails = projectDetails.intDeploymentDetails;
-  const prodDeploymentDetails = projectDetails.prodDeploymentDetails;
+  const intDeploymentDetails = projectDetails?.intDeploymentDetails;
+  const prodDeploymentDetails = projectDetails?.prodDeploymentDetails;
   const intDeployedUrl = intDeploymentDetails?.deploymentUrl;
   // const intLastDeployedOn = intDeploymentDetails?.lastDeployedOn;
   const prodDeployedUrl = prodDeploymentDetails?.deploymentUrl;
@@ -353,7 +353,7 @@ const CodeSpaceCardItem = (props) => {
     intDeploymentDetails?.lastDeploymentStatus === 'DEPLOYED' ||
     (intDeployedUrl !== null && intDeployedUrl !== 'null') ||
     false;
-  const intCodeDeployFailed = intDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
+  const intCodeDeployFailed = intDeploymentDetails?.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
   const intLastDeployedTime = new Date(
     // regionalDateAndTimeConversionSolution(
       intDeploymentDetails?.lastDeploymentStatus === 'DEPLOYED'
@@ -367,7 +367,7 @@ const CodeSpaceCardItem = (props) => {
     prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOYED' ||
     (prodDeployedUrl !== null && prodDeployedUrl !== 'null') ||
     false;
-  const prodCodeDeployFailed = prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
+  const prodCodeDeployFailed = prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
   const prodLastDeployedTime = new Date(
     // regionalDateAndTimeConversionSolution(
       prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOYED'
@@ -379,7 +379,7 @@ const CodeSpaceCardItem = (props) => {
   ).getTime();
   const deployed = intDeployed || prodDeployed || prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED' || intDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
   const allowDelete = codeSpace?.projectDetails?.projectOwner?.id === props.userInfo.id ? !hasCollaborators : true;
-  const isPublicRecipe = projectDetails.recipeDetails?.recipeId?.startsWith('public');
+  const isPublicRecipe = projectDetails?.recipeDetails?.recipeId?.startsWith('public');
   // const isAPIRecipe =
   //   props.codeSpace.projectDetails.recipeDetails.recipeId === 'springboot' ||
   //   props.codeSpace.projectDetails.recipeDetails.recipeId === 'py-fastapi' ||
@@ -391,11 +391,11 @@ const CodeSpaceCardItem = (props) => {
   //   props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'nestjs' ||
   //   props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'springbootwithmaven' ;
 
-  const isIAMRecipe =
-    props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'springboot' ||
-    props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'py-fastapi' ||
-    props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'expressjs' ||
-    props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'springbootwithmaven' ;
+  // const isIAMRecipe =
+  //   props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'springboot' ||
+  //   props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'py-fastapi' ||
+  //   props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'expressjs' ||
+  //   props.codeSpace.projectDetails?.recipeDetails?.recipeId === 'springbootwithmaven' ;
 
   const resources = projectDetails?.recipeDetails?.resource?.split(',');
 
@@ -405,6 +405,9 @@ const CodeSpaceCardItem = (props) => {
 
   const intDeploymentMigrated = codeSpace?.projectDetails?.intDeploymentDetails?.deploymentUrl?.includes(Envs.CODESPACE_AWS_POPUP_URL);
   const prodDeploymentMigrated = codeSpace?.projectDetails?.prodDeploymentDetails?.deploymentUrl?.includes(Envs.CODESPACE_AWS_POPUP_URL);
+
+  const intSecuredWithOneApi = projectDetails?.intDeploymentDetails?.oneApiVersionShortName?.length || false;
+  const prodSecuredWithOneApi = projectDetails?.prodDeploymentDetails?.oneApiVersionShortName?.length || false;
 
   const securedWithIAMContent = (
     <svg
@@ -477,11 +480,18 @@ const CodeSpaceCardItem = (props) => {
     </div>
   );
 
+  const handleDragStart = (e) => {
+    e.dataTransfer.setData("application/json", JSON.stringify(codeSpace));
+  }
+
   return (
     <>
       <div
         id={'card-' + codeSpace.id}
+        draggable={true}
+        ref={ref}
         key={codeSpace.id}
+        onDragStart={handleDragStart}
         className={classNames(Styles.codeSpaceCard, deleteInProgress || createInProgress ? Styles.disable : null)}
       >
         <div className={Styles.cardHead}>
@@ -492,7 +502,7 @@ const CodeSpaceCardItem = (props) => {
             )}
           >
             <div className={classNames('btn btn-text', Styles.cardHeadTitle)}>
-              <label onClick={onCardNameClick}>{projectDetails.projectName}</label>
+              <label onClick={onCardNameClick}>{projectDetails?.projectName}</label>
               {!enableOnboard && !creationFailed && serverStarted && (
                 <a
                   className={Styles.OpenNewTab}
@@ -525,6 +535,15 @@ const CodeSpaceCardItem = (props) => {
                   className={classNames('contextMenuWrapper', Styles.contextMenu, showContextMenu ? '' : 'hide')}
                 >
                   <ul>
+                    <li>
+                      <span
+                        onClick={() => {
+                          props.onShowBlueprintModal(codeSpace);
+                        }}
+                      >
+                        Show Blueprint
+                      </span>
+                    </li>
                     <li className={classNames(deployingInProgress ? 'inactive' : '')}>
                       <span
                         onClick={() => {
@@ -622,10 +641,16 @@ const CodeSpaceCardItem = (props) => {
                         )}
                         {intDeployed && (
                           <li>
-                            <a href={intDeployedUrl} target="_blank" rel="noreferrer">
-                              Deployed App URL {intDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
-                              <i className="icon mbc-icon new-tab" />
-                            </a>
+                            {intSecuredWithOneApi ? (
+                              <span className={classNames(Styles.oneAPILink)}>
+                                Deployed App URL (oneAPI) <i className="icon mbc-icon new-tab" />
+                              </span>
+                            ) : (
+                              <a href={intDeployedUrl} target="_blank" rel="noreferrer">
+                                Deployed App URL {intDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
+                                <i className="icon mbc-icon new-tab" />
+                              </a>
+                            )}
                           </li>
                         )}
                         {intDeploymentDetails?.lastDeploymentStatus && (
@@ -732,10 +757,16 @@ const CodeSpaceCardItem = (props) => {
                         )}
                         {prodDeployed && (
                           <li>
-                            <a href={prodDeployedUrl} target="_blank" rel="noreferrer">
-                              Deployed App URL {prodDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
-                              <i className="icon mbc-icon new-tab" />
-                            </a>
+                            {prodSecuredWithOneApi ? (
+                              <span className={classNames(Styles.oneAPILink)}>
+                                Deployed App URL (oneAPI) <i className="icon mbc-icon new-tab" />
+                              </span>
+                            ) : (
+                              <a href={prodDeployedUrl} target="_blank" rel="noreferrer">
+                                Deployed App URL {prodDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
+                                <i className="icon mbc-icon new-tab" />
+                              </a>
+                            )}
                           </li>
                         )}
                         {prodDeploymentDetails?.lastDeploymentStatus && (
@@ -810,11 +841,11 @@ const CodeSpaceCardItem = (props) => {
             </div>
             <div>
               <div>Environment</div>
-              <div>{(projectDetails.recipeDetails.cloudServiceProvider === 'DHC-CaaS-AWS' || enableOnboard) ? 'DyP-CaaS AWS' : 'DyP-CaaS On-Prem'}</div>
+              <div>{(projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' || enableOnboard) ? 'DyP-CaaS AWS' : 'DyP-CaaS On-Prem'}</div>
             </div>
             <div>
               <div>Created on</div>
-              <div>{regionalDateAndTimeConversionSolution(codeSpace?.projectDetails.projectCreatedOn)}</div>
+              <div>{regionalDateAndTimeConversionSolution(codeSpace?.projectDetails?.projectCreatedOn)}</div>
             </div>
             <div>
               <div>Owner</div>
@@ -1175,7 +1206,7 @@ const CodeSpaceCardItem = (props) => {
                                 className={Styles.deployedLink}
                                 tooltip-data={
                                   'Deployed to Production on ' +
-                                  regionalDateAndTimeConversionSolution(prodDeploymentDetails.lastDeployedOn)
+                                  regionalDateAndTimeConversionSolution(prodDeploymentDetails?.lastDeployedOn)
                                 }
                               >
                                 Deployed
@@ -1223,7 +1254,6 @@ const CodeSpaceCardItem = (props) => {
                   !createInProgress &&
                   !deployingInProgress &&
                   !creationFailed &&
-                  isIAMRecipe &&
                   isOwner && (
                     <button className="btn btn-primary" onClick={() => onCodeSpaceSecurityConfigClick(codeSpace)}>
                       <IconGear size={'18'} />
@@ -1380,5 +1410,8 @@ const CodeSpaceCardItem = (props) => {
       )}
     </>
   );
-};
+});
+
+// Add a displayName for debugging
+CodeSpaceCardItem.displayName = 'CodeSpaceCardItem';
 export default CodeSpaceCardItem;

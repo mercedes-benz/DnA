@@ -1,21 +1,18 @@
 import cn from 'classnames';
-import React, { useState, useRef, useEffect, forwardRef, useImperativeHandle, Ref } from 'react';
-import { ApiClient } from '../../../../../services/ApiClient';
+import React, { useState, useEffect, forwardRef, useImperativeHandle, Ref } from 'react';
 import { INotebookInfo } from 'globals/types';
 import Styles from './NotebookInfo.scss';
-import Newsandbox, { INewSandBoxRef } from 'components/mbc/newSandbox/NewSandbox';
-import { getDateFromTimestamp } from '../../../../../services/utils';
-import { Link } from 'react-router-dom';
-import { history } from '../../../../../router/History';
-import { SESSION_STORAGE_KEYS } from 'globals/constants';
 
+import { CodeSpaceApiClient } from '../../../../../../src/services/CodeSpaceApiClient';
+import NotebookProjects from './NotebookProjects';
+import { history } from '../../../../../router/History';
 const classNames = cn.bind(Styles);
 
 export interface INotebookInfoProps {
   userFirstName: string;
   notebookId: string;
   solutionId: string;
-  onNoteBookCreationSuccess: (status: boolean, noteBookData: INotebookInfo) => void;
+  onNoteBookLinkSuccess: (status: boolean, noteBookData: INotebookInfo) => void;
   onNoteBookLinkRemove: () => void;
 }
 
@@ -24,93 +21,94 @@ export interface INotebookInfoRef {
 }
 
 const NotebookInfo = forwardRef((props: INotebookInfoProps, ref: Ref<INotebookInfoRef>) => {
-  const newSandBoxRef = useRef<INewSandBoxRef>(null);
-  const [notebookInfo, setNotebookInfo] = useState<INotebookInfo>();
-  const [restrictNotebookLink, setRestrictNotebookLink] = useState<boolean>(false);
+  const [selectionError, setSelectionError] = useState<boolean>(false);
+  const [selectedProject, setSelectedProject] = useState<any | null>(null);
+  const [selectedNotebook, setSelectedNotebook] = useState<any | null>(null);
 
-  const getNotebookInfo = () => {
-    ApiClient.getNotebooksDetails(props.notebookId).then((res: INotebookInfo) => {
-      if (Array.isArray(res)) {
-        setNotebookInfo(null);
-      } else {
-        setNotebookInfo(res);
-        if (res.solutionId) {
-          setRestrictNotebookLink(props.solutionId.toLowerCase() !== res.solutionId.toLowerCase());
-        }
-      }
-    });
-  };
+
+
+  const getWorkspaceByID = () => {
+    CodeSpaceApiClient.getWorkspaceById(props?.notebookId).then((res:any) =>{
+      if(res){
+        setSelectedNotebook({
+          projectName: res?.projectDetails.projectName,
+          Descriptions: res?.projectDetails?.dataGovernance?.description,
+          ProjectOwner: res?.projectDetails?.projectOwner?.id,
+          WorkspaceId: res?.workspaceId
+        });
+    }
+  });
+  }
 
   useEffect(() => {
-    getNotebookInfo();
+    setSelectionError(false);
+    getWorkspaceByID();
   }, [props.notebookId]);
 
   useImperativeHandle(ref, () => ({
     triggerNoteBookCreation() {
-      if (notebookInfo) {
-        if (!restrictNotebookLink) {
-          props.onNoteBookCreationSuccess(true, notebookInfo);
+        if(selectedProject){
+          props.onNoteBookLinkSuccess(true, selectedProject);
+          }
+         else{
+          setSelectionError(true);
         }
-      } else {
-        newSandBoxRef.current.validateAndCreateSandBox();
-      }
     },
   }));
 
   return (
     <React.Fragment>
-      {notebookInfo ? (
-        <>
-          <div className={classNames(Styles.jupeterCard)}>
-            <div className={Styles.jupeterIcon}>
-              <i className="icon mbc-icon jupyter" />
-            </div>
-            <div className={Styles.jupeterCardContent}>
-              <h6>{notebookInfo.name}</h6>
-              <label>
-                Created on {getDateFromTimestamp(notebookInfo.createdOn, '.')} by {notebookInfo?.createdBy?.firstName}
-              </label>
-              <div className={Styles.JuperterCardDesc}>{notebookInfo.description}</div>
-              {restrictNotebookLink && (
-                <Link target="_blank" to={`/summary/${notebookInfo.solutionId}`}>
-                  Open linked solution
-                </Link>
-              )}
-              {props.notebookId && (
-                <span className={Styles.closeICon} onClick={props.onNoteBookLinkRemove}>
-                  <i className="icon mbc-icon close thin" />
-                </span>
-              )}
-            </div>
-          </div>
-        </>
-      ) : notebookInfo !== null ? (
+      {props?.notebookId && !selectedNotebook ? 
+      (
         <div className="text-center">
           <div className="progress infinite" />
         </div>
-      ) : (
-        <div className={Styles.noteBookWrapper}>
-          
-             <p>
-        To create and use Jupyter Notebooks, you need to launch a{' '}
-        <strong>Codespace</strong> with the <strong>Jupyter Notebook</strong> recipe.
-      </p>
-      <p>
-        👉 Click below to open the Codespaces dashboard and get started:
-      </p>
-      <button
-              className={'btn btn-tertiary'}
-              type="button"
-              onClick={() => {history.push('/codespaces'); sessionStorage.setItem(SESSION_STORAGE_KEYS.NAVIGATE_CODESPACE_RECIPE, "JupyterNotebook")}}>
-              Go to Codespaces
-            </button>
-          <Newsandbox
-            ref={newSandBoxRef}
-            namePrefix={props.userFirstName}
-            inComputeTab={true}
-            isNotebookCreationSuccess={props.onNoteBookCreationSuccess}
-          />
-        </div>
+      ) : props.notebookId !== null ? 
+      (     
+   <>
+  <div className={classNames(Styles.jupeterCard)}>
+    <div className={Styles.jupeterIcon}>
+      <i className="icon mbc-icon jupyter" />
+    </div>
+    <div className={Styles.jupeterCardContent}>
+      <h6>
+<a
+  href="#"
+  onClick={(e) => {
+    e.preventDefault(); 
+    history.push(`/codespaces/codespace/${selectedNotebook.WorkspaceId}`);
+  }}
+>
+  {selectedNotebook?.projectName}
+      </a>
+        {selectedNotebook?.ProjectOwner && (
+    <span> <small>{` (${selectedNotebook.ProjectOwner})`}</small></span>
+        )}
+      </h6>
+      <label>
+        {selectedNotebook.Description}
+      </label>
+      <div className={Styles.JuperterCardDesc}>
+        {selectedNotebook.Descriptions}
+      </div>
+      {props.notebookId && (
+        <span className={Styles.closeICon} onClick={props.onNoteBookLinkRemove}>
+          <i className="icon mbc-icon close thin" />
+        </span>
+      )}
+    </div>
+  </div>
+   </> ) : 
+      (  <>
+        <NotebookProjects
+          currSolutionId={props.notebookId}
+          onProjectSelection={(project) => {
+            setSelectedProject(project);
+            setSelectionError(false);
+          }}
+          showError={selectionError}
+        />
+        </>
       )}
     </React.Fragment>
   );

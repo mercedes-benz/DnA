@@ -35,13 +35,13 @@ const odinUrl = Envs.ODIN_URL;
 const sassUrl = Envs.SASS_URL;
 const enableDatalakeService = Envs.ENABLE_DATALAKE_SERVICE;
 const enableFabricService = Envs.ENABLE_FABRIC_SERVICE;
-const enableDataEntryService = Envs.ENABLE_DATA_ENTRY_SERVICE;
+// const enableDataEntryService = Envs.ENABLE_DATA_ENTRY_SERVICE;
 const enablePowerPlatformService = Envs.ENABLE_POWER_PLATFORM_SERVICE;
 const enablePromptCraftService = Envs.ENABLE_PROMPT_CRAFT_SERVICE;
 const genAIDirectChatUrl = Envs.GENAI_DIRECT_CHAT_URL;
 const bisoContactsLink = Envs.BISO_CONTACTS_URL;
 const clamavImagwUrl = Envs.CLAMAV_IMAGE_URL;
-const formbricksSurveyUrl = Envs.FORMBRICKS_SURVEY_URL;
+// const formbricksSurveyUrl = Envs.FORMBRICKS_SURVEY_URL;
 const pgAdminUrl = Envs.PGADMIN_URL;
 
 export const DataLayerElements = [
@@ -170,7 +170,7 @@ export const ToolsLandingPageElements = [
     animation: true,
     isDisabled: !enableMatomoService,
     isDetailedPage: false,
-    isMoreServicesCard:true,
+    isMoreServicesCard:false,
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'tools-mini',
@@ -213,23 +213,23 @@ export const ToolsLandingPageElements = [
     svgIcon: 'fabric',
     isDnAInternalTool: true,
   },
-  {
-    id: 'dataentry',
-    name: 'Data Entry as a Service',
-    description:
-      'Easy, self service way to collect user input - either for planning purpose or simply to gather desired information.',
-    tags: ['Data Engineering', 'Data Science', 'No / Low Code', 'Cloud', 'Onprem'],
-    url: '/dataentry',
-    isExternalLink: false,
-    isTextAlignLeft: true,
-    animation: true,
-    isDisabled: !enableDataEntryService,
-    isMoreServicesCard:false,
-    isSmallCard: false,
-    isMediumCard: true,
-    svgIcon: 'tools-mini',
-    isDnAInternalTool: true,
-  },
+  // {
+  //   id: 'dataentry',
+  //   name: 'Data Entry as a Service',
+  //   description:
+  //     'Easy, self service way to collect user input - either for planning purpose or simply to gather desired information.',
+  //   tags: ['Data Engineering', 'Data Science', 'No / Low Code', 'Cloud', 'Onprem'],
+  //   url: '/dataentry',
+  //   isExternalLink: false,
+  //   isTextAlignLeft: true,
+  //   animation: true,
+  //   isDisabled: !enableDataEntryService,
+  //   isMoreServicesCard:false,
+  //   isSmallCard: false,
+  //   isMediumCard: true,
+  //   svgIcon: 'tools-mini',
+  //   isDnAInternalTool: true,
+  // },
   {
     id: 'dataikuDSS',
     name: 'Dataiku DSS',
@@ -260,7 +260,7 @@ export const ToolsLandingPageElements = [
     animation: true,
     isDisabled: !enableSapAnalyticsCloud,
     isDetailedPage: false,
-    isMoreServicesCard:false,
+    isMoreServicesCard:true,
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'sac',
@@ -284,24 +284,24 @@ export const ToolsLandingPageElements = [
     svgIcon: 'powerbi',
     isDnAInternalTool: false,
   },
-  {
-    id: 'formbricksSurvey',
-    name: 'Formbricks Survey',
-    description:
-      'Formbricks is an Experience Management Suite built on the largest open-source survey stack worldwide. Gracefully gather feedback at every step of the customer journey to know what your customers need.',
-    tags: ['Frontend Reporting', 'No / Low Code', 'Onprem'],
-    url: formbricksSurveyUrl,
-    isExternalLink: true,
-    isTextAlignLeft: true,
-    animation: true,
-    isDisabled: !formbricksSurveyUrl?.startsWith('http'),
-    isDetailedPage: false,
-    isMoreServicesCard:false,
-    isSmallCard: false,
-    isMediumCard: true,
-    svgIcon: 'tools-mini',
-    isDnAInternalTool: false,
-  },
+  // {
+  //   id: 'formbricksSurvey',
+  //   name: 'Formbricks Survey',
+  //   description:
+  //     'Formbricks is an Experience Management Suite built on the largest open-source survey stack worldwide. Gracefully gather feedback at every step of the customer journey to know what your customers need.',
+  //   tags: ['Frontend Reporting', 'No / Low Code', 'Onprem'],
+  //   url: formbricksSurveyUrl,
+  //   isExternalLink: true,
+  //   isTextAlignLeft: true,
+  //   animation: true,
+  //   isDisabled: !formbricksSurveyUrl?.startsWith('http'),
+  //   isDetailedPage: false,
+  //   isMoreServicesCard:false,
+  //   isSmallCard: false,
+  //   isMediumCard: true,
+  //   svgIcon: 'tools-mini',
+  //   isDnAInternalTool: false,
+  // },
   {
     id: 'powerPlatform',
     name: 'Power Platform',
@@ -331,7 +331,7 @@ export const ToolsLandingPageElements = [
     animation: true,
     isDisabled: !enableMalwareScanService,
     isDetailedPage: false,
-    isMoreServicesCard:true,
+    isMoreServicesCard:false,
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'malwarescan',
@@ -349,7 +349,7 @@ export const ToolsLandingPageElements = [
     animation: true,
     isDisabled: !clamavImagwUrl?.startsWith('reg'),
     isDetailedPage: false,
-    isMoreServicesCard:true,
+    isMoreServicesCard:false,
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'malwarescan',
@@ -510,7 +510,7 @@ export const ToolsLandingPageElements = [
     animation: true,
     isDisabled: !datasphereUrl?.startsWith('http'),
     isDetailedPage: false,
-    isMoreServicesCard:false,
+    isMoreServicesCard:true,
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'sac',
@@ -578,7 +578,7 @@ export const ToolsLandingPageElements = [
     animation: true,
     isDisabled: !aliceUrl?.startsWith('http'),
     isDetailedPage: false,
-    isMoreServicesCard:true,
+    isMoreServicesCard:false,
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'tools-mini',

@@ -230,4 +230,12 @@ export class CodeSpaceApiClient {
       sse.close();
     };
   }
+
+  public static getWorkspaceByRecipe(): Promise<any> {
+    return this.get(`/workspaces/recipeName/Jupyter Notebook`)
+  }
+
+  public static getWorkspaceById(id: string) {
+    return this.get(`/workspaces/${id}`)
+  }
 }
