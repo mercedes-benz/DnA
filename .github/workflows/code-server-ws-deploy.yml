@@ -48,6 +48,9 @@ on:
         description: "valutInjectorEnable"  
         type: boolean
         default: false  
+      shortid:
+        description: "Short ID"
+        required: true 
 env:
   REGISTRY: registry-emea.app.corpintra.net
   REGISTRY_DNA_USER: robot_dnaplatform+cicdbot  
@@ -71,6 +74,7 @@ jobs:
         echo "appVersion: ${{ github.event.inputs.appVersion }}"
         echo "wsid: ${{ github.event.inputs.wsid }}"
         echo "valutInjectorEnable: ${{ github.event.inputs.valutInjectorEnable }}"
+        echo "shortid: ${{ github.event.inputs.shortid }}"
   
   build_deploy:
     name: 'Build or Deploy workspace application'
@@ -197,6 +201,8 @@ jobs:
       target_env: ${{ github.event.inputs.target_env }}
       branch: ${{ github.event.inputs.branch }}
       wsid: ${{ github.event.inputs.wsid }}
+      shortid: '${{ github.event.inputs.shortid }}'
+      appVersion: '${{ github.event.inputs.appVersion }}'
     secrets:
       PAT: ${{ secrets.PID_PAT }}
       CS_STATUS_UPDATE_DOMAIN: ${{ secrets.CS_STATUS_UPDATE_DOMAIN }}
@@ -231,6 +237,8 @@ jobs:
       projectName: ${{ github.event.inputs.projectName }}
       branch: ${{ github.event.inputs.branch }}
       wsid: ${{ github.event.inputs.wsid }}
+      shortid: '${{ github.event.inputs.shortid }}'
+      appVersion: '${{ github.event.inputs.appVersion }}'
     secrets:
       PAT: ${{ secrets.PID_PAT }}
       CS_STATUS_UPDATE_DOMAIN: ${{ secrets.CS_STATUS_UPDATE_DOMAIN }}
@@ -262,6 +270,8 @@ jobs:
       environment: ${{ github.event.inputs.environment }}
       target_env: ${{ github.event.inputs.target_env }}
       branch: ${{ github.event.inputs.branch }}
+      shortid: '${{ github.event.inputs.shortid }}'
+      appVersion: '${{ github.event.inputs.appVersion }}'
     secrets:
       PAT: ${{ secrets.PID_PAT }}
       CS_STATUS_UPDATE_DOMAIN: ${{ secrets.CS_STATUS_UPDATE_DOMAIN }}

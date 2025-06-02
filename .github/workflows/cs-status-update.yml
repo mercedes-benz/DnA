@@ -22,7 +22,13 @@ on:
         type: string   
       wsid:
         required: true
-        type: string             
+        type: string   
+      shortid:
+        required: true
+        type: string 
+      appVersion:
+        required: true
+        type: string          
     secrets:
       PAT:
         required: true
@@ -86,10 +92,10 @@ jobs:
         id: myRequest
         uses: CamiloGarciaLaRotta/watermelon-http-client@v1.7
         with:
-          url: 'https://${{ secrets.CS_STATUS_UPDATE_DOMAIN }}/workspaces/${{ inputs.wsid }}'
+          url: 'https://${{ secrets.CS_STATUS_UPDATE_DOMAIN }}/workspaces/${{ inputs.wsid }}/${{ inputs.shortid }}'
           method: 'PUT'
           headers: '{"Content-Type": "application/json", "Accept": "*/*", "Authorization": "${{ secrets.PAT }}"}'
-          data: '{"status":"${{ steps.statusCode.outputs.code }}","targetEnvironment":"${{ inputs.target_env }}","wsid":"${{ inputs.wsid }}","branch":"${{ inputs.branch }}","gitjobRunID":"${{ github.run_id }}"}'
+          data: '{"status":"${{ steps.statusCode.outputs.code }}","targetEnvironment":"${{ inputs.target_env }}","wsid":"${{ inputs.wsid }}","branch":"${{ inputs.branch }}","gitjobRunID":"${{ github.run_id }}","appVersion":"${{ inputs.appVersion }}"}'
           fail_fast: false
           verbose: true
         env:
