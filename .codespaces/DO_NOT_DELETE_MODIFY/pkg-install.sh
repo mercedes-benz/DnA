@@ -15,7 +15,14 @@ source "$HOME/.sdkman/bin/sdkman-init.sh"
 sdk install java 17.0.11-ms
 code-server --install-extension vscjava.vscode-java-pack
 source "$HOME/.sdkman/bin/sdkman-init.sh"
-sdk install gradle 7.6.3
+sdk install gradle 7.6
+curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.7/install.sh | bash
+export NVM_DIR="$HOME/.nvm"
+[ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"  # This loads nvm
+[ -s "$NVM_DIR/bash_completion" ] && \. "$NVM_DIR/bash_completion"  # This loads nvm bash_completion
+nvm install 20.14.0
+code-server --install-extension christian-kohler.npm-intellisense
+npm install -g yarn@1.22.22
 
 code-server --install-extension mtxr.sqltools-driver-pg
 code-server --install-extension mtxr.sqltools
