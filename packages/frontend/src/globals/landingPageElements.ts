@@ -8,7 +8,7 @@ const enableMatomoService = Envs.ENABLE_MATOMO_SERVICE;
 const enableSapAnalyticsCloud = Envs.ENABLE_SAP_ANALYTICS_CLOUD;
 const sapAnalyticsUrl = Envs.SAP_ANALYTICS_CLOUD_URL;
 const enableCodeSpace = Envs.ENABLE_CODE_SPACE;
-// const enableJupiyterNoteWorkspace = Envs.ENABLE_JUPYTER_WORKSPACE;
+const enableJupiyterNoteWorkspace = Envs.ENABLE_JUPYTER_WORKSPACE;
 const enableDataikuWorkspace = Envs.ENABLE_DATAIKU_WORKSPACE;
 const udemyUrl = Envs.UDEMY_URL;
 const linkedinLearningUrl = Envs.LINKEDIN_LEARNING_URL;
@@ -427,24 +427,24 @@ export const ToolsLandingPageElements = [
     svgIcon: 'tools-mini',
     isDnAInternalTool: false,
   },
-  // {
-  //   id: 'jupyter',
-  //   name: 'Jupyter',
-  //   description:
-  //     'Jupyter is a web-based interactive computational environment for creating data analysis in notebook like documents. At FC it is mainly used for Python Data Analysis.',
-  //   tags: ['Data Science', 'Data Storage', 'FOSS', 'Coding', 'Cloud', 'Onprem'],
-  //   url: '/notebook',
-  //   isExternalLink: false,
-  //   isTextAlignLeft: true,
-  //   animation: true,
-  //   isDisabled: !enableJupiyterNoteWorkspace,
-  //   isDetailedPage: false,
-  //   isMoreServicesCard:false,
-  //   isSmallCard: false,
-  //   isMediumCard: true,
-  //   svgIcon: 'jupyter',
-  //   isDnAInternalTool: true,
-  // },
+  {
+    id: 'jupyter',
+    name: 'Jupyter',
+    description:
+      'Jupyter is a web-based interactive computational environment for creating data analysis in notebook like documents. At FC it is mainly used for Python Data Analysis.',
+    tags: ['Data Science', 'Data Storage', 'FOSS', 'Coding', 'Cloud', 'Onprem'],
+    url: '/notebook',
+    isExternalLink: false,
+    isTextAlignLeft: true,
+    animation: true,
+    isDisabled: !enableJupiyterNoteWorkspace,
+    isDetailedPage: false,
+    isMoreServicesCard:false,
+    isSmallCard: false,
+    isMediumCard: true,
+    svgIcon: 'jupyter',
+    isDnAInternalTool: true,
+  },
   {
     id: 'airflow',
     name: 'Airflow',

@@ -31,6 +31,7 @@ import LogoImage from '../createNewSolution/description/logoManager/LogoImage/Lo
 import MarketingSummary from './marketing/MarketingSummary';
 import AddUser from '../addUser/AddUser';
 import { isSolutionFixedTagIncludedInArray } from '../../../services/utils';
+import { CodeSpaceApiClient } from '../../../../src/services/CodeSpaceApiClient';
 
 
 const classNames = cn.bind(Styles);
@@ -757,10 +758,10 @@ export default class Summary extends React.Component<{ user: IUserInfo }, ISumma
               },
               () => {
                 if (res.portfolio.dnaNotebookId !== null) {
-                  ApiClient.getNotebooksDetails(res.portfolio.dnaNotebookId).then((res) => {
+                  CodeSpaceApiClient.getWorkspaceById(res.portfolio.dnaNotebookId).then((res) => {
                     this.setState({
                       noteBookInfo: res,
-                      dnaNotebookEnabled: false,
+                      dnaNotebookEnabled: true,
                       notebookAndDataIkuNotEnabled: false,
                     });
                   });

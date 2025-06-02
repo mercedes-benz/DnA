@@ -8,6 +8,7 @@ import { SOLUTION_LOGO_IMAGE_TYPES } from 'globals/constants';
 import { DataFormater } from '../../../../services/utils';
 import { Envs } from 'globals/Envs';
 import { TOTAL_LOCATIONS_COUNT } from 'globals/constants';
+import { CodeSpaceApiClient } from '../../../../../src/services/CodeSpaceApiClient';
 
 const classNames = cn.bind(Styles);
 
@@ -29,6 +30,7 @@ export interface ISolutionListRowItemState {
   showLocationsContextMenu: boolean;
   contextMenuOffsetTop: number;
   contextMenuOffsetRight: number;
+  selectedNotebook: { WorkspaceId: string } | null;
 }
 
 export default class SolutionListRowItem extends React.Component<ISolutionListRowItemProps, ISolutionListRowItemState> {
@@ -42,7 +44,19 @@ export default class SolutionListRowItem extends React.Component<ISolutionListRo
       showLocationsContextMenu: false,
       contextMenuOffsetTop: 0,
       contextMenuOffsetRight: 0,
+      selectedNotebook: null,
     };
+  }
+
+  private async getWorkspaceByID() {
+    try {
+      const res = await CodeSpaceApiClient.getWorkspaceById(this.props.solution?.portfolio?.dnaNotebookId);
+      if (res) {
+        this.setState({ selectedNotebook: { WorkspaceId: res?.workspaceId } });
+      }
+    } catch (err) {
+      console.error("Failed to fetch workspace:", err);
+    }
   }
 
   public toggleContextMenu = (e: React.FormEvent<HTMLSpanElement>) => {
@@ -91,10 +105,6 @@ export default class SolutionListRowItem extends React.Component<ISolutionListRo
       },
     );
   };
-  public goToNotebook = (event: any) => {
-    history.push('/notebook/');
-    event.stopPropagation();
-  };
   public goToDataiku = (event: any) => {
     event.stopPropagation();
   };
@@ -122,10 +132,15 @@ export default class SolutionListRowItem extends React.Component<ISolutionListRo
     );
   };
 
-  public componentWillMount() {
+  public componentDidMount() {
     document.addEventListener('touchend', this.handleContextMenuOutside, true);
     document.addEventListener('click', this.handleContextMenuOutside, true);
+    const { solution } = this.props;
+    if (solution.portfolio?.dnaNotebookId) {
+      this.getWorkspaceByID();
+    }
   }
+  
 
   public componentWillUnmount() {
     document.removeEventListener('touchend', this.handleContextMenuOutside, true);
@@ -138,6 +153,8 @@ export default class SolutionListRowItem extends React.Component<ISolutionListRo
     const { showContextMenu, showLocationsContextMenu } = this.state;
     const isDigitalValueContributionEnabled = window.location.href.indexOf('digitalvaluecontribution') !== -1;
     const isDataValueContributionEnabled = window.location.href.indexOf('datavaluecontribution') !== -1;
+    const { selectedNotebook } = this.state;
+    
     return (
       <React.Fragment>
         <tr
@@ -158,10 +175,17 @@ export default class SolutionListRowItem extends React.Component<ISolutionListRo
               </div>{' '}
               <div className={Styles.solutionNameDivide}>
                 {solution.productName}
-                {/* {solution.portfolio?.dnaNotebookId && (
-                  <React.Fragment>
-                    {this.props.noteBookData?.solutionId === solution.id ? (
-                      <label className={Styles.goToLink} title="Go to notebook" onClick={this.goToNotebook}>
+                 {solution.portfolio?.dnaNotebookId && (
+                  <>
+                    { selectedNotebook?.WorkspaceId ? (
+                      <label
+                        className={Styles.goToLink}
+                        title="Go to notebook"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          history.push(`/codespaces/codespace/${selectedNotebook.WorkspaceId}`);
+                        }}
+                      >
                         <i className="icon mbc-icon jupyter" />
                       </label>
                     ) : (
@@ -169,8 +193,8 @@ export default class SolutionListRowItem extends React.Component<ISolutionListRo
                         <i className="icon mbc-icon jupyter" />
                       </label>
                     )}
-                  </React.Fragment>
-                )} */}
+                  </>
+                )}
                 {solution.portfolio?.dnaDataikuProjectId !== null && (
                   <a
                     href={Envs.DATAIKU_LIVE_APP_URL + '/projects/' + solution.portfolio?.dnaDataikuProjectId + '/'}
