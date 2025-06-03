@@ -913,7 +913,7 @@ grafana:
   global:
     # -- Overrides the Docker registry globally for all images
     imageRegistry: registry-emea.app.corpintra.net/dockerhub
-  tag: "12.0.1"
+    tag: "12.0.1"
   deploymentStrategy:
     type: Recreate
   resources: 
