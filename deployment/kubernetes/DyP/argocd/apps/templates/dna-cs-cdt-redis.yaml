@@ -1,0 +1,36 @@
+{{- if eq .Values.env "prod" }} 
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  {{- with .Values.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  name: cs-cdt-redis
+  namespace: {{ .Values.namespace }}
+  labels:
+    name: service
+    env: {{ .Values.env }}
+    project: {{ .Values.env }}-dna
+spec:
+  destination:
+    namespace: cs-apps-services
+    server: {{ .Values.server | squote }}
+  source:
+    path: deployment/kubernetes/helm/charts/redis
+    repoURL: {{ .Values.repoURL | squote }}
+    targetRevision: {{ .Values.branch }}
+    helm:
+      releaseName: redis
+      valueFiles:
+        - values-cs-cdt-prod.yaml
+  project: {{ .Values.env }}-dna
+{{- if .Values.enableSync }}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - ApplyOutOfSyncOnly=true
+      - CreateNamespace=true
+{{- end }}
