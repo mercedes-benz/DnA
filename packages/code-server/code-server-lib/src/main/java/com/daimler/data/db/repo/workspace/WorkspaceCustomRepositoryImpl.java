@@ -378,6 +378,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 		Date deployedOn = deploymentDetails.getLastDeployedOn();
 		String longdate = null;
 		if(deployedOn!=null)
+			log.info("deployed on is not null for project {}",projectName);
 			longdate = String.valueOf(deployedOn.getTime()) ;
 			String updateQuery = "update workspace_nsql " +
 				"set data = jsonb_set(data,'{projectDetails," + environment + "}', " +
@@ -404,6 +405,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 				" \"lastDeploymentStatus\": " + addQuotes(deploymentDetails.getLastDeploymentStatus()) ;
 
 			List<DeploymentAudit> deploymentAuditLogs = deploymentDetails.getDeploymentAuditLogs();
+			log.info("deployment audit log is {}",deploymentAuditLogs);
 			updateQuery += ", \"deploymentAuditLogs\" : ";
 			if (deploymentAuditLogs != null && !deploymentAuditLogs.isEmpty()) {
 				// Iterate over each DeploymentAudit object and add it to the JSON array
@@ -424,13 +426,20 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 				updateQuery += "]";
 			}else {
 				updateQuery +=  " []";
+				log.info("project {} deployed on is null.",projectName);
 			}
 			updateQuery += "}')\r\n";
 			updateQuery += "where data->'projectDetails'->>'projectName' = '" + projectName + "'";
+			log.info("update query for project {} is {}",projectName, updateQuery);
 
 		try {
+			Date now = new Date();
+			log.info("creating native query at time {} ",now);
 			Query q = em.createNativeQuery(updateQuery);
+			log.info("execute update");
 			q.executeUpdate();
+			now = new Date();
+			log.info("execute update completed at time {}",now);
 			updateResponse.setSuccess("SUCCESS");
 			updateResponse.setErrors(new ArrayList<>());
 			updateResponse.setWarnings(new ArrayList<>());
