@@ -6,7 +6,7 @@ metadata:
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  name: cs-redis
+  name: cs-cdt-redis
   namespace: {{ .Values.namespace }}
   labels:
     name: service
@@ -23,7 +23,7 @@ spec:
     helm:
       releaseName: redis
       valueFiles:
-        - values-cs-prod.yaml
+        - values-cs-cdt-prod.yaml
   project: {{ .Values.env }}-dna
 {{- if .Values.enableSync }}
   syncPolicy:
