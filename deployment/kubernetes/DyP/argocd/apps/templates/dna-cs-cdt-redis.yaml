@@ -34,3 +34,4 @@ spec:
       - ApplyOutOfSyncOnly=true
       - CreateNamespace=true
 {{- end }}
+{{- end }}
