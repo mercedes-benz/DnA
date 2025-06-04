@@ -55,3 +55,5 @@ db:
    env: prod
  - name: costagent
    env: prod
+ - name: CodeServer
+   env: prod  
