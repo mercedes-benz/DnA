@@ -371,6 +371,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 	
 	@Override
 	public GenericMessage updateDeploymentDetails(String projectName, String environment, CodeServerDeploymentDetails deploymentDetails) {
+		log.info("{} starting DB update.",projectName);
 		GenericMessage updateResponse = new GenericMessage();
 		updateResponse.setSuccess("FAILED");
 		List<MessageDescription> errors = new ArrayList<>();
@@ -426,7 +427,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 				updateQuery += "]";
 			}else {
 				updateQuery +=  " []";
-				log.info("{} - project deployed on is null.",projectName);
+				log.info("{} - project deployment audit log is null.",projectName);
 			}
 			updateQuery += "}')\r\n";
 			updateQuery += "where data->'projectDetails'->>'projectName' = '" + projectName + "'";
