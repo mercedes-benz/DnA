@@ -203,7 +203,7 @@ dbusers:
     password: <path:dna_aws_kv/data/prod/cs-services/costagent-db#backup.password>
   ## the database (not the instance) owner
   dbadm:
-    username: costuser
+    username: admin
     password: <path:dna_aws_kv/data/prod/cs-services/costagent-db#dbadm.password>
 
     createSchema:
