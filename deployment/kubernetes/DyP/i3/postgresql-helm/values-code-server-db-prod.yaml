@@ -1,4 +1,4 @@
-namespace: dna
+namespace: prod-dna-cs-workspaces
 annotations:
   argocdvault: "dna_aws_kv/data/prod/kubernetesSecret/CodeServer-db"
 ## I³ PostgreSQL image version
