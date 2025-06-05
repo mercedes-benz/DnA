@@ -104,6 +104,7 @@
           }
           > div:last-child {
             flex: 1;
+            user-select: text;
           }
         }
         ul {
