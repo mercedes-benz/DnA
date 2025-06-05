@@ -371,7 +371,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 	
 	@Override
 	public GenericMessage updateDeploymentDetails(String projectName, String environment, CodeServerDeploymentDetails deploymentDetails) {
-		log.info("{} starting DB update.",projectName);
+		log.info("{} - starting DB update.",projectName);
 		GenericMessage updateResponse = new GenericMessage();
 		updateResponse.setSuccess("FAILED");
 		List<MessageDescription> errors = new ArrayList<>();
@@ -379,7 +379,6 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 		Date deployedOn = deploymentDetails.getLastDeployedOn();
 		String longdate = null;
 		if(deployedOn!=null)
-			log.info("{} - deployed on is not null for project.",projectName);
 			longdate = String.valueOf(deployedOn.getTime()) ;
 			String updateQuery = "update workspace_nsql " +
 				"set data = jsonb_set(data,'{projectDetails," + environment + "}', " +
@@ -406,7 +405,6 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 				" \"lastDeploymentStatus\": " + addQuotes(deploymentDetails.getLastDeploymentStatus()) ;
 
 			List<DeploymentAudit> deploymentAuditLogs = deploymentDetails.getDeploymentAuditLogs();
-			log.info("{} - deployment audit log is {}",projectName, deploymentAuditLogs);
 			updateQuery += ", \"deploymentAuditLogs\" : ";
 			if (deploymentAuditLogs != null && !deploymentAuditLogs.isEmpty()) {
 				// Iterate over each DeploymentAudit object and add it to the JSON array
@@ -431,15 +429,12 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 			}
 			updateQuery += "}')\r\n";
 			updateQuery += "where data->'projectDetails'->>'projectName' = '" + projectName + "'";
-			log.info("{} - update query for project is {}",projectName, updateQuery);
 
 		try {
-			Date now = new Date();
-			log.info("{} - creating native query at time {} ",projectName, now);
 			Query q = em.createNativeQuery(updateQuery);
 			log.info("{} - execute update",projectName);
 			q.executeUpdate();
-			now = new Date();
+			Date now = new Date();
 			log.info("{} - execute update completed at time {}",projectName, now);
 			updateResponse.setSuccess("SUCCESS");
 			updateResponse.setErrors(new ArrayList<>());
