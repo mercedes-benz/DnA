@@ -814,6 +814,11 @@ public class DnaMinioClientImp implements DnaMinioClient {
 				// Adding new policies to existing one
 				for (String policy : policies) {
 					String policyResponse = this.attachPolicyToUser(userId, policy, false);
+					try {
+						TimeUnit.SECONDS.sleep(5);
+					} catch (InterruptedException e) {
+						LOGGER.error("Policy attachment interrupted: " + e.getMessage());
+					}  
 					LOGGER.info("mc attach policy response: "+ policyResponse);
 					existingPolicy = StorageUtility.addPolicy(existingPolicy, policy);
 				}
@@ -1055,7 +1060,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 				data = prefix.concat(data.substring(0, data.length() - 1)).concat(suffix);
 				users = new HashMap<>();
 				List<UserInfoDto> userInfoDto = new ArrayList<>();
-				LOGGER.info("Policies data from minio to update cache is {} ", data);
+				LOGGER.debug("Policies data from minio to update cache is {} ", data);
 				UserInfoWrapperDto userInfoWrapperDto = mapper.readValue(data, UserInfoWrapperDto.class);
 				userInfoDto = userInfoWrapperDto.getData();
 				if (userInfoDto != null && !userInfoDto.isEmpty()) {
