@@ -80,7 +80,7 @@ SSL:
 
 ## Specify PGDATABASE
 ##
-DBName: csdb
+DBName: code_server
 
 ## Configure S3 properties if S3 storage will be used
 ##
@@ -203,7 +203,7 @@ dbusers:
     password: <path:dna_aws_kv/data/prod/kubernetesSecret/CodeServer-db#backup.password>
   ## the database (not the instance) owner
   dbadm:
-    username: csdb
+    username: code_server
     password: <path:dna_aws_kv/data/prod/kubernetesSecret/CodeServer-db#dbadm.password>
 
     createSchema:
