@@ -373,6 +373,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 	
 	@Override
 	public GenericMessage updateDeploymentDetails(String projectName, String environment, CodeServerDeploymentDetails deploymentDetails,String lastBuildOrDeployStatus) {
+		log.info("{} - starting DB update.",projectName);
 		GenericMessage updateResponse = new GenericMessage();
 		updateResponse.setSuccess("FAILED");
 		List<MessageDescription> errors = new ArrayList<>();
@@ -441,11 +442,14 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 
 		try {
 			Query q = em.createNativeQuery(updateQuery);
+			log.info("{} - execute update",projectName);
 			q.executeUpdate();
+			Date now = new Date();
+			log.info("{} - execute update completed at time {}",projectName, now);
 			updateResponse.setSuccess("SUCCESS");
 			updateResponse.setErrors(new ArrayList<>());
 			updateResponse.setWarnings(new ArrayList<>());
-			log.info("deployment details updated successfully for project {} ", projectName);
+			log.info("{} - deployment details updated successfully for project ", projectName);
 		}catch(Exception e) {
 			MessageDescription errMsg = new MessageDescription("Failed while updating deployment details.");
 			errors.add(errMsg);

@@ -58,7 +58,10 @@ public class FabricWorkspaceAssembler implements GenericAssembler<FabricWorkspac
 		vo.setName(dto.getName());
 		vo.setBucketpath(null);
 		vo.setPath(dto.getPath());
-		vo.setBucketname(dto.getName());
+		if (dto.getTarget() != null && dto.getTarget().getS3Compatible() != null)
+			vo.setBucketname(dto.getTarget().getS3Compatible().getBucket());
+		else
+			vo.setBucketname(null);
 		return vo;
 	}
 	
