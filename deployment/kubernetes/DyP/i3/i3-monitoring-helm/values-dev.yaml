@@ -1122,7 +1122,7 @@ grafana:
     storageClassName: dhc-gp3
     accessModes:
       - ReadWriteOnce
-    size: 4Gi      
+    size: 3Gi      
 
   imageRenderer:
     deploymentStrategy: 
