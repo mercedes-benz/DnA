@@ -1646,6 +1646,7 @@ import com.daimler.data.dto.workspace.UserInfoVO;
 					// 	 authenticatorClient.callingKongApis(workspaceId, serviceName, environment, apiRecipe, clientID,clientSecret);
 					//  }
 					authenticatorClient.callingKongApis(workspaceId, serviceName, environment, isApiRecipe, clientID,clientSecret,redirectUri, ignorePaths, scope, oneApiVersionShortName, isSecuredWithCookie, isSecureWithIAMRequired, cloudServiceProvider);
+					log.info("{} - before deployment details update in service.",projectName);
 					deploymentDetails.setLastDeploymentStatus("DEPLOY_REQUESTED");
 					deploymentDetails.setSecureWithIAMRequired(isSecureWithIAMRequired);
 					deploymentDetails.setOneApiVersionShortName(oneApiVersionShortName);
@@ -1655,6 +1656,7 @@ import com.daimler.data.dto.workspace.UserInfoVO;
 					deploymentDetails.setRedirectUri(redirectUri);
 					deploymentDetails.setIgnorePaths(ignorePaths);
 					deploymentDetails.setScope(scope);
+					log.info("{} - after deployment details update in service.",projectName);
 					workspaceCustomRepository.updateDeploymentDetails(projectName, environmentJsonbName,deploymentDetails);
 					status = "SUCCESS";
 				 } else {
