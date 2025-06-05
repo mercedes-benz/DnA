@@ -23,6 +23,8 @@ const ContextMenu = (props) => {
   const projectDetails = codeSpace?.projectDetails;
   const intDeploymentDetails = projectDetails.intDeploymentDetails;
   const prodDeploymentDetails = projectDetails.prodDeploymentDetails;
+  const intBuildDetails = projectDetails.intBuildDetails;
+  const prodBuildDetails = projectDetails.prodBuildDetails;
   const intDeployedUrl = intDeploymentDetails?.deploymentUrl;
   const prodDeployedUrl = prodDeploymentDetails?.deploymentUrl;
 
@@ -51,6 +53,8 @@ const ContextMenu = (props) => {
 
   const prodCodeDeployFailed = prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
   const intCodeDeployFailed = intDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
+  const prodCodeBuildFailed = prodBuildDetails.lastDeploymentStatus === 'BUILD_FAILED';
+  const intCodeBuildFailed = intBuildDetails.lastDeploymentStatus === 'BUILD_FAILED';
 
   const intDeployed =
     intDeploymentDetails?.lastDeploymentStatus === 'DEPLOYED' ||
@@ -287,6 +291,21 @@ const ContextMenu = (props) => {
                   </span>
                 </li>
               )}
+              {intBuildDetails?.gitjobRunID && (
+                <li>
+                  <a
+                    target="_blank"
+                    href={
+                      buildGitJobLogViewAWSURL(intBuildDetails?.gitjobRunID)
+                    }
+                    rel="noreferrer"
+                  >
+                    Last Build Logs{' '}
+                    {intCodeBuildFailed && <span className={classNames(Styles.error)}>[Failed]</span>}{' '}
+                    <i className="icon mbc-icon new-tab" />
+                  </a>
+                </li>
+              )}
               {intDeploymentDetails?.gitjobRunID && (
                 <li>
                   <a
@@ -299,7 +318,7 @@ const ContextMenu = (props) => {
                     }
                     rel="noreferrer"
                   >
-                    Last Build &amp; Deploy Logs{' '}
+                    Last Deploy Logs{' '}
                     {intCodeDeployFailed && <span className={classNames(Styles.error)}>[Failed]</span>}{' '}
                     <i className="icon mbc-icon new-tab" />
                   </a>
@@ -423,6 +442,21 @@ const ContextMenu = (props) => {
                   </span>
                 </li>
               )}
+              {prodBuildDetails?.gitjobRunID && (
+                <li>
+                  <a
+                    target="_blank"
+                    href={
+                      buildGitJobLogViewAWSURL(prodBuildDetails?.gitjobRunID)
+                    }
+                    rel="noreferrer"
+                  >
+                    Last Build Logs{' '}
+                    {prodCodeBuildFailed && <span className={classNames(Styles.error)}>[Failed]</span>}{' '}
+                    <i className="icon mbc-icon new-tab" />
+                  </a>
+                </li>
+              )}
               {prodDeploymentDetails?.gitjobRunID && (
                 <li>
                   <a
@@ -435,7 +469,7 @@ const ContextMenu = (props) => {
                     }
                     rel="noreferrer"
                   >
-                    Build &amp; Deploy Logs{' '}
+                    Last Deploy Logs{' '}
                     {prodCodeDeployFailed && <span className={classNames(Styles.error)}>[Failed]</span>}{' '}
                     <i className="icon mbc-icon new-tab" />
                   </a>
