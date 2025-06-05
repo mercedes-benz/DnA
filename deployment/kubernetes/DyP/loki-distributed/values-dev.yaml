@@ -15,7 +15,7 @@ ingester:
     # -- List of the ingester PVCs
     claims:
       - name: data
-        size: 150Gi  
+        size: 500Gi  
         storageClass: dhc-gp3
 loki:
   config: |
@@ -60,6 +60,7 @@ loki:
       per_stream_rate_limit: 40MB
       per_stream_rate_limit_burst: 70MB     
       volume_enabled: true 
+      retention_period: 24h
 
 
     schema_config:
