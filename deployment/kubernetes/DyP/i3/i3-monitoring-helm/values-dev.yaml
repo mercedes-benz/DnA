@@ -984,6 +984,9 @@ grafana:
       use_pkce: true
       use_refresh_token: true     
       skip_org_role_sync: true
+    security:
+      cookie_samesite: none
+    
 
   ## Configure notifiers
   ## ref: http://docs.grafana.org/administration/provisioning/#alert-notification-channels
