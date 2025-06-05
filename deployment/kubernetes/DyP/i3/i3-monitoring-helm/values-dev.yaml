@@ -926,7 +926,8 @@ grafana:
   useStatefulSet: true
   replicas: 2
   podDisruptionBudget: 
-   minAvailable: 1
+    apiVersion: policy/v1
+    minAvailable: 1
   resources: 
     limits:
       memory: 415Mi
