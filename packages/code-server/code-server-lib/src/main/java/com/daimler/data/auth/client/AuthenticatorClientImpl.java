@@ -399,7 +399,6 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		Boolean prodSecureIAM = false;
 		Boolean prevSecureIAM = false;
 		String prevOneApiShortName = null;
-		String storedClientId= null;
 		//for now making it as false once we enble cookie way will remove this.
 		isSecuredWithCookie = false;
 		LOGGER.info("serviceProvider "+cloudServiceProvider);
@@ -410,7 +409,6 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 					prevSecureIAM = prodDeploymentDetails.getSecureWithIAMRequired();
 				}
 				prevOneApiShortName = prodDeploymentDetails.getOneApiVersionShortName();
-				storedClientId = prodDeploymentDetails.getClientId();
 			}
 		}
 		if("int".equalsIgnoreCase(env)){
@@ -420,7 +418,6 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 					prevSecureIAM = intDeploymentDetails.getSecureWithIAMRequired();
 				}
 				prevOneApiShortName = intDeploymentDetails.getOneApiVersionShortName();
-				storedClientId = prodDeploymentDetails.getClientId();
 			}
 		}
 		LOGGER.info("Codespace deployed to production with enabling secureIAM is :{}",prodSecureIAM);
@@ -806,7 +803,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 								LOGGER.info("kongApiForDeploymentURL is {} and apiRecipe is :{}, calling apiAuthoriser plugin and status {}: ",kongApiForDeploymentURL, apiRecipe, attachApiAuthoriserPluginResponse.getSuccess());
 
 							}
-						}else if ((storedClientId!=null) && (("int".equalsIgnoreCase(env) && !intSecureIAM) || ("prod".equalsIgnoreCase(env) && !prodSecureIAM))){
+						}else if (Boolean.TRUE.equals(prevSecureIAM)){
 							deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,API_AUTHORISER_PLUGIN,cloudServiceProvider);
 							LOGGER.info("kong deleting api authorizer plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
 							deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
@@ -834,7 +831,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 									LOGGER.info("kong deleting one api plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
 									deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
 
-									// //attaching request transformer plugin 
+									//attaching request transformer plugin 
 									attachRequestTransformerPluginResponse = attachRequestTransformerPluginToService(attachRequestTransformerPluginRequestVO,serviceName.toLowerCase()+"-"+env);
 									LOGGER.info("calling kong to attach request transformer  plugin to service status is: {} and errors if any: {}, warnings if any:", attachRequestTransformerPluginResponse.getSuccess(),
 									attachRequestTransformerPluginResponse.getErrors(), attachRequestTransformerPluginResponse.getWarnings());
@@ -866,10 +863,10 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 							deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,ONE_API_PLUGIN,cloudServiceProvider);
 							LOGGER.info("kong deleting one api plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
 							deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
-							// //deleteing request transformer plugin if any
-							// deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,REQUEST_TRANSFORMER_PLUGIN,cloudServiceProvider);
-							// LOGGER.info("kong deleting request transformer plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
-							// deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
+							//deleteing request transformer plugin if any
+							deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,REQUEST_TRANSFORMER_PLUGIN,cloudServiceProvider);
+							LOGGER.info("kong deleting request transformer plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
+							deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
 						}
 					}else{
 
@@ -1005,7 +1002,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 								}
 							}
 						}
-						else if ((storedClientId!=null) && (("int".equalsIgnoreCase(env) && !intSecureIAM) || ("prod".equalsIgnoreCase(env) && !prodSecureIAM))){
+						else if (Boolean.TRUE.equals(prevSecureIAM)){
 							//deleting oidc plugin if any
 							deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,OIDC_PLUGIN,cloudServiceProvider);
 							LOGGER.info("kong deleting OIDC plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
