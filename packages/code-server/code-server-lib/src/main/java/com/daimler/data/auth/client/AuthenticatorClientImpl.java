@@ -628,16 +628,16 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 					LOGGER.info("kong attach CORS plugin to service status is: {} and errors if any: {}, warnings if any:", attachCorsPluginResponse.getSuccess(),
 					attachCorsPluginResponse.getErrors(), attachCorsPluginResponse.getWarnings());
 
-					// //deleteing jwt issuer plugin if any
+					//deleteing jwt issuer plugin if any
 					GenericMessage deletePluginResponse = new GenericMessage();
-					// deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,JWTISSUER_PLUGIN,cloudServiceProvider);
-					// LOGGER.info("kong deleting jwt issuer plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
-					// deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
+					deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,JWTISSUER_PLUGIN,cloudServiceProvider);
+					LOGGER.info("kong deleting jwt issuer plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
+					deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
 
-					// //attaching request transformer plugin 
-					// attachRequestTransformerPluginResponse = attachRequestTransformerPluginToService(attachRequestTransformerPluginRequestVO,serviceName.toLowerCase()+"-"+env);
-					// LOGGER.info("calling kong to attach request transformer  plugin to service status is: {} and errors if any: {}, warnings if any:", attachRequestTransformerPluginResponse.getSuccess(),
-					// attachRequestTransformerPluginResponse.getErrors(), attachRequestTransformerPluginResponse.getWarnings());
+					//attaching request transformer plugin 
+					attachRequestTransformerPluginResponse = attachRequestTransformerPluginToService(attachRequestTransformerPluginRequestVO,serviceName.toLowerCase()+"-"+env);
+					LOGGER.info("calling kong to attach request transformer  plugin to service status is: {} and errors if any: {}, warnings if any:", attachRequestTransformerPluginResponse.getSuccess(),
+					attachRequestTransformerPluginResponse.getErrors(), attachRequestTransformerPluginResponse.getWarnings());
 
 					//if deployment type changed then delete all the plugin available.
 					if( "int".equalsIgnoreCase(env) && intDeploymentDetails.getDeploymentType()!=null || "prod".equalsIgnoreCase(env) && prodDeploymentDetails.getDeploymentType()!=null){
@@ -1565,8 +1565,8 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		try {
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
-			headers.set("Content-Type", "application/json");		
-
+			headers.set("Content-Type", "application/json");	
+			headers.set("apikey", awsApiKey);
 			String attachPluginUri = authenticatorBaseUri + CREATE_SERVICE + "/" + serviceName + ATTACH_REQUEST_TRANSFORMER_PLUGIN_TO_SERVICE;
 
 			HttpEntity<AttachRequestTransformerPluginRequestVO> entity = new HttpEntity<AttachRequestTransformerPluginRequestVO>(attachRequestTransformerPluginRequestVO,headers);			
