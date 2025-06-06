@@ -1,0 +1,91 @@
+---
+{{- if .Values.backupJob.enabled }}
+{{- $apiUrl :=  .Values.storageCredentials.apiUrl }}
+{{- $bucketName := .Values.storageCredentials.bucketName }}
+{{- $namespace :=  .Values.namespace }}
+{{- $runAsUser :=  .Values.runAsUser }}
+{{- range $index,$pvc := .Values.pvcs }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ $pvc.pvcName }}-bk-job
+  namespace: {{ $namespace | quote }}
+spec:
+  ttlSecondsAfterFinished: 60
+  template:
+    spec:
+      initContainers:
+      - name: init-container
+        image: registry-emea.app.corpintra.net/dockerhub/restic/restic:latest
+        args:
+          - init
+        env:
+          - name: RESTIC_REPOSITORY
+            value: "{{ $apiUrl }}/{{ $bucketName }}/{{ $pvc.pvcName }}"
+          - name: RESTIC_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: s3-secret
+                key: resticKey
+                optional: false
+          - name: AWS_ACCESS_KEY_ID
+            valueFrom:
+              secretKeyRef:
+                name: s3-secret
+                key: accessKeyId
+                optional: false
+          - name: AWS_SECRET_ACCESS_KEY
+            valueFrom:
+              secretKeyRef:
+                name: s3-secret
+                key: secretAccessKey
+                optional: false          
+      containers:
+      - name: restic
+        image: registry-emea.app.corpintra.net/dockerhub/restic/restic:latest
+        workingDir: {{ $pvc.backupPath }}
+        args:
+          - backup
+          - --host
+          - kubernetes  # set a consistent hostname to avoid restic rescans
+          - .           # use workingDir to set path
+        env:
+          - name: RESTIC_REPOSITORY
+            value: "{{ $apiUrl }}/{{ $bucketName }}/{{ $pvc.pvcName }}"
+          - name: RESTIC_PASSWORD
+            valueFrom:
+              secretKeyRef:
+                name: s3-secret
+                key: resticKey
+                optional: false
+          - name: AWS_ACCESS_KEY_ID
+            valueFrom:
+              secretKeyRef:
+                name: s3-secret
+                key: accessKeyId
+                optional: false
+          - name: AWS_SECRET_ACCESS_KEY
+            valueFrom:
+              secretKeyRef:
+                name: s3-secret
+                key: secretAccessKey
+                optional: false
+        volumeMounts:
+          - name: backupdata
+            mountPath: {{ $pvc.backupPath }}
+            readOnly: true
+          - name: backupdata
+            mountPath: /.cache
+      volumes:
+        - name: backupdata
+          persistentVolumeClaim:
+            claimName: {{ $pvc.pvcName }}
+      securityContext:
+        runAsUser: {{ $runAsUser }}
+        runAsGroup: {{ $runAsUser }}
+        runAsNonRoot: true
+        fsGroup: {{ $runAsUser }}                
+      restartPolicy: OnFailure
+---
+{{- end }}
+{{- end }}

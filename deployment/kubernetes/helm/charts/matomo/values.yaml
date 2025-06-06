@@ -513,7 +513,7 @@ ingress:
   ##   cert-manager.io/cluster-issuer: cluster-issuer-name
   ##
   annotations:
-    cert-manager.io/cluster-issuer: daimler-acme
+    cert-manager.io/cluster-issuer: mercedes-benz-acme
     kubernetes.io/ingress.class: traefik
     meta.helm.sh/release-name: matomo
     meta.helm.sh/release-namespace: matomo

@@ -5955,15 +5955,15 @@
             "type": "object",
             "additionalProperties": false
         },
-        "io.k8s.api.core.v1.CinderVolumeSource": {
-            "description": "Represents a cinder volume resource in Openstack. A Cinder volume must exist before mounting to a container. The volume must also be in the same region as the kubelet. Cinder volumes support ownership management and SELinux relabeling.",
+        "io.k8s.api.core.v1.dhc-gp3VolumeSource": {
+            "description": "Represents a dhc-gp3 volume resource in Openstack. A dhc-gp3 volume must exist before mounting to a container. The volume must also be in the same region as the kubelet. dhc-gp3 volumes support ownership management and SELinux relabeling.",
             "properties": {
                 "fsType": {
-                    "description": "Filesystem type to mount. Must be a filesystem type supported by the host operating system. Examples: \"ext4\", \"xfs\", \"ntfs\". Implicitly inferred to be \"ext4\" if unspecified. More info: https://examples.k8s.io/mysql-cinder-pd/README.md",
+                    "description": "Filesystem type to mount. Must be a filesystem type supported by the host operating system. Examples: \"ext4\", \"xfs\", \"ntfs\". Implicitly inferred to be \"ext4\" if unspecified. More info: https://examples.k8s.io/mysql-dhc-gp3-pd/README.md",
                     "type": "string"
                 },
                 "readOnly": {
-                    "description": "Optional: Defaults to false (read/write). ReadOnly here will force the ReadOnly setting in VolumeMounts. More info: https://examples.k8s.io/mysql-cinder-pd/README.md",
+                    "description": "Optional: Defaults to false (read/write). ReadOnly here will force the ReadOnly setting in VolumeMounts. More info: https://examples.k8s.io/mysql-dhc-gp3-pd/README.md",
                     "type": "boolean"
                 },
                 "secretRef": {
@@ -5971,7 +5971,7 @@
                     "description": "Optional: points to a secret object containing parameters used to connect to OpenStack."
                 },
                 "volumeID": {
-                    "description": "volume id used to identify the volume in cinder. More info: https://examples.k8s.io/mysql-cinder-pd/README.md",
+                    "description": "volume id used to identify the volume in dhc-gp3. More info: https://examples.k8s.io/mysql-dhc-gp3-pd/README.md",
                     "type": "string"
                 }
             },
@@ -7830,9 +7830,9 @@
                     "$ref": "#/definitions/io.k8s.api.core.v1.CephFSVolumeSource",
                     "description": "CephFS represents a Ceph FS mount on the host that shares a pod's lifetime"
                 },
-                "cinder": {
-                    "$ref": "#/definitions/io.k8s.api.core.v1.CinderVolumeSource",
-                    "description": "Cinder represents a cinder volume attached and mounted on kubelets host machine. More info: https://examples.k8s.io/mysql-cinder-pd/README.md"
+                "dhc-gp3": {
+                    "$ref": "#/definitions/io.k8s.api.core.v1.dhc-gp3VolumeSource",
+                    "description": "dhc-gp3 represents a dhc-gp3 volume attached and mounted on kubelets host machine. More info: https://examples.k8s.io/mysql-dhc-gp3-pd/README.md"
                 },
                 "configMap": {
                     "$ref": "#/definitions/io.k8s.api.core.v1.ConfigMapVolumeSource",
