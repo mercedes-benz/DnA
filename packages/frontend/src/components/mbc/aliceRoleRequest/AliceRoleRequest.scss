@@ -131,23 +131,16 @@
   gap: 4px;
 }
  
-.flexDetailsSection {
-  margin-top: 8px;
-  display: flex;
-  flex-wrap: wrap;
-  flex-direction: column;
-  gap: 10px;
-  margin-bottom: 20px;
-}
- 
 .modalContentSection {
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
   margin-top: 12px;
+  padding-right: 12px;
 }
  
 .flexLayout {
+  margin-top: 8px;
   display: flex;
   justify-content: space-between;
   > div {
@@ -166,6 +159,7 @@
 }
  
 .divider{
+  margin-top: 12px !important;
   margin-right: 25px !important;
   margin-left: 0px !important;
   background-color: #697582;

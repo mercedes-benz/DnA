@@ -545,6 +545,10 @@ export class ApiClient {
     return this.fabricGet(`fabric-worspace/${roleId}/details`);
   }
 
+  public static getEntraGroupMembers(roleName: string) {
+    return this.fabricGet(`fabric-workspaces/${roleName}/entraGroupMembers`);
+  }
+
   public static updateSolution(data: ICreateNewSolutionRequest): Promise<ICreateNewSolutionResult> {
     return this.put('solutions', data);
   }
