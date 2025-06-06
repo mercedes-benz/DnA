@@ -970,7 +970,7 @@ grafana:
       from_name: <path:dna_aws_kv/data/dev/kubernetesSecret/monitoring#fromname>
     auth.generic_oauth:
       enabled: true
-      allow_sign_up: false
+      allow_sign_up: true
       auto_login: true
       team_ids:
       allowed_organizations:
