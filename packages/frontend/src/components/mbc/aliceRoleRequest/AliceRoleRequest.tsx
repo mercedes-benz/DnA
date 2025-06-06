@@ -10,16 +10,22 @@ import Notification from '../../../assets/modules/uilab/js/src/notification';
 import Modal from 'components/formElements/modal/Modal';
 import { TEAMS_PROFILE_LINK_URL_PREFIX } from 'globals/constants';
  
+interface roleResponse {
+  roleID: string;
+  isDynamic: boolean;
+}
+
 const AliceRoleRequest = () => {
   const goback = () => {
     history.goBack();
   };
   const [roleName, setRoleName] = useState('');
   const [roleNameError, setRoleNameError] = useState('');
-  const [rolesCreated, setRolesCreated] = useState({ static: [], dynamic: [] });
+  const [rolesCreated, setRolesCreated] = useState<{ static: string[]; dynamic: string[];}>({ static: [], dynamic: [] });
   const [isDynamicRole, setIsDynamicRole] = useState(false);
   const [showRoleModal, setShowRoleModal] = useState(false);
   const [selectedRoleDetails, setSelectedRoleDetails] = useState<any>(null);
+  const [entraGroupMembers, setEntraGroupMembers] = useState<any[]>([]);
  
   const onRoleNameChange = (e: React.FormEvent<HTMLInputElement>) => {
     const roleNameVal = e.currentTarget.value;
@@ -91,10 +97,10 @@ const AliceRoleRequest = () => {
       .then((res: any) => {
         ProgressIndicator.hide();
         if (Array.isArray(res)) return;
-        if (res?.data?.roles) {
-          const allRoles = res.data.roles;
-          const staticRoles = allRoles.filter((role: string) => !role.toLowerCase().includes('dyn'));
-          const dynamicRoles = allRoles.filter((role: string) => role.toLowerCase().includes('dyn'));
+        if (res?.roles) {
+          const allRoles: roleResponse[] = res.roles;
+          const staticRoles = allRoles.filter(role => !role.isDynamic).map(role => role.roleID);;
+          const dynamicRoles = allRoles.filter(role => role.isDynamic).map(role => role.roleID);
           setRolesCreated({ static: staticRoles, dynamic: dynamicRoles });
         } else {
           if (res?.errors[0]?.message?.length > 0) {
@@ -110,11 +116,12 @@ const AliceRoleRequest = () => {
         Notification.show(err?.message || 'Something went wrong', 'alert');
       });
   };
- 
+
   const handleRoleClick = (role: string) => {
     setShowRoleModal(true);
     setSelectedRoleDetails(null);
- 
+    setEntraGroupMembers([]);
+    
     ApiClient.getRoleDetails(role)
       .then((res: any) => {
         if (res?.data) {
@@ -133,6 +140,16 @@ const AliceRoleRequest = () => {
       })
       .catch((err) => {
         Notification.show(err?.message || 'Error fetching role details', 'alert');
+      });
+
+      ApiClient.getEntraGroupMembers(role)
+      .then((entraRes: any) => {
+        if (entraRes?.data?.groupMembers) {
+          setEntraGroupMembers(entraRes.data.groupMembers);
+        }
+      })
+      .catch((err) => {
+        Notification.show(err?.message || 'Error fetching EntraID members', 'alert');
       });
   };
  
@@ -283,29 +300,24 @@ const AliceRoleRequest = () => {
         </div>
       </div>
       <Modal
-        title={selectedRoleDetails?.id}
+        title="Role Details"
         content={
           <div>
-            <div className={Styles.flexDetailsSection}>
-              <div id="Sub-Title" >
-                <h5>Role Details</h5>
+            <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
+              <div id="Description" >
+                <label className="input-label summary">Description</label>
+                <br />
+                {selectedRoleDetails?.description || 'No description available.'}
               </div>
-              <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
-                <div id="Description" >
-                  <label className="input-label summary">Description</label>
-                  <br />
-                  {selectedRoleDetails?.description || 'No description available.'}
-                </div>
-                <div id="Dynamic Role">
-                  <label className="input-label summary">Dynamic Role</label>
-                  <br />
-                  {selectedRoleDetails?.isDynamic ? 'Yes' : 'No'}
-                </div>
-                <div id="Self-Requestable">
-                  <label className="input-label summary">Self Requestable Role</label>
-                  <br />
-                  {selectedRoleDetails?.isSelfRequestable ? 'Yes' : 'No'}
-                </div>
+              <div id="Dynamic Role">
+                <label className="input-label summary">Dynamic Role</label>
+                <br />
+                {selectedRoleDetails?.isDynamic ? 'Yes' : 'No'}
+              </div>
+              <div id="Self-Requestable">
+                <label className="input-label summary">Self Requestable Role</label>
+                <br />
+                {selectedRoleDetails?.isSelfRequestable ? 'Yes' : 'No'}
               </div>
             </div>
             <hr className={Styles.divider} />
@@ -342,6 +354,21 @@ const AliceRoleRequest = () => {
                 ))
               ) : (
                 <p>No members found.</p>
+              )}
+            </div>
+            <hr className={Styles.divider} />
+            <h5>Entra Group Members</h5>
+            <div className={Styles.modalContentSection}>
+              {entraGroupMembers?.length > 0 ? (
+                entraGroupMembers.map((member: any, index: number) => (
+                  <div key={index} className={Styles.roleItem}>
+                    <div className={Styles.userDetails}>
+                      <p>{member.displayName}</p>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p>No Entra group members found.</p>
               )}
             </div>
           </div>
