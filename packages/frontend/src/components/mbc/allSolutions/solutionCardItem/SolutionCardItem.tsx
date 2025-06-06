@@ -108,8 +108,9 @@ const SolutionCardItem = (props: ISolutionCardItemProps) => {
   }, []);
 
   useEffect(() => {
-    getWorkspaceByID();
-
+    if (solution?.portfolio?.dnaNotebookId) {
+      getWorkspaceByID();
+    }
   }, [solution?.portfolio?.dnaNotebookId])
 
   const toggleContextMenu = (e: React.FormEvent<HTMLSpanElement>) => {

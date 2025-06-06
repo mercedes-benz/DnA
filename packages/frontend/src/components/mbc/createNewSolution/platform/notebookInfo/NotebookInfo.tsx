@@ -42,7 +42,9 @@ const NotebookInfo = forwardRef((props: INotebookInfoProps, ref: Ref<INotebookIn
 
   useEffect(() => {
     setSelectionError(false);
-    getWorkspaceByID();
+    if (props.notebookId) {
+      getWorkspaceByID();
+    }
   }, [props.notebookId]);
 
   useImperativeHandle(ref, () => ({

@@ -1565,8 +1565,8 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		try {
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
-			headers.set("Content-Type", "application/json");		
-
+			headers.set("Content-Type", "application/json");	
+			headers.set("apikey", awsApiKey);
 			String attachPluginUri = authenticatorBaseUri + CREATE_SERVICE + "/" + serviceName + ATTACH_REQUEST_TRANSFORMER_PLUGIN_TO_SERVICE;
 
 			HttpEntity<AttachRequestTransformerPluginRequestVO> entity = new HttpEntity<AttachRequestTransformerPluginRequestVO>(attachRequestTransformerPluginRequestVO,headers);			
