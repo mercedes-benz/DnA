@@ -57,5 +57,5 @@ db:
    env: prod
  - name: code-server
    env: prod  
- - name: ai-agentic
+ - name: aiagentic
    env: prod 
