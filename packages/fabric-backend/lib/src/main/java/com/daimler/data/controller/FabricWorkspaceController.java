@@ -45,6 +45,7 @@ import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspacesCollectionVO;
 import com.daimler.data.dto.fabricWorkspace.RolesVO;
 import com.daimler.data.dto.fabricWorkspace.DnaRoleCollectionVO;
+import com.daimler.data.dto.fabricWorkspace.EntraGroupResponseVO;
 import com.daimler.data.dto.fabricWorkspace.ShortcutCreateRequestVO;
 import com.daimler.data.dto.fabricWorkspace.ShortcutVO;
 import com.daimler.data.service.fabric.FabricWorkspaceService;
@@ -916,5 +917,33 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
         return false;
     }
 
+	@Override
+    @ApiOperation(value = "get the EntraID group member details.", nickname = "getGroupMemberDetails", notes = "get the group member details.", response = EntraGroupResponseVO.class, tags={ "fabric-workspaces", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 200, message = "Returns message of succes or failure ", response = EntraGroupResponseVO.class),
+        @ApiResponse(code = 400, message = "Bad Request"),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/fabric-workspaces/{roleName}/entraGroupMembers",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.GET)
+     public ResponseEntity<EntraGroupResponseVO> getGroupMemberDetails(@ApiParam(value = "",required=true) @PathVariable("roleName") String roleName){
+		try {
+			EntraGroupResponseVO groupResponse = service.getEntraGroupMembers(roleName);
+
+			if (groupResponse == null) {
+				return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+			}
+			return new ResponseEntity<>(groupResponse, HttpStatus.OK);
+
+		} catch (Exception e) {
+			log.error("Failed to retrieve Entra ID group details for roleId {} with exception: {}", roleName,
+					e.getMessage());
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
     
 }
