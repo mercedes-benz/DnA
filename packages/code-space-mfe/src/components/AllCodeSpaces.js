@@ -365,11 +365,11 @@ const AllCodeSpaces = (props) => {
                             </button>
                             <button
                                 className={classNames('btn btn-primary', Styles.awsFAQ)}
-                                tooltip-data="AWS migration FAQs"
-                                onClick={() => { setShowAwsFAQModal(Envs.SHOW_AWS_MIGRATION_WARNING) }}
+                                tooltip-data="CodeSpace FAQs"
+                                onClick={() => { setShowAwsFAQModal(true) }}
                             >
                                 <i className={classNames('icon mbc-icon alert circle')} />
-                                <span>AWS Migration FAQ&apos;s</span>
+                                <span>CodeSpace FAQ&apos;s</span>
                             </button>
                         </div>
                         <div className={classNames(Styles.codspaceSearch)}>
