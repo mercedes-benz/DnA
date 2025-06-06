@@ -31,6 +31,8 @@ import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.dto.fabric.EntiltlemetDetailsDto;
 import com.daimler.data.dto.fabric.MicrosoftGroupDetailDto;
+import com.daimler.data.dto.fabricWorkspace.AuthoriserRoleDetailsVO;
+import com.daimler.data.dto.fabricWorkspace.AuthoriserRoleDetailsResponseVO;
 import com.daimler.data.dto.fabricWorkspace.CreateRoleRequestVO;
 import com.daimler.data.dto.fabricWorkspace.CreatedByVO;
 import com.daimler.data.dto.fabricWorkspace.FabricLakehouseCreateRequestVO;
@@ -835,6 +837,7 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 		}
 	}
 
+	@Override
 	@ApiOperation(value = "get all dna roles for a user.", nickname = "getAllUserDnaRoles", notes = "get all dna roles for a user", response = DnaRoleCollectionVO.class, tags={ "fabric-workspaces", })
     @ApiResponses(value = { 
         @ApiResponse(code = 201, message = "Returns message of succes or failure ", response = DnaRoleCollectionVO.class),
@@ -867,6 +870,41 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 		}
 		
 	}
+
+	@Override
+	@ApiOperation(value = "get the role details.", nickname = "getRoleDetails", notes = "get the role details.", response = AuthoriserRoleDetailsResponseVO.class, tags={ "fabric-workspaces", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns message of succes or failure ", response = AuthoriserRoleDetailsResponseVO.class),
+        @ApiResponse(code = 400, message = "Bad Request"),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/fabric-worspace/{roleId}/details",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.GET)
+    public ResponseEntity<AuthoriserRoleDetailsResponseVO> getRoleDetails(@ApiParam(value = "",required=true) @PathVariable("roleId") String roleId){
+		AuthoriserRoleDetailsResponseVO response = new 	AuthoriserRoleDetailsResponseVO();
+		AuthoriserRoleDetailsVO roleDetailsVO = new AuthoriserRoleDetailsVO();
+
+		try{
+
+			roleDetailsVO = service.getRoleDetails(roleId);
+
+			if(roleDetailsVO != null){
+				response.setData(roleDetailsVO);
+				return new ResponseEntity<>(response, HttpStatus.OK);
+			}else{
+				return new ResponseEntity<>(response, HttpStatus.NO_CONTENT);
+			}
+
+		}catch(Exception e){
+				log.error("Failed to get role  details for roleId {} with exception {} ",roleId,e.getMessage());
+				return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
 
 	public static boolean isTechnicalUser(String id) {
         if (id.length() == 7 && id.startsWith("TE")) {
