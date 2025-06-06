@@ -11,8 +11,8 @@ import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indica
 import { CodeSpaceApiClient } from '../../apis/codespace.api';
 import Notification from '../../common/modules/uilab/js/src/notification';
 import {
-  buildLogViewURL,
-  buildGitJobLogViewURL,
+  // buildLogViewURL,
+  // buildGitJobLogViewURL,
   buildLogViewAWSURL,
   buildGitJobLogViewAWSURL,
   buildGitUrl,
@@ -48,8 +48,8 @@ const ContextMenu = (props) => {
     Envs.MONITORING_DASHBOARD_BASE_URL +
     `codespace-cpu-and-memory-usage?orgId=1&from=now-1h&to=now&var-namespace=${Envs.CODESERVER_NAMESPACE}&var-pod=${codeSpace.workspaceId}&var-container=notebook`;
 
-  const intDeploymentMigrated = intDeployedUrl?.includes(Envs.CODESPACE_AWS_POPUP_URL);
-  const prodDeploymentMigrated = prodDeployedUrl?.includes(Envs.CODESPACE_AWS_POPUP_URL);
+  // const intDeploymentMigrated = intDeployedUrl?.includes(Envs.CODESPACE_AWS_POPUP_URL);
+  // const prodDeploymentMigrated = prodDeployedUrl?.includes(Envs.CODESPACE_AWS_POPUP_URL);
 
   const prodCodeDeployFailed = prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
   const intCodeDeployFailed = intDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
@@ -310,12 +310,7 @@ const ContextMenu = (props) => {
                 <li>
                   <a
                     target="_blank"
-                    href={
-                      codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' &&
-                      intDeploymentMigrated
-                        ? buildGitJobLogViewAWSURL(intDeploymentDetails?.gitjobRunID)
-                        : buildGitJobLogViewURL(intDeploymentDetails?.gitjobRunID)
-                    }
+                    href={buildGitJobLogViewAWSURL(intDeploymentDetails?.gitjobRunID)}
                     rel="noreferrer"
                   >
                     Last Deploy Logs{' '}
@@ -342,12 +337,7 @@ const ContextMenu = (props) => {
                 <li>
                   <a
                     target="_blank"
-                    href={
-                      codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' &&
-                      intDeploymentMigrated
-                        ? buildLogViewAWSURL(intDeployedUrl || projectDetails?.projectName.toLowerCase(), true)
-                        : buildLogViewURL(intDeployedUrl || projectDetails?.projectName.toLowerCase(), true)
-                    }
+                    href={buildLogViewAWSURL(intDeployedUrl || projectDetails?.projectName.toLowerCase(), true)}
                     rel="noreferrer"
                   >
                     Application Logs <i className="icon mbc-icon new-tab" />
@@ -378,7 +368,7 @@ const ContextMenu = (props) => {
                   </span>
                 </li>
               )}
-              {intDeployed && intDeploymentMigrated && (
+              {intDeployed && (
                 <li>
                   <a target="_blank" href={intAppResourceUsageUrl} rel="noreferrer">
                     Deployed App Resource Usage
@@ -461,12 +451,7 @@ const ContextMenu = (props) => {
                 <li>
                   <a
                     target="_blank"
-                    href={
-                      codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' &&
-                      prodDeploymentMigrated
-                        ? buildGitJobLogViewAWSURL(prodDeploymentDetails?.gitjobRunID)
-                        : buildGitJobLogViewURL(prodDeploymentDetails?.gitjobRunID)
-                    }
+                    href={buildGitJobLogViewAWSURL(prodDeploymentDetails?.gitjobRunID)}
                     rel="noreferrer"
                   >
                     Last Deploy Logs{' '}
@@ -493,12 +478,7 @@ const ContextMenu = (props) => {
                 <li>
                   <a
                     target="_blank"
-                    href={
-                      codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' &&
-                      prodDeploymentMigrated
-                        ? buildLogViewAWSURL(prodDeployedUrl || projectDetails?.projectName.toLowerCase())
-                        : buildLogViewURL(prodDeployedUrl || projectDetails?.projectName.toLowerCase())
-                    }
+                    href={buildLogViewAWSURL(prodDeployedUrl || projectDetails?.projectName.toLowerCase())}
                     rel="noreferrer"
                   >
                     Application Logs <i className="icon mbc-icon new-tab" />
@@ -529,7 +509,7 @@ const ContextMenu = (props) => {
                   </span>
                 </li>
               )}
-              {prodDeployed && prodDeploymentMigrated && (
+              {prodDeployed && (
                 <li>
                   <a target="_blank" href={prodAppResourceUsageUrl} rel="noreferrer">
                     Deployed App Resource Usage
