@@ -1127,7 +1127,7 @@ grafana:
   #   FTP_PROXY: http://security-proxy.emea.svc.corpintra.net:3128/
   persistence:
     type: "sts"
-    enabled: true
+    enabled: false
     storageClassName: dhc-gp3
     accessModes:
       - ReadWriteOnce
