@@ -163,6 +163,7 @@ alloy:
         output {
           traces  = [otelcol.processor.k8sattributes.default.input,otelcol.connector.servicegraph.default.input]
           metrics = [otelcol.processor.batch.default.input]
+          logs = [otelcol.processor.attributes.default.input]
         }
       }
 
@@ -170,6 +171,7 @@ alloy:
         output {
           traces  = [otelcol.processor.k8sattributes.default.input,otelcol.connector.servicegraph.default.input]
           metrics = [otelcol.processor.batch.default.input]
+          logs = [otelcol.processor.attributes.default.input]
         }
       }
       otelcol.processor.k8sattributes "default" {
@@ -195,6 +197,7 @@ alloy:
         output {
           traces  = [otelcol.exporter.otlp.tempo.input]
           metrics = [otelcol.exporter.prometheus.default.input]
+          logs = [otelcol.exporter.loki.default.input]
         }
       }
 
@@ -217,7 +220,33 @@ alloy:
           }
         }
       }
+      otelcol.processor.attributes "default" {
+        action {
+          key = "loki.attribute.labels"
+          action = "insert"
+          value = "event.domain, event.name"
+        }
 
+        action {
+          key = "loki.resource.labels"
+          action = "insert"
+          value = "service.name, service.namespace"
+        }
+
+        output {
+          logs = [otelcol.processor.batch.default.input]
+        }
+      }
+
+      otelcol.exporter.loki "default" {
+        forward_to = [loki.write.local.receiver]
+      }
+
+      loki.write "local" {
+        endpoint {
+            url = "http://loki-gateway/loki/api/v1/push"
+        }
+      }
     # -- Name of existing ConfigMap to use. Used when create is false.
     name: null
     # -- Key in ConfigMap to get config from.
