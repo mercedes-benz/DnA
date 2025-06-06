@@ -20,6 +20,8 @@ ingester:
       - name: data
         size: 50Gi  
         storageClass: dhc-gp3
+  config:
+    complete_block_timeout: 72h  # Set to 3 days (72 hours)        
 traces:
   otlp:
     grpc:
