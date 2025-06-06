@@ -991,8 +991,8 @@ grafana:
       type: postgres
       host: grafana-db-dev.i3-monitoring.svc.cluster.local
       name: grafanadb
-      user: DATABASE-USER
-      password: DATABASE-PASSWORD    
+      user: grafana
+      password: <path:dna_aws_kv/data/dev/kubernetesSecret/grafana-db#dbadm.password>   
 
   ## Configure notifiers
   ## ref: http://docs.grafana.org/administration/provisioning/#alert-notification-channels
