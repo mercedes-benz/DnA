@@ -987,7 +987,12 @@ grafana:
     security:
       cookie_samesite: none
       cookie_secure: true
-    
+    database:
+      type: postgres
+      host: grafana-db-dev.i3-monitoring.svc.cluster.local
+      name: grafanadb
+      user: DATABASE-USER
+      password: DATABASE-PASSWORD    
 
   ## Configure notifiers
   ## ref: http://docs.grafana.org/administration/provisioning/#alert-notification-channels

@@ -1,0 +1,34 @@
+fullnameOverride: tempo
+global:
+  image:
+    registry: registry-emea.app.corpintra.net/dockerhub  
+storage:
+  trace:
+    block:
+      version: vParquet4
+      dedicated_columns:
+        - name: cluster
+          type: string
+          scope: resource
+        - name: service.name
+          type: string
+          scope: resource
+ingester:
+  persistence:
+    enabled: true
+    claims:
+      - name: data
+        size: 50Gi  
+        storageClass: dhc-gp3
+traces:
+  otlp:
+    grpc:
+      enabled: true
+    http:
+      enabled: true        
+  zipkin:
+    enabled: true      
+overrides:
+  defaults:
+    metrics_generator:
+      processors: [service-graphs, span-metrics, local-blocks]
