@@ -989,7 +989,7 @@ grafana:
       cookie_secure: true
     database:
       type: postgres
-      host: grafana-db-dev.i3-monitoring.svc.cluster.local
+      host: grafana-db-dev.i3-monitoring.svc.cluster.local:64000
       name: grafanadb
       user: grafana
       password: <path:dna_aws_kv/data/dev/kubernetesSecret/grafana-db#dbadm.password>   
