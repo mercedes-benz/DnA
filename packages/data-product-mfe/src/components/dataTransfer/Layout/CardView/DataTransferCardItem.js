@@ -171,7 +171,7 @@ const DataProductCardItem = ({ product, history, user, isDataProduct = false, is
                   )
                  ): <span>-</span>
               ) : (
-                <span>pending...</span>
+                <span className={Styles.draft}>Draft</span>
               )}
             </div>
           </div>
