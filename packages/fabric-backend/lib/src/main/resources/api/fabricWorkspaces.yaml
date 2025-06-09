@@ -909,9 +909,18 @@ definitions:
         properties:
           roles:
             type: array
-            items: 
-              type: string
-              
+            items:
+              $ref: "#/definitions/DnaRolesVO" 
+               
+
+  DnaRolesVO:
+    type: object
+    properties:
+        isDynamic:
+          type: boolean
+        roleID:
+          type: string
+  
   LeanIXDetailsVO:
     type: object
     properties :
@@ -993,4 +1002,3 @@ definitions:
         type: string
       shortId:
         type: string
-      
