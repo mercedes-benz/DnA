@@ -579,6 +579,7 @@ public class BaseStorageService implements StorageService {
 
 		LOGGER.debug("list bucket objects through minio client");
 		MinioGenericResponse minioObjectResponse = dnaMinioClient.getBucketObjectsUsingMC(currentUser, bucketName, prefix);
+		LOGGER.debug("minioObjectResponse :"+ minioObjectResponse);
 		if (minioObjectResponse != null && minioObjectResponse.getStatus().equals(ConstantsUtility.SUCCESS)) {
 			LOGGER.debug("Success from list objects minio client");
 			BucketObjectResponseVO bucketObjectResponseVO = new BucketObjectResponseVO();
@@ -587,7 +588,7 @@ public class BaseStorageService implements StorageService {
 
 			LOGGER.debug("Fetching bucket:{} permission for user:{}",bucketName,currentUser);
 			bucketObjectResponseVO.setBucketPermission(dnaMinioClient.getBucketPermission(bucketName, currentUser));
-
+			LOGGER.debug("bucketObjectResponseVO :"+ bucketObjectResponseVO);
 			objectResponseWrapperVO.setData(bucketObjectResponseVO);
 			httpStatus = minioObjectResponse.getHttpStatus();
 
