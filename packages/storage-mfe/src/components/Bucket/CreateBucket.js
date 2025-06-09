@@ -446,7 +446,7 @@ const CreateBucket = ({ user }) => {
       })
       .catch(() => {
         ProgressIndicator.hide();
-        Notification.show('Error while transferring ownership', 'alert');
+        Notification.show('Error while transferring ownership. Please make sure you have updated the bucket after adding the user before transferring.', 'alert');
       });
   };
 
