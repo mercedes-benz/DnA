@@ -3,8 +3,8 @@ import { useHistory } from 'react-router-dom';
 import classNames from 'classnames';
 import Styles from './code-space-group-card.scss';
 import {
-  buildLogViewURL,
-  buildGitJobLogViewURL,
+  // buildLogViewURL,
+  // buildGitJobLogViewURL,
   buildLogViewAWSURL,
   buildGitJobLogViewAWSURL,
   buildGitUrl,
@@ -84,7 +84,7 @@ const CodeSpaceGCard = ({ codeSpace, userInfo, onStartStopCodeSpace, onShowDeplo
     false;
   const prodCodeDeployFailed = prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
 
-  const deploymentMigrated = !(codeSpace?.projectDetails?.intDeploymentDetails?.deploymentUrl?.includes(Envs.CODESPACE_OIDC_POPUP_URL) || codeSpace?.projectDetails?.prodDeploymentDetails?.deploymentUrl?.includes(Envs.CODESPACE_OIDC_POPUP_URL));
+  // const deploymentMigrated = !(codeSpace?.projectDetails?.intDeploymentDetails?.deploymentUrl?.includes(Envs.CODESPACE_OIDC_POPUP_URL) || codeSpace?.projectDetails?.prodDeploymentDetails?.deploymentUrl?.includes(Envs.CODESPACE_OIDC_POPUP_URL));
   
   const securedWithIAMContent = (
     <svg
@@ -342,7 +342,7 @@ const CodeSpaceGCard = ({ codeSpace, userInfo, onStartStopCodeSpace, onShowDeplo
                         <li>
                           <a
                             target="_blank"
-                            href={(codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' && deploymentMigrated) ? buildGitJobLogViewAWSURL(intDeploymentDetails?.gitjobRunID) : buildGitJobLogViewURL(intDeploymentDetails?.gitjobRunID)}
+                            href={buildGitJobLogViewAWSURL(intDeploymentDetails?.gitjobRunID)}
                             rel="noreferrer"
                           >
                             Last Build &amp; Deploy Logs{' '}
@@ -363,7 +363,7 @@ const CodeSpaceGCard = ({ codeSpace, userInfo, onStartStopCodeSpace, onShowDeplo
                         <li>
                           <a
                             target="_blank"
-                            href={(codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' && deploymentMigrated) ? buildLogViewAWSURL(intDeployedUrl || projectDetails?.projectName.toLowerCase(), true) :buildLogViewURL(intDeployedUrl || projectDetails?.projectName.toLowerCase(), true)}
+                            href={buildLogViewAWSURL(intDeployedUrl || projectDetails?.projectName.toLowerCase(), true)}
                             rel="noreferrer"
                           >
                             Application Logs <i className="icon mbc-icon new-tab" />
@@ -445,7 +445,7 @@ const CodeSpaceGCard = ({ codeSpace, userInfo, onStartStopCodeSpace, onShowDeplo
                         <li>
                           <a
                             target="_blank"
-                            href={(codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' && deploymentMigrated) ? buildGitJobLogViewAWSURL(prodDeploymentDetails?.gitjobRunID) : buildGitJobLogViewURL(prodDeploymentDetails?.gitjobRunID)}
+                            href={buildGitJobLogViewAWSURL(prodDeploymentDetails?.gitjobRunID)}
                             rel="noreferrer"
                           >
                             Build &amp; Deploy Logs{' '}
@@ -466,7 +466,7 @@ const CodeSpaceGCard = ({ codeSpace, userInfo, onStartStopCodeSpace, onShowDeplo
                         <li>
                           <a
                             target="_blank"
-                            href={(codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' && deploymentMigrated) ? buildLogViewAWSURL(prodDeployedUrl || projectDetails?.projectName.toLowerCase()) : buildLogViewURL(prodDeployedUrl || projectDetails?.projectName.toLowerCase())}
+                            href={buildLogViewAWSURL(prodDeployedUrl || projectDetails?.projectName.toLowerCase())}
                             rel="noreferrer"
                           >
                             Application Logs <i className="icon mbc-icon new-tab" />
