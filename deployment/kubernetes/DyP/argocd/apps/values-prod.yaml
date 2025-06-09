@@ -59,3 +59,5 @@ db:
    env: prod  
  - name: ai-agentic
    env: prod 
+ - name: hot-portfolio
+   env: prod 
