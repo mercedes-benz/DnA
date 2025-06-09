@@ -24,6 +24,7 @@ export interface IModalProps {
   footer?: React.ReactNode;
   customHeader?: React.ReactNode;
   hideCloseButton?: boolean;
+  scrollableBox?: boolean;
 }
 
 const Modal = (props: IModalProps) => {
@@ -45,7 +46,7 @@ const Modal = (props: IModalProps) => {
 
   return (
     <div className={props.show ? 'mbc-modal-wrapper' : Styles.hide}>
-      <div className={'mbc-modal'} style={{ minWidth: props.modalWidth ? props.modalWidth : '', ...props.modalStyle }}>
+      <div className={props.scrollableBox ? 'mbc-modal scrollable mbc-scroll' : 'mbc-modal'} style={{ minWidth: props.modalWidth ? props.modalWidth : '', ...props.modalStyle }}>
         <header>
           {props.customHeader ? (
             props.customHeader

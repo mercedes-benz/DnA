@@ -1,4 +1,4 @@
-import { server, hostServer, reportsServer, storageServer } from '../server/api';
+import { server, hostServer, reportsServer, storageServer, dataProductServer } from '../server/api';
 
 const getFabricWorkspaces = (offset, limit) => {
   return server.get(`/fabric-workspaces?limit=${limit}&offset=${offset}`, {
@@ -117,6 +117,10 @@ const getLovData = () => {
   ]);
 }
 
+const getLeanIX = (searchTerm) => {
+  return dataProductServer.get(`/planningit?searchTerm=${searchTerm}`, { data: {} });
+};
+
 export const fabricApi = {
   getFabricWorkspaces,
   getFabricWorkspace,
@@ -135,4 +139,5 @@ export const fabricApi = {
   getAllBuckets,
   getConnectionInfo,
   getLovData,
+  getLeanIX,
 };
