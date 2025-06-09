@@ -206,7 +206,8 @@ const AliceRoleRequest = () => {
                     maxLength={50}
                     onChange={onRoleNameChange}
                   />
-                  <div className="form-group">
+
+                  {/* <div className="form-group">
                     <label className="checkbox">
                       <span className="wrapper">
                       <input
@@ -218,7 +219,8 @@ const AliceRoleRequest = () => {
                       </span>
                       <span className="label">Dynamic Role</span>
                     </label>
-                  </div>
+                  </div> */}
+
                 </div>
  
                 <div className={classNames(Styles.roleName, Styles.disabledSection)}>
