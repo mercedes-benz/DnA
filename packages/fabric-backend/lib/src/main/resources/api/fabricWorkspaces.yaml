@@ -856,11 +856,11 @@ definitions:
   
   DnaRolesVO:
     type: object
-      properties:
-        isDynamic:
-          type: boolean
-        roleID:
-          type: string
+    properties:
+      isDynamic:
+        type: boolean
+      roleID:
+        type: string
 
             
   LeanIXDetailsVO:
@@ -888,6 +888,6 @@ definitions:
       providerOrgDeptid:
         type: string
 
-        
+    
 
     
