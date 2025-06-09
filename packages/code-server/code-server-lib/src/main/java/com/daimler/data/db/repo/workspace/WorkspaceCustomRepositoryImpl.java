@@ -388,6 +388,13 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 				// " \"technicalUserDetailsForIAMLogin\": " + addQuotes(deploymentDetails.getTechnicalUserDetailsForIAMLogin()) + "," +
 				" \"lastDeployedBranch\": " + addQuotes(deploymentDetails.getLastDeployedBranch()) + "," +
 				" \"gitjobRunID\": " + addQuotes(deploymentDetails.getGitjobRunID()) + "," +
+				" \"oneApiVersionShortName\": " + addQuotes(deploymentDetails.getOneApiVersionShortName()) + "," +
+				" \"isSecuredWithCookie\": " + deploymentDetails.getIsSecuredWithCookie() + "," +
+				" \"deploymentType\": " + (deploymentDetails.getDeploymentType() != null ? addQuotes(String.valueOf(deploymentDetails.getDeploymentType())) : "null") + "," +
+				" \"clientId\": " + addQuotes(deploymentDetails.getClientId()) + "," +
+				" \"redirectUri\": " + addQuotes(deploymentDetails.getRedirectUri()) + "," +
+				" \"ignorePaths\": " + addQuotes(deploymentDetails.getIgnorePaths()) + "," +
+				" \"scope\": " + addQuotes(deploymentDetails.getScope()) + "," +
 				" \"lastDeploymentStatus\": " + addQuotes(deploymentDetails.getLastDeploymentStatus()) ;
 
 			List<DeploymentAudit> deploymentAuditLogs = deploymentDetails.getDeploymentAuditLogs();

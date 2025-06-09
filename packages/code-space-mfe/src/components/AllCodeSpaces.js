@@ -22,6 +22,7 @@ import CodeSpaceTutorials from './codeSpaceTutorials/CodeSpaceTutorials';
 import { Envs } from '../Utility/envs';
 import ConfirmModal from 'dna-container/ConfirmModal';
 import InfoModal from 'dna-container/InfoModal';
+import CodeSpaceBlueprint from './codeSpaceBlueprint/CodeSpaceBlueprint';
 
 // export interface IAllCodeSpacesProps {
 //   user: IUserInfo;
@@ -46,7 +47,9 @@ const AllCodeSpaces = (props) => {
         [showTutorialsModel, setShowTutorialsModel] = useState(false),
         [codeSpaceSearchTerm , setCodeSpaceSearchTerm] = useState(''),
         [filteredCodeSpaces, setFilteredCodespaces] = useState(),
-        [showAwsFAQModal, setShowAwsFAQModal] = useState(false);
+        [showAwsFAQModal, setShowAwsFAQModal] = useState(false),
+        [blueprintCodespace, setBlueprintCodespace] = useState(),
+        [showBlueprintModal, setShowBlueprintModal] = useState(false);
     const History = useHistory();
     const goback = () => {
         History.goBack();
@@ -162,6 +165,11 @@ const AllCodeSpaces = (props) => {
     const onCodeSpaceDeploy = (codeSpace) => {
         setOnDeployCodeSpace(codeSpace);
         setShowDeployCodeSpaceModal(true);
+    };
+
+    const onCodeSpaceShowBlueprint = (codeSpace) => {
+        setBlueprintCodespace(codeSpace);
+        setShowBlueprintModal(true);
     };
 
     const onStartStopCodeSpace = (codeSpace, startSuccessCB, env, manual = false) => {
@@ -436,6 +444,7 @@ const AllCodeSpaces = (props) => {
                                                         onCodeSpaceEdit={onCodeSpaceEdit}
                                                         onShowDeployModal={onCodeSpaceDeploy}
                                                         onStartStopCodeSpace={onStartStopCodeSpace}
+                                                        onShowBlueprintModal={onCodeSpaceShowBlueprint}
                                                     />
                                                 );
                                             })}
@@ -464,6 +473,7 @@ const AllCodeSpaces = (props) => {
                                                         onCodeSpaceEdit={onCodeSpaceEdit}
                                                         onShowDeployModal={onCodeSpaceDeploy}
                                                         onStartStopCodeSpace={onStartStopCodeSpace}
+                                                        onShowBlueprintModal={onCodeSpaceShowBlueprint}
                                                     />
                                                 );
                                             })}
@@ -519,12 +529,20 @@ const AllCodeSpaces = (props) => {
                 <DeployModal
                     userInfo={props.user}
                     codeSpaceData={onDeployCodeSpace}
-                    enableSecureWithIAM={
-                        onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'springboot' ||
-                        onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'py-fastapi' ||
-                        onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'expressjs' ||
-                        onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'springbootwithmaven'
-                    }
+                    // enableSecureWithIAM={
+                    //     onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'springboot' ||
+                    //     onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'py-fastapi' ||
+                    //     onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'expressjs' ||
+                    //     onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'springbootwithmaven'
+                    // }
+                    // isUIRecipe={
+                    //     onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'dash' ||
+                    //     onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'streamlit' ||
+                    //     onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'nestjs' ||
+                    //     onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'vuejs' ||
+                    //     onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'angular' ||
+                    //     onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'react'
+                    // }
                     setShowCodeDeployModal={(isVisible) => setShowDeployCodeSpaceModal(isVisible)}
                     setCodeDeploying={() => getCodeSpacesData()}
                     setIsApiCallTakeTime={setIsApiCallTakeTime}
@@ -591,6 +609,20 @@ const AllCodeSpaces = (props) => {
                     show={showAwsFAQModal}
                     content={FAQModalContent}
                     onCancel={() => setShowAwsFAQModal(false)}
+                />
+            )}
+            {showBlueprintModal && (
+                <Modal
+                    title={'Code Space Blueprint'}
+                    hiddenTitle={true}
+                    showAcceptButton={false}
+                    showCancelButton={false}
+                    modalWidth="80%"
+                    buttonAlignment="right"
+                    show={showBlueprintModal}
+                    content={<CodeSpaceBlueprint codespace={blueprintCodespace} />}
+                    scrollableContent={true}
+                    onCancel={() => { setShowBlueprintModal(false) }}
                 />
             )}
         </div>
