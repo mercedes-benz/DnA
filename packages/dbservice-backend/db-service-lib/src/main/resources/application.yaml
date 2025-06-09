@@ -3,40 +3,53 @@
 spring:
     cloud:
         vault:
-            authentication: ${VAULT_AUTHENTICATION:TOKEN}
-            host: ${VAULT_HOST:localhost}
+            authentication: ${VAULT_AUTHENTICATION:XXXX}
+            host: ${VAULT_HOST:XXXX}
             kv:
-                enabled: 'true  '
-            mountpath: ${VAULT_MOUNTPATH:secret}
-            port: ${VAULT_PORT:8200}
-            scheme: ${VAULT_SCHEME:http}
-            token: ${VAULT_TOKEN:00000000-0000-0000-0000-000000000000}
-            vaultpath: ${VAULT_PATH:dna}
+                enabled: 'XXXX'
+            mountpath: ${VAULT_MOUNTPATH:XXXX}
+            port: ${VAULT_PORT:XXXX}
+            scheme: ${VAULT_SCHEME:XXXX}
+            token: ${VAULT_TOKEN:s.XXXX}
+            vaultpath: ${VAULT_PATH:XXXX}
+            namespace: ${VAULT_NAMESPACE:XXXX}
+            uri: ${VAULT_URI:XXXX}
+            kubernetes:
+                kubernetes-path: ${KUBERNETES_PATH:XXXX}
+                role: ${KUBERNETES_ROLE:XXXX}
+                service-account-token-file: ${KUBERNETES_SATOKENPATH:XXXX}            
+            ssl:
+                enabled: XXXX
+                trust:
+                    store:
+                        path: ${CA_TRUSTSTORE_PATH:XXXX}
+                        password: ${CA_TRUSTSTORE_PASSWORD:XXXX}    
+
     datasource:
         driver-class-name: org.postgresql.Driver
         hikari:
             connection-timeout: 4000
             data-source-properties: stringtype=unspecified
-        password: ${API_DB_PASS:XXXXXX}
+        password: ${API_DB_PASS:XXXX}
         tomcat:
             connection-properties: stringtype=unspecified
-        url: ${API_DB_URL:jdbc:postgresql://localhost:5432/dbname}
-        username: ${API_DB_USER:XXXXXX}
+        url: ${API_DB_URL:XXXX}
+        username: ${API_DB_USER:XXXX}
     flyway:
-        baseline-on-migrate: ${FLYWAY_BASELINE_ON_MIGRATE:false}
-        baseline-version: ${FLYWAY_BASELINEVERSION:0}
-        enabled: ${FLYWAY_ENABLED:false}
-        locations: classpath:db/migration
-        schemas: ${FLYWAY_SCHEMA:public}
+        baseline-on-migrate: ${FLYWAY_BASELINE_ON_MIGRATE:XXXX}
+        baseline-version: ${FLYWAY_BASELINEVERSION:XXXX}
+        enabled: ${FLYWAY_ENABLED:XXXX}
+        locations: classpath:XXXX
+        schemas: ${FLYWAY_SCHEMA:XXXX}
 
     http:
         multipart:
-            enabled: false        
+            enabled: XXXX        
 
     servlet:
         multipart:
-            max-file-size: ${MAX_FILE_SIZE:3000MB}
-            max-request-size: ${MAX_REQUEST_SIZE:3000MB}      
+            max-file-size: ${MAX_FILE_SIZE:XXXX}
+            max-request-size: ${MAX_REQUEST_SIZE:XXXX}      
     graphql:
         path: /api/minified
     jpa:
@@ -98,4 +111,28 @@ proxy:
     host: ${CUSTOMPROXY_HOST:xxxx}
 
 dna:
-  uri: ${DNA_URI:XXXXXX}     
+  uri: ${DNA_URI:XXXXXX}
+
+argocd:
+  argocdTokenUrl: ${ARGOCD_TOKEN_URI:XXXX}
+  argocdCreateUrl: ${ARGOCD_CREATE_URI:XXXX}
+  tokenUserName: ${TOKEN_USER_NAME:XXXX}
+  tokenPassword: ${TOKEN_PASSWORD:XXXX}
+  argocdCreateRequest: ${ARGOCD_CREATE_REQUEST:XXXX}  
+
+dbService:
+    host:
+        url: ${HOST_BASE_URL:.XXXX}
+    accesskey: ${ACCESSKEY:XXXX}
+    backupPassword: ${BACKUP_PASSWORD:XXXX}
+    bucketName: ${BUCKET_NAME:XXXX}
+    dataCatalogPassword: ${DATA_CATALOG_PASSWORD:XXXX}
+    debeziumPassword: ${DEBEZIUM_PASSWORD:XXXX}
+    patroniPassword: ${PATRONI_PASSWORD:XXXX}
+    pgmonPassword: ${PGMON_PASSWORD:XXXX}
+    retention: ${RETENTION:XXXX}
+    s3Host: ${S3_HOST:XXXX}
+    s3secretkey: ${S3_SECRET_KEY:XXXX}
+    size: ${SIZE:XXXX}
+    port: ${PORT:XXXX}
+    initDbTemplate: ${INITDBTEMPLATE:XXXX}    
