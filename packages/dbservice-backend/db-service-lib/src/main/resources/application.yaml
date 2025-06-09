@@ -113,11 +113,12 @@ proxy:
 dna:
   uri: ${DNA_URI:XXXXXX}
 
-vault:
+argocd:
   argocdTokenUrl: ${ARGOCD_TOKEN_URI:XXXX}
   argocdCreateUrl: ${ARGOCD_CREATE_URI:XXXX}
   tokenUserName: ${TOKEN_USER_NAME:XXXX}
-  tokenPassword: ${TOKEN_PASSWORD:XXXX}  
+  tokenPassword: ${TOKEN_PASSWORD:XXXX}
+  argocdCreateRequest: ${ARGOCD_CREATE_REQUEST:XXXX}  
 
 dbService:
     host:
