@@ -16,7 +16,7 @@ image:
 fullnameOverride: "grafana-db-dev"
 ## PostgreSQL replica count
 ##
-replicaCount: 1
+replicaCount: 2
 
 printEnv: true
 
@@ -469,7 +469,8 @@ antiAffinity:
   enabled: true
 
 podDisruptionBudget:
-  enabled: false
+  enabled: true
+  maxUnavailable: "50%"
 
 terminationGracePeriodSeconds: 300
 
