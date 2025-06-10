@@ -40,6 +40,8 @@ import com.daimler.data.dto.fabric.LakehouseS3ShortcutDto;
 import com.daimler.data.dto.fabric.LakehouseS3ShortcutResponseDto;
 import com.daimler.data.dto.fabric.MicrosoftGroupDetailCollectionDto;
 import com.daimler.data.dto.fabric.MicrosoftGroupDetailDto;
+import com.daimler.data.dto.fabric.MicrosoftGroupMemberCollectionDto;
+import com.daimler.data.dto.fabric.MicrosoftGroupMembersDto;
 import com.daimler.data.dto.fabric.WorkspaceDetailDto;
 import com.daimler.data.dto.fabric.WorkspaceUpdateDto;
 import com.daimler.data.dto.fabric.WorkspacesCollectionDto;
@@ -196,7 +198,7 @@ public class FabricWorkspaceClient {
 			headers.set("Authorization", "Bearer "+token);
 			headers.setContentType(MediaType.APPLICATION_JSON);
 			HttpEntity requestEntity = new HttpEntity<>(headers);
-			String groupSearchUrl = ConstantsUtility.GROUPSEARCH_URL_PREFIX + groupDisplayName + ConstantsUtility.GROUPSEARCH_URL_SUFFIX;
+			String groupSearchUrl = ConstantsUtility.GROUPSEARCH_URL + ConstantsUtility.GROUPSEARCH_URL_PREFIX + groupDisplayName + ConstantsUtility.GROUPSEARCH_URL_SUFFIX;
 			ResponseEntity<MicrosoftGroupDetailCollectionDto> response = proxyRestTemplate.exchange(groupSearchUrl , HttpMethod.GET,
 					requestEntity, MicrosoftGroupDetailCollectionDto.class);
 			if (response !=null && response.hasBody()) {
@@ -213,6 +215,37 @@ public class FabricWorkspaceClient {
 		return microsoftGroupDetailDto;
 	}
 	
+	public MicrosoftGroupMemberCollectionDto getGroupMembers(String groupDisplayName) {
+		MicrosoftGroupMemberCollectionDto collection = new MicrosoftGroupMemberCollectionDto();
+		try {
+			String token = getTokenForGroupSearch(); 
+			if (!Objects.nonNull(token)) {
+				log.error("Failed to fetch token to invoke group member search API");
+				return null;
+			}
+			HttpHeaders headers = new HttpHeaders();
+			headers.setAccept(List.of(MediaType.APPLICATION_JSON));
+			headers.setBearerAuth(token);
+			headers.setContentType(MediaType.APPLICATION_JSON);
+			HttpEntity<String> requestEntity = new HttpEntity<>(headers);
+			String groupMembersUrl = ConstantsUtility.GROUPSEARCH_URL + "/" + groupDisplayName + "/members";
+			ResponseEntity<MicrosoftGroupMemberCollectionDto> response = proxyRestTemplate.exchange(groupMembersUrl, HttpMethod.GET,
+					requestEntity, MicrosoftGroupMemberCollectionDto.class);
+			if (response != null && response.hasBody()) {
+				collection = response.getBody();
+				if (collection != null && collection.getValue() != null && !collection.getValue().isEmpty()) {
+					log.info("Successfully fetched members for groupId {}", groupDisplayName);
+				} else {
+					log.info("GroupId {} has no members", groupDisplayName);
+				}
+			}
+		} catch (Exception e) {
+			log.error("Failed to get members for groupId {} with exception {}", groupDisplayName, e.getMessage());
+			collection = null;
+		}
+		return collection;
+	}
+
 	public GenericMessage addUserToDatasource(String datasourceConnectionId, String emailAddress) {
 		GenericMessage response = new GenericMessage();
 		try {

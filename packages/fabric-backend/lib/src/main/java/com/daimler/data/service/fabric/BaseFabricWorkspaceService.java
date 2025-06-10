@@ -47,6 +47,8 @@ import com.daimler.data.dto.fabric.LakehouseS3ShortcutCollectionDto;
 import com.daimler.data.dto.fabric.LakehouseS3ShortcutDto;
 import com.daimler.data.dto.fabric.LakehouseS3ShortcutResponseDto;
 import com.daimler.data.dto.fabric.MicrosoftGroupDetailDto;
+import com.daimler.data.dto.fabric.MicrosoftGroupMemberCollectionDto;
+import com.daimler.data.dto.fabric.MicrosoftGroupMembersDto;
 import com.daimler.data.dto.fabric.ReviewerConfigDto;
 import com.daimler.data.dto.fabric.S3CompatibleTargetDto;
 import com.daimler.data.dto.fabric.ShortcutTargetDto;
@@ -54,9 +56,13 @@ import com.daimler.data.dto.fabric.UserRoleRequestDto;
 import com.daimler.data.dto.fabric.WorkflowDefinitionDto;
 import com.daimler.data.dto.fabric.WorkspaceDetailDto;
 import com.daimler.data.dto.fabric.WorkspaceUpdateDto;
+import com.daimler.data.dto.fabricWorkspace.AuthoriserRoleDetailsVO;
+import com.daimler.data.dto.fabricWorkspace.MembersVO;
 import com.daimler.data.dto.fabricWorkspace.CapacityVO;
 import com.daimler.data.dto.fabricWorkspace.CreateRoleRequestVO;
 import com.daimler.data.dto.fabricWorkspace.EntitlementDetailsVO;
+import com.daimler.data.dto.fabricWorkspace.EntraGroupMembersVO;
+import com.daimler.data.dto.fabricWorkspace.EntraGroupResponseVO;
 import com.daimler.data.dto.fabricWorkspace.FabricLakehouseCreateRequestVO;
 import com.daimler.data.dto.fabricWorkspace.FabricLakehouseVO;
 import com.daimler.data.dto.fabricWorkspace.FabricShortcutsCollectionVO;
@@ -75,6 +81,7 @@ import com.daimler.data.dto.fabricWorkspace.ShortcutVO;
 import com.daimler.data.service.common.BaseCommonService;
 import com.daimler.data.util.ConstantsUtility;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.daimler.data.dto.fabricWorkspace.DnaRolesVO;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -1637,7 +1644,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 					log.error("Failed to create role, Role Already Exists");
 					return response;
 			}else{
-				RoleDetailsVO roleDetail = this.callGenericRoleCreate(roleRequestVO.getData().getRoleName());
+				RoleDetailsVO roleDetail = this.callGenericRoleCreate(roleRequestVO.getData().getRoleName(), roleRequestVO.getData().isIsDynamic());
 				if(ConstantsUtility.CREATED_STATE.equalsIgnoreCase(roleDetail.getState())) {
 					//assign Role Owner privileges
 					if(roleDetail.getRoleOwner()==null || "".equalsIgnoreCase(roleDetail.getRoleOwner())) {
@@ -1753,7 +1760,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		return requestedEntitlement;
 	}
 
-	public CreateRoleRequestDto prepareGenericRoleCreateRequestDto(String roleName) {
+	public CreateRoleRequestDto prepareGenericRoleCreateRequestDto(String roleName, boolean isDynamic) {
 		String[] communityAvailabilitySplits = communityAvailability.split(",");
 		AccessReviewDto accessReview = new AccessReviewDto();
 		accessReview.setEnabled(true);
@@ -1776,7 +1783,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		roleRequestDto.setDefaultValidityType("OPTIONAL");
 		roleRequestDto.setDeprovisioning(false);
 		roleRequestDto.setDescription("Generic DNA role");
-		roleRequestDto.setDynamic(false);
+		roleRequestDto.setDynamic(isDynamic);
 		roleRequestDto.setGlobalCentralAvailable(true);
 		roleRequestDto.setId(roleName);
 		roleRequestDto.setJobTitle(false);
@@ -1794,8 +1801,8 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		return roleRequestDto;
 	}
 	
-	public RoleDetailsVO callGenericRoleCreate(String roleName) {
-		CreateRoleRequestDto createRequestDto = this.prepareGenericRoleCreateRequestDto(roleName);
+	public RoleDetailsVO callGenericRoleCreate(String roleName, boolean isDynamic) {
+		CreateRoleRequestDto createRequestDto = this.prepareGenericRoleCreateRequestDto(roleName, isDynamic);
 		RoleDetailsVO createRoleVO = new RoleDetailsVO();
 		createRoleVO.setName(roleName);
 		try {
@@ -1818,21 +1825,58 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 	}
 
 	@Override
-public DnaRoleCollectionVO getAllUserDnaRoles(String id, String authToken) {
-    DnaRoleCollectionVO dnaRoleCollection = new DnaRoleCollectionVO();
-	DnaRoleCollectionVOData data = new DnaRoleCollectionVOData();
-    List<String> roles = new ArrayList<>();
-    try {
-        List<String> roleList = identityClient.getAllUserManagableRoles(id, authToken);
-        roles = roleList.stream()
-                        .filter(role -> role.startsWith("DNA_"))
-                        .collect(Collectors.toList());
-        	data.setRoles(roles);
-        dnaRoleCollection.setData(data);
-    } catch (Exception e) {
-        log.error("Error occurred while getting user roles: {}", e.getMessage());
-    }
-    return dnaRoleCollection;
-}
+  public DnaRoleCollectionVO getAllUserDnaRoles(String id, String authToken) {
+      DnaRoleCollectionVO dnaRoleCollection = new DnaRoleCollectionVO();
+    DnaRoleCollectionVOData data = new DnaRoleCollectionVOData();
+      List<DnaRolesVO> roles = new ArrayList<>();
+      try {
+          List<DnaRolesVO> roleList = identityClient.getAllUserManagableRoles(id, authToken);
+          roles = roleList.stream()
+                          .filter(role -> role.getRoleID().startsWith("DNA_"))
+                          .collect(Collectors.toList());
+            data.setRoles(roles);
+          dnaRoleCollection.setData(data);
+      } catch (Exception e) {
+          log.error("Error occurred while getting user roles: {}", e.getMessage());
+      }
+      return dnaRoleCollection;
+  }
+
+	@Override
+	public AuthoriserRoleDetailsVO getRoleDetails(String roleId){
+		AuthoriserRoleDetailsVO roleDetailVO = new  AuthoriserRoleDetailsVO();
+
+		roleDetailVO = identityClient.getRoleDetails(roleId);
+		List<MembersVO> members = identityClient.getUsersForRole(roleId);
+		roleDetailVO.setRoleMembers(members);
+		return roleDetailVO;
+	}
+
+	@Override
+	public EntraGroupResponseVO getEntraGroupMembers(String roleName) {
+        MicrosoftGroupDetailDto groupDetail = fabricWorkspaceClient.searchGroup(roleName);
+        if (groupDetail == null || groupDetail.getId() == null) {
+            return null; 
+        }
+
+        MicrosoftGroupMemberCollectionDto memberCollection = fabricWorkspaceClient.getGroupMembers(groupDetail.getId());
+        List<EntraGroupMembersVO> memberVOs = new ArrayList<>();
+        if (memberCollection != null && memberCollection.getValue() != null) {
+            for (MicrosoftGroupMembersDto member : memberCollection.getValue()) {
+                EntraGroupMembersVO vo = new EntraGroupMembersVO();
+                vo.setId(member.getId());
+                vo.setDisplayName(member.getDisplayName());
+				vo.setMail(member.getMail());
+				if (member.getUserPrincipalName() != null && member.getUserPrincipalName().contains("@")) {
+					String shortId = member.getUserPrincipalName().split("@")[0];
+					vo.setShortId(shortId);
+				}
+                memberVOs.add(vo);
+            }
+        }
+		EntraGroupResponseVO response = new EntraGroupResponseVO();
+        response.setMembers(memberVOs);
+        return response;
+	}
 
 }
