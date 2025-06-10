@@ -1,6 +1,6 @@
 {
   "name": "code-space-mfe",
-  "version": "1.5.4",
+  "version": "1.5.9",
   "private": true,
   "scripts": {
     "start": "env-cmd -f .env webpack server --config config/webpack.config.js",
@@ -82,6 +82,7 @@
     "react": "18.2.0",
     "react-ace": "^12.0.0",
     "react-dom": "18.2.0",
+    "react-drawio": "^1.0.3",
     "react-hook-form": "7.48.2",
     "react-redux": "^9.1.0",
     "react-router-dom": "^5.3.0",

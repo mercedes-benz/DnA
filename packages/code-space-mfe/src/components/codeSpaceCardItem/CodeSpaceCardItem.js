@@ -1,11 +1,11 @@
 import classNames from 'classnames';
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, forwardRef } from 'react';
 import Styles from './CodeSpaceCardItem.scss';
 import {
   // recipesMaster,
   regionalDateAndTimeConversionSolution,
-  buildLogViewURL,
-  buildGitJobLogViewURL,
+  // buildLogViewURL,
+  // buildGitJobLogViewURL,
   buildLogViewAWSURL,
   buildGitJobLogViewAWSURL,
   buildGitUrl,
@@ -44,7 +44,7 @@ import Tooltip from '../../common/modules/uilab/js/src/tooltip';
 
 let isTouch = false;
 
-const CodeSpaceCardItem = (props) => {
+const CodeSpaceCardItem = forwardRef((props, ref) => {
   let codeSpace = props.codeSpace;
   // const collaborationCodeSpace = codeSpace.projectDetails.projectCollaborators?.find((user: ICodeCollaborator) => user.id === props.userInfo.id);
   const enableOnboard = codeSpace ? codeSpace.status === 'COLLABORATION_REQUESTED' : false;
@@ -340,8 +340,8 @@ const CodeSpaceCardItem = (props) => {
   };
 
   const projectDetails = codeSpace?.projectDetails;
-  const intDeploymentDetails = projectDetails.intDeploymentDetails;
-  const prodDeploymentDetails = projectDetails.prodDeploymentDetails;
+  const intDeploymentDetails = projectDetails?.intDeploymentDetails;
+  const prodDeploymentDetails = projectDetails?.prodDeploymentDetails;
   const intDeployedUrl = intDeploymentDetails?.deploymentUrl;
   // const intLastDeployedOn = intDeploymentDetails?.lastDeployedOn;
   const prodDeployedUrl = prodDeploymentDetails?.deploymentUrl;
@@ -353,7 +353,7 @@ const CodeSpaceCardItem = (props) => {
     intDeploymentDetails?.lastDeploymentStatus === 'DEPLOYED' ||
     (intDeployedUrl !== null && intDeployedUrl !== 'null') ||
     false;
-  const intCodeDeployFailed = intDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
+  const intCodeDeployFailed = intDeploymentDetails?.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
   const intLastDeployedTime = new Date(
     // regionalDateAndTimeConversionSolution(
       intDeploymentDetails?.lastDeploymentStatus === 'DEPLOYED'
@@ -367,7 +367,7 @@ const CodeSpaceCardItem = (props) => {
     prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOYED' ||
     (prodDeployedUrl !== null && prodDeployedUrl !== 'null') ||
     false;
-  const prodCodeDeployFailed = prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
+  const prodCodeDeployFailed = prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
   const prodLastDeployedTime = new Date(
     // regionalDateAndTimeConversionSolution(
       prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOYED'
@@ -379,7 +379,7 @@ const CodeSpaceCardItem = (props) => {
   ).getTime();
   const deployed = intDeployed || prodDeployed || prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED' || intDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
   const allowDelete = codeSpace?.projectDetails?.projectOwner?.id === props.userInfo.id ? !hasCollaborators : true;
-  const isPublicRecipe = projectDetails.recipeDetails?.recipeId?.startsWith('public');
+  const isPublicRecipe = projectDetails?.recipeDetails?.recipeId?.startsWith('public');
   // const isAPIRecipe =
   //   props.codeSpace.projectDetails.recipeDetails.recipeId === 'springboot' ||
   //   props.codeSpace.projectDetails.recipeDetails.recipeId === 'py-fastapi' ||
@@ -403,8 +403,8 @@ const CodeSpaceCardItem = (props) => {
   const intAppResourceUsageUrl = Envs.MONITORING_DASHBOARD_APP_BASE_URL + `codespace-app-cpu-and-memory-usage?orgId=1&var-namespace=${Envs.CODESERVER_APP_NAMESPACE}&var-app=${projectDetails?.projectName}-int&var-container=`;
   const prodAppResourceUsageUrl = Envs.MONITORING_DASHBOARD_APP_BASE_URL + `codespace-app-cpu-and-memory-usage?orgId=1&var-namespace=${Envs.CODESERVER_APP_NAMESPACE}&var-app=${projectDetails?.projectName}-prod&var-container=`;
 
-  const intDeploymentMigrated = codeSpace?.projectDetails?.intDeploymentDetails?.deploymentUrl?.includes(Envs.CODESPACE_AWS_POPUP_URL);
-  const prodDeploymentMigrated = codeSpace?.projectDetails?.prodDeploymentDetails?.deploymentUrl?.includes(Envs.CODESPACE_AWS_POPUP_URL);
+  // const intDeploymentMigrated = codeSpace?.projectDetails?.intDeploymentDetails?.deploymentUrl?.includes(Envs.CODESPACE_AWS_POPUP_URL);
+  // const prodDeploymentMigrated = codeSpace?.projectDetails?.prodDeploymentDetails?.deploymentUrl?.includes(Envs.CODESPACE_AWS_POPUP_URL);
 
   const intSecuredWithOneApi = projectDetails?.intDeploymentDetails?.oneApiVersionShortName?.length || false;
   const prodSecuredWithOneApi = projectDetails?.prodDeploymentDetails?.oneApiVersionShortName?.length || false;
@@ -480,11 +480,18 @@ const CodeSpaceCardItem = (props) => {
     </div>
   );
 
+  const handleDragStart = (e) => {
+    e.dataTransfer.setData("application/json", JSON.stringify(codeSpace));
+  }
+
   return (
     <>
       <div
         id={'card-' + codeSpace.id}
+        draggable={true}
+        ref={ref}
         key={codeSpace.id}
+        onDragStart={handleDragStart}
         className={classNames(Styles.codeSpaceCard, deleteInProgress || createInProgress ? Styles.disable : null)}
       >
         <div className={Styles.cardHead}>
@@ -495,7 +502,7 @@ const CodeSpaceCardItem = (props) => {
             )}
           >
             <div className={classNames('btn btn-text', Styles.cardHeadTitle)}>
-              <label onClick={onCardNameClick}>{projectDetails.projectName}</label>
+              <label onClick={onCardNameClick}>{projectDetails?.projectName}</label>
               {!enableOnboard && !creationFailed && serverStarted && (
                 <a
                   className={Styles.OpenNewTab}
@@ -528,6 +535,15 @@ const CodeSpaceCardItem = (props) => {
                   className={classNames('contextMenuWrapper', Styles.contextMenu, showContextMenu ? '' : 'hide')}
                 >
                   <ul>
+                    <li>
+                      <span
+                        onClick={() => {
+                          props.onShowBlueprintModal(codeSpace);
+                        }}
+                      >
+                        Show Blueprint
+                      </span>
+                    </li>
                     <li className={classNames(deployingInProgress ? 'inactive' : '')}>
                       <span
                         onClick={() => {
@@ -614,7 +630,7 @@ const CodeSpaceCardItem = (props) => {
                           <li>
                             <a
                               target="_blank"
-                              href={(codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' && intDeploymentMigrated) ? buildGitJobLogViewAWSURL(intDeploymentDetails?.gitjobRunID) : buildGitJobLogViewURL(intDeploymentDetails?.gitjobRunID)}
+                              href={buildGitJobLogViewAWSURL(intDeploymentDetails?.gitjobRunID)}
                               rel="noreferrer"
                             >
                               Last Build &amp; Deploy Logs{' '}
@@ -641,7 +657,7 @@ const CodeSpaceCardItem = (props) => {
                           <li>
                             <a
                               target="_blank"
-                              href={(codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' && intDeploymentMigrated) ? buildLogViewAWSURL(intDeployedUrl || projectDetails?.projectName.toLowerCase(), true) :buildLogViewURL(intDeployedUrl || projectDetails?.projectName.toLowerCase(), true)}
+                              href={buildLogViewAWSURL(intDeployedUrl || projectDetails?.projectName.toLowerCase(), true)}
                               rel="noreferrer"
                             >
                               Application Logs <i className="icon mbc-icon new-tab" />
@@ -670,7 +686,7 @@ const CodeSpaceCardItem = (props) => {
                             </span>
                           </li>
                         )}
-                        {intDeployed && intDeploymentMigrated && (
+                        {intDeployed && (
                           <li>
                             <a target="_blank" href={intAppResourceUsageUrl} rel="noreferrer">
                               Deployed App Resource Usage
@@ -730,7 +746,7 @@ const CodeSpaceCardItem = (props) => {
                           <li>
                             <a
                               target="_blank"
-                              href={(codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' && prodDeploymentMigrated) ? buildGitJobLogViewAWSURL(prodDeploymentDetails?.gitjobRunID) : buildGitJobLogViewURL(prodDeploymentDetails?.gitjobRunID)}
+                              href={buildGitJobLogViewAWSURL(prodDeploymentDetails?.gitjobRunID)}
                               rel="noreferrer"
                             >
                               Build &amp; Deploy Logs{' '}
@@ -757,7 +773,7 @@ const CodeSpaceCardItem = (props) => {
                           <li>
                             <a
                               target="_blank"
-                              href={(codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' && prodDeploymentMigrated) ? buildLogViewAWSURL(prodDeployedUrl || projectDetails?.projectName.toLowerCase()) : buildLogViewURL(prodDeployedUrl || projectDetails?.projectName.toLowerCase())}
+                              href={buildLogViewAWSURL(prodDeployedUrl || projectDetails?.projectName.toLowerCase())}
                               rel="noreferrer"
                             >
                               Application Logs <i className="icon mbc-icon new-tab" />
@@ -789,7 +805,7 @@ const CodeSpaceCardItem = (props) => {
                             </span>
                           </li>
                         )}
-                        {prodDeployed && prodDeploymentMigrated && (
+                        {prodDeployed && (
                           <li>
                             <a target="_blank" href={prodAppResourceUsageUrl} rel="noreferrer">
                               Deployed App Resource Usage
@@ -825,11 +841,11 @@ const CodeSpaceCardItem = (props) => {
             </div>
             <div>
               <div>Environment</div>
-              <div>{(projectDetails.recipeDetails.cloudServiceProvider === 'DHC-CaaS-AWS' || enableOnboard) ? 'DyP-CaaS AWS' : 'DyP-CaaS On-Prem'}</div>
+              <div>{(projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' || enableOnboard) ? 'DyP-CaaS AWS' : 'DyP-CaaS On-Prem'}</div>
             </div>
             <div>
               <div>Created on</div>
-              <div>{regionalDateAndTimeConversionSolution(codeSpace?.projectDetails.projectCreatedOn)}</div>
+              <div>{regionalDateAndTimeConversionSolution(codeSpace?.projectDetails?.projectCreatedOn)}</div>
             </div>
             <div>
               <div>Owner</div>
@@ -1100,12 +1116,8 @@ const CodeSpaceCardItem = (props) => {
                     {!creationFailed && deployingInProgress && (
                       <a
                         href={(intDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED')
-                          ? (codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' && intDeploymentMigrated) 
-                            ? buildGitJobLogViewAWSURL(intDeploymentDetails?.gitjobRunID)
-                            : buildGitJobLogViewURL(intDeploymentDetails?.gitjobRunID)
-                          : (codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' && prodDeploymentMigrated)
-                            ? buildGitJobLogViewAWSURL(prodDeploymentDetails?.gitjobRunID)
-                            : buildGitJobLogViewURL(prodDeploymentDetails?.gitjobRunID)
+                          ? buildGitJobLogViewAWSURL(intDeploymentDetails?.gitjobRunID)
+                          : buildGitJobLogViewAWSURL(prodDeploymentDetails?.gitjobRunID)
                         }
                         target="_blank"
                         rel="noreferrer"
@@ -1126,7 +1138,7 @@ const CodeSpaceCardItem = (props) => {
                             intCodeDeployFailed ? (
                               <span className={classNames(Styles.statusIndicator, Styles.deployFailed)}>
                                 <a
-                                  href={(codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' && intDeploymentMigrated) ? buildGitJobLogViewAWSURL(intDeploymentDetails?.gitjobRunID) : buildGitJobLogViewURL(intDeploymentDetails?.gitjobRunID)}
+                                  href={buildGitJobLogViewAWSURL(intDeploymentDetails?.gitjobRunID)}
                                   target="_blank"
                                   rel="noreferrer"
                                   className={Styles.deployFailLink}
@@ -1147,7 +1159,7 @@ const CodeSpaceCardItem = (props) => {
                             ) : (
                               <span className={Styles.statusIndicator}>
                                 <a
-                                  href={(codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' && intDeploymentMigrated) ? buildGitJobLogViewAWSURL(intDeploymentDetails?.gitjobRunID) : buildGitJobLogViewURL(intDeploymentDetails?.gitjobRunID)}
+                                  href={buildGitJobLogViewAWSURL(intDeploymentDetails?.gitjobRunID)}
                                   target="_blank"
                                   rel="noreferrer"
                                   className={Styles.deployedLink}
@@ -1163,7 +1175,7 @@ const CodeSpaceCardItem = (props) => {
                           ) : prodCodeDeployFailed ? (
                             <span className={classNames(Styles.statusIndicator, Styles.deployFailed)}>
                               <a
-                                href={(codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' && prodDeploymentMigrated) ? buildGitJobLogViewAWSURL(prodDeploymentDetails?.gitjobRunID) : buildGitJobLogViewURL(prodDeploymentDetails?.gitjobRunID)}
+                                href={buildGitJobLogViewAWSURL(prodDeploymentDetails?.gitjobRunID)}
                                 target="_blank"
                                 rel="noreferrer"
                                 className={Styles.deployFailLink}
@@ -1184,13 +1196,13 @@ const CodeSpaceCardItem = (props) => {
                           ) : (
                             <span className={Styles.statusIndicator}>
                               <a
-                                href={(codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' && prodDeploymentMigrated) ? buildGitJobLogViewAWSURL(prodDeploymentDetails?.gitjobRunID) : buildGitJobLogViewURL(prodDeploymentDetails?.gitjobRunID)}
+                                href={buildGitJobLogViewAWSURL(prodDeploymentDetails?.gitjobRunID)}
                                 target="_blank"
                                 rel="noreferrer"
                                 className={Styles.deployedLink}
                                 tooltip-data={
                                   'Deployed to Production on ' +
-                                  regionalDateAndTimeConversionSolution(prodDeploymentDetails.lastDeployedOn)
+                                  regionalDateAndTimeConversionSolution(prodDeploymentDetails?.lastDeployedOn)
                                 }
                               >
                                 Deployed
@@ -1394,5 +1406,8 @@ const CodeSpaceCardItem = (props) => {
       )}
     </>
   );
-};
+});
+
+// Add a displayName for debugging
+CodeSpaceCardItem.displayName = 'CodeSpaceCardItem';
 export default CodeSpaceCardItem;
