@@ -415,6 +415,9 @@ export class ApiClient {
     return this.delete(`customerJourneyPhases/${id}`);
   }
 
+  public static portSolution(solutionId: string, revert: boolean = false): Promise<any> {
+    return this.patch(`solutions/${solutionId}/port-solution?revert=${revert}`);
+  }
 
   public static getDescriptionLovData(): Promise<any[]> {
     return Promise.all([
