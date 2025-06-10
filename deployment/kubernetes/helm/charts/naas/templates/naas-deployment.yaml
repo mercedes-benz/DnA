@@ -97,7 +97,7 @@ spec:
               cpu: {{ .Values.app.resources.requests.cpu }}
             limits:
               memory: {{ .Values.app.resources.limits.memory }}
-              cpu: {{ .Values.app.resources.limits.cpu }}
+            #  cpu: {{ .Values.app.resources.limits.cpu }}
           livenessProbe:
             initialDelaySeconds: {{ .Values.app.probes.initialDelaySeconds }}
             timeoutSeconds: {{ .Values.app.probes.timeoutSeconds }}

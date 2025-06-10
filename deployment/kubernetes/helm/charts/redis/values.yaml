@@ -303,8 +303,6 @@ master:
   ## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
   ##
   podAnnotations: {}
-    
-
   ## @param master.shareProcessNamespace Share a single process namespace between all of the containers in Redis&reg; master pods
   ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/share-process-namespace/
   ##
@@ -687,7 +685,6 @@ replica:
   ## ref: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
   ##
   podAnnotations: {}
-
   ## @param replica.shareProcessNamespace Share a single process namespace between all of the containers in Redis&reg; replicas pods
   ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/share-process-namespace/
   ##
