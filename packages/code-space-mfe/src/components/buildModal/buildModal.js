@@ -10,13 +10,12 @@ import { CodeSpaceApiClient } from '../../apis/codespace.api';
 import SelectBox from 'dna-container/SelectBox';
 import Modal from 'dna-container/Modal';
 import { SESSION_STORAGE_KEYS } from '../../Utility/constants.js';
-import { regionalDateAndTimeConversionSolution, buildGitJobLogViewURL, buildGitJobLogViewAWSURL } from '../../Utility/utils';
+import { regionalDateAndTimeConversionSolution, buildGitJobLogViewAWSURL } from '../../Utility/utils';
 import TextBox from 'dna-container/TextBox';
 import Tags from 'dna-container/Tags';
 import Tooltip from '../../common/modules/uilab/js/src/tooltip';
 import Pagination from 'dna-container/Pagination';
 import DeployModal from '../deployModal/DeployModal';
-import { Envs } from '../../Utility/envs';
 
 const BuildModal = (props) => {
 
@@ -38,8 +37,8 @@ const BuildModal = (props) => {
   const [buildDetails, setBuildDetails] = useState('');
 
   const projectDetails = props.codeSpaceData?.projectDetails;
-  const intDeploymentMigrated = props.codeSpaceData?.projectDetails?.intDeploymentDetails?.deploymentUrl?.includes(Envs.CODESPACE_AWS_POPUP_URL);
-  const prodDeploymentMigrated = props.codeSpaceData?.projectDetails?.prodDeploymentDetails?.deploymentUrl?.includes(Envs.CODESPACE_AWS_POPUP_URL);
+  // const intDeploymentMigrated = props.codeSpaceData?.projectDetails?.intDeploymentDetails?.deploymentUrl?.includes(Envs.CODESPACE_AWS_POPUP_URL);
+  // const prodDeploymentMigrated = props.codeSpaceData?.projectDetails?.prodDeploymentDetails?.deploymentUrl?.includes(Envs.CODESPACE_AWS_POPUP_URL);
 
   useEffect(() => {
     Tooltip.defaultSetup();
@@ -330,14 +329,8 @@ const BuildModal = (props) => {
                             target="_blank"
                             href={
                               buildEnvironment === 'int'
-                                ? projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' &&
-                                  intDeploymentMigrated
-                                  ? buildGitJobLogViewAWSURL(projectDetails?.intBuildDetails?.gitjobRunID)
-                                  : buildGitJobLogViewURL(projectDetails?.intBuildDetails?.gitjobRunID)
-                                : projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' &&
-                                  prodDeploymentMigrated
-                                ? buildGitJobLogViewAWSURL(projectDetails?.prodBuildDetails?.gitjobRunID)
-                                : buildGitJobLogViewURL(projectDetails?.prodBuildDetails?.gitjobRunID)
+                                ? buildGitJobLogViewAWSURL(projectDetails?.intBuildDetails?.gitjobRunID)
+                                : buildGitJobLogViewAWSURL(projectDetails?.prodBuildDetails?.gitjobRunID)
                             }
                             rel="noreferrer"
                             className={classNames(Styles.newLink)}

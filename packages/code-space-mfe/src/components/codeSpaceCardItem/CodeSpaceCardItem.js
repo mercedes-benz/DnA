@@ -4,7 +4,7 @@ import Styles from './CodeSpaceCardItem.scss';
 import {
   // recipesMaster,
   regionalDateAndTimeConversionSolution,
-  // // buildLogViewURL,
+  // buildLogViewURL,
   // buildGitJobLogViewURL,
   // buildLogViewAWSURL,
   buildGitJobLogViewAWSURL,
@@ -1153,12 +1153,8 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
                       {buildInProgress && (
                         <a
                           href={(projectDetails?.lastBuildOrDeployedEnv === 'int')
-                            ? (codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' && intDeploymentMigrated)
-                              ? buildGitJobLogViewAWSURL(projectDetails?.intBuildDetails?.gitjobRunID)
-                              : buildGitJobLogViewURL(projectDetails?.intBuildDetails?.gitjobRunID)
-                            : (codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' && prodDeploymentMigrated)
-                              ? buildGitJobLogViewAWSURL(projectDetails?.prodBuildDetails?.gitjobRunID)
-                              : buildGitJobLogViewURL(projectDetails?.prodBuildDetails?.gitjobRunID)
+                            ? buildGitJobLogViewAWSURL(projectDetails?.intBuildDetails?.gitjobRunID)
+                            : buildGitJobLogViewAWSURL(projectDetails?.prodBuildDetails?.gitjobRunID)
                           }
                           target="_blank"
                           rel="noreferrer"
@@ -1175,12 +1171,8 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
                       {projectDetails?.lastBuildOrDeployedStatus === 'DEPLOY_REQUESTED' && (
                         <a
                           href={(projectDetails?.lastBuildOrDeployedEnv === 'int')
-                            ? (codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' && intDeploymentMigrated)
-                              ? buildGitJobLogViewAWSURL(projectDetails?.intDeploymentDetails?.gitjobRunID)
-                              : buildGitJobLogViewURL(projectDetails?.intDeploymentDetails?.gitjobRunID)
-                            : (codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' && prodDeploymentMigrated)
-                              ? buildGitJobLogViewAWSURL(projectDetails?.prodDeploymentDetails?.gitjobRunID)
-                              : buildGitJobLogViewURL(projectDetails?.prodDeploymentDetails?.gitjobRunID)
+                            ? buildGitJobLogViewAWSURL(projectDetails?.intDeploymentDetails?.gitjobRunID)
+                            : buildGitJobLogViewAWSURL(projectDetails?.prodDeploymentDetails?.gitjobRunID)
                           }
                           target="_blank"
                           rel="noreferrer"
@@ -1198,12 +1190,8 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
                         <span className={classNames(Styles.statusIndicator, Styles.deployFailed)}>
                           <a
                             href={(projectDetails?.lastBuildOrDeployedEnv === 'int')
-                              ? (codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' && intDeploymentMigrated)
-                                ? buildGitJobLogViewAWSURL(projectDetails?.intBuildDetails?.gitjobRunID)
-                                : buildGitJobLogViewURL(projectDetails?.intBuildDetails?.gitjobRunID)
-                              : (codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' && prodDeploymentMigrated)
-                                ? buildGitJobLogViewAWSURL(projectDetails?.prodBuildDetails?.gitjobRunID)
-                                : buildGitJobLogViewURL(projectDetails?.prodBuildDetails?.gitjobRunID)
+                              ? buildGitJobLogViewAWSURL(projectDetails?.intBuildDetails?.gitjobRunID)
+                              : buildGitJobLogViewAWSURL(projectDetails?.prodBuildDetails?.gitjobRunID)
                             }
                             target="_blank"
                             rel="noreferrer"
@@ -1221,12 +1209,8 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
                         <span className={classNames(Styles.statusIndicator, Styles.deployFailed)}>
                           <a
                             href={(projectDetails?.lastBuildOrDeployedEnv === 'int')
-                              ? (codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' && intDeploymentMigrated)
-                                ? buildGitJobLogViewAWSURL(projectDetails?.intDeploymentDetails?.gitjobRunID)
-                                : buildGitJobLogViewURL(projectDetails?.intDeploymentDetails?.gitjobRunID)
-                              : (codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' && prodDeploymentMigrated)
-                                ? buildGitJobLogViewAWSURL(projectDetails?.prodDeploymentDetails?.gitjobRunID)
-                                : buildGitJobLogViewURL(projectDetails?.prodDeploymentDetails?.gitjobRunID)
+                              ? buildGitJobLogViewAWSURL(projectDetails?.intDeploymentDetails?.gitjobRunID)
+                              : buildGitJobLogViewAWSURL(projectDetails?.prodDeploymentDetails?.gitjobRunID)
                             }
                             target="_blank"
                             rel="noreferrer"
@@ -1244,12 +1228,8 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
                         <span className={Styles.statusIndicator}>
                           <a
                             href={(projectDetails?.lastBuildOrDeployedEnv === 'int')
-                              ? (codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' && intDeploymentMigrated)
-                                ? buildGitJobLogViewAWSURL(projectDetails?.intBuildDetails?.gitjobRunID)
-                                : buildGitJobLogViewURL(projectDetails?.intBuildDetails?.gitjobRunID)
-                              : (codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' && prodDeploymentMigrated)
-                                ? buildGitJobLogViewAWSURL(projectDetails?.prodBuildDetails?.gitjobRunID)
-                                : buildGitJobLogViewURL(projectDetails?.prodBuildDetails?.gitjobRunID)
+                              ? buildGitJobLogViewAWSURL(projectDetails?.intBuildDetails?.gitjobRunID)
+                              : buildGitJobLogViewAWSURL(projectDetails?.prodBuildDetails?.gitjobRunID)
                             }
                             target="_blank"
                             rel="noreferrer"
@@ -1267,12 +1247,8 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
                         <span className={Styles.statusIndicator}>
                           <a
                             href={(projectDetails?.lastBuildOrDeployedEnv === 'int')
-                              ? (codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' && intDeploymentMigrated)
-                                ? buildGitJobLogViewAWSURL(projectDetails?.intDeploymentDetails?.gitjobRunID)
-                                : buildGitJobLogViewURL(projectDetails?.intDeploymentDetails?.gitjobRunID)
-                              : (codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' && prodDeploymentMigrated)
-                                ? buildGitJobLogViewAWSURL(projectDetails?.prodDeploymentDetails?.gitjobRunID)
-                                : buildGitJobLogViewURL(projectDetails?.prodDeploymentDetails?.gitjobRunID)
+                              ? buildGitJobLogViewAWSURL(projectDetails?.intDeploymentDetails?.gitjobRunID)
+                              : buildGitJobLogViewAWSURL(projectDetails?.prodDeploymentDetails?.gitjobRunID)
                             }
                             target="_blank"
                             rel="noreferrer"
@@ -1291,7 +1267,7 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
                         <span className={classNames(Styles.statusIndicator, Styles.deploying)}>
 
                           <a
-                            href={(codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' && prodDeploymentMigrated) ? buildGitJobLogViewAWSURL(projectDetails?.prodDeploymentDetails?.gitjobRunID) : buildGitJobLogViewURL(projectDetails?.prodDeploymentDetails?.gitjobRunID)}
+                            href={buildGitJobLogViewAWSURL(projectDetails?.prodDeploymentDetails?.gitjobRunID)}
                             target="_blank"
                             rel="noreferrer"
                             className={Styles.deployingLink}
@@ -1306,7 +1282,7 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
                       {projectDetails?.lastBuildOrDeployedStatus === 'APPROVAL_REJECTED' && (
                         <span className={classNames(Styles.statusIndicator, Styles.deployFailed)}>
                           <a
-                            href={(codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' && prodDeploymentMigrated) ? buildGitJobLogViewAWSURL(projectDetails?.prodDeploymentDetails?.gitjobRunID) : buildGitJobLogViewURL(projectDetails?.prodDeploymentDetails?.gitjobRunID)}
+                            href={buildGitJobLogViewAWSURL(projectDetails?.prodDeploymentDetails?.gitjobRunID)}
                             target="_blank"
                             rel="noreferrer"
                             className={Styles.deployFailLink}
@@ -1322,12 +1298,8 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
                         <span className={classNames(Styles.statusIndicator, Styles.deploying)}>
                           <a
                             href={(projectDetails?.lastBuildOrDeployedEnv === 'int')
-                              ? (codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' && intDeploymentMigrated)
-                                ? buildGitJobLogViewAWSURL(projectDetails?.intDeploymentDetails?.gitjobRunID)
-                                : buildGitJobLogViewURL(projectDetails?.intDeploymentDetails?.gitjobRunID)
-                              : (codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' && prodDeploymentMigrated)
-                                ? buildGitJobLogViewAWSURL(projectDetails?.prodDeploymentDetails?.gitjobRunID)
-                                : buildGitJobLogViewURL(projectDetails?.prodDeploymentDetails?.gitjobRunID)
+                              ? buildGitJobLogViewAWSURL(projectDetails?.intDeploymentDetails?.gitjobRunID)
+                              : buildGitJobLogViewAWSURL(projectDetails?.prodDeploymentDetails?.gitjobRunID)
                             }
                             target="_blank"
                             rel="noreferrer"
@@ -1346,12 +1318,8 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
                         <span className={classNames(Styles.statusIndicator, Styles.deployFailed)}>
                           <a
                             href={(projectDetails?.lastBuildOrDeployedEnv === 'int')
-                              ? (codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' && intDeploymentMigrated)
-                                ? buildGitJobLogViewAWSURL(projectDetails?.intDeploymentDetails?.gitjobRunID)
-                                : buildGitJobLogViewURL(projectDetails?.intDeploymentDetails?.gitjobRunID)
-                              : (codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' && prodDeploymentMigrated)
-                                ? buildGitJobLogViewAWSURL(projectDetails?.prodDeploymentDetails?.gitjobRunID)
-                                : buildGitJobLogViewURL(projectDetails?.prodDeploymentDetails?.gitjobRunID)
+                              ? buildGitJobLogViewAWSURL(projectDetails?.intDeploymentDetails?.gitjobRunID)
+                              : buildGitJobLogViewAWSURL(projectDetails?.prodDeploymentDetails?.gitjobRunID)
                             }
                             target="_blank"
                             rel="noreferrer"
@@ -1369,12 +1337,8 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
                         <span className={Styles.statusIndicator}>
                           <a
                             href={(projectDetails?.lastBuildOrDeployedEnv === 'int')
-                              ? (codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' && intDeploymentMigrated)
-                                ? buildGitJobLogViewAWSURL(projectDetails?.intDeploymentDetails?.gitjobRunID)
-                                : buildGitJobLogViewURL(projectDetails?.intDeploymentDetails?.gitjobRunID)
-                              : (codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' && prodDeploymentMigrated)
-                                ? buildGitJobLogViewAWSURL(projectDetails?.prodDeploymentDetails?.gitjobRunID)
-                                : buildGitJobLogViewURL(projectDetails?.prodDeploymentDetails?.gitjobRunID)
+                              ? buildGitJobLogViewAWSURL(projectDetails?.intDeploymentDetails?.gitjobRunID)
+                              : buildGitJobLogViewAWSURL(projectDetails?.prodDeploymentDetails?.gitjobRunID)
                             }
                             target="_blank"
                             rel="noreferrer"

@@ -11,8 +11,8 @@ import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indica
 import { CodeSpaceApiClient } from '../../apis/codespace.api';
 import Notification from '../../common/modules/uilab/js/src/notification';
 import {
-  buildLogViewURL,
-  buildGitJobLogViewURL,
+  // buildLogViewURL,
+  // buildGitJobLogViewURL,
   buildLogViewAWSURL,
   buildGitJobLogViewAWSURL,
   buildGitUrl,
@@ -24,6 +24,8 @@ const ContextMenu = (props) => {
   const projectDetails = codeSpace?.projectDetails;
   const intDeploymentDetails = projectDetails.intDeploymentDetails;
   const prodDeploymentDetails = projectDetails.prodDeploymentDetails;
+  const intBuildDetails = projectDetails.intBuildDetails;
+  const prodBuildDetails = projectDetails.prodBuildDetails;
   const intDeployedUrl = intDeploymentDetails?.deploymentUrl;
   const prodDeployedUrl = prodDeploymentDetails?.deploymentUrl;
 
@@ -48,11 +50,13 @@ const ContextMenu = (props) => {
     Envs.MONITORING_DASHBOARD_BASE_URL +
     `codespace-cpu-and-memory-usage?orgId=1&from=now-1h&to=now&var-namespace=${Envs.CODESERVER_NAMESPACE}&var-pod=${codeSpace.workspaceId}&var-container=notebook`;
 
-  const intDeploymentMigrated = intDeployedUrl?.includes(Envs.CODESPACE_AWS_POPUP_URL);
-  const prodDeploymentMigrated = prodDeployedUrl?.includes(Envs.CODESPACE_AWS_POPUP_URL);
+  // const intDeploymentMigrated = intDeployedUrl?.includes(Envs.CODESPACE_AWS_POPUP_URL);
+  // const prodDeploymentMigrated = prodDeployedUrl?.includes(Envs.CODESPACE_AWS_POPUP_URL);
 
   const prodCodeDeployFailed = prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
   const intCodeDeployFailed = intDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
+  const prodCodeBuildFailed = prodBuildDetails.lastDeploymentStatus === 'BUILD_FAILED';
+  const intCodeBuildFailed = intBuildDetails.lastDeploymentStatus === 'BUILD_FAILED';
 
   const intDeployed =
     intDeploymentDetails?.lastDeploymentStatus === 'DEPLOYED' ||
@@ -309,19 +313,29 @@ const ContextMenu = (props) => {
                   </span>
                 </li>
               )}
-              {intDeploymentDetails?.gitjobRunID && (
+              {intBuildDetails?.gitjobRunID && (
                 <li>
                   <a
                     target="_blank"
                     href={
-                      codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' &&
-                      intDeploymentMigrated
-                        ? buildGitJobLogViewAWSURL(intDeploymentDetails?.gitjobRunID)
-                        : buildGitJobLogViewURL(intDeploymentDetails?.gitjobRunID)
+                      buildGitJobLogViewAWSURL(intBuildDetails?.gitjobRunID)
                     }
                     rel="noreferrer"
                   >
-                    Last Build &amp; Deploy Logs{' '}
+                    Last Build Logs{' '}
+                    {intCodeBuildFailed && <span className={classNames(Styles.error)}>[Failed]</span>}{' '}
+                    <i className="icon mbc-icon new-tab" />
+                  </a>
+                </li>
+              )}
+              {intDeploymentDetails?.gitjobRunID && (
+                <li>
+                  <a
+                    target="_blank"
+                    href={buildGitJobLogViewAWSURL(intDeploymentDetails?.gitjobRunID)}
+                    rel="noreferrer"
+                  >
+                    Last Deploy Logs{' '}
                     {intCodeDeployFailed && <span className={classNames(Styles.error)}>[Failed]</span>}{' '}
                     <i className="icon mbc-icon new-tab" />
                   </a>
@@ -345,12 +359,7 @@ const ContextMenu = (props) => {
                 <li>
                   <a
                     target="_blank"
-                    href={
-                      codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' &&
-                      intDeploymentMigrated
-                        ? buildLogViewAWSURL(intDeployedUrl || projectDetails?.projectName.toLowerCase(), true)
-                        : buildLogViewURL(intDeployedUrl || projectDetails?.projectName.toLowerCase(), true)
-                    }
+                    href={buildLogViewAWSURL(intDeployedUrl || projectDetails?.projectName.toLowerCase(), true)}
                     rel="noreferrer"
                   >
                     Application Logs <i className="icon mbc-icon new-tab" />
@@ -381,7 +390,7 @@ const ContextMenu = (props) => {
                   </span>
                 </li>
               )}
-              {intDeployed && intDeploymentMigrated && (
+              {intDeployed && (
                 <li>
                   <a target="_blank" href={intAppResourceUsageUrl} rel="noreferrer">
                     Deployed App Resource Usage
@@ -457,19 +466,29 @@ const ContextMenu = (props) => {
                   </span>
                 </li>
               )}
-              {prodDeploymentDetails?.gitjobRunID && (
+              {prodBuildDetails?.gitjobRunID && (
                 <li>
                   <a
                     target="_blank"
                     href={
-                      codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' &&
-                      prodDeploymentMigrated
-                        ? buildGitJobLogViewAWSURL(prodDeploymentDetails?.gitjobRunID)
-                        : buildGitJobLogViewURL(prodDeploymentDetails?.gitjobRunID)
+                      buildGitJobLogViewAWSURL(prodBuildDetails?.gitjobRunID)
                     }
                     rel="noreferrer"
                   >
-                    Build &amp; Deploy Logs{' '}
+                    Last Build Logs{' '}
+                    {prodCodeBuildFailed && <span className={classNames(Styles.error)}>[Failed]</span>}{' '}
+                    <i className="icon mbc-icon new-tab" />
+                  </a>
+                </li>
+              )}
+              {prodDeploymentDetails?.gitjobRunID && (
+                <li>
+                  <a
+                    target="_blank"
+                    href={buildGitJobLogViewAWSURL(prodDeploymentDetails?.gitjobRunID)}
+                    rel="noreferrer"
+                  >
+                    Last Deploy Logs{' '}
                     {prodCodeDeployFailed && <span className={classNames(Styles.error)}>[Failed]</span>}{' '}
                     <i className="icon mbc-icon new-tab" />
                   </a>
@@ -493,12 +512,7 @@ const ContextMenu = (props) => {
                 <li>
                   <a
                     target="_blank"
-                    href={
-                      codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' &&
-                      prodDeploymentMigrated
-                        ? buildLogViewAWSURL(prodDeployedUrl || projectDetails?.projectName.toLowerCase())
-                        : buildLogViewURL(prodDeployedUrl || projectDetails?.projectName.toLowerCase())
-                    }
+                    href={buildLogViewAWSURL(prodDeployedUrl || projectDetails?.projectName.toLowerCase())}
                     rel="noreferrer"
                   >
                     Application Logs <i className="icon mbc-icon new-tab" />
@@ -529,7 +543,7 @@ const ContextMenu = (props) => {
                   </span>
                 </li>
               )}
-              {prodDeployed && prodDeploymentMigrated && (
+              {prodDeployed && (
                 <li>
                   <a target="_blank" href={prodAppResourceUsageUrl} rel="noreferrer">
                     Deployed App Resource Usage
