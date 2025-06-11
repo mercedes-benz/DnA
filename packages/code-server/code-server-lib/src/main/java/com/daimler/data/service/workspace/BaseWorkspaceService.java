@@ -1809,12 +1809,12 @@ import com.daimler.data.dto.workspace.buildDeploy.*;
 						deploymentDetails.setClientId(clientID);
 						deploymentDetails.setRedirectUri(redirectUri);
 						deploymentDetails.setIgnorePaths(ignorePaths);
-						deploymentDetails.setScope(scope);
-						lastBuildOrDeployStatus = "DEPLOY_REQUESTED";						
+						deploymentDetails.setScope(scope);												
 					authenticatorClient.callingKongApis(workspaceId, serviceName, environment, isApiRecipe, clientID,clientSecret,redirectUri, ignorePaths, scope, oneApiVersionShortName, isSecuredWithCookie, isSecureWithIAMRequired, cloudServiceProvider);
 					}
 					// deploymentDetails.setLastDeployedBranch(branch);
-					// deploymentDetails.setLastDeployedVersion(version);					
+					// deploymentDetails.setLastDeployedVersion(version);	
+					lastBuildOrDeployStatus = "DEPLOY_REQUESTED";				
 					deploymentDetails.setLastDeploymentStatus("DEPLOY_REQUESTED");
 					
 					status = "SUCCESS";

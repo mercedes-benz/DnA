@@ -1151,18 +1151,13 @@ import org.springframework.beans.factory.annotation.Value;
 				if (deployRequestDto != null && deployRequestDto.getBranch() != null) {
 					branch = deployRequestDto.getBranch();
 				}
-				String status = "";
-				if(environment.equalsIgnoreCase("int"))
+				String intStatus = "";
+				String prodStatus = "";
+					intStatus = vo.getProjectDetails().getIntDeploymentDetails().getLastDeploymentStatus();
+					prodStatus = vo.getProjectDetails().getProdDeploymentDetails().getLastDeploymentStatus();
+				if(intStatus != null)
 				{
-				   status = vo.getProjectDetails().getIntDeploymentDetails().getLastDeploymentStatus();
-				}
-				else
-				{
-				   status = vo.getProjectDetails().getProdDeploymentDetails().getLastDeploymentStatus();
-				}
-				if(status != null)
-				{
-				   if (status.equalsIgnoreCase("DEPLOY_REQUESTED")) {
+				   if (intStatus.equalsIgnoreCase("DEPLOY_REQUESTED")) {
 					   MessageDescription invalidTypeMsg = new MessageDescription();
 					   invalidTypeMsg.setMessage(
 							   "cannot deploy workspace since it is already in DEPLOY_REQUESTED state");
@@ -1171,7 +1166,37 @@ import org.springframework.beans.factory.annotation.Value;
 					   log.info("User {} cannot deploy project of recipe {} for workspace {}, since it is alredy in DEPLOY_REQUESTED state.", userId,
 							   vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), vo.getWorkspaceId());
 					   return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
-				   }
+				   }else if (intStatus.equalsIgnoreCase("BUILD_REQUESTED")) {
+					MessageDescription invalidTypeMsg = new MessageDescription();
+					invalidTypeMsg.setMessage(
+							"cannot deploy workspace since it is already in BUILD_REQUESTED state");
+					GenericMessage errorMessage = new GenericMessage();
+					errorMessage.addErrors(invalidTypeMsg);
+					log.info("User {} cannot deploy project of recipe {} for workspace {}, since it is alredy in BUILD_REQUESTED state.", userId,
+							vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), vo.getWorkspaceId());
+					return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
+				}
+				}else if(prodStatus != null)
+				{
+				   if (prodStatus.equalsIgnoreCase("DEPLOY_REQUESTED")) {
+					   MessageDescription invalidTypeMsg = new MessageDescription();
+					   invalidTypeMsg.setMessage(
+							   "cannot deploy workspace since it is already in DEPLOY_REQUESTED state");
+					   GenericMessage errorMessage = new GenericMessage();
+					   errorMessage.addErrors(invalidTypeMsg);
+					   log.info("User {} cannot deploy project of recipe {} for workspace {}, since it is alredy in DEPLOY_REQUESTED state.", userId,
+							   vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), vo.getWorkspaceId());
+					   return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
+				   }else if (prodStatus.equalsIgnoreCase("BUILD_REQUESTED")) {
+					MessageDescription invalidTypeMsg = new MessageDescription();
+					invalidTypeMsg.setMessage(
+							"cannot deploy workspace since it is already in BUILD_REQUESTED state");
+					GenericMessage errorMessage = new GenericMessage();
+					errorMessage.addErrors(invalidTypeMsg);
+					log.info("User {} cannot deploy project of recipe {} for workspace {}, since it is alredy in BUILD_REQUESTED state.", userId,
+							vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), vo.getWorkspaceId());
+					return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
+				}
 				}
 			   //  if ((Objects.nonNull(deployRequestDto.isSecureWithIAMRequired())
 			   // 		 && deployRequestDto.isSecureWithIAMRequired())

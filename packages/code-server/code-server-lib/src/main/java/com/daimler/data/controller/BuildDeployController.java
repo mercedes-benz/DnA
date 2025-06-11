@@ -144,18 +144,13 @@ public class BuildDeployController implements CodeServerBuildDeployServiceApi {
         if (buildRequestDto != null && buildRequestDto.getBranch() != null) {
             branch = buildRequestDto.getBranch();
         }
-        String status = "";
-        if(environment.equalsIgnoreCase("int"))
+        String intStatus = "";
+        String prodStatus = "";
+            intStatus = vo.getProjectDetails().getIntBuildDetails().getLastBuildStatus();
+            prodStatus = vo.getProjectDetails().getProdBuildDetails().getLastBuildStatus();
+        if(intStatus != null)
         {
-           status = vo.getProjectDetails().getIntBuildDetails().getLastBuildStatus();
-        }
-        else
-        {
-           status = vo.getProjectDetails().getProdBuildDetails().getLastBuildStatus();
-        }
-        if(status != null)
-        {
-           if (status.equalsIgnoreCase("BUILD_REQUESTED")) {
+           if (intStatus.equalsIgnoreCase("BUILD_REQUESTED")) {
                MessageDescription invalidTypeMsg = new MessageDescription();
                invalidTypeMsg.setMessage(
                        "cannot build workspace since it is already in BUILD_REQUESTED state");
@@ -164,8 +159,38 @@ public class BuildDeployController implements CodeServerBuildDeployServiceApi {
                log.info("User {} cannot build project of recipe {} for workspace {}, since it is alredy in BUILD_REQUESTED state.", userId,
                        vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), vo.getWorkspaceId());
                return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
-           }
+           }else if (intStatus.equalsIgnoreCase("DEPLOY_REQUESTED")) {
+            MessageDescription invalidTypeMsg = new MessageDescription();
+            invalidTypeMsg.setMessage(
+                    "cannot build workspace since it is already in DEPLOY_REQUESTED state");
+            GenericMessage errorMessage = new GenericMessage();
+            errorMessage.addErrors(invalidTypeMsg);
+            log.info("User {} cannot build project of recipe {} for workspace {}, since it is alredy in DEPLOY_REQUESTED state.", userId,
+                    vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), vo.getWorkspaceId());
+            return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
         }
+        }else if(prodStatus != null)
+        {
+           if (prodStatus.equalsIgnoreCase("BUILD_REQUESTED") ) {
+               MessageDescription invalidTypeMsg = new MessageDescription();
+               invalidTypeMsg.setMessage(
+                       "cannot build workspace since it is already in BUILD_REQUESTED state");
+               GenericMessage errorMessage = new GenericMessage();
+               errorMessage.addErrors(invalidTypeMsg);
+               log.info("User {} cannot build project of recipe {} for workspace {}, since it is alredy in BUILD_REQUESTED state.", userId,
+                       vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), vo.getWorkspaceId());
+               return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
+           }else if (prodStatus.equalsIgnoreCase("DEPLOY_REQUESTED")) {
+            MessageDescription invalidTypeMsg = new MessageDescription();
+            invalidTypeMsg.setMessage(
+                    "cannot build workspace since it is already in DEPLOY_REQUESTED state");
+            GenericMessage errorMessage = new GenericMessage();
+            errorMessage.addErrors(invalidTypeMsg);
+            log.info("User {} cannot build project of recipe {} for workspace {}, since it is alredy in DEPLOY_REQUESTED state.", userId,
+                    vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), vo.getWorkspaceId());
+            return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
+        }
+        } 
         String lastBuildType = "build";
         GenericMessage responseMsg = service.buildWorkSpace(userId,id,branch,buildRequestDto,isPrivateRecipe,environment,lastBuildType);
 				 log.info("User {} build workspace {} project {}", userId, vo.getWorkspaceId(),
