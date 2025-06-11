@@ -4,8 +4,8 @@ import Styles from './CodeSpaceCardItem.scss';
 import {
   // recipesMaster,
   regionalDateAndTimeConversionSolution,
-  // buildLogViewURL,
-  buildGitJobLogViewURL,
+  // // buildLogViewURL,
+  // buildGitJobLogViewURL,
   // buildLogViewAWSURL,
   buildGitJobLogViewAWSURL,
   // buildGitUrl,
@@ -386,8 +386,8 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
   // const intAppResourceUsageUrl = Envs.MONITORING_DASHBOARD_APP_BASE_URL + `codespace-app-cpu-and-memory-usage?orgId=1&var-namespace=${Envs.CODESERVER_APP_NAMESPACE}&var-app=${projectDetails?.projectName}-int&var-container=`;
   // const prodAppResourceUsageUrl = Envs.MONITORING_DASHBOARD_APP_BASE_URL + `codespace-app-cpu-and-memory-usage?orgId=1&var-namespace=${Envs.CODESERVER_APP_NAMESPACE}&var-app=${projectDetails?.projectName}-prod&var-container=`;
 
-  const intDeploymentMigrated = codeSpace?.projectDetails?.intDeploymentDetails?.deploymentUrl?.includes(Envs.CODESPACE_AWS_POPUP_URL);
-  const prodDeploymentMigrated = codeSpace?.projectDetails?.prodDeploymentDetails?.deploymentUrl?.includes(Envs.CODESPACE_AWS_POPUP_URL);
+  // const intDeploymentMigrated = codeSpace?.projectDetails?.intDeploymentDetails?.deploymentUrl?.includes(Envs.CODESPACE_AWS_POPUP_URL);
+  // const prodDeploymentMigrated = codeSpace?.projectDetails?.prodDeploymentDetails?.deploymentUrl?.includes(Envs.CODESPACE_AWS_POPUP_URL);
 
   // const securedWithIAMContent = (
   //   <svg
@@ -655,7 +655,7 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
                           <li>
                             <a
                               target="_blank"
-                              href={(codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' && intDeploymentMigrated) ? buildGitJobLogViewAWSURL(intDeploymentDetails?.gitjobRunID) : buildGitJobLogViewURL(intDeploymentDetails?.gitjobRunID)}
+                              href={buildGitJobLogViewAWSURL(intDeploymentDetails?.gitjobRunID)}
                               rel="noreferrer"
                             >
                               Last Build &amp; Deploy Logs{' '}
@@ -679,7 +679,7 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
                           <li>
                             <a
                               target="_blank"
-                              href={(codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' && intDeploymentMigrated) ? buildLogViewAWSURL(intDeployedUrl || projectDetails?.projectName.toLowerCase(), true) :buildLogViewURL(intDeployedUrl || projectDetails?.projectName.toLowerCase(), true)}
+                              href={buildLogViewAWSURL(intDeployedUrl || projectDetails?.projectName.toLowerCase(), true)}
                               rel="noreferrer"
                             >
                               Application Logs <i className="icon mbc-icon new-tab" />
@@ -710,7 +710,7 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
                             </span>
                           </li>
                         )}
-                        {intDeployed && intDeploymentMigrated && (
+                        {intDeployed && (
                           <li>
                             <a target="_blank" href={intAppResourceUsageUrl} rel="noreferrer">
                               Deployed App Resource Usage
@@ -782,7 +782,7 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
                           <li>
                             <a
                               target="_blank"
-                              href={(codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' && prodDeploymentMigrated) ? buildGitJobLogViewAWSURL(prodDeploymentDetails?.gitjobRunID) : buildGitJobLogViewURL(prodDeploymentDetails?.gitjobRunID)}
+                              href={buildGitJobLogViewAWSURL(prodDeploymentDetails?.gitjobRunID)}
                               rel="noreferrer"
                             >
                               Build &amp; Deploy Logs{' '}
@@ -809,7 +809,7 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
                           <li>
                             <a
                               target="_blank"
-                              href={(codeSpace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS' && prodDeploymentMigrated) ? buildLogViewAWSURL(prodDeployedUrl || projectDetails?.projectName.toLowerCase()) : buildLogViewURL(prodDeployedUrl || projectDetails?.projectName.toLowerCase())}
+                              href={buildLogViewAWSURL(prodDeployedUrl || projectDetails?.projectName.toLowerCase())}
                               rel="noreferrer"
                             >
                               Application Logs <i className="icon mbc-icon new-tab" />
@@ -840,7 +840,7 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
                             </span>
                           </li>
                         )}
-                        {prodDeployed && prodDeploymentMigrated && (
+                        {prodDeployed && (
                           <li>
                             <a target="_blank" href={prodAppResourceUsageUrl} rel="noreferrer">
                               Deployed App Resource Usage
