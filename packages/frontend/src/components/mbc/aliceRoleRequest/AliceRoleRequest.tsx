@@ -22,7 +22,8 @@ const AliceRoleRequest = () => {
   const [roleName, setRoleName] = useState('');
   const [roleNameError, setRoleNameError] = useState('');
   const [rolesCreated, setRolesCreated] = useState<{ static: string[]; dynamic: string[];}>({ static: [], dynamic: [] });
-  const [isDynamicRole, setIsDynamicRole] = useState(false);
+  // const [isDynamicRole, setIsDynamicRole] = useState(false);
+  const isDynamicRole = false;
   const [showRoleModal, setShowRoleModal] = useState(false);
   const [selectedRoleDetails, setSelectedRoleDetails] = useState<any>(null);
   const [entraGroupMembers, setEntraGroupMembers] = useState<any[]>([]);
