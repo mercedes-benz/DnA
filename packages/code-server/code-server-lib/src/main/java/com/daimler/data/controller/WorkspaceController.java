@@ -1151,13 +1151,22 @@ import org.springframework.beans.factory.annotation.Value;
 				if (deployRequestDto != null && deployRequestDto.getBranch() != null) {
 					branch = deployRequestDto.getBranch();
 				}
-				String intStatus = "";
-				String prodStatus = "";
-					intStatus = vo.getProjectDetails().getIntDeploymentDetails().getLastDeploymentStatus();
-					prodStatus = vo.getProjectDetails().getProdDeploymentDetails().getLastDeploymentStatus();
-				if(intStatus != null)
-				{
-				   if (intStatus.equalsIgnoreCase("DEPLOY_REQUESTED")) {
+				String intDeployStatus = "";
+				String prodDeployStatus = "";
+				String intBuildStatus = "";
+				String prodBuildStatus = "";
+				String status = "";
+				intBuildStatus = vo.getProjectDetails().getIntBuildDetails().getLastBuildStatus();
+        		prodBuildStatus = vo.getProjectDetails().getProdBuildDetails().getLastBuildStatus();
+					intDeployStatus = vo.getProjectDetails().getIntDeploymentDetails().getLastDeploymentStatus();
+					prodDeployStatus = vo.getProjectDetails().getProdDeploymentDetails().getLastDeploymentStatus();
+					if(environment.equalsIgnoreCase("int")){
+						status = intDeployStatus;
+					}else{
+						status = prodDeployStatus;
+					}
+			
+				   if (intDeployStatus != null && intDeployStatus.equalsIgnoreCase("DEPLOY_REQUESTED")) {
 					   MessageDescription invalidTypeMsg = new MessageDescription();
 					   invalidTypeMsg.setMessage(
 							   "cannot deploy workspace since it is already in DEPLOY_REQUESTED state");
@@ -1166,7 +1175,7 @@ import org.springframework.beans.factory.annotation.Value;
 					   log.info("User {} cannot deploy project of recipe {} for workspace {}, since it is alredy in DEPLOY_REQUESTED state.", userId,
 							   vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), vo.getWorkspaceId());
 					   return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
-				   }else if (intStatus.equalsIgnoreCase("BUILD_REQUESTED")) {
+				   }else if (intBuildStatus != null && intBuildStatus.equalsIgnoreCase("BUILD_REQUESTED")) {
 					MessageDescription invalidTypeMsg = new MessageDescription();
 					invalidTypeMsg.setMessage(
 							"cannot deploy workspace since it is already in BUILD_REQUESTED state");
@@ -1176,9 +1185,8 @@ import org.springframework.beans.factory.annotation.Value;
 							vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), vo.getWorkspaceId());
 					return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
 				}
-				}else if(prodStatus != null)
-				{
-				   if (prodStatus.equalsIgnoreCase("DEPLOY_REQUESTED")) {
+				
+				   if (prodDeployStatus != null && prodDeployStatus.equalsIgnoreCase("DEPLOY_REQUESTED")) {
 					   MessageDescription invalidTypeMsg = new MessageDescription();
 					   invalidTypeMsg.setMessage(
 							   "cannot deploy workspace since it is already in DEPLOY_REQUESTED state");
@@ -1187,7 +1195,7 @@ import org.springframework.beans.factory.annotation.Value;
 					   log.info("User {} cannot deploy project of recipe {} for workspace {}, since it is alredy in DEPLOY_REQUESTED state.", userId,
 							   vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), vo.getWorkspaceId());
 					   return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
-				   }else if (prodStatus.equalsIgnoreCase("BUILD_REQUESTED")) {
+				   }else if (prodBuildStatus != null && prodBuildStatus.equalsIgnoreCase("BUILD_REQUESTED")) {
 					MessageDescription invalidTypeMsg = new MessageDescription();
 					invalidTypeMsg.setMessage(
 							"cannot deploy workspace since it is already in BUILD_REQUESTED state");
@@ -1197,7 +1205,7 @@ import org.springframework.beans.factory.annotation.Value;
 							vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), vo.getWorkspaceId());
 					return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
 				}
-				}
+				
 			   //  if ((Objects.nonNull(deployRequestDto.isSecureWithIAMRequired())
 			   // 		 && deployRequestDto.isSecureWithIAMRequired())
 			   // 		 && (Objects.nonNull(deployRequestDto.getTechnicalUserDetailsForIAMLogin()))) {
