@@ -118,39 +118,44 @@ const AliceRoleRequest = () => {
   };
 
   const handleRoleClick = (role: string) => {
-    setShowRoleModal(true);
+    ProgressIndicator.show(); 
+    setShowRoleModal(false); 
     setSelectedRoleDetails(null);
     setEntraGroupMembers([]);
-    
-    ApiClient.getRoleDetails(role)
-      .then((res: any) => {
-        if (res?.data) {
-          setSelectedRoleDetails({
-            id: res.data.id,
-            name: res.data.name,
-            description: res.data.description,
-            isDynamic: res.data.isDynamic,
-            isSelfRequestable: res.data.isSelfRequestable,
-            roleOwners: res.data.roleOwners || [],
-            roleMembers: res.data.roleMembers || []
-          });
-        } else {
-          Notification.show(res?.errors[0]?.message || 'Error fetching role details', 'alert');
-        }
-      })
-      .catch((err) => {
-        Notification.show(err?.message || 'Error fetching role details', 'alert');
-      });
-
+  
+    Promise.all([
+      ApiClient.getRoleDetails(role),
       ApiClient.getEntraGroupMembers(role)
-      .then((entraRes: any) => {
-        if (entraRes?.data?.groupMembers) {
-          setEntraGroupMembers(entraRes.data.groupMembers);
-        }
-      })
-      .catch((err) => {
-        Notification.show(err?.message || 'Error fetching EntraID members', 'alert');
-      });
+    ])
+    .then(([roleRes, entraRes]) => {
+      if (roleRes?.data) {
+        setSelectedRoleDetails({
+          id: roleRes.data.id,
+          name: roleRes.data.name,
+          description: roleRes.data.description,
+          isDynamic: roleRes.data.isDynamic,
+          isSelfRequestable: roleRes.data.isSelfRequestable,
+          roleOwners: roleRes.data.roleOwners || [],
+          roleMembers: roleRes.data.roleMembers || []
+        });
+      } else {
+        const errorMessage = roleRes?.errors?.[0]?.message || 'Error fetching role details';
+        Notification.show(errorMessage, 'alert');
+      }
+  
+      if (entraRes?.data?.groupMembers) {
+        setEntraGroupMembers(entraRes.data.groupMembers);
+      } else if (entraRes?.errors?.length > 0) {
+        Notification.show(entraRes.errors[0].message || 'Error fetching EntraID members', 'alert');
+      }
+  
+      ProgressIndicator.hide(); 
+      setShowRoleModal(true); 
+    })
+    .catch((err) => {
+      ProgressIndicator.hide(); 
+      Notification.show(err?.message || 'Error fetching data', 'alert');
+    });
   };
  
   return (
@@ -191,7 +196,7 @@ const AliceRoleRequest = () => {
               <div className={classNames(Styles.header)}>
                 <h5>Enter the role</h5>
               </div>
- 
+
               <div className={classNames(Styles.roleSection)}>
                 <div className={classNames(Styles.roleName)}>
                   <TextBox
@@ -206,7 +211,7 @@ const AliceRoleRequest = () => {
                     maxLength={50}
                     onChange={onRoleNameChange}
                   />
-                  <div className="form-group">
+                  {/* <div className="form-group">
                     <label className="checkbox">
                       <span className="wrapper">
                       <input
@@ -218,9 +223,9 @@ const AliceRoleRequest = () => {
                       </span>
                       <span className="label">Dynamic Role</span>
                     </label>
-                  </div>
+                  </div> */}
                 </div>
- 
+
                 <div className={classNames(Styles.roleName, Styles.disabledSection)}>
                   <TextBox
                     type="text"
@@ -235,67 +240,69 @@ const AliceRoleRequest = () => {
                   />
                 </div>
               </div>
- 
+
               <button className="btn btn-tertiary" type="button" onClick={createRole}>
                 create Role
               </button>
             </div>
- 
-            <div className={classNames(Styles.rolesListSection)}>
-              {(rolesCreated.static.length > 0 || rolesCreated.dynamic.length > 0) ? (
-                <>
-                  {rolesCreated.static.length > 0 && (
-                    <div className={classNames(Styles.rolesList)}>
-                      <div className={classNames(Styles.header)}>
-                        <h5>Static Roles managed by you</h5>
-                      </div>
-                      <div className={Styles.infoLinks}>
-                        {rolesCreated.static.map((item, key) => (
-                          <div key={key} className={classNames(Styles.roleItem)}>
-                            <h3 className={classNames('btn btn-primary', Styles.outlineBtn)} onClick={() => handleRoleClick(item)} style={{ cursor: 'pointer' }}>{item}</h3>
-                            <div>
-                              <a
-                                href={`${Envs.ALICE_BASE_URL}/admin/roles/${item}`}
-                                target="_blank"
-                                rel="noreferrer"
-                              >
-                                View in Alice <i className="icon mbc-icon new-tab" style={{ fontSize: '10px' }}/>
-                              </a>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
+          </div>
+          <hr className={Styles.divider} />
+          <div className={classNames(Styles.rolesListSection)}>
+            {(rolesCreated.static.length > 0 || rolesCreated.dynamic.length > 0) ? (
+              <>
+                {rolesCreated.static.length > 0 && (
+                  <div className={classNames(Styles.rolesList)}>
+                    <div className={classNames(Styles.header)}>
+                      <h5>Static Roles managed by you</h5>
                     </div>
-                  )}
- 
-                  {rolesCreated.dynamic.length > 0 && (
-                    <div className={classNames(Styles.rolesList)}>
-                      <div className={classNames(Styles.header)}>
-                        <h5>Dynamic Roles managed by you</h5>
-                      </div>
-                      <div className={Styles.infoLinks}>
-                        {rolesCreated.dynamic.map((item, key) => (
-                          <div key={key} className={classNames(Styles.roleItem)}>
-                            <h3 className={classNames('btn btn-primary', Styles.outlineBtn)} onClick={() => handleRoleClick(item)} style={{ cursor: 'pointer' }}>{item}</h3>
-                            <div>
-                              <a
-                                href={`${Envs.ALICE_BASE_URL}/admin/roles/${item}`}
-                                target="_blank"
-                                rel="noreferrer"
-                              >
-                                View in Alice <i className="icon mbc-icon new-tab" style={{ fontSize: '10px' }}/>
-                              </a>
-                            </div>
+                    <div className={Styles.infoLinks}>
+                      {rolesCreated.static.map((item, key) => (
+                        <div key={key} className={classNames(Styles.roleItem)}>
+                          <h3 className={classNames('btn btn-primary', Styles.outlineBtn)} onClick={() => handleRoleClick(item)}>{item}</h3>
+                          <div className={Styles.redirect}>
+                            <a
+                              href={`${Envs.ALICE_BASE_URL}/admin/roles/${item}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className={Styles.viewAlice}
+                            >
+                              View in Alice <i className={`icon mbc-icon new-tab ${Styles.viewInAliceIcon}`} />
+                            </a>
                           </div>
-                        ))}
-                      </div>
+                        </div>
+                      ))}
                     </div>
-                  )}
-                </>
-              ) : (
-                <div className={classNames(Styles.noRolesCreated)}><p>No Roles Created</p></div>
-              )}
-            </div>
+                  </div>
+                )}
+
+                {rolesCreated.dynamic.length > 0 && (
+                  <div className={classNames(Styles.rolesList)}>
+                    <div className={classNames(Styles.header)}>
+                      <h5>Dynamic Roles managed by you</h5>
+                    </div>
+                    <div className={Styles.infoLinks}>
+                      {rolesCreated.dynamic.map((item, key) => (
+                        <div key={key} className={classNames(Styles.roleItem)}>
+                          <h3 className={classNames('btn btn-primary', Styles.outlineBtn)} onClick={() => handleRoleClick(item)}>{item}</h3>
+                          <div className={Styles.redirect}>
+                            <a
+                              href={`${Envs.ALICE_BASE_URL}/admin/roles/${item}`}
+                              target="_blank"
+                              rel="noreferrer"
+                              className={Styles.viewAlice}
+                            >
+                              View in Alice <i className={`icon mbc-icon new-tab ${Styles.viewInAliceIcon}`} />
+                            </a>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className={classNames(Styles.noRolesCreated)}><p>No Roles Created</p></div>
+            )}
           </div>
         </div>
       </div>
@@ -363,7 +370,9 @@ const AliceRoleRequest = () => {
                 entraGroupMembers.map((member: any, index: number) => (
                   <div key={index} className={Styles.roleItem}>
                     <div className={Styles.userDetails}>
-                      <p>{member.displayName}</p>
+                      <a
+                        href={`${TEAMS_PROFILE_LINK_URL_PREFIX}${member.shortId}`}
+                      >{member.displayName}</a>
                     </div>
                   </div>
                 ))

@@ -25,9 +25,9 @@
     }
   }
   .inputWrapper{
-    display : flex;
+    display : flex; 
     .roleRequest {
-      width: calc(50% - 7px);
+      width: 100%;
       display: flex;
       flex-direction: column;
       justify-content: space-between;
@@ -35,11 +35,17 @@
       .roleSection {
         display: flex;
         justify-content: space-between;
+        flex-direction: row;
+        align-items: flex-start;
+        gap: 16px;
+        width: 100%;
       }
    
       .roleName {
-        width: calc(50% - 9px);
-        margin-right: 20px;
+        flex: 1;  
+        max-width: 50%;
+        // width: calc(50% - 9px);
+        // margin-right: 20px;
       }
    
       .disabledSection {
@@ -82,44 +88,50 @@
 .infoLinks{
   display: inline-flex;
   flex-wrap: wrap;
-  word-break: break-all;
+  word-break: break-word;
+  width: 100%;
   > div {
     margin: 5px 5px 5px 0;
     cursor: pointer;
+    width: 20%;
   }
 }
  
-.roleContainer {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px;
-  margin-top: 12px;
-}
- 
 .roleItem {
-  background-color: #353f4a;
+  background-color: #1c2026;
   padding: 10px 12px;
   display: flex;
   flex-direction: column;
   flex-wrap: wrap;
   align-items: flex-start;
-  width: fit-content;
-  border: 1px solid #444;
-}
- 
-.outlineBtn {
-  background: none;
-  border: none !important;
-  color: #c0c8d0;
-  height: auto;
-  outline: none;
-  padding: 0 2px;
-  color: #00adef;
- 
-  &:hover {
-    color: #00adef;
-    background: unset;
-    text-decoration: underline;
+
+  .outlineBtn {
+    background: none;
+    border: none !important;
+    color: #c0c8d0;
+    height: auto;
+    outline: none;
+    padding: 0 2px;
+    color: #fcfcfd;
+    min-height: 35px;
+
+    &:hover {
+      color: #00adef;
+      background: unset;
+    }
+  }
+
+  .redirect{
+    align-self: flex-end;
+  }
+
+  .viewAlice {
+    @extend .outlineBtn;
+    font-size: 12px;
+  }
+
+  .viewInAliceIcon {
+    font-size: 10px;
   }
 }
  
