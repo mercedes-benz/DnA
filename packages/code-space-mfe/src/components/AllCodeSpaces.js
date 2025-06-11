@@ -685,7 +685,6 @@ const AllCodeSpaces = (props) => {
                                                         onShowBuildModal={onCodeSpaceBuild}
                                                         onShowDeployApprovalModal={onShowDeployApprovalModal}
                                                         onStartStopCodeSpace={onStartStopCodeSpace}
-                                                        navigateSecurityConfig={navigateSecurityConfig}
                                                         onShowBlueprintModal={onCodeSpaceShowBlueprint}
                                                     />
                                                 );

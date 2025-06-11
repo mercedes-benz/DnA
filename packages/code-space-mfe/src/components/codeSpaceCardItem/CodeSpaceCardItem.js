@@ -31,7 +31,7 @@ import { marked } from 'marked';
 import { Envs } from '../../Utility/envs';
 import Tooltip from '../../common/modules/uilab/js/src/tooltip';
 import ContextMenu from '../contextMenu/ContextMenu';
-import DeployedAppConfigModal from '../deployedAppConfigModal/DeployedAppConfigModal';
+// import DeployedAppConfigModal from '../deployedAppConfigModal/DeployedAppConfigModal';
 
 // interface CodeSpaceCardItemProps {
 //   userInfo: IUserInfo;
@@ -91,7 +91,7 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
   const enableReadMe =  Envs.CODESPACE_RECIEPES_ENABLE_README?.split(',')?.includes(codeSpace?.projectDetails?.recipeDetails?.Id) || false;
   const [showMigrateOrStartModal, setShowMigrateOrStartModal] = useState(false);
   // const [showOnPremStartModal, setShowOnPremStartModal] = useState(false);
-  const [showSecurityConfigModal, setShowSecurityConfigModal] = useState(false);
+  // const [showSecurityConfigModal, setShowSecurityConfigModal] = useState(false);
 
   useEffect(() => {
     handleServerStatusAndProgress();
@@ -464,13 +464,13 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
     e.dataTransfer.setData("application/json", JSON.stringify(codeSpace));
   }
 
-  const navigateSecurityConfig = () => {
-    if (projectDetails?.publishedSecuirtyConfig) {
-        window.open(`${window.location.pathname}#/codespaces/codespace/publishedSecurityconfig/${props?.codeSpace?.id}?name=${projectDetails?.projectName}?intIAM=${projectDetails?.intDeploymentDetails?.secureWithIAMRequired ? 'true' : 'false'}?prodIAM=${projectDetails?.prodDeploymentDetails?.secureWithIAMRequired ? 'true' : 'false'}`, '_blank');
-        return;
-    }
-    window.open(`${window.location.pathname}#/codespaces/codespace/securityconfig/${props?.codeSpace?.id}?name=${projectDetails?.projectName}?intIAM=${projectDetails?.intDeploymentDetails?.secureWithIAMRequired ? 'true' : 'false'}?prodIAM=${projectDetails?.prodDeploymentDetails?.secureWithIAMRequired ? 'true' : 'false'}`, '_blank');
-  }
+  // const navigateSecurityConfig = () => {
+  //   if (projectDetails?.publishedSecuirtyConfig) {
+  //       window.open(`${window.location.pathname}#/codespaces/codespace/publishedSecurityconfig/${props?.codeSpace?.id}?name=${projectDetails?.projectName}?intIAM=${projectDetails?.intDeploymentDetails?.secureWithIAMRequired ? 'true' : 'false'}?prodIAM=${projectDetails?.prodDeploymentDetails?.secureWithIAMRequired ? 'true' : 'false'}`, '_blank');
+  //       return;
+  //   }
+  //   window.open(`${window.location.pathname}#/codespaces/codespace/securityconfig/${props?.codeSpace?.id}?name=${projectDetails?.projectName}?intIAM=${projectDetails?.intDeploymentDetails?.secureWithIAMRequired ? 'true' : 'false'}?prodIAM=${projectDetails?.prodDeploymentDetails?.secureWithIAMRequired ? 'true' : 'false'}`, '_blank');
+  // }
 
   return (
     <>
@@ -1567,7 +1567,7 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
           onCancel={() => setShowOnPremStartModal(false)}
         />
       )} */}
-      {showSecurityConfigModal && (
+      {/* {showSecurityConfigModal && (
         <Modal
           title={`Manage ${isStaging ? 'Staging' : 'Production'} Security Config`}
           hiddenTitle={false}
@@ -1591,7 +1591,7 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
         scrollableContent={true}
         onCancel={() => {setShowSecurityConfigModal(false);}}
         />
-      )}
+      )} */}
     </>
   );
 });
