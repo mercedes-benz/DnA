@@ -36,6 +36,7 @@ const CreateBucket = ({ user }) => {
   const [ownerId, setOwnerId] = useState('');
 
   const [bucketCollaborators, setBucketCollaborators] = useState([]);
+  const [prevBucketCollaborators, setPrevBucketCollaborators] = useState([]);
   const [bucketNameError, setBucketNameError] = useState('');
 
   const [bucketId, setBucketId] = useState('');
@@ -180,6 +181,7 @@ const CreateBucket = ({ user }) => {
             setBucketName(res?.data?.bucketName);
             setBucketPermission(res?.data?.permission);
             setBucketCollaborators(res?.data?.collaborators || []);
+            setPrevBucketCollaborators(res?.data?.collaborators || []);
             setDataClassification(res?.data?.classificationType);
             setPII(res?.data?.piiData);
             setBucketId(res?.data?.id);
@@ -446,7 +448,7 @@ const CreateBucket = ({ user }) => {
       })
       .catch(() => {
         ProgressIndicator.hide();
-        Notification.show('Error while transferring ownership. Please make sure you have updated the bucket after adding the user before transferring.', 'alert');
+        Notification.show('Error while transferring ownership.', 'alert');
       });
   };
 
@@ -995,7 +997,7 @@ const CreateBucket = ({ user }) => {
                                       <i className="icon mbc-icon trash-outline" />
                                       Delete Entry
                                     </div>
-                                    {isOwner &&
+                                    {isOwner && prevBucketCollaborators.some(c => c.accesskey === item.accesskey) &&
                                       <div className={Styles.deleteEntry} onClick={() => onTransferOwnership(item.accesskey)}>
                                         <i className="icon mbc-icon comparison" />
                                         Transfer Ownership
