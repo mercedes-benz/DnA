@@ -416,6 +416,21 @@ const DBServiceForm = ({ user, dbservice, edit, onSave }) => {
                 <span className={'error-message'}>{errors?.dbName?.message}</span>
               </div>
             </div>
+            <div className={Styles.col2}>
+              <div className={classNames('input-field-group')}>
+                <label className="input-label">
+                  DB Type
+                </label>
+                <input
+                  type="text"
+                  className="input-field"
+                  id="dbType"
+                  value="Postgres"
+                  readOnly
+                />
+              </div>
+            </div>
+
             <div className={Styles.col}>
               <div className={classNames('input-field-group include-error area', errors.description ? 'error' : '')}>
                 <label id="description" className="input-label" htmlFor="description">
