@@ -215,7 +215,8 @@ const DBServiceForm = ({ user, dbservice, edit, onSave }) => {
     ProgressIndicator.show();
     const data = {
       serviceName: values.dbServiceName?.trim() ?? '',
-      dbName: values.dbname?.trim() ?? '',
+      dbName: values.dbName?.trim() ?? '',
+      projectCollaborators: collaborators,
       dataGovernance: {
       classificationType: values?.dataClassification,
       tags: tags.length > 0 ? tags: null,
