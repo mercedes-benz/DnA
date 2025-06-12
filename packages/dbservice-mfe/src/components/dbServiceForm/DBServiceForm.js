@@ -34,7 +34,7 @@ const DBServiceForm = ({ user, dbservice, edit, onSave }) => {
 
   // lean governance fields
   const [dbserviceName, setDbServiceName] = useState(edit && dbservice?.name !== null ? dbservice?.name : '');
-  const [dbName, setDbName] = useState(edit && dbservice?.name !== null ? dbservice?.name : '');
+  const [dbName, setDbName] = useState(edit && dbservice?.name !== null ? dbservice?.name : 'db');
 
   const [divisions, setDivisions] = useState([]);
   const [subDivisions, setSubDivisions] = useState([]);
@@ -214,21 +214,23 @@ const DBServiceForm = ({ user, dbservice, edit, onSave }) => {
   const handleCreateWorkspace = (values) => {
     ProgressIndicator.show();
     const data = {
-      dbServiceName: values.dbServiceName.trim(),
-      dbName: values.dbname.trim(),
-      tags: tags,
-      hasPii: values?.pii,
+      serviceName: values.dbServiceName?.trim() ?? '',
+      dbName: values.dbname?.trim() ?? '',
+      dataGovernance: {
+      classificationType: values?.dataClassification,
+      tags: tags.length > 0 ? tags: null,
+      piiData: values?.pii,
       archerId: values?.archerId,
       divisionId: values?.division?.includes('@-@') ? values?.division?.split('@-@')[0] : '',
-      division: values?.division?.includes('@-@') ? values?.division?.split('@-@')[1] : '',
+      division: values?.division?.includes('@-@') ? values?.division?.split('@-@')[1] : null,
       subDivisionId: values?.subDivision?.includes('@-@') ? values?.subDivision?.split('@-@')[0] : '',
-      subDivision: values?.subDivision?.includes('@-@') ? values?.subDivision?.split('@-@')[1] : '',
-      description: values?.description.trim(),
+      subDivision: values?.subDivision?.includes('@-@') ? values?.subDivision?.split('@-@')[1] : null,
+      description: values?.description?.trim() ?? '',
       department: departmentName[0],
       procedureId: values?.procedureId,
       termsOfUse: values?.termsOfUse,
       typeOfProject: values?.typeOfProject,
-      dataClassification: values?.dataClassification,
+      }
     };
     dbServiceApi.createDBService(data).then((res) => {
       ProgressIndicator.hide();
@@ -244,21 +246,23 @@ const DBServiceForm = ({ user, dbservice, edit, onSave }) => {
   };
   const handleEditWorkspace = (values) => {
     const data = {
-      dbServiceName: values.dbServiceName.trim(),
+      serviceName: values.dbServiceName.trim(),
       dbName: values.dbname.trim(),
-      tags: tags,
-      hasPii: values?.pii,
+      description: values?.description.trim()?? '',
+      projectType: values?.typeOfProject,
+      dataGovernance: {
+        classificationType: values?.dataClassification,
+      tags: tags.length > 0 ? tags : null,
+      piiData: values?.pii,
       archerId: values?.archerId,
       divisionId: values?.division?.includes('@-@') ? values?.division?.split('@-@')[0] : '',
-      division: values?.division?.includes('@-@') ? values?.division?.split('@-@')[1] : '',
+      division: values?.division?.includes('@-@') ? values?.division?.split('@-@')[1] : null,
       subDivisionId: values?.subDivision?.includes('@-@') ? values?.subDivision?.split('@-@')[0] : '',
-      subDivision: values?.subDivision?.includes('@-@') ? values?.subDivision?.split('@-@')[1] : '',
-      description: values?.description.trim(),
+      subDivision: values?.subDivision?.includes('@-@') ? values?.subDivision?.split('@-@')[1] : null,
       department: departmentName[0],
       procedureId: values?.procedureId,
       termsOfUse: values?.termsOfUse,
-      typeOfProject: values?.typeOfProject,
-      dataClassification: values?.dataClassification,
+      }
     }
     ProgressIndicator.show();
     dbServiceApi.updateDBService(dbservice.id, data).then(() => {
@@ -330,15 +334,17 @@ const DBServiceForm = ({ user, dbservice, edit, onSave }) => {
                   autoComplete="off"
                   maxLength={256}
                   defaultValue={dbserviceName}
+                  disabled={edit}
                   {...register('dbServiceName', { required: '*Missing entry', validate: {
                     minLength: (value) =>
                       value.length >= 3 || 'DB service name should be minimum 3 characters.',
+                    maxLength: (value) =>
+                      value.length <= 63 || 'DB service name must be 63 characters or less.',
                     validChars: (value) =>
-                      /^[a-z\d.-]*$/.test(value) ||
-                      'DB service name can consist only of lowercase letters, numbers, dots ( . ), and hyphens ( - ).',
+                      /^[a-z]([-a-z0-9]*[a-z0-9])?$/.test(value) ||
+                      'Only lowercase letters, numbers, and hyphens allowed. Must start with a letter and end with a letter or number.',
                     startsCorrectly: (value) =>
-                      /^[a-z\d]/.test(value) ||
-                      'DB service name must start with a lowercase letter or number.',
+                        /^[a-z]/.test(value) || 'DB name must start with a lowercase letter.',
                     noTrailingHyphen: (value) =>
                       !/-$/.test(value) || 'DB service name must end with letter or a number.',
                     noTrailingDot: (value) =>
@@ -364,17 +370,21 @@ const DBServiceForm = ({ user, dbservice, edit, onSave }) => {
                   id="dbName"
                   placeholder="Type here"
                   autoComplete="off"
-                  maxLength={256}
+                  maxLength={31}
                   defaultValue={dbName}
+                  disabled={edit}
                   {...register('dbName', { required: '*Missing entry', validate: {
-                    minLength: (value) =>
-                      value.length >= 3 || 'DB name should be minimum 3 characters.',
+                    // minLength: (value) =>
+                    //   value.length >= 3 || 'DB name should be minimum 3 characters.',
+                    minLength: (value) => {
+                      if (value === 'db') return true;
+                      return value.length >= 3 || 'DB name should be minimum 3 characters.';
+                    },
                     validChars: (value) =>
                       /^[a-z\d.-]*$/.test(value) ||
-                      'DB name can consist only of lowercase letters, numbers, dots ( . ), and hyphens ( - ).',
+                      'DB name can consist only of lowercase letters, numbers, dots ( . ), and underscores (_).',
                     startsCorrectly: (value) =>
-                      /^[a-z\d]/.test(value) ||
-                      'DB name must start with a lowercase letter or number.',
+                      /^[a-z]/.test(value) || 'DB name must start with a lowercase letter.',
                     noTrailingHyphen: (value) =>
                       !/-$/.test(value) || 'DB name must end with letter or a number.',
                     noTrailingDot: (value) =>
@@ -384,7 +394,23 @@ const DBServiceForm = ({ user, dbservice, edit, onSave }) => {
                     notIpAddress: (value) =>
                       !/^(?:(?:^|\.)(?:2(?:5[0-5]|[0-4]\d)|1?\d?\d)){4}$/.test(value) ||
                       'DB name can’t be an IP address.',
-                  }, onChange: (e) => { setDbName(e.target.value) } })}
+                      notReservedWord: (value) => {
+                        const reserved = [
+                          'select', 'table', 'from', 'where', 'group', 'database',
+                          'order', 'update', 'delete', 'join',
+                        ];
+                        return !reserved.includes(value)
+                          || 'This is a reserved word and cannot be used as DB name.';
+                      }
+                    },
+                    onChange: (e) => {
+                      const value = e.target.value
+                        .toLowerCase()   
+                        .replace(/[^a-z0-9.-]+/g, '-')
+                        .replace(/^-+|-+$/g, '');
+                      setDbName(value);
+                    }
+                 })}
                 />
                 <span className={'error-message'}>{errors?.dbName?.message}</span>
               </div>
