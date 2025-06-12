@@ -98,15 +98,15 @@ const ManageRecipes = ({ user }) => {
       });
   }, []);
 
-  const getCodespaceRecipes = () => {
+  const getCodespaceRecipes = (offset = currentPageOffset, limit = maxItemsPerPage) => {
     ProgressIndicator.show();
     setLoading(true);
-    CodeSpaceApiClient.getCodeSpaceRecipes()
+    CodeSpaceApiClient.getCodeSpaceRecipes(offset, limit)
       .then((res) => {
         setLoading(false);
         ProgressIndicator.hide();
-        if(Array.isArray(res?.data?.data)) {
-          const totalNumberOfPagesInner = Math.ceil(res?.data?.count / maxItemsPerPage);
+        if (Array.isArray(res?.data?.data)) {
+          const totalNumberOfPagesInner = Math.ceil(res?.data?.count / limit);
           setCurrentPageNumber(currentPageNumber > totalNumberOfPagesInner ? 1 : currentPageNumber);
           setTotalNumberOfPages(totalNumberOfPagesInner);
           setRecipes(res?.data?.data);
@@ -119,7 +119,7 @@ const ManageRecipes = ({ user }) => {
         ProgressIndicator.hide();
         Notification.show(err?.message || 'Something went wrong.', 'alert');
       });
-  };
+};
 
   const sortByColumn = (propName, sortOrder) => {
     if (!propName && !sortOrder) {
