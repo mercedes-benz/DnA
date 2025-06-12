@@ -619,3 +619,21 @@ button.btn.btn-secondary {
     font-size: 16px;
   }
 }
+.listHeader {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.addNewSubscrHeader {
+  background-color: #000;
+  border: none;
+}
+
+.subsriContent {
+  background-color: rgb(22, 25, 30);
+}
+
+.cardViewWrapper {
+  display: flex;
+  flex-wrap: wrap;
+}

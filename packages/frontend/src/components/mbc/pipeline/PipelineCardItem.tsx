@@ -69,7 +69,7 @@ const PipelineCardItem = ({ project, getRefreshedDagPermission }: Props) => {
 
           <div className={Styles.cardDagSection} >
             <div>DAGs</div>
-            <div style={{ "marginRight": "80px" }}> </div>
+            <div className={Styles.dagSpacing} />
             {project.dags?.length > 0 ? (
               <div
                 onMouseEnter={() => setIsDagPopupVisible(true)}
@@ -78,7 +78,6 @@ const PipelineCardItem = ({ project, getRefreshedDagPermission }: Props) => {
                 <i className="icon mbc-icon profile" />
                 <span
                   className={Styles.cardDagIcon}
-                  style={{ textDecoration: "underline", color: "#00ADEF", cursor: "pointer" }}
                 >
                   {project.dags.length}
                 </span>

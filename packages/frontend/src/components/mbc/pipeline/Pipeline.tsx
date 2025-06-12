@@ -136,7 +136,7 @@ const Pipeline = () => {
       <div className={classNames(Styles.mainPanel)}>
         <div className={Styles.wrapper}>
           <Caption title="Pipeline">
-            <div className={Styles.listHeader} style={{ "display": "flex", "justifyContent": "end" }}>
+            <div className={Styles.listHeader}>
               <div tooltip-data="Card View">
                 <span
                   className={cardViewMode ? Styles.iconactive : Styles.iconInActive}
@@ -160,7 +160,7 @@ const Pipeline = () => {
         </div>
         <div className={Styles.content}>
           <div className={Styles.NoSubscription}>
-            <div className={Styles.addNewSubscrHeader} style={{ "backgroundColor": "#000", "border": "none" }}>
+            <div className={Styles.addNewSubscrHeader}>
               <div className={Styles.appHeaderDetailsRow}>
                 {listViewMode && (
                   <div className={classNames(Styles.listHeaderContent)}>
@@ -179,7 +179,7 @@ const Pipeline = () => {
               </div>
             </div>
 
-            <div className={Styles.subsriContent} style={{ "backgroundColor": "rgb(22 25 30)" }}>
+            <div className={Styles.subsriContent}>
               {pipelineProjectList.length === 0 ? (
                 <div className={Styles.pipelineDescription}>
                   <p>
@@ -205,8 +205,8 @@ const Pipeline = () => {
                     <>
 
 
-                      <div className={Styles.cardViewWrapper} style={{ "display": "flex", "flexWrap": "wrap" }}>
-                        <div className={Styles.newStorageCard} style={{ "backgroundColor": "rgb(22 25 30)" }}>
+                      <div className={Styles.cardViewWrapper}>
+                        <div className={Styles.newStorageCard}>
                           <Link to="createnewpipeline">
                             <div className={Styles.addicon}> &nbsp; </div>
                             <label className={Styles.addlabel}>Create new Pipeline Project</label>
