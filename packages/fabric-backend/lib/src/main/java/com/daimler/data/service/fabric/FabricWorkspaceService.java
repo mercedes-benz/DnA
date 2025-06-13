@@ -10,6 +10,7 @@ import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.db.entities.FabricWorkspaceNsql;
 import com.daimler.data.dto.fabric.CreateEntitlementRequestDto;
 import com.daimler.data.dto.fabric.CreateRoleRequestDto;
+import com.daimler.data.dto.fabricWorkspace.CreatedByVO;
 import com.daimler.data.dto.fabricWorkspace.EntitlementDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.FabricLakehouseCreateRequestVO;
 import com.daimler.data.dto.fabricWorkspace.FabricShortcutsCollectionVO;
@@ -70,7 +71,7 @@ public interface FabricWorkspaceService extends CommonService<FabricWorkspaceVO,
 
 	GenericMessage deleteLakehouseS3Shortcut(String id, String lakehouseId, String shortcutName);
 
-	GenericMessage createGenericRole(CreateRoleRequestVO roleRequestVO, String userId);
+	GenericMessage createGenericRole(CreateRoleRequestVO roleRequestVO, CreatedByVO requestUser);
 
 	DnaRoleCollectionVO getAllUserDnaRoles(String id);
 

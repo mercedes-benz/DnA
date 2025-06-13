@@ -359,6 +359,7 @@ public class FabricWorkspaceAssembler implements GenericAssembler<FabricWorkspac
 		if(entity != null && data!=null){
 			roleDetail.setRoleID(entity.getId());
 			roleDetail.setIsDynamic(data.getIsDynamic());
+			roleDetail.setOwnerDetails(data.getOwnerDetails());
 		}
 			return roleDetail;
 	}
