@@ -2,6 +2,7 @@ import React, { useRef, useState, useEffect } from 'react';
 import Styles from './PipelineCardItem.scss';
 import { IPipelineProjectDetail } from 'globals/types';
 import { history } from '../../../router/History';
+import { Envs } from 'globals/Envs';
 
 interface Props {
   project: IPipelineProjectDetail;
@@ -106,14 +107,16 @@ const PipelineCardItem = ({ project, getRefreshedDagPermission }: Props) => {
                           </button>
 
                           <a
-                            href={`/editcode/${dag.dagName}`}
+                            href={`${Envs.DATA_PIPELINES_APP_BASEURL}/graph?dag_id=${dag.dagName}`}
                             target="_blank"
-                            rel="noopener noreferrer"
+                            rel="noreferrer"
                             className={`${Styles.actionBtn} ${Styles.externalBtn}`}
-                            title="Open in new tab"
+                            title="Open in Airflow"
                           >
-                            <i className={Styles.airflowNewTab + ' icon mbc-icon new-tab'} />
+                            <i className={`${Styles.airflowNewTab} icon mbc-icon new-tab`} />
                           </a>
+
+
                         </div>
                       </li>
 
