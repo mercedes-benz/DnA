@@ -216,7 +216,19 @@ const DBServiceForm = ({ user, dbservice, edit, onSave }) => {
     const data = {
       serviceName: values.dbServiceName?.trim() ?? '',
       dbName: values.dbName?.trim() ?? '',
-      projectCollaborators: collaborators,
+      projectCollaborators: collaborators.map((c) => ({
+        id: c.id,
+        firstName: c.firstName,
+        lastName: c.lastName,
+        department: c.department,
+        email: c.email,
+        mobileNumber: c.mobileNumber ?? 'null',
+        gitUserName: c.gitUserName ?? null,
+        isAdmin: c.isAdmin ?? false,
+        isApprover: c.isApprover ?? false,
+        isRead: c.isRead ?? false,
+        isWrite: c.isWrite ?? false,
+      })),
       dataGovernance: {
       classificationType: values?.dataClassification,
       tags: tags.length > 0 ? tags: null,
