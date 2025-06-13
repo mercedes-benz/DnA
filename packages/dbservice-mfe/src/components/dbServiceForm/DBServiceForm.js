@@ -215,7 +215,20 @@ const DBServiceForm = ({ user, dbservice, edit, onSave }) => {
     ProgressIndicator.show();
     const data = {
       serviceName: values.dbServiceName?.trim() ?? '',
-      dbName: values.dbname?.trim() ?? '',
+      dbName: values.dbName?.trim() ?? '',
+      projectCollaborators: collaborators.map((c) => ({
+        id: c.id,
+        firstName: c.firstName,
+        lastName: c.lastName,
+        department: c.department,
+        email: c.email,
+        mobileNumber: c.mobileNumber ?? 'null',
+        gitUserName: c.gitUserName ?? null,
+        isAdmin: c.isAdmin ?? false,
+        isApprover: c.isApprover ?? false,
+        isRead: c.isRead ?? false,
+        isWrite: c.isWrite ?? false,
+      })),
       dataGovernance: {
       classificationType: values?.dataClassification,
       tags: tags.length > 0 ? tags: null,
@@ -415,6 +428,21 @@ const DBServiceForm = ({ user, dbservice, edit, onSave }) => {
                 <span className={'error-message'}>{errors?.dbName?.message}</span>
               </div>
             </div>
+            <div className={Styles.col2}>
+              <div className={classNames('input-field-group')}>
+                <label className="input-label">
+                  DB Type
+                </label>
+                <input
+                  type="text"
+                  className="input-field"
+                  id="dbType"
+                  value="Postgres"
+                  readOnly
+                />
+              </div>
+            </div>
+
             <div className={Styles.col}>
               <div className={classNames('input-field-group include-error area', errors.description ? 'error' : '')}>
                 <label id="description" className="input-label" htmlFor="description">
