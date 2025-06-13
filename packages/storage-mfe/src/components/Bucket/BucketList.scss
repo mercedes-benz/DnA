@@ -456,3 +456,17 @@
 .expansionpanelFirstCol {
     max-width: 150px;
 }
+.ff-only {
+  opacity: 0;
+  position: absolute;
+  left: -9999px; 
+}
+
+input[type="checkbox"].ff-only ~ .expansion-panel-content {
+  display: none;
+}
+
+input[type="checkbox"].ff-only:checked ~ .expansion-panel-content {
+  display: block;
+}
+
