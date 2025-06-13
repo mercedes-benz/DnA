@@ -54,29 +54,34 @@ import lombok.extern.slf4j.Slf4j;
 public class AuthoriserRolesCustomRepositoryImpl extends CommonDataRepositoryImpl<AuthoriserRolesNsql, String>
 		implements AuthoriserRolesCustomRepository {
 
-			@Override
-			public List<AuthoriserRolesNsql> getAll(String userId) {
-				try {
-					CriteriaBuilder cb = em.getCriteriaBuilder();
-					CriteriaQuery<AuthoriserRolesNsql> cq = cb.createQuery(AuthoriserRolesNsql.class);
-					Root<AuthoriserRolesNsql> root = cq.from(AuthoriserRolesNsql.class);
-					
-					Expression<String> creatorIdPath = cb.function("jsonb_extract_path_text", String.class, 
-						root.get("data"), 
-						cb.literal("creatorId"));
-					
-					Predicate condition = cb.equal(creatorIdPath, userId); 
-					cq.where(condition);
-					
-					List<AuthoriserRolesNsql> entities = em.createQuery(cq).getResultList();
-					
-					log.debug("Found {} roles for user {}", entities.size(), userId);
-					return entities;
-					
-				} catch (Exception e) {
-					log.error("Error querying roles for user {}: {}", userId, e.getMessage());
-					return Collections.emptyList(); 
-				}
-			}
+	@Override
+	public List<AuthoriserRolesNsql> getAll(String userId) {
+		try {
+			CriteriaBuilder cb = em.getCriteriaBuilder();
+			CriteriaQuery<AuthoriserRolesNsql> cq = cb.createQuery(AuthoriserRolesNsql.class);
+			Root<AuthoriserRolesNsql> root = cq.from(AuthoriserRolesNsql.class);
+			
+			// Extract the ownerDetails array
+			Expression<String> ownerDetailsArray = cb.function("jsonb_extract_path", String.class, 
+				root.get("data"), 
+				cb.literal("ownerDetails"));
+				
+			// Check if any element in the array has matching id
+			Expression<Boolean> containsUser = cb.function("jsonb_array_contains_id", Boolean.class, 
+				ownerDetailsArray, 
+				cb.literal(userId));
+				
+			cq.where(cb.isTrue(containsUser));
+			
+			List<AuthoriserRolesNsql> entities = em.createQuery(cq).getResultList();
+			
+			log.debug("Found {} roles for user {}", entities.size(), userId);
+			return entities;
+			
+		} catch (Exception e) {
+			log.error("Error querying roles for user {}: {}", userId, e.getMessage());
+			return Collections.emptyList(); 
+		}
+	}
 
 }

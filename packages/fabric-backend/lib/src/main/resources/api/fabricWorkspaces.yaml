@@ -861,6 +861,10 @@ definitions:
         type: boolean
       roleID:
         type: string
+      ownerDetails:
+        type: array
+        items: 
+          $ref: "#/definitions/CreatedByVO"
 
             
   LeanIXDetailsVO:

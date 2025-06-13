@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.daimler.data.dto.fabricWorkspace.CreatedByVO;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -18,6 +19,6 @@ public class AuthoriserRoleDeatils implements Serializable{
 
 	private static final long serialVersionUID = 1L;
 
-    private String creatorId;
+    private List<CreatedByVO> ownerDetails;
     private Boolean isDynamic;
 }
