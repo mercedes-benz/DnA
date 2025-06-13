@@ -43,6 +43,7 @@ const DBServiceForm = ({ user, dbservice, edit, onSave }) => {
   const [fabricTags] = useState([]);
 
   const [division, setDivision] = useState(edit ? (dbservice?.divisionId ? dbservice?.divisionId + '@-@' + dbservice?.division : '0') : '');
+  const [dbType, setDbType] = useState(edit ? dbservice?.dbType ?? 'Postgres' : 'Postgres');
   const [subDivision, setSubDivision] = useState(edit ? (dbservice?.subDivisionId ? dbservice?.subDivisionId + '@-@' + dbservice?.subDivision : '0') : '');
   const [description, setDescription] = useState(edit && dbservice?.description ? dbservice?.description : '');
   const [departmentName, setDepartmentName] = useState(edit && dbservice?.department ? [dbservice?.department] : []);
@@ -216,6 +217,7 @@ const DBServiceForm = ({ user, dbservice, edit, onSave }) => {
     const data = {
       serviceName: values.dbServiceName?.trim() ?? '',
       dbName: values.dbName?.trim() ?? '',
+      dbType: values.dbType,
       projectCollaborators: collaborators.map((c) => ({
         id: c.id,
         firstName: c.firstName,
@@ -429,20 +431,32 @@ const DBServiceForm = ({ user, dbservice, edit, onSave }) => {
               </div>
             </div>
             <div className={Styles.col2}>
-              <div className={classNames('input-field-group')}>
+              <div className={classNames('input-field-group', errors?.dbType ? 'error' : '')}>
                 <label className="input-label">
-                  DB Type
+                  DB Type <sup>*</sup>
                 </label>
-                <input
-                  type="text"
-                  className="input-field"
-                  id="dbType"
-                  value="Postgres"
-                  readOnly
-                />
+                <div className={classNames('custom-select')}>
+                  <select
+                    id="dbType"
+                    value={dbType}
+                    {...register('dbType', {
+                      required: '*Missing entry',
+                      validate: (value) => value !== '0' || '*Missing entry',
+                      onChange: (e) => setDbType(e.target.value),
+                    })}
+                  >
+                    <option value="0">Choose</option>
+                    <option value="Postgres">Postgres</option> {/* ✅ Default option */}
+                    <option value="Apache">Apache</option>
+                    <option value="Ignite">Ignite</option>
+                    <option value="Quadrant">Quadrant</option>
+                  </select>
+                </div>
+                <span className={classNames('error-message', errors?.dbType?.message ? '' : 'hide')}>
+                  {errors?.dbType?.message}
+                </span>
               </div>
             </div>
-
             <div className={Styles.col}>
               <div className={classNames('input-field-group include-error area', errors.description ? 'error' : '')}>
                 <label id="description" className="input-label" htmlFor="description">
