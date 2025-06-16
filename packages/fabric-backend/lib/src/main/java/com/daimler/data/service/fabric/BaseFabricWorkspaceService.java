@@ -1866,8 +1866,10 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 	public void saveCreatedRoleDetails(String roleName, CreatedByVO requestUser, Boolean isDynamic) throws PersistenceException{
 		AuthoriserRolesNsql  roleEntity = new AuthoriserRolesNsql();
 		AuthoriserRoleDeatils roleDetails = new AuthoriserRoleDeatils();
-
-		roleDetails.setOwnerDetails(Collections.singletonList(requestUser));
+		List<CreatedByVO> ownerDetails = new ArrayList<>();
+		try{
+		ownerDetails.add(requestUser);
+		roleDetails.setOwnerDetails(ownerDetails);
 		roleDetails.setIsDynamic(isDynamic);
 
 		roleEntity.setId(roleName);
