@@ -55,24 +55,19 @@ public class AuthoriserRolesCustomRepositoryImpl extends CommonDataRepositoryImp
 		implements AuthoriserRolesCustomRepository {
 
 	@Override
-public List<AuthoriserRolesNsql> getAll(String userId) {
-    try {
-        CriteriaBuilder cb = em.getCriteriaBuilder();
-        CriteriaQuery<AuthoriserRolesNsql> cq = cb.createQuery(AuthoriserRolesNsql.class);
-        Root<AuthoriserRolesNsql> root = cq.from(AuthoriserRolesNsql.class);
-
-        Expression<Boolean> containsUser = cb.function(
-            "jsonb_path_exists",
-            Boolean.class,
-            root.get("data"),
-            cb.literal("$.ownerDetails[*] ? (@.id == \"" + userId + "\")")
-        );
-
-        cq.where(cb.isTrue(containsUser));
-        return em.createQuery(cq).getResultList();
-    } catch (Exception e) {
-        log.error("Error querying roles for user {}: {}", userId, e.getMessage());
-        return Collections.emptyList();
+    public List<AuthoriserRolesNsql> getAll(String userId) {
+        try {
+            
+            String jsonPath = "$.ownerDetails[*] ? (@.id == \"" + userId + "\")";
+            String query = "SELECT * FROM user_created_roles_nsql WHERE jsonb_path_exists(data, cast(:jsonPath AS jsonpath))";
+    
+            return em.createNativeQuery(query, AuthoriserRolesNsql.class)
+                        .setParameter("jsonPath", jsonPath)
+                        .getResultList();
+    
+        } catch (Exception e) {
+            log.error("Error querying roles for user {}: {}", userId, e.getMessage());
+            return Collections.emptyList();
+        }
     }
-}
 }
