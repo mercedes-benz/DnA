@@ -1876,6 +1876,10 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		roleEntity.setData(roleDetails);
 		
 		rolesJpaRepo.save(roleEntity);
+		}catch( Exception e){
+			log.error("Error saving created role details for role {}: {}", roleName, e.getMessage());
+			throw new PersistenceException("Error saving created role details", e);
+		}
 	}
 
 }

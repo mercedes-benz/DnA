@@ -55,33 +55,24 @@ public class AuthoriserRolesCustomRepositoryImpl extends CommonDataRepositoryImp
 		implements AuthoriserRolesCustomRepository {
 
 	@Override
-	public List<AuthoriserRolesNsql> getAll(String userId) {
-		try {
-			CriteriaBuilder cb = em.getCriteriaBuilder();
-			CriteriaQuery<AuthoriserRolesNsql> cq = cb.createQuery(AuthoriserRolesNsql.class);
-			Root<AuthoriserRolesNsql> root = cq.from(AuthoriserRolesNsql.class);
-			
-			// Extract the ownerDetails array
-			Expression<String> ownerDetailsArray = cb.function("jsonb_extract_path", String.class, 
-				root.get("data"), 
-				cb.literal("ownerDetails"));
-				
-			// Check if any element in the array has matching id
-			Expression<Boolean> containsUser = cb.function("jsonb_array_contains_id", Boolean.class, 
-				ownerDetailsArray, 
-				cb.literal(userId));
-				
-			cq.where(cb.isTrue(containsUser));
-			
-			List<AuthoriserRolesNsql> entities = em.createQuery(cq).getResultList();
-			
-			log.debug("Found {} roles for user {}", entities.size(), userId);
-			return entities;
-			
-		} catch (Exception e) {
-			log.error("Error querying roles for user {}: {}", userId, e.getMessage());
-			return Collections.emptyList(); 
-		}
-	}
+public List<AuthoriserRolesNsql> getAll(String userId) {
+    try {
+        CriteriaBuilder cb = em.getCriteriaBuilder();
+        CriteriaQuery<AuthoriserRolesNsql> cq = cb.createQuery(AuthoriserRolesNsql.class);
+        Root<AuthoriserRolesNsql> root = cq.from(AuthoriserRolesNsql.class);
 
+        Expression<Boolean> containsUser = cb.function(
+            "jsonb_path_exists",
+            Boolean.class,
+            root.get("data"),
+            cb.literal("$.ownerDetails[*] ? (@.id == \"" + userId + "\")")
+        );
+
+        cq.where(cb.isTrue(containsUser));
+        return em.createQuery(cq).getResultList();
+    } catch (Exception e) {
+        log.error("Error querying roles for user {}: {}", userId, e.getMessage());
+        return Collections.emptyList();
+    }
+}
 }
