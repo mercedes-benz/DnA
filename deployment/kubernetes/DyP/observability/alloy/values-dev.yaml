@@ -155,7 +155,7 @@ alloy:
         }
       }  
 
-
+      //tempo
       otelcol.receiver.otlp "default" {
         grpc {}
         http {}
