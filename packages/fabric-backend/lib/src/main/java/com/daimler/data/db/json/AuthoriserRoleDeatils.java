@@ -19,6 +19,6 @@ public class AuthoriserRoleDeatils implements Serializable{
 
 	private static final long serialVersionUID = 1L;
 
-    private List<CreatedByVO> ownerDetails;
+    private List<UserDetails> ownerDetails;
     private Boolean isDynamic;
 }
