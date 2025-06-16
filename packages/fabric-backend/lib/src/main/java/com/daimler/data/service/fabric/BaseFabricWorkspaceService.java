@@ -30,6 +30,7 @@ import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.db.entities.AuthoriserRolesNsql;
 import com.daimler.data.db.entities.FabricWorkspaceNsql;
 import com.daimler.data.db.json.AuthoriserRoleDeatils;
+import com.daimler.data.db.json.UserDetails;
 import com.daimler.data.db.repo.forecast.FabricWorkspaceCustomRepository;
 import com.daimler.data.db.repo.forecast.FabricWorkspaceRepository;
 import com.daimler.data.db.repo.roles.AuthoriserRolesCustomRepository;
@@ -1866,7 +1867,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 	public void saveCreatedRoleDetails(String roleName, CreatedByVO requestUser, Boolean isDynamic) throws PersistenceException{
 		AuthoriserRolesNsql  roleEntity = new AuthoriserRolesNsql();
 		AuthoriserRoleDeatils roleDetails = new AuthoriserRoleDeatils();
-		List<CreatedByVO> ownerDetails = new ArrayList<>();
+		List<UserDetails> ownerDetails = new ArrayList<>();
 		try{
 		ownerDetails.add(requestUser);
 		roleDetails.setOwnerDetails(ownerDetails);

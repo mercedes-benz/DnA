@@ -359,9 +359,28 @@ public class FabricWorkspaceAssembler implements GenericAssembler<FabricWorkspac
 		if(entity != null && data!=null){
 			roleDetail.setRoleID(entity.getId());
 			roleDetail.setIsDynamic(data.getIsDynamic());
-			roleDetail.setOwnerDetails(data.getOwnerDetails());
+			if(data.getOwnerDetails() != null) {
+				roleDetail.setOwnerDetails(data.getOwnerDetails().stream()
+					.map(this::toCreatedByVO)
+					.collect(Collectors.toList()));
+			}
 		}
 			return roleDetail;
 	}
 
+	public UserDetails toUserDetails(CreatedByVO createdBy) {
+		UserDetails userDetails = new UserDetails();
+		if (createdBy != null) {
+			BeanUtils.copyProperties(createdBy, userDetails);
+		}
+		return userDetails;
+	}
+
+	public CreatedByVO toCreatedByVO(UserDetails userDetails) {
+		CreatedByVO createdByVO = new CreatedByVO();
+		if (userDetails != null) {
+			BeanUtils.copyProperties(userDetails, createdByVO);
+		}
+		return createdByVO;
+	}
 }
