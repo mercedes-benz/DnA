@@ -1869,7 +1869,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		AuthoriserRoleDeatils roleDetails = new AuthoriserRoleDeatils();
 		List<UserDetails> ownerDetails = new ArrayList<>();
 		try{
-		ownerDetails.add(requestUser);
+		ownerDetails.add(assembler.toUserDetails(requestUser));
 		roleDetails.setOwnerDetails(ownerDetails);
 		roleDetails.setIsDynamic(isDynamic);
 
