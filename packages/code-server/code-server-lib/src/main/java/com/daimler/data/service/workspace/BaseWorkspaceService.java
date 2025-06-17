@@ -83,7 +83,8 @@ import com.daimler.data.db.json.CodeServerWorkspace;
   import com.daimler.data.db.json.UserInfo;
   import com.daimler.data.db.repo.workspace.WorkSpaceCodeServerBuildDeployRepository;
   import com.daimler.data.db.repo.workspace.WorkspaceCustomAdditionalServiceRepo;
-  import com.daimler.data.db.repo.workspace.WorkspaceCustomRecipeRepo;
+import com.daimler.data.db.repo.workspace.WorkspaceCustomBuildDeployRepo;
+import com.daimler.data.db.repo.workspace.WorkspaceCustomRecipeRepo;
   import com.daimler.data.db.repo.workspace.WorkspaceCustomRepository;
 import com.daimler.data.db.repo.workspace.WorkspaceCustomUserGroupRepo;
 import com.daimler.data.db.repo.workspace.WorkspaceRepository;
@@ -217,6 +218,9 @@ import com.daimler.data.dto.workspace.buildDeploy.*;
 
 	 @Autowired
 	 private WorkspaceCustomUserGroupRepo workspaceCustomUserGroupRepo;
+
+	 @Autowired
+	 private WorkspaceCustomBuildDeployRepo buildDeployCustomRepo;
  
  
   
@@ -452,6 +456,16 @@ import com.daimler.data.dto.workspace.buildDeploy.*;
 		 else {
 		 entity.getData().setStatus("DELETED");
 		 entity.getData().setActiveInGroup(Boolean.FALSE);
+
+		 //update status as deleted in logs
+
+		 CodeServerBuildDeployNsql buildDeployNsql = buildDeployCustomRepo.findByProjectName(projectName);
+		 if(buildDeployNsql != null){
+			buildDeployNsql.getData().setStatus("DELETED");
+			buildDeployRepo.save(buildDeployNsql);
+		 }
+
+
 
 		 //remove from group
 		 // List<String> groupEntity = workspaceCustomUserGroupRepo.findByWsid(entity.getData().getWorkspaceId(), userId);
@@ -1507,9 +1521,9 @@ import com.daimler.data.dto.workspace.buildDeploy.*;
 				workspaceCustomRepository.updateDeploymentDetails(projectName, environmentJsonbName,
 							 deploymentDetails,"APPROVAL_PENDING");
 				 List<DeploymentAudit> auditLogs = new ArrayList<>();
-					Optional<CodeServerBuildDeployNsql> optionalBuildDeployentity =  buildDeployRepo.findById(projectName.toLowerCase());	
-					if(optionalBuildDeployentity.isPresent()){						
-							auditLogs = optionalBuildDeployentity.get().getData().getProdDeploymentAuditLogs();
+					CodeServerBuildDeployNsql optionalBuildDeployentity =  buildDeployCustomRepo.findByProjectName(projectName);	
+					if(optionalBuildDeployentity != null){						
+							auditLogs = optionalBuildDeployentity.getData().getProdDeploymentAuditLogs();
 					}
 					// DeploymentAudit auditLog = new DeploymentAudit();
 
@@ -1529,18 +1543,20 @@ import com.daimler.data.dto.workspace.buildDeploy.*;
 
 				 CodeServerBuildDeploy buildDeployLogs = null;
 				 CodeServerBuildDeployNsql auditLogEntity = null;
-				 if(optionalBuildDeployentity.isPresent()){
-					auditLogEntity = optionalBuildDeployentity.get();
+				 if(optionalBuildDeployentity != null){
+					auditLogEntity = optionalBuildDeployentity;
 					buildDeployLogs =  auditLogEntity.getData();						
 				 }else{
 					 buildDeployLogs = new CodeServerBuildDeploy();
 					 auditLogEntity = new CodeServerBuildDeployNsql();
-					 auditLogEntity.setId(projectName.toLowerCase());
+					 String deployLogId = UUID.randomUUID().toString();
+					 auditLogEntity.setId(deployLogId);
 					 buildDeployLogs.setIntBuildAuditLogs(new ArrayList<>());
 					 buildDeployLogs.setProdBuildAuditLogs(new ArrayList<>());	
-					 buildDeployLogs.setIntDeploymentAuditLogs(new ArrayList<>());
-					 String deployLogId = UUID.randomUUID().toString();	
-					 buildDeployLogs.setId(deployLogId);				
+					 buildDeployLogs.setIntDeploymentAuditLogs(new ArrayList<>());					 	
+					 buildDeployLogs.setProjectName(projectName.toLowerCase());	
+					 buildDeployLogs.setStatus("CREATED");
+
 				 }
 					buildDeployLogs.setProdDeploymentAuditLogs(auditLogs);
 				 
@@ -1729,12 +1745,12 @@ import com.daimler.data.dto.workspace.buildDeploy.*;
 					 
 					
 					 List<DeploymentAudit> auditLogs = new ArrayList<>();
-					Optional<CodeServerBuildDeployNsql> optionalBuildDeployentity =  buildDeployRepo.findById(projectName.toLowerCase());	
-					if(optionalBuildDeployentity.isPresent()){
+					CodeServerBuildDeployNsql optionalBuildDeployentity =  buildDeployCustomRepo.findByProjectName(projectName);	
+					if(optionalBuildDeployentity != null){
 						if("int".equalsIgnoreCase(environment)){
-							auditLogs = optionalBuildDeployentity.get().getData().getIntDeploymentAuditLogs();
+							auditLogs = optionalBuildDeployentity.getData().getIntDeploymentAuditLogs();
 						}else{
-							auditLogs = optionalBuildDeployentity.get().getData().getProdDeploymentAuditLogs();
+							auditLogs = optionalBuildDeployentity.getData().getProdDeploymentAuditLogs();
 						}
 					}
 					DeploymentAudit auditLog = new DeploymentAudit();
@@ -1780,17 +1796,18 @@ import com.daimler.data.dto.workspace.buildDeploy.*;
 
 					 CodeServerBuildDeploy buildDeployLogs = null;
 					 CodeServerBuildDeployNsql auditLogEntity = null;
-					 if(optionalBuildDeployentity.isPresent()){
-						auditLogEntity = optionalBuildDeployentity.get();
+					 if(optionalBuildDeployentity != null){
+						auditLogEntity = optionalBuildDeployentity;
 						buildDeployLogs =  auditLogEntity.getData();						
 					 }else{
 						 buildDeployLogs = new CodeServerBuildDeploy();
 						 auditLogEntity = new CodeServerBuildDeployNsql();
-						 auditLogEntity.setId(projectName.toLowerCase());
+						 String deployLogId = UUID.randomUUID().toString();
+						 auditLogEntity.setId(deployLogId);
 						 buildDeployLogs.setIntBuildAuditLogs(new ArrayList<>());
-						 buildDeployLogs.setProdBuildAuditLogs(new ArrayList<>());	
-						 String deployLogId = UUID.randomUUID().toString();	
-						 buildDeployLogs.setId(deployLogId);				
+						 buildDeployLogs.setProdBuildAuditLogs(new ArrayList<>());							 	
+						 buildDeployLogs.setProjectName(projectName.toLowerCase());	
+					 	 buildDeployLogs.setStatus("CREATED");				
 					 }
 					 if("int".equalsIgnoreCase(environment)){
 						buildDeployLogs.setIntDeploymentAuditLogs(auditLogs);
@@ -2222,12 +2239,12 @@ import com.daimler.data.dto.workspace.buildDeploy.*;
 							 deploymentDetails,deploymentDetails.getLastDeploymentStatus());
 
 					 List<DeploymentAudit> auditLogs = new ArrayList<>();
-					Optional<CodeServerBuildDeployNsql> optionalBuildDeployentity =  buildDeployRepo.findById(projectName.toLowerCase());	
-					if(optionalBuildDeployentity.isPresent()){
+					CodeServerBuildDeployNsql optionalBuildDeployentity =  buildDeployCustomRepo.findByProjectName(projectName);	
+					if(optionalBuildDeployentity != null){
 						if("int".equalsIgnoreCase(environment)){
-							auditLogs = optionalBuildDeployentity.get().getData().getIntDeploymentAuditLogs();
+							auditLogs = optionalBuildDeployentity.getData().getIntDeploymentAuditLogs();
 						}else{
-							auditLogs = optionalBuildDeployentity.get().getData().getProdDeploymentAuditLogs();
+							auditLogs = optionalBuildDeployentity.getData().getProdDeploymentAuditLogs();
 						}
 					}
 					 if (auditLogs == null) {
@@ -2244,17 +2261,18 @@ import com.daimler.data.dto.workspace.buildDeploy.*;
 					 
 					 CodeServerBuildDeploy buildDeployLogs = null;
 					 CodeServerBuildDeployNsql auditLogEntity = null;
-					 if(optionalBuildDeployentity.isPresent()){
-						auditLogEntity = optionalBuildDeployentity.get();
+					 if(optionalBuildDeployentity != null){
+						auditLogEntity = optionalBuildDeployentity;
 						buildDeployLogs =  auditLogEntity.getData();						
 					 }else{
 						 buildDeployLogs = new CodeServerBuildDeploy();
 						 auditLogEntity = new CodeServerBuildDeployNsql();
-						 auditLogEntity.setId(projectName.toLowerCase());
+						 String deployLogId = UUID.randomUUID().toString();
+						 auditLogEntity.setId(deployLogId);
 						 buildDeployLogs.setIntBuildAuditLogs(new ArrayList<>());
-						 buildDeployLogs.setProdBuildAuditLogs(new ArrayList<>());	
-						 String deployLogId = UUID.randomUUID().toString();	
-						 buildDeployLogs.setId(deployLogId);				
+						 buildDeployLogs.setProdBuildAuditLogs(new ArrayList<>());							 							 
+						 buildDeployLogs.setProjectName(projectName.toLowerCase());	
+					 	 buildDeployLogs.setStatus("CREATED");				
 					 }
 					 if("int".equalsIgnoreCase(environment)){
 						buildDeployLogs.setIntDeploymentAuditLogs(auditLogs);
@@ -2524,7 +2542,7 @@ import com.daimler.data.dto.workspace.buildDeploy.*;
 				 if(cloudServiceProvider.equals(ConstantsUtility.DHC_CAAS_AWS)){
 					deploymentUrl = deploymentUrl.replaceAll(codeServerBaseUri, codeServerBaseUriAws);
 				 }
-				 Optional<CodeServerBuildDeployNsql> optionalBuildDeployentity =  buildDeployRepo.findById(projectName.toLowerCase());	
+				 CodeServerBuildDeployNsql optionalBuildDeployentity =  buildDeployCustomRepo.findByProjectName(projectName);	
 					 CodeServerBuildDeployNsql buildDeployentity = null;
 					 CodeServerBuildDeploy buildDeployData = null;
 				 if ("DEPLOYED".equalsIgnoreCase(latestStatus)) {
@@ -2540,8 +2558,8 @@ import com.daimler.data.dto.workspace.buildDeploy.*;
 							 deploymentDetails,latestStatus);	 
 						 
 						 //setting audit log details
-					 if(optionalBuildDeployentity.isPresent()){
-						 buildDeployentity = optionalBuildDeployentity.get();
+					 if(optionalBuildDeployentity != null){
+						 buildDeployentity = optionalBuildDeployentity;
 						 buildDeployData = buildDeployentity.getData();
 						 if("int".equalsIgnoreCase(targetEnv)){							
 							 int lastIndex = buildDeployData.getIntDeploymentAuditLogs().size() - 1;
@@ -2578,8 +2596,8 @@ import com.daimler.data.dto.workspace.buildDeploy.*;
 					 
 						 workspaceCustomRepository.updateDeploymentDetails(projectName, targetEnv,
 						 deploymentDetails,latestStatus);
-					 if(optionalBuildDeployentity.isPresent()){
-						 buildDeployentity = optionalBuildDeployentity.get();
+					 if(optionalBuildDeployentity != null){
+						 buildDeployentity = optionalBuildDeployentity;
 						 buildDeployData = buildDeployentity.getData();
 						 if("int".equalsIgnoreCase(targetEnv)){							
 							 int lastIndex = buildDeployData.getIntDeploymentAuditLogs().size() - 1;
@@ -2605,8 +2623,8 @@ import com.daimler.data.dto.workspace.buildDeploy.*;
 						workspaceCustomRepository.updateBuildDetails(projectName, targetEnv,
 						buildDetails);	
 				   
-				   if(optionalBuildDeployentity.isPresent()){
-					   buildDeployentity = optionalBuildDeployentity.get();
+				   if(optionalBuildDeployentity != null){
+					   buildDeployentity = optionalBuildDeployentity;
 					   buildDeployData = buildDeployentity.getData();
 					   if("int".equalsIgnoreCase(targetEnv)){							
 						   int lastIndex = buildDeployData.getIntBuildAuditLogs().size() - 1;
@@ -2650,8 +2668,8 @@ import com.daimler.data.dto.workspace.buildDeploy.*;
 					
 						 workspaceCustomRepository.updateDeploymentDetails(projectName, targetEnv,
 						 deploymentDetails,latestStatus);
-					 if(optionalBuildDeployentity.isPresent()){
-						 buildDeployentity = optionalBuildDeployentity.get();
+					 if(optionalBuildDeployentity != null){
+						 buildDeployentity = optionalBuildDeployentity;
 						 buildDeployData = buildDeployentity.getData();
 						 if("int".equalsIgnoreCase(targetEnv)){							
 							 int lastIndex = buildDeployData.getIntDeploymentAuditLogs().size() - 1;
@@ -3503,12 +3521,12 @@ import com.daimler.data.dto.workspace.buildDeploy.*;
 					// }
 					
 					List<DeploymentAudit> auditLogs = new ArrayList<>();
-					Optional<CodeServerBuildDeployNsql> optionalBuildDeployentity =  buildDeployRepo.findById(projectName.toLowerCase());	
-					if(optionalBuildDeployentity.isPresent()){
+					CodeServerBuildDeployNsql optionalBuildDeployentity =  buildDeployCustomRepo.findByProjectName(projectName);	
+					if(optionalBuildDeployentity != null){
 						if("int".equalsIgnoreCase(env)){
-							auditLogs = optionalBuildDeployentity.get().getData().getIntDeploymentAuditLogs();
+							auditLogs = optionalBuildDeployentity.getData().getIntDeploymentAuditLogs();
 						}else{
-							auditLogs = optionalBuildDeployentity.get().getData().getProdDeploymentAuditLogs();
+							auditLogs = optionalBuildDeployentity.getData().getProdDeploymentAuditLogs();
 						}
 					}
 					if (auditLogs == null) {
@@ -3524,17 +3542,19 @@ import com.daimler.data.dto.workspace.buildDeploy.*;
 
 					CodeServerBuildDeploy buildDeployLogs = null;
 					CodeServerBuildDeployNsql auditLogEntity = null;
-					if(optionalBuildDeployentity.isPresent()){
-					   auditLogEntity = optionalBuildDeployentity.get();
+					if(optionalBuildDeployentity != null){
+					   auditLogEntity = optionalBuildDeployentity;
 					   buildDeployLogs =  auditLogEntity.getData();						
 					}else{
 						buildDeployLogs = new CodeServerBuildDeploy();
 						auditLogEntity = new CodeServerBuildDeployNsql();
-						auditLogEntity.setId(projectName.toLowerCase());
+						String deployLogId = UUID.randomUUID().toString();
+						auditLogEntity.setId(deployLogId);
 						buildDeployLogs.setIntBuildAuditLogs(new ArrayList<>());
 						buildDeployLogs.setProdBuildAuditLogs(new ArrayList<>());	
-						String deployLogId = UUID.randomUUID().toString();	
-						buildDeployLogs.setId(deployLogId);				
+						buildDeployLogs.setProjectName(projectName.toLowerCase());
+						buildDeployLogs.setStatus("CREATED");	
+								
 					}
 					if("int".equalsIgnoreCase(env)){
 					   buildDeployLogs.setIntDeploymentAuditLogs(auditLogs);
@@ -3977,7 +3997,7 @@ import com.daimler.data.dto.workspace.buildDeploy.*;
 				 }
 				 Boolean isValutInjectorEnable = false;
 				 try{
-					isValutInjectorEnable = VaultClient.enableVaultInjector(projectName.toLowerCase(), environment);
+					// isValutInjectorEnable = VaultClient.enableVaultInjector(projectName.toLowerCase(), environment);
 				 }catch(Exception e){
 					MessageDescription error = new MessageDescription();
 					error.setMessage("Some error occured during deployment, with exception " + e.getMessage());
@@ -4024,12 +4044,12 @@ import com.daimler.data.dto.workspace.buildDeploy.*;
 					
 					workspaceCustomRepository.updateBuildDetails(projectName,environment,buildDetails);
 					List<BuildAudit> auditLogs = new ArrayList<>();
-					Optional<CodeServerBuildDeployNsql> optionalBuildDeployentity =  buildDeployRepo.findById(projectName.toLowerCase());	
-					if(optionalBuildDeployentity.isPresent()){
+					CodeServerBuildDeployNsql optionalBuildDeployentity =  buildDeployCustomRepo.findByProjectName(projectName);	
+					if(optionalBuildDeployentity != null){
 						if("int".equalsIgnoreCase(environment)){
-							auditLogs = optionalBuildDeployentity.get().getData().getIntBuildAuditLogs();
+							auditLogs = optionalBuildDeployentity.getData().getIntBuildAuditLogs();
 						}else{
-							auditLogs = optionalBuildDeployentity.get().getData().getProdBuildAuditLogs();
+							auditLogs = optionalBuildDeployentity.getData().getProdBuildAuditLogs();
 						}
 					}	
 					if(null == auditLogs){
@@ -4061,17 +4081,18 @@ import com.daimler.data.dto.workspace.buildDeploy.*;
 					 auditLogs.add(auditLog);
 					 CodeServerBuildDeploy buildDeployLogs = null;
 					 CodeServerBuildDeployNsql auditLogEntity = null;
-					 if(optionalBuildDeployentity.isPresent()){
-						auditLogEntity = optionalBuildDeployentity.get();
+					 if(optionalBuildDeployentity != null){
+						auditLogEntity = optionalBuildDeployentity;
 						buildDeployLogs =  auditLogEntity.getData();						
 					 }else{
 						 buildDeployLogs = new CodeServerBuildDeploy();
 						 auditLogEntity = new CodeServerBuildDeployNsql();
-						 auditLogEntity.setId(projectName.toLowerCase());
+						 String deployLogId = UUID.randomUUID().toString();
+						 auditLogEntity.setId(deployLogId);
 						 buildDeployLogs.setIntDeploymentAuditLogs(new ArrayList<>());
 						 buildDeployLogs.setProdDeploymentAuditLogs(new ArrayList<>());	
-						 String deployLogId = UUID.randomUUID().toString();	
-						 buildDeployLogs.setId(deployLogId);				
+						 buildDeployLogs.setProjectName(projectName.toLowerCase());	
+						 buildDeployLogs.setStatus("CREATED");			
 					 }
 					 if("int".equalsIgnoreCase(environment)){
 						buildDeployLogs.setIntBuildAuditLogs(auditLogs);
@@ -4119,10 +4140,10 @@ import com.daimler.data.dto.workspace.buildDeploy.*;
 	public VersionListResponseVO getBuildVersion(String projectName){
 		VersionListResponseVO response = null;
 		try {
-			Optional<CodeServerBuildDeployNsql> entity = buildDeployRepo.findById(projectName);
-			if (entity.isPresent()) {
+			CodeServerBuildDeployNsql entity =  buildDeployCustomRepo.findByProjectName(projectName);
+			if (entity != null) {
 				response = new VersionListResponseVO();
-				CodeServerBuildDeploy buildDeploy = entity.get().getData();
+				CodeServerBuildDeploy buildDeploy = entity.getData();
 				if (buildDeploy != null) {
 					List<BuildAudit> intBuildDetails = buildDeploy.getIntBuildAuditLogs();
 					List<BuildAudit> prodBuildDetails = buildDeploy.getProdBuildAuditLogs();
@@ -4188,9 +4209,9 @@ import com.daimler.data.dto.workspace.buildDeploy.*;
 				String environmentJsonbName = "prodDeploymentDetails";
 				CodeServerDeploymentDetails deploymentDetails = entity.getData().getProjectDetails().getProdDeploymentDetails();
 				List<DeploymentAudit> auditLogs = new ArrayList<>();
-					Optional<CodeServerBuildDeployNsql> optionalBuildDeployentity =  buildDeployRepo.findById(projectName.toLowerCase());	
-					if(optionalBuildDeployentity.isPresent()){						
-							auditLogs = optionalBuildDeployentity.get().getData().getProdDeploymentAuditLogs();						
+					CodeServerBuildDeployNsql optionalBuildDeployentity =  buildDeployCustomRepo.findByProjectName(projectName);	
+					if(optionalBuildDeployentity != null){						
+							auditLogs = optionalBuildDeployentity.getData().getProdDeploymentAuditLogs();						
 					}
 				if (auditLogs == null) {
 				 auditLogs = new ArrayList<>();
@@ -4210,18 +4231,20 @@ import com.daimler.data.dto.workspace.buildDeploy.*;
 
 				CodeServerBuildDeploy buildDeployLogs = null;
 				 CodeServerBuildDeployNsql auditLogEntity = null;
-				 if(optionalBuildDeployentity.isPresent()){
-					auditLogEntity = optionalBuildDeployentity.get();
+				 if(optionalBuildDeployentity != null){
+					auditLogEntity = optionalBuildDeployentity;
 					buildDeployLogs =  auditLogEntity.getData();						
 				 }else{
 					 buildDeployLogs = new CodeServerBuildDeploy();
 					 auditLogEntity = new CodeServerBuildDeployNsql();
-					 auditLogEntity.setId(projectName.toLowerCase());
+					 String deployLogId = UUID.randomUUID().toString();	
+					 auditLogEntity.setId(deployLogId);
 					 buildDeployLogs.setIntBuildAuditLogs(new ArrayList<>());
 					 buildDeployLogs.setProdBuildAuditLogs(new ArrayList<>());	
 					 buildDeployLogs.setIntDeploymentAuditLogs(new ArrayList<>());
-					 String deployLogId = UUID.randomUUID().toString();	
-					 buildDeployLogs.setId(deployLogId);				
+					 buildDeployLogs.setProjectName(projectName.toLowerCase());	
+					 buildDeployLogs.setStatus("CREATED");	
+						 				
 				 }
 					buildDeployLogs.setProdDeploymentAuditLogs(auditLogs);
 				 
@@ -4282,13 +4305,14 @@ import com.daimler.data.dto.workspace.buildDeploy.*;
 			 }
 					CodeServerBuildDeploy buildDeployLogs = new CodeServerBuildDeploy();
 					CodeServerBuildDeployNsql auditLogEntity = new CodeServerBuildDeployNsql();
-					 auditLogEntity.setId(projectName.toLowerCase());
+					String deployLogId = UUID.randomUUID().toString();	
+					 auditLogEntity.setId(deployLogId);
 					 buildDeployLogs.setIntBuildAuditLogs(new ArrayList<>());
 					 buildDeployLogs.setProdBuildAuditLogs(new ArrayList<>());
 					 buildDeployLogs.setIntDeploymentAuditLogs(new ArrayList<>());
-					 buildDeployLogs.setProdDeploymentAuditLogs(new ArrayList<>());
-					 String deployLogId = UUID.randomUUID().toString();	
-					 buildDeployLogs.setId(deployLogId);				
+					 buildDeployLogs.setProdDeploymentAuditLogs(new ArrayList<>());					 
+					 buildDeployLogs.setProjectName(projectName.toLowerCase());	
+					 buildDeployLogs.setStatus("CREATED");				
 				 	
 					 buildDeployLogs.getIntDeploymentAuditLogs().addAll(intAuditLogs);
 					 buildDeployLogs.getProdDeploymentAuditLogs().addAll(prodAuditLogs);

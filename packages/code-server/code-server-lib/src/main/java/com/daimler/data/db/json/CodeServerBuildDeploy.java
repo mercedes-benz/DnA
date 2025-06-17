@@ -28,9 +28,8 @@
  package com.daimler.data.db.json;
 
  import java.io.Serializable;
- import java.util.Date;
- 
- import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  
  import lombok.AllArgsConstructor;
  import lombok.Data;
@@ -44,9 +43,10 @@
  public class CodeServerBuildDeploy implements Serializable{
  
      private static final long serialVersionUID = -1767843944100072529L;
-     private String id;
      private List<BuildAudit> intBuildAuditLogs;
      private List<BuildAudit> prodBuildAuditLogs;
      private List<DeploymentAudit> intDeploymentAuditLogs;
      private List<DeploymentAudit> prodDeploymentAuditLogs;
+     private String status;
+     private String projectName;
  }
