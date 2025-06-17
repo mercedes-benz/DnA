@@ -21,7 +21,7 @@ spec:
     repoURL: https://git.i.mercedes-benz.com/DNA-CodeSpaces/byron-chat-bot.git
     targetRevision: main
     helm:
-      releaseName: byron-chat-frontend
+      releaseName: byron-chat-backend
       valueFiles:
         - values.yaml
   project: {{ .Values.env }}-dna
