@@ -288,7 +288,6 @@ jobs:
               github.event.inputs.projectName == 'ffclers-wbv-jbb-be' || 
               github.event.inputs.projectName == 'ffclers-wbv-ri-be' || 
               github.event.inputs.projectName == 'ffclers-wbv-si-be' || 
-              github.event.inputs.projectName == 'ffclers-wbv-generic-be' || 
               github.event.inputs.projectName == 'ffclers-wbv-supplier-be' || 
               github.event.inputs.projectName == 'ffclers-wbv-supplier-jbb-be' || 
               github.event.inputs.projectName == 'ffclers-wbv-ext-buyer-be' || 
@@ -355,6 +354,7 @@ jobs:
               github.event.inputs.projectName == 'ffclers-wbv-ri-fe' || 
               github.event.inputs.projectName == 'ffclers-wbv-si-fe' || 
               github.event.inputs.projectName == 'ffclers-wbv-supplier-fe' || 
+              github.event.inputs.projectName == 'ffclers-wbv-generic-be' || 
               github.event.inputs.projectName == 'ffclers-wbv-ext-buyer-fe' }}
     runs-on: [ os-medium-amd64-linux ]
     steps:
