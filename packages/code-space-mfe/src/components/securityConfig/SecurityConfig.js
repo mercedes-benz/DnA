@@ -53,10 +53,10 @@ export default class SecurityConfig extends React.Component {
     this.state = {
       id: '',
       projectName: '',
-      intIAM: 'false',
-      prodIAM: 'false',
-      intDna: 'false',
-      prodDna: 'false',
+      intIAM: false,
+      prodIAM: false,
+      intDna: false,
+      prodDna: false,
       // showRedeployWarningModal: false,
       editMode: false,
       currentTab: 'stagingEntitlement',
@@ -84,10 +84,10 @@ export default class SecurityConfig extends React.Component {
       id = params?.id.split('?name=')[0];
     }
     const name = getQueryParam('name');
-    const intIAMEnabled = getQueryParam('intIAM');
-    const prodIAMEnabled = getQueryParam('prodIAM');
-    const intDnaEnabled = getQueryParam('intDna');
-    const prodDnaEnabled = getQueryParam('prodDna');
+    const intIAMEnabled = getQueryParam('intIAM') === 'true';
+    const prodIAMEnabled = getQueryParam('prodIAM') === 'true';
+    const intDnaEnabled = getQueryParam('intDna') === 'true';
+    const prodDnaEnabled = getQueryParam('prodDna') === 'true';
     this.setState({ projectName: name, intIAM: intIAMEnabled, prodIAM: prodIAMEnabled, intDna: intDnaEnabled, prodDna: prodDnaEnabled });
     const path = getPath();
     SelectBox.defaultSetup();
@@ -166,7 +166,7 @@ export default class SecurityConfig extends React.Component {
         const response = {
           ...res.data,
           entitlements: res.data.entitlements || [],
-          appId: ((env==='int' && this.state.intDna==='true') || (env==='prod' && this.state.prodDna==='true')) ? Envs.DNA_APP_ID :  res.data.appID || '',
+          appId: ((env==='int' && this.state.intDna) || (env==='prod' && this.state.prodDna)) ? Envs.DNA_APP_ID :  res.data.appID || '',
         };
         this.setState(
           {
@@ -413,8 +413,8 @@ export default class SecurityConfig extends React.Component {
                     readOnlyMode={this.state.readOnlyMode}
                     projectName={projectName}
                     isPublished={this.state.isPublished}
-                    secureWithIAM={this.state.intIAM === 'true'}
-                    secureWithDna={this.state.intDna === 'true'}
+                    secureWithIAM={this.state.intIAM}
+                    secureWithDna={this.state.intDna}
                   />
                 )}
               </div>
@@ -430,8 +430,8 @@ export default class SecurityConfig extends React.Component {
                     readOnlyMode={this.state.readOnlyMode}
                     projectName={projectName}
                     isPublished={this.state.isPublished}
-                    secureWithIAM={this.state.prodIAM === 'true'}
-                    secureWithDna={this.state.prodDna === 'true'}
+                    secureWithIAM={this.state.prodIAM}
+                    secureWithDna={this.state.prodDna}
                   />
                 )}
               </div>
