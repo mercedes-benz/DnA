@@ -11,14 +11,14 @@ buildscript {
         springBootVersion = "2.7.0"
         releaseVersion = "1.0.0"
     }
-    repositories {
+repositories {
         mavenLocal()
-        mavenCentral()
+         mavenCentral()
 		gradlePluginPortal()
-		maven {
+    maven {
 		  url "https://plugins.gradle.org/m2/"
 		}
-    }
+}
     dependencies {
         classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
 		classpath("gradle.plugin.org.hidetake:gradle-swagger-generator-plugin:2.18.2")
@@ -41,11 +41,11 @@ apply plugin: "org.hidetake.swagger.generator"
 
 repositories {
         mavenLocal()
-        mavenCentral()
+         mavenCentral()
 		gradlePluginPortal()
-		maven {
+    maven {
 		  url "https://plugins.gradle.org/m2/"
-		}
+    }
 }
 
 group 'com.mb.dna'
@@ -74,12 +74,29 @@ swaggerSources {
             components = ['models', 'apis']
         }
     }
+        tag {
+        def tagyaml = "${rootDir}/lib/src/main/resources/api/Tag.yaml"
+        def tagJson = "${rootDir}/lib/src/main/resources/api/Tag.json"
+        inputFile = file(tagyaml)
+
+        def ignoreFile = "${rootDir}/lib/src/main/resources/api/.swagger-codegen-ignore"
+
+        code {
+            language = 'spring'
+            configFile = file(tagJson)
+            rawOptions = ['--ignore-file-override', ignoreFile]
+
+            components = ['models', 'apis']
+        }
+    }
 }
 
 compileJava {
     dependsOn processResources
     dependsOn swaggerSources.fabricWorkspace.code
-    source "${swaggerSources.fabricWorkspace.code.outputDir}/src/main/java"  
+    source "${swaggerSources.fabricWorkspace.code.outputDir}/src/main/java" 
+    dependsOn swaggerSources.tag.code
+    source "${swaggerSources.tag.code.outputDir}/src/main/java" 
 }
 
 sourceSets {
@@ -91,6 +108,7 @@ sourceSets {
     main {
         java { srcDirs = srcDirs }
 		java { srcDirs += "${swaggerSources.fabricWorkspace.code.outputDir}/src/main/java" }
+        java { srcDirs += "${swaggerSources.tag.code.outputDir}/src/main/java"}
     }
 }
 
