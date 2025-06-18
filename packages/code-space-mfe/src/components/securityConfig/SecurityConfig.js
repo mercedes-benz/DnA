@@ -22,6 +22,7 @@ import Caption from 'dna-container/Caption';
 // @ts-ignore
 import { CodeSpaceApiClient } from '../../apis/codespace.api';
 import { history } from '../../store';
+import { Envs } from '../../Utility/envs';
 
 const classNames = cn.bind(Styles);
 // export interface ICreateNewSecurityConfigState {
@@ -54,7 +55,9 @@ export default class SecurityConfig extends React.Component {
       projectName: '',
       intIAM: 'false',
       prodIAM: 'false',
-      showRedeployWarningModal: false,
+      intDna: 'false',
+      prodDna: 'false',
+      // showRedeployWarningModal: false,
       editMode: false,
       currentTab: 'stagingEntitlement',
       nextTab: 'productionEntitlement',
@@ -70,6 +73,7 @@ export default class SecurityConfig extends React.Component {
       readOnlyMode: false,
       editModeNavigateModal: false,
       showStagingModal: true,
+      isPublished: false,
     };
   }
 
@@ -82,7 +86,9 @@ export default class SecurityConfig extends React.Component {
     const name = getQueryParam('name');
     const intIAMEnabled = getQueryParam('intIAM');
     const prodIAMEnabled = getQueryParam('prodIAM');
-    this.setState({ projectName: name, intIAM: intIAMEnabled, prodIAM: prodIAMEnabled });
+    const intDnaEnabled = getQueryParam('intDna');
+    const prodDnaEnabled = getQueryParam('prodDna');
+    this.setState({ projectName: name, intIAM: intIAMEnabled, prodIAM: prodIAMEnabled, intDna: intDnaEnabled, prodDna: prodDnaEnabled });
     const path = getPath();
     SelectBox.defaultSetup();
     InputFields.defaultSetup();
@@ -94,6 +100,7 @@ export default class SecurityConfig extends React.Component {
       Tabs.defaultSetup();
       this.getPublishedConfig(id, 'int');
     } else {
+      this.getPublishedConfig(id,'int',true);
       this.getConfig(id, 'int');
       Tabs.defaultSetup();
     }
@@ -112,13 +119,14 @@ export default class SecurityConfig extends React.Component {
         this.getPublishedConfig(this.state.id, envKey);
       } else {
         this.getConfig(this.state.id, envKey);
+        this.getPublishedConfig(this.state.id, envKey, true);
       }
     }
   }
   
 
 
-  getPublishedConfig = (id, env) => {
+  getPublishedConfig = (id, env, publishedStatus=false) => {
     ProgressIndicator.show();
     CodeSpaceApiClient.getPublishedConfig(id, env)
       .then((res) => {
@@ -127,14 +135,21 @@ export default class SecurityConfig extends React.Component {
           entitlements: res.data.entitlements || [],
           appId: res.data.appID || '',
         };
-        this.setState(
-          {
-            config: response,
-          },
-          () => {
-            this.setOpenTabs();
-          },
-        );
+        if(response?.appID?.length){
+          this.setState({isPublished:true,});
+        } else {
+          this.setState({isPublished:false,});
+        }
+        if(!publishedStatus){
+          this.setState(
+            {
+              config: response,
+            },
+            () => {
+              this.setOpenTabs();
+            },
+          );
+        }
         ProgressIndicator.hide();
       })
       .catch((error) => {
@@ -151,7 +166,7 @@ export default class SecurityConfig extends React.Component {
         const response = {
           ...res.data,
           entitlements: res.data.entitlements || [],
-          appId: res.data.appID || '',
+          appId: ((env==='int' && this.state.intDna==='true') || (env==='prod' && this.state.prodDna==='true')) ? Envs.DNA_APP_ID :  res.data.appID || '',
         };
         this.setState(
           {
@@ -214,20 +229,20 @@ export default class SecurityConfig extends React.Component {
   };
 
   onPublish = (config, env) => {
-    CodeSpaceApiClient.getPublishedConfig(this.state.id, env)
-      .then((res) => {
-        let IAMEnabled = 'false';
-        if (env === 'int') {
-          IAMEnabled = this.state.intIAM
-        }
-        else {
-          IAMEnabled = this.state.prodIAM
-        }
-        ((!res?.data) && IAMEnabled === 'true') ? this.setState({ showRedeployWarningModal: true }) : this.setState({ showRedeployWarningModal: false });
-      })
-      .catch((error) => {
-        this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
-      });
+    // CodeSpaceApiClient.getPublishedConfig(this.state.id, env)
+    //   .then((res) => {
+    //     let IAMEnabled = 'false';
+    //     if (env === 'int') {
+    //       IAMEnabled = this.state.intIAM
+    //     }
+    //     else {
+    //       IAMEnabled = this.state.prodIAM
+    //     }
+    //     ((!res?.data) && IAMEnabled === 'true') ? this.setState({ showRedeployWarningModal: true }) : this.setState({ showRedeployWarningModal: false });
+    //   })
+    //   .catch((error) => {
+    //     this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
+    //   });
     this.setState(
       {
         config: config,
@@ -285,6 +300,7 @@ export default class SecurityConfig extends React.Component {
               .then(() => {
                 ProgressIndicator.hide();
                 this.getConfig(this.state.id, env);
+                this.getPublishedConfig(this.state.id, env, true);
                 Notification.show('Published successfully.');
               })
               .catch((error) => {
@@ -308,7 +324,7 @@ export default class SecurityConfig extends React.Component {
 
   navigateEditOrReadOnlyMode = () => {
     if (this.state.readOnlyMode) {
-      history.push(`/codespace/securityconfig/${this.state.id}?name=${this.state.projectName}?intIAM=${this.state.intIAM === 'true' ? 'true' : 'false'}?prodIAM=${this.state.prodIAM === 'true' ? 'true' : 'false'}`);
+      history.push(`/codespace/securityconfig/${this.state.id}?name=${this.state.projectName}?intIAM=${this.state.intIAM}?intDna=${this.state.intDna}?prodIAM=${this.state.prodIAM}?prodDna=${this.state.prodDna}`);
     } else {
       this.setState({
         editModeNavigateModal: true,
@@ -396,6 +412,9 @@ export default class SecurityConfig extends React.Component {
                     config={this.state.config}
                     readOnlyMode={this.state.readOnlyMode}
                     projectName={projectName}
+                    isPublished={this.state.isPublished}
+                    secureWithIAM={this.state.intIAM === 'true'}
+                    secureWithDna={this.state.intDna === 'true'}
                   />
                 )}
               </div>
@@ -410,12 +429,15 @@ export default class SecurityConfig extends React.Component {
                     config={this.state.config}
                     readOnlyMode={this.state.readOnlyMode}
                     projectName={projectName}
+                    isPublished={this.state.isPublished}
+                    secureWithIAM={this.state.prodIAM === 'true'}
+                    secureWithDna={this.state.prodDna === 'true'}
                   />
                 )}
               </div>
             </div>
           </div>
-          <ConfirmModal
+          {/* <ConfirmModal
             title=""
             acceptButtonTitle="OK"
             showAcceptButton={true}
@@ -423,7 +445,7 @@ export default class SecurityConfig extends React.Component {
             show={this.state.showRedeployWarningModal}
             content={<div id="contentparentdiv">Please redeploy by reentering the client id, client secret and the required ignore paths, scopes and redirect uri if any for the authorization changes to be reflected. Note that only authentication will be handled unless you redeploy.</div>}
             onAccept={() => { this.setState({ showRedeployWarningModal: false }) }}
-          />
+          /> */}
           <ConfirmModal
             title="Are you sure you want to Navigate ?"
             acceptButtonTitle="Navigate"
@@ -450,7 +472,7 @@ export default class SecurityConfig extends React.Component {
               });
             }}
             onAccept={() => {
-              history.push(`/codespace/publishedSecurityconfig/${this.state.id}?name=${this.state.projectName}?intIAM=${this.state.intIAM === 'true' ? 'true' : 'false'}?prodIAM=${this.state.prodIAM === 'true' ? 'true' : 'false'}`);
+              history.push(`/codespace/publishedSecurityconfig/${this.state.id}?name=${this.state.projectName}?intIAM=${this.state.intIAM}?intDna=${this.state.intDna}?prodIAM=${this.state.prodIAM}?prodDna=${this.state.prodDna}`);
             }}
           />
         </div>
