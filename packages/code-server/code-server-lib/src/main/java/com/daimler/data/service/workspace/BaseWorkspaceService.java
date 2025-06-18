@@ -1606,7 +1606,7 @@ import com.daimler.data.dto.workspace.buildDeploy.*;
 				 DeploymentManageDto deploymentJobDto = new DeploymentManageDto();
 				 DeploymentManageInputDto deployJobInputDto = new DeploymentManageInputDto();
 				 deployJobInputDto.setAction("deploy");
-				//  deployJobInputDto.setBranch(branch);
+				 deployJobInputDto.setBranch(branch);
 				 deployJobInputDto.setEnvironment(codeServerEnvValue);
 				 deployJobInputDto.setAppVersion(version);
 
