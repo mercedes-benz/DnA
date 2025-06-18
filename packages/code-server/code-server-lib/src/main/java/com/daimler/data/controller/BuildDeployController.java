@@ -15,6 +15,7 @@ import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.db.entities.CodeServerBuildDeployNsql;
 import com.daimler.data.db.repo.workspace.WorkSpaceCodeServerBuildDeployRepository;
+import com.daimler.data.db.repo.workspace.WorkspaceCustomBuildDeployRepo;
 
 import org.springframework.web.bind.annotation.PathVariable;
 
@@ -60,6 +61,9 @@ public class BuildDeployController implements CodeServerBuildDeployServiceApi {
 
      @Autowired
 	 private BuildDeployAssembler buildDeployAssembler;
+
+     @Autowired
+	 private WorkspaceCustomBuildDeployRepo buildDeployCustomRepo;
 
     @Override
     @ApiOperation(value = "Build workspace Project for a given Id.", nickname = "buildWorkspaceProject", notes = "build workspace Project for a given identifier.", response = GenericMessage.class, tags = {
@@ -233,9 +237,9 @@ public class BuildDeployController implements CodeServerBuildDeployServiceApi {
         response.setSuccess("FAILED");
         CodeServerBuildDeployVO data = null;
         try {
-            Optional<CodeServerBuildDeployNsql> optionalBuildDeployentity =  buildDeployRepo.findById(projectName.toLowerCase());	
-					if(optionalBuildDeployentity.isPresent()){
-                        data = buildDeployAssembler.toVo(optionalBuildDeployentity.get());
+            CodeServerBuildDeployNsql optionalBuildDeployentity =  buildDeployCustomRepo.findByProjectName(projectName);	
+					if(optionalBuildDeployentity != null){
+                        data = buildDeployAssembler.toVo(optionalBuildDeployentity);
                     }else{
                         MessageDescription msg = new MessageDescription();
                         msg.setMessage("No build logs found for given project name");
@@ -288,8 +292,8 @@ public class BuildDeployController implements CodeServerBuildDeployServiceApi {
         response.setSuccess("FAILED");
         try {
 
-             Optional<CodeServerBuildDeployNsql> optionalBuildDeployentity =  buildDeployRepo.findById(projectName.toLowerCase());	
-					if(optionalBuildDeployentity.isPresent()){
+            CodeServerBuildDeployNsql optionalBuildDeployentity =  buildDeployCustomRepo.findByProjectName(projectName);	
+					if(optionalBuildDeployentity != null){
                         response = service.getBuildVersion(projectName);
                     }else{
                         MessageDescription msg = new MessageDescription();
