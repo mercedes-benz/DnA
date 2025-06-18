@@ -747,11 +747,7 @@ prometheus:
             - source_labels: [ __meta_kubernetes_pod_annotation_prometheus_io_scheme ]
               action: replace
               target_label: __scheme__
-              regex: (https?)
-            # Add the app.kubernetes.io/name label
-            - source_labels: [ __meta_kubernetes_pod_label_app_kubernetes_io_name ]
-              action: replace
-              target_label: app_kubernetes_io_name              
+              regex: (https?)       
 
           metric_relabel_configs:
             # ## cadvisor daemonset metrics relabeling to match kubelet cadvisor metrics
@@ -783,6 +779,7 @@ prometheus:
             # Rule to add app_kubernetes_io_name to container metrics       
             - source_labels: [ __meta_kubernetes_pod_label_app_kubernetes_io_name ]
               action: replace
+              regex: (.+)
               target_label: app_kubernetes_io_name                   
           # END CUSTOM
 
