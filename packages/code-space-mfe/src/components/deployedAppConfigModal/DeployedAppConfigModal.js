@@ -285,6 +285,7 @@ const DeployedAppConfigModal = (props) => {
           // );
           Notification.show('Error in updating OIDC plugin', 'alert');
         }
+        ProgressIndicator.hide();
       })
       .catch(() => {
         ProgressIndicator.hide();

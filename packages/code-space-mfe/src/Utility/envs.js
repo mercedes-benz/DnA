@@ -47,4 +47,5 @@ const getInjectedEnv = (key) => {
     CODESPACE_EMAIL_LINK: getInjectedEnv('CODESPACE_EMAIL_LINK') || process.env.CODESPACE_EMAIL_LINK,
     DNA_CLIENT_ID: getInjectedEnv('DNA_CLIENT_ID') || process.env.DNA_CLIENT_ID,
     DNA_SSO_TYPE: getInjectedEnv('DNA_SSO_TYPE') || process.env.DNA_SSO_TYPE,
+    DNA_APP_ID: getInjectedEnv('DNA_APP_ID') || process.env.DNA_APP_ID,
   };
