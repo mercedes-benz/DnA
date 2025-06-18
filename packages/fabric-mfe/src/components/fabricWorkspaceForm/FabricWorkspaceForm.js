@@ -122,11 +122,8 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
     fabricApi.getAllTags()
       .then((res) => {
         ProgressIndicator.hide();
-        const tagList = res?.data?.data?.map(tag => ({
-          id: tag.id,
-          name: tag.name,
-        }));
-        setFabricTags(tagList);
+        const tagList = res?.data?.map((tag) => {return { id: tag.id, name: tag.name}});
+        setFabricTags([...tagList]);
       })
       .catch((err) => {
         ProgressIndicator.hide();
