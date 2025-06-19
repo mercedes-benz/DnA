@@ -550,10 +550,10 @@ const CodeSpace = (props) => {
 
   const navigateSecurityConfig = () => {
     if (projectDetails?.publishedSecuirtyConfig) {
-      window.open(`${window.location.pathname}#/codespaces/codespace/publishedSecurityconfig/${codeSpaceData.id}?name=${projectDetails.projectName}?intIAM=${projectDetails?.intDeploymentDetails?.secureWithIAMRequired ? 'true' : 'false'}?intDna=${projectDetails?.intDeploymentDetails?.secureWithDnaRequired ? 'true' : 'false'}?prodIAM=${projectDetails?.prodDeploymentDetails?.secureWithIAMRequired ? 'true' : 'false'}?prodDna=${projectDetails?.prodDeploymentDetails?.secureWithDnaRequired ? 'true' : 'false'}`, '_blank');
+      window.open(`${window.location.pathname}#/codespaces/codespace/publishedSecurityconfig/${codeSpaceData.id}?name=${projectDetails.projectName}?intIAM=${projectDetails?.intDeploymentDetails?.secureWithIAMRequired || false}?intDna=${projectDetails?.intDeploymentDetails?.secureWithDnaRequired || false}?prodIAM=${projectDetails?.prodDeploymentDetails?.secureWithIAMRequired || false}?prodDna=${projectDetails?.prodDeploymentDetails?.secureWithDnaRequired || false}`, '_blank');
       return;
     }
-    window.open(`${window.location.pathname}#/codespaces/codespace/securityconfig/${codeSpaceData.id}?name=${projectDetails.projectName}?intIAM=${projectDetails?.intDeploymentDetails?.secureWithIAMRequired ? 'true' : 'false'}?intDna=${projectDetails?.intDeploymentDetails?.secureWithDnaRequired ? 'true' : 'false'}?prodIAM=${projectDetails?.prodDeploymentDetails?.secureWithIAMRequired ? 'true' : 'false'}?prodDna=${projectDetails?.prodDeploymentDetails?.secureWithDnaRequired ? 'true' : 'false'}`, '_blank');
+    window.open(`${window.location.pathname}#/codespaces/codespace/securityconfig/${codeSpaceData.id}?name=${projectDetails.projectName}?intIAM=${projectDetails?.intDeploymentDetails?.secureWithIAMRequired || false}?intDna=${projectDetails?.intDeploymentDetails?.secureWithDnaRequired || false}?prodIAM=${projectDetails?.prodDeploymentDetails?.secureWithIAMRequired || false}?prodDna=${projectDetails?.prodDeploymentDetails?.secureWithDnaRequired || false}`, '_blank');
   }
 
   const intDeploymentDetails = projectDetails?.intDeploymentDetails;
