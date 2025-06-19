@@ -103,9 +103,7 @@ export default class LoginAuthRedirector extends React.Component<{}, IAuthState>
 
     if (hasJwt) {
       const reqUrl = sessionStorage.getItem(SESSION_STORAGE_KEYS.APPREDIRECT_URL);
-      if(isDeactivated()){
-        history.replace('/deactivateduser');
-      } else if (!reqUrl) {
+      if (!reqUrl) {
         console.log('redirect to home');
         history.replace('home');
       } else {
@@ -114,6 +112,7 @@ export default class LoginAuthRedirector extends React.Component<{}, IAuthState>
         history.replace(reqUrl);
       }
     }
+ 
   }
 
   protected reloadPage = () => {
