@@ -840,7 +840,7 @@ const AllCodeSpaces = (props) => {
                     //     onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'react'
                     // }
                     setShowCodeDeployModal={(isVisible) => setShowDeployCodeSpaceModal(isVisible)}
-                    setCodeDeploying={() => getCodeSpacesData()}
+                    setCodeDeploying={() => { getCodeSpacesData(); getCodeSpaceGroupsData();}}
                     setIsApiCallTakeTime={setIsApiCallTakeTime}
                     navigateSecurityConfig={navigateSecurityConfig}
                 />
@@ -866,6 +866,7 @@ const AllCodeSpaces = (props) => {
                     // }
                     setShowCodeDeployModal={(isVisible) => setShowDeployCodeSpaceModal(isVisible)}
                     setCodeDeploying={() => { getCodeSpacesData(); getCodeSpaceGroupsData(); }}
+                    setCodeBuilding={() => { getCodeSpacesData(); getCodeSpaceGroupsData(); }}
                     setIsApiCallTakeTime={setIsApiCallTakeTime}
                     navigateSecurityConfig={navigateSecurityConfig}
                 />
@@ -875,7 +876,7 @@ const AllCodeSpaces = (props) => {
                       show={showDeployApprovalModal}
                       setShowDeployApprovalModal={setShowDeployApprovalModal}
                       codeSpaceData = {onDeployCodeSpace}
-                      setCodeDeploying={() => getCodeSpacesData()}
+                      setCodeDeploying={() => {getCodeSpacesData(); getCodeSpaceGroupsData();}}
                       setIsApiCallTakeTime={setIsApiCallTakeTime}
                     />
             )}

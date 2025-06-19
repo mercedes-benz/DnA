@@ -142,6 +142,7 @@ const BuildModal = (props) => {
                 `Code space '${projectDetails.projectName}' build successfully started. Please check the status by refreshing the logs.`,
             );
             setComment('');
+            props.setCodeBuilding(true);
           }
           else{
             ProgressIndicator.hide();
