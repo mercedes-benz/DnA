@@ -8,6 +8,7 @@ import { history } from './../router/History';
 import { ApiClient } from './../services/ApiClient';
 import { Pkce } from './../services/Pkce';
 import { getQueryParameterByName } from './../services/Query';
+import { isDeactivated } from '../services/utils';
 
 export interface IAuthState {
   fetchingCode: boolean;
@@ -151,7 +152,9 @@ export default class AuthRedirector extends React.Component<{}, IAuthState> {
 
     if (hasJwt) {
       const reqUrl = sessionStorage.getItem(SESSION_STORAGE_KEYS.APPREDIRECT_URL);
-      if (!reqUrl) {
+      if (isDeactivated()) {
+        history.replace('/deactivateduser');
+      } else if (!reqUrl) {
         console.log('redirect to home');
         history.replace('home');
       } else {

@@ -9,6 +9,7 @@ import NotFoundPage from './NotFoundPage';
 import { SessionExpired } from './SessionExpired';
 import UnAuthorised from './UnAuthorised';
 
+const DeactivatedUser = React.lazy(() => import('./DeactivatedUser'));
 const Administration = React.lazy(() => import('components/mbc/admin/Administration'));
 const LoginAuthRedirector = React.lazy(() => import('./LoginAuthRedirector'));
 const AllSolutions = React.lazy(() => import('components/mbc/allSolutions/AllSolutions'));
@@ -84,9 +85,14 @@ const publicRoutes = [
     exact: true,
     path: '/UnAuthorised',
   },
+  {
+    component: DeactivatedUser,
+    exact: true,
+    path: '/deactivateduser',
+  },
 ];
 
-const protectedRoutes = [
+const protectedRoutes = [ 
   {
     allowedRoles: UserAndAdminRole,
     component: Portfolio,
