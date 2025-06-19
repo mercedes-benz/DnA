@@ -336,7 +336,7 @@ export default class SecurityConfig extends React.Component {
     const currentTab = this.state.currentTab;
     const { readOnlyMode, projectName } = this.state;
     const publishedSuffix = readOnlyMode ? ' (Published)' : '';
-    const title = `${projectName} - Security config${publishedSuffix}`;
+    const title = `${projectName} - Authorization config${publishedSuffix}`;
     return (
       <React.Fragment>
         <div className={classNames(Styles.mainPanel)}>
@@ -360,12 +360,12 @@ export default class SecurityConfig extends React.Component {
               {this.state.readOnlyMode ? (
                 <>
                   <i className="icon mbc-icon edit" />
-                  <span> Edit security config</span>
+                  <span> Edit authorization config</span>
                 </>
               ) : (
                 <>
                   <i className="icon mbc-icon visibility-show" />
-                  <span> View published security config</span>
+                  <span> View published authorization config</span>
                 </>
               )}
             </button>
