@@ -2,6 +2,8 @@ import { PRIVATE_RECIPES, SOLUTION_FIXED_TAGS } from 'globals/constants';
 import { Envs } from '../globals/Envs';
 import { IFilterParams, IUserInfo } from '../globals/types';
 import { ComputeFixedTag } from 'globals/Enums';
+import { SESSION_STORAGE_KEYS } from 'globals/constants';
+import { ApiClient } from '../services/ApiClient';
 
 declare global {
   interface Window {
@@ -464,3 +466,15 @@ export const isSolutionFixedTagIncluded = (tagValue: string) => {
 export const isSolutionFixedTagIncludedInArray = (arr: string[]) => {
   return SOLUTION_FIXED_TAGS.some(tag => arr?.map(item => item?.toLowerCase()).includes(tag?.toLowerCase()));
 }
+
+export const isDeactivated = (): boolean => {
+  const jwtToken = sessionStorage.getItem(SESSION_STORAGE_KEYS.JWT);
+  if (!jwtToken) 
+    return false;
+  try {
+    const decoded = ApiClient.parseJwt(jwtToken);
+    return decoded?.firstName?.toUpperCase() === 'DEACTIVATED';
+  } catch {
+    return false;
+  }
+};

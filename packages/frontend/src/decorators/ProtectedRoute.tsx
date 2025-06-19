@@ -13,6 +13,7 @@ import AppContext from 'components/context/ApplicationContext';
 import ErrorBoundary from '../utils/ErrorBoundary';
 import { history } from '../router/History';
 import { Envs } from 'globals/Envs';
+import { isDeactivated } from '../services/utils';
 
 interface IProtectedRouteProps extends RouteProps {
   component: React.LazyExoticComponent<{ user: IUserInfo } | any>;
@@ -55,14 +56,18 @@ export class ProtectedRoute extends React.Component<IProtectedRouteProps, IProte
   };
 
   public componentDidMount() {
-    if (!sessionStorage.getItem(SESSION_STORAGE_KEYS.JWT)) {
-      sessionStorage.setItem(SESSION_STORAGE_KEYS.APPREDIRECT_URL, this.props.location.pathname);
-      if (!Envs.OIDC_DISABLED) {
-        const newURL = Pkce.getLoginRedirectUrl();
-        window.location.assign(newURL);
+    if (isDeactivated()) {
+      history.replace('/deactivateduser');
+    } else {
+      if (!sessionStorage.getItem(SESSION_STORAGE_KEYS.JWT)) {
+        sessionStorage.setItem(SESSION_STORAGE_KEYS.APPREDIRECT_URL, this.props.location.pathname);
+        if (!Envs.OIDC_DISABLED) {
+          const newURL = Pkce.getLoginRedirectUrl();
+          window.location.assign(newURL);
+        }
       }
+      this.storeUserDetails();
     }
-    this.storeUserDetails();
   }
 
   public async storeUserDetails() {
