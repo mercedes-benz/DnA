@@ -473,7 +473,6 @@ export const isDeactivated = (): boolean => {
     return false;
   try {
     const decoded = ApiClient.parseJwt(jwtToken);
-    console.log('firstname',decoded?.firstName?.toUpperCase() === 'DEACTIVATED');
     return decoded?.firstName?.toUpperCase() === 'DEACTIVATED';
   } catch {
     return false;
