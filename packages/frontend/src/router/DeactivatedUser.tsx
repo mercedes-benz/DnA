@@ -11,12 +11,7 @@ const DeactivatedUser: React.FC = () => {
             <p>
               You no longer have access to the DnA platform. Your account is currently marked as deactivated.
             </p>
-            <p>
-              Please contact the DnA team via{' '}
-              <a href={Envs.DNA_EMAIL_LINK} target="_blank" rel="noopener noreferrer">Email</a>,{' '}
-              <a href={Envs.DNA_TEAMS_LINK} target="_blank" rel="noopener noreferrer">Microsoft Teams</a>, or{' '}
-              <a href={Envs.DNA_MATTERMOST_LINK} target="_blank" rel="noopener noreferrer">Mattermost</a> for assistance.
-            </p>
+              <div dangerouslySetInnerHTML={{ __html: Envs.DNA_CONTACTUS_HTML }}></div>
           </div>
         </div>
       </div>
