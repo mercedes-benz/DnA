@@ -2,7 +2,6 @@ import { PRIVATE_RECIPES, SOLUTION_FIXED_TAGS } from 'globals/constants';
 import { Envs } from '../globals/Envs';
 import { IFilterParams, IUserInfo } from '../globals/types';
 import { ComputeFixedTag } from 'globals/Enums';
-import { history } from './../router/History';
 import { SESSION_STORAGE_KEYS } from 'globals/constants';
 import { ApiClient } from '../services/ApiClient';
 
