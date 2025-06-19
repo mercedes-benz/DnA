@@ -4,7 +4,7 @@ import { removeURLParameter } from '../services/utils';
 import Progress from 'components/progress/Progress';
 import { SESSION_STORAGE_KEYS } from 'globals/constants';
 import { Envs } from 'globals/Envs';
-import { history } from '../router/History';
+import { history } from './History';
 import { ApiClient } from '../services/ApiClient';
 import { Pkce } from '../services/Pkce';
 
