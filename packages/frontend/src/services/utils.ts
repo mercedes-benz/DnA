@@ -2,6 +2,9 @@ import { PRIVATE_RECIPES, SOLUTION_FIXED_TAGS } from 'globals/constants';
 import { Envs } from '../globals/Envs';
 import { IFilterParams, IUserInfo } from '../globals/types';
 import { ComputeFixedTag } from 'globals/Enums';
+import { history } from './../router/History';
+import { SESSION_STORAGE_KEYS } from 'globals/constants';
+import { ApiClient } from '../services/ApiClient';
 
 declare global {
   interface Window {
@@ -464,3 +467,33 @@ export const isSolutionFixedTagIncluded = (tagValue: string) => {
 export const isSolutionFixedTagIncludedInArray = (arr: string[]) => {
   return SOLUTION_FIXED_TAGS.some(tag => arr?.map(item => item?.toLowerCase()).includes(tag?.toLowerCase()));
 }
+
+export const handlePostJwtRedirect = (): void => {
+  const hasJwt = !!sessionStorage.getItem(SESSION_STORAGE_KEYS.JWT);
+
+  if (hasJwt) {
+    const jwt = sessionStorage.getItem(SESSION_STORAGE_KEYS.JWT);
+    const reqUrl = sessionStorage.getItem(SESSION_STORAGE_KEYS.APPREDIRECT_URL);
+
+    try {
+      const decoded = ApiClient.parseJwt(jwt);
+      console.log('first name', decoded.firstName);
+
+      if (decoded.firstName === 'DEACTIVATED') {
+        history.replace('/deactivateduser');
+        return;
+      }
+
+      if (!reqUrl) {
+        console.log('redirect to home');
+        history.replace('home');
+      } else {
+        console.log('redirect to requested URL' + reqUrl);
+        sessionStorage.removeItem(SESSION_STORAGE_KEYS.APPREDIRECT_URL);
+        history.replace(reqUrl);
+      }
+    } catch (e) {
+      console.error('Failed to parse JWT:', e);
+    }
+  }
+};

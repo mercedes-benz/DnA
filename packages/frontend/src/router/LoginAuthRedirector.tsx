@@ -4,9 +4,9 @@ import { removeURLParameter } from '../services/utils';
 import Progress from 'components/progress/Progress';
 import { SESSION_STORAGE_KEYS } from 'globals/constants';
 import { Envs } from 'globals/Envs';
-import { history } from './History';
 import { ApiClient } from '../services/ApiClient';
 import { Pkce } from '../services/Pkce';
+import { handlePostJwtRedirect} from '../services/utils';
 
 export interface IAuthState {
   fetchingJwt: boolean;
@@ -34,6 +34,7 @@ export default class LoginAuthRedirector extends React.Component<{}, IAuthState>
   }
 
   public componentDidMount() {
+    handlePostJwtRedirect();
     this.processAuth();
   }
   public componentDidUpdate() {
@@ -100,17 +101,6 @@ export default class LoginAuthRedirector extends React.Component<{}, IAuthState>
       });
     }
 
-    if (hasJwt) {
-      const reqUrl = sessionStorage.getItem(SESSION_STORAGE_KEYS.APPREDIRECT_URL);
-      if (!reqUrl) {
-        console.log('redirect to home');
-        history.replace('home');
-      } else {
-        console.log('redirect to requested URL' + reqUrl);
-        sessionStorage.removeItem(SESSION_STORAGE_KEYS.APPREDIRECT_URL);
-        history.replace(reqUrl);
-      }
-    }
   }
 
   protected reloadPage = () => {

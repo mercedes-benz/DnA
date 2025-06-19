@@ -254,4 +254,7 @@ export const Envs = {
       ? getInjectedEnv('ONEAPI_PROMPT_CRAFT_USAGE_LINK')
       : EnvParser.parseBool(process.env.ONEAPI_PROMPT_CRAFT_USAGE_LINK, false),
   LEANIX_BASEURL: getInjectedEnv('LEANIX_BASEURL') || process.env.LEANIX_BASEURL,
+  DNA_TEAMS_LINK: getInjectedEnv('DNA_TEAMS_LINK') || process.env.DNA_TEAMS_LINK,
+  DNA_MATTERMOST_LINK: getInjectedEnv('DNA_MATTERMOST_LINK') || process.env.DNA_MATTERMOST_LINK,
+  DNA_EMAIL_LINK: getInjectedEnv('DNA_EMAIL_LINK') || process.env.DNA_EMAIL_LINK,
 };

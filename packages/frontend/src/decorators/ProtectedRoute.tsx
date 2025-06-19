@@ -6,13 +6,12 @@ import { LOCAL_STORAGE_KEY, USER_ROLE } from 'globals/constants';
 import { IUserInfo } from 'globals/types';
 import { ApiClient } from './../services/ApiClient';
 import { Layout } from './Layout';
-import { Pkce } from '../../src/services/Pkce';
 import Progress from 'components/progress/Progress';
 import { trackPageView } from '../services/utils';
 import AppContext from 'components/context/ApplicationContext';
 import ErrorBoundary from '../utils/ErrorBoundary';
 import { history } from '../router/History';
-import { Envs } from 'globals/Envs';
+import { handlePostJwtRedirect} from '../services/utils';
 
 interface IProtectedRouteProps extends RouteProps {
   component: React.LazyExoticComponent<{ user: IUserInfo } | any>;
@@ -55,14 +54,7 @@ export class ProtectedRoute extends React.Component<IProtectedRouteProps, IProte
   };
 
   public componentDidMount() {
-    if (!sessionStorage.getItem(SESSION_STORAGE_KEYS.JWT)) {
-      sessionStorage.setItem(SESSION_STORAGE_KEYS.APPREDIRECT_URL, this.props.location.pathname);
-      if (!Envs.OIDC_DISABLED) {
-        const newURL = Pkce.getLoginRedirectUrl();
-        window.location.assign(newURL);
-      }
-    }
-    this.storeUserDetails();
+    handlePostJwtRedirect();
   }
 
   public async storeUserDetails() {
