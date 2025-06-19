@@ -210,7 +210,7 @@ const DataTransferListItem = ({ product, history, user, isProviderCreatorFilter 
                 {product.publish ? (
                   <span>{product.consumerInformation?.contactInformation?.appId || '-'}</span>
                 ) : (
-                  <span>pending...</span>
+                 <span className={Styles.draft}>Draft</span>
                 )}
               </div>
             </div>
