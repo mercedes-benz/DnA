@@ -30,6 +30,7 @@ import DeployAuditLogsModal from './deployAuditLogsModal/DeployAuditLogsModal';
 import DeployModal from './deployModal/DeployModal';
 import { setRippleAnimation } from '../common/modules/uilab/js/src/util';
 import ConfirmModal from 'dna-container/ConfirmModal';
+import BuildModal from './buildModal/buildModal';
 
 // export interface ICodeSpaceProps {
 //   user: IUserInfo;
@@ -134,6 +135,7 @@ const CodeSpace = (props) => {
   const [showNewCodeSpaceModal, setShowNewCodeSpaceModal] = useState(false);
   const [isApiCallTakeTime, setIsApiCallTakeTime] = useState(false);
   const [showCodeDeployModal, setShowCodeDeployModal] = useState(false);
+  const [showManageBuildModal, setShowManageBuildModal] = useState(false);
   const [codeDeploying, setCodeDeploying] = useState(false);
   const [codeDeployed, setCodeDeployed] = useState(false);
   const [codeDeployedUrl, setCodeDeployedUrl] = useState();
@@ -713,12 +715,20 @@ const CodeSpace = (props) => {
                           </a>
                         </div>
                       )} */}
-                      <div>
+                      <div className={classNames(Styles.builDeployMargin)}>
                         <button
                           className={classNames('btn btn-secondary', (codeDeploying || codeBuilding) ? 'disable' : '')}
                           onClick={onShowCodeDeployModal}
                         >
                           {codeBuilding ? 'Building' : `Deploy${codeDeploying ? 'ing...' : ''}`}
+                        </button>
+                      </div>
+                      <div className={classNames(Styles.builDeployMargin)}>
+                        <button
+                          className={classNames('btn btn-secondary')}
+                          onClick={() => setShowManageBuildModal(true)}
+                        >
+                          Manage Build
                         </button>
                       </div>
                       {(intDeploymentDetails.lastDeploymentStatus || prodDeploymentDetails.lastDeploymentStatus) && (
@@ -1198,6 +1208,19 @@ const CodeSpace = (props) => {
           setShowCodeDeployModal={setShowCodeDeployModal}
           startDeployLivelinessCheck={enableDeployLivelinessCheck}
           setCodeDeploying={setCodeDeploying}
+          setIsApiCallTakeTime={setIsApiCallTakeTime}
+          navigateSecurityConfig={navigateSecurityConfig}
+        />
+      )}
+
+      {showManageBuildModal && (
+        <BuildModal
+          userInfo={props.user}
+          codeSpaceData={codeSpaceData}
+          setShowCodeBuildModal={(isVisible) => setShowManageBuildModal(isVisible)}
+          setShowCodeDeployModal={(isVisible) => setShowCodeDeployModal(isVisible)}
+          setCodeDeploying={setCodeDeploying}
+          setCodeBuilding={setCodeBuilding}
           setIsApiCallTakeTime={setIsApiCallTakeTime}
           navigateSecurityConfig={navigateSecurityConfig}
         />
