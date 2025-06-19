@@ -477,8 +477,7 @@ export const handlePostJwtRedirect = (): void => {
 
     try {
       const decoded = ApiClient.parseJwt(jwt);
-      console.log('first name', decoded.firstName);
-
+    
       if (decoded.firstName === 'DEACTIVATED') {
         history.replace('/deactivateduser');
         return;
