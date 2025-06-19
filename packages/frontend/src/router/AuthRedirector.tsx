@@ -8,7 +8,6 @@ import { history } from './../router/History';
 import { ApiClient } from './../services/ApiClient';
 import { Pkce } from './../services/Pkce';
 import { getQueryParameterByName } from './../services/Query';
-import { isDeactivated } from '../services/utils';
 
 export interface IAuthState {
   fetchingCode: boolean;

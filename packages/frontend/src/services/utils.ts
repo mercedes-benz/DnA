@@ -468,35 +468,6 @@ export const isSolutionFixedTagIncludedInArray = (arr: string[]) => {
   return SOLUTION_FIXED_TAGS.some(tag => arr?.map(item => item?.toLowerCase()).includes(tag?.toLowerCase()));
 }
 
-export const handlePostJwtRedirect = (): void => {
-  const hasJwt = !!sessionStorage.getItem(SESSION_STORAGE_KEYS.JWT);
-
-  if (hasJwt) {
-    const jwt = sessionStorage.getItem(SESSION_STORAGE_KEYS.JWT);
-    const reqUrl = sessionStorage.getItem(SESSION_STORAGE_KEYS.APPREDIRECT_URL);
-
-    try {
-      const decoded = ApiClient.parseJwt(jwt);
-    
-      if (decoded.firstName === 'DEACTIVATED') {
-        history.replace('/deactivateduser');
-        return;
-      }
-
-      if (!reqUrl) {
-        console.log('redirect to home');
-        history.replace('home');
-      } else {
-        console.log('redirect to requested URL' + reqUrl);
-        sessionStorage.removeItem(SESSION_STORAGE_KEYS.APPREDIRECT_URL);
-        history.replace(reqUrl);
-      }
-    } catch (e) {
-      console.error('Failed to parse JWT:', e);
-    }
-  }
-};
-
 export const isDeactivated = (): boolean => {
   const jwtToken = sessionStorage.getItem(SESSION_STORAGE_KEYS.JWT);
   if (!jwtToken) 

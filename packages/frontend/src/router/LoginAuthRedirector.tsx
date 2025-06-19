@@ -6,7 +6,6 @@ import { SESSION_STORAGE_KEYS } from 'globals/constants';
 import { Envs } from 'globals/Envs';
 import { ApiClient } from '../services/ApiClient';
 import { Pkce } from '../services/Pkce';
-import { isDeactivated} from '../services/utils';
 import { history } from '../router/History';
 
 export interface IAuthState {
