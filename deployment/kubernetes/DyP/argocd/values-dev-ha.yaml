@@ -2629,7 +2629,7 @@ repoServer:
         - name: AVP_TYPE
           value: "vault"
         - name: VAULT_ADDR
-          value: "https://dnaplatform.service.vault-prod.rd.corpintra.net"    
+          value: "https://dnaplatform.service.securevault.app.corpintra.net"    
         # - name: VAULT_NAMESPACE
         #   value: "DnAPlatform/dev"
         - name: VAULT_SKIP_VERIFY
@@ -2671,7 +2671,7 @@ repoServer:
         - name: AVP_TYPE
           value: "vault"
         - name: VAULT_ADDR
-          value: "https://dnaplatform.service.vault-prod.rd.corpintra.net"    
+          value: "https://dnaplatform.service.securevault.app.corpintra.net"    
         # - name: VAULT_NAMESPACE
         #   value: "DnAPlatform/dev"    
         - name: VAULT_SKIP_VERIFY
