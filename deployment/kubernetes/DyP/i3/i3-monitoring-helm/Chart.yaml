@@ -1,0 +1,46 @@
+apiVersion: v2
+name: i3-monitoring-helm
+version: 6.3.1
+appVersion: 6.3.1
+description: i3-monitoring Helm Chart
+home: https://git.i.mercedes-benz.com/i3/i3-monitoring
+keywords:
+  - observabiliy
+  - monitoring
+  - kubernetes
+maintainers:
+  - name: i3
+    email: i3.consulting@mercedes-benz.com
+    url: https://pages.git.i.mercedes-benz.com/i3/welcome/
+icon: https://upload.wikimedia.org/wikipedia/commons/3/38/Prometheus_software_logo.svg
+dependencies:
+  - name: prometheus
+    condition: prometheus.enabled
+    version: "25.22.0"
+    # repository: "https://prometheus-community.github.io/helm-charts"
+  - name: grafana
+    condition: grafana.enabled
+    version: "8.2.0"
+    # repository: "https://grafana.github.io/helm-charts"
+  - name: i3-dashboards
+    condition: i3-dashboards.enabled
+    version: "1.3.1"
+    repository: "oci://registry-emea.app.corpintra.net/i3-releases"
+  - name: dhc-monitoring-netpols
+    condition: dhc-monitoring-netpols.enabled
+    version: 6.3.1
+  - name: i3-alerts
+    condition: i3-alerts.enabled
+    version: 6.3.1
+  - name: prom2teams
+    condition: prom2teams.enabled
+    version: 0.2.0
+    repository: file://charts/prom2teams
+  - name: tempo-distributed
+    condition: tempo-distributed.enabled
+    version: 1.11.0
+    repository: file://charts/tempo-distributed
+  - name: loki
+    condition: loki.enabled
+    version: 3.2.0
+    repository: file://charts/loki
