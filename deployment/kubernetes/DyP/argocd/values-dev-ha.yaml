@@ -599,7 +599,7 @@ extraObjects:
               - "pipefail" # exit with non-zero code if any command in pipeline fails
               - "-c"
               - |
-                helm template $ARGOCD_APP_NAME -n $ARGOCD_APP_NAMESPACE ${ARGOCD_ENV_HELM_ARGS} . |
+                helm template $ARGOCD_APP_NAME -n $ARGOCD_APP_NAMESPACE ${ARGOCD_ENV_HELM_ARGS} -f <(echo "$ARGOCD_ENV_HELM_VALUES") . |
                 argocd-vault-plugin generate --verbose-sensitive-output -
           lockRepo: false
 
