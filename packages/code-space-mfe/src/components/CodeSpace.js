@@ -872,7 +872,8 @@ const CodeSpace = (props) => {
                                 <li>
                                   <a
                                     target="_blank"
-                                    href={buildLogViewAWSURL(
+                                    href={
+                                      buildLogViewAWSURL(
                                         codeDeployedUrl || projectDetails?.projectName.toLowerCase(),
                                         true,
                                       )}
@@ -1004,7 +1005,10 @@ const CodeSpace = (props) => {
                                 <li>
                                   <a
                                     target="_blank"
-                                    href={buildLogViewAWSURL(prodCodeDeployedUrl || projectDetails?.projectName.toLowerCase(),)}
+                                    href={
+                                      buildLogViewAWSURL(
+                                        prodCodeDeployedUrl || projectDetails?.projectName.toLowerCase(),
+                                      )}
                                     rel="noreferrer"
                                   >
                                     Application Logs <i className="icon mbc-icon new-tab" />
@@ -1119,7 +1123,10 @@ const CodeSpace = (props) => {
                                   className={classNames(Styles.tabsHeightFix, 'tab-content')}
                                 >
                                   <iframe
-                                    src={buildLogViewAWSURL(prodCodeDeployedUrl || projectDetails?.projectName.toLowerCase(),)}
+                                    src={
+                                      buildLogViewAWSURL(
+                                        prodCodeDeployedUrl || projectDetails?.projectName.toLowerCase(),
+                                      )}
                                     height="100%"
                                     width="100%"
                                   />

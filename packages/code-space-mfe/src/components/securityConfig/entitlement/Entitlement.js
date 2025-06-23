@@ -48,7 +48,7 @@ export default class Entitlement extends React.Component {
       showDiscardModal: false,
 
       showJson: false,
-      publishedData: '',
+      // publishedData: '',
       jsonData: JSON.stringify(
         {
           appId: (props.config && props.config.appId) || '',
@@ -83,7 +83,7 @@ export default class Entitlement extends React.Component {
     Tooltip.defaultSetup();
   }
 
-  componentDidUpdate(prevProps, prevState) {
+  componentDidUpdate(prevProps) {
     if (this.props.config !== prevProps.config) {
       if (this.props.config?.entitlements?.length > 0) {
         const records = this.props.config.entitlements;
@@ -101,17 +101,10 @@ export default class Entitlement extends React.Component {
           appId: this.props.config.appId,
         });
       }
-    }
-
-    if (
-      !this.state.isJsonTouched &&
-      (prevState.appId !== this.state.appId ||
-        prevState.entitelmentListResponse !== this.state.entitelmentListResponse)
-    ) {
-      const jsonData = JSON.stringify(
+      const jsonData =  JSON.stringify(
         {
-          appId: this.state.appId,
-          entitlements: this.state.entitelmentListResponse,
+          appId: (this.props.config && this.props.config.appId) || '',
+          entitlements: (this.props.config && this.props.config.entitlements) || [],
         },
         null,
         2
@@ -128,9 +121,6 @@ export default class Entitlement extends React.Component {
 
 
   handleToggle() {
-    const envKey =
-      this.props.env === 'int' ? 'publishedData_staging' : 'publishedData_production';
-    const storedPublishedData = localStorage.getItem(envKey);
 
     const showJsonNext = !this.state.showJson;
 
@@ -155,10 +145,7 @@ export default class Entitlement extends React.Component {
     } else {
       this.setState({
         showJson: showJsonNext,
-        jsonData: this.props.readOnlyMode
-          ? storedPublishedData || '// No Published Data Available'
-          : this.state.jsonData,
-        publishedData: storedPublishedData || '',
+        jsonData: this.state.jsonData,
         isJsonTouched: false,
         originalJsonData: this.state.jsonData,
       });
@@ -227,8 +214,6 @@ export default class Entitlement extends React.Component {
           isJsonTouched: false,
           toggleError: '',
         });
-
-        Notification.show('JSON changes saved successfully');
 
         if (this.props.onSaveDraft) {
           this.props.onSaveDraft(this.props.env, {
@@ -495,11 +480,6 @@ export default class Entitlement extends React.Component {
             this.props.env === 'int' ? 'stagingEntitlement' : 'productionEntitlement',
             this.state.config
           );
-          Notification.show(
-            this.props.env === 'int'
-              ? 'Staging Saved Successfully'
-              : 'Production Saved Successfully'
-          );
         }
       );
     }
@@ -520,15 +500,6 @@ export default class Entitlement extends React.Component {
         entitlements: this.state.entitelmentListResponse,
       };
 
-
-      const envKey = this.props.env === 'int'
-        ? 'publishedData_staging'
-        : 'publishedData_production';
-
-      const publishedJson = JSON.stringify(newPublishData, null, 2);
-      localStorage.setItem(envKey, publishedJson);
-
-
       this.setState(
         {
           config: {
@@ -536,18 +507,12 @@ export default class Entitlement extends React.Component {
             entitlements: newPublishData.entitlements,
             appId: this.state.appId,
           },
-          publishedData: publishedJson,
-          jsonData: publishedJson,
+          jsonData: newPublishData,
           isJsonTouched: false,
         },
         () => {
 
           this.props.onPublish(this.state.config, this.props.env);
-          Notification.show(
-            this.props.env === 'int'
-              ? 'Staging Published Successfully'
-              : 'Production Published Successfully'
-          );
         }
       );
     }
@@ -714,11 +679,7 @@ export default class Entitlement extends React.Component {
                 theme="solarized_dark"
                 readOnly={this.props.readOnlyMode}
                 onChange={this.props.readOnlyMode ? undefined : this.handleJsonChange}
-                value={
-                  this.props.readOnlyMode
-                    ? this.state.publishedData || '// No Published Data Available'
-                    : this.state.jsonData
-                }
+                value={this.state.jsonData}
                 fontSize={15}
                 name="json_editor"
                 editorProps={{ $blockScrolling: true }}
