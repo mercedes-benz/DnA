@@ -46,6 +46,7 @@ import com.daimler.data.dto.fabric.LakehouseResponseDto;
 import com.daimler.data.dto.fabric.LakehouseS3ShortcutCollectionDto;
 import com.daimler.data.dto.fabric.LakehouseS3ShortcutDto;
 import com.daimler.data.dto.fabric.LakehouseS3ShortcutResponseDto;
+import com.daimler.data.dto.fabric.LakehouseTablesCollectionDto;
 import com.daimler.data.dto.fabric.MicrosoftGroupDetailDto;
 import com.daimler.data.dto.fabric.ReviewerConfigDto;
 import com.daimler.data.dto.fabric.S3CompatibleTargetDto;
@@ -66,6 +67,8 @@ import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceStatusVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspacesCollectionVO;
 import com.daimler.data.dto.fabricWorkspace.GroupDetailsVO;
+import com.daimler.data.dto.fabricWorkspace.LakehouseTableCollectionVO;
+import com.daimler.data.dto.fabricWorkspace.LakehouseTableVO;
 import com.daimler.data.dto.fabricWorkspace.RoleDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.RolesVO;
 import com.daimler.data.dto.fabricWorkspace.DnaRoleCollectionVO;
@@ -1584,6 +1587,21 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 			collectionVO.setRecords(records);
 		}else {
 			collectionVO.setTotalCount(0);
+			collectionVO.setRecords(new ArrayList<>());
+		}
+		return collectionVO;
+	}
+
+	@Override
+	public LakehouseTableCollectionVO getLakehouseTables(String workspaceId, String lakehouseId) {
+		log.info("getting inside service");
+		LakehouseTableCollectionVO collectionVO = new LakehouseTableCollectionVO();
+		LakehouseTablesCollectionDto collection = fabricWorkspaceClient.listLakehouseTables(workspaceId, lakehouseId);
+		if(collection!=null && collection.getValue()!=null && !collection.getValue().isEmpty()) {
+			List<LakehouseTableVO> records = new ArrayList<>();
+			records = collection.getValue().stream().map(n -> assembler.toLakehouseTableVOFromDto(n)).collect(Collectors.toList());
+			collectionVO.setRecords(records);
+		}else {
 			collectionVO.setRecords(new ArrayList<>());
 		}
 		return collectionVO;

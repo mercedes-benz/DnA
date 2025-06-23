@@ -41,6 +41,8 @@ import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceRoleRequestVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceUpdateRequestVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspacesCollectionVO;
+import com.daimler.data.dto.fabricWorkspace.LakehouseTableCollectionVO;
+import com.daimler.data.dto.fabricWorkspace.LakehouseTableResponseVO;
 import com.daimler.data.dto.fabricWorkspace.RolesVO;
 import com.daimler.data.dto.fabricWorkspace.DnaRoleCollectionVO;
 import com.daimler.data.dto.fabricWorkspace.ShortcutCreateRequestVO;
@@ -878,5 +880,27 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
         return false;
     }
 
-    
+	@ApiOperation(value = "Get tables for a given lakehouse", nickname = "getLakehouseTables", notes = "Get all tables for a given Fabric lakehouse under a workspace.", response = LakehouseTableResponseVO.class, tags={ "fabric-workspaces", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 200, message = "List of tables in the lakehouse", response = LakehouseTableCollectionVO.class),
+        @ApiResponse(code = 204, message = "Fetch complete, but no tables found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have valid credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed."),
+        @ApiResponse(code = 500, message = "Internal server error.") })
+    @RequestMapping(value = "/fabric-workspaces/{workspaceId}/lakehouses/{lakehouseId}/tables",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.GET)
+ 	public ResponseEntity<LakehouseTableCollectionVO> getLakehouseTables(@ApiParam(value = "",required=true) @PathVariable("workspaceId") String workspaceId,@ApiParam(value = "",required=true) @PathVariable("lakehouseId") String lakehouseId){
+		log.info("getting to controller");
+		LakehouseTableCollectionVO response = service.getLakehouseTables(workspaceId,lakehouseId);
+		if(response==null) {
+			return new ResponseEntity<>(response, HttpStatus.NO_CONTENT);
+		}
+		return new ResponseEntity<>(response, HttpStatus.OK);
+	}
+
+
 }

@@ -38,6 +38,7 @@ import com.daimler.data.dto.fabric.LakehouseResponseDto;
 import com.daimler.data.dto.fabric.LakehouseS3ShortcutCollectionDto;
 import com.daimler.data.dto.fabric.LakehouseS3ShortcutDto;
 import com.daimler.data.dto.fabric.LakehouseS3ShortcutResponseDto;
+import com.daimler.data.dto.fabric.LakehouseTablesCollectionDto;
 import com.daimler.data.dto.fabric.MicrosoftGroupDetailCollectionDto;
 import com.daimler.data.dto.fabric.MicrosoftGroupDetailDto;
 import com.daimler.data.dto.fabric.WorkspaceDetailDto;
@@ -100,6 +101,16 @@ public class FabricWorkspaceClient {
 	
 	@Value("${fabricWorkspaces.uri.addUserUrl}")
 	private String addUserUrl;
+
+	@Value("${fabricWorkspaces.lakeHouse.scope}")
+	private String lakeHousescope;
+
+	@Value("${fabricWorkspaces.lakeHouse.grantType}")
+	private String lakeHousegrantType;
+
+	@Value("${fabricWorkspaces.lakeHouse.login}")
+	private String lakeHouseloginUrl;
+
 		
     private static String WORKSPACED_IDENTIFIER = "id";
     private static String GATEWAY_IDENTIFIER = "id";
@@ -182,6 +193,30 @@ public class FabricWorkspaceClient {
 		}
 	}
 	
+	public String getTokenForLakehouseTables(){
+		MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
+		String basicAuthenticationHeader = Base64.getEncoder()
+				.encodeToString(new StringBuffer(clientId).append(":").append(clientSecret).toString().getBytes());
+		map.add("grant_type", lakeHousegrantType);
+		map.add("scope", lakeHousescope);
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+		headers.set("Authorization", "Basic " + basicAuthenticationHeader);
+		HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(map, headers);
+		try{
+			ResponseEntity<String> response = proxyRestTemplate.postForEntity(lakeHouseloginUrl, request, String.class);
+			ObjectMapper objectMapper = new ObjectMapper();
+			FabricOAuthResponse introspectionResponse = objectMapper.readValue(response.getBody(),
+					FabricOAuthResponse.class);
+			log.debug("Introspection Response:" + introspectionResponse);
+			log.info("Successfully fetch oidc token post login for fabric lakehouse");
+			return introspectionResponse.getAccess_token();
+		}catch (Exception e) {
+			log.error("Failed to fetch OIDC token with error {} ",e.getMessage());
+			return null;
+		}
+	}
+
 	public MicrosoftGroupDetailDto searchGroup(String groupDisplayName) {
 		MicrosoftGroupDetailDto microsoftGroupDetailDto = new MicrosoftGroupDetailDto();
 		MicrosoftGroupDetailCollectionDto collection = new MicrosoftGroupDetailCollectionDto();
@@ -405,6 +440,35 @@ public class FabricWorkspaceClient {
 			url = url.replaceFirst(LAKEHOUSE_IDENTIFIER, lakehouseId);
 			ResponseEntity<LakehouseS3ShortcutCollectionDto> response = proxyRestTemplate.exchange(url , HttpMethod.GET,
 					requestEntity, LakehouseS3ShortcutCollectionDto.class);
+			if (response !=null && response.hasBody()) {
+				collection = response.getBody();
+			}
+		}catch(Exception e) {
+			log.error("Failed to get lakehouse shortcuts with {} exception ", e.getMessage());
+		}
+		return collection;
+	}
+
+	public LakehouseTablesCollectionDto listLakehouseTables(String workspaceId, String lakehouseId) {
+		log.info("getting inside client");
+		LakehouseTablesCollectionDto collection = new LakehouseTablesCollectionDto();
+		try {
+			String token = getTokenForLakehouseTables();
+			if(!Objects.nonNull(token)) {
+				log.error("Failed to fetch token to invoke fabric Apis");
+				return collection;
+			}
+			log.info("getting token");
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Authorization", "Bearer "+token);
+			headers.setContentType(MediaType.APPLICATION_JSON);
+			HttpEntity requestEntity = new HttpEntity<>(headers);
+			String url = lakehouseUrl;
+			url = url.replaceFirst(WORKSPACED_IDENTIFIER, workspaceId);
+			url = url + lakehouseId + "/tables";
+			ResponseEntity<LakehouseTablesCollectionDto> response = proxyRestTemplate.exchange(url , HttpMethod.GET,
+					requestEntity, LakehouseTablesCollectionDto.class);
 			if (response !=null && response.hasBody()) {
 				collection = response.getBody();
 			}

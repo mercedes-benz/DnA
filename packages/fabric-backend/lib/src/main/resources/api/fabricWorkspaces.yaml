@@ -393,6 +393,40 @@ paths:
           500:
             description: "Internal error"
 
+  /fabric-workspaces/{workspaceId}/lakehouses/{lakehouseId}/tables:
+    get:
+      tags:
+        - "fabric-workspaces"
+      summary: "Get tables for a given lakehouse"
+      description: "Get all tables for a given Fabric lakehouse under a workspace."
+      operationId: "getLakehouseTables"
+      parameters:
+        - name: "workspaceId"
+          in: "path"
+          required: true
+          type: "string"
+        - name: "lakehouseId"
+          in: "path"
+          required: true
+          type: "string"
+      responses:
+        200:
+          description: "List of tables in the lakehouse"
+          schema:
+            $ref: "#/definitions/LakehouseTableCollectionVO"
+        204:
+          description: "Fetch complete, but no tables found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have valid credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed."
+        500:
+          description: "Internal server error."
+
 
 definitions:
   CapacityVO:
@@ -877,6 +911,36 @@ definitions:
       providerOrgShortname:
         type: string
       providerOrgDeptid:
+        type: string
+
+  LakehouseTableResponseVO:
+    description: "Response object for fabric lakehouse operations"
+    type: object
+    properties:
+      data:
+        $ref: "#/definitions/LakehouseTableCollectionVO"
+      responses:
+        $ref: "#/definitions/GenericMessage"
+
+  LakehouseTableCollectionVO:
+    description: "Collection of fabric lakehouse shortcuts."
+    type: object
+    properties:
+      records:
+        type: array
+        items:
+          $ref: "#/definitions/LakehouseTableVO"
+  
+  LakehouseTableVO:
+    type: object
+    properties:
+      tableType:
+        type: string
+      name:
+        type: string
+      location:
+        type: string
+      format:
         type: string
 
 

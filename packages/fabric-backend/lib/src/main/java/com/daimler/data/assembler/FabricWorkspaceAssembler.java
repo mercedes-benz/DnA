@@ -21,6 +21,7 @@ import com.daimler.data.db.json.Shortcut;
 import com.daimler.data.db.json.UserDetails;
 import com.daimler.data.dto.fabric.LakehouseDto;
 import com.daimler.data.dto.fabric.LakehouseS3ShortcutDto;
+import com.daimler.data.dto.fabric.LakehouseTablesDto;
 import com.daimler.data.dto.fabricWorkspace.CapacityVO;
 import com.daimler.data.dto.fabricWorkspace.CreatedByVO;
 import com.daimler.data.dto.fabricWorkspace.EntitlementDetailsVO;
@@ -28,6 +29,7 @@ import com.daimler.data.dto.fabricWorkspace.FabricLakehouseVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceStatusVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceVO;
 import com.daimler.data.dto.fabricWorkspace.GroupDetailsVO;
+import com.daimler.data.dto.fabricWorkspace.LakehouseTableVO;
 import com.daimler.data.dto.fabricWorkspace.ProjectReferenceDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.RoleDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.ShortcutVO;
@@ -64,7 +66,15 @@ public class FabricWorkspaceAssembler implements GenericAssembler<FabricWorkspac
 			vo.setBucketname(null);
 		return vo;
 	}
-	
+
+	public LakehouseTableVO toLakehouseTableVOFromDto(LakehouseTablesDto dto) {
+		LakehouseTableVO vo = new LakehouseTableVO();
+		vo.setTableType(dto.getTableType());
+		vo.setName(dto.getName());
+		vo.setLocation(dto.getLocation());
+		vo.setFormat(dto.getFormat());
+		return vo;
+	}
 	
 	@Override
 	public FabricWorkspaceVO toVo(FabricWorkspaceNsql entity) {

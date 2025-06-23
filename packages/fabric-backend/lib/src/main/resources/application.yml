@@ -68,6 +68,10 @@ fabricWorkspaces:
     clientSecret: ${GROUPSEARCH_CLIENTSECRET:XXXXX}
     grantType: ${GROUPSEARCH_OAUTH_GRANT_TYPE:client_credentials}
     scope: ${GROUPSEARCH_OAUTH_SCOPE:https://graph.microsoft.com/.default}
+  lakeHouse:
+    scope: ${FABRIC_LAKEHOUSE_SCOPE:https://api.fabric.microsoft.com/.default}
+    grantType: ${FABRIC_LAKEHOUSE_GRANT_TYPE:client_credentials}
+    login: ${FABRIC_LAKEHOUSE_LOGIN:https://login.microsoftonline.com/{tenantId}/oauth2/v2.0/token}
   uri:
     login: ${FABRIC_LOGIN_URL:https://login.microsoftonline.com/{tenantId}/oauth2/v2.0/token}
     workspacesBase: ${FABRIC_WORKSPACE_URL:https://api.fabric.microsoft.com/v1/workspaces}
