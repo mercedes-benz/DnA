@@ -7,6 +7,8 @@ import java.util.List;
 import java.util.Objects;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.persistence.PersistenceException;
+import javax.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -26,6 +28,7 @@ import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.application.auth.UserStore.UserInfo;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
+import com.daimler.data.db.repo.roles.AuthoriserRolesRepository;
 import com.daimler.data.dto.fabric.CreateEntitlementRequestDto;
 import com.daimler.data.dto.fabric.CreateRoleRequestDto;
 import com.daimler.data.dto.fabric.CreateRoleResponseDto;
@@ -41,8 +44,9 @@ import com.daimler.data.dto.fabric.UserRoleRequestDto;
 import com.daimler.data.dto.fabricWorkspace.AuthoriserRoleDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.MembersVO;
 import com.daimler.data.dto.fabricWorkspace.CreatedByVO;
+import com.daimler.data.db.json.AuthoriserRoleDeatils;
+import com.daimler.data.db.entities.AuthoriserRolesNsql;
 import com.daimler.data.dto.fabricWorkspace.DnaRolesVO;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -83,6 +87,7 @@ public class AuthoriserClient {
 
 	@Autowired
 	private UserStore userStore;
+
 	
 	public String getToken() {
             MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
@@ -289,9 +294,8 @@ public class AuthoriserClient {
 		return roleResponseDto;
     }
     
-    public CreateRoleResponseDto  createRole(CreateRoleRequestDto createRequest){
+    public CreateRoleResponseDto  createRole(CreateRoleRequestDto createRequest, String creatorId){
         CreateRoleResponseDto roleResponseDto = new CreateRoleResponseDto();
-
         try {
 
 			String token = getToken();
@@ -308,9 +312,12 @@ public class AuthoriserClient {
 			HttpEntity<CreateRoleRequestDto> requestEntity = new HttpEntity<>(createRequest,headers);
 			ResponseEntity<CreateRoleResponseDto> response = proxyRestTemplate.exchange(uri, HttpMethod.POST,
 					requestEntity, CreateRoleResponseDto.class);
-			if (response!=null && response.hasBody()) {
+			if ( response.getStatusCode().is2xxSuccessful() && response!=null && response.hasBody()) {
                 roleResponseDto = response.getBody();
+				// saveCreatedRoleDetails(createRequest.getId(), creatorId, createRequest.isDynamic());
 			}
+		// } catch (PersistenceException e){
+		// 	log.warn("Error occured while saving the created role in DB : {}",e.getMessage());
 		}catch(HttpClientErrorException.Conflict e) {
 			log.error("Failed to create Role with Name {} with conflict error {} ", createRequest.getName(), e.getMessage());
 		}catch(Exception e) {
@@ -516,18 +523,15 @@ public class AuthoriserClient {
 	}
 
 
-	public HttpStatus RequestRoleForUser(UserRoleRequestDto requestDto,String userId, String roleId, String authToken){
+	public HttpStatus RequestRoleForUser(UserRoleRequestDto requestDto,String userId, String roleId){
 		try {
-			String token = "";
-			if(authToken!=null && !authToken.trim().equalsIgnoreCase("")) {
-				token = authToken;
-			}else {
-				token = getToken();
-				if(!Objects.nonNull(token)) {
-					log.error("Failed to fetch token to invoke fabric Apis");
-					return HttpStatus.INTERNAL_SERVER_ERROR;
-				}
+			
+			String token = getToken();
+			if(!Objects.nonNull(token)) {
+				log.error("Failed to fetch token to invoke fabric Apis");
+				return HttpStatus.INTERNAL_SERVER_ERROR;
 			}
+
 			String uri = authoriserBaseUrl+"/users/"+userId+"/roles/"+roleId;
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
