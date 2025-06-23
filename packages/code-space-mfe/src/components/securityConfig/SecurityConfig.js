@@ -109,6 +109,9 @@ export default class SecurityConfig extends React.Component {
       InputFields.defaultSetup();
   
       if (path.includes('publishedSecurityconfig')) {
+        this.setState({
+          readOnlyMode: true,
+        });
         this.getPublishedConfig(this.state.id, envKey);
       } else {
         this.getConfig(this.state.id, envKey);
@@ -245,15 +248,21 @@ export default class SecurityConfig extends React.Component {
     const saveActionType = this.state.saveActionType;
     const currentState = this.state.currentState;
     const showAlertChangesModal = !this.state.readOnlyMode;
-  
+
     if (!currentState || saveActionType === 'btn' || _.isEqual(newState, currentState)) {
       if (target.id !== this.state.currentTab) {
-        this.setState({
-          clickedTab: target.id,
-          currentTab: target.id, 
-          showStagingModal: target.id === 'stagingEntitlement', 
-          showAlertChangesModal: showAlertChangesModal,
-        });
+        !this.state.readOnlyMode
+          ? this.setState({
+              clickedTab: target.id,
+              showAlertChangesModal: showAlertChangesModal,
+            })
+          : this.setState({
+            currentTab: target.id,
+            saveActionType: '',
+            nextTab: target.id === 'stagingEntitlement' ? 'productionEntitlement' : 'stagingEntitlement',
+            showStagingModal: target.id === 'stagingEntitlement' ? true : false,
+            showAlertChangesModal: false,
+          });
       }
     }
   };
