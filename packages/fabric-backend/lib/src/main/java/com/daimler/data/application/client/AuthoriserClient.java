@@ -41,11 +41,16 @@ import com.daimler.data.dto.fabric.RoleApproverPrivilegesDto;
 import com.daimler.data.dto.fabric.RoleIdDto;
 import com.daimler.data.dto.fabric.RoleOwnerPrivilegesDto;
 import com.daimler.data.dto.fabric.UserRoleRequestDto;
+import com.daimler.data.dto.fabricWorkspace.AuthoriserRoleDetailsVO;
+import com.daimler.data.dto.fabricWorkspace.MembersVO;
 import com.daimler.data.dto.fabricWorkspace.CreatedByVO;
 import com.daimler.data.db.json.AuthoriserRoleDeatils;
 import com.daimler.data.db.entities.AuthoriserRolesNsql;
+import com.daimler.data.dto.fabricWorkspace.DnaRolesVO;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
+
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -547,9 +552,9 @@ public class AuthoriserClient {
 		return HttpStatus.INTERNAL_SERVER_ERROR;
 	}
 
-	public List<String> getAllUserManagableRoles(String id, String authToken){
+	public List<DnaRolesVO> getAllUserManagableRoles(String id, String authToken){
 
-		List<String> roles = new ArrayList<>();
+		List<DnaRolesVO> roles = new ArrayList<>();
 		try {
 			String token = "";
 			if(authToken!=null && !authToken.trim().equalsIgnoreCase("")) {
@@ -577,8 +582,12 @@ public class AuthoriserClient {
                     if (rolesNode.isArray()) {
                         for (JsonNode roleNode : rolesNode) {
                             String roleId = roleNode.path("id").asText();
+							Boolean isDynamic = roleNode.path("isDynamic").asBoolean();
                             if (!roleId.isEmpty()) {
-                                roles.add(roleId);
+								DnaRolesVO role = new DnaRolesVO();
+								role.setRoleID(roleId);
+								role.setIsDynamic(isDynamic);
+                                roles.add(role);
                             }
                         }
                     }
@@ -631,6 +640,72 @@ public class AuthoriserClient {
 		return userDetail;
 	}
 
+	public AuthoriserRoleDetailsVO getRoleDetails(String roleId){
+		AuthoriserRoleDetailsVO response = new AuthoriserRoleDetailsVO();
+		try{
+
+			String token = getToken();
+			if(!Objects.nonNull(token)) {
+				log.error("Failed to fetch token to invoke fabric Apis");
+				return response;
+			}
+
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Authorization", "Bearer "+token);
+			headers.setContentType(MediaType.APPLICATION_JSON);
+			String uri = authoriserBaseUrl + "/roles/"+ roleId;
+			HttpEntity requestEntity = new HttpEntity<>(headers);
+			ResponseEntity<AuthoriserRoleDetailsVO> roleDetailsResponse = proxyRestTemplate.exchange(uri, HttpMethod.GET,
+					requestEntity, AuthoriserRoleDetailsVO.class);
+					if(roleDetailsResponse.getBody() != null){
+						response = roleDetailsResponse.getBody();
+					}
+				
+		}catch(Exception e) {
+			log.error("Failed to get roles detail with error {} ", e.getMessage());
+		}
+		return response;
+	}
+
+	public List<MembersVO> getUsersForRole(String roleId){
+		List<MembersVO> response = new ArrayList<>();
+		try{
+
+			String token = getToken();
+			if(!Objects.nonNull(token)) {
+				log.error("Failed to fetch token to invoke fabric Apis");
+				return response;
+			}
+
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Authorization", "Bearer "+token);
+			headers.setContentType(MediaType.APPLICATION_JSON);
+			String uri = authoriserBaseUrl + "/roles/"+ roleId +"/users";
+			HttpEntity requestEntity = new HttpEntity<>(headers);
+			ResponseEntity<String> apiResponse = proxyRestTemplate.exchange(uri, HttpMethod.GET,
+					requestEntity, String.class);
+			if (apiResponse.getStatusCode().is2xxSuccessful()) {
+				ObjectMapper objectMapper = new ObjectMapper();
+				objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+				JsonNode jsonData = objectMapper.readTree(apiResponse.getBody());
+				JsonNode usersNode = jsonData.get("users");
+
+				if (usersNode.isArray()) {
+					for (JsonNode userNode : usersNode) {
+						JsonNode userObject = userNode.get("user");
+						MembersVO member = objectMapper.treeToValue(userObject, MembersVO.class);
+						response.add(member);
+					}
+				}
+			}
+				
+		}catch(Exception e) {
+			log.error("Failed to get users for role with error {} ", e.getMessage());
+		}
+		return response;
+	}
 
 }
 

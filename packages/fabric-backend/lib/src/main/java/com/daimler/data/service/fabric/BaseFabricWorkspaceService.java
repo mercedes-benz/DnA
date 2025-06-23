@@ -55,6 +55,8 @@ import com.daimler.data.dto.fabric.LakehouseS3ShortcutCollectionDto;
 import com.daimler.data.dto.fabric.LakehouseS3ShortcutDto;
 import com.daimler.data.dto.fabric.LakehouseS3ShortcutResponseDto;
 import com.daimler.data.dto.fabric.MicrosoftGroupDetailDto;
+import com.daimler.data.dto.fabric.MicrosoftGroupMemberCollectionDto;
+import com.daimler.data.dto.fabric.MicrosoftGroupMembersDto;
 import com.daimler.data.dto.fabric.ReviewerConfigDto;
 import com.daimler.data.dto.fabric.S3CompatibleTargetDto;
 import com.daimler.data.dto.fabric.ShortcutTargetDto;
@@ -62,10 +64,14 @@ import com.daimler.data.dto.fabric.UserRoleRequestDto;
 import com.daimler.data.dto.fabric.WorkflowDefinitionDto;
 import com.daimler.data.dto.fabric.WorkspaceDetailDto;
 import com.daimler.data.dto.fabric.WorkspaceUpdateDto;
+import com.daimler.data.dto.fabricWorkspace.AuthoriserRoleDetailsVO;
+import com.daimler.data.dto.fabricWorkspace.MembersVO;
 import com.daimler.data.dto.fabricWorkspace.CapacityVO;
 import com.daimler.data.dto.fabricWorkspace.CreateRoleRequestVO;
 import com.daimler.data.dto.fabricWorkspace.CreatedByVO;
 import com.daimler.data.dto.fabricWorkspace.EntitlementDetailsVO;
+import com.daimler.data.dto.fabricWorkspace.EntraGroupMembersVO;
+import com.daimler.data.dto.fabricWorkspace.EntraGroupResponseVO;
 import com.daimler.data.dto.fabricWorkspace.FabricLakehouseCreateRequestVO;
 import com.daimler.data.dto.fabricWorkspace.FabricLakehouseVO;
 import com.daimler.data.dto.fabricWorkspace.FabricShortcutsCollectionVO;
@@ -84,6 +90,7 @@ import com.daimler.data.dto.fabricWorkspace.ShortcutVO;
 import com.daimler.data.service.common.BaseCommonService;
 import com.daimler.data.util.ConstantsUtility;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.daimler.data.dto.fabricWorkspace.DnaRolesVO;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -1891,6 +1898,42 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 			log.error("Error saving created role details for role {}: {}", roleName, e.getMessage());
 			throw new PersistenceException("Error saving created role details", e);
 		}
+
+	@Override
+	public AuthoriserRoleDetailsVO getRoleDetails(String roleId){
+		AuthoriserRoleDetailsVO roleDetailVO = new  AuthoriserRoleDetailsVO();
+
+		roleDetailVO = identityClient.getRoleDetails(roleId);
+		List<MembersVO> members = identityClient.getUsersForRole(roleId);
+		roleDetailVO.setRoleMembers(members);
+		return roleDetailVO;
+	}
+
+	@Override
+	public EntraGroupResponseVO getEntraGroupMembers(String roleName) {
+        MicrosoftGroupDetailDto groupDetail = fabricWorkspaceClient.searchGroup(roleName);
+        if (groupDetail == null || groupDetail.getId() == null) {
+            return null; 
+        }
+
+        MicrosoftGroupMemberCollectionDto memberCollection = fabricWorkspaceClient.getGroupMembers(groupDetail.getId());
+        List<EntraGroupMembersVO> memberVOs = new ArrayList<>();
+        if (memberCollection != null && memberCollection.getValue() != null) {
+            for (MicrosoftGroupMembersDto member : memberCollection.getValue()) {
+                EntraGroupMembersVO vo = new EntraGroupMembersVO();
+                vo.setId(member.getId());
+                vo.setDisplayName(member.getDisplayName());
+				vo.setMail(member.getMail());
+				if (member.getUserPrincipalName() != null && member.getUserPrincipalName().contains("@")) {
+					String shortId = member.getUserPrincipalName().split("@")[0];
+					vo.setShortId(shortId);
+				}
+                memberVOs.add(vo);
+            }
+        }
+		EntraGroupResponseVO response = new EntraGroupResponseVO();
+        response.setMembers(memberVOs);
+        return response;
 	}
 
 }

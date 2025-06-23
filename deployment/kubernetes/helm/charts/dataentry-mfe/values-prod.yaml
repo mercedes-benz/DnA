@@ -9,7 +9,7 @@ replicaCount: 2
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/dataentry-mfe
   pullPolicy: IfNotPresent
-  tag: 39
+  tag: 1.0.1
 imagePullSecrets:
   - name: imagepullsecret
 nameOverride: ''
@@ -50,7 +50,7 @@ vaultInjector:
   enable: true
   annotations:
     vault.hashicorp.com/agent-inject: 'true'
-    vault.hashicorp.com/role: 'dna_aws_prod_k8_role'
+    vault.hashicorp.com/role: dna_aws_prod_k8_role
     vault.hashicorp.com/agent-pre-populate-only: 'true'
     vault.hashicorp.com/agent-inject-secret-configjs: dna_aws_kv/prod/kubernetesSecret/dataentryMFE
     vault.hashicorp.com/agent-inject-file-configjs: config.js

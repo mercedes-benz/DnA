@@ -12,6 +12,7 @@ import com.daimler.data.dto.fabric.CreateEntitlementRequestDto;
 import com.daimler.data.dto.fabric.CreateRoleRequestDto;
 import com.daimler.data.dto.fabricWorkspace.CreatedByVO;
 import com.daimler.data.dto.fabricWorkspace.EntitlementDetailsVO;
+import com.daimler.data.dto.fabricWorkspace.AuthoriserRoleDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.FabricLakehouseCreateRequestVO;
 import com.daimler.data.dto.fabricWorkspace.FabricShortcutsCollectionVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceResponseVO;
@@ -75,4 +76,7 @@ public interface FabricWorkspaceService extends CommonService<FabricWorkspaceVO,
 
 	DnaRoleCollectionVO getAllUserDnaRoles(String id);
 
+	AuthoriserRoleDetailsVO getRoleDetails(String roleId);
+
+	EntraGroupResponseVO getEntraGroupMembers(String roleName);
 }
