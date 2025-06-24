@@ -38,95 +38,94 @@
  import java.util.Objects;
  import java.util.Optional;
  import java.util.Set;
-import java.util.UUID;
-import java.util.regex.Matcher;
-  import java.util.regex.Pattern;
-  import java.util.stream.Collector;
-  import java.util.stream.Collectors;
+ import java.util.UUID;
+ import java.util.regex.Matcher;
+ import java.util.regex.Pattern;
+ import java.util.stream.Collector;
+ import java.util.stream.Collectors;
+
+ import org.json.JSONObject;
+ import org.springframework.beans.BeanUtils;
+ import org.springframework.beans.factory.annotation.Autowired;
+ import org.springframework.beans.factory.annotation.Value;
+ import org.springframework.http.HttpStatus;
+ import org.springframework.stereotype.Service;
+ import org.springframework.transaction.annotation.Transactional;
+ import org.springframework.util.ObjectUtils;
  
-  import org.json.JSONObject;
-  import org.springframework.beans.BeanUtils;
-  import org.springframework.beans.factory.annotation.Autowired;
-  import org.springframework.beans.factory.annotation.Value;
-  import org.springframework.http.HttpStatus;
-  import org.springframework.stereotype.Service;
-  import org.springframework.transaction.annotation.Transactional;
-  import org.springframework.util.ObjectUtils;
-  
-  import com.daimler.data.application.auth.UserStore;
-  import com.daimler.data.application.client.CodeServerClient;
-  import com.daimler.data.application.client.GitClient;
-  import com.daimler.data.application.client.VaultClient;
+ import com.daimler.data.application.auth.UserStore;
+ import com.daimler.data.application.client.CodeServerClient;
+ import com.daimler.data.application.client.GitClient;
+ import com.daimler.data.application.client.VaultClient;
  import com.daimler.data.assembler.CodeServerUserGroupassembler;
  import com.daimler.data.assembler.WorkspaceAssembler;
  import com.daimler.data.auth.client.AuthenticatorClient;
-  import com.daimler.data.auth.client.DnaAuthClient;
-  import com.daimler.data.controller.exceptions.GenericMessage;
-  import com.daimler.data.controller.exceptions.MessageDescription;
-import com.daimler.data.db.entities.CodeServerBuildDeployNsql;
+ import com.daimler.data.auth.client.DnaAuthClient;
+ import com.daimler.data.controller.exceptions.GenericMessage;
+ import com.daimler.data.controller.exceptions.MessageDescription;
+ import com.daimler.data.db.entities.CodeServerBuildDeployNsql;
  import com.daimler.data.db.entities.CodeServerUserGroupNsql;
  import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
  import com.daimler.data.db.json.BuildAudit;
-import com.daimler.data.db.json.CodeServerBuildDeploy;
-import com.daimler.data.db.json.CodeServerBuildDetails;
-  import com.daimler.data.db.json.CodeServerDeploymentDetails;
-  import com.daimler.data.db.json.CodeServerLeanGovernanceFeilds;
-import com.daimler.data.db.json.CodeServerUserGroup;
-import com.daimler.data.db.json.CodeServerUserGroupList;
-import com.daimler.data.db.json.CodeServerUserGroupWsDetails;
-import com.daimler.data.db.json.CodeServerWorkspace;
-  import com.daimler.data.db.json.CodespaceSecurityConfig;
-  import com.daimler.data.db.json.UserInfo;
-import com.daimler.data.db.json.CodeServerProjectDetails;
-import com.daimler.data.db.json.CodeServerWorkspace;
-  import com.daimler.data.db.json.CodespaceSecurityConfig;
-  import com.daimler.data.db.json.UserInfo;
-  import com.daimler.data.db.repo.workspace.WorkSpaceCodeServerBuildDeployRepository;
-  import com.daimler.data.db.repo.workspace.WorkspaceCustomAdditionalServiceRepo;
-  import com.daimler.data.db.repo.workspace.WorkspaceCustomRecipeRepo;
-  import com.daimler.data.db.repo.workspace.WorkspaceCustomRepository;
-import com.daimler.data.db.repo.workspace.WorkspaceCustomUserGroupRepo;
-import com.daimler.data.db.repo.workspace.WorkspaceRepository;
+ import com.daimler.data.db.json.CodeServerBuildDeploy;
+ import com.daimler.data.db.json.CodeServerBuildDetails;
+ import com.daimler.data.db.json.CodeServerDeploymentDetails;
+ import com.daimler.data.db.json.CodeServerLeanGovernanceFeilds;
+ import com.daimler.data.db.json.CodeServerUserGroup;
+ import com.daimler.data.db.json.CodeServerUserGroupList;
+ import com.daimler.data.db.json.CodeServerUserGroupWsDetails;
+ import com.daimler.data.db.json.CodeServerProjectDetails;
+ import com.daimler.data.db.json.CodeServerWorkspace;
+ import com.daimler.data.db.json.CodespaceSecurityConfig;
+ import com.daimler.data.db.json.UserInfo;
+ import com.daimler.data.db.repo.workspace.WorkSpaceCodeServerBuildDeployRepository;
+ import com.daimler.data.db.repo.workspace.WorkspaceCustomAdditionalServiceRepo;
+ import com.daimler.data.db.repo.workspace.WorkspaceCustomRecipeRepo;
+ import com.daimler.data.db.repo.workspace.WorkspaceCustomRepository;
+ import com.daimler.data.db.repo.workspace.WorkspaceCustomUserGroupRepo;
+ import com.daimler.data.db.repo.workspace.WorkspaceRepository;
  import com.daimler.data.db.repo.workspace.WorkspaceUserGroupRepository;
  import com.daimler.data.dto.AdditionalPropertiesDto;
-  import com.daimler.data.dto.CodespaceSecurityConfigDto;
-  import com.daimler.data.dto.DeploymentManageDto;
-  import com.daimler.data.dto.DeploymentManageInputDto;
-  import com.daimler.data.dto.GitLatestCommitIdDto;
-  import com.daimler.data.dto.WorkbenchManageDto;
-  import com.daimler.data.dto.WorkbenchManageInputDto;
-  import com.daimler.data.dto.solution.ChangeLogVO;
-  import com.daimler.data.dto.userinfo.UsersCollection;
+ import com.daimler.data.dto.CodespaceSecurityConfigDto;
+ import com.daimler.data.dto.DeploymentManageDto;
+ import com.daimler.data.dto.DeploymentManageInputDto;
+ import com.daimler.data.dto.GitLatestCommitIdDto;
+ import com.daimler.data.dto.WorkbenchManageDto;
+ import com.daimler.data.dto.WorkbenchManageInputDto;
+ import com.daimler.data.dto.solution.ChangeLogVO;
+ import com.daimler.data.dto.userinfo.UsersCollection;
  import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.CloudServiceProviderEnum;
  import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.RecipeIdEnum;
  import com.daimler.data.dto.workspace.CodeServerUserGroupByIdVO;
-import com.daimler.data.dto.workspace.CodeServerUserGroupCollectionVO;
-import com.daimler.data.dto.workspace.CodeServerUserGroupVO;
-import com.daimler.data.dto.workspace.CodeServerUserGroupWsDetailsVO;
-import com.daimler.data.dto.workspace.CodeServerWorkspaceVO;
-  import com.daimler.data.dto.workspace.CodeServerWorkspaceValidateVO;
+ import com.daimler.data.dto.workspace.CodeServerUserGroupCollectionVO;
+ import com.daimler.data.dto.workspace.CodeServerUserGroupVO;
+ import com.daimler.data.dto.workspace.CodeServerUserGroupWsDetailsVO;
+ import com.daimler.data.dto.workspace.CodeServerWorkspaceVO;
+ import com.daimler.data.dto.workspace.CodeServerWorkspaceValidateVO;
  import com.daimler.data.dto.workspace.CodeSpaceReadmeVo;
  import com.daimler.data.dto.workspace.CreatedByVO;
-  import com.daimler.data.dto.workspace.DataGovernanceRequestInfo;
-  import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
-  import com.daimler.data.dto.workspace.ResourceVO;
-import com.daimler.data.dto.workspace.UpdateUserGroupRequestVO;
-import com.daimler.data.dto.workspace.UserInfoVO;
-  import com.daimler.data.dto.workspace.admin.CodespaceSecurityConfigDetailsVO;
+ import com.daimler.data.dto.workspace.DataGovernanceRequestInfo;
+ import com.daimler.data.dto.workspace.DeployedAppConfigDto;
+ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
+ import com.daimler.data.dto.workspace.ResourceVO;
+ import com.daimler.data.dto.workspace.UpdateUserGroupRequestVO;
+ import com.daimler.data.dto.workspace.UserInfoVO;
+ import com.daimler.data.dto.workspace.WorkspacePluginStatusVO;
+ import com.daimler.data.dto.workspace.admin.CodespaceSecurityConfigDetailsVO;
  import com.daimler.data.dto.workspace.recipe.RecipeVO.RecipeTypeEnum;
-import com.daimler.data.dto.workspace.buildDeploy.*;
+ import com.daimler.data.dto.workspace.buildDeploy.*;
  import com.daimler.data.util.CommonUtils;
  import com.daimler.data.util.ConstantsUtility;
-  import com.daimler.dna.notifications.common.producer.KafkaProducerService;
-  import com.fasterxml.jackson.databind.ObjectMapper;
-  import com.daimler.data.db.json.DeploymentAudit;
-  import lombok.extern.slf4j.Slf4j;
-  
-  @Service
-  @Slf4j
-  @SuppressWarnings(value = "unused")
-  public class BaseWorkspaceService implements WorkspaceService {
-  
+ import com.daimler.dna.notifications.common.producer.KafkaProducerService;
+ import com.fasterxml.jackson.databind.ObjectMapper;
+ import com.daimler.data.db.json.DeploymentAudit;
+ import lombok.extern.slf4j.Slf4j;
+ 
+ @Service
+ @Slf4j
+ @SuppressWarnings(value = "unused")
+ public class BaseWorkspaceService implements WorkspaceService {
+ 
 	 @Value("${codeServer.env.ref}")
 	 private String codeServerEnvRef;
   
@@ -168,6 +167,15 @@ import com.daimler.data.dto.workspace.buildDeploy.*;
 
 	 @Value("${codeServer.technical.id}")
 	 private String technicalId;
+
+	 @Value("${kong.dnaIntClientSecret}")
+	 private String dnaIntClientSecret;
+
+	 @Value("${kong.dnaProdClientSecret}")
+	 private String dnaProdClientSecret;
+
+	 @Value("${kong.dnaAppId}")
+	 private String dnaAppId;
  
 	 @Autowired
 	 private WorkspaceAssembler workspaceAssembler;
@@ -1472,9 +1480,7 @@ import com.daimler.data.dto.workspace.buildDeploy.*;
 	 @Override
      @Transactional
      public GenericMessage approveRequestWorkspace(String userId, String id, String environment, String branch,
-	 		boolean isSecureWithIAMRequired, String clientID, String clientSecret, String redirectUri,
-	 		String ignorePaths, String scope, boolean isApiRecipe,
-	 		String oneApiVersionShortName, boolean isSecuredWithCookie, boolean isprivateRecipe,String version) {
+	 		 boolean isprivateRecipe,String version) {
          GenericMessage responseMessage = new GenericMessage();
          String status = "FAILED";
          List<MessageDescription> warnings = new ArrayList<>();
@@ -1494,14 +1500,6 @@ import com.daimler.data.dto.workspace.buildDeploy.*;
                 CodeServerDeploymentDetails deploymentDetails = entity.getData().getProjectDetails().getProdDeploymentDetails();
                 //  }
                  deploymentDetails.setLastDeploymentStatus("APPROVAL_PENDING");
-                 deploymentDetails.setSecureWithIAMRequired(isSecureWithIAMRequired);
-				 deploymentDetails.setOneApiVersionShortName(oneApiVersionShortName);
-				 deploymentDetails.setIsSecuredWithCookie(isSecuredWithCookie);
-				 deploymentDetails.setDeploymentType(isApiRecipe ? ConstantsUtility.API : ConstantsUtility.UI);
-				 deploymentDetails.setClientId(clientID);
-				 deploymentDetails.setRedirectUri(redirectUri);
-				 deploymentDetails.setIgnorePaths(ignorePaths);
-				 deploymentDetails.setScope(scope);
                  // deploymentDetails.setTechnicalUserDetailsForIAMLogin(technicalUserDetailsForIAMLogin);
 				 
 				workspaceCustomRepository.updateDeploymentDetails(projectName, environmentJsonbName,
@@ -1567,9 +1565,7 @@ import com.daimler.data.dto.workspace.buildDeploy.*;
 	 @Override
 	 @Transactional
 	 	public GenericMessage deployWorkspace(String userId, String id, String environment, String branch,
-				boolean isSecureWithIAMRequired, String clientID, String clientSecret, String redirectUri,
-				String ignorePaths, String scope, boolean isApiRecipe,
-				String oneApiVersionShortName, boolean isSecuredWithCookie, boolean isprivateRecipe,String version,String deployType) {
+				 boolean isprivateRecipe,String version,String deployType) {
 		 GenericMessage responseMessage = new GenericMessage();
 		 String status = "FAILED";
 		 List<MessageDescription> warnings = new ArrayList<>();
@@ -1649,14 +1645,6 @@ import com.daimler.data.dto.workspace.buildDeploy.*;
 					 		 
 			 //buildAndDeploy flow
 			 if(version == null || version.isEmpty() || version.isBlank()){
-				deploymentDetails.setSecureWithIAMRequired(isSecureWithIAMRequired);
-					 deploymentDetails.setOneApiVersionShortName(oneApiVersionShortName);
-					 deploymentDetails.setIsSecuredWithCookie(isSecuredWithCookie);
-					 deploymentDetails.setDeploymentType(isApiRecipe ? ConstantsUtility.API : ConstantsUtility.UI);
-					 deploymentDetails.setClientId(clientID);
-					 deploymentDetails.setRedirectUri(redirectUri);
-					 deploymentDetails.setIgnorePaths(ignorePaths);
-					 deploymentDetails.setScope(scope);
 				String lastBuildType = "buildAndDeploy";
 				
 				ManageBuildRequestDto buildRequestDto = new ManageBuildRequestDto();
@@ -1666,7 +1654,6 @@ import com.daimler.data.dto.workspace.buildDeploy.*;
 				log.info("build triggered for workspaceId {} and branch {} and environment {} and lastBuildType {}",workspaceId,branch,environment,lastBuildType);
 				responseMessage = this.buildWorkSpace(userId, id, branch, buildRequestDto, isprivateRecipe, environment,lastBuildType);
 				if(responseMessage.getSuccess().equalsIgnoreCase("SUCCESS")){
-					authenticatorClient.callingKongApis(workspaceId, serviceName, environment, isApiRecipe, clientID,clientSecret,redirectUri, ignorePaths, scope, oneApiVersionShortName, isSecuredWithCookie, isSecureWithIAMRequired, cloudServiceProvider);
 					status = "SUCCESS";
 					lastBuildOrDeployStatus = "BUILD_REQUESTED";
 				}else{
@@ -1696,15 +1683,6 @@ import com.daimler.data.dto.workspace.buildDeploy.*;
 				 deployJobInputDto.setShortid(workspaceOwner);
 				 deployJobInputDto.setTarget_env(environment);
  
-				 if((!isApiRecipe && !oneApiVersionShortName.isBlank()) || (isSecureWithIAMRequired && !oneApiVersionShortName.isBlank()) ){
-					MessageDescription error = new MessageDescription();
-					error.setMessage("Failed while deploying codeserver workspace project, couldn't deploy for this combination. BAD REQUEST. ");
-					errors.add(error);
-					responseMessage.setErrors(errors);
-					responseMessage.setWarnings(warnings);
-					responseMessage.setSuccess(status);
-					return responseMessage;
-				 }
 				Boolean isValutInjectorEnable = false;
 				 try{
 					isValutInjectorEnable = VaultClient.enableVaultInjector(projectName.toLowerCase(), environment);
@@ -1802,16 +1780,7 @@ import com.daimler.data.dto.workspace.buildDeploy.*;
 					 
 					 //only deploy flow
 					if(deployType.equalsIgnoreCase("deploy")){
-						deploymentDetails.setSecureWithIAMRequired(isSecureWithIAMRequired);
-						deploymentDetails.setOneApiVersionShortName(oneApiVersionShortName);
-						deploymentDetails.setIsSecuredWithCookie(isSecuredWithCookie);
-						deploymentDetails.setDeploymentType(isApiRecipe ? ConstantsUtility.API : ConstantsUtility.UI);
-						deploymentDetails.setClientId(clientID);
-						deploymentDetails.setRedirectUri(redirectUri);
-						deploymentDetails.setIgnorePaths(ignorePaths);
-						deploymentDetails.setScope(scope);
 						lastBuildOrDeployStatus = "DEPLOY_REQUESTED";						
-					authenticatorClient.callingKongApis(workspaceId, serviceName, environment, isApiRecipe, clientID,clientSecret,redirectUri, ignorePaths, scope, oneApiVersionShortName, isSecuredWithCookie, isSecureWithIAMRequired, cloudServiceProvider);
 					}
 					// deploymentDetails.setLastDeployedBranch(branch);
 					// deploymentDetails.setLastDeployedVersion(version);					
@@ -1835,7 +1804,197 @@ import com.daimler.data.dto.workspace.buildDeploy.*;
 		 responseMessage.setSuccess(status);
 		 return responseMessage;
 	 }
-  
+ 
+	 @Override
+	 @Transactional
+	 public GenericMessage deployedAppConfig(String userId, String id, String environment, DeployedAppConfigDto deployedAppConfigDto){
+		 GenericMessage responseMessage = new GenericMessage();
+		 String status = "FAILED";
+         List<MessageDescription> warnings = new ArrayList<>();
+         List<MessageDescription> errors = new ArrayList<>();
+		 String cloudServiceProvider = null;
+		 String environmentJsonbName = null;
+		 CodeServerDeploymentDetails deploymentDetails = new CodeServerDeploymentDetails();
+		 try{
+			 CodeServerWorkspaceNsql entity = workspaceCustomRepository.findById(userId, id);
+			 if (entity != null) {
+				 String projectName = entity.getData().getProjectDetails().getProjectName();
+			 	 String workspaceId = entity.getData().getWorkspaceId();
+				 if("int".equalsIgnoreCase(environment)){
+					 environmentJsonbName = "intDeploymentDetails";
+					 deploymentDetails = entity.getData().getProjectDetails().getIntDeploymentDetails();
+				 } else{
+					 environmentJsonbName = "prodDeploymentDetails";
+					 deploymentDetails = entity.getData().getProjectDetails().getProdDeploymentDetails();
+				 }
+				 if(Objects.nonNull(deploymentDetails) && Objects.nonNull(deploymentDetails.getDeploymentUrl())){
+					 if(deploymentDetails.getDeploymentUrl().contains(codeServerBaseUriAws)){
+					 cloudServiceProvider = ConstantsUtility.DHC_CAAS_AWS;
+				 	 } else{
+						 cloudServiceProvider = ConstantsUtility.DHC_CAAS;
+				 	 }
+				 } else{
+					 MessageDescription error = new MessageDescription();
+					 error.setMessage(
+							 "Failed while updating deployed app config for workspace project, no deployemnts found.");
+					 errors.add(error);
+					 responseMessage.setErrors(errors);
+					 return responseMessage;
+				 }
+
+				 boolean isApiRecipe = deployedAppConfigDto.isIsApiRecipe();
+                 boolean oneApiVersionShortNameNotBlank = !deployedAppConfigDto.getOneApiVersionShortName().isBlank();
+                 boolean secureWithIAMRequired = deployedAppConfigDto.isSecureWithIAMRequired();
+                 boolean secureWithDnaRequired = deployedAppConfigDto.isSecureWithDnaRequired();
+
+                 if ((!isApiRecipe && oneApiVersionShortNameNotBlank) ||
+                		 (secureWithIAMRequired && (oneApiVersionShortNameNotBlank || secureWithDnaRequired)) ||
+    					 (secureWithDnaRequired && (secureWithIAMRequired || oneApiVersionShortNameNotBlank)) ||
+                         (oneApiVersionShortNameNotBlank && (secureWithIAMRequired || secureWithDnaRequired))) {
+				     MessageDescription error = new MessageDescription();
+				     error.setMessage("Failed while deploying codeserver workspace project, couldn't deploy for this combination. BAD REQUEST. ");
+					 errors.add(error);
+					 responseMessage.setErrors(errors);
+					 responseMessage.setWarnings(warnings);
+					 responseMessage.setSuccess(status);
+					 return responseMessage;
+                 }
+
+				 String clientSecret = null;
+				 if(secureWithDnaRequired){
+					if("SSO_INT".equalsIgnoreCase(deployedAppConfigDto.getSsoType().toString())){
+						clientSecret = dnaIntClientSecret;
+					} else{
+						clientSecret = dnaProdClientSecret;
+					}
+				 } else{
+					clientSecret = deployedAppConfigDto.getClientSecret();
+				 }
+				 boolean isSecuredWithCookie = false; //disable for now 
+				 deploymentDetails.setSecureWithIAMRequired(secureWithIAMRequired);
+				 deploymentDetails.setOneApiVersionShortName(deployedAppConfigDto.getOneApiVersionShortName());
+				 deploymentDetails.setIsSecuredWithCookie(isSecuredWithCookie);
+				 deploymentDetails.setDeploymentType(deployedAppConfigDto.isIsApiRecipe() ? ConstantsUtility.API : ConstantsUtility.UI);
+				 deploymentDetails.setClientId(deployedAppConfigDto.getClientID());
+				 deploymentDetails.setRedirectUri(deployedAppConfigDto.getRedirectUri());
+				 deploymentDetails.setIgnorePaths(deployedAppConfigDto.getIgnorePaths());
+				 deploymentDetails.setScope(deployedAppConfigDto.getScope());
+				 deploymentDetails.setSsoType(deployedAppConfigDto.getSsoType().toString());
+				 deploymentDetails.setSecureWithDnaRequired(secureWithDnaRequired);
+				 workspaceCustomRepository.updateDeploymentDetails(projectName, environmentJsonbName,
+							 deploymentDetails, deploymentDetails.getLastDeploymentStatus());
+				 authenticatorClient.callingKongApis(workspaceId, projectName, environment, deployedAppConfigDto.isIsApiRecipe(), deployedAppConfigDto.getClientID(), clientSecret, deployedAppConfigDto.getRedirectUri(), deployedAppConfigDto.getIgnorePaths(), deployedAppConfigDto.getScope(), deployedAppConfigDto.getOneApiVersionShortName(), isSecuredWithCookie, secureWithIAMRequired, deployedAppConfigDto.getSsoType().toString(), secureWithDnaRequired, cloudServiceProvider);
+				 status = "SUCCESS";
+			 }
+			 
+		 } catch (Exception e) {
+			 MessageDescription error = new MessageDescription();
+			 error.setMessage("Failed while updating deployed app config of workspace project with exception " + e.getMessage());
+			 errors.add(error);
+		 }
+		 responseMessage.setErrors(errors);
+		 responseMessage.setWarnings(warnings);
+		 responseMessage.setSuccess(status);
+		 return responseMessage;
+	 }
+
+	 @Override
+	 @Transactional
+	 public WorkspacePluginStatusVO pluginStatus(String userId, String id, String environment, String pluginName){
+		 CodeServerDeploymentDetails deploymentDetails = new CodeServerDeploymentDetails();
+		 WorkspacePluginStatusVO workspacePluginStatusVo = new WorkspacePluginStatusVO();
+		 String cloudServiceProvider = null;
+		 try{
+			 CodeServerWorkspaceNsql entity = workspaceCustomRepository.findById(userId, id);
+		     if (entity != null) {
+			 	 String projectName = entity.getData().getProjectDetails().getProjectName();
+			 	 String workspaceId = entity.getData().getWorkspaceId();
+			 	 if("int".equalsIgnoreCase(environment)){
+			     	 deploymentDetails = entity.getData().getProjectDetails().getIntDeploymentDetails();
+			     } else{
+				  	 deploymentDetails = entity.getData().getProjectDetails().getProdDeploymentDetails();
+			     }
+			     if(Objects.nonNull(deploymentDetails) && Objects.nonNull(deploymentDetails.getDeploymentUrl())){
+			         if(deploymentDetails.getDeploymentUrl().contains(codeServerBaseUriAws)){
+				    	 cloudServiceProvider = ConstantsUtility.DHC_CAAS_AWS;
+				     } else{
+				 		 cloudServiceProvider = ConstantsUtility.DHC_CAAS;
+				     }
+			     } else{
+					log.info("No deployment details found for workspace {}",id);
+				 }
+				 workspacePluginStatusVo = authenticatorClient.getPluginStatus(projectName.toLowerCase()+"-"+environment, pluginName, cloudServiceProvider);
+		     } else{
+				log.info("No workspace details found for workpspace {}",id);
+			 }
+		 } catch (Exception e) {
+			 log.info("Error while fetching {} plugin status for workspace {} with exception {}.",pluginName,id,e.getMessage());
+		 }
+		 
+		 return workspacePluginStatusVo;
+	 }
+
+	 @Override
+	 @Transactional
+	 public GenericMessage togglePlugin(String userId, String id, String environment, String pluginName, boolean enable){
+		 GenericMessage responseMessage = new GenericMessage();
+		 String status = "FAILED";
+         List<MessageDescription> warnings = new ArrayList<>();
+         List<MessageDescription> errors = new ArrayList<>();
+		 CodeServerDeploymentDetails deploymentDetails = new CodeServerDeploymentDetails();
+		 String configPublishedAppId = null;
+		 try{
+			 CodeServerWorkspaceNsql entity = workspaceCustomRepository.findById(userId, id);
+			 if (entity != null) {
+				 String projectName = entity.getData().getProjectDetails().getProjectName();
+				 if("int".equalsIgnoreCase(environment)){
+					 deploymentDetails = entity.getData().getProjectDetails().getIntDeploymentDetails();
+					 configPublishedAppId = entity.getData().getProjectDetails().getSecurityConfig().getStaging().getPublished().getAppID();
+				 }
+				 else{
+					 deploymentDetails = entity.getData().getProjectDetails().getProdDeploymentDetails();
+					 configPublishedAppId = entity.getData().getProjectDetails().getSecurityConfig().getProduction().getPublished().getAppID();
+				 }
+				 if("OIDC_PLUGIN".equalsIgnoreCase(pluginName) && !Boolean.TRUE.equals(deploymentDetails.getSecureWithIAMRequired())){
+					 MessageDescription error = new MessageDescription();
+					 error.setMessage("No OIDC plugin found. Please secure with IAM first.");
+					 errors.add(error);
+					 responseMessage.setErrors(errors);
+					 responseMessage.setWarnings(warnings);
+					 responseMessage.setSuccess(status);
+					 return responseMessage;
+				 }
+				 if("API_AUTHORISER_PLUGIN".equalsIgnoreCase(pluginName) && Objects.isNull(configPublishedAppId)){
+					 MessageDescription error = new MessageDescription();
+					 error.setMessage("No AUTHORISER plugin found. Please publish your authorization config.");
+					 errors.add(error);
+					 responseMessage.setErrors(errors);
+					 responseMessage.setWarnings(warnings);
+					 responseMessage.setSuccess(status);
+					 return responseMessage;
+				 }
+				 if("OIDC_PLUGIN".equalsIgnoreCase(pluginName) && !enable && Objects.nonNull(configPublishedAppId)){
+					 authenticatorClient.changePluginStatus(projectName.toLowerCase()+"-"+environment, "OIDC_PLUGIN", enable);
+					 authenticatorClient.changePluginStatus(projectName.toLowerCase()+"-"+environment, "API_AUTHORISER_PLUGIN", enable);
+				 } else {
+					authenticatorClient.changePluginStatus(projectName.toLowerCase()+"-"+environment, "OIDC_PLUGIN", enable);
+				 }
+				 if("API_AUTHORISER_PLUGIN".equalsIgnoreCase(pluginName)){
+					 authenticatorClient.changePluginStatus(projectName.toLowerCase()+"-"+environment, "API_AUTHORISER_PLUGIN", enable);
+				 }
+				 status = "SUCCESS";
+			 }
+		 } catch (Exception e) {
+			 MessageDescription error = new MessageDescription();
+			 error.setMessage("Failed while updating plugins of workspace project with exception " + e.getMessage());
+			 errors.add(error);
+		 }
+		 responseMessage.setErrors(errors);
+		 responseMessage.setWarnings(warnings);
+		 responseMessage.setSuccess(status);
+		 return responseMessage;
+	 }
+	 
 	 @Override
 	 @Transactional
 	public GenericMessage reassignOwner(CreatedByVO currentUser, CodeServerWorkspaceVO vo,
@@ -2630,11 +2789,7 @@ import com.daimler.data.dto.workspace.buildDeploy.*;
 							projectName, branch, targetEnv, latestStatus);
 							if("BUILD_SUCCESS".equalsIgnoreCase(latestStatus) && buildDetails.getLastBuildType().equalsIgnoreCase("buildAndDeploy")){
 								this.deployWorkspace(userId, entity.getId(), targetEnv, branch,
-								false, "",
-						   "", "",
-						   "", "",
-						   false, "",
-						   false, isPrivateRecipe,version,"buildAndDeploy");
+								isPrivateRecipe,version,"buildAndDeploy");
 				   log.info("User {} deployed workspace {} project {}", userId, wsId,
 						   entity.getData().getProjectDetails().getRecipeDetails().getRecipeId());
 							   
@@ -2702,16 +2857,51 @@ import com.daimler.data.dto.workspace.buildDeploy.*;
 					 .getWorkspaceIdsByProjectName(vo.getProjectDetails().getProjectName());
 			 if (!workspaceIds.isEmpty()) {
 				 List<CodeServerWorkspaceNsql> entities = new ArrayList<>();
+				 boolean authorizerPluginCalled = false;
 				 for (String id : workspaceIds) {
 					 CodeServerWorkspaceNsql entity = workspaceCustomRepository.findByWorkspaceId(id);
 					 CodespaceSecurityConfig config = workspaceAssembler.toSecurityConfig(vo.getProjectDetails().getSecurityConfig());
 					 if(entity != null){
+						 boolean isStagingPublishedBefore = entity.getData().getProjectDetails().getSecurityConfig().getStaging().getPublished().getAppID() != null && entity.getData().getProjectDetails().getSecurityConfig().getStaging().getPublished().getEntitlements() != null;
+						 boolean isProductionPublishedBefore = entity.getData().getProjectDetails().getSecurityConfig().getProduction().getPublished().getAppID() != null && entity.getData().getProjectDetails().getSecurityConfig().getProduction().getPublished().getEntitlements() != null;
+						 if(("int".equalsIgnoreCase(env) && entity.getData().getProjectDetails().getIntDeploymentDetails().getSecureWithDnaRequired() && config.getStaging().getDraft().getAppID() != dnaAppId) ||
+						 		 ("prod".equalsIgnoreCase(env) && entity.getData().getProjectDetails().getProdDeploymentDetails().getSecureWithDnaRequired() && config.getProduction().getDraft().getAppID() != dnaAppId)){
+							 log.info("use our app id to secure your application with DnA credentials.");
+							 MessageDescription msg = new MessageDescription();
+							 List<MessageDescription> errorMessage = new ArrayList<>();
+							 msg.setMessage("use " + dnaAppId + " app id to secure your application with DnA credentials.");
+							 errorMessage.add(msg);
+							 responseMessage.addErrors(msg);
+							 responseMessage.setSuccess("FAILED");
+							 responseMessage.setErrors(errorMessage);
+							 return responseMessage;
+						 }
 						 entity.getData().getProjectDetails().setSecurityConfig(config);
   
 						 if(isPublished){
 							 if("int".equalsIgnoreCase(env)){
+								 if(!(entity.getData().getProjectDetails().getIntDeploymentDetails().getSecureWithIAMRequired() || entity.getData().getProjectDetails().getIntDeploymentDetails().getSecureWithDnaRequired())){
+									 log.info("Secure your application before publishing your config.");
+									 MessageDescription msg = new MessageDescription();
+									 List<MessageDescription> errorMessage = new ArrayList<>();
+									 msg.setMessage("Secure your application before publishing your config.");
+									 errorMessage.add(msg);
+									 responseMessage.addErrors(msg);
+									 responseMessage.setSuccess("FAILED");
+									 responseMessage.setErrors(errorMessage);
+									 return responseMessage;
+								 }
 								 if(config.getStaging().getDraft().getAppID()!=null && config.getStaging().getDraft().getEntitlements()!=null && !config.getStaging().getDraft().getAppID().isEmpty() && !config.getStaging().getDraft().getEntitlements().isEmpty() ){
 									 entity.getData().getProjectDetails().getSecurityConfig().getStaging().setPublished(config.getStaging().getDraft());
+									 if(!isStagingPublishedBefore && !authorizerPluginCalled){
+										String workspaceId = entity.getData().getWorkspaceId();
+										String projectName = entity.getData().getProjectDetails().getProjectName();
+										boolean isApiRecipe = entity.getData().getProjectDetails().getIntDeploymentDetails().getDeploymentType().equalsIgnoreCase(ConstantsUtility.API);
+										String ssoType = entity.getData().getProjectDetails().getIntDeploymentDetails().getSsoType();
+										CodespaceSecurityConfig securityConfig = entity.getData().getProjectDetails().getSecurityConfig();
+										authenticatorClient.callingApiAuthorizerPlugin(workspaceId, projectName, env, isApiRecipe, securityConfig, ssoType, ConstantsUtility.DHC_CAAS_AWS);
+										authorizerPluginCalled = true;
+									 }
 								 }else{
 									 log.info("APPID and Entitlement should not be empty while publishing");
 									 MessageDescription msg = new MessageDescription();
@@ -2725,8 +2915,28 @@ import com.daimler.data.dto.workspace.buildDeploy.*;
 								 }
 							 }
 							 if("prod".equalsIgnoreCase(env)){
+								 if(!(entity.getData().getProjectDetails().getProdDeploymentDetails().getSecureWithIAMRequired() || entity.getData().getProjectDetails().getProdDeploymentDetails().getSecureWithDnaRequired())){
+									log.info("Secure your application before publishing your config.");
+									 MessageDescription msg = new MessageDescription();
+									 List<MessageDescription> errorMessage = new ArrayList<>();
+									 msg.setMessage("Secure your application before publishing your config.");
+									 errorMessage.add(msg);
+									 responseMessage.addErrors(msg);
+									 responseMessage.setSuccess("FAILED");
+									 responseMessage.setErrors(errorMessage);
+									 return responseMessage;
+								 }
 								 if(config.getProduction().getDraft().getAppID()!=null && config.getProduction().getDraft().getEntitlements()!=null && !config.getProduction().getDraft().getAppID().isEmpty() && !config.getProduction().getDraft().getEntitlements().isEmpty()){
 									 entity.getData().getProjectDetails().getSecurityConfig().getProduction().setPublished(config.getProduction().getDraft());
+									 if(!isProductionPublishedBefore && !authorizerPluginCalled){
+										String workspaceId = entity.getData().getWorkspaceId();
+										String projectName = entity.getData().getProjectDetails().getProjectName();
+										boolean isApiRecipe = entity.getData().getProjectDetails().getProdDeploymentDetails().getDeploymentType().equalsIgnoreCase(ConstantsUtility.API);
+										String ssoType = entity.getData().getProjectDetails().getProdDeploymentDetails().getSsoType();
+										CodespaceSecurityConfig securityConfig = entity.getData().getProjectDetails().getSecurityConfig();
+										authenticatorClient.callingApiAuthorizerPlugin(workspaceId, projectName, env, isApiRecipe, securityConfig, ssoType, ConstantsUtility.DHC_CAAS_AWS);
+										authorizerPluginCalled = true;
+									 }
 								 }else{
 									 log.info("APPID and Entitlement should not be empty while publishing");
 									 MessageDescription msg = new MessageDescription();

@@ -408,6 +408,8 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 				" \"redirectUri\": " + addQuotes(deploymentDetails.getRedirectUri()) + "," +
 				" \"ignorePaths\": " + addQuotes(deploymentDetails.getIgnorePaths()) + "," +
 				" \"scope\": " + addQuotes(deploymentDetails.getScope()) + "," +
+				" \"ssoType\": " + (deploymentDetails.getSsoType() != null ? addQuotes(String.valueOf(deploymentDetails.getSsoType())) : "null") + "," +
+				" \"secureWithDnaRequired\": " + deploymentDetails.getSecureWithDnaRequired() + "," +
 				" \"lastDeployedVersion\": " + addQuotes(deploymentDetails.getLastDeployedVersion()) + "," +
 				" \"lastDeploymentStatus\": " + addQuotes(deploymentDetails.getLastDeploymentStatus()) +"}'),\r\n" + 
 				"'{projectDetails,lastBuildOrDeployedOn}', '" + longdate + "'),\r\n" +
