@@ -31,6 +31,7 @@ import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
 import com.daimler.data.db.json.CodeServerDeploymentDetails;
 import com.daimler.data.db.json.CodespaceSecurityConfig;
 import com.daimler.data.db.repo.workspace.WorkspaceCustomRepository;
+import com.daimler.data.dto.workspace.WorkspacePluginStatusVO;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.JsonMappingException;
@@ -388,25 +389,32 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		return response;
 	}
 	
-	public void callingKongApis(String wsid,String serviceName, String env, boolean apiRecipe, String clientID, String clientSecret, String redirectUriFromUser, String ignorePaths, String scope, String oneApiVersionShortName, boolean isSecuredWithCookie, boolean secureWithIAM, String cloudServiceProvider) {
+	public void callingKongApis(String wsid,String serviceName, String env, boolean apiRecipe, String clientID, String clientSecret, String redirectUriFromUser, String ignorePaths, String scope, String oneApiVersionShortName, boolean isSecuredWithCookie, boolean secureWithIAM, String ssoType, boolean secureWithDna, String cloudServiceProvider) {
 		boolean kongApiForDeploymentURL = !wsid.equalsIgnoreCase(serviceName) && Objects.nonNull(env);
 		CodeServerWorkspaceNsql workspaceNsql = customRepository.findByWorkspaceId(wsid);
 		CodeServerDeploymentDetails intDeploymentDetails = workspaceNsql.getData().getProjectDetails().getIntDeploymentDetails();
 		CodeServerDeploymentDetails prodDeploymentDetails = workspaceNsql.getData().getProjectDetails().getProdDeploymentDetails();
 		CodespaceSecurityConfig securityConfig  = workspaceNsql.getData().getProjectDetails().getSecurityConfig();
-		String projectName = workspaceNsql.getData().getProjectDetails().getProjectName();
+		// String projectName = workspaceNsql.getData().getProjectDetails().getProjectName();
 		Boolean intSecureIAM = false;
 		Boolean prodSecureIAM = false;
 		Boolean prevSecureIAM = false;
+		Boolean prevSecureDna = false;
 		String prevOneApiShortName = null;
+		Boolean intSecureDna = false;
+		Boolean prodSecureDna = false;
 		//for now making it as false once we enble cookie way will remove this.
 		isSecuredWithCookie = false;
 		LOGGER.info("serviceProvider "+cloudServiceProvider);
 		if("prod".equalsIgnoreCase(env)){
 			if(Objects.nonNull(prodDeploymentDetails)) {
 				prodSecureIAM = secureWithIAM;
+				prodSecureDna = secureWithDna;
 				if(Objects.nonNull(prodDeploymentDetails.getSecureWithIAMRequired())){
 					prevSecureIAM = prodDeploymentDetails.getSecureWithIAMRequired();
+				}
+				if(Objects.nonNull(prodDeploymentDetails.getSecureWithDnaRequired())){
+					prevSecureDna = prodDeploymentDetails.getSecureWithDnaRequired();
 				}
 				prevOneApiShortName = prodDeploymentDetails.getOneApiVersionShortName();
 			}
@@ -414,14 +422,20 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		if("int".equalsIgnoreCase(env)){
 			if(Objects.nonNull(intDeploymentDetails)) {
 				intSecureIAM = secureWithIAM;
+				intSecureDna = secureWithDna;
 				if(Objects.nonNull(intDeploymentDetails.getSecureWithIAMRequired())){
 					prevSecureIAM = intDeploymentDetails.getSecureWithIAMRequired();
+				}
+				if(Objects.nonNull(intDeploymentDetails.getSecureWithDnaRequired())){
+					prevSecureDna = intDeploymentDetails.getSecureWithDnaRequired();
 				}
 				prevOneApiShortName = intDeploymentDetails.getOneApiVersionShortName();
 			}
 		}
 		LOGGER.info("Codespace deployed to production with enabling secureIAM is :{}",prodSecureIAM);
 		LOGGER.info("Codespace deployed to staging with enabling secureIAM is :{}",intSecureIAM);
+		LOGGER.info("Codespace deployed to production with enabling secureDna is :{}",prodSecureDna);
+		LOGGER.info("Codespace deployed to staging with enabling secureDna is :{}",intSecureDna);
 		String url = "";		
 		
 		// request for kong create service	
@@ -682,7 +696,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 					}
 					
 					if(apiRecipe){
-						if(intSecureIAM  || prodSecureIAM) {
+						if(intSecureIAM  || prodSecureIAM || intSecureDna || prodSecureDna) {
 							//delete oneapi plugin if any
 							deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,ONE_API_PLUGIN,cloudServiceProvider);
 							LOGGER.info("kong deleting one api plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
@@ -704,7 +718,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 									// LOGGER.info("calling kong to change the plugin status to enable for service: {} and status is {}, if warings any {}, if error any {}",serviceName,changePluginStatusResponse.getSuccess(), changePluginStatusResponse.getWarnings(),changePluginStatusResponse.getErrors());
 
 									//request for attaching ODIC plugin to authorize service with new client id and secret
-									attachOIDCPluginToApiRecipes( securityConfig, serviceName,  env,  cloudServiceProvider,  redirectUriFromUser, clientID, clientSecret,ignorePaths);
+									attachOIDCPluginToApiRecipes( securityConfig, serviceName,  env,  cloudServiceProvider,  redirectUriFromUser, clientID, clientSecret, ignorePaths, ssoType);
 
 								}
 								if(isSecuredWithCookie){
@@ -772,38 +786,40 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 							//request for attaching APIAUTHORISER plugin to service only published the security config
 							if("int".equalsIgnoreCase(env)&& securityConfig.getStaging().getPublished().getAppID()!=null || "prod".equalsIgnoreCase(env)&& securityConfig.getProduction().getPublished().getAppID()!=null){
 											
-								AttachApiAuthoriserPluginRequestVO apiAuthoriserPluginRequestVO = new AttachApiAuthoriserPluginRequestVO();
-								AttachApiAuthoriserPluginVO apiAuthoriserPluginVO = new AttachApiAuthoriserPluginVO();
-								AttachApiAuthoriserPluginConfigVO apiAuthoriserPluginConfigVO = new AttachApiAuthoriserPluginConfigVO();
-								if("int".equalsIgnoreCase(env)){
-									apiAuthoriserPluginConfigVO.setEnv("staging");
-									apiAuthoriserPluginConfigVO.setUserinfoIntrospectionUri(userinfoIntrospectionUri);
-									if(securityConfig.getStaging().getPublished().getAppID()!=null)
-										apiAuthoriserPluginConfigVO.setApplicationName(securityConfig.getStaging().getPublished().getAppID());
-								}
-								if("prod".equalsIgnoreCase(env)){
-									apiAuthoriserPluginConfigVO.setEnv("production");
-									String prodUserinfoIntrospectionUri = userinfoIntrospectionUri.replace("-int","");
-									apiAuthoriserPluginConfigVO.setUserinfoIntrospectionUri(prodUserinfoIntrospectionUri);
-									if(securityConfig.getProduction().getPublished().getAppID()!=null)
-										apiAuthoriserPluginConfigVO.setApplicationName(securityConfig.getProduction().getPublished().getAppID());
-								}
-								// apiAuthoriserPluginConfigVO.setApplicationName(applicationName);
-								apiAuthoriserPluginConfigVO.setEnableUserinfoIntrospection(enableUserinfoIntrospection);
-								apiAuthoriserPluginConfigVO.setLogType(logType);
-								apiAuthoriserPluginConfigVO.setPoolID(poolID);
-								apiAuthoriserPluginConfigVO.setWsconfigurl(wsconfigurl);
-								apiAuthoriserPluginConfigVO.setProjectName(projectName.toLowerCase());
+								// AttachApiAuthoriserPluginRequestVO apiAuthoriserPluginRequestVO = new AttachApiAuthoriserPluginRequestVO();
+								// AttachApiAuthoriserPluginVO apiAuthoriserPluginVO = new AttachApiAuthoriserPluginVO();
+								// AttachApiAuthoriserPluginConfigVO apiAuthoriserPluginConfigVO = new AttachApiAuthoriserPluginConfigVO();
+								// if("int".equalsIgnoreCase(env)){
+								// 	apiAuthoriserPluginConfigVO.setEnv("staging");
+								// 	apiAuthoriserPluginConfigVO.setUserinfoIntrospectionUri(userinfoIntrospectionUri);
+								// 	if(securityConfig.getStaging().getPublished().getAppID()!=null)
+								// 		apiAuthoriserPluginConfigVO.setApplicationName(securityConfig.getStaging().getPublished().getAppID());
+								// }
+								// if("prod".equalsIgnoreCase(env)){
+								// 	apiAuthoriserPluginConfigVO.setEnv("production");
+								// 	String prodUserinfoIntrospectionUri = userinfoIntrospectionUri.replace("-int","");
+								// 	apiAuthoriserPluginConfigVO.setUserinfoIntrospectionUri(prodUserinfoIntrospectionUri);
+								// 	if(securityConfig.getProduction().getPublished().getAppID()!=null)
+								// 		apiAuthoriserPluginConfigVO.setApplicationName(securityConfig.getProduction().getPublished().getAppID());
+								// }
+								// // apiAuthoriserPluginConfigVO.setApplicationName(applicationName);
+								// apiAuthoriserPluginConfigVO.setEnableUserinfoIntrospection(enableUserinfoIntrospection);
+								// apiAuthoriserPluginConfigVO.setLogType(logType);
+								// apiAuthoriserPluginConfigVO.setPoolID(poolID);
+								// apiAuthoriserPluginConfigVO.setWsconfigurl(wsconfigurl);
+								// apiAuthoriserPluginConfigVO.setProjectName(projectName.toLowerCase());
 
-								apiAuthoriserPluginVO.setName(API_AUTHORISER_PLUGIN);
-								apiAuthoriserPluginVO.setConfig(apiAuthoriserPluginConfigVO);
-								apiAuthoriserPluginRequestVO.setData(apiAuthoriserPluginVO);
+								// apiAuthoriserPluginVO.setName(API_AUTHORISER_PLUGIN);
+								// apiAuthoriserPluginVO.setConfig(apiAuthoriserPluginConfigVO);
+								// apiAuthoriserPluginRequestVO.setData(apiAuthoriserPluginVO);
 
-								attachApiAuthoriserPluginResponse = attachApiAuthoriserPluginToService(apiAuthoriserPluginRequestVO, serviceName.toLowerCase()+"-"+env,cloudServiceProvider);
-								LOGGER.info("kongApiForDeploymentURL is {} and apiRecipe is :{}, calling apiAuthoriser plugin and status {}: ",kongApiForDeploymentURL, apiRecipe, attachApiAuthoriserPluginResponse.getSuccess());
+								// attachApiAuthoriserPluginResponse = attachApiAuthoriserPluginToService(apiAuthoriserPluginRequestVO, serviceName.toLowerCase()+"-"+env,cloudServiceProvider);
+								// LOGGER.info("kongApiForDeploymentURL is {} and apiRecipe is :{}, calling apiAuthoriser plugin and status {}: ",kongApiForDeploymentURL, apiRecipe, attachApiAuthoriserPluginResponse.getSuccess());
+
+								callingApiAuthorizerPlugin(wsid, serviceName, env, apiRecipe, securityConfig, ssoType, cloudServiceProvider);
 
 							}
-						}else if (Boolean.TRUE.equals(prevSecureIAM)){
+						}else if (Boolean.TRUE.equals(prevSecureIAM) || Boolean.TRUE.equals(prevSecureDna) ){
 							deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,API_AUTHORISER_PLUGIN,cloudServiceProvider);
 							LOGGER.info("kong deleting api authorizer plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
 							deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
@@ -820,7 +836,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 						}
 
 						if(Objects.nonNull(oneApiVersionShortName) && !oneApiVersionShortName.isBlank()){
-							if(("int".equalsIgnoreCase(env) && !intSecureIAM) ||("prod".equalsIgnoreCase(env) && !prodSecureIAM) ){
+							if(("int".equalsIgnoreCase(env) && !intSecureIAM && !intSecureDna) ||("prod".equalsIgnoreCase(env) && !prodSecureIAM && !prodSecureDna) ){
 
 								String exsistingOneApiVersionShortName = "int".equalsIgnoreCase(env)?intDeploymentDetails.getOneApiVersionShortName():prodDeploymentDetails.getOneApiVersionShortName();
 								if(!exsistingOneApiVersionShortName.equalsIgnoreCase(oneApiVersionShortName) || Objects.isNull(exsistingOneApiVersionShortName) ){
@@ -858,7 +874,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 								deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
 							}
 						}
-						if((("int".equalsIgnoreCase(env) && !intSecureIAM) ||("prod".equalsIgnoreCase(env) && !prodSecureIAM)) && (!Objects.nonNull(oneApiVersionShortName) || oneApiVersionShortName.isBlank())){
+						if((("int".equalsIgnoreCase(env) && !intSecureIAM && !intSecureDna) ||("prod".equalsIgnoreCase(env) && !prodSecureIAM && !prodSecureDna)) && (!Objects.nonNull(oneApiVersionShortName) || oneApiVersionShortName.isBlank())){
 							//delete oneapi plugin if any if the variable is blank
 							deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,ONE_API_PLUGIN,cloudServiceProvider);
 							LOGGER.info("kong deleting one api plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
@@ -871,7 +887,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 					}else{
 
 						//for non api recipes
-						if(intSecureIAM || prodSecureIAM){
+						if(intSecureIAM || prodSecureIAM || intSecureDna || prodSecureDna){
 							if(Objects.nonNull(clientSecret)){
 								if(!clientSecret.isEmpty()){
 									//deleting OIDC  plugin if already available
@@ -895,12 +911,12 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 									String authRecovery_page_path = "https://" + codeServerEnvUrl + "/" + serviceName.toLowerCase() + "/"+env+"/";	
 									//String authRedirectUri = "/" + serviceName.toLowerCase()+"/"+env+"/api";
 
-									if("int".equalsIgnoreCase(env)){
+									if("SSO_INT".equalsIgnoreCase(ssoType)){
 										attachOIDCPluginConfigVO.setDiscovery(authDiscovery);
 										attachOIDCPluginConfigVO.setIntrospection_endpoint(authIntrospectionEndpoint);
 										attachOIDCPluginConfigVO.setRedirect_after_logout_uri(authRedirectAfterLogoutUri);
 									}
-									if("prod".equalsIgnoreCase(env)){
+									if("SSO_PROD".equalsIgnoreCase(ssoType)){
 										String prodDiscovery = authDiscovery.replace("-int","");
 										String prodIntrospectionEndpoint = authIntrospectionEndpoint.replace("-int", "");
 										String prodRedirectAfterLogoutUri =authRedirectAfterLogoutUri.replace("-int", "");
@@ -1002,7 +1018,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 								}
 							}
 						}
-						else if (Boolean.TRUE.equals(prevSecureIAM)){
+						else if (Boolean.TRUE.equals(prevSecureIAM) || Boolean.TRUE.equals(prevSecureDna)){
 							//deleting oidc plugin if any
 							deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,OIDC_PLUGIN,cloudServiceProvider);
 							LOGGER.info("kong deleting OIDC plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
@@ -1057,6 +1073,63 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 			// LOGGER.info("kong attach jwtissuer plugin to service status is: {} and errors if any: {}, warnings if any:", attachJwtPluginResponse.getSuccess(),
 			// 		attachJwtPluginResponse.getErrors(), attachJwtPluginResponse.getWarnings());
 		}
+
+	}
+
+	@Override
+	public void callingApiAuthorizerPlugin(String wsid, String serviceName, String env, boolean apiRecipe, CodespaceSecurityConfig securityConfig, String ssoType, String cloudServiceProvider) {
+		
+		boolean kongApiForDeploymentURL = !wsid.equalsIgnoreCase(serviceName) && Objects.nonNull(env);
+		GenericMessage attachApiAuthoriserPluginResponse = new GenericMessage();
+		AttachApiAuthoriserPluginRequestVO apiAuthoriserPluginRequestVO = new AttachApiAuthoriserPluginRequestVO();
+		AttachApiAuthoriserPluginVO apiAuthoriserPluginVO = new AttachApiAuthoriserPluginVO();
+		AttachApiAuthoriserPluginConfigVO apiAuthoriserPluginConfigVO = new AttachApiAuthoriserPluginConfigVO();
+		if ("int".equalsIgnoreCase(env)) {
+			apiAuthoriserPluginConfigVO.setEnv("staging");
+			if (securityConfig.getStaging().getPublished().getAppID() != null)
+				apiAuthoriserPluginConfigVO
+						.setApplicationName(securityConfig.getStaging().getPublished().getAppID());
+		}
+		if ("prod".equalsIgnoreCase(env)) {
+			apiAuthoriserPluginConfigVO.setEnv("production");
+			if (securityConfig.getProduction().getPublished().getAppID() != null)
+				apiAuthoriserPluginConfigVO
+						.setApplicationName(securityConfig.getProduction().getPublished().getAppID());
+		}
+		if(ssoType == null || ssoType.isEmpty()){
+			if ("int".equalsIgnoreCase(env)) {
+				apiAuthoriserPluginConfigVO.setUserinfoIntrospectionUri(userinfoIntrospectionUri);
+			}
+			if ("prod".equalsIgnoreCase(env)) {
+				String prodUserinfoIntrospectionUri = userinfoIntrospectionUri.replace("-int", "");
+			    apiAuthoriserPluginConfigVO.setUserinfoIntrospectionUri(prodUserinfoIntrospectionUri);
+			}
+		}
+		else{
+			if ("SSO_INT".equalsIgnoreCase(ssoType)) {
+				apiAuthoriserPluginConfigVO.setUserinfoIntrospectionUri(userinfoIntrospectionUri);
+			}
+			if ("SSO_PROD".equalsIgnoreCase(ssoType)) {
+				String prodUserinfoIntrospectionUri = userinfoIntrospectionUri.replace("-int", "");
+			    apiAuthoriserPluginConfigVO.setUserinfoIntrospectionUri(prodUserinfoIntrospectionUri);
+			}
+		}
+		
+		// apiAuthoriserPluginConfigVO.setApplicationName(applicationName);
+		apiAuthoriserPluginConfigVO.setEnableUserinfoIntrospection(enableUserinfoIntrospection);
+		apiAuthoriserPluginConfigVO.setLogType(logType);
+		apiAuthoriserPluginConfigVO.setPoolID(poolID);
+		apiAuthoriserPluginConfigVO.setWsconfigurl(wsconfigurl);
+		apiAuthoriserPluginConfigVO.setProjectName(serviceName.toLowerCase());
+
+		apiAuthoriserPluginVO.setName(API_AUTHORISER_PLUGIN);
+		apiAuthoriserPluginVO.setConfig(apiAuthoriserPluginConfigVO);
+		apiAuthoriserPluginRequestVO.setData(apiAuthoriserPluginVO);
+
+		attachApiAuthoriserPluginResponse = attachApiAuthoriserPluginToService(apiAuthoriserPluginRequestVO,
+				serviceName.toLowerCase() + "-" + env, cloudServiceProvider);
+		LOGGER.info("kongApiForDeploymentURL is {} and apiRecipe is :{}, calling apiAuthoriser plugin and status {}: ",
+				kongApiForDeploymentURL, apiRecipe, attachApiAuthoriserPluginResponse.getSuccess());
 
 	}
 
@@ -1553,6 +1626,35 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 	}
 
 	@Override
+	public WorkspacePluginStatusVO getPluginStatus(String serviceName, String pluginName, String cloudServiceProvider){
+		WorkspacePluginStatusVO pluginStatusVO = new WorkspacePluginStatusVO();
+		try{
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Content-Type", "application/json");
+			if(cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS_AWS) && apiKey.equals("NA")){
+				if(awsApiKey!=null){
+					headers.set("apikey", awsApiKey);
+				}
+			}else{
+				headers.set("apikey", apiKey);
+			}
+			HttpEntity<?> entity = new HttpEntity<>(headers);
+			String pluginStatusUri =  (cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS_AWS)? authenticatorBaseUriAWS:authenticatorBaseUri) + CREATE_SERVICE + "/" + serviceName + "/plugin/" + pluginName + "/status";
+			ResponseEntity<WorkspacePluginStatusVO> response =  restTemplate.exchange(pluginStatusUri,HttpMethod.GET,entity,WorkspacePluginStatusVO.class);
+			if(response == null){
+				LOGGER.error("Status for plugin {} is empty.",pluginName);
+			}
+			else{
+				pluginStatusVO = response.getBody();
+			}
+		} catch ( Exception e){
+			LOGGER.error("Failed while requesting {} plugin status for workspace: {} with exception {}.", pluginName, serviceName,  e.getMessage());
+		}
+		return pluginStatusVO;
+	}
+
+	@Override
 	public GenericMessage attachRequestTransformerPluginToService(AttachRequestTransformerPluginRequestVO attachRequestTransformerPluginRequestVO, String serviceName){
 
 		GenericMessage response = new GenericMessage();
@@ -1694,7 +1796,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		return response;
 	}
 	
-	public void attachOIDCPluginToApiRecipes(CodespaceSecurityConfig securityConfig,String serviceName, String env, String cloudServiceProvider, String redirectUriFromUser, String clientID, String clientSecret, String ignorePaths) {
+	public void attachOIDCPluginToApiRecipes(CodespaceSecurityConfig securityConfig,String serviceName, String env, String cloudServiceProvider, String redirectUriFromUser, String clientID, String clientSecret, String ignorePaths, String ssoType) {
 		AttachPluginRequestVO attachOIDCPluginRequestVO = new AttachPluginRequestVO();
 		AttachPluginVO attachOIDCPluginVO = new AttachPluginVO();
 		AttachPluginConfigVO attachOIDCPluginConfigVO = new AttachPluginConfigVO();
@@ -1705,12 +1807,12 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		String authRecovery_page_path = "https://" + (cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS_AWS)?codeServerEnvUrlAWS:codeServerEnvUrl) + "/" + serviceName.toLowerCase() + "/"+env+"/api";	
 		String authRedirectUri = "/" + serviceName.toLowerCase()+"/"+env+"/api";
 
-		if("int".equalsIgnoreCase(env)){
+		if("SSO_INT".equalsIgnoreCase(ssoType)){
 			attachOIDCPluginConfigVO.setDiscovery(authDiscovery);
 			attachOIDCPluginConfigVO.setIntrospection_endpoint(authIntrospectionEndpoint);
 			attachOIDCPluginConfigVO.setRedirect_after_logout_uri(authRedirectAfterLogoutUri);
 		}
-		if("prod".equalsIgnoreCase(env)){
+		if("SSO_PROD".equalsIgnoreCase(ssoType)){
 			String prodDiscovery = authDiscovery.replace("-int","");
 			String prodIntrospectionEndpoint = authIntrospectionEndpoint.replace("-int", "");
 			String prodRedirectAfterLogoutUri =authRedirectAfterLogoutUri.replace("-int", "");

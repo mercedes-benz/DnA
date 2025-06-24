@@ -86,6 +86,7 @@
  import com.daimler.data.dto.workspace.DeploymentAuditVO;
  import com.daimler.data.dto.workspace.UserInfoVO;
 import com.daimler.data.dto.workspace.CodeServerDeploymentDetailsVO.DeploymentTypeEnum;
+import com.daimler.data.dto.workspace.CodeServerDeploymentDetailsVO.SsoTypeEnum;
 import com.daimler.data.dto.workspace.DeploymentAuditVO;
  import lombok.extern.slf4j.Slf4j;
  
@@ -306,6 +307,17 @@ import com.daimler.data.dto.workspace.DeploymentAuditVO;
 			if(vo.getDeploymentType()!=null){
 				deploymentDetails.setDeploymentType(vo.getDeploymentType().toString());
 			}
+			if(vo.getSsoType()!=null){
+				deploymentDetails.setSsoType(vo.getSsoType().toString());
+			}
+			 if(vo.isSecureWithDnaRequired()!=null)
+			 {
+				deploymentDetails.setSecureWithDnaRequired(vo.isSecureWithDnaRequired());
+			 }
+			 else
+			 {
+				deploymentDetails.setSecureWithDnaRequired(false);
+			 }
 			 deploymentDetails.setLastDeployedBy(toUserInfo(vo.getLastDeployedBy()));
 			//  List<DeploymentAudit> auditDetails = this.toDeploymentAuditDetails(vo.getDeploymentAuditLogs());
 			//  deploymentDetails.setDeploymentAuditLogs(auditDetails);
@@ -386,6 +398,16 @@ import com.daimler.data.dto.workspace.DeploymentAuditVO;
 			 }
 			 if(deploymentDetails.getDeploymentType()!=null){
 				deploymentDetailsVO.setDeploymentType(DeploymentTypeEnum.fromValue(deploymentDetails.getDeploymentType()));
+			 }
+			 if(deploymentDetails.getSsoType()!=null){
+				deploymentDetailsVO.setSsoType(SsoTypeEnum.fromValue(deploymentDetails.getSsoType()));
+			 }
+			 if (Objects.isNull(deploymentDetails.getSecureWithDnaRequired())) {
+				deploymentDetailsVO.setSecureWithDnaRequired(false);
+			 }
+			 else
+			 {
+			   deploymentDetailsVO.setSecureWithDnaRequired(deploymentDetails.getSecureWithDnaRequired());
 			 }
 			//  if(deploymentDetails.getDeploymentAuditLogs()!=null && !deploymentDetails.getDeploymentAuditLogs().isEmpty())
 			//  {

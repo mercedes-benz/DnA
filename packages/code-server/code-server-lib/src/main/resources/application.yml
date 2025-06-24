@@ -192,6 +192,9 @@ kong:
    requestTransformerPluginRemoveHeaders : ${REQUEST_TRANSFORMER_PLUGIN_REMOVE_HEADERS:XXXX}
    accessTokenHeaderName :  ${ACCESS_TOKEN_HEADER_NAME:XXXX}
    accessTokenAsBearer :  ${ACCESS_TOKEN_AS_BEARER:XXXX}
+   dnaIntClientSecret : ${DNA_INT_CLIENT_SECRET:XXXX}
+   dnaProdClientSecret : ${DNA_PROD_CLIENT_SECRET:XXXX}
+   dnaAppId : ${DNA_INT_APP_ID:XXXX}
 
 workspace:
   migrate: ${MIGRATE_WORKSPACE:YOUR_MIGRATE_BOOLEAN}    

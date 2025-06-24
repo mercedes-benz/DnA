@@ -31,6 +31,8 @@ public class CodeServerDeploymentDetails implements Serializable {
 	private String redirectUri;
 	private String ignorePaths;
 	private String scope;
+	private String ssoType;
+	private Boolean secureWithDnaRequired;
 	private List<DeploymentAudit> deploymentAuditLogs;
 	
 }
