@@ -168,11 +168,8 @@
 	 @Value("${codeServer.technical.id}")
 	 private String technicalId;
 
-	 @Value("${kong.dnaIntClientSecret}")
-	 private String dnaIntClientSecret;
-
-	 @Value("${kong.dnaProdClientSecret}")
-	 private String dnaProdClientSecret;
+	 @Value("${kong.dnaClientSecret}")
+	 private String dnaClientSecret;
 
 	 @Value("${kong.dnaAppId}")
 	 private String dnaAppId;
@@ -1862,11 +1859,7 @@
 
 				 String clientSecret = null;
 				 if(secureWithDnaRequired){
-					if("SSO_INT".equalsIgnoreCase(deployedAppConfigDto.getSsoType().toString())){
-						clientSecret = dnaIntClientSecret;
-					} else{
-						clientSecret = dnaProdClientSecret;
-					}
+					clientSecret = dnaClientSecret;
 				 } else{
 					clientSecret = deployedAppConfigDto.getClientSecret();
 				 }
