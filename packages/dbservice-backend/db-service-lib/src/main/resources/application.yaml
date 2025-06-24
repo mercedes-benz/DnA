@@ -118,7 +118,12 @@ argocd:
   argocdCreateUrl: ${ARGOCD_CREATE_URI:XXXX}
   tokenUserName: ${TOKEN_USER_NAME:XXXX}
   tokenPassword: ${TOKEN_PASSWORD:XXXX}
-  argocdCreateRequest: ${ARGOCD_CREATE_REQUEST:XXXX}  
+  createTargetRevision: ${ARGOCD_CREATE_TARGETREVISION:xxxx}
+  createMemoryRequest: ${ARGOCD_CREATE_MEMORYREQUEST:xxxx}
+  createCpuRequest: ${ARGOCD_CREATE_CPUREQUES:xxxx}
+  createMaxconnections: ${ARGOCD_CREATE_MAXCONNECTIONS:xxxx}
+  createProjectName: ${ARGOCD_CREATE_PROJECTNAME:xxxx}
+  createReplicaCount: ${ARGOCD_CREATE_REPLICACOUNT:xxxx} 
 
 dbService:
     host:

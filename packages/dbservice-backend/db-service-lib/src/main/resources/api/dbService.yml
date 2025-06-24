@@ -316,6 +316,8 @@ components:
           description: Unique technical ID of workspace
         dataGovernance:
           $ref: '#/components/schemas/GovernanceVO'
+        dbType:
+          type: string  
         serviceName:
           type: string
         status:
