@@ -74,10 +74,10 @@
  import com.daimler.data.db.json.CodeServerUserGroup;
  import com.daimler.data.db.json.CodeServerUserGroupList;
  import com.daimler.data.db.json.CodeServerUserGroupWsDetails;
- import com.daimler.data.db.json.CodeServerProjectDetails;
  import com.daimler.data.db.json.CodeServerWorkspace;
  import com.daimler.data.db.json.CodespaceSecurityConfig;
  import com.daimler.data.db.json.UserInfo;
+ import com.daimler.data.db.json.CodeServerProjectDetails;
  import com.daimler.data.db.repo.workspace.WorkSpaceCodeServerBuildDeployRepository;
  import com.daimler.data.db.repo.workspace.WorkspaceCustomAdditionalServiceRepo;
  import com.daimler.data.db.repo.workspace.WorkspaceCustomRecipeRepo;
