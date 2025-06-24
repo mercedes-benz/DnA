@@ -22,6 +22,7 @@ import Caption from 'dna-container/Caption';
 // @ts-ignore
 import { CodeSpaceApiClient } from '../../apis/codespace.api';
 import { history } from '../../store';
+import { Envs } from '../../Utility/envs';
 
 const classNames = cn.bind(Styles);
 // export interface ICreateNewSecurityConfigState {
@@ -52,9 +53,11 @@ export default class SecurityConfig extends React.Component {
     this.state = {
       id: '',
       projectName: '',
-      intIAM: 'false',
-      prodIAM: 'false',
-      showRedeployWarningModal: false,
+      intIAM: false,
+      prodIAM: false,
+      intDna: false,
+      prodDna: false,
+      // showRedeployWarningModal: false,
       editMode: false,
       currentTab: 'stagingEntitlement',
       nextTab: 'productionEntitlement',
@@ -66,10 +69,11 @@ export default class SecurityConfig extends React.Component {
       //isSaved: false,
       config: {
         entitlements: [],
-      },
+      },      
       readOnlyMode: false,
       editModeNavigateModal: false,
       showStagingModal: true,
+      isPublished: false,
     };
   }
 
@@ -80,9 +84,11 @@ export default class SecurityConfig extends React.Component {
       id = params?.id.split('?name=')[0];
     }
     const name = getQueryParam('name');
-    const intIAMEnabled = getQueryParam('intIAM');
-    const prodIAMEnabled = getQueryParam('prodIAM');
-    this.setState({ projectName: name, intIAM: intIAMEnabled, prodIAM: prodIAMEnabled });
+    const intIAMEnabled = getQueryParam('intIAM') === 'true';
+    const prodIAMEnabled = getQueryParam('prodIAM') === 'true';
+    const intDnaEnabled = getQueryParam('intDna') === 'true';
+    const prodDnaEnabled = getQueryParam('prodDna') === 'true';
+    this.setState({ projectName: name, intIAM: intIAMEnabled, prodIAM: prodIAMEnabled, intDna: intDnaEnabled, prodDna: prodDnaEnabled });
     const path = getPath();
     SelectBox.defaultSetup();
     InputFields.defaultSetup();
@@ -94,31 +100,33 @@ export default class SecurityConfig extends React.Component {
       Tabs.defaultSetup();
       this.getPublishedConfig(id, 'int');
     } else {
+      this.getPublishedConfig(id,'int',true);
       this.getConfig(id, 'int');
       Tabs.defaultSetup();
     }
   }
 
   componentDidUpdate(prevProps, prevState) {
+    const path = getPath();
+  
     if (this.state.currentTab !== prevState.currentTab) {
-      const envKey = this.state.currentTab === 'stagingEntitlement' ? 'int' : 'prod'; 
-      const path = getPath();
+      const envKey = this.state.currentTab === 'stagingEntitlement' ? 'int' : 'prod';
+  
       SelectBox.defaultSetup();
       InputFields.defaultSetup();
-
+  
       if (path.includes('publishedSecurityconfig')) {
-        this.setState({
-          readOnlyMode: true,
-        });
-        !this.state.showStagingModal ? this.getPublishedConfig(this.state.id, envKey) : this.getPublishedConfig(this.state.id, 'int');
+        this.getPublishedConfig(this.state.id, envKey);
       } else {
-        !this.state.showStagingModal ? this.getConfig(this.state.id, envKey) : this.getConfig(this.state.id, 'int');
+        this.getConfig(this.state.id, envKey);
+        this.getPublishedConfig(this.state.id, envKey, true);
       }
     }
   }
+  
 
 
-  getPublishedConfig = (id, env) => {
+  getPublishedConfig = (id, env, publishedStatus=false) => {
     ProgressIndicator.show();
     CodeSpaceApiClient.getPublishedConfig(id, env)
       .then((res) => {
@@ -127,14 +135,21 @@ export default class SecurityConfig extends React.Component {
           entitlements: res.data.entitlements || [],
           appId: res.data.appID || '',
         };
-        this.setState(
-          {
-            config: response,
-          },
-          () => {
-            this.setOpenTabs();
-          },
-        );
+        if(response?.appID?.length){
+          this.setState({isPublished:true,});
+        } else {
+          this.setState({isPublished:false,});
+        }
+        if(!publishedStatus){
+          this.setState(
+            {
+              config: response,
+            },
+            () => {
+              this.setOpenTabs();
+            },
+          );
+        }
         ProgressIndicator.hide();
       })
       .catch((error) => {
@@ -151,7 +166,7 @@ export default class SecurityConfig extends React.Component {
         const response = {
           ...res.data,
           entitlements: res.data.entitlements || [],
-          appId: res.data.appID || '',
+          appId: ((env==='int' && this.state.intDna) || (env==='prod' && this.state.prodDna)) ? Envs.DNA_APP_ID :  res.data.appID || '',
         };
         this.setState(
           {
@@ -205,29 +220,29 @@ export default class SecurityConfig extends React.Component {
       },
       () => {
         if (tabToBeSaved === 'stagingEntitlement') {
-          this.callApiToSave('int');
-        } else if (tabToBeSaved === 'productionEntitlement') {
-          this.callApiToSave('prod');
-        }
+          this.setState({ configStaging: config }, () => this.callApiToSave('int'));
+        } else {
+          this.setState({ configProduction: config }, () => this.callApiToSave('prod'));
+        }        
       },
     );
   };
 
   onPublish = (config, env) => {
-    CodeSpaceApiClient.getPublishedConfig(this.state.id, env)
-      .then((res) => {
-        let IAMEnabled = 'false';
-        if (env === 'int') {
-          IAMEnabled = this.state.intIAM
-        }
-        else {
-          IAMEnabled = this.state.prodIAM
-        }
-        ((!res?.data) && IAMEnabled === 'true') ? this.setState({ showRedeployWarningModal: true }) : this.setState({ showRedeployWarningModal: false });
-      })
-      .catch((error) => {
-        this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
-      });
+    // CodeSpaceApiClient.getPublishedConfig(this.state.id, env)
+    //   .then((res) => {
+    //     let IAMEnabled = 'false';
+    //     if (env === 'int') {
+    //       IAMEnabled = this.state.intIAM
+    //     }
+    //     else {
+    //       IAMEnabled = this.state.prodIAM
+    //     }
+    //     ((!res?.data) && IAMEnabled === 'true') ? this.setState({ showRedeployWarningModal: true }) : this.setState({ showRedeployWarningModal: false });
+    //   })
+    //   .catch((error) => {
+    //     this.showErrorNotification(error.message ? error.message : 'Some Error Occured');
+    //   });
     this.setState(
       {
         config: config,
@@ -244,27 +259,20 @@ export default class SecurityConfig extends React.Component {
     const newState = this.state.config;
     const saveActionType = this.state.saveActionType;
     const currentState = this.state.currentState;
-    // const showAlertChangesModal = !this.state.isSaved && !this.state.readOnlyMode;
     const showAlertChangesModal = !this.state.readOnlyMode;
-
+  
     if (!currentState || saveActionType === 'btn' || _.isEqual(newState, currentState)) {
       if (target.id !== this.state.currentTab) {
-        const envKey = target.id === 'stagingEntitlement' ? 'int' : 'prod';
         this.setState({
           clickedTab: target.id,
+          currentTab: target.id, 
+          showStagingModal: target.id === 'stagingEntitlement', 
           showAlertChangesModal: showAlertChangesModal,
         });
-
-
-        if (this.state.readOnlyMode) {
-          this.getPublishedConfig(this.state.id, envKey);
-        } else {
-          this.getConfig(this.state.id, envKey);
-        }
       }
     }
   };
-
+  
 
   callApiToSave = (env, callPublishApi) => {
     const config = this.state.config;
@@ -292,6 +300,7 @@ export default class SecurityConfig extends React.Component {
               .then(() => {
                 ProgressIndicator.hide();
                 this.getConfig(this.state.id, env);
+                this.getPublishedConfig(this.state.id, env, true);
                 Notification.show('Published successfully.');
               })
               .catch((error) => {
@@ -315,7 +324,7 @@ export default class SecurityConfig extends React.Component {
 
   navigateEditOrReadOnlyMode = () => {
     if (this.state.readOnlyMode) {
-      history.push(`/codespace/securityconfig/${this.state.id}?name=${this.state.projectName}?intIAM=${this.state.intIAM === 'true' ? 'true' : 'false'}?prodIAM=${this.state.prodIAM === 'true' ? 'true' : 'false'}`);
+      history.push(`/codespace/securityconfig/${this.state.id}?name=${this.state.projectName}?intIAM=${this.state.intIAM}?intDna=${this.state.intDna}?prodIAM=${this.state.prodIAM}?prodDna=${this.state.prodDna}`);
     } else {
       this.setState({
         editModeNavigateModal: true,
@@ -327,7 +336,7 @@ export default class SecurityConfig extends React.Component {
     const currentTab = this.state.currentTab;
     const { readOnlyMode, projectName } = this.state;
     const publishedSuffix = readOnlyMode ? ' (Published)' : '';
-    const title = `${projectName} - Security config${publishedSuffix}`;
+    const title = `${projectName} - Authorization config${publishedSuffix}`;
     return (
       <React.Fragment>
         <div className={classNames(Styles.mainPanel)}>
@@ -351,12 +360,12 @@ export default class SecurityConfig extends React.Component {
               {this.state.readOnlyMode ? (
                 <>
                   <i className="icon mbc-icon edit" />
-                  <span> Edit security config</span>
+                  <span> Edit authorization config</span>
                 </>
               ) : (
                 <>
                   <i className="icon mbc-icon visibility-show" />
-                  <span> View published security config</span>
+                  <span> View published authorization config</span>
                 </>
               )}
             </button>
@@ -403,6 +412,9 @@ export default class SecurityConfig extends React.Component {
                     config={this.state.config}
                     readOnlyMode={this.state.readOnlyMode}
                     projectName={projectName}
+                    isPublished={this.state.isPublished}
+                    secureWithIAM={this.state.intIAM}
+                    secureWithDna={this.state.intDna}
                   />
                 )}
               </div>
@@ -417,12 +429,15 @@ export default class SecurityConfig extends React.Component {
                     config={this.state.config}
                     readOnlyMode={this.state.readOnlyMode}
                     projectName={projectName}
+                    isPublished={this.state.isPublished}
+                    secureWithIAM={this.state.prodIAM}
+                    secureWithDna={this.state.prodDna}
                   />
                 )}
               </div>
             </div>
           </div>
-          <ConfirmModal
+          {/* <ConfirmModal
             title=""
             acceptButtonTitle="OK"
             showAcceptButton={true}
@@ -430,7 +445,7 @@ export default class SecurityConfig extends React.Component {
             show={this.state.showRedeployWarningModal}
             content={<div id="contentparentdiv">Please redeploy by reentering the client id, client secret and the required ignore paths, scopes and redirect uri if any for the authorization changes to be reflected. Note that only authentication will be handled unless you redeploy.</div>}
             onAccept={() => { this.setState({ showRedeployWarningModal: false }) }}
-          />
+          /> */}
           <ConfirmModal
             title="Are you sure you want to Navigate ?"
             acceptButtonTitle="Navigate"
@@ -457,7 +472,7 @@ export default class SecurityConfig extends React.Component {
               });
             }}
             onAccept={() => {
-              history.push(`/codespace/publishedSecurityconfig/${this.state.id}?name=${this.state.projectName}?intIAM=${this.state.intIAM === 'true' ? 'true' : 'false'}?prodIAM=${this.state.prodIAM === 'true' ? 'true' : 'false'}`);
+              history.push(`/codespace/publishedSecurityconfig/${this.state.id}?name=${this.state.projectName}?intIAM=${this.state.intIAM}?intDna=${this.state.intDna}?prodIAM=${this.state.prodIAM}?prodDna=${this.state.prodDna}`);
             }}
           />
         </div>

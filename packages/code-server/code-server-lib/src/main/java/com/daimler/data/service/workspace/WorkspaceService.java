@@ -126,5 +126,15 @@ public interface WorkspaceService {
 	GenericMessage rejectDeployApproval(String userId, String id);
 
 	GenericMessage migrateWorkspaceLogs(CodeServerWorkspaceNsql entity);
+
+	CodeServerUserGroupCollectionVO createWorkSpaceGroup(CodeServerUserGroupVO vo);
+
+	CodeServerUserGroupCollectionVO updateWorkSpaceGroup(UpdateUserGroupRequestVO vo);
+
+	CodeServerUserGroupCollectionVO getAllWorkSpaceGroup();
+
+	CodeServerUserGroupByIdVO getWorkSpaceGroupById(String id);
+
+	CodeServerUserGroupCollectionVO deleteWorkSpaceGroup(String id);
 	
 }

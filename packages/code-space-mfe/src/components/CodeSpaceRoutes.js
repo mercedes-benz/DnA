@@ -12,10 +12,11 @@ import SessionExpired from './SessionExpired';
 
 import AllCodeSpaces from './AllCodeSpaces';
 import CodeSpace from './CodeSpace';
-import CodeSpaceAuthorizationConfig from './authorizationConfig/AuthorizationConfig';
+import CodeSpaceSecurityConfig from './securityConfig/SecurityConfig';
 import ManageRecipes from './manageRecipes/ManageRecipes';
 import CodeSpaceRecipe from './codeSpaceRecipe/CodeSpaceRecipe';
-import Tutorials from './codeSpaceTutorials/Tutorials'
+import Tutorials from './codeSpaceTutorials/Tutorials';
+import CodeSpaceAdministration from './codeSpaceAdministration/CodeSpaceAdministration';
 
 export const protectedRoutes = [
     {
@@ -34,17 +35,17 @@ export const protectedRoutes = [
         path: '/manageRecipes',
     },
     {
-        component: CodeSpaceAuthorizationConfig,
+        component: CodeSpaceSecurityConfig,
         exact: false,
         path: '/codespace/securityconfig/:id?',
     },
     {
-        component: CodeSpaceAuthorizationConfig,
+        component: CodeSpaceSecurityConfig,
         exact: false,
         path: '/codespace/publishedSecurityconfig/:id?',
     },
     {
-        component: CodeSpaceAuthorizationConfig,
+        component: CodeSpaceSecurityConfig,
         exact: false,
         path: '/codespace/adminSecurityconfig/:id?',
     },
@@ -57,7 +58,12 @@ export const protectedRoutes = [
         component: Tutorials,
         extact: false,
         path: '/tutorials/:id?'
-    }
+    },
+    {
+        component: CodeSpaceAdministration,
+        exact: false,
+        path: '/administration',
+    },
 ];
 
 export const routes = [...protectedRoutes];

@@ -93,7 +93,10 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 		Predicate p2 = cb.notEqual(cb.lower(
 				cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("status"))),
 				"DELETED".toLowerCase());
-		Predicate pMain = cb.and(p1,p2);
+		Predicate p3 = cb.equal(cb.lower(
+				cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("activeInGroup"))),
+				"FALSE".toLowerCase());		
+		Predicate pMain = cb.and(p1,p2,p3);
 		cq.where(pMain);		
 		cq.orderBy(cb.asc(cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("projectDetails"), cb.literal("projectName"))));
 		TypedQuery<CodeServerWorkspaceNsql> getAllQuery = em.createQuery(getAll);
@@ -116,7 +119,10 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 		Predicate p2 = cb.notEqual(cb.lower(
 				cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("status"))),
 				"DELETED".toLowerCase());
-		Predicate pMain = cb.and(p1,p2);
+		Predicate p3 = cb.equal(cb.lower(
+				cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("activeInGroup"))),
+				"FALSE".toLowerCase());		
+		Predicate pMain = cb.and(p1,p2,p3);
 		cq.where(pMain);
 		TypedQuery<Long> getAllQuery = em.createQuery(getAll);
 		Long count = getAllQuery.getSingleResult();
@@ -367,6 +373,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 	
 	@Override
 	public GenericMessage updateDeploymentDetails(String projectName, String environment, CodeServerDeploymentDetails deploymentDetails,String lastBuildOrDeployStatus) {
+		log.info("{} - starting DB update.",projectName);
 		GenericMessage updateResponse = new GenericMessage();
 		updateResponse.setSuccess("FAILED");
 		List<MessageDescription> errors = new ArrayList<>();
@@ -437,11 +444,14 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 
 		try {
 			Query q = em.createNativeQuery(updateQuery);
+			log.info("{} - execute update",projectName);
 			q.executeUpdate();
+			Date now = new Date();
+			log.info("{} - execute update completed at time {}",projectName, now);
 			updateResponse.setSuccess("SUCCESS");
 			updateResponse.setErrors(new ArrayList<>());
 			updateResponse.setWarnings(new ArrayList<>());
-			log.info("deployment details updated successfully for project {} ", projectName);
+			log.info("{} - deployment details updated successfully for project ", projectName);
 		}catch(Exception e) {
 			MessageDescription errMsg = new MessageDescription("Failed while updating deployment details.");
 			errors.add(errMsg);

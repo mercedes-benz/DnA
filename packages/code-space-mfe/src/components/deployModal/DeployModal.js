@@ -68,6 +68,7 @@ const DeployModal = (props) => {
   const [isUiRecipe, setIsUiRecipe] = useState(false);
   const [deploymentDetails, setDeploymentDetails] = useState();
   const [resetRequired, setResetRequired] = useState(false);
+  const [securedWithIAMWarning, setSecuredWithIAMWarning] = useState(false);
 
   const projectDetails = props.codeSpaceData?.projectDetails;
   const collaborator = projectDetails?.projectCollaborators?.find((collaborator) => {return collaborator?.id === props?.userInfo?.id });
@@ -75,9 +76,9 @@ const DeployModal = (props) => {
   const isApprover = projectDetails?.projectOwner?.id === props.userInfo.id || collaborator?.isApprover;
   const intDeployLogs = (projectDetails?.intDeploymentDetails?.deploymentAuditLogs)?.filter((item) => item?.branch) || [] ;
   const prodDeployLogs = (projectDetails?.prodDeploymentDetails?.deploymentAuditLogs)?.filter((item) => item?.branch) || [];
-  const intDeploymentMigrated = projectDetails?.intDeploymentDetails?.deploymentUrl?.includes(Envs.CODESPACE_OIDC_POPUP_URL);
-  const prodDeploymentMigrated = projectDetails?.prodDeploymentDetails?.deploymentUrl?.includes(Envs.CODESPACE_OIDC_POPUP_URL);
-  const envUrl = (intDeploymentMigrated || prodDeploymentMigrated) ? Envs.CODESPACE_AWS_DEPLOYMENT_URL : Envs.CODESPACE_DEPLOYMENT_URL ;
+  // const intDeploymentMigrated = projectDetails?.intDeploymentDetails?.deploymentUrl?.includes(Envs.CODESPACE_OIDC_POPUP_URL);
+  // const prodDeploymentMigrated = projectDetails?.prodDeploymentDetails?.deploymentUrl?.includes(Envs.CODESPACE_OIDC_POPUP_URL);
+  const envUrl = Envs.CODESPACE_AWS_DEPLOYMENT_URL;
 
   //details from build
   const version = props?.buildDetails?.version || '';
@@ -191,7 +192,13 @@ const DeployModal = (props) => {
   };
 
   const onChangeSecureWithIAM = (e) => {
-    setSecureWithIAMSelected(e.target.checked);
+    const deploymentDetails = deployEnvironment === 'staging' ? projectDetails?.intDeploymentDetails : projectDetails?.prodDeploymentDetails;
+    if(!e.target.checked && deploymentDetails?.secureWithIAMRequired){
+      setSecuredWithIAMWarning(true);
+    }
+    else{
+      setSecureWithIAMSelected(e.target.checked);
+    }
     e.target.checked ? setOneApiSelected(false) : '';
   };
 
@@ -325,6 +332,7 @@ const DeployModal = (props) => {
   };
 
   return (
+    <>
     <Modal
       title={'Deploy Code'}
       showAcceptButton={true}
@@ -676,6 +684,33 @@ const DeployModal = (props) => {
       scrollableBox={true}
       onCancel={() => props.setShowCodeDeployModal(false)}
     />
+    {securedWithIAMWarning && (
+      <Modal 
+        title={''}
+        showAcceptButton={true}
+        acceptButtonTitle={'Yes'}
+        cancelButtonTitle={'Cancel'}
+        onAccept={() => {
+          setSecuredWithIAMWarning(false);
+          setSecureWithIAMSelected(false);
+        }}
+        showCancelButton={true}
+        modalWidth={'40%'}
+        content={
+          <div>
+            <h3>Please note that once you uncheck this your application will not be secured with SSO Authentication anymore. Do you wish to continue?</h3>
+            <p>If your application was secured by us please contact us on our <a href={Envs.CODESPACE_TEAMS_LINK} target='_blank' rel='noopener noreferrer'>Teams channel</a> or <a href={Envs.CODESPACE_MATTERMOST_LINK} target='_blank' rel='noopener noreferrer'>Mattermost channel</a> before performing this action.</p>
+          </div>
+        }
+        buttonAlignment="center"
+        modalStyle={{
+          maxWidth: '40%'
+        }}
+        show={securedWithIAMWarning}
+        onCancel={() => setSecuredWithIAMWarning(false)}
+      />
+    )}
+    </>
   );
 };
 
