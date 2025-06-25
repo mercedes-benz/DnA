@@ -50,17 +50,21 @@ loki:
         dir: /var/loki/wal
 
     limits_config:
+      allow_structured_metadata: true
       enforce_metric_name: false
       reject_old_samples: true
       reject_old_samples_max_age: 168h
       ingestion_burst_size_mb: 175
       ingestion_rate_mb: 170
-      split_queries_by_interval: 30m
+      split_queries_by_interval: 15m
+      max_cache_freshness_per_query: 10m
+      max_query_series: 5000
       max_line_size: 0
       per_stream_rate_limit: 40MB
       per_stream_rate_limit_burst: 70MB     
       volume_enabled: true 
       retention_period: 168h
+      query_timeout: 600s
 
 
     schema_config:
