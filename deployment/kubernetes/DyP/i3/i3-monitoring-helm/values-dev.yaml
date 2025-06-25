@@ -928,7 +928,7 @@ grafana:
     # -- Overrides the Docker registry globally for all images
     imageRegistry: registry-emea.app.corpintra.net/dockerhub
   image:
-    tag: "11.5.1"
+    tag: "12.0.1"
   useStatefulSet: false
   replicas: 2
   podDisruptionBudget: 
