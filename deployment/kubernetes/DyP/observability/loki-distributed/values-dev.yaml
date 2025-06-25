@@ -60,7 +60,7 @@ loki:
       per_stream_rate_limit: 40MB
       per_stream_rate_limit_burst: 70MB     
       volume_enabled: true 
-      retention_period: 24h
+      retention_period: 168h
 
 
     schema_config:
