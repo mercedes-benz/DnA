@@ -668,6 +668,11 @@ import com.daimler.data.dto.workspace.DeploymentAuditVO;
 					 }else{
 						vo.setIsWorkspaceMigrated(false);
 					 }
+					 if(data.getActiveInGroup() != null){
+						vo.setActiveInGroup(data.getActiveInGroup());
+					 }else{
+						vo.setActiveInGroup(false);
+					 }
 					 if (data.getIntiatedOn() != null)
 						 vo.setIntiatedOn(isoFormat.parse(isoFormat.format(data.getIntiatedOn())));
 					 UserInfo codespaceUserDetails = data.getWorkspaceOwner();
@@ -731,6 +736,7 @@ import com.daimler.data.dto.workspace.DeploymentAuditVO;
 						projectDetailsVO.setRecipeName(projectDetails.getRecipeName());
 					 }
 					 vo.setProjectDetails(projectDetailsVO);
+					 
  
 				 }
 			 }
@@ -767,6 +773,11 @@ import com.daimler.data.dto.workspace.DeploymentAuditVO;
 				data.setIsWorkspaceMigrated(vo.isIsWorkspaceMigrated());
 			 }else{
 				data.setIsWorkspaceMigrated(false);
+			 }
+			 if(vo.isActiveInGroup() !=null){
+				data.setActiveInGroup(vo.isActiveInGroup());
+			 }else{
+				data.setActiveInGroup(false);	
 			 }
 			 UserInfoVO ownerVO = vo.getWorkspaceOwner();
 			 if (ownerVO != null) {
