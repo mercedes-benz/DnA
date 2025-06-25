@@ -812,12 +812,13 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 		GenericMessage response = new GenericMessage();
 		List<MessageDescription> errors = new ArrayList<>();
 		List<MessageDescription> warnings = new ArrayList<>();
-		UserInfo userInfo = this.userStore.getUserInfo();
+		//UserInfo userInfo = this.userStore.getUserInfo();
+		CreatedByVO requestUser = this.userStore.getVO();
 		try{
 
-			response = service.createGenericRole(roleRequestVO,userInfo.getId());
+			response = service.createGenericRole(roleRequestVO,requestUser);
 			if("SUCCESS".equalsIgnoreCase(response.getSuccess())){
-				log.info("Sucessfully created role for  user {}",userInfo.getId());
+				log.info("Sucessfully created role for  user {}",requestUser.getId());
 				return new ResponseEntity<>(response, HttpStatus.OK);
 			}else if("CONFLICT".equalsIgnoreCase(response.getSuccess())){
 				log.info(" Role Already Exists.");

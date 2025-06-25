@@ -89,8 +89,6 @@ public class AuthoriserClient {
 	@Autowired
 	private UserStore userStore;
 
-	@Autowired
-	private AuthoriserRolesRepository jpaRepo;
 	
 	public String getToken() {
             MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
@@ -317,10 +315,10 @@ public class AuthoriserClient {
 					requestEntity, CreateRoleResponseDto.class);
 			if ( response.getStatusCode().is2xxSuccessful() && response!=null && response.hasBody()) {
                 roleResponseDto = response.getBody();
-				saveCreatedRoleDetails(createRequest.getId(), creatorId, createRequest.isDynamic());
+				// saveCreatedRoleDetails(createRequest.getId(), creatorId, createRequest.isDynamic());
 			}
-		} catch (PersistenceException e){
-			log.warn("Error occured while saving the created role in DB : {}",e.getMessage());
+		// } catch (PersistenceException e){
+		// 	log.warn("Error occured while saving the created role in DB : {}",e.getMessage());
 		}catch(HttpClientErrorException.Conflict e) {
 			log.error("Failed to create Role with Name {} with conflict error {} ", createRequest.getName(), e.getMessage());
 		}catch(Exception e) {
@@ -709,6 +707,5 @@ public class AuthoriserClient {
 		}
 		return response;
 	}
-
 }
 

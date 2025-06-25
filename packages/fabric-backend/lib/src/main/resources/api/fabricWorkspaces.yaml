@@ -914,14 +914,15 @@ definitions:
   DnaRolesVO:
     type: object
     properties:
-      data:
-        type: object
-        properties:
-          roles:
-            type: array
-            items:
-              $ref: "#/definitions/DnaRolesVO" 
-               
+      isDynamic:
+        type: boolean
+      roleID:
+        type: string
+      ownerDetails:
+        type: array
+        items: 
+          $ref: "#/definitions/CreatedByVO"
+
   LeanIXDetailsVO:
     type: object
     properties :
@@ -946,7 +947,6 @@ definitions:
         type: string
       providerOrgDeptid:
         type: string
-
 
   AuthoriserRoleDetailsResponseVO:
     type: object

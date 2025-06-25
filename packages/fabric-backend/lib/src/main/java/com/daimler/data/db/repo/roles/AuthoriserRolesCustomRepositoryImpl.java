@@ -54,29 +54,20 @@ import lombok.extern.slf4j.Slf4j;
 public class AuthoriserRolesCustomRepositoryImpl extends CommonDataRepositoryImpl<AuthoriserRolesNsql, String>
 		implements AuthoriserRolesCustomRepository {
 
-			@Override
-			public List<AuthoriserRolesNsql> getAll(String userId) {
-				try {
-					CriteriaBuilder cb = em.getCriteriaBuilder();
-					CriteriaQuery<AuthoriserRolesNsql> cq = cb.createQuery(AuthoriserRolesNsql.class);
-					Root<AuthoriserRolesNsql> root = cq.from(AuthoriserRolesNsql.class);
-					
-					Expression<String> creatorIdPath = cb.function("jsonb_extract_path_text", String.class, 
-						root.get("data"), 
-						cb.literal("creatorId"));
-					
-					Predicate condition = cb.equal(creatorIdPath, userId); 
-					cq.where(condition);
-					
-					List<AuthoriserRolesNsql> entities = em.createQuery(cq).getResultList();
-					
-					log.debug("Found {} roles for user {}", entities.size(), userId);
-					return entities;
-					
-				} catch (Exception e) {
-					log.error("Error querying roles for user {}: {}", userId, e.getMessage());
-					return Collections.emptyList(); 
-				}
-			}
-
+	@Override
+    public List<AuthoriserRolesNsql> getAll(String userId) {
+        try {
+            
+            String jsonPath = "$.ownerDetails[*] ? (@.id == \"" + userId + "\")";
+            String query = "SELECT * FROM user_created_roles_nsql WHERE jsonb_path_exists(data, cast(:jsonPath AS jsonpath))";
+    
+            return em.createNativeQuery(query, AuthoriserRolesNsql.class)
+                        .setParameter("jsonPath", jsonPath)
+                        .getResultList();
+    
+        } catch (Exception e) {
+            log.error("Error querying roles for user {}: {}", userId, e.getMessage());
+            return Collections.emptyList();
+        }
+    }
 }
