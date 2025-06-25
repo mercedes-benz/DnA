@@ -11,11 +11,14 @@ export interface IModalProps {
   buttonAlignment: string;
   showAcceptButton: boolean;
   showCancelButton: boolean;
+  showPortButton?: boolean;
   acceptButtonTitle?: string;
   cancelButtonTitle?: string;
+  portToGenAITitle?:string;
   scrollableContent?: boolean;
   onAccept?: () => void;
   onCancel?: () => void;
+  onPort?:() => void;
   modalWidth?: string;
   modalStyle?: React.CSSProperties;
   footer?: React.ReactNode;
