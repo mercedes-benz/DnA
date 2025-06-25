@@ -94,6 +94,11 @@ alloy:
           action = "replace"
           target_label = "container"
         }
+        rule {
+          action = "replace"
+          source_labels = ["__meta_kubernetes_service_name"]
+          target_label = "service_name"
+        }        
 
         // Label creation -  "app" field from "__meta_kubernetes_pod_label_app_kubernetes_io_name"
         rule {
