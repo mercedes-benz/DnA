@@ -10,6 +10,7 @@ import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.db.entities.FabricWorkspaceNsql;
 import com.daimler.data.dto.fabric.CreateEntitlementRequestDto;
 import com.daimler.data.dto.fabric.CreateRoleRequestDto;
+import com.daimler.data.dto.fabricWorkspace.CreatedByVO;
 import com.daimler.data.dto.fabricWorkspace.EntitlementDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.AuthoriserRoleDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.FabricLakehouseCreateRequestVO;
@@ -41,7 +42,7 @@ public interface FabricWorkspaceService extends CommonService<FabricWorkspaceVO,
 
 	CreateRoleRequestDto prepareRoleCreateRequestDto(String workspaceName, String permissionName);
 
-	RoleDetailsVO callRoleCreate(String workspaceName, String permissionName);
+	RoleDetailsVO callRoleCreate(String workspaceName, String permissionName, String creatorId);
 
 	GroupDetailsVO callGroupAssign(GroupDetailsVO existingGroupDetailsVO, String workspaceId, String permissionName);
 
@@ -50,7 +51,7 @@ public interface FabricWorkspaceService extends CommonService<FabricWorkspaceVO,
 
 	FabricWorkspacesCollectionVO getAll(int limit, int offset, String user, List<String> allEntitlementsList, Boolean isTechnicalUser);
 	
-	GenericMessage requestRoles(FabricWorkspaceRoleRequestVO roleRequestVO, String userId, String authToken);
+	GenericMessage requestRoles(FabricWorkspaceRoleRequestVO roleRequestVO, String userId);
 	
 	FabricWorkspaceStatusVO fixBugsInWorkspaceUserManagement(FabricWorkspaceStatusVO currentStatus, String workspaceName,
 			String creatorId, String workspaceId);
@@ -71,9 +72,9 @@ public interface FabricWorkspaceService extends CommonService<FabricWorkspaceVO,
 
 	GenericMessage deleteLakehouseS3Shortcut(String id, String lakehouseId, String shortcutName);
 
-	GenericMessage createGenericRole(CreateRoleRequestVO roleRequestVO, String userId);
+	GenericMessage createGenericRole(CreateRoleRequestVO roleRequestVO, CreatedByVO requestUser);
 
-	DnaRoleCollectionVO getAllUserDnaRoles(String id,String authToken);
+	DnaRoleCollectionVO getAllUserDnaRoles(String id);
 
 	AuthoriserRoleDetailsVO getRoleDetails(String roleId);
 

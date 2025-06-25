@@ -901,26 +901,28 @@ definitions:
             pattern: "^[A-Za-z0-9]+[A-Za-z0-9._-]{1,60}$"
           isDynamic:
             type: boolean
-  DnaRoleCollectionVO:
-    type: object
-    properties:
-      data:
-        type: object
-        properties:
-          roles:
-            type: array
-            items:
-              $ref: "#/definitions/DnaRolesVO" 
-               
+            default: false
 
+  DnaRoleCollectionVO:
+      type: object
+      properties:
+        roles:
+          type: array
+          items:
+            $ref: "#/definitions/DnaRolesVO" 
+  
   DnaRolesVO:
     type: object
     properties:
-        isDynamic:
-          type: boolean
-        roleID:
-          type: string
-  
+      isDynamic:
+        type: boolean
+      roleID:
+        type: string
+      ownerDetails:
+        type: array
+        items: 
+          $ref: "#/definitions/CreatedByVO"
+
   LeanIXDetailsVO:
     type: object
     properties :
