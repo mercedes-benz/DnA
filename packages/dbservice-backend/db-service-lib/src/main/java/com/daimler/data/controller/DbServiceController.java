@@ -91,6 +91,7 @@ public class DbServiceController implements DbServiceApi {
                     userVo.setIsAdmin(true);
                     serviceVO.setModifiedBy(userVo);
                     serviceVO.setProjectOwner(userVo);
+                    serviceVO.setServiceName(serviceVO.getServiceName().toLowerCase());
                     response = service.createDb(serviceVO);
                     if(response.getSuccess().equalsIgnoreCase("failed")){
                         log.error("Failed to create dbService");

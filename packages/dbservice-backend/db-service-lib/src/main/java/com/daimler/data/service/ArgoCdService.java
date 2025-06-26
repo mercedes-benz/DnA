@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StreamUtils;
 import org.springframework.web.client.RestTemplate;
 
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -83,19 +84,17 @@ public class ArgoCdService {
             headers.setBearerAuth(token);
             headers.setContentType(MediaType.APPLICATION_JSON);
         
-            Map<String, Object> payload = this.buildPayload(serviceName,dbName,dbType);
-            log.info("payload {}",payload.toString());
-        
-            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(payload, headers);
+            String payload = this.buildPayload(serviceName,dbName,dbType);
+            HttpEntity<String> entity = new HttpEntity<>(payload, headers);
         
             ResponseEntity<String> response = null;
-            // response = restTemplate.postForEntity(url, entity, String.class);
+            response = restTemplate.postForEntity(url, entity, String.class);
         
             if (response != null && response.getStatusCode().is2xxSuccessful()) {
                 log.info("Application created successfully!");
                 return "success";
             } else {
-                log.info("Failed: " + response.getBody());
+                log.info("Failed: " + response != null?response.getBody():"");
                 return "failed";
             }
         } catch (Exception e) {
@@ -131,13 +130,13 @@ public class ArgoCdService {
     }
 
     @SuppressWarnings("unchecked")
-    public  Map<String, Object> buildPayload(String serviceName,String dbName,String dbType) throws IOException {
+    public  String buildPayload(String serviceName,String dbName,String dbType) throws IOException {
         String fileName = "argocd-"+dbType+"-create-template.json";
     ClassPathResource resource = new ClassPathResource(fileName);
     String template = StreamUtils.copyToString(resource.getInputStream(), StandardCharsets.UTF_8);
-
     template = template.replace("{serviceName}", serviceName);
     template = template.replace("{dbName}", dbName);
+    template = template.replace("{dbname}-db-backup", dbName+"-db-backup");
     template = template.replace("{projectName}", argocdCreateProjectName);
     template = template.replace("{targetRevision}", targetRevision);
     template = template.replace("{cpuRequest}", cpuRequest);
@@ -147,9 +146,8 @@ public class ArgoCdService {
 
     ObjectMapper mapper = new ObjectMapper();
         Map<String, Object> map = mapper.readValue(template, Map.class);
-        map.forEach((key, value) -> System.out.println(key + " : " + value));
-        return map;
+        String finalJson = mapper.writeValueAsString(map); 
+        // finalJson = finalJson.replace("\\u003e", ">");
+        return finalJson;
 }
-
- 
 }
