@@ -553,11 +553,11 @@ const AllCodeSpaces = (props) => {
                             </button>
                             <button
                                 className={classNames('btn btn-primary', Styles.awsFAQ)}
-                                tooltip-data="AWS migration FAQs"
-                                onClick={() => { setShowAwsFAQModal(Envs.SHOW_AWS_MIGRATION_WARNING) }}
+                                tooltip-data="CodeSpace FAQs"
+                                onClick={() => { setShowAwsFAQModal(true) }}
                             >
                                 <i className={classNames('icon mbc-icon alert circle')} />
-                                <span>AWS Migration FAQ&apos;s</span>
+                                <span>CodeSpace FAQ&apos;s</span>
                             </button>
                         </div>
                         <div className={classNames(Styles.codspaceSearch)}>
@@ -840,7 +840,7 @@ const AllCodeSpaces = (props) => {
                     //     onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'react'
                     // }
                     setShowCodeDeployModal={(isVisible) => setShowDeployCodeSpaceModal(isVisible)}
-                    setCodeDeploying={() => getCodeSpacesData()}
+                    setCodeDeploying={() => { getCodeSpacesData(); getCodeSpaceGroupsData();}}
                     setIsApiCallTakeTime={setIsApiCallTakeTime}
                     navigateSecurityConfig={navigateSecurityConfig}
                 />
@@ -866,6 +866,7 @@ const AllCodeSpaces = (props) => {
                     // }
                     setShowCodeDeployModal={(isVisible) => setShowDeployCodeSpaceModal(isVisible)}
                     setCodeDeploying={() => { getCodeSpacesData(); getCodeSpaceGroupsData(); }}
+                    setCodeBuilding={() => { getCodeSpacesData(); getCodeSpaceGroupsData(); }}
                     setIsApiCallTakeTime={setIsApiCallTakeTime}
                     navigateSecurityConfig={navigateSecurityConfig}
                 />
@@ -875,7 +876,7 @@ const AllCodeSpaces = (props) => {
                       show={showDeployApprovalModal}
                       setShowDeployApprovalModal={setShowDeployApprovalModal}
                       codeSpaceData = {onDeployCodeSpace}
-                      setCodeDeploying={() => getCodeSpacesData()}
+                      setCodeDeploying={() => {getCodeSpacesData(); getCodeSpaceGroupsData();}}
                       setIsApiCallTakeTime={setIsApiCallTakeTime}
                     />
             )}
