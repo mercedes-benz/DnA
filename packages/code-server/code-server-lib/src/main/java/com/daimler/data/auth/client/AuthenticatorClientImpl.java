@@ -388,13 +388,10 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		return response;
 	}
 	
-	public void callingKongApis(String wsid,String serviceName, String env, boolean apiRecipe, String clientID, String clientSecret, String redirectUriFromUser, String ignorePaths, String scope, String oneApiVersionShortName, boolean isSecuredWithCookie, boolean secureWithIAM, String cloudServiceProvider) {
+	public void callingKongApis(String wsid,String serviceName, String env, boolean apiRecipe, String clientID, String clientSecret, String redirectUriFromUser, String ignorePaths, String scope, String oneApiVersionShortName, boolean isSecuredWithCookie, boolean secureWithIAM, String cloudServiceProvider,
+	CodeServerDeploymentDetails intDeploymentDetails,CodeServerDeploymentDetails prodDeploymentDetails,CodespaceSecurityConfig securityConfig
+	,String projectName) {
 		boolean kongApiForDeploymentURL = !wsid.equalsIgnoreCase(serviceName) && Objects.nonNull(env);
-		CodeServerWorkspaceNsql workspaceNsql = customRepository.findByWorkspaceId(wsid);
-		CodeServerDeploymentDetails intDeploymentDetails = workspaceNsql.getData().getProjectDetails().getIntDeploymentDetails();
-		CodeServerDeploymentDetails prodDeploymentDetails = workspaceNsql.getData().getProjectDetails().getProdDeploymentDetails();
-		CodespaceSecurityConfig securityConfig  = workspaceNsql.getData().getProjectDetails().getSecurityConfig();
-		String projectName = workspaceNsql.getData().getProjectDetails().getProjectName();
 		Boolean intSecureIAM = false;
 		Boolean prodSecureIAM = false;
 		Boolean prevSecureIAM = false;
@@ -422,6 +419,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		}
 		LOGGER.info("Codespace deployed to production with enabling secureIAM is :{}",prodSecureIAM);
 		LOGGER.info("Codespace deployed to staging with enabling secureIAM is :{}",intSecureIAM);
+		LOGGER.info("Codespace deployed to {} with prevSecureIAM  is :{}",env,prevSecureIAM);
 		String url = "";		
 		
 		// request for kong create service	
