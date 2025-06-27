@@ -19,6 +19,7 @@ public class DbService {
     private String serviceName;
     private String status;
     private String dbName;
+    private String dbType;
     private List<UserInfo> projectCollaborators;
     private String description;
     private String projectType;
