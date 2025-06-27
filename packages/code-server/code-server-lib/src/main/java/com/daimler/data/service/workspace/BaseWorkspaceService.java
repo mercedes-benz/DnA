@@ -1682,6 +1682,7 @@ import com.daimler.data.dto.workspace.buildDeploy.*;
 					lastBuildOrDeployStatus = "BUILD_REQUESTED";
 				}else{
 					status = "FAILED";
+		 			return responseMessage;
 				}
 				deploymentDetails.setSecureWithIAMRequired(isSecureWithIAMRequired);
 					 deploymentDetails.setOneApiVersionShortName(oneApiVersionShortName);
@@ -1847,6 +1848,7 @@ import com.daimler.data.dto.workspace.buildDeploy.*;
 			 workspaceCustomRepository.updateDeploymentDetails(projectName, environment,deploymentDetails,lastBuildOrDeployStatus);
 			 }
 		 } catch (Exception e) {
+			log.error("Failed while deploying codeserver workspace project with exception : {} ", e.getMessage());
 			 MessageDescription error = new MessageDescription();
 			 error.setMessage("Failed while deploying codeserver workspace project with exception " + e.getMessage());
 			 errors.add(error);
@@ -2292,6 +2294,7 @@ import com.daimler.data.dto.workspace.buildDeploy.*;
 				 }
 			 }
 		 } catch (Exception e) {
+			log.error("Failed while deploying codeserver workspace project with exception : {} ", e.getMessage());
 			 MessageDescription error = new MessageDescription();
 			 error.setMessage("Failed while deploying codeserver workspace project with exception " + e.getMessage());
 			 errors.add(error);
@@ -3575,6 +3578,7 @@ import com.daimler.data.dto.workspace.buildDeploy.*;
 				}
 			}
 		} catch (Exception e) {
+			log.error("Failed while restarting codeserver workspace project with exception : {} ", e.getMessage());
 			MessageDescription error = new MessageDescription();
 			error.setMessage("Failed while restarting codeserver workspace project with exception " + e.getMessage());
 			errors.add(error);
@@ -4019,6 +4023,8 @@ import com.daimler.data.dto.workspace.buildDeploy.*;
 					 if(buildDetails == null){
 						 buildDetails = new CodeServerBuildDetails();
 						 versionNumber = 1;
+					 }else if(buildDetails.getVersion() == null){
+						versionNumber = 1;
 					 }else{
 						 String num[] = buildDetails.getVersion().split("-");
 						 versionNumber = Integer.parseInt(num[1].substring(1));
@@ -4114,6 +4120,7 @@ import com.daimler.data.dto.workspace.buildDeploy.*;
 			 }
 		
 		 } catch (Exception e) {
+			log.error("Failed while build codeserver workspace project with exception : {} ", e.getMessage());
 			 MessageDescription error = new MessageDescription();
 			 error.setMessage("Failed while build codeserver workspace project with exception " + e.getMessage());
 			 errors.add(error);
@@ -4260,6 +4267,7 @@ import com.daimler.data.dto.workspace.buildDeploy.*;
 					status = "SUCCESS";
 			}
 		} catch (Exception e) {
+			log.error("Failed while rejecting codeserver workspace project with exception : {} ", e.getMessage());
 			MessageDescription error = new MessageDescription();
 			error.setMessage("Failed while rejecting codeserver workspace project deployment with exception " + e.getMessage());
 				errors.add(error);
