@@ -1166,14 +1166,14 @@ import org.springframework.beans.factory.annotation.Value;
 						status = prodDeployStatus;
 					}
 			
-				   if (intDeployStatus != null && intDeployStatus.equalsIgnoreCase("DEPLOY_REQUESTED")) {
+				   if (intDeployStatus != null && (intDeployStatus.equalsIgnoreCase("DEPLOY_REQUESTED") || intDeployStatus.equalsIgnoreCase("APPROVAL_PENDING"))) {
 					   MessageDescription invalidTypeMsg = new MessageDescription();
 					   invalidTypeMsg.setMessage(
-							   "cannot deploy workspace since it is already in DEPLOY_REQUESTED state");
+							   "cannot deploy workspace since it is already in "+intDeployStatus+" state");
 					   GenericMessage errorMessage = new GenericMessage();
 					   errorMessage.addErrors(invalidTypeMsg);
-					   log.info("User {} cannot deploy project of recipe {} for workspace {}, since it is alredy in DEPLOY_REQUESTED state.", userId,
-							   vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), vo.getWorkspaceId());
+					   log.info("User {} cannot deploy project of recipe {} for workspace {}, since it is alredy in {} state.", userId,
+							   vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), vo.getWorkspaceId(),intDeployStatus);
 					   return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
 				   }else if (intBuildStatus != null && intBuildStatus.equalsIgnoreCase("BUILD_REQUESTED")) {
 					MessageDescription invalidTypeMsg = new MessageDescription();
@@ -1186,14 +1186,14 @@ import org.springframework.beans.factory.annotation.Value;
 					return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
 				}
 				
-				   if (prodDeployStatus != null && prodDeployStatus.equalsIgnoreCase("DEPLOY_REQUESTED")) {
+				   if (prodDeployStatus != null && (prodDeployStatus.equalsIgnoreCase("DEPLOY_REQUESTED") || prodDeployStatus.equalsIgnoreCase("APPROVAL_PENDING"))) {
 					   MessageDescription invalidTypeMsg = new MessageDescription();
 					   invalidTypeMsg.setMessage(
-							   "cannot deploy workspace since it is already in DEPLOY_REQUESTED state");
+							   "cannot deploy workspace since it is already in "+prodDeployStatus+" state");
 					   GenericMessage errorMessage = new GenericMessage();
 					   errorMessage.addErrors(invalidTypeMsg);
-					   log.info("User {} cannot deploy project of recipe {} for workspace {}, since it is alredy in DEPLOY_REQUESTED state.", userId,
-							   vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), vo.getWorkspaceId());
+					   log.info("User {} cannot deploy project of recipe {} for workspace {}, since it is alredy in {} state.", userId,
+							   vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), vo.getWorkspaceId(),prodDeployStatus);
 					   return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
 				   }else if (prodBuildStatus != null && prodBuildStatus.equalsIgnoreCase("BUILD_REQUESTED")) {
 					MessageDescription invalidTypeMsg = new MessageDescription();
