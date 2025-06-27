@@ -155,8 +155,9 @@ public class BaseDbServiceImpl extends BaseCommonService<DbServiceVO, DbServiceN
                 String vaultResponsee = vault.addToVault(serviceVo.getServiceName().toLowerCase(), vaultData);                                
                 if(vaultResponsee.equalsIgnoreCase("success")){
                     log.info("vault created");
-                    String argoResponse = argoCdService.createArgoApp(token, serviceVo.getServiceName().toLowerCase(),serviceVo.getDbName().toLowerCase());
+                    String argoResponse = argoCdService.createArgoApp(token, serviceVo.getServiceName().toLowerCase(),serviceVo.getDbName().toLowerCase(),serviceVo.getDbType().toLowerCase());
                     if(argoResponse.equals("success")){
+                        log.info("argocd application created");
                         DbServiceNsql responseEntiy = repository.save(entity); 
                         DbServiceVO responseVo = assembler.toVo(responseEntiy);
                         List<CredentialsVO> credentialsList = getCredentials(responseVo.getProjectOwner(), responseVo.getServiceName());

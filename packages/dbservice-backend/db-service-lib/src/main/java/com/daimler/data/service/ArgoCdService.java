@@ -1,17 +1,22 @@
 package com.daimler.data.service;
 
+import java.io.IOException;
+import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StreamUtils;
 import org.springframework.web.client.RestTemplate;
 
+import com.fasterxml.jackson.core.JsonGenerator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -28,14 +33,29 @@ public class ArgoCdService {
     @Value("${argocd.argocdCreateUrl}")
     private String argocdCreateUrl;
 
-    @Value("${argocd.argocdCreateRequest}")
-    private String argocdCreateRequest;
+    @Value("${argocd.createProjectName}")
+    private String argocdCreateProjectName;
 
     @Value("${argocd.tokenUserName}")
     private String tokenUserName;
 
     @Value("${argocd.tokenPassword}")
     private String tokenPassword;
+
+    @Value("${argocd.createTargetRevision}")
+    private String targetRevision;
+
+    @Value("${argocd.createMemoryRequest}")
+    private String memoryRequest;
+
+    @Value("${argocd.createCpuRequest}")
+    private String cpuRequest;
+
+    @Value("${argocd.createMaxconnections}")
+    private String maxconnections;
+
+    @Value("${argocd.createReplicaCount}")
+    private String replicaCount;
 
     @Autowired
     private RestTemplate restTemplate;
@@ -56,7 +76,7 @@ public class ArgoCdService {
         }
     }
 
-    public String createArgoApp(String token,String serviceName,String dbName) {
+    public String createArgoApp(String token,String serviceName,String dbName,String dbType) {
         try {
             String url = argocdCreateUrl;
     
@@ -64,18 +84,17 @@ public class ArgoCdService {
             headers.setBearerAuth(token);
             headers.setContentType(MediaType.APPLICATION_JSON);
         
-            Map<String, Object> payload = this.buildPayload(serviceName,dbName);
-            log.info("payload {}",payload.toString());
+            String payload = this.buildPayload(serviceName,dbName,dbType);
+            HttpEntity<String> entity = new HttpEntity<>(payload, headers);
         
-            HttpEntity<Map<String, Object>> entity = new HttpEntity<>(payload, headers);
+            ResponseEntity<String> response = null;
+            response = restTemplate.postForEntity(url, entity, String.class);
         
-            ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
-        
-            if (response.getStatusCode().is2xxSuccessful()) {
+            if (response != null && response.getStatusCode().is2xxSuccessful()) {
                 log.info("Application created successfully!");
                 return "success";
             } else {
-                log.info("Failed: " + response.getBody());
+                log.info("Failed: " + response != null?response.getBody():"");
                 return "failed";
             }
         } catch (Exception e) {
@@ -110,19 +129,25 @@ public class ArgoCdService {
         }
     }
 
-    public Map<String, Object> buildPayload(String serviceName,String dbName) throws JsonMappingException, JsonProcessingException {
+    @SuppressWarnings("unchecked")
+    public  String buildPayload(String serviceName,String dbName,String dbType) throws IOException {
+        String fileName = "argocd-"+dbType+"-create-template.json";
+    ClassPathResource resource = new ClassPathResource(fileName);
+    String template = StreamUtils.copyToString(resource.getInputStream(), StandardCharsets.UTF_8);
+    template = template.replace("{serviceName}", serviceName);
+    template = template.replace("{dbName}", dbName);
+    template = template.replace("{dbname}-db-backup", dbName+"-db-backup");
+    template = template.replace("{projectName}", argocdCreateProjectName);
+    template = template.replace("{targetRevision}", targetRevision);
+    template = template.replace("{cpuRequest}", cpuRequest);
+    template = template.replace("{memoryRequest}", memoryRequest);
+    template = template.replace("{maxconnections}", maxconnections);
+    template = template.replace("{replicaCount}", replicaCount);
 
-        String filledJson = argocdCreateRequest
-        .replace("{serviceName}", serviceName)
-        .replace("{dbname}", dbName);
-       
-
-// Convert JSON string to Map
-        ObjectMapper mapper = new ObjectMapper();
-        Map<String, Object> map = mapper.readValue(filledJson, Map.class);
-        map.forEach((key, value) -> System.out.println(key + " : " + value));
-        return map;
-    }
-
-
+    ObjectMapper mapper = new ObjectMapper();
+        Map<String, Object> map = mapper.readValue(template, Map.class);
+        String finalJson = mapper.writeValueAsString(map); 
+        // finalJson = finalJson.replace("\\u003e", ">");
+        return finalJson;
+}
 }
