@@ -166,14 +166,14 @@ public class BuildDeployController implements CodeServerBuildDeployServiceApi {
                log.info("User {} cannot build project of recipe {} for workspace {}, since it is alredy in BUILD_REQUESTED state.", userId,
                        vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), vo.getWorkspaceId());
                return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
-           }else if (intDeployStatus != null && intDeployStatus.equalsIgnoreCase("DEPLOY_REQUESTED")) {
+           }else if (intDeployStatus != null && (intDeployStatus.equalsIgnoreCase("DEPLOY_REQUESTED") || intDeployStatus.equalsIgnoreCase("APPROVAL_PENDING"))) {
             MessageDescription invalidTypeMsg = new MessageDescription();
             invalidTypeMsg.setMessage(
-                    "cannot build workspace since it is already in DEPLOY_REQUESTED state");
+                    "cannot deploy workspace since it is already in "+intDeployStatus+" state");
             GenericMessage errorMessage = new GenericMessage();
             errorMessage.addErrors(invalidTypeMsg);
-            log.info("User {} cannot build project of recipe {} for workspace {}, since it is alredy in DEPLOY_REQUESTED state.", userId,
-                    vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), vo.getWorkspaceId());
+            log.info("User {} cannot deploy project of recipe {} for workspace {}, since it is alredy in {} state.", userId,
+                    vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), vo.getWorkspaceId(),intDeployStatus);
             return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
         }
            if (prodBuildStatus != null && prodBuildStatus.equalsIgnoreCase("BUILD_REQUESTED") ) {
@@ -185,14 +185,14 @@ public class BuildDeployController implements CodeServerBuildDeployServiceApi {
                log.info("User {} cannot build project of recipe {} for workspace {}, since it is alredy in BUILD_REQUESTED state.", userId,
                        vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), vo.getWorkspaceId());
                return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
-           }else if (prodDeployStatus != null && prodDeployStatus.equalsIgnoreCase("DEPLOY_REQUESTED")) {
+           }else if (prodDeployStatus != null && (prodDeployStatus.equalsIgnoreCase("DEPLOY_REQUESTED") || prodDeployStatus.equalsIgnoreCase("APPROVAL_PENDING"))) {
             MessageDescription invalidTypeMsg = new MessageDescription();
             invalidTypeMsg.setMessage(
-                    "cannot build workspace since it is already in DEPLOY_REQUESTED state");
+                    "cannot deploy workspace since it is already in "+prodDeployStatus+" state");
             GenericMessage errorMessage = new GenericMessage();
             errorMessage.addErrors(invalidTypeMsg);
-            log.info("User {} cannot build project of recipe {} for workspace {}, since it is alredy in DEPLOY_REQUESTED state.", userId,
-                    vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), vo.getWorkspaceId());
+            log.info("User {} cannot deploy project of recipe {} for workspace {}, since it is alredy in {} state.", userId,
+                    vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), vo.getWorkspaceId(),prodDeployStatus);
             return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
         }
         
