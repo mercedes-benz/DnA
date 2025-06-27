@@ -1,0 +1,234 @@
+.checkbox, .radio, .switch, .legend {
+  display: inline-flex;
+  margin: 0;
+  position: relative;
+
+  &.checked .wrapper {
+    color: #697582;
+  }
+
+  &:hover {
+    input[type="checkbox"]:not(:disabled), input[type="radio"]:not(:disabled) {
+      &::before {
+        background-color: #697582;
+        transition: all 85ms cubic-bezier(0.2, 0.2, 0.38, 0.9) 0s;
+      }
+
+      &:checked::before {
+        background-color: #00ADEF;
+        transition: all 85ms cubic-bezier(0.2, 0.2, 0.38, 0.9) 0s;
+      }
+    }
+  }
+
+  .wrapper {
+    display: inline-block;
+    height: 40px;
+    width: 40px;
+    overflow: hidden;
+    position: relative;
+    border-radius: 50%;
+    color: #00ADEF;
+
+    input[type="checkbox"],
+    input[type="radio"] {
+      height: 100%;
+      width: 100%;
+      margin-left: -100%;
+
+      &::before,
+      &::after {
+        content: "";
+        position: absolute;
+        width: 100%;
+        height: 100%;
+        visibility: visible;
+        border-radius: 50%;
+        transition: background-color 150ms cubic-bezier(0.4, 0, 0.2, 1) 0ms, left 150ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
+        opacity: 1;
+        left: 0;
+      }
+
+      &::before {
+        opacity: 0.08;
+      }
+
+      &::after {
+        left: 10px;
+        top: 10px;
+        width: 20px;
+        height: 20px;
+        border: 1px solid #c0c8d0;
+        border-radius: 1px;
+      }
+
+      &:checked::after {
+        background: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABoAAAAYCAYAAAGThd1TAAAAAXNSR0IArs4c6QAAAsVJREFUSA2tVTtvE0EQ/uYcQyJiYgMSFRRUEaGKxLuiCXkQUBwJJEAUlEggagoQ4hdEAoH4BTx0F4dEpACEBF2QIlFEEFEFaCCI27PDIw/7mNn12efLObFDVrJ3dma++WZ3Z/aA8LC9gerytd9uFjXaqj0i2eoD4KiXsF1fTBSxm6WjppC0+lfbyqiqIZcfDEJVlU1Lq8JKhFil437GjL9F7FbFY/zPXvg0iy5aEoMZAo+EiN9sAIjOjirB9xvE5Lzzms3xrkXjxK9j0oOmy3mrz91xb+voo15fnWjqhnaw1SftoKOr0GnEw4z2WaHL5F44sJZbc7ZyOTZ4fBzb8XrhlyZBicHGQFIGH9Uil/BXZDN7rIbyE4AMBsi0Pkg3DHvuSKcEIGNtkO1d5YvsBFkXcYIWDKReo4l1PL8LS8V5EL1DNn0oAMjMJc69HleEBuBHAQIifZkitaS34wwVROSe/8GBdjIgwUwlrQv9WRjOmGNfUXlMqH1w3LsaQIljcQDBVu/Jdn/zuk0HJHrKLGe1vO6f437hdCunVM+/ylTPY6N6aS0fNw3cOrX5RPI4LS9O67MUFqIXGOroXbuImt3NqLqHpb9zhoSWuXKO8h30yMVtzo5yhf0orkxxXtt0bkRPmOBcOM//J7LVI26dIOgvJFsO43RqJkwi8saJbO8IE7zhX9IEpfsYTl+JEgTr5ol838KoN8n30FMm+InWrd0YaJsLgsbN3LLyTS9NlEGP0dlxqfZzFoLlvJMo+s95F6aILNzBUKZcwiG/GJE4M0JOjaAEfqbKg2gaSPQhm/quNfKyznpv2de8RvLCtrZ0oz81H0DWm2uPznEv8wf6IWec0ECibxz8Acu3KoEs6zr3xUhl3aBQSxSAxvLHUSyNM0kmUHEvzCLRcbDyIlYMjQnxRAF2bGE3issXgOQrZNvfB+qNzP8AEJEGKrZh8IkAAAAASUVORK5CYII=")
+          no-repeat;
+        background-position: center;
+        background-size: 12px;
+      }
+
+      &:disabled {
+        &::after {
+          opacity: 0.8;
+        }
+
+        &:hover::before {
+          background-color: transparent;
+        }
+      }
+    }
+
+    input[type="radio"] {
+      &::before,
+      &::after {
+        border-radius: 50%;
+      }
+
+      &::after {
+        left: 12px;
+        top: 12px;
+        width: 16px;
+        height: 16px;
+      }
+
+      &:checked::after {
+        background: url("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABQAAAAUCAYAAAH6ji2bAAAAAXNSR0IArs4c6QAAAh9JREFUOBFjYAAC1pkXb4JoRhDjt4icGpgDIhjWvv8PpkEEZ82KpYwwESaYMCOYgawOKMAEUgtTgUILBWaGMi5/9tnY2JgVJAE3EKZKbFFlEIYgSBJuI0wliGbmFZfl/qWgZw0XDBZkBDupoaGBqUE3/y9cAonBe2Bp9+fJOWWMINe8i2lbhSSHlckIcvJ/Nk4erLJIgkxGPb5CSHysTOa3T+9Cgg0oLeafEfgqrn0dskqQgr9pOirIYgygEANHAdApoIgCuR1ZAdhE3twpXZ8dokuRJWDshssTmYGh8o8Rm5UwRXAaGI7MX9t2X4cL4GAI/f50DWt8oatnffPoFtY4RFf4h09UiiiFHFcPbWIChRW6Ceh8re3dCUwYAYqmCpQozp49+xtiNcj7WEwGpU5QygHphUchzCBQuL71zun+KyytDBPDRoMMFt46pfTVxhnrkeXhBuKLRWQN2NiwtA2SYwSlmQvpC68TchE2g5DFQC42mBmvyfwhuX/xLyVDe2RJctj/ufiEPvCIKxOdsYixhPHX9y9MLJ9ePyNGMTFqQGYxC7Ayvvyu54yS14jRjE2NwLrOTObvN85cE/v58dJXfZdwbIqIFQOlxTcbZqxlBmn4evPMjQYtzuaz1+9yoZSHRJgGSjJVn/fbbZ3ZA87u8HSIrBeUlO7LmQV817YP+COraQLKpSB5UBixPL5+hvPqwQ2Kj05tAGUhZH0gNgBUM9MgB3FeDQAAAABJRU5ErkJggg==")
+          no-repeat;
+        background-position: center;
+        background-size: 10px;
+      }
+    }
+  }
+
+  .label {
+    line-height: 40px;
+    font-size: 14px;
+    color: #383f49;
+  }
+
+  &.disabled .label {
+    color: #99a5b3;
+  }
+}
+
+.switch {
+  cursor: pointer;
+
+  &.on .wrapper {
+    color: #697582;
+
+    &::before {
+      background-color: #00ADEF;
+    }
+  }
+
+  .wrapper {
+    overflow: visible;
+    width: 48px;
+    
+    input[type="checkbox"], input[type="radio"] {
+      cursor: pointer;
+      margin-left: 0;
+      outline: none;
+      -webkit-appearance: none;
+
+      &::before {
+        z-index: 3;
+        left: -12px;
+        width: 40px;
+      }
+
+      &:hover::before {
+        background-color: #697582;
+      }
+
+      &::after {
+        border: none;
+        background: none;
+        background-color: #ffffff;
+        width: 14px;
+        height: 14px;
+        top:13px;
+        left: 2px;
+        border-radius: 50%;
+        z-index: 4;
+      }
+
+      &:checked::after {
+        background: none;
+        left: 19px;
+        background-color: #ffffff;
+      }
+
+      &:checked::before {
+        left: 7px;
+      }
+
+      &:checked + .animation-wrapper {
+        left: 6px;
+        transition: left 150ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
+      }
+    }
+
+    &::before {
+      content: "";
+      width: 35px;
+      height: 18px;
+      background-color: #C0C8D0;
+      border-radius: 13px;
+      position: absolute;
+      top:11px;
+      z-index: 1;
+      transition: background-color 150ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
+    }
+
+    .animation-wrapper {
+      position: absolute;
+      display: block;
+      width: 40px;
+      height: 40px;
+      z-index: 2;
+      border-radius: 50%;
+      top:0;
+      left: -12px;
+      transition: left 150ms cubic-bezier(0.4, 0, 0.2, 1) 0ms;
+    }
+  }
+}
+
+.legend {
+  .label {
+    color: #99a5b3;
+    font-size: 12px;
+    line-height: 33px;
+  }
+
+  &.active .label {
+    color: #383f49;
+  }
+
+  .wrapper {
+    width: 33px;
+    height: 33px;
+    input[type="checkbox"],
+    input[type="radio"] {
+      &::after {
+        border: none;
+        background: none;
+        background-color: #d9dfe4;
+        width: 13px;
+        height: 13px;
+        top: 10px;
+        left: 10px;
+        border-radius: 1px;
+      }
+
+      &:checked::after {
+        background: none;
+        background-color: #00adef;
+      }
+    }
+  }
+}

@@ -1,7 +1,7 @@
 spring:
   application:
     name: dna-authenticator-service
-    version: 1.1.1
+    version: 1.1.2
   profile:
     active: production
   jpa:
@@ -74,4 +74,14 @@ logging:
 kong:
     uri: ${KONG_URI:XXXX}
                 
+proxy:
+  port: ${CUSTOMPROXY_PORT:xxxx}
+  host: ${CUSTOMPROXY_HOST:xxxx}
+
+authoriser:
+  request-url: ${IDENTITY_REQUEST_URL:XXXX}
+  uri: ${IDENTITY_AUTH_URI:XXXX}
+  ssoUri: ${IDENTITY_SSO_URI:XXXX}
+  clientId: ${IDENTITY_CLIENT_ID:XXXX}
+  clientSecret: ${IDENTITY_CLIENT_SECRET:XXXX}
 

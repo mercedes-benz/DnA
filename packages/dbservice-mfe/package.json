@@ -1,0 +1,135 @@
+{
+  "name": "dbservice-mfe",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "start": "env-cmd -f .env webpack server --config config/webpack.config.js",
+    "build": "env-cmd -f .env webpack --config config/webpack.prod.config.js",
+    "build:docker": "env-cmd -f .docker.env webpack --config config/webpack.prod.config.js"
+  },
+  "eslintConfig": {
+    "env": {
+      "commonjs": true,
+      "browser": true,
+      "node": true,
+      "es6": true
+    },
+    "extends": [
+      "eslint:recommended",
+      "plugin:react/recommended",
+      "plugin:react-hooks/recommended",
+      "prettier"
+    ],
+    "parser": "@babel/eslint-parser",
+    "parserOptions": {
+      "requireConfigFile": false,
+      "ecmaVersion": 2020,
+      "sourceType": "module",
+      "ecmaFeatures": {
+        "jsx": true
+      },
+      "babelOptions": {
+        "presets": [
+          "@babel/preset-react"
+        ]
+      }
+    },
+    "settings": {
+      "react": {
+        "version": "detect"
+      }
+    },
+    "rules": {
+      "react/prop-types": "off",
+      "react/no-unknown-property": [
+        "error",
+        {
+          "ignore": [
+            "tooltip-data",
+            "required-error"
+          ]
+        }
+      ]
+    }
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "dependencies": {
+    "@reduxjs/toolkit": "^2.2.1",
+    "axios": "^1.6.8",
+    "babel-eslint": "^10.1.0",
+    "babel-loader": "^8.2.5",
+    "classnames": "^2.3.1",
+    "cra-template": "1.2.0",
+    "dayjs": "^1.11.5",
+    "env-cmd": "^10.1.0",
+    "file-loader": "^6.2.0",
+    "html-webpack-plugin": "^5.5.0",
+    "popper.js": "^1.16.1",
+    "postcss-loader": "^7.0.1",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "react-hook-form": "^7.51.4",
+    "react-redux": "^9.1.0",
+    "react-router-dom": "^5.3.0",
+    "react-scripts": "5.0.1",
+    "redux": "^5.0.1",
+    "redux-logger": "^3.0.6",
+    "redux-thunk": "^3.1.0",
+    "sass": "^1.53.0",
+    "sass-loader": "^13.0.2",
+    "url-loader": "^4.1.1",
+    "webpack": "5.92.1",
+    "webpack-cli": "^4.10.0",
+    "webpack-dev-server": "^4.9.3",
+    "webpack-merge": "^5.8.0",
+    "webpack-server": "^0.1.2"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.18.6",
+    "@babel/eslint-parser": "^7.18.2",
+    "@babel/eslint-plugin": "^7.17.7",
+    "@babel/plugin-transform-runtime": "^7.18.6",
+    "@babel/preset-env": "^7.19.1",
+    "@babel/preset-react": "^7.18.6",
+    "@babel/runtime": "^7.18.6",
+    "@module-federation/fmr": "^0.0.7",
+    "buffer": "^6.0.3",
+    "clean-webpack-plugin": "^4.0.0",
+    "copy-webpack-plugin": "^11.0.0",
+    "css-loader": "^6.7.1",
+    "css-minimizer-webpack-plugin": "^4.0.0",
+    "dotenv-webpack": "^8.0.0",
+    "duplicate-package-checker-webpack-plugin": "^3.0.0",
+    "es6-promise": "^4.2.8",
+    "eslint": "^8.19.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-prettier": "^4.2.1",
+    "eslint-plugin-react": "^7.30.1",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "eslint-webpack-plugin": "^3.2.0",
+    "external-remotes-plugin": "^1.0.0",
+    "husky": "^8.0.1",
+    "mini-css-extract-plugin": "^2.6.1",
+    "node-sass": "^7.0.1",
+    "postcss": "^8.4.14",
+    "postcss-preset-env": "^7.7.2",
+    "prettier": "^2.7.1",
+    "pretty-quick": "^3.1.3",
+    "process": "^0.11.10",
+    "rimraf": "^3.0.2",
+    "style-loader": "^3.3.1",
+    "terser-webpack-plugin": "^5.3.3",
+    "url-loader": "^4.1.1"
+  }
+}

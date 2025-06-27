@@ -335,7 +335,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 				log.info("Successfully updated latest displayName and description from Fabric to Database for project id {}", id);
 				jpaRepo.save(updatedEntity);
 			}catch(Exception e) {
-				log.error("Failed to update latest displayName and description from Fabric to Database for project id {} . Will be updated in next fetch", id);
+				log.error("Failed to update latest displayName and description from Fabric to Database for project id {}, with error {} . Will be updated in next fetch", id, e.getMessage());
 			}
 //		}
 		return voFromDb;
