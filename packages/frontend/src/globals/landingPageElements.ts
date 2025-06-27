@@ -43,6 +43,7 @@ const bisoContactsLink = Envs.BISO_CONTACTS_URL;
 const clamavImagwUrl = Envs.CLAMAV_IMAGE_URL;
 const formbricksSurveyUrl = Envs.FORMBRICKS_SURVEY_URL;
 const pgAdminUrl = Envs.PGADMIN_URL;
+const enableDbService = Envs.ENABLE_DB_SERVICE;
 
 export const DataLayerElements = [
   {
@@ -211,6 +212,24 @@ export const ToolsLandingPageElements = [
     isMediumCard: true,
     isDetailedPage: true,
     svgIcon: 'fabric',
+    isDnAInternalTool: true,
+  },
+  {
+    id: 'dbservice',
+    name: 'DB Service',
+    description:
+      'DB Service provides Self Service PostgreSQL database creation and management using pgAdmin. DB can be connected to many tools using the connection details.',
+    tags: ['Data Engineering', 'Data Storage'],
+    url: '/dbservice',
+    isExternalLink: false,
+    isTextAlignLeft: true,
+    animation: true,
+    isDisabled: !enableDbService,
+    isMoreServicesCard:false,
+    isSmallCard: false,
+    isMediumCard: true,
+    isDetailedPage: false,
+    svgIcon: 'storage',
     isDnAInternalTool: true,
   },
   {

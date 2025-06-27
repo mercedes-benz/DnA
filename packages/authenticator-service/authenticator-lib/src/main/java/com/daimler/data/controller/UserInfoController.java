@@ -52,6 +52,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.client.HttpClientErrorException;
 
 import com.daimler.data.assembler.UserInfoAssembler;
+import com.daimler.data.controller.LoginController.AuthoriserResponse;
 import com.daimler.data.controller.LoginController.UserInfo;
 import com.daimler.data.db.entities.UserInfoNsql;
 import com.daimler.data.db.entities.UserRoleNsql;
@@ -62,6 +63,8 @@ import com.daimler.data.dto.userinfo.UserInfoVO;
 import com.daimler.data.service.userinfo.UserInfoService;
 import com.daimler.data.service.userrole.UserRoleService;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.daimler.data.client.AuthoriserClient;
+import com.fasterxml.jackson.databind.JsonNode;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -87,15 +90,21 @@ public class UserInfoController {
 	@Autowired
 	private UserInfoAssembler userinfoAssembler;
 
+	@Autowired
+	private AuthoriserClient authoriserClient;
+
 	@Value("${drd.request-url}")
 	private String drdRequestUrl;
 
 	@Value("${pooluser.email-domain}")
 	private String poolUserEmailDomain;
 
+	@Value("${authoriser.uri}")
+	private String aliceRequestUrl;
+
 	@Lazy
 	@Autowired
-	private RestTemplate drdRestTemplate;
+	private RestTemplate proxyRestTemplate;
 
 	@ApiOperation(value = "Get specific user for a given userid.", nickname = "getById", notes = "Get specific user for a given userid. This endpoints will be used to Get specific user for a given userid.", response = UserInfoVO.class, tags = {
 			"users",})
@@ -127,18 +136,29 @@ public class UserInfoController {
 
 	private UserInfoVO fetchUserInfo(String userId) {
 		HttpHeaders headers = new HttpHeaders();
-		headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
-		HttpEntity<String> request = new HttpEntity<String>(headers);
+		String authoriserToken = authoriserClient.getToken();
+		if (authoriserToken == null) {
+			log.error("Authorization token is missing while calling the fetchUserInfo method.");
+			return null;
+		}	
+		headers.setContentType(MediaType.APPLICATION_JSON);
+		headers.set("Accept", "application/json");
+		headers.set("Authorization", "Bearer " + authoriserToken);
+		HttpEntity<String> request = new HttpEntity<>(headers);
 		String id = userId;
 		UserInfo userInfo = new UserInfo();
 		UserInfoVO userVO = userInfoService.getById(userId);
 		if (Objects.isNull(userVO)) {
 			try {
-				ResponseEntity<DrdResponse> response = drdRestTemplate.exchange(drdRequestUrl + userId, HttpMethod.GET,
-						request, DrdResponse.class);
-				userInfo = convertDrdResponseToUserInfo(response.getBody().getAttrs());
-				logger.info("Fetching user:{} from drd.", userId);
-				id = userInfo.getId();
+					ResponseEntity<String> response = proxyRestTemplate.exchange(aliceRequestUrl + "/users/" + userId, HttpMethod.GET,
+					request, String.class);
+
+					ObjectMapper objectMapper = new ObjectMapper();
+					JsonNode userInfoJson = objectMapper.readTree(response.getBody());
+
+					AuthoriserResponse authoriserResponse = new AuthoriserResponse(userInfoJson);
+					userInfo = convertAuthResponseToUserInfo(authoriserResponse);
+					id = userInfo.getId();
 			} catch (HttpClientErrorException e) {
 				HttpStatus statusCode = e.getStatusCode();
 				log.error("{} error for user {}: {}", statusCode, userId, e.getResponseBodyAsString());
@@ -183,16 +203,17 @@ public class UserInfoController {
 		return userVO;
 	}
 
-	private UserInfo convertDrdResponseToUserInfo(Attrs attrs) {
-		UserInfo userInfo = new UserInfo();
-		userInfo.setId(attrs.getUid() != null ? attrs.getUid().get(0) : "");
-		userInfo.setFirstName(attrs.getGivenName() != null ? attrs.getGivenName().get(0) : "");
-		userInfo.setLastName(attrs.getSn() != null ? attrs.getSn().get(0) : "");
-		userInfo.setEmail(attrs.getMail() != null ? attrs.getMail().get(0) : "");
-		userInfo.setMobileNumber(attrs.getMobile() != null ? attrs.getMobile().get(0) : "");
-		userInfo.setDepartment(attrs.getDepartmentNumber() != null ? attrs.getDepartmentNumber().get(0) : "");
-		return userInfo;
-
+	private UserInfo convertAuthResponseToUserInfo(AuthoriserResponse authoriserResponse) {
+			UserInfo userInfo = new UserInfo();
+			if(authoriserResponse!=null){
+				userInfo.setId(authoriserResponse.getId());
+				userInfo.setFirstName(authoriserResponse.getGivenname());
+				userInfo.setLastName(authoriserResponse.getSurname());
+				userInfo.setEmail(authoriserResponse.getMailAddress());
+				userInfo.setMobileNumber(authoriserResponse.getMobileNumber());
+				userInfo.setDepartment(authoriserResponse.getDepartmentNumber());	
+		}
+	return userInfo;
 	}
 
 }

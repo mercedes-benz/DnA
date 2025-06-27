@@ -1,0 +1,896 @@
+import classNames from 'classnames';
+import React, { useState, useEffect } from 'react';
+import { useForm, FormProvider } from 'react-hook-form';
+import { useHistory } from "react-router-dom";
+// styles
+import Styles from './db-service-form.scss';
+// import from DNA Container
+import Tags from 'dna-container/Tags';
+import SelectBox from 'dna-container/SelectBox';
+import AddUser from 'dna-container/AddUser';
+import ConfirmModal from 'dna-container/ConfirmModal';
+// App components
+import Notification from '../../common/modules/uilab/js/src/notification';
+import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
+import Tooltip from '../../common/modules/uilab/js/src/tooltip';
+// Utils
+import { Envs } from '../../utilities/envs';
+// Api
+import { hostServer } from '../../server/api';
+import { dbServiceApi } from '../../apis/dbservice.api';
+
+const DBServiceForm = ({ user, dbservice, edit, onSave }) => {
+  let history = useHistory();
+  
+  const methods = useForm();
+  const {
+    register,
+    handleSubmit,
+    setValue,
+    formState: { errors },
+  } = methods;
+
+  const isOwner = user?.id === user?.id;
+
+  // lean governance fields
+  const [dbserviceName, setDbServiceName] = useState(edit && dbservice?.name !== null ? dbservice?.name : '');
+  const [dbName, setDbName] = useState(edit && dbservice?.name !== null ? dbservice?.name : 'db');
+
+  const [divisions, setDivisions] = useState([]);
+  const [subDivisions, setSubDivisions] = useState([]);
+  const [departments, setDepartments] = useState([]);
+  const [dataClassificationDropdown, setDataClassificationDropdown] = useState([]);
+  const [fabricTags] = useState([]);
+
+  const [division, setDivision] = useState(edit ? (dbservice?.divisionId ? dbservice?.divisionId + '@-@' + dbservice?.division : '0') : '');
+  const [dbType, setDbType] = useState(edit ? dbservice?.dbType ?? 'Postgres' : 'Postgres');
+  const [subDivision, setSubDivision] = useState(edit ? (dbservice?.subDivisionId ? dbservice?.subDivisionId + '@-@' + dbservice?.subDivision : '0') : '');
+  const [description, setDescription] = useState(edit && dbservice?.description ? dbservice?.description : '');
+  const [departmentName, setDepartmentName] = useState(edit && dbservice?.department ? [dbservice?.department] : []);
+  const [typeOfProject, setTypeOfProject] = useState(edit && dbservice?.typeOfProject ? dbservice?.typeOfProject : '0');
+  const [dataClassification, setDataClassification] = useState(edit && dbservice?.dataClassification ? dbservice?.dataClassification : '0');
+  const [PII, setPII] = useState(edit && dbservice?.hasPii ? dbservice?.hasPii : false);
+  const [tags, setTags] = useState(edit && dbservice?.tags !== null ? [...dbservice.tags] : []);
+  const [archerId, setArcherID] = useState(edit && dbservice?.archerId ? dbservice?.archerId : '');
+  const [procedureId, setProcedureID] = useState(edit && dbservice?.procedureId ? dbservice?.procedureId : '');
+  const [termsOfUse, setTermsOfUse] = useState(edit && dbservice?.termsOfUse ? [dbservice?.termsOfUse] : false);
+
+  const [collaborators, setCollaborators] = useState([]);
+  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [bucketName] = useState(edit && dbservice?.name !== null ? dbservice?.name : '');
+  const [ownerId, setOwnerId] = useState();
+
+  useEffect(() => {
+    Tooltip.defaultSetup();
+  }, []);
+
+  const getDevelopers = (developer) => {
+    const userData = {
+        id: developer?.shortId,
+        firstName: developer?.firstName,
+        lastName: developer?.lastName,
+        department: developer?.department,
+        mobileNumber: developer?.mobileNumber,
+        email: developer?.email,
+    };
+
+    let duplicateMember = false;
+    duplicateMember = collaborators?.filter((collab) => collab.id === developer.shortId)?.length ? true : false;
+
+    const isCreator = user?.id === developer?.shortId;
+
+    if (duplicateMember) {
+        Notification.show('User already added.', 'warning');
+    } else if (isCreator) {
+        Notification.show(
+            `${developer.firstName} ${developer.lastName} is a creator. Creator can't be added to user list.`,
+            'warning',
+        );
+    } else {
+        collaborators?.push(userData);
+        setCollaborators([...collaborators]);
+    }
+  }
+
+  // const onUserLicenseClick = (value, userId) => {
+  //   const updatedUserLincenses = collaborators.map(userLicense => {
+  //     if (userLicense?.userDetails?.id === userId) {
+  //       return Object.assign({}, userLicense, { license: value });
+  //     }
+  //     return userLicense;
+  //   });
+  //   setCollaborators(updatedUserLincenses);
+  // };
+
+  const onCollaboratorPermission = (e, userName) => {
+    const bucketList = collaborators.find((item) => {
+      return item.accesskey == userName;
+    });
+
+    if (e.target.checked) {
+      bucketList.permission.write = true;
+    } else {
+      bucketList.permission.write = false;
+    }
+    setCollaborators([...collaborators]);
+  };
+
+  const onUserLicenseDelete = (userId) => {
+    return () => {
+      const updatedUserLicenses = collaborators.filter((userLicense) => {
+        return userLicense?.userDetails?.id !== userId;
+      });
+      setCollaborators(updatedUserLicenses);
+    };
+  };
+
+  useEffect(() => {
+    ProgressIndicator.show();
+    dbServiceApi.getLovData()
+      .then((response) => {
+        ProgressIndicator.hide();
+        setDataClassificationDropdown(response[0]?.data?.data || []);
+        setDivisions(response[1]?.data || []);
+        setDepartments(response[2]?.data?.data || []);
+        edit && setDivision(dbservice?.divisionId !== null ? dbservice?.divisionId + '@-@' + dbservice?.division : '0');
+        SelectBox.defaultSetup();
+      })
+      .catch((err) => {
+        ProgressIndicator.hide();
+        if (err?.response?.data?.errors?.length > 0) {
+          err?.response?.data?.errors.forEach((err) => {
+            Notification.show(err?.message || 'Something went wrong.', 'alert');
+          });
+        } else {
+          Notification.show(err?.message || 'Something went wrong.', 'alert');
+        }
+      });
+    //eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    const divId = division.includes('@-@') ? division.split('@-@')[0] : division;
+    if (divId && divId!=='0' ) {
+      ProgressIndicator.show();
+      hostServer.get('/subdivisions/' + divId)
+        .then((res) => {
+          setSubDivisions(res?.data || []);
+          SelectBox.defaultSetup();
+          ProgressIndicator.hide();
+        }).catch(() => {
+          ProgressIndicator.hide();
+        });
+    } else {
+      setSubDivisions([]);
+    }
+    //eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [division]);
+
+  useEffect(() => {
+    SelectBox.defaultSetup(true);
+  }, [typeOfProject]);
+
+  useEffect(() => {
+    divisions.length > 0 && 
+    edit && setDivision(dbservice?.divisionId !== null ? dbservice?.divisionId + '@-@' + dbservice?.division : '0');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [divisions]);
+
+  useEffect(() => {
+    subDivisions.length > 0 &&
+    edit && setSubDivision(dbservice?.subDivisionId !== null ? dbservice?.subDivisionId + '@-@' + dbservice?.subDivision : '0');
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [subDivisions]);
+
+  useEffect(() => {
+    SelectBox.defaultSetup();
+  }, [division, subDivision]);
+
+  useEffect(() => {
+    setValue('department', departmentName[0]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [departmentName[0]]);
+
+  const onTransferOwnership = (userId) => {
+    setOwnerId(userId);
+    setShowConfirmModal(true);
+  };
+
+  const onAcceptTransferOwnership = () => {
+    ProgressIndicator.show();
+    dbServiceApi
+      .transferOwnership(bucketName, ownerId)
+      .then(() => {
+        ProgressIndicator.hide();
+        Notification.show('Ownership transferred successfully.');
+        setShowConfirmModal(false);
+        history.push('/');
+      })
+      .catch(() => {
+        ProgressIndicator.hide();
+        Notification.show('Error while transferring ownership', 'alert');
+      });
+  };
+
+  const handleCreateWorkspace = (values) => {
+    ProgressIndicator.show();
+    const data = {
+      serviceName: values.dbServiceName?.trim() ?? '',
+      dbName: values.dbName?.trim() ?? '',
+      dbType: values.dbType,
+      projectCollaborators: collaborators.map((c) => ({
+        id: c.id,
+        firstName: c.firstName,
+        lastName: c.lastName,
+        department: c.department,
+        email: c.email,
+        mobileNumber: c.mobileNumber ?? 'null',
+        gitUserName: c.gitUserName ?? null,
+        isAdmin: c.isAdmin ?? false,
+        isApprover: c.isApprover ?? false,
+        isRead: c.isRead ?? false,
+        isWrite: c.isWrite ?? false,
+      })),
+      dataGovernance: {
+      classificationType: values?.dataClassification,
+      tags: tags.length > 0 ? tags: null,
+      piiData: values?.pii,
+      archerId: values?.archerId,
+      divisionId: values?.division?.includes('@-@') ? values?.division?.split('@-@')[0] : '',
+      division: values?.division?.includes('@-@') ? values?.division?.split('@-@')[1] : null,
+      subDivisionId: values?.subDivision?.includes('@-@') ? values?.subDivision?.split('@-@')[0] : '',
+      subDivision: values?.subDivision?.includes('@-@') ? values?.subDivision?.split('@-@')[1] : null,
+      description: values?.description?.trim() ?? '',
+      department: departmentName[0],
+      procedureId: values?.procedureId,
+      termsOfUse: values?.termsOfUse,
+      typeOfProject: values?.typeOfProject,
+      }
+    };
+    dbServiceApi.createDBService(data).then((res) => {
+      ProgressIndicator.hide();
+      history.push(`/workspace/${res.data.data.id}`);
+      Notification.show('DB Service successfully created');
+    }).catch(error => {
+      ProgressIndicator.hide();
+      Notification.show(
+        error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || error?.response?.data?.responses?.errors?.[0]?.message || 'Error while creating fabric workspace',
+        'alert',
+      );
+    });
+  };
+  const handleEditWorkspace = (values) => {
+    const data = {
+      serviceName: values.dbServiceName.trim(),
+      dbName: values.dbname.trim(),
+      description: values?.description.trim()?? '',
+      projectType: values?.typeOfProject,
+      dataGovernance: {
+        classificationType: values?.dataClassification,
+      tags: tags.length > 0 ? tags : null,
+      piiData: values?.pii,
+      archerId: values?.archerId,
+      divisionId: values?.division?.includes('@-@') ? values?.division?.split('@-@')[0] : '',
+      division: values?.division?.includes('@-@') ? values?.division?.split('@-@')[1] : null,
+      subDivisionId: values?.subDivision?.includes('@-@') ? values?.subDivision?.split('@-@')[0] : '',
+      subDivision: values?.subDivision?.includes('@-@') ? values?.subDivision?.split('@-@')[1] : null,
+      department: departmentName[0],
+      procedureId: values?.procedureId,
+      termsOfUse: values?.termsOfUse,
+      }
+    }
+    ProgressIndicator.show();
+    dbServiceApi.updateDBService(dbservice.id, data).then(() => {
+      ProgressIndicator.hide();
+      Notification.show('DB Service successfully updated');
+      onSave();
+    }).catch(error => {
+      ProgressIndicator.hide();
+      Notification.show(
+        error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || 'Error while updating fabric workspace',
+        'alert',
+      );
+    });
+  };
+
+  return (
+    <>
+      <FormProvider {...methods}>
+        <div className={classNames(Styles.form)}>
+          <div className={Styles.formHeader}>
+            <h3>{edit ? 'Edit' : 'Create'} your DB Service</h3>
+            <p>{edit ? 'Edit the information and save!' : 'Enter the information to create your PostgreSQL DB!'}</p>
+          </div>
+          <div className={Styles.flex}>
+            <div className={Styles.col2}>
+              <div className={
+                    classNames(
+                      'input-field-group include-error',
+                      errors?.typeOfProject?.message ? 'error' : ''
+                  )}
+              >
+                <label className={'input-label'}>
+                  Type of Project <sup>*</sup>
+                </label>
+                <div className={classNames('custom-select')}>
+                  <select id="reportStatusField"
+                    defaultValue={typeOfProject}
+                    {...register('typeOfProject', {
+                      required: '*Missing entry',
+                      validate: (value) => value !== '0' || '*Missing entry',
+                      onChange: (e) => { setTypeOfProject(e.target.value) }
+                    })}
+                  >
+                    <option id="typeOfProjectOption" value={0}>
+                      Choose
+                    </option>
+                    {(!edit || dbservice?.typeOfProject === 'Playground') && <option value={'Playground'}>Playground</option>}
+                    <option value={'Proof of Concept'}>Proof of Concept</option>
+                    <option value={'Production'}>Production</option>
+                  </select>
+                </div>
+                <p style={{ color: 'var(--color-orange)' }}
+                  className={classNames((typeOfProject !== 'Playground' ? ' hide' : ''))}><i className="icon mbc-icon alert circle"></i> Playground workspaces are deleted after 2 months of not being used.</p>
+                <span className={classNames('error-message', errors?.typeOfProject?.message ? '' : 'hide')}>
+                  {errors?.typeOfProject?.message}
+                </span>
+              </div>
+            </div>
+            <div className={Styles.col2}>
+              <div className={classNames('input-field-group include-error', errors?.dbServiceName ? 'error' : '')}>
+                <label className={'input-label'}>
+                  DB Service Name <sup>*</sup>
+                </label>
+                <input
+                  type="text"
+                  className={'input-field'}
+                  id="dbServiceName"
+                  placeholder="Type here"
+                  autoComplete="off"
+                  maxLength={256}
+                  defaultValue={dbserviceName}
+                  disabled={edit}
+                  {...register('dbServiceName', { required: '*Missing entry', validate: {
+                    minLength: (value) =>
+                      value.length >= 3 || 'DB service name should be minimum 3 characters.',
+                    maxLength: (value) =>
+                      value.length <= 63 || 'DB service name must be 63 characters or less.',
+                    validChars: (value) =>
+                      /^[a-z]([-a-z0-9]*[a-z0-9])?$/.test(value) ||
+                      'Only lowercase letters, numbers, and hyphens allowed. Must start with a letter and end with a letter or number.',
+                    startsCorrectly: (value) =>
+                        /^[a-z]/.test(value) || 'DB name must start with a lowercase letter.',
+                    noTrailingHyphen: (value) =>
+                      !/-$/.test(value) || 'DB service name must end with letter or a number.',
+                    noTrailingDot: (value) =>
+                      !/\.$/.test(value) || 'DB service name must end with letter or a number.',
+                    noConsecutiveDots: (value) =>
+                      !/\.+\./.test(value) || `DB service name can't have consecutive dots.`,
+                    notIpAddress: (value) =>
+                      !/^(?:(?:^|\.)(?:2(?:5[0-5]|[0-4]\d)|1?\d?\d)){4}$/.test(value) ||
+                      'DB service name can’t be an IP address.',
+                  }, onChange: (e) => { setDbServiceName(e.target.value) } })}
+                />
+                <span className={'error-message'}>{errors?.dbServiceName?.message}</span>
+              </div>
+            </div>
+            <div className={Styles.col2}>
+              <div className={classNames('input-field-group include-error', errors?.dbName ? 'error' : '')}>
+                <label className={'input-label'}>
+                  DB Name <sup>*</sup>
+                </label>
+                <input
+                  type="text"
+                  className={'input-field'}
+                  id="dbName"
+                  placeholder="Type here"
+                  autoComplete="off"
+                  maxLength={31}
+                  defaultValue={dbName}
+                  disabled={edit}
+                  {...register('dbName', { required: '*Missing entry', validate: {
+                    // minLength: (value) =>
+                    //   value.length >= 3 || 'DB name should be minimum 3 characters.',
+                    minLength: (value) => {
+                      if (value === 'db') return true;
+                      return value.length >= 3 || 'DB name should be minimum 3 characters.';
+                    },
+                    validChars: (value) =>
+                      /^[a-z\d.-]*$/.test(value) ||
+                      'DB name can consist only of lowercase letters, numbers, dots ( . ), and underscores (_).',
+                    startsCorrectly: (value) =>
+                      /^[a-z]/.test(value) || 'DB name must start with a lowercase letter.',
+                    noTrailingHyphen: (value) =>
+                      !/-$/.test(value) || 'DB name must end with letter or a number.',
+                    noTrailingDot: (value) =>
+                      !/\.$/.test(value) || 'DB name must end with letter or a number.',
+                    noConsecutiveDots: (value) =>
+                      !/\.+\./.test(value) || `DB name can't have consecutive dots.`,
+                    notIpAddress: (value) =>
+                      !/^(?:(?:^|\.)(?:2(?:5[0-5]|[0-4]\d)|1?\d?\d)){4}$/.test(value) ||
+                      'DB name can’t be an IP address.',
+                      notReservedWord: (value) => {
+                        const reserved = [
+                          'select', 'table', 'from', 'where', 'group', 'database',
+                          'order', 'update', 'delete', 'join',
+                        ];
+                        return !reserved.includes(value)
+                          || 'This is a reserved word and cannot be used as DB name.';
+                      }
+                    },
+                    onChange: (e) => {
+                      const value = e.target.value
+                        .toLowerCase()   
+                        .replace(/[^a-z0-9.-]+/g, '-')
+                        .replace(/^-+|-+$/g, '');
+                      setDbName(value);
+                    }
+                 })}
+                />
+                <span className={'error-message'}>{errors?.dbName?.message}</span>
+              </div>
+            </div>
+            <div className={Styles.col2}>
+              <div className={classNames('input-field-group', errors?.dbType ? 'error' : '')}>
+                <label className="input-label">
+                  DB Type <sup>*</sup>
+                </label>
+                <div className={classNames('custom-select')}>
+                  <select
+                    id="dbType"
+                    value={dbType}
+                    {...register('dbType', {
+                      required: '*Missing entry',
+                      validate: (value) => value !== '0' || '*Missing entry',
+                      onChange: (e) => setDbType(e.target.value),
+                    })}
+                  >
+                    <option value="0">Choose</option>
+                    <option value="Postgres">Postgres</option> {/* ✅ Default option */}
+                    <option value="Apache">Apache</option>
+                    <option value="Ignite">Ignite</option>
+                    <option value="Quadrant">Quadrant</option>
+                  </select>
+                </div>
+                <span className={classNames('error-message', errors?.dbType?.message ? '' : 'hide')}>
+                  {errors?.dbType?.message}
+                </span>
+              </div>
+            </div>
+            <div className={Styles.col}>
+              <div className={classNames('input-field-group include-error area', errors.description ? 'error' : '')}>
+                <label id="description" className="input-label" htmlFor="description">
+                  Description <sup>*</sup>
+                </label>
+                <textarea
+                  id="description"
+                  className={'input-field-area'}
+                  type="text"
+                  defaultValue={description}
+                  rows={50}
+                  {...register('description', { required: '*Missing entry', pattern: /^(?!\s+$)(\s*\S+\s*)+$/, onChange: (e) => { setDescription(e.target.value) } })}
+                />
+                <span className={'error-message'}>{errors?.description?.message}{errors.description?.type === 'pattern' && `Spaces (and special characters) not allowed as field value.`}</span>
+              </div>
+            </div>
+            <div className={Styles.col2}>
+              <div
+                className={classNames(
+                  'input-field-group include-error',
+                  errors?.division?.message ? 'error' : '',
+                )}
+              >
+                <label className={'input-label'}>
+                  Division <sup>*</sup>
+                </label>
+                <div className={classNames('custom-select')}>
+                  <select
+                    id="divisionField"
+                    defaultValue={division}
+                    value={division}
+                    {...register('division', {
+                      required: '*Missing entry',
+                      validate: (value) => value !== '0' || '*Missing entry',
+                      onChange: (e) => { setDivision(e.target.value) }
+                    })}
+                  >
+                    <option id="divisionOption" value={0}>
+                      Choose
+                    </option>
+                    {divisions?.map((obj) => {
+                      return (
+                        <option id={obj.name + obj.id} key={obj.id} value={obj.id + '@-@' + obj.name}>
+                          {obj.name}
+                        </option>
+                      )
+                    })}
+                  </select>
+                </div>
+                <span className={classNames('error-message', errors?.division?.message ? '' : 'hide')}>
+                  {errors?.division?.message}
+                </span>
+              </div>
+            </div>
+            <div className={Styles.col2}>
+              <div className={'input-field-group'}>
+                <label className={'input-label'}>
+                  Sub Division
+                </label>
+                <div className={classNames('custom-select')}>
+                  <select id="subDivisionField"
+                    defaultValue={subDivision}
+                    value={subDivision}
+                    required={false}
+                    {...register('subDivision', {
+                      onChange: (e) => { setSubDivision(e.target.value) }
+                    })}
+                  >
+                    {subDivisions?.some((item) => item.id === '0' && item.name === 'None') ? (
+                      <option id="subDivisionDefault" value={0}>
+                        None
+                      </option>
+                    ) : (
+                      <>
+                        <option id="subDivisionDefault" value={0}>
+                          Choose
+                        </option>
+                        {subDivisions?.map((obj) => (
+                          <option id={obj.name + obj.id} key={obj.id} value={obj.id + '@-@' + obj.name}>
+                            {obj.name}
+                          </option>
+                        ))}
+                      </>
+                    )}
+                  </select>
+                </div>
+              </div>
+            </div>
+            <div className={Styles.col2}>
+              <div
+                className={classNames(
+                  'input-field-group include-error',
+                  Object.keys(errors).length > 0 && (departmentName.length === 0 ? 'error' : ''),
+                )}
+              >
+                <Tags
+                  title={'Department'}
+                  max={1}
+                  chips={departmentName}
+                  tags={departments}
+                  setTags={(selectedTags) => {
+                    let dept = selectedTags?.map((item) => item.toUpperCase());
+                    setDepartmentName(dept);
+                  }}
+                  isMandatory={true}
+                  showMissingEntryError={Object.keys(errors).length > 0 && departmentName.length === 0}
+                />
+                {/* workaround for validating department Tags field */}
+                <input type={'hidden'} defaultValue={departmentName[0]} value={departmentName[0]} {...register('department', {required: '*Missing entry'})} />
+              </div>
+            </div>
+            <div className={Styles.col2}>
+              {typeOfProject !== 'Playground' &&
+                <div className={'input-field-group'}>
+                  <Tags
+                    title={'Tags'}
+                    max={100}
+                    chips={tags}
+                    tags={fabricTags}
+                    setTags={(selectedTags) => {
+                      let tag = selectedTags?.map((item) => item.toUpperCase().trim());
+                      setTags(tag);
+                    }}
+                    isMandatory={false}
+                  />
+                </div>
+              }
+            </div>
+            <div className={Styles.col2}>
+              <div
+                className={classNames(
+                  'input-field-group include-error',
+                  errors?.dataClassification?.message ? 'error' : '',
+                )}
+              >
+                <label className={'input-label'}>
+                  Data Classification <sup>*</sup>
+                </label>
+                <div className={classNames('custom-select')}>
+                  <select
+                    id="classificationField"
+                    defaultValue={dataClassification}
+                    value={dbservice?.dataClassification}
+                    {...register('dataClassification', {
+                      required: '*Missing entry',
+                      validate: (value) => value !== '0' || '*Missing entry',
+                      onChange: (e) => { setDataClassification(e.target.value) }
+                    })}
+                  >
+
+                    <option id="classificationOption" value={0}>Choose</option>
+                    {dataClassificationDropdown?.map((item) => (
+                      <option
+                        id={item.id}
+                        key={item.id}
+                        value={item.name}
+                      >
+                        {item.name}
+                      </option>
+                    ))}
+
+                  </select>
+                </div>
+                <span className={classNames('error-message', errors?.dataClassification?.message ? '' : 'hide')}>
+                  {errors?.dataClassification?.message}
+                </span>
+              </div>
+            </div>
+            <div className={Styles.col2}>
+              <div className={classNames('input-field-group include-error')}>
+                <label className={'input-label'}>
+                  PII (Personally Identifiable Information) <sup>*</sup>
+                </label>
+                <div className={Styles.pIIField}>
+                  <label className={classNames('radio')}>
+                    <span className="wrapper">
+                      <input
+                        type="radio"
+                        className="ff-only"
+                        value={true}
+                        name="pii"
+                        defaultChecked={PII === true}
+                        {...register('pii', {
+                          required: '*Missing entry',
+                          onChange: (e) => { setPII(e.target.value) }
+                        })}
+                      />
+                    </span>
+                    <span className="label">Yes</span>
+                  </label>
+                  <label className={classNames('radio')}>
+                    <span className="wrapper">
+                      <input
+                        type="radio"
+                        className="ff-only"
+                        value={false}
+                        name="pii"
+                        defaultChecked={PII === false}
+                        {...register('pii', {
+                          required: '*Missing entry',
+                          onChange: (e) => { setPII(e.target.value) }
+                        })}
+                      />
+                    </span>
+                    <span className="label">No</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+            {typeOfProject !== 'Playground' &&
+              <>
+                <div className={Styles.col2}>
+                  <div className={classNames('input-field-group include-error', errors?.archerId ? 'error' : '')}>
+                    <label className={'input-label'}>
+                      Archer ID
+                    </label>
+                    <div>
+                      <input
+                        type="text"
+                        className={classNames('input-field', Styles.workspaceNameField)}
+                        id="archerId"
+                        placeholder="Type here eg.[INFO-XXXXX]"
+                        autoComplete="off"
+                        maxLength={55}
+                        defaultValue={archerId}
+                        {...register('archerId', { pattern: /^(INFO)-\d{5}$/, onChange: (e) => { setArcherID(e.target.value) } })}
+                      />
+                      <span className={'error-message'}>{errors.archerId?.type === 'pattern' && 'Archer ID should be of type INFO-XXXXX'}</span>
+                    </div>
+                  </div>
+                </div>
+                <div className={Styles.col2}>
+                  <div className={classNames('input-field-group include-error', errors?.procedureId ? 'error' : '')}>
+                    <label className={'input-label'}>
+                      Procedure ID
+                    </label>
+                    <div>
+                      <input
+                        type="text"
+                        className={classNames('input-field', Styles.workspaceNameField)}
+                        id="procedureId"
+                        placeholder="Type here eg.[PO-XXXXX / ITPLC-XXXXX]"
+                        autoComplete="off"
+                        maxLength={55}
+                        defaultValue={procedureId}
+                        {...register('procedureId', { pattern: /^(PO|ITPLC)-\d{5}$/, onChange: (e) => { setProcedureID(e.target.value) } })}
+                      />
+                      <span className={'error-message'}>{errors.procedureId?.type === 'pattern' && 'Procedure ID should be of type PO-XXXXX / ITPLC-XXXXX'}</span>
+                    </div>
+                  </div>
+                </div>
+              </>
+            }
+            <div className={Styles.col}>
+              <div className={classNames('input-field-group include-error')}>
+                <AddUser getCollabarators={getDevelopers} isRequired={false} isUserprivilegeSearch={false} title={'Users'} />
+              </div>
+              {collaborators?.length === 0 &&
+                <div className={Styles.noLincense}>
+                  <p>No Users Selected</p>
+                </div>
+              }
+              <div>
+                {collaborators?.length > 0 && (
+                  <>
+                    <div className={Styles.colHeader}>
+                        <div className={Styles.column1}>User ID</div>
+                        <div className={Styles.column2}>Name</div>
+                        <div className={Styles.column3}>Permissions</div>
+                        <div className={Styles.column4}>Actions</div>
+                    </div>
+                    <div>
+                        {collaborators?.map((user) => {
+                          return (
+                              <div key={user?.id} className={Styles.userRow}>
+                                  <div className={Styles.column1}>
+                                    <p>{user?.id}</p>
+                                  </div>
+                                  <div className={Styles.column2}>
+                                    <p>{user?.firstName + ' ' + user?.lastName}</p>
+                                  </div>
+                                  <div className={classNames(Styles.column3, Styles.lincenseContainer)}>
+                                    <div className={classNames('input-field-group include-error ', Styles.inputGrp)}>
+                                      <label className={classNames('checkbox', Styles.checkBoxDisable)}>
+                                        <span className="wrapper">
+                                          <input
+                                            type="checkbox"
+                                            className="ff-only"
+                                            value="read"
+                                            checked={true}
+                                            readOnly
+                                          />
+                                        </span>
+                                        <span className="label">Read</span>
+                                      </label>
+                                    </div>
+                                    &nbsp;&nbsp;&nbsp;
+                                    <div className={classNames('input-field-group include-error ' + Styles.inputGrp)}>
+                                      <label className={'checkbox'}>
+                                        <span className="wrapper">
+                                          <input
+                                            type="checkbox"
+                                            className="ff-only"
+                                            value="write"
+                                            checked={user?.permission !== null ? user?.permission?.write : false}
+                                            onChange={(e) => onCollaboratorPermission(e, user.accesskey)}
+                                          />
+                                        </span>
+                                        <span className="label">Write</span>
+                                      </label>
+                                    </div>
+                                    &nbsp;&nbsp;&nbsp;
+                                    <div className={classNames('input-field-group include-error ' + Styles.inputGrp)}>
+                                      <label className={'checkbox'}>
+                                        <span className="wrapper">
+                                          <input
+                                            type="checkbox"
+                                            className="ff-only"
+                                            value="admin"
+                                            checked={user?.permission !== null ? user?.permission?.admin : false}
+                                            onChange={(e) => onCollaboratorPermission(e, user.accesskey)}
+                                          />
+                                        </span>
+                                        <span className="label">Admin</span>
+                                      </label>
+                                    </div>
+                                  </div>
+                                  <div className={Styles.column4}>
+                                    {edit && isOwner &&
+                                      <div className={Styles.deleteEntry} onClick={() => onTransferOwnership(user?.accesskey)}>
+                                        <i className="icon mbc-icon comparison" />
+                                        Transfer Ownership
+                                      </div>
+                                    }
+                                    <div className={Styles.deleteEntry} onClick={onUserLicenseDelete(user?.id)}>
+                                      <i className="icon mbc-icon trash-outline" tooltip-data={'Delete'} />
+                                    </div>
+                                  </div>
+                              </div>
+                          );
+                      })}
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+            <div className={Styles.col}>
+              <div className={classNames(errors?.termsOfUse?.message ? 'error' : '')}>
+                <div className={Styles.termsOfUseContent}>
+                  <div>
+                    <label className={classNames('checkbox', errors?.termsOfUse?.message ? 'error' : '')}>
+                      <span className="wrapper">
+                        <input
+                          name="write"
+                          type="checkbox"
+                          className="ff-only"
+                          defaultChecked={termsOfUse}
+                          {...register('termsOfUse', {
+                            required: 'Please agree to terms of use',
+                            validate: (value) => {
+                              value || 'Please agree to terms of use';
+                            },
+                            onChange: (e) => { e.target.value === 'on' ? setTermsOfUse(true) : setTermsOfUse(false) }
+                          })}
+                        />
+                      </span>
+                    </label>
+                  </div>
+                  <div
+                    className={classNames(Styles.termsOfUseText)}
+                    style={{
+                        ...(errors?.termsOfUse?.message ? { color: '#e84d47' } : ''),
+                    }}
+                  >
+                    <div dangerouslySetInnerHTML={{ __html: Envs.TOU_HTML }}></div>
+                    <sup>*</sup>
+                  </div>
+                </div>
+                <span
+                  style={{ marginTop: 0 }}
+                  className={classNames('error-message', errors?.termsOfUse?.message ? '' : 'hide')}
+                >
+                  {errors?.termsOfUse?.message}
+                </span>
+              </div>
+            </div>
+          </div>
+          <div className={Styles.formFooter}>
+            <button
+              className="btn btn-tertiary"
+              type="button"
+              onClick={handleSubmit((values) => {
+                edit ? handleEditWorkspace(values) : handleCreateWorkspace(values);
+              })}
+            >
+              {edit ? 'Save DB Service' : 'Create DB Service'}
+            </button>
+          </div>
+        </div>
+      </FormProvider>
+      {showConfirmModal && (
+        <ConfirmModal
+          title={'Transfer Ownership'}
+          showAcceptButton={false}
+          showCancelButton={false}
+          show={showConfirmModal}
+          removalConfirmation={true}
+          showIcon={false}
+          showCloseIcon={true}
+          content={
+            <div className={Styles.transferOwnership}>
+              <div className={Styles.transferIcon}>
+                <i className={classNames('icon mbc-icon comparison')} />
+              </div>
+              <div>
+                You are going to transfer ownership.<br />You will no longer be the owner of this Database.<br />
+                Are you sure you want to proceed?
+              </div>
+              <div className={Styles.yesBtn}>
+                <button
+                  className={'btn btn-secondary'}
+                  type="button"
+                  onClick={onAcceptTransferOwnership}
+                >
+                  Yes
+                </button>
+              </div>
+            </div>
+          }
+          onCancel={() => setShowConfirmModal(false)}
+        />
+      )}
+    </>
+  );
+}
+
+export default DBServiceForm;

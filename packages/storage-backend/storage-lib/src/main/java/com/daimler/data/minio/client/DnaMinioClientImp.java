@@ -1415,13 +1415,13 @@ public class DnaMinioClientImp implements DnaMinioClient {
 			ProcessBuilder policyBuilder = new ProcessBuilder(isWindows ? "cmd.exe" : "sh", isWindows ? "/c" : "-c", attachPolicyCommand);
 
 			// Execute alias command
-			Process aliasProcess = aliasBuilder.start();
-			int aliasExitCode = aliasProcess.waitFor();
-			if (aliasExitCode != 0) {
-				LOGGER.error("Failed to set alias. Exit code: {}", aliasExitCode);
-				return "Failed to set alias.";
-			}
-			LOGGER.debug("Alias set successfully for user: {}", userId);
+			// Process aliasProcess = aliasBuilder.start();
+			// int aliasExitCode = aliasProcess.waitFor();
+			// if (aliasExitCode != 0) {
+			// 	LOGGER.error("Failed to set alias. Exit code: {}", aliasExitCode);
+			// 	return "Failed to set alias.";
+			// }
+			// LOGGER.debug("Alias set successfully for user: {}", userId);
 
 			// Execute policy command
 			policyBuilder.redirectErrorStream(true);
@@ -1492,13 +1492,13 @@ public class DnaMinioClientImp implements DnaMinioClient {
 			ProcessBuilder policyBuilder = new ProcessBuilder(isWindows ? "cmd.exe" : "sh", isWindows ? "/c" : "-c", detachPolicyCommand);
 
 			// Execute alias command
-			Process aliasProcess = aliasBuilder.start();
-			int aliasExitCode = aliasProcess.waitFor();
-			if (aliasExitCode != 0) {
-				LOGGER.error("Failed to set alias. Exit code: {}", aliasExitCode);
-				return "Failed to set alias.";
-			}
-			LOGGER.debug("Alias set successfully for user: {}", userId);
+			// Process aliasProcess = aliasBuilder.start();
+			// int aliasExitCode = aliasProcess.waitFor();
+			// if (aliasExitCode != 0) {
+			// 	LOGGER.error("Failed to set alias. Exit code: {}", aliasExitCode);
+			// 	return "Failed to set alias.";
+			// }
+			// LOGGER.debug("Alias set successfully for user: {}", userId);
 
 			// Execute policy command
 			policyBuilder.redirectErrorStream(true);
