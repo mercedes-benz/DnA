@@ -30,6 +30,9 @@ public class DbServiceAssembler implements GenericAssembler<DbServiceVO, DbServi
     @Value("${dbService.host.url}")
     private String hostBaseUrl;
 
+	@Value("${argocd.createNameSpace}")
+    private String nameSpace;
+
 	@Autowired
     private VaultConfig vault;
 
@@ -64,7 +67,7 @@ public class DbServiceAssembler implements GenericAssembler<DbServiceVO, DbServi
 							 vo.setModifiedBy(modifiedBy);
 
 							 vo.setPort(port);
-							 vo.setUrl(data.getServiceName().toLowerCase()+hostBaseUrl);							 
+							 vo.setUrl(data.getServiceName().toLowerCase()+"."+nameSpace+hostBaseUrl);							 
 							 
 				}
 			}

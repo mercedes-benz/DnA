@@ -57,6 +57,15 @@ public class ArgoCdService {
     @Value("${argocd.createReplicaCount}")
     private String replicaCount;
 
+    @Value("${argocd.createNameSpace}")
+    private String nameSpace;
+
+    @Value("${argocd.createPDBminAvailable}")
+    private String pdbMinAvailable;
+
+    @Value("${argocd.createEnvironment}")
+    private String environment;
+
     @Autowired
     private RestTemplate restTemplate;
 
@@ -87,8 +96,7 @@ public class ArgoCdService {
             String payload = this.buildPayload(serviceName,dbName,dbType);
             HttpEntity<String> entity = new HttpEntity<>(payload, headers);
         
-            ResponseEntity<String> response = null;
-            response = restTemplate.postForEntity(url, entity, String.class);
+            ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
         
             if (response != null && response.getStatusCode().is2xxSuccessful()) {
                 log.info("Application created successfully!");
@@ -143,11 +151,14 @@ public class ArgoCdService {
     template = template.replace("{memoryRequest}", memoryRequest);
     template = template.replace("{maxconnections}", maxconnections);
     template = template.replace("{replicaCount}", replicaCount);
+    template = template.replace("{nameSpace}", nameSpace);
+    template = template.replace("{pdbMinAvailable}", pdbMinAvailable);
+    template = template.replace("{environment}", environment);
+
 
     ObjectMapper mapper = new ObjectMapper();
         Map<String, Object> map = mapper.readValue(template, Map.class);
         String finalJson = mapper.writeValueAsString(map); 
-        // finalJson = finalJson.replace("\\u003e", ">");
         return finalJson;
 }
 }
