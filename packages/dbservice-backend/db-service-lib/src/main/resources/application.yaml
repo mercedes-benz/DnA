@@ -123,7 +123,10 @@ argocd:
   createCpuRequest: ${ARGOCD_CREATE_CPUREQUES:xxxx}
   createMaxconnections: ${ARGOCD_CREATE_MAXCONNECTIONS:xxxx}
   createProjectName: ${ARGOCD_CREATE_PROJECTNAME:xxxx}
-  createReplicaCount: ${ARGOCD_CREATE_REPLICACOUNT:xxxx} 
+  createReplicaCount: ${ARGOCD_CREATE_REPLICACOUNT:xxxx}
+  createNameSpace: ${ARGOCD_CREATE_NAMESPACE:xxxx}
+  createPDBminAvailable: ${ARGOCD_CREATE_PDBMINAVAILABLE:0}
+  createEnvironment: ${ARGOCD_CREATE_ENVIRONMENT:xxxx}
 
 dbService:
     host:
