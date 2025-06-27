@@ -1281,8 +1281,7 @@ import org.springframework.beans.factory.annotation.Value;
 						   deployRequestDto.getIgnorePaths(), deployRequestDto.getScope(),
 						   deployRequestDto.isIsApiRecipe(), deployRequestDto.getOneApiVersionShortName(),
 						   deployRequestDto.isIsSecuredWithCookie(), isPrivateRecipe,deployRequestDto.getVersion(),"deploy");
-				   log.info("User {} deployed workspace {} project {}", userId, vo.getWorkspaceId(),
-						   vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
+				   
 			   }
 			   }
    //			 if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")) {
@@ -1292,6 +1291,8 @@ import org.springframework.beans.factory.annotation.Value;
 			   if("FAILED".equalsIgnoreCase(responseMsg.getSuccess())){
 				   return new ResponseEntity<>(responseMsg, HttpStatus.INTERNAL_SERVER_ERROR);
 			   }
+			   log.info("User {} deployed workspace {} project {}", userId, vo.getWorkspaceId(),
+						   vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
 				return new ResponseEntity<>(responseMsg, HttpStatus.OK);
 			} catch (EntityNotFoundException e) {
 				log.error(e.getLocalizedMessage());
