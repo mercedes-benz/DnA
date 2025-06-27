@@ -406,6 +406,7 @@ const AllCodeSpaces = (props) => {
                                             onCodeSpaceEdit={onCodeSpaceEdit}
                                             onShowDeployModal={onCodeSpaceDeploy}
                                             onShowBuildModal={onCodeSpaceBuild}
+                                            onShowDeployApprovalModal={onShowDeployApprovalModal}
                                             onStartStopCodeSpace={onStartStopCodeSpace}
                                             onShowBlueprintModal={onCodeSpaceShowBlueprint}
                                         />
@@ -436,6 +437,7 @@ const AllCodeSpaces = (props) => {
                                             onCodeSpaceEdit={onCodeSpaceEdit}
                                             onShowDeployModal={onCodeSpaceDeploy}
                                             onShowBuildModal={onCodeSpaceBuild}
+                                            onShowDeployApprovalModal={onShowDeployApprovalModal}
                                             onStartStopCodeSpace={onStartStopCodeSpace}
                                             onShowBlueprintModal={onCodeSpaceShowBlueprint}
                                         />
