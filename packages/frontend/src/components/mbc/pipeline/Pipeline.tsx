@@ -20,6 +20,7 @@ import Tooltip from '../../../assets/modules/uilab/js/src/tooltip';
 import { PipelineApiClient } from '../../../services/PipelineApiClient';
 import InfoModal from 'components/formElements/modal/infoModal/InfoModal';
 import PipelineCardItem from './PipelineCardItem';
+import { history } from '../../../router/History';
 
 const Pipeline = () => {
   // const [subscribePopup, setSubscribePopup] = useState(false);
@@ -34,10 +35,10 @@ const Pipeline = () => {
 
   const [info, setInfo] = useState(false);
   const [cardViewMode, setCardViewMode] = useState(
-    sessionStorage.getItem(SESSION_STORAGE_KEYS.LISTVIEW_MODE_ENABLE) === null
+    sessionStorage.getItem(SESSION_STORAGE_KEYS.LISTVIEW_MODE_ENABLE) === null,
   );
   const [listViewMode, setListViewMode] = useState(
-    sessionStorage.getItem(SESSION_STORAGE_KEYS.LISTVIEW_MODE_ENABLE) !== null
+    sessionStorage.getItem(SESSION_STORAGE_KEYS.LISTVIEW_MODE_ENABLE) !== null,
   );
 
   const onInfoModalCancel = () => {
@@ -134,122 +135,169 @@ const Pipeline = () => {
   return (
     <React.Fragment>
       <div className={classNames(Styles.mainPanel)}>
-        <div className={Styles.wrapper}>
+        <div className={classNames(Styles.wrapper)}>
           <Caption title="Pipeline">
             <div className={Styles.listHeader}>
-              <div tooltip-data="Card View">
-                <span
-                  className={cardViewMode ? Styles.iconactive : Styles.iconInActive}
-                  onClick={toggleToCardView}
-                >
-
+              <div tooltip-data="Card View" className={Styles.toggleIcon}>
+                <span className={cardViewMode ? Styles.iconactive : Styles.iconInActive} onClick={toggleToCardView}>
                   <i className="icon mbc-icon widgets" />
                   <span className={Styles.dividerLine}> &nbsp; </span>
                 </span>
               </div>
               <div tooltip-data="List View">
-                <span
-                  className={listViewMode ? Styles.iconactive : Styles.iconInActive}
-                  onClick={toggleToListView}
-                >
+                <span className={listViewMode ? Styles.iconactive : Styles.iconInActive} onClick={toggleToListView}>
                   <i className="icon mbc-icon listview big" />
                 </span>
               </div>
             </div>
           </Caption>
         </div>
-        <div className={Styles.content}>
-          <div className={Styles.NoSubscription}>
-            <div className={Styles.addNewSubscrHeader}>
-              <div className={Styles.appHeaderDetailsRow}>
-                {listViewMode && (
-                  <div className={classNames(Styles.listHeaderContent)}>
-                    {pipelineProjectList?.length ? (
-                      <Link to="createnewpipeline">
-                        <button className="btn btn-secondary" type="button">
-                          <span className={Styles.addCircle}>
+        {listViewMode && (
+          <div className={Styles.content}>
+            <div className={Styles.NoSubscription}>
+              <div className={Styles.addNewSubscrHeader}>
+                <React.Fragment>
+                  <div className={Styles.appHeaderDetails}>
+                    <button
+                      className={
+                        pipelineProjectList?.length === 0
+                          ? Styles.btnHide
+                          : Styles.refreshButton + ' btn btn-icon-circle'
+                      }
+                      tooltip-data="Refresh"
+                      onClick={getPipelineProjectList}
+                    >
+                      <i className={Styles.refresh + ' icon mbc-icon refresh'} />
+                    </button>
+                    {pipelineProjectList.length === 0 ? (
+                      ''
+                    ) : (
+                      <React.Fragment>
+                        <Link to="createnewpipeline">
+                          <button
+                            className={
+                              pipelineProjectList === null
+                                ? Styles.btnHide
+                                : ' ' + ' btn btn-primary ' + Styles.addNewSubcibtn
+                            }
+                            type="button"
+                          >
                             <i className="icon mbc-icon plus" />
-                          </span>
-                          <span>Create new Pipeline Project</span>
-                        </button>
-                      </Link>
-                    ) : null}
+                            <span>Create New Pipeline Project</span>
+                          </button>
+                        </Link>
+                        <i
+                          className={Styles.iconsmd + ' icon mbc-icon info iconsmd'}
+                          onClick={openInfo}
+                          tooltip-data="Info"
+                        />
+                      </React.Fragment>
+                    )}
                   </div>
-                )}
+                </React.Fragment>
               </div>
-            </div>
-
-            <div className={Styles.subsriContent}>
-              {pipelineProjectList.length === 0 ? (
-                <div className={Styles.pipelineDescription}>
-                  <p>
-                    Pipeline service helps in creating data workflows that can have multiple data processing steps in
-                    order to perform data transformation and to later identify data patterns using AI and ML.
-                  </p>
-                  <i
-                    className={Styles.iconsmd + ' icon mbc-icon info iconsmd'}
-                    onClick={openInfo}
-                    tooltip-data="Info"
-                  />
-                </div>
-              ) : (
-                ''
-              )}
-              {pipelineProjectList.length === 0 ? (
-                <div className={Styles.subscriptionListEmpty}>
-                </div>
-              ) : (
-                <div className={Styles.subscriptionList}>
-
-                  {cardViewMode && (
-                    <>
-
-
-                      <div className={Styles.cardViewWrapper}>
-                        <div className={Styles.newStorageCard}>
-                          <Link to="createnewpipeline">
-                            <div className={Styles.addicon}> &nbsp; </div>
-                            <label className={Styles.addlabel}>Create new Pipeline Project</label>
-                          </Link>
-                        </div>
-
-                        {pipelineProjectList.map((project, index) => (
-                          <PipelineCardItem
-                            key={index}
-                            project={project}
-                            getRefreshedDagPermission={getRefreshedDagPermission}
-                          />
-                        ))}
-                      </div>
-                    </>
-                  )}
-
-                  {listViewMode && (
+              <div className={Styles.subsriContent}>
+                {pipelineProjectList.length === 0 ? (
+                  <div className={Styles.pipelineDescription}>
+                    <p>
+                      Pipeline service helps in creating data workflows that can have multiple data processing steps in
+                      order to perform data transformation and to later identify data patterns using AI and ML.
+                    </p>
+                    <i
+                      className={Styles.iconsmd + ' icon mbc-icon info iconsmd'}
+                      onClick={openInfo}
+                      tooltip-data="Info"
+                    />
+                  </div>
+                ) : (
+                  ''
+                )}
+                {pipelineProjectList.length === 0 ? (
+                  <div className={Styles.subscriptionListEmpty}>
+                    <Link to="createnewpipeline">
+                      <button className={Styles.addNewSubcibtn + ' btn btn-tertiary'} type="button">
+                        <span>Create New Pipeline Project</span>
+                      </button>
+                    </Link>
+                  </div>
+                ) : (
+                  <div className={Styles.subscriptionList}>
                     <PipelineSubList
                       listOfProject={pipelineProjectList}
                       getRefreshedDagPermission={getRefreshedDagPermission}
                       getProjectSorted={getProjectSorted}
                     />
-                  )}
-
-
-                  {pipelineProjectList ? (
-                    <Pagination
-                      totalPages={totalNumberOfPages}
-                      pageNumber={currentPageNumber}
-                      onPreviousClick={onPaginationPreviousClick}
-                      onNextClick={onPaginationNextClick}
-                      onViewByNumbers={onViewByPageNum}
-                      displayByPage={true}
-                    />
-                  ) : (
-                    ''
-                  )}
-                </div>
-              )}
+                    {pipelineProjectList ? (
+                      <Pagination
+                        totalPages={totalNumberOfPages}
+                        pageNumber={currentPageNumber}
+                        onPreviousClick={onPaginationPreviousClick}
+                        onNextClick={onPaginationNextClick}
+                        onViewByNumbers={onViewByPageNum}
+                        displayByPage={true}
+                      />
+                    ) : (
+                      ''
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-        </div>
+        )}
+        {cardViewMode && (
+          <div className={classNames(Styles.content, Styles.pipelineCardView)}>
+            <div>
+              <div className={Styles.cardContent}>
+                {pipelineProjectList?.length === 0 ? (
+                  <>
+                    <div className={Styles.emptyPipeline}>
+                      <span>
+                        You don&apos;t have any airflow projects at this time.
+                        <br /> Please create a new one.
+                      </span>
+                    </div>
+                    <div className={Styles.subscriptionListEmpty}>
+                      <Link to="createnewpipeline">
+                        <button className={Styles.addNewSubcibtn + ' btn btn-tertiary'} type="button">
+                          <span>Create New Pipeline Project</span>
+                        </button>
+                      </Link>
+                    </div>
+                  </>
+                ) : (
+                  <div className={Styles.subscriptionList}>
+                    <div className={Styles.newPipelineCard} onClick={() => history.push('/createnewpipeline')}>
+                      {/* <Link to="createnewpipeline"> */}
+                        <div className={Styles.addicon}> &nbsp; </div>
+                        <label className={Styles.addlabel}>Create new Pipeline Project</label>
+                      {/* </Link> */}
+                    </div>
+                    {pipelineProjectList.map((project, index) => (
+                      <PipelineCardItem
+                        key={index}
+                        project={project}
+                        getRefreshedDagPermission={getRefreshedDagPermission}
+                      />
+                    ))}
+                    {pipelineProjectList ? (
+                      <Pagination
+                        totalPages={totalNumberOfPages}
+                        pageNumber={currentPageNumber}
+                        onPreviousClick={onPaginationPreviousClick}
+                        onNextClick={onPaginationNextClick}
+                        onViewByNumbers={onViewByPageNum}
+                        displayByPage={true}
+                      />
+                    ) : (
+                      ''
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
       </div>
       {info && (
         <InfoModal
