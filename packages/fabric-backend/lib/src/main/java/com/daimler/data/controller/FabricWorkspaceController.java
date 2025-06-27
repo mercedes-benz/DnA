@@ -894,7 +894,6 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
         consumes = { "application/json" },
         method = RequestMethod.GET)
  	public ResponseEntity<LakehouseTableCollectionVO> getLakehouseTables(@ApiParam(value = "",required=true) @PathVariable("workspaceId") String workspaceId,@ApiParam(value = "",required=true) @PathVariable("lakehouseId") String lakehouseId){
-		log.info("getting to controller");
 		LakehouseTableCollectionVO response = service.getLakehouseTables(workspaceId,lakehouseId);
 		if(response==null) {
 			return new ResponseEntity<>(response, HttpStatus.NO_CONTENT);

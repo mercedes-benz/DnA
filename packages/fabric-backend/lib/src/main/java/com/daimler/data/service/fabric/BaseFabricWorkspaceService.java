@@ -1594,19 +1594,18 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 
 	@Override
 	public LakehouseTableCollectionVO getLakehouseTables(String workspaceId, String lakehouseId) {
-		log.info("getting inside service");
 		LakehouseTableCollectionVO collectionVO = new LakehouseTableCollectionVO();
 		LakehouseTablesCollectionDto collection = fabricWorkspaceClient.listLakehouseTables(workspaceId, lakehouseId);
-		if(collection!=null && collection.getValue()!=null && !collection.getValue().isEmpty()) {
+		if(collection!=null && collection.getData()!=null && !collection.getData().isEmpty()) {
 			List<LakehouseTableVO> records = new ArrayList<>();
-			records = collection.getValue().stream().map(n -> assembler.toLakehouseTableVOFromDto(n)).collect(Collectors.toList());
+			records = collection.getData().stream().map(n -> assembler.toLakehouseTableVOFromDto(n)).collect(Collectors.toList());
 			collectionVO.setRecords(records);
 		}else {
 			collectionVO.setRecords(new ArrayList<>());
 		}
 		return collectionVO;
 	}
-	
+
 	@Override
     public GenericMessage requestRoles(FabricWorkspaceRoleRequestVO roleRequestVO, String userId, String authToken){
         GenericMessage response = new GenericMessage();

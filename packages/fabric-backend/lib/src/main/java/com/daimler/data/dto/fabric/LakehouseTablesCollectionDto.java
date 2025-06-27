@@ -17,6 +17,6 @@ public class LakehouseTablesCollectionDto implements Serializable{
 
 	private static final long serialVersionUID = 1L;
 	
-	private List<LakehouseTablesDto> value;
+	private List<LakehouseTablesDto> data;
 	
 }

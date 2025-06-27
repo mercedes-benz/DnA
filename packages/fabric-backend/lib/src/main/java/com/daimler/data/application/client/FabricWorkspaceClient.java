@@ -450,7 +450,6 @@ public class FabricWorkspaceClient {
 	}
 
 	public LakehouseTablesCollectionDto listLakehouseTables(String workspaceId, String lakehouseId) {
-		log.info("getting inside client");
 		LakehouseTablesCollectionDto collection = new LakehouseTablesCollectionDto();
 		try {
 			String token = getTokenForLakehouseTables();
@@ -458,7 +457,6 @@ public class FabricWorkspaceClient {
 				log.error("Failed to fetch token to invoke fabric Apis");
 				return collection;
 			}
-			log.info("getting token");
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Authorization", "Bearer "+token);
@@ -466,14 +464,14 @@ public class FabricWorkspaceClient {
 			HttpEntity requestEntity = new HttpEntity<>(headers);
 			String url = lakehouseUrl;
 			url = url.replaceFirst(WORKSPACED_IDENTIFIER, workspaceId);
-			url = url + lakehouseId + "/tables";
+			url = url + "/" + lakehouseId + "/tables";
 			ResponseEntity<LakehouseTablesCollectionDto> response = proxyRestTemplate.exchange(url , HttpMethod.GET,
 					requestEntity, LakehouseTablesCollectionDto.class);
 			if (response !=null && response.hasBody()) {
 				collection = response.getBody();
 			}
 		}catch(Exception e) {
-			log.error("Failed to get lakehouse shortcuts with {} exception ", e.getMessage());
+			log.error("Failed to get lakehouse tables with {} exception ", e.getMessage());
 		}
 		return collection;
 	}
