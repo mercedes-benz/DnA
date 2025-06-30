@@ -1,9 +1,6 @@
 package com.daimler.data.auth.client;
  
 import com.daimler.data.controller.exceptions.GenericMessage;
-import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
-import com.daimler.data.db.json.CodeServerDeploymentDetails;
-import com.daimler.data.db.json.CodespaceSecurityConfig;
  
 public interface AuthenticatorClient {
 	public GenericMessage createService(CreateServiceRequestVO createServiceRequestVO, String cloudServiceProvider);
@@ -13,9 +10,7 @@ public interface AuthenticatorClient {
 	public GenericMessage attachAppAuthoriserPluginToService(AttachAppAuthoriserPluginRequestVO attachAppAuthoriserPluginRequestVO, String serviceName, String cloudServiceProvider);
  
 	public GenericMessage attachApiAuthoriserPluginToService(AttachApiAuthoriserPluginRequestVO attachApiAuthoriserPluginRequestVO, String serviceName, String cloudServiceProvider);
-	public void callingKongApis(String userId, String serviceName, String env, boolean apiRecipe, String clientID, String clientSecret, String redirectUriFromUser, String ignorePaths, String scope, String oneApiVersionShortName, boolean isSecuredWithCookie, boolean secureWithIAM, String cloudServiceProvider,
-	CodeServerDeploymentDetails intDeploymentDetails,CodeServerDeploymentDetails prodDeploymentDetails,CodespaceSecurityConfig securityConfig
-	,String projectName);
+	public void callingKongApis(String userId, String serviceName, String env, boolean apiRecipe, String clientID, String clientSecret, String redirectUriFromUser, String ignorePaths, String scope, String oneApiVersionShortName, boolean isSecuredWithCookie, boolean secureWithIAM, String cloudServiceProvider);
 	public GenericMessage deleteService(String serviceName, String cloudServiceProvider);
 	public GenericMessage deleteRoute(String serviceName, String routeName, String cloudServiceProvider);
  
