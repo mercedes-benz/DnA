@@ -4,11 +4,14 @@ import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Calendar;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
+
+import javax.persistence.PersistenceException;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,9 +27,14 @@ import com.daimler.data.application.client.RSAEncryptionUtil;
 import com.daimler.data.assembler.FabricWorkspaceAssembler;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
+import com.daimler.data.db.entities.AuthoriserRolesNsql;
 import com.daimler.data.db.entities.FabricWorkspaceNsql;
+import com.daimler.data.db.json.AuthoriserRoleDeatils;
+import com.daimler.data.db.json.UserDetails;
 import com.daimler.data.db.repo.forecast.FabricWorkspaceCustomRepository;
 import com.daimler.data.db.repo.forecast.FabricWorkspaceRepository;
+import com.daimler.data.db.repo.roles.AuthoriserRolesCustomRepository;
+import com.daimler.data.db.repo.roles.AuthoriserRolesRepository;
 import com.daimler.data.dto.fabric.AccessReviewDto;
 import com.daimler.data.dto.fabric.AddGroupDto;
 import com.daimler.data.dto.fabric.CreateDatasourceRequestDto;
@@ -47,6 +55,8 @@ import com.daimler.data.dto.fabric.LakehouseS3ShortcutCollectionDto;
 import com.daimler.data.dto.fabric.LakehouseS3ShortcutDto;
 import com.daimler.data.dto.fabric.LakehouseS3ShortcutResponseDto;
 import com.daimler.data.dto.fabric.MicrosoftGroupDetailDto;
+import com.daimler.data.dto.fabric.MicrosoftGroupMemberCollectionDto;
+import com.daimler.data.dto.fabric.MicrosoftGroupMembersDto;
 import com.daimler.data.dto.fabric.ReviewerConfigDto;
 import com.daimler.data.dto.fabric.S3CompatibleTargetDto;
 import com.daimler.data.dto.fabric.ShortcutTargetDto;
@@ -54,9 +64,14 @@ import com.daimler.data.dto.fabric.UserRoleRequestDto;
 import com.daimler.data.dto.fabric.WorkflowDefinitionDto;
 import com.daimler.data.dto.fabric.WorkspaceDetailDto;
 import com.daimler.data.dto.fabric.WorkspaceUpdateDto;
+import com.daimler.data.dto.fabricWorkspace.AuthoriserRoleDetailsVO;
+import com.daimler.data.dto.fabricWorkspace.MembersVO;
 import com.daimler.data.dto.fabricWorkspace.CapacityVO;
 import com.daimler.data.dto.fabricWorkspace.CreateRoleRequestVO;
+import com.daimler.data.dto.fabricWorkspace.CreatedByVO;
 import com.daimler.data.dto.fabricWorkspace.EntitlementDetailsVO;
+import com.daimler.data.dto.fabricWorkspace.EntraGroupMembersVO;
+import com.daimler.data.dto.fabricWorkspace.EntraGroupResponseVO;
 import com.daimler.data.dto.fabricWorkspace.FabricLakehouseCreateRequestVO;
 import com.daimler.data.dto.fabricWorkspace.FabricLakehouseVO;
 import com.daimler.data.dto.fabricWorkspace.FabricShortcutsCollectionVO;
@@ -69,12 +84,13 @@ import com.daimler.data.dto.fabricWorkspace.GroupDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.RoleDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.RolesVO;
 import com.daimler.data.dto.fabricWorkspace.DnaRoleCollectionVO;
-import com.daimler.data.dto.fabricWorkspace.DnaRoleCollectionVOData;
+import com.daimler.data.dto.fabricWorkspace.DnaRolesVO;
 import com.daimler.data.dto.fabricWorkspace.ShortcutCreateRequestVO;
 import com.daimler.data.dto.fabricWorkspace.ShortcutVO;
 import com.daimler.data.service.common.BaseCommonService;
 import com.daimler.data.util.ConstantsUtility;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.daimler.data.dto.fabricWorkspace.DnaRolesVO;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -91,6 +107,9 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 	
 	@Autowired
 	private FabricWorkspaceRepository jpaRepo;
+
+	@Autowired
+	private AuthoriserRolesCustomRepository rolesCustomRepo;
 	
 	@Autowired
 	private FabricWorkspaceAssembler assembler;
@@ -100,6 +119,9 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 	
 	@Autowired
 	private RSAEncryptionUtil encryptionUtil;
+
+	@Autowired
+	private AuthoriserRolesRepository rolesJpaRepo;
 		
 	@Value("${fabricWorkspaces.capacityId}")
 	private String capacityId;
@@ -162,7 +184,8 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 	@Value("${fabricWorkspaces.datasource.encryptionAlgorithm}")
 	private String datasourceEncryptionAlgorithm;
 	
-	private SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");  
+	@Value("${fabricWorkspaces.technicalUser.id}")
+	private String fabricTechUserId;
 	
 	@Value("${authoriser.role.fabricRoleName}")
 	private String fabricOperationsRoleName;
@@ -170,6 +193,8 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 	public BaseFabricWorkspaceService() {
 		super();
 	}
+
+	private SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");  
 	
 	@Override
 	@Transactional
@@ -366,7 +391,9 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 					log.error("Error occurred:{} while creating fabric workspace project {} ", createResponse.getErrorCode(), vo.getName());
 					if("409".equalsIgnoreCase(createResponse.getErrorCode())) {
 						return new ResponseEntity<>(responseData, HttpStatus.CONFLICT);
-					}else {
+					}else if("429".equalsIgnoreCase(createResponse.getErrorCode())){
+						return new ResponseEntity<>(responseData, HttpStatus.TOO_MANY_REQUESTS);
+					}else{
 						return new ResponseEntity<>(responseData, HttpStatus.INTERNAL_SERVER_ERROR);
 					}
 				}
@@ -451,7 +478,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 						roleRequestDto.setReason("Onboarding owner to role to enable fabric operations.");
 						roleRequestDto.setValidTo(validTo);
 						roleRequestDto.setValidFrom(validFrom);
-						HttpStatus status = identityClient.RequestRoleForUser(roleRequestDto, ownerId, fabricOperationsRoleName,null);
+						HttpStatus status = identityClient.RequestRoleForUser(roleRequestDto, ownerId, fabricOperationsRoleName);
 						if(status.is2xxSuccessful()){
 				            log.info("Successfully onboarded owner {} of workspace {} : {} to role {} for enabling fabric operations", ownerId, vo.getId(), vo.getName(), fabricOperationsRoleName);
 				        }else {
@@ -583,7 +610,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 	}
 	
 	@Override
-	public RoleDetailsVO callRoleCreate(String workspaceName, String permissionName) {
+	public RoleDetailsVO callRoleCreate(String workspaceName, String permissionName, String creatorId) {
 		CreateRoleRequestDto createRequestDto = this.prepareRoleCreateRequestDto(workspaceName,permissionName);
 		RoleDetailsVO createRoleVO = new RoleDetailsVO();
 		createRoleVO.setName(workspaceName + "_" +  permissionName);
@@ -598,7 +625,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 				log.info("Called identity management system to get role {} for workspace {} . Role fetched successfully with id {} ", workspaceName + "_" +  permissionName, workspaceName, getResponse.getId());
 				return createRoleVO;
 			}
-			CreateRoleResponseDto createRoleResponseDto = identityClient.createRole(createRequestDto);
+			CreateRoleResponseDto createRoleResponseDto = identityClient.createRole(createRequestDto, creatorId);
 			if(createRoleResponseDto!=null && createRoleResponseDto.getId()!=null) {
 				createRoleVO.setId(createRoleResponseDto.getId());
 				createRoleVO.setLink(identityRoleUrl+workspaceName + "_" +  permissionName);
@@ -628,7 +655,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		Boolean isRoleAvailable = false;
 		if(existingRoleVO.getState()!=null) {
 			if(!ConstantsUtility.CREATED_STATE.equalsIgnoreCase(existingRoleVO.getState())){
-				RoleDetailsVO latestRole = this.callRoleCreate(workspaceName,permissionName);
+				RoleDetailsVO latestRole = this.callRoleCreate(workspaceName,permissionName,creatorId);
 				if(ConstantsUtility.CREATED_STATE.equalsIgnoreCase(latestRole.getState())) {
 					isRoleAvailable = true;
 				}
@@ -704,13 +731,16 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 					updatedRole.setRoleOwner(creatorId);
 				}
 			}
-			//assign Global Role Assigner privileges
+			//assign Global Role Assigner privileges to creator and Tech user
 			if(updatedRole.getRoleOwner()!=null && !"".equalsIgnoreCase(updatedRole.getRoleOwner()) 
 					&& (updatedRole.getGlobalRoleAssigner()==null || "".equalsIgnoreCase(updatedRole.getGlobalRoleAssigner()))) {
 				HttpStatus globalRoleAssignerPrivilegesStatus = identityClient.AssignGlobalRoleAssignerPrivilegesToCreator(creatorId, updatedRole.getId());
 				if(globalRoleAssignerPrivilegesStatus.is2xxSuccessful()) {
-					updatedRole.setGlobalRoleAssigner(creatorId);
-				}
+					HttpStatus globalRoleAssignerPrivilegesStatusforTechUser = identityClient.AssignGlobalRoleAssignerPrivilegesToCreator(fabricTechUserId, updatedRole.getId());
+					if(globalRoleAssignerPrivilegesStatusforTechUser.is2xxSuccessful()) {
+						updatedRole.setGlobalRoleAssigner(creatorId);
+					}
+				}	
 			}
 			//assign Role Approver privileges
 			if(updatedRole.getRoleOwner()!=null && !"".equalsIgnoreCase(updatedRole.getRoleOwner()) 
@@ -1590,7 +1620,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 	}
 	
 	@Override
-    public GenericMessage requestRoles(FabricWorkspaceRoleRequestVO roleRequestVO, String userId, String authToken){
+    public GenericMessage requestRoles(FabricWorkspaceRoleRequestVO roleRequestVO, String userId){
         GenericMessage response = new GenericMessage();
         List<MessageDescription> errors = new ArrayList<>();
         List<MessageDescription> warnings = new ArrayList<>();
@@ -1602,7 +1632,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
                 roleRequestDto.setReason(roleRequestVO.getData().getReason());
                 roleRequestDto.setValidFrom(role.getValidFrom());
                 roleRequestDto.setValidTo(role.getValidTo());
-                HttpStatus status = identityClient.RequestRoleForUser(roleRequestDto, userId, role.getRoleID(),authToken);
+                HttpStatus status = identityClient.RequestRoleForUser(roleRequestDto, userId, role.getRoleID());
                 if(!status.is2xxSuccessful()){
                     warnings.add(new MessageDescription("Failed to request role for role id : "+role.getRoleID()+" please request role manually or try after sometime"));
                 }
@@ -1622,7 +1652,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
     }
 
 	@Override
-	public GenericMessage createGenericRole(CreateRoleRequestVO roleRequestVO, String creatorId){
+	public GenericMessage createGenericRole(CreateRoleRequestVO roleRequestVO, CreatedByVO requestUser){
 		GenericMessage response = new GenericMessage();
 		List<MessageDescription> errors = new ArrayList<>();
 		List<MessageDescription> warnings = new ArrayList<>();
@@ -1637,23 +1667,28 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 					log.error("Failed to create role, Role Already Exists");
 					return response;
 			}else{
-				RoleDetailsVO roleDetail = this.callGenericRoleCreate(roleRequestVO.getData().getRoleName());
+				RoleDetailsVO roleDetail = this.callGenericRoleCreate(roleRequestVO.getData().getRoleName(),requestUser.getId(),roleRequestVO.getData().isIsDynamic());
 				if(ConstantsUtility.CREATED_STATE.equalsIgnoreCase(roleDetail.getState())) {
 					//assign Role Owner privileges
 					if(roleDetail.getRoleOwner()==null || "".equalsIgnoreCase(roleDetail.getRoleOwner())) {
-						HttpStatus assignRoleOwnerPrivileges = identityClient.AssignRoleOwnerPrivilegesToCreator(creatorId, roleDetail.getId());
+						HttpStatus assignRoleOwnerPrivileges = identityClient.AssignRoleOwnerPrivilegesToCreator(requestUser.getId(), roleDetail.getId());
 						if(assignRoleOwnerPrivileges.is2xxSuccessful()) {
-							roleDetail.setRoleOwner(creatorId);
+							roleDetail.setRoleOwner(requestUser.getId());
 						}else{
 							warnings.add(new MessageDescription("Failed to assign role owner privilage role for user, please contact admin."));
 						}
 					}
-					//assign Global Role Assigner privileges
+					//assign Global Role Assigner privileges to creator and Technical user
 					if(roleDetail.getRoleOwner()!=null && !"".equalsIgnoreCase(roleDetail.getRoleOwner()) 
 							&& (roleDetail.getGlobalRoleAssigner()==null || "".equalsIgnoreCase(roleDetail.getGlobalRoleAssigner()))) {
-						HttpStatus globalRoleAssignerPrivilegesStatus = identityClient.AssignGlobalRoleAssignerPrivilegesToCreator(creatorId, roleDetail.getId());
+						HttpStatus globalRoleAssignerPrivilegesStatus = identityClient.AssignGlobalRoleAssignerPrivilegesToCreator(requestUser.getId(), roleDetail.getId());
 						if(globalRoleAssignerPrivilegesStatus.is2xxSuccessful()) {
-							roleDetail.setGlobalRoleAssigner(creatorId);
+							HttpStatus globalRoleAssignerPrivilegesStatusforTechUser = identityClient.AssignGlobalRoleAssignerPrivilegesToCreator(fabricTechUserId, roleDetail.getId());
+							if(globalRoleAssignerPrivilegesStatusforTechUser.is2xxSuccessful()) {
+								roleDetail.setGlobalRoleAssigner(requestUser.getId());
+							}else{
+								warnings.add(new MessageDescription("Failed to assign global role assigner privilage role for tech user, please contact admin."));
+							}
 						}else{
 							warnings.add(new MessageDescription("Failed to assign global role assigner privilage role for user, please contact admin."));
 						}
@@ -1662,13 +1697,15 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 					if(roleDetail.getRoleOwner()!=null && !"".equalsIgnoreCase(roleDetail.getRoleOwner()) 
 							&& (roleDetail.getGlobalRoleAssigner()!=null && !"".equalsIgnoreCase(roleDetail.getGlobalRoleAssigner()))
 							&& (roleDetail.getRoleApprover()==null || "".equalsIgnoreCase(roleDetail.getRoleApprover()))) {
-						HttpStatus roleApproverPrivilegesStatus = identityClient.AssignRoleApproverPrivilegesToCreator(creatorId, roleDetail.getId());
+						HttpStatus roleApproverPrivilegesStatus = identityClient.AssignRoleApproverPrivilegesToCreator(requestUser.getId(), roleDetail.getId());
 						if(roleApproverPrivilegesStatus.is2xxSuccessful()) {
-							roleDetail.setRoleApprover(creatorId);
+							roleDetail.setRoleApprover(requestUser.getId());
 						}else{
 							warnings.add(new MessageDescription("Failed to assign role approver privilage role for user, please contact admin."));
 						}
 					}
+					//saving role details to user_created_roles table
+					saveCreatedRoleDetails(roleDetail.getId(), requestUser, roleRequestVO.getData().isIsDynamic());
 					//create entitlement
 					EntitlementDetailsVO entitlementDetail = this.callGenericEntitlementCreate(roleRequestVO.getData().getRoleName());
 					if(ConstantsUtility.CREATED_STATE.equalsIgnoreCase(entitlementDetail.getState())){
@@ -1700,6 +1737,8 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 					return response;
 				}
 			}
+		} catch (PersistenceException e){
+			log.warn("Error occured while saving the created role in DB : {}",e.getMessage());
 		}catch(Exception e){
 			errors.add(new MessageDescription("Failed to create role for the user  with exception " + e.getMessage()));
             response.setErrors(errors);
@@ -1753,7 +1792,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		return requestedEntitlement;
 	}
 
-	public CreateRoleRequestDto prepareGenericRoleCreateRequestDto(String roleName) {
+	public CreateRoleRequestDto prepareGenericRoleCreateRequestDto(String roleName, boolean isDynamic) {
 		String[] communityAvailabilitySplits = communityAvailability.split(",");
 		AccessReviewDto accessReview = new AccessReviewDto();
 		accessReview.setEnabled(true);
@@ -1776,7 +1815,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		roleRequestDto.setDefaultValidityType("OPTIONAL");
 		roleRequestDto.setDeprovisioning(false);
 		roleRequestDto.setDescription("Generic DNA role");
-		roleRequestDto.setDynamic(false);
+		roleRequestDto.setDynamic(isDynamic);
 		roleRequestDto.setGlobalCentralAvailable(true);
 		roleRequestDto.setId(roleName);
 		roleRequestDto.setJobTitle(false);
@@ -1794,13 +1833,13 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		return roleRequestDto;
 	}
 	
-	public RoleDetailsVO callGenericRoleCreate(String roleName) {
-		CreateRoleRequestDto createRequestDto = this.prepareGenericRoleCreateRequestDto(roleName);
+	public RoleDetailsVO callGenericRoleCreate(String roleName, String creatorId, boolean isDynamic) {
+		CreateRoleRequestDto createRequestDto = this.prepareGenericRoleCreateRequestDto(roleName, isDynamic);
 		RoleDetailsVO createRoleVO = new RoleDetailsVO();
 		createRoleVO.setName(roleName);
 		try {
 			log.info("Calling identity management system to add generic role");
-			CreateRoleResponseDto createRoleResponseDto = identityClient.createRole(createRequestDto);
+			CreateRoleResponseDto createRoleResponseDto = identityClient.createRole(createRequestDto,creatorId);
 			if(createRoleResponseDto!=null && createRoleResponseDto.getId()!=null) {
 				createRoleVO.setId(createRoleResponseDto.getId());
 				createRoleVO.setLink(identityRoleUrl +roleName);
@@ -1818,21 +1857,83 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 	}
 
 	@Override
-public DnaRoleCollectionVO getAllUserDnaRoles(String id, String authToken) {
-    DnaRoleCollectionVO dnaRoleCollection = new DnaRoleCollectionVO();
-	DnaRoleCollectionVOData data = new DnaRoleCollectionVOData();
-    List<String> roles = new ArrayList<>();
-    try {
-        List<String> roleList = identityClient.getAllUserManagableRoles(id, authToken);
-        roles = roleList.stream()
-                        .filter(role -> role.startsWith("DNA_"))
-                        .collect(Collectors.toList());
-        	data.setRoles(roles);
-        dnaRoleCollection.setData(data);
-    } catch (Exception e) {
-        log.error("Error occurred while getting user roles: {}", e.getMessage());
-    }
-    return dnaRoleCollection;
-}
+	public DnaRoleCollectionVO getAllUserDnaRoles(String id) {
+		DnaRoleCollectionVO dnaRoleCollection = new DnaRoleCollectionVO();
+		
+		try {
+			List<AuthoriserRolesNsql> entities = rolesCustomRepo.getAll(id);
+			if (entities == null || entities.isEmpty()) {
+				log.warn("No roles found for user {}", id);
+				dnaRoleCollection.setRoles(new ArrayList<>()); 
+				return dnaRoleCollection; 
+			}
+			
+			List<DnaRolesVO> roles = entities.stream()
+				.map(n -> assembler.toDnaRolesVO(n))
+				.collect(Collectors.toList());
+			
+			dnaRoleCollection.setRoles(roles);
+			
+		} catch (Exception e) {
+			log.error("Error getting roles for user {}: {}", id, e.getMessage());
+		}
+		return dnaRoleCollection;
+	}
+
+	@Transactional
+	public void saveCreatedRoleDetails(String roleName, CreatedByVO requestUser, Boolean isDynamic) throws PersistenceException{
+		AuthoriserRolesNsql  roleEntity = new AuthoriserRolesNsql();
+		AuthoriserRoleDeatils roleDetails = new AuthoriserRoleDeatils();
+		List<UserDetails> ownerDetails = new ArrayList<>();
+		try{
+		ownerDetails.add(assembler.toUserDetails(requestUser));
+		roleDetails.setOwnerDetails(ownerDetails);
+		roleDetails.setIsDynamic(isDynamic);
+
+		roleEntity.setId(roleName);
+		roleEntity.setData(roleDetails);
+		
+		rolesJpaRepo.save(roleEntity);
+		}catch( Exception e){
+			log.error("Error saving created role details for role {}: {}", roleName, e.getMessage());
+			throw new PersistenceException("Error saving created role details", e);
+		}
+	}
+	@Override
+	public AuthoriserRoleDetailsVO getRoleDetails(String roleId){
+		AuthoriserRoleDetailsVO roleDetailVO = new  AuthoriserRoleDetailsVO();
+
+		roleDetailVO = identityClient.getRoleDetails(roleId);
+		List<MembersVO> members = identityClient.getUsersForRole(roleId);
+		roleDetailVO.setRoleMembers(members);
+		return roleDetailVO;
+	}
+
+	@Override
+	public EntraGroupResponseVO getEntraGroupMembers(String roleName) {
+        MicrosoftGroupDetailDto groupDetail = fabricWorkspaceClient.searchGroup(roleName);
+        if (groupDetail == null || groupDetail.getId() == null) {
+            return null; 
+        }
+
+        MicrosoftGroupMemberCollectionDto memberCollection = fabricWorkspaceClient.getGroupMembers(groupDetail.getId());
+        List<EntraGroupMembersVO> memberVOs = new ArrayList<>();
+        if (memberCollection != null && memberCollection.getValue() != null) {
+            for (MicrosoftGroupMembersDto member : memberCollection.getValue()) {
+                EntraGroupMembersVO vo = new EntraGroupMembersVO();
+                vo.setId(member.getId());
+                vo.setDisplayName(member.getDisplayName());
+				vo.setMail(member.getMail());
+				if (member.getUserPrincipalName() != null && member.getUserPrincipalName().contains("@")) {
+					String shortId = member.getUserPrincipalName().split("@")[0];
+					vo.setShortId(shortId);
+				}
+                memberVOs.add(vo);
+            }
+        }
+		EntraGroupResponseVO response = new EntraGroupResponseVO();
+        response.setMembers(memberVOs);
+        return response;
+	}
 
 }
