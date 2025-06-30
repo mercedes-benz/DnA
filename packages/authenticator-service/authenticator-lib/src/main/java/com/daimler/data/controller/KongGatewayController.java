@@ -455,7 +455,7 @@ public class KongGatewayController implements KongApi{
 		
 	}
 
-@Override
+	@Override
 	@ApiOperation(value = "Attach functionPlugin to service.", nickname = "attachFunctionPlugin", notes = "Attach functionPlugin to service.", response = GenericMessage.class, tags={ "kong", })
     @ApiResponses(value = { 
         @ApiResponse(code = 200, message = "Returns message of success", response = GenericMessage.class),
@@ -614,6 +614,19 @@ public class KongGatewayController implements KongApi{
 		}
 	}
 	@Override
+	@ApiOperation(value = "Get a route by ID.", nickname = "getRouteByName", notes = "Get a route by ID", response = CreateRouteResponseVO.class, tags={ "kong", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 200, message = "Returns message of success or failure", response = CreateRouteResponseVO.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/kong/services/{serviceName}/routes/{routeName}",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.GET)
 	public ResponseEntity<CreateRouteResponseVO> getRouteByName(String serviceName, String routeName) {
 		try{
 			CreateRouteResponseVO createRouteResponseVO = kongClient.getRouteByName(serviceName,routeName);
