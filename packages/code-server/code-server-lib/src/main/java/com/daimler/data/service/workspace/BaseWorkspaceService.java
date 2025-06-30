@@ -1609,9 +1609,6 @@ import com.daimler.data.dto.workspace.buildDeploy.*;
 				 deployJobInputDto.setBranch(branch);
 				 deployJobInputDto.setEnvironment(codeServerEnvValue);
 				 deployJobInputDto.setAppVersion(version);
-				 CodeServerDeploymentDetails intDeploymentDetails = entity.getData().getProjectDetails().getIntDeploymentDetails();
-				 CodeServerDeploymentDetails prodDeploymentDetails = entity.getData().getProjectDetails().getProdDeploymentDetails();
-				 CodespaceSecurityConfig securityConfig  =  entity.getData().getProjectDetails().getSecurityConfig(); 
 				 String workspaceOwner = entity.getData().getWorkspaceOwner().getId();
 				 String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
 				 String projectName = entity.getData().getProjectDetails().getProjectName();
@@ -1667,6 +1664,14 @@ import com.daimler.data.dto.workspace.buildDeploy.*;
 					 		 
 			 //buildAndDeploy flow
 			 if(version == null || version.isEmpty() || version.isBlank()){
+				deploymentDetails.setSecureWithIAMRequired(isSecureWithIAMRequired);
+				deploymentDetails.setOneApiVersionShortName(oneApiVersionShortName);
+				deploymentDetails.setIsSecuredWithCookie(isSecuredWithCookie);
+				deploymentDetails.setDeploymentType(isApiRecipe ? ConstantsUtility.API : ConstantsUtility.UI);
+				deploymentDetails.setClientId(clientID);
+				deploymentDetails.setRedirectUri(redirectUri);
+				deploymentDetails.setIgnorePaths(ignorePaths);
+				deploymentDetails.setScope(scope);
 				String lastBuildType = "buildAndDeploy";
 				
 				ManageBuildRequestDto buildRequestDto = new ManageBuildRequestDto();
@@ -1676,22 +1681,13 @@ import com.daimler.data.dto.workspace.buildDeploy.*;
 				log.info("build triggered for workspaceId {} and branch {} and environment {} and lastBuildType {}",workspaceId,branch,environment,lastBuildType);
 				responseMessage = this.buildWorkSpace(userId, id, branch, buildRequestDto, isprivateRecipe, environment,lastBuildType);
 				if(responseMessage.getSuccess().equalsIgnoreCase("SUCCESS")){
-					authenticatorClient.callingKongApis(workspaceId, serviceName, environment, isApiRecipe, clientID,clientSecret,redirectUri, ignorePaths, scope, oneApiVersionShortName, isSecuredWithCookie, isSecureWithIAMRequired, cloudServiceProvider,
-					intDeploymentDetails,prodDeploymentDetails,securityConfig,projectName);
+					authenticatorClient.callingKongApis(workspaceId, serviceName, environment, isApiRecipe, clientID,clientSecret,redirectUri, ignorePaths, scope, oneApiVersionShortName, isSecuredWithCookie, isSecureWithIAMRequired, cloudServiceProvider);
 					status = "SUCCESS";
 					lastBuildOrDeployStatus = "BUILD_REQUESTED";
 				}else{
 					status = "FAILED";
 		 			return responseMessage;
 				}
-				deploymentDetails.setSecureWithIAMRequired(isSecureWithIAMRequired);
-					 deploymentDetails.setOneApiVersionShortName(oneApiVersionShortName);
-					 deploymentDetails.setIsSecuredWithCookie(isSecuredWithCookie);
-					 deploymentDetails.setDeploymentType(isApiRecipe ? ConstantsUtility.API : ConstantsUtility.UI);
-					 deploymentDetails.setClientId(clientID);
-					 deploymentDetails.setRedirectUri(redirectUri);
-					 deploymentDetails.setIgnorePaths(ignorePaths);
-					 deploymentDetails.setScope(scope);
 			}else{
 				//deploy flow
 				if (isprivateRecipe) {
@@ -1822,17 +1818,16 @@ import com.daimler.data.dto.workspace.buildDeploy.*;
 					 buildDeployRepo.save(auditLogEntity);
 					 
 					 //only deploy flow
-        			if(deployType.equalsIgnoreCase("deploy")){
-					authenticatorClient.callingKongApis(workspaceId, serviceName, environment, isApiRecipe, clientID,clientSecret,redirectUri, ignorePaths, scope, oneApiVersionShortName, isSecuredWithCookie, isSecureWithIAMRequired, cloudServiceProvider,
-				intDeploymentDetails,prodDeploymentDetails,securityConfig,projectName);
-					deploymentDetails.setSecureWithIAMRequired(isSecureWithIAMRequired);
-					deploymentDetails.setOneApiVersionShortName(oneApiVersionShortName);
-					deploymentDetails.setIsSecuredWithCookie(isSecuredWithCookie);
-					deploymentDetails.setDeploymentType(isApiRecipe ? ConstantsUtility.API : ConstantsUtility.UI);
-					deploymentDetails.setClientId(clientID);
-					deploymentDetails.setRedirectUri(redirectUri);
-					deploymentDetails.setIgnorePaths(ignorePaths);
-					deploymentDetails.setScope(scope);
+					 if(deployType.equalsIgnoreCase("deploy")){
+						deploymentDetails.setSecureWithIAMRequired(isSecureWithIAMRequired);
+						deploymentDetails.setOneApiVersionShortName(oneApiVersionShortName);
+						deploymentDetails.setIsSecuredWithCookie(isSecuredWithCookie);
+						deploymentDetails.setDeploymentType(isApiRecipe ? ConstantsUtility.API : ConstantsUtility.UI);
+						deploymentDetails.setClientId(clientID);
+						deploymentDetails.setRedirectUri(redirectUri);
+						deploymentDetails.setIgnorePaths(ignorePaths);
+						deploymentDetails.setScope(scope);												
+						authenticatorClient.callingKongApis(workspaceId, serviceName, environment, isApiRecipe, clientID,clientSecret,redirectUri, ignorePaths, scope, oneApiVersionShortName, isSecuredWithCookie, isSecureWithIAMRequired, cloudServiceProvider);
 					}
 					// deploymentDetails.setLastDeployedBranch(branch);
 					// deploymentDetails.setLastDeployedVersion(version);	
