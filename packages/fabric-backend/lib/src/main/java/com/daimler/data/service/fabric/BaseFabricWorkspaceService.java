@@ -80,6 +80,7 @@ import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceRoleRequestVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceStatusVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceVO;
 import com.daimler.data.dto.tag.TagVO;
+import com.daimler.data.service.tag.TagService;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspacesCollectionVO;
 import com.daimler.data.dto.fabricWorkspace.GroupDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.RoleDetailsVO;
