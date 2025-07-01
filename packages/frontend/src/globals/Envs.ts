@@ -183,6 +183,10 @@ export const Envs = {
     getInjectedEnv('ENABLE_POWER_PLATFORM_SERVICE') !== undefined
       ? getInjectedEnv('ENABLE_POWER_PLATFORM_SERVICE')
       : EnvParser.parseBool(process.env.ENABLE_POWER_PLATFORM_SERVICE, false),
+  ENABLE_PROMPT_CRAFT_SERVICE:
+    getInjectedEnv('ENABLE_PROMPT_CRAFT_SERVICE') !== undefined
+      ? getInjectedEnv('ENABLE_PROMPT_CRAFT_SERVICE')
+      : EnvParser.parseBool(process.env.ENABLE_PROMPT_CRAFT_SERVICE, false),
   ENABLE_MATOMO_SERVICE:
     getInjectedEnv('ENABLE_MATOMO_SERVICE') !== undefined
       ? getInjectedEnv('ENABLE_MATOMO_SERVICE')
@@ -240,4 +244,14 @@ export const Envs = {
   GENAI_LLM_PROMPT_ENG_URL:getInjectedEnv('GENAI_LLM_PROMPT_ENG_URL') || process.env.GENAI_LLM_PROMPT_ENG_URL,
   CLAMAV_IMAGE_URL:  getInjectedEnv('CLAMAV_IMAGE_URL') || process.env.CLAMAV_IMAGE_URL,
   CODESPACE_SECURITY_APP_ID: getInjectedEnv('CODESPACE_SECURITY_APP_ID') || process.env.CODESPACE_SECURITY_APP_ID,
+
+  ONEAPI_SUBSCRIPTION_URL:
+    getInjectedEnv('ONEAPI_SUBSCRIPTION_URL') !== undefined
+      ? getInjectedEnv('ONEAPI_SUBSCRIPTION_URL')
+      : EnvParser.parseBool(process.env.ONEAPI_SUBSCRIPTION_URL, false),
+  ONEAPI_PROMPT_CRAFT_USAGE_LINK:
+    getInjectedEnv('ONEAPI_PROMPT_CRAFT_USAGE_LINK') !== undefined
+      ? getInjectedEnv('ONEAPI_PROMPT_CRAFT_USAGE_LINK')
+      : EnvParser.parseBool(process.env.ONEAPI_PROMPT_CRAFT_USAGE_LINK, false),
+  LEANIX_BASEURL: getInjectedEnv('LEANIX_BASEURL') || process.env.LEANIX_BASEURL,
 };
