@@ -936,6 +936,7 @@ const CreateBucket = ({ user }) => {
                           </p>
                           <p>Please make sure that you do not store any confidential data in this bucket as it is publicly accessible.</p>
                         </div>
+                        
                       </div>
                     </div>
                   )}
