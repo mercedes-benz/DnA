@@ -388,7 +388,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		return response;
 	}
 	
-	public void callingKongApis(String wsid,String serviceName, String env, boolean apiRecipe, String clientID, String clientSecret, String redirectUriFromUser, String ignorePaths, String scope, String oneApiVersionShortName, boolean isSecuredWithCookie, boolean secureWithIAM, String cloudServiceProvider) {
+	public void callingKongApis(String wsid,String serviceName, String env, boolean apiRecipe, String clientID, String clientSecret, String redirectUriFromUser, String ignorePaths, String scope, String oneApiVersionShortName, boolean isSecuredWithCookie, boolean secureWithIAM, String cloudServiceProvider, boolean prevSecureIAM, String prevOneApiShortName) {
 		boolean kongApiForDeploymentURL = !wsid.equalsIgnoreCase(serviceName) && Objects.nonNull(env);
 		CodeServerWorkspaceNsql workspaceNsql = customRepository.findByWorkspaceId(wsid);
 		CodeServerDeploymentDetails intDeploymentDetails = workspaceNsql.getData().getProjectDetails().getIntDeploymentDetails();
@@ -397,27 +397,27 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		String projectName = workspaceNsql.getData().getProjectDetails().getProjectName();
 		Boolean intSecureIAM = false;
 		Boolean prodSecureIAM = false;
-		Boolean prevSecureIAM = false;
-		String prevOneApiShortName = null;
+		// Boolean prevSecureIAM = false;
+		// String prevOneApiShortName = null;
 		//for now making it as false once we enble cookie way will remove this.
 		isSecuredWithCookie = false;
 		LOGGER.info("serviceProvider "+cloudServiceProvider);
 		if("prod".equalsIgnoreCase(env)){
 			if(Objects.nonNull(prodDeploymentDetails)) {
 				prodSecureIAM = secureWithIAM;
-				if(Objects.nonNull(prodDeploymentDetails.getSecureWithIAMRequired())){
-					prevSecureIAM = prodDeploymentDetails.getSecureWithIAMRequired();
-				}
-				prevOneApiShortName = prodDeploymentDetails.getOneApiVersionShortName();
+				// if(Objects.nonNull(prodDeploymentDetails.getSecureWithIAMRequired())){
+				// 	prevSecureIAM = prodDeploymentDetails.getSecureWithIAMRequired();
+				// }
+				// prevOneApiShortName = prodDeploymentDetails.getOneApiVersionShortName();
 			}
 		}
 		if("int".equalsIgnoreCase(env)){
 			if(Objects.nonNull(intDeploymentDetails)) {
 				intSecureIAM = secureWithIAM;
-				if(Objects.nonNull(intDeploymentDetails.getSecureWithIAMRequired())){
-					prevSecureIAM = intDeploymentDetails.getSecureWithIAMRequired();
-				}
-				prevOneApiShortName = intDeploymentDetails.getOneApiVersionShortName();
+				// if(Objects.nonNull(intDeploymentDetails.getSecureWithIAMRequired())){
+				// 	prevSecureIAM = intDeploymentDetails.getSecureWithIAMRequired();
+				// }
+				// prevOneApiShortName = intDeploymentDetails.getOneApiVersionShortName();
 			}
 		}
 		LOGGER.info("Codespace deployed to production with enabling secureIAM is :{}",prodSecureIAM);
