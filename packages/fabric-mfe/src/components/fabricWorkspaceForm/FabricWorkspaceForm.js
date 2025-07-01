@@ -40,7 +40,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
   const [dataClassificationDropdown, setDataClassificationDropdown] = useState([]);
   const [solutions, setSolutions] = useState([]);
   const [reports, setReports] = useState([]);
-  const [fabricTags] = useState([]);
+  const [fabricTags, setFabricTags] = useState([]);
 
   const [costCenter, setCostCenter] = useState(edit && workspace?.costCenter !== null ? workspace?.costCenter : '');
   const [internalOrder, setInternalOrder] = useState(edit && workspace?.internalOrder !== null ? workspace?.internalOrder : '');
@@ -116,6 +116,21 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
       });
     //eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    ProgressIndicator.show();
+    fabricApi.getAllTags()
+      .then((res) => {
+        ProgressIndicator.hide();
+        const tagList = res?.data?.map((tag) => {return { id: tag.id, name: tag.name}});
+        setFabricTags([...tagList]);
+      })
+      .catch((err) => {
+        ProgressIndicator.hide();
+        Notification.show(err?.message || 'Failed to fetch tags', 'alert');
+      });
+  }, []);
+
 
   useEffect(() => {
     const divId = division.includes('@-@') ? division.split('@-@')[0] : division;
