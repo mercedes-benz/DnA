@@ -1655,13 +1655,19 @@ import com.daimler.data.dto.workspace.buildDeploy.*;
 			 }	
 			 String serviceName = projectName;
 			 String workspaceId = entity.getData().getWorkspaceId();
+
+			 Boolean prevSecureIAM = false;
+			 String prevOneApiShortName = null;
 			 
 			 CodeServerDeploymentDetails deploymentDetails = entity.getData().getProjectDetails().getIntDeploymentDetails();
 					 if (!"int".equalsIgnoreCase(environment)) {
 						 deploymentDetails = entity.getData().getProjectDetails().getProdDeploymentDetails();
 					 }
-			String lastBuildOrDeployStatus = "";
-			authenticatorClient.callingKongApis(workspaceId, serviceName, environment, isApiRecipe, clientID,clientSecret,redirectUri, ignorePaths, scope, oneApiVersionShortName, isSecuredWithCookie, isSecureWithIAMRequired, cloudServiceProvider);		 
+			 String lastBuildOrDeployStatus = "";
+			 if(Objects.nonNull(deploymentDetails.getSecureWithIAMRequired())){
+					prevSecureIAM = deploymentDetails.getSecureWithIAMRequired();
+				}
+				prevOneApiShortName = deploymentDetails.getOneApiVersionShortName();
 					 		 
 			 //buildAndDeploy flow
 			 if(version == null || version.isEmpty() || version.isBlank()){
@@ -1682,6 +1688,7 @@ import com.daimler.data.dto.workspace.buildDeploy.*;
 				log.info("build triggered for workspaceId {} and branch {} and environment {} and lastBuildType {}",workspaceId,branch,environment,lastBuildType);
 				responseMessage = this.buildWorkSpace(userId, id, branch, buildRequestDto, isprivateRecipe, environment,lastBuildType);
 				if(responseMessage.getSuccess().equalsIgnoreCase("SUCCESS")){
+					authenticatorClient.callingKongApis(workspaceId, serviceName, environment, isApiRecipe, clientID,clientSecret,redirectUri, ignorePaths, scope, oneApiVersionShortName, isSecuredWithCookie, isSecureWithIAMRequired, cloudServiceProvider, prevSecureIAM, prevOneApiShortName);
 					status = "SUCCESS";
 					lastBuildOrDeployStatus = "BUILD_REQUESTED";
 				}else{
@@ -1826,7 +1833,8 @@ import com.daimler.data.dto.workspace.buildDeploy.*;
 						deploymentDetails.setClientId(clientID);
 						deploymentDetails.setRedirectUri(redirectUri);
 						deploymentDetails.setIgnorePaths(ignorePaths);
-						deploymentDetails.setScope(scope);												
+						deploymentDetails.setScope(scope);
+						authenticatorClient.callingKongApis(workspaceId, serviceName, environment, isApiRecipe, clientID,clientSecret,redirectUri, ignorePaths, scope, oneApiVersionShortName, isSecuredWithCookie, isSecureWithIAMRequired, cloudServiceProvider, prevSecureIAM, prevOneApiShortName);												
 					}
 					// deploymentDetails.setLastDeployedBranch(branch);
 					// deploymentDetails.setLastDeployedVersion(version);	
