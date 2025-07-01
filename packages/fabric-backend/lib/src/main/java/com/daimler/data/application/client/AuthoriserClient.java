@@ -706,6 +706,5 @@ public class AuthoriserClient {
 		}
 		return response;
 	}
-
 }
 
