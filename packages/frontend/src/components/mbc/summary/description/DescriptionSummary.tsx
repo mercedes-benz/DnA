@@ -12,6 +12,7 @@ import { regionalDateAndTimeConversionSolution } from '../../../../services/util
 import Styles from './DescriptionSummary.scss';
 import { TOTAL_LOCATIONS_COUNT } from 'globals/constants';
 import { TEAMS_PROFILE_LINK_URL_PREFIX } from 'globals/constants';
+import { Envs } from 'globals/Envs';
 
 const classNames = cn.bind(Styles);
 
@@ -310,14 +311,22 @@ export default class DescriptionSummary extends React.Component<IDescriptionSumm
                         : 'NA'
                       : 'NA'}
                   </div>
-                  <div id="businessGoal">
-                    <label className="input-label summary">Business Goals</label>
+                  <div id="LeanIX App ID">
+                    <label className="input-label summary">LeanIX App ID</label>
                     <br />
-                    {description.businessGoal
-                      ? description.businessGoal.length > 0
-                        ? description.businessGoal.join(', ')
-                        : 'NA'
-                      : 'NA'}
+                    {description?.leanIXDetails?.appReferenceStr ? (
+                      <a
+                        href={`${Envs.LEANIX_BASEURL}/${description.leanIXDetails.appReferenceStr}`}
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        {description?.appId}
+                      </a>
+                     
+                    ) : (
+                      <span>{description?.appId ? `${description?.appId}` : 'NA'}</span>
+                    
+                    )}
                   </div>
                 </div>
                 <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
@@ -330,6 +339,15 @@ export default class DescriptionSummary extends React.Component<IDescriptionSumm
                         : 'N/A'
                       : 'N/A'}
                   </div> */}
+                  <div id="businessGoal">
+                    <label className="input-label summary">Business Goals</label>
+                    <br />
+                    {description.businessGoal
+                      ? description.businessGoal.length > 0
+                        ? description.businessGoal.join(', ')
+                        : 'NA'
+                      : 'NA'}
+                  </div>
                   <div id="dataStrategyDomain">
                     <label className="input-label summary">Data Strategy Domain</label>
                     <br />
@@ -340,6 +358,8 @@ export default class DescriptionSummary extends React.Component<IDescriptionSumm
                     <br />
                     {this.props.createdDate ? regionalDateAndTimeConversionSolution(this.props.createdDate) : '-'}
                   </div>
+                </div>
+                <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>  
                   <div id="department">
                     <label className="input-label summary">Department</label>
                     <br />

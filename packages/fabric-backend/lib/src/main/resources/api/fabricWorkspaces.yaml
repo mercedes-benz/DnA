@@ -393,6 +393,63 @@ paths:
           500:
             description: "Internal error"
 
+  /fabric-worspace/{roleId}/details:
+    get:
+        tags:
+          - "fabric-workspaces"
+        summary: "get the role details."
+        description: "get the role details."
+        operationId: "getRoleDetails"
+        parameters:
+          - name: "roleId"
+            in: "path"
+            required: true
+            type: "string"  
+        responses:
+          201:
+            description: "Returns message of succes or failure "
+            schema:
+              $ref: "#/definitions/AuthoriserRoleDetailsResponseVO"
+          400:
+            description: "Bad Request"
+          401:
+            description: "Request does not have sufficient credentials."
+          403:
+            description: "Request is not authorized."
+          405:
+            description: "Method not allowed"
+          500:
+            description: "Internal error"
+
+  /fabric-workspaces/{roleName}/entraGroupMembers:
+    get:
+        tags:
+          - "fabric-workspaces"
+        summary: "get the EntraID group member details."
+        description: "get the group member details."
+        operationId: "getGroupMemberDetails"
+        parameters:
+          - name: "roleName"
+            in: "path"
+            required: true
+            type: "string"  
+        responses:
+          200:
+            description: "Returns message of succes or failure "
+            schema:
+              $ref: "#/definitions/EntraGroupResponseVO"  
+          400:
+            description: "Bad Request"
+          401:
+            description: "Request does not have sufficient credentials."
+          403:
+            description: "Request is not authorized."
+          405:
+            description: "Method not allowed"
+          500:
+            description: "Internal error"
+
+
 
 definitions:
   CapacityVO:
@@ -488,6 +545,22 @@ definitions:
         type: array
         items:
           $ref: "#/definitions/FabricLakehouseVO"
+      initiatedBy:
+        type: string
+        default: string
+      # secondaryRoleApproverId: 
+      #   type: string
+      #   default: null
+      # customEntitlementName: 
+      #   type: string
+      #   default: null
+      customGroupName: 
+        type: string
+        default: null
+      appId:
+        type: string
+      leanIXDetails:
+        $ref: "#/definitions/LeanIXDetailsVO"
   
   FabricWorkspaceStatusVO:
     type: object
@@ -536,6 +609,9 @@ definitions:
         type: string
       roleApprover:
         type: string
+      # secondaryRoleApprover: 
+      #   type: string
+      #   default: null
       entitlements:
         type: array
         items:
@@ -628,6 +704,11 @@ definitions:
     properties:
       data:
         $ref: "#/definitions/FabricWorkspaceVO"
+      aliasOwnerId: 
+        type: string
+        default: null
+      
+      
   
   FabricWorkspaceResponseVO:
     description: "Response object for fabric workspace operations"
@@ -818,17 +899,108 @@ definitions:
           roleName:
             type: string
             pattern: "^[A-Za-z0-9]+[A-Za-z0-9._-]{1,60}$"
+          isDynamic:
+            type: boolean
+            default: false
 
   DnaRoleCollectionVO:
+      type: object
+      properties:
+        roles:
+          type: array
+          items:
+            $ref: "#/definitions/DnaRolesVO" 
+  
+  DnaRolesVO:
+    type: object
+    properties:
+      isDynamic:
+        type: boolean
+      roleID:
+        type: string
+      ownerDetails:
+        type: array
+        items: 
+          $ref: "#/definitions/CreatedByVO"
+
+  LeanIXDetailsVO:
+    type: object
+    properties :
+      appReferenceStr:
+        type: string
+      name:
+        type: string
+        description: "Name of the LeanIX"
+        minLength: 1
+      shortName:
+        type: string
+        description: "Short Name of the LeanIX"
+      ObjectState:
+        type: string
+        description: "State of the LeanIX"
+      providerOrgRefstr:
+        type: string
+        description: "Details of provider Org of the LeanIX"
+      providerOrgId:
+        type: string
+      providerOrgShortname:
+        type: string
+      providerOrgDeptid:
+        type: string
+
+  AuthoriserRoleDetailsResponseVO:
     type: object
     properties:
       data:
         type: object
-        properties:
-          roles:
-            type: array
-            items: 
-              type: string
+        items:
+           $ref: "#/definitions/AuthoriserRoleDetailsVO"
 
+  AuthoriserRoleDetailsVO:
+    type: object
+    properties:
+      description:
+        type: string
+      isDynamic:
+        type: boolean
+      isSelfRequestable:
+        type: boolean
+      roleOwners:
+        type: array
+        items:
+          $ref: "#/definitions/MembersVO"
+      roleMembers:
+        type: array
+        items:
+          $ref: "#/definitions/MembersVO"
+ 
+  MembersVO:
+    type: object
+    properties:
+      departmentNumber:
+        type: string
+      id:
+        type: string
+      completeName:
+        type: string
 
-    
+  EntraGroupResponseVO:
+    type: object
+    properties:
+      members:
+        type: array
+        items:
+          $ref: "#/definitions/EntraGroupMembersVO"
+
+  
+  EntraGroupMembersVO:
+    type: object
+    properties:
+      id:
+        type: string
+      displayName:
+        type: string
+      mail:
+        type: string
+      shortId:
+        type: string

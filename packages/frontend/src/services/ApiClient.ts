@@ -415,6 +415,9 @@ export class ApiClient {
     return this.delete(`customerJourneyPhases/${id}`);
   }
 
+  public static portSolution(solutionId: string, revert: boolean = false): Promise<any> {
+    return this.patch(`solutions/${solutionId}/port-solution?revert=${revert}`);
+  }
 
   public static getDescriptionLovData(): Promise<any[]> {
     return Promise.all([
@@ -539,6 +542,14 @@ export class ApiClient {
   
   public static getExistingRoles(appId: string) {
     return this.fabricGet(`fabric-workspaces/${appId}/dnaroles`);
+  }
+
+  public static getRoleDetails(roleId: string) {
+    return this.fabricGet(`fabric-worspace/${roleId}/details`);
+  }
+
+  public static getEntraGroupMembers(roleName: string) {
+    return this.fabricGet(`fabric-workspaces/${roleName}/entraGroupMembers`);
   }
 
   public static updateSolution(data: ICreateNewSolutionRequest): Promise<ICreateNewSolutionResult> {
@@ -964,6 +975,17 @@ export class ApiClient {
         additionalResource,
         dataStrategyDomain,
         relatedProducts,
+        appId,
+        leanIXDetails {
+          ObjectState,
+          appReferenceStr,
+          name,
+          providerOrgDeptid,
+          providerOrgId,
+          providerOrgRefstr,
+          providerOrgShortname,
+          shortName,
+        },
         attachments {
           id,
           fileName,
