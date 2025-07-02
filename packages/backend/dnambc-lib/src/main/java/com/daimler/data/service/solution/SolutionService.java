@@ -82,6 +82,7 @@ public interface SolutionService extends CommonService<SolutionVO, SolutionNsql,
 	ResponseEntity<GenericMessage> malwareScanUnsubscribe(String solutionId);
 
 	Integer getCountBasedPublishSolution(Boolean published);
-
+	
+	public GenericMessage portSolution(String id, boolean revert);
 
 }
