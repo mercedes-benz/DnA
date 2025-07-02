@@ -105,7 +105,7 @@ jobs:
       uses: hashicorp/vault-action@v3.0.0
       if: ${{ github.event.inputs.valutInjectorEnable == 'true' }}
       with:
-        url: https://dnaplatform.service.vault-prod.rd.corpintra.net
+        url: https://dnaplatform.service.securevault.app.corpintra.net
         method: userpass
         username: ${{ secrets.VAULT_USERNAME }}
         password: ${{ secrets.VAULT_PASSWORD }}
