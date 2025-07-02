@@ -89,6 +89,25 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
   }, []);
 
   useEffect(() => {
+    if (selectedLeanIX.id) {
+      setValue('leanIX', {
+        appId: selectedLeanIX.id,
+        leanIXDetails: {
+          objectState: selectedLeanIX.ObjectState,
+          appReferenceStr: selectedLeanIX.appReferenceStr,
+          name: selectedLeanIX.name,
+          providerOrgDeptid: selectedLeanIX.providerOrgDeptid,
+          providerOrgId: selectedLeanIX.providerOrgId,
+          providerOrgRefstr: selectedLeanIX.providerOrgRefstr,
+          providerOrgShortname: selectedLeanIX.providerOrgShortname,
+          shortName: selectedLeanIX.shortName,
+        },
+      });
+    }
+  }, [selectedLeanIX, setValue]);
+
+
+  useEffect(() => {
     ProgressIndicator.show();
     fabricApi.getAllSolutions()
       .then((res) => {
@@ -405,26 +424,7 @@ const isLeanIXRequired = typeOfProject === 'Production' && mandate;
                     rules={{
                       required: isLeanIXRequired ? '*Missing entry' : false,
                     }}
-                    render={({ field }) => {
-                      useEffect(() => {
-                        if (selectedLeanIX.id) {
-                          setValue('leanIX', {
-                            appId: selectedLeanIX.id,
-                            leanIXDetails: {
-                              objectState: selectedLeanIX.ObjectState,
-                              appReferenceStr: selectedLeanIX.appReferenceStr,
-                              name: selectedLeanIX.name,
-                              providerOrgDeptid: selectedLeanIX.providerOrgDeptid,
-                              providerOrgId: selectedLeanIX.providerOrgId,
-                              providerOrgRefstr: selectedLeanIX.providerOrgRefstr,
-                              providerOrgShortname: selectedLeanIX.providerOrgShortname,
-                              shortName: selectedLeanIX.shortName,
-                            },
-                          });
-                        }
-                      }, [selectedLeanIX, setValue]);
-
-                      return (
+                    render={({ field }) => (
                         <TypeAheadBox
                           label={'LeanIX App-ID'}
                           placeholder={'Select App-ID (Enter minimum 4 characters)'}
@@ -462,8 +462,7 @@ const isLeanIXRequired = typeOfProject === 'Production' && mandate;
                             </div>
                           )}
                         />
-                      );
-                    }}
+                      )}
                   />
                   </div>
                 </div>
