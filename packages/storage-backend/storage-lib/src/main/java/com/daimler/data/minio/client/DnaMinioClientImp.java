@@ -622,11 +622,14 @@ public class DnaMinioClientImp implements DnaMinioClient {
 						data = data.concat(line).concat(",");
 					}
 				}
+				LOGGER.debug("mc Response bucket objects : "+ data);
 				LOGGER.info("finished reading response from mc list bucket objects");
 				MinioObjectMetadataCollection listBucketObjectsCollectionDto = new MinioObjectMetadataCollection();
 				if(data!=null && !"".equalsIgnoreCase(data)) { 
 				data = jsonprefix.concat(data.substring(0, data.length() - 1)).concat(suffix);
+				LOGGER.debug("data after adding prefix and sufix : "+ data);
 				listBucketObjectsCollectionDto = mapper.readValue(data, MinioObjectMetadataCollection.class);
+				LOGGER.debug("data after parsing : "+ listBucketObjectsCollectionDto);
 				LOGGER.info("Success from minio list bucket {} objects for user:{}", bucketName, userId);
 				}else {
 					LOGGER.info("Success from minio list bucket {} objects for user:{}. No data found, no objects present", bucketName, userId);
@@ -648,6 +651,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 				minioObjectResponse.setHttpStatus(HttpStatus.OK);
 				minioObjectResponse.setStatus("SUCCESS");
 				minioObjectResponse.setObjects(objects);
+				LOGGER.debug("minioObjectResponse : "+ minioObjectResponse);
 				LOGGER.info("Success from minio list bucket {} objects setting to dto", bucketName);
 			} else {
 					LOGGER.info("User:{} not available in vault.", userId);
@@ -810,6 +814,11 @@ public class DnaMinioClientImp implements DnaMinioClient {
 				// Adding new policies to existing one
 				for (String policy : policies) {
 					String policyResponse = this.attachPolicyToUser(userId, policy, false);
+					try {
+						TimeUnit.SECONDS.sleep(5);
+					} catch (InterruptedException e) {
+						LOGGER.error("Policy attachment interrupted: " + e.getMessage());
+					}  
 					LOGGER.info("mc attach policy response: "+ policyResponse);
 					existingPolicy = StorageUtility.addPolicy(existingPolicy, policy);
 				}
@@ -1051,7 +1060,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 				data = prefix.concat(data.substring(0, data.length() - 1)).concat(suffix);
 				users = new HashMap<>();
 				List<UserInfoDto> userInfoDto = new ArrayList<>();
-				LOGGER.info("Policies data from minio to update cache is {} ", data);
+				LOGGER.debug("Policies data from minio to update cache is {} ", data);
 				UserInfoWrapperDto userInfoWrapperDto = mapper.readValue(data, UserInfoWrapperDto.class);
 				userInfoDto = userInfoWrapperDto.getData();
 				if (userInfoDto != null && !userInfoDto.isEmpty()) {
@@ -1415,13 +1424,13 @@ public class DnaMinioClientImp implements DnaMinioClient {
 			ProcessBuilder policyBuilder = new ProcessBuilder(isWindows ? "cmd.exe" : "sh", isWindows ? "/c" : "-c", attachPolicyCommand);
 
 			// Execute alias command
-			Process aliasProcess = aliasBuilder.start();
-			int aliasExitCode = aliasProcess.waitFor();
-			if (aliasExitCode != 0) {
-				LOGGER.error("Failed to set alias. Exit code: {}", aliasExitCode);
-				return "Failed to set alias.";
-			}
-			LOGGER.debug("Alias set successfully for user: {}", userId);
+			// Process aliasProcess = aliasBuilder.start();
+			// int aliasExitCode = aliasProcess.waitFor();
+			// if (aliasExitCode != 0) {
+			// 	LOGGER.error("Failed to set alias. Exit code: {}", aliasExitCode);
+			// 	return "Failed to set alias.";
+			// }
+			// LOGGER.debug("Alias set successfully for user: {}", userId);
 
 			// Execute policy command
 			policyBuilder.redirectErrorStream(true);
@@ -1492,13 +1501,13 @@ public class DnaMinioClientImp implements DnaMinioClient {
 			ProcessBuilder policyBuilder = new ProcessBuilder(isWindows ? "cmd.exe" : "sh", isWindows ? "/c" : "-c", detachPolicyCommand);
 
 			// Execute alias command
-			Process aliasProcess = aliasBuilder.start();
-			int aliasExitCode = aliasProcess.waitFor();
-			if (aliasExitCode != 0) {
-				LOGGER.error("Failed to set alias. Exit code: {}", aliasExitCode);
-				return "Failed to set alias.";
-			}
-			LOGGER.debug("Alias set successfully for user: {}", userId);
+			// Process aliasProcess = aliasBuilder.start();
+			// int aliasExitCode = aliasProcess.waitFor();
+			// if (aliasExitCode != 0) {
+			// 	LOGGER.error("Failed to set alias. Exit code: {}", aliasExitCode);
+			// 	return "Failed to set alias.";
+			// }
+			// LOGGER.debug("Alias set successfully for user: {}", userId);
 
 			// Execute policy command
 			policyBuilder.redirectErrorStream(true);
