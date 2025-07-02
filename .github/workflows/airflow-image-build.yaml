@@ -1,0 +1,36 @@
+name: Building-Airflow-image
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'image tag'
+        required: false
+        default: ''
+
+jobs:
+  build:
+    runs-on: [os-large-amd64-linux]
+
+    env:
+      IMAGE_TAG: ${{ github.event.inputs.tag || github.sha }}
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+
+      - name: Login Registry
+        run: | 
+          echo ${{ secrets.HARBOR_DNA_REPO_SECRET }} | docker login $REGISTRY -u $REGISTRY_DNA_USER --password-stdin
+
+      - name: Create chain.crt from secret
+        run: echo "${{ secrets.CHAIN_CRT }}" > chain.crt
+      
+      - name: Build image
+        working-directory: ./deployment/dockerfiles/Officalairflow-253/
+        run: |
+          docker build --build-arg PROXY=${{ secrets.PROXY }} --build-arg NO_PROXY=${{ secrets.NO_PROXY }} -t registry-emea.app.corpintra.net/dnaplatform/airflow/officalairflow:${{ env.IMAGE_TAG }} .
+
+      - name: Push image
+        run: |
+          docker push registry-emea.app.corpintra.net/dnaplatform/airflow/officalairflow:${{ env.IMAGE_TAG }}

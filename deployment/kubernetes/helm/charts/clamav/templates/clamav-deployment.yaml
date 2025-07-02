@@ -43,7 +43,7 @@ spec:
               cpu: {{ .Values.resources.requests.cpu | quote }}
             limits:
               memory: {{ .Values.resources.limits.memory | quote }}
-              cpu: {{ .Values.resources.limits.cpu | quote }}
+            #  cpu: {{ .Values.resources.limits.cpu | quote }}
           # volumeMounts:
           #   - mountPath: /var/lib/clamav
           #     name: avdata

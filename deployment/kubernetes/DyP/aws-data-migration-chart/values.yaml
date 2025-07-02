@@ -1,0 +1,30 @@
+# Default values for aws-data-migration-chart.
+# This is a YAML-formatted file.
+# Declare variables to be passed into your templates.
+
+
+
+namespace: 'dev-dna'
+runAsUser: 987
+pvcs:
+  - pvcName: dev-dna-db-postgresql-dev-dna-db-postgresql-0
+    backupPath: '/srv/postgresql/volume'
+  # - pvcName: ws1888
+  #   backupPath: '/home/backup-ns-02'
+  # - pvcName: ws1889
+  #   backupPath: '/home/backup-ns-03'
+
+backupJob:
+  enabled: false
+
+restoreJob:
+  enabled: false
+
+storageCredentials:
+  accessKeyId: "test"
+  secretAccessKey: "test"
+  resticKey: "test"
+  #Mounted directly to the pod env not as a secret
+  apiUrl: "s3:http://53.137.143.78:9000"
+  bucketName: "00-test"
+#  path: "pvc-name" , this will be the pvc-name

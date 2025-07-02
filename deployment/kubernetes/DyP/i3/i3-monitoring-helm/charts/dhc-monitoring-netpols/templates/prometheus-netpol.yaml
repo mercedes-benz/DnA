@@ -1,0 +1,31 @@
+{{- if .Values.external.prometheus.enabled }}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  labels:
+    i3-product: i3-monitoring
+    i3-version: {{ .Chart.Version }}
+    {{- include "dhc-monitoring-netpols.metadata.labels" . | nindent 4}}
+  name: {{ template "dhc-monitoring-netpols.fullname" . }}-prometheus-incoming
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "dhc-monitoring-netpols.server.matchLabels" . | nindent 6 }}
+  policyTypes:
+  - Ingress
+{{- if .Values.external.prometheus.ingresses }}
+  # Allow from specific ports or namespaces to port 3000
+  ingress:
+  {{- range .Values.external.prometheus.ingresses }}
+  - from:
+{{ .from | toYaml | indent 4 }}
+    ports:
+      - port: 9090
+  {{- end -}}
+{{- else }}
+  # Allow traffic from all pods to port 3000
+  ingress:
+  - ports: 
+    - port: 9090
+{{- end }}
+{{- end }}
