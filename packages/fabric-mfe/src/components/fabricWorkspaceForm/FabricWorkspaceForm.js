@@ -60,7 +60,9 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
   const [procedureId, setProcedureID] = useState(edit && workspace?.procedureId ? workspace?.procedureId : '');
   const [termsOfUse, setTermsOfUse] = useState(edit && workspace?.termsOfUse ? [workspace?.termsOfUse] : false);
   const [leanIXList, setLeanIXList] = useState([]);
-  const [selectedLeanIX, setSelectedLeanIX] = useState([]);
+  const [selectedLeanIX, setSelectedLeanIX] = useState(
+    edit && workspace?.appId ? { id: workspace?.appId, ...workspace?.leanIXDetails } : []
+  );
 
   useEffect(() => {
     ProgressIndicator.show();
@@ -397,17 +399,36 @@ const isLeanIXRequired = typeOfProject === 'Production' && mandate;
               (
                 <div className={Styles.col2}>
                   <div className={classNames('input-field-group')}>
-                    <Controller
-                      control={control}
-                      name="leanIX"
-                      rules={{
-                        required: isLeanIXRequired ? '*Missing entry' : false,
-                      }}
-                      render={({ field }) => (
+                  <Controller
+                    control={control}
+                    name="leanIX"
+                    rules={{
+                      required: isLeanIXRequired ? '*Missing entry' : false,
+                    }}
+                    render={({ field }) => {
+                      useEffect(() => {
+                        if (selectedLeanIX.id) {
+                          setValue('leanIX', {
+                            appId: selectedLeanIX.id,
+                            leanIXDetails: {
+                              objectState: selectedLeanIX.ObjectState,
+                              appReferenceStr: selectedLeanIX.appReferenceStr,
+                              name: selectedLeanIX.name,
+                              providerOrgDeptid: selectedLeanIX.providerOrgDeptid,
+                              providerOrgId: selectedLeanIX.providerOrgId,
+                              providerOrgRefstr: selectedLeanIX.providerOrgRefstr,
+                              providerOrgShortname: selectedLeanIX.providerOrgShortname,
+                              shortName: selectedLeanIX.shortName,
+                            },
+                          });
+                        }
+                      }, [selectedLeanIX, setValue]);
+
+                      return (
                         <TypeAheadBox
                           label={'LeanIX App-ID'}
                           placeholder={'Select App-ID (Enter minimum 4 characters)'}
-                          defaultValue={selectedLeanIX.appId}
+                          defaultValue={selectedLeanIX.id}
                           list={leanIXList}
                           setSelected={(selectedTags) => {
                             const leanIXData = {
@@ -441,8 +462,9 @@ const isLeanIXRequired = typeOfProject === 'Production' && mandate;
                             </div>
                           )}
                         />
-                      )}
-                    />
+                      );
+                    }}
+                  />
                   </div>
                 </div>
               )
