@@ -95,11 +95,6 @@ public class BaseDbServiceImpl extends BaseCommonService<DbServiceVO, DbServiceN
 
     @Value("${dbService.size}")
     private String size;
-
-    @Value("${dbService.initDbTemplate}")
-    private String initDbTemplate;
-
-
     
     @Override
     public InitializeResponseVo createDb(DbServiceVO serviceVo) {
@@ -135,6 +130,7 @@ public class BaseDbServiceImpl extends BaseCommonService<DbServiceVO, DbServiceN
             vaultData.put("s3.host",s3Host);
             vaultData.put("secretkey", s3secretkey);
             vaultData.put("size", size);
+            String initDbTemplate = vault.getFileFromVault();
                 StringBuilder template = new StringBuilder(initDbTemplate);
                 Map<String,String> replacements = Map.of(
                     "<superusername>","db_admin",

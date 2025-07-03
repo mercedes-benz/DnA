@@ -55,6 +55,9 @@ import lombok.extern.slf4j.Slf4j;
  
      @Value("${spring.cloud.vault.vaultpath}")
      private String vaultPath;
+
+     @Value("${dbService.initDbTemplatePath}")
+     private String initDbTemplatePath;
  
      @Value("${spring.cloud.vault.mountpath}")
      private String mountPath;
@@ -120,6 +123,27 @@ import lombok.extern.slf4j.Slf4j;
             return null;
          }
      }
+
+
+     public String getFileFromVault() {         
+ 
+        try {
+       
+        VaultTemplate vaultTemplate = new VaultTemplate(this.getVaultEndpoint(), 
+                 new KubernetesAuthentication(this.getK8sOptions(), this.getrestOperations(this.getVaultEndpoint())));
+
+        log.info("Fetching details of initdb template from vault.");
+        VaultResponse vaultResponse = vaultTemplate.opsForKeyValue(mountPath, KeyValueBackend.KV_2)
+                .get(initDbTemplatePath);
+        if (vaultResponse != null && vaultResponse.getData() != null) {
+            return vaultResponse.getData().get("INITDBTEMPLATE").toString();
+        }
+        return null;
+        } catch (Exception e) {
+           log.error("Error getting secret for dbName: {}", e);
+           return null;
+        }
+    } 
 
 
     public String deleteFromVault(String dbName) {
