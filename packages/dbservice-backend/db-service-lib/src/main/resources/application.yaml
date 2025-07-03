@@ -143,4 +143,4 @@ dbService:
     s3secretkey: ${S3_SECRET_KEY:XXXX}
     size: ${SIZE:XXXX}
     port: ${PORT:XXXX}
-    initDbTemplate: ${INITDBTEMPLATE:XXXX}    
+    initDbTemplatePath: ${INITDBTEMPLATEPATH:XXXX}    
