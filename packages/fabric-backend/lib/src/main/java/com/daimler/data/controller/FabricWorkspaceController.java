@@ -695,6 +695,10 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 				existingFabricWorkspace.setHasPii(workspaceUpdateRequestVO.isHasPii());
 			if(workspaceUpdateRequestVO.getInternalOrder()!=null)
 				existingFabricWorkspace.setInternalOrder(workspaceUpdateRequestVO.getInternalOrder());
+			if (workspaceUpdateRequestVO.getAppId() != null)
+				existingFabricWorkspace.setAppId(workspaceUpdateRequestVO.getAppId());			
+			if (workspaceUpdateRequestVO.getLeanIXDetails() != null)
+				existingFabricWorkspace.setLeanIXDetails(workspaceUpdateRequestVO.getLeanIXDetails());
 			
 			if(workspaceUpdateRequestVO.getName()!=null)
 				existingFabricWorkspace.setName(workspaceUpdateRequestVO.getName());
