@@ -228,7 +228,7 @@ alloy:
 
       otelcol.exporter.otlp "tempo" {
         client {
-          endpoint = "http://tempo-distributor.log-collector.svc.cluster.local:4317"
+          endpoint = "http://tempo-distributor.observability.svc.cluster.local:4317"
           tls {
               insecure             = true
               insecure_skip_verify = true
