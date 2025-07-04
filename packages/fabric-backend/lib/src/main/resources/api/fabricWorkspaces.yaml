@@ -685,6 +685,10 @@ definitions:
         type: array
         items:
          $ref: "#/definitions/ProjectReferenceDetailsVO"
+      appId:
+        type: string
+      leanIXDetails:
+        $ref: "#/definitions/LeanIXDetailsVO"
       
   FabricWorkspacesCollectionVO:
     description: "Collection of fabric workspaces."
