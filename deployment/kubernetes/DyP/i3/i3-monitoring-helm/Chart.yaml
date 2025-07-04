@@ -36,11 +36,3 @@ dependencies:
     condition: prom2teams.enabled
     version: 0.2.0
     repository: file://charts/prom2teams
-  - name: tempo-distributed
-    condition: tempo-distributed.enabled
-    version: 1.11.0
-    repository: file://charts/tempo-distributed
-  - name: loki
-    condition: loki.enabled
-    version: 3.2.0
-    repository: file://charts/loki
