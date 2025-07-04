@@ -56,7 +56,7 @@ spec:
           imagePullPolicy: Always
           {{- if .Values.vaultInjector.enable }}           
           command: ["/bin/sh", "-c"]
-          args: ['source /vault/secrets/envvar && java -jar /{{ .Values.vaultInjector.jarName }}']
+          args: ['source /vault/secrets/envvar && java -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -jar /{{ .Values.vaultInjector.jarName }}']
           {{ else }}
           env:
             - name: DNA_URI
@@ -144,7 +144,6 @@ spec:
               cpu: {{ .Values.backendResources.requests.cpu | quote }}
             limits:
               memory: {{ .Values.backendResources.limits.memory | quote }}
-              cpu: {{ .Values.backendResources.limits.cpu | quote }}
           volumeMounts:
             - mountPath: /git
               name: dag-repo

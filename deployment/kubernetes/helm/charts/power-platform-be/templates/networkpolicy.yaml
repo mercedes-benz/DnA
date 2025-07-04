@@ -1,0 +1,12 @@
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "power-platform-be.fullname" . }}
+  namespace: {{ .Values.namespace }}
+spec:
+  ingress:
+    - ports:
+        - port: 9292
+  podSelector:
+    matchLabels:
+      {{- include "power-platform-be.selectorLabels" . | nindent 8 }}
