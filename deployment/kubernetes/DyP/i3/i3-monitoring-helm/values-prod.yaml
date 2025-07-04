@@ -63,10 +63,10 @@ prometheus:
       i3.monitoring.app: prometheus
     resources: 
         limits:
-          memory: 8841Mi
+          memory: 15Gi
         requests:
           cpu: 169m
-          memory: 8841Mi       
+          memory: 15Gi       
     global:
       # Adjust scrape_interval to 1m
       scrape_interval: 1m
@@ -994,7 +994,7 @@ grafana:
       cookie_secure: true
     database:
       type: postgres
-      host: grafana-db-dev.i3-monitoring.svc.cluster.local:64000
+      host: grafana-db-prod.i3-monitoring.svc.cluster.local:64000
       name: grafanadb
       user: grafana
       password: <path:dna_aws_kv/data/prod/kubernetesSecret/grafana-db#dbadm.password>   
