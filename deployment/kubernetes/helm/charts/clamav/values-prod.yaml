@@ -42,10 +42,10 @@ app:
       naas_broker: null
     resources:
       requests:
-        memory: 1024Mi
+        memory: 3022Mi
         cpu: 10m
       limits:
-        memory: 1024Mi
+        memory: 3022Mi
   vault:
     secret:
       rootToken: null
@@ -62,7 +62,7 @@ app:
       port: api
 image:
   replicaCount: 4
-  repo: registry-emea.app.corpintra.net/dnaplatform/clamav:2025-05-29
+  repo: registry-emea.app.corpintra.net/dnaplatform/clamav:2025-07-04
   pullPolicy: Always
 ingress:
   enabled: false

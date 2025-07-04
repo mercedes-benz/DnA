@@ -393,6 +393,63 @@ paths:
           500:
             description: "Internal error"
 
+  /fabric-worspace/{roleId}/details:
+    get:
+        tags:
+          - "fabric-workspaces"
+        summary: "get the role details."
+        description: "get the role details."
+        operationId: "getRoleDetails"
+        parameters:
+          - name: "roleId"
+            in: "path"
+            required: true
+            type: "string"  
+        responses:
+          201:
+            description: "Returns message of succes or failure "
+            schema:
+              $ref: "#/definitions/AuthoriserRoleDetailsResponseVO"
+          400:
+            description: "Bad Request"
+          401:
+            description: "Request does not have sufficient credentials."
+          403:
+            description: "Request is not authorized."
+          405:
+            description: "Method not allowed"
+          500:
+            description: "Internal error"
+
+  /fabric-workspaces/{roleName}/entraGroupMembers:
+    get:
+        tags:
+          - "fabric-workspaces"
+        summary: "get the EntraID group member details."
+        description: "get the group member details."
+        operationId: "getGroupMemberDetails"
+        parameters:
+          - name: "roleName"
+            in: "path"
+            required: true
+            type: "string"  
+        responses:
+          200:
+            description: "Returns message of succes or failure "
+            schema:
+              $ref: "#/definitions/EntraGroupResponseVO"  
+          400:
+            description: "Bad Request"
+          401:
+            description: "Request does not have sufficient credentials."
+          403:
+            description: "Request is not authorized."
+          405:
+            description: "Method not allowed"
+          500:
+            description: "Internal error"
+
+
 
 definitions:
   CapacityVO:
@@ -628,6 +685,10 @@ definitions:
         type: array
         items:
          $ref: "#/definitions/ProjectReferenceDetailsVO"
+      appId:
+        type: string
+      leanIXDetails:
+        $ref: "#/definitions/LeanIXDetailsVO"
       
   FabricWorkspacesCollectionVO:
     description: "Collection of fabric workspaces."
@@ -842,18 +903,30 @@ definitions:
           roleName:
             type: string
             pattern: "^[A-Za-z0-9]+[A-Za-z0-9._-]{1,60}$"
+          isDynamic:
+            type: boolean
+            default: false
 
   DnaRoleCollectionVO:
+      type: object
+      properties:
+        roles:
+          type: array
+          items:
+            $ref: "#/definitions/DnaRolesVO" 
+  
+  DnaRolesVO:
     type: object
     properties:
-      data:
-        type: object
-        properties:
-          roles:
-            type: array
-            items: 
-              type: string
-              
+      isDynamic:
+        type: boolean
+      roleID:
+        type: string
+      ownerDetails:
+        type: array
+        items: 
+          $ref: "#/definitions/CreatedByVO"
+
   LeanIXDetailsVO:
     type: object
     properties :
@@ -879,5 +952,59 @@ definitions:
       providerOrgDeptid:
         type: string
 
+  AuthoriserRoleDetailsResponseVO:
+    type: object
+    properties:
+      data:
+        type: object
+        items:
+           $ref: "#/definitions/AuthoriserRoleDetailsVO"
 
-    
+  AuthoriserRoleDetailsVO:
+    type: object
+    properties:
+      description:
+        type: string
+      isDynamic:
+        type: boolean
+      isSelfRequestable:
+        type: boolean
+      roleOwners:
+        type: array
+        items:
+          $ref: "#/definitions/MembersVO"
+      roleMembers:
+        type: array
+        items:
+          $ref: "#/definitions/MembersVO"
+ 
+  MembersVO:
+    type: object
+    properties:
+      departmentNumber:
+        type: string
+      id:
+        type: string
+      completeName:
+        type: string
+
+  EntraGroupResponseVO:
+    type: object
+    properties:
+      members:
+        type: array
+        items:
+          $ref: "#/definitions/EntraGroupMembersVO"
+
+  
+  EntraGroupMembersVO:
+    type: object
+    properties:
+      id:
+        type: string
+      displayName:
+        type: string
+      mail:
+        type: string
+      shortId:
+        type: string

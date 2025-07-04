@@ -42,10 +42,10 @@ app:
       naas_broker: null
     resources:
       requests:
-        memory: 701Mi
+        memory: 3022Mi
         cpu: 10m
       limits:
-        memory: 701Mi
+        memory: 3022Mi
   vault:
     secret:
       rootToken: null

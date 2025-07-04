@@ -53,3 +53,11 @@ db:
    env: prod
  - name: sct-be
    env: prod
+ - name: costagent
+   env: prod
+ - name: code-server
+   env: prod  
+ - name: ai-agentic
+   env: prod 
+ - name: hot-portfolio
+   env: prod 

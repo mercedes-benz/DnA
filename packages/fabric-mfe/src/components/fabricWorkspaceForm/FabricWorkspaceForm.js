@@ -60,7 +60,9 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
   const [procedureId, setProcedureID] = useState(edit && workspace?.procedureId ? workspace?.procedureId : '');
   const [termsOfUse, setTermsOfUse] = useState(edit && workspace?.termsOfUse ? [workspace?.termsOfUse] : false);
   const [leanIXList, setLeanIXList] = useState([]);
-  const [selectedLeanIX, setSelectedLeanIX] = useState([]);
+  const [selectedLeanIX, setSelectedLeanIX] = useState(
+    edit && workspace?.appId ? { id: workspace?.appId, ...workspace?.leanIXDetails } : []
+  );
 
   useEffect(() => {
     ProgressIndicator.show();
@@ -85,6 +87,25 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
       });
     //eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (selectedLeanIX.id) {
+      setValue('leanIX', {
+        appId: selectedLeanIX.id,
+        leanIXDetails: {
+          objectState: selectedLeanIX.ObjectState,
+          appReferenceStr: selectedLeanIX.appReferenceStr,
+          name: selectedLeanIX.name,
+          providerOrgDeptid: selectedLeanIX.providerOrgDeptid,
+          providerOrgId: selectedLeanIX.providerOrgId,
+          providerOrgRefstr: selectedLeanIX.providerOrgRefstr,
+          providerOrgShortname: selectedLeanIX.providerOrgShortname,
+          shortName: selectedLeanIX.shortName,
+        },
+      });
+    }
+  }, [selectedLeanIX, setValue]);
+
 
   useEffect(() => {
     ProgressIndicator.show();
@@ -269,6 +290,12 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
       );
     });
   };
+  
+const divisionId = division ? division.split('@-@')[0] : null;
+const mandate = divisionId && Envs.MANDATE_LEANIX_FOR_DIVISIONS 
+  ? Envs.MANDATE_LEANIX_FOR_DIVISIONS.split(',').includes(divisionId) 
+  : false;
+const isLeanIXRequired = typeOfProject === 'Production' && mandate;
 
   return (
     <>
@@ -391,14 +418,17 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
               (
                 <div className={Styles.col2}>
                   <div className={classNames('input-field-group')}>
-                    <Controller
-                      control={control}
-                      name="leanIX"
-                      render={({ field }) => (
+                  <Controller
+                    control={control}
+                    name="leanIX"
+                    rules={{
+                      required: isLeanIXRequired ? '*Missing entry' : false,
+                    }}
+                    render={({ field }) => (
                         <TypeAheadBox
                           label={'LeanIX App-ID'}
                           placeholder={'Select App-ID (Enter minimum 4 characters)'}
-                          defaultValue={selectedLeanIX.appId}
+                          defaultValue={selectedLeanIX.id}
                           list={leanIXList}
                           setSelected={(selectedTags) => {
                             const leanIXData = {
@@ -418,7 +448,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
                             field.onChange(leanIXData);
                           }}
                           onInputChange={handleLeanIXSearch}
-                          required={false}
+                          required={isLeanIXRequired}
                           showError={errors.leanIX?.message}
                           render={(item) => (
                             <div className={Styles.optionContainer}>
@@ -433,7 +463,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
                           )}
                         />
                       )}
-                    />
+                  />
                   </div>
                 </div>
               )
