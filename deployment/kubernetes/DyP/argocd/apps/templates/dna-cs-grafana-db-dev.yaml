@@ -1,3 +1,4 @@
+{{- if eq .Values.env "dev" }} 
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
@@ -34,4 +35,6 @@ spec:
       - ApplyOutOfSyncOnly=true
       - CreateNamespace=true
       - RespectIgnoreDifferences=true
+{{- end }}
+
 {{- end }}
