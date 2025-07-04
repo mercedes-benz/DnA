@@ -652,7 +652,6 @@ const ContextMenu = (props) => {
               projectName={props?.codeSpace?.projectDetails?.projectName}
               deploymentDetails={isStaging ? props?.codeSpace?.projectDetails?.intDeploymentDetails : props?.codeSpace?.projectDetails?.prodDeploymentDetails}
               securityConfig={props?.codeSpace?.projectDetails?.securityConfig}
-              publishedSecuirtyConfig={props?.codeSpace?.projectDetails?.publishedSecuirtyConfig}
               navigateSecurityConfig={navigateSecurityConfig}
               isStaging={isStaging}
             />
