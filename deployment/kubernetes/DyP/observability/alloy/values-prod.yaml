@@ -426,7 +426,7 @@ controller:
   type: 'statefulset'
 
   # -- Number of pods to deploy. Ignored when controller.type is 'daemonset'.
-  replicas: 2
+  replicas: 3
 
   # -- Annotations to add to controller.
   extraAnnotations: {}

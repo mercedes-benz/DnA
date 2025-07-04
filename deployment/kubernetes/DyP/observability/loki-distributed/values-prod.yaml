@@ -8,6 +8,7 @@ sidecar:
   image:
     repository: registry-emea.app.corpintra.net/dockerhub/kiwigrid/k8s-sidecar   
 ingester:
+  replicas: 3
   persistence:
     enabled: true
     # -- Use emptyDir with ramdisk for storage. **Please note that all data in ingester will be lost on pod restart**
@@ -53,7 +54,7 @@ loki:
       allow_structured_metadata: true
       enforce_metric_name: false
       reject_old_samples: true
-      reject_old_samples_max_age: 168h
+      reject_old_samples_max_age: 360h
       ingestion_burst_size_mb: 175
       ingestion_rate_mb: 170
       split_queries_by_interval: 15m
@@ -63,7 +64,7 @@ loki:
       per_stream_rate_limit: 40MB
       per_stream_rate_limit_burst: 70MB     
       volume_enabled: true 
-      retention_period: 168h
+      retention_period: 360h
       query_timeout: 600s
 
 
