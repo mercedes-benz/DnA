@@ -42,13 +42,13 @@ prometheus:
       fsGroup: 65534
   # DHC CaaS already provides nodeExporter
   prometheus-node-exporter:
-    enabled: false
+    enabled: false     
   server:
     image:
       repository: registry-emea.app.corpintra.net/dockerhub/prom/prometheus
     extraArgs:
       # Limit persistent data size (experimental)
-      storage.tsdb.retention.size: "200GB"
+      storage.tsdb.retention.size: "400GB"
     # Adjust securityContext for non-root
     securityContext:
       runAsUser: 65534
@@ -56,23 +56,32 @@ prometheus:
       fsGroup: 65534
     persistentVolume:
      storageClass: dhc-gp3
-     size: 200Gi
+     size: 400Gi
     #podLabels for adding label for network policy
     retention: "180d"
     podLabels:
       i3.monitoring.app: prometheus
     resources: 
         limits:
-          memory: 22Gi
+          memory: 8841Mi
         requests:
-          cpu: 554m
-          memory: 22Gi       
+          cpu: 169m
+          memory: 8841Mi       
     global:
       # Adjust scrape_interval to 1m
       scrape_interval: 1m
       # Adjust scrape_timeout to 20s for scraping kube-system resources which may need > 10s to respond
       scrape_timeout: 20s
 
+    replicaCount: 3
+    podDisruptionBudget:
+      enabled: true
+      maxUnavailable: 1
+    statefulSet:
+      ## If true, use a statefulset instead of a deployment for pod management.
+      ## This allows to scale replicas to more than 1 pod
+      ##
+      enabled: true
 
     ### BEGIN autoload all alert configmaps
     extraVolumeMounts:
@@ -118,8 +127,6 @@ prometheus:
           mountPath: /alerts
   
   serverFiles:
-    # The following is copied from the upstream prometheus Helm chart.
-    # Additions are marked with BEGIN/END CUSTOM
     prometheus.yml:
       rule_files:
         - /etc/config/alerting_rules/*.yaml
@@ -743,7 +750,7 @@ prometheus:
             - source_labels: [ __meta_kubernetes_pod_annotation_prometheus_io_scheme ]
               action: replace
               target_label: __scheme__
-              regex: (https?)
+              regex: (https?)       
 
           metric_relabel_configs:
             # ## cadvisor daemonset metrics relabeling to match kubelet cadvisor metrics
@@ -919,9 +926,13 @@ grafana:
   global:
     # -- Overrides the Docker registry globally for all images
     imageRegistry: registry-emea.app.corpintra.net/dockerhub
+  image:
     tag: "12.0.1"
-  deploymentStrategy:
-    type: Recreate
+  useStatefulSet: false
+  replicas: 2
+  podDisruptionBudget: 
+    apiVersion: policy/v1
+    minAvailable: 1
   resources: 
     limits:
       memory: 415Mi
@@ -978,6 +989,15 @@ grafana:
       use_pkce: true
       use_refresh_token: true     
       skip_org_role_sync: true
+    security:
+      cookie_samesite: none
+      cookie_secure: true
+    database:
+      type: postgres
+      host: grafana-db-dev.i3-monitoring.svc.cluster.local:64000
+      name: grafanadb
+      user: grafana
+      password: <path:dna_aws_kv/data/prod/kubernetesSecret/grafana-db#dbadm.password>   
 
   ## Configure notifiers
   ## ref: http://docs.grafana.org/administration/provisioning/#alert-notification-channels
@@ -1111,8 +1131,8 @@ grafana:
   #   ftp_proxy: http://security-proxy.emea.svc.corpintra.net:3128/
   #   FTP_PROXY: http://security-proxy.emea.svc.corpintra.net:3128/
   persistence:
-    type: pvc
-    enabled: true
+    type: "sts"
+    enabled: false
     storageClassName: dhc-gp3
     accessModes:
       - ReadWriteOnce
