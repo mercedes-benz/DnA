@@ -9,6 +9,7 @@ sidecar:
     repository: registry-emea.app.corpintra.net/dockerhub/kiwigrid/k8s-sidecar   
 ingester:
   replicas: 3
+  maxUnavailable: 1
   persistence:
     enabled: true
     # -- Use emptyDir with ramdisk for storage. **Please note that all data in ingester will be lost on pod restart**
