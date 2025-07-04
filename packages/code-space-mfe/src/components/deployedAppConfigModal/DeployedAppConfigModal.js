@@ -3,6 +3,7 @@ import classNames from 'classnames';
 
 import TextBox from 'dna-container/TextBox';
 import Tags from 'dna-container/Tags';
+import Modal from 'dna-container/Modal';
 
 import Tooltip from '../../common/modules/uilab/js/src/tooltip';
 import { CodeSpaceApiClient } from '../../apis/codespace.api';
@@ -43,7 +44,9 @@ const DeployedAppConfigModal = (props) => {
   const [redirectUri, setRedirectUri] = useState('');
   const [scope, setScope] = useState(['openid', 'offline_access']);
   const [ssoType, setSsoType] = useState(props?.deploymentDetails?.ssoType === 'SSO_PROD' ? 'SSO_PROD' : 'SSO_INT');
-  const [pluginEnabled, setPluginEnabled] = useState(true);
+  const [pluginEnabled, setPluginEnabled] = useState(false);
+  const [showEnablePluginWarning, setShowEnablePluginWarning] = useState(false);
+  const [securedWithIAMWarning, setSecuredWithIAMWarning] = useState(false);
 
   const ignorePaths = [
     { id: '1', name: '/favicon.ico' },
@@ -104,7 +107,6 @@ const DeployedAppConfigModal = (props) => {
     props?.deploymentDetails?.secureWithIAMRequired &&
       CodeSpaceApiClient.getPluginStatus(props?.workspaceId, props?.isStaging ? 'int' : 'prod', 'OIDC_PLUGIN')
         .then((res) => {
-          console.log('here');
           setPluginEnabled(res?.data?.enabled || false);
         })
         .catch(() => {
@@ -169,7 +171,11 @@ const DeployedAppConfigModal = (props) => {
   }, [resetRequired]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const onChangeSecureWithIAM = (e) => {
-    setSecureWithIAMSelected(e.target.checked);
+    if (!e.target.checked && props?.deploymentDetails?.secureWithIAMRequired) {
+      setSecuredWithIAMWarning(true);
+    } else {
+      setSecureWithIAMSelected(e.target.checked);
+    }
     if (e.target.checked) {
       setOneApiSelected(false);
       setSecureWithDnaSelected(false);
@@ -177,7 +183,11 @@ const DeployedAppConfigModal = (props) => {
   };
 
   const onChangeSecureWithDna = (e) => {
-    setSecureWithDnaSelected(e.target.checked);
+    if (!e.target.checked && props?.deploymentDetails?.secureWithDnaRequired) {
+      setSecuredWithIAMWarning(true);
+    } else {
+      setSecureWithDnaSelected(e.target.checked);
+    }
     if (e.target.checked) {
       setOneApiSelected(false);
       setSecureWithIAMSelected(false);
@@ -266,7 +276,17 @@ const DeployedAppConfigModal = (props) => {
     }
   };
 
-  const onPluginStatusChange = () => {
+  const togglePlugin = () => {
+    const publishedSecurityConfig = props?.isStaging ? props?.securityConfig?.staging?.published : props?.securityConfig?.production?.published;
+    if(!pluginEnabled && publishedSecurityConfig?.appID?.length){
+      setShowEnablePluginWarning(true);
+    } else{
+      onPluginStatusChange();
+    }
+  };
+
+  const onPluginStatusChange = (enableAuthorizer=false) => {
+    setShowEnablePluginWarning(false);
     ProgressIndicator.show();
     CodeSpaceApiClient.updatePluginStatus(
       props?.workspaceId,
@@ -278,6 +298,36 @@ const DeployedAppConfigModal = (props) => {
         if (res?.data?.success === 'SUCCESS') {
           Notification.show(`Oidc plugin updated successfully`);
           setPluginEnabled(!pluginEnabled);
+          if(enableAuthorizer){
+            ProgressIndicator.show();
+            CodeSpaceApiClient.updatePluginStatus(
+              props?.workspaceId,
+              props?.isStaging ? 'int' : 'prod',
+              'API_AUTHORISER_PLUGIN',
+              true,
+            )
+              .then((res) => {
+                if (res?.data?.success === 'SUCCESS') {
+                  Notification.show(` Api authoriser updated successfully`);
+                } else {
+                  // Notification.show(
+                  //   'Error in updating deployed app config. Please try again later.\n' + res?.data?.errors[0]?.message,
+                  //   'alert',
+                  // );
+                  Notification.show('Error in updating api authoriser plugin', 'alert');
+                }
+                ProgressIndicator.hide();
+              })
+              .catch(() => {
+                ProgressIndicator.hide();
+                // Notification.show(
+                //   'Error in updating deployed app config. Please try again later.\n' +
+                //     err?.response?.data?.errors[0]?.message,
+                //   'alert',
+                // );
+                Notification.show('Error in updating api authoriser Plugin. Please try again later.', 'alert');
+              });
+          }
         } else {
           // Notification.show(
           //   'Error in updating deployed app config. Please try again later.\n' + res?.data?.errors[0]?.message,
@@ -350,14 +400,14 @@ const DeployedAppConfigModal = (props) => {
               <div className={Styles.infoIcon}>
                 <label className={classNames('switch', pluginEnabled ? 'on' : '')}>
                   <span className="label" style={{ marginRight: '5px' }}>
-                    OIDC plugin enabled
+                    SSO Authentication enabled
                   </span>
                   <span className="wrapper">
                     <input
                       value={pluginEnabled}
                       type="checkbox"
                       className="ff-only"
-                      onChange={onPluginStatusChange}
+                      onChange={() => togglePlugin()}
                       checked={pluginEnabled}
                       maxLength={63}
                     />
@@ -570,7 +620,11 @@ const DeployedAppConfigModal = (props) => {
               </div>
               <div className={classNames(Styles.wrapper)}>
                 <span className="label">
-                  <p>{isUiRecipe ? 'SSO Authentication with Authorization Code Flow' : 'Client Credentials Grant / Authorization Code Flow'}</p>
+                  <p>
+                    {isUiRecipe
+                      ? 'SSO Authentication with Authorization Code Flow'
+                      : 'Client Credentials Grant / Authorization Code Flow'}
+                  </p>
                 </span>
                 {secureWithIAMSelected ? (
                   <div className={classNames(Styles.align, Styles.flexLayout)}>
@@ -728,6 +782,72 @@ const DeployedAppConfigModal = (props) => {
           </button>
         </div>
       </div>
+      {securedWithIAMWarning && (
+        <Modal
+          title={''}
+          showAcceptButton={true}
+          acceptButtonTitle={'Yes'}
+          cancelButtonTitle={'Cancel'}
+          onAccept={() => {
+            setSecuredWithIAMWarning(false);
+            setSecureWithIAMSelected(false);
+          }}
+          showCancelButton={true}
+          modalWidth={'40%'}
+          content={
+            <div>
+              <h3>
+                Please note that once you uncheck this your application will not be secured with SSO Authentication
+                anymore. Do you wish to continue?
+              </h3>
+              <p>
+                If your application was secured by us please contact us on our{' '}
+                <a href={Envs.CODESPACE_TEAMS_LINK} target="_blank" rel="noopener noreferrer">
+                  Teams channel
+                </a>{' '}
+                or{' '}
+                <a href={Envs.CODESPACE_MATTERMOST_LINK} target="_blank" rel="noopener noreferrer">
+                  Mattermost channel
+                </a>{' '}
+                before performing this action.
+              </p>
+            </div>
+          }
+          buttonAlignment="center"
+          modalStyle={{
+            maxWidth: '40%',
+          }}
+          show={securedWithIAMWarning}
+          onCancel={() => setSecuredWithIAMWarning(false)}
+        />
+      )}
+      {showEnablePluginWarning && (
+        <Modal
+          title={''}
+          showAcceptButton={true}
+          acceptButtonTitle={'Yes'}
+          cancelButtonTitle={'No'}
+          onAccept={() => onPluginStatusChange(true)}
+          showCancelButton={true}
+          modalWidth={'40%'}
+          content={
+            <div>
+              <h3>
+                Do you wish to enable both SSO Authentication and Authorization?
+              </h3>
+              <p>
+                Click No to only enable Authentication. You can enable the Authorization plugin using the Authorization config page as well.
+              </p>
+            </div>
+          }
+          buttonAlignment="center"
+          modalStyle={{
+            maxWidth: '40%',
+          }}
+          show={showEnablePluginWarning}
+          onCancel={() => onPluginStatusChange()}
+        />
+      )}
     </React.Fragment>
   );
 };
