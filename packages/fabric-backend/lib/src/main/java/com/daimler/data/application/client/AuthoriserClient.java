@@ -661,6 +661,7 @@ public class AuthoriserClient {
 					requestEntity, AuthoriserRoleDetailsVO.class);
 					if(roleDetailsResponse.getBody() != null){
 						response = roleDetailsResponse.getBody();
+						response.setRoleName(roleId);
 					}
 				
 		}catch(Exception e) {
