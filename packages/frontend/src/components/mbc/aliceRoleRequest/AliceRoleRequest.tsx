@@ -308,7 +308,7 @@ const AliceRoleRequest = () => {
         </div>
       </div>
       <Modal
-        title={selectedRoleDetails.name}
+        title="Role Details"
         content={
           <div>
             <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
