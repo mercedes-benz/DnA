@@ -132,7 +132,7 @@ const AliceRoleRequest = () => {
       if (roleRes?.data) {
         setSelectedRoleDetails({
           id: roleRes.data.id,
-          name: roleRes.data.name,
+          name: roleRes.data.roleName,
           description: roleRes.data.description,
           isDynamic: roleRes.data.isDynamic,
           isSelfRequestable: roleRes.data.isSelfRequestable,
@@ -308,7 +308,7 @@ const AliceRoleRequest = () => {
         </div>
       </div>
       <Modal
-        title="Role Details"
+        title={selectedRoleDetails.name}
         content={
           <div>
             <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
