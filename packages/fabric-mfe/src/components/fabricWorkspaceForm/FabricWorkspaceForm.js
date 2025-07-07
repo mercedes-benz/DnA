@@ -40,7 +40,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
   const [dataClassificationDropdown, setDataClassificationDropdown] = useState([]);
   const [solutions, setSolutions] = useState([]);
   const [reports, setReports] = useState([]);
-  const [fabricTags] = useState([]);
+  const [fabricTags, setFabricTags] = useState([]);
 
   const [costCenter, setCostCenter] = useState(edit && workspace?.costCenter !== null ? workspace?.costCenter : '');
   const [internalOrder, setInternalOrder] = useState(edit && workspace?.internalOrder !== null ? workspace?.internalOrder : '');
@@ -60,7 +60,9 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
   const [procedureId, setProcedureID] = useState(edit && workspace?.procedureId ? workspace?.procedureId : '');
   const [termsOfUse, setTermsOfUse] = useState(edit && workspace?.termsOfUse ? [workspace?.termsOfUse] : false);
   const [leanIXList, setLeanIXList] = useState([]);
-  const [selectedLeanIX, setSelectedLeanIX] = useState([]);
+  const [selectedLeanIX, setSelectedLeanIX] = useState(
+    edit && workspace?.appId ? { id: workspace?.appId, ...workspace?.leanIXDetails } : []
+  );
 
   useEffect(() => {
     ProgressIndicator.show();
@@ -85,6 +87,25 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
       });
     //eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (selectedLeanIX.id) {
+      setValue('leanIX', {
+        appId: selectedLeanIX.id,
+        leanIXDetails: {
+          objectState: selectedLeanIX.ObjectState,
+          appReferenceStr: selectedLeanIX.appReferenceStr,
+          name: selectedLeanIX.name,
+          providerOrgDeptid: selectedLeanIX.providerOrgDeptid,
+          providerOrgId: selectedLeanIX.providerOrgId,
+          providerOrgRefstr: selectedLeanIX.providerOrgRefstr,
+          providerOrgShortname: selectedLeanIX.providerOrgShortname,
+          shortName: selectedLeanIX.shortName,
+        },
+      });
+    }
+  }, [selectedLeanIX, setValue]);
+
 
   useEffect(() => {
     ProgressIndicator.show();
@@ -116,6 +137,21 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
       });
     //eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    ProgressIndicator.show();
+    fabricApi.getAllTags()
+      .then((res) => {
+        ProgressIndicator.hide();
+        const tagList = res?.data?.map((tag) => {return { id: tag.id, name: tag.name}});
+        setFabricTags([...tagList]);
+      })
+      .catch((err) => {
+        ProgressIndicator.hide();
+        Notification.show(err?.message || 'Failed to fetch tags', 'alert');
+      });
+  }, []);
+
 
   useEffect(() => {
     const divId = division.includes('@-@') ? division.split('@-@')[0] : division;
@@ -397,17 +433,17 @@ const isLeanIXRequired = typeOfProject === 'Production' && mandate;
               (
                 <div className={Styles.col2}>
                   <div className={classNames('input-field-group')}>
-                    <Controller
-                      control={control}
-                      name="leanIX"
-                      rules={{
-                        required: isLeanIXRequired ? '*Missing entry' : false,
-                      }}
-                      render={({ field }) => (
+                  <Controller
+                    control={control}
+                    name="leanIX"
+                    rules={{
+                      required: isLeanIXRequired ? '*Missing entry' : false,
+                    }}
+                    render={({ field }) => (
                         <TypeAheadBox
                           label={'LeanIX App-ID'}
                           placeholder={'Select App-ID (Enter minimum 4 characters)'}
-                          defaultValue={selectedLeanIX.appId}
+                          defaultValue={selectedLeanIX.id}
                           list={leanIXList}
                           setSelected={(selectedTags) => {
                             const leanIXData = {
@@ -442,7 +478,7 @@ const isLeanIXRequired = typeOfProject === 'Production' && mandate;
                           )}
                         />
                       )}
-                    />
+                  />
                   </div>
                 </div>
               )
