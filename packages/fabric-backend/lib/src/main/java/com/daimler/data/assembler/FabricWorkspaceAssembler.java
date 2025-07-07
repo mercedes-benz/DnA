@@ -8,7 +8,9 @@ import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 
+import com.daimler.data.db.entities.AuthoriserRolesNsql;
 import com.daimler.data.db.entities.FabricWorkspaceNsql;
+import com.daimler.data.db.json.AuthoriserRoleDeatils;
 import com.daimler.data.db.json.Capacity;
 import com.daimler.data.db.json.EntitlementDetails;
 import com.daimler.data.db.json.FabricWorkspace;
@@ -23,6 +25,7 @@ import com.daimler.data.dto.fabric.LakehouseDto;
 import com.daimler.data.dto.fabric.LakehouseS3ShortcutDto;
 import com.daimler.data.dto.fabricWorkspace.CapacityVO;
 import com.daimler.data.dto.fabricWorkspace.CreatedByVO;
+import com.daimler.data.dto.fabricWorkspace.DnaRolesVO;
 import com.daimler.data.dto.fabricWorkspace.EntitlementDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.FabricLakehouseVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceStatusVO;
@@ -353,4 +356,34 @@ public class FabricWorkspaceAssembler implements GenericAssembler<FabricWorkspac
 		return entity;
 	}
 
+	public DnaRolesVO toDnaRolesVO( AuthoriserRolesNsql entity){
+  		DnaRolesVO roleDetail = new DnaRolesVO();
+		AuthoriserRoleDeatils data = entity.getData();
+		if(entity != null && data!=null){
+			roleDetail.setRoleID(entity.getId());
+			roleDetail.setIsDynamic(data.getIsDynamic());
+			if(data.getOwnerDetails() != null) {
+				roleDetail.setOwnerDetails(data.getOwnerDetails().stream()
+					.map(this::toCreatedByVO)
+					.collect(Collectors.toList()));
+			}
+		}
+			return roleDetail;
+	}
+
+	public UserDetails toUserDetails(CreatedByVO createdBy) {
+		UserDetails userDetails = new UserDetails();
+		if (createdBy != null) {
+			BeanUtils.copyProperties(createdBy, userDetails);
+		}
+		return userDetails;
+	}
+
+	public CreatedByVO toCreatedByVO(UserDetails userDetails) {
+		CreatedByVO createdByVO = new CreatedByVO();
+		if (userDetails != null) {
+			BeanUtils.copyProperties(userDetails, createdByVO);
+		}
+		return createdByVO;
+	}
 }
