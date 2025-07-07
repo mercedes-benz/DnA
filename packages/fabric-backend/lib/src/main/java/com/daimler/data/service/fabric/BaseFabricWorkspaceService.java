@@ -1935,7 +1935,8 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 
 	@Override
 	public EntraGroupResponseVO getEntraGroupMembers(String roleName) {
-        MicrosoftGroupDetailDto groupDetail = fabricWorkspaceClient.searchGroup(roleName);
+		String fullRoleName = "AL_DNA." + roleName;
+        MicrosoftGroupDetailDto groupDetail = fabricWorkspaceClient.searchGroup(fullRoleName);
         if (groupDetail == null || groupDetail.getId() == null) {
             return null; 
         }
