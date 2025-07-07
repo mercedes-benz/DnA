@@ -25,41 +25,21 @@
  * LICENSE END 
  */
 
-package com.daimler.data.service.common;
+ package com.daimler.data.db.json;
 
-import java.util.List;
+ import lombok.AllArgsConstructor;
+ import lombok.Data;
+ import lombok.NoArgsConstructor;
 
-import com.daimler.data.db.repo.common.CommonDataRepositoryImpl;
-import com.daimler.data.dto.fabricWorkspace.CreatedByVO;
-import com.daimler.data.dto.userinfo.*;
+ import java.io.Serializable;
 
-public interface CommonService<V, T, ID> {
+ @Data
+ @NoArgsConstructor
+ @AllArgsConstructor
+ public class Tag implements Serializable {
 
-	List<V> getAll();
+     private static final long serialVersionUID = 8540510586879228017L;
 
-	List<V> getAll(int limit, int offset);
+     private String name;
 
-	V getById(ID id);
-
-	V getByUniqueliteral(String uniqueLiteral, String value);
-
-	List<V> getAllSortedByUniqueLiteralAsc(String uniqueLiteral);
-
-	List<V> getAllSortedByUniqueLiteralDesc(String uniqueLiteral);
-
-	List<V> getAllSortedByUniqueLiteral(int limit, int offset, String uniqueLiteral,
-			CommonDataRepositoryImpl.SORT_TYPE sortOrder);
-
-	V create(V vo);
-
-	void insertAll(List<V> voList);
-
-	void deleteAll();
-
-	boolean deleteById(ID id);
-
-	Long getCount(int limit, int offset);
-
-	public String currentUserName(CreatedByVO currentUser);
-
-}
+ }

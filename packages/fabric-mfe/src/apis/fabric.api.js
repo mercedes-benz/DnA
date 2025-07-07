@@ -65,6 +65,12 @@ const getAllReports = () => {
   });
 };
 
+const getAllTags = () => {
+  return server.get(`/tags`, {
+    data: {},
+  });
+};
+
 const createLakehouse = (id, data) => {
   return server.post(`/fabric-workspaces/${id}/lakehouses`, {
     data,
@@ -135,6 +141,7 @@ export const fabricApi = {
   getAllShortcuts,
   requestRoles,
   getAllReports,
+  getAllTags,
   getAllSolutions,
   getAllBuckets,
   getConnectionInfo,
