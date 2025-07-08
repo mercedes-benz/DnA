@@ -297,24 +297,31 @@ services:
         condition: on-failure
         max_attempts: 3
 
+  
   minio:
     image: minio/minio:latest
     command: server /export --console-address ":9001"
     ports:
-     - 9000:9000
-     - 9001:9001
-    deploy:
-      restart_policy:
-        condition: on-failure
+      - 9000:9000
+      - 9001:9001
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
   createbuckets:
     image: minio/mc
     depends_on:
-      - minio
+      minio:
+        condition: service_healthy
     entrypoint: >
       /bin/sh -c "
-      /usr/bin/mc config host add myminio http://minio:9000 minioadmin minioadmin;
-      /usr/bin/mc rm -r --force myminio/dna;
-      /usr/bin/mc mb myminio/dna;
+      until /usr/bin/mc alias set myminio http://minio:9000 minioadmin minioadmin; do
+        echo 'Waiting for MinIO to be ready...';
+        sleep 3;
+      done;
+      /usr/bin/mc rm -r --force myminio/dna 2>/dev/null || true;
+      /usr/bin/mc mb myminio/dna || true;
       exit 0;
-      "
+      "    
