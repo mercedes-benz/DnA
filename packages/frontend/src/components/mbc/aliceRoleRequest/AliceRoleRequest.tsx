@@ -241,7 +241,7 @@ const AliceRoleRequest = () => {
                   />
                 </div>
               </div>
-              <label className="checkbox">
+              <label className="Create Role">
                   <button className="btn btn-tertiary" type="button" onClick={createRole}>
                     Create Role
                   </button>
