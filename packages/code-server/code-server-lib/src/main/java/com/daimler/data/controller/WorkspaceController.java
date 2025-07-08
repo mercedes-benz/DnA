@@ -1166,7 +1166,7 @@ import org.springframework.beans.factory.annotation.Value;
 						status = prodDeployStatus;
 					}
 			
-				   if (intDeployStatus != null && (intDeployStatus.equalsIgnoreCase("DEPLOY_REQUESTED") || intDeployStatus.equalsIgnoreCase("APPROVAL_PENDING"))) {
+				   if (intDeployStatus != null && (intDeployStatus.equalsIgnoreCase("DEPLOY_REQUESTED"))) {
 					   MessageDescription invalidTypeMsg = new MessageDescription();
 					   invalidTypeMsg.setMessage(
 							   "cannot deploy workspace since it is already in "+intDeployStatus+" state");
@@ -1186,7 +1186,7 @@ import org.springframework.beans.factory.annotation.Value;
 					return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
 				}
 				
-				   if (prodDeployStatus != null && (prodDeployStatus.equalsIgnoreCase("DEPLOY_REQUESTED") || prodDeployStatus.equalsIgnoreCase("APPROVAL_PENDING"))) {
+				   if (prodDeployStatus != null && (prodDeployStatus.equalsIgnoreCase("DEPLOY_REQUESTED") || (prodDeployStatus.equalsIgnoreCase("APPROVAL_PENDING") && environment.equalsIgnoreCase("int")) )) {
 					   MessageDescription invalidTypeMsg = new MessageDescription();
 					   invalidTypeMsg.setMessage(
 							   "cannot deploy workspace since it is already in "+prodDeployStatus+" state");
