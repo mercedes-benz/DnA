@@ -966,6 +966,33 @@ public class FabricWorkspaceClient {
 		}
 		return errorResponse;
 	}
+
+	public HttpStatus createFolder(String workspaceId, String folderName) {
+		try {
+			String token = getToken();
+			if(!Objects.nonNull(token)) {
+				log.error("Failed to fetch token to invoke fabric Apis");
+				return  HttpStatus.INTERNAL_SERVER_ERROR;
+			}
+
+			Map<String, String> requestBody = new HashMap<>();
+        	requestBody.put("displayName", folderName);
+
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Authorization", "Bearer "+token);
+			headers.setContentType(MediaType.APPLICATION_JSON);
+
+			HttpEntity requestEntity = new HttpEntity<>(requestBody,headers);
+			String workspaceUrl = workspacesBaseUrl + "/" + workspaceId +"/folders";
+			ResponseEntity<String> response = proxyRestTemplate.exchange(workspaceUrl , HttpMethod.POST,
+					requestEntity, String.class);
+			return response.getStatusCode();
+		}catch(Exception e) {
+			log.error("Failed to create folder  for diaplayName {} with {} exception ", folderName, e.getMessage());	
+		}
+		return  HttpStatus.INTERNAL_SERVER_ERROR;
+	}
 	
 	
 }
