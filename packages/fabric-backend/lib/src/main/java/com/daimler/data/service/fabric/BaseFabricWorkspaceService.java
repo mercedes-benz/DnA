@@ -194,6 +194,9 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 	@Value("${authoriser.role.fabricRoleName}")
 	private String fabricOperationsRoleName;
 
+	@Value("${fabricWorkspaces.defaultFolders}")
+	private String[] defaultFolders;
+
 	public BaseFabricWorkspaceService() {
 		super();
 	}
@@ -417,7 +420,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 					}else {
 						log.info("Successfully added  user {} to workspace {} ", vo.getCreatedBy().getEmail(), createResponse.getId());
 					}
-					
+					this.createDefaultFolders(createResponse.getId());
 					AddGroupDto addGroupDto = new AddGroupDto();
 					addGroupDto.setDisplayName(onboardGroupDisplayName);
 					addGroupDto.setIdentifier(onboardGroupIdenitifier);
@@ -1959,6 +1962,20 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		EntraGroupResponseVO response = new EntraGroupResponseVO();
         response.setMembers(memberVOs);
         return response;
+	}
+
+	public void createDefaultFolders(String workspaceId){
+		List<String> folders = Arrays.asList(defaultFolders);
+
+		for( String folder : folders){
+			HttpStatus response = fabricWorkspaceClient.createFolder(workspaceId, folder);
+			if(response.is2xxSuccessful()){
+				log.info("default folder :{} created sucessfully  for workspace id : {}",folder, workspaceId);
+			}else{
+				log.info("default folder :{} failed to create  for workspace id : {} with status code : {}", folder,workspaceId,response);
+			}
+			
+		}
 	}
 
 }
