@@ -300,7 +300,7 @@ services:
   
   minio:
     image: minio/minio
-    command: server /data
+    command: server /export --console-address ":9001"
     ports:
       - 9000:9000
       - 9001:9001
