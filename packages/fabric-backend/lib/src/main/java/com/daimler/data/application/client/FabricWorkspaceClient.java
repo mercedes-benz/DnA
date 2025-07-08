@@ -3,6 +3,8 @@ package com.daimler.data.application.client;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 
@@ -13,6 +15,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -965,6 +968,33 @@ public class FabricWorkspaceClient {
 			log.error("Failed to delete workspace details for id {} with {} exception ", workspaceId, e.getMessage());
 		}
 		return errorResponse;
+	}
+
+	public HttpStatus createFolder(String workspaceId, String folderName) {
+		try {
+			String token = getToken();
+			if(!Objects.nonNull(token)) {
+				log.error("Failed to fetch token to invoke fabric Apis");
+				return  HttpStatus.INTERNAL_SERVER_ERROR;
+			}
+
+			Map<String, String> requestBody = new HashMap<>();
+        	requestBody.put("displayName", folderName);
+
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Authorization", "Bearer "+token);
+			headers.setContentType(MediaType.APPLICATION_JSON);
+
+			HttpEntity requestEntity = new HttpEntity<>(requestBody,headers);
+			String workspaceUrl = workspacesBaseUrl + "/" + workspaceId +"/folders";
+			ResponseEntity<String> response = proxyRestTemplate.exchange(workspaceUrl , HttpMethod.POST,
+					requestEntity, String.class);
+			return response.getStatusCode();
+		}catch(Exception e) {
+			log.error("Failed to create folder  for diaplayName {} with {} exception ", folderName, e.getMessage());	
+		}
+		return  HttpStatus.INTERNAL_SERVER_ERROR;
 	}
 	
 	
