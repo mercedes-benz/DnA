@@ -241,10 +241,11 @@ const AliceRoleRequest = () => {
                   />
                 </div>
               </div>
-
-              <button className="btn btn-tertiary" type="button" onClick={createRole}>
-                create Role
-              </button>
+              <label className="checkbox">
+                  <button className="btn btn-tertiary" type="button" onClick={createRole}>
+                    Create Role
+                  </button>
+              </label>
             </div>
           </div>
           <hr className={Styles.divider} />
@@ -308,7 +309,7 @@ const AliceRoleRequest = () => {
         </div>
       </div>
       <Modal
-        title="Role Details"
+        title={selectedRoleDetails?.name || 'No Role Name'}
         content={
           <div>
             <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>

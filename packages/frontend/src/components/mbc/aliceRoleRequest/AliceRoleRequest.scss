@@ -93,7 +93,7 @@
   > div {
     margin: 5px 5px 5px 0;
     cursor: pointer;
-    width: 20%;
+    width: calc(20% - 10px);
   }
 }
  
@@ -172,8 +172,8 @@
  
 .divider{
   margin-top: 12px !important;
-  margin-right: 25px !important;
   margin-left: 0px !important;
+  width: auto;
   background-color: #697582;
 }
  
