@@ -146,9 +146,6 @@ const AliceRoleRequest = () => {
   
       if (entraRes?.members) {
         setEntraGroupMembers(entraRes.members);
-      } else {
-        const errorMessage = roleRes?.errors?.[0]?.message || 'Error fetching role details';
-        Notification.show(errorMessage, 'alert');
       }
   
       ProgressIndicator.hide(); 
