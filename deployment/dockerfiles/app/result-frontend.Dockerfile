@@ -1,4 +1,4 @@
-FROM node:16.14.2 as base
+FROM node:20.18.1 as base
 
 # Building the frontend
 WORKDIR /usr/src/packages/frontend
@@ -24,7 +24,7 @@ COPY envsubst /usr/local/bin
 RUN chmod +x /usr/local/bin/envsubst
 RUN chmod +x docker-start.sh
 RUN chmod -R g+rwX /usr/share/nginx/html
-CMD bash docker-start.sh
+CMD ["bash",  "docker-start.sh"]
 USER 1001
 
 EXPOSE 8080
