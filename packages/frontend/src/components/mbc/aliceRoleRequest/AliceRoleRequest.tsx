@@ -144,10 +144,8 @@ const AliceRoleRequest = () => {
         Notification.show(errorMessage, 'alert');
       }
   
-      if (entraRes?.data?.groupMembers) {
-        setEntraGroupMembers(entraRes.data.groupMembers);
-      } else if (entraRes?.errors?.length > 0) {
-        Notification.show(entraRes.errors[0].message || 'Error fetching EntraID members', 'alert');
+      if (entraRes?.members) {
+        setEntraGroupMembers(entraRes.members);
       }
   
       ProgressIndicator.hide(); 
