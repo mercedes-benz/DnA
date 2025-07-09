@@ -144,7 +144,7 @@ jobs:
         docker push registry-emea.app.corpintra.net/dnaplatform/code-server/codespaces-apps-${{ github.event.inputs.projectName }}:${{ github.event.inputs.appVersion }}     
 
     - name: Deploy App
-      uses: vimeda/helm@v1.7.0
+      uses: deler-aziz/helm-deploy-action@v1.0.1
       if: ${{ github.event.inputs.action == 'deploy' }}
       with:
         release: '${{ github.event.inputs.projectName }}-${{ github.event.inputs.target_env }}'
@@ -347,6 +347,7 @@ jobs:
     name: Sonar Qube Scan Javascript
     needs: build_deploy
     if: ${{ github.event.inputs.projectName == 'fc-cockpit-frontend' || 
+               github.event.inputs.projectName == 'fc-onepc-cpstool' ||
               github.event.inputs.projectName == 'ffclers-wbv-home-fe-prd' || 
               github.event.inputs.projectName == 'ffclers-wbv-tts-fe-prd' || 
               github.event.inputs.projectName == 'ffclers-wbv-jbb-fe-prd' || 
