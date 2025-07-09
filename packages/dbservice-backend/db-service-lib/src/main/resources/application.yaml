@@ -127,6 +127,8 @@ argocd:
   createNameSpace: ${ARGOCD_CREATE_NAMESPACE:xxxx}
   createPDBminAvailable: ${ARGOCD_CREATE_PDBMINAVAILABLE:0}
   createEnvironment: ${ARGOCD_CREATE_ENVIRONMENT:xxxx}
+  createRepoUrl: ${ARGOCD_CREATE_REPOURL:xxxx}
+  createSourcePath: ${ARGOCD_CREATE_SOURCEPATH:xxxx}
 
 dbService:
     host:
