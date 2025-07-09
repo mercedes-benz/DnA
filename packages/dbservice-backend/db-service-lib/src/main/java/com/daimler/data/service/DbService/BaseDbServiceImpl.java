@@ -1,5 +1,7 @@
 package com.daimler.data.service.DbService;
 
+import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
@@ -11,12 +13,14 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StreamUtils;
 import org.springframework.vault.support.VaultResponse;
 import org.springframework.web.client.RestTemplate;
 
@@ -36,6 +40,8 @@ import com.daimler.data.dto.dbService.UserInfoVO;
 import com.daimler.data.service.ArgoCdService;
 import com.daimler.data.service.common.BaseCommonService;
 import com.daimler.data.service.common.PasswordService;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
@@ -130,7 +136,10 @@ public class BaseDbServiceImpl extends BaseCommonService<DbServiceVO, DbServiceN
             vaultData.put("s3.host",s3Host);
             vaultData.put("secretkey", s3secretkey);
             vaultData.put("size", size);
-            String initDbTemplate = vault.getFileFromVault();
+            // String initDbTemplate = vault.getFileFromVault();
+            String fileName = "intidb-template.sh";
+            ClassPathResource resource = new ClassPathResource(fileName);
+            String initDbTemplate = StreamUtils.copyToString(resource.getInputStream(), StandardCharsets.UTF_8);
                 StringBuilder template = new StringBuilder(initDbTemplate);
                 Map<String,String> replacements = Map.of(
                     "<superusername>","db_admin",
@@ -144,6 +153,7 @@ public class BaseDbServiceImpl extends BaseCommonService<DbServiceVO, DbServiceN
                 String initScript = templateResult.toString();
                 initScript = initScript.replace("\\n", "\n").replace("\\\"", "\"");
                 vaultData.put("init-db",initScript);
+                log.info(" initScript {}",initScript);
 
             
             String token = argoCdService.getArgoToken();
