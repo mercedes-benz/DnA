@@ -963,6 +963,8 @@ definitions:
   AuthoriserRoleDetailsVO:
     type: object
     properties:
+      roleName:
+        type: string
       description:
         type: string
       isDynamic:
