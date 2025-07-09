@@ -1,17 +1,18 @@
-namespace: dna
+namespace: prod-dna
 imagePullSecret:
   name: imagepullsecret
 ingress:
   enabled: false
   namespace: ingress
+  className: prod-ingress-intranet
   host: dna.app.corpintra.net
-  lbIP: 53.6.53.65
   annotations:
     traefik.frontend.rule.type: PathPrefix
-    kubernetes.io/ingress.class: traefik
+    kubernetes.io/ingress.class: prod-ingress-intranet
+    acme.cert-manager.io/http01-ingress-class: prod-ingress-intranet
     traefik.ingress.kubernetes.io/router.tls: 'true'
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
-    cert-manager.io/cluster-issuer: daimler-acme
+    cert-manager.io/cluster-issuer: mercedes-benz-acme
     traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
 configJs: |
   window["INJECTED_ENVIRONMENT"]={
@@ -105,23 +106,22 @@ appFrontend:
   replicaCount: 2
   image:
     repository: registry-emea.app.corpintra.net/dnaplatform/dna-frontend
-    tag: 3.12.0
+    tag: 3.14.2
   ngnix:
-    backend: http://dna-app-backend-service.dna.svc.cluster.local:80
+    backend: http://dna-backend.prod-dna.svc.cluster.local:80
     grafanaServer: http://i3-monitoring-grafana.i3-monitoring.svc.cluster.local:80
     avscanMgwServer: apisap.app.corpintra.net
-    clamav: http://clamav-rest-service.clamav.svc.cluster.local:8181
+    clamav: http://clamav-rest-service.prod-dna-clamav.svc.cluster.local:8181
 vaultInjector:
   enable: true
   annotations:
     vault.hashicorp.com/agent-inject: 'true'
-    vault.hashicorp.com/role: dna_prod_k8_role
-    vault.hashicorp.com/tls-skip-verify: 'true'
+    vault.hashicorp.com/role: dna_aws_prod_k8_role
     vault.hashicorp.com/agent-pre-populate-only: 'true'
-    vault.hashicorp.com/agent-inject-secret-configjs: dna_kv/prod/kubernetesSecret/dnaFrontend
+    vault.hashicorp.com/agent-inject-secret-configjs: dna_aws_kv/prod/kubernetesSecret/dnaFrontend
     vault.hashicorp.com/agent-inject-file-configjs: config.js
     vault.hashicorp.com/agent-inject-template-configjs: |
-      {{- with secret "dna_kv/prod/kubernetesSecret/dnaFrontend" -}}
+      {{- with secret "dna_aws_kv/prod/kubernetesSecret/dnaFrontend" -}}
           window["INJECTED_ENVIRONMENT"]={
           {{- range $k, $v := .Data.data }}
           {{- if or (eq $v "true") (eq $v "false") (regexMatch "^[0-9]+$" $v) }}
@@ -132,7 +132,7 @@ vaultInjector:
           {{- end }}
               };
       {{- end }}
-      {{- with secret "dna_kv/prod/kubernetesSecret/storageMFE" -}}
+      {{- with secret "dna_aws_kv/prod/kubernetesSecret/storageMFE" -}}
           window["STORAGE_INJECTED_ENVIRONMENT"]={
           {{- range $k, $v := .Data.data }}
           {{- if or (eq $v "true") (eq $v "false") (regexMatch "^[0-9]+$" $v) }}
@@ -143,7 +143,7 @@ vaultInjector:
           {{- end }}
               };
       {{- end }}  
-      {{- with secret "dna_kv/prod/kubernetesSecret/dataProductMFE" -}}
+      {{- with secret "dna_aws_kv/prod/kubernetesSecret/dataProductMFE" -}}
           window["DATA_PRODUCT_INJECTED_ENVIRONMENT"]={
           {{- range $k, $v := .Data.data }}
           {{- if or (eq $v "true") (eq $v "false") (regexMatch "^[0-9]+$" $v) }}
@@ -154,7 +154,7 @@ vaultInjector:
           {{- end }}
               };
       {{- end }}
-      {{- with secret "dna_kv/prod/kubernetesSecret/chronosMFE" -}}
+      {{- with secret "dna_aws_kv/prod/kubernetesSecret/chronosMFE" -}}
           window["CHRONOS_INJECTED_ENVIRONMENT"]={
           {{- range $k, $v := .Data.data }}
           {{- if or (eq $v "true") (eq $v "false") (regexMatch "^[0-9]+$" $v) }}
@@ -165,7 +165,7 @@ vaultInjector:
           {{- end }}
               };
       {{- end }}     
-      {{- with secret "dna_kv/prod/kubernetesSecret/dssMFE" -}}
+      {{- with secret "dna_aws_kv/prod/kubernetesSecret/dssMFE" -}}
           window["DSS_INJECTED_ENVIRONMENT"]={
           {{- range $k, $v := .Data.data }}
           {{- if or (eq $v "true") (eq $v "false") (regexMatch "^[0-9]+$" $v) }}
@@ -176,7 +176,7 @@ vaultInjector:
           {{- end }}
               };
       {{- end }}
-      {{- with secret "dna_kv/prod/kubernetesSecret/matomoMFE" -}}
+      {{- with secret "dna_aws_kv/prod/kubernetesSecret/matomoMFE" -}}
           window["MATOMO_INJECTED_ENVIRONMENT"]={
           {{- range $k, $v := .Data.data }}
           {{- if or (eq $v "true") (eq $v "false") (regexMatch "^[0-9]+$" $v) }}
@@ -187,7 +187,7 @@ vaultInjector:
           {{- end }}
               };
       {{- end }} 
-      {{- with secret "dna_kv/prod/kubernetesSecret/datalakeMFE" -}}
+      {{- with secret "dna_aws_kv/prod/kubernetesSecret/datalakeMFE" -}}
           window["DATALAKE_INJECTED_ENVIRONMENT"]={
           {{- range $k, $v := .Data.data }}
           {{- if or (eq $v "true") (eq $v "false") (regexMatch "^[0-9]+$" $v) }}
@@ -198,7 +198,7 @@ vaultInjector:
           {{- end }}
               };
       {{- end }}
-      {{- with secret "dna_kv/prod/kubernetesSecret/fabricMFE" -}}
+      {{- with secret "dna_aws_kv/prod/kubernetesSecret/fabricMFE" -}}
           window["FABRIC_INJECTED_ENVIRONMENT"]={
           {{- range $k, $v := .Data.data }}
           {{- if or (eq $v "true") (eq $v "false") (regexMatch "^[0-9]+$" $v) }}
@@ -209,7 +209,7 @@ vaultInjector:
           {{- end }}
               };
       {{- end }} 
-      {{- with secret "dna_kv/prod/kubernetesSecret/dataentryMFE" -}}
+      {{- with secret "dna_aws_kv/prod/kubernetesSecret/dataentryMFE" -}}
           window["DATA_ENTRY_INJECTED_ENVIRONMENT"]={
           {{- range $k, $v := .Data.data }}
           {{- if or (eq $v "true") (eq $v "false") (regexMatch "^[0-9]+$" $v) }}
@@ -220,7 +220,7 @@ vaultInjector:
           {{- end }}
               };
       {{- end }}        
-      {{- with secret "dna_kv/prod/kubernetesSecret/codeSpaceMFE" -}}
+      {{- with secret "dna_aws_kv/prod/kubernetesSecret/codeSpaceMFE" -}}
           window["CODE_SPACE_INJECTED_ENVIRONMENT"]={
           {{- range $k, $v := .Data.data }}
           {{- if or (eq $v "true") (eq $v "false") (regexMatch "^[0-9]+$" $v) }}
@@ -231,7 +231,7 @@ vaultInjector:
           {{- end }}
               };
       {{- end }}
-      {{- with secret "dna_kv/prod/kubernetesSecret/powerPlatformMFE" -}}
+      {{- with secret "dna_aws_kv/prod/kubernetesSecret/powerPlatformMFE" -}}
           window["POWER_PLATFORM_INJECTED_ENVIRONMENT"]={
           {{- range $k, $v := .Data.data }}
           {{- if or (eq $v "true") (eq $v "false") (regexMatch "^[0-9]+$" $v) }}
@@ -246,3 +246,9 @@ vaultInjector:
 podDisruptionBudget:
   enabled: true
   minAvailable: 50%
+resources:
+  requests:
+    memory: 100Mi
+    cpu: 10m
+  limits:
+    memory: 100Mi

@@ -1,17 +1,17 @@
-namespace: dashboard
+namespace: test-dna-dashboard
 image: 
   repository: registry-emea.app.corpintra.net/dnaplatform/dashboard-backend
-  tag: 6ddf309530553561326e8e16696de665a6349009
+  tag: '483'
 imagePullPolicy: Always
 imagePullSecret:
   name: imagepullsecret
-dbUrl: null
+dbUrl: <path:dna_aws_kv/data/staging/kubernetesSecret/reportService#API_DB_URL>
 secret:
   name: dashboard-secrets
   appUserName: null
   appPassword: null
   jwtKey: null
-appUrl: http://dna-app-backend-service.dna.svc.cluster.local:80
+appUrl: null
 enableAuth: true
 loggingPath: /tmp/dashboard/log
 loggingEnvironment: dev
@@ -24,21 +24,22 @@ corsOrigibUrl: https://*.dna.app.corpintra.net
 naasBroker: null
 ingress:
   enabled: false
+  className: test-ingress-intranet
   host: report.test.dna.app.corpintra.net
   annotations:
     traefik.frontend.rule.type: PathPrefix
-    kubernetes.io/ingress.class: traefik
+    kubernetes.io/ingress.class: test-ingress-intranet
+    acme.cert-manager.io/http01-ingress-class: test-ingress-intranet
     traefik.ingress.kubernetes.io/router.tls: 'true'
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
-    cert-manager.io/cluster-issuer: daimler-acme
+    cert-manager.io/cluster-issuer: mercedes-benz-acme
     traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
 resources:
   requests:
-    memory: 512Mi
-    cpu: 250m
+    memory: 402Mi
+    cpu: 10m
   limits:
-    memory: 1000Mi
-    cpu: 500m
+    memory: 402Mi
 probes:
   initialDelaySeconds: 120
   timeoutSeconds: 10
@@ -54,30 +55,29 @@ vaultInjector:
   enable: true
   annotations:
     vault.hashicorp.com/agent-inject: 'true'
-    vault.hashicorp.com/role: "dna_staging_k8_role"
-    vault.hashicorp.com/tls-skip-verify: 'true'
+    vault.hashicorp.com/role: 'dna_aws_staging_k8_role'
     vault.hashicorp.com/agent-image: 'registry-emea.app.corpintra.net/dnaplatform/vault-secret-auto-update:v1'
     vault.hashicorp.com/agent-inject-command-envvar: "sh /opt/restart_deployment.sh"
     vault.hashicorp.com/template-static-secret-render-interval: 10s
     vault.hashicorp.com/agent-pre-populate-only: 'false'
-    vault.hashicorp.com/agent-inject-secret-truststore.jks: dna_kv/staging/kubernetesSecret/kafka
+    vault.hashicorp.com/agent-inject-secret-truststore.jks: dna_aws_kv/staging/kubernetesSecret/kafka
     vault.hashicorp.com/agent-inject-template-truststore.jks: |
-      {{- with secret "dna_kv/staging/kubernetesSecret/kafka" -}}
+      {{- with secret "dna_aws_kv/staging/kubernetesSecret/kafka" -}}
       {{ base64Decode  .Data.data.TRUSTSTORE }}
       {{- end }}
-    vault.hashicorp.com/agent-inject-secret-keystore.p12: dna_kv/staging/kubernetesSecret/kafka
+    vault.hashicorp.com/agent-inject-secret-keystore.p12: dna_aws_kv/staging/kubernetesSecret/kafka
     vault.hashicorp.com/agent-inject-template-keystore.p12: |
-      {{- with secret "dna_kv/staging/kubernetesSecret/kafka" -}}
+      {{- with secret "dna_aws_kv/staging/kubernetesSecret/kafka" -}}
       {{ base64Decode  .Data.data.KEYSTORE }}
       {{- end }}      
-    vault.hashicorp.com/agent-inject-secret-envvar: dna_kv/staging/kubernetesSecret/reportService
+    vault.hashicorp.com/agent-inject-secret-envvar: dna_aws_kv/staging/kubernetesSecret/reportService
     vault.hashicorp.com/agent-inject-template-envvar: |
-      {{- with secret "dna_kv/staging/kubernetesSecret/reportService" -}}
+      {{- with secret "dna_aws_kv/staging/kubernetesSecret/reportService" -}}
         {{- range $k, $v := .Data.data }}
             export {{ $k }}="{{ $v }}"
         {{- end }}
       {{- end }}
-      {{- with secret "dna_kv/staging/kubernetesSecret/kafka" -}}
+      {{- with secret "dna_aws_kv/staging/kubernetesSecret/kafka" -}}
         {{- range $k, $v := .Data.data }}
         {{- if or (eq $k "KEYSTORE_PASSWORD") (eq $k "TRUSTSTORE_PASSWORD") (eq $k "KEYSTORE_PATH") (eq $k "TRUSTSTORE_PATH") }}
             export {{ $k }}="{{ $v }}"

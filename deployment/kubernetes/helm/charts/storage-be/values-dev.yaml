@@ -1,4 +1,4 @@
-namespace: storage
+namespace: dev-dna-storage
 envs:
   - name: MAX_FILE_SIZE
     value: 3000MB
@@ -129,7 +129,7 @@ replicaCount: 1
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/storage-be
   pullPolicy: IfNotPresent
-  tag: '104'
+  tag: '1089'
 imagePullSecrets:
   - name: imagepullsecret
 nameOverride: ''
@@ -142,12 +142,13 @@ service:
   port: 80
 ingress:
   enabled: false
+  className: dev-ingress-intranet
   annotations:
     traefik.frontend.rule.type: PathPrefix
-    kubernetes.io/ingress.class: traefik
+    kubernetes.io/ingress.class: dev-ingress-intranet
     traefik.ingress.kubernetes.io/router.tls: 'true'
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
-    cert-manager.io/cluster-issuer: daimler-acme
+    cert-manager.io/cluster-issuer: mercedes-benz-acme
     traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
   hosts:
     - host: storage.dev.dna.app.corpintra.net
@@ -163,50 +164,58 @@ ingress:
         - path: /webjars
           pathType: Prefix
   tls: null
-resources: {}
+resources:
+  requests:
+    memory: 3022Mi
+    cpu: 10m
+  limits:
+    memory: 3022Mi
 vaultInjector:
   enable: true
   annotations:
     vault.hashicorp.com/agent-inject: 'true'
-    vault.hashicorp.com/role: "dna_dev_k8_role"
-    vault.hashicorp.com/tls-skip-verify: 'true'
+    vault.hashicorp.com/role: dna_aws_dev_k8_role
     vault.hashicorp.com/agent-image: registry-emea.app.corpintra.net/dnaplatform/vault-secret-auto-update:v1
     vault.hashicorp.com/agent-inject-command-envvar: sh /opt/restart_deployment.sh
     vault.hashicorp.com/template-static-secret-render-interval: 10s
     vault.hashicorp.com/agent-pre-populate-only: 'false'
-    vault.hashicorp.com/agent-inject-secret-truststore.jks: dna_kv/dev/kubernetesSecret/kafka
+    vault.hashicorp.com/agent-inject-secret-truststore.jks: dna_aws_kv/dev/kubernetesSecret/kafka
     vault.hashicorp.com/agent-inject-template-truststore.jks: |
-      {{- with secret "dna_kv/dev/kubernetesSecret/kafka" -}}
+      {{- with secret "dna_aws_kv/dev/kubernetesSecret/kafka" -}}
       {{ base64Decode  .Data.data.TRUSTSTORE }}
       {{- end }}
-    vault.hashicorp.com/agent-inject-secret-keystore.p12: dna_kv/dev/kubernetesSecret/kafka
-    vault.hashicorp.com/agent-inject-template-keystore.p12: |
-      {{- with secret "dna_kv/dev/kubernetesSecret/kafka" -}}
-      {{ base64Decode  .Data.data.KEYSTORE }}
-      {{- end }}     
-    vault.hashicorp.com/agent-inject-secret-catruststore.jks: dna_kv/dev/kubernetesSecret/infra
+    vault.hashicorp.com/agent-inject-secret-keystore.p12: dna_aws_kv/dev/kubernetesSecret/kafka
+    vault.hashicorp.com/agent-inject-secret-catruststore.jks: dna_aws_kv/dev/kubernetesSecret/infra
     vault.hashicorp.com/agent-inject-template-catruststore.jks: |
-      {{- with secret "dna_kv/dev/kubernetesSecret/infra" -}}
+      {{- with secret "dna_aws_kv/dev/kubernetesSecret/infra" -}}
       {{ base64Decode  .Data.data.CA_TRUSTSTORE }}
-      {{- end }}    
-    vault.hashicorp.com/agent-inject-secret-envvar: dna_kv/dev/kubernetesSecret/storageService
+      {{- end }}      
+    vault.hashicorp.com/agent-inject-template-keystore.p12: |
+      {{- with secret "dna_aws_kv/dev/kubernetesSecret/kafka" -}}
+      {{ base64Decode  .Data.data.KEYSTORE }}
+      {{- end }}      
+    vault.hashicorp.com/agent-inject-secret-envvar: dna_aws_kv/dev/kubernetesSecret/storageService
     vault.hashicorp.com/agent-inject-template-envvar: |
-      {{- with secret "dna_kv/dev/kubernetesSecret/storageService" -}}
+      {{- with secret "dna_aws_kv/dev/kubernetesSecret/storageService" -}}
         {{- range $k, $v := .Data.data }}
             export {{ $k }}="{{ $v }}"
         {{- end }}
       {{- end }}
-      {{- with secret "dna_kv/dev/kubernetesSecret/kafka" -}}
+      {{- with secret "dna_aws_kv/dev/kubernetesSecret/kafka" -}}
         {{- range $k, $v := .Data.data }}
         {{- if or (eq $k "KEYSTORE_PASSWORD") (eq $k "TRUSTSTORE_PASSWORD") (eq $k "KEYSTORE_PATH") (eq $k "TRUSTSTORE_PATH") }}
             export {{ $k }}="{{ $v }}"
         {{- end }}        
         {{- end }}      
       {{- end }}    
-      {{- with secret "dna_kv/dev/kubernetesSecret/minio" -}}
+      {{- with secret "dna_aws_kv/dev/kubernetesSecret/minio" -}}
         {{- range $k, $v := .Data.data }}
             export {{ $k }}="{{ $v }}"
         {{- end }}
       {{- end }}               
   saName: default
   jarName: storage-lib*.jar
+autoscaling:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 4

@@ -23,6 +23,8 @@ jobs:
     steps:
     - name: Check out repository code
       uses: actions/checkout@v3
+      # with:
+      #   ref: 'dev'
 
     # - name: Copy virus db
     #   working-directory: ./deployment/dockerfiles/clamav
@@ -50,10 +52,10 @@ jobs:
     - name: Update Image Version values.yaml
       uses: fjogeleit/yaml-update-action@v0.13.1
       with:
-        valueFile: deployment/kubernetes/helm/charts/clamav/values-dev.yaml
+        valueFile: deployment/kubernetes/helm/charts/clamav/values-prod.yaml
         propertyPath: 'image.repo'
         value: "registry-emea.app.corpintra.net/dnaplatform/clamav:${{ steps.date.outputs.date }}"
-        branch: dev
+        branch: main
         createPR: false
         commitChange: true
         message: 'Update Image Version to ${{ steps.date.outputs.date }}' 
@@ -101,15 +103,15 @@ jobs:
     - name: Check out repository code
       uses: actions/checkout@v3
       with:
-        ref: 'main' 
+        ref: 'dev' 
 
     - name: Update Image Version values.yaml
       uses: fjogeleit/yaml-update-action@v0.13.1
       with:
-        valueFile: deployment/kubernetes/helm/charts/clamav/values-prod.yaml
+        valueFile: deployment/kubernetes/helm/charts/clamav/values-dev.yaml
         propertyPath: 'image.repo'
         value: "registry-emea.app.corpintra.net/dnaplatform/clamav:${{ needs.build.outputs.date }}"
-        branch: main
+        branch: dev
         createPR: false
         commitChange: true
         message: 'Update Image Version to ${{ needs.build.outputs.date }}' 

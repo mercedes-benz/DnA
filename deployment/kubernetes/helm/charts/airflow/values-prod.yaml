@@ -1,14 +1,14 @@
 appName: airflow
-namespace: airflow
+namespace: prod-dna-airflow
 imagePullSecret:
   name: imagepullsecret
 backend:
-  replicas: 2
+  replicas: 1
   image: 
     repository: registry-emea.app.corpintra.net/dnaplatform/airflow-backend
-    tag: 3.2.4
+    tag: 198
   imagePullPolicy: Always
-  dbUrl: jdbc:postgresql://airflow-db.airflow.svc.cluster.local:64000/airflow
+  dbUrl: jdbc:postgresql://airflow-db.prod-dna-airflow.svc.cluster.local:64000/airflow
   secret:
     name: airflow-backend-secrets
     dbPassword: null
@@ -19,11 +19,11 @@ backend:
     oidcClientSecret: null
   containerPort: 7171
   crossOriginUrl: https://*.app.corpintra.net
-  apiUrl: http://dna-app-backend-service.dna.svc.cluster.local:80
+  apiUrl: http://dna-backend.prod-dna.svc.cluster.local:80
   dnaAuthEnable: true
-  oidcInfoUrl: https://sso-int.mercedes-benz.com/idp/userinfo.openid
-  oidcIntrospectionUrl: https://sso-int.mercedes-benz.com/as/introspect.oauth2
-  oidcRevocationUrl: https://sso-int.mercedes-benz.com/as/revoke_token.oauth2
+  oidcInfoUrl: https://sso.mercedes-benz.com/idp/userinfo.openid
+  oidcIntrospectionUrl: https://sso.mercedes-benz.com/as/introspect.oauth2
+  oidcRevocationUrl: https://sso.mercedes-benz.com/as/revoke_token.oauth2
   oidcDisabled: false
   gitUrl: null
   gitMountPath: /git/airflow-user-dags
@@ -41,37 +41,40 @@ backend:
   flywaySchema: public
 ingress:
   enabled: false
+  className: prod-ingress-intranet
   host: pipeline.dna.app.corpintra.net
   annotations:
     traefik.frontend.rule.type: PathPrefix
-    kubernetes.io/ingress.class: traefik
+    kubernetes.io/ingress.class: prod-ingress-intranet
+    acme.cert-manager.io/http01-ingress-class: prod-ingress-intranet
     traefik.ingress.kubernetes.io/router.tls: 'true'
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
-    cert-manager.io/cluster-issuer: daimler-acme
+    cert-manager.io/cluster-issuer: mercedes-benz-acme
     traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
 airflow:
   ingress:
     enabled: false
+    className: prod-ingress-intranet
     host: pipeline.dna.app.corpintra.net
     annotations:
       traefik.frontend.rule.type: PathPrefix
-      kubernetes.io/ingress.class: traefik
+      kubernetes.io/ingress.class: prod-ingress-intranet
       traefik.ingress.kubernetes.io/router.tls: 'true'
       traefik.ingress.kubernetes.io/router.entrypoints: websecure
-      cert-manager.io/cluster-issuer: daimler-acme
+      cert-manager.io/cluster-issuer: mercedes-benz-acme
     traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
-pullSecretData: <path:dna_kv/data/prod/kubernetesSecret/airflow#pullSecretData>
+pullSecretData: <path:dna_aws_kv/data/prod/kubernetesSecret/airflow#pullSecretData>
 secret:
-  gitUserName: <path:dna_kv/data/prod/kubernetesSecret/airflow#gitUserName>
-  gitPassword: <path:dna_kv/data/prod/kubernetesSecret/airflow#gitPassword>
+  gitUserName: <path:dna_aws_kv/data/prod/kubernetesSecret/airflow#gitUserName>
+  gitPassword: <path:dna_aws_kv/data/prod/kubernetesSecret/airflow#gitPassword>
   knownHosts: ''
   postgresql:
-    sqlAlchemyConn: <path:dna_kv/data/prod/kubernetesSecret/airflow#sqlAlchemyConn>
-    sqlAlchemyConnEn: <path:dna_kv/data/prod/kubernetesSecret/airflow#sqlAlchemyConn | base64encode>
-  clientSecret: <path:dna_kv/data/prod/kubernetesSecret/airflow#clientSecret | base64encode>
+    sqlAlchemyConn: <path:dna_aws_kv/data/prod/kubernetesSecret/airflow#sqlAlchemyConn>
+    sqlAlchemyConnEn: <path:dna_aws_kv/data/prod/kubernetesSecret/airflow#sqlAlchemyConn | base64encode>
+  clientSecret: <path:dna_aws_kv/data/prod/kubernetesSecret/airflow#clientSecret | base64encode>
 gitSync:
   image: registry-emea.app.corpintra.net/dnaplatform/git-sync:3.3.2
-  repo: <path:dna_kv/data/prod/kubernetesSecret/airflow#repo>
+  repo: <path:dna_aws_kv/data/prod/kubernetesSecret/airflow#repo>
   dest: git-sync
   branch: production
   ssh: 'false'
@@ -109,7 +112,7 @@ configuration:
     workerTimeout: 120
     workerRefreshBatchSize: 1
     workerRefreshInterval: 30
-    secretKey: <path:dna_kv/data/prod/kubernetesSecret/airflow#secretKey>
+    secretKey: <path:dna_aws_kv/data/prod/kubernetesSecret/airflow#secretKey>
     numberOfWorkers: 4
     workerClass: sync
     exposeConfig: true
@@ -165,11 +168,10 @@ gitContainer:
     cpu: 500m
 backendResources:
   requests:
-    memory: 512Mi
-    cpu: 250m
+    memory: 596Mi
+    cpu: 10m
   limits:
-    memory: 1000Mi
-    cpu: 500m
+    memory: 596Mi
 volumes:
   logsPath: /usr/local/airflow/logs
   dagsPath: /usr/local/airflow/dags/git-sync/dags
@@ -178,14 +180,16 @@ volumes:
     resourcePolicy: keep
     accessMode: ReadWriteOnce
     storage:
-      className: cinder-retain
+      className: dhc-gp3-retain
       size: 80Gi
 oidc:
   logout:
     uri: https://sso.mercedes-benz.com/idp/startSLO.ping?redirect_uri=
 Storage:
-  storageClass: cinder-retain
+  storageClass: dhc-gp3-retain
   accessModes: ReadWriteOnce
+  nfsaccessModes: ReadWriteMany
+  nfsstorageClass: nfs-sc
   size: 5Gi
 probes:
   initialDelaySeconds: 120
@@ -199,33 +203,32 @@ probes:
     path: /airflow/actuator/health/readiness
     port: api-http
 backendgit:
-  gitCloneurl: <path:dna_kv/data/prod/kubernetesSecret/airflow#backendgitgitCloneurl>
-  gitbranch: <path:dna_kv/data/prod/kubernetesSecret/airflow#backendgitgitbranch>
+  gitCloneurl: <path:dna_aws_kv/data/prod/kubernetesSecret/airflow#backendgitgitCloneurl>
+  gitbranch: <path:dna_aws_kv/data/prod/kubernetesSecret/airflow#backendgitgitbranch>
 vaultInjector:
   enable: true
   annotations:
     vault.hashicorp.com/agent-inject: 'true'
-    vault.hashicorp.com/role: 'dna_prod_k8_role'
-    vault.hashicorp.com/tls-skip-verify: 'true'
+    vault.hashicorp.com/role: 'dna_aws_prod_k8_role'
     vault.hashicorp.com/agent-pre-populate-only: 'true'
-    vault.hashicorp.com/agent-inject-secret-truststore.jks: dna_kv/prod/kubernetesSecret/kafka
+    vault.hashicorp.com/agent-inject-secret-truststore.jks: dna_aws_kv/prod/kubernetesSecret/kafka
     vault.hashicorp.com/agent-inject-template-truststore.jks: |
-      {{- with secret "dna_kv/prod/kubernetesSecret/kafka" -}}
+      {{- with secret "dna_aws_kv/prod/kubernetesSecret/kafka" -}}
       {{ base64Decode  .Data.data.TRUSTSTORE }}
       {{- end }}
-    vault.hashicorp.com/agent-inject-secret-keystore.p12: dna_kv/prod/kubernetesSecret/kafka
+    vault.hashicorp.com/agent-inject-secret-keystore.p12: dna_aws_kv/prod/kubernetesSecret/kafka
     vault.hashicorp.com/agent-inject-template-keystore.p12: |
-      {{- with secret "dna_kv/prod/kubernetesSecret/kafka" -}}
+      {{- with secret "dna_aws_kv/prod/kubernetesSecret/kafka" -}}
       {{ base64Decode  .Data.data.KEYSTORE }}
       {{- end }}      
-    vault.hashicorp.com/agent-inject-secret-envvar: dna_kv/prod/kubernetesSecret/airflowService
+    vault.hashicorp.com/agent-inject-secret-envvar: dna_aws_kv/prod/kubernetesSecret/airflowService
     vault.hashicorp.com/agent-inject-template-envvar: |
-      {{- with secret "dna_kv/prod/kubernetesSecret/airflowService" -}}
+      {{- with secret "dna_aws_kv/prod/kubernetesSecret/airflowService" -}}
         {{- range $k, $v := .Data.data }}
             export {{ $k }}="{{ $v }}"
         {{- end }}
       {{- end }}
-      {{- with secret "dna_kv/prod/kubernetesSecret/kafka" -}}
+      {{- with secret "dna_aws_kv/prod/kubernetesSecret/kafka" -}}
         {{- range $k, $v := .Data.data }}
         {{- if or (eq $k "KEYSTORE_PASSWORD") (eq $k "TRUSTSTORE_PASSWORD") (eq $k "KEYSTORE_PATH") (eq $k "TRUSTSTORE_PATH") }}
             export {{ $k }}="{{ $v }}"

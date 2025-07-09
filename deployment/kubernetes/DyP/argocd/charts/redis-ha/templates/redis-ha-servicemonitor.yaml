@@ -24,6 +24,9 @@ spec:
 {{- if .Values.exporter.serviceMonitor.timeout }}
     scrapeTimeout: {{ .Values.exporter.serviceMonitor.timeout }}
 {{- end }}
+{{- with .Values.exporter.serviceMonitor.endpointAdditionalProperties }}
+{{- toYaml . | nindent 4 }}
+{{- end }}
   jobLabel: {{ template "redis-ha.fullname" . }}
   namespaceSelector:
     matchNames:

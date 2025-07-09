@@ -3,6 +3,7 @@
 {{- $apiUrl :=  .Values.storageCredentials.apiUrl }}
 {{- $bucketName := .Values.storageCredentials.bucketName }}
 {{- $namespace :=  .Values.namespace }}
+{{- $runAsUser :=  .Values.runAsUser }}
 {{- range $index, $pvc := .Values.pvcs }}
 apiVersion: batch/v1
 kind: Job
@@ -10,6 +11,7 @@ metadata:
   name: {{ $pvc.pvcName }}-rs-job
   namespace: {{ $namespace | quote }}
 spec:
+  ttlSecondsAfterFinished: 60
   template:
     spec:
       containers:      
@@ -50,10 +52,10 @@ spec:
           mountPath: /.cache          
       restartPolicy: OnFailure
       securityContext:
-        runAsUser: 1000
-        runAsGroup: 1000
+        runAsUser: {{ $runAsUser }}
+        runAsGroup: {{ $runAsUser }}
         runAsNonRoot: true
-        fsGroup: 1000            
+        fsGroup: {{ $runAsUser }}          
       volumes:
       - name: backupdata
         persistentVolumeClaim:

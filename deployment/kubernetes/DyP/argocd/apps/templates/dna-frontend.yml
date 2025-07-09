@@ -5,23 +5,25 @@ metadata:
   annotations:
     {{- toYaml . | nindent 4 }}
   {{- end }}
-  name: dna-frontend
+  name: {{ .Values.env }}-dna-frontend
   namespace: {{ .Values.namespace }}
   labels:
-    name: frontend  
+    name: frontend
+    env: {{ .Values.env }}
+    project: {{ .Values.env }}-dna  
 spec:
   destination:
-    namespace: dna
+    namespace: {{ .Values.env }}-dna
     server: {{ .Values.server | squote }}
   source:
     path: deployment/kubernetes/helm/charts/frontend
     repoURL: {{ .Values.repoURL | squote }}
     targetRevision: {{ .Values.branch }}
     helm:
-      releaseName: dna-app-frontend
+      releaseName: dna-frontend
       valueFiles:
         - values-{{ .Values.env }}.yaml
-  project: dna
+  project: {{ .Values.env }}-dna
 {{- if .Values.enableSync }}
   syncPolicy:
     automated:

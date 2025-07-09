@@ -11,6 +11,7 @@ configJs: |
       ALICE_URL: 'YOUR_ALICE_URL',
       REPORTS_API_BASEURL: 'YOUR_REPORTS_API_BASEURL',
       STORAGE_API_BASEURL: 'YOUR_STORAGE_API_BASEURL',
+      DATA_PRODUCT_API_BASEURL: 'YOUR_DATA_PRODUCT_API_BASEURL',
       TOU_HTML: "<div>I agree to <a href=\"#\" target=\"_blank\" rel=\"noopener noreferrer\">terms of use</a></div>", 
     };
 
@@ -38,6 +39,7 @@ service:
 
 ingress:
   enabled: false
+  className: "traefik" 
   annotations:
     # kubernetes.io/ingress.class: nginx
     # kubernetes.io/tls-acme: "true"
@@ -65,7 +67,7 @@ resources:
   # resources, such as Minikube. If you do want to specify resources, uncomment the following
   # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
   limits:
-    cpu: 100m
+  #  cpu: 100m
     memory: 128Mi
   requests:
     cpu: 100m

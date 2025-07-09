@@ -16,6 +16,12 @@ spec:
     name: postgresql
     targetPort: postgresql
     protocol: TCP
+  {{- if .Values.service.additionalPortEnabled }}
+  - port: {{ .Values.service.additionalPort }}
+    name: postgresql-tcp
+    targetPort: postgresql-tcp
+    protocol: TCP
+  {{- end }}  
   selector:
     app.kubernetes.io/name: {{ include "postgres.name" . }}
     app.kubernetes.io/instance: {{ .Release.Name }}

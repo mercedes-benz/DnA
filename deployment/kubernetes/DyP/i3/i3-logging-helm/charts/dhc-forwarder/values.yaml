@@ -1,2 +1,0 @@
-# The logging service name to forward to. Can be fluentd or renamed fluent-bit release.
-loggingService: "i3-logging-fluent-bit"

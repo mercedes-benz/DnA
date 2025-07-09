@@ -83,7 +83,8 @@
  import com.daimler.data.dto.workspace.CodespaceSecurityUserRoleMapVO;
  import com.daimler.data.dto.workspace.DeploymentAuditVO;
  import com.daimler.data.dto.workspace.UserInfoVO;
- import com.daimler.data.dto.workspace.DeploymentAuditVO;
+import com.daimler.data.dto.workspace.CodeServerDeploymentDetailsVO.DeploymentTypeEnum;
+import com.daimler.data.dto.workspace.DeploymentAuditVO;
  import lombok.extern.slf4j.Slf4j;
  
  @Slf4j
@@ -273,6 +274,15 @@
 			 {
 				deploymentDetails.setSecureWithIAMRequired(false);
 			 }
+
+			if(vo.isIsSecuredWithCookie()!=null){
+				deploymentDetails.setIsSecuredWithCookie(vo.isIsSecuredWithCookie());
+			}else{
+				deploymentDetails.setIsSecuredWithCookie(false);
+			}
+			if(vo.getDeploymentType()!=null){
+				deploymentDetails.setDeploymentType(vo.getDeploymentType().toString());
+			}
 			 deploymentDetails.setLastDeployedBy(toUserInfo(vo.getLastDeployedBy()));
 			 List<DeploymentAudit> auditDetails = this.toDeploymentAuditDetails(vo.getDeploymentAuditLogs());
 			 deploymentDetails.setDeploymentAuditLogs(auditDetails);
@@ -328,6 +338,15 @@
 			 if (deploymentDetails.getLastDeployedOn() != null){
 				 deploymentDetailsVO
 						 .setLastDeployedOn(isoFormat.parse(isoFormat.format(deploymentDetails.getLastDeployedOn())));
+			 }
+
+			 if(deploymentDetails.getIsSecuredWithCookie()!=null){
+				deploymentDetailsVO.isSecuredWithCookie(deploymentDetails.getIsSecuredWithCookie());
+			 }else{
+				deploymentDetailsVO.isSecuredWithCookie(false);
+			 }
+			 if(deploymentDetails.getDeploymentType()!=null){
+				deploymentDetailsVO.setDeploymentType(DeploymentTypeEnum.fromValue(deploymentDetails.getDeploymentType()));
 			 }
 			 if(deploymentDetails.getDeploymentAuditLogs()!=null && !deploymentDetails.getDeploymentAuditLogs().isEmpty())
 			 {
@@ -649,6 +668,11 @@
 					 }else{
 						vo.setIsWorkspaceMigrated(false);
 					 }
+					 if(data.getActiveInGroup() != null){
+						vo.setActiveInGroup(data.getActiveInGroup());
+					 }else{
+						vo.setActiveInGroup(false);
+					 }
 					 if (data.getIntiatedOn() != null)
 						 vo.setIntiatedOn(isoFormat.parse(isoFormat.format(data.getIntiatedOn())));
 					 UserInfo codespaceUserDetails = data.getWorkspaceOwner();
@@ -712,6 +736,7 @@
 						projectDetailsVO.setRecipeName(projectDetails.getRecipeName());
 					 }
 					 vo.setProjectDetails(projectDetailsVO);
+					 
  
 				 }
 			 }
@@ -748,6 +773,11 @@
 				data.setIsWorkspaceMigrated(vo.isIsWorkspaceMigrated());
 			 }else{
 				data.setIsWorkspaceMigrated(false);
+			 }
+			 if(vo.isActiveInGroup() !=null){
+				data.setActiveInGroup(vo.isActiveInGroup());
+			 }else{
+				data.setActiveInGroup(false);	
 			 }
 			 UserInfoVO ownerVO = vo.getWorkspaceOwner();
 			 if (ownerVO != null) {

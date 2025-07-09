@@ -1,9 +1,9 @@
 replicaCount: 1
-namespace: power-platform
+namespace: test-dna-power-platform
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/power-platform-be
   pullPolicy: IfNotPresent
-  tag: '122'
+  tag: '1565'
 envs: {}
 imagePullSecrets:
   - name: imagepullsecret
@@ -15,27 +15,26 @@ serviceAccount:
   name: ''
 podAnnotations:
   vault.hashicorp.com/agent-inject: 'true'
-  vault.hashicorp.com/role: "dna_staging_k8_role"
-  vault.hashicorp.com/tls-skip-verify: 'true'
+  vault.hashicorp.com/role: "dna_aws_staging_k8_role"
   vault.hashicorp.com/agent-pre-populate-only: 'true'
-  vault.hashicorp.com/agent-inject-secret-truststore.jks: dna_kv/staging/kubernetesSecret/kafka
+  vault.hashicorp.com/agent-inject-secret-truststore.jks: dna_aws_kv/staging/kubernetesSecret/kafka
   vault.hashicorp.com/agent-inject-template-truststore.jks: |
-    {{- with secret "dna_kv/staging/kubernetesSecret/kafka" -}}
+    {{- with secret "dna_aws_kv/staging/kubernetesSecret/kafka" -}}
     {{ base64Decode  .Data.data.TRUSTSTORE }}
     {{- end }}
-  vault.hashicorp.com/agent-inject-secret-keystore.p12: dna_kv/staging/kubernetesSecret/kafka
+  vault.hashicorp.com/agent-inject-secret-keystore.p12: dna_aws_kv/staging/kubernetesSecret/kafka
   vault.hashicorp.com/agent-inject-template-keystore.p12: |
-    {{- with secret "dna_kv/staging/kubernetesSecret/kafka" -}}
+    {{- with secret "dna_aws_kv/staging/kubernetesSecret/kafka" -}}
     {{ base64Decode  .Data.data.KEYSTORE }}
     {{- end }}      
-  vault.hashicorp.com/agent-inject-secret-envvar: dna_kv/staging/kubernetesSecret/power-platformService
+  vault.hashicorp.com/agent-inject-secret-envvar: dna_aws_kv/staging/kubernetesSecret/power-platformService
   vault.hashicorp.com/agent-inject-template-envvar: |
-    {{- with secret "dna_kv/staging/kubernetesSecret/power-platformService" -}}
+    {{- with secret "dna_aws_kv/staging/kubernetesSecret/power-platformService" -}}
       {{- range $k, $v := .Data.data }}
           export {{ $k }}="{{ $v }}"
       {{- end }}
     {{- end }}
-    {{- with secret "dna_kv/staging/kubernetesSecret/kafka" -}}
+    {{- with secret "dna_aws_kv/staging/kubernetesSecret/kafka" -}}
       {{- range $k, $v := .Data.data }}
       {{- if or (eq $k "KEYSTORE_PASSWORD") (eq $k "TRUSTSTORE_PASSWORD") (eq $k "KEYSTORE_PATH") (eq $k "TRUSTSTORE_PATH") }}
           export {{ $k }}="{{ $v }}"
@@ -50,9 +49,11 @@ service:
   port: 9292
 ingress:
   enabled: false
+  className: test-ingress-intranet
   annotations:
     traefik.frontend.rule.type: PathPrefix
-    kubernetes.io/ingress.class: traefik
+    kubernetes.io/ingress.class: test-ingress-intranet
+    acme.cert-manager.io/http01-ingress-class: test-ingress-intranet
     traefik.ingress.kubernetes.io/router.tls: 'true'
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
     cert-manager.io/cluster-issuer: daimler-acme
@@ -71,7 +72,12 @@ ingress:
         - path: /webjars
           pathType: Prefix
   tls: null
-resources: {}
+resources:
+  requests:
+    memory: 348Mi
+    cpu: 10m
+  limits:
+    memory: 348Mi
 autoscaling:
   enabled: false
   minReplicas: 1

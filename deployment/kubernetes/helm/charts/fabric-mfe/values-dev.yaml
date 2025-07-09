@@ -1,4 +1,4 @@
-namespace: fabric
+namespace: dev-dna-fabric
 configJs: |
   window["fabric_INJECTED_ENVIRONMENT"]={
     ENABLE_fabric_SERVICE=true,
@@ -9,7 +9,7 @@ replicaCount: 1
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/fabric-mfe
   pullPolicy: IfNotPresent
-  tag: '123'
+  tag: '946'
 imagePullSecrets:
   - name: imagepullsecret
 nameOverride: ''
@@ -21,13 +21,14 @@ service:
   type: ClusterIP
   port: 80
 ingress:
-  enabled: true
+  enabled: false
+  className: dev-ingress-intranet
   annotations:
     traefik.frontend.rule.type: PathPrefix
-    kubernetes.io/ingress.class: traefik
+    kubernetes.io/ingress.class: dev-ingress-intranet
     traefik.ingress.kubernetes.io/router.tls: 'true'
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
-    cert-manager.io/cluster-issuer: daimler-acme
+    cert-manager.io/cluster-issuer: mercedes-benz-acme
     traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
   hosts:
     - host: workspaces.dev.dna.app.corpintra.net
@@ -40,22 +41,20 @@ ingress:
       secretName: workspaces-tls-secret
 resources:
   limits:
-    cpu: 100m
-    memory: 128Mi
+    memory: 100Mi
   requests:
-    cpu: 100m
-    memory: 128Mi
+    cpu: 10m
+    memory: 100Mi
 vaultInjector:
   enable: true
   annotations:
     vault.hashicorp.com/agent-inject: 'true'
-    vault.hashicorp.com/role: "dna_dev_k8_role"
-    vault.hashicorp.com/tls-skip-verify: 'true'
+    vault.hashicorp.com/role: dna_aws_dev_k8_role 
     vault.hashicorp.com/agent-pre-populate-only: 'true'
-    vault.hashicorp.com/agent-inject-secret-configjs: dna_kv/dev/kubernetesSecret/fabricMFE
+    vault.hashicorp.com/agent-inject-secret-configjs: dna_aws_kv/dev/kubernetesSecret/fabricMFE
     vault.hashicorp.com/agent-inject-file-configjs: config.js
     vault.hashicorp.com/agent-inject-template-configjs: |
-      {{- with secret "dna_kv/dev/kubernetesSecret/fabricMFE" -}}
+      {{- with secret "dna_aws_kv/dev/kubernetesSecret/fabricMFE" -}}
           window["fabric_INJECTED_ENVIRONMENT"]={
           {{- range $k, $v := .Data.data }}
           {{- if or (eq $v "true") (eq $v "false") (regexMatch "^[0-9]+$" $v) }}

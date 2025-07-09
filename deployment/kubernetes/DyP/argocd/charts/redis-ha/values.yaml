@@ -3,7 +3,7 @@
 ##
 image:
   repository: redis
-  tag: 7.0.9-alpine3.17
+  tag: 7.2.4-alpine
   pullPolicy: IfNotPresent
 
 ## Reference to one or more secrets to be used when pulling images
@@ -79,9 +79,15 @@ haproxy:
     enabled: false
     port: 6380
   replicas: 3
+  # -- Deployment strategy for the haproxy deployment
+  deploymentStrategy:
+    type: RollingUpdate
+    # rollingUpdate:
+    #   maxSurge: 25%
+    #   maxUnavailable: 25%
   image:
     repository: haproxy
-    tag: 2.6.9
+    tag: 2.9.4-alpine
     pullPolicy: IfNotPresent
 
   ## Custom labels for the haproxy pod
@@ -105,7 +111,6 @@ haproxy:
     # maxUnavailable: 1
     # minAvailable: 1
 
-
   ## Enable sticky sessions to Redis nodes via HAProxy
   ## Very useful for long-living connections as in case of Sentry for example
   stickyBalancing: false
@@ -116,6 +121,7 @@ haproxy:
   service:
     type: ClusterIP
     loadBalancerIP:
+    externalIPs: {}
     labels: {}
     annotations: null
 
@@ -145,9 +151,11 @@ haproxy:
       # Set path to redis-exporter telemtery-path
       # telemetryPath: /metrics
       # Set labels for the ServiceMonitor, use this to define your scrape label for Prometheus Operator
-      # labels: {}
+      labels: {}
       # Set timeout for scrape
       # timeout: 10s
+      # Set additional properties for the ServiceMonitor endpoints such as relabeling, scrapeTimeout, tlsConfig, and more.
+      endpointAdditionalProperties: {}
   init:
     resources: {}
   timeout:
@@ -200,6 +208,31 @@ haproxy:
   ## Enable HAProxy parameters to bind and consume IPv6 addresses. Enabled by default.
   IPv6:
     enabled: true
+
+  networkPolicy:
+    ## whether NetworkPolicy for Haproxy should be created
+    enabled: false
+    annotations: {}
+    labels: {}
+    ## user defines ingress rules that Haproxy should permit into
+    ## uses the format defined in https://kubernetes.io/docs/concepts/overview/working-with-objects/labels/#label-selectors
+    ingressRules: []
+      # - selectors:
+      #   - namespaceSelector:
+      #       matchLabels:
+      #         name: my-redis-client-namespace
+      #     podSelector:
+      #       matchLabels:
+      #         application: redis-client
+      ## if ports is not defined then it defaults to the ports defined for enabled services (redis, sentinel)
+      #   ports:
+      #     - port: 6379
+      #       protocol: TCP
+      #     - port: 26379
+      #       protocol: TCP
+
+    ## user can define egress rules too, uses the same structure as ingressRules
+    egressRules: []
 
 ## Role Based Access
 ## Ref: https://kubernetes.io/docs/admin/authorization/rbac/
@@ -470,7 +503,7 @@ topologySpreadConstraints:
 exporter:
   enabled: false
   image: oliver006/redis_exporter
-  tag: v1.43.0
+  tag: v1.57.0
   pullPolicy: IfNotPresent
 
   # prometheus port & scrape path
@@ -527,9 +560,11 @@ exporter:
     # Set path to redis-exporter telemtery-path
     # telemetryPath: /metrics
     # Set labels for the ServiceMonitor, use this to define your scrape label for Prometheus Operator
-    # labels: {}
+    labels: {}
     # Set timeout for scrape
     # timeout: 10s
+    # Set additional properties for the ServiceMonitor endpoints such as relabeling, scrapeTimeout, tlsConfig, and more.
+    endpointAdditionalProperties: {}
 
   # prometheus exporter SCANS redis db which can take some time
   # allow different probe settings to not let container crashloop
@@ -613,7 +648,6 @@ tls:
 # secrets are stored into environment of init container - stored encoded on k8s
 # REQUIRED for s3 restore: AWS 'access_key' and 'secret_key' or stored in existingSecret
 # EXAMPLE source for s3 restore: 's3://bucket/dump.rdb'
-# REQUIRED for ssh restore: 'key' should be in one line including CR i.e. ''
 # EXAMPLE source for ssh restore: 'user@server:/path/dump.rdb'
 restore:
   timeout: 600

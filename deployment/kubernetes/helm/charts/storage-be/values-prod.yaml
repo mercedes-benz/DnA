@@ -1,4 +1,4 @@
-namespace: storage
+namespace: prod-dna-storage
 envs:
   - name: MAX_FILE_SIZE
     value: 3000MB
@@ -129,7 +129,7 @@ replicaCount: 2
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/storage-be
   pullPolicy: IfNotPresent
-  tag: 3.2.21
+  tag: 3.2.33
 imagePullSecrets:
   - name: imagepullsecret
 nameOverride: ''
@@ -142,12 +142,14 @@ service:
   port: 80
 ingress:
   enabled: false
+  className: prod-ingress-intranet
   annotations:
     traefik.frontend.rule.type: PathPrefix
-    kubernetes.io/ingress.class: traefik
+    kubernetes.io/ingress.class: prod-ingress-intranet
+    acme.cert-manager.io/http01-ingress-class: prod-ingress-intranet
     traefik.ingress.kubernetes.io/router.tls: 'true'
     traefik.ingress.kubernetes.io/router.entrypoints: websecure
-    cert-manager.io/cluster-issuer: daimler-acme
+    cert-manager.io/cluster-issuer: mercedes-benz-acme
     traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
   hosts:
     - host: storage.dna.app.corpintra.net
@@ -163,44 +165,48 @@ ingress:
         - path: /webjars
           pathType: Prefix
   tls: null
-resources: {}
+resources:
+  requests:
+    memory: 4Gi
+    cpu: 12m
+  limits:
+    memory: 4Gi
 vaultInjector:
   enable: true
   annotations:
     vault.hashicorp.com/agent-inject: 'true'
-    vault.hashicorp.com/role: dna_prod_k8_role
-    vault.hashicorp.com/tls-skip-verify: 'true'
+    vault.hashicorp.com/role: dna_aws_prod_k8_role
     vault.hashicorp.com/agent-pre-populate-only: 'true'
-    vault.hashicorp.com/agent-inject-secret-truststore.jks: dna_kv/prod/kubernetesSecret/kafka
+    vault.hashicorp.com/agent-inject-secret-truststore.jks: dna_aws_kv/prod/kubernetesSecret/kafka
     vault.hashicorp.com/agent-inject-template-truststore.jks: |
-      {{- with secret "dna_kv/prod/kubernetesSecret/kafka" -}}
+      {{- with secret "dna_aws_kv/prod/kubernetesSecret/kafka" -}}
       {{ base64Decode  .Data.data.TRUSTSTORE }}
       {{- end }}
-    vault.hashicorp.com/agent-inject-secret-catruststore.jks: dna_kv/prod/kubernetesSecret/infra
+    vault.hashicorp.com/agent-inject-secret-catruststore.jks: dna_aws_kv/dev/kubernetesSecret/infra
     vault.hashicorp.com/agent-inject-template-catruststore.jks: |
-      {{- with secret "dna_kv/prod/kubernetesSecret/infra" -}}
+      {{- with secret "dna_aws_kv/dev/kubernetesSecret/infra" -}}
       {{ base64Decode  .Data.data.CA_TRUSTSTORE }}
-      {{- end }}             
-    vault.hashicorp.com/agent-inject-secret-keystore.p12: dna_kv/prod/kubernetesSecret/kafka
+      {{- end }}         
+    vault.hashicorp.com/agent-inject-secret-keystore.p12: dna_aws_kv/prod/kubernetesSecret/kafka
     vault.hashicorp.com/agent-inject-template-keystore.p12: |
-      {{- with secret "dna_kv/prod/kubernetesSecret/kafka" -}}
+      {{- with secret "dna_aws_kv/prod/kubernetesSecret/kafka" -}}
       {{ base64Decode  .Data.data.KEYSTORE }}
       {{- end }}      
-    vault.hashicorp.com/agent-inject-secret-envvar: dna_kv/prod/kubernetesSecret/storageService
+    vault.hashicorp.com/agent-inject-secret-envvar: dna_aws_kv/prod/kubernetesSecret/storageService
     vault.hashicorp.com/agent-inject-template-envvar: |
-      {{- with secret "dna_kv/prod/kubernetesSecret/storageService" -}}
+      {{- with secret "dna_aws_kv/prod/kubernetesSecret/storageService" -}}
         {{- range $k, $v := .Data.data }}
             export {{ $k }}="{{ $v }}"
         {{- end }}
       {{- end }}
-      {{- with secret "dna_kv/prod/kubernetesSecret/kafka" -}}
+      {{- with secret "dna_aws_kv/prod/kubernetesSecret/kafka" -}}
         {{- range $k, $v := .Data.data }}
         {{- if or (eq $k "KEYSTORE_PASSWORD") (eq $k "TRUSTSTORE_PASSWORD") (eq $k "KEYSTORE_PATH") (eq $k "TRUSTSTORE_PATH") }}
             export {{ $k }}="{{ $v }}"
         {{- end }}        
         {{- end }}      
       {{- end }}   
-      {{- with secret "dna_kv/prod/kubernetesSecret/minio" -}}
+      {{- with secret "dna_aws_kv/prod/kubernetesSecret/minio" -}}
         {{- range $k, $v := .Data.data }}
             export {{ $k }}="{{ $v }}"
         {{- end }}
@@ -210,3 +216,7 @@ vaultInjector:
 podDisruptionBudget:
   enabled: true
   minAvailable: 50%
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 10

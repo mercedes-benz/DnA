@@ -215,14 +215,19 @@ const NewCodeSpace = (props) => {
 
   const onProjectNameOnChange = (evnt) => {
     const projectNameVal = sanitizedRepositoryName(evnt.currentTarget.value);
-    setProjectName(projectNameVal);
+    setProjectName(projectNameVal);    
     const hasSpecialChars = /[^A-Za-z0-9-]/.test(projectNameVal);
     const startsOrEndswith = /^-|-$|(--)|^\d+$/i.test(projectNameVal);
+    const startsWithNumber = /^\d/.test(projectNameVal);
+    
     if (hasSpecialChars) {
       setProjectNameError('Invalid name: Should not contain any special characters except for "-".');
     }
     else if (!projectNameVal.length) {
       setProjectNameError(requiredError);
+    }
+    else if (startsWithNumber) {
+      setProjectNameError('Invalid name: Should not start with a number.');
     }
     else if (startsOrEndswith) {
       setProjectNameError('Invalid name: Should not start or end with "-" or name contains only numbers.');
@@ -230,7 +235,7 @@ const NewCodeSpace = (props) => {
     else {
       setProjectNameError('');
     }
-  };
+};
 
   // const onGithubUserNameOnChange = (evnt: React.FormEvent<HTMLInputElement>) => {
   //   const githubUserNameVal = evnt.currentTarget.value.trim();
@@ -298,14 +303,14 @@ const NewCodeSpace = (props) => {
   const onArcherIdChange = (e) => {
     const currentValue = e.currentTarget.value;
     setArcherId(currentValue);
-    const pattern = /^(INFO)-\d{5}$/.test(currentValue);
+    const pattern = /^(INFO)-\d{1,10}$/.test(currentValue);
     setArcherIdError(currentValue.length && !pattern ? 'Archer ID should be of type INFO-XXXXX' : '');
   };
 
   const onProcedureIDChange = (e) => {
     const currentValue = e.currentTarget.value;
     setProcedureID(currentValue);
-    const pattern = /^(PO|ITPLC)-\d{5}$/.test(currentValue);
+    const pattern = /^(PO|ITPLC)-\d{1,10}$/.test(currentValue);
     setProcedureIDError(currentValue.length && !pattern ? 'Procedure ID should be of type PO-XXXXX / ITPLC-XXXXX' : '');
   };
 
@@ -1497,20 +1502,6 @@ const NewCodeSpace = (props) => {
                         />
                       </span>
                       <span className="label">DyP CaaS (AWS)</span>
-                    </label>
-                    <label className={classNames('radio')}>
-                      <span className="wrapper">
-                        <input
-                          type="radio"
-                          className="ff-only"
-                          value="DHC-CaaS"
-                          name="environment"
-                          onChange={onEnvironmentChange}
-                          checked={environment==='DHC-CaaS'}
-                          disabled={true}
-                        />
-                      </span>
-                      <span className="label">DyP CaaS (On-Prem)</span>
                     </label>
                     <label className={classNames('radio')}>
                       <span className="wrapper">

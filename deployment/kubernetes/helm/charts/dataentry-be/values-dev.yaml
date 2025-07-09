@@ -32,9 +32,9 @@ podAnnotations:
   vault.hashicorp.com/agent-inject: 'false'
   vault.hashicorp.com/role: 'dna_dev_k8_role'
   vault.hashicorp.com/agent-pre-populate-only: 'true'
-  vault.hashicorp.com/agent-inject-secret-envvar: 'dna_kv/dev/kubernetesSecret/dataentry-be'
+  vault.hashicorp.com/agent-inject-secret-envvar: 'dna_aws_kv/dev/kubernetesSecret/dataentry-be'
   vault.hashicorp.com/agent-inject-template-envvar: | 
-    {{- with secret "dna_kv/dev/kubernetesSecret/dataentry-be" -}}
+    {{- with secret "dna_aws_kv/dev/kubernetesSecret/dataentry-be" -}}
       {{- range $k, $v := .Data.data }}
           export {{ $k }}="{{ $v }}"
       {{- end }}
@@ -70,7 +70,12 @@ ingress:
   #    hosts:
   #      - chart-example.local
 
-resources: {}
+resources:
+  requests:
+    memory: 597Mi
+    cpu: 32m
+  limits:
+    memory: 597Mi
   # We usually recommend not to specify default resources and to leave this as a conscious
   # choice for the user. This also increases chances charts run on environments with little
   # resources, such as Minikube. If you do want to specify resources, uncomment the following

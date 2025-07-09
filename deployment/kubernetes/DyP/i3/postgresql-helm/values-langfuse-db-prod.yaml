@@ -1,6 +1,6 @@
-namespace: tools
+namespace: cs-apps-services
 annotations:
-  argocdvault: "dna_kv/data/prod/kubernetesSecret/langfusedb"
+  argocdvault: "dna_aws_kv/data/prod/kubernetesSecret/langfusedb"
 ## I³ PostgreSQL image version
 ## ref: https://registry-emea.app.corpintra.net/repository/i3-releases/postgresql?tab=tags
 ##
@@ -86,13 +86,13 @@ DBName: langfusedb
 ##
 s3:
   ## provided by s3 provider
-  accesskey: <path:dna_kv/data/prod/kubernetesSecret/langfusedb#accesskey>
+  accesskey: <path:dna_aws_kv/data/prod/kubernetesSecret/langfusedb#accesskey>
   ## provided by s3 provider
-  secretkey: <path:dna_kv/data/prod/kubernetesSecret/langfusedb#secretkey>
+  secretkey: <path:dna_aws_kv/data/prod/kubernetesSecret/langfusedb#secretkey>
   ## internally used
   hostAlias: s3
   ## url of the S3 endpoint
-  host: <path:dna_kv/data/prod/kubernetesSecret/langfusedb#s3.host>
+  host: <path:dna_aws_kv/data/prod/kubernetesSecret/langfusedb#s3.host>
   ## use rclone client in insecure mode
   ## recommended is false, the postgres image already has daimler certificates installed and is able to verify Daimler certificates.
   ## in some cases, e.g. if you want to test with your own S3 service hosted on your own hardware, the certificate might not be verifiable.
@@ -104,16 +104,15 @@ s3:
 ## ref: http://kubernetes.io/docs/user-guide/compute-resources/
 ##
 resources:
-  enabled: false
+  enabled: true
   ## uncomment fitting parts when you wand to enable setting cpu and memory requests and limits
   limits:
-    enabled: false
-    # cpu: 1.5
-    # memory: 1Gi
+    enabled: true
+    memory: 1024Mi
   request:
-    enabled: false
-    # cpu: 1.2
-    # memory: 1Gi
+    enabled: true
+    cpu: 30m
+    memory: 1024Mi
 
 ## Configure additional env variables
 env:
@@ -146,7 +145,7 @@ walArchiving:
     ## Configuration for S3 storage
     subfolder: postgresql-cluster
     ## fill in the bucket name you have ordered!
-    bucketName: <path:dna_kv/data/prod/kubernetesSecret/langfusedb#bucketName>
+    bucketName: <path:dna_aws_kv/data/prod/kubernetesSecret/langfusedb#bucketName>
 
 ## Configure extra options for liveness and readiness probes
 ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#configure-probes)
@@ -201,31 +200,31 @@ dbusers:
   ## backup user, will be used for synchronizing between the cluster nodes and for backup
   backup:
     username: backupuser
-    password: <path:dna_kv/data/prod/kubernetesSecret/langfusedb#backup.password>
+    password: <path:dna_aws_kv/data/prod/kubernetesSecret/langfusedb#backup.password>
   ## the database (not the instance) owner
   dbadm:
     username: langfuse
-    password: <path:dna_kv/data/prod/kubernetesSecret/langfusedb#dbadm.password>
+    password: <path:dna_aws_kv/data/prod/kubernetesSecret/langfusedb#dbadm.password>
 
     createSchema:
       # Usually this is required if you use an ORM and do not create the table via the initdb script
       enabled: false
       # name: customschema  ## technical user, e.g. to do switchover and other cluster operations
   patroni:
-    password: <path:dna_kv/data/prod/kubernetesSecret/langfusedb#patroni.password>
+    password: <path:dna_aws_kv/data/prod/kubernetesSecret/langfusedb#patroni.password>
   ## technical user for postgresql monitoring
   pgmon:
     username: pgmon
-    password: <path:dna_kv/data/prod/kubernetesSecret/langfusedb#pgmon.password>
+    password: <path:dna_aws_kv/data/prod/kubernetesSecret/langfusedb#pgmon.password>
   ## if a technical user for Debezium is needed, then set a password
   ## otherwise no user for Debezium is created
   debezium:
     username: debezium
-    password: <path:dna_kv/data/prod/kubernetesSecret/langfusedb#debezium.password>
+    password: <path:dna_aws_kv/data/prod/kubernetesSecret/langfusedb#debezium.password>
   ## if technical user 'DATA_CATALOG' for CORPORATE DATA CATALOG is needed, then set a password
   ## otherwise no user for CORPORATE DATA CATALOG is created
   dataCatalog:
-    password: <path:dna_kv/data/prod/kubernetesSecret/langfusedb#dataCatalog.password>
+    password: <path:dna_aws_kv/data/prod/kubernetesSecret/langfusedb#dataCatalog.password>
 
 ## Enable PostgreSQL service
 ##
@@ -242,13 +241,13 @@ service:
 ##
 persistence:
   enabled: true
-  size: <path:dna_kv/data/prod/kubernetesSecret/langfusedb#size>
-  # storageClass: cinder
+  size: <path:dna_aws_kv/data/prod/kubernetesSecret/langfusedb#size>
+  # storageClass: dhc-gp3
   # PVCName: name
   wal:
     enabled: false
     size: 1Gi
-    # storageClass: cinder
+    # storageClass: dhc-gp3
     # PVCName: name
 
 ## Network Policy to be applied
@@ -300,15 +299,15 @@ backup:
       accessModes:
       - ReadWriteMany
       size: 1Gi
-      storageClass: cinder-retain
+      storageClass: dhc-gp3-retain
   s3:
     ## Configuration for S3 storage
     subfolder: langfuse-db-backups
     ## fill in the bucket name you have ordered!
-    bucketName: <path:dna_kv/data/prod/kubernetesSecret/langfusedb#bucketName>
+    bucketName: <path:dna_aws_kv/data/prod/kubernetesSecret/langfusedb#bucketName>
   ## general configuration for backup
   schedule: "1 0 * * *"
-  retention: <path:dna_kv/data/prod/kubernetesSecret/langfusedb#retention>
+  retention: <path:dna_aws_kv/data/prod/kubernetesSecret/langfusedb#retention>
   ## Please read documentation at docs/operations/operations.md#cleanup-wal-archives before enabling this feature
   cleanupWalArchives: false
   image:
@@ -332,7 +331,7 @@ backup:
     ## recommended
     enabled: true
     size: 10Gi
-    # storageClass: cinder
+    # storageClass: dhc-gp3
   file:
     name: langfuse-backup
     # label: test
@@ -353,21 +352,21 @@ restore:
   targetInclusive: true
   ## the kind of storage where the backups are stored
   ## fs | s3
-  storage: fs
+  storage: s3
   fs:
     volume:
       ## if volume.enabled is true, it is expected that a PersistentVolumeClaims exists with the backups and that it can be mounted.
       enabled: true
   s3:
-    # subfolder: postgresql-cluster
+    subfolder: langfuse-db-backups
     ## fill in the bucket name you have ordered!
-    bucketName: emeas3
+    bucketName: db-backup
 
   ## Complete (including label) file name of backup file that has to be restored.
-  recoveryFile: postgresql-backup*.tar.gz
+  recoveryFile: langfuse-backup-2025-04-24_11-51-09.tar.zst
   image:
     repository: registry-emea.app.corpintra.net/i3-releases/postgresql-backup
-    tag: 13.8-5.3.0-2022.11.4
+    tag: 13.8-5.5.0-2023.2.20
     pullPolicy: IfNotPresent
   resources:
     enabled: false
@@ -390,7 +389,7 @@ restore:
 initdbScripts:
   enabled: true
   name: init_db.sh
-  script: <path:dna_kv/data/prod/kubernetesSecret/langfusedb#init-db>
+  script: <path:dna_aws_kv/data/prod/kubernetesSecret/langfusedb#init-db>
 
 test:
   enabled: true
@@ -417,15 +416,14 @@ pgmonitoring:
     tag: v0.10.1
     pullPolicy: IfNotPresent
   resources:
-    enabled: false
+    enabled: true
     limits:
-      enabled: false
-      # cpu: 500m
-      # memory: 512Mi
+      enabled: true
+      memory: 100Mi
     request:
-      enabled: false
-      # cpu: 250m
-      # memory: 256Mi
+      enabled: true
+      cpu: 10m
+      memory: 100Mi
   queryMonitoring:
     enabled: true
   customQueries: {}
