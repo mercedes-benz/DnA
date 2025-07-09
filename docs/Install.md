@@ -45,6 +45,8 @@ Execute the following Docker Compose command to create the DnA application.
 ```
 docker-compose -f docker-compose-local-basic.yml up -d
 ```
+*NOTE* Will take some time to load the service in your local
+
 For Reference:
 
 ![This is an image](./images/Docker-compose-sucess.png)
