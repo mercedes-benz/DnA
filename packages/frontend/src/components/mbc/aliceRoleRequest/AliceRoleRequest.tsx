@@ -132,7 +132,7 @@ const AliceRoleRequest = () => {
       if (roleRes?.data) {
         setSelectedRoleDetails({
           id: roleRes.data.id,
-          name: roleRes.data.name,
+          name: roleRes.data.roleName,
           description: roleRes.data.description,
           isDynamic: roleRes.data.isDynamic,
           isSelfRequestable: roleRes.data.isSelfRequestable,
@@ -144,10 +144,8 @@ const AliceRoleRequest = () => {
         Notification.show(errorMessage, 'alert');
       }
   
-      if (entraRes?.data?.groupMembers) {
-        setEntraGroupMembers(entraRes.data.groupMembers);
-      } else if (entraRes?.errors?.length > 0) {
-        Notification.show(entraRes.errors[0].message || 'Error fetching EntraID members', 'alert');
+      if (entraRes?.members) {
+        setEntraGroupMembers(entraRes.members);
       }
   
       ProgressIndicator.hide(); 
@@ -241,10 +239,11 @@ const AliceRoleRequest = () => {
                   />
                 </div>
               </div>
-
-              <button className="btn btn-tertiary" type="button" onClick={createRole}>
-                create Role
-              </button>
+              <label className="Create Role">
+                  <button className="btn btn-tertiary" type="button" onClick={createRole}>
+                    Create Role
+                  </button>
+              </label>
             </div>
           </div>
           <hr className={Styles.divider} />
@@ -308,7 +307,7 @@ const AliceRoleRequest = () => {
         </div>
       </div>
       <Modal
-        title="Role Details"
+        title={selectedRoleDetails?.name || 'No Role Name'}
         content={
           <div>
             <div className={classNames(Styles.flexLayout, Styles.threeColumn)}>
