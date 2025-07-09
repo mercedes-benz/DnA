@@ -30,6 +30,7 @@ const DeployedAppConfigModal = (props) => {
   const [secureWithDnaSelected, setSecureWithDnaSelected] = useState(
     props?.deploymentDetails?.secureWithDnaRequired || false,
   );
+  const [ssoType, setSsoType] = useState(props?.deploymentDetails?.ssoType === 'SSO_PROD' ? 'SSO_PROD' : 'SSO_INT');
 
   const [oneApiVersionShortNameError, setOneApiVersionShortNameError] = useState('');
   const [clientIdError, setClientIdError] = useState('');
@@ -41,12 +42,16 @@ const DeployedAppConfigModal = (props) => {
   const [changeSelected, setChangeSelected] = useState(false);
   const [clientSecret, setClientSecret] = useState('');
   const [ignorePath, setIgnorePath] = useState([]);
+  const [ignorePathError, setIgnorePathError] = useState('');
   const [redirectUri, setRedirectUri] = useState('');
   const [scope, setScope] = useState(['openid', 'offline_access']);
-  const [ssoType, setSsoType] = useState(props?.deploymentDetails?.ssoType === 'SSO_PROD' ? 'SSO_PROD' : 'SSO_INT');
   const [pluginEnabled, setPluginEnabled] = useState(false);
   const [showEnablePluginWarning, setShowEnablePluginWarning] = useState(false);
   const [securedWithIAMWarning, setSecuredWithIAMWarning] = useState(false);
+  const [enableAliceRole, setEnableAliceRole] = useState(false);
+  const [existingRoles, setExistingRoles] = useState([]);
+  const [selectedRoles, setSelectedRoles] = useState([]);
+  const [aliceRolesError, setAliceRolesError] = useState('');
 
   const ignorePaths = [
     { id: '1', name: '/favicon.ico' },
@@ -104,6 +109,10 @@ const DeployedAppConfigModal = (props) => {
     );
     props?.deploymentDetails?.ignorePaths?.length && setIgnorePath(props?.deploymentDetails?.ignorePaths?.split(','));
     props?.deploymentDetails?.scope?.length && setScope(props?.deploymentDetails?.scope?.split(' '));
+    if (props?.deploymentDetails?.selectedRoles) {
+      const updatedRoles = props?.deploymentDetails?.selectedRoles.map(role => role.startsWith("DNA.") ? role.replace("DNA.", "") : role);
+      setSelectedRoles(updatedRoles);
+    }
     props?.deploymentDetails?.secureWithIAMRequired &&
       CodeSpaceApiClient.getPluginStatus(props?.workspaceId, props?.isStaging ? 'int' : 'prod', 'OIDC_PLUGIN')
         .then((res) => {
@@ -170,6 +179,34 @@ const DeployedAppConfigModal = (props) => {
     }
   }, [resetRequired]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  useEffect (() => {
+    if(enableAliceRole){
+      ProgressIndicator.show();
+      CodeSpaceApiClient.getExistingRoles(Envs.CODESPACE_SECURITY_APP_ID)
+        .then((res) => {
+          ProgressIndicator.hide();
+          if (res?.data?.roles) {
+            const existingRoles = res?.data?.roles.map(role => ({
+              id: role.roleID,
+              name: role.roleID
+            }));
+            setExistingRoles(existingRoles);
+          } else {
+            if (res?.data?.errors[0]?.message?.length > 0) {
+              Notification.show(res?.errors[0]?.message, 'alert');
+            }
+            if (res?.data?.warnings[0]?.message?.length > 0) {
+              Notification.show(res?.warnings[0]?.message, 'warning');
+            }
+          }
+        })
+        .catch((err) => {
+          ProgressIndicator.hide();
+          Notification.show(err?.message || 'Something went wrong', 'alert');
+        });
+    }
+  },[enableAliceRole]); // eslint-disable-line react-hooks/exhaustive-deps
+
   const onChangeSecureWithIAM = (e) => {
     if (!e.target.checked && props?.deploymentDetails?.secureWithIAMRequired) {
       setSecuredWithIAMWarning(true);
@@ -179,6 +216,7 @@ const DeployedAppConfigModal = (props) => {
     if (e.target.checked) {
       setOneApiSelected(false);
       setSecureWithDnaSelected(false);
+      setEnableAliceRole(false);
     }
   };
 
@@ -200,15 +238,25 @@ const DeployedAppConfigModal = (props) => {
     if (e.target.checked) {
       setSecureWithIAMSelected(false);
       setSecureWithDnaSelected(false);
+      setEnableAliceRole(false);
     }
   };
 
   const onIgnorePathChange = (selectedTags) => {
     setIgnorePath(selectedTags);
+    const ignorePathError = selectedTags.some((item) => item.endsWith('/') || item.includes(' ') || !item.startsWith('/'));
+    ignorePathError ? setIgnorePathError(`*path should start with '/' and path should not end with '/' or include white spaces.`) : setIgnorePathError('');
   };
 
-  const onScopeChnage = (selectedTags) => {
+  const onScopeChange = (selectedTags) => {
     setScope(selectedTags);
+  };
+
+  const onRolesChange = (selectedTags) => {
+    const upperCaseTags = selectedTags.map(tag => tag.toUpperCase());
+    setSelectedRoles(upperCaseTags);
+    const aliceRoleError = upperCaseTags.some(tag => !tag.startsWith(`${Envs.CODESPACE_SECURITY_APP_ID}_`));
+    aliceRoleError ? setAliceRolesError(`*Role names should start with ${Envs.CODESPACE_SECURITY_APP_ID}_`) : setAliceRolesError('');
   };
 
   const onSaveConfig = () => {
@@ -227,10 +275,7 @@ const DeployedAppConfigModal = (props) => {
       formValid = false;
       setRedirectUriError('*Missing Entry');
     }
-    if (
-      ignorePath.length !== 0 &&
-      ignorePath.some((item) => item.endsWith('/') || item.includes(' ') || !item.startsWith('/'))
-    ) {
+    if (ignorePathError?.length > 0 || aliceRolesError?.length > 0) {
       formValid = false;
     }
     if (oneApiSelected && oneApiVersionShortName?.length === 0) {
@@ -238,19 +283,23 @@ const DeployedAppConfigModal = (props) => {
       setOneApiVersionShortNameError('*Missing Entry');
     }
     if (formValid) {
+      const prefixedRoles = selectedRoles.map(role => `DNA.${role}`);
       const configRequest = {
         secureWithIAMRequired: secureWithIAMSelected,
-        clientID: secureWithIAMSelected ? clientId : '',
+        secureWithDnaRequired: secureWithDnaSelected,
+        clientID: (secureWithIAMSelected || secureWithDnaSelected) ? clientId : '',
         clientSecret: clientSecret,
         redirectUri:
-          secureWithIAMSelected && deploymentType === 'UI' && redirectUri?.length ? redirectUri?.split(envUrl)[1] : '',
-        ignorePaths: secureWithIAMSelected && ignorePath?.length ? ignorePath?.join(',') : '',
-        scope: secureWithIAMSelected ? scope?.join(' ') : '',
+          (secureWithIAMSelected || secureWithDnaSelected) && deploymentType === 'UI' && redirectUri?.length ? redirectUri?.split(envUrl)[1] : '',
+        ignorePaths: (secureWithIAMSelected || secureWithDnaSelected) && ignorePath?.length ? ignorePath?.join(',') : '',
+        scope: (secureWithIAMSelected || secureWithDnaSelected) ? scope?.join(' ') : '',
         isApiRecipe: deploymentType === 'API',
         oneApiVersionShortName: oneApiSelected ? oneApiVersionShortName : '',
         // isSecuredWithCookie: (secureWithIAMSelected && deploymentType === 'API' && cookieSelected) || false,
         isSecuredWithCookie: false,
         ssoType: secureWithIAMSelected ? ssoType : '',
+        aliceRoleEnabled: enableAliceRole,
+        selectedAliceRoles: prefixedRoles,
       };
       ProgressIndicator.show();
       CodeSpaceApiClient.updateDeployedAppConfig(props?.workspaceId, configRequest)
@@ -277,15 +326,17 @@ const DeployedAppConfigModal = (props) => {
   };
 
   const togglePlugin = () => {
-    const publishedSecurityConfig = props?.isStaging ? props?.securityConfig?.staging?.published : props?.securityConfig?.production?.published;
-    if(!pluginEnabled && publishedSecurityConfig?.appID?.length){
+    const publishedSecurityConfig = props?.isStaging
+      ? props?.securityConfig?.staging?.published
+      : props?.securityConfig?.production?.published;
+    if (!pluginEnabled && publishedSecurityConfig?.appID?.length) {
       setShowEnablePluginWarning(true);
-    } else{
+    } else {
       onPluginStatusChange();
     }
   };
 
-  const onPluginStatusChange = (enableAuthorizer=false) => {
+  const onPluginStatusChange = (enableAuthorizer = false) => {
     setShowEnablePluginWarning(false);
     ProgressIndicator.show();
     CodeSpaceApiClient.updatePluginStatus(
@@ -298,7 +349,7 @@ const DeployedAppConfigModal = (props) => {
         if (res?.data?.success === 'SUCCESS') {
           Notification.show(`Oidc plugin updated successfully`);
           setPluginEnabled(!pluginEnabled);
-          if(enableAuthorizer){
+          if (enableAuthorizer) {
             ProgressIndicator.show();
             CodeSpaceApiClient.updatePluginStatus(
               props?.workspaceId,
@@ -346,6 +397,10 @@ const DeployedAppConfigModal = (props) => {
         // );
         Notification.show('Error in updating OIDC Plugin. Please try again later.', 'alert');
       });
+  };
+
+  const navigateAliceRoleCreate = () => {
+    window.open(`${window.location.pathname}#/aliceRoleRequest`);
   };
 
   return (
@@ -543,6 +598,29 @@ const DeployedAppConfigModal = (props) => {
               </a>
             </span>
           )}
+          {secureWithDnaSelected && isUiRecipe && (
+            // <div className={classNames(Styles.align, Styles.flexLayout)}>
+            <div className={classNames(Styles.align, Styles.infoIcon)}>
+              <label className={classNames('switch', enableAliceRole ? 'on' : '')}>
+                <span className="label" style={{ marginRight: '5px' }}>
+                  Enable Alice Role Usage in cookie authentication
+                </span>
+                <span className="wrapper">
+                  <input
+                    value={enableAliceRole}
+                    type="checkbox"
+                    className="ff-only"
+                    onChange={() => {
+                      setEnableAliceRole(!enableAliceRole);
+                    }}
+                    checked={enableAliceRole}
+                    // maxLength={63}
+                  />
+                </span>
+              </label>
+            </div>
+            // </div>
+          )}
           {/* {secureWithIAMSelected && !isUiRecipe && (
             <div className={classNames(Styles.align, Styles.flexLayout)}>
               <div className={Styles.infoIcon}>
@@ -720,7 +798,7 @@ const DeployedAppConfigModal = (props) => {
                     tags={ignorePaths}
                     setTags={onIgnorePathChange}
                     isMandatory={false}
-                    isIgnorePath={true}
+                    errorText={ignorePathError}
                     showAllTagsOnFocus={true}
                     isDeployedAppConfig={true}
                   />
@@ -732,7 +810,7 @@ const DeployedAppConfigModal = (props) => {
                     chips={scope}
                     fixedChips={fixedScope}
                     tags={scopes}
-                    setTags={onScopeChnage}
+                    setTags={onScopeChange}
                     isMandatory={false}
                     disableSelfTagAdd={true}
                     suggestionPopupHeight={150}
@@ -741,6 +819,38 @@ const DeployedAppConfigModal = (props) => {
                   />
                 </div>
               </div>
+              {secureWithDnaSelected && enableAliceRole && (
+                <div className={classNames(Styles.wrapper)}>
+                  <span className="label">
+                    <p>{`Add Roles from Alice ${Envs.CODESPACE_SECURITY_APP_ID}`}</p>
+                  </span>
+                  <div className={classNames(Styles.clientIdLabel, Styles.align)}>
+                    {`You can create Alice roles within the DNA platform (Application ID: ${Envs.CODESPACE_SECURITY_APP_ID}
+                    ) `}
+                    <span className={Styles.configLink} onClick={navigateAliceRoleCreate}>
+                      <a target="_blank" rel="noreferrer">
+                        here
+                      </a>
+                    </span>
+                    .
+                  </div>
+                  <div className={classNames(Styles.align)}>
+                    <Tags
+                      title={'Alice Roles'}
+                      max={100}
+                      chips={selectedRoles}
+                      tags={existingRoles}
+                      setTags={onRolesChange}
+                      errorText={aliceRolesError}
+                      isMandatory={false}
+                      disableSelfTagAdd={false}
+                      suggestionPopupHeight={150}
+                      showAllTagsOnFocus={true}
+                      isDeployedAppConfig={true}
+                    />
+                  </div>
+                </div>
+              )}
             </>
           )}
         {oneApiSelected && (
@@ -832,11 +942,10 @@ const DeployedAppConfigModal = (props) => {
           modalWidth={'40%'}
           content={
             <div>
-              <h3>
-                Do you wish to enable both SSO Authentication and Authorization?
-              </h3>
+              <h3>Do you wish to enable both SSO Authentication and Authorization?</h3>
               <p>
-                Click No to only enable Authentication. You can enable the Authorization plugin using the Authorization config page as well.
+                Click No to only enable Authentication. You can enable the Authorization plugin using the Authorization
+                config page as well.
               </p>
             </div>
           }
