@@ -1,4 +1,4 @@
-import { server, hostServer, reportsServer, vaultServer, storageServer, baseURL, readJwt} from '../server/api';
+import { server, hostServer, reportsServer, vaultServer, storageServer, fabricServer, baseURL, readJwt} from '../server/api';
 import { EventSourcePolyfill } from 'event-source-polyfill';
 import { Envs } from '../Utility/envs';
 
@@ -418,6 +418,12 @@ const deleteCodeSpaceGroup = (id) => {
     });
 };
 
+const getExistingRoles = (appId) => {
+    return fabricServer.get(`fabric-workspaces/${appId}/dnaroles`, {
+        data: {},
+    });
+};
+
 export const CodeSpaceApiClient = {
     getCodeSpacesList,
     createCodeSpace,
@@ -485,5 +491,6 @@ export const CodeSpaceApiClient = {
     getCodeSpaceGroup,
     createCodeSpaceGroup,
     editCodeSpaceGroup,
-    deleteCodeSpaceGroup
+    deleteCodeSpaceGroup,
+    getExistingRoles
 };
