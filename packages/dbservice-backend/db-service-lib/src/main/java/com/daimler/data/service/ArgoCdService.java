@@ -66,6 +66,12 @@ public class ArgoCdService {
     @Value("${argocd.createEnvironment}")
     private String environment;
 
+    @Value("${argocd.createRepoUrl}")
+    private String repoUrl;
+
+    @Value("${argocd.createSourcePath}")
+    private String sourcePath;
+
     @Autowired
     private RestTemplate restTemplate;
 
@@ -154,6 +160,8 @@ public class ArgoCdService {
     template = template.replace("{nameSpace}", nameSpace);
     template = template.replace("{pdbMinAvailable}", pdbMinAvailable);
     template = template.replace("{environment}", environment);
+    template = template.replace("{repoUrl}", repoUrl);
+    template = template.replace("{sourcePath}", sourcePath);
 
 
     ObjectMapper mapper = new ObjectMapper();
