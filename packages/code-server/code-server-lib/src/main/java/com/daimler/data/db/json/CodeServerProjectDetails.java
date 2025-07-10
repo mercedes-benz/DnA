@@ -21,10 +21,15 @@ public class CodeServerProjectDetails implements Serializable {
 	private Date projectCreatedOn;
 	private String recipeName;
 	private List<UserInfo> projectCollaborators;
+	private CodeServerBuildDetails prodBuildDetails;
+	private CodeServerBuildDetails intBuildDetails;
 	private CodeServerDeploymentDetails prodDeploymentDetails;
 	private CodeServerDeploymentDetails intDeploymentDetails;
 	private CodeServerRecipeDetails recipeDetails;
 	private String gitRepoName;
 	private CodespaceSecurityConfig securityConfig;	
 	private CodeServerLeanGovernanceFeilds dataGovernance;
+	private Date lastBuildOrDeployedOn;
+	private String lastBuildOrDeployedStatus;
+	private String lastBuildOrDeployedEnv;
 }
