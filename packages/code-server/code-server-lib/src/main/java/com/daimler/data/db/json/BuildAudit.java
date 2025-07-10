@@ -13,15 +13,15 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true) 
-public class DeploymentAudit implements Serializable{
+public class BuildAudit implements Serializable{
 
     private String triggeredBy;
     private Date triggeredOn;
-    private String deploymentStatus;
-    private Date deployedOn;
+    private Date buildOn;
+    private String buildStatus;
     private String branch;
-    private String commitId;
-    private String approvedBy;
     private String version;
+    private String comments;
+    private String commitId;
 
 }

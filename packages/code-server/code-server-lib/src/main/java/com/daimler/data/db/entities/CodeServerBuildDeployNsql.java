@@ -25,26 +25,28 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.json;
+ package com.daimler.data.db.entities;
 
-import java.io.Serializable;
+ import java.io.Serializable;
+ 
+ import javax.persistence.Entity;
+ import javax.persistence.Table;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-
-@Data
-@NoArgsConstructor
-@AllArgsConstructor
-public class UserInfo implements Serializable{
-
-	private String id;
-	private String firstName;
-	private String lastName;
-	private String department;
-	private String email;
-	private String mobileNumber;
-	private String gitUserName;
-	private Boolean isAdmin;
-	private Boolean isApprover;
-}
+import com.daimler.data.db.json.CodeServerBuildDeploy;
+ 
+ @Entity
+ @Table(name = "build_deploy_nsql")
+ public class CodeServerBuildDeployNsql extends BaseEntity<CodeServerBuildDeploy> implements Serializable {
+ 
+     private static final long serialVersionUID = 4857908075537600169L;
+ 
+     public CodeServerBuildDeployNsql() {
+         super();
+     }
+ 
+     public CodeServerBuildDeployNsql(String id, CodeServerBuildDeploy data) {
+         this.setId(id);
+         this.setData(data);
+     }
+ 
+ }

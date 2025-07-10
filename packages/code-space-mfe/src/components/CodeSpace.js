@@ -30,6 +30,7 @@ import DeployAuditLogsModal from './deployAuditLogsModal/DeployAuditLogsModal';
 import DeployModal from './deployModal/DeployModal';
 import { setRippleAnimation } from '../common/modules/uilab/js/src/util';
 import ConfirmModal from 'dna-container/ConfirmModal';
+import BuildModal from './buildModal/buildModal';
 
 // export interface ICodeSpaceProps {
 //   user: IUserInfo;
@@ -134,6 +135,7 @@ const CodeSpace = (props) => {
   const [showNewCodeSpaceModal, setShowNewCodeSpaceModal] = useState(false);
   const [isApiCallTakeTime, setIsApiCallTakeTime] = useState(false);
   const [showCodeDeployModal, setShowCodeDeployModal] = useState(false);
+  const [showManageBuildModal, setShowManageBuildModal] = useState(false);
   const [codeDeploying, setCodeDeploying] = useState(false);
   const [codeDeployed, setCodeDeployed] = useState(false);
   const [codeDeployedUrl, setCodeDeployedUrl] = useState();
@@ -145,7 +147,7 @@ const CodeSpace = (props) => {
   const [prodCodeDeployFailed, setProdCodeDeployFailed] = useState(false);
   const [livelinessInterval, setLivelinessInterval] = useState();
   const [isStaging, setIsStaging] = useState(false);
-  const [logsList, setlogsList] = useState([]);
+  const [codeBuilding, setCodeBuilding] = useState(false);
   const [showVaultManagementModal, setShowVaultManagementModal] = useState(false);
   const [showAuditLogsModal, setShowAuditLogsModal] = useState(false);
 
@@ -371,12 +373,14 @@ const CodeSpace = (props) => {
         const prodDeployFailed = prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
         const deployingInProgress =
           intDeploymentDetails.lastDeploymentStatus === 'DEPLOY_REQUESTED' ||
+          prodDeploymentDetails?.lastDeploymentStatus === 'APPROVAL_PENDING' ||
+          projectDetails?.lastBuildOrDeployedStatus === 'APPROVAL_PENDING' ||
           prodDeploymentDetails.lastDeploymentStatus === 'DEPLOY_REQUESTED';
         // const deployed =
         //   intDeploymentDetails.lastDeploymentStatus === 'DEPLOYED' ||
         //   prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYED' ||
         //   (intDeployedUrl !== null && intDeployedUrl !== 'null') ||
-        //   (prodDeployedUrl !== null && prodDeployedUrl !== 'null');
+        //   (prodDeployedUrl !== null && prodDeployedUrl !== 'null'); 
 
         setCodeSpaceData({
           ...res.data,
@@ -392,6 +396,8 @@ const CodeSpace = (props) => {
         setProdCodeDeployedBranch(prodDeploymentDetails.lastDeployedBranch);
         setProdCodeDeployed(prodDeployed);
         setProdCodeDeployFailed(prodDeployFailed);
+
+        setCodeBuilding(res?.data?.projectDetails?.lastBuildOrDeployedStatus === 'BUILD_REQUESTED');
 
         Tooltip.defaultSetup();
         Tabs.defaultSetup();
@@ -523,6 +529,8 @@ const CodeSpace = (props) => {
   const disableDeployment = !projectDetails?.recipeDetails?.isDeployEnabled;
   const deployingInProgress =
     projectDetails?.intDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED' ||
+    projectDetails?.prodDeploymentDetails?.lastDeploymentStatus === 'APPROVAL_PENDING' ||
+    projectDetails?.lastBuildOrDeployedStatus === 'APPROVAL_PENDING' ||
     projectDetails?.prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED';
   const securedWithIAMContent = (
     <svg
@@ -604,7 +612,7 @@ const CodeSpace = (props) => {
                 <div className={Styles.headerright}>
                   {!disableDeployment && (
                     <>
-                      {(isOwner && !deployingInProgress) && (
+                      {(isOwner && !deployingInProgress && !codeBuilding) && (
                         <div
                           className={classNames(Styles.configLink, Styles.pointer)}
                           onClick={() => navigateSecurityConfig()}
@@ -707,12 +715,20 @@ const CodeSpace = (props) => {
                           </a>
                         </div>
                       )} */}
-                      <div>
+                      <div className={classNames(Styles.builDeployMargin)}>
                         <button
-                          className={classNames('btn btn-secondary', codeDeploying ? 'disable' : '')}
+                          className={classNames('btn btn-secondary', (codeDeploying || codeBuilding) ? 'disable' : '')}
                           onClick={onShowCodeDeployModal}
                         >
-                          Deploy{codeDeploying && 'ing...'}
+                          {codeBuilding ? 'Building' : `Deploy${codeDeploying ? 'ing...' : ''}`}
+                        </button>
+                      </div>
+                      <div className={classNames(Styles.builDeployMargin)}>
+                        <button
+                          className={classNames('btn btn-secondary')}
+                          onClick={() => setShowManageBuildModal(true)}
+                        >
+                          Manage Build
                         </button>
                       </div>
                       {(intDeploymentDetails.lastDeploymentStatus || prodDeploymentDetails.lastDeploymentStatus) && (
@@ -776,7 +792,7 @@ const CodeSpace = (props) => {
                               className={classNames(
                                 'btn btn-primary',
                                 Styles.btnOutline,
-                                !((projectDetails?.recipeDetails?.isDeployEnabled && isOwner) || intDeploymentDetails?.deploymentAuditLogs) &&
+                                !((projectDetails?.recipeDetails?.isDeployEnabled && isOwner) || intDeploymentDetails?.lastDeploymentStatus) &&
                                   Styles.btnDisabled,
                               )}
                               onClick={() => {
@@ -797,7 +813,7 @@ const CodeSpace = (props) => {
                                 ref={stagingWrapperRef}
                                 className={classNames(Styles.collapseIcon, showStagingActions ? Styles.open : '')}
                               >
-                                {((projectDetails?.recipeDetails?.isDeployEnabled && isOwner) || intDeploymentDetails?.deploymentAuditLogs) && (
+                                {((projectDetails?.recipeDetails?.isDeployEnabled && isOwner) || intDeploymentDetails?.lastDeploymentStatus) && (
                                   <>
                                     <span className={classNames('animation-wrapper', Styles.animationWrapper)}></span>
                                     <i className={classNames('icon down-up-flip')}></i>
@@ -867,13 +883,12 @@ const CodeSpace = (props) => {
                                   </a>
                                 </li>
                               )}
-                              {intDeploymentDetails?.deploymentAuditLogs && (
+                              {intDeploymentDetails?.lastDeploymentStatus && (
                                 <li>
                                   <span
                                     onClick={() => {
                                       setShowAuditLogsModal(true);
                                       setIsStaging(true);
-                                      setlogsList(intDeploymentDetails?.deploymentAuditLogs);
                                     }}
                                   >
                                     Deploy & Action Audit Logs
@@ -910,7 +925,7 @@ const CodeSpace = (props) => {
                               className={classNames(
                                 'btn btn-primary',
                                 Styles.btnOutline,
-                                !((projectDetails?.recipeDetails?.isDeployEnabled && isOwner) || prodDeploymentDetails?.deploymentAuditLogs) &&
+                                !((projectDetails?.recipeDetails?.isDeployEnabled && isOwner) || prodDeploymentDetails?.lastDeploymentStatus) &&
                                   Styles.btnDisabled,
                               )}
                               onClick={() => {
@@ -931,7 +946,7 @@ const CodeSpace = (props) => {
                                 ref={prodWrapperRef}
                                 className={classNames(Styles.collapseIcon, showProdActions ? Styles.open : '')}
                               >
-                                {((projectDetails?.recipeDetails?.isDeployEnabled && isOwner) || prodDeploymentDetails?.deploymentAuditLogs) && (
+                                {((projectDetails?.recipeDetails?.isDeployEnabled && isOwner) || prodDeploymentDetails?.lastDeploymentStatus) && (
                                   <>
                                     <span className={classNames('animation-wrapper', Styles.animationWrapper)}></span>
                                     <i className={classNames('icon down-up-flip')}></i>
@@ -1000,13 +1015,12 @@ const CodeSpace = (props) => {
                                   </a>
                                 </li>
                               )}
-                              {prodDeploymentDetails?.deploymentAuditLogs && (
+                              {prodDeploymentDetails?.lastDeploymentStatus && (
                                 <li>
                                   <span
                                     onClick={() => {
                                       setShowAuditLogsModal(true);
                                       setIsStaging(false);
-                                      setlogsList(prodDeploymentDetails?.deploymentAuditLogs);
                                     }}
                                   >
                                     Deploy & Action Audit Logs
@@ -1188,7 +1202,6 @@ const CodeSpace = (props) => {
           deployedEnvInfo={isStaging ? 'Staging' : 'Production'}
           show={showAuditLogsModal}
           setShowAuditLogsModal={setShowAuditLogsModal}
-          logsList={logsList}
           projectName={projectDetails.projectName.toLowerCase()}
         />
       )}
@@ -1202,6 +1215,19 @@ const CodeSpace = (props) => {
           setShowCodeDeployModal={setShowCodeDeployModal}
           startDeployLivelinessCheck={enableDeployLivelinessCheck}
           setCodeDeploying={setCodeDeploying}
+          setIsApiCallTakeTime={setIsApiCallTakeTime}
+          navigateSecurityConfig={navigateSecurityConfig}
+        />
+      )}
+
+      {showManageBuildModal && (
+        <BuildModal
+          userInfo={props.user}
+          codeSpaceData={codeSpaceData}
+          setShowCodeBuildModal={(isVisible) => setShowManageBuildModal(isVisible)}
+          setShowCodeDeployModal={(isVisible) => setShowCodeDeployModal(isVisible)}
+          setCodeDeploying={setCodeDeploying}
+          setCodeBuilding={setCodeBuilding}
           setIsApiCallTakeTime={setIsApiCallTakeTime}
           navigateSecurityConfig={navigateSecurityConfig}
         />
