@@ -351,7 +351,7 @@ policies: []
 ## Additional Annotations for the Kubernetes Job makePolicyJob
 makePolicyJob:
   securityContext:
-    enabled: false
+    enabled: true
     runAsUser: 1000
     runAsGroup: 1000
   resources:
@@ -380,7 +380,7 @@ users:
 ## Additional Annotations for the Kubernetes Job makeUserJob
 makeUserJob:
   securityContext:
-    enabled: false
+    enabled: true
     runAsUser: 1000
     runAsGroup: 1000
   resources:
@@ -419,7 +419,7 @@ svcaccts: []
 
 makeServiceAccountJob:
   securityContext:
-    enabled: false
+    enabled: true
     runAsUser: 1000
     runAsGroup: 1000
   resources:
@@ -455,7 +455,7 @@ buckets: []
 ## Additional Annotations for the Kubernetes Job makeBucketJob
 makeBucketJob:
   securityContext:
-    enabled: false
+    enabled: true
     runAsUser: 1000
     runAsGroup: 1000
   resources:
@@ -472,7 +472,7 @@ customCommands:
 ## Additional Annotations for the Kubernetes Job customCommandJob
 customCommandJob:
   securityContext:
-    enabled: false
+    enabled: true
     runAsUser: 1000
     runAsGroup: 1000
   resources:
@@ -496,7 +496,7 @@ postJob:
   podAnnotations: {}
   annotations: {}
   securityContext:
-    enabled: false
+    enabled: true
     runAsUser: 1000
     runAsGroup: 1000
     fsGroup: 1000
