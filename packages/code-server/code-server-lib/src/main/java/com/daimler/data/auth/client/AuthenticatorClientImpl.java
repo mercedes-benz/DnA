@@ -436,6 +436,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		LOGGER.info("Codespace deployed to staging with enabling secureIAM is :{}",intSecureIAM);
 		LOGGER.info("Codespace deployed to production with enabling secureDna is :{}",prodSecureDna);
 		LOGGER.info("Codespace deployed to staging with enabling secureDna is :{}",intSecureDna);
+		LOGGER.info("Codespace deployed to {} with prevSecureIAM  is :{}",env,prevSecureIAM);
 		String url = "";		
 		
 		// request for kong create service	

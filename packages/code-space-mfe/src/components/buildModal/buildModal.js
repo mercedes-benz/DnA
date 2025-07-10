@@ -18,7 +18,6 @@ import Pagination from 'dna-container/Pagination';
 import DeployModal from '../deployModal/DeployModal';
 
 const BuildModal = (props) => {
-
   const [branches, setBranches] = useState([]);
   const [branchValue, setBranchValue] = useState(['main']);
   const [isBranchValueMissing, setIsBranchValueMissing] = useState(false);
@@ -73,7 +72,7 @@ const BuildModal = (props) => {
 
   useEffect(() => {
     onLogsRefresh();
-  },[buildEnvironment]);
+  }, [buildEnvironment]);
 
   useEffect(() => {
     setTotalNumberOfRecords(allLogs.length);
@@ -129,21 +128,21 @@ const BuildModal = (props) => {
     }
     if (formValid) {
       const buildRequest = {
-        environment: buildEnvironment==='staging' ? 'int' : 'prod',
+        environment: buildEnvironment === 'staging' ? 'int' : 'prod',
         branch: branchValue[0],
         comments: comment,
-      }
+      };
       ProgressIndicator.show();
       CodeSpaceApiClient.buildCodeSpace(props.codeSpaceData.id, buildRequest)
         .then((res) => {
           if (res.data.success === 'SUCCESS') {
             ProgressIndicator.hide();
             Notification.show(
-                `Code space '${projectDetails.projectName}' build successfully started. Please check the status by refreshing the logs.`,
+              `Code space '${projectDetails.projectName}' build successfully started. Please check the status by refreshing the logs.`,
             );
             setComment('');
-          }
-          else{
+            props.setCodeBuilding(true);
+          } else {
             ProgressIndicator.hide();
             Notification.show(
               'Error in building code space. Please try again later.\n' + res.data.errors[0].message,
@@ -153,13 +152,15 @@ const BuildModal = (props) => {
         })
         .catch((err) => {
           ProgressIndicator.hide();
-          Notification.show('Error in building code space. Please try again later.\n' + err?.response?.data?.errors[0]?.message, 'alert');
+          Notification.show(
+            'Error in building code space. Please try again later.\n' + err?.response?.data?.errors[0]?.message,
+            'alert',
+          );
         })
         .finally(() => {
           onLogsRefresh();
-        })
+        });
     }
-
   };
 
   const onBuildEnvironmentChange = (e) => {
@@ -171,10 +172,12 @@ const BuildModal = (props) => {
 
   const onLogsRefresh = () => {
     CodeSpaceApiClient.getBuildAndDeployLogs(projectDetails?.projectName)
-      .then((res) => { 
-        setAllLogs(buildEnvironment === 'staging' 
-          ? [...(res?.data?.data?.intBuildAuditLogs ?? [])].reverse() 
-          : [...(res?.data?.data?.prodBuildAuditLogs ?? [])].reverse());
+      .then((res) => {
+        setAllLogs(
+          buildEnvironment === 'staging'
+            ? [...(res?.data?.data?.intBuildAuditLogs ?? [])].reverse()
+            : [...(res?.data?.data?.prodBuildAuditLogs ?? [])].reverse(),
+        );
       })
       .catch((err) => {
         Notification.show('Error in getting build audit logs - ' + err.message, 'alert');
@@ -270,116 +273,119 @@ const BuildModal = (props) => {
                 </button>
               </div>
             </div>
-            <div className={classNames(Styles.wrapper)}>
-              <div className={Styles.flexLayout}>
-                <div>
-                  <h4>{buildEnvironment === 'staging' ? 'Staging Build Audit Logs' : 'Production Build Audit Logs'}</h4>
-                </div>
-                <div>
-                  <button
-                    className={classNames('btn btn-primary', Styles.refreshBtn)}
-                    tooltip-data="Refresh logs"
-                    onClick={onLogsRefresh}
-                  >
-                    <i className="icon mbc-icon refresh" />
-                  </button>
-                </div>
-              </div>
-              <div className={classNames(Styles.codeSpaceBuildListviewContent)}>
-                <table className={classNames('ul-table solutions', Styles.codeSpaceBuildMargininone)}>
-                  <thead>
-                    <tr className={classNames('header-row')}>
-                      <th>
-                        <label>Branch</label>
-                      </th>
-                      <th>
-                        <label>Triggered By</label>
-                      </th>
-                      <th>
-                        <label>Triggered On</label>
-                      </th>
-                      <th>
-                        <label>Build Status</label>
-                      </th>
-                      <th>
-                        <label>Build On</label>
-                      </th>
-                      <th>
-                        <label>Commit ID</label>
-                      </th>
-                      <th>
-                        <label>Version</label>
-                      </th>
-                      <th>
-                        <label>Comments</label>
-                      </th>
-                      <th>
-                        <label>Deploy</label>
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {paginatedRecords.map((item, index) => (
-                      <tr className={classNames('data-row')} key={index}>
-                        <td>{item?.branch}</td>
-                        <td>{item?.triggeredBy}</td>
-                        <td>{regionalDateAndTimeConversionSolution(item?.triggeredOn)}</td>
-                        <td>
-                          <a
-                            target="_blank"
-                            href={
-                              buildEnvironment === 'int'
-                                ? buildGitJobLogViewAWSURL(projectDetails?.intBuildDetails?.gitjobRunID)
-                                : buildGitJobLogViewAWSURL(projectDetails?.prodBuildDetails?.gitjobRunID)
-                            }
-                            rel="noreferrer"
-                            className={classNames(Styles.newLink)}
-                            style={{
-                              color:
-                                item?.buildStatus === 'BUILD_SUCCESS'
-                                  ? '#12e7ab'
+            {allLogs.length === 0 ? (
+              <div className={classNames(Styles.noData)}>You don&apos;t have any existing builds.</div>
+            ) : (
+              <>
+                <hr />
+                <div className={classNames(Styles.wrapper)}>
+                  <div className={Styles.flexLayout}>
+                    <div>
+                      <h4>
+                        {buildEnvironment === 'staging' ? 'Staging Build Audit Logs' : 'Production Build Audit Logs'}
+                      </h4>
+                    </div>
+                    <div>
+                      <i className="icon mbc-icon refresh" tooltip-data="Refresh logs" onClick={onLogsRefresh} />
+                    </div>
+                  </div>
+                  <div className={classNames(Styles.codeSpaceBuildListviewContent)}>
+                    <table className={classNames('ul-table solutions', Styles.codeSpaceBuildMargininone)}>
+                      <thead>
+                        <tr className={classNames('header-row')}>
+                          <th>
+                            <label>Branch</label>
+                          </th>
+                          <th>
+                            <label>Triggered By</label>
+                          </th>
+                          <th>
+                            <label>Triggered On</label>
+                          </th>
+                          <th>
+                            <label>Build Status</label>
+                          </th>
+                          <th>
+                            <label>Build On</label>
+                          </th>
+                          <th>
+                            <label>Commit ID</label>
+                          </th>
+                          <th>
+                            <label>Version</label>
+                          </th>
+                          <th>
+                            <label>Comments</label>
+                          </th>
+                          <th>
+                            <label>Deploy</label>
+                          </th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {paginatedRecords.map((item, index) => (
+                          <tr className={classNames('data-row')} key={index}>
+                            <td>{item?.branch}</td>
+                            <td>{item?.triggeredBy}</td>
+                            <td>{regionalDateAndTimeConversionSolution(item?.triggeredOn)}</td>
+                            <td>
+                              <a
+                                target="_blank"
+                                href={
+                                  buildEnvironment === 'int'
+                                    ? buildGitJobLogViewAWSURL(projectDetails?.intBuildDetails?.gitjobRunID)
+                                    : buildGitJobLogViewAWSURL(projectDetails?.prodBuildDetails?.gitjobRunID)
+                                }
+                                rel="noreferrer"
+                                className={classNames(Styles.newLink)}
+                                style={{
+                                  color:
+                                    item?.buildStatus === 'BUILD_SUCCESS'
+                                      ? '#12e7ab'
+                                      : item?.buildStatus === 'BUILD_FAILED'
+                                      ? '#e94d47'
+                                      : '#f3e537',
+                                }}
+                              >
+                                {item?.buildStatus === 'BUILD_SUCCESS'
+                                  ? 'Success'
                                   : item?.buildStatus === 'BUILD_FAILED'
-                                  ? '#e94d47'
-                                  : '#f3e537',
-                            }}
-                          >
-                            {item?.buildStatus === 'BUILD_SUCCESS'
-                              ? 'Success'
-                              : item?.buildStatus === 'BUILD_FAILED'
-                              ? 'Failed'
-                              : 'In Progress'}
-                            <i className="icon mbc-icon new-tab small" />
-                          </a>
-                        </td>
-                        <td>{item?.buildOn ? regionalDateAndTimeConversionSolution(item?.buildOn) : 'N/A'}</td>
-                        <td>{item?.commitId || 'N/A'}</td>
-                        <td>{item?.version || 'N/A'}</td>
-                        <td>
-                          <label>{item?.comments || 'N/A'}</label>
-                        </td>
-                        <td>
-                          {item?.buildStatus === 'BUILD_SUCCESS' ? (
-                            <button
-                              className={'btn btn-primary ' + classNames(Styles.actionBtn)}
-                              tooltip-data="Deploy application"
-                              onClick={() => {
-                                item.environment = buildEnvironment;
-                                setBuildDetails(item);
-                                setShowDeployCodeSpaceModal(true);
-                              }}
-                            >
-                              <i className="icon mbc-icon deploy" />
-                            </button>
-                          ) : (
-                            ''
-                          )}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
+                                  ? 'Failed'
+                                  : 'In Progress'}
+                                <i className="icon mbc-icon new-tab small" />
+                              </a>
+                            </td>
+                            <td>{item?.buildOn ? regionalDateAndTimeConversionSolution(item?.buildOn) : 'N/A'}</td>
+                            <td>{item?.commitId || 'N/A'}</td>
+                            <td>{item?.version || 'N/A'}</td>
+                            <td>
+                              <label>{item?.comments || 'N/A'}</label>
+                            </td>
+                            <td>
+                              {item?.buildStatus === 'BUILD_SUCCESS' ? (
+                                <button
+                                  className={'btn btn-primary ' + classNames(Styles.actionBtn)}
+                                  tooltip-data="Deploy application"
+                                  onClick={() => {
+                                    item.environment = buildEnvironment;
+                                    setBuildDetails(item);
+                                    setShowDeployCodeSpaceModal(true);
+                                  }}
+                                >
+                                  <i className="icon mbc-icon deploy" />
+                                </button>
+                              ) : (
+                                ''
+                              )}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </>
+            )}
           </div>
           {totalNumberOfRecords ? (
             <Pagination
