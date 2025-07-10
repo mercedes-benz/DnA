@@ -15,6 +15,7 @@ import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.db.entities.CodeServerBuildDeployNsql;
 import com.daimler.data.db.repo.workspace.WorkSpaceCodeServerBuildDeployRepository;
+import com.daimler.data.db.repo.workspace.WorkspaceCustomBuildDeployRepo;
 
 import org.springframework.web.bind.annotation.PathVariable;
 
@@ -60,6 +61,9 @@ public class BuildDeployController implements CodeServerBuildDeployServiceApi {
 
      @Autowired
 	 private BuildDeployAssembler buildDeployAssembler;
+
+     @Autowired
+	 private WorkspaceCustomBuildDeployRepo buildDeployCustomRepo;
 
     @Override
     @ApiOperation(value = "Build workspace Project for a given Id.", nickname = "buildWorkspaceProject", notes = "build workspace Project for a given identifier.", response = GenericMessage.class, tags = {
@@ -144,18 +148,16 @@ public class BuildDeployController implements CodeServerBuildDeployServiceApi {
         if (buildRequestDto != null && buildRequestDto.getBranch() != null) {
             branch = buildRequestDto.getBranch();
         }
-        String status = "";
-        if(environment.equalsIgnoreCase("int"))
-        {
-           status = vo.getProjectDetails().getIntBuildDetails().getLastBuildStatus();
-        }
-        else
-        {
-           status = vo.getProjectDetails().getProdBuildDetails().getLastBuildStatus();
-        }
-        if(status != null)
-        {
-           if (status.equalsIgnoreCase("BUILD_REQUESTED")) {
+        String intDeployStatus = "";
+		String prodDeployStatus = "";
+		String intBuildStatus = "";
+		String prodBuildStatus = "";
+        intBuildStatus = vo.getProjectDetails().getIntBuildDetails().getLastBuildStatus();
+        prodBuildStatus = vo.getProjectDetails().getProdBuildDetails().getLastBuildStatus();
+        intDeployStatus = vo.getProjectDetails().getIntDeploymentDetails().getLastDeploymentStatus();
+		prodDeployStatus = vo.getProjectDetails().getProdDeploymentDetails().getLastDeploymentStatus();
+
+           if (intBuildStatus != null && intBuildStatus.equalsIgnoreCase("BUILD_REQUESTED")) {
                MessageDescription invalidTypeMsg = new MessageDescription();
                invalidTypeMsg.setMessage(
                        "cannot build workspace since it is already in BUILD_REQUESTED state");
@@ -164,8 +166,36 @@ public class BuildDeployController implements CodeServerBuildDeployServiceApi {
                log.info("User {} cannot build project of recipe {} for workspace {}, since it is alredy in BUILD_REQUESTED state.", userId,
                        vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), vo.getWorkspaceId());
                return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
-           }
+           }else if (intDeployStatus != null && (intDeployStatus.equalsIgnoreCase("DEPLOY_REQUESTED") || intDeployStatus.equalsIgnoreCase("APPROVAL_PENDING"))) {
+            MessageDescription invalidTypeMsg = new MessageDescription();
+            invalidTypeMsg.setMessage(
+                    "cannot deploy workspace since it is already in "+intDeployStatus+" state");
+            GenericMessage errorMessage = new GenericMessage();
+            errorMessage.addErrors(invalidTypeMsg);
+            log.info("User {} cannot deploy project of recipe {} for workspace {}, since it is alredy in {} state.", userId,
+                    vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), vo.getWorkspaceId(),intDeployStatus);
+            return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
         }
+           if (prodBuildStatus != null && prodBuildStatus.equalsIgnoreCase("BUILD_REQUESTED") ) {
+               MessageDescription invalidTypeMsg = new MessageDescription();
+               invalidTypeMsg.setMessage(
+                       "cannot build workspace since it is already in BUILD_REQUESTED state");
+               GenericMessage errorMessage = new GenericMessage();
+               errorMessage.addErrors(invalidTypeMsg);
+               log.info("User {} cannot build project of recipe {} for workspace {}, since it is alredy in BUILD_REQUESTED state.", userId,
+                       vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), vo.getWorkspaceId());
+               return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
+           }else if (prodDeployStatus != null && (prodDeployStatus.equalsIgnoreCase("DEPLOY_REQUESTED") || prodDeployStatus.equalsIgnoreCase("APPROVAL_PENDING"))) {
+            MessageDescription invalidTypeMsg = new MessageDescription();
+            invalidTypeMsg.setMessage(
+                    "cannot deploy workspace since it is already in "+prodDeployStatus+" state");
+            GenericMessage errorMessage = new GenericMessage();
+            errorMessage.addErrors(invalidTypeMsg);
+            log.info("User {} cannot deploy project of recipe {} for workspace {}, since it is alredy in {} state.", userId,
+                    vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), vo.getWorkspaceId(),prodDeployStatus);
+            return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
+        }
+        
         String lastBuildType = "build";
         GenericMessage responseMsg = service.buildWorkSpace(userId,id,branch,buildRequestDto,isPrivateRecipe,environment,lastBuildType);
 				 log.info("User {} build workspace {} project {}", userId, vo.getWorkspaceId(),
@@ -207,9 +237,9 @@ public class BuildDeployController implements CodeServerBuildDeployServiceApi {
         response.setSuccess("FAILED");
         CodeServerBuildDeployVO data = null;
         try {
-            Optional<CodeServerBuildDeployNsql> optionalBuildDeployentity =  buildDeployRepo.findById(projectName.toLowerCase());	
-					if(optionalBuildDeployentity.isPresent()){
-                        data = buildDeployAssembler.toVo(optionalBuildDeployentity.get());
+            CodeServerBuildDeployNsql optionalBuildDeployentity =  buildDeployCustomRepo.findByProjectName(projectName);	
+					if(optionalBuildDeployentity != null){
+                        data = buildDeployAssembler.toVo(optionalBuildDeployentity);
                     }else{
                         MessageDescription msg = new MessageDescription();
                         msg.setMessage("No build logs found for given project name");
@@ -262,8 +292,8 @@ public class BuildDeployController implements CodeServerBuildDeployServiceApi {
         response.setSuccess("FAILED");
         try {
 
-             Optional<CodeServerBuildDeployNsql> optionalBuildDeployentity =  buildDeployRepo.findById(projectName.toLowerCase());	
-					if(optionalBuildDeployentity.isPresent()){
+            CodeServerBuildDeployNsql optionalBuildDeployentity =  buildDeployCustomRepo.findByProjectName(projectName);	
+					if(optionalBuildDeployentity != null){
                         response = service.getBuildVersion(projectName);
                     }else{
                         MessageDescription msg = new MessageDescription();

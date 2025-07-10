@@ -80,6 +80,7 @@
  import com.daimler.data.db.json.CodeServerProjectDetails;
  import com.daimler.data.db.repo.workspace.WorkSpaceCodeServerBuildDeployRepository;
  import com.daimler.data.db.repo.workspace.WorkspaceCustomAdditionalServiceRepo;
+ import com.daimler.data.db.repo.workspace.WorkspaceCustomBuildDeployRepo;
  import com.daimler.data.db.repo.workspace.WorkspaceCustomRecipeRepo;
  import com.daimler.data.db.repo.workspace.WorkspaceCustomRepository;
  import com.daimler.data.db.repo.workspace.WorkspaceCustomUserGroupRepo;
@@ -222,6 +223,9 @@
 
 	 @Autowired
 	 private WorkspaceCustomUserGroupRepo workspaceCustomUserGroupRepo;
+
+	 @Autowired
+	 private WorkspaceCustomBuildDeployRepo buildDeployCustomRepo;
  
  
   
@@ -457,6 +461,16 @@
 		 else {
 		 entity.getData().setStatus("DELETED");
 		 entity.getData().setActiveInGroup(Boolean.FALSE);
+
+		 //update status as deleted in logs
+
+		 CodeServerBuildDeployNsql buildDeployNsql = buildDeployCustomRepo.findByProjectName(projectName);
+		 if(buildDeployNsql != null){
+			buildDeployNsql.getData().setStatus("DELETED");
+			buildDeployRepo.save(buildDeployNsql);
+		 }
+
+
 
 		 //remove from group
 		 // List<String> groupEntity = workspaceCustomUserGroupRepo.findByWsid(entity.getData().getWorkspaceId(), userId);
@@ -1502,9 +1516,9 @@
 				workspaceCustomRepository.updateDeploymentDetails(projectName, environmentJsonbName,
 							 deploymentDetails,"APPROVAL_PENDING");
 				 List<DeploymentAudit> auditLogs = new ArrayList<>();
-					Optional<CodeServerBuildDeployNsql> optionalBuildDeployentity =  buildDeployRepo.findById(projectName.toLowerCase());	
-					if(optionalBuildDeployentity.isPresent()){						
-							auditLogs = optionalBuildDeployentity.get().getData().getProdDeploymentAuditLogs();
+					CodeServerBuildDeployNsql optionalBuildDeployentity =  buildDeployCustomRepo.findByProjectName(projectName);	
+					if(optionalBuildDeployentity != null){						
+							auditLogs = optionalBuildDeployentity.getData().getProdDeploymentAuditLogs();
 					}
 					// DeploymentAudit auditLog = new DeploymentAudit();
 
@@ -1524,18 +1538,20 @@
 
 				 CodeServerBuildDeploy buildDeployLogs = null;
 				 CodeServerBuildDeployNsql auditLogEntity = null;
-				 if(optionalBuildDeployentity.isPresent()){
-					auditLogEntity = optionalBuildDeployentity.get();
+				 if(optionalBuildDeployentity != null){
+					auditLogEntity = optionalBuildDeployentity;
 					buildDeployLogs =  auditLogEntity.getData();						
 				 }else{
 					 buildDeployLogs = new CodeServerBuildDeploy();
 					 auditLogEntity = new CodeServerBuildDeployNsql();
-					 auditLogEntity.setId(projectName.toLowerCase());
+					 String deployLogId = UUID.randomUUID().toString();
+					 auditLogEntity.setId(deployLogId);
 					 buildDeployLogs.setIntBuildAuditLogs(new ArrayList<>());
 					 buildDeployLogs.setProdBuildAuditLogs(new ArrayList<>());	
-					 buildDeployLogs.setIntDeploymentAuditLogs(new ArrayList<>());
-					 String deployLogId = UUID.randomUUID().toString();	
-					 buildDeployLogs.setId(deployLogId);				
+					 buildDeployLogs.setIntDeploymentAuditLogs(new ArrayList<>());					 	
+					 buildDeployLogs.setProjectName(projectName.toLowerCase());	
+					 buildDeployLogs.setStatus("CREATED");
+
 				 }
 					buildDeployLogs.setProdDeploymentAuditLogs(auditLogs);
 				 
@@ -1583,10 +1599,9 @@
 				 DeploymentManageDto deploymentJobDto = new DeploymentManageDto();
 				 DeploymentManageInputDto deployJobInputDto = new DeploymentManageInputDto();
 				 deployJobInputDto.setAction("deploy");
-				//  deployJobInputDto.setBranch(branch);
+				 deployJobInputDto.setBranch(branch);
 				 deployJobInputDto.setEnvironment(codeServerEnvValue);
 				 deployJobInputDto.setAppVersion(version);
-
 				 String workspaceOwner = entity.getData().getWorkspaceOwner().getId();
 				 String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
 				 String projectName = entity.getData().getProjectDetails().getProjectName();
@@ -1633,12 +1648,19 @@
 			 }	
 			 String serviceName = projectName;
 			 String workspaceId = entity.getData().getWorkspaceId();
+
+			 Boolean prevSecureIAM = false;
+			 String prevOneApiShortName = null;
 			 
 			 CodeServerDeploymentDetails deploymentDetails = entity.getData().getProjectDetails().getIntDeploymentDetails();
 					 if (!"int".equalsIgnoreCase(environment)) {
 						 deploymentDetails = entity.getData().getProjectDetails().getProdDeploymentDetails();
 					 }
-			String lastBuildOrDeployStatus = "";		 
+			 String lastBuildOrDeployStatus = "";
+			 if(Objects.nonNull(deploymentDetails.getSecureWithIAMRequired())){
+					prevSecureIAM = deploymentDetails.getSecureWithIAMRequired();
+				}
+				prevOneApiShortName = deploymentDetails.getOneApiVersionShortName();
 					 		 
 			 //buildAndDeploy flow
 			 if(version == null || version.isEmpty() || version.isBlank()){
@@ -1655,6 +1677,7 @@
 					lastBuildOrDeployStatus = "BUILD_REQUESTED";
 				}else{
 					status = "FAILED";
+		 			return responseMessage;
 				}
 			}else{
 				//deploy flow
@@ -1704,12 +1727,12 @@
 					 
 					
 					 List<DeploymentAudit> auditLogs = new ArrayList<>();
-					Optional<CodeServerBuildDeployNsql> optionalBuildDeployentity =  buildDeployRepo.findById(projectName.toLowerCase());	
-					if(optionalBuildDeployentity.isPresent()){
+					CodeServerBuildDeployNsql optionalBuildDeployentity =  buildDeployCustomRepo.findByProjectName(projectName);	
+					if(optionalBuildDeployentity != null){
 						if("int".equalsIgnoreCase(environment)){
-							auditLogs = optionalBuildDeployentity.get().getData().getIntDeploymentAuditLogs();
+							auditLogs = optionalBuildDeployentity.getData().getIntDeploymentAuditLogs();
 						}else{
-							auditLogs = optionalBuildDeployentity.get().getData().getProdDeploymentAuditLogs();
+							auditLogs = optionalBuildDeployentity.getData().getProdDeploymentAuditLogs();
 						}
 					}
 					DeploymentAudit auditLog = new DeploymentAudit();
@@ -1755,17 +1778,18 @@
 
 					 CodeServerBuildDeploy buildDeployLogs = null;
 					 CodeServerBuildDeployNsql auditLogEntity = null;
-					 if(optionalBuildDeployentity.isPresent()){
-						auditLogEntity = optionalBuildDeployentity.get();
+					 if(optionalBuildDeployentity != null){
+						auditLogEntity = optionalBuildDeployentity;
 						buildDeployLogs =  auditLogEntity.getData();						
 					 }else{
 						 buildDeployLogs = new CodeServerBuildDeploy();
 						 auditLogEntity = new CodeServerBuildDeployNsql();
-						 auditLogEntity.setId(projectName.toLowerCase());
+						 String deployLogId = UUID.randomUUID().toString();
+						 auditLogEntity.setId(deployLogId);
 						 buildDeployLogs.setIntBuildAuditLogs(new ArrayList<>());
-						 buildDeployLogs.setProdBuildAuditLogs(new ArrayList<>());	
-						 String deployLogId = UUID.randomUUID().toString();	
-						 buildDeployLogs.setId(deployLogId);				
+						 buildDeployLogs.setProdBuildAuditLogs(new ArrayList<>());							 	
+						 buildDeployLogs.setProjectName(projectName.toLowerCase());	
+					 	 buildDeployLogs.setStatus("CREATED");				
 					 }
 					 if("int".equalsIgnoreCase(environment)){
 						buildDeployLogs.setIntDeploymentAuditLogs(auditLogs);
@@ -1780,7 +1804,8 @@
 						lastBuildOrDeployStatus = "DEPLOY_REQUESTED";						
 					}
 					// deploymentDetails.setLastDeployedBranch(branch);
-					// deploymentDetails.setLastDeployedVersion(version);					
+					// deploymentDetails.setLastDeployedVersion(version);	
+					lastBuildOrDeployStatus = "DEPLOY_REQUESTED";				
 					deploymentDetails.setLastDeploymentStatus("DEPLOY_REQUESTED");
 					
 					status = "SUCCESS";
@@ -1792,6 +1817,7 @@
 			 workspaceCustomRepository.updateDeploymentDetails(projectName, environment,deploymentDetails,lastBuildOrDeployStatus);
 			 }
 		 } catch (Exception e) {
+			log.error("Failed while deploying codeserver workspace project with exception : {} ", e.getMessage());
 			 MessageDescription error = new MessageDescription();
 			 error.setMessage("Failed while deploying codeserver workspace project with exception " + e.getMessage());
 			 errors.add(error);
@@ -2374,12 +2400,12 @@
 							 deploymentDetails,deploymentDetails.getLastDeploymentStatus());
 
 					 List<DeploymentAudit> auditLogs = new ArrayList<>();
-					Optional<CodeServerBuildDeployNsql> optionalBuildDeployentity =  buildDeployRepo.findById(projectName.toLowerCase());	
-					if(optionalBuildDeployentity.isPresent()){
+					CodeServerBuildDeployNsql optionalBuildDeployentity =  buildDeployCustomRepo.findByProjectName(projectName);	
+					if(optionalBuildDeployentity != null){
 						if("int".equalsIgnoreCase(environment)){
-							auditLogs = optionalBuildDeployentity.get().getData().getIntDeploymentAuditLogs();
+							auditLogs = optionalBuildDeployentity.getData().getIntDeploymentAuditLogs();
 						}else{
-							auditLogs = optionalBuildDeployentity.get().getData().getProdDeploymentAuditLogs();
+							auditLogs = optionalBuildDeployentity.getData().getProdDeploymentAuditLogs();
 						}
 					}
 					 if (auditLogs == null) {
@@ -2396,17 +2422,18 @@
 					 
 					 CodeServerBuildDeploy buildDeployLogs = null;
 					 CodeServerBuildDeployNsql auditLogEntity = null;
-					 if(optionalBuildDeployentity.isPresent()){
-						auditLogEntity = optionalBuildDeployentity.get();
+					 if(optionalBuildDeployentity != null){
+						auditLogEntity = optionalBuildDeployentity;
 						buildDeployLogs =  auditLogEntity.getData();						
 					 }else{
 						 buildDeployLogs = new CodeServerBuildDeploy();
 						 auditLogEntity = new CodeServerBuildDeployNsql();
-						 auditLogEntity.setId(projectName.toLowerCase());
+						 String deployLogId = UUID.randomUUID().toString();
+						 auditLogEntity.setId(deployLogId);
 						 buildDeployLogs.setIntBuildAuditLogs(new ArrayList<>());
-						 buildDeployLogs.setProdBuildAuditLogs(new ArrayList<>());	
-						 String deployLogId = UUID.randomUUID().toString();	
-						 buildDeployLogs.setId(deployLogId);				
+						 buildDeployLogs.setProdBuildAuditLogs(new ArrayList<>());							 							 
+						 buildDeployLogs.setProjectName(projectName.toLowerCase());	
+					 	 buildDeployLogs.setStatus("CREATED");				
 					 }
 					 if("int".equalsIgnoreCase(environment)){
 						buildDeployLogs.setIntDeploymentAuditLogs(auditLogs);
@@ -2422,6 +2449,7 @@
 				 }
 			 }
 		 } catch (Exception e) {
+			log.error("Failed while deploying codeserver workspace project with exception : {} ", e.getMessage());
 			 MessageDescription error = new MessageDescription();
 			 error.setMessage("Failed while deploying codeserver workspace project with exception " + e.getMessage());
 			 errors.add(error);
@@ -2676,7 +2704,7 @@
 				 if(cloudServiceProvider.equals(ConstantsUtility.DHC_CAAS_AWS)){
 					deploymentUrl = deploymentUrl.replaceAll(codeServerBaseUri, codeServerBaseUriAws);
 				 }
-				 Optional<CodeServerBuildDeployNsql> optionalBuildDeployentity =  buildDeployRepo.findById(projectName.toLowerCase());	
+				 CodeServerBuildDeployNsql optionalBuildDeployentity =  buildDeployCustomRepo.findByProjectName(projectName);	
 					 CodeServerBuildDeployNsql buildDeployentity = null;
 					 CodeServerBuildDeploy buildDeployData = null;
 				 if ("DEPLOYED".equalsIgnoreCase(latestStatus)) {
@@ -2692,8 +2720,8 @@
 							 deploymentDetails,latestStatus);	 
 						 
 						 //setting audit log details
-					 if(optionalBuildDeployentity.isPresent()){
-						 buildDeployentity = optionalBuildDeployentity.get();
+					 if(optionalBuildDeployentity != null){
+						 buildDeployentity = optionalBuildDeployentity;
 						 buildDeployData = buildDeployentity.getData();
 						 if("int".equalsIgnoreCase(targetEnv)){							
 							 int lastIndex = buildDeployData.getIntDeploymentAuditLogs().size() - 1;
@@ -2730,8 +2758,8 @@
 					 
 						 workspaceCustomRepository.updateDeploymentDetails(projectName, targetEnv,
 						 deploymentDetails,latestStatus);
-					 if(optionalBuildDeployentity.isPresent()){
-						 buildDeployentity = optionalBuildDeployentity.get();
+					 if(optionalBuildDeployentity != null){
+						 buildDeployentity = optionalBuildDeployentity;
 						 buildDeployData = buildDeployentity.getData();
 						 if("int".equalsIgnoreCase(targetEnv)){							
 							 int lastIndex = buildDeployData.getIntDeploymentAuditLogs().size() - 1;
@@ -2757,8 +2785,8 @@
 						workspaceCustomRepository.updateBuildDetails(projectName, targetEnv,
 						buildDetails);	
 				   
-				   if(optionalBuildDeployentity.isPresent()){
-					   buildDeployentity = optionalBuildDeployentity.get();
+				   if(optionalBuildDeployentity != null){
+					   buildDeployentity = optionalBuildDeployentity;
 					   buildDeployData = buildDeployentity.getData();
 					   if("int".equalsIgnoreCase(targetEnv)){							
 						   int lastIndex = buildDeployData.getIntBuildAuditLogs().size() - 1;
@@ -2798,8 +2826,8 @@
 					
 						 workspaceCustomRepository.updateDeploymentDetails(projectName, targetEnv,
 						 deploymentDetails,latestStatus);
-					 if(optionalBuildDeployentity.isPresent()){
-						 buildDeployentity = optionalBuildDeployentity.get();
+					 if(optionalBuildDeployentity != null){
+						 buildDeployentity = optionalBuildDeployentity;
 						 buildDeployData = buildDeployentity.getData();
 						 if("int".equalsIgnoreCase(targetEnv)){							
 							 int lastIndex = buildDeployData.getIntDeploymentAuditLogs().size() - 1;
@@ -3706,12 +3734,12 @@
 					// }
 					
 					List<DeploymentAudit> auditLogs = new ArrayList<>();
-					Optional<CodeServerBuildDeployNsql> optionalBuildDeployentity =  buildDeployRepo.findById(projectName.toLowerCase());	
-					if(optionalBuildDeployentity.isPresent()){
+					CodeServerBuildDeployNsql optionalBuildDeployentity =  buildDeployCustomRepo.findByProjectName(projectName);	
+					if(optionalBuildDeployentity != null){
 						if("int".equalsIgnoreCase(env)){
-							auditLogs = optionalBuildDeployentity.get().getData().getIntDeploymentAuditLogs();
+							auditLogs = optionalBuildDeployentity.getData().getIntDeploymentAuditLogs();
 						}else{
-							auditLogs = optionalBuildDeployentity.get().getData().getProdDeploymentAuditLogs();
+							auditLogs = optionalBuildDeployentity.getData().getProdDeploymentAuditLogs();
 						}
 					}
 					if (auditLogs == null) {
@@ -3727,17 +3755,19 @@
 
 					CodeServerBuildDeploy buildDeployLogs = null;
 					CodeServerBuildDeployNsql auditLogEntity = null;
-					if(optionalBuildDeployentity.isPresent()){
-					   auditLogEntity = optionalBuildDeployentity.get();
+					if(optionalBuildDeployentity != null){
+					   auditLogEntity = optionalBuildDeployentity;
 					   buildDeployLogs =  auditLogEntity.getData();						
 					}else{
 						buildDeployLogs = new CodeServerBuildDeploy();
 						auditLogEntity = new CodeServerBuildDeployNsql();
-						auditLogEntity.setId(projectName.toLowerCase());
+						String deployLogId = UUID.randomUUID().toString();
+						auditLogEntity.setId(deployLogId);
 						buildDeployLogs.setIntBuildAuditLogs(new ArrayList<>());
 						buildDeployLogs.setProdBuildAuditLogs(new ArrayList<>());	
-						String deployLogId = UUID.randomUUID().toString();	
-						buildDeployLogs.setId(deployLogId);				
+						buildDeployLogs.setProjectName(projectName.toLowerCase());
+						buildDeployLogs.setStatus("CREATED");	
+								
 					}
 					if("int".equalsIgnoreCase(env)){
 					   buildDeployLogs.setIntDeploymentAuditLogs(auditLogs);
@@ -3754,6 +3784,7 @@
 				}
 			}
 		} catch (Exception e) {
+			log.error("Failed while restarting codeserver workspace project with exception : {} ", e.getMessage());
 			MessageDescription error = new MessageDescription();
 			error.setMessage("Failed while restarting codeserver workspace project with exception " + e.getMessage());
 			errors.add(error);
@@ -4198,6 +4229,8 @@
 					 if(buildDetails == null){
 						 buildDetails = new CodeServerBuildDetails();
 						 versionNumber = 1;
+					 }else if(buildDetails.getVersion() == null){
+						versionNumber = 1;
 					 }else{
 						 String num[] = buildDetails.getVersion().split("-");
 						 versionNumber = Integer.parseInt(num[1].substring(1));
@@ -4227,12 +4260,12 @@
 					
 					workspaceCustomRepository.updateBuildDetails(projectName,environment,buildDetails);
 					List<BuildAudit> auditLogs = new ArrayList<>();
-					Optional<CodeServerBuildDeployNsql> optionalBuildDeployentity =  buildDeployRepo.findById(projectName.toLowerCase());	
-					if(optionalBuildDeployentity.isPresent()){
+					CodeServerBuildDeployNsql optionalBuildDeployentity =  buildDeployCustomRepo.findByProjectName(projectName);	
+					if(optionalBuildDeployentity != null){
 						if("int".equalsIgnoreCase(environment)){
-							auditLogs = optionalBuildDeployentity.get().getData().getIntBuildAuditLogs();
+							auditLogs = optionalBuildDeployentity.getData().getIntBuildAuditLogs();
 						}else{
-							auditLogs = optionalBuildDeployentity.get().getData().getProdBuildAuditLogs();
+							auditLogs = optionalBuildDeployentity.getData().getProdBuildAuditLogs();
 						}
 					}	
 					if(null == auditLogs){
@@ -4264,17 +4297,18 @@
 					 auditLogs.add(auditLog);
 					 CodeServerBuildDeploy buildDeployLogs = null;
 					 CodeServerBuildDeployNsql auditLogEntity = null;
-					 if(optionalBuildDeployentity.isPresent()){
-						auditLogEntity = optionalBuildDeployentity.get();
+					 if(optionalBuildDeployentity != null){
+						auditLogEntity = optionalBuildDeployentity;
 						buildDeployLogs =  auditLogEntity.getData();						
 					 }else{
 						 buildDeployLogs = new CodeServerBuildDeploy();
 						 auditLogEntity = new CodeServerBuildDeployNsql();
-						 auditLogEntity.setId(projectName.toLowerCase());
+						 String deployLogId = UUID.randomUUID().toString();
+						 auditLogEntity.setId(deployLogId);
 						 buildDeployLogs.setIntDeploymentAuditLogs(new ArrayList<>());
 						 buildDeployLogs.setProdDeploymentAuditLogs(new ArrayList<>());	
-						 String deployLogId = UUID.randomUUID().toString();	
-						 buildDeployLogs.setId(deployLogId);				
+						 buildDeployLogs.setProjectName(projectName.toLowerCase());	
+						 buildDeployLogs.setStatus("CREATED");			
 					 }
 					 if("int".equalsIgnoreCase(environment)){
 						buildDeployLogs.setIntBuildAuditLogs(auditLogs);
@@ -4292,6 +4326,7 @@
 			 }
 		
 		 } catch (Exception e) {
+			log.error("Failed while build codeserver workspace project with exception : {} ", e.getMessage());
 			 MessageDescription error = new MessageDescription();
 			 error.setMessage("Failed while build codeserver workspace project with exception " + e.getMessage());
 			 errors.add(error);
@@ -4322,10 +4357,10 @@
 	public VersionListResponseVO getBuildVersion(String projectName){
 		VersionListResponseVO response = null;
 		try {
-			Optional<CodeServerBuildDeployNsql> entity = buildDeployRepo.findById(projectName);
-			if (entity.isPresent()) {
+			CodeServerBuildDeployNsql entity =  buildDeployCustomRepo.findByProjectName(projectName);
+			if (entity != null) {
 				response = new VersionListResponseVO();
-				CodeServerBuildDeploy buildDeploy = entity.get().getData();
+				CodeServerBuildDeploy buildDeploy = entity.getData();
 				if (buildDeploy != null) {
 					List<BuildAudit> intBuildDetails = buildDeploy.getIntBuildAuditLogs();
 					List<BuildAudit> prodBuildDetails = buildDeploy.getProdBuildAuditLogs();
@@ -4391,9 +4426,9 @@
 				String environmentJsonbName = "prodDeploymentDetails";
 				CodeServerDeploymentDetails deploymentDetails = entity.getData().getProjectDetails().getProdDeploymentDetails();
 				List<DeploymentAudit> auditLogs = new ArrayList<>();
-					Optional<CodeServerBuildDeployNsql> optionalBuildDeployentity =  buildDeployRepo.findById(projectName.toLowerCase());	
-					if(optionalBuildDeployentity.isPresent()){						
-							auditLogs = optionalBuildDeployentity.get().getData().getProdDeploymentAuditLogs();						
+					CodeServerBuildDeployNsql optionalBuildDeployentity =  buildDeployCustomRepo.findByProjectName(projectName);	
+					if(optionalBuildDeployentity != null){						
+							auditLogs = optionalBuildDeployentity.getData().getProdDeploymentAuditLogs();						
 					}
 				if (auditLogs == null) {
 				 auditLogs = new ArrayList<>();
@@ -4413,18 +4448,20 @@
 
 				CodeServerBuildDeploy buildDeployLogs = null;
 				 CodeServerBuildDeployNsql auditLogEntity = null;
-				 if(optionalBuildDeployentity.isPresent()){
-					auditLogEntity = optionalBuildDeployentity.get();
+				 if(optionalBuildDeployentity != null){
+					auditLogEntity = optionalBuildDeployentity;
 					buildDeployLogs =  auditLogEntity.getData();						
 				 }else{
 					 buildDeployLogs = new CodeServerBuildDeploy();
 					 auditLogEntity = new CodeServerBuildDeployNsql();
-					 auditLogEntity.setId(projectName.toLowerCase());
+					 String deployLogId = UUID.randomUUID().toString();	
+					 auditLogEntity.setId(deployLogId);
 					 buildDeployLogs.setIntBuildAuditLogs(new ArrayList<>());
 					 buildDeployLogs.setProdBuildAuditLogs(new ArrayList<>());	
 					 buildDeployLogs.setIntDeploymentAuditLogs(new ArrayList<>());
-					 String deployLogId = UUID.randomUUID().toString();	
-					 buildDeployLogs.setId(deployLogId);				
+					 buildDeployLogs.setProjectName(projectName.toLowerCase());	
+					 buildDeployLogs.setStatus("CREATED");	
+						 				
 				 }
 					buildDeployLogs.setProdDeploymentAuditLogs(auditLogs);
 				 
@@ -4436,6 +4473,7 @@
 					status = "SUCCESS";
 			}
 		} catch (Exception e) {
+			log.error("Failed while rejecting codeserver workspace project with exception : {} ", e.getMessage());
 			MessageDescription error = new MessageDescription();
 			error.setMessage("Failed while rejecting codeserver workspace project deployment with exception " + e.getMessage());
 				errors.add(error);
@@ -4485,13 +4523,14 @@
 			 }
 					CodeServerBuildDeploy buildDeployLogs = new CodeServerBuildDeploy();
 					CodeServerBuildDeployNsql auditLogEntity = new CodeServerBuildDeployNsql();
-					 auditLogEntity.setId(projectName.toLowerCase());
+					String deployLogId = UUID.randomUUID().toString();	
+					 auditLogEntity.setId(deployLogId);
 					 buildDeployLogs.setIntBuildAuditLogs(new ArrayList<>());
 					 buildDeployLogs.setProdBuildAuditLogs(new ArrayList<>());
 					 buildDeployLogs.setIntDeploymentAuditLogs(new ArrayList<>());
-					 buildDeployLogs.setProdDeploymentAuditLogs(new ArrayList<>());
-					 String deployLogId = UUID.randomUUID().toString();	
-					 buildDeployLogs.setId(deployLogId);				
+					 buildDeployLogs.setProdDeploymentAuditLogs(new ArrayList<>());					 
+					 buildDeployLogs.setProjectName(projectName.toLowerCase());	
+					 buildDeployLogs.setStatus("CREATED");				
 				 	
 					 buildDeployLogs.getIntDeploymentAuditLogs().addAll(intAuditLogs);
 					 buildDeployLogs.getProdDeploymentAuditLogs().addAll(prodAuditLogs);

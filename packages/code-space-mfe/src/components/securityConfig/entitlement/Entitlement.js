@@ -51,7 +51,7 @@ export default class Entitlement extends React.Component {
 
       showJson: false,
       pluginEnabled: false,
-      publishedData: '',
+      // publishedData: '',
       jsonData: JSON.stringify(
         {
           appId: (props.config && props.config.appId) || '',
@@ -84,25 +84,9 @@ export default class Entitlement extends React.Component {
   componentDidMount() {
     SelectBox.defaultSetup();
     Tooltip.defaultSetup();
-    this.setState({pluginEnabled: true});
-    //api call to check plugin enabled or disabled
-    ProgressIndicator.show();
-    CodeSpaceApiClient.getPluginStatus(this.props.id, this.props.env, 'API_AUTHORISER_PLUGIN')
-      .then((res) => {
-        this.setState({pluginEnabled:res?.data?.enabled || false});
-        ProgressIndicator.hide();
-      })
-      .catch(() => {
-        ProgressIndicator.hide();
-        // Notification.show(
-        //   'Error in fetching OIDC plugin status. Please try again later.\n' + err?.response?.data?.errors[0]?.message,
-        //   'alert',
-        // );
-        Notification.show('Error in fetching plugin status. Please try again later.', 'alert');
-      });
   }
 
-  componentDidUpdate(prevProps, prevState) {
+  componentDidUpdate(prevProps) {
     if (this.props.config !== prevProps.config) {
       if (this.props.config?.entitlements?.length > 0) {
         const records = this.props.config.entitlements;
@@ -120,17 +104,10 @@ export default class Entitlement extends React.Component {
           appId: this.props.config.appId,
         });
       }
-    }
-
-    if (
-      !this.state.isJsonTouched &&
-      (prevState.appId !== this.state.appId ||
-        prevState.entitelmentListResponse !== this.state.entitelmentListResponse)
-    ) {
-      const jsonData = JSON.stringify(
+      const jsonData =  JSON.stringify(
         {
-          appId: this.state.appId,
-          entitlements: this.state.entitelmentListResponse,
+          appId: (this.props.config && this.props.config.appId) || '',
+          entitlements: (this.props.config && this.props.config.entitlements) || [],
         },
         null,
         2
@@ -147,9 +124,6 @@ export default class Entitlement extends React.Component {
 
 
   handleToggle() {
-    const envKey =
-      this.props.env === 'int' ? 'publishedData_staging' : 'publishedData_production';
-    const storedPublishedData = localStorage.getItem(envKey);
 
     const showJsonNext = !this.state.showJson;
 
@@ -174,10 +148,7 @@ export default class Entitlement extends React.Component {
     } else {
       this.setState({
         showJson: showJsonNext,
-        jsonData: this.props.readOnlyMode
-          ? storedPublishedData || '// No Published Data Available'
-          : this.state.jsonData,
-        publishedData: storedPublishedData || '',
+        jsonData: this.state.jsonData,
         isJsonTouched: false,
         originalJsonData: this.state.jsonData,
       });
@@ -580,15 +551,6 @@ export default class Entitlement extends React.Component {
         entitlements: this.state.entitelmentListResponse,
       };
 
-
-      const envKey = this.props.env === 'int'
-        ? 'publishedData_staging'
-        : 'publishedData_production';
-
-      const publishedJson = JSON.stringify(newPublishData, null, 2);
-      localStorage.setItem(envKey, publishedJson);
-
-
       this.setState(
         {
           config: {
@@ -596,8 +558,7 @@ export default class Entitlement extends React.Component {
             entitlements: newPublishData.entitlements,
             appId: this.state.appId,
           },
-          publishedData: publishedJson,
-          jsonData: publishedJson,
+          jsonData: newPublishData,
           isJsonTouched: false,
         },
         () => {
@@ -783,11 +744,7 @@ export default class Entitlement extends React.Component {
                 theme="solarized_dark"
                 readOnly={this.props.readOnlyMode}
                 onChange={this.props.readOnlyMode ? undefined : this.handleJsonChange}
-                value={
-                  this.props.readOnlyMode
-                    ? this.state.publishedData || '// No Published Data Available'
-                    : this.state.jsonData
-                }
+                value={this.state.jsonData}
                 fontSize={15}
                 name="json_editor"
                 editorProps={{ $blockScrolling: true }}

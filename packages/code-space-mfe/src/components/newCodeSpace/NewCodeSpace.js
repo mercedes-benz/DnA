@@ -1567,20 +1567,6 @@ const NewCodeSpace = (props) => {
                         <input
                           type="radio"
                           className="ff-only"
-                          value="DHC-CaaS"
-                          name="environment"
-                          onChange={onEnvironmentChange}
-                          checked={environment==='DHC-CaaS'}
-                          disabled={true}
-                        />
-                      </span>
-                      <span className="label">DyP CaaS (On-Prem)</span>
-                    </label>
-                    <label className={classNames('radio')}>
-                      <span className="wrapper">
-                        <input
-                          type="radio"
-                          className="ff-only"
                           value="azure"
                           name="environment"
                           onChange={onEnvironmentChange}

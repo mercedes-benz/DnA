@@ -2,7 +2,7 @@ import classNames from 'classnames';
 import React, { useState, useEffect } from 'react';
 import Styles from '../DeployApprovalModal/DeployApprovalModal.scss';
 import Modal from 'dna-container/Modal';
-import TextBox from 'dna-container/TextBox';
+// import TextBox from 'dna-container/TextBox';
 import { regionalDateAndTimeConversionSolution } from '../../Utility/utils';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 import { trackEvent } from '../../Utility/utils';
@@ -15,8 +15,8 @@ const DeployApprovalModal = (props) => {
   const [auditLogs, setAuditLogs] = useState();
   const scope = deploymentDetails?.scope?.split(' ') || ['openid', 'offline_access'];
   const ignorePaths = deploymentDetails?.ignorePaths?.length ? deploymentDetails?.ignorePaths?.split(',') : ['N/A'];
-  const [showCredentialsModal, setShowCredentialsModal] = useState(false);
-  const [clientSecret, setClientSecret] = useState('');
+  // const [showCredentialsModal, setShowCredentialsModal] = useState(false);
+  // const [clientSecret, setClientSecret] = useState('');
 
   useEffect(() => {
     ProgressIndicator.show();
@@ -40,7 +40,8 @@ const DeployApprovalModal = (props) => {
       version: auditLogs?.[0]?.version || '',
       // valutInjectorEnable: vaultEnabled,
       clientID: deploymentDetails?.secureWithIAMRequired ? deploymentDetails?.clientId : '',
-      clientSecret: clientSecret,
+      // clientSecret: clientSecret,
+      clientSecret: '',
       redirectUri:
         deploymentDetails?.secureWithIAMRequired && deploymentDetails?.redirectUri?.length
           ? deploymentDetails?.redirectUri
@@ -86,13 +87,14 @@ const DeployApprovalModal = (props) => {
   };
 
   const handleApproveClick = () => {
-    (deploymentDetails?.secureWithIAMRequired && deploymentDetails?.clientId?.length) ? setShowCredentialsModal(true) : deployWorkspace();
+    // (deploymentDetails?.secureWithIAMRequired && deploymentDetails?.clientId?.length) ? setShowCredentialsModal(true) : deployWorkspace();
+    deployWorkspace();
   };
 
-  const handleFinalApproveClick = () => {
-    deployWorkspace();
-    setShowCredentialsModal(false);
-  };
+  // const handleFinalApproveClick = () => {
+  //   deployWorkspace();
+  //   setShowCredentialsModal(false);
+  // };
 
   const handleFinalRejectClick = () => {
     ProgressIndicator.show();
@@ -120,7 +122,7 @@ const DeployApprovalModal = (props) => {
         );
       })
       .finally(() => {
-        setShowCredentialsModal(false);
+        // setShowCredentialsModal(false);
         props.setShowDeployApprovalModal(false);
       })
   };
@@ -260,7 +262,7 @@ const DeployApprovalModal = (props) => {
         onCancel={() => props.setShowDeployApprovalModal(false)}
       />
 
-      {showCredentialsModal && (
+      {/* {showCredentialsModal && (
         <Modal
           title={''}
           hiddenTitle={true}
@@ -313,7 +315,7 @@ const DeployApprovalModal = (props) => {
             setShowCredentialsModal(false);
           }}
         />
-      )}
+      )} */}
     </>
   );
 };
