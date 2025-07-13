@@ -607,6 +607,7 @@ singleuser:
     CS_MINIO_ENDPOINT: <path:dna_aws_kv/data/staging/kubernetesSecret/jupyterhub-codeserver#minio_endpoint> 
     CS_MINIO_KEY: <path:dna_aws_kv/data/staging/kubernetesSecret/jupyterhub-codeserver#minio_key>
     CS_MINIO_SECRET: <path:dna_aws_kv/data/staging/kubernetesSecret/jupyterhub-codeserver#minio_secret>                   
+    EXTENSIONS_GALLERY: '{{"serviceUrl":"https://marketplace.visualstudio.com/_apis/public/gallery","itemUrl":"https://marketplace.visualstudio.com/items"}}' 
   lifecycleHooks: {}
   initContainers: []
   extraContainers: []
@@ -631,7 +632,7 @@ singleuser:
       storageAccessModes: [ReadWriteOnce]
   image:
     name: registry-emea.app.corpintra.net/dnaplatform/cs-default
-    tag: "4.99.3"
+    tag: "4.101.2"
     pullPolicy: IfNotPresent
     pullSecrets: 
       - name: imagepullsecret
@@ -654,7 +655,7 @@ singleuser:
       description: "Default environment for development"
       default: true
       kubespawner_override:
-        image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.99.3
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.101.2
         image_pull_policy: IfNotPresent
         start_timeout: 900
         http_timeout: 900
