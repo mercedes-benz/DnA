@@ -607,7 +607,7 @@ singleuser:
     CS_MINIO_ENDPOINT: <path:dna_aws_kv/data/dev/kubernetesSecret/jupyterhub-codeserver#minio_endpoint> 
     CS_MINIO_KEY: <path:dna_aws_kv/data/dev/kubernetesSecret/jupyterhub-codeserver#minio_key>
     CS_MINIO_SECRET: <path:dna_aws_kv/data/dev/kubernetesSecret/jupyterhub-codeserver#minio_secret>     
-    EXTENSIONS_GALLERY: "{\"serviceUrl\":\"https://marketplace.visualstudio.com/_apis/public/gallery\",\"itemUrl\":\"https://marketplace.visualstudio.com/items\"}"             
+    EXTENSIONS_GALLERY: '{\"serviceUrl\":\"https://marketplace.visualstudio.com/_apis/public/gallery\",\"itemUrl\":\"https://marketplace.visualstudio.com/items\"}'         
   lifecycleHooks: {}
   initContainers: []
   extraContainers: []
