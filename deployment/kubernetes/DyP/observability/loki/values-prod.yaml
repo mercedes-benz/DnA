@@ -24,7 +24,7 @@ loki:
   tracing:
     enabled: true
   querier:
-    max_concurrent: 4
+    max_concurrent: 8
   auth_enabled: false
   server:
     http_listen_port: 3100
@@ -45,7 +45,7 @@ loki:
     query_timeout: 600s
     reject_old_samples: true
     reject_old_samples_max_age: 168h
-    retention_period: 7d
+    retention_period: 15d
     split_queries_by_interval: 15m
     volume_enabled: true
     discover_log_levels: true
@@ -72,9 +72,6 @@ ingester:
     enabled: true
   persistence:
     enabled: true
-    claims:
-      - name: data
-        size: 10Gi    
 
 querier:
   replicas: 3
@@ -180,6 +177,6 @@ chunksCache:
 
 table_manager:
   retention_deletes_enabled: true
-  retention_period: 7d
+  retention_period: 15d
 tracing:
   enabled: true
