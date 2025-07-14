@@ -9,6 +9,7 @@ interface Props {
   getRefreshedDagPermission: (projectId: string, dagIndex: number) => void;
 }
 
+
 const PipelineCardItem = ({ project, getRefreshedDagPermission }: Props) => {
   const [isDagPopupVisible, setIsDagPopupVisible] = useState(false);
   const popupRef = useRef<HTMLDivElement>(null);
@@ -89,6 +90,13 @@ const PipelineCardItem = ({ project, getRefreshedDagPermission }: Props) => {
                           >
                             <i className="icon mbc-icon new-tab" />
                           </a>
+                          &nbsp; &nbsp;
+                                              <button
+  className={Styles.iconBtn}        
+  tooltip-data="Trigger DAG"
+>
+  <i className="icon mbc-icon trainings-mini" />
+</button>
                         </div>
                       </li>
                     ))}

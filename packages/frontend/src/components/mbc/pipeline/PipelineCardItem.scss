@@ -11,6 +11,7 @@
     border-radius: 8px;
     margin-bottom: 20px;
   }
+  
 
 
   .cardHead {
@@ -236,3 +237,33 @@
   left: auto !important;
   right: 0 !important;
 }
+
+.iconBtn {
+  background: transparent;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  outline: none; 
+ 
+
+  i {
+    font-size: var(--font-size-icon);
+    color: #acb8c4;
+    transition: color 0.2s ease;
+  }
+
+
+  &:hover i {
+    color: #00adef;
+  }
+
+  &:focus {
+    outline: none !important;       
+    box-shadow: none !important;    
+    border: none !important;        
+  }
+}
+
