@@ -72,57 +72,57 @@
     border-bottom: 1px solid #2e3740;
     padding: 0 0 10px 0;
   
-    button {
-        position: relative;
-        min-width: 20px;
-        width: 20px;
-        height: 20px;
-        border: 1px solid #00adef;
-        border-radius: 50%;
-        background: unset;
-        padding: 0;
-        overflow: hidden;
+    // button {
+    //     position: relative;
+    //     min-width: 20px;
+    //     width: 20px;
+    //     height: 20px;
+    //     border: 1px solid #00adef;
+    //     border-radius: 50%;
+    //     background: unset;
+    //     padding: 0;
+    //     overflow: hidden;
   
-        &:hover {
-            border: 1px solid #00adef;
-            background: unset;
-        }
+    //     &:hover {
+    //         border: 1px solid #00adef;
+    //         background: unset;
+    //     }
   
-        > span {
-            display: block;
-            width: 6px;
-            height: 6px;
-            background-color: #00adef;
-            transform: rotate(45deg);
-            margin-left: 4px;
+    //     > span {
+    //         display: block;
+    //         width: 6px;
+    //         height: 6px;
+    //         background-color: #00adef;
+    //         transform: rotate(45deg);
+    //         margin-left: 4px;
   
-            &::before {
-                content: "";
-                background-color: #282e39;
-                width: 7px;
-                height: 10px;
-                display: block;
-                transform: rotate(-45deg) translate(-3px, -2px);
-            }
-        }
-    }
+    //         &::before {
+    //             content: "";
+    //             background-color: #282e39;
+    //             width: 7px;
+    //             height: 10px;
+    //             display: block;
+    //             transform: rotate(-45deg) translate(-3px, -2px);
+    //         }
+    //     }
+    // }
   
-    button.stop {
-        border-color: #e84d47;
+    // button.stop {
+    //     border-color: #e84d47;
   
-        > span {
-            display: block;
-            width: 6px;
-            height: 6px;
-            transform: unset;
-            margin: auto;
-            background-color: #e84d47;
+    //     > span {
+    //         display: block;
+    //         width: 6px;
+    //         height: 6px;
+    //         transform: unset;
+    //         margin: auto;
+    //         background-color: #e84d47;
   
-            &::before {
-                display: none;
-            }
-        }
-    }
+    //         &::before {
+    //             display: none;
+    //         }
+    //     }
+    // }
   
     h3 {
         font-size: var(--font-size-default);
