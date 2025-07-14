@@ -61,3 +61,5 @@ db:
    env: prod 
  - name: hot-portfolio
    env: prod 
+ - name: grc-virtualassitant
+   env: prod 
