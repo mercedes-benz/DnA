@@ -143,10 +143,29 @@
     justify-content: space-between;
     margin-bottom: 10px;
 
+    .statusIndicator {
+      padding: 2px 8px;
+      border: 1px solid #0AE6AB;
+      color: #0AE6AB;
+      font-size: var(--font-size-smallest);
+      letter-spacing: 1px;
+      border-radius: 2px;
+      margin-left: 10px;
+
+      &.colloboration {
+        border: 1px solid #35ADAC;
+        color: #35ADAC;
+        position: relative;
+        right: auto;
+      }
+    }
+
+
     .btnGrp {
       display: flex;
       justify-content: flex-end;
       font-size: var(--font-size-medium);
+
 
       button {
         background-color: transparent;
@@ -170,6 +189,7 @@
     }
   }
 }
+
 
 .show {
   display: block !important;
@@ -236,3 +256,11 @@
   left: auto !important;
   right: 0 !important;
 }
+
+.disabled {
+  opacity: 0.4;
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
+
