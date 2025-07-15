@@ -31,10 +31,15 @@ const PipelineCardItem = ({ project, getRefreshedDagPermission }: Props) => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
+  const isInProgress =
+  project.projectStatus === 'CREATE_REQUESTED' ||
+  project.projectStatus === 'UPDATE_REQUESTED';
+
+
   return (
     <div className={Styles.pipelineCard}>
       <div className={Styles.cardHead}>
-        <div className={Styles.cardHeadInfo} onClick={goToEditProject}>
+        <div className={Styles.cardHeadInfo}>
           <div className={`btn btn-text forward arrow ${Styles.cardHeadTitle}`} title={project.projectName}>
             {project.projectName}
           </div>
@@ -53,7 +58,7 @@ const PipelineCardItem = ({ project, getRefreshedDagPermission }: Props) => {
           </div>
           <div>
             <div>Permission</div>
-            <div>{project.permission ? 'Read/Edit' : 'Read'}</div>
+            <div>{project.isOwner ? 'Owner' : 'Collaborator'}</div>
           </div>
           <div className={Styles.cardCollabSection}>
             <div>DAGs</div>
@@ -68,28 +73,55 @@ const PipelineCardItem = ({ project, getRefreshedDagPermission }: Props) => {
                         <span className={Styles.dagName}>{dag.dagName}</span>
 
                         <span className={Styles.permission}>
-                          {dag.permissions?.includes('can_edit') ? 'Read/Edit' : 'Read'}
+                          {dag.permissions?.includes('can_read') && dag.permissions?.includes('can_edit')
+                            ? 'Read/Edit'
+                            : dag.permissions?.includes('can_edit')
+                              ? 'Edit'
+                              : dag.permissions?.includes('can_read')
+                                ? 'Read'
+                                : ''}
                         </span>
 
-                        <div className={Styles.cardDagActions}>
-                          <button
-                            className={Styles.actionBtn}
-                            onClick={() => goToDag(dag.dagName)}
-                            title="Open in Editor"
-                          >
-                            <i className="icon mbc-icon edit" />
-                          </button>
 
-                          <a
-                            href={`${Envs.DATA_PIPELINES_APP_BASEURL}/graph?dag_id=${dag.dagName}`}
-                            target="_blank"
-                            rel="noreferrer"
-                            className={Styles.actionBtn}
-                            title="Open in New Tab"
-                          >
-                            <i className="icon mbc-icon new-tab" />
-                          </a>
-                        </div>
+<div className={Styles.cardDagActions}>
+  {isInProgress ? (
+    <>
+      
+      <button className={`${Styles.actionBtn} ${Styles.disabled}`} disabled title="Disabled during progress">
+        <i className="icon mbc-icon edit" />
+      </button>
+
+     
+      <button className={`${Styles.actionBtn} ${Styles.disabled}`} disabled title="Disabled during progress">
+        <i className="icon mbc-icon new-tab" />
+      </button>
+    </>
+  ) : (
+    <>
+      
+      <button
+        className={Styles.actionBtn}
+        onClick={() => goToDag(dag.dagName)}
+        title="Open in Editor"
+      >
+        <i className="icon mbc-icon edit" />
+      </button>
+
+     
+      <a
+        href={`${Envs.DATA_PIPELINES_APP_BASEURL}/graph?dag_id=${dag.dagName}`}
+        target="_blank"
+        rel="noreferrer"
+        className={Styles.actionBtn}
+        title="Open in New Tab"
+      >
+        <i className="icon mbc-icon new-tab" />
+      </a>
+    </>
+  )}
+</div>
+
+
                       </li>
                     ))}
                   </ul>
@@ -104,12 +136,26 @@ const PipelineCardItem = ({ project, getRefreshedDagPermission }: Props) => {
       <div className={Styles.cardFooter}>
         <div></div>
         <div className={Styles.btnGrp}>
-          <button className="btn btn-primary" onClick={goToEditProject}>
-            <i className="icon mbc-icon edit"></i>
-            <span>Edit</span>
-          </button>
+          {project.projectStatus === 'CREATE_REQUESTED' ? (
+            <span className={`${Styles.statusIndicator} ${Styles.colloboration}`}>
+              Creation in progress...
+            </span>
+          ) : project.projectStatus === 'UPDATE_REQUESTED' ? (
+            <span className={`${Styles.statusIndicator} ${Styles.colloboration}`}>
+              Updation in progress...
+            </span>
+          ) : (
+            project.isOwner && (
+              <button className="btn btn-primary" onClick={goToEditProject}>
+                <i className="icon mbc-icon edit"></i>
+                <span>Edit Project</span>
+              </button>
+            )
+          )}
         </div>
       </div>
+
+
     </div>
   );
 };
