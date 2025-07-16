@@ -638,7 +638,7 @@ const ContextMenu = (props) => {
       )}
       {showSecurityConfigModal && (
         <Modal
-          title={`Manage ${isStaging ? 'Staging' : 'Production'} Security Config`}
+          title={`Manage ${isStaging ? 'Staging' : 'Production'} Deployed Application Config`}
           hiddenTitle={false}
           showAcceptButton={false}
           showCancelButton={false}
