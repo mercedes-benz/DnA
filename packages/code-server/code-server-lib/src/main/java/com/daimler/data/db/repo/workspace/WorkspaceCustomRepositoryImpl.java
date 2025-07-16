@@ -410,6 +410,8 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 				" \"scope\": " + addQuotes(deploymentDetails.getScope()) + "," +
 				" \"ssoType\": " + (deploymentDetails.getSsoType() != null ? addQuotes(String.valueOf(deploymentDetails.getSsoType())) : "null") + "," +
 				" \"secureWithDnaRequired\": " + deploymentDetails.getSecureWithDnaRequired() + "," +
+				" \"aliceRoleEnabled\": " + deploymentDetails.getAliceRoleEnabled() + "," +
+				" \"selectedAliceRoles\": " + (deploymentDetails.getSelectedAliceRoles() != null ? "[" + deploymentDetails.getSelectedAliceRoles().stream().map(role -> "\"" + role + "\"").collect(Collectors.joining(", ")) + "]" : "[]") + " }'),\r\n" +				
 				" \"lastDeployedVersion\": " + addQuotes(deploymentDetails.getLastDeployedVersion()) + "," +
 				" \"lastDeploymentStatus\": " + addQuotes(deploymentDetails.getLastDeploymentStatus()) +"}'),\r\n" + 
 				"'{projectDetails,lastBuildOrDeployedOn}', '" + longdate + "'),\r\n" +

@@ -1649,18 +1649,12 @@
 			 String serviceName = projectName;
 			 String workspaceId = entity.getData().getWorkspaceId();
 
-			 Boolean prevSecureIAM = false;
-			 String prevOneApiShortName = null;
 			 
 			 CodeServerDeploymentDetails deploymentDetails = entity.getData().getProjectDetails().getIntDeploymentDetails();
 					 if (!"int".equalsIgnoreCase(environment)) {
 						 deploymentDetails = entity.getData().getProjectDetails().getProdDeploymentDetails();
 					 }
 			 String lastBuildOrDeployStatus = "";
-			 if(Objects.nonNull(deploymentDetails.getSecureWithIAMRequired())){
-					prevSecureIAM = deploymentDetails.getSecureWithIAMRequired();
-				}
-				prevOneApiShortName = deploymentDetails.getOneApiVersionShortName();
 					 		 
 			 //buildAndDeploy flow
 			 if(version == null || version.isEmpty() || version.isBlank()){
@@ -1900,6 +1894,8 @@
 				 deploymentDetails.setScope(deployedAppConfigDto.getScope());
 				 deploymentDetails.setSsoType(deployedAppConfigDto.getSsoType().toString());
 				 deploymentDetails.setSecureWithDnaRequired(secureWithDnaRequired);
+				 deploymentDetails.setAliceRoleEnabled(deployedAppConfigDto.isAliceRoleEnabled());
+				 deploymentDetails.setSelectedAliceRoles(deployedAppConfigDto.getSelectedAliceRoles());
 				 workspaceCustomRepository.updateDeploymentDetails(projectName, environmentJsonbName,
 							 deploymentDetails, deploymentDetails.getLastDeploymentStatus());
 				 authenticatorClient.callingKongApis(workspaceId, projectName, environment, deployedAppConfigDto.isIsApiRecipe(), deployedAppConfigDto.getClientID(), clientSecret, deployedAppConfigDto.getRedirectUri(), deployedAppConfigDto.getIgnorePaths(), deployedAppConfigDto.getScope(), deployedAppConfigDto.getOneApiVersionShortName(), isSecuredWithCookie, secureWithIAMRequired, deployedAppConfigDto.getSsoType().toString(), secureWithDnaRequired, cloudServiceProvider);
