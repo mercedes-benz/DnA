@@ -1756,6 +1756,12 @@ definitions:
         enum: [SSO_INT, SSO_PROD]
       secureWithDnaRequired:
         type: boolean
+      aliceRoleEnabled:
+        type: boolean
+      selectedAliceRoles:
+        type: array
+        items:
+          type: string 
 
   WorkspacePluginStatusVO:
     type: object
@@ -1809,6 +1815,12 @@ definitions:
         enum: [SSO_INT, SSO_PROD]
       secureWithDnaRequired:
         type: boolean
+      aliceRoleEnabled:
+        type: boolean
+      selectedAliceRoles:
+        type: array
+        items:
+          type: string
       deploymentAuditLogs:
         type: array
         items:

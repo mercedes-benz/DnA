@@ -318,6 +318,14 @@ import com.daimler.data.dto.workspace.DeploymentAuditVO;
 			 {
 				deploymentDetails.setSecureWithDnaRequired(false);
 			 }
+			 if(vo.isAliceRoleEnabled()!=null)
+			 {
+				deploymentDetails.setAliceRoleEnabled(vo.isAliceRoleEnabled());
+			 }
+			 else
+			 {
+				deploymentDetails.setAliceRoleEnabled(false);
+			 }
 			 deploymentDetails.setLastDeployedBy(toUserInfo(vo.getLastDeployedBy()));
 			//  List<DeploymentAudit> auditDetails = this.toDeploymentAuditDetails(vo.getDeploymentAuditLogs());
 			//  deploymentDetails.setDeploymentAuditLogs(auditDetails);
@@ -408,6 +416,13 @@ import com.daimler.data.dto.workspace.DeploymentAuditVO;
 			 else
 			 {
 			   deploymentDetailsVO.setSecureWithDnaRequired(deploymentDetails.getSecureWithDnaRequired());
+			 }
+			 if (Objects.isNull(deploymentDetails.getAliceRoleEnabled())) {
+				deploymentDetailsVO.setAliceRoleEnabled(false);
+			 }
+			 else
+			 {
+			   deploymentDetailsVO.setAliceRoleEnabled(deploymentDetails.getAliceRoleEnabled());
 			 }
 			//  if(deploymentDetails.getDeploymentAuditLogs()!=null && !deploymentDetails.getDeploymentAuditLogs().isEmpty())
 			//  {
