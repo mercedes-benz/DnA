@@ -74,8 +74,6 @@ const DeployModal = (props) => {
   const collaborator = projectDetails?.projectCollaborators?.find((collaborator) => {return collaborator?.id === props?.userInfo?.id });
   const isOwner = projectDetails?.projectOwner?.id === props.userInfo.id || collaborator?.isAdmin;
   const isApprover = projectDetails?.projectOwner?.id === props.userInfo.id || collaborator?.isApprover;
-  const intDeployLogs = (projectDetails?.intDeploymentDetails?.deploymentAuditLogs)?.filter((item) => item?.branch) || [] ;
-  const prodDeployLogs = (projectDetails?.prodDeploymentDetails?.deploymentAuditLogs)?.filter((item) => item?.branch) || [];
   // const intDeploymentMigrated = projectDetails?.intDeploymentDetails?.deploymentUrl?.includes(Envs.CODESPACE_OIDC_POPUP_URL);
   // const prodDeploymentMigrated = projectDetails?.prodDeploymentDetails?.deploymentUrl?.includes(Envs.CODESPACE_OIDC_POPUP_URL);
   const envUrl = Envs.CODESPACE_AWS_DEPLOYMENT_URL;
@@ -90,7 +88,7 @@ const DeployModal = (props) => {
   
   useEffect(() => {
     Tooltip.defaultSetup();
-    intDeployLogs.length && setBranchValue([intDeployLogs[(intDeployLogs.length)-1]?.branch]);
+    projectDetails?.intDeploymentDetails?.lastDeployedBranch?.length && setBranchValue([projectDetails?.intDeploymentDetails?.lastDeployedBranch]);
     version?.length && setDeployEnvironment(buildEnvironment);
     const env =  version?.length ? (buildEnvironment==='staging' ? 'int' : 'prod') : 'int';
     getPublishedConfig(props?.codeSpaceData?.id, env);
@@ -131,10 +129,10 @@ const DeployModal = (props) => {
   useEffect(() => {
     setResetRequired(false);
     if(deployEnvironment === 'staging'){
-      intDeployLogs.length && setBranchValue([intDeployLogs[(intDeployLogs.length)-1]?.branch]);
+      projectDetails?.intDeploymentDetails?.lastDeployedBranch?.length ? setBranchValue([projectDetails?.intDeploymentDetails?.lastDeployedBranch]) : setBranchValue(['main']);
     }
     else{
-      prodDeployLogs.length && setBranchValue([prodDeployLogs[(prodDeployLogs.length)-1]?.branch]);
+      projectDetails?.prodDeploymentDetails?.lastDeployedBranch?.length ? setBranchValue([projectDetails?.prodDeploymentDetails?.lastDeployedBranch]) : setBranchValue(['main']);
     }
   }, [deployEnvironment]);// eslint-disable-line react-hooks/exhaustive-deps
 
