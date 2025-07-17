@@ -183,6 +183,7 @@ alloy:
       
       // Separate Zipkin receiver
       otelcol.receiver.zipkin "default" {
+        endpoint = "0.0.0.0:9411"
         output {
           traces = [
             otelcol.connector.spanlogs.default.input,
@@ -197,13 +198,6 @@ alloy:
         span_attributes = [
           "http.method", 
           "http.target", 
-          "http.url",
-          "http.status_code",
-          "service.name",
-          "service.version",
-          "operation.name",
-          "span.kind",
-          "error",
         ]
         
         output {
@@ -217,11 +211,6 @@ alloy:
         dimensions = [
           "http.method",
           "http.target", 
-          "http.status_code",
-          "service.name",
-          "service.version",
-          "operation.name",
-          "span.kind",
         ]
         
         output {
