@@ -193,7 +193,7 @@ kong:
    accessTokenHeaderName :  ${ACCESS_TOKEN_HEADER_NAME:XXXX}
    accessTokenAsBearer :  ${ACCESS_TOKEN_AS_BEARER:XXXX}
    dnaClientSecret : ${DNA_CLIENT_SECRET:XXXX}
-   dnaAppId : ${DNA_INT_APP_ID:XXXX}
+   dnaAppId : ${DNA_APP_ID:XXXX}
 
 workspace:
   migrate: ${MIGRATE_WORKSPACE:YOUR_MIGRATE_BOOLEAN}    
