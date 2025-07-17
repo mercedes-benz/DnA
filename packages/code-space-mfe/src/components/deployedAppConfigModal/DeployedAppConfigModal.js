@@ -113,7 +113,7 @@ const DeployedAppConfigModal = (props) => {
       const updatedRoles = props?.deploymentDetails?.selectedRoles.map(role => role.startsWith("DNA.") ? role.replace("DNA.", "") : role);
       setSelectedRoles(updatedRoles);
     }
-    props?.deploymentDetails?.secureWithIAMRequired &&
+    (props?.deploymentDetails?.secureWithIAMRequired || props?.deploymentDetails?.secureWithDnaRequired) &&
       CodeSpaceApiClient.getPluginStatus(props?.workspaceId, props?.isStaging ? 'int' : 'prod', 'OIDC_PLUGIN')
         .then((res) => {
           setPluginEnabled(res?.data?.enabled || false);
@@ -285,6 +285,7 @@ const DeployedAppConfigModal = (props) => {
     if (formValid) {
       const prefixedRoles = selectedRoles.map(role => `DNA.${role}`);
       const configRequest = {
+        targetEnvironment: props?.isStaging ? 'int' : 'prod',
         secureWithIAMRequired: secureWithIAMSelected,
         secureWithDnaRequired: secureWithDnaSelected,
         clientID: (secureWithIAMSelected || secureWithDnaSelected) ? clientId : '',
@@ -297,7 +298,7 @@ const DeployedAppConfigModal = (props) => {
         oneApiVersionShortName: oneApiSelected ? oneApiVersionShortName : '',
         // isSecuredWithCookie: (secureWithIAMSelected && deploymentType === 'API' && cookieSelected) || false,
         isSecuredWithCookie: false,
-        ssoType: secureWithIAMSelected ? ssoType : '',
+        ssoType: secureWithIAMSelected ? ssoType : secureWithDnaSelected ? Envs.DNA_SSO_TYPE : '',
         aliceRoleEnabled: enableAliceRole,
         selectedAliceRoles: prefixedRoles,
       };
@@ -307,6 +308,7 @@ const DeployedAppConfigModal = (props) => {
           ProgressIndicator.hide();
           if (res?.data?.success === 'SUCCESS') {
             Notification.show(`Code space '${props?.projectName}' updated successfully. Please Refresh.`);
+            props.setShowDeployedAppConfigModal(false);
           } else {
             Notification.show(
               'Error in updating deployed app config. Please try again later.\n' + res?.data?.errors[0]?.message,

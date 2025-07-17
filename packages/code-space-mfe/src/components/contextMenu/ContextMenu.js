@@ -38,7 +38,7 @@ const ContextMenu = (props) => {
   const [showAuditLogsModal, setShowAuditLogsModal] = useState(false);
   const [env, setEnv] = useState('');
   const [showRestartModal, setShowRestartModal] = useState(false);
-  const [showSecurityConfigModal, setShowSecurityConfigModal] = useState(false);
+  const [showDeployedAppConfigModal, setShowDeployedAppConfigModal] = useState(false);
 
   const deployingInProgress =
     intDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED' ||
@@ -305,7 +305,7 @@ const ContextMenu = (props) => {
                 <li>
                   <span
                     onClick={() => {
-                      setShowSecurityConfigModal(true);
+                      setShowDeployedAppConfigModal(true);
                       setIsStaging(true);
                     }}
                   >
@@ -349,7 +349,7 @@ const ContextMenu = (props) => {
                     </span>
                   ) : (
                     <a href={intDeployedUrl} target="_blank" rel="noreferrer">
-                      Deployed App URL {intDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
+                      Deployed App URL {(intDeploymentDetails?.secureWithIAMRequired || intDeploymentDetails?.secureWithDnaRequired)  && securedWithIAMContent}
                       <i className="icon mbc-icon new-tab" />
                     </a>
                   )}
@@ -458,7 +458,7 @@ const ContextMenu = (props) => {
                 <li>
                   <span
                     onClick={() => {
-                      setShowSecurityConfigModal(true);
+                      setShowDeployedAppConfigModal(true);
                       setIsStaging(false);
                     }}
                   >
@@ -502,7 +502,7 @@ const ContextMenu = (props) => {
                     </span>
                   ) : (
                     <a href={prodDeployedUrl} target="_blank" rel="noreferrer">
-                      Deployed App URL {prodDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
+                      Deployed App URL {(prodDeploymentDetails?.secureWithIAMRequired || prodDeploymentDetails?.secureWithDnaRequired) && securedWithIAMContent}
                       <i className="icon mbc-icon new-tab" />
                     </a>
                   )}
@@ -636,15 +636,15 @@ const ContextMenu = (props) => {
           }}
         />
       )}
-      {showSecurityConfigModal && (
+      {showDeployedAppConfigModal && (
         <Modal
-          title={`Manage ${isStaging ? 'Staging' : 'Production'} Security Config`}
+          title={`Manage ${isStaging ? 'Staging' : 'Production'} Deployed Application Config`}
           hiddenTitle={false}
           showAcceptButton={false}
           showCancelButton={false}
           modalWidth="1200px"
           buttonAlignment="right"
-          show={showSecurityConfigModal}
+          show={showDeployedAppConfigModal}
           content={
             <DeployedAppConfigModal
               userInfo={props?.userInfo}
@@ -654,6 +654,7 @@ const ContextMenu = (props) => {
               securityConfig={props?.codeSpace?.projectDetails?.securityConfig}
               navigateSecurityConfig={navigateSecurityConfig}
               isStaging={isStaging}
+              setShowDeployedAppConfigModal={(value) => setShowDeployedAppConfigModal(value)}
             />
           }
         scrollableContent={true}
