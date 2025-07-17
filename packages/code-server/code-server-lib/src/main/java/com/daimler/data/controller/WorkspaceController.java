@@ -1356,9 +1356,11 @@ import org.springframework.beans.factory.annotation.Value;
 						 vo.getWorkspaceId());
 				 return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
 			 }
+			//  if (vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase().startsWith("public") 
+			// 		 || vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().equalsIgnoreCase("default")
+			// 		 || !Boolean.TRUE.equals(vo.getProjectDetails().getRecipeDetails().isIsDeployEnabled())) {
 			 if (vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase().startsWith("public") 
-					 || vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().equalsIgnoreCase("default")
-					 || !Boolean.TRUE.equals(vo.getProjectDetails().getRecipeDetails().isIsDeployEnabled())) {
+			 		 || vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().equalsIgnoreCase("default")){
 				 MessageDescription invalidTypeMsg = new MessageDescription();
 				 invalidTypeMsg.setMessage(
 						 "Invalid type, cannot update app config for this type of recipe");

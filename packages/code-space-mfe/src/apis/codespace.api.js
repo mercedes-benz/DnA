@@ -85,13 +85,13 @@ const updateDeployedAppConfig = (id, data) => {
 };
 
 const getPluginStatus = (id, env, pluginName) => {
-    return server.get(`workspaces/${id}/pluginStatus?env=${env}?pluginName=${pluginName}`,{
+    return server.get(`workspaces/${id}/pluginStatus?env=${env}&pluginName=${pluginName}`,{
         data: {},
     });
 };
 
 const updatePluginStatus = (id, env, pluginName, enable) => {
-    return server.get(`workspaces/${id}/pluginStatus?env=${env}?pluginName=${pluginName}?enable=${enable}`,{
+    return server.post(`workspaces/${id}/pluginStatus?env=${env}&pluginName=${pluginName}&enable=${enable}`,{
         data: {},
     });
 };
