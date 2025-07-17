@@ -285,6 +285,7 @@ const DeployedAppConfigModal = (props) => {
     if (formValid) {
       const prefixedRoles = selectedRoles.map(role => `DNA.${role}`);
       const configRequest = {
+        targetEnvironment: props?.isStaging ? 'int' : 'prod',
         secureWithIAMRequired: secureWithIAMSelected,
         secureWithDnaRequired: secureWithDnaSelected,
         clientID: (secureWithIAMSelected || secureWithDnaSelected) ? clientId : '',
@@ -297,7 +298,7 @@ const DeployedAppConfigModal = (props) => {
         oneApiVersionShortName: oneApiSelected ? oneApiVersionShortName : '',
         // isSecuredWithCookie: (secureWithIAMSelected && deploymentType === 'API' && cookieSelected) || false,
         isSecuredWithCookie: false,
-        ssoType: secureWithIAMSelected ? ssoType : '',
+        ssoType: secureWithIAMSelected ? ssoType : secureWithDnaSelected ? Envs.DNA_SSO_TYPE : '',
         aliceRoleEnabled: enableAliceRole,
         selectedAliceRoles: prefixedRoles,
       };
