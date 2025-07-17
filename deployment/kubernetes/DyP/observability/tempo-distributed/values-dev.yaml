@@ -4,15 +4,13 @@ global:
     registry: registry-emea.app.corpintra.net/dockerhub  
 storage:
   trace:
-    block:
-      version: vParquet4
-      dedicated_columns:
-        - name: cluster
-          type: string
-          scope: resource
-        - name: service.name
-          type: string
-          scope: resource
+    backend: s3
+    s3:
+      access_key: 'root-user'
+      secret_key: 'supersecret'
+      bucket: 'tempo-traces'
+      endpoint: 'loki-minio:9000'
+      insecure: true
 ingester:
   persistence:
     enabled: true
@@ -21,12 +19,16 @@ ingester:
         size: 50Gi  
         storageClass: dhc-gp3
   config:
-    complete_block_timeout: 72h  # Set to 3 days (72 hours)       
-compactor:     
+    trace_idle_period: 10s  
+    max_block_bytes: 1_000_000  
+    max_block_duration: 1m 
+compactor:
   config:
     compaction:
-      # -- Duration to keep blocks
-      block_retention: 72h    
+      compaction_window: 720h # 30days
+      max_compaction_objects: 1000000
+      block_retention: 720h
+      compacted_block_retention: 10m
 traces:
   otlp:
     grpc:
@@ -38,4 +40,5 @@ traces:
 overrides:
   defaults:
     metrics_generator:
-      processors: [service-graphs, span-metrics, local-blocks]
+      processors: ['service-graphs', 'span-metrics', 'local-blocks']
+      generate_native_histograms: both

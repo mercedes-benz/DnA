@@ -3510,6 +3510,9 @@ minio:
     - name: admin
       policy: none
       purge: false
+    - name: tempo-traces
+      policy: none
+      purge: false      
   persistence:
     size: 5Gi
     annotations: {}
