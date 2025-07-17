@@ -349,7 +349,7 @@ const ContextMenu = (props) => {
                     </span>
                   ) : (
                     <a href={intDeployedUrl} target="_blank" rel="noreferrer">
-                      Deployed App URL {intDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
+                      Deployed App URL {(intDeploymentDetails?.secureWithIAMRequired || intDeploymentDetails?.secureWithDnaRequired)  && securedWithIAMContent}
                       <i className="icon mbc-icon new-tab" />
                     </a>
                   )}
@@ -502,7 +502,7 @@ const ContextMenu = (props) => {
                     </span>
                   ) : (
                     <a href={prodDeployedUrl} target="_blank" rel="noreferrer">
-                      Deployed App URL {prodDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
+                      Deployed App URL {(prodDeploymentDetails?.secureWithIAMRequired || prodDeploymentDetails?.secureWithDnaRequired) && securedWithIAMContent}
                       <i className="icon mbc-icon new-tab" />
                     </a>
                   )}
