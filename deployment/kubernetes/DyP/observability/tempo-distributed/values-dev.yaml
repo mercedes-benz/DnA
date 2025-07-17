@@ -14,10 +14,9 @@ storage:
 ingester:
   persistence:
     enabled: true
-    claims:
-      - name: data
-        size: 5Gi  
-        storageClass: dhc-gp3
+    size: 5Gi
+    storageClass: dhc-gp3
+        
   config:
     trace_idle_period: 10s  
     max_block_bytes: 1_000_000  
