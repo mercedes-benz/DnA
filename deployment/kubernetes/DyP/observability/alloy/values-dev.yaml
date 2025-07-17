@@ -177,9 +177,14 @@ alloy:
         http {
           endpoint = "0.0.0.0:4318"
         }
-        zipkin {
-          endpoint = "0.0.0.0:9411"
+        output {
+          traces = [otelcol.exporter.otlp.tempo.input]
         }
+      }
+      
+      // Separate Zipkin receiver
+      otelcol.receiver.zipkin "zipkin_receiver" {
+        endpoint = "0.0.0.0:9411"
         output {
           traces = [otelcol.exporter.otlp.tempo.input]
         }
