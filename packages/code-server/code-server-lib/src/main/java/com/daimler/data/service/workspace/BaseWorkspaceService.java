@@ -1691,7 +1691,7 @@
 				} else {
 					repoName = entity.getData().getProjectDetails().getGitRepoName();
 					deployJobInputDto.setRepo(gitOrgName + "/" + repoName);		
-
+ 
 				}
 				 
 				 deployJobInputDto.setShortid(workspaceOwner);
@@ -1792,11 +1792,7 @@
 					 }
 					 auditLogEntity.setData(buildDeployLogs);
 					 buildDeployRepo.save(auditLogEntity);
-					 
-					 //only deploy flow
-					if(deployType.equalsIgnoreCase("deploy")){
-						lastBuildOrDeployStatus = "DEPLOY_REQUESTED";						
-					}
+					
 					// deploymentDetails.setLastDeployedBranch(branch);
 					// deploymentDetails.setLastDeployedVersion(version);	
 					lastBuildOrDeployStatus = "DEPLOY_REQUESTED";				
@@ -1808,6 +1804,7 @@
 					 errors.addAll(jobResponse.getErrors());
 				 }
 			 }
+			 log.info("project name {} updating deployment details to db",serviceName);	
 			 workspaceCustomRepository.updateDeploymentDetails(projectName, environment,deploymentDetails,lastBuildOrDeployStatus);
 			 }
 		 } catch (Exception e) {
