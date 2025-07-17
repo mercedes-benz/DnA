@@ -7,7 +7,7 @@ storage:
     backend: s3
     s3:
       access_key: 'root-user'
-      secret_key: 'supersecret'
+      secret_key: 'supersecretpassword'
       bucket: 'tempo-traces'
       endpoint: 'loki-minio:9000'
       insecure: true
