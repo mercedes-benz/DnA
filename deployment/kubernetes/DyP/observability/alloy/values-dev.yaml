@@ -208,7 +208,7 @@ alloy:
           "service.version",
           "operation.name",
           "span.kind",
-          "error"
+          "error",
         ]
         
         output {
@@ -226,12 +226,11 @@ alloy:
           "service.name",
           "service.version",
           "operation.name",
-          "span.kind"
+          "span.kind",
         ]
         
         output {
           metrics = [otelcol.exporter.prometheus.service_graphs.input]
-          traces  = [otelcol.exporter.otlp.tempo.input]
         }
       }
       
