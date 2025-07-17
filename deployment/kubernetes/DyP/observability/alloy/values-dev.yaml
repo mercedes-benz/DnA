@@ -178,7 +178,10 @@ alloy:
           endpoint = "0.0.0.0:4318"
         }
         output {
-          traces = [otelcol.exporter.otlp.tempo.input]
+          traces = [
+            otelcol.connector.spanlogs.trace_discovery.input,
+            otelcol.connector.servicegraph.service_graph.input,
+          ]
         }
       }
       
@@ -186,8 +189,71 @@ alloy:
       otelcol.receiver.zipkin "zipkin_receiver" {
         endpoint = "0.0.0.0:9411"
         output {
+          traces = [
+            otelcol.connector.spanlogs.trace_discovery.input,
+            otelcol.connector.servicegraph.service_graph.input,
+          ]
+        }
+      }
+      
+      // Span logs connector for automatic trace discovery through logs
+      otelcol.connector.spanlogs "trace_discovery" {
+        roots           = true
+        span_attributes = [
+          "http.method", 
+          "http.target", 
+          "http.url",
+          "http.status_code",
+          "service.name",
+          "service.version",
+          "operation.name",
+          "span.kind",
+          "error"
+        ]
+        
+        output {
+          logs   = [otelcol.exporter.loki.trace_logs.input]
           traces = [otelcol.exporter.otlp.tempo.input]
         }
+      }
+      
+      // Service graph connector for service-to-service relationship metrics
+      otelcol.connector.servicegraph "service_graph" {
+        dimensions = [
+          "http.method",
+          "http.target", 
+          "http.status_code",
+          "service.name",
+          "service.version",
+          "operation.name",
+          "span.kind"
+        ]
+        
+        output {
+          metrics = [otelcol.exporter.prometheus.service_graphs.input]
+          traces  = [otelcol.exporter.otlp.tempo.input]
+        }
+      }
+      
+      // Prometheus exporter for service graph metrics
+      otelcol.exporter.prometheus "service_graphs" {
+        forward_to = [prometheus.remote_write.grafana_cloud.receiver]
+        add_metric_suffixes = false
+        include_target_info = true
+        include_scope_info  = true
+      }
+      
+      // Remote write to Prometheus/Grafana Cloud
+      prometheus.remote_write "grafana_cloud" {
+        endpoint {
+          url = "http://i3-monitoring-prometheus-server.i3-monitoring.svc.cluster.local/api/v1/write"
+          headers = {"X-Scope-OrgID" = "c82p085"}
+        }
+      }
+      
+      // Loki exporter for trace logs
+      otelcol.exporter.loki "trace_logs" {
+        forward_to = [loki.write.grafana_loki.receiver]
       }
       
       // OTLP exporter to Tempo
