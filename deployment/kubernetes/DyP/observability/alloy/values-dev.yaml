@@ -170,31 +170,29 @@ alloy:
         }
       }  
       // OTLP receiver configuration
-      otelcol.receiver.otlp "otlp_receiver" {
-        grpc {
-        }
-        http {
-        }
+      otelcol.receiver.otlp "default" {
+        grpc {}
+        http {}
         output {
           traces = [
-            otelcol.connector.spanlogs.trace_discovery.input,
-            otelcol.connector.servicegraph.service_graph.input,
+            otelcol.connector.spanlogs.default.input,
+            otelcol.connector.servicegraph.default.input,
           ]
         }
       }
       
       // Separate Zipkin receiver
-      otelcol.receiver.zipkin "zipkin_receiver" {
+      otelcol.receiver.zipkin "default" {
         output {
           traces = [
-            otelcol.connector.spanlogs.trace_discovery.input,
-            otelcol.connector.servicegraph.service_graph.input,
+            otelcol.connector.spanlogs.default.input,
+            otelcol.connector.servicegraph.default.input,
           ]
         }
       }
       
       // Span logs connector for automatic trace discovery through logs
-      otelcol.connector.spanlogs "trace_discovery" {
+      otelcol.connector.spanlogs "default" {
         roots           = true
         span_attributes = [
           "http.method", 
@@ -209,13 +207,13 @@ alloy:
         ]
         
         output {
-          logs   = [otelcol.exporter.loki.trace_logs.input]
-          traces = [otelcol.exporter.otlp.tempo.input]
+          logs   = [otelcol.exporter.loki.default.input]
+          traces = [otelcol.exporter.otlp.default.input]
         }
       }
       
       // Service graph connector for service-to-service relationship metrics
-      otelcol.connector.servicegraph "service_graph" {
+      otelcol.connector.servicegraph "default" {
         dimensions = [
           "http.method",
           "http.target", 
@@ -227,12 +225,12 @@ alloy:
         ]
         
         output {
-          metrics = [otelcol.exporter.prometheus.service_graphs.input]
+          metrics = [otelcol.exporter.prometheus.default.input]
         }
       }
       
       // Prometheus exporter for service graph metrics
-      otelcol.exporter.prometheus "service_graphs" {
+      otelcol.exporter.prometheus "default" {
         forward_to = [prometheus.remote_write.grafana_cloud.receiver]
         add_metric_suffixes = false
         include_target_info = true
@@ -248,16 +246,17 @@ alloy:
       }
       
       // Loki exporter for trace logs
-      otelcol.exporter.loki "trace_logs" {
+      otelcol.exporter.loki "default" {
         forward_to = [loki.write.grafana_loki.receiver]
       }
       
       // OTLP exporter to Tempo
-      otelcol.exporter.otlp "tempo" {
+      otelcol.exporter.otlp "default" {
         client {
           endpoint = "http://tempo-distributor.observability.svc.cluster.local:4317"
           tls {
-            insecure = true
+              insecure             = true
+              insecure_skip_verify = true
           }
         }
       }
