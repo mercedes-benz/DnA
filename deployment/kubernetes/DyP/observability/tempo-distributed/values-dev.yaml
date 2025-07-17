@@ -16,11 +16,6 @@ ingester:
     enabled: true
     size: 5Gi
     storageClass: dhc-gp3
-        
-  config:
-    trace_idle_period: 10s  
-    max_block_bytes: 1_000_000  
-    max_block_duration: 1m 
 compactor:
   config:
     compaction:
