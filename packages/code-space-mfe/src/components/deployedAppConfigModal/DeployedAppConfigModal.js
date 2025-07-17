@@ -113,7 +113,7 @@ const DeployedAppConfigModal = (props) => {
       const updatedRoles = props?.deploymentDetails?.selectedRoles.map(role => role.startsWith("DNA.") ? role.replace("DNA.", "") : role);
       setSelectedRoles(updatedRoles);
     }
-    props?.deploymentDetails?.secureWithIAMRequired &&
+    (props?.deploymentDetails?.secureWithIAMRequired || props?.deploymentDetails?.secureWithDnaRequired) &&
       CodeSpaceApiClient.getPluginStatus(props?.workspaceId, props?.isStaging ? 'int' : 'prod', 'OIDC_PLUGIN')
         .then((res) => {
           setPluginEnabled(res?.data?.enabled || false);
@@ -308,6 +308,7 @@ const DeployedAppConfigModal = (props) => {
           ProgressIndicator.hide();
           if (res?.data?.success === 'SUCCESS') {
             Notification.show(`Code space '${props?.projectName}' updated successfully. Please Refresh.`);
+            props.setShowDeployedAppConfigModal(false);
           } else {
             Notification.show(
               'Error in updating deployed app config. Please try again later.\n' + res?.data?.errors[0]?.message,
