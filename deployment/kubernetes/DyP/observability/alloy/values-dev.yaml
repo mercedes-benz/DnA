@@ -172,10 +172,8 @@ alloy:
       // OTLP receiver configuration
       otelcol.receiver.otlp "otlp_receiver" {
         grpc {
-          endpoint = "0.0.0.0:4317"
         }
         http {
-          endpoint = "0.0.0.0:4318"
         }
         output {
           traces = [
@@ -187,7 +185,6 @@ alloy:
       
       // Separate Zipkin receiver
       otelcol.receiver.zipkin "zipkin_receiver" {
-        endpoint = "0.0.0.0:9411"
         output {
           traces = [
             otelcol.connector.spanlogs.trace_discovery.input,
