@@ -658,7 +658,7 @@ const ContextMenu = (props) => {
             />
           }
         scrollableContent={true}
-        onCancel={() => {setShowSecurityConfigModal(false);}}
+        onCancel={() => {setShowDeployedAppConfigModal(false);}}
         />
       )}
     </>
