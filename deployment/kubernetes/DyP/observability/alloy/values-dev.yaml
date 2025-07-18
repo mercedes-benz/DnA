@@ -169,87 +169,49 @@ alloy:
           headers = {"X-Scope-OrgID" = "c82p085"}
         }
       }  
-      // OTLP receiver configuration
+
+      //otlp
       otelcol.receiver.otlp "default" {
         grpc {}
         http {}
+
         output {
-          traces = [
-            otelcol.connector.spanlogs.default.input,
-            otelcol.connector.servicegraph.default.input,
-          ]
+          traces = [otelcol.connector.spanlogs.default.input, otelcol.exporter.otlp.default.input]
         }
       }
-      
+
       // Separate Zipkin receiver
       otelcol.receiver.zipkin "default" {
         endpoint = "0.0.0.0:9411"
         output {
           traces = [
             otelcol.connector.spanlogs.default.input,
-            otelcol.connector.servicegraph.default.input,
+            otelcol.exporter.otlp.default.input
           ]
         }
       }
-      
-      // Span logs connector for automatic trace discovery through logs
+
       otelcol.connector.spanlogs "default" {
-        roots           = true
-        span_attributes = [
-          "http.method", 
-          "http.target", 
-        ]
-        
+        roots = true
+        span_attributes = ["http.method", "http.target"]
         output {
-          logs   = [otelcol.exporter.loki.default.input]
-          traces = [otelcol.exporter.otlp.default.input]
-        }
-      }
-      
-      // Service graph connector for service-to-service relationship metrics
-      otelcol.connector.servicegraph "default" {
-        dimensions = [
-          "http.method",
-          "http.target", 
-        ]
-        
-        output {
-          metrics = [otelcol.exporter.prometheus.default.input]
-        }
-      }
-      
-      // Prometheus exporter for service graph metrics
-      otelcol.exporter.prometheus "default" {
-        forward_to = [prometheus.remote_write.grafana_cloud.receiver]
-        add_metric_suffixes = false
-        include_target_info = true
-        include_scope_info  = true
-      }
-      
-      // Remote write to Prometheus/Grafana Cloud
-      prometheus.remote_write "grafana_cloud" {
-        endpoint {
-          url = "http://i3-monitoring-prometheus-server.i3-monitoring.svc.cluster.local/api/v1/write"
-          headers = {"X-Scope-OrgID" = "c82p085"}
-        }
-      }
-      
-      // Loki exporter for trace logs
-      otelcol.exporter.loki "default" {
-        forward_to = [loki.write.grafana_loki.receiver]
-      }
-      
-      // OTLP exporter to Tempo
-      otelcol.exporter.otlp "default" {
-        client {
-          endpoint = "http://tempo-distributor.observability.svc.cluster.local:4317"
-          tls {
-              insecure             = true
-              insecure_skip_verify = true
-          }
+          logs = [otelcol.exporter.loki.default.input]
         }
       }
 
+      otelcol.exporter.loki "default" {
+        forward_to = [loki.write.grafana_loki.receiver]
+      }
+
+      otelcol.exporter.otlp "default" {
+        client {
+            endpoint = "http://tempo-distributor.observability.svc.cluster.local:4317"
+            tls {
+                insecure             = true
+                insecure_skip_verify = true
+            }
+        }
+      }
 
     # -- Name of existing ConfigMap to use. Used when create is false.
     name: null
