@@ -903,6 +903,7 @@ const DeployedAppConfigModal = (props) => {
           onAccept={() => {
             setSecuredWithIAMWarning(false);
             setSecureWithIAMSelected(false);
+            setSecureWithDnaSelected(false);
           }}
           showCancelButton={true}
           modalWidth={'40%'}
