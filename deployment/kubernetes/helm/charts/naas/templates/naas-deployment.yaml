@@ -11,7 +11,6 @@ spec:
   selector:
     matchLabels:
       name: {{ .Chart.Name }}-backend
-      app.kubernetes.io/name: {{ .Chart.Name }}-backend
   template:
     metadata:
       labels:
@@ -35,7 +34,6 @@ spec:
           labelSelector:
             matchLabels:
               name: {{ .Chart.Name }}-backend
-              app.kubernetes.io/name: {{ .Chart.Name }}-backend
       containers:
         - name: {{ .Chart.Name }}-service
           image: "{{ .Values.app.backend.image.repository }}:{{ .Values.app.backend.image.tag | default .Chart.AppVersion }}"
