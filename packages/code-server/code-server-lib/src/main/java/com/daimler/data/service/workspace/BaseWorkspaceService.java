@@ -1893,9 +1893,9 @@
 				 deploymentDetails.setSecureWithDnaRequired(secureWithDnaRequired);
 				 deploymentDetails.setAliceRoleEnabled(deployedAppConfigDto.isAliceRoleEnabled());
 				 deploymentDetails.setSelectedAliceRoles(deployedAppConfigDto.getSelectedAliceRoles());
+				 authenticatorClient.callingKongApis(workspaceId, projectName, environment, deployedAppConfigDto.isIsApiRecipe(), deployedAppConfigDto.getClientID(), clientSecret, deployedAppConfigDto.getRedirectUri(), deployedAppConfigDto.getIgnorePaths(), deployedAppConfigDto.getScope(), deployedAppConfigDto.getOneApiVersionShortName(), isSecuredWithCookie, secureWithIAMRequired, deployedAppConfigDto.getSsoType().toString(), secureWithDnaRequired, cloudServiceProvider);
 				 workspaceCustomRepository.updateDeploymentDetails(projectName, environmentJsonbName,
 							 deploymentDetails, deploymentDetails.getLastDeploymentStatus());
-				 authenticatorClient.callingKongApis(workspaceId, projectName, environment, deployedAppConfigDto.isIsApiRecipe(), deployedAppConfigDto.getClientID(), clientSecret, deployedAppConfigDto.getRedirectUri(), deployedAppConfigDto.getIgnorePaths(), deployedAppConfigDto.getScope(), deployedAppConfigDto.getOneApiVersionShortName(), isSecuredWithCookie, secureWithIAMRequired, deployedAppConfigDto.getSsoType().toString(), secureWithDnaRequired, cloudServiceProvider);
 				 status = "SUCCESS";
 			 }
 			 
