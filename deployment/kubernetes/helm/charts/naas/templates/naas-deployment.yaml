@@ -5,15 +5,18 @@ metadata:
   namespace: {{ .Values.namespace }}
   labels:
     name: {{ .Chart.Name }}-backend
+    app.kubernetes.io/name: {{ .Chart.Name }}-backend
 spec:
   replicas: {{ .Values.app.backend.replicaCount }}
   selector:
     matchLabels:
       name: {{ .Chart.Name }}-backend
+      app.kubernetes.io/name: {{ .Chart.Name }}-backend
   template:
     metadata:
       labels:
         name: {{ .Chart.Name }}-backend
+        app.kubernetes.io/name: {{ .Chart.Name }}-backend
       {{- if .Values.vaultInjector.enable }}      
       {{- with .Values.vaultInjector.annotations }}
       annotations:
@@ -32,6 +35,7 @@ spec:
           labelSelector:
             matchLabels:
               name: {{ .Chart.Name }}-backend
+              app.kubernetes.io/name: {{ .Chart.Name }}-backend
       containers:
         - name: {{ .Chart.Name }}-service
           image: "{{ .Values.app.backend.image.repository }}:{{ .Values.app.backend.image.tag | default .Chart.AppVersion }}"
