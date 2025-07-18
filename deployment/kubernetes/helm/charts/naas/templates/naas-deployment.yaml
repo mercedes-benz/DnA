@@ -5,6 +5,7 @@ metadata:
   namespace: {{ .Values.namespace }}
   labels:
     name: {{ .Chart.Name }}-backend
+    app.kubernetes.io/name: {{ .Chart.Name }}-backend
 spec:
   replicas: {{ .Values.app.backend.replicaCount }}
   selector:
@@ -14,6 +15,7 @@ spec:
     metadata:
       labels:
         name: {{ .Chart.Name }}-backend
+        app.kubernetes.io/name: {{ .Chart.Name }}-backend
       {{- if .Values.vaultInjector.enable }}      
       {{- with .Values.vaultInjector.annotations }}
       annotations:
