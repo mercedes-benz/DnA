@@ -288,7 +288,7 @@ const DeployedAppConfigModal = (props) => {
         targetEnvironment: props?.isStaging ? 'int' : 'prod',
         secureWithIAMRequired: secureWithIAMSelected,
         secureWithDnaRequired: secureWithDnaSelected,
-        clientID: (secureWithIAMSelected || secureWithDnaSelected) ? clientId : '',
+        clientID: secureWithIAMSelected ? clientId : secureWithDnaSelected ? Envs.DNA_CLIENT_ID : '',
         clientSecret: clientSecret,
         redirectUri:
           (secureWithIAMSelected || secureWithDnaSelected) && deploymentType === 'UI' && redirectUri?.length ? redirectUri?.split(envUrl)[1] : '',
