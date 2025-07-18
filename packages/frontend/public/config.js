@@ -4,6 +4,7 @@ window['INJECTED_ENVIRONMENT'] = {
   APP_URL:'https://localhost:9091/',
   LOGINREDIRECTURL: 'http://localhost:7171/login/redirect',
   DATA_PIPELINES_API_BASEURL: 'http://localhost:7172/airflow/api',
+  DNA_VAULT_API_BASEURL: 'YOUR_DNA_VAULT_API_BASEURL',
   MALWARESCAN_API_BASEURL: 'http://localhost:8181/api',
   DASHBOARD_API_BASEURL: 'http://localhost:7173/api',
   NOTIFICATIONS_API_BASEURL: 'http://localhost:7272/api',

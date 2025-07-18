@@ -3,6 +3,11 @@ import Styles from './PipelineCardItem.scss';
 import { IPipelineProjectDetail } from 'globals/types';
 import { history } from '../../../router/History';
 import { Envs } from 'globals/Envs';
+import Modal from 'components/formElements/modal/Modal';
+import { IconGear } from '/home/coder/app/packages/frontend/src/components/icons/IconGear';
+import VaultManagement from '/home/coder/app/packages/frontend/src/components/mbc/pipeline/pipelineSubList/VaultManagement';
+import Tooltip from '/home/coder/app/packages/frontend/src/assets/modules/uilab/js/src/tooltip';
+import ExpansionPanel from '/home/coder/app/packages/frontend/src/assets/modules/uilab/js/src/expansion-panel';
 
 interface Props {
   project: IPipelineProjectDetail;
@@ -12,6 +17,8 @@ interface Props {
 const PipelineCardItem = ({ project, getRefreshedDagPermission }: Props) => {
   const [isDagPopupVisible, setIsDagPopupVisible] = useState(false);
   const popupRef = useRef<HTMLDivElement>(null);
+  const [showVaultManagementModal, setShowVaultManagementModal] = useState(false);
+  const [selectedProjectName, setSelectedProjectName] = useState('');
 
   const goToDag = (dagId: string) => {
     history.push('/editcode/' + dagId);
@@ -29,6 +36,10 @@ const PipelineCardItem = ({ project, getRefreshedDagPermission }: Props) => {
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+  useEffect(() => {
+    Tooltip.defaultSetup();
+    ExpansionPanel.defaultSetup();
   }, []);
 
   return (
@@ -72,10 +83,20 @@ const PipelineCardItem = ({ project, getRefreshedDagPermission }: Props) => {
                         </span>
 
                         <div className={Styles.cardDagActions}>
+                          {project.isOwner && (
+                            <button
+                              className={Styles.actionBtn + ' btn btn-primary'}
+                              onClick={() => setShowVaultManagementModal(prev => !prev)}
+                              type="button"
+                              tooltip-data="Configure Environment Variables"
+                            >
+                              <IconGear size={'18'} />
+                            </button>
+                          )}
                           <button
                             className={Styles.actionBtn}
                             onClick={() => goToDag(dag.dagName)}
-                            title="Open in Editor"
+                            tooltip-data="Open in Editor"
                           >
                             <i className="icon mbc-icon edit" />
                           </button>
@@ -85,7 +106,7 @@ const PipelineCardItem = ({ project, getRefreshedDagPermission }: Props) => {
                             target="_blank"
                             rel="noreferrer"
                             className={Styles.actionBtn}
-                            title="Open in New Tab"
+                            tooltip-data="Open in New Tab"
                           >
                             <i className="icon mbc-icon new-tab" />
                           </a>
@@ -110,7 +131,27 @@ const PipelineCardItem = ({ project, getRefreshedDagPermission }: Props) => {
           </button>
         </div>
       </div>
+      {showVaultManagementModal && (
+        <Modal
+          title="Configure Environment Variables"
+          showAcceptButton={false}
+          showCancelButton={true}
+          buttonAlignment="right"
+          modalWidth="80vw"
+          modalStyle={{ height: '80vh', maxWidth: 'none' }}
+          show={true}
+          content={
+            <VaultManagement
+              projectName={selectedProjectName}
+            />
+          }
+          scrollableContent={true}
+          onCancel={() => setShowVaultManagementModal(false)}
+        />
+      )}
+
     </div>
+    
   );
 };
 

@@ -20,6 +20,8 @@ import ExpansionPanel from '../../../../assets/modules/uilab/js/src/expansion-pa
 import Tooltip from '../../../../assets/modules/uilab/js/src/tooltip';
 import classNames from 'classnames';
 import { Envs } from 'globals/Envs';
+import { IconGear } from '/home/coder/app/packages/frontend/src/components/icons/IconGear';
+import VaultManagement from '/home/coder/app/packages/frontend/src/components/mbc/pipeline/pipelineSubList/VaultManagement';
 // import { TagRowItem } from '../../admin/taghandling/tagrowitem/TagRowItem';
 // import { isEmpty, iteratee, sortBy } from 'lodash';
 
@@ -39,6 +41,8 @@ const PipelineSubList = (props: IPipelineProjectProps) => {
   const [nextSortOrder, setNextSortOrder] = useState<string>('asc');
   const [currentColumnToSort, setCurrentColumnToSort] = useState<string>('projectId');
   const createAndUpdateStatus = ['CREATE_REQUESTED', 'UPDATE_REQUESTED'];
+  const [showVaultManagementModal, setShowVaultManagementModal] = useState(false);
+  const [selectedProjectName, setSelectedProjectName] = useState('');
 
   const onPermissionEdit = (collUserId: string, index: number) => {
     return () => {
@@ -336,18 +340,31 @@ const PipelineSubList = (props: IPipelineProjectProps) => {
                                             </span>
                                           ) : (
                                             <React.Fragment>
-                                              {dagItem.permissions?.includes('can_edit') ? (
-                                                <button
-                                                  onClick={editCodeCurrentDag(dagItem.dagName)}
-                                                  className={Styles.actionBtn + ' btn btn-primary'}
-                                                  type="button"
-                                                >
-                                                  <i className="icon mbc-icon edit" />
-                                                  <span>Edit Code </span>
-                                                </button>
-                                              ) : (
-                                                <button
-                                                  onClick={viewCodeCurrentDag(dagItem.dagName)}
+                                                {dagItem.permissions?.includes('can_edit') ? (
+                                                  <>
+                                                    <button
+                                                      onClick={editCodeCurrentDag(dagItem.dagName)}
+                                                      className={Styles.actionBtn + ' btn btn-primary'}
+                                                      type="button"
+                                                    >
+                                                      <i className="icon mbc-icon edit" />
+                                                      <span>Edit Code </span>
+                                                    </button>
+                                                    &nbsp; &nbsp;&nbsp; 
+                                                    {item.isOwner && (
+                                                      <button
+                                                        className={Styles.actionBtn + ' btn btn-primary'}
+                                                        onClick={() => setShowVaultManagementModal(prev => !prev)}
+                                                        type="button"
+                                                        tooltip-data="Configure Environment Variables"
+                                                      >
+                                                        <IconGear size={'18'} />
+                                                      </button>
+                                                    )}
+                                                  </>
+                                                ) : (
+                                                  <button
+                                                    onClick={viewCodeCurrentDag(dagItem.dagName)}
                                                   className={Styles.actionBtn + ' btn btn-primary'}
                                                   type="button"
                                                 >
@@ -355,6 +372,7 @@ const PipelineSubList = (props: IPipelineProjectProps) => {
                                                   <span>View Code </span>
                                                 </button>
                                               )}
+                                              
                                               &nbsp; &nbsp;
                                               <a
                                                 className={Styles.airflowLink}
@@ -412,6 +430,24 @@ const PipelineSubList = (props: IPipelineProjectProps) => {
           content={dagCollUsersListContent}
           scrollableContent={false}
           onCancel={collPermissionModelClose}
+        />
+      )}
+      {showVaultManagementModal && (
+        <Modal
+          title="Configure Environment Variables"
+          showAcceptButton={false}
+          showCancelButton={true}
+          buttonAlignment="right"
+          modalWidth="80vw"
+          modalStyle={{ height: '80vh', maxWidth: 'none' }}
+          show={true}
+          content={
+            <VaultManagement
+              projectName={selectedProjectName}
+            />
+          }
+          scrollableContent={true}
+          onCancel={() => setShowVaultManagementModal(false)}
         />
       )}
     </React.Fragment>
