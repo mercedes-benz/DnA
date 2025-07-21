@@ -1967,7 +1967,7 @@
 					 deploymentDetails = entity.getData().getProjectDetails().getProdDeploymentDetails();
 					 configPublishedAppId = entity.getData().getProjectDetails().getSecurityConfig().getProduction().getPublished().getAppID();
 				 }
-				 if("OIDC_PLUGIN".equalsIgnoreCase(pluginName) && !Boolean.TRUE.equals(deploymentDetails.getSecureWithIAMRequired())){
+				 if("oidc".equalsIgnoreCase(pluginName) && !Boolean.TRUE.equals(deploymentDetails.getSecureWithIAMRequired())){
 					 MessageDescription error = new MessageDescription();
 					 error.setMessage("No OIDC plugin found. Please secure with IAM first.");
 					 errors.add(error);
@@ -1976,7 +1976,7 @@
 					 responseMessage.setSuccess(status);
 					 return responseMessage;
 				 }
-				 if("API_AUTHORISER_PLUGIN".equalsIgnoreCase(pluginName) && Objects.isNull(configPublishedAppId)){
+				 if("apiauthoriser".equalsIgnoreCase(pluginName) && Objects.isNull(configPublishedAppId)){
 					 MessageDescription error = new MessageDescription();
 					 error.setMessage("No AUTHORISER plugin found. Please publish your authorization config.");
 					 errors.add(error);
@@ -1985,14 +1985,14 @@
 					 responseMessage.setSuccess(status);
 					 return responseMessage;
 				 }
-				 if("OIDC_PLUGIN".equalsIgnoreCase(pluginName) && !enable && Objects.nonNull(configPublishedAppId)){
-					 authenticatorClient.changePluginStatus(projectName.toLowerCase()+"-"+environment, "OIDC_PLUGIN", enable);
-					 authenticatorClient.changePluginStatus(projectName.toLowerCase()+"-"+environment, "API_AUTHORISER_PLUGIN", enable);
+				 if("oidc".equalsIgnoreCase(pluginName) && !enable && Objects.nonNull(configPublishedAppId)){
+					 authenticatorClient.changePluginStatus(projectName.toLowerCase()+"-"+environment, "oidc", enable);
+					 authenticatorClient.changePluginStatus(projectName.toLowerCase()+"-"+environment, "apiauthoriser", enable);
 				 } else {
-					authenticatorClient.changePluginStatus(projectName.toLowerCase()+"-"+environment, "OIDC_PLUGIN", enable);
+					authenticatorClient.changePluginStatus(projectName.toLowerCase()+"-"+environment, "oidc", enable);
 				 }
-				 if("API_AUTHORISER_PLUGIN".equalsIgnoreCase(pluginName)){
-					 authenticatorClient.changePluginStatus(projectName.toLowerCase()+"-"+environment, "API_AUTHORISER_PLUGIN", enable);
+				 if("apiauthoriser".equalsIgnoreCase(pluginName)){
+					 authenticatorClient.changePluginStatus(projectName.toLowerCase()+"-"+environment, "apiauthoriser", enable);
 				 }
 				 status = "SUCCESS";
 			 }
