@@ -113,19 +113,22 @@ const DeployedAppConfigModal = (props) => {
       const updatedRoles = props?.deploymentDetails?.selectedRoles.map(role => role.startsWith("DNA.") ? role.replace("DNA.", "") : role);
       setSelectedRoles(updatedRoles);
     }
-    (props?.deploymentDetails?.secureWithIAMRequired || props?.deploymentDetails?.secureWithDnaRequired) &&
+    if(props?.deploymentDetails?.secureWithIAMRequired || props?.deploymentDetails?.secureWithDnaRequired){
+      ProgressIndicator.show();
       CodeSpaceApiClient.getPluginStatus(props?.workspaceId, props?.isStaging ? 'int' : 'prod', 'oidc')
         .then((res) => {
+          ProgressIndicator.hide();
           setPluginEnabled(res?.data?.enabled || false);
         })
-        .catch(() => {
+        .catch((err) => {
           ProgressIndicator.hide();
-          // Notification.show(
-          //   'Error in fetching OIDC plugin status. Please try again later.\n' + err?.response?.data?.errors[0]?.message,
-          //   'alert',
-          // );
-          Notification.show('Error in fetching plugin status. Please try again later.', 'alert');
+          Notification.show(
+            'Error in fetching OIDC plugin status. Please try again later.\n' + err?.response?.data?.errors[0]?.message,
+            'alert',
+          );
+          // Notification.show('Error in fetching plugin status. Please try again later.', 'alert');
         });
+    }
     return Tooltip.clear();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -363,41 +366,41 @@ const DeployedAppConfigModal = (props) => {
                 if (res?.data?.success === 'SUCCESS') {
                   Notification.show(` Api authoriser updated successfully`);
                 } else {
-                  // Notification.show(
-                  //   'Error in updating deployed app config. Please try again later.\n' + res?.data?.errors[0]?.message,
-                  //   'alert',
-                  // );
-                  Notification.show('Error in updating api authoriser plugin', 'alert');
+                  Notification.show(
+                    'Error in updating api authoriser plugin. Please try again later.\n' + res?.data?.errors[0]?.message,
+                    'alert',
+                  );
+                  // Notification.show('Error in updating api authoriser plugin', 'alert');
                 }
                 ProgressIndicator.hide();
               })
-              .catch(() => {
+              .catch((err) => {
                 ProgressIndicator.hide();
-                // Notification.show(
-                //   'Error in updating deployed app config. Please try again later.\n' +
-                //     err?.response?.data?.errors[0]?.message,
-                //   'alert',
-                // );
-                Notification.show('Error in updating api authoriser Plugin. Please try again later.', 'alert');
+                Notification.show(
+                  'Error in updating api authoriser plugin. Please try again later.\n' +
+                    err?.response?.data?.errors[0]?.message,
+                  'alert',
+                );
+                // Notification.show('Error in updating api authoriser Plugin. Please try again later.', 'alert');
               });
           }
         } else {
-          // Notification.show(
-          //   'Error in updating deployed app config. Please try again later.\n' + res?.data?.errors[0]?.message,
-          //   'alert',
-          // );
-          Notification.show('Error in updating OIDC plugin', 'alert');
+          Notification.show(
+            'Error in updating oidc plugin. Please try again later.\n' + res?.data?.errors[0]?.message,
+            'alert',
+          );
+          // Notification.show('Error in updating OIDC plugin', 'alert');
         }
         ProgressIndicator.hide();
       })
-      .catch(() => {
+      .catch((err) => {
         ProgressIndicator.hide();
-        // Notification.show(
-        //   'Error in updating deployed app config. Please try again later.\n' +
-        //     err?.response?.data?.errors[0]?.message,
-        //   'alert',
-        // );
-        Notification.show('Error in updating OIDC Plugin. Please try again later.', 'alert');
+        Notification.show(
+          'Error in updating oidc plugin. Please try again later.\n' +
+            err?.response?.data?.errors[0]?.message,
+          'alert',
+        );
+        // Notification.show('Error in updating OIDC Plugin. Please try again later.', 'alert');
       });
   };
 
