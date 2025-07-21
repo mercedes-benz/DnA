@@ -25,8 +25,12 @@ public class DbServiceCustomRepositoryImpl extends CommonDataRepositoryImpl<DbSe
         CriteriaQuery<DbServiceNsql> cq = cb.createQuery(DbServiceNsql.class);
         Root<DbServiceNsql> root = cq.from(entityClass);
         CriteriaQuery<DbServiceNsql> getAll = cq.select(root);
-        Predicate con = cb.equal(cb.lower(cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("projectOwner"), cb.literal("id"))), id.toLowerCase());
-        cq.where(con);
+        Predicate con1 = cb.equal(cb.lower(cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("projectOwner"), cb.literal("id"))), id.toLowerCase());
+        Predicate con2 = cb.notEqual(cb.lower(
+				cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("status"))),
+				"DELETED".toLowerCase());
+        Predicate pMain = cb.and(con1, con2);
+		cq.where(pMain);
         TypedQuery<DbServiceNsql> getAllQuery = em.createQuery(getAll);
         if (offset >= 0)
             getAllQuery.setFirstResult(offset);
