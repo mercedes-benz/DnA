@@ -316,6 +316,7 @@ public class BaseDbServiceImpl extends BaseCommonService<DbServiceVO, DbServiceN
                             data.setModifiedOn(now);
                             data.setModifiedBy(assembler.toUserInfo(serviceVo.getModifiedBy()));
                             data.setStatus("DELETED");
+				entity.setData(data);	
                             repository.save(entity);
                             response.setSuccess("success");
                         }else{
