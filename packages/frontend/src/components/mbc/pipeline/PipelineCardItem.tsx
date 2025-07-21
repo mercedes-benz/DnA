@@ -32,8 +32,8 @@ const PipelineCardItem = ({ project, getRefreshedDagPermission }: Props) => {
   }, []);
 
   const isInProgress =
-  project.projectStatus === 'CREATE_REQUESTED' ||
-  project.projectStatus === 'UPDATE_REQUESTED';
+    project.projectStatus === 'CREATE_REQUESTED' ||
+    project.projectStatus === 'UPDATE_REQUESTED';
 
 
   return (
@@ -75,51 +75,68 @@ const PipelineCardItem = ({ project, getRefreshedDagPermission }: Props) => {
                         <span className={Styles.permission}>
                           {dag.permissions?.includes('can_read') && dag.permissions?.includes('can_edit')
                             ? 'Read/Edit'
-                            : dag.permissions?.includes('can_edit')
-                              ? 'Edit'
-                              : dag.permissions?.includes('can_read')
-                                ? 'Read'
-                                : ''}
+                            : dag.permissions?.includes('can_read')
+                              ? 'Read'
+                              : ''}
                         </span>
 
 
-<div className={Styles.cardDagActions}>
-  {isInProgress ? (
-    <>
-      
-      <button className={`${Styles.actionBtn} ${Styles.disabled}`} disabled title="Disabled during progress">
-        <i className="icon mbc-icon edit" />
-      </button>
+                        <div className={Styles.cardDagActions}>
+                          {isInProgress ? (
+                            <>
+                              
+                              <button
+                                className={`${Styles.actionBtn} ${Styles.disabled}`}
+                                disabled
+                                title="Disabled during progress"
+                              >
+                                <i className="icon mbc-icon edit" />
+                              </button>
+                              <button
+                                className={`${Styles.actionBtn} ${Styles.disabled}`}
+                                disabled
+                                title="Disabled during progress"
+                              >
+                                <i className="icon mbc-icon new-tab" />
+                              </button>
+                            </>
+                          ) : (
+                            <>
 
-     
-      <button className={`${Styles.actionBtn} ${Styles.disabled}`} disabled title="Disabled during progress">
-        <i className="icon mbc-icon new-tab" />
-      </button>
-    </>
-  ) : (
-    <>
-      
-      <button
-        className={Styles.actionBtn}
-        onClick={() => goToDag(dag.dagName)}
-        title="Open in Editor"
-      >
-        <i className="icon mbc-icon edit" />
-      </button>
+                              {dag.permissions?.includes('can_edit') ? (
 
-     
-      <a
-        href={`${Envs.DATA_PIPELINES_APP_BASEURL}/graph?dag_id=${dag.dagName}`}
-        target="_blank"
-        rel="noreferrer"
-        className={Styles.actionBtn}
-        title="Open in New Tab"
-      >
-        <i className="icon mbc-icon new-tab" />
-      </a>
-    </>
-  )}
-</div>
+                                <button
+                                  className={Styles.actionBtn}
+                                  onClick={() => goToDag(dag.dagName)}
+                                  title="Edit Code"
+                                >
+                                  <i className="icon mbc-icon edit" />
+                                </button>
+                              ) : (
+
+                                <button
+                                  className={Styles.actionBtn}
+                                  onClick={() => goToDag(dag.dagName)}
+                                  title="View Code"
+                                >
+                                  <i className="icon mbc-icon document" />
+                                </button>
+                              )}
+
+
+                              <a
+                                href={`${Envs.DATA_PIPELINES_APP_BASEURL}/graph?dag_id=${dag.dagName}`}
+                                target="_blank"
+                                rel="noreferrer"
+                                className={Styles.actionBtn}
+                                title="Open in New Tab"
+                              >
+                                <i className="icon mbc-icon new-tab" />
+                              </a>
+                            </>
+                          )}
+                        </div>
+
 
 
                       </li>
