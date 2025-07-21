@@ -463,6 +463,64 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 	}
 
 	@Override
+	public GenericMessage updateDeployedAppConfig(String projectName, String environment, boolean secureWithIAMRequired,
+			String oneApiVersionShortName,
+			boolean isSecuredWithCookie, String deploymentType, String clientID, String redirectUri, String ignorePaths,
+			String scope, String ssoType,
+			boolean secureWithDnaRequired, boolean isAliceRoleEnabled, List<String> selectedAliceRoles) {
+		GenericMessage updateResponse = new GenericMessage();
+		updateResponse.setSuccess("FAILED");
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+
+		String selectedAliceRolesJson = (selectedAliceRoles != null ? selectedAliceRoles.stream()
+				.map(role -> "\"" + role + "\"")
+				.collect(Collectors.joining(",", "[", "]"))
+				: "[]");
+
+		String updateQuery = "update workspace_nsql " +
+				"set data = jsonb_set(jsonb_set(jsonb_set(jsonb_set(jsonb_set(jsonb_set(jsonb_set(jsonb_set(jsonb_set(jsonb_set(jsonb_set(jsonb_set(data,"
+				+
+				"'{projectDetails," + addQuotes(environment) + ",secureWithIAMRequired}', '" + secureWithIAMRequired
+				+ "')," +
+				"'{projectDetails," + addQuotes(environment) + ",oneApiVersionShortName}', '"
+				+ addQuotes(oneApiVersionShortName) + "')," +
+				"'{projectDetails," + addQuotes(environment) + ",isSecuredWithCookie}', '" + isSecuredWithCookie + "'),"
+				+
+				"'{projectDetails," + addQuotes(environment) + ",deploymentType}', '" + addQuotes(deploymentType)
+				+ "')," +
+				"'{projectDetails," + addQuotes(environment) + ",clientID}', '" + addQuotes(clientID) + "')," +
+				"'{projectDetails," + addQuotes(environment) + ",redirectUri}', '" + addQuotes(redirectUri) + "')," +
+				"'{projectDetails," + addQuotes(environment) + ",ignorePaths}', '" + addQuotes(ignorePaths) + "')," +
+				"'{projectDetails," + addQuotes(environment) + ",scope}', '" + addQuotes(scope) + "')," +
+				"'{projectDetails," + addQuotes(environment) + ",ssoType}', '" + addQuotes(ssoType) + "')," +
+				"'{projectDetails," + addQuotes(environment) + ",secureWithDnaRequired}', '" + secureWithDnaRequired
+				+ "')," +
+				"'{projectDetails," + addQuotes(environment) + ",isAliceRoleEnabled}', '" + isAliceRoleEnabled + "')," +
+				"'{projectDetails," + addQuotes(environment) + ",selectedAliceRoles}', '" + selectedAliceRolesJson
+				+ "')";
+
+		updateQuery += " where data->'projectDetails'->>'projectName' = '" + projectName + "'";
+
+		log.info("update query {}", updateQuery);
+
+		try {
+			Query q = em.createNativeQuery(updateQuery);
+			q.executeUpdate();
+			updateResponse.setSuccess("SUCCESS");
+			updateResponse.setErrors(new ArrayList<>());
+			updateResponse.setWarnings(new ArrayList<>());
+			log.info("{} Deployed app config successfully updated for project {} ", environment, projectName);
+		} catch (Exception e) {
+			MessageDescription errMsg = new MessageDescription("Failed while updating deployed app config");
+			errors.add(errMsg);
+			log.error("failed to update deployed app config for project {} and environment {} ", projectName,
+					environment);
+		}
+		return updateResponse;
+	}
+
+	@Override
 	public GenericMessage updateLatestBuildOrDeployStatus(String status, String environment,Date date,String projectName){
 
 		GenericMessage updateResponse = new GenericMessage();

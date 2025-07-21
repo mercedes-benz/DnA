@@ -301,7 +301,7 @@ const DeployedAppConfigModal = (props) => {
         oneApiVersionShortName: oneApiSelected ? oneApiVersionShortName : '',
         // isSecuredWithCookie: (secureWithIAMSelected && deploymentType === 'API' && cookieSelected) || false,
         isSecuredWithCookie: false,
-        ssoType: secureWithIAMSelected ? ssoType : secureWithDnaSelected ? Envs.DNA_SSO_TYPE : '',
+        ssoType: secureWithIAMSelected ? ssoType : secureWithDnaSelected ? Envs.DNA_SSO_TYPE : 'SSO_INT',
         aliceRoleEnabled: enableAliceRole,
         selectedAliceRoles: prefixedRoles,
       };
