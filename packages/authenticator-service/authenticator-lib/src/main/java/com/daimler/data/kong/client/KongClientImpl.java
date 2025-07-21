@@ -782,6 +782,7 @@ public class KongClientImpl implements KongClient {
 						JsonNode data = rootNode.get("data");
 						LOGGER.info("Kong plugin status data for serviceName {} and plugin Name {} is {}",serviceName,pluginName,data);
 						if (data != null && data.isArray()) {
+							LOGGER.info("plugin status data is not null for serviceName {} and plugin Name {}",serviceName,pluginName);
 							for (JsonNode plugin : (ArrayNode) data) 
 							{
 								pluginStatusMap.put(plugin.get("name").asText(),plugin.get("enabled").asBoolean());
@@ -796,6 +797,7 @@ public class KongClientImpl implements KongClient {
 		catch(Exception e) {
 			LOGGER.error("Error: {} while fetching plugin: {} details", e.getMessage(), pluginName);			
 		}
+		LOGGER.info("pluginStatus map for serviceName {} and pluginName {} is {} ",serviceName,pluginName,pluginStatusMap);
 		return pluginStatusMap;
 	}
 
