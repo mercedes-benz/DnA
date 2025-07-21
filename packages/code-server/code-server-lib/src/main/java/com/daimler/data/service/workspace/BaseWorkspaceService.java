@@ -1881,22 +1881,16 @@
 					clientSecret = deployedAppConfigDto.getClientSecret();
 				 }
 				 boolean isSecuredWithCookie = false; //disable for now 
-				 deploymentDetails.setSecureWithIAMRequired(secureWithIAMRequired);
-				 deploymentDetails.setOneApiVersionShortName(deployedAppConfigDto.getOneApiVersionShortName());
-				 deploymentDetails.setIsSecuredWithCookie(isSecuredWithCookie);
-				 deploymentDetails.setDeploymentType(deployedAppConfigDto.isIsApiRecipe() ? ConstantsUtility.API : ConstantsUtility.UI);
-				 deploymentDetails.setClientId(deployedAppConfigDto.getClientID());
-				 deploymentDetails.setRedirectUri(deployedAppConfigDto.getRedirectUri());
-				 deploymentDetails.setIgnorePaths(deployedAppConfigDto.getIgnorePaths());
-				 deploymentDetails.setScope(deployedAppConfigDto.getScope());
-				 deploymentDetails.setSsoType(deployedAppConfigDto.getSsoType().toString());
-				 deploymentDetails.setSecureWithDnaRequired(secureWithDnaRequired);
-				 deploymentDetails.setAliceRoleEnabled(deployedAppConfigDto.isAliceRoleEnabled());
-				 deploymentDetails.setSelectedAliceRoles(deployedAppConfigDto.getSelectedAliceRoles());
+				 String deploymentType = deployedAppConfigDto.isIsApiRecipe() ? ConstantsUtility.API : ConstantsUtility.UI;
 				 authenticatorClient.callingKongApis(workspaceId, projectName, environment, deployedAppConfigDto.isIsApiRecipe(), deployedAppConfigDto.getClientID(), clientSecret, deployedAppConfigDto.getRedirectUri(), deployedAppConfigDto.getIgnorePaths(), deployedAppConfigDto.getScope(), deployedAppConfigDto.getOneApiVersionShortName(), isSecuredWithCookie, secureWithIAMRequired, deployedAppConfigDto.getSsoType().toString(), secureWithDnaRequired, cloudServiceProvider);
-				 workspaceCustomRepository.updateDeploymentDetails(projectName, environmentJsonbName,
-							 deploymentDetails, deploymentDetails.getLastDeploymentStatus());
-				 status = "SUCCESS";
+				 workspaceCustomRepository.updateDeployedAppConfig(projectName, environmentJsonbName,
+						 secureWithIAMRequired, deployedAppConfigDto.getOneApiVersionShortName(),
+						 isSecuredWithCookie, deploymentType, deployedAppConfigDto.getClientID(),
+						 deployedAppConfigDto.getRedirectUri(), deployedAppConfigDto.getIgnorePaths(),
+						 deployedAppConfigDto.getScope(), deployedAppConfigDto.getSsoType().toString(),
+						 secureWithDnaRequired, deployedAppConfigDto.isAliceRoleEnabled(),
+						 deployedAppConfigDto.getSelectedAliceRoles());
+					 status = "SUCCESS";
 			 }
 			 
 		 } catch (Exception e) {
