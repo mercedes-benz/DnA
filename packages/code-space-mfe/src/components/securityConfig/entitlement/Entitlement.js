@@ -82,21 +82,21 @@ export default class Entitlement extends React.Component {
   }
 
   componentDidMount() {
-    ProgressIndicator.show();
-    this.props.isPublished && (this.props.secureWithIAM || this.props.secureWithDna) && (
+    if(this.props.isPublished && (this.props.secureWithIAM || this.props.secureWithDna)){
+      ProgressIndicator.show();
       CodeSpaceApiClient.getPluginStatus(this.props.id, this.props.env, 'apiauthoriser')
         .then((res) => {
           this.setState({pluginEnabled: (res?.data?.enabled || false)});
         })
-        .catch(() => {
+        .catch((err) => {
           ProgressIndicator.hide();
-          // Notification.show(
-          //   'Error in fetching OIDC plugin status. Please try again later.\n' + err?.response?.data?.errors[0]?.message,
-          //   'alert',
-          // );
-          Notification.show('Error in fetching plugin status. Please try again later.', 'alert');
-        })
-    );
+          Notification.show(
+            'Error in fetching Api authoriser plugin status. Please try again later.\n' + err?.response?.data?.errors[0]?.message,
+            'alert',
+          );
+          // Notification.show('Error in fetching plugin status. Please try again later.', 'alert');
+        });
+    }
     SelectBox.defaultSetup();
     Tooltip.defaultSetup();
   }
@@ -183,22 +183,22 @@ export default class Entitlement extends React.Component {
           Notification.show(`Api authoriser plugin updated successfully`);
           this.setState({pluginEnabled: !this.state.pluginEnabled});
         } else {
-          // Notification.show(
-          //   'Error in updating deployed app config. Please try again later.\n' + res?.data?.errors[0]?.message,
-          //   'alert',
-          // );
-          Notification.show('Error in updating Api authoriser plugin', 'alert');
+          Notification.show(
+            'Error in updating api authoriser plugin. Please try again later.\n' + res?.data?.errors[0]?.message,
+            'alert',
+          );
+          // Notification.show('Error in updating Api authoriser plugin', 'alert');
         }
         ProgressIndicator.hide();
       })
-      .catch(() => {
+      .catch((err) => {
         ProgressIndicator.hide();
-        // Notification.show(
-        //   'Error in updating deployed app config. Please try again later.\n' +
-        //     err?.response?.data?.errors[0]?.message,
-        //   'alert',
-        // );
-        Notification.show('Error in updating Api authoriser Plugin. Please try again later.', 'alert');
+        Notification.show(
+          'Error in updating Api authoriser plugin. Please try again later.\n' +
+            err?.response?.data?.errors[0]?.message,
+          'alert',
+        );
+        // Notification.show('Error in updating Api authoriser Plugin. Please try again later.', 'alert');
       });
   }
 

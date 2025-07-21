@@ -648,6 +648,7 @@ public class KongGatewayController implements KongApi{
     public ResponseEntity<PluginStatusResponseVO> getPluginStatus(@ApiParam(value = "Name of the service for which plugin status has to be fetched",required=true) @PathVariable("serviceName") String serviceName,@ApiParam(value = "Name of the plugin for which the status need to be fetched",required=true) @PathVariable("pluginName") String pluginName){
 		try{
 			Map<String, Boolean> statusMap = kongClient.getPluginStatus(serviceName, pluginName);
+			LOGGER.info("plugin status map for serviceName {} is {}",serviceName,statusMap);
 			if (statusMap.isEmpty()) {
 				LOGGER.info("Error while finding status of plugin {} for service {}",pluginName,serviceName);
                 return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
