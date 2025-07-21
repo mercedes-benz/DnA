@@ -98,7 +98,7 @@ import lombok.extern.slf4j.Slf4j;
           }  
           return "Failed";    
          } catch (Exception e) {
-            log.error("Error creating secret for dbName: {}", dbName, e);
+            log.error("Error creating secret for dbName: {} {}", dbName, e.getMessage());
             return "Failed";
          }
      }
@@ -119,7 +119,7 @@ import lombok.extern.slf4j.Slf4j;
          }
          return null;
          } catch (Exception e) {
-            log.error("Error getting secret for dbName: {}", dbName, e);
+            log.error("Error getting secret for dbName: {} {}", dbName, e.getMessage());
             return null;
          }
      }
@@ -158,7 +158,7 @@ import lombok.extern.slf4j.Slf4j;
             log.info("Secret deleted successfully for dbName: {}", dbName);
             return "success";
         } catch (Exception e) {
-            log.error("Error deleting secret for dbName: {}", dbName, e);
+            log.error("Error deleting secret for dbName: {} {}", dbName, e.getMessage());
             return "Failed";
         }
     }

@@ -86,7 +86,7 @@ public class ArgoCdService {
         ResponseEntity<Map> response = restTemplate.postForEntity(url, entity, Map.class);
         return (String) response.getBody().get("token");
         } catch (Exception e) {
-            log.error("exception {}",e.getMessage());            
+            log.error("exception while getting token from argocd service {}",e.getMessage());            
 			return null;
         }
     }
@@ -112,7 +112,7 @@ public class ArgoCdService {
                 return "failed";
             }
         } catch (Exception e) {
-            log.error("exception {}",e.getMessage());            
+            log.error("exception while creating argocd application {} {}",serviceName,e.getMessage());            
 			return "failed";
         }
     }
@@ -138,13 +138,15 @@ public class ArgoCdService {
                 return "failed";
             }
         } catch (Exception e) {
-            log.error("exception {}",e.getMessage());            
+            log.error("exception in delete argocd application {} {}",serviceName,e.getMessage());            
 			return "failed";
         }
     }
 
     @SuppressWarnings("unchecked")
     public  String buildPayload(String serviceName,String dbName,String dbType) throws IOException {
+    try {
+        
         String fileName = "argocd-"+dbType+"-create-template.json";
     ClassPathResource resource = new ClassPathResource(fileName);
     String template = StreamUtils.copyToString(resource.getInputStream(), StandardCharsets.UTF_8);
@@ -168,5 +170,9 @@ public class ArgoCdService {
         Map<String, Object> map = mapper.readValue(template, Map.class);
         String finalJson = mapper.writeValueAsString(map); 
         return finalJson;
-}
+    } catch (Exception e) {
+        log.error("exception while argocd building payload {} {}",serviceName,e.getMessage());            
+        return null;
+    }    
+    }
 }

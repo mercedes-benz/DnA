@@ -8,6 +8,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
@@ -112,7 +113,7 @@ public class BaseDbServiceImpl extends BaseCommonService<DbServiceVO, DbServiceN
             serviceVo.setModifiedOn(now);            
             String id = UUID.randomUUID().toString();
             serviceVo.setId(id);
-            serviceVo.setStatus("CREATED");
+            serviceVo.setStatus("CREATE_REQUESTED");
             response.setData(null);
             response.setSuccess("failed");
             DbServiceNsql entity =  assembler.toEntity(serviceVo); 
@@ -161,25 +162,70 @@ public class BaseDbServiceImpl extends BaseCommonService<DbServiceVO, DbServiceN
                 String vaultResponsee = vault.addToVault(serviceVo.getServiceName().toLowerCase(), vaultData);                                
                 if(vaultResponsee.equalsIgnoreCase("success")){
                     log.info("vault created");
-                    String argoResponse = argoCdService.createArgoApp(token, serviceVo.getServiceName().toLowerCase(),serviceVo.getDbName().toLowerCase(),serviceVo.getDbType().toLowerCase());
-                    if(argoResponse.equals("success")){
-                        log.info("argocd application created");
+                    new Thread(new Runnable() {
+                        public void run(){
+                            try {
+                                String argoResponse = argoCdService.createArgoApp(token, serviceVo.getServiceName().toLowerCase(),serviceVo.getDbName().toLowerCase(),serviceVo.getDbType().toLowerCase());
+                            Optional<DbServiceNsql> optionalService = repository.findById(id);
+                                if (optionalService.isPresent()) {
+                                    DbServiceNsql serviceEntity = optionalService.get();
+                                    DbService data = serviceEntity.getData();
+                                    Date now = isoFormat.parse(isoFormat.format(new Date()));                                 
+                                    data.setModifiedOn(now);
+                                    if(argoResponse.equals("success")){
+                                        log.info("argocd application {} created successfully !!!",data.getServiceName().toLowerCase());
+                                        data.setStatus("CREATED");
+                                    }else{
+                                        log.info("Failed to create argocd application {}",data.getServiceName().toLowerCase());
+                                        data.setStatus("FAILED");
+                                        String vaultRes = vault.deleteFromVault(serviceVo.getServiceName().toLowerCase());
+                                        if(vaultRes.equalsIgnoreCase("success"))
+                                            log.info("vault deleted successfully");
+                                        else    
+                                            log.info("Failed to delete vault ");        
+                                        
+                                    }
+                                    serviceEntity.setData(data);
+                                    repository.save(entity);
+                                }
+                                
+                            } catch (Exception e) {
+                                log.error("exception in create argocd service {}",e.getMessage());
+                                try {
+                                    Optional<DbServiceNsql> optionalService = repository.findById(id);
+                                    if (optionalService.isPresent()) {
+                                        DbServiceNsql serviceEntity = optionalService.get();
+                                        DbService data = serviceEntity.getData();
+                                        Date now = isoFormat.parse(isoFormat.format(new Date()));                                 
+                                        data.setModifiedOn(now);
+                                        data.setStatus("FAILED");
+                                        String vaultRes = vault.deleteFromVault(serviceVo.getServiceName().toLowerCase());
+                                        if(vaultRes.equalsIgnoreCase("success"))
+                                            log.info("vault deleted successfully");
+                                        else    
+                                            log.info("Failed to delete vault ");
+                                        serviceEntity.setData(data);
+                                        repository.save(entity);    
+                                    } 
+                                    
+                                } catch (Exception ee) {
+                                    log.error("exception in updating database to failed status due to  argocd service failure {}",ee.getMessage());
+                                }
+                            }
+                            
+                                }
+                    }).start();
+                        
                         DbServiceNsql responseEntiy = repository.save(entity); 
                         DbServiceVO responseVo = assembler.toVo(responseEntiy);
-                        List<CredentialsVO> credentialsList = getCredentials(responseVo.getProjectOwner(), responseVo.getServiceName());
-                        responseVo.setCredentials(credentialsList);
-
                         response.setData(responseVo);
                         response.setSuccess("success");
-                    }else{
-                        //delete vault
-                        String vaultRes = vault.deleteFromVault(serviceVo.getServiceName().toLowerCase());
-                        if(vaultRes.equalsIgnoreCase("success")){
-                            log.info("vault deleted successfully");
-                        }
-                    }
-                }  
+            }else{
+                log.info("failed to create vault {}",serviceVo.getServiceName());
             }
+        }else{
+            log.info("failed to get access token from argocd servcice {}",serviceVo.getServiceName()); 
+        }
                 return response;
 
         } catch (Exception e) {
@@ -316,7 +362,7 @@ public class BaseDbServiceImpl extends BaseCommonService<DbServiceVO, DbServiceN
                             data.setModifiedOn(now);
                             data.setModifiedBy(assembler.toUserInfo(serviceVo.getModifiedBy()));
                             data.setStatus("DELETED");
-				entity.setData(data);	
+				            entity.setData(data);
                             repository.save(entity);
                             response.setSuccess("success");
                         }else{
