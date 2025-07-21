@@ -1967,7 +1967,7 @@
 					 deploymentDetails = entity.getData().getProjectDetails().getProdDeploymentDetails();
 					 configPublishedAppId = entity.getData().getProjectDetails().getSecurityConfig().getProduction().getPublished().getAppID();
 				 }
-				 if("oidc".equalsIgnoreCase(pluginName) && !Boolean.TRUE.equals(deploymentDetails.getSecureWithIAMRequired())){
+				 if("oidc".equalsIgnoreCase(pluginName) && !Boolean.TRUE.equals(deploymentDetails.getSecureWithIAMRequired() || deploymentDetails.getSecureWithDnaRequired())){
 					 MessageDescription error = new MessageDescription();
 					 error.setMessage("No OIDC plugin found. Please secure with IAM first.");
 					 errors.add(error);
