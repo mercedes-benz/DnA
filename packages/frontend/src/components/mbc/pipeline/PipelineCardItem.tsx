@@ -84,7 +84,7 @@ const PipelineCardItem = ({ project, getRefreshedDagPermission }: Props) => {
                         <div className={Styles.cardDagActions}>
                           {isInProgress ? (
                             <>
-                              
+
                               <button
                                 className={`${Styles.actionBtn} ${Styles.disabled}`}
                                 disabled
@@ -102,9 +102,7 @@ const PipelineCardItem = ({ project, getRefreshedDagPermission }: Props) => {
                             </>
                           ) : (
                             <>
-
                               {dag.permissions?.includes('can_edit') ? (
-
                                 <button
                                   className={Styles.actionBtn}
                                   onClick={() => goToDag(dag.dagName)}
@@ -112,8 +110,7 @@ const PipelineCardItem = ({ project, getRefreshedDagPermission }: Props) => {
                                 >
                                   <i className="icon mbc-icon edit" />
                                 </button>
-                              ) : (
-
+                              ) : dag.permissions?.includes('can_read') ? (
                                 <button
                                   className={Styles.actionBtn}
                                   onClick={() => goToDag(dag.dagName)}
@@ -121,9 +118,7 @@ const PipelineCardItem = ({ project, getRefreshedDagPermission }: Props) => {
                                 >
                                   <i className="icon mbc-icon document" />
                                 </button>
-                              )}
-
-
+                              ) : null}
                               <a
                                 href={`${Envs.DATA_PIPELINES_APP_BASEURL}/graph?dag_id=${dag.dagName}`}
                                 target="_blank"
@@ -136,9 +131,6 @@ const PipelineCardItem = ({ project, getRefreshedDagPermission }: Props) => {
                             </>
                           )}
                         </div>
-
-
-
                       </li>
                     ))}
                   </ul>
