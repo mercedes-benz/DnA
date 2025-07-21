@@ -82,6 +82,21 @@ export default class Entitlement extends React.Component {
   }
 
   componentDidMount() {
+    ProgressIndicator.show();
+    this.props.isPublished && (this.props.secureWithIAM || this.props.secureWithDna) && (
+      CodeSpaceApiClient.getPluginStatus(this.props.id, this.props.env, 'apiauthoriser')
+        .then((res) => {
+          this.setState({pluginEnabled: (res?.data?.enabled || false)});
+        })
+        .catch(() => {
+          ProgressIndicator.hide();
+          // Notification.show(
+          //   'Error in fetching OIDC plugin status. Please try again later.\n' + err?.response?.data?.errors[0]?.message,
+          //   'alert',
+          // );
+          Notification.show('Error in fetching plugin status. Please try again later.', 'alert');
+        })
+    );
     SelectBox.defaultSetup();
     Tooltip.defaultSetup();
   }
@@ -160,7 +175,7 @@ export default class Entitlement extends React.Component {
     CodeSpaceApiClient.updatePluginStatus(
       this.props.id,
       this.props.env,
-      'API_AUTHORISER_PLUGIN',
+      'apiauthoriser',
       !this.state.pluginEnabled,
     )
       .then((res) => {
