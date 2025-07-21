@@ -114,7 +114,7 @@ const DeployedAppConfigModal = (props) => {
       setSelectedRoles(updatedRoles);
     }
     (props?.deploymentDetails?.secureWithIAMRequired || props?.deploymentDetails?.secureWithDnaRequired) &&
-      CodeSpaceApiClient.getPluginStatus(props?.workspaceId, props?.isStaging ? 'int' : 'prod', 'OIDC_PLUGIN')
+      CodeSpaceApiClient.getPluginStatus(props?.workspaceId, props?.isStaging ? 'int' : 'prod', 'oidc')
         .then((res) => {
           setPluginEnabled(res?.data?.enabled || false);
         })
@@ -344,7 +344,7 @@ const DeployedAppConfigModal = (props) => {
     CodeSpaceApiClient.updatePluginStatus(
       props?.workspaceId,
       props?.isStaging ? 'int' : 'prod',
-      'OIDC_PLUGIN',
+      'oidc',
       !pluginEnabled,
     )
       .then((res) => {
@@ -356,7 +356,7 @@ const DeployedAppConfigModal = (props) => {
             CodeSpaceApiClient.updatePluginStatus(
               props?.workspaceId,
               props?.isStaging ? 'int' : 'prod',
-              'API_AUTHORISER_PLUGIN',
+              'apiauthoriser',
               true,
             )
               .then((res) => {
