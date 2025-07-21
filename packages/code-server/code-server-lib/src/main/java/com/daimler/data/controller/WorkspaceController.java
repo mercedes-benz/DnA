@@ -1432,7 +1432,7 @@ import org.springframework.beans.factory.annotation.Value;
          produces = { "application/json" }, 
          consumes = { "application/json" },
          method = RequestMethod.GET)
-     public ResponseEntity<WorkspacePluginStatusVO> getPluginStatus(@ApiParam(value = "Workspace ID to be fetched",required=true) @PathVariable("id") String id,@NotNull @ApiParam(value = "deployed application environment", required = true, allowableValues = "int, prod") @Valid @RequestParam(value = "env", required = true) String env,@NotNull @ApiParam(value = "plugin to be disabled or enabled", required = true, allowableValues = "API_AUTHORISER_PLUGIN, OIDC_PLUGIN") @Valid @RequestParam(value = "pluginName", required = true) String pluginName){
+     public ResponseEntity<WorkspacePluginStatusVO> getPluginStatus(@ApiParam(value = "Workspace ID to be fetched",required=true) @PathVariable("id") String id,@NotNull @ApiParam(value = "deployed application environment", required = true, allowableValues = "int, prod") @Valid @RequestParam(value = "env", required = true) String env,@NotNull @ApiParam(value = "plugin to be disabled or enabled", required = true, allowableValues = "apiauthoriser, oidc") @Valid @RequestParam(value = "pluginName", required = true) String pluginName){
 		 try{
 			 CreatedByVO currentUser = this.userStore.getVO();
 		     String userId = currentUser != null ? currentUser.getId() : "";
@@ -1485,7 +1485,7 @@ import org.springframework.beans.factory.annotation.Value;
          produces = { "application/json" }, 
          consumes = { "application/json" },
          method = RequestMethod.POST)
-     public ResponseEntity<GenericMessage> togglePlugin(@ApiParam(value = "Workspace ID to be fetched",required=true) @PathVariable("id") String id,@NotNull @ApiParam(value = "deployed application environment", required = true, allowableValues = "int, prod") @Valid @RequestParam(value = "env", required = true) String env,@NotNull @ApiParam(value = "plugin status to be fetched", required = true, allowableValues = "oidc, authorizer") @Valid @RequestParam(value = "pluginName", required = true) String pluginName,@NotNull @ApiParam(value = "enable or disable plugin", required = true) @Valid @RequestParam(value = "enable", required = true) Boolean enable){
+     public ResponseEntity<GenericMessage> togglePlugin(@ApiParam(value = "Workspace ID to be fetched",required=true) @PathVariable("id") String id,@NotNull @ApiParam(value = "deployed application environment", required = true, allowableValues = "int, prod") @Valid @RequestParam(value = "env", required = true) String env,@NotNull @ApiParam(value = "plugin status to be fetched", required = true, allowableValues = "oidc, apiauthoriser") @Valid @RequestParam(value = "pluginName", required = true) String pluginName,@NotNull @ApiParam(value = "enable or disable plugin", required = true) @Valid @RequestParam(value = "enable", required = true) Boolean enable){
 		 try{
 			 CreatedByVO currentUser = this.userStore.getVO();
 			 String userId = currentUser != null ? currentUser.getId() : "";

@@ -711,8 +711,8 @@ paths:
           required: true
           type: string
           enum:
-          - API_AUTHORISER_PLUGIN
-          - OIDC_PLUGIN
+          - apiauthoriser
+          - oidc
       responses:
         201:
           description: "Returns message of success or failure"
@@ -757,8 +757,8 @@ paths:
           required: true
           type: string
           enum:
-          - API_AUTHORISER_PLUGIN
-          - OIDC_PLUGIN
+          - apiauthoriser
+          - oidc
         - name: enable
           in: query
           description: enable or disable plugin

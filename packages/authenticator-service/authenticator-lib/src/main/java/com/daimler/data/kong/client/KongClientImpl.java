@@ -780,6 +780,7 @@ public class KongClientImpl implements KongClient {
 					try{
 						JsonNode rootNode = objectMapper.readTree(response.getBody());
 						JsonNode data = rootNode.get("data");
+						LOGGER.info("Kong plugin status data for serviceName {} and plugin Name {} is {}",serviceName,pluginName,data);
 						if (data != null && data.isArray()) {
 							for (JsonNode plugin : (ArrayNode) data) 
 							{
