@@ -20,6 +20,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StreamUtils;
 import org.springframework.vault.support.VaultResponse;
 import org.springframework.web.client.RestTemplate;
@@ -43,7 +44,6 @@ import com.daimler.data.service.common.PasswordService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
 
 @Service
@@ -153,7 +153,7 @@ public class BaseDbServiceImpl extends BaseCommonService<DbServiceVO, DbServiceN
                 String initScript = templateResult.toString();
                 initScript = initScript.replace("\\n", "\n").replace("\\\"", "\"");
                 vaultData.put("init-db",initScript);
-                log.info(" initScript {}",initScript);
+                // log.info(" initScript {}",initScript);
 
             
             String token = argoCdService.getArgoToken();
@@ -298,26 +298,27 @@ public class BaseDbServiceImpl extends BaseCommonService<DbServiceVO, DbServiceN
 
     @Deprecated
     @Override
+    @Transactional
     public GenericMessage deleteDb(DbServiceVO serviceVo){
         GenericMessage response = new GenericMessage();
         response.setSuccess("Failed");
         try {
             SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
 			Date now = isoFormat.parse(isoFormat.format(new Date()));
+            DbServiceNsql entity =  repository.getById(serviceVo.getId()); 
+            DbService data = entity.getData();
             String token = argoCdService.getArgoToken();
             String vaultRes = vault.deleteFromVault(serviceVo.getServiceName().toLowerCase());
             if(vaultRes.equalsIgnoreCase("success")){
                 log.info("vault with name {} deleted successfully",serviceVo.getServiceName());
                 String argoResponse = argoCdService.deleteArgoApp(token, serviceVo.getServiceName());
                         if(argoResponse.equalsIgnoreCase("success")){
-                            log.info("application "+serviceVo.getServiceName()+" deleted successfully");
-                            DbServiceNsql entity =  repository.getById(serviceVo.getId()); 
-                            DbService data = entity.getData();
+                            log.info("application "+serviceVo.getServiceName()+" deleted successfully");                            
                             data.setModifiedOn(now);
                             data.setModifiedBy(assembler.toUserInfo(serviceVo.getModifiedBy()));
-                            data.setStatus("DELETED");
-				entity.setData(data);	
-                            repository.save(entity);
+                            data.setStatus("DELETED");	
+                            entity.setData(data);
+                            dbServiceCustomRepo.updateDeleteStatus(entity);	                            		            	                             
                             response.setSuccess("success");
                         }else{
                             log.info("application "+serviceVo.getServiceName()+" is not deleted");
@@ -330,7 +331,7 @@ public class BaseDbServiceImpl extends BaseCommonService<DbServiceVO, DbServiceN
                 MessageDescription exceptionMsg = new MessageDescription();
                 exceptionMsg.setMessage("Failed to delete application"+serviceVo.getServiceName()+" due to internal error.");
                 response.addErrorsItem(exceptionMsg); 
-            }
+            }            
             return response;
             
         } catch (Exception e) {
