@@ -2872,8 +2872,8 @@
 					 if(entity != null){
 						 boolean isStagingPublishedBefore = entity.getData().getProjectDetails().getSecurityConfig().getStaging().getPublished().getAppID() != null && entity.getData().getProjectDetails().getSecurityConfig().getStaging().getPublished().getEntitlements() != null;
 						 boolean isProductionPublishedBefore = entity.getData().getProjectDetails().getSecurityConfig().getProduction().getPublished().getAppID() != null && entity.getData().getProjectDetails().getSecurityConfig().getProduction().getPublished().getEntitlements() != null;
-						 if(("int".equalsIgnoreCase(env) && entity.getData().getProjectDetails().getIntDeploymentDetails().getSecureWithDnaRequired() && config.getStaging().getDraft().getAppID() != dnaAppId) ||
-						 		 ("prod".equalsIgnoreCase(env) && entity.getData().getProjectDetails().getProdDeploymentDetails().getSecureWithDnaRequired() && config.getProduction().getDraft().getAppID() != dnaAppId)){
+						 if(("int".equalsIgnoreCase(env) && entity.getData().getProjectDetails().getIntDeploymentDetails().getSecureWithDnaRequired() && !Objects.equals(config.getStaging().getDraft().getAppID(), dnaAppId)) ||
+						 		 ("prod".equalsIgnoreCase(env) && entity.getData().getProjectDetails().getProdDeploymentDetails().getSecureWithDnaRequired() && !Objects.equals(config.getProduction().getDraft().getAppID(), dnaAppId))){
 							 log.info("use our app id to secure your application with DnA credentials.");
 							 MessageDescription msg = new MessageDescription();
 							 List<MessageDescription> errorMessage = new ArrayList<>();
