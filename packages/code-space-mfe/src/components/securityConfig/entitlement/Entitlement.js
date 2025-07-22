@@ -91,8 +91,8 @@ export default class Entitlement extends React.Component {
       ProgressIndicator.show();
       CodeSpaceApiClient.getPluginStatus(id, env, 'apiauthoriser')
         .then((res) => {
-          ProgressIndicator.hide();
           this.setState({pluginEnabled: res?.data?.enabled||false});
+          ProgressIndicator.hide();
         })
         .catch((err) => {
           ProgressIndicator.hide();
@@ -106,8 +106,10 @@ export default class Entitlement extends React.Component {
   }
 
   componentDidUpdate(prevProps) {
-    if (this.props.config !== prevProps.config) {
+    if(this.props.isPublished !== prevProps.isPublished){
       this.getPluginStatus(this.props.id,this.props.env);
+    }
+    if (this.props.config !== prevProps.config) {
       if (this.props.config?.entitlements?.length > 0) {
         const records = this.props.config.entitlements;
         const totalNumberOfPages = Math.ceil(records?.length / this.state.maxItemsPerPage);
