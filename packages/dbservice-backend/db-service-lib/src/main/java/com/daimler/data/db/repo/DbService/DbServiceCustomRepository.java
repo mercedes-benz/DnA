@@ -10,4 +10,6 @@ public interface DbServiceCustomRepository extends CommonDataRepository<DbServic
 
     List<DbServiceNsql> findAllDbService(int offset, int limit,String id);
 
+    String updateDeleteStatus(DbServiceNsql entity);
+
 }
