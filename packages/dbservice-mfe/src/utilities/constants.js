@@ -6,3 +6,6 @@ export const SESSION_STORAGE_KEYS = {
 export const ProvisionSource = {
   DBSERVICE: 'dbservice',
 };
+
+export const TEAMS_PROFILE_LINK_URL_PREFIX = 'https://your-team-profile-url-prefix/';
+

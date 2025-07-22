@@ -3,6 +3,7 @@ import React from 'react';
 import Styles from './details-modal.scss';
 import { IconAvatarNew } from '../icons/iconAvatarNew/IconAvatarNew.js';
 import { regionalDateAndTimeConversionSolution } from '../../utilities/utils.js';
+import { TEAMS_PROFILE_LINK_URL_PREFIX } from '/home/coder/app/packages/dbservice-mfe/src/utilities/constants';
 
 const DetailsModal = ({ dbservice }) => {
   
@@ -11,23 +12,27 @@ const DetailsModal = ({ dbservice }) => {
       <h3>DB Service Details</h3>
         <div className={classNames(Styles.flex)}>
           <div className={Styles.col3}>
-            <p className={Styles.label}>DB Service Name</p> {dbservice?.dbServiceName || 'null'}
+            <p className={Styles.label}>DB Service Name</p> {dbservice?.serviceName || 'null'}
           </div>
           <div className={Styles.col3}>
             <p className={Styles.label}>DB Name</p> {dbservice?.dbName || 'null'}
           </div>
           <div className={Styles.col3}>
-            <p className={Styles.label}>Created on</p>
-            {dbservice?.createdDate !== undefined && regionalDateAndTimeConversionSolution(dbservice?.createdDate)}
+            <p className={Styles.label}>Created On</p>
+            {dbservice?.createdOn && regionalDateAndTimeConversionSolution(dbservice?.createdOn)}
           </div>
           <div className={Styles.col3}>
             <p className={Styles.label}>Created by</p>
-            {dbservice?.createdBy?.firstName} {dbservice?.createdBy?.lastName}
+            {dbservice?.projectOwner?.firstName} {dbservice?.projectOwner?.lastName}
           </div>
 
           <div className={Styles.col3}>
             <p className={Styles.label}>Type of Project</p>
-            {dbservice?.typeOfProject ? dbservice?.typeOfProject : 'N/A'}
+            {dbservice?.dataGovernance?.typeOfProject}
+          </div>
+            <div className={Styles.col3}>
+            <p className={Styles.label}>DB Type</p>
+            {dbservice?.dbType}
           </div>
           <div className={Styles.col3}>
             <p className={Styles.label}>Description</p>
@@ -35,20 +40,20 @@ const DetailsModal = ({ dbservice }) => {
           </div>
           <div className={Styles.col3}>
             <p className={Styles.label}>Division</p>
-            {dbservice?.division === '0' || !dbservice?.division ? 'N/A' : dbservice?.division}
+            {dbservice?.dataGovernance?.division === '0' || !dbservice?.dataGovernance?.division ? 'N/A' : dbservice?.dataGovernance?.division}
           </div>
           <div className={Styles.col3}>
             <p className={Styles.label}>Sub Division</p>
-            {dbservice?.subDivision === '0' || !dbservice?.subDivision ? 'N/A' : dbservice?.subDivision}
+            {dbservice?.dataGovernance?.subDivision === '0' || !dbservice?.dataGovernance?.subDivision ? 'N/A' : dbservice?.dataGovernance?.subDivision}
           </div>
 
           <div className={Styles.col3}>
             <p className={Styles.label}>Department</p>
-            {dbservice?.department ? dbservice?.department : 'N/A'}
+            {dbservice?.dataGovernance?.department ? dbservice?.dataGovernance?.department : 'N/A'}
           </div>
           <div className={Styles.col3}>
             <p className={Styles.label}>Tags</p>
-            {dbservice?.tags?.length > 0 ? dbservice.tags?.map((chip) =>
+            {dbservice?.dataGovernance?.tags?.length > 0 ? dbservice.dataGovernance?.tags?.map((chip) =>
                 <><label className="chips">{chip}</label>&nbsp;&nbsp;</>
               ) : 'N/A'}
           </div>
@@ -59,33 +64,48 @@ const DetailsModal = ({ dbservice }) => {
 
           <div className={Styles.col3}>
             <p className={Styles.label}>PII</p>
-            {dbservice?.hasPii === true ? 'Yes' : 'No'}
+            {dbservice?.dataGovernance?.hasPii === true ? 'Yes' : 'No'}
           </div>
           <div className={Styles.col3}>
             <p className={Styles.label}>Archer ID</p>
-            {dbservice?.archerId ? dbservice?.archerId : 'N/A'}
+            {dbservice?.dataGovernance?.archerId ? dbservice?.dataGovernance?.archerId : 'N/A'}
           </div>
           <div className={Styles.col3}>
             <p className={Styles.label}>Procedure ID</p>
-            {dbservice?.procedureId ? dbservice?.procedureId : 'N/A'}
+            {dbservice?.dataGovernance?.procedureId ? dbservice?.dataGovernance?.procedureId : 'N/A'}
           </div>
           <div className={Styles.col}>
-            <p className={Styles.label}>Collaborators</p>
-            {dbservice?.collaborators?.length === 0 &&
+            <p className={Styles.label}>Project Collaborators</p>
+            {dbservice?.projectCollaborators?.length === 0 &&
               <div className={Styles.noLincense}>
                 <p>No Collaborators</p>
               </div>
             }
-            <div className={classNames(Styles.flex, Styles.userContainer)}>
-              {dbservice?.collaborators?.length > 0 && dbservice?.collaborators?.map((collaborator) =>
-                <div key={collaborator?.id} className={classNames(Styles.col3, Styles.userCard)}>
-                  <div><IconAvatarNew /></div>
-                  <div>
-                    <p>{collaborator?.firstName + ' ' + collaborator?.lastName} ({collaborator?.accesskey}) <span>Read{collaborator?.permission?.write && ', Write'}{collaborator?.permission?.admin && ', Admin'}</span></p>
-                  </div>
+          <div className={classNames(Styles.flex, Styles.userContainer)}>
+            {dbservice?.projectCollaborators?.length > 0 && dbservice?.projectCollaborators?.map((projectCollaborator) => (
+              <div key={projectCollaborator?.id} className={classNames(Styles.col3, Styles.userCard)}>
+                <div><IconAvatarNew /></div>
+                <div>
+                  <p>
+                    <a
+                      href={TEAMS_PROFILE_LINK_URL_PREFIX + projectCollaborator?.accesskey}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {projectCollaborator?.firstName + ' ' + projectCollaborator?.lastName} ({projectCollaborator?.accesskey})
+                    </a>
+                    {' '}
+                    <span>
+                      Read
+                      {projectCollaborator?.permission?.write && ', Write'}
+                      {projectCollaborator?.permission?.admin && ', Admin'}
+                    </span>
+                  </p>
                 </div>
-              )}
-            </div>
+              </div>
+            ))}
+          </div>
+
           </div>
         </div>
     </div>
