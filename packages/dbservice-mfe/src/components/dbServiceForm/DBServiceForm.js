@@ -30,11 +30,10 @@ const DBServiceForm = ({ user, dbservice, edit, onSave }) => {
     formState: { errors },
   } = methods;
 
-  const isOwner = user?.id === user?.id;
-
+  const isOwner = user?.id === dbservice?.projectOwner?.id;
   // lean governance fields
-  const [dbserviceName, setDbServiceName] = useState(edit && dbservice?.name !== null ? dbservice?.name : '');
-  const [dbName, setDbName] = useState(edit && dbservice?.name !== null ? dbservice?.name : 'db');
+  const [dbserviceName, setDbServiceName] = useState(edit && dbservice?.serviceName !== null ? dbservice?.serviceName : '');
+  const [dbName, setDbName] = useState(edit && dbservice?.dbName !== null ? dbservice?.dbName : 'db');
 
   const [divisions, setDivisions] = useState([]);
   const [subDivisions, setSubDivisions] = useState([]);
@@ -42,29 +41,28 @@ const DBServiceForm = ({ user, dbservice, edit, onSave }) => {
   const [dataClassificationDropdown, setDataClassificationDropdown] = useState([]);
   const [fabricTags] = useState([]);
 
-  const [division, setDivision] = useState(edit ? (dbservice?.divisionId ? dbservice?.divisionId + '@-@' + dbservice?.division : '0') : '');
-  const [dbType, setDbType] = useState(edit ? dbservice?.dbType ?? 'Postgres' : 'Postgres');
-  const [subDivision, setSubDivision] = useState(edit ? (dbservice?.subDivisionId ? dbservice?.subDivisionId + '@-@' + dbservice?.subDivision : '0') : '');
+  const [division, setDivision] = useState(edit ? (dbservice?.dataGovernance?.divisionId ? dbservice?.dataGovernance?.divisionId + '@-@' + dbservice?.dataGovernance?.division : '0') : '');
+  const [dbType, setDbType] = useState( edit ? dbservice?.dbType ?? 'postgres' : 'postgres');
+  const [subDivision, setSubDivision] = useState(edit ? (dbservice?.dataGovernance?.subDivisionId ? dbservice?.dataGovernance?.subDivisionId + '@-@' + dbservice?.dataGovernance?.subDivision : '0') : '');
   const [description, setDescription] = useState(edit && dbservice?.description ? dbservice?.description : '');
-  const [departmentName, setDepartmentName] = useState(edit && dbservice?.department ? [dbservice?.department] : []);
-  const [typeOfProject, setTypeOfProject] = useState(edit && dbservice?.typeOfProject ? dbservice?.typeOfProject : '0');
-  const [dataClassification, setDataClassification] = useState(edit && dbservice?.dataClassification ? dbservice?.dataClassification : '0');
-  const [PII, setPII] = useState(edit && dbservice?.hasPii ? dbservice?.hasPii : false);
-  const [tags, setTags] = useState(edit && dbservice?.tags !== null ? [...dbservice.tags] : []);
-  const [archerId, setArcherID] = useState(edit && dbservice?.archerId ? dbservice?.archerId : '');
-  const [procedureId, setProcedureID] = useState(edit && dbservice?.procedureId ? dbservice?.procedureId : '');
-  const [termsOfUse, setTermsOfUse] = useState(edit && dbservice?.termsOfUse ? [dbservice?.termsOfUse] : false);
-
+  const [departmentName, setDepartmentName] = useState(edit && dbservice?.dataGovernance?.department ? [dbservice.dataGovernance.department] : []); 
+  const [typeOfProject, setTypeOfProject] = useState(edit && dbservice?.dataGovernance?.typeOfProject ? dbservice.dataGovernance.typeOfProject : '0');
+  const [dataClassification, setDataClassification] = useState(edit && dbservice?.dataGovernance?.classificationType ? dbservice?.dataGovernance?.classificationType : '0');
+  const [PII, setPII] = useState(edit && dbservice?.dataGovernance?.piiData ? dbservice.dataGovernance.piiData : false);
+  const [tags, setTags] = useState(edit && Array.isArray(dbservice?.tags) ? [...dbservice.tags] : []);
+  const [archerId, setArcherID] = useState(edit && dbservice?.dataGovernance?.archerId ? dbservice.dataGovernance.archerId : '');
+  const [procedureId, setProcedureID] = useState(edit && dbservice?.dataGovernance?.procedureID ? dbservice.dataGovernance.procedureID : '');
+  const [termsOfUse, setTermsOfUse] = useState(edit && dbservice?.termsOfUse ? [dbservice.termsOfUse] : false);
   const [collaborators, setCollaborators] = useState([]);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
-  const [bucketName] = useState(edit && dbservice?.name !== null ? dbservice?.name : '');
+  const [bucketName] = useState(edit && dbservice?.serviceName ? dbservice.serviceName : '');
   const [ownerId, setOwnerId] = useState();
 
   useEffect(() => {
     Tooltip.defaultSetup();
+    SelectBox.defaultSetup()
   }, []);
-
-  const getDevelopers = (developer) => {
+    const getDevelopers = (developer) => {
     const userData = {
         id: developer?.shortId,
         firstName: developer?.firstName,
@@ -72,6 +70,7 @@ const DBServiceForm = ({ user, dbservice, edit, onSave }) => {
         department: developer?.department,
         mobileNumber: developer?.mobileNumber,
         email: developer?.email,
+        permission: { write: false, admin: false },
     };
 
     let duplicateMember = false;
@@ -107,22 +106,30 @@ const DBServiceForm = ({ user, dbservice, edit, onSave }) => {
       return item.accesskey == userName;
     });
 
-    if (e.target.checked) {
-      bucketList.permission.write = true;
-    } else {
-      bucketList.permission.write = false;
+  
+  if (bucketList) {
+    if (!bucketList.permission) {
+      bucketList.permission = { write: false, admin: false }; // Initialize permission object if not present
     }
+
+    if (e.target.value === 'write') {
+      bucketList.permission.write = e.target.checked;
+    } else if (e.target.value === 'admin') {
+      bucketList.permission.admin = e.target.checked;
+    }
+
     setCollaborators([...collaborators]);
-  };
+  } else {
+    console.error(`Collaborator with accesskey ${userName} not found.`);
+  }
+};
 
   const onUserLicenseDelete = (userId) => {
-    return () => {
-      const updatedUserLicenses = collaborators.filter((userLicense) => {
-        return userLicense?.userDetails?.id !== userId;
-      });
-      setCollaborators(updatedUserLicenses);
-    };
-  };
+  const updatedUserLicenses = collaborators.filter((userLicense) => {
+    return userLicense?.id !== userId;
+  });
+  setCollaborators(updatedUserLicenses);
+};
 
   useEffect(() => {
     ProgressIndicator.show();
@@ -132,7 +139,9 @@ const DBServiceForm = ({ user, dbservice, edit, onSave }) => {
         setDataClassificationDropdown(response[0]?.data?.data || []);
         setDivisions(response[1]?.data || []);
         setDepartments(response[2]?.data?.data || []);
-        edit && setDivision(dbservice?.divisionId !== null ? dbservice?.divisionId + '@-@' + dbservice?.division : '0');
+        if (edit) {
+        setDivision(dbservice?.dataGovernance?.divisionId !== null ? `${dbservice.dataGovernance.divisionId}@-@${dbservice.dataGovernance.division}` : '0');
+      }
         SelectBox.defaultSetup();
       })
       .catch((err) => {
@@ -171,14 +180,14 @@ const DBServiceForm = ({ user, dbservice, edit, onSave }) => {
   }, [typeOfProject]);
 
   useEffect(() => {
-    divisions.length > 0 && 
-    edit && setDivision(dbservice?.divisionId !== null ? dbservice?.divisionId + '@-@' + dbservice?.division : '0');
+    divisions.length > 0 &&
+      edit && setDivision(dbservice?.dataGovernance?.divisionId !== null ? `${dbservice.dataGovernance.divisionId}@-@${dbservice.dataGovernance.division}` : '0');
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [divisions]);
 
   useEffect(() => {
     subDivisions.length > 0 &&
-    edit && setSubDivision(dbservice?.subDivisionId !== null ? dbservice?.subDivisionId + '@-@' + dbservice?.subDivision : '0');
+      edit && setSubDivision(dbservice?.dataGovernance?.subDivisionId !== null ? `${dbservice.dataGovernance.subDivisionId}@-@${dbservice.dataGovernance.subDivision}` : '0');
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [subDivisions]);
 
@@ -217,7 +226,23 @@ const DBServiceForm = ({ user, dbservice, edit, onSave }) => {
     const data = {
       serviceName: values.dbServiceName?.trim() ?? '',
       dbName: values.dbName?.trim() ?? '',
-      dbType: values.dbType,
+      dbType: values.dbType?.toLowerCase() ?? 'postgres',
+      description: values?.description?.trim() ?? '',
+      projectType: values?.typeOfProject,
+      dataGovernance: {
+        classificationType: values?.dataClassification ?? "0",
+        tags: tags.length > 0 ? tags : null,
+        piiData: values?.pii === true || values?.pii === 'true',
+        archerId: values?.archerId ?? '',
+        divisionId: values?.division?.includes('@-@') ? values?.division?.split('@-@')[0] : '0',
+        division: values?.division?.includes('@-@') ? values?.division?.split('@-@')[1] : null,
+        subDivisionId: values?.subDivision?.includes('@-@') ? values?.subDivision?.split('@-@')[0] : '0',
+        subDivision: values?.subDivision?.includes('@-@') ? values?.subDivision?.split('@-@')[1] : null,
+        department: departmentName[0] ?? '',
+        procedureID: values?.procedureId ?? '',
+        typeOfProject: values?.typeOfProject ?? "Playground",
+        description: values?.description?.trim() ?? '',
+      },
       projectCollaborators: collaborators.map((c) => ({
         id: c.id,
         firstName: c.firstName,
@@ -226,30 +251,15 @@ const DBServiceForm = ({ user, dbservice, edit, onSave }) => {
         email: c.email,
         mobileNumber: c.mobileNumber ?? 'null',
         gitUserName: c.gitUserName ?? null,
-        isAdmin: c.isAdmin ?? false,
+        isAdmin: c.permission?.isAdmin ?? false,
         isApprover: c.isApprover ?? false,
         isRead: c.isRead ?? false,
-        isWrite: c.isWrite ?? false,
-      })),
-      dataGovernance: {
-      classificationType: values?.dataClassification,
-      tags: tags.length > 0 ? tags: null,
-      piiData: values?.pii,
-      archerId: values?.archerId,
-      divisionId: values?.division?.includes('@-@') ? values?.division?.split('@-@')[0] : '',
-      division: values?.division?.includes('@-@') ? values?.division?.split('@-@')[1] : null,
-      subDivisionId: values?.subDivision?.includes('@-@') ? values?.subDivision?.split('@-@')[0] : '',
-      subDivision: values?.subDivision?.includes('@-@') ? values?.subDivision?.split('@-@')[1] : null,
-      description: values?.description?.trim() ?? '',
-      department: departmentName[0],
-      procedureId: values?.procedureId,
-      termsOfUse: values?.termsOfUse,
-      typeOfProject: values?.typeOfProject,
-      }
+        isWrite: c.permission?.isWrite ?? false,
+      }))
     };
-    dbServiceApi.createDBService(data).then((res) => {
+    dbServiceApi.createDBService(data).then(() => {
       ProgressIndicator.hide();
-      history.push(`/workspace/${res.data.data.id}`);
+      history.push(`/`);
       Notification.show('DB Service successfully created');
     }).catch(error => {
       ProgressIndicator.hide();
@@ -260,30 +270,46 @@ const DBServiceForm = ({ user, dbservice, edit, onSave }) => {
     });
   };
   const handleEditWorkspace = (values) => {
-    const data = {
-      serviceName: values.dbServiceName.trim(),
-      dbName: values.dbname.trim(),
-      description: values?.description.trim()?? '',
+   const data = {
+      id: dbservice?.id,
+      serviceName: values.dbServiceName?.trim() ?? '',
+      dbName: values.dbName?.trim() ?? '',
+      dbType: values.dbType?.toLowerCase() ?? 'postgres',
+      description: values?.description?.trim() ?? '',
       projectType: values?.typeOfProject,
       dataGovernance: {
-        classificationType: values?.dataClassification,
-      tags: tags.length > 0 ? tags : null,
-      piiData: values?.pii,
-      archerId: values?.archerId,
-      divisionId: values?.division?.includes('@-@') ? values?.division?.split('@-@')[0] : '',
-      division: values?.division?.includes('@-@') ? values?.division?.split('@-@')[1] : null,
-      subDivisionId: values?.subDivision?.includes('@-@') ? values?.subDivision?.split('@-@')[0] : '',
-      subDivision: values?.subDivision?.includes('@-@') ? values?.subDivision?.split('@-@')[1] : null,
-      department: departmentName[0],
-      procedureId: values?.procedureId,
-      termsOfUse: values?.termsOfUse,
-      }
-    }
+        classificationType: values?.dataClassification ?? "0",
+        tags: tags.length > 0 ? tags : null,
+        piiData: values?.pii === true || values?.pii === 'true',
+        archerId: values?.archerId ?? '',
+        divisionId: values?.division?.includes('@-@') ? values?.division?.split('@-@')[0] : '0',
+        division: values?.division?.includes('@-@') ? values?.division?.split('@-@')[1] : null,
+        subDivisionId: values?.subDivision?.includes('@-@') ? values?.subDivision?.split('@-@')[0] : '0',
+        subDivision: values?.subDivision?.includes('@-@') ? values?.subDivision?.split('@-@')[1] : null,
+        department: departmentName[0] ?? '',
+        procedureID: values?.procedureId ?? '',
+        typeOfProject: values?.typeOfProject ?? "Playground",
+        description: values?.description?.trim() ?? '',
+      },
+      projectCollaborators: collaborators.map((c) => ({
+        id: c.id,
+        firstName: c.firstName,
+        lastName: c.lastName,
+        department: c.department,
+        email: c.email,
+        mobileNumber: c.mobileNumber ?? 'null',
+        gitUserName: c.gitUserName ?? null,
+        isAdmin: c.permission?.isAdmin ?? false,
+        isApprover: c.isApprover ?? false,
+        isRead: c.isRead ?? false,
+        isWrite: c.permission?.isWrite ?? false,
+      }))
+    };
     ProgressIndicator.show();
     dbServiceApi.updateDBService(dbservice.id, data).then(() => {
       ProgressIndicator.hide();
       Notification.show('DB Service successfully updated');
-      onSave();
+      onSave(data);
     }).catch(error => {
       ProgressIndicator.hide();
       Notification.show(
@@ -446,10 +472,10 @@ const DBServiceForm = ({ user, dbservice, edit, onSave }) => {
                     })}
                   >
                     <option value="0">Choose</option>
-                    <option value="Postgres">Postgres</option> {/* ✅ Default option */}
-                    <option value="Apache">Apache</option>
-                    <option value="Ignite">Ignite</option>
-                    <option value="Quadrant">Quadrant</option>
+                    <option value="postgres">Postgres</option>
+                    <option value="apache">Apache</option>
+                    <option value="ignite">Ignite</option>
+                    <option value="quadrant">Quadrant</option>
                   </select>
                 </div>
                 <span className={classNames('error-message', errors?.dbType?.message ? '' : 'hide')}>
@@ -555,8 +581,8 @@ const DBServiceForm = ({ user, dbservice, edit, onSave }) => {
                 <Tags
                   title={'Department'}
                   max={1}
-                  chips={departmentName}
-                  tags={departments}
+                  chips={Array.isArray(departmentName) ? departmentName : []}
+                  tags={Array.isArray(departments) ? departments : []}
                   setTags={(selectedTags) => {
                     let dept = selectedTags?.map((item) => item.toUpperCase());
                     setDepartmentName(dept);
@@ -574,8 +600,8 @@ const DBServiceForm = ({ user, dbservice, edit, onSave }) => {
                   <Tags
                     title={'Tags'}
                     max={100}
-                    chips={tags}
-                    tags={fabricTags}
+                    chips={Array.isArray(tags) ? tags : []}
+                    tags={Array.isArray(fabricTags) ? fabricTags : []}
                     setTags={(selectedTags) => {
                       let tag = selectedTags?.map((item) => item.toUpperCase().trim());
                       setTags(tag);
@@ -722,16 +748,19 @@ const DBServiceForm = ({ user, dbservice, edit, onSave }) => {
               <div>
                 {collaborators?.length > 0 && (
                   <>
-                    <div className={Styles.colHeader}>
-                        <div className={Styles.column1}>User ID</div>
-                        <div className={Styles.column2}>Name</div>
-                        <div className={Styles.column3}>Permissions</div>
-                        <div className={Styles.column4}>Actions</div>
-                    </div>
                     <div>
-                        {collaborators?.map((user) => {
-                          return (
-                              <div key={user?.id} className={Styles.userRow}>
+                      {collaborators?.length > 0 && (
+                        <>
+                          <div className={Styles.colHeader}>
+                            <div className={Styles.column1}>User ID</div>
+                            <div className={Styles.column2}>Name</div>
+                            <div className={Styles.column3}>Permissions</div>
+                            <div className={Styles.column4}>Actions</div>
+                          </div>
+                          <div>
+                            {collaborators?.map((user) => {
+                              return (
+                                <div key={user?.id} className={Styles.userRow}>
                                   <div className={Styles.column1}>
                                     <p>{user?.id}</p>
                                   </div>
@@ -791,13 +820,16 @@ const DBServiceForm = ({ user, dbservice, edit, onSave }) => {
                                         Transfer Ownership
                                       </div>
                                     }
-                                    <div className={Styles.deleteEntry} onClick={onUserLicenseDelete(user?.id)}>
+                                    <div className={Styles.deleteEntry} onClick={() => onUserLicenseDelete(user?.id)}>
                                       <i className="icon mbc-icon trash-outline" tooltip-data={'Delete'} />
                                     </div>
                                   </div>
-                              </div>
-                          );
-                      })}
+                                </div>
+                              );
+                            })}
+                          </div>
+                        </>
+                      )}
                     </div>
                   </>
                 )}

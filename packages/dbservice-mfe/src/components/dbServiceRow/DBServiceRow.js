@@ -32,21 +32,23 @@ const DBServiceRow = ({user, dbservice, onEditDbService, onDeleteDbService, onSh
     <div className={Styles.projectRow} onClick={handleOpenDbService}>
       <div className={Styles.col1}>
         <span>
-          {dbservice?.bucketName}
+          {dbservice?.dbName}
         </span>
       </div>
       <div className={Styles.col2}>
         {displayPermission(dbservice?.permission) || 'N/A'}
         {isOwner && ` (Owner)`}
       </div>
-      <div className={Styles.col3}>
-        {dbservice?.createdDate && regionalDateAndTimeConversionSolution(dbservice?.createdDate)}
+      <div className={classNames(Styles.col3, Styles.datetimeWrapper)}>
+        <span>{dbservice?.createdOn && regionalDateAndTimeConversionSolution(dbservice.createdOn)?.split(', ')[0]},</span>
+        <span>{dbservice?.createdOn && regionalDateAndTimeConversionSolution(dbservice.createdOn)?.split(', ')[1]}</span>
       </div>
-      <div className={Styles.col4}>
-        {dbservice?.lastModifiedDate && regionalDateAndTimeConversionSolution(dbservice?.lastModifiedDate)}
+      <div className={classNames(Styles.col4, Styles.datetimeWrapper)}>
+        <span>{dbservice?.modifiedOn && regionalDateAndTimeConversionSolution(dbservice.modifiedOn)?.split(', ')[0]},</span>
+        <span>{dbservice?.modifiedOn && regionalDateAndTimeConversionSolution(dbservice.modifiedOn)?.split(', ')[1]},</span>
       </div>
       <div className={Styles.col5}>
-        {dbservice?.classificationType}
+        {dbservice?.dataClassification === '0' || !dbservice?.dataClassification ? 'Internal' : dbservice?.dataClassification}
       </div>
       <div className={Styles.col6}>
         {user?.id === dbservice?.createdBy?.id &&
