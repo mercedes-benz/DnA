@@ -133,5 +133,11 @@ public class GenericControllerAdvice extends ResponseEntityExceptionHandler {
             .body(ex.getMessage());
     }
 
+    @ExceptionHandler(EntityAlreadyExistsException.class)
+    public ResponseEntity<String> handleEntityAlreadyExistsException(EntityAlreadyExistsException ex) {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+            .body(ex.getMessage());
+    }
+
 
 }

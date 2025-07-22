@@ -121,14 +121,15 @@ definitions:
             type: string
           isDocumentationUpdated:
             type: boolean
-      ownerDetails:
-        $ref: "#/definitions/CreatedByVO"
+      owners:
+        type: array
+        items:
+          $ref: "#/definitions/CreatedByVO"
 
   FabricCatalogMetadataVO:
     type: object
     required:
       - serviceName
-      - databases
     properties:
       serviceName:
         type: string
@@ -146,7 +147,6 @@ definitions:
     type: object
     required:
       - dbName
-      - schemas
     properties:
       dbName:
         type: string
@@ -161,7 +161,6 @@ definitions:
     type: object
     required:
       - schemaName
-      - tables
     properties:
       schemaName:
         type: string
@@ -176,7 +175,6 @@ definitions:
     type: object
     required:
       - tableName
-      - columns
     properties:
       tableName:
         type: string

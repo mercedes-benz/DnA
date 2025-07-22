@@ -37,6 +37,7 @@ import io.swagger.annotations.ApiResponses;
 import lombok.extern.slf4j.Slf4j;
 
 @RestController
+@Api(value = "Fabric Catalog Management APIs")
 @RequestMapping("/api/fabric-workspaces")
 @Slf4j
 public class FabricCatalogManagementController implements FabricCatalogManagementApi {
