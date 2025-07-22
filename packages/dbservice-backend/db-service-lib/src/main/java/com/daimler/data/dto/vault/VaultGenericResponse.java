@@ -1,4 +1,4 @@
-package com.daimler.data.dto.auth.vault;
+package com.daimler.data.dto.vault;
 
 
 import lombok.AllArgsConstructor;
