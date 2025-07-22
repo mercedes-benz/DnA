@@ -25,24 +25,20 @@
  * LICENSE END 
  */
 
-package com.daimler.data.application.config;
+package com.daimler.data.db.repo.catalogManagement;
 
-import net.javacrumbs.shedlock.spring.annotation.EnableSchedulerLock;
-import net.javacrumbs.shedlock.provider.jdbctemplate.JdbcTemplateLockProvider;
-import net.javacrumbs.shedlock.core.LockProvider;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.scheduling.annotation.EnableScheduling;
 
-import javax.sql.DataSource;
 
-@Configuration
-@EnableScheduling
-@EnableSchedulerLock(defaultLockAtMostFor = "5m")
-public class SchedulerConfig {
+import org.springframework.stereotype.Repository;
 
-    @Bean
-    public LockProvider lockProvider(final DataSource dataSource) {
-        return new JdbcTemplateLockProvider(dataSource);
-    }
+import com.daimler.data.db.entities.FabricCatalogMetadataNsql;
+import com.daimler.data.db.repo.common.CommonDataRepositoryImpl;
+
+import lombok.extern.slf4j.Slf4j;
+
+@Repository
+@Slf4j
+public class FabricCatalogManagementRepositoryImpl extends CommonDataRepositoryImpl<FabricCatalogMetadataNsql, String>
+		implements FabricCatalogManagementCustomRepository {
+
 }

@@ -121,4 +121,17 @@ public class GenericControllerAdvice extends ResponseEntityExceptionHandler {
 		return new ResponseEntity(result, HttpStatus.BAD_REQUEST);
 	}
 
+	 @ExceptionHandler(OpenMetadataClientException.class)
+    public ResponseEntity<String> handleOpenMetadataClientException(OpenMetadataClientException ex) {
+        return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+            .body("OpenMetadata operation failed: " + ex.getMessage());
+    }
+
+    @ExceptionHandler(EntityNotFoundException.class)
+    public ResponseEntity<String> handleEntityNotFoundException(EntityNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+            .body(ex.getMessage());
+    }
+
+
 }

@@ -25,12 +25,17 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.repo.forecast;
+package com.daimler.data.db.repo.catalogManagement;
 
-import org.springframework.data.jpa.repository.JpaRepository;
+import java.util.List;
 
-import com.daimler.data.db.entities.FabricWorkspaceNsql;
+import com.daimler.data.db.entities.FabricCatalogMetadataNsql;
+import com.daimler.data.db.repo.common.CommonDataRepository;
 
-public interface FabricWorkspaceRepository extends JpaRepository<FabricWorkspaceNsql, String> {
+public interface FabricCatalogManagementCustomRepository extends CommonDataRepository<FabricCatalogMetadataNsql, String> {
+
+	// List<FabricCatalogMetadataNsql> getAll(String userId, int offset, int limit);
+
+	// long getTotalCount(String userId);
 
 }

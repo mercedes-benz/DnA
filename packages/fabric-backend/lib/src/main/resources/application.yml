@@ -93,6 +93,11 @@ authoriser:
   clientSecret: ${IDENTITY_CLIENT_SECRET:XXXX}
   role.fabricRoleName: ${IDENTITY_FABRIC_OPERATIONS_ROLENAME:XXXX}
   
+cdcIntegration:
+  openmetadata:
+    serverUrl: ${OPENMETADATA_SERVER_URL:XXXX}
+    jwtToken: ${OPENMETADATA_JWT_TOKEN:XXXX}
+
 server:
   port: 9292
 

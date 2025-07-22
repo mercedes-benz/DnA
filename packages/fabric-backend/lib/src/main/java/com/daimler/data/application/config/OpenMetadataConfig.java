@@ -27,22 +27,43 @@
 
 package com.daimler.data.application.config;
 
-import net.javacrumbs.shedlock.spring.annotation.EnableSchedulerLock;
-import net.javacrumbs.shedlock.provider.jdbctemplate.JdbcTemplateLockProvider;
-import net.javacrumbs.shedlock.core.LockProvider;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.scheduling.annotation.EnableScheduling;
 
-import javax.sql.DataSource;
+import com.fasterxml.jackson.annotation.JsonInclude;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+
+import org.openmetadata.client.ApiClient;
 
 @Configuration
-@EnableScheduling
-@EnableSchedulerLock(defaultLockAtMostFor = "5m")
-public class SchedulerConfig {
+public class OpenMetadataConfig {
+
+    @Value("${cdcIntegration.openmetadata.serverUrl}")
+    private String serverUrl;
+
+    @Value("${cdcIntegration.openmetadata.jwtToken}")
+    private String jwtToken;
 
     @Bean
-    public LockProvider lockProvider(final DataSource dataSource) {
-        return new JdbcTemplateLockProvider(dataSource);
+    public ApiClient openMetadataApiClient() {
+        ApiClient client = new ApiClient()
+                .setBasePath(serverUrl);
+
+        // Configure ObjectMapper
+        ObjectMapper mapper = client.getObjectMapper();
+        mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+        mapper.configure(SerializationFeature.FAIL_ON_EMPTY_BEANS, false);
+        mapper.setSerializationInclusion(JsonInclude.Include.NON_NULL);
+
+        // Configure Feign for Authorization
+        client.getFeignBuilder()
+                .requestInterceptor(template -> template.header("Authorization", "Bearer " + jwtToken))
+                .logger(new feign.Logger.ErrorLogger())
+                .logLevel(feign.Logger.Level.FULL);
+
+        return client;
     }
 }

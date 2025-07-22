@@ -1,0 +1,240 @@
+# LICENSE START
+# 
+# MIT License
+# 
+# Copyright (c) 2019 Daimler TSS GmbH
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+# 
+# LICENSE END 
+#
+#-----------------------------------------------------------------------------------------------------
+#  **
+#  ** File Name  : fabricCatalogManagement.yaml
+#  **
+#  ** Module     : FabricCatalogManagement
+#  **
+
+#  -------------------------------------------------------------------------------------------------------
+#
+#  CHANGE HISTORY
+#
+#  Created By         :  aravindh45
+#
+#  Bug Number         :
+#  Changed By         :
+#  Change Description :
+#  Change On          :
+#  Search String      :
+#
+swagger: "2.0"
+info:
+  version: "1.0.0"
+  title: "Fabric Lakehouse catalog management service"
+host: "localhost:9292"
+basePath: "/api/1.0"
+consumes:
+  - "application/json"
+produces:
+  - "application/json"
+tags:
+  - name: "solutions"
+    description: "This service is used for fabric Lakehouse catalog maintenance."
+
+schemes:
+  - "https"
+
+paths:
+  /catalog/publish:
+     post:
+      tags:
+        - "fabric-catalog-management"
+      summary: "Publish a new catalog."
+      description: "This endpoint will be used to publish a new fabric catalog."
+      operationId: "publishCatalogRequest"
+      parameters:
+        - name: publishCatalogRequest
+          in: body
+          description: "The catalog to publish."
+          required: true
+          schema:
+            $ref: "#/definitions/PublishCatalogRequestVO"
+      responses:
+        201:
+          description: "Returns message of success or failure "
+          schema:
+            $ref: "#/definitions/PublishCatalogResponseVO"
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+          
+
+definitions:
+
+  PublishCatalogRequestVO:
+    type: object
+    properties:
+      metaData:
+        $ref: "#/definitions/FabricCatalogMetadataVO"
+      workspaceId:
+        type: string
+        description: "The workspace ID where the catalog will be published."
+      customProperties:
+        type: object
+        properties:
+          division:
+            type: string
+          department:
+            type: string
+          dataClassification:
+            type: string
+          dataOrigin:
+            type: string
+          dataAsset:
+            type: string
+          leanIXId:
+            type: string
+          isDocumentationUpdated:
+            type: boolean
+      ownerDetails:
+        $ref: "#/definitions/CreatedByVO"
+
+  FabricCatalogMetadataVO:
+    type: object
+    required:
+      - serviceName
+      - databases
+    properties:
+      serviceName:
+        type: string
+        description: "Name of the service"
+      serviceId:
+        type: string
+        description: "OpenMetadata service ID (optional)"
+      databases:
+        type: array
+        description: "List of databases with metadata"
+        items:
+          $ref: "#/definitions/DatabaseMetadataVO"
+
+  DatabaseMetadataVO:
+    type: object
+    required:
+      - dbName
+      - schemas
+    properties:
+      dbName:
+        type: string
+      dbId:
+        type: string
+      schemas:
+        type: array
+        items:
+          $ref: "#/definitions/SchemaMetadataVO"
+
+  SchemaMetadataVO:
+    type: object
+    required:
+      - schemaName
+      - tables
+    properties:
+      schemaName:
+        type: string
+      schemaId:
+        type: string
+      tables:
+        type: array
+        items:
+          $ref: "#/definitions/TableMetadataVO"
+
+  TableMetadataVO:
+    type: object
+    required:
+      - tableName
+      - columns
+    properties:
+      tableName:
+        type: string
+      tableId:
+        type: string
+      columns:
+        type: array
+        items:
+          $ref: "#/definitions/ColumnMetadataVO"
+
+  ColumnMetadataVO:
+    type: object
+    required:
+      - columnName
+      - colType
+    properties:
+      columnId:
+        type: string
+      columnName:
+        type: string
+      colType:
+        type: string
+      colConstraint:
+        type: string
+
+  PublishCatalogResponseVO:
+    type: object
+    properties:
+      data:
+        type: object
+        properties:
+          catalogMetadata:
+            $ref: "#/definitions/FabricCatalogMetadataVO"
+          ownerDetails:
+            $ref: "#/definitions/CreatedByVO"
+      responses:
+        $ref: "#/definitions/GenericMessage"
+
+
+  CreatedByVO:
+    type: object
+    properties:
+      id:
+        type: string
+        description: "ID of user"
+      firstName:
+        type: string
+        description: "First Name of the user"
+      lastName:
+        type: string
+        description: "Last Name of the user"
+      department:
+        type: string
+        description: "Department of the user"
+      email:
+        type: string
+        description: "E-Mail of the user"
+      mobileNumber:
+        type: string
+        description: "Mobile number of the user"
+

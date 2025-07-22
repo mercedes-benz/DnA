@@ -25,24 +25,17 @@
  * LICENSE END 
  */
 
-package com.daimler.data.application.config;
+package com.daimler.data.db.repo.fabric;
 
-import net.javacrumbs.shedlock.spring.annotation.EnableSchedulerLock;
-import net.javacrumbs.shedlock.provider.jdbctemplate.JdbcTemplateLockProvider;
-import net.javacrumbs.shedlock.core.LockProvider;
-import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
-import org.springframework.scheduling.annotation.EnableScheduling;
+import java.util.List;
 
-import javax.sql.DataSource;
+import com.daimler.data.db.entities.FabricWorkspaceNsql;
+import com.daimler.data.db.repo.common.CommonDataRepository;
 
-@Configuration
-@EnableScheduling
-@EnableSchedulerLock(defaultLockAtMostFor = "5m")
-public class SchedulerConfig {
+public interface FabricWorkspaceCustomRepository extends CommonDataRepository<FabricWorkspaceNsql, String> {
 
-    @Bean
-    public LockProvider lockProvider(final DataSource dataSource) {
-        return new JdbcTemplateLockProvider(dataSource);
-    }
+	List<FabricWorkspaceNsql> getAll(String userId, int offset, int limit);
+
+	long getTotalCount(String userId);
+
 }
