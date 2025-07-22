@@ -94,15 +94,11 @@ abrole.dnauser.rolename: ${ABROLE_DNAUSER_ROLENAME:DnA_User}
 logging:
   service:
     environment: ${LOGGING_ENVIRONMENT:DEV}
-    path: ${LOGGING_PATH:/tmp/airflow/log}
+    path: ${LOGGING_PATH:/log}
   level:
     com:
       daimler:
           dna:
             airflow: ${LOGGING_LEVEL:DEBUG}
     org.springframework.boot.autoconfigure.logging: INFO
-    org:
-      springframework:
-        web:
-          client:
-            RestTemplate: DEBUG
+    
