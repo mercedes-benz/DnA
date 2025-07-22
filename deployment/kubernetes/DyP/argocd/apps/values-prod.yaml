@@ -63,3 +63,5 @@ db:
    env: prod 
  - name: grc-virtualassitant
    env: prod 
+ - name: fabric-transparency
+   env: prod 
