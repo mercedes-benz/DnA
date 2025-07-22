@@ -273,4 +273,5 @@ window["DB_SERVICE_INJECTED_ENVIRONMENT"]={
   STORAGE_API_BASEURL: 'YOUR_STORAGE_API_BASEURL',
   REPORTS_API_BASEURL: 'YOUR_REPORTS_API_BASEURL',
   TOU_HTML: "<div>I agree to <a href=\"#\" target=\"_blank\" rel=\"noopener noreferrer\">terms of use</a></div>",
+  PGADMIN_URL:'YOUR_PGADMIN_URL'
 };
