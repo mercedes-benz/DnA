@@ -51,6 +51,7 @@ on:
       shortid:
         description: "Short ID"
         required: true 
+run-name: CS Apps Manage - ${{ github.event.inputs.projectName }}        
 env:
   REGISTRY: registry-emea.app.corpintra.net
   REGISTRY_DNA_USER: robot_dnaplatform+cicdbot  
