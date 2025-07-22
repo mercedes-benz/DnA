@@ -80,7 +80,7 @@ SSL:
 
 ## Specify PGDATABASE
 ##
-DBName: fabric-transparency
+DBName: fabric_transparency
 
 ## Configure S3 properties if S3 storage will be used
 ##
