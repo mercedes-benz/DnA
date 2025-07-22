@@ -1,35 +1,33 @@
 import { server, hostServer, storageServer, reportsServer } from '../server/api';
 
 const getDBServices = (offset, limit) => {
-  return server.get(`/dbservices?limit=${limit}&offset=${offset}`, {
+  return server.get(`/dbService?limit=${limit}&offset=${offset}`, {
     data: {},
   });
 };
 
 const createDBService = (data) => {
-  return server.post(`/dbservices`, {
-    data,
-  });
+  return server.post(`/dbService`, data);
 };
 
 const getDBService = (id) => {
-  return server.get(`/dbservices/${id}`, {
+  return server.get(`/dbService/${id}`, {
     data: {},
   });
 };
 
 const updateDBService = (id, data) => {
-  return server.put(`/dbservices/${id}`, data);
+  return server.patch('/dbService', { id, ...data });
 };
 
 const deleteDBService = (id) => {
-  return server.delete(`/dbservices/${id}`, {
+  return server.delete(`/dbService/${id}`, {
     data: {},
   });
 };
 
 const transferOwnership = (bucketName, userId) => {
-  return server.patch(`/dbservices/${bucketName}/reAssignOwner/${userId}`, {});
+  return server.patch(`/dbService/${bucketName}/reAssignOwner/${userId}`, {});
 };
 
 const getLovData = () => {

@@ -6,11 +6,12 @@ import { regionalDateAndTimeConversionSolution } from '../../utilities/utils';
 import Tooltip from '../../common/modules/uilab/js/src/tooltip';
 import Spinner from '../spinner/Spinner';
 import Popper from 'popper.js';
+import { Envs } from '../../utilities/envs';
 
 const DBServiceCard = ({user, dbservice, onSelectDbService, onShowDetailsModal, onEditDbService, onDeleteDbService}) => {
   // const history = useHistory();
   let popperObj, tooltipElem = null;
-  const isOwner = user?.id === dbservice?.createdBy?.id;
+  const isOwner = user?.id === dbservice?.projectOwner?.id;
   const isAdmin = user.roles.find((role) => role.id === 3);
   
   useEffect(() => {
@@ -65,7 +66,7 @@ const DBServiceCard = ({user, dbservice, onSelectDbService, onShowDetailsModal, 
             className={classNames('btn btn-text forward arrow', Styles.cardHeadTitle)}
             onClick={handleOpenDbService}
           >
-            {dbservice?.bucketName}
+            {dbservice?.serviceName}
           </div>
         </div>
       </div>
@@ -75,7 +76,7 @@ const DBServiceCard = ({user, dbservice, onSelectDbService, onShowDetailsModal, 
           <div>
             <div>Link</div>
             <div>
-              <a href={`https://link.com/${dbservice.id}`} target='_blank' rel='noopener noreferrer'>
+              <a href={Envs.PGADMIN_URL} target='_blank' rel='noopener noreferrer'>
                 Go to pgAdmin
                 <i className={classNames('icon mbc-icon new-tab')} />
               </a>
@@ -83,38 +84,38 @@ const DBServiceCard = ({user, dbservice, onSelectDbService, onShowDetailsModal, 
           </div>
           <div>
             <div>Created on</div>
-            <div>{dbservice?.createdDate && regionalDateAndTimeConversionSolution(dbservice?.createdDate)}</div>
+            <div>{dbservice?.createdOn && (regionalDateAndTimeConversionSolution(dbservice?.createdOn) || '').split(', ')[0] || 'N/A'}</div>
           </div>
           <div>
             <div>Last modified</div>
-            <div>{dbservice?.lastModifiedDate && regionalDateAndTimeConversionSolution(dbservice?.lastModifiedDate)}</div>
+            <div>{dbservice?.modifiedOn &&(regionalDateAndTimeConversionSolution(dbservice?.modifiedOn) || '').split(', ')[0] || 'N/A'}</div>
           </div>
           <div>
-            <div>Classification</div>
-            <div>{dbservice?.classificationType || 'N/A'}</div>
+          <div>Classification</div>
+          <div>{dbservice?.dataClassification === '0' || !dbservice?.dataClassification ? 'Internal' : dbservice?.dataClassification}</div>
           </div>
           <div>
             <div>Permission</div>
             <div>
-              {displayPermission(dbservice?.permission) || 'N/A'}
+              {displayPermission(dbservice?.permission)}
               {isOwner && ` (Owner)`}
             </div>
           </div>
           <div>
             <div>Created by</div>
-            <div>{dbservice?.createdBy?.firstName} {dbservice?.createdBy?.lastName}</div>
+            <div>{dbservice?.projectOwner?.firstName} {dbservice?.projectOwner?.lastName}</div>
           </div>
           <div className={Styles.cardCollabSection}>
             <div>Collaborators</div>
-            {dbservice?.collaborators?.length > 0 ? (
+            {dbservice?.projectCollaborators?.length > 0 ? (
               <div>
                 <i className="icon mbc-icon profile"/>
                 <span className={Styles.cardCollabIcon} onMouseOver={onCollabsIconMouseOver} onMouseOut={onCollabsIconMouseOut}>
-                  {dbservice?.collaborators?.length}
+                  {dbservice?.projectCollaborators?.length}
                 </span>
                 <div className={classNames(Styles.collabsList, 'hide')}>
                   <ul>
-                    {dbservice?.collaborators?.map((bucketItem, bucketIndex) => {
+                    {dbservice?.projectCollaborators?.map((bucketItem, bucketIndex) => {
                         // Check if lastName is more than 12 characters
                         let lastName = bucketItem.lastName;
                         if (lastName?.length > 12) {
