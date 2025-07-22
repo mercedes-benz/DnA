@@ -8,9 +8,11 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
@@ -258,7 +260,6 @@ public class BaseDbServiceImpl extends BaseCommonService<DbServiceVO, DbServiceN
 	}
 
 
-    @SuppressWarnings("deprecation")
     @Override
     public InitializeResponseVo editDb(DbServiceVO serviceVo,UserInfoVO user) {
         InitializeResponseVo response = new InitializeResponseVo();
@@ -268,8 +269,8 @@ public class BaseDbServiceImpl extends BaseCommonService<DbServiceVO, DbServiceN
             serviceVo.setModifiedOn(now);
             response.setData(null);
             response.setSuccess("failed");
-            DbServiceNsql entity =  repository.getById(serviceVo.getId()); 
-            DbService data = entity.getData();
+            Optional<DbServiceNsql> entity =  repository.findById(serviceVo.getId());
+            DbService data = entity.get().getData();
                 data.setModifiedOn(now);
                 data.setModifiedBy(assembler.toUserInfo(serviceVo.getModifiedBy()));
                 data.setDataGovernance(assembler.toGovernanceEntity(serviceVo.getDataGovernance()));
@@ -281,9 +282,9 @@ public class BaseDbServiceImpl extends BaseCommonService<DbServiceVO, DbServiceN
 					 data.setProjectCollaborators(projectCollabs);
 				 }
                  data.setProjectType(serviceVo.getProjectType());
-                 entity.setData(data);
-                    DbServiceNsql responseEntiy = repository.save(entity); 
-                    DbServiceVO responseVo = assembler.toVo(responseEntiy);
+                 entity.get().setData(data);
+                    String successResponse = dbServiceCustomRepo.updateFullJsonData(entity.get());
+                    DbServiceVO responseVo = assembler.toVo(entity.get());
                     List<CredentialsVO> credentialsList = getCredentials(user, responseVo.getServiceName());
                     responseVo.setCredentials(credentialsList);
 
