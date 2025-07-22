@@ -94,7 +94,7 @@ abrole.dnauser.rolename: ${ABROLE_DNAUSER_ROLENAME:DnA_User}
 logging:
   service:
     environment: ${LOGGING_ENVIRONMENT:DEV}
-    path: ${LOGGING_PATH:/log}
+    path: ${LOGGING_PATH:/logs}
   level:
     com:
       daimler:
