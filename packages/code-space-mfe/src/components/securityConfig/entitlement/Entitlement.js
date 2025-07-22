@@ -88,11 +88,14 @@ export default class Entitlement extends React.Component {
 
   getPluginStatus = (id, env) => {
     if(this.props.isPublished && (this.props.secureWithDna || this.props.secureWithIAM)){
+      ProgressIndicator.show();
       CodeSpaceApiClient.getPluginStatus(id, env, 'apiauthoriser')
         .then((res) => {
           this.setState({pluginEnabled: res?.data?.enabled||false});
+          ProgressIndicator.hide();
         })
         .catch((err) => {
+          ProgressIndicator.hide();
           Notification.show(
             'Error in fetching api authoriser plugin status. Please try again later.\n' + err?.response?.data?.errors[0]?.message,
             'alert',
@@ -103,7 +106,9 @@ export default class Entitlement extends React.Component {
   }
 
   componentDidUpdate(prevProps) {
-    this.getPluginStatus(this.props.id,this.props.env);
+    if(this.props.isPublished !== prevProps.isPublished){
+      this.getPluginStatus(this.props.id,this.props.env);
+    }
     if (this.props.config !== prevProps.config) {
       if (this.props.config?.entitlements?.length > 0) {
         const records = this.props.config.entitlements;
