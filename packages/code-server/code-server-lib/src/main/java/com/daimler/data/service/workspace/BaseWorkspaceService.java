@@ -1979,11 +1979,13 @@
 					 responseMessage.setSuccess(status);
 					 return responseMessage;
 				 }
-				 if("oidc".equalsIgnoreCase(pluginName) && !enable && Objects.nonNull(configPublishedAppId)){
-					 authenticatorClient.changePluginStatus(projectName.toLowerCase()+"-"+environment, "oidc", enable);
-					 authenticatorClient.changePluginStatus(projectName.toLowerCase()+"-"+environment, "apiauthoriser", enable);
-				 } else {
-					authenticatorClient.changePluginStatus(projectName.toLowerCase()+"-"+environment, "oidc", enable);
+				 if("oidc".equalsIgnoreCase(pluginName)){
+					if(!enable && Objects.nonNull(configPublishedAppId)){
+						authenticatorClient.changePluginStatus(projectName.toLowerCase()+"-"+environment, "oidc", enable);
+						authenticatorClient.changePluginStatus(projectName.toLowerCase()+"-"+environment, "apiauthoriser", enable);
+				 	} else {
+						authenticatorClient.changePluginStatus(projectName.toLowerCase()+"-"+environment, "oidc", enable);
+					}
 				 }
 				 if("apiauthoriser".equalsIgnoreCase(pluginName)){
 					 authenticatorClient.changePluginStatus(projectName.toLowerCase()+"-"+environment, "apiauthoriser", enable);

@@ -82,27 +82,32 @@ export default class Entitlement extends React.Component {
   }
 
   componentDidMount() {
-    if(this.props.isPublished && (this.props.secureWithIAM || this.props.secureWithDna)){
+    SelectBox.defaultSetup();
+    Tooltip.defaultSetup();
+  }
+
+  getPluginStatus = (id, env) => {
+    if(this.props.isPublished && (this.props.secureWithDna || this.props.secureWithIAM)){
       ProgressIndicator.show();
-      CodeSpaceApiClient.getPluginStatus(this.props.id, this.props.env, 'apiauthoriser')
+      CodeSpaceApiClient.getPluginStatus(id, env, 'apiauthoriser')
         .then((res) => {
-          this.setState({pluginEnabled: (res?.data?.enabled || false)});
+          ProgressIndicator.hide();
+          this.setState({pluginEnabled: res?.data?.enabled||false});
         })
         .catch((err) => {
           ProgressIndicator.hide();
           Notification.show(
-            'Error in fetching Api authoriser plugin status. Please try again later.\n' + err?.response?.data?.errors[0]?.message,
+            'Error in fetching api authoriser plugin status. Please try again later.\n' + err?.response?.data?.errors[0]?.message,
             'alert',
           );
           // Notification.show('Error in fetching plugin status. Please try again later.', 'alert');
         });
     }
-    SelectBox.defaultSetup();
-    Tooltip.defaultSetup();
   }
 
   componentDidUpdate(prevProps) {
     if (this.props.config !== prevProps.config) {
+      this.getPluginStatus(this.props.id,this.props.env);
       if (this.props.config?.entitlements?.length > 0) {
         const records = this.props.config.entitlements;
         const totalNumberOfPages = Math.ceil(records?.length / this.state.maxItemsPerPage);
@@ -170,7 +175,7 @@ export default class Entitlement extends React.Component {
     }
   }
 
-  handlePluginChange() {
+  handlePluginChange = () => {
     ProgressIndicator.show();
     CodeSpaceApiClient.updatePluginStatus(
       this.props.id,
