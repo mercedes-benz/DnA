@@ -7,5 +7,7 @@ export const ProvisionSource = {
   DBSERVICE: 'dbservice',
 };
 
-export const TEAMS_PROFILE_LINK_URL_PREFIX = 'https://your-team-profile-url-prefix/';
+export const TEAMS_PROFILE_LINK_URL_PREFIX = {
+  TEAMS_LINK:'https://your-team-profile-url-prefix/',
+};
 

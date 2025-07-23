@@ -91,8 +91,10 @@ const DBServiceCard = ({user, dbservice, onSelectDbService, onShowDetailsModal, 
             <div>{dbservice?.modifiedOn &&(regionalDateAndTimeConversionSolution(dbservice?.modifiedOn) || '').split(', ')[0] || 'N/A'}</div>
           </div>
           <div>
-          <div>Classification</div>
-          <div>{dbservice?.dataClassification === '0' || !dbservice?.dataClassification ? 'Internal' : dbservice?.dataClassification}</div>
+            <div>Classification</div>
+            <div>
+              {dbservice?.dataGovernance?.classificationType}
+            </div>
           </div>
           <div>
             <div>Permission</div>
