@@ -1,0 +1,39 @@
+{
+    "apiVersion": "argoproj.io/v1alpha1",
+    "kind": "Application",
+    "metadata": {
+        "name": "{serviceName}",
+        "namespace": "argocd"
+    },
+    "spec": {
+        "project": "{projectName}",
+        "source": {
+            "repoURL": "{repoUrl}",
+            "path": "{sourcePath}",
+            "targetRevision": "{targetRevision}",
+            "plugin": {
+                "env": [
+                    {
+                        "name": "HELM_VALUES",
+                        "value": "annotations:\n  argocdvault: codespaces_kv/data/{environment}/postgres-as-a-service/{serviceName}\nfullnameOverride: {serviceName}\nreplicaCount: {replicaCount}\npgconnectionconfig:\n  enabled: true\n  maxconnections: {maxconnections}\nDBName: {dbName}\ns3:\n  accesskey: <path:codespaces_kv/data/{environment}/postgres-as-a-service/{serviceName}#accesskey>\n  secretkey: <path:codespaces_kv/data/{environment}/postgres-as-a-service/{serviceName}#secretkey>\n  host: <path:codespaces_kv/data/{environment}/postgres-as-a-service/{serviceName}#s3.host>\nresources:\n  enabled: true\n  limits:\n    enabled: true\n    memory: {memoryRequest}\n  request:\n    enabled: true\n    cpu: {cpuRequest}\n    memory: {memoryRequest}\nwalArchiving:\n  s3:\n    bucketName: <path:codespaces_kv/data/{environment}/postgres-as-a-service/{serviceName}#bucketName>\ndbusers:\n  backup:\n    password: <path:codespaces_kv/data/{environment}/postgres-as-a-service/{serviceName}#dbadm.password>\n  dbadm:\n    username: db_admin\n    password: <path:codespaces_kv/data/{environment}/postgres-as-a-service/{serviceName}#dbadm.password>\n  patroni:\n    password: <path:codespaces_kv/data/{environment}/postgres-as-a-service/{serviceName}#patroni.password>\n  pgmon:\n    password: <path:codespaces_kv/data/{environment}/postgres-as-a-service/{serviceName}#pgmon.password>\n  debezium:\n    password: <path:codespaces_kv/data/{environment}/postgres-as-a-service/{serviceName}#debezium.password>\n  dataCatalog:\n    password: <path:codespaces_kv/data/{environment}/postgres-as-a-service/{serviceName}#dataCatalog.password>\npersistence:\n  size: <path:codespaces_kv/data/{environment}/postgres-as-a-service/{serviceName}#size>\nbackup:\n  enabled: true\n  s3:\n    bucketName: <path:codespaces_kv/data/{environment}/postgres-as-a-service/{serviceName}#bucketName>\n  retention: <path:codespaces_kv/data/{environment}/postgres-as-a-service/{serviceName}#retention>\n  resources:\n    enabled: true\n    limits:\n      enabled: true\n      cpu: 500m\n      memory: 512Mi\n    request:\n      enabled: true\n      cpu: 250m\n      memory: 256Mi\n  tempPgdataVolume:\n    size: <path:codespaces_kv/data/{environment}/postgres-as-a-service/{serviceName}#size>\n  file:\n    name: {dbname}-db-backup\nrestore:\n  s3:\n    bucketName: <path:codespaces_kv/data/{environment}/postgres-as-a-service/{serviceName}#bucketName>\ninitdbScripts:\n  script: <path:codespaces_kv/data/{environment}/postgres-as-a-service/{serviceName}#init-db>\npgmonitoring:\n  resources:\n    enabled: true\n    limits:\n      enabled: true\n      memory: 100Mi\n    request:\n      enabled: true\n      cpu: 10m\n      memory: 100Mi\npodDisruptionBudget:\n  minAvailable: {pdbMinAvailable}\n"
+                    }
+                ]
+            }
+        },
+        "destination": {
+            "server": "https://kubernetes.default.svc",
+            "namespace": "{nameSpace}"
+        },
+        "syncPolicy": {
+            "automated": {
+                "prune": true,
+                "selfHeal": true
+            },
+            "syncOptions": [
+                "ApplyOutOfSyncOnly=true",
+                "CreateNamespace=true",
+                "RespectIgnoreDifferences=true"
+            ]
+        }
+    }
+}
