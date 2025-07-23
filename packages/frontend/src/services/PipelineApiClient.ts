@@ -1,7 +1,6 @@
 import { Envs, } from '../globals/Envs';
 import { HTTP_METHOD } from '../globals/constants';
 import { ApiClient } from './ApiClient';
-// import { pipelinedata } from './mock';
 
 const baseUrl = Envs.DATA_PIPELINES_API_BASEURL
   ? Envs.DATA_PIPELINES_API_BASEURL
@@ -30,10 +29,7 @@ export class PipelineApiClient {
   public static delete(endpoint: string, body?: any) {
     return ApiClient.fetch(getUrl(endpoint), HTTP_METHOD.DELETE, body);
   }
-  // public static getPipelineProjectList()
-  //  { 
-  //    return Promise.resolve(pipelinedata);
-  //  }
+  
   
   public static getPipelineProjectList() {
     return this.get('v1/projects');
