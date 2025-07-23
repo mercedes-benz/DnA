@@ -40,6 +40,20 @@ const PipelineSubList = (props: IPipelineProjectProps) => {
   const [currentColumnToSort, setCurrentColumnToSort] = useState<string>('projectId');
   const createAndUpdateStatus = ['CREATE_REQUESTED', 'UPDATE_REQUESTED'];
 
+    const handleTriggerDag = (dagName: string) => {
+      ProgressIndicator.show();
+      PipelineApiClient.triggerDag(dagName)
+
+        .then((res) => {
+          Notification.show(res.success);
+          ProgressIndicator.hide();
+        })
+        .catch((err) => {
+          Notification.show('error in Triggering the Dag. Please try again later.', 'alert');
+          ProgressIndicator.hide();
+        });
+    };
+
   const onPermissionEdit = (collUserId: string, index: number) => {
     return () => {
       const collItem = dagCollExist.map((item: IPipelineProjectDagsCollabarator, itemIndex: number) => {
@@ -356,6 +370,13 @@ const PipelineSubList = (props: IPipelineProjectProps) => {
                                                 </button>
                                               )}
                                               &nbsp; &nbsp;
+                                              <button
+                                                className={Styles.actionBtn}
+                                                title="Trigger DAG"
+                                                onClick={() => handleTriggerDag(dagItem.dagName)}
+                                              >
+                                                <i className="icon mbc-icon trainings" />
+                                              </button>
                                               <a
                                                 className={Styles.airflowLink}
                                                 href={`${Envs.DATA_PIPELINES_APP_BASEURL}/graph?dag_id=${dagItem.dagName}`}

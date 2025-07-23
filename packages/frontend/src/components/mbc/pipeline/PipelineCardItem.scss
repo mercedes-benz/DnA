@@ -1,0 +1,268 @@
+.pipelineCard {
+  background: #252a33;
+  width: calc(25% - 15px);
+  margin: 0 15px 15px 0;
+  min-width: 250px;
+  position: relative;
+
+  .cardWrapper {
+    background-color: none;
+    padding: 16px;
+    border-radius: 8px;
+    margin-bottom: 20px;
+  }
+
+
+  .cardHead {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 5px;
+    align-items: center;
+    position: relative;
+    overflow: hidden;
+    height: 75px;
+
+    .cardHeadInfo {
+      width: 100%;
+      padding: 15px 20px;
+      cursor: pointer;
+      margin-top: 35px;
+
+      .cardHeadTitle {
+        font-size: var(--font-size-headline);
+        line-height: 23px;
+        word-break: break-word;
+        padding-right: 10px;
+        padding-bottom: 5px;
+        width: 100%;
+        text-align: left;
+      }
+    }
+  }
+
+  hr {
+    width: 90%;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .cardBodySection {
+    padding: 15px 20px 20px 20px;
+    margin-bottom: 30px;
+    min-height: 200px;
+
+    >div {
+      display: flex;
+      flex-direction: column;
+      color: #99a5b3;
+
+      >div {
+        display: flex;
+        justify-content: space-between;
+
+        &:not(:last-child) {
+          margin-bottom: 10px;
+        }
+
+        >div:first-child {
+          flex: 1;
+          font-weight: bold;
+          color: #697582;
+          font-size: var(--font-size-small);
+        }
+
+        >div:last-child {
+          flex: 1;
+        }
+      }
+
+      ul {
+        list-style-type: none;
+        padding: 0;
+
+        li:not(:last-child) {
+          padding-bottom: 10px;
+        }
+      }
+    }
+
+    .cardCollabSection {
+      .cardCollabIcon {
+        display: inline-block;
+        cursor: pointer;
+        color: #00adef;
+        min-width: 40px;
+
+        &:hover {
+          text-decoration: underline;
+        }
+      }
+
+      .collabsList {
+        width: 420px;
+        padding: 15px 15px 0 !important;
+        font-size: var(--font-size-small);
+        background-color: #2d333b;
+        position: absolute;
+        z-index: 10;
+        border: 1px solid #383f49;
+        left: 0;
+
+        li {
+          border-bottom: 1px solid #2d333b;
+          padding: 5px 0;
+          display: flex;
+          justify-content: space-between;
+
+          &:last-child {
+            border: none;
+          }
+
+          .permission {
+            position: static;
+          }
+        }
+
+        span {
+          white-space: nowrap;
+        }
+      }
+
+    }
+  }
+
+  .cardFooter {
+    position: absolute;
+    width: 100%;
+    bottom: 0;
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 10px;
+
+    .statusIndicator {
+      padding: 2px 8px;
+      border: 1px solid #0AE6AB;
+      color: #0AE6AB;
+      font-size: var(--font-size-smallest);
+      letter-spacing: 1px;
+      border-radius: 2px;
+      margin-left: 10px;
+
+      &.colloboration {
+        border: 1px solid #35ADAC;
+        color: #35ADAC;
+        position: relative;
+        right: auto;
+      }
+    }
+
+
+    .btnGrp {
+      display: flex;
+      justify-content: flex-end;
+      font-size: var(--font-size-medium);
+
+
+      button {
+        background-color: transparent;
+        border: 0;
+        color: #99a5b3;
+        margin-right: 20px;
+        padding: 0;
+
+        &:hover {
+          color: #00adef;
+
+          span {
+            text-decoration: underline;
+          }
+
+          i {
+            color: #00adef;
+          }
+        }
+      }
+    }
+  }
+}
+
+
+.show {
+  display: block !important;
+}
+
+.hide {
+  display: none !important;
+}
+
+.dagItem {
+  padding: 8px 0;
+  border-bottom: 1px solid #2d333b;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+
+  .dagName {
+    flex: 2;
+    font-size: 12px;
+    color: #99a5b3;
+    font-weight: 600;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .permission {
+    flex: 1;
+    font-size: 12px;
+    color: #99a5b3;
+    text-align: center;
+    white-space: nowrap;
+  }
+
+  .cardDagActions {
+  flex: 1;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+
+  .actionBtn {
+    background: transparent;
+    border: none;
+    color: #00adef;          /* Blue default icon color */
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    padding: 4px;            /* Keeps clickable area */
+
+    i {
+      font-size: 14px;       /* Consistent icon size */
+      transition: color 0.2s ease;
+    }
+
+    
+    &:focus {
+      outline: none !important;
+      box-shadow: none !important;
+      border: none !important;
+    }
+  }
+}
+
+}
+
+
+.pipelineCard:nth-child(4n) .collabsList,
+.pipelineCard:last-child .collabsList {
+  left: auto !important;
+  right: 0 !important;
+}
+
+.disabled {
+  opacity: 0.4;
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
+
