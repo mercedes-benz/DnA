@@ -258,15 +258,6 @@ const AllCodeSpaces = (props) => {
         getCodeSpaceGroupsData();
     };
 
-    const navigateSecurityConfig = () => {
-        const projectDetails = onDeployCodeSpace?.projectDetails;
-        if (projectDetails?.publishedSecuirtyConfig) {
-            window.open(`${window.location.pathname}#/codespaces/codespace/publishedSecurityconfig/${props?.workspaceId}?name=${props?.projectName}?intIAM=${projectDetails?.intDeploymentDetails?.secureWithIAMRequired ? 'true' : 'false'}?prodIAM=${props?.secureWithIAMRequired ? 'true' : 'false'}`, '_blank');
-            return;
-        }
-        window.open(`${window.location.pathname}#/codespaces/codespace/securityconfig/${props?.workspaceId}?name=${props?.projectName}?intIAM=${props?.secureWithIAMRequired ? 'true' : 'false'}?prodIAM=${projectDetails?.prodDeploymentDetailssecureWithIAMRequired ? 'true' : 'false'}`, '_blank');
-    }
-
     const AWSWarningModalContent = (
         <div className={Styles.modalContentWrapper}>
             <div className={Styles.awsModalMainTitle}><i className="icon mbc-icon alert circle" />DnA Platform successfully migrated<i className="icon mbc-icon alert circle" /></div>
@@ -909,7 +900,6 @@ const AllCodeSpaces = (props) => {
                     setShowCodeDeployModal={(isVisible) => setShowDeployCodeSpaceModal(isVisible)}
                     setCodeDeploying={() => { getCodeSpacesData(); getCodeSpaceGroupsData();}}
                     setIsApiCallTakeTime={setIsApiCallTakeTime}
-                    navigateSecurityConfig={navigateSecurityConfig}
                 />
             )}
             {showBuildCodeSpaceModal && (
@@ -935,7 +925,6 @@ const AllCodeSpaces = (props) => {
                     setCodeDeploying={() => { getCodeSpacesData(); getCodeSpaceGroupsData(); }}
                     setCodeBuilding={() => { getCodeSpacesData(); getCodeSpaceGroupsData(); }}
                     setIsApiCallTakeTime={setIsApiCallTakeTime}
-                    navigateSecurityConfig={navigateSecurityConfig}
                 />
             )}
             {showDeployApprovalModal && (

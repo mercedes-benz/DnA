@@ -220,11 +220,11 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
   const onCodeSpaceAuthorizationConfigClick = (codeSpace) => {
     if (codeSpace?.projectDetails?.publishedSecuirtyConfig) {
       history.push(
-        `/codespace/publishedSecurityconfig/${codeSpace.id}?name=${codeSpace.projectDetails.projectName}?intIAM=${projectDetails?.intDeploymentDetails?.secureWithIAMRequired || false}?intDna=${projectDetails?.intDeploymentDetails?.secureWithDnaRequired || false}?prodIAM=${projectDetails?.prodDeploymentDetails?.secureWithIAMRequired || false}?prodDna=${projectDetails?.intDeploymentDetails?.secureWithDnaRequired || false}`,
+        `/codespace/publishedSecurityconfig/${codeSpace.id}?name=${codeSpace.projectDetails.projectName}?intIAM=${projectDetails?.intDeploymentDetails?.secureWithIAMRequired || false}?intDna=${projectDetails?.intDeploymentDetails?.secureWithDnaRequired || false}?prodIAM=${projectDetails?.prodDeploymentDetails?.secureWithIAMRequired || false}?prodDna=${projectDetails?.prodDeploymentDetails?.secureWithDnaRequired || false}`,
       );
       return;
     }
-    history.push(`codespace/securityconfig/${codeSpace.id}?name=${codeSpace.projectDetails.projectName}?intIAM=${projectDetails?.intDeploymentDetails?.secureWithIAMRequired || false}?intDna=${projectDetails?.intDeploymentDetails?.secureWithDnaRequired || false}?prodIAM=${projectDetails?.prodDeploymentDetails?.secureWithIAMRequired || false}?prodDna=${projectDetails?.intDeploymentDetails?.secureWithDnaRequired || false}`);
+    history.push(`codespace/securityconfig/${codeSpace.id}?name=${codeSpace.projectDetails.projectName}?intIAM=${projectDetails?.intDeploymentDetails?.secureWithIAMRequired || false}?intDna=${projectDetails?.intDeploymentDetails?.secureWithDnaRequired || false}?prodIAM=${projectDetails?.prodDeploymentDetails?.secureWithIAMRequired || false}?prodDna=${projectDetails?.prodDeploymentDetails?.secureWithDnaRequired || false}`);
   };
 
   const onCodeSpaceDelete = () => {
