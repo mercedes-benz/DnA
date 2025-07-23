@@ -3,7 +3,7 @@ import React from 'react';
 import Styles from './details-modal.scss';
 import { IconAvatarNew } from '../icons/iconAvatarNew/IconAvatarNew.js';
 import { regionalDateAndTimeConversionSolution } from '../../utilities/utils.js';
-import { TEAMS_PROFILE_LINK_URL_PREFIX } from '/home/coder/app/packages/dbservice-mfe/src/utilities/constants';
+import { TEAMS_PROFILE_LINK_URL_PREFIX } from '../../../src/utilities/utils.js';
 
 const DetailsModal = ({ dbservice }) => {
   

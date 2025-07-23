@@ -5,7 +5,7 @@ import Notification from '../../common/modules/uilab/js/src/notification';
 import Styles from './connection-modal.scss';
 import { Envs } from '../../utilities/envs';
 
-const ConnectionModal = ({ dbservice, onOk }) => {
+const ConnectionModal = ({ dbservice, onOk}) => {
   useEffect(() => {
     Tabs.defaultSetup();
     // reset
@@ -32,7 +32,6 @@ const ConnectionModal = ({ dbservice, onOk }) => {
   // const copyToClipboard = (content) => {
   //   navigator.clipboard.writeText(content).then(() => Notification.show('Copied to Clipboard'));
   // };
-  console.log(dbservice);
   return (
     <div className={Styles.dbServiceConnection}>
       <header>
@@ -41,15 +40,25 @@ const ConnectionModal = ({ dbservice, onOk }) => {
       <section className={Styles.connectionSection}>
         <div className={Styles.item}>
           <div className={Styles.itemKey}>DB Host</div>
-          <div className={Styles.itemValue}>123.223.23.3</div>
+          <div className={Styles.itemValue}>{dbservice?.url}</div>
         </div>
         <div className={Styles.item}>
           <div className={Styles.itemKey}>Port</div>
-          <div className={Styles.itemValue}>8990</div>
+          <div className={Styles.itemValue}>{dbservice?.port}</div>
         </div>
         <div className={Styles.item}>
           <div className={Styles.itemKey}>Connection String</div>
-          <div className={Styles.itemValue}>heres the connection string</div>
+          <div className={Styles.itemValue}>
+            {dbservice?.credentials?.length > 0 ? (
+              dbservice.credentials.map((cred, index) => (
+                <div key={index}>
+                  <div><strong> {cred.userName}</strong>: {cred.password}</div>
+                </div>
+              ))
+            ) : (
+              'No credentials available'
+            )}
+          </div>
         </div>
       </section>
       <div>

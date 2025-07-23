@@ -264,7 +264,7 @@ const DBServiceForm = ({ user, dbservice, edit, onSave }) => {
     }).catch(error => {
       ProgressIndicator.hide();
       Notification.show(
-        error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || error?.response?.data?.responses?.errors?.[0]?.message || 'Error while creating fabric workspace',
+        error?.response?.data?.errors?.[0]?.message || error?.response?.data?.warnings?.[0]?.message || error?.response?.data?.responses?.errors?.[0]?.message || 'Error while creating fabric workspace',
         'alert',
       );
     });

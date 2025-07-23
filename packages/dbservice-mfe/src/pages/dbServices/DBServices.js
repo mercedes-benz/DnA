@@ -17,7 +17,7 @@ import ConnectionModal from '../../components/connectionModal/ConnectionModal';
 import DetailsModal from '../../components/detailsModal/DetailsModal';
 import Notification from '../../common/modules/uilab/js/src/notification';
 import { regionalDateAndTimeConversionSolution } from '../../utilities/utils';
-import ExpansionPanel from '/home/coder/app/packages/dbservice-mfe/src/common/modules/uilab/js/src/expansion-panel';
+import ExpansionPanel from '../../common/modules/uilab/js/src/expansion-panel';
 import Tooltip from '../../common/modules/uilab/js/src/tooltip';
 import { Link } from 'react-router-dom';
 
@@ -467,7 +467,7 @@ const DBServices = ({user}) => {
                               {regionalDateAndTimeConversionSolution(item.modifiedOn)}
                             </div>
                             <div className={Styles.bucketTitleCol}>
-                              {item?.classificationType === '0' || !item?.classificationType ? 'Internal' : item?.classificationType}
+                              {item?.dataGovernance?.classificationType}
                             </div>
                             <div className={Styles.bucketTitleCol}></div>
                           </div>
@@ -622,7 +622,7 @@ const DBServices = ({user}) => {
           modalCSS={Styles.header}
           show={showConnectionalModal}
           modalWidth={'800px'}
-          content={<ConnectionModal user={user} />}
+          content={<ConnectionModal dbservice={selectedDbService} onOk={handleConnectionModalClose}/>}
           hiddenTitle={true}
           onCancel={handleConnectionModalClose}
         />
