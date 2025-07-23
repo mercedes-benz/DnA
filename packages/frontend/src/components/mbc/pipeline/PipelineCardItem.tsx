@@ -47,7 +47,7 @@ const PipelineCardItem = ({ project, getRefreshedDagPermission }: Props) => {
       Notification.show(res.success);
       ProgressIndicator.hide();
     })
-    .catch((err) => {
+    .catch(() => {
       Notification.show("error in Triggering the Dag. Please try again later.", 'alert');
       ProgressIndicator.hide();
     })
