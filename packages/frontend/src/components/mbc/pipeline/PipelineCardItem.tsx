@@ -1,8 +1,12 @@
 import React, { useRef, useState, useEffect } from 'react';
 import Styles from './PipelineCardItem.scss';
+import ProgressIndicator from '../../../assets/modules/uilab/js/src/progress-indicator';
+import Notification from '../../../assets/modules/uilab/js/src/notification';
 import { IPipelineProjectDetail } from 'globals/types';
 import { history } from '../../../router/History';
 import { Envs } from 'globals/Envs';
+import { PipelineApiClient } from '../../../services/PipelineApiClient';
+
 
 interface Props {
   project: IPipelineProjectDetail;
@@ -35,12 +39,27 @@ const PipelineCardItem = ({ project, getRefreshedDagPermission }: Props) => {
     project.projectStatus === 'CREATE_REQUESTED' ||
     project.projectStatus === 'UPDATE_REQUESTED';
 
+  const handleTriggerDag = (dagName: string) => {
+    ProgressIndicator.show();
+  PipelineApiClient.triggerDag(dagName)
+
+    .then((res) =>{
+      Notification.show(res.success);
+      ProgressIndicator.hide();
+    })
+    .catch((err) => {
+      Notification.show("error in Triggering the Dag. Please try again later.", 'alert');
+      ProgressIndicator.hide();
+    })
+};
+
+
 
   return (
     <div className={Styles.pipelineCard}>
       <div className={Styles.cardHead}>
         <div className={Styles.cardHeadInfo}>
-          <div className={`btn btn-text forward arrow ${Styles.cardHeadTitle}`} title={project.projectName}>
+          <div className={`${Styles.cardHeadTitle}`} title={project.projectName}>
             {project.projectName}
           </div>
         </div>
@@ -76,15 +95,13 @@ const PipelineCardItem = ({ project, getRefreshedDagPermission }: Props) => {
                           {dag.permissions?.includes('can_read') && dag.permissions?.includes('can_edit')
                             ? 'Read/Edit'
                             : dag.permissions?.includes('can_read')
-                              ? 'Read'
-                              : ''}
+                            ? 'Read'
+                            : ''}
                         </span>
-
 
                         <div className={Styles.cardDagActions}>
                           {isInProgress ? (
                             <>
-
                               <button
                                 className={`${Styles.actionBtn} ${Styles.disabled}`}
                                 disabled
@@ -119,6 +136,11 @@ const PipelineCardItem = ({ project, getRefreshedDagPermission }: Props) => {
                                   <i className="icon mbc-icon document" />
                                 </button>
                               ) : null}
+
+                               <button className={Styles.actionBtn} title="Trigger DAG" onClick={() => handleTriggerDag(dag.dagName)}>
+    <i className="icon mbc-icon trainings" />
+  </button>
+
                               <a
                                 href={`${Envs.DATA_PIPELINES_APP_BASEURL}/graph?dag_id=${dag.dagName}`}
                                 target="_blank"
@@ -146,13 +168,9 @@ const PipelineCardItem = ({ project, getRefreshedDagPermission }: Props) => {
         <div></div>
         <div className={Styles.btnGrp}>
           {project.projectStatus === 'CREATE_REQUESTED' ? (
-            <span className={`${Styles.statusIndicator} ${Styles.colloboration}`}>
-              Creation in progress...
-            </span>
+            <span className={`${Styles.statusIndicator} ${Styles.colloboration}`}>Creation in progress...</span>
           ) : project.projectStatus === 'UPDATE_REQUESTED' ? (
-            <span className={`${Styles.statusIndicator} ${Styles.colloboration}`}>
-              Updation in progress...
-            </span>
+            <span className={`${Styles.statusIndicator} ${Styles.colloboration}`}>Updation in progress...</span>
           ) : (
             project.isOwner && (
               <button className="btn btn-primary" onClick={goToEditProject}>
@@ -163,8 +181,6 @@ const PipelineCardItem = ({ project, getRefreshedDagPermission }: Props) => {
           )}
         </div>
       </div>
-
-
     </div>
   );
 };
