@@ -12,4 +12,6 @@ public interface DbServiceCustomRepository extends CommonDataRepository<DbServic
 
     String updateDeleteStatus(DbServiceNsql entity);
 
+    String updateFullJsonData(DbServiceNsql entity);
+
 }
