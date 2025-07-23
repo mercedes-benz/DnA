@@ -13,12 +13,12 @@ const getInjectedEnv = (key) => {
   return undefined;
 };
 
-const getDNAInjectedEnv = (key) => {
-  if (window.INJECTED_ENVIRONMENT) {
-    return window.INJECTED_ENVIRONMENT[key];
-  }
-  return undefined;
-};
+// const getDNAInjectedEnv = (key) => {
+//   if (window.INJECTED_ENVIRONMENT) {
+//     return window.INJECTED_ENVIRONMENT[key];
+//   }
+//   return undefined;
+// };
 
 // You have to go via this or directly use the process.env
 // BUT using in direct statements like === will result in direct expansion in builds this means the variable is lost
