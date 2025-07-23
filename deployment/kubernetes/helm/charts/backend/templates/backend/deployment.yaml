@@ -6,6 +6,7 @@ metadata:
   labels:
     app: {{ .Release.Name }}
     zone: web
+    app.kubernetes.io/name: dna-backend
 spec:
   replicas: {{ .Values.app.backend.replicaCount }}
   selector:
@@ -16,6 +17,7 @@ spec:
       labels:
         zone: web
         app: {{ .Release.Name }}
+        app.kubernetes.io/name: dna-backend
       {{- if .Values.vaultInjector.enable }}      
       {{- with .Values.vaultInjector.annotations }}
       annotations:
