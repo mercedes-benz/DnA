@@ -5,10 +5,13 @@ import java.util.Date;
 import java.util.List;
 
 import org.springframework.stereotype.Repository;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.db.entities.DbServiceNsql;
 import com.daimler.data.db.repo.common.CommonDataRepositoryImpl;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import jakarta.persistence.Query;
 import jakarta.persistence.TypedQuery;
@@ -90,5 +93,42 @@ public class DbServiceCustomRepositoryImpl extends CommonDataRepositoryImpl<DbSe
 		}
 		return response;
 	}
+
+	@Override
+@Transactional
+public String updateFullJsonData(DbServiceNsql entity) {
+    String response = "FAILED";
+
+    try {
+        // Convert the data object to JSON string
+        ObjectMapper mapper = new ObjectMapper();
+        String jsonData = mapper.writeValueAsString(entity.getData());
+
+        // Build the native query to update the entire jsonb data column
+        String updateQuery = "UPDATE db_service_nsql " +
+                             "SET data = CAST(:jsonData AS jsonb) " +
+                             "WHERE id = :id";
+
+        Query query = em.createNativeQuery(updateQuery);
+        query.setParameter("jsonData", jsonData);
+        query.setParameter("id", entity.getId());
+        
+        int updatedRows = query.executeUpdate();
+
+        if (updatedRows > 0) {
+            response = "SUCCESS";
+            log.info("JSON data updated successfully for id {}", entity.getId());
+        } else {
+            log.warn("No rows updated for id {}", entity.getId());
+        }
+    } catch (JsonProcessingException e) {
+        log.error("Failed to serialize JSON data: {}", e.getMessage());
+    } catch (Exception e) {
+        log.error("Failed to update JSON data for id {}: {}", entity.getId(), e.getMessage());
+    }
+
+    return response;
+}
+
 
 }
