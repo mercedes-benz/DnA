@@ -5,6 +5,7 @@ metadata:
   namespace: {{ .Values.namespace }}
   labels:
     name: {{ .Chart.Name }}
+    app.kubernetes.io/name: {{ .Chart.Name }}
 spec:
   replicas: {{ .Values.replicas }}
   selector:
@@ -14,6 +15,7 @@ spec:
     metadata:
       labels:
         name: {{ .Chart.Name }}
+        app.kubernetes.io/name: {{ .Chart.Name }}
       {{- if .Values.vaultInjector.enable }}      
       {{- with .Values.vaultInjector.annotations }}
       annotations:
