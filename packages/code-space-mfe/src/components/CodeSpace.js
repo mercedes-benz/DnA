@@ -1216,7 +1216,6 @@ const CodeSpace = (props) => {
           startDeployLivelinessCheck={enableDeployLivelinessCheck}
           setCodeDeploying={setCodeDeploying}
           setIsApiCallTakeTime={setIsApiCallTakeTime}
-          navigateSecurityConfig={navigateSecurityConfig}
         />
       )}
 
@@ -1229,7 +1228,6 @@ const CodeSpace = (props) => {
           setCodeDeploying={setCodeDeploying}
           setCodeBuilding={setCodeBuilding}
           setIsApiCallTakeTime={setIsApiCallTakeTime}
-          navigateSecurityConfig={navigateSecurityConfig}
         />
       )}
 
