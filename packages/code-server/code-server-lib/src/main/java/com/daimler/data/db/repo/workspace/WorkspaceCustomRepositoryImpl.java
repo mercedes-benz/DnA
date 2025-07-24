@@ -386,6 +386,10 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 			if(!"int".equalsIgnoreCase(environment)){
 				envString = "prodDeploymentDetails";
 			}
+			String selectedAliceRolesJson = (deploymentDetails.getSelectedAliceRoles() != null ? deploymentDetails.getSelectedAliceRoles().stream()
+				.map(role -> "\"" + role + "\"")
+				.collect(Collectors.joining(",", "[", "]"))
+				: "[]");
 			String updateQuery = "update workspace_nsql " +
 				"set data = jsonb_set(jsonb_set(jsonb_set(jsonb_set(data,'{projectDetails," + envString + "}', " +
 				"'{\"deploymentUrl\": " + addQuotes(deploymentDetails.getDeploymentUrl()) + "," +
@@ -411,7 +415,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 				" \"ssoType\": " + (deploymentDetails.getSsoType() != null ? addQuotes(String.valueOf(deploymentDetails.getSsoType())) : "null") + "," +
 				" \"secureWithDnaRequired\": " + deploymentDetails.getSecureWithDnaRequired() + "," +
 				" \"aliceRoleEnabled\": " + deploymentDetails.getAliceRoleEnabled() + "," +
-				" \"selectedAliceRoles\": " + (deploymentDetails.getSelectedAliceRoles() != null ? "[" + deploymentDetails.getSelectedAliceRoles().stream().map(role -> "\"" + role + "\"").collect(Collectors.joining(", ")) + "]" : "[]") + " }'),\r\n" +				
+				" \"selectedAliceRoles\": " + selectedAliceRolesJson + "," +				
 				" \"lastDeployedVersion\": " + addQuotes(deploymentDetails.getLastDeployedVersion()) + "," +
 				" \"lastDeploymentStatus\": " + addQuotes(deploymentDetails.getLastDeploymentStatus()) +"}'),\r\n" + 
 				"'{projectDetails,lastBuildOrDeployedOn}', '" + longdate + "'),\r\n" +
