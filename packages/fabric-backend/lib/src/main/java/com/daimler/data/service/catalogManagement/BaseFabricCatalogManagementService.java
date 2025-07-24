@@ -17,15 +17,19 @@ import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.db.entities.FabricWorkspaceNsql;
 import com.daimler.data.db.repo.fabric.FabricWorkspaceCustomRepository;
 import com.daimler.data.db.repo.fabric.FabricWorkspaceRepository;
+import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceVO;
 import com.daimler.data.dto.fabricCatalogManagement.PublishCatalogRequestVO;
 import com.daimler.data.dto.fabricCatalogManagement.FabricCatalogMetadataVO;
 import com.daimler.data.dto.fabricCatalogManagement.DatabaseMetadataVO;
 import com.daimler.data.dto.fabricCatalogManagement.SchemaMetadataVO;
 import com.daimler.data.dto.fabricCatalogManagement.TableMetadataVO;
+import com.daimler.data.dto.fabricCatalogManagement.MandatoryFieldsVO;
 import com.daimler.data.dto.fabricCatalogManagement.ColumnMetadataVO;
 import com.daimler.data.dto.fabricCatalogManagement.CreatedByVO;
-import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceVO;
+import com.daimler.data.dto.fabricCatalogManagement.CreatedByVO;
+import com.daimler.data.dto.fabricCatalogManagement.MandatoryFieldsVO;
 import com.daimler.data.service.common.BaseCommonService;
+import com.daimler.data.util.OpenMetadataFqnBuilder;
 
 import org.openmetadata.client.model.*;
 
@@ -52,7 +56,7 @@ public class BaseFabricCatalogManagementService extends
 		super();
 	}
 
-	public GenericMessage publishCatalogMetaData(PublishCatalogRequestVO request) {
+	public GenericMessage publishCatalogMetaData(PublishCatalogRequestVO request, FabricWorkspaceVO existingFabricWorkspace) {
 		GenericMessage response = new GenericMessage();
 		List<MessageDescription> messages = new ArrayList<>();
 		List<MessageDescription> warningMessages = new ArrayList<>();
@@ -84,20 +88,28 @@ public class BaseFabricCatalogManagementService extends
 
 		try {
 			DatabaseService databaseService = openMetadataClient.createDatabaseService(
-					metadata.getServiceName(),
+					existingFabricWorkspace.getName(),
 					ownerReferences);
 
 			for (DatabaseMetadataVO dbMetadata : metadata.getDatabases()) {
 				Database database = openMetadataClient.createDatabase(
 						dbMetadata.getDbName(),
-						metadata.getServiceName());
-
+						existingFabricWorkspace.getName(), request.getMandatoryFields());
 				for (SchemaMetadataVO schemaMetadata : dbMetadata.getSchemas()) {
+					String schemaFqn = OpenMetadataFqnBuilder.build(
+						existingFabricWorkspace.getName(),
+						database.getName()
+					);
 					DatabaseSchema schema = openMetadataClient.createSchema(
 							schemaMetadata.getSchemaName(),
-							metadata.getServiceName() + "." + database.getName());
+							schemaFqn);
 
 					for (TableMetadataVO tableMetadata : schemaMetadata.getTables()) {
+						String tableFqn = OpenMetadataFqnBuilder.build(
+							existingFabricWorkspace.getName(),
+							database.getName(),
+							schema.getName()
+						);
 						List<Column> columns = tableMetadata.getColumns().stream()
 						.map(col -> openMetadataClient.buildColumn(
 							col.getColumnName(),
@@ -109,10 +121,10 @@ public class BaseFabricCatalogManagementService extends
 
 						openMetadataClient.createTable(
 								tableMetadata.getTableName(),
-								metadata.getServiceName() + "." + database.getName() + "." + schema.getName(),
+								tableFqn,
 								columns);
 					}
-				}
+				}	
 			}	
 
 		} catch (EntityAlreadyExistsException e) {
@@ -123,7 +135,7 @@ public class BaseFabricCatalogManagementService extends
 					"Failed to publish catalog: " + e.getMessage());
 		}
 		response.setSuccess("SUCCESS");
-			return response;
+		return response;
 
 	}
 
@@ -136,6 +148,5 @@ public class BaseFabricCatalogManagementService extends
 		response.setErrors(messages);
 		response.setSuccess(status);
 		return response;
-	}
-
+	}	
 }

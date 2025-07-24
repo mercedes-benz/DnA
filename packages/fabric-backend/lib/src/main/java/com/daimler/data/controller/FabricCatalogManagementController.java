@@ -69,16 +69,17 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
             @ApiParam(value = "The catalog to publish.", required = true) @Valid @RequestBody PublishCatalogRequestVO publishCatalogRequest) {
 
         PublishCatalogResponseVO responseVO = new PublishCatalogResponseVO();
-
-        GenericMessage responseMessage = new GenericMessage();
+        GenericMessage erroMessage = new GenericMessage();
 
         FabricWorkspaceVO existingFabricWorkspace = fabricWorkspaceService
                 .getById(publishCatalogRequest.getWorkspaceId());
+            
         if (existingFabricWorkspace == null
                 || !publishCatalogRequest.getWorkspaceId().equalsIgnoreCase(existingFabricWorkspace.getId())) {
-            log.warn("No Fabric Workspace found with id {}", publishCatalogRequest.getWorkspaceId());
+            log.error("No Fabric Workspace found with id {}", publishCatalogRequest.getWorkspaceId());
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
         }
+
         CreatedByVO requestUser = this.userStore.getVO();
         String creatorId = existingFabricWorkspace.getCreatedBy().getId();
 
@@ -93,10 +94,13 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
         try {
 
             openMetadataClient.getUserByFqn(requestUser.getId());
-            responseMessage = service.publishCatalogMetaData(publishCatalogRequest);
+            GenericMessage responseMessage = service.publishCatalogMetaData(publishCatalogRequest, existingFabricWorkspace);
             if (("SUCCESS").equalsIgnoreCase(responseMessage.getSuccess())) {
                 responseVO.setResponses(responseMessage);
                 return new ResponseEntity<>(responseVO, HttpStatus.OK);
+            } else if (("CONFLICT").equalsIgnoreCase(responseMessage.getSuccess())) {
+                responseVO.setResponses(responseMessage);
+                return new ResponseEntity<>(responseVO, HttpStatus.CONFLICT);
             } else {
                 return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
             }

@@ -65,5 +65,5 @@ public class OpenMetadataConfig {
                 .logLevel(feign.Logger.Level.FULL);
 
         return client;
-    }
+    }  
 }

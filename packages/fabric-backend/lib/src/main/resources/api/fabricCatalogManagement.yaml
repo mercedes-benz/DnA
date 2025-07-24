@@ -98,29 +98,20 @@ definitions:
 
   PublishCatalogRequestVO:
     type: object
+    required:
+      - metaData
+      - workspaceId
+      - customProperties
+      - owners
     properties:
       metaData:
         $ref: "#/definitions/FabricCatalogMetadataVO"
       workspaceId:
         type: string
+        minLength: 1
         description: "The workspace ID where the catalog will be published."
-      customProperties:
-        type: object
-        properties:
-          division:
-            type: string
-          department:
-            type: string
-          dataClassification:
-            type: string
-          dataOrigin:
-            type: string
-          dataAsset:
-            type: string
-          leanIXId:
-            type: string
-          isDocumentationUpdated:
-            type: boolean
+      mandatoryFields:
+        $ref: "#/definitions/MandatoryFieldsVO"
       owners:
         type: array
         items:
@@ -236,3 +227,31 @@ definitions:
         type: string
         description: "Mobile number of the user"
 
+  MandatoryFieldsVO:
+    type: object
+    properties:
+      division:
+        type: string
+        minLength: 1
+      department:
+        type: string
+        minLength: 1
+      dataOrigin:
+        type: string
+        minLength: 1
+        enum: ["internal","external","mixed"]
+      leanIXId:
+        type: string
+        minLength: 1
+      isDocumentationUpdated:
+        type: string
+        enum: ["Yes","No"]
+        minLength: 1
+      isDataLakeAvailability:
+        type: string
+        enum: ["Yes","No"]
+        minLength: 1
+      isDataAsset:
+        type: string
+        minLength: 1
+        enum: ["Yes","No"]

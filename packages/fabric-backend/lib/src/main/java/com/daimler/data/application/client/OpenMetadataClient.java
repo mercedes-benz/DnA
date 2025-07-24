@@ -3,6 +3,7 @@ package com.daimler.data.application.client;
 import com.daimler.data.controller.exceptions.OpenMetadataClientException;
 import com.daimler.data.controller.exceptions.EntityNotFoundException;
 import com.daimler.data.controller.exceptions.EntityAlreadyExistsException;
+import com.daimler.data.dto.fabricCatalogManagement.MandatoryFieldsVO;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -20,6 +21,7 @@ import feign.FeignException;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
+import java.util.Map;
 
 @Slf4j
 @Component
@@ -77,11 +79,12 @@ public class OpenMetadataClient {
         }
     }
 
-    public Database createDatabase(String name, String serviceFQN) {
+    public Database createDatabase(String name, String serviceFQN, MandatoryFieldsVO fields) {
         try {
             CreateDatabase request = new CreateDatabase()
                     .name(name)
-                    .service(serviceFQN); // Using FQN directly as string
+                    .service(serviceFQN)
+                    .extension(toExtensions(fields)); // Using FQN directly as string
 
             return apiClient.buildClient(DatabasesApi.class)
                     .createOrUpdateDatabase(request);
@@ -174,6 +177,18 @@ public class OpenMetadataClient {
                 .name(user.getName())
                 .fullyQualifiedName(user.getFullyQualifiedName())
                 .displayName(user.getDisplayName());
+    }
+
+    public Map<String, Object> toExtensions(MandatoryFieldsVO fields) {
+        return Map.of(
+            "Division", List.of(fields.getDivision()),
+            "Department", List.of(fields.getDepartment()),
+            "DataOrigin", List.of(fields.getDataOrigin()),
+            "DataAsset", List.of(fields.getIsDataAsset()),
+            "leanIXId", List.of(fields.getLeanIXId()),
+            "DocumentationUpdated", List.of(fields.getIsDocumentationUpdated()),
+            "DataLakeAvailability", List.of(fields.getIsDataLakeAvailability())
+        );
     }
 
 }
