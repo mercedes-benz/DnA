@@ -99,6 +99,8 @@ import com.daimler.data.dto.workspace.CodespaceSecurityUserRoleMapVO;
 import com.daimler.data.dto.workspace.CreatedByVO;
 import com.daimler.data.dto.workspace.DataGovernanceRequestInfo;
 import com.daimler.data.dto.workspace.EntitlementCollectionVO;
+import com.daimler.data.dto.workspace.GetStatusProjectDetailsVO;
+import com.daimler.data.dto.workspace.GetStatusResponse;
 import com.daimler.data.dto.workspace.InitializeCollabWorkspaceRequestVO;
 import com.daimler.data.dto.workspace.InitializeWorkspaceRequestVO;
 import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
@@ -3236,6 +3238,58 @@ import org.springframework.beans.factory.annotation.Value;
 			response.addErrorsItem(exceptionMsg);
 			return new ResponseEntity<>(response,HttpStatus.INTERNAL_SERVER_ERROR);
 			}
+			
+		} catch (Exception e) {
+			log.error("Failed to delete workspcae group, with exception {}", e.getLocalizedMessage());
+			MessageDescription exceptionMsg = new MessageDescription("Failed to delete group due to internal error.");
+			response.addErrorsItem(exceptionMsg);
+			return new ResponseEntity<>(response,HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	@Override
+	 @ApiOperation(value = "Get status by gitjobrunId for a given project name.", nickname = "getStatusByGitJobRunId", notes = "Get status by gitjobrunId for a given project name.", response = GetStatusResponse.class, tags={ "code-server", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 200, message = "Returns message of success or failure", response = GetStatusResponse.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/workspaces/getStatus/{wsId}",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.GET)
+    public ResponseEntity<GetStatusResponse> getStatusByGitJobRunId(@ApiParam(value = "Workspace ID to be fetched",required=true) @PathVariable("wsId") String wsId){
+		GetStatusResponse response = new GetStatusResponse();
+		response.setData(null);
+		response.setSuccess("FAILED");
+		try {
+				CreatedByVO currentUser = this.userStore.getVO();			
+				CodeServerWorkspaceNsql entity = workspaceCustomRepository.findByWorkspaceId(wsId);
+			if(entity != null){
+				
+				
+					response = service.getStatusByJobRunId(entity);
+
+			
+				
+			}
+			if(response.getErrors() != null && !response.getErrors().isEmpty())
+				return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);		
+				// GetStatusProjectDetailsVO responsedata = service.deleteWorkSpaceGroup(id);
+			// if(responsedata != null){
+			// 	response.setData(responsedata);
+			// 	response.setSuccess("SUCCESS");
+			// 	return new ResponseEntity<>(response, HttpStatus.OK);
+			// }else{
+			// 	log.error("Failed to delete workspcae group");
+			// MessageDescription exceptionMsg = new MessageDescription("Failed to delete group due to internal error.");
+			// response.addErrorsItem(exceptionMsg);
+			// return new ResponseEntity<>(response,HttpStatus.INTERNAL_SERVER_ERROR);
+			// }
+			return null;
 			
 		} catch (Exception e) {
 			log.error("Failed to delete workspcae group, with exception {}", e.getLocalizedMessage());

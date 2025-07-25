@@ -131,5 +131,7 @@ public interface WorkspaceService {
 	CodeServerUserGroupByIdVO getWorkSpaceGroupById(String id);
 
 	CodeServerUserGroupCollectionVO deleteWorkSpaceGroup(String id);
+
+	GetStatusResponse getStatusByJobRunId(CodeServerWorkspaceNsql entity);
 	
 }

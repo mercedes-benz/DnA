@@ -49,7 +49,8 @@ import java.util.regex.Matcher;
   import org.springframework.beans.factory.annotation.Autowired;
   import org.springframework.beans.factory.annotation.Value;
   import org.springframework.http.HttpStatus;
-  import org.springframework.stereotype.Service;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
   import org.springframework.transaction.annotation.Transactional;
   import org.springframework.util.ObjectUtils;
   
@@ -109,7 +110,8 @@ import com.daimler.data.dto.workspace.CodeServerWorkspaceVO;
  import com.daimler.data.dto.workspace.CodeSpaceReadmeVo;
  import com.daimler.data.dto.workspace.CreatedByVO;
   import com.daimler.data.dto.workspace.DataGovernanceRequestInfo;
-  import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
+import com.daimler.data.dto.workspace.GetStatusResponse;
+import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
   import com.daimler.data.dto.workspace.ResourceVO;
 import com.daimler.data.dto.workspace.UpdateUserGroupRequestVO;
 import com.daimler.data.dto.workspace.UserInfoVO;
@@ -119,7 +121,8 @@ import com.daimler.data.dto.workspace.buildDeploy.*;
  import com.daimler.data.util.CommonUtils;
  import com.daimler.data.util.ConstantsUtility;
   import com.daimler.dna.notifications.common.producer.KafkaProducerService;
-  import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
   import com.daimler.data.db.json.DeploymentAudit;
   import lombok.extern.slf4j.Slf4j;
   
@@ -4437,6 +4440,186 @@ import com.daimler.data.dto.workspace.buildDeploy.*;
 		responseMessage.setSuccess(status);
 		return responseMessage;
 	}
+
+
+	public GetStatusResponse getStatusByJobRunId(CodeServerWorkspaceNsql entity){
+		GetStatusResponse responseMessage = new GetStatusResponse();
+		String status = "FAILED";
+		List<MessageDescription> warnings = new ArrayList<>();
+		List<MessageDescription> errors = new ArrayList<>();
+		String gitJobRunId = "";
+		CodeServerDeploymentDetails deploymentDetails = null;	
+		CodeServerBuildDetails buildDetails = null;	
+		String workspaceName = entity.getData().getWorkspaceId();
+			 String defaultRecipeId = RecipeIdEnum.DEFAULT.toString();
+			 String pythonRecipeId = RecipeIdEnum.PY_FASTAPI.toString();
+			 String reactRecipeId = RecipeIdEnum.REACT.toString();
+			 String angularRecipeId = RecipeIdEnum.ANGULAR.toString();
+			 String quarkusRecipeId = RecipeIdEnum.QUARKUS.toString();
+			 String micronautRecipeId = RecipeIdEnum.MICRONAUT.toString();
+			 String vueRecipeId = RecipeIdEnum.VUEJS.toString();
+			 String dashRecipeId = RecipeIdEnum.DASH.toString();
+			 String expressjsRecipeId = RecipeIdEnum.EXPRESSJS.toString();
+			 String streamlitRecipeId = RecipeIdEnum.STREAMLIT.toString();
+			 String nestjsRecipeId = RecipeIdEnum.NESTJS.toString();
+			 String cloudServiceProvider = null;
+		 	boolean hasProdUrl = false;
+		 	boolean hasIntUrl = false;
+		try {
+			SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
+				 Date now = isoFormat.parse(isoFormat.format(new Date()));			
+			CodeServerWorkspace data = 	entity.getData();
+			String projectName = data.getProjectDetails().getProjectName();
+			String projectRecipe = entity.getData().getProjectDetails().getRecipeDetails().getRecipeId();
+				if( data.getProjectDetails().getLastBuildOrDeployedStatus().contains("REQUESTED")){
+					if(data.getProjectDetails().getLastBuildOrDeployedEnv() != null &&  data.getProjectDetails().getLastBuildOrDeployedEnv().equalsIgnoreCase("int")){
+						if(data.getProjectDetails().getLastBuildOrDeployedStatus().equalsIgnoreCase("BUILD_REQUESTED")){
+							gitJobRunId = data.getProjectDetails().getIntBuildDetails().getGitjobRunID();
+						}else if(data.getProjectDetails().getLastBuildOrDeployedStatus().equalsIgnoreCase("DEPLOY_REQUESTED")){
+							gitJobRunId = data.getProjectDetails().getIntDeploymentDetails().getGitjobRunID();
+						}
+					}else if(data.getProjectDetails().getLastBuildOrDeployedEnv() != null &&  data.getProjectDetails().getLastBuildOrDeployedEnv().equalsIgnoreCase("prod")){
+						if(data.getProjectDetails().getLastBuildOrDeployedStatus().equalsIgnoreCase("BUILD_REQUESTED")){
+							gitJobRunId = data.getProjectDetails().getProdBuildDetails().getGitjobRunID();
+						}else if(data.getProjectDetails().getLastBuildOrDeployedStatus().equalsIgnoreCase("DEPLOY_REQUESTED")){
+							gitJobRunId = data.getProjectDetails().getProdDeploymentDetails().getGitjobRunID();
+						}
+					}
+
+					ResponseEntity<String> response = client.getStatusByJobRunId(gitJobRunId);
+
+					ObjectMapper objectMapper = new ObjectMapper();
+            		JsonNode rootNode = objectMapper.readTree(response.getBody());
+            		String responseStatus = rootNode.path("status").asText();
+            		String conclusion = rootNode.path("conclusion").asText();
+					String latestStatus = "failed";
+					String updateStatus = "";
+					if(responseStatus.equalsIgnoreCase("success")){
+						latestStatus = "success";
+					}
+
+						String deploymentUrl = "";
+						String targetEnv = data.getProjectDetails().getLastBuildOrDeployedEnv();
+				if (("int".equalsIgnoreCase(targetEnv)
+						&& entity.getData().getProjectDetails().getIntDeploymentDetails().getDeploymentUrl() != null)
+						|| ("prod".equalsIgnoreCase(targetEnv)
+								&& entity.getData().getProjectDetails().getProdDeploymentDetails().getDeploymentUrl() != null)) {
+					deploymentUrl = "int".equalsIgnoreCase(targetEnv)
+							? entity.getData().getProjectDetails().getIntDeploymentDetails().getDeploymentUrl()
+							: entity.getData().getProjectDetails().getProdDeploymentDetails().getDeploymentUrl();
+				} else {
+					deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/";
+					if (pythonRecipeId.equalsIgnoreCase(projectRecipe)) {
+						deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/docs";
+					}
+					if (reactRecipeId.equalsIgnoreCase(projectRecipe) || angularRecipeId.equalsIgnoreCase(projectRecipe)
+							|| vueRecipeId.equalsIgnoreCase(projectRecipe) || dashRecipeId.equalsIgnoreCase(projectRecipe)
+							|| streamlitRecipeId.equalsIgnoreCase(projectRecipe) || nestjsRecipeId.equalsIgnoreCase(projectRecipe)
+							||
+							expressjsRecipeId.equalsIgnoreCase(projectRecipe)) {
+						deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/";
+					}
+					if (quarkusRecipeId.equalsIgnoreCase(projectRecipe)) {
+						deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv + "/q/swagger-ui";
+					}
+					if (micronautRecipeId.equalsIgnoreCase(projectRecipe)) {
+						deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + targetEnv
+								+ "/swagger-ui/index.html";
+					}
+				}
+
+							String environmentJsonbName = "intDeploymentDetails";
+				 if ("int".equalsIgnoreCase(targetEnv)) {
+					 deploymentDetails = entity.getData().getProjectDetails().getIntDeploymentDetails();
+					 buildDetails = entity.getData().getProjectDetails().getIntBuildDetails();
+				 } else {
+					 environmentJsonbName = "prodDeploymentDetails";
+					 deploymentDetails = entity.getData().getProjectDetails().getProdDeploymentDetails();
+					 buildDetails = entity.getData().getProjectDetails().getProdBuildDetails();
+				 }
+				 cloudServiceProvider = entity.getData().getProjectDetails().getRecipeDetails().getCloudServiceProvider();
+				 
+				hasProdUrl = Objects.nonNull(
+					entity.getData().getProjectDetails().getProdDeploymentDetails().getDeploymentUrl());
+				hasIntUrl = Objects.nonNull(
+					entity.getData().getProjectDetails().getIntDeploymentDetails().getDeploymentUrl());
+					if ((hasProdUrl && entity.getData().getProjectDetails().getProdDeploymentDetails()
+							.getDeploymentUrl().contains(codeServerBaseUriAws)) ||
+							(hasIntUrl && entity.getData().getProjectDetails().getIntDeploymentDetails()
+									.getDeploymentUrl().contains(codeServerBaseUriAws))) {
+						cloudServiceProvider = ConstantsUtility.DHC_CAAS_AWS;
+					} else if (hasProdUrl || hasIntUrl) {
+						cloudServiceProvider = ConstantsUtility.DHC_CAAS;
+					} else {
+						cloudServiceProvider = ConstantsUtility.DHC_CAAS_AWS;
+					}
+				 if(cloudServiceProvider.equals(ConstantsUtility.DHC_CAAS_AWS)){
+					deploymentUrl = deploymentUrl.replaceAll(codeServerBaseUri, codeServerBaseUriAws);
+				 }
+				 CodeServerBuildDeployNsql optionalBuildDeployentity =  buildDeployCustomRepo.findByProjectName(projectName);	
+					 CodeServerBuildDeployNsql buildDeployentity = null;
+					 CodeServerBuildDeploy buildDeployData = null;
+
+					 if(data.getProjectDetails().getLastBuildOrDeployedStatus().equalsIgnoreCase("BUILD_REQUESTED")){
+						if(latestStatus.equalsIgnoreCase("success")){
+							updateStatus = "BUILD_SUCCESS";
+						}else{
+							updateStatus = "BUILD_FAILED";
+						}
+						buildDetails.setLastBuildStatus(latestStatus);
+					buildDetails.setLastBuildOn(now);
+					buildDetails.setLastBuildBy(entity.getData().getWorkspaceOwner());
+					buildDetails.setGitjobRunID(gitJobRunId);
+					// buildDetails.setLastBuildBranch(branch);
+
+						workspaceCustomRepository.updateBuildDetails(projectName, targetEnv,
+						buildDetails);	
+				   
+				   if(optionalBuildDeployentity != null){
+					   buildDeployentity = optionalBuildDeployentity;
+					   buildDeployData = buildDeployentity.getData();
+					   if("int".equalsIgnoreCase(targetEnv)){							
+						   int lastIndex = buildDeployData.getIntBuildAuditLogs().size() - 1;
+						   buildDeployData.getIntBuildAuditLogs().get(lastIndex).setBuildOn(now);
+						   buildDeployData.getIntBuildAuditLogs().get(lastIndex).setBuildStatus(latestStatus);
+						   
+					   }else{
+						   int lastIndex = buildDeployData.getProdBuildAuditLogs().size() - 1;
+						   buildDeployData.getProdBuildAuditLogs().get(lastIndex).setBuildOn(now);
+						   buildDeployData.getProdBuildAuditLogs().get(lastIndex).setBuildStatus(latestStatus);
+					   }
+					   buildDeployentity.setData(buildDeployData);
+					   buildDeployRepo.save(buildDeployentity);
+				   }
+					 }
+
+							
+	
+
+						
+
+
+
+					
+
+				}
+			
+			
+			return null;
+		} catch (Exception e) {
+			MessageDescription error = new MessageDescription();
+			log.info("Failed while getStatusByJobRunId  with exception " + e.getMessage());
+			error.setMessage("Failed while getStatusByJobRunId  with exception " + e.getMessage());
+			errors.add(error);
+		}
+
+		responseMessage.setErrors(errors);
+		responseMessage.setWarnings(warnings);
+		responseMessage.setSuccess(status);
+		return responseMessage;
+	}
+
+	
 
 	
 }

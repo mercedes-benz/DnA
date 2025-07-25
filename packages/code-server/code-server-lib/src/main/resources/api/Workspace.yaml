@@ -1384,7 +1384,37 @@ paths:
         405:
           description: "Method not allowed"
         500:
-          description: "Internal error"                                        
+          description: "Internal error"
+  /workspaces/getStatus/{wsId}:
+    get:
+      tags:
+        - "code-server"
+      summary: "Get status by gitjobrunId for a given project name."
+      description: "Get status by gitjobrunId for a given project name."
+      operationId: "getStatusByGitJobRunId"
+      parameters:
+        - name: "wsId"
+          in: "path"
+          description: "Workspace ID to be fetched"
+          required: true
+          type: "string"  
+      responses:
+        200:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/GetStatusResponse"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"                                                
 
           
 definitions:
@@ -2284,7 +2314,46 @@ definitions:
       warnings:
         type: array
         items:
-          $ref: "#/definitions/MessageDescription"                           
+          $ref: "#/definitions/MessageDescription"
+  GetStatusResponse:
+    type: object
+    properties:
+      id: 
+        type: string
+        description: "Unique technical ID of workspace"
+      workspaceId:
+        type: string
+        description: "Name of the workspace"
+      data:
+       $ref: "#/definitions/GetStatusProjectDetailsVO"
+      success:
+        type: string
+      errors:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"
+      warnings:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"
+  GetStatusProjectDetailsVO:
+    type: object
+    properties:
+      prodBuildDetails:
+        $ref: "#/definitions/CodeServerBuildDetailsVO"
+      intBuildDetails:
+        $ref: "#/definitions/CodeServerBuildDetailsVO"  
+      prodDeploymentDetails:
+        $ref: "#/definitions/CodeServerDeploymentDetailsVO"
+      intDeploymentDetails:
+        $ref: "#/definitions/CodeServerDeploymentDetailsVO"
+      lastBuildOrDeployedOn:
+        type: string
+        format: date
+      lastBuildOrDeployedStatus:
+        type: string
+      lastBuildOrDeployedEnv:
+        type: string    
           
 
 
