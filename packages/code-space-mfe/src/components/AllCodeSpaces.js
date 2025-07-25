@@ -211,6 +211,11 @@ const AllCodeSpaces = (props) => {
         setShowDeployApprovalModal(true);
     };
 
+    const onGetCodespaceData = () => {
+        getCodeSpacesData();
+        getCodeSpaceGroupsData();
+    }
+
     const onStartStopCodeSpace = (codeSpace, startSuccessCB, env, manual = false) => {
         Tooltip.clear();
         const serverStarted = codeSpace.serverStatus === 'SERVER_STARTED';
@@ -465,6 +470,7 @@ const AllCodeSpaces = (props) => {
                                             onShowDeployApprovalModal={onShowDeployApprovalModal}
                                             onStartStopCodeSpace={onStartStopCodeSpace}
                                             onShowBlueprintModal={onCodeSpaceShowBlueprint}
+                                            onGetCodespaceData={onGetCodespaceData}
                                         />
                                     );
                                 })}
@@ -496,6 +502,7 @@ const AllCodeSpaces = (props) => {
                                             onShowDeployApprovalModal={onShowDeployApprovalModal}
                                             onStartStopCodeSpace={onStartStopCodeSpace}
                                             onShowBlueprintModal={onCodeSpaceShowBlueprint}
+                                            onGetCodespaceData={onGetCodespaceData}
                                         />
                                     );
                                 })}
@@ -688,6 +695,7 @@ const AllCodeSpaces = (props) => {
                                 onShowCodeSpaceOnBoard={onShowCodeSpaceOnBoard}
                                 onShowBlueprintModal={onCodeSpaceShowBlueprint}
                                 onShowBuildModal={onCodeSpaceBuild}
+                                onGetCodespaceData={onGetCodespaceData}
                             />
                         )}
                     </div>
@@ -744,6 +752,7 @@ const AllCodeSpaces = (props) => {
                                                         onShowDeployApprovalModal={onShowDeployApprovalModal}
                                                         onStartStopCodeSpace={onStartStopCodeSpace}
                                                         onShowBlueprintModal={onCodeSpaceShowBlueprint}
+                                                        onGetCodespaceData={onGetCodespaceData}
                                                     />
                                                 );
                                             })}
@@ -775,6 +784,7 @@ const AllCodeSpaces = (props) => {
                                                         onShowDeployApprovalModal={onShowDeployApprovalModal}
                                                         onStartStopCodeSpace={onStartStopCodeSpace}
                                                         onShowBlueprintModal={onCodeSpaceShowBlueprint}
+                                                        onGetCodespaceData={onGetCodespaceData}
                                                     />
                                                 );
                                             })}

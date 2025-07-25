@@ -655,6 +655,7 @@ const ContextMenu = (props) => {
               navigateSecurityConfig={navigateSecurityConfig}
               isStaging={isStaging}
               setShowDeployedAppConfigModal={(value) => setShowDeployedAppConfigModal(value)}
+              onGetCodespaceData={props?.onGetCodespaceData}
             />
           }
         scrollableContent={true}
