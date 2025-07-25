@@ -106,7 +106,7 @@ export default class Entitlement extends React.Component {
   }
 
   componentDidUpdate(prevProps) {
-    if(this.props.isPublished !== prevProps.isPublished){
+    if(this.props.isPublished !== prevProps.isPublished || this.props.config !== prevProps.config){
       this.getPluginStatus(this.props.id,this.props.env);
     }
     if (this.props.config !== prevProps.config) {

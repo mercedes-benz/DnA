@@ -9,7 +9,7 @@ import { setRippleAnimation } from '../../common/modules/uilab/js/src/util';
 import { CodeSpaceApiClient } from '../../apis/codespace.api';
 import ContextMenu from '../contextMenu/ContextMenu';
 
-const CodeSpaceGCard = ({ codeSpace, userInfo, onStartStopCodeSpace, onShowDeployModal, onShowCodeSpaceOnBoard, onShowBlueprintModal, onShowBuildModal }) => {
+const CodeSpaceGCard = ({ codeSpace, userInfo, onStartStopCodeSpace, onShowDeployModal, onShowCodeSpaceOnBoard, onShowBlueprintModal, onShowBuildModal, onGetCodespaceData }) => {
   const history = useHistory();
   const enableOnboard = codeSpace ? codeSpace.status === 'COLLABORATION_REQUESTED' : false;
   const createInProgress = codeSpace.status === 'CREATE_REQUESTED';
@@ -151,6 +151,7 @@ const CodeSpaceGCard = ({ codeSpace, userInfo, onStartStopCodeSpace, onShowDeplo
                   handleServerStatusAndProgress={handleServerStatusAndProgress}
                   onShowBlueprintModal={onShowBlueprintModal}
                   onShowBuildModal={onShowBuildModal}
+                  onGetCodespaceData={onGetCodespaceData}
               />
             </div>
           )}

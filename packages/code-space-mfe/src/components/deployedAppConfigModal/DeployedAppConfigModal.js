@@ -310,8 +310,9 @@ const DeployedAppConfigModal = (props) => {
         .then((res) => {
           ProgressIndicator.hide();
           if (res?.data?.success === 'SUCCESS') {
-            Notification.show(`Code space '${props?.projectName}' updated successfully. Please Refresh.`);
+            Notification.show(`Code space '${props?.projectName}' updated successfully.`);
             props.setShowDeployedAppConfigModal(false);
+            props.onGetCodespaceData();
           } else {
             Notification.show(
               'Error in updating deployed app config. Please try again later.\n' + res?.data?.errors[0]?.message,
