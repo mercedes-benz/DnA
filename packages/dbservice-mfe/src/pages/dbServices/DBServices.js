@@ -126,7 +126,7 @@ const DBServices = ({user}) => {
   return 0;
 };
 
-  const displayPermission = (collab, isOwnerCheck = false) => {
+  const displayPermission = (collab, dbservice, isOwnerCheck = false) => {
   const isOwner = isOwnerCheck || collab?.id === dbservice?.projectOwner?.id;
   const isAdmin = collab?.permission?.admin;
   const hasWrite = collab?.permission?.write;
