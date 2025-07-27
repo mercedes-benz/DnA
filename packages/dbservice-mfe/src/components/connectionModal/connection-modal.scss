@@ -102,3 +102,74 @@
     margin-top: 0!important;
   }
 }
+
+.credentialRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  font-family: Roboto-Regular;
+  margin-bottom: 6px;
+  flex-wrap: wrap;
+}
+
+.credLabel {
+  color: #d9dfe4;
+  min-width: 150px;
+  font-weight: 500;
+}
+
+.credName {
+  font-weight: bold;
+  color: #d9dfe4;
+  padding-left: 4px;
+}
+
+.credentialPassword {
+  color: #d9dfe4;
+  word-break: break-word;
+  max-width: 500px;
+  display: flex;
+  align-items: center;
+  font-family: 'Roboto-regular';
+  letter-spacing: 1px;
+}
+
+.visibilityIcon {
+  margin-left: 5px;
+  cursor: pointer;
+  color: #00adef;
+  font-size: var(--font-size-tiny) !important;
+
+  &:hover {
+    color: #00adef;
+  }
+}
+
+.copyIcon {
+  cursor: pointer;
+  margin-left: 8px;
+}
+
+.singleCredential {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-top: 4px;
+
+  .credName {
+    font-weight: bold;
+    min-width: 90px;
+    color: #d9dfe4;
+  }
+
+  .credentialPassword {
+    color: #d9dfe4;
+    word-break: break-all;
+  }
+
+  .icon {
+    cursor: pointer;
+    margin-left: 8px;
+    color: #00adef;
+  }
+}

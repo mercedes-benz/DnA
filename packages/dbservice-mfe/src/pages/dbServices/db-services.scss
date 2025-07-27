@@ -294,7 +294,7 @@
   background: #252a33;
   padding: 25px 31px 25px 38px;
 }
-.bucketList {
+.dBList {
   button {
     i {
         font-size: var(--font-size-icon);
@@ -305,13 +305,13 @@
   }
 }
 
- .bucketGrp {
-    .bucketGrpList {
-        .bucketGrpListItem {
+ .dBGrp {
+    .dBGrpList {
+        .dBGrpListItem {
             display: flex;
             flex-direction: column;
             justify-content: center;
-            .bucketCaption {
+            .dBCaption {
                 display: flex;
                 align-items: center;
                 justify-content: center;
@@ -319,7 +319,7 @@
                 padding: 10px 0px 10px 0px;
                 color: #99a5b3;
                 font-weight: bold;
-                .bucketTile {
+                .dBTile {
                     display: flex;
                     align-items: center;
                     justify-content: space-between;
@@ -339,7 +339,7 @@
                             }
                         }
                     }
-                    .bucketTitleCol {
+                    .dBTitleCol {
                         flex: 1;
                         font-size: var(--font-size-smallest);
                         font-weight: initial;
@@ -355,16 +355,16 @@
                             right: 0;
                         }
                     }
-                    .bucketName {
+                    .dBName {
                         min-width: 250px;
                         max-width: 250px;
                     }
                 }
             }
-            .bucketGrpListItemPanel {
+            .dBGrpListItemPanel {
                 width: 100%;
                 border-bottom: 0;
-                .bucketTile {
+                .dBTile {
                     display: flex;
                     align-items: center;
                     justify-content: space-between;
@@ -385,7 +385,7 @@
                             }
                         }
                     }
-                    .bucketTitleCol {
+                    .dBTitleCol {
                         flex: 1;
                         font-size: var(--font-size-default);
                         color: #99a5b3;
@@ -407,7 +407,7 @@
                             }
                         }
                     }
-                    .bucketName {
+                    .dBName {
                         min-width: 230px;
                         max-width: 230px;
                         a {
@@ -415,13 +415,13 @@
                         } 
                     }
                 }
-                .bucketColContent {
+                .dBColContent {
                     .projectList {
                         padding: 5px 30px;
                         border: 1px solid #383f49;
                         margin: 8px 24px 15px 15px;
                         background-color: #2d333b;
-                        .bucketTileCaption {
+                        .dBTileCaption {
                             border-bottom: 1px solid #383f49;
                             padding: 9px 0;
                         }
@@ -507,8 +507,8 @@
 }
 
 .expansionLabel {
-    .bucketTile {
-        .bucketTitleCol {
+    .dBTile {
+        .dBTitleCol {
             &:not(:first-child):not(:last-child) {
                 padding-left: 25px;
             }
