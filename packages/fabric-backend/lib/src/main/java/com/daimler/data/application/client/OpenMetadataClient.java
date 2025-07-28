@@ -30,6 +30,8 @@ public class OpenMetadataClient {
 
     private final ApiClient apiClient;
 
+// get methods
+
     public User getUserByFqn(String username) {
         try {
             return apiClient.buildClient(UsersApi.class)
@@ -47,6 +49,38 @@ public class OpenMetadataClient {
             throw new EntityNotFoundException("DatabaseService", name);
         }
     }
+    
+     public Database getDatabase(String serviceName, String dbName) {
+        try {
+            String fqn = serviceName + "." + dbName;
+            return apiClient.buildClient(DatabasesApi.class)
+                    .getDatabaseByFQN(fqn, null, null);
+        } catch (Exception e) {
+            throw new EntityNotFoundException("Database", serviceName + "." + dbName);
+        }
+    }
+
+    public DatabaseSchema getSchema(String dbFQN, String schemaName) {
+        try {
+            String fqn = dbFQN + "." + schemaName;
+            return apiClient.buildClient(DatabaseSchemasApi.class)
+                    .getDBSchemaByFQN(fqn, null, null);
+        } catch (Exception e) {
+            throw new EntityNotFoundException("Schema", dbFQN + "." + schemaName);
+        }
+    }
+
+    public Table getTable(String schemaFQN, String tableName) {
+        try {
+            String fqn = schemaFQN + "." + tableName;
+            return apiClient.buildClient(TablesApi.class)
+                    .getTableByFQN(fqn, null, null);
+        } catch (Exception e) {
+            throw new EntityNotFoundException("Table", schemaFQN + "." + tableName);
+        }
+    }
+
+// Create methods
 
     public DatabaseService createDatabaseService(String name, List<EntityReference> owners) {
         try {
@@ -69,16 +103,6 @@ public class OpenMetadataClient {
         }
     }
 
-    public Database getDatabase(String serviceName, String dbName) {
-        try {
-            String fqn = serviceName + "." + dbName;
-            return apiClient.buildClient(DatabasesApi.class)
-                    .getDatabaseByFQN(fqn, null, null);
-        } catch (Exception e) {
-            throw new EntityNotFoundException("Database", serviceName + "." + dbName);
-        }
-    }
-
     public Database createDatabase(String name, String serviceFQN, MandatoryFieldsVO fields) {
         try {
             CreateDatabase request = new CreateDatabase()
@@ -92,16 +116,6 @@ public class OpenMetadataClient {
             throw new EntityAlreadyExistsException("Database already exists: " + name, e);
         } catch (Exception e) {
             throw new OpenMetadataClientException("Failed to create Database: " + name, e);
-        }
-    }
-
-    public DatabaseSchema getSchema(String dbFQN, String schemaName) {
-        try {
-            String fqn = dbFQN + "." + schemaName;
-            return apiClient.buildClient(DatabaseSchemasApi.class)
-                    .getDBSchemaByFQN(fqn, null, null);
-        } catch (Exception e) {
-            throw new EntityNotFoundException("Schema", dbFQN + "." + schemaName);
         }
     }
 
@@ -120,16 +134,6 @@ public class OpenMetadataClient {
         }
     }
 
-    public Table getTable(String schemaFQN, String tableName) {
-        try {
-            String fqn = schemaFQN + "." + tableName;
-            return apiClient.buildClient(TablesApi.class)
-                    .getTableByFQN(fqn, null, null);
-        } catch (Exception e) {
-            throw new EntityNotFoundException("Table", schemaFQN + "." + tableName);
-        }
-    }
-
     public Table createTable(String name, String schemaFQN, List<Column> columns) {
         try {
             CreateTable request = new CreateTable()
@@ -145,6 +149,53 @@ public class OpenMetadataClient {
             throw new OpenMetadataClientException("Failed to create Table: " + name, e);
         }
     }
+//list methods
+
+public List<Database> getDatabasesForService(String serviceFqn) {
+    try {
+        DatabasesApi.ListDatabasesQueryParams params = new DatabasesApi.ListDatabasesQueryParams()
+                .service(serviceFqn)
+                .include("non-deleted")
+                .limit(100);
+
+        return apiClient.buildClient(DatabasesApi.class)
+                .listDatabases(params)
+                .getData();
+    } catch (Exception e) {
+        throw new OpenMetadataClientException("Failed to get databases for service: " + serviceFqn, e);
+    }
+}
+public List<DatabaseSchema> getSchemasForDatabase(String databaseFqn) {
+    try {
+        DatabaseSchemasApi schemasApi = apiClient.buildClient(DatabaseSchemasApi.class);
+
+        DatabaseSchemasApi.ListDBSchemasQueryParams queryParams = new DatabaseSchemasApi.ListDBSchemasQueryParams()
+            .database(databaseFqn)
+            .include("non-deleted") 
+            .limit(100); 
+        DatabaseSchemaList response = schemasApi.listDBSchemas(queryParams);
+
+        return response.getData();
+    } catch (Exception e) {
+        throw new OpenMetadataClientException("Failed to fetch schemas for database: " + databaseFqn, e);
+    }
+}
+public List<Table> getTablesForSchema(String schemaFqn) {
+    try {
+        TablesApi.ListTablesQueryParams params = new TablesApi.ListTablesQueryParams()
+                .databaseSchema(schemaFqn)
+                .include("non-deleted")
+                .limit(100);
+
+        return apiClient.buildClient(TablesApi.class)
+                .listTables(params)
+                .getData();
+    } catch (Exception e) {
+        throw new OpenMetadataClientException("Failed to get tables for schema: " + schemaFqn, e);
+    }
+}
+
+// helper methods
 
     public Column buildColumn(String name, String description, 
                         String dataTypeStr, String constraintStr) {

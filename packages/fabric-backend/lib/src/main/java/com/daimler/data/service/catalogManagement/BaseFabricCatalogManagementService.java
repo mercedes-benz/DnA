@@ -2,6 +2,7 @@ package com.daimler.data.service.catalogManagement;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,8 +38,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
-public class BaseFabricCatalogManagementService extends
-		BaseCommonService<FabricWorkspaceVO, FabricWorkspaceNsql, String> implements FabricCatalogManagementService {
+public class BaseFabricCatalogManagementService extends BaseCommonService<FabricWorkspaceVO, FabricWorkspaceNsql, String> implements FabricCatalogManagementService {
 
 	@Autowired
 	private FabricWorkspaceCustomRepository customRepo;
@@ -56,6 +56,7 @@ public class BaseFabricCatalogManagementService extends
 		super();
 	}
 
+	@Override
 	public GenericMessage publishCatalogMetaData(PublishCatalogRequestVO request, FabricWorkspaceVO existingFabricWorkspace) {
 		GenericMessage response = new GenericMessage();
 		List<MessageDescription> messages = new ArrayList<>();
@@ -124,8 +125,11 @@ public class BaseFabricCatalogManagementService extends
 								tableFqn,
 								columns);
 					}
-				}	
-			}	
+				}
+			}
+
+		existingFabricWorkspace.setCdcLakeHouseDetails(metadata);
+		jpaRepo.save(assembler.toEntity(existingFabricWorkspace));
 
 		} catch (EntityAlreadyExistsException e) {
 			return createErrorResponse("CONFLICT",
@@ -133,10 +137,87 @@ public class BaseFabricCatalogManagementService extends
 		} catch (OpenMetadataClientException e) {
 			return createErrorResponse("FAILED",
 					"Failed to publish catalog: " + e.getMessage());
+		} catch ( Exception e) {
+			return createErrorResponse("FAILED",
+					"Failed to publish catalog: " + e.getMessage());
 		}
+
 		response.setSuccess("SUCCESS");
 		return response;
 
+	}
+
+	@Override
+	public FabricCatalogMetadataVO getCatalogMetadata(String serviceName) {
+		FabricCatalogMetadataVO metadata = new FabricCatalogMetadataVO();
+		metadata.setServiceName(serviceName);
+
+		try {
+			// 1. Get the database service
+			DatabaseService service = openMetadataClient.getDatabaseService(serviceName);
+			metadata.setServiceId(service.getId().toString());
+
+			// 2. Get all databases for this service
+			List<Database> databases = openMetadataClient.getDatabasesForService(serviceName);
+			List<DatabaseMetadataVO> dbVos = new ArrayList<>();
+
+			for (Database db : databases) {
+				DatabaseMetadataVO dbVo = new DatabaseMetadataVO();
+				dbVo.setDbName(db.getName());
+				dbVo.setDbId(db.getId().toString());
+
+				// 3. Get all schemas for this database
+				List<DatabaseSchema> schemas = openMetadataClient.getSchemasForDatabase(db.getFullyQualifiedName());
+				List<SchemaMetadataVO> schemaVos = new ArrayList<>();
+
+				for (DatabaseSchema schema : schemas) {
+					SchemaMetadataVO schemaVo = new SchemaMetadataVO();
+					schemaVo.setSchemaName(schema.getName());
+					schemaVo.setSchemaId(schema.getId().toString());
+
+					// 4. Get all tables for this schema
+					List<Table> tables = openMetadataClient.getTablesForSchema(schema.getFullyQualifiedName());
+					List<TableMetadataVO> tableVos = new ArrayList<>();
+
+					for (Table table : tables) {
+						TableMetadataVO tableVo = new TableMetadataVO();
+						tableVo.setTableName(table.getName());
+						tableVo.setTableId(table.getId().toString());
+
+						// 5. Get all columns for this table
+						List<ColumnMetadataVO> columnVos = new ArrayList<>();
+						if (table.getColumns() != null) {
+							for (Column column : table.getColumns()) {
+								ColumnMetadataVO colVo = new ColumnMetadataVO();
+								colVo.setColumnName(column.getName());
+								colVo.setColType(column.getDataType() != null ? 
+									column.getDataType().toString() : null);
+								colVo.setColConstraint(column.getConstraint() != null ? 
+									column.getConstraint().toString() : null);
+								columnVos.add(colVo);
+							}
+						}
+						tableVo.setColumns(columnVos);
+						tableVos.add(tableVo);
+					}
+
+					schemaVo.setTables(tableVos);
+					schemaVos.add(schemaVo);
+				}
+
+				dbVo.setSchemas(schemaVos);
+				dbVos.add(dbVo);
+			}
+
+			metadata.setDatabases(dbVos);
+			return metadata;
+
+		} catch (EntityNotFoundException e) {
+			throw new EntityNotFoundException("Metadata details", serviceName);
+		} catch (Exception e) {
+			throw new OpenMetadataClientException("Failed to get catalog metadata for workspace: " + 
+				serviceName + " " + e.getMessage(), e);
+		}
 	}
 
 	private GenericMessage createErrorResponse(String status, String message) {

@@ -9,6 +9,10 @@
 	"importMappings": {
 		"BindingResult": "org.springframework.validation.BindingResult",
 		"GenericMessage": "com.daimler.data.controller.exceptions.GenericMessage",
-		"MessageDescription": "com.daimler.data.controller.exceptions.MessageDescription"
+		"MessageDescription": "com.daimler.data.controller.exceptions.MessageDescription",
+		"FabricCatalogMetadataVO": "com.daimler.data.dto.fabricCatalogManagement.FabricCatalogMetadataVO",
+		"DatabaseMetadataVO": "com.daimler.data.dto.fabricCatalogManagement.DatabaseMetadataVO",
+		"SchemaMetadataVO": "com.daimler.data.dto.fabricCatalogManagement.SchemaMetadataVO",
+		"TableMetadataVO": "com.daimler.data.dto.fabricCatalogManagement.TableMetadataVO"
 	}
 }

@@ -92,7 +92,42 @@ paths:
           description: "Method not allowed"
         500:
           description: "Internal error"
-          
+
+  /catalog/{workspaceId}/{serviceName}:
+    get:
+      tags:
+        - "fabric-catalog-management"
+      summary: "Get catalog by service name."
+      description: "This endpoint will be used to retrieve a fabric catalog by its service name."
+      operationId: "getCatalogByServiceName"
+      parameters:
+        - name: "workspaceId"
+          in: "path"
+          description: "The ID of the workspace."
+          required: true
+          type: "string"
+        - name: "serviceName"
+          in: "path"
+          description: "The name of the service."
+          required: true
+          type: "string"
+      responses:
+        200:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/FabricCatalogMetadataVO"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
 
 definitions:
 

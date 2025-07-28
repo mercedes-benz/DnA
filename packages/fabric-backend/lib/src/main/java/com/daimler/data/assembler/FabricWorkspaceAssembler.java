@@ -21,6 +21,10 @@ import com.daimler.data.db.json.ProjectDetails;
 import com.daimler.data.db.json.RoleDetails;
 import com.daimler.data.db.json.Shortcut;
 import com.daimler.data.db.json.UserDetails;
+import com.daimler.data.db.json.catalogManangement.FabricCatalogMetadata;
+import com.daimler.data.db.json.catalogManangement.Databases;
+import com.daimler.data.db.json.catalogManangement.Schemas;
+import com.daimler.data.db.json.catalogManangement.Tables;
 import com.daimler.data.dto.fabric.LakehouseDto;
 import com.daimler.data.dto.fabric.LakehouseS3ShortcutDto;
 import com.daimler.data.dto.fabricWorkspace.CapacityVO;
@@ -28,6 +32,11 @@ import com.daimler.data.dto.fabricWorkspace.CreatedByVO;
 import com.daimler.data.dto.fabricWorkspace.DnaRolesVO;
 import com.daimler.data.dto.fabricWorkspace.EntitlementDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.FabricLakehouseVO;
+import com.daimler.data.dto.fabricCatalogManagement.FabricCatalogMetadataVO;
+import com.daimler.data.dto.fabricCatalogManagement.DatabaseMetadataVO;
+import com.daimler.data.dto.fabricCatalogManagement.SchemaMetadataVO;
+import com.daimler.data.dto.fabricCatalogManagement.TableMetadataVO;
+import com.daimler.data.dto.fabricCatalogManagement.ColumnMetadataVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceStatusVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceVO;
 import com.daimler.data.dto.fabricWorkspace.GroupDetailsVO;
@@ -139,6 +148,10 @@ public class FabricWorkspaceAssembler implements GenericAssembler<FabricWorkspac
 					LeanIXDetailsVO leanIXDetails = new LeanIXDetailsVO();
 					BeanUtils.copyProperties(data.getLeanIXDetails(), leanIXDetails);
 					vo.setLeanIXDetails(leanIXDetails);
+				}
+				if(!ObjectUtils.isEmpty(data.getCdcLakehouseDetails())){
+					FabricCatalogMetadataVO cdcLakehouseDetails = toFabricCatalogMetadataVO(data.getCdcLakehouseDetails());
+					vo.setCdcLakeHouseDetails(cdcLakehouseDetails);
 				}
 			}
 		}
@@ -351,6 +364,11 @@ public class FabricWorkspaceAssembler implements GenericAssembler<FabricWorkspac
 				BeanUtils.copyProperties(vo.getLeanIXDetails(), leanIXDetails);
 				data.setLeanIXDetails(leanIXDetails);
 			}
+			// Set CDC Lakehouse Details
+			if (!ObjectUtils.isEmpty(vo.getCdcLakeHouseDetails())) {
+				FabricCatalogMetadata cdcLakehouseDetails = toFabricCatalogMetadata(vo.getCdcLakeHouseDetails());
+				data.setCdcLakehouseDetails(cdcLakehouseDetails);
+			}
 			entity.setData(data);
 		}
 		return entity;
@@ -385,5 +403,99 @@ public class FabricWorkspaceAssembler implements GenericAssembler<FabricWorkspac
 			BeanUtils.copyProperties(userDetails, createdByVO);
 		}
 		return createdByVO;
+	}
+
+	public FabricCatalogMetadata toFabricCatalogMetadata(FabricCatalogMetadataVO vo) {
+		FabricCatalogMetadata data = new FabricCatalogMetadata();
+		if (vo != null) {
+			data.setServiceName(vo.getServiceName());
+
+			List<Databases> dbEntities = new ArrayList<>();
+			if (vo.getDatabases() != null) {
+				for (DatabaseMetadataVO dbVo : vo.getDatabases()) {
+					Databases dbEntity = new Databases();
+					dbEntity.setDatabaseName(dbVo.getDbName());
+
+					List<Schemas> schemaEntities = new ArrayList<>();
+					if (dbVo.getSchemas() != null) {
+						for (SchemaMetadataVO schemaVo : dbVo.getSchemas()) {
+							Schemas schemaEntity = new Schemas();
+							schemaEntity.setSchemaName(schemaVo.getSchemaName());
+
+							List<Tables> tableEntities = new ArrayList<>();
+							if (schemaVo.getTables() != null) {
+								for (TableMetadataVO tableVo : schemaVo.getTables()) {
+									Tables tableEntity = new Tables();
+									tableEntity.setTableName(tableVo.getTableName());
+
+									List<String> columnNames = new ArrayList<>();
+									if (tableVo.getColumns() != null) {
+										for (ColumnMetadataVO columnVo : tableVo.getColumns()) {
+											columnNames.add(columnVo.getColumnName());
+										}
+									}
+									tableEntity.setColumns(columnNames);
+									tableEntities.add(tableEntity);
+								}
+							}
+							schemaEntity.setTables(tableEntities);
+							schemaEntities.add(schemaEntity);
+						}
+					}
+					dbEntity.setSchemas(schemaEntities);
+					dbEntities.add(dbEntity);
+				}
+			}
+			data.setDatabases(dbEntities);
+		}
+		return data;
+	}
+
+	public FabricCatalogMetadataVO toFabricCatalogMetadataVO(FabricCatalogMetadata entity) {
+		FabricCatalogMetadataVO vo = new FabricCatalogMetadataVO();
+		if (entity != null) {
+			vo.setServiceName(entity.getServiceName());
+
+			List<DatabaseMetadataVO> dbVos = new ArrayList<>();
+			if (entity.getDatabases() != null) {
+				for (Databases dbEntity : entity.getDatabases()) {
+					DatabaseMetadataVO dbVo = new DatabaseMetadataVO();
+					dbVo.setDbName(dbEntity.getDatabaseName());
+
+					List<SchemaMetadataVO> schemaVos = new ArrayList<>();
+					if (dbEntity.getSchemas() != null) {
+						for (Schemas schemaEntity : dbEntity.getSchemas()) {
+							SchemaMetadataVO schemaVo = new SchemaMetadataVO();
+							schemaVo.setSchemaName(schemaEntity.getSchemaName());
+
+							List<TableMetadataVO> tableVos = new ArrayList<>();
+							if (schemaEntity.getTables() != null) {
+								for (Tables tableEntity : schemaEntity.getTables()) {
+									TableMetadataVO tableVo = new TableMetadataVO();
+									tableVo.setTableName(tableEntity.getTableName());
+
+									List<ColumnMetadataVO> columnVos = new ArrayList<>();
+									if (tableEntity.getColumns() != null) {
+										for (String columnName : tableEntity.getColumns()) {
+											ColumnMetadataVO colVo = new ColumnMetadataVO();
+											colVo.setColumnName(columnName);
+											columnVos.add(colVo);
+										}
+									}
+									tableVo.setColumns(columnVos);
+									tableVos.add(tableVo);
+								}
+							}
+							schemaVo.setTables(tableVos);
+							schemaVos.add(schemaVo);
+						}
+					}
+					dbVo.setSchemas(schemaVos);
+					dbVos.add(dbVo);
+				}
+			}
+			vo.setDatabases(dbVos);
+		}
+		return vo;
 	}
 }

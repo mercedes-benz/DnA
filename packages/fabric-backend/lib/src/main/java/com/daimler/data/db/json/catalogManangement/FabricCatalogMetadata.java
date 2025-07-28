@@ -12,9 +12,10 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class FabricCatalogMetadata implements Serializable{
     private static final long serialVersionUID = 1L;
 
     private String serviceName;
-    private List<Databases> dataBases;
+    private List<Databases> databases;
 }

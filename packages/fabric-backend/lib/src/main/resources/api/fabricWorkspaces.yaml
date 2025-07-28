@@ -561,7 +561,9 @@ definitions:
         type: string
       leanIXDetails:
         $ref: "#/definitions/LeanIXDetailsVO"
-  
+      cdcLakeHouseDetails:
+        $ref: "#/definitions/FabricCatalogMetadataVO"
+
   FabricWorkspaceStatusVO:
     type: object
     properties:

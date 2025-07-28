@@ -22,12 +22,14 @@ import com.daimler.data.application.client.OpenMetadataClient;
 import com.daimler.data.controller.exceptions.EntityNotFoundException;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
+import com.daimler.data.db.json.catalogManangement.FabricCatalogMetadata;
+import com.daimler.data.dto.fabricCatalogManagement.FabricCatalogMetadataVO;
 import com.daimler.data.dto.fabricCatalogManagement.PublishCatalogResponseVO;
+import com.daimler.data.dto.fabricCatalogManagement.PublishCatalogRequestVO;
 import com.daimler.data.dto.fabricWorkspace.CreatedByVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceVO;
 import com.daimler.data.service.catalogManagement.FabricCatalogManagementService;
 import com.daimler.data.service.fabric.FabricWorkspaceService;
-import com.daimler.data.dto.fabricCatalogManagement.PublishCatalogRequestVO;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -128,6 +130,59 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
 			responseVO.setResponses(failedResponse);
 			log.error("Exception occurred:{} while publishing fabric workspace catalog...", e.getMessage());
 			return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+   @ApiOperation(value = "Get catalog by service name.", nickname = "getCatalogByServiceName", notes = "This endpoint will be used to retrieve a fabric catalog by its service name.", response = FabricCatalogMetadataVO.class, tags={ "fabric-catalog-management", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 200, message = "Returns message of success or failure", response = FabricCatalogMetadataVO.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/catalog/{workspaceId}/{serviceName}",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.GET)
+    public ResponseEntity<FabricCatalogMetadataVO> getCatalogByServiceName(@ApiParam(value = "The ID of the workspace.",required=true) @PathVariable("workspaceId") String workspaceId,@ApiParam(value = "The name of the service.",required=true) @PathVariable("serviceName") String serviceName){
+        FabricCatalogMetadataVO catalogMetadata = new FabricCatalogMetadataVO();
+        
+        try{
+
+            FabricWorkspaceVO existingFabricWorkspace = fabricWorkspaceService
+                .getById(workspaceId);
+            
+            if (existingFabricWorkspace == null
+                    || !workspaceId.equalsIgnoreCase(existingFabricWorkspace.getId())) {
+                log.error("No Fabric Workspace found with id {}", workspaceId);
+                return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+            }
+
+            CreatedByVO requestUser = this.userStore.getVO();
+            String creatorId = existingFabricWorkspace.getCreatedBy().getId();
+
+            if (!requestUser.getId().equalsIgnoreCase(creatorId)
+                    && !userStore.getUserInfo().hasProjectAdminAccess(workspaceId)) {
+                log.error(
+                        "Fabric workspace {} {} doesnt belong to User or user not admin {} , Not authorized to publish catalog.",
+                        workspaceId, existingFabricWorkspace.getName(), requestUser.getId());
+                return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
+            }
+
+            catalogMetadata = service.getCatalogMetadata(serviceName);
+            if (catalogMetadata != null) {
+                return new ResponseEntity<>(catalogMetadata, HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+        } catch (EntityNotFoundException e) {
+            log.error("Service:{} not found in cdc", serviceName);
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        } catch (Exception e) {
+            log.error("Error occurred while fetching catalog metadata: {}", e.getMessage());
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
