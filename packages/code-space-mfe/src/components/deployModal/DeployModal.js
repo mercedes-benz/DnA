@@ -111,7 +111,7 @@ const DeployModal = (props) => {
         // setCookieSelected(deploymentDetails?.isSecuredWithCookie || false);
         setCookieSelected(false);
         setClientId(deploymentDetails?.clientId || '');
-        setRedirectUri(deploymentDetails?.redirectUri ? `${envUrl}${deploymentDetails?.redirectUri}` : (deploymentDetails?.deploymentType ==='UI' ? `${envUrl}/${projectDetails?.projectName}/${env}/cb` : '' ));
+        setRedirectUri(deploymentDetails?.redirectUri ? `${envUrl}${deploymentDetails?.redirectUri}` : (deploymentDetails?.deploymentType ==='UI' ? `${envUrl}/${projectDetails?.projectName.toLowerCase()}/${env}/cb` : '' ));
         deploymentDetails?.ignorePaths?.length && setIgnorePath(deploymentDetails?.ignorePaths?.split(','));
         deploymentDetails?.scope?.length && setScope(deploymentDetails?.scope?.split(' '));
         setDeploymentType(deploymentDetails?.deploymentType || 'API');
@@ -144,7 +144,7 @@ const DeployModal = (props) => {
     }
     else{
       setIsUiRecipe(true);
-      setRedirectUri(`${envUrl}/${projectDetails?.projectName}/${deployEnvironment === 'staging' ? 'int' : 'prod'}/cb`);
+      setRedirectUri(`${envUrl}/${projectDetails?.projectName.toLowerCase()}/${deployEnvironment === 'staging' ? 'int' : 'prod'}/cb`);
       setOneApiSelected(false);
     }
   }, [deploymentType]);// eslint-disable-line react-hooks/exhaustive-deps
@@ -158,7 +158,7 @@ const DeployModal = (props) => {
   }, [secureWithIAMSelected, cookieSelected, deploymentType]);// eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
-    const redirectUri = deploymentType === 'UI' ? `${envUrl}/${projectDetails?.projectName}/${deployEnvironment === 'staging' ? 'int' : 'prod'}/cb` : '';
+    const redirectUri = deploymentType === 'UI' ? `${envUrl}/${projectDetails?.projectName.toLowerCase()}/${deployEnvironment === 'staging' ? 'int' : 'prod'}/cb` : '';
     if (resetRequired) {
       setClientId('');
       setClientSecret('');
@@ -240,7 +240,7 @@ const DeployModal = (props) => {
     // setCookieSelected(deploymentDetails?.isSecuredWithCookie || false);
     setCookieSelected(false);
     setClientId(deploymentDetails?.clientId || '');
-    const redirectUri = deploymentDetails?.deploymentType === 'UI' ? `${envUrl}/${projectDetails?.projectName}/${deployEnv === 'staging' ? 'int' : 'prod'}/cb` : '';
+    const redirectUri = deploymentDetails?.deploymentType === 'UI' ? `${envUrl}/${projectDetails?.projectName.toLowerCase()}/${deployEnv === 'staging' ? 'int' : 'prod'}/cb` : '';
     setRedirectUri(deploymentDetails?.redirectUri ? `${envUrl}${deploymentDetails?.redirectUri}` : redirectUri);
     deploymentDetails?.ignorePaths?.length && setIgnorePath(deploymentDetails?.ignorePaths?.split(','));
     deploymentDetails?.scope?.length && setScope(deploymentDetails?.scope?.split(' '));
@@ -578,7 +578,7 @@ const DeployModal = (props) => {
                                 <TextBox
                                   type="text"
                                   label={'Redirect Uri'}
-                                  placeholder={`eg:${envUrl}/${projectDetails?.projectName}/${deployEnvironment === 'staging' ? 'int' : 'prod'}/cb`}
+                                  placeholder={`eg:${envUrl}/${projectDetails?.projectName.toLowerCase()}/${deployEnvironment === 'staging' ? 'int' : 'prod'}/cb`}
                                   value={redirectUri}
                                   required={isUiRecipe}
                                   errorText={redirectUriError}
