@@ -136,7 +136,7 @@ definitions:
     required:
       - metaData
       - workspaceId
-      - customProperties
+      - MandatoryFieldsVO
       - owners
     properties:
       metaData:
