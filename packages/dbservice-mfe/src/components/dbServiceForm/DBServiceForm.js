@@ -53,7 +53,13 @@ const DBServiceForm = ({ user, dbservice, edit, onSave }) => {
   const [archerId, setArcherID] = useState(edit && dbservice?.dataGovernance?.archerId ? dbservice.dataGovernance.archerId : '');
   const [procedureId, setProcedureID] = useState(edit && dbservice?.dataGovernance?.procedureID ? dbservice.dataGovernance.procedureID : '');
   const [termsOfUse, setTermsOfUse] = useState(edit && dbservice?.termsOfUse ? [dbservice.termsOfUse] : false);
-  const [collaborators, setCollaborators] = useState([]);
+  const [collaborators, setCollaborators] = useState(edit && Array.isArray(dbservice?.projectCollaborators) ? dbservice.projectCollaborators.map(collaborator => ({
+    ...collaborator,
+    permission: {
+      write: collaborator.isWrite,
+      admin: collaborator.isAdmin
+    }
+  })) : []);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [bucketName] = useState(edit && dbservice?.serviceName ? dbservice.serviceName : '');
   const [ownerId, setOwnerId] = useState();
@@ -101,28 +107,27 @@ const DBServiceForm = ({ user, dbservice, edit, onSave }) => {
   //   setCollaborators(updatedUserLincenses);
   // };
 
-  const onCollaboratorPermission = (e, userName) => {
-    const bucketList = collaborators.find((item) => {
-      return item.accesskey == userName;
+  const onCollaboratorPermission = (e, userId) => {
+    setCollaborators((prevCollaborators) => {
+      return prevCollaborators.map((collaborator) => {
+        if (collaborator.id === userId) {
+          const updatedPermissions = { ...collaborator.permission };
+
+          if (e.target.value === 'write') {
+            updatedPermissions.write = e.target.checked;
+          } else if (e.target.value === 'admin') {
+            updatedPermissions.admin = e.target.checked;
+            if (e.target.checked) {
+              updatedPermissions.write = true; // Automatically select write if admin is selected
+            }
+          }
+
+          return { ...collaborator, permission: updatedPermissions };
+        }
+        return collaborator;
+      });
     });
-
-  
-  if (bucketList) {
-    if (!bucketList.permission) {
-      bucketList.permission = { write: false, admin: false }; // Initialize permission object if not present
-    }
-
-    if (e.target.value === 'write') {
-      bucketList.permission.write = e.target.checked;
-    } else if (e.target.value === 'admin') {
-      bucketList.permission.admin = e.target.checked;
-    }
-
-    setCollaborators([...collaborators]);
-  } else {
-    console.error(`Collaborator with accesskey ${userName} not found.`);
-  }
-};
+  };
 
   const onUserLicenseDelete = (userId) => {
   const updatedUserLicenses = collaborators.filter((userLicense) => {
@@ -790,8 +795,8 @@ const DBServiceForm = ({ user, dbservice, edit, onSave }) => {
                                             type="checkbox"
                                             className="ff-only"
                                             value="write"
-                                            checked={user?.permission !== null ? user?.permission?.write : false}
-                                            onChange={(e) => onCollaboratorPermission(e, user.accesskey)}
+                                            checked={user?.permission?.write ?? false}
+                                            onChange={(e) => onCollaboratorPermission(e, user.id)}
                                           />
                                         </span>
                                         <span className="label">Write</span>
@@ -805,8 +810,8 @@ const DBServiceForm = ({ user, dbservice, edit, onSave }) => {
                                             type="checkbox"
                                             className="ff-only"
                                             value="admin"
-                                            checked={user?.permission !== null ? user?.permission?.admin : false}
-                                            onChange={(e) => onCollaboratorPermission(e, user.accesskey)}
+                                            checked={user?.permission?.admin ?? false}
+                                            onChange={(e) => onCollaboratorPermission(e, user.id)}
                                           />
                                         </span>
                                         <span className="label">Admin</span>
@@ -815,7 +820,7 @@ const DBServiceForm = ({ user, dbservice, edit, onSave }) => {
                                   </div>
                                   <div className={Styles.column4}>
                                     {edit && isOwner &&
-                                      <div className={Styles.deleteEntry} onClick={() => onTransferOwnership(user?.accesskey)}>
+                                      <div className={Styles.deleteEntry} onClick={() => onTransferOwnership(user?.id)}>
                                         <i className="icon mbc-icon comparison" />
                                         Transfer Ownership
                                       </div>

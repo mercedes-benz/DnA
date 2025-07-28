@@ -22,16 +22,15 @@ const DBServiceCard = ({user, dbservice, onSelectDbService, onShowDetailsModal, 
     onShowDetailsModal(dbservice);
   }
 
-  const displayPermission = (item) => {
-    return Object.entries(item || {})
-      ?.map(([key, value]) => {
-        if (value === true) {
-          return key;
-        }
-      })
-      ?.filter((x) => x) // remove falsy values
-      ?.map((perm) => perm?.charAt(0)?.toUpperCase() + perm?.slice(1)) // update first character to Uppercase
-      ?.join(' / ');
+  const displayPermission = (collab, isOwnerCheck = false) => {
+    const isOwner = isOwnerCheck || collab?.id === dbservice?.projectOwner?.id;
+    const isAdmin = collab?.permission?.admin;
+    const hasWrite = collab?.permission?.write;
+
+    if (isOwner) return 'Read/Write (Owner)';
+    if (isAdmin) return 'Read/Write (Admin)';
+    if (hasWrite) return 'Read/Write';
+    return 'Read';
   };
 
   const onCollabsIconMouseOver = (e) => {
@@ -99,8 +98,7 @@ const DBServiceCard = ({user, dbservice, onSelectDbService, onShowDetailsModal, 
           <div>
             <div>Permission</div>
             <div>
-              {displayPermission(dbservice?.permission)}
-              {isOwner && ` (Owner)`}
+              {displayPermission({ permission: dbservice?.permission, id: user?.id }, isOwner)}
             </div>
           </div>
           <div>
@@ -130,7 +128,7 @@ const DBServiceCard = ({user, dbservice, onSelectDbService, onShowDetailsModal, 
                             {dbservice.createdBy?.id === bucketItem.accesskey ? ' (Owner)' : ''}
                           </span>
                           <span className={Styles.permission}>
-                            &nbsp;[{displayPermission(bucketItem?.permission)}]
+                            &nbsp;[{displayPermission(bucketItem)}]
                           </span>
                         </li>
                       );

@@ -1,5 +1,5 @@
 import classNames from 'classnames';
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import Tabs from '../../common/modules/uilab/js/src/tabs';
 import Notification from '../../common/modules/uilab/js/src/notification';
 import Styles from './connection-modal.scss';
@@ -17,6 +17,14 @@ const ConnectionModal = ({ dbservice, onOk}) => {
       activeTabIndicator?.[0]?.remove();
     }
   }, []);
+
+  const [showPasswordMap, setShowPasswordMap] = useState({});
+  const togglePasswordVisibility = (index) => {
+    setShowPasswordMap((prev) => ({
+      ...prev,
+      [index]: !prev[index],
+    }));
+  };
 
   const copyToClipboard = (content) => {
     navigator.clipboard.writeText('');
@@ -46,18 +54,38 @@ const ConnectionModal = ({ dbservice, onOk}) => {
           <div className={Styles.itemKey}>Port</div>
           <div className={Styles.itemValue}>{dbservice?.port}</div>
         </div>
-        <div className={Styles.item}>
-          <div className={Styles.itemKey}>Connection String</div>
-          <div className={Styles.itemValue}>
-            {dbservice?.credentials?.length > 0 ? (
-              dbservice.credentials.map((cred, index) => (
-                <div key={index}>
-                  <div><strong> {cred.userName}</strong>: {cred.password}</div>
-                </div>
-              ))
-            ) : (
-              'No credentials available'
-            )}
+
+        <div className={Styles.credentialRow}>
+          <span className={Styles.credLabel}>Credentials:</span>
+          <div>
+            {dbservice.credentials.map((cred, index) => (
+              <div className={Styles.singleCredential} key={index}>
+                <span className={Styles.credName}>{cred.userName}:</span>
+                <span className={Styles.credentialPassword}>
+                  {showPasswordMap[index]
+                    ? cred.password
+                    : Array.from({ length: cred.password.length }, (_, i) => (
+                      <React.Fragment key={i}>&bull;</React.Fragment>
+                    ))}
+                </span>
+
+                <i
+                  className={classNames(
+                    'icon mbc-icon',
+                    showPasswordMap[index] ? 'visibility-hide' : 'visibility-show',
+                    Styles.visibilityIcon
+                  )}
+                  onClick={() => togglePasswordVisibility(index)}
+                  tooltip-data={showPasswordMap[index] ? 'Hide' : 'Show'}
+                />
+
+                <i
+                  className={classNames('icon mbc-icon copy', Styles.copyIcon)}
+                  onClick={() => copyToClipboard(cred.password)}
+                  tooltip-data="Copy"
+                />
+              </div>
+            ))}
           </div>
         </div>
       </section>
@@ -65,9 +93,9 @@ const ConnectionModal = ({ dbservice, onOk}) => {
         {dbservice?.collaborators?.length > 0 && (
           <>
             <div className={Styles.colHeader}>
-                <div className={Styles.column1}>User ID</div>
-                <div className={Styles.column2}>Name</div>
-                <div className={Styles.column3}>Permissions</div>
+              <div className={Styles.column1}>User ID</div>
+              <div className={Styles.column2}>Name</div>
+              <div className={Styles.column3}>Permissions</div>
             </div>
             <div>
               {dbservice?.collaborators?.length === 0 &&
@@ -77,45 +105,45 @@ const ConnectionModal = ({ dbservice, onOk}) => {
               }
               {dbservice?.collaborators?.map((userLicense) => {
                 return (
-                    <div key={userLicense?.userDetails?.id} className={Styles.userRow}>
-                        <div className={Styles.column1}>
-                          <p>{userLicense?.userDetails?.id}</p>
-                        </div>
-                        <div className={Styles.column2}>
-                          <p>{userLicense?.userDetails?.firstName + ' ' + userLicense?.userDetails?.lastName}</p>
-                        </div>
-                        <div className={classNames(Styles.column3, Styles.lincenseContainer)}>
-                          <div className={classNames('input-field-group include-error ', Styles.inputGrp)}>
-                            <label className={classNames('checkbox', Styles.checkBoxDisable)}>
-                              <span className="wrapper">
-                                <input
-                                  type="checkbox"
-                                  className="ff-only"
-                                  value="read"
-                                  checked={true}
-                                  readOnly
-                                />
-                              </span>
-                              <span className="label">Read</span>
-                            </label>
-                          </div>
-                          &nbsp;&nbsp;&nbsp;
-                          <div className={classNames('input-field-group include-error ', Styles.inputGrp, Styles.checkBoxDisable)}>
-                            <label className={'checkbox'}>
-                              <span className="wrapper">
-                                <input
-                                  type="checkbox"
-                                  className="ff-only"
-                                  value="write"
-                                  checked={userLicense?.permission !== null ? userLicense?.permission?.write : false}
-                                />
-                              </span>
-                              <span className="label">Write</span>
-                            </label>
-                          </div>
-                        </div>
+                  <div key={userLicense?.userDetails?.id} className={Styles.userRow}>
+                    <div className={Styles.column1}>
+                      <p>{userLicense?.userDetails?.id}</p>
                     </div>
-                  );
+                    <div className={Styles.column2}>
+                      <p>{userLicense?.userDetails?.firstName + ' ' + userLicense?.userDetails?.lastName}</p>
+                    </div>
+                    <div className={classNames(Styles.column3, Styles.lincenseContainer)}>
+                      <div className={classNames('input-field-group include-error ', Styles.inputGrp)}>
+                        <label className={classNames('checkbox', Styles.checkBoxDisable)}>
+                          <span className="wrapper">
+                            <input
+                              type="checkbox"
+                              className="ff-only"
+                              value="read"
+                              checked={true}
+                              readOnly
+                            />
+                          </span>
+                          <span className="label">Read</span>
+                        </label>
+                      </div>
+                      &nbsp;&nbsp;&nbsp;
+                      <div className={classNames('input-field-group include-error ', Styles.inputGrp, Styles.checkBoxDisable)}>
+                        <label className={'checkbox'}>
+                          <span className="wrapper">
+                            <input
+                              type="checkbox"
+                              className="ff-only"
+                              value="write"
+                              checked={userLicense?.permission !== null ? userLicense?.permission?.write : false}
+                            />
+                          </span>
+                          <span className="label">Write</span>
+                        </label>
+                      </div>
+                    </div>
+                  </div>
+                );
               })}
             </div>
           </>
@@ -164,27 +192,27 @@ const ConnectionModal = ({ dbservice, onOk}) => {
               </span>
               <div className={Styles.connectionCode}>
                 <h6>Install psycopg2 (PostgreSQL adapter)</h6>
-                  <pre>
-                    pip install psycopg2-binary
-                  </pre>
+                <pre>
+                  pip install psycopg2-binary
+                </pre>
                 <h6>Import and Connect</h6>
-                  <pre>
+                <pre>
                   import psycopg2<br /><br />
 
                   conn = psycopg2.connect(<br />
-                      host=&quot;your_host&quot;,       # e.g., &quot;localhost&quot; or cloud endpoint<br />
-                      port=&quot;5432&quot;,<br />
-                      database=&quot;your_db&quot;,<br />
-                      user=&quot;your_username&quot;,<br />
-                      password=&quot;your_password&quot;<br />
+                  host=&quot;your_host&quot;,       # e.g., &quot;localhost&quot; or cloud endpoint<br />
+                  port=&quot;5432&quot;,<br />
+                  database=&quot;your_db&quot;,<br />
+                  user=&quot;your_username&quot;,<br />
+                  password=&quot;your_password&quot;<br />
                   )
-                  </pre>
+                </pre>
                 <h6>Create Cursor and Execute Query</h6>
-                  <pre>
+                <pre>
                   cur = conn.cursor()<br />
                   cur.execute(&quot;SELECT version();&quot;)<br />
                   print(cur.fetchone())
-                  </pre>
+                </pre>
               </div>
             </div>
             <div id="tab-content-2" className={classNames('tab-content mbc-scroll', Styles.tabContentContainer)}>
@@ -199,22 +227,22 @@ const ConnectionModal = ({ dbservice, onOk}) => {
               </span>
               <div className={Styles.connectionCode}>
                 <h6>Add PostgreSQL Dependency (in pom.xml)</h6>
-                  <pre>
-{`<dependency>
+                <pre>
+                  {`<dependency>
   <groupId>org.postgresql</groupId>
   <artifactId>postgresql</artifactId>
   <version>42.7.1</version> <!-- or latest -->
 </dependency>`}
-                  </pre>
+                </pre>
                 <h6>Configure application.properties or application.yml</h6>
-                  <pre>
-{`spring.datasource.url=jdbc:postgresql://localhost:5432/your_db
+                <pre>
+                  {`spring.datasource.url=jdbc:postgresql://localhost:5432/your_db
 spring.datasource.username=your_username
 spring.datasource.password=your_password
 spring.datasource.driver-class-name=org.postgresql.Driver
 spring.jpa.hibernate.ddl-auto=update
 spring.jpa.show-sql=true`}
-                  </pre>
+                </pre>
               </div>
             </div>
             <div id="tab-content-3" className={classNames('tab-content mbc-scroll', Styles.tabContentContainer)}>
@@ -230,29 +258,29 @@ spring.jpa.show-sql=true`}
               <div className={Styles.connectionCode}>
                 <h6>Connect using OneLake</h6>
                 <pre>
-                <ol>
-<li>
-<p>In <strong>Fabric → Data Factory</strong>, create a new <strong>Pipeline</strong>.</p>
-</li>
-<li>
-<p>Add a <strong>Copy Data activity</strong>.</p>
-</li>
-<li>
-<p>Configure:</p>
-<ul>
-<li>
-<p><strong>Source</strong>: PostgreSQL</p>
-</li>
-<li>
-<p><strong>Sink</strong>: OneLake (Lakehouse or Parquet/Delta format)</p>
-</li>
-</ul>
-</li>
-<li>
-<p>Schedule or trigger as needed.</p>
-</li>
-</ol>
-</pre>
+                  <ol>
+                    <li>
+                      <p>In <strong>Fabric → Data Factory</strong>, create a new <strong>Pipeline</strong>.</p>
+                    </li>
+                    <li>
+                      <p>Add a <strong>Copy Data activity</strong>.</p>
+                    </li>
+                    <li>
+                      <p>Configure:</p>
+                      <ul>
+                        <li>
+                          <p><strong>Source</strong>: PostgreSQL</p>
+                        </li>
+                        <li>
+                          <p><strong>Sink</strong>: OneLake (Lakehouse or Parquet/Delta format)</p>
+                        </li>
+                      </ul>
+                    </li>
+                    <li>
+                      <p>Schedule or trigger as needed.</p>
+                    </li>
+                  </ol>
+                </pre>
               </div>
             </div>
             <div id="tab-content-2" className={classNames('tab-content mbc-scroll', Styles.tabContentContainer)}>
