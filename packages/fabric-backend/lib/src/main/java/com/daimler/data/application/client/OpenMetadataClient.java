@@ -96,10 +96,12 @@ public class OpenMetadataClient {
 
             return apiClient.buildClient(DatabaseServicesApi.class)
                     .createDatabaseService(request);
-         } catch (FeignException.Conflict e) {
+        } catch (FeignException.Conflict e) {
             throw new EntityAlreadyExistsException("DatabaseService already Exists "+ name, e);
+        } catch (FeignException.BadRequest e){
+            throw new OpenMetadataClientException("Failed to create DatabaseService : " + name + " Bad Request", e);
         } catch (Exception e) {
-            throw new OpenMetadataClientException("Failed to create DatabaseService: " + name, e);
+            throw new OpenMetadataClientException("Failed to create DatabaseService : " + name, e);
         }
     }
 
@@ -114,6 +116,8 @@ public class OpenMetadataClient {
                     .createOrUpdateDatabase(request);
         } catch (FeignException.Conflict e) {
             throw new EntityAlreadyExistsException("Database already exists: " + name, e);
+        } catch (FeignException.BadRequest e){
+            throw new OpenMetadataClientException("Failed to create Database : " + name + " Bad Request", e);
         } catch (Exception e) {
             throw new OpenMetadataClientException("Failed to create Database: " + name, e);
         }
@@ -129,6 +133,8 @@ public class OpenMetadataClient {
                     .createOrUpdateDBSchema(request);
         } catch (FeignException.Conflict e) {
             throw new EntityAlreadyExistsException("Schema already exists: " + name, e);
+        } catch (FeignException.BadRequest e){
+            throw new OpenMetadataClientException("Failed to create Schema : " + name + " Bad Request", e);
         } catch (Exception e) {
             throw new OpenMetadataClientException("Failed to create Schema: " + name, e);
         }
@@ -145,6 +151,8 @@ public class OpenMetadataClient {
                     .createOrUpdateTable(request);
         } catch (FeignException.Conflict e) {
             throw new EntityAlreadyExistsException("Table already exists: " + name, e);
+        } catch (FeignException.BadRequest e){
+            throw new OpenMetadataClientException("Failed to create Table : " + name + " Bad Request", e);
         } catch (Exception e) {
             throw new OpenMetadataClientException("Failed to create Table: " + name, e);
         }

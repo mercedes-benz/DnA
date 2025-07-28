@@ -62,7 +62,7 @@ public class OpenMetadataConfig {
         client.getFeignBuilder()
                 .requestInterceptor(template -> template.header("Authorization", "Bearer " + jwtToken))
                 .logger(new feign.Logger.ErrorLogger())
-                .logLevel(feign.Logger.Level.FULL);
+                .logLevel(feign.Logger.Level.BASIC);
 
         return client;
     }  

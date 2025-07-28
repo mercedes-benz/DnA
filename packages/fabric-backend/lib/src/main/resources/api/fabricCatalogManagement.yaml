@@ -238,7 +238,9 @@ definitions:
           catalogMetadata:
             $ref: "#/definitions/FabricCatalogMetadataVO"
           ownerDetails:
-            $ref: "#/definitions/CreatedByVO"
+            type: array
+            items:
+              $ref: "#/definitions/CreatedByVO"
       responses:
         $ref: "#/definitions/GenericMessage"
 

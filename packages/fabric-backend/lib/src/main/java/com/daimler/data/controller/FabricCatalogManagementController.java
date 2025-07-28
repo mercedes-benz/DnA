@@ -25,6 +25,7 @@ import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.db.json.catalogManangement.FabricCatalogMetadata;
 import com.daimler.data.dto.fabricCatalogManagement.FabricCatalogMetadataVO;
 import com.daimler.data.dto.fabricCatalogManagement.PublishCatalogResponseVO;
+import com.daimler.data.dto.fabricCatalogManagement.PublishCatalogResponseVOData;
 import com.daimler.data.dto.fabricCatalogManagement.PublishCatalogRequestVO;
 import com.daimler.data.dto.fabricWorkspace.CreatedByVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceVO;
@@ -71,6 +72,10 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
             @ApiParam(value = "The catalog to publish.", required = true) @Valid @RequestBody PublishCatalogRequestVO publishCatalogRequest) {
 
         PublishCatalogResponseVO responseVO = new PublishCatalogResponseVO();
+        PublishCatalogResponseVOData responseData = new PublishCatalogResponseVOData();
+        responseData.setCatalogMetadata(publishCatalogRequest.getMetaData());
+        responseData.setOwnerDetails(publishCatalogRequest.getOwners());
+        responseVO.setData(responseData);
         GenericMessage erroMessage = new GenericMessage();
 
         FabricWorkspaceVO existingFabricWorkspace = fabricWorkspaceService
@@ -97,14 +102,13 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
 
             openMetadataClient.getUserByFqn(requestUser.getId());
             GenericMessage responseMessage = service.publishCatalogMetaData(publishCatalogRequest, existingFabricWorkspace);
+            responseVO.setResponses(responseMessage);
             if (("SUCCESS").equalsIgnoreCase(responseMessage.getSuccess())) {
-                responseVO.setResponses(responseMessage);
                 return new ResponseEntity<>(responseVO, HttpStatus.OK);
             } else if (("CONFLICT").equalsIgnoreCase(responseMessage.getSuccess())) {
-                responseVO.setResponses(responseMessage);
                 return new ResponseEntity<>(responseVO, HttpStatus.CONFLICT);
             } else {
-                return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+                return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
             }
         } catch (EntityNotFoundException e) {
              GenericMessage failedResponse = new GenericMessage();
