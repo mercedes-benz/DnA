@@ -264,6 +264,14 @@ definitions:
 
   MandatoryFieldsVO:
     type: object
+    required:
+      - division
+      - department
+      - dataOrigin
+      - leanIXId
+      - isDocumentationUpdated
+      - isDataLakeAvailability
+      - isDataAsset
     properties:
       division:
         type: string
