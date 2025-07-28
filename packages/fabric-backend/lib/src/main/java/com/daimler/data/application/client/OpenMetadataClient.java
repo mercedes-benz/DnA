@@ -235,8 +235,8 @@ public List<Table> getTablesForSchema(String schemaFqn) {
             "Division", List.of(fields.getDivision()),
             "Department", List.of(fields.getDepartment()),
             "DataOrigin", List.of(fields.getDataOrigin()),
-            "DataAsset", List.of(fields.getIsDataAsset()),
-            "leanIXId", List.of(fields.getLeanIXId()),
+            "IsDataAsset", List.of(fields.getIsDataAsset()),
+            "LeanIXID", List.of(fields.getLeanIXId()),
             "DocumentationUpdated", List.of(fields.getIsDocumentationUpdated()),
             "DataLakeAvailability", List.of(fields.getIsDataLakeAvailability())
         );

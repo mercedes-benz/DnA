@@ -136,17 +136,20 @@ definitions:
     required:
       - metaData
       - workspaceId
-      - MandatoryFieldsVO
+      - mandatoryFields
       - owners
     properties:
       metaData:
         $ref: "#/definitions/FabricCatalogMetadataVO"
+        required: true
       workspaceId:
         type: string
         minLength: 1
         description: "The workspace ID where the catalog will be published."
+        required: true
       mandatoryFields:
         $ref: "#/definitions/MandatoryFieldsVO"
+        required: true
       owners:
         type: array
         items:
@@ -281,7 +284,6 @@ definitions:
         minLength: 1
       dataOrigin:
         type: string
-        minLength: 1
         enum: ["internal","external","mixed"]
       leanIXId:
         type: string
@@ -289,12 +291,9 @@ definitions:
       isDocumentationUpdated:
         type: string
         enum: ["Yes","No"]
-        minLength: 1
       isDataLakeAvailability:
         type: string
         enum: ["Yes","No"]
-        minLength: 1
       isDataAsset:
         type: string
-        minLength: 1
         enum: ["Yes","No"]
