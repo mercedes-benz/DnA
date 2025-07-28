@@ -246,7 +246,8 @@ public List<Table> getTablesForSchema(String schemaFqn) {
             "IsDataAsset", List.of(fields.getIsDataAsset()),
             "LeanIXID", List.of(fields.getLeanIXId()),
             "DocumentationUpdated", List.of(fields.getIsDocumentationUpdated()),
-            "DataLakeAvailability", List.of(fields.getIsDataLakeAvailability())
+            "DataLakeAvailability", List.of(fields.getIsDataLakeAvailability()),
+            "DataConfidentiality",List.of(fields.getDataConfidentiality())
         );
     }
 

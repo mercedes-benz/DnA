@@ -277,10 +277,11 @@ definitions:
       - isDocumentationUpdated
       - isDataLakeAvailability
       - isDataAsset
+      - dataConfidentiality
     properties:
       division:
         type: string
-        minLength: 1
+        enum: ["Daimler Buses","Daimler Trucks","Mercedes-Benz Cars","Mercedes-Benz Mobility","Mercedes-Benz Vans"]
       department:
         type: string
         minLength: 1
@@ -299,3 +300,6 @@ definitions:
       isDataAsset:
         type: string
         enum: ["Yes","No"]
+      dataConfidentiality:
+        type: string
+        enum: [public,confidential,secret,internal]
