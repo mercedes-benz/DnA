@@ -12,7 +12,7 @@ import Modal from 'dna-container/Modal';
 // import { ICodeSpaceData } from '../CodeSpace';
 import { CODE_SPACE_TITLE } from '../../Utility/constants';
 // import { Envs } from '../../Utility/envs';
-import { trackEvent } from '../../Utility/utils';
+import { trackEvent, regionalDateAndTimeConversionSolution } from '../../Utility/utils';
 import TextBox from 'dna-container/TextBox';
 import Tags from 'dna-container/Tags';
 import { Envs } from '../../Utility/envs';
@@ -73,16 +73,27 @@ const DeployModal = (props) => {
   const projectDetails = props.codeSpaceData?.projectDetails;
   const collaborator = projectDetails?.projectCollaborators?.find((collaborator) => {return collaborator?.id === props?.userInfo?.id });
   const isOwner = projectDetails?.projectOwner?.id === props.userInfo.id || collaborator?.isAdmin;
+  const isApprover = projectDetails?.projectOwner?.id === props.userInfo.id || collaborator?.isApprover;
   const intDeployLogs = (projectDetails?.intDeploymentDetails?.deploymentAuditLogs)?.filter((item) => item?.branch) || [] ;
   const prodDeployLogs = (projectDetails?.prodDeploymentDetails?.deploymentAuditLogs)?.filter((item) => item?.branch) || [];
   // const intDeploymentMigrated = projectDetails?.intDeploymentDetails?.deploymentUrl?.includes(Envs.CODESPACE_OIDC_POPUP_URL);
   // const prodDeploymentMigrated = projectDetails?.prodDeploymentDetails?.deploymentUrl?.includes(Envs.CODESPACE_OIDC_POPUP_URL);
   const envUrl = Envs.CODESPACE_AWS_DEPLOYMENT_URL;
 
+  //details from build
+  const version = props?.buildDetails?.version || '';
+  const buildOn = regionalDateAndTimeConversionSolution(props?.buildDetails?.buildOn) || '';
+  const buildBranch = props?.buildDetails?.branch || '';
+  const triggeredBy = props?.buildDetails?.triggeredBy || '';
+  const buildEnvironment = props?.buildDetails?.environment || '';
+  const comment = props?.buildDetails?.comments || '';
+  
   useEffect(() => {
     Tooltip.defaultSetup();
     intDeployLogs.length && setBranchValue([intDeployLogs[(intDeployLogs.length)-1]?.branch]);
-    getPublishedConfig(props?.codeSpaceData?.id, 'int');
+    version?.length && setDeployEnvironment(buildEnvironment);
+    const env =  version?.length ? (buildEnvironment==='staging' ? 'int' : 'prod') : 'int';
+    getPublishedConfig(props?.codeSpaceData?.id, env);
     ProgressIndicator.show();
     CodeSpaceApiClient.getCodeSpacesGitBranchList(projectDetails?.recipeDetails?.recipeId === "private-user-defined" ? projectDetails?.recipeDetails?.repodetails : projectDetails?.gitRepoName)
       .then((res) => {
@@ -93,7 +104,7 @@ const DeployModal = (props) => {
           element.id = element.name;
         });
         setBranches(branches);
-        const deploymentDetails = projectDetails?.intDeploymentDetails;
+        const deploymentDetails =  env === 'int' ? projectDetails?.intDeploymentDetails : projectDetails?.prodDeploymentDetails;
         setDeploymentDetails(deploymentDetails);
         // setIAMTechnicalUserID(projectDetails?.intDeploymentDetails?.technicalUserDetailsForIAMLogin || '');
         setSecureWithIAMSelected(deploymentDetails?.secureWithIAMRequired || false);
@@ -102,7 +113,7 @@ const DeployModal = (props) => {
         // setCookieSelected(deploymentDetails?.isSecuredWithCookie || false);
         setCookieSelected(false);
         setClientId(deploymentDetails?.clientId || '');
-        setRedirectUri(deploymentDetails?.redirectUri ? `${envUrl}${deploymentDetails?.redirectUri}` : (deploymentDetails?.deploymentType ==='UI' ? `${envUrl}/${projectDetails?.projectName}/int/cb` : '' ));
+        setRedirectUri(deploymentDetails?.redirectUri ? `${envUrl}${deploymentDetails?.redirectUri}` : (deploymentDetails?.deploymentType ==='UI' ? `${envUrl}/${projectDetails?.projectName}/${env}/cb` : '' ));
         deploymentDetails?.ignorePaths?.length && setIgnorePath(deploymentDetails?.ignorePaths?.split(','));
         deploymentDetails?.scope?.length && setScope(deploymentDetails?.scope?.split(' '));
         setDeploymentType(deploymentDetails?.deploymentType || 'API');
@@ -257,7 +268,7 @@ const DeployModal = (props) => {
       formValid = false;
       setRedirectUriError('*Missing Entry');
     }
-    if(branchValue.length === 0){
+    if(!version?.length && branchValue?.length === 0 ){
       formValid = false;
       setIsBranchValueMissing(true);
     }
@@ -272,8 +283,9 @@ const DeployModal = (props) => {
       const deployRequest = {
         secureWithIAMRequired: secureWithIAMSelected,
         // technicalUserDetailsForIAMLogin: secureWithIAMSelected ? iamTechnicalUserID : null,
-        targetEnvironment: deployEnvironment === 'staging' ? 'int' : 'prod', // int or prod
-        branch: branchValue[0],
+        targetEnvironment: version?.length ? (buildEnvironment === 'staging' ? 'int' : 'prod') : (deployEnvironment === 'staging' ? 'int' : 'prod'), // int or prod
+        branch: version?.length ? buildBranch : branchValue[0],
+        version: version || '',
         // valutInjectorEnable: vaultEnabled,
         clientID: secureWithIAMSelected ? clientId : '',
         clientSecret: clientSecret,
@@ -337,8 +349,8 @@ const DeployModal = (props) => {
             The code from your workspace will be deployed and is run in a container and you will get the access url
             after the deployment.
           </p>
-          <div className={Styles.threeColumnLayout}>
-            <div>
+          <div className={version?.length ? Styles.flexLayout : Styles.threeColumnLayout}>
+            {!version.length && <div>
               <div id="deployEnvironmentContainer" className="input-field-group">
                 <label className="input-label">Deploy Environment</label>
                 <div>
@@ -370,7 +382,7 @@ const DeployModal = (props) => {
                   </label>
                 </div>
               </div>
-            </div>
+            </div>}
             <div>
               <div id="deployTypeContainer" className="input-field-group">
                 <label className="input-label">Deployment Type</label>
@@ -405,6 +417,21 @@ const DeployModal = (props) => {
               </div>
             </div>
             <div>
+              {version?.length ? (
+                <div id="deployVersionContainer" className="input-field-group">
+                  <label className="input-label">Based on previous build</label>
+                  <div>
+                    <label className="chips">
+                      <b>Environment: </b> {buildEnvironment} | 
+                      <b> Branch: </b> {buildBranch} | 
+                      <b> Triggered By: </b> {triggeredBy} | 
+                      <b> Build On: </b> {buildOn} |  
+                      <b> Version: </b> {version} |
+                      <b> Comment: </b> {comment} 
+                    </label>
+                  </div>
+                </div>
+              ) : (
               <Tags
                 title={'Code Branch to Deploy'}
                 max={1}
@@ -418,9 +445,10 @@ const DeployModal = (props) => {
                 disableSelfTagAdd={true}
                 suggestionPopupHeight={150}
               />
+              )}
             </div>
           </div>
-          {/* {(props.enableSecureWithIAM || props.isUIRecipe) && ( */}
+          {(!projectDetails?.dataGovernance?.enableDeployApproval || isApprover || deployEnvironment==='staging')  && (
             <>
                   <div className={classNames(Styles.threeColumnFlexLayout)}>
                     <div>
@@ -634,7 +662,7 @@ const DeployModal = (props) => {
                     </>
                   )}
             </>
-
+          )}
           {props.startDeployLivelinessCheck && (
             <div>
               <label className="checkbox">
