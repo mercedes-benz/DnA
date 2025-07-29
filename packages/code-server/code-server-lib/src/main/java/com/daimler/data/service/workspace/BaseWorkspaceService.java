@@ -1655,7 +1655,11 @@
 						 deploymentDetails = entity.getData().getProjectDetails().getProdDeploymentDetails();
 					 }
 			 String lastBuildOrDeployStatus = "";
-					 		 
+			 boolean isApiRecipe = deploymentDetails.getDeploymentType() == ConstantsUtility.UI ? false : true;
+			 boolean secureWithIAMRequired = (deploymentDetails.getSecureWithIAMRequired() != null) ? deploymentDetails.getSecureWithIAMRequired() : false;
+			 boolean secureWithDnaRequired = (deploymentDetails.getSecureWithDnaRequired() != null) ? deploymentDetails.getSecureWithDnaRequired() : false;
+			 boolean isSecuredWithCookie = false;
+
 			 //buildAndDeploy flow
 			 if(version == null || version.isEmpty() || version.isBlank()){
 				String lastBuildType = "buildAndDeploy";
@@ -1667,6 +1671,7 @@
 				log.info("build triggered for workspaceId {} and branch {} and environment {} and lastBuildType {}",workspaceId,branch,environment,lastBuildType);
 				responseMessage = this.buildWorkSpace(userId, id, branch, buildRequestDto, isprivateRecipe, environment,lastBuildType);
 				if(responseMessage.getSuccess().equalsIgnoreCase("SUCCESS")){
+					authenticatorClient.callingKongApis(workspaceId, projectName, environment, isApiRecipe, deploymentDetails.getClientId(), "", deploymentDetails.getRedirectUri(), deploymentDetails.getIgnorePaths(), deploymentDetails.getScope(), deploymentDetails.getOneApiVersionShortName(), isSecuredWithCookie, secureWithIAMRequired, deploymentDetails.getSsoType().toString(), secureWithDnaRequired, cloudServiceProvider);
 					status = "SUCCESS";
 					lastBuildOrDeployStatus = "BUILD_REQUESTED";
 				}else{
@@ -1792,6 +1797,10 @@
 					 }
 					 auditLogEntity.setData(buildDeployLogs);
 					 buildDeployRepo.save(auditLogEntity);
+
+					 if(deployType.equalsIgnoreCase("deploy")){
+						 authenticatorClient.callingKongApis(workspaceId, projectName, environment, isApiRecipe, deploymentDetails.getClientId(), "", deploymentDetails.getRedirectUri(), deploymentDetails.getIgnorePaths(), deploymentDetails.getScope(), deploymentDetails.getOneApiVersionShortName(), isSecuredWithCookie, secureWithIAMRequired, deploymentDetails.getSsoType().toString(), secureWithDnaRequired, cloudServiceProvider);
+					 }
 					
 					// deploymentDetails.setLastDeployedBranch(branch);
 					// deploymentDetails.setLastDeployedVersion(version);	
