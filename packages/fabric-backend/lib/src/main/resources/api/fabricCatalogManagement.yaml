@@ -303,3 +303,13 @@ definitions:
       dataConfidentiality:
         type: string
         enum: [public,confidential,secret,internal]
+
+  FabricCatalogMetadataDetailsVO:
+    type: object
+    properties:
+      metadata:
+        $ref: "#/definitions/FabricCatalogMetadataVO"
+      owners:
+        type: array
+        items:
+          $ref: "#/definitions/CreatedByVO"

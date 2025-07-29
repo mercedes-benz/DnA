@@ -34,13 +34,14 @@ import javax.persistence.Entity;
 import javax.persistence.Table;
 
 import com.daimler.data.db.json.catalogManangement.FabricCatalogMetadata;
+import com.daimler.data.db.json.catalogManangement.FabricCatalogMetadataDetails;
 import com.daimler.data.db.json.AuthoriserRoleDeatils;
 
 import io.swagger.models.parameters.SerializableParameter;
 
 @Entity
 @Table(name = "fabric_catalog_metadata_nsql")
-public class FabricCatalogMetadataNsql extends BaseEntity<FabricCatalogMetadata> implements Serializable {
+public class FabricCatalogMetadataNsql extends BaseEntity<FabricCatalogMetadataDetails> implements Serializable {
 
     private static final long serialVersionUID = 1L;
 
@@ -48,7 +49,7 @@ public class FabricCatalogMetadataNsql extends BaseEntity<FabricCatalogMetadata>
 		super();
 	}
 
-	public FabricCatalogMetadataNsql(String id, FabricCatalogMetadata data) {
+	public FabricCatalogMetadataNsql(String id, FabricCatalogMetadataDetails data) {
 		this.setId(id);
 		this.setData(data);
 	}

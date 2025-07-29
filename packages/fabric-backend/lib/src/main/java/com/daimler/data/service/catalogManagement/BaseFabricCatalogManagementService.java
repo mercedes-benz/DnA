@@ -5,22 +5,30 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import javax.transaction.Transactional;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import com.daimler.data.application.client.OpenMetadataClient;
+import com.daimler.data.assembler.FabricCatalogMetadataAssembler;
 import com.daimler.data.assembler.FabricWorkspaceAssembler;
 import com.daimler.data.controller.exceptions.EntityNotFoundException;
 import com.daimler.data.controller.exceptions.EntityAlreadyExistsException;
 import com.daimler.data.controller.exceptions.OpenMetadataClientException;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
+import com.daimler.data.db.entities.FabricCatalogMetadataNsql;
 import com.daimler.data.db.entities.FabricWorkspaceNsql;
+import com.daimler.data.db.json.catalogManangement.FabricCatalogMetadataDetails;
+import com.daimler.data.db.repo.catalogManagement.FabricCatalogManagementRepository;
 import com.daimler.data.db.repo.fabric.FabricWorkspaceCustomRepository;
 import com.daimler.data.db.repo.fabric.FabricWorkspaceRepository;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceVO;
+import com.daimler.data.dto.fabricWorkspace.CdcPublishedLakeHouseDetailsVO;
 import com.daimler.data.dto.fabricCatalogManagement.PublishCatalogRequestVO;
 import com.daimler.data.dto.fabricCatalogManagement.FabricCatalogMetadataVO;
+import com.daimler.data.dto.fabricCatalogManagement.FabricCatalogMetadataDetailsVO;
 import com.daimler.data.dto.fabricCatalogManagement.DatabaseMetadataVO;
 import com.daimler.data.dto.fabricCatalogManagement.SchemaMetadataVO;
 import com.daimler.data.dto.fabricCatalogManagement.TableMetadataVO;
@@ -38,7 +46,7 @@ import lombok.extern.slf4j.Slf4j;
 
 @Service
 @Slf4j
-public class BaseFabricCatalogManagementService extends BaseCommonService<FabricWorkspaceVO, FabricWorkspaceNsql, String> implements FabricCatalogManagementService {
+public class BaseFabricCatalogManagementService extends BaseCommonService<FabricCatalogMetadataDetailsVO, FabricCatalogMetadataNsql, String> implements FabricCatalogManagementService {
 
 	@Autowired
 	private FabricWorkspaceCustomRepository customRepo;
@@ -52,11 +60,18 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
 	@Autowired
 	private OpenMetadataClient openMetadataClient;
 
+	@Autowired
+	private FabricCatalogManagementRepository catalogRepo;
+
+	@Autowired
+	private FabricCatalogMetadataAssembler catalogAssembler;
+
 	public BaseFabricCatalogManagementService() {
 		super();
 	}
 
 	@Override
+	@Transactional
 	public GenericMessage publishCatalogMetaData(PublishCatalogRequestVO request, FabricWorkspaceVO existingFabricWorkspace) {
 		GenericMessage response = new GenericMessage();
 		List<MessageDescription> messages = new ArrayList<>();
@@ -76,6 +91,8 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
 				warning.setMessage("User " + owner.getId()
 						+ " not found in OpenMetadata. Please ensure they've logged in to CDC.");
 				warningMessages.add(warning);
+				owners.remove(owner);
+
 			}
 		}
 
@@ -128,8 +145,22 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
 				}
 			}
 
-		existingFabricWorkspace.setCdcLakeHouseDetails(metadata);
+		//Adding CDC published lake house details
+		CdcPublishedLakeHouseDetailsVO cdcPublishedLakeHouseDetails = new CdcPublishedLakeHouseDetailsVO();
+		List<String> lakeHouseNames = metadata.getDatabases().stream()
+                                      .map(DatabaseMetadataVO::getDbName)
+                                      .collect(Collectors.toList());
+		cdcPublishedLakeHouseDetails.setIsLakeHousesPublishedToCdc(true);
+		cdcPublishedLakeHouseDetails.setPublishedLakeHouseNames(lakeHouseNames);
+		existingFabricWorkspace.setCdcPublishedLakeHouseDetails(cdcPublishedLakeHouseDetails);
 		jpaRepo.save(assembler.toEntity(existingFabricWorkspace));
+
+		//Adding metadata to FabricCatalogMetadataNsql
+		FabricCatalogMetadataDetailsVO catalogMetadataDetails = new FabricCatalogMetadataDetailsVO();
+		catalogMetadataDetails.setMetadata(metadata);
+		catalogMetadataDetails.setOwners(owners);
+
+		catalogRepo.save(catalogAssembler.toEntity(catalogMetadataDetails));
 
 		} catch (EntityAlreadyExistsException e) {
 			return createErrorResponse("CONFLICT",
