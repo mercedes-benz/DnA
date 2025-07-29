@@ -102,9 +102,9 @@ const DeployedAppConfigModal = (props) => {
     const env = props?.isStaging ? 'int' : 'prod';
     setRedirectUri(
       props?.deploymentDetails?.redirectUri
-        ? `${envUrl}${props?.deploymentDetails?.redirectUri}`
+        ? `${envUrl}${props?.deploymentDetails?.redirectUri.toLowerCase()}`
         : props?.deploymentDetails?.deploymentType === 'UI'
-        ? `${envUrl}/${props?.projectName}/${env}/cb`
+        ? `${envUrl}/${props?.projectName.toLowerCase()}/${env}/cb`
         : '',
     );
     props?.deploymentDetails?.ignorePaths?.length && setIgnorePath(props?.deploymentDetails?.ignorePaths?.split(','));
@@ -139,7 +139,7 @@ const DeployedAppConfigModal = (props) => {
       setRedirectUri('');
     } else {
       setIsUiRecipe(true);
-      setRedirectUri(`${envUrl}/${props?.projectName}/${props?.isStaging ? 'int' : 'prod'}/cb`);
+      setRedirectUri(`${envUrl}/${props?.projectName.toLowerCase()}/${props?.isStaging ? 'int' : 'prod'}/cb`);
       setOneApiSelected(false);
     }
   }, [deploymentType]); // eslint-disable-line react-hooks/exhaustive-deps
@@ -165,7 +165,7 @@ const DeployedAppConfigModal = (props) => {
 
   useEffect(() => {
     const redirectUri =
-      deploymentType === 'UI' ? `${envUrl}/${props?.projectName}/${props?.isStaging ? 'int' : 'prod'}/cb` : '';
+      deploymentType === 'UI' ? `${envUrl}/${props?.projectName.toLowerCase()}/${props?.isStaging ? 'int' : 'prod'}/cb` : '';
     if (resetRequired) {
       setClientId('');
       setClientSecret('');
@@ -175,7 +175,7 @@ const DeployedAppConfigModal = (props) => {
     } else {
       setClientId(props?.deploymentDetails?.clientId || '');
       setRedirectUri(
-        props?.deploymentDetails?.redirectUri ? `${envUrl}${props?.deploymentDetails?.redirectUri}` : redirectUri,
+        props?.deploymentDetails?.redirectUri ? `${envUrl}${props?.deploymentDetails?.redirectUri.toLowerCase()}` : redirectUri,
       );
       props?.deploymentDetails?.ignorePaths?.length && setIgnorePath(props?.deploymentDetails?.ignorePaths?.split(','));
       props?.deploymentDetails?.scope?.length && setScope(props?.deploymentDetails?.scope?.split(' '));
@@ -777,7 +777,7 @@ const DeployedAppConfigModal = (props) => {
                       <TextBox
                         type="text"
                         label={'Redirect Uri'}
-                        placeholder={`eg:${envUrl}/${props?.projectName}/${props?.isStaging ? 'int' : 'prod'}/cb`}
+                        placeholder={`eg:${envUrl}/${props?.projectName.toLowerCase()}/${props?.isStaging ? 'int' : 'prod'}/cb`}
                         value={redirectUri}
                         required={isUiRecipe}
                         errorText={redirectUriError}
