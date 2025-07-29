@@ -186,7 +186,7 @@ alloy:
         output {
           traces = [
             otelcol.connector.spanlogs.default.input,
-            otelcol.exporter.otlp.default.input
+            otelcol.exporter.otlp.default.input,
           ]
         }
       }

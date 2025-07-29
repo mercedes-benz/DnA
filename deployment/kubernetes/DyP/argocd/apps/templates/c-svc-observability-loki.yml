@@ -16,7 +16,7 @@ spec:
     namespace: observability
     server: {{ .Values.server | squote }}
   source:
-    path: deployment/kubernetes/DyP/observability/loki-distributed
+    path: deployment/kubernetes/DyP/observability/loki
     repoURL: {{ .Values.repoURL | squote }}
     targetRevision: {{ .Values.branch }}
     plugin:

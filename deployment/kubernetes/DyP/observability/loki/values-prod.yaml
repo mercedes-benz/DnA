@@ -72,6 +72,9 @@ ingester:
     enabled: true
   persistence:
     enabled: true
+    claims:
+      - name: data
+        size: 10Gi    
 
 querier:
   replicas: 3
@@ -124,6 +127,9 @@ bloomGateway:
 
 minio:
   enabled: true
+  replicas: 3
+  rootUser: <path:dna_aws_kv/data/dev/kubernetesSecret/loki#rootUser>
+  rootPassword: <path:dna_aws_kv/data/dev/kubernetesSecret/loki#rootPassword>  
   image:
     repository: registry-emea.app.corpintra.net/quaycache/minio/minio
   mcImage:

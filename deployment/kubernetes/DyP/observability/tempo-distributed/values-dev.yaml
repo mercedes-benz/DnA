@@ -6,8 +6,8 @@ storage:
   trace:
     backend: s3
     s3:
-      access_key: 'root-user'
-      secret_key: 'supersecretpassword'
+      access_key: <path:dna_aws_kv/data/dev/kubernetesSecret/loki#rootUser>
+      secret_key: <path:dna_aws_kv/data/dev/kubernetesSecret/loki#rootPassword>
       bucket: 'tempo-traces'
       endpoint: 'loki-minio:9000'
       insecure: true
