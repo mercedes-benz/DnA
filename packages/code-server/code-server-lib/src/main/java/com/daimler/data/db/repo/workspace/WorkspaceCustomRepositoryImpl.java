@@ -494,7 +494,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 				+
 				"'{projectDetails," + addQuotes(environment) + ",deploymentType}', '" + addQuotes(deploymentType)
 				+ "')," +
-				"'{projectDetails," + addQuotes(environment) + ",clientID}', '" + addQuotes(clientID) + "')," +
+				"'{projectDetails," + addQuotes(environment) + ",clientId}', '" + addQuotes(clientID) + "')," +
 				"'{projectDetails," + addQuotes(environment) + ",redirectUri}', '" + addQuotes(redirectUri) + "')," +
 				"'{projectDetails," + addQuotes(environment) + ",ignorePaths}', '" + addQuotes(ignorePaths) + "')," +
 				"'{projectDetails," + addQuotes(environment) + ",scope}', '" + addQuotes(scope) + "')," +
