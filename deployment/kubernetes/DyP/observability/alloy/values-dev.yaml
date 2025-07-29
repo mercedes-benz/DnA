@@ -170,98 +170,49 @@ alloy:
         }
       }  
 
-      //tempo
+      //otlp
       otelcol.receiver.otlp "default" {
         grpc {}
         http {}
 
         output {
-          traces  = [otelcol.processor.k8sattributes.default.input,otelcol.connector.servicegraph.default.input]
-          metrics = [otelcol.processor.batch.default.input]
-          logs = [otelcol.processor.attributes.default.input]
+          traces = [otelcol.connector.spanlogs.default.input, otelcol.exporter.otlp.default.input]
         }
       }
 
+      // Separate Zipkin receiver
       otelcol.receiver.zipkin "default" {
+        endpoint = "0.0.0.0:9411"
         output {
-          traces  = [otelcol.processor.k8sattributes.default.input,otelcol.connector.servicegraph.default.input]
-          metrics = [otelcol.processor.batch.default.input]
-          logs = [otelcol.processor.attributes.default.input]
-        }
-      }
-      otelcol.processor.k8sattributes "default" {
-        extract {
-          metadata = [
-            "k8s.pod.uid",
-            "k8s.pod.start_time",
+          traces = [
+            otelcol.connector.spanlogs.default.input,
+            otelcol.exporter.otlp.default.input,
           ]
         }
-        output {
-          traces  = [otelcol.processor.batch.default.input]
-        }
       }
 
-      otelcol.connector.servicegraph "default" {
-        dimensions = ["http.method"]
+      otelcol.connector.spanlogs "default" {
+        roots = true
+        span_attributes = ["http.method", "http.target"]
         output {
-          metrics = [otelcol.exporter.prometheus.default.input]
-        }
-      }
-
-      otelcol.processor.batch "default" {
-        output {
-          traces  = [otelcol.exporter.otlp.tempo.input]
-          metrics = [otelcol.exporter.prometheus.default.input]
           logs = [otelcol.exporter.loki.default.input]
         }
       }
 
-      otelcol.exporter.prometheus "default" {
-        forward_to = [prometheus.remote_write.mimir.receiver]
-      }
-
-      prometheus.remote_write "mimir" {
-        endpoint {
-          url = "http://i3-monitoring-prometheus-server.i3-monitoring.svc.cluster.local/api/v1/write"
-        }
-      }
-
-      otelcol.exporter.otlp "tempo" {
-        client {
-          endpoint = "http://tempo-distributor.observability.svc.cluster.local:4317"
-          tls {
-              insecure             = true
-              insecure_skip_verify = true
-          }
-        }
-      }
-      otelcol.processor.attributes "default" {
-        action {
-          key = "loki.attribute.labels"
-          action = "insert"
-          value = "event.domain, event.name"
-        }
-
-        action {
-          key = "loki.resource.labels"
-          action = "insert"
-          value = "service.name, service.namespace"
-        }
-
-        output {
-          logs = [otelcol.processor.batch.default.input]
-        }
-      }
-
       otelcol.exporter.loki "default" {
-        forward_to = [loki.write.local.receiver]
+        forward_to = [loki.write.grafana_loki.receiver]
       }
 
-      loki.write "local" {
-        endpoint {
-            url = "http://loki-gateway/loki/api/v1/push"
+      otelcol.exporter.otlp "default" {
+        client {
+            endpoint = "http://tempo-distributor.observability.svc.cluster.local:4317"
+            tls {
+                insecure             = true
+                insecure_skip_verify = true
+            }
         }
       }
+
     # -- Name of existing ConfigMap to use. Used when create is false.
     name: null
     # -- Key in ConfigMap to get config from.

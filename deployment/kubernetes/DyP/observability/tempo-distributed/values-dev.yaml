@@ -4,29 +4,25 @@ global:
     registry: registry-emea.app.corpintra.net/dockerhub  
 storage:
   trace:
-    block:
-      version: vParquet4
-      dedicated_columns:
-        - name: cluster
-          type: string
-          scope: resource
-        - name: service.name
-          type: string
-          scope: resource
+    backend: s3
+    s3:
+      access_key: <path:dna_aws_kv/data/dev/kubernetesSecret/loki#rootUser>
+      secret_key: <path:dna_aws_kv/data/dev/kubernetesSecret/loki#rootPassword>
+      bucket: 'tempo-traces'
+      endpoint: 'loki-minio:9000'
+      insecure: true
 ingester:
   persistence:
     enabled: true
-    claims:
-      - name: data
-        size: 50Gi  
-        storageClass: dhc-gp3
-  config:
-    complete_block_timeout: 72h  # Set to 3 days (72 hours)       
-compactor:     
+    size: 5Gi
+    storageClass: dhc-gp3
+compactor:
   config:
     compaction:
-      # -- Duration to keep blocks
-      block_retention: 72h    
+      compaction_window: 720h # 30days
+      max_compaction_objects: 1000000
+      block_retention: 720h
+      compacted_block_retention: 10m
 traces:
   otlp:
     grpc:
@@ -38,4 +34,5 @@ traces:
 overrides:
   defaults:
     metrics_generator:
-      processors: [service-graphs, span-metrics, local-blocks]
+      processors: ['service-graphs', 'span-metrics', 'local-blocks']
+      generate_native_histograms: both
