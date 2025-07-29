@@ -57,19 +57,20 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
     @Autowired
     private FabricCatalogManagementService service;
 
-    @ApiOperation(value = "Publish a new catalog.", nickname = "publishCatalogRequest", notes = "This endpoint will be used to publish a new fabric catalog.", response = PublishCatalogResponseVO.class, tags = {
-            "fabric-catalog-management", })
-    @ApiResponses(value = {
-            @ApiResponse(code = 201, message = "Returns message of success or failure ", response = PublishCatalogResponseVO.class),
-            @ApiResponse(code = 400, message = "Bad Request", response = GenericMessage.class),
-            @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
-            @ApiResponse(code = 403, message = "Request is not authorized."),
-            @ApiResponse(code = 405, message = "Method not allowed"),
-            @ApiResponse(code = 500, message = "Internal error") })
-    @RequestMapping(value = "/catalog/publish", produces = { "application/json" }, consumes = {
-            "application/json" }, method = RequestMethod.POST)
-    public ResponseEntity<PublishCatalogResponseVO> publishCatalogRequest(
-            @ApiParam(value = "The catalog to publish.", required = true) @Valid @RequestBody PublishCatalogRequestVO publishCatalogRequest) {
+    @Override
+     @ApiOperation(value = "Publish a new catalog.", nickname = "publishCatalogRequest", notes = "This endpoint will be used to publish a new fabric catalog.", response = PublishCatalogResponseVO.class, tags={ "fabric-catalog-management", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns message of success or failure ", response = PublishCatalogResponseVO.class),
+        @ApiResponse(code = 400, message = "Bad Request", response = GenericMessage.class),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/catalog/{workspaceId}/publish",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.POST)
+    public ResponseEntity<PublishCatalogResponseVO> publishCatalogRequest(@ApiParam(value = "The catalog to publish." ,required=true )  @Valid @RequestBody PublishCatalogRequestVO publishCatalogRequest,@ApiParam(value = "The ID of the workspace.",required=true) @PathVariable("workspaceId") String workspaceId) {
 
         PublishCatalogResponseVO responseVO = new PublishCatalogResponseVO();
         PublishCatalogResponseVOData responseData = new PublishCatalogResponseVOData();
@@ -79,11 +80,11 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
         GenericMessage erroMessage = new GenericMessage();
 
         FabricWorkspaceVO existingFabricWorkspace = fabricWorkspaceService
-                .getById(publishCatalogRequest.getWorkspaceId());
+                .getById(workspaceId);
             
         if (existingFabricWorkspace == null
-                || !publishCatalogRequest.getWorkspaceId().equalsIgnoreCase(existingFabricWorkspace.getId())) {
-            log.error("No Fabric Workspace found with id {}", publishCatalogRequest.getWorkspaceId());
+                || !workspaceId.equalsIgnoreCase(existingFabricWorkspace.getId())) {
+            log.error("No Fabric Workspace found with id {}", workspaceId);
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
         }
 
@@ -91,10 +92,10 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
         String creatorId = existingFabricWorkspace.getCreatedBy().getId();
 
         if (!requestUser.getId().equalsIgnoreCase(creatorId)
-                && !userStore.getUserInfo().hasProjectAdminAccess(publishCatalogRequest.getWorkspaceId())) {
+                && !userStore.getUserInfo().hasProjectAdminAccess(workspaceId)) {
             log.error(
                     "Fabric workspace {} {} doesnt belong to User or user not admin {} , Not authorized to publish catalog.",
-                    publishCatalogRequest.getWorkspaceId(), existingFabricWorkspace.getName(), requestUser.getId());
+                    workspaceId, existingFabricWorkspace.getName(), requestUser.getId());
             return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
         }
 
@@ -137,6 +138,7 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
         }
     }
 
+    @Override
    @ApiOperation(value = "Get catalog by service name.", nickname = "getCatalogByServiceName", notes = "This endpoint will be used to retrieve a fabric catalog by its service name.", response = FabricCatalogMetadataVO.class, tags={ "fabric-catalog-management", })
     @ApiResponses(value = { 
         @ApiResponse(code = 200, message = "Returns message of success or failure", response = FabricCatalogMetadataVO.class),

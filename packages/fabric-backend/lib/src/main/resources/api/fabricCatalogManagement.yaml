@@ -61,7 +61,7 @@ schemes:
   - "https"
 
 paths:
-  /catalog/publish:
+  /catalog/{workspaceId}/publish:
      post:
       tags:
         - "fabric-catalog-management"
@@ -75,6 +75,11 @@ paths:
           required: true
           schema:
             $ref: "#/definitions/PublishCatalogRequestVO"
+        - name: workspaceId
+          in: path
+          description: "The ID of the workspace."
+          required: true
+          type: "string"
       responses:
         201:
           description: "Returns message of success or failure "
@@ -141,11 +146,6 @@ definitions:
     properties:
       metaData:
         $ref: "#/definitions/FabricCatalogMetadataVO"
-        required: true
-      workspaceId:
-        type: string
-        minLength: 1
-        description: "The workspace ID where the catalog will be published."
         required: true
       mandatoryFields:
         $ref: "#/definitions/MandatoryFieldsVO"
