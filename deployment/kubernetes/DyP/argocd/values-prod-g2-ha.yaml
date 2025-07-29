@@ -2798,10 +2798,10 @@ repoServer:
             type: argocd-tmp
         spec:
           accessModes: [ "ReadWriteOnce" ]
-          storageClassName: "dhc-gp3"
+          storageClassName: "caas-gp3"
           resources:
             requests:
-              storage: 20Gi  
+              storage: 6Gi  
   #  varFiles:
   #    persistentVolumeClaim:
   #      claimName: pvc-argocd-repo-server-varfiles
