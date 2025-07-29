@@ -1,0 +1,148 @@
+.mainPanel {
+    padding-top: 10px;
+
+    h3 {
+        color: #acb8c4;
+        font-weight: initial;
+        margin-top: 25px;
+        text-align: center;
+      }
+      
+    .flexLayout {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        >div:first-child{
+          width: calc(40% - 7px) ;
+        }
+
+        >div:nth-child(2){
+          width: calc(40% - 7px);
+        }
+
+        >div:last-child{
+          width: calc(20% - 7px) ;
+        }
+       
+    }
+
+    .action{
+      &:hover{
+        color: #00adef;
+      }
+    }
+    .searchBox{
+      width: 200px;
+      margin: 0px;
+    }
+    .searchPanel{
+      display: flex;
+      background: none !important;
+      i{
+        font-size: var(--font-size-icon-content) !important;
+        position: absolute;
+        color: #57626e;
+      }
+    }
+    .noData{
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      position: relative;
+      background-color: #252a33;
+      text-align: center;
+      width: calc(100% - 40px);
+      height: 200px;
+    }
+    
+    .searchField{
+      width: 200px;
+    }
+    .searchIcon{
+      margin-left: 180px;
+      margin-top: 12px;
+    }
+    .copyIcon{ 
+      font-size: 13px !important;
+      margin-bottom: 10px !important;
+    }
+
+    .allCodeSpace {
+      margin-bottom: 15px;
+      flex: 1 auto;
+      position: relative;
+  
+      .allcodeSpaceListviewContent {
+        background-color: #252a33;
+        //padding-top: 20px;
+        // overflow-x:auto
+  
+        .codeSpaceMargininone {
+          // border: 1px solid;
+          // border-collapse: collapse;
+          // border-color:#383f49;
+          position: relative;
+          margin-top: 20px;
+        }
+      }
+    }
+    // td,th{
+    //   text-align: center !important; 
+    //   border: 1px solid;
+    //   border-color:#383f49;
+    // }
+
+    .actionBtnGrp {
+      display: flex;
+      margin-left: -20px;
+      gap: 5px;
+    }
+
+    .actionBtn {
+      background-color: transparent;
+      border: 0;
+      padding: 0;
+      font-size: var(--font-size-smallest);
+
+      i {
+        font-size: var(--font-size-icon-small);
+      }
+
+      &:hover {
+        color: #00adef;
+      }
+    }
+    .toggleSwitch {
+      font-size: var(--font-size-icon-medium);
+      .toggleError{
+       color:  #E84D47;
+       margin-top: 10px;
+       font-size: 13px;
+      }
+
+    }
+   .saveBtn{
+    display: flex;
+    justify-content:flex-end;
+    margin-top: 20px;
+    button{
+      margin-left: 10px;
+    }
+   }
+   .copyBtn{
+    display: flex;
+    justify-content:flex-end;
+    height: 30px;
+    margin-top: -10px;
+    
+   }
+   .errorMsg{
+    color:  #E84D47;
+    margin-top: 10px;
+   }
+   .jsonView{
+    .info{
+      margin: 5px 0px;
+    }
+   }
+}
