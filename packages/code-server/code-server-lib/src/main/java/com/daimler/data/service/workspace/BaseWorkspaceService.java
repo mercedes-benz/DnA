@@ -2721,6 +2721,7 @@
 					 if(optionalBuildDeployentity != null){
 						 buildDeployentity = optionalBuildDeployentity;
 						 buildDeployData = buildDeployentity.getData();
+						 log.info("last deployed time is {}",now);
 						 if("int".equalsIgnoreCase(targetEnv)){							
 							 int lastIndex = buildDeployData.getIntDeploymentAuditLogs().size() - 1;
 							 buildDeployData.getIntDeploymentAuditLogs().get(lastIndex).setDeploymentStatus(latestStatus);
