@@ -26,6 +26,7 @@ import com.daimler.data.api.fabricWorkspace.LovsApi;
 import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.application.auth.UserStore.UserInfo;
 import com.daimler.data.application.client.AuthoriserClient;
+import com.daimler.data.application.client.DnAAliceAuthDataServiceClient;
 import com.daimler.data.application.client.FabricWorkspaceClient;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
@@ -74,7 +75,10 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 
 	@Autowired
 	private FabricWorkspaceClient fabricWorkspaceClient;
-	
+
+	@Autowired
+	private DnAAliceAuthDataServiceClient dnAAliceAuthDataServiceClient;
+
 	@Value("${fabricWorkspaces.subgroupPrefix}")
 	private String subgroupPrefix;
 	
@@ -580,7 +584,7 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 			
 		CreatedByVO requestUser = this.userStore.getVO();
 		UserInfo currentUserInfo = this.userStore.getUserInfo();
-		allEntitlementsList =  currentUserInfo.getEntitlement_group();
+		allEntitlementsList =  dnAAliceAuthDataServiceClient.getAllUserEntitlements(currentUserInfo.getId());
 		user = requestUser.getId();
 		collection = service.getAll(limit, offset, user, allEntitlementsList, isTechnicalUser(user));
 		HttpStatus responseCode = collection.getRecords()!=null && !collection.getRecords().isEmpty() ? HttpStatus.OK : HttpStatus.NO_CONTENT;
@@ -610,7 +614,7 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 		}
 		CreatedByVO requestUser = this.userStore.getVO();
 		UserInfo currentUserInfo = this.userStore.getUserInfo();
-		List<String> allEntitlementsList = currentUserInfo.getEntitlement_group();
+		List<String> allEntitlementsList = dnAAliceAuthDataServiceClient.getAllUserEntitlements(currentUserInfo.getId());
 		List<String> filteredEntitlements = new ArrayList<>();
 		if(allEntitlementsList!=null && !allEntitlementsList.isEmpty()) {
 			filteredEntitlements = allEntitlementsList.stream().filter(n-> n.contains( applicationId + "." + subgroupPrefix ) && n.contains(id)).collect(Collectors.toList());

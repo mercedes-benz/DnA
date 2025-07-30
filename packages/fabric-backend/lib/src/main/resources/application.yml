@@ -92,7 +92,11 @@ authoriser:
   clientId: ${IDENTITY_CLIENT_ID:XXXX}
   clientSecret: ${IDENTITY_CLIENT_SECRET:XXXX}
   role.fabricRoleName: ${IDENTITY_FABRIC_OPERATIONS_ROLENAME:XXXX}
-  
+  dna: 
+    authService:
+      uri: ${IDENTITY_AUTH_DNA_URI:XXXX}
+      secret: ${IDENTITY_AUTH_DNA_CLIENT_SECRET:XXXX}
+
 server:
   port: 9292
 
