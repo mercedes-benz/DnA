@@ -28,10 +28,10 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 public class DnAAliceAuthDataServiceClient {
 
-    @Value("${authoriser.dnA.authService.uri}")
+    @Value("${authoriser.dna.authService.uri}")
     private String authUrl;
 
-    @Value("${authoriser.dnA.authService.secret}")
+    @Value("${authoriser.dna.authService.secret}")
     private String secret;
 
     @Autowired
@@ -51,7 +51,7 @@ public class DnAAliceAuthDataServiceClient {
 				ObjectMapper objectMapper = new ObjectMapper();
 				objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 				JsonNode jsonData = objectMapper.readTree(apiResponse.getBody());
-                JsonNode entitlements = jsonData.get("entitlements");
+                JsonNode entitlements = jsonData.get("data").get("entitlements");
 				if (entitlements.isArray()) {
 					for (JsonNode entitlementNode : entitlements) {
 						String id = entitlementNode.get("id").asText();
