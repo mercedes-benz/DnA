@@ -451,8 +451,9 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse }) {
           Notification.show(e.response.data.errors?.length ? e.response.data.errors[0].message : 'Lakehouse deletion failed', 'alert');
         });
   }
-  const isAdmin = user?.entitlementGroup?.some(item => item?.startsWith(Envs.FABRIC_ENTITLEMENT_PREFIX) && item?.endsWith(`${workspace?.id}_Admin`));
-  const isOwner = user?.id === workspace?.createdBy?.id; 
+  const userRole = workspace?.userRole;
+  const isAdmin = userRole === 'Admin';
+  const isOwner = user?.id === workspace?.createdBy?.id;
   return (
     <>
       <div className={Styles.lakehouseContainer}>
