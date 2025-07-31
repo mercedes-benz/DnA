@@ -38,10 +38,7 @@ const AddSoftwareForm = ({ edit, software, onAddSoftware }) => {
       Notification.show('Software added successfully');
     }).catch(error => {
       ProgressIndicator.hide();
-      Notification.show(
-        error?.data?.response?.errors?.[0]?.message | error?.response?.errors?.[0]?.message || error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || error?.response?.data?.responses?.errors?.[0]?.message || 'Error while adding software',
-        'alert',
-      );
+     Notification.show(error?.data?.response?.errors?.[0]?.message || error?.response?.errors?.[0]?.message || error?.response?.data?.response?.errors?.[0]?.message || error?.response?.data?.response?.warnings?.[0]?.message || error?.response?.data?.responses?.errors?.[0]?.message || 'Error while adding software', 'alert');
     });
   };
 
@@ -85,9 +82,9 @@ const AddSoftwareForm = ({ edit, software, onAddSoftware }) => {
                   placeholder="Type here"
                   autoComplete="off"
                   maxLength={100}
-                  {...register('softwareName', { required: '*Missing entry', pattern: /^(?!\s*$)[a-zA-Z\d -]+$/ })}
+                  {...register('softwareName', { required: '*Missing entry', pattern: /^(?!\s*$)[a-zA-Z\d .-]+$/ })}
                 />
-                <span className={'error-message'}>{errors?.softwareName?.message}{errors.softwareName?.type === 'pattern' && 'Environment name can be only alphanumeric characters and hyphens (-), special symbols and standalone spaces are not allowed.'}</span>
+                <span className={'error-message'}>{errors?.softwareName?.message}{errors.softwareName?.type === 'pattern' && 'Environment name can be only alphanumeric characters and hyphens (-), periods(.), special symbols and standalone spaces are not allowed.'}</span>
               </div>
             </div>
             <div className={Styles.col}>
