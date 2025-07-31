@@ -164,9 +164,7 @@ const FabricWorkspace = ({ user }) => {
           {!loading && 
             <Caption title={`Fabric Workspace - ${workspace?.name || 'null'}`}>
               <div className={Styles.draftIndicatorCol}>
-                {userRoles.map((role, index) => (
-                  <span key={index} className={Styles.draftIndicator}>{role}</span>
-                ))}
+                  <span key={index} className={Styles.draftIndicator}>{userRoles}</span>
               </div>
               <div>
                 <button className={classNames('btn btn-primary', Styles.refreshBtn)} tooltip-data="Refresh" onClick={getWorkspace}>
