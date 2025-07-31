@@ -48,7 +48,7 @@ public class FabricWorkspaceUtility {
     }
 
     public String getUserRole(List<String> filteredEntitlements) {
-        System.out.println("inside util________________________________"+filteredEntitlements);
+
         if (filteredEntitlements == null) {
             return ConstantsUtility.PERMISSION_VIEWER;
         }
