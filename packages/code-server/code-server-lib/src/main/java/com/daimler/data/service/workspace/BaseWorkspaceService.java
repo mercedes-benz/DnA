@@ -2721,7 +2721,6 @@
 					 if(optionalBuildDeployentity != null){
 						 buildDeployentity = optionalBuildDeployentity;
 						 buildDeployData = buildDeployentity.getData();
-						 log.info("last deployed time is {}",now);
 						 if("int".equalsIgnoreCase(targetEnv)){							
 							 int lastIndex = buildDeployData.getIntDeploymentAuditLogs().size() - 1;
 							 buildDeployData.getIntDeploymentAuditLogs().get(lastIndex).setDeploymentStatus(latestStatus);
@@ -2730,7 +2729,7 @@
 						 }else{
 							 int lastIndex = buildDeployData.getProdDeploymentAuditLogs().size() - 1;
 							 buildDeployData.getProdDeploymentAuditLogs().get(lastIndex).setDeploymentStatus(latestStatus);
-							 buildDeployData.getIntDeploymentAuditLogs().get(lastIndex).setDeployedOn(now);	
+							 buildDeployData.getProdDeploymentAuditLogs().get(lastIndex).setDeployedOn(now);	
 						 }
 						 buildDeployentity.setData(buildDeployData);
 						 buildDeployRepo.save(buildDeployentity);
