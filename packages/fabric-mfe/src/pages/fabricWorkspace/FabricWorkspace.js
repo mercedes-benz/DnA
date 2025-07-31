@@ -155,9 +155,7 @@ const FabricWorkspace = ({ user }) => {
           }
         });
   };
-  const userRoles = user?.entitlementGroup
-      ?.filter(ent => ent.startsWith(`${Envs.FABRIC_ENTITLEMENT_PREFIX}${workspace?.id}`))
-      ?.map(ent => ent.split('_').at(-1)) || ['N/A'];
+  const userRoles = workspace?.userRole;
 
   return (
     <React.Fragment>
