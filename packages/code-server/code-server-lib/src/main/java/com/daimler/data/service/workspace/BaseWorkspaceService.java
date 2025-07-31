@@ -2578,7 +2578,7 @@ import com.daimler.data.dto.workspace.buildDeploy.*;
 						 }else{
 							 int lastIndex = buildDeployData.getProdDeploymentAuditLogs().size() - 1;
 							 buildDeployData.getProdDeploymentAuditLogs().get(lastIndex).setDeploymentStatus(latestStatus);
-							 buildDeployData.getIntDeploymentAuditLogs().get(lastIndex).setDeployedOn(now);	
+							 buildDeployData.getProdDeploymentAuditLogs().get(lastIndex).setDeployedOn(now);	
 						 }
 						 buildDeployentity.setData(buildDeployData);
 						 buildDeployRepo.save(buildDeployentity);
