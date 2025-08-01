@@ -315,6 +315,13 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse }) {
   const [showViewShortcutsModal, setShowViewShortcutsModal] = useState(false);
   const [showCreateShortcutModal, setShowCreateShortcutModal] = useState(false);
 
+  const [contextMenus, setContextMenus] = useState({});
+  const [showLocationsContextMenu, setShowLocationsContextMenu] = useState(false);
+  const [contextMenuOffsetTop, setContextMenuOffsetTop] = useState(0);
+  const [contextMenuOffsetLeft, setContextMenuOffsetLeft] = useState(0);
+
+  let isTouch = false;
+
   useEffect(() => {
     Tooltip.defaultSetup();
     return Tooltip.clear();
@@ -405,6 +412,99 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse }) {
     }
   }
 
+  const handleContextMenuOutside = (event) => {
+    if (event.type === 'touchend') {
+      isTouch = true;
+    }
+
+    // Click event has been simulated by touchscreen browser.
+    if (event.type === 'click' && isTouch === true) {
+      return;
+    }
+
+    const target = event.target;
+    const elemClasses = target.classList;
+    const cardDivElement = target.closest(`.${Styles.lakehouse}`);
+    const contextMenuWrapper = cardDivElement?.querySelector('.contextMenuWrapper');
+    const locationContextMenuWrapper = cardDivElement?.querySelector('.contextMenuWrapper');
+
+    if (
+      cardDivElement &&
+      !target.classList.contains('trigger') &&
+      !target.classList.contains('context') &&
+      !target.classList.contains('contextList') &&
+      !target.classList.contains('contextListItem') &&
+      contextMenuWrapper !== null &&
+      contextMenuWrapper?.contains(target) === false &&
+      (Object.values(contextMenus).includes(true) || showLocationsContextMenu)
+    ) {
+      setContextMenus(prevState => {
+        const newState = {};
+        for (const key in prevState) {
+          newState[key] = false;
+        }
+        return newState;
+      });
+      setShowLocationsContextMenu(false);
+    } else if (cardDivElement?.contains(target) === false) {
+      setContextMenus(prevState => {
+        const newState = {};
+        for (const key in prevState) {
+          newState[key] = false;
+        }
+        return newState;
+      });
+      setShowLocationsContextMenu(false);
+    }
+
+    if (!contextMenuWrapper?.contains(target)) {
+      setContextMenus(prevState => {
+        const newState = {};
+        for (const key in prevState) {
+          newState[key] = false;
+        }
+        return newState;
+      });
+    }
+
+    if (!locationContextMenuWrapper?.contains(target)) {
+      setShowLocationsContextMenu(false);
+    }
+
+    if (
+      (Object.values(contextMenus).includes(true) || showLocationsContextMenu) &&
+      (elemClasses.contains('contextList') ||
+        elemClasses.contains('contextListItem') ||
+        elemClasses.contains('contextMenuWrapper') ||
+        elemClasses.contains('locationsText'))
+    ) {
+      event.stopPropagation();
+    }
+  };
+
+  useEffect(() => {
+    Tooltip.defaultSetup();
+    document.addEventListener('touchend', handleContextMenuOutside, true);
+    document.addEventListener('click', handleContextMenuOutside, true);
+
+    return () => {
+      document.removeEventListener('touchend', handleContextMenuOutside, true);
+      document.removeEventListener('click', handleContextMenuOutside, true);
+    };
+  }, [contextMenus]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const toggleContextMenu = (e, lakehouseId) => {
+    e.stopPropagation();
+    setContextMenuOffsetTop(e.currentTarget.offsetTop - 10);
+    setContextMenuOffsetLeft(e.currentTarget.offsetLeft - 200);
+    setShowLocationsContextMenu(false);
+    setContextMenus(prevState => ({
+      ...prevState,
+      [lakehouseId]: !prevState[lakehouseId],
+    }));
+  };
+
+
   const createLakehouseModalContent = <>
     <div className={Styles.lakehouseModalContent}>
       <div className={classNames('input-field-group include-error', lakehouseNameError ? 'error' : '')}>
@@ -472,26 +572,50 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse }) {
         }
         <div className={Styles.lakehouseContent}>
           {paginatedLakehouses?.length > 0 && paginatedLakehouses?.map((lakehouse) =>
-            <div key={lakehouse?.id} className={Styles.lakehouse}>
+            <div key={'card-' + lakehouse?.id} className={Styles.lakehouse} >
               <h4>
-                <span>
+                <span className={Styles.lakehouseName}>
                   {lakehouse?.name} 
                   {/* {lakehouse?.sensitivityLabel !== workspace?.dataClassification && <i className="icon mbc-icon info" tooltip-data={'Sensitivity label for lakehouse is not set or\nset higher than Workspace Data Classification. Please update.'} />} */}
                 </span>
-                {user?.id === workspace?.createdBy?.id && 
-                  <button className={classNames('btn', Styles.deleteBtn)} onClick={() => { setSelectedLakehouse(lakehouse); setShowDeleteModal(true) }}>
-                    <i className="icon delete" />
-                  </button>
-                }
+                <div className={classNames(Styles.contextMenu, contextMenus[lakehouse?.id] ? Styles.open : '')}>
+                  <span
+                     onClick={(e) => toggleContextMenu(e, lakehouse?.id)}
+                    className={classNames(Styles.trigger, contextMenus[lakehouse?.id] ? Styles.open : '')}
+                  >
+                    <i className="icon mbc-icon listItem context" />
+                  </span>
+                  <div
+                    style={{
+                      top: contextMenuOffsetTop + 'px',
+                      left: contextMenuOffsetLeft + 'px',
+                    }}
+                    className={classNames('contextMenuWrapper', contextMenus[lakehouse?.id] ? Styles.showMenu : 'hide')}
+                  >
+                    <ul className="contextList">
+                      <li className="contextListItem">
+                        <button className={classNames('btn btn-primary', Styles.outlineBtn, !(isAdmin || isOwner) && Styles.disabledBtn)} onClick={() => { setSelectedLakehouse(lakehouse); setShowCreateShortcutModal(true) }}>
+                          <i className="icon mbc-icon plus" />
+                          <span>Create Shortcut</span>
+                        </button>
+                      </li>
+                      <li className="contextListItem">
+                        <button className={classNames('btn btn-primary', Styles.outlineBtn)} onClick={() => { setSelectedLakehouse(lakehouse); setShowViewShortcutsModal(true) }}>
+                          <i className="icon mbc-icon new-tab" />
+                          <span>View Shortcuts</span>
+                        </button>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
               </h4>
-              <button className={classNames('btn btn-primary', Styles.outlineBtn, !(isAdmin || isOwner) && Styles.disabledBtn)} onClick={() => { setSelectedLakehouse(lakehouse); setShowCreateShortcutModal(true) }}>
-                <i className="icon mbc-icon plus" />
-                <span>Create Shortcut</span>
-              </button>&nbsp;&nbsp;&nbsp;&nbsp;
-              <button className={classNames('btn btn-primary', Styles.outlineBtn)} onClick={() => { setSelectedLakehouse(lakehouse); setShowViewShortcutsModal(true) }}>
-                <i className="icon mbc-icon new-tab" />
-                <span>View Shortcuts</span>
-              </button>
+              <div className={Styles.buttonContainer}>
+                {user?.id === workspace?.createdBy?.id && 
+                    <button className={classNames('btn', Styles.deleteBtn)} onClick={() => { setSelectedLakehouse(lakehouse); setShowDeleteModal(true) }}>
+                      <i className="icon delete" />
+                    </button>
+                }
+              </div>
             </div>
             )
           }
