@@ -192,4 +192,86 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
         }
     }
 
+    @Override
+    @ApiOperation(value = "update Published catalog.", nickname = "updatePublishedCatalogRequest", notes = "This endpoint will be used to update published fabric catalog.", response = PublishCatalogResponseVO.class, tags={ "fabric-catalog-management", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns message of success or failure ", response = PublishCatalogResponseVO.class),
+        @ApiResponse(code = 400, message = "Bad Request", response = GenericMessage.class),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/catalog/{workspaceId}/publish",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.PUT)
+    public ResponseEntity<PublishCatalogResponseVO> updatePublishedCatalogRequest(@ApiParam(value = "The catalog to publish." ,required=true )  @Valid @RequestBody PublishCatalogRequestVO updateCatalogRequest,@ApiParam(value = "The ID of the workspace.",required=true) @PathVariable("workspaceId") String workspaceId){
+
+        PublishCatalogResponseVO responseVO = new PublishCatalogResponseVO();
+        PublishCatalogResponseVOData responseData = new PublishCatalogResponseVOData();
+        responseData.setCatalogMetadata(updateCatalogRequest.getMetaData());
+        responseData.setOwnerDetails(updateCatalogRequest.getOwners());
+        responseVO.setData(responseData);
+        GenericMessage erroMessage = new GenericMessage();
+
+        FabricWorkspaceVO existingFabricWorkspace = fabricWorkspaceService
+                .getById(workspaceId);
+            
+        if (existingFabricWorkspace == null
+                || !workspaceId.equalsIgnoreCase(existingFabricWorkspace.getId())) {
+            log.error("No Fabric Workspace found with id {}", workspaceId);
+            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+        }
+
+        CreatedByVO requestUser = this.userStore.getVO();
+        String creatorId = existingFabricWorkspace.getCreatedBy().getId();
+
+        if (!requestUser.getId().equalsIgnoreCase(creatorId)
+                && !userStore.getUserInfo().hasProjectAdminAccess(workspaceId)) {
+            log.error(
+                    "Fabric workspace {} {} doesnt belong to User or user not admin {} , Not authorized to publish catalog.",
+                    workspaceId, existingFabricWorkspace.getName(), requestUser.getId());
+            return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
+        }
+
+        try {
+
+            openMetadataClient.getUserByFqn(requestUser.getId());
+            GenericMessage responseMessage = service.updateCatalogMetaData(updateCatalogRequest, existingFabricWorkspace);
+            responseVO.setResponses(responseMessage);
+            if (("SUCCESS").equalsIgnoreCase(responseMessage.getSuccess())) {
+                return new ResponseEntity<>(responseVO, HttpStatus.OK);
+            } else if (("CONFLICT").equalsIgnoreCase(responseMessage.getSuccess())) {
+                return new ResponseEntity<>(responseVO, HttpStatus.CONFLICT);
+            } else {
+                return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        } catch (EntityNotFoundException e) {
+             GenericMessage failedResponse = new GenericMessage();
+			List<MessageDescription> messages = new ArrayList<>();
+			MessageDescription message = new MessageDescription();
+			message.setMessage("Failed to publish fabric workspace catalog : user didn't log in to cdc");
+			messages.add(message);
+			failedResponse.addErrors(message);
+			failedResponse.setSuccess("FAILED");
+            responseVO.setData(null);
+			responseVO.setResponses(failedResponse);
+			log.error("User:{} didnt logged into cdc {} ", userStore.getUserInfo().getId(), e.getMessage());
+			return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+        } catch (Exception e) {
+            GenericMessage failedResponse = new GenericMessage();
+			List<MessageDescription> messages = new ArrayList<>();
+			MessageDescription message = new MessageDescription();
+			message.setMessage("Failed to publish fabric workspace catalog due to internal error");
+			messages.add(message);
+			failedResponse.addErrors(message);
+			failedResponse.setSuccess("FAILED");
+            responseVO.setData(null);
+			responseVO.setResponses(failedResponse);
+			log.error("Exception occurred:{} while publishing fabric workspace catalog...", e.getMessage());
+			return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+    }
+
 }

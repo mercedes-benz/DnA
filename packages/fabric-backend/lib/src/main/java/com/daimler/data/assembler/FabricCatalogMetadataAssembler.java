@@ -9,6 +9,7 @@ import org.springframework.beans.BeanUtils;
 
 import com.daimler.data.db.entities.FabricCatalogMetadataNsql;
 import com.daimler.data.db.json.catalogManangement.FabricCatalogMetadataDetails;
+import com.daimler.data.db.json.catalogManangement.MandatoryFields;
 import com.daimler.data.db.json.catalogManangement.FabricCatalogMetadata;
 import com.daimler.data.db.json.catalogManangement.Databases;
 import com.daimler.data.db.json.catalogManangement.Schemas;
@@ -21,6 +22,7 @@ import com.daimler.data.dto.fabricCatalogManagement.SchemaMetadataVO;
 import com.daimler.data.dto.fabricCatalogManagement.TableMetadataVO;
 import com.daimler.data.dto.fabricCatalogManagement.ColumnMetadataVO;
 import com.daimler.data.dto.fabricCatalogManagement.CreatedByVO;
+import com.daimler.data.dto.fabricCatalogManagement.MandatoryFieldsVO;
 
 @Component
 public class FabricCatalogMetadataAssembler implements GenericAssembler<FabricCatalogMetadataDetailsVO, FabricCatalogMetadataNsql> {
@@ -82,6 +84,11 @@ public class FabricCatalogMetadataAssembler implements GenericAssembler<FabricCa
                         .collect(Collectors.toList());
             }
             data.setOwners(owners);
+            MandatoryFields mandatoryFields = new MandatoryFields();
+            if(vo.getMandatoryFields()!=null){
+                BeanUtils.copyProperties(vo.getMandatoryFields(), mandatoryFields);
+            }
+            data.setMandatoryFields(mandatoryFields);
         }
         entity.setData(data);
         return entity;
@@ -148,6 +155,10 @@ public class FabricCatalogMetadataAssembler implements GenericAssembler<FabricCa
                 
             }
             vo.setOwners(owners);
+            MandatoryFieldsVO mandatoryFieldsVO = new MandatoryFieldsVO();
+            if(metadataDetails.getMandatoryFields()!=null){
+                BeanUtils.copyProperties(metadataDetails.getMandatoryFields(), mandatoryFieldsVO);
+            }
             
 		}
 		return vo;

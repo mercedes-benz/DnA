@@ -18,10 +18,12 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import feign.FeignException;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.UUID;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Component
@@ -30,7 +32,7 @@ public class OpenMetadataClient {
 
     private final ApiClient apiClient;
 
-// get methods
+// getbyFqn methods
 
     public User getUserByFqn(String username) {
         try {
@@ -79,7 +81,25 @@ public class OpenMetadataClient {
             throw new EntityNotFoundException("Table", schemaFQN + "." + tableName);
         }
     }
+//get by id methods
 
+    public DatabaseSchema getSchemaById(String schemaId) {
+        try {
+            return apiClient.buildClient(DatabaseSchemasApi.class)
+                .getDBSchemaByID(UUID.fromString(schemaId), "database", null);
+        } catch (Exception e) {
+            throw new EntityNotFoundException("Schema", schemaId);
+        }
+    }
+
+    public Database getDatabaseById(String databaseId) {
+        try {
+            return apiClient.buildClient(DatabasesApi.class)
+                .getDatabaseByID(UUID.fromString(databaseId), "service", null);
+        } catch (Exception e) {
+            throw new EntityNotFoundException("Database", databaseId);
+        }
+    }
 // Create methods
 
     public DatabaseService createDatabaseService(String name, List<EntityReference> owners) {
@@ -159,49 +179,201 @@ public class OpenMetadataClient {
     }
 //list methods
 
-public List<Database> getDatabasesForService(String serviceFqn) {
-    try {
-        DatabasesApi.ListDatabasesQueryParams params = new DatabasesApi.ListDatabasesQueryParams()
-                .service(serviceFqn)
-                .include("non-deleted")
-                .limit(100);
+    public List<Database> getDatabasesForService(String serviceFqn) {
+        try {
+            DatabasesApi.ListDatabasesQueryParams params = new DatabasesApi.ListDatabasesQueryParams()
+                    .service(serviceFqn)
+                    .include("non-deleted")
+                    .limit(100);
 
-        return apiClient.buildClient(DatabasesApi.class)
-                .listDatabases(params)
-                .getData();
-    } catch (Exception e) {
-        throw new OpenMetadataClientException("Failed to get databases for service: " + serviceFqn, e);
+            return apiClient.buildClient(DatabasesApi.class)
+                    .listDatabases(params)
+                    .getData();
+        } catch (Exception e) {
+            throw new OpenMetadataClientException("Failed to get databases for service: " + serviceFqn, e);
+        }
     }
-}
-public List<DatabaseSchema> getSchemasForDatabase(String databaseFqn) {
-    try {
-        DatabaseSchemasApi schemasApi = apiClient.buildClient(DatabaseSchemasApi.class);
+    public List<DatabaseSchema> getSchemasForDatabase(String databaseFqn) {
+        try {
+            DatabaseSchemasApi schemasApi = apiClient.buildClient(DatabaseSchemasApi.class);
 
-        DatabaseSchemasApi.ListDBSchemasQueryParams queryParams = new DatabaseSchemasApi.ListDBSchemasQueryParams()
-            .database(databaseFqn)
-            .include("non-deleted") 
-            .limit(100); 
-        DatabaseSchemaList response = schemasApi.listDBSchemas(queryParams);
+            DatabaseSchemasApi.ListDBSchemasQueryParams queryParams = new DatabaseSchemasApi.ListDBSchemasQueryParams()
+                .database(databaseFqn)
+                .include("non-deleted") 
+                .limit(100); 
+            DatabaseSchemaList response = schemasApi.listDBSchemas(queryParams);
 
-        return response.getData();
-    } catch (Exception e) {
-        throw new OpenMetadataClientException("Failed to fetch schemas for database: " + databaseFqn, e);
+            return response.getData();
+        } catch (Exception e) {
+            throw new OpenMetadataClientException("Failed to fetch schemas for database: " + databaseFqn, e);
+        }
     }
-}
-public List<Table> getTablesForSchema(String schemaFqn) {
-    try {
-        TablesApi.ListTablesQueryParams params = new TablesApi.ListTablesQueryParams()
-                .databaseSchema(schemaFqn)
-                .include("non-deleted")
-                .limit(100);
+    public List<Table> getTablesForSchema(String schemaFqn) {
+        try {
+            TablesApi.ListTablesQueryParams params = new TablesApi.ListTablesQueryParams()
+                    .databaseSchema(schemaFqn)
+                    .include("non-deleted")
+                    .limit(100);
 
-        return apiClient.buildClient(TablesApi.class)
-                .listTables(params)
-                .getData();
-    } catch (Exception e) {
-        throw new OpenMetadataClientException("Failed to get tables for schema: " + schemaFqn, e);
+            return apiClient.buildClient(TablesApi.class)
+                    .listTables(params)
+                    .getData();
+        } catch (Exception e) {
+            throw new OpenMetadataClientException("Failed to get tables for schema: " + schemaFqn, e);
+        }
     }
-}
+
+//update methods
+   public DatabaseService updateDatabaseService(CreateDatabaseService updateRequest) {
+        try {
+            return apiClient.buildClient(DatabaseServicesApi.class)
+                .createOrUpdateDatabaseService(updateRequest);
+        } catch (Exception e) {
+            throw new OpenMetadataClientException("Failed to update database service", e);
+        }
+    }
+
+    public Database updateDatabase(String dbId, String name, String serviceFQN, MandatoryFieldsVO fields) {
+        try {
+            CreateDatabase request = new CreateDatabase()
+                .name(name)
+                .service(serviceFQN)
+                .extension(toExtensions(fields));
+
+            return apiClient.buildClient(DatabasesApi.class)
+                .createOrUpdateDatabase(request);
+        } catch (Exception e) {
+            throw new OpenMetadataClientException("Failed to update database: " + name, e);
+        }
+    }
+
+    public DatabaseSchema updateSchema(String schemaId, String name, String dbFQN) {
+        try {
+            CreateDatabaseSchema request = new CreateDatabaseSchema()
+                .name(name)
+                .database(dbFQN);
+
+            return apiClient.buildClient(DatabaseSchemasApi.class)
+                .createOrUpdateDBSchema(request);
+        } catch (Exception e) {
+            throw new OpenMetadataClientException("Failed to update schema: " + name, e);
+        }
+    }
+
+    public Table updateTable(String tableId, String name, String schemaFQN, List<Column> columns) {
+        try {
+            CreateTable request = new CreateTable()
+                .name(name)
+                .databaseSchema(schemaFQN)
+                .columns(columns);
+
+            return apiClient.buildClient(TablesApi.class)
+                .createOrUpdateTable(request);
+        } catch (Exception e) {
+            throw new OpenMetadataClientException("Failed to update table: " + name, e);
+        }
+    }
+
+    // For column operations
+    public void addColumnToTable(String tableId, Column column) {
+        try {
+            Table table = getTableById(tableId);
+            List<Column> columns = new ArrayList<>(table.getColumns());
+            columns.add(column);
+            
+            CreateTable request = new CreateTable()
+                .name(table.getName())
+                .databaseSchema(table.getDatabaseSchema().getFullyQualifiedName())
+                .columns(columns);
+
+            apiClient.buildClient(TablesApi.class)
+                .createOrUpdateTable(request);
+        } catch (Exception e) {
+            throw new OpenMetadataClientException("Failed to add column to table: " + tableId, e);
+        }
+    }
+
+    public void removeColumnFromTable(String tableId, String columnName) {
+        try {
+            Table table = getTableById(tableId);
+            List<Column> columns = table.getColumns().stream()
+                .filter(col -> !col.getName().equals(columnName))
+                .collect(Collectors.toList());
+                
+            CreateTable request = new CreateTable()
+                .name(table.getName())
+                .databaseSchema(table.getDatabaseSchema().getFullyQualifiedName())
+                .columns(columns);
+
+            apiClient.buildClient(TablesApi.class)
+                .createOrUpdateTable(request);
+        } catch (Exception e) {
+            throw new OpenMetadataClientException("Failed to remove column from table: " + tableId, e);
+        }
+    }
+
+    private Table getTableById(String tableId) {
+        try {
+            return apiClient.buildClient(TablesApi.class)
+                .getTableByID(UUID.fromString(tableId), null, "non-deleted");
+        } catch (Exception e) {
+            throw new EntityNotFoundException("Table", tableId);
+        }
+    }
+
+//delete methods
+
+   public void deleteDatabase(String databaseId) {
+        try {
+            apiClient.buildClient(DatabasesApi.class)
+                .deleteDatabase(
+                    UUID.fromString(databaseId),
+                    true,  // recursive = true to delete children
+                    true  // hardDelete = false (soft delete)
+                );
+        } catch (Exception e) {
+            throw new OpenMetadataClientException("Failed to delete database: " + databaseId, e);
+        }
+    }
+
+    public void deleteSchema(String schemaId) {
+        try {
+            apiClient.buildClient(DatabaseSchemasApi.class)
+                .deleteDBSchema(
+                    UUID.fromString(schemaId),
+                    true,  // recursive = true
+                    true  // hardDelete = false
+                );
+        } catch (Exception e) {
+            throw new OpenMetadataClientException("Failed to delete schema: " + schemaId, e);
+        }
+    }
+
+    public void deleteTable(String tableId) {
+        try {
+            apiClient.buildClient(TablesApi.class)
+                .deleteTable(
+                    UUID.fromString(tableId),
+                    true, // hardDelete = false
+                    true   // recursive = true
+                );
+        } catch (Exception e) {
+            throw new OpenMetadataClientException("Failed to delete table: " + tableId, e);
+        }
+    }
+
+    public void deleteColumnFromTable(String tableId, String columnName) {
+        try {
+            Table table = getTableById(tableId);
+            List<Column> updatedColumns = table.getColumns().stream()
+                .filter(col -> !col.getName().equals(columnName))
+                .collect(Collectors.toList());
+            
+            updateTable(tableId, table.getName(), table.getDatabaseSchema().getFullyQualifiedName(), updatedColumns);
+        } catch (Exception e) {
+            throw new OpenMetadataClientException("Failed to delete column: " + columnName, e);
+        }
+    }
 
 // helper methods
 

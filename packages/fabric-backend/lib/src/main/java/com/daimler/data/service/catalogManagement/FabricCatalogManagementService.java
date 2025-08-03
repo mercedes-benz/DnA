@@ -14,4 +14,5 @@ public interface FabricCatalogManagementService extends CommonService<FabricCata
 
 	GenericMessage publishCatalogMetaData(PublishCatalogRequestVO request, FabricWorkspaceVO existingFabricWorkspace);
 	FabricCatalogMetadataVO getCatalogMetadata(String serviceName);
+	GenericMessage updateCatalogMetaData(PublishCatalogRequestVO request, FabricWorkspaceVO existingFabricWorkspace);
 }

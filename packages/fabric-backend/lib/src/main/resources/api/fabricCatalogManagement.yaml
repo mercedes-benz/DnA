@@ -62,7 +62,7 @@ schemes:
 
 paths:
   /catalog/{workspaceId}/publish:
-     post:
+    post:
       tags:
         - "fabric-catalog-management"
       summary: "Publish a new catalog."
@@ -97,6 +97,44 @@ paths:
           description: "Method not allowed"
         500:
           description: "Internal error"
+
+    put:
+      tags:
+        - "fabric-catalog-management"
+      summary: "update Published catalog."
+      description: "This endpoint will be used to update published fabric catalog."
+      operationId: "updatePublishedCatalogRequest"
+      parameters:
+        - name: updateCatalogRequest
+          in: body
+          description: "The catalog to publish."
+          required: true
+          schema:
+            $ref: "#/definitions/PublishCatalogRequestVO"
+        - name: workspaceId
+          in: path
+          description: "The ID of the workspace."
+          required: true
+          type: "string"
+      responses:
+        201:
+          description: "Returns message of success or failure "
+          schema:
+            $ref: "#/definitions/PublishCatalogResponseVO"
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
+
 
   /catalog/{workspaceId}/{serviceName}:
     get:
@@ -313,3 +351,5 @@ definitions:
         type: array
         items:
           $ref: "#/definitions/CreatedByVO"
+      mandatoryFields:
+        $ref: "#/definitions/MandatoryFieldsVO"

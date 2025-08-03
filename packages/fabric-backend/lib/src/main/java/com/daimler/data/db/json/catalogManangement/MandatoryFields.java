@@ -4,8 +4,6 @@ import java.io.Serializable;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.daimler.data.db.json.UserDetails;
-import com.daimler.data.db.json.catalogManangement.Databases;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -14,10 +12,15 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class FabricCatalogMetadataDetails implements Serializable{
+public class MandatoryFields implements Serializable{
     private static final long serialVersionUID = 1L;
 
-    private FabricCatalogMetadata metadata;
-    private List<UserDetails> owners;
-    private MandatoryFields mandatoryFields;
+    private String division;
+    private String dataOrigin;
+    private String leanIXId;
+    private String isDocumentationUpdated;
+    private String isDataLakeAvailability;
+    private String isDataAsset;
+    private String dataConfidentiality;
+    
 }
