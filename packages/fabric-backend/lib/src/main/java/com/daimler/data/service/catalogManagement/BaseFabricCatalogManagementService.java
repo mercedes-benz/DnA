@@ -22,6 +22,7 @@ import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.db.entities.FabricCatalogMetadataNsql;
 import com.daimler.data.db.entities.FabricWorkspaceNsql;
 import com.daimler.data.db.json.catalogManangement.FabricCatalogMetadataDetails;
+import com.daimler.data.db.repo.catalogManagement.FabricCatalogManagementCustomRepository;
 import com.daimler.data.db.repo.catalogManagement.FabricCatalogManagementRepository;
 import com.daimler.data.db.repo.fabric.FabricWorkspaceCustomRepository;
 import com.daimler.data.db.repo.fabric.FabricWorkspaceRepository;
@@ -63,6 +64,9 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
 
 	@Autowired
 	private FabricCatalogManagementRepository catalogRepo;
+
+	@Autowired
+	private FabricCatalogManagementCustomRepository catalogCustomRepo;
 
 	@Autowired
 	private FabricCatalogMetadataAssembler catalogAssembler;
@@ -439,36 +443,43 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
 	}
 	
 	private void updateStoredMetadata(PublishCatalogRequestVO request) {
-		// Find existing metadata (implementation depends on your repository)
-		FabricCatalogMetadataDetailsVO details = catalogRepo.findAll().stream()
-			.map(catalogAssembler::toVo)
-			.filter(vo -> vo.getMetadata().getServiceName().equals(request.getMetaData().getServiceName()))
-			.findFirst()
-			.orElse(new FabricCatalogMetadataDetailsVO());
-
+		try{
+		FabricCatalogMetadataNsql entity = catalogCustomRepo.findByServiceName(request.getMetaData().getServiceName())
+			.orElseThrow(() -> new EntityNotFoundException("Catalog metadata", request.getMetaData().getServiceName()));
+		FabricCatalogMetadataDetailsVO  vo = catalogAssembler.toVo(entity);
 		// Update all fields
-		details.setMetadata(request.getMetaData());
-		details.setOwners(request.getOwners());
-		details.setMandatoryFields(request.getMandatoryFields());
-		
-		catalogRepo.save(catalogAssembler.toEntity(details));
+		vo.setMetadata(request.getMetaData());
+		vo.setOwners(request.getOwners());
+		vo.setMandatoryFields(request.getMandatoryFields());
+		catalogRepo.save(catalogAssembler.toEntity(vo));
+		} catch (EntityNotFoundException e) {
+			log.error("Catalog metadata not found for service: {}", request.getMetaData().getServiceName());
+			throw new EntityNotFoundException("Catalog metadata", request.getMetaData().getServiceName());
+		} catch (Exception e) {
+			log.error("Failed to update catalog metadata: {}", e.getMessage());
+			throw new OpenMetadataClientException("Failed to update catalog metadata: " + e.getMessage(), e);
+		}
 	}
 
 	// Helper methods
 	private void updateLakeHouseDetails(FabricWorkspaceVO workspace, FabricCatalogMetadataVO metadata) {
-		CdcPublishedLakeHouseDetailsVO details = workspace.getCdcPublishedLakeHouseDetails();
-		if (details == null) {
-			details = new CdcPublishedLakeHouseDetailsVO();
+		try{
+			CdcPublishedLakeHouseDetailsVO details = workspace.getCdcPublishedLakeHouseDetails();
+			if (details == null) {
+				details = new CdcPublishedLakeHouseDetailsVO();
+			}
+			details.setIsLakeHousesPublishedToCdc(true);
+			details.setPublishedLakeHouseNames(
+				metadata.getDatabases().stream()
+					.map(DatabaseMetadataVO::getDbName)
+					.collect(Collectors.toList()));
+			
+			workspace.setCdcPublishedLakeHouseDetails(details);
+			jpaRepo.save(assembler.toEntity(workspace));
+		} catch (Exception e) {
+			log.error("Failed to update lake house details: {}", e.getMessage());
+			throw new OpenMetadataClientException("Failed to update lake house details: " + e.getMessage(), e);
 		}
-		
-		details.setIsLakeHousesPublishedToCdc(true);
-		details.setPublishedLakeHouseNames(
-			metadata.getDatabases().stream()
-				.map(DatabaseMetadataVO::getDbName)
-				.collect(Collectors.toList()));
-		
-		workspace.setCdcPublishedLakeHouseDetails(details);
-		jpaRepo.save(assembler.toEntity(workspace));
 	}
 
 	

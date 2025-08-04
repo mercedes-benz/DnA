@@ -23,6 +23,13 @@ import com.daimler.data.dto.fabricCatalogManagement.TableMetadataVO;
 import com.daimler.data.dto.fabricCatalogManagement.ColumnMetadataVO;
 import com.daimler.data.dto.fabricCatalogManagement.CreatedByVO;
 import com.daimler.data.dto.fabricCatalogManagement.MandatoryFieldsVO;
+import com.daimler.data.dto.fabricCatalogManagement.MandatoryFieldsVO.DivisionEnum;
+import com.daimler.data.dto.fabricCatalogManagement.MandatoryFieldsVO.DataOriginEnum;
+import com.daimler.data.dto.fabricCatalogManagement.MandatoryFieldsVO.IsDocumentationUpdatedEnum;
+import com.daimler.data.dto.fabricCatalogManagement.MandatoryFieldsVO.IsDataLakeAvailabilityEnum;
+import com.daimler.data.dto.fabricCatalogManagement.MandatoryFieldsVO.IsDataAssetEnum;
+import com.daimler.data.dto.fabricCatalogManagement.MandatoryFieldsVO.DataConfidentialityEnum;
+
 
 @Component
 public class FabricCatalogMetadataAssembler implements GenericAssembler<FabricCatalogMetadataDetailsVO, FabricCatalogMetadataNsql> {
@@ -32,6 +39,9 @@ public class FabricCatalogMetadataAssembler implements GenericAssembler<FabricCa
         FabricCatalogMetadataDetails data = new FabricCatalogMetadataDetails();
         FabricCatalogMetadata metadata = new FabricCatalogMetadata();
 		if (vo != null) {
+            if(vo.getId() != null) {
+                entity.setId(vo.getId());
+            }
             if(vo.getMetadata() != null) {
                 FabricCatalogMetadataVO metadataVO = vo.getMetadata();
 				metadata.setServiceName(metadataVO.getServiceName());
@@ -86,7 +96,15 @@ public class FabricCatalogMetadataAssembler implements GenericAssembler<FabricCa
             data.setOwners(owners);
             MandatoryFields mandatoryFields = new MandatoryFields();
             if(vo.getMandatoryFields()!=null){
-                BeanUtils.copyProperties(vo.getMandatoryFields(), mandatoryFields);
+                 MandatoryFieldsVO voMandatoryFields = vo.getMandatoryFields();
+                mandatoryFields.setDivision(voMandatoryFields.getDivision() != null ? voMandatoryFields.getDivision().name() : null);
+                mandatoryFields.setDepartment(voMandatoryFields.getDepartment());
+                mandatoryFields.setDataOrigin(voMandatoryFields.getDataOrigin() != null ? voMandatoryFields.getDataOrigin().name() : null);
+                mandatoryFields.setLeanIXId(voMandatoryFields.getLeanIXId());
+                mandatoryFields.setIsDocumentationUpdated(voMandatoryFields.getIsDocumentationUpdated() != null ? voMandatoryFields.getIsDocumentationUpdated().name() : null);
+                mandatoryFields.setIsDataLakeAvailability(voMandatoryFields.getIsDataLakeAvailability() != null ? voMandatoryFields.getIsDataLakeAvailability().name() : null);
+                mandatoryFields.setIsDataAsset(voMandatoryFields.getIsDataAsset() != null ? voMandatoryFields.getIsDataAsset().name() : null);
+                mandatoryFields.setDataConfidentiality(voMandatoryFields.getDataConfidentiality() != null ? voMandatoryFields.getDataConfidentiality().name() : null);
             }
             data.setMandatoryFields(mandatoryFields);
         }
@@ -99,6 +117,9 @@ public class FabricCatalogMetadataAssembler implements GenericAssembler<FabricCa
         FabricCatalogMetadataVO metadataVO = new FabricCatalogMetadataVO();
 
 		if (entity != null) {
+            if (entity.getId() != null) {
+                vo.setId(entity.getId());
+            }
             FabricCatalogMetadataDetails metadataDetails = entity.getData();
             if (metadataDetails != null) {
                     FabricCatalogMetadata metadata = metadataDetails.getMetadata();
@@ -155,9 +176,17 @@ public class FabricCatalogMetadataAssembler implements GenericAssembler<FabricCa
                 
             }
             vo.setOwners(owners);
+            MandatoryFields mandatoryFields = metadataDetails.getMandatoryFields();
             MandatoryFieldsVO mandatoryFieldsVO = new MandatoryFieldsVO();
-            if(metadataDetails.getMandatoryFields()!=null){
-                BeanUtils.copyProperties(metadataDetails.getMandatoryFields(), mandatoryFieldsVO);
+            if(mandatoryFields!=null){
+                mandatoryFieldsVO.setDivision(mandatoryFields.getDivision() != null ? DivisionEnum.valueOf(mandatoryFields.getDivision()) : null);
+                mandatoryFieldsVO.setDepartment(mandatoryFields.getDepartment());
+                mandatoryFieldsVO.setDataOrigin(mandatoryFields.getDataOrigin() != null ? DataOriginEnum.valueOf(mandatoryFields.getDataOrigin()) : null);
+                mandatoryFieldsVO.setLeanIXId(mandatoryFields.getLeanIXId());
+                mandatoryFieldsVO.setIsDocumentationUpdated(mandatoryFields.getIsDocumentationUpdated() != null ? IsDocumentationUpdatedEnum.valueOf(mandatoryFields.getIsDocumentationUpdated()) : null);
+                mandatoryFieldsVO.setIsDataLakeAvailability(mandatoryFields.getIsDataLakeAvailability() != null ? IsDataLakeAvailabilityEnum.valueOf(mandatoryFields.getIsDataLakeAvailability()) : null);
+                mandatoryFieldsVO.setIsDataAsset(mandatoryFields.getIsDataAsset() != null ? IsDataAssetEnum.valueOf(mandatoryFields.getIsDataAsset()) : null);
+                mandatoryFieldsVO.setDataConfidentiality(mandatoryFields.getDataConfidentiality() != null ? DataConfidentialityEnum.valueOf(mandatoryFields.getDataConfidentiality()) : null);
             }
             
 		}

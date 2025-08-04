@@ -345,6 +345,8 @@ definitions:
   FabricCatalogMetadataDetailsVO:
     type: object
     properties:
+      id:
+        type: string
       metadata:
         $ref: "#/definitions/FabricCatalogMetadataVO"
       owners:

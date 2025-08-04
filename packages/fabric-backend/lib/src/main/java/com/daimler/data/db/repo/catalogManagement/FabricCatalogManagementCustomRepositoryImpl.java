@@ -29,6 +29,14 @@ package com.daimler.data.db.repo.catalogManagement;
 
 
 
+import java.util.Optional;
+
+import javax.persistence.NoResultException;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Expression;
+import javax.persistence.criteria.Root;
+
 import org.springframework.stereotype.Repository;
 
 import com.daimler.data.db.entities.FabricCatalogMetadataNsql;
@@ -38,7 +46,34 @@ import lombok.extern.slf4j.Slf4j;
 
 @Repository
 @Slf4j
-public class FabricCatalogManagementRepositoryImpl extends CommonDataRepositoryImpl<FabricCatalogMetadataNsql, String>
+public class FabricCatalogManagementCustomRepositoryImpl extends CommonDataRepositoryImpl<FabricCatalogMetadataNsql, String>
 		implements FabricCatalogManagementCustomRepository {
+        
+   @Override
+    public Optional<FabricCatalogMetadataNsql> findByServiceName(String serviceName) {
+        String sql = "SELECT * FROM fabric_catalog_metadata_nsql " +
+                     "WHERE jsonb_extract_path_text(data,'metadata', 'serviceName') = :serviceName";
+
+        try {
+            FabricCatalogMetadataNsql result = (FabricCatalogMetadataNsql) em
+                .createNativeQuery(sql, FabricCatalogMetadataNsql.class)
+                .setParameter("serviceName", serviceName)
+                .getSingleResult();
+
+            if (result != null) {
+                return Optional.of(result);
+            } else {
+                return Optional.empty();
+            }
+
+        } catch (Exception e) {
+            if (e instanceof NoResultException) {
+                log.debug("No result found for serviceName: {}", serviceName);
+            } else {
+                log.error("Error occurred while fetching FabricCatalogMetadataNsql by serviceName: {}", serviceName, e);
+            }
+            return Optional.empty();
+        }
+    }
 
 }

@@ -27,15 +27,15 @@
 
 package com.daimler.data.db.repo.catalogManagement;
 
-import java.util.List;
+import java.util.Optional;
 
 import com.daimler.data.db.entities.FabricCatalogMetadataNsql;
 import com.daimler.data.db.repo.common.CommonDataRepository;
 
 public interface FabricCatalogManagementCustomRepository extends CommonDataRepository<FabricCatalogMetadataNsql, String> {
 
-	// List<FabricCatalogMetadataNsql> getAll(String userId, int offset, int limit);
+	Optional<FabricCatalogMetadataNsql> findByServiceName(String serviceName);
 
-	// long getTotalCount(String userId);
+	
 
 }

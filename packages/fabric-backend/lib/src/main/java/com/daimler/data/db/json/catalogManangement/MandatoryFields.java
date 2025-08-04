@@ -16,6 +16,7 @@ public class MandatoryFields implements Serializable{
     private static final long serialVersionUID = 1L;
 
     private String division;
+    private String department;
     private String dataOrigin;
     private String leanIXId;
     private String isDocumentationUpdated;

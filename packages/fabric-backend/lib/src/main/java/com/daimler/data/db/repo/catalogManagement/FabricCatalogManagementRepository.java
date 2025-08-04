@@ -32,5 +32,4 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import com.daimler.data.db.entities.FabricCatalogMetadataNsql;
 
 public interface FabricCatalogManagementRepository extends JpaRepository<FabricCatalogMetadataNsql, String> {
-
 }
