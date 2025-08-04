@@ -501,7 +501,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 				"'{projectDetails," + addQuotes(environment) + ",ssoType}', '" + addQuotes(ssoType) + "')," +
 				"'{projectDetails," + addQuotes(environment) + ",secureWithDnaRequired}', '" + secureWithDnaRequired
 				+ "')," +
-				"'{projectDetails," + addQuotes(environment) + ",isAliceRoleEnabled}', '" + isAliceRoleEnabled + "')," +
+				"'{projectDetails," + addQuotes(environment) + ",aliceRoleEnabled}', '" + isAliceRoleEnabled + "')," +
 				"'{projectDetails," + addQuotes(environment) + ",selectedAliceRoles}', '" + selectedAliceRolesJson
 				+ "')";
 

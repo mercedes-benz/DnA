@@ -606,7 +606,7 @@ const DeployedAppConfigModal = (props) => {
           )}
           {secureWithDnaSelected && isUiRecipe && (
             // <div className={classNames(Styles.align, Styles.flexLayout)}>
-            <div className={classNames(Styles.align, Styles.infoIcon)}>
+            <div className={classNames('hide',Styles.align, Styles.infoIcon)}>
               <label className={classNames('switch', enableAliceRole ? 'on' : '')}>
                 <span className="label" style={{ marginRight: '5px' }}>
                   Enable Alice Role Usage in cookie authentication
@@ -620,6 +620,7 @@ const DeployedAppConfigModal = (props) => {
                       setEnableAliceRole(!enableAliceRole);
                     }}
                     checked={enableAliceRole}
+                    disabled={true}
                     // maxLength={63}
                   />
                 </span>
