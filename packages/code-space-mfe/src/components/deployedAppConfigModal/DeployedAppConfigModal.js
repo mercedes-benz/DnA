@@ -356,7 +356,6 @@ const DeployedAppConfigModal = (props) => {
           Notification.show(`Oidc plugin updated successfully`);
           setPluginEnabled(!pluginEnabled);
           if (enableAuthorizer) {
-            ProgressIndicator.show();
             CodeSpaceApiClient.updatePluginStatus(
               props?.workspaceId,
               props?.isStaging ? 'int' : 'prod',
@@ -373,10 +372,8 @@ const DeployedAppConfigModal = (props) => {
                   );
                   // Notification.show('Error in updating api authoriser plugin', 'alert');
                 }
-                ProgressIndicator.hide();
               })
               .catch((err) => {
-                ProgressIndicator.hide();
                 Notification.show(
                   'Error in updating api authoriser plugin. Please try again later.\n' +
                     err?.response?.data?.errors[0]?.message,
@@ -392,16 +389,17 @@ const DeployedAppConfigModal = (props) => {
           );
           // Notification.show('Error in updating OIDC plugin', 'alert');
         }
-        ProgressIndicator.hide();
       })
       .catch((err) => {
-        ProgressIndicator.hide();
         Notification.show(
           'Error in updating oidc plugin. Please try again later.\n' +
             err?.response?.data?.errors[0]?.message,
           'alert',
         );
         // Notification.show('Error in updating OIDC Plugin. Please try again later.', 'alert');
+      })
+      .finally(() => {
+        ProgressIndicator.hide();
       });
   };
 
