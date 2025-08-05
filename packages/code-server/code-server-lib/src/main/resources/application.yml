@@ -2,7 +2,7 @@ spring:
   mvc.pathmatch.matching-strategy: ant_path_matcher
   application:
     name: dna-codeserver-service
-    version: 1.6.0
+    version: 1.7.0
   profile:
     active: production
 
@@ -79,6 +79,7 @@ allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:http://*}
 codeServer:
   gitjob.deployuri: ${CODE_SERVER_GITJOB_DEPLOY_URI:XXXX}
   gitjob.manageuri: ${CODE_SERVER_GITJOB_MANAGE_URI:XXXX}
+  gitjob.getWorkflowRun: ${CODE_SERVER_GITJOB_GET_WORKFLOW_RUN_URI:xxxx}
   gitjob.pat: ${CODE_SERVER_GITJOB_PAT:XXXX}
   git.pat: ${CODE_SERVER_GIT_PAT:XXXX}
   git.orgname: ${CODE_SERVER_ORGNAME:XXXXX}
