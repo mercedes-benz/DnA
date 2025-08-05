@@ -110,7 +110,6 @@ import com.daimler.data.dto.workspace.CodeServerWorkspaceVO;
  import com.daimler.data.dto.workspace.CodeSpaceReadmeVo;
  import com.daimler.data.dto.workspace.CreatedByVO;
   import com.daimler.data.dto.workspace.DataGovernanceRequestInfo;
-import com.daimler.data.dto.workspace.GetStatusResponse;
 import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
   import com.daimler.data.dto.workspace.ResourceVO;
 import com.daimler.data.dto.workspace.UpdateUserGroupRequestVO;
