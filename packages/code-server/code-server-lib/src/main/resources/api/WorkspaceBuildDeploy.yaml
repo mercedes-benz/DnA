@@ -161,7 +161,7 @@ paths:
         405:
           description: "Method not allowed"
         500:
-          description: "Internal error"        
+          description: "Internal error"                
 
 definitions:
 
@@ -214,7 +214,10 @@ definitions:
         description: "build comments"
       commitId:
         type: string
-        description: "commit id on which codespace is built"  
+        description: "commit id on which codespace is built"
+      gitjobRunID:
+        type: string
+        description: "git job run Id of project deployed"    
 
   DeploymentAuditVO:
     type: object
@@ -241,7 +244,10 @@ definitions:
         description: "commit id on which codespace is deployed"
       version:
         type: string
-        description: "version of the build"  
+        description: "version of the build"
+      gitjobRunID:
+        type: string
+        description: "git job run Id of project deployed"    
 
   CodeServerBuildDeployVO:
     type: object
@@ -328,4 +334,15 @@ definitions:
       warnings:
         type: array
         items:
-          $ref: "#/definitions/MessageDescription"                              
+          $ref: "#/definitions/MessageDescription"
+  GitJobRunIdRequestVO:
+    type: object
+    properties:
+      projectName:
+        type: string
+      gitJobRunId:
+        type: string
+      wsId:
+        type: string
+      userId:
+        type: string      

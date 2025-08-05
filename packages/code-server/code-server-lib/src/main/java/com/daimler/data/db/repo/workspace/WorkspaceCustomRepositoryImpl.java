@@ -56,6 +56,7 @@ import com.daimler.data.db.json.UserInfo;
 import com.daimler.data.db.repo.common.CommonDataRepositoryImpl;
 import com.daimler.data.dto.CodespaceSecurityConfigDto;
 import com.daimler.data.dto.workspace.CodeServerWorkspaceValidateVO;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.extern.slf4j.Slf4j;
@@ -370,7 +371,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 		return updateResponse;
 	}
 
-	
+	@Transactional
 	@Override
 	public GenericMessage updateDeploymentDetails(String projectName, String environment, CodeServerDeploymentDetails deploymentDetails,String lastBuildOrDeployStatus) {
 		log.info("{} - starting DB update.",projectName);
@@ -495,6 +496,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 
 	}
 
+	@Transactional
 	@Override
 	public GenericMessage updateBuildDetails(String projectName, String environment,CodeServerBuildDetails buildDetails) {
 		GenericMessage updateResponse = new GenericMessage();
@@ -542,7 +544,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 		}catch(Exception e) {
 			MessageDescription errMsg = new MessageDescription("Failed while updating build details.");
 			errors.add(errMsg);
-			log.error("failed to update build details for project {} and environment {} , branch {} ", projectName,environment,buildDetails.getLastBuildBranch());
+			log.error("failed to update build details for project {} and environment {} , branch {} exception {} ", projectName,environment,buildDetails.getLastBuildBranch(),e.getMessage());
 		}
 		return updateResponse;
 	}
