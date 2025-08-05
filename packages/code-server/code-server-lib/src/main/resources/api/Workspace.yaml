@@ -1385,8 +1385,8 @@ paths:
           description: "Method not allowed"
         500:
           description: "Internal error"
-  /workspaces/getStatus/{wsId}:
-    get:
+  /workspaces/{wsId}/getStatus:
+    post:
       tags:
         - "code-server"
       summary: "Get status by gitjobrunId for a given project name."
@@ -1399,10 +1399,10 @@ paths:
           required: true
           type: "string"  
       responses:
-        200:
+        201:
           description: "Returns message of success or failure"
           schema:
-            $ref: "#/definitions/GetStatusResponse"
+            $ref: "#/definitions/GenericMessage"
         204:
           description: "Fetch complete, no content found."
         400:
@@ -2315,45 +2315,6 @@ definitions:
         type: array
         items:
           $ref: "#/definitions/MessageDescription"
-  GetStatusResponse:
-    type: object
-    properties:
-      id: 
-        type: string
-        description: "Unique technical ID of workspace"
-      workspaceId:
-        type: string
-        description: "Name of the workspace"
-      data:
-       $ref: "#/definitions/GetStatusProjectDetailsVO"
-      success:
-        type: string
-      errors:
-        type: array
-        items:
-          $ref: "#/definitions/MessageDescription"
-      warnings:
-        type: array
-        items:
-          $ref: "#/definitions/MessageDescription"
-  GetStatusProjectDetailsVO:
-    type: object
-    properties:
-      prodBuildDetails:
-        $ref: "#/definitions/CodeServerBuildDetailsVO"
-      intBuildDetails:
-        $ref: "#/definitions/CodeServerBuildDetailsVO"  
-      prodDeploymentDetails:
-        $ref: "#/definitions/CodeServerDeploymentDetailsVO"
-      intDeploymentDetails:
-        $ref: "#/definitions/CodeServerDeploymentDetailsVO"
-      lastBuildOrDeployedOn:
-        type: string
-        format: date
-      lastBuildOrDeployedStatus:
-        type: string
-      lastBuildOrDeployedEnv:
-        type: string    
           
 
 

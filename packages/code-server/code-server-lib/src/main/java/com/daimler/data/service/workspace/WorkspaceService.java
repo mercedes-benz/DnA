@@ -132,6 +132,8 @@ public interface WorkspaceService {
 
 	CodeServerUserGroupCollectionVO deleteWorkSpaceGroup(String id);
 
-	GetStatusResponse getStatusByJobRunId(CodeServerWorkspaceNsql entity);
+	GenericMessage getStatusByJobRunId(CodeServerWorkspaceNsql entity);
+
+	String updateGitJobRunId(GitJobRunIdRequestVO request);
 	
 }
