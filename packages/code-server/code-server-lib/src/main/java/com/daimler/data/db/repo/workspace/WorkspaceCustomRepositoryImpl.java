@@ -550,8 +550,13 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 	}
 	
 	private String addQuotes(String value) {
-		if(value!=null && !"null".equalsIgnoreCase(value))
-			return "\"" + value + "\"";
+		if(value!=null && !"null".equalsIgnoreCase(value)){
+			String escaped = value
+            		.replace("\\", "\\\\")
+            		.replace("\"", "\\\"")  
+            		.replace("'", "''"); 
+			return "\"" + escaped + "\"";
+		}
 		else
 			return null;
 	}

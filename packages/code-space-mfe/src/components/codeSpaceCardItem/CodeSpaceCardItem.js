@@ -1350,7 +1350,7 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
                     <i className="icon mbc-icon edit"></i>
                   </button>
                 )}
-                 {isApprover && !disableDeployment && prodDeploymentDetails?.lastDeploymentStatus === 'APPROVAL_PENDING' && (
+                 {isApprover && !disableDeployment && projectDetails?.lastBuildOrDeployedStatus === 'APPROVAL_PENDING' && (
                     <button
                       className={classNames('btn btn-primary')}
                       tooltip-data="Deployment Approval"

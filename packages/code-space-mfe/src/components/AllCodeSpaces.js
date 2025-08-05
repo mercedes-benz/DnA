@@ -279,70 +279,135 @@ const AllCodeSpaces = (props) => {
             <p><strong>Note:</strong> Deployed applications will be migrated to AWS based on the support request. If there were no prior deployments before the migration, any new deployments will automatically be directed to AWS.</p>
         </div>
     );
-
     const FAQModalContent = (
         <div className={Styles.modalFAQContentWrapper}>
-            <div>
-                <ol>
+          <div className="expansion-panel-group airflowexpansionPanel">
+      
+         
+            <div className={classNames('expansion-panel')}>
+              <span className="animation-wrapper"></span>
+              <input type="checkbox" className="ff-only" id="faq-1" />
+              <label className={classNames('expansion-panel-label', Styles.faqHeader)} htmlFor="faq-1">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                  <span>1. I am not able to see my code post migrating to AWS</span>
+                  <i tooltip-data="Expand" className="icon down-up-flip" />
+                </div>
+              </label>
+              <div className="expansion-panel-content">
+                <div className={classNames(Styles.info)}>
+                  This situation arises if the PAT token that you used to create the codespace has expired. Please follow the steps below:
+                  <ul>
                     <li>
-                        <div>I am not able to see my code post migrating to AWS</div>
-                        <div className={classNames(Styles.info)}>
-                            This situation arises if the pat token that you have used to create the codespace has expired. Please follow the below steps :
-                            <ul>
-                                <br />
-                                <li>
-                                    Run the following commands in your terminal for cloning code manually
-                                    <ol>
-                                        <li><span className={classNames(Styles.list)}>mkdir -p /home/coder/app</span></li>
-                                        <li><span className={classNames(Styles.list)}>git config --global credential.helper cache</span></li>
-                                        <li><span className={classNames(Styles.list)}>git config --global user.email &ldquo;$SHORTID&ldquo;</span></li>
-                                        <li><span className={classNames(Styles.list)}>git config --global user.name &ldquo;$SHORTID&ldquo;</span></li>
-                                        <li>
-                                            <span className={classNames(Styles.list)}>git clone https://$GITHUB_TOKEN@$GITHUBREPO_URL /home/coder/app</span>
-                                            <br />(eg: git clone https://ghp_xxxx@{(Envs.CODE_SPACE_GIT_PAT_APP_URL).split('https://')[1]}org_name/repo_name.git /home/coder/app)
-                                            <br />You can find your org name and repo name by using the go to code repo option in the context menu.
-                                            <br />If the cloning is not happening with the current token then generate a new token and try again.
-
-                                        </li>
-                                    </ol>
-                                </li>
-                                <br />
-                                <li>
-                                    Once your code is cloned, run the following commands in terminal to copy .bashrc
-                                    <ol>
-                                        <li><span className={classNames(Styles.list)}>cp /tmp/.bashrc /home/coder/</span></li>
-                                        <li><span className={classNames(Styles.list)}>chmod +x /home/coder/.bashrc</span></li>
-                                    </ol>
-                                </li>
-                                <br />
-                                <li>
-                                    Please execute the following commands in the given order in your terminal to install the softwares
-                                    <ol>
-                                        <li><span className={classNames(Styles.list)}>TEMP_DIR=/tmp/.codespaces/DO_NOT_DELETE_MODIFY/</span></li>
-                                        <li><span className={classNames(Styles.list)}>mkdir -pv $TEMP_DIR</span></li>
-                                        <li><span className={classNames(Styles.list)}>cp /home/coder/app/.codespaces/DO_NOT_DELETE_MODIFY/pkg-install.sh $TEMP_DIR</span>
-                                            <br/><span className={classNames(Styles.listInfo)}>If you have an additional folder present before .codespaces then please use</span>
-                                            <br/><span className={classNames(Styles.list)}>cp /home/coder/app/$YOUR_FOLDER/.codespaces/DO_NOT_DELETE_MODIFY/pkg-install.sh $TEMP_DIR</span>
-                                        </li>
-                                        <li><span className={classNames(Styles.list)}>cd $TEMP_DIR</span></li>
-                                        <li><span className={classNames(Styles.list)}>chmod +x pkg-install.sh</span></li>
-                                        <li><span className={classNames(Styles.list)}>./pkg-install.sh</span></li>
-                                    </ol>
-                                </li>
-                                <br />
-                                <li>Please close your terminal and verify the installations on a new terminal.</li>
-                                <br />
-                                <li>
-                                    If you have a <span className={classNames(Styles.warning)}>Python FastAPI</span> workspace please run the following additional command
-                                    <br/><span className={classNames(Styles.list)}>curl -sSL https://install.python-poetry.org | python3 -</span>
-                                </li>
-                            </ul>
-                        </div>
+                      Clone code manually:
+                      <ol>
+                        <li><span className={classNames(Styles.list)}>mkdir -p /home/coder/app</span></li>
+                        <li><span className={classNames(Styles.list)}>git config --global credential.helper cache</span></li>
+                        <li><span className={classNames(Styles.list)}>git config --global user.email &ldquo;$SHORTID&ldquo;</span></li>
+                        <li><span className={classNames(Styles.list)}>git config --global user.name &ldquo;$SHORTID&ldquo;</span></li>
+                        <li>
+                          <span className={classNames(Styles.list)}>
+                            git clone https://$GITHUB_TOKEN@$GITHUBREPO_URL /home/coder/app
+                          </span>
+                          <br />
+                          (e.g., git clone https://ghp_xxxx@{(Envs.CODE_SPACE_GIT_PAT_APP_URL).split('https://')[1]}org_name/repo_name.git /home/coder/app)
+                          <br />
+                          If cloning fails, generate a new token.
+                        </li>
+                      </ol>
                     </li>
-                </ol>
+                    <li>
+                      Copy bashrc:
+                      <ol>
+                        <li><span className={classNames(Styles.list)}>cp /tmp/.bashrc /home/coder/</span></li>
+                        <li><span className={classNames(Styles.list)}>chmod +x /home/coder/.bashrc</span></li>
+                      </ol>
+                    </li>
+                    <li>
+                      Install required packages:
+                      <ol>
+                        <li><span className={classNames(Styles.list)}>TEMP_DIR=/tmp/.codespaces/DO_NOT_DELETE_MODIFY/</span></li>
+                        <li><span className={classNames(Styles.list)}>mkdir -pv $TEMP_DIR</span></li>
+                        <li>
+                          <span className={classNames(Styles.list)}>
+                            cp /home/coder/app/.codespaces/DO_NOT_DELETE_MODIFY/pkg-install.sh $TEMP_DIR
+                          </span>
+                          <br />
+                          <span className={classNames(Styles.listInfo)}>If additional folder:</span>
+                          <br />
+                          <span className={classNames(Styles.list)}>
+                            cp /home/coder/app/$YOUR_FOLDER/.codespaces/DO_NOT_DELETE_MODIFY/pkg-install.sh $TEMP_DIR
+                          </span>
+                        </li>
+                        <li><span className={classNames(Styles.list)}>cd $TEMP_DIR</span></li>
+                        <li><span className={classNames(Styles.list)}>chmod +x pkg-install.sh</span></li>
+                        <li><span className={classNames(Styles.list)}>./pkg-install.sh</span></li>
+                      </ol>
+                    </li>
+                    <li>Please close and reopen terminal to verify.</li>
+                    <li>
+                      For <span className={classNames(Styles.warning)}>Python FastAPI</span>:
+                      <br />
+                      <span className={classNames(Styles.list)}>curl -sSL https://install.python-poetry.org | python3 -</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
             </div>
+      
+            <div className={classNames('expansion-panel')}>
+              <span className="animation-wrapper"></span>
+              <input type="checkbox" className="ff-only" id="faq-2" />
+              <label className={classNames('expansion-panel-label', Styles.faqHeader)} htmlFor="faq-2">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                  <span>2. I am getting a WebSocket error: “The workbench failed to connect to the server”</span>
+                  <i tooltip-data="Expand" className="icon down-up-flip" />
+                </div>
+              </label>
+              <div className="expansion-panel-content">
+                <div className={classNames(Styles.info)}>
+                  This issue typically occurs due to proxy settings interfering with the WebSocket connection.
+                  <br /><br />
+                  <ul>
+                    <li>Open your <strong>Windows Settings</strong>.</li>
+                    <li>Go to <strong>Network & Internet</strong> &rarr; <strong>Proxy</strong>.</li>
+                    <li>Click on <strong>Set up</strong> under Manual proxy setup.</li>
+                    <li>Turn off the toggle for <strong>Use a proxy server</strong>.</li>
+                    <li>Restart your browser and reload your CodeSpace.</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+      
+            <div className={classNames('expansion-panel')}>
+              <span className="animation-wrapper"></span>
+              <input type="checkbox" className="ff-only" id="faq-3" />
+              <label className={classNames('expansion-panel-label', Styles.faqHeader)} htmlFor="faq-3">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                  <span>3. CodeSpace stopped and keeps reloading while working</span>
+                  <i tooltip-data="Expand" className="icon down-up-flip" />
+                </div>
+              </label>
+              <div className="expansion-panel-content">
+                <div className={classNames(Styles.info)}>
+                  This may happen due to session timeouts or infrastructure restarts.
+                  <br /><br />
+                  <ul>
+                    <li>Stop the CodeSpace instance manually.</li>
+                    <li>Wait for <strong>10 minutes</strong> to allow services to reset.</li>
+                    <li>Restart the CodeSpace.</li>
+                    <li>If the problem persists, please reach out to the <a href={Envs.CODESPACE_TEAMS_LINK} target="_blank" rel="noopener noreferrer"> Teams channel</a> or 
+                    <a href={Envs.CODESPACE_MATTERMOST_LINK} target="_blank" rel="noopener noreferrer"> Mattermost channel</a>. </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+      
+          </div>
         </div>
-    );
+      );
+      
+      
+
 
     const [showEditCodespaceGroupModal, setShowEditCodespaceGroupModal]  = useState(false);
     const [showCodespacesModal, setShowCodespacesModal] = useState(false);
@@ -934,7 +999,7 @@ const AllCodeSpaces = (props) => {
             )}
             {showAwsFAQModal && (
                 <InfoModal
-                    title={'AWS migration FAQs'}
+                    title={'CodeSpace FAQs'}
                     modalWidth={'60%'}
                     modalStyle={{
                         maxWidth: '70%',
