@@ -125,12 +125,13 @@ public class OpenMetadataClient {
         }
     }
 
-    public Database createDatabase(String name, String serviceFQN, MandatoryFieldsVO fields) {
+    public Database createDatabase(String name, String serviceFQN, MandatoryFieldsVO fields, List<EntityReference> owners) {
         try {
             CreateDatabase request = new CreateDatabase()
                     .name(name)
                     .service(serviceFQN)
-                    .extension(toExtensions(fields)); // Using FQN directly as string
+                    .extension(toExtensions(fields))
+                    .owners(owners); // Using FQN directly as string
 
             return apiClient.buildClient(DatabasesApi.class)
                     .createOrUpdateDatabase(request);
@@ -233,12 +234,13 @@ public class OpenMetadataClient {
         }
     }
 
-    public Database updateDatabase(String dbId, String name, String serviceFQN, MandatoryFieldsVO fields) {
+    public Database updateDatabase(String dbId, String name, String serviceFQN, MandatoryFieldsVO fields, List<EntityReference> owners) {
         try {
             CreateDatabase request = new CreateDatabase()
                 .name(name)
                 .service(serviceFQN)
-                .extension(toExtensions(fields));
+                .extension(toExtensions(fields))
+                .owners(owners);
 
             return apiClient.buildClient(DatabasesApi.class)
                 .createOrUpdateDatabase(request);

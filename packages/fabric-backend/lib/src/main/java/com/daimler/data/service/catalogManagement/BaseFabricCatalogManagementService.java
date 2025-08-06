@@ -117,7 +117,7 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
 			for (DatabaseMetadataVO dbMetadata : metadata.getDatabases()) {
 				Database database = openMetadataClient.createDatabase(
 						dbMetadata.getDbName(),
-						existingFabricWorkspace.getName(), request.getMandatoryFields());
+						existingFabricWorkspace.getName(), request.getMandatoryFields(),ownerReferences);
 				for (SchemaMetadataVO schemaMetadata : dbMetadata.getSchemas()) {
 					String schemaFqn = OpenMetadataFqnBuilder.build(
 						existingFabricWorkspace.getName(),
@@ -286,7 +286,7 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
 			handleDeletions(existingMetadata, request.getMetaData());
 
 			// 6. Process updates and additions - THIS IS WHERE WE CALL UPDATE METHODS
-			processUpdates(request, existingFabricWorkspace.getName());
+			processUpdates(request, existingFabricWorkspace.getName(), ownerReferences);
 
 			// 7. Update CDC lake house details
 			updateLakeHouseDetails(existingFabricWorkspace, request.getMetaData());
@@ -434,11 +434,11 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
 		}
 	}
 
-	private void processUpdates(PublishCatalogRequestVO request, String serviceName) {
+	private void processUpdates(PublishCatalogRequestVO request, String serviceName, List<EntityReference> ownerReferences) {
 		// Update or create all databases
 		for (DatabaseMetadataVO dbMetadata : request.getMetaData().getDatabases()) {
 			// This will call the updateDatabase method
-			updateDatabase(dbMetadata, serviceName, request.getMandatoryFields());
+			updateDatabase(dbMetadata, serviceName, request.getMandatoryFields(),ownerReferences);
 		}
 	}
 	
@@ -509,7 +509,7 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
 		openMetadataClient.updateDatabaseService(updateRequest);
 	}
 
-	private void updateDatabase(DatabaseMetadataVO dbMetadata, String serviceName, MandatoryFieldsVO fields) {
+	private void updateDatabase(DatabaseMetadataVO dbMetadata, String serviceName, MandatoryFieldsVO fields, List<EntityReference> ownerReferences) {
 		try {
 			Database database;
 			
@@ -519,13 +519,15 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
 					dbMetadata.getDbId(),
 					dbMetadata.getDbName(),
 					serviceName,
-					fields);
+					fields,
+					ownerReferences);
 			} else {
 				// New database - create it
 				database = openMetadataClient.createDatabase(
 					dbMetadata.getDbName(),
 					serviceName,
-					fields);
+					fields,
+					ownerReferences);
 				
 				// Set the new ID back to the metadata
 				dbMetadata.setDbId(database.getId().toString());
