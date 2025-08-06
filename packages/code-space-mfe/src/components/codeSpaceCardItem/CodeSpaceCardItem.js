@@ -92,9 +92,7 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
   // const [showOnPremStartModal, setShowOnPremStartModal] = useState(false);
   const contextMenuRef = useRef(null);
 
-   useEffect(() => {
-      handleServerStatusAndProgress();
-    }, []); // eslint-disable-line react-hooks/exhaustive-deps
+   
     useEffect(() => {
       const handleClickOutside = (event) => {
         if (
