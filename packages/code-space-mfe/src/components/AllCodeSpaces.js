@@ -907,7 +907,7 @@ const AllCodeSpaces = (props) => {
                     //     onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'react'
                     // }
                     setShowCodeDeployModal={(isVisible) => setShowDeployCodeSpaceModal(isVisible)}
-                    setCodeDeploying={() => { getCodeSpacesData(); getCodeSpaceGroupsData();}}
+                    setCodeDeploying={() => { getCodeSpacesData(); getCodeSpaceGroupsData(); setShowCodespacesModal(false);}}
                     setIsApiCallTakeTime={setIsApiCallTakeTime}
                     navigateSecurityConfig={navigateSecurityConfig}
                 />
@@ -932,8 +932,8 @@ const AllCodeSpaces = (props) => {
                     //     onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'react'
                     // }
                     setShowCodeDeployModal={(isVisible) => setShowDeployCodeSpaceModal(isVisible)}
-                    setCodeDeploying={() => { getCodeSpacesData(); getCodeSpaceGroupsData(); }}
-                    setCodeBuilding={() => { getCodeSpacesData(); getCodeSpaceGroupsData(); }}
+                    setCodeDeploying={() => { getCodeSpacesData(); getCodeSpaceGroupsData(); setShowCodespacesModal(false); }}
+                    setCodeBuilding={() => { getCodeSpacesData(); getCodeSpaceGroupsData(); setShowCodespacesModal(false); }}
                     setIsApiCallTakeTime={setIsApiCallTakeTime}
                     navigateSecurityConfig={navigateSecurityConfig}
                 />

@@ -30,10 +30,29 @@ const CodeSpaceGCard = ({ codeSpace, userInfo, onStartStopCodeSpace, onShowDeplo
   const [serverStarted, setServerStarted] = useState(false);
   const [serverFailed, setServerFailed] = useState(false);
   const [serverProgress, setServerProgress] = useState(0);
+const contextMenuRef = useRef(null);
 
   useEffect(() => {
       handleServerStatusAndProgress();
     }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    useEffect(() => {
+  const handleClickOutside = (event) => {
+    if (
+      contextMenuRef.current &&
+      !contextMenuRef.current.contains(event.target) &&
+      !event.target.closest(`.${Styles.trigger}`)
+    ) {
+      setShowContextMenu(false);
+    }
+  };
+
+  document.addEventListener('mousedown', handleClickOutside);
+
+  return () => {
+    document.removeEventListener('mousedown', handleClickOutside);
+  };
+}, []);
+
 
   const onStartStopCodeSpaceLocal = (codespace) => {
     if(codespace?.projectDetails?.recipeDetails?.cloudServiceProvider ==='DHC-CaaS-AWS'){
@@ -247,7 +266,8 @@ const CodeSpaceGCard = ({ codeSpace, userInfo, onStartStopCodeSpace, onShowDeplo
               >
                 <i className="icon mbc-icon listItem context" />
               </span>
-              <ContextMenu
+           <div ref={contextMenuRef}>
+  <ContextMenu
                   codeSpace={codeSpace}
                   userInfo={userInfo}
                   showContextMenu={showContextMenu}
@@ -263,6 +283,8 @@ const CodeSpaceGCard = ({ codeSpace, userInfo, onStartStopCodeSpace, onShowDeplo
                   onShowBlueprintModal={onShowBlueprintModal}
                   onShowBuildModal={onShowBuildModal}
               />
+</div>
+
               {/* <div
                 style={{
                   top: contextMenuOffsetTop + 'px',

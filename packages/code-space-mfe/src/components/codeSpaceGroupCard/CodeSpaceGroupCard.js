@@ -54,7 +54,9 @@ const CodeSpaceGroupCard = ({ group, userInfo, onStartStopCodeSpace, onShowDeplo
       }}
     >
       <div className={classNames(Styles.groupHeader)}>
-          <h2 onClick={() => onShowCodeSpacesModal(true, group)}>{group?.name}</h2>
+        <h2 onClick={() => onShowCodeSpacesModal(true, group)}>
+          {group?.name} ({group?.workspaces?.length || 0})
+        </h2>
       </div>
       {group?.warning &&
         <div className={classNames(Styles.groupWarning)}>
@@ -64,10 +66,12 @@ const CodeSpaceGroupCard = ({ group, userInfo, onStartStopCodeSpace, onShowDeplo
             </button>
         </div>
       }
-      <div className={classNames(Styles.groupBody)}>
-        {group?.workspaces?.slice(0, 3).map((workspace) => 
+     <div className={classNames(Styles.groupBody)}>
+    <div className={Styles.cardListContainer}>
+        {group?.workspaces?.map((workspace) => 
           <CodeSpaceGCard key={workspace?.workspaceId} codeSpace={workspace} userInfo={userInfo} onStartStopCodeSpace={onStartStopCodeSpace} onShowDeployModal={onShowDeployModal} onShowCodeSpaceOnBoard={onShowCodeSpaceOnBoard} onShowBlueprintModal={onShowBlueprintModal} onShowBuildModal={onShowBuildModal}/>
-          )}
+        )}
+    </div>
           <div className={Styles.btnContainer}>
             <button className={classNames('btn btn-primary')} onClick={() => onShowCodeSpaceGroupModal(true)}>
               <i className="icon mbc-icon plus"></i> Add Code Space
