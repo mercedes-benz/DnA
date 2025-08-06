@@ -144,10 +144,53 @@ jobs:
       run: |
         echo ${{ secrets.HARBOR_DNA_REPO_SECRET }} | docker login $REGISTRY -u $REGISTRY_DNA_USER --password-stdin
         docker push registry-emea.app.corpintra.net/dnaplatform/code-server/codespaces-apps-${{ github.event.inputs.projectName }}:${{ github.event.inputs.appVersion }}     
+    
+    - name: Check if project requires resource check
+      id: check-project
+      run: |
+        if [[ "${{ github.event.inputs.projectName }}" !== "ffclers-wbv-ext-si-be" ]]; then
+          echo "DO_CHECK=true" >> $GITHUB_OUTPUT
+        else
+          echo "DO_CHECK=false" >> $GITHUB_OUTPUT
+        fi 
+    - name: Check CPU and Memory Requests from values.yaml
+      id: check-resources
+      if: steps.check-project.outputs.DO_CHECK == 'true'
+      run: |
+        # Read resources from Helm values file
+        CPU=$(yq '.resources.requests.cpu' workspace-repo/deploy/helm/values.yaml)
+        MEM=$(yq '.resources.requests.memory' workspace-repo/deploy/helm/values.yaml)
 
+        echo "Requested CPU: $CPU"
+        echo "Requested Memory: $MEM"
+        if [[ -z "$CPU" ]]; then
+          CPU_MILLICORES=0
+        # Convert CPU to millicores
+        elif [[ "$CPU" == *"m" ]]; then
+          CPU_MILLICORES=$(echo "$CPU" | sed 's/m//')
+        else
+          CPU_MILLICORES=$(echo "$CPU * 1000" | bc | cut -d'.' -f1)
+        fi
+
+        # Convert Memory to MiB
+        if [[ -z "$MEM" ]]; then
+          MEM_MIB=0
+        elif [[ "$MEM" == *"Gi" ]]; then
+          MEM_MIB=$(echo "$MEM" | sed 's/Gi//')
+          MEM_MIB=$(echo "$MEM_MIB * 1024" | bc | cut -d'.' -f1)
+        elif [[ "$MEM" == *"Mi" ]]; then
+          MEM_MIB=$(echo "$MEM" | sed 's/Mi//')
+        else
+          MEM_MIB=0
+        fi
+
+        echo "CPU_MILLICORES=$CPU_MILLICORES" >> $GITHUB_OUTPUT
+        echo "MEM_MIB=$MEM_MIB" >> $GITHUB_OUTPUT
     - name: Deploy App
       uses: deler-aziz/helm-deploy-action@v1.0.1
-      if: ${{ github.event.inputs.action == 'deploy' }}
+      if: ${{ github.event.inputs.action == 'deploy' &&
+              (steps.check-project.outputs.DO_CHECK == 'false' ||
+              (steps.check-resources.outputs.CPU_MILLICORES <= 2000 && steps.check-resources.outputs.MEM_MIB <= 4096)) }}
       with:
         release: '${{ github.event.inputs.projectName }}-${{ github.event.inputs.target_env }}'
         namespace: '${{ vars.K8S_NAMESPACE }}'
@@ -170,6 +213,9 @@ jobs:
             namespace: ${{ vars.VAULT_NAMESPACE }}
       env:
         KUBECONFIG_FILE: '${{ secrets.KUBECONFIG }}'
+    - name: Print skip message
+      if: ${{ github.event.inputs.action == 'deploy' && steps.check-project.outputs.DO_CHECK == 'true' && (steps.check-resources.outputs.CPU_MILLICORES <= 2000 || steps.check-resources.outputs.MEM_MIB <= 4096) }}
+      run: echo "Deployment skipped due to resource constraints: CPU or Memory request is high."
 
   upload-build_deploy-logs-to-opensearch:
     name: "Upload Logs to Opensearch" 
