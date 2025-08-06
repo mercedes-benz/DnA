@@ -90,6 +90,28 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
   const enableReadMe =  Envs.CODESPACE_RECIEPES_ENABLE_README?.split(',')?.includes(codeSpace?.projectDetails?.recipeDetails?.Id) || false;
   const [showMigrateOrStartModal, setShowMigrateOrStartModal] = useState(false);
   // const [showOnPremStartModal, setShowOnPremStartModal] = useState(false);
+  const contextMenuRef = useRef(null);
+
+   useEffect(() => {
+      handleServerStatusAndProgress();
+    }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    useEffect(() => {
+      const handleClickOutside = (event) => {
+        if (
+          contextMenuRef.current &&
+          !contextMenuRef.current.contains(event.target) &&
+          !event.target.closest(`.${Styles.trigger}`)
+        ) {
+          setShowContextMenu(false);
+        }
+      };
+  
+      document.addEventListener('mousedown', handleClickOutside);
+  
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }, []);
 
   useEffect(() => {
     handleServerStatusAndProgress();
@@ -504,6 +526,7 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
                 >
                   <i className="icon mbc-icon listItem context" />
                 </span>
+                <div ref={contextMenuRef}>
                 <ContextMenu
                   codeSpace={props?.codeSpace}
                   userInfo={props?.userInfo}
@@ -520,6 +543,7 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
                   onShowBlueprintModal={props?.onShowBlueprintModal}
                   onShowBuildModal={props?.onShowBuildModal}
                 />
+                </div>
                 {/*<div
                   style={{
                     top: contextMenuOffsetTop + 'px',
