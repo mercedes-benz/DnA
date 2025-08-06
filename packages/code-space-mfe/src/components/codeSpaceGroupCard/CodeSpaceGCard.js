@@ -30,35 +30,35 @@ const CodeSpaceGCard = ({ codeSpace, userInfo, onStartStopCodeSpace, onShowDeplo
   const [serverStarted, setServerStarted] = useState(false);
   const [serverFailed, setServerFailed] = useState(false);
   const [serverProgress, setServerProgress] = useState(0);
-const contextMenuRef = useRef(null);
+  const contextMenuRef = useRef(null);
 
   useEffect(() => {
-      handleServerStatusAndProgress();
-    }, []); // eslint-disable-line react-hooks/exhaustive-deps
-    useEffect(() => {
-  const handleClickOutside = (event) => {
-    if (
-      contextMenuRef.current &&
-      !contextMenuRef.current.contains(event.target) &&
-      !event.target.closest(`.${Styles.trigger}`)
-    ) {
-      setShowContextMenu(false);
-    }
-  };
+    handleServerStatusAndProgress();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        contextMenuRef.current &&
+        !contextMenuRef.current.contains(event.target) &&
+        !event.target.closest(`.${Styles.trigger}`)
+      ) {
+        setShowContextMenu(false);
+      }
+    };
 
-  document.addEventListener('mousedown', handleClickOutside);
+    document.addEventListener('mousedown', handleClickOutside);
 
-  return () => {
-    document.removeEventListener('mousedown', handleClickOutside);
-  };
-}, []);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
 
   const onStartStopCodeSpaceLocal = (codespace) => {
-    if(codespace?.projectDetails?.recipeDetails?.cloudServiceProvider ==='DHC-CaaS-AWS'){
+    if (codespace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS') {
       onStartStopCodeSpace(codespace, handleServerStatusAndProgress, 'DHC-CaaS-AWS');
     }
-    else{
+    else {
       codespace.serverStatus === 'SERVER_STARTED' ? onStartStopCodeSpace(codespace, handleServerStatusAndProgress, 'DHC-CaaS') : 'Not started';
     }
   };
@@ -74,9 +74,9 @@ const contextMenuRef = useRef(null);
           setServerStarted(true);
           codeSpace.serverStatus = 'SERVER_STARTED';
         }, 300);
-      } else if(!data.failed) {
+      } else if (!data.failed) {
         setServerProgress(data.progress);
-      } else if(data.progress === 100 && data.failed) {
+      } else if (data.progress === 100 && data.failed) {
         setServerFailed(true);
       }
       console.log(JSON.parse(e.data));
@@ -105,7 +105,7 @@ const contextMenuRef = useRef(null);
   // const prodCodeDeployFailed = prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
 
   // const deploymentMigrated = !(codeSpace?.projectDetails?.intDeploymentDetails?.deploymentUrl?.includes(Envs.CODESPACE_OIDC_POPUP_URL) || codeSpace?.projectDetails?.prodDeploymentDetails?.deploymentUrl?.includes(Envs.CODESPACE_OIDC_POPUP_URL));
-  
+
   // const securedWithIAMContent = (
   //   <svg
   //     xmlns="http://www.w3.org/2000/svg"
@@ -185,7 +185,7 @@ const contextMenuRef = useRef(null);
   //     });
   //   setShowRestartModal(false);
   // }
-  
+
   // const handleOpenDoraMetrics = () => {
   //   setShowDoraMetricsModal(true);
   // };
@@ -213,24 +213,24 @@ const contextMenuRef = useRef(null);
     <>
       <div key={codeSpace?.workspaceId} className={classNames(Styles.codeSpaceItem)}>
         <div>
-            <div className={Styles.flexDisplay}>
-              <h3 onClick={onCardNameClick}>
-                {codeSpace?.projectDetails?.projectName}
-              </h3>
-              {!enableOnboard && !creationFailed && serverStarted && (
-                <a
-                  className={Styles.csOpenNewTab}
-                  tooltip-data="Open workspace in new tab"
-                  onClick={() => {
-                    window.open(codeSpace?.workspaceUrl, '_blank');
-                    trackEvent('DnA Code Space', 'Code Space Open', 'Open in New Tab');
-                  }}
-                >
-                  <i className="icon mbc-icon new-tab" />
-                </a>
-              )}
-            </div>
-            <p className={Styles.workspaceType}>{codeSpace?.projectOwner?.id === userInfo.id ? 'Own' : 'Shared'}</p>
+          <div className={Styles.flexDisplay}>
+            <h3 onClick={onCardNameClick}>
+              {codeSpace?.projectDetails?.projectName}
+            </h3>
+            {!enableOnboard && !creationFailed && serverStarted && (
+              <a
+                className={Styles.csOpenNewTab}
+                tooltip-data="Open workspace in new tab"
+                onClick={() => {
+                  window.open(codeSpace?.workspaceUrl, '_blank');
+                  trackEvent('DnA Code Space', 'Code Space Open', 'Open in New Tab');
+                }}
+              >
+                <i className="icon mbc-icon new-tab" />
+              </a>
+            )}
+          </div>
+          <p className={Styles.workspaceType}>{codeSpace?.projectOwner?.id === userInfo.id ? 'Own' : 'Shared'}</p>
         </div>
         <div className={Styles.flexDisplay}>
           <div>
@@ -266,8 +266,8 @@ const contextMenuRef = useRef(null);
               >
                 <i className="icon mbc-icon listItem context" />
               </span>
-           <div ref={contextMenuRef}>
-  <ContextMenu
+              <div ref={contextMenuRef}>
+                <ContextMenu
                   codeSpace={codeSpace}
                   userInfo={userInfo}
                   showContextMenu={showContextMenu}
@@ -282,8 +282,8 @@ const contextMenuRef = useRef(null);
                   handleServerStatusAndProgress={handleServerStatusAndProgress}
                   onShowBlueprintModal={onShowBlueprintModal}
                   onShowBuildModal={onShowBuildModal}
-              />
-</div>
+                />
+              </div>
 
               {/* <div
                 style={{
