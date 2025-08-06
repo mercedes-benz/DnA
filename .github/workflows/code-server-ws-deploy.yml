@@ -215,7 +215,7 @@ jobs:
         KUBECONFIG_FILE: '${{ secrets.KUBECONFIG }}'
     - name: Print skip message
       if: ${{ github.event.inputs.action == 'deploy' && steps.check-project.outputs.DO_CHECK == 'true' && (steps.check-resources.outputs.CPU_MILLICORES <= 2000 || steps.check-resources.outputs.MEM_MIB <= 4096) }}
-      run: echo "Deployment skipped due to resource constraints: CPU or Memory request is high."
+      run: echo "Deployment skipped due to resource constraints- CPU or Memory request is high."
 
   upload-build_deploy-logs-to-opensearch:
     name: "Upload Logs to Opensearch" 
