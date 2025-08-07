@@ -561,7 +561,9 @@ definitions:
         type: string
       leanIXDetails:
         $ref: "#/definitions/LeanIXDetailsVO"
-  
+      cdcPublishedLakeHouseDetails:
+        $ref: "#/definitions/CdcPublishedLakeHouseDetailsVO"
+
   FabricWorkspaceStatusVO:
     type: object
     properties:
@@ -1010,3 +1012,13 @@ definitions:
         type: string
       shortId:
         type: string
+
+  CdcPublishedLakeHouseDetailsVO:
+    type: object
+    properties:
+      isLakeHousesPublishedToCdc:
+        type: boolean
+      publishedLakeHouseNames:
+        type: array
+        items:
+          type: string
