@@ -9,6 +9,7 @@ import ConfirmModal from 'components/formElements/modal/confirmModal/ConfirmModa
 import AceEditor from 'react-ace';
 import 'ace-builds/src-noconflict/mode-json';
 import 'ace-builds/src-noconflict/theme-solarized_dark';
+import { Envs } from 'globals/Envs';
 
 type KeyValueItem = {
   key: string;
@@ -18,7 +19,10 @@ type KeyValueItem = {
 
 interface VaultManagementProps {
    projectName: string;
+   dagName: string;
 }
+
+const environment = Envs.DNA_ENVIRONMENT;
 
 const deleteCodeSpaceContent: ReactNode = (
   <div>
@@ -26,7 +30,7 @@ const deleteCodeSpaceContent: ReactNode = (
   </div>
 );
 
-const VaultManagement: React.FC<VaultManagementProps> = ({ projectName}) => {
+const VaultManagement: React.FC<VaultManagementProps> = ({ projectName, dagName}) => {
   const [key, setKey] = useState('');
   const [keyError, setKeyError] = useState('');
   const [value, setValue] = useState('');
@@ -45,6 +49,7 @@ const VaultManagement: React.FC<VaultManagementProps> = ({ projectName}) => {
   const [jsonError, setJsonError] = useState('');
   const [isJsonTouched, setIsJsonTouched] = useState(false);
   const [toggleError, setToggleError] = useState('');
+  const vaultPrefix = `${environment}_${projectName}_${dagName}_`;
 
   useEffect(() => {
     loadVaultValues();
@@ -116,9 +121,10 @@ const VaultManagement: React.FC<VaultManagementProps> = ({ projectName}) => {
       setValueError('Missing entry');
       valid = false;
     }
+    const fullKey = vaultPrefix + key;
     if (
       keyValue.keyValueList.some(
-        (item) => item.key === key && (!editingMode || item.key !== originalKey)
+        (item) => item.key === fullKey && (!editingMode || item.key !== originalKey)
       )
     ) {
       setKeyError('Duplicate key');
@@ -129,14 +135,15 @@ const VaultManagement: React.FC<VaultManagementProps> = ({ projectName}) => {
     
     const updatedList = editingMode
       ? keyValue.keyValueList.map((item) =>
-        item.key === originalKey ? { key, value, visible: item.visible } : item
+        item.key === originalKey ? { key: fullKey, value, visible: item.visible } : item
       )
-      : [...keyValue.keyValueList, { key, value, visible: false }];
+      : [...keyValue.keyValueList, { key: fullKey, value, visible: false }];
 
-    const data: Record<string, string> = {};
-    updatedList.forEach((item) => {
-      data[item.key] = item.value;
-    });
+      const data: Record<string, string> = {};
+      updatedList.forEach((item) => {
+          const fullVaultKey = `${environment}_${projectName}_${dagName}_${item.key}`;
+          data[fullVaultKey] = item.value;
+      });
 
     PipelineApiClient.putVaultSecret(projectName, data);
     setKeyValue({ keyValueList: updatedList });
@@ -147,7 +154,7 @@ const VaultManagement: React.FC<VaultManagementProps> = ({ projectName}) => {
 
   const handleEdit = (key: string, value: string) => {
     setOriginalKey(key);
-    setKey(key);
+    setKey(key.replace(vaultPrefix, ''));
     setValue(value);
     setEditingMode(true);
   };
@@ -158,7 +165,8 @@ const VaultManagement: React.FC<VaultManagementProps> = ({ projectName}) => {
     );
     const data: Record<string, string> = {};
     updated.forEach((item) => {
-      data[item.key] = item.value;
+      const fullVaultKey = `${environment}_${projectName}_${dagName}_${item.key}`;
+      data[fullVaultKey] = item.value;
     });
     PipelineApiClient.putVaultSecret(projectName, data);
     setKeyValue({ keyValueList: updated });
@@ -167,10 +175,41 @@ const VaultManagement: React.FC<VaultManagementProps> = ({ projectName}) => {
 
   const handleSaveJson = () => {
     if (jsonError) return;
-    PipelineApiClient.putVaultSecret(projectName, JSON.parse(jsonData))
-      .then((res: any) => Notification.show('Saved JSON'))
-      .catch((err: any) => Notification.show('Failed to save JSON', 'alert'));
+
+    let rawJson: Record<string, string>;
+    try {
+      rawJson = JSON.parse(jsonData);
+    } catch (e) {
+      setJsonError('Invalid JSON format.');
+      return;
+    }
+
+    const requiredPrefix = `${environment}_${projectName}_${dagName}_`;
+
+    const invalidKeys: string[] = [];
+
+    for (const key of Object.keys(rawJson)) {
+      const startsCorrectly = key.startsWith(requiredPrefix);
+      const hasSuffix = key.length > requiredPrefix.length;
+
+      if (!startsCorrectly || !hasSuffix) {
+        invalidKeys.push(key);
+      }
+    }
+
+    if (invalidKeys.length > 0) {
+      setJsonError(
+        `Invalid keys detected:\n${invalidKeys
+          .map((k) => `- ${k}`)
+          .join('\n')}\n\n.Each key must start with the prefix: "${requiredPrefix}"`
+      );
+      return;
+    }
+    PipelineApiClient.putVaultSecret(projectName, rawJson)
+      .then(() => Notification.show('Saved JSON'))
+      .catch(() => Notification.show('Failed to save JSON', 'alert'));
     setIsJsonTouched(false);
+    setJsonError('');
     loadVaultValues();
     setToggleError('');
   };
@@ -195,13 +234,6 @@ const VaultManagement: React.FC<VaultManagementProps> = ({ projectName}) => {
     } else {
       setToggleError('');
       setShowJson(!showJson);
-    }
-  };
-  
-  const onKeyChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setKey(e.target.value);
-    if (e.target.value.trim()) {
-      setKeyError('');
     }
   };
   
@@ -240,10 +272,18 @@ const VaultManagement: React.FC<VaultManagementProps> = ({ projectName}) => {
                   labelId="keyLabel"
                   label="Key"
                   placeholder="Type here"
-                  value={key}
+                  value={vaultPrefix + key}
                   errorText={keyError}
                   required
-                  onChange={onKeyChange}
+                  onChange={(e) => {
+                    const inputValue = (e.target as HTMLInputElement).value;
+                    if (inputValue.startsWith(vaultPrefix)) {
+                      setKey(inputValue.slice(vaultPrefix.length));
+                      setKeyError('');
+                    } else {
+                      setKeyError(`Key must start with ${vaultPrefix}`);
+                    }
+                  }}
                 />
               </div>
               <div>
