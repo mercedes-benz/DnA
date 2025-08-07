@@ -76,6 +76,18 @@ jobs:
         echo "wsid: ${{ github.event.inputs.wsid }}"
         echo "valutInjectorEnable: ${{ github.event.inputs.valutInjectorEnable }}"
         echo "shortid: ${{ github.event.inputs.shortid }}"
+
+  UpdateGitJobRunId:
+    name: Update Git Job Run Id
+    uses: ./.github/workflows/github-runid-update.yml
+    with:
+      projectName: ${{ github.event.inputs.projectName }}
+      githubRunId: '${{ github.run_id }}'
+      wsid: ${{ github.event.inputs.wsid }}
+      shortid: '${{ github.event.inputs.shortid }}'
+    secrets:
+      PAT: ${{ secrets.PID_PAT }}
+      CS_STATUS_UPDATE_DOMAIN: ${{ secrets.CS_STATUS_UPDATE_DOMAIN }}
   
   build_deploy:
     name: 'Build or Deploy workspace application'

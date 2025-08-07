@@ -1,0 +1,54 @@
+name: Github RunId Update
+
+on:
+  workflow_call:
+    inputs:
+      projectName:
+        required: true
+        type: string
+      githubRunId:
+        required: true
+        type: string 
+      wsid:
+        required: true
+        type: string   
+      shortid:
+        required: true
+        type: string         
+    secrets:
+      PAT:
+        required: true
+      CS_STATUS_UPDATE_DOMAIN:
+        required: true
+
+jobs:
+  status:
+    name: 'Update RunId'
+    environment: ${{ inputs.environment }}
+    runs-on: [os-medium-amd64-linux]
+    steps:
+
+      - name: Trigger update githubrunid API
+        id: myRequest
+        uses: CamiloGarciaLaRotta/watermelon-http-client@v1.7
+        with: 
+          url: 'https://${{ secrets.CS_STATUS_UPDATE_DOMAIN }}//workspaces/getGitJobRunId'
+          method: 'PUT'
+          headers: '{"Content-Type": "application/json", "Accept": "*/*", "Authorization": "${{ secrets.PAT }}"}'
+          data: '{"projectName":"${{ inputs.projectName }}","gitJobRunId":"${{ inputs.githubrunid }}","wsId":"${{ inputs.wsid }}", "userId":"${{ inputs.shortid }}"}'
+          fail_fast: false
+          verbose: true
+        env:
+          no_proxy: "${{ secrets.CS_STATUS_UPDATE_DOMAIN }}" 
+
+      - name: Update RunId
+        run: |
+          echo ${{ steps.myRequest.outputs.status }}
+          if [ "${{ steps.myRequest.outputs.status }}" == "200" ]
+          then
+              echo "RunId updated successfully!!!"
+          else
+              echo "RunId updatation failed"
+              echo ${{ steps.myRequest.outputs.response }}
+              exit 1 
+          fi
