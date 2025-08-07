@@ -83,9 +83,13 @@ export class PipelineApiClient {
     return this.get(`v1/projects/status/${projectId}`);
   }
   public static getVaultSecret(dagName: string) {
-    return this.getVault(`airflow/secret/${dagName}`);
-  }
+  const envDagName = `${Envs. DNA_ENVIRONMENT}_${dagName}`;
+  return this.getVault(`airflow/secret/${envDagName}`);
+}
+
   public static putVaultSecret(dagName: string, data: any) {
-    return this.putVault(`airflow/secret/${dagName}`, data);
-  }
+  const envDagName = `${Envs. DNA_ENVIRONMENT}_${dagName}`;
+  return this.putVault(`airflow/secret/${envDagName}`, data);
+}
+
 }
