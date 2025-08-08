@@ -57,10 +57,9 @@ const VaultManagement: React.FC<VaultManagementProps> = ({ projectName, dagName}
 
   const loadVaultValues = () => {
     ProgressIndicator.show();
-    console.log("project",projectName);
     PipelineApiClient.getVaultSecret(projectName)
       .then((response: any) => {
-        const items: KeyValueItem[] = Object.entries(response.data).map(([k, v]) => ({
+        const items: KeyValueItem[] = Object.entries(response).map(([k, v]) => ({
           key: k,
           value: v as string,
           visible: false,
@@ -141,8 +140,7 @@ const VaultManagement: React.FC<VaultManagementProps> = ({ projectName, dagName}
 
       const data: Record<string, string> = {};
       updatedList.forEach((item) => {
-          const fullVaultKey = `${environment}_${projectName}_${dagName}_${item.key}`;
-          data[fullVaultKey] = item.value;
+          data[item.key] = item.value;
       });
 
     PipelineApiClient.putVaultSecret(projectName, data);
@@ -150,6 +148,7 @@ const VaultManagement: React.FC<VaultManagementProps> = ({ projectName, dagName}
     setKey('');
     setValue('');
     setEditingMode(false);
+    loadVaultValues();
   };
 
   const handleEdit = (key: string, value: string) => {
@@ -165,8 +164,7 @@ const VaultManagement: React.FC<VaultManagementProps> = ({ projectName, dagName}
     );
     const data: Record<string, string> = {};
     updated.forEach((item) => {
-      const fullVaultKey = `${environment}_${projectName}_${dagName}_${item.key}`;
-      data[fullVaultKey] = item.value;
+      data[item.key] = item.value;
     });
     PipelineApiClient.putVaultSecret(projectName, data);
     setKeyValue({ keyValueList: updated });
