@@ -61,7 +61,7 @@ const BuildModal = (props) => {
           element.id = element.name;
         });
         setBranches(branches);
-
+        projectDetails?.intBuildDetails?.lastBuildBranch?.length && setBranchValue([projectDetails?.intBuildDetails?.lastBuildBranch]);
         SelectBox.defaultSetup();
       })
       .catch((err) => {
@@ -72,6 +72,12 @@ const BuildModal = (props) => {
 
   useEffect(() => {
     onLogsRefresh();
+    if(buildEnvironment === 'staging'){
+      projectDetails?.intBuildDetails?.lastBuildBranch?.length ? setBranchValue([projectDetails?.intBuildDetails?.lastBuildBranch]) : setBranchValue(['main']);
+    }
+    else{
+      projectDetails?.prodBuildDetails?.lastBuildBranch?.length ? setBranchValue([projectDetails?.prodBuildDetails?.lastBuildBranch]) : setBranchValue(['main']);
+    }
   }, [buildEnvironment]);
 
   useEffect(() => {
