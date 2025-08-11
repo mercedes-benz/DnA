@@ -156,7 +156,7 @@ jobs:
         fi
       env: 
         PROJECT_NAME: ${{ github.event.inputs.projectName }} 
-    - name: Check CPU and Memory Requests from values.yaml
+    - name: Check CPU and Memory Requests from values.yaml and set the memory limit accordingly 
       id: check-resources
       run: |
         # Read resources from Helm values file
@@ -188,6 +188,13 @@ jobs:
 
         echo "CPU_MILLICORES=$CPU_MILLICORES" >> $GITHUB_OUTPUT
         echo "MEM_MIB=$MEM_MIB" >> $GITHUB_OUTPUT
+
+        if [[ "$CPU_MILLICORES" != "0" && "$MEM_MIB" != "0" ]]; then
+          MEM_LIMIT="${MEM_MIB}Mi"
+        else
+          MEM_LIMIT=null
+        fi
+        echo "MEM_LIMIT=$MEM_LIMIT" >> $GITHUB_OUTPUT
     - name: Deploy App
       uses: deler-aziz/helm-deploy-action@v1.0.1
       if: ${{ github.event.inputs.action == 'deploy' &&
@@ -214,13 +221,15 @@ jobs:
             authpath: ${{ vars.VAULT_AUTH_PATH }}
             namespace: ${{ vars.VAULT_NAMESPACE }}
           resources:
-            limits: null
-            memory: ${{ steps.check-resources.outputs.MEM_MIB }}Mi
+            limits:
+              cpu: null
+              memory: ${{ steps.check-resources.outputs.MEM_LIMIT }}
       env:
         KUBECONFIG_FILE: '${{ secrets.KUBECONFIG }}'
     - name: Print deploy skipped reason
       if: ${{ github.event.inputs.action == 'deploy' && steps.check-project.outputs.DO_CHECK == 'true' && (steps.check-resources.outputs.CPU_MILLICORES > 2000 || steps.check-resources.outputs.MEM_MIB > 4096) }}
-      run: echo "Deployment skipped due to resource constraints- CPU request is more than than 2 Core or Memory request is more than 4GB."
+      run: |
+        echo "Deployment skipped due to resource constraints- CPU request is more than than 2 Cores or Memory request is more than 4GB."
 
   upload-build_deploy-logs-to-opensearch:
     name: "Upload Logs to Opensearch" 
