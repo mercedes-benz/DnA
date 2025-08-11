@@ -25,7 +25,6 @@ import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.db.json.catalogManangement.FabricCatalogMetadata;
 import com.daimler.data.dto.fabricCatalogManagement.FabricCatalogMetadataVO;
 import com.daimler.data.dto.fabricCatalogManagement.PublishCatalogResponseVO;
-import com.daimler.data.dto.fabricCatalogManagement.PublishCatalogResponseVOData;
 import com.daimler.data.dto.fabricCatalogManagement.PublishCatalogRequestVO;
 import com.daimler.data.dto.fabricWorkspace.CreatedByVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceVO;
@@ -73,11 +72,6 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
     public ResponseEntity<PublishCatalogResponseVO> publishCatalogRequest(@ApiParam(value = "The catalog to publish." ,required=true )  @Valid @RequestBody PublishCatalogRequestVO publishCatalogRequest,@ApiParam(value = "The ID of the workspace.",required=true) @PathVariable("workspaceId") String workspaceId) {
 
         PublishCatalogResponseVO responseVO = new PublishCatalogResponseVO();
-        PublishCatalogResponseVOData responseData = new PublishCatalogResponseVOData();
-        responseData.setCatalogMetadata(publishCatalogRequest.getMetaData());
-        responseData.setOwnerDetails(publishCatalogRequest.getOwners());
-        responseVO.setData(responseData);
-        GenericMessage erroMessage = new GenericMessage();
 
         FabricWorkspaceVO existingFabricWorkspace = fabricWorkspaceService
                 .getById(workspaceId);
@@ -102,8 +96,8 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
         try {
 
             openMetadataClient.getUserByFqn(requestUser.getId());
-            GenericMessage responseMessage = service.publishCatalogMetaData(publishCatalogRequest, existingFabricWorkspace);
-            responseVO.setResponses(responseMessage);
+            responseVO = service.publishCatalogMetaData(publishCatalogRequest, existingFabricWorkspace);
+            GenericMessage responseMessage = responseVO.getResponses();
             if (("SUCCESS").equalsIgnoreCase(responseMessage.getSuccess())) {
                 return new ResponseEntity<>(responseVO, HttpStatus.OK);
             } else if (("CONFLICT").equalsIgnoreCase(responseMessage.getSuccess())) {
@@ -139,9 +133,9 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
     }
 
     @Override
-   @ApiOperation(value = "Get catalog by service name.", nickname = "getCatalogByServiceName", notes = "This endpoint will be used to retrieve a fabric catalog by its service name.", response = FabricCatalogMetadataVO.class, tags={ "fabric-catalog-management", })
+   @ApiOperation(value = "Get catalog by service name.", nickname = "getCatalogByServiceName", notes = "This endpoint will be used to retrieve a fabric catalog by its service name.", response = PublishCatalogResponseVO.class, tags={ "fabric-catalog-management", })
     @ApiResponses(value = { 
-        @ApiResponse(code = 200, message = "Returns message of success or failure", response = FabricCatalogMetadataVO.class),
+        @ApiResponse(code = 200, message = "Returns message of success or failure", response = PublishCatalogResponseVO.class),
         @ApiResponse(code = 204, message = "Fetch complete, no content found."),
         @ApiResponse(code = 400, message = "Bad request."),
         @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
@@ -152,8 +146,8 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
         produces = { "application/json" }, 
         consumes = { "application/json" },
         method = RequestMethod.GET)
-    public ResponseEntity<FabricCatalogMetadataVO> getCatalogByServiceName(@ApiParam(value = "The ID of the workspace.",required=true) @PathVariable("workspaceId") String workspaceId,@ApiParam(value = "The name of the service.",required=true) @PathVariable("serviceName") String serviceName){
-        FabricCatalogMetadataVO catalogMetadata = new FabricCatalogMetadataVO();
+    public ResponseEntity<PublishCatalogResponseVO> getCatalogByServiceName(@ApiParam(value = "The ID of the workspace.",required=true) @PathVariable("workspaceId") String workspaceId,@ApiParam(value = "The name of the service.",required=true) @PathVariable("serviceName") String serviceName){
+        PublishCatalogResponseVO catalogMetadata = new PublishCatalogResponseVO();
         
         try{
 
@@ -208,11 +202,6 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
     public ResponseEntity<PublishCatalogResponseVO> updatePublishedCatalogRequest(@ApiParam(value = "The catalog to publish." ,required=true )  @Valid @RequestBody PublishCatalogRequestVO updateCatalogRequest,@ApiParam(value = "The ID of the workspace.",required=true) @PathVariable("workspaceId") String workspaceId){
 
         PublishCatalogResponseVO responseVO = new PublishCatalogResponseVO();
-        PublishCatalogResponseVOData responseData = new PublishCatalogResponseVOData();
-        responseData.setCatalogMetadata(updateCatalogRequest.getMetaData());
-        responseData.setOwnerDetails(updateCatalogRequest.getOwners());
-        responseVO.setData(responseData);
-        GenericMessage erroMessage = new GenericMessage();
 
         FabricWorkspaceVO existingFabricWorkspace = fabricWorkspaceService
                 .getById(workspaceId);
@@ -237,8 +226,8 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
         try {
 
             openMetadataClient.getUserByFqn(requestUser.getId());
-            GenericMessage responseMessage = service.updateCatalogMetaData(updateCatalogRequest, existingFabricWorkspace);
-            responseVO.setResponses(responseMessage);
+            responseVO = service.updateCatalogMetaData(updateCatalogRequest, existingFabricWorkspace);
+            GenericMessage responseMessage = responseVO.getResponses();
             if (("SUCCESS").equalsIgnoreCase(responseMessage.getSuccess())) {
                 return new ResponseEntity<>(responseVO, HttpStatus.OK);
             } else if (("CONFLICT").equalsIgnoreCase(responseMessage.getSuccess())) {
