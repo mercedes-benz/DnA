@@ -148,10 +148,11 @@ jobs:
     - name: Check if project requires resource check
       id: check-project
       run: |
-        if [[ "$PROJECT_NAME" != "cs1108" ]]; then
-          echo "DO_CHECK=true" >> $GITHUB_OUTPUT
-        else
+        allowed_projects=("cs1108" "cs1234")
+        if [[ " ${allowed_projects[@]} " =~ " $PROJECT_NAME " ]];; then
           echo "DO_CHECK=false" >> $GITHUB_OUTPUT
+        else
+          echo "DO_CHECK=true" >> $GITHUB_OUTPUT
         fi
       env: 
         PROJECT_NAME: ${{ github.event.inputs.projectName }} 
