@@ -148,7 +148,7 @@ jobs:
     - name: Check if project requires resource check
       id: check-project
       run: |
-        if [[ "$PROJECT_NAME" !== "cs1108" ]]; then
+        if [[ "$PROJECT_NAME" != "cs1108" ]]; then
           echo "DO_CHECK=true" >> $GITHUB_OUTPUT
         else
           echo "DO_CHECK=false" >> $GITHUB_OUTPUT
