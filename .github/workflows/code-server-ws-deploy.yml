@@ -158,7 +158,6 @@ jobs:
         PROJECT_NAME: ${{ github.event.inputs.projectName }} 
     - name: Check CPU and Memory Requests from values.yaml
       id: check-resources
-      if: steps.check-project.outputs.DO_CHECK == 'true'
       run: |
         # Read resources from Helm values file
         CPU=$(yq '.resources.requests.cpu' workspace-repo/deploy/helm/values.yaml)
@@ -214,6 +213,9 @@ jobs:
             root_path_non_api: /${{ github.event.inputs.projectName }}/${{ github.event.inputs.target_env }}/
             authpath: ${{ vars.VAULT_AUTH_PATH }}
             namespace: ${{ vars.VAULT_NAMESPACE }}
+          resources:
+            limits: null
+            memory: ${{ steps.check-resources.outputs.MEM_MIB }}Mi
       env:
         KUBECONFIG_FILE: '${{ secrets.KUBECONFIG }}'
     - name: Print deploy skipped reason
