@@ -413,7 +413,6 @@ const BuildModal = (props) => {
               setShowCodeDeployModal={setShowDeployCodeSpaceModal}
               setCodeDeploying={props.setCodeDeploying}
               setIsApiCallTakeTime={props.setIsApiCallTakeTime}
-              navigateSecurityConfig={props.navigateSecurityConfig}
               buildDetails={buildDetails}
             />
           )}
