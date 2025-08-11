@@ -149,7 +149,7 @@ jobs:
       id: check-project
       run: |
         allowed_projects=("cs1108" "cs1234")
-        if [[ " ${allowed_projects[@]} " =~ " $PROJECT_NAME " ]];; then
+        if [[ " ${allowed_projects[@]} " =~ " $PROJECT_NAME " ]]; then
           echo "DO_CHECK=false" >> $GITHUB_OUTPUT
         else
           echo "DO_CHECK=true" >> $GITHUB_OUTPUT
