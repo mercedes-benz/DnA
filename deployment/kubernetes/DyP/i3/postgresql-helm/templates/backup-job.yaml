@@ -33,9 +33,6 @@ spec:
             resources:
               {{- if .Values.backup.resources.limits.enabled }}
               limits:
-                {{- if .Values.backup.resources.limits.cpu  }}
-                cpu: {{ .Values.backup.resources.limits.cpu | quote }}
-                {{- end }}
                 {{- if .Values.backup.resources.limits.memory  }}
                 memory: {{ .Values.backup.resources.limits.memory | quote }}
                 {{- end }}
