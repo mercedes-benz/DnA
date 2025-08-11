@@ -192,8 +192,9 @@ jobs:
         if [[ "$CPU_MILLICORES" != "0" && "$MEM_MIB" != "0" ]]; then
           MEM_LIMIT="${MEM_MIB}Mi"
         else
-          MEM_LIMIT=null
+          MEM_LIMIT=# memory limit should not set
         fi
+        echo "CPU_LIMIT_LINE=# cpu limit should not set" >> $GITHUB_OUTPUT
         echo "MEM_LIMIT=$MEM_LIMIT" >> $GITHUB_OUTPUT
     - name: Deploy App
       uses: deler-aziz/helm-deploy-action@v1.0.1
@@ -222,7 +223,7 @@ jobs:
             namespace: ${{ vars.VAULT_NAMESPACE }}
           resources:
             limits:
-              cpu: null
+              ${{ steps.check-resources.outputs.CPU_LIMIT_LINE }}
               memory: ${{ steps.check-resources.outputs.MEM_LIMIT }}
       env:
         KUBECONFIG_FILE: '${{ secrets.KUBECONFIG }}'
