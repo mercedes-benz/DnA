@@ -1,0 +1,197 @@
+# LICENSE START
+# 
+# MIT License
+# 
+# Copyright (c) 2019 Daimler TSS GmbH
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+# 
+# LICENSE END 
+#
+#-----------------------------------------------------------------------------------------------------
+#  **
+#  ** File Name  : cdcPush.yaml
+#  **
+#  ** Module     : core
+#  **
+
+#  -------------------------------------------------------------------------------------------------------
+#
+#  CHANGE HISTORY
+#
+#  Created By         :  boonbaluri
+#
+#  Bug Number         :
+#  Changed By         :
+#  Change Description :
+#  Change On          :
+#  Search String      :
+#
+swagger: "2.0"
+info:
+  version: "1.0.0"
+  title: "Fabric workspaces management service"
+host: "localhost:9292"
+basePath: "/api/1.0"
+consumes:
+  - "application/json"
+produces:
+  - "application/json"
+tags:
+  - name: "solutions"
+    description: "This service is used for lakehouse tables push to cdc maintenance."
+
+schemes:
+  - "https"
+
+paths:
+  # path to create a new solution and fetch all valid solution or by intent
+  #
+  #  supprorted http methods GET, POST and DELETE
+  #
+  # path example ../cdc-push
+  /cdc-push/tables:
+    get:
+      tags:
+        - "cdc-push"
+      summary: "Get tables for a given lakehouse"
+      description: "Get all tables for a given Fabric lakehouse under a workspace."
+      operationId: "getLakehouseTables"
+      parameters:
+        - name: "workspaceId"
+          in: "query"
+          required: true
+          type: "string"
+        - name: "lakehouseId"
+          in: "query"
+          required: true
+          type: "string"
+      responses:
+        200:
+          description: "List of tables in the lakehouse"
+          schema:
+            $ref: "#/definitions/LakehouseTableCollectionVO"
+        204:
+          description: "Fetch complete, but no tables found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have valid credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed."
+        500:
+          description: "Internal server error."
+
+  /cdc-push/tables/schema:
+    get:
+      tags:
+        - "cdc-push"
+      summary: "Get table schema"
+      description: "Get column schema for a table inside a Fabric lakehouse."
+      operationId: "getTableSchema"
+      parameters:
+        - name: "workspaceId"
+          in: "query"
+          required: true
+          type: "string"
+        - name: "lakehouseId"
+          in: "query"
+          required: true
+          type: "string"
+        - name: "tableName"
+          in: "query"
+          required: true
+          type: "string"
+        - name: "schemaName"
+          in: "query"
+          required: false
+          type: "string"
+      responses:
+        200:
+          description: "Successfully fetched table schema."
+          schema:
+            $ref: "#/definitions/TableSchemaResponseVO"
+        204:
+          description: "Fetch complete, but no schema found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have valid credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed."
+        500:
+          description: "Internal server error."
+
+definitions:
+  LakehouseTableResponseVO:
+    description: "Response object for fabric lakehouse operations"
+    type: object
+    properties:
+      data:
+        $ref: "#/definitions/LakehouseTableCollectionVO"
+      responses:
+        $ref: "#/definitions/GenericMessage"
+
+  LakehouseTableCollectionVO:
+    description: "Collection of fabric lakehouse shortcuts."
+    type: object
+    properties:
+      records:
+        type: array
+        items:
+          $ref: "#/definitions/LakehouseTableVO"
+
+  LakehouseTableVO:
+    type: object
+    properties:
+      name:
+        type: string
+      schema:
+        type: string
+
+  TableSchemaResponseVO:
+    description: "Schema response for a table"
+    type: object
+    properties:
+      data:
+        $ref: "#/definitions/TableSchemaDataVO"
+      responses:
+        $ref: "#/definitions/GenericMessage"
+
+  TableSchemaDataVO:
+    type: object
+    properties:
+      columns:
+        type: array
+        items:
+          $ref: "#/definitions/TableColumnVO"
+
+  TableColumnVO:
+    type: object
+    properties:
+      columnName:
+        type: string
+      colType:
+        type: string
+      colConstraint:
+        type: string
