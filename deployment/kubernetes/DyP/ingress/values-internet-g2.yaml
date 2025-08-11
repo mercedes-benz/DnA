@@ -725,7 +725,7 @@ ports:
 # When using `labelSelector`, you'll need to set labels on tlsOption accordingly.
 # See EXAMPLE.md for details.
 tlsOptions:
-  default:
+  g2-internet-default:
     minVersion: VersionTLS12
     cipherSuites:
       - "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256"
