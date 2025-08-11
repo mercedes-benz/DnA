@@ -1124,6 +1124,9 @@ definitions:
       properties:
         data:
           $ref: "#/definitions/LakehouseTableCollectionVO"
+        responseCode:
+          type: string
+          description: "Response code of the operation"
 
   LakehouseColumnVO:
     type: object
@@ -1151,6 +1154,9 @@ definitions:
     properties:
       data:
         $ref: "#/definitions/LakehouseColumnCollectionVO"
+      responseCode:
+        type: string
+        description: "Response code of the operation"
       
 
 

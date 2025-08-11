@@ -973,10 +973,10 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
         method = RequestMethod.GET)
     public ResponseEntity<LakehouseTableCollectionResponseVO> getLakehouseTables(@NotNull @ApiParam(value = "", required = true) @Valid @RequestParam(value = "workspaceId", required = true) String workspaceId,@NotNull @ApiParam(value = "", required = true) @Valid @RequestParam(value = "lakehouseId", required = true) String lakehouseId){
 		LakehouseTableCollectionResponseVO response = fabricCDCPushServiceClient.getLakehouseTables(workspaceId, lakehouseId);
-		if (response != null) {
+		if (response != null && response.getData()!=null && response.getResponseCode().equalsIgnoreCase(HttpStatus.OK.toString())) {
 			return new ResponseEntity<>(response, HttpStatus.OK);
 		} else {
-			return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+			return new ResponseEntity<>(response, response.getResponseCode() != null ? HttpStatus.valueOf(response.getResponseCode()) : HttpStatus.NO_CONTENT);
 		}
 	}
 
@@ -997,10 +997,10 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
         method = RequestMethod.GET)
     public ResponseEntity<LakehouseColumnCollectionResponseVO> getTableSchema(@NotNull @ApiParam(value = "", required = true) @Valid @RequestParam(value = "workspaceId", required = true) String workspaceId,@NotNull @ApiParam(value = "", required = true) @Valid @RequestParam(value = "lakehouseId", required = true) String lakehouseId,@NotNull @ApiParam(value = "", required = true) @Valid @RequestParam(value = "tableName", required = true) String tableName,@ApiParam(value = "") @Valid @RequestParam(value = "schemaName", required = false) String schemaName){
 		LakehouseColumnCollectionResponseVO response = fabricCDCPushServiceClient.getTableSchema(workspaceId, lakehouseId, schemaName, tableName);
-		if (response != null) {
+		if (response != null && response.getData()!=null && response.getResponseCode().equalsIgnoreCase(HttpStatus.OK.toString())) {
 			return new ResponseEntity<>(response, HttpStatus.OK);
 		} else {
-			return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+			return new ResponseEntity<>(response, response.getResponseCode() != null ? HttpStatus.valueOf(response.getResponseCode()) : HttpStatus.NO_CONTENT);
 		}
 	}
     

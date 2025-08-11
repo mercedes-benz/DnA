@@ -27,7 +27,9 @@
 
 package com.daimler.data.application.client;
 
+import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -39,13 +41,11 @@ import org.springframework.web.util.UriComponentsBuilder;
 
 import com.daimler.data.dto.fabricWorkspace.LakehouseColumnCollectionResponseVO;
 import com.daimler.data.dto.fabricWorkspace.LakehouseTableCollectionResponseVO;
-import com.google.api.client.util.Value;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Component
-
 public class FabricCDCPushServiceClient {
     
    
@@ -68,27 +68,28 @@ public class FabricCDCPushServiceClient {
             headers.setContentType(MediaType.APPLICATION_JSON);
             HttpEntity<String> requestEntity = new HttpEntity<>(headers);
 
-			System.out.println("___________"+ baseUrl);
             String url = UriComponentsBuilder.fromHttpUrl(baseUrl + "/tables")
                     .queryParam("workspaceId", workspaceId)
                     .queryParam("lakehouseId", lakehouseId)
                     .toUriString();
 
-
-            log.info("Building URL: {}", url);//remove
-
             ResponseEntity<LakehouseTableCollectionResponseVO> response = restTemplate.exchange(url, HttpMethod.GET,
                     requestEntity, LakehouseTableCollectionResponseVO.class
             );
-
-            if (response != null && response.hasBody()) {
-				vo = response.getBody();
-            } else {
-                log.warn("Empty response received for workspaceId: {}, lakehouseId: {}", workspaceId, lakehouseId);
-            }
+			if(response.getStatusCode().is2xxSuccessful()) {
+				if (response != null && response.hasBody()) {
+					vo = response.getBody();
+					vo.setResponseCode(response.getStatusCode().toString());
+				} else {
+					log.warn("Empty response received for workspaceId: {}, lakehouseId: {}", workspaceId, lakehouseId);
+					vo.setResponseCode(response.getStatusCode().toString());
+				}
+			}
+			vo.setResponseCode(response.getStatusCode().toString());
 
         } catch (Exception e) {
             log.error("Exception occurred while fetching lakehouse tables: {}", e.getMessage());
+			vo.setResponseCode(String.valueOf(HttpStatus.SC_INTERNAL_SERVER_ERROR));
         }
 
         return vo;
@@ -104,29 +105,33 @@ public class FabricCDCPushServiceClient {
 			headers.setContentType(MediaType.APPLICATION_JSON);
 			HttpEntity<String> requestEntity = new HttpEntity<>(headers);
 
-			String url = UriComponentsBuilder.fromHttpUrl(baseUrl + "/table/schema")
+			String url = UriComponentsBuilder.fromHttpUrl(baseUrl + "/tables/schema")
 					.queryParam("workspaceId", workspaceId)
 					.queryParam("lakehouseId", lakehouseId)
 					.queryParam("tableName", tableName)
 					.queryParam("schemaName", schemaName)
 					.toUriString();
 
-			log.info("Building URL: {}", url);
 
 			ResponseEntity<LakehouseColumnCollectionResponseVO> response = restTemplate.exchange(url, HttpMethod.GET,
 					requestEntity, LakehouseColumnCollectionResponseVO.class
 			);
-
-			if (response != null && response.hasBody()) {
-				vo = response.getBody();
-				log.info("Fetched table schema for workspaceId: {}, lakehouseId: {}, tableName: {}", workspaceId, lakehouseId, tableName);
-				log.info("Full response body: {}", vo);
-			} else {
-				log.warn("Empty response received for workspaceId: {}, lakehouseId: {}, tableName: {}", workspaceId, lakehouseId, tableName);
+			if(response.getStatusCode().is2xxSuccessful()) {
+				
+				if (response != null && response.hasBody()) {
+					vo = response.getBody();
+					vo.setResponseCode(response.getStatusCode().toString());
+					log.info("Fetched table schema for workspaceId: {}, lakehouseId: {}, tableName: {}", workspaceId, lakehouseId, tableName);
+				} else {
+					log.warn("Empty response received for workspaceId: {}, lakehouseId: {}, tableName: {}", workspaceId, lakehouseId, tableName);
+					vo.setResponseCode(response.getStatusCode().toString());
+				}
 			}
+			vo.setResponseCode(response.getStatusCode().toString());
 
 		} catch (Exception e) {
 			log.error("Exception occurred while fetching table schema: {}", e.getMessage());
+			vo.setResponseCode(String.valueOf(HttpStatus.SC_INTERNAL_SERVER_ERROR));
 		}
 		return vo;
 	}
