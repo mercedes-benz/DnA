@@ -158,7 +158,7 @@ paths:
         200:
           description: "Returns message of success or failure"
           schema:
-            $ref: "#/definitions/FabricCatalogMetadataVO"
+            $ref: "#/definitions/PublishCatalogResponseVO"
         204:
           description: "Fetch complete, no content found."
         400:
@@ -177,12 +177,12 @@ definitions:
   PublishCatalogRequestVO:
     type: object
     required:
-      - metaData
+      - metadata
       - workspaceId
       - mandatoryFields
       - owners
     properties:
-      metaData:
+      metadata:
         $ref: "#/definitions/FabricCatalogMetadataVO"
         required: true
       mandatoryFields:
@@ -271,39 +271,9 @@ definitions:
     type: object
     properties:
       data:
-        type: object
-        properties:
-          catalogMetadata:
-            $ref: "#/definitions/FabricCatalogMetadataVO"
-          ownerDetails:
-            type: array
-            items:
-              $ref: "#/definitions/CreatedByVO"
+        $ref: "#/definitions/FabricCatalogMetadataDetailsVO"
       responses:
         $ref: "#/definitions/GenericMessage"
-
-
-  CreatedByVO:
-    type: object
-    properties:
-      id:
-        type: string
-        description: "ID of user"
-      firstName:
-        type: string
-        description: "First Name of the user"
-      lastName:
-        type: string
-        description: "Last Name of the user"
-      department:
-        type: string
-        description: "Department of the user"
-      email:
-        type: string
-        description: "E-Mail of the user"
-      mobileNumber:
-        type: string
-        description: "Mobile number of the user"
 
   MandatoryFieldsVO:
     type: object

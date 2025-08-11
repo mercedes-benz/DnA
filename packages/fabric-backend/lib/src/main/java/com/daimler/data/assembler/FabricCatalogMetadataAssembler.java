@@ -21,7 +21,6 @@ import com.daimler.data.dto.fabricCatalogManagement.DatabaseMetadataVO;
 import com.daimler.data.dto.fabricCatalogManagement.SchemaMetadataVO;
 import com.daimler.data.dto.fabricCatalogManagement.TableMetadataVO;
 import com.daimler.data.dto.fabricCatalogManagement.ColumnMetadataVO;
-import com.daimler.data.dto.fabricCatalogManagement.CreatedByVO;
 import com.daimler.data.dto.fabricCatalogManagement.MandatoryFieldsVO;
 import com.daimler.data.dto.fabricCatalogManagement.MandatoryFieldsVO.DivisionEnum;
 import com.daimler.data.dto.fabricCatalogManagement.MandatoryFieldsVO.DataOriginEnum;
@@ -29,6 +28,7 @@ import com.daimler.data.dto.fabricCatalogManagement.MandatoryFieldsVO.IsDocument
 import com.daimler.data.dto.fabricCatalogManagement.MandatoryFieldsVO.IsDataLakeAvailabilityEnum;
 import com.daimler.data.dto.fabricCatalogManagement.MandatoryFieldsVO.IsDataAssetEnum;
 import com.daimler.data.dto.fabricCatalogManagement.MandatoryFieldsVO.DataConfidentialityEnum;
+import com.daimler.data.dto.fabricWorkspace.CreatedByVO;
 
 
 @Component
@@ -188,6 +188,7 @@ public class FabricCatalogMetadataAssembler implements GenericAssembler<FabricCa
                 mandatoryFieldsVO.setIsDataAsset(mandatoryFields.getIsDataAsset() != null ? IsDataAssetEnum.valueOf(mandatoryFields.getIsDataAsset()) : null);
                 mandatoryFieldsVO.setDataConfidentiality(mandatoryFields.getDataConfidentiality() != null ? DataConfidentialityEnum.valueOf(mandatoryFields.getDataConfidentiality()) : null);
             }
+            vo.setMandatoryFields(mandatoryFieldsVO);
             
 		}
 		return vo;
