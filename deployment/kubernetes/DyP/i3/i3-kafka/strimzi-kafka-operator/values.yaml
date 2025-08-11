@@ -166,7 +166,7 @@ mavenBuilder:
 resources:
   limits:
     memory: 384Mi
-    cpu: 1000m
+    cpu: ""
   requests:
     memory: 384Mi
     cpu: 200m
