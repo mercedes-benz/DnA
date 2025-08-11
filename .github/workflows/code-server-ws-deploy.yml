@@ -191,11 +191,11 @@ jobs:
 
         if [[ "$CPU_MILLICORES" != "0" && "$MEM_MIB" != "0" ]]; then
           MEM_LIMIT="${MEM_MIB}Mi"
+          echo "MEM_LIMIT_LINE="memory: MEM_LIMIT" >> $GITHUB_OUTPUT
         else
-          MEM_LIMIT="# memory limit should not set"
+          echo "MEM_LIMIT_LINE=# cpu limit should not set"" >> $GITHUB_OUTPUT
         fi
         echo "CPU_LIMIT_LINE=# cpu limit should not set" >> $GITHUB_OUTPUT
-        echo "MEM_LIMIT=$MEM_LIMIT" >> $GITHUB_OUTPUT
     - name: Deploy App
       uses: deler-aziz/helm-deploy-action@v1.0.1
       if: ${{ github.event.inputs.action == 'deploy' &&
@@ -224,7 +224,7 @@ jobs:
           resources:
             limits:
               ${{ steps.check-resources.outputs.CPU_LIMIT_LINE }}
-              memory: ${{ steps.check-resources.outputs.MEM_LIMIT }}
+              ${{ steps.check-resources.outputs.MEM_LIMIT_LINE }}
       env:
         KUBECONFIG_FILE: '${{ secrets.KUBECONFIG }}'
     - name: Print deploy skipped reason
