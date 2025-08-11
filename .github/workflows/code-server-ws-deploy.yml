@@ -191,7 +191,7 @@ jobs:
 
         if [[ "$CPU_MILLICORES" != "0" && "$MEM_MIB" != "0" ]]; then
           MEM_LIMIT="${MEM_MIB}Mi"
-          echo "MEM_LIMIT_LINE="memory: ${MEM_LIMIT}" >> $GITHUB_OUTPUT
+          echo "MEM_LIMIT_LINE=memory: ${MEM_LIMIT}" >> $GITHUB_OUTPUT
         else
           echo "MEM_LIMIT_LINE=# memory limit should not set"" >> $GITHUB_OUTPUT
         fi
