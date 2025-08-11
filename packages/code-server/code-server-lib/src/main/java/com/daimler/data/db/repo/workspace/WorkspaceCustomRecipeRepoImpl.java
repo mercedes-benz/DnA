@@ -47,8 +47,8 @@ public class WorkspaceCustomRecipeRepoImpl extends CommonDataRepositoryImpl<Code
         TypedQuery<CodeServerRecipeNsql> getAllQuery = em.createQuery(getAll);
         if (offset >= 0)
             getAllQuery.setFirstResult(offset);
-        if (limit > 0)
-            getAllQuery.setMaxResults(limit);
+        // if (limit > 0)
+        //     getAllQuery.setMaxResults(limit);
         return getAllQuery.getResultList();
 
     }
