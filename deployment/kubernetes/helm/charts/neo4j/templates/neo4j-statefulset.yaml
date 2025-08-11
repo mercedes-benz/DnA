@@ -127,12 +127,17 @@ spec:
             {{- end }}
           {{- with .Values.neo4j.resources }}
           resources:
-            {{- if hasKey . "requests" | or (hasKey . "limits") }}
-            {{- omit . "cpu" "memory" | toYaml | nindent 12 }}
-            {{- else }}
-            requests: {{ . | toYaml | nindent 14 }}
-            limits: {{ . | toYaml | nindent 14 }}
-            {{- end }}
+            requests:
+              {{- if .cpu }}
+              cpu: {{ .cpu | quote }}
+              {{- end }}
+              {{- if .memory }}
+              memory: {{ .memory | quote }}
+              {{- end }}
+            limits:
+              {{- if .memory }}
+              memory: {{ .memory | quote }}
+              {{- end }}
           {{- end }}
           securityContext: {{ .Values.containerSecurityContext | toYaml  | nindent 14 }}
           volumeMounts:
