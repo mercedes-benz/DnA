@@ -148,11 +148,13 @@ jobs:
     - name: Check if project requires resource check
       id: check-project
       run: |
-        if [[ "${{ github.event.inputs.projectName }}" !== "cs1108" ]]; then
+        if [[ "$PROJECT_NAME" !== "cs1108" ]]; then
           echo "DO_CHECK=true" >> $GITHUB_OUTPUT
         else
           echo "DO_CHECK=false" >> $GITHUB_OUTPUT
-        fi 
+        fi
+      env: 
+        PROJECT_NAME: ${{ github.event.inputs.projectName }} 
     - name: Check CPU and Memory Requests from values.yaml
       id: check-resources
       if: steps.check-project.outputs.DO_CHECK == 'true'
