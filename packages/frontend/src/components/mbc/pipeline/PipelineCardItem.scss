@@ -131,14 +131,14 @@
 .dagHeader {
   display: flex;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   width: 100%;
   padding: 10px 0px 10px 0px;
   color: #99a5b3;
   font-weight: bold;
 
   span:nth-child(1) {
-    flex: 3;
+    flex: 1 1 auto;
     min-width: 0;
     white-space: nowrap;
     overflow: hidden;
@@ -146,14 +146,15 @@
   }
 
   span:nth-child(2) {
-    flex: 0 0 70px;
+    flex: 0 0 90px;
     text-align: center;
+    margin-right: 12px;
   }
 
   span:nth-child(3) {
     flex: 0 0 100px;
-    text-align: center;
-    margin-right: 20px;
+    text-align: left;
+    margin-right: 0px;
   }
 }
     }
