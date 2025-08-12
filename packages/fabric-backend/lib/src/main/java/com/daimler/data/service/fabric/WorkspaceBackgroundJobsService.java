@@ -128,9 +128,8 @@ public class WorkspaceBackgroundJobsService {
 	@SchedulerLock(
 		name = "updateWorkspacesJob", 
 		lockAtMostFor = "35m", 
-		lockAtLeastFor = "5m" 
+		lockAtLeastFor = "10m" 
 	)
-	
 	public void updateWorkspacesJob() {	
 		log.info("Scheduled task started at {}", sdf.format(new Date()));
 		try {
