@@ -193,9 +193,8 @@ jobs:
           MEM_LIMIT="${MEM_MIB}Mi"
           echo "MEM_LIMIT_LINE=memory: ${MEM_LIMIT}" >> $GITHUB_OUTPUT
         else
-          echo "MEM_LIMIT_LINE=# memory limit should not set" >> $GITHUB_OUTPUT
+          echo "MEM_LIMIT_LINE=memory: null" >> $GITHUB_OUTPUT
         fi
-        echo "CPU_LIMIT_LINE=# cpu limit should not set" >> $GITHUB_OUTPUT
     - name: Deploy App
       uses: deler-aziz/helm-deploy-action@v1.0.1
       if: ${{ github.event.inputs.action == 'deploy' &&
