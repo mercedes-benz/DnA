@@ -127,7 +127,35 @@
           white-space: nowrap;
         }
       }
+        
+.dagHeader {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 10px 0px 10px 0px;
+  color: #99a5b3;
+  font-weight: bold;
 
+  span:nth-child(1) {
+    flex: 3;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  span:nth-child(2) {
+    flex: 0 0 70px;
+    text-align: center;
+  }
+
+  span:nth-child(3) {
+    flex: 0 0 100px;
+    text-align: center;
+    margin-right: 20px;
+  }
+}
     }
   }
 
