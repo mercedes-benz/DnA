@@ -124,9 +124,15 @@ public class WorkspaceBackgroundJobsService {
 //		}
 //	}
 	
-	@Scheduled(cron = "0 0/7 * * * *")
-	@SchedulerLock(name = "updateWorkspacesJob", lockAtMostFor = "PT7M", lockAtLeastFor = "PT5M")
+	@Scheduled(fixedDelay = 7 * 60 * 1000) // 7 minutes between COMPLETION and next start
+	@SchedulerLock(
+		name = "updateWorkspacesJob", 
+		lockAtMostFor = "35m", 
+		lockAtLeastFor = "5m" 
+	)
+	
 	public void updateWorkspacesJob() {	
+		log.info("Scheduled task started at {}", sdf.format(new Date()));
 		try {
 			FabricWorkspacesCollectionVO collection = fabricService.getAllLov(0,0);
 			WorkspacesCollectionDto collectionFromListWorkspaces = fabricWorkspaceClient.listWorkspaces();
@@ -194,6 +200,7 @@ public class WorkspaceBackgroundJobsService {
 					}
 				}
 			}
+			log.info("Scheduled task completed at {}", sdf.format(new Date()));
 		}catch(Exception e) {
 			e.printStackTrace();
 			log.error("During scheduled job, failed to process workspaces user management with exception {}", e.getMessage());
