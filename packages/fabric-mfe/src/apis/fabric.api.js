@@ -127,6 +127,22 @@ const getLeanIX = (searchTerm) => {
   return dataProductServer.get(`/planningit?searchTerm=${searchTerm}`, { data: {} });
 };
 
+const getLakehouseTables = (workspaceId, lakehouseId) => {
+  return server.get(`/fabric-workspaces/lakehouses/tables?workspaceId=${workspaceId}&lakehouseId=${lakehouseId}`, {
+    data: {} 
+  });
+};
+
+const getTableSchema = (workspaceId, lakehouseId, tableName, schemaName={}) => {
+  return server.get(`fabric-workspaces/lakehouses/table/schema?workspaceId=${workspaceId}&lakehouseId=${lakehouseId}&tableName=${tableName}&schemaName=${schemaName}`, {
+    data: {} 
+  });
+};
+
+const pushSelectedTables = (workspaceId, payload) => {
+  return server.post(`fabric-workspaces/catalog/${workspaceId}/publish`, payload);
+};
+
 export const fabricApi = {
   getFabricWorkspaces,
   getFabricWorkspace,
@@ -147,4 +163,7 @@ export const fabricApi = {
   getConnectionInfo,
   getLovData,
   getLeanIX,
+  getLakehouseTables,
+  getTableSchema,
+  pushSelectedTables
 };
