@@ -72,21 +72,32 @@ const PipelineCardItem = ({ project, getRefreshedDagPermission }: Props) => {
             <div>{project.projectId}</div>
           </div>
           <div>
-            <div>Project Name</div>
-            <div>{project.projectName}</div>
+            <div>Description</div>
+            <div>{project.projectDescription}</div>
           </div>
           <div>
             <div>Permission</div>
             <div>{project.isOwner ? 'Owner' : 'Collaborator'}</div>
           </div>
+          <div>
+            <div>CreatedBy</div>
+            <div>{project.createdBy}</div>
+          </div>
+
           <div className={Styles.cardCollabSection}>
             <div>DAGs</div>
             {project.dags?.length > 0 ? (
               <div onMouseEnter={() => setIsDagPopupVisible(true)} onMouseLeave={() => setIsDagPopupVisible(false)}>
-                <i className="icon mbc-icon profile" />
+                <i className="icon mbc-icon listview big" />
                 <span className={Styles.cardCollabIcon}>{project.dags.length}</span>
                 <div ref={popupRef} className={`${Styles.collabsList} ${isDagPopupVisible ? 'show' : 'hide'}`}>
                   <ul>
+                    <div className={`${Styles.dagHeader} ${Styles.dagRow}`}>
+                      <span>DAG Name</span>
+                      <span>Permission</span>
+                      <span>Actions</span>
+                    </div>
+
                     {project.dags.map((dag, idx) => (
                       <li key={idx} className={Styles.dagItem}>
                         <span className={Styles.dagName}>{dag.dagName}</span>
@@ -136,10 +147,15 @@ const PipelineCardItem = ({ project, getRefreshedDagPermission }: Props) => {
                                   <i className="icon mbc-icon document" />
                                 </button>
                               ) : null}
-
-                               <button className={Styles.actionBtn} title="Trigger DAG" onClick={() => handleTriggerDag(dag.dagName)}>
-    <i className="icon mbc-icon trainings" />
-  </button>
+                              {dag.permissions?.includes('can_edit') && (
+                                <button
+                                  className={Styles.actionBtn}
+                                  title="Trigger DAG"
+                                  onClick={() => handleTriggerDag(dag.dagName)}
+                                >
+                                  <i className="icon mbc-icon trainings" />
+                                </button>
+                              )}
 
                               <a
                                 href={`${Envs.DATA_PIPELINES_APP_BASEURL}/graph?dag_id=${dag.dagName}`}

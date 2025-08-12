@@ -553,11 +553,23 @@
 .expansionLabel {
   .dagTile {
     .dagTitleCol {
+      padding-right: 10px;
+      margin-left: 5px;
+      margin-right: -10px;
+
       &:nth-child(2) {
-        padding-left: 19px;
+        padding-left: 21px;
+        padding-right: 10px;
       }
+
       &:nth-child(3) {
-        padding-left: 19px;
+        padding-left: 21px;
+        padding-right: 10px;
+      }
+
+      &:nth-child(4) {
+        padding-left: 21px;
+        padding-right: 30px;
       }
     }
   }
