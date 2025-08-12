@@ -195,6 +195,11 @@ jobs:
         else
           echo "MEM_LIMIT_LINE=memory: null" >> $GITHUB_OUTPUT
         fi
+    - name: Print deploy skipped reason
+      if: ${{ github.event.inputs.action == 'deploy' && steps.check-project.outputs.DO_CHECK == 'true' && (steps.check-resources.outputs.CPU_MILLICORES > 2000 || steps.check-resources.outputs.MEM_MIB > 4096) }}
+      run: |
+        echo "Deployment skipped due to resource constraints- CPU request is more than than 2 Cores or Memory request is more than 4GB."
+        exit 1
     - name: Deploy App
       uses: deler-aziz/helm-deploy-action@v1.0.1
       if: ${{ github.event.inputs.action == 'deploy' &&
@@ -226,10 +231,6 @@ jobs:
               ${{ steps.check-resources.outputs.MEM_LIMIT_LINE }}
       env:
         KUBECONFIG_FILE: '${{ secrets.KUBECONFIG }}'
-    - name: Print deploy skipped reason
-      if: ${{ github.event.inputs.action == 'deploy' && steps.check-project.outputs.DO_CHECK == 'true' && (steps.check-resources.outputs.CPU_MILLICORES > 2000 || steps.check-resources.outputs.MEM_MIB > 4096) }}
-      run: |
-        echo "Deployment skipped due to resource constraints- CPU request is more than than 2 Cores or Memory request is more than 4GB."
 
   upload-build_deploy-logs-to-opensearch:
     name: "Upload Logs to Opensearch" 
