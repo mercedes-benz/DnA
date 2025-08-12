@@ -209,7 +209,7 @@ jobs:
         value-files: >-
         [
           "values.yaml", 
-          "values.dev.yaml"
+          "values-dev.yaml"
         ]
         values: |
           fullnameOverride: ${{ github.event.inputs.projectName }}-${{ github.event.inputs.target_env }}
