@@ -226,10 +226,7 @@ jobs:
               ${{ steps.check-resources.outputs.CPU_LIMIT_LINE }}
               ${{ steps.check-resources.outputs.MEM_LIMIT_LINE }}
         value-files: >-
-        [
-          "values.yaml", 
-          "values-dev.yaml"
-        ]
+        [ values.yaml, values-dev.yaml ]
       env:
         KUBECONFIG_FILE: '${{ secrets.KUBECONFIG }}'
     - name: Print deploy skipped reason
