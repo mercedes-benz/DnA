@@ -51,7 +51,7 @@ const DeployedAppConfigModal = (props) => {
   const [enableAliceRole, setEnableAliceRole] = useState(props?.deploymentDetails?.aliceRoleEnabled || false);
   const [enableEntitlementPrefix, setEnableEntitlementPrefix] = useState(false);
   const [existingRoles, setExistingRoles] = useState([]);
-  const [selectedRoles, setSelectedRoles] = useState([]);
+  const [selectedRoles, setSelectedRoles] = useState(props?.deploymentDetails?.selectedAliceRoles || []);
   const [aliceRolesError, setAliceRolesError] = useState('');
 
   const ignorePaths = [
@@ -145,12 +145,6 @@ const DeployedAppConfigModal = (props) => {
     );
     props?.deploymentDetails?.ignorePaths?.length && setIgnorePath(props?.deploymentDetails?.ignorePaths?.split(','));
     props?.deploymentDetails?.scope?.length && setScope(props?.deploymentDetails?.scope?.split(' '));
-    if (props?.deploymentDetails?.selectedRoles) {
-      const updatedRoles = props?.deploymentDetails?.selectedRoles.map((role) =>
-        role.startsWith('DNA.') ? role.replace('DNA.', '') : role,
-      );
-      setSelectedRoles(updatedRoles);
-    }
     if (props?.deploymentDetails?.secureWithIAMRequired || props?.deploymentDetails?.secureWithDnaRequired) {
       ProgressIndicator.show();
       CodeSpaceApiClient.getPluginStatus(props?.workspaceId, props?.isStaging ? 'int' : 'prod', 'oidc')
@@ -354,14 +348,15 @@ const DeployedAppConfigModal = (props) => {
       formValid = false;
       setOneApiVersionShortNameError('*Missing Entry');
     }
-    if (enableAliceRole && selectedRoles.length === 0) {
+    if (enableAliceRole && enableEntitlementPrefix && selectedRoles.length === 0) {
       formValid = false;
       setAliceRolesError('*Missing Entry');
+    } else{
+      setAliceRolesError('');
     }
     if (formValid) {
       const entitlementScope = 'openid autorization_group entitlement_group scoped_entitlement email profile organizational_data';
       const userInfoScope = 'openid autorization_group scoped_entitlement email profile organizational_data';
-      const prefixedRoles = selectedRoles.map((role) => `DNA.${role}`);
       const configRequest = {
         targetEnvironment: props?.isStaging ? 'int' : 'prod',
         secureWithIAMRequired: secureWithIAMSelected,
@@ -381,7 +376,7 @@ const DeployedAppConfigModal = (props) => {
         isSecuredWithCookie: false,
         ssoType: secureWithIAMSelected ? ssoType : secureWithDnaSelected ? Envs.DNA_SSO_TYPE : 'SSO_INT',
         aliceRoleEnabled: enableAliceRole,
-        selectedAliceRoles: enableAliceRole ? prefixedRoles : [],
+        selectedAliceRoles: enableAliceRole ? selectedRoles : [],
         entitlementPrefixEnabled: enableAliceRole && enableEntitlementPrefix,
       };
       ProgressIndicator.show();
@@ -686,7 +681,7 @@ const DeployedAppConfigModal = (props) => {
               <div className={classNames(Styles.align, Styles.infoIcon)}>
                 <label className={classNames('switch', enableAliceRole ? 'on' : '')}>
                   <span className="label" style={{ marginRight: '5px' }}>
-                    Enable Alice Role Usage in cookie authentication
+                    Use entitlements in cookie authentication
                   </span>
                   <span className="wrapper">
                     <input
@@ -945,12 +940,12 @@ const DeployedAppConfigModal = (props) => {
                   <div className={classNames(Styles.align)}>
                     <Tags
                       title={enableEntitlementPrefix ? 'Entitlement Prefix' : 'Alice Roles'}
-                      max={enableEntitlementPrefix ? 1 : 100}
+                      max={20}
                       chips={selectedRoles}
                       tags={enableEntitlementPrefix ? [] : existingRoles}
                       setTags={onRolesChange}
                       errorText={aliceRolesError}
-                      isMandatory={enableAliceRole}
+                      isMandatory={enableEntitlementPrefix ? true : false}
                       disableSelfTagAdd={false}
                       suggestionPopupHeight={150}
                       showAllTagsOnFocus={true}
