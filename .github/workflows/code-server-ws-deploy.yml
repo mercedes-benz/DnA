@@ -206,11 +206,6 @@ jobs:
         namespace: '${{ vars.K8S_NAMESPACE }}'
         chart: 'workspace-repo/deploy/helm'
         timeout: '10m0s'
-        value-files: >-
-        [
-          "values.yaml", 
-          "values-dev.yaml"
-        ]
         values: |
           fullnameOverride: ${{ github.event.inputs.projectName }}-${{ github.event.inputs.target_env }}
           namespace: ${{ vars.K8S_NAMESPACE }}
@@ -230,6 +225,11 @@ jobs:
             limits:
               ${{ steps.check-resources.outputs.CPU_LIMIT_LINE }}
               ${{ steps.check-resources.outputs.MEM_LIMIT_LINE }}
+        value-files: >-
+        [
+          "values.yaml", 
+          "values-dev.yaml"
+        ]
       env:
         KUBECONFIG_FILE: '${{ secrets.KUBECONFIG }}'
     - name: Print deploy skipped reason
