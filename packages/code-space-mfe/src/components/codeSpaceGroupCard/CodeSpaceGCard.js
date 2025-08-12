@@ -140,6 +140,7 @@ const CodeSpaceGCard = ({ codeSpace, userInfo, onStartStopCodeSpace, onShowDeplo
                   codeSpace={codeSpace}
                   userInfo={userInfo}
                   showContextMenu={showContextMenu}
+                  setShowContextMenu = {(val) => {setShowContextMenu(val);}}
                   // toggleContextMenu={toggleContextMenu}
                   contextMenuOffsetTop={contextMenuOffsetTop}
                   contextMenuOffsetLeft={contextMenuOffsetLeft}

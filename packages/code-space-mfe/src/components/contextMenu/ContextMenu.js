@@ -307,6 +307,7 @@ const ContextMenu = (props) => {
                     onClick={() => {
                       setShowDeployedAppConfigModal(true);
                       setIsStaging(true);
+                      props.setShowContextMenu(false);
                     }}
                   >
                     Deployed Application Config

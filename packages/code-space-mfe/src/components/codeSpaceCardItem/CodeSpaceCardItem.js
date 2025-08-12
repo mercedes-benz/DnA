@@ -391,6 +391,7 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
                   codeSpace={props?.codeSpace}
                   userInfo={props?.userInfo}
                   showContextMenu={showContextMenu}
+                  setShowContextMenu = {(val) => {setShowContextMenu(val);}}
                   // toggleContextMenu={toggleContextMenu}
                   contextMenuOffsetTop={contextMenuOffsetTop}
                   contextMenuOffsetLeft={contextMenuOffsetLeft}

@@ -474,7 +474,10 @@ const DeployedAppConfigModal = (props) => {
       })
       .finally(() => {
         ProgressIndicator.hide();
-      })
+        if(pluginEnabled){
+          props.setShowDeployedAppConfigModal(false);
+        }
+      });
   };
 
   const navigateAliceRoleCreate = () => {

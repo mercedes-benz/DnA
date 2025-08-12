@@ -568,6 +568,27 @@ export default class Entitlement extends React.Component {
 
     if (formValid) {
 
+      let newAppId = this.state.appId;
+      let newEntitlements = this.state.entitelmentListResponse;
+
+
+      if (this.state.showJson) {
+        try {
+          const parsedData = JSON.parse(this.state.jsonData);
+          newAppId = parsedData.appId || newAppId;
+          newEntitlements = parsedData.entitlements || newEntitlements;
+
+          this.setState({
+            appId: newAppId,
+            entitelmentListResponse: newEntitlements,
+            entitelmentList: newEntitlements,
+            isJsonTouched: false,
+          });
+        } catch (e) {
+          this.showErrorNotification('Invalid JSON. Please correct the errors before saving.');
+          return;
+        }
+      }
       const newPublishData = {
         appId: this.state.appId,
         entitlements: this.state.entitelmentListResponse,
@@ -580,7 +601,6 @@ export default class Entitlement extends React.Component {
             entitlements: newPublishData.entitlements,
             appId: this.state.appId,
           },
-          jsonData: newPublishData,
           isJsonTouched: false,
         },
         () => {
