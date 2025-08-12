@@ -4,6 +4,7 @@ import Styles from './lakehouses.scss';
 import Modal from 'dna-container/Modal';
 import SelectBox from 'dna-container/SelectBox';
 import ConfirmModal from 'dna-container/ConfirmModal';
+import InfoModal from 'dna-container/InfoModal';
 import Tooltip from '../../common/modules/uilab/js/src/tooltip';
 import Pagination from 'dna-container/Pagination';
 import Tags from 'dna-container/Tags';
@@ -13,6 +14,7 @@ import { SESSION_STORAGE_KEYS } from '../../utilities/constants';
 import { getQueryParameterByName } from '../../utilities/utils';
 import { fabricApi } from '../../apis/fabric.api';
 import Popper from 'popper.js';
+import ViewTablesModalContent from '../../components/Lakehouses/CdcPush';
 
 const CreateShortcutModalContent = ({ workspaceId, lakehouseId, onCreateShortcut }) => {
   const [bucketName, setBucketName] = useState('');
@@ -314,6 +316,7 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse }) {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showViewShortcutsModal, setShowViewShortcutsModal] = useState(false);
   const [showCreateShortcutModal, setShowCreateShortcutModal] = useState(false);
+  const [showViewTables, setShowViewTablesModal] = useState(false);
 
   const [contextMenus, setContextMenus] = useState({});
   const [showLocationsContextMenu, setShowLocationsContextMenu] = useState(false);
@@ -605,15 +608,32 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse }) {
                           <span>View Shortcuts</span>
                         </button>
                       </li>
+                      <li className="contextListItem">
+                        <button className={classNames('btn btn-primary', Styles.outlineBtn)} onClick={() => { setSelectedLakehouse(lakehouse); setShowViewTablesModal(true)}}>
+                          <i className="icon mbc-icon dublicate" />
+                          <span>Push to Cdc</span>
+                        </button>
+                      </li>
                     </ul>
                   </div>
                 </div>
               </h4>
               <div className={Styles.buttonContainer}>
-                {user?.id === workspace?.createdBy?.id && 
-                    <button className={classNames('btn', Styles.deleteBtn)} onClick={() => { setSelectedLakehouse(lakehouse); setShowDeleteModal(true) }}>
-                      <i className="icon delete" />
-                    </button>
+                {workspace?.cdcPublishedLakeHouseDetails?.isLakeHousesPublishedToCdc && (
+                  <span className={Styles.statusIndicator}>
+                    <span
+                      className={Styles.deployedTag}
+                      tooltip-data="Lakehouse successfully deployed."
+                    >
+                      Published
+                    </span>
+                  </span>
+                )}
+
+                {user?.id === workspace?.createdBy?.id &&
+                  <button className={classNames('btn', Styles.deleteBtn)} onClick={() => { setSelectedLakehouse(lakehouse); setShowDeleteModal(true) }}>
+                    <i className="icon delete" />
+                  </button>
                 }
               </div>
             </div>
@@ -670,6 +690,19 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse }) {
           content={<ViewShortcutsModalContent workspaceId={workspace?.id} lakehouseId={selectedLakehouse?.id} />}
           scrollableContent={true}
           onCancel={() => { setSelectedLakehouse(); setShowViewShortcutsModal(false) }}
+        />
+      }
+      { showViewTables &&
+        <InfoModal
+          title={selectedLakehouse ? `${selectedLakehouse.name} - Tables` : 'Tables'}
+          showAcceptButton={false}
+          showCancelButton={false}
+          modalWidth={'80%'}
+          buttonAlignment="right"
+          show={showViewTables}
+          content={<ViewTablesModalContent workspaceId={workspace?.id} lakehouseId={selectedLakehouse?.id} />}
+          scrollableContent={true}
+          onCancel={() => { setSelectedLakehouse(); setShowViewTablesModal(false) }}
         />
       }
       { showDeleteModal &&

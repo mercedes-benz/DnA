@@ -178,6 +178,156 @@
     color: #d8d8d8;
   }
 }
+
+.tableHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 16px;
+  // background-color: #2a2f38;
+  cursor: pointer;
+  border-bottom: 1px solid #383f49;
+}
+
+.tableHeader input {
+  margin-right: 12px;
+}
+
+.tableName {
+  flex: 1;
+}
+
+.tableRow {
+  display: flex;
+  align-items: center;
+  justify-Content: space-between;
+  gap: 10px; 
+}
+
+.tableExpandedContent {
+  padding: 10px 16px;
+  background-color: #1c2026;
+}
+
+.tableColumnsHeader,
+.tableColumnRow {
+  display: grid;
+  grid-template-columns: 40px 1fr 1fr;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0;
+  border-bottom: 1px solid #383f49;
+  color: #d1d5db;
+}
+
+.tableColumnsHeader {
+  font-weight: bold;
+}
+
+.tableColumnRow:last-child {
+  border-bottom: none;
+}
+
+// .tableColumnRow input[type="checkbox"] {
+//   margin-left: 4px;
+// }
+
+
+.pushButtonContainer {
+  text-align: right;
+  margin-top: 16px;
+}
+
+// .checkboxWrapper {
+//   flex-shrink: 0; 
+//   margin-right: 12px; 
+// }
+
+.tableHeaderLabel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex: 1; 
+  cursor: pointer;
+
+  // .tableName {
+  //   // flex: 1; 
+  // }
+
+  .icon {
+    margin-left: 12px;
+    flex-shrink: 0;
+  }
+}
+
+.flex {
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  // margin-top: 20px;
+  padding: 10px;
+  > .col {
+    width: 100%;
+  }
+  > .col2 {
+    width: calc(50% - 7px);
+  }
+  > .col3 {
+    width: calc(33.33% - 7px);
+  }
+}
+
+.statusIndicator {
+  padding: 2px 8px;
+  border: 1px solid #0AE6AB;
+  color: #0AE6AB;
+  font-size: var(--font-size-icon-small);
+  letter-spacing: 1px;
+  border-radius: 2px;
+  margin-right: 5px;
+
+  &.wsStartStop {
+    border: 1px solid #00adef;
+    color: #00adef;
+    cursor: pointer;
+
+    &.wsStarted {
+      border: 1px solid #e84d47;
+      color: #e84d47;
+    }
+  }
+
+  &.colloboration {
+    border: 1px solid #35ADAC;
+    color: #35ADAC;
+  }
+
+  &.deploying {
+    border: 1px solid #f3e537;
+    color: #f3e537;
+  }
+
+  &.deployFailed {
+    border: 1px solid #e84d47;
+    color: #e84d47;
+  }
+
+  &.deleting {
+    border: 1px solid #e84d47;
+    color: #e84d47;
+  }
+
+  &.creating {
+    border: 1px solid #00adef;
+    color: #00adef;
+  }
+}
+
+.deployedLink{
+  text-decoration: none;
+  color: #0AE6AB;
+}
+
 .disabledBtn {
   opacity: 0.5;
   pointer-events: none;
