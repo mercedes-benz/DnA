@@ -415,6 +415,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 				" \"ssoType\": " + (deploymentDetails.getSsoType() != null ? addQuotes(String.valueOf(deploymentDetails.getSsoType())) : "null") + "," +
 				" \"secureWithDnaRequired\": " + deploymentDetails.getSecureWithDnaRequired() + "," +
 				" \"aliceRoleEnabled\": " + deploymentDetails.getAliceRoleEnabled() + "," +
+				" \"entitlementPrefixEnabled\": " + deploymentDetails.getEntitlementPrefixEnabled() + "," +
 				" \"selectedAliceRoles\": " + selectedAliceRolesJson + "," +				
 				" \"lastDeployedVersion\": " + addQuotes(deploymentDetails.getLastDeployedVersion()) + "," +
 				" \"lastDeploymentStatus\": " + addQuotes(deploymentDetails.getLastDeploymentStatus()) +"}'),\r\n" + 
@@ -472,7 +473,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 			String oneApiVersionShortName,
 			boolean isSecuredWithCookie, String deploymentType, String clientID, String redirectUri, String ignorePaths,
 			String scope, String ssoType,
-			boolean secureWithDnaRequired, boolean isAliceRoleEnabled, List<String> selectedAliceRoles) {
+			boolean secureWithDnaRequired, boolean isAliceRoleEnabled, boolean isEntitlementPrefixEnabled, List<String> selectedAliceRoles) {
 		GenericMessage updateResponse = new GenericMessage();
 		updateResponse.setSuccess("FAILED");
 		List<MessageDescription> errors = new ArrayList<>();
@@ -502,6 +503,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 				"'{projectDetails," + addQuotes(environment) + ",secureWithDnaRequired}', '" + secureWithDnaRequired
 				+ "')," +
 				"'{projectDetails," + addQuotes(environment) + ",aliceRoleEnabled}', '" + isAliceRoleEnabled + "')," +
+				"'{projectDetails," + addQuotes(environment) + ",entitlementPrefixEnabled}', '" + isEntitlementPrefixEnabled + "')," +
 				"'{projectDetails," + addQuotes(environment) + ",selectedAliceRoles}', '" + selectedAliceRolesJson
 				+ "')";
 
