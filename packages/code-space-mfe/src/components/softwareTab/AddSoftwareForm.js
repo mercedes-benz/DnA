@@ -84,7 +84,7 @@ const AddSoftwareForm = ({ edit, software, onAddSoftware }) => {
                   maxLength={100}
                   {...register('softwareName', { required: '*Missing entry', pattern: /^(?!\s*$)[a-zA-Z\d .-]+$/ })}
                 />
-                <span className={'error-message'}>{errors?.softwareName?.message}{errors.softwareName?.type === 'pattern' && 'Environment name can be only alphanumeric characters and hyphens (-), periods(.), special symbols and standalone spaces are not allowed.'}</span>
+                <span className={'error-message'}>{errors?.softwareName?.message}{errors.softwareName?.type === 'pattern' && 'Software name can be only alphanumeric characters and hyphens (-), periods(.), special symbols and standalone spaces are not allowed.'}</span>
               </div>
             </div>
             <div className={Styles.col}>
