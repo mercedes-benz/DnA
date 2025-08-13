@@ -501,7 +501,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 				"'{projectDetails," + addQuotes(environment) + ",ssoType}', '" + addQuotes(ssoType) + "')," +
 				"'{projectDetails," + addQuotes(environment) + ",secureWithDnaRequired}', '" + secureWithDnaRequired
 				+ "')," +
-				"'{projectDetails," + addQuotes(environment) + ",isAliceRoleEnabled}', '" + isAliceRoleEnabled + "')," +
+				"'{projectDetails," + addQuotes(environment) + ",aliceRoleEnabled}', '" + isAliceRoleEnabled + "')," +
 				"'{projectDetails," + addQuotes(environment) + ",selectedAliceRoles}', '" + selectedAliceRolesJson
 				+ "')";
 
@@ -615,8 +615,13 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 	}
 	
 	private String addQuotes(String value) {
-		if(value!=null && !"null".equalsIgnoreCase(value))
-			return "\"" + value + "\"";
+		if(value!=null && !"null".equalsIgnoreCase(value)){
+			String escaped = value
+            		.replace("\\", "\\\\")
+            		.replace("\"", "\\\"")  
+            		.replace("'", "''"); 
+			return "\"" + escaped + "\"";
+		}
 		else
 			return null;
 	}
