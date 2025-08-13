@@ -17,6 +17,7 @@ import {
   buildGitJobLogViewAWSURL,
   buildGitUrl,
 } from '../../Utility/utils';
+import DeployedAppConfigModal from '../deployedAppConfigModal/DeployedAppConfigModal';
 
 const ContextMenu = (props) => {
   const codeSpace = props?.codeSpace;
@@ -37,6 +38,7 @@ const ContextMenu = (props) => {
   const [showAuditLogsModal, setShowAuditLogsModal] = useState(false);
   const [env, setEnv] = useState('');
   const [showRestartModal, setShowRestartModal] = useState(false);
+  const [showDeployedAppConfigModal, setShowDeployedAppConfigModal] = useState(false);
 
   const deployingInProgress =
     intDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED' ||
@@ -172,6 +174,14 @@ const ContextMenu = (props) => {
     </svg>
   );
 
+  const navigateSecurityConfig = () => {
+    if (projectDetails?.publishedSecuirtyConfig) {
+        window.open(`${window.location.pathname}#/codespaces/codespace/publishedSecurityconfig/${props?.codeSpace?.id}?name=${projectDetails?.projectName}?intIAM=${projectDetails?.intDeploymentDetails?.secureWithIAMRequired || false}?intDna=${projectDetails?.intDeploymentDetails?.secureWithDnaRequired || false}?prodIAM=${projectDetails?.prodDeploymentDetails?.secureWithIAMRequired || false}?prodDna=${projectDetails?.prodDeploymentDetails?.secureWithDnaRequired || false}`, '_blank');
+        return;
+    }
+    window.open(`${window.location.pathname}#/codespaces/codespace/securityconfig/${props?.codeSpace?.id}?name=${projectDetails?.projectName}?intIAM=${projectDetails?.intDeploymentDetails?.secureWithIAMRequired || false}?intDna=${projectDetails?.intDeploymentDetails?.secureWithDnaRequired || false}?prodIAM=${projectDetails?.prodDeploymentDetails?.secureWithIAMRequired || false}?prodDna=${projectDetails?.prodDeploymentDetails?.secureWithDnaRequired || false}`, '_blank');
+  }
+
   return (
     <>
       <div
@@ -291,6 +301,19 @@ const ContextMenu = (props) => {
                   </span>
                 </li>
               )}
+              {codeSpace?.projectDetails?.recipeDetails?.isDeployEnabled && isOwner && (
+                <li>
+                  <span
+                    onClick={() => {
+                      setShowDeployedAppConfigModal(true);
+                      setIsStaging(true);
+                      props.setShowContextMenu(false);
+                    }}
+                  >
+                    Deployed Application Config
+                  </span>
+                </li>
+              )}
               {intBuildDetails?.gitjobRunID && (
                 <li>
                   <a
@@ -327,7 +350,7 @@ const ContextMenu = (props) => {
                     </span>
                   ) : (
                     <a href={intDeployedUrl} target="_blank" rel="noreferrer">
-                      Deployed App URL {intDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
+                      Deployed App URL {(intDeploymentDetails?.secureWithIAMRequired || intDeploymentDetails?.secureWithDnaRequired)  && securedWithIAMContent}
                       <i className="icon mbc-icon new-tab" />
                     </a>
                   )}
@@ -432,6 +455,18 @@ const ContextMenu = (props) => {
                   </span>
                 </li>
               )}
+              {codeSpace?.projectDetails?.recipeDetails?.isDeployEnabled && isOwner && (
+                <li>
+                  <span
+                    onClick={() => {
+                      setShowDeployedAppConfigModal(true);
+                      setIsStaging(false);
+                    }}
+                  >
+                    Deployed Application Config
+                  </span>
+                </li>
+              )}
               {prodBuildDetails?.gitjobRunID && (
                 <li>
                   <a
@@ -468,7 +503,7 @@ const ContextMenu = (props) => {
                     </span>
                   ) : (
                     <a href={prodDeployedUrl} target="_blank" rel="noreferrer">
-                      Deployed App URL {prodDeploymentDetails?.secureWithIAMRequired && securedWithIAMContent}
+                      Deployed App URL {(prodDeploymentDetails?.secureWithIAMRequired || prodDeploymentDetails?.secureWithDnaRequired) && securedWithIAMContent}
                       <i className="icon mbc-icon new-tab" />
                     </a>
                   )}
@@ -600,6 +635,32 @@ const ContextMenu = (props) => {
             onRestart(env);
             setShowRestartModal(false);
           }}
+        />
+      )}
+      {showDeployedAppConfigModal && (
+        <Modal
+          title={`Manage ${isStaging ? 'Staging' : 'Production'} Deployed Application Config`}
+          hiddenTitle={false}
+          showAcceptButton={false}
+          showCancelButton={false}
+          modalWidth="1200px"
+          buttonAlignment="right"
+          show={showDeployedAppConfigModal}
+          content={
+            <DeployedAppConfigModal
+              userInfo={props?.userInfo}
+              workspaceId={props?.codeSpace?.id}
+              projectName={props?.codeSpace?.projectDetails?.projectName}
+              deploymentDetails={isStaging ? props?.codeSpace?.projectDetails?.intDeploymentDetails : props?.codeSpace?.projectDetails?.prodDeploymentDetails}
+              securityConfig={props?.codeSpace?.projectDetails?.securityConfig}
+              navigateSecurityConfig={navigateSecurityConfig}
+              isStaging={isStaging}
+              setShowDeployedAppConfigModal={(value) => setShowDeployedAppConfigModal(value)}
+              onGetCodespaceData={props?.onGetCodespaceData}
+            />
+          }
+        scrollableContent={true}
+        onCancel={() => {setShowDeployedAppConfigModal(false);}}
         />
       )}
     </>
