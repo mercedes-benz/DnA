@@ -311,9 +311,9 @@ const DeployedAppConfigModal = (props) => {
     const upperCaseTags = selectedTags.map((tag) => tag.toUpperCase());
     setSelectedRoles(upperCaseTags);
     if (enableEntitlementPrefix) {
-      const entitlementPrefixError = upperCaseTags.some((tag) => !tag.startsWith(`${Envs.DNA_APP_ID}_`));
+      const entitlementPrefixError = upperCaseTags.some((tag) => !tag.startsWith(`${Envs.DNA_ENTITLEMENT_PREFIX}.`));
       entitlementPrefixError
-        ? setAliceRolesError(`*Entitlement prefix should start with ${Envs.DNA_APP_ID}_`)
+        ? setAliceRolesError(`*Entitlement prefix should start with ${Envs.DNA_ENTITLEMENT_PREFIX}. and then your prefix name`)
         : setAliceRolesError('');
     } else {
       const aliceRoleError = upperCaseTags.some((tag) => !tag.startsWith(`${Envs.CODESPACE_SECURITY_APP_ID}_`));
