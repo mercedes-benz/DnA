@@ -74,12 +74,29 @@ swaggerSources {
             components = ['models', 'apis']
         }
     }
+        tag {
+        def tagyaml = "${rootDir}/lib/src/main/resources/api/Tag.yaml"
+        def tagJson = "${rootDir}/lib/src/main/resources/api/Tag.json"
+        inputFile = file(tagyaml)
+
+        def ignoreFile = "${rootDir}/lib/src/main/resources/api/.swagger-codegen-ignore"
+
+        code {
+            language = 'spring'
+            configFile = file(tagJson)
+            rawOptions = ['--ignore-file-override', ignoreFile]
+
+            components = ['models', 'apis']
+        }
+    }
 }
 
 compileJava {
     dependsOn processResources
     dependsOn swaggerSources.fabricWorkspace.code
-    source "${swaggerSources.fabricWorkspace.code.outputDir}/src/main/java"  
+    source "${swaggerSources.fabricWorkspace.code.outputDir}/src/main/java" 
+    dependsOn swaggerSources.tag.code
+    source "${swaggerSources.tag.code.outputDir}/src/main/java" 
 }
 
 sourceSets {
@@ -91,6 +108,7 @@ sourceSets {
     main {
         java { srcDirs = srcDirs }
 		java { srcDirs += "${swaggerSources.fabricWorkspace.code.outputDir}/src/main/java" }
+        java { srcDirs += "${swaggerSources.tag.code.outputDir}/src/main/java"}
     }
 }
 
@@ -166,11 +184,14 @@ dependencies {
 
     implementation group: 'net.minidev', name: 'json-smart', version: '2.4.7'
     
-	 implementation("com.squareup.okhttp3:okhttp") {
+    implementation("com.squareup.okhttp3:okhttp") {
         version {
             strictly '4.9.0'
         }
     }
+
+    implementation ('net.javacrumbs.shedlock:shedlock-spring:6.3.1')
+    implementation ('net.javacrumbs.shedlock:shedlock-provider-jdbc-template:6.3.1')
 }
 
 tasks.named('test') {
