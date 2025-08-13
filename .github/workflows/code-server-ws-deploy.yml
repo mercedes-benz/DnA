@@ -189,7 +189,7 @@ jobs:
         echo "CPU_MILLICORES=$CPU_MILLICORES" >> $GITHUB_OUTPUT
         echo "MEM_MIB=$MEM_MIB" >> $GITHUB_OUTPUT
 
-        if [[ "$CPU_MILLICORES" != "0" && "$MEM_MIB" != "0" ]]; then
+        if [[ "$MEM_MIB" != "0" ]]; then
           MEM_LIMIT="${MEM_MIB}Mi"
           echo "MEM_LIMIT_LINE=memory: ${MEM_LIMIT}" >> $GITHUB_OUTPUT
         else
