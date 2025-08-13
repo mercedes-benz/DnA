@@ -59,6 +59,7 @@ public class WorkspaceBackgroundJobsService {
 	}
 	
 	private SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+	private SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
 	
 	@PostConstruct
 	public void initForEnablingExistingOwnersToFabricRole() {
@@ -128,11 +129,10 @@ public class WorkspaceBackgroundJobsService {
 	@SchedulerLock(
 		name = "updateWorkspacesJob", 
 		lockAtMostFor = "35m", 
-		lockAtLeastFor = "5m" 
+		lockAtLeastFor = "10m" 
 	)
-	
 	public void updateWorkspacesJob() {	
-		log.info("Scheduled task started at {}", sdf.format(new Date()));
+		log.info("Scheduled task started at {}", dateFormatter.format(new Date()));
 		try {
 			FabricWorkspacesCollectionVO collection = fabricService.getAllLov(0,0);
 			WorkspacesCollectionDto collectionFromListWorkspaces = fabricWorkspaceClient.listWorkspaces();
@@ -200,7 +200,7 @@ public class WorkspaceBackgroundJobsService {
 					}
 				}
 			}
-			log.info("Scheduled task completed at {}", sdf.format(new Date()));
+			log.info("Scheduled task completed at {}", dateFormatter.format(new Date()));
 		}catch(Exception e) {
 			e.printStackTrace();
 			log.error("During scheduled job, failed to process workspaces user management with exception {}", e.getMessage());
