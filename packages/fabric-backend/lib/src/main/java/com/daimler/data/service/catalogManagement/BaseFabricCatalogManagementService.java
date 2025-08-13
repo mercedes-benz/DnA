@@ -77,7 +77,7 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
             // Validate and process owners
             List<EntityReference> ownerReferences = validateAndProcessOwners(request.getOwners(), response);
             if (ownerReferences.isEmpty()) {
-                return response; // Response already contains error message
+                return response; 
             }
 
             // Process the catalog metadata
@@ -100,10 +100,12 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
             log.error("Failed to publish catalog for workspace: {}", existingFabricWorkspace.getName(), e);
             response.setResponses(createErrorResponse(FAILED_STATUS,
                     "Failed to publish catalog: " + e.getMessage()));
+            openMetadataClient.deleteDatabaseService(existingFabricWorkspace.getName());
         } catch (Exception e) {
             log.error("Unexpected error publishing catalog for workspace: {}", existingFabricWorkspace.getName(), e);
             response.setResponses(createErrorResponse(FAILED_STATUS,
                     "Failed to publish catalog: " + e.getMessage()));
+            openMetadataClient.deleteDatabaseService(existingFabricWorkspace.getName());
         }
 
         return response;
@@ -195,8 +197,6 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
         
         return response;
     }
-
-    // ========== PRIVATE HELPER METHODS ========== //
 
     private List<EntityReference> validateAndProcessOwners(List<CreatedByVO> owners, PublishCatalogResponseVO response) {
         List<EntityReference> ownerReferences = new ArrayList<>();
