@@ -119,7 +119,7 @@ public class OpenMetadataClient {
         } catch (FeignException.Conflict e) {
             throw new EntityAlreadyExistsException("DatabaseService already Exists "+ name, e);
         } catch (FeignException.BadRequest e){
-            throw new OpenMetadataClientException("Failed to create DatabaseService : " + name + " Bad Request", e);
+            throw new OpenMetadataClientException("Failed to create DatabaseService : " + name + " Bad Request "+ e.getMessage(), e);
         } catch (Exception e) {
             throw new OpenMetadataClientException("Failed to create DatabaseService : " + name, e);
         }
@@ -138,7 +138,7 @@ public class OpenMetadataClient {
         } catch (FeignException.Conflict e) {
             throw new EntityAlreadyExistsException("Database already exists: " + name, e);
         } catch (FeignException.BadRequest e){
-            throw new OpenMetadataClientException("Failed to create Database : " + name + " Bad Request", e);
+            throw new OpenMetadataClientException("Failed to create Database : " + name + " Bad Request "+ e.getMessage(), e);
         } catch (Exception e) {
             throw new OpenMetadataClientException("Failed to create Database: " + name, e);
         }
@@ -155,7 +155,7 @@ public class OpenMetadataClient {
         } catch (FeignException.Conflict e) {
             throw new EntityAlreadyExistsException("Schema already exists: " + name, e);
         } catch (FeignException.BadRequest e){
-            throw new OpenMetadataClientException("Failed to create Schema : " + name + " Bad Request", e);
+            throw new OpenMetadataClientException("Failed to create Schema : " + name + " Bad Request "+ e.getMessage(), e);
         } catch (Exception e) {
             throw new OpenMetadataClientException("Failed to create Schema: " + name, e);
         }
@@ -173,7 +173,7 @@ public class OpenMetadataClient {
         } catch (FeignException.Conflict e) {
             throw new EntityAlreadyExistsException("Table already exists: " + name, e);
         } catch (FeignException.BadRequest e){
-            throw new OpenMetadataClientException("Failed to create Table : " + name + " Bad Request", e);
+            throw new OpenMetadataClientException("Failed to create Table : " + name + " Bad Request "+ e.getMessage(), e);
         } catch (Exception e) {
             throw new OpenMetadataClientException("Failed to create Table: " + name, e);
         }
@@ -325,7 +325,20 @@ public class OpenMetadataClient {
 
 //delete methods
 
-   public void deleteDatabase(String databaseId) {
+    public void deleteDatabaseService(String fqn) {
+        try {
+            apiClient.buildClient(DatabaseServicesApi.class)
+                .deleteDatabaseServiceByName(
+                    fqn,
+                    true,  
+                    true   
+                );
+        } catch (Exception e) {
+            throw new OpenMetadataClientException("Failed to delete database service: " + fqn, e);
+        }
+    }
+
+    public void deleteDatabase(String databaseId) {
         try {
             apiClient.buildClient(DatabasesApi.class)
                 .deleteDatabase(
