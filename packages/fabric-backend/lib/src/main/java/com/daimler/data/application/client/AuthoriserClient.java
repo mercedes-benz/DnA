@@ -707,5 +707,45 @@ public class AuthoriserClient {
 		}
 		return response;
 	}
+
+	public List<String> getAllUserEntitlements(String userId) {
+        List<String> response = new ArrayList<>();
+        String uri = authoriserBaseUrl + "/users/" + userId + "/entitlements";
+       
+        try {
+			String token = getToken();
+			if(!Objects.nonNull(token)) {
+				log.error("Failed to fetch token to invoke fabric Apis");
+				return response;
+			}
+
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Authorization", "Bearer "+token);
+			headers.setContentType(MediaType.APPLICATION_JSON);
+			HttpEntity requestEntity = new HttpEntity<>(headers);
+            ResponseEntity<String> apiResponse = proxyRestTemplate.exchange(uri, HttpMethod.GET,
+					requestEntity, String.class);
+
+           if (apiResponse.getStatusCode().is2xxSuccessful()) {
+				ObjectMapper objectMapper = new ObjectMapper();
+				objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+				JsonNode jsonData = objectMapper.readTree(apiResponse.getBody());
+                JsonNode entitlements = jsonData.get("entitlements");
+				if (entitlements.isArray()) {
+					for (JsonNode entitlementNode : entitlements) {
+						String appId = entitlementNode.get("applicationId").asText();
+						String entitlementId = entitlementNode.get("entitlementId").asText();
+						response.add(appId+"."+entitlementId);
+					}
+				}
+			}
+            return response;
+        } catch (Exception e) {
+            log.error("Error fetching user entitlements for userId {}: {}", userId, e.getMessage());
+            return response;
+        }
+        
+    }
 }
 

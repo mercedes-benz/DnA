@@ -43,6 +43,7 @@ public class ConstantsUtility {
 	public static final String PERMISSION_ADMIN = "Admin";
 	public static final String PERMISSION_MEMBER = "Member";
 	public static final String PERMISSION_VIEWER = "Viewer";
+	public static final String PERMISSION_OWNER = "Owner";
 	
 	public static final String DATACLASSIFICATION_CONFIDENTIAL = "CONFIDENTIAL";
 	
