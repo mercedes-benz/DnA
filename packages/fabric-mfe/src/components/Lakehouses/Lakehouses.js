@@ -15,6 +15,7 @@ import { getQueryParameterByName } from '../../utilities/utils';
 import { fabricApi } from '../../apis/fabric.api';
 import Popper from 'popper.js';
 import ViewTablesModalContent from '../../components/Lakehouses/CdcPush';
+import { Envs } from '../../utilities/envs';
 
 const CreateShortcutModalContent = ({ workspaceId, lakehouseId, onCreateShortcut }) => {
   const [bucketName, setBucketName] = useState('');
@@ -619,17 +620,27 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse }) {
                 </div>
               </h4>
               <div className={Styles.buttonContainer}>
-                {workspace?.cdcPublishedLakeHouseDetails?.isLakeHousesPublishedToCdc && (
-                  <span className={Styles.statusIndicator}>
-                    <span
-                      className={Styles.deployedTag}
-                      tooltip-data="Lakehouse successfully deployed."
-                    >
-                      Published
+                <div className={Styles.cdcContainer}>
+                  {workspace?.cdcPublishedLakeHouseDetails?.isLakeHousesPublishedToCdc && (
+                    <span className={Styles.statusIndicator}>
+                      <span
+                        className={Styles.deployedTag}
+                        tooltip-data="Lakehouse successfully deployed."
+                      >
+                        Published
+                      </span>
                     </span>
-                  </span>
-                )}
-
+                  )}
+                  <div className={Styles.cdcNewTab}>
+                    <a
+                      href={`${Envs.CDC_URL}/${workspace?.name}`}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      <i className="icon mbc-icon new-tab" />
+                    </a>
+                  </div>
+                </div>
                 {user?.id === workspace?.createdBy?.id &&
                   <button className={classNames('btn', Styles.deleteBtn)} onClick={() => { setSelectedLakehouse(lakehouse); setShowDeleteModal(true) }}>
                     <i className="icon delete" />

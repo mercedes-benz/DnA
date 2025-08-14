@@ -143,7 +143,7 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId }) => {
   }, [workspaceId, lakehouseId]);
 
   useEffect(() => {
-    console.log("workspaceId for metadata fetch:", workspaceId);
+    // console.log("workspaceId for metadata fetch:", workspaceId);
     if (!workspaceId) return;
 
     fabricApi.getFabricWorkspace(workspaceId)
@@ -312,20 +312,25 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId }) => {
       workspaceCreator
     });
 
-    console.log("CDC Payload to be sent:");
-    console.log(JSON.stringify(payload, null, 2));
+    // console.log("CDC Payload to be sent:");
+    // console.log(JSON.stringify(payload, null, 2));
 
     ProgressIndicator.show();
     fabricApi.pushSelectedTables(workspaceId, payload)
-    .then(() => {
-      ProgressIndicator.hide();
-      Notification.show("Push to CDC successful!", "success");
-    })
-    .catch((err) => {
-      ProgressIndicator.hide();
-      Notification.show(err?.response?.data?.errors?.[0]?.message || "Push to CDC failed!", "alert");
-    });
+      .then(() => {
+        ProgressIndicator.hide();
+        Notification.show("Push to CDC successful!", "success");
+      })
+      .catch((e) => {
+        ProgressIndicator.hide();
 
+        const backendMessage =
+          e?.response?.data?.responses?.errors?.[0]?.message ||
+          e?.response?.data?.errors?.[0]?.message ||
+          '';
+
+        Notification.show(backendMessage, 'alert');
+      });
   }, [
     workspaceId,
     workspaceMetadata,
@@ -348,8 +353,8 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId }) => {
     return (
     <div className={Styles.modalFAQContentWrapper}>
 
-      <div className={Styles.flex}>
-        <div className={Styles.col3}>
+        <div className={Styles.flex}>
+          <div className={Styles.col3}>
             <div
               className={classNames(
                 'input-field-group include-error',
@@ -360,14 +365,14 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId }) => {
                 Data Origin <sup>*</sup>
               </label>
               <div className={classNames('custom-select')}>
-                    <select
-      id="dataOriginField"
-      defaultValue={dataOrigin}
-      onChange={(e) => {
-        setDataOrigin(e.target.value);
-        if (dataOriginError) setDataOriginError(""); // clear red on change
-      }}
-    >
+                <select
+                  id="dataOriginField"
+                  defaultValue={dataOrigin}
+                  onChange={(e) => {
+                    setDataOrigin(e.target.value);
+                    if (dataOriginError) setDataOriginError(""); 
+                  }}
+                >
                   <option value={0}>Choose</option>
                   {DATA_ORIGINS?.map((origin, index) => (
                     <option key={index} value={origin}>
@@ -385,9 +390,9 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId }) => {
                 {dataOriginError}
               </span>
             </div>
-        </div>
+          </div>
 
-        <div className={Styles.col3}>
+          <div className={Styles.col3}>
             <div
               className={classNames('input-field-group include-error',
                 divisionError.length ? 'error' : '',
@@ -397,151 +402,151 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId }) => {
                 Division <sup>*</sup>
               </label>
               <div className={classNames('custom-select')}>
-                    <select
-                    id="divisionField"
-      defaultValue={division}
-      onChange={(e) => {
-        setDivision(e.target.value);
-        if (divisionError) setDivisionError(""); // clear red on change
-      }}
-    >
+                <select
+                  id="divisionField"
+                  defaultValue={division}
+                  onChange={(e) => {
+                    setDivision(e.target.value);
+                    if (divisionError) setDivisionError(""); 
+                  }}
+                >
                   <option id="divisionOption" value={0}>
                     Choose
                   </option>
-                {DIVISIONS.map((name, index) => (
-                  <option key={index} value={name}>
-                    {name}
-                  </option>
-                ))}
+                  {DIVISIONS.map((name, index) => (
+                    <option key={index} value={name}>
+                      {name}
+                    </option>
+                  ))}
                 </select>
               </div>
               <span className={classNames('error-message', divisionError.length ? '' : 'hide')}>
                 {divisionError}
               </span>
             </div>
-        </div>
+          </div>
 
-        <div className={Styles.col3}>
-          <div className={classNames('input-field-group include-error')}>
-            <label className="input-label">Data Asset <sup>*</sup></label>
-            <div className={Styles.boolean}>
-              <label className={classNames('radio')}>
-                <span className="wrapper">
-                  <input
-                    type="radio"
-                    className="ff-only"
-                    value="true"
-                    name="dataAsset"
-                    checked={isDataAsset === true}
-                    onClick={() => {
-                      setIsDataAsset(true);
-                      setValue('dataAsset', 'true');
-                    }}
-                  />
-                </span>
-                <span className="label">Yes</span>
-              </label>
-              <label className={classNames('radio')}>
-                <span className="wrapper">
-                  <input
-                    type="radio"
-                    className="ff-only"
-                    value="false"
-                    name="dataAsset"
-                    checked={isDataAsset === false}
-                    onClick={() => {
-                      setIsDataAsset(false);
-                      setValue('dataAsset', 'false');
-                    }}
-                  />
-                </span>
-                <span className="label">No</span>
-              </label>
+          <div className={Styles.col3}>
+            <div className={classNames('input-field-group include-error')}>
+              <label className="input-label">Data Asset <sup>*</sup></label>
+              <div className={Styles.boolean}>
+                <label className={classNames('radio')}>
+                  <span className="wrapper">
+                    <input
+                      type="radio"
+                      className="ff-only"
+                      value="true"
+                      name="dataAsset"
+                      checked={isDataAsset === true}
+                      onClick={() => {
+                        setIsDataAsset(true);
+                        setValue('dataAsset', 'true');
+                      }}
+                    />
+                  </span>
+                  <span className="label">Yes</span>
+                </label>
+                <label className={classNames('radio')}>
+                  <span className="wrapper">
+                    <input
+                      type="radio"
+                      className="ff-only"
+                      value="false"
+                      name="dataAsset"
+                      checked={isDataAsset === false}
+                      onClick={() => {
+                        setIsDataAsset(false);
+                        setValue('dataAsset', 'false');
+                      }}
+                    />
+                  </span>
+                  <span className="label">No</span>
+                </label>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className={Styles.col3}>
-          <div className={classNames('input-field-group include-error')}>
-            <label className="input-label">DataLake Available <sup>*</sup></label>
-            <div className={Styles.boolean}>
-              <label className={classNames('radio')}>
-                <span className="wrapper">
-                  <input
-                    type="radio"
-                    className="ff-only"
-                    value="true"
-                    name="dataLakeAvailability"
-                    checked={isDataLakeAvailability === true}
-                    onClick={() => {
-                      setIsDataLakeAvailability(true);
-                      setValue('dataLakeAvailability', 'true');
-                    }}
-                  />
-                </span>
-                <span className="label">Yes</span>
-              </label>
-              <label className={classNames('radio')}>
-                <span className="wrapper">
-                  <input
-                    type="radio"
-                    className="ff-only"
-                    value="false"
-                    name="dataLakeAvailability"
-                    checked={isDataLakeAvailability === false}
-                    onClick={() => {
-                      setIsDataLakeAvailability(false);
-                      setValue('dataLakeAvailability', 'false');
-                    }}
-                  />
-                </span>
-                <span className="label">No</span>
-              </label>
+          <div className={Styles.col3}>
+            <div className={classNames('input-field-group include-error')}>
+              <label className="input-label">DataLake Available <sup>*</sup></label>
+              <div className={Styles.boolean}>
+                <label className={classNames('radio')}>
+                  <span className="wrapper">
+                    <input
+                      type="radio"
+                      className="ff-only"
+                      value="true"
+                      name="dataLakeAvailability"
+                      checked={isDataLakeAvailability === true}
+                      onClick={() => {
+                        setIsDataLakeAvailability(true);
+                        setValue('dataLakeAvailability', 'true');
+                      }}
+                    />
+                  </span>
+                  <span className="label">Yes</span>
+                </label>
+                <label className={classNames('radio')}>
+                  <span className="wrapper">
+                    <input
+                      type="radio"
+                      className="ff-only"
+                      value="false"
+                      name="dataLakeAvailability"
+                      checked={isDataLakeAvailability === false}
+                      onClick={() => {
+                        setIsDataLakeAvailability(false);
+                        setValue('dataLakeAvailability', 'false');
+                      }}
+                    />
+                  </span>
+                  <span className="label">No</span>
+                </label>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className={Styles.col3}>
-          <div className={classNames('input-field-group include-error')}>
-            <label className="input-label">Documentation Updated <sup>*</sup></label>
-            <div className={Styles.boolean}>
-              <label className={classNames('radio')}>
-                <span className="wrapper">
-                  <input
-                    type="radio"
-                    className="ff-only"
-                    value="true"
-                    name="documentationUpdated"
-                    checked={isDocumentationUpdated === true}
-                    onClick={() => {
-                      setIsDocumentationUpdated(true);
-                      setValue('documentationUpdated', 'true');
-                    }}
-                  />
-                </span>
-                <span className="label">Yes</span>
-              </label>
-              <label className={classNames('radio')}>
-                <span className="wrapper">
-                  <input
-                    type="radio"
-                    className="ff-only"
-                    value="false"
-                    name="documentationUpdated"
-                    checked={isDocumentationUpdated === false}
-                    onClick={() => {
-                      setIsDocumentationUpdated(false);
-                      setValue('documentationUpdated', 'false');
-                    }}
-                  />
-                </span>
-                <span className="label">No</span>
-              </label>
+          <div className={Styles.col3}>
+            <div className={classNames('input-field-group include-error')}>
+              <label className="input-label">Documentation Updated <sup>*</sup></label>
+              <div className={Styles.boolean}>
+                <label className={classNames('radio')}>
+                  <span className="wrapper">
+                    <input
+                      type="radio"
+                      className="ff-only"
+                      value="true"
+                      name="documentationUpdated"
+                      checked={isDocumentationUpdated === true}
+                      onClick={() => {
+                        setIsDocumentationUpdated(true);
+                        setValue('documentationUpdated', 'true');
+                      }}
+                    />
+                  </span>
+                  <span className="label">Yes</span>
+                </label>
+                <label className={classNames('radio')}>
+                  <span className="wrapper">
+                    <input
+                      type="radio"
+                      className="ff-only"
+                      value="false"
+                      name="documentationUpdated"
+                      checked={isDocumentationUpdated === false}
+                      onClick={() => {
+                        setIsDocumentationUpdated(false);
+                        setValue('documentationUpdated', 'false');
+                      }}
+                    />
+                  </span>
+                  <span className="label">No</span>
+                </label>
+              </div>
             </div>
           </div>
+          <div className={Styles.col3}></div>
         </div>
-        <div className={Styles.col3}></div>
-      </div>
 
       <div className={Styles.tableRow}>
         <div className={Styles.checkboxWrapper}>
