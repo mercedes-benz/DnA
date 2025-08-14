@@ -25,7 +25,8 @@ export interface ITagsFieldProps {
   placeholder?: string;
   showAllTagsOnFocus?: boolean;
   disableSelfTagAdd?: boolean;
-  isIgnorePath?: boolean;
+  isDeployedAppConfig?: boolean;
+  errorText?: string;
 }
 
 export interface ITagsFiledState {
@@ -36,7 +37,8 @@ export interface ITagsFiledState {
   userInput?: string;
   activeSuggestionIndex: number;
   isFocused: boolean;
-  ignorePathError: boolean;
+  isDeployedAppConfig: boolean;
+  errorText: string;
 }
 
 export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledState> {
@@ -64,7 +66,8 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
       userInput: '',
       activeSuggestionIndex: -1,
       isFocused: false,
-      ignorePathError: false,
+      isDeployedAppConfig: false,
+      errorText: '',
     };
   }
 
@@ -96,7 +99,7 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
       }
 
       return (
-        <div className="chips" key={index}>
+        <div className={classNames("chips", this?.props?.isDeployedAppConfig ? Styles.deployConfig : '' )} key={index}>
           <label className={"name "+Styles.chipName}>
             {this.props.isDataSource ? (
               <>
@@ -165,16 +168,15 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
     });
 
     const missingEntryMessage = '*Missing entry';
-    const ignorePathError = `*path should start with '/' and path should not end with '/' or include white spaces.`;
     const isMaxReached = this.props.max === this.state.chips.length;
 
     return (
       <div
         id={'tagcontainer_' + this.props.title.replace(' ', '_')}
         className={classNames(
-          'input-field-group' + (this.props.showMissingEntryError ? ' include-error' : ''),
+          'input-field-group' + ((this.props.showMissingEntryError || this.props.errorText) ? ' include-error' : ''),
           !this.props.isDisabled && this.state.isFocused ? 'focused' : '',
-          this.props.showMissingEntryError ? Styles.validationError + ' error' : '',
+          (this.props.showMissingEntryError || this.props.errorText) ? Styles.validationError + ' error' : '',
           this.state.filteredTags?.length ? 'open-suggestion' : '',
         )}
       >
@@ -237,8 +239,8 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
             {missingEntryMessage}
           </span>
         )}
-        <span className={classNames('error-message', this.state.ignorePathError ? '' : 'hide')}>
-          {ignorePathError}
+        <span className={classNames('error-message', this.props.errorText ? '' : 'hide')}>
+          {this.props.errorText}
         </span>
       </div>
     );
@@ -370,10 +372,6 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
         return;
       }
 
-      if(this.props.isIgnorePath && (value.endsWith('/') || value.includes(' ') || !value.startsWith('/'))){
-        this.setState({ignorePathError: true});
-      }
-
       if (this.props.enableUppercase) {
         value = value.toUpperCase();
       }
@@ -417,11 +415,6 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
           chips,
           filteredTags: [],
           activeSuggestionIndex: -1,
-        },
-        () => {
-          if (this.props.isIgnorePath && !chips.some((item) => item.endsWith('/') || item.includes(' ') || !item.startsWith('/'))) {
-            this.setState({ ignorePathError: false });
-          }
         },
       );
     }

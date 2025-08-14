@@ -386,6 +386,10 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 			if(!"int".equalsIgnoreCase(environment)){
 				envString = "prodDeploymentDetails";
 			}
+			String selectedAliceRolesJson = (deploymentDetails.getSelectedAliceRoles() != null ? deploymentDetails.getSelectedAliceRoles().stream()
+				.map(role -> "\"" + role + "\"")
+				.collect(Collectors.joining(",", "[", "]"))
+				: "[]");
 			String updateQuery = "update workspace_nsql " +
 				"set data = jsonb_set(jsonb_set(jsonb_set(jsonb_set(data,'{projectDetails," + envString + "}', " +
 				"'{\"deploymentUrl\": " + addQuotes(deploymentDetails.getDeploymentUrl()) + "," +
@@ -408,6 +412,10 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 				" \"redirectUri\": " + addQuotes(deploymentDetails.getRedirectUri()) + "," +
 				" \"ignorePaths\": " + addQuotes(deploymentDetails.getIgnorePaths()) + "," +
 				" \"scope\": " + addQuotes(deploymentDetails.getScope()) + "," +
+				" \"ssoType\": " + (deploymentDetails.getSsoType() != null ? addQuotes(String.valueOf(deploymentDetails.getSsoType())) : "null") + "," +
+				" \"secureWithDnaRequired\": " + deploymentDetails.getSecureWithDnaRequired() + "," +
+				" \"aliceRoleEnabled\": " + deploymentDetails.getAliceRoleEnabled() + "," +
+				" \"selectedAliceRoles\": " + selectedAliceRolesJson + "," +				
 				" \"lastDeployedVersion\": " + addQuotes(deploymentDetails.getLastDeployedVersion()) + "," +
 				" \"lastDeploymentStatus\": " + addQuotes(deploymentDetails.getLastDeploymentStatus()) +"}'),\r\n" + 
 				"'{projectDetails,lastBuildOrDeployedOn}', '" + longdate + "'),\r\n" +
@@ -454,6 +462,62 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 			MessageDescription errMsg = new MessageDescription("Failed while updating deployment details.");
 			errors.add(errMsg);
 			log.error("failed to update deployment details for project {} and environment {} , branch {} ", projectName,environment,deploymentDetails.getLastDeployedBranch());
+		}
+		return updateResponse;
+	}
+
+	@Override
+	public GenericMessage updateDeployedAppConfig(String projectName, String environment, boolean secureWithIAMRequired,
+			String oneApiVersionShortName,
+			boolean isSecuredWithCookie, String deploymentType, String clientID, String redirectUri, String ignorePaths,
+			String scope, String ssoType,
+			boolean secureWithDnaRequired, boolean isAliceRoleEnabled, List<String> selectedAliceRoles) {
+		GenericMessage updateResponse = new GenericMessage();
+		updateResponse.setSuccess("FAILED");
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+
+		String selectedAliceRolesJson = (selectedAliceRoles != null ? selectedAliceRoles.stream()
+				.map(role -> "\"" + role + "\"")
+				.collect(Collectors.joining(",", "[", "]"))
+				: "[]");
+
+		String updateQuery = "update workspace_nsql " +
+				"set data = jsonb_set(jsonb_set(jsonb_set(jsonb_set(jsonb_set(jsonb_set(jsonb_set(jsonb_set(jsonb_set(jsonb_set(jsonb_set(jsonb_set(data,"
+				+
+				"'{projectDetails," + addQuotes(environment) + ",secureWithIAMRequired}', '" + secureWithIAMRequired
+				+ "')," +
+				"'{projectDetails," + addQuotes(environment) + ",oneApiVersionShortName}', '"
+				+ addQuotes(oneApiVersionShortName) + "')," +
+				"'{projectDetails," + addQuotes(environment) + ",isSecuredWithCookie}', '" + isSecuredWithCookie + "'),"
+				+
+				"'{projectDetails," + addQuotes(environment) + ",deploymentType}', '" + addQuotes(deploymentType)
+				+ "')," +
+				"'{projectDetails," + addQuotes(environment) + ",clientId}', '" + addQuotes(clientID) + "')," +
+				"'{projectDetails," + addQuotes(environment) + ",redirectUri}', '" + addQuotes(redirectUri) + "')," +
+				"'{projectDetails," + addQuotes(environment) + ",ignorePaths}', '" + addQuotes(ignorePaths) + "')," +
+				"'{projectDetails," + addQuotes(environment) + ",scope}', '" + addQuotes(scope) + "')," +
+				"'{projectDetails," + addQuotes(environment) + ",ssoType}', '" + addQuotes(ssoType) + "')," +
+				"'{projectDetails," + addQuotes(environment) + ",secureWithDnaRequired}', '" + secureWithDnaRequired
+				+ "')," +
+				"'{projectDetails," + addQuotes(environment) + ",aliceRoleEnabled}', '" + isAliceRoleEnabled + "')," +
+				"'{projectDetails," + addQuotes(environment) + ",selectedAliceRoles}', '" + selectedAliceRolesJson
+				+ "')";
+
+		updateQuery += " where data->'projectDetails'->>'projectName' = '" + projectName + "'";
+
+		try {
+			Query q = em.createNativeQuery(updateQuery);
+			q.executeUpdate();
+			updateResponse.setSuccess("SUCCESS");
+			updateResponse.setErrors(new ArrayList<>());
+			updateResponse.setWarnings(new ArrayList<>());
+			log.info("{} Deployed app config successfully updated for project {} ", environment, projectName);
+		} catch (Exception e) {
+			MessageDescription errMsg = new MessageDescription("Failed while updating deployed app config");
+			errors.add(errMsg);
+			log.error("failed to update deployed app config for project {} and environment {} ", projectName,
+					environment);
 		}
 		return updateResponse;
 	}
