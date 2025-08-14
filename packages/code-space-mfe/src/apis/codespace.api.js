@@ -1,4 +1,4 @@
-import { server, hostServer, reportsServer, vaultServer, storageServer, baseURL, readJwt} from '../server/api';
+import { server, hostServer, reportsServer, vaultServer, storageServer, fabricServer, baseURL, readJwt} from '../server/api';
 import { EventSourcePolyfill } from 'event-source-polyfill';
 import { Envs } from '../Utility/envs';
 
@@ -74,6 +74,24 @@ const buildVersionLov = (projectName) => { //not used for now
 
 const rejectDeployApproval = (id) => {
     return server.post(`workspaces/${id}/deploymentReject`, {
+        data: {},
+    });
+};
+
+const updateDeployedAppConfig = (id, data) => {
+    return server.post(`workspaces/${id}/deployed-app-config`,
+        data,
+    );
+};
+
+const getPluginStatus = (id, env, pluginName) => {
+    return server.get(`workspaces/${id}/pluginStatus?env=${env}&pluginName=${pluginName}`,{
+        data: {},
+    });
+};
+
+const updatePluginStatus = (id, env, pluginName, enable) => {
+    return server.post(`workspaces/${id}/pluginStatus?env=${env}&pluginName=${pluginName}&enable=${enable}`,{
         data: {},
     });
 };
@@ -400,6 +418,12 @@ const deleteCodeSpaceGroup = (id) => {
     });
 };
 
+const getExistingRoles = (appId) => {
+    return fabricServer.get(`fabric-workspaces/${appId}/dnaroles`, {
+        data: {},
+    });
+};
+
 export const CodeSpaceApiClient = {
     getCodeSpacesList,
     createCodeSpace,
@@ -413,6 +437,9 @@ export const CodeSpaceApiClient = {
     getBuildAndDeployLogs,
     buildVersionLov,
     rejectDeployApproval,
+    updateDeployedAppConfig,
+    getPluginStatus,
+    updatePluginStatus,
     onBoardCollaborator,
     addCollaborator,
     deleteCollaborator,
@@ -464,5 +491,6 @@ export const CodeSpaceApiClient = {
     getCodeSpaceGroup,
     createCodeSpaceGroup,
     editCodeSpaceGroup,
-    deleteCodeSpaceGroup
+    deleteCodeSpaceGroup,
+    getExistingRoles
 };
