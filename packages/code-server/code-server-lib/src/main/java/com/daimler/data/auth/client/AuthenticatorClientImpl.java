@@ -25,12 +25,16 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import com.daimler.data.application.client.GitClient;
+import com.daimler.data.application.client.VaultClient;
+import com.daimler.data.application.client.AliceServiceClient;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
 import com.daimler.data.db.json.CodeServerDeploymentDetails;
 import com.daimler.data.db.json.CodespaceSecurityConfig;
 import com.daimler.data.db.repo.workspace.WorkspaceCustomRepository;
+import com.daimler.data.dto.EntitlementDetailsDto;
+import com.daimler.data.dto.EntitlementsDto;
 import com.daimler.data.dto.workspace.WorkspacePluginStatusVO;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -195,6 +199,15 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 	@Value("${kong.postFunctionFrontendFileName}")
 	private String postFunctionFrontendFileName;
 
+	@Value("${kong.postFunctionPrefixFileName}")
+	private String postFunctionPrefixFileName;
+
+	@Value("${kong.postFunctionEntitlementFileName}")
+	private String postFunctionEntitlementFileName;
+
+	@Value("${kong.postFunctionNoEntitlementFileName}")
+	private String postFunctionNoEntitlementFileName;
+
 	@Value("${kong.preFunctionBackendFileName}")
 	private String preFunctionBackendFileName;
 
@@ -216,6 +229,9 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 
 	@Autowired
 	private GitClient gitClient;
+
+	@Autowired
+	private AliceServiceClient AliceServiceClient;
 	
 	private static final String CREATE_SERVICE = "/api/kong/services";
 	private static final String CREATE_ROUTE = "/routes";
@@ -389,7 +405,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		return response;
 	}
 	
-	public void callingKongApis(String wsid,String serviceName, String env, boolean apiRecipe, String clientID, String clientSecret, String redirectUriFromUser, String ignorePaths, String scope, String oneApiVersionShortName, boolean isSecuredWithCookie, boolean secureWithIAM, String ssoType, boolean secureWithDna, String cloudServiceProvider) {
+	public void callingKongApis(String wsid,String serviceName, String env, boolean apiRecipe, String clientID, String clientSecret, String redirectUriFromUser, String ignorePaths, String scope, String oneApiVersionShortName, boolean isSecuredWithCookie, boolean secureWithIAM, String ssoType, boolean secureWithDna, boolean isAliceRoleEnabled, boolean isEntitlementPrefixEnabled, List<String> selectedAliceRoles, String cloudServiceProvider) {
 		boolean kongApiForDeploymentURL = !wsid.equalsIgnoreCase(serviceName) && Objects.nonNull(env);
 		CodeServerWorkspaceNsql workspaceNsql = customRepository.findByWorkspaceId(wsid);
 		CodeServerDeploymentDetails intDeploymentDetails = workspaceNsql.getData().getProjectDetails().getIntDeploymentDetails();
@@ -993,8 +1009,23 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 									LOGGER.info("calling kong to change the plugin status to enable for service: {} and status is {}, if warings any {}, if error any {}",serviceName,changePluginStatusResponse.getSuccess(), changePluginStatusResponse.getWarnings(),changePluginStatusResponse.getErrors());
 									if(!changePluginStatusResponse.getErrors().isEmpty() && "NOT_FOUND".equalsIgnoreCase(changePluginStatusResponse.getSuccess())){
 										try{
+											JSONObject jsonResponse = new JSONObject();
+											if(secureWithDna){
+												if(isAliceRoleEnabled){
+													if(isEntitlementPrefixEnabled){
+														jsonResponse = gitClient.getFileContent(gitDetails.get(2), gitDetails.get(1), gitDetails.get(0), functionPluginsFolderPath, postFunctionPrefixFileName,codeServerEnvRef);
+													} else if(!selectedAliceRoles.isEmpty() && selectedAliceRoles != null){
+														jsonResponse = gitClient.getFileContent(gitDetails.get(2), gitDetails.get(1), gitDetails.get(0), functionPluginsFolderPath, postFunctionEntitlementFileName,codeServerEnvRef);
+													} else {
+														jsonResponse = gitClient.getFileContent(gitDetails.get(2), gitDetails.get(1), gitDetails.get(0), functionPluginsFolderPath, postFunctionFrontendFileName,codeServerEnvRef);
+													}
+												} else {
+													jsonResponse = gitClient.getFileContent(gitDetails.get(2), gitDetails.get(1), gitDetails.get(0), functionPluginsFolderPath, postFunctionNoEntitlementFileName,codeServerEnvRef);
+												}
+											} else {
+												jsonResponse = gitClient.getFileContent(gitDetails.get(2), gitDetails.get(1), gitDetails.get(0), functionPluginsFolderPath, postFunctionFrontendFileName,codeServerEnvRef);
+											}
 											
-											JSONObject jsonResponse = gitClient.getFileContent(gitDetails.get(2), gitDetails.get(1), gitDetails.get(0), functionPluginsFolderPath, postFunctionFrontendFileName,codeServerEnvRef);
 											if(jsonResponse !=null && jsonResponse.has("name") && jsonResponse.has("content")) {
 												LOGGER.info("Retrieved a Function plugins SHA was successfull from Git.");
 
@@ -1003,8 +1034,31 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 
 												List<String> postFunctionValue =  new ArrayList<>();
 												postFunctionValue.add(postFunctionContent);
-												postFunctionConfigVO.setAccess(postFunctionValue);
 
+												if(isAliceRoleEnabled && secureWithDna){
+													if(isEntitlementPrefixEnabled){
+														String commaSeparatedString = String.join(",", selectedAliceRoles);
+														postFunctionValue.clear();
+														String prefixPostFunctionContent = postFunctionContent.replace("entilement_prefix_value",commaSeparatedString);
+														postFunctionValue.add(prefixPostFunctionContent);
+													} else if(!selectedAliceRoles.isEmpty() && selectedAliceRoles != null){
+														List<String> entitlementIds = new ArrayList<>();
+        												for (String role : selectedAliceRoles) {
+															EntitlementsDto entitlementsDto = AliceServiceClient.getEntitlements(role);
+															if (entitlementsDto != null && entitlementsDto.getEntitlementList() != null) {
+																for (EntitlementDetailsDto entitlement : entitlementsDto.getEntitlementList()) {
+																	entitlementIds.add(entitlement.getId());
+																}
+															}
+														}
+														String commaSeparatedString = String.join(",", entitlementIds);
+														postFunctionValue.clear();
+														String entitlementPostFunctionContent = postFunctionContent.replace("entilement_list_value",commaSeparatedString);
+														postFunctionValue.add(entitlementPostFunctionContent);
+													}
+												}
+
+												postFunctionConfigVO.setAccess(postFunctionValue);
 												postFunctionPluginVO.setName(POST_FUNCTION_PLUGIN);
 												postFunctionPluginVO.setConfig(postFunctionConfigVO);
 												postFunctionRequestVO.setData(postFunctionPluginVO);
