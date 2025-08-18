@@ -212,6 +212,11 @@ const AllCodeSpaces = (props) => {
         setShowDeployApprovalModal(true);
     };
 
+    const onGetCodespaceData = () => {
+        getCodeSpacesData();
+        getCodeSpaceGroupsData();
+    }
+
     const onStartStopCodeSpace = (codeSpace, startSuccessCB, env, manual = false) => {
         Tooltip.clear();
         const serverStarted = codeSpace.serverStatus === 'SERVER_STARTED';
@@ -258,15 +263,6 @@ const AllCodeSpaces = (props) => {
         getCodeSpacesData();
         getCodeSpaceGroupsData();
     };
-
-    const navigateSecurityConfig = () => {
-        const projectDetails = onDeployCodeSpace?.projectDetails;
-        if (projectDetails?.publishedSecuirtyConfig) {
-            window.open(`${window.location.pathname}#/codespaces/codespace/publishedSecurityconfig/${onDeployCodeSpace?.id}?name=${projectDetails.projectName}?intIAM=${projectDetails?.intDeploymentDetails?.secureWithIAMRequired ? 'true' : 'false'}?prodIAM=${projectDetails?.prodDeploymentDetails?.secureWithIAMRequired ? 'true' : 'false'}`, '_blank');
-            return;
-        }
-        window.open(`${window.location.pathname}#/codespaces/codespace/securityconfig/${onDeployCodeSpace.id}?name=${projectDetails.projectName}?intIAM=${projectDetails?.intDeploymentDetails?.secureWithIAMRequired ? 'true' : 'false'}?prodIAM=${projectDetails?.prodDeploymentDetails?.secureWithIAMRequired ? 'true' : 'false'}`, '_blank');
-    }
 
     const AWSWarningModalContent = (
         <div className={Styles.modalContentWrapper}>
@@ -476,6 +472,7 @@ const AllCodeSpaces = (props) => {
                                             onShowDeployApprovalModal={onShowDeployApprovalModal}
                                             onStartStopCodeSpace={onStartStopCodeSpace}
                                             onShowBlueprintModal={onCodeSpaceShowBlueprint}
+                                            onGetCodespaceData={onGetCodespaceData}
                                         />
                                     );
                                 })}
@@ -507,6 +504,7 @@ const AllCodeSpaces = (props) => {
                                             onShowDeployApprovalModal={onShowDeployApprovalModal}
                                             onStartStopCodeSpace={onStartStopCodeSpace}
                                             onShowBlueprintModal={onCodeSpaceShowBlueprint}
+                                            onGetCodespaceData={onGetCodespaceData}
                                         />
                                     );
                                 })}
@@ -699,6 +697,7 @@ const AllCodeSpaces = (props) => {
                                 onShowCodeSpaceOnBoard={onShowCodeSpaceOnBoard}
                                 onShowBlueprintModal={onCodeSpaceShowBlueprint}
                                 onShowBuildModal={onCodeSpaceBuild}
+                                onGetCodespaceData={onGetCodespaceData}
                             />
                         )}
                     </div>
@@ -755,6 +754,7 @@ const AllCodeSpaces = (props) => {
                                                         onShowDeployApprovalModal={onShowDeployApprovalModal}
                                                         onStartStopCodeSpace={onStartStopCodeSpace}
                                                         onShowBlueprintModal={onCodeSpaceShowBlueprint}
+                                                        onGetCodespaceData={onGetCodespaceData}
                                                     />
                                                 );
                                             })}
@@ -786,6 +786,7 @@ const AllCodeSpaces = (props) => {
                                                         onShowDeployApprovalModal={onShowDeployApprovalModal}
                                                         onStartStopCodeSpace={onStartStopCodeSpace}
                                                         onShowBlueprintModal={onCodeSpaceShowBlueprint}
+                                                        onGetCodespaceData={onGetCodespaceData}
                                                     />
                                                 );
                                             })}
@@ -911,7 +912,6 @@ const AllCodeSpaces = (props) => {
                     setShowCodeDeployModal={(isVisible) => setShowDeployCodeSpaceModal(isVisible)}
                     setCodeDeploying={() => { getCodeSpacesData(); getCodeSpaceGroupsData(); setShowCodespacesModal(false);}}
                     setIsApiCallTakeTime={setIsApiCallTakeTime}
-                    navigateSecurityConfig={navigateSecurityConfig}
                 />
             )}
             {showBuildCodeSpaceModal && (
@@ -937,7 +937,6 @@ const AllCodeSpaces = (props) => {
                     setCodeDeploying={() => { getCodeSpacesData(); getCodeSpaceGroupsData(); setShowCodespacesModal(false); }}
                     setCodeBuilding={() => { getCodeSpacesData(); getCodeSpaceGroupsData(); setShowCodespacesModal(false); }}
                     setIsApiCallTakeTime={setIsApiCallTakeTime}
-                    navigateSecurityConfig={navigateSecurityConfig}
                 />
             )}
             {showDeployApprovalModal && (
