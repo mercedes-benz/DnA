@@ -156,7 +156,7 @@ jobs:
         fi
       env: 
         PROJECT_NAME: ${{ github.event.inputs.projectName }} 
-    - name: Check CPU and Memory Requests from values.yaml and set the memory limit accordingly 
+    - name: Check CPU and Memory Requests from values.yaml and set the resources accordingly 
       id: check-resources
       run: |
         # Read resources from Helm values file
@@ -191,7 +191,7 @@ jobs:
 
         if [[ "CPU_MILLICORES" != "0" && "$MEM_MIB" != "0" ]]; then
           MEM_LIMIT="${MEM_MIB}Mi"
-          echo "RESOURCES_VALUES=$(echo -e "resources:\n  limits:\n    cpu: null\n    memory: ${MEM_LIMIT}")" >> $GITHUB_OUTPUT
+          echo "RESOURCES_VALUES=$(echo -e "resources:\n  limits:\n    cpu: null\n    memory: ${MEM_LIMIT}" | sed ':a;N;$!ba;s/\n/%0A/g')" >> >> $GITHUB_OUTPUT
         else
           echo "RESOURCES_VALUES=resources: {}" >> $GITHUB_OUTPUT
         fi
@@ -225,7 +225,7 @@ jobs:
             root_path_non_api: /${{ github.event.inputs.projectName }}/${{ github.event.inputs.target_env }}/
             authpath: ${{ vars.VAULT_AUTH_PATH }}
             namespace: ${{ vars.VAULT_NAMESPACE }}
-          ${{ steps.check-resources.outputs.RESOURCES_VALUES }}
+          ${{ fromJson('{"text": "' }}${{ steps.check-resources.outputs.RESOURCES_VALUES }}${{ '"}' ).text }}
       env:
         KUBECONFIG_FILE: '${{ secrets.KUBECONFIG }}'
 
