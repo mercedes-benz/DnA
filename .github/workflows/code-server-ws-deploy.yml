@@ -192,13 +192,8 @@ jobs:
         if [[ "$CPU_MILLICORES" != "0" && "$MEM_MIB" != "0" ]]; then
           CPU_REQ="${CPU_MILLICORES}m"
           MEM_LIMIT="${MEM_MIB}Mi"
-          echo "RESOURCES_VALUES=resources:
-        limits:
-          cpu: null
-          memory: ${MEM_LIMIT}
-        requests:
-          cpu: ${CPU_REQ}
-          memory: ${MEM_LIMIT}" >> $GITHUB_OUTPUT
+          RESOURCES_VALUES="resources:%0Alimits:%0A  cpu:%20null%0A  memory:%20${MEM_LIMIT}%0Arequests:%0A  cpu:%20${CPU_REQ}%0A  memory:%20${MEM_LIMIT}"
+          echo "RESOURCES_VALUES=$RESOURCES_VALUES" >> $GITHUB_OUTPUT
         else
           echo "RESOURCES_VALUES=resources: {}" >> $GITHUB_OUTPUT
         fi
@@ -232,7 +227,7 @@ jobs:
             root_path_non_api: /${{ github.event.inputs.projectName }}/${{ github.event.inputs.target_env }}/
             authpath: ${{ vars.VAULT_AUTH_PATH }}
             namespace: ${{ vars.VAULT_NAMESPACE }}
-          ${{ steps.check-resources.outputs.RESOURCES_VALUES }}
+          ${{ fromJson('{"text": "' }}${{ steps.check-resources.outputs.RESOURCES_VALUES }}${{ '"}' ).text }}
       env:
         KUBECONFIG_FILE: '${{ secrets.KUBECONFIG }}'
 
