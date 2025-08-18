@@ -189,9 +189,10 @@ jobs:
         echo "CPU_MILLICORES=$CPU_MILLICORES" >> $GITHUB_OUTPUT
         echo "MEM_MIB=$MEM_MIB" >> $GITHUB_OUTPUT
 
-        if [[ "CPU_MILLICORES" != "0" && "$MEM_MIB" != "0" ]]; then
+        if [[ "$CPU_MILLICORES" != "0" && "$MEM_MIB" != "0" ]]; then
+          CPU_REQ="${CPU_MILLICORES}m"
           MEM_LIMIT="${MEM_MIB}Mi"
-          echo "RESOURCES_VALUES=$(echo -e "resources:\n  limits:\n    cpu: null\n    memory: ${MEM_LIMIT}" | sed ':a;N;$!ba;s/\n/%0A/g')" >> >> $GITHUB_OUTPUT
+          echo "RESOURCES_VALUES=$(echo -e "resources:\n  limits:\n    cpu: null\n    memory: ${MEM_LIMIT}\n   requests:\n    cpu: ${CPU_REQ}\n    memory: ${MEM_LIMIT}" | sed ':a;N;$!ba;s/\n/%0A/g')" >> $GITHUB_OUTPUT
         else
           echo "RESOURCES_VALUES=resources: {}" >> $GITHUB_OUTPUT
         fi
