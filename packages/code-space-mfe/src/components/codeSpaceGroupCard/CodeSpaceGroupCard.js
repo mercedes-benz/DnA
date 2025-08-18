@@ -55,13 +55,13 @@ const CodeSpaceGroupCard = ({ group, userInfo, onStartStopCodeSpace, onShowDeplo
       }}
     >
       <div className={classNames(Styles.groupHeader)}>
-        <h2 onClick={() => {onShowCodeSpacesModal(true, group); sessionStorage.setItem(SESSION_STORAGE_KEYS.CODE_SPACE_SELECTED_GROUPS,group);}}>
+        <h2 onClick={() => {onShowCodeSpacesModal(true, group); sessionStorage.setItem(SESSION_STORAGE_KEYS.CODE_SPACE_SELECTED_GROUPS,JSON.stringify(group));}}>
           {group?.name} ({group?.workspaces?.length || 0})
         </h2>
       </div>
       {group?.warning &&
         <div className={classNames(Styles.groupWarning)}>
-          <button className={classNames('btn btn-primary')} onClick={() => {onShowCodeSpacesModal(true, group); sessionStorage.setItem(SESSION_STORAGE_KEYS.CODE_SPACE_SELECTED_GROUPS,group);}}>
+          <button className={classNames('btn btn-primary')} onClick={() => {onShowCodeSpacesModal(true, group); sessionStorage.setItem(SESSION_STORAGE_KEYS.CODE_SPACE_SELECTED_GROUPS,JSON.stringify(group));}}>
             <i className="icon mbc-icon alert circle"></i>
             Start failed for some code spaces, click to view
           </button>
@@ -77,7 +77,7 @@ const CodeSpaceGroupCard = ({ group, userInfo, onStartStopCodeSpace, onShowDeplo
           <button className={classNames('btn btn-primary')} onClick={() => onShowCodeSpaceGroupModal(true)}>
             <i className="icon mbc-icon plus"></i> Add Code Space
           </button>
-          <button className={classNames('btn btn-primary')} onClick={() => {onShowCodeSpacesModal(true, group);sessionStorage.setItem(SESSION_STORAGE_KEYS.CODE_SPACE_SELECTED_GROUPS,group);}}>
+          <button className={classNames('btn btn-primary')} onClick={() => {onShowCodeSpacesModal(true, group);sessionStorage.setItem(SESSION_STORAGE_KEYS.CODE_SPACE_SELECTED_GROUPS,JSON.stringify(group));}}>
             <i className="icon mbc-icon visibility-show"></i> View all
           </button>
           <button className={classNames('btn btn-primary')} onClick={() => onCodeSpaceGroupDeleteModal(true, group)}>

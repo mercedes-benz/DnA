@@ -408,7 +408,7 @@ const AllCodeSpaces = (props) => {
 
     const [showEditCodespaceGroupModal, setShowEditCodespaceGroupModal]  = useState(false);
     const [showCodespacesModal, setShowCodespacesModal] = useState(false);
-    const [selectedCodeSpaceGroup, setSelectedCodeSpaceGroup] = useState(sessionStorage.getItem(SESSION_STORAGE_KEYS.CODE_SPACE_SELECTED_GROUPS));
+    const [selectedCodeSpaceGroup, setSelectedCodeSpaceGroup] = useState(JSON.parse(sessionStorage.getItem(SESSION_STORAGE_KEYS.CODE_SPACE_SELECTED_GROUPS)));
 
     useEffect(() => {
         // if (selectedCodeSpaceGroup) {
@@ -419,7 +419,7 @@ const AllCodeSpaces = (props) => {
         //     setSelectedCodeSpaceGroup(updatedGroup);
         //   }
         // }
-        setSelectedCodeSpaceGroup(sessionStorage.getItem(SESSION_STORAGE_KEYS.CODE_SPACE_SELECTED_GROUPS));
+        setSelectedCodeSpaceGroup(JSON.parse(sessionStorage.getItem(SESSION_STORAGE_KEYS.CODE_SPACE_SELECTED_GROUPS)));
         // eslint-disable-next-line react-hooks/exhaustive-deps
       }, [codeSpaceGroups]);
 
@@ -910,7 +910,7 @@ const AllCodeSpaces = (props) => {
                     //     onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'react'
                     // }
                     setShowCodeDeployModal={(isVisible) => setShowDeployCodeSpaceModal(isVisible)}
-                    setCodeDeploying={() => { getCodeSpacesData(); getCodeSpaceGroupsData(); setShowCodespacesModal(false);}}
+                    setCodeDeploying={() => { getCodeSpacesData(); getCodeSpaceGroupsData();}}
                     setIsApiCallTakeTime={setIsApiCallTakeTime}
                 />
             )}
@@ -934,8 +934,8 @@ const AllCodeSpaces = (props) => {
                     //     onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'react'
                     // }
                     setShowCodeDeployModal={(isVisible) => setShowDeployCodeSpaceModal(isVisible)}
-                    setCodeDeploying={() => { getCodeSpacesData(); getCodeSpaceGroupsData(); setShowCodespacesModal(false); }}
-                    setCodeBuilding={() => { getCodeSpacesData(); getCodeSpaceGroupsData(); setShowCodespacesModal(false); }}
+                    setCodeDeploying={() => { getCodeSpacesData(); getCodeSpaceGroupsData();}}
+                    setCodeBuilding={() => { getCodeSpacesData(); getCodeSpaceGroupsData();}}
                     setIsApiCallTakeTime={setIsApiCallTakeTime}
                 />
             )}
