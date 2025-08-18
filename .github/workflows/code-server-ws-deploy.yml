@@ -189,11 +189,11 @@ jobs:
         echo "CPU_MILLICORES=$CPU_MILLICORES" >> $GITHUB_OUTPUT
         echo "MEM_MIB=$MEM_MIB" >> $GITHUB_OUTPUT
 
-        if [[ "$MEM_MIB" != "0" ]]; then
+        if [[ "CPU_MILLICORES" != "0" && "$MEM_MIB" != "0" ]]; then
           MEM_LIMIT="${MEM_MIB}Mi"
-          echo "MEM_LIMIT_LINE=memory: ${MEM_LIMIT}" >> $GITHUB_OUTPUT
+          echo "RESOURCES_VALUES=$(echo -e "resources:\n  limits:\n    cpu: null\n    memory: ${MEM_LIMIT}" | sed ':a;N;$!ba;s/\n/%0A/g')" >> $GITHUB_OUTPUT
         else
-          echo "MEM_LIMIT_LINE=memory: null" >> $GITHUB_OUTPUT
+          echo "RESOURCES_VALUES=resources: {}" >> $GITHUB_OUTPUT
         fi
     - name: Print deploy skipped reason
       if: ${{ github.event.inputs.action == 'deploy' && steps.check-project.outputs.DO_CHECK == 'true' && (steps.check-resources.outputs.CPU_MILLICORES > 2000 || steps.check-resources.outputs.MEM_MIB > 4096) }}
@@ -225,10 +225,7 @@ jobs:
             root_path_non_api: /${{ github.event.inputs.projectName }}/${{ github.event.inputs.target_env }}/
             authpath: ${{ vars.VAULT_AUTH_PATH }}
             namespace: ${{ vars.VAULT_NAMESPACE }}
-          resources:
-            limits:
-              cpu: null
-              ${{ steps.check-resources.outputs.MEM_LIMIT_LINE }}
+          ${{ steps.check-resources.outputs.RESOURCES_VALUES }}
       env:
         KUBECONFIG_FILE: '${{ secrets.KUBECONFIG }}'
 
