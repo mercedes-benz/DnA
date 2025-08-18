@@ -192,11 +192,13 @@ jobs:
         if [[ "$CPU_MILLICORES" != "0" && "$MEM_MIB" != "0" ]]; then
           CPU_REQ="${CPU_MILLICORES}m"
           MEM_LIMIT="${MEM_MIB}Mi"
-          RESOURCES_VALUES="resources:%0Alimits:%0A  cpu:%20null%0A  memory:%20${MEM_LIMIT}%0Arequests:%0A  cpu:%20${CPU_REQ}%0A  memory:%20${MEM_LIMIT}"
-          echo "RESOURCES_VALUES=$RESOURCES_VALUES" >> $GITHUB_OUTPUT
+          RESOURCES_YAML="resources:\n  limits:\n    cpu: null\n    memory: ${MEM_LIMIT}\n  requests:\n    cpu: ${CPU_REQ}\n    memory: ${MEM_LIMIT}"
         else
-          echo "RESOURCES_VALUES=resources: {}" >> $GITHUB_OUTPUT
+          RESOURCES_YAML="resources: {}"
         fi
+        echo "RESOURCES_VALUES<<EOF" >> $GITHUB_OUTPUT
+        echo -e "$RESOURCES_YAML" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
     - name: Print deploy skipped reason
       if: ${{ github.event.inputs.action == 'deploy' && steps.check-project.outputs.DO_CHECK == 'true' && (steps.check-resources.outputs.CPU_MILLICORES > 2000 || steps.check-resources.outputs.MEM_MIB > 4096) }}
       run: |
@@ -227,7 +229,7 @@ jobs:
             root_path_non_api: /${{ github.event.inputs.projectName }}/${{ github.event.inputs.target_env }}/
             authpath: ${{ vars.VAULT_AUTH_PATH }}
             namespace: ${{ vars.VAULT_NAMESPACE }}
-          ${{ fromJson('{"text": "' }}${{ steps.check-resources.outputs.RESOURCES_VALUES }}${{ '"}' ).text }}
+          ${{ steps.check-resources.outputs.RESOURCES_VALUES }}
       env:
         KUBECONFIG_FILE: '${{ secrets.KUBECONFIG }}'
 
