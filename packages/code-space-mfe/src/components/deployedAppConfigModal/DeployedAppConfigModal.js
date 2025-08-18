@@ -375,9 +375,9 @@ const DeployedAppConfigModal = (props) => {
         // isSecuredWithCookie: (secureWithIAMSelected && deploymentType === 'API' && cookieSelected) || false,
         isSecuredWithCookie: false,
         ssoType: secureWithIAMSelected ? ssoType : secureWithDnaSelected ? Envs.DNA_SSO_TYPE : 'SSO_INT',
-        aliceRoleEnabled: enableAliceRole,
-        selectedAliceRoles: enableAliceRole ? selectedRoles : [],
-        entitlementPrefixEnabled: enableAliceRole && enableEntitlementPrefix,
+        aliceRoleEnabled: secureWithDnaSelected ? enableAliceRole : false,
+        selectedAliceRoles: (secureWithDnaSelected && enableAliceRole) ? selectedRoles : [],
+        entitlementPrefixEnabled: secureWithDnaSelected && enableAliceRole && enableEntitlementPrefix,
       };
       ProgressIndicator.show();
       CodeSpaceApiClient.updateDeployedAppConfig(props?.workspaceId, configRequest)
