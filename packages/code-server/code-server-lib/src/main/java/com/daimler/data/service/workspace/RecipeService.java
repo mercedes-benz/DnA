@@ -54,4 +54,6 @@ public interface RecipeService {
 	AdditionalServiceLovVo getServiceByName(String serviceName);
 
 	GenericMessage deleteAddService(String id);
+
+	Integer getTotalCount(String user);
 }

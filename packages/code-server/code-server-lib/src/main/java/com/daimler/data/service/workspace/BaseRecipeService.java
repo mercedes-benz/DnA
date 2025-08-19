@@ -583,4 +583,9 @@ public class BaseRecipeService implements RecipeService{
         }
 
 	}
+	
+	@Override
+	public Integer getTotalCount(String user){
+		return workspaceCustomRecipeRepo.getTotalCount(user);
+	} 
 }
