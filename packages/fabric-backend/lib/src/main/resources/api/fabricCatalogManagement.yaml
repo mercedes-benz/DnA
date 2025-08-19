@@ -213,6 +213,7 @@ definitions:
   DatabaseMetadataVO:
     type: object
     required:
+      - dbId
       - dbName
     properties:
       dbName:
