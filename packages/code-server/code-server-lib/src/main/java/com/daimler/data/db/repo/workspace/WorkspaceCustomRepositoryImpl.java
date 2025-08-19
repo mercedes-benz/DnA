@@ -485,7 +485,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 				: "[]");
 
 		String updateQuery = "update workspace_nsql " +
-				"set data = jsonb_set(jsonb_set(jsonb_set(jsonb_set(jsonb_set(jsonb_set(jsonb_set(jsonb_set(jsonb_set(jsonb_set(jsonb_set(jsonb_set(data,"
+				"set data = jsonb_set(jsonb_set(jsonb_set(jsonb_set(jsonb_set(jsonb_set(jsonb_set(jsonb_set(jsonb_set(jsonb_set(jsonb_set(jsonb_set(jsonb_set(data,"
 				+
 				"'{projectDetails," + addQuotes(environment) + ",secureWithIAMRequired}', '" + secureWithIAMRequired
 				+ "')," +
