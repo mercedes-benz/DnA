@@ -65,7 +65,7 @@ const DeployedAppConfigModal = (props) => {
 
   const scopes = [
     { id: '1', name: 'openid' },
-    { id: '2', name: 'autorization_group' },
+    { id: '2', name: 'authorization_group' },
     { id: '3', name: 'entitlement_group' },
     { id: '4', name: 'scoped_entitlement' },
     { id: '5', name: 'email' },
@@ -80,7 +80,7 @@ const DeployedAppConfigModal = (props) => {
     .filter((scope) =>
       [
         'openid',
-        'autorization_group',
+        'authorization_group',
         'entitlement_group',
         'scoped_entitlement',
         'email',
@@ -98,7 +98,7 @@ const DeployedAppConfigModal = (props) => {
 
   const userInfoScope = scopes
     .filter((scope) =>
-      ['openid', 'autorization_group', 'scoped_entitlement', 'email', 'profile', 'organizational_data'].includes(
+      ['openid', 'authorization_group', 'scoped_entitlement', 'email', 'profile', 'organizational_data'].includes(
         scope.name,
       ),
     )
@@ -355,8 +355,8 @@ const DeployedAppConfigModal = (props) => {
       setAliceRolesError('');
     }
     if (formValid) {
-      const entitlementScope = 'openid autorization_group entitlement_group scoped_entitlement email profile organizational_data';
-      const userInfoScope = 'openid autorization_group scoped_entitlement email profile organizational_data';
+      const entitlementScope = 'openid authorization_group entitlement_group scoped_entitlement email profile organizational_data';
+      const userInfoScope = 'openid authorization_group scoped_entitlement email profile organizational_data';
       const configRequest = {
         targetEnvironment: props?.isStaging ? 'int' : 'prod',
         secureWithIAMRequired: secureWithIAMSelected,
@@ -375,9 +375,9 @@ const DeployedAppConfigModal = (props) => {
         // isSecuredWithCookie: (secureWithIAMSelected && deploymentType === 'API' && cookieSelected) || false,
         isSecuredWithCookie: false,
         ssoType: secureWithIAMSelected ? ssoType : secureWithDnaSelected ? Envs.DNA_SSO_TYPE : 'SSO_INT',
-        aliceRoleEnabled: enableAliceRole,
-        selectedAliceRoles: enableAliceRole ? selectedRoles : [],
-        entitlementPrefixEnabled: enableAliceRole && enableEntitlementPrefix,
+        aliceRoleEnabled: secureWithDnaSelected ? enableAliceRole : false,
+        selectedAliceRoles: (secureWithDnaSelected && enableAliceRole) ? selectedRoles : [],
+        entitlementPrefixEnabled: secureWithDnaSelected && enableAliceRole && enableEntitlementPrefix,
       };
       ProgressIndicator.show();
       CodeSpaceApiClient.updateDeployedAppConfig(props?.workspaceId, configRequest)
