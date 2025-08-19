@@ -479,7 +479,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 		List<MessageDescription> errors = new ArrayList<>();
 		List<MessageDescription> warnings = new ArrayList<>();
 
-		String selectedAliceRolesJson = (selectedAliceRoles != null ? selectedAliceRoles.stream()
+		String selectedAliceRolesJson = ((selectedAliceRoles != null && !selectedAliceRoles.isEmpty()) ? selectedAliceRoles.stream()
 				.map(role -> "\"" + role + "\"")
 				.collect(Collectors.joining(",", "[", "]"))
 				: "[]");
