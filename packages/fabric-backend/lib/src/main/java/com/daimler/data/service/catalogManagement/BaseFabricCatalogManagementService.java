@@ -532,7 +532,7 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
             details.setIsLakeHousesPublishedToCdc(true);
             details.setPublishedLakeHouseNames(
                 metadata.getDatabases().stream()
-                    .map(DatabaseMetadataVO::getDbName)
+                    .map(DatabaseMetadataVO::getDbId)
                     .collect(Collectors.toList()));
             
             workspace.setCdcPublishedLakeHouseDetails(details);
