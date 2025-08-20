@@ -108,11 +108,11 @@ resources:
   ## uncomment fitting parts when you wand to enable setting cpu and memory requests and limits
   limits:
     enabled: true
-    memory: 1400Mi
+    memory: 1157Mi
   request:
     enabled: true
-    cpu: 201m
-    memory: 1400Mi
+    cpu: 178m
+    memory: 1157Mi
 
 ## Configure additional env variables
 env:
