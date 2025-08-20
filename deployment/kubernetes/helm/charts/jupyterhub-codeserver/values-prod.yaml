@@ -211,10 +211,10 @@ hub:
     pullSecrets: []
   resources: 
       limits:
-        memory: 210Mi
+        memory: 240Mi
       requests:
-        cpu: 16m
-        memory: 210Mi
+        cpu: 11m
+        memory: 240Mi
   podSecurityContext:
     runAsNonRoot: true
     fsGroup: 1000
