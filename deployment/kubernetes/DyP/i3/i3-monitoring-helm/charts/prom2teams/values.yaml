@@ -12,7 +12,6 @@ resources:
    cpu: 100m
    memory: 128Mi
  limits:
-   cpu: 200m
    memory: 200Mi
 
 service:

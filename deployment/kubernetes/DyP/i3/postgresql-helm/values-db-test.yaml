@@ -321,7 +321,6 @@ backup:
     enabled: true
     limits:
       enabled: true
-      cpu: 500m
       memory: 512Mi
     request:
       enabled: true

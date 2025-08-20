@@ -66,6 +66,8 @@ public interface KongClient {
 	public GenericMessage deletePlugin(String serviceName, String pluginName);
 
 	public Map<String,String> getPluginIds(String serviceName, String pluginName);
+
+	public Map<String,Boolean> getPluginStatus(String serviceName, String pluginName);
 	
 	public GenericMessage deleteService(String serviceName);
 

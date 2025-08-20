@@ -647,6 +647,140 @@ paths:
         500:
           description: "Internal error"
 
+  /workspaces/{id}/deployed-app-config:
+    post:
+      tags:
+        - "code-server"
+      summary: "Update deployed app configuration for a given identifier."
+      description: "Update deployed app configuration for a given identifier."
+      operationId: "deployedAppConfig"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Workspace ID to be fetched"
+          required: true
+          type: "string"
+        - name: "deployedAppConfigDto"
+          in: "body"
+          description: "request body for config to be updated"
+          required: true
+          schema:
+            $ref: "#/definitions/DeployedAppConfigDto"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
+  /workspaces/{id}/pluginStatus:
+    get:
+      tags:
+        - "code-server"
+      summary: "Get status of authorization and authentication plugins of the deployed application."
+      description:  "Get status of authorization and authentication plugins of the deployed application."
+      operationId: "getPluginStatus"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Workspace ID to be fetched"
+          required: true
+          type: "string"
+        - name: env
+          in: query
+          description: "deployed application environment"
+          required: true
+          type: string
+          enum:
+          - int
+          - prod
+        - name: pluginName
+          in: query
+          description: "plugin to be disabled or enabled"
+          required: true
+          type: string
+          enum:
+          - apiauthoriser
+          - oidc
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/WorkspacePluginStatusVO"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
+    post:
+      tags:
+        - "code-server"
+      summary: "enable or disable authorization and authentication plugins of deployed application."
+      description: "enable or disable authorization and authentication plugins of deployed application."
+      operationId: "togglePlugin"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Workspace ID to be fetched"
+          required: true
+          type: "string"
+        - name: env
+          in: query
+          description: "deployed application environment"
+          required: true
+          type: string
+          enum:
+          - int
+          - prod
+        - name: pluginName
+          in: query
+          description: "plugin status to be fetched"
+          required: true
+          type: string
+          enum:
+          - apiauthoriser
+          - oidc
+        - name: enable
+          in: query
+          description: enable or disable plugin
+          required: true
+          type: "boolean"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
 
   /workspaces/{id}/config:        
     patch:
@@ -1384,9 +1518,8 @@ paths:
         405:
           description: "Method not allowed"
         500:
-          description: "Internal error"                                        
-
-          
+          description: "Internal error"                                                                               
+        
 definitions:
   CodeSpaceReadmeVo:
     type: object
@@ -1588,15 +1721,19 @@ definitions:
         enum: [int, prod]
       branch:
         type: string
+      repo :
+        type: string
+      version:
+        type: string
+
+  DeployedAppConfigDto:
+    type: object
+    properties:
+      targetEnvironment:
+        type: string
+        enum: [int, prod]
       secureWithIAMRequired:
         type: boolean
-      # technicalUserDetailsForIAMLogin:
-      #   type: string
-      # technicalUserDetailsForIAMLogin:
-      #   type: string
-      # valutInjectorEnable:  # Corrected property name
-      #   type: boolean
-        default: false  # This should now work as expected
       clientID:
         type: string
       clientSecret:
@@ -1614,12 +1751,23 @@ definitions:
         type: string
       isSecuredWithCookie :
         type: boolean
-      repo :
+      ssoType:
         type: string
-      version:
-        type: string
-#if it is from an existing build I will send both version and branch otherwise I'll send only branch.
+        enum: [SSO_INT, SSO_PROD]
+      secureWithDnaRequired:
+        type: boolean
+      aliceRoleEnabled:
+        type: boolean
+      selectedAliceRoles:
+        type: array
+        items:
+          type: string 
 
+  WorkspacePluginStatusVO:
+    type: object
+    properties:
+      enabled:
+        type: boolean
 
            
   CodeServerDeploymentDetailsVO:
@@ -1662,6 +1810,17 @@ definitions:
         type: string
       scope:
         type: string
+      ssoType:
+        type: string
+        enum: [SSO_INT, SSO_PROD]
+      secureWithDnaRequired:
+        type: boolean
+      aliceRoleEnabled:
+        type: boolean
+      selectedAliceRoles:
+        type: array
+        items:
+          type: string
       deploymentAuditLogs:
         type: array
         items:

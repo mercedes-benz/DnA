@@ -2,7 +2,7 @@ spring:
   mvc.pathmatch.matching-strategy: ant_path_matcher
   application:
     name: dna-codeserver-service
-    version: 1.6.2
+    version: 1.6.5
   profile:
     active: production
 
@@ -192,6 +192,8 @@ kong:
    requestTransformerPluginRemoveHeaders : ${REQUEST_TRANSFORMER_PLUGIN_REMOVE_HEADERS:XXXX}
    accessTokenHeaderName :  ${ACCESS_TOKEN_HEADER_NAME:XXXX}
    accessTokenAsBearer :  ${ACCESS_TOKEN_AS_BEARER:XXXX}
+   dnaClientSecret : ${DNA_CLIENT_SECRET:XXXX}
+   dnaAppId : ${DNA_APP_ID:XXXX}
 
 workspace:
   migrate: ${MIGRATE_WORKSPACE:YOUR_MIGRATE_BOOLEAN}    

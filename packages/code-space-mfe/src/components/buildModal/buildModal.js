@@ -132,6 +132,13 @@ const BuildModal = (props) => {
       formValid = false;
       setIsBranchValueMissing(true);
     }
+    const found = branches.some(branch => 
+     Object.values(branch).includes(branchValue[0])
+    );
+    if (!found) {
+      formValid = false;
+      Notification.show('Branch doesnot exist.','alert',);
+    }
     if (formValid) {
       const buildRequest = {
         environment: buildEnvironment === 'staging' ? 'int' : 'prod',
@@ -413,7 +420,6 @@ const BuildModal = (props) => {
               setShowCodeDeployModal={setShowDeployCodeSpaceModal}
               setCodeDeploying={props.setCodeDeploying}
               setIsApiCallTakeTime={props.setIsApiCallTakeTime}
-              navigateSecurityConfig={props.navigateSecurityConfig}
               buildDetails={buildDetails}
             />
           )}

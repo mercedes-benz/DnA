@@ -45,7 +45,7 @@ loki:
     query_timeout: 600s
     reject_old_samples: true
     reject_old_samples_max_age: 168h
-    retention_period: 7d
+    retention_period: 2d
     split_queries_by_interval: 15m
     volume_enabled: true
     discover_log_levels: true
@@ -104,7 +104,7 @@ compactor:
   replicas: 1
   retention_enabled: true
   working_directory: /var/loki/data/compactor
-  retention_delete_delay: 168h # 7 days
+  retention_delete_delay: 48h # 2 days
   delete_request_store: s3
 
 analytics:
@@ -135,7 +135,7 @@ minio:
   mcImage:
     repository: registry-emea.app.corpintra.net/quaycache/minio/mc
   persistence:
-    size: 1000Gi
+    size: 1200Gi
 
 memcachedExporter:
   image:
@@ -183,6 +183,6 @@ chunksCache:
 
 table_manager:
   retention_deletes_enabled: true
-  retention_period: 7d
+  retention_period: 2d
 tracing:
   enabled: true
