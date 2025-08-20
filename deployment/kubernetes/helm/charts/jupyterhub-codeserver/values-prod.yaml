@@ -378,10 +378,10 @@ proxy:
       timeoutSeconds: 1
     resources: 
       limits:
-        memory: 100Mi
+        memory: 45Mi
       requests:
-        cpu: 15m
-        memory: 100Mi
+        cpu: 13m
+        memory: 45Mi
     defaultTarget:
     errorTarget:
     extraEnv: {}
