@@ -488,7 +488,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 						log.error("Failed to save record to db after processing usermanagement successfully for a new fabric record with data {}", mapper.writeValueAsString(data));
 					}
 					log.info("created workspace project {} with id {} saved to database successfully", vo.getName(), createResponse.getId());
-					fabricWorkspaceClient.provisionWorkspace(createResponse.getId());
+					//fabricWorkspaceClient.provisionWorkspace(createResponse.getId());
 					
 					try {
 						String ownerId = vo.getCreatedBy().getId();
