@@ -758,10 +758,10 @@ scheduler:
 
   resources:
    limits:
-    memory: 1145Mi
+    memory: 825Mi
    requests:
-    cpu: 1784m
-    memory: 1145Mi
+    cpu: 1234m
+    memory: 825Mi
 
   # This setting tells kubernetes that its ok to evict
   # when it wants to scale a node down.
