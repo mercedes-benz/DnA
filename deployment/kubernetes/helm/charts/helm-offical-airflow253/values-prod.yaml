@@ -1097,10 +1097,10 @@ webserver:
 
   resources:
     limits:
-      memory: 1492Mi
+      memory: 835Mi
     requests:
-      cpu: 10m
-      memory: 1492Mi
+      cpu: 3m
+      memory: 835Mi
 
   # Create initial user.
   defaultUser:
