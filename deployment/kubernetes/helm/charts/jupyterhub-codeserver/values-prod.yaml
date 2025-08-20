@@ -862,10 +862,10 @@ prePuller:
   annotations: {}
   resources: 
     limits:
-      memory: 100Mi
+      memory: 10Mi
     requests:
-      cpu: 10m
-      memory: 100Mi
+      cpu: 1m
+      memory: 10Mi
   containerSecurityContext:
     runAsNonRoot: true
     runAsUser: 65534 # nobody user
