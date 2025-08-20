@@ -44,10 +44,10 @@ ingress:
       secretName: api-dss-tls-secret
 resources:
   requests:
-    memory: 496Mi
-    cpu: 10m
+    memory: 423Mi
+    cpu: 2m
   limits:
-    memory: 496Mi
+    memory: 423Mi
 autoscaling:
   enabled: false
   minReplicas: 1
