@@ -37,10 +37,10 @@ ingress:
     traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
 resources:
   requests:
-    memory: 446Mi
-    cpu: 43m
+    memory: 510Mi
+    cpu: 3m
   limits:
-    memory: 446Mi
+    memory: 510Mi
 probes:
   initialDelaySeconds: 120
   timeoutSeconds: 10
