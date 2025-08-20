@@ -1628,10 +1628,10 @@ statsd:
   extraNetworkPolicies: []
   resources:
     limits:
-      memory: 307Mi
+      memory: 276Mi
     requests:
-      cpu: 57m
-      memory: 307Mi
+      cpu: 27m
+      memory: 276Mi
 
   service:
     extraAnnotations: {}
