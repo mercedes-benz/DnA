@@ -127,11 +127,12 @@ jobs:
       env:
         no_proxy: "artifacts.i.mercedes-benz.com"     
     - name: Check the size of the image if it is more than 4GB
+      if: ${{ github.event.inputs.action == 'build' }}
       run: |
-        IMAGE_NAME="registry-emea.app.corpintra.net/dnaplatform/code-server/codespaces-apps:${{ github.event.inputs.projectName }}-${{ github.event.inputs.target_env }}"
+        IMAGE_NAME="registry-emea.app.corpintra.net/dnaplatform/code-server/codespaces-apps-${{ github.event.inputs.projectName }}:${{ github.event.inputs.appVersion }}"
         IMAGE_SIZE=$(docker images $IMAGE_NAME --format "{{.Size}}")
         IMAGE_SIZE_CLEAN="${IMAGE_SIZE//[[:space:]]/}"
-        echo "Image size clean is $IMAGE_SIZE_CLEAN"
+        echo "Image size is $IMAGE_SIZE_CLEAN"
         if [[ $IMAGE_SIZE_CLEAN == *GB ]]; then
           SIZE_GB=${IMAGE_SIZE_CLEAN%GB}
           if (( $(bc -l <<< "$SIZE_GB > 5.0") )); then
@@ -144,10 +145,71 @@ jobs:
       run: |
         echo ${{ secrets.HARBOR_DNA_REPO_SECRET }} | docker login $REGISTRY -u $REGISTRY_DNA_USER --password-stdin
         docker push registry-emea.app.corpintra.net/dnaplatform/code-server/codespaces-apps-${{ github.event.inputs.projectName }}:${{ github.event.inputs.appVersion }}     
+    
+    - name: Check if project requires resource check
+      id: check-project
+      run: |
+        allowed_projects=("cs1108" "cs1234")
+        if [[ " ${allowed_projects[@]} " =~ " $PROJECT_NAME " ]]; then
+          echo "DO_CHECK=false" >> $GITHUB_OUTPUT
+        else
+          echo "DO_CHECK=true" >> $GITHUB_OUTPUT
+        fi
+      env: 
+        PROJECT_NAME: ${{ github.event.inputs.projectName }} 
+    - name: Check CPU and Memory Requests from values.yaml and set the resources accordingly 
+      id: check-resources
+      run: |
+        # Read resources from Helm values file
+        CPU=$(yq '.resources.requests.cpu' workspace-repo/deploy/helm/values.yaml)
+        MEM=$(yq '.resources.requests.memory' workspace-repo/deploy/helm/values.yaml)
 
+        echo "Requested CPU: $CPU"
+        echo "Requested Memory: $MEM"
+        if [[ -z "$CPU" ]]; then
+          CPU_MILLICORES=0
+        # Convert CPU to millicores
+        elif [[ "$CPU" == *"m" ]]; then
+          CPU_MILLICORES=$(echo "$CPU" | sed 's/m//')
+        else
+          CPU_MILLICORES=$(echo "$CPU * 1000" | bc | cut -d'.' -f1)
+        fi
+
+        # Convert Memory to MiB
+        if [[ -z "$MEM" ]]; then
+          MEM_MIB=0
+        elif [[ "$MEM" == *"Gi" ]]; then
+          MEM_MIB=$(echo "$MEM" | sed 's/Gi//')
+          MEM_MIB=$(echo "$MEM_MIB * 1024" | bc | cut -d'.' -f1)
+        elif [[ "$MEM" == *"Mi" ]]; then
+          MEM_MIB=$(echo "$MEM" | sed 's/Mi//')
+        else
+          MEM_MIB=0
+        fi
+
+        echo "CPU_MILLICORES=$CPU_MILLICORES" >> $GITHUB_OUTPUT
+        echo "MEM_MIB=$MEM_MIB" >> $GITHUB_OUTPUT
+
+        if [[ "$CPU_MILLICORES" != "0" && "$MEM_MIB" != "0" ]]; then
+          CPU_REQ="${CPU_MILLICORES}m"
+          MEM_LIMIT="${MEM_MIB}Mi"
+          RESOURCES_YAML="resources:\n  limits:\n    cpu: null\n    memory: ${MEM_LIMIT}\n  requests:\n    cpu: ${CPU_REQ}\n    memory: ${MEM_LIMIT}"
+        else
+          RESOURCES_YAML="resources: {}"
+        fi
+        echo "RESOURCES_VALUES<<EOF" >> $GITHUB_OUTPUT
+        echo -e "$RESOURCES_YAML" >> $GITHUB_OUTPUT
+        echo "EOF" >> $GITHUB_OUTPUT
+    - name: Print deploy skipped reason
+      if: ${{ github.event.inputs.action == 'deploy' && steps.check-project.outputs.DO_CHECK == 'true' && (steps.check-resources.outputs.CPU_MILLICORES > 2000 || steps.check-resources.outputs.MEM_MIB > 4096) }}
+      run: |
+        echo "Deployment skipped due to resource constraints- CPU request is more than than 2 Cores or Memory request is more than 4GB."
+        exit 1
     - name: Deploy App
       uses: deler-aziz/helm-deploy-action@v1.0.1
-      if: ${{ github.event.inputs.action == 'deploy' }}
+      if: ${{ github.event.inputs.action == 'deploy' &&
+              (steps.check-project.outputs.DO_CHECK == 'false' ||
+              (steps.check-resources.outputs.CPU_MILLICORES <= 2000 && steps.check-resources.outputs.MEM_MIB <= 4096)) }}
       with:
         release: '${{ github.event.inputs.projectName }}-${{ github.event.inputs.target_env }}'
         namespace: '${{ vars.K8S_NAMESPACE }}'
@@ -168,6 +230,7 @@ jobs:
             root_path_non_api: /${{ github.event.inputs.projectName }}/${{ github.event.inputs.target_env }}/
             authpath: ${{ vars.VAULT_AUTH_PATH }}
             namespace: ${{ vars.VAULT_NAMESPACE }}
+          ${{ steps.check-resources.outputs.RESOURCES_VALUES }}
       env:
         KUBECONFIG_FILE: '${{ secrets.KUBECONFIG }}'
 
