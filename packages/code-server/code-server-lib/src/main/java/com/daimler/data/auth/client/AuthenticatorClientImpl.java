@@ -406,6 +406,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 	}
 	
 	public void callingKongApis(String wsid,String serviceName, String env, boolean apiRecipe, String clientID, String clientSecret, String redirectUriFromUser, String ignorePaths, String scope, String oneApiVersionShortName, boolean isSecuredWithCookie, boolean secureWithIAM, String ssoType, boolean secureWithDna, boolean isAliceRoleEnabled, boolean isEntitlementPrefixEnabled, List<String> selectedAliceRoles, String cloudServiceProvider) {
+		LOGGER.info("Kong entitlement prefix enabled is : {}",isEntitlementPrefixEnabled);
 		boolean kongApiForDeploymentURL = !wsid.equalsIgnoreCase(serviceName) && Objects.nonNull(env);
 		CodeServerWorkspaceNsql workspaceNsql = customRepository.findByWorkspaceId(wsid);
 		CodeServerDeploymentDetails intDeploymentDetails = workspaceNsql.getData().getProjectDetails().getIntDeploymentDetails();
@@ -1019,6 +1020,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 												if(isAliceRoleEnabled){
 													if(isEntitlementPrefixEnabled){
 														jsonResponse = gitClient.getFileContent(gitDetails.get(2), gitDetails.get(1), gitDetails.get(0), functionPluginsFolderPath, postFunctionPrefixFileName,codeServerEnvRef);
+														LOGGER.info("prefix enabled with content {}",base64DecodeAandMinifyString(jsonResponse.getString("content")));
 													} else if(!selectedAliceRoles.isEmpty() && selectedAliceRoles != null){
 														jsonResponse = gitClient.getFileContent(gitDetails.get(2), gitDetails.get(1), gitDetails.get(0), functionPluginsFolderPath, postFunctionEntitlementFileName,codeServerEnvRef);
 													} else {
@@ -1045,7 +1047,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 														LOGGER.info("Entitlement prefix filtering");
 														String commaSeparatedString = String.join(",", selectedAliceRoles);
 														postFunctionValue.clear();
-														String prefixPostFunctionContent = postFunctionContent.replace("entilement_prefix_value",commaSeparatedString);
+														String prefixPostFunctionContent = postFunctionContent.replace("entitlement_prefix_value",commaSeparatedString);
 														postFunctionValue.add(prefixPostFunctionContent);
 													} else if(!selectedAliceRoles.isEmpty() && selectedAliceRoles != null){
 														LOGGER.info("Role based entitlement filtering");
@@ -1060,7 +1062,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 														}
 														String commaSeparatedString = String.join(",", entitlementIds);
 														postFunctionValue.clear();
-														String entitlementPostFunctionContent = postFunctionContent.replace("entilement_list_value",commaSeparatedString);
+														String entitlementPostFunctionContent = postFunctionContent.replace("entitelement_list_value",commaSeparatedString);
 														postFunctionValue.add(entitlementPostFunctionContent);
 													}
 												}
