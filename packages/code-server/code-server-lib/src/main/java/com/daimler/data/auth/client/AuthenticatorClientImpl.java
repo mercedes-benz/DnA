@@ -917,6 +917,10 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 									AttachPluginVO attachOIDCPluginVO = new AttachPluginVO();
 									AttachPluginConfigVO attachOIDCPluginConfigVO = new AttachPluginConfigVO();
 
+									//remove post function plugin
+									deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,POST_FUNCTION_PLUGIN,cloudServiceProvider);
+									LOGGER.info("kong deleting post function plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
+									deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
 
 									//for now we removed the prefunction so disabling the prefunction if any...
 									//change function plugin status to disable if any
@@ -1005,10 +1009,11 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 									// 		LOGGER.error("Error Occured While fetching preFunction file from Git : {} ",e.getMessage());
 									// 	}
 									// }
-									changePluginStatusResponse = changePluginStatus(serviceName.toLowerCase()+"-"+env,POST_FUNCTION_PLUGIN,true);
-									LOGGER.info("calling kong to change the plugin status to enable for service: {} and status is {}, if warings any {}, if error any {}",serviceName,changePluginStatusResponse.getSuccess(), changePluginStatusResponse.getWarnings(),changePluginStatusResponse.getErrors());
-									if(!changePluginStatusResponse.getErrors().isEmpty() && "NOT_FOUND".equalsIgnoreCase(changePluginStatusResponse.getSuccess())){
-										try{
+
+									// changePluginStatusResponse = changePluginStatus(serviceName.toLowerCase()+"-"+env,POST_FUNCTION_PLUGIN,true);
+									// LOGGER.info("calling kong to change the plugin status to enable for service: {} and status is {}, if warings any {}, if error any {}",serviceName,changePluginStatusResponse.getSuccess(), changePluginStatusResponse.getWarnings(),changePluginStatusResponse.getErrors());
+									// if(!changePluginStatusResponse.getErrors().isEmpty() && "NOT_FOUND".equalsIgnoreCase(changePluginStatusResponse.getSuccess())){
+									// 	try{
 											JSONObject jsonResponse = new JSONObject();
 											if(secureWithDna){
 												if(isAliceRoleEnabled){
@@ -1066,10 +1071,10 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 												attachPluginResponse = attachFunctionPluginToService(postFunctionRequestVO,serviceName.toLowerCase()+"-"+env);
 												LOGGER.info("calling kong to attach post function plugin for service: {} env: {} and staus is: {}, errors if any: {}, warnings if any: {}",serviceName,env, attachPluginResponse.getSuccess(),attachPluginResponse.getErrors(),attachPluginResponse.getWarnings());
 											}
-										}catch(Exception e) {
-											LOGGER.error("Error Occured While fetching postFunction file from Git : {} ",e.getMessage());
-										}
-									}
+								// 		}catch(Exception e) {
+								// 			LOGGER.error("Error Occured While fetching postFunction file from Git : {} ",e.getMessage());
+								// 		}
+								// 	}
 								}
 							}
 						}
@@ -1087,8 +1092,11 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 							//change function plugin status to disable if any
 							changePluginStatusResponse = changePluginStatus(serviceName.toLowerCase()+"-"+env,PRE_FUNCTION_PLUGIN,false);
 							LOGGER.info("calling kong to change the plugin status to enable for service: {} and status is {}, if warings any {}, if error any {}",serviceName,changePluginStatusResponse.getSuccess(), changePluginStatusResponse.getWarnings(),changePluginStatusResponse.getErrors());
-							changePluginStatusResponse = changePluginStatus(serviceName.toLowerCase()+"-"+env,POST_FUNCTION_PLUGIN,false);
-							LOGGER.info("calling kong to change the plugin status to enable for service: {} and status is {}, if warings any {}, if error any {}",serviceName,changePluginStatusResponse.getSuccess(), changePluginStatusResponse.getWarnings(),changePluginStatusResponse.getErrors());
+							// changePluginStatusResponse = changePluginStatus(serviceName.toLowerCase()+"-"+env,POST_FUNCTION_PLUGIN,false);
+							// LOGGER.info("calling kong to change the plugin status to enable for service: {} and status is {}, if warings any {}, if error any {}",serviceName,changePluginStatusResponse.getSuccess(), changePluginStatusResponse.getWarnings(),changePluginStatusResponse.getErrors());
+							deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,POST_FUNCTION_PLUGIN,cloudServiceProvider);
+							LOGGER.info("kong deleting post function plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
+							deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
 						}
 					}
 					
