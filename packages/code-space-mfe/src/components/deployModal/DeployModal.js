@@ -88,6 +88,13 @@ const DeployModal = (props) => {
       formValid = false;
       setIsBranchValueMissing(true);
     }
+    const found = branches.some(branch => 
+     Object.values(branch).includes(branchValue[0])
+    );
+    if (!found) {
+      formValid = false;
+      Notification.show('Branch doesnot exist.','alert',);
+    }
     if (formValid) {
       const deployRequest = {
         targetEnvironment: version?.length
