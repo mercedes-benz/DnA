@@ -1042,11 +1042,13 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 
 												if(isAliceRoleEnabled && secureWithDna){
 													if(isEntitlementPrefixEnabled){
+														LOGGER.info("Entitlement prefix filtering");
 														String commaSeparatedString = String.join(",", selectedAliceRoles);
 														postFunctionValue.clear();
 														String prefixPostFunctionContent = postFunctionContent.replace("entilement_prefix_value",commaSeparatedString);
 														postFunctionValue.add(prefixPostFunctionContent);
 													} else if(!selectedAliceRoles.isEmpty() && selectedAliceRoles != null){
+														LOGGER.info("Role based entitlement filtering");
 														List<String> entitlementIds = new ArrayList<>();
         												for (String role : selectedAliceRoles) {
 															EntitlementsDto entitlementsDto = AliceServiceClient.getEntitlements(role);
@@ -1062,7 +1064,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 														postFunctionValue.add(entitlementPostFunctionContent);
 													}
 												}
-
+												LOGGER.info("post function content {}",postFunctionValue);
 												postFunctionConfigVO.setAccess(postFunctionValue);
 												postFunctionPluginVO.setName(POST_FUNCTION_PLUGIN);
 												postFunctionPluginVO.setConfig(postFunctionConfigVO);
