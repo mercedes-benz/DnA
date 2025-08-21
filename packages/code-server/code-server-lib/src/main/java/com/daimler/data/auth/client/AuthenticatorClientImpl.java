@@ -1047,7 +1047,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 														LOGGER.info("Entitlement prefix filtering");
 														String commaSeparatedString = String.join(",", selectedAliceRoles);
 														postFunctionValue.clear();
-														String prefixPostFunctionContent = postFunctionContent.replace("entilement_prefix_value",commaSeparatedString);
+														String prefixPostFunctionContent = postFunctionContent.replace("entitlement_prefix_value",commaSeparatedString);
 														postFunctionValue.add(prefixPostFunctionContent);
 													} else if(!selectedAliceRoles.isEmpty() && selectedAliceRoles != null){
 														LOGGER.info("Role based entitlement filtering");
