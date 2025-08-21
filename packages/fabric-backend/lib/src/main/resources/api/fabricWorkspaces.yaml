@@ -449,6 +449,39 @@ paths:
           500:
             description: "Internal error"
 
+  /fabric-workspaces/{id}/transferOwnership/{userId}:
+    patch:
+        tags:
+          - "fabric-workspaces"
+        summary: "Transfer ownership of a workspace"
+        description: "Changes the owner of the given workspace to another user."
+        operationId: "transferWorkspaceOwnership"
+        parameters:
+          - name: "id"
+            in: "path"
+            required: true
+            description: "The ID of the workspace"
+            type: "string"
+          - name: "userId"
+            in: "path"
+            required: true
+            description: "The user ID of the new owner"
+            type: "string"
+        responses:
+          200:
+            description: "Ownership transferred successfully"
+            schema:
+              $ref: "#/definitions/GenericMessage"
+          400:
+            description: "Bad Request"
+          401:
+            description: "Request does not have sufficient credentials."
+          403:
+            description: "Request is not authorized."
+          405:
+            description: "Method not allowed"
+          500:
+            description: "Internal error"
 
 
 definitions:
