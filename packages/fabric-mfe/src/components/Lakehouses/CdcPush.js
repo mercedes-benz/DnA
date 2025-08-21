@@ -9,10 +9,13 @@ import {DIVISIONS, DATA_ORIGINS } from '../../utilities/constants';
 import { fabricApi } from '../../apis/fabric.api';
 import ExpansionPanel from '../../common/modules/uilab/js/src/expansion-panel';
 import { useForm } from 'react-hook-form';
+import { Envs } from '../../utilities/envs';
 
 export const buildCdcPayload = ({
   workspaceId,
   workspaceMetadata,
+  lakehouseId,
+  lakehouseName, 
   selectedColumns,
   selectedTables,
   columnsByTable,
@@ -24,12 +27,13 @@ export const buildCdcPayload = ({
   isDataAsset,
   workspaceCreator
 }) => {
-  const dbName = workspaceMetadata.name;
+  const dbName = lakehouseName;
 
   const schemaMap = {};
 
   tables.forEach((table) => {
-    const { tableName, schemaName } = table;
+  const { tableName } = table;
+  const schemaName = table.schemaName || "dbo";
 
     const isTableSelected = selectedTables?.[tableName];
     const selectedColsMap = selectedColumns?.[tableName];
@@ -71,12 +75,12 @@ export const buildCdcPayload = ({
 
   return {
     metadata: {
-      serviceName: dbName,
+      serviceName: workspaceMetadata.name,
       serviceId: null,
       databases: [
         {
           dbName,
-          dbId: null,
+          dbId: lakehouseId,
           schemas
         }
       ]
@@ -97,7 +101,7 @@ export const buildCdcPayload = ({
 };
 
 
-const ViewTablesModalContent = ({ workspaceId, lakehouseId }) => {
+const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName }) => {
   const [tables, setTables] = useState([]);
   const [columnsByTable, setColumnsByTable] = useState({});
   const [selectedTables, setSelectedTables] = useState({});
@@ -300,6 +304,7 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId }) => {
       workspaceId,
       workspaceMetadata,
       lakehouseId,
+      lakehouseName,
       selectedTables,
       selectedColumns,
       columnsByTable,
@@ -337,6 +342,7 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId }) => {
     division,
     dataOrigin,
     lakehouseId,
+    lakehouseName,
     columnsByTable,
     tables,
     selectedTables,
@@ -664,6 +670,17 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId }) => {
           Push
         </button>
       </div>
+      
+      <div className={Styles.pushButtonContainer}> 
+        <button 
+          className="btn btn-tertiary" 
+          type="button" 
+          onClick={() => window.open(`${Envs.CDC_URL}`, "_blank", "noopener,noreferrer")}
+        >
+          Onboard To Cdc
+        </button>
+      </div>
+
     </div>
   );
 }

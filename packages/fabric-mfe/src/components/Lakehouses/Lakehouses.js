@@ -318,6 +318,7 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse }) {
   const [showViewShortcutsModal, setShowViewShortcutsModal] = useState(false);
   const [showCreateShortcutModal, setShowCreateShortcutModal] = useState(false);
   const [showViewTables, setShowViewTablesModal] = useState(false);
+  const [showNonProdProjectModal, setShowNonProdProjectModal] = useState(false);
 
   const [contextMenus, setContextMenus] = useState({});
   const [showLocationsContextMenu, setShowLocationsContextMenu] = useState(false);
@@ -610,7 +611,16 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse }) {
                         </button>
                       </li>
                       <li className="contextListItem">
-                        <button className={classNames('btn btn-primary', Styles.outlineBtn)} onClick={() => { setSelectedLakehouse(lakehouse); setShowViewTablesModal(true)}}>
+                        <button className={classNames('btn btn-primary', Styles.outlineBtn)} 
+                          onClick={() => { 
+                            setSelectedLakehouse(lakehouse); 
+                            if (workspace?.typeOfProject?.toLowerCase() !== "production") {
+                              setShowNonProdProjectModal(true);
+                            } else {
+                              setShowViewTablesModal(true);
+                            }
+                          }}
+                        >
                           <i className="icon mbc-icon dublicate" />
                           <span>Push to Cdc</span>
                         </button>
@@ -621,25 +631,27 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse }) {
               </h4>
               <div className={Styles.buttonContainer}>
                 <div className={Styles.cdcContainer}>
-                  {workspace?.cdcPublishedLakeHouseDetails?.isLakeHousesPublishedToCdc && (
-                    <span className={Styles.statusIndicator}>
-                      <span
-                        className={Styles.deployedTag}
-                        tooltip-data="Lakehouse successfully deployed."
-                      >
-                        Published
+                  {workspace?.cdcPublishedLakeHouseDetails?.publishedLakeHouseNames?.includes(lakehouse.id) && (
+                    <>
+                      <span className={Styles.statusIndicator}>
+                        <span
+                          className={Styles.deployedTag}
+                          tooltip-data="Lakehouse successfully deployed to CDC."
+                        >
+                          Published
+                        </span>
                       </span>
-                    </span>
+                      <div className={Styles.cdcNewTab}>
+                        <a
+                          href={`${Envs.CDC_URL}/service/databaseServices/${workspace?.name}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <i className="icon mbc-icon new-tab" />
+                        </a>
+                      </div>
+                    </>
                   )}
-                  <div className={Styles.cdcNewTab}>
-                    <a
-                      href={`${Envs.CDC_URL}/${workspace?.name}`}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                    >
-                      <i className="icon mbc-icon new-tab" />
-                    </a>
-                  </div>
                 </div>
                 {user?.id === workspace?.createdBy?.id &&
                   <button className={classNames('btn', Styles.deleteBtn)} onClick={() => { setSelectedLakehouse(lakehouse); setShowDeleteModal(true) }}>
@@ -711,9 +723,25 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse }) {
           modalWidth={'80%'}
           buttonAlignment="right"
           show={showViewTables}
-          content={<ViewTablesModalContent workspaceId={workspace?.id} lakehouseId={selectedLakehouse?.id} />}
+          content={<ViewTablesModalContent workspaceId={workspace?.id} lakehouseId={selectedLakehouse?.id} lakehouseName={selectedLakehouse?.name} />}
           scrollableContent={true}
           onCancel={() => { setSelectedLakehouse(); setShowViewTablesModal(false) }}
+        />
+      }
+      {showNonProdProjectModal &&
+        <InfoModal
+          title="CDC Push Not Allowed"
+          showAcceptButton={false}
+          showCancelButton={true}
+          buttonAlignment="right"
+          modalWidth="40%"
+          show={showNonProdProjectModal}
+          content={
+            <div>
+              <p>Projects other than <b>Production</b> cannot be pushed to CDC.</p>
+            </div>
+          }
+          onCancel={() => setShowNonProdProjectModal(false)}
         />
       }
       { showDeleteModal &&
