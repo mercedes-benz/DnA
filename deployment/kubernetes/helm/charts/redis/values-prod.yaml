@@ -78,7 +78,7 @@ diagnosticMode:
 ##
 image:
   registry: registry-emea.app.corpintra.net
-  repository: dockerhub/bitnami/redis
+  repository: dnaplatform/bitnami/redis
   tag: 6.2.7-debian-11-r3
   ## Specify a imagePullPolicy
   ## Defaults to 'Always' if image tag is 'latest', else set to 'IfNotPresent'
