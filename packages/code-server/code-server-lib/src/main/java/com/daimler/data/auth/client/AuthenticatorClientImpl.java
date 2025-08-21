@@ -406,7 +406,6 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 	}
 	
 	public void callingKongApis(String wsid,String serviceName, String env, boolean apiRecipe, String clientID, String clientSecret, String redirectUriFromUser, String ignorePaths, String scope, String oneApiVersionShortName, boolean isSecuredWithCookie, boolean secureWithIAM, String ssoType, boolean secureWithDna, boolean isAliceRoleEnabled, boolean isEntitlementPrefixEnabled, List<String> selectedAliceRoles, String cloudServiceProvider) {
-		LOGGER.info("Kong entitlement prefix enabled is : {}",isEntitlementPrefixEnabled);
 		boolean kongApiForDeploymentURL = !wsid.equalsIgnoreCase(serviceName) && Objects.nonNull(env);
 		CodeServerWorkspaceNsql workspaceNsql = customRepository.findByWorkspaceId(wsid);
 		CodeServerDeploymentDetails intDeploymentDetails = workspaceNsql.getData().getProjectDetails().getIntDeploymentDetails();
@@ -1020,9 +1019,9 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 												if(isAliceRoleEnabled){
 													if(isEntitlementPrefixEnabled){
 														jsonResponse = gitClient.getFileContent(gitDetails.get(2), gitDetails.get(1), gitDetails.get(0), functionPluginsFolderPath, postFunctionPrefixFileName,codeServerEnvRef);
-														LOGGER.info("prefix enabled with content {}",base64DecodeAandMinifyString(jsonResponse.getString("content")));
 													} else if(!selectedAliceRoles.isEmpty() && selectedAliceRoles != null){
 														jsonResponse = gitClient.getFileContent(gitDetails.get(2), gitDetails.get(1), gitDetails.get(0), functionPluginsFolderPath, postFunctionEntitlementFileName,codeServerEnvRef);
+														LOGGER.info("role post function content is {}",base64DecodeAandMinifyString(jsonResponse.getString("content")));
 													} else {
 														jsonResponse = gitClient.getFileContent(gitDetails.get(2), gitDetails.get(1), gitDetails.get(0), functionPluginsFolderPath, postFunctionFrontendFileName,codeServerEnvRef);
 													}
@@ -1054,6 +1053,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 														List<String> entitlementIds = new ArrayList<>();
         												for (String role : selectedAliceRoles) {
 															EntitlementsDto entitlementsDto = AliceServiceClient.getEntitlements(role);
+															LOGGER.info("entitlements for role {} is {}",role,entitlementsDto);
 															if (entitlementsDto != null && entitlementsDto.getEntitlementList() != null) {
 																for (EntitlementDetailsDto entitlement : entitlementsDto.getEntitlementList()) {
 																	entitlementIds.add(entitlement.getId());
