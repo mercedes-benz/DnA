@@ -7,6 +7,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.Objects;
 
 import javax.validation.Valid;
 
@@ -841,6 +842,74 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
+
+    @Override
+	@ApiOperation(value = "Transfer ownership of a workspace", nickname = "transferWorkspaceOwnership", notes = "Changes the owner of the given workspace to another user.", response = GenericMessage.class, tags = {
+			"fabric-workspaces", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "Ownership transferred successfully", response = GenericMessage.class),
+			@ApiResponse(code = 400, message = "Bad Request"),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/fabric-workspaces/{id}/transferOwnership/{userId}", produces = {
+			"application/json" }, consumes = { "application/json" }, method = RequestMethod.PATCH)
+	public ResponseEntity<GenericMessage> transferWorkspaceOwnership(
+			@ApiParam(value = "The ID of the workspace", required = true) @PathVariable("id") String workspaceId,
+			@ApiParam(value = "The user ID of the new owner", required = true) @PathVariable("userId") String newOwnerId) {
+
+		CreatedByVO currentUser = this.userStore.getVO();
+    String currentUserId = currentUser != null ? currentUser.getId() : null;
+
+    ResponseEntity<FabricWorkspaceResponseVO> workspaceResponse = service.getById(workspaceId);
+    FabricWorkspaceVO workspaceVo = workspaceResponse.hasBody() ? workspaceResponse.getBody() : null;
+
+    if (Objects.isNull(workspaceVo) || Objects.isNull(workspaceVo.getId())) {
+        log.info("Workspace not found, returning empty");
+        GenericMessage emptyResponse = new GenericMessage();
+        MessageDescription msg = new MessageDescription();
+        msg.setMessage("Workspace not found for the given ID");
+        emptyResponse.addErrors(msg);
+        emptyResponse.setSuccess("FAILED");
+        return new ResponseEntity<>(emptyResponse, HttpStatus.NOT_FOUND);
+    }
+
+    if (Objects.isNull(workspaceVo.getCreatedBy())
+            || !workspaceVo.getCreatedBy().getId().equalsIgnoreCase(currentUserId)) {
+        MessageDescription notAuthorizedMsg = new MessageDescription();
+        notAuthorizedMsg.setMessage("Not authorized to transfer workspace ownership.");
+        GenericMessage errorMessage = new GenericMessage();
+        errorMessage.addErrors(notAuthorizedMsg);
+        log.info("User {} not authorized to transfer ownership of workspace {}", currentUserId, workspaceId);
+        return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
+    }
+
+    boolean isNewOwnerCollab = false;
+    CreatedByVO newOwnerVo = null;
+    if (!Objects.isNull(workspaceVo.getCollaborators())) {
+        for (CreatedByVO collab : workspaceVo.getCollaborators()) {
+            if (collab.getId().equalsIgnoreCase(newOwnerId)) { 
+                isNewOwnerCollab = true;
+                newOwnerVo = collab;
+                break;
+            }
+        }
+    }
+
+    if (!isNewOwnerCollab) {
+        log.error("Provided user is not a collaborator, must be collaborator to transfer ownership.");
+        GenericMessage errorResponse = new GenericMessage();
+        MessageDescription msg = new MessageDescription();
+        msg.setMessage("Provided user is not a collaborator. Please add them as a collaborator before transferring ownership.");
+        errorResponse.addErrors(msg);
+        errorResponse.setSuccess("FAILED");
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+    }
+
+    GenericMessage responseMessage = service.transferOwnership(currentUser, workspaceVo, newOwnerVo);
+    return new ResponseEntity<>(responseMessage, HttpStatus.OK);
+}
 
 	@Override
 	@ApiOperation(value = "get all dna roles for a user.", nickname = "getAllUserDnaRoles", notes = "get all dna roles for a user", response = DnaRoleCollectionVO.class, tags={ "fabric-workspaces", })
