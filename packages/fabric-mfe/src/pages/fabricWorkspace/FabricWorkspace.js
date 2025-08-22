@@ -24,7 +24,7 @@ const WorkspaceDetails = ({ workspace }) => {
           <div className={Styles.formWrapper}>
             <div className={classNames(Styles.flex)}>
               <div className={Styles.col3}>
-                <p className={Styles.label}>Workspace Name</p> {workspace?.name || 'null'}
+                <p className={Styles.label}>Workspace Name</p> <div className={Styles.workspaceName}>{workspace?.name || 'null'}</div>
               </div>
               <div className={Styles.col3}>
                 <p className={Styles.label}>Created on</p>
