@@ -12,6 +12,9 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.daimler.data.dto.EntitlementsDto;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -40,14 +43,13 @@ public class AliceServiceClient {
 
             String url = UriComponentsBuilder.fromHttpUrl(baseUrl + "/roles" + roleId + "/entitlements").toUriString();
 
-            ResponseEntity<EntitlementsDto> response = restTemplate.exchange(url, HttpMethod.GET,
-                    requestEntity, EntitlementsDto.class);
+            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET,
+                    requestEntity, String.class);
             if (response.getStatusCode().is2xxSuccessful()) {
-                if (response != null && response.hasBody()) {
-                    vo = response.getBody();
-                } else {
-                    log.warn("Empty response received for roleId: {}", roleId);
-                }
+                ObjectMapper objectMapper = new ObjectMapper();
+                objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+                JsonNode jsonData = objectMapper.readTree(response.getBody());
+                vo = objectMapper.treeToValue(jsonData.get("data"), EntitlementsDto.class);
             }
 
         } catch (Exception e) {
