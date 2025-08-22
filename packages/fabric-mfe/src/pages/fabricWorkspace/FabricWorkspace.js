@@ -164,6 +164,7 @@ const FabricWorkspace = ({ user }) => {
       <div className={classNames(Styles.mainPanel)}>
         <div className={classNames(Styles.wrapper)}>
           {!loading && 
+            <div className={Styles.workspaceName}>
             <Caption title={`Fabric Workspace - ${workspace?.name || 'null'}`}>
               <div className={Styles.draftIndicatorCol}>
                 {userRoles.map((role, index) => (
@@ -175,7 +176,8 @@ const FabricWorkspace = ({ user }) => {
                   <i className="icon mbc-icon refresh"></i>
                 </button>
               </div>
-            </Caption>    
+            </Caption>
+            </div>  
           }
           <div className={Styles.statusBtns}>
             {workspace?.status?.state === 'IN_PROGRESS' &&
