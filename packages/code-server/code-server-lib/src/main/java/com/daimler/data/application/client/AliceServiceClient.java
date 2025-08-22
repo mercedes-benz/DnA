@@ -37,7 +37,7 @@ public class AliceServiceClient {
         try {
             HttpHeaders headers = new HttpHeaders();
             headers.set("Accept", "application/json");
-            headers.set("Authorization", "Bearer "+authToken);
+            headers.set("Authorization", authToken);
             headers.setContentType(MediaType.APPLICATION_JSON);
             HttpEntity<String> requestEntity = new HttpEntity<>(headers);
 
