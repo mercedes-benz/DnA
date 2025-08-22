@@ -1054,8 +1054,8 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
         												for (String role : selectedAliceRoles) {
 															EntitlementsDto entitlementsDto = AliceServiceClient.getEntitlements(role);
 															LOGGER.info("entitlements for role {} is {}",role,entitlementsDto);
-															if (entitlementsDto != null && entitlementsDto.getEntitlementList() != null) {
-																for (EntitlementDetailsDto entitlement : entitlementsDto.getEntitlementList()) {
+															if (entitlementsDto != null && entitlementsDto.getData().getEntitlementList() != null) {
+																for (EntitlementDetailsDto entitlement : entitlementsDto.getData().getEntitlementList()) {
 																	entitlementIds.add(entitlement.getId());
 																}
 															}

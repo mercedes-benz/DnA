@@ -16,5 +16,12 @@ import lombok.NoArgsConstructor;
 public class EntitlementsDto implements Serializable{
 
 	private static final long serialVersionUID = 1L;
-    private List<EntitlementDetailsDto> entitlementList;   
+    private DataWrapper data;
+    @Data
+    public static class DataWrapper implements Serializable {
+
+        private static final long serialVersionUID = 1L;
+
+        private List<EntitlementDetailsDto> entitlementList;
+    }   
 }
