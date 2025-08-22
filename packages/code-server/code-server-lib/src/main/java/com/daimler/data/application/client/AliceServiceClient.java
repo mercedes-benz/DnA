@@ -41,7 +41,7 @@ public class AliceServiceClient {
             headers.setContentType(MediaType.APPLICATION_JSON);
             HttpEntity<String> requestEntity = new HttpEntity<>(headers);
 
-            String url = UriComponentsBuilder.fromHttpUrl(baseUrl + "/roles" + roleId + "/entitlements").toUriString();
+            String url = UriComponentsBuilder.fromHttpUrl(baseUrl + "/roles/" + roleId + "/entitlements").toUriString();
 
             ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET,
                     requestEntity, String.class);
