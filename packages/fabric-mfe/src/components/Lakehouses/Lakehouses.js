@@ -643,7 +643,7 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse }) {
                       </span>
                       <div className={Styles.cdcNewTab}>
                         <a
-                          href={`${Envs.CDC_URL}/service/databaseServices/${workspace?.name}`}
+                          href={`${Envs.CDC_URL}/${workspace?.name}`}
                           target="_blank"
                           rel="noopener noreferrer"
                         >
