@@ -42,10 +42,10 @@ app:
       naas_broker: null
     resources:
       requests:
-        memory: 3022Mi
-        cpu: 10m
+        memory: 598Mi
+        cpu: 4m
       limits:
-        memory: 3022Mi
+        memory: 598Mi
   vault:
     secret:
       rootToken: null
@@ -86,10 +86,10 @@ Storage:
   size: 5G
 resources:
   requests:
-    memory: 1532Mi
+    memory: 1716Mi
     cpu: 13m
   limits:
-    memory: 1532Mi
+    memory: 1716Mi
 vaultInjector:
   enable: true
   annotations:
