@@ -40,10 +40,10 @@ ingress:
       secretName: datalake-tls-secret
 resources:
   limits:
-    memory: 100Mi
+    memory: 10Mi
   requests:
-    cpu: 10m
-    memory: 100Mi
+    cpu: 2m
+    memory: 10Mi
 vaultInjector:
   enable: true
   annotations:
