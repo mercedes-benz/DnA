@@ -787,10 +787,10 @@ scheduling:
       minAvailable:
     resources: 
       limits:
-        memory: 108Mi
+        memory: 200Mi
       requests:
-        cpu: 10m
-        memory: 108Mi
+        cpu: 4m
+        memory: 200Mi
     serviceAccount:
       create: true
       name:
