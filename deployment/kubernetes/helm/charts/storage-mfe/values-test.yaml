@@ -48,10 +48,10 @@ ingress:
       secretName: storage-tls-secret
 resources:
   requests:
-    memory: 100Mi
-    cpu: 10m
+    memory: 10Mi
+    cpu: 1m
   limits:
-    memory: 100Mi
+    memory: 10Mi
 vaultInjector:
   enable: true
   annotations:
