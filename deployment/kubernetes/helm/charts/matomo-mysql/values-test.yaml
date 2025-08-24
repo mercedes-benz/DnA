@@ -309,14 +309,14 @@ primary:
     ##    cpu: 250m
     ##    memory: 256Mi
     limits:
-      memory: 882Mi
+      memory: 1441Mi
     ## Examples:
     ## requests:
     ##    cpu: 250m
     ##    memory: 256Mi
     requests:
-      cpu: 13m
-      memory: 882Mi
+      cpu: 24m
+      memory: 1441Mi
   ## Configure extra options for liveness probe
   ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#configure-probes
   ## @param primary.livenessProbe.enabled Enable livenessProbe
