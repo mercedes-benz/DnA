@@ -31,7 +31,7 @@ app:
   resources:
     requests:
       memory: 600Mi
-      cpu: 28m
+      cpu: 5m
     limits:
       memory: 600Mi
   probes:
