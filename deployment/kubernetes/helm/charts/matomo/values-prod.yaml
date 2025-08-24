@@ -308,7 +308,7 @@ nodeSelector: {}
 resources:
   requests:
     memory: 422Mi
-    cpu: 28m
+    cpu: 26m
   limits:
     memory: 422Mi
 ## Configure Pods Security Context
