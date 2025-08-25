@@ -117,6 +117,10 @@ jobs:
           echo "version=${{ steps.new_version_java.outputs.version }}" >> $GITHUB_OUTPUT
         fi
 
+    - name: Login Registry
+      run: | 
+        echo ${{ secrets.HARBOR_DNA_REPO_SECRET }} | docker login $REGISTRY -u $REGISTRY_DNA_USER --password-stdin
+        
     - name: Build Application Containers
       working-directory: ./deployment/dockerfiles
       run: | 
@@ -127,10 +131,6 @@ jobs:
           docker tag ${{ inputs.IMAGE_NAME }}:${{ github.run_number }} ${{ inputs.IMAGE_NAME }}:${{ steps.updated.outputs.version }}
           docker tag ${{ inputs.IMAGE_NAME }}:${{ github.run_number }} ${{ inputs.IMAGE_NAME }}:latest
         fi           
-
-    - name: Login Registry
-      run: | 
-        echo ${{ secrets.HARBOR_DNA_REPO_SECRET }} | docker login $REGISTRY -u $REGISTRY_DNA_USER --password-stdin
 
     - name: Publish application containers to registry
       run: |
