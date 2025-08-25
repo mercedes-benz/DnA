@@ -97,6 +97,12 @@ public class WebConfig implements WebMvcConfigurer {
 		FilterRegistrationBean<JWTAuthenticationFilter> registrationBean = new FilterRegistrationBean<>();
 		registrationBean.setFilter(filter);
 		registrationBean.addUrlPatterns("/api/*");
+		registrationBean.setUrlPatterns(Arrays.asList(
+			"/api/*",
+			"!/api/fabric-workspaces/ada/*",          // Exclude all ADA endpoints
+			"!/api/fabric-workspaces/ada/*/*",        // Exclude nested ADA endpoints
+			"!/api/fabric-workspaces/ada/*/*/*"       // Exclude deeply nested ADA endpoints
+		));
 		return registrationBean;
 	}
 

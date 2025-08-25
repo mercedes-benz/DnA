@@ -8,11 +8,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.daimler.data.assembler.ADAProjectsAssembler;
+import com.daimler.data.assembler.FabricWorkspaceAssembler;
 import com.daimler.data.db.entities.ADAProjectsNsql;
+import com.daimler.data.db.entities.FabricWorkspaceNsql;
 import com.daimler.data.db.repo.adaProjects.ADAProjectsCustomRepository;
 import com.daimler.data.db.repo.adaProjects.ADAProjectsRepository;
+import com.daimler.data.db.repo.forecast.FabricWorkspaceRepository;
 import com.daimler.data.dto.adaProjects.ADAProjectDetailsCollectionVO;
 import com.daimler.data.dto.adaProjects.ADAProjectDetailsVO;
+import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceVO;
 import com.daimler.data.service.common.BaseCommonService;
 
 import lombok.extern.slf4j.Slf4j;
@@ -33,6 +37,12 @@ public class BaseADAProjectsService extends BaseCommonService<ADAProjectDetailsV
 
 	@Autowired
 	private ADAProjectsAssembler assembler;
+
+	@Autowired
+	private FabricWorkspaceAssembler fabricWorkspaceAssembler;
+
+	@Autowired
+	private FabricWorkspaceRepository fabricWorkspaceRepo;
 
 	public BaseADAProjectsService() {
 		super();
@@ -87,4 +97,22 @@ public class BaseADAProjectsService extends BaseCommonService<ADAProjectDetailsV
 		}
 		return message;
 	}
+
+	@Override
+	@Transactional
+	public GenericMessage createWorkspaceProjectAssociation(FabricWorkspaceVO workspace, String projectId) {
+		
+		try {
+			workspace.setProjectId(projectId);
+			FabricWorkspaceNsql entity = fabricWorkspaceAssembler.toEntity(workspace);
+			fabricWorkspaceRepo.save(entity);
+			return new GenericMessage("SUCCESS");
+		} catch (Exception e) {
+			log.error("Error creating workspace-project association", e);
+			GenericMessage message = new GenericMessage("ERROR");
+			message.setErrors(List.of(new MessageDescription("Failed to create workspace-project association with id : " + projectId +", with error : "+e.getMessage())));
+			return message;
+		}
+	}
+
 }

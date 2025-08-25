@@ -67,7 +67,7 @@ paths:
   #
   # path example ../fabric-workspaces/adaProjects
 
-  /ada/project:
+  /ada/projects:
     post:
       tags:
         - "adaProjects"
@@ -95,7 +95,6 @@ paths:
         404:
           description: "ADA Project Details not found"
 
-  /ada/projects:
     get:
       tags:
         - "adaProjects"
@@ -210,6 +209,34 @@ paths:
         404:
           description: "ADA Project not found"
 
+  /ada/workspace-project-association:
+    post:
+      tags:
+        - "adaProjects"
+      summary: "Create/update workspace-project association"
+      description: "Create or update association between workspaces and ADA Projects"
+      operationId: "createWorkspaceProjectAssociations"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "body"
+          name: "body"
+          description: "workspace-project association object"
+          required: true
+          schema:
+              $ref: "#/definitions/WorkspaceProjectAssociationVO"
+      responses:
+        201:
+          description: "Workspace-project associations created successfully"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        400:
+          description: "Invalid input"
+        404:
+          description: "Workspace or ADA Project not found"
+
 definitions:
   ADAProjectDetailsCollectionVO:
     description: "Collection of ADA Projects with pagination info"
@@ -303,3 +330,11 @@ definitions:
           $ref: "#/definitions/ADAProjectDetailsVO"
         count:
           type: "integer"
+
+  WorkspaceProjectAssociationVO:
+    type: "object"
+    properties:
+      workspaceID:
+        type: "string"
+      projectID:
+        type: "string"

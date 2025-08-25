@@ -1,5 +1,6 @@
 package com.daimler.data.controller;
 
+import javax.servlet.ServletRequest;
 import javax.validation.Valid;
 
 import org.hibernate.mapping.Array;
@@ -21,7 +22,10 @@ import com.daimler.data.db.json.ADAProjectDetails;
 import com.daimler.data.dto.adaProjects.ADAProjectDetailsVO;
 import com.daimler.data.dto.adaProjects.ADAProjectDetailsCollectionVO;
 import com.daimler.data.dto.adaProjects.CreateADAProjectResponseVO;
+import com.daimler.data.dto.adaProjects.WorkspaceProjectAssociationVO;
+import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceVO;
 import com.daimler.data.service.adaProjects.ADAProjectsService;
+import com.daimler.data.service.fabric.FabricWorkspaceService;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -36,11 +40,14 @@ import java.util.List;
 @Slf4j
 @RestController
 @Api(tags = "ADA Projects APIs")
-@RequestMapping("/api/fabric-workspaces/")
+@RequestMapping("/api/fabric-workspaces")
 public class ADAProjectsController implements AdaProjectsApi{
 
     @Autowired
     private ADAProjectsService service;
+
+    @Autowired
+    private FabricWorkspaceService fabricWorkspaceService;
 
     @Override
     @ApiOperation(value = "Create a new ADA Project", nickname = "createADAProject", notes = "This can only be done by the logged in user.", response = CreateADAProjectResponseVO.class, tags={ "adaProjects", })
@@ -48,7 +55,7 @@ public class ADAProjectsController implements AdaProjectsApi{
         @ApiResponse(code = 201, message = "ADA Project Details created", response = CreateADAProjectResponseVO.class),
         @ApiResponse(code = 400, message = "Invalid input"),
         @ApiResponse(code = 404, message = "ADA Project Details not found") })
-    @RequestMapping(value = "/ada/project",
+    @RequestMapping(value = "/ada/projects",
         produces = { "application/json" }, 
         consumes = { "application/json" },
         method = RequestMethod.POST)
@@ -117,7 +124,6 @@ public class ADAProjectsController implements AdaProjectsApi{
         consumes = { "application/json" },
         method = RequestMethod.GET)
     public ResponseEntity<ADAProjectDetailsVO> getADAProjectById(@ApiParam(value = "ID of ADA Project to return",required=true) @PathVariable("projectId") String projectId) {
-
         ADAProjectDetailsVO existingADAProject = service.getByUniqueliteral("projectID", projectId);
 		if(existingADAProject==null || !projectId.equalsIgnoreCase(existingADAProject.getId())) {
             log.warn("No ADA Project found with id {}", projectId);
@@ -196,5 +202,48 @@ public class ADAProjectsController implements AdaProjectsApi{
             return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
         }
         
+    }
+
+     @ApiOperation(value = "Create/update workspace-project association", nickname = "createWorkspaceProjectAssociations", notes = "Create or update association between workspaces and ADA Projects", response = GenericMessage.class, tags={ "adaProjects", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Workspace-project associations created successfully", response = GenericMessage.class),
+        @ApiResponse(code = 400, message = "Invalid input"),
+        @ApiResponse(code = 404, message = "Workspace or ADA Project not found") })
+    @RequestMapping(value = "/ada/workspace-project-association",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.POST)
+    public ResponseEntity<GenericMessage> createWorkspaceProjectAssociations(@ApiParam(value = "workspace-project association object" ,required=true )  @Valid @RequestBody WorkspaceProjectAssociationVO body){
+
+        GenericMessage responseMessage = new GenericMessage();
+        List<MessageDescription> warnings = new ArrayList<>();
+        List<MessageDescription> errors = new ArrayList<>();
+        FabricWorkspaceVO existingWorkspaceVO = new FabricWorkspaceVO();
+        ADAProjectDetailsVO existingADAProject = new ADAProjectDetailsVO();
+
+        existingADAProject = service.getByUniqueliteral("projectID", body.getProjectID());
+        if(existingADAProject == null) {
+            log.error("ADA Project with ID {} not found", body.getProjectID());
+            errors.add(new MessageDescription("ADA Project with ID " + body.getProjectID() + " not found"));
+            responseMessage.setErrors(errors);
+            responseMessage.setSuccess("NOT_FOUND");
+            return new ResponseEntity<>(responseMessage,HttpStatus.NOT_FOUND);
+        }
+        existingWorkspaceVO = fabricWorkspaceService.getById(body.getWorkspaceID());
+        if(existingWorkspaceVO == null || !body.getWorkspaceID().equalsIgnoreCase(existingWorkspaceVO.getId())) {
+			log.warn("No Fabric Workspace found with id {}", body.getWorkspaceID());
+            errors.add(new MessageDescription("Workspace with ID " + body.getWorkspaceID() + " not found"));
+			responseMessage.setErrors(errors);
+            responseMessage.setSuccess("NOT_FOUND");
+			return new ResponseEntity<>(responseMessage,HttpStatus.NOT_FOUND);
+		}
+
+        GenericMessage message = service.createWorkspaceProjectAssociation(existingWorkspaceVO, body.getProjectID());
+        if (message.getSuccess().equals("SUCCESS")) {
+            return new ResponseEntity<>(message, HttpStatus.CREATED);
+        } else {
+            responseMessage.setErrors(message.getErrors());
+            return new ResponseEntity<>(message, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 }
