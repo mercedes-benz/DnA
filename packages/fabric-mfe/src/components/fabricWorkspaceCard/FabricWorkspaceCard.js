@@ -6,27 +6,29 @@ import { regionalDateAndTimeConversionSolution } from '../../utilities/utils';
 import Tooltip from '../../common/modules/uilab/js/src/tooltip';
 import Spinner from '../spinner/Spinner';
 import { Envs } from '../../utilities/envs';
-import ConfirmModal from 'dna-container/ConfirmModal';
+import InfoModal from 'dna-container/InfoModal';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
+import Notification from '../../common/modules/uilab/js/src/notification';
 import { fabricApi } from '../../apis/fabric.api';
+import AddUser from 'dna-container/AddUser';
 
 const FabricWorkspaceCard = ({user, workspace, onSelectWorkspace, onEditWorkspace, onDeleteWorkspace}) => {
   const history = useHistory();
-  const [ownerId, setOwnerId] = useState(null);
-  const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [newOwnerDetails, setNewOwnerDetails] = useState(null);
+  const [showTransferOwnershipModal, setShowTransferOwnershipModal] = useState(false);
   
   useEffect(() => {
     Tooltip.defaultSetup();
   }, [workspace]);
 
-   const onAcceptTransferOwnership = () => {
+  const onTransferOwnership = () => {
     ProgressIndicator.show();
     fabricApi
-      .transferOwnership(workspace.id, ownerId)
+      .transferOwnership(workspace?.id, newOwnerDetails)
       .then(() => {
         ProgressIndicator.hide();
         Notification.show('Ownership transferred successfully.');
-        setShowConfirmModal(false);
+        setShowTransferOwnershipModal(false);
         history.push('/');
       })
       .catch(() => {
@@ -34,6 +36,60 @@ const FabricWorkspaceCard = ({user, workspace, onSelectWorkspace, onEditWorkspac
         Notification.show('Error while transferring ownership.', 'alert');
       });
   };
+
+  const getCollaborators = (collaborator) => {
+    const collaborationData = {
+      firstName: collaborator.firstName,
+      lastName: collaborator.lastName,
+      id: collaborator.shortId,
+      department: collaborator.department,
+      email: collaborator.email,
+      mobileNumber: collaborator.mobileNumber, 
+    };
+    setNewOwnerDetails(collaborationData);
+  };
+
+  const transferOwnershipModalContent = (
+    <div className={classNames('input-field-group include-error')}>
+      <label htmlFor="userId" className="input-label">
+        Please note that once you transfer ownership your access to the workspace will be removed. You can request access to the workspace through the DnA request fabric workspace access features or Alice.
+      </label>
+      <div className={Styles.collaboratorSection}>
+        <div className={Styles.collaboratorSectionList}>
+          {!newOwnerDetails ? (
+            <div className={classNames(Styles.collaboratorSectionListAdd, Styles.addUserOverlay)}>
+              <AddUser
+                getCollabarators={getCollaborators}
+                dagId={''}
+                isRequired={false}
+                isUserprivilegeSearch={false}
+              />
+            </div>
+          ) : (
+            <div className={Styles.ownerCard}>
+              <button className="modal-close-button" onClick={() => setNewOwnerDetails(null)}>
+                <i className="icon mbc-icon close thin" />
+              </button>
+              <div className={Styles.ownerInfo}>
+                <div className={Styles.flexLayout}><div>Short ID:</div><div>{newOwnerDetails.id}</div></div>
+                <div className={Styles.flexLayout}><div>First Name:</div><div>{newOwnerDetails.firstName || 'N/A'}</div></div>
+                <div className={Styles.flexLayout}><div>Last Name:</div><div>{newOwnerDetails.lastName || 'N/A'}</div></div>
+                <div className={Styles.flexLayout}><div>Department:</div><div>{newOwnerDetails.department || 'N/A'}</div></div>
+                <div className={Styles.flexLayout}><div>Email:</div><div>{newOwnerDetails.email || 'N/A'}</div></div>
+                <div className={Styles.flexLayout}><div>Mobile No:</div><div>{newOwnerDetails.mobileNumber || 'N/A'}</div></div>
+              </div>
+            </div>
+          )}
+        </div>  
+      </div>
+      {newOwnerDetails && (
+        <div className={Styles.transferButton}>
+          <button className="btn btn-tertiary" onClick={onTransferOwnership}>Transfer</button>     
+        </div>
+      )}
+    </div>
+  );
+
   const handleOpenWorkspace = () => {
     history.push(`/workspace/${workspace?.id}`);
   }
@@ -43,6 +99,7 @@ const FabricWorkspaceCard = ({user, workspace, onSelectWorkspace, onEditWorkspac
     ?.map(ent => ent.split('_').at(-1));
 
   return (
+    <>
     <div className={classNames(Styles.projectCard)}>
       <div className={Styles.cardHead}>
         <div className={classNames(Styles.cardHeadInfo)}>
@@ -86,7 +143,7 @@ const FabricWorkspaceCard = ({user, workspace, onSelectWorkspace, onEditWorkspac
              <i
                 className="icon mbc-icon comparison"
                 tooltip-data="Transfer Ownership"
-                onClick={() => setShowConfirmModal(true)}
+                onClick={() => setShowTransferOwnershipModal(true)}
                 style={{ cursor: 'pointer', marginLeft: '6px' }}
               />
             </div>
@@ -134,57 +191,23 @@ const FabricWorkspaceCard = ({user, workspace, onSelectWorkspace, onEditWorkspac
           }
         </>
       </div>
-
-      {showConfirmModal && (
-        <ConfirmModal
-          title="Confirm Transfer Ownership"
-          description={
-            <>
-              <p>Select the new owner for this workspace:</p>
-              <div className={Styles.bucketColContent}>
-                <div className={Styles.bucketColUsersList}>
-                  {workspace.members?.length > 0 ? (
-                    <>
-                      <div className={Styles.collUserTitle}>
-                        <div className={Styles.collUserTitleCol}>User ID</div>
-                        <div className={Styles.collUserTitleCol}>Name</div>
-                        <div className={Styles.collUserTitleCol}>Action</div>
-                      </div>
-                      <div className={classNames('mbc-scroll', Styles.collUserContent)}>
-                        {workspace.members
-                          ?.filter((m) => m.id !== user?.id && m.id !== workspace?.createdBy?.id)
-                          ?.map((m) => (
-                            <div key={m.id} className={Styles.collUserContentRow}>
-                              <div className={Styles.collUserTitleCol}>{m.id}</div>
-                              <div className={Styles.collUserTitleCol}>
-                                {m.firstName} {m.lastName}
-                              </div>
-                              <div className={Styles.collUserTitleCol}>
-                                <button
-                                  className="btn btn-primary"
-                                  onClick={() => setOwnerId(m.id)}
-                                >
-                                  {ownerId === m.id ? 'Selected' : 'Select'}
-                                </button>
-                              </div>
-                            </div>
-                          ))}
-                      </div>
-                    </>
-                  ) : (
-                    <div className={Styles.bucketColContentEmpty}>
-                      <h6>No collaborators available!</h6>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </>
-          }
-          onConfirm={onAcceptTransferOwnership}
-          onCancel={() => setShowConfirmModal(false)}
-        />
-      )}
     </div>
+    {showTransferOwnershipModal && (
+      <div className={Styles.confirmModal}>
+        <InfoModal
+          title={'Select user to transfer ownership'}
+          modalWidth={'60%'}
+          modalStyle={{
+            maxWidth: '80%',
+            minHeight: '70%',
+          }}
+          show={showTransferOwnershipModal}
+          content={transferOwnershipModalContent}
+          onCancel={() => setShowTransferOwnershipModal(false)}
+        />
+      </div>
+    )}
+    </>
   );
 };
 export default FabricWorkspaceCard;
