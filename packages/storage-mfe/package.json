@@ -43,7 +43,7 @@
     "webpack-server": "^0.1.2"
   },
   "scripts": {
-    "start": "env-cmd -f .env webpack serve --host 0.0.0.0",
+    "start": "env-cmd -f .env webpack serve",
     "build": "env-cmd -f .env webpack --config webpack.prod.config.js",
     "build:docker": "env-cmd -f .docker.env webpack --config webpack.prod.config.js",
     "styleguide": "styleguidist server --port=6061",
