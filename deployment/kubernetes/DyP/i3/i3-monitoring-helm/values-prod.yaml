@@ -1247,10 +1247,10 @@ prom2teams:
     pullPolicy: IfNotPresent
     resources: 
         limits:
-          memory: 100Mi
+          memory: 40Mi
         requests:
-          cpu: 10m
-          memory: 100Mi     
+          cpu: 1m
+          memory: 40Mi     
   prom2teams:
     connector: https://corpdir.webhook.office.com/webhookb2/xxx/IncomingWebhook/xxx/xxx
     connectors: {}
