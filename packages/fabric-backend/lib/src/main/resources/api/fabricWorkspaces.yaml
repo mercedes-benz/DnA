@@ -594,6 +594,8 @@ definitions:
         type: string
       leanIXDetails:
         $ref: "#/definitions/LeanIXDetailsVO"
+      userRole:
+          type: string
   
   FabricWorkspaceStatusVO:
     type: object
