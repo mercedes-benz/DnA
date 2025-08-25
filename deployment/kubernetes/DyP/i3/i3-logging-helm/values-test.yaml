@@ -372,11 +372,10 @@ opensearch:
 
   resources:
     requests:
-      cpu: "2000m"
-      memory: "2Gi"
+      cpu: 700m
+      memory: "6381Mi"
     limits:
-      cpu: "4000m"
-      memory: "4Gi"
+      memory: "6381Mi"
 
   sysctl:
     enabled: false
