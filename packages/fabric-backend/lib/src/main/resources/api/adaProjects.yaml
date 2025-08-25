@@ -228,6 +228,8 @@ definitions:
   ADAProjectDetailsVO:
     type: "object"
     properties:
+      id:
+        type: "string"
       projectID:
         type: "string"
       ADA_ID:
@@ -295,7 +297,7 @@ definitions:
   ADAProjectDetailCollectionVO:
     type: "object"
     properties:
-      data:
+      records:
         type: "array"
         items:
           $ref: "#/definitions/ADAProjectDetailsVO"

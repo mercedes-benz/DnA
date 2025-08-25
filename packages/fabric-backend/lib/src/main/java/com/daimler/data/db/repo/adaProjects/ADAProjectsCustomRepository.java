@@ -37,5 +37,6 @@ public interface ADAProjectsCustomRepository extends CommonDataRepository<ADAPro
 	// List<FabricWorkspaceNsql> getAll(String userId, int offset, int limit);
 
 	// long getTotalCount(String userId);
+	
 
 }

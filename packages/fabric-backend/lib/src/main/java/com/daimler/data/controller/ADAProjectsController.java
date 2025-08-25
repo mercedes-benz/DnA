@@ -2,6 +2,7 @@ package com.daimler.data.controller;
 
 import javax.validation.Valid;
 
+import org.hibernate.mapping.Array;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
@@ -15,21 +16,31 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.daimler.data.api.adaProjects.AdaProjectsApi;
 import com.daimler.data.controller.exceptions.GenericMessage;
+import com.daimler.data.controller.exceptions.MessageDescription;
+import com.daimler.data.db.json.ADAProjectDetails;
 import com.daimler.data.dto.adaProjects.ADAProjectDetailsVO;
 import com.daimler.data.dto.adaProjects.ADAProjectDetailsCollectionVO;
 import com.daimler.data.dto.adaProjects.CreateADAProjectResponseVO;
+import com.daimler.data.service.adaProjects.ADAProjectsService;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import lombok.extern.slf4j.Slf4j;
 
+import java.util.ArrayList;
+import java.util.List;
+
+@Slf4j
 @RestController
 @Api(tags = "ADA Projects APIs")
 @RequestMapping("/api/fabric-workspaces/")
 public class ADAProjectsController implements AdaProjectsApi{
-    
+
+    @Autowired
+    private ADAProjectsService service;
 
     @Override
     @ApiOperation(value = "Create a new ADA Project", nickname = "createADAProject", notes = "This can only be done by the logged in user.", response = CreateADAProjectResponseVO.class, tags={ "adaProjects", })
@@ -42,8 +53,32 @@ public class ADAProjectsController implements AdaProjectsApi{
         consumes = { "application/json" },
         method = RequestMethod.POST)
     public ResponseEntity<CreateADAProjectResponseVO> createADAProject(@ApiParam(value = "ADA Project object that needs to be created" ,required=true )  @Valid @RequestBody ADAProjectDetailsVO body){
-
-        return new ResponseEntity<>(new CreateADAProjectResponseVO(), HttpStatus.CREATED);
+        CreateADAProjectResponseVO response = new CreateADAProjectResponseVO();
+        GenericMessage responseMessage = new GenericMessage();
+        List<MessageDescription> warnings = new ArrayList<>();
+        List<MessageDescription> errors = new ArrayList<>();
+        ADAProjectDetailsVO existingADAProject = service.getByUniqueliteral("projectID", body.getProjectID());
+        if (existingADAProject == null) {
+            GenericMessage createMessage  = service.createNewProject(body);
+            
+            if(createMessage.getSuccess().equals("CREATED")) {
+                responseMessage.setSuccess("CREATED");
+                return new ResponseEntity<>(response, HttpStatus.CREATED);
+            } else {
+                errors.add(new MessageDescription("Failed to create project"));
+                responseMessage.setErrors(errors);
+                responseMessage.setSuccess("ERROR");
+                return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        } else{
+            log.warn("ADA Project with id {} already exists", body.getProjectID());
+            errors.add(new MessageDescription("Project with ID " + body.getProjectID() + " already exists"));
+            responseMessage.setErrors(errors);
+            responseMessage.setSuccess("CONFLICT");
+            response.setResponses(responseMessage);
+            return new ResponseEntity<>(response, HttpStatus.CONFLICT);
+        }
+        
     }
 
 
@@ -57,8 +92,18 @@ public class ADAProjectsController implements AdaProjectsApi{
         consumes = { "application/json" },
         method = RequestMethod.DELETE)
     public ResponseEntity<GenericMessage> deleteADAProject(@ApiParam(value = "ID of ADA Project to delete",required=true) @PathVariable("projectId") String projectId) {
-
-        return new ResponseEntity<>(new GenericMessage("ADA Project deleted successfully"), HttpStatus.OK);
+        GenericMessage responseMessage = new GenericMessage();
+        MessageDescription description = new MessageDescription();
+        List<MessageDescription> warnings = new ArrayList<>();
+        List<MessageDescription> errors = new ArrayList<>();
+        ADAProjectDetailsVO existingADAProject = service.getByUniqueliteral("projectID", projectId);
+        if (existingADAProject == null) {
+            log.warn("No ADA Project found with id {}", projectId);
+            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+        }
+        service.deleteById(existingADAProject.getId());
+        responseMessage.setSuccess("SUCCESS");
+        return new ResponseEntity<>(responseMessage, HttpStatus.OK);
     }
 
 
@@ -73,7 +118,12 @@ public class ADAProjectsController implements AdaProjectsApi{
         method = RequestMethod.GET)
     public ResponseEntity<ADAProjectDetailsVO> getADAProjectById(@ApiParam(value = "ID of ADA Project to return",required=true) @PathVariable("projectId") String projectId) {
 
-        return new ResponseEntity<>(new ADAProjectDetailsVO(), HttpStatus.OK);
+        ADAProjectDetailsVO existingADAProject = service.getByUniqueliteral("projectID", projectId);
+		if(existingADAProject==null || !projectId.equalsIgnoreCase(existingADAProject.getId())) {
+            log.warn("No ADA Project found with id {}", projectId);
+			return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+		}
+        return new ResponseEntity<>(existingADAProject, HttpStatus.OK);
     }
 
 
@@ -93,7 +143,19 @@ public class ADAProjectsController implements AdaProjectsApi{
         method = RequestMethod.GET)
     public ResponseEntity<ADAProjectDetailsCollectionVO> getAllADAProjects(@ApiParam(value = "Page number from which listing of ADA Projects should start. Example: 2") @Valid @RequestParam(value = "offset", required = false) Integer offset,@ApiParam(value = "Page size to limit the number of ADA Projects. Example: 15") @Valid @RequestParam(value = "limit", required = false) Integer limit) {
 
-        return new ResponseEntity<>(new ADAProjectDetailsCollectionVO(), HttpStatus.OK);
+        	ADAProjectDetailsCollectionVO collection = new ADAProjectDetailsCollectionVO();
+            int defaultLimit = 15;
+            if (offset == null || offset < 0)
+                offset = 0;
+            if (limit == null || limit < 0) {
+                limit = defaultLimit;
+            }
+            collection = service.getAllProjects(limit, offset);
+            if(!collection.getRecords().isEmpty()){
+                collection.setTotalCount(collection.getRecords().size());
+            }
+            HttpStatus responseCode = collection.getRecords()!=null && !collection.getRecords().isEmpty() ? HttpStatus.OK : HttpStatus.NO_CONTENT;
+            return new ResponseEntity<>(collection, responseCode);
     }
 
     @Override
@@ -108,6 +170,31 @@ public class ADAProjectsController implements AdaProjectsApi{
         method = RequestMethod.PUT)
     public ResponseEntity<CreateADAProjectResponseVO> updateADAProject(@ApiParam(value = "ID of ADA Project to update",required=true) @PathVariable("projectId") String projectId,@ApiParam(value = "ADA Project object with updated values" ,required=true )  @Valid @RequestBody ADAProjectDetailsVO body) {
 
-        return new ResponseEntity<>(new CreateADAProjectResponseVO(), HttpStatus.OK);
+         CreateADAProjectResponseVO response = new CreateADAProjectResponseVO();
+        GenericMessage responseMessage = new GenericMessage();
+        List<MessageDescription> warnings = new ArrayList<>();
+        List<MessageDescription> errors = new ArrayList<>();
+        ADAProjectDetailsVO existingADAProject = service.getByUniqueliteral("projectID",projectId);
+        if (existingADAProject != null) {
+            GenericMessage createMessage  = service.updateProject(existingADAProject.getId(),body);
+
+            if(createMessage.getSuccess().equals("UPDATED")) {
+                responseMessage.setSuccess("UPDATED");
+                return new ResponseEntity<>(response, HttpStatus.OK);
+            } else {
+                errors.add(new MessageDescription("Failed to update project"));
+                responseMessage.setErrors(errors);
+                responseMessage.setSuccess("ERROR");
+                return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        } else{
+            log.warn("ADA Project with id {} not exists", body.getProjectID());
+            errors.add(new MessageDescription("Project with ID " + body.getProjectID() + " not found"));
+            responseMessage.setErrors(errors);
+            responseMessage.setSuccess("NOT_FOUND");
+            response.setResponses(responseMessage);
+            return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+        }
+        
     }
 }
