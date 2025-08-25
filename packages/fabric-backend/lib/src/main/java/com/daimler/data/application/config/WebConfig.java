@@ -28,6 +28,7 @@
 package com.daimler.data.application.config;
 
 import java.util.Arrays;
+import java.util.List;
 
 import org.springframework.aop.framework.ProxyFactoryBean;
 import org.springframework.aop.target.ThreadLocalTargetSource;
@@ -97,12 +98,6 @@ public class WebConfig implements WebMvcConfigurer {
 		FilterRegistrationBean<JWTAuthenticationFilter> registrationBean = new FilterRegistrationBean<>();
 		registrationBean.setFilter(filter);
 		registrationBean.addUrlPatterns("/api/*");
-		registrationBean.setUrlPatterns(Arrays.asList(
-			"/api/*",
-			"!/api/fabric-workspaces/ada/*",          // Exclude all ADA endpoints
-			"!/api/fabric-workspaces/ada/*/*",        // Exclude nested ADA endpoints
-			"!/api/fabric-workspaces/ada/*/*/*"       // Exclude deeply nested ADA endpoints
-		));
 		return registrationBean;
 	}
 
