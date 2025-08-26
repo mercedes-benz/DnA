@@ -259,7 +259,7 @@ definitions:
         type: "string"
       projectID:
         type: "string"
-      ADA_ID:
+      adaID:
         type: "string"
       projectName:
         type: "string"
@@ -289,7 +289,7 @@ definitions:
         items:
           type: "object"
           properties:
-            Position:
+            position:
               type: "string"
             userID:
               type: "string"

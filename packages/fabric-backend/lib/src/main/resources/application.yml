@@ -94,9 +94,9 @@ authoriser:
   role.fabricRoleName: ${IDENTITY_FABRIC_OPERATIONS_ROLENAME:XXXX}
   appIdPrefix: ${IDENTITY_APPID_PREFIX:XXXX}
 
-JwtAuthFilterExclusion:
-  urlPatterns:
-    - /api/fabric-workspaces/ada/**
+jwtAuthenticationFilter:
+  exclusion:
+    urlPatterns: ${AUTH_FILTER_EXCLUSION_PATTERNS:/api/fabric-workspaces/ada/**}
 
 server:
   port: 9292

@@ -67,8 +67,8 @@ public class JWTAuthenticationFilter implements Filter {
 	
 	private UserStore userStore;
 
-	@Value("${JwtAuthFilterExclusion.urlPatterns}")
-	private List<String> urlPatterns;
+	@Value("${jwtAuthenticationFilter.exclusion.urlPatterns}")
+		private List<String> urlPatterns;
 
 	@Override
 	public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain)

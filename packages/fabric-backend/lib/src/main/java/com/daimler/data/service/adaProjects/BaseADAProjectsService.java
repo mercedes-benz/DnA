@@ -2,7 +2,7 @@ package com.daimler.data.service.adaProjects;
 
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
-import org.glassfish.jaxb.core.annotation.OverrideAnnotationOf;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -51,7 +51,9 @@ public class BaseADAProjectsService extends BaseCommonService<ADAProjectDetailsV
 	@Override
 	public ADAProjectDetailsCollectionVO getAllProjects(int limit, int offset) {
 		ADAProjectDetailsCollectionVO collection = new ADAProjectDetailsCollectionVO();
-
+		GenericMessage message = new GenericMessage();
+		List<MessageDescription> errors = null;
+		List<MessageDescription> warnings = null;
 		try {
 
 			List<ADAProjectsNsql> adaProjects = customRepo.findAll(limit, offset);
@@ -61,7 +63,19 @@ public class BaseADAProjectsService extends BaseCommonService<ADAProjectDetailsV
 			collection.setRecords(projects);
 		} catch (Exception e) {
 			log.error("Error fetching ADA Projects", e);
+			errors = List.of(new MessageDescription("Failed to fetch projects with error : " + e.getMessage()));
+			message.setErrors(errors);
+			message.setSuccess("ERROR");
+			collection.responses(message);
 		}
+		message.setSuccess("SUCCESS");
+		if (errors != null) {
+			message.setErrors(errors);
+		}
+		if (warnings != null) {
+			message.setWarnings(warnings);
+		}
+		collection.responses(message);
 		return collection;
 	}
 

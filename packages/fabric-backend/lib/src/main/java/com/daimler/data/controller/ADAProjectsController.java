@@ -70,11 +70,14 @@ public class ADAProjectsController implements AdaProjectsApi{
             
             if(createMessage.getSuccess().equals("CREATED")) {
                 responseMessage.setSuccess("CREATED");
+                response.setResponses(responseMessage);
+                response.setData(body);
                 return new ResponseEntity<>(response, HttpStatus.CREATED);
             } else {
                 errors.add(new MessageDescription("Failed to create project"));
                 responseMessage.setErrors(errors);
                 responseMessage.setSuccess("ERROR");
+                response.setResponses(responseMessage);
                 return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
             }
         } else{
@@ -125,7 +128,8 @@ public class ADAProjectsController implements AdaProjectsApi{
         method = RequestMethod.GET)
     public ResponseEntity<ADAProjectDetailsVO> getADAProjectById(@ApiParam(value = "ID of ADA Project to return",required=true) @PathVariable("projectId") String projectId) {
         ADAProjectDetailsVO existingADAProject = service.getByUniqueliteral("projectID", projectId);
-		if(existingADAProject==null || !projectId.equalsIgnoreCase(existingADAProject.getId())) {
+
+		if(existingADAProject == null) {
             log.warn("No ADA Project found with id {}", projectId);
 			return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
 		}
@@ -186,11 +190,14 @@ public class ADAProjectsController implements AdaProjectsApi{
 
             if(createMessage.getSuccess().equals("UPDATED")) {
                 responseMessage.setSuccess("UPDATED");
+                response.setResponses(responseMessage);
+                response.setData(body);
                 return new ResponseEntity<>(response, HttpStatus.OK);
             } else {
                 errors.add(new MessageDescription("Failed to update project"));
                 responseMessage.setErrors(errors);
                 responseMessage.setSuccess("ERROR");
+                response.setResponses(responseMessage);
                 return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
             }
         } else{

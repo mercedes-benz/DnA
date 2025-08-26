@@ -11,10 +11,7 @@ import com.daimler.data.dto.adaProjects.ADAProjectDetailsVOService;
 import com.daimler.data.dto.adaProjects.ADAProjectDetailsVOStakeholders;
 import com.daimler.data.dto.adaProjects.ADAProjectDetailsVOTags;
 
-import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Date;
-import java.util.List;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
@@ -32,12 +29,12 @@ public class ADAProjectsAssembler implements GenericAssembler<ADAProjectDetailsV
             ADAProjectDetails details = new ADAProjectDetails();
 
             BeanUtils.copyProperties(vo, details);
-
+            details.setActive(vo.isActive());
+            
             // Handle Service object
             if (Objects.nonNull(vo.getService())) {
-                ADAProjectDetails.Service service = details.new Service();
-                service.setServiceName(vo.getService().getServiceName());
-                service.setServiceQuantity(vo.getService().getServiceQuantity());
+                ADAProjectDetails.Service service = new ADAProjectDetails.Service();
+                BeanUtils.copyProperties(vo.getService(), service);
                 details.setService(service);
             }
             
@@ -46,9 +43,8 @@ public class ADAProjectsAssembler implements GenericAssembler<ADAProjectDetailsV
                 details.setStakeholders(vo.getStakeholders().stream()
                     .filter(Objects::nonNull)
                     .map(stakeholderVO -> {
-                        ADAProjectDetails.Stakeholder stakeholder = details.new Stakeholder();
-                        stakeholder.setPosition(stakeholderVO.getPosition());
-                        stakeholder.setUserID(stakeholderVO.getUserID());
+                        ADAProjectDetails.Stakeholder stakeholder = new ADAProjectDetails.Stakeholder();
+                        BeanUtils.copyProperties(stakeholderVO, stakeholder);
                         return stakeholder;
                     })
                     .collect(Collectors.toList()));
@@ -59,9 +55,8 @@ public class ADAProjectsAssembler implements GenericAssembler<ADAProjectDetailsV
                 details.setTags(vo.getTags().stream()
                     .filter(Objects::nonNull)
                     .map(tagVO -> {
-                        ADAProjectDetails.Tag tag = details.new Tag();
-                        tag.setDescription(tagVO.getDescription());
-                        tag.setValue(tagVO.getValue());
+                        ADAProjectDetails.Tag tag = new ADAProjectDetails.Tag();
+                        BeanUtils.copyProperties(tagVO, tag);
                         return tag;
                     })
                     .collect(Collectors.toList()));
@@ -79,13 +74,15 @@ public class ADAProjectsAssembler implements GenericAssembler<ADAProjectDetailsV
             vo = new ADAProjectDetailsVO();
             ADAProjectDetails details = entity.getData();
 
+            vo.setId(entity.getId());
             BeanUtils.copyProperties(details, vo);
+          //  vo.setADAID(details.getAdaID());
+            vo.setActive(details.isActive());
 
             // Handle Service object
             if (Objects.nonNull(details.getService())) {
                 ADAProjectDetailsVOService serviceVO = new ADAProjectDetailsVOService();
-                serviceVO.setServiceName(details.getService().getServiceName());
-                serviceVO.setServiceQuantity(details.getService().getServiceQuantity());
+                BeanUtils.copyProperties(details.getService(), serviceVO);
                 vo.setService(serviceVO);
             }
             
@@ -95,8 +92,7 @@ public class ADAProjectsAssembler implements GenericAssembler<ADAProjectDetailsV
                     .filter(Objects::nonNull)
                     .map(stakeholder -> {
                         ADAProjectDetailsVOStakeholders stakeholderVO = new ADAProjectDetailsVOStakeholders();
-                        stakeholderVO.setPosition(stakeholder.getPosition());
-                        stakeholderVO.setUserID(stakeholder.getUserID());
+                        BeanUtils.copyProperties(stakeholder, stakeholderVO);
                         return stakeholderVO;
                     })
                     .collect(Collectors.toList()));
@@ -110,8 +106,7 @@ public class ADAProjectsAssembler implements GenericAssembler<ADAProjectDetailsV
                     .filter(Objects::nonNull)
                     .map(tag -> {
                         ADAProjectDetailsVOTags tagVO = new ADAProjectDetailsVOTags();
-                        tagVO.setDescription(tag.getDescription());
-                        tagVO.setValue(tag.getValue());
+                        BeanUtils.copyProperties(tag, tagVO);
                         return tagVO;
                     })
                     .collect(Collectors.toList()));

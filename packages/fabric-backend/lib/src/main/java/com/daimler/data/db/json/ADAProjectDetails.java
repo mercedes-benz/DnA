@@ -1,19 +1,16 @@
 package com.daimler.data.db.json;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.daimler.data.dto.fabricWorkspace.CreatedByVO;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
-import lombok.NoArgsConstructor;
 
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class ADAProjectDetails implements Serializable {
@@ -21,7 +18,6 @@ public class ADAProjectDetails implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private String projectID;
-    @JsonProperty("ADA_id")
     private String adaID;
     private String projectName;
     private String leanIX;
@@ -38,20 +34,31 @@ public class ADAProjectDetails implements Serializable {
     private boolean active;
     private Date inactiveDate;
 
+    public ADAProjectDetails() {
+        this.stakeholders = new ArrayList<>();
+        this.tags = new ArrayList<>();
+    }
+
     @Data
-    public class Service {
+    public static class Service implements Serializable {
+
+        private static final long serialVersionUID = 1L;
         private String serviceName;
         private int serviceQuantity;
     }
 
     @Data
-    public class Stakeholder {
+    public static class Stakeholder implements Serializable {
+
+        private static final long serialVersionUID = 1L;
         private String position;
         private String userID;
     }
 
     @Data
-    public class Tag {
+    public static class Tag implements Serializable {
+
+        private static final long serialVersionUID = 1L;
         private String description;
         private String value;
     }
