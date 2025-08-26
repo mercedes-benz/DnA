@@ -2002,12 +2002,25 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		GenericMessage responses = new GenericMessage();
 		List<MessageDescription> errors = new ArrayList<>();
 		List<MessageDescription> warnings = new ArrayList<>();
+		GenericMessage addUserResponse = fabricWorkspaceClient.addUser(existingFabricWorkspace.getId(),
+				newOwner.getEmail());
+		if (addUserResponse == null || !"SUCCESS".equalsIgnoreCase(addUserResponse.getSuccess())) {
+			log.error("Failed to add user {} to workspace {}", newOwner.getEmail(), existingFabricWorkspace.getId());
+			MessageDescription message = new MessageDescription();
+			message.setMessage("Failed to add user to created workspace " + existingFabricWorkspace.getName()
+					+ " with id" + existingFabricWorkspace.getId() + ". Please contact Admin.");
+			errors.add(message);
+			responses.setErrors(errors);
+			responses.setSuccess("FAILED");
+			return responses;
+		} else {
+			log.info("Successfully added  user {} to workspace {} ", newOwner.getEmail(),
+					existingFabricWorkspace.getId());
+		}
 		List<RoleDetailsVO> roles = existingFabricWorkspace.getStatus().getRoles();
 		List<RoleDetailsVO> updatedRoles = new ArrayList<>();
 		if (roles != null) {
     		for (RoleDetailsVO role : roles) {
-				RoleDetailsVO updatedRole = new RoleDetailsVO();
-				BeanUtils.copyProperties(updatedRole, role);
 				HttpStatus removeRoleOwnerPrivileges = identityClient.RemoveRoleOwnerPrivilegesToCreator(currentOwner.getId(), role.getId());
 				if(removeRoleOwnerPrivileges.is2xxSuccessful()) {
 					log.info("Role owner Privilage removed for user {} for role {}",currentOwner.getId(),role.getId());
@@ -2016,7 +2029,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 				}
 				HttpStatus assignRoleOwnerPrivileges = identityClient.AssignRoleOwnerPrivilegesToCreator(newOwner.getId(), role.getId());
 				if(assignRoleOwnerPrivileges.is2xxSuccessful()) {
-					updatedRole.setRoleOwner(newOwner.getId());
+					role.setRoleOwner(newOwner.getId());
 					log.info("Role owner Privilage assigned for user {} for role {}",newOwner.getId(),role.getId());
 				}else{
 					warnings.add(new MessageDescription("Failed to assign role owner privilage role for user, please contact admin."));
@@ -2036,7 +2049,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 				if(globalRoleAssignerPrivilegesStatus.is2xxSuccessful()) {
 					// HttpStatus globalRoleAssignerPrivilegesStatusforTechUser = identityClient.AssignGlobalRoleAssignerPrivilegesToCreator(fabricTechUserId, role.getId());
 					// if(globalRoleAssignerPrivilegesStatusforTechUser.is2xxSuccessful()) {
-					updatedRole.setGlobalRoleAssigner(newOwner.getId());
+					role.setGlobalRoleAssigner(newOwner.getId());
 					log.info("Global role assigner privilege assigned for user{} for role {}",newOwner.getId(),role.getId());
 					// }else{
 					// 	warnings.add(new MessageDescription("Failed to assign global role assigner privilage role for tech user, please contact admin."));
@@ -2052,13 +2065,13 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 				}
 				HttpStatus roleApproverPrivilegesStatus = identityClient.AssignRoleApproverPrivilegesToCreator(newOwner.getId(), role.getId());
 				if(roleApproverPrivilegesStatus.is2xxSuccessful()) {
-					updatedRole.setRoleApprover(newOwner.getId());
+					role.setRoleApprover(newOwner.getId());
 					log.info("Role approver privilege assigned for user {} for role {}",newOwner.getId(),role.getId());
 
 				}else{
 					warnings.add(new MessageDescription("Failed to assign role approver privilage role for user, please contact admin."));
 				}
-				updatedRoles.add(updatedRole);
+				updatedRoles.add(role);
 			}
 		}
 		existingFabricWorkspace.getStatus().setRoles(updatedRoles);
