@@ -523,6 +523,109 @@ public class AuthoriserClient {
 		return HttpStatus.INTERNAL_SERVER_ERROR;
 	}
 
+	public HttpStatus RemoveRoleOwnerPrivilegesToCreator(String userId,String roleId){
+		try {
+			RoleOwnerPrivilegesDto roleOwnerPrivileges = new RoleOwnerPrivilegesDto();
+			RoleIdDto roleIdDto = new RoleIdDto();
+			roleIdDto.setRoleId(roleId);
+			List<RoleIdDto> roleIdDtoList = new ArrayList<>();
+			roleIdDtoList.add(roleIdDto);
+			roleOwnerPrivileges.setRoleOwnerPrivileges(roleIdDtoList);
+			
+			String token = getToken();
+			if(!Objects.nonNull(token)) {
+				log.error("Failed to fetch token to invoke fabric Apis");
+				return HttpStatus.INTERNAL_SERVER_ERROR;
+			}
+
+			String uri = authoriserBaseUrl+"/users/"+userId+"/privileges/roleowner";
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Authorization", "Bearer "+token);
+			headers.setContentType(MediaType.APPLICATION_JSON);
+			HttpEntity requestEntity = new HttpEntity<>(roleOwnerPrivileges,headers);
+			ResponseEntity<String> response = proxyRestTemplate.exchange(uri, HttpMethod.DELETE,
+			requestEntity, String.class);
+			if (response != null && response.getStatusCode() != null) {
+				if(response.getStatusCode().is2xxSuccessful()){
+					log.info("Role Owner Privilege Removed for User {} Successfully",userId);
+				}
+				return response.getStatusCode();
+			}
+		}catch(Exception e) {
+			log.error("Failed to Remove Role Owner Privilege to user :{} with error {} ",userId ,e.getMessage());
+		}
+		return HttpStatus.INTERNAL_SERVER_ERROR;
+	}
+	public HttpStatus RemoveGlobalRoleAssignerPrivilegesToCreator(String userId,String roleId){
+		try {
+			GlobalRoleAssignerPrivilegesDto roleAssignerPrivileges = new GlobalRoleAssignerPrivilegesDto();
+			RoleIdDto roleIdDto = new RoleIdDto();
+			roleIdDto.setRoleId(roleId);
+			List<RoleIdDto> roleIdDtoList = new ArrayList<>();
+			roleIdDtoList.add(roleIdDto);
+			roleAssignerPrivileges.setGlobalRoleAssignerPrivileges(roleIdDtoList);
+			
+			String token = getToken();
+			if(!Objects.nonNull(token)) {
+				log.error("Failed to fetch token to invoke fabric Apis");
+				return HttpStatus.INTERNAL_SERVER_ERROR;
+			}
+
+			String uri = authoriserBaseUrl+"/users/"+userId+"/privileges/globalroleassigner";
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Authorization", "Bearer "+token);
+			headers.setContentType(MediaType.APPLICATION_JSON);
+			HttpEntity requestEntity = new HttpEntity<>(roleAssignerPrivileges,headers);
+			ResponseEntity<String> response = proxyRestTemplate.exchange(uri, HttpMethod.DELETE,
+			requestEntity, String.class);
+			if (response != null && response.getStatusCode() != null) {
+				if(response.getStatusCode().is2xxSuccessful()){
+					log.info("Global Role Assigner Privilege Removed for User {} Successfully",userId);
+				}
+				return response.getStatusCode();
+			}
+		}catch(Exception e) {
+			log.error("Failed to Remove Global Role Assigner Privilege to user :{} with error {} ",userId ,e.getMessage());
+		}
+		return HttpStatus.INTERNAL_SERVER_ERROR;
+	}
+	public HttpStatus RemoveRoleApproverPrivilegesToCreator(String userId, String roleId){
+		try {
+			
+			RoleApproverPrivilegesDto roleApproverPrivileges = new RoleApproverPrivilegesDto();
+			RoleIdDto roleIdDto = new RoleIdDto();
+			roleIdDto.setRoleId(roleId);
+			List<RoleIdDto> roleIdDtoList = new ArrayList<>();
+			roleIdDtoList.add(roleIdDto);
+			roleApproverPrivileges.setRoleApproverPrivileges(roleIdDtoList);
+			
+			String token = getToken();
+			if(!Objects.nonNull(token)) {
+				log.error("Failed to fetch token to invoke fabric Apis");
+				return HttpStatus.INTERNAL_SERVER_ERROR;
+			}
+
+			String uri = authoriserBaseUrl+"/users/"+userId+"/privileges/roleapprover";
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Authorization", "Bearer "+token);
+			headers.setContentType(MediaType.APPLICATION_JSON);
+			HttpEntity requestEntity = new HttpEntity<>(roleApproverPrivileges,headers);
+			ResponseEntity<String> response = proxyRestTemplate.exchange(uri, HttpMethod.DELETE,
+			requestEntity, String.class);
+			if (response != null && response.getStatusCode() != null) {
+				if(response.getStatusCode().is2xxSuccessful()){
+					log.info("Role Approver Privilage Removed to User {} Successfully",userId);
+				}
+				return response.getStatusCode();
+			}
+		}catch(Exception e) {
+			log.error("Failed to Remove Role Approver Privileges to user :{} with error {} ",userId ,e.getMessage());
+		}
+		return HttpStatus.INTERNAL_SERVER_ERROR;
+	}
 
 	public HttpStatus RequestRoleForUser(UserRoleRequestDto requestDto,String userId, String roleId){
 		try {
@@ -552,7 +655,7 @@ public class AuthoriserClient {
 		}
 		return HttpStatus.INTERNAL_SERVER_ERROR;
 	}
-
+	
 	public List<DnaRolesVO> getAllUserManagableRoles(String id, String authToken){
 
 		List<DnaRolesVO> roles = new ArrayList<>();
@@ -708,5 +811,45 @@ public class AuthoriserClient {
 		}
 		return response;
 	}
+
+	public List<String> getAllUserEntitlements(String userId) {
+        List<String> response = new ArrayList<>();
+        String uri = authoriserBaseUrl + "/users/" + userId + "/entitlements";
+       
+        try {
+			String token = getToken();
+			if(!Objects.nonNull(token)) {
+				log.error("Failed to fetch token to invoke fabric Apis");
+				return response;
+			}
+
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Authorization", "Bearer "+token);
+			headers.setContentType(MediaType.APPLICATION_JSON);
+			HttpEntity requestEntity = new HttpEntity<>(headers);
+            ResponseEntity<String> apiResponse = proxyRestTemplate.exchange(uri, HttpMethod.GET,
+					requestEntity, String.class);
+
+           if (apiResponse.getStatusCode().is2xxSuccessful()) {
+				ObjectMapper objectMapper = new ObjectMapper();
+				objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+				JsonNode jsonData = objectMapper.readTree(apiResponse.getBody());
+                JsonNode entitlements = jsonData.get("entitlements");
+				if (entitlements.isArray()) {
+					for (JsonNode entitlementNode : entitlements) {
+						String appId = entitlementNode.get("applicationId").asText();
+						String entitlementId = entitlementNode.get("entitlementId").asText();
+						response.add(appId+"."+entitlementId);
+					}
+				}
+			}
+            return response;
+        } catch (Exception e) {
+            log.error("Error fetching user entitlements for userId {}: {}", userId, e.getMessage());
+            return response;
+        }
+        
+    }
 }
 

@@ -21,6 +21,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.application.client.AuthoriserClient;
 import com.daimler.data.application.client.FabricWorkspaceClient;
 import com.daimler.data.application.client.RSAEncryptionUtil;
@@ -90,6 +91,7 @@ import com.daimler.data.dto.fabricWorkspace.ShortcutCreateRequestVO;
 import com.daimler.data.dto.fabricWorkspace.ShortcutVO;
 import com.daimler.data.service.common.BaseCommonService;
 import com.daimler.data.util.ConstantsUtility;
+import com.daimler.data.util.FabricWorkspaceUtility;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.daimler.data.service.tag.TagService;
 
@@ -126,7 +128,13 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 
 	@Autowired
 	private AuthoriserRolesRepository rolesJpaRepo;
-		
+	
+	@Autowired
+	private FabricWorkspaceUtility utility;
+
+	@Autowired
+	private UserStore userStore;
+
 	@Value("${fabricWorkspaces.capacityId}")
 	private String capacityId;
 	
@@ -260,6 +268,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		List<FabricWorkspaceVO> vos = new ArrayList<>();
 		List<FabricWorkspaceNsql> allEntities = customRepo.findAll(0,0);
 		List<FabricWorkspaceNsql> filteredEntities = new ArrayList<>();
+		CreatedByVO requestedUser = userStore.getVO();
 		if(allEntities!=null && !allEntities.isEmpty()) {
 			if(user!=null && !"".equalsIgnoreCase(user.trim())){
 				for(FabricWorkspaceNsql existingEntity : allEntities) {
@@ -310,7 +319,15 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 //					FabricWorkspaceVO updatedVO = assembler.toVo(entity);
 //					vos.add(updatedVO);
 //				}
+				String userRole = "";
+				if(! requestedUser.getId().equalsIgnoreCase(entity.getData().getCreatedBy().getId())){
+					List<String> filteredEntitlements = allEntitlementsList.stream().filter(n-> n.startsWith(applicationId + "." + subgroupPrefix ) && n.contains(entity.getId())).collect(Collectors.toList());
+					userRole = utility.getUserRole(filteredEntitlements);
+				}else{
+					userRole = ConstantsUtility.PERMISSION_OWNER;
+				}
 				FabricWorkspaceVO updatedVO = assembler.toVo(entity);
+				updatedVO.setUserRole(userRole);
 				vos.add(updatedVO);
 			}
 		}
@@ -471,7 +488,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 						log.error("Failed to save record to db after processing usermanagement successfully for a new fabric record with data {}", mapper.writeValueAsString(data));
 					}
 					log.info("created workspace project {} with id {} saved to database successfully", vo.getName(), createResponse.getId());
-					fabricWorkspaceClient.provisionWorkspace(createResponse.getId());
+					//fabricWorkspaceClient.provisionWorkspace(createResponse.getId());
 					
 					try {
 						String ownerId = vo.getCreatedBy().getId();
@@ -1977,5 +1994,87 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 			
 		}
 	}
+
+	@Override
+	@Transactional
+	public 	GenericMessage transferOwnership(FabricWorkspaceVO existingFabricWorkspace, CreatedByVO currentOwner, CreatedByVO newOwner){
+		existingFabricWorkspace.setCreatedBy(newOwner);
+		GenericMessage responses = new GenericMessage();
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+		List<RoleDetailsVO> roles = existingFabricWorkspace.getStatus().getRoles();
+		List<RoleDetailsVO> updatedRoles = new ArrayList<>();
+		if (roles != null) {
+    		for (RoleDetailsVO role : roles) {
+				RoleDetailsVO updatedRole = new RoleDetailsVO();
+				BeanUtils.copyProperties(updatedRole, role);
+				HttpStatus removeRoleOwnerPrivileges = identityClient.RemoveRoleOwnerPrivilegesToCreator(currentOwner.getId(), role.getId());
+				if(removeRoleOwnerPrivileges.is2xxSuccessful()) {
+					log.info("Role owner Privilage removed for user {} for role {}",currentOwner.getId(),role.getId());
+				}else{
+					warnings.add(new MessageDescription("Failed to remove role owner privilage role for user, please contact admin."));
+				}
+				HttpStatus assignRoleOwnerPrivileges = identityClient.AssignRoleOwnerPrivilegesToCreator(newOwner.getId(), role.getId());
+				if(assignRoleOwnerPrivileges.is2xxSuccessful()) {
+					updatedRole.setRoleOwner(newOwner.getId());
+					log.info("Role owner Privilage assigned for user {} for role {}",newOwner.getId(),role.getId());
+				}else{
+					warnings.add(new MessageDescription("Failed to assign role owner privilage role for user, please contact admin."));
+				}
+				HttpStatus removeGlobalRoleAssignerPrivilegesStatus = identityClient.RemoveGlobalRoleAssignerPrivilegesToCreator(currentOwner.getId(), role.getId());
+				if(removeGlobalRoleAssignerPrivilegesStatus.is2xxSuccessful()) {
+					// HttpStatus globalRoleAssignerPrivilegesStatusforTechUser = identityClient.AssignGlobalRoleAssignerPrivilegesToCreator(fabricTechUserId, role.getId());
+					// if(globalRoleAssignerPrivilegesStatusforTechUser.is2xxSuccessful()) {
+						log.info("Global role assigner privilege removed for user{} for role {}",currentOwner.getId(),role.getId());
+					// }else{
+					// 	warnings.add(new MessageDescription("Failed to assign global role assigner privilage role for tech user, please contact admin."));
+					// }
+				}else{
+					warnings.add(new MessageDescription("Failed to assign global role assigner privilage role for user, please contact admin."));
+				}
+				HttpStatus globalRoleAssignerPrivilegesStatus = identityClient.AssignGlobalRoleAssignerPrivilegesToCreator(newOwner.getId(), role.getId());
+				if(globalRoleAssignerPrivilegesStatus.is2xxSuccessful()) {
+					// HttpStatus globalRoleAssignerPrivilegesStatusforTechUser = identityClient.AssignGlobalRoleAssignerPrivilegesToCreator(fabricTechUserId, role.getId());
+					// if(globalRoleAssignerPrivilegesStatusforTechUser.is2xxSuccessful()) {
+					updatedRole.setGlobalRoleAssigner(newOwner.getId());
+					log.info("Global role assigner privilege assigned for user{} for role {}",newOwner.getId(),role.getId());
+					// }else{
+					// 	warnings.add(new MessageDescription("Failed to assign global role assigner privilage role for tech user, please contact admin."));
+					// }
+				}else{
+					warnings.add(new MessageDescription("Failed to assign global role assigner privilage role for user, please contact admin."));
+				}
+				HttpStatus removeRoleApproverPrivilegesStatus = identityClient.RemoveRoleApproverPrivilegesToCreator(currentOwner.getId(), role.getId());
+				if(removeRoleApproverPrivilegesStatus.is2xxSuccessful()) {
+					log.info("Role approver privilege removed for user {} for role {}",currentOwner.getId(),role.getId());
+				}else{
+					warnings.add(new MessageDescription("Failed to assign role approver privilage role for user, please contact admin."));
+				}
+				HttpStatus roleApproverPrivilegesStatus = identityClient.AssignRoleApproverPrivilegesToCreator(newOwner.getId(), role.getId());
+				if(roleApproverPrivilegesStatus.is2xxSuccessful()) {
+					updatedRole.setRoleApprover(newOwner.getId());
+					log.info("Role approver privilege assigned for user {} for role {}",newOwner.getId(),role.getId());
+
+				}else{
+					warnings.add(new MessageDescription("Failed to assign role approver privilage role for user, please contact admin."));
+				}
+				updatedRoles.add(updatedRole);
+			}
+		}
+		existingFabricWorkspace.getStatus().setRoles(updatedRoles);
+		try {
+			FabricWorkspaceVO updatedRecord = updateFabricProject(existingFabricWorkspace);
+			log.info("Fabric workspace {} {}  updated successfully", existingFabricWorkspace.getId(),
+					existingFabricWorkspace.getName());
+		} catch (Exception e) {
+			log.error("Failed to update Fabric workspace {} {} with exception {} ", existingFabricWorkspace.getId(),
+					existingFabricWorkspace.getName(), e.getMessage());
+		}
+		responses.setSuccess("SUCCESS");
+		responses.setErrors(new ArrayList<>());
+		responses.setWarnings(new ArrayList<>());
+		return responses;
+	}
+
 
 }

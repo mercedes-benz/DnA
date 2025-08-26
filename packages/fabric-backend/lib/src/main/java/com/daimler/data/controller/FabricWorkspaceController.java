@@ -50,7 +50,8 @@ import com.daimler.data.dto.fabricWorkspace.EntraGroupResponseVO;
 import com.daimler.data.dto.fabricWorkspace.ShortcutCreateRequestVO;
 import com.daimler.data.dto.fabricWorkspace.ShortcutVO;
 import com.daimler.data.service.fabric.FabricWorkspaceService;
-
+import com.daimler.data.util.ConstantsUtility;
+import com.daimler.data.util.FabricWorkspaceUtility;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
@@ -75,7 +76,9 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 
 	@Autowired
 	private FabricWorkspaceClient fabricWorkspaceClient;
-	
+
+	@Autowired FabricWorkspaceUtility utility;
+
 	@Value("${fabricWorkspaces.subgroupPrefix}")
 	private String subgroupPrefix;
 	
@@ -427,7 +430,7 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 		}
 		CreatedByVO requestUser = this.userStore.getVO();
 		String creatorId = existingFabricWorkspace.getCreatedBy().getId();
-		if(!requestUser.getId().equalsIgnoreCase(creatorId) && ! userStore.getUserInfo().hasProjectAdminAccess(id)) {
+		if(!requestUser.getId().equalsIgnoreCase(creatorId) && ! utility.hasProjectAdminAccess(requestUser.getId(),id)) {
 				log.warn("Fabric workspace {} {} doesnt belong to User or user not admin {} , Not authorized to use others project",id,existingFabricWorkspace.getName(),requestUser.getId()	);
 				return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
 		}else {
@@ -474,7 +477,7 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 		}
 		CreatedByVO requestUser = this.userStore.getVO();
 		String creatorId = existingFabricWorkspace.getCreatedBy().getId();
-		if(!requestUser.getId().equalsIgnoreCase(creatorId) && ! userStore.getUserInfo().hasProjectAdminAccess(id)) {
+		if(!requestUser.getId().equalsIgnoreCase(creatorId) && ! utility.hasProjectAdminAccess(requestUser.getId(),id)) {
 				log.warn("Fabric workspace {} {} doesnt belong to User or user not admin {} , Not authorized to use others project",id,existingFabricWorkspace.getName(),requestUser.getId()	);
 				return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
 		}else {
@@ -581,7 +584,7 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 			
 		CreatedByVO requestUser = this.userStore.getVO();
 		UserInfo currentUserInfo = this.userStore.getUserInfo();
-		allEntitlementsList =  currentUserInfo.getEntitlement_group();
+		allEntitlementsList =  identityClient.getAllUserEntitlements(currentUserInfo.getId());
 		user = requestUser.getId();
 		collection = service.getAll(limit, offset, user, allEntitlementsList, isTechnicalUser(user));
 		HttpStatus responseCode = collection.getRecords()!=null && !collection.getRecords().isEmpty() ? HttpStatus.OK : HttpStatus.NO_CONTENT;
@@ -611,7 +614,7 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 		}
 		CreatedByVO requestUser = this.userStore.getVO();
 		UserInfo currentUserInfo = this.userStore.getUserInfo();
-		List<String> allEntitlementsList = currentUserInfo.getEntitlement_group();
+		List<String> allEntitlementsList = identityClient.getAllUserEntitlements(currentUserInfo.getId());
 		List<String> filteredEntitlements = new ArrayList<>();
 		if(allEntitlementsList!=null && !allEntitlementsList.isEmpty()) {
 			filteredEntitlements = allEntitlementsList.stream().filter(n-> n.contains( applicationId + "." + subgroupPrefix ) && n.contains(id)).collect(Collectors.toList());
@@ -621,6 +624,14 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 				log.warn("Fabric workspace {} {} does not belong to User {} , Not authorized to use others project",id,existingFabricWorkspace.getName(),requestUser.getId()	);
 				return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
 		}else {
+				String userRole = "";
+				if(!requestUser.getId().equalsIgnoreCase(creatorId)){
+					
+					userRole = utility.getUserRole(filteredEntitlements);
+				}else{
+					userRole = ConstantsUtility.PERMISSION_OWNER;
+				}
+				existingFabricWorkspace.setUserRole(userRole);
 				return new ResponseEntity<>(existingFabricWorkspace, HttpStatus.OK);
 		}
     }
@@ -844,72 +855,52 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 	}
 
     @Override
-	@ApiOperation(value = "Transfer ownership of a workspace", nickname = "transferWorkspaceOwnership", notes = "Changes the owner of the given workspace to another user.", response = GenericMessage.class, tags = {
-			"fabric-workspaces", })
-	@ApiResponses(value = {
-			@ApiResponse(code = 200, message = "Ownership transferred successfully", response = GenericMessage.class),
-			@ApiResponse(code = 400, message = "Bad Request"),
-			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
-			@ApiResponse(code = 403, message = "Request is not authorized."),
-			@ApiResponse(code = 405, message = "Method not allowed"),
-			@ApiResponse(code = 500, message = "Internal error") })
-	@RequestMapping(value = "/fabric-workspaces/{id}/transferOwnership/{userId}", produces = {
-			"application/json" }, consumes = { "application/json" }, method = RequestMethod.PATCH)
-	public ResponseEntity<GenericMessage> transferWorkspaceOwnership(
-			@ApiParam(value = "The ID of the workspace", required = true) @PathVariable("id") String workspaceId,
-			@ApiParam(value = "The user ID of the new owner", required = true) @PathVariable("userId") String newOwnerId) {
+	@ApiOperation(value = "Transfer ownership of a workspace", nickname = "transferWorkspaceOwnership", notes = "Changes the owner of the given workspace to another user.", response = GenericMessage.class, tags={ "fabric-workspaces", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 200, message = "Ownership transferred successfully", response = GenericMessage.class),
+        @ApiResponse(code = 400, message = "Bad Request"),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/fabric-workspaces/{id}/transferOwnership",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.PATCH)
+    public ResponseEntity<GenericMessage> transferWorkspaceOwnership(@ApiParam(value = "The ID of the workspace",required=true) @PathVariable("id") String id,@ApiParam(value = "The user info of the new owner" ,required=true )  @Valid @RequestBody CreatedByVO userInfo) {
 
-		CreatedByVO currentUser = this.userStore.getVO();
-    String currentUserId = currentUser != null ? currentUser.getId() : null;
+		GenericMessage responses = new GenericMessage();
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+		FabricWorkspaceVO workspaceVo = service.getById(id);
+		if(workspaceVo==null || !id.equalsIgnoreCase(workspaceVo.getId())) {
+			log.warn("No Fabric Workspace found with id {}", id);
+			errors.add(new MessageDescription("Record not found"));
+			responses.setErrors(errors);
+			responses.setSuccess("FAILED");
+			return new ResponseEntity<>(responses, HttpStatus.NOT_FOUND);
+		}
+		
+		CreatedByVO requestUser = this.userStore.getVO();
+		String creatorId = workspaceVo.getCreatedBy().getId();
+		if(!requestUser.getId().equalsIgnoreCase(creatorId)) {
+				log.warn("Fabric workspace doesnt belong to User, Not authorized to transfer ownership",id,workspaceVo.getName());
+				errors.add(new MessageDescription("User is not the owner of the workspace. Not authorized to transfer ownership."));
+				responses.setErrors(errors);
+				responses.setSuccess("FAILED");
+				return new ResponseEntity<>(responses, HttpStatus.FORBIDDEN);
+		}
+		if(creatorId == userInfo.getId()){
+			log.warn("Selected user is already the owner of the workspace.",id,workspaceVo.getName());
+			errors.add(new MessageDescription("Selected user is already the owner of the workspace."));
+			responses.setErrors(errors);
+			responses.setSuccess("FAILED");
+			return new ResponseEntity<>(responses, HttpStatus.FORBIDDEN);
+		}
 
-    ResponseEntity<FabricWorkspaceResponseVO> workspaceResponse = service.getById(workspaceId);
-    FabricWorkspaceVO workspaceVo = workspaceResponse.hasBody() ? workspaceResponse.getBody() : null;
-
-    if (Objects.isNull(workspaceVo) || Objects.isNull(workspaceVo.getId())) {
-        log.info("Workspace not found, returning empty");
-        GenericMessage emptyResponse = new GenericMessage();
-        MessageDescription msg = new MessageDescription();
-        msg.setMessage("Workspace not found for the given ID");
-        emptyResponse.addErrors(msg);
-        emptyResponse.setSuccess("FAILED");
-        return new ResponseEntity<>(emptyResponse, HttpStatus.NOT_FOUND);
-    }
-
-    if (Objects.isNull(workspaceVo.getCreatedBy())
-            || !workspaceVo.getCreatedBy().getId().equalsIgnoreCase(currentUserId)) {
-        MessageDescription notAuthorizedMsg = new MessageDescription();
-        notAuthorizedMsg.setMessage("Not authorized to transfer workspace ownership.");
-        GenericMessage errorMessage = new GenericMessage();
-        errorMessage.addErrors(notAuthorizedMsg);
-        log.info("User {} not authorized to transfer ownership of workspace {}", currentUserId, workspaceId);
-        return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
-    }
-
-    boolean isNewOwnerCollab = false;
-    CreatedByVO newOwnerVo = null;
-    if (!Objects.isNull(workspaceVo.getCollaborators())) {
-        for (CreatedByVO collab : workspaceVo.getCollaborators()) {
-            if (collab.getId().equalsIgnoreCase(newOwnerId)) { 
-                isNewOwnerCollab = true;
-                newOwnerVo = collab;
-                break;
-            }
-        }
-    }
-
-    if (!isNewOwnerCollab) {
-        log.error("Provided user is not a collaborator, must be collaborator to transfer ownership.");
-        GenericMessage errorResponse = new GenericMessage();
-        MessageDescription msg = new MessageDescription();
-        msg.setMessage("Provided user is not a collaborator. Please add them as a collaborator before transferring ownership.");
-        errorResponse.addErrors(msg);
-        errorResponse.setSuccess("FAILED");
-        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
-    }
-
-    GenericMessage responseMessage = service.transferOwnership(currentUser, workspaceVo, newOwnerVo);
-    return new ResponseEntity<>(responseMessage, HttpStatus.OK);
-}
+		GenericMessage responseMessage = service.transferOwnership(workspaceVo, requestUser, userInfo);
+		return new ResponseEntity<>(responseMessage, HttpStatus.OK);
+	}
 
 	@Override
 	@ApiOperation(value = "get all dna roles for a user.", nickname = "getAllUserDnaRoles", notes = "get all dna roles for a user", response = DnaRoleCollectionVO.class, tags={ "fabric-workspaces", })
@@ -979,17 +970,6 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 		}
 	}
 
-
-	public static boolean isTechnicalUser(String id) {
-        if (id.length() == 7 && id.startsWith("TE")) {
-            String numericPart = id.substring(2);
-            if (numericPart.matches("\\d{5}")) {
-                return true;
-            }
-        }
-        return false;
-    }
-
 	@Override
     @ApiOperation(value = "get the EntraID group member details.", nickname = "getGroupMemberDetails", notes = "get the group member details.", response = EntraGroupResponseVO.class, tags={ "fabric-workspaces", })
     @ApiResponses(value = { 
@@ -1018,5 +998,15 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
+
+	public  boolean isTechnicalUser(String id) {
+        if (id.length() == 7 && id.startsWith("TE")) {
+            String numericPart = id.substring(2);
+            if (numericPart.matches("\\d{5}")) {
+                return true;
+            }
+        }
+        return false;
+    }
     
 }
