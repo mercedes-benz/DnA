@@ -44,11 +44,14 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.PathMatchConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.application.filter.JWTAuthenticationFilter;
+import com.daimler.data.application.interceptor.ApiKeyAuthorizationInterceptor;
+
 import org.springframework.web.util.UrlPathHelper;
 
 @Configuration
@@ -60,6 +63,9 @@ public class WebConfig implements WebMvcConfigurer {
 
 	@Autowired
 	private JWTAuthenticationFilter filter;
+
+	@Autowired
+	private ApiKeyAuthorizationInterceptor apiKeyAuthorizationInterceptor;
 
 	@Override
 	public void addCorsMappings(CorsRegistry registry) {
@@ -121,5 +127,11 @@ public class WebConfig implements WebMvcConfigurer {
 	public UserStore userStore() {
 		return new UserStore();
 	}
+
+	  @Override
+    public void addInterceptors(InterceptorRegistry registry) {
+        registry.addInterceptor(apiKeyAuthorizationInterceptor)
+                .addPathPatterns("/api/**"); // Apply to all API endpoints
+    }
 
 }

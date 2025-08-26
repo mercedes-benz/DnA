@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.daimler.data.api.adaProjects.AdaProjectsApi;
+import com.daimler.data.application.annotation.RequiresApiKeyAuthorization;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.db.json.ADAProjectDetails;
@@ -49,6 +50,7 @@ public class ADAProjectsController implements AdaProjectsApi{
     @Autowired
     private FabricWorkspaceService fabricWorkspaceService;
 
+    @RequiresApiKeyAuthorization
     @Override
     @ApiOperation(value = "Create a new ADA Project", nickname = "createADAProject", notes = "This can only be done by the logged in user.", response = CreateADAProjectResponseVO.class, tags={ "adaProjects", })
     @ApiResponses(value = { 
@@ -91,7 +93,7 @@ public class ADAProjectsController implements AdaProjectsApi{
         
     }
 
-
+    @RequiresApiKeyAuthorization
     @Override
     @ApiOperation(value = "Delete an ADA Project", nickname = "deleteADAProject", notes = "Delete an ADA Project by Id", response = GenericMessage.class, tags={ "adaProjects", })
     @ApiResponses(value = { 
@@ -117,6 +119,7 @@ public class ADAProjectsController implements AdaProjectsApi{
     }
 
 
+    @RequiresApiKeyAuthorization
     @Override
     @ApiOperation(value = "Get ADA Project by ID", nickname = "getADAProjectById", notes = "Returns a single ADA Project", response = ADAProjectDetailsVO.class, tags={ "adaProjects", })
     @ApiResponses(value = { 
@@ -136,7 +139,7 @@ public class ADAProjectsController implements AdaProjectsApi{
         return new ResponseEntity<>(existingADAProject, HttpStatus.OK);
     }
 
-
+    @RequiresApiKeyAuthorization
     @Override
     @ApiOperation(value = "Get all ADA Projects", nickname = "getAllADAProjects", notes = "Get all ADA Projects with pagination and sorting options", response = ADAProjectDetailsCollectionVO.class, tags={ "adaProjects", })
     @ApiResponses(value = { 
@@ -168,6 +171,7 @@ public class ADAProjectsController implements AdaProjectsApi{
             return new ResponseEntity<>(collection, responseCode);
     }
 
+    @RequiresApiKeyAuthorization
     @Override
     @ApiOperation(value = "Update an existing ADA Project", nickname = "updateADAProject", notes = "Update an existing ADA Project by Id", response = CreateADAProjectResponseVO.class, tags={ "adaProjects", })
     @ApiResponses(value = { 
@@ -180,7 +184,7 @@ public class ADAProjectsController implements AdaProjectsApi{
         method = RequestMethod.PUT)
     public ResponseEntity<CreateADAProjectResponseVO> updateADAProject(@ApiParam(value = "ID of ADA Project to update",required=true) @PathVariable("projectId") String projectId,@ApiParam(value = "ADA Project object with updated values" ,required=true )  @Valid @RequestBody ADAProjectDetailsVO body) {
 
-         CreateADAProjectResponseVO response = new CreateADAProjectResponseVO();
+        CreateADAProjectResponseVO response = new CreateADAProjectResponseVO();
         GenericMessage responseMessage = new GenericMessage();
         List<MessageDescription> warnings = new ArrayList<>();
         List<MessageDescription> errors = new ArrayList<>();
@@ -211,7 +215,8 @@ public class ADAProjectsController implements AdaProjectsApi{
         
     }
 
-     @ApiOperation(value = "Create/update workspace-project association", nickname = "createWorkspaceProjectAssociations", notes = "Create or update association between workspaces and ADA Projects", response = GenericMessage.class, tags={ "adaProjects", })
+    @RequiresApiKeyAuthorization
+    @ApiOperation(value = "Create/update workspace-project association", nickname = "createWorkspaceProjectAssociations", notes = "Create or update association between workspaces and ADA Projects", response = GenericMessage.class, tags={ "adaProjects", })
     @ApiResponses(value = { 
         @ApiResponse(code = 201, message = "Workspace-project associations created successfully", response = GenericMessage.class),
         @ApiResponse(code = 400, message = "Invalid input"),

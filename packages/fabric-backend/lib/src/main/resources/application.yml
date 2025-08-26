@@ -78,6 +78,8 @@ fabricWorkspaces:
     shortcutUrl: ${FABRIC_SHORTCUT_URL:https://api.fabric.microsoft.com/v1/workspaces/id/items/lakehouseid/shortcuts}
   technicalUser:
     id: ${AUTHORISER_TECH_USER_ID:XXXX}
+  ada:
+    apiKey: ${ADA_API_KEY:XXXX}
 
 authoriser:
   uri: ${IDENTITY_AUTH_URI:XXXX}
