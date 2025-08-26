@@ -35,4 +35,5 @@ export const Envs = {
   TOU_HTML: getInjectedEnv('TOU_HTML') || process.env.TOU_HTML,
   FABRIC_ENTITLEMENT_IGNORE: getInjectedEnv('FABRIC_ENTITLEMENT_IGNORE') || process.env.FABRIC_ENTITLEMENT_IGNORE,
   MANDATE_LEANIX_FOR_DIVISIONS: getInjectedEnv('MANDATE_LEANIX_FOR_DIVISIONS') || process.env.MANDATE_LEANIX_FOR_DIVISIONS,
+  MB_INSIDE_URL: getInjectedEnv('MB_INSIDE_URL') || process.env.MB_INSIDE_URL,
 };
