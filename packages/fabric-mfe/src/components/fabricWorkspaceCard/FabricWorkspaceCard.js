@@ -5,6 +5,7 @@ import { useHistory } from 'react-router-dom';
 import { regionalDateAndTimeConversionSolution } from '../../utilities/utils';
 import Tooltip from '../../common/modules/uilab/js/src/tooltip';
 import Spinner from '../spinner/Spinner';
+import { Envs } from '../../utilities/envs';
 import InfoModal from 'dna-container/InfoModal';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 import Notification from '../../common/modules/uilab/js/src/notification';
@@ -70,7 +71,7 @@ const FabricWorkspaceCard = ({user, workspace, onSelectWorkspace, onEditWorkspac
                 <i className="icon mbc-icon close thin" />
               </button>
               <div className={Styles.ownerInfo}>
-                <div className={Styles.flexLayout}><div>Short ID:</div><div>{newOwnerDetails.id}</div></div>
+                <div className={Styles.flexLayout}><div>Short ID:</div><div><a href={`${Envs.MB_INSIDE_URL}${newOwnerDetails.id}`} target='_blank' rel='noopener noreferrer'>{newOwnerDetails.id}</a></div></div>
                 <div className={Styles.flexLayout}><div>First Name:</div><div>{newOwnerDetails.firstName || 'N/A'}</div></div>
                 <div className={Styles.flexLayout}><div>Last Name:</div><div>{newOwnerDetails.lastName || 'N/A'}</div></div>
                 <div className={Styles.flexLayout}><div>Department:</div><div>{newOwnerDetails.department || 'N/A'}</div></div>
@@ -192,7 +193,7 @@ const FabricWorkspaceCard = ({user, workspace, onSelectWorkspace, onEditWorkspac
     {showTransferOwnershipModal && (
       <div className={Styles.confirmModal}>
         <InfoModal
-          title={'Select user to transfer ownership'}
+          title={`Select user to transfer ownership - ${workspace?.name}`}
           modalWidth={'60%'}
           modalStyle={{
             maxWidth: '80%',
