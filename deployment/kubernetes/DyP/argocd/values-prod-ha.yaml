@@ -2055,10 +2055,10 @@ server:
   # -- Resource limits and requests for the Argo CD server
   resources: 
      requests:
-       memory: 146Mi
-       cpu: 23m
+       memory: 139Mi
+       cpu: 16m
      limits:
-       memory: 146Mi
+       memory: 139Mi
 
   # Server container ports
   containerPorts:
@@ -3198,10 +3198,10 @@ applicationSet:
   # -- Resource limits and requests for the ApplicationSet controller pods.
   resources: 
      requests:
-       memory: 119Mi
-       cpu: 15m
+       memory: 92Mi
+       cpu: 18m
      limits:
-       memory: 119Mi
+       memory: 92Mi
 
   # ApplicationSet controller container ports
   containerPorts:
