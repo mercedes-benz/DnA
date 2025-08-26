@@ -93,9 +93,7 @@ const FabricWorkspaceCard = ({user, workspace, onSelectWorkspace, onEditWorkspac
     history.push(`/workspace/${workspace?.id}`);
   }
 
-  const userRoles = user?.entitlementGroup
-    ?.filter(ent => ent.startsWith(`${Envs.FABRIC_ENTITLEMENT_PREFIX}${workspace?.id}`))
-    ?.map(ent => ent.split('_').at(-1));
+  const userRoles = workspace?.userRole;
 
   return (
     <>
@@ -138,7 +136,7 @@ const FabricWorkspaceCard = ({user, workspace, onSelectWorkspace, onEditWorkspac
           </div>
           <div>
             <div>Role</div>
-            <div>{userRoles?.length ? userRoles?.join(', ') : 'Owner'}
+            <div>{userRoles}
              <i
                 className="icon mbc-icon comparison"
                 tooltip-data="Transfer Ownership"

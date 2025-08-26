@@ -1671,7 +1671,9 @@
 				log.info("build triggered for workspaceId {} and branch {} and environment {} and lastBuildType {}",workspaceId,branch,environment,lastBuildType);
 				responseMessage = this.buildWorkSpace(userId, id, branch, buildRequestDto, isprivateRecipe, environment,lastBuildType);
 				if(responseMessage.getSuccess().equalsIgnoreCase("SUCCESS")){
-					authenticatorClient.callingKongApis(workspaceId, projectName, environment, isApiRecipe, deploymentDetails.getClientId(), "", deploymentDetails.getRedirectUri(), deploymentDetails.getIgnorePaths(), deploymentDetails.getScope(), deploymentDetails.getOneApiVersionShortName(), isSecuredWithCookie, secureWithIAMRequired, deploymentDetails.getSsoType(), secureWithDnaRequired, cloudServiceProvider);
+					if(deploymentDetails.getDeploymentUrl() == null || deploymentDetails.getDeploymentUrl().isEmpty()){
+						authenticatorClient.callingKongApis(workspaceId, projectName, environment, isApiRecipe, deploymentDetails.getClientId(), "", deploymentDetails.getRedirectUri(), deploymentDetails.getIgnorePaths(), deploymentDetails.getScope(), deploymentDetails.getOneApiVersionShortName(), isSecuredWithCookie, secureWithIAMRequired, deploymentDetails.getSsoType(), secureWithDnaRequired, cloudServiceProvider);
+					}
 					status = "SUCCESS";
 					lastBuildOrDeployStatus = "BUILD_REQUESTED";
 				}else{
@@ -1798,7 +1800,7 @@
 					 auditLogEntity.setData(buildDeployLogs);
 					 buildDeployRepo.save(auditLogEntity);
 
-					 if(deployType.equalsIgnoreCase("deploy")){
+					 if(deployType.equalsIgnoreCase("deploy") && (deploymentDetails.getDeploymentUrl() == null || deploymentDetails.getDeploymentUrl().isEmpty())){
 						 authenticatorClient.callingKongApis(workspaceId, projectName, environment, isApiRecipe, deploymentDetails.getClientId(), "", deploymentDetails.getRedirectUri(), deploymentDetails.getIgnorePaths(), deploymentDetails.getScope(), deploymentDetails.getOneApiVersionShortName(), isSecuredWithCookie, secureWithIAMRequired, deploymentDetails.getSsoType(), secureWithDnaRequired, cloudServiceProvider);
 					 }
 					

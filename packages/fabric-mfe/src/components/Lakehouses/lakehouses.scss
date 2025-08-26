@@ -49,6 +49,8 @@
     background-color: #252a33;
     padding: 20px;
     width: calc(25% - 11.3px);
+    display: flex;
+    flex-direction: column;
 
     h4 {
       font-size: var(--font-size-sub-headline);
@@ -56,18 +58,45 @@
       margin-bottom: 10px;
       display: flex;
       justify-content: space-between;
-      align-items: center;
+      align-items: flex-start;
 
       span > i {
-        color: #FFEB3B;
         cursor: pointer;
-        margin-left: 5px;
+        margin-left: 3px;
       }
     }
 
     .outlineBtn {
       font-size: var(--font-size-small);
     }
+
+    .lakehouseName {
+      word-break: break-word;
+    }
+
+    .buttonContainer {
+      margin-top: auto; /* Push the button container to the bottom */
+      display: flex;
+      justify-content: flex-end;
+      margin-right: 3px;
+    }
+
+    .contextMenu {
+      position: relative;
+      &.open .contextMenuTrigger {
+        z-index: 10;
+        position: relative;
+      }
+      .contextMenuTrigger {
+        padding: 12px 10px;
+        cursor: pointer;
+        margin-right: -14px;
+        &:hover {
+          color: #00adef;
+        }
+      }
+    }
+
   }
 }
 .submitBtn {
