@@ -5,7 +5,6 @@ import { useHistory } from 'react-router-dom';
 import { regionalDateAndTimeConversionSolution } from '../../utilities/utils';
 import Tooltip from '../../common/modules/uilab/js/src/tooltip';
 import Spinner from '../spinner/Spinner';
-import { Envs } from '../../utilities/envs';
 import InfoModal from 'dna-container/InfoModal';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 import Notification from '../../common/modules/uilab/js/src/notification';
