@@ -449,7 +449,7 @@ paths:
           500:
             description: "Internal error"
 
-  /fabric-workspaces/{id}/transferOwnership/{userId}:
+  /fabric-workspaces/{id}/transferOwnership:
     patch:
         tags:
           - "fabric-workspaces"
@@ -462,11 +462,12 @@ paths:
             required: true
             description: "The ID of the workspace"
             type: "string"
-          - name: "userId"
-            in: "path"
+          - name: "userInfo"
+            in: "body"
             required: true
-            description: "The user ID of the new owner"
-            type: "string"
+            description: "The user info of the new owner"
+            schema:
+              $ref: "#/definitions/CreatedByVO"
         responses:
           200:
             description: "Ownership transferred successfully"
