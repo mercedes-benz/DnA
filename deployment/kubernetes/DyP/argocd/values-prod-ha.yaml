@@ -1214,10 +1214,10 @@ dex:
   # -- Resource limits and requests for dex
   resources:
      requests:
-       memory: 100Mi
-       cpu: 10m
+       memory: 52Mi
+       cpu: 1m
      limits:
-       memory: 100Mi
+       memory: 52Mi
 
   # Dex container ports
   # NOTE: These ports are currently hardcoded and cannot be changed
@@ -1528,10 +1528,10 @@ redis:
   # -- Resource limits and requests for redis
   resources: 
      requests:
-       memory: 100Mi
+       memory: 13Mi
        cpu: 10m
      limits:
-       memory: 100Mi
+       memory: 13Mi
 
   # -- Redis pod-level security context
   # @default -- See [values.yaml]
@@ -3572,10 +3572,10 @@ notifications:
   # -- Resource limits and requests for the notifications controller
   resources: 
      requests:
-       memory: 100Mi
-       cpu: 11m
+       memory: 65Mi
+       cpu: 15m
      limits:
-       memory: 100Mi
+       memory: 65Mi
 
   # Notification controller container ports
   containerPorts:
