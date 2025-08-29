@@ -253,10 +253,10 @@ master:
   ##
   resources:
     limits: 
-      memory: 100Mi
+      memory: 10Mi
     requests:
-      cpu: 17m
-      memory: 100Mi
+      cpu: 10m
+      memory: 10Mi
   ## Configure Pods Security Context
   ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod
   ## @param master.podSecurityContext.enabled Enabled Redis&reg; master pods' Security Context
@@ -639,10 +639,10 @@ replica:
     # resources, such as Minikube. If you do want to specify resources, uncomment the following
     # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
     limits: 
-      memory: 100Mi
+      memory: 10Mi
     requests:
-      cpu: 12m
-      memory: 100Mi
+      cpu: 16m
+      memory: 10Mi
   ## Configure Pods Security Context
   ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/security-context/#set-the-security-context-for-a-pod
   ## @param replica.podSecurityContext.enabled Enabled Redis&reg; replicas pods' Security Context
