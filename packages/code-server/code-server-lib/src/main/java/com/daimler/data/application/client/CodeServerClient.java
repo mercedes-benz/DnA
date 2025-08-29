@@ -60,6 +60,9 @@ public class CodeServerClient {
 	
 	@Autowired
 	RestTemplate restTemplate;
+
+	@Value("${codeServer.build.deleteuri}")
+	private String codeserverBuildDeleteUri;
 	
 
 	
@@ -648,6 +651,42 @@ public class CodeServerClient {
 			log.error("Error occurred while creating git repo {} with exception: {}", codespaceName, e.getMessage());
 		}
 		return false;
+	}
+
+
+	public GenericMessage deleteBuild(String projectName,String version) {
+		GenericMessage response = new GenericMessage();
+		String status = "FAILED";
+		List<MessageDescription> warnings = new ArrayList<>();
+		List<MessageDescription> errors = new ArrayList<>();
+		try {
+			String url = codeserverBuildDeleteUri.replace("{projectName}",projectName).replace("{version}",version);
+
+        // Use exchange to get the full response back
+        ResponseEntity<String> responseEntity = restTemplate.exchange(url,HttpMethod.DELETE,null,String.class);
+			if (responseEntity != null && responseEntity.getStatusCode()!=null) {
+				if(responseEntity.getStatusCode().equals(HttpStatus.valueOf(200))) {
+					status = "SUCCESS";
+					log.info("Success while performing delete build action for codeServer projectName {} version {}",projectName,version);
+				}
+				else {
+					log.info("Failure while performing delete build action for codeServer projectName {} version {}",projectName,version);
+					MessageDescription warning = new MessageDescription();
+					warning.setMessage("Failure while performing delete build action for codeServer projectName "+projectName+" version "+version);
+					warnings.add(warning);
+				}
+			}
+			
+		} catch (Exception e) {
+			log.error("Failure while performing delete build action for codeServer projectName {} version {}",projectName,version);
+			MessageDescription error = new MessageDescription();
+			error.setMessage("Failure while performing delete build action for codeServer projectName "+projectName+" version "+version);
+			errors.add(error);
+		}
+		response.setSuccess(status);
+		response.setWarnings(warnings);
+		response.setErrors(errors);
+		return response;
 	}
 	
 	
