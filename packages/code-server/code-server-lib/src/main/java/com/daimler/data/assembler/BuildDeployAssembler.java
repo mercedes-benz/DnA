@@ -42,6 +42,11 @@ public class BuildDeployAssembler implements GenericAssembler<CodeServerBuildDep
                     auditDetails.setVersion(audit.getVersion());
                     auditDetails.setComments(audit.getComments());
                     auditDetails.setCommitId(audit.getCommitId());
+                    if(audit.isDeleted()){
+                        auditDetails.setIsDeleted(true);
+                     }else{
+                        auditDetails.setIsDeleted(false);
+                     }
                     auditDetailsVO.add(auditDetails);
                 }
             }
@@ -71,6 +76,11 @@ public class BuildDeployAssembler implements GenericAssembler<CodeServerBuildDep
 					 auditDetails.setVersion(audit.getVersion());
                      auditDetails.setComments(audit.getComments());
                      auditDetails.setCommitId(audit.getCommitId());
+                     if(audit.isIsDeleted()){
+                        auditDetails.setDeleted(true);
+                     }else{
+                        auditDetails.setDeleted(false);
+                     }
 					 buildAuditLogDetails.add(auditDetails);
                 }
             }
@@ -206,6 +216,7 @@ public class BuildDeployAssembler implements GenericAssembler<CodeServerBuildDep
                 List<DeploymentAudit> auditDetails = this.toDeploymentAudit(vo.getProdDeploymentAuditLogs());
                 data.setProdDeploymentAuditLogs(auditDetails);
             }
+           
             entity.setData(data);
 
         }

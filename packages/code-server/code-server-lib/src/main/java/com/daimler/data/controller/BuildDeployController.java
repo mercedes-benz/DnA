@@ -14,6 +14,7 @@ import com.daimler.data.api.workspace.buildDeploy.CodeServerBuildDeployServiceAp
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.db.entities.CodeServerBuildDeployNsql;
+import com.daimler.data.db.json.BuildAudit;
 import com.daimler.data.db.repo.workspace.WorkSpaceCodeServerBuildDeployRepository;
 import com.daimler.data.db.repo.workspace.WorkspaceCustomBuildDeployRepo;
 
@@ -319,6 +320,69 @@ public class BuildDeployController implements CodeServerBuildDeployServiceApi {
         errors.add(exceptionMsg);
 				response.setErrors(errors);
         return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @Override
+    @ApiOperation(value = "delete build version from workspace projectt.", nickname = "deleteBuild", notes = "delete build version from workspace projectt", response = GenericMessage.class, tags={ "code-server-build-deploy-service", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns message of success or failure", response = GenericMessage.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/workspaces/{projectName}/build/{version}",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.DELETE)
+    public ResponseEntity<GenericMessage> deleteBuild(@ApiParam(value = "Workspace Project to be fetched",required=true) @PathVariable("projectName") String projectName,@ApiParam(value = "version to be deleted",required=true) @PathVariable("version") String version){
+          List<MessageDescription> errors = new ArrayList<>();
+           List<MessageDescription> warnings = new ArrayList<>();
+          GenericMessage response = new GenericMessage();
+          response.setSuccess("FAILED");
+        try {
+            CodeServerBuildDeployNsql optionalBuildDeployentity =  buildDeployCustomRepo.findByProjectName(projectName);	
+					if(optionalBuildDeployentity != null ){
+                         List<BuildAudit> builds = new ArrayList<>();
+                        if(version.startsWith("int")){
+                            builds = optionalBuildDeployentity.getData().getIntBuildAuditLogs();
+                        }else if(version.startsWith("prod")){
+                             builds = optionalBuildDeployentity.getData().getProdBuildAuditLogs();
+                        }
+                        if(builds.stream().anyMatch( i -> (i.getVersion().equalsIgnoreCase(version) && !i.isDeleted()))){
+                            response = service.deleteBuild(projectName,version);
+                        }else{
+                            MessageDescription msg = new MessageDescription();
+                            msg.setMessage("No build version found or build version is already deleted!! for given project name");
+                            warnings.add(msg);
+				            response.setWarnings(warnings);                        
+                            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+                        }
+                        
+                    }else{
+                        MessageDescription msg = new MessageDescription();
+                        msg.setMessage("No build version found for given project name");
+                        warnings.add(msg);
+				        response.setWarnings(warnings);                        
+                        return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+                    }
+            if(null != response){
+                response.setSuccess("SUCCESS");
+                return new ResponseEntity<>(response, HttpStatus.OK);
+            }else{
+                MessageDescription exceptionMsg = new MessageDescription("Failed to get logs due to internal error.");
+                errors.add(exceptionMsg);
+				response.setErrors(errors);
+                return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+            } 
+        } catch (Exception e) {
+            log.error("Failed to get logs with exception {}", e.getLocalizedMessage());
+            MessageDescription exceptionMsg = new MessageDescription("Failed to build due to internal error.");
+            errors.add(exceptionMsg);
+			response.setErrors(errors);
+            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

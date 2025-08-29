@@ -161,7 +161,43 @@ paths:
         405:
           description: "Method not allowed"
         500:
-          description: "Internal error"        
+          description: "Internal error"
+
+  /workspaces/{projectName}/build/{version}:
+    delete:
+      tags:
+        - "code-server-build-deploy-service"
+      summary: "delete build version from workspace projectt."
+      description: "delete build version from workspace projectt"
+      operationId: "deleteBuild"
+      parameters:
+        - name: "projectName"
+          in: "path"
+          description: "Workspace Project to be fetched"
+          required: true
+          type: "string"
+        - name: "version"
+          in: "path"
+          description: "version to be deleted"
+          required: true
+          type: "string"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"                
 
 definitions:
 
@@ -214,7 +250,11 @@ definitions:
         description: "build comments"
       commitId:
         type: string
-        description: "commit id on which codespace is built"  
+        description: "commit id on which codespace is built"
+      isDeleted:
+        type: boolean
+        descripion: "deleted status of build"
+
 
   DeploymentAuditVO:
     type: object
