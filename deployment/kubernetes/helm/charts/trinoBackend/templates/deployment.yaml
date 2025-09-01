@@ -5,6 +5,7 @@ metadata:
   namespace: {{ .Values.namespace }}
   labels:
     name: {{ .Chart.Name }}
+    app.kubernetes.io/name: {{ .Chart.Name }}
 spec:
   replicas: {{ .Values.replicas }}
   selector:
@@ -14,6 +15,7 @@ spec:
     metadata:
       labels:
         name: {{ .Chart.Name }}
+        app.kubernetes.io/name: {{ .Chart.Name }}
       {{- if .Values.vaultInjector.enable }}      
       {{- with .Values.vaultInjector.annotations }}
       annotations:
@@ -38,7 +40,7 @@ spec:
           imagePullPolicy: {{ .Values.imagePullPolicy }}
           {{- if .Values.vaultInjector.enable }}           
           command: ["/bin/sh", "-c"]
-          args: ['source /vault/secrets/envvar && java -jar /{{ .Values.vaultInjector.jarName }}']
+          args: ['source /vault/secrets/envvar && java -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -jar /{{ .Values.vaultInjector.jarName }}']
           {{ else }}          
           {{- with .Values.envs }}            
           env:
@@ -55,7 +57,6 @@ spec:
               cpu: {{ .Values.resources.requests.cpu }}
             limits:
               memory: {{ .Values.resources.limits.memory }}
-              cpu: {{ .Values.resources.limits.cpu }}
           livenessProbe:
             initialDelaySeconds: {{ .Values.probes.initialDelaySeconds }}
             timeoutSeconds: {{ .Values.probes.timeoutSeconds }}

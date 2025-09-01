@@ -1,0 +1,116 @@
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaUser
+metadata:
+  name: dna-user
+  labels:
+    strimzi.io/cluster: my-cluster
+spec:
+  authentication:
+    type: tls
+  authorization:
+    type: simple
+    acls:
+      - resource:
+          type: topic
+          name: "*"
+          patternType: literal
+        operation: All
+      - operation: All	
+        resource:	
+          name: '*'	
+          patternType: literal	
+          type: group        
+---
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaUser
+metadata:
+  name: my-user
+  labels:
+    strimzi.io/cluster: my-cluster
+spec:
+  authentication:
+    type: tls
+  authorization:
+    type: simple
+    acls:
+    - resource:
+        type: topic
+        name: my-topic
+        patternType: literal
+      operation: Read
+    - resource:
+        type: topic
+        name: my-topic
+        patternType: literal
+      operation: Write
+    - resource:
+        type: topic
+        name: my-topic
+        patternType: literal
+      operation: Describe
+    - resource:
+        type: group
+        name: my-group
+        patternType: literal
+      operation: Read
+---
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaUser
+metadata:
+  name: producer
+  labels:
+    strimzi.io/cluster: my-cluster
+spec:
+  authentication:
+    type: tls
+  authorization:
+    type: simple
+    acls:
+      - resource:
+          type: topic
+          name: my-topic
+          patternType: literal
+        operation: Read
+      - resource:
+          type: topic
+          name: my-topic
+          patternType: literal
+        operation: Write
+      - resource:
+          type: topic
+          name: my-topic
+          patternType: literal
+        operation: Describe
+      - resource:
+          type: group
+          name: my-group
+          patternType: literal
+        operation: Read
+---
+apiVersion: kafka.strimzi.io/v1beta2
+kind: KafkaUser
+metadata:
+  name: consumer
+  labels:
+    strimzi.io/cluster: my-cluster
+spec:
+  authentication:
+    type: tls
+  authorization:
+    type: simple
+    acls:
+      - resource:
+          type: topic
+          name: my-topic
+          patternType: literal
+        operation: Read
+      - resource:
+          type: topic
+          name: my-topic
+          patternType: literal
+        operation: Describe
+      - resource:
+          type: group
+          name: my-group
+          patternType: literal
+        operation: Read
