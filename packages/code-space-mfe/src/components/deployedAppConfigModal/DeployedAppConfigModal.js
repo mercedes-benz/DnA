@@ -49,7 +49,7 @@ const DeployedAppConfigModal = (props) => {
   const [showEnablePluginWarning, setShowEnablePluginWarning] = useState(false);
   const [securedWithIAMWarning, setSecuredWithIAMWarning] = useState(false);
   const [enableAliceRole, setEnableAliceRole] = useState(props?.deploymentDetails?.aliceRoleEnabled || false);
-  const [enableEntitlementPrefix, setEnableEntitlementPrefix] = useState(false);
+  const [enableEntitlementPrefix, setEnableEntitlementPrefix] = useState(props?.deploymentDetails?.entitlementPrefixEnabled || false);
   const [existingRoles, setExistingRoles] = useState([]);
   const [selectedRoles, setSelectedRoles] = useState(props?.deploymentDetails?.selectedAliceRoles || []);
   const [aliceRolesError, setAliceRolesError] = useState('');
@@ -226,7 +226,7 @@ const DeployedAppConfigModal = (props) => {
         );
         setSelectedRoles(updatedRoles);
       }
-      setEnableEntitlementPrefix(props?.deploymentType?.entitlementPrefixEnabled || false);
+      setEnableEntitlementPrefix(props?.deploymentDetails?.entitlementPrefixEnabled || false);
     }
   }, [resetRequired]); // eslint-disable-line react-hooks/exhaustive-deps
 
