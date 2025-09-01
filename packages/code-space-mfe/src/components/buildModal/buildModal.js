@@ -183,6 +183,17 @@ const BuildModal = (props) => {
     //refresh the logs
   };
 
+  const handleBuildDelete = (version) => {
+    CodeSpaceApiClient.deleteBuild(projectDetails?.projectName, version)
+      .then(() => {
+        Notification.show('Build deleted successfully'); 
+        onLogsRefresh();
+      })
+      .catch((err) => {
+        Notification.show("Error in deleting build. "+err?.response?.data?.warnings[0]?.message,'alert');
+      });
+  };
+
   const onLogsRefresh = () => {
     CodeSpaceApiClient.getBuildAndDeployLogs(projectDetails?.projectName)
       .then((res) => {
@@ -376,17 +387,22 @@ const BuildModal = (props) => {
                             </td>
                             <td>
                               {item?.buildStatus === 'BUILD_SUCCESS' ? (
-                                <button
-                                  className={'btn btn-primary ' + classNames(Styles.actionBtn)}
-                                  tooltip-data="Deploy application"
-                                  onClick={() => {
-                                    item.environment = buildEnvironment;
-                                    setBuildDetails(item);
-                                    setShowDeployCodeSpaceModal(true);
-                                  }}
-                                >
-                                  <i className="icon mbc-icon deploy" />
-                                </button>
+                                <div>
+                                  <button
+                                    className={'btn btn-primary ' + classNames(Styles.actionBtn,Styles.deployButton)}
+                                    tooltip-data="Deploy application"
+                                    onClick={() => {
+                                      item.environment = buildEnvironment;
+                                      setBuildDetails(item);
+                                      setShowDeployCodeSpaceModal(true);
+                                    }}
+                                  >
+                                    <i className="icon mbc-icon deploy" />
+                                  </button>
+                                  <button className={'btn btn-primary ' + classNames(Styles.actionBtn)} type="button" onClick={() => handleBuildDelete(item.version)}>
+                                    <i className='icon delete'></i>
+                                  </button>
+                                </div>
                               ) : (
                                 ''
                               )}
