@@ -666,8 +666,7 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName }) => 
       </div>
 
       <div className={Styles.pushButtonContainer}>
-        <button className="btn btn-tertiary" type="button" onClick={onPush}>
-        {/* <button className={(!selectedTables.length || !selectedColumns.length) ? classNames("btn btn-primary") : classNames("btn btn-tertiary")} type="button" disabled={!selectedTables.length || !selectedColumns.length} onClick={onPush}> */}
+        <button className={(Object.keys(selectedTables).length === 0 || Object.keys(selectedColumns).length === 0) ? classNames("btn btn-primary") : classNames("btn btn-tertiary")} type="button" disabled={Object.keys(selectedTables).length === 0 || Object.keys(selectedColumns).length === 0} onClick={onPush}>
           Push
         </button>
       </div>
