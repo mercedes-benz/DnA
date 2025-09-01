@@ -3518,8 +3518,8 @@ minio:
     annotations: {}
   resources:
     requests:
-      cpu: 100m
-      memory: 128Mi
+      cpu: 141m
+      memory: 1638Mi
   # Allow the address used by Loki to refer to Minio to be overridden
   address: null
 # Create extra manifests via values. Would be passed through `tpl` for templating
