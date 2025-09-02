@@ -72,7 +72,14 @@ prometheus:
       scrape_interval: 1m
       # Adjust scrape_timeout to 20s for scraping kube-system resources which may need > 10s to respond
       scrape_timeout: 20s
-
+      
+    ## Horizontal Pod Autoscalar Config  
+    horizontalAutoscaler:
+      enabled: true
+      minReplicas: 3
+      maxReplicas: 10
+      targetMemoryUtilizationPercentage: 80
+      
     replicaCount: 3
     podDisruptionBudget:
       enabled: true
