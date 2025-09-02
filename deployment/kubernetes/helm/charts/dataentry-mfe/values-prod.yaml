@@ -40,12 +40,7 @@ ingress:
     - hosts:
         - dataentry.dna.app.corpintra.net
       secretName: dataentry-tls-secret
-resources:
-  limits:
-    memory: 10Mi
-  requests:
-    cpu: 2m
-    memory: 10Mi
+resources: {}
 vaultInjector:
   enable: true
   annotations:
