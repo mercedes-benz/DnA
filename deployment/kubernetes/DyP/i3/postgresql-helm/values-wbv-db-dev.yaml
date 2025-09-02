@@ -417,11 +417,11 @@ pgmonitoring:
     enabled: true
     limits:
       enabled: true
-      memory: 200Mi
+      memory: 300Mi
     request:
       enabled: true
       cpu: 20m
-      memory: 200Mi
+      memory: 300Mi
   queryMonitoring:
     enabled: true
   customQueries: {}
