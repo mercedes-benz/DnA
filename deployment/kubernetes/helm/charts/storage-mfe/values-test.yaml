@@ -46,12 +46,7 @@ ingress:
     - hosts:
         - storage.test.dna.app.corpintra.net
       secretName: storage-tls-secret
-resources:
-  requests:
-    memory: 10Mi
-    cpu: 1m
-  limits:
-    memory: 10Mi
+resources: {}
 vaultInjector:
   enable: true
   annotations:
