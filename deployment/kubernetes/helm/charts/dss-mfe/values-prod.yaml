@@ -43,12 +43,7 @@ ingress:
     - hosts:
         - dss.dna.app.corpintra.net
       secretName: dss-tls-secret
-resources:
-  limits:
-    memory: 10Mi
-  requests:
-    cpu: 2m
-    memory: 10Mi
+resources: {}
 vaultInjector:
   enable: true
   annotations:
