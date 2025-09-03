@@ -75,12 +75,12 @@ prometheus:
       
     ## Horizontal Pod Autoscalar Config  
     horizontalAutoscaler:
-      enabled: true
+      enabled: false
       minReplicas: 3
       maxReplicas: 10
       targetMemoryUtilizationPercentage: 80
       
-    replicaCount: 3
+    replicaCount: 10
     podDisruptionBudget:
       enabled: true
       maxUnavailable: 1
