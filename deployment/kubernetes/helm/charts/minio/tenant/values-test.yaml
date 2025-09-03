@@ -145,10 +145,10 @@ tenant:
       # If no worker nodes can meet the specified requests, the Operator may fail to deploy.
       resources: 
         limits:
-          memory: 6859Mi
+          memory: 3359Mi
         requests:
-          cpu: 205m
-          memory: 6859Mi      
+          cpu: 456m
+          memory: 3359Mi      
       ###
       # The Kubernetes `SecurityContext <https://kubernetes.io/docs/tasks/configure-pod-container/security-context/>`__ to use for deploying Tenant resources.
       #
