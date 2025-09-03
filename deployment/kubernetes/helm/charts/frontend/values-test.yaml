@@ -246,9 +246,4 @@ vaultInjector:
               };
       {{- end }}     
   saName: default
-resources:
-  requests:
-    memory: 5Mi
-    cpu: 1m
-  limits:
-    memory: 5Mi
+resources: {}
