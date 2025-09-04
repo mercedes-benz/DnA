@@ -242,8 +242,10 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 //					FabricWorkspaceVO updatedVO = assembler.toVo(entity);
 //					vos.add(updatedVO);
 //				}
-				FabricWorkspaceVO updatedVO = assembler.toVo(entity);
-				vos.add(updatedVO);
+				if(	entity!=null && !ConstantsUtility.DELETED_STATE.equalsIgnoreCase(entity.getData().getStatus().getState())) {
+					FabricWorkspaceVO updatedVO = assembler.toVo(entity);
+					vos.add(updatedVO);
+				}
 			}
 		}
 		List<FabricWorkspaceVO> paginatedVOs = new ArrayList<>();
