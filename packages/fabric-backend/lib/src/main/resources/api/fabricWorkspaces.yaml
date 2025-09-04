@@ -565,6 +565,9 @@ definitions:
           type: string
       projectId:
           type: string
+      lastModifiedOn:
+          type: string
+          format: date
 
   FabricWorkspaceStatusVO:
     type: object
