@@ -42,10 +42,10 @@ public class BuildDeployAssembler implements GenericAssembler<CodeServerBuildDep
                     auditDetails.setVersion(audit.getVersion());
                     auditDetails.setComments(audit.getComments());
                     auditDetails.setCommitId(audit.getCommitId());
-                    if(audit.isDeleted()){
-                        auditDetails.setIsDeleted(true);
+                    if(audit.isImageDeleted()){
+                        auditDetails.setImageDeleted(true);
                      }else{
-                        auditDetails.setIsDeleted(false);
+                        auditDetails.setImageDeleted(false);
                      }
                     auditDetailsVO.add(auditDetails);
                 }
@@ -76,10 +76,10 @@ public class BuildDeployAssembler implements GenericAssembler<CodeServerBuildDep
 					 auditDetails.setVersion(audit.getVersion());
                      auditDetails.setComments(audit.getComments());
                      auditDetails.setCommitId(audit.getCommitId());
-                     if(audit.isIsDeleted()){
-                        auditDetails.setDeleted(true);
+                     if(audit.isImageDeleted()){
+                        auditDetails.setImageDeleted(true);
                      }else{
-                        auditDetails.setDeleted(false);
+                        auditDetails.setImageDeleted(false);
                      }
 					 buildAuditLogDetails.add(auditDetails);
                 }

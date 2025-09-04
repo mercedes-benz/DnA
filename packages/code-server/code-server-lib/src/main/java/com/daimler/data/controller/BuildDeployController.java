@@ -15,12 +15,14 @@ import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.db.entities.CodeServerBuildDeployNsql;
 import com.daimler.data.db.json.BuildAudit;
+import com.daimler.data.db.json.DeploymentAudit;
 import com.daimler.data.db.repo.workspace.WorkSpaceCodeServerBuildDeployRepository;
 import com.daimler.data.db.repo.workspace.WorkspaceCustomBuildDeployRepo;
 
 import org.springframework.web.bind.annotation.PathVariable;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
@@ -346,12 +348,35 @@ public class BuildDeployController implements CodeServerBuildDeployServiceApi {
             CodeServerBuildDeployNsql optionalBuildDeployentity =  buildDeployCustomRepo.findByProjectName(projectName);	
 					if(optionalBuildDeployentity != null ){
                          List<BuildAudit> builds = new ArrayList<>();
+                         List<DeploymentAudit> deploymentAuditLogs = new ArrayList<>();
+                         String env = "int";
                         if(version.startsWith("int")){
                             builds = optionalBuildDeployentity.getData().getIntBuildAuditLogs();
+                            deploymentAuditLogs = optionalBuildDeployentity.getData().getIntDeploymentAuditLogs();
+                            // deploymentAuditLogs.
                         }else if(version.startsWith("prod")){
+                            env = "prod";
                              builds = optionalBuildDeployentity.getData().getProdBuildAuditLogs();
+                             deploymentAuditLogs = optionalBuildDeployentity.getData().getProdDeploymentAuditLogs();
                         }
-                        if(builds.stream().anyMatch( i -> (i.getVersion().equalsIgnoreCase(version) && !i.isDeleted()))){
+                        
+
+                        if(!deploymentAuditLogs.isEmpty()){
+                            List<DeploymentAudit> sortedList = deploymentAuditLogs.stream().filter(i -> i.getDeploymentStatus().equalsIgnoreCase("DEPLOYED"))
+                        .sorted(Comparator.comparing(DeploymentAudit::getDeployedOn).reversed())
+                        .collect(Collectors.toList());
+                        if(!sortedList.isEmpty() && sortedList.get(0).getVersion().equalsIgnoreCase(version)){
+                            MessageDescription msg = new MessageDescription();
+                            msg.setMessage("Given version "+version+" is currently deployed,Please deploy with different build and try deleting later");
+                            warnings.add(msg);
+				            response.setWarnings(warnings);                        
+                            return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+                        }  
+                            
+
+                        }
+
+                        if(builds.stream().anyMatch( i -> (i.getVersion().equalsIgnoreCase(version) && !i.isImageDeleted()))){
                             response = service.deleteBuild(projectName,version);
                         }else{
                             MessageDescription msg = new MessageDescription();
