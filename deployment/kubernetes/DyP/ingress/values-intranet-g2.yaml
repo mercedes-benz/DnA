@@ -564,9 +564,7 @@ env:
     fieldRef:
       fieldPath: metadata.namespace
 - name: OTEL_PROPAGATORS
-  valueFrom:
-    fieldRef:
-      fieldPath: b3,jaeger      
+  value: "b3,jaeger"
 
 # -- Environment variables to be passed to Traefik's binary from configMaps or secrets
 envFrom: []
@@ -800,7 +798,16 @@ ports:
 # -- TLS Options are created as [TLSOption CRDs](https://doc.traefik.io/traefik/https/tls/#tls-options)
 # When using `labelSelector`, you'll need to set labels on tlsOption accordingly.
 # See EXAMPLE.md for details.
-tlsOptions: {}
+tlsOptions:
+  g2-intranet-default:
+    minVersion: VersionTLS12
+    cipherSuites:
+      - "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256"
+      - "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384"
+      - "TLS_ECDHE_RSA_WITH_CHACHA20_POLY1305"
+      - "TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256"
+      - "TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384"
+      - "TLS_ECDHE_ECDSA_WITH_CHACHA20_POLY1305"
 
 # -- TLS Store are created as [TLSStore CRDs](https://doc.traefik.io/traefik/https/tls/#default-certificate). This is useful if you want to set a default certificate. See EXAMPLE.md for details.
 tlsStore: {}
