@@ -665,7 +665,7 @@ public class CodeServerClient {
         // Use exchange to get the full response back
         ResponseEntity<String> responseEntity = restTemplate.exchange(url,HttpMethod.DELETE,null,String.class);
 			if (responseEntity != null && responseEntity.getStatusCode()!=null) {
-				if(responseEntity.getStatusCode().equals(HttpStatus.valueOf(200))) {
+				if(responseEntity.getStatusCode().equals(HttpStatus.valueOf(200)) || responseEntity.getStatusCode().equals(HttpStatus.valueOf(404))) {
 					status = "SUCCESS";
 					log.info("Success while performing delete build action for codeServer projectName {} version {}",projectName,version);
 				}
@@ -678,7 +678,7 @@ public class CodeServerClient {
 			}
 			
 		} catch (Exception e) {
-			log.error("Failure while performing delete build action for codeServer projectName {} version {}",projectName,version);
+			log.error("Failure while performing delete build action for codeServer projectName {} version {} with exception {}",projectName,version,e.getMessage());
 			MessageDescription error = new MessageDescription();
 			error.setMessage("Failure while performing delete build action for codeServer projectName "+projectName+" version "+version);
 			errors.add(error);
