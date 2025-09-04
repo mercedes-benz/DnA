@@ -423,6 +423,7 @@ pgmonitoring:
       enabled: true
       cpu: 192m
       memory: 232Mi
+
   queryMonitoring:
     enabled: true
   customQueries: {}

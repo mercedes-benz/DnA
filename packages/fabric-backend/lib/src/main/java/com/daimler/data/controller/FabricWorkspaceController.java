@@ -59,7 +59,7 @@ import io.swagger.annotations.ApiResponses;
 import lombok.extern.slf4j.Slf4j;
 
 @RestController
-@Api(value = "Forecast APIs")
+@Api(value = "Fabric APIs")
 @RequestMapping("/api")
 @Slf4j
 public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
@@ -718,7 +718,7 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 
 			existingFabricWorkspace.setRelatedReports(workspaceUpdateRequestVO.getRelatedReports());
 			existingFabricWorkspace.setRelatedSolutions(workspaceUpdateRequestVO.getRelatedSolutions());
-			
+			existingFabricWorkspace.setLastModifiedOn(new Date());
 			try {
 				FabricWorkspaceVO updatedRecord = service.updateFabricProject(existingFabricWorkspace);
 				responseVO.setData(updatedRecord);

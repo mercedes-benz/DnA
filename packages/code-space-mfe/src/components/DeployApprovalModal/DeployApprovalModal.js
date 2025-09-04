@@ -33,29 +33,9 @@ const DeployApprovalModal = (props) => {
 
   const deployWorkspace = () => {
     const deployRequest = {
-      secureWithIAMRequired: deploymentDetails?.secureWithIAMRequired,
-      // technicalUserDetailsForIAMLogin: secureWithIAMSelected ? iamTechnicalUserID : null,
       targetEnvironment: 'prod', // int or prod
       branch: auditLogs?.[0]?.branch,
       version: auditLogs?.[0]?.version || '',
-      // valutInjectorEnable: vaultEnabled,
-      clientID: deploymentDetails?.secureWithIAMRequired ? deploymentDetails?.clientId : '',
-      // clientSecret: clientSecret,
-      clientSecret: '',
-      redirectUri:
-        deploymentDetails?.secureWithIAMRequired && deploymentDetails?.redirectUri?.length
-          ? deploymentDetails?.redirectUri
-          : '',
-      ignorePaths:
-        deploymentDetails?.secureWithIAMRequired && deploymentDetails?.ignorePaths?.length
-          ? deploymentDetails?.ignorePaths
-          : '',
-      scope: deploymentDetails?.secureWithIAMRequired ? deploymentDetails?.scope : '',
-      isApiRecipe: deploymentDetails?.deploymentType === 'API',
-      oneApiVersionShortName: deploymentDetails?.oneApiVersionShortName?.length
-        ? deploymentDetails?.oneApiVersionShortName
-        : '',
-      isSecuredWithCookie: deploymentDetails?.cookieSelected || false,
     };
     ProgressIndicator.show();
     CodeSpaceApiClient.deployCodeSpace(props.codeSpaceData.id, deployRequest)

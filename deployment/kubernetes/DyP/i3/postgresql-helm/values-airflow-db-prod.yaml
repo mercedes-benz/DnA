@@ -344,7 +344,7 @@ backup:
 ##
 restore:
   ## whether to create the restore job or not
-  createRestoreJob: flase
+  createRestoreJob: false
   ## whether to create the list backup job or not
   createListBackupJob: false
   ## if neither targetTime nor targetTimeline has been set, the recovery_target is 'immediate' which means that there will be no point-in-time-recovery (PITR) done
