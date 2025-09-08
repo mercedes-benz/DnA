@@ -381,12 +381,12 @@ const BuildModal = (props) => {
                             </td>
                             <td>{item?.buildOn ? regionalDateAndTimeConversionSolution(item?.buildOn) : 'N/A'}</td>
                             <td>{item?.commitId || 'N/A'}</td>
-                            <td>{item?.version || 'N/A'}</td>
+                            <td>{`${item?.version} ${item?.imageDeleted ? '(N/A)' : ''}` || 'N/A'}</td>
                             <td>
                               <label>{item?.comments || 'N/A'}</label>
                             </td>
                             <td>
-                              {item?.buildStatus === 'BUILD_SUCCESS' ? (
+                              {(item?.buildStatus === 'BUILD_SUCCESS' && !item?.imageDeleted) ? (
                                 <div>
                                   <button
                                     className={'btn btn-primary ' + classNames(Styles.actionBtn,Styles.deployButton)}
