@@ -110,7 +110,10 @@ public class OpenMetadataClient {
 
             DatabaseConnection connection = new DatabaseConnection();
             connection.setConfig(new DatalakeConnection()
-                    .withSupportsMetadataExtraction(true));
+                    .withSupportsMetadataExtraction(true)
+                    .withBucketName("Fabric")
+                    .withDatabaseName("Fabric")
+                    .withPrefix("Fabric"));
             request.setConnection(connection);
             request.setOwners(owners);
 
@@ -125,14 +128,18 @@ public class OpenMetadataClient {
         }
     }
 
-    public Database createDatabase(String name, String serviceFQN, MandatoryFieldsVO fields, List<EntityReference> owners) {
+    public Database createDatabase(String name, String serviceFQN, MandatoryFieldsVO fields, List<EntityReference> owners, String description) {
         try {
             CreateDatabase request = new CreateDatabase()
                     .name(name)
                     .service(serviceFQN)
                     .extension(toExtensions(fields))
+                    .description(description)
+                    .tags(List.of(
+                            new TagLabel().tagFQN("Application.Fabric"),
+                            new TagLabel().tagFQN("alationTags.Loc_Group_RoW")
+                    ))
                     .owners(owners); // Using FQN directly as string
-
             return apiClient.buildClient(DatabasesApi.class)
                     .createOrUpdateDatabase(request);
         } catch (FeignException.Conflict e) {
@@ -427,7 +434,7 @@ public class OpenMetadataClient {
 
     public Map<String, Object> toExtensions(MandatoryFieldsVO fields) {
         return Map.of(
-            "Division", List.of(fields.getDivision()),
+            "Division", List.of(fields.getDivisions()),
             "Department", List.of(fields.getDepartment()),
             "DataOrigin", List.of(fields.getDataOrigin()),
             "IsDataAsset", List.of(fields.getIsDataAsset()),

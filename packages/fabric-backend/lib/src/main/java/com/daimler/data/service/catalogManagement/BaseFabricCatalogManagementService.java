@@ -243,7 +243,8 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
                     dbMetadata.getDbName(),
                     existingFabricWorkspace.getName(), 
                     request.getMandatoryFields(),
-                    ownerReferences);
+                    ownerReferences,
+                    dbMetadata.getDescription());
                     
             for (SchemaMetadataVO schemaMetadata : dbMetadata.getSchemas()) {
                 String schemaFqn = OpenMetadataFqnBuilder.build(
@@ -572,7 +573,8 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
 					dbMetadata.getDbName(),
 					serviceName,
 					fields,
-					ownerReferences);
+					ownerReferences,
+                    dbMetadata.getDescription());
 				
 				// Set the new ID back to the metadata
 				dbMetadata.setDbId(database.getId().toString());
