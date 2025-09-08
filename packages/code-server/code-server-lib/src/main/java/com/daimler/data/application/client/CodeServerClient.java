@@ -659,13 +659,14 @@ public class CodeServerClient {
 		String status = "FAILED";
 		List<MessageDescription> warnings = new ArrayList<>();
 		List<MessageDescription> errors = new ArrayList<>();
+		ResponseEntity<String> responseEntity = null;
 		try {
 			String url = codeserverBuildDeleteUri.replace("{projectName}",projectName).replace("{version}",version);
 
         // Use exchange to get the full response back
-        ResponseEntity<String> responseEntity = restTemplate.exchange(url,HttpMethod.DELETE,null,String.class);
+        responseEntity = restTemplate.exchange(url,HttpMethod.DELETE,null,String.class);
 			if (responseEntity != null && responseEntity.getStatusCode()!=null) {
-				if(responseEntity.getStatusCode().equals(HttpStatus.valueOf(200)) || responseEntity.getStatusCode().equals(HttpStatus.valueOf(404))) {
+				if(responseEntity.getStatusCode().equals(HttpStatus.valueOf(200)) || responseEntity.getStatusCode().equals(HttpStatus.valueOf(204))) {
 					status = "SUCCESS";
 					log.info("Success while performing delete build action for codeServer projectName {} version {}",projectName,version);
 				}
