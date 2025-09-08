@@ -388,7 +388,7 @@ public class BuildDeployController implements CodeServerBuildDeployServiceApi {
                         
                     }else{
                         MessageDescription msg = new MessageDescription();
-                        msg.setMessage("No build version found for given project name");
+                        msg.setMessage("No Project found with gven name");
                         warnings.add(msg);
 				        response.setWarnings(warnings);                        
                         return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
