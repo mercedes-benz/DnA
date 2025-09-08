@@ -11,6 +11,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import com.daimler.data.controller.exceptions.GenericMessage;
@@ -678,7 +679,21 @@ public class CodeServerClient {
 				}
 			}
 			
-		} catch (Exception e) {
+		}catch(HttpClientErrorException ex){
+			if(ex.getRawStatusCode() == 404){
+				String responseBody = ex.getResponseBodyAsString();
+				if (responseBody != null && responseBody.contains(projectName+":"+version)) {
+            		status = "SUCCESS";
+					log.info("Success while performing delete build action for codeServer projectName {} version {}",projectName,version);
+        		}
+			}else{
+				log.error("Failure while performing delete build action for codeServer projectName {} version {} with exception {}",projectName,version,ex.getMessage());
+			MessageDescription error = new MessageDescription();
+			error.setMessage("Failure while performing delete build action for codeServer projectName "+projectName+" version "+version);
+			errors.add(error);
+			}
+
+		}catch (Exception e) {
 			log.error("Failure while performing delete build action for codeServer projectName {} version {} with exception {}",projectName,version,e.getMessage());
 			MessageDescription error = new MessageDescription();
 			error.setMessage("Failure while performing delete build action for codeServer projectName "+projectName+" version "+version);
