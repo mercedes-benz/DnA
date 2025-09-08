@@ -251,7 +251,7 @@ definitions:
       commitId:
         type: string
         description: "commit id on which codespace is built"
-      isDeleted:
+      imageDeleted:
         type: boolean
         descripion: "deleted status of build"
 

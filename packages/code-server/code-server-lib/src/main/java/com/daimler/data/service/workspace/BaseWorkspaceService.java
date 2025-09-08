@@ -4373,7 +4373,7 @@
 
 					if (intBuildDetails != null) {
 						intBuildDetails.stream().forEach(i ->{
-							if(i.getBuildStatus().equalsIgnoreCase("BUILD_SUCCESS") && !i.isDeleted()){
+							if(i.getBuildStatus().equalsIgnoreCase("BUILD_SUCCESS") && !i.isImageDeleted()){
 								VersioVO version = new VersioVO();
 								version.setVersion(i.getVersion());
 								intVersions.add(version);
@@ -4382,7 +4382,7 @@
 					}
 					if (prodBuildDetails != null) {
 						prodBuildDetails.stream().forEach(i ->{
-							if(i.getBuildStatus().equalsIgnoreCase("BUILD_SUCCESS") && !i.isDeleted()){
+							if(i.getBuildStatus().equalsIgnoreCase("BUILD_SUCCESS") && !i.isImageDeleted()){
 								VersioVO version = new VersioVO();
 								version.setVersion(i.getVersion());
 								prodVersions.add(version);
@@ -4663,12 +4663,12 @@
 							env = "prod";
                              builds = data.getProdBuildAuditLogs();
                         }
-                        if(builds.stream().anyMatch( i -> (i.getVersion().equalsIgnoreCase(version) && !i.isDeleted()))){
+                        if(builds.stream().anyMatch( i -> (i.getVersion().equalsIgnoreCase(version) && !i.isImageDeleted()))){
 							builds.stream().forEach(i ->{
 								if(i.getVersion().equalsIgnoreCase(version)){
 									GenericMessage deleteApiResonse = client.deleteBuild(projectName, version);
 									if(deleteApiResonse.getSuccess().equalsIgnoreCase("SUCCESS")){
-										i.setDeleted(true);
+										i.setImageDeleted(true);
 									}									
 								}
 							});
