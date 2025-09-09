@@ -205,6 +205,9 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 	@Value("${fabricWorkspaces.defaultFolders}")
 	private String[] defaultFolders;
 
+	@Value("${fabricWorkspaces.userRemoval.ignorePatterns}")
+	private String[] userRemovalIgnorePatterns;
+
 	public BaseFabricWorkspaceService() {
 		super();
 	}
@@ -1249,7 +1252,8 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 			for(AddGroupDto userGroupDetail : usersGroupsCollection.getValue()) {
 				if(userGroupDetail!=null && !ConstantsUtility.GROUPPRINCIPAL_APP_TYPE.equalsIgnoreCase(userGroupDetail.getPrincipalType())) {
 					if(ConstantsUtility.GROUPPRINCIPAL_USER_TYPE.equalsIgnoreCase(userGroupDetail.getPrincipalType())) {
-						if(!userGroupDetail.getIdentifier().toLowerCase().contains(creatorId.toLowerCase()+"@")) {
+						if(!userGroupDetail.getIdentifier().toLowerCase().contains(creatorId.toLowerCase()+"@")
+						&& Arrays.stream(userRemovalIgnorePatterns).noneMatch(pattern -> userGroupDetail.getIdentifier().toLowerCase().contains(pattern.toLowerCase()))) {
 							fabricWorkspaceClient.removeUserGroup(workspaceId, userGroupDetail.getIdentifier());
 						}
 					}
