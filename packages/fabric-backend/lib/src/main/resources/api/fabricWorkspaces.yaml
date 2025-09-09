@@ -563,7 +563,12 @@ definitions:
         $ref: "#/definitions/LeanIXDetailsVO"
       userRole:
           type: string
-  
+      projectId:
+          type: string
+      lastModifiedOn:
+          type: string
+          format: date
+
   FabricWorkspaceStatusVO:
     type: object
     properties:
