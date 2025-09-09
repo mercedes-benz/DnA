@@ -1498,6 +1498,7 @@ export interface IPipelineProjectDetail {
   projectId: string;
   projectName: string;
   projectDescription: string;
+  createdBy: string;
   isOwner: boolean;
   dags: IPipelineProjectDag[];
   permission: boolean;
