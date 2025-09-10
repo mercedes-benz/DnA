@@ -1346,7 +1346,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 	}
 	
 	@Override
-	public void setPolicy(String userOrGroupName, boolean isGroup, String policyName) {
+	public void setPolicy(String userOrGroupName, boolean isGroup, String policyName, boolean isaddPolicy) {
 		// Getting MinioAdminClient from config
 		MinioAdminClient minioAdminClient = minioConfig.getMinioAdminClient();
 		LOGGER.debug("Fetching users from cache.");
@@ -1355,9 +1355,18 @@ public class DnaMinioClientImp implements DnaMinioClient {
 			LOGGER.debug("Updating policy for user:{}", userOrGroupName);
 			// minioAdminClient.setPolicy(userOrGroupName, isGroup, policyName);
 			// LOGGER.info("Success from minio set policy");
-			String policyResponse = this.attachPolicyToUser(userOrGroupName, policyName, true);
-			LOGGER.info("mc attach policy response: "+ policyResponse);
-
+			if(isaddPolicy){
+				for(String policy : policyName.split(",")){
+					String policyResponse = this.attachPolicyToUser(userOrGroupName, policy, true);
+					LOGGER.info("mc attach policy response: "+ policyResponse);
+				}
+			}
+			else{
+				for(String policy : policyName.split(",")){
+					String policyResponse = this.detachPolicyFromUser(userOrGroupName, policy, false);
+					LOGGER.info("mc detach policy response: "+ policyResponse);
+				}
+			}
 			// updating cache
 			UserInfo userInfo = users.get(userOrGroupName);
 			UserInfo userInfoTemp = new UserInfo(userInfo.status(), userInfo.secretKey(), policyName,
