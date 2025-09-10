@@ -106,10 +106,10 @@ ingress:
       secretName: data-product-be-tls
 resources:
   requests:
-    memory: 1093Mi
+    memory: 1593Mi
     cpu: 38m
   limits:
-    memory: 1093Mi
+    memory: 1593Mi
 nodeSelector: {}
 tolerations: []
 affinity: {}
