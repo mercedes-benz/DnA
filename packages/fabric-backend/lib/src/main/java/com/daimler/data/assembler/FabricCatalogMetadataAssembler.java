@@ -22,7 +22,7 @@ import com.daimler.data.dto.fabricCatalogManagement.SchemaMetadataVO;
 import com.daimler.data.dto.fabricCatalogManagement.TableMetadataVO;
 import com.daimler.data.dto.fabricCatalogManagement.ColumnMetadataVO;
 import com.daimler.data.dto.fabricCatalogManagement.MandatoryFieldsVO;
-import com.daimler.data.dto.fabricCatalogManagement.MandatoryFieldsVO.DivisionEnum;
+import com.daimler.data.dto.fabricCatalogManagement.MandatoryFieldsVO.DivisionsEnum;
 import com.daimler.data.dto.fabricCatalogManagement.MandatoryFieldsVO.DataOriginEnum;
 import com.daimler.data.dto.fabricCatalogManagement.MandatoryFieldsVO.IsDocumentationUpdatedEnum;
 import com.daimler.data.dto.fabricCatalogManagement.MandatoryFieldsVO.IsDataLakeAvailabilityEnum;
@@ -38,20 +38,20 @@ public class FabricCatalogMetadataAssembler implements GenericAssembler<FabricCa
         FabricCatalogMetadataNsql entity = new FabricCatalogMetadataNsql();
         FabricCatalogMetadataDetails data = new FabricCatalogMetadataDetails();
         FabricCatalogMetadata metadata = new FabricCatalogMetadata();
-		if (vo != null) {
-            if(vo.getId() != null) {
+        if (vo != null) {
+            if (vo.getId() != null) {
                 entity.setId(vo.getId());
             }
-            if(vo.getMetadata() != null) {
+            if (vo.getMetadata() != null) {
                 FabricCatalogMetadataVO metadataVO = vo.getMetadata();
-				metadata.setServiceName(metadataVO.getServiceName());
+                metadata.setServiceName(metadataVO.getServiceName());
 
                 List<Databases> dbEntities = new ArrayList<>();
                 if (metadataVO.getDatabases() != null) {
                     for (DatabaseMetadataVO dbVo : metadataVO.getDatabases()) {
                         Databases dbEntity = new Databases();
                         dbEntity.setDatabaseName(dbVo.getDbName());
-
+                        dbEntity.setDescription(dbVo.getDescription());
                         List<Schemas> schemaEntities = new ArrayList<>();
                         if (dbVo.getSchemas() != null) {
                             for (SchemaMetadataVO schemaVo : dbVo.getSchemas()) {
@@ -83,21 +83,23 @@ public class FabricCatalogMetadataAssembler implements GenericAssembler<FabricCa
                     }
                 }
                 metadata.setDatabases(dbEntities);
-                
             }
             data.setMetadata(metadata);
+
             List<UserDetails> owners = new ArrayList<>();
-            if(vo.getOwners() != null) {
+            if (vo.getOwners() != null) {
                 List<CreatedByVO> ownersDetails = vo.getOwners();
                 owners = ownersDetails.stream()
                         .map(this::toUserDetails)
                         .collect(Collectors.toList());
             }
             data.setOwners(owners);
+
             MandatoryFields mandatoryFields = new MandatoryFields();
-            if(vo.getMandatoryFields()!=null){
-                 MandatoryFieldsVO voMandatoryFields = vo.getMandatoryFields();
-                mandatoryFields.setDivision(voMandatoryFields.getDivision() != null ? voMandatoryFields.getDivision().name() : null);
+            if (vo.getMandatoryFields() != null) {
+                MandatoryFieldsVO voMandatoryFields = vo.getMandatoryFields();
+                mandatoryFields.setDivisions(voMandatoryFields.getDivisions() != null ?
+                        voMandatoryFields.getDivisions().stream().map(Enum::name).collect(Collectors.toList()) : null);
                 mandatoryFields.setDepartment(voMandatoryFields.getDepartment());
                 mandatoryFields.setDataOrigin(voMandatoryFields.getDataOrigin() != null ? voMandatoryFields.getDataOrigin().name() : null);
                 mandatoryFields.setLeanIXId(voMandatoryFields.getLeanIXId());
@@ -116,21 +118,21 @@ public class FabricCatalogMetadataAssembler implements GenericAssembler<FabricCa
         FabricCatalogMetadataDetailsVO vo = new FabricCatalogMetadataDetailsVO();
         FabricCatalogMetadataVO metadataVO = new FabricCatalogMetadataVO();
 
-		if (entity != null) {
+        if (entity != null) {
             if (entity.getId() != null) {
                 vo.setId(entity.getId());
             }
             FabricCatalogMetadataDetails metadataDetails = entity.getData();
             if (metadataDetails != null) {
-                    FabricCatalogMetadata metadata = metadataDetails.getMetadata();
-                    metadataVO.setServiceName(metadata.getServiceName());
+                FabricCatalogMetadata metadata = metadataDetails.getMetadata();
+                metadataVO.setServiceName(metadata.getServiceName());
 
                 List<DatabaseMetadataVO> dbVos = new ArrayList<>();
                 if (metadata.getDatabases() != null) {
                     for (Databases dbEntity : metadata.getDatabases()) {
                         DatabaseMetadataVO dbVo = new DatabaseMetadataVO();
                         dbVo.setDbName(dbEntity.getDatabaseName());
-
+                        dbVo.setDescription(dbEntity.getDescription());
                         List<SchemaMetadataVO> schemaVos = new ArrayList<>();
                         if (dbEntity.getSchemas() != null) {
                             for (Schemas schemaEntity : dbEntity.getSchemas()) {
@@ -168,18 +170,19 @@ public class FabricCatalogMetadataAssembler implements GenericAssembler<FabricCa
             vo.setMetadata(metadataVO);
 
             List<CreatedByVO> owners = new ArrayList<>();
-            if(metadataDetails.getOwners() != null) {
+            if (metadataDetails.getOwners() != null) {
                 List<UserDetails> ownerDetails = metadataDetails.getOwners();
                 owners = ownerDetails.stream()
                         .map(this::toCreatedByVO)
                         .collect(Collectors.toList());
-                
             }
             vo.setOwners(owners);
+
             MandatoryFields mandatoryFields = metadataDetails.getMandatoryFields();
             MandatoryFieldsVO mandatoryFieldsVO = new MandatoryFieldsVO();
-            if(mandatoryFields!=null){
-                mandatoryFieldsVO.setDivision(mandatoryFields.getDivision() != null ? DivisionEnum.valueOf(mandatoryFields.getDivision()) : null);
+            if (mandatoryFields != null) {
+                mandatoryFieldsVO.setDivisions(mandatoryFields.getDivisions() != null ?
+                        mandatoryFields.getDivisions().stream().map(DivisionsEnum::valueOf).collect(Collectors.toList()) : null);
                 mandatoryFieldsVO.setDepartment(mandatoryFields.getDepartment());
                 mandatoryFieldsVO.setDataOrigin(mandatoryFields.getDataOrigin() != null ? DataOriginEnum.valueOf(mandatoryFields.getDataOrigin()) : null);
                 mandatoryFieldsVO.setLeanIXId(mandatoryFields.getLeanIXId());
@@ -189,10 +192,9 @@ public class FabricCatalogMetadataAssembler implements GenericAssembler<FabricCa
                 mandatoryFieldsVO.setDataConfidentiality(mandatoryFields.getDataConfidentiality() != null ? DataConfidentialityEnum.valueOf(mandatoryFields.getDataConfidentiality()) : null);
             }
             vo.setMandatoryFields(mandatoryFieldsVO);
-            
-		}
-		return vo;
-	}
+        }
+        return vo;
+    }
 
     public UserDetails toUserDetails(CreatedByVO createdBy) {
 		UserDetails userDetails = new UserDetails();

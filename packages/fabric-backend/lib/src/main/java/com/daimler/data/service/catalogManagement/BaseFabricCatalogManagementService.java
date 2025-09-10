@@ -236,14 +236,16 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
         
         DatabaseService databaseService = openMetadataClient.createDatabaseService(
                 existingFabricWorkspace.getName(),
-                ownerReferences);
+                ownerReferences,
+                existingFabricWorkspace.getDescription());
 
         for (DatabaseMetadataVO dbMetadata : request.getMetadata().getDatabases()) {
             Database database = openMetadataClient.createDatabase(
                     dbMetadata.getDbName(),
                     existingFabricWorkspace.getName(), 
                     request.getMandatoryFields(),
-                    ownerReferences);
+                    ownerReferences,
+                    dbMetadata.getDescription());
                     
             for (SchemaMetadataVO schemaMetadata : dbMetadata.getSchemas()) {
                 String schemaFqn = OpenMetadataFqnBuilder.build(
@@ -548,6 +550,8 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
             .name(service.getName())
             .serviceType(CreateDatabaseService.ServiceTypeEnum.DATALAKE)
             .connection(service.getConnection())
+            .tags(service.getTags())
+            .description(service.getDescription())
             .owners(newOwners);
         
         openMetadataClient.updateDatabaseService(updateRequest);
@@ -572,7 +576,8 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
 					dbMetadata.getDbName(),
 					serviceName,
 					fields,
-					ownerReferences);
+					ownerReferences,
+                    dbMetadata.getDescription());
 				
 				// Set the new ID back to the metadata
 				dbMetadata.setDbId(database.getId().toString());
