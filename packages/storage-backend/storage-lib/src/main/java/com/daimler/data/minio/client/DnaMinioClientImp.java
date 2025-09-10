@@ -835,7 +835,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 
 			} else {
 				// to build policies as comma separated
-			//	String commaSeparatedPolicies = policies.stream().collect(Collectors.joining(","));
+				String commaSeparatedPolicies = policies.stream().collect(Collectors.joining(","));
 
 				userSecretKey = vaultConfig.validateUserInVault(userId);
 				if (!StringUtils.hasText(userSecretKey)) {
