@@ -17,6 +17,5 @@ public class FabricCatalogMetadata implements Serializable{
     private static final long serialVersionUID = 1L;
 
     private String serviceName;
-    private String description;
     private List<Databases> databases;
 }

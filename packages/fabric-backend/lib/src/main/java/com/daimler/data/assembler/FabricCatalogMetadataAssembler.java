@@ -51,7 +51,7 @@ public class FabricCatalogMetadataAssembler implements GenericAssembler<FabricCa
                     for (DatabaseMetadataVO dbVo : metadataVO.getDatabases()) {
                         Databases dbEntity = new Databases();
                         dbEntity.setDatabaseName(dbVo.getDbName());
-
+                        dbEntity.setDescription(dbVo.getDescription());
                         List<Schemas> schemaEntities = new ArrayList<>();
                         if (dbVo.getSchemas() != null) {
                             for (SchemaMetadataVO schemaVo : dbVo.getSchemas()) {
@@ -132,7 +132,7 @@ public class FabricCatalogMetadataAssembler implements GenericAssembler<FabricCa
                     for (Databases dbEntity : metadata.getDatabases()) {
                         DatabaseMetadataVO dbVo = new DatabaseMetadataVO();
                         dbVo.setDbName(dbEntity.getDatabaseName());
-
+                        dbVo.setDescription(dbEntity.getDescription());
                         List<SchemaMetadataVO> schemaVos = new ArrayList<>();
                         if (dbEntity.getSchemas() != null) {
                             for (Schemas schemaEntity : dbEntity.getSchemas()) {

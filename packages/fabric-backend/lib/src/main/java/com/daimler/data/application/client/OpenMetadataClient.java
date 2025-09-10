@@ -107,15 +107,20 @@ public class OpenMetadataClient {
             CreateDatabaseService request = new CreateDatabaseService()
                     .name(name)
                     .description(description)
+                    .tags(List.of(
+                        prepareTag("Application.Fabric"),
+                        prepareTag("alationTags.Loc_Group_RoW"),
+                        prepareTag("Tier.Tier1")
+                    ))
                     .serviceType(CreateDatabaseService.ServiceTypeEnum.DATALAKE);
 
 
             DatabaseConnection connection = new DatabaseConnection();
             connection.setConfig(new DatalakeConnection()
                     .withSupportsMetadataExtraction(true)
-                    .withBucketName("Fabric")
-                    .withDatabaseName("Fabric")
-                    .withPrefix("Fabric"));
+                    .withBucketName(name)
+                    .withDatabaseName("Lakehouses")
+                    .withPrefix("DNA-Fabric"));
             request.setConnection(connection);
             request.setOwners(owners);
 

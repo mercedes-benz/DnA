@@ -550,6 +550,8 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
             .name(service.getName())
             .serviceType(CreateDatabaseService.ServiceTypeEnum.DATALAKE)
             .connection(service.getConnection())
+            .tags(service.getTags())
+            .description(service.getDescription())
             .owners(newOwners);
         
         openMetadataClient.updateDatabaseService(updateRequest);
