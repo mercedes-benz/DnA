@@ -813,7 +813,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 				}
 				// Adding new policies to existing one
 				for (String policy : policies) {
-					String policyResponse = this.attachPolicyToUser(userId, policy, true);
+					String policyResponse = this.attachPolicyToUser(userId, policy, false);
 					try {
 						TimeUnit.SECONDS.sleep(5);
 					} catch (InterruptedException e) {
@@ -851,7 +851,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 				LOGGER.debug("Setting policy for user:{}", userId);
 				//minioAdminClient.setPolicy(userId, false, commaSeparatedPolicies);
 				for (String policy : policies) {
-					String policyResponse = this.attachPolicyToUser(userId, policy, true);
+					String policyResponse = this.attachPolicyToUser(userId, policy, false);
 					LOGGER.info("mc attach policy response: "+ policyResponse);
 				}
 
@@ -1357,7 +1357,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 			// LOGGER.info("Success from minio set policy");
 			if(isaddPolicy){
 				for(String policy : policyName.split(",")){
-					String policyResponse = this.attachPolicyToUser(userOrGroupName, policy, true);
+					String policyResponse = this.attachPolicyToUser(userOrGroupName, policy, false);
 					LOGGER.info("mc attach policy response: "+ policyResponse);
 				}
 			}
