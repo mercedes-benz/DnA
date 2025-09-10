@@ -1453,7 +1453,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 
 			if (policyExitCode != 0) {
 				LOGGER.error("Failed to attach policy. Exit code: {}", policyExitCode);
-				return "Failed to attach policy.";
+				return "Failed to attach policy. with mc error: " + output.toString();
 			}
 
 			return "Policy attached successfully to user: " + userId;
