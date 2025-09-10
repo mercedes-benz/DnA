@@ -44,10 +44,10 @@ ingress:
       secretName: api-matomo-tls-secret
 resources:
   requests:
-    memory: 380Mi
+    memory: 480Mi
     cpu: 2m
   limits:
-    memory: 380Mi
+    memory: 480Mi
 autoscaling:
   enabled: false
   minReplicas: 1

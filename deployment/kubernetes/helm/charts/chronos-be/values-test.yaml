@@ -81,10 +81,10 @@ ingress:
   tls: null
 resources:
   requests:
-    memory: 963Mi
+    memory: 663Mi
     cpu: 4m
   limits:
-    memory: 963Mi
+    memory: 663Mi
 autoscaling:
   enabled: false
   minReplicas: 1
