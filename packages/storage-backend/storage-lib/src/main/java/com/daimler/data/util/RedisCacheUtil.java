@@ -55,6 +55,7 @@ public class RedisCacheUtil {
 	
 	public void updateCache(String cacheName, Map<String, UserInfo> users) {
 		LOGGER.info("Updating cache:{}",cacheName);
+		System.out.println("users in cache util: "+users);
 		this.getCache(cacheName).put("users", users);
 	}
 

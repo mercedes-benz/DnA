@@ -814,11 +814,6 @@ public class DnaMinioClientImp implements DnaMinioClient {
 				// Adding new policies to existing one
 				for (String policy : policies) {
 					String policyResponse = this.attachPolicyToUser(userId, policy, false);
-					try {
-						TimeUnit.SECONDS.sleep(5);
-					} catch (InterruptedException e) {
-						LOGGER.error("Policy attachment interrupted: " + e.getMessage());
-					}  
 					LOGGER.info("mc attach policy response: "+ policyResponse);
 					existingPolicy = StorageUtility.addPolicy(existingPolicy, policy);
 				}
@@ -844,6 +839,9 @@ public class DnaMinioClientImp implements DnaMinioClient {
 					userSecretKey = UUID.randomUUID().toString();
 				}
 
+				LOGGER.debug("Adding user: {} credentials to vault",userId);
+				vaultConfig.addUserVault(userId, userSecretKey);
+
 				LOGGER.info("Onboarding user:{} to minio", userId);
 				minioAdminClient.addUser(userId, Status.ENABLED, userSecretKey, commaSeparatedPolicies, null);
 
@@ -854,9 +852,6 @@ public class DnaMinioClientImp implements DnaMinioClient {
 					String policyResponse = this.attachPolicyToUser(userId, policy, false);
 					LOGGER.info("mc attach policy response: "+ policyResponse);
 				}
-
-				LOGGER.debug("Adding user: {} credentials to vault",userId);
-				vaultConfig.addUserVault(userId, userSecretKey);
 
 				LOGGER.info("User:{} Onboarded successfully.", userId);
 				minioResponse.setStatus(ConstantsUtility.SUCCESS);
