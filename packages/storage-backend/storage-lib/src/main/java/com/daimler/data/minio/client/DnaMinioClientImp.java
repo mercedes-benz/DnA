@@ -813,7 +813,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 				}
 				// Adding new policies to existing one
 				for (String policy : policies) {
-					String policyResponse = this.attachPolicyToUser(userId, policy, false);
+					String policyResponse = this.attachPolicyToUser(userId, policy, true);
 					try {
 						TimeUnit.SECONDS.sleep(5);
 					} catch (InterruptedException e) {
@@ -835,7 +835,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 
 			} else {
 				// to build policies as comma separated
-				String commaSeparatedPolicies = policies.stream().collect(Collectors.joining(","));
+			//	String commaSeparatedPolicies = policies.stream().collect(Collectors.joining(","));
 
 				userSecretKey = vaultConfig.validateUserInVault(userId);
 				if (!StringUtils.hasText(userSecretKey)) {
@@ -850,8 +850,10 @@ public class DnaMinioClientImp implements DnaMinioClient {
 				// setting policy to user
 				LOGGER.debug("Setting policy for user:{}", userId);
 				//minioAdminClient.setPolicy(userId, false, commaSeparatedPolicies);
-				String policyResponse = this.attachPolicyToUser(userId, commaSeparatedPolicies, false);
-				LOGGER.info("mc attach policy response: "+ policyResponse);
+				for (String policy : policies) {
+					String policyResponse = this.attachPolicyToUser(userId, policy, true);
+					LOGGER.info("mc attach policy response: "+ policyResponse);
+				}
 
 				LOGGER.debug("Adding user: {} credentials to vault",userId);
 				vaultConfig.addUserVault(userId, userSecretKey);
@@ -1353,7 +1355,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 			LOGGER.debug("Updating policy for user:{}", userOrGroupName);
 			// minioAdminClient.setPolicy(userOrGroupName, isGroup, policyName);
 			// LOGGER.info("Success from minio set policy");
-			String policyResponse = this.attachPolicyToUser(userOrGroupName, policyName, false);
+			String policyResponse = this.attachPolicyToUser(userOrGroupName, policyName, true);
 			LOGGER.info("mc attach policy response: "+ policyResponse);
 
 			// updating cache
