@@ -25,4 +25,6 @@ public interface WorkspaceCustomRecipeRepo extends CommonDataRepository<CodeServ
 
     String findBySoftwareName(String addInfo);
 
+    Integer getTotalCount(String user);
+
 }

@@ -213,7 +213,9 @@ public class RecipeController implements CodeServerRecipeApi {
 				for (RecipeVO recipe : allRecipes) {
 					recipeCollectionVO.addDataItem(recipe);
 				}
-				recipeCollectionVO.setCount(allRecipes.size());
+				Integer count = service.getTotalCount(id);
+				recipeCollectionVO.setCount(count);
+				// recipeCollectionVO.setCount(allRecipes.size());
 				// recipeCollectionVO.setSuccess("SUCCESS");
 				return new ResponseEntity<>(recipeCollectionVO, HttpStatus.OK);
 			} else {
