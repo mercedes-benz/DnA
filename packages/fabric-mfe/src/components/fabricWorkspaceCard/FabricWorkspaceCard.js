@@ -94,7 +94,8 @@ const FabricWorkspaceCard = ({user, workspace, onSelectWorkspace, onEditWorkspac
     history.push(`/workspace/${workspace?.id}`);
   }
 
-  const userRoles = workspace?.userRole;
+  const userRole = workspace?.userRole;
+  const isOwner = user?.id === workspace?.createdBy?.id;
 
   return (
     <>
@@ -137,13 +138,15 @@ const FabricWorkspaceCard = ({user, workspace, onSelectWorkspace, onEditWorkspac
           </div>
           <div>
             <div>Role</div>
-            <div>{userRoles}
+              <div>{userRole}
+                {isOwner && (
              <i
                 className="icon mbc-icon comparison"
                 tooltip-data="Transfer Ownership"
                 onClick={() => setShowTransferOwnershipModal(true)}
                 style={{ cursor: 'pointer', marginLeft: '6px' }}
               />
+                )}
             </div>
           </div>
           <div>
