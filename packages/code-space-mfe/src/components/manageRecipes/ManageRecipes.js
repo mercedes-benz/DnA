@@ -1,5 +1,5 @@
 import classNames from 'classnames';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useHistory } from 'react-router-dom';
 import Styles from './ManageRecipes.scss';
 import { CodeSpaceApiClient } from '../../apis/codespace.api';
@@ -17,26 +17,26 @@ import { regionalDateAndTimeConversionSolution } from '../../Utility/utils';
 import ViewRecipe from '../codeSpaceRecipe/ViewRecipe';
 import RecipeCard from '../recipeCard/RecipeCard';
 import { USER_ROLE } from '../../Utility/constants';
-
+ 
 const ManageRecipes = ({ user }) => {
   const history = useHistory();
-
+ 
   const isAdmin = user.roles.find((role) => role.id === USER_ROLE.CODESPACEADMIN) !== undefined;
-
+ 
   const [loading, setLoading] = useState(true);
   const [recipes, setRecipes] = useState([]);
-
+ 
   const listViewSelected = sessionStorage.getItem('storageListViewModeEnable') || false;
   const [cardViewMode, setCardViewMode] = useState(!listViewSelected);
   const [listViewMode, setListViewMode] = useState(listViewSelected);
   const [showDetailsModal, setShowDetailsModal] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [selectedRecipe, setSelectedRecipe] = useState({});
-
+ 
   useEffect(() => {
     Tooltip.defaultSetup();
   }, []);
-
+ 
   // pagination
   const [totalNumberOfPages, setTotalNumberOfPages] = useState(1);
   const [currentPageNumber, setCurrentPageNumber] = useState(1);
@@ -45,22 +45,24 @@ const ManageRecipes = ({ user }) => {
     parseInt(sessionStorage.getItem(SESSION_STORAGE_KEYS.PAGINATION_MAX_ITEMS_PER_PAGE), 10) || 15,
   );
   const [sortBy, setSortBy] = useState({ name: 'requestedDate', currentSortType: 'desc', nextSortType: 'asc' });
-
+ 
   useEffect(() => {
     const pageNumberOnQuery = getQueryParameterByName('page');
     const currentPageNumberInit = pageNumberOnQuery ? parseInt(getQueryParameterByName('page'), 10) : 1;
-    const currentPageOffsetInit = pageNumberOnQuery ? (currentPageNumber - 1) * maxItemsPerPage : 0;
+    const currentPageOffsetInit = pageNumberOnQuery
+      ? (currentPageNumberInit - 1) * maxItemsPerPage
+      : 0;
     setCurrentPageNumber(currentPageNumberInit);
     setCurrentPageOffset(currentPageOffsetInit);
-  }, [currentPageNumber, maxItemsPerPage]);
-
+  }, [maxItemsPerPage]);
+ 
   const onPaginationPreviousClick = () => {
     const currentPageNum = currentPageNumber - 1;
     const currentPageOffsetInner = (currentPageNum - 1) * maxItemsPerPage;
     setCurrentPageNumber(currentPageNum);
     setCurrentPageOffset(currentPageOffsetInner);
   };
-
+ 
   const onPaginationNextClick = async () => {
     let currentPageNum = currentPageNumber;
     const currentPageOffsetInner = currentPageNum * maxItemsPerPage;
@@ -68,20 +70,20 @@ const ManageRecipes = ({ user }) => {
     currentPageNum = currentPageNum + 1;
     setCurrentPageNumber(currentPageNum);
   };
-
+ 
   const onViewByPageNum = (pageNum) => {
     setCurrentPageNumber(1);
     setCurrentPageOffset(0);
     setMaxItemsPerPage(pageNum);
   };
-
+ 
   useEffect(() => {
     getCodespaceRecipes();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [currentPageOffset, maxItemsPerPage]);
-
+ 
   const [additionalServices, setAdditionalServices] = useState([]);
-
+ 
   useEffect(() => {
     CodeSpaceApiClient.getAdditionalServicesLov()
       .then((response) => {
@@ -97,30 +99,51 @@ const ManageRecipes = ({ user }) => {
         }
       });
   }, []);
-
-  const getCodespaceRecipes = () => {
+ 
+  const progressVisibleRef = useRef(false);
+  const showProgress = () => {
     ProgressIndicator.show();
+    progressVisibleRef.current = true;
+  };
+ 
+  const hideProgress = () => {
+    if (progressVisibleRef.current) {
+      try {
+        ProgressIndicator.hide();
+      } catch (e) {
+        console.warn("ProgressIndicator already removed");
+      }
+      progressVisibleRef.current = false;
+    }
+  };
+ 
+  const getCodespaceRecipes = () => {
+    showProgress();
     setLoading(true);
     CodeSpaceApiClient.getCodeSpaceRecipes()
       .then((res) => {
         setLoading(false);
-        ProgressIndicator.hide();
-        if(Array.isArray(res?.data?.data)) {
+        hideProgress();
+        if (Array.isArray(res?.data?.data)) {
           const totalNumberOfPagesInner = Math.ceil(res?.data?.count / maxItemsPerPage);
-          setCurrentPageNumber(currentPageNumber > totalNumberOfPagesInner ? 1 : currentPageNumber);
+          setCurrentPageNumber((prev) => (prev > totalNumberOfPagesInner ? 1 : prev));
           setTotalNumberOfPages(totalNumberOfPagesInner);
-          setRecipes(res?.data?.data);
+          const paginatedData = res.data.data.slice(
+            currentPageOffset,
+            currentPageOffset + maxItemsPerPage
+          );
+          setRecipes(paginatedData);
         } else {
           setRecipes([]);
         }
       })
       .catch((err) => {
         setLoading(false);
-        ProgressIndicator.hide();
+        hideProgress();
         Notification.show(err?.message || 'Something went wrong.', 'alert');
       });
   };
-
+ 
   const sortByColumn = (propName, sortOrder) => {
     if (!propName && !sortOrder) {
       propName = 'requestedDate';
@@ -138,7 +161,7 @@ const ManageRecipes = ({ user }) => {
       const timeParts = parts[1].split(':');
       return new Date(dateParts[2], dateParts[1] - 1, dateParts[0], timeParts[0], timeParts[1], timeParts[2]);
     };
-
+ 
     let data = recipes;
     if (propName === 'recipeName') {
       data = data.sort((a, b) => {
@@ -179,22 +202,23 @@ const ManageRecipes = ({ user }) => {
 
     setSortBy(newSortField);
   };
-
+ 
   const handleRecipeDelete = () => {
-    ProgressIndicator.show();
+    showProgress();
     CodeSpaceApiClient.deleteCodeSpaceRecipe(selectedRecipe?.id)
       .then(() => {
-        ProgressIndicator.hide();
+        hideProgress();
         Notification.show("Recipe Deleted Successfully");
         setShowDeleteModal(false);
         getCodespaceRecipes();
-      }).catch((err) => {
-        ProgressIndicator.hide();
+      })
+      .catch((err) => {
+        hideProgress();
         Notification.show(err?.response?.data?.errors[0]?.message, 'alert');
       });
-  }
-
-  return (
+  };
+ 
+ return (
     <>
       <div className={Styles.mainPanel}>
         <div className={Styles.wrapper}>
