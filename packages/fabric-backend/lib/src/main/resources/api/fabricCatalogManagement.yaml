@@ -215,10 +215,13 @@ definitions:
     required:
       - dbId
       - dbName
+      - description
     properties:
       dbName:
         type: string
       dbId:
+        type: string
+      description:
         type: string
       schemas:
         type: array
@@ -279,7 +282,7 @@ definitions:
   MandatoryFieldsVO:
     type: object
     required:
-      - division
+      - divisions
       - department
       - dataOrigin
       - leanIXId
@@ -288,9 +291,11 @@ definitions:
       - isDataAsset
       - dataConfidentiality
     properties:
-      division:
-        type: string
-        enum: ["Daimler Buses","Daimler Trucks","Mercedes-Benz Cars","Mercedes-Benz Mobility","Mercedes-Benz Vans"]
+      divisions:
+        type: array
+        items:
+          type: string
+          enum: ["Daimler Buses","Daimler Trucks","Mercedes-Benz Cars","Mercedes-Benz Mobility","Mercedes-Benz Vans"]
       department:
         type: string
         minLength: 1
