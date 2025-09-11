@@ -125,7 +125,7 @@ podDisruptionBudget:
   minAvailable: 50%
 resources:
   requests:
-    memory: 1039Mi
+    memory: 1239Mi
     cpu: 2m
   limits:
-    memory: 1039Mi
+    memory: 1239Mi
