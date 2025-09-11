@@ -641,6 +641,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 				if(minioObjects!= null && !minioObjects.isEmpty()) {
 					for(MinioObjectMetadata minioObject : minioObjects) {
 						if("/".equalsIgnoreCase(minioObject.getKey()) && "folder".equalsIgnoreCase(minioObject.getType())) {
+							LOGGER.info("Skipping empty folder object for bucket: {}",bucketName);
 							continue;
 						}
 						String key = prefix + minioObject.getKey();
