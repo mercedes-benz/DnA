@@ -129,3 +129,7 @@ resources:
     cpu: 2m
   limits:
     memory: 1239Mi
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 10

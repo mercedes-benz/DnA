@@ -79,10 +79,10 @@ resources:
   limits:
     memory: 790Mi
 autoscaling:
-  enabled: false
-  minReplicas: 1
-  maxReplicas: 100
-  targetCPUUtilizationPercentage: 80
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 10
+  targetMemoryUtilizationPercentage: 70
 nodeSelector: {}
 tolerations: []
 affinity: {}
