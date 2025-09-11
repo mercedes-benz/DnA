@@ -49,10 +49,10 @@ ingress:
       secretName: auth-service-tls
 resources:
   requests:
-    memory: 501Mi
+    memory: 502Mi
     cpu: 10m
   limits:
-    memory: 501Mi
+    memory: 502Mi
 autoscaling:
   enabled: false
   minReplicas: 1
