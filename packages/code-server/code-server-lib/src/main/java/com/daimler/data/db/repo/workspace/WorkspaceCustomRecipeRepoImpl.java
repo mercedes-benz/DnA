@@ -257,4 +257,31 @@ public class WorkspaceCustomRecipeRepoImpl extends CommonDataRepositoryImpl<Code
 	// 	}
     //     return updateResponse;
     // }
+
+    @Override
+    public Integer getTotalCount(String id) {
+
+        CriteriaBuilder cb = em.getCriteriaBuilder();
+        CriteriaQuery<Long> cq = cb.createQuery(Long.class);
+        Root<CodeServerRecipeNsql> root = cq.from(CodeServerRecipeNsql.class);
+
+        Predicate con = cb.equal(
+                cb.lower(
+                        cb.function(
+                                "jsonb_extract_path_text",
+                                String.class,
+                                root.get("data"),
+                                cb.literal("createdBy"),
+                                cb.literal("id"))),
+                id.toLowerCase());
+
+        cq.select(cb.count(root));
+        cq.where(con);
+
+        TypedQuery<Long> countQuery = em.createQuery(cq);
+        Long totalCount = countQuery.getSingleResult();
+
+        return totalCount.intValue();
+
+    }
 }
