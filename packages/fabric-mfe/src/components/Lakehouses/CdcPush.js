@@ -1,6 +1,6 @@
 import classNames from 'classnames';
 import React, { useState, useEffect, useCallback} from 'react';
-import Styles from './lakehouses.scss';
+import Styles from './CdcPush.scss';
 import SelectBox from 'dna-container/SelectBox';
 import Tooltip from '../../common/modules/uilab/js/src/tooltip';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
@@ -20,11 +20,12 @@ export const buildCdcPayload = ({
   selectedTables,
   columnsByTable,
   tables,
-  division,
+  divisions,
   dataOrigin,
   isDataLakeAvailability,
   isDocumentationUpdated,
   isDataAsset,
+  description,
   workspaceCreator
 }) => {
   const dbName = lakehouseName;
@@ -77,17 +78,19 @@ export const buildCdcPayload = ({
     metadata: {
       serviceName: workspaceMetadata.name,
       serviceId: null,
+      description: workspaceMetadata.description,
       databases: [
         {
           dbName,
           dbId: lakehouseId,
-          schemas
+          schemas,
+          description: description || ""
         }
       ]
     },
     workspaceId,
     mandatoryFields: {
-      division: division || "",
+      divisions: divisions || [],
       department: workspaceMetadata?.department || "",
       dataOrigin: dataOrigin || "",
       isDataLakeAvailability: isDataLakeAvailability ? "Yes" : "No",
@@ -114,10 +117,17 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName }) => 
   const [isDataLakeAvailability, setIsDataLakeAvailability] = useState(true);
   const [workspaceMetadata, setWorkspaceMetadata] = useState(null);
   const [workspaceCreator, setWorkspaceCreator] = useState(null);
+  const [description, setDescription] = useState(null);
+  const [showCdcLogin, setShowCdcLogin] = useState(false);
 
 
   const methods = useForm();
-  const { setValue, handleSubmit } = methods;
+  const { 
+    setValue, 
+    handleSubmit, 
+    register, 
+    formState: { errors }
+  } = methods;
 
 
   const [dataOriginError, setDataOriginError] = useState('');
@@ -309,16 +319,14 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName }) => 
       selectedColumns,
       columnsByTable,
       tables,
-      dataOrigin: (dataOrigin || '').toLowerCase(), 
-      division: division, 
+      dataOrigin: (dataOrigin || '').toLowerCase(),
+      divisions: division || [],
       isDataAsset,
       isDocumentationUpdated,
       isDataLakeAvailability,
+      description,
       workspaceCreator
     });
-
-    // console.log("CDC Payload to be sent:");
-    // console.log(JSON.stringify(payload, null, 2));
 
     ProgressIndicator.show();
     fabricApi.pushSelectedTables(workspaceId, payload)
@@ -328,6 +336,12 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName }) => 
       })
       .catch((e) => {
         ProgressIndicator.hide();
+
+        if (e?.response?.status === 403) {
+          Notification.show("Forbidden: User Info not found in CDC", "alert");
+          setShowCdcLogin(true);
+          return;
+        }
 
         const backendMessage =
           e?.response?.data?.responses?.errors?.[0]?.message ||
@@ -350,6 +364,7 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName }) => 
     isDataAsset,
     isDocumentationUpdated,
     isDataLakeAvailability,
+    description,
     workspaceCreator,
   ]);
 
@@ -410,15 +425,17 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName }) => 
               <div className={classNames('custom-select')}>
                 <select
                   id="divisionField"
-                  defaultValue={division}
+                  multiple={true}
+                  // defaultValue={division}
                   onChange={(e) => {
-                    setDivision(e.target.value);
+                    const values = Array.from(e.target.selectedOptions, opt => opt.value);
+                    setDivision(values);
                     if (divisionError) setDivisionError(""); 
                   }}
                 >
-                  <option id="divisionOption" value={0}>
+                  {/* <option id="divisionOption" value={0}>
                     Choose
-                  </option>
+                  </option> */}
                   {DIVISIONS.map((name, index) => (
                     <option key={index} value={name}>
                       {name}
@@ -554,6 +571,23 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName }) => 
           <div className={Styles.col3}></div>
         </div>
 
+        <div className={Styles.col}>
+          <div className={classNames('input-field-group include-error area', errors.description ? 'error' : '')}>
+            <label id="description" className="input-label" htmlFor="description">
+              Description <sup>*</sup>
+            </label>
+            <textarea
+              id="description"
+              className={'input-field-area'}
+              type="text"
+              defaultValue={description}
+              rows={50}
+              {...register('description', { required: '*Missing entry', pattern: /^(?!\s+$)(\s*\S+\s*)+$/, onChange: (e) => { setDescription(e.target.value) } })}
+            />
+            <span className={'error-message'}>{errors?.description?.message}{errors.description?.type === 'pattern' && `Spaces (and special characters) not allowed as field value.`}</span>
+          </div>
+        </div>  
+
       <div className={Styles.tableRow}>
         <div className={Styles.checkboxWrapper}>
           <label className="checkbox" style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -670,17 +704,25 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName }) => 
           Push
         </button>
       </div>
-      
-      <div className={Styles.pushButtonContainer}> 
-        <button 
-          className="btn btn-tertiary" 
-          type="button" 
-          onClick={() => window.open(`${Envs.CDC_URL}`, "_blank", "noopener,noreferrer")}
-        >
-          Onboard To Cdc
-        </button>
-      </div>
 
+        {showCdcLogin && (
+          <div className={Styles.loginCDC}>
+            <div className={Styles.loginCDCtext}>
+              <i className="icon mbc-icon alert circle" />
+              Looks like you have not logged in to CDC application before and because of which
+              you are not allowed to make your push. Hence {" "} {" "}
+              <a
+                href={Envs.CDC_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={Styles.loginCDCLink}
+              >
+                 Login To CDC <i className={`icon mbc-icon new-tab ${Styles.loginIcon}`} />
+              </a>
+              {" "}first and then come back to push your data.
+            </div>
+          </div>
+        )}
     </div>
   );
 }
