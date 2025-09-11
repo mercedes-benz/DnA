@@ -127,6 +127,12 @@ const getLeanIX = (searchTerm) => {
   return dataProductServer.get(`/planningit?searchTerm=${searchTerm}`, { data: {} });
 };
 
+const transferOwnership = (id, data) => {
+   return server.patch(`/fabric-workspaces/${id}/transferOwnership`,
+    data,
+  );
+}
+
 export const fabricApi = {
   getFabricWorkspaces,
   getFabricWorkspace,
@@ -147,4 +153,5 @@ export const fabricApi = {
   getConnectionInfo,
   getLovData,
   getLeanIX,
+  transferOwnership,
 };
