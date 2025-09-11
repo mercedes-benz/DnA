@@ -903,6 +903,60 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 	}
 
 	@Override
+	@ApiOperation(value = "Take ownership of a workspace", nickname = "takeWorkspaceOwnership", notes = "Allows an Admin to take ownership of a workspace. The current owner will lose ownership and all related privileges.", response = GenericMessage.class, tags = {
+			"fabric-workspaces", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "Ownership taken successfully", response = GenericMessage.class),
+			@ApiResponse(code = 400, message = "Bad Request"),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/fabric-workspaces/{id}/takeOwnership", produces = { "application/json" }, consumes = {
+			"application/json" }, method = RequestMethod.PATCH)
+	public ResponseEntity<GenericMessage> takeWorkspaceOwnership(
+			@ApiParam(value = "The ID of the workspace", required = true) @PathVariable("id") String id) {
+		GenericMessage responses = new GenericMessage();
+		List<MessageDescription> errors = new ArrayList<>();
+
+		FabricWorkspaceVO workspaceVo = service.getById(id);
+		if (workspaceVo == null || !id.equalsIgnoreCase(workspaceVo.getId())) {
+			log.warn("No Fabric Workspace found with id {}", id);
+			errors.add(new MessageDescription("Record not found"));
+			responses.setErrors(errors);
+			responses.setSuccess("FAILED");
+			return new ResponseEntity<>(responses, HttpStatus.NOT_FOUND);
+		}
+
+		UserInfo userInfo = this.userStore.getUserInfo();
+
+		DnaRoleCollectionVO roleCollection = service.getAllUserDnaRoles(userInfo.getId());
+		boolean isAdmin = roleCollection != null && roleCollection.getRoles() != null &&
+				roleCollection.getRoles().stream()
+						.anyMatch(role -> "Admin".equalsIgnoreCase(role.getRoleID()));
+
+		if (!isAdmin) {
+			log.warn("User {} is not authorized to take ownership of workspace {}",
+					userInfo.getId(), workspaceVo.getName());
+			errors.add(new MessageDescription("Only Admin users are allowed to take ownership of workspaces."));
+			responses.setErrors(errors);
+			responses.setSuccess("FAILED");
+			return new ResponseEntity<>(responses, HttpStatus.FORBIDDEN);
+		}
+
+		CreatedByVO currentOwner = workspaceVo.getCreatedBy();
+
+		CreatedByVO adminAsNewOwner = new CreatedByVO();
+		adminAsNewOwner.setId(userInfo.getId());
+		adminAsNewOwner.setFirstName(userInfo.getFirstName());
+		adminAsNewOwner.setLastName(userInfo.getLastName());
+		adminAsNewOwner.setEmail(userInfo.getEmail());
+
+		GenericMessage responseMessage = service.transferOwnership(workspaceVo, currentOwner, adminAsNewOwner);
+		return new ResponseEntity<>(responseMessage, HttpStatus.OK);
+	}
+
+	@Override
 	@ApiOperation(value = "get all dna roles for a user.", nickname = "getAllUserDnaRoles", notes = "get all dna roles for a user", response = DnaRoleCollectionVO.class, tags={ "fabric-workspaces", })
     @ApiResponses(value = { 
         @ApiResponse(code = 201, message = "Returns message of succes or failure ", response = DnaRoleCollectionVO.class),
@@ -935,6 +989,8 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 		}
 		
 	}
+
+	
 
 	@Override
 	@ApiOperation(value = "get the role details.", nickname = "getRoleDetails", notes = "get the role details.", response = AuthoriserRoleDetailsResponseVO.class, tags={ "fabric-workspaces", })
