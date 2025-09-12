@@ -37,7 +37,8 @@ export enum SESSION_STORAGE_KEYS {
   LISTVIEW_MODE_ENABLE = 'listViewModeEnable',
   SOLUTION_SORT_VALUES = 'sortingInfo',
   REPORT_SORT_VALUES = 'reportsSortingInfo',
-  ALICE_ROLES_CREATED = 'aliceRolesCreated'
+  ALICE_ROLES_CREATED = 'aliceRolesCreated',
+  CODE_SPACE_SELECTED_GROUPS = 'codeSpaceSelectedGroups'
 }
 
 export enum LOCAL_STORAGE_KEYS {
