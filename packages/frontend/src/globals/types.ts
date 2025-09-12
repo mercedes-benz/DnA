@@ -1493,12 +1493,15 @@ export interface ISubsriptionExpiryObjectData {
   data: ISubsriptionExpiryObject;
 }
 export interface IPipelineProjectDetail {
+  collaborators: any;
   projectStatus: string;
   projectId: string;
   projectName: string;
   projectDescription: string;
+  createdBy: string;
   isOwner: boolean;
   dags: IPipelineProjectDag[];
+  permission: boolean;
 }
 
 export interface IPipelineProjectDag {
@@ -1509,6 +1512,7 @@ export interface IPipelineProjectDag {
   permissions: string[];
   dagId: number;
   active?: boolean;
+  dagEditUrl: string;
 }
 export interface IPipelineProjectDagData {
   data: IPipelineProjectDag;
