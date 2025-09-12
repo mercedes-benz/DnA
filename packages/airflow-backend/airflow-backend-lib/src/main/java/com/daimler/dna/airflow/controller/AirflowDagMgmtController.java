@@ -65,6 +65,8 @@ import com.daimler.dna.airflow.exceptions.MessageDescription;
 import com.daimler.dna.airflow.service.DagMgmtService;
 import com.daimler.dna.airflow.service.DnaProjectServiceImpl;
 import com.daimler.dna.airflow.service.UserService;
+import com.daimler.dna.airflow.client.InternalAirflowClient;
+
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -90,6 +92,10 @@ public class AirflowDagMgmtController implements DagsApi {
 
 	@Autowired
 	private DagMgmtService dagMgmtService;
+
+	@Autowired
+	private InternalAirflowClient internalAirflowClient;
+
 
 //	@Override
 //	public ResponseEntity<AirflowDagResponseVO> createDag(@Valid AirflowProjectRequestVO airflowProjectRequestVO) {
@@ -173,5 +179,30 @@ public class AirflowDagMgmtController implements DagsApi {
 	public ResponseEntity<AirflowDagRetryResponseVO> updatePermission(String dagName, String projectId,
 			@Valid AirflowDagRetryRequestVO airflowRetryDagVo) {
 		return dagMgmtService.updatePermission(dagName, projectId, airflowRetryDagVo.getData());
+	}
+
+	    @ApiOperation(value = "Triggering the dag", nickname = "triggerDag", notes = "Triggers using Dag ID", response = com.daimler.dna.airflow.exceptions.GenericMessage.class, tags={ "dags", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 200, message = "Successfully triggered.", response = com.daimler.dna.airflow.exceptions.GenericMessage.class),
+        @ApiResponse(code = 400, message = "Bad request"),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 404, message = "Invalid id, record not found."),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/dags/{dagName}/run",
+        method = RequestMethod.POST)
+    public ResponseEntity<com.daimler.dna.airflow.exceptions.GenericMessage> triggerDag(@ApiParam(value = "dagId for which it will trigger the Dag",required=true) @PathVariable("dagName") String dagName){
+
+
+GenericMessage response = internalAirflowClient.triggerDag(dagName);
+
+
+if (response.getSuccess() != null && response.getSuccess().contains("Failed")) {
+    return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+}
+
+
+return new ResponseEntity<>(response, HttpStatus.OK);
+
 	}
 }
