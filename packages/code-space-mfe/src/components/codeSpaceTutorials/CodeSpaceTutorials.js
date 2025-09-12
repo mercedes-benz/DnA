@@ -23,7 +23,7 @@ const CodeSpaceTutorials = ({id}) => {
     {
       id: 'deployAndMonitor',
       title: "How to deploy and monitor a Codespace",
-      url: "code-space-tutorials/Deployment and View Log.mp4",
+      url: "code-space-tutorials/how to deploy and monitor a codespace.mp4",
       description: "Deploy the code in stagging or production environment and monitoring the build & deployed application logs."
     },
     {
@@ -79,6 +79,24 @@ const CodeSpaceTutorials = ({id}) => {
       title: "How to migrate your Codespace to AWS",
       url: "code-space-tutorials/Codespace Migration.mp4",
       description: "Steps for migration of your Codespace to DyPCaas AWS "
+    },
+    {
+      id: 'deployapproval',
+      title: "Approval Workflow for Deployment",
+      url: 'code-space-tutorials/Deploy_Approver.mp4',
+      description: "How to enable approval workflow for deployment."
+    },
+    {
+      id: 'codespacegroup',
+      title: "Grouping the codespaces",
+      url: 'code-space-tutorials/Codespace grouping.mp4',
+      description: "How to group the codespaces for similar access."
+    },
+    {
+      id: 'manageandbuild',
+      title: "Manage codespace build",
+      url: 'code-space-tutorials/how to manage and build a codespace.mp4',
+      description: "How to build your application and manage existing builds."
     },
   ];
 
