@@ -79,6 +79,19 @@
       display: flex;
       justify-content: flex-end;
       margin-right: 3px;
+      gap: 110px;
+    }
+    .cdcContainer {
+      margin-top: auto; 
+      display: flex;
+      justify-content: flex-start;
+      margin-right: 3px;
+    }
+    .viewInCdcIcon{
+      color: #00adef;
+    }
+    .cdcNewTab{
+      cursor: pointer;
     }
 
     .contextMenu {

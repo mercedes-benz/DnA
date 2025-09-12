@@ -55,6 +55,7 @@
 .pushButtonContainer {
   text-align: right;
   margin-top: 16px;
+  margin-bottom: 16px;
 }
 
 // .checkboxWrapper {
@@ -79,12 +80,27 @@
   }
 }
 
+.loginCDC{
+  margin-top: 10px;
+  background-color: #1c2026;
+  .loginCDCtext{
+  text-align: center ;
+  // font-size: 15px;
+  padding: 15px;
+  color: #FFEE58;
+  }
+  .loginIcon {
+    font-size: 10px;
+  }
+}
+
+
 .flex {
   display: flex;
   justify-content: space-between;
   flex-wrap: wrap;
   // margin-top: 20px;
-  padding: 10px;
+  // padding: 10px;
   > .col {
     width: 100%;
   }
