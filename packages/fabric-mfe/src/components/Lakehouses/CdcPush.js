@@ -337,8 +337,8 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName }) => 
       .catch((e) => {
         ProgressIndicator.hide();
 
-        if (e?.response?.status === 403) {
-          Notification.show("Forbidden: User Info not found in CDC", "alert");
+        if (e?.response?.status === 400) {
+          // Notification.show("Forbidden: User Info not found in CDC", "alert");
           setShowCdcLogin(true);
           return;
         }
