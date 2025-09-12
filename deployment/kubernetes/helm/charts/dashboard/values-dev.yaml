@@ -85,3 +85,5 @@ vaultInjector:
       {{- end }}        
   saName: default
   jarName: dashboard*.jar
+autoscaling:
+  enabled: false

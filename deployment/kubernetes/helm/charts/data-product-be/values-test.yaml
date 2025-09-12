@@ -119,3 +119,5 @@ affinity: {}
 vaultInjector:
   enable: true
   jarName: data-product*.jar
+autoscaling:
+  enabled: false

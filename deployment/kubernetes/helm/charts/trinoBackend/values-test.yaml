@@ -119,3 +119,5 @@ vaultInjector:
       {{- end }}   
   saName: trino-backend-sa
   jarName: trino-backend-lib*.jar
+autoscaling:
+  enabled: false

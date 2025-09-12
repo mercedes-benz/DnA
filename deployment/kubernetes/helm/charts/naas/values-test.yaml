@@ -94,3 +94,5 @@ vaultInjector:
       {{- end }}      
   saName: default
   jarName: naas-lib*.jar
+autoscaling:
+  enabled: false
