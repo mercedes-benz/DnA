@@ -11,7 +11,6 @@ import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indica
 import Notification from '../../common/modules/uilab/js/src/notification';
 import { fabricApi } from '../../apis/fabric.api';
 import AddUser from 'dna-container/AddUser';
-import { TEAMS_PROFILE_LINK_URL_PREFIX } from '../../utilities/constants.js';
 
 const FabricWorkspaceCard = ({user, workspace, onSelectWorkspace, onEditWorkspace, onDeleteWorkspace}) => {
   const history = useHistory();
@@ -44,7 +43,7 @@ const FabricWorkspaceCard = ({user, workspace, onSelectWorkspace, onEditWorkspac
       <label className="input-labels">
         Are you sure you want to take ownership of this workspace from {' '} 
         <a
-        href={TEAMS_PROFILE_LINK_URL_PREFIX + workspace?.createdBy?.id}
+        href={`${Envs.MB_INSIDE_URL}${workspace?.createdBy?.id}`}
         target="_blank"
         rel="noopener noreferrer"
       >
