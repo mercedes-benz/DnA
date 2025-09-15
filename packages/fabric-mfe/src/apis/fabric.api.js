@@ -133,6 +133,12 @@ const transferOwnership = (id, data) => {
   );
 }
 
+const takeOwnership = (id) => {
+  return server.patch(`/fabric-workspaces/${id}/takeOwnership`, {
+    data: {},
+  });
+};
+
 export const fabricApi = {
   getFabricWorkspaces,
   getFabricWorkspace,
@@ -154,4 +160,5 @@ export const fabricApi = {
   getLovData,
   getLeanIX,
   transferOwnership,
+  takeOwnership,
 };
