@@ -42,3 +42,6 @@ export const DATA_TIER_MAP = {
   'Tier1 [DATA ASSET]': 1,
   'Tier2 [NON DATA ASSET]': 2,
 };
+
+
+export const TEAMS_PROFILE_LINK_URL_PREFIX = 'https://your-team-profile-url-prefix/';
