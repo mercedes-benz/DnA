@@ -991,9 +991,10 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 		UserInfo userInfo = this.userStore.getUserInfo();
 
 		DnaRoleCollectionVO roleCollection = service.getAllUserDnaRoles(userInfo.getId());
-		boolean isAdmin = roleCollection != null && roleCollection.getRoles() != null &&
-				roleCollection.getRoles().stream()
-						.anyMatch(role -> "Admin".equalsIgnoreCase(role.getRoleID()));
+		boolean isAdmin = "Admin".equalsIgnoreCase(workspaceVo.getUserRole()) ||
+				(roleCollection != null && roleCollection.getRoles() != null &&
+						roleCollection.getRoles().stream()
+								.anyMatch(role -> "Admin".equalsIgnoreCase(role.getRoleID())));
 
 		if (!isAdmin) {
 			log.warn("User {} is not authorized to take ownership of workspace {}",
