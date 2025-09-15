@@ -622,7 +622,7 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse }) {
                           }}
                         >
                           <i className="icon mbc-icon dublicate" />
-                          <span>Push to Cdc</span>
+                          <span>Push to CDC</span>
                         </button>
                       </li>
                     </ul>
