@@ -149,6 +149,12 @@ const pushSelectedTables = (workspaceId, payload) => {
   return server.post(`fabric-workspaces/catalog/${workspaceId}/publish`, payload);
 };
 
+const takeOwnership = (id) => {
+  return server.patch(`/fabric-workspaces/${id}/takeOwnership`, {
+    data: {},
+  });
+};
+
 export const fabricApi = {
   getFabricWorkspaces,
   getFabricWorkspace,
@@ -172,5 +178,6 @@ export const fabricApi = {
   transferOwnership,
   getLakehouseTables,
   getTableSchema,
-  pushSelectedTables
+  pushSelectedTables,
+  takeOwnership,
 };
