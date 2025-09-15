@@ -28,3 +28,5 @@ export const FLOW_DIAGRAM_MEASUREMENTS = {
   NODE_HEIGHT: 62,
   INTERMEDIATE_NODE_WIDTH: 10,
 }
+
+export const TEAMS_PROFILE_LINK_URL_PREFIX = 'https://your-team-profile-url-prefix/';
