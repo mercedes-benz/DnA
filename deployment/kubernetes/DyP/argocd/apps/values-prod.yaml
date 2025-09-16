@@ -65,3 +65,5 @@ db:
    env: prod 
  - name: fabric-transparency
    env: prod 
+ - name: currencytool
+   env: prod 
