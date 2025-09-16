@@ -1350,6 +1350,10 @@ public class DnaMinioClientImp implements DnaMinioClient {
 		MinioAdminClient minioAdminClient = minioConfig.getMinioAdminClient();
 		LOGGER.debug("Fetching users from cache.");
 		Map<String, UserInfo> users = cacheUtil.getMinioUsers(ConstantsUtility.MINIO_USERS_CACHE);
+		// Fetching user info
+		UserInfo userInfo = users.get(userOrGroupName);
+		// Fetching user policies
+		String existingPolicy = userInfo.policyName()!=null?userInfo.policyName():"";
 		try {
 			LOGGER.debug("Updating policy for user:{}", userOrGroupName);
 			// minioAdminClient.setPolicy(userOrGroupName, isGroup, policyName);
@@ -1358,17 +1362,18 @@ public class DnaMinioClientImp implements DnaMinioClient {
 				for(String policy : policyName.split(",")){
 					String policyResponse = this.attachPolicyToUser(userOrGroupName, policy, false);
 					LOGGER.info("mc attach policy response: "+ policyResponse);
+					existingPolicy = StorageUtility.addPolicy(existingPolicy, policy);
 				}
 			}
 			else{
 				for(String policy : policyName.split(",")){
 					String policyResponse = this.detachPolicyFromUser(userOrGroupName, policy, false);
 					LOGGER.info("mc detach policy response: "+ policyResponse);
+					existingPolicy = StorageUtility.removePolicy(existingPolicy, policy);
 				}
 			}
 			// updating cache
-			UserInfo userInfo = users.get(userOrGroupName);
-			UserInfo userInfoTemp = new UserInfo(userInfo.status(), userInfo.secretKey(), policyName,
+			UserInfo userInfoTemp = new UserInfo(userInfo.status(), userInfo.secretKey(), existingPolicy,
 					userInfo.memberOf());
 			users.put(userOrGroupName, userInfoTemp);
 
