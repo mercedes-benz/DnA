@@ -1,0 +1,37 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  {{- with .Values.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  name: {{ .Values.env }}-dna-notification
+  namespace: {{ .Values.namespace }}
+  labels:
+    name: backend
+    env: {{ .Values.env }}
+    project: {{ .Values.env }}-dna   
+spec:
+  destination:
+    namespace: {{ .Values.env }}-dna-naas
+    server: {{ .Values.server | squote }}
+  source:
+    path: deployment/kubernetes/helm/charts/naas
+    repoURL: {{ .Values.repoURL | squote }}
+    # path: deployment/helm
+    # repoURL: https://git.i.mercedes-benz.com/DNA/dna-notification.git
+    targetRevision: {{ .Values.branch }}
+    helm:
+      releaseName: dna-naas
+      valueFiles:
+        - values-{{ .Values.env }}.yaml
+  project: {{ .Values.env }}-dna
+{{- if .Values.enableSync }}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - ApplyOutOfSyncOnly=true
+      - CreateNamespace=true
+{{- end }}

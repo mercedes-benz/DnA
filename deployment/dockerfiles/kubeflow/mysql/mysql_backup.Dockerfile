@@ -1,4 +1,4 @@
-FROM docker.io/bitnami/mysql:8.0.28-debian-10-r0
+FROM registry-emea.app.corpintra.net/dnaplatform/bitnami/mysql:8.0.28-debian-10-r0
 
 USER root
 
