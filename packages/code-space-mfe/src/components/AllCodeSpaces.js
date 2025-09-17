@@ -28,6 +28,7 @@ import CodeSpaceBlueprint from './codeSpaceBlueprint/CodeSpaceBlueprint';
 import AddCodespaceGroupModal from './addCodespaceGroupModal/AddCodespaceGroupModal';
 import CodeSpaceGroupCard from './codeSpaceGroupCard/CodeSpaceGroupCard';
 import Spinner from './spinner/Spinner';
+import { SESSION_STORAGE_KEYS } from '../Utility/constants';
 
 // export interface IAllCodeSpacesProps {
 //   user: IUserInfo;
@@ -407,17 +408,18 @@ const AllCodeSpaces = (props) => {
 
     const [showEditCodespaceGroupModal, setShowEditCodespaceGroupModal]  = useState(false);
     const [showCodespacesModal, setShowCodespacesModal] = useState(false);
-    const [selectedCodeSpaceGroup, setSelectedCodeSpaceGroup] = useState();
+    const [selectedCodeSpaceGroup, setSelectedCodeSpaceGroup] = useState(JSON.parse(sessionStorage.getItem(SESSION_STORAGE_KEYS.CODE_SPACE_SELECTED_GROUPS)));
 
     useEffect(() => {
-        if (selectedCodeSpaceGroup) {
-          const updatedGroup = codeSpaceGroups.find(
-            (group) => group.id === selectedCodeSpaceGroup.id
-          );
-          if (updatedGroup && updatedGroup !== selectedCodeSpaceGroup) {
-            setSelectedCodeSpaceGroup(updatedGroup);
-          }
-        }
+        // if (selectedCodeSpaceGroup) {
+        //   const updatedGroup = codeSpaceGroups.find(
+        //     (group) => group.id === selectedCodeSpaceGroup.id
+        //   );
+        //   if (updatedGroup && updatedGroup !== selectedCodeSpaceGroup) {
+        //     setSelectedCodeSpaceGroup(updatedGroup);
+        //   }
+        // }
+        setSelectedCodeSpaceGroup(JSON.parse(sessionStorage.getItem(SESSION_STORAGE_KEYS.CODE_SPACE_SELECTED_GROUPS)));
         // eslint-disable-next-line react-hooks/exhaustive-deps
       }, [codeSpaceGroups]);
 
@@ -686,7 +688,7 @@ const AllCodeSpaces = (props) => {
                                 key={group?.id}
                                 group={group}
                                 userInfo={props.user}
-                                onShowCodeSpacesModal={(show, group) => { setShowCodespacesModal(show); setSelectedCodeSpaceGroup(group); }}
+                                onShowCodeSpacesModal={(show, group) => { setShowCodespacesModal(show); setSelectedCodeSpaceGroup(group);  }}
                                 onShowCodeSpaceGroupModal={(show) => { setSelectedCodeSpaceGroup(group); setShowEditCodespaceGroupModal(show); }}
                                 onCodeSpaceGroupDeleteModal={(show, group) => { setSelectedCodeSpaceGroup(group); setShowDeleteCodespaceGroupModal(show); }}
                                 onCodeSpaceDropped={() => { getCodeSpaceGroupsData(); getCodeSpacesData();}}
@@ -842,7 +844,7 @@ const AllCodeSpaces = (props) => {
                     show={showCodespacesModal}
                     content={codespacesModalContent}
                     scrollableContent={true}
-                    onCancel={() => { setShowCodespacesModal(false) }}
+                    onCancel={() => { setShowCodespacesModal(false); sessionStorage.removeItem('codeSpaceSelectedGroups') }}
                 />
             )}
             {showDeleteCodespaceGroupModal && (
@@ -932,8 +934,8 @@ const AllCodeSpaces = (props) => {
                     //     onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'react'
                     // }
                     setShowCodeDeployModal={(isVisible) => setShowDeployCodeSpaceModal(isVisible)}
-                    setCodeDeploying={() => { getCodeSpacesData(); getCodeSpaceGroupsData(); }}
-                    setCodeBuilding={() => { getCodeSpacesData(); getCodeSpaceGroupsData(); }}
+                    setCodeDeploying={() => { getCodeSpacesData(); getCodeSpaceGroupsData();}}
+                    setCodeBuilding={() => { getCodeSpacesData(); getCodeSpaceGroupsData();}}
                     setIsApiCallTakeTime={setIsApiCallTakeTime}
                 />
             )}
