@@ -31,6 +31,7 @@ import com.daimler.data.application.client.FabricWorkspaceClient;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.dto.fabric.EntiltlemetDetailsDto;
+import com.daimler.data.dto.fabric.EntiltlemetGroupDto;
 import com.daimler.data.dto.fabric.MicrosoftGroupDetailDto;
 import com.daimler.data.dto.fabricWorkspace.AuthoriserRoleDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.AuthoriserRoleDetailsResponseVO;
@@ -931,10 +932,21 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 		UserInfo userInfo = this.userStore.getUserInfo();
 
 		DnaRoleCollectionVO roleCollection = service.getAllUserDnaRoles(userInfo.getId());
-		boolean isAdmin = "Admin".equalsIgnoreCase(workspaceVo.getUserRole()) ||
-				(roleCollection != null && roleCollection.getRoles() != null &&
-						roleCollection.getRoles().stream()
-								.anyMatch(role -> "Admin".equalsIgnoreCase(role.getRoleID())));
+
+    	boolean isAdmin = false;
+
+		if (roleCollection != null && roleCollection.getRoles() != null) {
+			isAdmin = roleCollection.getRoles().stream()
+					.anyMatch(role -> "Admin".equalsIgnoreCase(role.getRoleID())
+							|| "ReportAdmin".equalsIgnoreCase(role.getRoleID()));
+		}
+		if (!isAdmin) {
+			EntiltlemetGroupDto entitlementGroupDto = identityClient.getEntitlementGroup();
+			if (entitlementGroupDto != null && entitlementGroupDto.getEntitlement_group() != null) {
+				isAdmin = entitlementGroupDto.getEntitlement_group().stream()
+						.anyMatch(group -> group.toLowerCase().endsWith("admin"));
+			}
+		}
 
 		if (!isAdmin) {
 			log.warn("User {} is not authorized to take ownership of workspace {}",
