@@ -87,6 +87,18 @@ spring:
     async:
       request-timeout : 600000
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  health:
+    db:
+      enabled: true
+  endpoint:
+    health:
+      show-details: always        
+
 kafka:
   centralTopic:
     name: dnaCentralEventTopic      
