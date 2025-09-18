@@ -54,7 +54,7 @@
 
 .pushButtonContainer {
   text-align: right;
-  margin-top: 16px;
+  // margin-top: 16px;
   margin-bottom: 16px;
 }
 
@@ -88,12 +88,17 @@
   // font-size: 15px;
   padding: 15px;
   color: #FFEE58;
+  margin-bottom: 15px;
   }
   .loginIcon {
     font-size: 10px;
   }
 }
 
+.disclaimer{
+  margin-top: 15px;
+  font-size: xx-small;
+}
 
 .flex {
   display: flex;

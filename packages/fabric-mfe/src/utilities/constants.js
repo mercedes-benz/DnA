@@ -39,3 +39,8 @@ export const DIVISIONS = [
 
 export const DATA_ORIGINS = ['Internal', 'External', 'Mixed'];
 export const YES_NO_OPTIONS = ['Yes', 'No'];
+export const DATA_TIER = ['Tier1', 'Tier2'];
+export const DATA_TIER_MAP = {
+  Tier1: 1,
+  Tier2: 2,
+};

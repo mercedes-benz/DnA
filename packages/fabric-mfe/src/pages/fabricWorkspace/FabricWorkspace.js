@@ -199,6 +199,7 @@ const FabricWorkspace = ({ user }) => {
             workspace={workspace} 
             lakehouses={workspace?.lakehouses ? workspace?.lakehouses : []} 
             onDeleteLakehouse={getWorkspace} 
+            onRefreshWorkspace={getWorkspace}
           />
           <WorkspaceDetails workspace={workspace} />
         </div>
