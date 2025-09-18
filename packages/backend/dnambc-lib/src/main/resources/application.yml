@@ -71,7 +71,19 @@ spring:
       default-binder: kafka
       kafka:
         binder:
-          brokers: ${NAAS_BROKER:localhost:9092}   
+          brokers: ${NAAS_BROKER:localhost:9092}  
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  health:
+    db:
+      enabled: true
+  endpoint:
+    health:
+      show-details: always            
 
 dnadss:
   provisionSolutionuri: ${PROVSION_SOLUTION_URI:XXXX}
