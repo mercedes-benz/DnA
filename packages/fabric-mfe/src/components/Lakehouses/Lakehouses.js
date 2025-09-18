@@ -309,7 +309,7 @@ const ViewShortcutsModalContent = ({ workspaceId, lakehouseId }) => {
   );
 }
 
-function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse }) {
+function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshWorkspace }) {
   const [showCreateLakehouseModal, setShowCreateLakehouseModal] = useState(false);
   const [lakehouseName, setLakehouseName] = useState('');
   const [lakehouseNameError, setLakehouseNameError] = useState(false);
@@ -720,10 +720,10 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse }) {
           title={selectedLakehouse ? `${selectedLakehouse.name} - Tables` : 'Tables'}
           showAcceptButton={false}
           showCancelButton={false}
-          modalWidth={'80%'}
+          modalWidth={'90%'}
           buttonAlignment="right"
           show={showViewTables}
-          content={<ViewTablesModalContent workspaceId={workspace?.id} lakehouseId={selectedLakehouse?.id} lakehouseName={selectedLakehouse?.name} />}
+          content={<ViewTablesModalContent workspaceId={workspace?.id} lakehouseId={selectedLakehouse?.id} lakehouseName={selectedLakehouse?.name} onRefreshWorkspace={onRefreshWorkspace} />}
           scrollableContent={true}
           onCancel={() => { setSelectedLakehouse(); setShowViewTablesModal(false) }}
         />

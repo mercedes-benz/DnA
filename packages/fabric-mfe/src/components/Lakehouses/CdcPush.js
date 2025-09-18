@@ -5,7 +5,7 @@ import SelectBox from 'dna-container/SelectBox';
 import Tooltip from '../../common/modules/uilab/js/src/tooltip';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 import Notification from '../../common/modules/uilab/js/src/notification';
-import {DIVISIONS, DATA_ORIGINS } from '../../utilities/constants';
+import {DIVISIONS, DATA_ORIGINS, DATA_TIER, DATA_TIER_MAP } from '../../utilities/constants';
 import { fabricApi } from '../../apis/fabric.api';
 import ExpansionPanel from '../../common/modules/uilab/js/src/expansion-panel';
 import { useForm } from 'react-hook-form';
@@ -22,6 +22,7 @@ export const buildCdcPayload = ({
   tables,
   divisions,
   dataOrigin,
+  dataTier,
   isDataLakeAvailability,
   isDocumentationUpdated,
   isDataAsset,
@@ -93,6 +94,7 @@ export const buildCdcPayload = ({
       divisions: divisions || [],
       department: workspaceMetadata?.department || "",
       dataOrigin: dataOrigin || "",
+      tier: dataTier || "",
       isDataLakeAvailability: isDataLakeAvailability ? "Yes" : "No",
       leanIXId: workspaceMetadata?.appId || "",
       isDocumentationUpdated: isDocumentationUpdated ? "Yes" : "No",
@@ -104,7 +106,7 @@ export const buildCdcPayload = ({
 };
 
 
-const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName }) => {
+const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRefreshWorkspace }) => {
   const [tables, setTables] = useState([]);
   const [columnsByTable, setColumnsByTable] = useState({});
   const [selectedTables, setSelectedTables] = useState({});
@@ -112,6 +114,7 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName }) => 
   const [selectAll, setSelectAll] = useState(false);
   const [division, setDivision] = useState("0");
   const [dataOrigin, setDataOrigin] = useState("0");
+  const [dataTier, setDataTier] = useState("0");
   const [isDocumentationUpdated, setIsDocumentationUpdated] = useState(false);
   const [isDataAsset, setIsDataAsset] = useState(false);
   const [isDataLakeAvailability, setIsDataLakeAvailability] = useState(true);
@@ -119,6 +122,7 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName }) => 
   const [workspaceCreator, setWorkspaceCreator] = useState(null);
   const [description, setDescription] = useState(null);
   const [showCdcLogin, setShowCdcLogin] = useState(false);
+  const [hasPushedOnce, setHasPushedOnce] = useState(false);
 
 
   const methods = useForm();
@@ -131,6 +135,7 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName }) => 
 
 
   const [dataOriginError, setDataOriginError] = useState('');
+  const [dataTierError, setDataTierError] = useState('');
   const [divisionError, setDivisionError] = useState('');
 
   useEffect(() => {
@@ -157,7 +162,7 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName }) => 
   }, [workspaceId, lakehouseId]);
 
   useEffect(() => {
-    // console.log("workspaceId for metadata fetch:", workspaceId);
+
     if (!workspaceId) return;
 
     fabricApi.getFabricWorkspace(workspaceId)
@@ -305,6 +310,10 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName }) => 
       setDataOriginError("*Missing entry");
       hasError = true;
     }
+    if (dataTier === "0" || !dataTier) {
+      setDataTierError("*Missing entry");
+      hasError = true;
+    }
 
     if (hasError) {
       return;
@@ -320,6 +329,7 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName }) => 
       columnsByTable,
       tables,
       dataOrigin: (dataOrigin || '').toLowerCase(),
+      dataTier: DATA_TIER_MAP[dataTier] || null,
       divisions: division || [],
       isDataAsset,
       isDocumentationUpdated,
@@ -333,6 +343,12 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName }) => 
       .then(() => {
         ProgressIndicator.hide();
         Notification.show("Push to CDC successful!", "success");
+
+        setHasPushedOnce(true);
+
+        if (onRefreshWorkspace) {
+          onRefreshWorkspace();
+        }
       })
       .catch((e) => {
         ProgressIndicator.hide();
@@ -350,11 +366,16 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName }) => 
 
         Notification.show(backendMessage, 'alert');
       });
+
+    // console.log("CDC Payload to be sent:");
+    // console.log(JSON.stringify(payload, null, 2));
+
   }, [
     workspaceId,
     workspaceMetadata,
     division,
     dataOrigin,
+    dataTier,
     lakehouseId,
     lakehouseName,
     columnsByTable,
@@ -366,10 +387,19 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName }) => 
     isDataLakeAvailability,
     description,
     workspaceCreator,
+    onRefreshWorkspace,
   ]);
 
   const onPush = handleSubmit(handlePush);
 
+  const isCdcPublished = !!workspaceMetadata?.cdcPublishedLakeHouseDetails?.isLakeHousesPublishedToCdc;
+
+  const isPushDisabled =
+  !workspaceMetadata || 
+  Object.keys(selectedTables).length === 0 ||
+  Object.keys(selectedColumns).length === 0 ||
+  hasPushedOnce ||
+  isCdcPublished;
 
     return (
     <div className={Styles.modalFAQContentWrapper}>
@@ -409,6 +439,44 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName }) => 
                 )}
               >
                 {dataOriginError}
+              </span>
+            </div>
+          </div>
+
+          <div className={Styles.col3}>
+            <div
+              className={classNames(
+                'input-field-group include-error',
+                dataTierError.length ? 'error' : '',
+              )}
+            >
+              <label className={classNames(Styles.inputLabel, 'input-label')}>
+                Tier <sup>*</sup>
+              </label>
+              <div className={classNames('custom-select')}>
+                <select
+                  id="dataTierField"
+                  defaultValue={dataTier}
+                  onChange={(e) => {
+                    setDataTier(e.target.value);
+                    if (dataTierError) setDataTierError(""); 
+                  }}
+                >
+                  <option value={0}>Choose</option>
+                  {DATA_TIER?.map((tier, index) => (
+                    <option key={index} value={tier}>
+                      {tier}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <span
+                className={classNames(
+                  'error-message',
+                  dataTierError.length ? '' : 'hide'
+                )}
+              >
+                {dataTierError}
               </span>
             </div>
           </div>
@@ -699,8 +767,18 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName }) => 
         })}
       </div>
 
+      <div className={Styles.disclaimer}>
+        <p>
+          ** Please be advised that your onboarding process at the CDC is conducted virtually.
+          As a result, you are responsible for maintaining and updating any changes in the
+          database that pertain to your profile or assigned data. This includes ensuring the
+          accuracy and timeliness of all relevant information. Should you require assistance
+          or clarification, please do not hesitate to reach out to the support team. **
+        </p>
+      </div>
+
       <div className={Styles.pushButtonContainer}>
-        <button className={(Object.keys(selectedTables).length === 0 || Object.keys(selectedColumns).length === 0) ? classNames("btn btn-primary") : classNames("btn btn-tertiary")} type="button" disabled={Object.keys(selectedTables).length === 0 || Object.keys(selectedColumns).length === 0} onClick={onPush}>
+        <button className={isPushDisabled ? classNames("btn btn-primary") : classNames("btn btn-tertiary")} type="button" disabled={isPushDisabled} onClick={onPush}>
           Push
         </button>
       </div>
@@ -709,7 +787,7 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName }) => 
           <div className={Styles.loginCDC}>
             <div className={Styles.loginCDCtext}>
               <i className="icon mbc-icon alert circle" />
-              Looks like you have not logged in to CDC application before and because of which
+              Looks like you have not logged in to CDC application before, because of which
               you are not allowed to make your push. Hence {" "} {" "}
               <a
                 href={Envs.CDC_URL}
