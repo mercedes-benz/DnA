@@ -199,11 +199,12 @@ const updateCodeSpaceRecipe = (id, data) => {
     );
 };
   
-const getCodeSpaceRecipes = () => {
-    return server.get(`recipeDetails`, {
-        data: {},
+const getCodeSpaceRecipes = (offset = 0, limit = 15) => {
+    return server.get('recipeDetails', {
+        params: { offset: Number(offset), limit: Number(limit) },
     });
 };
+
 
 const getCodeSpaceRecipe = (id) => {
     return server.get(`recipeDetails/${id}`, {

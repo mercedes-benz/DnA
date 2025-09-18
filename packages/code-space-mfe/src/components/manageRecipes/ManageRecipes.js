@@ -1,5 +1,5 @@
 import classNames from 'classnames';
-import React, { useEffect, useState, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import Styles from './ManageRecipes.scss';
 import { CodeSpaceApiClient } from '../../apis/codespace.api';
@@ -24,6 +24,7 @@ const ManageRecipes = ({ user }) => {
   const isAdmin = user.roles.find((role) => role.id === USER_ROLE.CODESPACEADMIN) !== undefined;
  
   const [loading, setLoading] = useState(true);
+  const [allRecipes, setAllRecipes] = useState([]);
   const [recipes, setRecipes] = useState([]);
  
   const listViewSelected = sessionStorage.getItem('storageListViewModeEnable') || false;
@@ -48,10 +49,8 @@ const ManageRecipes = ({ user }) => {
  
   useEffect(() => {
     const pageNumberOnQuery = getQueryParameterByName('page');
-    const currentPageNumberInit = pageNumberOnQuery ? parseInt(getQueryParameterByName('page'), 10) : 1;
-    const currentPageOffsetInit = pageNumberOnQuery
-      ? (currentPageNumberInit - 1) * maxItemsPerPage
-      : 0;
+    const currentPageNumberInit = pageNumberOnQuery ? parseInt(pageNumberOnQuery, 10) : 1;
+    const currentPageOffsetInit = pageNumberOnQuery ? (currentPageNumberInit - 1) * maxItemsPerPage : 0;
     setCurrentPageNumber(currentPageNumberInit);
     setCurrentPageOffset(currentPageOffsetInit);
   }, [maxItemsPerPage]);
@@ -72,9 +71,9 @@ const ManageRecipes = ({ user }) => {
   };
  
   const onViewByPageNum = (pageNum) => {
+    setMaxItemsPerPage(pageNum);
     setCurrentPageNumber(1);
     setCurrentPageOffset(0);
-    setMaxItemsPerPage(pageNum);
   };
  
   useEffect(() => {
@@ -99,47 +98,36 @@ const ManageRecipes = ({ user }) => {
         }
       });
   }, []);
- 
-  const progressVisibleRef = useRef(false);
-  const showProgress = () => {
-    ProgressIndicator.show();
-    progressVisibleRef.current = true;
-  };
- 
-  const hideProgress = () => {
-    if (progressVisibleRef.current) {
-      try {
-        ProgressIndicator.hide();
-      } catch (e) {
-        console.warn("ProgressIndicator already removed");
-      }
-      progressVisibleRef.current = false;
-    }
-  };
- 
+
   const getCodespaceRecipes = () => {
-    showProgress();
+    ProgressIndicator.show();
     setLoading(true);
-    CodeSpaceApiClient.getCodeSpaceRecipes()
+    const safeOffset = Number.isFinite(Number(currentPageOffset)) ? Number(currentPageOffset) : 0;
+    const safeLimit = Number.isFinite(Number(maxItemsPerPage)) ? Number(maxItemsPerPage) : 15;
+
+    console.log('Fetching recipes with offset=', safeOffset, 'limit=', safeLimit);
+
+    CodeSpaceApiClient.getCodeSpaceRecipes(safeOffset, safeLimit)
       .then((res) => {
         setLoading(false);
-        hideProgress();
+        ProgressIndicator.hide();
         if (Array.isArray(res?.data?.data)) {
           const totalNumberOfPagesInner = Math.ceil(res?.data?.count / maxItemsPerPage);
           setCurrentPageNumber((prev) => (prev > totalNumberOfPagesInner ? 1 : prev));
           setTotalNumberOfPages(totalNumberOfPagesInner);
-          const paginatedData = res.data.data.slice(
-            currentPageOffset,
-            currentPageOffset + maxItemsPerPage
-          );
-          setRecipes(paginatedData);
+
+          setRecipes(res.data.data || []);
+          setAllRecipes([]);
         } else {
           setRecipes([]);
+          setAllRecipes([]);
         }
-      })
+      }
+
+      )
       .catch((err) => {
         setLoading(false);
-        hideProgress();
+        ProgressIndicator.hide();
         Notification.show(err?.message || 'Something went wrong.', 'alert');
       });
   };
@@ -161,8 +149,8 @@ const ManageRecipes = ({ user }) => {
       const timeParts = parts[1].split(':');
       return new Date(dateParts[2], dateParts[1] - 1, dateParts[0], timeParts[0], timeParts[1], timeParts[2]);
     };
- 
-    let data = recipes;
+
+    let data = [...allRecipes]; 
     if (propName === 'recipeName') {
       data = data.sort((a, b) => {
         if (sortOrder === 'asc') {
@@ -198,27 +186,28 @@ const ManageRecipes = ({ user }) => {
         }
       });
     }
-    setRecipes(data);
+    setAllRecipes(data);
+    setRecipes(data.slice(currentPageOffset, currentPageOffset + maxItemsPerPage));
 
     setSortBy(newSortField);
+
   };
- 
+
   const handleRecipeDelete = () => {
-    showProgress();
+    ProgressIndicator.show();
     CodeSpaceApiClient.deleteCodeSpaceRecipe(selectedRecipe?.id)
       .then(() => {
-        hideProgress();
+        ProgressIndicator.hide();
         Notification.show("Recipe Deleted Successfully");
         setShowDeleteModal(false);
         getCodespaceRecipes();
-      })
-      .catch((err) => {
-        hideProgress();
+      }).catch((err) => {
+        ProgressIndicator.hide();
         Notification.show(err?.response?.data?.errors[0]?.message, 'alert');
       });
-  };
- 
- return (
+  }
+
+  return (
     <>
       <div className={Styles.mainPanel}>
         <div className={Styles.wrapper}>
