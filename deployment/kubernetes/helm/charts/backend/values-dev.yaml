@@ -76,7 +76,7 @@ app:
     initialDelaySeconds: 120
     timeoutSeconds: 30
     periodSeconds: 10
-    failureThreshold: 3
+    failureThreshold: 8
     livenessProbe:
       path: /actuator/health/liveness
       port: 7171
