@@ -125,10 +125,10 @@ podDisruptionBudget:
   minAvailable: 50%
 resources:
   requests:
-    memory: 1539Mi
+    memory: 1839Mi
     cpu: 2m
   limits:
-    memory: 1539Mi
+    memory: 1839Mi
 autoscaling:
   enabled: true
   minReplicas: 2
