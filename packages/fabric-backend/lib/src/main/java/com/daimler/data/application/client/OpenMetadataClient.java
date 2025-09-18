@@ -102,7 +102,7 @@ public class OpenMetadataClient {
     }
 // Create methods
 
-    public DatabaseService createDatabaseService(String name, List<EntityReference> owners, String description) {
+    public DatabaseService createDatabaseService(String name, List<EntityReference> owners, String description, Integer tier) {
         try {
             CreateDatabaseService request = new CreateDatabaseService()
                     .name(name)
@@ -110,7 +110,7 @@ public class OpenMetadataClient {
                     .tags(List.of(
                         prepareTag("Application.Fabric"),
                         prepareTag("alationTags.Loc_Group_RoW"),
-                        prepareTag("Tier.Tier1")
+                        prepareTag(mapTierValue(tier))
                     ))
                     .serviceType(CreateDatabaseService.ServiceTypeEnum.DATALAKE);
 
@@ -145,7 +145,7 @@ public class OpenMetadataClient {
                     .tags(List.of(
                         prepareTag("Application.Fabric"),
                         prepareTag("alationTags.Loc_Group_RoW"),
-                        prepareTag("Tier.Tier1")
+                        prepareTag(mapTierValue(fields.getTier()))
                     ))
                     .owners(owners); // Using FQN directly as string
             return apiClient.buildClient(DatabasesApi.class)
@@ -461,5 +461,16 @@ public class OpenMetadataClient {
 
         return tag;
     }
+
+    public String mapTierValue(Integer value) {
+    switch(value) {
+        case 1:
+            return "Tier.Tier1";
+        case 2:
+            return "Tier.Tier2";
+        default:
+            throw new IllegalArgumentException("Invalid tier value: " + value);
+    }
+}
 
 }

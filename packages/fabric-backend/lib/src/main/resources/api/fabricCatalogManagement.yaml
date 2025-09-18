@@ -290,6 +290,7 @@ definitions:
       - isDataLakeAvailability
       - isDataAsset
       - dataConfidentiality
+      - tier
     properties:
       divisions:
         type: array
@@ -317,6 +318,9 @@ definitions:
       dataConfidentiality:
         type: string
         enum: [public,confidential,secret,internal]
+      tier:
+        type: integer
+        enum: [1,2]
 
   FabricCatalogMetadataDetailsVO:
     type: object
