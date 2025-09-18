@@ -23,5 +23,6 @@ public class MandatoryFields implements Serializable{
     private String isDataLakeAvailability;
     private String isDataAsset;
     private String dataConfidentiality;
+    private Integer tier;
     
 }

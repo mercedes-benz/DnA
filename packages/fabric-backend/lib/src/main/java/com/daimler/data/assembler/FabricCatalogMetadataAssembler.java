@@ -107,6 +107,7 @@ public class FabricCatalogMetadataAssembler implements GenericAssembler<FabricCa
                 mandatoryFields.setIsDataLakeAvailability(voMandatoryFields.getIsDataLakeAvailability() != null ? voMandatoryFields.getIsDataLakeAvailability().name() : null);
                 mandatoryFields.setIsDataAsset(voMandatoryFields.getIsDataAsset() != null ? voMandatoryFields.getIsDataAsset().name() : null);
                 mandatoryFields.setDataConfidentiality(voMandatoryFields.getDataConfidentiality() != null ? voMandatoryFields.getDataConfidentiality().name() : null);
+                mandatoryFields.setTier(voMandatoryFields.getTier() != null ? voMandatoryFields.getTier() : null);
             }
             data.setMandatoryFields(mandatoryFields);
         }
@@ -190,6 +191,7 @@ public class FabricCatalogMetadataAssembler implements GenericAssembler<FabricCa
                 mandatoryFieldsVO.setIsDataLakeAvailability(mandatoryFields.getIsDataLakeAvailability() != null ? IsDataLakeAvailabilityEnum.valueOf(mandatoryFields.getIsDataLakeAvailability()) : null);
                 mandatoryFieldsVO.setIsDataAsset(mandatoryFields.getIsDataAsset() != null ? IsDataAssetEnum.valueOf(mandatoryFields.getIsDataAsset()) : null);
                 mandatoryFieldsVO.setDataConfidentiality(mandatoryFields.getDataConfidentiality() != null ? DataConfidentialityEnum.valueOf(mandatoryFields.getDataConfidentiality()) : null);
+                mandatoryFieldsVO.setTier(mandatoryFields.getTier() != null ?  mandatoryFields.getTier(): null);
             }
             vo.setMandatoryFields(mandatoryFieldsVO);
         }
