@@ -237,7 +237,8 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
         DatabaseService databaseService = openMetadataClient.createDatabaseService(
                 existingFabricWorkspace.getName(),
                 ownerReferences,
-                existingFabricWorkspace.getDescription());
+                existingFabricWorkspace.getDescription(),
+                catalogMetadataDetails.getMandatoryFields().getTier());
 
         for (DatabaseMetadataVO dbMetadata : request.getMetadata().getDatabases()) {
             Database database = openMetadataClient.createDatabase(

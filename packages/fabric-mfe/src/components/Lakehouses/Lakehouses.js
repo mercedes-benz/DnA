@@ -717,7 +717,19 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
       }
       { showViewTables &&
         <InfoModal
-          title={selectedLakehouse ? `${selectedLakehouse.name} - Tables` : 'Tables'}
+          title={
+            <div className={Styles.modalTitle}>
+              <span>{selectedLakehouse ? `${selectedLakehouse.name} - Tables` : 'Tables'}</span>
+                <a
+                  href={Envs.CONFLUENCE_PAGE}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title="Help"
+                >
+                  <i className="icon mbc-icon help" />
+                </a>
+            </div>
+          }
           showAcceptButton={false}
           showCancelButton={false}
           modalWidth={'90%'}

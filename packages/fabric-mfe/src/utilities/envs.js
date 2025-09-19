@@ -37,4 +37,6 @@ export const Envs = {
   FABRIC_ENTITLEMENT_IGNORE: getInjectedEnv('FABRIC_ENTITLEMENT_IGNORE') || process.env.FABRIC_ENTITLEMENT_IGNORE,
   MANDATE_LEANIX_FOR_DIVISIONS: getInjectedEnv('MANDATE_LEANIX_FOR_DIVISIONS') || process.env.MANDATE_LEANIX_FOR_DIVISIONS,
   CDC_URL: getInjectedEnv('CDC_URL') || process.env.CDC_URL,
+  DNA_MAIL: getInjectedEnv('DNA_MAIL') || process.env.DNA_MAIL,
+  CONFLUENCE_PAGE: getInjectedEnv('CONFLUENCE_PAGE') || process.env.CONFLUENCE_PAGE,
 };
