@@ -102,15 +102,25 @@ public class OpenMetadataClient {
     }
 // Create methods
 
-    public DatabaseService createDatabaseService(String name, List<EntityReference> owners) {
+    public DatabaseService createDatabaseService(String name, List<EntityReference> owners, String description) {
         try {
             CreateDatabaseService request = new CreateDatabaseService()
                     .name(name)
+                    .description(description)
+                    .tags(List.of(
+                        prepareTag("Application.Fabric"),
+                        prepareTag("alationTags.Loc_Group_RoW"),
+                        prepareTag("Tier.Tier1")
+                    ))
                     .serviceType(CreateDatabaseService.ServiceTypeEnum.DATALAKE);
+
 
             DatabaseConnection connection = new DatabaseConnection();
             connection.setConfig(new DatalakeConnection()
-                    .withSupportsMetadataExtraction(true));
+                    .withSupportsMetadataExtraction(true)
+                    .withBucketName(name)
+                    .withDatabaseName("Lakehouses")
+                    .withPrefix("DNA-Fabric"));
             request.setConnection(connection);
             request.setOwners(owners);
 
@@ -125,14 +135,19 @@ public class OpenMetadataClient {
         }
     }
 
-    public Database createDatabase(String name, String serviceFQN, MandatoryFieldsVO fields, List<EntityReference> owners) {
+    public Database createDatabase(String name, String serviceFQN, MandatoryFieldsVO fields, List<EntityReference> owners, String description) {
         try {
             CreateDatabase request = new CreateDatabase()
                     .name(name)
                     .service(serviceFQN)
                     .extension(toExtensions(fields))
+                    .description(description)
+                    .tags(List.of(
+                        prepareTag("Application.Fabric"),
+                        prepareTag("alationTags.Loc_Group_RoW"),
+                        prepareTag("Tier.Tier1")
+                    ))
                     .owners(owners); // Using FQN directly as string
-
             return apiClient.buildClient(DatabasesApi.class)
                     .createOrUpdateDatabase(request);
         } catch (FeignException.Conflict e) {
@@ -398,7 +413,6 @@ public class OpenMetadataClient {
             Column column = new Column();
             column.setName(name);
             column.setDescription(description);
-            
             // Convert string to DataTypeEnum
             Column.DataTypeEnum dataType = Column.DataTypeEnum.fromValue(dataTypeStr.toUpperCase());
             column.setDataType(dataType);
@@ -427,7 +441,7 @@ public class OpenMetadataClient {
 
     public Map<String, Object> toExtensions(MandatoryFieldsVO fields) {
         return Map.of(
-            "Division", List.of(fields.getDivision()),
+            "Division", fields.getDivisions(),
             "Department", List.of(fields.getDepartment()),
             "DataOrigin", List.of(fields.getDataOrigin()),
             "IsDataAsset", List.of(fields.getIsDataAsset()),
@@ -436,6 +450,16 @@ public class OpenMetadataClient {
             "DataLakeAvailability", List.of(fields.getIsDataLakeAvailability()),
             "DataConfidentiality",List.of(fields.getDataConfidentiality())
         );
+    }
+
+    public TagLabel prepareTag(String tagFQN){
+
+        TagLabel tag = new TagLabel().tagFQN(tagFQN)
+            .labelType(TagLabel.LabelTypeEnum.fromValue("Manual"))
+            .state(TagLabel.StateEnum.fromValue("Confirmed"))
+            .source(TagLabel.SourceEnum.fromValue("Classification"));
+
+        return tag;
     }
 
 }

@@ -1,6 +1,6 @@
 import classNames from 'classnames';
 import React, { useState, useEffect, useCallback} from 'react';
-import Styles from './lakehouses.scss';
+import Styles from './CdcPush.scss';
 import SelectBox from 'dna-container/SelectBox';
 import Tooltip from '../../common/modules/uilab/js/src/tooltip';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
@@ -9,27 +9,32 @@ import {DIVISIONS, DATA_ORIGINS } from '../../utilities/constants';
 import { fabricApi } from '../../apis/fabric.api';
 import ExpansionPanel from '../../common/modules/uilab/js/src/expansion-panel';
 import { useForm } from 'react-hook-form';
+import { Envs } from '../../utilities/envs';
 
 export const buildCdcPayload = ({
   workspaceId,
   workspaceMetadata,
+  lakehouseId,
+  lakehouseName, 
   selectedColumns,
   selectedTables,
   columnsByTable,
   tables,
-  division,
+  divisions,
   dataOrigin,
   isDataLakeAvailability,
   isDocumentationUpdated,
   isDataAsset,
+  description,
   workspaceCreator
 }) => {
-  const dbName = workspaceMetadata.name;
+  const dbName = lakehouseName;
 
   const schemaMap = {};
 
   tables.forEach((table) => {
-    const { tableName, schemaName } = table;
+  const { tableName } = table;
+  const schemaName = table.schemaName || "dbo";
 
     const isTableSelected = selectedTables?.[tableName];
     const selectedColsMap = selectedColumns?.[tableName];
@@ -71,19 +76,21 @@ export const buildCdcPayload = ({
 
   return {
     metadata: {
-      serviceName: dbName,
+      serviceName: workspaceMetadata.name,
       serviceId: null,
+      description: workspaceMetadata.description,
       databases: [
         {
           dbName,
-          dbId: null,
-          schemas
+          dbId: lakehouseId,
+          schemas,
+          description: description || ""
         }
       ]
     },
     workspaceId,
     mandatoryFields: {
-      division: division || "",
+      divisions: divisions || [],
       department: workspaceMetadata?.department || "",
       dataOrigin: dataOrigin || "",
       isDataLakeAvailability: isDataLakeAvailability ? "Yes" : "No",
@@ -97,7 +104,7 @@ export const buildCdcPayload = ({
 };
 
 
-const ViewTablesModalContent = ({ workspaceId, lakehouseId }) => {
+const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName }) => {
   const [tables, setTables] = useState([]);
   const [columnsByTable, setColumnsByTable] = useState({});
   const [selectedTables, setSelectedTables] = useState({});
@@ -110,10 +117,17 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId }) => {
   const [isDataLakeAvailability, setIsDataLakeAvailability] = useState(true);
   const [workspaceMetadata, setWorkspaceMetadata] = useState(null);
   const [workspaceCreator, setWorkspaceCreator] = useState(null);
+  const [description, setDescription] = useState(null);
+  const [showCdcLogin, setShowCdcLogin] = useState(false);
 
 
   const methods = useForm();
-  const { setValue, handleSubmit } = methods;
+  const { 
+    setValue, 
+    handleSubmit, 
+    register, 
+    formState: { errors }
+  } = methods;
 
 
   const [dataOriginError, setDataOriginError] = useState('');
@@ -143,7 +157,7 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId }) => {
   }, [workspaceId, lakehouseId]);
 
   useEffect(() => {
-    console.log("workspaceId for metadata fetch:", workspaceId);
+    // console.log("workspaceId for metadata fetch:", workspaceId);
     if (!workspaceId) return;
 
     fabricApi.getFabricWorkspace(workspaceId)
@@ -300,38 +314,49 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId }) => {
       workspaceId,
       workspaceMetadata,
       lakehouseId,
+      lakehouseName,
       selectedTables,
       selectedColumns,
       columnsByTable,
       tables,
-      dataOrigin: (dataOrigin || '').toLowerCase(), 
-      division: division, 
+      dataOrigin: (dataOrigin || '').toLowerCase(),
+      divisions: division || [],
       isDataAsset,
       isDocumentationUpdated,
       isDataLakeAvailability,
+      description,
       workspaceCreator
     });
 
-    console.log("CDC Payload to be sent:");
-    console.log(JSON.stringify(payload, null, 2));
-
     ProgressIndicator.show();
     fabricApi.pushSelectedTables(workspaceId, payload)
-    .then(() => {
-      ProgressIndicator.hide();
-      Notification.show("Push to CDC successful!", "success");
-    })
-    .catch((err) => {
-      ProgressIndicator.hide();
-      Notification.show(err?.response?.data?.errors?.[0]?.message || "Push to CDC failed!", "alert");
-    });
+      .then(() => {
+        ProgressIndicator.hide();
+        Notification.show("Push to CDC successful!", "success");
+      })
+      .catch((e) => {
+        ProgressIndicator.hide();
 
+        if (e?.response?.status === 403) {
+          Notification.show("Forbidden: User Info not found in CDC", "alert");
+          setShowCdcLogin(true);
+          return;
+        }
+
+        const backendMessage =
+          e?.response?.data?.responses?.errors?.[0]?.message ||
+          e?.response?.data?.errors?.[0]?.message ||
+          '';
+
+        Notification.show(backendMessage, 'alert');
+      });
   }, [
     workspaceId,
     workspaceMetadata,
     division,
     dataOrigin,
     lakehouseId,
+    lakehouseName,
     columnsByTable,
     tables,
     selectedTables,
@@ -339,6 +364,7 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId }) => {
     isDataAsset,
     isDocumentationUpdated,
     isDataLakeAvailability,
+    description,
     workspaceCreator,
   ]);
 
@@ -348,8 +374,8 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId }) => {
     return (
     <div className={Styles.modalFAQContentWrapper}>
 
-      <div className={Styles.flex}>
-        <div className={Styles.col3}>
+        <div className={Styles.flex}>
+          <div className={Styles.col3}>
             <div
               className={classNames(
                 'input-field-group include-error',
@@ -360,14 +386,14 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId }) => {
                 Data Origin <sup>*</sup>
               </label>
               <div className={classNames('custom-select')}>
-                    <select
-      id="dataOriginField"
-      defaultValue={dataOrigin}
-      onChange={(e) => {
-        setDataOrigin(e.target.value);
-        if (dataOriginError) setDataOriginError(""); // clear red on change
-      }}
-    >
+                <select
+                  id="dataOriginField"
+                  defaultValue={dataOrigin}
+                  onChange={(e) => {
+                    setDataOrigin(e.target.value);
+                    if (dataOriginError) setDataOriginError(""); 
+                  }}
+                >
                   <option value={0}>Choose</option>
                   {DATA_ORIGINS?.map((origin, index) => (
                     <option key={index} value={origin}>
@@ -385,9 +411,9 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId }) => {
                 {dataOriginError}
               </span>
             </div>
-        </div>
+          </div>
 
-        <div className={Styles.col3}>
+          <div className={Styles.col3}>
             <div
               className={classNames('input-field-group include-error',
                 divisionError.length ? 'error' : '',
@@ -397,151 +423,170 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId }) => {
                 Division <sup>*</sup>
               </label>
               <div className={classNames('custom-select')}>
-                    <select
-                    id="divisionField"
-      defaultValue={division}
-      onChange={(e) => {
-        setDivision(e.target.value);
-        if (divisionError) setDivisionError(""); // clear red on change
-      }}
-    >
-                  <option id="divisionOption" value={0}>
+                <select
+                  id="divisionField"
+                  multiple={true}
+                  // defaultValue={division}
+                  onChange={(e) => {
+                    const values = Array.from(e.target.selectedOptions, opt => opt.value);
+                    setDivision(values);
+                    if (divisionError) setDivisionError(""); 
+                  }}
+                >
+                  {/* <option id="divisionOption" value={0}>
                     Choose
-                  </option>
-                {DIVISIONS.map((name, index) => (
-                  <option key={index} value={name}>
-                    {name}
-                  </option>
-                ))}
+                  </option> */}
+                  {DIVISIONS.map((name, index) => (
+                    <option key={index} value={name}>
+                      {name}
+                    </option>
+                  ))}
                 </select>
               </div>
               <span className={classNames('error-message', divisionError.length ? '' : 'hide')}>
                 {divisionError}
               </span>
             </div>
-        </div>
+          </div>
 
-        <div className={Styles.col3}>
-          <div className={classNames('input-field-group include-error')}>
-            <label className="input-label">Data Asset <sup>*</sup></label>
-            <div className={Styles.boolean}>
-              <label className={classNames('radio')}>
-                <span className="wrapper">
-                  <input
-                    type="radio"
-                    className="ff-only"
-                    value="true"
-                    name="dataAsset"
-                    checked={isDataAsset === true}
-                    onClick={() => {
-                      setIsDataAsset(true);
-                      setValue('dataAsset', 'true');
-                    }}
-                  />
-                </span>
-                <span className="label">Yes</span>
-              </label>
-              <label className={classNames('radio')}>
-                <span className="wrapper">
-                  <input
-                    type="radio"
-                    className="ff-only"
-                    value="false"
-                    name="dataAsset"
-                    checked={isDataAsset === false}
-                    onClick={() => {
-                      setIsDataAsset(false);
-                      setValue('dataAsset', 'false');
-                    }}
-                  />
-                </span>
-                <span className="label">No</span>
-              </label>
+          <div className={Styles.col3}>
+            <div className={classNames('input-field-group include-error')}>
+              <label className="input-label">Data Asset <sup>*</sup></label>
+              <div className={Styles.boolean}>
+                <label className={classNames('radio')}>
+                  <span className="wrapper">
+                    <input
+                      type="radio"
+                      className="ff-only"
+                      value="true"
+                      name="dataAsset"
+                      checked={isDataAsset === true}
+                      onClick={() => {
+                        setIsDataAsset(true);
+                        setValue('dataAsset', 'true');
+                      }}
+                    />
+                  </span>
+                  <span className="label">Yes</span>
+                </label>
+                <label className={classNames('radio')}>
+                  <span className="wrapper">
+                    <input
+                      type="radio"
+                      className="ff-only"
+                      value="false"
+                      name="dataAsset"
+                      checked={isDataAsset === false}
+                      onClick={() => {
+                        setIsDataAsset(false);
+                        setValue('dataAsset', 'false');
+                      }}
+                    />
+                  </span>
+                  <span className="label">No</span>
+                </label>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className={Styles.col3}>
-          <div className={classNames('input-field-group include-error')}>
-            <label className="input-label">DataLake Available <sup>*</sup></label>
-            <div className={Styles.boolean}>
-              <label className={classNames('radio')}>
-                <span className="wrapper">
-                  <input
-                    type="radio"
-                    className="ff-only"
-                    value="true"
-                    name="dataLakeAvailability"
-                    checked={isDataLakeAvailability === true}
-                    onClick={() => {
-                      setIsDataLakeAvailability(true);
-                      setValue('dataLakeAvailability', 'true');
-                    }}
-                  />
-                </span>
-                <span className="label">Yes</span>
-              </label>
-              <label className={classNames('radio')}>
-                <span className="wrapper">
-                  <input
-                    type="radio"
-                    className="ff-only"
-                    value="false"
-                    name="dataLakeAvailability"
-                    checked={isDataLakeAvailability === false}
-                    onClick={() => {
-                      setIsDataLakeAvailability(false);
-                      setValue('dataLakeAvailability', 'false');
-                    }}
-                  />
-                </span>
-                <span className="label">No</span>
-              </label>
+          <div className={Styles.col3}>
+            <div className={classNames('input-field-group include-error')}>
+              <label className="input-label">DataLake Available <sup>*</sup></label>
+              <div className={Styles.boolean}>
+                <label className={classNames('radio')}>
+                  <span className="wrapper">
+                    <input
+                      type="radio"
+                      className="ff-only"
+                      value="true"
+                      name="dataLakeAvailability"
+                      checked={isDataLakeAvailability === true}
+                      onClick={() => {
+                        setIsDataLakeAvailability(true);
+                        setValue('dataLakeAvailability', 'true');
+                      }}
+                    />
+                  </span>
+                  <span className="label">Yes</span>
+                </label>
+                <label className={classNames('radio')}>
+                  <span className="wrapper">
+                    <input
+                      type="radio"
+                      className="ff-only"
+                      value="false"
+                      name="dataLakeAvailability"
+                      checked={isDataLakeAvailability === false}
+                      onClick={() => {
+                        setIsDataLakeAvailability(false);
+                        setValue('dataLakeAvailability', 'false');
+                      }}
+                    />
+                  </span>
+                  <span className="label">No</span>
+                </label>
+              </div>
             </div>
           </div>
-        </div>
 
-        <div className={Styles.col3}>
-          <div className={classNames('input-field-group include-error')}>
-            <label className="input-label">Documentation Updated <sup>*</sup></label>
-            <div className={Styles.boolean}>
-              <label className={classNames('radio')}>
-                <span className="wrapper">
-                  <input
-                    type="radio"
-                    className="ff-only"
-                    value="true"
-                    name="documentationUpdated"
-                    checked={isDocumentationUpdated === true}
-                    onClick={() => {
-                      setIsDocumentationUpdated(true);
-                      setValue('documentationUpdated', 'true');
-                    }}
-                  />
-                </span>
-                <span className="label">Yes</span>
-              </label>
-              <label className={classNames('radio')}>
-                <span className="wrapper">
-                  <input
-                    type="radio"
-                    className="ff-only"
-                    value="false"
-                    name="documentationUpdated"
-                    checked={isDocumentationUpdated === false}
-                    onClick={() => {
-                      setIsDocumentationUpdated(false);
-                      setValue('documentationUpdated', 'false');
-                    }}
-                  />
-                </span>
-                <span className="label">No</span>
-              </label>
+          <div className={Styles.col3}>
+            <div className={classNames('input-field-group include-error')}>
+              <label className="input-label">Documentation Updated <sup>*</sup></label>
+              <div className={Styles.boolean}>
+                <label className={classNames('radio')}>
+                  <span className="wrapper">
+                    <input
+                      type="radio"
+                      className="ff-only"
+                      value="true"
+                      name="documentationUpdated"
+                      checked={isDocumentationUpdated === true}
+                      onClick={() => {
+                        setIsDocumentationUpdated(true);
+                        setValue('documentationUpdated', 'true');
+                      }}
+                    />
+                  </span>
+                  <span className="label">Yes</span>
+                </label>
+                <label className={classNames('radio')}>
+                  <span className="wrapper">
+                    <input
+                      type="radio"
+                      className="ff-only"
+                      value="false"
+                      name="documentationUpdated"
+                      checked={isDocumentationUpdated === false}
+                      onClick={() => {
+                        setIsDocumentationUpdated(false);
+                        setValue('documentationUpdated', 'false');
+                      }}
+                    />
+                  </span>
+                  <span className="label">No</span>
+                </label>
+              </div>
             </div>
           </div>
+          <div className={Styles.col3}></div>
         </div>
-        <div className={Styles.col3}></div>
-      </div>
+
+        <div className={Styles.col}>
+          <div className={classNames('input-field-group include-error area', errors.description ? 'error' : '')}>
+            <label id="description" className="input-label" htmlFor="description">
+              Description <sup>*</sup>
+            </label>
+            <textarea
+              id="description"
+              className={'input-field-area'}
+              type="text"
+              defaultValue={description}
+              rows={50}
+              {...register('description', { required: '*Missing entry', pattern: /^(?!\s+$)(\s*\S+\s*)+$/, onChange: (e) => { setDescription(e.target.value) } })}
+            />
+            <span className={'error-message'}>{errors?.description?.message}{errors.description?.type === 'pattern' && `Spaces (and special characters) not allowed as field value.`}</span>
+          </div>
+        </div>  
 
       <div className={Styles.tableRow}>
         <div className={Styles.checkboxWrapper}>
@@ -655,10 +700,29 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId }) => {
       </div>
 
       <div className={Styles.pushButtonContainer}>
-        <button className="btn btn-tertiary" type="button" onClick={onPush}>
+        <button className={(Object.keys(selectedTables).length === 0 || Object.keys(selectedColumns).length === 0) ? classNames("btn btn-primary") : classNames("btn btn-tertiary")} type="button" disabled={Object.keys(selectedTables).length === 0 || Object.keys(selectedColumns).length === 0} onClick={onPush}>
           Push
         </button>
       </div>
+
+        {showCdcLogin && (
+          <div className={Styles.loginCDC}>
+            <div className={Styles.loginCDCtext}>
+              <i className="icon mbc-icon alert circle" />
+              Looks like you have not logged in to CDC application before and because of which
+              you are not allowed to make your push. Hence {" "} {" "}
+              <a
+                href={Envs.CDC_URL}
+                target="_blank"
+                rel="noopener noreferrer"
+                className={Styles.loginCDCLink}
+              >
+                 Login To CDC <i className={`icon mbc-icon new-tab ${Styles.loginIcon}`} />
+              </a>
+              {" "}first and then come back to push your data.
+            </div>
+          </div>
+        )}
     </div>
   );
 }
