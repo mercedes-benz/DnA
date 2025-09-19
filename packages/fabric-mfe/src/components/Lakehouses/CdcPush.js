@@ -773,7 +773,9 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
           As a result, you are responsible for maintaining and updating any changes in the
           database that pertain to your profile or assigned data. This includes ensuring the
           accuracy and timeliness of all relevant information. Should you require assistance
-          or clarification, please do not hesitate to reach out to the support team. **
+          or clarification, please do not hesitate to reach out to the support team. 
+          Email:&nbsp;
+          <a href={Envs.DNA_MAIL} target="_blank" rel="noopener noreferrer">dna@mercedes-benz.com</a> **
         </p>
       </div>
 
