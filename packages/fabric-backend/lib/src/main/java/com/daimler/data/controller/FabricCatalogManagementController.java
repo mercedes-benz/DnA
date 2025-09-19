@@ -22,7 +22,10 @@ import com.daimler.data.application.client.OpenMetadataClient;
 import com.daimler.data.controller.exceptions.EntityNotFoundException;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
+import com.daimler.data.db.entities.FabricCatalogMetadataNsql;
 import com.daimler.data.db.json.catalogManangement.FabricCatalogMetadata;
+import com.daimler.data.db.json.catalogManangement.FabricCatalogMetadataDetails;
+import com.daimler.data.db.repo.catalogManagement.FabricCatalogManagementCustomRepository;
 import com.daimler.data.dto.fabricCatalogManagement.FabricCatalogMetadataVO;
 import com.daimler.data.dto.fabricCatalogManagement.PublishCatalogResponseVO;
 import com.daimler.data.dto.fabricCatalogManagement.PublishCatalogRequestVO;
@@ -56,6 +59,9 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
     @Autowired
     private FabricCatalogManagementService service;
 
+    @Autowired
+    private FabricCatalogManagementCustomRepository catalogCustomRepo;
+
     @Override
      @ApiOperation(value = "Publish a new catalog.", nickname = "publishCatalogRequest", notes = "This endpoint will be used to publish a new fabric catalog.", response = PublishCatalogResponseVO.class, tags={ "fabric-catalog-management", })
     @ApiResponses(value = { 
@@ -82,6 +88,11 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
         }
 
+        FabricCatalogMetadataNsql existingCatalog = catalogCustomRepo.findByServiceName(existingFabricWorkspace.getName()).orElse(null);
+        if(existingCatalog.getData() != null && existingCatalog.getData().getMetadata().getServiceName() !=null){
+             log.error("Catalog already exists for name {}", existingCatalog.getData().getMetadata().getServiceName());
+            return new ResponseEntity<>(null, HttpStatus.CONFLICT);
+        }
         CreatedByVO requestUser = this.userStore.getVO();
         String creatorId = existingFabricWorkspace.getCreatedBy().getId();
 
