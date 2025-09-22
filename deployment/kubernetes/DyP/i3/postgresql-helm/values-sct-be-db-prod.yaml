@@ -16,7 +16,7 @@ image:
 fullnameOverride: "sct-be-db"
 ## PostgreSQL replica count
 ##
-replicaCount: 1
+replicaCount: 2
 
 printEnv: true
 
@@ -286,6 +286,7 @@ decryptBackupWal:
 ##
 backup:
   enabled: true
+  successfulJobsHistoryLimit: "0"
 
   ## the storage type, either fs or s3.
   ## This is the target storage where the compressed backup archive file will be stored.
@@ -306,7 +307,7 @@ backup:
     ## fill in the bucket name you have ordered!
     bucketName: <path:dna_aws_kv/data/prod/cs-services/sct-be-db#bucketName>
   ## general configuration for backup
-  schedule: "1 0 * * *"
+  schedule: "15 0 * * *"
   retention: <path:dna_aws_kv/data/prod/cs-services/sct-be-db#retention>
   ## Please read documentation at docs/operations/operations.md#cleanup-wal-archives before enabling this feature
   cleanupWalArchives: false
