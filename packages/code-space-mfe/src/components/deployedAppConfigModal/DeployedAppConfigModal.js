@@ -677,27 +677,30 @@ const DeployedAppConfigModal = (props) => {
           {(!props?.deploymentDetails?.secureWithDnaRequired || changeSelected || resetRequired) &&
             secureWithDnaSelected &&
             isUiRecipe && (
-              // <div className={classNames(Styles.align, Styles.flexLayout)}>
-              <div className={classNames(Styles.align, Styles.infoIcon)}>
-                <label className={classNames('switch', enableAliceRole ? 'on' : '')}>
-                  <span className="label" style={{ marginRight: '5px' }}>
-                    Use entitlements in cookie authentication
-                  </span>
-                  <span className="wrapper">
-                    <input
-                      value={enableAliceRole}
-                      type="checkbox"
-                      className="ff-only"
-                      onChange={() => {
-                        setEnableAliceRole(!enableAliceRole);
-                      }}
-                      checked={enableAliceRole}
-                      // maxLength={63}
-                    />
-                  </span>
-                </label>
+              <div>
+                <div className={classNames(Styles.align, Styles.infoIcon)}>
+                  <label className={classNames('switch', enableAliceRole ? 'on' : '')}>
+                    <span className="wrapper">
+                      <input
+                        value={enableAliceRole}
+                        type="checkbox"
+                        className="ff-only"
+                        onChange={() => {
+                          setEnableAliceRole(!enableAliceRole);
+                        }}
+                        checked={enableAliceRole}
+                        // maxLength={63}
+                      />
+                    </span>                  
+                    <span className="label" style={{ marginRight: '5px' }}>
+                      Include DnA Entitlements as part of user info cookie. (useful for authorization of frontend applications using user info cookie)
+                    </span>
+                  </label>
+                </div>
+                <div className={classNames(Styles.align, Styles.clientIdLabel)}>
+                  {!enableAliceRole && 'Since usage of DnA Entitlements as part of user info cookie is disabled, only user id will be passed in the user info cookie.'}  
+                </div>
               </div>
-              // </div>
             )}
           {/* {secureWithIAMSelected && !isUiRecipe && (
             <div className={classNames(Styles.align, Styles.flexLayout)}>
@@ -907,7 +910,7 @@ const DeployedAppConfigModal = (props) => {
               {secureWithDnaSelected && enableAliceRole && (
                 <div className={classNames(Styles.wrapper)}>
                   <span className="label">
-                    <p>{`Add Roles from Alice ${Envs.CODESPACE_SECURITY_APP_ID}`}</p>
+                    <p>Filter entitlements ( Alice Role based / Entitlement Prefix based )</p>
                   </span>
                   <div className={classNames(Styles.clientIdLabel, Styles.align)}>
                     {`You can create Alice roles within the DNA platform (Application ID: ${Envs.CODESPACE_SECURITY_APP_ID}
@@ -952,6 +955,18 @@ const DeployedAppConfigModal = (props) => {
                       isDeployedAppConfig={true}
                     />
                   </div>
+                  {enableEntitlementPrefix ? (
+                    <div className={classNames(Styles.clientIdLabel, Styles.align)}>
+                      Please enter the prefixes of the DnA entitlements that you wnat to include in your userInfo cookie.<br/>
+                      Alternatively if you want to include all the user DnA entitlements belonging to specific role/roles please disable the filter based entitlent prefix option.
+                    </div>
+                  ) : (
+                    <div className={classNames(Styles.clientIdLabel, Styles.align)}>
+                      If no roles are selected then all the user DnA entitlements will be added to the userInfo cookie.<br/>
+                      Once you select role/roles only the user DnA entitelements belonging to that specific role/roles will be part of the userInfo cookie.<br/>
+                      Alternatively if you want to filter the entitlements based on certain prefix please enable that option.
+                    </div>
+                  )}
                 </div>
               )}
             </>
