@@ -580,6 +580,8 @@ public class SolutionController implements SolutionsApi, ChangelogsApi, Malwares
             }
             SolutionVO existingSolutionVO = solutionService.getById(id);
             String uniqueProductName = requestSolutionVO.getProductName();
+            LOGGER.info("existing solution name {}",existingSolutionVO.getProductName());
+            LOGGER.info("new solution name {}",uniqueProductName);
             if(uniqueProductName != existingSolutionVO.getProductName()){
                 if(uniqueProductName.startsWith(" ")||uniqueProductName.endsWith(" ")){
                 List<MessageDescription> messages = new ArrayList<>();
