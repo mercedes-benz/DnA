@@ -637,6 +637,13 @@ definitions:
         type: string
       leanIXDetails:
         $ref: "#/definitions/LeanIXDetailsVO"
+      userRole:
+          type: string
+      projectId:
+          type: string
+      lastModifiedOn:
+          type: string
+          format: date
       cdcPublishedLakeHouseDetails:
         $ref: "#/definitions/CdcPublishedLakeHouseDetailsVO"
 

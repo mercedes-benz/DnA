@@ -90,6 +90,22 @@ swaggerSources {
         }
     }
 
+    adaProjects {
+        def adaProjectsYaml = "${rootDir}/lib/src/main/resources/api/adaProjects.yaml"
+        def adaProjectsJson = "${rootDir}/lib/src/main/resources/api/adaProjects.json"
+        inputFile = file(adaProjectsYaml)
+
+        def ignoreFile = "${rootDir}/lib/src/main/resources/api/.swagger-codegen-ignore"
+
+        code {
+            language = 'spring'
+            configFile = file(adaProjectsJson)
+            rawOptions = ['--ignore-file-override', ignoreFile]
+
+            components = ['models', 'apis']
+        }
+    }
+
     fabricCatalogManagement {
         def fabricCatalogManagementyaml = "${rootDir}/lib/src/main/resources/api/fabricCatalogManagement.yaml"
         def fabricCatalogManagementJson = "${rootDir}/lib/src/main/resources/api/fabricCatalogManagement.json"
@@ -112,7 +128,9 @@ compileJava {
     dependsOn swaggerSources.fabricWorkspace.code
     source "${swaggerSources.fabricWorkspace.code.outputDir}/src/main/java" 
     dependsOn swaggerSources.tag.code
-    source "${swaggerSources.tag.code.outputDir}/src/main/java" 
+    source "${swaggerSources.tag.code.outputDir}/src/main/java"
+    dependsOn swaggerSources.adaProjects.code
+    source "${swaggerSources.adaProjects.code.outputDir}/src/main/java"
     dependsOn swaggerSources.fabricCatalogManagement.code
     source "${swaggerSources.fabricCatalogManagement.code.outputDir}/src/main/java"
 }
@@ -127,6 +145,7 @@ sourceSets {
         java { srcDirs = srcDirs }
 		java { srcDirs += "${swaggerSources.fabricWorkspace.code.outputDir}/src/main/java" }
         java { srcDirs += "${swaggerSources.tag.code.outputDir}/src/main/java"}
+        java { srcDirs += "${swaggerSources.adaProjects.code.outputDir}/src/main/java"}
     }
 }
 
