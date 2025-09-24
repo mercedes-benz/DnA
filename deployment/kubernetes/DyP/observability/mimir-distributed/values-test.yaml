@@ -49,11 +49,9 @@ mimir:
 
 nginx:
   image:
-    # -- The Docker registry for nginx image
     registry: registry-emea.app.corpintra.net/dockerhub
 rollout_operator:
     image:
-    # -- The Docker registry for nginx image
-    registry: registry-emea.app.corpintra.net/dockerhub
+      repository: registry-emea.app.corpintra.net/dockerhub/grafana/rollout-operator
 minio:
   enabled: false
