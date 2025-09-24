@@ -1,0 +1,239 @@
+{{- if and .Values.alertmanager.enabled (not .Values.federation_frontend.disableOtherComponents) -}}
+{{- if .Values.alertmanager.statefulSet.enabled -}}
+{{- $args := dict "ctx" . "component" "alertmanager" "memberlist" true -}}
+{{- $zonesMap := include "mimir.zoneAwareReplicationMap" $args | fromYaml -}}
+{{- range $zoneName, $rolloutZone := $zonesMap }}
+{{- with $ -}}
+{{- $_ := set $args "rolloutZoneName" $zoneName -}}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "mimir.resourceName" $args }}
+  labels:
+    {{- include "mimir.labels" $args | nindent 4 }}
+    {{- if (eq $rolloutZone.noDownscale true )}}
+    grafana.com/no-downscale: {{ $rolloutZone.noDownscale | quote }}
+    {{- else }}
+    {{- if (eq $rolloutZone.prepareDownscale true )}}
+    grafana.com/prepare-downscale: {{ $rolloutZone.prepareDownscale | quote }}
+    {{- end }}
+    {{- end }}
+  annotations:
+    {{- include "mimir.componentAnnotations" $args | nindent 4 }}
+    {{- if $rolloutZone.downscaleLeader }}
+    grafana.com/rollout-downscale-leader: {{ $rolloutZone.downscaleLeader }}
+    {{- end }}
+  namespace: {{ .Release.Namespace | quote }}
+spec:
+  replicas: {{ $rolloutZone.replicas }}
+  {{- if and (semverCompare ">= 1.23-0" (include "mimir.kubeVersion" .)) (.Values.alertmanager.persistentVolume.enableRetentionPolicy)  }}
+  persistentVolumeClaimRetentionPolicy:
+    whenDeleted: {{ .Values.alertmanager.persistentVolume.whenDeleted }}
+    whenScaled: {{ .Values.alertmanager.persistentVolume.whenScaled }}
+  {{- end }}
+  selector:
+    matchLabels:
+      {{- include "mimir.selectorLabels" $args | nindent 6 }}
+  updateStrategy:
+    {{- if $zoneName }}
+    type: OnDelete
+    {{- else }}
+    {{- toYaml .Values.alertmanager.statefulStrategy | nindent 4 }}
+    {{- end }}
+  serviceName: {{ template "mimir.fullname" . }}-alertmanager
+  {{- if .Values.alertmanager.persistentVolume.enabled }}
+  {{- with .Values.alertmanager.persistentVolume }}
+  volumeClaimTemplates:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: {{ .name }}
+        {{- if .annotations }}
+        annotations:
+          {{ toYaml .annotations | nindent 10 }}
+        {{- end }}
+      spec:
+        {{- $storageClass := default .storageClass $rolloutZone.storageClass }}
+        {{- if $storageClass }}
+        {{- if (eq "-" $storageClass) }}
+        storageClassName: ""
+        {{- else }}
+        storageClassName: {{ $storageClass }}
+        {{- end }}
+        {{- end }}
+        accessModes:
+          {{- toYaml .accessModes | nindent 10 }}
+        resources:
+          requests:
+            storage: "{{ .size }}"
+  {{- end }}
+  {{- end }}
+  template:
+    metadata:
+      labels:
+        {{- include "mimir.podLabels" $args | nindent 8 }}
+      annotations:
+        {{- include "mimir.podAnnotations" $args | nindent 8 }}
+        {{- if .Values.alertmanager.fallbackConfig }}
+        checksum/alertmanager-fallback-config: {{ include (print .Template.BasePath "/alertmanager/alertmanager-config.yaml") . | sha256sum }}
+        {{- end }}
+      namespace: {{ .Release.Namespace | quote }}
+    spec:
+      {{- with .Values.alertmanager.schedulerName }}
+      schedulerName: {{ . | quote }}
+      {{- end }}
+      serviceAccountName: {{ template "mimir.alertmanager.serviceAccountName" . }}
+      {{- if .Values.alertmanager.priorityClassName }}
+      priorityClassName: {{ .Values.alertmanager.priorityClassName }}
+      {{- end }}
+      securityContext:
+        {{- include "mimir.lib.podSecurityContext" (dict "ctx" . "component" "alertmanager") | nindent 8 }}
+      {{- with .Values.alertmanager.initContainers }}
+      initContainers:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.image.pullSecrets }}
+      imagePullSecrets:
+      {{- range .Values.image.pullSecrets }}
+        - name: {{ . }}
+      {{- end }}
+      {{- end }}
+      {{- with $rolloutZone.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with $rolloutZone.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- include "mimir.lib.topologySpreadConstraints" (dict "ctx" . "component" "alertmanager") | nindent 6 }}
+      {{- with .Values.alertmanager.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      terminationGracePeriodSeconds: {{ .Values.alertmanager.terminationGracePeriodSeconds }}
+      volumes:
+        - name: config
+          {{- include "mimir.configVolume" . | nindent 10 }}
+        {{- if .Values.enterprise.enabled }}
+        - name: license
+          secret:
+            secretName: {{ tpl .Values.license.secretName . }}
+        {{- end }}
+        - name: runtime-config
+          configMap:
+            name: {{ template "mimir.fullname" . }}-runtime
+        {{- if not .Values.alertmanager.persistentVolume.enabled }}
+        - name: storage
+          emptyDir: {}
+        {{- end }}
+        - name: tmp
+          emptyDir: {}
+        - name: active-queries
+          emptyDir: {}
+        {{- if .Values.alertmanager.fallbackConfig }}
+        - name: alertmanager-fallback-config
+          configMap:
+            name: {{ include "mimir.resourceName" (dict "ctx" . "component" "alertmanager") }}-fallback-config
+        {{- end }}
+        {{- if .Values.alertmanager.extraVolumes }}
+        {{ toYaml .Values.alertmanager.extraVolumes | nindent 8 }}
+        {{- end }}
+        {{- if .Values.global.extraVolumes }}
+        {{ toYaml .Values.global.extraVolumes | nindent 8 }}
+        {{- end }}
+      containers:
+        {{- if .Values.alertmanager.extraContainers }}
+        {{ toYaml .Values.alertmanager.extraContainers | nindent 8 }}
+        {{- end }}
+        - name: alertmanager
+          image: {{ include "mimir.imageReference" (dict "ctx" . "component" "alertmanager") }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args:
+            - "-target=alertmanager"
+            - "-config.expand-env=true"
+            - "-config.file=/etc/mimir/mimir.yaml"
+            {{- if $zoneName }}
+            - "-alertmanager.sharding-ring.instance-availability-zone={{ $zoneName }}"
+            {{- else }}
+            {{- if .Values.alertmanager.zoneAwareReplication.enabled }}
+            - "-alertmanager.sharding-ring.instance-availability-zone=zone-default"
+            {{- end }}
+            {{- end }}
+            # Prometheus HTTP client used to send alerts has a hard-coded idle
+            # timeout of 5 minutes, therefore the server timeout for Alertmanager
+            # needs to be higher to avoid connections being closed abruptly.
+            - "-server.http-idle-timeout=6m"
+            {{- range $key, $value := .Values.alertmanager.extraArgs }}
+            - -{{ $key }}={{ $value }}
+            {{- end }}
+          volumeMounts:
+            {{- if .Values.alertmanager.extraVolumeMounts }}
+            {{ toYaml .Values.alertmanager.extraVolumeMounts | nindent 12}}
+            {{- end }}
+            {{- if .Values.global.extraVolumeMounts }}
+            {{ toYaml .Values.global.extraVolumeMounts | nindent 12}}
+            {{- end }}
+            - name: config
+              mountPath: /etc/mimir
+            {{- if .Values.enterprise.enabled }}
+            - name: license
+              mountPath: /license
+            {{- end }}
+            - name: runtime-config
+              mountPath: /var/{{ include "mimir.name" . }}
+            - name: storage
+              mountPath: "/data"
+              {{- if .Values.alertmanager.persistentVolume.subPath }}
+              subPath: {{ .Values.alertmanager.persistentVolume.subPath }}
+              {{- end }}
+            {{- if .Values.alertmanager.fallbackConfig }}
+            - name: alertmanager-fallback-config
+              mountPath: /configs/
+            {{- end }}
+            - name: tmp
+              mountPath: /tmp
+            - name: active-queries
+              mountPath: /active-query-tracker
+          ports:
+            - name: http-metrics
+              containerPort: {{ include "mimir.serverHttpListenPort" . }}
+              protocol: TCP
+            - name: grpc
+              containerPort: {{ include "mimir.serverGrpcListenPort" . }}
+              protocol: TCP
+            - name: memberlist
+              containerPort: {{ include "mimir.memberlistBindPort" . }}
+              protocol: TCP
+          livenessProbe:
+            {{- toYaml .Values.alertmanager.livenessProbe | nindent 12 }}
+          readinessProbe:
+            {{- toYaml .Values.alertmanager.readinessProbe | nindent 12 }}
+          resources:
+            {{- toYaml .Values.alertmanager.resources | nindent 12 }}
+          securityContext:
+            {{- toYaml .Values.alertmanager.containerSecurityContext | nindent 12 }}
+          {{- if or .Values.global.extraEnv .Values.alertmanager.env }}
+          env:
+            {{- with .Values.global.extraEnv }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+            {{- with .Values.alertmanager.env }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- end }}
+          {{- if or .Values.global.extraEnvFrom .Values.alertmanager.extraEnvFrom }}
+          envFrom:
+            {{- with .Values.global.extraEnvFrom }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+            {{- with .Values.alertmanager.extraEnvFrom }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- end }}
+
+---
+{{ end }}
+{{ end }}
+{{ end }}
+{{ end }}
