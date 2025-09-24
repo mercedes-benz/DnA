@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.daimler.data.db.json.catalogManangement.FabricCatalogMetadata;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -50,4 +51,5 @@ public class FabricWorkspace implements Serializable{
 	private LeanIXDetails leanIXDetails;
 	private String projectId;
 	private Date lastModifiedOn;
+	private CdcPublishedLakeHouseDetails cdcPublishedLakeHouseDetails;
 }
