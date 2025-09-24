@@ -286,6 +286,7 @@ decryptBackupWal:
 ##
 backup:
   enabled: true
+  successfulJobsHistoryLimit: "0"
 
   ## the storage type, either fs or s3.
   ## This is the target storage where the compressed backup archive file will be stored.
@@ -306,7 +307,7 @@ backup:
     ## fill in the bucket name you have ordered!
     bucketName: <path:oneapi_kv/data/staging/kubernetesSecret/apisap-INTDB#bucketName>
   ## general configuration for backup
-  schedule: "1 0 * * *"
+  schedule: "30 0 * * *"
   retention: <path:oneapi_kv/data/staging/kubernetesSecret/apisap-INTDB#retention>
   ## Please read documentation at docs/operations/operations.md#cleanup-wal-archives before enabling this feature
   cleanupWalArchives: false
