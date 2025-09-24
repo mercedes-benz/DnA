@@ -6,7 +6,9 @@ metadata:
   labels:
     {{- include "dss-be.labels" . | nindent 4 }}
 spec:
+  {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
+  {{- end }}
   selector:
     matchLabels:
       {{- include "dss-be.selectorLabels" . | nindent 6 }}
