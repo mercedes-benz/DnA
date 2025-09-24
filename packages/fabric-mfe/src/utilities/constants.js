@@ -30,8 +30,6 @@ export const FLOW_DIAGRAM_MEASUREMENTS = {
 }
 
 export const DIVISIONS = [
-  'Daimler Buses',
-  'Daimler Trucks',
   'Mercedes-Benz Cars',
   'Mercedes-Benz Mobility',
   'Mercedes-Benz Vans',
