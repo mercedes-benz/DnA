@@ -1,0 +1,45 @@
+fullnameOverride: mimir
+
+image:
+  repository: registry-emea.app.corpintra.net/dockerhub/grafana/mimir
+
+mimir:
+    structuredConfig:
+      # alertmanager_storage:
+      #   s3:
+      #     bucket_name: my-ruler-bucket
+      #     endpoint: "loki-minio.observability:9000"
+      #     access_key_id: "admin" # This is a secret injected via an environment variable
+      #     secret_access_key: "jTPPj-13jebS5Ulo" # This is a secret injected via an environment variable
+      #     http:
+      #       insecure_skip_verify: true
+      blocks_storage:
+        backend: s3
+        s3:
+          bucket_name: mimir-tsdb
+          endpoint: "loki-minio.observability:9000"
+          access_key_id: "admin" # This is a secret injected via an environment variable
+          secret_access_key: "jTPPj-13jebS5Ulo" # This is a secret injected via an environment variable
+          http:
+            insecure_skip_verify: true
+          insecure: true            
+      ruler_storage:
+        s3:
+          bucket_name: mimir-ruler
+          endpoint: "loki-minio.observability:9000"
+          access_key_id: "admin" # This is a secret injected via an environment variable
+          secret_access_key: "jTPPj-13jebS5Ulo" # This is a secret injected via an environment variable
+          http:
+            insecure_skip_verify: true   
+          insecure: true           
+      memberlist:
+        join_members: 
+          - mimir-gossip-ring.mimir-test.svc.cluster.local:7946          
+
+nginx:
+  image:
+    # -- The Docker registry for nginx image
+    registry: registry-emea.app.corpintra.net/dockerhub
+
+minio:
+  enabled: false
