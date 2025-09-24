@@ -875,10 +875,10 @@ controller:
   # -- Resource limits and requests for the application controller pods
   resources: 
    limits:
-     memory: 796Mi
+     memory: 1500Mi
    requests:
      cpu: 1.7
-     memory: 796Mi
+     memory: 1500Mi
 
   # Application controller container ports
   containerPorts:
@@ -1212,12 +1212,7 @@ dex:
   podLabels: {}
 
   # -- Resource limits and requests for dex
-  resources:
-     requests:
-       memory: 52Mi
-       cpu: 1m
-     limits:
-       memory: 52Mi
+  resources: {}
 
   # Dex container ports
   # NOTE: These ports are currently hardcoded and cannot be changed
@@ -1526,12 +1521,7 @@ redis:
   podLabels: {}
 
   # -- Resource limits and requests for redis
-  resources: 
-     requests:
-       memory: 13Mi
-       cpu: 10m
-     limits:
-       memory: 13Mi
+  resources: {}
 
   # -- Redis pod-level security context
   # @default -- See [values.yaml]
@@ -2519,7 +2509,7 @@ repoServer:
   name: repo-server
 
   # -- The number of repo server pods to run
-  replicas: 5
+  replicas: 15
 
   ## Repo server Horizontal Pod Autoscaler
   autoscaling:
@@ -3196,12 +3186,7 @@ applicationSet:
   podLabels: {}
 
   # -- Resource limits and requests for the ApplicationSet controller pods.
-  resources: 
-     requests:
-       memory: 92Mi
-       cpu: 18m
-     limits:
-       memory: 92Mi
+  resources: {}
 
   # ApplicationSet controller container ports
   containerPorts:

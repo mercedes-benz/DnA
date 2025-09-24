@@ -8,7 +8,9 @@ metadata:
     zone: web
     app.kubernetes.io/name: dna-backend
 spec:
+  {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.app.backend.replicaCount }}
+  {{- end }}
   selector:
     matchLabels:
       app: {{ .Release.Name }}
