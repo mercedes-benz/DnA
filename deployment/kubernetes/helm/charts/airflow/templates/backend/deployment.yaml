@@ -8,7 +8,7 @@ metadata:
     app.kubernetes.io/name: {{ .Chart.Name }}-backend
 spec:
   {{- if not .Values.autoscaling.enabled }}
-  replicas: {{ .Values.replicaCount }}
+  replicas: {{ .Values.backend.replicas }}
   {{- end }}
   selector:
     matchLabels:
