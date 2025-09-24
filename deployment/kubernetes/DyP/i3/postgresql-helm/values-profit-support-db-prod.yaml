@@ -108,11 +108,11 @@ resources:
   ## uncomment fitting parts when you wand to enable setting cpu and memory requests and limits
   limits:
     enabled: true
-    memory: 139Mi
+    memory: 123Mi
   request:
     enabled: true
-    cpu: 10m
-    memory: 139Mi
+    cpu: 3m
+    memory: 123Mi
 
 ## Configure additional env variables
 env:
@@ -420,14 +420,14 @@ pgmonitoring:
     tag: v0.10.1
     pullPolicy: IfNotPresent
   resources:
-    enabled: true
+    enabled: false
     limits:
-      enabled: true
-      memory: 100Mi
+      enabled: false
+      # memory: 100Mi
     request:
-      enabled: true
-      cpu: 10m
-      memory: 100Mi
+      enabled: false
+      # cpu: 10m
+      # memory: 100Mi
   queryMonitoring:
     enabled: true
   customQueries: {}

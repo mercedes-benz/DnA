@@ -40,12 +40,7 @@ ingress:
     - hosts:
         - workspaces.test.dna.app.corpintra.net
       secretName: workspaces-tls-secret
-resources:
-  limits:
-    memory: 100Mi
-  requests:
-    cpu: 10m
-    memory: 100Mi
+resources: {}
 vaultInjector:
   enable: true
   annotations:

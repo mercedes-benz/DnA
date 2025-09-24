@@ -42,12 +42,7 @@ ingress:
     - hosts:
         - data-product.dna.app.corpintra.net
       secretName: data-product-tls-secret
-resources:
-  limits:
-    memory: 100Mi
-  requests:
-    cpu: 100m
-    memory: 100Mi
+resources: {}
 vaultInjector:
   enable: true
   annotations:

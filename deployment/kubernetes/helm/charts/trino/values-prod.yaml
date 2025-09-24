@@ -97,10 +97,10 @@ resources:
   # resources, such as Minikube. If you do want to specify resources, uncomment the following
   # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
   limits:
-    memory: 1760Mi
+    memory: 2260Mi
   requests:
     cpu: 10m
-    memory: 1760Mi
+    memory: 2260Mi
 
 nodeSelector: {}
 
@@ -144,10 +144,10 @@ hivemetastore:
     thrift:
       http_timeout: "2h"
   requests:
-    memory: 407Mi
+    memory: 355Mi
   limits:
-    memory: 407Mi
-    cpu: 10m
+    memory: 355Mi
+    cpu: 2m
 #Don`t start the minio host name with http:// as http prefix was already present in the metastore-cfg.file
   minio:
     host: "minio.prod-dna-minio.svc.cluster.local:80"

@@ -40,12 +40,7 @@ ingress:
     - hosts:
         - matomo.dna-aws.app.corpintra.net
       secretName: matomo-tls-secret
-resources:
-  limits:
-    memory: 128Mi
-  requests:
-    cpu: 10m
-    memory: 128Mi
+resources: {}
 vaultInjector:
   enable: true
   annotations:

@@ -106,11 +106,11 @@ s3:
 resources:
   limits:
     enabled: true
-    memory: 428Mi
+    memory: 337Mi
   request:
     enabled: true
-    cpu: 10m
-    memory: 428Mi
+    cpu: 20m
+    memory: 337Mi
 
 ## Configure additional env variables
 env:
@@ -414,14 +414,15 @@ pgmonitoring:
     tag: v0.10.1
     pullPolicy: IfNotPresent
   resources:
-    enabled: true
+    enabled: false
     limits:
-      enabled: true
-      memory: 500Mi
+      enabled: false
+      # memory: 200Mi
     request:
-      enabled: true
-      cpu: 20m
-      memory: 500Mi
+      enabled: false
+      # cpu: 20m
+      # memory: 200Mi
+
   queryMonitoring:
     enabled: true
   customQueries: {}

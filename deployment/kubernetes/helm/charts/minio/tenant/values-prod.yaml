@@ -151,10 +151,10 @@ tenant:
       #
       # We recommend disabling recursive permission changes by setting ``fsGroupChangePolicy`` to ``OnRootMismatch`` as those operations can be expensive for certain workloads (e.g. large volumes with many small files).
         limits:
-          memory: 6599Mi
+          memory: 6859Mi
         requests:
-          cpu: 1
-          memory: 6599Mi 
+          cpu: 205m
+          memory: 6859Mi 
       securityContext:
         runAsUser: 1000
         runAsGroup: 1000
@@ -294,10 +294,10 @@ tenant:
       #
       # We recommend disabling recursive permission changes by setting ``fsGroupChangePolicy`` to ``OnRootMismatch`` as those operations can be expensive for certain workloads (e.g. large volumes with many small files).
         limits:
-          memory: 6599Mi
+          memory: 6859Mi
         requests:
           cpu: "1"
-          memory: 6599Mi
+          memory: 6859Mi
       securityContext:
         runAsUser: 1000
         runAsGroup: 1000

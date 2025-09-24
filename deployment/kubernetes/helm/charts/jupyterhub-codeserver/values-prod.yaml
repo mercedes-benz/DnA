@@ -211,10 +211,10 @@ hub:
     pullSecrets: []
   resources: 
       limits:
-        memory: 210Mi
+        memory: 240Mi
       requests:
-        cpu: 16m
-        memory: 210Mi
+        cpu: 11m
+        memory: 240Mi
   podSecurityContext:
     runAsNonRoot: true
     fsGroup: 1000
@@ -378,10 +378,10 @@ proxy:
       timeoutSeconds: 1
     resources: 
       limits:
-        memory: 100Mi
+        memory: 45Mi
       requests:
-        cpu: 15m
-        memory: 100Mi
+        cpu: 13m
+        memory: 45Mi
     defaultTarget:
     errorTarget:
     extraEnv: {}
@@ -789,10 +789,10 @@ scheduling:
       minAvailable:
     resources: 
       limits:
-        memory: 167Mi
+        memory: 200Mi
       requests:
-        cpu: 10m
-        memory: 167Mi
+        cpu: 4m
+        memory: 200Mi
     serviceAccount:
       create: true
       name:
@@ -862,10 +862,10 @@ prePuller:
   annotations: {}
   resources: 
     limits:
-      memory: 100Mi
+      memory: 10Mi
     requests:
-      cpu: 10m
-      memory: 100Mi
+      cpu: 1m
+      memory: 10Mi
   containerSecurityContext:
     runAsNonRoot: true
     runAsUser: 65534 # nobody user

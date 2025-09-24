@@ -875,10 +875,10 @@ controller:
   # -- Resource limits and requests for the application controller pods
   resources: 
    limits:
-     memory: 1381Mi
+     memory: 796Mi
    requests:
      cpu: 1.7
-     memory: 1381Mi
+     memory: 796Mi
 
   # Application controller container ports
   containerPorts:
@@ -1214,10 +1214,10 @@ dex:
   # -- Resource limits and requests for dex
   resources:
      requests:
-       memory: 100Mi
-       cpu: 10m
+       memory: 52Mi
+       cpu: 1m
      limits:
-       memory: 100Mi
+       memory: 52Mi
 
   # Dex container ports
   # NOTE: These ports are currently hardcoded and cannot be changed
@@ -1528,10 +1528,10 @@ redis:
   # -- Resource limits and requests for redis
   resources: 
      requests:
-       memory: 100Mi
+       memory: 13Mi
        cpu: 10m
      limits:
-       memory: 100Mi
+       memory: 13Mi
 
   # -- Redis pod-level security context
   # @default -- See [values.yaml]
@@ -2056,7 +2056,7 @@ server:
   resources: 
      requests:
        memory: 139Mi
-       cpu: 23m
+       cpu: 16m
      limits:
        memory: 139Mi
 
@@ -2639,10 +2639,10 @@ repoServer:
         runAsUser: 999
       resources:
         requests:
-          cpu: 661m
-          memory: 2856Mi
+          cpu: 249m
+          memory: 1303Mi
         limits:
-          memory: 2856Mi
+          memory: 1303Mi
       volumeMounts:
       - mountPath: /var/run/argocd
         name: var-files
@@ -2831,10 +2831,10 @@ repoServer:
   # -- Resource limits and requests for the repo server pods
   resources: 
    limits:
-     memory: 992Mi
+     memory: 685Mi
    requests:
-     cpu: 1.108
-     memory: 992Mi  
+     cpu: 922m
+     memory: 685Mi  
 
   # Repo server container ports
   containerPorts:
@@ -3198,10 +3198,10 @@ applicationSet:
   # -- Resource limits and requests for the ApplicationSet controller pods.
   resources: 
      requests:
-       memory: 100Mi
+       memory: 92Mi
        cpu: 18m
      limits:
-       memory: 100Mi
+       memory: 92Mi
 
   # ApplicationSet controller container ports
   containerPorts:
@@ -3572,10 +3572,10 @@ notifications:
   # -- Resource limits and requests for the notifications controller
   resources: 
      requests:
-       memory: 100Mi
-       cpu: 18m
+       memory: 65Mi
+       cpu: 15m
      limits:
-       memory: 100Mi
+       memory: 65Mi
 
   # Notification controller container ports
   containerPorts:

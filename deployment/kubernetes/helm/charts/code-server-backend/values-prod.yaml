@@ -67,15 +67,15 @@ ingress:
       secretName: cs-tls-secret
 resources:
   requests:
-    memory: 747Mi
-    cpu: 10m
+    memory: 765Mi
+    cpu: 1m
   limits:
-    memory: 747Mi
+    memory: 765Mi
 autoscaling:
-  enabled: false
-  minReplicas: 1
-  maxReplicas: 100
-  targetCPUUtilizationPercentage: 80
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 10
+  targetMemoryUtilizationPercentage: 70
 nodeSelector: {}
 tolerations: []
 affinity: {}

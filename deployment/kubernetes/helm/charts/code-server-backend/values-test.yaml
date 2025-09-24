@@ -72,10 +72,10 @@ ingress:
       secretName: cs-tls-secret
 resources:
   requests:
-    memory: 485Mi
-    cpu: 10m
+    memory: 765Mi
+    cpu: 1m
   limits:
-    memory: 485Mi
+    memory: 765Mi
 autoscaling:
   enabled: false
   minReplicas: 1

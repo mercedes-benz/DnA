@@ -111,7 +111,7 @@ resources:
     memory: 8799Mi
   request:
     enabled: true
-    cpu: 146m
+    cpu: 491m
     memory: 8799Mi
 
 ## Configure additional env variables

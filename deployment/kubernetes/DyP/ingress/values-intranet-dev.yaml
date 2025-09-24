@@ -919,12 +919,7 @@ serviceAccount:
 serviceAccountAnnotations: {}
 
 # -- [Resources](https://kubernetes.io/docs/concepts/configuration/manage-resources-containers/) for `traefik` container.
-resources:
-  limits:
-    memory: 185Mi
-  requests:
-    cpu: 17m
-    memory: 185Mi
+resources: {}
 
 # -- This example pod anti-affinity forces the scheduler to put traefik pods
 # -- on nodes where no other traefik pods are scheduled.

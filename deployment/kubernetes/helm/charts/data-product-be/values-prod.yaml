@@ -106,10 +106,10 @@ ingress:
       secretName: data-product-be-tls
 resources:
   requests:
-    memory: 1283Mi
-    cpu: 33m
+    memory: 1593Mi
+    cpu: 38m
   limits:
-    memory: 1283Mi
+    memory: 1593Mi
 nodeSelector: {}
 tolerations: []
 affinity: {}
@@ -119,3 +119,7 @@ vaultInjector:
 podDisruptionBudget:
   enabled: true
   minAvailable: 50%
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 10

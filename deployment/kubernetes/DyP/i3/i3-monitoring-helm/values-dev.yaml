@@ -7,10 +7,10 @@ prometheus:
       repository: registry-emea.app.corpintra.net/dockerhub/prom/alertmanager
     resources: 
       limits:
-        memory: 100Mi
+        memory: 25Mi
       requests:
-        cpu: 10m
-        memory: 100Mi
+        cpu: 1m
+        memory: 25Mi
     # Adjust securityContext for non-root
     securityContext:
       runAsUser: 65534
@@ -63,10 +63,10 @@ prometheus:
       i3.monitoring.app: prometheus
     resources: 
         limits:
-          memory: 8841Mi
+          memory: 27Gi
         requests:
-          cpu: 169m
-          memory: 8841Mi       
+          cpu: 390m
+          memory: 27Gi       
     global:
       # Adjust scrape_interval to 1m
       scrape_interval: 1m
@@ -896,10 +896,10 @@ prometheus:
       i3.monitoring.app: prometheus
     resources: 
        limits:
-         memory: 100Mi
+         memory: 21Mi
        requests:
-         cpu: 10m
-         memory: 100Mi            
+         cpu: 1m
+         memory: 21Mi            
     ingress:
       enabled: true
       ingressClassName: dev-ingress-intranet
@@ -936,10 +936,10 @@ grafana:
     minAvailable: 1
   resources: 
     limits:
-      memory: 415Mi
+      memory: 246Mi
     requests:
-      cpu: 10m
-      memory: 415Mi    
+      cpu: 11m
+      memory: 246Mi  
   ingress:
     enabled: true
     ingressClassName: dev-ingress-intranet
@@ -1247,10 +1247,10 @@ prom2teams:
     pullPolicy: IfNotPresent
     resources: 
         limits:
-          memory: 100Mi
+          memory: 40Mi
         requests:
-          cpu: 10m
-          memory: 100Mi     
+          cpu: 1m
+          memory: 40Mi     
   prom2teams:
     connector: https://corpdir.webhook.office.com/webhookb2/xxx/IncomingWebhook/xxx/xxx
     connectors: {}

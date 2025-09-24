@@ -30,10 +30,10 @@ app:
       corsOriginUrl: null
   resources:
     requests:
-      memory: 536Mi
-      cpu: 45m
+      memory: 800Mi
+      cpu: 5m
     limits:
-      memory: 536Mi
+      memory: 800Mi
   probes:
     initialDelaySeconds: 900
     timeoutSeconds: 10
@@ -97,3 +97,7 @@ vaultInjector:
 podDisruptionBudget:
   enabled: true
   minAvailable: 50%
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 10

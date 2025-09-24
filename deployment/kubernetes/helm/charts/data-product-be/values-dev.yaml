@@ -108,13 +108,15 @@ ingress:
       secretName: data-product-be-tls
 resources:
   requests:
-    memory: 597Mi
-    cpu: 32m
+    memory: 1593Mi
+    cpu: 38m
   limits:
-    memory: 597Mi
+    memory: 1593Mi
 nodeSelector: {}
 tolerations: []
 affinity: {}
 vaultInjector:
   enable: true
   jarName: data-product*.jar
+autoscaling:
+  enabled: false

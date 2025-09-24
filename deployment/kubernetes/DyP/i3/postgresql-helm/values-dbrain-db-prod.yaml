@@ -416,15 +416,15 @@ pgmonitoring:
     tag: v0.10.1
     pullPolicy: IfNotPresent
   resources:
-    enabled: true
+    enabled: false
     limits:
-      enabled: true
-      cpu:
-      memory: 100Mi
+      enabled: false
+      # cpu:
+      # memory: 100Mi
     request:
-      enabled: true
-      cpu: 10m
-      memory: 100Mi
+      enabled: false
+      # cpu: 10m
+      # memory: 100Mi
   queryMonitoring:
     enabled: true
   customQueries: {}

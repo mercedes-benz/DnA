@@ -760,7 +760,7 @@ scheduler:
    limits:
     memory: 1145Mi
    requests:
-    cpu: 1784m
+    cpu: 1234m
     memory: 1145Mi
 
   # This setting tells kubernetes that its ok to evict
@@ -1097,10 +1097,10 @@ webserver:
 
   resources:
     limits:
-      memory: 1492Mi
+      memory: 1000Mi
     requests:
-      cpu: 10m
-      memory: 1492Mi
+      cpu: 3m
+      memory: 1000Mi
 
   # Create initial user.
   defaultUser:
@@ -1628,10 +1628,10 @@ statsd:
   extraNetworkPolicies: []
   resources:
     limits:
-      memory: 307Mi
+      memory: 276Mi
     requests:
-      cpu: 57m
-      memory: 307Mi
+      cpu: 27m
+      memory: 276Mi
 
   service:
     extraAnnotations: {}
