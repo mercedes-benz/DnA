@@ -5,6 +5,17 @@ image:
 
 mimir:
     structuredConfig:
+      # Increase ingestion rate limits
+      limits:
+        # Global ingestion rate limit (items/second) - increased from 10000
+        ingestion_rate: 50000
+        # Global ingestion burst size - increased from 200000  
+        ingestion_burst_size: 500000
+        # Per-tenant max series limit
+        max_global_series_per_user: 1500000
+        # Per-tenant max samples per query
+        max_fetched_series_per_query: 100000
+
       # alertmanager_storage:
       #   s3:
       #     bucket_name: my-ruler-bucket
@@ -40,6 +51,9 @@ nginx:
   image:
     # -- The Docker registry for nginx image
     registry: registry-emea.app.corpintra.net/dockerhub
-
+rollout_operator:
+    image:
+    # -- The Docker registry for nginx image
+    registry: registry-emea.app.corpintra.net/dockerhub
 minio:
   enabled: false
