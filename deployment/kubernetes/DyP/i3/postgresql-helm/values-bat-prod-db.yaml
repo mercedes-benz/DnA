@@ -418,7 +418,7 @@ pgmonitoring:
   resources:
     enabled: true
     limits:
-      enabled: true
+      enabled: false
       memory: 400Mi
     request:
       enabled: true
