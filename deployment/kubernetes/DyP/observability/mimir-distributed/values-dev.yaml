@@ -462,21 +462,33 @@ mimir:
   #         secret_access_key: "${AWS_SECRET_ACCESS_KEY}" # This is a secret injected via an environment variable
   #         http:
   #           insecure_skip_verify: true
-  structuredConfig: 
+  structuredConfig:
     common:
       storage:
         backend: s3
         s3:
-          bucket_name: "grafana-mimirtest"
-          endpoint: "http://53.14.18.242:9000"
-          access_key_id: "MONIKS" # This is a secret injected via an environment variable
-          secret_access_key: "0e9491ce-b473-4885-8e9e-94561081f595" # This is a secret injected via an environment variable
+          endpoint: 'loki-minio.observability:9000'
+          access_key_id: "admin"
+          secret_access_key: "jTPPj-13jebS5Ulo"
+          scheme: http                     
+          insecure: true
           http:
             insecure_skip_verify: true
+
     blocks_storage:
-      storage_prefix: "blocks"
+      backend: s3
+      s3:
+        bucket_name: 'mimir-tsdb'
+
     ruler_storage:
-      storage_prefix: "ruler"
+      backend: s3
+      s3:
+        bucket_name: 'mimir-ruler'
+
+    alertmanager_storage:
+      backend: s3
+      s3:
+        bucket_name: 'enterprise-metrics-ruler'
 
 # -- runtimeConfig provides a reloadable runtime configuration. Changing the runtimeConfig doesn't require a restart of all components.
 # For more infromation see https://grafana.com/docs/mimir/latest/configure/about-runtime-configuration/
@@ -3318,7 +3330,7 @@ nginx:
           listen 8080;
           listen [::]:8080;
 
-          {{- if .Values.nginx.basicAuth.enabled }}
+          {{- if .Values.gateway.nginx.basicAuth.enabled }}
           auth_basic           "Mimir";
           auth_basic_user_file /etc/nginx/secrets/.htpasswd;
           {{- end }}
@@ -3403,7 +3415,7 @@ nginx:
             proxy_pass      http://$compactor:{{ include "mimir.serverHttpListenPort" . }}$request_uri;
           }
 
-          {{- with .Values.nginx.nginxConfig.serverSnippet }}
+          {{- with .Values.gateway.nginx.config.serverSnippet }}
           {{ . | nindent 4 }}
           {{- end }}
         }
@@ -3485,7 +3497,6 @@ gateway:
     rollingUpdate:
       maxUnavailable: 0
       maxSurge: 15%
-
   # -- The name of the PriorityClass
   priorityClassName: null
   # -- Labels for Deployment Pods
