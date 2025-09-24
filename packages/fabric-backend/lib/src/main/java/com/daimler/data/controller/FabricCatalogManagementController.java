@@ -89,7 +89,7 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
         }
 
         FabricCatalogMetadataNsql existingCatalog = catalogCustomRepo.findByServiceName(existingFabricWorkspace.getName()).orElse(null);
-        if(existingCatalog.getData() != null && existingCatalog.getData().getMetadata().getServiceName() !=null){
+        if(existingCatalog != null && existingCatalog.getData() != null && existingCatalog.getData().getMetadata().getServiceName() !=null){
              log.error("Catalog already exists for name {}", existingCatalog.getData().getMetadata().getServiceName());
             return new ResponseEntity<>(null, HttpStatus.CONFLICT);
         }
