@@ -792,7 +792,7 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
               Looks like you have not logged in to CDC application before, because of which
               you are not allowed to make your push. Hence {" "} {" "}
               <a
-                href={Envs.CDC_URL}
+                href={Envs.CDC_SIGNIN_URL}
                 target="_blank"
                 rel="noopener noreferrer"
                 className={Styles.loginCDCLink}
