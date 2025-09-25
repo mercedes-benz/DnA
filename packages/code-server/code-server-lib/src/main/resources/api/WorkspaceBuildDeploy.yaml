@@ -323,6 +323,8 @@ definitions:
         type: string
       environment:
         type: string
+      keepBuildImage:
+        type: boolean
 
   LogsListResponseVO:
     type: object

@@ -4294,6 +4294,7 @@
 					 auditLog.setBuildStatus("BUILD_REQUESTED");
 					 auditLog.setComments(buildRequestDto.getComments());
 					 auditLog.setVersion(appVersion);
+					 auditLog.setKeepBuildImage(buildRequestDto.isKeepBuildImage());
 					 auditLogs.add(auditLog);
 					 CodeServerBuildDeploy buildDeployLogs = null;
 					 CodeServerBuildDeployNsql auditLogEntity = null;
