@@ -1,0 +1,7 @@
+.csbWrapper {
+  min-height: 500px;
+
+  > iframe {
+    height: 600px !important;
+  }
+}

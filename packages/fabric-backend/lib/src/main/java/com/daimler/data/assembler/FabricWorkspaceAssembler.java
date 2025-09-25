@@ -6,9 +6,13 @@ import java.util.stream.Collectors;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
+import org.springframework.util.ObjectUtils;
 
+import com.daimler.data.db.entities.AuthoriserRolesNsql;
 import com.daimler.data.db.entities.FabricWorkspaceNsql;
+import com.daimler.data.db.json.AuthoriserRoleDeatils;
 import com.daimler.data.db.json.Capacity;
+import com.daimler.data.db.json.CdcPublishedLakeHouseDetails;
 import com.daimler.data.db.json.EntitlementDetails;
 import com.daimler.data.db.json.FabricWorkspace;
 import com.daimler.data.db.json.FabricWorkspaceStatus;
@@ -21,7 +25,9 @@ import com.daimler.data.db.json.UserDetails;
 import com.daimler.data.dto.fabric.LakehouseDto;
 import com.daimler.data.dto.fabric.LakehouseS3ShortcutDto;
 import com.daimler.data.dto.fabricWorkspace.CapacityVO;
+import com.daimler.data.dto.fabricWorkspace.CdcPublishedLakeHouseDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.CreatedByVO;
+import com.daimler.data.dto.fabricWorkspace.DnaRolesVO;
 import com.daimler.data.dto.fabricWorkspace.EntitlementDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.FabricLakehouseVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceStatusVO;
@@ -30,6 +36,9 @@ import com.daimler.data.dto.fabricWorkspace.GroupDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.ProjectReferenceDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.RoleDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.ShortcutVO;
+import com.daimler.data.db.json.LeanIXDetails;
+import com.daimler.data.dto.fabricWorkspace.LeanIXDetailsVO;
+
 
 @Component
 public class FabricWorkspaceAssembler implements GenericAssembler<FabricWorkspaceVO, FabricWorkspaceNsql> {
@@ -54,7 +63,10 @@ public class FabricWorkspaceAssembler implements GenericAssembler<FabricWorkspac
 		vo.setName(dto.getName());
 		vo.setBucketpath(null);
 		vo.setPath(dto.getPath());
-		vo.setBucketname(dto.getName());
+		if (dto.getTarget() != null && dto.getTarget().getS3Compatible() != null)
+			vo.setBucketname(dto.getTarget().getS3Compatible().getBucket());
+		else
+			vo.setBucketname(null);
 		return vo;
 	}
 	
@@ -125,6 +137,17 @@ public class FabricWorkspaceAssembler implements GenericAssembler<FabricWorkspac
 				vo.setStatus(workspaceStatusVO);
 				vo.setCreatedBy(createdByVO);
 				vo.setHasPii(data.getHasPii());
+				if (!ObjectUtils.isEmpty(data.getLeanIXDetails())) {
+					LeanIXDetailsVO leanIXDetails = new LeanIXDetailsVO();
+					BeanUtils.copyProperties(data.getLeanIXDetails(), leanIXDetails);
+					vo.setLeanIXDetails(leanIXDetails);
+				}
+				if(!ObjectUtils.isEmpty(data.getCdcPublishedLakeHouseDetails())){
+					CdcPublishedLakeHouseDetailsVO cdcPublishedLakeHouseDetails = new CdcPublishedLakeHouseDetailsVO();
+					BeanUtils.copyProperties(data.getCdcPublishedLakeHouseDetails(), cdcPublishedLakeHouseDetails);
+					cdcPublishedLakeHouseDetails.setIsLakeHousesPublishedToCdc(data.getCdcPublishedLakeHouseDetails().getIsLakeHousesPublishedToCdc());
+					vo.setCdcPublishedLakeHouseDetails(cdcPublishedLakeHouseDetails);
+				}
 			}
 		}
 		return vo;
@@ -331,10 +354,51 @@ public class FabricWorkspaceAssembler implements GenericAssembler<FabricWorkspac
 				lakehouses = lakehouseVOs.stream().map(n -> toLakehouse(n)).collect(Collectors.toList());
 			}
 			data.setLakehouses(lakehouses);
-			
+			if (!ObjectUtils.isEmpty(vo.getLeanIXDetails())) {
+				LeanIXDetails leanIXDetails = new LeanIXDetails();
+				BeanUtils.copyProperties(vo.getLeanIXDetails(), leanIXDetails);
+				data.setLeanIXDetails(leanIXDetails);
+			}
+			// Set CDC Lakehouse Details
+			if (!ObjectUtils.isEmpty(vo.getCdcPublishedLakeHouseDetails())) {
+				CdcPublishedLakeHouseDetails cdcLakehouseDetails = new CdcPublishedLakeHouseDetails();
+				BeanUtils.copyProperties(vo.getCdcPublishedLakeHouseDetails(), cdcLakehouseDetails);
+				cdcLakehouseDetails.setIsLakeHousesPublishedToCdc(vo.getCdcPublishedLakeHouseDetails().isIsLakeHousesPublishedToCdc());
+				data.setCdcPublishedLakeHouseDetails(cdcLakehouseDetails);
+			}
 			entity.setData(data);
 		}
 		return entity;
 	}
 
+	public DnaRolesVO toDnaRolesVO( AuthoriserRolesNsql entity){
+  		DnaRolesVO roleDetail = new DnaRolesVO();
+		AuthoriserRoleDeatils data = entity.getData();
+		if(entity != null && data!=null){
+			roleDetail.setRoleID(entity.getId());
+			roleDetail.setIsDynamic(data.getIsDynamic());
+			if(data.getOwnerDetails() != null) {
+				roleDetail.setOwnerDetails(data.getOwnerDetails().stream()
+					.map(this::toCreatedByVO)
+					.collect(Collectors.toList()));
+			}
+		}
+			return roleDetail;
+	}
+
+	public UserDetails toUserDetails(CreatedByVO createdBy) {
+		UserDetails userDetails = new UserDetails();
+		if (createdBy != null) {
+			BeanUtils.copyProperties(createdBy, userDetails);
+		}
+		return userDetails;
+	}
+
+	public CreatedByVO toCreatedByVO(UserDetails userDetails) {
+		CreatedByVO createdByVO = new CreatedByVO();
+		if (userDetails != null) {
+			BeanUtils.copyProperties(userDetails, createdByVO);
+		}
+		return createdByVO;
+	}
 }

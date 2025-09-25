@@ -1,0 +1,93 @@
+.content {
+  background-color: #252a33;
+  padding: 25px 0;
+}
+.actionColumn {
+  text-align: right !important;
+  padding-right: 32px !important;
+}
+.actionBtn {
+  background: none;
+  border: none;
+  color: #c0c8d0;
+  height: auto;
+  margin: 0;
+  outline: none;
+  padding: 0 2px;
+  float: right;
+  margin-top: -35px;
+
+  &:hover {
+      background-color: unset;
+  }
+}
+.csempty {
+  min-height: 300px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.itemContainer {
+  margin-bottom: 10px;
+  .itemTitle {
+    font-family: 'Roboto-Medium';
+    margin-bottom: 5px;
+    text-transform: uppercase;
+  }
+  .item {
+    display: flex;
+    color: #acb8c4;
+    font-size: var(--font-size-small);
+    margin-bottom: 5px;
+    > p {
+      margin-bottom: 0;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .name {
+      font-family: 'Roboto-Medium';
+      min-width: 40%;
+      max-width: 40%;
+    }
+    .value {
+      padding-left: 20px;
+    }
+  }
+}
+.modal {  
+  width: 650px;
+  margin: 0 auto 20px;
+  .header {
+    margin-bottom: 20px;
+    text-align: center;
+    span {
+      font-size: 12px !important;
+      margin: 0;
+      color: #acb8c4 !important;
+      text-align: center !important;
+    }
+  }
+  .copyJSON {
+    font-size: var(--font-size-small);
+    color: #acb8c4;
+    cursor: pointer;
+    float: right;
+  }
+  .item {
+    > p {
+      white-space: unset;
+      overflow: unset;
+      text-overflow: unset;
+      word-break: break-all;
+    }
+    .value {
+      width: 60%;
+    }
+  }
+  .footer {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 20px;
+  }
+}

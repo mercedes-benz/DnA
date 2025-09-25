@@ -472,6 +472,40 @@ paths:
         500:
           description: "Internal error"
 
+  /solutions/{id}/port-solution:
+    patch:
+      tags:
+        - "solutions"
+      summary: "Port a solution to GenAI"
+      description: "Triggers the process of porting the specified solution to the GenAI system."
+      operationId: "portToGenAISolution"
+      parameters:
+        - name: id
+          in: path
+          description: "ID of the solution to be ported to GenAI"
+          required: true
+          type: string
+        - name: "revert"
+          in: "query"
+          type: boolean
+      responses:
+        200:
+          description: "Solution successfully ported to GenAI."
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
 definitions:
   TransparencyVO:
     type: object

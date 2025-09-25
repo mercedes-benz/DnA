@@ -11,16 +11,20 @@ export interface IModalProps {
   buttonAlignment: string;
   showAcceptButton: boolean;
   showCancelButton: boolean;
+  showPortButton?: boolean;
   acceptButtonTitle?: string;
   cancelButtonTitle?: string;
+  portToGenAITitle?:string;
   scrollableContent?: boolean;
   onAccept?: () => void;
   onCancel?: () => void;
+  onPort?:() => void;
   modalWidth?: string;
   modalStyle?: React.CSSProperties;
   footer?: React.ReactNode;
   customHeader?: React.ReactNode;
   hideCloseButton?: boolean;
+  scrollableBox?: boolean;
 }
 
 const Modal = (props: IModalProps) => {
@@ -42,7 +46,7 @@ const Modal = (props: IModalProps) => {
 
   return (
     <div className={props.show ? 'mbc-modal-wrapper' : Styles.hide}>
-      <div className={'mbc-modal'} style={{ minWidth: props.modalWidth ? props.modalWidth : '', ...props.modalStyle }}>
+      <div className={props.scrollableBox ? 'mbc-modal scrollable mbc-scroll' : 'mbc-modal'} style={{ minWidth: props.modalWidth ? props.modalWidth : '', ...props.modalStyle }}>
         <header>
           {props.customHeader ? (
             props.customHeader

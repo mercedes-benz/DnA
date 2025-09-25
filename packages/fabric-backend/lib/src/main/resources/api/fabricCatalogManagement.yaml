@@ -1,0 +1,337 @@
+# LICENSE START
+# 
+# MIT License
+# 
+# Copyright (c) 2019 Daimler TSS GmbH
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+# 
+# LICENSE END 
+#
+#-----------------------------------------------------------------------------------------------------
+#  **
+#  ** File Name  : fabricCatalogManagement.yaml
+#  **
+#  ** Module     : FabricCatalogManagement
+#  **
+
+#  -------------------------------------------------------------------------------------------------------
+#
+#  CHANGE HISTORY
+#
+#  Created By         :  aravindh45
+#
+#  Bug Number         :
+#  Changed By         :
+#  Change Description :
+#  Change On          :
+#  Search String      :
+#
+swagger: "2.0"
+info:
+  version: "1.0.0"
+  title: "Fabric Lakehouse catalog management service"
+host: "localhost:9292"
+basePath: "/api/1.0"
+consumes:
+  - "application/json"
+produces:
+  - "application/json"
+tags:
+  - name: "solutions"
+    description: "This service is used for fabric Lakehouse catalog maintenance."
+
+schemes:
+  - "https"
+
+paths:
+  /catalog/{workspaceId}/publish:
+    post:
+      tags:
+        - "fabric-catalog-management"
+      summary: "Publish a new catalog."
+      description: "This endpoint will be used to publish a new fabric catalog."
+      operationId: "publishCatalogRequest"
+      parameters:
+        - name: publishCatalogRequest
+          in: body
+          description: "The catalog to publish."
+          required: true
+          schema:
+            $ref: "#/definitions/PublishCatalogRequestVO"
+        - name: workspaceId
+          in: path
+          description: "The ID of the workspace."
+          required: true
+          type: "string"
+      responses:
+        201:
+          description: "Returns message of success or failure "
+          schema:
+            $ref: "#/definitions/PublishCatalogResponseVO"
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
+    put:
+      tags:
+        - "fabric-catalog-management"
+      summary: "update Published catalog."
+      description: "This endpoint will be used to update published fabric catalog."
+      operationId: "updatePublishedCatalogRequest"
+      parameters:
+        - name: updateCatalogRequest
+          in: body
+          description: "The catalog to publish."
+          required: true
+          schema:
+            $ref: "#/definitions/PublishCatalogRequestVO"
+        - name: workspaceId
+          in: path
+          description: "The ID of the workspace."
+          required: true
+          type: "string"
+      responses:
+        201:
+          description: "Returns message of success or failure "
+          schema:
+            $ref: "#/definitions/PublishCatalogResponseVO"
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
+
+
+  /catalog/{workspaceId}/{serviceName}:
+    get:
+      tags:
+        - "fabric-catalog-management"
+      summary: "Get catalog by service name."
+      description: "This endpoint will be used to retrieve a fabric catalog by its service name."
+      operationId: "getCatalogByServiceName"
+      parameters:
+        - name: "workspaceId"
+          in: "path"
+          description: "The ID of the workspace."
+          required: true
+          type: "string"
+        - name: "serviceName"
+          in: "path"
+          description: "The name of the service."
+          required: true
+          type: "string"
+      responses:
+        200:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/PublishCatalogResponseVO"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
+definitions:
+
+  PublishCatalogRequestVO:
+    type: object
+    required:
+      - metadata
+      - workspaceId
+      - mandatoryFields
+      - owners
+    properties:
+      metadata:
+        $ref: "#/definitions/FabricCatalogMetadataVO"
+        required: true
+      mandatoryFields:
+        $ref: "#/definitions/MandatoryFieldsVO"
+        required: true
+      owners:
+        type: array
+        items:
+          $ref: "#/definitions/CreatedByVO"
+
+  FabricCatalogMetadataVO:
+    type: object
+    required:
+      - serviceName
+    properties:
+      serviceName:
+        type: string
+        description: "Name of the service"
+      serviceId:
+        type: string
+        description: "OpenMetadata service ID (optional)"
+      databases:
+        type: array
+        description: "List of databases with metadata"
+        items:
+          $ref: "#/definitions/DatabaseMetadataVO"
+
+  DatabaseMetadataVO:
+    type: object
+    required:
+      - dbId
+      - dbName
+      - description
+    properties:
+      dbName:
+        type: string
+      dbId:
+        type: string
+      description:
+        type: string
+      schemas:
+        type: array
+        items:
+          $ref: "#/definitions/SchemaMetadataVO"
+
+  SchemaMetadataVO:
+    type: object
+    required:
+      - schemaName
+    properties:
+      schemaName:
+        type: string
+      schemaId:
+        type: string
+      tables:
+        type: array
+        items:
+          $ref: "#/definitions/TableMetadataVO"
+
+  TableMetadataVO:
+    type: object
+    required:
+      - tableName
+    properties:
+      tableName:
+        type: string
+      tableId:
+        type: string
+      columns:
+        type: array
+        items:
+          $ref: "#/definitions/ColumnMetadataVO"
+
+  ColumnMetadataVO:
+    type: object
+    required:
+      - columnName
+      - colType
+    properties:
+      columnId:
+        type: string
+      columnName:
+        type: string
+      colType:
+        type: string
+      colConstraint:
+        type: string
+
+  PublishCatalogResponseVO:
+    type: object
+    properties:
+      data:
+        $ref: "#/definitions/FabricCatalogMetadataDetailsVO"
+      responses:
+        $ref: "#/definitions/GenericMessage"
+
+  MandatoryFieldsVO:
+    type: object
+    required:
+      - divisions
+      - department
+      - dataOrigin
+      - leanIXId
+      - isDocumentationUpdated
+      - isDataLakeAvailability
+      - isDataAsset
+      - dataConfidentiality
+      - tier
+    properties:
+      divisions:
+        type: array
+        items:
+          type: string
+          enum: ["Daimler Buses","Daimler Trucks","Mercedes-Benz Cars","Mercedes-Benz Mobility","Mercedes-Benz Vans"]
+      department:
+        type: string
+        minLength: 1
+      dataOrigin:
+        type: string
+        enum: ["internal","external","mixed"]
+      leanIXId:
+        type: string
+        minLength: 1
+      isDocumentationUpdated:
+        type: string
+        enum: ["Yes","No"]
+      isDataLakeAvailability:
+        type: string
+        enum: ["Yes","No"]
+      isDataAsset:
+        type: string
+        enum: ["Yes","No"]
+      dataConfidentiality:
+        type: string
+        enum: [public,confidential,secret,internal]
+      tier:
+        type: integer
+        enum: [1,2]
+
+  FabricCatalogMetadataDetailsVO:
+    type: object
+    properties:
+      id:
+        type: string
+      metadata:
+        $ref: "#/definitions/FabricCatalogMetadataVO"
+      owners:
+        type: array
+        items:
+          $ref: "#/definitions/CreatedByVO"
+      mandatoryFields:
+        $ref: "#/definitions/MandatoryFieldsVO"
