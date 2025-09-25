@@ -34,6 +34,7 @@ import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.assembler.UserInfoAssembler;
 import com.daimler.data.client.teamsApi.TeamsApiClient;
 import com.daimler.data.controller.exceptions.MessageDescription;
+import com.daimler.data.db.entities.UserInfoNsql;
 import com.daimler.data.dto.solution.CreatedByVO;
 import com.daimler.data.dto.solution.SolutionCollectionResponseVO;
 import com.daimler.data.dto.solution.SolutionVO;
@@ -51,6 +52,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
+import javax.persistence.EntityNotFoundException;
+import com.daimler.data.controller.exceptions.GenericMessage;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
@@ -59,6 +62,9 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Objects;
+import java.util.Optional;
+import org.springframework.web.server.ResponseStatusException;
+import springfox.documentation.annotations.ApiIgnore;
 
 @RestController
 @Api(value = "UserInfo API", tags = { "users" })
@@ -67,7 +73,7 @@ import java.util.Objects;
 public class UserInfoController implements UsersApi {
 
 	private static Logger logger = LoggerFactory.getLogger(UserInfoController.class);
-	
+
 	@Autowired
 	private UserInfoService userInfoService;
 	
@@ -210,6 +216,9 @@ public class UserInfoController implements UsersApi {
 		UserInfoVO userInfoVO = null;
 		if (id != null) {
 			userInfoVO = userInfoService.getById(id);
+			if (userInfoVO == null) {
+				throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "User had been marked as deleted");
+			}
 			return new ResponseEntity<>(userInfoVO, HttpStatus.OK);
 		} else {
 			return new ResponseEntity<>(userInfoVO, HttpStatus.BAD_REQUEST);
@@ -260,30 +269,34 @@ public class UserInfoController implements UsersApi {
 		try {
 			if (userRequestVO.getData() != null && userRequestVO.getData().getId() != null) {
 				UserInfoVO userInfoVO = userRequestVO.getData();
-				UserInfoVO currentUserData = userInfoService.getById(userInfoVO.getId());
-				//To set key existing data if missing in request
-				userinfoAssembler.setCurrentUserData(currentUserData, userInfoVO);
 				Boolean isAdmin = false;
 				CreatedByVO loggedInUser = this.userStore.getVO();
 				String userId = loggedInUser != null ? loggedInUser.getId() : null;
 				if (userId != null && !"".equalsIgnoreCase(userId)) {
-					if (currentUserData != null) {
 						UserInfoVO loggedInUserData = userInfoService.getById(userId);
 						List<UserRoleVO> userRoles = loggedInUserData.getRoles();
 						if (userRoles != null && !userRoles.isEmpty())
 							isAdmin = userRoles.stream().anyMatch(role -> "admin".equalsIgnoreCase(role.getName()));
-					}
 				}
 				if (!isAdmin) {
 					logger.info("Only user with Admin role can change roles");
 					return new ResponseEntity<>(userInfoVO, HttpStatus.UNAUTHORIZED);
 				}
+				
+				UserInfoVO currentUserData = userInfoService.getById(userInfoVO.getId());
+				if(currentUserData == null){
+					return new ResponseEntity<>(userInfoVO, HttpStatus.NOT_FOUND);	
+				}
+				//To set key existing data if missing in request
+				userinfoAssembler.setCurrentUserData(currentUserData, userInfoVO);
+				if (userInfoVO.getRoles() != null){
 				if (!rolesUpdated(userRequestVO, currentUserData)) {
 					userInfoVO.setToken(currentUserData.getToken());
-				} else {
+				}}
+				 else {
 					userInfoVO.setToken(null);
 				}
-				userInfoService.create(userInfoVO);
+				userInfoVO= userInfoService.create(userInfoVO);
 				log.debug("user details updated successfully for userid {}", userRequestVO.getData().getId());
 				return new ResponseEntity<>(userInfoVO, HttpStatus.OK);
 			} else {
@@ -296,6 +309,76 @@ public class UserInfoController implements UsersApi {
 		}
 
 	}
+
+	@Override
+	@ApiIgnore
+	@ApiOperation(value = "Delete specific user for a given userid", nickname = "deleteById", notes = "Delete specific user for a given userid. This endpoints will be used to Delete specific user for a given userid.", response = GenericMessage.class, tags={ "users", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns message of success or failure", response = GenericMessage.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/users/{id}",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.DELETE)
+    public ResponseEntity<GenericMessage> deleteById(@ApiParam(value = "Id of the user for which information to be fetched",required=true) @PathVariable("id") String id){
+		try {
+			CreatedByVO currentUser = this.userStore.getVO(); 
+			String userId = currentUser != null ? currentUser.getId() : "";
+			if (userId != null && !"".equalsIgnoreCase(userId)) {
+				UserInfoVO userInfoVO = userInfoService.getById(userId); 
+				if (userInfoVO != null) {
+					List<UserRoleVO> userRoleVOs = userInfoVO.getRoles();
+					if (userRoleVOs != null && !userRoleVOs.isEmpty()) {
+						boolean isAdmin = userRoleVOs.stream().anyMatch(n -> "Admin".equalsIgnoreCase(n.getName()));
+						if (userId == null || Boolean.FALSE.equals(isAdmin)) {
+							MessageDescription notAuthorizedMsg = new MessageDescription();
+							notAuthorizedMsg.setMessage(
+									"Not authorized to delete User Record. User does not have admin privileges.");
+							GenericMessage errorMessage = new GenericMessage();
+							errorMessage.addErrors(notAuthorizedMsg);
+							log.debug("User {} cannot delete User Record, insufficient privileges", userId);
+							return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
+						}
+					}
+				
+			
+				UserInfoVO userinfo = userInfoService.getById(id);
+				userInfoService.deleteById(id);
+				}
+				else{
+					MessageDescription notAuthorizedMsg = new MessageDescription();
+					notAuthorizedMsg.setMessage("Not authorized to delete User Record. User does not have admin privileges.");
+					GenericMessage errorMessage = new GenericMessage();
+					errorMessage.addErrors(notAuthorizedMsg);
+					log.debug("User {} cannot delete User Record, insufficient privileges", userId);
+					return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
+				}
+		}
+			GenericMessage successMsg = new GenericMessage();
+			successMsg.setSuccess("success");
+			log.debug("User Record {} deleted successfully", id);
+			return new ResponseEntity<>(successMsg, HttpStatus.OK);
+		} catch (EntityNotFoundException e) {
+			log.error(e.getLocalizedMessage());
+			MessageDescription invalidMsg = new MessageDescription("No tag with the given id");
+			GenericMessage errorMessage = new GenericMessage();
+			errorMessage.addErrors(invalidMsg);
+			log.error("No Record found with id {}, failed to delete", id);
+			return new ResponseEntity<>(errorMessage, HttpStatus.NOT_FOUND);
+		} catch (Exception e) {
+			log.error("Failed to delete User Record {}, with exception {}", id, e.getLocalizedMessage());
+			MessageDescription exceptionMsg = new MessageDescription("Failed to delete due to internal error.");
+			GenericMessage errorMessage = new GenericMessage();
+			errorMessage.addErrors(exceptionMsg);
+			return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
 
 	@Override
 	public ResponseEntity<BookmarkResponseVO> updateBookmark(@Valid BookmarkRequestVO bookmarkRequestVO) {
@@ -311,7 +394,14 @@ public class UserInfoController implements UsersApi {
 			response.setData(responseVO);
 			return new ResponseEntity<>(response, HttpStatus.OK);
 
-		} catch (NoSuchElementException e) {
+		} catch (ResponseStatusException e) { 
+			List<MessageDescription> notFoundmessages = new ArrayList<>();
+				MessageDescription notFoundmessage = new MessageDescription();
+				notFoundmessage.setMessage("User marked as deleted");
+				notFoundmessages.add(notFoundmessage);
+				response.setErrors(notFoundmessages);
+				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+         } catch (NoSuchElementException e) {
 			List<MessageDescription> notFoundmessages = new ArrayList<>();
 			MessageDescription notFoundmessage = new MessageDescription();
 			notFoundmessage.setMessage("Invalid UserID/Bookmark Id's");
