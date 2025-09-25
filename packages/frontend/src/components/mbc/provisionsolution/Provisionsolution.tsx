@@ -86,6 +86,8 @@ export interface IProvisionSolutionState {
   departmentTags: IDepartment[];
   isGenAI: boolean;
   id: string;
+  isPublished: boolean;         
+  mandatoryTabsFilled: boolean;
 }
 
 export interface IProvisionSolutionProps {
@@ -133,6 +135,8 @@ export interface IDescriptionRequest {
   requestedFTECount: number;
   additionalResource: string;
   department: string;
+  leanIXDetails: any;
+  appId: string;
 }
 
 export default class Provisionsolution extends React.Component<IProvisionSolutionProps, IProvisionSolutionState> {
@@ -202,7 +206,9 @@ export default class Provisionsolution extends React.Component<IProvisionSolutio
           dataStrategyDomain: '',
           requestedFTECount: 0,
           additionalResource: '',
-          department: ''
+          department: '',
+          leanIXDetails: {},
+          appId: '',
         },
         openSegments: [],
         team: [],
@@ -267,6 +273,8 @@ export default class Provisionsolution extends React.Component<IProvisionSolutio
         neededRoles: [],
       },
       // stateChanged: false,
+      isPublished: false,
+      mandatoryTabsFilled: false,
       showAlertChangesModal: false,
       publishFlag: false,
       businessGoalsList: [],
@@ -304,6 +312,8 @@ export default class Provisionsolution extends React.Component<IProvisionSolutio
               isProvision={this.state.isProvision}
               isGenAI={this.state.isGenAI}
               id={this.state.id}
+              isPublished={this.state.isPublished}
+              mandatoryTabsFilled={this.state.mandatoryTabsFilled} 
             />
           </div>
         </div>
@@ -551,7 +561,9 @@ export default class Provisionsolution extends React.Component<IProvisionSolutio
         requestedFTECount: solution.description.requestedFTECount,
         skills: solution.neededRoles,
         additionalResource: solution.description.additionalResource,
-        department: solution.description.department
+        department: solution.description.department,
+        leanIXDetails: solution.description.leanIXDetails,
+        appId: solution.description.appId,
       },
     };
     ProgressIndicator.show();

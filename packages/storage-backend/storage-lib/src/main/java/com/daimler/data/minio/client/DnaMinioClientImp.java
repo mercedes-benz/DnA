@@ -162,7 +162,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 			policies = new ArrayList<>();
 			
 			//Setting resource for full bucket path
-			String resource = "arn:aws:s3:::" + bucketName + "/*";
+			String resource = "arn:aws:s3:::" + bucketName + "/*, arn:aws:s3:::" + bucketName;
 			
 			//action to access bucket and corresponding files & directory
 			String action = "";
@@ -186,7 +186,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 			policyName = bucketName + "_" + ConstantsUtility.READWRITE;
 			//Setting action as view, edit & delete all bucket contents
 			//action = "s3:ListBucket,s3:GetObject,s3:PutObject,s3:DeleteObject";
-			action = "*";
+			action = "s3:PutObject,s3:DeleteObject,s3:GetBucketLocation,s3:GetObject,s3:ListBucket,s3:DeleteObjectVersion,s3:DeleteBucket";
 			createBucketPolicy(policyName, minioPolicyVersion, resource, action, effect, sid);
 			policies.add(policyName);
 
@@ -622,11 +622,14 @@ public class DnaMinioClientImp implements DnaMinioClient {
 						data = data.concat(line).concat(",");
 					}
 				}
+				LOGGER.debug("mc Response bucket objects : "+ data);
 				LOGGER.info("finished reading response from mc list bucket objects");
 				MinioObjectMetadataCollection listBucketObjectsCollectionDto = new MinioObjectMetadataCollection();
 				if(data!=null && !"".equalsIgnoreCase(data)) { 
 				data = jsonprefix.concat(data.substring(0, data.length() - 1)).concat(suffix);
+				LOGGER.debug("data after adding prefix and sufix : "+ data);
 				listBucketObjectsCollectionDto = mapper.readValue(data, MinioObjectMetadataCollection.class);
+				LOGGER.debug("data after parsing : "+ listBucketObjectsCollectionDto);
 				LOGGER.info("Success from minio list bucket {} objects for user:{}", bucketName, userId);
 				}else {
 					LOGGER.info("Success from minio list bucket {} objects for user:{}. No data found, no objects present", bucketName, userId);
@@ -637,6 +640,10 @@ public class DnaMinioClientImp implements DnaMinioClient {
 				List<MinioObjectMetadata> minioObjects =  listBucketObjectsCollectionDto.getData();
 				if(minioObjects!= null && !minioObjects.isEmpty()) {
 					for(MinioObjectMetadata minioObject : minioObjects) {
+						if("/".equalsIgnoreCase(minioObject.getKey()) && "folder".equalsIgnoreCase(minioObject.getType())) {
+							LOGGER.info("Skipping empty folder object for bucket: {}",bucketName);
+							continue;
+						}
 						String key = prefix + minioObject.getKey();
 						if("SUCCESS".equalsIgnoreCase(minioObject.getStatus())) {
 							minioObject.setKey(key);
@@ -648,6 +655,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 				minioObjectResponse.setHttpStatus(HttpStatus.OK);
 				minioObjectResponse.setStatus("SUCCESS");
 				minioObjectResponse.setObjects(objects);
+				LOGGER.debug("minioObjectResponse : "+ minioObjectResponse);
 				LOGGER.info("Success from minio list bucket {} objects setting to dto", bucketName);
 			} else {
 					LOGGER.info("User:{} not available in vault.", userId);
@@ -809,12 +817,14 @@ public class DnaMinioClientImp implements DnaMinioClient {
 				}
 				// Adding new policies to existing one
 				for (String policy : policies) {
+					String policyResponse = this.attachPolicyToUser(userId, policy, false);
+					LOGGER.info("mc attach policy response: "+ policyResponse);
 					existingPolicy = StorageUtility.addPolicy(existingPolicy, policy);
 				}
 
 				// Setting new policy set to user
-				minioAdminClient.setPolicy(userId, false, existingPolicy);
-				LOGGER.info("Success from Minio set policy");
+				// minioAdminClient.setPolicy(userId, false, existingPolicy);
+				// LOGGER.info("Success from Minio set policy");
 
 				// Update users list for minioUsersCache
 				// updating policy
@@ -833,15 +843,19 @@ public class DnaMinioClientImp implements DnaMinioClient {
 					userSecretKey = UUID.randomUUID().toString();
 				}
 
+				LOGGER.debug("Adding user: {} credentials to vault",userId);
+				vaultConfig.addUserVault(userId, userSecretKey);
+
 				LOGGER.info("Onboarding user:{} to minio", userId);
 				minioAdminClient.addUser(userId, Status.ENABLED, userSecretKey, commaSeparatedPolicies, null);
 
 				// setting policy to user
 				LOGGER.debug("Setting policy for user:{}", userId);
-				minioAdminClient.setPolicy(userId, false, commaSeparatedPolicies);
-
-				LOGGER.debug("Adding user: {} credentials to vault",userId);
-				vaultConfig.addUserVault(userId, userSecretKey);
+				//minioAdminClient.setPolicy(userId, false, commaSeparatedPolicies);
+				for (String policy : policies) {
+					String policyResponse = this.attachPolicyToUser(userId, policy, false);
+					LOGGER.info("mc attach policy response: "+ policyResponse);
+				}
 
 				LOGGER.info("User:{} Onboarded successfully.", userId);
 				minioResponse.setStatus(ConstantsUtility.SUCCESS);
@@ -1047,7 +1061,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 				data = prefix.concat(data.substring(0, data.length() - 1)).concat(suffix);
 				users = new HashMap<>();
 				List<UserInfoDto> userInfoDto = new ArrayList<>();
-				LOGGER.info("Policies data from minio to update cache is {} ", data);
+				LOGGER.debug("Policies data from minio to update cache is {} ", data);
 				UserInfoWrapperDto userInfoWrapperDto = mapper.readValue(data, UserInfoWrapperDto.class);
 				userInfoDto = userInfoWrapperDto.getData();
 				if (userInfoDto != null && !userInfoDto.isEmpty()) {
@@ -1282,7 +1296,9 @@ public class DnaMinioClientImp implements DnaMinioClient {
 						userPolicy = StorageUtility.removePolicy(userPolicy, policy);
 						if (StringUtils.hasText(userPolicy)) {
 							LOGGER.info("Unlinking policy from user:{}", userId);
-							minioAdminClient.setPolicy(userId, false, userPolicy);
+							//minioAdminClient.setPolicy(userId, false, userPolicy);
+							String policyResponse = this.detachPolicyFromUser(userId, policy, false);
+							LOGGER.info("mc detach policy response: "+ policyResponse);
 							// Update user's policy in minio cache
 							UserInfo userInfoTemp = new UserInfo(Status.ENABLED, userInfo.secretKey(), userPolicy,
 									userInfo.memberOf());
@@ -1329,19 +1345,35 @@ public class DnaMinioClientImp implements DnaMinioClient {
 	}
 	
 	@Override
-	public void setPolicy(String userOrGroupName, boolean isGroup, String policyName) {
+	public void setPolicy(String userOrGroupName, boolean isGroup, String policyName, boolean isaddPolicy) {
 		// Getting MinioAdminClient from config
 		MinioAdminClient minioAdminClient = minioConfig.getMinioAdminClient();
 		LOGGER.debug("Fetching users from cache.");
 		Map<String, UserInfo> users = cacheUtil.getMinioUsers(ConstantsUtility.MINIO_USERS_CACHE);
+		// Fetching user info
+		UserInfo userInfo = users.get(userOrGroupName);
+		// Fetching user policies
+		String existingPolicy = userInfo.policyName()!=null?userInfo.policyName():"";
 		try {
 			LOGGER.debug("Updating policy for user:{}", userOrGroupName);
-			minioAdminClient.setPolicy(userOrGroupName, isGroup, policyName);
-			LOGGER.info("Success from minio set policy");
-
+			// minioAdminClient.setPolicy(userOrGroupName, isGroup, policyName);
+			// LOGGER.info("Success from minio set policy");
+			if(isaddPolicy){
+				for(String policy : policyName.split(",")){
+					String policyResponse = this.attachPolicyToUser(userOrGroupName, policy, false);
+					LOGGER.info("mc attach policy response: "+ policyResponse);
+					existingPolicy = StorageUtility.addPolicy(existingPolicy, policy);
+				}
+			}
+			else{
+				for(String policy : policyName.split(",")){
+					String policyResponse = this.detachPolicyFromUser(userOrGroupName, policy, false);
+					LOGGER.info("mc detach policy response: "+ policyResponse);
+					existingPolicy = StorageUtility.removePolicy(existingPolicy, policy);
+				}
+			}
 			// updating cache
-			UserInfo userInfo = users.get(userOrGroupName);
-			UserInfo userInfoTemp = new UserInfo(userInfo.status(), userInfo.secretKey(), policyName,
+			UserInfo userInfoTemp = new UserInfo(userInfo.status(), userInfo.secretKey(), existingPolicy,
 					userInfo.memberOf());
 			users.put(userOrGroupName, userInfoTemp);
 
@@ -1351,7 +1383,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 			LOGGER.debug("Updating {}.", ConstantsUtility.MINIO_USERS_CACHE);
 			cacheUtil.updateCache(ConstantsUtility.MINIO_USERS_CACHE, users);
 
-		} catch (InvalidKeyException | NoSuchAlgorithmException | IOException e) {
+		} catch (Exception e) {
 			LOGGER.error("Error occured while updating policy for user:{}", userOrGroupName);
 		}
 	}
@@ -1366,5 +1398,238 @@ public class DnaMinioClientImp implements DnaMinioClient {
 		bucketConnectionUri.put(ConstantsUtility.HOSTNAME, hostName);
 		return bucketConnectionUri;
 	}
+
+	@Override
+	public String attachPolicyToUser(String userId, String policyName, boolean isAdmin) {
+		try {
+			String userSecretKey = "";
+
+			// Use admin credentials if the user is an admin
+			if (isAdmin) {
+				userId = minioAdminAccessKey;
+				userSecretKey = minioAdminSecretKey;
+			} else {
+				LOGGER.debug("Fetching secrets from vault for user: {}", userId);
+				userSecretKey = vaultConfig.validateUserInVault(userId);
+			}
+
+			if (!StringUtils.hasText(userSecretKey)) {
+				LOGGER.error("User: {} not available in vault or secret key is empty.", userId);
+				return "User not available or secret key is empty.";
+			}
+
+			LOGGER.info("Fetched secret from vault successfully for user: {}", userId);
+
+			// Construct the mc commands
+			String env = "storagebeminioclient";
+			String flag = "--insecure";
+			String url = storageHttpMethod + storageConnectHost;
+
+			// Set alias command
+			String setAliasCommand = String.format("mc alias set %s %s %s %s %s",
+					env, url, minioAdminAccessKey, minioAdminSecretKey, flag);
+
+			// Attach policy command
+			String attachPolicyCommand = String.format("mc admin policy attach %s %s --user=%s %s",
+					env, policyName, userId,flag);
+
+			// Execute the commands
+			boolean isWindows = System.getProperty("os.name").toLowerCase().startsWith("windows");
+			ProcessBuilder aliasBuilder = new ProcessBuilder(isWindows ? "cmd.exe" : "sh", isWindows ? "/c" : "-c", setAliasCommand);
+			ProcessBuilder policyBuilder = new ProcessBuilder(isWindows ? "cmd.exe" : "sh", isWindows ? "/c" : "-c", attachPolicyCommand);
+
+			// Execute alias command
+			// Process aliasProcess = aliasBuilder.start();
+			// int aliasExitCode = aliasProcess.waitFor();
+			// if (aliasExitCode != 0) {
+			// 	LOGGER.error("Failed to set alias. Exit code: {}", aliasExitCode);
+			// 	return "Failed to set alias.";
+			// }
+			// LOGGER.debug("Alias set successfully for user: {}", userId);
+
+			// Execute policy command
+			policyBuilder.redirectErrorStream(true);
+			Process policyProcess = policyBuilder.start();
+
+			// Read the output of the policy command
+			StringBuilder output = new StringBuilder();
+			try (BufferedReader reader = new BufferedReader(new InputStreamReader(policyProcess.getInputStream()))) {
+				String line;
+				while ((line = reader.readLine()) != null) {
+					output.append(line).append("\n");
+				}
+			}
+
+			int policyExitCode = policyProcess.waitFor();
+			LOGGER.debug("Process exited with code: {}", policyExitCode);
+			LOGGER.debug("Response from mc: {}", output.toString());
+
+			if (policyExitCode != 0) {
+				LOGGER.error("Failed to attach policy. Exit code: {}", policyExitCode);
+				return "Failed to attach policy. with mc error: " + output.toString();
+			}
+
+			return "Policy attached successfully to user: " + userId;
+		} catch (Exception e) {
+			LOGGER.error("Error occurred while attaching policy in MinIO using mc: {}", e.getMessage(), e);
+			return "Error attaching policy: " + e.getMessage();
+		}
+	}
+
+	@Override
+	public String detachPolicyFromUser(String userId, String policyName, boolean isAdmin) {
+		try {
+			String userSecretKey = "";
+
+			// Use admin credentials if the user is an admin
+			if (isAdmin) {
+				userId = minioAdminAccessKey;
+				userSecretKey = minioAdminSecretKey;
+			} else {
+				LOGGER.debug("Fetching secrets from vault for user: {}", userId);
+				userSecretKey = vaultConfig.validateUserInVault(userId);
+			}
+
+			if (!StringUtils.hasText(userSecretKey)) {
+				LOGGER.error("User: {} not available in vault or secret key is empty.", userId);
+				return "User not available or secret key is empty.";
+			}
+
+			LOGGER.info("Fetched secret from vault successfully for user: {}", userId);
+
+			// Construct the mc commands
+			String env = "storagebeminioclient";
+			String flag = "--insecure";
+			String url = storageHttpMethod + storageConnectHost;
+
+			// Set alias command
+			String setAliasCommand = String.format("mc alias set %s %s %s %s %s",
+					env, url, minioAdminAccessKey, minioAdminSecretKey, flag);
+
+			// Detach policy command
+			String detachPolicyCommand = String.format("mc admin policy detach %s %s --user=%s %s",
+					env, policyName, userId, flag);
+
+			// Execute the commands
+			boolean isWindows = System.getProperty("os.name").toLowerCase().startsWith("windows");
+			ProcessBuilder aliasBuilder = new ProcessBuilder(isWindows ? "cmd.exe" : "sh", isWindows ? "/c" : "-c", setAliasCommand);
+			ProcessBuilder policyBuilder = new ProcessBuilder(isWindows ? "cmd.exe" : "sh", isWindows ? "/c" : "-c", detachPolicyCommand);
+
+			// Execute alias command
+			// Process aliasProcess = aliasBuilder.start();
+			// int aliasExitCode = aliasProcess.waitFor();
+			// if (aliasExitCode != 0) {
+			// 	LOGGER.error("Failed to set alias. Exit code: {}", aliasExitCode);
+			// 	return "Failed to set alias.";
+			// }
+			// LOGGER.debug("Alias set successfully for user: {}", userId);
+
+			// Execute policy command
+			policyBuilder.redirectErrorStream(true);
+			Process policyProcess = policyBuilder.start();
+
+			// Read the output of the policy command
+			StringBuilder output = new StringBuilder();
+			try (BufferedReader reader = new BufferedReader(new InputStreamReader(policyProcess.getInputStream()))) {
+				String line;
+				while ((line = reader.readLine()) != null) {
+					output.append(line).append("\n");
+				}
+			}
+
+			int policyExitCode = policyProcess.waitFor();
+			LOGGER.debug("Process exited with code: {}", policyExitCode);
+			LOGGER.debug("Response from mc: {}", output.toString());
+
+			if (policyExitCode != 0) {
+				LOGGER.error("Failed to detach policy. Exit code: {}", policyExitCode);
+				return "Failed to detach policy.";
+			}
+
+			return "Policy detached successfully from user: " + userId;
+		} catch (Exception e) {
+			LOGGER.error("Error occurred while detaching policy in MinIO using mc: {}", e.getMessage(), e);
+			return "Error detaching policy: " + e.getMessage();
+		}
+	}
+
+	// @Override
+	// public String deleteBucketWithContents(String userId, String bucketName, boolean isAdmin) {
+	// 	try {
+	// 	   String userSecretKey = "";
+	
+	// 	   // Use admin credentials if the user is an admin
+	// 	   if (isAdmin) {
+	// 		   userId = minioAdminAccessKey;
+	// 		   userSecretKey = minioAdminSecretKey;
+	// 	   } else {
+	// 		   LOGGER.debug("Fetching secrets from vault for user: {}", userId);
+	// 		   userSecretKey = vaultConfig.validateUserInVault(userId);
+	// 	   }
+   
+	// 	   if (!StringUtils.hasText(userSecretKey)) {
+	// 		   LOGGER.error("User: {} not available in vault or secret key is empty.", userId);
+	// 		   return "User not available or secret key is empty.";
+	// 	   }
+   
+	// 	   LOGGER.info("Fetched secret from vault successfully for user: {}", userId);
+	
+	// 		// Construct the mc commands
+	// 		String env = "storagebeminioclient";
+	// 		String flag = "--insecure";
+	// 		String url = storageHttpMethod + storageConnectHost;
+	
+	// 		// Set alias command
+	// 		String setAliasCommand = String.format("mc alias set %s %s %s %s %s",
+	// 				env, url, minioAdminAccessKey, minioAdminSecretKey, flag);
+	
+	// 		// Remove bucket command (--force flag deletes the bucket and its contents)
+	// 		String removeBucketCommand = String.format("mc rb --force %s/%s %s ",
+	// 				env, bucketName, flag);
+	
+	// 		// Execute the commands
+	// 		boolean isWindows = System.getProperty("os.name").toLowerCase().startsWith("windows");
+	// 		ProcessBuilder aliasBuilder = new ProcessBuilder(isWindows ? "cmd.exe" : "sh", isWindows ? "/c" : "-c", setAliasCommand);
+	// 		ProcessBuilder bucketBuilder = new ProcessBuilder(isWindows ? "cmd.exe" : "sh", isWindows ? "/c" : "-c", removeBucketCommand);
+	
+	// 		// Execute alias command
+	// 		Process aliasProcess = aliasBuilder.start();
+	// 		int aliasExitCode = aliasProcess.waitFor();
+	// 		if (aliasExitCode != 0) {
+	// 			LOGGER.error("Failed to set alias. Exit code: {}", aliasExitCode);
+	// 			return "Failed to set alias.";
+	// 		}
+	// 		LOGGER.debug("Alias set successfully for admin user.");
+	
+	// 		// Execute bucket removal command
+	// 		bucketBuilder.redirectErrorStream(true);
+	// 		Process bucketProcess = bucketBuilder.start();
+	
+	// 		// Read the output of the bucket removal command
+	// 		StringBuilder output = new StringBuilder();
+	// 		try (BufferedReader reader = new BufferedReader(new InputStreamReader(bucketProcess.getInputStream()))) {
+	// 			String line;
+	// 			while ((line = reader.readLine()) != null) {
+	// 				output.append(line).append("\n");
+	// 			}
+	// 		}
+	
+	// 		int bucketExitCode = bucketProcess.waitFor();
+	// 		LOGGER.debug("Process exited with code: {}", bucketExitCode);
+	// 		LOGGER.debug("Response from mc: {}", output.toString());
+	
+	// 		if (bucketExitCode != 0) {
+	// 			LOGGER.error("Failed to delete bucket. Exit code: {}", bucketExitCode);
+	// 			return "Failed to delete bucket.";
+	// 		}
+	
+	// 		return "Bucket deleted successfully: " + bucketName;
+	// 	} catch (Exception e) {
+	// 		LOGGER.error("Error occurred while deleting bucket in MinIO using mc: {}", e.getMessage(), e);
+	// 		return "Error deleting bucket: " + e.getMessage();
+	// 	}
+	// }
+
+
 	
 }

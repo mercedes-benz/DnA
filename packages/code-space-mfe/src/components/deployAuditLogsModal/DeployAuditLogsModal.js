@@ -7,18 +7,13 @@ import Pagination from 'dna-container/Pagination';
 import SelectBox from 'dna-container/SelectBox';
 import { Envs } from '../../Utility/envs';
 import { SESSION_STORAGE_KEYS } from '../../Utility/constants.js';
+import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
+import { CodeSpaceApiClient } from '../../apis/codespace.api';
 
 const DeployAuditLogsModal = (props) => {
-  let deployLogs = [];
-  let actionLogs = [];
-  const auditLogs = [...props.logsList].reverse();
-  auditLogs.forEach((item) => {
-    if (!item.branch) {
-      actionLogs.push(item);
-    } else {
-      deployLogs.push(item);
-    }
-  });
+  const [deployLogs, setDeployLogs] = useState([]);
+  const [actionLogs, setActionLogs] = useState([]);
+  const [auditLogs, setAuditLogs] = useState([]);
   const [currentSelection, setCurrentSelection] = useState('All');
   const totalNumberOfRecords = auditLogs.length;
   const totalNumberOfDeployRecords = deployLogs.length;
@@ -35,6 +30,35 @@ const DeployAuditLogsModal = (props) => {
   const [maxItemsPerPage, setMaxItemsPerPage] = useState(parseInt(sessionStorage.getItem(SESSION_STORAGE_KEYS.AUDIT_LOGS_MAX_ITEMS_PER_PAGE), 10) || 5);
 
   useEffect(() => {
+    ProgressIndicator.show();
+    CodeSpaceApiClient.getBuildAndDeployLogs(props?.projectName)
+      .then((res) => { 
+        if(props?.deployedEnvInfo === 'Staging'){
+          setAuditLogs([...(res?.data?.data?.intDeploymentAuditLogs ?? [])].reverse());
+        }
+        else{
+          setAuditLogs([...(res?.data?.data?.prodDeploymentAuditLogs ?? [])].reverse());
+        }
+        ProgressIndicator.hide();
+      })
+      .catch((err) => {
+        ProgressIndicator.hide();
+        Notification.show('Error in getting build audit logs - ' + err.message, 'alert');
+      });
+  }, []);// eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    let actionLogs = [];
+    let deployLogs = [];
+    auditLogs.forEach((item) => {
+      if (!item.branch) {
+        actionLogs.push(item);
+      } else {
+        deployLogs.push(item);
+      }
+    });
+    setActionLogs(actionLogs);
+    setDeployLogs(deployLogs);
     setTotalNumberOfPages(Math.ceil(auditLogs.length / maxItemsPerPage));
     setPaginatedRecords(auditLogs.slice(0, (0 + maxItemsPerPage)));
     setCurrentPageNumber(1);
@@ -45,7 +69,7 @@ const DeployAuditLogsModal = (props) => {
     setActionPaginatedRecords(actionLogs.slice(0, (0 + maxItemsPerPage)));
     setCurrentActionPageNumber(1);
     SelectBox.defaultSetup();
-  }, []);// eslint-disable-line react-hooks/exhaustive-deps
+  },[auditLogs]);
 
   const onPaginationPreviousClick = () => {
     const currentPageNumberTemp = currentPageNumber - 1;

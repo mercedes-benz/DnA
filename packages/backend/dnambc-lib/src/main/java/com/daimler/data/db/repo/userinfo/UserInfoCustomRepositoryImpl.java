@@ -156,7 +156,7 @@ public class UserInfoCustomRepositoryImpl extends CommonDataRepositoryImpl<UserI
 
 	@Override
 	public Optional<UserInfoNsql> findById(String id) {
-		Query q = em.createNativeQuery("SELECT * from "+USERINFO_NSQL+" WHERE lower(id)= ?",UserInfoNsql.class);
+		Query q = em.createNativeQuery("SELECT * from " + USERINFO_NSQL + " WHERE lower(id)= ?", UserInfoNsql.class);
 		q.setParameter(1, id.toLowerCase());
 		UserInfoNsql user = null;
 		try {

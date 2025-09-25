@@ -74,11 +74,11 @@ const CreateBucket = ({ user }) => {
   const [procedureID, setProcedureID] = useState('');
   const [procedureIDError, setProcedureIDError] = useState('');
   const [enablePublicAccess, setEnablePublicAccess] = useState(false);
+  const [isOwner, setIsOwner] = useState(true);
 
   const isSecretEnabled = Envs.ENABLE_DATA_CLASSIFICATION_SECRET;
   const requiredError = '*Missing entry';
 
-  const isOwner = user.id === createdBy.id;
 
   const chips =
     department && department?.length
@@ -115,6 +115,10 @@ const CreateBucket = ({ user }) => {
       });
     //eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    setIsOwner(createdBy?.id?.length ? user?.id === createdBy.id : true);
+  },[createdBy])
 
   useEffect(() => {
     const divId = division.includes('@-@') ? division.split('@-@')[0] : division;
@@ -499,14 +503,14 @@ const CreateBucket = ({ user }) => {
   const onArcherIdChange = (e) => {
     const currentValue = e.currentTarget.value;
     setArcherId(currentValue);
-    const pattern = /^(INFO)-\d{5}$/.test(currentValue);
+    const pattern = /^(INFO)-\d{1,10}$/.test(currentValue);
     setArcherIdError(currentValue.length && !pattern ? 'Archer ID should be of type INFO-XXXXX' : '');
   };
 
   const onProcedureIDChange = (e) => {
     const currentValue = e.currentTarget.value;
     setProcedureID(currentValue);
-    const pattern = /^(PO|ITPLC)-\d{5}$/.test(currentValue);
+    const pattern = /^(PO|ITPLC)-\d{1,10}$/.test(currentValue);
     setProcedureIDError(currentValue.length && !pattern ? 'Procedure ID should be of type PO-XXXXX / ITPLC-XXXXX' : '');
   };
 

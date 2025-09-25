@@ -120,6 +120,7 @@ const NewCodeSpace = (props) => {
   const [procedureIDError, setProcedureIDError] = useState('');
   const [showProgressIndicator, setShowProgressIndicator] = useState(false);
 
+  const [enableDeployApproval, setEnableDeployApproval] = useState(projectDetails?.dataGovernance?.enableDeployApproval ? true : false);
 
   const requiredError = '*Missing entry';
   const livelinessIntervalRef = React.useRef();
@@ -215,14 +216,19 @@ const NewCodeSpace = (props) => {
 
   const onProjectNameOnChange = (evnt) => {
     const projectNameVal = sanitizedRepositoryName(evnt.currentTarget.value);
-    setProjectName(projectNameVal);
+    setProjectName(projectNameVal);    
     const hasSpecialChars = /[^A-Za-z0-9-]/.test(projectNameVal);
     const startsOrEndswith = /^-|-$|(--)|^\d+$/i.test(projectNameVal);
+    const startsWithNumber = /^\d/.test(projectNameVal);
+    
     if (hasSpecialChars) {
       setProjectNameError('Invalid name: Should not contain any special characters except for "-".');
     }
     else if (!projectNameVal.length) {
       setProjectNameError(requiredError);
+    }
+    else if (startsWithNumber) {
+      setProjectNameError('Invalid name: Should not start with a number.');
     }
     else if (startsOrEndswith) {
       setProjectNameError('Invalid name: Should not start or end with "-" or name contains only numbers.');
@@ -230,7 +236,7 @@ const NewCodeSpace = (props) => {
     else {
       setProjectNameError('');
     }
-  };
+};
 
   // const onGithubUserNameOnChange = (evnt: React.FormEvent<HTMLInputElement>) => {
   //   const githubUserNameVal = evnt.currentTarget.value.trim();
@@ -298,14 +304,14 @@ const NewCodeSpace = (props) => {
   const onArcherIdChange = (e) => {
     const currentValue = e.currentTarget.value;
     setArcherId(currentValue);
-    const pattern = /^(INFO)-\d{5}$/.test(currentValue);
+    const pattern = /^(INFO)-\d{1,10}$/.test(currentValue);
     setArcherIdError(currentValue.length && !pattern ? 'Archer ID should be of type INFO-XXXXX' : '');
   };
 
   const onProcedureIDChange = (e) => {
     const currentValue = e.currentTarget.value;
     setProcedureID(currentValue);
-    const pattern = /^(PO|ITPLC)-\d{5}$/.test(currentValue);
+    const pattern = /^(PO|ITPLC)-\d{1,10}$/.test(currentValue);
     setProcedureIDError(currentValue.length && !pattern ? 'Procedure ID should be of type PO-XXXXX / ITPLC-XXXXX' : '');
   };
 
@@ -348,6 +354,7 @@ const NewCodeSpace = (props) => {
       mobileNumber: collaborator.mobileNumber,
       gitUserName: collaborator.shortId,
       isAdmin: collaborator.isAdmin,
+      isApprover : collaborator.isApprover,
       // permission: { read: true, write: false },
     };
 
@@ -384,6 +391,25 @@ const NewCodeSpace = (props) => {
       codeSpaceCollaborator.isAdmin = false;
       if (onEditingMode) {
         CodeSpaceApiClient.assignAdminRole(props.onEditingCodeSpace.id, userId, false);
+      }
+    }
+    setCodeSpaceCollaborators([...codeSpaceCollaborators]);
+  };
+
+  const onCollaboratorApproverPermission = (e, userId) => {
+    const codeSpaceCollaborator = codeSpaceCollaborators.find((item) => {
+      return item.id == userId;
+    });
+
+    if (e.target.checked) {
+      codeSpaceCollaborator.isApprover = true;
+      if (onEditingMode) {
+        CodeSpaceApiClient.assignApproverRole(props.onEditingCodeSpace.id, userId, true);
+      }
+    } else {
+      codeSpaceCollaborator.isApprover = false;
+      if (onEditingMode) {
+        CodeSpaceApiClient.assignApproverRole(props.onEditingCodeSpace.id, userId, false);
       }
     }
     setCodeSpaceCollaborators([...codeSpaceCollaborators]);
@@ -462,25 +488,26 @@ const NewCodeSpace = (props) => {
   };
 
   const processDeleteCollaborator = () => {
-    CodeSpaceApiClient.deleteCollaborator(props.onEditingCodeSpace.id, collaboratorToDelete.id).then((res) => {
-      ProgressIndicator.hide();
-      if (res.data.success === 'SUCCESS') {
-        trackEvent('DnA Code Space', 'Delete Collaborator', 'Existing Code Space');
-        props.onEditingCodeSpace.projectDetails.projectCollaborators = [...updateCollaborator(collaboratorToDelete.id)];
-        Notification.show(
-          `Collaborator '${collaboratorToDelete.firstName}' has been removed successfully from the Code Space.`,
-        );
-      } else {
-        Notification.show(
-          `Error removing collaborator '${collaboratorToDelete.firstName}' from the Code Space. Please try again later.\n ${res.errors[0].message}`,
-          'alert',
-        );
-      }
-    })
-    .catch((err) => {
-      ProgressIndicator.hide();
-      Notification.show('Error in removing colloborator from code space. Please try again later.\n' + err.message, 'alert');
-    });
+        CodeSpaceApiClient.deleteCollaborator(props.onEditingCodeSpace.id, collaboratorToDelete.id).then((res) => {
+        ProgressIndicator.hide();
+        if (res.data.success === 'SUCCESS') {
+          trackEvent('DnA Code Space', 'Delete Collaborator', 'Existing Code Space');
+          props.onEditingCodeSpace.projectDetails.projectCollaborators = [...updateCollaborator(collaboratorToDelete.id)];
+          Notification.show(
+            `Collaborator '${collaboratorToDelete.firstName}' has been removed successfully from the Code Space.`,
+          );
+        } else {
+          Notification.show(
+            `Error removing collaborator '${collaboratorToDelete.firstName}' from the Code Space. Please try again later.\n ${res.errors[0].message}`,
+            'alert',
+          );
+        }
+      })
+      .catch((err) => {
+        ProgressIndicator.hide();
+        Notification.show('Error in removing colloborator from code space. Please try again later.\n' + err.message, 'alert');
+      });
+    
     setCollaboratorToDelete(undefined);
   };
 
@@ -706,6 +733,7 @@ const NewCodeSpace = (props) => {
           tags: tags,
           archerId: archerId,
           procedureID: procedureID,
+          enableDeployApproval: enableDeployApproval,
         },
       };
 
@@ -752,6 +780,7 @@ const NewCodeSpace = (props) => {
               piiData: PII,
               archerId: archerId,
               procedureID: procedureID,
+              enableDeployApproval: enableDeployApproval,
             },
             recipeDetails: {
               cloudServiceProvider: environment, 
@@ -921,8 +950,8 @@ const NewCodeSpace = (props) => {
                 <label>Department</label>
               </div>
               <div>{projectDetails?.dataGovernance?.department ? projectDetails?.dataGovernance?.department : 'N/A'}</div>
-              <div></div>
-              <div></div>
+              <div>Deployment Approval Enabled</div>
+              <div>{projectDetails?.dataGovernance?.enableDeployApproval ? 'Yes' : 'No'}</div>
             </div>
             {projectDetails?.dataGovernance?.typeOfProject !== 'Playground' && <div className={Styles.flexLayout}>
               <div>
@@ -1049,41 +1078,6 @@ const NewCodeSpace = (props) => {
               <p>Enter the information to start creating!</p>
               {/* <p className={Styles.passwordInfo}>Note: Password should be minimum 8 chars in length and alpha numeric.</p> */}
               <div className={Styles.flexLayout}>
-                <div
-                  className={classNames('input-field-group include-error', typeOfProjectError?.length ? 'error' : '')}
-                >
-                  <label className={classNames(Styles.inputLabel, 'input-label')}>
-                    Type of Project <sup>*</sup>
-                  </label>
-
-                  <div className={classNames('custom-select')}>
-                    <select
-                      id="reportStatusField"
-                      defaultValue={typeOfProject}
-                      required={true}
-                      required-error={requiredError}
-                      onChange={onTypeOfProjectChange}
-                      value={typeOfProject}
-                    >
-                      <option id="typeOfProjectOption" value={0}>
-                        Choose
-                      </option>
-                      <option value={'Playground'}>Playground</option>
-                      <option value={'Proof of Concept'}>Proof of Concept</option>
-                      <option value={'Production'}>Production</option>
-                    </select>
-                  </div>
-                  <p
-                    style={{ color: 'var(--color-orange)' , marginLeft:'-143px'}}
-                    className={classNames(typeOfProject !== 'Playground' ? ' hide' : '')}
-                  >
-                    <i className="icon mbc-icon alert circle"></i> Playground projects are deleted after 2 months of not
-                    being used.
-                  </p>
-                  <span className={classNames('error-message', typeOfProjectError.length ? '' : 'hide')}>
-                    {typeOfProjectError}
-                  </span>
-                </div>
                 <div>
                   <TextBox
                     type="text"
@@ -1097,6 +1091,76 @@ const NewCodeSpace = (props) => {
                     maxLength={39}
                     onChange={onProjectNameOnChange}
                   />
+                </div>
+                <div className={Styles.flexLayout}>
+                  <div
+                    className={classNames('input-field-group include-error', typeOfProjectError?.length ? 'error' : '')}
+                  >
+                    <label className={classNames(Styles.inputLabel, 'input-label')}>
+                      Type of Project <sup>*</sup>
+                    </label>
+
+                    <div className={classNames('custom-select')}>
+                      <select
+                        id="reportStatusField"
+                        defaultValue={typeOfProject}
+                        required={true}
+                        required-error={requiredError}
+                        onChange={onTypeOfProjectChange}
+                        value={typeOfProject}
+                      >
+                        <option id="typeOfProjectOption" value={0}>
+                          Choose
+                        </option>
+                        <option value={'Playground'}>Playground</option>
+                        <option value={'Proof of Concept'}>Proof of Concept</option>
+                        <option value={'Production'}>Production</option>
+                      </select>
+                    </div>
+                    <p
+                      style={{ color: 'var(--color-orange)'}}
+                      className={classNames(typeOfProject !== 'Playground' ? ' hide' : '')}
+                    >
+                      <i className="icon mbc-icon alert circle"></i> Playground projects are deleted after 2 months of not
+                      being used.
+                    </p>
+                    <span className={classNames('error-message', typeOfProjectError.length ? '' : 'hide')}>
+                      {typeOfProjectError}
+                    </span>
+                  </div>
+                  <div className={classNames('input-field-group')}>
+                    <label className={classNames(Styles.inputLabel, 'input-label')}>
+                      Enable deployment approval workflow <sup>*</sup>
+                    </label>
+                    <div className={Styles.pIIField}>
+                      <label className={classNames('radio')}>
+                        <span className="wrapper">
+                          <input
+                            type="radio"
+                            className="ff-only"
+                            value="true"
+                            name="enableDeployApproval"
+                            defaultChecked={enableDeployApproval === true}
+                            onChange={() => {setEnableDeployApproval(true)}}
+                          />
+                        </span>
+                        <span className="label">Yes</span>
+                      </label>
+                      <label className={classNames('radio')}>
+                        <span className="wrapper">
+                          <input
+                            type="radio"
+                            className="ff-only"
+                            value="false"
+                            name="enableDeployApproval"
+                            defaultChecked={enableDeployApproval === false}
+                            onChange={() => {setEnableDeployApproval(false)}}
+                          />
+                        </span>
+                        <span className="label">No</span>
+                      </label>
+                    </div>
+                  </div>
                 </div>
               </div>
               <div className={Styles.flexLayout}>
@@ -1503,20 +1567,6 @@ const NewCodeSpace = (props) => {
                         <input
                           type="radio"
                           className="ff-only"
-                          value="DHC-CaaS"
-                          name="environment"
-                          onChange={onEnvironmentChange}
-                          checked={environment==='DHC-CaaS'}
-                          disabled={true}
-                        />
-                      </span>
-                      <span className="label">DyP CaaS (On-Prem)</span>
-                    </label>
-                    <label className={classNames('radio')}>
-                      <span className="wrapper">
-                        <input
-                          type="radio"
-                          className="ff-only"
                           value="azure"
                           name="environment"
                           onChange={onEnvironmentChange}
@@ -1695,30 +1745,65 @@ const NewCodeSpace = (props) => {
                       {typeOfProjectError}
                     </span>
                   </div>
-                  <div
-                    className={classNames(
-                      Styles.bucketNameInputField,
-                      'input-field-group include-error',
-                      departmentError ? 'error' : '',
-                    )}
-                  >
-                    <div>
-                      <div className={Styles.departmentTags}>
-                        <Tags
-                          title={'Department'}
-                          max={1}
-                          chips={department}
-                          tags={departments}
-                          setTags={(selectedTags) => {
-                            const dept = selectedTags?.map((item) => item.toUpperCase());
-                            setDepartment(dept);
-                            setDepartmentError(false);
-                          }}
-                          isMandatory={true}
-                          showMissingEntryError={departmentError}
+                  <div className={Styles.flexLayout}>
+                    <div
+                      className={classNames(
+                        Styles.bucketNameInputField,
+                        'input-field-group include-error',
+                        departmentError ? 'error' : '',
+                      )}
+                    >
+                      <div>
+                        <div className={Styles.departmentTags}>
+                          <Tags
+                            title={'Department'}
+                            max={1}
+                            chips={department}
+                            tags={departments}
+                            setTags={(selectedTags) => {
+                              const dept = selectedTags?.map((item) => item.toUpperCase());
+                              setDepartment(dept);
+                              setDepartmentError(false);
+                            }}
+                            isMandatory={true}
+                            showMissingEntryError={departmentError}
 
-                        />
+                          />
 
+                        </div>
+                      </div>
+                    </div>
+                    <div className={classNames('input-field-group')}>
+                      <label className={classNames(Styles.inputLabel, 'input-label')}>
+                        Enable deployment approval workflow <sup>*</sup>
+                      </label>
+                      <div className={Styles.pIIField}>
+                        <label className={classNames('radio')}>
+                          <span className="wrapper">
+                            <input
+                              type="radio"
+                              className="ff-only"
+                              value="true"
+                              name="enableDeployApproval"
+                              defaultChecked={enableDeployApproval === true}
+                              onChange={() => {setEnableDeployApproval(true)}}
+                            />
+                          </span>
+                          <span className="label">Yes</span>
+                        </label>
+                        <label className={classNames('radio')}>
+                          <span className="wrapper">
+                            <input
+                              type="radio"
+                              className="ff-only"
+                              value="false"
+                              name="enableDeployApproval"
+                              defaultChecked={enableDeployApproval === false}
+                              onChange={() => {setEnableDeployApproval(false)}}
+                            />
+                          </span>
+                          <span className="label">No</span>
+                        </label>
                       </div>
                     </div>
                   </div>
@@ -2046,6 +2131,22 @@ const NewCodeSpace = (props) => {
                                         />
                                       </span>
                                       <label className={Styles.permissionContent}>Admin</label>
+                                    </label>
+                                  </div>
+                                  &nbsp;&nbsp;&nbsp;
+                                  <div className={classNames('input-field-group include-error ' + Styles.inputGrp)}>
+                                    <label className={'checkbox'}>
+                                      <span className="wrapper">
+                                        <input
+                                          type="checkbox"
+                                          className="ff-only"
+                                          value="approver"
+                                          disabled={!enableDeployApproval}
+                                          checked={item?.isApprover || false}
+                                          onChange={(e) => onCollaboratorApproverPermission(e, item?.id)}
+                                        />
+                                      </span>
+                                      <label className={Styles.permissionContent}>Approver</label>
                                     </label>
                                   </div>
                                 </div>

@@ -13,6 +13,7 @@ import { fabricApi } from '../../apis/fabric.api';
 import Spinner from '../../components/spinner/Spinner';
 import RoleCreationModal from '../../components/roleCreationModal/RoleCreationModal';
 import Lakehouses from '../../components/Lakehouses/Lakehouses';
+import { Envs } from '../../utilities/envs';
 
 const WorkspaceDetails = ({ workspace }) => {
   return (
@@ -23,7 +24,7 @@ const WorkspaceDetails = ({ workspace }) => {
           <div className={Styles.formWrapper}>
             <div className={classNames(Styles.flex)}>
               <div className={Styles.col3}>
-                <p className={Styles.label}>Workspace Name</p> {workspace?.name || 'null'}
+                <p className={Styles.label}>Workspace Name</p> <div className={Styles.workspaceName}>{workspace?.name || 'null'}</div>
               </div>
               <div className={Styles.col3}>
                 <p className={Styles.label}>Created on</p>
@@ -42,7 +43,6 @@ const WorkspaceDetails = ({ workspace }) => {
                 <p className={Styles.label}>Description</p>
                 {workspace?.description ? workspace?.description : 'N/A'}
               </div>
-
               <div className={Styles.col3}>
                 <p className={Styles.label}>Cost Center</p>
                 {workspace?.costCenter ? workspace?.costCenter : 'N/A'}
@@ -52,16 +52,20 @@ const WorkspaceDetails = ({ workspace }) => {
                 {workspace?.internalOrder ? workspace?.internalOrder : 'N/A'}
               </div>
               <div className={Styles.col3}>
+                <p className={Styles.label}>LeanIX App ID</p>
+                {workspace?.appId ? workspace?.appId : 'N/A'}
+              </div>
+              <div className={Styles.col3}>
                 <p className={Styles.label}>Related Solutions</p>
                 {workspace?.relatedSolutions.length > 0 ? workspace.relatedSolutions?.map((chip) =>
-                  <><label className="chips">{chip.name}</label>&nbsp;&nbsp;</>
+                  <a key={chip.id} href={`${Envs.CONTAINER_APP_URL}/#/summary/${chip.id}`} target={'_blank'} rel={'noopener noreferrer'}><label className="chips">{chip.name}</label>&nbsp;&nbsp;</a>
                 ) : 'N/A'}
               </div>
 
               <div className={Styles.col3}>
                 <p className={Styles.label}>Related Reports</p>
                 {workspace?.relatedReports.length > 0 ? workspace.relatedReports?.map((chip) => 
-                    <><label className="chips">{chip.name}</label>&nbsp;&nbsp;</>
+                    <a key={chip.id} href={`${Envs.CONTAINER_APP_URL}/#/reportsummary/${chip.id}`} target={'_blank'} rel={'noopener noreferrer'}><label className="chips">{chip.name}</label>&nbsp;&nbsp;</a>
                  ) : 'N/A'}
               </div>
               <div className={Styles.col3}>
@@ -151,19 +155,25 @@ const FabricWorkspace = ({ user }) => {
           }
         });
   };
+  const userRoles = workspace?.userRole;
 
   return (
     <React.Fragment>
       <div className={classNames(Styles.mainPanel)}>
         <div className={classNames(Styles.wrapper)}>
           {!loading && 
+            <div className={Styles.workspaceName}>
             <Caption title={`Fabric Workspace - ${workspace?.name || 'null'}`}>
+              <div className={Styles.draftIndicatorCol}>
+                  <span className={Styles.draftIndicator}>{userRoles}</span>
+              </div>
               <div>
                 <button className={classNames('btn btn-primary', Styles.refreshBtn)} tooltip-data="Refresh" onClick={getWorkspace}>
                   <i className="icon mbc-icon refresh"></i>
                 </button>
               </div>
-            </Caption>    
+            </Caption>
+            </div>  
           }
           <div className={Styles.statusBtns}>
             {workspace?.status?.state === 'IN_PROGRESS' &&
@@ -185,6 +195,7 @@ const FabricWorkspace = ({ user }) => {
             workspace={workspace} 
             lakehouses={workspace?.lakehouses ? workspace?.lakehouses : []} 
             onDeleteLakehouse={getWorkspace} 
+            onRefreshWorkspace={getWorkspace}
           />
           <WorkspaceDetails workspace={workspace} />
         </div>

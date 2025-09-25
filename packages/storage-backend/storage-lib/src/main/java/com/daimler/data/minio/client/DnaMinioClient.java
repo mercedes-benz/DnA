@@ -192,7 +192,7 @@ public interface DnaMinioClient {
 	 * @param isGroup
 	 * @param policyName{comma separated <eg:policy1,policy2>}
 	 */
-	public void setPolicy(@Nonnull String userOrGroupName, boolean isGroup, @Nonnull String policyName);
+	public void setPolicy(@Nonnull String userOrGroupName, boolean isGroup, @Nonnull String policyName, @Nonnull boolean isaddPolicy);
 	
 	/**
 	 * To get access uri of bucket for user
@@ -215,5 +215,8 @@ public interface DnaMinioClient {
 	McListBucketCollectionDto getAllBucketsUsingMC(String userId, boolean isAdmin);
 	MinioGenericResponse getBucketObjectsUsingMC(String userId, String bucketName, String prefix);
 	MinioGenericResponse setBucketPublicDownloadUsingMc(String bucketName, boolean isEnablePublicAccess);
+	String detachPolicyFromUser(String userId, String policyName, boolean isAdmin);
+	String attachPolicyToUser(String userId, String policyName, boolean isAdmin);
+	//String deleteBucketWithContents(String userId, String bucketName, boolean isAdmin);
 
 }

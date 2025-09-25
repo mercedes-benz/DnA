@@ -28,7 +28,8 @@
  package com.daimler.data.db.json;
 
  import java.io.Serializable;
- import java.util.List;
+import java.util.Date;
+import java.util.List;
  
  import com.daimler.data.dto.AdditionalPropertiesDto;
  import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -44,4 +45,9 @@
      private String serviceName;
      private String version;
      private AdditionalPropertiesDto additionalProperties;
+     private String id;
+	 private Date createdOn;
+	 private Date updatedOn;
+	 private UserInfo createdBy;
+	 private UserInfo updatedBy;
  } 

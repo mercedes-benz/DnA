@@ -1,4 +1,4 @@
-import { server, hostServer, reportsServer, vaultServer, storageServer, baseURL, readJwt} from '../server/api';
+import { server, hostServer, reportsServer, vaultServer, storageServer, fabricServer, baseURL, readJwt} from '../server/api';
 import { EventSourcePolyfill } from 'event-source-polyfill';
 import { Envs } from '../Utility/envs';
 
@@ -55,6 +55,52 @@ const unDeployCodeSpace = (id, data) => { //not implemented yet
         data,
     });
 };
+
+const buildCodeSpace = (id, data) => {
+    return server.post(`/workspaces/${id}/build`, data);
+};
+
+const deleteBuild = (projectName, version) => {
+    return server.delete(`workspaces/${projectName}/build/${version}`,{
+        data: {},
+    });
+};
+
+const getBuildAndDeployLogs = (projectName) => {
+    return server.get(`workspace/logs/${projectName}`, {
+        data: {},
+    });
+};
+
+const buildVersionLov = (projectName) => { //not used for now
+    return server.get(`workspace/buildVersion/${projectName}`, {
+        data: {},
+    });
+}
+
+const rejectDeployApproval = (id) => {
+    return server.post(`workspaces/${id}/deploymentReject`, {
+        data: {},
+    });
+};
+
+const updateDeployedAppConfig = (id, data) => {
+    return server.post(`workspaces/${id}/deployed-app-config`,
+        data,
+    );
+};
+
+const getPluginStatus = (id, env, pluginName) => {
+    return server.get(`workspaces/${id}/pluginStatus?env=${env}&pluginName=${pluginName}`,{
+        data: {},
+    });
+};
+
+const updatePluginStatus = (id, env, pluginName, enable) => {
+    return server.post(`workspaces/${id}/pluginStatus?env=${env}&pluginName=${pluginName}&enable=${enable}`,{
+        data: {},
+    });
+};
   
 const onBoardCollaborator = (id, data) => { 
     return server.put(`workspaces/${id}`, 
@@ -84,6 +130,12 @@ const assignAdminRole = (id, userId, data) => {
   return server.post(`workspaces/${id}/collaborator/${userId}/admin?isAdmin=${data}`, {
     data: {},
   });
+};
+
+const assignApproverRole = (id, userId, data) => {
+    return server.post(`workspaces/${id}/collaborator/${userId}/approver?isApprover=${data}`, {
+      data: {},
+    });
 };
 
 //   // Usage statistics
@@ -159,10 +211,64 @@ const getCodeSpaceRecipe = (id) => {
     });
 };
 
-const getCodeSpaceRecipesStatus = () => { //not used 
+const getAllRecipes = () => {
+    return server.get(`recipeDetails`, {
+        data: {},
+    });
+};
+
+const getCodeSpaceRecipesStatus = () => { //not used right now
     return server.get(`recipeDetails/recipesByStatus`, {
         data: {},
     });
+};
+
+const getAllSoftware = () => {
+    return server.get(`recipeDetails/softwareLov`, {
+        data: {},
+    });
+};
+
+const  deleteSoftware = (id) => {
+    return server.delete(`recipeDetails/adminSoftware/${id}`, { 
+        data: {},
+    });
+}
+
+const addSoftware = (data) => {
+    return server.post(`recipeDetails/adminSoftware`, 
+        data,
+    );
+};
+
+const updateSoftware = (id, data) => {
+    return server.put(`recipeDetails/adminSoftware/${id}`, 
+        data,
+    );
+};
+
+const getAllAdditionalServices = () => {
+    return server.get(`recipeDetails/additionalServiceLov`, {
+        data: {},
+    });
+};
+
+const  deleteAdditionalService = (id) => {
+    return server.delete(`recipeDetails/adminService/${id}`, { 
+        data: {},
+    });
+}
+
+const addAdditionalService = (data) => {
+    return server.post(`recipeDetails/adminService`, 
+        data,
+    );
+};
+
+const updateAdditionalService = (id, data) => {
+    return server.put(`recipeDetails/adminService/${id}`, 
+        data,
+    );
 };
 
 const acceptCodeSpaceRecipeRequest = (name) => { //not used 
@@ -292,6 +398,38 @@ const migrateWorkplace = (id) => {
     return server.post(`/workspaces/${id}/migrateworkspace`, {data: {},});
 };
 
+const getCodeSpaceGroups = () => { 
+    return server.get(`workspaces/group/getAll`, {
+        data: {},
+    });
+};
+
+const getCodeSpaceGroup = (id) => { 
+    return server.get(`/workspaces/group/get/${id}`, {
+        data: {},
+    });
+};
+
+const createCodeSpaceGroup = (data) => { 
+    return server.post(`/workspaces/group/create`, data);
+};
+
+const editCodeSpaceGroup = (data) => { 
+    return server.patch(`/workspaces/group/edit`, data);
+};
+
+const deleteCodeSpaceGroup = (id) => { 
+    return server.delete(`/workspaces/group/delete/${id}`, {
+        data: {},
+    });
+};
+
+const getExistingRoles = (appId) => {
+    return fabricServer.get(`fabric-workspaces/${appId}/dnaroles`, {
+        data: {},
+    });
+};
+
 export const CodeSpaceApiClient = {
     getCodeSpacesList,
     createCodeSpace,
@@ -301,11 +439,20 @@ export const CodeSpaceApiClient = {
     getCodeSpacesGitBranchList,
     deployCodeSpace,
     unDeployCodeSpace,
+    buildCodeSpace,
+    deleteBuild,
+    getBuildAndDeployLogs,
+    buildVersionLov,
+    rejectDeployApproval,
+    updateDeployedAppConfig,
+    getPluginStatus,
+    updatePluginStatus,
     onBoardCollaborator,
     addCollaborator,
     deleteCollaborator,
     transferOwnership,
     assignAdminRole,
+    assignApproverRole,
     // getWorkSpacesTransparency,
     createOrUpdateCodeSpaceConfig,
     getCodeSpaceConfig,
@@ -321,6 +468,15 @@ export const CodeSpaceApiClient = {
     getCodeSpaceRecipe,
     getRecipeLov,
     deleteCodeSpaceRecipe,
+    getAllRecipes,
+    getAllSoftware,
+    deleteSoftware,
+    updateSoftware,
+    addSoftware,
+    getAllAdditionalServices,
+    deleteAdditionalService,
+    addAdditionalService,
+    updateAdditionalService,
     verifyGitUser,
     getCodeSpaceRecipesStatus,
     acceptCodeSpaceRecipeRequest,
@@ -338,4 +494,10 @@ export const CodeSpaceApiClient = {
     serverStatusFromHub,
     restartDeployments,
     migrateWorkplace,
+    getCodeSpaceGroups,
+    getCodeSpaceGroup,
+    createCodeSpaceGroup,
+    editCodeSpaceGroup,
+    deleteCodeSpaceGroup,
+    getExistingRoles
 };

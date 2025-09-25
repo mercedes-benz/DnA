@@ -288,6 +288,8 @@ paths:
           
 # path to upadte plugin 
 #  supported http methods DELETE and PATCH
+# path to upadte plugin 
+#  supported http methods DELETE and PATCH
  /kong/services/{serviceName}/plugins/{pluginName}:
     delete:
       tags:
@@ -620,7 +622,84 @@ paths:
         405:
           description: "Method not allowed"
         500:
-          description: "Internal error"  
+          description: "Internal error" 
+
+ /kong/services/{serviceName}/oneApiPlugin:
+    post:
+      tags:
+        - "kong" 
+      summary: "Attach one api Plugin to service."
+      description: "Attach one api Plugin to service."
+      operationId: "attachOneApiPlugin"
+      parameters:      
+        - name: "attachOneApiPluginRequestVO"
+          in: "body"
+          description: "Request Body that contains data required for attaching a plugin to service"
+          required: true
+          schema:
+            $ref: "#/definitions/AttachOneApiPluginRequestVO"  
+        - name: "serviceName"
+          in: "path"
+          description: "Name of the service for which plugin has to be attached"
+          required: true
+          type: "string"    
+      responses:
+        200:
+          description: "Returns message of success"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        409:
+          description: "Conflict"
+          schema:
+            $ref: "#/definitions/GenericMessage"            
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error" 
+
+ /kong/services/{serviceName}/plugin/{pluginName}/status:
+    get:
+        tags:
+          - "kong"
+        summary: "Get status of the plugin."
+        description: "Get status of the plugin."
+        operationId: "getPluginStatus"
+        parameters:
+        - name: "serviceName"
+          in: "path"
+          description: "Name of the service for which plugin status has to be fetched"
+          required: true
+          type: "string"
+        - name: "pluginName"
+          in: "path"
+          description: "Name of the plugin for which the status need to be fetched"
+          required: true
+          type: "string"  
+        responses:
+          200:
+            description: "Returns message of success or failure"
+            schema:
+              $ref: "#/definitions/PluginStatusResponseVO"
+          204:
+            description: "Fetch complete, no content found."
+          400:
+            description: "Bad request."
+          401:
+            description: "Request does not have sufficient credentials."
+          403:
+            description: "Request is not authorized."
+          405:
+            description: "Method not allowed"
+          500:
+            description: "Internal error"
           
 # path to get service 
 #  supported http methods GET    
@@ -1096,5 +1175,33 @@ definitions:
             type: array
             items: 
               type: string
-          
+  
+ AttachOneApiPluginRequestVO:
+    type: object
+    properties:
+      data:
+        $ref: "#/definitions/AttachOneApiPluginVO"   
+
+ AttachOneApiPluginVO:
+    type: object
+    properties:
+      config:
+        $ref: "#/definitions/AttachOneApiPluginConfigVO"
+      name:
+        type: string
+    
+ AttachOneApiPluginConfigVO:
+    type: object
+    properties:
+      api_version_shortname:
+        type: string
+      environment:
+        type: string
+
+ PluginStatusResponseVO:
+    type: object
+    properties:
+      enabled:
+        type: boolean
+        
     

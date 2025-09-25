@@ -296,6 +296,7 @@ export interface IUserInfo {
   favoriteUsecases?: IUserFavoriteUseCase[];
   roles?: IRole[];
   divisionAdmins?: string[];
+  entitlementGroup?: string[];
 }
 export interface IUserRequestVO {
   data: IUserInfo;
@@ -596,6 +597,8 @@ export interface ICreateNewSolution {
   skills: INeededRoleObject[];
   additionalResource: string;
   department: string;
+  leanIXDetails: any;
+  appId: string;
 }
 
 export interface INeededRoleObject {
@@ -936,6 +939,8 @@ export interface INeededRoleObject {
 }
 
 export interface IAllSolutionsListItemCSV {
+  appId: string;
+  leanIXDetails: any;
   id?: string;
   businessNeed: string;
   businessGoals: string[];
@@ -1488,12 +1493,15 @@ export interface ISubsriptionExpiryObjectData {
   data: ISubsriptionExpiryObject;
 }
 export interface IPipelineProjectDetail {
+  collaborators: any;
   projectStatus: string;
   projectId: string;
   projectName: string;
   projectDescription: string;
+  createdBy: string;
   isOwner: boolean;
   dags: IPipelineProjectDag[];
+  permission: boolean;
 }
 
 export interface IPipelineProjectDag {
@@ -1504,6 +1512,7 @@ export interface IPipelineProjectDag {
   permissions: string[];
   dagId: number;
   active?: boolean;
+  dagEditUrl: string;
 }
 export interface IPipelineProjectDagData {
   data: IPipelineProjectDag;
