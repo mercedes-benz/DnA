@@ -17,6 +17,8 @@ const FabricWorkspaceCard = ({user, workspace, onSelectWorkspace, onEditWorkspac
     history.push(`/workspace/${workspace?.id}`);
   }
 
+  const userRoles = workspace?.userRole;
+
   return (
     <div className={classNames(Styles.projectCard)}>
       <div className={Styles.cardHead}>
@@ -49,10 +51,10 @@ const FabricWorkspaceCard = ({user, workspace, onSelectWorkspace, onEditWorkspac
             <div>Created by</div>
             <div>{workspace?.createdBy?.firstName} {workspace?.createdBy?.lastName}</div>
           </div>
-          {/* <div>
+          <div>
             <div>Role</div>
-            <div>{workspace?.role || 'N/A'}</div>
-          </div> */}
+            <div>{userRoles}</div>
+          </div>
           <div>
             <div>Classification</div>
             <div>{workspace?.dataClassification || 'N/A'}</div>

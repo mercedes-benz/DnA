@@ -5,6 +5,17 @@ type SolutionCollection{
    records: [SolutionVO]
 }
 
+type leanIXDetailsVO {
+  appReferenceStr: String,
+  name: String! ,
+  shortName: String,
+  ObjectState: String,
+  providerOrgRefstr: String,
+  providerOrgId: String,
+  providerOrgShortname: String,
+  providerOrgDeptid: String
+}
+
 type SolutionVO {
     id: ID!,
     productName: String,
@@ -41,6 +52,8 @@ type SolutionVO {
     skills: [SkillSummaryVO],
     dataStrategyDomain: String,
     additionalResource: String,
+    appId: String,
+    leanIXDetails: leanIXDetailsVO,
     requestedFTECount: Float    
 }
 

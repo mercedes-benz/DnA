@@ -1,0 +1,34 @@
+.btnRefresh {
+  background-color: unset;
+  border: unset;
+  padding: 0;
+  height: auto;
+  float: right;
+  margin-right: -30px;
+
+  &:hover {
+    background-color: unset;
+    color: #00adef;
+  }
+}
+
+.keysContainer {
+  padding-top: 20px;
+  
+  .keyItem {
+    display: flex;
+    justify-content: flex-start;
+    column-gap: 20px;
+    padding-bottom: 15px;
+
+    i, span {
+      cursor: pointer;
+    }
+    
+  }
+}
+
+.pBtnContainer {
+  display: flex;
+  justify-content: flex-end;
+}

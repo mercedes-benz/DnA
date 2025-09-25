@@ -1,6 +1,6 @@
 {
   "name": "storage",
-  "version": "3.3.3",
+  "version": "3.3.5",
   "private": true,
   "dependencies": {
     "@babel/runtime": "^7.17.8",
@@ -32,6 +32,7 @@
     "react-styleguidist": "^11.2.0",
     "redux": "^4.1.2",
     "redux-thunk": "^2.4.1",
+    "regenerator-runtime": "^0.14.1",
     "sass": "^1.49.9",
     "sass-loader": "^12.6.0",
     "uuid": "^8.3.2",

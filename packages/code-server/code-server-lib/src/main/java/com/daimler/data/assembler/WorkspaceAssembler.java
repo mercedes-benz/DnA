@@ -42,6 +42,7 @@
  import com.daimler.data.db.json.DeploymentAudit;
  import com.daimler.data.dto.workspace.RoleCollectionVO;
  import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
+ import com.daimler.data.db.json.CodeServerBuildDetails;
  import com.daimler.data.db.json.CodeServerDeploymentDetails;
  import com.daimler.data.db.json.CodeServerLeanGovernanceFeilds;
  import com.daimler.data.db.json.CodeServerProjectDetails;
@@ -58,6 +59,7 @@
  import com.daimler.data.db.json.UserInfo;
  import com.daimler.data.dto.CodespaceSecurityConfigDto;
  import com.daimler.data.dto.workspace.CodeServerDeploymentDetailsVO;
+ import com.daimler.data.dto.workspace.CodeServerBuildDetailsVO;
  import com.daimler.data.dto.workspace.CodeServerGovernanceVO;
  import com.daimler.data.dto.workspace.CodeServerProjectDetailsVO;
  import com.daimler.data.util.ConstantsUtility;
@@ -83,7 +85,9 @@
  import com.daimler.data.dto.workspace.CodespaceSecurityUserRoleMapVO;
  import com.daimler.data.dto.workspace.DeploymentAuditVO;
  import com.daimler.data.dto.workspace.UserInfoVO;
- import com.daimler.data.dto.workspace.DeploymentAuditVO;
+import com.daimler.data.dto.workspace.CodeServerDeploymentDetailsVO.DeploymentTypeEnum;
+import com.daimler.data.dto.workspace.CodeServerDeploymentDetailsVO.SsoTypeEnum;
+import com.daimler.data.dto.workspace.DeploymentAuditVO;
  import lombok.extern.slf4j.Slf4j;
  
  @Slf4j
@@ -106,6 +110,12 @@
 			 else{
 				vo.setIsAdmin(false);
 			 }
+			 if(userInfo.getIsApprover()!=null){
+				vo.setIsApprover(userInfo.getIsApprover());
+			 }
+			 else{
+				vo.setIsApprover(false);
+			 }
 		 }
 		 return vo;
 	 }
@@ -119,6 +129,12 @@
 			 }
 			 else{
 				entity.setIsAdmin(false);
+			 }
+			 if(userInfo.isIsApprover()!=null){
+				entity.setIsApprover(userInfo.isIsApprover());
+			 }
+			 else{
+				entity.setIsApprover(false);
 			 }
 		 }
 		
@@ -260,6 +276,15 @@
 	 // 	}
 	 // 	return ueserRoleMapVO;
 	 // }
+
+	 private CodeServerBuildDetails toBuildDetails(CodeServerBuildDetailsVO vo) {
+		CodeServerBuildDetails buildDetails = new CodeServerBuildDetails();
+		if (vo != null) {
+			BeanUtils.copyProperties(vo, buildDetails);
+			buildDetails.setLastBuildBy(toUserInfo(vo.getLastBuildBy()));
+		}
+		return buildDetails;
+	}
  
 	 private CodeServerDeploymentDetails toDeploymentDetails(CodeServerDeploymentDetailsVO vo) {
 		 CodeServerDeploymentDetails deploymentDetails = new CodeServerDeploymentDetails();
@@ -273,9 +298,37 @@
 			 {
 				deploymentDetails.setSecureWithIAMRequired(false);
 			 }
+
+			if(vo.isIsSecuredWithCookie()!=null){
+				deploymentDetails.setIsSecuredWithCookie(vo.isIsSecuredWithCookie());
+			}else{
+				deploymentDetails.setIsSecuredWithCookie(false);
+			}
+			if(vo.getDeploymentType()!=null){
+				deploymentDetails.setDeploymentType(vo.getDeploymentType().toString());
+			}
+			if(vo.getSsoType()!=null){
+				deploymentDetails.setSsoType(vo.getSsoType().toString());
+			}
+			 if(vo.isSecureWithDnaRequired()!=null)
+			 {
+				deploymentDetails.setSecureWithDnaRequired(vo.isSecureWithDnaRequired());
+			 }
+			 else
+			 {
+				deploymentDetails.setSecureWithDnaRequired(false);
+			 }
+			 if(vo.isAliceRoleEnabled()!=null)
+			 {
+				deploymentDetails.setAliceRoleEnabled(vo.isAliceRoleEnabled());
+			 }
+			 else
+			 {
+				deploymentDetails.setAliceRoleEnabled(false);
+			 }
 			 deploymentDetails.setLastDeployedBy(toUserInfo(vo.getLastDeployedBy()));
-			 List<DeploymentAudit> auditDetails = this.toDeploymentAuditDetails(vo.getDeploymentAuditLogs());
-			 deploymentDetails.setDeploymentAuditLogs(auditDetails);
+			//  List<DeploymentAudit> auditDetails = this.toDeploymentAuditDetails(vo.getDeploymentAuditLogs());
+			//  deploymentDetails.setDeploymentAuditLogs(auditDetails);
 		 }
 		 return deploymentDetails;
 	 }
@@ -300,6 +353,7 @@
 					 }
 					 auditDetails.setBranch(audit.getBranch());
 					 auditDetails.setCommitId(audit.getCommitId());
+					 auditDetails.setApprovedBy(audit.getApprovedBy());
 					 deployedAuditLogDetails.add(auditDetails);
 				 }
 			 }
@@ -309,6 +363,21 @@
 			 log.error("Failed while parsing in assembler");
 		 }
 		 return deployedAuditLogDetails;
+	 }
+
+	 private CodeServerBuildDetailsVO toBuildDetailsVO(CodeServerBuildDetails buildDetails)
+			 throws ParseException {
+		 CodeServerBuildDetailsVO buildDetailsVO = new CodeServerBuildDetailsVO();
+		 SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
+		 if (buildDetails != null) {
+			 BeanUtils.copyProperties(buildDetails, buildDetailsVO);
+			 buildDetailsVO.setLastBuildBy(toUserInfoVO(buildDetails.getLastBuildBy()));
+			 if (buildDetails.getLastBuildOn() != null){
+				 buildDetailsVO
+						 .setLastBuildOn(isoFormat.parse(isoFormat.format(buildDetails.getLastBuildOn())));
+			 }
+		 }
+		 return buildDetailsVO;
 	 }
  
 	 private CodeServerDeploymentDetailsVO toDeploymentDetailsVO(CodeServerDeploymentDetails deploymentDetails)
@@ -329,11 +398,37 @@
 				 deploymentDetailsVO
 						 .setLastDeployedOn(isoFormat.parse(isoFormat.format(deploymentDetails.getLastDeployedOn())));
 			 }
-			 if(deploymentDetails.getDeploymentAuditLogs()!=null && !deploymentDetails.getDeploymentAuditLogs().isEmpty())
-			 {
-				 List<DeploymentAuditVO> auditDetails = this.toDeploymentAuditDetailsVO(deploymentDetails.getDeploymentAuditLogs());
-				 deploymentDetailsVO.setDeploymentAuditLogs(auditDetails);
+
+			 if(deploymentDetails.getIsSecuredWithCookie()!=null){
+				deploymentDetailsVO.isSecuredWithCookie(deploymentDetails.getIsSecuredWithCookie());
+			 }else{
+				deploymentDetailsVO.isSecuredWithCookie(false);
 			 }
+			 if(deploymentDetails.getDeploymentType()!=null){
+				deploymentDetailsVO.setDeploymentType(DeploymentTypeEnum.fromValue(deploymentDetails.getDeploymentType()));
+			 }
+			 if(deploymentDetails.getSsoType()!=null){
+				deploymentDetailsVO.setSsoType(SsoTypeEnum.fromValue(deploymentDetails.getSsoType()));
+			 }
+			 if (Objects.isNull(deploymentDetails.getSecureWithDnaRequired())) {
+				deploymentDetailsVO.setSecureWithDnaRequired(false);
+			 }
+			 else
+			 {
+			   deploymentDetailsVO.setSecureWithDnaRequired(deploymentDetails.getSecureWithDnaRequired());
+			 }
+			 if (Objects.isNull(deploymentDetails.getAliceRoleEnabled())) {
+				deploymentDetailsVO.setAliceRoleEnabled(false);
+			 }
+			 else
+			 {
+			   deploymentDetailsVO.setAliceRoleEnabled(deploymentDetails.getAliceRoleEnabled());
+			 }
+			//  if(deploymentDetails.getDeploymentAuditLogs()!=null && !deploymentDetails.getDeploymentAuditLogs().isEmpty())
+			//  {
+			// 	 List<DeploymentAuditVO> auditDetails = this.toDeploymentAuditDetailsVO(deploymentDetails.getDeploymentAuditLogs());
+			// 	 deploymentDetailsVO.setDeploymentAuditLogs(auditDetails);
+			//  }
 		 }
 		 return deploymentDetailsVO;
 	 }
@@ -356,6 +451,7 @@
 							 auditDetails.setTriggeredOn(isoFormat.parse(isoFormat.format(audit.getTriggeredOn())));
 						 auditDetails.setBranch(audit.getBranch());
 						 auditDetails.setCommitId(audit.getCommitId());
+						 auditDetails.setApprovedBy(audit.getApprovedBy());
 						 auditDetailsVO.add(auditDetails);
 				 }
 			 }
@@ -649,6 +745,11 @@
 					 }else{
 						vo.setIsWorkspaceMigrated(false);
 					 }
+					 if(data.getActiveInGroup() != null){
+						vo.setActiveInGroup(data.getActiveInGroup());
+					 }else{
+						vo.setActiveInGroup(false);
+					 }
 					 if (data.getIntiatedOn() != null)
 						 vo.setIntiatedOn(isoFormat.parse(isoFormat.format(data.getIntiatedOn())));
 					 UserInfo codespaceUserDetails = data.getWorkspaceOwner();
@@ -659,6 +760,12 @@
 					 CodeServerProjectDetails projectDetails = data.getProjectDetails();
 					 CodeServerProjectDetailsVO projectDetailsVO = new CodeServerProjectDetailsVO();
 					 if (projectDetails != null) {
+						 CodeServerBuildDetailsVO intBuildDetailsVO = toBuildDetailsVO(
+							projectDetails.getIntBuildDetails());
+						CodeServerBuildDetailsVO prodBuildDetailsVO = toBuildDetailsVO(
+							projectDetails.getProdBuildDetails());	
+						 projectDetailsVO.setIntBuildDetails(intBuildDetailsVO);
+						 projectDetailsVO.setProdBuildDetails(prodBuildDetailsVO);
 						 CodeServerDeploymentDetailsVO intDeployDetailsVO = toDeploymentDetailsVO(
 								 projectDetails.getIntDeploymentDetails());
 						 CodeServerDeploymentDetailsVO prodDeployDetailsVO = toDeploymentDetailsVO(
@@ -680,6 +787,12 @@
 											 }
 											 else{
 												user.setIsAdmin(n.getIsAdmin());
+											 }
+											 if(n.getIsApprover()==null){
+												user.setIsApprover(false);
+											 }
+											 else{
+												user.setIsApprover(n.getIsApprover());
 											 }
 											 return user;
 									 }).collect(Collectors.toList());
@@ -710,8 +823,13 @@
 									 isoFormat.parse(isoFormat.format(projectDetails.getProjectCreatedOn())));
 
 						projectDetailsVO.setRecipeName(projectDetails.getRecipeName());
+						if(projectDetails.getLastBuildOrDeployedOn() !=null)
+							 projectDetailsVO.setLastBuildOrDeployedOn(isoFormat.parse(isoFormat.format(projectDetails.getLastBuildOrDeployedOn())));
+						projectDetailsVO.setLastBuildOrDeployedEnv(projectDetails.getLastBuildOrDeployedEnv());
+						projectDetailsVO.setLastBuildOrDeployedStatus(projectDetails.getLastBuildOrDeployedStatus());
 					 }
 					 vo.setProjectDetails(projectDetailsVO);
+					 
  
 				 }
 			 }
@@ -732,6 +850,13 @@
 			 {
 				 governanceVo.setPiiData(false);
 			 }
+			 if (governance.getEnableDeployApproval() != null) {
+				governanceVo.setEnableDeployApproval(governance.getEnableDeployApproval());
+			}
+			else
+			{
+				governanceVo.setEnableDeployApproval(false);
+			}
 		 }
 		 return governanceVo;
 	 }
@@ -748,6 +873,11 @@
 				data.setIsWorkspaceMigrated(vo.isIsWorkspaceMigrated());
 			 }else{
 				data.setIsWorkspaceMigrated(false);
+			 }
+			 if(vo.isActiveInGroup() !=null){
+				data.setActiveInGroup(vo.isActiveInGroup());
+			 }else{
+				data.setActiveInGroup(false);	
 			 }
 			 UserInfoVO ownerVO = vo.getWorkspaceOwner();
 			 if (ownerVO != null) {
@@ -778,6 +908,16 @@
 				 if (recipeDetailsVO != null) {
 					 CodeServerRecipeDetails recipeDetails = this.toRecipeDetails(recipeDetailsVO);
 					 projectDetails.setRecipeDetails(recipeDetails);
+				 }
+				 CodeServerBuildDetailsVO intBuildDetailsVO = projectDetailsVO.getIntBuildDetails();
+				 if (intBuildDetailsVO != null) {
+					 CodeServerBuildDetails intBuildDetails = this.toBuildDetails(intBuildDetailsVO);
+					 projectDetails.setIntBuildDetails(intBuildDetails);
+				 }
+				 CodeServerBuildDetailsVO prodBuildDetailsVO = projectDetailsVO.getProdBuildDetails();
+				 if (prodBuildDetailsVO != null) {
+					 CodeServerBuildDetails prodBuildDetails = this.toBuildDetails(prodBuildDetailsVO);
+					 projectDetails.setProdBuildDetails(prodBuildDetails);
 				 }
 				 CodeServerDeploymentDetailsVO intDeploymentDetailsVO = projectDetailsVO.getIntDeploymentDetails();
 				 if (intDeploymentDetailsVO != null) {
@@ -818,6 +958,13 @@
 			 {
 				 governanceFeilds.setPiiData(false);
 			 }
+			 if (governanceVO.isEnableDeployApproval()) {
+				governanceFeilds.setEnableDeployApproval(governanceVO.isEnableDeployApproval());
+			}
+			else
+			{
+				governanceFeilds.setEnableDeployApproval(false);
+			}
 		 }
 		 return governanceFeilds;
 	 }

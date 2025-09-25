@@ -158,7 +158,7 @@
 
     .addMilestonesWrapper {
       text-align: center;
-      min-height: 150px;
+      min-height: 165px;
       padding: 50px 0 0;
       display: flex;
       justify-content: center;
@@ -168,9 +168,14 @@
       }
     }
 
+    .info.currentPhase {
+      background: linear-gradient(#00adef, #252a33 50%, #252a33);
+    }
+
     .info {
       text-align: center;
-      min-height: 150px;
+      min-height: 165px;
+      padding-top: 15px;
       i {
         width: 50px;
         height: 50px;
@@ -190,6 +195,11 @@
       .monthYear {
         margin-right: 8px;
       }
+    }
+
+    .currentPhaseText {
+      color: #00adef ; 
+      font-weight: bold;
     }
 
     .divider {
