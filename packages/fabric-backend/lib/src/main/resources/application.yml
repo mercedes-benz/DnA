@@ -101,6 +101,14 @@ jwtAuthenticationFilter:
   exclusion:
     urlPatterns: ${AUTH_FILTER_EXCLUSION_PATTERNS:/api/fabric-workspaces/ada/**}
 
+cdcIntegration:
+  openmetadata:
+    serverUrl: ${OPENMETADATA_SERVER_URL:XXXX}
+    jwtToken: ${OPENMETADATA_JWT_TOKEN:XXXX}
+  fabricCdcPushService:
+      baseUrl: ${FABRIC_CDC_PUSH_SERVICE_BASE_URL:XXXX}
+      authToken: ${FABRIC_CDC_PUSH_SERVICE_AUTH_TOKEN:XXXX}
+
 server:
   port: 9292
 
