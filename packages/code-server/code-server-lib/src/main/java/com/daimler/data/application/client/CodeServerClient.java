@@ -11,6 +11,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import com.daimler.data.controller.exceptions.GenericMessage;
@@ -60,6 +61,9 @@ public class CodeServerClient {
 	
 	@Autowired
 	RestTemplate restTemplate;
+
+	@Value("${codeServer.build.deleteuri}")
+	private String codeserverBuildDeleteUri;
 	
 
 	
@@ -502,12 +506,12 @@ public class CodeServerClient {
 			HttpEntity<DeploymentManageDto> entity = new HttpEntity<DeploymentManageDto>(deployDto,headers);
 			ResponseEntity<String> manageDeploymentResponse = restTemplate.exchange(codeServerGitJobDeployUri, HttpMethod.POST, entity, String.class);
 			if (manageDeploymentResponse != null && manageDeploymentResponse.getStatusCode()!=null) {
-				if(manageDeploymentResponse.getStatusCode().is2xxSuccessful()) {
+				if(manageDeploymentResponse.getStatusCode().equals(HttpStatus.valueOf(204))) {
 					status = "SUCCESS";
-					log.info("Success while performing {} action for codeServer workbench for user {} ", deployDto.getInputs().getAction(), deployDto.getInputs().getShortid());
+					log.info("Success while performing {} action for codeServer workbench for wsid {} with repo {} ", deployDto.getInputs().getAction(), deployDto.getInputs().getWsid(),deployDto.getInputs().getRepo());
 				}
 				else {
-					log.info("Warnings while performing {} for codeServer workbench of user {}, httpstatuscode is {}", deployDto.getInputs().getAction(), deployDto.getInputs().getShortid(),manageDeploymentResponse.getStatusCodeValue());
+					log.info("Warnings while performing {} for codeServer workbench for wsid {} with repo {} , httpstatuscode is {}", deployDto.getInputs().getAction(), deployDto.getInputs().getWsid(),deployDto.getInputs().getRepo(),manageDeploymentResponse.getStatusCodeValue());
 					MessageDescription warning = new MessageDescription();
 					warning.setMessage("Response from codeServer Initialize : " + manageDeploymentResponse.getBody() + " Response Code is : " + manageDeploymentResponse.getStatusCodeValue());
 					warnings.add(warning);
@@ -515,7 +519,7 @@ public class CodeServerClient {
 			}
 			
 		} catch (Exception e) {
-			log.error("Error occured while calling codeServer manage workbench for user {} and action {} with exception {} ", deployDto.getInputs().getAction(), deployDto.getInputs().getShortid(), e.getMessage());
+			log.error("Error occured while calling codeServer manage workbench for wsid {} with repo {} and action {} with exception {} ", deployDto.getInputs().getAction(), deployDto.getInputs().getWsid(),deployDto.getInputs().getRepo(), e.getMessage());
 			MessageDescription error = new MessageDescription();
 			error.setMessage("Failed while managing codeserver workbench with exception " + e.getMessage());
 			errors.add(error);
@@ -648,6 +652,57 @@ public class CodeServerClient {
 			log.error("Error occurred while creating git repo {} with exception: {}", codespaceName, e.getMessage());
 		}
 		return false;
+	}
+
+
+	public GenericMessage deleteBuild(String projectName,String version) {
+		GenericMessage response = new GenericMessage();
+		String status = "FAILED";
+		List<MessageDescription> warnings = new ArrayList<>();
+		List<MessageDescription> errors = new ArrayList<>();
+		ResponseEntity<String> responseEntity = null;
+		try {
+			String url = codeserverBuildDeleteUri.replace("{projectName}",projectName).replace("{version}",version);
+
+        // Use exchange to get the full response back
+        responseEntity = restTemplate.exchange(url,HttpMethod.DELETE,null,String.class);
+			if (responseEntity != null && responseEntity.getStatusCode()!=null) {
+				if(responseEntity.getStatusCode().equals(HttpStatus.valueOf(200)) || responseEntity.getStatusCode().equals(HttpStatus.valueOf(204))) {
+					status = "SUCCESS";
+					log.info("Success while performing delete build action for codeServer projectName {} version {}",projectName,version);
+				}
+				else {
+					log.info("Failure while performing delete build action for codeServer projectName {} version {}",projectName,version);
+					MessageDescription warning = new MessageDescription();
+					warning.setMessage("Failure while performing delete build action for codeServer projectName "+projectName+" version "+version);
+					warnings.add(warning);
+				}
+			}
+			
+		}catch(HttpClientErrorException ex){
+			if(ex.getRawStatusCode() == 404){
+				String responseBody = ex.getResponseBodyAsString();
+				if (responseBody != null && responseBody.contains(projectName+":"+version)) {
+            		status = "SUCCESS";
+					log.info("Success while performing delete build action for codeServer projectName {} version {}",projectName,version);
+        		}
+			}else{
+				log.error("Failure while performing delete build action for codeServer projectName {} version {} with exception {}",projectName,version,ex.getMessage());
+			MessageDescription error = new MessageDescription();
+			error.setMessage("Failure while performing delete build action for codeServer projectName "+projectName+" version "+version);
+			errors.add(error);
+			}
+
+		}catch (Exception e) {
+			log.error("Failure while performing delete build action for codeServer projectName {} version {} with exception {}",projectName,version,e.getMessage());
+			MessageDescription error = new MessageDescription();
+			error.setMessage("Failure while performing delete build action for codeServer projectName "+projectName+" version "+version);
+			errors.add(error);
+		}
+		response.setSuccess(status);
+		response.setWarnings(warnings);
+		response.setErrors(errors);
+		return response;
 	}
 	
 	

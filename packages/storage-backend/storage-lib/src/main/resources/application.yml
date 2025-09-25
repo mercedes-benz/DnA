@@ -1,7 +1,7 @@
 spring:
   application:
     name: dna-storage-service
-    version: 3.2.32
+    version: 3.2.36
   profile:
     active: production
   cache:
@@ -81,6 +81,11 @@ spring:
           store:
             path: ${CA_TRUSTSTORE_PATH:/XXXX/XXXX/truststore.p12}
             password: ${CA_TRUSTSTORE_PASSWORD:XXXX}
+  
+  # Spring MVC timeout 
+  mvc:
+    async:
+      request-timeout : 600000
 
 kafka:
   centralTopic:
@@ -96,6 +101,11 @@ dna:
       
 server:
   port: 7175
+  tomcat:
+    connection-timeout : 600000
+    keep-alive-timeout : 600000
+  connection-timeout : 600000
+  max-http-header-size : 65536
 
 #Cors Filter origin Domains  
 allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:http://*}

@@ -35,6 +35,7 @@ public class ConstantsUtility {
 	public static final String FAILED_STATE = "FAILED";
 	
 	public static final String COMPLETED_STATE = "COMPLETED";
+	public static final String DELETED_STATE = "DELETED";
 	public static final String INPROGRESS_STATE = "IN_PROGRESS";
 	
 	public static final String ENTITLEMENT_TYPE = "ENTITLEMENT";
@@ -43,10 +44,12 @@ public class ConstantsUtility {
 	public static final String PERMISSION_ADMIN = "Admin";
 	public static final String PERMISSION_MEMBER = "Member";
 	public static final String PERMISSION_VIEWER = "Viewer";
+	public static final String PERMISSION_OWNER = "Owner";
 	
 	public static final String DATACLASSIFICATION_CONFIDENTIAL = "CONFIDENTIAL";
 	
-	public static final String GROUPSEARCH_URL_PREFIX = "https://graph.microsoft.com/v1.0/groups?$filter=startsWith(displayName,'";
+	public static final String GROUPSEARCH_URL = "https://graph.microsoft.com/v1.0/groups";
+	public static final String GROUPSEARCH_URL_PREFIX = "?$filter=startsWith(displayName,'";
 	public static final String GROUPSEARCH_URL_SUFFIX = "')";
 	
 	public static final String GROUPPRINCIPAL_GROUP_TYPE = "Group";

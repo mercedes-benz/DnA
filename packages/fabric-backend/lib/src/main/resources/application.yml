@@ -2,7 +2,7 @@ spring:
   mvc.pathmatch.matching-strategy: ant_path_matcher
   application:
     name: dna-fabric-workspace-service
-    version: 1.2.15
+    version: 1.3.18
   profile:
     active: production
 
@@ -47,12 +47,15 @@ fabricWorkspaces:
   startup.workspaceprovisioning:  ${FABRIC_WORKSPACE_PROVISION_ONSTARTUP:false}
   startup.onboardOwnersToFabricOperationsRole:  ${FABRIC_ONBOARDOWNER_FABRICROLE_ONSTARTUP:true}
   dnaGroupPrefix: ${FABRIC_ONBOARD_GROUP_PREFIX:XXXX}
+  defaultFolders: ${FABRIC_DEFAULT_FOLDERS:XXXX}
   subgroupPrefix: ${FABRIC_SUB_GROUP_PREFIX:XXXX}
   shortcutNameprefix: ${FABRIC_SHORTCUT_PREFIX:XXXX}
   shortcutLocation: ${FABRIC_SHORTCUT_LOCATION:XXXX}
   gateway.id: ${FABRIC_GATEWAY_ID:XXXX}
   gateway.encryption.publickey.modulus: ${FABRIC_ENCRYPTION_PUBLICKEY_MODULUS:XXXX}
   gateway.encryption.publickey.exponent: ${FABRIC_ENCRYPTION_PUBLICKEY_EXPONENT:XXXX}
+  allowed.divisions.fabric.enabled: ${FABRIC_ENABLED_ENTITLEMENT:XXXX}
+  userRemoval.ignorePatterns: ${FABRIC_USERREMOVAL_IGNORE_PATTERNS:XXXX}
   datasource:
     credentialType: ${FABRIC_DS_CREDENTIALTYPE:Basic}
     encryptedConnection: ${FABRIC_DS_ENCRYPTEDCONN:Any}
@@ -74,7 +77,10 @@ fabricWorkspaces:
     datasourceUrl: ${FABRIC_CREATEDATASOURCE_URL:https://api.powerbi.com/v1.0/myorg/gateways/id/datasources}
     datasourceUserUrl: ${FABRIC_DATASOURCE_ADDUSER_URL:https://api.powerbi.com/v1.0/myorg/gateways/id/datasources/connectionid/users}
     shortcutUrl: ${FABRIC_SHORTCUT_URL:https://api.fabric.microsoft.com/v1/workspaces/id/items/lakehouseid/shortcuts}
-    
+  technicalUser:
+    id: ${AUTHORISER_TECH_USER_ID:XXXX}
+  ada:
+    apiKey: ${ADA_API_KEY:XXXX}
 
 authoriser:
   uri: ${IDENTITY_AUTH_URI:XXXX}
@@ -89,7 +95,20 @@ authoriser:
   clientId: ${IDENTITY_CLIENT_ID:XXXX}
   clientSecret: ${IDENTITY_CLIENT_SECRET:XXXX}
   role.fabricRoleName: ${IDENTITY_FABRIC_OPERATIONS_ROLENAME:XXXX}
-  
+  appIdPrefix: ${IDENTITY_APPID_PREFIX:XXXX}
+
+jwtAuthenticationFilter:
+  exclusion:
+    urlPatterns: ${AUTH_FILTER_EXCLUSION_PATTERNS:/api/fabric-workspaces/ada/**}
+
+cdcIntegration:
+  openmetadata:
+    serverUrl: ${OPENMETADATA_SERVER_URL:XXXX}
+    jwtToken: ${OPENMETADATA_JWT_TOKEN:XXXX}
+  fabricCdcPushService:
+      baseUrl: ${FABRIC_CDC_PUSH_SERVICE_BASE_URL:XXXX}
+      authToken: ${FABRIC_CDC_PUSH_SERVICE_AUTH_TOKEN:XXXX}
+
 server:
   port: 9292
 
