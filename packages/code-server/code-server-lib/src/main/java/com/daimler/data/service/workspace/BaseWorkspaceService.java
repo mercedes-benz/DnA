@@ -2250,7 +2250,30 @@
 					List<String> repoDetails = CommonUtils.getRepoNameFromGitUrl(vo.getProjectDetails().getRecipeDetails().getRepodetails());
 					String repoOwner = repoDetails.get(0);
 					repoName = repoDetails.get(1);
-					HttpStatus status = gitClient.isUserCollaborator(repoOwner,gitUser, repoName);
+					if(repoName.contains("https://git.i.mercedes-benz.com/")){
+						HttpStatus addGitUser = gitClient.addUserToRepo(gitUser, repoName);
+					if(addGitUser == HttpStatus.UNPROCESSABLE_ENTITY){
+						log.info("Failed while adding {} as collaborator with status {}", repoName,
+								userRequestDto.getGitUserName(), addGitUser.name());
+						MessageDescription errMsg = new MessageDescription(
+								"Failed while adding " + userRequestDto.getGitUserName() + " as collaborator, Because"
+										+ " the Git user account Suspended, please ask the user to Login again and add this user manually in the git repo.");
+						errors.add(errMsg);
+						responseMessage.setSuccess("FAILED");
+						responseMessage.setErrors(errors); 
+						return responseMessage;
+					}
+					 if (!addGitUser.is2xxSuccessful()) {
+						 log.info("Failed while adding {} as collaborator with status {}", repoName,
+								 userRequestDto.getGitUserName(), addGitUser.name());
+						 MessageDescription errMsg = new MessageDescription(
+								 "Failed while adding " + userRequestDto.getGitUserName() + " as collaborator . Please make "
+										 + userRequestDto.getGitUserName()
+										 + " is valid git user and add this user manually in the git repo.");
+						 warnings.add(errMsg);
+					 }
+					}else{
+						HttpStatus status = gitClient.isUserCollaborator(repoOwner,gitUser, repoName);
 					if(!status.is2xxSuccessful()){
 						log.info("Cannot add User {} as collaborator because the user is  not a collaborator to the private repo {}",userRequestDto.getGitUserName(),repoName);
 						MessageDescription msg = new MessageDescription("Cannot add User "+userRequestDto.getGitUserName()+" as collaborator because the user is  not a collaborator to the private repo "+repoName+" add the user to the repo and try again");
@@ -2259,6 +2282,8 @@
 						responseMessage.setErrors(errors); 
 						return responseMessage;
 					}
+					}
+					
 				}
  
 				 if(! (vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")
