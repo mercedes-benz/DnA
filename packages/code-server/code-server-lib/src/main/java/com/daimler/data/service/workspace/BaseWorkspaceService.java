@@ -43,6 +43,7 @@
  import java.util.regex.Pattern;
  import java.util.stream.Collector;
  import java.util.stream.Collectors;
+ import java.util.Collections;
 
  import org.json.JSONObject;
  import org.springframework.beans.BeanUtils;
@@ -1669,6 +1670,30 @@
 				buildRequestDto.setEnvironment(environment);
 				buildRequestDto.setComments("Build and Deploy");
 				log.info("build triggered for workspaceId {} and branch {} and environment {} and lastBuildType {}",workspaceId,branch,environment,lastBuildType);
+				CodeServerBuildDeployNsql buildDeployEntity = buildDeployCustomRepo.findByProjectName(projectName);
+				if (buildDeployEntity != null) {
+					CodeServerBuildDeploy buildDeployData = buildDeployEntity.getData();
+
+					List<BuildAudit> builds;
+					if ("int".equalsIgnoreCase(environment)) {
+						builds = buildDeployData.getIntBuildAuditLogs();
+					} else {
+						builds = buildDeployData.getProdBuildAuditLogs();
+					}
+
+					long activeImageCount = builds.stream()
+							.filter(b -> !b.isImageDeleted())
+							.count();
+
+					if (activeImageCount >= 9) {
+						MessageDescription error = new MessageDescription();
+						error.setMessage(
+								"Cannot trigger new build/deploy: maximum number of active images reached (>= 9).");
+						responseMessage.setErrors(Collections.singletonList(error));
+						responseMessage.setSuccess("FAILED");
+						return responseMessage;
+					}
+				}
 				responseMessage = this.buildWorkSpace(userId, id, branch, buildRequestDto, isprivateRecipe, environment,lastBuildType);
 				if(responseMessage.getSuccess().equalsIgnoreCase("SUCCESS")){
 					if(deploymentDetails.getDeploymentUrl() == null || deploymentDetails.getDeploymentUrl().isEmpty()){
@@ -1706,7 +1731,7 @@
  
 				Boolean isValutInjectorEnable = false;
 				 try{
-					isValutInjectorEnable = VaultClient.enableVaultInjector(projectName.toLowerCase(), environment);
+					// isValutInjectorEnable = VaultClient.enableVaultInjector(projectName.toLowerCase(), environment);
 				 }catch(Exception e){
 					MessageDescription error = new MessageDescription();
 					error.setMessage("Some error occured during deployment, with exception " + e.getMessage());
@@ -3708,7 +3733,7 @@
 				String projectOwnerWsId = ownerEntity.getData().getWorkspaceId();
 				Boolean isValutInjectorEnable = false;
 				try{
-					isValutInjectorEnable = VaultClient.enableVaultInjector(projectName.toLowerCase(), env);
+					// isValutInjectorEnable = VaultClient.enableVaultInjector(projectName.toLowerCase(), env);
 				}catch(Exception e){
 					MessageDescription error = new MessageDescription();
 					error.setMessage("Some error occured during restart, with exception " + e.getMessage());
@@ -4211,7 +4236,7 @@
 				 }
 				 Boolean isValutInjectorEnable = false;
 				 try{
-					isValutInjectorEnable = VaultClient.enableVaultInjector(projectName.toLowerCase(), environment);
+					// isValutInjectorEnable = VaultClient.enableVaultInjector(projectName.toLowerCase(), environment);
 				 }catch(Exception e){
 					MessageDescription error = new MessageDescription();
 					error.setMessage("Some error occured during deployment, with exception " + e.getMessage());
@@ -4294,7 +4319,7 @@
 					 auditLog.setBuildStatus("BUILD_REQUESTED");
 					 auditLog.setComments(buildRequestDto.getComments());
 					 auditLog.setVersion(appVersion);
-					 auditLog.setKeepBuildImage(buildRequestDto.isKeepBuildImage());
+					 auditLog.setKeepBuildImage(buildRequestDto.isKeepBuildImage() != null && buildRequestDto.isKeepBuildImage());
 					 auditLogs.add(auditLog);
 					 CodeServerBuildDeploy buildDeployLogs = null;
 					 CodeServerBuildDeployNsql auditLogEntity = null;

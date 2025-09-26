@@ -254,6 +254,9 @@ definitions:
       imageDeleted:
         type: boolean
         descripion: "deleted status of build"
+      keepBuildImage:
+        type: boolean
+        description: "indicates whether the build image should be kept"
 
 
   DeploymentAuditVO:
@@ -325,6 +328,7 @@ definitions:
         type: string
       keepBuildImage:
         type: boolean
+        default: false
 
   LogsListResponseVO:
     type: object
