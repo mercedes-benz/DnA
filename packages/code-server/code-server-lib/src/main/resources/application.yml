@@ -2,7 +2,7 @@ spring:
   mvc.pathmatch.matching-strategy: ant_path_matcher
   application:
     name: dna-codeserver-service
-    version: 1.6.3
+    version: 1.7.1
   profile:
     active: production
 
@@ -108,6 +108,7 @@ codeServer:
   vault.baseuri: ${CODE_SERVER_VAULT_BASEURI:XXXX}
   codespace.filename: ${CODESPACE_FILE_NAME:YOUR_CODESPACE_FILE_NAME}
   technical.id: ${CODE_SERVER_TECHNICAL_USER:XXXX}
+  build.deleteuri: ${CODE_SERVER_BUILD_DELETE_URI:XXXX}
 
 swagger.headers.authorization.token: ${SWAGGER_HEADER_AUTH:XXXXXX}
 management.endpoints.web.exposure.include: loggers,health

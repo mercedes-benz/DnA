@@ -392,7 +392,7 @@ const isLeanIXRequired = typeOfProject === 'Production' && mandate;
             <div className={Styles.col2}>
               <div className={classNames('input-field-group include-error', errors?.costCenter ? 'error' : '')}>
                   <label className={'input-label'}>
-                    Cost Center <sup>*</sup>
+                    Cost Center 
                   </label>
                   <div>
                     <input
@@ -403,7 +403,7 @@ const isLeanIXRequired = typeOfProject === 'Production' && mandate;
                       autoComplete="off"
                       maxLength={256}
                       defaultValue={costCenter}
-                      {...register('costCenter', { required: '*Missing entry', pattern: /^(?!^\s+$)[\w\d -]+$/g, onChange: (e) => { setCostCenter(e.target.value) } })}
+                      {...register('costCenter', { pattern: /^(?!^\s+$)[\w\d -]+$/g, onChange: (e) => { setCostCenter(e.target.value) } })}
                     />
                     <span className={'error-message'}>{errors?.costCenter?.message}{errors.costCenter?.type === 'pattern' && `Spaces (and special characters) not allowed as field value.`}</span>
                   </div>
@@ -412,7 +412,7 @@ const isLeanIXRequired = typeOfProject === 'Production' && mandate;
             <div className={Styles.col2}>
               <div className={classNames('input-field-group', errors?.internalOrder ? 'error' : '')}>
                   <label className={'input-label'}>
-                    Internal Order <sup>*</sup>
+                    Internal Order 
                   </label>
                   <div>
                     <input
@@ -423,7 +423,7 @@ const isLeanIXRequired = typeOfProject === 'Production' && mandate;
                       autoComplete="off"
                       maxLength={256}
                       defaultValue={internalOrder}
-                      {...register('internalOrder', { required: '*Missing entry', pattern: /^(?!^\s+$)[\w\d -]+$/g, onChange: (e) => { setInternalOrder(e.target.value) } })}
+                      {...register('internalOrder', { pattern: /^(?!^\s+$)[\w\d -]+$/g, onChange: (e) => { setInternalOrder(e.target.value) } })}
                     />
                     <span className={'error-message'}>{errors?.internalOrder?.message}{errors.internalOrder?.type === 'pattern' && `Spaces not allowed as field value..`}</span>
                   </div>
