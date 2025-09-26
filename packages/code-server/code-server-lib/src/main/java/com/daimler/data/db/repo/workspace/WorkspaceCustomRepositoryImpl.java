@@ -448,7 +448,6 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 			// }
 			// updateQuery += "}')\r\n";
 			updateQuery += "where data->'projectDetails'->>'projectName' = '" + projectName + "'";
-			log.info("update query for {} is {}",projectName,updateQuery);
 
 		try {
 			Query q = em.createNativeQuery(updateQuery);
@@ -508,8 +507,6 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 				+ "')";
 
 		updateQuery += " where data->'projectDetails'->>'projectName' = '" + projectName + "'";
-
-		log.info("update query {}", updateQuery);
 
 		try {
 			Query q = em.createNativeQuery(updateQuery);

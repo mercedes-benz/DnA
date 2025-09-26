@@ -60,6 +60,12 @@ const buildCodeSpace = (id, data) => {
     return server.post(`/workspaces/${id}/build`, data);
 };
 
+const deleteBuild = (projectName, version) => {
+    return server.delete(`workspaces/${projectName}/build/${version}`,{
+        data: {},
+    });
+};
+
 const getBuildAndDeployLogs = (projectName) => {
     return server.get(`workspace/logs/${projectName}`, {
         data: {},
@@ -434,6 +440,7 @@ export const CodeSpaceApiClient = {
     deployCodeSpace,
     unDeployCodeSpace,
     buildCodeSpace,
+    deleteBuild,
     getBuildAndDeployLogs,
     buildVersionLov,
     rejectDeployApproval,

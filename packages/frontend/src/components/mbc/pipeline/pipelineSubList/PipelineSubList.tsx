@@ -40,6 +40,20 @@ const PipelineSubList = (props: IPipelineProjectProps) => {
   const [currentColumnToSort, setCurrentColumnToSort] = useState<string>('projectId');
   const createAndUpdateStatus = ['CREATE_REQUESTED', 'UPDATE_REQUESTED'];
 
+    const handleTriggerDag = (dagName: string) => {
+      ProgressIndicator.show();
+      PipelineApiClient.triggerDag(dagName)
+
+        .then((res) => {
+          Notification.show(res.success);
+          ProgressIndicator.hide();
+        })
+        .catch(() => {
+          Notification.show('error in Triggering the Dag. Please try again later.', 'alert');
+          ProgressIndicator.hide();
+        });
+    };
+
   const onPermissionEdit = (collUserId: string, index: number) => {
     return () => {
       const collItem = dagCollExist.map((item: IPipelineProjectDagsCollabarator, itemIndex: number) => {
@@ -239,12 +253,35 @@ const PipelineSubList = (props: IPipelineProjectProps) => {
                   <div className={Styles.dagTitleCol}>
                     <label
                       className={
+                        'sortable-column-header ' +
+                        (currentColumnToSort === 'projectDescription' ? currentSortOrder : '')
+                      }
+                      onClick={sortByColumn('projectDescription', nextSortOrder)}
+                    >
+                      <i className="icon sort" />
+                      Description
+                    </label>
+                  </div>
+                  <div className={Styles.dagTitleCol}>
+                    <label
+                      className={
                         'sortable-column-header ' + (currentColumnToSort === 'projectName' ? currentSortOrder : '')
                       }
                       onClick={sortByColumn('projectName', nextSortOrder)}
                     >
                       <i className="icon sort" />
                       Project Name
+                    </label>
+                  </div>
+                  <div className={Styles.dagTitleCol}>
+                    <label
+                      className={
+                        'sortable-column-header ' + (currentColumnToSort === 'createdBy' ? currentSortOrder : '')
+                      }
+                      onClick={sortByColumn('createdBy', nextSortOrder)}
+                    >
+                      <i className="icon sort" />
+                      Created By
                     </label>
                   </div>
                   <div className={Styles.dagTitleCol}>
@@ -273,7 +310,9 @@ const PipelineSubList = (props: IPipelineProjectProps) => {
                       <label className={Styles.expansionLabel + ' expansion-panel-label '} htmlFor={index + '1'}>
                         <div className={classNames(Styles.dagTile, createAndUpdateStatus.includes(item.projectStatus) ? Styles.notAllowed : '')}>
                           <div className={Styles.dagTitleCol}>{item.projectId}</div>
+                          <div className={Styles.dagTitleCol}>{item.projectDescription}</div>
                           <div className={Styles.dagTitleCol}>{item.projectName}</div>
+                          <div className={Styles.dagTitleCol}>{item.createdBy}</div>
                           <div className={Styles.dagTitleCol}>{item.isOwner ? 'Owner' : 'Collaborator'}</div>
                           <div className={Styles.dagTitleCol}>
                             {item.projectStatus === 'CREATE_REQUESTED' ?
@@ -356,6 +395,15 @@ const PipelineSubList = (props: IPipelineProjectProps) => {
                                                 </button>
                                               )}
                                               &nbsp; &nbsp;
+                                              {dagItem.permissions?.includes('can_edit') && (
+                                                <button
+                                                  className={Styles.actionBtn}
+                                                  title="Trigger DAG"
+                                                  onClick={() => handleTriggerDag(dagItem.dagName)}
+                                                >
+                                                  <i className="icon mbc-icon trainings" />
+                                                </button>
+                                              )}
                                               <a
                                                 className={Styles.airflowLink}
                                                 href={`${Envs.DATA_PIPELINES_APP_BASEURL}/graph?dag_id=${dagItem.dagName}`}

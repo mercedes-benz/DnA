@@ -33,7 +33,10 @@ export const Envs = {
   DNA_BRAND_LOGO_URL: getDNAInjectedEnv('DNA_BRAND_LOGO_URL') || process.env.DNA_BRAND_LOGO_URL,
   DNA_APP_LOGO_URL: getDNAInjectedEnv('DNA_APP_LOGO_URL') || process.env.DNA_APP_LOGO_URL,
   TOU_HTML: getInjectedEnv('TOU_HTML') || process.env.TOU_HTML,
-  FABRIC_ENTITLEMENT_PREFIX: getInjectedEnv('FABRIC_ENTITLEMENT_PREFIX') || process.env.FABRIC_ENTITLEMENT_PREFIX,
   FABRIC_ENTITLEMENT_IGNORE: getInjectedEnv('FABRIC_ENTITLEMENT_IGNORE') || process.env.FABRIC_ENTITLEMENT_IGNORE,
   MANDATE_LEANIX_FOR_DIVISIONS: getInjectedEnv('MANDATE_LEANIX_FOR_DIVISIONS') || process.env.MANDATE_LEANIX_FOR_DIVISIONS,
+  CDC_URL: getInjectedEnv('CDC_URL') || process.env.CDC_URL,
+  DNA_MAIL: getInjectedEnv('DNA_MAIL') || process.env.DNA_MAIL,
+  CONFLUENCE_PAGE: getInjectedEnv('CONFLUENCE_PAGE') || process.env.CONFLUENCE_PAGE,
+  CDC_SIGNIN_URL: getInjectedEnv('CDC_SIGNIN_URL') || process.env.CDC_SIGNIN_URL,
 };
