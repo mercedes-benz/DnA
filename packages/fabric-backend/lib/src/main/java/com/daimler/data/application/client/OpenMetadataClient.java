@@ -109,7 +109,7 @@ public class OpenMetadataClient {
                     .description(description)
                     .tags(List.of(
                         prepareTag("Application.Fabric"),
-                        prepareTag("alationTags.Loc_Group_RoW"),
+                        prepareTag("commonTags.Loc_Group_RoW"),
                         prepareTag(mapTierValue(tier))
                     ))
                     .serviceType(CreateDatabaseService.ServiceTypeEnum.DATALAKE);
@@ -144,7 +144,7 @@ public class OpenMetadataClient {
                     .description(description)
                     .tags(List.of(
                         prepareTag("Application.Fabric"),
-                        prepareTag("alationTags.Loc_Group_RoW"),
+                        prepareTag("commonTags.Loc_Group_RoW"),
                         prepareTag(mapTierValue(fields.getTier()))
                     ))
                     .owners(owners); // Using FQN directly as string
