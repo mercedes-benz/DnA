@@ -142,6 +142,10 @@
 
     .deployConfigChips{
       background-color: #16181B;
+      margin-right: 5px;
+      &:hover {
+        background-color: #2d333b;;
+      }
     }
 
 }
