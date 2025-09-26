@@ -7,12 +7,13 @@ import org.springframework.util.CollectionUtils;
 import com.daimler.data.db.entities.ADAProjectsNsql;
 import com.daimler.data.db.json.ADAProjectDetails;
 import com.daimler.data.dto.adaProjects.ADAProjectDetailsVO;
-import com.daimler.data.dto.adaProjects.ADAProjectDetailsVOService;
+import com.daimler.data.dto.adaProjects.ADAProjectDetailsVOServices;
 import com.daimler.data.dto.adaProjects.ADAProjectDetailsVOStakeholders;
 import com.daimler.data.dto.adaProjects.ADAProjectDetailsVOTags;
 
 import java.util.Collections;
 import java.util.Objects;
+import java.util.List;
 import java.util.stream.Collectors;
 
 import lombok.extern.slf4j.Slf4j;
@@ -32,12 +33,16 @@ public class ADAProjectsAssembler implements GenericAssembler<ADAProjectDetailsV
             details.setActive(vo.isActive());
             
             // Handle Service object
-            if (Objects.nonNull(vo.getService())) {
-                ADAProjectDetails.Service service = new ADAProjectDetails.Service();
-                BeanUtils.copyProperties(vo.getService(), service);
-                details.setService(service);
+            if (!CollectionUtils.isEmpty(vo.getServices())) {
+                details.setServices(vo.getServices().stream()
+                        .filter(Objects::nonNull)
+                        .map(s -> {
+                            ADAProjectDetails.Service service = new ADAProjectDetails.Service();
+                            BeanUtils.copyProperties(s, service);
+                            return service;
+                        })
+                        .collect(Collectors.toList()));
             }
-            
             // Handle Stakeholders list
             if (!CollectionUtils.isEmpty(vo.getStakeholders())) {
                 details.setStakeholders(vo.getStakeholders().stream()
@@ -80,12 +85,16 @@ public class ADAProjectsAssembler implements GenericAssembler<ADAProjectDetailsV
             vo.setActive(details.isActive());
 
             // Handle Service object
-            if (Objects.nonNull(details.getService())) {
-                ADAProjectDetailsVOService serviceVO = new ADAProjectDetailsVOService();
-                BeanUtils.copyProperties(details.getService(), serviceVO);
-                vo.setService(serviceVO);
+            if (!CollectionUtils.isEmpty(details.getServices())) {
+                vo.setServices(details.getServices().stream()
+                        .filter(Objects::nonNull)
+                        .map(s -> {
+                            ADAProjectDetailsVOServices serviceVO = new ADAProjectDetailsVOServices();
+                            BeanUtils.copyProperties(s, serviceVO);
+                            return serviceVO;
+                        })
+                        .collect(Collectors.toList()));
             }
-            
             // Handle Stakeholders list
             if (!CollectionUtils.isEmpty(details.getStakeholders())) {
                 vo.setStakeholders(details.getStakeholders().stream()
