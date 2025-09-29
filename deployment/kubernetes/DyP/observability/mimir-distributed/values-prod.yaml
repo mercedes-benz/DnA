@@ -21,8 +21,8 @@ mimir:
       s3:
         bucket_name: mimir-alertmanager
         endpoint: "loki-minio.observability:9000"
-        access_key_id: "admin" # This is a secret injected via an environment variable
-        secret_access_key: "jTPPj-13jebS5Ulo" # This is a secret injected via an environment variable
+        access_key_id: <path:dna_aws_kv/data/dev/kubernetesSecret/loki#rootUser> # This is a secret injected via an environment variable
+        secret_access_key: <path:dna_aws_kv/data/dev/kubernetesSecret/loki#rootPassword> # This is a secret injected via an environment variable
         http:
           insecure_skip_verify: true
         insecure: true
@@ -31,8 +31,8 @@ mimir:
       s3:
         bucket_name: mimir-tsdb
         endpoint: "loki-minio.observability:9000"
-        access_key_id: "admin" # This is a secret injected via an environment variable
-        secret_access_key: "jTPPj-13jebS5Ulo" # This is a secret injected via an environment variable
+        access_key_id: <path:dna_aws_kv/data/dev/kubernetesSecret/loki#rootUser> # This is a secret injected via an environment variable
+        secret_access_key: <path:dna_aws_kv/data/dev/kubernetesSecret/loki#rootPassword> # This is a secret injected via an environment variable
         http:
           insecure_skip_verify: true
         insecure: true  
@@ -42,8 +42,8 @@ mimir:
       s3:
         bucket_name: mimir-ruler
         endpoint: "loki-minio.observability:9000"
-        access_key_id: "admin" # This is a secret injected via an environment variable
-        secret_access_key: "jTPPj-13jebS5Ulo" # This is a secret injected via an environment variable
+        access_key_id: <path:dna_aws_kv/data/dev/kubernetesSecret/loki#rootUser> # This is a secret injected via an environment variable
+        secret_access_key: <path:dna_aws_kv/data/dev/kubernetesSecret/loki#rootPassword> # This is a secret injected via an environment variable
         http:
           insecure_skip_verify: true   
         insecure: true           
@@ -92,7 +92,7 @@ alertmanager:
 
 compactor:
   persistentVolume:
-    size: 20Gi
+    size: 50Gi
   resources:
     limits:
       memory: 3Gi
@@ -123,8 +123,8 @@ ingester:
     accessModes:
       - ReadWriteOnce
     # Ingester data Persistent Volume size
-    size: 20Gi
-
+    size: 50Gi
+  replicas: 15
   resources:
     limits:
       memory: 12Gi
@@ -230,7 +230,7 @@ ruler:
 
 store_gateway:
   persistentVolume:
-    size: 10Gi
+    size: 50Gi
   replicas: 6
   resources:
     limits:
@@ -260,3 +260,12 @@ store_gateway:
 
   zoneAwareReplication:
     topologyKey: 'kubernetes.io/hostname'
+
+nginx:
+  replicas: 3
+  resources:
+    limits:
+      memory: 731Mi
+    requests:
+      cpu: 1
+      memory: 512Mi
