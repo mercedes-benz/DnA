@@ -83,7 +83,7 @@ alertmanager:
   replicas: 3
   resources:
     limits:
-      memory: 1024Mi
+      memory: 1Gi
     requests:
       cpu: 1
       memory: 1Gi
@@ -95,19 +95,19 @@ compactor:
     size: 50Gi
   resources:
     limits:
-      memory: 3Gi
+      memory: 500Mi
     requests:
       cpu: 1
-      memory: 2Gi
+      memory: 500Mi
 
 distributor:
-  replicas: 12
+  replicas: 3
   resources:
     limits:
-      memory: 6Gi
+      memory: 500Mi
     requests:
       cpu: 2
-      memory: 4Gi
+      memory: 500Mi
 
 ingester:
   enabled: true
@@ -124,13 +124,13 @@ ingester:
       - ReadWriteOnce
     # Ingester data Persistent Volume size
     size: 50Gi
-  replicas: 15
+  replicas: 6
   resources:
     limits:
-      memory: 12Gi
+      memory: 5Gi
     requests:
       cpu: 3
-      memory: 8Gi
+      memory: 5Gi
   topologySpreadConstraints: {}
   affinity:
     podAntiAffinity:
@@ -205,28 +205,28 @@ querier:
   replicas: 4
   resources:
     limits:
-      memory: 8Gi
+      memory: 500Mi
     requests:
-      cpu: 2
-      memory: 6Gi
+      cpu: 1
+      memory: 500Mi
 
 query_frontend:
   replicas: 3
   resources:
     limits:
-      memory: 3Gi
+      memory: 500Mi
     requests:
-      cpu: 2
-      memory: 2Gi
+      cpu: 1
+      memory: 500Mi
 
 ruler:
   replicas: 3
   resources:
     limits:
-      memory: 6Gi
+      memory: 500Mi
     requests:
       cpu: 1
-      memory: 4Gi
+      memory: 500Mi
 
 store_gateway:
   persistentVolume:
@@ -234,10 +234,10 @@ store_gateway:
   replicas: 6
   resources:
     limits:
-      memory: 8Gi
+      memory: 500Mi
     requests:
       cpu: 1
-      memory: 6Gi
+      memory: 500Mi
   topologySpreadConstraints: {}
   affinity:
     podAntiAffinity:
@@ -265,7 +265,7 @@ nginx:
   replicas: 3
   resources:
     limits:
-      memory: 731Mi
+      memory: 512Mi
     requests:
       cpu: 1
       memory: 512Mi
