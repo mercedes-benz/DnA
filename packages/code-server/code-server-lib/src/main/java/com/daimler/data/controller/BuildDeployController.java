@@ -199,6 +199,38 @@ public class BuildDeployController implements CodeServerBuildDeployServiceApi {
             return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
         }
         
+        String projectName = vo.getProjectDetails() != null ? vo.getProjectDetails().getProjectName() : null;
+        List<BuildAudit> auditLogs = new ArrayList<>();
+        CodeServerBuildDeployNsql optionalBuildDeployEntity = buildDeployCustomRepo.findByProjectName(projectName);
+
+        if (optionalBuildDeployEntity != null && optionalBuildDeployEntity.getData() != null) {
+            if ("int".equalsIgnoreCase(environment)
+                    && optionalBuildDeployEntity.getData().getIntBuildAuditLogs() != null) {
+                auditLogs = optionalBuildDeployEntity.getData().getIntBuildAuditLogs();
+            } else if ("prod".equalsIgnoreCase(environment)
+                    && optionalBuildDeployEntity.getData().getProdBuildAuditLogs() != null) {
+                auditLogs = optionalBuildDeployEntity.getData().getProdBuildAuditLogs();
+            }
+        }
+        if (auditLogs == null) {
+            auditLogs = new ArrayList<>();
+        }
+        long retainedCount = auditLogs.stream()
+                .filter(b -> "BUILD_SUCCESS".equalsIgnoreCase(b.getBuildStatus()))
+                .filter(b -> !b.isImageDeleted())
+                .count();
+        
+        if (retainedCount >= 10) {
+            MessageDescription invalidMsg = new MessageDescription();
+            invalidMsg.setMessage("Build not allowed: There are already " + retainedCount +
+                    " successful builds with images retained. Please delete older images before triggering a new build.");
+            GenericMessage errorMessage = new GenericMessage();
+            errorMessage.addErrors(invalidMsg);
+            log.info("User {} attempted to build workspace {} but retained image limit reached ({} builds).",
+                    userId, vo != null ? vo.getWorkspaceId() : "UNKNOWN", retainedCount);
+            return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
+        }
+         
         String lastBuildType = "build";
         GenericMessage responseMsg = service.buildWorkSpace(userId,id,branch,buildRequestDto,isPrivateRecipe,environment,lastBuildType);
 				 log.info("User {} build workspace {} project {}", userId, vo.getWorkspaceId(),
