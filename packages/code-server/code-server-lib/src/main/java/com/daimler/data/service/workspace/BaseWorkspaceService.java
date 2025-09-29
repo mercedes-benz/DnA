@@ -1663,7 +1663,32 @@
 			 //buildAndDeploy flow
 			 if(version == null || version.isEmpty() || version.isBlank()){
 				String lastBuildType = "buildAndDeploy";
-				
+				CodeServerBuildDeployNsql buildDeployEntity = buildDeployCustomRepo.findByProjectName(projectName);
+				List<BuildAudit> builds = new ArrayList<>();
+
+				if (buildDeployEntity != null && buildDeployEntity.getData() != null) {
+					CodeServerBuildDeploy buildDeployData = buildDeployEntity.getData();
+
+					builds = "int".equalsIgnoreCase(environment) ? buildDeployData.getIntBuildAuditLogs()
+							: buildDeployData.getProdBuildAuditLogs();
+
+					if (builds == null)
+						builds = new ArrayList<>();
+
+					long retainedCount = builds.stream()
+							.filter(b -> "BUILD_SUCCESS".equalsIgnoreCase(b.getBuildStatus()))
+							.filter(b -> !b.isImageDeleted())
+							.count();
+
+					if (retainedCount >= 10) {
+						MessageDescription invalidMsg = new MessageDescription();
+						invalidMsg.setMessage("Build not allowed: There are already " + retainedCount +
+								" successful builds with images retained. Please delete older images before triggering a new build.");
+						GenericMessage errorMessage = new GenericMessage();
+						errorMessage.addErrors(invalidMsg);
+						return errorMessage;
+					}
+				}
 				ManageBuildRequestDto buildRequestDto = new ManageBuildRequestDto();
 				buildRequestDto.setBranch(branch);
 				buildRequestDto.setEnvironment(environment);
