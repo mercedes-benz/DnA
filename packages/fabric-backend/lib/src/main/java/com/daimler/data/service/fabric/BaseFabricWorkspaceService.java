@@ -32,8 +32,8 @@ import com.daimler.data.db.entities.AuthoriserRolesNsql;
 import com.daimler.data.db.entities.FabricWorkspaceNsql;
 import com.daimler.data.db.json.AuthoriserRoleDeatils;
 import com.daimler.data.db.json.UserDetails;
-import com.daimler.data.db.repo.forecast.FabricWorkspaceCustomRepository;
-import com.daimler.data.db.repo.forecast.FabricWorkspaceRepository;
+import com.daimler.data.db.repo.fabric.FabricWorkspaceCustomRepository;
+import com.daimler.data.db.repo.fabric.FabricWorkspaceRepository;
 import com.daimler.data.db.repo.roles.AuthoriserRolesCustomRepository;
 import com.daimler.data.db.repo.roles.AuthoriserRolesRepository;
 import com.daimler.data.dto.fabric.AccessReviewDto;
@@ -205,6 +205,9 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 	@Value("${fabricWorkspaces.defaultFolders}")
 	private String[] defaultFolders;
 
+	@Value("${fabricWorkspaces.userRemoval.ignorePatterns}")
+	private String[] userRemovalIgnorePatterns;
+
 	public BaseFabricWorkspaceService() {
 		super();
 	}
@@ -242,8 +245,10 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 //					FabricWorkspaceVO updatedVO = assembler.toVo(entity);
 //					vos.add(updatedVO);
 //				}
-				FabricWorkspaceVO updatedVO = assembler.toVo(entity);
-				vos.add(updatedVO);
+				if(	entity!=null && !ConstantsUtility.DELETED_STATE.equalsIgnoreCase(entity.getData().getStatus().getState())) {
+					FabricWorkspaceVO updatedVO = assembler.toVo(entity);
+					vos.add(updatedVO);
+				}
 			}
 		}
 		List<FabricWorkspaceVO> paginatedVOs = new ArrayList<>();
@@ -272,7 +277,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		if(allEntities!=null && !allEntities.isEmpty()) {
 			if(user!=null && !"".equalsIgnoreCase(user.trim())){
 				for(FabricWorkspaceNsql existingEntity : allEntities) {
-					if(existingEntity!=null) {
+					if(existingEntity!=null && !ConstantsUtility.DELETED_STATE.equalsIgnoreCase(existingEntity.getData().getStatus().getState())) {
 						if(isTechnicalUser){
 							String initiatedBy = Optional.ofNullable(existingEntity.getData().getInitiatedBy()).orElse("");
 							if(user.equalsIgnoreCase(initiatedBy)){
@@ -490,28 +495,28 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 					log.info("created workspace project {} with id {} saved to database successfully", vo.getName(), createResponse.getId());
 					//fabricWorkspaceClient.provisionWorkspace(createResponse.getId());
 					
-					try {
-						String ownerId = vo.getCreatedBy().getId();
-						Date validFromDate = vo.getCreatedOn();
-						String validFrom = formatter.format(validFromDate);
-						Calendar calendar = Calendar.getInstance();
-				        calendar.setTime(validFromDate);
-				        calendar.add(Calendar.YEAR, 1);
-				        Date validToDate = calendar.getTime();
-						String validTo = formatter.format(validToDate);
-						UserRoleRequestDto roleRequestDto = new UserRoleRequestDto();
-						roleRequestDto.setReason("Onboarding owner to role to enable fabric operations.");
-						roleRequestDto.setValidTo(validTo);
-						roleRequestDto.setValidFrom(validFrom);
-						HttpStatus status = identityClient.RequestRoleForUser(roleRequestDto, ownerId, fabricOperationsRoleName);
-						if(status.is2xxSuccessful()){
-				            log.info("Successfully onboarded owner {} of workspace {} : {} to role {} for enabling fabric operations", ownerId, vo.getId(), vo.getName(), fabricOperationsRoleName);
-				        }else {
-				        	log.error("Failed to onboarded owner {} of workspace {} : {} to role {} for enabling fabric operations", ownerId, vo.getId(), vo.getName(), fabricOperationsRoleName);
-				        }
-					}catch(Exception e) {
-						log.error("Failed to onboard owner of workspace {} : {} to role {} ",vo.getId(),vo.getName(),fabricOperationsRoleName);
-					}
+					// try {
+					// 	String ownerId = vo.getCreatedBy().getId();
+					// 	Date validFromDate = vo.getCreatedOn();
+					// 	String validFrom = formatter.format(validFromDate);
+					// 	Calendar calendar = Calendar.getInstance();
+				    //     calendar.setTime(validFromDate);
+				    //     calendar.add(Calendar.YEAR, 1);
+				    //     Date validToDate = calendar.getTime();
+					// 	String validTo = formatter.format(validToDate);
+					// 	UserRoleRequestDto roleRequestDto = new UserRoleRequestDto();
+					// 	roleRequestDto.setReason("Onboarding owner to role to enable fabric operations.");
+					// 	roleRequestDto.setValidTo(validTo);
+					// 	roleRequestDto.setValidFrom(validFrom);
+					// 	HttpStatus status = identityClient.RequestRoleForUser(roleRequestDto, ownerId, fabricOperationsRoleName);
+					// 	if(status.is2xxSuccessful()){
+				    //         log.info("Successfully onboarded owner {} of workspace {} : {} to role {} for enabling fabric operations", ownerId, vo.getId(), vo.getName(), fabricOperationsRoleName);
+				    //     }else {
+				    //     	log.error("Failed to onboarded owner {} of workspace {} : {} to role {} for enabling fabric operations", ownerId, vo.getId(), vo.getName(), fabricOperationsRoleName);
+				    //     }
+					// }catch(Exception e) {
+					// 	log.error("Failed to onboard owner of workspace {} : {} to role {} ",vo.getId(),vo.getName(),fabricOperationsRoleName);
+					// }
 					responseData.setData(savedRecord);
 					responseMessage.setSuccess("SUCCESS");
 					responseMessage.setErrors(errors);
@@ -1247,7 +1252,8 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 			for(AddGroupDto userGroupDetail : usersGroupsCollection.getValue()) {
 				if(userGroupDetail!=null && !ConstantsUtility.GROUPPRINCIPAL_APP_TYPE.equalsIgnoreCase(userGroupDetail.getPrincipalType())) {
 					if(ConstantsUtility.GROUPPRINCIPAL_USER_TYPE.equalsIgnoreCase(userGroupDetail.getPrincipalType())) {
-						if(!userGroupDetail.getIdentifier().toLowerCase().contains(creatorId.toLowerCase()+"@")) {
+						if(!userGroupDetail.getIdentifier().toLowerCase().contains(creatorId.toLowerCase()+"@")
+						&& Arrays.stream(userRemovalIgnorePatterns).noneMatch(pattern -> userGroupDetail.getIdentifier().toLowerCase().contains(pattern.toLowerCase()))) {
 							fabricWorkspaceClient.removeUserGroup(workspaceId, userGroupDetail.getIdentifier());
 						}
 					}
@@ -1385,7 +1391,9 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 					}
 				}
 			}
-			super.deleteById(id);
+			existingWorkspace.getStatus().setState(ConstantsUtility.DELETED_STATE);
+			existingWorkspace.setLastModifiedOn(new Date());
+			jpaRepo.save(assembler.toEntity(existingWorkspace));
 			responseMessage.setSuccess("SUCCESS");
 			responseMessage.setErrors(errors);
 			responseMessage.setWarnings(warnings);

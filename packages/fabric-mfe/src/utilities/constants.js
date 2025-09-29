@@ -28,3 +28,17 @@ export const FLOW_DIAGRAM_MEASUREMENTS = {
   NODE_HEIGHT: 62,
   INTERMEDIATE_NODE_WIDTH: 10,
 }
+
+export const DIVISIONS = [
+  'Mercedes-Benz Cars',
+  'Mercedes-Benz Mobility',
+  'Mercedes-Benz Vans',
+];
+
+export const DATA_ORIGINS = ['Internal', 'External', 'Mixed'];
+export const YES_NO_OPTIONS = ['Yes', 'No'];
+export const DATA_TIER = ['Tier1 [DATA ASSET]', 'Tier2 [NON DATA ASSET]'];
+export const DATA_TIER_MAP = {
+  'Tier1 [DATA ASSET]': 1,
+  'Tier2 [NON DATA ASSET]': 2,
+};

@@ -639,7 +639,7 @@ const ContextMenu = (props) => {
       )}
       {showDeployedAppConfigModal && (
         <Modal
-          title={`Manage ${isStaging ? 'Staging' : 'Production'} Deployed Application Config`}
+          title={`Manage ${isStaging ? 'Staging' : 'Production'} Deployed Application Config - ${props?.codeSpace?.projectDetails?.projectName}`}
           hiddenTitle={false}
           showAcceptButton={false}
           showCancelButton={false}
