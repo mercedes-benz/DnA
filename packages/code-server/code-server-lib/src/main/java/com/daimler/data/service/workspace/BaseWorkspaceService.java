@@ -1731,7 +1731,7 @@
  
 				Boolean isValutInjectorEnable = false;
 				 try{
-					// isValutInjectorEnable = VaultClient.enableVaultInjector(projectName.toLowerCase(), environment);
+					isValutInjectorEnable = VaultClient.enableVaultInjector(projectName.toLowerCase(), environment);
 				 }catch(Exception e){
 					MessageDescription error = new MessageDescription();
 					error.setMessage("Some error occured during deployment, with exception " + e.getMessage());
@@ -3733,7 +3733,7 @@
 				String projectOwnerWsId = ownerEntity.getData().getWorkspaceId();
 				Boolean isValutInjectorEnable = false;
 				try{
-					// isValutInjectorEnable = VaultClient.enableVaultInjector(projectName.toLowerCase(), env);
+					isValutInjectorEnable = VaultClient.enableVaultInjector(projectName.toLowerCase(), env);
 				}catch(Exception e){
 					MessageDescription error = new MessageDescription();
 					error.setMessage("Some error occured during restart, with exception " + e.getMessage());
@@ -4236,7 +4236,7 @@
 				 }
 				 Boolean isValutInjectorEnable = false;
 				 try{
-					// isValutInjectorEnable = VaultClient.enableVaultInjector(projectName.toLowerCase(), environment);
+					isValutInjectorEnable = VaultClient.enableVaultInjector(projectName.toLowerCase(), environment);
 				 }catch(Exception e){
 					MessageDescription error = new MessageDescription();
 					error.setMessage("Some error occured during deployment, with exception " + e.getMessage());
