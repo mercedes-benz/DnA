@@ -15,12 +15,12 @@ mimir:
       max_global_series_per_user: 1500000
       # Per-tenant max samples per query
       max_fetched_series_per_query: 100000
-      compactor_blocks_retention_period: 12h
+      compactor_blocks_retention_period: 90d
 
     alertmanager_storage:
       s3:
         bucket_name: mimir-alertmanager
-        endpoint: "loki-minio.observability:9000"
+        endpoint: "loki-minio:9000"
         access_key_id: <path:dna_aws_kv/data/dev/kubernetesSecret/loki#rootUser> # This is a secret injected via an environment variable
         secret_access_key: <path:dna_aws_kv/data/dev/kubernetesSecret/loki#rootPassword> # This is a secret injected via an environment variable
         http:
@@ -30,7 +30,7 @@ mimir:
       backend: s3
       s3:
         bucket_name: mimir-tsdb
-        endpoint: "loki-minio.observability:9000"
+        endpoint: "loki-minio:9000"
         access_key_id: <path:dna_aws_kv/data/dev/kubernetesSecret/loki#rootUser> # This is a secret injected via an environment variable
         secret_access_key: <path:dna_aws_kv/data/dev/kubernetesSecret/loki#rootPassword> # This is a secret injected via an environment variable
         http:
@@ -41,7 +41,7 @@ mimir:
     ruler_storage:
       s3:
         bucket_name: mimir-ruler
-        endpoint: "loki-minio.observability:9000"
+        endpoint: "loki-minio:9000"
         access_key_id: <path:dna_aws_kv/data/dev/kubernetesSecret/loki#rootUser> # This is a secret injected via an environment variable
         secret_access_key: <path:dna_aws_kv/data/dev/kubernetesSecret/loki#rootPassword> # This is a secret injected via an environment variable
         http:
@@ -49,7 +49,7 @@ mimir:
         insecure: true           
     memberlist:
       join_members: 
-        - mimir-gossip-ring.mimir-test.svc.cluster.local:7946         
+        - mimir-gossip-ring.observability.svc.cluster.local:7946         
 
 nginx:
   image:
