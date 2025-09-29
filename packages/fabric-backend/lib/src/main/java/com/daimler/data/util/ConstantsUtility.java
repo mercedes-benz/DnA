@@ -35,6 +35,7 @@ public class ConstantsUtility {
 	public static final String FAILED_STATE = "FAILED";
 	
 	public static final String COMPLETED_STATE = "COMPLETED";
+	public static final String DELETED_STATE = "DELETED";
 	public static final String INPROGRESS_STATE = "IN_PROGRESS";
 	
 	public static final String ENTITLEMENT_TYPE = "ENTITLEMENT";

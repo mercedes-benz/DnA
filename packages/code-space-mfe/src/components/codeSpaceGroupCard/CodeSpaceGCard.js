@@ -18,16 +18,35 @@ const CodeSpaceGCard = ({ codeSpace, userInfo, onStartStopCodeSpace, onShowDeplo
   const [serverStarted, setServerStarted] = useState(false);
   const [serverFailed, setServerFailed] = useState(false);
   const [serverProgress, setServerProgress] = useState(0);
+  const contextMenuRef = useRef(null);
 
   useEffect(() => {
-      handleServerStatusAndProgress();
-    }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    handleServerStatusAndProgress();
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (
+        contextMenuRef.current &&
+        !contextMenuRef.current.contains(event.target) &&
+        !event.target.closest(`.${Styles.trigger}`)
+      ) {
+        setShowContextMenu(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
+
 
   const onStartStopCodeSpaceLocal = (codespace) => {
-    if(codespace?.projectDetails?.recipeDetails?.cloudServiceProvider ==='DHC-CaaS-AWS'){
+    if (codespace?.projectDetails?.recipeDetails?.cloudServiceProvider === 'DHC-CaaS-AWS') {
       onStartStopCodeSpace(codespace, handleServerStatusAndProgress, 'DHC-CaaS-AWS');
     }
-    else{
+    else {
       codespace.serverStatus === 'SERVER_STARTED' ? onStartStopCodeSpace(codespace, handleServerStatusAndProgress, 'DHC-CaaS') : 'Not started';
     }
   };
@@ -43,9 +62,9 @@ const CodeSpaceGCard = ({ codeSpace, userInfo, onStartStopCodeSpace, onShowDeplo
           setServerStarted(true);
           codeSpace.serverStatus = 'SERVER_STARTED';
         }, 300);
-      } else if(!data.failed) {
+      } else if (!data.failed) {
         setServerProgress(data.progress);
-      } else if(data.progress === 100 && data.failed) {
+      } else if (data.progress === 100 && data.failed) {
         setServerFailed(true);
       }
       console.log(JSON.parse(e.data));
@@ -83,24 +102,24 @@ const CodeSpaceGCard = ({ codeSpace, userInfo, onStartStopCodeSpace, onShowDeplo
     <>
       <div key={codeSpace?.workspaceId} className={classNames(Styles.codeSpaceItem)}>
         <div>
-            <div className={Styles.flexDisplay}>
-              <h3 onClick={onCardNameClick}>
-                {codeSpace?.projectDetails?.projectName}
-              </h3>
-              {!enableOnboard && !creationFailed && serverStarted && (
-                <a
-                  className={Styles.csOpenNewTab}
-                  tooltip-data="Open workspace in new tab"
-                  onClick={() => {
-                    window.open(codeSpace?.workspaceUrl, '_blank');
-                    trackEvent('DnA Code Space', 'Code Space Open', 'Open in New Tab');
-                  }}
-                >
-                  <i className="icon mbc-icon new-tab" />
-                </a>
-              )}
-            </div>
-            <p className={Styles.workspaceType}>{codeSpace?.projectOwner?.id === userInfo.id ? 'Own' : 'Shared'}</p>
+          <div className={Styles.flexDisplay}>
+            <h3 onClick={onCardNameClick}>
+              {codeSpace?.projectDetails?.projectName}
+            </h3>
+            {!enableOnboard && !creationFailed && serverStarted && (
+              <a
+                className={Styles.csOpenNewTab}
+                tooltip-data="Open workspace in new tab"
+                onClick={() => {
+                  window.open(codeSpace?.workspaceUrl, '_blank');
+                  trackEvent('DnA Code Space', 'Code Space Open', 'Open in New Tab');
+                }}
+              >
+                <i className="icon mbc-icon new-tab" />
+              </a>
+            )}
+          </div>
+          <p className={Styles.workspaceType}>{codeSpace?.projectOwner?.id === userInfo.id ? 'Own' : 'Shared'}</p>
         </div>
         <div className={Styles.flexDisplay}>
           <div>
@@ -136,7 +155,8 @@ const CodeSpaceGCard = ({ codeSpace, userInfo, onStartStopCodeSpace, onShowDeplo
               >
                 <i className="icon mbc-icon listItem context" />
               </span>
-              <ContextMenu
+              <div ref={contextMenuRef}>
+                <ContextMenu
                   codeSpace={codeSpace}
                   userInfo={userInfo}
                   showContextMenu={showContextMenu}
@@ -153,7 +173,8 @@ const CodeSpaceGCard = ({ codeSpace, userInfo, onStartStopCodeSpace, onShowDeplo
                   onShowBlueprintModal={onShowBlueprintModal}
                   onShowBuildModal={onShowBuildModal}
                   onGetCodespaceData={onGetCodespaceData}
-              />
+                />
+              </div>
             </div>
           )}
         </div>

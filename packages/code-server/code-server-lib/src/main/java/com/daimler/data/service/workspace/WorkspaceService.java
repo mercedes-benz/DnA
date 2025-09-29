@@ -136,5 +136,7 @@ public interface WorkspaceService {
 	CodeServerUserGroupByIdVO getWorkSpaceGroupById(String id);
 
 	CodeServerUserGroupCollectionVO deleteWorkSpaceGroup(String id);
+
+	GenericMessage deleteBuild(String projectName,String version);
 	
 }
