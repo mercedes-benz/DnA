@@ -423,13 +423,7 @@ Cluster name that shows up in dashboard metrics
 
 {{/* Allow KubeVersion to be overridden. */}}
 {{- define "mimir.kubeVersion" -}}
-  {{- if and .Capabilities .Capabilities.KubeVersion .Capabilities.KubeVersion.Version }}
-    {{- .Capabilities.KubeVersion.Version }}
-  {{- else if and .Values (hasKey .Values "kubeVersionOverride") }}
-    {{- .Values.kubeVersionOverride }}
-  {{- else }}
-    "1.25.0"
-  {{- end }}
+  {{- default .Capabilities.KubeVersion.Version .Values.kubeVersionOverride -}}
 {{- end -}}
 
 {{/* Get API Versions */}}
