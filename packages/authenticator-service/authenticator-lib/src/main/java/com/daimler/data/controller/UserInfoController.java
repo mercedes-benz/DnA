@@ -173,7 +173,6 @@ public class UserInfoController {
 						userInfo.setLastName(userId);
 						userInfo.setDepartment("NA");
 						userInfo.setMobileNumber("NA");
-						userInfo.setIsDeleted(false);
 					}
 				}
 			} catch (Exception e) {
