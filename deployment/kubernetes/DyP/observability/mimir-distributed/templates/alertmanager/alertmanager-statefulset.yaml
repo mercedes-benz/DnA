@@ -11,9 +11,10 @@ metadata:
   name: {{ include "mimir.resourceName" $args }}
   labels:
     {{- include "mimir.labels" $args | nindent 4 }}
-    {{- if $rolloutZone.noDownscale }}
+    {{- if (eq $rolloutZone.noDownscale true )}}
     grafana.com/no-downscale: {{ $rolloutZone.noDownscale | quote }}
-    {{- else if $rolloutZone.prepareDownscale }}
+    {{- else }}
+    {{- if (eq $rolloutZone.prepareDownscale true )}}
     grafana.com/prepare-downscale: {{ $rolloutZone.prepareDownscale | quote }}
     {{- end }}
     {{- end }}
@@ -22,7 +23,7 @@ metadata:
     {{- if $rolloutZone.downscaleLeader }}
     grafana.com/rollout-downscale-leader: {{ $rolloutZone.downscaleLeader }}
     {{- end }}
-  namespace: {{ $.Values.namespace | default "observability" | quote }}
+  namespace: {{ .Release.Namespace | quote }}
 spec:
   replicas: {{ $rolloutZone.replicas }}
   {{- if and (semverCompare ">= 1.23-0" (include "mimir.kubeVersion" .)) (.Values.alertmanager.persistentVolume.enableRetentionPolicy)  }}
@@ -76,7 +77,7 @@ spec:
         {{- if .Values.alertmanager.fallbackConfig }}
         checksum/alertmanager-fallback-config: {{ include (print .Template.BasePath "/alertmanager/alertmanager-config.yaml") . | sha256sum }}
         {{- end }}
-      namespace: {{ $.Values.namespace | default "observability" | quote }}
+      namespace: {{ .Release.Namespace | quote }}
     spec:
       {{- with .Values.alertmanager.schedulerName }}
       schedulerName: {{ . | quote }}
@@ -232,6 +233,7 @@ spec:
           {{- end }}
 
 ---
+{{ end }}
 {{ end }}
 {{ end }}
 {{ end }}
