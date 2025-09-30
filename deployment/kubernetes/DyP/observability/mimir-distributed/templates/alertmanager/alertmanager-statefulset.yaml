@@ -22,7 +22,7 @@ metadata:
     {{- if $rolloutZone.downscaleLeader }}
     grafana.com/rollout-downscale-leader: {{ $rolloutZone.downscaleLeader }}
     {{- end }}
-  namespace: {{ .Release.Namespace | quote }}
+  namespace: {{ default .Release.Namespace "observability" | quote }}
 spec:
   replicas: {{ $rolloutZone.replicas }}
   {{- if and (semverCompare ">= 1.23-0" (include "mimir.kubeVersion" .)) (.Values.alertmanager.persistentVolume.enableRetentionPolicy)  }}
