@@ -200,8 +200,6 @@ public class BuildDeployController implements CodeServerBuildDeployServiceApi {
         }
         
         String projectName = vo.getProjectDetails() != null ? vo.getProjectDetails().getProjectName() : null;
-        log.info("Project name: {}", projectName);
-        log.info("Project details: {}", vo.getProjectDetails());
         List<BuildAudit> auditLogs = new ArrayList<>();
         CodeServerBuildDeployNsql optionalBuildDeployEntity = buildDeployCustomRepo.findByProjectName(projectName);
         log.info("optionalBuildDeployEntity for project {}: {}", projectName, optionalBuildDeployEntity);
