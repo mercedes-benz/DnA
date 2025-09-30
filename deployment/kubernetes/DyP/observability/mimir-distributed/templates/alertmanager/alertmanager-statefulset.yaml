@@ -13,7 +13,6 @@ metadata:
     {{- include "mimir.labels" $args | nindent 4 }}
     {{- if $rolloutZone.noDownscale }}
     grafana.com/no-downscale: {{ $rolloutZone.noDownscale | quote }}
-    {{- else }}
     {{- else if $rolloutZone.prepareDownscale }}
     grafana.com/prepare-downscale: {{ $rolloutZone.prepareDownscale | quote }}
     {{- end }}
