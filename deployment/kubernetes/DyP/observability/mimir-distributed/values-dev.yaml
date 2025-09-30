@@ -1,13 +1,12 @@
 fullnameOverride: mimir
 
 namespace: observability
-kubeVersionOverride: "1.31-1"
+kubeVersionOverride: "v1.31.13"
 
 image:
   repository: registry-emea.app.corpintra.net/dockerhub/grafana/mimir
 
 mimir:
-  kubeVersion: "1.31-1"
   structuredConfig:
     # Increase ingestion rate limits
     limits:
