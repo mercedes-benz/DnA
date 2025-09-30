@@ -202,8 +202,10 @@ public class BuildDeployController implements CodeServerBuildDeployServiceApi {
         String projectName = vo.getProjectDetails() != null ? vo.getProjectDetails().getProjectName() : null;
         List<BuildAudit> auditLogs = new ArrayList<>();
         CodeServerBuildDeployNsql optionalBuildDeployEntity = buildDeployCustomRepo.findByProjectName(projectName);
-
+        log.info("optionalBuildDeployEntity for project {}: {}", projectName, optionalBuildDeployEntity);
         if (optionalBuildDeployEntity != null && optionalBuildDeployEntity.getData() != null) {
+             log.info("Int Build Audit Logs for project {}: {}", projectName, optionalBuildDeployEntity.getData().getIntBuildAuditLogs());
+             log.info("Prod Build Audit Logs for project {}: {}", projectName, optionalBuildDeployEntity.getData().getProdBuildAuditLogs());
             if ("int".equalsIgnoreCase(environment)
                     && optionalBuildDeployEntity.getData().getIntBuildAuditLogs() != null) {
                 auditLogs = optionalBuildDeployEntity.getData().getIntBuildAuditLogs();
@@ -215,12 +217,18 @@ public class BuildDeployController implements CodeServerBuildDeployServiceApi {
         if (auditLogs == null) {
             auditLogs = new ArrayList<>();
         }
+        log.info("Workspace ID: {}", vo.getWorkspaceId());
+        log.info("Environment: {}", environment);
+        log.info("Audit logs size: {}", auditLogs != null ? auditLogs.size() : 0);
         long retainedCount = auditLogs.stream()
                 .filter(b -> "BUILD_SUCCESS".equalsIgnoreCase(b.getBuildStatus()))
                 .filter(b -> !b.isImageDeleted())
                 .count();
+        log.info("Retained successful builds (not deleted): {}", retainedCount);
+        log.info("Audit logs size: {}", auditLogs.size());
         
         if (retainedCount >= 10) {
+             log.info("retained cound>10");
             MessageDescription invalidMsg = new MessageDescription();
             invalidMsg.setMessage("Build not allowed: There are already " + retainedCount +
                     " successful builds with images retained. Please delete older images before triggering a new build.");
@@ -232,6 +240,7 @@ public class BuildDeployController implements CodeServerBuildDeployServiceApi {
         }
          
         String lastBuildType = "build";
+         log.info("calling build service:");
         GenericMessage responseMsg = service.buildWorkSpace(userId,id,branch,buildRequestDto,isPrivateRecipe,environment,lastBuildType);
 				 log.info("User {} build workspace {} project {}", userId, vo.getWorkspaceId(),
 						 vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
