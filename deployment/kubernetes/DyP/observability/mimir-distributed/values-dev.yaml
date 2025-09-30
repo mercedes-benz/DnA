@@ -1,5 +1,7 @@
 fullnameOverride: mimir
 
+namespace: observability
+
 image:
   repository: registry-emea.app.corpintra.net/dockerhub/grafana/mimir
 
