@@ -54,6 +54,17 @@ mimir:
 nginx:
   image:
     registry: registry-emea.app.corpintra.net/dockerhub
+    repository: nginxinc/nginx-unprivileged
+    tag: 1.28-alpine
+    pullPolicy: IfNotPresent
+  replicas: 3
+  resources:
+    limits:
+      memory: 512Mi
+    requests:
+      cpu: 1
+      memory: 512Mi
+
 rollout_operator:
   image:
     repository: registry-emea.app.corpintra.net/dockerhub/grafana/rollout-operator
@@ -95,19 +106,19 @@ compactor:
     size: 50Gi
   resources:
     limits:
-      memory: 500Mi
+      memory: 2Gi
     requests:
       cpu: 1
-      memory: 500Mi
+      memory: 2Gi
 
 distributor:
   replicas: 3
   resources:
     limits:
-      memory: 500Mi
+      memory: 2Gi
     requests:
       cpu: 2
-      memory: 500Mi
+      memory: 2Gi
 
 ingester:
   enabled: true
@@ -261,11 +272,3 @@ store_gateway:
   zoneAwareReplication:
     topologyKey: 'kubernetes.io/hostname'
 
-nginx:
-  replicas: 3
-  resources:
-    limits:
-      memory: 512Mi
-    requests:
-      cpu: 1
-      memory: 512Mi
