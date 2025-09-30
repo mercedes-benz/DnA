@@ -157,6 +157,7 @@ public class UserInfoAssembler implements GenericAssembler<UserInfoVO, UserInfoN
 			jsonData.setFavoriteUsecases(null);
 			jsonData.setIsDeleted(null);
 			jsonData.setDivisionAdmins(null);
+			jsonData.setIsDeleted(false);
 		}
 		else{
 		if (vo.getRoles() != null) {
