@@ -5,6 +5,8 @@ namespace: observability
 image:
   repository: registry-emea.app.corpintra.net/dockerhub/grafana/mimir
 
+kubeVersionOverride: "1.31-1"
+
 mimir:
   structuredConfig:
     # Increase ingestion rate limits
