@@ -1,7 +1,7 @@
 fullnameOverride: mimir
 
 namespace: observability
-
+kubeVersionOverride: "1.31-1"
 image:
   repository: registry-emea.app.corpintra.net/dockerhub/grafana/mimir
 
