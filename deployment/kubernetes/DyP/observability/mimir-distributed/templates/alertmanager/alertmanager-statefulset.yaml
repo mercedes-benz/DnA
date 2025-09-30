@@ -11,10 +11,10 @@ metadata:
   name: {{ include "mimir.resourceName" $args }}
   labels:
     {{- include "mimir.labels" $args | nindent 4 }}
-    {{- if (eq (toBool $rolloutZone.noDownscale) true )}}
+    {{- if or (eq $rolloutZone.noDownscale true) (eq $rolloutZone.noDownscale "true") }}
     grafana.com/no-downscale: {{ $rolloutZone.noDownscale | quote }}
     {{- else }}
-    {{- if (eq (toBool $rolloutZone.prepareDownscale) true )}}
+    {{- if or (eq $rolloutZone.prepareDownscale true) (eq $rolloutZone.prepareDownscale "true") }}
     grafana.com/prepare-downscale: {{ $rolloutZone.prepareDownscale | quote }}
     {{- end }}
     {{- end }}
