@@ -8,7 +8,7 @@ image:
 
 
 mimir:
-  kubeVersionOverride: "1.31.13"
+  kubeVersionOverride: "1.31-1"
   structuredConfig:
     # Increase ingestion rate limits
     limits:
