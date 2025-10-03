@@ -18,6 +18,7 @@ import com.daimler.data.db.json.BuildAudit;
 import com.daimler.data.db.json.DeploymentAudit;
 import com.daimler.data.db.repo.workspace.WorkSpaceCodeServerBuildDeployRepository;
 import com.daimler.data.db.repo.workspace.WorkspaceCustomBuildDeployRepo;
+import com.daimler.data.db.repo.workspace.WorkspaceCustomRepository;
 
 import org.springframework.web.bind.annotation.PathVariable;
 
@@ -41,6 +42,7 @@ import com.daimler.data.dto.workspace.buildDeploy.BuildAuditVO;
 import com.daimler.data.dto.workspace.buildDeploy.DeploymentAuditVO;
 import com.daimler.data.dto.workspace.buildDeploy.LogsListResponseVO;
 import com.daimler.data.dto.workspace.buildDeploy.CodeServerBuildDeployVO;
+import com.daimler.data.dto.workspace.CodeServerBuildDetailsVO;
 import com.daimler.data.dto.workspace.buildDeploy.VersionListResponseVO;
 import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.assembler.BuildDeployAssembler;
@@ -67,6 +69,9 @@ public class BuildDeployController implements CodeServerBuildDeployServiceApi {
 
      @Autowired
 	 private WorkspaceCustomBuildDeployRepo buildDeployCustomRepo;
+
+     @Autowired
+	 private WorkspaceCustomRepository workspaceCustomRepository;
 
     @Override
     @ApiOperation(value = "Build workspace Project for a given Id.", nickname = "buildWorkspaceProject", notes = "build workspace Project for a given identifier.", response = GenericMessage.class, tags = {
@@ -199,6 +204,35 @@ public class BuildDeployController implements CodeServerBuildDeployServiceApi {
             return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
         }
         
+        String projectName = vo.getProjectDetails().getProjectName();
+
+        List<BuildAudit> auditLogs = new ArrayList<>();
+        CodeServerBuildDeployNsql optionalBuildDeployEntity = buildDeployCustomRepo.findByProjectName(projectName);
+
+        if (optionalBuildDeployEntity != null) {
+            if ("int".equalsIgnoreCase(environment)) {
+                auditLogs = optionalBuildDeployEntity.getData().getIntBuildAuditLogs();
+            } else {
+                auditLogs = optionalBuildDeployEntity.getData().getProdBuildAuditLogs();
+            }
+        }
+
+        if (auditLogs == null) {
+            auditLogs = new ArrayList<>();
+        }
+
+        long imageCount = auditLogs.stream()
+                .filter(b -> !b.isImageDeleted())
+                .count();
+
+        if (imageCount >= 10) {
+            MessageDescription invalidMsg = new MessageDescription();
+            invalidMsg.setMessage(
+                    "Maximum build images reached. Please delete one of the builds before creating a new build.");
+            GenericMessage errorMessage = new GenericMessage();
+            errorMessage.addErrors(invalidMsg);
+            return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
+        }
         String lastBuildType = "build";
         GenericMessage responseMsg = service.buildWorkSpace(userId,id,branch,buildRequestDto,isPrivateRecipe,environment,lastBuildType);
 				 log.info("User {} build workspace {} project {}", userId, vo.getWorkspaceId(),
