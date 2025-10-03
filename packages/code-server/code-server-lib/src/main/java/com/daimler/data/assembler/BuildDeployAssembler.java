@@ -47,6 +47,11 @@ public class BuildDeployAssembler implements GenericAssembler<CodeServerBuildDep
                      }else{
                         auditDetails.setImageDeleted(false);
                      }
+                     if (Boolean.TRUE.equals(audit.isKeepBuildImage())) {
+                         auditDetails.setKeepBuildImage(true);
+                     } else {
+                         auditDetails.setKeepBuildImage(false);
+                     }
                     auditDetailsVO.add(auditDetails);
                 }
             }
@@ -80,6 +85,11 @@ public class BuildDeployAssembler implements GenericAssembler<CodeServerBuildDep
                         auditDetails.setImageDeleted(true);
                      }else{
                         auditDetails.setImageDeleted(false);
+                     }
+                     if (Boolean.TRUE.equals(audit.isKeepBuildImage())) {
+                         auditDetails.setKeepBuildImage(true);
+                     } else {
+                         auditDetails.setKeepBuildImage(false);
                      }
 					 buildAuditLogDetails.add(auditDetails);
                 }
