@@ -36,6 +36,175 @@ alloy:
     create: true
     # -- Content to assign to the new ConfigMap.  This is passed into `tpl` allowing for templating from values.
     content: |-
+      // Prometheus metrics collection and forwarding to Mimir
+      discovery.kubernetes "pods" {
+        role = "pod"
+      }
+
+      discovery.relabel "prometheus_pods" {
+        targets = discovery.kubernetes.pods.targets
+
+        // Only scrape pods with prometheus.io/scrape=true annotation
+        rule {
+          source_labels = ["__meta_kubernetes_pod_annotation_prometheus_io_scrape"]
+          action = "keep"
+          regex = "true"
+        }
+
+        // Get the metrics path from prometheus.io/path annotation, default to /metrics
+        rule {
+          source_labels = ["__meta_kubernetes_pod_annotation_prometheus_io_path"]
+          action = "replace"
+          target_label = "__metrics_path__"
+          regex = "(.+)"
+        }
+
+        // Get the port from prometheus.io/port annotation
+        rule {
+          source_labels = ["__address__", "__meta_kubernetes_pod_annotation_prometheus_io_port"]
+          action = "replace"
+          regex = "([^:]+)(?::\\d+)?;(\\d+)"
+          replacement = "$1:$2"
+          target_label = "__address__"
+        }
+
+        // Add namespace label
+        rule {
+          source_labels = ["__meta_kubernetes_namespace"]
+          action = "replace"
+          target_label = "namespace"
+        }
+
+        // Add pod label
+        rule {
+          source_labels = ["__meta_kubernetes_pod_name"]
+          action = "replace"
+          target_label = "pod"
+        }
+
+        // Add job label from namespace/pod_name
+        rule {
+          source_labels = ["__meta_kubernetes_namespace", "__meta_kubernetes_pod_name"]
+          action = "replace"
+          target_label = "job"
+          separator = "/"
+          replacement = "$1/$2"
+        }
+      }
+
+      prometheus.scrape "pods" {
+        targets = discovery.relabel.prometheus_pods.output
+        forward_to = [prometheus.remote_write.mimir.receiver]
+        scrape_interval = "30s"
+      }
+
+      prometheus.remote_write "mimir" {
+        endpoint {
+          url = "http://mimir-nginx.mimir-test:80/api/v1/push"
+          headers = {"X-Scope-OrgID" = "c82p085"}
+        }
+      }
+
+      // Kubelet metrics scraping for volume stats
+      discovery.kubernetes "nodes" {
+        role = "node"
+      }
+
+      discovery.relabel "kubelet" {
+        targets = discovery.kubernetes.nodes.targets
+
+        // Replace address with kubelet's metrics port
+        rule {
+          source_labels = ["__address__"]
+          regex = "(.+):(.+)"
+          target_label = "__address__"
+          replacement = "${1}:10250"
+        }
+
+        // Set metrics path to kubelet metrics endpoint
+        rule {
+          target_label = "__metrics_path__"
+          replacement = "/metrics"
+        }
+
+        // Add node name label
+        rule {
+          source_labels = ["__meta_kubernetes_node_name"]
+          target_label = "node"
+        }
+
+        // Add job label
+        rule {
+          target_label = "job"
+          replacement = "kubelet"
+        }
+
+        // Set scheme to https for kubelet
+        rule {
+          target_label = "__scheme__"
+          replacement = "https"
+        }
+      }
+
+      // Separate relabel config for cadvisor metrics
+      discovery.relabel "cadvisor" {
+        targets = discovery.kubernetes.nodes.targets
+
+        // Replace address with kubelet's cadvisor port
+        rule {
+          source_labels = ["__address__"]
+          regex = "(.+):(.+)"
+          target_label = "__address__"
+          replacement = "${1}:10250"
+        }
+
+        // Set metrics path to cadvisor endpoint
+        rule {
+          target_label = "__metrics_path__"
+          replacement = "/metrics/cadvisor"
+        }
+
+        // Add node name label
+        rule {
+          source_labels = ["__meta_kubernetes_node_name"]
+          target_label = "node"
+        }
+
+        // Add job label
+        rule {
+          target_label = "job"
+          replacement = "cadvisor"
+        }
+
+        // Set scheme to https for kubelet
+        rule {
+          target_label = "__scheme__"
+          replacement = "https"
+        }
+      }
+
+      prometheus.scrape "kubelet" {
+        targets = discovery.relabel.kubelet.output
+        forward_to = [prometheus.remote_write.mimir.receiver]
+        scrape_interval = "30s"
+        bearer_token_file = "/var/run/secrets/kubernetes.io/serviceaccount/token"
+        tls_config {
+          ca_file = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
+          insecure_skip_verify = true
+        }
+      }
+
+      prometheus.scrape "cadvisor" {
+        targets = discovery.relabel.cadvisor.output
+        forward_to = [prometheus.remote_write.mimir.receiver]
+        scrape_interval = "30s"
+        bearer_token_file = "/var/run/secrets/kubernetes.io/serviceaccount/token"
+        tls_config {
+          ca_file = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
+          insecure_skip_verify = true
+        }
+      }
+
       // loki.source.kubernetes_events tails events from the Kubernetes API and converts them
       // into log lines to forward to other Loki components.
       loki.source.kubernetes_events "cluster_events" {
@@ -334,6 +503,13 @@ image:
 rbac:
   # -- Whether to create RBAC resources for Alloy.
   create: true
+  # -- Additional rules to add to the ClusterRole
+  extraClusterRoleRules:
+    - apiGroups: [""]
+      resources: ["nodes", "nodes/metrics", "nodes/proxy"]
+      verbs: ["get", "list", "watch"]
+    - nonResourceURLs: ["/metrics", "/metrics/cadvisor"]
+      verbs: ["get"]
 
 serviceAccount:
   # -- Whether to create a service account for the Grafana Alloy deployment.

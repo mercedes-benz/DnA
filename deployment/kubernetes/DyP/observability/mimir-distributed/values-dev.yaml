@@ -1,0 +1,281 @@
+fullnameOverride: mimir
+
+namespace: observability
+kubeVersionOverride: "1.31-1"
+image:
+  repository: registry-emea.app.corpintra.net/dockerhub/grafana/mimir
+
+mimir:
+  structuredConfig:
+    # Increase ingestion rate limits
+    limits:
+      # Global ingestion rate limit (items/second) - increased from 10000
+      ingestion_rate: 50000
+      # Global ingestion burst size - increased from 200000  
+      ingestion_burst_size: 500000
+      # Per-tenant max series limit
+      max_global_series_per_user: 1500000
+      # Per-tenant max samples per query
+      max_fetched_series_per_query: 100000
+      compactor_blocks_retention_period: 30d
+
+    alertmanager_storage:
+      s3:
+        bucket_name: mimir-alertmanager
+        endpoint: "loki-minio:9000"
+        access_key_id: <path:dna_aws_kv/data/dev/kubernetesSecret/loki#rootUser> # This is a secret injected via an environment variable
+        secret_access_key: <path:dna_aws_kv/data/dev/kubernetesSecret/loki#rootPassword> # This is a secret injected via an environment variable
+        http:
+          insecure_skip_verify: true
+        insecure: true
+    blocks_storage:
+      backend: s3
+      s3:
+        bucket_name: mimir-tsdb
+        endpoint: "loki-minio:9000"
+        access_key_id: <path:dna_aws_kv/data/dev/kubernetesSecret/loki#rootUser> # This is a secret injected via an environment variable
+        secret_access_key: <path:dna_aws_kv/data/dev/kubernetesSecret/loki#rootPassword> # This is a secret injected via an environment variable
+        http:
+          insecure_skip_verify: true
+        insecure: true  
+      tsdb:
+        retention_period: 13h
+    ruler_storage:
+      s3:
+        bucket_name: mimir-ruler
+        endpoint: "loki-minio:9000"
+        access_key_id: <path:dna_aws_kv/data/dev/kubernetesSecret/loki#rootUser> # This is a secret injected via an environment variable
+        secret_access_key: <path:dna_aws_kv/data/dev/kubernetesSecret/loki#rootPassword> # This is a secret injected via an environment variable
+        http:
+          insecure_skip_verify: true   
+        insecure: true           
+    memberlist:
+      join_members: 
+        - mimir-gossip-ring.observability.svc.cluster.local:7946         
+
+nginx:
+  image:
+    registry: registry-emea.app.corpintra.net/dockerhub
+    repository: nginxinc/nginx-unprivileged
+    tag: 1.28-alpine
+    pullPolicy: IfNotPresent
+  replicas: 3
+  resources:
+    limits:
+      memory: 512Mi
+    requests:
+      cpu: 1
+      memory: 512Mi
+
+rollout_operator:
+  image:
+    repository: registry-emea.app.corpintra.net/dockerhub/grafana/rollout-operator
+    tag: v0.28.0
+    pullPolicy: IfNotPresent
+
+minio:
+  enabled: false
+
+# Disable PodSecurityPolicy as it's removed in Kubernetes v1.25+
+rbac:
+  podSecurityPolicy:
+    enabled: false
+
+metaMonitoring:
+  # Dashboard configuration for deploying Grafana dashboards for Mimir
+  dashboards:
+    # -- If enabled, Grafana dashboards are deployed
+    enabled: true
+    # -- Alternative namespace to create dashboards ConfigMaps in. They are created in the Helm release namespace by default.
+    namespace: null
+    # -- Annotations to add to the Grafana dashboard ConfigMap
+    annotations:
+      k8s-sidecar-target-directory: /tmp/dashboards/Mimir Dashboards
+    # -- Labels to add to the Grafana dashboard ConfigMap
+    labels:
+      grafana_dashboard: "1"
+
+alertmanager:
+  persistentVolume:
+    enabled: true
+  replicas: 3
+  resources:
+    limits:
+      memory: 1Gi
+    requests:
+      cpu: 1
+      memory: 1Gi
+  statefulSet:
+    enabled: true
+
+compactor:
+  persistentVolume:
+    size: 50Gi
+  resources:
+    limits:
+      memory: 2Gi
+    requests:
+      cpu: 1
+      memory: 2Gi
+
+distributor:
+  replicas: 3
+  resources:
+    limits:
+      memory: 2Gi
+    requests:
+      cpu: 2
+      memory: 2Gi
+
+ingester:
+  enabled: true
+  persistentVolume:
+    # If true and ingester.statefulSet.enabled is true,
+    # Ingester will create/use a Persistent Volume Claim
+    # If false, use emptyDir
+    # It is advisable to enable volume persistence in ingester to avoid losing metrics.
+    enabled: true
+    # Ingester data Persistent Volume access modes
+    # Must match those of existing PV or dynamic provisioner
+    # Ref: http://kubernetes.io/docs/user-guide/persistent-volumes/
+    accessModes:
+      - ReadWriteOnce
+    # Ingester data Persistent Volume size
+    size: 50Gi
+  replicas: 6
+  resources:
+    limits:
+      memory: 5Gi
+    requests:
+      cpu: 3
+      memory: 5Gi
+  topologySpreadConstraints: {}
+  affinity:
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchExpressions:
+              - key: target # support for enterprise.legacyLabels
+                operator: In
+                values:
+                  - ingester
+          topologyKey: 'kubernetes.io/hostname'
+
+        - labelSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/component
+                operator: In
+                values:
+                  - ingester
+          topologyKey: 'kubernetes.io/hostname'
+
+  zoneAwareReplication:
+    topologyKey: 'kubernetes.io/hostname'
+
+memcached:
+  image:
+    # -- Memcached Docker image repository
+    repository: registry-emea.app.corpintra.net/dockerhub/memcached
+    # -- Memcached Docker image tag
+    tag: 1.6.38-alpine
+    # -- Memcached Docker image pull policy
+    pullPolicy: IfNotPresent
+
+memcachedExporter:
+  # -- Whether memcached metrics should be exported
+  enabled: true
+  image:
+    repository: registry-emea.app.corpintra.net/dockerhub/prom/memcached-exporter
+    tag: v0.15.3
+    pullPolicy: IfNotPresent
+
+admin-cache:
+  enabled: true
+  replicas: 3
+
+chunks-cache:
+  enabled: true
+  replicas: 3
+
+index-cache:
+  enabled: true
+  replicas: 3
+
+metadata-cache:
+  enabled: true
+  replicas: 3
+
+results-cache:
+  enabled: true
+  replicas: 3
+  allocatedMemory: 1024
+
+overrides_exporter:
+  replicas: 1
+  resources:
+    limits:
+      memory: 128Mi
+    requests:
+      cpu: 100m
+      memory: 128Mi
+
+querier:
+  replicas: 4
+  resources:
+    limits:
+      memory: 500Mi
+    requests:
+      cpu: 1
+      memory: 500Mi
+
+query_frontend:
+  replicas: 3
+  resources:
+    limits:
+      memory: 500Mi
+    requests:
+      cpu: 1
+      memory: 500Mi
+
+ruler:
+  replicas: 3
+  resources:
+    limits:
+      memory: 500Mi
+    requests:
+      cpu: 1
+      memory: 500Mi
+
+store_gateway:
+  persistentVolume:
+    size: 50Gi
+  replicas: 6
+  resources:
+    limits:
+      memory: 500Mi
+    requests:
+      cpu: 1
+      memory: 500Mi
+  topologySpreadConstraints: {}
+  affinity:
+    podAntiAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        - labelSelector:
+            matchExpressions:
+              - key: target # support for enterprise.legacyLabels
+                operator: In
+                values:
+                  - store-gateway
+          topologyKey: 'kubernetes.io/hostname'
+
+        - labelSelector:
+            matchExpressions:
+              - key: app.kubernetes.io/component
+                operator: In
+                values:
+                  - store-gateway
+          topologyKey: 'kubernetes.io/hostname'
+
+  zoneAwareReplication:
+    topologyKey: 'kubernetes.io/hostname'
+
