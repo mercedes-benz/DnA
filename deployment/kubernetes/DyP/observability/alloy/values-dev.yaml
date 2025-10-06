@@ -100,7 +100,7 @@ alloy:
 
       prometheus.remote_write "mimir" {
         endpoint {
-          url = "http://mimir-nginx.mimir-test:80/api/v1/push"
+          url = "http://mimir-nginx.observability:80/api/v1/push"
           headers = {"X-Scope-OrgID" = "c82p085"}
         }
       }
