@@ -140,7 +140,7 @@ ingester:
       - ReadWriteOnce
     # Ingester data Persistent Volume size
     size: 50Gi
-  replicas: 6
+  replicas: 3
   resources:
     limits:
       memory: 5Gi
