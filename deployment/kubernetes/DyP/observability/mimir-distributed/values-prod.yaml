@@ -2,6 +2,7 @@ fullnameOverride: mimir
 namespace: observability
 image:
   repository: registry-emea.app.corpintra.net/dockerhub/grafana/mimir
+kubeVersionOverride: "1.31-0"
 mimir:
   structuredConfig:
     # Increase ingestion rate limits
@@ -61,7 +62,7 @@ nginx:
     limits:
       memory: 512Mi
     requests:
-      cpu: 1
+      cpu: 100m
       memory: 512Mi
 
 rollout_operator:
@@ -100,7 +101,7 @@ alertmanager:
     limits:
       memory: 1Gi
     requests:
-      cpu: 1
+      cpu: 50m
       memory: 1Gi
   statefulSet:
     enabled: true
@@ -112,16 +113,16 @@ compactor:
     limits:
       memory: 2Gi
     requests:
-      cpu: 1
+      cpu: 50m
       memory: 2Gi
 
 distributor:
-  replicas: 12
+  replicas: 3
   resources:
     limits:
       memory: 2Gi
     requests:
-      cpu: 2
+      cpu: 350m
       memory: 2Gi
 
 ingester:
@@ -139,12 +140,12 @@ ingester:
       - ReadWriteOnce
     # Ingester data Persistent Volume size
     size: 50Gi
-  replicas: 18
+  replicas: 3
   resources:
     limits:
       memory: 5Gi
     requests:
-      cpu: 3
+      cpu: 200m
       memory: 5Gi
   topologySpreadConstraints: {}
   affinity:
@@ -217,12 +218,12 @@ overrides_exporter:
       memory: 128Mi
 
 querier:
-  replicas: 4
+  replicas: 3
   resources:
     limits:
       memory: 500Mi
     requests:
-      cpu: 2
+      cpu: 100m
       memory: 500Mi
 
 query_frontend:
@@ -231,7 +232,7 @@ query_frontend:
     limits:
       memory: 500Mi
     requests:
-      cpu: 2
+      cpu: 100m
       memory: 500Mi
 
 ruler:
@@ -240,18 +241,18 @@ ruler:
     limits:
       memory: 500Mi
     requests:
-      cpu: 1
+      cpu: 100m
       memory: 500Mi
 
 store_gateway:
   persistentVolume:
     size: 50Gi
-  replicas: 6
+  replicas: 3
   resources:
     limits:
       memory: 500Mi
     requests:
-      cpu: 1
+      cpu: 100m
       memory: 500Mi
   topologySpreadConstraints: {}
   affinity:
