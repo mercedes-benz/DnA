@@ -1,5 +1,5 @@
 fullnameOverride: mimir
-
+namespace: observability
 image:
   repository: registry-emea.app.corpintra.net/dockerhub/grafana/mimir
 
@@ -73,6 +73,11 @@ rollout_operator:
 
 minio:
   enabled: false
+
+# Disable PodSecurityPolicy as it's removed in Kubernetes v1.25+
+rbac:
+  podSecurityPolicy:
+    enabled: false
 
 metaMonitoring:
   # Dashboard configuration for deploying Grafana dashboards for Mimir
