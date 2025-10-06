@@ -47,8 +47,8 @@ const Home: React.FC<ILandingpageProps> = () => {
             <div className={classNames(Styles.dnaRow, Styles.fcCol)}>
               <div className={Styles.dnaCol6}>
                 <DNACard
-                  title={'GenAI'}
-                  description={'Explore all GenAI solutions at Mercedes-Benz.'}
+                  title={'Artificial Intelligence (AI)'}
+                  description={'Quick links to get started on your AI journey at Mercedes-Benz.'}
                   url={'/genAI'}
                   isTextAlignLeft={false}
                   isDisabled={false}
