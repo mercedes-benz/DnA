@@ -2749,16 +2749,41 @@
 					 if(optionalBuildDeployentity != null){
 						 buildDeployentity = optionalBuildDeployentity;
 						 buildDeployData = buildDeployentity.getData();
-						 if("int".equalsIgnoreCase(targetEnv)){							
+						 List<DeploymentAudit>  auditLogs = new ArrayList<>();
+						 List<BuildAudit> buildAuditLogs = new ArrayList<>();
+						 if("int".equalsIgnoreCase(targetEnv)){	
+							auditLogs = buildDeployData.getIntDeploymentAuditLogs();
+							buildAuditLogs = buildDeployData.getIntBuildAuditLogs();						
 							 int lastIndex = buildDeployData.getIntDeploymentAuditLogs().size() - 1;
 							 buildDeployData.getIntDeploymentAuditLogs().get(lastIndex).setDeploymentStatus(latestStatus);
 							 buildDeployData.getIntDeploymentAuditLogs().get(lastIndex).setDeployedOn(now);							 
 							 
 						 }else{
+							auditLogs = buildDeployData.getProdDeploymentAuditLogs();
+							buildAuditLogs = buildDeployData.getProdBuildAuditLogs();
 							 int lastIndex = buildDeployData.getProdDeploymentAuditLogs().size() - 1;
 							 buildDeployData.getProdDeploymentAuditLogs().get(lastIndex).setDeploymentStatus(latestStatus);
 							 buildDeployData.getProdDeploymentAuditLogs().get(lastIndex).setDeployedOn(now);	
 						 }
+
+						 List<DeploymentAudit> sortedList = auditLogs.stream().filter( i -> i.getDeploymentStatus().equalsIgnoreCase("DEPLOYED")).collect(Collectors.toList());
+					String lastDeployedVersion = sortedList.size() > 0 ? sortedList.get(sortedList.size() - 1).getVersion():null;
+					
+					if(lastDeployedVersion != null &&  buildAuditLogs.stream().anyMatch( i -> (i.getVersion().equalsIgnoreCase(version) && !i.isImageDeleted()))){
+							buildAuditLogs.stream().forEach(i ->{
+								if(i.getVersion().equalsIgnoreCase(version)){
+									GenericMessage deleteApiResonse = client.deleteBuild(projectName, version);
+									if(deleteApiResonse.getSuccess().equalsIgnoreCase("SUCCESS")){
+										i.setImageDeleted(true);
+									}									
+								}
+							});
+						}
+						if("int".equalsIgnoreCase(targetEnv)){	
+							buildDeployData.setIntBuildAuditLogs(buildAuditLogs);
+						}else{
+							buildDeployData.setProdBuildAuditLogs(buildAuditLogs);
+						}
 						 buildDeployentity.setData(buildDeployData);
 						 buildDeployRepo.save(buildDeployentity);
 					 }
@@ -2814,16 +2839,37 @@
 				   if(optionalBuildDeployentity != null){
 					   buildDeployentity = optionalBuildDeployentity;
 					   buildDeployData = buildDeployentity.getData();
+					   Boolean keepBuildImage = false;
+					   Boolean buildImageDeleted = false;
 					   if("int".equalsIgnoreCase(targetEnv)){							
 						   int lastIndex = buildDeployData.getIntBuildAuditLogs().size() - 1;
 						   buildDeployData.getIntBuildAuditLogs().get(lastIndex).setBuildOn(now);
 						   buildDeployData.getIntBuildAuditLogs().get(lastIndex).setBuildStatus(latestStatus);
-						   
+						   keepBuildImage = buildDeployData.getIntBuildAuditLogs().get(lastIndex).isKeepBuildImage();
 					   }else{
 						   int lastIndex = buildDeployData.getProdBuildAuditLogs().size() - 1;
 						   buildDeployData.getProdBuildAuditLogs().get(lastIndex).setBuildOn(now);
 						   buildDeployData.getProdBuildAuditLogs().get(lastIndex).setBuildStatus(latestStatus);
+						   keepBuildImage = buildDeployData.getProdBuildAuditLogs().get(lastIndex).isKeepBuildImage();
 					   }
+					   if("BUILD_SUCCESS".equalsIgnoreCase(latestStatus) && buildDetails.getLastBuildType().equalsIgnoreCase("build")){
+					if(!keepBuildImage){
+							GenericMessage deleteApiResonse = client.deleteBuild(projectName, version);
+									if(deleteApiResonse.getSuccess().equalsIgnoreCase("SUCCESS")){
+										buildImageDeleted = true;
+									}
+					}
+					}
+					if(buildImageDeleted){
+						if("int".equalsIgnoreCase(targetEnv)){
+							int lastIndex = buildDeployData.getIntBuildAuditLogs().size() - 1;
+							buildDeployData.getIntBuildAuditLogs().get(lastIndex).setImageDeleted(true);
+						}else{
+							int lastIndex = buildDeployData.getProdBuildAuditLogs().size() - 1;
+							buildDeployData.getProdBuildAuditLogs().get(lastIndex).setImageDeleted(true);
+						}
+					}
+
 					   buildDeployentity.setData(buildDeployData);
 					   buildDeployRepo.save(buildDeployentity);
 				   }
@@ -4313,7 +4359,7 @@
 					}else{
 						auditLog.setCommitId(commitId.getSha());
 					}
-					
+					 auditLog.setImageDeleted(Boolean.FALSE);
 					 auditLog.setTriggeredOn(now);
 					 auditLog.setTriggeredBy(entity.getData().getWorkspaceOwner().getGitUserName());
 					 auditLog.setBranch(branch);
