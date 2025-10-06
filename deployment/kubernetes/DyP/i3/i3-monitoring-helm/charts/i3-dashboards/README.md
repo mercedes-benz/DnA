@@ -1,0 +1,1 @@
+See [README.md](https://git.i.mercedes-benz.com/i3/i3-monitoring-dashboards/blob/master/README.md). Want to know more about I³? See [https://pages.git.i.mercedes-benz.com/i3/welcome/](https://pages.git.i.mercedes-benz.com/i3/welcome/).

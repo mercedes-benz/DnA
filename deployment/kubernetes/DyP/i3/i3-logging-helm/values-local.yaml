@@ -1,0 +1,79 @@
+# Adjust values of subcharts to run locally on a Kubernetes cluster (e.g. Minikube)
+fluent-bit:
+
+  # If deployed as DaemonSet, the upstream chart automatically mounts the container log dir, required by input_tail.conf
+  kind: DaemonSet
+
+  logLevel: info
+
+  # necessary on minikube to read logs without changing permissions on folder
+  securityContext:
+    runAsUser: 0
+
+  config:
+    # Collect logs with tail from container logs
+    inputs: |
+      @INCLUDE input_tail.conf
+
+    filters: |
+      @INCLUDE filter_kubernetes.conf
+
+      # Lift all keys inside 'kubernetes' (created by kubernetes filter) to main level,
+      [FILTER]
+          Name          nest
+          Match         "*"
+          nested_under  kubernetes
+          operation     lift
+      # Filter default logging namespace pods to avoid recursions with opensearch / fluent-bit / opensearch-dashboards on 'debug' loglevel.
+      [FILTER]
+          name      grep
+          match     "*"
+          exclude   namespace_name .*i3-logging.*
+
+opensearch-dashboards:
+  config:
+    opensearch_dashboards.yml: |
+      logging:
+        quiet: false
+        #verbose: true
+
+  # If you don't want to serve opensearch-dashboards on root-path (/) on minkube uncomment the following section:
+  # extraEnvs:
+  #   - name: SERVER_BASEPATH
+  #     value: /logging
+
+  ingress:
+    enabled: true
+    annotations:
+      # If you don't want to serve opensearch-dashboards on root-path (/) on minkube add the following annotation...
+      # ... for traefik ingress controller:
+      # nginx.ingress.kubernetes.io/rewrite-target: /$2
+      kubernetes.io/ingress.class: "traefik-external"
+      # ... for default nginx ingress controller:
+      # traefik.ingress.kubernetes.io/rule-type: PathPrefixStrip
+    
+    # If you don't want to serve opensearch-dashboards on root-path (/) on minkube replace the path value...
+    # ... for traefik ingress controller:
+    # path: /logging
+    # ... for default nginx ingress controller:
+    # path: /logging(/|$)?(.*)
+    hosts:
+    - host: minikube.infra
+      paths:
+        - path: /
+          backend:
+            serviceName: "i3-logging-opensearch-dashboards"
+            servicePort: 5601
+
+opensearch:
+  replicas: 1
+  persistence:
+    enableInitChown: false
+  antiAffinity: "soft"
+  resources:
+    requests:
+      cpu: "200m"
+      memory: "256Mi"
+    limits:
+      cpu: "1000m"
+      memory: "2Gi"

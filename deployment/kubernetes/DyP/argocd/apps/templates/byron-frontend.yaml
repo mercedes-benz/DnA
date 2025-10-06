@@ -1,0 +1,37 @@
+{{- if eq .Values.env "prod" }}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  {{- with .Values.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  name: {{ .Values.env }}-byron-chat-frontend
+  namespace: {{ .Values.namespace }}
+  labels:
+    name: frontend
+    env: {{ .Values.env }}
+    project: {{ .Values.env }}-dna  
+spec:
+  destination:
+    namespace: {{ .Values.env }}-byron-chat
+    server: {{ .Values.server | squote }}
+  source:
+    path: deploy/helm/charts/frontend
+    repoURL: https://git.i.mercedes-benz.com/DNA-CodeSpaces/byron-chat-bot.git
+    targetRevision: main
+    helm:
+      releaseName: byron-chat-frontend
+      valueFiles:
+        - values.yaml
+  project: {{ .Values.env }}-dna
+{{- if .Values.enableSync }}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - ApplyOutOfSyncOnly=true
+      - CreateNamespace=true
+{{- end }}
+{{- end }}
