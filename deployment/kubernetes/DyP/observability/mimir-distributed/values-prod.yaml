@@ -117,7 +117,7 @@ compactor:
       memory: 2Gi
 
 distributor:
-  replicas: 12
+  replicas: 3
   resources:
     limits:
       memory: 2Gi
@@ -140,7 +140,7 @@ ingester:
       - ReadWriteOnce
     # Ingester data Persistent Volume size
     size: 50Gi
-  replicas: 18
+  replicas: 3
   resources:
     limits:
       memory: 5Gi
