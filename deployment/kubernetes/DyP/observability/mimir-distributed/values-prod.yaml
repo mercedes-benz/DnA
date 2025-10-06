@@ -2,7 +2,6 @@ fullnameOverride: mimir
 namespace: observability
 image:
   repository: registry-emea.app.corpintra.net/dockerhub/grafana/mimir
-
 mimir:
   structuredConfig:
     # Increase ingestion rate limits
@@ -19,7 +18,7 @@ mimir:
 
     alertmanager_storage:
       s3:
-        bucket_name: mimir-alertmanager-prod
+        bucket_name: mimir-alertmanager
         endpoint: "loki-minio:9000"
         access_key_id: <path:dna_aws_kv/data/dev/kubernetesSecret/loki#rootUser> # This is a secret injected via an environment variable
         secret_access_key: <path:dna_aws_kv/data/dev/kubernetesSecret/loki#rootPassword> # This is a secret injected via an environment variable
@@ -29,7 +28,7 @@ mimir:
     blocks_storage:
       backend: s3
       s3:
-        bucket_name: mimir-tsdb-prod
+        bucket_name: mimir-tsdb
         endpoint: "loki-minio:9000"
         access_key_id: <path:dna_aws_kv/data/dev/kubernetesSecret/loki#rootUser> # This is a secret injected via an environment variable
         secret_access_key: <path:dna_aws_kv/data/dev/kubernetesSecret/loki#rootPassword> # This is a secret injected via an environment variable
@@ -40,7 +39,7 @@ mimir:
         retention_period: 13h
     ruler_storage:
       s3:
-        bucket_name: mimir-ruler-prod
+        bucket_name: mimir-ruler
         endpoint: "loki-minio:9000"
         access_key_id: <path:dna_aws_kv/data/dev/kubernetesSecret/loki#rootUser> # This is a secret injected via an environment variable
         secret_access_key: <path:dna_aws_kv/data/dev/kubernetesSecret/loki#rootPassword> # This is a secret injected via an environment variable
