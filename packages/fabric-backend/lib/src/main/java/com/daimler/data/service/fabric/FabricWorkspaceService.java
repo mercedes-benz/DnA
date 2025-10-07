@@ -79,4 +79,6 @@ public interface FabricWorkspaceService extends CommonService<FabricWorkspaceVO,
 	AuthoriserRoleDetailsVO getRoleDetails(String roleId);
 
 	EntraGroupResponseVO getEntraGroupMembers(String roleName);
+
+	FabricWorkspacesCollectionVO getAllForFabricAdmin(int limit, int offset);
 }

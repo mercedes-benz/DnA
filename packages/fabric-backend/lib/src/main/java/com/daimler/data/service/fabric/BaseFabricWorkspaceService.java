@@ -2003,4 +2003,39 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		}
 	}
 
+	@Override
+	@Transactional
+	public FabricWorkspacesCollectionVO getAllForFabricAdmin(int limit, int offset) {
+		FabricWorkspacesCollectionVO collectionVO = new FabricWorkspacesCollectionVO();
+		List<FabricWorkspaceVO> vos = new ArrayList<>();
+
+		List<FabricWorkspaceNsql> allEntities = customRepo.findAll(0, 0);
+
+		if (allEntities != null && !allEntities.isEmpty()) {
+			for (FabricWorkspaceNsql entity : allEntities) {
+				if (entity != null && !ConstantsUtility.DELETED_STATE.equalsIgnoreCase(entity.getData().getStatus().getState())) {
+					FabricWorkspaceVO vo = assembler.toVo(entity);
+					vo.setUserRole(ConstantsUtility.PERMISSION_OWNER);
+					vos.add(vo);
+				}
+			}
+		}
+
+		List<FabricWorkspaceVO> paginatedVOs = new ArrayList<>();
+		int totalCount = 0;
+		if (vos != null && !vos.isEmpty()) {
+			totalCount = vos.size();
+			int newOffset = offset > vos.size() ? 0 : offset;
+			if (limit == 0) {
+				limit = totalCount;
+			}
+			int newLimit = offset + limit > vos.size() ? vos.size() : offset + limit;
+			paginatedVOs = vos.subList(newOffset, newLimit);
+		}
+
+		collectionVO.setRecords(paginatedVOs);
+		collectionVO.setTotalCount(totalCount);
+		return collectionVO;
+	}
+
 }
