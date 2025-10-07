@@ -49,7 +49,7 @@ const VaultManagement: React.FC<VaultManagementProps> = ({ projectName, dagName}
   const [jsonError, setJsonError] = useState('');
   const [isJsonTouched, setIsJsonTouched] = useState(false);
   const [toggleError, setToggleError] = useState('');
-  const vaultPrefix = `${environment}_${projectName}_${dagName}_`;
+  const vaultPrefix = `${environment}_${dagName}_`;
 
   useEffect(() => {
     loadVaultValues();
@@ -140,10 +140,10 @@ const VaultManagement: React.FC<VaultManagementProps> = ({ projectName, dagName}
       : [...keyValue.keyValueList, { key: fullKey, value, visible: false }];
 
       const data: Record<string, string> = {};
-      updatedList.forEach((item) => {
-          const fullVaultKey = `${environment}_${projectName}_${dagName}_${item.key}`;
-          data[fullVaultKey] = item.value;
-      });
+
+    updatedList.forEach((item) => {
+      data[item.key] = item.value;
+    });
 
     PipelineApiClient.putVaultSecret(projectName, data);
     setKeyValue({ keyValueList: updatedList });
@@ -164,9 +164,9 @@ const VaultManagement: React.FC<VaultManagementProps> = ({ projectName, dagName}
       (item) => !(item.key === deleteKey && item.value === deleteValue)
     );
     const data: Record<string, string> = {};
+   
     updated.forEach((item) => {
-      const fullVaultKey = `${environment}_${projectName}_${dagName}_${item.key}`;
-      data[fullVaultKey] = item.value;
+      data[item.key] = item.value;
     });
     PipelineApiClient.putVaultSecret(projectName, data);
     setKeyValue({ keyValueList: updated });
@@ -184,7 +184,7 @@ const VaultManagement: React.FC<VaultManagementProps> = ({ projectName, dagName}
       return;
     }
 
-    const requiredPrefix = `${environment}_${projectName}_${dagName}_`;
+    const requiredPrefix = vaultPrefix;
 
     const invalidKeys: string[] = [];
 
