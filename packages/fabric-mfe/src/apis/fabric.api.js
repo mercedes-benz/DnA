@@ -127,6 +127,12 @@ const getLeanIX = (searchTerm) => {
   return dataProductServer.get(`/planningit?searchTerm=${searchTerm}`, { data: {} });
 };
 
+const transferOwnership = (id, data) => {
+   return server.patch(`/fabric-workspaces/${id}/transferOwnership`,
+    data,
+  );
+}
+
 const getLakehouseTables = (workspaceId, lakehouseId) => {
   return server.get(`/fabric-workspaces/lakehouses/tables?workspaceId=${workspaceId}&lakehouseId=${lakehouseId}`, {
     data: {} 
@@ -163,6 +169,7 @@ export const fabricApi = {
   getConnectionInfo,
   getLovData,
   getLeanIX,
+  transferOwnership,
   getLakehouseTables,
   getTableSchema,
   pushSelectedTables
