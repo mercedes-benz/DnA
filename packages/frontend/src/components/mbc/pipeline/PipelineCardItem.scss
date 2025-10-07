@@ -36,10 +36,6 @@
         padding-bottom: 5px;
         width: 100%;
         text-align: left;
-
-        &:hover {
-          color: #00adef;
-        }
       }
     }
   }
@@ -131,7 +127,36 @@
           white-space: nowrap;
         }
       }
+        
+.dagHeader {
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  width: 100%;
+  padding: 10px 0px 10px 0px;
+  color: #99a5b3;
+  font-weight: bold;
 
+  span:nth-child(1) {
+    flex: 1 1 auto;
+    min-width: 0;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  span:nth-child(2) {
+    flex: 0 0 90px;
+    text-align: center;
+    margin-right: 12px;
+  }
+
+  span:nth-child(3) {
+    flex: 0 0 100px;
+    text-align: left;
+    margin-right: 0px;
+  }
+}
     }
   }
 
@@ -226,28 +251,34 @@
   }
 
   .cardDagActions {
-    flex: 1;
+  flex: 1;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+
+  .actionBtn {
+    background: transparent;
+    border: none;
+    color: #00adef;          /* Blue default icon color */
+    cursor: pointer;
     display: flex;
-    justify-content: flex-end;
-    gap: 10px;
+    align-items: center;
+    padding: 4px;            /* Keeps clickable area */
 
-    .actionBtn {
-      background: transparent;
-      border: none;
-      color: #00adef;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
+    i {
+      font-size: 14px;       /* Consistent icon size */
+      transition: color 0.2s ease;
+    }
 
-      i {
-        font-size: 14px;
-      }
-
-      &:hover {
-        text-decoration: underline;
-      }
+    
+    &:focus {
+      outline: none !important;
+      box-shadow: none !important;
+      border: none !important;
     }
   }
+}
+
 }
 
 

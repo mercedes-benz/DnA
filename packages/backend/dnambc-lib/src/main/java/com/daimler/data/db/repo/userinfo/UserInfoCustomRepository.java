@@ -64,4 +64,8 @@ public interface UserInfoCustomRepository extends CommonDataRepository<UserInfoN
 	Optional<UserInfoNsql> findById(String id);
 
 	Integer getNumberOfUsers();
+
+	boolean deleteById(String id);
+
+
 }

@@ -61,7 +61,7 @@ const BuildModal = (props) => {
           element.id = element.name;
         });
         setBranches(branches);
-
+        projectDetails?.intBuildDetails?.lastBuildBranch?.length && setBranchValue([projectDetails?.intBuildDetails?.lastBuildBranch]);
         SelectBox.defaultSetup();
       })
       .catch((err) => {
@@ -72,6 +72,12 @@ const BuildModal = (props) => {
 
   useEffect(() => {
     onLogsRefresh();
+    if(buildEnvironment === 'staging'){
+      projectDetails?.intBuildDetails?.lastBuildBranch?.length ? setBranchValue([projectDetails?.intBuildDetails?.lastBuildBranch]) : setBranchValue(['main']);
+    }
+    else{
+      projectDetails?.prodBuildDetails?.lastBuildBranch?.length ? setBranchValue([projectDetails?.prodBuildDetails?.lastBuildBranch]) : setBranchValue(['main']);
+    }
   }, [buildEnvironment]);
 
   useEffect(() => {
@@ -126,6 +132,13 @@ const BuildModal = (props) => {
       formValid = false;
       setIsBranchValueMissing(true);
     }
+    const found = branches.some(branch => 
+     Object.values(branch).includes(branchValue[0])
+    );
+    if (!found) {
+      formValid = false;
+      Notification.show('Branch doesnot exist.','alert',);
+    }
     if (formValid) {
       const buildRequest = {
         environment: buildEnvironment === 'staging' ? 'int' : 'prod',
@@ -168,6 +181,17 @@ const BuildModal = (props) => {
     setBuildEnvironment(buildEnv);
     // setCurrentSelection(buildEnv)
     //refresh the logs
+  };
+
+  const handleBuildDelete = (version) => {
+    CodeSpaceApiClient.deleteBuild(projectDetails?.projectName, version)
+      .then(() => {
+        Notification.show('Build deleted successfully'); 
+        onLogsRefresh();
+      })
+      .catch((err) => {
+        Notification.show("Error in deleting build. "+err?.response?.data?.warnings[0]?.message,'alert');
+      });
   };
 
   const onLogsRefresh = () => {
@@ -357,23 +381,28 @@ const BuildModal = (props) => {
                             </td>
                             <td>{item?.buildOn ? regionalDateAndTimeConversionSolution(item?.buildOn) : 'N/A'}</td>
                             <td>{item?.commitId || 'N/A'}</td>
-                            <td>{item?.version || 'N/A'}</td>
+                            <td>{`${item?.version} ${item?.imageDeleted ? '(N/A)' : ''}` || 'N/A'}</td>
                             <td>
                               <label>{item?.comments || 'N/A'}</label>
                             </td>
                             <td>
-                              {item?.buildStatus === 'BUILD_SUCCESS' ? (
-                                <button
-                                  className={'btn btn-primary ' + classNames(Styles.actionBtn)}
-                                  tooltip-data="Deploy application"
-                                  onClick={() => {
-                                    item.environment = buildEnvironment;
-                                    setBuildDetails(item);
-                                    setShowDeployCodeSpaceModal(true);
-                                  }}
-                                >
-                                  <i className="icon mbc-icon deploy" />
-                                </button>
+                              {(item?.buildStatus === 'BUILD_SUCCESS' && !item?.imageDeleted) ? (
+                                <div>
+                                  <button
+                                    className={'btn btn-primary ' + classNames(Styles.actionBtn,Styles.deployButton)}
+                                    tooltip-data="Deploy application"
+                                    onClick={() => {
+                                      item.environment = buildEnvironment;
+                                      setBuildDetails(item);
+                                      setShowDeployCodeSpaceModal(true);
+                                    }}
+                                  >
+                                    <i className="icon mbc-icon deploy" />
+                                  </button>
+                                  <button className={'btn btn-primary ' + classNames(Styles.actionBtn)} type="button" onClick={() => handleBuildDelete(item.version)}>
+                                    <i className='icon delete'></i>
+                                  </button>
+                                </div>
                               ) : (
                                 ''
                               )}
@@ -407,7 +436,6 @@ const BuildModal = (props) => {
               setShowCodeDeployModal={setShowDeployCodeSpaceModal}
               setCodeDeploying={props.setCodeDeploying}
               setIsApiCallTakeTime={props.setIsApiCallTakeTime}
-              navigateSecurityConfig={props.navigateSecurityConfig}
               buildDetails={buildDetails}
             />
           )}
