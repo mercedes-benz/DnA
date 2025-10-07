@@ -1,2 +1,2 @@
-INSERT INTO roles (id, data)
+INSERT INTO userrole_nsql (id, data)
 VALUES (8, '{"name": "FabricAdmin"}');
