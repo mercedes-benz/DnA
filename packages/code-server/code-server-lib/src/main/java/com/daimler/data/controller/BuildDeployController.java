@@ -217,7 +217,6 @@ public class BuildDeployController implements CodeServerBuildDeployServiceApi {
         if (auditLogs == null) {
             auditLogs = new ArrayList<>();
         }
-        log.info("Workspace ID: {}", vo.getWorkspaceId());
         log.info("Environment: {}", environment);
         log.info("Audit logs size: {}", auditLogs != null ? auditLogs.size() : 0);
         long retainedCount = auditLogs.stream()
