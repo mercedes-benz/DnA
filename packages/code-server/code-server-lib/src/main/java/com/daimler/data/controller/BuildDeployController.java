@@ -18,6 +18,7 @@ import com.daimler.data.db.json.BuildAudit;
 import com.daimler.data.db.json.DeploymentAudit;
 import com.daimler.data.db.repo.workspace.WorkSpaceCodeServerBuildDeployRepository;
 import com.daimler.data.db.repo.workspace.WorkspaceCustomBuildDeployRepo;
+import org.springframework.beans.factory.annotation.Value;
 
 import org.springframework.web.bind.annotation.PathVariable;
 
@@ -67,6 +68,9 @@ public class BuildDeployController implements CodeServerBuildDeployServiceApi {
 
      @Autowired
 	 private WorkspaceCustomBuildDeployRepo buildDeployCustomRepo;
+
+     @Value("${codeServer.build.retainedlimit}")
+     private String retainedBuildLimitValue;
 
     @Override
     @ApiOperation(value = "Build workspace Project for a given Id.", nickname = "buildWorkspaceProject", notes = "build workspace Project for a given identifier.", response = GenericMessage.class, tags = {
@@ -202,10 +206,7 @@ public class BuildDeployController implements CodeServerBuildDeployServiceApi {
         String projectName = vo.getProjectDetails() != null ? vo.getProjectDetails().getProjectName() : null;
         List<BuildAudit> auditLogs = new ArrayList<>();
         CodeServerBuildDeployNsql optionalBuildDeployEntity = buildDeployCustomRepo.findByProjectName(projectName);
-        log.info("optionalBuildDeployEntity for project {}: {}", projectName, optionalBuildDeployEntity);
         if (optionalBuildDeployEntity != null && optionalBuildDeployEntity.getData() != null) {
-             log.info("Int Build Audit Logs for project {}: {}", projectName, optionalBuildDeployEntity.getData().getIntBuildAuditLogs());
-             log.info("Prod Build Audit Logs for project {}: {}", projectName, optionalBuildDeployEntity.getData().getProdBuildAuditLogs());
             if ("int".equalsIgnoreCase(environment)
                     && optionalBuildDeployEntity.getData().getIntBuildAuditLogs() != null) {
                 auditLogs = optionalBuildDeployEntity.getData().getIntBuildAuditLogs();
@@ -217,19 +218,22 @@ public class BuildDeployController implements CodeServerBuildDeployServiceApi {
         if (auditLogs == null) {
             auditLogs = new ArrayList<>();
         }
-        log.info("Environment: {}", environment);
-        log.info("Audit logs size: {}", auditLogs != null ? auditLogs.size() : 0);
         long retainedCount = auditLogs.stream()
                 .filter(b -> "BUILD_SUCCESS".equalsIgnoreCase(b.getBuildStatus()))
                 .filter(b -> !b.isImageDeleted())
                 .count();
-        log.info("Retained successful builds (not deleted): {}", retainedCount);
-        log.info("Audit logs size: {}", auditLogs.size());
         
-        if (retainedCount >= 10) {
-             log.info("retained cound>10");
+        int retainedBuildLimit;
+        try {
+            retainedBuildLimit = Integer.parseInt(retainedBuildLimitValue.trim());
+        } catch (NumberFormatException ex) {
+            log.warn("Invalid retained build limit value '{}', defaulting to 10", retainedBuildLimitValue);
+            retainedBuildLimit = 10;
+        }
+        
+        if (retainedCount >= retainedBuildLimit) {
             MessageDescription invalidMsg = new MessageDescription();
-            invalidMsg.setMessage("Build not allowed: There are already " + retainedCount +
+            invalidMsg.setMessage("Build not allowed. There are already " + retainedCount +
                     " successful builds with images retained. Please delete older images before triggering a new build.");
             GenericMessage errorMessage = new GenericMessage();
             errorMessage.addErrors(invalidMsg);
@@ -239,7 +243,6 @@ public class BuildDeployController implements CodeServerBuildDeployServiceApi {
         }
          
         String lastBuildType = "build";
-         log.info("calling build service:");
         GenericMessage responseMsg = service.buildWorkSpace(userId,id,branch,buildRequestDto,isPrivateRecipe,environment,lastBuildType);
 				 log.info("User {} build workspace {} project {}", userId, vo.getWorkspaceId(),
 						 vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
