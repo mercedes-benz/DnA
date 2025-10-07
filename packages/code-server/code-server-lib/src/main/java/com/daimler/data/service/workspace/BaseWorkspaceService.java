@@ -1671,7 +1671,9 @@
 				log.info("build triggered for workspaceId {} and branch {} and environment {} and lastBuildType {}",workspaceId,branch,environment,lastBuildType);
 				responseMessage = this.buildWorkSpace(userId, id, branch, buildRequestDto, isprivateRecipe, environment,lastBuildType);
 				if(responseMessage.getSuccess().equalsIgnoreCase("SUCCESS")){
-					authenticatorClient.callingKongApis(workspaceId, projectName, environment, isApiRecipe, deploymentDetails.getClientId(), "", deploymentDetails.getRedirectUri(), deploymentDetails.getIgnorePaths(), deploymentDetails.getScope(), deploymentDetails.getOneApiVersionShortName(), isSecuredWithCookie, secureWithIAMRequired, deploymentDetails.getSsoType(), secureWithDnaRequired, cloudServiceProvider);
+					if(deploymentDetails.getDeploymentUrl() == null || deploymentDetails.getDeploymentUrl().isEmpty()){
+						authenticatorClient.callingKongApis(workspaceId, projectName, environment, isApiRecipe, deploymentDetails.getClientId(), "", deploymentDetails.getRedirectUri(), deploymentDetails.getIgnorePaths(), deploymentDetails.getScope(), deploymentDetails.getOneApiVersionShortName(), isSecuredWithCookie, secureWithIAMRequired, deploymentDetails.getSsoType(), secureWithDnaRequired, deploymentDetails.getAliceRoleEnabled(), deploymentDetails.getEntitlementPrefixEnabled(), deploymentDetails.getSelectedAliceRoles(), cloudServiceProvider);
+					}
 					status = "SUCCESS";
 					lastBuildOrDeployStatus = "BUILD_REQUESTED";
 				}else{
@@ -1798,8 +1800,8 @@
 					 auditLogEntity.setData(buildDeployLogs);
 					 buildDeployRepo.save(auditLogEntity);
 
-					 if(deployType.equalsIgnoreCase("deploy")){
-						 authenticatorClient.callingKongApis(workspaceId, projectName, environment, isApiRecipe, deploymentDetails.getClientId(), "", deploymentDetails.getRedirectUri(), deploymentDetails.getIgnorePaths(), deploymentDetails.getScope(), deploymentDetails.getOneApiVersionShortName(), isSecuredWithCookie, secureWithIAMRequired, deploymentDetails.getSsoType(), secureWithDnaRequired, cloudServiceProvider);
+					 if(deployType.equalsIgnoreCase("deploy") && (deploymentDetails.getDeploymentUrl() == null || deploymentDetails.getDeploymentUrl().isEmpty())){
+						 authenticatorClient.callingKongApis(workspaceId, projectName, environment, isApiRecipe, deploymentDetails.getClientId(), "", deploymentDetails.getRedirectUri(), deploymentDetails.getIgnorePaths(), deploymentDetails.getScope(), deploymentDetails.getOneApiVersionShortName(), isSecuredWithCookie, secureWithIAMRequired, deploymentDetails.getSsoType(), secureWithDnaRequired, deploymentDetails.getAliceRoleEnabled(), deploymentDetails.getEntitlementPrefixEnabled(), deploymentDetails.getSelectedAliceRoles(), cloudServiceProvider);
 					 }
 					
 					// deploymentDetails.setLastDeployedBranch(branch);
@@ -1891,13 +1893,14 @@
 				 }
 				 boolean isSecuredWithCookie = false; //disable for now 
 				 String deploymentType = deployedAppConfigDto.isIsApiRecipe() ? ConstantsUtility.API : ConstantsUtility.UI;
-				 authenticatorClient.callingKongApis(workspaceId, projectName, environment, deployedAppConfigDto.isIsApiRecipe(), deployedAppConfigDto.getClientID(), clientSecret, deployedAppConfigDto.getRedirectUri(), deployedAppConfigDto.getIgnorePaths(), deployedAppConfigDto.getScope(), deployedAppConfigDto.getOneApiVersionShortName(), isSecuredWithCookie, secureWithIAMRequired, deployedAppConfigDto.getSsoType().toString(), secureWithDnaRequired, cloudServiceProvider);
+				 authenticatorClient.callingKongApis(workspaceId, projectName, environment, deployedAppConfigDto.isIsApiRecipe(), deployedAppConfigDto.getClientID(), clientSecret, deployedAppConfigDto.getRedirectUri(), deployedAppConfigDto.getIgnorePaths(), deployedAppConfigDto.getScope(), deployedAppConfigDto.getOneApiVersionShortName(), isSecuredWithCookie, secureWithIAMRequired, deployedAppConfigDto.getSsoType().toString(), secureWithDnaRequired, deployedAppConfigDto.isAliceRoleEnabled(), deployedAppConfigDto.isEntitlementPrefixEnabled(), deployedAppConfigDto.getSelectedAliceRoles(), cloudServiceProvider);
 				 workspaceCustomRepository.updateDeployedAppConfig(projectName, environmentJsonbName,
 						 secureWithIAMRequired, deployedAppConfigDto.getOneApiVersionShortName(),
 						 isSecuredWithCookie, deploymentType, deployedAppConfigDto.getClientID(),
 						 deployedAppConfigDto.getRedirectUri(), deployedAppConfigDto.getIgnorePaths(),
 						 deployedAppConfigDto.getScope(), deployedAppConfigDto.getSsoType().toString(),
 						 secureWithDnaRequired, deployedAppConfigDto.isAliceRoleEnabled(),
+						 deployedAppConfigDto.isEntitlementPrefixEnabled(),
 						 deployedAppConfigDto.getSelectedAliceRoles());
 					 status = "SUCCESS";
 			 }
@@ -4371,7 +4374,7 @@
 
 					if (intBuildDetails != null) {
 						intBuildDetails.stream().forEach(i ->{
-							if(i.getBuildStatus().equalsIgnoreCase("BUILD_SUCCESS")){
+							if(i.getBuildStatus().equalsIgnoreCase("BUILD_SUCCESS") && !i.isImageDeleted()){
 								VersioVO version = new VersioVO();
 								version.setVersion(i.getVersion());
 								intVersions.add(version);
@@ -4380,7 +4383,7 @@
 					}
 					if (prodBuildDetails != null) {
 						prodBuildDetails.stream().forEach(i ->{
-							if(i.getBuildStatus().equalsIgnoreCase("BUILD_SUCCESS")){
+							if(i.getBuildStatus().equalsIgnoreCase("BUILD_SUCCESS") && !i.isImageDeleted()){
 								VersioVO version = new VersioVO();
 								version.setVersion(i.getVersion());
 								prodVersions.add(version);
@@ -4630,6 +4633,56 @@
 				 
 				 status = "SUCCESS";
 
+		} catch (Exception e) {
+			MessageDescription error = new MessageDescription();
+			log.info("Failed while Migrating codeserver workspace logs  with exception " + e.getMessage());
+			error.setMessage("Failed while Migrating codeserver workspace logs  with exception " + e.getMessage());
+			errors.add(error);
+		}
+		responseMessage.setErrors(errors);
+		responseMessage.setWarnings(warnings);
+		responseMessage.setSuccess(status);
+		return responseMessage;
+	}
+
+	@Override
+	public GenericMessage deleteBuild(String projectName,String version){
+		GenericMessage responseMessage = new GenericMessage();
+		String status = "FAILED";
+		List<MessageDescription> warnings = new ArrayList<>();
+		List<MessageDescription> errors = new ArrayList<>();
+		try {
+			CodeServerBuildDeployNsql optionalBuildDeployentity =  buildDeployCustomRepo.findByProjectName(projectName);
+			CodeServerBuildDeploy data = optionalBuildDeployentity.getData();
+			 List<BuildAudit> builds = new ArrayList<>();
+			//   List<BuildAudit> newBuilds = new ArrayList<>();
+			  String env = "";
+                        if(version.startsWith("int")){
+							env = "int";
+                            builds = data.getIntBuildAuditLogs();
+                        }else if(version.startsWith("prod")){
+							env = "prod";
+                             builds = data.getProdBuildAuditLogs();
+                        }
+                        if(builds.stream().anyMatch( i -> (i.getVersion().equalsIgnoreCase(version) && !i.isImageDeleted()))){
+							builds.stream().forEach(i ->{
+								if(i.getVersion().equalsIgnoreCase(version)){
+									GenericMessage deleteApiResonse = client.deleteBuild(projectName, version);
+									if(deleteApiResonse.getSuccess().equalsIgnoreCase("SUCCESS")){
+										i.setImageDeleted(true);
+									}									
+								}
+							});
+						}
+						if(env.equals("int")){
+							data.setIntBuildAuditLogs(builds);
+						}else{
+							data.setProdBuildAuditLogs(builds);
+						}
+						optionalBuildDeployentity.setData(data);
+						 buildDeployRepo.save(optionalBuildDeployentity);
+						 status = "SUCCESS";
+						
 		} catch (Exception e) {
 			MessageDescription error = new MessageDescription();
 			log.info("Failed while Migrating codeserver workspace logs  with exception " + e.getMessage());

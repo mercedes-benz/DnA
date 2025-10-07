@@ -1,0 +1,342 @@
+# LICENSE START
+# 
+# MIT License
+# 
+# Copyright (c) 2019 Daimler TSS GmbH
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+# 
+# LICENSE END 
+#
+#-----------------------------------------------------------------------------------------------------
+#  **
+#  ** File Name  : adaProjects.yaml
+#  **
+#  ** Module     : Tools/AdaProjects
+#  **
+
+#  -------------------------------------------------------------------------------------------------------
+#
+#  CHANGE HISTORY
+#
+#  Created By         :  aravindh24
+#
+#  Bug Number         :
+#  Changed By         :
+#  Change Description :
+#  Change On          :
+#  Search String      :
+#
+swagger: "2.0"
+info:
+  version: "1.0.0"
+  title: "ADA  Projects management service"
+host: "localhost:9292"
+basePath: "/api/1.0"
+consumes:
+  - "application/json"
+produces:
+  - "application/json"
+tags:
+  - name: "adaProjects"
+    description: "This service is used for ADA Projects maintenance."
+
+schemes:
+  - "https"
+
+paths:
+  # path to create a new ADA Projects and fetch all valid ADA Projects or by intent
+  #
+  #  supprorted http methods GET, POST and DELETE
+  #
+  # path example ../fabric-workspaces/adaProjects
+
+  /ada/projects:
+    post:
+      tags:
+        - "adaProjects"
+      summary: "Create a new ADA Project"
+      description: "This can only be done by the logged in user."
+      operationId: "createADAProject"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "body"
+          name: "body"
+          description: "ADA Project object that needs to be created"
+          required: true
+          schema:
+            $ref: "#/definitions/ADAProjectDetailsVO"
+      responses:
+        201:
+          description: "ADA Project Details created"
+          schema:
+            $ref: "#/definitions/CreateADAProjectResponseVO"
+        400:
+          description: "Invalid input"
+        404:
+          description: "ADA Project Details not found"
+
+    get:
+      tags:
+        - "adaProjects"
+      summary: "Get all ADA Projects"
+      description: "Get all ADA Projects with pagination and sorting options"
+      operationId: "getAllADAProjects"
+      produces:
+        - "application/json"
+      parameters:            
+        - name: offset
+          in: query
+          description: "Page number from which listing of ADA Projects should start. Example: 2"
+          required: false
+          type: integer
+        - name: limit
+          in: query
+          description: "Page size to limit the number of ADA Projects. Example: 15"
+          required: false
+          type: integer
+      responses:
+        200:
+          description: "Returns paginated list of ADA Projects"
+          schema:
+            $ref: "#/definitions/ADAProjectDetailsCollectionVO"
+        204:
+          description: "Fetch complete, no content found"
+        400:
+          description: "Bad request"
+        401:
+          description: "Request does not have sufficient credentials"
+        403:
+          description: "Request is not authorized"
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
+  /ada/project/{projectId}:
+    get:
+      tags:
+        - "adaProjects"
+      summary: "Get ADA Project by ID"
+      description: "Returns a single ADA Project"
+      operationId: "getADAProjectById"
+      produces:
+        - "application/json"
+      parameters:
+        - name: "projectId"
+          in: "path"
+          description: "ID of ADA Project to return"
+          required: true
+          type: "string"
+      responses:
+        200:
+          description: "Successful operation"
+          schema:
+            $ref: "#/definitions/ADAProjectDetailsVO"
+        404:
+          description: "ADA Project not found"
+
+    put:
+      tags:
+        - "adaProjects"
+      summary: "Update an existing ADA Project"
+      description: "Update an existing ADA Project by Id"
+      operationId: "updateADAProject"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - name: "projectId"
+          in: "path"
+          description: "ID of ADA Project to update"
+          required: true
+          type: "string"
+        - in: "body"
+          name: "body"
+          description: "ADA Project object with updated values"
+          required: true
+          schema:
+            $ref: "#/definitions/ADAProjectDetailsVO"
+      responses:
+        200:
+          description: "ADA Project updated successfully"
+          schema:
+            $ref: "#/definitions/CreateADAProjectResponseVO"
+        400:
+          description: "Invalid input"
+        404:
+          description: "ADA Project not found"
+
+    delete:
+      tags:
+        - "adaProjects"
+      summary: "Delete an ADA Project"
+      description: "Delete an ADA Project by Id"
+      operationId: "deleteADAProject"
+      produces:
+        - "application/json"
+      parameters:
+        - name: "projectId"
+          in: "path"
+          description: "ID of ADA Project to delete"
+          required: true
+          type: "string"
+      responses:
+        200:
+          description: "ADA Project deleted successfully"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        404:
+          description: "ADA Project not found"
+
+  /ada/workspace-project-association:
+    post:
+      tags:
+        - "adaProjects"
+      summary: "Create/update workspace-project association"
+      description: "Create or update association between workspaces and ADA Projects"
+      operationId: "createWorkspaceProjectAssociations"
+      consumes:
+        - "application/json"
+      produces:
+        - "application/json"
+      parameters:
+        - in: "body"
+          name: "body"
+          description: "workspace-project association object"
+          required: true
+          schema:
+              $ref: "#/definitions/WorkspaceProjectAssociationVO"
+      responses:
+        201:
+          description: "Workspace-project associations created successfully"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        400:
+          description: "Invalid input"
+        404:
+          description: "Workspace or ADA Project not found"
+
+definitions:
+  ADAProjectDetailsCollectionVO:
+    description: "Collection of ADA Projects with pagination info"
+    type: object
+    properties:
+      totalCount:
+        type: integer
+        description: "Total number of records"
+      records:
+        type: array
+        items:
+          $ref: "#/definitions/ADAProjectDetailsVO"
+      responses:
+        $ref: "#/definitions/GenericMessage"
+
+  ADAProjectDetailsVO:
+    type: "object"
+    properties:
+      id:
+        type: "string"
+      projectID:
+        type: "string"
+      adaID:
+        type: "string"
+      projectName:
+        type: "string"
+      leanIX:
+        type: "string"
+      costCenter:
+        type: "string"
+      plant:
+        type: "string"
+      internalOrder:
+        type: "string"
+      division:
+        type: "string"
+      subdivision:
+        type: "string"
+      department:
+        type: "string"
+      services:
+        type: "array"
+        items:
+          type: "object"
+          properties:
+            serviceName:
+              type: "string"
+            serviceQuantity:
+              type: "integer"
+      stakeholders:
+        type: "array"
+        items:
+          type: "object"
+          properties:
+            position:
+              type: "string"
+            userID:
+              type: "string"
+      tags:
+        type: "array"
+        items:
+          type: "object"
+          properties:
+            description:
+              type: "string"
+            value:
+              type: "string"
+      startingDate:
+        type: "string"
+        format: "date"
+      active:
+        type: "boolean"
+      inactiveDate:
+        type: "string"
+        format: "date"
+
+
+  CreateADAProjectResponseVO:
+    type: "object"
+    properties:
+      data:
+        $ref: "#/definitions/ADAProjectDetailsVO"
+      responses:
+        $ref: "#/definitions/GenericMessage"
+
+
+  ADAProjectDetailCollectionVO:
+    type: "object"
+    properties:
+      records:
+        type: "array"
+        items:
+          $ref: "#/definitions/ADAProjectDetailsVO"
+        count:
+          type: "integer"
+
+  WorkspaceProjectAssociationVO:
+    type: "object"
+    properties:
+      workspaceID:
+        type: "string"
+      projectID:
+        type: "string"

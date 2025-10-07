@@ -545,7 +545,7 @@ export class ApiClient {
   }
 
   public static getRoleDetails(roleId: string) {
-    return this.fabricGet(`fabric-worspace/${roleId}/details`);
+    return this.fabricGet(`fabric-workspaces/${roleId}/details`);
   }
 
   public static getEntraGroupMembers(roleName: string) {
