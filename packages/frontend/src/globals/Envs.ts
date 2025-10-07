@@ -242,6 +242,7 @@ export const Envs = {
   SPIRE_URL: getInjectedEnv('SPIRE_URL') || process.env.SPIRE_URL,
   ODIN_URL: getInjectedEnv('ODIN_URL') || process.env.ODIN_URL,
   SASS_URL: getInjectedEnv('SASS_URL') || process.env.SASS_URL,
+  MB_AI_ECOSYSTEM_URL: getInjectedEnv('MB_AI_ECOSYSTEM_URL') || process.env.MB_AI_ECOSYSTEM_URL,
   GENAI_DIRECT_CHAT_URL: getInjectedEnv('GENAI_DIRECT_CHAT_URL') || process.env.GENAI_DIRECT_CHAT_URL,
   GENAI_LLM_PROMPT_ENG_URL:getInjectedEnv('GENAI_LLM_PROMPT_ENG_URL') || process.env.GENAI_LLM_PROMPT_ENG_URL,
   CLAMAV_IMAGE_URL:  getInjectedEnv('CLAMAV_IMAGE_URL') || process.env.CLAMAV_IMAGE_URL,

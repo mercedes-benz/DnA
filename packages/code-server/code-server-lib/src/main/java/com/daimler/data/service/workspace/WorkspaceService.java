@@ -37,6 +37,7 @@ import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
 import com.daimler.data.dto.workspace.*;
 import com.daimler.data.dto.workspace.admin.CodespaceSecurityConfigDetailsVO;
 import com.daimler.data.dto.workspace.buildDeploy.*;
+import com.daimler.data.dto.workspace.WorkspacePluginStatusVO;
 
 
 public interface WorkspaceService {
@@ -63,11 +64,15 @@ public interface WorkspaceService {
 
 	GenericMessage update(String userId, String name, String projectName, String existingStatus, String latestStatus, String targetEnv, String branch, String gitJobRunId,String version);
 
-	GenericMessage approveRequestWorkspace(String userId, String id, String environment, String branch, boolean isSecureWithIAMRequired, 
-		String clientID, String clientSecret, String redirectUri, String ignorePaths, String scope,boolean isApiRecipe,String oneApiVersionShortName, boolean isSecuredWithCookie, boolean isprivateRecipe,String version);
+	GenericMessage approveRequestWorkspace(String userId, String id, String environment, String branch, boolean isprivateRecipe, String version);
 
-	GenericMessage deployWorkspace(String userId, String id, String environment, String branch, boolean isSecureWithIAMRequired, 
-		String clientID, String clientSecret, String redirectUri, String ignorePaths, String scope,boolean isApiRecipe,String oneApiVersionShortName, boolean isSecuredWithCookie, boolean isprivateRecipe,String version,String deployType);
+	GenericMessage deployWorkspace(String userId, String id, String environment, String branch, boolean isprivateRecipe, String version, String deployType);
+
+	GenericMessage deployedAppConfig(String userId, String id, String environment, DeployedAppConfigDto deployedAppConfigDto);
+
+	WorkspacePluginStatusVO pluginStatus(String userId, String id, String environment, String pluginName);
+	
+	GenericMessage togglePlugin(String userId, String id, String environment, String pluginName, boolean enable);
 
 	GenericMessage undeployWorkspace(String userId, String id, String environment, String branch);
 
@@ -131,5 +136,7 @@ public interface WorkspaceService {
 	CodeServerUserGroupByIdVO getWorkSpaceGroupById(String id);
 
 	CodeServerUserGroupCollectionVO deleteWorkSpaceGroup(String id);
+
+	GenericMessage deleteBuild(String projectName,String version);
 	
 }

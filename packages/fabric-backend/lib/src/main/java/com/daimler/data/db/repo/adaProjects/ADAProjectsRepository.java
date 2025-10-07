@@ -25,12 +25,12 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.repo.forecast;
+package com.daimler.data.db.repo.adaProjects;
 
 import org.springframework.data.jpa.repository.JpaRepository;
 
-import com.daimler.data.db.entities.FabricWorkspaceNsql;
+import com.daimler.data.db.entities.ADAProjectsNsql;
 
-public interface FabricWorkspaceRepository extends JpaRepository<FabricWorkspaceNsql, String> {
+public interface ADAProjectsRepository extends JpaRepository<ADAProjectsNsql, String> {
 
 }
