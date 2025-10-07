@@ -49,5 +49,6 @@ const getInjectedEnv = (key) => {
     DNA_CLIENT_ID: getInjectedEnv('DNA_CLIENT_ID') || process.env.DNA_CLIENT_ID,
     DNA_SSO_TYPE: getInjectedEnv('DNA_SSO_TYPE') || process.env.DNA_SSO_TYPE,
     DNA_APP_ID: getInjectedEnv('DNA_APP_ID') || process.env.DNA_APP_ID,
+    DNA_ENTITLEMENT_PREFIX: getInjectedEnv('DNA_ENTITLEMENT_PREFIX') || process.env.DNA_ENTITLEMENT_PREFIX,
     FABRIC_API_BASEURL: getInjectedEnv('FABRIC_API_BASEURL') || process.env.FABRIC_API_BASEURL,
   };
