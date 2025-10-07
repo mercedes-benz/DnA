@@ -836,7 +836,7 @@ export const TrainingsLandingPageElements = [
 
 export const GenAILandingPageElements = [
   {
-    name: 'Mercedes-Benz AI Ecosystem',
+    name: 'AI Ecosystem',
     description:
       'A holistic portal with the right tools and resources for AI practitioners to accelerate their AI projects.',
     tags: ['Self Service', 'FOSS'],
