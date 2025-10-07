@@ -635,6 +635,23 @@ swaggerSources {
         }
     }
 
+    uilicious {
+        def uiliciousYaml = "${rootDir}/dnambc-lib/src/main/resources/api/Uilicious.yaml"
+        def uiliciousJson = "${rootDir}/dnambc-lib/src/main/resources/api/Uilicious.json"
+        inputFile = file(uiliciousYaml)
+
+        def ignoreFile = "${rootDir}/dnambc-lib/src/main/resources/api/.swagger-codegen-ignore"
+
+        code {
+            language = 'spring'
+            configFile = file(uiliciousJson)
+            rawOptions = ['--ignore-file-override', ignoreFile]
+
+            components = ['models', 'apis']
+            //dependsOn validation
+        }
+    }
+
 }
 
 
@@ -708,6 +725,8 @@ compileJava {
     source "${swaggerSources.skill.code.outputDir}/src/main/java"
     dependsOn swaggerSources.promptCraftSubscriptions.code
     source "${swaggerSources.promptCraftSubscriptions.code.outputDir}/src/main/java"
+    dependsOn swaggerSources.uilicious.code
+    source "${swaggerSources.uilicious.code.outputDir}/src/main/java"
 }
 
 sourceSets {
@@ -751,6 +770,7 @@ sourceSets {
 		java { srcDirs += "${swaggerSources.dashboard.code.outputDir}/src/main/java"}
 		java { srcDirs += "${swaggerSources.skill.code.outputDir}/src/main/java"}
         java { srcDirs += "${swaggerSources.promptCraftSubscriptions.code.outputDir}/src/main/java"}
+        java { srcDirs += "${swaggerSources.uilicious.code.outputDir}/src/main/java"}
     }
 }
 

@@ -1,0 +1,198 @@
+# LICENSE START
+# 
+# MIT License
+# 
+# Copyright (c) 2019 Daimler TSS GmbH
+# 
+# Permission is hereby granted, free of charge, to any person obtaining a copy
+# of this software and associated documentation files (the "Software"), to deal
+# in the Software without restriction, including without limitation the rights
+# to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+# copies of the Software, and to permit persons to whom the Software is
+# furnished to do so, subject to the following conditions:
+# 
+# The above copyright notice and this permission notice shall be included in all
+# copies or substantial portions of the Software.
+# 
+# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+# IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+# FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+# AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+# LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+# OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+# SOFTWARE.
+# 
+# LICENSE END 
+#
+#-----------------------------------------------------------------------------------------------------
+#  **
+#  ** File Name  : uilicious.yaml
+#  **
+#  ** Module     : core
+#  **
+
+#  -------------------------------------------------------------------------------------------------------
+#
+#  CHANGE HISTORY
+#
+#  Created By         :  
+#
+#  Bug Number         :
+#  Changed By         :
+#  Change Description :
+#  Change On          :
+#  Search String      :
+#  -------------------------------------------------------------------------------------------------------
+
+swagger: "2.0"
+info:
+ version: "1.0.0"
+ title: "core uilicious Service"
+host: "localhost:7171"
+basePath: "/api/1.0"
+consumes:
+ - "application/json"
+produces:
+ - "application/json"
+tags:
+ - name: "uilicious"
+   description: "This service is used to onboard uilicious users."
+
+schemes:
+- "https"
+
+
+# path to create and manage uilicious workspace
+#
+# supprorted http methods GET, POST 
+#
+# path example ../uilicious
+
+# Uilicious module - simplified workspace listing (refactored from Fabric schema)
+paths:
+  /uilicious-workspaces:
+    get:
+      tags:
+        - "uilicious-workspaces"
+      summary: "Get list of workspaces for Uilicious"
+      description: |
+        Returns Uilicious workspaces for the current user (or for the provided email).
+        Each workspace includes metadata such as spaceName, link, lean governance and userRole.
+      operationId: "getUiliciousWorkspaces"
+      parameters:
+        - name: email
+          in: query
+          description: "Optional: user email to fetch workspaces for. If not provided, server uses session auth."
+          required: false
+          type: string        
+        - name: offset
+          in: query
+          description: "Page number from which listing of workspaces should start. Example: 2"
+          required: false
+          type: integer
+        - name: limit
+          in: query
+          description: "Page size to limit the number of workspaces. Example: 15"
+          required: false
+          type: integer
+        - name: sortOrder
+          in: query
+          description: "Sort order (asc or desc)."
+          required: false
+          type: string
+          enum: [asc,desc]
+      responses:
+        200:
+          description: "Successful fetch of Uilicious workspace records."
+          schema:
+            $ref: "#/definitions/UiliciousWorkspacesCollectionVO"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed."
+        500:
+          description: "Internal server error."
+
+definitions:
+
+  # Collection wrapper returned by the GET endpoint
+  UiliciousWorkspacesCollectionVO:
+    type: object
+    properties:
+      totalRecords:
+        type: integer
+        description: "Total number of workspace records available for the current query."
+      items:
+        type: array
+        items:
+          $ref: "#/definitions/UiliciousWorkspaceVO"
+
+  # Simplified workspace object for Uilicious consumers
+  UiliciousWorkspaceVO:
+    type: object
+    properties:
+      costCenter:
+        type: string
+        description: "Cost Center associated with the workspace."
+      internalOrder:
+        type: string
+        description: "Internal order number."
+      divisionId:
+        type: string
+        description: "Division ID"
+      division:
+        type: string
+        description: "Division name."
+      subDivisionId:
+        type: string
+        description: "Subdivision ID."
+      subDivision:
+        type: string
+        description: "Subdivision name."
+      department:
+        type: string
+        description: "Department name."
+      dataClassification:
+        type: string
+        description: "Data classification for the workspace (e.g. Confidential, Internal, Public)."
+      hasPii:
+        type: boolean
+        description: "Whether the workspace contains PII (true/false)."
+      accountId:
+        type: string
+        description: "Account id associated with the workspace (external account)."
+      spaceId:
+        type: string
+        description: "Space id (unique workspace identifier in the platform)."
+      spaceName:
+        type: string
+        description: "Direct link/URL to the workspace/space."
+      userRole:
+        type: string
+        description: "Role of the user in this workspace (e.g. admin, editor, viewer)."
+      createdBy:
+        $ref: "#/definitions/CreatedByVO"
+        description: "Creator information (re-used from Fabric definitions)."
+      
+  CreatedByVO:
+    type: object
+    properties:
+      id:
+        type: string
+        description: "User id of the creator."
+      name:
+        type: string
+        description: "Name of the creator."
+      email:
+        type: string
+        format: email
+        description: "Email of the creator."
+      shortId:
+        type: string
+        description: "ShortID of DnA logged in user."
