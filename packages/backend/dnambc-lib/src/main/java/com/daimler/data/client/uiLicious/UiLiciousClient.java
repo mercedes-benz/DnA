@@ -21,6 +21,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
+
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
 import java.util.List;
@@ -74,6 +75,14 @@ public class UiLiciousClient {
 
     @Value("${promptsraftsubscriptions.uiLicious.oauthKey}")
     private String oauthKey;
+
+   
+    private final ObjectMapper objectMapper;
+
+    public UiLiciousClient(RestTemplate restTemplate) {
+        this.restTemplate = restTemplate;
+        this.objectMapper = new ObjectMapper();
+    }
 
     public UiliciousStartCreationResponseDTO startCreation (String orgName, String projectName, List<MemberInfoVO> memberDetails){
         UiliciousStartCreationResponseDTO response = new UiliciousStartCreationResponseDTO();
@@ -170,4 +179,6 @@ public class UiLiciousClient {
         }
         return response;
     }
+   
+    
 }
