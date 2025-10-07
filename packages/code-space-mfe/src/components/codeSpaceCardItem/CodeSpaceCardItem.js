@@ -51,6 +51,26 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
   const [readMeContent, setReadMeContent] = useState('');
   const enableReadMe =  Envs.CODESPACE_RECIEPES_ENABLE_README?.split(',')?.includes(codeSpace?.projectDetails?.recipeDetails?.Id) || false;
   const [showMigrateOrStartModal, setShowMigrateOrStartModal] = useState(false);
+  const contextMenuRef = useRef(null);
+
+   
+    useEffect(() => {
+      const handleClickOutside = (event) => {
+        if (
+          contextMenuRef.current &&
+          !contextMenuRef.current.contains(event.target) &&
+          !event.target.closest(`.${Styles.trigger}`)
+        ) {
+          setShowContextMenu(false);
+        }
+      };
+  
+      document.addEventListener('mousedown', handleClickOutside);
+  
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside);
+      };
+    }, []);
 
   useEffect(() => {
     handleServerStatusAndProgress();
@@ -387,24 +407,26 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
                 >
                   <i className="icon mbc-icon listItem context" />
                 </span>
-                <ContextMenu
-                  codeSpace={props?.codeSpace}
-                  userInfo={props?.userInfo}
-                  showContextMenu={showContextMenu}
-                  setShowContextMenu = {(val) => {setShowContextMenu(val);}}
-                  // toggleContextMenu={toggleContextMenu}
-                  contextMenuOffsetTop={contextMenuOffsetTop}
-                  contextMenuOffsetLeft={contextMenuOffsetLeft}
-                  stagingWrapperRef={stagingWrapperRef}
-                  prodWrapperRef={prodWrapperRef}
-                  onShowDeployModal={props?.onShowDeployModal}
-                  serverStarted={serverStarted}
-                  onStartStopCodeSpace={props?.onStartStopCodeSpace}
-                  handleServerStatusAndProgress={handleServerStatusAndProgress}
-                  onShowBlueprintModal={props?.onShowBlueprintModal}
-                  onShowBuildModal={props?.onShowBuildModal}
-                  onGetCodespaceData={props?.onGetCodespaceData}
-                />
+                <div ref={contextMenuRef}>
+                  <ContextMenu
+                    codeSpace={props?.codeSpace}
+                    userInfo={props?.userInfo}
+                    showContextMenu={showContextMenu}
+                    setShowContextMenu = {(val) => {setShowContextMenu(val);}}
+                    // toggleContextMenu={toggleContextMenu}
+                    contextMenuOffsetTop={contextMenuOffsetTop}
+                    contextMenuOffsetLeft={contextMenuOffsetLeft}
+                    stagingWrapperRef={stagingWrapperRef}
+                    prodWrapperRef={prodWrapperRef}
+                    onShowDeployModal={props?.onShowDeployModal}
+                    serverStarted={serverStarted}
+                    onStartStopCodeSpace={props?.onStartStopCodeSpace}
+                    handleServerStatusAndProgress={handleServerStatusAndProgress}
+                    onShowBlueprintModal={props?.onShowBlueprintModal}
+                    onShowBuildModal={props?.onShowBuildModal}
+                    onGetCodespaceData={props?.onGetCodespaceData}
+                  />
+                </div>
               </div>
             )}
             {!enableOnboard && !creationFailed && !createInProgress && disableDeployment && serverStarted && (

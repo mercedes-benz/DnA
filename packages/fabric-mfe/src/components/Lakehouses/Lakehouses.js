@@ -4,6 +4,7 @@ import Styles from './lakehouses.scss';
 import Modal from 'dna-container/Modal';
 import SelectBox from 'dna-container/SelectBox';
 import ConfirmModal from 'dna-container/ConfirmModal';
+import InfoModal from 'dna-container/InfoModal';
 import Tooltip from '../../common/modules/uilab/js/src/tooltip';
 import Pagination from 'dna-container/Pagination';
 import Tags from 'dna-container/Tags';
@@ -13,6 +14,8 @@ import { SESSION_STORAGE_KEYS } from '../../utilities/constants';
 import { getQueryParameterByName } from '../../utilities/utils';
 import { fabricApi } from '../../apis/fabric.api';
 import Popper from 'popper.js';
+import ViewTablesModalContent from '../../components/Lakehouses/CdcPush';
+import { Envs } from '../../utilities/envs';
 
 const CreateShortcutModalContent = ({ workspaceId, lakehouseId, onCreateShortcut }) => {
   const [bucketName, setBucketName] = useState('');
@@ -306,7 +309,7 @@ const ViewShortcutsModalContent = ({ workspaceId, lakehouseId }) => {
   );
 }
 
-function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse }) {
+function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshWorkspace }) {
   const [showCreateLakehouseModal, setShowCreateLakehouseModal] = useState(false);
   const [lakehouseName, setLakehouseName] = useState('');
   const [lakehouseNameError, setLakehouseNameError] = useState(false);
@@ -314,6 +317,8 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse }) {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showViewShortcutsModal, setShowViewShortcutsModal] = useState(false);
   const [showCreateShortcutModal, setShowCreateShortcutModal] = useState(false);
+  const [showViewTables, setShowViewTablesModal] = useState(false);
+  const [showNonProdProjectModal, setShowNonProdProjectModal] = useState(false);
 
   const [contextMenus, setContextMenus] = useState({});
   const [showLocationsContextMenu, setShowLocationsContextMenu] = useState(false);
@@ -605,15 +610,53 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse }) {
                           <span>View Shortcuts</span>
                         </button>
                       </li>
+                      <li className="contextListItem">
+                        <button className={classNames('btn btn-primary', Styles.outlineBtn)} 
+                          onClick={() => { 
+                            setSelectedLakehouse(lakehouse); 
+                            if (workspace?.typeOfProject?.toLowerCase() !== "production") {
+                              setShowNonProdProjectModal(true);
+                            } else {
+                              setShowViewTablesModal(true);
+                            }
+                          }}
+                        >
+                          <i className="icon mbc-icon dublicate" />
+                          <span>Push to CDC</span>
+                        </button>
+                      </li>
                     </ul>
                   </div>
                 </div>
               </h4>
               <div className={Styles.buttonContainer}>
-                {user?.id === workspace?.createdBy?.id && 
-                    <button className={classNames('btn', Styles.deleteBtn)} onClick={() => { setSelectedLakehouse(lakehouse); setShowDeleteModal(true) }}>
-                      <i className="icon delete" />
-                    </button>
+                <div className={Styles.cdcContainer}>
+                  {workspace?.cdcPublishedLakeHouseDetails?.publishedLakeHouseNames?.includes(lakehouse.id) && (
+                    <>
+                      <span className={Styles.statusIndicator}>
+                        <span
+                          className={Styles.deployedTag}
+                          tooltip-data="Lakehouse successfully deployed to CDC."
+                        >
+                          Published
+                        </span>
+                      </span>
+                      <div className={Styles.cdcNewTab}>
+                        <a
+                          href={`${Envs.CDC_URL}/${workspace?.name}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <i className="icon mbc-icon new-tab" />
+                        </a>
+                      </div>
+                    </>
+                  )}
+                </div>
+                {user?.id === workspace?.createdBy?.id &&
+                  <button className={classNames('btn', Styles.deleteBtn)} onClick={() => { setSelectedLakehouse(lakehouse); setShowDeleteModal(true) }}>
+                    <i className="icon delete" />
+                  </button>
                 }
               </div>
             </div>
@@ -670,6 +713,47 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse }) {
           content={<ViewShortcutsModalContent workspaceId={workspace?.id} lakehouseId={selectedLakehouse?.id} />}
           scrollableContent={true}
           onCancel={() => { setSelectedLakehouse(); setShowViewShortcutsModal(false) }}
+        />
+      }
+      { showViewTables &&
+        <InfoModal
+          title={
+            <div className={Styles.modalTitle}>
+              <span>{selectedLakehouse ? `${selectedLakehouse.name} - Tables` : 'Tables'}</span>
+                <a
+                  href={Envs.CONFLUENCE_PAGE}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title="Help"
+                >
+                  <i className="icon mbc-icon help" />
+                </a>
+            </div>
+          }
+          showAcceptButton={false}
+          showCancelButton={false}
+          modalWidth={'90%'}
+          buttonAlignment="right"
+          show={showViewTables}
+          content={<ViewTablesModalContent workspaceId={workspace?.id} lakehouseId={selectedLakehouse?.id} lakehouseName={selectedLakehouse?.name} onRefreshWorkspace={onRefreshWorkspace} />}
+          scrollableContent={true}
+          onCancel={() => { setSelectedLakehouse(); setShowViewTablesModal(false) }}
+        />
+      }
+      {showNonProdProjectModal &&
+        <InfoModal
+          title="CDC Push Not Allowed"
+          showAcceptButton={false}
+          showCancelButton={true}
+          buttonAlignment="right"
+          modalWidth="40%"
+          show={showNonProdProjectModal}
+          content={
+            <div>
+              <p>Projects other than <b>Production</b> cannot be pushed to CDC.</p>
+            </div>
+          }
+          onCancel={() => setShowNonProdProjectModal(false)}
         />
       }
       { showDeleteModal &&
