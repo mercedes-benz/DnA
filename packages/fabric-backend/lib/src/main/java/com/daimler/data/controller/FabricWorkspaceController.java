@@ -7,6 +7,7 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.Objects;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -118,7 +119,7 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 			return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
 		}else {
 				if(workspaceRequestVO.getDescription()==null || workspaceRequestVO.getDivision() == null || workspaceRequestVO.getDataClassification() ==null
-				|| workspaceRequestVO.isHasPii() == null || workspaceRequestVO.isTermsOfUse() == null || workspaceRequestVO.getCostCenter() == null || workspaceRequestVO.getDepartment() == null){
+				|| workspaceRequestVO.isHasPii() == null || workspaceRequestVO.isTermsOfUse() == null  || workspaceRequestVO.getDepartment() == null){
 					log.error("Fabric workspace project mandatory fields cannot be null for project, please check and send valid input.");
 					MessageDescription invalidMsg = new MessageDescription("Fabric workspace project mandatory fields cannot be null for project, please check and send valid input.");
 					errorMessage.setSuccess(HttpStatus.BAD_REQUEST.name());
@@ -857,6 +858,54 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 			log.error("Failed to create role with exception {} ",e.getMessage());
 			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
+	}
+
+    @Override
+	@ApiOperation(value = "Transfer ownership of a workspace", nickname = "transferWorkspaceOwnership", notes = "Changes the owner of the given workspace to another user.", response = GenericMessage.class, tags={ "fabric-workspaces", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 200, message = "Ownership transferred successfully", response = GenericMessage.class),
+        @ApiResponse(code = 400, message = "Bad Request"),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/fabric-workspaces/{id}/transferOwnership",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.PATCH)
+    public ResponseEntity<GenericMessage> transferWorkspaceOwnership(@ApiParam(value = "The ID of the workspace",required=true) @PathVariable("id") String id,@ApiParam(value = "The user info of the new owner" ,required=true )  @Valid @RequestBody CreatedByVO userInfo) {
+
+		GenericMessage responses = new GenericMessage();
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+		FabricWorkspaceVO workspaceVo = service.getById(id);
+		if(workspaceVo==null || !id.equalsIgnoreCase(workspaceVo.getId())) {
+			log.warn("No Fabric Workspace found with id {}", id);
+			errors.add(new MessageDescription("Record not found"));
+			responses.setErrors(errors);
+			responses.setSuccess("FAILED");
+			return new ResponseEntity<>(responses, HttpStatus.NOT_FOUND);
+		}
+		
+		CreatedByVO requestUser = this.userStore.getVO();
+		String creatorId = workspaceVo.getCreatedBy().getId();
+		if(!requestUser.getId().equalsIgnoreCase(creatorId)) {
+				log.warn("Fabric workspace doesnt belong to User, Not authorized to transfer ownership",id,workspaceVo.getName());
+				errors.add(new MessageDescription("User is not the owner of the workspace. Not authorized to transfer ownership."));
+				responses.setErrors(errors);
+				responses.setSuccess("FAILED");
+				return new ResponseEntity<>(responses, HttpStatus.FORBIDDEN);
+		}
+		if(creatorId == userInfo.getId()){
+			log.warn("Selected user is already the owner of the workspace.",id,workspaceVo.getName());
+			errors.add(new MessageDescription("Selected user is already the owner of the workspace."));
+			responses.setErrors(errors);
+			responses.setSuccess("FAILED");
+			return new ResponseEntity<>(responses, HttpStatus.FORBIDDEN);
+		}
+
+		GenericMessage responseMessage = service.transferOwnership(workspaceVo, requestUser, userInfo);
+		return new ResponseEntity<>(responseMessage, HttpStatus.OK);
 	}
 
 	@Override
