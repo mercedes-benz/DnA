@@ -32,6 +32,7 @@ const BuildModal = (props) => {
     parseInt(sessionStorage.getItem(SESSION_STORAGE_KEYS.AUDIT_LOGS_MAX_ITEMS_PER_PAGE), 10) || 5,
   );
   const [allLogs, setAllLogs] = useState([]);
+  const [latestBuildVersion, setLatestBuildVersion] = useState('');
   const [showDeployCodeSpaceModal, setShowDeployCodeSpaceModal] = useState(false);
   const [buildDetails, setBuildDetails] = useState('');
 
@@ -197,12 +198,19 @@ const BuildModal = (props) => {
   const onLogsRefresh = () => {
     CodeSpaceApiClient.getBuildAndDeployLogs(projectDetails?.projectName)
       .then((res) => {
-        setAllLogs(
+        const logs =
           buildEnvironment === 'staging'
             ? [...(res?.data?.data?.intBuildAuditLogs ?? [])].reverse()
-            : [...(res?.data?.data?.prodBuildAuditLogs ?? [])].reverse(),
-        );
+            : [...(res?.data?.data?.prodBuildAuditLogs ?? [])].reverse();
+
+        setAllLogs(logs);
+
+
+        if (logs.length > 0) {
+          setLatestBuildVersion(logs[0].version);
+        }
       })
+
       .catch((err) => {
         Notification.show('Error in getting build audit logs - ' + err.message, 'alert');
       });
@@ -381,7 +389,20 @@ const BuildModal = (props) => {
                             </td>
                             <td>{item?.buildOn ? regionalDateAndTimeConversionSolution(item?.buildOn) : 'N/A'}</td>
                             <td>{item?.commitId || 'N/A'}</td>
-                            <td>{`${item?.version} ${item?.imageDeleted ? '(N/A)' : ''}` || 'N/A'}</td>
+                            <td>
+                              {item?.version ? (
+                                <>
+                                  {item.version}
+                                  {item?.imageDeleted ? ' (N/A)' : ''}
+                                  {item.version === latestBuildVersion && (
+                                    <span className={Styles.deployedIndicator}> DEPLOYED</span>
+                                  )}
+                                </>
+                              ) : (
+                                'N/A'
+                              )}
+                            </td>
+
                             <td>
                               <label>{item?.comments || 'N/A'}</label>
                             </td>
@@ -399,8 +420,26 @@ const BuildModal = (props) => {
                                   >
                                     <i className="icon mbc-icon deploy" />
                                   </button>
-                                  <button className={'btn btn-primary ' + classNames(Styles.actionBtn)} type="button" onClick={() => handleBuildDelete(item.version)}>
-                                    <i className='icon delete'></i>
+
+
+                                  <button
+                                    className={
+                                      'btn btn-primary ' +
+                                      classNames(
+                                        Styles.actionBtn,
+                                        item.version === latestBuildVersion ? Styles.disabledButton : ''
+                                      )
+                                    }
+                                    type="button"
+                                    onClick={() => handleBuildDelete(item.version)}
+                                    disabled={item.version === latestBuildVersion}
+                                    tooltip-data={
+                                      item.version === latestBuildVersion
+                                        ? 'Cannot delete the latest deployed build'
+                                        : 'Delete build'
+                                    }
+                                  >
+                                    <i className="icon delete"></i>
                                   </button>
                                 </div>
                               ) : (
