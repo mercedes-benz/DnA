@@ -1024,5 +1024,4 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 		}
     }
 
-    
 }

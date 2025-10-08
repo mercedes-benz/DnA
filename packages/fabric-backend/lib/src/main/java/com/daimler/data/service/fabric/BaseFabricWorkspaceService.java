@@ -2003,5 +2003,4 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		}
 	}
 
-
 }
