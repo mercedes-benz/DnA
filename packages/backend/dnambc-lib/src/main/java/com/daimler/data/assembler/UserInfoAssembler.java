@@ -154,10 +154,10 @@ public class UserInfoAssembler implements GenericAssembler<UserInfoVO, UserInfoN
 		List<UserInfoRole> jsonRoles = new ArrayList<>();
 		if(existingEntity == null){
 			if (vo.getRoles() != null) {
-			jsonRoles = vo.getRoles().stream()
+			List<UserInfoRole> jsonRole = vo.getRoles().stream()
 				.map(r -> new UserInfoRole(r.getId(), r.getName()))
 				.collect(Collectors.toList());
-			jsonData.setRoles(jsonRoles);	
+			jsonData.setRoles(jsonRole);	
 			}
 			jsonData.setFavoriteUsecases(null);
 			jsonData.setIsDeleted(null);
