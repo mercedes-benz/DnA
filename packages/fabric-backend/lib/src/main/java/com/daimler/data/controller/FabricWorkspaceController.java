@@ -10,6 +10,7 @@ import java.util.stream.Collectors;
 import java.util.Objects;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,6 +28,7 @@ import com.daimler.data.api.fabricWorkspace.LovsApi;
 import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.application.auth.UserStore.UserInfo;
 import com.daimler.data.application.client.AuthoriserClient;
+import com.daimler.data.application.client.FabricCDCPushServiceClient;
 import com.daimler.data.application.client.FabricWorkspaceClient;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
@@ -43,6 +45,8 @@ import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceRoleRequestVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceUpdateRequestVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspacesCollectionVO;
+import com.daimler.data.dto.fabricWorkspace.LakehouseColumnCollectionResponseVO;
+import com.daimler.data.dto.fabricWorkspace.LakehouseTableCollectionResponseVO;
 import com.daimler.data.dto.fabricWorkspace.RolesVO;
 import com.daimler.data.dto.fabricWorkspace.DnaRoleCollectionVO;
 import com.daimler.data.dto.fabricWorkspace.EntraGroupResponseVO;
@@ -75,6 +79,9 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 
 	@Autowired
 	private FabricWorkspaceClient fabricWorkspaceClient;
+
+	@Autowired
+	private FabricCDCPushServiceClient fabricCDCPushServiceClient;
 
 	@Autowired FabricWorkspaceUtility utility;
 
@@ -112,7 +119,7 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 			return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
 		}else {
 				if(workspaceRequestVO.getDescription()==null || workspaceRequestVO.getDivision() == null || workspaceRequestVO.getDataClassification() ==null
-				|| workspaceRequestVO.isHasPii() == null || workspaceRequestVO.isTermsOfUse() == null || workspaceRequestVO.getCostCenter() == null || workspaceRequestVO.getDepartment() == null){
+				|| workspaceRequestVO.isHasPii() == null || workspaceRequestVO.isTermsOfUse() == null  || workspaceRequestVO.getDepartment() == null){
 					log.error("Fabric workspace project mandatory fields cannot be null for project, please check and send valid input.");
 					MessageDescription invalidMsg = new MessageDescription("Fabric workspace project mandatory fields cannot be null for project, please check and send valid input.");
 					errorMessage.setSuccess(HttpStatus.BAD_REQUEST.name());
@@ -997,7 +1004,7 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
         @ApiResponse(code = 403, message = "Request is not authorized."),
         @ApiResponse(code = 405, message = "Method not allowed"),
         @ApiResponse(code = 500, message = "Internal error") })
-    @RequestMapping(value = "/fabric-worspace/{roleId}/details",
+    @RequestMapping(value = "/fabric-workspaces/{roleId}/details",
         produces = { "application/json" }, 
         consumes = { "application/json" },
         method = RequestMethod.GET)
@@ -1059,6 +1066,64 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
             }
         }
         return false;
+	}
+
+
+	@Override
+	 @ApiOperation(value = "Get tables for a given lakehouse", nickname = "getLakehouseTables", notes = "Get all tables for a given Fabric lakehouse under a workspace.", response = LakehouseTableCollectionResponseVO.class, tags={ "fabric-workspaces", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 200, message = "List of tables in the lakehouse", response = LakehouseTableCollectionResponseVO.class),
+        @ApiResponse(code = 204, message = "Fetch complete, but no tables found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have valid credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed."),
+        @ApiResponse(code = 500, message = "Internal server error.") })
+    @RequestMapping(value = "/fabric-workspaces/lakehouses/tables",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.GET)
+    public ResponseEntity<LakehouseTableCollectionResponseVO> getLakehouseTables(@NotNull @ApiParam(value = "", required = true) @Valid @RequestParam(value = "workspaceId", required = true) String workspaceId,@NotNull @ApiParam(value = "", required = true) @Valid @RequestParam(value = "lakehouseId", required = true) String lakehouseId){
+		try{
+			LakehouseTableCollectionResponseVO response = fabricCDCPushServiceClient.getLakehouseTables(workspaceId, lakehouseId);
+			if (response != null && response.getData()!=null && response.getResponseCode().equalsIgnoreCase(HttpStatus.OK.toString())) {
+				return new ResponseEntity<>(response, HttpStatus.OK);
+			} else {
+				return new ResponseEntity<>(response, response.getResponseCode() != null ? HttpStatus.valueOf(response.getResponseCode()) : HttpStatus.NO_CONTENT);
+			}
+		} catch (Exception e) {
+			log.error("Failed to retrieve lakehouse tables for workspaceId {} and lakehouseId {} with exception: {}", workspaceId, lakehouseId, e.getMessage());
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+
+	@Override
+	 @ApiOperation(value = "Get table schema", nickname = "getTableSchema", notes = "Get column schema for a table inside a Fabric lakehouse.", response = LakehouseColumnCollectionResponseVO.class, tags={ "fabric-workspaces", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 200, message = "Successfully fetched table schema.", response = LakehouseColumnCollectionResponseVO.class),
+        @ApiResponse(code = 204, message = "Fetch complete, but no schema found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have valid credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed."),
+        @ApiResponse(code = 500, message = "Internal server error.") })
+    @RequestMapping(value = "/fabric-workspaces/lakehouses/table/schema",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.GET)
+    public ResponseEntity<LakehouseColumnCollectionResponseVO> getTableSchema(@NotNull @ApiParam(value = "", required = true) @Valid @RequestParam(value = "workspaceId", required = true) String workspaceId,@NotNull @ApiParam(value = "", required = true) @Valid @RequestParam(value = "lakehouseId", required = true) String lakehouseId,@NotNull @ApiParam(value = "", required = true) @Valid @RequestParam(value = "tableName", required = true) String tableName,@ApiParam(value = "") @Valid @RequestParam(value = "schemaName", required = false) String schemaName){
+		try{
+			LakehouseColumnCollectionResponseVO response = fabricCDCPushServiceClient.getTableSchema(workspaceId, lakehouseId, schemaName, tableName);
+			if (response != null && response.getData()!=null && response.getResponseCode().equalsIgnoreCase(HttpStatus.OK.toString())) {
+				return new ResponseEntity<>(response, HttpStatus.OK);
+			} else {
+				return new ResponseEntity<>(response, response.getResponseCode() != null ? HttpStatus.valueOf(response.getResponseCode()) : HttpStatus.NO_CONTENT);
+			}
+		} catch (Exception e) {
+			log.error("Failed to retrieve table schema for workspaceId {} and lakehouseId {} with exception: {}", workspaceId, lakehouseId, e.getMessage());
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
     }
     
 }

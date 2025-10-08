@@ -2,7 +2,7 @@ spring:
   mvc.pathmatch.matching-strategy: ant_path_matcher
   application:
     name: dna-codeserver-service
-    version: 1.7.0
+    version: 1.7.2
   profile:
     active: production
 
@@ -187,6 +187,9 @@ kong:
    authoriserIntrospectionEndpoint: ${AUTHORISER_INTROSPECTION_ENDPOINT:XXXX}
    preFunctionBackendFileName: ${PRE_FUNCTION_BACKEND_FILE_NAME:XXXX}
    postFunctionFrontendFileName: ${POST_FUNCTION_FRONTEND_FILE_NAME:XXXX}
+   postFunctionPrefixFileName: ${POST_FUNCTION_PREFIX_FILE_NAME:XXXX}
+   postFunctionEntitlementFileName: ${POST_FUNCTION_ENTITLEMENT_FILE_NAME:XXXX}
+   postFunctionNoEntitlementFileName: ${POST_FUNCTION_NO_ENTITLEMENT_FILE_NAME:XXXX}
    preFunctionFrontendFileName: ${PRE_FUNCTION_FRONTENDFILE_NAMEVALUE:XXXX}
    functionPluginGitUrl: ${FUNCTION_PLUGINS_GIT_URL:XXXX}
    functionPluginsFolderPath : ${FUNCTION_PLUGIN_FOLDER_PATH:XXXX}
@@ -195,6 +198,10 @@ kong:
    accessTokenAsBearer :  ${ACCESS_TOKEN_AS_BEARER:XXXX}
    dnaClientSecret : ${DNA_CLIENT_SECRET:XXXX}
    dnaAppId : ${DNA_APP_ID:XXXX}
+
+alice:
+  aliceBaseUrl: ${ALICE_SERVICE_BASE_URL:XXXX}
+  aliceAuthToken: ${ALICE_SERVICE_AUTH_TOKEN:XXXX}
 
 workspace:
   migrate: ${MIGRATE_WORKSPACE:YOUR_MIGRATE_BOOLEAN}    
