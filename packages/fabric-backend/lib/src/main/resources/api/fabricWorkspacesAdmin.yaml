@@ -66,7 +66,7 @@ paths:
   #  supprorted http methods GET, POST and DELETE
   #
   # path example ../fabric-workspaces
-  /fabric-workspaces/admin:
+  /fabric-workspaces/admin/workspaces:
     get:
       tags:
         - "fabric-workspaces-admin"

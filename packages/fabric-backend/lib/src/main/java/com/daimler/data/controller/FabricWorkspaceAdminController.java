@@ -57,7 +57,7 @@ public class FabricWorkspaceAdminController implements FabricWorkspacesAdminApi
         @ApiResponse(code = 403, message = "User is not a Fabric Admin."),
         @ApiResponse(code = 405, message = "Method not allowed."),
         @ApiResponse(code = 500, message = "Internal server error.") })
-    @RequestMapping(value = "/fabric-workspaces/admin",
+    @RequestMapping(value = "/fabric-workspaces/admin/workspaces",
         produces = { "application/json" }, 
         consumes = { "application/json" },
         method = RequestMethod.GET)
