@@ -393,7 +393,7 @@ paths:
           500:
             description: "Internal error"
 
-  /fabric-worspace/{roleId}/details:
+  /fabric-workspaces/{roleId}/details:
     get:
         tags:
           - "fabric-workspaces"
@@ -483,6 +483,83 @@ paths:
             description: "Method not allowed"
           500:
             description: "Internal error"
+
+  /fabric-workspaces/lakehouses/tables:
+    get:
+      tags:
+        - "fabric-workspaces"
+      summary: "Get tables for a given lakehouse"
+      description: "Get all tables for a given Fabric lakehouse under a workspace."
+      operationId: "getLakehouseTables"
+      parameters:
+        - name: "workspaceId"
+          in: "query"
+          required: true
+          type: "string"
+        - name: "lakehouseId"
+          in: "query"
+          required: true
+          type: "string"
+      responses:
+        200:
+          description: "List of tables in the lakehouse"
+          schema:
+            $ref: "#/definitions/LakehouseTableCollectionResponseVO"
+        204:
+          description: "Fetch complete, but no tables found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have valid credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed."
+        500:
+          description: "Internal server error."
+
+  /fabric-workspaces/lakehouses/table/schema:
+    get:
+      tags:
+        - "fabric-workspaces"
+      summary: "Get table schema"
+      description: "Get column schema for a table inside a Fabric lakehouse."
+      operationId: "getTableSchema"
+      parameters:
+        - name: "workspaceId"
+          in: "query"
+          required: true
+          type: "string"
+        - name: "lakehouseId"
+          in: "query"
+          required: true
+          type: "string"
+        - name: "tableName"
+          in: "query"
+          required: true
+          type: "string"
+        - name: "schemaName"
+          in: "query"
+          required: false
+          type: "string"
+      responses:
+        200:
+          description: "Successfully fetched table schema."
+          schema:
+            $ref: "#/definitions/LakehouseColumnCollectionResponseVO"
+        204:
+          description: "Fetch complete, but no schema found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have valid credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed."
+        500:
+          description: "Internal server error."
+
 
   /fabric-workspaces/{id}/takeOwnership:
     patch:
@@ -630,6 +707,8 @@ definitions:
       lastModifiedOn:
           type: string
           format: date
+      cdcPublishedLakeHouseDetails:
+        $ref: "#/definitions/CdcPublishedLakeHouseDetailsVO"
 
   FabricWorkspaceStatusVO:
     type: object
@@ -1079,3 +1158,76 @@ definitions:
         type: string
       shortId:
         type: string
+
+  CdcPublishedLakeHouseDetailsVO:
+    type: object
+    properties:
+      isLakeHousesPublishedToCdc:
+        type: boolean
+      publishedLakeHouseNames:
+        type: array
+        items:
+          type: string
+
+  
+
+  LakeHouseTableVO:
+    type: object
+    properties:
+      tableName:
+        type: string
+        description: "Name of the table in lakehouse"
+      schemaName:
+        type: string
+        description: "Schema name of the table in lakehouse"
+     
+  LakehouseTableCollectionVO:
+    type: object
+    properties:
+      tables:
+        type: array
+        items:
+          $ref: "#/definitions/LakeHouseTableVO"
+
+  LakehouseTableCollectionResponseVO:
+      type: object
+      properties:
+        data:
+          $ref: "#/definitions/LakehouseTableCollectionVO"
+        responseCode:
+          type: string
+          description: "Response code of the operation"
+
+  LakehouseColumnVO:
+    type: object
+    properties:
+      columnName:
+        type: string
+        description: "Name of the column in table"
+      colType:
+        type: string
+        description: "Data type of the column in table"
+      colConstraint:
+        type: string
+        description: "Is the column nullable or not"
+
+  LakehouseColumnCollectionVO:
+    type: object
+    properties:
+      columns:
+        type: array
+        items:
+          $ref: "#/definitions/LakehouseColumnVO"
+
+  LakehouseColumnCollectionResponseVO:
+    type: object
+    properties:
+      data:
+        $ref: "#/definitions/LakehouseColumnCollectionVO"
+      responseCode:
+        type: string
+        description: "Response code of the operation"
+      
+
+
+  

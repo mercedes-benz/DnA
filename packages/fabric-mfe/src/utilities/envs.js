@@ -36,4 +36,8 @@ export const Envs = {
   FABRIC_ENTITLEMENT_IGNORE: getInjectedEnv('FABRIC_ENTITLEMENT_IGNORE') || process.env.FABRIC_ENTITLEMENT_IGNORE,
   MANDATE_LEANIX_FOR_DIVISIONS: getInjectedEnv('MANDATE_LEANIX_FOR_DIVISIONS') || process.env.MANDATE_LEANIX_FOR_DIVISIONS,
   MB_INSIDE_URL: getInjectedEnv('MB_INSIDE_URL') || process.env.MB_INSIDE_URL,
+  CDC_URL: getInjectedEnv('CDC_URL') || process.env.CDC_URL,
+  DNA_MAIL: getInjectedEnv('DNA_MAIL') || process.env.DNA_MAIL,
+  CONFLUENCE_PAGE: getInjectedEnv('CONFLUENCE_PAGE') || process.env.CONFLUENCE_PAGE,
+  CDC_SIGNIN_URL: getInjectedEnv('CDC_SIGNIN_URL') || process.env.CDC_SIGNIN_URL,
 };
