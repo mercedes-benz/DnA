@@ -1663,50 +1663,51 @@
 			 boolean isSecuredWithCookie = false;
 
 			 //buildAndDeploy flow
-			 if(version == null || version.isEmpty() || version.isBlank()){
-				String lastBuildType = "buildAndDeploy";
-				CodeServerBuildDeployNsql buildDeployEntity = buildDeployCustomRepo.findByProjectName(projectName);
+				CodeServerBuildDeployNsql buildDeployEntity = null;
 				List<BuildAudit> builds = new ArrayList<>();
-				
-				int retainedBuildLimit;
-				try {
-					retainedBuildLimit = Integer.parseInt(retainedBuildLimitValue.trim());
-				} catch (NumberFormatException ex) {
-					log.error("Invalid retained build limit value '{}'. Please correct it in Vault.",
-							retainedBuildLimitValue);
-					throw new IllegalStateException("Invalid retained build limit value: " + retainedBuildLimitValue);
-				}
-
-				if (buildDeployEntity != null && buildDeployEntity.getData() != null) {
-					CodeServerBuildDeploy buildDeployData = buildDeployEntity.getData();
-
-					builds = "int".equalsIgnoreCase(environment)
-							? buildDeployData.getIntBuildAuditLogs()
-							: buildDeployData.getProdBuildAuditLogs();
-
-					if (builds == null)
-						builds = new ArrayList<>();
-
-					long retainedCount = builds.stream()
-							.filter(b -> "BUILD_SUCCESS".equalsIgnoreCase(b.getBuildStatus()))
-							.filter(b -> !b.isImageDeleted())
-							.count();
-
-					log.info("Build-and-deploy flow: Retained successful builds = {}, Limit = {}", retainedCount,
-							retainedBuildLimit);
-
-					if (retainedCount >= retainedBuildLimit) {
-						MessageDescription invalidMsg = new MessageDescription();
-						invalidMsg.setMessage("Build not allowed: There are already " + retainedCount +
-								" successful builds with images retained. Please delete older images before triggering a new build.");
-						GenericMessage errorMessage = new GenericMessage();
-						errorMessage.addErrors(invalidMsg);
-						log.info(
-								"User {} attempted buildAndDeploy for project {} but retained image limit ({}) reached.",
-								userId, projectName, retainedBuildLimit);
-						return errorMessage; // Prevent build-and-deploy
+				if (version == null || version.isEmpty() || version.isBlank()) {
+					String lastBuildType = "buildAndDeploy";
+					buildDeployEntity = buildDeployCustomRepo.findByProjectName(projectName);
+					int retainedBuildLimit;
+					try {
+						retainedBuildLimit = Integer.parseInt(retainedBuildLimitValue.trim());
+					} catch (NumberFormatException ex) {
+						log.error("Invalid retained build limit value '{}'. Please correct it in Vault.",
+								retainedBuildLimitValue);
+						throw new IllegalStateException(
+								"Invalid retained build limit value: " + retainedBuildLimitValue);
 					}
-				}
+
+					if (buildDeployEntity != null && buildDeployEntity.getData() != null) {
+						CodeServerBuildDeploy buildDeployData = buildDeployEntity.getData();
+
+						builds = "int".equalsIgnoreCase(environment)
+								? buildDeployData.getIntBuildAuditLogs()
+								: buildDeployData.getProdBuildAuditLogs();
+
+						if (builds == null)
+							builds = new ArrayList<>();
+
+						long retainedCount = builds.stream()
+								.filter(b -> "BUILD_SUCCESS".equalsIgnoreCase(b.getBuildStatus()))
+								.filter(b -> !b.isImageDeleted())
+								.count();
+
+						log.info("Build-and-deploy flow: Retained successful builds = {}, Limit = {}", retainedCount,
+								retainedBuildLimit);
+
+						if (retainedCount >= retainedBuildLimit) {
+							MessageDescription invalidMsg = new MessageDescription();
+							invalidMsg.setMessage("Build not allowed: There are already " + retainedCount +
+									" successful builds with images retained. Please delete older images before triggering a new build.");
+							GenericMessage errorMessage = new GenericMessage();
+							errorMessage.addErrors(invalidMsg);
+							log.info(
+									"User {} attempted buildAndDeploy for project {} but retained image limit ({}) reached.",
+									userId, projectName, retainedBuildLimit);
+							return errorMessage; // Prevent build-and-deploy
+						}
+					}
 				ManageBuildRequestDto buildRequestDto = new ManageBuildRequestDto();
 				buildRequestDto.setBranch(branch);
 				buildRequestDto.setEnvironment(environment);
