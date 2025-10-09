@@ -227,8 +227,9 @@ public class BuildDeployController implements CodeServerBuildDeployServiceApi {
         try {
             retainedBuildLimit = Integer.parseInt(retainedBuildLimitValue.trim());
         } catch (NumberFormatException ex) {
-            log.warn("Invalid retained build limit value '{}', defaulting to 10", retainedBuildLimitValue);
-            retainedBuildLimit = 10;
+            log.error("Invalid retained build limit value '{}'. Please correct it in Vault.",
+                    retainedBuildLimitValue);
+            throw new IllegalStateException("Invalid retained build limit value: " + retainedBuildLimitValue);
         }
         
         if (retainedCount >= retainedBuildLimit) {

@@ -226,7 +226,9 @@
 
 	 @Autowired
 	 private WorkspaceCustomBuildDeployRepo buildDeployCustomRepo;
- 
+
+	 @Value("${codeServer.build.retainedlimit}")
+     private String retainedBuildLimitValue;
  
   
 	 public BaseWorkspaceService() {
@@ -1665,11 +1667,21 @@
 				String lastBuildType = "buildAndDeploy";
 				CodeServerBuildDeployNsql buildDeployEntity = buildDeployCustomRepo.findByProjectName(projectName);
 				List<BuildAudit> builds = new ArrayList<>();
+				
+				int retainedBuildLimit;
+				try {
+					retainedBuildLimit = Integer.parseInt(retainedBuildLimitValue.trim());
+				} catch (NumberFormatException ex) {
+					log.error("Invalid retained build limit value '{}'. Please correct it in Vault.",
+							retainedBuildLimitValue);
+					throw new IllegalStateException("Invalid retained build limit value: " + retainedBuildLimitValue);
+				}
 
 				if (buildDeployEntity != null && buildDeployEntity.getData() != null) {
 					CodeServerBuildDeploy buildDeployData = buildDeployEntity.getData();
 
-					builds = "int".equalsIgnoreCase(environment) ? buildDeployData.getIntBuildAuditLogs()
+					builds = "int".equalsIgnoreCase(environment)
+							? buildDeployData.getIntBuildAuditLogs()
 							: buildDeployData.getProdBuildAuditLogs();
 
 					if (builds == null)
@@ -1680,13 +1692,19 @@
 							.filter(b -> !b.isImageDeleted())
 							.count();
 
-					if (retainedCount >= 10) {
+					log.info("Build-and-deploy flow: Retained successful builds = {}, Limit = {}", retainedCount,
+							retainedBuildLimit);
+
+					if (retainedCount >= retainedBuildLimit) {
 						MessageDescription invalidMsg = new MessageDescription();
 						invalidMsg.setMessage("Build not allowed: There are already " + retainedCount +
 								" successful builds with images retained. Please delete older images before triggering a new build.");
 						GenericMessage errorMessage = new GenericMessage();
 						errorMessage.addErrors(invalidMsg);
-						return errorMessage;
+						log.info(
+								"User {} attempted buildAndDeploy for project {} but retained image limit ({}) reached.",
+								userId, projectName, retainedBuildLimit);
+						return errorMessage; // Prevent build-and-deploy
 					}
 				}
 				ManageBuildRequestDto buildRequestDto = new ManageBuildRequestDto();
