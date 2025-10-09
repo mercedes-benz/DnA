@@ -27,7 +27,7 @@ public class ADAProjectDetails implements Serializable {
     private String division;
     private String subdivision;
     private String department;
-    private Service service;
+    private List<Service> services;
     private List<Stakeholder> stakeholders;
     private List<Tag> tags;
     private Date startingDate;
@@ -37,6 +37,7 @@ public class ADAProjectDetails implements Serializable {
     public ADAProjectDetails() {
         this.stakeholders = new ArrayList<>();
         this.tags = new ArrayList<>();
+        this.services = new ArrayList<>();
     }
 
     @Data
