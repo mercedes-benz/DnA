@@ -13,6 +13,7 @@ import com.daimler.data.db.repo.fabric.FabricWorkspaceCustomRepository;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspacesCollectionVO;
 import com.daimler.data.service.common.BaseCommonService;
+import java.util.stream.Collectors;
 import com.daimler.data.util.ConstantsUtility;
 
 @Service
@@ -25,7 +26,7 @@ public class BaseFabricWorkspaceAdminService extends BaseCommonService<FabricWor
 	private FabricWorkspaceAssembler assembler;
     
     @Transactional
-	public FabricWorkspacesCollectionVO getAllForFabricAdmin(int limit, int offset) {
+	public FabricWorkspacesCollectionVO getAllForFabricAdmin(int limit, int offset, String search) {
 		FabricWorkspacesCollectionVO collectionVO = new FabricWorkspacesCollectionVO();
 		List<FabricWorkspaceVO> vos = new ArrayList<>();
 
@@ -39,6 +40,11 @@ public class BaseFabricWorkspaceAdminService extends BaseCommonService<FabricWor
 					vos.add(vo);
 				}
 			}
+		}
+		if (search != null && !search.trim().isEmpty()) {
+			String searchLower = search.trim().toLowerCase();
+			vos = vos.stream().filter(vo -> vo.getName() != null && vo.getName().toLowerCase().contains(searchLower))
+				  .collect(Collectors.toList());
 		}
 
 		List<FabricWorkspaceVO> paginatedVOs = new ArrayList<>();

@@ -96,6 +96,11 @@ paths:
           required: false
           type: string
           enum: [asc, desc]
+        - name: search
+          in: query
+          type: string
+          description: "Search term to filter workspaces by name."
+          required: false
       responses:
         200:
           description: "Returns list of workspaces for Fabric Admin."
