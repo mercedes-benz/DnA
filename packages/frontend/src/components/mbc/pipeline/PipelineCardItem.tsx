@@ -22,7 +22,7 @@ const PipelineCardItem = ({ project, getRefreshedDagPermission }: Props) => {
   const [isDagPopupVisible, setIsDagPopupVisible] = useState(false);
   const popupRef = useRef<HTMLDivElement>(null);
   const [showVaultManagementModal, setShowVaultManagementModal] = useState(false);
-  const [selectedDagName, setSelectedDagName] = useState<string | null>(null);
+  const [selectedDagId, setSelectedDagId] = useState<string | null>(null);
   const goToDag = (dagId: string) => {
     history.push('/editcode/' + dagId);
   };
@@ -178,7 +178,7 @@ const PipelineCardItem = ({ project, getRefreshedDagPermission }: Props) => {
                                   <button
                                     className={Styles.actionBtn + ' btn btn-primary'}
                                     onClick={() => {
-                                      setSelectedDagName(dag.dagName);
+                                      setSelectedDagId(dag.dagName);
                                       setShowVaultManagementModal(prev => !prev)
                                     }}
                                     type="button"
@@ -230,13 +230,13 @@ const PipelineCardItem = ({ project, getRefreshedDagPermission }: Props) => {
           content={
             <VaultManagement
               projectName={project.projectName}
-              dagName={selectedDagName}
+              dagId={selectedDagId}
             />
           }
           scrollableContent={true}
           onCancel={() => {
             setShowVaultManagementModal(false);
-            setSelectedDagName(null);
+            setSelectedDagId(null);
           }}
         />
       )}

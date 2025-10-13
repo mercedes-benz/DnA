@@ -43,7 +43,7 @@ const PipelineSubList = (props: IPipelineProjectProps) => {
   const createAndUpdateStatus = ['CREATE_REQUESTED', 'UPDATE_REQUESTED'];
   const [showVaultManagementModal, setShowVaultManagementModal] = useState(false);
   const [selectedProjectName, setSelectedProjectName] = useState('');
-  const [selectedDagName, setSelectedDagName] = useState<string | null>(null);
+  const [selectedDagId, setSelectedDagId] = useState<string | null>(null);
 
     const handleTriggerDag = (dagName: string) => {
       ProgressIndicator.show();
@@ -396,7 +396,7 @@ const PipelineSubList = (props: IPipelineProjectProps) => {
                                                         className={Styles.actionBtn + ' btn btn-primary'}
                                                         onClick={() => {
                                                           setSelectedProjectName(item.projectName);
-                                                          setSelectedDagName(dagItem.dagName); 
+                                                          setSelectedDagId(dagItem.dagName);
                                                           setShowVaultManagementModal(prev => !prev);
                                                         }}
                                                         type="button"
@@ -496,7 +496,7 @@ const PipelineSubList = (props: IPipelineProjectProps) => {
           content={
             <VaultManagement
               projectName={selectedProjectName}
-              dagName={selectedDagName}
+              dagId={selectedDagId}
             />
           }
           scrollableContent={true}
