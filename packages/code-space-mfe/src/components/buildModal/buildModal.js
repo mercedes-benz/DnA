@@ -34,6 +34,7 @@ const BuildModal = (props) => {
   const [allLogs, setAllLogs] = useState([]);
   const [showDeployCodeSpaceModal, setShowDeployCodeSpaceModal] = useState(false);
   const [buildDetails, setBuildDetails] = useState('');
+  const [retainBuildImage, setRetainBuildImage] = useState(false);
 
   const projectDetails = props.codeSpaceData?.projectDetails;
   // const intDeploymentMigrated = props.codeSpaceData?.projectDetails?.intDeploymentDetails?.deploymentUrl?.includes(Envs.CODESPACE_AWS_POPUP_URL);
@@ -144,6 +145,7 @@ const BuildModal = (props) => {
         environment: buildEnvironment === 'staging' ? 'int' : 'prod',
         branch: branchValue[0],
         comments: comment,
+        retainBuildImage: retainBuildImage,
       };
       ProgressIndicator.show();
       CodeSpaceApiClient.buildCodeSpace(props.codeSpaceData.id, buildRequest)
@@ -297,6 +299,19 @@ const BuildModal = (props) => {
                 </button>
               </div>
             </div>
+            <div className={Styles.checkboxWrapper}>
+                <label className="checkbox">
+                  <span className="wrapper">
+                    <input
+                      type="checkbox"
+                      className="ff-only"
+                      checked={retainBuildImage}
+                      onChange={(e) => setRetainBuildImage(e.target.checked)}
+                    />
+                  </span>
+                  <span className="label">Do you want to retain the build image?</span>
+                </label>
+              </div>
             {allLogs.length === 0 ? (
               <div className={classNames(Styles.noData)}>You don&apos;t have any existing builds.</div>
             ) : (
