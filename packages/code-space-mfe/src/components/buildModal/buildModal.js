@@ -198,16 +198,8 @@ const BuildModal = (props) => {
   const onLogsRefresh = () => {
     CodeSpaceApiClient.getBuildAndDeployLogs(projectDetails?.projectName)
       .then((res) => {
-        const intBuildLogs = res?.data?.data?.intBuildAuditLogs ?? [];
-        const prodBuildLogs = res?.data?.data?.prodBuildAuditLogs ?? [];
         const intDeployLogs = res?.data?.data?.intDeploymentAuditLogs ?? [];
         const prodDeployLogs = res?.data?.data?.prodDeploymentAuditLogs ?? [];
-
-
-        const activeBuildLogs =
-          buildEnvironment === 'staging' ? intBuildLogs : prodBuildLogs;
-        const reversedBuildLogs = [...activeBuildLogs].reverse();
-        setAllLogs(reversedBuildLogs);
 
 
         const activeDeployLogs =
