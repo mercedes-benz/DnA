@@ -198,19 +198,27 @@ const BuildModal = (props) => {
   const onLogsRefresh = () => {
     CodeSpaceApiClient.getBuildAndDeployLogs(projectDetails?.projectName)
       .then((res) => {
-        const logs =
-          buildEnvironment === 'staging'
-            ? [...(res?.data?.data?.intBuildAuditLogs ?? [])].reverse()
-            : [...(res?.data?.data?.prodBuildAuditLogs ?? [])].reverse();
-
-        setAllLogs(logs);
+        const intBuildLogs = res?.data?.data?.intBuildAuditLogs ?? [];
+        const prodBuildLogs = res?.data?.data?.prodBuildAuditLogs ?? [];
+        const intDeployLogs = res?.data?.data?.intDeploymentAuditLogs ?? [];
+        const prodDeployLogs = res?.data?.data?.prodDeploymentAuditLogs ?? [];
 
 
-        if (logs.length > 0) {
-          setLatestBuildVersion(logs[0].version);
-        }
+        const activeBuildLogs =
+          buildEnvironment === 'staging' ? intBuildLogs : prodBuildLogs;
+        const reversedBuildLogs = [...activeBuildLogs].reverse();
+        setAllLogs(reversedBuildLogs);
+
+
+        const activeDeployLogs =
+          buildEnvironment === 'staging' ? intDeployLogs : prodDeployLogs;
+        const latestDeployed = [...activeDeployLogs]
+          .reverse()
+          .find((log) => log.deploymentStatus === 'DEPLOYED');
+
+
+        setLatestBuildVersion(latestDeployed?.version || '');
       })
-
       .catch((err) => {
         Notification.show('Error in getting build audit logs - ' + err.message, 'alert');
       });
