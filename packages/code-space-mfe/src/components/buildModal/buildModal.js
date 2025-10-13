@@ -45,13 +45,21 @@ const BuildModal = (props) => {
     ProgressIndicator.show();
     CodeSpaceApiClient.getBuildAndDeployLogs(projectDetails?.projectName)
       .then((res) => {
-        setAllLogs([...(res?.data?.data?.intBuildAuditLogs ?? [])].reverse());
+        const intBuildLogs = res?.data?.data?.intBuildAuditLogs ?? [];
+        setAllLogs([...intBuildLogs].reverse());
+        const intDeployLogs = res?.data?.data?.intDeploymentAuditLogs ?? [];
+        const latestIntDeployed = [...intDeployLogs]
+          .reverse()
+          .find((log) => log.deploymentStatus === 'DEPLOYED');
+
+        setLatestBuildVersion(latestIntDeployed?.version || '');
         ProgressIndicator.hide();
       })
       .catch((err) => {
         ProgressIndicator.hide();
         Notification.show('Error in getting build audit logs - ' + err.message, 'alert');
       });
+
     ProgressIndicator.show();
     CodeSpaceApiClient.getCodeSpacesGitBranchList(projectDetails?.gitRepoName)
       .then((res) => {
