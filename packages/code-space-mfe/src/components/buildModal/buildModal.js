@@ -45,8 +45,7 @@ const BuildModal = (props) => {
     ProgressIndicator.show();
     CodeSpaceApiClient.getBuildAndDeployLogs(projectDetails?.projectName)
       .then((res) => {
-        const intBuildLogs = res?.data?.data?.intBuildAuditLogs ?? [];
-        setAllLogs([...intBuildLogs].reverse());
+        setAllLogs([...(res?.data?.data?.intBuildAuditLogs ?? [])].reverse());
         const intDeployLogs = res?.data?.data?.intDeploymentAuditLogs ?? [];
         const latestIntDeployed = [...intDeployLogs]
           .reverse()
