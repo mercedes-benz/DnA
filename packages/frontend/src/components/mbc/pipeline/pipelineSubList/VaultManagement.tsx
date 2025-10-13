@@ -212,7 +212,7 @@ const VaultManagement: React.FC<VaultManagementProps> = ({ projectName, dagId}) 
 
     const data: Record<string, string> = {};
     updatedList.forEach((item) => {
-      data[`${dagId}_${item.key}`] = item.value;
+      data[item.key] = item.value;
     });
 
     PipelineApiClient.putVaultSecret(dagId, data)
