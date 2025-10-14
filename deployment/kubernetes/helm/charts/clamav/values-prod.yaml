@@ -133,4 +133,4 @@ podDisruptionBudget:
 autoscaling:
   enabled: true
   minReplicas: 2
-  maxReplicas: 50
+  maxReplicas: 10
