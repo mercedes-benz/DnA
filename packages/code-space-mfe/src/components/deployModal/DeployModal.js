@@ -107,7 +107,7 @@ const DeployModal = (props) => {
           : 'prod', // int or prod
         branch: version?.length ? buildBranch : branchValue[0],
         version: version || '',
-        retainBuildImage: retainBuildImage,
+        keepBuildImage: retainBuildImage,
       };
       ProgressIndicator.show();
       CodeSpaceApiClient.deployCodeSpace(props.codeSpaceData.id, deployRequest)
@@ -224,19 +224,21 @@ const DeployModal = (props) => {
                     disableSelfTagAdd={true}
                     suggestionPopupHeight={150}
                   />
-                  <div className={Styles.checkboxRow}>
-                    <label className="checkbox">
-                      <span className="wrapper">
-                        <input
-                          type="checkbox"
-                          className="ff-only"
-                          checked={retainBuildImage}
-                          onChange={(e) => setRetainBuildImage(e.target.checked)}
-                        />
-                      </span>
-                      <span className="label">Do you want to retain the build image?</span>
-                    </label>
-                  </div>
+                    {!version && (
+                      <div className={Styles.checkboxRow}>
+                        <label className="checkbox">
+                          <span className="wrapper">
+                            <input
+                              type="checkbox"
+                              className="ff-only"
+                              checked={retainBuildImage}
+                              onChange={(e) => setRetainBuildImage(e.target.checked)}
+                            />
+                          </span>
+                          <span className="label">Do you want to retain the build image?</span>
+                        </label>
+                      </div>
+                    )}
                 </div>
               </div>
             )}

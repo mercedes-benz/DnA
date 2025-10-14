@@ -145,7 +145,7 @@ const BuildModal = (props) => {
         environment: buildEnvironment === 'staging' ? 'int' : 'prod',
         branch: branchValue[0],
         comments: comment,
-        retainBuildImage: retainBuildImage,
+        keepBuildImage: retainBuildImage,
       };
       ProgressIndicator.show();
       CodeSpaceApiClient.buildCodeSpace(props.codeSpaceData.id, buildRequest)
