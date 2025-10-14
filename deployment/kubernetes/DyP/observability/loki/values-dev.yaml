@@ -186,3 +186,7 @@ table_manager:
   retention_period: 2d
 tracing:
   enabled: true
+
+  
+lokiCanary:
+  enabled: false

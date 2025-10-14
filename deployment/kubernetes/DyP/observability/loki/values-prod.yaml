@@ -185,3 +185,6 @@ table_manager:
   retention_period: 15d
 tracing:
   enabled: true
+
+lokiCanary:
+  enabled: false
