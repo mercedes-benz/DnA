@@ -653,10 +653,10 @@ alloy:
   # -- Resource requests and limits to apply to the Grafana Alloy container.
   resources: 
     requests:
-      memory: "50Mi"
+      memory: "2Gi"
     limits:
       cpu: "20m"
-      memory: "1Gi"
+      memory: "2Gi"
 
   # -- Set lifecycle hooks for the Grafana Alloy container.
   lifecycle: {}
@@ -737,7 +737,7 @@ controller:
   type: 'statefulset'
 
   # -- Number of pods to deploy. Ignored when controller.type is 'daemonset'.
-  replicas: 5
+  replicas: 8
 
   # -- Annotations to add to controller.
   extraAnnotations: {}
