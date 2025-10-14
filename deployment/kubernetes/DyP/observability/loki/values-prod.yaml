@@ -75,7 +75,9 @@ ingester:
     claims:
       - name: data
         size: 10Gi    
-
+  rolloutGroupPrefix: "loki"  
+  addIngesterNamePrefix: true 
+  
 querier:
   replicas: 3
   maxUnavailable: 2
