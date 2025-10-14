@@ -8,6 +8,7 @@ import org.springframework.http.ResponseEntity;
 
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.db.entities.FabricWorkspaceNsql;
+import com.daimler.data.dto.adaProjects.ADAProjectDetailsCollectionVO;
 import com.daimler.data.dto.fabric.CreateEntitlementRequestDto;
 import com.daimler.data.dto.fabric.CreateRoleRequestDto;
 import com.daimler.data.dto.fabricWorkspace.CreatedByVO;
@@ -79,4 +80,6 @@ public interface FabricWorkspaceService extends CommonService<FabricWorkspaceVO,
 	AuthoriserRoleDetailsVO getRoleDetails(String roleId);
 
 	EntraGroupResponseVO getEntraGroupMembers(String roleName);
+
+	ADAProjectDetailsCollectionVO searchProjects(String projectName);
 }
