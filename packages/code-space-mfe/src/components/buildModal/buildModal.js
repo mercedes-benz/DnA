@@ -230,7 +230,7 @@ const BuildModal = (props) => {
 
   return (
     <Modal
-      title={'Manage Build'}
+      title={`Manage Build - ${props?.codeSpaceData?.projectDetails?.projectName || ''}`}
       showAcceptButton={false}
       //   acceptButtonTitle={'Deploy'}
       //   cancelButtonTitle={'Cancel'}

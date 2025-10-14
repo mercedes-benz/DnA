@@ -147,7 +147,7 @@ const DeployModal = (props) => {
   return (
     <>
       <Modal
-        title={'Deploy Code'}
+        title={`Deploy Code - ${props?.codeSpaceData?.projectDetails?.projectName || ''}`}
         showAcceptButton={true}
         acceptButtonTitle={'Deploy'}
         cancelButtonTitle={'Cancel'}
