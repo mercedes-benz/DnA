@@ -26,7 +26,7 @@ env:
 jobs:
   gitsync:
     name: "Git Sync"
-    runs-on: [os-medium-amd64-linux ]
+    runs-on: [os-small-amd64-linux ]
     steps:
 
       - name: Check Source Branch

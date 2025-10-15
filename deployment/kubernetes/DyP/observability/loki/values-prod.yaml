@@ -75,6 +75,8 @@ ingester:
     claims:
       - name: data
         size: 10Gi    
+  rolloutGroupPrefix: "loki"  
+  addIngesterNamePrefix: true 
 
 querier:
   replicas: 3
@@ -185,6 +187,3 @@ table_manager:
   retention_period: 15d
 tracing:
   enabled: true
-
-lokiCanary:
-  enabled: false
