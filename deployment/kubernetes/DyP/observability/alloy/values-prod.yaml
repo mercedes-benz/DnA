@@ -653,10 +653,10 @@ alloy:
   # -- Resource requests and limits to apply to the Grafana Alloy container.
   resources: 
     requests:
-      memory: "4Gi"
+      memory: "10Gi"
     limits:
-      cpu: "20m"
-      memory: "4Gi"
+      cpu: "700m"
+      memory: "10Gi"
 
   # -- Set lifecycle hooks for the Grafana Alloy container.
   lifecycle: {}
