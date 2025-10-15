@@ -28,10 +28,17 @@
 package com.daimler.data.db.repo.fabric;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.Collections;
 
 import javax.persistence.Query;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 
 import org.springframework.stereotype.Repository;
 
@@ -109,45 +116,49 @@ public class FabricWorkspaceCustomRepositoryImpl extends CommonDataRepositoryImp
 
 	@Override
 	public List<FabricWorkspaceNsql> getAllForAdmin(int limit, int offset, String search) {
+		try {
+			CriteriaBuilder cb = em.getCriteriaBuilder();
+			CriteriaQuery<FabricWorkspaceNsql> cq = cb.createQuery(FabricWorkspaceNsql.class);
+			Root<FabricWorkspaceNsql> root = cq.from(FabricWorkspaceNsql.class);
 
-		StringBuilder queryBuilder = new StringBuilder(
-				"SELECT cast(id AS text), cast(data AS text) FROM fabric_workspace_nsql " +
-						"WHERE lower(jsonb_extract_path_text(data, 'status', 'state')) NOT IN ('deleted')");
+			List<Predicate> predicates = new ArrayList<>();
 
-		if (search != null && !search.trim().isEmpty()) {
-			String searchTerm = "%" + search.trim().toLowerCase() + "%";
-			queryBuilder.append(" AND lower(jsonb_extract_path_text(data, 'name')) LIKE '")
-					.append(searchTerm)
-					.append("'");
-		}
+			Predicate notDeleted = cb.notEqual(
+					cb.lower(cb.function("jsonb_extract_path_text", String.class,
+							root.get("data"), cb.literal("status"), cb.literal("state"))),
+					"deleted");
+			predicates.add(notDeleted);
 
-		if (limit > 0) {
-			queryBuilder.append(" LIMIT ").append(limit);
-		}
-		if (offset >= 0) {
-			queryBuilder.append(" OFFSET ").append(offset);
-		}
-
-		log.info("Executing query: {}", queryBuilder);
-
-		Query q = em.createNativeQuery(queryBuilder.toString());
-
-		ObjectMapper mapper = new ObjectMapper();
-		List<Object[]> results = q.getResultList();
-
-		return results.stream().map(temp -> {
-			FabricWorkspaceNsql entity = new FabricWorkspaceNsql();
-			try {
-				String jsonData = temp[1] != null ? temp[1].toString() : "";
-				FabricWorkspace workspace = mapper.readValue(jsonData, FabricWorkspace.class);
-				entity.setData(workspace);
-			} catch (Exception e) {
-				log.error("Error parsing FabricWorkspace data: {}", e.getMessage());
+			if (search != null && !search.trim().isEmpty()) {
+				Predicate nameLike = cb.like(
+						cb.lower(cb.function("jsonb_extract_path_text", String.class,
+								root.get("data"), cb.literal("name"))),
+						"%" + search.trim().toLowerCase() + "%");
+				predicates.add(nameLike);
 			}
-			entity.setId(temp[0] != null ? temp[0].toString() : "");
-			return entity;
-		}).collect(Collectors.toList());
-	}
+			cq.select(root);
+			cq.where(cb.and(predicates.toArray(new Predicate[0])));
+			cq.orderBy(cb.asc(
+					cb.function("jsonb_extract_path_text", String.class,
+							root.get("data"), cb.literal("name"))));
 
+			TypedQuery<FabricWorkspaceNsql> query = em.createQuery(cq);
+
+			if (limit > 0) {
+				query.setMaxResults(limit);
+			}
+			if (offset >= 0) {
+				query.setFirstResult(offset);
+			}
+
+			List<FabricWorkspaceNsql> results = query.getResultList();
+			log.info("Found {} workspaces (search='{}')", results.size(), search);
+			return results;
+
+		} catch (Exception e) {
+			log.error("Error fetching Fabric workspaces (search='{}'): {}", search, e.getMessage(), e);
+			return Collections.emptyList();
+		}
+	}
 
 }
