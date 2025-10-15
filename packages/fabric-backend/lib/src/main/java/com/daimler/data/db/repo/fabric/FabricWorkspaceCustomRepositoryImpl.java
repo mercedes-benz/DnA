@@ -38,6 +38,7 @@ import org.springframework.stereotype.Repository;
 import com.daimler.data.db.entities.FabricWorkspaceNsql;
 import com.daimler.data.db.json.FabricWorkspace;
 import com.daimler.data.db.repo.common.CommonDataRepositoryImpl;
+import com.daimler.data.util.ConstantsUtility;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.extern.slf4j.Slf4j;
@@ -88,5 +89,65 @@ public class FabricWorkspaceCustomRepositoryImpl extends CommonDataRepositoryImp
 		}).collect(Collectors.toList());
 		return convertedResults;
 	}
+
+	@Override
+	public long getTotalCountForAdmin(String search) {
+	StringBuilder countQuery = new StringBuilder( "SELECT count(*) FROM fabric_workspace_nsql " + 
+	"WHERE lower(jsonb_extract_path_text(data, 'status', 'state')) NOT IN ('deleted')" );
+
+		if (search != null && !search.trim().isEmpty()) {
+			String searchTerm = "%" + search.toLowerCase() + "%";
+			countQuery.append(" AND lower(jsonb_extract_path_text(data, 'name')) LIKE '")
+					.append(searchTerm)
+					.append("'");
+		}
+
+		Query q = em.createNativeQuery(countQuery.toString());
+		BigInteger result = (BigInteger) q.getSingleResult();
+		return result.longValue();
+	}
+
+	@Override
+	public List<FabricWorkspaceNsql> getAllForAdmin(int limit, int offset, String search) {
+
+		StringBuilder queryBuilder = new StringBuilder(
+				"SELECT cast(id AS text), cast(data AS text) FROM fabric_workspace_nsql " +
+						"WHERE lower(jsonb_extract_path_text(data, 'status', 'state')) NOT IN ('deleted')");
+
+		if (search != null && !search.trim().isEmpty()) {
+			String searchTerm = "%" + search.trim().toLowerCase() + "%";
+			queryBuilder.append(" AND lower(jsonb_extract_path_text(data, 'name')) LIKE '")
+					.append(searchTerm)
+					.append("'");
+		}
+
+		if (limit > 0) {
+			queryBuilder.append(" LIMIT ").append(limit);
+		}
+		if (offset >= 0) {
+			queryBuilder.append(" OFFSET ").append(offset);
+		}
+
+		log.info("Executing query: {}", queryBuilder);
+
+		Query q = em.createNativeQuery(queryBuilder.toString());
+
+		ObjectMapper mapper = new ObjectMapper();
+		List<Object[]> results = q.getResultList();
+
+		return results.stream().map(temp -> {
+			FabricWorkspaceNsql entity = new FabricWorkspaceNsql();
+			try {
+				String jsonData = temp[1] != null ? temp[1].toString() : "";
+				FabricWorkspace workspace = mapper.readValue(jsonData, FabricWorkspace.class);
+				entity.setData(workspace);
+			} catch (Exception e) {
+				log.error("Error parsing FabricWorkspace data: {}", e.getMessage());
+			}
+			entity.setId(temp[0] != null ? temp[0].toString() : "");
+			return entity;
+		}).collect(Collectors.toList());
+	}
+
 
 }

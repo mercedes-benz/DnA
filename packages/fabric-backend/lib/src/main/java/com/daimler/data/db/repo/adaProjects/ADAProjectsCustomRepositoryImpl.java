@@ -28,16 +28,21 @@
 package com.daimler.data.db.repo.adaProjects;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import javax.persistence.Query;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import com.daimler.data.assembler.ADAProjectsAssembler;
 import com.daimler.data.db.entities.ADAProjectsNsql;
+import com.daimler.data.db.json.ADAProjectDetails;
 import com.daimler.data.db.json.FabricWorkspace;
 import com.daimler.data.db.repo.common.CommonDataRepositoryImpl;
+import com.daimler.data.dto.adaProjects.ADAProjectDetailsVO;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.extern.slf4j.Slf4j;
@@ -46,6 +51,9 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ADAProjectsCustomRepositoryImpl extends CommonDataRepositoryImpl<ADAProjectsNsql, String>
 		implements ADAProjectsCustomRepository {
+
+		@Autowired
+		private ADAProjectsAssembler adaProjectsAssembler;
 
 	// @Override
 	// public long getTotalCount(String userId) {
@@ -88,5 +96,46 @@ public class ADAProjectsCustomRepositoryImpl extends CommonDataRepositoryImpl<AD
 	// 	}).collect(Collectors.toList());
 	// 	return convertedResults;
 	// }
+
+	@Override
+	public List<ADAProjectsNsql> searchProjectsByName(String projectName) {
+		List<ADAProjectsNsql> convertedResults = new ArrayList<>();
+		try {
+			StringBuilder queryBuilder = new StringBuilder(
+				"SELECT cast(id AS text), cast(data AS text) FROM ada_projects_nsql"
+			);
+
+			if (projectName != null && !projectName.trim().isEmpty()) {
+				String searchTerm = "%" + projectName.trim().toLowerCase() + "%";
+				queryBuilder.append(" WHERE lower(jsonb_extract_path_text(data, 'projectName')) LIKE '")
+							.append(searchTerm)
+							.append("'");
+			}
+
+			Query query = em.createNativeQuery(queryBuilder.toString());
+
+			ObjectMapper mapper = new ObjectMapper();
+			List<Object[]> results = query.getResultList();
+
+			convertedResults = results.stream().map(temp -> {
+				ADAProjectsNsql entity = new ADAProjectsNsql();
+				try {
+					String jsonData = temp[1] != null ? temp[1].toString() : "";
+					ADAProjectDetails project = mapper.readValue(jsonData, ADAProjectDetails.class);
+					entity.setData(project);
+				} catch (Exception e) {
+					log.error("Failed while parsing project JSON: {}", e.getMessage());
+				}
+				String id = temp[0] != null ? temp[0].toString() : "";
+				entity.setId(id);
+				return entity;
+			}).collect(Collectors.toList());
+
+		} catch (Exception e) {
+			log.error("Error fetching ADA projects by name '{}': {}", projectName, e.getMessage());
+		}
+
+		return convertedResults;
+	}
 
 }

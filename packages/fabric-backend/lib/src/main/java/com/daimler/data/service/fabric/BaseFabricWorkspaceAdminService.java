@@ -2,6 +2,7 @@ package com.daimler.data.service.fabric;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Collections;
 
 import javax.persistence.Query;
 import javax.persistence.EntityManager;
@@ -39,69 +40,37 @@ public class BaseFabricWorkspaceAdminService extends BaseCommonService<FabricWor
 	@PersistenceContext
 	protected EntityManager em;
 
-    @Transactional
+	@Transactional
 	public FabricWorkspacesCollectionVO getAllForFabricAdmin(int limit, int offset, String search) {
 		FabricWorkspacesCollectionVO collectionVO = new FabricWorkspacesCollectionVO();
+		GenericMessage message = new GenericMessage();
 		List<FabricWorkspaceVO> vos = new ArrayList<>();
-
-		List<FabricWorkspaceNsql> allEntities = customRepo.findAll(0, 0);
-
-		if (allEntities != null && !allEntities.isEmpty()) {
-			for (FabricWorkspaceNsql entity : allEntities) {
-				if (entity != null
-						&& !ConstantsUtility.DELETED_STATE.equalsIgnoreCase(entity.getData().getStatus().getState())) {
-					FabricWorkspaceVO vo = assembler.toVo(entity);
-					vo.setUserRole(ConstantsUtility.PERMISSION_OWNER);
-					vos.add(vo);
-				}
-			}
-		}
-		if (search != null && !search.trim().isEmpty()) {
-			try {
-				String queryStr = "SELECT cast(id AS text), cast(data AS text) FROM fabric_workspace_nsql " +
-						"WHERE lower(jsonb_extract_path_text(data, 'name')) LIKE :search";
-
-				Query query = em.createNativeQuery(queryStr);
-				query.setParameter("search", "%" + search.trim().toLowerCase() + "%");
-
-				ObjectMapper mapper = new ObjectMapper();
-				List<Object[]> results = query.getResultList();
-
-				vos = results.stream().map(temp -> {
-					FabricWorkspaceNsql entity = new FabricWorkspaceNsql();
-					try {
-						String jsonData = temp[1] != null ? temp[1].toString() : "";
-						FabricWorkspace workspace = mapper.readValue(jsonData, FabricWorkspace.class);
-						entity.setData(workspace);
-					} catch (Exception e) {
-						log.error("Failed while parsing workspace JSON: {}", e.getMessage());
-					}
-					String id = temp[0] != null ? temp[0].toString() : "";
-					entity.setId(id);
-
-					FabricWorkspaceVO vo = assembler.toVo(entity);
-					vo.setUserRole(ConstantsUtility.PERMISSION_OWNER);
-					return vo;
-				}).collect(Collectors.toList());
-
-			} catch (Exception e) {
-				log.error("Error searching Fabric workspaces with search '{}': {}", search, e.getMessage());
-			}
-		}
-
-		List<FabricWorkspaceVO> paginatedVOs = new ArrayList<>();
 		int totalCount = 0;
-		if (vos != null && !vos.isEmpty()) {
-			totalCount = vos.size();
-			int newOffset = offset > vos.size() ? 0 : offset;
-			if (limit == 0) {
-				limit = totalCount;
-			}
-			int newLimit = offset + limit > vos.size() ? vos.size() : offset + limit;
-			paginatedVOs = vos.subList(newOffset, newLimit);
+
+		try {
+
+			List<FabricWorkspaceNsql> entities = customRepo.getAllForAdmin( limit, offset, search);
+			totalCount = (int) customRepo.getTotalCountForAdmin(search);
+
+			vos = entities.stream()
+					.map(entity -> {
+						FabricWorkspaceVO vo = assembler.toVo(entity);
+						vo.setUserRole(ConstantsUtility.PERMISSION_OWNER); 
+						return vo;
+					})
+					.collect(Collectors.toList());
+
+			message.setSuccess("SUCCESS");
+
+		} catch (Exception e) {
+			log.error("Error fetching Fabric workspaces for admin: searchTerm={}", search, e);
+			message.setSuccess("ERROR");
+			message.setErrors(List.of(new MessageDescription("Failed to fetch workspaces: " + e.getMessage())));
+			vos = Collections.emptyList();
+			totalCount = 0;
 		}
 
-		collectionVO.setRecords(paginatedVOs);
+		collectionVO.setRecords(vos);
 		collectionVO.setTotalCount(totalCount);
 		return collectionVO;
 	}

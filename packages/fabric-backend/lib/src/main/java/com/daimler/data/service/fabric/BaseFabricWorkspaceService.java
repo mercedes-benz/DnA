@@ -102,6 +102,8 @@ import com.daimler.data.util.ConstantsUtility;
 import com.daimler.data.util.FabricWorkspaceUtility;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.daimler.data.service.tag.TagService;
+import com.daimler.data.db.repo.adaProjects.ADAProjectsCustomRepository;
+import com.daimler.data.db.repo.adaProjects.ADAProjectsCustomRepositoryImpl;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -146,8 +148,9 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 	@Autowired
 	private ADAProjectsAssembler adaProjectsAssemblerssembler;
 
-	@PersistenceContext
-	protected EntityManager em;
+	@Autowired
+	private ADAProjectsCustomRepository adaProjectsRepo;
+
 
 	@Value("${fabricWorkspaces.capacityId}")
 	private String capacityId;
@@ -2023,39 +2026,14 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		GenericMessage message = new GenericMessage();
 
 		try {
-			String countQueryStr = "SELECT COUNT(*) FROM ada_projects_nsql " +
-					"WHERE lower(jsonb_extract_path_text(data, 'projectName')) LIKE :projectName";
+			List<ADAProjectsNsql> entities = adaProjectsRepo.searchProjectsByName(projectName);
 
-			Query countQuery = em.createNativeQuery(countQueryStr);
-			countQuery.setParameter("projectName", "%" + projectName.toLowerCase() + "%");
-			Number countResult = (Number) countQuery.getSingleResult();
-			int totalCount = countResult != null ? countResult.intValue() : 0;
-
-			String queryStr = "SELECT cast(id AS text), cast(data AS text) FROM ada_projects_nsql " +
-					"WHERE lower(jsonb_extract_path_text(data, 'projectName')) LIKE :projectName";
-
-			Query query = em.createNativeQuery(queryStr);
-			query.setParameter("projectName", "%" + projectName.toLowerCase() + "%");
-
-			ObjectMapper mapper = new ObjectMapper();
-			List<Object[]> results = query.getResultList();
-
-			List<ADAProjectDetailsVO> projects = results.stream().map(temp -> {
-				ADAProjectsNsql entity = new ADAProjectsNsql();
-				try {
-					String jsonData = temp[1] != null ? temp[1].toString() : "";
-					ADAProjectDetails project = mapper.readValue(jsonData, ADAProjectDetails.class);
-					entity.setData(project);
-				} catch (Exception e) {
-					log.error("Failed while parsing project JSON: {}", e.getMessage());
-				}
-				String id = temp[0] != null ? temp[0].toString() : "";
-				entity.setId(id);
-				return adaProjectsAssemblerssembler.toVo(entity);
-			}).collect(Collectors.toList());
+			List<ADAProjectDetailsVO> projects = entities.stream()
+					.map(adaProjectsAssemblerssembler::toVo)
+					.collect(Collectors.toList());
 
 			collection.setRecords(projects);
-			collection.setTotalCount(totalCount);
+			collection.setTotalCount(projects.size());
 			message.setSuccess("SUCCESS");
 
 		} catch (Exception e) {
