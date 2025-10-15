@@ -31,8 +31,14 @@ import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.Collections;
 
 import javax.persistence.Query;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
@@ -97,45 +103,81 @@ public class ADAProjectsCustomRepositoryImpl extends CommonDataRepositoryImpl<AD
 	// 	return convertedResults;
 	// }
 
+	// @Override
+	// public List<ADAProjectsNsql> searchProjectsByName(String projectName) {
+	// 	List<ADAProjectsNsql> convertedResults = new ArrayList<>();
+	// 	try {
+	// 		StringBuilder queryBuilder = new StringBuilder(
+	// 			"SELECT cast(id AS text), cast(data AS text) FROM ada_projects_nsql"
+	// 		);
+
+	// 		if (projectName != null && !projectName.trim().isEmpty()) {
+	// 			String searchTerm = "%" + projectName.trim().toLowerCase() + "%";
+	// 			queryBuilder.append(" WHERE lower(jsonb_extract_path_text(data, 'projectName')) LIKE '")
+	// 						.append(searchTerm)
+	// 						.append("'");
+	// 		}
+
+	// 		Query query = em.createNativeQuery(queryBuilder.toString());
+
+	// 		ObjectMapper mapper = new ObjectMapper();
+	// 		List<Object[]> results = query.getResultList();
+
+	// 		convertedResults = results.stream().map(temp -> {
+	// 			ADAProjectsNsql entity = new ADAProjectsNsql();
+	// 			try {
+	// 				String jsonData = temp[1] != null ? temp[1].toString() : "";
+	// 				ADAProjectDetails project = mapper.readValue(jsonData, ADAProjectDetails.class);
+	// 				entity.setData(project);
+	// 			} catch (Exception e) {
+	// 				log.error("Failed while parsing project JSON: {}", e.getMessage());
+	// 			}
+	// 			String id = temp[0] != null ? temp[0].toString() : "";
+	// 			entity.setId(id);
+	// 			return entity;
+	// 		}).collect(Collectors.toList());
+
+	// 	} catch (Exception e) {
+	// 		log.error("Error fetching ADA projects by name '{}': {}", projectName, e.getMessage());
+	// 	}
+
+	// 	return convertedResults;
+	// }
+
 	@Override
 	public List<ADAProjectsNsql> searchProjectsByName(String projectName) {
-		List<ADAProjectsNsql> convertedResults = new ArrayList<>();
 		try {
-			StringBuilder queryBuilder = new StringBuilder(
-				"SELECT cast(id AS text), cast(data AS text) FROM ada_projects_nsql"
-			);
+			CriteriaBuilder cb = em.getCriteriaBuilder();
+			CriteriaQuery<ADAProjectsNsql> cq = cb.createQuery(ADAProjectsNsql.class);
+			Root<ADAProjectsNsql> root = cq.from(ADAProjectsNsql.class);
+			List<Predicate> predicates = new ArrayList<>();
 
 			if (projectName != null && !projectName.trim().isEmpty()) {
-				String searchTerm = "%" + projectName.trim().toLowerCase() + "%";
-				queryBuilder.append(" WHERE lower(jsonb_extract_path_text(data, 'projectName')) LIKE '")
-							.append(searchTerm)
-							.append("'");
+				Predicate name = cb.like(
+						cb.lower(cb.function("jsonb_extract_path_text", String.class,
+								root.get("data"), cb.literal("projectName"))),
+						"%" + projectName.trim().toLowerCase() + "%");
+				predicates.add(name);
+			}
+			cq.select(root);
+			if (!predicates.isEmpty()) {
+				cq.where(cb.and(predicates.toArray(new Predicate[0])));
 			}
 
-			Query query = em.createNativeQuery(queryBuilder.toString());
+			cq.orderBy(cb.asc(
+					cb.function("jsonb_extract_path_text", String.class,
+							root.get("data"), cb.literal("projectName"))));
 
-			ObjectMapper mapper = new ObjectMapper();
-			List<Object[]> results = query.getResultList();
+			TypedQuery<ADAProjectsNsql> query = em.createQuery(cq);
+			List<ADAProjectsNsql> results = query.getResultList();
 
-			convertedResults = results.stream().map(temp -> {
-				ADAProjectsNsql entity = new ADAProjectsNsql();
-				try {
-					String jsonData = temp[1] != null ? temp[1].toString() : "";
-					ADAProjectDetails project = mapper.readValue(jsonData, ADAProjectDetails.class);
-					entity.setData(project);
-				} catch (Exception e) {
-					log.error("Failed while parsing project JSON: {}", e.getMessage());
-				}
-				String id = temp[0] != null ? temp[0].toString() : "";
-				entity.setId(id);
-				return entity;
-			}).collect(Collectors.toList());
+			// log.info("Found {} ADA projects for search '{}'", results.size(), projectName);
+			return results;
 
 		} catch (Exception e) {
-			log.error("Error fetching ADA projects by name '{}': {}", projectName, e.getMessage());
+			log.error("Error fetching ADA projects by name '{}': {}", projectName, e.getMessage(), e);
+			return Collections.emptyList();
 		}
-
-		return convertedResults;
 	}
 
 }
