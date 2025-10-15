@@ -99,19 +99,36 @@ public class FabricWorkspaceCustomRepositoryImpl extends CommonDataRepositoryImp
 
 	@Override
 	public long getTotalCountForAdmin(String search) {
-	StringBuilder countQuery = new StringBuilder( "SELECT count(*) FROM fabric_workspace_nsql " + 
-	"WHERE lower(jsonb_extract_path_text(data, 'status', 'state')) NOT IN ('deleted')" );
+		try {
+			CriteriaBuilder cb = em.getCriteriaBuilder();
+			CriteriaQuery<Long> cq = cb.createQuery(Long.class);
+			Root<FabricWorkspaceNsql> root = cq.from(FabricWorkspaceNsql.class);
+			List<Predicate> predicates = new ArrayList<>();
+			
+			Predicate notDeleted = cb.notEqual(
+					cb.lower(cb.function("jsonb_extract_path_text", String.class,
+							root.get("data"), cb.literal("status"), cb.literal("state"))),
+					"deleted");
+			predicates.add(notDeleted);
 
-		if (search != null && !search.trim().isEmpty()) {
-			String searchTerm = "%" + search.toLowerCase() + "%";
-			countQuery.append(" AND lower(jsonb_extract_path_text(data, 'name')) LIKE '")
-					.append(searchTerm)
-					.append("'");
+			if (search != null && !search.trim().isEmpty()) {
+				Predicate nameLike = cb.like(
+						cb.lower(cb.function("jsonb_extract_path_text", String.class,
+								root.get("data"), cb.literal("name"))),
+						"%" + search.trim().toLowerCase() + "%");
+				predicates.add(nameLike);
+			}
+			cq.select(cb.count(root));
+			cq.where(cb.and(predicates.toArray(new Predicate[0])));
+
+			TypedQuery<Long> query = em.createQuery(cq);
+			Long result = query.getSingleResult();
+			return result != null ? result : 0L;
+
+		} catch (Exception e) {
+			log.error("Error counting Fabric workspaces (search='{}'): {}", search, e.getMessage(), e);
+			return 0L;
 		}
-
-		Query q = em.createNativeQuery(countQuery.toString());
-		BigInteger result = (BigInteger) q.getSingleResult();
-		return result.longValue();
 	}
 
 	@Override
