@@ -79,12 +79,7 @@ paths:
         Returns Uilicious workspaces for the current user (or for the provided email).
         Each workspace includes metadata such as spaceName, link, lean governance and userRole.
       operationId: "getUiliciousWorkspaces"
-      parameters:
-        - name: email
-          in: query
-          description: "Optional: user email to fetch workspaces for. If not provided, server uses session auth."
-          required: false
-          type: string        
+      parameters:   
         - name: offset
           in: query
           description: "Page number from which listing of workspaces should start. Example: 2"
@@ -128,13 +123,20 @@ definitions:
       totalRecords:
         type: integer
         description: "Total number of workspace records available for the current query."
+      leanGovernance:
+        type: object
+        items:
+          $ref: "#/definitions/leanGovernanceVO"
+      accountId:
+        type: string
+        description: "Uilicious Account ID."
       items:
         type: array
         items:
           $ref: "#/definitions/UiliciousWorkspaceVO"
-
-  # Simplified workspace object for Uilicious consumers
-  UiliciousWorkspaceVO:
+      
+  
+  leanGovernanceVO:
     type: object
     properties:
       costCenter:
@@ -164,9 +166,12 @@ definitions:
       hasPii:
         type: boolean
         description: "Whether the workspace contains PII (true/false)."
-      accountId:
-        type: string
-        description: "Account id associated with the workspace (external account)."
+      
+
+  # Simplified workspace object for Uilicious consumers
+  UiliciousWorkspaceVO:
+    type: object
+    properties:
       spaceId:
         type: string
         description: "Space id (unique workspace identifier in the platform)."
@@ -176,23 +181,6 @@ definitions:
       userRole:
         type: string
         description: "Role of the user in this workspace (e.g. admin, editor, viewer)."
-      createdBy:
-        $ref: "#/definitions/CreatedByVO"
-        description: "Creator information (re-used from Fabric definitions)."
       
-  CreatedByVO:
-    type: object
-    properties:
-      id:
-        type: string
-        description: "User id of the creator."
-      name:
-        type: string
-        description: "Name of the creator."
-      email:
-        type: string
-        format: email
-        description: "Email of the creator."
-      shortId:
-        type: string
-        description: "ShortID of DnA logged in user."
+      
+

@@ -20,11 +20,12 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
-
+import com.daimler.data.dto.uilicious.UiliciousWorkspaceVO;
+import org.springframework.http.MediaType;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 import org.json.JSONObject;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -75,6 +76,9 @@ public class UiLiciousClient {
 
     @Value("${promptsraftsubscriptions.uiLicious.oauthKey}")
     private String oauthKey;
+
+    @Value("${promptsraftsubscriptions.uiLicious.baseURL}")
+    private String baseURL;
 
    
     private final ObjectMapper objectMapper;
@@ -178,6 +182,145 @@ public class UiLiciousClient {
             log.error(" Exception occured while calling uilicious for get subscription run details with message{}",e.getMessage());
         }
         return response;
+    }
+
+    public String getUserAccountId(String loginName, int start, int length) {
+        try {
+            // Prepare request body
+            Map<String, Object> requestBody = new HashMap<>();
+            requestBody.put("loginName", loginName);
+            requestBody.put("start", start);
+            requestBody.put("length", length);
+
+            String jsonBody = objectMapper.writeValueAsString(requestBody);
+
+            // Prepare headers
+            HttpHeaders headers = new HttpHeaders();
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.set("accessKey", accessKey);
+
+            HttpEntity<String> requestEntity = new HttpEntity<>(jsonBody, headers);
+
+            // Make API call
+
+            String url = baseURL + "/api/v3.0/admin/account/list";
+            ResponseEntity<JsonNode> response = restTemplate.exchange(
+                    url,
+                    HttpMethod.POST,
+                    requestEntity,
+                    JsonNode.class);
+
+            if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
+                JsonNode responseBody = response.getBody();
+                JsonNode resultArray = responseBody.path("result");
+
+                if (resultArray.isArray() && resultArray.size() > 0) {
+                    JsonNode firstUser = resultArray.get(0);
+                    String accountId = firstUser.path("_oid").asText();
+
+                    log.info("Successfully retrieved account ID: {} for loginName: {}", accountId, loginName);
+                    return accountId;
+                } else {
+                    log.warn("No user account found for loginName: {}", loginName);
+                    return null;
+                }
+            } else {
+                log.warn("Received non-OK response from Uilicious user account API: {}", response.getStatusCode());
+                return null;
+            }
+
+        } catch (Exception e) {
+            log.error("Error occurred while calling Uilicious user account API for loginName: {}, error: {}", loginName,
+                    e.getMessage(), e);
+            return null;
+        }
+    }
+
+    /**
+     * Get workspaces by account ID (Second API call)
+     */
+    public List<UiliciousWorkspaceVO> getWorkspacesByAccountId(String accountId) {
+        List<UiliciousWorkspaceVO> workspaces = new ArrayList<>();
+
+        try {
+            // Prepare headers
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("accessKey", accessKey);
+
+            HttpEntity<Void> requestEntity = new HttpEntity<>(headers);
+
+            // Make API call
+
+            String url = baseURL + "/api/v3.0/admin/account/" + accountId + "/space/list";
+            ResponseEntity<JsonNode> response = restTemplate.exchange(
+                    url,
+                    HttpMethod.GET,
+                    requestEntity,
+                    JsonNode.class);
+
+            if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
+                JsonNode responseBody = response.getBody();
+                JsonNode resultArray = responseBody.path("result");
+
+                if (resultArray.isArray()) {
+                    for (JsonNode workspaceNode : resultArray) {
+                        UiliciousWorkspaceVO workspace = mapToWorkspaceVO(workspaceNode, accountId);
+                        if (workspace != null) {
+                            workspaces.add(workspace);
+                        }
+                    }
+                }
+
+                log.info("Successfully retrieved {} workspaces for account ID: {}", workspaces.size(), accountId);
+            } else {
+                log.warn("Received non-OK response from Uilicious workspace API: {}", response.getStatusCode());
+            }
+
+        } catch (Exception e) {
+            log.error("Error occurred while calling Uilicious workspace API for account ID: {}, error: {}", accountId,
+                    e.getMessage(), e);
+        }
+
+        return workspaces;
+    }
+
+    /**
+     * Main method to get workspaces by login name (combines both API calls)
+     */
+    public List<UiliciousWorkspaceVO> getWorkspaces(String loginName, int start, int length) {
+        log.info("Starting to fetch workspaces for loginName: {}", loginName);
+
+        // Step 1: Get account ID by email
+        String accountId = getUserAccountId(loginName, start, length);
+        log.info("Account id: " + accountId);
+
+        if (accountId == null || accountId.trim().isEmpty()) {
+            log.warn("Could not retrieve account ID for loginName: {}", loginName);
+            return new ArrayList<>();
+        }
+
+        // Step 2: Get workspaces by account ID
+        List<UiliciousWorkspaceVO> workspaces = getWorkspacesByAccountId(accountId);
+
+        log.info("Completed fetching {} workspaces for loginName: {}", workspaces.size(), loginName);
+        return workspaces;
+
+    }
+
+    private UiliciousWorkspaceVO mapToWorkspaceVO(JsonNode workspaceNode, String accountId) {
+        try {
+            UiliciousWorkspaceVO workspace = new UiliciousWorkspaceVO();
+
+            // Map fields based on the API response structure
+
+            workspace.setSpaceName(workspaceNode.path("name").asText());
+            workspace.setSpaceId(workspaceNode.path("_oid").asText());
+            workspace.setUserRole(workspaceNode.path("userRole").asText());
+            return workspace;
+        } catch (Exception e) {
+            log.error("Error mapping workspace node to VO: {}", e.getMessage());
+            return null;
+        }
     }
    
     

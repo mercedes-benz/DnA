@@ -24,26 +24,38 @@
  * 
  * LICENSE END 
  */
+package com.daimler.data.db.jsonb;
 
-package com.daimler.data.db.repo.uilicious;
-
+import java.io.Serializable;
+import java.util.Date;
 import java.util.List;
 
-import com.daimler.data.db.entities.UiliciousWorkspaceNsql;
-import com.daimler.data.db.repo.common.CommonDataRepository;
-import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
-public interface UiliciousWorkspaceCustomRepository extends
- CommonDataRepository<UiliciousWorkspaceNsql, String> {
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import com.daimler.data.db.jsonb.solution.CreatedBy;
 
-     JsonNode findUiliciousWorkspacesByEmail(String email);
-     
-     boolean updateAccountIdByEmail(String email, String accountId);
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class LeanGovernance implements Serializable{
+
+	private static final long serialVersionUID = 1L;
+	
+	private String department;
+	private String description;
+	private String divisionId;
+	private String division;
+	private String subDivisionId;
+	private String subDivision;
+	private String dataClassification;
+	private Boolean hasPii;
+	private String costCenter;
+	private String internalOrder;
+
 
 }
 
-
-
-
-
-    

@@ -63,11 +63,21 @@ public class UiliciousController implements UiliciousWorkspacesApi
         produces = { "application/json" }, 
         consumes = { "application/json" },
         method = RequestMethod.GET)
-    public ResponseEntity<UiliciousWorkspacesCollectionVO> getUiliciousWorkspaces(@ApiParam(value = "Optional: user email to fetch workspaces for. If not provided, server uses session auth.") @Valid @RequestParam(value = "email", required = false) String email,@ApiParam(value = "Page number from which listing of workspaces should start. Example: 2") @Valid @RequestParam(value = "offset", required = false) Integer offset,@ApiParam(value = "Page size to limit the number of workspaces. Example: 15") @Valid @RequestParam(value = "limit", required = false) Integer limit,@ApiParam(value = "Sort order (asc or desc).", allowableValues = "asc, desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder){
-        
-		return null;
-	};
-    
+    public ResponseEntity<UiliciousWorkspacesCollectionVO> getUiliciousWorkspaces(@ApiParam(value = "Page number from which listing of workspaces should start. Example: 2") @Valid @RequestParam(value = "offset", required = false) Integer offset,@ApiParam(value = "Page size to limit the number of workspaces. Example: 15") @Valid @RequestParam(value = "limit", required = false) Integer limit,@ApiParam(value = "Sort order (asc or desc).", allowableValues = "asc, desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder){
+        //log.info("Request received to fetch Uilicious workspaces"+ offset +" "+ limit +" "+ sortOrder);
+        UiliciousWorkspacesCollectionVO workspaces = uiliciousWorkspaceService.getUiliciousWorkspaces(offset, limit, sortOrder);
+        if(workspaces==null) {
+			log.warn("Something went wrong with uilicious api");
+			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+        //setTotalRecords
+        if (workspaces.getItems() == null || workspaces.getItems().isEmpty()) {
+        log.info("No workspaces found — returning 204 No Content");
+        return new ResponseEntity<>(null, HttpStatus.NO_CONTENT);
+    }
+
+		return ResponseEntity.ok(workspaces);
+	};    
 }
 
 

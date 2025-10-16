@@ -15,8 +15,8 @@ import com.daimler.data.dto.uilicious.UiliciousWorkspaceVO;
 import com.daimler.data.dto.uilicious.UiliciousWorkspacesCollectionVO;
 
 public interface UiliciousWorkspaceService extends CommonService<UiliciousWorkspaceVO, UiliciousWorkspaceNsql, String> {
-      UiliciousWorkspacesCollectionVO getUiliciousWorkspaces(String email, Integer offset, Integer limit, String sortOrder);
-  
+      UiliciousWorkspacesCollectionVO getUiliciousWorkspaces(Integer offset, Integer limit, String sortOrder);
+
 }
 	
 
