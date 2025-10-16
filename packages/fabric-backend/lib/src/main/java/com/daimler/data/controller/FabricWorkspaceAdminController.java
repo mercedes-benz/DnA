@@ -61,28 +61,34 @@ public class FabricWorkspaceAdminController implements FabricWorkspacesAdminApi
         produces = { "application/json" }, 
         consumes = { "application/json" },
         method = RequestMethod.GET)
-    public ResponseEntity<FabricWorkspacesCollectionVO> getAllForFabricAdmin(@ApiParam(value = "Page number from which listing of workspaces should start. Offset. Example 2") @Valid @RequestParam(value = "offset", required = false) Integer offset,@ApiParam(value = "Page size to limit the number of workspaces, Example 15") @Valid @RequestParam(value = "limit", required = false) Integer limit,@ApiParam(value = "Sort workspaces by a given variable like name or createdOn", allowableValues = "name, createdOn") @Valid @RequestParam(value = "sortBy", required = false) String sortBy,@ApiParam(value = "Sort workspaces based on the given order (asc or desc)", allowableValues = "asc, desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder){
-				int defaultLimit = 15;
-		if (offset == null || offset < 0) offset = 0;
-		if (limit == null || limit < 0) limit = defaultLimit;
+    public ResponseEntity<FabricWorkspacesCollectionVO> getAllForFabricAdmin(
+		@ApiParam(value = "Page number from which listing of workspaces should start. Offset. Example 2") @Valid @RequestParam(value = "offset", required = false) Integer offset,
+		@ApiParam(value = "Page size to limit the number of workspaces, Example 15") @Valid @RequestParam(value = "limit", required = false) Integer limit,
+		@ApiParam(value = "Sort workspaces by a given variable like name or createdOn", allowableValues = "name, createdOn") @Valid @RequestParam(value = "sortBy", required = false) String sortBy,
+		@ApiParam(value = "Sort workspaces based on the given order (asc or desc)", allowableValues = "asc, desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder,
+		@ApiParam(value = "Search term to filter workspaces by name.") @Valid @RequestParam(value = "search", required = false) String search)
+		{
+			int defaultLimit = 15;
+			if (offset == null || offset < 0) offset = 0;
+			if (limit == null || limit < 0) limit = defaultLimit;
 
-		if (this.userStore.getUserInfo() == null ||
-				this.userStore.getVO() == null ||
-				this.userStore.getVO().getId() == null ||
-				"".equalsIgnoreCase(this.userStore.getVO().getId().trim())) {
-			return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
+			if (this.userStore.getUserInfo() == null ||
+					this.userStore.getVO() == null ||
+					this.userStore.getVO().getId() == null ||
+					"".equalsIgnoreCase(this.userStore.getVO().getId().trim())) {
+				return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
+			}
+
+			UserInfo currentUserInfo = this.userStore.getUserInfo();
+			// log.info("User roles from session/token: {}", currentUserInfo.getUserRole());
+			if (!currentUserInfo.hasFabricAdminAccess()) {
+				return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
+			}
+
+			FabricWorkspacesCollectionVO collection = service.getAllForFabricAdmin(limit, offset, search);
+			HttpStatus responseCode = (collection.getRecords() != null && !collection.getRecords().isEmpty()) ? HttpStatus.OK : HttpStatus.NO_CONTENT;
+			return new ResponseEntity<>(collection, responseCode);
 		}
-
-		UserInfo currentUserInfo = this.userStore.getUserInfo();
-		log.info("User roles from session/token: {}", currentUserInfo.getUserRole());
-		if (!currentUserInfo.hasFabricAdminAccess()) {
-			return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
-		}
-
-    	FabricWorkspacesCollectionVO collection = service.getAllForFabricAdmin(limit, offset);
-		HttpStatus responseCode = (collection.getRecords() != null && !collection.getRecords().isEmpty()) ? HttpStatus.OK : HttpStatus.NO_CONTENT;
-		return new ResponseEntity<>(collection, responseCode);
-	}
 
 
 }

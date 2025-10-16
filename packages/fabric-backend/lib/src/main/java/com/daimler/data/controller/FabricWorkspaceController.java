@@ -31,6 +31,7 @@ import com.daimler.data.application.client.FabricCDCPushServiceClient;
 import com.daimler.data.application.client.FabricWorkspaceClient;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
+import com.daimler.data.dto.adaProjects.ADAProjectDetailsCollectionVO;
 import com.daimler.data.dto.fabric.MicrosoftGroupDetailDto;
 import com.daimler.data.dto.fabricWorkspace.AuthoriserRoleDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.AuthoriserRoleDetailsResponseVO;
@@ -1023,5 +1024,26 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
     }
-		     
+		    
+	@Override
+    @ApiOperation(value = "Search ADA Projects", nickname = "searchADAProjects", notes = "Search ADA Projects by project name,", response = ADAProjectDetailsCollectionVO.class, tags={ "adaProjects", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 200, message = "List of ADA Projects matching search criteria", response = ADAProjectDetailsCollectionVO.class),
+        @ApiResponse(code = 204, message = "No ADA Projects found matching search criteria"),
+        @ApiResponse(code = 400, message = "Bad request"),
+        @ApiResponse(code = 500, message = "Internal server error") })
+    @RequestMapping(value = "/fabric-workspaces/ada-projects",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.GET)
+    public ResponseEntity<ADAProjectDetailsCollectionVO> searchADAProjects(
+        @ApiParam(value = "Filter by project name (optional)") @Valid @RequestParam(value = "projectName", required = false) String projectName) {
+           
+            ADAProjectDetailsCollectionVO collection = service.searchProjects(projectName);
+            if (collection.getRecords() == null || collection.getRecords().isEmpty()) {
+                return new ResponseEntity<>(collection, HttpStatus.NO_CONTENT);
+            }
+            return new ResponseEntity<>(collection, HttpStatus.OK);
+    }
+
 }

@@ -7,5 +7,5 @@ import com.daimler.data.service.common.CommonService;
 
 public interface FabricWorkspaceAdminService extends CommonService<FabricWorkspaceVO, FabricWorkspaceNsql, String>  {
 
-    FabricWorkspacesCollectionVO getAllForFabricAdmin(int limit, int offset); 
+    FabricWorkspacesCollectionVO getAllForFabricAdmin(int limit, int offset, String search); 
 }

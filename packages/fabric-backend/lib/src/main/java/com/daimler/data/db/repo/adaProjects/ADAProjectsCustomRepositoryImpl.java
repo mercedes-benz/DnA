@@ -28,16 +28,27 @@
 package com.daimler.data.db.repo.adaProjects;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.Collections;
 
 import javax.persistence.Query;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Repository;
 
+import com.daimler.data.assembler.ADAProjectsAssembler;
 import com.daimler.data.db.entities.ADAProjectsNsql;
+import com.daimler.data.db.json.ADAProjectDetails;
 import com.daimler.data.db.json.FabricWorkspace;
 import com.daimler.data.db.repo.common.CommonDataRepositoryImpl;
+import com.daimler.data.dto.adaProjects.ADAProjectDetailsVO;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.extern.slf4j.Slf4j;
@@ -46,6 +57,9 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class ADAProjectsCustomRepositoryImpl extends CommonDataRepositoryImpl<ADAProjectsNsql, String>
 		implements ADAProjectsCustomRepository {
+
+		@Autowired
+		private ADAProjectsAssembler adaProjectsAssembler;
 
 	// @Override
 	// public long getTotalCount(String userId) {
@@ -88,5 +102,41 @@ public class ADAProjectsCustomRepositoryImpl extends CommonDataRepositoryImpl<AD
 	// 	}).collect(Collectors.toList());
 	// 	return convertedResults;
 	// }
+
+	@Override
+	public List<ADAProjectsNsql> searchProjectsByName(String projectName) {
+		try {
+			CriteriaBuilder cb = em.getCriteriaBuilder();
+			CriteriaQuery<ADAProjectsNsql> cq = cb.createQuery(ADAProjectsNsql.class);
+			Root<ADAProjectsNsql> root = cq.from(ADAProjectsNsql.class);
+			List<Predicate> predicates = new ArrayList<>();
+
+			if (projectName != null && !projectName.trim().isEmpty()) {
+				Predicate name = cb.like(
+						cb.lower(cb.function("jsonb_extract_path_text", String.class,
+								root.get("data"), cb.literal("projectName"))),
+						"%" + projectName.trim().toLowerCase() + "%");
+				predicates.add(name);
+			}
+			cq.select(root);
+			if (!predicates.isEmpty()) {
+				cq.where(cb.and(predicates.toArray(new Predicate[0])));
+			}
+
+			cq.orderBy(cb.asc(
+					cb.function("jsonb_extract_path_text", String.class,
+							root.get("data"), cb.literal("projectName"))));
+
+			TypedQuery<ADAProjectsNsql> query = em.createQuery(cq);
+			List<ADAProjectsNsql> results = query.getResultList();
+
+			// log.info("Found {} ADA projects for search '{}'", results.size(), projectName);
+			return results;
+
+		} catch (Exception e) {
+			log.error("Error fetching ADA projects by name '{}': {}", projectName, e.getMessage(), e);
+			return Collections.emptyList();
+		}
+	}
 
 }

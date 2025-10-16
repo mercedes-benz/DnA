@@ -12,6 +12,9 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import javax.persistence.PersistenceException;
+import javax.persistence.Query;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,17 +28,22 @@ import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.application.client.AuthoriserClient;
 import com.daimler.data.application.client.FabricWorkspaceClient;
 import com.daimler.data.application.client.RSAEncryptionUtil;
+import com.daimler.data.assembler.ADAProjectsAssembler;
 import com.daimler.data.assembler.FabricWorkspaceAssembler;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
+import com.daimler.data.db.entities.ADAProjectsNsql;
 import com.daimler.data.db.entities.AuthoriserRolesNsql;
 import com.daimler.data.db.entities.FabricWorkspaceNsql;
+import com.daimler.data.db.json.ADAProjectDetails;
 import com.daimler.data.db.json.AuthoriserRoleDeatils;
 import com.daimler.data.db.json.UserDetails;
 import com.daimler.data.db.repo.fabric.FabricWorkspaceCustomRepository;
 import com.daimler.data.db.repo.fabric.FabricWorkspaceRepository;
 import com.daimler.data.db.repo.roles.AuthoriserRolesCustomRepository;
 import com.daimler.data.db.repo.roles.AuthoriserRolesRepository;
+import com.daimler.data.dto.adaProjects.ADAProjectDetailsCollectionVO;
+import com.daimler.data.dto.adaProjects.ADAProjectDetailsVO;
 import com.daimler.data.dto.fabric.AccessReviewDto;
 import com.daimler.data.dto.fabric.AddGroupDto;
 import com.daimler.data.dto.fabric.CreateDatasourceRequestDto;
@@ -94,6 +102,8 @@ import com.daimler.data.util.ConstantsUtility;
 import com.daimler.data.util.FabricWorkspaceUtility;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.daimler.data.service.tag.TagService;
+import com.daimler.data.db.repo.adaProjects.ADAProjectsCustomRepository;
+import com.daimler.data.db.repo.adaProjects.ADAProjectsCustomRepositoryImpl;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -134,6 +144,13 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 
 	@Autowired
 	private UserStore userStore;
+
+	@Autowired
+	private ADAProjectsAssembler adaProjectsAssemblerssembler;
+
+	@Autowired
+	private ADAProjectsCustomRepository adaProjectsRepo;
+
 
 	@Value("${fabricWorkspaces.capacityId}")
 	private String capacityId;
@@ -2001,6 +2018,32 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 			}
 			
 		}
+	}
+
+	@Override
+	public ADAProjectDetailsCollectionVO searchProjects(String projectName) {
+		ADAProjectDetailsCollectionVO collection = new ADAProjectDetailsCollectionVO();
+		GenericMessage message = new GenericMessage();
+
+		try {
+			List<ADAProjectsNsql> entities = adaProjectsRepo.searchProjectsByName(projectName);
+
+			List<ADAProjectDetailsVO> projects = entities.stream()
+					.map(adaProjectsAssemblerssembler::toVo)
+					.collect(Collectors.toList());
+
+			collection.setRecords(projects);
+			collection.setTotalCount(projects.size());
+			message.setSuccess("SUCCESS");
+
+		} catch (Exception e) {
+			log.error("Error searching ADA Projects by name: {}", projectName, e);
+			message.setSuccess("ERROR");
+			message.setErrors(List.of(new MessageDescription("Failed to search projects: " + e.getMessage())));
+		}
+
+		collection.responses(message);
+		return collection;
 	}
 
 }
