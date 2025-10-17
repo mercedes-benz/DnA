@@ -1360,13 +1360,13 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 							}
 						}
 						else if(customGroupVOList !=null && !customGroupVOList.isEmpty() &&!customGroupNameCollection.isEmpty()){
-							for(GroupDetailsVO customgroupList:customGroupVOList){
-								if(userGroupDetail.getDisplayName().equalsIgnoreCase(customgroupList.getGroupName())){
-									iscustomGroupCollectionAvailable = true;
-									customGroup.setGroupName(ConstantsUtility.ASSIGNED_STATE);
-									customGroup.setGroupId(userGroupDetail.getIdentifier());
-								}
-							}
+                                for(GroupDetailsVO customgroupList:customGroupVOList){
+                                	if(userGroupDetail.getDisplayName().equalsIgnoreCase(customgroupList.getGroupName())){
+                                		iscustomGroupCollectionAvailable = true;
+                                		customGroup.setState(ConstantsUtility.ASSIGNED_STATE);
+                                		customGroup.setGroupId(userGroupDetail.getIdentifier());
+                                	}
+                            }
 
 						}
 						else {
