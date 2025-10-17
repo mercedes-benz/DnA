@@ -1256,7 +1256,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 								}else{
 									currentStatus.setState(ConstantsUtility.COMPLETED_STATE);
 								}
-								if(customGroupNameCollection != null && customGroupNameCollection.isEmpty()){
+								if(customGroupNameCollection != null && !customGroupNameCollection.isEmpty()){
 									for(GroupDetailsVO customGroupElement : customGroupVOList){
 										if(ConstantsUtility.ASSIGNED_STATE.equalsIgnoreCase(customGroupElement.getState())){
 										currentStatus.setState(ConstantsUtility.COMPLETED_STATE);
