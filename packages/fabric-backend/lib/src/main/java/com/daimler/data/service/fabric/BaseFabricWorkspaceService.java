@@ -1088,7 +1088,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 								viewerGroupVO = tempGrp;
 								isViewerGroupAvailable = true;
 							}
-							if(customGroupName != null && !"".equalsIgnoreCase(customGroupName)){ // here also -- case1
+							if(customGroupName != null && !"".equalsIgnoreCase(customGroupName)){
 								if(customGroupName.equalsIgnoreCase(tempGrp.getGroupName())) {
 									customGroupVO = tempGrp;
 									isCustomGroupAvailable = true;
