@@ -195,6 +195,33 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 					}			
 		}
 
+	if (workspaceRequestVO.getCustomGroupNameCollection() != null 
+        && !workspaceRequestVO.getCustomGroupNameCollection().isEmpty()) {
+
+		List<String> validGroupNames = new ArrayList<>();
+
+    	for (String groupName : workspaceRequestVO.getCustomGroupNameCollection()) {
+        	if (groupName != null && !groupName.trim().isEmpty()) {
+				MicrosoftGroupDetailDto searchResult = fabricWorkspaceClient.searchGroup(groupName);
+				if (searchResult == null || searchResult.getId() == null) {
+					GenericMessage failedResponse = new GenericMessage();
+					MessageDescription message = new MessageDescription();
+					message.setMessage("Couldn't get group details for name: " + groupName + ". Failed to create workspace.");
+					failedResponse.addErrors(message);
+					failedResponse.setSuccess(HttpStatus.BAD_REQUEST.name());
+
+					responseVO.setData(workspaceRequestVO);
+					responseVO.setResponses(failedResponse);
+					log.error("Couldn't get group details for name {}, Failed to create workspace", groupName);
+					return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+				} else {
+					validGroupNames.add(searchResult.getDisplayName());
+				}
+        	}
+    	}
+    	workspaceRequestVO.setCustomGroupNameCollection(validGroupNames);
+	}
+
 		CreatedByVO requestUser = this.userStore.getVO();
 		List<MessageDescription> errors = new ArrayList<>();
 
