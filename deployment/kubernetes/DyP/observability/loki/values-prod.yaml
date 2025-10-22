@@ -136,7 +136,7 @@ minio:
   mcImage:
     repository: registry-emea.app.corpintra.net/quaycache/minio/mc
   persistence:
-    size: 1000Gi
+    size: 1500Gi
 
 memcachedExporter:
   image:
