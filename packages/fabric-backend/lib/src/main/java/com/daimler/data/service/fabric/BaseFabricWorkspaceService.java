@@ -1359,15 +1359,15 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 								customGroupVO.setGroupId(userGroupDetail.getIdentifier());
 							}
 						}
-						else if(customGroupVOList !=null && !customGroupVOList.isEmpty() &&!customGroupNameCollection.isEmpty()){
+                        else if(customGroupVOList !=null && !customGroupVOList.isEmpty() &&!customGroupNameCollection.isEmpty()){
                                 for(GroupDetailsVO customgroupList:customGroupVOList){
                                 	if(userGroupDetail.getDisplayName().equalsIgnoreCase(customgroupList.getGroupName())){
                                 		iscustomGroupCollectionAvailable = true;
-                                		customGroup.setState(ConstantsUtility.ASSIGNED_STATE);
-                                		customGroup.setGroupId(userGroupDetail.getIdentifier());
+                                		customgroupList.setState(ConstantsUtility.ASSIGNED_STATE);
+                                		customgroupList.setGroupId(userGroupDetail.getIdentifier());
                                 	}
-                            }
-
+                            }						
+						
 						}
 						else {
 							//fabricWorkspaceClient.removeUserGroup(workspaceId, userGroupDetail.getDisplayName());
@@ -1431,12 +1431,13 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		}
 		if(customGroupNameCollection !=null && !customGroupNameCollection.isEmpty()){
 			for(GroupDetailsVO customGroupElement: customGroupVOList){
-				if(iscustomGroupCollectionAvailable){
+                if(customGroupElement.getState() != null && 
+                   ConstantsUtility.ASSIGNED_STATE.equalsIgnoreCase(customGroupElement.getState())){
 					updatedGroups.add(customGroupElement);
 				}else {
-					log.info("Custom group is missing for workspace {} after provisioning, trying to reassign",workspaceId);
-					customGroup= this.callGroupAssign(customGroupElement, workspaceId, ConstantsUtility.PERMISSION_ADMIN);
-					updatedGroups.add(customGroupElement);
+					log.info("Custom group {} is missing for workspace {} after provisioning, trying to reassign", customGroupElement.getGroupName(), workspaceId);
+					GroupDetailsVO updatedGroup = this.callGroupAssign(customGroupElement, workspaceId, ConstantsUtility.PERMISSION_ADMIN);
+					updatedGroups.add(updatedGroup);
 				}	
 			}
 		}
