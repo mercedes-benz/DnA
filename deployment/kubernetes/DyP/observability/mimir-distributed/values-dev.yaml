@@ -101,10 +101,10 @@ alertmanager:
   replicas: 3
   resources:
     limits:
-      memory: 1Gi
+      memory: 500Mi
     requests:
       cpu: 50m
-      memory: 1Gi
+      memory: 500Mi
   statefulSet:
     enabled: true
 
@@ -113,10 +113,10 @@ compactor:
     size: 50Gi
   resources:
     limits:
-      memory: 2Gi
+      memory: 1Gi
     requests:
       cpu: 50m
-      memory: 2Gi
+      memory: 1Gi
 
 distributor:
   replicas: 3
@@ -191,23 +191,23 @@ memcachedExporter:
 
 admin-cache:
   enabled: true
-  replicas: 3
+  replicas: 1
 
 chunks-cache:
   enabled: true
-  replicas: 3
+  replicas: 1
 
 index-cache:
   enabled: true
-  replicas: 3
+  replicas: 1
 
 metadata-cache:
   enabled: true
-  replicas: 3
+  replicas: 1
 
 results-cache:
   enabled: true
-  replicas: 3
+  replicas: 1
   allocatedMemory: 1024
 
 overrides_exporter:
@@ -232,19 +232,19 @@ query_frontend:
   replicas: 3
   resources:
     limits:
-      memory: 500Mi
+      memory: 128Mi
     requests:
       cpu: 100m
-      memory: 500Mi
+      memory: 128Mi
 
 ruler:
   replicas: 3
   resources:
     limits:
-      memory: 500Mi
+      memory: 128Mi
     requests:
       cpu: 100m
-      memory: 500Mi
+      memory: 128Mi
 
 store_gateway:
   persistentVolume:
