@@ -237,7 +237,7 @@ jobs:
         filter-label: staging 
 
   production:
-    name: 'Deploy to Production'
+    name: 'Create Production Deployment PR'
     needs: build
     if: ${{ github.ref_name == 'main' ||  inputs.ENVIRONMENT == 'Production' }}
     runs-on: [os-small-amd64-linux]
