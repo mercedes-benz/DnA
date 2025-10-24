@@ -55,12 +55,20 @@ jobs:
         valueFile: deployment/kubernetes/helm/charts/clamav/values-prod.yaml
         propertyPath: 'image.repo'
         value: "registry-emea.app.corpintra.net/dnaplatform/clamav:${{ steps.date.outputs.date }}"
-        branch: main
-        createPR: false
+        createPR: true
+        branch: deploy-version-${{ github.run_number }}-main
+        targetBranch: main
+        masterBranchName: main
+        labels: 'main, update-image-version'
+        reviewers: 'AMARIAR,VKURAPA,SKOLLUR'
         commitChange: true
         message: 'Update Image Version to ${{ steps.date.outputs.date }}' 
         githubAPI: https://git.i.mercedes-benz.com/api/v3
         token: ${{ secrets.PID_PAT }} 
+
+    - name: Print pull request details
+      run: |
+        echo "Pull Request Info - ${{ steps.cpr.outputs.pull_request }}"
 
   css-scan:
         name: Container security scan
@@ -87,15 +95,31 @@ jobs:
         valueFile: deployment/kubernetes/helm/charts/clamav/values-test.yaml
         propertyPath: 'image.repo'
         value: "registry-emea.app.corpintra.net/dnaplatform/clamav:${{ needs.build.outputs.date }}"
-        branch: staging
-        createPR: false
+        createPR: true
+        branch: deploy-version-${{ github.run_number }}-staging
+        targetBranch: staging
+        masterBranchName: staging
+        labels: 'staging, update-image-version'
         commitChange: true
         message: 'Update Image Version to ${{ needs.build.outputs.date }}' 
         githubAPI: https://git.i.mercedes-benz.com/api/v3
         token: ${{ secrets.PID_PAT }}  
 
-  main:
-    name: "Update tag main"
+    - name: Print pull request details
+      id: pr_number
+      run: |
+       PR_NUMBER=$(echo '${{ steps.cpr.outputs.pull_request }}' | grep -o '"number":[0-9]*' | sed 's/"number"://')
+       echo "PR_NUMBER=$PR_NUMBER" >> $GITHUB_OUTPUT 
+
+    - name: Staging pull request merge
+      uses: sudo-bot/action-pull-request-merge@v1.2.0
+      with:
+        github-token: ${{ secrets.PID_PAT }}
+        number: ${{ steps.pr_number.outputs.PR_NUMBER }}
+        filter-label: staging 
+
+  dev:
+    name: "Update tag dev"
     needs: build
     runs-on: [road-runner]
     
@@ -111,10 +135,26 @@ jobs:
         valueFile: deployment/kubernetes/helm/charts/clamav/values-dev.yaml
         propertyPath: 'image.repo'
         value: "registry-emea.app.corpintra.net/dnaplatform/clamav:${{ needs.build.outputs.date }}"
-        branch: dev
-        createPR: false
+        createPR: true
+        branch: deploy-version-${{ github.run_number }}-dev
+        targetBranch: dev
+        masterBranchName: dev
+        labels: 'dev, update-image-version'
         commitChange: true
         message: 'Update Image Version to ${{ needs.build.outputs.date }}' 
         githubAPI: https://git.i.mercedes-benz.com/api/v3
         token: ${{ secrets.PID_PAT }}  
+
+    - name: Print pull request details
+      id: pr_number
+      run: |
+       PR_NUMBER=$(echo '${{ steps.cpr.outputs.pull_request }}' | grep -o '"number":[0-9]*' | sed 's/"number"://')
+       echo "PR_NUMBER=$PR_NUMBER" >> $GITHUB_OUTPUT 
+
+    - name: Dev pull request merge
+      uses: sudo-bot/action-pull-request-merge@v1.2.0
+      with:
+        github-token: ${{ secrets.PID_PAT }}
+        number: ${{ steps.pr_number.outputs.PR_NUMBER }}
+        filter-label: dev 
 
