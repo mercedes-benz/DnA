@@ -67,3 +67,5 @@ db:
    env: prod 
  - name: currencytool
    env: prod 
+ - name: scriptick-ai
+   env: prod 

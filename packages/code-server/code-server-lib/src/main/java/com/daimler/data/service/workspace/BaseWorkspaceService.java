@@ -1737,6 +1737,9 @@
 							auditLogs = optionalBuildDeployentity.getData().getProdDeploymentAuditLogs();
 						}
 					}
+					 if(null == auditLogs){
+						auditLogs = new ArrayList<>();
+					}
 					DeploymentAudit auditLog = new DeploymentAudit();
 					 if("APPROVAL_PENDING".equalsIgnoreCase(deploymentDetails.getLastDeploymentStatus())){						
 						if (!auditLogs.isEmpty()){

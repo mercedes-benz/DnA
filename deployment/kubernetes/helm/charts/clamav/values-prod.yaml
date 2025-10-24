@@ -62,7 +62,7 @@ app:
       port: api
 image:
   replicaCount: 4
-  repo: registry-emea.app.corpintra.net/dnaplatform/clamav:2025-10-06
+  repo: registry-emea.app.corpintra.net/dnaplatform/clamav:2025-10-14
   pullPolicy: Always
 ingress:
   enabled: false
@@ -133,4 +133,4 @@ podDisruptionBudget:
 autoscaling:
   enabled: true
   minReplicas: 2
-  maxReplicas: 50
+  maxReplicas: 10

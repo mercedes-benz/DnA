@@ -236,7 +236,7 @@ jobs:
 
   upload-build_deploy-logs-to-opensearch:
     name: "Upload Logs to Opensearch" 
-    runs-on: [os-medium-amd64-linux]
+    runs-on: [os-small-amd64-linux]
     environment: ${{ github.event.inputs.environment }}
     needs: build_deploy
     if: ${{ !cancelled() && (success() || failure())}}
@@ -277,7 +277,7 @@ jobs:
     name: 'Delete Code Server Workspace'
     if: ${{ github.event.inputs.action == 'undeploy'}}
     environment: ${{ github.event.inputs.environment }}
-    runs-on: [os-medium-amd64-linux]
+    runs-on: [os-small-amd64-linux]
 
     steps:
       - name: 'Delete Code Server Apps'
@@ -313,7 +313,7 @@ jobs:
     name: 'Restart Code Server Workspace'
     if: ${{ github.event.inputs.action == 'restart'}}
     environment: ${{ github.event.inputs.environment }}
-    runs-on: [os-medium-amd64-linux]
+    runs-on: [os-small-amd64-linux]
 
     steps:
         
@@ -361,7 +361,7 @@ jobs:
               github.event.inputs.projectName == 'ffclers-wbv-ext-buyer-be' || 
               github.event.inputs.projectName == 'ffclers-wbv-ext-ri-be' || 
               github.event.inputs.projectName == 'ffclers-wbv-ext-si-be' }}
-    runs-on: [ os-medium-amd64-linux ]
+    runs-on: [ os-small-amd64-linux ]
     steps:
       - uses: actions/checkout@v3
         with:
@@ -428,7 +428,7 @@ jobs:
               github.event.inputs.projectName == 'ffclers-wbv-si-be' ||
               github.event.inputs.projectName == 'ffclers-wbv-ri-be' ||
               github.event.inputs.projectName == 'ffclers-wbv-ext-buyer-fe' }}
-    runs-on: [ os-medium-amd64-linux ]
+    runs-on: [ os-small-amd64-linux ]
     steps:
       - name: Check user repo
         uses: actions/checkout@v3
