@@ -168,7 +168,7 @@ jobs:
       with:
         valueFile: ${{ inputs.HELM_FOLDER }}/values-dev.yaml
         propertyPath: '${{ inputs.YML_IMAGE_TAG_PATH }}'
-        value: ${{ github.run_number }}
+        value: ${{ github.run_number }}-development
         createPR: true
         branch: deploy-version-${{ github.run_number }}-dev
         targetBranch: dev
@@ -212,7 +212,7 @@ jobs:
       with:
         valueFile: ${{ inputs.HELM_FOLDER }}/values-test.yaml
         propertyPath: '${{ inputs.YML_IMAGE_TAG_PATH }}'
-        value: ${{ github.run_number }}
+        value: ${{ github.run_number }}-staging
         createPR: true
         branch: deploy-version-${{ github.run_number }}-staging
         targetBranch: staging
@@ -256,7 +256,7 @@ jobs:
       with:
         valueFile: ${{ inputs.HELM_FOLDER }}/values-prod.yaml
         propertyPath: '${{ inputs.YML_IMAGE_TAG_PATH }}'
-        value: ${{ needs.build.outputs.version }}
+        value: ${{ needs.build.outputs.version }}-production
         createPR: true
         branch: deploy-version-${{ github.run_number }}-main
         targetBranch: main
