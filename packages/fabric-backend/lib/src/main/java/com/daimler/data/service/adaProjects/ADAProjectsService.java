@@ -13,7 +13,7 @@ import com.daimler.data.service.common.CommonService;
 
 public interface ADAProjectsService extends CommonService<ADAProjectDetailsVO, ADAProjectsNsql, String> {
 
-	ADAProjectDetailsCollectionVO getAllProjects(int limit, int offset);
+	ADAProjectDetailsCollectionVO getAllProjects(int limit, int offset, String createdBy);
 	GenericMessage createNewProject(ADAProjectDetailsVO project);
 	GenericMessage updateProject(String id, ADAProjectDetailsVO project);
 	GenericMessage createWorkspaceProjectAssociation(FabricWorkspaceVO workspace, String projectId);

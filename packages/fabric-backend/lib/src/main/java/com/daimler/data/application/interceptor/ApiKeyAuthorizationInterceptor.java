@@ -19,9 +19,12 @@ public class ApiKeyAuthorizationInterceptor implements HandlerInterceptor {
 
     private static final String AUTHORIZATION_HEADER = "Authorization";
     private static final String BEARER_PREFIX = "Bearer ";
+    public static final String CREATOR_ATTRIBUTE = "apiKeyCreator";
 
     @Value("${fabricWorkspaces.ada.apiKey}")
     private String adaApiKey;
+    @Value("${fabricWorkspaces.ada.xto.apiKey}")
+    private String xtoApiKey;
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
@@ -63,16 +66,18 @@ public class ApiKeyAuthorizationInterceptor implements HandlerInterceptor {
             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Token cannot be empty");
             return false;
         }
+        String creator = getCreatorFromToken(accessToken);
 
-        if (!isValidToken(accessToken)) {
-            log.error("Invalid token provided for request: {}", request.getRequestURI());
-            response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid or expired token");
-            return false;
+        if (creator == null) {
+             log.error("Invalid token provided for request: {}", request.getRequestURI());
+             response.sendError(HttpServletResponse.SC_UNAUTHORIZED, "Invalid or expired token");
+             return false;
         }
 
-        log.debug("Token validation successful for: {}", request.getRequestURI());
+        log.debug("Token validation successful for: {} by creator: {}", request.getRequestURI(), creator);
         
-        // Store token in request for later use if needed
+        // 3. Store the Creator in Request Attribute
+        request.setAttribute(CREATOR_ATTRIBUTE, creator);
         request.setAttribute("accessToken", accessToken);
         
         return true;
@@ -81,13 +86,29 @@ public class ApiKeyAuthorizationInterceptor implements HandlerInterceptor {
     /**
      * Implement your token validation logic here
      */
-    private boolean isValidToken(String accessToken) {
-        try {
-            return accessToken.length() >= 20 && accessToken.equals(adaApiKey);
+    // private boolean isValidToken(String accessToken) {
+    //     try {
+    //         return accessToken.length() >= 20 && accessToken.equals(adaApiKey);
             
+    //     } catch (Exception e) {
+    //         log.error("Token validation failed: {}", e.getMessage());
+    //         return false;
+    //     }
+    // }
+    private String getCreatorFromToken(String accessToken) {
+
+        try {
+            if (accessToken.equals(adaApiKey)) {
+                return "ada"; // Default/Primary Key
+            } else if (accessToken.equals(xtoApiKey)) {
+                return "xto"; // Secondary Key
+            } else {
+                return null; // Token is not valid for any known key
+            }
         } catch (Exception e) {
             log.error("Token validation failed: {}", e.getMessage());
-            return false;
+            return null;
         }
     }
+    
 }

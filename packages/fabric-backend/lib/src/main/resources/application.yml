@@ -81,7 +81,7 @@ fabricWorkspaces:
     id: ${AUTHORISER_TECH_USER_ID:XXXX}
   ada:
     apiKey: ${ADA_API_KEY:XXXX}
-
+    xto.apiKey: ${XTO_API_KEY:XXXX}
 authoriser:
   uri: ${IDENTITY_AUTH_URI:XXXX}
   ssoUri: ${IDENTITY_SSO_URI:XXXX}
