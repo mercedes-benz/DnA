@@ -1262,6 +1262,30 @@
 						List<String> repoDetails = CommonUtils.getRepoNameFromGitUrl(vo.getProjectDetails().getRecipeDetails().getRepodetails());
 						String orgName = repoDetails.get(0);
 						repoName = repoDetails.get(1);
+						if(vo.getProjectDetails().getRecipeDetails().getRepodetails().contains("https://git.i.mercedes-benz.com/")){
+						HttpStatus addGitUser = gitClient.addUserToRepo(collaborator.getId(), repoName);
+					
+					 if (addGitUser == HttpStatus.UNPROCESSABLE_ENTITY) {
+									log.info("Failed while adding {} as collaborator with status {}",collaborator.getId(), addGitUser.name());
+									MessageDescription errMsg = new MessageDescription(
+											"Failed while adding " + collaborator.getId()
+													+ " as collaborator, Because"
+													+ " the Git user account Suspended, please ask the user to Login again and add this user manually in the git repo.");
+									errors.add(errMsg);
+									responseVO.setSuccess("FAILED");
+									responseVO.setErrors(errors);
+									return responseVO;
+								}
+								if (!addGitUser.is2xxSuccessful()) {
+									MessageDescription warnMsg = new MessageDescription("Failed while adding " + collaborator.getId()
+											+ " as collaborator to repository. Please add manually and try again.");
+									log.info(
+											"Failed while adding {} as collaborator to repository. Please add manually",
+											collaborator.getId());
+									warnings.add(warnMsg);
+									responseVO.setWarnings(warnings);
+								}
+					}else{
 						HttpStatus status = gitClient.isUserCollaborator(orgName, collaborator.getId(), repoName);
 						if(!status.is2xxSuccessful()) {
 							log.info("Collaborator {} Addition failed for recipe {}  ",collaborator.getId(),vo.getProjectDetails().getRecipeDetails().getRecipeId());
@@ -1272,8 +1296,9 @@
 							responseVO.setData(null);
 							return responseVO;
 						}
-						ownerCollab.add(workspaceAssembler.toUserInfo(collaborator));
-					}else{
+					}
+					ownerCollab.add(workspaceAssembler.toUserInfo(collaborator));
+				}else{
 						ownerCollab.add(workspaceAssembler.toUserInfo(collaborator));
 					}
 					 CodeServerWorkspaceNsql collabEntity = new CodeServerWorkspaceNsql();
@@ -2250,7 +2275,7 @@
 					List<String> repoDetails = CommonUtils.getRepoNameFromGitUrl(vo.getProjectDetails().getRecipeDetails().getRepodetails());
 					String repoOwner = repoDetails.get(0);
 					repoName = repoDetails.get(1);
-					if(repoName.contains("https://git.i.mercedes-benz.com/")){
+					if(gitUrl.contains("https://git.i.mercedes-benz.com/")){
 						HttpStatus addGitUser = gitClient.addUserToRepo(gitUser, repoName);
 					if(addGitUser == HttpStatus.UNPROCESSABLE_ENTITY){
 						log.info("Failed while adding {} as collaborator with status {}", repoName,
