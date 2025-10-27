@@ -842,6 +842,16 @@ import com.daimler.data.dto.workspace.DeploymentAuditVO;
 							 projectDetailsVO.setLastBuildOrDeployedOn(isoFormat.parse(isoFormat.format(projectDetails.getLastBuildOrDeployedOn())));
 						projectDetailsVO.setLastBuildOrDeployedEnv(projectDetails.getLastBuildOrDeployedEnv());
 						projectDetailsVO.setLastBuildOrDeployedStatus(projectDetails.getLastBuildOrDeployedStatus());
+						if(projectDetails.getIsAgentCreation()!= null){
+							projectDetailsVO.setIsAgentCreation(projectDetails.getIsAgentCreation());
+					 	}else{
+							projectDetailsVO.setIsAgentCreation(false);
+					 	}
+						if(projectDetails.getIsAgentInitialized()!= null){
+							projectDetailsVO.setIsAgentInitialized(projectDetails.getIsAgentInitialized());
+					 	}else{
+							projectDetailsVO.setIsAgentInitialized(false);
+					 	}
 					 }
 					 vo.setProjectDetails(projectDetailsVO);
 					 
@@ -902,6 +912,16 @@ import com.daimler.data.dto.workspace.DeploymentAuditVO;
 			 CodeServerProjectDetailsVO projectDetailsVO = vo.getProjectDetails();
 			 if (projectDetailsVO != null) {
 				 CodeServerProjectDetails projectDetails = new CodeServerProjectDetails();
+				 if(projectDetailsVO.isIsAgentCreation()!=null){
+					projectDetails.setIsAgentCreation(projectDetailsVO.isIsAgentCreation());
+				 } else {
+					projectDetails.setIsAgentCreation(false);
+				 }
+				 if(projectDetailsVO.isIsAgentInitialized()!=null){
+					projectDetails.setIsAgentInitialized(projectDetailsVO.isIsAgentInitialized());
+				 } else {
+					projectDetails.setIsAgentInitialized(false);
+				 }
 				 CodeServerGovernanceVO governanceVO = projectDetailsVO.getDataGovernance();
 				 if (governanceVO != null) {
 					 CodeServerLeanGovernanceFeilds governance = this.toGovernanceEntity(governanceVO);

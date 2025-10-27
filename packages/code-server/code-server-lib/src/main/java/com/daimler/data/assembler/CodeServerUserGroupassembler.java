@@ -38,6 +38,11 @@ public class CodeServerUserGroupassembler implements GenericAssembler<CodeServer
                         vo.setGroupId(group.getGroupId());
                         vo.setName(group.getName());
                         vo.setOrder(group.getOrder());
+                        if(group.getIsAiAgentGroup()!= null){
+					        vo.setIsAiAgentGroup(group.getIsAiAgentGroup());
+				        }else{
+					        vo.setIsAiAgentGroup(false);
+					    }
                         List<CodeServerWorkspaceVO> workspaceList = new ArrayList<>();
                         group.getWorkspaces().forEach(workSpace ->{
                             CodeServerWorkspaceVO wsvo = new CodeServerWorkspaceVO();
@@ -77,6 +82,11 @@ public class CodeServerUserGroupassembler implements GenericAssembler<CodeServer
                     group.setName(vo.getName());
                     group.setOrder(vo.getOrder());
                     group.setGroupId(vo.getGroupId());
+                    if(vo.isIsAiAgentGroup()!=null){
+				        group.setIsAiAgentGroup(vo.isIsAiAgentGroup());
+			        }else{
+				        group.setIsAiAgentGroup(false);
+			        }
                     List<CodeServerUserGroupWsDetails> workSpaceList = new ArrayList<>();
                     vo.getWorkspaces().forEach(wsvo ->{
                         CodeServerUserGroupWsDetails workSpace = new CodeServerUserGroupWsDetails();
