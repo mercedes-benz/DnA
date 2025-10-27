@@ -689,7 +689,7 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
       }
       { showCreateShortcutModal &&
         <Modal
-          title={'Create Shortcut'}
+    title={`Create Shortcut - ${workspace?.name || ''} / ${selectedLakehouse?.name || ''}`} 
           showAcceptButton={false}
           showCancelButton={false}
           modalWidth={'600px'}
@@ -703,7 +703,7 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
       }
       { showViewShortcutsModal &&
         <Modal
-          title={'Shortcuts'}
+    title={`Shortcuts - ${workspace?.name || ''} / ${selectedLakehouse?.name || ''}`} 
           hiddenTitle={true}
           showAcceptButton={false}
           showCancelButton={false}
