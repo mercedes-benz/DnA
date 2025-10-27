@@ -4859,7 +4859,7 @@ import com.daimler.data.dto.workspace.CreatedByVO;
 		}
 		responseMessage.setErrors(errors);
 		responseMessage.setWarnings(warnings);
-		responseMessage.setSuccess(status);
+		responseMessage.setSuccess("SUCCESS");
 		return responseMessage;
 	}
 
