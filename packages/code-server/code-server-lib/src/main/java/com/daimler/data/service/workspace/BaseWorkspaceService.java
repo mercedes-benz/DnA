@@ -49,7 +49,8 @@
  import org.springframework.beans.factory.annotation.Autowired;
  import org.springframework.beans.factory.annotation.Value;
  import org.springframework.http.HttpStatus;
- import org.springframework.stereotype.Service;
+import org.springframework.http.ResponseEntity;
+import org.springframework.stereotype.Service;
  import org.springframework.transaction.annotation.Transactional;
  import org.springframework.util.ObjectUtils;
  
@@ -64,7 +65,8 @@
  import com.daimler.data.controller.exceptions.GenericMessage;
  import com.daimler.data.controller.exceptions.MessageDescription;
  import com.daimler.data.db.entities.CodeServerBuildDeployNsql;
- import com.daimler.data.db.entities.CodeServerUserGroupNsql;
+import com.daimler.data.db.entities.CodeServerRecipeNsql;
+import com.daimler.data.db.entities.CodeServerUserGroupNsql;
  import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
  import com.daimler.data.db.json.BuildAudit;
  import com.daimler.data.db.json.CodeServerBuildDeploy;
@@ -78,7 +80,8 @@
  import com.daimler.data.db.json.CodespaceSecurityConfig;
  import com.daimler.data.db.json.UserInfo;
  import com.daimler.data.db.json.CodeServerProjectDetails;
- import com.daimler.data.db.repo.workspace.WorkSpaceCodeServerBuildDeployRepository;
+import com.daimler.data.db.json.CodeServerRecipe;
+import com.daimler.data.db.repo.workspace.WorkSpaceCodeServerBuildDeployRepository;
  import com.daimler.data.db.repo.workspace.WorkspaceCustomAdditionalServiceRepo;
  import com.daimler.data.db.repo.workspace.WorkspaceCustomBuildDeployRepo;
  import com.daimler.data.db.repo.workspace.WorkspaceCustomRecipeRepo;
@@ -95,16 +98,24 @@
  import com.daimler.data.dto.WorkbenchManageInputDto;
  import com.daimler.data.dto.solution.ChangeLogVO;
  import com.daimler.data.dto.userinfo.UsersCollection;
- import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.CloudServiceProviderEnum;
- import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.RecipeIdEnum;
+import com.daimler.data.dto.workspace.CodeServerDeploymentDetailsVO;
+import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO;
+import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.CloudServiceProviderEnum;
+import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.CpuCapacityEnum;
+import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.EnvironmentEnum;
+import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.OperatingSystemEnum;
+import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.RamSizeEnum;
+import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.RecipeIdEnum;
  import com.daimler.data.dto.workspace.CodeServerUserGroupByIdVO;
  import com.daimler.data.dto.workspace.CodeServerUserGroupCollectionVO;
- import com.daimler.data.dto.workspace.CodeServerUserGroupVO;
+import com.daimler.data.dto.workspace.CodeServerUserGroupResponseVO;
+import com.daimler.data.dto.workspace.CodeServerUserGroupVO;
  import com.daimler.data.dto.workspace.CodeServerUserGroupWsDetailsVO;
  import com.daimler.data.dto.workspace.CodeServerWorkspaceVO;
  import com.daimler.data.dto.workspace.CodeServerWorkspaceValidateVO;
  import com.daimler.data.dto.workspace.CodeSpaceReadmeVo;
- import com.daimler.data.dto.workspace.CreatedByVO;
+import com.daimler.data.dto.workspace.CodespaceSecurityConfigVO;
+import com.daimler.data.dto.workspace.CreatedByVO;
  import com.daimler.data.dto.workspace.DataGovernanceRequestInfo;
  import com.daimler.data.dto.workspace.DeployedAppConfigDto;
  import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
@@ -939,8 +950,9 @@
   
 	 @Override
 	 @Transactional
-	 public InitializeWorkspaceResponseVO createWorkspace(CodeServerWorkspaceVO vo, String pat) {
+	 public InitializeWorkspaceResponseVO createWorkspace(CodeServerWorkspaceVO vo, String pat, Boolean isAiAgentCreation) {
 		CreatedByVO currentUser = this.userStore.getVO();
+		log.info("is ai agent space creation {} ",isAiAgentCreation);
 		InitializeWorkspaceResponseVO responseVO = new InitializeWorkspaceResponseVO();
 		 responseVO.setData(vo);
 		 responseVO.setSuccess("FAILED");
@@ -965,7 +977,7 @@
 			 if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")) {
 				 // validate user pat
 				 if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
-						 .equalsIgnoreCase("default")) {
+						 .equalsIgnoreCase("default") && !isAiAgentCreation) {
 					 HttpStatus validateUserPatstatus = gitClient.validateGitPat(owner.getGitUserName(), pat);
 					 if (!validateUserPatstatus.is2xxSuccessful()) {
 						 MessageDescription errMsg = new MessageDescription(
@@ -994,6 +1006,7 @@
 						}
 						String repoOwner = repoDetails.get(0);
 						HttpStatus createRepoStatus = gitClient.createRepo(repoOwner,repoName,recipeName);
+						log.info("create repo status {}",createRepoStatus);
 						if (!createRepoStatus.is2xxSuccessful()) {
 							 MessageDescription errMsg = new MessageDescription(
 									 "Failed while initializing git repository " + repoName
@@ -1088,14 +1101,17 @@
 				 }
 			 } else {
 				 // repoName = vo.getProjectDetails().getRecipeDetails().getRepodetails();
-				 HttpStatus publicGitPatStatus = gitClient.validatePublicGitPat(vo.getGitUserName(), pat, repoName);
-				 if (!publicGitPatStatus.is2xxSuccessful()) {
-					 MessageDescription errMsg = new MessageDescription(
-							 "Invalid Personal Access Token. Please verify and retry");
-					 errors.add(errMsg);
-					 responseVO.setErrors(errors);
-					 return responseVO;
-				 }				 
+				 if(!isAiAgentCreation){
+				 	 HttpStatus publicGitPatStatus = gitClient.validatePublicGitPat(vo.getGitUserName(), pat, repoName);
+				 	 if (!publicGitPatStatus.is2xxSuccessful()) {
+						 MessageDescription errMsg = new MessageDescription(
+								" Invalid Personal Access Token. Please verify and retry");
+						 errors.add(errMsg);
+						 responseVO.setErrors(errors);
+						 return responseVO;
+				     }
+				 }
+				 				 
 				 repoName = vo.getProjectDetails().getRecipeDetails().getGitPath()+","+vo.getProjectDetails().getRecipeDetails().getGitRepoLoc();
 				}
 				if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private")) {
@@ -1192,50 +1208,64 @@
 			 ownerWorkbenchCreateDto.setInputs(ownerWorkbenchCreateInputsDto);
 			 String codespaceName = vo.getProjectDetails().getProjectName();
 			 
-			 GenericMessage createOwnerWSResponse = client.doCreateCodeServer(ownerWorkbenchCreateDto,codespaceName);
-			 if (createOwnerWSResponse != null) {
-				 if (!"SUCCESS".equalsIgnoreCase(createOwnerWSResponse.getSuccess()) ||
-						 (createOwnerWSResponse.getErrors() != null && !createOwnerWSResponse.getErrors().isEmpty()) ||
-						 (createOwnerWSResponse.getWarnings() != null
-								 && !createOwnerWSResponse.getWarnings().isEmpty())) {
-  //					if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
-  //							.startsWith("public")
-  //							&& !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
-  //							.startsWith("private")
-  //							&& !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
-  //							.startsWith("bat")) {
-  //						HttpStatus deleteRepoStatus = gitClient.deleteRepo(repoName);
-  //						if (!deleteRepoStatus.is2xxSuccessful()) {
-  //							MessageDescription errMsg = new MessageDescription("Created git repository " + repoName
-  //									+ " successfully and added collaborator(s). Failed to initialize workbench, Unable to delete repository, please delete repository manually and retry");
-  //							errors.add(errMsg);
-  //							errors.addAll(createOwnerWSResponse.getErrors());
-  //							warnings.addAll(createOwnerWSResponse.getWarnings());
-  //							responseVO.setErrors(errors);
-  //							responseVO.setWarnings(warnings);
-  //							return responseVO;
-  //						} else {
-  //							MessageDescription errMsg = new MessageDescription("Created git repository " + repoName
-  //									+ " successfully and added collaborator(s). Failed to initialize workbench. Deleted repository, please retry creating codespace again");
-  //							errors.add(errMsg);
-  //							errors.addAll(createOwnerWSResponse.getErrors());
-  //							warnings.addAll(createOwnerWSResponse.getWarnings());
-  //							responseVO.setErrors(errors);
-  //							responseVO.setWarnings(warnings);
-  //							return responseVO;
-  //						}
-  //					}
-					 
-					 MessageDescription errMsg = new MessageDescription("Failed to initialize workbench. Please retry creating codespace again");
-					 errors.add(errMsg);
-					 errors.addAll(createOwnerWSResponse.getErrors());
-					 warnings.addAll(createOwnerWSResponse.getWarnings());
-					 responseVO.setErrors(errors);
-					 responseVO.setWarnings(warnings);
-					 return responseVO;
+			 if (!isAiAgentCreation) {
+				 GenericMessage createOwnerWSResponse = client.doCreateCodeServer(ownerWorkbenchCreateDto,
+						 codespaceName);
+				 if (createOwnerWSResponse != null) {
+					 if (!"SUCCESS".equalsIgnoreCase(createOwnerWSResponse.getSuccess()) ||
+							 (createOwnerWSResponse.getErrors() != null
+									 && !createOwnerWSResponse.getErrors().isEmpty())
+							 ||
+							 (createOwnerWSResponse.getWarnings() != null
+									 && !createOwnerWSResponse.getWarnings().isEmpty())) {
+						 // if
+						 // (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
+						 // .startsWith("public")
+						 // &&
+						 // !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
+						 // .startsWith("private")
+						 // &&
+						 // !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
+						 // .startsWith("bat")) {
+						 // HttpStatus deleteRepoStatus = gitClient.deleteRepo(repoName);
+						 // if (!deleteRepoStatus.is2xxSuccessful()) {
+						 // MessageDescription errMsg = new MessageDescription("Created git repository "
+						 // + repoName
+						 // + " successfully and added collaborator(s). Failed to initialize workbench,
+						 // Unable to delete repository, please delete repository manually and retry");
+						 // errors.add(errMsg);
+						 // errors.addAll(createOwnerWSResponse.getErrors());
+						 // warnings.addAll(createOwnerWSResponse.getWarnings());
+						 // responseVO.setErrors(errors);
+						 // responseVO.setWarnings(warnings);
+						 // return responseVO;
+						 // } else {
+						 // MessageDescription errMsg = new MessageDescription("Created git repository "
+						 // + repoName
+						 // + " successfully and added collaborator(s). Failed to initialize workbench.
+						 // Deleted repository, please retry creating codespace again");
+						 // errors.add(errMsg);
+						 // errors.addAll(createOwnerWSResponse.getErrors());
+						 // warnings.addAll(createOwnerWSResponse.getWarnings());
+						 // responseVO.setErrors(errors);
+						 // responseVO.setWarnings(warnings);
+						 // return responseVO;
+						 // }
+						 // }
+
+						 MessageDescription errMsg = new MessageDescription(
+								 "Failed to initialize workbench. Please retry creating codespace again");
+						 errors.add(errMsg);
+						 errors.addAll(createOwnerWSResponse.getErrors());
+						 warnings.addAll(createOwnerWSResponse.getWarnings());
+						 responseVO.setErrors(errors);
+						 responseVO.setWarnings(warnings);
+						 return responseVO;
+					 }
 				 }
+
 			 }
-  
+
 			 SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
 			 Date now = isoFormat.parse(isoFormat.format(new Date()));
 			 String projectName = ownerEntity.getData().getProjectDetails().getProjectName();
@@ -3866,6 +3896,7 @@
 				userGroup.setGroupId(id);
 				userGroup.setUpdatedBy(currentUser.getId());
 				userGroup.setUpdatedDate(now);
+				userGroup.setIsAiAgentGroup(vo.isIsAiAgentGroup());
 
 				//remove workspace from other groups
 				if(data.getGroups() != null || !data.getGroups().isEmpty()){
@@ -4009,6 +4040,7 @@
 			Optional<CodeServerUserGroupNsql> entity = userGroupRepository.findById(currentUser.getId());
 			if(entity.isPresent()){
 				responseData = groupassembler.toVo(entity.get());
+				responseData.getData().removeIf(group -> group.isIsAiAgentGroup() != null && group.isIsAiAgentGroup());
 				responseData.getData().forEach(group ->{
 					List<CodeServerWorkspaceVO> workspaceListt = new ArrayList<>(); 
 					group.getWorkspaces().forEach(workSpace ->{                           
@@ -4695,5 +4727,187 @@
 		return responseMessage;
 	}
 
-	
+	@Override
+	public GenericMessage createAiAgentSpace(List<CodeServerWorkspaceVO> vo, String groupName, UserInfoVO currentUserVO, String userId) {
+		InitializeWorkspaceResponseVO createResponseMessage = new InitializeWorkspaceResponseVO();
+		GenericMessage responseMessage = new GenericMessage();
+		String status = "FAILED";
+		List<MessageDescription> warnings = new ArrayList<>();
+		List<MessageDescription> errors = new ArrayList<>();
+		List<CodeServerWorkspaceVO> groupWorkspaceVo = new ArrayList<>();
+		boolean createSuccessful = true;
+		for (CodeServerWorkspaceVO item : vo) {
+			currentUserVO.setGitUserName(item.getGitUserName());
+			item.setWorkspaceOwner(currentUserVO);
+			item.setId(null);
+			item.setWorkspaceId(null);
+			item.setActiveInGroup(Boolean.FALSE);
+			item.setWorkspaceUrl("");
+			item.setStatus(ConstantsUtility.CREATEREQUESTEDSTATE);
+			item.setServerStatus("SERVER_STOPPED");
+			item.getProjectDetails().setRecipeName(item.getProjectDetails().getRecipeName());
+			item.getProjectDetails().setGitRepoName(item.getProjectDetails().getProjectName());
+			item.getProjectDetails().setIntDeploymentDetails(new CodeServerDeploymentDetailsVO());
+			item.getProjectDetails().setProjectOwner(currentUserVO);
+			item.getProjectDetails().setProdDeploymentDetails(new CodeServerDeploymentDetailsVO());
+			item.getProjectDetails().setSecurityConfig(new CodespaceSecurityConfigVO());
+			String recipeName = item.getProjectDetails().getRecipeName();
+			CodeServerRecipeNsql recipeEntity = workspaceCustomRecipeRepo.findById(recipeName);
+			CodeServerRecipe recipeData = recipeEntity != null ? recipeEntity.getData() : null;
+			CodeServerRecipeDetailsVO newRecipeVO = new CodeServerRecipeDetailsVO();
+			String cloudServiceProvider = item.getProjectDetails().getRecipeDetails().getCloudServiceProvider()
+					.toString();
+			if (cloudServiceProvider.equals(ConstantsUtility.DHC_CAAS_AWS)) {
+				newRecipeVO.setCloudServiceProvider(CloudServiceProviderEnum.CAAS_AWS);
+			} else {
+				newRecipeVO.setCloudServiceProvider(CloudServiceProviderEnum.CAAS);
+			}
+			newRecipeVO.setCpuCapacity(CpuCapacityEnum._1);
+			newRecipeVO.setEnvironment(EnvironmentEnum.DEVELOPMENT);
+			newRecipeVO.setOperatingSystem(OperatingSystemEnum.DEBIAN_OS_11);
+			// newRecipeVO.setRecipeId(reqVO.getProjectDetails().getRecipeDetails().getRecipeId());
+			String recipeValue = recipeData.getRecipeId() != null ? recipeData.getRecipeId()
+					: recipeData.getRecipeName();
+			newRecipeVO.setRecipeName(recipeData.getRecipeName());
+			if (RecipeIdEnum.fromValue(recipeValue) != null) {
+				newRecipeVO.setRecipeId(RecipeIdEnum.fromValue(recipeValue));
+			} else if (recipeData.getRecipeType().equals(ConstantsUtility.GENERIC)) {
+				newRecipeVO.setRecipeId(RecipeIdEnum.TEMPLATE);
+			} else {
+				newRecipeVO.setRecipeId(RecipeIdEnum.PRIVATE_USER_DEFINED);
+			}
+			newRecipeVO.setId(item.getProjectDetails().getRecipeName());
+			// newRecipeVO.setRepodetails(reqVO.getProjectDetails().getRecipeDetails().getRepodetails());
+			newRecipeVO.setRepodetails(recipeData.getRepodetails());
+			newRecipeVO.setRecipeType(recipeData.getRecipeType());
+			String resource = recipeData.getDiskSpace() + "Gi," + recipeData.getMinRam() + "M," + recipeData.getMinCpu()
+					+ ",";
+			resource += recipeData.getMaxRam() + "M," + recipeData.getMaxCpu();
+			newRecipeVO.setResource(resource);
+			newRecipeVO.setSoftware(recipeData.getSoftware());
+			if (recipeData.getToDeployType() != null) {
+				newRecipeVO.setToDeployType(recipeData.getToDeployType());
+			} else {
+				newRecipeVO.setToDeployType("default");
+			}
+			newRecipeVO.setIsDeployEnabled(recipeData.isDeployEnabled());
+			newRecipeVO.setGitPath(recipeData.getGitPath());
+			newRecipeVO.setAdditionalServices(recipeData.getAdditionalServices());
+			newRecipeVO.setGitRepoLoc(recipeData.getGitRepoLoc());
+			newRecipeVO.setRamSize(RamSizeEnum._1);
+			item.getProjectDetails().setRecipeDetails(newRecipeVO);
+			log.info("item is : {}",item);
+			createResponseMessage = this.createWorkspace(item, "", true);
+			if ("SUCCESS".equalsIgnoreCase(createResponseMessage.getSuccess())) {
+				log.info("User {} created workspace {}", userId, item.getProjectDetails().getProjectName());
+				groupWorkspaceVo.add(createResponseMessage.getData());
+			} else {
+				log.info("Failed while creating workspace {} for user {}", item.getProjectDetails().getProjectName(),
+						userId);
+				createSuccessful = false;
+				break;
+			}
+		}
+		if (createSuccessful) {
+			CodeServerUserGroupVO createGroupRequest = new CodeServerUserGroupVO();
+			createGroupRequest.setIsAiAgentGroup(true);
+			createGroupRequest.setName(groupName);
+			createGroupRequest.setOrder(0);
+			createGroupRequest.setGroupId("");
+			createGroupRequest.setWorkspaces(groupWorkspaceVo);
+			CodeServerUserGroupCollectionVO responsedata = this.createWorkSpaceGroup(createGroupRequest);
+			if (responsedata != null) {
+				// add vault values
+				//deploy
+				for (CodeServerWorkspaceVO item : vo) {
+					CodeServerWorkspaceVO workspace = this.getByProjectName(item.getProjectDetails().getProjectName());
+					String environment = "prod";
+					String branch = "main";
+					GenericMessage responseMsg;
+					responseMsg = this.deployWorkspace(userId, workspace.getId(), environment, branch,
+							false, "", "deploy");
+					log.info("User {} deployed workspace {} project {}", userId, workspace.getWorkspaceId(),
+							workspace.getProjectDetails().getRecipeDetails().getRecipeId().name());
+					if ("FAILED".equalsIgnoreCase(responseMsg.getSuccess())) {
+						log.info("Deployment failed for workspace {}", workspace.getProjectDetails().getProjectName());
+						break;
+						// return error
+					} else {
+						log.info("User {} deployed workspace {} project {}", userId, workspace.getWorkspaceId(),
+								workspace.getProjectDetails().getRecipeDetails().getRecipeId().name());
+					}
+
+				}
+			} else {
+				log.error("Failed to Create workspcae group");
+				// delete the workspaces
+				responseMessage.setSuccess("FAILED");
+				MessageDescription msg = new MessageDescription();
+				msg.setMessage("Failed while creating workspace group");
+				errors.add(msg);
+				responseMessage.setErrors(errors);
+				return responseMessage;
+			}
+		} else {
+			// delete the created spaces
+			responseMessage.setSuccess("FAILED");
+            MessageDescription msg = new MessageDescription();
+            msg.setMessage("Failed while creating workspace");
+            errors.add(msg);
+            responseMessage.setErrors(errors);
+			return responseMessage;
+		}
+		responseMessage.setErrors(errors);
+		responseMessage.setWarnings(warnings);
+		responseMessage.setSuccess(status);
+		return responseMessage;
+	}
+
+	@Override
+	public CodeServerUserGroupCollectionVO getAllAiWorkSpaceGroup(){
+		try {
+			CreatedByVO currentUser = this.userStore.getVO();
+			CodeServerUserGroupCollectionVO responseData = null;
+			Optional<CodeServerUserGroupNsql> entity = userGroupRepository.findById(currentUser.getId());
+			if(entity.isPresent()){
+				responseData = groupassembler.toVo(entity.get());
+				responseData.getData().removeIf(group -> group.isIsAiAgentGroup() == null || !group.isIsAiAgentGroup());
+				responseData.getData().forEach(group ->{
+					List<CodeServerWorkspaceVO> workspaceListt = new ArrayList<>(); 
+					group.getWorkspaces().forEach(workSpace ->{                           
+						CodeServerWorkspaceVO workspaceVo = this.getByUniqueliteral(currentUser.getId(), "workspaceId", workSpace.getWorkspaceId() );                           
+						if(null != workspaceVo && null != workspaceVo.getId()){
+							if(workspaceVo.getProjectDetails().getRecipeDetails().isIsDeployEnabled() == null || !workspaceVo.getProjectDetails().getRecipeDetails().isIsDeployEnabled()) {
+								if(workspaceVo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private")||workspaceVo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")||workspaceVo.getProjectDetails().getRecipeDetails().getRecipeId().name().equalsIgnoreCase("template")){
+									workspaceVo.getProjectDetails().getRecipeDetails().setIsDeployEnabled(false);
+								}else{
+									workspaceVo.getProjectDetails().getRecipeDetails().setIsDeployEnabled(true);
+								}
+							}
+							String serverStatus = getServerStatus(workspaceVo); // Update server status
+			 				if(serverStatus.equalsIgnoreCase("true"))
+			 				{
+								workspaceVo.setServerStatus("SERVER_STARTED");
+			 				}
+			 				else
+			 				{
+								workspaceVo.setServerStatus("SERVER_STOPPED");
+			 				}
+							workspaceListt.add(workspaceVo);
+						}
+					});
+					group.setWorkspaces(workspaceListt);
+				});
+			}else{
+				responseData = new CodeServerUserGroupCollectionVO();
+				responseData.setUserId(currentUser.getId());
+				responseData.setData(new ArrayList<>());
+			}
+			return responseData;
+		} catch (Exception e) {
+			log.info("Failed while getAllAiWorkSpaceGroup codeserver workspace group with exception " + e.getMessage());
+			return  null;
+		}
+	}
+
 }

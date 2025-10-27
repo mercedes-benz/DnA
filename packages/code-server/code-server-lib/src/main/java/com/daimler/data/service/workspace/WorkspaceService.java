@@ -37,7 +37,6 @@ import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
 import com.daimler.data.dto.workspace.*;
 import com.daimler.data.dto.workspace.admin.CodespaceSecurityConfigDetailsVO;
 import com.daimler.data.dto.workspace.buildDeploy.*;
-import com.daimler.data.dto.workspace.WorkspacePluginStatusVO;
 
 
 public interface WorkspaceService {
@@ -54,7 +53,7 @@ public interface WorkspaceService {
 
 	CodeSpaceReadmeVo getCodeSpaceReadmeFile(String id) throws Exception;
 
-	InitializeWorkspaceResponseVO createWorkspace(CodeServerWorkspaceVO vo, String pat);
+	InitializeWorkspaceResponseVO createWorkspace(CodeServerWorkspaceVO vo, String pat, Boolean isAiAgentCreation);
 
 	InitializeWorkspaceResponseVO initiateWorkspace(CodeServerWorkspaceVO vo, String pat);
 
@@ -138,5 +137,9 @@ public interface WorkspaceService {
 	CodeServerUserGroupCollectionVO deleteWorkSpaceGroup(String id);
 
 	GenericMessage deleteBuild(String projectName,String version);
+
+	GenericMessage createAiAgentSpace(List<CodeServerWorkspaceVO> vo, String groupName, UserInfoVO currentUserVO, String userId);
+
+	CodeServerUserGroupCollectionVO getAllAiWorkSpaceGroup();
 	
 }

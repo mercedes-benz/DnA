@@ -1518,7 +1518,64 @@ paths:
         405:
           description: "Method not allowed"
         500:
-          description: "Internal error"                                                                               
+          description: "Internal error" 
+
+  /workspaces/aiagent:
+    get:
+      tags:
+        - "code-server"
+      summary: "Get AI agent workspace group details."
+      description: "Get AI agent workspace group details"
+      operationId: "getAllAiAgentWorkSpaceGroup"
+      responses:
+        200:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/CodeServerUserGroupResponseVO"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+    post:
+      tags:
+        - "code-server"
+      summary: "Create Ai Agent Workbench for user in code-server."
+      description: "Create Ai Agent Workbench for user in code-server."
+      operationId: "createAiAgent"
+      parameters:
+        - name: "codeServerAiAgentRequestVO"
+          in: "body"
+          description: "Request Body that contains data required for intialize code server workbench for user"
+          required: true
+          schema:
+            $ref: "#/definitions/InitializeAiAgentWorkspaceRequestVO"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+    
+
         
 definitions:
   CodeSpaceReadmeVo:
@@ -1709,6 +1766,10 @@ definitions:
         $ref: "#/definitions/CodespaceSecurityConfigVO"
       dataGovernance:
          $ref: "#/definitions/CodeServerGovernanceVO"
+      isAgentCreation:
+        type: boolean
+      isAgentInitialized:
+        type: boolean
       required:
         -projectName
         -recipeDetails
@@ -2338,6 +2399,8 @@ definitions:
       order:
         type: integer
         description: "order of user group"
+      isAiAgentGroup:
+        type: boolean
       workspaces:
         type: array
         items:
@@ -2447,7 +2510,11 @@ definitions:
       warnings:
         type: array
         items:
-          $ref: "#/definitions/MessageDescription"                           
-          
-
-
+          $ref: "#/definitions/MessageDescription"
+  InitializeAiAgentWorkspaceRequestVO:
+    type: object
+    properties:
+      data:
+        type: array
+        items:
+          $ref: "#/definitions/CodeServerWorkspaceVO"                            

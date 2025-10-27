@@ -49,6 +49,7 @@
      private String name;
      private String groupId;
      private int order;
+     private Boolean isAiAgentGroup;
      private List<CodeServerUserGroupWsDetails> workspaces;
 
 

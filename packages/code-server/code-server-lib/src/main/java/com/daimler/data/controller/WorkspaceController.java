@@ -100,6 +100,7 @@ import com.daimler.data.dto.workspace.CreatedByVO;
 import com.daimler.data.dto.workspace.DataGovernanceRequestInfo;
 import com.daimler.data.dto.workspace.DeployedAppConfigDto;
 import com.daimler.data.dto.workspace.EntitlementCollectionVO;
+import com.daimler.data.dto.workspace.InitializeAiAgentWorkspaceRequestVO;
 import com.daimler.data.dto.workspace.InitializeCollabWorkspaceRequestVO;
 import com.daimler.data.dto.workspace.InitializeWorkspaceRequestVO;
 import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
@@ -120,6 +121,7 @@ import com.daimler.data.service.workspace.WorkspaceService;
 import com.daimler.data.util.CommonUtils;
 import com.daimler.data.util.ConstantsUtility;
 import com.daimler.data.db.json.CodeServerRecipe;
+import com.daimler.data.db.json.CodeServerUserGroup;
 import com.daimler.data.db.json.CodeServerWorkspace;
 import com.daimler.data.dto.workspace.WorkspaceServerStatusVO;
 import com.daimler.data.dto.workspace.ServerStatusVO;
@@ -948,7 +950,7 @@ import org.springframework.beans.factory.annotation.Value;
 		newRecipeVO.setGitRepoLoc(recipeData.getGitRepoLoc());
 		 newRecipeVO.setRamSize(RamSizeEnum._1);
 		 reqVO.getProjectDetails().setRecipeDetails(newRecipeVO);
-		 responseMessage = service.createWorkspace(reqVO, pat);
+		 responseMessage = service.createWorkspace(reqVO, pat, false);
 		 if ("SUCCESS".equalsIgnoreCase(responseMessage.getSuccess())) {
 			 responseStatus = HttpStatus.CREATED;
 			 log.info("User {} created workspace {}", userId, reqVO.getProjectDetails().getProjectName());
@@ -3501,6 +3503,115 @@ import org.springframework.beans.factory.annotation.Value;
 		} catch (Exception e) {
 			log.error("Failed to delete workspcae group, with exception {}", e.getLocalizedMessage());
 			MessageDescription exceptionMsg = new MessageDescription("Failed to delete group due to internal error.");
+			response.addErrorsItem(exceptionMsg);
+			return new ResponseEntity<>(response,HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	@Override
+	@ApiOperation(value = "Create Ai Agent Workbench for user in code-server.", nickname = "createAiAgent", notes = "Create Ai Agent Workbench for user in code-server.", response = GenericMessage.class, tags = {
+			"code-server", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 201, message = "Returns message of success or failure", response = GenericMessage.class),
+			@ApiResponse(code = 400, message = "Bad Request", response = GenericMessage.class),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/workspaces/aiagent", produces = { "application/json" }, consumes = {
+			"application/json" }, method = RequestMethod.POST)
+	public ResponseEntity<GenericMessage> createAiAgent(
+			@ApiParam(value = "Request Body that contains data required for intialize code server workbench for user", required = true) @Valid @RequestBody InitializeAiAgentWorkspaceRequestVO codeServerAiAgentRequestVO) {
+		HttpStatus responseStatus = HttpStatus.OK;
+		CreatedByVO currentUser = this.userStore.getVO();
+		UserInfoVO currentUserVO = new UserInfoVO();
+		BeanUtils.copyProperties(currentUser, currentUserVO);
+		String userId = currentUser != null ? currentUser.getId() : null;
+		List<CodeServerWorkspaceVO> reqVO = codeServerAiAgentRequestVO.getData();
+		boolean isDuplicate = false;
+        String groupName = "";
+        final int HOST_SUFFIX_LENGTH = 5;
+
+        for (CodeServerWorkspaceVO item : reqVO) {
+            String projectName = item.getProjectDetails().getProjectName();
+            CodeServerWorkspaceVO existingVO = service.getByProjectName(projectName);
+
+            // checking if project name is existing in database
+            if (existingVO != null && existingVO.getWorkspaceId() != null) {
+                isDuplicate = true;
+                break;
+            }
+
+            if (projectName.toLowerCase().endsWith("-host")) {
+                groupName = projectName.substring(0, projectName.length() - HOST_SUFFIX_LENGTH);
+            }
+
+            Optional<CodeServerUserGroupNsql> entityOptional = userGroupRepository.findById(currentUser.getId());
+            if (entityOptional.isPresent()) {
+                CodeServerUserGroupNsql entity = entityOptional.get();
+                for (CodeServerUserGroup group : entity.getData().getGroups()) {
+                    if (group.getName().equalsIgnoreCase(groupName)) {
+                        isDuplicate = true;
+                        break;
+                    }
+                }
+            }
+            if (isDuplicate) {
+                break;
+            }
+        }
+
+        if (isDuplicate) {
+            GenericMessage emptyResponse = new GenericMessage();
+            List<MessageDescription> errors = new ArrayList<>();
+            MessageDescription msg = new MessageDescription();
+            msg.setMessage("workspace already exists. Please try again with a different name.");
+            errors.add(msg);
+            emptyResponse.setErrors(errors);
+            return new ResponseEntity<>(emptyResponse, HttpStatus.CONFLICT);
+        }
+		GenericMessage responseMsg;
+		responseMsg = service.createAiAgentSpace(reqVO, groupName, currentUserVO, userId);
+		if ("FAILED".equalsIgnoreCase(responseMsg.getSuccess())) {
+			return new ResponseEntity<>(responseMsg, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		return new ResponseEntity<>(responseMsg, HttpStatus.OK);
+	};
+
+	@Override
+	@ApiOperation(value = "Get AI agent workspace group details.", nickname = "getAllAiAgentWorkSpaceGroup", notes = "Get AI agent workspace group details", response = CodeServerUserGroupResponseVO.class, tags={ "code-server", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 200, message = "Returns message of success or failure", response = CodeServerUserGroupResponseVO.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/workspaces/aiagent",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.GET)
+    public ResponseEntity<CodeServerUserGroupResponseVO> getAllAiAgentWorkSpaceGroup(){
+		CodeServerUserGroupResponseVO response = new CodeServerUserGroupResponseVO();
+		response.setData(null);
+		response.setSuccess("FAILED");
+		try {
+						
+			CodeServerUserGroupCollectionVO responsedata = service.getAllAiWorkSpaceGroup();
+			if(responsedata != null){
+				response.setData(responsedata);
+				response.setSuccess("SUCCESS");
+				return new ResponseEntity<>(response, HttpStatus.OK);
+			}else{
+				log.error("Failed to getAllAiWorkSpaceGroup");
+			MessageDescription exceptionMsg = new MessageDescription("Failed to getAllAiWorkSpaceGroup due to internal error.");
+			response.addErrorsItem(exceptionMsg);
+			return new ResponseEntity<>(response,HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+		} catch (Exception e) {
+			log.error("Failed to getAllAiWorkSpaceGroup, with exception {}", e.getLocalizedMessage());
+			MessageDescription exceptionMsg = new MessageDescription("Failed to getAllAiWorkSpaceGroup due to internal error.");
 			response.addErrorsItem(exceptionMsg);
 			return new ResponseEntity<>(response,HttpStatus.INTERNAL_SERVER_ERROR);
 		}
