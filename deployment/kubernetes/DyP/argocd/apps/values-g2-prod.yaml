@@ -37,6 +37,8 @@ repositories:
   #   url: https://git.i.mercedes-benz.com/DNA-CodeSpaces/byron-chat-bot.git
 
 db:
- - name: wbv
-   env: dev
+ - name: digital-qua
+   env: int
+ - name: digital-qua
+   env: prod  
  
