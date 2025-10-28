@@ -20,7 +20,7 @@ const FabricWorkspaceRow = ({user, workspace, onSelectWorkspace, onEditWorkspace
   return (
     <div className={Styles.projectRow} onClick={handleOpenWorkspace}>
       <div className={Styles.col1}>
-        <span>
+        <span className={Styles.workspaceName}>
           {workspace?.name || 'null'}
         </span>
         {workspace?.status?.state === 'IN_PROGRESS' &&
