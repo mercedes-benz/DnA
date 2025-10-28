@@ -68,4 +68,8 @@ db:
  - name: currencytool
    env: prod 
  - name: scriptick-ai
-   env: prod 
+   env: prod
+ - name: digital-qua
+   env: int
+ - name: digital-qua
+   env: prod

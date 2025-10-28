@@ -16,7 +16,7 @@ image:
 fullnameOverride: "digital-qua-int"
 ## PostgreSQL replica count
 ##
-replicaCount: 1
+replicaCount: 3
 
 printEnv: true
 
@@ -80,7 +80,7 @@ SSL:
 
 ## Specify PGDATABASE
 ##
-DBName: digital-int
+DBName: db
 
 ## Configure S3 properties if S3 storage will be used
 ##
@@ -126,7 +126,7 @@ env:
 ## for point-in-time recovery WAL archiving must be enabled
 ## for details on WAL archiving see https://www.postgresql.org/docs/10/continuous-archiving.html
 walArchiving:
-  enabled: true
+  enabled: false
   # you have to choose the type of storage where the WAL files will be archived
   # fs | s3
   storage: fs
@@ -136,7 +136,7 @@ walArchiving:
     volume:
       ## if volume.enabled is true, a PersistentVolumeClaim will be created
       ## if it is false, the WAL files will be archived to an emptyDir (makes only sense for testing)
-      enabled: true
+      enabled: false
       accessModes:
       - ReadWriteMany
       size: 3Gi
@@ -150,7 +150,7 @@ walArchiving:
 ## Configure extra options for liveness and readiness probes
 ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#configure-probes)
 livenessProbe:
-  enabled: false
+  enabled: true
   initialDelaySeconds: 30
   periodSeconds: 5
   timeoutSeconds: 1
@@ -158,7 +158,7 @@ livenessProbe:
   successThreshold: 1
 
 readinessProbe:
-  enabled: false
+  enabled: true
   initialDelaySeconds: 30
   periodSeconds: 10
   timeoutSeconds: 5
@@ -469,7 +469,9 @@ antiAffinity:
   enabled: true
 
 podDisruptionBudget:
-  enabled: false
+  enabled: ture
+  maxUnavailable: "50%"
+
 
 terminationGracePeriodSeconds: 300
 
