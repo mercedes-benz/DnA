@@ -626,7 +626,10 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 			filteredEntitlements = allEntitlementsList.stream().filter(n-> n.contains( applicationId + "." + subgroupPrefix ) && n.contains(id)).collect(Collectors.toList());
 		}
 		String creatorId = existingFabricWorkspace.getCreatedBy().getId();
-		if(!requestUser.getId().equalsIgnoreCase(creatorId) && (filteredEntitlements==null || filteredEntitlements.isEmpty())) {
+		boolean isCreator = requestUser.getId().equalsIgnoreCase(creatorId);
+		boolean isEntitled = filteredEntitlements != null && !filteredEntitlements.isEmpty();
+		boolean isFabricAdmin = currentUserInfo.hasFabricAdminAccess();
+		if (!isCreator && !isEntitled && !isFabricAdmin) {
 				log.warn("Fabric workspace {} {} does not belong to User {} , Not authorized to use others project",id,existingFabricWorkspace.getName(),requestUser.getId()	);
 				return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
 		}else {
