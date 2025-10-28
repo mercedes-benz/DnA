@@ -136,10 +136,12 @@ jobs:
 
     - name: Publish application containers to registry
       run: |
-        env="${{ inputs.ENVIRONMENT }}" 
-        env_lc="${env,,}"
-        docker push ${{ inputs.IMAGE_NAME }}:${{ github.run_number }}-${env_lc}
-        if [ "${{ github.ref_name }}" == "main" ] || [ "${{ inputs.ENVIRONMENT }}" == "Production" ]; then
+        if [ "${{ github.ref_name }}" == "dev" ] || [ "${{ inputs.ENVIRONMENT }}" == "Development" ]; then
+          docker push ${{ inputs.IMAGE_NAME }}:${{ github.run_number }}-development
+        elif [ "${{ github.ref_name }}" == "staging" ] || [ "${{ inputs.ENVIRONMENT }}" == "Staging" ]; then
+          docker push ${{ inputs.IMAGE_NAME }}:${{ github.run_number }}-staging
+        elif [ "${{ github.ref_name }}" == "main" ] || [ "${{ inputs.ENVIRONMENT }}" == "Production" ]; then
+          docker push ${{ inputs.IMAGE_NAME }}:${{ github.run_number }}-production
           docker push ${{ inputs.IMAGE_NAME }}:${{ steps.updated.outputs.version }}
           docker push ${{ inputs.IMAGE_NAME }}:latest
         fi          
