@@ -235,7 +235,11 @@ service:
   ## The service name has to be unique inside a namespace!
   ## Otherwise there will be a clash of endpoint and the service will not work!
   # name: postgres
-  port: 64012
+  ports:
+   - name: postgresql
+     port: 64000
+   - name: postgresql-tcp
+     port: 64020
 
 ## PostgreSQL persistence layer
 ## storageClassName: <storageClass>
@@ -263,7 +267,7 @@ networkPolicy:
         - protocol: TCP
           port: 8008
         - protocol: TCP
-          port: 64012  
+          port: 64000 
   #- from:
   #  - podSelector:
   #      matchLabels:
