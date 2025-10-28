@@ -35,7 +35,7 @@ import javax.persistence.Table;
 import java.io.Serializable;
 
 @Entity
-@Table(name = "uilicious_nsql")
+@Table(name = "uiliciousworkspace_nsql")
 public class UiliciousWorkspaceNsql extends BaseEntity<UiliciousWorkspace> implements Serializable {
 
 	private static final long serialVersionUID = 4857908075537600169L;

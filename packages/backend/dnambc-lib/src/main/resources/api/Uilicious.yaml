@@ -114,6 +114,39 @@ paths:
         500:
           description: "Internal server error."
 
+    put:
+      tags:
+        - "uilicious-workspaces"
+      summary: "Update lean governance for Uilicious workspace"
+      description: "Updates the lean governance information for an existing Uilicious workspace identified by accountId."
+      operationId: "updateUiliciousWorkspace"
+      parameters:
+        - name: "UiliciousWorkspaceUpdateRequestVO"
+          in: "body"
+          description: "Request Body that contains accountId and lean governance data to be updated"
+          required: true
+          schema:
+            $ref: "#/definitions/UiliciousWorkspaceUpdateRequestVO"          
+      responses:
+        200:
+          description: "Lean governance updated successfully"
+          schema:
+            $ref: "#/definitions/UiliciousWorkspaceUpdateResponseVO"
+        204:
+          description: "No content to update."
+        400:
+          description: "Bad request - Invalid accountId or lean governance data."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        404:
+          description: "Workspace not found for the provided accountId."
+        405:
+          description: "Method not allowed."
+        500:
+          description: "Internal server error."  
+
 definitions:
 
   # Collection wrapper returned by the GET endpoint
@@ -181,6 +214,32 @@ definitions:
       userRole:
         type: string
         description: "Role of the user in this workspace (e.g. admin, editor, viewer)."
+
+  # Request body for updating lean governance
+  UiliciousWorkspaceUpdateRequestVO:
+    type: object
+    required:
+      - accountId
+      - leanGovernance
+    properties:
+      accountId:
+        type: string
+        description: "Uilicious Account ID to identify which workspace to update."
+      leanGovernance:
+        $ref: "#/definitions/leanGovernanceVO"
+
+  # Response body for update operation
+  UiliciousWorkspaceUpdateResponseVO:
+    type: object
+    properties:
+      accountId:
+        type: string
+        description: "Uilicious Account ID of the updated workspace."
+      leanGovernance:
+        $ref: "#/definitions/leanGovernanceVO"
+      message:
+        type: string
+        description: "Success message."
       
       
 

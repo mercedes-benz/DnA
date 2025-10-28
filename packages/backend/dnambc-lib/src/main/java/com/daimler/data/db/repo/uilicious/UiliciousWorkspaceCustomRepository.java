@@ -39,6 +39,8 @@ public interface UiliciousWorkspaceCustomRepository extends
      JsonNode findUiliciousWorkspacesByEmail(String email);
      
      boolean updateAccountIdByEmail(String email, String accountId);
+     
+     boolean updateLeanGovernanceByAccountId(String accountId, JsonNode leanGovernance);
 
 }
 

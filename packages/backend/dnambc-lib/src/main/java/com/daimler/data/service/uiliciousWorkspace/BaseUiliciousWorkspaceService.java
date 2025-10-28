@@ -6,6 +6,8 @@ import com.daimler.data.service.tag.TagService;
 import com.daimler.data.dto.uilicious.LeanGovernanceVO;
 import com.daimler.data.dto.uilicious.UiliciousWorkspaceVO;
 import com.daimler.data.dto.uilicious.UiliciousWorkspacesCollectionVO;
+import com.daimler.data.dto.uilicious.UiliciousWorkspaceUpdateRequestVO;
+import com.daimler.data.dto.uilicious.UiliciousWorkspaceUpdateResponseVO;
 import com.daimler.data.db.entities.UiliciousWorkspaceNsql;
 import com.daimler.data.service.common.BaseCommonService;
 import com.daimler.data.service.uiliciousWorkspace.UiliciousWorkspaceService;
@@ -133,6 +135,19 @@ public class BaseUiliciousWorkspaceService extends
 				
 			}
 
+		} catch (RuntimeException e) {
+			// Check if it's a Uilicious server unavailability issue
+			if (e.getMessage() != null && 
+			    (e.getMessage().contains("Uilicious server is unavailable") || 
+			     e.getMessage().contains("Something went wrong with Uilicious server") ||
+			     e.getMessage().contains("Failed to communicate with Uilicious server"))) {
+				log.error("Uilicious server is down or unreachable for email: {}, error: {}",
+						currentUser.getEmail(), e.getMessage());
+				throw new RuntimeException("Something went wrong with Uilicious server/tool. Please try again later.", e);
+			}
+			log.error("Runtime error occurred while fetching Uilicious workspaces for email: {}, error: {}",
+					currentUser.getEmail(), e.getMessage(), e);
+			return null;
 		} catch (Exception e) {
 			log.error("Error occurred while fetching Uilicious workspaces for email: {}, error: {}",
 					currentUser.getEmail(), e.getMessage(), e);
@@ -140,6 +155,81 @@ public class BaseUiliciousWorkspaceService extends
 		}
 
 		return response;
+	}
+
+	@Override
+	public UiliciousWorkspaceUpdateResponseVO updateUiliciousWorkspace(UiliciousWorkspaceUpdateRequestVO request) {
+		log.info("Starting update for Uilicious workspace with accountId: {}", request.getAccountId());
+		
+		try {
+			// Validate input
+			if (request.getAccountId() == null || request.getAccountId().trim().isEmpty()) {
+				log.error("AccountId is null or empty in update request");
+				throw new IllegalArgumentException("AccountId cannot be null or empty");
+			}
+			
+			if (request.getLeanGovernance() == null) {
+				log.error("LeanGovernance is null in update request for accountId: {}", request.getAccountId());
+				throw new IllegalArgumentException("LeanGovernance cannot be null");
+			}
+			
+			// Get current user
+			UserInfo currentUser = this.userStore.getUserInfo();
+			log.info("Update requested by user: {}", currentUser.getEmail());
+			
+			// Check if workspace exists for this accountId and user email
+			JsonNode existingWorkspace = uiliciousWorkspaceCustomRepository.findUiliciousWorkspacesByEmail(currentUser.getEmail());
+			
+			if (existingWorkspace == null) {
+				log.warn("No workspace found in database for email: {} and accountId: {}", 
+						currentUser.getEmail(), request.getAccountId());
+				return null;
+			}
+			
+			// Verify the accountId matches
+			String dbAccountId = existingWorkspace.has("accountId") && !existingWorkspace.path("accountId").isNull() 
+					? existingWorkspace.path("accountId").asText() 
+					: null;
+			
+			if (dbAccountId == null || !dbAccountId.equals(request.getAccountId())) {
+				log.warn("AccountId mismatch or not found. Expected: {}, Found: {}", 
+						request.getAccountId(), dbAccountId);
+				return null;
+			}
+			
+			// Convert LeanGovernanceVO to JsonNode for database update
+			ObjectMapper mapper = new ObjectMapper();
+			JsonNode leanGovernanceNode = mapper.valueToTree(request.getLeanGovernance());
+			
+			// Update lean governance in database
+			boolean updated = uiliciousWorkspaceCustomRepository.updateLeanGovernanceByAccountId(
+					request.getAccountId(), 
+					leanGovernanceNode
+			);
+			
+			if (!updated) {
+				log.error("Failed to update lean governance in database for accountId: {}", request.getAccountId());
+				throw new RuntimeException("Failed to update workspace in database");
+			}
+			
+			log.info("Successfully updated lean governance for accountId: {}", request.getAccountId());
+			
+			// Prepare response
+			UiliciousWorkspaceUpdateResponseVO response = new UiliciousWorkspaceUpdateResponseVO();
+			response.setAccountId(request.getAccountId());
+			response.setLeanGovernance(request.getLeanGovernance());
+			response.setMessage("Lean governance updated successfully");
+			
+			return response;
+			
+		} catch (IllegalArgumentException e) {
+			log.error("Validation error during workspace update: {}", e.getMessage());
+			throw e;
+		} catch (Exception e) {
+			log.error("Unexpected error occurred while updating Uilicious workspace for accountId: {}, error: {}",
+					request.getAccountId(), e.getMessage(), e);
+			throw new RuntimeException("Failed to update workspace", e);
+		}
 	}
 
 }

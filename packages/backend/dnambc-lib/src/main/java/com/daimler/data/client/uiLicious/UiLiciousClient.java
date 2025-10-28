@@ -229,10 +229,18 @@ public class UiLiciousClient {
                 return null;
             }
 
+        } catch (org.springframework.web.client.ResourceAccessException e) {
+            log.error("Uilicious server is not reachable or connection timeout for loginName: {}, error: {}", loginName,
+                    e.getMessage());
+            throw new RuntimeException("Uilicious server is unavailable", e);
+        } catch (org.springframework.web.client.HttpServerErrorException e) {
+            log.error("Uilicious server returned error response for loginName: {}, status: {}, error: {}", loginName,
+                    e.getStatusCode(), e.getMessage());
+            throw new RuntimeException("Something went wrong with Uilicious server", e);
         } catch (Exception e) {
             log.error("Error occurred while calling Uilicious user account API for loginName: {}, error: {}", loginName,
                     e.getMessage(), e);
-            return null;
+            throw new RuntimeException("Failed to communicate with Uilicious server", e);
         }
     }
 
@@ -276,9 +284,18 @@ public class UiLiciousClient {
                 log.warn("Received non-OK response from Uilicious workspace API: {}", response.getStatusCode());
             }
 
+        } catch (org.springframework.web.client.ResourceAccessException e) {
+            log.error("Uilicious server is not reachable or connection timeout for account ID: {}, error: {}", accountId,
+                    e.getMessage());
+            throw new RuntimeException("Uilicious server is unavailable", e);
+        } catch (org.springframework.web.client.HttpServerErrorException e) {
+            log.error("Uilicious server returned error response for account ID: {}, status: {}, error: {}", accountId,
+                    e.getStatusCode(), e.getMessage());
+            throw new RuntimeException("Something went wrong with Uilicious server", e);
         } catch (Exception e) {
             log.error("Error occurred while calling Uilicious workspace API for account ID: {}, error: {}", accountId,
                     e.getMessage(), e);
+            throw new RuntimeException("Failed to communicate with Uilicious server", e);
         }
 
         return workspaces;

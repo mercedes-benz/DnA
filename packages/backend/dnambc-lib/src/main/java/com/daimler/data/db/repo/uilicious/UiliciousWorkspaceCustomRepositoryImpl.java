@@ -107,6 +107,41 @@ public class UiliciousWorkspaceCustomRepositoryImpl extends CommonDataRepository
         }
     }
 
+    @Override
+    @Transactional
+    public boolean updateLeanGovernanceByAccountId(String accountId, JsonNode leanGovernance) {
+        log.info("Updating leanGovernance for accountId: {}", accountId);
+        
+        try {
+            // Convert JsonNode to JSON string for PostgreSQL
+            String leanGovernanceJson = objectMapper.writeValueAsString(leanGovernance);
+            log.info("LeanGovernance JSON: {}", leanGovernanceJson);
+            
+            String updateQuery = "UPDATE uiliciousworkspace_nsql " +
+                    "SET data = jsonb_set(data, '{leanGovernance}', CAST(? AS jsonb)) " +
+                    "WHERE data->>'accountId' = ?";
+
+            log.info("Update SQL Query: {}", updateQuery);
+            log.info("Parameters - accountId: {}, leanGovernance: {}", accountId, leanGovernanceJson);
+
+            Query query = em.createNativeQuery(updateQuery);
+            query.setParameter(1, leanGovernanceJson);
+            query.setParameter(2, accountId);
+
+            int updatedRows = query.executeUpdate();
+            log.info("Updated {} rows for accountId: {}", updatedRows, accountId);
+
+            // Flush to ensure immediate persistence
+            em.flush();
+
+            return updatedRows > 0;
+        } catch (Exception e) {
+            log.error("Failed to update leanGovernance for accountId: {}, error: {}", accountId, e.getMessage());
+            e.printStackTrace();
+            return false;
+        }
+    }
+
 }
 
 
