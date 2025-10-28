@@ -1026,7 +1026,7 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
     }
 		    
 	@Override
-    @ApiOperation(value = "Search ADA Projects", nickname = "searchADAProjects", notes = "Search ADA Projects by project name,", response = ADAProjectDetailsCollectionVO.class, tags={ "adaProjects", })
+    @ApiOperation(value = "Search ADA Projects", nickname = "searchADAProjects", notes = "Search ADA Projects by project name,", response = ADAProjectDetailsCollectionVO.class, tags={ "fabric-workspaces", })
     @ApiResponses(value = { 
         @ApiResponse(code = 200, message = "List of ADA Projects matching search criteria", response = ADAProjectDetailsCollectionVO.class),
         @ApiResponse(code = 204, message = "No ADA Projects found matching search criteria"),
