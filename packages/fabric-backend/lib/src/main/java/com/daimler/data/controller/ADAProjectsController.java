@@ -88,8 +88,9 @@ public class ADAProjectsController implements AdaProjectsApi{
             createdBy = DEFAULT_CREATOR;
         }
 
-        ADAProjectDetailsVO existingADAProject = service.getByUniqueliteral("projectID", body.getProjectID());
-        if (existingADAProject == null) {
+        ADAProjectDetailsVO existingADAProjectID = service.getByUniqueliteral("projectID", body.getProjectID());
+        ADAProjectDetailsVO existingADAProjectName = service.getByUniqueliteral("projectName", body.getProjectName());
+        if (existingADAProjectID == null && existingADAProjectName == null) {
             body.createdBy(createdBy);
 
             GenericMessage createMessage  = service.createNewProject(body);
