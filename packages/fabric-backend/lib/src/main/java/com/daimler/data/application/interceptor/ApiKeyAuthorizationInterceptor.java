@@ -19,11 +19,11 @@ public class ApiKeyAuthorizationInterceptor implements HandlerInterceptor {
 
     private static final String AUTHORIZATION_HEADER = "Authorization";
     private static final String BEARER_PREFIX = "Bearer ";
-    public static final String CREATOR_ATTRIBUTE = "apiKeyCreator";
+    public static final String CREATOR_ATTRIBUTE = "CREATOR_ATTRIBUTE";
 
     @Value("${fabricWorkspaces.ada.apiKey}")
     private String adaApiKey;
-    @Value("${fabricWorkspaces.ada.xto.apiKey}")
+    @Value("${fabricWorkspaces.ada.extollo.apiKey}")
     private String xtoApiKey;
 
     @Override
@@ -75,7 +75,6 @@ public class ApiKeyAuthorizationInterceptor implements HandlerInterceptor {
         }
 
         log.debug("Token validation successful for: {} by creator: {}", request.getRequestURI(), creator);
-        
         // 3. Store the Creator in Request Attribute
         request.setAttribute(CREATOR_ATTRIBUTE, creator);
         request.setAttribute("accessToken", accessToken);

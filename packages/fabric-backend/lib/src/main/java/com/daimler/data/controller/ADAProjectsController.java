@@ -239,7 +239,6 @@ public class ADAProjectsController implements AdaProjectsApi{
                 (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
             HttpServletRequest request = attributes.getRequest();
             createdBy = (String) request.getAttribute("CREATOR_ATTRIBUTE");
-            
         } catch (IllegalStateException e) {
             createdBy = DEFAULT_CREATOR;
         }
