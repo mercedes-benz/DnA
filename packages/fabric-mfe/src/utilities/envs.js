@@ -24,6 +24,7 @@ const getDNAInjectedEnv = (key) => {
 // BUT using in direct statements like === will result in direct expansion in builds this means the variable is lost
 // we have to make sure that the string value of process.env is placed here.
 export const Envs = {
+  CONTAINER_APP_URL: getInjectedEnv('CONTAINER_APP_URL') || process.env.CONTAINER_APP_URL,
   FABRIC_API_BASEURL: getInjectedEnv('FABRIC_API_BASEURL') || process.env.FABRIC_API_BASEURL,
   ALICE_URL: getInjectedEnv('ALICE_URL') || process.env.ALICE_URL,
   API_BASEURL: getDNAInjectedEnv('API_BASEURL') || process.env.API_BASEURL,
@@ -33,7 +34,11 @@ export const Envs = {
   DNA_BRAND_LOGO_URL: getDNAInjectedEnv('DNA_BRAND_LOGO_URL') || process.env.DNA_BRAND_LOGO_URL,
   DNA_APP_LOGO_URL: getDNAInjectedEnv('DNA_APP_LOGO_URL') || process.env.DNA_APP_LOGO_URL,
   TOU_HTML: getInjectedEnv('TOU_HTML') || process.env.TOU_HTML,
-  FABRIC_ENTITLEMENT_PREFIX: getInjectedEnv('FABRIC_ENTITLEMENT_PREFIX') || process.env.FABRIC_ENTITLEMENT_PREFIX,
   FABRIC_ENTITLEMENT_IGNORE: getInjectedEnv('FABRIC_ENTITLEMENT_IGNORE') || process.env.FABRIC_ENTITLEMENT_IGNORE,
   MANDATE_LEANIX_FOR_DIVISIONS: getInjectedEnv('MANDATE_LEANIX_FOR_DIVISIONS') || process.env.MANDATE_LEANIX_FOR_DIVISIONS,
+  MB_INSIDE_URL: getInjectedEnv('MB_INSIDE_URL') || process.env.MB_INSIDE_URL,
+  CDC_URL: getInjectedEnv('CDC_URL') || process.env.CDC_URL,
+  DNA_MAIL: getInjectedEnv('DNA_MAIL') || process.env.DNA_MAIL,
+  CONFLUENCE_PAGE: getInjectedEnv('CONFLUENCE_PAGE') || process.env.CONFLUENCE_PAGE,
+  CDC_SIGNIN_URL: getInjectedEnv('CDC_SIGNIN_URL') || process.env.CDC_SIGNIN_URL,
 };

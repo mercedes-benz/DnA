@@ -9,7 +9,7 @@ RUN yarn
 RUN yarn build:docker
 
 #use non-root nginx
-FROM bitnami/nginx:latest
+FROM registry-emea.app.corpintra.net/dnaplatform/bitnami/nginx:latest
 
 WORKDIR /usr/share/nginx/html
 USER 0

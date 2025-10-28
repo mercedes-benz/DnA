@@ -21,6 +21,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.application.client.AuthoriserClient;
 import com.daimler.data.application.client.FabricWorkspaceClient;
 import com.daimler.data.application.client.RSAEncryptionUtil;
@@ -31,8 +32,8 @@ import com.daimler.data.db.entities.AuthoriserRolesNsql;
 import com.daimler.data.db.entities.FabricWorkspaceNsql;
 import com.daimler.data.db.json.AuthoriserRoleDeatils;
 import com.daimler.data.db.json.UserDetails;
-import com.daimler.data.db.repo.forecast.FabricWorkspaceCustomRepository;
-import com.daimler.data.db.repo.forecast.FabricWorkspaceRepository;
+import com.daimler.data.db.repo.fabric.FabricWorkspaceCustomRepository;
+import com.daimler.data.db.repo.fabric.FabricWorkspaceRepository;
 import com.daimler.data.db.repo.roles.AuthoriserRolesCustomRepository;
 import com.daimler.data.db.repo.roles.AuthoriserRolesRepository;
 import com.daimler.data.dto.fabric.AccessReviewDto;
@@ -90,6 +91,7 @@ import com.daimler.data.dto.fabricWorkspace.ShortcutCreateRequestVO;
 import com.daimler.data.dto.fabricWorkspace.ShortcutVO;
 import com.daimler.data.service.common.BaseCommonService;
 import com.daimler.data.util.ConstantsUtility;
+import com.daimler.data.util.FabricWorkspaceUtility;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.daimler.data.service.tag.TagService;
 
@@ -126,7 +128,13 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 
 	@Autowired
 	private AuthoriserRolesRepository rolesJpaRepo;
-		
+	
+	@Autowired
+	private FabricWorkspaceUtility utility;
+
+	@Autowired
+	private UserStore userStore;
+
 	@Value("${fabricWorkspaces.capacityId}")
 	private String capacityId;
 	
@@ -197,6 +205,9 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 	@Value("${fabricWorkspaces.defaultFolders}")
 	private String[] defaultFolders;
 
+	@Value("${fabricWorkspaces.userRemoval.ignorePatterns}")
+	private String[] userRemovalIgnorePatterns;
+
 	public BaseFabricWorkspaceService() {
 		super();
 	}
@@ -234,8 +245,10 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 //					FabricWorkspaceVO updatedVO = assembler.toVo(entity);
 //					vos.add(updatedVO);
 //				}
-				FabricWorkspaceVO updatedVO = assembler.toVo(entity);
-				vos.add(updatedVO);
+				if(	entity!=null && !ConstantsUtility.DELETED_STATE.equalsIgnoreCase(entity.getData().getStatus().getState())) {
+					FabricWorkspaceVO updatedVO = assembler.toVo(entity);
+					vos.add(updatedVO);
+				}
 			}
 		}
 		List<FabricWorkspaceVO> paginatedVOs = new ArrayList<>();
@@ -260,10 +273,11 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		List<FabricWorkspaceVO> vos = new ArrayList<>();
 		List<FabricWorkspaceNsql> allEntities = customRepo.findAll(0,0);
 		List<FabricWorkspaceNsql> filteredEntities = new ArrayList<>();
+		CreatedByVO requestedUser = userStore.getVO();
 		if(allEntities!=null && !allEntities.isEmpty()) {
 			if(user!=null && !"".equalsIgnoreCase(user.trim())){
 				for(FabricWorkspaceNsql existingEntity : allEntities) {
-					if(existingEntity!=null) {
+					if(existingEntity!=null && !ConstantsUtility.DELETED_STATE.equalsIgnoreCase(existingEntity.getData().getStatus().getState())) {
 						if(isTechnicalUser){
 							String initiatedBy = Optional.ofNullable(existingEntity.getData().getInitiatedBy()).orElse("");
 							if(user.equalsIgnoreCase(initiatedBy)){
@@ -310,7 +324,15 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 //					FabricWorkspaceVO updatedVO = assembler.toVo(entity);
 //					vos.add(updatedVO);
 //				}
+				String userRole = "";
+				if(! requestedUser.getId().equalsIgnoreCase(entity.getData().getCreatedBy().getId())){
+					List<String> filteredEntitlements = allEntitlementsList.stream().filter(n-> n.startsWith(applicationId + "." + subgroupPrefix ) && n.contains(entity.getId())).collect(Collectors.toList());
+					userRole = utility.getUserRole(filteredEntitlements);
+				}else{
+					userRole = ConstantsUtility.PERMISSION_OWNER;
+				}
 				FabricWorkspaceVO updatedVO = assembler.toVo(entity);
+				updatedVO.setUserRole(userRole);
 				vos.add(updatedVO);
 			}
 		}
@@ -471,30 +493,30 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 						log.error("Failed to save record to db after processing usermanagement successfully for a new fabric record with data {}", mapper.writeValueAsString(data));
 					}
 					log.info("created workspace project {} with id {} saved to database successfully", vo.getName(), createResponse.getId());
-					fabricWorkspaceClient.provisionWorkspace(createResponse.getId());
+					//fabricWorkspaceClient.provisionWorkspace(createResponse.getId());
 					
-					try {
-						String ownerId = vo.getCreatedBy().getId();
-						Date validFromDate = vo.getCreatedOn();
-						String validFrom = formatter.format(validFromDate);
-						Calendar calendar = Calendar.getInstance();
-				        calendar.setTime(validFromDate);
-				        calendar.add(Calendar.YEAR, 1);
-				        Date validToDate = calendar.getTime();
-						String validTo = formatter.format(validToDate);
-						UserRoleRequestDto roleRequestDto = new UserRoleRequestDto();
-						roleRequestDto.setReason("Onboarding owner to role to enable fabric operations.");
-						roleRequestDto.setValidTo(validTo);
-						roleRequestDto.setValidFrom(validFrom);
-						HttpStatus status = identityClient.RequestRoleForUser(roleRequestDto, ownerId, fabricOperationsRoleName);
-						if(status.is2xxSuccessful()){
-				            log.info("Successfully onboarded owner {} of workspace {} : {} to role {} for enabling fabric operations", ownerId, vo.getId(), vo.getName(), fabricOperationsRoleName);
-				        }else {
-				        	log.error("Failed to onboarded owner {} of workspace {} : {} to role {} for enabling fabric operations", ownerId, vo.getId(), vo.getName(), fabricOperationsRoleName);
-				        }
-					}catch(Exception e) {
-						log.error("Failed to onboard owner of workspace {} : {} to role {} ",vo.getId(),vo.getName(),fabricOperationsRoleName);
-					}
+					// try {
+					// 	String ownerId = vo.getCreatedBy().getId();
+					// 	Date validFromDate = vo.getCreatedOn();
+					// 	String validFrom = formatter.format(validFromDate);
+					// 	Calendar calendar = Calendar.getInstance();
+				    //     calendar.setTime(validFromDate);
+				    //     calendar.add(Calendar.YEAR, 1);
+				    //     Date validToDate = calendar.getTime();
+					// 	String validTo = formatter.format(validToDate);
+					// 	UserRoleRequestDto roleRequestDto = new UserRoleRequestDto();
+					// 	roleRequestDto.setReason("Onboarding owner to role to enable fabric operations.");
+					// 	roleRequestDto.setValidTo(validTo);
+					// 	roleRequestDto.setValidFrom(validFrom);
+					// 	HttpStatus status = identityClient.RequestRoleForUser(roleRequestDto, ownerId, fabricOperationsRoleName);
+					// 	if(status.is2xxSuccessful()){
+				    //         log.info("Successfully onboarded owner {} of workspace {} : {} to role {} for enabling fabric operations", ownerId, vo.getId(), vo.getName(), fabricOperationsRoleName);
+				    //     }else {
+				    //     	log.error("Failed to onboarded owner {} of workspace {} : {} to role {} for enabling fabric operations", ownerId, vo.getId(), vo.getName(), fabricOperationsRoleName);
+				    //     }
+					// }catch(Exception e) {
+					// 	log.error("Failed to onboard owner of workspace {} : {} to role {} ",vo.getId(),vo.getName(),fabricOperationsRoleName);
+					// }
 					responseData.setData(savedRecord);
 					responseMessage.setSuccess("SUCCESS");
 					responseMessage.setErrors(errors);
@@ -1230,7 +1252,8 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 			for(AddGroupDto userGroupDetail : usersGroupsCollection.getValue()) {
 				if(userGroupDetail!=null && !ConstantsUtility.GROUPPRINCIPAL_APP_TYPE.equalsIgnoreCase(userGroupDetail.getPrincipalType())) {
 					if(ConstantsUtility.GROUPPRINCIPAL_USER_TYPE.equalsIgnoreCase(userGroupDetail.getPrincipalType())) {
-						if(!userGroupDetail.getIdentifier().toLowerCase().contains(creatorId.toLowerCase()+"@")) {
+						if(!userGroupDetail.getIdentifier().toLowerCase().contains(creatorId.toLowerCase()+"@")
+						&& Arrays.stream(userRemovalIgnorePatterns).noneMatch(pattern -> userGroupDetail.getIdentifier().toLowerCase().contains(pattern.toLowerCase()))) {
 							fabricWorkspaceClient.removeUserGroup(workspaceId, userGroupDetail.getIdentifier());
 						}
 					}
@@ -1368,7 +1391,9 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 					}
 				}
 			}
-			super.deleteById(id);
+			existingWorkspace.getStatus().setState(ConstantsUtility.DELETED_STATE);
+			existingWorkspace.setLastModifiedOn(new Date());
+			jpaRepo.save(assembler.toEntity(existingWorkspace));
 			responseMessage.setSuccess("SUCCESS");
 			responseMessage.setErrors(errors);
 			responseMessage.setWarnings(warnings);
@@ -1977,5 +2002,100 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 			
 		}
 	}
+
+	@Override
+	@Transactional
+	public 	GenericMessage transferOwnership(FabricWorkspaceVO existingFabricWorkspace, CreatedByVO currentOwner, CreatedByVO newOwner){
+		existingFabricWorkspace.setCreatedBy(newOwner);
+		GenericMessage responses = new GenericMessage();
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+		GenericMessage addUserResponse = fabricWorkspaceClient.addUser(existingFabricWorkspace.getId(),
+				newOwner.getEmail());
+		if (addUserResponse == null || !"SUCCESS".equalsIgnoreCase(addUserResponse.getSuccess())) {
+			log.error("Failed to add user {} to workspace {}", newOwner.getEmail(), existingFabricWorkspace.getId());
+			MessageDescription message = new MessageDescription();
+			message.setMessage("Failed to add user to created workspace " + existingFabricWorkspace.getName()
+					+ " with id" + existingFabricWorkspace.getId() + ". Please contact Admin.");
+			errors.add(message);
+			responses.setErrors(errors);
+			responses.setSuccess("FAILED");
+			return responses;
+		} else {
+			log.info("Successfully added  user {} to workspace {} ", newOwner.getEmail(),
+					existingFabricWorkspace.getId());
+		}
+		List<RoleDetailsVO> roles = existingFabricWorkspace.getStatus().getRoles();
+		List<RoleDetailsVO> updatedRoles = new ArrayList<>();
+		if (roles != null) {
+    		for (RoleDetailsVO role : roles) {
+				HttpStatus removeRoleOwnerPrivileges = identityClient.RemoveRoleOwnerPrivilegesToCreator(currentOwner.getId(), role.getId());
+				if(removeRoleOwnerPrivileges.is2xxSuccessful()) {
+					log.info("Role owner Privilage removed for user {} for role {}",currentOwner.getId(),role.getId());
+				}else{
+					warnings.add(new MessageDescription("Failed to remove role owner privilage role for user, please contact admin."));
+				}
+				HttpStatus assignRoleOwnerPrivileges = identityClient.AssignRoleOwnerPrivilegesToCreator(newOwner.getId(), role.getId());
+				if(assignRoleOwnerPrivileges.is2xxSuccessful()) {
+					role.setRoleOwner(newOwner.getId());
+					log.info("Role owner Privilage assigned for user {} for role {}",newOwner.getId(),role.getId());
+				}else{
+					warnings.add(new MessageDescription("Failed to assign role owner privilage role for user, please contact admin."));
+				}
+				HttpStatus removeGlobalRoleAssignerPrivilegesStatus = identityClient.RemoveGlobalRoleAssignerPrivilegesToCreator(currentOwner.getId(), role.getId());
+				if(removeGlobalRoleAssignerPrivilegesStatus.is2xxSuccessful()) {
+					// HttpStatus globalRoleAssignerPrivilegesStatusforTechUser = identityClient.AssignGlobalRoleAssignerPrivilegesToCreator(fabricTechUserId, role.getId());
+					// if(globalRoleAssignerPrivilegesStatusforTechUser.is2xxSuccessful()) {
+						log.info("Global role assigner privilege removed for user{} for role {}",currentOwner.getId(),role.getId());
+					// }else{
+					// 	warnings.add(new MessageDescription("Failed to assign global role assigner privilage role for tech user, please contact admin."));
+					// }
+				}else{
+					warnings.add(new MessageDescription("Failed to assign global role assigner privilage role for user, please contact admin."));
+				}
+				HttpStatus globalRoleAssignerPrivilegesStatus = identityClient.AssignGlobalRoleAssignerPrivilegesToCreator(newOwner.getId(), role.getId());
+				if(globalRoleAssignerPrivilegesStatus.is2xxSuccessful()) {
+					// HttpStatus globalRoleAssignerPrivilegesStatusforTechUser = identityClient.AssignGlobalRoleAssignerPrivilegesToCreator(fabricTechUserId, role.getId());
+					// if(globalRoleAssignerPrivilegesStatusforTechUser.is2xxSuccessful()) {
+					role.setGlobalRoleAssigner(newOwner.getId());
+					log.info("Global role assigner privilege assigned for user{} for role {}",newOwner.getId(),role.getId());
+					// }else{
+					// 	warnings.add(new MessageDescription("Failed to assign global role assigner privilage role for tech user, please contact admin."));
+					// }
+				}else{
+					warnings.add(new MessageDescription("Failed to assign global role assigner privilage role for user, please contact admin."));
+				}
+				HttpStatus removeRoleApproverPrivilegesStatus = identityClient.RemoveRoleApproverPrivilegesToCreator(currentOwner.getId(), role.getId());
+				if(removeRoleApproverPrivilegesStatus.is2xxSuccessful()) {
+					log.info("Role approver privilege removed for user {} for role {}",currentOwner.getId(),role.getId());
+				}else{
+					warnings.add(new MessageDescription("Failed to assign role approver privilage role for user, please contact admin."));
+				}
+				HttpStatus roleApproverPrivilegesStatus = identityClient.AssignRoleApproverPrivilegesToCreator(newOwner.getId(), role.getId());
+				if(roleApproverPrivilegesStatus.is2xxSuccessful()) {
+					role.setRoleApprover(newOwner.getId());
+					log.info("Role approver privilege assigned for user {} for role {}",newOwner.getId(),role.getId());
+
+				}else{
+					warnings.add(new MessageDescription("Failed to assign role approver privilage role for user, please contact admin."));
+				}
+				updatedRoles.add(role);
+			}
+		}
+		existingFabricWorkspace.getStatus().setRoles(updatedRoles);
+		try {
+			FabricWorkspaceVO updatedRecord = updateFabricProject(existingFabricWorkspace);
+			log.info("Fabric workspace {} {}  updated successfully", existingFabricWorkspace.getId(),
+					existingFabricWorkspace.getName());
+		} catch (Exception e) {
+			log.error("Failed to update Fabric workspace {} {} with exception {} ", existingFabricWorkspace.getId(),
+					existingFabricWorkspace.getName(), e.getMessage());
+		}
+		responses.setSuccess("SUCCESS");
+		responses.setErrors(new ArrayList<>());
+		responses.setWarnings(new ArrayList<>());
+		return responses;
+	}
+
 
 }

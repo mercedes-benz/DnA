@@ -431,6 +431,37 @@ paths:
         500:
           description: "Internal error"
 
+  /dags/{dagName}/run:
+    post:
+      tags:
+        - "dags"
+      summary: "Triggering the dag"
+      description: "Triggers using Dag ID"
+      operationId: "TriggerDag"
+      parameters:
+        - name: "dagName"
+          in: "path"
+          type: string
+          description: "dagId for which it will trigger the Dag"
+          required: true
+      responses:
+        200:
+          description: "Successfully triggered."
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        400:
+          description: "Bad request"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        404:
+          description: "Invalid id, record not found."
+        500:
+          description: "Internal error"
+
+
+
 definitions:
 
   #Project Request VO

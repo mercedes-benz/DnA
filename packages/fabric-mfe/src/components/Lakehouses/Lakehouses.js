@@ -4,6 +4,7 @@ import Styles from './lakehouses.scss';
 import Modal from 'dna-container/Modal';
 import SelectBox from 'dna-container/SelectBox';
 import ConfirmModal from 'dna-container/ConfirmModal';
+import InfoModal from 'dna-container/InfoModal';
 import Tooltip from '../../common/modules/uilab/js/src/tooltip';
 import Pagination from 'dna-container/Pagination';
 import Tags from 'dna-container/Tags';
@@ -13,6 +14,7 @@ import { SESSION_STORAGE_KEYS } from '../../utilities/constants';
 import { getQueryParameterByName } from '../../utilities/utils';
 import { fabricApi } from '../../apis/fabric.api';
 import Popper from 'popper.js';
+import ViewTablesModalContent from '../../components/Lakehouses/CdcPush';
 import { Envs } from '../../utilities/envs';
 
 const CreateShortcutModalContent = ({ workspaceId, lakehouseId, onCreateShortcut }) => {
@@ -307,7 +309,7 @@ const ViewShortcutsModalContent = ({ workspaceId, lakehouseId }) => {
   );
 }
 
-function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse }) {
+function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshWorkspace }) {
   const [showCreateLakehouseModal, setShowCreateLakehouseModal] = useState(false);
   const [lakehouseName, setLakehouseName] = useState('');
   const [lakehouseNameError, setLakehouseNameError] = useState(false);
@@ -315,6 +317,15 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse }) {
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [showViewShortcutsModal, setShowViewShortcutsModal] = useState(false);
   const [showCreateShortcutModal, setShowCreateShortcutModal] = useState(false);
+  const [showViewTables, setShowViewTablesModal] = useState(false);
+  const [showNonProdProjectModal, setShowNonProdProjectModal] = useState(false);
+
+  const [contextMenus, setContextMenus] = useState({});
+  const [showLocationsContextMenu, setShowLocationsContextMenu] = useState(false);
+  const [contextMenuOffsetTop, setContextMenuOffsetTop] = useState(0);
+  const [contextMenuOffsetLeft, setContextMenuOffsetLeft] = useState(0);
+
+  let isTouch = false;
 
   useEffect(() => {
     Tooltip.defaultSetup();
@@ -406,6 +417,99 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse }) {
     }
   }
 
+  const handleContextMenuOutside = (event) => {
+    if (event.type === 'touchend') {
+      isTouch = true;
+    }
+
+    // Click event has been simulated by touchscreen browser.
+    if (event.type === 'click' && isTouch === true) {
+      return;
+    }
+
+    const target = event.target;
+    const elemClasses = target.classList;
+    const cardDivElement = target.closest(`.${Styles.lakehouse}`);
+    const contextMenuWrapper = cardDivElement?.querySelector('.contextMenuWrapper');
+    const locationContextMenuWrapper = cardDivElement?.querySelector('.contextMenuWrapper');
+
+    if (
+      cardDivElement &&
+      !target.classList.contains('trigger') &&
+      !target.classList.contains('context') &&
+      !target.classList.contains('contextList') &&
+      !target.classList.contains('contextListItem') &&
+      contextMenuWrapper !== null &&
+      contextMenuWrapper?.contains(target) === false &&
+      (Object.values(contextMenus).includes(true) || showLocationsContextMenu)
+    ) {
+      setContextMenus(prevState => {
+        const newState = {};
+        for (const key in prevState) {
+          newState[key] = false;
+        }
+        return newState;
+      });
+      setShowLocationsContextMenu(false);
+    } else if (cardDivElement?.contains(target) === false) {
+      setContextMenus(prevState => {
+        const newState = {};
+        for (const key in prevState) {
+          newState[key] = false;
+        }
+        return newState;
+      });
+      setShowLocationsContextMenu(false);
+    }
+
+    if (!contextMenuWrapper?.contains(target)) {
+      setContextMenus(prevState => {
+        const newState = {};
+        for (const key in prevState) {
+          newState[key] = false;
+        }
+        return newState;
+      });
+    }
+
+    if (!locationContextMenuWrapper?.contains(target)) {
+      setShowLocationsContextMenu(false);
+    }
+
+    if (
+      (Object.values(contextMenus).includes(true) || showLocationsContextMenu) &&
+      (elemClasses.contains('contextList') ||
+        elemClasses.contains('contextListItem') ||
+        elemClasses.contains('contextMenuWrapper') ||
+        elemClasses.contains('locationsText'))
+    ) {
+      event.stopPropagation();
+    }
+  };
+
+  useEffect(() => {
+    Tooltip.defaultSetup();
+    document.addEventListener('touchend', handleContextMenuOutside, true);
+    document.addEventListener('click', handleContextMenuOutside, true);
+
+    return () => {
+      document.removeEventListener('touchend', handleContextMenuOutside, true);
+      document.removeEventListener('click', handleContextMenuOutside, true);
+    };
+  }, [contextMenus]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const toggleContextMenu = (e, lakehouseId) => {
+    e.stopPropagation();
+    setContextMenuOffsetTop(e.currentTarget.offsetTop - 10);
+    setContextMenuOffsetLeft(e.currentTarget.offsetLeft - 200);
+    setShowLocationsContextMenu(false);
+    setContextMenus(prevState => ({
+      ...prevState,
+      [lakehouseId]: !prevState[lakehouseId],
+    }));
+  };
+
+
   const createLakehouseModalContent = <>
     <div className={Styles.lakehouseModalContent}>
       <div className={classNames('input-field-group include-error', lakehouseNameError ? 'error' : '')}>
@@ -451,8 +555,9 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse }) {
           Notification.show(e.response.data.errors?.length ? e.response.data.errors[0].message : 'Lakehouse deletion failed', 'alert');
         });
   }
-  const isAdmin = user?.entitlementGroup?.some(item => item?.startsWith(Envs.FABRIC_ENTITLEMENT_PREFIX) && item?.endsWith(`${workspace?.id}_Admin`));
-  const isOwner = user?.id === workspace?.createdBy?.id; 
+  const userRole = workspace?.userRole;
+  const isAdmin = userRole === 'Admin';
+  const isOwner = user?.id === workspace?.createdBy?.id;
   return (
     <>
       <div className={Styles.lakehouseContainer}>
@@ -472,26 +577,88 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse }) {
         }
         <div className={Styles.lakehouseContent}>
           {paginatedLakehouses?.length > 0 && paginatedLakehouses?.map((lakehouse) =>
-            <div key={lakehouse?.id} className={Styles.lakehouse}>
+            <div key={'card-' + lakehouse?.id} className={Styles.lakehouse} >
               <h4>
-                <span>
+                <span className={Styles.lakehouseName}>
                   {lakehouse?.name} 
                   {/* {lakehouse?.sensitivityLabel !== workspace?.dataClassification && <i className="icon mbc-icon info" tooltip-data={'Sensitivity label for lakehouse is not set or\nset higher than Workspace Data Classification. Please update.'} />} */}
                 </span>
-                {user?.id === workspace?.createdBy?.id && 
+                <div className={classNames(Styles.contextMenu, contextMenus[lakehouse?.id] ? Styles.open : '')}>
+                  <span
+                     onClick={(e) => toggleContextMenu(e, lakehouse?.id)}
+                    className={classNames(Styles.trigger, contextMenus[lakehouse?.id] ? Styles.open : '')}
+                  >
+                    <i className="icon mbc-icon listItem context" />
+                  </span>
+                  <div
+                    style={{
+                      top: contextMenuOffsetTop + 'px',
+                      left: contextMenuOffsetLeft + 'px',
+                    }}
+                    className={classNames('contextMenuWrapper', contextMenus[lakehouse?.id] ? Styles.showMenu : 'hide')}
+                  >
+                    <ul className="contextList">
+                      <li className="contextListItem">
+                        <button className={classNames('btn btn-primary', Styles.outlineBtn, !(isAdmin || isOwner) && Styles.disabledBtn)} onClick={() => { setSelectedLakehouse(lakehouse); setShowCreateShortcutModal(true) }}>
+                          <i className="icon mbc-icon plus" />
+                          <span>Create Shortcut</span>
+                        </button>
+                      </li>
+                      <li className="contextListItem">
+                        <button className={classNames('btn btn-primary', Styles.outlineBtn)} onClick={() => { setSelectedLakehouse(lakehouse); setShowViewShortcutsModal(true) }}>
+                          <i className="icon mbc-icon new-tab" />
+                          <span>View Shortcuts</span>
+                        </button>
+                      </li>
+                      <li className="contextListItem">
+                        <button className={classNames('btn btn-primary', Styles.outlineBtn)} 
+                          onClick={() => { 
+                            setSelectedLakehouse(lakehouse); 
+                            if (workspace?.typeOfProject?.toLowerCase() !== "production") {
+                              setShowNonProdProjectModal(true);
+                            } else {
+                              setShowViewTablesModal(true);
+                            }
+                          }}
+                        >
+                          <i className="icon mbc-icon dublicate" />
+                          <span>Push to CDC</span>
+                        </button>
+                      </li>
+                    </ul>
+                  </div>
+                </div>
+              </h4>
+              <div className={Styles.buttonContainer}>
+                <div className={Styles.cdcContainer}>
+                  {workspace?.cdcPublishedLakeHouseDetails?.publishedLakeHouseNames?.includes(lakehouse.id) && (
+                    <>
+                      <span className={Styles.statusIndicator}>
+                        <span
+                          className={Styles.deployedTag}
+                          tooltip-data="Lakehouse successfully deployed to CDC."
+                        >
+                          Published
+                        </span>
+                      </span>
+                      <div className={Styles.cdcNewTab}>
+                        <a
+                          href={`${Envs.CDC_URL}/${workspace?.name}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <i className="icon mbc-icon new-tab" />
+                        </a>
+                      </div>
+                    </>
+                  )}
+                </div>
+                {user?.id === workspace?.createdBy?.id &&
                   <button className={classNames('btn', Styles.deleteBtn)} onClick={() => { setSelectedLakehouse(lakehouse); setShowDeleteModal(true) }}>
                     <i className="icon delete" />
                   </button>
                 }
-              </h4>
-              <button className={classNames('btn btn-primary', Styles.outlineBtn, !(isAdmin || isOwner) && Styles.disabledBtn)} onClick={() => { setSelectedLakehouse(lakehouse); setShowCreateShortcutModal(true) }}>
-                <i className="icon mbc-icon plus" />
-                <span>Create Shortcut</span>
-              </button>&nbsp;&nbsp;&nbsp;&nbsp;
-              <button className={classNames('btn btn-primary', Styles.outlineBtn)} onClick={() => { setSelectedLakehouse(lakehouse); setShowViewShortcutsModal(true) }}>
-                <i className="icon mbc-icon new-tab" />
-                <span>View Shortcuts</span>
-              </button>
+              </div>
             </div>
             )
           }
@@ -546,6 +713,47 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse }) {
           content={<ViewShortcutsModalContent workspaceId={workspace?.id} lakehouseId={selectedLakehouse?.id} />}
           scrollableContent={true}
           onCancel={() => { setSelectedLakehouse(); setShowViewShortcutsModal(false) }}
+        />
+      }
+      { showViewTables &&
+        <InfoModal
+          title={
+            <div className={Styles.modalTitle}>
+              <span>{selectedLakehouse ? `${selectedLakehouse.name} - Tables` : 'Tables'}</span>
+                <a
+                  href={Envs.CONFLUENCE_PAGE}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  title="Help"
+                >
+                  <i className="icon mbc-icon help" />
+                </a>
+            </div>
+          }
+          showAcceptButton={false}
+          showCancelButton={false}
+          modalWidth={'90%'}
+          buttonAlignment="right"
+          show={showViewTables}
+          content={<ViewTablesModalContent workspaceId={workspace?.id} lakehouseId={selectedLakehouse?.id} lakehouseName={selectedLakehouse?.name} onRefreshWorkspace={onRefreshWorkspace} />}
+          scrollableContent={true}
+          onCancel={() => { setSelectedLakehouse(); setShowViewTablesModal(false) }}
+        />
+      }
+      {showNonProdProjectModal &&
+        <InfoModal
+          title="CDC Push Not Allowed"
+          showAcceptButton={false}
+          showCancelButton={true}
+          buttonAlignment="right"
+          modalWidth="40%"
+          show={showNonProdProjectModal}
+          content={
+            <div>
+              <p>Projects other than <b>Production</b> cannot be pushed to CDC.</p>
+            </div>
+          }
+          onCancel={() => setShowNonProdProjectModal(false)}
         />
       }
       { showDeleteModal &&
