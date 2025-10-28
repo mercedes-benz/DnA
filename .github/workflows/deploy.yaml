@@ -124,14 +124,20 @@ jobs:
     - name: Build Application Containers
       working-directory: ./deployment/dockerfiles
       run: |
-        env="${{ inputs.ENVIRONMENT }}" 
-        env_lc="${env,,}"
-        docker build \
-          -t ${{ inputs.IMAGE_NAME }}:${{ github.run_number }}-${env_lc} \
-          -f ${{ inputs.DOCKER_FILE_PATH }} ../../${{ inputs.CODE_FOLDER }}/ 
-        if [ "${{ github.ref_name }}" == "main" ] || [ "${{ inputs.ENVIRONMENT }}" == "Production" ]; then
-          docker tag ${{ inputs.IMAGE_NAME }}:${{ github.run_number }} ${{ inputs.IMAGE_NAME }}:${{ steps.updated.outputs.version }}
-          docker tag ${{ inputs.IMAGE_NAME }}:${{ github.run_number }} ${{ inputs.IMAGE_NAME }}:latest
+        if [ "${{ github.ref_name }}" == "dev" ] || [ "${{ inputs.ENVIRONMENT }}" == "Development" ]; then
+          docker build \
+            -t ${{ inputs.IMAGE_NAME }}:${{ github.run_number }}-development \
+            -f ${{ inputs.DOCKER_FILE_PATH }} ../../${{ inputs.CODE_FOLDER }}/ 
+        elif [ "${{ github.ref_name }}" == "staging" ] || [ "${{ inputs.ENVIRONMENT }}" == "Staging" ]; then
+          docker build \
+            -t ${{ inputs.IMAGE_NAME }}:${{ github.run_number }}-staging \
+            -f ${{ inputs.DOCKER_FILE_PATH }} ../../${{ inputs.CODE_FOLDER }}/         
+        elif [ "${{ github.ref_name }}" == "main" ] || [ "${{ inputs.ENVIRONMENT }}" == "Production" ]; then
+          docker build \
+            -t ${{ inputs.IMAGE_NAME }}:${{ github.run_number }}-production \
+            -f ${{ inputs.DOCKER_FILE_PATH }} ../../${{ inputs.CODE_FOLDER }}/           
+          docker tag ${{ inputs.IMAGE_NAME }}:${{ github.run_number }}-production ${{ inputs.IMAGE_NAME }}:${{ steps.updated.outputs.version }}
+          docker tag ${{ inputs.IMAGE_NAME }}:${{ github.run_number }}-production ${{ inputs.IMAGE_NAME }}:latest
         fi           
 
     - name: Publish application containers to registry
