@@ -13,7 +13,7 @@ image:
   ##
   pullPolicy: IfNotPresent
 
-fullnameOverride: "digital-prod"
+fullnameOverride: "digital-qua-prod"
 ## PostgreSQL replica count
 ##
 replicaCount: 1
@@ -126,7 +126,7 @@ env:
 ## for point-in-time recovery WAL archiving must be enabled
 ## for details on WAL archiving see https://www.postgresql.org/docs/10/continuous-archiving.html
 walArchiving:
-  enabled: false
+  enabled: true
   # you have to choose the type of storage where the WAL files will be archived
   # fs | s3
   storage: fs
@@ -136,11 +136,11 @@ walArchiving:
     volume:
       ## if volume.enabled is true, a PersistentVolumeClaim will be created
       ## if it is false, the WAL files will be archived to an emptyDir (makes only sense for testing)
-      enabled: false
+      enabled: true
       accessModes:
       - ReadWriteMany
-      size: 1Gi
-      storageClass: dhc-backup-nfs
+      size: 3Gi
+      storageClass: caas-gp3
   s3:
     ## Configuration for S3 storage
     subfolder: postgresql-cluster

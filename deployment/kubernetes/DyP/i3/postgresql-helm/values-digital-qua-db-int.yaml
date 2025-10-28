@@ -13,7 +13,7 @@ image:
   ##
   pullPolicy: IfNotPresent
 
-fullnameOverride: "digital-qua"
+fullnameOverride: "digital-qua-int"
 ## PostgreSQL replica count
 ##
 replicaCount: 1
@@ -140,7 +140,7 @@ walArchiving:
       accessModes:
       - ReadWriteMany
       size: 3Gi
-      storageClass: dhc-backup-nfs
+      storageClass: caas-gp3
   s3:
     ## Configuration for S3 storage
     subfolder: postgresql-cluster
