@@ -26,6 +26,7 @@ import 'ace-builds/src-noconflict/ext-language_tools';
 import { PipelineApiClient } from '../../../../services/PipelineApiClient';
 import { history } from '../../../../router/History';
 import FullScreenModeIcon from 'components/icons/fullScreenMode/FullScreenModeIcon';
+import { getDefaultDagTemplate } from "./DefaultDagTemplate";
 
 // @ts-ignore
 import Tooltip from '../../../../assets/modules/uilab/js/src/tooltip';
@@ -98,8 +99,7 @@ const CreateNewPipeline = (props: ICreateNewPipelineProps) => {
   };
   const addDag = () => {
     const defaultName = 'DAG_' + (dagsList.length + 1);
-    const defaultDAGCode =
-      'from airflow import DAG\n' + 'dag = DAG(\n' + "dag_id='" + (newUniquePID + '_' + defaultName) + "'\n" + ')';
+    const defaultDAGCode = getDefaultDagTemplate(newUniquePID, defaultName);
     setDagNameFieldInput(defaultName);
     setDagEditorContent(defaultDAGCode);
     setDagNameStatus(true);
