@@ -291,7 +291,7 @@ opensearch-dashboards:
   extraVolumes: [ ]
 
   ingress:
-    enabled: false
+    enabled: true
     ingressClassName: dev-ingress-intranet
     annotations: 
       traefik.frontend.rule.type: PathPrefix
@@ -339,7 +339,7 @@ opensearch:
 
 
   ingress:
-    enabled: true
+    enabled: false
     ingressClassName: dev-ingress-intranet
     annotations: 
       traefik.frontend.rule.type: PathPrefix
