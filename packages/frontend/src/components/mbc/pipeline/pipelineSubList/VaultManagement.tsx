@@ -38,7 +38,6 @@ const VaultManagement: React.FC<VaultManagementProps> = ({ projectName, dagId}) 
   const [keyValue, setKeyValue] = useState<{ keyValueList: KeyValueItem[] }>({ keyValueList: [] });
   const [editingMode, setEditingMode] = useState(false);
   const [originalKey, setOriginalKey] = useState('');
-  //const [originalValue, setOriginalValue] = useState('');
   const [showConfirmModal, setShowConfirmModal] = useState(false);
   const [deleteKey, setDeleteKey] = useState('');
   const [deleteValue, setDeleteValue] = useState('');
@@ -54,32 +53,6 @@ const VaultManagement: React.FC<VaultManagementProps> = ({ projectName, dagId}) 
   useEffect(() => {
     loadVaultValues();
   }, []);
-
-  // const loadVaultValues = () => {
-  //   ProgressIndicator.show();
-  //   // PipelineApiClient.getVaultSecret(projectName)
-  //   PipelineApiClient.getVaultSecret(dagId)
-  //     .then((response: any) => {
-  //       const items: KeyValueItem[] = Object.entries(response).map(([k, v]) => ({
-  //         key: k,
-  //         value: v as string,
-  //         visible: false,
-  //       }));
-  //       setKeyValue({ keyValueList: items });
-  //       setFilteredList({ keyValueList: items });
-  //     })
-  //     .catch((err: any) => {
-  //       const errors = err?.response?.data?.errors;
-  //       if (Array.isArray(errors)) {
-  //         errors.forEach((e: any) => Notification.show(e.message || 'Something went wrong.', 'alert'));
-  //       } else {
-  //         Notification.show(err.message || 'Something went wrong.', 'alert');
-  //       }
-  //     })
-  //     .finally(() => {
-  //       ProgressIndicator.hide();
-  //     });
-  // };
 
   const loadVaultValues = () => {
     if (!dagId) return;
@@ -145,40 +118,6 @@ const VaultManagement: React.FC<VaultManagementProps> = ({ projectName, dagId}) 
       setJsonError(e.message);
     }
   };
-
-  // const handleAddOrUpdate = () => {
-  //   let valid = true;
-  //   if (!key) {
-  //     setKeyError('Missing entry');
-  //     valid = false;
-  //   }
-  //   if (!value) {
-  //     setValueError('Missing entry');
-  //     valid = false;
-  //   }
-  //   const fullKey = vaultPrefix + key;
-  //   if (
-  //     keyValue.keyValueList.some(
-  //       (item) => item.key === fullKey && (!editingMode || item.key !== originalKey)
-  //     )
-  //   ) {
-  //     setKeyError('Duplicate key');
-  //     valid = false;
-  //   }
-  //   if (!valid) return;
-
-    
-  //   const updatedList = editingMode
-  //     ? keyValue.keyValueList.map((item) =>
-  //       item.key === originalKey ? { key: fullKey, value, visible: item.visible } : item
-  //     )
-  //     : [...keyValue.keyValueList, { key: fullKey, value, visible: false }];
-
-  //     const data: Record<string, string> = {};
-
-  //   updatedList.forEach((item) => {
-  //     data[item.key] = item.value;
-  //   });
 
   const handleAddOrUpdate = () => {
     let valid = true;
@@ -349,15 +288,6 @@ const VaultManagement: React.FC<VaultManagementProps> = ({ projectName, dagId}) 
                   value={key}
                   errorText={keyError}
                   required
-                  // onChange={(e) => {
-                  //   const inputValue = (e.target as HTMLInputElement).value;
-                  //   if (inputValue.startsWith(vaultPrefix)) {
-                  //     setKey(inputValue.slice(vaultPrefix.length));
-                  //     setKeyError('');
-                  //   } else {
-                  //     setKeyError(`Key must start with ${vaultPrefix}`);
-                  //   }
-                  // }}
                   onChange={(e) => {
                     const inputValue = (e.target as HTMLInputElement).value.trim();
                     setKey(inputValue);
