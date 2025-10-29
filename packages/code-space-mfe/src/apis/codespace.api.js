@@ -1,4 +1,4 @@
-import { server, hostServer, reportsServer, vaultServer, storageServer, baseURL, readJwt} from '../server/api';
+import { server, hostServer, reportsServer, vaultServer, storageServer, fabricServer, baseURL, readJwt} from '../server/api';
 import { EventSourcePolyfill } from 'event-source-polyfill';
 import { Envs } from '../Utility/envs';
 
@@ -55,6 +55,52 @@ const unDeployCodeSpace = (id, data) => { //not implemented yet
         data,
     });
 };
+
+const buildCodeSpace = (id, data) => {
+    return server.post(`/workspaces/${id}/build`, data);
+};
+
+const deleteBuild = (projectName, version) => {
+    return server.delete(`workspaces/${projectName}/build/${version}`,{
+        data: {},
+    });
+};
+
+const getBuildAndDeployLogs = (projectName) => {
+    return server.get(`workspace/logs/${projectName}`, {
+        data: {},
+    });
+};
+
+const buildVersionLov = (projectName) => { //not used for now
+    return server.get(`workspace/buildVersion/${projectName}`, {
+        data: {},
+    });
+}
+
+const rejectDeployApproval = (id) => {
+    return server.post(`workspaces/${id}/deploymentReject`, {
+        data: {},
+    });
+};
+
+const updateDeployedAppConfig = (id, data) => {
+    return server.post(`workspaces/${id}/deployed-app-config`,
+        data,
+    );
+};
+
+const getPluginStatus = (id, env, pluginName) => {
+    return server.get(`workspaces/${id}/pluginStatus?env=${env}&pluginName=${pluginName}`,{
+        data: {},
+    });
+};
+
+const updatePluginStatus = (id, env, pluginName, enable) => {
+    return server.post(`workspaces/${id}/pluginStatus?env=${env}&pluginName=${pluginName}&enable=${enable}`,{
+        data: {},
+    });
+};
   
 const onBoardCollaborator = (id, data) => { 
     return server.put(`workspaces/${id}`, 
@@ -84,6 +130,12 @@ const assignAdminRole = (id, userId, data) => {
   return server.post(`workspaces/${id}/collaborator/${userId}/admin?isAdmin=${data}`, {
     data: {},
   });
+};
+
+const assignApproverRole = (id, userId, data) => {
+    return server.post(`workspaces/${id}/collaborator/${userId}/approver?isApprover=${data}`, {
+      data: {},
+    });
 };
 
 //   // Usage statistics
@@ -372,6 +424,12 @@ const deleteCodeSpaceGroup = (id) => {
     });
 };
 
+const getExistingRoles = (appId) => {
+    return fabricServer.get(`fabric-workspaces/${appId}/dnaroles`, {
+        data: {},
+    });
+};
+
 export const CodeSpaceApiClient = {
     getCodeSpacesList,
     createCodeSpace,
@@ -381,11 +439,20 @@ export const CodeSpaceApiClient = {
     getCodeSpacesGitBranchList,
     deployCodeSpace,
     unDeployCodeSpace,
+    buildCodeSpace,
+    deleteBuild,
+    getBuildAndDeployLogs,
+    buildVersionLov,
+    rejectDeployApproval,
+    updateDeployedAppConfig,
+    getPluginStatus,
+    updatePluginStatus,
     onBoardCollaborator,
     addCollaborator,
     deleteCollaborator,
     transferOwnership,
     assignAdminRole,
+    assignApproverRole,
     // getWorkSpacesTransparency,
     createOrUpdateCodeSpaceConfig,
     getCodeSpaceConfig,
@@ -431,5 +498,6 @@ export const CodeSpaceApiClient = {
     getCodeSpaceGroup,
     createCodeSpaceGroup,
     editCodeSpaceGroup,
-    deleteCodeSpaceGroup
+    deleteCodeSpaceGroup,
+    getExistingRoles
 };

@@ -5,10 +5,11 @@ import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indica
 import Notification from '../../common/modules/uilab/js/src/notification';
 import { CodeSpaceApiClient } from '../../apis/codespace.api';
 import CodeSpaceGCard from './CodeSpaceGCard';
+import { SESSION_STORAGE_KEYS } from '../../Utility/constants';
 
-const CodeSpaceGroupCard = ({ group, userInfo, onStartStopCodeSpace, onShowDeployModal, onShowCodeSpaceOnBoard, onShowCodeSpacesModal, onShowCodeSpaceGroupModal, onCodeSpaceGroupDeleteModal, onCodeSpaceDropped, onShowBlueprintModal }) => {
+const CodeSpaceGroupCard = ({ group, userInfo, onStartStopCodeSpace, onShowDeployModal, onShowCodeSpaceOnBoard, onShowCodeSpacesModal, onShowCodeSpaceGroupModal, onCodeSpaceGroupDeleteModal, onCodeSpaceDropped, onShowBlueprintModal, onShowBuildModal }) => {
   const [highlight, setHighlight] = useState(false);
-  
+
   const handleEditGroup = (codespace) => {
     const data = {
       groupId: group?.groupId,
@@ -40,47 +41,51 @@ const CodeSpaceGroupCard = ({ group, userInfo, onStartStopCodeSpace, onShowDeplo
       className={classNames(Styles.group, highlight && Styles.highlight)}
       id={`group-${group?.id}`}
       onDrop={(e) => {
-          e.preventDefault();
-          handleEditGroup(JSON.parse(e.dataTransfer.getData("application/json")));
-          setHighlight(false);
+        e.preventDefault();
+        handleEditGroup(JSON.parse(e.dataTransfer.getData("application/json")));
+        setHighlight(false);
       }}
       onDragOver={(e) => {
-          e.preventDefault();
-          setHighlight(true);
+        e.preventDefault();
+        setHighlight(true);
       }}
       onDragLeave={(e) => {
-          e.preventDefault();
-          setHighlight(false);
+        e.preventDefault();
+        setHighlight(false);
       }}
     >
       <div className={classNames(Styles.groupHeader)}>
-          <h2 onClick={() => onShowCodeSpacesModal(true, group)}>{group?.name}</h2>
+        <h2 onClick={() => {onShowCodeSpacesModal(true, group); sessionStorage.setItem(SESSION_STORAGE_KEYS.CODE_SPACE_SELECTED_GROUPS,JSON.stringify(group));}}>
+          {group?.name} ({group?.workspaces?.length || 0})
+        </h2>
       </div>
       {group?.warning &&
         <div className={classNames(Styles.groupWarning)}>
-            <button className={classNames('btn btn-primary')} onClick={() => onShowCodeSpacesModal(true, group)}>
-                <i className="icon mbc-icon alert circle"></i>
-                Start failed for some code spaces, click to view
-            </button>
+          <button className={classNames('btn btn-primary')} onClick={() => {onShowCodeSpacesModal(true, group); sessionStorage.setItem(SESSION_STORAGE_KEYS.CODE_SPACE_SELECTED_GROUPS,JSON.stringify(group));}}>
+            <i className="icon mbc-icon alert circle"></i>
+            Start failed for some code spaces, click to view
+          </button>
         </div>
       }
       <div className={classNames(Styles.groupBody)}>
-        {group?.workspaces?.slice(0, 3).map((workspace) => 
-          <CodeSpaceGCard key={workspace?.workspaceId} codeSpace={workspace} userInfo={userInfo} onStartStopCodeSpace={onStartStopCodeSpace} onShowDeployModal={onShowDeployModal} onShowCodeSpaceOnBoard={onShowCodeSpaceOnBoard} onShowBlueprintModal={onShowBlueprintModal} />
+        <div className={Styles.cardListContainer}>
+          {group?.workspaces?.map((workspace) =>
+            <CodeSpaceGCard key={workspace?.workspaceId} codeSpace={workspace} userInfo={userInfo} onStartStopCodeSpace={onStartStopCodeSpace} onShowDeployModal={onShowDeployModal} onShowCodeSpaceOnBoard={onShowCodeSpaceOnBoard} onShowBlueprintModal={onShowBlueprintModal} onShowBuildModal={onShowBuildModal} />
           )}
-          <div className={Styles.btnContainer}>
-            <button className={classNames('btn btn-primary')} onClick={() => onShowCodeSpaceGroupModal(true)}>
-              <i className="icon mbc-icon plus"></i> Add Code Space
-            </button>
-            <button className={classNames('btn btn-primary')} onClick={() => onShowCodeSpacesModal(true, group)}>
-              <i className="icon mbc-icon visibility-show"></i> View all
-            </button>
-            <button className={classNames('btn btn-primary')} onClick={() => onCodeSpaceGroupDeleteModal(true, group)}>
-              <i className="icon delete"></i> Delete
-            </button>
-          </div>
+        </div>
+        <div className={Styles.btnContainer}>
+          <button className={classNames('btn btn-primary')} onClick={() => onShowCodeSpaceGroupModal(true)}>
+            <i className="icon mbc-icon plus"></i> Add Code Space
+          </button>
+          <button className={classNames('btn btn-primary')} onClick={() => {onShowCodeSpacesModal(true, group);sessionStorage.setItem(SESSION_STORAGE_KEYS.CODE_SPACE_SELECTED_GROUPS,JSON.stringify(group));}}>
+            <i className="icon mbc-icon visibility-show"></i> View all
+          </button>
+          <button className={classNames('btn btn-primary')} onClick={() => onCodeSpaceGroupDeleteModal(true, group)}>
+            <i className="icon delete"></i> Delete
+          </button>
+        </div>
       </div>
-  </div>
+    </div>
   )
 }
 

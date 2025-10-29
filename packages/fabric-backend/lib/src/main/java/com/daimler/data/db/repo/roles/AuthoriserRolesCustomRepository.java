@@ -25,12 +25,17 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.repo.forecast;
+package com.daimler.data.db.repo.roles;
 
-import org.springframework.data.jpa.repository.JpaRepository;
+import java.util.List;
 
-import com.daimler.data.db.entities.FabricWorkspaceNsql;
+import com.daimler.data.db.entities.AuthoriserRolesNsql;
+import com.daimler.data.db.repo.common.CommonDataRepository;
 
-public interface FabricWorkspaceRepository extends JpaRepository<FabricWorkspaceNsql, String> {
+public interface AuthoriserRolesCustomRepository extends CommonDataRepository<AuthoriserRolesNsql, String> {
+
+	List<AuthoriserRolesNsql> getAll(String userId);
+
+	
 
 }

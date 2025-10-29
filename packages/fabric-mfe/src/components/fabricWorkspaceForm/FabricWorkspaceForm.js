@@ -40,7 +40,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
   const [dataClassificationDropdown, setDataClassificationDropdown] = useState([]);
   const [solutions, setSolutions] = useState([]);
   const [reports, setReports] = useState([]);
-  const [fabricTags] = useState([]);
+  const [fabricTags, setFabricTags] = useState([]);
 
   const [costCenter, setCostCenter] = useState(edit && workspace?.costCenter !== null ? workspace?.costCenter : '');
   const [internalOrder, setInternalOrder] = useState(edit && workspace?.internalOrder !== null ? workspace?.internalOrder : '');
@@ -60,7 +60,9 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
   const [procedureId, setProcedureID] = useState(edit && workspace?.procedureId ? workspace?.procedureId : '');
   const [termsOfUse, setTermsOfUse] = useState(edit && workspace?.termsOfUse ? [workspace?.termsOfUse] : false);
   const [leanIXList, setLeanIXList] = useState([]);
-  const [selectedLeanIX, setSelectedLeanIX] = useState([]);
+  const [selectedLeanIX, setSelectedLeanIX] = useState(
+    edit && workspace?.appId ? { id: workspace?.appId, ...workspace?.leanIXDetails } : []
+  );
 
   useEffect(() => {
     ProgressIndicator.show();
@@ -85,6 +87,25 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
       });
     //eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (selectedLeanIX.id) {
+      setValue('leanIX', {
+        appId: selectedLeanIX.id,
+        leanIXDetails: {
+          objectState: selectedLeanIX.ObjectState,
+          appReferenceStr: selectedLeanIX.appReferenceStr,
+          name: selectedLeanIX.name,
+          providerOrgDeptid: selectedLeanIX.providerOrgDeptid,
+          providerOrgId: selectedLeanIX.providerOrgId,
+          providerOrgRefstr: selectedLeanIX.providerOrgRefstr,
+          providerOrgShortname: selectedLeanIX.providerOrgShortname,
+          shortName: selectedLeanIX.shortName,
+        },
+      });
+    }
+  }, [selectedLeanIX, setValue]);
+
 
   useEffect(() => {
     ProgressIndicator.show();
@@ -116,6 +137,21 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
       });
     //eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    ProgressIndicator.show();
+    fabricApi.getAllTags()
+      .then((res) => {
+        ProgressIndicator.hide();
+        const tagList = res?.data?.map((tag) => {return { id: tag.id, name: tag.name}});
+        setFabricTags([...tagList]);
+      })
+      .catch((err) => {
+        ProgressIndicator.hide();
+        Notification.show(err?.message || 'Failed to fetch tags', 'alert');
+      });
+  }, []);
+
 
   useEffect(() => {
     const divId = division.includes('@-@') ? division.split('@-@')[0] : division;
@@ -269,6 +305,12 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
       );
     });
   };
+  
+const divisionId = division ? division.split('@-@')[0] : null;
+const mandate = divisionId && Envs.MANDATE_LEANIX_FOR_DIVISIONS 
+  ? Envs.MANDATE_LEANIX_FOR_DIVISIONS.split(',').includes(divisionId) 
+  : false;
+const isLeanIXRequired = typeOfProject === 'Production' && mandate;
 
   return (
     <>
@@ -350,7 +392,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
             <div className={Styles.col2}>
               <div className={classNames('input-field-group include-error', errors?.costCenter ? 'error' : '')}>
                   <label className={'input-label'}>
-                    Cost Center <sup>*</sup>
+                    Cost Center 
                   </label>
                   <div>
                     <input
@@ -361,7 +403,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
                       autoComplete="off"
                       maxLength={256}
                       defaultValue={costCenter}
-                      {...register('costCenter', { required: '*Missing entry', pattern: /^(?!^\s+$)[\w\d -]+$/g, onChange: (e) => { setCostCenter(e.target.value) } })}
+                      {...register('costCenter', { pattern: /^(?!^\s+$)[\w\d -]+$/g, onChange: (e) => { setCostCenter(e.target.value) } })}
                     />
                     <span className={'error-message'}>{errors?.costCenter?.message}{errors.costCenter?.type === 'pattern' && `Spaces (and special characters) not allowed as field value.`}</span>
                   </div>
@@ -370,7 +412,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
             <div className={Styles.col2}>
               <div className={classNames('input-field-group', errors?.internalOrder ? 'error' : '')}>
                   <label className={'input-label'}>
-                    Internal Order <sup>*</sup>
+                    Internal Order 
                   </label>
                   <div>
                     <input
@@ -381,7 +423,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
                       autoComplete="off"
                       maxLength={256}
                       defaultValue={internalOrder}
-                      {...register('internalOrder', { required: '*Missing entry', pattern: /^(?!^\s+$)[\w\d -]+$/g, onChange: (e) => { setInternalOrder(e.target.value) } })}
+                      {...register('internalOrder', { pattern: /^(?!^\s+$)[\w\d -]+$/g, onChange: (e) => { setInternalOrder(e.target.value) } })}
                     />
                     <span className={'error-message'}>{errors?.internalOrder?.message}{errors.internalOrder?.type === 'pattern' && `Spaces not allowed as field value..`}</span>
                   </div>
@@ -391,14 +433,17 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
               (
                 <div className={Styles.col2}>
                   <div className={classNames('input-field-group')}>
-                    <Controller
-                      control={control}
-                      name="leanIX"
-                      render={({ field }) => (
+                  <Controller
+                    control={control}
+                    name="leanIX"
+                    rules={{
+                      required: isLeanIXRequired ? '*Missing entry' : false,
+                    }}
+                    render={({ field }) => (
                         <TypeAheadBox
                           label={'LeanIX App-ID'}
                           placeholder={'Select App-ID (Enter minimum 4 characters)'}
-                          defaultValue={selectedLeanIX.appId}
+                          defaultValue={selectedLeanIX.id}
                           list={leanIXList}
                           setSelected={(selectedTags) => {
                             const leanIXData = {
@@ -418,7 +463,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
                             field.onChange(leanIXData);
                           }}
                           onInputChange={handleLeanIXSearch}
-                          required={false}
+                          required={isLeanIXRequired}
                           showError={errors.leanIX?.message}
                           render={(item) => (
                             <div className={Styles.optionContainer}>
@@ -433,7 +478,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
                           )}
                         />
                       )}
-                    />
+                  />
                   </div>
                 </div>
               )

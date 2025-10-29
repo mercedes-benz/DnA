@@ -19,13 +19,16 @@ import Tooltip from '../common/modules/uilab/js/src/tooltip';
 import DeployModal from './deployModal/DeployModal';
 import { history } from '../store';
 import CodeSpaceTutorials from './codeSpaceTutorials/CodeSpaceTutorials';
+import BuildModal from './buildModal/buildModal';
 import { Envs } from '../Utility/envs';
 import ConfirmModal from 'dna-container/ConfirmModal';
 import InfoModal from 'dna-container/InfoModal';
+import DeployApprovalModal from './DeployApprovalModal/DeployApprovalModal';
 import CodeSpaceBlueprint from './codeSpaceBlueprint/CodeSpaceBlueprint';
 import AddCodespaceGroupModal from './addCodespaceGroupModal/AddCodespaceGroupModal';
 import CodeSpaceGroupCard from './codeSpaceGroupCard/CodeSpaceGroupCard';
 import Spinner from './spinner/Spinner';
+import { SESSION_STORAGE_KEYS } from '../Utility/constants';
 
 // export interface IAllCodeSpacesProps {
 //   user: IUserInfo;
@@ -43,6 +46,8 @@ const AllCodeSpaces = (props) => {
         // }),
         [showNewCodeSpaceModal, setShowNewCodeSpaceModal] = useState(false),
         [showDeployCodeSpaceModal, setShowDeployCodeSpaceModal] = useState(false),
+        [showBuildCodeSpaceModal, setShowBuildCodeSpaceModal] = useState(false),
+        [showDeployApprovalModal, setShowDeployApprovalModal] = useState(false),
         [isRetryRequest, setIsRetryRequest] = useState(false),
         [isApiCallTakeTime, setIsApiCallTakeTime] = useState(false),
         [onBoardCodeSpace, setOnBoardCodeSpace] = useState(),
@@ -197,6 +202,21 @@ const AllCodeSpaces = (props) => {
         setShowBlueprintModal(true);
     };
 
+    const onCodeSpaceBuild = (codeSpace) => {
+        setOnDeployCodeSpace(codeSpace);
+        setShowBuildCodeSpaceModal(true);
+    };
+
+    const onShowDeployApprovalModal = (codeSpace) => {
+        setOnDeployCodeSpace(codeSpace);
+        setShowDeployApprovalModal(true);
+    };
+
+    const onGetCodespaceData = () => {
+        getCodeSpacesData();
+        getCodeSpaceGroupsData();
+    }
+
     const onStartStopCodeSpace = (codeSpace, startSuccessCB, env, manual = false) => {
         Tooltip.clear();
         const serverStarted = codeSpace.serverStatus === 'SERVER_STARTED';
@@ -244,15 +264,6 @@ const AllCodeSpaces = (props) => {
         getCodeSpaceGroupsData();
     };
 
-    const navigateSecurityConfig = () => {
-        const projectDetails = onDeployCodeSpace?.projectDetails;
-        if (projectDetails?.publishedSecuirtyConfig) {
-            window.open(`${window.location.pathname}#/codespaces/codespace/publishedSecurityconfig/${onDeployCodeSpace?.id}?name=${projectDetails.projectName}?intIAM=${projectDetails?.intDeploymentDetails?.secureWithIAMRequired ? 'true' : 'false'}?prodIAM=${projectDetails?.prodDeploymentDetails?.secureWithIAMRequired ? 'true' : 'false'}`, '_blank');
-            return;
-        }
-        window.open(`${window.location.pathname}#/codespaces/codespace/securityconfig/${onDeployCodeSpace.id}?name=${projectDetails.projectName}?intIAM=${projectDetails?.intDeploymentDetails?.secureWithIAMRequired ? 'true' : 'false'}?prodIAM=${projectDetails?.prodDeploymentDetails?.secureWithIAMRequired ? 'true' : 'false'}`, '_blank');
-    }
-
     const AWSWarningModalContent = (
         <div className={Styles.modalContentWrapper}>
             <div className={Styles.awsModalMainTitle}><i className="icon mbc-icon alert circle" />DnA Platform successfully migrated<i className="icon mbc-icon alert circle" /></div>
@@ -265,84 +276,150 @@ const AllCodeSpaces = (props) => {
             <p><strong>Note:</strong> Deployed applications will be migrated to AWS based on the support request. If there were no prior deployments before the migration, any new deployments will automatically be directed to AWS.</p>
         </div>
     );
-
     const FAQModalContent = (
         <div className={Styles.modalFAQContentWrapper}>
-            <div>
-                <ol>
+          <div className="expansion-panel-group airflowexpansionPanel">
+      
+         
+            <div className={classNames('expansion-panel')}>
+              <span className="animation-wrapper"></span>
+              <input type="checkbox" className="ff-only" id="faq-1" />
+              <label className={classNames('expansion-panel-label', Styles.faqHeader)} htmlFor="faq-1">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                  <span>1. I am not able to see my code post migrating to AWS</span>
+                  <i tooltip-data="Expand" className="icon down-up-flip" />
+                </div>
+              </label>
+              <div className="expansion-panel-content">
+                <div className={classNames(Styles.info)}>
+                  This situation arises if the PAT token that you used to create the codespace has expired. Please follow the steps below:
+                  <ul>
                     <li>
-                        <div>I am not able to see my code post migrating to AWS</div>
-                        <div className={classNames(Styles.info)}>
-                            This situation arises if the pat token that you have used to create the codespace has expired. Please follow the below steps :
-                            <ul>
-                                <br />
-                                <li>
-                                    Run the following commands in your terminal for cloning code manually
-                                    <ol>
-                                        <li><span className={classNames(Styles.list)}>mkdir -p /home/coder/app</span></li>
-                                        <li><span className={classNames(Styles.list)}>git config --global credential.helper cache</span></li>
-                                        <li><span className={classNames(Styles.list)}>git config --global user.email &ldquo;$SHORTID&ldquo;</span></li>
-                                        <li><span className={classNames(Styles.list)}>git config --global user.name &ldquo;$SHORTID&ldquo;</span></li>
-                                        <li>
-                                            <span className={classNames(Styles.list)}>git clone https://$GITHUB_TOKEN@$GITHUBREPO_URL /home/coder/app</span>
-                                            <br />(eg: git clone https://ghp_xxxx@{(Envs.CODE_SPACE_GIT_PAT_APP_URL).split('https://')[1]}org_name/repo_name.git /home/coder/app)
-                                            <br />You can find your org name and repo name by using the go to code repo option in the context menu.
-                                            <br />If the cloning is not happening with the current token then generate a new token and try again.
-
-                                        </li>
-                                    </ol>
-                                </li>
-                                <br />
-                                <li>
-                                    Once your code is cloned, run the following commands in terminal to copy .bashrc
-                                    <ol>
-                                        <li><span className={classNames(Styles.list)}>cp /tmp/.bashrc /home/coder/</span></li>
-                                        <li><span className={classNames(Styles.list)}>chmod +x /home/coder/.bashrc</span></li>
-                                    </ol>
-                                </li>
-                                <br />
-                                <li>
-                                    Please execute the following commands in the given order in your terminal to install the softwares
-                                    <ol>
-                                        <li><span className={classNames(Styles.list)}>TEMP_DIR=/tmp/.codespaces/DO_NOT_DELETE_MODIFY/</span></li>
-                                        <li><span className={classNames(Styles.list)}>mkdir -pv $TEMP_DIR</span></li>
-                                        <li><span className={classNames(Styles.list)}>cp /home/coder/app/.codespaces/DO_NOT_DELETE_MODIFY/pkg-install.sh $TEMP_DIR</span>
-                                            <br/><span className={classNames(Styles.listInfo)}>If you have an additional folder present before .codespaces then please use</span>
-                                            <br/><span className={classNames(Styles.list)}>cp /home/coder/app/$YOUR_FOLDER/.codespaces/DO_NOT_DELETE_MODIFY/pkg-install.sh $TEMP_DIR</span>
-                                        </li>
-                                        <li><span className={classNames(Styles.list)}>cd $TEMP_DIR</span></li>
-                                        <li><span className={classNames(Styles.list)}>chmod +x pkg-install.sh</span></li>
-                                        <li><span className={classNames(Styles.list)}>./pkg-install.sh</span></li>
-                                    </ol>
-                                </li>
-                                <br />
-                                <li>Please close your terminal and verify the installations on a new terminal.</li>
-                                <br />
-                                <li>
-                                    If you have a <span className={classNames(Styles.warning)}>Python FastAPI</span> workspace please run the following additional command
-                                    <br/><span className={classNames(Styles.list)}>curl -sSL https://install.python-poetry.org | python3 -</span>
-                                </li>
-                            </ul>
-                        </div>
+                      Clone code manually:
+                      <ol>
+                        <li><span className={classNames(Styles.list)}>mkdir -p /home/coder/app</span></li>
+                        <li><span className={classNames(Styles.list)}>git config --global credential.helper cache</span></li>
+                        <li><span className={classNames(Styles.list)}>git config --global user.email &ldquo;$SHORTID&ldquo;</span></li>
+                        <li><span className={classNames(Styles.list)}>git config --global user.name &ldquo;$SHORTID&ldquo;</span></li>
+                        <li>
+                          <span className={classNames(Styles.list)}>
+                            git clone https://$GITHUB_TOKEN@$GITHUBREPO_URL /home/coder/app
+                          </span>
+                          <br />
+                          (e.g., git clone https://ghp_xxxx@{(Envs.CODE_SPACE_GIT_PAT_APP_URL).split('https://')[1]}org_name/repo_name.git /home/coder/app)
+                          <br />
+                          If cloning fails, generate a new token.
+                        </li>
+                      </ol>
                     </li>
-                </ol>
+                    <li>
+                      Copy bashrc:
+                      <ol>
+                        <li><span className={classNames(Styles.list)}>cp /tmp/.bashrc /home/coder/</span></li>
+                        <li><span className={classNames(Styles.list)}>chmod +x /home/coder/.bashrc</span></li>
+                      </ol>
+                    </li>
+                    <li>
+                      Install required packages:
+                      <ol>
+                        <li><span className={classNames(Styles.list)}>TEMP_DIR=/tmp/.codespaces/DO_NOT_DELETE_MODIFY/</span></li>
+                        <li><span className={classNames(Styles.list)}>mkdir -pv $TEMP_DIR</span></li>
+                        <li>
+                          <span className={classNames(Styles.list)}>
+                            cp /home/coder/app/.codespaces/DO_NOT_DELETE_MODIFY/pkg-install.sh $TEMP_DIR
+                          </span>
+                          <br />
+                          <span className={classNames(Styles.listInfo)}>If additional folder:</span>
+                          <br />
+                          <span className={classNames(Styles.list)}>
+                            cp /home/coder/app/$YOUR_FOLDER/.codespaces/DO_NOT_DELETE_MODIFY/pkg-install.sh $TEMP_DIR
+                          </span>
+                        </li>
+                        <li><span className={classNames(Styles.list)}>cd $TEMP_DIR</span></li>
+                        <li><span className={classNames(Styles.list)}>chmod +x pkg-install.sh</span></li>
+                        <li><span className={classNames(Styles.list)}>./pkg-install.sh</span></li>
+                      </ol>
+                    </li>
+                    <li>Please close and reopen terminal to verify.</li>
+                    <li>
+                      For <span className={classNames(Styles.warning)}>Python FastAPI</span>:
+                      <br />
+                      <span className={classNames(Styles.list)}>curl -sSL https://install.python-poetry.org | python3 -</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
             </div>
+      
+            <div className={classNames('expansion-panel')}>
+              <span className="animation-wrapper"></span>
+              <input type="checkbox" className="ff-only" id="faq-2" />
+              <label className={classNames('expansion-panel-label', Styles.faqHeader)} htmlFor="faq-2">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                  <span>2. I am getting a WebSocket error: “The workbench failed to connect to the server”</span>
+                  <i tooltip-data="Expand" className="icon down-up-flip" />
+                </div>
+              </label>
+              <div className="expansion-panel-content">
+                <div className={classNames(Styles.info)}>
+                  This issue typically occurs due to proxy settings interfering with the WebSocket connection.
+                  <br /><br />
+                  <ul>
+                    <li>Open your <strong>Windows Settings</strong>.</li>
+                    <li>Go to <strong>Network & Internet</strong> &rarr; <strong>Proxy</strong>.</li>
+                    <li>Click on <strong>Set up</strong> under Manual proxy setup.</li>
+                    <li>Turn off the toggle for <strong>Use a proxy server</strong>.</li>
+                    <li>Restart your browser and reload your CodeSpace.</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+      
+            <div className={classNames('expansion-panel')}>
+              <span className="animation-wrapper"></span>
+              <input type="checkbox" className="ff-only" id="faq-3" />
+              <label className={classNames('expansion-panel-label', Styles.faqHeader)} htmlFor="faq-3">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                  <span>3. CodeSpace stopped and keeps reloading while working</span>
+                  <i tooltip-data="Expand" className="icon down-up-flip" />
+                </div>
+              </label>
+              <div className="expansion-panel-content">
+                <div className={classNames(Styles.info)}>
+                  This may happen due to session timeouts or infrastructure restarts.
+                  <br /><br />
+                  <ul>
+                    <li>Stop the CodeSpace instance manually.</li>
+                    <li>Wait for <strong>10 minutes</strong> to allow services to reset.</li>
+                    <li>Restart the CodeSpace.</li>
+                    <li>If the problem persists, please reach out to the <a href={Envs.CODESPACE_TEAMS_LINK} target="_blank" rel="noopener noreferrer"> Teams channel</a> or 
+                    <a href={Envs.CODESPACE_MATTERMOST_LINK} target="_blank" rel="noopener noreferrer"> Mattermost channel</a>. </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+      
+          </div>
         </div>
-    );
+      );
+      
+      
+
 
     const [showEditCodespaceGroupModal, setShowEditCodespaceGroupModal]  = useState(false);
     const [showCodespacesModal, setShowCodespacesModal] = useState(false);
-    const [selectedCodeSpaceGroup, setSelectedCodeSpaceGroup] = useState();
+    const [selectedCodeSpaceGroup, setSelectedCodeSpaceGroup] = useState(JSON.parse(sessionStorage.getItem(SESSION_STORAGE_KEYS.CODE_SPACE_SELECTED_GROUPS)));
 
     useEffect(() => {
-        if (selectedCodeSpaceGroup) {
-          const updatedGroup = codeSpaceGroups.find(
-            (group) => group.id === selectedCodeSpaceGroup.id
-          );
-          if (updatedGroup && updatedGroup !== selectedCodeSpaceGroup) {
-            setSelectedCodeSpaceGroup(updatedGroup);
-          }
-        }
+        // if (selectedCodeSpaceGroup) {
+        //   const updatedGroup = codeSpaceGroups.find(
+        //     (group) => group.id === selectedCodeSpaceGroup.id
+        //   );
+        //   if (updatedGroup && updatedGroup !== selectedCodeSpaceGroup) {
+        //     setSelectedCodeSpaceGroup(updatedGroup);
+        //   }
+        // }
+        setSelectedCodeSpaceGroup(JSON.parse(sessionStorage.getItem(SESSION_STORAGE_KEYS.CODE_SPACE_SELECTED_GROUPS)));
         // eslint-disable-next-line react-hooks/exhaustive-deps
       }, [codeSpaceGroups]);
 
@@ -391,8 +468,11 @@ const AllCodeSpaces = (props) => {
                                             onShowCodeSpaceOnBoard={onShowCodeSpaceOnBoard}
                                             onCodeSpaceEdit={onCodeSpaceEdit}
                                             onShowDeployModal={onCodeSpaceDeploy}
+                                            onShowBuildModal={onCodeSpaceBuild}
+                                            onShowDeployApprovalModal={onShowDeployApprovalModal}
                                             onStartStopCodeSpace={onStartStopCodeSpace}
                                             onShowBlueprintModal={onCodeSpaceShowBlueprint}
+                                            onGetCodespaceData={onGetCodespaceData}
                                         />
                                     );
                                 })}
@@ -420,8 +500,11 @@ const AllCodeSpaces = (props) => {
                                             onShowCodeSpaceOnBoard={onShowCodeSpaceOnBoard}
                                             onCodeSpaceEdit={onCodeSpaceEdit}
                                             onShowDeployModal={onCodeSpaceDeploy}
+                                            onShowBuildModal={onCodeSpaceBuild}
+                                            onShowDeployApprovalModal={onShowDeployApprovalModal}
                                             onStartStopCodeSpace={onStartStopCodeSpace}
                                             onShowBlueprintModal={onCodeSpaceShowBlueprint}
+                                            onGetCodespaceData={onGetCodespaceData}
                                         />
                                     );
                                 })}
@@ -537,11 +620,11 @@ const AllCodeSpaces = (props) => {
                             </button>
                             <button
                                 className={classNames('btn btn-primary', Styles.awsFAQ)}
-                                tooltip-data="AWS migration FAQs"
-                                onClick={() => { setShowAwsFAQModal(Envs.SHOW_AWS_MIGRATION_WARNING) }}
+                                tooltip-data="CodeSpace FAQs"
+                                onClick={() => { setShowAwsFAQModal(true) }}
                             >
                                 <i className={classNames('icon mbc-icon alert circle')} />
-                                <span>AWS Migration FAQ&apos;s</span>
+                                <span>CodeSpace FAQ&apos;s</span>
                             </button>
                         </div>
                         <div className={classNames(Styles.codspaceSearch)}>
@@ -605,7 +688,7 @@ const AllCodeSpaces = (props) => {
                                 key={group?.id}
                                 group={group}
                                 userInfo={props.user}
-                                onShowCodeSpacesModal={(show, group) => { setShowCodespacesModal(show); setSelectedCodeSpaceGroup(group); }}
+                                onShowCodeSpacesModal={(show, group) => { setShowCodespacesModal(show); setSelectedCodeSpaceGroup(group);  }}
                                 onShowCodeSpaceGroupModal={(show) => { setSelectedCodeSpaceGroup(group); setShowEditCodespaceGroupModal(show); }}
                                 onCodeSpaceGroupDeleteModal={(show, group) => { setSelectedCodeSpaceGroup(group); setShowDeleteCodespaceGroupModal(show); }}
                                 onCodeSpaceDropped={() => { getCodeSpaceGroupsData(); getCodeSpacesData();}}
@@ -613,6 +696,8 @@ const AllCodeSpaces = (props) => {
                                 onShowDeployModal={onCodeSpaceDeploy}
                                 onShowCodeSpaceOnBoard={onShowCodeSpaceOnBoard}
                                 onShowBlueprintModal={onCodeSpaceShowBlueprint}
+                                onShowBuildModal={onCodeSpaceBuild}
+                                onGetCodespaceData={onGetCodespaceData}
                             />
                         )}
                     </div>
@@ -665,8 +750,11 @@ const AllCodeSpaces = (props) => {
                                                         onShowCodeSpaceOnBoard={onShowCodeSpaceOnBoard}
                                                         onCodeSpaceEdit={onCodeSpaceEdit}
                                                         onShowDeployModal={onCodeSpaceDeploy}
+                                                        onShowBuildModal={onCodeSpaceBuild}
+                                                        onShowDeployApprovalModal={onShowDeployApprovalModal}
                                                         onStartStopCodeSpace={onStartStopCodeSpace}
                                                         onShowBlueprintModal={onCodeSpaceShowBlueprint}
+                                                        onGetCodespaceData={onGetCodespaceData}
                                                     />
                                                 );
                                             })}
@@ -694,8 +782,11 @@ const AllCodeSpaces = (props) => {
                                                         onShowCodeSpaceOnBoard={onShowCodeSpaceOnBoard}
                                                         onCodeSpaceEdit={onCodeSpaceEdit}
                                                         onShowDeployModal={onCodeSpaceDeploy}
+                                                        onShowBuildModal={onCodeSpaceBuild}
+                                                        onShowDeployApprovalModal={onShowDeployApprovalModal}
                                                         onStartStopCodeSpace={onStartStopCodeSpace}
                                                         onShowBlueprintModal={onCodeSpaceShowBlueprint}
+                                                        onGetCodespaceData={onGetCodespaceData}
                                                     />
                                                 );
                                             })}
@@ -753,7 +844,7 @@ const AllCodeSpaces = (props) => {
                     show={showCodespacesModal}
                     content={codespacesModalContent}
                     scrollableContent={true}
-                    onCancel={() => { setShowCodespacesModal(false) }}
+                    onCancel={() => { setShowCodespacesModal(false); sessionStorage.removeItem('codeSpaceSelectedGroups') }}
                 />
             )}
             {showDeleteCodespaceGroupModal && (
@@ -819,10 +910,43 @@ const AllCodeSpaces = (props) => {
                     //     onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'react'
                     // }
                     setShowCodeDeployModal={(isVisible) => setShowDeployCodeSpaceModal(isVisible)}
-                    setCodeDeploying={() => { getCodeSpacesData(); getCodeSpaceGroupsData(); }}
+                    setCodeDeploying={() => { getCodeSpacesData(); getCodeSpaceGroupsData();}}
                     setIsApiCallTakeTime={setIsApiCallTakeTime}
-                    navigateSecurityConfig={navigateSecurityConfig}
                 />
+            )}
+            {showBuildCodeSpaceModal && (
+                <BuildModal
+                    userInfo={props.user}
+                    codeSpaceData={onDeployCodeSpace}
+                    setShowCodeBuildModal={(isVisible) => setShowBuildCodeSpaceModal(isVisible)}
+                    // enableSecureWithIAM={
+                    //     onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'springboot' ||
+                    //     onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'py-fastapi' ||
+                    //     onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'expressjs' ||
+                    //     onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'springbootwithmaven'
+                    // }
+                    // isUIRecipe={
+                    //     onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'dash' ||
+                    //     onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'streamlit' ||
+                    //     onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'nestjs' ||
+                    //     onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'vuejs' ||
+                    //     onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'angular' ||
+                    //     onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'react'
+                    // }
+                    setShowCodeDeployModal={(isVisible) => setShowDeployCodeSpaceModal(isVisible)}
+                    setCodeDeploying={() => { getCodeSpacesData(); getCodeSpaceGroupsData();}}
+                    setCodeBuilding={() => { getCodeSpacesData(); getCodeSpaceGroupsData();}}
+                    setIsApiCallTakeTime={setIsApiCallTakeTime}
+                />
+            )}
+            {showDeployApprovalModal && (
+                    <DeployApprovalModal
+                      show={showDeployApprovalModal}
+                      setShowDeployApprovalModal={setShowDeployApprovalModal}
+                      codeSpaceData = {onDeployCodeSpace}
+                      setCodeDeploying={() => {getCodeSpacesData(); getCodeSpaceGroupsData();}}
+                      setIsApiCallTakeTime={setIsApiCallTakeTime}
+                    />
             )}
             {isApiCallTakeTime && (
                 <ProgressWithMessage
@@ -876,7 +1000,7 @@ const AllCodeSpaces = (props) => {
             )}
             {showAwsFAQModal && (
                 <InfoModal
-                    title={'AWS migration FAQs'}
+                    title={'CodeSpace FAQs'}
                     modalWidth={'60%'}
                     modalStyle={{
                         maxWidth: '70%',

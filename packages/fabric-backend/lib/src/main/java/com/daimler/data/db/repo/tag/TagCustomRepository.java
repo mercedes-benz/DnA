@@ -25,17 +25,11 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.repo.forecast;
+ package com.daimler.data.db.repo.tag;
 
-import java.util.List;
+ import com.daimler.data.db.entities.TagNsql;
+ import com.daimler.data.db.repo.common.CommonDataRepository;
 
-import com.daimler.data.db.entities.FabricWorkspaceNsql;
-import com.daimler.data.db.repo.common.CommonDataRepository;
+ public interface TagCustomRepository extends CommonDataRepository<TagNsql, String> {
 
-public interface FabricWorkspaceCustomRepository extends CommonDataRepository<FabricWorkspaceNsql, String> {
-
-	List<FabricWorkspaceNsql> getAll(String userId, int offset, int limit);
-
-	long getTotalCount(String userId);
-
-}
+ }

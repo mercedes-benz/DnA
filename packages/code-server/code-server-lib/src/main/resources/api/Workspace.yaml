@@ -647,6 +647,140 @@ paths:
         500:
           description: "Internal error"
 
+  /workspaces/{id}/deployed-app-config:
+    post:
+      tags:
+        - "code-server"
+      summary: "Update deployed app configuration for a given identifier."
+      description: "Update deployed app configuration for a given identifier."
+      operationId: "deployedAppConfig"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Workspace ID to be fetched"
+          required: true
+          type: "string"
+        - name: "deployedAppConfigDto"
+          in: "body"
+          description: "request body for config to be updated"
+          required: true
+          schema:
+            $ref: "#/definitions/DeployedAppConfigDto"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
+  /workspaces/{id}/pluginStatus:
+    get:
+      tags:
+        - "code-server"
+      summary: "Get status of authorization and authentication plugins of the deployed application."
+      description:  "Get status of authorization and authentication plugins of the deployed application."
+      operationId: "getPluginStatus"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Workspace ID to be fetched"
+          required: true
+          type: "string"
+        - name: env
+          in: query
+          description: "deployed application environment"
+          required: true
+          type: string
+          enum:
+          - int
+          - prod
+        - name: pluginName
+          in: query
+          description: "plugin to be disabled or enabled"
+          required: true
+          type: string
+          enum:
+          - apiauthoriser
+          - oidc
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/WorkspacePluginStatusVO"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
+    post:
+      tags:
+        - "code-server"
+      summary: "enable or disable authorization and authentication plugins of deployed application."
+      description: "enable or disable authorization and authentication plugins of deployed application."
+      operationId: "togglePlugin"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Workspace ID to be fetched"
+          required: true
+          type: "string"
+        - name: env
+          in: query
+          description: "deployed application environment"
+          required: true
+          type: string
+          enum:
+          - int
+          - prod
+        - name: pluginName
+          in: query
+          description: "plugin status to be fetched"
+          required: true
+          type: string
+          enum:
+          - apiauthoriser
+          - oidc
+        - name: enable
+          in: query
+          description: enable or disable plugin
+          required: true
+          type: "boolean"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
 
   /workspaces/{id}/config:        
     patch:
@@ -1094,6 +1228,46 @@ paths:
         500:
           description: "Internal error"
 
+  /workspaces/{id}/collaborator/{collabUserId}/approver:
+    post:
+      tags:
+        - "code-server"
+      summary: "make or remove collaborator approver for workspace project ."
+      description: "make or remove collaborator approver for workspace project."
+      operationId: "makeApprover"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Workspace ID to be fetched"
+          required: true
+          type: "string"
+        - name: "collabUserId"
+          in: "path"
+          description: "Collaborator user id"
+          required: true
+          type: "string"
+        - name: isApprover
+          in: query
+          required: true
+          type: "boolean"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
   /workspaces/{id}/restart:        
     post:
       tags:
@@ -1163,6 +1337,37 @@ paths:
           description: "Method not allowed"
         500:
           description: "Internal error"
+
+  /workspaces/{id}/deploymentReject:
+    post:
+      tags:
+        - "code-server"
+      summary: "Reject production deployment for a workspace of a given Id."
+      description: "Reject workspace production deployment for a given identifier."
+      operationId: "deploymentRejectWorkspaceProject"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Workspace ID to be fetched"
+          required: true
+          type: "string"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"         
 
   /workspaces/group/create:        
     post:
@@ -1313,9 +1518,8 @@ paths:
         405:
           description: "Method not allowed"
         500:
-          description: "Internal error"                                        
-
-          
+          description: "Internal error"                                                                               
+        
 definitions:
   CodeSpaceReadmeVo:
     type: object
@@ -1397,14 +1601,18 @@ definitions:
 #        description: "Date of last deployment"  
       status:
         type: string
-        enum: ["CREATED","CREATE_FAILED","DELETED","DELETE_FAILED","DEPLOYED","DEPLOYMENT_FAILED","UNDEPLOYED","UNDEPLOY_FAILED","RESTARTED","RESTART_FAILED"]
-        description: "Status of workspace job action create/delete/deploy/restart request"
+        enum: ["CREATED","CREATE_FAILED","DELETED","DELETE_FAILED","DEPLOYED","DEPLOYMENT_FAILED","UNDEPLOYED","UNDEPLOY_FAILED","RESTARTED","RESTART_FAILED","BUILD_SUCCESS","BUILD_FAILED"]
+        description: "Status of workspace job action create/delete/build/deploy/restart request"
       targetEnvironment:
         type: string
       branch:
         type: string
       gitjobRunID:
         type: string
+      wsId:
+        type: string
+      appVersion:
+        type: string    
       required:
           -status
   CodeServerWorkspaceValidateVO:
@@ -1472,7 +1680,11 @@ definitions:
       projectCollaborators:
         type: array
         items:
-          $ref: "#/definitions/UserInfoVO" 
+          $ref: "#/definitions/UserInfoVO"
+      prodBuildDetails:
+        $ref: "#/definitions/CodeServerBuildDetailsVO"
+      intBuildDetails:
+        $ref: "#/definitions/CodeServerBuildDetailsVO"  
       prodDeploymentDetails:
         $ref: "#/definitions/CodeServerDeploymentDetailsVO"
       intDeploymentDetails:
@@ -1484,6 +1696,13 @@ definitions:
       projectCreatedOn:
         type: string
         format: date
+      lastBuildOrDeployedOn:
+        type: string
+        format: date
+      lastBuildOrDeployedStatus:
+        type: string
+      lastBuildOrDeployedEnv:
+        type: string    
       securityConfig:
         $ref: "#/definitions/CodespaceSecurityConfigVO"
       publishedSecuirtyConfig:
@@ -1502,13 +1721,19 @@ definitions:
         enum: [int, prod]
       branch:
         type: string
+      repo :
+        type: string
+      version:
+        type: string
+
+  DeployedAppConfigDto:
+    type: object
+    properties:
+      targetEnvironment:
+        type: string
+        enum: [int, prod]
       secureWithIAMRequired:
         type: boolean
-      # technicalUserDetailsForIAMLogin:
-      #   type: string
-      # valutInjectorEnable:  # Corrected property name
-      #   type: boolean
-        default: false  # This should now work as expected
       clientID:
         type: string
       clientSecret:
@@ -1526,9 +1751,25 @@ definitions:
         type: string
       isSecuredWithCookie :
         type: boolean
-      repo :
+      ssoType:
         type: string
+        enum: [SSO_INT, SSO_PROD]
+      secureWithDnaRequired:
+        type: boolean
+      aliceRoleEnabled:
+        type: boolean
+      entitlementPrefixEnabled:
+        type: boolean
+      selectedAliceRoles:
+        type: array
+        items:
+          type: string 
 
+  WorkspacePluginStatusVO:
+    type: object
+    properties:
+      enabled:
+        type: boolean
 
            
   CodeServerDeploymentDetailsVO:
@@ -1571,10 +1812,45 @@ definitions:
         type: string
       scope:
         type: string
+      ssoType:
+        type: string
+        enum: [SSO_INT, SSO_PROD]
+      secureWithDnaRequired:
+        type: boolean
+      aliceRoleEnabled:
+        type: boolean
+      entitlementPrefixEnabled:
+        type: boolean
+      selectedAliceRoles:
+        type: array
+        items:
+          type: string
       deploymentAuditLogs:
         type: array
         items:
           $ref: "#/definitions/DeploymentAuditVO"
+
+  CodeServerBuildDetailsVO:
+    type: object
+    properties:
+      lastBuildOn:
+        type: string
+        format: date
+        description: "Date of last build"   
+      lastBuildBy:
+        $ref: "#/definitions/UserInfoVO" 
+      lastBuildBranch:
+        type: string
+        description: "Branch used for last build"
+      lastBuildStatus:
+        type: string
+        description: "Status of last build"
+      gitjobRunID:
+        type: string
+        description: "git job run Id of project deployed"
+      version:
+        type: string
+        description: "version of the last build"
          
   CodeServerRecipeDetailsVO:
     type: object
@@ -1824,6 +2100,10 @@ definitions:
         type: boolean
         description: "is the user has Admin rights"
         default: false
+      isApprover:
+        type: boolean
+        description: "does the user have approver rights"
+        default: false
       required:
         -id
         -gitUserName
@@ -1974,6 +2254,9 @@ definitions:
       piiData:
         type: boolean
         description: "If codespace contains personally identifiable information"
+      enableDeployApproval:
+        type: boolean
+        description: "If deployment approval workflow is enabled for the codespace"
       required:
         -description
         - division
@@ -2007,6 +2290,9 @@ definitions:
       commitId:
         type: string
         description: "commit id one which codespace is deployed"
+      approvedBy:
+        type: string
+        description: "User who approved the deployment"
 
   CodespaceSecurityConfigDetailVO:
     type: object  
@@ -2032,6 +2318,14 @@ definitions:
             $ref: "#/definitions/CodespaceSecurityConfigDetailVO"
       published:
             $ref: "#/definitions/CodespaceSecurityConfigDetailVO"
+
+  BuildWorkSpaceResponse:
+    type: object
+    properties:
+      appVersion:
+        type: string
+      genricMessage:        
+          $ref: "#/definitions/GenericMessage"  
   CodeServerUserGroupVO:
     type: object
     properties:

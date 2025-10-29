@@ -15,6 +15,8 @@ import EntitlementSubList from './EntitlementSubList';
 import { SESSION_STORAGE_KEYS } from '../../../Utility/constants';
 import EditOrCreateEntitlement from './EditOrCreateEntitlement';
 import SelectBox from 'dna-container/SelectBox';
+import { CodeSpaceApiClient } from '../../../apis/codespace.api';
+import { Envs } from '../../../Utility/envs';
 
 const classNames = cn.bind(Styles);
 
@@ -48,7 +50,8 @@ export default class Entitlement extends React.Component {
       showDiscardModal: false,
 
       showJson: false,
-      publishedData: '',
+      pluginEnabled: false,
+      // publishedData: '',
       jsonData: JSON.stringify(
         {
           appId: (props.config && props.config.appId) || '',
@@ -73,8 +76,8 @@ export default class Entitlement extends React.Component {
     this.handleEntitementEdit = this.handleEntitementEdit.bind(this);
     this.handleToggle = this.handleToggle.bind(this);
     this.handleJsonChange = this.handleJsonChange.bind(this);
-    this.onSave = this.onSave.bind(this);
-    this.onDiscard = this.onDiscard.bind(this);
+    // this.onSave = this.onSave.bind(this);
+    // this.onDiscard = this.onDiscard.bind(this);
     this.confirmDiscard = this.confirmDiscard.bind(this);
   }
 
@@ -83,7 +86,29 @@ export default class Entitlement extends React.Component {
     Tooltip.defaultSetup();
   }
 
-  componentDidUpdate(prevProps, prevState) {
+  getPluginStatus = (id, env) => {
+    if(this.props.isPublished && (this.props.secureWithDna || this.props.secureWithIAM)){
+      ProgressIndicator.show();
+      CodeSpaceApiClient.getPluginStatus(id, env, 'apiauthoriser')
+        .then((res) => {
+          this.setState({pluginEnabled: res?.data?.enabled||false});
+          ProgressIndicator.hide();
+        })
+        .catch((err) => {
+          ProgressIndicator.hide();
+          Notification.show(
+            'Error in fetching api authoriser plugin status. Please try again later.\n' + err?.response?.data?.errors[0]?.message,
+            'alert',
+          );
+          // Notification.show('Error in fetching plugin status. Please try again later.', 'alert');
+        });
+    }
+  }
+
+  componentDidUpdate(prevProps) {
+    if(this.props.isPublished !== prevProps.isPublished || this.props.config !== prevProps.config){
+      this.getPluginStatus(this.props.id,this.props.env);
+    }
     if (this.props.config !== prevProps.config) {
       if (this.props.config?.entitlements?.length > 0) {
         const records = this.props.config.entitlements;
@@ -101,17 +126,10 @@ export default class Entitlement extends React.Component {
           appId: this.props.config.appId,
         });
       }
-    }
-
-    if (
-      !this.state.isJsonTouched &&
-      (prevState.appId !== this.state.appId ||
-        prevState.entitelmentListResponse !== this.state.entitelmentListResponse)
-    ) {
-      const jsonData = JSON.stringify(
+      const jsonData =  JSON.stringify(
         {
-          appId: this.state.appId,
-          entitlements: this.state.entitelmentListResponse,
+          appId: (this.props.config && this.props.config.appId) || '',
+          entitlements: (this.props.config && this.props.config.entitlements) || [],
         },
         null,
         2
@@ -128,9 +146,6 @@ export default class Entitlement extends React.Component {
 
 
   handleToggle() {
-    const envKey =
-      this.props.env === 'int' ? 'publishedData_staging' : 'publishedData_production';
-    const storedPublishedData = localStorage.getItem(envKey);
 
     const showJsonNext = !this.state.showJson;
 
@@ -142,8 +157,8 @@ export default class Entitlement extends React.Component {
           appId: parsedData.appId || '',
           entitelmentList: parsedData.entitlements || [],
           entitelmentListResponse: parsedData.entitlements || [],
-          jsonError: '',
-          appIdErrorMessage: parsedData.appId?.trim()?.length ? '' : '*Missing entry',
+          jsonError: this.state.jsonError,
+          appIdErrorMessage: (parsedData.appId?.trim()?.length || (!this.props.secureWithDna && !this.props.secureWithDna))  ? '' : '*Missing entry',
           isJsonTouched: false,
         });
       } catch (e) {
@@ -155,14 +170,43 @@ export default class Entitlement extends React.Component {
     } else {
       this.setState({
         showJson: showJsonNext,
-        jsonData: this.props.readOnlyMode
-          ? storedPublishedData || '// No Published Data Available'
-          : this.state.jsonData,
-        publishedData: storedPublishedData || '',
+        jsonData: this.state.jsonData,
         isJsonTouched: false,
         originalJsonData: this.state.jsonData,
       });
     }
+  }
+
+  handlePluginChange = () => {
+    ProgressIndicator.show();
+    CodeSpaceApiClient.updatePluginStatus(
+      this.props.id,
+      this.props.env,
+      'apiauthoriser',
+      !this.state.pluginEnabled,
+    )
+      .then((res) => {
+        if (res?.data?.success === 'SUCCESS') {
+          Notification.show(`Api authoriser plugin updated successfully`);
+          this.setState({pluginEnabled: !this.state.pluginEnabled});
+        } else {
+          Notification.show(
+            'Error in updating api authoriser plugin. Please try again later.\n' + res?.data?.errors[0]?.message,
+            'alert',
+          );
+          // Notification.show('Error in updating Api authoriser plugin', 'alert');
+        }
+        ProgressIndicator.hide();
+      })
+      .catch((err) => {
+        ProgressIndicator.hide();
+        Notification.show(
+          'Error in updating Api authoriser plugin. Please try again later.\n' +
+            err?.response?.data?.errors[0]?.message,
+          'alert',
+        );
+        // Notification.show('Error in updating Api authoriser Plugin. Please try again later.', 'alert');
+      });
   }
 
 
@@ -179,6 +223,10 @@ export default class Entitlement extends React.Component {
       }
 
       let errors = [];
+      if (this.props.secureWithDna && parsedData.appId!== Envs.DNA_APP_ID) {
+        errors.push(`Since you have secured with our credentials use ${Envs.DNA_APP_ID} as your appId.`);
+      }
+      
       if (parsedData.entitlements) {
         parsedData.entitlements.forEach((entitlement, index) => {
           const { apiPattern, httpMethod } = entitlement;
@@ -194,18 +242,18 @@ export default class Entitlement extends React.Component {
             errors.push(`Error in entitlement ${index + 1}: Invalid HTTP Method`);
           }
         });
-
-        if (errors.length === 0) {
-          this.setState({
-            entitelmentList: [...parsedData.entitlements],
-            entitelmentListResponse: [...parsedData.entitlements],
-            jsonError: [],
-            appId: parsedData.appId
-          });
-        } else {
-          this.setState({ jsonError: errors });
-        }
       }
+
+      // if (errors.length === 0) {
+        this.setState({
+          entitelmentList: [...parsedData.entitlements],
+          entitelmentListResponse: [...parsedData.entitlements],
+          jsonError: [],
+          appId: parsedData.appId
+        });
+      // } else {
+        errors.length !== 0 && this.setState({ jsonError: errors });
+      // }
     } catch (error) {
       console.error('Error during JSON change:', error);
       this.setState({ jsonError: [error.message] });
@@ -213,41 +261,39 @@ export default class Entitlement extends React.Component {
   }
 
 
-  onSave() {
-    if (this.state.jsonError?.length === 0) {
-      try {
-        const parsedData = JSON.parse(this.state.jsonData);
-        const newAppId = parsedData.appId;
-        const newEntitlements = parsedData.entitlements;
+  // onSave() {
+  //   if (this.state.jsonError?.length === 0) {
+  //     try {
+  //       const parsedData = JSON.parse(this.state.jsonData);
+  //       const newAppId = parsedData.appId;
+  //       const newEntitlements = parsedData.entitlements;
 
-        this.setState({
-          appId: newAppId,
-          entitelmentListResponse: newEntitlements,
-          entitelmentList: newEntitlements,
-          isJsonTouched: false,
-          toggleError: '',
-        });
+  //       this.setState({
+  //         appId: newAppId,
+  //         entitelmentListResponse: newEntitlements,
+  //         entitelmentList: newEntitlements,
+  //         isJsonTouched: false,
+  //         toggleError: '',
+  //       });
 
-        Notification.show('JSON changes saved successfully');
+  //       if (this.props.onSaveDraft) {
+  //         this.props.onSaveDraft(this.props.env, {
+  //           ...this.state.config,
+  //           entitlements: newEntitlements,
+  //           appId: newAppId,
+  //         });
+  //       }
+  //     } catch (e) {
+  //       Notification.show('Invalid JSON. Please correct the errors.', 'alert');
+  //     }
+  //   } else {
+  //     Notification.show('Please fix the JSON errors before saving.', 'alert');
+  //   }
+  // }
 
-        if (this.props.onSaveDraft) {
-          this.props.onSaveDraft(this.props.env, {
-            ...this.state.config,
-            entitlements: newEntitlements,
-            appId: newAppId,
-          });
-        }
-      } catch (e) {
-        Notification.show('Invalid JSON. Please correct the errors.', 'alert');
-      }
-    } else {
-      Notification.show('Please fix the JSON errors before saving.', 'alert');
-    }
-  }
-
-  onDiscard() {
-    this.setState({ showDiscardModal: true });
-  }
+  // onDiscard() {
+  //   this.setState({ showDiscardModal: true });
+  // }
 
   confirmDiscard() {
     try {
@@ -451,10 +497,16 @@ export default class Entitlement extends React.Component {
 
   onEntitlementSubmit = () => {
     let formValid = true;
-    if (this.state.appId.trim().length === 0) {
+    if ((this.props.secureWithDna || this.props.secureWithIAM) && this.state.appId.trim().length === 0) {
       formValid = false;
       this.setState({ appIdErrorMessage: '*Missing entry' });
       this.showErrorNotification('Application Id is Missing');
+    } else if (this.props.secureWithDna && this.state.appId !== Envs.DNA_APP_ID){
+      formValid = false;
+      this.showErrorNotification('Application Id Mismatch');
+    } else if(this.state.jsonError.length) {
+      formValid = false;
+      this.showErrorNotification('Error in Entitlement format');
     } else {
       this.setState({ appIdErrorMessage: '' });
     }
@@ -495,11 +547,6 @@ export default class Entitlement extends React.Component {
             this.props.env === 'int' ? 'stagingEntitlement' : 'productionEntitlement',
             this.state.config
           );
-          Notification.show(
-            this.props.env === 'int'
-              ? 'Staging Saved Successfully'
-              : 'Production Saved Successfully'
-          );
         }
       );
     }
@@ -511,23 +558,41 @@ export default class Entitlement extends React.Component {
     if (!this.state.appId) {
       formValid = false;
       this.showErrorNotification('Application Id is Missing');
+    } else if (this.props.secureWithDna && this.state.appId !== Envs.DNA_APP_ID){
+      formValid = false;
+      this.showErrorNotification('Application Id Mismatch');
+    } else if(this.state.jsonError.length) {
+      formValid = false;
+      this.showErrorNotification('Error in Entitlement format');
     }
 
     if (formValid) {
 
+      let newAppId = this.state.appId;
+      let newEntitlements = this.state.entitelmentListResponse;
+
+
+      if (this.state.showJson) {
+        try {
+          const parsedData = JSON.parse(this.state.jsonData);
+          newAppId = parsedData.appId || newAppId;
+          newEntitlements = parsedData.entitlements || newEntitlements;
+
+          this.setState({
+            appId: newAppId,
+            entitelmentListResponse: newEntitlements,
+            entitelmentList: newEntitlements,
+            isJsonTouched: false,
+          });
+        } catch (e) {
+          this.showErrorNotification('Invalid JSON. Please correct the errors before saving.');
+          return;
+        }
+      }
       const newPublishData = {
         appId: this.state.appId,
         entitlements: this.state.entitelmentListResponse,
       };
-
-
-      const envKey = this.props.env === 'int'
-        ? 'publishedData_staging'
-        : 'publishedData_production';
-
-      const publishedJson = JSON.stringify(newPublishData, null, 2);
-      localStorage.setItem(envKey, publishedJson);
-
 
       this.setState(
         {
@@ -536,18 +601,11 @@ export default class Entitlement extends React.Component {
             entitlements: newPublishData.entitlements,
             appId: this.state.appId,
           },
-          publishedData: publishedJson,
-          jsonData: publishedJson,
           isJsonTouched: false,
         },
         () => {
 
           this.props.onPublish(this.state.config, this.props.env);
-          Notification.show(
-            this.props.env === 'int'
-              ? 'Staging Published Successfully'
-              : 'Production Published Successfully'
-          );
         }
       );
     }
@@ -555,18 +613,35 @@ export default class Entitlement extends React.Component {
   render() {
     return (
       <React.Fragment>
-
-        <div className={classNames(Styles.toggleSwitch)}>
-          <label className={classNames('switch', this.state.showJson ? 'on' : '')}>
-            <span className="label" style={{ marginRight: '5px' }}>Show JSON</span>
-            <span className="wrapper">
-              <input
-                type="checkbox"
-                onChange={this.handleToggle}
-                checked={this.state.showJson}
-              />
-            </span>
-          </label>
+        <div className={classNames(Styles.parentEntitlement)}>
+          <div>
+            <label className={classNames('switch', this.state.showJson ? 'on' : '')}>
+              <span className="label" style={{ marginRight: '5px' }}>Show JSON</span>
+              <span className="wrapper">
+                <input
+                  type="checkbox"
+                  onChange={this.handleToggle}
+                  checked={this.state.showJson}
+                />
+              </span>
+            </label>
+          </div>
+          {this.props.isPublished && (this.props.secureWithIAM || this.props.secureWithDna) ? 
+            <div>
+              <label className={classNames('switch', this.state.pluginEnabled ? 'on' : '')}>
+                <span className="label" style={{ marginRight: '5px' }}>Authorization plugin enabled</span>
+                <span className="wrapper">
+                  <input
+                    type="checkbox"
+                    onChange={this.handlePluginChange}
+                    checked={this.state.pluginEnabled}
+                    tooltip-data={this.state.pluginEnabled ? "Toggle to disable plugin" : "Toggle to enable plugin"}
+                  />
+                </span>
+              </label>
+            </div> :
+            <div></div>
+          }
         </div>
 
 
@@ -582,7 +657,7 @@ export default class Entitlement extends React.Component {
                       : 'Entitlements for your Production application authorization'}
                   </h3>
 
-                  {!this.props.readOnlyMode && this?.state?.appId?.length ? (
+                  {!this.props.readOnlyMode ? (
                     <div className={classNames(Styles.createEntitlementButton)}>
                       <button
                         className={classNames('btn add-dataiku-container btn-primary', Styles.createButton)}
@@ -619,7 +694,7 @@ export default class Entitlement extends React.Component {
                       <input
                         type="text"
                         className="input-field"
-                        required={!this.props.readOnlyMode}
+                        required={!this.props.readOnlyMode && (this.props.secureWithIAM || this.props.secureWithDna)}
                         id="AppId"
                         maxLength={50}
                         placeholder="Application id registered in Alice"
@@ -628,12 +703,12 @@ export default class Entitlement extends React.Component {
                           const val = e.target.value.trim();
                           this.setState({
                             appId: e.target.value,
-                            appIdErrorMessage: val.length === 0 ? '*Missing entry' : '',
+                            appIdErrorMessage: (val.length === 0 && (this.props.secureWithDna || this.props.secureWithIAM)) ? '*Missing entry' : '',
                           });
                         }}
 
                         value={this.state.appId}
-                        readOnly={this.props.readOnlyMode}
+                        readOnly={this.props.readOnlyMode || (!this.props.secureWithIAM && !this.props.secureWithDna) || this.props.secureWithDna}
                       />
                       <span
                         className={classNames(
@@ -647,13 +722,10 @@ export default class Entitlement extends React.Component {
                   </div>
                 </div>
 
-                {this.state.appId &&
-                  this.props.config?.appId &&
-                  this.state.appId !== this.props.config.appId && (
+                {!this.props.secureWithIAM && !this.props.secureWithDna && (
                     <p className={classNames(Styles.alertMessage)}>
-                      <i className="icon mbc-icon alert circle"></i> Please redeploy with the new
-                      client id and client secret for the application id changes to be reflected.
-                      Note that the old credentials will be used until then.
+                      <i className="icon mbc-icon alert circle"></i> Please secure your application either with your own IAM credentials 
+                      or Dna credentials using the deployed application config to publish your authorization config.
                     </p>
                   )}
 
@@ -714,11 +786,7 @@ export default class Entitlement extends React.Component {
                 theme="solarized_dark"
                 readOnly={this.props.readOnlyMode}
                 onChange={this.props.readOnlyMode ? undefined : this.handleJsonChange}
-                value={
-                  this.props.readOnlyMode
-                    ? this.state.publishedData || '// No Published Data Available'
-                    : this.state.jsonData
-                }
+                value={this.state.jsonData}
                 fontSize={15}
                 name="json_editor"
                 editorProps={{ $blockScrolling: true }}
@@ -832,8 +900,9 @@ export default class Entitlement extends React.Component {
                 {this.props.env === 'int' ? 'Save Staging' : 'Save Production'}
               </button>
               <button
-                className={'btn btn-tertiary ' + classNames(Styles.publishBtn)}
+                className={(!this.props.secureWithDna && !this.props.secureWithIAM) ? 'btn btn-primary ' : 'btn btn-tertiary ' + classNames(Styles.publishBtn)}
                 type="button"
+                disabled = {!this.props.secureWithDna && !this.props.secureWithIAM}
                 onClick={this.onEntitlementPublish}
               >
                 {this.props.env === 'int' ? 'Publish Staging' : 'Publish Production'}
