@@ -188,3 +188,26 @@ table_manager:
   retention_period: 2d
 tracing:
   enabled: true
+
+gateway:
+  ingress:
+    enabled: true
+    ingressClassName: dev-ingress-intranet
+    annotations: 
+      traefik.frontend.rule.type: PathPrefix
+      kubernetes.io/ingress.class: dev-ingress-intranet
+      traefik.ingress.kubernetes.io/router.tls: "true"
+      traefik.ingress.kubernetes.io/router.entrypoints: websecure
+      cert-manager.io/cluster-issuer: mercedes-benz-acme
+      traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd 
+    hosts:
+      - host: logs.dev.dna.app.corpintra.net
+        paths:
+          - path: /
+            backend:
+              serviceName: loki-gateway
+              servicePort: 80
+    tls:
+      - hosts:
+          - logs.dev.dna.app.corpintra.net
+        secretName: loki-gateway-tls

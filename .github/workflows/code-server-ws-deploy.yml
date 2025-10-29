@@ -254,6 +254,25 @@ jobs:
           opensearch_host: "${{ vars.OPENSEARCH_HOST }}"
           opensearch_index: "ci-cd"  
 
+  upload-build_deploy-logs-to-loki:
+    name: "Upload Logs to Loki" 
+    runs-on: [os-medium-amd64-linux]
+    environment: ${{ github.event.inputs.environment }}
+    needs: build_deploy
+    if: ${{ !cancelled() && (success() || failure())}}
+    steps:
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.x'
+      - name: Send Logs to Loki
+        uses: sathishkumar-p/gh-logs-to-loki@1.0
+        with:
+          loki_endpoint: "https://api.logs.dev.dna.app.corpintra.net/"
+          labels: "job=github-actions,run_id=${{ github.run_id }},app=${{ github.event.inputs.projectName }},action={{ github.event.inputs.action }}"
+          github_token: "${{ secrets.PID_PAT }}" 
+          github_api_url: "https://git.i.mercedes-benz.com/api/v3"
+
   statusUpdateBuildDeploy:
     name: Update Status build_deploy
     needs: build_deploy
