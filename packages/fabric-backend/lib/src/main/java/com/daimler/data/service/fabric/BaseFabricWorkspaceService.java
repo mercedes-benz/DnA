@@ -1068,23 +1068,22 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 					boolean isMemberGroupAvailable = false;
 					boolean isViewerGroupAvailable = false;
 					boolean isCustomGroupAvailable = false;
-					boolean iscustomGroupCollectionAvailable = false;
 					//checks if groups are available
 					if(groups!=null && !groups.isEmpty()) {
 						for(GroupDetailsVO tempGrp : groups) {
-							if(tempGrp.getGroupName().contains(ConstantsUtility.PERMISSION_ADMIN) && tempGrp.getGroupName().contains(dnaGroupPrefix)) {
+							if(tempGrp.getGroupName().contains(ConstantsUtility.PERMISSION_ADMIN) && tempGrp.getGroupName().contains(dnaGroupPrefix) && tempGrp.getGroupName().contains(workspaceId)) {
 								adminGroupVO = tempGrp;
 								isAdminGroupAvailable = true;
 							}
-							if(tempGrp.getGroupName().contains(ConstantsUtility.PERMISSION_CONTRIBUTOR) && tempGrp.getGroupName().contains(dnaGroupPrefix)) {
+							if(tempGrp.getGroupName().contains(ConstantsUtility.PERMISSION_CONTRIBUTOR) && tempGrp.getGroupName().contains(dnaGroupPrefix) && tempGrp.getGroupName().contains(workspaceId)) {
 								contributorGroupVO = tempGrp;
 								isContributorGroupAvailable = true;
 							}
-							if(tempGrp.getGroupName().contains(ConstantsUtility.PERMISSION_MEMBER) && tempGrp.getGroupName().contains(dnaGroupPrefix)) {
+							if(tempGrp.getGroupName().contains(ConstantsUtility.PERMISSION_MEMBER) && tempGrp.getGroupName().contains(dnaGroupPrefix) && tempGrp.getGroupName().contains(workspaceId)) {
 								memberGroupVO = tempGrp;
 								isMemberGroupAvailable = true;
 							}
-							if(tempGrp.getGroupName().contains(ConstantsUtility.PERMISSION_VIEWER) && tempGrp.getGroupName().contains(dnaGroupPrefix)) {
+							if(tempGrp.getGroupName().contains(ConstantsUtility.PERMISSION_VIEWER) && tempGrp.getGroupName().contains(dnaGroupPrefix) && tempGrp.getGroupName().contains(workspaceId)) {
 								viewerGroupVO = tempGrp;
 								isViewerGroupAvailable = true;
 							}
@@ -1097,13 +1096,16 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 							if(customGroupNameCollection != null && !customGroupNameCollection.isEmpty()){
 								for(String customgroupCollectionElement:customGroupNameCollection){
 									if (customgroupCollectionElement != null && !customgroupCollectionElement.trim().isEmpty()) {
-										if(customgroupCollectionElement.equalsIgnoreCase(tempGrp.getGroupName())){
-											customGroupVOList.add(tempGrp);
-											iscustomGroupCollectionAvailable = true;
+										if (tempGrp.getGroupName().equalsIgnoreCase(customgroupCollectionElement)) {
+											if(!customGroupVOList.contains(tempGrp)) {
+												customGroupVOList.add(tempGrp);	
+												log.info("Added matched group to customGroupVOList: {}", tempGrp.getGroupName());
+											} else {
+												log.info("Group {} already exists in customGroupVOList, not adding.", tempGrp.getGroupName());
+											}	
 										}
 									}
 								}
-
 							}
 						}
 					}
@@ -1135,13 +1137,24 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 						}
 					}
 					if(customGroupNameCollection!=null && !customGroupNameCollection.isEmpty()){
-						if(!iscustomGroupCollectionAvailable){
 							for (String groupName : customGroupNameCollection) {
-								customGroup.setGroupName(groupName);
-								customGroup.setState(ConstantsUtility.PENDING_STATE);
-								customGroupVOList.add(customGroup);
+								if(groupName.equalsIgnoreCase(customGroupVOList.stream().map(GroupDetailsVO::getGroupName).findAny().orElse(null))){
+									log.info("Group name {} is already present in existing groups, skipping creation.", groupName);
+									continue; // Skip to the next iteration if group already exists
+								}
+								GroupDetailsVO newGroup = new GroupDetailsVO();
+								newGroup.setGroupName(groupName);
+								newGroup.setState(ConstantsUtility.PENDING_STATE);
+								if(!customGroupVOList.contains(newGroup)) {
+									customGroupVOList.add(newGroup); 
+									log.info("Added new custom group to the list: {}", newGroup);
+								} else {
+									log.info("Custom group {} already exists in the list, not adding.", groupName);
+								}
+								
 							}
-						}
+							log.info("Total {} Number of Custom groups to be processed from collection: {}", customGroupVOList.size(), customGroupVOList);
+						
 					}
 					//check if groups are assigned
 					FabricGroupsCollectionDto usersGroupsCollection =	fabricWorkspaceClient.getGroupUsersInfo(workspaceId);
@@ -1176,17 +1189,24 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 										customGroupVO.setGroupId(userGroupDetail.getIdentifier());
 									}
 								}
-								if(customGroupNameCollection!=null && !customGroupNameCollection.isEmpty()){
-									for(GroupDetailsVO customGroupList: customGroupVOList){
-										if(userGroupDetail.getDisplayName().equalsIgnoreCase(customGroupList.getGroupName())){
-											iscustomGroupCollectionAvailable = true;
-											customGroup.setState(ConstantsUtility.ASSIGNED_STATE);
-											customGroup.setGroupId(userGroupDetail.getIdentifier());
-										}
-									}
-								}
 							}
 						}
+						if(customGroupNameCollection!=null && !customGroupNameCollection.isEmpty()){
+								for (GroupDetailsVO customGroupEle : customGroupVOList) {
+										AddGroupDto matchedGroup = usersGroupsCollection.getValue().stream()
+												.filter(g -> g.getDisplayName().equalsIgnoreCase(customGroupEle.getGroupName()))
+												.findFirst()
+												.orElse(null);
+
+										if (matchedGroup != null) {
+											customGroupEle.setState(ConstantsUtility.ASSIGNED_STATE);
+											customGroupEle.setGroupId(matchedGroup.getIdentifier());
+											log.info("Custom group {} is already assigned", customGroupEle.getGroupName());
+										} else {
+											customGroupEle.setState(ConstantsUtility.PENDING_STATE);
+										}
+									}
+							}
 					}
 					if(!isAdminGroupAssigned) {
 						adminGroupVO = this.callGroupAssign(adminGroupVO, workspaceId, ConstantsUtility.PERMISSION_ADMIN);
@@ -1206,13 +1226,14 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 						}
 					}
 					if(customGroupNameCollection!= null && !customGroupNameCollection.isEmpty()){
-						if(!iscustomGroupCollectionAvailable){
 							for(GroupDetailsVO customGroupList: customGroupVOList){
-								customGroup = this.callGroupAssign(customGroupList, workspaceId, ConstantsUtility.PERMISSION_ADMIN);
+								if(customGroupList.getState()!=null){
+									if(ConstantsUtility.PENDING_STATE.equalsIgnoreCase(customGroupList.getState())){
+										customGroup = this.callGroupAssign(customGroupList, workspaceId, ConstantsUtility.PERMISSION_ADMIN);
+									}
 							}
-
-						}
-					}
+						}	
+				}
 
 					updatedMicrosoftFabricGroups.add(adminGroupVO);
 					updatedMicrosoftFabricGroups.add(contributorGroupVO);
@@ -1227,11 +1248,14 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 						 for (GroupDetailsVO customGroupList  : customGroupVOList) {
         					if (customGroupList != null && customGroupList.getGroupName() != null && 
             					!customGroupList.getGroupName().trim().isEmpty()) {
-            						updatedMicrosoftFabricGroups.add(customGroupList);
+									if(updatedMicrosoftFabricGroups.stream().noneMatch(g -> g.getGroupName().equalsIgnoreCase(customGroupList.getGroupName()))) {
+										log.info("Adding custom group {} to updated Microsoft Fabric Groups", customGroupList.getGroupName());
+            							updatedMicrosoftFabricGroups.add(customGroupList);
+								}
         					}
     					}
-					}
-					
+					}				
+					 
 					currentStatus.setMicrosoftGroups(updatedMicrosoftFabricGroups);
 					
 					if(adminEntitlement.getState().equalsIgnoreCase(ConstantsUtility.CREATED_STATE) && 
@@ -1270,6 +1294,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 				}
 				return currentStatus;
 	}
+
 	 
 	@Override 
 	public List<GroupDetailsVO> autoProcessGroupsUsers(List<GroupDetailsVO> existingGroupsDetails, String workspaceName, String creatorId, String workspaceId, String customGroupName, List<String> customGroupNameCollection) {
@@ -1286,19 +1311,19 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		GroupDetailsVO customGroupVO = new GroupDetailsVO();
 		boolean isCustomGroupAvailable = false;
 		List<GroupDetailsVO> customGroupVOList = new ArrayList<>();
-		boolean iscustomGroupCollectionAvailable = false;
+		List<GroupDetailsVO> missingCustomGroupVOList = new ArrayList<>();
 		GroupDetailsVO customGroup = new GroupDetailsVO();
 		for(GroupDetailsVO tempGrp : existingGroupsDetails) {
-			if(tempGrp.getGroupName().contains(ConstantsUtility.PERMISSION_ADMIN) && tempGrp.getGroupName().contains(dnaGroupPrefix)) {
+			if(tempGrp.getGroupName().contains(ConstantsUtility.PERMISSION_ADMIN) && tempGrp.getGroupName().contains(dnaGroupPrefix) && tempGrp.getGroupName().contains(workspaceId)) {
 				adminGroupVO = tempGrp;
 			}
-			if(tempGrp.getGroupName().contains(ConstantsUtility.PERMISSION_CONTRIBUTOR) && tempGrp.getGroupName().contains(dnaGroupPrefix)) {
+			if(tempGrp.getGroupName().contains(ConstantsUtility.PERMISSION_CONTRIBUTOR) && tempGrp.getGroupName().contains(dnaGroupPrefix) && tempGrp.getGroupName().contains(workspaceId)) {
 				contributorGroupVO = tempGrp;
 			}
-			if(tempGrp.getGroupName().contains(ConstantsUtility.PERMISSION_MEMBER) && tempGrp.getGroupName().contains(dnaGroupPrefix)) {
+			if(tempGrp.getGroupName().contains(ConstantsUtility.PERMISSION_MEMBER) && tempGrp.getGroupName().contains(dnaGroupPrefix) && tempGrp.getGroupName().contains(workspaceId)) {
 				memberGroupVO = tempGrp;
 			}
-			if(tempGrp.getGroupName().contains(ConstantsUtility.PERMISSION_VIEWER) && tempGrp.getGroupName().contains(dnaGroupPrefix)) {
+			if(tempGrp.getGroupName().contains(ConstantsUtility.PERMISSION_VIEWER) && tempGrp.getGroupName().contains(dnaGroupPrefix) && tempGrp.getGroupName().contains(workspaceId)) {
 				viewerGroupVO = tempGrp;
 			}
 			if(customGroupName !=null && !"".equalsIgnoreCase(customGroupName)){
@@ -1310,12 +1335,14 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 				for (String customGroupCollectionElement : customGroupNameCollection) {
 					if (customGroupCollectionElement != null && !customGroupCollectionElement.trim().isEmpty()) {
 						if (tempGrp.getGroupName().equalsIgnoreCase(customGroupCollectionElement)) {
+							if(customGroupVOList.stream().noneMatch(g -> g.getGroupName().equalsIgnoreCase(tempGrp.getGroupName()))) {
 							   customGroupVOList.add(tempGrp);
+							}
 						}
 					}
-				}		
+				}
 			}
-			
+
 		}
 		//check for all groups and users for cleanup
 		FabricGroupsCollectionDto	usersGroupsCollection =	fabricWorkspaceClient.getGroupUsersInfo(workspaceId);
@@ -1359,16 +1386,6 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 								customGroupVO.setGroupId(userGroupDetail.getIdentifier());
 							}
 						}
-                        else if(customGroupVOList !=null && !customGroupVOList.isEmpty() &&!customGroupNameCollection.isEmpty()){
-                                for(GroupDetailsVO customgroupList:customGroupVOList){
-                                	if(userGroupDetail.getDisplayName().equalsIgnoreCase(customgroupList.getGroupName())){
-                                		iscustomGroupCollectionAvailable = true;
-                                		customgroupList.setState(ConstantsUtility.ASSIGNED_STATE);
-                                		customgroupList.setGroupId(userGroupDetail.getIdentifier());
-                                	}
-                            }						
-						
-						}
 						else {
 							//fabricWorkspaceClient.removeUserGroup(workspaceId, userGroupDetail.getDisplayName());
 							log.info("Custom group {} assigned to workspace {} , ignoring.", userGroupDetail.getDisplayName(), workspaceId);
@@ -1376,7 +1393,31 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 					}
 				}
 			}
-		}
+			//process custom group collection
+			if(customGroupVOList !=null && !customGroupVOList.isEmpty() &&!customGroupNameCollection.isEmpty()){	
+				for(GroupDetailsVO customgroupList:customGroupVOList){
+					boolean isMatched = false;
+					for(AddGroupDto userGroupDetail : usersGroupsCollection.getValue()) {
+						if(userGroupDetail!=null && !ConstantsUtility.GROUPPRINCIPAL_APP_TYPE.equalsIgnoreCase(userGroupDetail.getPrincipalType()) && 
+							ConstantsUtility.GROUPPRINCIPAL_GROUP_TYPE.equalsIgnoreCase(userGroupDetail.getPrincipalType())) {
+								if(userGroupDetail.getDisplayName().equalsIgnoreCase( customgroupList.getGroupName())){
+									customgroupList.setState(ConstantsUtility.ASSIGNED_STATE);
+									customgroupList.setGroupId(userGroupDetail.getIdentifier());
+									isMatched = true;
+									break; // Exit the inner loop if a match is found
+								}
+							}
+						}
+						if(!isMatched){
+							log.info("userGroupDetail did not match with custom group from collection {} adding it to MissingVo to Autoprocess", customgroupList.getGroupName());
+							if (!missingCustomGroupVOList.contains(customgroupList)) {
+								missingCustomGroupVOList.add(customgroupList);
+							}
+						}
+				}
+				log.info("Total missingGroupVO to be auto Processed are", missingCustomGroupVOList);	
+			}
+		}										
 		if(!isDefaultGroupAvailable) {
 			AddGroupDto addGroupDto = new AddGroupDto();
 			addGroupDto.setDisplayName(onboardGroupDisplayName);
@@ -1431,13 +1472,12 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		}
 		if(customGroupNameCollection !=null && !customGroupNameCollection.isEmpty()){
 			for(GroupDetailsVO customGroupElement: customGroupVOList){
-                if(customGroupElement.getState() != null && 
-                   ConstantsUtility.ASSIGNED_STATE.equalsIgnoreCase(customGroupElement.getState())){
-					updatedGroups.add(customGroupElement);
-				}else {
-					log.info("Custom group {} is missing for workspace {} after provisioning, trying to reassign", customGroupElement.getGroupName(), workspaceId);
+				if(missingCustomGroupVOList.contains(customGroupElement)){
+					customGroupElement.setState(ConstantsUtility.PENDING_STATE);
 					GroupDetailsVO updatedGroup = this.callGroupAssign(customGroupElement, workspaceId, ConstantsUtility.PERMISSION_ADMIN);
 					updatedGroups.add(updatedGroup);
+				} else{
+					updatedGroups.add(customGroupElement);
 				}	
 			}
 		}
