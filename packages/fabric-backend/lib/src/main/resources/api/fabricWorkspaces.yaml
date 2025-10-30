@@ -800,6 +800,8 @@ definitions:
         type: string
       leanIXDetails:
         $ref: "#/definitions/LeanIXDetailsVO"
+      projectId:
+          type: string
       
   FabricWorkspacesCollectionVO:
     description: "Collection of fabric workspaces."
