@@ -402,24 +402,7 @@ const BuildModal = (props) => {
                             <td>{item?.buildOn ? regionalDateAndTimeConversionSolution(item?.buildOn) : 'N/A'}</td>
                             <td>{item?.commitId || 'N/A'}</td>
                             <td>
-                              {item?.version ? (
-                                <>
-                                  {item.version}
-                                  {item?.imageDeleted ? ' (N/A)' : ''}
-                                  {item.version === latestBuildVersion && (
-                                    <span className={Styles.deployedIndicator}> DEPLOYED</span>
-                                  )}
-                                </>
-                              ) : (
-                                'N/A'
-                              )}
-                            </td>
-
-                            <td>
-                              <label>{item?.comments || 'N/A'}</label>
-                            </td>
-                            <td>
-                              {(item?.buildStatus === 'BUILD_SUCCESS' && !item?.imageDeleted) ? (
+                              {item?.version && !item?.imageDeleted && (
                                 <div>
                                   <button
                                     className={'btn btn-primary ' + classNames(Styles.actionBtn,Styles.deployButton)}
@@ -454,8 +437,6 @@ const BuildModal = (props) => {
                                     <i className="icon delete"></i>
                                   </button>
                                 </div>
-                              ) : (
-                                ''
                               )}
                             </td>
                           </tr>
