@@ -678,7 +678,9 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 		
 		CreatedByVO requestUser = this.userStore.getVO();
 		String creatorId = existingFabricWorkspace.getCreatedBy().getId();
-		if(!requestUser.getId().equalsIgnoreCase(creatorId)) {
+		UserInfo currentUserInfo = this.userStore.getUserInfo();
+		boolean isFabricAdmin = currentUserInfo.hasFabricAdminAccess();
+		if(!requestUser.getId().equalsIgnoreCase(creatorId) && !isFabricAdmin) {
 				log.warn("Fabric workspace doesnt belong to User, Not authorized to update",id,existingFabricWorkspace.getName());
 				errors.add(new MessageDescription("User is not the owner of the workspace. Not authorized to update."));
 				responseVO.setData(null);
