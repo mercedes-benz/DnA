@@ -5,10 +5,11 @@ import { useHistory } from 'react-router-dom';
 import { regionalDateAndTimeConversionSolution } from '../../utilities/utils';
 import Tooltip from '../../common/modules/uilab/js/src/tooltip';
 import Spinner from '../spinner/Spinner';
+import { USER_ROLE } from '../../utilities/constants';
 
 const FabricWorkspaceCard = ({user, workspace, onSelectWorkspace, onEditWorkspace, onDeleteWorkspace}) => {
   const history = useHistory();
-  
+  const isAdmin = user.roles.find(role => role.id === USER_ROLE.FABRICADMIN);
   useEffect(() => {
     Tooltip.defaultSetup();
   }, [workspace]);
@@ -76,7 +77,7 @@ const FabricWorkspaceCard = ({user, workspace, onSelectWorkspace, onEditWorkspac
               {/* {isRequestedWorkspace && workspace?.status?.state === 'IN_PROGRESS' && <p className={Styles.requestStatus}>Workspace Accesss Requested</p>} */}
             </div>
           </div>
-          {user?.id === workspace?.createdBy?.id &&
+          {(user?.id === workspace?.createdBy?.id || isAdmin) &&
             <div className={Styles.btnGrp}>
               <button
                 className={'btn btn-primary'}

@@ -42,3 +42,15 @@ export const DATA_TIER_MAP = {
   'Tier1 [DATA ASSET]': 1,
   'Tier2 [NON DATA ASSET]': 2,
 };
+
+  export const USER_ROLE = { 
+    GUEST : '0',
+    USER : '1',
+    EXTENDED : '2',
+    ADMIN : '3',
+    REPORTADMIN : '4',
+    DIVISIONADMIN : '5',
+    DATACOMPLIANCEADMIN : '6',
+    CODESPACEADMIN : '7',
+    FABRICADMIN : '8',
+  };
