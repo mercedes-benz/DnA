@@ -2024,8 +2024,10 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 	public ADAProjectDetailsCollectionVO searchProjects(String projectName) {
 		ADAProjectDetailsCollectionVO collection = new ADAProjectDetailsCollectionVO();
 		GenericMessage message = new GenericMessage();
+		log.info("Received request to search ADA Projects. projectName='{}'", projectName);
 
 		try {
+			log.info("Initiating ADA project search in repository. Search term='{}'", projectName);
 			List<ADAProjectsNsql> entities = adaProjectsRepo.searchProjectsByName(projectName);
 
 			List<ADAProjectDetailsVO> projects = entities.stream()
@@ -2035,6 +2037,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 			collection.setRecords(projects);
 			collection.setTotalCount(projects.size());
 			message.setSuccess("SUCCESS");
+			log.info("Successfully fetched {} ADA Projects from repository for search term='{}'", projects.size(), projectName);
 
 		} catch (Exception e) {
 			log.error("Error searching ADA Projects by name: {}", projectName, e);

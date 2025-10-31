@@ -1039,17 +1039,20 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
         @ApiResponse(code = 204, message = "No ADA Projects found matching search criteria"),
         @ApiResponse(code = 400, message = "Bad request"),
         @ApiResponse(code = 500, message = "Internal server error") })
-    @RequestMapping(value = "/fabric-workspaces/ada-projects",
+    @RequestMapping(value = "/fabric-workspaces/searchADAProjects",
         produces = { "application/json" }, 
         consumes = { "application/json" },
         method = RequestMethod.GET)
     public ResponseEntity<ADAProjectDetailsCollectionVO> searchADAProjects(
         @ApiParam(value = "Filter by project name (optional)") @Valid @RequestParam(value = "projectName", required = false) String projectName) {
            
+			log.info("Received request to search ADA Projects. projectName='{}'", projectName);
             ADAProjectDetailsCollectionVO collection = service.searchProjects(projectName);
             if (collection.getRecords() == null || collection.getRecords().isEmpty()) {
+				log.info("No ADA Projects found for search term '{}'", projectName);
                 return new ResponseEntity<>(collection, HttpStatus.NO_CONTENT);
             }
+			log.info("Found {} ADA Projects for search term '{}'", collection.getRecords().size(), projectName);
             return new ResponseEntity<>(collection, HttpStatus.OK);
     }
 
