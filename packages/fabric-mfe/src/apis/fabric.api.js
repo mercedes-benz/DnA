@@ -15,7 +15,7 @@ const getFabricWorkspacesForAdmin = (offset, limit, search = '') => {
 };
 
 const searchProjectDetails = (projectName) => {
-  return server.get(`/fabric-workspaces/ada-projects?projectName=${projectName}`, {
+  return server.get(`/fabric-workspaces/searchADAProjects?projectName=${projectName}`, {
     data: {},
   });
 };
