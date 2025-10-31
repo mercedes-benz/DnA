@@ -127,9 +127,7 @@ const transferOwnership = (id, data) => {
 };
 
 const assignAdminRole = (id, userId, data) => {
-  return server.post(`workspaces/${id}/collaborator/${userId}/admin?isAdmin=${data}`, {
-    data: {},
-  });
+  return server.post(`workspaces/${id}/collaborator/${userId}/admin?isAdmin=${data}`);
 };
 
 const assignApproverRole = (id, userId, data) => {

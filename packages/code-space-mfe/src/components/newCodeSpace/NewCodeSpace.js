@@ -377,23 +377,32 @@ const NewCodeSpace = (props) => {
     }
   };
 
-  const onCollaboratorPermission = (e, userId) => {
+  const onCollaboratorPermission = async (e, userId) => {
     const codeSpaceCollaborator = codeSpaceCollaborators.find((item) => {
       return item.id == userId;
     });
+    const previousValue = codeSpaceCollaborator.isAdmin;
+    codeSpaceCollaborator.isAdmin = e.target.checked;
+    setCodeSpaceCollaborators([...codeSpaceCollaborators]);
+    if (onEditingMode) {
+      try {
+        await CodeSpaceApiClient.assignAdminRole(
+          props.onEditingCodeSpace.id,
+          userId,
+          e.target.checked
+        );
+        Notification.show("Admin privilege updated.", "success");
+      } catch (err) {
+        codeSpaceCollaborator.isAdmin = previousValue;
+        setCodeSpaceCollaborators([...codeSpaceCollaborators]);
 
-    if (e.target.checked) {
-      codeSpaceCollaborator.isAdmin = true;
-      if (onEditingMode) {
-        CodeSpaceApiClient.assignAdminRole(props.onEditingCodeSpace.id, userId, true);
-      }
-    } else {
-      codeSpaceCollaborator.isAdmin = false;
-      if (onEditingMode) {
-        CodeSpaceApiClient.assignAdminRole(props.onEditingCodeSpace.id, userId, false);
+        Notification.show(
+          err?.response?.data?.errors?.[0]?.message ||
+          "User must be Git admin of the private repository before granting CodeSpace admin.",
+          "error"
+        );
       }
     }
-    setCodeSpaceCollaborators([...codeSpaceCollaborators]);
   };
 
   const onCollaboratorApproverPermission = (e, userId) => {
