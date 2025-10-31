@@ -56,6 +56,10 @@
         }
     }
   }
+    .searchContainer{
+      display: flex;
+      justify-content: flex-end;
+    }
 
   .createNewArea {
     margin-top: 15px;
@@ -371,3 +375,4 @@
       background: unset;
   }
 }
+

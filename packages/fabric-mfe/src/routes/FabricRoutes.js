@@ -8,6 +8,7 @@ import UnAuthorised from 'dna-container/UnAuthorised';
 
 import FabricWorkspaces from '../pages/fabricWorkspaces/FabricWorkspaces';
 import FabricWorkspace from '../pages/fabricWorkspace/FabricWorkspace';
+import FabricWorkspacesAdministration from '../pages/fabricWorkspacesAdministration/FabricWorkspacesAdministration';
 import { ProtectedRoute } from './ProtectedRoutes';
 import { history } from '../store';
 
@@ -24,6 +25,11 @@ export const protectedRoutes = [
     component: FabricWorkspace,
     exact: true,
     path: '/workspace/:id',
+  },
+  {
+    component: FabricWorkspacesAdministration,
+    exact: false,
+    path: '/administration',
   },
 ];
 

@@ -15,7 +15,7 @@ import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indica
 import { Envs } from '../../utilities/envs';
 // Api
 import { hostServer } from '../../server/api';
-import { fabricApi } from '../../apis/fabric.api';
+import { fabricApi} from '../../apis/fabric.api';
 
 const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
   let history = useHistory();
@@ -41,6 +41,8 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
   const [solutions, setSolutions] = useState([]);
   const [reports, setReports] = useState([]);
   const [fabricTags, setFabricTags] = useState([]);
+  const [projectList, setProjectList] = useState([]);
+  const [selectedProject, setSelectedProject] = useState({});
 
   const [costCenter, setCostCenter] = useState(edit && workspace?.costCenter !== null ? workspace?.costCenter : '');
   const [internalOrder, setInternalOrder] = useState(edit && workspace?.internalOrder !== null ? workspace?.internalOrder : '');
@@ -235,6 +237,25 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
     }
   };
 
+const handleProjectSearch = (searchTerm, showSpinner) => {
+  if (searchTerm.length > 2) {
+    showSpinner(true);
+    fabricApi
+      .searchProjectDetails(searchTerm)
+      .then((res) => {
+        setProjectList(res.data?.records || []);
+        showSpinner(false);
+      })
+      .catch((e) => {
+        showSpinner(false);
+        Notification.show(
+          e.response?.data?.errors?.[0]?.message || 'Error while fetching project list.',
+          'alert',
+        );
+      });
+  }
+};
+
   const handleCreateWorkspace = (values) => {
     ProgressIndicator.show();
     const data = {
@@ -256,6 +277,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
       internalOrder: values?.internalOrder.trim(),
       relatedSolutions: relatedSolutions,
       relatedReports: relatedReports,
+      projectId: values?.projectDetails || null,
       ...(values.leanIX || {})
     };
     fabricApi.createFabricWorkspace(data).then((res) => {
@@ -290,6 +312,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
       internalOrder: values?.internalOrder.trim(),
       relatedSolutions: relatedSolutions,
       relatedReports: relatedReports,
+      projectId: values?.projectDetails || null,
       ...(values.leanIX || {})
     }
     ProgressIndicator.show();
@@ -311,6 +334,7 @@ const mandate = divisionId && Envs.MANDATE_LEANIX_FOR_DIVISIONS
   ? Envs.MANDATE_LEANIX_FOR_DIVISIONS.split(',').includes(divisionId) 
   : false;
 const isLeanIXRequired = typeOfProject === 'Production' && mandate;
+const isProjectDetailsRequired = typeOfProject === 'Production' && mandate;
 
   return (
     <>
@@ -745,6 +769,59 @@ const isLeanIXRequired = typeOfProject === 'Production' && mandate;
                       />
                       <span className={'error-message'}>{errors.procedureId?.type === 'pattern' && 'Procedure ID should be of type PO-XXXXX / ITPLC-XXXXX'}</span>
                     </div>
+                  </div>
+                </div>
+                <div className={Styles.col2}>
+                  <div className={classNames('input-field-group')}>
+                    <Controller
+                      control={control}
+                      name="projectDetails"
+                      rules={{
+                        required: isProjectDetailsRequired ? '*Missing entry' : false, 
+                      }}
+                      render={({ field }) => (
+                        <TypeAheadBox
+                          label={'Project Details *'}
+                          placeholder={'Search Project Name'}
+                          defaultValue={selectedProject?.projectName}
+                          list={projectList}
+                          setSelected={(selectedProject) => {
+                            setSelectedProject(selectedProject || {});
+                            field.onChange(selectedProject?.projectID || '');
+                          }}
+                          onInputChange={handleProjectSearch}
+                          required={false}
+                          showError={errors.projectDetails?.message}
+                          render={(item) => {
+                            const stakeholderIds = item?.stakeholders?.map((s) => s.userID).join(', ') || '—';
+                            const tagValues = item?.tags?.map((t) => t.value).join(', ') || '—';
+
+                            return (
+                              <div className={Styles.optionContainer}>
+                                <div className={Styles.optionHeader}>
+                                  <span className={Styles.optionText}>
+                                    {item?.projectID ? `${item.projectID} — ${item.projectName}` : item.projectName}
+                                  </span>
+                                  {item?.division && (
+                                    <span className={Styles.suggestionListBadge}>{item.division}</span>
+                                  )}
+                                </div>
+                                {stakeholderIds !== '—' && (
+                                  <div className={Styles.optionSubText}>
+                                    <strong>Stakeholders:</strong> {stakeholderIds}
+                                  </div>
+                                )}
+                                {tagValues !== '—' && (
+                                  <div className={Styles.optionSubText}>
+                                    <strong>Tags:</strong> {tagValues}
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          }}
+                        />
+                      )}
+                    />
                   </div>
                 </div>
               </>
