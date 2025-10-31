@@ -671,8 +671,8 @@ definitions:
       customGroupNameCollection:
         type: array
         items:
-          type: string 
-
+          type: object
+          $ref: "#/definitions/CustomGroupNameCollectionVO" 
       appId:
         type: string
       leanIXDetails:
@@ -1204,6 +1204,17 @@ definitions:
       responseCode:
         type: string
         description: "Response code of the operation"
+    
+  CustomGroupNameCollectionVO:
+    type: object
+    properties:
+      roleName:
+        type: string
+        description: "Role name of the fabric workspace"
+      groupName:
+        type: string
+        description: "Custom group name of the fabric workspace"
+      
       
 
 
