@@ -9,7 +9,7 @@ import { USER_ROLE } from '../../utilities/constants';
 
 const FabricWorkspaceCard = ({user, workspace, onSelectWorkspace, onEditWorkspace, onDeleteWorkspace}) => {
   const history = useHistory();
-  const isAdmin = user.roles.find(role => role.id === USER_ROLE.FABRICADMIN);
+  const isFabricAdmin = user.roles.find(role => role.id === USER_ROLE.FABRICADMIN);
   useEffect(() => {
     Tooltip.defaultSetup();
   }, [workspace]);
@@ -77,7 +77,7 @@ const FabricWorkspaceCard = ({user, workspace, onSelectWorkspace, onEditWorkspac
               {/* {isRequestedWorkspace && workspace?.status?.state === 'IN_PROGRESS' && <p className={Styles.requestStatus}>Workspace Accesss Requested</p>} */}
             </div>
           </div>
-          {(user?.id === workspace?.createdBy?.id || isAdmin) &&
+          {(user?.id === workspace?.createdBy?.id || isFabricAdmin) &&
             <div className={Styles.btnGrp}>
               <button
                 className={'btn btn-primary'}
