@@ -30,18 +30,51 @@ package com.daimler.data.assembler;
 import com.daimler.data.db.entities.UiliciousWorkspaceNsql;
 import com.daimler.data.dto.uilicious.UiliciousWorkspaceVO;
 import org.springframework.stereotype.Component;
-
-
+import com.daimler.data.dto.UiliciousCreationDTO;
+import com.daimler.data.db.jsonb.UiliciousWorkspace;
+import java.util.Objects;
+import org.springframework.beans.BeanUtils;
+import com.daimler.data.db.jsonb.LeanGovernance;
+import com.daimler.data.dto.uilicious.LeanGovernanceVO;
 
 @Component
-public class UiliciousWorkspaceAssembler implements GenericAssembler<UiliciousWorkspaceVO, UiliciousWorkspaceNsql> {
-    @Override
-	public UiliciousWorkspaceVO toVo(UiliciousWorkspaceNsql entity) {
-        return null;
+public class UiliciousWorkspaceAssembler implements GenericAssembler<UiliciousCreationDTO, UiliciousWorkspaceNsql> {
+
+    public UiliciousCreationDTO toVo(UiliciousWorkspaceNsql entity) {
+        UiliciousCreationDTO vo = null;
+        if (Objects.nonNull(entity)) {
+            vo = new UiliciousCreationDTO();
+            vo.setAccountId(entity.getData().getAccountId());
+            vo.setCreatedBy(entity.getData().getCreatedBy());
+            if (entity.getData().getLeanGovernance() != null) {
+                LeanGovernanceVO leanGovernanceVO = new LeanGovernanceVO();
+                BeanUtils.copyProperties(entity.getData().getLeanGovernance(), leanGovernanceVO);
+                vo.setLeanGovernance(leanGovernanceVO);
+            }
+            vo.setId(entity.getId());
+
+        }
+        return vo;
     }
-    
-    @Override
-	public UiliciousWorkspaceNsql toEntity(UiliciousWorkspaceVO vo) {
-        return null;
+
+    public UiliciousWorkspaceNsql toEntity(UiliciousCreationDTO vo) {
+        UiliciousWorkspaceNsql entity = null;
+        if (Objects.nonNull(vo)) {
+            entity = new UiliciousWorkspaceNsql();
+            UiliciousWorkspace data = new UiliciousWorkspace();
+            data.setAccountId(vo.getAccountId());
+            data.setCreatedBy(vo.getCreatedBy());
+
+            LeanGovernance leanGovernanceEntity = new LeanGovernance();
+            if (vo.getLeanGovernance() != null) {
+                BeanUtils.copyProperties(vo.getLeanGovernance(), leanGovernanceEntity);
+                data.setLeanGovernance(leanGovernanceEntity);
+            }
+            entity.setData(data);
+            if (vo.getId() != null) {
+                entity.setId(vo.getId());
+            }
+        }
+        return entity;
     }
 }

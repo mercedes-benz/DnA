@@ -147,6 +147,36 @@ paths:
         500:
           description: "Internal server error."  
 
+    post:
+      tags:
+        - "uilicious-workspaces"
+      summary: "Create Uilicious Workspace"
+      description: "Creates a new Uilicious workspace with the provided lean governance information."
+      operationId: "createUiliciousWorkspace"
+      parameters:
+        - name: "CreateUiliciousWorkspaceRequestVO"
+          in: "body"
+          description: "Request Body that contains lean governance data for the new workspace"
+          required: true
+          schema:
+            $ref: "#/definitions/CreateUiliciousWorkspaceRequestVO"          
+      responses:
+        200:
+          description: "Uilicious workspace created successfully"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        400:
+          description: "Bad request - Invalid lean governance data."  
+        401:
+          description: "Request does not have sufficient credentials."
+        403:  
+          description: "Request is not authorized."
+        405:  
+          description: "Method not allowed."  
+        500:  
+          description: "Internal server error."
+ 
+ 
 definitions:
 
   # Collection wrapper returned by the GET endpoint
@@ -240,6 +270,12 @@ definitions:
       message:
         type: string
         description: "Success message."
-      
-      
-
+ 
+   
+  CreateUiliciousWorkspaceRequestVO:
+    type: object
+    properties:
+      leanGovernance:
+        $ref: "#/definitions/leanGovernanceVO"
+    required:
+      - leanGovernance

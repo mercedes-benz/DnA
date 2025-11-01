@@ -20,6 +20,8 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
+
+import com.daimler.data.dto.uilicious.CreateUiliciousWorkspaceRequestVO;
 import com.daimler.data.dto.uilicious.UiliciousWorkspaceVO;
 import org.springframework.http.MediaType;
 
@@ -228,7 +230,7 @@ public class UiLiciousClient {
                 log.warn("Received non-OK response from Uilicious user account API: {}", response.getStatusCode());
                 return null;
             }
-
+            
         } catch (org.springframework.web.client.ResourceAccessException e) {
             log.error("Uilicious server is not reachable or connection timeout for loginName: {}, error: {}", loginName,
                     e.getMessage());
@@ -339,6 +341,43 @@ public class UiLiciousClient {
             return null;
         }
     }
-   
-    
+
+    public String createUiliciousWorkspace(String email, String userID, String loginName) {
+        try{
+            Map<String, Object> requestBody = new HashMap<>();
+            requestBody.put("email", email);
+            requestBody.put("password", userID);
+            requestBody.put("name", loginName);
+
+            String jsonBody = objectMapper.writeValueAsString(requestBody);
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("Content-Type", "application/json");
+            headers.set("AccessKey",accessKey );
+            HttpEntity<String> requestEntity = new HttpEntity<>(jsonBody, headers);
+            String url = baseURL + "/api/v3.0/admin/account/new";
+
+            ResponseEntity<JsonNode> response = restTemplate.exchange(
+                    url,
+                    HttpMethod.POST,
+                    requestEntity,
+                    JsonNode.class);
+            if (response.getStatusCode() == HttpStatus.OK && response.getBody() != null) {
+                JsonNode responseBody = response.getBody();
+                JsonNode resultNode = responseBody.path("result");
+                String accountId = resultNode.path("_oid").asText();
+                log.info("Successfully created workspace with account ID: {}", accountId);
+                return accountId;
+            } else if (response.getStatusCode() == HttpStatus.BAD_REQUEST) {
+                log.warn("this user id already have existing uilicious workspace {}", loginName);
+                return "FAILURE";
+            } else {
+                log.warn("Received non-OK response from Uilicious create workspace API: {}", response.getStatusCode());
+                return null;
+            }
+        }catch(Exception e){
+            log.error(" Exception occured while calling uilicious for create workspace with message{}",e.getMessage());
+            return null;
+        }     
+    }
+      
 }
