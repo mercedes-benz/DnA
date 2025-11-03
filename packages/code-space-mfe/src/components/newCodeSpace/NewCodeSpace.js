@@ -404,7 +404,7 @@ const NewCodeSpace = (props) => {
       }
     }
   };
-  
+
   const onCollaboratorApproverPermission = (e, userId) => {
     const codeSpaceCollaborator = codeSpaceCollaborators.find((item) => {
       return item.id == userId;
