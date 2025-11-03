@@ -37,6 +37,7 @@ import com.daimler.data.dto.fabricWorkspace.AuthoriserRoleDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.AuthoriserRoleDetailsResponseVO;
 import com.daimler.data.dto.fabricWorkspace.CreateRoleRequestVO;
 import com.daimler.data.dto.fabricWorkspace.CreatedByVO;
+import com.daimler.data.dto.fabricWorkspace.CustomGroupNameCollectionVO;
 import com.daimler.data.dto.fabricWorkspace.FabricLakehouseCreateRequestVO;
 import com.daimler.data.dto.fabricWorkspace.FabricShortcutsCollectionVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceCreateRequestVO;
@@ -198,10 +199,16 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 	if (workspaceRequestVO.getCustomGroupNameCollection() != null 
         && !workspaceRequestVO.getCustomGroupNameCollection().isEmpty()) {
 
-		List<String> validGroupNames = new ArrayList<>();
+		List<CustomGroupNameCollectionVO> validGroups = new ArrayList<>();
 
-    	for (String groupName : workspaceRequestVO.getCustomGroupNameCollection()) {
-        	if (groupName != null && !groupName.trim().isEmpty()) {
+		for (CustomGroupNameCollectionVO groupObj : workspaceRequestVO.getCustomGroupNameCollection()
+			.stream()
+			.filter(Objects::nonNull)
+			.filter(g -> g.getGroupName() != null && !g.getGroupName().trim().isEmpty())
+			.collect(Collectors.toList())) {
+				log.info("Validating group name: {}", groupObj.getGroupName());
+
+				String groupName = groupObj.getGroupName().trim();
 				MicrosoftGroupDetailDto searchResult = fabricWorkspaceClient.searchGroup(groupName);
 				if (searchResult == null || searchResult.getId() == null) {
 					GenericMessage failedResponse = new GenericMessage();
