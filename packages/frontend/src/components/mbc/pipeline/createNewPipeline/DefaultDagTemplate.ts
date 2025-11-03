@@ -3,6 +3,10 @@ return `from airflow import DAG
 import os
 from dotenv import load_dotenv
 
+# Load vault environment variables (REQUIRED for accessing variables)
+load_dotenv("/vault/secrets/envvar") # Do not remove this line. Required for vault environment variables.
+
+
 # ==========================================
 # IMPORTANT: Variable Access Instructions
 # ==========================================
@@ -22,9 +26,6 @@ from dotenv import load_dotenv
 # Note: # Existing DAGs are unaffected, though migrating to the vault-based approach is recommended.
 #
 # ==========================================
-
-# Load vault environment variables (REQUIRED for accessing variables)
-load_dotenv("/vault/secrets/envvar") # Do not remove this line. Required for vault environment variables.
 
 dag = DAG(
     dag_id='${pid}_${name}'
