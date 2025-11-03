@@ -1,10 +1,12 @@
 package com.daimler.data.service;
 
 import java.io.IOException;
+import java.io.StringBufferInputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpEntity;
@@ -16,9 +18,6 @@ import org.springframework.stereotype.Component;
 import org.springframework.util.StreamUtils;
 import org.springframework.web.client.RestTemplate;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.extern.slf4j.Slf4j;
@@ -72,8 +71,15 @@ public class ArgoCdService {
     @Value("${argocd.createSourcePath}")
     private String sourcePath;
 
+    // @Autowired
+    // private WebClient
+
     @Autowired
     private RestTemplate restTemplate;
+
+    @Autowired
+    @Qualifier("proxyRestTemplate")
+    private RestTemplate proxyRestTemplate;
 
     public String getArgoToken() {
         try {
@@ -146,27 +152,50 @@ public class ArgoCdService {
     @SuppressWarnings("unchecked")
     public  String buildPayload(String serviceName,String dbName,String dbType) throws IOException {
         String fileName = "argocd-"+dbType+"-create-template.json";
-    ClassPathResource resource = new ClassPathResource(fileName);
-    String template = StreamUtils.copyToString(resource.getInputStream(), StandardCharsets.UTF_8);
-    template = template.replace("{serviceName}", serviceName);
-    template = template.replace("{dbName}", dbName);
-    template = template.replace("{dbname}-db-backup", dbName+"-db-backup");
-    template = template.replace("{projectName}", argocdCreateProjectName);
-    template = template.replace("{targetRevision}", targetRevision);
-    template = template.replace("{cpuRequest}", cpuRequest);
-    template = template.replace("{memoryRequest}", memoryRequest);
-    template = template.replace("{maxconnections}", maxconnections);
-    template = template.replace("{replicaCount}", replicaCount);
-    template = template.replace("{nameSpace}", nameSpace);
-    template = template.replace("{pdbMinAvailable}", pdbMinAvailable);
-    template = template.replace("{environment}", environment);
-    template = template.replace("{repoUrl}", repoUrl);
-    template = template.replace("{sourcePath}", sourcePath);
+        ClassPathResource resource = new ClassPathResource(fileName);
+        String template = StreamUtils.copyToString(resource.getInputStream(), StandardCharsets.UTF_8);
+        template = template.replace("{serviceName}", serviceName);
+        template = template.replace("{dbName}", dbName);
+        template = template.replace("{dbname}-db-backup", dbName+"-db-backup");
+        template = template.replace("{projectName}", argocdCreateProjectName);
+        template = template.replace("{targetRevision}", targetRevision);
+        template = template.replace("{cpuRequest}", cpuRequest);
+        template = template.replace("{memoryRequest}", memoryRequest);
+        template = template.replace("{maxconnections}", maxconnections);
+        template = template.replace("{replicaCount}", replicaCount);
+        template = template.replace("{nameSpace}", nameSpace);
+        template = template.replace("{pdbMinAvailable}", pdbMinAvailable);
+        template = template.replace("{environment}", environment);
+        template = template.replace("{repoUrl}", repoUrl);
+        template = template.replace("{sourcePath}", sourcePath);
 
 
-    ObjectMapper mapper = new ObjectMapper();
-        Map<String, Object> map = mapper.readValue(template, Map.class);
-        String finalJson = mapper.writeValueAsString(map); 
-        return finalJson;
-}
+            ObjectMapper mapper = new ObjectMapper();
+            Map<String, Object> map = mapper.readValue(template, Map.class);
+            String finalJson = mapper.writeValueAsString(map); 
+            return finalJson;
+    }
+
+    public ResponseEntity<String> getStatusOfArgoApp(String token,String serviceName) {
+        try {
+            String url = argocdCreateUrl+"/"+serviceName;
+    
+            HttpHeaders headers = new HttpHeaders();
+            headers.setBearerAuth(token);
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<Object> entity = new HttpEntity<>(headers);
+            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
+            if (response.getStatusCode().is4xxClientError()) {
+                log.info("Application is in progress!");
+                return null;
+            } else if(response.getStatusCode().is2xxSuccessful()){
+                log.info("Application created successfully!");
+                return response;
+            }
+            return null;
+        } catch (Exception e) {
+            log.error("exception {}",e.getMessage());            
+			return null;
+        }
+    }
 }

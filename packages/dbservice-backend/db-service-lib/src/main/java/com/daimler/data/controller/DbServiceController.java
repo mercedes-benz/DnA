@@ -436,7 +436,62 @@ public class DbServiceController implements DbServiceApi {
  
     }
 
+    @Override
+    @ApiOperation(value = "updateStatus dbService by id for the user.", nickname = "updateStatus", notes = "updateStatus dbService by id for the user.", response = GenericMessage.class, tags={ "dbService", })
+    @ApiResponses(value = { 
 
+        @ApiResponse(code = 201, message = "Returns message of success or failure", response = GenericMessage.class),
+
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+
+        @ApiResponse(code = 400, message = "Bad request."),
+
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+
+        @ApiResponse(code = 405, message = "Method not allowed"),
+
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(
+        method = RequestMethod.PATCH,
+        value = "/dbService/{id}",
+        produces = { "application/json" }
+    )
+    public ResponseEntity<GenericMessage> updateStatus(@ApiParam(value = "dbService id", required = true) @PathVariable("id") String id){
+        GenericMessage response = new GenericMessage();
+        try {
+            CreatedByVO currentUser = this.userStore.getVO();
+            UserInfoVO userVo = new UserInfoVO();
+            UserInfoVO user = null;
+            BeanUtils.copyProperties(currentUser, userVo); 
+            DbServiceVO existingVo = service.getById(id); 
+            if(existingVo != null ){
+                existingVo.setModifiedBy(userVo);
+                        response = service.updateStatus(existingVo);
+                        if(response.getSuccess().equalsIgnoreCase("failed")){
+                            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+                        }else{
+                            return new ResponseEntity<>(response, HttpStatus.OK);
+                        }
+            }else{
+                    log.debug("DbService doesnot exist with given id");
+                    MessageDescription exceptionMsg = new MessageDescription();
+                    exceptionMsg.setMessage("DbService doesnot exist with given id.");
+                    response.addErrorsItem(exceptionMsg);
+                    response.setSuccess("FAILED");
+                    return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);                    
+
+                }
+        }catch (Exception e) {
+            log.error("Failed to delete dbService exception {}",e.getMessage());
+			MessageDescription exceptionMsg = new MessageDescription();
+            exceptionMsg.setMessage("Failed to delete DbService due to internal error.");
+			response.addErrorsItem(exceptionMsg);
+            response.setSuccess("FAILED");
+			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    } 
 
 
 }

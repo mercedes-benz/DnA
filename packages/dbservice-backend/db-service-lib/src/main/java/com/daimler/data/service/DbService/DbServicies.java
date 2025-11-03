@@ -23,4 +23,7 @@ public interface DbServicies extends CommonService<DbServiceVO, DbServiceNsql, S
 
     GenericMessage deleteDb(DbServiceVO serviceVo);
 
+    GenericMessage updateStatus(DbServiceVO serviceVo);
+    
+
 }
