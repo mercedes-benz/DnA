@@ -114,7 +114,7 @@ public class BaseDbServiceImpl extends BaseCommonService<DbServiceVO, DbServiceN
             serviceVo.setModifiedOn(now);            
             String id = UUID.randomUUID().toString();
             serviceVo.setId(id);
-            serviceVo.setStatus("CREATED");
+            serviceVo.setStatus("CREATE_REQUESTED");
             response.setData(null);
             response.setSuccess("failed");
             DbServiceNsql entity =  assembler.toEntity(serviceVo); 
@@ -297,7 +297,6 @@ public class BaseDbServiceImpl extends BaseCommonService<DbServiceVO, DbServiceN
         }
     }
 
-    @Deprecated
     @Override
     @Transactional
     public GenericMessage deleteDb(DbServiceVO serviceVo){
@@ -306,7 +305,8 @@ public class BaseDbServiceImpl extends BaseCommonService<DbServiceVO, DbServiceN
         try {
             SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
 			Date now = isoFormat.parse(isoFormat.format(new Date()));
-            DbServiceNsql entity =  repository.getById(serviceVo.getId()); 
+            Optional<DbServiceNsql> entityOptional =  repository.findById(serviceVo.getId()); 
+            DbServiceNsql entity = entityOptional.get();
             DbService data = entity.getData();
             String token = argoCdService.getArgoToken();
             String vaultRes = vault.deleteFromVault(serviceVo.getServiceName().toLowerCase());
@@ -333,6 +333,87 @@ public class BaseDbServiceImpl extends BaseCommonService<DbServiceVO, DbServiceN
                 exceptionMsg.setMessage("Failed to delete application"+serviceVo.getServiceName()+" due to internal error.");
                 response.addErrorsItem(exceptionMsg); 
             }            
+            return response;
+            
+        } catch (Exception e) {
+            log.error("exception in delete db {}",e.getMessage());  
+            MessageDescription exceptionMsg = new MessageDescription();
+            exceptionMsg.setMessage("Failed to delete dbService "+serviceVo.getServiceName()+" due to internal error.");
+			response.addErrorsItem(exceptionMsg);          
+			return response;
+        }
+    }
+
+
+    @Override
+    @Transactional
+    public GenericMessage updateStatus(DbServiceVO serviceVo){
+        GenericMessage response = new GenericMessage();
+        response.setSuccess("Failed");
+        try {
+            SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
+			Date now = isoFormat.parse(isoFormat.format(new Date()));
+            Optional<DbServiceNsql> entityOptional =  repository.findById(serviceVo.getId()); 
+            DbServiceNsql entity = entityOptional.get();
+            DbService data = entity.getData();
+            String token = argoCdService.getArgoToken();
+            // String vaultRes = vault.deleteFromVault(serviceVo.getServiceName().toLowerCase());
+            // if(vaultRes.equalsIgnoreCase("success")){
+                // log.info("vault with name {} deleted successfully",serviceVo.getServiceName());
+                ResponseEntity<String> argoResponse = argoCdService.getStatusOfArgoApp(token, serviceVo.getServiceName());
+                        if(argoResponse != null){  
+                                ObjectMapper mapper = new ObjectMapper();
+                                JsonNode rootNode = mapper.readTree(argoResponse.getBody());
+
+                                // Navigate to the "health.status" node
+                                JsonNode healthNode = rootNode.path("status").path("health").path("status");
+                                if (!healthNode.isMissingNode()) {
+                                    String healthStatus = healthNode.asText();
+                
+                                    switch (healthStatus) {
+                                        case "healthy":
+                                            log.info("health status is {} for application {}",healthStatus,serviceVo.getServiceName());
+                                            break;
+                                        case "progressing":
+                                            log.info("health status is {} (deployment in progress) for application {}",healthStatus,serviceVo.getServiceName());
+                                            break;
+                                        case "degraded":
+                                            log.info("health status is {} for application {}}",healthStatus,serviceVo.getServiceName());
+                                            break;
+                                        case "missing":
+                                            log.info("health status is {} for application {}",healthStatus,serviceVo.getServiceName());
+                                            break;
+                                        case "suspended":
+                                            log.info("health status is {} for application {}",healthStatus,serviceVo.getServiceName());
+                                            break;
+                                        case "unknown":
+                                            log.info("health status is {} for application {}",healthStatus,serviceVo.getServiceName());
+                                            break;
+                                        default:
+                                            log.info("Unexpected health status: {} for application {}",healthStatus,serviceVo.getServiceName());
+                                    }
+                                   
+                                    if(healthStatus.equalsIgnoreCase("healthy")){
+                                        data.setStatus("CREATED");
+                                        entity.setData(data);
+                                        String successResponse = dbServiceCustomRepo.updateFullJsonData(entity); 
+                                    }
+                                } else {
+                                     log.info("Health status not found for application {}",serviceVo.getServiceName());
+                                }
+                            
+                        }else{
+                            log.info("application "+serviceVo.getServiceName()+" is not deleted");
+                            MessageDescription exceptionMsg = new MessageDescription();
+                            exceptionMsg.setMessage("Failed to delete application "+serviceVo.getServiceName()+" due to internal error.");
+                            response.addErrorsItem(exceptionMsg); 
+                        }
+            // }else{
+            //     log.info("vault with name "+serviceVo.getServiceName()+" is not deleted");
+            //     MessageDescription exceptionMsg = new MessageDescription();
+            //     exceptionMsg.setMessage("Failed to delete application"+serviceVo.getServiceName()+" due to internal error.");
+            //     response.addErrorsItem(exceptionMsg); 
+            // }            
             return response;
             
         } catch (Exception e) {

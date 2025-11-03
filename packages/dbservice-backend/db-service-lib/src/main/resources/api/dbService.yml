@@ -203,7 +203,39 @@ paths:
         405:
           description: Method not allowed
         500:
-          description: Internal error            
+          description: Internal error
+    patch:
+      tags:
+      - dbService
+      summary: updateStatus dbService by id for the user.
+      description: updateStatus dbService by id for the user.
+      operationId: updateStatus
+      parameters:
+        - name: id
+          in: path
+          description: dbService id
+          required: true
+          schema:
+            type: string
+      responses:
+        201:
+          description: Returns message of success or failure
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/GenericMessage'
+        204:
+          description: Fetch complete, no content found.
+        400:
+          description: Bad request.
+        401:
+          description: Request does not have sufficient credentials.
+        403:
+          description: Request is not authorized.
+        405:
+          description: Method not allowed
+        500:
+          description: Internal error                  
 components:
   schemas:
     DbServiceCollectionVO:
