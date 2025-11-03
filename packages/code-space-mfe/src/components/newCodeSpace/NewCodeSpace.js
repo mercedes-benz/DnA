@@ -2137,7 +2137,10 @@ const NewCodeSpace = (props) => {
                                           type="checkbox"
                                           className="ff-only"
                                           value="admin"
-                                          disabled={props.user.id === item.id}
+                                          disabled={
+                                            props.user.id === item.id ||
+                                            (!onEditingMode && !selectedRecipe?.isPublic)
+                                          }
                                           checked={item?.isAdmin || false}
                                           onChange={(e) => onCollaboratorPermission(e, item?.id)}
                                         />
