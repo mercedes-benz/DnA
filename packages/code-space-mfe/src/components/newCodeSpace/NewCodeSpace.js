@@ -385,6 +385,7 @@ const NewCodeSpace = (props) => {
     codeSpaceCollaborator.isAdmin = e.target.checked;
     setCodeSpaceCollaborators([...codeSpaceCollaborators]);
     if (onEditingMode) {
+      ProgressIndicator.show();
       try {
         await CodeSpaceApiClient.assignAdminRole(
           props.onEditingCodeSpace.id,
@@ -401,6 +402,8 @@ const NewCodeSpace = (props) => {
           "Failed due to an internal error",
           'alert'
         );
+      } finally {
+        ProgressIndicator.hide();
       }
     }
   };
