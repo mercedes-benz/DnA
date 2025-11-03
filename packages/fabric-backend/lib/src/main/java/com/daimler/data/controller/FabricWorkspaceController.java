@@ -199,7 +199,7 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 	if (workspaceRequestVO.getCustomGroupNameCollection() != null 
         && !workspaceRequestVO.getCustomGroupNameCollection().isEmpty()) {
 
-		List<CustomGroupNameCollectionVO> validGroups = new ArrayList<>();
+		List<CustomGroupNameCollectionVO> validGroupNames = new ArrayList<>();
 
 		for (CustomGroupNameCollectionVO groupObj : workspaceRequestVO.getCustomGroupNameCollection()
 			.stream()
@@ -222,8 +222,10 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 					log.error("Couldn't get group details for name {}, Failed to create workspace", groupName);
 					return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
 				} else {
-					validGroupNames.add(searchResult.getDisplayName());
-				}
+					CustomGroupNameCollectionVO validGroup = new CustomGroupNameCollectionVO();
+					validGroup.setGroupName(searchResult.getDisplayName());
+					validGroup.setRoleName(groupObj.getRoleName()); 
+					validGroupNames.add(validGroup);
         	}
     	}
     	workspaceRequestVO.setCustomGroupNameCollection(validGroupNames);
