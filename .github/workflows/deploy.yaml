@@ -123,19 +123,31 @@ jobs:
         
     - name: Build Application Containers
       working-directory: ./deployment/dockerfiles
-      run: | 
-        docker build \
-          -t ${{ inputs.IMAGE_NAME }}:${{ github.run_number }} \
-          -f ${{ inputs.DOCKER_FILE_PATH }} ../../${{ inputs.CODE_FOLDER }}/ 
-        if [ "${{ github.ref_name }}" == "main" ] || [ "${{ inputs.ENVIRONMENT }}" == "Production" ]; then
-          docker tag ${{ inputs.IMAGE_NAME }}:${{ github.run_number }} ${{ inputs.IMAGE_NAME }}:${{ steps.updated.outputs.version }}
-          docker tag ${{ inputs.IMAGE_NAME }}:${{ github.run_number }} ${{ inputs.IMAGE_NAME }}:latest
+      run: |
+        if [ "${{ github.ref_name }}" == "dev" ] || [ "${{ inputs.ENVIRONMENT }}" == "Development" ]; then
+          docker build \
+            -t ${{ inputs.IMAGE_NAME }}:${{ github.run_number }}-development \
+            -f ${{ inputs.DOCKER_FILE_PATH }} ../../${{ inputs.CODE_FOLDER }}/ 
+        elif [ "${{ github.ref_name }}" == "staging" ] || [ "${{ inputs.ENVIRONMENT }}" == "Staging" ]; then
+          docker build \
+            -t ${{ inputs.IMAGE_NAME }}:${{ github.run_number }}-staging \
+            -f ${{ inputs.DOCKER_FILE_PATH }} ../../${{ inputs.CODE_FOLDER }}/         
+        elif [ "${{ github.ref_name }}" == "main" ] || [ "${{ inputs.ENVIRONMENT }}" == "Production" ]; then
+          docker build \
+            -t ${{ inputs.IMAGE_NAME }}:${{ github.run_number }}-production \
+            -f ${{ inputs.DOCKER_FILE_PATH }} ../../${{ inputs.CODE_FOLDER }}/           
+          docker tag ${{ inputs.IMAGE_NAME }}:${{ github.run_number }}-production ${{ inputs.IMAGE_NAME }}:${{ steps.updated.outputs.version }}
+          docker tag ${{ inputs.IMAGE_NAME }}:${{ github.run_number }}-production ${{ inputs.IMAGE_NAME }}:latest
         fi           
 
     - name: Publish application containers to registry
       run: |
-        docker push ${{ inputs.IMAGE_NAME }}:${{ github.run_number }}
-        if [ "${{ github.ref_name }}" == "main" ] || [ "${{ inputs.ENVIRONMENT }}" == "Production" ]; then
+        if [ "${{ github.ref_name }}" == "dev" ] || [ "${{ inputs.ENVIRONMENT }}" == "Development" ]; then
+          docker push ${{ inputs.IMAGE_NAME }}:${{ github.run_number }}-development
+        elif [ "${{ github.ref_name }}" == "staging" ] || [ "${{ inputs.ENVIRONMENT }}" == "Staging" ]; then
+          docker push ${{ inputs.IMAGE_NAME }}:${{ github.run_number }}-staging
+        elif [ "${{ github.ref_name }}" == "main" ] || [ "${{ inputs.ENVIRONMENT }}" == "Production" ]; then
+          docker push ${{ inputs.IMAGE_NAME }}:${{ github.run_number }}-production
           docker push ${{ inputs.IMAGE_NAME }}:${{ steps.updated.outputs.version }}
           docker push ${{ inputs.IMAGE_NAME }}:latest
         fi          
@@ -160,16 +172,33 @@ jobs:
 
     - name: Update Image Version values.yaml
       uses: fjogeleit/yaml-update-action@v0.13.1
+      id: cpr
       with:
         valueFile: ${{ inputs.HELM_FOLDER }}/values-dev.yaml
         propertyPath: '${{ inputs.YML_IMAGE_TAG_PATH }}'
-        value: ${{ github.run_number }}
-        branch: dev
-        createPR: false
+        value: ${{ github.run_number }}-development
+        createPR: true
+        branch: deploy-version-${{ github.run_number }}-dev
+        targetBranch: dev
+        masterBranchName: dev
+        labels: 'dev, update-image-version'
         commitChange: true
         message: 'Update Image Version to ${{ github.run_number }}' 
         githubAPI: https://git.i.mercedes-benz.com/api/v3
-        token: ${{ secrets.PID_PAT }}     
+        token: ${{ secrets.PID_PAT }}  
+
+    - name: Print pull request details
+      id: pr_number
+      run: |
+       PR_NUMBER=$(echo '${{ steps.cpr.outputs.pull_request }}' | grep -o '"number":[0-9]*' | sed 's/"number"://')
+       echo "PR_NUMBER=$PR_NUMBER" >> $GITHUB_OUTPUT 
+
+    - name: Dev pull request merge
+      uses: sudo-bot/action-pull-request-merge@v1.2.0
+      with:
+        github-token: ${{ secrets.PID_PAT }}
+        number: ${{ steps.pr_number.outputs.PR_NUMBER }}
+        filter-label: dev  
         
   staging:
     name: 'Deploy to staging'
@@ -187,19 +216,36 @@ jobs:
 
     - name: Update Image Version values.yaml
       uses: fjogeleit/yaml-update-action@v0.13.1
+      id: cpr
       with:
         valueFile: ${{ inputs.HELM_FOLDER }}/values-test.yaml
         propertyPath: '${{ inputs.YML_IMAGE_TAG_PATH }}'
-        value: ${{ github.run_number }}
-        branch: staging
-        createPR: false
+        value: ${{ github.run_number }}-staging
+        createPR: true
+        branch: deploy-version-${{ github.run_number }}-staging
+        targetBranch: staging
+        masterBranchName: staging
+        labels: 'staging, update-image-version'
         commitChange: true
         message: 'Update Image Version to ${{ github.run_number }}' 
         githubAPI: https://git.i.mercedes-benz.com/api/v3
         token: ${{ secrets.PID_PAT }} 
+        
+    - name: Print pull request details
+      id: pr_number
+      run: |
+       PR_NUMBER=$(echo '${{ steps.cpr.outputs.pull_request }}' | grep -o '"number":[0-9]*' | sed 's/"number"://')
+       echo "PR_NUMBER=$PR_NUMBER" >> $GITHUB_OUTPUT 
+
+    - name: Staging pull request merge
+      uses: sudo-bot/action-pull-request-merge@v1.2.0
+      with:
+        github-token: ${{ secrets.PID_PAT }}
+        number: ${{ steps.pr_number.outputs.PR_NUMBER }}
+        filter-label: staging 
 
   production:
-    name: 'Deploy to Production'
+    name: 'Create Production Deployment PR'
     needs: build
     if: ${{ github.ref_name == 'main' ||  inputs.ENVIRONMENT == 'Production' }}
     runs-on: [os-small-amd64-linux]
@@ -214,16 +260,25 @@ jobs:
 
     - name: Update Image Version values.yaml
       uses: fjogeleit/yaml-update-action@v0.13.1
+      id: cpr
       with:
         valueFile: ${{ inputs.HELM_FOLDER }}/values-prod.yaml
         propertyPath: '${{ inputs.YML_IMAGE_TAG_PATH }}'
-        value: ${{ needs.build.outputs.version }}
-        branch: main
-        createPR: false
+        value: ${{ needs.build.outputs.version }}-production
+        createPR: true
+        branch: deploy-version-${{ github.run_number }}-main
+        targetBranch: main
+        masterBranchName: main
+        labels: 'main, update-image-version'
+        reviewers: 'AMARIAR,VKURAPA,SKOLLUR'
         commitChange: true
         message: 'Update Image Version to ${{ needs.build.outputs.version }}' 
         githubAPI: https://git.i.mercedes-benz.com/api/v3
         token: ${{ secrets.PID_PAT }}
+
+    - name: Print pull request details
+      run: |
+        echo "Pull Request Info - ${{ steps.cpr.outputs.pull_request }}"
         
     - name: Create Release
       uses: ncipollo/release-action@v1.12.0
