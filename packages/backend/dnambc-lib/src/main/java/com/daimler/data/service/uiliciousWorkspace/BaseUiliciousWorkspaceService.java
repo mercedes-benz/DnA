@@ -1,3 +1,4 @@
+
 package com.daimler.data.service.uiliciousWorkspace;
 
 import org.springframework.stereotype.Service;
@@ -23,11 +24,16 @@ import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.db.repo.uilicious.UiliciousWorkspaceCustomRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.node.ObjectNode;
+import  com.daimler.data.dto.uilicious.CreateUiliciousWorkspaceRequestVO;
+import com.daimler.data.controller.LoginController;
+import com.daimler.data.dto.UiliciousCreationDTO;
+import com.daimler.data.dto.solution.CreatedByVO;
+import com.daimler.data.db.jsonb.solution.CreatedBy;
 
 @Service
 @Slf4j
 public class BaseUiliciousWorkspaceService extends
-		BaseCommonService<UiliciousWorkspaceVO, UiliciousWorkspaceNsql, String> implements UiliciousWorkspaceService {
+		BaseCommonService<UiliciousCreationDTO, UiliciousWorkspaceNsql, String> implements UiliciousWorkspaceService {
 	@Autowired
 	private UserStore userStore;
 
@@ -232,4 +238,53 @@ public class BaseUiliciousWorkspaceService extends
 		}
 	}
 
+	public String createUiliciousWorkspace(CreateUiliciousWorkspaceRequestVO request) {
+		try {
+			CreatedByVO currentUserInfo = this.userStore.getVO();
+			UserInfo currentUser = this.userStore.getUserInfo();
+			String userId = currentUserInfo.getId();
+			String email = currentUser.getEmail();
+			String firstName = currentUser.getFirstName();
+			log.info("Creating Uilicious workspace with request calling to client: {}", request);
+			String response = uiLiciousClient.createUiliciousWorkspace(email, userId, firstName);
+			if (response != null && !response.contains("FAILURE")) {
+				log.info("Successfully created Uilicious workspace with response: {}", response);
+				String accountId = response;
+				response = "SUCCESS";
+
+				// persist creation details in database
+				UiliciousCreationDTO creationdto = new UiliciousCreationDTO();
+				creationdto.setAccountId(accountId);
+				creationdto.setLeanGovernance(request.getLeanGovernance());
+				CreatedBy createdBy = new CreatedBy();
+				createdBy.setId(userId);
+				createdBy.setFirstName(currentUser.getFirstName());
+				createdBy.setLastName(currentUser.getLastName());
+				createdBy.setEmail(currentUser.getEmail());
+				createdBy.setDepartment(currentUser.getDepartment());
+				createdBy.setMobileNumber(currentUser.getMobileNumber());
+				creationdto.setCreatedBy(createdBy);
+				// creationdto.setSpaceId(null);
+				// creationdto.setSpaceName(null);
+				creationdto.setId(null);
+				UiliciousCreationDTO creationresponse = super.create(creationdto);
+				if (creationresponse == null) {
+					log.error("Failed to persist Uilicious workspace creation details in database for accountId: {}",
+							accountId);
+					throw new RuntimeException("Failed to persist Uilicious workspace creation details in database");
+				}
+				log.info("Uilicious workspace cretion details persisted in database: {}", creationresponse);
+
+			} else {
+				log.error("Failed to create Uilicious workspace via client, response: {}", response);
+				response = "User workspace already exists or creation failed";
+			}
+			return response;
+		} catch (Exception e) {
+			log.error("Error occurred while creating Uilicious workspace in service with exception: {}", e.getMessage(),
+					e);
+			return null;
+		}
+	}	
 }
+

@@ -30,6 +30,7 @@ import com.daimler.data.dto.uilicious.UiliciousWorkspaceVO;
 import com.daimler.data.dto.uilicious.UiliciousWorkspacesCollectionVO;
 import com.daimler.data.dto.uilicious.UiliciousWorkspaceUpdateRequestVO;
 import com.daimler.data.dto.uilicious.UiliciousWorkspaceUpdateResponseVO;
+import com.daimler.data.dto.uilicious.CreateUiliciousWorkspaceRequestVO;
 
 import com.daimler.data.util.ConstantsUtility;
 import com.daimler.data.service.uiliciousWorkspace.UiliciousWorkspaceService;
@@ -157,4 +158,62 @@ public class UiliciousController implements UiliciousWorkspacesApi {
                         return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
                 }
         }
+
+        @ApiOperation(value = "Create Uilicious Workspace", nickname = "createUiliciousWorkspace", notes = "Creates a new Uilicious workspace with the provided lean governance information.", response = GenericMessage.class, tags = {
+                        "uilicious-workspaces", })
+        @ApiResponses(value = {
+                        @ApiResponse(code = 200, message = "Uilicious workspace created successfully", response = GenericMessage.class),
+                        @ApiResponse(code = 400, message = "Bad request - Invalid lean governance data."),
+                        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+                        @ApiResponse(code = 403, message = "Request is not authorized."),
+                        @ApiResponse(code = 405, message = "Method not allowed."),
+                        @ApiResponse(code = 500, message = "Internal server error.") })
+        @RequestMapping(value = "/uilicious-workspaces", produces = { "application/json" }, consumes = {
+                        "application/json" }, method = RequestMethod.POST)
+        public ResponseEntity<GenericMessage> createUiliciousWorkspace(
+                        @ApiParam(value = "Request Body that contains lean governance data for the new workspace", required = true) @Valid @RequestBody CreateUiliciousWorkspaceRequestVO createUiliciousWorkspaceRequestVO) {
+                GenericMessage genericMessage = new GenericMessage();
+                List<MessageDescription> msg = new ArrayList<>();
+                try {
+                        log.info("Request received to create Uilicious workspace with name: {}",
+                                        createUiliciousWorkspaceRequestVO);
+                        String response = uiliciousWorkspaceService
+                                        .createUiliciousWorkspace(createUiliciousWorkspaceRequestVO);
+                        if (response != null) {
+                                if (response.equalsIgnoreCase("SUCCESS")) {
+                                        log.info("Successfully created Uilicious workspace with name: {}",
+                                                        createUiliciousWorkspaceRequestVO);
+                                        genericMessage.setSuccess("SUCCESS");
+                                        genericMessage.setErrors(null);
+                                        return ResponseEntity.ok(genericMessage);
+                                } else {
+                                        log.error("Failed to create Uilicious workspace: {}", response);
+                                        MessageDescription desc = new MessageDescription(
+                                                        "Failed to create Uilicious workspace,  " + response);
+                                        msg.add(desc);
+                                        genericMessage.setSuccess("FAILURE");
+                                        genericMessage.setErrors(msg);
+                                        return new ResponseEntity<>(genericMessage, HttpStatus.BAD_REQUEST);
+                                }
+                        } else {
+                                log.error("Failed to create Uilicious workspace: Unknown error");
+                                MessageDescription desc = new MessageDescription(
+                                                "Failed to create Uilicious workspace, " + response);
+                                msg.add(desc);
+                                genericMessage.setSuccess("FAILURE");
+                                genericMessage.setErrors(msg);
+                                return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+                        }
+                } catch (Exception e) {
+                        log.error("Error creating Uilicious workspace: {}", e.getMessage(), e);
+                        MessageDescription desc = new MessageDescription(
+                                        "Failed to create Uilicious workspace" + e.getMessage());
+                        msg.add(desc);
+                        genericMessage.setSuccess("FAILURE");
+                        genericMessage.setErrors(msg);
+                        return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+                }
+
+        }
+
 }
