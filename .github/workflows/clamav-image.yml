@@ -51,6 +51,7 @@ jobs:
 
     - name: Update Image Version values.yaml
       uses: fjogeleit/yaml-update-action@v0.13.1
+      id: cpr
       with:
         valueFile: deployment/kubernetes/helm/charts/clamav/values-prod.yaml
         propertyPath: 'image.repo'
@@ -91,6 +92,7 @@ jobs:
 
     - name: Update Image Version values.yaml
       uses: fjogeleit/yaml-update-action@v0.13.1
+      id: cpr
       with:
         valueFile: deployment/kubernetes/helm/charts/clamav/values-test.yaml
         propertyPath: 'image.repo'
@@ -131,6 +133,7 @@ jobs:
 
     - name: Update Image Version values.yaml
       uses: fjogeleit/yaml-update-action@v0.13.1
+      id: cpr
       with:
         valueFile: deployment/kubernetes/helm/charts/clamav/values-dev.yaml
         propertyPath: 'image.repo'
