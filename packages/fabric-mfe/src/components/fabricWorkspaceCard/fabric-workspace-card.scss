@@ -73,6 +73,14 @@
         }
       }
     }
+    .disabledLink {
+      cursor: not-allowed;
+      pointer-events: none;
+      text-decoration: none;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
   }
   
   .cardFooter {

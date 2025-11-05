@@ -1,5 +1,5 @@
 import classNames from 'classnames';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useForm, FormProvider, Controller } from 'react-hook-form';
 import { useHistory } from "react-router-dom";
 // styles
@@ -25,6 +25,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
     register,
     handleSubmit,
     setValue,
+    watch,
     control,
     formState: { errors },
   } = methods;
@@ -43,6 +44,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
   const [fabricTags, setFabricTags] = useState([]);
   const [projectList, setProjectList] = useState([]);
   const [selectedProject, setSelectedProject] = useState({});
+  const selectedDivision = watch('division');
 
   const [costCenter, setCostCenter] = useState(edit && workspace?.costCenter !== null ? workspace?.costCenter : '');
   const [internalOrder, setInternalOrder] = useState(edit && workspace?.internalOrder !== null ? workspace?.internalOrder : '');
@@ -236,25 +238,32 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
         });
     }
   };
+  
+  const filteredProjects = useMemo(() => {
+    if (!selectedDivision) return projectList; 
+    return projectList.filter(
+      (p) => p.division?.toLowerCase() === selectedDivision?.toLowerCase()
+    );
+  }, [projectList, selectedDivision]);
 
-const handleProjectSearch = (searchTerm, showSpinner) => {
-  if (searchTerm.length > 2) {
-    showSpinner(true);
-    fabricApi
-      .searchProjectDetails(searchTerm)
-      .then((res) => {
-        setProjectList(res.data?.records || []);
-        showSpinner(false);
-      })
-      .catch((e) => {
-        showSpinner(false);
-        Notification.show(
-          e.response?.data?.errors?.[0]?.message || 'Error while fetching project list.',
-          'alert',
-        );
-      });
-  }
-};
+  const handleProjectSearch = (searchTerm, showSpinner) => {
+    if (searchTerm.length > 2) {
+      showSpinner(true);
+      fabricApi
+        .searchProjectDetails(searchTerm)
+        .then((res) => {
+          setProjectList(res.data?.records || []);
+          showSpinner(false);
+        })
+        .catch((e) => {
+          showSpinner(false);
+          Notification.show(
+            e.response?.data?.errors?.[0]?.message || 'Error while fetching project list.',
+            'alert',
+          );
+        });
+    }
+  };
 
   const handleCreateWorkspace = (values) => {
     ProgressIndicator.show();
@@ -784,12 +793,14 @@ const isProjectDetailsRequired = typeOfProject === 'Production' && mandate;
                           label={'Project Details *'}
                           placeholder={'Search Project Name'}
                           defaultValue={selectedProject?.projectName}
-                          list={projectList}
+                          list={filteredProjects} 
                           setSelected={(selectedProject) => {
                             setSelectedProject(selectedProject || {});
                             field.onChange(selectedProject?.projectID || '');
                           }}
-                          onInputChange={handleProjectSearch}
+                          onInputChange={(value, showSpinner) =>
+                            handleProjectSearch(value, showSpinner, selectedDivision)
+                          }
                           required={false}
                           showError={errors.projectDetails?.message}
                           render={(item) => {
