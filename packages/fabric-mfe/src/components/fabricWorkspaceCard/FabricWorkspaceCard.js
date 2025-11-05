@@ -38,10 +38,21 @@ const FabricWorkspaceCard = ({user, workspace, onSelectWorkspace, onEditWorkspac
           <div>
             <div>Workspace Link</div>
             <div>
-              <a href={`https://app.fabric.microsoft.com/groups/${workspace.id}`} target='_blank' rel='noopener noreferrer'>
-                Access Workspace
-                <i className={classNames('icon mbc-icon new-tab')} />
-              </a>
+              {isFabricAdmin && workspace?.createdBy?.id !== user?.id ? (
+                <span className={Styles.disabledLink} title="Admins can only access their own workspaces">
+                  Access Workspace
+                  <i className={classNames('icon mbc-icon new-tab')} />
+                </span>
+              ) : (
+                <a
+                  href={`https://app.fabric.microsoft.com/groups/${workspace.id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Access Workspace
+                  <i className={classNames('icon mbc-icon new-tab')} />
+                </a>
+              )}
             </div>
           </div>
           <div>

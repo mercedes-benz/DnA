@@ -207,11 +207,14 @@ const getWorkspaces = (query = '') => {
                 autoComplete="off"
                 onChange={(e) => handleSearchInput(e.target.value)}
               />
-              {searchTerm?.length > 0 && (
-                <label htmlFor="workspaceSearch" className="input-label">Search Results</label>
-              )}
             </div>
           </div>
+          {searchTerm?.length > 0 && (
+            <div className={Styles.cardsSeparator}>
+              <h5 className="sub-title-text">Search Results</h5>
+              <hr  />
+            </div>
+          )}
         </Caption>
 
         {workspaces?.length > 0 && (
