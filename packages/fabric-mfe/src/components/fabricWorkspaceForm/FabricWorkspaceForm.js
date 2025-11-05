@@ -241,8 +241,9 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
   
   const filteredProjects = useMemo(() => {
     if (!selectedDivision) return projectList; 
+    const divisionName = selectedDivision.split('@-@')[1]?.trim().toLowerCase(); 
     return projectList.filter(
-      (p) => p.divisionId?.toLowerCase() === selectedDivision?.toLowerCase()
+      (p) => p.division?.trim().toLowerCase() === divisionName
     );
   }, [projectList, selectedDivision]);
 
