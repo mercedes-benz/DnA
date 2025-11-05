@@ -112,11 +112,25 @@ public class ADAProjectsCustomRepositoryImpl extends CommonDataRepositoryImpl<AD
 			List<Predicate> predicates = new ArrayList<>();
 
 			if (projectName != null && !projectName.trim().isEmpty()) {
+				String loweredTerm = "%" + projectName.trim().toLowerCase() + "%";
 				Predicate name = cb.like(
-						cb.lower(cb.function("jsonb_extract_path_text", String.class,
-								root.get("data"), cb.literal("projectName"))),
-						"%" + projectName.trim().toLowerCase() + "%");
-				predicates.add(name);
+					cb.lower(cb.function("jsonb_extract_path_text", String.class,
+							root.get("data"), cb.literal("projectName"))),loweredTerm);
+				Predicate projectId = cb.like(
+					cb.lower(cb.coalesce(cb.function("jsonb_extract_path_text", String.class,
+							root.get("data"), cb.literal("projectID")),
+						cb.literal(""))),loweredTerm);
+				Predicate stakeholders = cb.like(
+					cb.lower(
+						cb.function("jsonb_extract_path_text", String.class,
+								cb.function("to_jsonb", Object.class, root.get("data")),
+								cb.literal("stakeholders"))),loweredTerm);
+				Predicate tags = cb.like(
+					cb.lower(
+						cb.function("jsonb_extract_path_text", String.class,
+								cb.function("to_jsonb", Object.class, root.get("data")),
+								cb.literal("tags"))),loweredTerm);
+				predicates.add(cb.or(name, projectId, stakeholders, tags));
 			}
 			cq.select(root);
 			if (!predicates.isEmpty()) {
@@ -130,7 +144,6 @@ public class ADAProjectsCustomRepositoryImpl extends CommonDataRepositoryImpl<AD
 			TypedQuery<ADAProjectsNsql> query = em.createQuery(cq);
 			List<ADAProjectsNsql> results = query.getResultList();
 
-			// log.info("Found {} ADA projects for search '{}'", results.size(), projectName);
 			return results;
 
 		} catch (Exception e) {
