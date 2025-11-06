@@ -264,7 +264,7 @@ jobs:
       with:
         valueFile: ${{ inputs.HELM_FOLDER }}/values-prod.yaml
         propertyPath: '${{ inputs.YML_IMAGE_TAG_PATH }}'
-        value: ${{ needs.build.outputs.version }}-production
+        value: ${{ needs.build.outputs.version }}
         createPR: true
         branch: deploy-version-${{ github.run_number }}-main
         targetBranch: main
