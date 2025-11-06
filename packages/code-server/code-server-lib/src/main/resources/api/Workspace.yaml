@@ -1574,6 +1574,43 @@ paths:
           description: "Method not allowed"
         500:
           description: "Internal error"
+
+  /workspaces/aiagent/{id}/initialize:
+    put:
+      tags:
+        - "code-server"
+      summary: "Initialize AI Agent Workbench for owner."
+      description: "Initialize AI workbench for owner"
+      operationId: "InitializeAiWorkspace"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Workspace ID to be fetched"
+          required: true
+          type: "string"
+        - name: "initializeCollabWSRequestVO"
+          in: "body"
+          description: "Request Body that contains data required for intialize code server ai workbench for owner"
+          required: true
+          schema:
+            $ref: "#/definitions/InitializeCollabWorkspaceRequestVO"
+      responses:
+        201:
+          description: "Returns message of success or failure "
+          schema:
+            $ref: "#/definitions/InitializeWorkspaceResponseVO"
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
     
 
         
@@ -2517,4 +2554,12 @@ definitions:
       data:
         type: array
         items:
-          $ref: "#/definitions/CodeServerWorkspaceVO"                            
+          $ref: "#/definitions/CodeServerWorkspaceVO"
+      hostVault:
+        type: object
+        description: "Arbitrary JSON input for host vault configuration."
+        additionalProperties: true
+      agentVault:
+        type: object
+        description: "Arbitrary JSON input for agent vault configuration."
+        additionalProperties: true                      

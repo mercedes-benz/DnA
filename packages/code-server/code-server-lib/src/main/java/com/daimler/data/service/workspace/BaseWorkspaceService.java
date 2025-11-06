@@ -118,7 +118,8 @@ import com.daimler.data.dto.workspace.CodespaceSecurityConfigVO;
 import com.daimler.data.dto.workspace.CreatedByVO;
  import com.daimler.data.dto.workspace.DataGovernanceRequestInfo;
  import com.daimler.data.dto.workspace.DeployedAppConfigDto;
- import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
+import com.daimler.data.dto.workspace.InitializeAiAgentWorkspaceRequestVO;
+import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
  import com.daimler.data.dto.workspace.ResourceVO;
  import com.daimler.data.dto.workspace.UpdateUserGroupRequestVO;
  import com.daimler.data.dto.workspace.UserInfoVO;
@@ -929,6 +930,8 @@ import com.daimler.data.dto.workspace.CreatedByVO;
 			 entity.getData().setIntiatedOn(isoFormat.parse(isoFormat.format(new Date())));
 			 // entity.getData().setStatus(ConstantsUtility.CREATEREQUESTEDSTATE);
 			 entity.getData().setStatus(ConstantsUtility.CREATEDSTATE);//added
+			 //added for ai workflow creation flow
+			 entity.getData().getProjectDetails().setIsAgentInitialized(true);
 			 String recipeId = vo.getProjectDetails().getRecipeDetails().getRecipeId().toString();
 			 String workspaceUrl = this.getWorkspaceUrl(recipeId,ownerwsid,workspaceOwner.getId(),ConstantsUtility.DHC_CAAS_AWS);
 			 entity.getData().setWorkspaceUrl(workspaceUrl);
@@ -4728,7 +4731,7 @@ import com.daimler.data.dto.workspace.CreatedByVO;
 	}
 
 	@Override
-	public GenericMessage createAiAgentSpace(List<CodeServerWorkspaceVO> vo, String groupName, UserInfoVO currentUserVO, String userId) {
+	public GenericMessage createAiAgentSpace(InitializeAiAgentWorkspaceRequestVO reqVO, String groupName, UserInfoVO currentUserVO, String userId) {
 		InitializeWorkspaceResponseVO createResponseMessage = new InitializeWorkspaceResponseVO();
 		GenericMessage responseMessage = new GenericMessage();
 		String status = "FAILED";
@@ -4736,6 +4739,7 @@ import com.daimler.data.dto.workspace.CreatedByVO;
 		List<MessageDescription> errors = new ArrayList<>();
 		List<CodeServerWorkspaceVO> groupWorkspaceVo = new ArrayList<>();
 		boolean createSuccessful = true;
+		List<CodeServerWorkspaceVO> vo = reqVO.getData();
 		for (CodeServerWorkspaceVO item : vo) {
 			currentUserVO.setGitUserName(item.getGitUserName());
 			item.setWorkspaceOwner(currentUserVO);
