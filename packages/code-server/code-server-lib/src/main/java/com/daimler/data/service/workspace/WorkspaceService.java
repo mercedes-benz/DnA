@@ -138,7 +138,7 @@ public interface WorkspaceService {
 
 	GenericMessage deleteBuild(String projectName,String version);
 
-	GenericMessage createAiAgentSpace(List<CodeServerWorkspaceVO> vo, String groupName, UserInfoVO currentUserVO, String userId);
+	GenericMessage createAiAgentSpace(InitializeAiAgentWorkspaceRequestVO reqVO, String groupName, UserInfoVO currentUserVO, String userId);
 
 	CodeServerUserGroupCollectionVO getAllAiWorkSpaceGroup();
 	

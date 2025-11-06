@@ -3571,7 +3571,7 @@ import org.springframework.beans.factory.annotation.Value;
             return new ResponseEntity<>(emptyResponse, HttpStatus.CONFLICT);
         }
 		GenericMessage responseMsg;
-		responseMsg = service.createAiAgentSpace(reqVO, groupName, currentUserVO, userId);
+		responseMsg = service.createAiAgentSpace(codeServerAiAgentRequestVO, groupName, currentUserVO, userId);
 		if ("FAILED".equalsIgnoreCase(responseMsg.getSuccess())) {
 			return new ResponseEntity<>(responseMsg, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
@@ -3616,5 +3616,50 @@ import org.springframework.beans.factory.annotation.Value;
 			return new ResponseEntity<>(response,HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
+
+	@Override
+	@ApiOperation(value = "Initialize AI Agent Workbench for owner.", nickname = "initializeAiWorkspace", notes = "Initialize AI workbench for owner", response = GenericMessage.class, tags = {
+			"code-server", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 201, message = "Returns message of success or failure ", response = InitializeWorkspaceResponseVO.class),
+			@ApiResponse(code = 400, message = "Bad Request", response = GenericMessage.class),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/workspaces/aiagent/{id}/initialize", produces = { "application/json" }, consumes = {
+			"application/json" }, method = RequestMethod.PUT)
+	public ResponseEntity<InitializeWorkspaceResponseVO> initializeAiWorkspace(
+			@ApiParam(value = "Workspace ID to be fetched", required = true) @PathVariable("id") String id,
+			@ApiParam(value = "Request Body that contains data required for intialize code server ai workbench for owner", required = true) @Valid @RequestBody InitializeCollabWorkspaceRequestVO initializeCollabWSRequestVO) {
+		HttpStatus responseStatus = HttpStatus.OK;
+		CreatedByVO currentUser = this.userStore.getVO();
+		InitializeWorkspaceResponseVO responseMessage = new InitializeWorkspaceResponseVO();
+		String userId = currentUser != null ? currentUser.getId() : null;
+		CodeServerWorkspaceVO ownerVO = service.getById(userId, id);
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+		responseMessage.setData(ownerVO);
+		responseMessage.setErrors(errors);
+		responseMessage.setWarnings(warnings);
+		responseMessage.setSuccess("FAILED");
+		if (!ownerVO.getProjectDetails().isIsAgentCreation()) {
+			MessageDescription errMsg = new MessageDescription("Invalid type. Not an AI workflow recipe.");
+			errors.add(errMsg);
+			responseMessage.setErrors(errors);
+			responseMessage.setData(null);
+			return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+		}
+		if (ownerVO.getProjectDetails().isIsAgentInitialized()) {
+			MessageDescription errMsg = new MessageDescription("Workbench already initialized.");
+			errors.add(errMsg);
+			responseMessage.setErrors(errors);
+			responseMessage.setData(null);
+			return new ResponseEntity<>(responseMessage, HttpStatus.CONFLICT);
+		}
+		String pat = initializeCollabWSRequestVO.getPat();
+		InitializeWorkspaceResponseVO responseData = service.initiateWorkspace(ownerVO, pat);
+		return new ResponseEntity<>(responseData, responseStatus);
+	};
 
  }
