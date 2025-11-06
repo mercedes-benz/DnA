@@ -47,8 +47,6 @@ public class UiliciousWorkspace implements Serializable{
 	private static final long serialVersionUID = 1L;
 	private CreatedBy createdBy;
 	private String accountId;
-	private String spaceId;
-	private String spaceName;
 	private LeanGovernance leanGovernance;
 	
 

@@ -43,8 +43,6 @@ public class UiliciousCreationDTO {
     private String id;
     private String accountId;
     private CreatedBy createdBy;
-    private String spaceId;
-    private String spaceName;
     private LeanGovernanceVO leanGovernance;
   
 }

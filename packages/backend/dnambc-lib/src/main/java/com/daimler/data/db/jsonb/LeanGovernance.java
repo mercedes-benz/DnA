@@ -54,6 +54,7 @@ public class LeanGovernance implements Serializable{
 	private Boolean hasPii;
 	private String costCenter;
 	private String internalOrder;
+	private String description;
 
 
 }

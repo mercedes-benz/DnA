@@ -264,8 +264,7 @@ public class BaseUiliciousWorkspaceService extends
 				createdBy.setDepartment(currentUser.getDepartment());
 				createdBy.setMobileNumber(currentUser.getMobileNumber());
 				creationdto.setCreatedBy(createdBy);
-				// creationdto.setSpaceId(null);
-				// creationdto.setSpaceName(null);
+
 				creationdto.setId(null);
 				UiliciousCreationDTO creationresponse = super.create(creationdto);
 				if (creationresponse == null) {
