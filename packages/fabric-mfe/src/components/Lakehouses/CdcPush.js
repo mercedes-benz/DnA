@@ -25,7 +25,6 @@ export const buildCdcPayload = ({
   dataTier,
   isDataLakeAvailability,
   isDocumentationUpdated,
-  isDataAsset,
   description,
   workspaceCreator
 }) => {
@@ -98,7 +97,6 @@ export const buildCdcPayload = ({
       isDataLakeAvailability: isDataLakeAvailability ? "Yes" : "No",
       leanIXId: workspaceMetadata?.appId || "",
       isDocumentationUpdated: isDocumentationUpdated ? "Yes" : "No",
-      isDataAsset: isDataAsset ? "Yes" : "No",
       dataConfidentiality: workspaceMetadata?.dataClassification.toLowerCase() || ""
     },
     owners: [workspaceCreator]
@@ -116,7 +114,6 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
   const [dataOrigin, setDataOrigin] = useState("0");
   const [dataTier, setDataTier] = useState("0");
   const [isDocumentationUpdated, setIsDocumentationUpdated] = useState(false);
-  const [isDataAsset, setIsDataAsset] = useState(false);
   const [isDataLakeAvailability, setIsDataLakeAvailability] = useState(true);
   const [workspaceMetadata, setWorkspaceMetadata] = useState(null);
   const [workspaceCreator, setWorkspaceCreator] = useState(null);
@@ -331,7 +328,6 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
       dataOrigin: (dataOrigin || '').toLowerCase(),
       dataTier: DATA_TIER_MAP[dataTier] || null,
       divisions: division || [],
-      isDataAsset,
       isDocumentationUpdated,
       isDataLakeAvailability,
       description,
@@ -382,7 +378,6 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
     tables,
     selectedTables,
     selectedColumns,
-    isDataAsset,
     isDocumentationUpdated,
     isDataLakeAvailability,
     description,
@@ -514,46 +509,6 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
               <span className={classNames('error-message', divisionError.length ? '' : 'hide')}>
                 {divisionError}
               </span>
-            </div>
-          </div>
-
-          <div className={Styles.col3}>
-            <div className={classNames('input-field-group include-error')}>
-              <label className="input-label">Data Asset <sup>*</sup></label>
-              <div className={Styles.boolean}>
-                <label className={classNames('radio')}>
-                  <span className="wrapper">
-                    <input
-                      type="radio"
-                      className="ff-only"
-                      value="true"
-                      name="dataAsset"
-                      checked={isDataAsset === true}
-                      onClick={() => {
-                        setIsDataAsset(true);
-                        setValue('dataAsset', 'true');
-                      }}
-                    />
-                  </span>
-                  <span className="label">Yes</span>
-                </label>
-                <label className={classNames('radio')}>
-                  <span className="wrapper">
-                    <input
-                      type="radio"
-                      className="ff-only"
-                      value="false"
-                      name="dataAsset"
-                      checked={isDataAsset === false}
-                      onClick={() => {
-                        setIsDataAsset(false);
-                        setValue('dataAsset', 'false');
-                      }}
-                    />
-                  </span>
-                  <span className="label">No</span>
-                </label>
-              </div>
             </div>
           </div>
 
