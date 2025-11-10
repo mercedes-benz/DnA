@@ -80,7 +80,7 @@ const VaultManagement = (props) => {
   }
 
   const onKeySearch = () => {
-    let FilteredList = keyValue?.keyValueList;
+    let FilteredList = keyValue?.keyValueList || [];
     if (searchTerm?.length) {
       FilteredList = FilteredList.filter((val) => val.key.toLowerCase().includes(searchTerm.toLowerCase()));
     }
@@ -365,7 +365,7 @@ const VaultManagement = (props) => {
                     />
                     <i
                       className={classNames('icon mbc-icon', searchTerm?.length > 0 ? 'close circle' : 'search', Styles.searchIcon)}
-                      onClick={ searchTerm?.length > 0 ? setSearchTerm('') : null}
+                      onClick={ searchTerm?.length > 0 ? () => setSearchTerm('') : undefined }
                     />
                   </div>
                 </div>
