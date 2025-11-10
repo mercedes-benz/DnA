@@ -14,6 +14,7 @@ import org.openmetadata.client.ApiClient;
 import org.openmetadata.client.api.*;
 import org.openmetadata.client.model.*;
 import org.openmetadata.schema.services.connections.database.DatalakeConnection;
+import org.openmetadata.schema.services.connections.database.SampleDataStorageConfig;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
@@ -118,6 +119,10 @@ public class OpenMetadataClient {
 
             DatabaseConnection connection = new DatabaseConnection();
             connection.setConfig(new DatalakeConnection()
+                    .withTableFilterPattern(null)
+                    .withTableFilterPattern(null)
+                    .withDatabaseFilterPattern(null)
+                    .withSampleDataStorageConfig(new SampleDataStorageConfig())
                     .withSupportsMetadataExtraction(true)
                     .withBucketName(name)
                     .withDatabaseName("Lakehouses")
@@ -442,7 +447,7 @@ public class OpenMetadataClient {
             "Division", fields.getDivisions(),
             "Department", List.of(fields.getDepartment()),
             "DataOrigin", List.of(fields.getDataOrigin()),
-            "IsDataAsset", List.of(fields.getIsDataAsset()),
+//"IsDataAsset", List.of(fields.getIsDataAsset()),
             "LeanIXID", List.of(fields.getLeanIXId()),
             "DocumentationUpdated", List.of(fields.getIsDocumentationUpdated()),
             "DataLakeAvailability", List.of(fields.getIsDataLakeAvailability()),

@@ -26,7 +26,6 @@ import com.daimler.data.dto.fabricCatalogManagement.MandatoryFieldsVO.DivisionsE
 import com.daimler.data.dto.fabricCatalogManagement.MandatoryFieldsVO.DataOriginEnum;
 import com.daimler.data.dto.fabricCatalogManagement.MandatoryFieldsVO.IsDocumentationUpdatedEnum;
 import com.daimler.data.dto.fabricCatalogManagement.MandatoryFieldsVO.IsDataLakeAvailabilityEnum;
-import com.daimler.data.dto.fabricCatalogManagement.MandatoryFieldsVO.IsDataAssetEnum;
 import com.daimler.data.dto.fabricCatalogManagement.MandatoryFieldsVO.DataConfidentialityEnum;
 import com.daimler.data.dto.fabricWorkspace.CreatedByVO;
 
@@ -105,7 +104,7 @@ public class FabricCatalogMetadataAssembler implements GenericAssembler<FabricCa
                 mandatoryFields.setLeanIXId(voMandatoryFields.getLeanIXId());
                 mandatoryFields.setIsDocumentationUpdated(voMandatoryFields.getIsDocumentationUpdated() != null ? voMandatoryFields.getIsDocumentationUpdated().name() : null);
                 mandatoryFields.setIsDataLakeAvailability(voMandatoryFields.getIsDataLakeAvailability() != null ? voMandatoryFields.getIsDataLakeAvailability().name() : null);
-                mandatoryFields.setIsDataAsset(voMandatoryFields.getIsDataAsset() != null ? voMandatoryFields.getIsDataAsset().name() : null);
+               // mandatoryFields.setIsDataAsset(voMandatoryFields.getIsDataAsset() != null ? voMandatoryFields.getIsDataAsset().name() : null);
                 mandatoryFields.setDataConfidentiality(voMandatoryFields.getDataConfidentiality() != null ? voMandatoryFields.getDataConfidentiality().name() : null);
                 mandatoryFields.setTier(voMandatoryFields.getTier() != null ? voMandatoryFields.getTier() : null);
             }
@@ -189,7 +188,7 @@ public class FabricCatalogMetadataAssembler implements GenericAssembler<FabricCa
                 mandatoryFieldsVO.setLeanIXId(mandatoryFields.getLeanIXId());
                 mandatoryFieldsVO.setIsDocumentationUpdated(mandatoryFields.getIsDocumentationUpdated() != null ? IsDocumentationUpdatedEnum.valueOf(mandatoryFields.getIsDocumentationUpdated()) : null);
                 mandatoryFieldsVO.setIsDataLakeAvailability(mandatoryFields.getIsDataLakeAvailability() != null ? IsDataLakeAvailabilityEnum.valueOf(mandatoryFields.getIsDataLakeAvailability()) : null);
-                mandatoryFieldsVO.setIsDataAsset(mandatoryFields.getIsDataAsset() != null ? IsDataAssetEnum.valueOf(mandatoryFields.getIsDataAsset()) : null);
+                //mandatoryFieldsVO.setIsDataAsset(mandatoryFields.getIsDataAsset() != null ? IsDataAssetEnum.valueOf(mandatoryFields.getIsDataAsset()) : null);
                 mandatoryFieldsVO.setDataConfidentiality(mandatoryFields.getDataConfidentiality() != null ? DataConfidentialityEnum.valueOf(mandatoryFields.getDataConfidentiality()) : null);
                 mandatoryFieldsVO.setTier(mandatoryFields.getTier() != null ?  mandatoryFields.getTier(): null);
             }

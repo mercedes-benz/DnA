@@ -312,9 +312,9 @@ definitions:
       isDataLakeAvailability:
         type: string
         enum: ["Yes","No"]
-      isDataAsset:
-        type: string
-        enum: ["Yes","No"]
+#      isDataAsset:
+#        type: string
+#        enum: ["Yes","No"]
       dataConfidentiality:
         type: string
         enum: [public,confidential,secret,internal]
