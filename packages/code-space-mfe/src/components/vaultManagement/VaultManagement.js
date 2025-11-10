@@ -365,7 +365,7 @@ const VaultManagement = (props) => {
                     />
                     <i
                       className={classNames('icon mbc-icon', searchTerm?.length > 0 ? 'close circle' : 'search', Styles.searchIcon)}
-                      onClick={ searchTerm?.length > 0 ? () => setSearchTerm('') : undefined }
+                      onClick={ searchTerm?.length > 0 ? () => setSearchTerm('') : null }
                     />
                   </div>
                 </div>
