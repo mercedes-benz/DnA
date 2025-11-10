@@ -178,7 +178,7 @@ jobs:
         propertyPath: '${{ inputs.YML_IMAGE_TAG_PATH }}'
         value: ${{ github.run_number }}-development
         createPR: true
-        branch: deploy-version-${{ github.run_number }}-dev
+        branch: deploy-version-${{ github.run_number }}-${{ inputs.DETECT_PROJECT_NAME }}-dev
         targetBranch: dev
         masterBranchName: dev
         labels: 'dev, update-image-version'
@@ -222,7 +222,7 @@ jobs:
         propertyPath: '${{ inputs.YML_IMAGE_TAG_PATH }}'
         value: ${{ github.run_number }}-staging
         createPR: true
-        branch: deploy-version-${{ github.run_number }}-staging
+        branch: deploy-version-${{ github.run_number }}-${{ inputs.DETECT_PROJECT_NAME }}-staging
         targetBranch: staging
         masterBranchName: staging
         labels: 'staging, update-image-version'
@@ -266,7 +266,7 @@ jobs:
         propertyPath: '${{ inputs.YML_IMAGE_TAG_PATH }}'
         value: ${{ needs.build.outputs.version }}
         createPR: true
-        branch: deploy-version-${{ github.run_number }}-main
+        branch: deploy-version-${{ github.run_number }}--${{ inputs.DETECT_PROJECT_NAME }}-main
         targetBranch: main
         masterBranchName: main
         labels: 'main, update-image-version'
