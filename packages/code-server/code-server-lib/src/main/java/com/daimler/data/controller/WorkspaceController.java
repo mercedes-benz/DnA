@@ -3530,6 +3530,20 @@ import org.springframework.beans.factory.annotation.Value;
 		log.info("Request received to fetch secret from Vault for codeSpaceName={}, env={}", codeSpaceName, env);
 		Object responseBody = null;
 
+		 UserStore.UserInfo currentUser = userStore.getUserInfo();
+
+		if (currentUser == null) {
+			log.warn("Unauthenticated request to Vault secrets API for {}", codeSpaceName);
+			return new ResponseEntity<>("User not authenticated", HttpStatus.UNAUTHORIZED);
+		}
+
+		if (!currentUser.canAccessWorkspace(codeSpaceName, workspaceCustomRepository)) {
+			log.warn("User {} not authorized to read Vault secrets for workspace {}", currentUser.getId(),
+					codeSpaceName);
+			return new ResponseEntity<>("Access denied: you don't have permission to view this workspace's secrets.",
+					HttpStatus.FORBIDDEN);
+		}
+
 		try {
 			ResponseEntity<String> vaultResponse = vaultClient.getSecret(codeSpaceName, env);
 
@@ -3583,6 +3597,20 @@ import org.springframework.beans.factory.annotation.Value;
 			@NotNull @ApiParam(value = "Vault path where the secret should be created", required = true) @Valid @RequestParam(value = "path", required = true) String path,
 			@ApiParam(value = "JSON body containing the key-value pairs of the secret", required = true) @Valid @RequestBody Object secretValue) {
 		log.info("Request received to create secret in Vault for path={}", path);
+		UserStore.UserInfo currentUser = userStore.getUserInfo();
+		if (currentUser == null) {
+			log.warn("Unauthenticated request to create secret at path={}", path);
+			return new ResponseEntity<>("User not authenticated", HttpStatus.UNAUTHORIZED);
+		}
+
+		String codeSpaceName = path.split("/")[0];
+
+		if (!currentUser.canWriteWorkspace(codeSpaceName, workspaceCustomRepository)) {
+			log.warn("User {} is not authorized to create secret for workspace {}", currentUser.getId(), codeSpaceName);
+			return new ResponseEntity<>(
+					"Access denied: You do not have permission to create secrets for this workspace.",
+					HttpStatus.FORBIDDEN);
+		}
 
 		try {
 			String secretJson = new ObjectMapper().writeValueAsString(secretValue);
@@ -3632,6 +3660,21 @@ import org.springframework.beans.factory.annotation.Value;
 			@NotNull @ApiParam(value = "Environment name", required = true) @Valid @RequestParam(value = "env", required = true) String env,
 			@ApiParam(value = "JSON body containing the updated key-value pairs of the secret", required = true) @Valid @RequestBody Object secretValue) {
 		log.info("Request received to update secret in Vault for path={}, env={}", path, env);
+
+		UserStore.UserInfo currentUser = userStore.getUserInfo();
+		if (currentUser == null) {
+			log.warn("Unauthenticated request to update secret at path={}", path);
+			return new ResponseEntity<>("User not authenticated", HttpStatus.UNAUTHORIZED);
+		}
+
+		String codeSpaceName = path.split("/")[0];
+
+		if (!currentUser.canWriteWorkspace(codeSpaceName, workspaceCustomRepository)) {
+			log.warn("User {} is not authorized to update secret for workspace {}", currentUser.getId(), codeSpaceName);
+			return new ResponseEntity<>(
+					"Access denied: You do not have permission to update secrets for this workspace.",
+					HttpStatus.FORBIDDEN);
+		}
 
 		try {
 			String secretJson = new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(secretValue);
@@ -3683,6 +3726,22 @@ import org.springframework.beans.factory.annotation.Value;
 			@NotNull @ApiParam(value = "Vault path where the secret exists", required = true) @Valid @RequestParam(value = "path", required = true) String path,
 			@NotNull @ApiParam(value = "Name of the secret to be deleted", required = true) @Valid @RequestParam(value = "secretName", required = true) String secretName) {
 		log.info("Request received to delete secret from Vault for path={}, secretName={}", path, secretName);
+
+		UserStore.UserInfo currentUser = userStore.getUserInfo();
+		if (currentUser == null) {
+			log.warn("Unauthenticated request to delete secret at path={}", path);
+			return new ResponseEntity<>("User not authenticated", HttpStatus.UNAUTHORIZED);
+		}
+
+		String codeSpaceName = path.split("/")[0];
+
+		if (!currentUser.canWriteWorkspace(codeSpaceName, workspaceCustomRepository)) {
+			log.warn("User {} is not authorized to delete secrets for workspace {}", currentUser.getId(),
+					codeSpaceName);
+			return new ResponseEntity<>(
+					"Access denied: You do not have permission to delete secrets for this workspace.",
+					HttpStatus.FORBIDDEN);
+		}
 
 		try {
 			ResponseEntity<String> vaultResponse = vaultClient.deleteSecret(path, secretName);

@@ -34,6 +34,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
+import com.daimler.data.db.repo.workspace.WorkspaceCustomRepository;
 import com.daimler.data.dto.workspace.CreatedByVO;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
@@ -120,6 +122,42 @@ public class UserStore {
 			return this.getUserRole().stream().anyMatch(
 				n -> "CodespaceAdmin".equalsIgnoreCase(n.getName())
 			);
+		}
+		public boolean canAccessWorkspace(String codeSpaceName, WorkspaceCustomRepository workspaceRepo) {
+			if (codeSpaceName == null)
+				return false;
+
+			if (hasAdminAccess() || hasSuperAdminAccess() || hasCodespaceAdminAccess()) {
+				return true;
+			}
+
+			CodeServerWorkspaceNsql workspace = workspaceRepo.findByWorkspaceId(codeSpaceName);
+			if (workspace == null)
+				return false;
+
+			String userId = getId().toLowerCase();
+			var workspaceData = workspace.getData();
+
+			return userId.equalsIgnoreCase(workspaceData.getWorkspaceOwner().getId()) ||
+					workspaceData.getProjectDetails()
+							.getProjectCollaborators()
+							.stream()
+							.anyMatch(c -> userId.equalsIgnoreCase(c.getId()));
+		}
+
+		public boolean canWriteWorkspace(String codeSpaceName, WorkspaceCustomRepository workspaceRepo) {
+			if (codeSpaceName == null)
+				return false;
+
+			if (hasAdminAccess() || hasSuperAdminAccess() || hasCodespaceAdminAccess()) {
+				return true;
+			}
+
+			CodeServerWorkspaceNsql workspace = workspaceRepo.findByWorkspaceId(codeSpaceName);
+			if (workspace == null)
+				return false;
+
+			return getId().equalsIgnoreCase(workspace.getData().getWorkspaceOwner().getId());
 		}
 	}
 
