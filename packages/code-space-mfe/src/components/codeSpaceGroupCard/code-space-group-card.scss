@@ -24,6 +24,12 @@
                 cursor: pointer;
             }
         }
+
+        .aiGroup{
+          margin-left: 'auto';
+          display: 'inline-flex'; 
+          align-items: 'center';
+        }
   
         button {
             background: unset;

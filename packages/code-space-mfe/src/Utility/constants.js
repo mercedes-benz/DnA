@@ -22,6 +22,7 @@ export const HTTP_METHOD = {
     PAGINATION_MAX_ITEMS_PER_PAGE : 'paginationMaxItemsPerPage',
     AUDIT_LOGS_MAX_ITEMS_PER_PAGE : 'auditLogsMaxItemsPerPage',
     CODE_SPACE_SELECTED_GROUPS : 'codeSpaceSelectedGroups',
+    AI_CODE_SPACE_SELECTED_GROUPS : 'aiCodeSpaceSelectedGroups',
     JWT: 'jwt',
   }
   

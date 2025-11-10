@@ -7,6 +7,10 @@ export const history = createHashHistory({
   basename: '/codespaces',
 });
 
+export const aiHistory = createHashHistory({
+  basename: '/aicodespaces',
+});
+
 const isDev = process.env.NODE_ENV === 'development';
 
 export default configureStore({

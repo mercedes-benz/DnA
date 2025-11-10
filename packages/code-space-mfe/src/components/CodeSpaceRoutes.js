@@ -17,6 +17,8 @@ import ManageRecipes from './manageRecipes/ManageRecipes';
 import CodeSpaceRecipe from './codeSpaceRecipe/CodeSpaceRecipe';
 import Tutorials from './codeSpaceTutorials/Tutorials';
 import CodeSpaceAdministration from './codeSpaceAdministration/CodeSpaceAdministration';
+import AiCodeSpaces from './aiCodeSpaces/AiCodeSpaces';
+import AiCodeSpaceForm from './aiCodeSpaces/AiCodeSpaceForm';
 
 export const protectedRoutes = [
     {
@@ -63,6 +65,16 @@ export const protectedRoutes = [
         component: CodeSpaceAdministration,
         exact: false,
         path: '/administration',
+    },
+    {
+        component: AiCodeSpaces,
+        exact: true,
+        path: '/aicodespaces',
+    },
+    {
+        component: AiCodeSpaceForm,
+        exact: true,
+        path: '/aicodespaces/aicodespaceform',
     },
 ];
 
