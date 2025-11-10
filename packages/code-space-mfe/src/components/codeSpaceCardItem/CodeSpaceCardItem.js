@@ -737,7 +737,7 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
                     <i className={classNames("icon mbc-icon help", Styles.helpIcon)} tooltip-data="Steps to set up"></i>
                     </button>
                   )}
-                {!isPublicRecipe && !createInProgress && !deployingInProgress && !buildInProgress && !creationFailed && isOwner && (
+                {!isPublicRecipe && !createInProgress && !deployingInProgress && !buildInProgress && !creationFailed && isOwner && !props?.isAiGroupModal && (
                   <button className="btn btn-primary" onClick={() => props.onCodeSpaceEdit(codeSpace)}>
                     <i className="icon mbc-icon edit"></i>
                   </button>
@@ -751,7 +751,7 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
                       <i className={classNames('icon mbc-icon back_files', Styles.trainingIcon)} />
                     </button>
                   )}
-                {!creationFailed && !deleteInProgress && !createInProgress && !deployingInProgress && !buildInProgress && (
+                {!creationFailed && !deleteInProgress && !createInProgress && !deployingInProgress && !buildInProgress && !props.isAiGroupModal && (
                   <button className="btn btn-primary" onClick={onCodeSpaceDelete}>
                     <i className="icon delete"></i>
                   </button>

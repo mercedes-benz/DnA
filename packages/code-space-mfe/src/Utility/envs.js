@@ -51,4 +51,10 @@ const getInjectedEnv = (key) => {
     DNA_APP_ID: getInjectedEnv('DNA_APP_ID') || process.env.DNA_APP_ID,
     DNA_ENTITLEMENT_PREFIX: getInjectedEnv('DNA_ENTITLEMENT_PREFIX') || process.env.DNA_ENTITLEMENT_PREFIX,
     FABRIC_API_BASEURL: getInjectedEnv('FABRIC_API_BASEURL') || process.env.FABRIC_API_BASEURL,
+    AZURE_OPENAI_ENDPOINT: getInjectedEnv('AZURE_OPENAI_ENDPOINT') || process.env.AZURE_OPENAI_ENDPOINT,
+    TOOL_LLM_URL: getInjectedEnv('TOOL_LLM_URL') || process.env.TOOL_LLM_URL,
+    GEMINI_ENDPOINT: getInjectedEnv('GEMINI_ENDPOINT') || process.env.GEMINI_ENDPOINT,
+    AI_HOST_RECIPE_ID: getInjectedEnv('AI_HOST_RECIPE_ID') || process.env.AI_HOST_RECIPE_ID,
+    AI_AGENT_RECIPE_ID: getInjectedEnv('AI_AGENT_RECIPE_ID') || process.env.AI_AGENT_RECIPE_ID,
+    MCP_SERVER_RECIPE_ID: getInjectedEnv('MCP_SERVER_RECIPE_ID') || process.env.MCP_SERVER_RECIPE_ID,
   };

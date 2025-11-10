@@ -430,6 +430,22 @@ const getExistingRoles = (appId) => {
     });
 };
 
+const createAiAgentWorkflow = (data) => {
+    return server.post(`/workspaces/aiagent`, data);
+}
+
+const getAiAgentGroups = () => { 
+    return server.get(`/workspaces/aiagent`, {
+        data: {},
+    });
+};
+
+const initializeAiWorkflowSpace = (id, data) => { 
+    return server.put(`/workspaces/aiagent/${id}/initialize`, 
+        data,
+    );
+};
+
 export const CodeSpaceApiClient = {
     getCodeSpacesList,
     createCodeSpace,
@@ -499,5 +515,8 @@ export const CodeSpaceApiClient = {
     createCodeSpaceGroup,
     editCodeSpaceGroup,
     deleteCodeSpaceGroup,
-    getExistingRoles
+    getExistingRoles,
+    createAiAgentWorkflow,
+    getAiAgentGroups,
+    initializeAiWorkflowSpace,
 };
