@@ -150,6 +150,10 @@ export const Envs = {
     getInjectedEnv('ENABLE_CODE_SPACE') !== undefined
       ? getInjectedEnv('ENABLE_CODE_SPACE')
       : EnvParser.parseBool(process.env.ENABLE_CODE_SPACE, false),
+  ENABLE_AI_AGENT_CODE_SPACE:
+    getInjectedEnv('ENABLE_AI_AGENT_CODE_SPACE') !== undefined
+      ? getInjectedEnv('ENABLE_AI_AGENT_CODE_SPACE')
+      : EnvParser.parseBool(process.env.ENABLE_AI_AGENT_CODE_SPACE, false),
   CODE_SPACE_API_BASEURL: getInjectedEnv('CODE_SPACE_API_BASEURL') || process.env.CODE_SPACE_API_BASEURL,
   CODE_SPACE_GIT_PAT_APP_URL: getInjectedEnv('CODE_SPACE_GIT_PAT_APP_URL') || process.env.CODE_SPACE_GIT_PAT_APP_URL,
   CODE_SPACE_GIT_ORG_NAME: getInjectedEnv('CODE_SPACE_GIT_ORG_NAME') || process.env.CODE_SPACE_GIT_ORG_NAME,
