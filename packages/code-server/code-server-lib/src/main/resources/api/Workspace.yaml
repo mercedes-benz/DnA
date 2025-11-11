@@ -1575,7 +1575,7 @@ paths:
         500:
           description: "Internal error"
     
-  /workspaces/aiagent/delete/{id}:
+  /workspaces/aiagent/{id}:
     delete:
       tags:
         - "code-server"
