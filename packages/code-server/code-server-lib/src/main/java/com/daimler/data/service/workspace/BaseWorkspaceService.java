@@ -444,7 +444,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 		 ownerWorkbenchDeleteInputsDto.setCloudServiceProvider(entity.getData().getProjectDetails().getRecipeDetails().getCloudServiceProvider());
 		 ownerWorkbenchDeleteInputsDto.setWsid(entity.getData().getWorkspaceId());
 		 ownerWorkbenchDeleteDto.setInputs(ownerWorkbenchDeleteInputsDto);
-		 if(entity.getData().getStatus().equalsIgnoreCase("CREATED"))
+		 if(entity.getData().getStatus().equalsIgnoreCase("CREATED") && (!entity.getData().getProjectDetails().getIsAgentCreation() || entity.getData().getProjectDetails().getIsAgentInitialized()))
 		 {
 			 boolean deleteAction = client.deleteServer(ownerWorkbenchDeleteDto);
 			 if(!deleteAction)
