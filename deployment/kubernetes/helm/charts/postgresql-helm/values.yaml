@@ -233,12 +233,12 @@ service:
 persistence:
   enabled: true
   size: 1Gi
-  # storageClass: cinder
+  # storageClass: dhc-gp3
   # PVCName: name
   wal:
     enabled: false
     size: 1Gi
-    # storageClass: cinder
+    # storageClass: dhc-gp3
     # PVCName: name
 
 ## Network Policy to be applied
@@ -317,7 +317,7 @@ backup:
     ## recommended
     enabled: true
     size: 1Gi
-    # storageClass: cinder
+    # storageClass: dhc-gp3
   file:
     name: postgresql-backup
     # label: test

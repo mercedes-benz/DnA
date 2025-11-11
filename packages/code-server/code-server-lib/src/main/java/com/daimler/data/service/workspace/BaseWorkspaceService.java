@@ -166,6 +166,7 @@
 	 @Value("${codeServer.codespace.filename}")
 	 private String codespaceFileName;
 
+
 	 @Value("${codeServer.technical.id}")
 	 private String technicalId;
 
@@ -1735,6 +1736,9 @@
 						}else{
 							auditLogs = optionalBuildDeployentity.getData().getProdDeploymentAuditLogs();
 						}
+					}
+					 if(null == auditLogs){
+						auditLogs = new ArrayList<>();
 					}
 					DeploymentAudit auditLog = new DeploymentAudit();
 					 if("APPROVAL_PENDING".equalsIgnoreCase(deploymentDetails.getLastDeploymentStatus())){						

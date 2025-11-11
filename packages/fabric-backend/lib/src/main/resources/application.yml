@@ -5,7 +5,6 @@ spring:
     version: 1.4.0
   profile:
     active: production
-
   flyway:
     enabled: ${FLYWAY_ENABLED:false}
     baseline-on-migrate: ${FLYWAY_BASELINE_ON_MIGRATE:false}
@@ -31,6 +30,18 @@ spring:
     username: ${API_DB_USER:dbuser}
     password: ${API_DB_PASS:dbpassword}
     driverClassName: org.postgresql.Driver
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  health:
+    db:
+      enabled: true
+  endpoint:
+    health:
+      show-details: always      
 
 fabricWorkspaces:
   clientId: ${FABRIC_OAUTH_CLIENT_ID:XXXX}
