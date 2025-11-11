@@ -1262,7 +1262,8 @@
 						List<String> repoDetails = CommonUtils.getRepoNameFromGitUrl(vo.getProjectDetails().getRecipeDetails().getRepodetails());
 						String orgName = repoDetails.get(0);
 						repoName = repoDetails.get(1);
-						if(vo.getProjectDetails().getRecipeDetails().getRepodetails().contains("https://git.i.mercedes-benz.com/")){
+						String gitHubUrl = "https://" + gitOrgUri + orgName ;
+						if(vo.getProjectDetails().getRecipeDetails().getRepodetails().contains(gitHubUrl)){
 						HttpStatus addGitUser = gitClient.addUserToRepo(collaborator.getId(), repoName);
 					
 					 if (addGitUser == HttpStatus.UNPROCESSABLE_ENTITY) {
@@ -2275,7 +2276,8 @@
 					List<String> repoDetails = CommonUtils.getRepoNameFromGitUrl(vo.getProjectDetails().getRecipeDetails().getRepodetails());
 					String repoOwner = repoDetails.get(0);
 					repoName = repoDetails.get(1);
-					if(gitUrl.contains("https://git.i.mercedes-benz.com/")){
+					String gitHubUrl = "https://" + gitOrgUri + orgName ;
+					if(gitUrl.contains(gitHubUrl)){
 						HttpStatus addGitUser = gitClient.addUserToRepo(gitUser, repoName);
 					if(addGitUser == HttpStatus.UNPROCESSABLE_ENTITY){
 						log.info("Failed while adding {} as collaborator with status {}", repoName,
