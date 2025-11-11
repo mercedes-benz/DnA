@@ -4922,7 +4922,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 			if(groupData!=null){
 				List<CodeServerWorkspaceVO> workspaces = groupData.getWorkspaces();
 				for(CodeServerWorkspaceVO item : workspaces){
-					GenericMessage responseMsg = this.deleteById(currentUser.getId(),id);
+					GenericMessage responseMsg = this.deleteById(currentUser.getId(),item.getId());
 				}
 			}
 			CodeServerUserGroupCollectionVO responseData = this.deleteWorkSpaceGroup(id);
