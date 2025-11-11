@@ -349,7 +349,7 @@ const AiCodeSpaceForm = (props) => {
           GOOGLE_API_KEY: uiApiKey,
           GEMINI_ENDPOINT: Envs.GEMINI_ENDPOINT,
           GEMINI_MODEL: 'gemini-1.5-pro',
-          AGENT_HOSTNAME: Envs.CODESPACE_AWS_DEPLOYMENT_URL + "/" + projectName + "-agent/prod/api",
+          AGENT_HOSTNAME: Envs.CODESPACE_AWS_DEPLOYMENT_URL + "/" + projectName + "-agent/prod/",
         },
       }
       ProgressIndicator.show();
