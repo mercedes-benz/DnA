@@ -45,7 +45,7 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           {{- if .Values.vaultInjector.enable }}           
           command: ["/bin/sh", "-c"]
-          args: ['source /vault/secrets/envvar && java -XX:+UseContainerSupport -XX:MaxRAMPercentage=98.0 -jar /usr/app/{{ .Values.vaultInjector.jarName }}']
+          args: ['. /vault/secrets/envvar && java -XX:+UseContainerSupport -XX:MaxRAMPercentage=98.0 -jar /usr/app/{{ .Values.vaultInjector.jarName }}']
           {{ else }}          
           {{- with .Values.envs }}            
           env:
