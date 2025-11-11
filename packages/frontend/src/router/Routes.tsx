@@ -410,6 +410,13 @@ const protectedRoutes = [
   },
   {
     allowedRoles: UserAndAdminRole,
+    component: CodeSpaceComponent,
+    exact: false,
+    path: '/aicodespaces',
+    title: 'Your AI Agent Code Spaces',
+  },
+  {
+    allowedRoles: UserAndAdminRole,
     component: ChronosComponent,
     exact: false,
     path: '/chronos',

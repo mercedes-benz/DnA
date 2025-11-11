@@ -8,6 +8,7 @@ const enableMatomoService = Envs.ENABLE_MATOMO_SERVICE;
 const enableSapAnalyticsCloud = Envs.ENABLE_SAP_ANALYTICS_CLOUD;
 const sapAnalyticsUrl = Envs.SAP_ANALYTICS_CLOUD_URL;
 const enableCodeSpace = Envs.ENABLE_CODE_SPACE;
+const enableAiAgentCodeSpace = Envs.ENABLE_AI_AGENT_CODE_SPACE;
 // const enableJupiyterNoteWorkspace = Envs.ENABLE_JUPYTER_WORKSPACE;
 const enableDataikuWorkspace = Envs.ENABLE_DATAIKU_WORKSPACE;
 const udemyUrl = Envs.UDEMY_URL;
@@ -390,6 +391,24 @@ export const ToolsLandingPageElements = [
     isSmallCard: false,
     isMediumCard: true,
     svgIcon: 'codespace',
+    isDnAInternalTool: true,
+  },
+  {
+    id: 'aiAgents',
+    name: 'AI Agent Code Spaces',
+    description:
+      'Code spaces provides developers with one click developer workspace customizable based on the technology used. Developers can collaborate on the team developing same solution but also deploy solution to different staging environments with click of the mouse.',
+    tags: ['FOSS', 'Coding', 'Cloud', 'Onprem'],
+    url: '/aicodespaces',
+    isExternalLink: false,
+    isTextAlignLeft: true,
+    animation: true,
+    isDisabled: !enableAiAgentCodeSpace,
+    isDetailedPage: false,
+    isMoreServicesCard:false,
+    isSmallCard: false,
+    isMediumCard: true,
+    svgIcon: 'genai-direct-chat',
     isDnAInternalTool: true,
   },
     {
