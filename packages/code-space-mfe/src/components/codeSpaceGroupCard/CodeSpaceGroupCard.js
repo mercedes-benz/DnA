@@ -101,9 +101,9 @@ const CodeSpaceGroupCard = ({ group, userInfo, onStartStopCodeSpace, onShowDeplo
           <button className={classNames('btn btn-primary')} onClick={() => {onShowCodeSpacesModal(true, group); isAiGroupModal ? sessionStorage.setItem(SESSION_STORAGE_KEYS.AI_CODE_SPACE_SELECTED_GROUPS,JSON.stringify(group)) : sessionStorage.setItem(SESSION_STORAGE_KEYS.CODE_SPACE_SELECTED_GROUPS,JSON.stringify(group));}}>
             <i className="icon mbc-icon visibility-show"></i> View all
           </button>
-          {!isAiGroupModal && <button className={classNames('btn btn-primary')} onClick={() => onCodeSpaceGroupDeleteModal(true, group)}>
+          <button className={classNames('btn btn-primary')} onClick={() => onCodeSpaceGroupDeleteModal(true, group)}>
             <i className="icon delete"></i> Delete
-          </button>}
+          </button>
         </div>
       </div>
     </div>
