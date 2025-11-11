@@ -141,5 +141,7 @@ public interface WorkspaceService {
 	GenericMessage createAiAgentSpace(InitializeAiAgentWorkspaceRequestVO reqVO, String groupName, UserInfoVO currentUserVO, String userId);
 
 	CodeServerUserGroupCollectionVO getAllAiWorkSpaceGroup();
+
+	CodeServerUserGroupCollectionVO deleteAiWorkSpaces(String id);
 	
 }
