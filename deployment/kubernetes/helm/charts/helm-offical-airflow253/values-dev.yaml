@@ -759,10 +759,10 @@ scheduler:
 
   resources:
    limits:
-    memory: 825Mi
+    memory: 2048Mi
    requests:
     cpu: 1234m
-    memory: 825Mi
+    memory: 2048Mi
 
   # This setting tells kubernetes that its ok to evict
   # when it wants to scale a node down.
@@ -1098,10 +1098,10 @@ webserver:
 
   resources:
     limits:
-      memory: 835Mi
+      memory: 2048Mi
     requests:
       cpu: 3m
-      memory: 835Mi
+      memory: 2048Mi
 
   # Create initial user.
   defaultUser:
