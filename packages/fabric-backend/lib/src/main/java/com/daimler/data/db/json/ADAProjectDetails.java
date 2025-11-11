@@ -33,6 +33,7 @@ public class ADAProjectDetails implements Serializable {
     private Date startingDate;
     private boolean active;
     private Date inactiveDate;
+    private String createdBy;
 
     public ADAProjectDetails() {
         this.stakeholders = new ArrayList<>();
