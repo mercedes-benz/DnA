@@ -123,42 +123,6 @@ public class UserStore {
 				n -> "CodespaceAdmin".equalsIgnoreCase(n.getName())
 			);
 		}
-		public boolean canAccessWorkspace(String codeSpaceName, WorkspaceCustomRepository workspaceRepo) {
-			if (codeSpaceName == null)
-				return false;
-
-			if (hasAdminAccess() || hasSuperAdminAccess() || hasCodespaceAdminAccess()) {
-				return true;
-			}
-
-			CodeServerWorkspaceNsql workspace = workspaceRepo.findByWorkspaceId(codeSpaceName);
-			if (workspace == null)
-				return false;
-
-			String userId = getId().toLowerCase();
-			var workspaceData = workspace.getData();
-
-			return userId.equalsIgnoreCase(workspaceData.getWorkspaceOwner().getId()) ||
-					workspaceData.getProjectDetails()
-							.getProjectCollaborators()
-							.stream()
-							.anyMatch(c -> userId.equalsIgnoreCase(c.getId()));
-		}
-
-		public boolean canWriteWorkspace(String codeSpaceName, WorkspaceCustomRepository workspaceRepo) {
-			if (codeSpaceName == null)
-				return false;
-
-			if (hasAdminAccess() || hasSuperAdminAccess() || hasCodespaceAdminAccess()) {
-				return true;
-			}
-
-			CodeServerWorkspaceNsql workspace = workspaceRepo.findByWorkspaceId(codeSpaceName);
-			if (workspace == null)
-				return false;
-
-			return getId().equalsIgnoreCase(workspace.getData().getWorkspaceOwner().getId());
-		}
 	}
 
 	@Data
