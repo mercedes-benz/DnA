@@ -3672,7 +3672,7 @@ import org.springframework.beans.factory.annotation.Value;
         @ApiResponse(code = 403, message = "Request is not authorized."),
         @ApiResponse(code = 405, message = "Method not allowed"),
         @ApiResponse(code = 500, message = "Internal error") })
-    @RequestMapping(value = "/workspaces/aiagent",
+    @RequestMapping(value = "/workspaces/aiagent/{id}",
         produces = { "application/json" }, 
         consumes = { "application/json" },
         method = RequestMethod.DELETE)

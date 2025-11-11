@@ -1574,6 +1574,8 @@ paths:
           description: "Method not allowed"
         500:
           description: "Internal error"
+    
+  /workspaces/aiagent/{id}:
     delete:
       tags:
         - "code-server"
