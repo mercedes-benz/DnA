@@ -4914,4 +4914,23 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 		}
 	}
 
+	@Override
+	public CodeServerUserGroupCollectionVO deleteAiWorkSpaces(String id){
+		CreatedByVO currentUser = this.userStore.getVO();
+		try {
+			CodeServerUserGroupByIdVO groupData = this.getWorkSpaceGroupById(id);
+			if(groupData!=null){
+				List<CodeServerWorkspaceVO> workspaces = groupData.getWorkspaces();
+				for(CodeServerWorkspaceVO item : workspaces){
+					GenericMessage responseMsg = this.deleteById(currentUser.getId(),id);
+				}
+			}
+			CodeServerUserGroupCollectionVO responseData = this.deleteWorkSpaceGroup(id);
+			return responseData;
+		} catch (Exception e) {
+			log.info("Failed while deleting codeserver workspace group with exception " + e.getMessage());
+			return  null;
+		}
+	}
+
 }
