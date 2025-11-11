@@ -444,7 +444,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 		 ownerWorkbenchDeleteInputsDto.setCloudServiceProvider(entity.getData().getProjectDetails().getRecipeDetails().getCloudServiceProvider());
 		 ownerWorkbenchDeleteInputsDto.setWsid(entity.getData().getWorkspaceId());
 		 ownerWorkbenchDeleteDto.setInputs(ownerWorkbenchDeleteInputsDto);
-		 if(entity.getData().getStatus().equalsIgnoreCase("CREATED"))
+		 if(entity.getData().getStatus().equalsIgnoreCase("CREATED") && (!entity.getData().getProjectDetails().getIsAgentCreation() || entity.getData().getProjectDetails().getIsAgentInitialized()))
 		 {
 			 boolean deleteAction = client.deleteServer(ownerWorkbenchDeleteDto);
 			 if(!deleteAction)
@@ -4910,6 +4910,25 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 			return responseData;
 		} catch (Exception e) {
 			log.info("Failed while getAllAiWorkSpaceGroup codeserver workspace group with exception " + e.getMessage());
+			return  null;
+		}
+	}
+
+	@Override
+	public CodeServerUserGroupCollectionVO deleteAiWorkSpaces(String id){
+		CreatedByVO currentUser = this.userStore.getVO();
+		try {
+			CodeServerUserGroupByIdVO groupData = this.getWorkSpaceGroupById(id);
+			if(groupData!=null){
+				List<CodeServerWorkspaceVO> workspaces = groupData.getWorkspaces();
+				for(CodeServerWorkspaceVO item : workspaces){
+					GenericMessage responseMsg = this.deleteById(currentUser.getId(),item.getId());
+				}
+			}
+			CodeServerUserGroupCollectionVO responseData = this.deleteWorkSpaceGroup(id);
+			return responseData;
+		} catch (Exception e) {
+			log.info("Failed while deleting codeserver workspace group with exception " + e.getMessage());
 			return  null;
 		}
 	}

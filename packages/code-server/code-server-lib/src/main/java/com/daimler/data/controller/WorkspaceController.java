@@ -3662,4 +3662,54 @@ import org.springframework.beans.factory.annotation.Value;
 		return new ResponseEntity<>(responseData, responseStatus);
 	};
 
+	@Override
+	@ApiOperation(value = "Delete ai agent workspaces for a given Id.", nickname = "deleteAiAgentWorkspace", notes = "Delete ai agent workspaces for a given identifier.", response = CodeServerUserGroupResponseVO.class, tags={ "code-server", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns message of success or failure", response = CodeServerUserGroupResponseVO.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/workspaces/aiagent/{id}",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.DELETE)
+    public ResponseEntity<CodeServerUserGroupResponseVO> deleteAiAgentWorkspace(@ApiParam(value = "Workspace group ID to be deleted",required=true) @PathVariable("id") String id){
+		CodeServerUserGroupResponseVO response = new CodeServerUserGroupResponseVO();
+		response.setData(null);
+		response.setSuccess("FAILED");
+		try {
+			CreatedByVO currentUser = this.userStore.getVO();			
+				Optional<CodeServerUserGroupNsql> entityOptional = userGroupRepository.findById(currentUser.getId());
+			if(entityOptional.isPresent()){
+				CodeServerUserGroupNsql entity = entityOptional.get();
+				if(!entity.getData().getGroups().stream().anyMatch(i -> i.getGroupId().equalsIgnoreCase(id))){
+					MessageDescription invalidMsg = new MessageDescription("Group ID does not exist");
+						response.addErrorsItem(invalidMsg);	
+				}	
+			}
+			if(response.getErrors() != null && !response.getErrors().isEmpty())
+				return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);		
+			CodeServerUserGroupCollectionVO responsedata = service.deleteAiWorkSpaces(id);
+			if(responsedata != null){
+				response.setData(responsedata);
+				response.setSuccess("SUCCESS");
+				return new ResponseEntity<>(response, HttpStatus.OK);
+			}else{
+				log.error("Failed to delete ai workspaces");
+			MessageDescription exceptionMsg = new MessageDescription("Failed to delete ai workspaces due to internal error.");
+			response.addErrorsItem(exceptionMsg);
+			return new ResponseEntity<>(response,HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+			
+		} catch (Exception e) {
+			log.error("Failed to delete ai workspaces, with exception {}", e.getLocalizedMessage());
+			MessageDescription exceptionMsg = new MessageDescription("Failed to delete ai workspaces to internal error.");
+			response.addErrorsItem(exceptionMsg);
+			return new ResponseEntity<>(response,HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	};
+
  }
