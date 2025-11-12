@@ -26,7 +26,10 @@ import org.springframework.http.MediaType;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.ArrayList;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import org.json.JSONObject;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -132,13 +135,13 @@ public class UiLiciousClient {
                             runId = testRunIDsNode.get(0).asText();
                             response.setResponseStatus(httpResponse.getStatusCode());
                             response.setRunId(runId);
-                            log.info("called uilicious for create subscription and successfully got the run id");
+                            log.debug("called uilicious for create subscription and successfully got the run id");
                         }
                     }
                 }else{
                     response.setResponseStatus(httpResponse.getStatusCode());
                     response.setRunId(null);
-                    log.info(" failed while calling uilicious for create subscription with status {} and body {}",httpResponse.getStatusCode(),httpResponse.getBody());
+                    log.debug(" failed while calling uilicious for create subscription with status {} and body {}",httpResponse.getStatusCode(),httpResponse.getBody());
                 }
             }
         }catch( JsonProcessingException e){
@@ -170,10 +173,10 @@ public class UiLiciousClient {
                     String httpResponseBody = httpResponse.getBody();
                     ObjectMapper objectMapper = new ObjectMapper();
                     response = objectMapper.readTree(httpResponseBody);
-                    log.info("called uilicious for get subscription run details and successfully got the response");
+                    log.debug("called uilicious for get subscription run details and successfully got the response");
                     return response;
                 }else{
-                    log.info(" failed while calling uilicious for get subscription run details with status{}",httpResponse.getStatusCode());
+                    log.debug(" failed while calling uilicious for get subscription run details with status{}",httpResponse.getStatusCode());
                     return response;
                 }
             }
@@ -219,7 +222,7 @@ public class UiLiciousClient {
                     JsonNode firstUser = resultArray.get(0);
                     String accountId = firstUser.path("_oid").asText();
 
-                    log.info("Successfully retrieved account ID: {} for loginName: {}", accountId, loginName);
+                    log.debug("Successfully retrieved account ID: {} for loginName: {}", accountId, loginName);
                     return accountId;
                 } else {
                     log.warn("No user account found for loginName: {}", loginName);
@@ -280,7 +283,7 @@ public class UiLiciousClient {
                     }
                 }
 
-                log.info("Successfully retrieved {} workspaces for account ID: {}", workspaces.size(), accountId);
+                log.debug("Successfully retrieved {} workspaces for account ID: {}", workspaces.size(), accountId);
             } else {
                 log.warn("Received non-OK response from Uilicious workspace API: {}", response.getStatusCode());
             }
@@ -306,11 +309,11 @@ public class UiLiciousClient {
      * Main method to get workspaces by login name (combines both API calls)
      */
     public List<UiliciousWorkspaceVO> getWorkspaces(String loginName, int start, int length) {
-        log.info("Starting to fetch workspaces for loginName: {}", loginName);
+    log.debug("Starting to fetch workspaces for loginName: {}", loginName);
 
         // Step 1: Get account ID by email
         String accountId = getUserAccountId(loginName, start, length);
-        log.info("Account id: " + accountId);
+    log.debug("Account id: " + accountId);
 
         if (accountId == null || accountId.trim().isEmpty()) {
             log.warn("Could not retrieve account ID for loginName: {}", loginName);
@@ -320,7 +323,7 @@ public class UiLiciousClient {
         // Step 2: Get workspaces by account ID
         List<UiliciousWorkspaceVO> workspaces = getWorkspacesByAccountId(accountId);
 
-        log.info("Completed fetching {} workspaces for loginName: {}", workspaces.size(), loginName);
+    log.debug("Completed fetching {} workspaces for loginName: {}", workspaces.size(), loginName);
         return workspaces;
 
     }
@@ -364,7 +367,7 @@ public class UiLiciousClient {
                 JsonNode responseBody = response.getBody();
                 JsonNode resultNode = responseBody.path("result");
                 String accountId = resultNode.path("_oid").asText();
-                log.info("Successfully created workspace with account ID: {}", accountId);
+                log.debug("Successfully created workspace with account ID: {}", accountId);
                 return accountId;
             } else if (response.getStatusCode() == HttpStatus.BAD_REQUEST) {
                 log.warn("this user id already have existing uilicious workspace {}", loginName);

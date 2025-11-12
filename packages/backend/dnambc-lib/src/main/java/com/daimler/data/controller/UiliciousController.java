@@ -67,7 +67,7 @@ public class UiliciousController implements UiliciousWorkspacesApi {
                         @ApiParam(value = "Page number from which listing of workspaces should start. Example: 2") @Valid @RequestParam(value = "offset", required = false) Integer offset,
                         @ApiParam(value = "Page size to limit the number of workspaces. Example: 15") @Valid @RequestParam(value = "limit", required = false) Integer limit,
                         @ApiParam(value = "Sort order (asc or desc).", allowableValues = "asc, desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder) {
-                // log.info("Request received to fetch Uilicious workspaces"+ offset +" "+ limit
+                // log.debug("Request received to fetch Uilicious workspaces"+ offset +" "+ limit
                 // +" "+ sortOrder);
                 try {
                         UiliciousWorkspacesCollectionVO workspaces = uiliciousWorkspaceService.getUiliciousWorkspaces(
@@ -79,7 +79,7 @@ public class UiliciousController implements UiliciousWorkspacesApi {
                         }
                         // setTotalRecords
                         if (workspaces.getItems() == null || workspaces.getItems().isEmpty()) {
-                                log.info("No workspaces found — returning 204 No Content");
+                                log.debug("No workspaces found — returning 204 No Content");
                                 return new ResponseEntity<>(null, HttpStatus.NO_CONTENT);
                         }
 
@@ -118,7 +118,7 @@ public class UiliciousController implements UiliciousWorkspacesApi {
         public ResponseEntity<UiliciousWorkspaceUpdateResponseVO> updateUiliciousWorkspace(
                         @ApiParam(value = "Request Body that contains accountId and lean governance data to be updated", required = true) @Valid @RequestBody UiliciousWorkspaceUpdateRequestVO uiliciousWorkspaceUpdateRequestVO) {
 
-                log.info("Request received to update Uilicious workspace for accountId: {}",
+                log.debug("Request received to update Uilicious workspace for accountId: {}",
                                 uiliciousWorkspaceUpdateRequestVO.getAccountId());
 
                 try {
@@ -132,7 +132,7 @@ public class UiliciousController implements UiliciousWorkspacesApi {
                                 return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
                         }
 
-                        log.info("Successfully updated workspace for accountId: {}", response.getAccountId());
+                        log.debug("Successfully updated workspace for accountId: {}", response.getAccountId());
                         return ResponseEntity.ok(response);
 
                 } catch (IllegalArgumentException e) {
@@ -175,13 +175,13 @@ public class UiliciousController implements UiliciousWorkspacesApi {
                 GenericMessage genericMessage = new GenericMessage();
                 List<MessageDescription> msg = new ArrayList<>();
                 try {
-                        log.info("Request received to create Uilicious workspace with name: {}",
+                        log.debug("Request received to create Uilicious workspace with name: {}",
                                         createUiliciousWorkspaceRequestVO);
                         String response = uiliciousWorkspaceService
                                         .createUiliciousWorkspace(createUiliciousWorkspaceRequestVO);
                         if (response != null) {
                                 if (response.equalsIgnoreCase("SUCCESS")) {
-                                        log.info("Successfully created Uilicious workspace with name: {}",
+                                        log.debug("Successfully created Uilicious workspace with name: {}",
                                                         createUiliciousWorkspaceRequestVO);
                                         genericMessage.setSuccess("SUCCESS");
                                         genericMessage.setErrors(null);

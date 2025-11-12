@@ -52,20 +52,20 @@ public class UiliciousWorkspaceCustomRepositoryImpl extends CommonDataRepository
 
     @Override
     public JsonNode findUiliciousWorkspacesByEmail(String email) {
-        log.info("Finding UiliciousWorkspace by createdBy email: {}", email);
+        log.debug("Finding UiliciousWorkspace by createdBy email: {}", email);
         String getQuery = "SELECT CAST(data AS text) FROM uiliciousworkspace_nsql " +
                 "WHERE data->'createdBy'->>'email' = :email";
 
         Query query = em.createNativeQuery(getQuery);
 
         query.setParameter("email", email);
-        log.info("SQL Query: {}", getQuery);
-        log.info("Query parameter - email: {}", email);
-        log.info("Query object: {}", query);
+        log.debug("SQL Query: {}", getQuery);
+        log.debug("Query parameter - email: {}", email);
+        log.debug("Query object: {}", query);
         try {
             Object result = query.getSingleResult();
             if (result != null) {
-                log.info("UiliciousWorkspace found for email: {}", result.toString());
+                log.debug("UiliciousWorkspace found for email: {}", result.toString());
                 return objectMapper.readTree(result.toString());
             }
             return null;
@@ -80,13 +80,13 @@ public class UiliciousWorkspaceCustomRepositoryImpl extends CommonDataRepository
     @Override
     @Transactional
     public boolean updateAccountIdByEmail(String email, String accountId) {
-        log.info("Updating accountId for email: {} with accountId: {}", email, accountId);
+        log.debug("Updating accountId for email: {} with accountId: {}", email, accountId);
         String updateQuery = "UPDATE uiliciousworkspace_nsql " +
                 "SET data = jsonb_set(data, '{accountId}', to_jsonb(CAST(? AS text))) " +
                 "WHERE data->'createdBy'->>'email' = ?";
 
-        log.info("Update SQL Query: {}", updateQuery);
-        log.info("Parameters - accountId: {}, email: {}", accountId, email);
+        log.debug("Update SQL Query: {}", updateQuery);
+        log.debug("Parameters - accountId: {}, email: {}", accountId, email);
 
         try {
             Query query = em.createNativeQuery(updateQuery);
@@ -94,7 +94,7 @@ public class UiliciousWorkspaceCustomRepositoryImpl extends CommonDataRepository
             query.setParameter(2, email);
 
             int updatedRows = query.executeUpdate();
-            log.info("Updated {} rows for email: {}", updatedRows, email);
+            log.debug("Updated {} rows for email: {}", updatedRows, email);
 
             // Flush to ensure immediate persistence
             em.flush();
@@ -110,26 +110,26 @@ public class UiliciousWorkspaceCustomRepositoryImpl extends CommonDataRepository
     @Override
     @Transactional
     public boolean updateLeanGovernanceByAccountId(String accountId, JsonNode leanGovernance) {
-        log.info("Updating leanGovernance for accountId: {}", accountId);
-        
+        log.debug("Updating leanGovernance for accountId: {}", accountId);
+
         try {
             // Convert JsonNode to JSON string for PostgreSQL
             String leanGovernanceJson = objectMapper.writeValueAsString(leanGovernance);
-            log.info("LeanGovernance JSON: {}", leanGovernanceJson);
-            
+            log.debug("LeanGovernance JSON: {}", leanGovernanceJson);
+
             String updateQuery = "UPDATE uiliciousworkspace_nsql " +
                     "SET data = jsonb_set(data, '{leanGovernance}', CAST(? AS jsonb)) " +
                     "WHERE data->>'accountId' = ?";
 
-            log.info("Update SQL Query: {}", updateQuery);
-            log.info("Parameters - accountId: {}, leanGovernance: {}", accountId, leanGovernanceJson);
+            log.debug("Update SQL Query: {}", updateQuery);
+            log.debug("Parameters - accountId: {}, leanGovernance: {}", accountId, leanGovernanceJson);
 
             Query query = em.createNativeQuery(updateQuery);
             query.setParameter(1, leanGovernanceJson);
             query.setParameter(2, accountId);
 
             int updatedRows = query.executeUpdate();
-            log.info("Updated {} rows for accountId: {}", updatedRows, accountId);
+            log.debug("Updated {} rows for accountId: {}", updatedRows, accountId);
 
             // Flush to ensure immediate persistence
             em.flush();
@@ -143,5 +143,3 @@ public class UiliciousWorkspaceCustomRepositoryImpl extends CommonDataRepository
     }
 
 }
-
-
