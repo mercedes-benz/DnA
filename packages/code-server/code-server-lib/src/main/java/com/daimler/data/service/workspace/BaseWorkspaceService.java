@@ -365,6 +365,24 @@
 			 //update status as deleted in logs
 		 
 		 	if(buildDeployNsql != null){
+				String projectName = entity.getData().getProjectDetails().getProjectName();
+				
+				if(buildDeployNsql.getData().getIntBuildAuditLogs() != null){
+				buildDeployNsql.getData().getIntBuildAuditLogs().forEach( i ->{
+					if(!i.isImageDeleted()){
+						this.deleteBuild(projectName , i.getVersion());
+					}
+				});
+				}
+
+				if(buildDeployNsql.getData().getProdBuildAuditLogs() != null){
+				buildDeployNsql.getData().getProdBuildAuditLogs().forEach( i ->{
+					if(!i.isImageDeleted()){
+						this.deleteBuild(projectName , i.getVersion());
+					}
+				});
+			}
+
 				buildDeployNsql.getData().setStatus("DELETED");
 				buildDeployRepo.save(buildDeployNsql);
 		 	}
@@ -466,7 +484,20 @@
 
 			//update status as deleted in logs
 		 
-		 	if(buildDeployNsql != null){
+			if(buildDeployNsql != null){
+				
+				buildDeployNsql.getData().getIntBuildAuditLogs().forEach( i ->{
+					if(!i.isImageDeleted()){
+						this.deleteBuild(projectName , i.getVersion());
+					}
+				});
+
+				buildDeployNsql.getData().getProdBuildAuditLogs().forEach( i ->{
+					if(!i.isImageDeleted()){
+						this.deleteBuild(projectName , i.getVersion());
+					}
+				});
+
 				buildDeployNsql.getData().setStatus("DELETED");
 				buildDeployRepo.save(buildDeployNsql);
 		 	}
@@ -4664,10 +4695,10 @@
 			  String env = "";
                         if(version.startsWith("int")){
 							env = "int";
-                            builds = data.getIntBuildAuditLogs();
+                            builds = data.getIntBuildAuditLogs() != null ?data.getIntBuildAuditLogs(): new ArrayList<>();
                         }else if(version.startsWith("prod")){
 							env = "prod";
-                             builds = data.getProdBuildAuditLogs();
+                             builds = data.getProdBuildAuditLogs() != null ?data.getProdBuildAuditLogs(): new ArrayList<>();
                         }
                         if(builds.stream().anyMatch( i -> (i.getVersion().equalsIgnoreCase(version) && !i.isImageDeleted()))){
 							builds.stream().forEach(i ->{
