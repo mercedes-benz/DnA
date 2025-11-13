@@ -23,12 +23,14 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.daimler.data.api.uilicious.UiliciousWorkspacesApi;
 
-
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 
 import com.daimler.data.dto.uilicious.UiliciousWorkspaceVO;
 import com.daimler.data.dto.uilicious.UiliciousWorkspacesCollectionVO;
+import com.daimler.data.dto.uilicious.UiliciousWorkspaceUpdateRequestVO;
+import com.daimler.data.dto.uilicious.UiliciousWorkspaceUpdateResponseVO;
+import com.daimler.data.dto.uilicious.CreateUiliciousWorkspaceRequestVO;
 
 import com.daimler.data.util.ConstantsUtility;
 import com.daimler.data.service.uiliciousWorkspace.UiliciousWorkspaceService;
@@ -43,31 +45,175 @@ import lombok.extern.slf4j.Slf4j;
 @Api(value = "Uilicious API's")
 @RequestMapping("/api")
 @Slf4j
-public class UiliciousController implements UiliciousWorkspacesApi
-{
-	
-    @Autowired
-	private UiliciousWorkspaceService uiliciousWorkspaceService;
+public class UiliciousController implements UiliciousWorkspacesApi {
 
-	@Override
-    @ApiOperation(value = "Get list of workspaces for Uilicious", nickname = "getUiliciousWorkspaces", notes = "Returns Uilicious workspaces for the current user (or for the provided email). Each workspace includes metadata such as spaceName, link, lean governance and userRole. ", response = UiliciousWorkspacesCollectionVO.class, tags={ "uilicious-workspaces", })
-    @ApiResponses(value = { 
-        @ApiResponse(code = 200, message = "Successful fetch of Uilicious workspace records.", response = UiliciousWorkspacesCollectionVO.class),
-        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
-        @ApiResponse(code = 400, message = "Bad request."),
-        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
-        @ApiResponse(code = 403, message = "Request is not authorized."),
-        @ApiResponse(code = 405, message = "Method not allowed."),
-        @ApiResponse(code = 500, message = "Internal server error.") })
-    @RequestMapping(value = "/uilicious-workspaces",
-        produces = { "application/json" }, 
-        consumes = { "application/json" },
-        method = RequestMethod.GET)
-    public ResponseEntity<UiliciousWorkspacesCollectionVO> getUiliciousWorkspaces(@ApiParam(value = "Optional: user email to fetch workspaces for. If not provided, server uses session auth.") @Valid @RequestParam(value = "email", required = false) String email,@ApiParam(value = "Page number from which listing of workspaces should start. Example: 2") @Valid @RequestParam(value = "offset", required = false) Integer offset,@ApiParam(value = "Page size to limit the number of workspaces. Example: 15") @Valid @RequestParam(value = "limit", required = false) Integer limit,@ApiParam(value = "Sort order (asc or desc).", allowableValues = "asc, desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder){
-        
-		return null;
-	};
-    
+        @Autowired
+        private UiliciousWorkspaceService uiliciousWorkspaceService;
+
+        @Override
+        @ApiOperation(value = "Get list of workspaces for Uilicious", nickname = "getUiliciousWorkspaces", notes = "Returns Uilicious workspaces for the current user (or for the provided email). Each workspace includes metadata such as spaceName, link, lean governance and userRole. ", response = UiliciousWorkspacesCollectionVO.class, tags = {
+                        "uilicious-workspaces", })
+        @ApiResponses(value = {
+                        @ApiResponse(code = 200, message = "Successful fetch of Uilicious workspace records.", response = UiliciousWorkspacesCollectionVO.class),
+                        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+                        @ApiResponse(code = 400, message = "Bad request."),
+                        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+                        @ApiResponse(code = 403, message = "Request is not authorized."),
+                        @ApiResponse(code = 405, message = "Method not allowed."),
+                        @ApiResponse(code = 500, message = "Internal server error.") })
+        @RequestMapping(value = "/uilicious-workspaces", produces = { "application/json" }, consumes = {
+                        "application/json" }, method = RequestMethod.GET)
+        public ResponseEntity<UiliciousWorkspacesCollectionVO> getUiliciousWorkspaces(
+                        @ApiParam(value = "Page number from which listing of workspaces should start. Example: 2") @Valid @RequestParam(value = "offset", required = false) Integer offset,
+                        @ApiParam(value = "Page size to limit the number of workspaces. Example: 15") @Valid @RequestParam(value = "limit", required = false) Integer limit,
+                        @ApiParam(value = "Sort order (asc or desc).", allowableValues = "asc, desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder) {
+                // log.debug("Request received to fetch Uilicious workspaces"+ offset +" "+ limit
+                // +" "+ sortOrder);
+                try {
+                        UiliciousWorkspacesCollectionVO workspaces = uiliciousWorkspaceService.getUiliciousWorkspaces(
+                                        offset, limit,
+                                        sortOrder);
+                        if (workspaces == null) {
+                                log.warn("Something went wrong with uilicious api");
+                                return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+                        }
+                        // setTotalRecords
+                        if (workspaces.getItems() == null || workspaces.getItems().isEmpty()) {
+                                log.debug("No workspaces found — returning 204 No Content");
+                                return new ResponseEntity<>(null, HttpStatus.NO_CONTENT);
+                        }
+
+                        return ResponseEntity.ok(workspaces);
+                } catch (RuntimeException e) {
+                        // Check if it's a Uilicious server unavailability issue
+                        if (e.getMessage() != null
+                                        && e.getMessage().contains("Something went wrong with Uilicious server/tool")) {
+                                log.error("Uilicious server is unavailable: {}", e.getMessage());
+                                GenericMessage errorMessage = new GenericMessage();
+                                errorMessage.setSuccess("false");
+                                MessageDescription desc = new MessageDescription();
+                                desc.setMessage("Something went wrong with Uilicious server/tool. Please try again later.");
+                                errorMessage.addErrors(desc);
+                                return new ResponseEntity(errorMessage, HttpStatus.SERVICE_UNAVAILABLE);
+                        }
+                        log.error("Unexpected error while fetching Uilicious workspaces: {}", e.getMessage(), e);
+                        return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+                }
+        }
+
+        @Override
+        @ApiOperation(value = "Update lean governance for Uilicious workspace", nickname = "updateUiliciousWorkspace", notes = "Updates the lean governance information for an existing Uilicious workspace identified by accountId.", response = UiliciousWorkspaceUpdateResponseVO.class, tags = {
+                        "uilicious-workspaces", })
+        @ApiResponses(value = {
+                        @ApiResponse(code = 200, message = "Lean governance updated successfully", response = UiliciousWorkspaceUpdateResponseVO.class),
+                        @ApiResponse(code = 204, message = "No content to update."),
+                        @ApiResponse(code = 400, message = "Bad request - Invalid accountId or lean governance data."),
+                        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+                        @ApiResponse(code = 403, message = "Request is not authorized."),
+                        @ApiResponse(code = 404, message = "Workspace not found for the provided accountId."),
+                        @ApiResponse(code = 405, message = "Method not allowed."),
+                        @ApiResponse(code = 500, message = "Internal server error.") })
+        @RequestMapping(value = "/uilicious-workspaces", produces = { "application/json" }, consumes = {
+                        "application/json" }, method = RequestMethod.PUT)
+        public ResponseEntity<UiliciousWorkspaceUpdateResponseVO> updateUiliciousWorkspace(
+                        @ApiParam(value = "Request Body that contains accountId and lean governance data to be updated", required = true) @Valid @RequestBody UiliciousWorkspaceUpdateRequestVO uiliciousWorkspaceUpdateRequestVO) {
+
+                log.debug("Request received to update Uilicious workspace for accountId: {}",
+                                uiliciousWorkspaceUpdateRequestVO.getAccountId());
+
+                try {
+                        // Call service to update the workspace
+                        UiliciousWorkspaceUpdateResponseVO response = uiliciousWorkspaceService
+                                        .updateUiliciousWorkspace(uiliciousWorkspaceUpdateRequestVO);
+
+                        if (response == null) {
+                                log.warn("Workspace not found for accountId: {}",
+                                                uiliciousWorkspaceUpdateRequestVO.getAccountId());
+                                return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+                        }
+
+                        log.debug("Successfully updated workspace for accountId: {}", response.getAccountId());
+                        return ResponseEntity.ok(response);
+
+                } catch (IllegalArgumentException e) {
+                        log.error("Invalid request data: {}", e.getMessage());
+                        return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
+                } catch (RuntimeException e) {
+                        // Check if it's a Uilicious server unavailability issue
+                        if (e.getMessage() != null
+                                        && e.getMessage().contains("Something went wrong with Uilicious server/tool")) {
+                                log.error("Uilicious server is unavailable during workspace update: {}",
+                                                e.getMessage());
+                                GenericMessage errorMessage = new GenericMessage();
+                                errorMessage.setSuccess("false");
+                                MessageDescription desc = new MessageDescription();
+                                desc.setMessage("Something went wrong with Uilicious server/tool. Please try again later.");
+                                errorMessage.addErrors(desc);
+                                return new ResponseEntity(errorMessage, HttpStatus.SERVICE_UNAVAILABLE);
+                        }
+                        log.error("Unexpected runtime error while updating workspace: {}", e.getMessage(), e);
+                        return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+                } catch (Exception e) {
+                        log.error("Error updating workspace: {}", e.getMessage(), e);
+                        return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+                }
+        }
+
+        @ApiOperation(value = "Create Uilicious Workspace", nickname = "createUiliciousWorkspace", notes = "Creates a new Uilicious workspace with the provided lean governance information.", response = GenericMessage.class, tags = {
+                        "uilicious-workspaces", })
+        @ApiResponses(value = {
+                        @ApiResponse(code = 200, message = "Uilicious workspace created successfully", response = GenericMessage.class),
+                        @ApiResponse(code = 400, message = "Bad request - Invalid lean governance data."),
+                        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+                        @ApiResponse(code = 403, message = "Request is not authorized."),
+                        @ApiResponse(code = 405, message = "Method not allowed."),
+                        @ApiResponse(code = 500, message = "Internal server error.") })
+        @RequestMapping(value = "/uilicious-workspaces", produces = { "application/json" }, consumes = {
+                        "application/json" }, method = RequestMethod.POST)
+        public ResponseEntity<GenericMessage> createUiliciousWorkspace(
+                        @ApiParam(value = "Request Body that contains lean governance data for the new workspace", required = true) @Valid @RequestBody CreateUiliciousWorkspaceRequestVO createUiliciousWorkspaceRequestVO) {
+                GenericMessage genericMessage = new GenericMessage();
+                List<MessageDescription> msg = new ArrayList<>();
+                try {
+                        log.debug("Request received to create Uilicious workspace with name: {}",
+                                        createUiliciousWorkspaceRequestVO);
+                        String response = uiliciousWorkspaceService
+                                        .createUiliciousWorkspace(createUiliciousWorkspaceRequestVO);
+                        if (response != null) {
+                                if (response.equalsIgnoreCase("SUCCESS")) {
+                                        log.debug("Successfully created Uilicious workspace with name: {}",
+                                                        createUiliciousWorkspaceRequestVO);
+                                        genericMessage.setSuccess("SUCCESS");
+                                        genericMessage.setErrors(null);
+                                        return ResponseEntity.ok(genericMessage);
+                                } else {
+                                        log.error("Failed to create Uilicious workspace: {}", response);
+                                        MessageDescription desc = new MessageDescription(
+                                                        "Failed to create Uilicious workspace,  " + response);
+                                        msg.add(desc);
+                                        genericMessage.setSuccess("FAILURE");
+                                        genericMessage.setErrors(msg);
+                                        return new ResponseEntity<>(genericMessage, HttpStatus.BAD_REQUEST);
+                                }
+                        } else {
+                                log.error("Failed to create Uilicious workspace: Unknown error");
+                                MessageDescription desc = new MessageDescription(
+                                                "Failed to create Uilicious workspace, " + response);
+                                msg.add(desc);
+                                genericMessage.setSuccess("FAILURE");
+                                genericMessage.setErrors(msg);
+                                return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+                        }
+                } catch (Exception e) {
+                        log.error("Error creating Uilicious workspace: {}", e.getMessage(), e);
+                        MessageDescription desc = new MessageDescription(
+                                        "Failed to create Uilicious workspace" + e.getMessage());
+                        msg.add(desc);
+                        genericMessage.setSuccess("FAILURE");
+                        genericMessage.setErrors(msg);
+                        return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+                }
+
+        }
+
 }
-
-

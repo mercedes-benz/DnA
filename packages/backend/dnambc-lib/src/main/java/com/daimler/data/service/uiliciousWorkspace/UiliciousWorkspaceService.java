@@ -13,11 +13,16 @@ import com.daimler.data.db.entities.UiliciousWorkspaceNsql;
 import com.daimler.data.db.jsonb.UiliciousWorkspace;
 import com.daimler.data.dto.uilicious.UiliciousWorkspaceVO;
 import com.daimler.data.dto.uilicious.UiliciousWorkspacesCollectionVO;
+import com.daimler.data.dto.uilicious.UiliciousWorkspaceUpdateRequestVO;
+import com.daimler.data.dto.uilicious.UiliciousWorkspaceUpdateResponseVO;
+import com.daimler.data.dto.uilicious.CreateUiliciousWorkspaceRequestVO;
+import com.daimler.data.dto.UiliciousCreationDTO;
 
-public interface UiliciousWorkspaceService extends CommonService<UiliciousWorkspaceVO, UiliciousWorkspaceNsql, String> {
-      UiliciousWorkspacesCollectionVO getUiliciousWorkspaces(String email, Integer offset, Integer limit, String sortOrder);
-  
+public interface UiliciousWorkspaceService extends CommonService<UiliciousCreationDTO, UiliciousWorkspaceNsql, String> {
+      UiliciousWorkspacesCollectionVO getUiliciousWorkspaces(Integer offset, Integer limit, String sortOrder);
+      
+      UiliciousWorkspaceUpdateResponseVO updateUiliciousWorkspace(UiliciousWorkspaceUpdateRequestVO request);
+
+      String createUiliciousWorkspace(CreateUiliciousWorkspaceRequestVO request);
+
 }
-	
-
-

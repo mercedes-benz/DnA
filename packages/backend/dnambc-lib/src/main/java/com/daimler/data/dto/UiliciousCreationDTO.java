@@ -24,31 +24,25 @@
  * 
  * LICENSE END 
  */
-package com.daimler.data.db.jsonb;
 
-import java.io.Serializable;
-import java.util.Date;
-import java.util.List;
-
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+package com.daimler.data.dto;
+import com.daimler.data.dto.uilicious.LeanGovernanceVO;
+import com.daimler.data.db.jsonb.solution.CreatedBy;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import com.daimler.data.db.jsonb.solution.CreatedBy;
-import com.daimler.data.dto.uilicious.LeanGovernanceVO;
+
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@JsonIgnoreProperties(ignoreUnknown = true)
-public class UiliciousWorkspace implements Serializable{
+public class UiliciousCreationDTO {
+    private static final long serialVersionUID = 1L;
 
-	private static final long serialVersionUID = 1L;
-	private CreatedBy createdBy;
-	private String accountId;
-	private LeanGovernance leanGovernance;
-	
-
+    private String id;
+    private String accountId;
+    private CreatedBy createdBy;
+    private LeanGovernanceVO leanGovernance;
+  
 }
-

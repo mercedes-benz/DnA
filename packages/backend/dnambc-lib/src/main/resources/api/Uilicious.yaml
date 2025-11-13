@@ -79,12 +79,7 @@ paths:
         Returns Uilicious workspaces for the current user (or for the provided email).
         Each workspace includes metadata such as spaceName, link, lean governance and userRole.
       operationId: "getUiliciousWorkspaces"
-      parameters:
-        - name: email
-          in: query
-          description: "Optional: user email to fetch workspaces for. If not provided, server uses session auth."
-          required: false
-          type: string        
+      parameters:   
         - name: offset
           in: query
           description: "Page number from which listing of workspaces should start. Example: 2"
@@ -119,6 +114,69 @@ paths:
         500:
           description: "Internal server error."
 
+    put:
+      tags:
+        - "uilicious-workspaces"
+      summary: "Update lean governance for Uilicious workspace"
+      description: "Updates the lean governance information for an existing Uilicious workspace identified by accountId."
+      operationId: "updateUiliciousWorkspace"
+      parameters:
+        - name: "UiliciousWorkspaceUpdateRequestVO"
+          in: "body"
+          description: "Request Body that contains accountId and lean governance data to be updated"
+          required: true
+          schema:
+            $ref: "#/definitions/UiliciousWorkspaceUpdateRequestVO"          
+      responses:
+        200:
+          description: "Lean governance updated successfully"
+          schema:
+            $ref: "#/definitions/UiliciousWorkspaceUpdateResponseVO"
+        204:
+          description: "No content to update."
+        400:
+          description: "Bad request - Invalid accountId or lean governance data."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        404:
+          description: "Workspace not found for the provided accountId."
+        405:
+          description: "Method not allowed."
+        500:
+          description: "Internal server error."  
+
+    post:
+      tags:
+        - "uilicious-workspaces"
+      summary: "Create Uilicious Workspace"
+      description: "Creates a new Uilicious workspace with the provided lean governance information."
+      operationId: "createUiliciousWorkspace"
+      parameters:
+        - name: "CreateUiliciousWorkspaceRequestVO"
+          in: "body"
+          description: "Request Body that contains lean governance data for the new workspace"
+          required: true
+          schema:
+            $ref: "#/definitions/CreateUiliciousWorkspaceRequestVO"          
+      responses:
+        200:
+          description: "Uilicious workspace created successfully"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        400:
+          description: "Bad request - Invalid lean governance data."  
+        401:
+          description: "Request does not have sufficient credentials."
+        403:  
+          description: "Request is not authorized."
+        405:  
+          description: "Method not allowed."  
+        500:  
+          description: "Internal server error."
+ 
+ 
 definitions:
 
   # Collection wrapper returned by the GET endpoint
@@ -128,15 +186,23 @@ definitions:
       totalRecords:
         type: integer
         description: "Total number of workspace records available for the current query."
+      leanGovernance:
+        type: object
+        items:
+          $ref: "#/definitions/leanGovernanceVO"
+      accountId:
+        type: string
+        description: "Uilicious Account ID."
       items:
         type: array
         items:
           $ref: "#/definitions/UiliciousWorkspaceVO"
-
-  # Simplified workspace object for Uilicious consumers
-  UiliciousWorkspaceVO:
+      
+  
+  leanGovernanceVO:
     type: object
     properties:
+
       costCenter:
         type: string
         description: "Cost Center associated with the workspace."
@@ -164,9 +230,15 @@ definitions:
       hasPii:
         type: boolean
         description: "Whether the workspace contains PII (true/false)."
-      accountId:
+      description:
         type: string
-        description: "Account id associated with the workspace (external account)."
+        description: "User comment"
+      
+
+  # Simplified workspace object for Uilicious consumers
+  UiliciousWorkspaceVO:
+    type: object
+    properties:
       spaceId:
         type: string
         description: "Space id (unique workspace identifier in the platform)."
@@ -176,23 +248,38 @@ definitions:
       userRole:
         type: string
         description: "Role of the user in this workspace (e.g. admin, editor, viewer)."
-      createdBy:
-        $ref: "#/definitions/CreatedByVO"
-        description: "Creator information (re-used from Fabric definitions)."
-      
-  CreatedByVO:
+
+  # Request body for updating lean governance
+  UiliciousWorkspaceUpdateRequestVO:
+    type: object
+    required:
+      - accountId
+      - leanGovernance
+    properties:
+      accountId:
+        type: string
+        description: "Uilicious Account ID to identify which workspace to update."
+      leanGovernance:
+        $ref: "#/definitions/leanGovernanceVO"
+
+  # Response body for update operation
+  UiliciousWorkspaceUpdateResponseVO:
     type: object
     properties:
-      id:
+      accountId:
         type: string
-        description: "User id of the creator."
-      name:
+        description: "Uilicious Account ID of the updated workspace."
+      leanGovernance:
+        $ref: "#/definitions/leanGovernanceVO"
+      message:
         type: string
-        description: "Name of the creator."
-      email:
-        type: string
-        format: email
-        description: "Email of the creator."
-      shortId:
-        type: string
-        description: "ShortID of DnA logged in user."
+        description: "Success message."
+      
+  CreateUiliciousWorkspaceRequestVO:
+    type: object
+    properties:
+      leanGovernance:
+        $ref: "#/definitions/leanGovernanceVO"
+    required:
+      - leanGovernance
+

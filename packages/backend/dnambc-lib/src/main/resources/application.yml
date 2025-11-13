@@ -247,6 +247,7 @@ promptsraftsubscriptions:
     pidUser: ${PID_UESR:XXXX}
     pidPassword: ${UILICIOUS_PID_UESR_PASSWORD:XXXX}
     accessKey: ${UILICIOUS_ACCESS_KEY:XXXX}
+    baseURL: ${UILICIOUS_BASE_URL:XXXX}
     browser: ${UILICIOUS_BROWSER_KEY:XXXX}
     width: ${UILICIOUS_BROWSER_WIDTH:XXXX}
     height: ${UILICIOUS_BROWSER_HEIGHT:XXXX}

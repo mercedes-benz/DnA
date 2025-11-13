@@ -36,19 +36,26 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import com.daimler.data.db.jsonb.solution.CreatedBy;
-import com.daimler.data.dto.uilicious.LeanGovernanceVO;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class UiliciousWorkspace implements Serializable{
+public class LeanGovernance implements Serializable{
 
 	private static final long serialVersionUID = 1L;
-	private CreatedBy createdBy;
-	private String accountId;
-	private LeanGovernance leanGovernance;
 	
+	private String department;
+	private String divisionId;
+	private String division;
+	private String subDivisionId;
+	private String subDivision;
+	private String dataClassification;
+	private Boolean hasPii;
+	private String costCenter;
+	private String internalOrder;
+	private String description;
+
 
 }
 

@@ -31,11 +31,16 @@ import java.util.List;
 
 import com.daimler.data.db.entities.UiliciousWorkspaceNsql;
 import com.daimler.data.db.repo.common.CommonDataRepository;
+import com.fasterxml.jackson.databind.JsonNode;
 
 public interface UiliciousWorkspaceCustomRepository extends
  CommonDataRepository<UiliciousWorkspaceNsql, String> {
 
-	
+     JsonNode findUiliciousWorkspacesByEmail(String email);
+     
+     boolean updateAccountIdByEmail(String email, String accountId);
+     
+     boolean updateLeanGovernanceByAccountId(String accountId, JsonNode leanGovernance);
 
 }
 
