@@ -78,15 +78,15 @@ ingress:
   tls: null
 resources:
   requests:
-    memory: 897Mi
-    cpu: 14m
+    memory: 963Mi
+    cpu: 4m
   limits:
-    memory: 897Mi
+    memory: 963Mi
 autoscaling:
-  enabled: false
-  minReplicas: 1
-  maxReplicas: 100
-  targetCPUUtilizationPercentage: 80
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 10
+  targetMemoryUtilizationPercentage: 70
 nodeSelector: {}
 tolerations: []
 affinity: {}

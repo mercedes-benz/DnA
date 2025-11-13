@@ -16,7 +16,7 @@ image:
 nameOverride: "dbrain"
 ## PostgreSQL replica count
 ##
-replicaCount: 1
+replicaCount: 2
 
 printEnv: true
 
@@ -287,6 +287,7 @@ decryptBackupWal:
 ##
 backup:
   enabled: true
+  successfulJobsHistoryLimit: "0"
   # successfulJobsHistoryLimit: "1"
   ## the storage type, either fs or s3.
   ## This is the target storage where the compressed backup archive file will be stored.
@@ -307,7 +308,7 @@ backup:
     ## fill in the bucket name you have ordered!
     bucketName: <path:dna_aws_kv/data/prod/kubernetesSecret/rainDB#bucketName>
   ## general configuration for backup
-  schedule: "1 0 * * *"
+  schedule: "15 0 * * *"
   retention: <path:dna_aws_kv/data/prod/kubernetesSecret/rainDB#retention>
   ## Please read documentation at docs/operations/operations.md#cleanup-wal-archives before enabling this feature
   cleanupWalArchives: false
@@ -416,15 +417,15 @@ pgmonitoring:
     tag: v0.10.1
     pullPolicy: IfNotPresent
   resources:
-    enabled: true
+    enabled: false
     limits:
-      enabled: true
-      cpu:
-      memory: 100Mi
+      enabled: false
+      # cpu:
+      # memory: 100Mi
     request:
-      enabled: true
-      cpu: 10m
-      memory: 100Mi
+      enabled: false
+      # cpu: 10m
+      # memory: 100Mi
   queryMonitoring:
     enabled: true
   customQueries: {}

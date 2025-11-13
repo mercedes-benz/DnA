@@ -148,7 +148,7 @@ tenant:
           memory: 2265Mi
         requests:
           cpu: 631m
-          memory: 2265Mi           
+          memory: 2265Mi          
       ###
       # The Kubernetes `SecurityContext <https://kubernetes.io/docs/tasks/configure-pod-container/security-context/>`__ to use for deploying Tenant resources.
       #

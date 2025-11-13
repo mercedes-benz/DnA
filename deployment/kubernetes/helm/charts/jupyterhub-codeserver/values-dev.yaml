@@ -173,7 +173,7 @@ hub:
 
           spawner.storage_capacity = spawner.user_options.get("storage_capacity", "1Gi")       
           spawner.mem_guarantee = "1000M"       
-          #spawner.mem_limit = spawner.user_options.get("mem_guarantee", "500M")       
+          spawner.mem_limit = "8000M"        
           # spawner.cpu_limit = spawner.user_options.get("cpu_limit", 3)       
           spawner.cpu_guarantee = 0.2
           spawner.extra_containers = spawner.user_options.get("extra_containers",[])
@@ -632,7 +632,7 @@ singleuser:
       storageAccessModes: [ReadWriteOnce]
   image:
     name: registry-emea.app.corpintra.net/dnaplatform/cs-default
-    tag: "4.103.1"
+    tag: "4.105.1"
     pullPolicy: IfNotPresent
     pullSecrets: 
       - name: imagepullsecret
@@ -655,7 +655,7 @@ singleuser:
       description: "Default environment for development"
       default: true
       kubespawner_override:
-        image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.103.1
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.105.1
         image_pull_policy: IfNotPresent
         start_timeout: 900
         http_timeout: 900
@@ -787,10 +787,10 @@ scheduling:
       minAvailable:
     resources: 
       limits:
-        memory: 108Mi
+        memory: 200Mi
       requests:
-        cpu: 10m
-        memory: 108Mi
+        cpu: 4m
+        memory: 200Mi
     serviceAccount:
       create: true
       name:
@@ -860,10 +860,10 @@ prePuller:
   annotations: {}
   resources: 
     limits:
-      memory: 100Mi
+      memory: 10Mi
     requests:
-      cpu: 10m
-      memory: 100Mi
+      cpu: 1m
+      memory: 10Mi
   containerSecurityContext:
     runAsNonRoot: true
     runAsUser: 65534 # nobody user

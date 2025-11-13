@@ -70,10 +70,10 @@ ingress:
     traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
 resources:
   requests:
-    memory: 516Mi
-    cpu: 10m
+    memory: 884Mi
+    cpu: 2m
   limits:
-    memory: 516Mi
+    memory: 884Mi
 probes:
   initialDelaySeconds: 120
   timeoutSeconds: 10
@@ -120,3 +120,7 @@ vaultInjector:
 podDisruptionBudget:
   enabled: true
   minAvailable: 50%
+autoscaling:
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 10

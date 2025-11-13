@@ -10,7 +10,7 @@ codeserverbackend: http://cs-backend.prod-dna-cs-apps.svc.cluster.local:80
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/codepsace-mfe
   pullPolicy: IfNotPresent
-  tag: 1.7.8
+  tag: 1.8.3
 imagePullSecrets:
   - name: imagepullsecret
 nameOverride: ''
@@ -43,10 +43,10 @@ ingress:
       secretName: code-space-tls-secret
 resources:
   limits:
-    memory: 210Mi
+    memory: 57Mi
   requests:
-    cpu: 16m
-    memory: 210Mi
+    cpu: 10m
+    memory: 57Mi
 vaultInjector:
   enable: true
   annotations:

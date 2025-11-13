@@ -65,3 +65,11 @@ db:
    env: prod 
  - name: fabric-transparency
    env: prod 
+ - name: currencytool
+   env: prod 
+ - name: scriptick-ai
+   env: prod
+ - name: digital-qua
+   env: int
+ - name: digital-qua
+   env: prod

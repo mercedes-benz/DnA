@@ -42,10 +42,10 @@ ingress:
       secretName: cs-mfe-tls
 resources:
   limits:
-    memory: 100Mi
+    memory: 57Mi
   requests:
     cpu: 10m
-    memory: 100Mi
+    memory: 57Mi
 vaultInjector:
   enable: true
   annotations:

@@ -8,7 +8,9 @@ metadata:
     app.kubernetes.io/name: {{ .Chart.Name }}-backend
 spec:
   # replicas: 1
+  {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicas }}
+  {{- end }}
   selector:
     matchLabels:
       name: {{ .Chart.Name }}-backend
@@ -41,7 +43,7 @@ spec:
           imagePullPolicy: {{ .Values.imagePullPolicy }}
           {{- if .Values.vaultInjector.enable }}           
           command: ["/bin/sh", "-c"]
-          args: ['. /vault/secrets/envvar && java -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -jar /{{ .Values.vaultInjector.jarName }}']
+          args: ['. /vault/secrets/envvar && java -XX:+UseContainerSupport -XX:MaxRAMPercentage=98.0 -jar /{{ .Values.vaultInjector.jarName }}']
           {{ else }}
           env:
             - name: API_DB_URL

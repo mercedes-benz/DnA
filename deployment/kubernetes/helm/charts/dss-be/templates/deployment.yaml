@@ -6,7 +6,9 @@ metadata:
   labels:
     {{- include "dss-be.labels" . | nindent 4 }}
 spec:
+  {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
+  {{- end }}
   selector:
     matchLabels:
       {{- include "dss-be.selectorLabels" . | nindent 6 }}
@@ -44,7 +46,7 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           {{- if .Values.vaultInjector.enable }}           
           command: ["/bin/sh", "-c"]
-          args: ['. /vault/secrets/envvar && java -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -jar /{{ .Values.vaultInjector.jarName }}']
+          args: ['. /vault/secrets/envvar && java -XX:+UseContainerSupport -XX:MaxRAMPercentage=98.0 -jar /{{ .Values.vaultInjector.jarName }}']
           {{ else }}          
           {{- with .Values.envs }}            
           env:

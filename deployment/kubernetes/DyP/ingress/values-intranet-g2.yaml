@@ -534,7 +534,10 @@ globalArguments:
 - '--api.dashboard=true'
 - '--providers.kubernetesingress.ingressclass=prod-ingress-intranet'
 - '--providers.kubernetescrd.ingressclass=prod-ingress-intranet'
-# - '--entryPoints.pgdb.address=:64000/tcp'
+- '--entryPoints.pgdb.address=:64000/tcp'
+- '--entryPoints.digitalint.address=:64011/tcp'
+- '--entryPoints.digitalprd.address=:64012/tcp'
+- '--entryPoints.ignite.address=:10800/tcp'
 # - '--entryPoints.pgdba.address=:64010/tcp'
 # - '--entryPoints.pgdbb.address=:64020/tcp'
 # - '--entryPoints.pgdbc.address=:64030/tcp'
@@ -593,6 +596,24 @@ ports:
     exposedPort: 64000
     # -- The port protocol (TCP/UDP)
     protocol: TCP
+  digitalqa:
+    port: 64011
+    expose:
+      default: true
+    exposedPort: 64011    
+    protocol: TCP 
+  digitalprd:
+    port: 64012
+    expose:
+      default: true
+    exposedPort: 64012   
+    protocol: TCP 
+  ignite:
+    port: 10800
+    expose:
+      default: true
+    exposedPort: 10800    
+    protocol: TCP    
   # pgdba:
   #   port: 64010
   #   expose:

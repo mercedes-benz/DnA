@@ -129,7 +129,7 @@ replicaCount: 2
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/storage-be
   pullPolicy: IfNotPresent
-  tag: 3.2.33
+  tag: 3.3.0
 imagePullSecrets:
   - name: imagepullsecret
 nameOverride: ''
@@ -167,10 +167,10 @@ ingress:
   tls: null
 resources:
   requests:
-    memory: 4Gi
-    cpu: 12m
+    memory: 2.4Gi
+    cpu: 10m
   limits:
-    memory: 4Gi
+    memory: 2.4Gi
 vaultInjector:
   enable: true
   annotations:

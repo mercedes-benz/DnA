@@ -326,6 +326,14 @@ import com.daimler.data.dto.workspace.DeploymentAuditVO;
 			 {
 				deploymentDetails.setAliceRoleEnabled(false);
 			 }
+			 if(vo.isEntitlementPrefixEnabled()!=null)
+			 {
+				deploymentDetails.setEntitlementPrefixEnabled(vo.isEntitlementPrefixEnabled());
+			 }
+			 else
+			 {
+				deploymentDetails.setEntitlementPrefixEnabled(false);
+			 }
 			 deploymentDetails.setLastDeployedBy(toUserInfo(vo.getLastDeployedBy()));
 			//  List<DeploymentAudit> auditDetails = this.toDeploymentAuditDetails(vo.getDeploymentAuditLogs());
 			//  deploymentDetails.setDeploymentAuditLogs(auditDetails);
@@ -423,6 +431,13 @@ import com.daimler.data.dto.workspace.DeploymentAuditVO;
 			 else
 			 {
 			   deploymentDetailsVO.setAliceRoleEnabled(deploymentDetails.getAliceRoleEnabled());
+			 }
+			 if (Objects.isNull(deploymentDetails.getEntitlementPrefixEnabled())) {
+				deploymentDetailsVO.setEntitlementPrefixEnabled(false);
+			 }
+			 else
+			 {
+			   deploymentDetailsVO.setEntitlementPrefixEnabled(deploymentDetails.getEntitlementPrefixEnabled());
 			 }
 			//  if(deploymentDetails.getDeploymentAuditLogs()!=null && !deploymentDetails.getDeploymentAuditLogs().isEmpty())
 			//  {

@@ -269,10 +269,10 @@ injector:
 
   resources:
     requests:
-      memory: 100Mi
-      cpu: 10m
+      memory: 38Mi
+      cpu: 2m
     limits:
-      memory: 100Mi
+      memory: 38Mi
 
   # extraEnvironmentVars is a list of extra environment variables to set in the
   # injector deployment.

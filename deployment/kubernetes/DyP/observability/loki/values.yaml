@@ -3512,14 +3512,29 @@ minio:
       purge: false
     - name: tempo-traces
       policy: none
+      purge: false
+    - name: mimir-tsdb
+      policy: none
+      purge: false
+    - name: mimir-ruler
+      policy: none
+      purge: false
+    - name: enterprise-metrics-tsdb
+      policy: none
+      purge: false
+    - name: enterprise-metrics-ruler
+      policy: none
+      purge: false
+    - name: enterprise-metrics-admin
+      policy: none
       purge: false      
   persistence:
     size: 5Gi
     annotations: {}
   resources:
     requests:
-      cpu: 100m
-      memory: 128Mi
+      cpu: 141m
+      memory: 1638Mi
   # Allow the address used by Loki to refer to Minio to be overridden
   address: null
 # Create extra manifests via values. Would be passed through `tpl` for templating

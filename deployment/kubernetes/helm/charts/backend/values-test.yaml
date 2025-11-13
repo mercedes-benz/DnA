@@ -77,7 +77,7 @@ app:
     initialDelaySeconds: 120
     timeoutSeconds: 30
     periodSeconds: 10
-    failureThreshold: 3
+    failureThreshold: 8
     livenessProbe:
       path: /actuator/health/liveness
       port: 7171
@@ -121,7 +121,11 @@ vaultInjector:
   jarName: dnambc*.jar
 resources:
   requests:
-    memory: 1770Mi
-    cpu: 10m
+    memory: 1839Mi
+    cpu: 2m
   limits:
-    memory: 1770Mi
+    memory: 1839Mi
+autoscaling:
+  enabled: true
+  minReplicas: 1
+  maxReplicas: 10

@@ -249,7 +249,7 @@ persistentVolume:
 
   ## pgAdmin4 Persistent Volume Size
   ##
-  size: 10Gi
+  size: 12Gi
 
   ## pgAdmin4 Persistent Volume Storage Class
   ## If defined, storageClassName: <storageClass>
@@ -365,10 +365,10 @@ resources:
   # resources, such as Minikube. If you do want to specify resources, uncomment the following
   # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
   limits:
-    memory: 1512Mi
+    memory: 2804Mi
   requests:
-    cpu: 17m
-    memory: 1512Mi
+    cpu: 1m
+    memory: 2804Mi
 
 ## Horizontal Pod Autoscaling
 ## ref: https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/

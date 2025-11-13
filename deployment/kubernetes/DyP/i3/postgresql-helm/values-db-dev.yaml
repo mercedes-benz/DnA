@@ -109,11 +109,11 @@ resources:
   ## uncomment fitting parts when you wand to enable setting cpu and memory requests and limits
   limits:
     enabled: true
-    memory: 866Mi
+    memory: 645Mi
   request:
     enabled: true
-    cpu: 18m
-    memory: 866Mi
+    cpu: 30m
+    memory: 645Mi
 
 ## Configure additional env variables
 env:
@@ -288,7 +288,7 @@ decryptBackupWal:
 ##
 backup:
   enabled: true
-  successfulJobsHistoryLimit: "1"
+  successfulJobsHistoryLimit: "0"
 
   ## the storage type, either fs or s3.
   ## This is the target storage where the compressed backup archive file will be stored.
@@ -418,14 +418,14 @@ pgmonitoring:
     tag: v0.10.1
     pullPolicy: IfNotPresent
   resources:
-    enabled: true
+    enabled: false
     limits:
-      enabled: true
-      memory: 100Mi
+      enabled: false
+      # memory: 100Mi
     request:
-      enabled: true
-      cpu: 10m
-      memory: 100Mi
+      enabled: false
+      # cpu: 10m
+      # memory: 100Mi
   queryMonitoring:
     enabled: true
   customQueries: {}

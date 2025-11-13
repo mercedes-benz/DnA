@@ -36,98 +36,441 @@ alloy:
     create: true
     # -- Content to assign to the new ConfigMap.  This is passed into `tpl` allowing for templating from values.
     content: |-
-      // loki.source.kubernetes_events tails events from the Kubernetes API and converts them
-      // into log lines to forward to other Loki components.
-      loki.source.kubernetes_events "cluster_events" {
-        job_name   = "integrations/kubernetes/eventhandler"
-        log_format = "logfmt"
-        forward_to = [
-          loki.process.cluster_events.receiver,
-        ]
+      logging {
+        level  = "info"
+        format = "logfmt"
       }
 
-      // loki.process receives log entries from other loki components, applies one or more processing stages,
-      // and forwards the results to the list of receivers in the component's arguments.
-      loki.process "cluster_events" {
-        forward_to = [loki.write.grafana_loki.receiver]
-
-        stage.static_labels {
-          values = {
-            cluster = "c82p085",
-          }
+      prometheus.remote_write "mimir" {
+        endpoint {
+          url = "http://mimir-nginx.observability:80/api/v1/push"
+          headers = {"X-Scope-OrgID" = "c82p085"}
         }
-
-        stage.labels {
-          values = {
-            kubernetes_cluster_events = "job",
-          }
-        }
-      }    
-      // discovery.kubernetes allows you to find scrape targets from Kubernetes resources.
-      // It watches cluster state and ensures targets are continually synced with what is currently running in your cluster.
-      discovery.kubernetes "pod" {
-        role = "pod"
       }
 
-      // discovery.relabel rewrites the label set of the input targets by applying one or more relabeling rules.
-      // If no rules are defined, then the input targets are exported as-is.
-      discovery.relabel "pod_logs" {
-        targets = discovery.kubernetes.pod.targets
+      // service endpoints section
+      discovery.kubernetes "endpoints" {
+        role = "endpoints"
+      }
 
-        // Label creation - "namespace" field from "__meta_kubernetes_namespace"
+      discovery.relabel "honor_service_annotations" {
+        targets = discovery.kubernetes.endpoints.targets
         rule {
-          source_labels = ["__meta_kubernetes_namespace"]
-          action = "replace"
-          target_label = "namespace"
+          source_labels = ["__meta_kubernetes_service_annotation_prometheus_io_scrape"]
+          regex = "(true)"
+          action = "keep"
         }
-
-        // Label creation - "pod" field from "__meta_kubernetes_pod_name"
         rule {
-          source_labels = ["__meta_kubernetes_pod_name"]
-          action = "replace"
-          target_label = "pod"
+          source_labels = ["__meta_kubernetes_service_annotation_prometheus_io_path"]
+          target_label = "__metrics_path__"
         }
-
-        // Label creation - "container" field from "__meta_kubernetes_pod_container_name"
         rule {
-          source_labels = ["__meta_kubernetes_pod_container_name"]
+          source_labels = ["__address__", "__meta_kubernetes_service_annotation_prometheus_io_port"]
+          regex = "([^:]+)(?::\\d+)?;(\\d+)"
+          target_label = "__address__"
+          replacement = "$1:$2"
+        }
+        rule {
+          source_labels = ["__meta_kubernetes_service_annotation_prometheus_io_scheme"]
+          regex = "(https?)"
+          target_label = "__scheme__"
           action = "replace"
-          target_label = "container"
         }
         rule {
           action = "replace"
           source_labels = ["__meta_kubernetes_service_name"]
           target_label = "service_name"
-        }        
-
-        // Label creation -  "app" field from "__meta_kubernetes_pod_label_app_kubernetes_io_name"
+        }
         rule {
-          source_labels = ["__meta_kubernetes_pod_label_app_kubernetes_io_name"]
           action = "replace"
+          source_labels = ["__meta_kubernetes_pod_host_ip"]
+          target_label = "node_ip"
+        }
+        rule {
+          action = "replace"
+          source_labels = ["__meta_kubernetes_pod_node_name"]
+          target_label = "node_name"
+        }
+        rule {
+          action = "replace"
+          source_labels = ["__meta_kubernetes_namespace"]
+          target_label = "Kubernetes_namespace"
+        }
+        rule {
+          action = "replace"
+          source_labels = ["__meta_kubernetes_exported_namespace"]
+          target_label = "namespace"
+        }
+        rule {
+          action = "replace"
+          source_labels = ["__meta_kubernetes_pod_name"]
+          target_label = "pod_name"
+        }
+        rule {
+          action = "replace"
+          source_labels = ["__meta_kubernetes_pod_ip"]
+          target_label = "pod_ip"
+        }
+        rule {
+          action = "replace"
+          source_labels = ["__meta_kubernetes_pod_container_name"]
+          target_label = "container_name"
+        }
+        rule {
+          action = "replace"
+          source_labels = ["__meta_kubernetes_pod_container_port_number"]
+          target_label = "container_port"
+        }
+        rule {
+          action = "replace"
+          source_labels = ["__meta_kubernetes_service_label_app"]
           target_label = "app"
         }
+      }
 
-        // Label creation -  "job" field from "__meta_kubernetes_namespace" and "__meta_kubernetes_pod_container_name"
-        // Concatenate values __meta_kubernetes_namespace/__meta_kubernetes_pod_container_name
+      prometheus.scrape "service_metrics" {
+        targets = discovery.relabel.honor_service_annotations.output
+        authorization {
+          type = "Bearer"
+          credentials_file = "/var/run/secrets/kubernetes.io/serviceaccount/token"
+        }
+        tls_config {
+          ca_file = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
+        }
+        clustering {
+          enabled = true
+        }
+        scrape_interval = "60s"
+        forward_to = [prometheus.relabel.drop_unused_metrics.receiver]
+      }
+
+      prometheus.relabel "drop_unused_metrics" {
+        // kube apiserver
         rule {
-          source_labels = ["__meta_kubernetes_namespace", "__meta_kubernetes_pod_container_name"]
-          action = "replace"
-          target_label = "job"
-          separator = "/"
+          source_labels = ["__name__"]
+          regex = "^apiserver_.*_(total|bucket|count|sum)$"
+          action = "drop"
+        }
+        // kube apiserver
+        rule {
+          source_labels = ["__name__"]
+          regex = "etcd_request_duration_seconds_bucket|container_tasks_state"
+          action = "drop"
+        }
+        // kube apiserver
+        rule {
+          source_labels = ["__name__"]
+          regex = "rest_client_request_(duration|latency)_seconds_(bucket|count|sum)"
+          action = "drop"
+        }
+        // kube apiserver
+        rule {
+          source_labels = ["__name__"]
+          regex = "rest_client_rate_limiter_duration_seconds_.*"
+          action = "drop"
+        }
+        // etcd
+        rule {
+          source_labels = ["__name__"]
+          regex = "grpc_server_handled_total"
+          action = "drop"
+        }
+        forward_to = [prometheus.relabel.add_cluster_labels.receiver]
+      }
+
+      //Node Section
+      discovery.kubernetes "nodes" {
+        role = "node"
+      }
+
+      // scrape nodes
+      prometheus.scrape "node_metrics" {
+        targets = discovery.kubernetes.nodes.targets
+        authorization {
+          type = "Bearer"
+          credentials_file = "/var/run/secrets/kubernetes.io/serviceaccount/token"
+        }
+        tls_config {
+          ca_file = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
+        }
+        clustering {
+          enabled = true
+        }
+        scheme = "https"
+        scrape_interval = "60s"
+        forward_to = [prometheus.relabel.add_cluster_labels.receiver]
+      }
+
+      //Pod Section
+      //Discover pods
+      discovery.kubernetes "pods" {
+        role = "pod"
+      }
+
+      // To discover pods with required annotaions set on the pods
+      discovery.relabel "honor_pod_scrape_annotations" {
+        targets = discovery.kubernetes.pods.targets
+        rule {
+          source_labels = ["__meta_kubernetes_pod_annotation_prometheus_io_scrape"]
+          regex = "(true)"
+          action = "keep"
+        }
+        rule {
+          source_labels = ["__meta_kubernetes_pod_annotation_prometheus_io_path"]
+          target_label = "__metrics_path__"
+          regex = "(.+)"
           replacement = "$1"
         }
-
-        // Label creation - "container" field from "__meta_kubernetes_pod_uid" and "__meta_kubernetes_pod_container_name"
-        // Concatenate values __meta_kubernetes_pod_uid/__meta_kubernetes_pod_container_name.log
         rule {
-          source_labels = ["__meta_kubernetes_pod_uid", "__meta_kubernetes_pod_container_name"]
-          action = "replace"
-          target_label = "__path__"
-          separator = "/"
-          replacement = "/var/log/pods/*$1/*.log"
+          source_labels = ["__address__", "__meta_kubernetes_pod_annotation_prometheus_io_port"]
+          target_label = "__address__"
+          regex = "([^:]+)(?::\\d+)?;(\\d+)"
+          replacement = "$1:$2"
         }
+        rule {
+          source_labels = ["__meta_kubernetes_pod_annotation_prometheus_io_scheme"]
+          target_label = "__scheme__"
+          regex = "(https?)"
+          action = "replace"
+        }
+      }
 
-        // Label creation -  "container_runtime" field from "__meta_kubernetes_pod_container_id"
+      discovery.relabel "honor_pod_annotations" {
+        targets = discovery.relabel.honor_pod_scrape_annotations.output
+        rule {
+          action = "replace"
+          source_labels = ["__meta_kubernetes_pod_node_name"]
+          target_label = "node_name"
+        }
+        rule {
+          action = "replace"
+          source_labels = ["__meta_kubernetes_pod_host_ip"]
+          target_label = "node_ip"
+        }
+        rule {
+          action = "replace"
+          source_labels = ["__meta_kubernetes_namespace"]
+          target_label = "Kubernetes_namespace"
+        }
+        rule {
+          action = "replace"
+          source_labels = ["__meta_kubernetes_exported_namespace"]
+          target_label = "namespace"
+        }
+        rule {
+          action = "replace"
+          source_labels = ["__meta_kubernetes_pod_name"]
+          target_label = "pod_name"
+        }
+        rule {
+          action = "replace"
+          source_labels = ["__meta_kubernetes_pod_ip"]
+          target_label = "pod_ip"
+        }
+        rule {
+          action = "replace"
+          source_labels = ["__meta_kubernetes_pod_container_name"]
+          target_label = "container_name"
+        }
+        rule {
+          action = "replace"
+          source_labels = ["__meta_kubernetes_pod_container_port_number"]
+          target_label = "container_port"
+        }
+        rule {
+          action = "replace"
+          source_labels = ["__meta_kubernetes_pod_label_app"]
+          target_label = "app"
+        }
+      }
+
+      prometheus.scrape "pods" {
+        targets    = discovery.relabel.honor_pod_annotations.output
+        clustering {
+          enabled = true
+        }
+        scrape_interval = "60s"
+        forward_to = [prometheus.relabel.drop_unused_pod_metrics.receiver]
+      }
+
+      prometheus.relabel "drop_unused_pod_metrics" {
+        rule {
+          source_labels = ["__name__"]
+          action = "drop"
+          regex = "goldpinger_peers_response_time_s.*"
+        }
+        rule {
+          source_labels = ["__name__"]
+          action = "drop"
+          regex = "prometheus_fanout_latency_bucket"
+        }
+        rule {
+          source_labels = ["app"]
+          action = "drop"
+          regex = "kube-state-metrics"
+        }
+        rule {
+          source_labels = ["__name__"]
+          action = "drop"
+          regex = "go_.*"
+        }
+        rule {
+          source_labels = ["__name__"]
+          action = "drop"
+          regex = "node_sockstat.*"
+        }
+        rule {
+          source_labels = ["__name__"]
+          action = "drop"
+          regex = "node_timex.*"
+        }
+        rule {
+          source_labels = ["__name__"]
+          action = "drop"
+          regex = "node_softnet.*"
+        }
+        forward_to = [prometheus.relabel.add_cluster_labels.receiver]
+      }
+
+      //KSM
+      discovery.relabel "ksm" {
+        targets = discovery.kubernetes.pods.targets
+        rule {
+          source_labels = ["__meta_kubernetes_pod_label_app"]
+          regex = "kube-state-metrics"
+          action = "keep"
+        }
+      }
+
+      prometheus.scrape "ksm" {
+        targets    = discovery.relabel.ksm.output
+        clustering {
+          enabled = true
+        }
+        scrape_interval = "60s"
+        forward_to = [prometheus.relabel.drop_unused_ksm_metrics.receiver]
+      }
+
+      prometheus.relabel "drop_unused_ksm_metrics" {
+        rule {
+          source_labels = ["__name__"]
+          regex = "(kube_cronjob_next_schedule_time|kube_cronjob_spec_suspend|kube_daemonset_status_current_number_scheduled|kube_daemonset_status_desired_number_scheduled|kube_daemonset_status_number_misscheduled|kube_daemonset_status_number_ready|kube_deployment_created|kube_deployment_metadata_generation|kube_deployment_spec_replicas|kube_deployment_status_observed_generation|kube_deployment_status_replicas|kube_deployment_status_replicas_available|kube_deployment_status_replicas_unavailable|kube_deployment_status_replicas_updated|kube_job_status_active|kube_job_status_failed|kube_job_status_succeeded|kube_mutatingwebhookconfiguration_info|kube_namespace_created|kube_namespace_status_phase|kube_node_info|kube_node_labels|kube_node_spec_taint|kube_node_spec_unschedulable|kube_node_status_allocatable|kube_node_status_capacity|kube_node_status_condition|kube_persistentvolumeclaim_status_phase|kube_persistentvolumeclaim_info|kube_pod_container_info|kube_pod_container_resource_limits|kube_pod_container_resource_requests|kube_pod_container_status_last_terminated_reason|kube_pod_container_status_restarts_total|kube_pod_container_status_running|kube_pod_container_status_terminated|kube_pod_container_status_waiting|kube_poddisruptionbudget_status_pod_disruptions_allowed|kube_pod_info|kube_pod_labels|kube_pod_status_phase|kube_pod_status_ready|kuberhealthy_check|kube_service_status_load_balancer_ingress|kube_statefulset_metadata_generation|kube_statefulset_replicas|kube_statefulset_status_current_revision|kube_statefulset_status_observed_generation|kube_statefulset_status_replicas|kube_statefulset_status_replicas_ready|kube_statefulset_status_replicas_updated|kube_statefulset_status_update_revision|kube_validatingwebhookconfiguration_info|kube_volumeattachment_info|kube_volumeattachment_spec_source_persistentvolume|kube_volumeattachment_status_attached)"
+          action = "keep"
+        }
+        forward_to = [prometheus.relabel.add_cluster_labels.receiver]
+      }
+
+      //cadvisor section
+      discovery.relabel "metrics_cadvisor" {
+          targets = discovery.kubernetes.nodes.targets
+          rule {
+            action = "replace"
+            target_label = "__address__"
+            replacement = "kubernetes.default.svc.cluster.local:443"
+          }
+          rule {
+            source_labels = ["__meta_kubernetes_node_name"]
+            regex = "(.+)"
+            action = "replace"
+            replacement = "/api/v1/nodes/${1}/proxy/metrics/cadvisor"
+            target_label = "__metrics_path__"
+          }
+      }
+
+      prometheus.scrape "cadvisor" {
+        scheme = "https"
+        tls_config {
+            server_name = "kubernetes"
+            ca_file = "/var/run/secrets/kubernetes.io/serviceaccount/ca.crt"
+            insecure_skip_verify = false
+        }
+        bearer_token_file = "/var/run/secrets/kubernetes.io/serviceaccount/token"
+        targets = discovery.relabel.metrics_cadvisor.output
+        scrape_interval = "60s"
+        clustering {
+          enabled = true
+        }
+        forward_to = [prometheus.relabel.drop_unused_cadvisor_metrics.receiver]
+      }
+
+      prometheus.relabel "drop_unused_cadvisor_metrics" {
+        rule {
+          source_labels = ["__name__"]
+          regex = "(container_blkio.*)"
+          action = "drop"
+        }
+        forward_to = [prometheus.relabel.add_cluster_labels.receiver]
+      }
+
+      prometheus.relabel "add_cluster_labels" {
+        forward_to = [prometheus.remote_write.mimir.receiver]
+        rule {
+          source_labels =  ["__address__"]
+          target_label = "cluster"
+          replacement = "c82p085"
+          action = "replace"
+        }
+        rule {
+          source_labels = ["__name__"]
+          regex = "^apiserver_.*_(total|bucket|count|sum)$"
+          action = "drop"
+        }
+        // kube apiserver
+        rule {
+          source_labels = ["__name__"]
+          regex = "etcd_request_duration_seconds_bucket|container_tasks_state"
+          action = "drop"
+        }
+        // kube apiserver
+        rule {
+          source_labels = ["__name__"]
+          regex = "rest_client_request_(duration|latency)_seconds_(bucket|count|sum)"
+          action = "drop"
+        }
+        // kube apiserver
+        rule {
+          source_labels = ["__name__"]
+          regex = "rest_client_rate_limiter_duration_seconds_.*"
+          action = "drop"
+        }
+        // etcd
+        rule {
+          source_labels = ["__name__"]
+          regex = "grpc_server_handled_total"
+          action = "drop"
+        }
+      }
+
+      loki.write "loki" {
+        endpoint {
+          url = "http://loki-gateway/loki/api/v1/push"
+          headers = {"X-Scope-OrgID" = "c82p085"}
+        }
+      }
+
+      discovery.relabel "pod_logs" {
+        targets = discovery.kubernetes.pods.targets
+        rule {
+          source_labels = ["__meta_kubernetes_namespace"]
+          regex        = "caas-system|kube-system|caas-crossplane-system"
+          action       = "drop"
+        }
+        rule {
+          source_labels = ["__meta_kubernetes_namespace"]
+          action = "replace"
+          target_label = "namespace"
+          replacement = "$1"
+        }
+        rule {
+          action = "replace"
+          source_labels = ["__meta_kubernetes_pod_name"]
+          target_label = "pod"
+        }
+        rule {
+          action = "replace"
+          source_labels = ["__meta_kubernetes_pod_container_name"]
+          target_label = "container"
+        }
         rule {
           source_labels = ["__meta_kubernetes_pod_container_id"]
           action = "replace"
@@ -135,24 +478,36 @@ alloy:
           regex = "^(\\S+):\\/\\/.+$"
           replacement = "$1"
         }
+        rule {
+          source_labels = ["__meta_kubernetes_pod_label_app_kubernetes_io_name"]
+          action = "replace"
+          target_label = "app"
+        }
       }
 
-      // loki.source.kubernetes tails logs from Kubernetes containers using the Kubernetes API.
+      // Kubernetes pod logs source
       loki.source.kubernetes "pod_logs" {
         targets    = discovery.relabel.pod_logs.output
-        forward_to = [loki.process.pod_logs.receiver]
+        forward_to = [loki.process.kubernetes_logs.receiver]
+        clustering {
+          enabled = true
+        }
       }
 
-      // loki.process receives log entries from other Loki components, applies one or more processing stages,
-      // and forwards the results to the list of receivers in the component's arguments.
-      loki.process "pod_logs" {
-        stage.static_labels {
-            values = {
-              cluster = "c82p085",
-            }
+      // Processing for Kubernetes pod logs
+      loki.process "kubernetes_logs" {
+        stage.cri {}
+        stage.decolorize {}
+        stage.drop {
+          expression  = ".*debug.*"
+          longer_than = "1MB"
         }
+        forward_to = [loki.write.loki.receiver]
+      }
 
-        forward_to = [loki.write.grafana_loki.receiver]
+      // Kubernetes events source
+      loki.source.kubernetes_events "kubernetes_events" {
+        forward_to = [loki.process.exclude_namespaces.receiver]
       }
 
       loki.process "exclude_namespaces" {
@@ -160,14 +515,7 @@ alloy:
           selector = "{namespace=~\"kube-system|caas-system|caas-crossplane-system\"}"
           action   = "drop"
         }
-        forward_to = [loki.write.grafana_loki.receiver]
-      }      
-
-      loki.write "grafana_loki" {
-        endpoint {
-          url = "http://loki-gateway/loki/api/v1/push"
-          headers = {"X-Scope-OrgID" = "c82p085"}
-        }
+        forward_to = [loki.write.loki.receiver]
       }  
 
       //otlp
@@ -200,7 +548,7 @@ alloy:
       }
 
       otelcol.exporter.loki "default" {
-        forward_to = [loki.write.grafana_loki.receiver]
+        forward_to = [loki.write.loki.receiver]
       }
 
       otelcol.exporter.otlp "default" {
@@ -303,7 +651,12 @@ alloy:
   securityContext: {}
 
   # -- Resource requests and limits to apply to the Grafana Alloy container.
-  resources: {}
+  resources: 
+    requests:
+      memory: "6Gi"
+    limits:
+      cpu: "200m"
+      memory: "6Gi"
 
   # -- Set lifecycle hooks for the Grafana Alloy container.
   lifecycle: {}
@@ -334,6 +687,13 @@ image:
 rbac:
   # -- Whether to create RBAC resources for Alloy.
   create: true
+  # -- Additional rules to add to the ClusterRole
+  extraClusterRoleRules:
+    - apiGroups: [""]
+      resources: ["nodes", "nodes/metrics", "nodes/proxy"]
+      verbs: ["get", "list", "watch"]
+    - nonResourceURLs: ["/metrics", "/metrics/cadvisor"]
+      verbs: ["get"]
 
 serviceAccount:
   # -- Whether to create a service account for the Grafana Alloy deployment.
@@ -377,7 +737,7 @@ controller:
   type: 'statefulset'
 
   # -- Number of pods to deploy. Ignored when controller.type is 'daemonset'.
-  replicas: 2
+  replicas: 3
 
   # -- Annotations to add to controller.
   extraAnnotations: {}

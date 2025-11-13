@@ -640,6 +640,10 @@ public class DnaMinioClientImp implements DnaMinioClient {
 				List<MinioObjectMetadata> minioObjects =  listBucketObjectsCollectionDto.getData();
 				if(minioObjects!= null && !minioObjects.isEmpty()) {
 					for(MinioObjectMetadata minioObject : minioObjects) {
+						if("/".equalsIgnoreCase(minioObject.getKey()) && "folder".equalsIgnoreCase(minioObject.getType())) {
+							LOGGER.info("Skipping empty folder object for bucket: {}",bucketName);
+							continue;
+						}
 						String key = prefix + minioObject.getKey();
 						if("SUCCESS".equalsIgnoreCase(minioObject.getStatus())) {
 							minioObject.setKey(key);
@@ -814,11 +818,6 @@ public class DnaMinioClientImp implements DnaMinioClient {
 				// Adding new policies to existing one
 				for (String policy : policies) {
 					String policyResponse = this.attachPolicyToUser(userId, policy, false);
-					try {
-						TimeUnit.SECONDS.sleep(5);
-					} catch (InterruptedException e) {
-						LOGGER.error("Policy attachment interrupted: " + e.getMessage());
-					}  
 					LOGGER.info("mc attach policy response: "+ policyResponse);
 					existingPolicy = StorageUtility.addPolicy(existingPolicy, policy);
 				}
@@ -844,17 +843,19 @@ public class DnaMinioClientImp implements DnaMinioClient {
 					userSecretKey = UUID.randomUUID().toString();
 				}
 
+				LOGGER.debug("Adding user: {} credentials to vault",userId);
+				vaultConfig.addUserVault(userId, userSecretKey);
+
 				LOGGER.info("Onboarding user:{} to minio", userId);
 				minioAdminClient.addUser(userId, Status.ENABLED, userSecretKey, commaSeparatedPolicies, null);
 
 				// setting policy to user
 				LOGGER.debug("Setting policy for user:{}", userId);
 				//minioAdminClient.setPolicy(userId, false, commaSeparatedPolicies);
-				String policyResponse = this.attachPolicyToUser(userId, commaSeparatedPolicies, false);
-				LOGGER.info("mc attach policy response: "+ policyResponse);
-
-				LOGGER.debug("Adding user: {} credentials to vault",userId);
-				vaultConfig.addUserVault(userId, userSecretKey);
+				for (String policy : policies) {
+					String policyResponse = this.attachPolicyToUser(userId, policy, false);
+					LOGGER.info("mc attach policy response: "+ policyResponse);
+				}
 
 				LOGGER.info("User:{} Onboarded successfully.", userId);
 				minioResponse.setStatus(ConstantsUtility.SUCCESS);
@@ -1344,21 +1345,35 @@ public class DnaMinioClientImp implements DnaMinioClient {
 	}
 	
 	@Override
-	public void setPolicy(String userOrGroupName, boolean isGroup, String policyName) {
+	public void setPolicy(String userOrGroupName, boolean isGroup, String policyName, boolean isaddPolicy) {
 		// Getting MinioAdminClient from config
 		MinioAdminClient minioAdminClient = minioConfig.getMinioAdminClient();
 		LOGGER.debug("Fetching users from cache.");
 		Map<String, UserInfo> users = cacheUtil.getMinioUsers(ConstantsUtility.MINIO_USERS_CACHE);
+		// Fetching user info
+		UserInfo userInfo = users.get(userOrGroupName);
+		// Fetching user policies
+		String existingPolicy = userInfo.policyName()!=null?userInfo.policyName():"";
 		try {
 			LOGGER.debug("Updating policy for user:{}", userOrGroupName);
 			// minioAdminClient.setPolicy(userOrGroupName, isGroup, policyName);
 			// LOGGER.info("Success from minio set policy");
-			String policyResponse = this.attachPolicyToUser(userOrGroupName, policyName, false);
-			LOGGER.info("mc attach policy response: "+ policyResponse);
-
+			if(isaddPolicy){
+				for(String policy : policyName.split(",")){
+					String policyResponse = this.attachPolicyToUser(userOrGroupName, policy, false);
+					LOGGER.info("mc attach policy response: "+ policyResponse);
+					existingPolicy = StorageUtility.addPolicy(existingPolicy, policy);
+				}
+			}
+			else{
+				for(String policy : policyName.split(",")){
+					String policyResponse = this.detachPolicyFromUser(userOrGroupName, policy, false);
+					LOGGER.info("mc detach policy response: "+ policyResponse);
+					existingPolicy = StorageUtility.removePolicy(existingPolicy, policy);
+				}
+			}
 			// updating cache
-			UserInfo userInfo = users.get(userOrGroupName);
-			UserInfo userInfoTemp = new UserInfo(userInfo.status(), userInfo.secretKey(), policyName,
+			UserInfo userInfoTemp = new UserInfo(userInfo.status(), userInfo.secretKey(), existingPolicy,
 					userInfo.memberOf());
 			users.put(userOrGroupName, userInfoTemp);
 
@@ -1451,7 +1466,7 @@ public class DnaMinioClientImp implements DnaMinioClient {
 
 			if (policyExitCode != 0) {
 				LOGGER.error("Failed to attach policy. Exit code: {}", policyExitCode);
-				return "Failed to attach policy.";
+				return "Failed to attach policy. with mc error: " + output.toString();
 			}
 
 			return "Policy attached successfully to user: " + userId;

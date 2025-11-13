@@ -8,7 +8,9 @@ metadata:
     zone: web
     app.kubernetes.io/name: dna-backend
 spec:
+  {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.app.backend.replicaCount }}
+  {{- end }}
   selector:
     matchLabels:
       app: {{ .Release.Name }}
@@ -42,7 +44,7 @@ spec:
           imagePullPolicy: Always
           {{- if .Values.vaultInjector.enable }}           
           command: ["/bin/sh", "-c"]
-          args: ['. /vault/secrets/envvar && java -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -jar /{{ .Values.vaultInjector.jarName }}']
+          args: ['. /vault/secrets/envvar && java -XX:+UseContainerSupport -XX:MaxRAMPercentage=98.0 -jar /{{ .Values.vaultInjector.jarName }}']
           {{ else }}        
           env:
             - name: ITSMM

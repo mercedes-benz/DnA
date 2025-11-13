@@ -91,7 +91,7 @@ tlsSidecarCruiseControl:
     name: strimzi/kafka
 resources:
   limits:
-    memory: 512Mi
+    memory: 476Mi
 persistence:
   kafka: 20Gi
   kafkaStorageClass: cinder

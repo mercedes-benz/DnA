@@ -365,10 +365,10 @@ resources:
   # resources, such as Minikube. If you do want to specify resources, uncomment the following
   # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
   limits:
-    memory: 600Mi
+    memory: 293Mi
   requests:
-    cpu: 10m
-    memory: 600Mi
+    cpu: 1m
+    memory: 293Mi
 
 ## Horizontal Pod Autoscaling
 ## ref: https://kubernetes.io/docs/tasks/run-application/horizontal-pod-autoscale/

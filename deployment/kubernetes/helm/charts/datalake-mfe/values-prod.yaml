@@ -39,12 +39,7 @@ ingress:
     - hosts:
         - datalake.dna.app.corpintra.net
       secretName: datalake-tls-secret
-resources:
-  limits:
-    memory: 100Mi
-  requests:
-    cpu: 10m
-    memory: 100Mi
+resources: {}
 vaultInjector:
   enable: true
   annotations:

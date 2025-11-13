@@ -1,0 +1,191 @@
+{{- if (eq (include "mimir.gateway.isEnabled" .) "true") }}
+{{- with .Values.gateway }}
+{{- $isGEMGateway := $.Values.enterprise.enabled -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    {{- toYaml .annotations | nindent 4 }}
+  labels:
+    {{- include "mimir.labels" (dict "ctx" $ "component" "gateway") | nindent 4 }}
+  name: {{ include "mimir.resourceName" (dict "ctx" $ "component" "gateway") }}
+  namespace: {{ $.Release.Namespace | quote }}
+spec:
+{{- if not .autoscaling.enabled }}
+  replicas: {{ .replicas }}
+{{- end }}
+  selector:
+    matchLabels:
+      {{- include "mimir.selectorLabels" (dict "ctx" $ "component" "gateway") | nindent 6 }}
+{{- with .strategy }}
+  strategy:
+{{ toYaml . | trim | indent 4 }}
+{{- end }}
+  template:
+    metadata:
+      labels:
+        {{- include "mimir.podLabels" (dict "ctx" $ "component" "gateway") | nindent 8 }}
+      annotations:
+        {{- $annotations := include "mimir.podAnnotations" (dict "ctx" $ "component" "gateway") | fromYaml -}}
+        {{- if not $isGEMGateway -}}
+        {{- $annotations = (dict "checksum/config" (include (print $.Template.BasePath "/gateway/nginx-configmap.yaml") $ | sha256sum )) | mergeOverwrite $annotations -}}
+        {{- end -}}
+        {{- $annotations | toYaml | nindent 8 }}
+      namespace: {{ $.Release.Namespace | quote }}
+    spec:
+      serviceAccountName: {{ include "mimir.serviceAccountName" $ }}
+      {{- if .priorityClassName }}
+      priorityClassName: {{ .priorityClassName }}
+      {{- end }}
+      securityContext:
+        {{- include "mimir.lib.podSecurityContext" (dict "ctx" $ "component" "gateway") | nindent 8 }}
+      {{- with .initContainers }}
+      initContainers:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if $.Values.image.pullSecrets }}
+      imagePullSecrets:
+      {{- range $.Values.image.pullSecrets }}
+        - name: {{ . }}
+      {{- end }}
+      {{- end }}
+      containers:
+        {{- if $isGEMGateway }}
+        - name: gateway
+          image: {{ include "mimir.imageReference" (dict "ctx" $ "component" "gateway") }}
+          imagePullPolicy: {{ $.Values.image.pullPolicy }}
+          args:
+            - "-target=gateway"
+            - "-config.expand-env=true"
+            - "-config.file=/etc/mimir/mimir.yaml"
+            {{- range $key, $value := .extraArgs }}
+            - -{{ $key }}={{ $value }}
+            {{- end }}
+          volumeMounts:
+            {{- with .extraVolumeMounts }}
+              {{ toYaml . | nindent 12}}
+            {{- end }}
+            {{- if $.Values.global.extraVolumeMounts }}
+              {{ toYaml $.Values.global.extraVolumeMounts | nindent 12 }}
+            {{- end }}
+            - name: config
+              mountPath: /etc/mimir
+            - name: runtime-config
+              mountPath: /var/{{ include "mimir.name" $ }}
+            - name: license
+              mountPath: /license
+            - name: tmp
+              mountPath: /data
+            - name: active-queries
+              mountPath: /active-query-tracker
+        {{- else }}
+        - name: gateway
+          image: {{ .nginx.image.registry }}/{{ .nginx.image.repository }}:{{ .nginx.image.tag }}
+          imagePullPolicy: {{ $.Values.image.pullPolicy }}
+          {{- with .extraArgs }}
+          args:
+            {{- range $key, $value := . }}
+            - "-{{ $key }} {{ $value }}"
+            {{- end }}
+          {{- end }}
+          volumeMounts:
+            {{- if .extraVolumeMounts }}
+            {{ toYaml .extraVolumeMounts | nindent 12 }}
+            {{- end }}
+            {{- if $.Values.global.extraVolumeMounts }}
+            {{ toYaml $.Values.global.extraVolumeMounts | nindent 12 }}
+            {{- end }}
+            - name: nginx-config
+              mountPath: /etc/nginx/nginx.conf
+              subPath: nginx.conf
+            {{- if .nginx.basicAuth.enabled }}
+            - name: auth
+              mountPath: /etc/nginx/secrets
+            {{- end }}
+            - name: tmp
+              mountPath: /tmp
+            - name: docker-entrypoint-d-override
+              mountPath: /docker-entrypoint.d
+          {{- end }}
+          ports:
+            - name: http-metrics
+              containerPort: {{ include "mimir.serverHttpListenPort" $ }}
+              protocol: TCP
+          readinessProbe:
+            {{- toYaml .readinessProbe | nindent 12 }}
+          resources:
+            {{- toYaml .resources | nindent 12 }}
+          securityContext:
+            {{- toYaml .containerSecurityContext | nindent 12 }}
+          {{- if or $.Values.global.extraEnv .env }}
+          env:
+            {{- with $.Values.global.extraEnv }}
+              {{ toYaml . | nindent 12 }}
+            {{- end }}
+            {{- with .env }}
+              {{ toYaml . | nindent 12 }}
+            {{- end }}
+          {{- end }}
+          {{- if or $.Values.global.extraEnvFrom .extraEnvFrom }}
+          envFrom:
+            {{- with $.Values.global.extraEnvFrom }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+            {{- with .extraEnvFrom }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- end }}
+        {{- with .extraContainers }}
+        {{ toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- include "mimir.lib.topologySpreadConstraints" (dict "ctx" $ "component" "gateway") | nindent 6 }}
+      {{- with .tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      terminationGracePeriodSeconds: {{ .terminationGracePeriodSeconds }}
+      volumes:
+        - name: config
+          {{- include "mimir.configVolume" $ | nindent 10 }}
+        - name: runtime-config
+          configMap:
+            name: {{ include "mimir.fullname" $ }}-runtime
+        {{- if not $isGEMGateway }}
+        - name: nginx-config
+          configMap:
+            name: {{ include "mimir.fullname" $ }}-gateway-nginx
+        - name: docker-entrypoint-d-override
+          emptyDir: {}
+        {{- end }}
+        {{- if .nginx.basicAuth.enabled }}
+        - name: auth
+          secret:
+            secretName: {{ include "mimir.gateway.nginx.authSecret" $ }}
+        {{- end }}
+        - name: tmp
+          emptyDir: {}
+        {{- if $isGEMGateway }}
+        - name: license
+          secret:
+            secretName: {{ tpl $.Values.license.secretName $ }}
+        - name: storage
+          emptyDir: {}
+        - name: active-queries
+          emptyDir: {}
+        {{- end -}}
+        {{- if .extraVolumes }}
+        {{- toYaml .extraVolumes | nindent 8 }}
+        {{- end }}
+        {{- if $.Values.global.extraVolumes }}
+        {{- toYaml $.Values.global.extraVolumes | nindent 8 }}
+        {{- end }}
+{{- end -}}
+{{- end -}}

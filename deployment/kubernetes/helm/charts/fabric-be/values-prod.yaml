@@ -3,7 +3,7 @@ namespace: prod-dna-fabric
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/fabric-be
   pullPolicy: IfNotPresent
-  tag: 1.3.17
+  tag: 1.4.1
 envs: {}
 imagePullSecrets:
   - name: imagepullsecret
@@ -74,15 +74,15 @@ ingress:
   tls: null
 resources:
   requests:
-    memory: 471Mi
-    cpu: 16m
+    memory: 790Mi
+    cpu: 2m
   limits:
-    memory: 471Mi
+    memory: 790Mi
 autoscaling:
-  enabled: false
-  minReplicas: 1
-  maxReplicas: 100
-  targetCPUUtilizationPercentage: 80
+  enabled: true
+  minReplicas: 2
+  maxReplicas: 10
+  targetMemoryUtilizationPercentage: 70
 nodeSelector: {}
 tolerations: []
 affinity: {}

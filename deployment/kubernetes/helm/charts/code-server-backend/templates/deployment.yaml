@@ -45,7 +45,7 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           {{- if .Values.vaultInjector.enable }}           
           command: ["/bin/sh", "-c"]
-          args: ['. /vault/secrets/envvar && java -XX:+UseContainerSupport -XX:MaxRAMPercentage=75.0 -jar /usr/app/{{ .Values.vaultInjector.jarName }}']
+          args: ['. /vault/secrets/envvar && java -XX:+UseContainerSupport -XX:MaxRAMPercentage=98.0 -jar /usr/app/{{ .Values.vaultInjector.jarName }}']
           {{ else }}          
           {{- with .Values.envs }}            
           env:
@@ -56,20 +56,27 @@ spec:
             - name: http
               containerPort: 7979
               protocol: TCP
-          livenessProbe:
+          startupProbe:
+            httpGet:
+              path: /actuator/health
+              port: http
             initialDelaySeconds: 60
             timeoutSeconds: 30
-            periodSeconds: 30
+            periodSeconds: 10
+            failureThreshold: 9
+          livenessProbe:
+            timeoutSeconds: 30
+            periodSeconds: 1
             failureThreshold: 3
             httpGet:
-              path: /actuator/health/liveness
+              path: /actuator/health
               port: http
           readinessProbe:
             timeoutSeconds: 30
-            periodSeconds: 30
+            periodSeconds: 1
             failureThreshold: 3
             httpGet:
-              path: /actuator/health/readiness
+              path: /actuator/health
               port: http
           resources:
             {{- toYaml .Values.resources | nindent 12 }}

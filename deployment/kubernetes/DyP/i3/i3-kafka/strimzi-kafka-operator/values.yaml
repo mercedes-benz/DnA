@@ -165,10 +165,10 @@ mavenBuilder:
     tag: ""
 resources:
   limits:
-    memory: 384Mi
+    memory: 476Mi
   requests:
-    memory: 384Mi
-    cpu: 200m
+    memory: 476Mi
+    cpu: 10m
 livenessProbe:
   initialDelaySeconds: 10
   periodSeconds: 30

@@ -16,7 +16,7 @@ image:
 fullnameOverride: "profit-support-db"
 ## PostgreSQL replica count
 ##
-replicaCount: 1
+replicaCount: 2
 
 printEnv: true
 
@@ -108,11 +108,11 @@ resources:
   ## uncomment fitting parts when you wand to enable setting cpu and memory requests and limits
   limits:
     enabled: true
-    memory: 139Mi
+    memory: 180Mi
   request:
     enabled: true
-    cpu: 10m
-    memory: 139Mi
+    cpu: 3m
+    memory: 180Mi
 
 ## Configure additional env variables
 env:
@@ -290,6 +290,7 @@ decryptBackupWal:
 ##
 backup:
   enabled: true
+  successfulJobsHistoryLimit: "0"
 
   ## the storage type, either fs or s3.
   ## This is the target storage where the compressed backup archive file will be stored.
@@ -310,7 +311,7 @@ backup:
     ## fill in the bucket name you have ordered!
     bucketName: <path:dna_aws_kv/data/prod/cs-services/profit-support-db#bucketName>
   ## general configuration for backup
-  schedule: "1 0 * * *"
+  schedule: "15 0 * * *"
   retention: <path:dna_aws_kv/data/prod/cs-services/profit-support-db#retention>
   ## Please read documentation at docs/operations/operations.md#cleanup-wal-archives before enabling this feature
   cleanupWalArchives: false
@@ -420,14 +421,14 @@ pgmonitoring:
     tag: v0.10.1
     pullPolicy: IfNotPresent
   resources:
-    enabled: true
+    enabled: false
     limits:
-      enabled: true
-      memory: 100Mi
+      enabled: false
+      # memory: 100Mi
     request:
-      enabled: true
-      cpu: 10m
-      memory: 100Mi
+      enabled: false
+      # cpu: 10m
+      # memory: 100Mi
   queryMonitoring:
     enabled: true
   customQueries: {}
