@@ -2742,19 +2742,19 @@
 							 buildDeployData.getProdDeploymentAuditLogs().get(lastIndex).setDeployedOn(now);	
 						 }
 
-						 List<DeploymentAudit> sortedList = auditLogs.stream().filter( i -> i.getDeploymentStatus().equalsIgnoreCase("DEPLOYED")).collect(Collectors.toList());
-					String lastDeployedVersion = (sortedList.size() > 0 && sortedList.size() != 1) ? sortedList.get(sortedList.size() - 1).getVersion():null;
+					// 	 List<DeploymentAudit> sortedList = auditLogs.stream().filter( i -> i.getDeploymentStatus().equalsIgnoreCase("DEPLOYED")).collect(Collectors.toList());
+					// String lastDeployedVersion = (sortedList.size() > 0 && sortedList.size() != 1) ? sortedList.get(sortedList.size() - 1).getVersion():null;
 					
-					if(lastDeployedVersion != null &&  buildAuditLogs.stream().anyMatch( i -> (i.getVersion().equalsIgnoreCase(lastDeployedVersion) && !i.isImageDeleted()))){
+					// if(lastDeployedVersion != null &&  buildAuditLogs.stream().anyMatch( i -> (i.getVersion().equalsIgnoreCase(lastDeployedVersion) && !i.isImageDeleted()))){
 							buildAuditLogs.stream().forEach(i ->{
-								if(i.getVersion().equalsIgnoreCase(lastDeployedVersion) && !i.isKeepBuildImage()){
-									GenericMessage deleteApiResonse = client.deleteBuild(projectName, lastDeployedVersion);
+								if(!i.getVersion().equalsIgnoreCase(version) && !i.isKeepBuildImage() && !i.isImageDeleted()){
+									GenericMessage deleteApiResonse = client.deleteBuild(projectName, i.getVersion());
 									if(deleteApiResonse.getSuccess().equalsIgnoreCase("SUCCESS")){
 										i.setImageDeleted(true);
 									}									
 								}
 							});
-						}
+						// }
 						if("int".equalsIgnoreCase(targetEnv)){	
 							buildDeployData.setIntBuildAuditLogs(buildAuditLogs);
 						}else{
