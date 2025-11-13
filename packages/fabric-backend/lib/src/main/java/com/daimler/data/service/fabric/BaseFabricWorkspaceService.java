@@ -1072,39 +1072,41 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 					//checks if groups are available
 					if(groups!=null && !groups.isEmpty()) {
 						for(GroupDetailsVO tempGrp : groups) {
-							if(tempGrp.getGroupName().contains(ConstantsUtility.PERMISSION_ADMIN) && tempGrp.getGroupName().contains(dnaGroupPrefix) && tempGrp.getGroupName().contains(workspaceId)) {
-								adminGroupVO = tempGrp;
-								isAdminGroupAvailable = true;
-							}
-							if(tempGrp.getGroupName().contains(ConstantsUtility.PERMISSION_CONTRIBUTOR) && tempGrp.getGroupName().contains(dnaGroupPrefix) && tempGrp.getGroupName().contains(workspaceId)) {
-								contributorGroupVO = tempGrp;
-								isContributorGroupAvailable = true;
-							}
-							if(tempGrp.getGroupName().contains(ConstantsUtility.PERMISSION_MEMBER) && tempGrp.getGroupName().contains(dnaGroupPrefix) && tempGrp.getGroupName().contains(workspaceId)) {
-								memberGroupVO = tempGrp;
-								isMemberGroupAvailable = true;
-							}
-							if(tempGrp.getGroupName().contains(ConstantsUtility.PERMISSION_VIEWER) && tempGrp.getGroupName().contains(dnaGroupPrefix) && tempGrp.getGroupName().contains(workspaceId)) {
-								viewerGroupVO = tempGrp;
-								isViewerGroupAvailable = true;
-							}
-							if(customGroupName != null && !"".equalsIgnoreCase(customGroupName)){
-								if(customGroupName.equalsIgnoreCase(tempGrp.getGroupName())) {
-									customGroupVO = tempGrp;
-									isCustomGroupAvailable = true;
+							if(tempGrp.getGroupName()!=  null){
+								if(tempGrp.getGroupName().contains(ConstantsUtility.PERMISSION_ADMIN) && tempGrp.getGroupName().contains(dnaGroupPrefix) && tempGrp.getGroupName().contains(workspaceId)) {
+									adminGroupVO = tempGrp;
+									isAdminGroupAvailable = true;
 								}
-							}
-							if(customGroupNameCollection != null && !customGroupNameCollection.isEmpty()){
-								for(CustomGroupNameCollectionVO customGroupCollectionElement:customGroupNameCollection)	{
-									String groupName = customGroupCollectionElement.getGroupName();
-									if(groupName != null && !groupName.trim().isEmpty()) {
-										if (tempGrp.getGroupName().equalsIgnoreCase(customGroupCollectionElement.getGroupName())) {
-											if(!customGroupVOList.contains(tempGrp)) {
-												customGroupVOList.add(tempGrp);	
-												log.info("Added matched group to customGroupVOList: {}", tempGrp.getGroupName());
-											} else {
-												log.info("Group {} already exists in customGroupVOList, not adding.", tempGrp.getGroupName());
-											}	
+								if(tempGrp.getGroupName().contains(ConstantsUtility.PERMISSION_CONTRIBUTOR) && tempGrp.getGroupName().contains(dnaGroupPrefix) && tempGrp.getGroupName().contains(workspaceId)) {
+									contributorGroupVO = tempGrp;
+									isContributorGroupAvailable = true;
+								}
+								if(tempGrp.getGroupName().contains(ConstantsUtility.PERMISSION_MEMBER) && tempGrp.getGroupName().contains(dnaGroupPrefix) && tempGrp.getGroupName().contains(workspaceId)) {
+									memberGroupVO = tempGrp;
+									isMemberGroupAvailable = true;
+								}
+								if(tempGrp.getGroupName().contains(ConstantsUtility.PERMISSION_VIEWER) && tempGrp.getGroupName().contains(dnaGroupPrefix) && tempGrp.getGroupName().contains(workspaceId)) {
+									viewerGroupVO = tempGrp;
+									isViewerGroupAvailable = true;
+								}
+								if(customGroupName != null && !"".equalsIgnoreCase(customGroupName)){
+									if(customGroupName.equalsIgnoreCase(tempGrp.getGroupName())) {
+										customGroupVO = tempGrp;
+										isCustomGroupAvailable = true;
+									}
+								}
+								if(customGroupNameCollection != null && !customGroupNameCollection.isEmpty()){
+									for(CustomGroupNameCollectionVO customGroupCollectionElement:customGroupNameCollection)	{
+										String groupName = customGroupCollectionElement.getGroupName();
+										if(groupName != null && !groupName.trim().isEmpty()) {
+											if (tempGrp.getGroupName().equalsIgnoreCase(customGroupCollectionElement.getGroupName())) {
+												if(!customGroupVOList.contains(tempGrp)) {
+													customGroupVOList.add(tempGrp);	
+													log.info("Added matched group to customGroupVOList: {}", tempGrp.getGroupName());
+												} else {
+													log.info("Group {} already exists in customGroupVOList, not adding.", tempGrp.getGroupName());
+												}	
+											}
 										}
 									}
 								}
@@ -1322,30 +1324,32 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		List<GroupDetailsVO> missingCustomGroupVOList = new ArrayList<>();
 		GroupDetailsVO customGroup = new GroupDetailsVO();
 		for(GroupDetailsVO tempGrp : existingGroupsDetails) {
-			if(tempGrp.getGroupName().contains(ConstantsUtility.PERMISSION_ADMIN) && tempGrp.getGroupName().contains(dnaGroupPrefix) && tempGrp.getGroupName().contains(workspaceId)) {
-				adminGroupVO = tempGrp;
-			}
-			if(tempGrp.getGroupName().contains(ConstantsUtility.PERMISSION_CONTRIBUTOR) && tempGrp.getGroupName().contains(dnaGroupPrefix) && tempGrp.getGroupName().contains(workspaceId)) {
-				contributorGroupVO = tempGrp;
-			}
-			if(tempGrp.getGroupName().contains(ConstantsUtility.PERMISSION_MEMBER) && tempGrp.getGroupName().contains(dnaGroupPrefix) && tempGrp.getGroupName().contains(workspaceId)) {
-				memberGroupVO = tempGrp;
-			}
-			if(tempGrp.getGroupName().contains(ConstantsUtility.PERMISSION_VIEWER) && tempGrp.getGroupName().contains(dnaGroupPrefix) && tempGrp.getGroupName().contains(workspaceId)) {
-				viewerGroupVO = tempGrp;
-			}
-			if(customGroupName !=null && !"".equalsIgnoreCase(customGroupName)){
-				if(customGroupName.equalsIgnoreCase(tempGrp.getGroupName())) {
-					customGroupVO = tempGrp;
+			if(tempGrp.getGroupName()!=  null){
+				if(tempGrp.getGroupName().contains(ConstantsUtility.PERMISSION_ADMIN) && tempGrp.getGroupName().contains(dnaGroupPrefix) && tempGrp.getGroupName().contains(workspaceId)) {
+					adminGroupVO = tempGrp;
 				}
-			}
-			if(customGroupNameCollection!=null && !customGroupNameCollection.isEmpty()){
-				for (CustomGroupNameCollectionVO customGroupCollectionElement : customGroupNameCollection) {
-					String groupName = customGroupCollectionElement.getGroupName();
-					if (groupName != null && !groupName.trim().isEmpty()) {
-						if (tempGrp.getGroupName().equalsIgnoreCase(groupName)) {
-							if(customGroupVOList.stream().noneMatch(g -> g.getGroupName().equalsIgnoreCase(tempGrp.getGroupName()))) {
-							   customGroupVOList.add(tempGrp);
+				if(tempGrp.getGroupName().contains(ConstantsUtility.PERMISSION_CONTRIBUTOR) && tempGrp.getGroupName().contains(dnaGroupPrefix) && tempGrp.getGroupName().contains(workspaceId)) {
+					contributorGroupVO = tempGrp;
+				}
+				if(tempGrp.getGroupName().contains(ConstantsUtility.PERMISSION_MEMBER) && tempGrp.getGroupName().contains(dnaGroupPrefix) && tempGrp.getGroupName().contains(workspaceId)) {
+					memberGroupVO = tempGrp;
+				}
+				if(tempGrp.getGroupName().contains(ConstantsUtility.PERMISSION_VIEWER) && tempGrp.getGroupName().contains(dnaGroupPrefix) && tempGrp.getGroupName().contains(workspaceId)) {
+					viewerGroupVO = tempGrp;
+				}
+				if(customGroupName !=null && !"".equalsIgnoreCase(customGroupName)){
+					if(customGroupName.equalsIgnoreCase(tempGrp.getGroupName())) {
+						customGroupVO = tempGrp;
+					}
+				}
+				if(customGroupNameCollection!=null && !customGroupNameCollection.isEmpty()){
+					for (CustomGroupNameCollectionVO customGroupCollectionElement : customGroupNameCollection) {
+						String groupName = customGroupCollectionElement.getGroupName();
+						if (groupName != null && !groupName.trim().isEmpty()) {
+							if (tempGrp.getGroupName().equalsIgnoreCase(groupName)) {
+								if(customGroupVOList.stream().noneMatch(g -> g.getGroupName().equalsIgnoreCase(tempGrp.getGroupName()))) {
+								   customGroupVOList.add(tempGrp);
+								}
 							}
 						}
 					}
