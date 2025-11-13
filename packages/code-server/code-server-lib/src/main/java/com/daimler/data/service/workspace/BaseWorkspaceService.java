@@ -2743,12 +2743,12 @@
 						 }
 
 						 List<DeploymentAudit> sortedList = auditLogs.stream().filter( i -> i.getDeploymentStatus().equalsIgnoreCase("DEPLOYED")).collect(Collectors.toList());
-					String lastDeployedVersion = sortedList.size() > 0 ? sortedList.get(sortedList.size() - 1).getVersion():null;
+					String lastDeployedVersion = (sortedList.size() > 0 && sortedList.size() != 1) ? sortedList.get(sortedList.size() - 1).getVersion():null;
 					
-					if(lastDeployedVersion != null &&  buildAuditLogs.stream().anyMatch( i -> (i.getVersion().equalsIgnoreCase(version) && !i.isImageDeleted()))){
+					if(lastDeployedVersion != null &&  buildAuditLogs.stream().anyMatch( i -> (i.getVersion().equalsIgnoreCase(lastDeployedVersion) && !i.isImageDeleted()))){
 							buildAuditLogs.stream().forEach(i ->{
-								if(i.getVersion().equalsIgnoreCase(version)){
-									GenericMessage deleteApiResonse = client.deleteBuild(projectName, version);
+								if(i.getVersion().equalsIgnoreCase(lastDeployedVersion) && !i.isKeepBuildImage()){
+									GenericMessage deleteApiResonse = client.deleteBuild(projectName, lastDeployedVersion);
 									if(deleteApiResonse.getSuccess().equalsIgnoreCase("SUCCESS")){
 										i.setImageDeleted(true);
 									}									
