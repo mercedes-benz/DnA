@@ -3530,15 +3530,6 @@ import org.springframework.beans.factory.annotation.Value;
 		log.info("Request received to fetch secret from Vault for codeSpaceName={}, env={}", codeSpaceName, env);
 		Object responseBody = null;
         UserStore.UserInfo currentUser = userStore.getUserInfo();
-		if (currentUser == null) {
-			log.warn("Unauthorized request to fetch secrets for workspace {}", codeSpaceName);
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("User not authenticated.");
-		}
-		if (!currentUser.hasAdminAccess()) {
-			log.warn("Access denied: User {} is not an Admin", currentUser.getId());
-			return ResponseEntity.status(HttpStatus.FORBIDDEN)
-					.body("Access denied: Only Admins can perform this action.");
-		}
 		CodeServerWorkspaceNsql workspace = workspaceCustomRepository.findByWorkspaceId(codeSpaceName);
 		if (workspace == null) {
 			log.warn("Workspace not found for codeSpaceName={}", codeSpaceName);
@@ -3547,11 +3538,15 @@ import org.springframework.beans.factory.annotation.Value;
 		var workspaceData = workspace.getData();
 		String userId = currentUser.getId().toLowerCase();
 
-		boolean hasWorkspaceAccess = userId.equalsIgnoreCase(workspaceData.getWorkspaceOwner().getId()) ||
+		boolean isAdmin = currentUser.getUserRole() != null &&
+        currentUser.getUserRole().stream()
+                .anyMatch(role -> "Admin".equalsIgnoreCase(role.getName()));
+
+		boolean hasWorkspaceAccess = isAdmin && (userId.equalsIgnoreCase(workspaceData.getWorkspaceOwner().getId()) ||
 				workspaceData.getProjectDetails()
 						.getProjectCollaborators()
 						.stream()
-						.anyMatch(c -> userId.equalsIgnoreCase(c.getId()));
+						.anyMatch(c -> userId.equalsIgnoreCase(c.getId())));
 
 		if (!hasWorkspaceAccess) {
 			log.warn("User {} does not have access to workspace {}", userId, codeSpaceName);
@@ -3611,42 +3606,49 @@ import org.springframework.beans.factory.annotation.Value;
 			@NotNull @ApiParam(value = "Vault path where the secret should be created", required = true) @Valid @RequestParam(value = "path", required = true) String path,
 			@ApiParam(value = "JSON body containing the key-value pairs of the secret", required = true) @Valid @RequestBody Object secretValue) {
 		log.info("Request received to create secret in Vault for path={}", path);
-		UserStore.UserInfo currentUser = userStore.getUserInfo();
-		if (currentUser == null) {
-			log.warn("Unauthorized request to create secret at path={}", path);
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-					.body("User not authenticated.");
-		}
-
-		if (!currentUser.hasAdminAccess()) {
-			log.warn("Access denied: User {} is not an Admin", currentUser.getId());
-			return ResponseEntity.status(HttpStatus.FORBIDDEN)
-					.body("Access denied: Only Admins can create secrets.");
-		}
-
-		String workspaceId = path.contains("/") ? path.split("/")[0] : path;
-		CodeServerWorkspaceNsql workspace = workspaceCustomRepository.findByWorkspaceId(workspaceId);
-		if (workspace == null) {
-			log.warn("Workspace not found for path={}", path);
-			return ResponseEntity.status(HttpStatus.NOT_FOUND)
-					.body("Workspace not found.");
-		}
-
-		String userId = currentUser.getId().toLowerCase();
-		var workspaceData = workspace.getData();
-
-		boolean hasWorkspaceAccess = userId.equalsIgnoreCase(workspaceData.getWorkspaceOwner().getId()) ||
-				workspaceData.getProjectDetails()
-						.getProjectCollaborators()
-						.stream()
-						.anyMatch(c -> userId.equalsIgnoreCase(c.getId()));
-
-		if (!hasWorkspaceAccess) {
-			log.warn("User {} does not have access to workspace {}", userId, workspaceId);
-			return ResponseEntity.status(HttpStatus.FORBIDDEN)
-					.body("Access denied: You don’t have permission to this workspace.");
-		}
 		try {
+			UserStore.UserInfo currentUser = userStore.getUserInfo();
+			if (currentUser == null) {
+				log.warn("Unauthorized request to create secret at path={}", path);
+				return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+						.body("User not authenticated.");
+			}
+
+			String userId = currentUser.getId().toLowerCase();
+
+			boolean isAdmin = currentUser.getUserRole() != null &&
+					currentUser.getUserRole().stream()
+							.anyMatch(role -> "Admin".equalsIgnoreCase(role.getName()));
+
+			if (!isAdmin) {
+				log.warn("Access denied: User {} is not an Admin", currentUser.getId());
+				return ResponseEntity.status(HttpStatus.FORBIDDEN)
+						.body("Access denied: Only Admins can create secrets.");
+			}
+
+			String workspaceId = path.contains("/") ? path.split("/")[0] : path;
+
+			CodeServerWorkspaceNsql workspace = workspaceCustomRepository.findByWorkspaceId(workspaceId);
+			if (workspace == null) {
+				log.warn("Workspace not found for path={}", path);
+				return ResponseEntity.status(HttpStatus.NOT_FOUND)
+						.body("Workspace not found.");
+			}
+
+			var workspaceData = workspace.getData();
+
+			boolean hasWorkspaceAccess = userId.equalsIgnoreCase(workspaceData.getWorkspaceOwner().getId()) ||
+					workspaceData.getProjectDetails()
+							.getProjectCollaborators()
+							.stream()
+							.anyMatch(c -> userId.equalsIgnoreCase(c.getId()));
+
+			if (!hasWorkspaceAccess) {
+				log.warn("User {} does not have access to workspace {}", userId, workspaceId);
+				return ResponseEntity.status(HttpStatus.FORBIDDEN)
+						.body("Access denied: You don’t have permission to this workspace.");
+			}
+
 			String secretJson = new ObjectMapper().writeValueAsString(secretValue);
 			ResponseEntity<String> vaultResponse = vaultClient.createSecret(path, secretJson);
 
@@ -3694,42 +3696,48 @@ import org.springframework.beans.factory.annotation.Value;
 			@NotNull @ApiParam(value = "Environment name", required = true) @Valid @RequestParam(value = "env", required = true) String env,
 			@ApiParam(value = "JSON body containing the updated key-value pairs of the secret", required = true) @Valid @RequestBody Object secretValue) {
 		log.info("Request received to update secret in Vault for path={}, env={}", path, env);
-        UserStore.UserInfo currentUser = userStore.getUserInfo();
-		if (currentUser == null) {
-			log.warn("Unauthorized request to update secret for path={}", path);
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-					.body("User not authenticated.");
-		}
+        try {
+			UserStore.UserInfo currentUser = userStore.getUserInfo();
+			if (currentUser == null) {
+				log.warn("Unauthorized request to update secret for path={}", path);
+				return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+						.body("User not authenticated.");
+			}
 
-		if (!currentUser.hasAdminAccess()) {
-			log.warn("Access denied: User {} is not an Admin", currentUser.getId());
-			return ResponseEntity.status(HttpStatus.FORBIDDEN)
-					.body("Access denied: Only Admins can update secrets.");
-		}
+			String userId = currentUser.getId().toLowerCase();
 
-		String workspaceId = path.contains("/") ? path.split("/")[0] : path;
-		CodeServerWorkspaceNsql workspace = workspaceCustomRepository.findByWorkspaceId(workspaceId);
-		if (workspace == null) {
-			log.warn("Workspace not found for path={}", path);
-			return ResponseEntity.status(HttpStatus.NOT_FOUND)
-					.body("Workspace not found.");
-		}
+			boolean isAdmin = currentUser.getUserRole() != null &&
+					currentUser.getUserRole().stream()
+							.anyMatch(role -> "Admin".equalsIgnoreCase(role.getName()));
 
-		String userId = currentUser.getId().toLowerCase();
-		var workspaceData = workspace.getData();
+			if (!isAdmin) {
+				log.warn("Access denied: User {} is not an Admin", currentUser.getId());
+				return ResponseEntity.status(HttpStatus.FORBIDDEN)
+						.body("Access denied: Only Admins can update secrets.");
+			}
 
-		boolean hasWorkspaceAccess = userId.equalsIgnoreCase(workspaceData.getWorkspaceOwner().getId()) ||
-				workspaceData.getProjectDetails()
-						.getProjectCollaborators()
-						.stream()
-						.anyMatch(c -> userId.equalsIgnoreCase(c.getId()));
-		if (!hasWorkspaceAccess) {
-			log.warn("User {} does not have access to workspace {}", userId, workspaceId);
-			return ResponseEntity.status(HttpStatus.FORBIDDEN)
-					.body("Access denied: You don’t have permission to this workspace.");
-		}
+			String workspaceId = path.contains("/") ? path.split("/")[0] : path;
 
-		try {
+			CodeServerWorkspaceNsql workspace = workspaceCustomRepository.findByWorkspaceId(workspaceId);
+			if (workspace == null) {
+				log.warn("Workspace not found for path={}", path);
+				return ResponseEntity.status(HttpStatus.NOT_FOUND)
+						.body("Workspace not found.");
+			}
+
+			var workspaceData = workspace.getData();
+
+			boolean hasWorkspaceAccess = userId.equalsIgnoreCase(workspaceData.getWorkspaceOwner().getId()) ||
+					workspaceData.getProjectDetails()
+							.getProjectCollaborators()
+							.stream()
+							.anyMatch(c -> userId.equalsIgnoreCase(c.getId()));
+
+			if (!hasWorkspaceAccess) {
+				log.warn("User {} does not have access to workspace {}", userId, workspaceId);
+				return ResponseEntity.status(HttpStatus.FORBIDDEN)
+						.body("Access denied: You don’t have permission to this workspace.");
+			}
 			String secretJson = new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(secretValue);
 			ResponseEntity<String> vaultResponse = vaultClient.updateSecret(path, env, secretJson);
 
@@ -3779,42 +3787,47 @@ import org.springframework.beans.factory.annotation.Value;
 			@NotNull @ApiParam(value = "Vault path where the secret exists", required = true) @Valid @RequestParam(value = "path", required = true) String path,
 			@NotNull @ApiParam(value = "Name of the secret to be deleted", required = true) @Valid @RequestParam(value = "secretName", required = true) String secretName) {
 		log.info("Request received to delete secret from Vault for path={}, secretName={}", path, secretName);
-		UserStore.UserInfo currentUser = userStore.getUserInfo();
-		if (currentUser == null) {
-			log.warn("Unauthorized request to delete secret for path={}, secretName={}", path, secretName);
-			return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
-					.body("User not authenticated.");
-		}
-
-		if (!currentUser.hasAdminAccess()) {
-			log.warn("Access denied: User {} is not an Admin", currentUser.getId());
-			return ResponseEntity.status(HttpStatus.FORBIDDEN)
-					.body("Access denied: Only Admins can delete secrets.");
-		}
-
-		String workspaceId = path.contains("/") ? path.split("/")[0] : path;
-		CodeServerWorkspaceNsql workspace = workspaceCustomRepository.findByWorkspaceId(workspaceId);
-		if (workspace == null) {
-			log.warn("Workspace not found for path={}", path);
-			return ResponseEntity.status(HttpStatus.NOT_FOUND)
-					.body("Workspace not found.");
-		}
-
-    String userId = currentUser.getId().toLowerCase();
-    var workspaceData = workspace.getData();
-
-    boolean hasWorkspaceAccess = userId.equalsIgnoreCase(workspaceData.getWorkspaceOwner().getId()) ||
-            workspaceData.getProjectDetails()
-                    .getProjectCollaborators()
-                    .stream()
-                    .anyMatch(c -> userId.equalsIgnoreCase(c.getId()));
-
-    if (!hasWorkspaceAccess) {
-        log.warn("User {} does not have access to workspace {}", userId, workspaceId);
-        return ResponseEntity.status(HttpStatus.FORBIDDEN)
-                .body("Access denied: You don’t have permission to this workspace.");
-    }
 		try {
+			UserStore.UserInfo currentUser = userStore.getUserInfo();
+			if (currentUser == null) {
+				log.warn("Unauthorized request to delete secret for path={}, secretName={}", path, secretName);
+				return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+						.body("User not authenticated.");
+			}
+
+			String userId = currentUser.getId().toLowerCase();
+
+			boolean isAdmin = currentUser.getUserRole() != null &&
+					currentUser.getUserRole().stream()
+							.anyMatch(role -> "Admin".equalsIgnoreCase(role.getName()));
+
+			if (!isAdmin) {
+				log.warn("Access denied: User {} is not an Admin", currentUser.getId());
+				return ResponseEntity.status(HttpStatus.FORBIDDEN)
+						.body("Access denied: Only Admins can delete secrets.");
+			}
+
+			String workspaceId = path.contains("/") ? path.split("/")[0] : path;
+
+			CodeServerWorkspaceNsql workspace = workspaceCustomRepository.findByWorkspaceId(workspaceId);
+			if (workspace == null) {
+				log.warn("Workspace not found for path={}", path);
+				return ResponseEntity.status(HttpStatus.NOT_FOUND)
+						.body("Workspace not found.");
+			}
+
+			var workspaceData = workspace.getData();
+			boolean hasWorkspaceAccess = userId.equalsIgnoreCase(workspaceData.getWorkspaceOwner().getId()) ||
+					workspaceData.getProjectDetails()
+							.getProjectCollaborators()
+							.stream()
+							.anyMatch(c -> userId.equalsIgnoreCase(c.getId()));
+
+			if (!hasWorkspaceAccess) {
+				log.warn("User {} does not have access to workspace {}", userId, workspaceId);
+				return ResponseEntity.status(HttpStatus.FORBIDDEN)
+						.body("Access denied: You don’t have permission to this workspace.");
+			}
 			ResponseEntity<String> vaultResponse = vaultClient.deleteSecret(path, secretName);
 
 			if (vaultResponse == null) {
