@@ -2713,7 +2713,9 @@
 					 CodeServerBuildDeploy buildDeployData = null;
 				 if ("DEPLOYED".equalsIgnoreCase(latestStatus)) {
 					 String existingDeploymentUrl = deploymentDetails.getDeploymentUrl();
-					 deploymentDetails.setDeploymentUrl(deploymentUrl);
+					 String base = "/" + projectName.toLowerCase() + "/" + targetEnv.toLowerCase();
+					 String finalUrl = base + (deploymentUrl != null && deploymentUrl.endsWith("/api") ? "/api" : "/");
+					 deploymentDetails.setDeploymentUrl(finalUrl);
 					 deploymentDetails.setLastDeployedBranch(branch);
 					 deploymentDetails.setLastDeployedBy(entity.getData().getWorkspaceOwner());
 					 deploymentDetails.setLastDeployedOn(now);

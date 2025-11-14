@@ -496,10 +496,26 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 			// }
 			// else {
 				currentPath = "/" + serviceName.toLowerCase() + "/" + env + "/";
-				if(env.equalsIgnoreCase("int"))
-					paths.add("/" + serviceName.toLowerCase() + "/" + "int/");
-				if(env.equalsIgnoreCase("prod"))
-					paths.add("/" + serviceName.toLowerCase() + "/" + "prod/");
+				if (env.equalsIgnoreCase("int")) {
+					String prodUrl = prodDeploymentDetails != null
+							? prodDeploymentDetails.getDeploymentUrl()
+							: null;
+					if (prodUrl != null && prodUrl.endsWith("/api")) {
+						paths.add("/" + serviceName.toLowerCase() + "/int/api");
+					} else {
+						paths.add("/" + serviceName.toLowerCase() + "/int/");
+					}
+				}
+				if (env.equalsIgnoreCase("prod")) {
+					String intUrl = intDeploymentDetails != null
+							? intDeploymentDetails.getDeploymentUrl()
+							: null;
+					if (intUrl != null && intUrl.endsWith("/api")) {
+						paths.add("/" + serviceName.toLowerCase() + "/prod/api");
+					} else {
+						paths.add("/" + serviceName.toLowerCase() + "/prod/");
+					}
+				}
 			// }
 			// if(Objects.nonNull(intSecureIAM) && intSecureIAM) {
 			// 	paths.add("/" + serviceName + "/" + "int" + "/api");
