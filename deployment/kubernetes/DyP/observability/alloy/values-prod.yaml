@@ -669,22 +669,6 @@ alloy:
   # -- Set livenessProbe for the Grafana Alloy container.
   livenessProbe: {}
 
-  # -- Resource requests and limits to apply to the Grafana Alloy container.
-  resources: 
-    requests:
-      memory: "10Gi"
-    limits:
-      cpu: "700m"
-      memory: "18Gi"
-
-  # -- Set lifecycle hooks for the Grafana Alloy container.
-  lifecycle: {}
-    # preStop:
-    #   exec:
-    #     command:
-    #     - /bin/sleep
-    #     - "10"
-
 image:
   # -- Grafana Alloy image registry (defaults to docker.io)
   registry: "registry-emea.app.corpintra.net/dockerhub"
