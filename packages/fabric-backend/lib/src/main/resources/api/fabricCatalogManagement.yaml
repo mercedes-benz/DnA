@@ -284,11 +284,11 @@ definitions:
     required:
       - divisions
       - department
-      - dataOrigin
+      # - dataOrigin
       - leanIXId
       - isDocumentationUpdated
       - isDataLakeAvailability
-      - isDataAsset
+      # - isDataAsset
       - dataConfidentiality
       - tier
     properties:
@@ -300,9 +300,9 @@ definitions:
       department:
         type: string
         minLength: 1
-      dataOrigin:
-        type: string
-        enum: ["internal","external","mixed"]
+      # dataOrigin:
+      #   type: string
+      #   enum: ["internal","external","mixed"]
       leanIXId:
         type: string
         minLength: 1

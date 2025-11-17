@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.openmetadata.client.ApiClient;
 import org.openmetadata.client.api.*;
 import org.openmetadata.client.model.*;
+import org.openmetadata.schema.metadataIngestion.FilterPattern;
 import org.openmetadata.schema.services.connections.database.DatalakeConnection;
 import org.openmetadata.schema.services.connections.database.SampleDataStorageConfig;
 import org.springframework.beans.factory.annotation.Value;
@@ -22,6 +23,7 @@ import feign.FeignException;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.UUID;
 import java.util.Map;
@@ -116,13 +118,23 @@ public class OpenMetadataClient {
                     .addTagsItem(prepareTag(mapTierValue(tier)))
                     .serviceType(CreateDatabaseService.ServiceTypeEnum.DATALAKE);
 
+            Map<String, Object> storageConfig = new HashMap<>();
+            Map<String, Object> config = new HashMap<>();
+            config.put("bucketName", "");
+            config.put("prefix", "");
+            config.put("overwriteData", true);
+            config.put("storageConfig", storageConfig);
+            config.put("filePathPattern", "{service_name}/{database_name}/{database_schema_name}/{table_name}");
+
+            SampleDataStorageConfig sampleDataConfig = new SampleDataStorageConfig();
+            sampleDataConfig.setConfig(config);
 
             DatabaseConnection connection = new DatabaseConnection();
             connection.setConfig(new DatalakeConnection()
-                    .withTableFilterPattern(null)
-                    .withTableFilterPattern(null)
-                    .withDatabaseFilterPattern(null)
-                    .withSampleDataStorageConfig(new SampleDataStorageConfig())
+                    .withTableFilterPattern(new FilterPattern())
+                    .withTableFilterPattern(new FilterPattern())
+                    .withDatabaseFilterPattern(new FilterPattern())
+                    .withSampleDataStorageConfig(sampleDataConfig)
                     .withSupportsMetadataExtraction(true)
                     .withBucketName(name)
                     .withDatabaseName("Lakehouses")
@@ -446,7 +458,7 @@ public class OpenMetadataClient {
         return Map.of(
             "Division", fields.getDivisions(),
             "Department", List.of(fields.getDepartment()),
-            "DataOrigin", List.of(fields.getDataOrigin()),
+            // "DataOrigin", List.of(fields.getDataOrigin()),
 //"IsDataAsset", List.of(fields.getIsDataAsset()),
             "LeanIXID", List.of(fields.getLeanIXId()),
             "DocumentationUpdated", List.of(fields.getIsDocumentationUpdated()),
