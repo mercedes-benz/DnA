@@ -175,6 +175,10 @@ export const Envs = {
     getInjectedEnv('ENABLE_FABRIC_SERVICE') !== undefined
       ? getInjectedEnv('ENABLE_FABRIC_SERVICE')
       : EnvParser.parseBool(process.env.ENABLE_FABRIC_SERVICE, false),
+  ENABLE_UILICIOUS_SERVICE:
+    getInjectedEnv('ENABLE_UILICIOUS_SERVICE') !== undefined
+      ? getInjectedEnv('ENABLE_UILICIOUS_SERVICE')
+      : EnvParser.parseBool(process.env.ENABLE_UILICIOUS_SERVICE, false),
   ENABLE_DATA_ENTRY_SERVICE:
     getInjectedEnv('ENABLE_DATA_ENTRY_SERVICE') !== undefined
       ? getInjectedEnv('ENABLE_DATA_ENTRY_SERVICE')

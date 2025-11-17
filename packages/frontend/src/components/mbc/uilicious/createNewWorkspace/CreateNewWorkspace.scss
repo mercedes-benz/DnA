@@ -1,0 +1,109 @@
+.createWorkspaceWrapper{
+  padding: 30px;
+}
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.modalDialog {
+  width: 700px;
+  max-width: calc(100% - 32px);
+  background: #0f1113;
+  border-radius: 8px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+  overflow: hidden;
+  border: 1px solid #2a2f38;
+}
+
+.modalHeader {
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding: 12px 16px;
+  border-bottom: 1px solid #1f2226;
+}
+
+.modalHeader h3 { margin:0; font-size:16px; }
+
+.modalClose {
+  background: transparent;
+  border: none;
+  color: #cbd5e1;
+  font-size: 20px;
+  cursor: pointer;
+}
+
+.modalBody {
+  padding: 16px;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.formRow { display:flex; flex-direction:column; gap:6px; }
+
+.inputLabel { font-size: 12px; color: #9aa6b2; }
+
+.radioGroup { display:flex; gap:12px; align-items:center; }
+
+.modalFooter {
+  display:flex;
+  justify-content:flex-end;
+  gap:8px;
+  padding:12px 16px;
+  border-top:1px solid #1f2226;
+}
+//
+    .flexLayout {
+      display: flex;
+      justify-content: space-between;
+      > div {
+        width: calc(50% - 7px);
+      }
+    }
+.newCodeSpaceBtn {
+    margin-top: 25px;
+    display: flex;
+    justify-content: center;
+  }
+
+.largeTextBox {
+  min-height: 100px;
+  resize: vertical;
+}
+
+.input-field-group {
+  width: 100%;
+
+  textarea.input-field {
+    width: 100%;
+    background: #1a1d21;
+    border: 1px solid #2a2f38;
+    color: #cbd5e1;
+    border-radius: 4px;
+    padding: 8px 10px;
+    font-size: 14px;
+  }
+}
+
+.flexLayout {
+  display: flex;
+  justify-content: space-between;
+
+  > div {
+    width: calc(50% - 7px);
+  }
+}
+
+.input-field-group:has(textarea) {
+  width: 100%;
+}
