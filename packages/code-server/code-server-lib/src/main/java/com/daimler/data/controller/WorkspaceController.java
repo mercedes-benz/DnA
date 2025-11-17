@@ -3530,7 +3530,13 @@ import org.springframework.beans.factory.annotation.Value;
 		log.info("Request received to fetch secret from Vault for codeSpaceName={}, env={}", codeSpaceName, env);
 		Object responseBody = null;
         UserStore.UserInfo currentUser = userStore.getUserInfo();
-		CodeServerWorkspaceNsql workspace = workspaceCustomRepository.findByWorkspaceId(codeSpaceName);
+		String currentUserUserId = currentUser != null ? currentUser.getId() : null;
+		CodeServerWorkspaceVO vo = service.getByProjectName(currentUserUserId, codeSpaceName);
+		String codespaceId = null;
+		if(vo!=null){
+			codespaceId=vo.getWorkspaceId();
+		}
+		CodeServerWorkspaceNsql workspace = workspaceCustomRepository.findByWorkspaceId(codespaceId);
 		if (workspace == null) {
 			log.warn("Workspace not found for codeSpaceName={}", codeSpaceName);
 			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Workspace not found.");
@@ -3538,9 +3544,18 @@ import org.springframework.beans.factory.annotation.Value;
 		var workspaceData = workspace.getData();
 		String userId = currentUser.getId().toLowerCase();
 
-		boolean isAdmin = currentUser.getUserRole() != null &&
-        currentUser.getUserRole().stream()
-                .anyMatch(role -> "Admin".equalsIgnoreCase(role.getName()));
+		Boolean isAdmin =false;
+
+		List<UserInfoVO>collabList =vo.getProjectDetails().getProjectCollaborators();
+		if(collabList!=null){
+			for(UserInfoVO user : collabList){
+				if(userId.equalsIgnoreCase(user.getId())){
+					if(user.isIsAdmin()){
+						isAdmin =true;
+					}
+				}
+			}
+		}
 
 		boolean hasWorkspaceAccess = isAdmin && (userId.equalsIgnoreCase(workspaceData.getWorkspaceOwner().getId()) ||
 				workspaceData.getProjectDetails()
@@ -3608,6 +3623,12 @@ import org.springframework.beans.factory.annotation.Value;
 		log.info("Request received to create secret in Vault for path={}", path);
 		try {
 			UserStore.UserInfo currentUser = userStore.getUserInfo();
+			String currentUserUserId = currentUser != null ? currentUser.getId() : null;
+			CodeServerWorkspaceVO vo = service.getByProjectName(currentUserUserId, path);
+			String codespaceId = null;
+			if (vo != null) {
+				codespaceId = vo.getWorkspaceId();
+			}
 			if (currentUser == null) {
 				log.warn("Unauthorized request to create secret at path={}", path);
 				return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
@@ -3616,9 +3637,18 @@ import org.springframework.beans.factory.annotation.Value;
 
 			String userId = currentUser.getId().toLowerCase();
 
-			boolean isAdmin = currentUser.getUserRole() != null &&
-					currentUser.getUserRole().stream()
-							.anyMatch(role -> "Admin".equalsIgnoreCase(role.getName()));
+			Boolean isAdmin = false;
+
+			List<UserInfoVO> collabList = vo.getProjectDetails().getProjectCollaborators();
+			if (collabList != null) {
+				for (UserInfoVO user : collabList) {
+					if (userId.equalsIgnoreCase(user.getId())) {
+						if (user.isIsAdmin()) {
+							isAdmin = true;
+						}
+					}
+				}
+			}
 
 			if (!isAdmin) {
 				log.warn("Access denied: User {} is not an Admin", currentUser.getId());
@@ -3698,6 +3728,12 @@ import org.springframework.beans.factory.annotation.Value;
 		log.info("Request received to update secret in Vault for path={}, env={}", path, env);
         try {
 			UserStore.UserInfo currentUser = userStore.getUserInfo();
+			String currentUserUserId = currentUser != null ? currentUser.getId() : null;
+			CodeServerWorkspaceVO vo = service.getByProjectName(currentUserUserId, path);
+			String codespaceId = null;
+			if (vo != null) {
+				codespaceId = vo.getWorkspaceId();
+			}
 			if (currentUser == null) {
 				log.warn("Unauthorized request to update secret for path={}", path);
 				return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
@@ -3706,9 +3742,18 @@ import org.springframework.beans.factory.annotation.Value;
 
 			String userId = currentUser.getId().toLowerCase();
 
-			boolean isAdmin = currentUser.getUserRole() != null &&
-					currentUser.getUserRole().stream()
-							.anyMatch(role -> "Admin".equalsIgnoreCase(role.getName()));
+			Boolean isAdmin = false;
+
+			List<UserInfoVO> collabList = vo.getProjectDetails().getProjectCollaborators();
+			if (collabList != null) {
+				for (UserInfoVO user : collabList) {
+					if (userId.equalsIgnoreCase(user.getId())) {
+						if (user.isIsAdmin()) {
+							isAdmin = true;
+						}
+					}
+				}
+			}
 
 			if (!isAdmin) {
 				log.warn("Access denied: User {} is not an Admin", currentUser.getId());
@@ -3789,6 +3834,12 @@ import org.springframework.beans.factory.annotation.Value;
 		log.info("Request received to delete secret from Vault for path={}, secretName={}", path, secretName);
 		try {
 			UserStore.UserInfo currentUser = userStore.getUserInfo();
+			String currentUserUserId = currentUser != null ? currentUser.getId() : null;
+			CodeServerWorkspaceVO vo = service.getByProjectName(currentUserUserId, path);
+			String codespaceId = null;
+			if (vo != null) {
+				codespaceId = vo.getWorkspaceId();
+			}
 			if (currentUser == null) {
 				log.warn("Unauthorized request to delete secret for path={}, secretName={}", path, secretName);
 				return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
@@ -3797,10 +3848,18 @@ import org.springframework.beans.factory.annotation.Value;
 
 			String userId = currentUser.getId().toLowerCase();
 
-			boolean isAdmin = currentUser.getUserRole() != null &&
-					currentUser.getUserRole().stream()
-							.anyMatch(role -> "Admin".equalsIgnoreCase(role.getName()));
+			Boolean isAdmin = false;
 
+			List<UserInfoVO> collabList = vo.getProjectDetails().getProjectCollaborators();
+			if (collabList != null) {
+				for (UserInfoVO user : collabList) {
+					if (userId.equalsIgnoreCase(user.getId())) {
+						if (user.isIsAdmin()) {
+							isAdmin = true;
+						}
+					}
+				}
+			}
 			if (!isAdmin) {
 				log.warn("Access denied: User {} is not an Admin", currentUser.getId());
 				return ResponseEntity.status(HttpStatus.FORBIDDEN)
