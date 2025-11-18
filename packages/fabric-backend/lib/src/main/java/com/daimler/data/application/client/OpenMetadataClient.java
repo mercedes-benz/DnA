@@ -460,10 +460,10 @@ public class OpenMetadataClient {
             "Division", fields.getDivisions(),
             "Department", List.of(fields.getDepartment()),
             // "DataOrigin", List.of(fields.getDataOrigin()),
-//"IsDataAsset", List.of(fields.getIsDataAsset()),
+            //"IsDataAsset", List.of(fields.getIsDataAsset()),
             "LeanIXID", List.of(fields.getLeanIXId()),
             "DocumentationUpdated", List.of(fields.getIsDocumentationUpdated()),
-            "DataLakeAvailability", List.of(fields.getIsDataLakeAvailability()),
+            // "DataLakeAvailability", List.of(fields.getIsDataLakeAvailability()),
             "DataConfidentiality",List.of(fields.getDataConfidentiality())
         );
     }

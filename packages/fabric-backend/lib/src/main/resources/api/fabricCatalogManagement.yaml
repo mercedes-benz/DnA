@@ -287,7 +287,7 @@ definitions:
       # - dataOrigin
       - leanIXId
       - isDocumentationUpdated
-      - isDataLakeAvailability
+      # - isDataLakeAvailability
       # - isDataAsset
       - dataConfidentiality
       - tier
@@ -309,9 +309,9 @@ definitions:
       isDocumentationUpdated:
         type: string
         enum: ["Yes","No"]
-      isDataLakeAvailability:
-        type: string
-        enum: ["Yes","No"]
+      # isDataLakeAvailability:
+      #   type: string
+      #   enum: ["Yes","No"]
 #      isDataAsset:
 #        type: string
 #        enum: ["Yes","No"]

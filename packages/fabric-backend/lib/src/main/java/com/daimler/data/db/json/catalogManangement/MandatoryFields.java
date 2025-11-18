@@ -20,7 +20,7 @@ public class MandatoryFields implements Serializable{
     // private String dataOrigin;
     private String leanIXId;
     private String isDocumentationUpdated;
-    private String isDataLakeAvailability;
+    // private String isDataLakeAvailability;
    // private String isDataAsset;
     private String dataConfidentiality;
     private Integer tier;
