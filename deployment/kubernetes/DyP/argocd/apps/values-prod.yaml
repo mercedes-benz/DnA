@@ -73,3 +73,5 @@ db:
    env: int
  - name: digital-qua
    env: prod
+ - name: wbv
+   env: prod
