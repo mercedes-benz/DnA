@@ -131,13 +131,14 @@ public class OpenMetadataClient {
 
             DatabaseConnection connection = new DatabaseConnection();
             connection.setConfig(new DatalakeConnection()
-                    .withTableFilterPattern(new FilterPattern())
+                    .withSchemaFilterPattern(new FilterPattern())
                     .withTableFilterPattern(new FilterPattern())
                     .withDatabaseFilterPattern(new FilterPattern())
                     .withSampleDataStorageConfig(sampleDataConfig)
                     .withSupportsMetadataExtraction(true)
                     .withBucketName(name)
                     .withDatabaseName("Lakehouses")
+                    .withConfigSource(new Object())
                     .withPrefix("DNA-Fabric"));
             request.setConnection(connection);
             request.setOwners(owners);
