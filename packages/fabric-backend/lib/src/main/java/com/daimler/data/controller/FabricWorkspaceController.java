@@ -6,10 +6,12 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.Objects;
 
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,6 +29,7 @@ import com.daimler.data.api.fabricWorkspace.LovsApi;
 import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.application.auth.UserStore.UserInfo;
 import com.daimler.data.application.client.AuthoriserClient;
+import com.daimler.data.application.client.FabricCDCPushServiceClient;
 import com.daimler.data.application.client.FabricWorkspaceClient;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
@@ -35,6 +38,7 @@ import com.daimler.data.dto.fabricWorkspace.AuthoriserRoleDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.AuthoriserRoleDetailsResponseVO;
 import com.daimler.data.dto.fabricWorkspace.CreateRoleRequestVO;
 import com.daimler.data.dto.fabricWorkspace.CreatedByVO;
+import com.daimler.data.dto.fabricWorkspace.CustomGroupNameCollectionVO;
 import com.daimler.data.dto.fabricWorkspace.FabricLakehouseCreateRequestVO;
 import com.daimler.data.dto.fabricWorkspace.FabricShortcutsCollectionVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceCreateRequestVO;
@@ -43,6 +47,8 @@ import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceRoleRequestVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceUpdateRequestVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspacesCollectionVO;
+import com.daimler.data.dto.fabricWorkspace.LakehouseColumnCollectionResponseVO;
+import com.daimler.data.dto.fabricWorkspace.LakehouseTableCollectionResponseVO;
 import com.daimler.data.dto.fabricWorkspace.RolesVO;
 import com.daimler.data.dto.fabricWorkspace.DnaRoleCollectionVO;
 import com.daimler.data.dto.fabricWorkspace.EntraGroupResponseVO;
@@ -75,6 +81,9 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 
 	@Autowired
 	private FabricWorkspaceClient fabricWorkspaceClient;
+
+	@Autowired
+	private FabricCDCPushServiceClient fabricCDCPushServiceClient;
 
 	@Autowired FabricWorkspaceUtility utility;
 
@@ -112,7 +121,7 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 			return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
 		}else {
 				if(workspaceRequestVO.getDescription()==null || workspaceRequestVO.getDivision() == null || workspaceRequestVO.getDataClassification() ==null
-				|| workspaceRequestVO.isHasPii() == null || workspaceRequestVO.isTermsOfUse() == null || workspaceRequestVO.getCostCenter() == null || workspaceRequestVO.getDepartment() == null){
+				|| workspaceRequestVO.isHasPii() == null || workspaceRequestVO.isTermsOfUse() == null  || workspaceRequestVO.getDepartment() == null){
 					log.error("Fabric workspace project mandatory fields cannot be null for project, please check and send valid input.");
 					MessageDescription invalidMsg = new MessageDescription("Fabric workspace project mandatory fields cannot be null for project, please check and send valid input.");
 					errorMessage.setSuccess(HttpStatus.BAD_REQUEST.name());
@@ -187,6 +196,58 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 						workspaceRequestVO.setCustomGroupName(searchResult.getDisplayName());
 					}			
 		}
+
+	if (workspaceRequestVO.getCustomGroupNameCollection() != null 
+        && !workspaceRequestVO.getCustomGroupNameCollection().isEmpty()) {
+
+		List<CustomGroupNameCollectionVO> validGroupNames = new ArrayList<>();
+
+		for (CustomGroupNameCollectionVO groupObj : workspaceRequestVO.getCustomGroupNameCollection()
+			.stream()
+			.filter(Objects::nonNull)
+			.filter(g -> g.getGroupName() != null && !g.getGroupName().trim().isEmpty())
+			.collect(Collectors.toList())) {
+
+				String inputRole = groupObj.getRoleName();
+				String normalizedRole = capitalizeFirstLetter(inputRole.trim().toLowerCase());
+				Set<String> validRoles = Set.of("Admin", "Member", "Viewer", "Contributor");
+				if (!validRoles.contains(normalizedRole)) {
+					GenericMessage failedResponse = new GenericMessage();
+					MessageDescription message = new MessageDescription();
+					message.setMessage("Invalid role name '" + inputRole + "' for group: " + groupObj.getGroupName() +
+							". Allowed values are: " + validRoles);
+					failedResponse.addErrors(message);
+					failedResponse.setSuccess(HttpStatus.BAD_REQUEST.name());
+
+					responseVO.setData(workspaceRequestVO);
+					responseVO.setResponses(failedResponse);
+					log.error("Invalid role name '{}' for group '{}'", inputRole, groupObj.getGroupName());
+					return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+				}
+				log.info("Validating group name: {}", groupObj.getGroupName());
+
+				String groupName = groupObj.getGroupName().trim();
+				MicrosoftGroupDetailDto searchResult = fabricWorkspaceClient.searchGroup(groupName);
+				if (searchResult == null || searchResult.getId() == null) {
+					GenericMessage failedResponse = new GenericMessage();
+					MessageDescription message = new MessageDescription();
+					message.setMessage("Couldn't get group details for name: " + groupName + ". Failed to create workspace.");
+					failedResponse.addErrors(message);
+					failedResponse.setSuccess(HttpStatus.BAD_REQUEST.name());
+
+					responseVO.setData(workspaceRequestVO);
+					responseVO.setResponses(failedResponse);
+					log.error("Couldn't get group details for name {}, Failed to create workspace", groupName);
+					return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+				} else {
+					CustomGroupNameCollectionVO validGroup = new CustomGroupNameCollectionVO();
+					validGroup.setGroupName(searchResult.getDisplayName());
+					validGroup.setRoleName(normalizedRole); 
+					validGroupNames.add(validGroup);
+        	}
+    	}
+    	workspaceRequestVO.setCustomGroupNameCollection(validGroupNames);
+	}
 
 		CreatedByVO requestUser = this.userStore.getVO();
 		List<MessageDescription> errors = new ArrayList<>();
@@ -997,7 +1058,7 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
         @ApiResponse(code = 403, message = "Request is not authorized."),
         @ApiResponse(code = 405, message = "Method not allowed"),
         @ApiResponse(code = 500, message = "Internal error") })
-    @RequestMapping(value = "/fabric-worspace/{roleId}/details",
+    @RequestMapping(value = "/fabric-workspaces/{roleId}/details",
         produces = { "application/json" }, 
         consumes = { "application/json" },
         method = RequestMethod.GET)
@@ -1059,6 +1120,71 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
             }
         }
         return false;
+	}
+
+
+	@Override
+	 @ApiOperation(value = "Get tables for a given lakehouse", nickname = "getLakehouseTables", notes = "Get all tables for a given Fabric lakehouse under a workspace.", response = LakehouseTableCollectionResponseVO.class, tags={ "fabric-workspaces", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 200, message = "List of tables in the lakehouse", response = LakehouseTableCollectionResponseVO.class),
+        @ApiResponse(code = 204, message = "Fetch complete, but no tables found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have valid credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed."),
+        @ApiResponse(code = 500, message = "Internal server error.") })
+    @RequestMapping(value = "/fabric-workspaces/lakehouses/tables",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.GET)
+    public ResponseEntity<LakehouseTableCollectionResponseVO> getLakehouseTables(@NotNull @ApiParam(value = "", required = true) @Valid @RequestParam(value = "workspaceId", required = true) String workspaceId,@NotNull @ApiParam(value = "", required = true) @Valid @RequestParam(value = "lakehouseId", required = true) String lakehouseId){
+		try{
+			LakehouseTableCollectionResponseVO response = fabricCDCPushServiceClient.getLakehouseTables(workspaceId, lakehouseId);
+			if (response != null && response.getData()!=null && response.getResponseCode().equalsIgnoreCase(HttpStatus.OK.toString())) {
+				return new ResponseEntity<>(response, HttpStatus.OK);
+			} else {
+				return new ResponseEntity<>(response, response.getResponseCode() != null ? HttpStatus.valueOf(response.getResponseCode()) : HttpStatus.NO_CONTENT);
+			}
+		} catch (Exception e) {
+			log.error("Failed to retrieve lakehouse tables for workspaceId {} and lakehouseId {} with exception: {}", workspaceId, lakehouseId, e.getMessage());
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+
+	@Override
+	 @ApiOperation(value = "Get table schema", nickname = "getTableSchema", notes = "Get column schema for a table inside a Fabric lakehouse.", response = LakehouseColumnCollectionResponseVO.class, tags={ "fabric-workspaces", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 200, message = "Successfully fetched table schema.", response = LakehouseColumnCollectionResponseVO.class),
+        @ApiResponse(code = 204, message = "Fetch complete, but no schema found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have valid credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed."),
+        @ApiResponse(code = 500, message = "Internal server error.") })
+    @RequestMapping(value = "/fabric-workspaces/lakehouses/table/schema",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.GET)
+    public ResponseEntity<LakehouseColumnCollectionResponseVO> getTableSchema(@NotNull @ApiParam(value = "", required = true) @Valid @RequestParam(value = "workspaceId", required = true) String workspaceId,@NotNull @ApiParam(value = "", required = true) @Valid @RequestParam(value = "lakehouseId", required = true) String lakehouseId,@NotNull @ApiParam(value = "", required = true) @Valid @RequestParam(value = "tableName", required = true) String tableName,@ApiParam(value = "") @Valid @RequestParam(value = "schemaName", required = false) String schemaName){
+		try{
+			LakehouseColumnCollectionResponseVO response = fabricCDCPushServiceClient.getTableSchema(workspaceId, lakehouseId, schemaName, tableName);
+			if (response != null && response.getData()!=null && response.getResponseCode().equalsIgnoreCase(HttpStatus.OK.toString())) {
+				return new ResponseEntity<>(response, HttpStatus.OK);
+			} else {
+				return new ResponseEntity<>(response, response.getResponseCode() != null ? HttpStatus.valueOf(response.getResponseCode()) : HttpStatus.NO_CONTENT);
+			}
+		} catch (Exception e) {
+			log.error("Failed to retrieve table schema for workspaceId {} and lakehouseId {} with exception: {}", workspaceId, lakehouseId, e.getMessage());
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
     }
+	private String capitalizeFirstLetter(String str) {
+		if (str == null || str.isEmpty()) {
+			return str;
+		}
+		return str.substring(0, 1).toUpperCase() + str.substring(1).toLowerCase();
+	}
+
     
 }

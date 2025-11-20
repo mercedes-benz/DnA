@@ -1672,7 +1672,7 @@
 				responseMessage = this.buildWorkSpace(userId, id, branch, buildRequestDto, isprivateRecipe, environment,lastBuildType);
 				if(responseMessage.getSuccess().equalsIgnoreCase("SUCCESS")){
 					if(deploymentDetails.getDeploymentUrl() == null || deploymentDetails.getDeploymentUrl().isEmpty()){
-						authenticatorClient.callingKongApis(workspaceId, projectName, environment, isApiRecipe, deploymentDetails.getClientId(), "", deploymentDetails.getRedirectUri(), deploymentDetails.getIgnorePaths(), deploymentDetails.getScope(), deploymentDetails.getOneApiVersionShortName(), isSecuredWithCookie, secureWithIAMRequired, deploymentDetails.getSsoType(), secureWithDnaRequired, cloudServiceProvider);
+						authenticatorClient.callingKongApis(workspaceId, projectName, environment, isApiRecipe, deploymentDetails.getClientId(), "", deploymentDetails.getRedirectUri(), deploymentDetails.getIgnorePaths(), deploymentDetails.getScope(), deploymentDetails.getOneApiVersionShortName(), isSecuredWithCookie, secureWithIAMRequired, deploymentDetails.getSsoType(), secureWithDnaRequired, deploymentDetails.getAliceRoleEnabled(), deploymentDetails.getEntitlementPrefixEnabled(), deploymentDetails.getSelectedAliceRoles(), cloudServiceProvider);
 					}
 					status = "SUCCESS";
 					lastBuildOrDeployStatus = "BUILD_REQUESTED";
@@ -1735,6 +1735,9 @@
 						}else{
 							auditLogs = optionalBuildDeployentity.getData().getProdDeploymentAuditLogs();
 						}
+					}
+					 if(null == auditLogs){
+						auditLogs = new ArrayList<>();
 					}
 					DeploymentAudit auditLog = new DeploymentAudit();
 					 if("APPROVAL_PENDING".equalsIgnoreCase(deploymentDetails.getLastDeploymentStatus())){						
@@ -1801,7 +1804,7 @@
 					 buildDeployRepo.save(auditLogEntity);
 
 					 if(deployType.equalsIgnoreCase("deploy") && (deploymentDetails.getDeploymentUrl() == null || deploymentDetails.getDeploymentUrl().isEmpty())){
-						 authenticatorClient.callingKongApis(workspaceId, projectName, environment, isApiRecipe, deploymentDetails.getClientId(), "", deploymentDetails.getRedirectUri(), deploymentDetails.getIgnorePaths(), deploymentDetails.getScope(), deploymentDetails.getOneApiVersionShortName(), isSecuredWithCookie, secureWithIAMRequired, deploymentDetails.getSsoType(), secureWithDnaRequired, cloudServiceProvider);
+						 authenticatorClient.callingKongApis(workspaceId, projectName, environment, isApiRecipe, deploymentDetails.getClientId(), "", deploymentDetails.getRedirectUri(), deploymentDetails.getIgnorePaths(), deploymentDetails.getScope(), deploymentDetails.getOneApiVersionShortName(), isSecuredWithCookie, secureWithIAMRequired, deploymentDetails.getSsoType(), secureWithDnaRequired, deploymentDetails.getAliceRoleEnabled(), deploymentDetails.getEntitlementPrefixEnabled(), deploymentDetails.getSelectedAliceRoles(), cloudServiceProvider);
 					 }
 					
 					// deploymentDetails.setLastDeployedBranch(branch);
@@ -1893,13 +1896,14 @@
 				 }
 				 boolean isSecuredWithCookie = false; //disable for now 
 				 String deploymentType = deployedAppConfigDto.isIsApiRecipe() ? ConstantsUtility.API : ConstantsUtility.UI;
-				 authenticatorClient.callingKongApis(workspaceId, projectName, environment, deployedAppConfigDto.isIsApiRecipe(), deployedAppConfigDto.getClientID(), clientSecret, deployedAppConfigDto.getRedirectUri(), deployedAppConfigDto.getIgnorePaths(), deployedAppConfigDto.getScope(), deployedAppConfigDto.getOneApiVersionShortName(), isSecuredWithCookie, secureWithIAMRequired, deployedAppConfigDto.getSsoType().toString(), secureWithDnaRequired, cloudServiceProvider);
+				 authenticatorClient.callingKongApis(workspaceId, projectName, environment, deployedAppConfigDto.isIsApiRecipe(), deployedAppConfigDto.getClientID(), clientSecret, deployedAppConfigDto.getRedirectUri(), deployedAppConfigDto.getIgnorePaths(), deployedAppConfigDto.getScope(), deployedAppConfigDto.getOneApiVersionShortName(), isSecuredWithCookie, secureWithIAMRequired, deployedAppConfigDto.getSsoType().toString(), secureWithDnaRequired, deployedAppConfigDto.isAliceRoleEnabled(), deployedAppConfigDto.isEntitlementPrefixEnabled(), deployedAppConfigDto.getSelectedAliceRoles(), cloudServiceProvider);
 				 workspaceCustomRepository.updateDeployedAppConfig(projectName, environmentJsonbName,
 						 secureWithIAMRequired, deployedAppConfigDto.getOneApiVersionShortName(),
 						 isSecuredWithCookie, deploymentType, deployedAppConfigDto.getClientID(),
 						 deployedAppConfigDto.getRedirectUri(), deployedAppConfigDto.getIgnorePaths(),
 						 deployedAppConfigDto.getScope(), deployedAppConfigDto.getSsoType().toString(),
 						 secureWithDnaRequired, deployedAppConfigDto.isAliceRoleEnabled(),
+						 deployedAppConfigDto.isEntitlementPrefixEnabled(),
 						 deployedAppConfigDto.getSelectedAliceRoles());
 					 status = "SUCCESS";
 			 }
