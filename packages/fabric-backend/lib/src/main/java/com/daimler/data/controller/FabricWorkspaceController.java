@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.Objects;
 
@@ -37,6 +38,7 @@ import com.daimler.data.dto.fabricWorkspace.AuthoriserRoleDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.AuthoriserRoleDetailsResponseVO;
 import com.daimler.data.dto.fabricWorkspace.CreateRoleRequestVO;
 import com.daimler.data.dto.fabricWorkspace.CreatedByVO;
+import com.daimler.data.dto.fabricWorkspace.CustomGroupNameCollectionVO;
 import com.daimler.data.dto.fabricWorkspace.FabricLakehouseCreateRequestVO;
 import com.daimler.data.dto.fabricWorkspace.FabricShortcutsCollectionVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceCreateRequestVO;
@@ -194,6 +196,58 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 						workspaceRequestVO.setCustomGroupName(searchResult.getDisplayName());
 					}			
 		}
+
+	if (workspaceRequestVO.getCustomGroupNameCollection() != null 
+        && !workspaceRequestVO.getCustomGroupNameCollection().isEmpty()) {
+
+		List<CustomGroupNameCollectionVO> validGroupNames = new ArrayList<>();
+
+		for (CustomGroupNameCollectionVO groupObj : workspaceRequestVO.getCustomGroupNameCollection()
+			.stream()
+			.filter(Objects::nonNull)
+			.filter(g -> g.getGroupName() != null && !g.getGroupName().trim().isEmpty())
+			.collect(Collectors.toList())) {
+
+				String inputRole = groupObj.getRoleName();
+				String normalizedRole = capitalizeFirstLetter(inputRole.trim().toLowerCase());
+				Set<String> validRoles = Set.of("Admin", "Member", "Viewer", "Contributor");
+				if (!validRoles.contains(normalizedRole)) {
+					GenericMessage failedResponse = new GenericMessage();
+					MessageDescription message = new MessageDescription();
+					message.setMessage("Invalid role name '" + inputRole + "' for group: " + groupObj.getGroupName() +
+							". Allowed values are: " + validRoles);
+					failedResponse.addErrors(message);
+					failedResponse.setSuccess(HttpStatus.BAD_REQUEST.name());
+
+					responseVO.setData(workspaceRequestVO);
+					responseVO.setResponses(failedResponse);
+					log.error("Invalid role name '{}' for group '{}'", inputRole, groupObj.getGroupName());
+					return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+				}
+				log.info("Validating group name: {}", groupObj.getGroupName());
+
+				String groupName = groupObj.getGroupName().trim();
+				MicrosoftGroupDetailDto searchResult = fabricWorkspaceClient.searchGroup(groupName);
+				if (searchResult == null || searchResult.getId() == null) {
+					GenericMessage failedResponse = new GenericMessage();
+					MessageDescription message = new MessageDescription();
+					message.setMessage("Couldn't get group details for name: " + groupName + ". Failed to create workspace.");
+					failedResponse.addErrors(message);
+					failedResponse.setSuccess(HttpStatus.BAD_REQUEST.name());
+
+					responseVO.setData(workspaceRequestVO);
+					responseVO.setResponses(failedResponse);
+					log.error("Couldn't get group details for name {}, Failed to create workspace", groupName);
+					return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+				} else {
+					CustomGroupNameCollectionVO validGroup = new CustomGroupNameCollectionVO();
+					validGroup.setGroupName(searchResult.getDisplayName());
+					validGroup.setRoleName(normalizedRole); 
+					validGroupNames.add(validGroup);
+        	}
+    	}
+    	workspaceRequestVO.setCustomGroupNameCollection(validGroupNames);
+	}
 
 		CreatedByVO requestUser = this.userStore.getVO();
 		List<MessageDescription> errors = new ArrayList<>();
@@ -1125,5 +1179,12 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
     }
+	private String capitalizeFirstLetter(String str) {
+		if (str == null || str.isEmpty()) {
+			return str;
+		}
+		return str.substring(0, 1).toUpperCase() + str.substring(1).toLowerCase();
+	}
+
     
 }

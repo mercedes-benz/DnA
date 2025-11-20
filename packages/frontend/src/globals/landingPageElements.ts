@@ -39,6 +39,7 @@ const enableFabricService = Envs.ENABLE_FABRIC_SERVICE;
 const enablePowerPlatformService = Envs.ENABLE_POWER_PLATFORM_SERVICE;
 const enablePromptCraftService = Envs.ENABLE_PROMPT_CRAFT_SERVICE;
 const MBAIEcosystemUrl = Envs.MB_AI_ECOSYSTEM_URL;
+const MBAIUseCaseUrl = Envs.MB_AI_USE_CASE_URL;
 const genAIDirectChatUrl = Envs.GENAI_DIRECT_CHAT_URL;
 const bisoContactsLink = Envs.BISO_CONTACTS_URL;
 const clamavImagwUrl = Envs.CLAMAV_IMAGE_URL;
@@ -836,6 +837,19 @@ export const TrainingsLandingPageElements = [
 
 export const GenAILandingPageElements = [
   {
+    name: 'AI Use Case',
+    description:
+      'Register and manage AI use cases on MASSP4AI.',
+    tags: ['Self Service', 'FOSS'],
+    url: MBAIUseCaseUrl,
+    isExternalLink: true,
+    isTextAlignLeft: false,
+    isDisabled: !MBAIUseCaseUrl?.startsWith('http'),
+    isSmallCard: false,
+    isMediumCard: false,
+    svgIconId: 'genai-solutions',
+  },
+  {
     name: 'AI Ecosystem',
     description:
       'A holistic portal with the right tools and resources for AI practitioners to accelerate their AI projects.',
@@ -847,19 +861,6 @@ export const GenAILandingPageElements = [
     isSmallCard: false,
     isMediumCard: false,
     svgIconId: 'genai-create',
-  },
-  {
-    name: 'AI Use Cases',
-    description:
-      '(Available on 23 October 2025) Existing AI use cases have been successfully migrated to MASSP4AI app, owners would have received an email on next steps. Submission on new AI use cases at MASSP4AI will commence from 23 October.',
-    tags: ['Self Service', 'FOSS'],
-    url: '/viewsolutions/tag/GenAI',
-    isExternalLink: false,
-    isTextAlignLeft: false,
-    isDisabled: true,
-    isSmallCard: false,
-    isMediumCard: false,
-    svgIconId: 'genai-solutions',
   },
   {
     name: 'Mercedes-Benz Direct Chat',
