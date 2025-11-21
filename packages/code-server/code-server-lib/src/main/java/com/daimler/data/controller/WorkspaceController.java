@@ -56,9 +56,11 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import com.daimler.data.application.client.CodeServerClient;
 import com.daimler.data.api.workspace.CodeServerApi;
+import com.daimler.data.api.workspace.VaultApi;
 import com.daimler.data.api.workspace.admin.CodeServerAdminApi;
 import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.application.client.GitClient;
+import com.daimler.data.application.client.VaultAuthorizationServiceClient;
 import com.daimler.data.assembler.WorkspaceAssembler;
 import com.daimler.data.auth.client.DnaAuthClient;
 import com.daimler.data.auth.client.UserRequestVO;
@@ -119,6 +121,7 @@ import com.daimler.data.dto.workspace.admin.CodespaceSecurityConfigDetailsVO;
 import com.daimler.data.service.workspace.WorkspaceService;
 import com.daimler.data.util.CommonUtils;
 import com.daimler.data.util.ConstantsUtility;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.daimler.data.db.json.CodeServerRecipe;
 import com.daimler.data.db.json.CodeServerWorkspace;
 import com.daimler.data.dto.workspace.WorkspaceServerStatusVO;
@@ -135,7 +138,7 @@ import org.springframework.beans.factory.annotation.Value;
  @Api(value = "Workspace API", tags = { "code-server" })
  @RequestMapping("/api")
  @Slf4j
- public class WorkspaceController implements CodeServerApi, CodeServerAdminApi {
+ public class WorkspaceController implements CodeServerApi, CodeServerAdminApi, VaultApi {
  
 	 @Autowired
 	 private WorkspaceService service;
@@ -163,6 +166,9 @@ import org.springframework.beans.factory.annotation.Value;
 
 	@Autowired
 	HttpServletRequest httpRequest;
+
+	@Autowired
+	private VaultAuthorizationServiceClient vaultClient;
 
 	@Value("${codeServer.workspace.apikey}")
 	private String apiKeyValue;
@@ -3506,4 +3512,414 @@ import org.springframework.beans.factory.annotation.Value;
 		}
 	}
 
- }
+    @Override
+	@ApiOperation(value = "Get secret from Vault", nickname = "getSecret", notes = "Retrieve a secret from HashiCorp Vault using the codeSpace name and environment.", response = Object.class, tags = {
+			"vault", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "Returns secret data successfully", response = Object.class),
+			@ApiResponse(code = 204, message = "No secret found for provided details"),
+			@ApiResponse(code = 400, message = "Bad request"),
+			@ApiResponse(code = 401, message = "Unauthorized access"),
+			@ApiResponse(code = 403, message = "Forbidden request"),
+			@ApiResponse(code = 500, message = "Internal server error") })
+	@RequestMapping(value = "/vault/secrets", produces = { "application/json" }, consumes = {
+			"application/json" }, method = RequestMethod.GET)
+	public ResponseEntity<Object> getSecret(
+			@NotNull @ApiParam(value = "The name of the CodeSpace for which secret is requested", required = true) @Valid @RequestParam(value = "codeSpaceName", required = true) String codeSpaceName,
+			@NotNull @ApiParam(value = "The environment name (e.g., dev, prod, qa)", required = true) @Valid @RequestParam(value = "env", required = true) String env) {
+		log.info("Request received to fetch secret from Vault for codeSpaceName={}, env={}", codeSpaceName, env);
+		Object responseBody = null;
+        UserStore.UserInfo currentUser = userStore.getUserInfo();
+		String currentUserUserId = currentUser != null ? currentUser.getId() : null;
+		CodeServerWorkspaceVO vo = service.getByProjectName(currentUserUserId, codeSpaceName);
+		String codespaceId = null;
+		if(vo!=null){
+			codespaceId=vo.getWorkspaceId();
+		}
+		CodeServerWorkspaceNsql workspace = workspaceCustomRepository.findByWorkspaceId(codespaceId);
+		if (workspace == null) {
+			log.warn("Workspace not found for codeSpaceName={}", codeSpaceName);
+			return ResponseEntity.status(HttpStatus.NOT_FOUND).body("Workspace not found.");
+		}
+		var workspaceData = workspace.getData();
+		String userId = currentUser.getId().toLowerCase();
+
+		Boolean isAdmin =false;
+
+		List<UserInfoVO>collabList =vo.getProjectDetails().getProjectCollaborators();
+		if(collabList!=null){
+			for(UserInfoVO user : collabList){
+				if(userId.equalsIgnoreCase(user.getId())){
+					if(user.isIsAdmin()){
+						isAdmin =true;
+					}
+				}
+			}
+		}
+
+		boolean hasWorkspaceAccess = isAdmin && (userId.equalsIgnoreCase(workspaceData.getWorkspaceOwner().getId()) ||
+				workspaceData.getProjectDetails()
+						.getProjectCollaborators()
+						.stream()
+						.anyMatch(c -> userId.equalsIgnoreCase(c.getId())));
+
+		if (!hasWorkspaceAccess) {
+			log.warn("User {} does not have access to workspace {}", userId, codeSpaceName);
+			return ResponseEntity.status(HttpStatus.FORBIDDEN)
+					.body("Access denied: You don’t have permission to this workspace.");
+		}
+		try {
+			ResponseEntity<String> vaultResponse = vaultClient.getSecret(codeSpaceName, env);
+
+			if (vaultResponse == null) {
+				log.error("Vault service returned null response for codeSpaceName={}, env={}", codeSpaceName, env);
+				return new ResponseEntity<>("Vault service unavailable", HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+
+			HttpStatus status = vaultResponse.getStatusCode();
+
+			if (status.is2xxSuccessful()) {
+				log.info("Vault secret retrieved successfully for codeSpaceName={}, env={}", codeSpaceName, env);
+				responseBody = vaultResponse.getBody();
+				return new ResponseEntity<>(responseBody, HttpStatus.OK);
+			} else if (status == HttpStatus.NO_CONTENT) {
+				log.info("No secret found in Vault for codeSpaceName={}, env={}", codeSpaceName, env);
+				return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+			} else if (status == HttpStatus.NOT_FOUND) {
+				log.warn("Vault secret not found for codeSpaceName={}, env={}", codeSpaceName, env);
+				return new ResponseEntity<>("Secret not found in Vault", HttpStatus.NOT_FOUND);
+			} else if (status == HttpStatus.BAD_REQUEST) {
+				log.warn("Invalid request made to Vault service for codeSpaceName={}, env={}", codeSpaceName, env);
+				return new ResponseEntity<>("Bad request to Vault service", HttpStatus.BAD_REQUEST);
+			} else if (status == HttpStatus.UNAUTHORIZED || status == HttpStatus.FORBIDDEN) {
+				log.error("Unauthorized or forbidden access to Vault for codeSpaceName={}, env={}", codeSpaceName, env);
+				return new ResponseEntity<>("Unauthorized access to Vault", status);
+			} else {
+				log.error("Unexpected Vault response {} for codeSpaceName={}, env={}", status, codeSpaceName, env);
+				return new ResponseEntity<>("Unexpected error from Vault service", status);
+			}
+
+		} catch (Exception e) {
+			log.error("Exception occurred while fetching secret from Vault for codeSpaceName={}, env={}: {}",
+					codeSpaceName, env, e.getMessage(), e);
+			return new ResponseEntity<>("Internal error while fetching secret", HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	@Override
+	@ApiOperation(value = "Create a new secret in Vault", nickname = "createSecret", notes = "Create a new secret entry in HashiCorp Vault for a given CodeSpace and environment.", response = Object.class, tags = {
+			"vault", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 201, message = "Secret created successfully", response = Object.class),
+			@ApiResponse(code = 400, message = "Bad request"),
+			@ApiResponse(code = 401, message = "Unauthorized access"),
+			@ApiResponse(code = 403, message = "Forbidden request"),
+			@ApiResponse(code = 500, message = "Internal server error") })
+	@RequestMapping(value = "/vault/secrets", produces = { "application/json" }, consumes = {
+			"application/json" }, method = RequestMethod.POST)
+	public ResponseEntity<Object> createSecret(
+			@NotNull @ApiParam(value = "Vault path where the secret should be created", required = true) @Valid @RequestParam(value = "path", required = true) String path,
+			@ApiParam(value = "JSON body containing the key-value pairs of the secret", required = true) @Valid @RequestBody Object secretValue) {
+		log.info("Request received to create secret in Vault for path={}", path);
+		try {
+			UserStore.UserInfo currentUser = userStore.getUserInfo();
+			String currentUserUserId = currentUser != null ? currentUser.getId() : null;
+			CodeServerWorkspaceVO vo = service.getByProjectName(currentUserUserId, path);
+			String codespaceId = null;
+			if (vo != null) {
+				codespaceId = vo.getWorkspaceId();
+			}
+			if (currentUser == null) {
+				log.warn("Unauthorized request to create secret at path={}", path);
+				return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+						.body("User not authenticated.");
+			}
+
+			String userId = currentUser.getId().toLowerCase();
+
+			Boolean isAdmin = false;
+
+			List<UserInfoVO> collabList = vo.getProjectDetails().getProjectCollaborators();
+			if (collabList != null) {
+				for (UserInfoVO user : collabList) {
+					if (userId.equalsIgnoreCase(user.getId())) {
+						if (user.isIsAdmin()) {
+							isAdmin = true;
+						}
+					}
+				}
+			}
+
+			if (!isAdmin) {
+				log.warn("Access denied: User {} is not an Admin", currentUser.getId());
+				return ResponseEntity.status(HttpStatus.FORBIDDEN)
+						.body("Access denied: Only Admins can create secrets.");
+			}
+
+			String workspaceId = path.contains("/") ? path.split("/")[0] : path;
+
+			CodeServerWorkspaceNsql workspace = workspaceCustomRepository.findByWorkspaceId(workspaceId);
+			if (workspace == null) {
+				log.warn("Workspace not found for path={}", path);
+				return ResponseEntity.status(HttpStatus.NOT_FOUND)
+						.body("Workspace not found.");
+			}
+
+			var workspaceData = workspace.getData();
+
+			boolean hasWorkspaceAccess = userId.equalsIgnoreCase(workspaceData.getWorkspaceOwner().getId()) ||
+					workspaceData.getProjectDetails()
+							.getProjectCollaborators()
+							.stream()
+							.anyMatch(c -> userId.equalsIgnoreCase(c.getId()));
+
+			if (!hasWorkspaceAccess) {
+				log.warn("User {} does not have access to workspace {}", userId, workspaceId);
+				return ResponseEntity.status(HttpStatus.FORBIDDEN)
+						.body("Access denied: You don’t have permission to this workspace.");
+			}
+
+			String secretJson = new ObjectMapper().writeValueAsString(secretValue);
+			ResponseEntity<String> vaultResponse = vaultClient.createSecret(path, secretJson);
+
+			if (vaultResponse == null) {
+				log.error("Vault service returned null while creating secret at path={}", path);
+				return new ResponseEntity<>("Vault service unavailable", HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+
+			HttpStatus status = vaultResponse.getStatusCode();
+
+			if (status.is2xxSuccessful()) {
+				log.info("Secret created successfully for path={}", path);
+				return new ResponseEntity<>(vaultResponse.getBody(), HttpStatus.CREATED);
+			} else if (status == HttpStatus.BAD_REQUEST) {
+				log.warn("Bad request to Vault for path={}", path);
+				return new ResponseEntity<>("Bad request to Vault", HttpStatus.BAD_REQUEST);
+			} else if (status == HttpStatus.UNAUTHORIZED || status == HttpStatus.FORBIDDEN) {
+				log.error("Unauthorized/Forbidden access to Vault for path={}", path);
+				return new ResponseEntity<>("Unauthorized access to Vault", status);
+			} else {
+				log.error("Unexpected response {} from Vault for path={}", status, path);
+				return new ResponseEntity<>("Unexpected error from Vault service", status);
+			}
+
+		} catch (Exception e) {
+			log.error("Exception occurred while creating secret in Vault for path={}: {}", path, e.getMessage(), e);
+			return new ResponseEntity<>("Internal error while creating secret", HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	@Override
+	@ApiOperation(value = "Update existing secret in Vault", nickname = "updateSecret", notes = "Update an existing secret in HashiCorp Vault for a given CodeSpace and environment.", response = Object.class, tags = {
+			"vault", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "Secret updated successfully", response = Object.class),
+			@ApiResponse(code = 400, message = "Bad request"),
+			@ApiResponse(code = 401, message = "Unauthorized access"),
+			@ApiResponse(code = 403, message = "Forbidden request"),
+			@ApiResponse(code = 404, message = "Secret not found"),
+			@ApiResponse(code = 500, message = "Internal server error") })
+	@RequestMapping(value = "/vault/secrets", produces = { "application/json" }, consumes = {
+			"application/json" }, method = RequestMethod.PUT)
+	public ResponseEntity<Object> updateSecret(
+			@NotNull @ApiParam(value = "Vault path where the secret should be updated", required = true) @Valid @RequestParam(value = "path", required = true) String path,
+			@NotNull @ApiParam(value = "Environment name", required = true) @Valid @RequestParam(value = "env", required = true) String env,
+			@ApiParam(value = "JSON body containing the updated key-value pairs of the secret", required = true) @Valid @RequestBody Object secretValue) {
+		log.info("Request received to update secret in Vault for path={}, env={}", path, env);
+        try {
+			UserStore.UserInfo currentUser = userStore.getUserInfo();
+			String currentUserUserId = currentUser != null ? currentUser.getId() : null;
+			CodeServerWorkspaceVO vo = service.getByProjectName(currentUserUserId, path);
+			String codespaceId = null;
+			if (vo != null) {
+				codespaceId = vo.getWorkspaceId();
+			}
+			if (currentUser == null) {
+				log.warn("Unauthorized request to update secret for path={}", path);
+				return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+						.body("User not authenticated.");
+			}
+
+			String userId = currentUser.getId().toLowerCase();
+
+			Boolean isAdmin = false;
+
+			List<UserInfoVO> collabList = vo.getProjectDetails().getProjectCollaborators();
+			if (collabList != null) {
+				for (UserInfoVO user : collabList) {
+					if (userId.equalsIgnoreCase(user.getId())) {
+						if (user.isIsAdmin()) {
+							isAdmin = true;
+						}
+					}
+				}
+			}
+
+			if (!isAdmin) {
+				log.warn("Access denied: User {} is not an Admin", currentUser.getId());
+				return ResponseEntity.status(HttpStatus.FORBIDDEN)
+						.body("Access denied: Only Admins can update secrets.");
+			}
+
+			String workspaceId = path.contains("/") ? path.split("/")[0] : path;
+
+			CodeServerWorkspaceNsql workspace = workspaceCustomRepository.findByWorkspaceId(workspaceId);
+			if (workspace == null) {
+				log.warn("Workspace not found for path={}", path);
+				return ResponseEntity.status(HttpStatus.NOT_FOUND)
+						.body("Workspace not found.");
+			}
+
+			var workspaceData = workspace.getData();
+
+			boolean hasWorkspaceAccess = userId.equalsIgnoreCase(workspaceData.getWorkspaceOwner().getId()) ||
+					workspaceData.getProjectDetails()
+							.getProjectCollaborators()
+							.stream()
+							.anyMatch(c -> userId.equalsIgnoreCase(c.getId()));
+
+			if (!hasWorkspaceAccess) {
+				log.warn("User {} does not have access to workspace {}", userId, workspaceId);
+				return ResponseEntity.status(HttpStatus.FORBIDDEN)
+						.body("Access denied: You don’t have permission to this workspace.");
+			}
+			String secretJson = new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(secretValue);
+			ResponseEntity<String> vaultResponse = vaultClient.updateSecret(path, env, secretJson);
+
+			if (vaultResponse == null) {
+				log.error("Vault service returned null while updating secret for path={}, env={}", path, env);
+				return new ResponseEntity<>("Vault service unavailable", HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+
+			HttpStatus status = vaultResponse.getStatusCode();
+
+			if (status.is2xxSuccessful()) {
+				log.info("Secret updated successfully for path={}, env={}", path, env);
+				return new ResponseEntity<>(vaultResponse.getBody(), HttpStatus.OK);
+			} else if (status == HttpStatus.BAD_REQUEST) {
+				log.warn("Bad request to Vault while updating secret for path={}, env={}", path, env);
+				return new ResponseEntity<>("Bad request to Vault", HttpStatus.BAD_REQUEST);
+			} else if (status == HttpStatus.NOT_FOUND) {
+				log.warn("Secret not found in Vault for path={}, env={}", path, env);
+				return new ResponseEntity<>("Secret not found in Vault", HttpStatus.NOT_FOUND);
+			} else if (status == HttpStatus.UNAUTHORIZED || status == HttpStatus.FORBIDDEN) {
+				log.error("Unauthorized/Forbidden access to Vault for path={}, env={}", path, env);
+				return new ResponseEntity<>("Unauthorized access to Vault", status);
+			} else {
+				log.error("Unexpected Vault response {} while updating secret for path={}, env={}", status, path, env);
+				return new ResponseEntity<>("Unexpected error from Vault service", status);
+			}
+
+		} catch (Exception e) {
+			log.error("Exception occurred while updating secret for path={}, env={}: {}", path, env, e.getMessage(), e);
+			return new ResponseEntity<>("Internal error while updating secret", HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	@Override
+	@ApiOperation(value = "Delete a secret from Vault", nickname = "deleteSecret", notes = "Delete a specific secret from HashiCorp Vault for a given CodeSpace and secret name.", response = Object.class, tags = {
+			"vault", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "Secret deleted successfully", response = Object.class),
+			@ApiResponse(code = 400, message = "Bad request"),
+			@ApiResponse(code = 401, message = "Unauthorized access"),
+			@ApiResponse(code = 403, message = "Forbidden request"),
+			@ApiResponse(code = 404, message = "Secret not found"),
+			@ApiResponse(code = 500, message = "Internal server error") })
+	@RequestMapping(value = "/vault/secrets", produces = { "application/json" }, consumes = {
+			"application/json" }, method = RequestMethod.DELETE)
+	public ResponseEntity<Object> deleteSecret(
+			@NotNull @ApiParam(value = "Vault path where the secret exists", required = true) @Valid @RequestParam(value = "path", required = true) String path,
+			@NotNull @ApiParam(value = "Name of the secret to be deleted", required = true) @Valid @RequestParam(value = "secretName", required = true) String secretName) {
+		log.info("Request received to delete secret from Vault for path={}, secretName={}", path, secretName);
+		try {
+			UserStore.UserInfo currentUser = userStore.getUserInfo();
+			String currentUserUserId = currentUser != null ? currentUser.getId() : null;
+			CodeServerWorkspaceVO vo = service.getByProjectName(currentUserUserId, path);
+			String codespaceId = null;
+			if (vo != null) {
+				codespaceId = vo.getWorkspaceId();
+			}
+			if (currentUser == null) {
+				log.warn("Unauthorized request to delete secret for path={}, secretName={}", path, secretName);
+				return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+						.body("User not authenticated.");
+			}
+
+			String userId = currentUser.getId().toLowerCase();
+
+			Boolean isAdmin = false;
+
+			List<UserInfoVO> collabList = vo.getProjectDetails().getProjectCollaborators();
+			if (collabList != null) {
+				for (UserInfoVO user : collabList) {
+					if (userId.equalsIgnoreCase(user.getId())) {
+						if (user.isIsAdmin()) {
+							isAdmin = true;
+						}
+					}
+				}
+			}
+			if (!isAdmin) {
+				log.warn("Access denied: User {} is not an Admin", currentUser.getId());
+				return ResponseEntity.status(HttpStatus.FORBIDDEN)
+						.body("Access denied: Only Admins can delete secrets.");
+			}
+
+			String workspaceId = path.contains("/") ? path.split("/")[0] : path;
+
+			CodeServerWorkspaceNsql workspace = workspaceCustomRepository.findByWorkspaceId(workspaceId);
+			if (workspace == null) {
+				log.warn("Workspace not found for path={}", path);
+				return ResponseEntity.status(HttpStatus.NOT_FOUND)
+						.body("Workspace not found.");
+			}
+
+			var workspaceData = workspace.getData();
+			boolean hasWorkspaceAccess = userId.equalsIgnoreCase(workspaceData.getWorkspaceOwner().getId()) ||
+					workspaceData.getProjectDetails()
+							.getProjectCollaborators()
+							.stream()
+							.anyMatch(c -> userId.equalsIgnoreCase(c.getId()));
+
+			if (!hasWorkspaceAccess) {
+				log.warn("User {} does not have access to workspace {}", userId, workspaceId);
+				return ResponseEntity.status(HttpStatus.FORBIDDEN)
+						.body("Access denied: You don’t have permission to this workspace.");
+			}
+			ResponseEntity<String> vaultResponse = vaultClient.deleteSecret(path, secretName);
+
+			if (vaultResponse == null) {
+				log.error("Vault service returned null while deleting secret for path={}, secretName={}", path,
+						secretName);
+				return new ResponseEntity<>("Vault service unavailable", HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+
+			HttpStatus status = vaultResponse.getStatusCode();
+
+			if (status.is2xxSuccessful()) {
+				log.info("Secret deleted successfully for path={}, secretName={}", path, secretName);
+				return new ResponseEntity<>(vaultResponse.getBody(), HttpStatus.OK);
+			} else if (status == HttpStatus.NOT_FOUND) {
+				log.warn("Secret not found in Vault for path={}, secretName={}", path, secretName);
+				return new ResponseEntity<>("Secret not found in Vault", HttpStatus.NOT_FOUND);
+			} else if (status == HttpStatus.BAD_REQUEST) {
+				log.warn("Bad request to Vault while deleting secret for path={}, secretName={}", path, secretName);
+				return new ResponseEntity<>("Bad request to Vault", HttpStatus.BAD_REQUEST);
+			} else if (status == HttpStatus.UNAUTHORIZED || status == HttpStatus.FORBIDDEN) {
+				log.error("Unauthorized/Forbidden access to Vault for path={}, secretName={}", path, secretName);
+				return new ResponseEntity<>("Unauthorized access to Vault", status);
+			} else {
+				log.error("Unexpected Vault response {} while deleting secret for path={}, secretName={}", status, path,
+						secretName);
+				return new ResponseEntity<>("Unexpected error from Vault service", status);
+			}
+
+		} catch (Exception e) {
+			log.error("Exception occurred while deleting secret for path={}, secretName={}: {}", path, secretName,
+					e.getMessage(), e);
+			return new ResponseEntity<>("Internal error while deleting secret", HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+}

@@ -1520,6 +1520,149 @@ paths:
         500:
           description: "Internal error"                                                                               
         
+  /vault/secrets:
+    get:
+      tags:
+        - "vault"
+      summary: "Get secret from Vault"
+      description: "Retrieve a secret from HashiCorp Vault using the codeSpace name and environment."
+      operationId: "getSecret"
+      parameters:
+        - name: "codeSpaceName"
+          in: "query"
+          description: "The name of the CodeSpace for which secret is requested"
+          required: true
+          type: "string"
+        - name: "env"
+          in: "query"
+          description: "The environment name (e.g., dev, prod, qa)"
+          required: true
+          type: "string"
+      responses:
+        200:
+          description: "Returns secret data successfully"
+          schema:
+            type: object
+        204:
+          description: "No secret found for provided details"
+        400:
+          description: "Bad request"
+        401:
+          description: "Unauthorized access"
+        403:
+          description: "Forbidden request"
+        500:
+          description: "Internal server error"
+
+    post:
+      tags:
+        - "vault"
+      summary: "Create a new secret in Vault"
+      description: "Create a new secret entry in HashiCorp Vault for a given CodeSpace and environment."
+      operationId: "createSecret"
+      parameters:
+        - name: "path"
+          in: "query"
+          description: "Vault path where the secret should be created"
+          required: true
+          type: "string"
+        - name: "secretValue"
+          in: "body"
+          description: "JSON body containing the key-value pairs of the secret"
+          required: true
+          schema:
+            type: object
+      responses:
+        201:
+          description: "Secret created successfully"
+          schema:
+            type: object
+            example:
+              message: "Secret created successfully"
+        400:
+          description: "Bad request"
+        401:
+          description: "Unauthorized access"
+        403:
+          description: "Forbidden request"
+        500:
+          description: "Internal server error"
+
+    put:
+      tags:
+        - "vault"
+      summary: "Update existing secret in Vault"
+      description: "Update an existing secret in HashiCorp Vault for a given CodeSpace and environment."
+      operationId: "updateSecret"
+      parameters:
+        - name: "path"
+          in: "query"
+          description: "Vault path where the secret should be updated"
+          required: true
+          type: "string"
+        - name: "env"
+          in: "query"
+          description: "Environment name"
+          required: true
+          type: "string"
+        - name: "secretValue"
+          in: "body"
+          description: "JSON body containing the updated key-value pairs of the secret"
+          required: true
+          schema:
+            type: object
+      responses:
+        200:
+          description: "Secret updated successfully"
+          schema:
+            type: object
+        400:
+          description: "Bad request"
+        401:
+          description: "Unauthorized access"
+        403:
+          description: "Forbidden request"
+        404:
+          description: "Secret not found"
+        500:
+          description: "Internal server error"
+
+    delete:
+      tags:
+        - "vault"
+      summary: "Delete a secret from Vault"
+      description: "Delete a specific secret from HashiCorp Vault for a given CodeSpace and secret name."
+      operationId: "deleteSecret"
+      parameters:
+        - name: "path"
+          in: "query"
+          description: "Vault path where the secret exists"
+          required: true
+          type: "string"
+        - name: "secretName"
+          in: "query"
+          description: "Name of the secret to be deleted"
+          required: true
+          type: "string"
+      responses:
+        200:
+          description: "Secret deleted successfully"
+          schema:
+            type: object
+            example:
+              message: "Secret deleted successfully"
+        400:
+          description: "Bad request"
+        401:
+          description: "Unauthorized access"
+        403:
+          description: "Forbidden request"
+        404:
+          description: "Secret not found"
+        500:
+          description: "Internal server error"
+
+
 definitions:
   CodeSpaceReadmeVo:
     type: object
