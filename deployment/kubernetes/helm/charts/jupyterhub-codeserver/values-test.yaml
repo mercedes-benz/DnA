@@ -586,12 +586,6 @@ singleuser:
                 mc --insecure cp --recursive myminio/code-server/tools/extension /home/coder/
                 mc alias remove myminio
                 
-                code-server --install-extension PKief.material-icon-theme
-                code-server --install-extension GitHub.vscode-pull-request-github
-                # Install all extensions in the folder
-                for extension in /home/coder/extension/*.vsix; do
-                  code-server --install-extension "$extension"
-                done
               
           fi 
 
