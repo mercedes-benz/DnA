@@ -255,6 +255,13 @@ public class AuthoriserClient {
 				response.setErrors(errors);
 				response.setWarnings(warnings);
 			}
+			if(deleteEntitlementResponse!=null && deleteEntitlementResponse.getStatusCode().is4xxClientError()) {
+				log.error("Entitlement with displayName {} deletion failed with status code {}", entitlementId, deleteEntitlementResponse.getStatusCode());
+				MessageDescription error = new MessageDescription("Entitlement deletion failed with status code "+deleteEntitlementResponse.getStatusCode());
+				errors.add(error);
+				response.setErrors(errors);
+				response.setWarnings(warnings);
+			}
 		}catch(Exception e) {
 			log.error("Failed to delete Entitlement with displayName {} with error {} ", entitlementId, e.getMessage());
 		}
@@ -288,6 +295,13 @@ public class AuthoriserClient {
 			if (deleteRoleResponse!=null && deleteRoleResponse.getStatusCode().is2xxSuccessful()) {
 				log.info("Role with displayName {} deleted successfully", roleId);
 				response.setSuccess("SUCCESS");
+				response.setErrors(errors);
+				response.setWarnings(warnings);
+			}
+			if(deleteRoleResponse!=null && deleteRoleResponse.getStatusCode().is4xxClientError()) {
+				log.error("Role with displayName {} deletion failed with status code {}", roleId, deleteRoleResponse.getStatusCode());
+				MessageDescription error = new MessageDescription("Role deletion failed with status code "+deleteRoleResponse.getStatusCode());
+				errors.add(error);
 				response.setErrors(errors);
 				response.setWarnings(warnings);
 			}
