@@ -63,6 +63,12 @@ const ViewRecipe = ({ recipe, additionalServices }) => {
             <p className={Styles.value}>{chips}</p>
           </div>
         </div>
+        <div className={Styles.col3}>
+          <div className={Styles.projectItem}>
+            <p className={Styles.label}>Deployment through Codespace</p>
+            <p className={Styles.value}>{recipe?.isDeployEnabled ? 'Enabled' : 'Disabled'}</p>
+          </div>
+        </div>
       </div>
       {recipe?.isPublic && 
         <div>

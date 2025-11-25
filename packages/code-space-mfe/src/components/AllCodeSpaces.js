@@ -411,15 +411,16 @@ const AllCodeSpaces = (props) => {
     const [selectedCodeSpaceGroup, setSelectedCodeSpaceGroup] = useState(JSON.parse(sessionStorage.getItem(SESSION_STORAGE_KEYS.CODE_SPACE_SELECTED_GROUPS)));
 
     useEffect(() => {
-        // if (selectedCodeSpaceGroup) {
-        //   const updatedGroup = codeSpaceGroups.find(
-        //     (group) => group.id === selectedCodeSpaceGroup.id
-        //   );
-        //   if (updatedGroup && updatedGroup !== selectedCodeSpaceGroup) {
-        //     setSelectedCodeSpaceGroup(updatedGroup);
-        //   }
-        // }
-        setSelectedCodeSpaceGroup(JSON.parse(sessionStorage.getItem(SESSION_STORAGE_KEYS.CODE_SPACE_SELECTED_GROUPS)));
+        const cachedGroup = JSON.parse(sessionStorage.getItem(SESSION_STORAGE_KEYS.CODE_SPACE_SELECTED_GROUPS));
+        if (cachedGroup && codeSpaceGroups?.length > 0) {
+          const updatedGroup = codeSpaceGroups.find(
+            (group) => group.groupId === cachedGroup.groupId
+          );
+          if (updatedGroup) {
+            setSelectedCodeSpaceGroup(updatedGroup);
+            sessionStorage.setItem(SESSION_STORAGE_KEYS.CODE_SPACE_SELECTED_GROUPS, JSON.stringify(updatedGroup));
+          }
+        }
         // eslint-disable-next-line react-hooks/exhaustive-deps
       }, [codeSpaceGroups]);
 
