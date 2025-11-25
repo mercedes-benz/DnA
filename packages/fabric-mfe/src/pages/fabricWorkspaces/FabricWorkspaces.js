@@ -385,7 +385,7 @@ const FabricWorkspaces = ({user}) => {
           modalWidth={'800px'}
           buttonAlignment="right"
           show={editWorkspace}
-          content={<FabricWorkspaceForm edit={true} workspace={selectedWorkspace} onSave={() => {setEditWorkspace(false); getWorkspaces(); }} />}
+          content={<FabricWorkspaceForm edit={true} workspace={selectedWorkspace} user={user} onSave={() => {setEditWorkspace(false); getWorkspaces(); }} />}
           scrollableContent={true}
           onCancel={() => setEditWorkspace(false)}
         />

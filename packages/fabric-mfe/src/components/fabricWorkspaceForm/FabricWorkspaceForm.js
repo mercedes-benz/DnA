@@ -16,10 +16,14 @@ import { Envs } from '../../utilities/envs';
 // Api
 import { hostServer } from '../../server/api';
 import { fabricApi} from '../../apis/fabric.api';
+import { USER_ROLE } from '../../utilities/constants';
 
-const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
+const FabricWorkspaceForm = ({ workspace, edit, onSave, user}) => {
   let history = useHistory();
-  
+  const isFabricAdmin = user.roles.find((role) => role.id === USER_ROLE.FABRICADMIN) !== undefined;
+  const isWorkspaceOwner = edit && workspace?.createdBy?.id === user.id;
+  const isRestrictedEdit = isFabricAdmin && edit && !isWorkspaceOwner;
+
   const methods = useForm();
   const {
     register,
@@ -55,6 +59,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
   const [typeOfProject, setTypeOfProject] = useState(edit && workspace?.typeOfProject ? workspace?.typeOfProject : '0');
   const [dataClassification, setDataClassification] = useState(edit && workspace?.dataClassification ? workspace?.dataClassification : '0');
   const [PII, setPII] = useState(edit && workspace?.hasPii ? workspace?.hasPii : false);
+  const [subscription, setSubscription] = useState(edit && workspace?.subscription ? workspace?.subscription : 'PowerBI');
   const [tags, setTags] = useState(edit && workspace?.tags !== null ? [...workspace.tags] : []);
   const [relatedSolutionsTags, setRelatedSolutionsTags] = useState(edit && workspace?.relatedSolutions !== null ? workspace.relatedSolutions.map(sols => sols.name) : []);
   const [relatedReportsTags, setRelatedReportsTags] = useState(edit && workspace?.relatedReports !== null ? workspace.relatedReports.map(repos => repos.name) : []);
@@ -162,7 +167,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
     if (divId && divId!=='0' ) {
       ProgressIndicator.show();
       hostServer.get('/subdivisions/' + divId)
-        .then((res) => {
+        .then((res) => { 
           setSubDivisions(res?.data || []);
           SelectBox.defaultSetup();
           ProgressIndicator.hide();
@@ -240,7 +245,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
   };
   
   const filteredProjects = useMemo(() => {
-    if (!selectedDivision) return projectList; 
+    if (!selectedDivision || projectList.length === 0) return null;  
     const divisionName = selectedDivision.split('@-@')[1]?.trim().toLowerCase(); 
     return projectList.filter(
       (p) => p.division?.trim().toLowerCase() === divisionName
@@ -272,6 +277,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
       name: values.name.trim(),
       tags: tags,
       hasPii: values?.pii,
+      subscription: values?.subscription,
       archerId: values?.archerId,
       divisionId: values?.division?.includes('@-@') ? values?.division?.split('@-@')[0] : '',
       division: values?.division?.includes('@-@') ? values?.division?.split('@-@')[1] : '',
@@ -307,6 +313,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
       name: values.name.trim(),
       tags: tags,
       hasPii: values?.pii,
+      subscription: values?.subscription,
       archerId: values?.archerId,
       divisionId: values?.division?.includes('@-@') ? values?.division?.split('@-@')[0] : '',
       division: values?.division?.includes('@-@') ? values?.division?.split('@-@')[1] : '',
@@ -368,6 +375,7 @@ const isProjectDetailsRequired = typeOfProject === 'Production' && mandate;
                 <div className={classNames('custom-select')}>
                   <select id="reportStatusField"
                     defaultValue={typeOfProject}
+                    disabled={isRestrictedEdit}
                     {...register('typeOfProject', {
                       required: '*Missing entry',
                       validate: (value) => value !== '0' || '*Missing entry',
@@ -402,6 +410,7 @@ const isProjectDetailsRequired = typeOfProject === 'Production' && mandate;
                   autoComplete="off"
                   maxLength={256}
                   defaultValue={nameOfWorkspace}
+                  disabled={isRestrictedEdit}
                   {...register('name', { required: '*Missing entry', pattern: /^(?!Admin monitoring$)(?!^\s+$)[\w\d-_]+$/, onChange: (e) => { setNameOfWorkspace(e.target.value) } })}
                 />
                 <span className={'error-message'}>{errors?.name?.message}{errors.name?.type === 'pattern' && 'Workspace names must contain alphanumeric characters only - and _ are allowed. \'Admin monitoring\' name and spaces are not allowed.'}</span>
@@ -417,6 +426,7 @@ const isProjectDetailsRequired = typeOfProject === 'Production' && mandate;
                   className={'input-field-area'}
                   type="text"
                   defaultValue={description}
+                  disabled={isRestrictedEdit}
                   rows={50}
                   {...register('description', { required: '*Missing entry', pattern: /^(?!\s+$)(\s*\S+\s*)+$/, onChange: (e) => { setDescription(e.target.value) } })}
                 />
@@ -636,6 +646,7 @@ const isProjectDetailsRequired = typeOfProject === 'Production' && mandate;
                   }}
                   isMandatory={true}
                   showMissingEntryError={Object.keys(errors).length > 0 && departmentName.length === 0}
+                  disabled={isRestrictedEdit}
                 />
                 {/* workaround for validating department Tags field */}
                 <input type={'hidden'} defaultValue={departmentName[0]} value={departmentName[0]} {...register('department', {required: '*Missing entry'})} />
@@ -735,6 +746,47 @@ const isProjectDetailsRequired = typeOfProject === 'Production' && mandate;
                       />
                     </span>
                     <span className="label">No</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+            <div className={Styles.col2}>
+              <div className={classNames('input-field-group include-error')}>
+                <label className={'input-label'}>
+                  Subscription <sup>*</sup>
+                </label>
+                <div className={Styles.pIIField}>
+                  <label className={classNames('radio')}>
+                    <span className="wrapper">
+                      <input
+                        type="radio"
+                        className="ff-only"
+                        value="PowerBI"
+                        name="subscription"
+                        defaultChecked={subscription === 'PowerBI'}
+                        {...register('subscription', {
+                          required: '*Missing entry',
+                          onChange: (e) => { setSubscription(e.target.value) }
+                        })}
+                      />
+                    </span>
+                    <span className="label">PowerBI</span>
+                  </label>
+                  <label className={classNames('radio')}>
+                    <span className="wrapper">
+                      <input
+                        type="radio"
+                        className="ff-only"
+                        value="Fabric"
+                        name="subscription"
+                        defaultChecked={subscription === 'Fabric'}
+                        {...register('subscription', {
+                          required: '*Missing entry',
+                          onChange: (e) => { setSubscription(e.target.value) }
+                        })}
+                      />
+                    </span>
+                    <span className="label">Fabric</span>
                   </label>
                 </div>
               </div>
