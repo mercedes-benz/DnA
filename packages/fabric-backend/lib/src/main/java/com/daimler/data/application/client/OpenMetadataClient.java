@@ -14,6 +14,7 @@ import org.openmetadata.client.ApiClient;
 import org.openmetadata.client.api.*;
 import org.openmetadata.client.model.*;
 import org.openmetadata.schema.services.connections.database.DatalakeConnection;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.HttpClientErrorException;
 import feign.FeignException;
@@ -31,6 +32,9 @@ import java.util.stream.Collectors;
 public class OpenMetadataClient {
 
     private final ApiClient apiClient;
+
+    @Value("${cdcIntegration.openmetadata.tags}")
+    String[] defaultTags;
 
 // getbyFqn methods
 
@@ -107,11 +111,8 @@ public class OpenMetadataClient {
             CreateDatabaseService request = new CreateDatabaseService()
                     .name(name)
                     .description(description)
-                    .tags(List.of(
-                        prepareTag("Application.Fabric"),
-                        prepareTag("alationTags.Loc_Group_RoW"),
-                        prepareTag(mapTierValue(tier))
-                    ))
+                    .tags(getDefaultTags())
+                    .addTagsItem(prepareTag(mapTierValue(tier)))
                     .serviceType(CreateDatabaseService.ServiceTypeEnum.DATALAKE);
 
 
@@ -142,11 +143,8 @@ public class OpenMetadataClient {
                     .service(serviceFQN)
                     .extension(toExtensions(fields))
                     .description(description)
-                    .tags(List.of(
-                        prepareTag("Application.Fabric"),
-                        prepareTag("alationTags.Loc_Group_RoW"),
-                        prepareTag(mapTierValue(fields.getTier()))
-                    ))
+                    .tags(getDefaultTags())
+                    .addTagsItem(prepareTag(mapTierValue(fields.getTier())))
                     .owners(owners); // Using FQN directly as string
             return apiClient.buildClient(DatabasesApi.class)
                     .createOrUpdateDatabase(request);
@@ -463,14 +461,20 @@ public class OpenMetadataClient {
     }
 
     public String mapTierValue(Integer value) {
-    switch(value) {
-        case 1:
-            return "Tier.Tier1";
-        case 2:
-            return "Tier.Tier2";
-        default:
-            throw new IllegalArgumentException("Invalid tier value: " + value);
+        switch(value) {
+            case 1:
+                return "Tier.Tier1";
+            case 2:
+                return "Tier.Tier2";
+            default:
+                throw new IllegalArgumentException("Invalid tier value: " + value);
+        }
     }
-}
+
+    public List<TagLabel> getDefaultTags() {
+        return Arrays.stream(defaultTags)
+                .map(this::prepareTag)
+                .collect(Collectors.toList());
+    }
 
 }

@@ -31,6 +31,7 @@ import com.daimler.data.application.client.FabricCDCPushServiceClient;
 import com.daimler.data.application.client.FabricWorkspaceClient;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
+import com.daimler.data.dto.adaProjects.ADAProjectDetailsCollectionVO;
 import com.daimler.data.dto.fabric.MicrosoftGroupDetailDto;
 import com.daimler.data.dto.fabricWorkspace.AuthoriserRoleDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.AuthoriserRoleDetailsResponseVO;
@@ -118,7 +119,7 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 			return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
 		}else {
 				if(workspaceRequestVO.getDescription()==null || workspaceRequestVO.getDivision() == null || workspaceRequestVO.getDataClassification() ==null
-				|| workspaceRequestVO.isHasPii() == null || workspaceRequestVO.isTermsOfUse() == null || workspaceRequestVO.getCostCenter() == null || workspaceRequestVO.getDepartment() == null){
+				|| workspaceRequestVO.isHasPii() == null || workspaceRequestVO.isTermsOfUse() == null  || workspaceRequestVO.getDepartment() == null || workspaceRequestVO.getProjectId() == null){
 					log.error("Fabric workspace project mandatory fields cannot be null for project, please check and send valid input.");
 					MessageDescription invalidMsg = new MessageDescription("Fabric workspace project mandatory fields cannot be null for project, please check and send valid input.");
 					errorMessage.setSuccess(HttpStatus.BAD_REQUEST.name());
@@ -625,7 +626,10 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 			filteredEntitlements = allEntitlementsList.stream().filter(n-> n.contains( applicationId + "." + subgroupPrefix ) && n.contains(id)).collect(Collectors.toList());
 		}
 		String creatorId = existingFabricWorkspace.getCreatedBy().getId();
-		if(!requestUser.getId().equalsIgnoreCase(creatorId) && (filteredEntitlements==null || filteredEntitlements.isEmpty())) {
+		boolean isCreator = requestUser.getId().equalsIgnoreCase(creatorId);
+		boolean isEntitled = filteredEntitlements != null && !filteredEntitlements.isEmpty();
+		boolean isFabricAdmin = currentUserInfo.hasFabricAdminAccess();
+		if (!isCreator && !isEntitled && !isFabricAdmin) {
 				log.warn("Fabric workspace {} {} does not belong to User {} , Not authorized to use others project",id,existingFabricWorkspace.getName(),requestUser.getId()	);
 				return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
 		}else {
@@ -674,7 +678,9 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 		
 		CreatedByVO requestUser = this.userStore.getVO();
 		String creatorId = existingFabricWorkspace.getCreatedBy().getId();
-		if(!requestUser.getId().equalsIgnoreCase(creatorId)) {
+		UserInfo currentUserInfo = this.userStore.getUserInfo();
+		boolean isFabricAdmin = currentUserInfo.hasFabricAdminAccess();
+		if(!requestUser.getId().equalsIgnoreCase(creatorId) && !isFabricAdmin) {
 				log.warn("Fabric workspace doesnt belong to User, Not authorized to update",id,existingFabricWorkspace.getName());
 				errors.add(new MessageDescription("User is not the owner of the workspace. Not authorized to update."));
 				responseVO.setData(null);
@@ -716,6 +722,8 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 				existingFabricWorkspace.setAppId(workspaceUpdateRequestVO.getAppId());			
 			if (workspaceUpdateRequestVO.getLeanIXDetails() != null)
 				existingFabricWorkspace.setLeanIXDetails(workspaceUpdateRequestVO.getLeanIXDetails());
+			if(workspaceUpdateRequestVO.getProjectId() != null)
+				existingFabricWorkspace.setProjectId(workspaceUpdateRequestVO.getProjectId());
 			
 			if(workspaceUpdateRequestVO.getName()!=null)
 				existingFabricWorkspace.setName(workspaceUpdateRequestVO.getName());
@@ -1023,5 +1031,29 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
     }
-    
+		    
+	@Override
+    @ApiOperation(value = "Search ADA Projects", nickname = "searchADAProjects", notes = "Search ADA Projects by project name,", response = ADAProjectDetailsCollectionVO.class, tags={ "fabric-workspaces", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 200, message = "List of ADA Projects matching search criteria", response = ADAProjectDetailsCollectionVO.class),
+        @ApiResponse(code = 204, message = "No ADA Projects found matching search criteria"),
+        @ApiResponse(code = 400, message = "Bad request"),
+        @ApiResponse(code = 500, message = "Internal server error") })
+    @RequestMapping(value = "/fabric-workspaces/searchADAProjects",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.GET)
+    public ResponseEntity<ADAProjectDetailsCollectionVO> searchADAProjects(
+        @ApiParam(value = "Filter by project name (optional)") @Valid @RequestParam(value = "projectName", required = false) String projectName) {
+           
+			log.info("Received request to search ADA Projects. projectName='{}'", projectName);
+            ADAProjectDetailsCollectionVO collection = service.searchProjects(projectName);
+            if (collection.getRecords() == null || collection.getRecords().isEmpty()) {
+				log.info("No ADA Projects found for search term '{}'", projectName);
+                return new ResponseEntity<>(collection, HttpStatus.NO_CONTENT);
+            }
+			log.info("Found {} ADA Projects for search term '{}'", collection.getRecords().size(), projectName);
+            return new ResponseEntity<>(collection, HttpStatus.OK);
+    }
+
 }

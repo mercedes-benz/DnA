@@ -525,6 +525,32 @@ paths:
         500:
           description: "Internal server error."
 
+  /fabric-workspaces/searchADAProjects:
+    get:
+      tags:
+        - "fabric-workspaces"
+      summary: "Search ADA Projects"
+      description: "Search ADA Projects by project name,"
+      operationId: "searchADAProjects"
+      produces:
+        - "application/json"
+      parameters:
+        - name: projectName
+          in: query
+          description: "Filter by project name"
+          required: false
+          type: string
+      responses:
+        200:
+          description: "List of ADA Projects matching search criteria"
+          schema:
+            $ref: "#/definitions/ADAProjectDetailsCollectionVO"
+        204:
+          description: "No ADA Projects found matching search criteria"
+        400:
+          description: "Bad request"
+        500:
+          description: "Internal server error"
 
 
 definitions:
@@ -774,6 +800,8 @@ definitions:
         type: string
       leanIXDetails:
         $ref: "#/definitions/LeanIXDetailsVO"
+      projectId:
+          type: string
       
   FabricWorkspacesCollectionVO:
     description: "Collection of fabric workspaces."
