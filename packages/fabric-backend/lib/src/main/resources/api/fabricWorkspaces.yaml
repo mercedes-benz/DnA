@@ -667,6 +667,8 @@ definitions:
           type: string
       projectId:
           type: string
+      subscription:
+          enum: ["PowerBI", "Fabric"]
       lastModifiedOn:
           type: string
           format: date
@@ -801,7 +803,9 @@ definitions:
       leanIXDetails:
         $ref: "#/definitions/LeanIXDetailsVO"
       projectId:
-          type: string
+        type: string
+      subscription:
+        enum: ["PowerBI", "Fabric"]
       
   FabricWorkspacesCollectionVO:
     description: "Collection of fabric workspaces."
