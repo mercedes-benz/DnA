@@ -5,10 +5,11 @@ import { useHistory } from 'react-router-dom';
 import { regionalDateAndTimeConversionSolution } from '../../utilities/utils';
 import Tooltip from '../../common/modules/uilab/js/src/tooltip';
 import Spinner from '../spinner/Spinner';
+import { USER_ROLE } from '../../utilities/constants';
 
 const FabricWorkspaceCard = ({user, workspace, onSelectWorkspace, onEditWorkspace, onDeleteWorkspace}) => {
   const history = useHistory();
-  
+  const isFabricAdmin = user.roles.find(role => role.id === USER_ROLE.FABRICADMIN);
   useEffect(() => {
     Tooltip.defaultSetup();
   }, [workspace]);
@@ -37,10 +38,21 @@ const FabricWorkspaceCard = ({user, workspace, onSelectWorkspace, onEditWorkspac
           <div>
             <div>Workspace Link</div>
             <div>
-              <a href={`https://app.fabric.microsoft.com/groups/${workspace.id}`} target='_blank' rel='noopener noreferrer'>
-                Access Workspace
-                <i className={classNames('icon mbc-icon new-tab')} />
-              </a>
+              {isFabricAdmin && workspace?.createdBy?.id !== user?.id ? (
+                <span className={Styles.disabledLink} title="Admins can only access their own workspaces">
+                  Access Workspace
+                  <i className={classNames('icon mbc-icon new-tab')} />
+                </span>
+              ) : (
+                <a
+                  href={`https://app.fabric.microsoft.com/groups/${workspace.id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Access Workspace
+                  <i className={classNames('icon mbc-icon new-tab')} />
+                </a>
+              )}
             </div>
           </div>
           <div>
@@ -76,7 +88,7 @@ const FabricWorkspaceCard = ({user, workspace, onSelectWorkspace, onEditWorkspac
               {/* {isRequestedWorkspace && workspace?.status?.state === 'IN_PROGRESS' && <p className={Styles.requestStatus}>Workspace Accesss Requested</p>} */}
             </div>
           </div>
-          {user?.id === workspace?.createdBy?.id &&
+          {(user?.id === workspace?.createdBy?.id || isFabricAdmin) &&
             <div className={Styles.btnGrp}>
               <button
                 className={'btn btn-primary'}
