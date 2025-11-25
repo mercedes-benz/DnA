@@ -604,9 +604,9 @@ export const ToolsLandingPageElements = [
     isDnAInternalTool: false,
   },
     {
-    id: 'UI-licious',
-    name: 'UI-licious',
-    description:'UI-licious is a simple and robust tool for automating interactions with modern web applications.Use it to test your web applications to make sure that your users arent running into unexpected errors in critical user flows like when they are registering for an account or checking out their order',
+    id: 'Uilicious',
+    name: 'Uilicious',
+    description:'Uilicious is a simple and robust tool for automating interactions with modern web applications.Use it to test your web applications to make sure that your users arent running into unexpected errors in critical user flows like when they are registering for an account or checking out their order',
     tags: ['No/Low Code', 'Onprem'],
     url: '/Uilicious',
     isExternalLink: false,

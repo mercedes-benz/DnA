@@ -1,68 +1,4 @@
-.createWorkspaceWrapper{
-  padding: 30px;
-}
-.modalOverlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,0.6);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 2000;
-}
-
-.modalDialog {
-  width: 700px;
-  max-width: calc(100% - 32px);
-  background: #0f1113;
-  border-radius: 8px;
-  box-shadow: 0 10px 30px rgba(0,0,0,0.6);
-  overflow: hidden;
-  border: 1px solid #2a2f38;
-}
-
-.modalHeader {
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  padding: 12px 16px;
-  border-bottom: 1px solid #1f2226;
-}
-
-.modalHeader h3 { margin:0; font-size:16px; }
-
-.modalClose {
-  background: transparent;
-  border: none;
-  color: #cbd5e1;
-  font-size: 20px;
-  cursor: pointer;
-}
-
-.modalBody {
-  padding: 16px;
-}
-
-.formGrid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 12px;
-}
-
-.formRow { display:flex; flex-direction:column; gap:6px; }
-
-.inputLabel { font-size: 12px; color: #9aa6b2; }
-
-.radioGroup { display:flex; gap:12px; align-items:center; }
-
-.modalFooter {
-  display:flex;
-  justify-content:flex-end;
-  gap:8px;
-  padding:12px 16px;
-  border-top:1px solid #1f2226;
-}
-//
+.newWorkSpacePanel {
     .flexLayout {
       display: flex;
       justify-content: space-between;
@@ -70,40 +6,156 @@
         width: calc(50% - 7px);
       }
     }
-.newCodeSpaceBtn {
+    color: #acb8c4;
+    // width: 1100px;
+    margin: 0 auto;
+    padding-right: 20px;
+    h3 {
+      color: #acb8c4;
+      font-weight: initial;
+      margin-top: 25px;
+      text-align: center;
+    }
+    p {
+      font-size: var(--font-size-default);
+      margin-bottom: 20px;
+      text-align: center;
+      line-height: 17px;
+    }
+    p.passwordInfo {
+      font-size: var(--font-size-small);
+      margin-top: 20px;
+    }
+    .addicon {
+      width: 60px;
+      height: 60px;
+      border: 1px solid #fff;
+      border-radius: 50%;
+      position: relative;
+      display: flex;
+      align-items: center;
+      margin: 0 auto;
+      &:after {
+        content: '';
+        position: absolute;
+        width: 50%;
+        height: 1px;
+        background-color: #00ADEF;
+        left: 25%;
+        transform: rotate(90deg);
+      }
+      &:before {
+        content: '';
+        position: absolute;
+        width: 50%;
+        height: 1px;
+        background-color: #00ADEF;
+        left: 25%;
+        margin: 0 auto;
+        transform: rotate(180deg);
+        top: 49%;
+      }
+    }
+  
+    .editicon {
+      align-items: center;
+      border: 1px solid #fff;
+      border-radius: 50%;
+      display: flex;
+      height: 60px;
+      justify-content: center;
+      margin: 0 auto;
+      position: relative;
+      width: 60px;
+      font-size: var(--font-size-icon-big);
+      i {
+        margin-top: -11px;
+        color: #00ADEF;
+      }
+    }
+  
+    .addNewItemButton {
+      background-color: transparent;
+      outline: none;
+      margin-bottom: 12px;
+      color: #acb8c4;
+      border: 0;
+      padding: 0;
+    
+      i {
+        vertical-align: top;
+        margin-right: 10px;
+        color: #00adef;
+      }
+    }
+  
+    .codeSpaceDetails {
+      margin: 20px 0;
+      label {
+        font-family: var(--font-family-medium);
+      }
+      > div {
+        margin-bottom: 15px;
+      }
+    }
+  
+  }
+  .newCodeSpaceBtn {
     margin-top: 25px;
     display: flex;
     justify-content: center;
   }
 
-.largeTextBox {
-  min-height: 100px;
-  resize: vertical;
-}
+.cardBodySection {
+  padding: 17px 10px 20px 20px;
 
-.input-field-group {
-  width: 100%;
+  >div {
+    display: flex;
+    justify-content: space-between;
+    flex-grow: 1;
+    color: #99a5b3;
+    flex-direction: column;
+    min-width: 220px;
 
-  textarea.input-field {
-    width: 100%;
-    background: #1a1d21;
-    border: 1px solid #2a2f38;
-    color: #cbd5e1;
-    border-radius: 4px;
-    padding: 8px 10px;
-    font-size: 14px;
+    >div {
+      display: flex;
+      justify-content: space-between;
+
+      &:not(:last-child) {
+        margin-bottom: 10px;
+      }
+
+      >div:first-child {
+        flex: 0.3;
+        font-weight: bold;
+        color: #697582;
+        font-size: var(--font-size-small);
+      }
+
+      >div:last-child {
+        flex: 1;
+      }
+    }
+
+    ul {
+      list-style-type: none;
+      padding: 0;
+
+      li:not(:last-child) {
+        padding-bottom: 10px;
+      }
+    }
   }
 }
-
-.flexLayout {
-  display: flex;
-  justify-content: space-between;
-
-  > div {
-    width: calc(50% - 7px);
-  }
+.chips{
+  margin-right: 10px;
+  padding: 6px 10px 6px 10px;
 }
 
-.input-field-group:has(textarea) {
-  width: 100%;
+.progressIndicator{
+  >div{
+    width: 40px;
+    border-width: 4px;
+    height: 40px;
+  }
 }

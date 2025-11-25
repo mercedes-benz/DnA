@@ -1,293 +1,474 @@
 import React, { useEffect, useState } from 'react';
 import classNames from 'classnames';
 import Styles from './CreateNewWorkspace.scss';
-import { useForm, FormProvider } from 'react-hook-form';
 import SelectBox from 'components/formElements/SelectBox/SelectBox';
 import Tags from 'components/formElements/tags/Tags';
-import { IDepartment, ITag } from 'globals/types';
 import Notification from '../../../../assets/modules/uilab/js/src/notification';
 import ProgressIndicator from '../../../../assets/modules/uilab/js/src/progress-indicator';
+import { CodeSpaceApiClient } from '../../../../services/CodeSpaceApiClient';
+import { ApiClient } from '../../../../services/ApiClient';
 
-export interface WorkspaceFormModel {
-  workspaceId?: string;
-  workspaceName?: string;
-  description?: string;
-  createdBy?: string;
-  createdAt?: string;
-  role?: 'Owner' | 'Collaborator' | 'Viewer';
-  projectStatus?: 'ACTIVE' | 'CREATE_REQUESTED' | 'UPDATE_REQUESTED' | 'INACTIVE';
-
-  internalOrder?: string;
+export interface leanGovernance {
   costCenter?: string;
-  division?: string;
-  subdivision?: string;
-  department?: string;
   dataClassification?: string;
-  pii?: string | boolean;
+  department?: string;
+  description?: string;
+  division?: string;
+  divisionId?: string;
+  hasPii?: boolean;
+  internalOrder?: string;
+  subDivision?: string;
+  subDivisionId?: string;
 }
 
 interface Props {
-  project?: WorkspaceFormModel;
+  project?: leanGovernance;
   edit?: boolean;
-  onSave?: (workspace: WorkspaceFormModel) => void;
-  onCancel?: () => void;
-  departmentTags?: IDepartment[];
+  accountId?: string;
+  setShowCreateModal?: () => void;
+  getWorkspaceList?: () => void;
 }
 
-const defaultDepartmentTags: ITag[] = [
-  { id: '1', name: 'IT' },
-  { id: '2', name: 'ITH/IG' },
-  { id: '3', name: 'IT/IP' },
-];
+const CreateNewWorkspace = ({ project, edit, accountId, setShowCreateModal, getWorkspaceList }: Props) => {
 
-const CreateNewWorkspace: React.FC<Props> = ({ project, edit = false, onSave, onCancel, departmentTags = [] }) => {
-  const [selectedDepartmentTags, setSelectedDepartmentTags] = useState<string[]>([]);
+  const [costCenter, setCostCenter] = useState(project?.costCenter || '');
 
-  const methods = useForm<WorkspaceFormModel>({
-    defaultValues: {
-      workspaceName: '',
-      description: '',
-      internalOrder: '',
-      costCenter: '',
-      division: '0',
-      subdivision: '0',
-      department: '0',
-      dataClassification: '0',
-      pii: undefined,
-    },
-  });
+  const [dataClassification, setDataClassification] = useState(project?.dataClassification || '');
+  const [dataClassificationError, setDataClassificationError] = useState('');
 
-  const { register, handleSubmit, reset, formState: { errors } } = methods;
+  const [department, setDepartment] = useState(edit && project?.department ? [project?.department] : []);
+  const [departmentError, setDepartmentError] = useState(false);
 
-  useEffect(() => {
-    if (edit && project) {
-      reset({
-        workspaceName: project.workspaceName || '',
-        description: project.description || '',
-        internalOrder: project.internalOrder || '',
-        costCenter: project.costCenter || '',
-        division: project.division || '0',
-        subdivision: project.subdivision || '0',
-        department: project.department || '0',
-        dataClassification: project.dataClassification || '0',
-        pii: typeof project.pii !== 'undefined' ? project.pii : undefined,
-      });
-      setSelectedDepartmentTags(project.department ? [project.department] : []);
-    } else {
-      reset({
-        workspaceName: '',
-        description: '',
-        internalOrder: '',
-        costCenter: '',
-        division: '0',
-        subdivision: '0',
-        department: '0',
-        dataClassification: '0',
-        pii: undefined,
-      });
-      setSelectedDepartmentTags([]);
-    }
-  }, [project, edit, reset]);
+  const [description, setDescription] = useState(project?.description || '');
+  const [descriptionError, setDescriptionError] = useState('');
+
+  const [division, setDivision] = useState(project?.division ? project?.divisionId + '@-@' + project?.division : '0');
+  const [divisionError, setDivisionError] = useState('');
+
+  const [subDivision, setSubDivision] = useState(project?.subDivision ? project?.subDivisionId + '@-@' + project?.subDivision : '0');
+
+  const [hasPii, setHasPii] = useState(project?.hasPii || false);
+
+  const [internalOrder, setInternalOrder] = useState(project?.internalOrder || '');
+
+  const [divisions, setDivisions] = useState([]);
+  const [subDivisions, setSubDivisions] = useState([]);
+  const [departments, setDepartments] = useState([]);
+  const [dataClassificationDropdown, setDataClassificationDropdown] = useState([]);
+
+  const requiredError = '*Missing entry';
 
   useEffect(() => {
     SelectBox.defaultSetup();
+    ProgressIndicator.show();
+    CodeSpaceApiClient.getLovData()
+      .then((response) => {
+        ProgressIndicator.hide();
+        setDataClassificationDropdown(response[0]?.data || []);
+        setDivisions(response[1] || []);
+        setDepartments(response[2]?.data || []);
+        edit && setDivision(project?.division ? project?.divisionId + '@-@' + project?.division : '0');
+        edit && setDataClassification(project?.dataClassification ? project?.dataClassification : '0');
+        SelectBox.defaultSetup();
+      })
+      .catch((err) => {
+        ProgressIndicator.hide();
+        SelectBox.defaultSetup();
+        Notification.show(err?.message || 'Something went wrong.', 'alert');
+      });
   }, []);
 
-  const setDepartment = (arr: string[]) => {
-    const departmentValue = arr?.map((item) => item.toUpperCase())[0];
-    setSelectedDepartmentTags(arr);
-    // Update the form value
-    methods.setValue('department', departmentValue || '0');
+  useEffect(() => {
+    const divId = division.includes('@-@') ? division.split('@-@')[0] : division;
+    if (divId && divId !== '0') {
+      ProgressIndicator.show();
+      ApiClient.getSubDivisions(divId)
+        .then((res: any) => {
+          setSubDivisions(res || []);
+          edit && setSubDivision(project?.subDivision ? project?.subDivisionId + '@-@' + project?.subDivision : '0');
+          SelectBox.defaultSetup();
+          ProgressIndicator.hide();
+        }).catch(() => {
+          ProgressIndicator.hide();
+        });
+    } else {
+      setSubDivisions([]);
+    }
+  }, [division]);
+
+  const onClassificationChange = (e: any) => {
+    const selectedOption = e.currentTarget.value;
+    setDataClassification(selectedOption);
   };
 
-  const submit = (values: WorkspaceFormModel) => {
-    ProgressIndicator.show();
-    try {
-      const newWorkspace: WorkspaceFormModel = {
-        ...values,
-        workspaceId: edit ? project?.workspaceId : `WS-${Date.now()}`,
-        createdAt: edit ? project?.createdAt : new Date().toISOString(),
-        createdBy: edit ? project?.createdBy : 'Current User', // Replace with actual user when available
-        role: edit ? project?.role : 'Owner',
-        projectStatus: 'ACTIVE',
-      };
+  const onDescriptionChange = (e: any) => {
+    const currentValue = e.currentTarget.value;
+    setDescription(currentValue);
+    setDescriptionError(currentValue.length !== 0 ? '' : requiredError);
+  };
 
-      Notification.show(edit ? 'Workspace updated' : 'Workspace created');
-      if (typeof onSave === 'function') onSave(newWorkspace);
-    } catch (err) {
-      Notification.show('Error creating workspace', 'alert');
-    } finally {
-      ProgressIndicator.hide();
+  const onCostCenterChange = (e: any) => {
+    const currentValue = e.currentTarget.value;
+    setCostCenter(currentValue);
+  };
+
+  const onInternalOrderChange = (e: any) => {
+    const currentValue = e.currentTarget.value;
+    setInternalOrder(currentValue);
+  };
+
+  const onDivisionChange = (e: any) => {
+    const selectedOption = e.currentTarget.value;
+    setDivision(selectedOption);
+  };
+
+  const onSubDivisionChange = (e: any) => {
+    const selectedOption = e.currentTarget.value;
+    setSubDivision(selectedOption);
+  };
+
+  const onPIIChange = (e: any) => {
+    const currentValue = e.currentTarget.value;
+    if (currentValue === 'true') {
+      setHasPii(true);
+    } else {
+      setHasPii(false);
     }
   };
 
-  return (
-    <FormProvider {...methods}>
-      <div className={Styles.createWorkspaceWrapper}>
-        <div className={Styles.flexLayout}>
+  const saveLeanGovernance = () => {
+    let formValid = true;
+    if (!description.length) {
+      setDescriptionError(requiredError);
+      formValid = false;
+    }
+    if (division === '0') {
+      setDivisionError(requiredError);
+      formValid = false;
+    }
+    if (!department.length) {
+      setDepartmentError(true);
+      formValid = false;
+    }
+    if (dataClassification === '0') {
+      setDataClassificationError(requiredError);
+      formValid = false;
+    }
+    if (formValid) {
+      const formData = {
+        accountId: accountId || '',
+        leanGovernance: {
+          costCenter: costCenter,
+          internalOrder: internalOrder,
+          description: description,
+          divisionId: division.split('@-@')[0],
+          division: division.split('@-@')[1],
+          subDivisionId: subDivision.split('@-@')[0],
+          subDivision: subDivision.split('@-@')[1],
+          department: department[0],
+          dataClassification: dataClassification,
+          hasPii: hasPii,
+        },
+      };
+      ProgressIndicator.show();
+      ApiClient.updateUiliciousWorkspace(formData)
+        .then(() => {
+          ProgressIndicator.hide();
+          Notification.show('Lean Governance details saved successfully.');
+          setShowCreateModal();
+          getWorkspaceList();
+        })
+        .catch((err: any) => {
+          ProgressIndicator.hide();
+          Notification.show(err?.message || 'Something went wrong.', 'alert');
+        });
+    }
+  };
 
-          <div className="input-field-group">
-            <label className={classNames(Styles.inputLabel, 'input-label')}>
-              Workspace Name <sup>*</sup>
-            </label>
-            <input
-              className="input-field"
-              {...register('workspaceName', { required: '*Missing entry', maxLength: 100 })}
-              readOnly={!!edit}
-            />
-            <span className={classNames('error-message', errors.workspaceName ? '' : 'hide')}>
-              {errors.workspaceName?.message}
-            </span>
-          </div>
+  const createWorkSpace = () => {
+    let formValid = true;
+    if (!description.length) {
+      setDescriptionError(requiredError);
+      formValid = false;
+    }
+    if (division === '0') {
+      setDivisionError(requiredError);
+      formValid = false;
+    }
+    if (!department.length) {
+      setDepartmentError(true);
+      formValid = false;
+    }
+    if (dataClassification === '0') {
+      setDataClassificationError(requiredError);
+      formValid = false;
+    }
+    if (formValid) {
+      const formData = {
+        leanGovernance: {
+          costCenter: costCenter,
+          internalOrder: internalOrder,
+          description: description,
+          divisionId: division.split('@-@')[0],
+          division: division.split('@-@')[1],
+          subDivisionId: subDivision.split('@-@')[0],
+          subDivision: subDivision.split('@-@')[1],
+          department: department[0],
+          dataClassification: dataClassification,
+          hasPii: hasPii,
+        },
+      };
+      ProgressIndicator.show();
+      ApiClient.createUiliciousWorkspace(formData)
+        .then(() => {
+          ProgressIndicator.hide();
+          Notification.show('Lean Governance details saved successfully.');
+          setShowCreateModal();
+          getWorkspaceList();
+        })
+        .catch((err: any) => {
+          ProgressIndicator.hide();
+          Notification.show(err?.message || 'Something went wrong.', 'alert');
+        });
+    }
+  };
 
-          <div className="input-field-group">
-            <Tags
-              title={'Department'}
-              max={1}
-              chips={selectedDepartmentTags?.map((department) => department?.toUpperCase())}
-              tags={departmentTags.length > 0 ? departmentTags : defaultDepartmentTags}
-              setTags={setDepartment}
-              isMandatory={true}
-              showMissingEntryError={!!errors.department}
-            />
-            <input
-              type="hidden"
-              {...register('department', { 
-                validate: (v) => {
-                  return selectedDepartmentTags.length > 0 || '*Missing entry';
-                }
-              })}
-            />
-          </div>
-        </div>
-
-        <div className="input-field-group" style={{ width: '100%', marginTop: '10px' }}>
-          <label className={classNames(Styles.inputLabel, 'input-label')}>Description</label>
-          <textarea
-            className={classNames('input-field', Styles.largeTextBox)}
-            {...register('description')}
-            rows={4}
-          />
-        </div>
-
-        <div className={Styles.flexLayout} style={{ marginTop: '16px' }}>
-          <div className="input-field-group">
-            <label className={classNames(Styles.inputLabel, 'input-label')}>Internal Order</label>
-            <input
-              className="input-field"
-              {...register('internalOrder')}
-              readOnly={!!edit}
-            />
-          </div>
-
-          <div className="input-field-group">
-            <label className={classNames(Styles.inputLabel, 'input-label')}>Cost Center</label>
-            <input
-              className="input-field"
-              {...register('costCenter')}
-            />
-          </div>
-        </div>
-
-        <div className={Styles.flexLayout}>
-          <div className="input-field-group">
-            <label className={classNames(Styles.inputLabel, 'input-label')}>
-              Division <sup>*</sup>
-            </label>
-            <div className={classNames('custom-select')}>
-              <select {...register('division', { required: '*Missing entry' })}>
-                <option value="0">Choose</option>
-                <option value="R&D">R&D</option>
-                <option value="Engineering">Engineering</option>
-                <option value="Support">Support</option>
-              </select>
-            </div>
-            <span className={classNames('error-message', errors.division ? '' : 'hide')}>
-              {errors.division?.message}
-            </span>
-          </div>
-
-          <div className="input-field-group">
-            <label className={classNames(Styles.inputLabel, 'input-label')}>
-              Subdivision <sup>*</sup>
-            </label>
-            <div className={classNames('custom-select')}>
-              <select {...register('subdivision', { required: '*Missing entry' })}>
-                <option value="0">Choose</option>
-                <option value="Software">Software</option>
-                <option value="Hardware">Hardware</option>
-                <option value="Testing">Testing</option>
-              </select>
-            </div>
-            <span className={classNames('error-message', errors.subdivision ? '' : 'hide')}>
-              {errors.subdivision?.message}
-            </span>
-          </div>
-        </div>
-
-        {/* Data Classification + PII */}
-        <div className={Styles.flexLayout}>
-          <div className="input-field-group">
-            <label className={classNames(Styles.inputLabel, 'input-label')}>
-              Data Classification <sup>*</sup>
-            </label>
-            <div className={classNames('custom-select')}>
-              <select {...register('dataClassification', { required: '*Missing entry' })}>
-                <option value="0">Choose</option>
-                <option value="Confidential">Confidential</option>
-                <option value="Restricted">Restricted</option>
-                <option value="Internal">Internal</option>
-                <option value="Public">Public</option>
-              </select>
-            </div>
-            <span className={classNames('error-message', errors.dataClassification ? '' : 'hide')}>
-              {errors.dataClassification?.message}
-            </span>
-          </div>
-
-          <div className="input-field-group">
-            <label className={classNames(Styles.inputLabel, 'input-label')}>
-              PII <sup>*</sup>
-            </label>
-            <div className={Styles.pIIField}>
-              <label className="radio">
-                <span className="wrapper">
-                  <input type="radio" value="true" {...register('pii', { required: '*Missing entry' })} />
-                </span>
-                <span className="label">Yes</span>
+    return (
+      <>
+        <div className={Styles.newWorkSpacePanel}>
+          {!edit ? (
+            <>
+              <div className={Styles.addicon}> &nbsp; </div>
+              <h3>Hello, Create your Work Space</h3>
+              <p>Enter the information to start creating!</p>
+            </>
+          ) : (
+            <>
+              <div className={Styles.editicon}>
+                <i className="icon mbc-icon edit small " />
+              </div>
+              <h3>Edit Lean Governance</h3>
+            </>
+          )}
+          <div className={Styles.flexLayout}>
+            <div
+              className={classNames(
+                'input-field-group include-error',
+                dataClassificationError?.length ? 'error' : '',
+              )}
+            >
+              <label className={classNames(Styles.inputLabel, 'input-label')}>
+                Data Classification <sup>*</sup>
               </label>
-              <label className="radio">
-                <span className="wrapper">
-                  <input type="radio" value="false" {...register('pii', { required: '*Missing entry' })} />
-                </span>
-                <span className="label">No</span>
-              </label>
+              <div className={classNames('custom-select')}>
+                <select
+                  id="classificationField"
+                  defaultValue={dataClassification}
+                  required={true}
+                  required-error={requiredError}
+                  onChange={onClassificationChange}
+                  value={dataClassification}
+                >
+                  <option id="classificationOption" value={0}>
+                    Choose
+                  </option>
+                  {dataClassificationDropdown?.map((item) => (
+                    <option id={item.id} key={item.id} value={item.name}>
+                      {item.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+              <span className={classNames('error-message', dataClassificationError?.length ? '' : 'hide')}>
+                {dataClassificationError}
+              </span>
             </div>
-            <span className={classNames('error-message', errors.pii ? '' : 'hide')}>
-              {errors.pii?.message}
-            </span>
+            <div
+              className={classNames(
+                Styles.bucketNameInputField,
+                'input-field-group include-error',
+                departmentError ? 'error' : '',
+              )}
+            >
+              <div>
+                <div className={Styles.departmentTags}>
+                  <Tags
+                    title={'Department'}
+                    max={1}
+                    chips={department}
+                    tags={departments}
+                    setTags={(selectedTags) => {
+                      const dept = selectedTags?.map((item) => item.toUpperCase());
+                      setDepartment(dept);
+                      setDepartmentError(false);
+                    }}
+                    isMandatory={true}
+                    showMissingEntryError={departmentError}
+
+                  />
+
+                </div>
+              </div>
+            </div>
           </div>
-        </div>
-
-        <div className={Styles.newCodeSpaceBtn}>
-          <button className={'btn btn-tertiary'} type="button" onClick={handleSubmit(submit)}>
-            {edit ? 'Save Project' : 'Create Project'}
-          </button>
-
-          <button
-            className={'btn btn-secondary'}
-            type="button"
-            onClick={() => {
-              if (typeof onCancel === 'function') onCancel();
-            }}
-            style={{ marginLeft: 8 }}
+          <div
+            className={classNames('input-field-group include-error area', descriptionError.length ? 'error' : '')}
           >
-            Cancel
-          </button>
+            <label id="description" className="input-label" htmlFor="description">
+              Description <sup>*</sup>
+            </label>
+            <textarea
+              id="description"
+              className="input-field-area"
+              defaultValue={description}
+              required={true}
+              required-error={requiredError}
+              onChange={onDescriptionChange}
+              rows={50}
+            />
+            <span className={classNames('error-message', descriptionError.length ? '' : 'hide')}>
+              {descriptionError}
+            </span>
+          </div>
+          <div className={Styles.flexLayout}>
+            <div className={classNames('input-field-group')}>
+              <label className={classNames(Styles.inputLabel, 'input-label')}>Cost Center</label>
+              <div>
+                <input
+                  type="text"
+                  className={classNames('input-field', Styles.projectNameField)}
+                  id="archerId"
+                  placeholder="Type here..."
+                  autoComplete="off"
+                  maxLength={55}
+                  defaultValue={costCenter}
+                  onChange={onCostCenterChange}
+                />
+              </div>
+            </div>
+            <div className={classNames('input-field-group')}>
+              <label className={classNames(Styles.inputLabel, 'input-label')}>Internal Order</label>
+              <div>
+                <input
+                  type="text"
+                  className={classNames('input-field', Styles.projectNameField)}
+                  id="internalOrder"
+                  placeholder="Type here..."
+                  autoComplete="off"
+                  maxLength={55}
+                  defaultValue={internalOrder}
+                  onChange={onInternalOrderChange}
+                />
+              </div>
+            </div>
+          </div>
+          <div className={Styles.flexLayout}>
+            <div
+              className={classNames('input-field-group include-error',
+                divisionError.length ? 'error' : '',
+              )}
+            >
+              <label className={classNames(Styles.inputLabel, 'input-label')}>
+                Division <sup>*</sup>
+              </label>
+              <div className={classNames('custom-select')}>
+                <select
+                  id="divisionField"
+                  defaultValue={division}
+                  required={true}
+                  required-error={requiredError}
+                  onChange={onDivisionChange}
+                  value={division}
+                >
+                  <option id="divisionOption" value={0}>
+                    Choose
+                  </option>
+                  {divisions?.map((obj) => {
+                    return (
+                      <option id={obj.name + obj.id} key={obj.id} value={obj.id + '@-@' + obj.name}>
+                        {obj.name}
+                      </option>
+                    )
+                  })}
+                </select>
+              </div>
+              <span className={classNames('error-message', divisionError.length ? '' : 'hide')}>
+                {divisionError}
+              </span>
+            </div>
+            <div className={classNames('input-field-group include-error')}>
+              <label className={classNames(Styles.inputLabel, 'input-label')}>Sub Division</label>
+              <div className={classNames('custom-select')}>
+                <select
+                  id="subDivisionField"
+                  defaultValue={subDivision}
+                  value={subDivision}
+                  required={false}
+                  onChange={onSubDivisionChange}
+                >
+                  {subDivisions?.some((item) => item.id === '0' && item.name === 'None') ? (
+                    <option id="subDivisionDefault" value={0}>
+                      None
+                    </option>
+                  ) : (
+                    <>
+                      <option id="subDivisionDefault" value={0}>
+                        Choose
+                      </option>
+                      {subDivisions?.map((obj) => (
+                        <option id={obj.name + obj.id} key={obj.id} value={obj.id + '@-@' + obj.name}>
+                          {obj.name}
+                        </option>
+                      ))}
+                    </>
+                  )}
+                </select>
+              </div>
+            </div>
+          </div>
+          <div className={Styles.flexLayout}>
+            <div className={classNames('input-field-group include-error')}>
+              <label className={classNames(Styles.inputLabel, 'input-label')}>
+                PII (Personally Identifiable Information) <sup>*</sup>
+              </label>
+              <div className={Styles.pIIField}>
+                <label className={classNames('radio')}>
+                  <span className="wrapper">
+                    <input
+                      type="radio"
+                      className="ff-only"
+                      value="true"
+                      name="pii"
+                      defaultChecked={hasPii === true}
+                      onChange={onPIIChange}
+                    />
+                  </span>
+                  <span className="label">Yes</span>
+                </label>
+                <label className={classNames('radio')}>
+                  <span className="wrapper">
+                    <input
+                      type="radio"
+                      className="ff-only"
+                      value="false"
+                      name="pii"
+                      defaultChecked={hasPii === false}
+                      onChange={onPIIChange}
+                    />
+                  </span>
+                  <span className="label">No</span>
+                </label>
+              </div>
+            </div>
+          </div>
+          <div className={Styles.newCodeSpaceBtn}>
+            <button className={' btn btn-tertiary '} onClick={edit ? saveLeanGovernance : createWorkSpace}>
+              {edit ? 'Save' : 'Create'}
+            </button>
+          </div>
         </div>
-      </div>
-    </FormProvider>
-  );
-};
+      </>
+    );
+  };
 
-export default CreateNewWorkspace;
+  export default CreateNewWorkspace;

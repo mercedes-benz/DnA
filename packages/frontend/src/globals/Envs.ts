@@ -260,4 +260,5 @@ export const Envs = {
       ? getInjectedEnv('ONEAPI_PROMPT_CRAFT_USAGE_LINK')
       : EnvParser.parseBool(process.env.ONEAPI_PROMPT_CRAFT_USAGE_LINK, false),
   LEANIX_BASEURL: getInjectedEnv('LEANIX_BASEURL') || process.env.LEANIX_BASEURL,
+  UILICIOUS_URL: getInjectedEnv('UILICIOUS_URL') || process.env.UILICIOUS_URL,
 };
