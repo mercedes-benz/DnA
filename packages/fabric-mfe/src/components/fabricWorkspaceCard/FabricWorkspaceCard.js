@@ -16,6 +16,7 @@ const FabricWorkspaceCard = ({user, workspace, onSelectWorkspace, onEditWorkspac
   const history = useHistory();
   const [newOwnerDetails, setNewOwnerDetails] = useState(null);
   const [showTransferOwnershipModal, setShowTransferOwnershipModal] = useState(false);
+  const [showTakeOwnershipModal, setShowTakeOwnershipModal] = useState(false);
   
   useEffect(() => {
     Tooltip.defaultSetup();
@@ -36,6 +37,52 @@ const FabricWorkspaceCard = ({user, workspace, onSelectWorkspace, onEditWorkspac
         Notification.show('Error while transferring ownership.', 'alert');
       });
   };
+
+  const takeOwnershipModalContent = (
+    <div className={classNames('input-field-group include-error')}>
+      <label className="input-labels">
+        Are you sure you want to take ownership of this workspace from {' '} 
+        <a
+        href={`${Envs.MB_INSIDE_URL}${workspace?.createdBy?.id}`}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        {workspace?.createdBy?.firstName} {workspace?.createdBy?.lastName}
+      </a>
+        ? Once you take ownership,
+        the current owner will lose their ownership rights.
+      </label>
+      <div className={Styles.transferButton}>
+        <button
+          className="btn btn-tertiary"
+          onClick={() => {
+            ProgressIndicator.show();
+            fabricApi
+              .takeOwnership(workspace?.id)
+              .then(() => {
+                ProgressIndicator.hide();
+                Notification.show('You are now the owner of this workspace.');
+                setShowTakeOwnershipModal(false);
+                history.push('/');
+              })
+              .catch(() => {
+                ProgressIndicator.hide();
+                Notification.show('Error while taking ownership.', 'alert');
+              });
+          }}
+        >
+          Yes
+        </button>
+        <button
+          className="btn btn-tertiary"
+          style={{ marginLeft: '12px' }}
+          onClick={() => setShowTakeOwnershipModal(false)}
+        >
+          No
+        </button>
+      </div>
+    </div>
+  );
 
   const getCollaborators = (collaborator) => {
     const collaborationData = {
@@ -96,7 +143,7 @@ const FabricWorkspaceCard = ({user, workspace, onSelectWorkspace, onEditWorkspac
 
   const userRole = workspace?.userRole;
   const isOwner = user?.id === workspace?.createdBy?.id;
-
+  const isAdmin = userRole === 'Admin';
   return (
     <>
     <div className={classNames(Styles.projectCard)}>
@@ -146,6 +193,14 @@ const FabricWorkspaceCard = ({user, workspace, onSelectWorkspace, onEditWorkspac
                 onClick={() => setShowTransferOwnershipModal(true)}
                 style={{ cursor: 'pointer', marginLeft: '6px' }}
               />
+                )}
+                 {isAdmin && (
+                  <i
+                    className="icon mbc-icon comparison"
+                    tooltip-data="Take Ownership"
+                    onClick={() => setShowTakeOwnershipModal(true)}
+                    style={{ cursor: 'pointer', marginLeft: '6px' }}
+                  />
                 )}
             </div>
           </div>
@@ -208,6 +263,21 @@ const FabricWorkspaceCard = ({user, workspace, onSelectWorkspace, onEditWorkspac
         />
       </div>
     )}
+    {showTakeOwnershipModal && (
+        <div className={Styles.confirmModal}>
+          <InfoModal
+            title={`Take ownership of ${workspace?.name}`}
+            modalWidth={'40%'}
+            modalStyle={{
+              maxWidth: '50%',
+              minHeight: '30%',
+            }}
+            show={showTakeOwnershipModal}
+            content={takeOwnershipModalContent}
+            onCancel={() => setShowTakeOwnershipModal(false)}
+          />
+        </div>
+      )}
     </>
   );
 };
