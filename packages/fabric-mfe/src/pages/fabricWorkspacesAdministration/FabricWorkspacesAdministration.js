@@ -108,7 +108,7 @@ const getWorkspaces = (query = '') => {
     .getFabricWorkspacesForAdmin(
       currentPageOffset,
       maxItemsPerPage,
-      query
+      query || ''
     )
     .then((res) => {
       if (res.status !== 204) {
@@ -165,7 +165,7 @@ const getWorkspaces = (query = '') => {
           <div className={classNames(Styles.listHeader)}>
             <span className={Styles.dividerLine}> &nbsp; </span>
             <div>
-              <button className={classNames('btn btn-primary', Styles.refreshBtn)} tooltip-data="Refresh" onClick={getWorkspaces}>
+              <button className={classNames('btn btn-primary', Styles.refreshBtn)} tooltip-data="Refresh" onClick={() => getWorkspaces('')}>
                 <i className="icon mbc-icon refresh"></i>
               </button>
             </div>
@@ -296,6 +296,7 @@ const getWorkspaces = (query = '') => {
             <FabricWorkspaceForm
               edit
               workspace={selectedWorkspace}
+              user={user}
               onSave={() => { setEditWorkspace(false); getWorkspaces(); }}
             />
           }

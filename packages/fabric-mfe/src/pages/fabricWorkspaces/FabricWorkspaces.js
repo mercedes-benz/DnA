@@ -18,7 +18,6 @@ import FabricWorkspaceForm from '../../components/fabricWorkspaceForm/FabricWork
 import RoleCreationModal from '../../components/roleCreationModal/RoleCreationModal';
 import RequestWorkspace from '../../components/requestWorkspace/RequestWorkspace';
 import { Envs } from '../../utilities/envs';
-import Notification from '../../common/modules/uilab/js/src/notification';
 import { USER_ROLE } from '../../utilities/constants';
 import { IconGear } from 'dna-container/IconGear';
 import { useHistory } from "react-router-dom";
@@ -385,7 +384,7 @@ const FabricWorkspaces = ({user}) => {
           modalWidth={'800px'}
           buttonAlignment="right"
           show={editWorkspace}
-          content={<FabricWorkspaceForm edit={true} workspace={selectedWorkspace} onSave={() => {setEditWorkspace(false); getWorkspaces(); }} />}
+          content={<FabricWorkspaceForm edit={true} workspace={selectedWorkspace} user={user} onSave={() => {setEditWorkspace(false); getWorkspaces(); }} />}
           scrollableContent={true}
           onCancel={() => setEditWorkspace(false)}
         />
