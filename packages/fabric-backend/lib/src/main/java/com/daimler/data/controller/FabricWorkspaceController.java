@@ -119,7 +119,7 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 			return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
 		}else {
 				if(workspaceRequestVO.getDescription()==null || workspaceRequestVO.getDivision() == null || workspaceRequestVO.getDataClassification() ==null
-				|| workspaceRequestVO.isHasPii() == null || workspaceRequestVO.isTermsOfUse() == null  || workspaceRequestVO.getDepartment() == null || workspaceRequestVO.getProjectId() == null){
+				|| workspaceRequestVO.isHasPii() == null || workspaceRequestVO.isTermsOfUse() == null  || workspaceRequestVO.getDepartment() == null || workspaceRequestVO.getProjectId() == null || workspaceRequestVO.getSubscription() == null) {
 					log.error("Fabric workspace project mandatory fields cannot be null for project, please check and send valid input.");
 					MessageDescription invalidMsg = new MessageDescription("Fabric workspace project mandatory fields cannot be null for project, please check and send valid input.");
 					errorMessage.setSuccess(HttpStatus.BAD_REQUEST.name());
@@ -724,6 +724,8 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 				existingFabricWorkspace.setLeanIXDetails(workspaceUpdateRequestVO.getLeanIXDetails());
 			if(workspaceUpdateRequestVO.getProjectId() != null)
 				existingFabricWorkspace.setProjectId(workspaceUpdateRequestVO.getProjectId());
+			if(workspaceUpdateRequestVO.getSubscription() !=null)
+				existingFabricWorkspace.setSubscription(FabricWorkspaceVO.SubscriptionEnum.valueOf(workspaceUpdateRequestVO.getSubscription().name()));
 			
 			if(workspaceUpdateRequestVO.getName()!=null)
 				existingFabricWorkspace.setName(workspaceUpdateRequestVO.getName());
@@ -805,9 +807,17 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 					log.error("Failed to request roles for the user,  validTo date must be after validFrom date. Bad Request");
 					return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
 				}
-				response = service.requestRoles(roleRequestVO,userInfo.getId());
-				log.info("Sucessfully requested roles for  user {}, Fabric workspace {} ",id,userInfo.getId());
-				return new ResponseEntity<>(response, HttpStatus.OK);
+				response = service.requestRoles(roleRequestVO, userInfo.getId());
+				if (response != null && "SUCCESS".equalsIgnoreCase(response.getSuccess())) {
+					log.info("Successfully requested roles for user {}, Fabric workspace {} ", userInfo.getId(), id);
+					return new ResponseEntity<>(response, HttpStatus.OK);
+				} else {
+					log.error("Failed to request roles for user {}, Fabric workspace {}. Response: {}", userInfo.getId(), id, response);
+					errors.add(new MessageDescription("Failed to request role. Please contact the role owner or request this role directly in Alice."));
+					response.setErrors(errors);
+					response.setSuccess("FAILED");
+					return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+				}
 
 			}
 
