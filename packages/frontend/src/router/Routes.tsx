@@ -25,10 +25,11 @@ const MalwareScanService = React.lazy(() => import('components/mbc/malwareScanSe
 const ModelRegistry = React.lazy(() => import('components/mbc/modelRegistry/ModelRegistry'));
 const Notifications = React.lazy(() => import('components/mbc/notification/Notifications'));
 const Pipeline = React.lazy(() => import('components/mbc/pipeline/Pipeline'));
+const Uilicious = React.lazy(() => import('components/mbc/uilicious/Uilicious'));
 const Transparency = React.lazy(() => import('components/mbc/transparency/Transparency'));
 const Tools = React.lazy(() => import('components/mbc/tools/Tools'));
 const ToolsDetailedPage = React.lazy(() => import('components/mbc/tools/toolsDetailedPage/ToolsDetailedPage'));
-const CreateNewPipeline = React.lazy(() => import('components/mbc/pipeline/createNewPipeline/CreateNewPipeline'));
+const CreateNewPipeline= React.lazy(() => import('components/mbc/pipeline/createNewPipeline/CreateNewPipeline'));
 const EditCode = React.lazy(() => import('components/mbc/pipeline/editCode/EditCode'));
 const Comingsoon = React.lazy(() => import('components/mbc/comingsoon/Comingsoon'));
 const AllReports = React.lazy(() => import('components/mbc/allReports/AllReports'));
@@ -456,6 +457,13 @@ const protectedRoutes = [
     exact: false,
     path: '/promptcraft',
     title: 'Prompt Craft',
+  },
+  {
+    allowedRoles: UserAndAdminRole,
+    component: Uilicious,
+    exact: false,
+    path: '/uilicious',
+    title: 'Uilicious',
   },
 ];
 

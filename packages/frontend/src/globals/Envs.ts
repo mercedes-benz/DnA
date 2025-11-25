@@ -175,6 +175,10 @@ export const Envs = {
     getInjectedEnv('ENABLE_FABRIC_SERVICE') !== undefined
       ? getInjectedEnv('ENABLE_FABRIC_SERVICE')
       : EnvParser.parseBool(process.env.ENABLE_FABRIC_SERVICE, false),
+  ENABLE_UILICIOUS_SERVICE:
+    getInjectedEnv('ENABLE_UILICIOUS_SERVICE') !== undefined
+      ? getInjectedEnv('ENABLE_UILICIOUS_SERVICE')
+      : EnvParser.parseBool(process.env.ENABLE_UILICIOUS_SERVICE, false),
   ENABLE_DATA_ENTRY_SERVICE:
     getInjectedEnv('ENABLE_DATA_ENTRY_SERVICE') !== undefined
       ? getInjectedEnv('ENABLE_DATA_ENTRY_SERVICE')
@@ -256,4 +260,5 @@ export const Envs = {
       ? getInjectedEnv('ONEAPI_PROMPT_CRAFT_USAGE_LINK')
       : EnvParser.parseBool(process.env.ONEAPI_PROMPT_CRAFT_USAGE_LINK, false),
   LEANIX_BASEURL: getInjectedEnv('LEANIX_BASEURL') || process.env.LEANIX_BASEURL,
+  UILICIOUS_URL: getInjectedEnv('UILICIOUS_URL') || process.env.UILICIOUS_URL,
 };

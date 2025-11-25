@@ -35,6 +35,7 @@ const odinUrl = Envs.ODIN_URL;
 const sassUrl = Envs.SASS_URL;
 const enableDatalakeService = Envs.ENABLE_DATALAKE_SERVICE;
 const enableFabricService = Envs.ENABLE_FABRIC_SERVICE;
+const enableuiliciousService = Envs.ENABLE_UILICIOUS_SERVICE;
 // const enableDataEntryService = Envs.ENABLE_DATA_ENTRY_SERVICE;
 const enablePowerPlatformService = Envs.ENABLE_POWER_PLATFORM_SERVICE;
 const enablePromptCraftService = Envs.ENABLE_PROMPT_CRAFT_SERVICE;
@@ -596,6 +597,23 @@ export const ToolsLandingPageElements = [
     animation: true,
     isDisabled: !pgAdminUrl?.startsWith('http'),
     isDetailedPage: false,
+    isMoreServicesCard:false,
+    isSmallCard: false,
+    isMediumCard: true,
+    svgIcon: 'tools',
+    isDnAInternalTool: false,
+  },
+    {
+    id: 'Uilicious',
+    name: 'Uilicious',
+    description:'Uilicious is a simple and robust tool for automating interactions with modern web applications.Use it to test your web applications to make sure that your users arent running into unexpected errors in critical user flows like when they are registering for an account or checking out their order',
+    tags: ['No/Low Code', 'Onprem'],
+    url: '/Uilicious',
+    isExternalLink: false,
+    isTextAlignLeft: true,
+    animation: true,
+    isDisabled: !enableuiliciousService,
+    isDetailedPage: true,
     isMoreServicesCard:false,
     isSmallCard: false,
     isMediumCard: true,
