@@ -18,7 +18,6 @@ import FabricWorkspaceForm from '../../components/fabricWorkspaceForm/FabricWork
 import RoleCreationModal from '../../components/roleCreationModal/RoleCreationModal';
 import RequestWorkspace from '../../components/requestWorkspace/RequestWorkspace';
 import { Envs } from '../../utilities/envs';
-import Notification from '../../common/modules/uilab/js/src/notification';
 import { USER_ROLE } from '../../utilities/constants';
 import { IconGear } from 'dna-container/IconGear';
 import { useHistory } from "react-router-dom";
