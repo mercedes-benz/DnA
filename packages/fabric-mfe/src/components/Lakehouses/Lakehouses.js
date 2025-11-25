@@ -15,6 +15,7 @@ import { getQueryParameterByName } from '../../utilities/utils';
 import { fabricApi } from '../../apis/fabric.api';
 import Popper from 'popper.js';
 import ViewTablesModalContent from '../../components/Lakehouses/CdcPush';
+import ViewDdxTablesModalContent from '../../components/Lakehouses/DdxPush.js'
 import { Envs } from '../../utilities/envs';
 
 const CreateShortcutModalContent = ({ workspaceId, lakehouseId, onCreateShortcut }) => {
@@ -319,6 +320,7 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
   const [showCreateShortcutModal, setShowCreateShortcutModal] = useState(false);
   const [showViewTables, setShowViewTablesModal] = useState(false);
   const [showNonProdProjectModal, setShowNonProdProjectModal] = useState(false);
+  const [showDdxViewTables, setShowDdxViewTablesModal] = useState(false);
 
   const [contextMenus, setContextMenus] = useState({});
   const [showLocationsContextMenu, setShowLocationsContextMenu] = useState(false);
@@ -625,6 +627,21 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
                           <span>Push to CDC</span>
                         </button>
                       </li>
+                      <li className="contextListItem">
+                        <button className={classNames('btn btn-primary', Styles.outlineBtn, !(workspace?.cdcPublishedLakeHouseDetails?.publishedLakeHouseNames?.includes(lakehouse.id)) && Styles.disabledBtn)}
+                          onClick={() => {
+                            setSelectedLakehouse(lakehouse);
+                            if (workspace?.typeOfProject?.toLowerCase() !== "production") {
+                              setShowNonProdProjectModal(true);
+                            } else {
+                              setShowDdxViewTablesModal(true);
+                            }
+                          }}
+                        >
+                          <i className="icon mbc-icon dublicate" />
+                          <span>Push to DDX</span>
+                        </button>
+                      </li>
                     </ul>
                   </div>
                 </div>
@@ -689,7 +706,7 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
       }
       { showCreateShortcutModal &&
         <Modal
-          title={'Create Shortcut'}
+          title={selectedLakehouse ? `${selectedLakehouse.name} - Create Shortcut` : 'Create Shortcut'}
           showAcceptButton={false}
           showCancelButton={false}
           modalWidth={'600px'}
@@ -703,8 +720,8 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
       }
       { showViewShortcutsModal &&
         <Modal
-          title={'Shortcuts'}
-          hiddenTitle={true}
+          title={selectedLakehouse ? `${selectedLakehouse.name}` : ''}
+          // hiddenTitle={true}
           showAcceptButton={false}
           showCancelButton={false}
           modalWidth={'60%'}
@@ -754,6 +771,26 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
             </div>
           }
           onCancel={() => setShowNonProdProjectModal(false)}
+        />
+      }
+      {showDdxViewTables &&
+        <InfoModal
+          title={selectedLakehouse ? `${selectedLakehouse.name} - Onboard New Data Product` : 'Onboard New Data Product'}
+          showAcceptButton={false}
+          showCancelButton={false}
+          modalWidth={'90%'}
+          buttonAlignment="right"
+          show={showDdxViewTables}
+          content={
+            <ViewDdxTablesModalContent 
+              workspaceId={workspace?.id} 
+              workspaceOwner={workspace?.createdBy}
+              workspaceDivision={workspace?.division} 
+              lakehouseId={selectedLakehouse?.id} 
+              lakehouseName={selectedLakehouse?.name} 
+              onRefreshWorkspace={onRefreshWorkspace} />}
+          scrollableContent={true}
+          onCancel={() => { setSelectedLakehouse(); setShowDdxViewTablesModal(false) }}
         />
       }
       { showDeleteModal &&
