@@ -298,7 +298,7 @@ public class AuthoriserClient {
 				response.setErrors(errors);
 				response.setWarnings(warnings);
 			}
-			if(deleteRoleResponse!=null && deleteRoleResponse.getStatusCode().is4xxClientError()) {
+			if(deleteRoleResponse!=null && HttpStatus.NOT_FOUND.equals(deleteRoleResponse.getStatusCode())) {
 				log.error("Role with displayName {} deletion failed with status code {}", roleId, deleteRoleResponse.getStatusCode());
 				MessageDescription error = new MessageDescription("Role deletion failed with status code "+deleteRoleResponse.getStatusCode());
 				errors.add(error);
