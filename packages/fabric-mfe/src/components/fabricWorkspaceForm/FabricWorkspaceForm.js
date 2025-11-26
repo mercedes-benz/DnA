@@ -205,6 +205,58 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave, user}) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [departmentName[0]]);
 
+  useEffect(() => {
+    SelectBox.defaultSetup();
+
+    if (!isRestrictedEdit) return;
+
+    setTimeout(() => {
+      const disableSelectField = (fieldId) => {
+        const select = document.getElementById(fieldId);
+        if (!select) return;
+
+        select.disabled = true;
+        select.style.cssText = 'pointer-events: none; cursor: not-allowed; opacity: 0.6';
+
+        const customSelect = select.closest('.custom-select');
+        const selectSelected = customSelect?.querySelector('.select-selected');
+        if (selectSelected) {
+          selectSelected.style.cssText = 'pointer-events: none; cursor: not-allowed; opacity: 0.6';
+          selectSelected.setAttribute('aria-disabled', 'true');
+        }
+      };
+
+      const disableFieldGroup = (labelText) => {
+        const allFieldGroups = document.querySelectorAll('.input-field-group');
+        allFieldGroups.forEach(group => {
+          const label = group.querySelector('.input-label, label');
+          if (!label?.textContent.includes(labelText)) return;
+
+          group.querySelectorAll('input[type="text"], input:not([type])').forEach(input => {
+            input.disabled = true;
+            input.style.cssText = 'pointer-events: none; cursor: not-allowed; opacity: 0.6';
+          });
+
+          const selector = labelText === 'LeanIX'
+            ? 'button, [role="button"], .remove, [class*="remove"], [class*="close"], [class*="clear"], [class*="delete"], [aria-label*="remove"], [aria-label*="clear"], [aria-label*="delete"], svg, [class*="icon"]'
+            : 'button, [role="button"], .remove, [class*="remove"], [class*="close"], [class*="clear"], svg';
+
+          group.querySelectorAll(selector).forEach(btn => {
+            btn.style.cssText = 'pointer-events: none !important; cursor: not-allowed; opacity: 0.3';
+            btn.setAttribute('aria-disabled', 'true');
+            if (btn.tagName === 'BUTTON') btn.disabled = true;
+          });
+        });
+      };
+
+      disableSelectField('reportStatusField');
+      disableSelectField('classificationField');
+      disableFieldGroup('LeanIX');
+      disableFieldGroup('Related Solutions');
+      disableFieldGroup('Related Reports');
+    }, 300);
+  }, [isRestrictedEdit, typeOfProject, dataClassification, solutions, reports, selectedLeanIX]);
+
   const onRelatedSolutionsChange = (selectedTags) => {
     const tempSolutions = solutions.filter(solution => {
       if(selectedTags.includes(solution.name)) {
@@ -375,7 +427,6 @@ const isProjectDetailsRequired = typeOfProject === 'Production' && mandate;
                 <div className={classNames('custom-select')}>
                   <select id="reportStatusField"
                     defaultValue={typeOfProject}
-                    disabled={isRestrictedEdit}
                     {...register('typeOfProject', {
                       required: '*Missing entry',
                       validate: (value) => value !== '0' || '*Missing entry',
@@ -646,7 +697,6 @@ const isProjectDetailsRequired = typeOfProject === 'Production' && mandate;
                   }}
                   isMandatory={true}
                   showMissingEntryError={Object.keys(errors).length > 0 && departmentName.length === 0}
-                  disabled={isRestrictedEdit}
                 />
                 {/* workaround for validating department Tags field */}
                 <input type={'hidden'} defaultValue={departmentName[0]} value={departmentName[0]} {...register('department', {required: '*Missing entry'})} />
@@ -807,6 +857,7 @@ const isProjectDetailsRequired = typeOfProject === 'Production' && mandate;
                         autoComplete="off"
                         maxLength={55}
                         defaultValue={archerId}
+                        disabled={isRestrictedEdit}
                         {...register('archerId', { pattern: /^(INFO)-\d{1,10}$/, onChange: (e) => { setArcherID(e.target.value) } })}
                       />
                       <span className={'error-message'}>{errors.archerId?.type === 'pattern' && 'Archer ID should be of type INFO-XXXXX'}</span>
@@ -827,6 +878,7 @@ const isProjectDetailsRequired = typeOfProject === 'Production' && mandate;
                         autoComplete="off"
                         maxLength={55}
                         defaultValue={procedureId}
+                        disabled={isRestrictedEdit}
                         {...register('procedureId', { pattern: /^(PO|ITPLC)-\d{1,10}$/, onChange: (e) => { setProcedureID(e.target.value) } })}
                       />
                       <span className={'error-message'}>{errors.procedureId?.type === 'pattern' && 'Procedure ID should be of type PO-XXXXX / ITPLC-XXXXX'}</span>
