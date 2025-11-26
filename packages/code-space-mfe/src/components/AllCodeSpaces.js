@@ -108,6 +108,54 @@ const AllCodeSpaces = (props) => {
         setFilteredCodespaces(codeSpaces);
     }, [codeSpaces]);
 
+    useEffect(() => {
+    const EDGE = 120;
+    const SPEED = 25;
+
+    let dragging = false;
+    let mouseY = 0;
+    let frameId = null;
+
+    const start = () => { dragging = true; };
+    const stop = () => {
+        dragging = false;
+        mouseY = 0;
+        if (frameId) cancelAnimationFrame(frameId);
+        frameId = null;
+    };
+
+    const handleDragOver = (e) => {
+        e.preventDefault();
+        mouseY = e.clientY;
+        if (!frameId) autoScrollWhileDragging();
+    };
+
+    const autoScrollWhileDragging = () => {
+        if (!dragging) return;
+
+        const scrollEl = document.scrollingElement;
+        const height = window.innerHeight;
+
+        if (mouseY < EDGE) scrollEl.scrollTop -= SPEED;
+        else if (mouseY > height - EDGE) scrollEl.scrollTop += SPEED;
+
+        frameId = requestAnimationFrame(autoScrollWhileDragging);
+    };
+
+    window.addEventListener("dragstart", start, true);
+    window.addEventListener("dragend", stop, true);
+    window.addEventListener("drop", stop, true);
+    window.addEventListener("dragover", handleDragOver, true);
+
+    return () => {
+        window.removeEventListener("dragstart", start, true);
+        window.removeEventListener("dragend", stop, true);
+        window.removeEventListener("drop", stop, true);
+        window.removeEventListener("dragover", handleDragOver, true);
+        if (frameId) cancelAnimationFrame(frameId);
+    };
+}, []);
+
     // const onPaginationPreviousClick = () => {
     //   const currentPageNumberTemp = pagination.currentPageNumber - 1;
     //   const currentPageOffset = (currentPageNumberTemp - 1) * pagination.maxItemsPerPage;
@@ -411,15 +459,16 @@ const AllCodeSpaces = (props) => {
     const [selectedCodeSpaceGroup, setSelectedCodeSpaceGroup] = useState(JSON.parse(sessionStorage.getItem(SESSION_STORAGE_KEYS.CODE_SPACE_SELECTED_GROUPS)));
 
     useEffect(() => {
-        // if (selectedCodeSpaceGroup) {
-        //   const updatedGroup = codeSpaceGroups.find(
-        //     (group) => group.id === selectedCodeSpaceGroup.id
-        //   );
-        //   if (updatedGroup && updatedGroup !== selectedCodeSpaceGroup) {
-        //     setSelectedCodeSpaceGroup(updatedGroup);
-        //   }
-        // }
-        setSelectedCodeSpaceGroup(JSON.parse(sessionStorage.getItem(SESSION_STORAGE_KEYS.CODE_SPACE_SELECTED_GROUPS)));
+        const cachedGroup = JSON.parse(sessionStorage.getItem(SESSION_STORAGE_KEYS.CODE_SPACE_SELECTED_GROUPS));
+        if (cachedGroup && codeSpaceGroups?.length > 0) {
+          const updatedGroup = codeSpaceGroups.find(
+            (group) => group.groupId === cachedGroup.groupId
+          );
+          if (updatedGroup) {
+            setSelectedCodeSpaceGroup(updatedGroup);
+            sessionStorage.setItem(SESSION_STORAGE_KEYS.CODE_SPACE_SELECTED_GROUPS, JSON.stringify(updatedGroup));
+          }
+        }
         // eslint-disable-next-line react-hooks/exhaustive-deps
       }, [codeSpaceGroups]);
 
