@@ -1686,7 +1686,7 @@
 				if (isprivateRecipe) {
 					repoUrl = entity.getData().getProjectDetails().getRecipeDetails().getRepodetails();
 					if(Objects.nonNull(repoUrl) && repoUrl.contains(".git")){
-						repoUrl = repoUrl.replaceAll(".git","/");
+						repoUrl = repoUrl.replaceAll("\\.git$", "/");
 					} else {
 						repoUrl.concat("/");
 					}
@@ -4156,7 +4156,7 @@
   			if (isPrivateRecipe) {
 					repoUrl = entity.getData().getProjectDetails().getRecipeDetails().getRepodetails();
 					if(Objects.nonNull(repoUrl) && repoUrl.contains(".git")){
-						repoUrl = repoUrl.replaceAll(".git","/");
+						repoUrl = repoUrl.replaceAll("\\.git$", "/");
 					} else {
 						repoUrl.concat("/");
 					}
