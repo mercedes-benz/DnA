@@ -35,13 +35,13 @@ const ChronosProjects = ({ user }) => {
   const getChronosProjects = () => {
     chronosApi.getAllForecastProjects(currentPageOffset, maxItemsPerPage)
       .then((res) => {
-        if(res.status !== 204) {
-          if (res.data.records) {
-            const results = [...res.data.records].sort((projectA, projectB) => {
-              return (projectA.name.toLowerCase() > projectB.name.toLowerCase()) ? 1 : (projectB.name.toLowerCase() > projectA.name.toLowerCase() ? -1 : 0);
+        if(res?.status !== 204) {
+          if (res?.data?.records) {
+            const results = [...res?.data?.records].sort((projectA, projectB) => {
+              return (projectA?.name?.toLowerCase() > projectB?.name?.toLowerCase()) ? 1 : (projectB?.name?.toLowerCase() > projectA?.name?.toLowerCase() ? -1 : 0);
             });
             setForecastProjects(results);
-            const totalNumberOfPagesTemp = Math.ceil(res.data.totalCount / maxItemsPerPage);
+            const totalNumberOfPagesTemp = Math.ceil(res?.data?.totalCount / maxItemsPerPage);
             setCurrentPageNumber(currentPageNumber > totalNumberOfPagesTemp ? 1 : currentPageNumber);
             setTotalNumberOfPages(totalNumberOfPagesTemp);
           }
@@ -64,7 +64,7 @@ const ChronosProjects = ({ user }) => {
 
   const getBannerDetails = () => {
     chronosApi.getBannerDetails().then((res) => {
-      const data = res.data;
+      const data = res?.data;
       setbannerDetails(data);
     }).catch(() => {
       Notification.show('Something went wrong', 'alert');
@@ -81,7 +81,7 @@ const ChronosProjects = ({ user }) => {
 
   const onBannerClose = () => {
     const currentTime = new Date();
-    const formattedTime = currentTime.toISOString();
+    const formattedTime = currentTime?.toISOString();
     localStorage.setItem('bannerCloseTime', formattedTime);
     setBannerCloseTime(formattedTime);
     setShowBanner(false)
@@ -133,8 +133,8 @@ const ChronosProjects = ({ user }) => {
       <div className={classNames(Styles.mainPanel)}>
         <div className={classNames(Styles.wrapper)}>
           {loading ? <Spinner /> : null}
-          {(!loading && forecastProjects.length === 0) ? <FirstRun openCreateProjectModal={() => setCreateProject(true)} user={user} /> : null}
-          {(!loading && forecastProjects.length !== 0) ?
+          {(!loading && forecastProjects?.length === 0) ? <FirstRun openCreateProjectModal={() => setCreateProject(true)} user={user} /> : null}
+          {(!loading && forecastProjects?.length !== 0) ?
             <>
               <Breadcrumb>
                 <li>Chronos Forecasting</li>
