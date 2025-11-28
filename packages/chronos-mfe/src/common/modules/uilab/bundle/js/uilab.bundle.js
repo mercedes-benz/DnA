@@ -1809,7 +1809,7 @@
    */
   function getOppositePlacement(placement) {
     var hash = { left: 'right', right: 'left', bottom: 'top', top: 'bottom' };
-    return placement?.replace(/left|right|bottom|top/g, function (matched) {
+    return placement.replace(/left|right|bottom|top/g, function (matched) {
       return hash[matched];
     });
   }
