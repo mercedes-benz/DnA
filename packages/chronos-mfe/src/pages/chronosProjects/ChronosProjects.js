@@ -72,7 +72,7 @@ const ChronosProjects = ({ user }) => {
   }
 
   useEffect(() => {
-    if (bannerDetails.lastchangedtime > bannerCloseTime) {
+    if (bannerDetails?.lastchangedtime > bannerCloseTime) {
       setShowBanner(true);
     } else {
       setShowBanner(false);
@@ -127,7 +127,7 @@ const ChronosProjects = ({ user }) => {
   return (
     <>
       {showBanner && (
-        <ChronosBanner bannerText={bannerDetails.bannerText} onBannerClose = {onBannerClose}/>
+        <ChronosBanner bannerText={bannerDetails?.bannerText} onBannerClose = {onBannerClose}/>
         )
       }
       <div className={classNames(Styles.mainPanel)}>
