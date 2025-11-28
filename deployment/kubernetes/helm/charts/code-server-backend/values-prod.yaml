@@ -3,7 +3,7 @@ namespace: prod-dna-cs-workspaces
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/code-server-be
   pullPolicy: Always
-  tag: 1.8.0
+  tag: 1.8.1
 envs: {}
 imagePullSecrets: []
 nameOverride: ''
