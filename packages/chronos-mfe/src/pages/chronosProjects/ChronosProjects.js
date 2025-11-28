@@ -37,7 +37,7 @@ const ChronosProjects = ({ user }) => {
       .then((res) => {
         if(res?.status !== 204) {
           if (res?.data?.records) {
-            const results = [...res?.data?.records].sort((projectA, projectB) => {
+            const results = [...res.data.records].sort((projectA, projectB) => {
               return (projectA?.name?.toLowerCase() > projectB?.name?.toLowerCase()) ? 1 : (projectB?.name?.toLowerCase() > projectA?.name?.toLowerCase() ? -1 : 0);
             });
             setForecastProjects(results);
