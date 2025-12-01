@@ -397,9 +397,8 @@ public class BuildDeployController implements CodeServerBuildDeployServiceApi {
 
                         if(!deploymentAuditLogs.isEmpty()){
                             List<DeploymentAudit> sortedList = deploymentAuditLogs.stream().filter(i -> i.getDeploymentStatus().equalsIgnoreCase("DEPLOYED"))
-                        .sorted(Comparator.comparing(DeploymentAudit::getDeployedOn).reversed())
                         .collect(Collectors.toList());
-                        if(!sortedList.isEmpty() && sortedList.get(0).getVersion().equalsIgnoreCase(version)){
+                        if(!sortedList.isEmpty() && sortedList.get(sortedList.size()-1).getVersion().equalsIgnoreCase(version)){
                             MessageDescription msg = new MessageDescription();
                             msg.setMessage("Given version "+version+" is currently deployed,Please deploy with different build and try deleting later");
                             warnings.add(msg);
