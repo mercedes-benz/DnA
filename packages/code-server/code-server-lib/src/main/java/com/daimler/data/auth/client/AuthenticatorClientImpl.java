@@ -584,6 +584,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		AttachPluginVO attachCorsPluginVO = new AttachPluginVO();
 		AttachPluginRequestVO attachCorsPluginRequestVO = new AttachPluginRequestVO();
 		attachCorsPluginVO.setName(CORS_PLUGIN);
+		attachCorsPluginVO.setIsSecureWithOneApi(Objects.nonNull(oneApiVersionShortName) && !oneApiVersionShortName.isBlank());
 		attachCorsPluginRequestVO.setData(attachCorsPluginVO);
 
 		//request for attaching RequestTransformer Plugin to service
@@ -856,7 +857,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 							if(("int".equalsIgnoreCase(env) && !intSecureIAM && !intSecureDna) ||("prod".equalsIgnoreCase(env) && !prodSecureIAM && !prodSecureDna) ){
 
 								String exsistingOneApiVersionShortName = "int".equalsIgnoreCase(env)?intDeploymentDetails.getOneApiVersionShortName():prodDeploymentDetails.getOneApiVersionShortName();
-								if(!exsistingOneApiVersionShortName.equalsIgnoreCase(oneApiVersionShortName) || Objects.isNull(exsistingOneApiVersionShortName) ){
+								if(Objects.isNull(exsistingOneApiVersionShortName) || !exsistingOneApiVersionShortName.equalsIgnoreCase(oneApiVersionShortName)){
 
 									GenericMessage attachOneApiPluginResponse = new GenericMessage();
 									//delete oneapi plugin if any
