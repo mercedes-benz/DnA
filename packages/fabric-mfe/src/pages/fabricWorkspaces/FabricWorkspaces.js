@@ -18,9 +18,15 @@ import FabricWorkspaceForm from '../../components/fabricWorkspaceForm/FabricWork
 import RoleCreationModal from '../../components/roleCreationModal/RoleCreationModal';
 import RequestWorkspace from '../../components/requestWorkspace/RequestWorkspace';
 import { Envs } from '../../utilities/envs';
+import { USER_ROLE } from '../../utilities/constants';
+import { IconGear } from 'dna-container/IconGear';
+import { useHistory } from "react-router-dom";
 
 const FabricWorkspaces = ({user}) => {
   const dispatch = useDispatch();
+
+  const isAdmin = user.roles.find((role) => role.id === USER_ROLE.FABRICADMIN) !== undefined;
+  const history = useHistory();
 
   useEffect(() => {
     dispatch(getLovs());
@@ -147,6 +153,18 @@ const FabricWorkspaces = ({user}) => {
       <div className={classNames(Styles.mainPanel)}>
         <Caption title="Fabric Workspaces">
           <div className={classNames(Styles.listHeader)}>
+            {isAdmin &&
+              <div className={Styles.actionBtns}>
+                <button
+                  className={classNames('btn btn-primary', Styles.btnOutline)}
+                  type="button"
+                  onClick={() => history.push('/administration')}
+                >
+                  <IconGear size={'14'} />
+                  <span>Administration</span>
+                </button>
+              </div>
+            }
             <div>
               <button className={classNames('btn btn-primary', Styles.trackRequestLink)} onClick={() => window.open(Envs.ALICE_URL)}>
                 <i className="icon mbc-icon new-tab"></i> Track your requests
@@ -366,7 +384,7 @@ const FabricWorkspaces = ({user}) => {
           modalWidth={'800px'}
           buttonAlignment="right"
           show={editWorkspace}
-          content={<FabricWorkspaceForm edit={true} workspace={selectedWorkspace} onSave={() => {setEditWorkspace(false); getWorkspaces(); }} />}
+          content={<FabricWorkspaceForm edit={true} workspace={selectedWorkspace} user={user} onSave={() => {setEditWorkspace(false); getWorkspaces(); }} />}
           scrollableContent={true}
           onCancel={() => setEditWorkspace(false)}
         />
