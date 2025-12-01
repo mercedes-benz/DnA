@@ -5,8 +5,11 @@ metadata:
   namespace: {{ .Values.namespace }}
   labels:
     name: {{ .Chart.Name }}-backend
+    app.kubernetes.io/name: {{ .Chart.Name }}-backend
 spec:
+  {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.backend.replicas }}
+  {{- end }}
   selector:
     matchLabels:
       name: {{ .Chart.Name }}-backend
@@ -16,6 +19,7 @@ spec:
     metadata:
       labels:
         name: {{ .Chart.Name }}-backend
+        app.kubernetes.io/name: {{ .Chart.Name }}-backend
       {{- if .Values.vaultInjector.enable }}      
       {{- with .Values.vaultInjector.annotations }}
       annotations:
@@ -56,7 +60,7 @@ spec:
           imagePullPolicy: Always
           {{- if .Values.vaultInjector.enable }}           
           command: ["/bin/sh", "-c"]
-          args: ['source /vault/secrets/envvar && java -jar /{{ .Values.vaultInjector.jarName }}']
+          args: ['source /vault/secrets/envvar && java -XX:+UseContainerSupport -XX:MaxRAMPercentage=98.0 -jar /{{ .Values.vaultInjector.jarName }}']
           {{ else }}
           env:
             - name: DNA_URI
@@ -144,7 +148,6 @@ spec:
               cpu: {{ .Values.backendResources.requests.cpu | quote }}
             limits:
               memory: {{ .Values.backendResources.limits.memory | quote }}
-              cpu: {{ .Values.backendResources.limits.cpu | quote }}
           volumeMounts:
             - mountPath: /git
               name: dag-repo
