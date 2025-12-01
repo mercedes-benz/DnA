@@ -18,6 +18,8 @@ import com.daimler.data.db.json.BuildAudit;
 import com.daimler.data.db.json.DeploymentAudit;
 import com.daimler.data.db.repo.workspace.WorkSpaceCodeServerBuildDeployRepository;
 import com.daimler.data.db.repo.workspace.WorkspaceCustomBuildDeployRepo;
+import org.springframework.beans.factory.annotation.Value;
+import com.daimler.data.db.repo.workspace.WorkspaceCustomRepository;
 
 import org.springframework.web.bind.annotation.PathVariable;
 
@@ -41,6 +43,7 @@ import com.daimler.data.dto.workspace.buildDeploy.BuildAuditVO;
 import com.daimler.data.dto.workspace.buildDeploy.DeploymentAuditVO;
 import com.daimler.data.dto.workspace.buildDeploy.LogsListResponseVO;
 import com.daimler.data.dto.workspace.buildDeploy.CodeServerBuildDeployVO;
+import com.daimler.data.dto.workspace.CodeServerBuildDetailsVO;
 import com.daimler.data.dto.workspace.buildDeploy.VersionListResponseVO;
 import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.assembler.BuildDeployAssembler;
@@ -67,6 +70,12 @@ public class BuildDeployController implements CodeServerBuildDeployServiceApi {
 
      @Autowired
 	 private WorkspaceCustomBuildDeployRepo buildDeployCustomRepo;
+
+     @Value("${codeServer.build.retainedlimit}")
+     private String retainedBuildLimitValue;
+
+     @Autowired
+	 private WorkspaceCustomRepository workspaceCustomRepository;
 
     @Override
     @ApiOperation(value = "Build workspace Project for a given Id.", nickname = "buildWorkspaceProject", notes = "build workspace Project for a given identifier.", response = GenericMessage.class, tags = {
@@ -199,6 +208,46 @@ public class BuildDeployController implements CodeServerBuildDeployServiceApi {
             return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
         }
         
+        String projectName = vo.getProjectDetails() != null ? vo.getProjectDetails().getProjectName() : null;
+        List<BuildAudit> auditLogs = new ArrayList<>();
+        CodeServerBuildDeployNsql optionalBuildDeployEntity = buildDeployCustomRepo.findByProjectName(projectName);
+        if (optionalBuildDeployEntity != null && optionalBuildDeployEntity.getData() != null) {
+            if ("int".equalsIgnoreCase(environment)
+                    && optionalBuildDeployEntity.getData().getIntBuildAuditLogs() != null) {
+                auditLogs = optionalBuildDeployEntity.getData().getIntBuildAuditLogs();
+            } else if ("prod".equalsIgnoreCase(environment)
+                    && optionalBuildDeployEntity.getData().getProdBuildAuditLogs() != null) {
+                auditLogs = optionalBuildDeployEntity.getData().getProdBuildAuditLogs();
+            }
+        }
+        if (auditLogs == null) {
+            auditLogs = new ArrayList<>();
+        }
+        long retainedCount = auditLogs.stream()
+                .filter(b -> "BUILD_SUCCESS".equalsIgnoreCase(b.getBuildStatus()))
+                .filter(b -> !b.isImageDeleted())
+                .count();
+        
+        int retainedBuildLimit;
+        try {
+            retainedBuildLimit = Integer.parseInt(retainedBuildLimitValue.trim());
+        } catch (NumberFormatException ex) {
+            log.error("Invalid retained build limit value '{}'. Please correct it in Vault.",
+                    retainedBuildLimitValue);
+            throw new IllegalStateException("Invalid retained build limit value: " + retainedBuildLimitValue);
+        }
+        
+        if (retainedCount >= retainedBuildLimit) {
+            MessageDescription invalidMsg = new MessageDescription();
+            invalidMsg.setMessage("Build not allowed. There are already " + retainedCount +
+                    " successful builds with images retained. Please delete older images before triggering a new build.");
+            GenericMessage errorMessage = new GenericMessage();
+            errorMessage.addErrors(invalidMsg);
+            log.info("User {} attempted to build workspace {} but retained image limit reached ({} builds).",
+                    userId, vo != null ? vo.getWorkspaceId() : "UNKNOWN", retainedCount);
+            return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
+        }
+         
         String lastBuildType = "build";
         GenericMessage responseMsg = service.buildWorkSpace(userId,id,branch,buildRequestDto,isPrivateRecipe,environment,lastBuildType);
 				 log.info("User {} build workspace {} project {}", userId, vo.getWorkspaceId(),

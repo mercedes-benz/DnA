@@ -43,6 +43,7 @@
  import java.util.regex.Pattern;
  import java.util.stream.Collector;
  import java.util.stream.Collectors;
+ import java.util.Collections;
 
  import org.json.JSONObject;
  import org.springframework.beans.BeanUtils;
@@ -227,7 +228,9 @@
 
 	 @Autowired
 	 private WorkspaceCustomBuildDeployRepo buildDeployCustomRepo;
- 
+
+	 @Value("${codeServer.build.retainedlimit}")
+     private String retainedBuildLimitValue;
  
   
 	 public BaseWorkspaceService() {
@@ -1662,9 +1665,51 @@
 			 boolean isSecuredWithCookie = false;
 
 			 //buildAndDeploy flow
-			 if(version == null || version.isEmpty() || version.isBlank()){
-				String lastBuildType = "buildAndDeploy";
-				
+				CodeServerBuildDeployNsql buildDeployEntity = null;
+				List<BuildAudit> builds = new ArrayList<>();
+				if (version == null || version.isEmpty() || version.isBlank()) {
+					String lastBuildType = "buildAndDeploy";
+					buildDeployEntity = buildDeployCustomRepo.findByProjectName(projectName);
+					int retainedBuildLimit;
+					try {
+						retainedBuildLimit = Integer.parseInt(retainedBuildLimitValue.trim());
+					} catch (NumberFormatException ex) {
+						log.error("Invalid retained build limit value '{}'. Please correct it in Vault.",
+								retainedBuildLimitValue);
+						throw new IllegalStateException(
+								"Invalid retained build limit value: " + retainedBuildLimitValue);
+					}
+
+					if (buildDeployEntity != null && buildDeployEntity.getData() != null) {
+						CodeServerBuildDeploy buildDeployData = buildDeployEntity.getData();
+
+						builds = "int".equalsIgnoreCase(environment)
+								? buildDeployData.getIntBuildAuditLogs()
+								: buildDeployData.getProdBuildAuditLogs();
+
+						if (builds == null)
+							builds = new ArrayList<>();
+
+						long retainedCount = builds.stream()
+								.filter(b -> "BUILD_SUCCESS".equalsIgnoreCase(b.getBuildStatus()))
+								.filter(b -> !b.isImageDeleted())
+								.count();
+
+						log.info("Build-and-deploy flow: Retained successful builds = {}, Limit = {}", retainedCount,
+								retainedBuildLimit);
+
+						if (retainedCount >= retainedBuildLimit) {
+							MessageDescription invalidMsg = new MessageDescription();
+							invalidMsg.setMessage("Build not allowed: There are already " + retainedCount +
+									" successful builds with images retained. Please delete older images before triggering a new build.");
+							GenericMessage errorMessage = new GenericMessage();
+							errorMessage.addErrors(invalidMsg);
+							log.info(
+									"User {} attempted buildAndDeploy for project {} but retained image limit ({}) reached.",
+									userId, projectName, retainedBuildLimit);
+							return errorMessage; // Prevent build-and-deploy
+						}
+					}
 				ManageBuildRequestDto buildRequestDto = new ManageBuildRequestDto();
 				buildRequestDto.setBranch(branch);
 				buildRequestDto.setEnvironment(environment);
@@ -2728,16 +2773,41 @@
 					 if(optionalBuildDeployentity != null){
 						 buildDeployentity = optionalBuildDeployentity;
 						 buildDeployData = buildDeployentity.getData();
-						 if("int".equalsIgnoreCase(targetEnv)){							
+						 List<DeploymentAudit>  auditLogs = new ArrayList<>();
+						 List<BuildAudit> buildAuditLogs = new ArrayList<>();
+						 if("int".equalsIgnoreCase(targetEnv)){	
+							auditLogs = buildDeployData.getIntDeploymentAuditLogs();
+							buildAuditLogs = buildDeployData.getIntBuildAuditLogs();						
 							 int lastIndex = buildDeployData.getIntDeploymentAuditLogs().size() - 1;
 							 buildDeployData.getIntDeploymentAuditLogs().get(lastIndex).setDeploymentStatus(latestStatus);
 							 buildDeployData.getIntDeploymentAuditLogs().get(lastIndex).setDeployedOn(now);							 
 							 
 						 }else{
+							auditLogs = buildDeployData.getProdDeploymentAuditLogs();
+							buildAuditLogs = buildDeployData.getProdBuildAuditLogs();
 							 int lastIndex = buildDeployData.getProdDeploymentAuditLogs().size() - 1;
 							 buildDeployData.getProdDeploymentAuditLogs().get(lastIndex).setDeploymentStatus(latestStatus);
 							 buildDeployData.getProdDeploymentAuditLogs().get(lastIndex).setDeployedOn(now);	
 						 }
+
+					// 	 List<DeploymentAudit> sortedList = auditLogs.stream().filter( i -> i.getDeploymentStatus().equalsIgnoreCase("DEPLOYED")).collect(Collectors.toList());
+					// String lastDeployedVersion = (sortedList.size() > 0 && sortedList.size() != 1) ? sortedList.get(sortedList.size() - 1).getVersion():null;
+					
+					// if(lastDeployedVersion != null &&  buildAuditLogs.stream().anyMatch( i -> (i.getVersion().equalsIgnoreCase(lastDeployedVersion) && !i.isImageDeleted()))){
+							buildAuditLogs.stream().forEach(i ->{
+								if(!i.getVersion().equalsIgnoreCase(version) && !i.isKeepBuildImage() && !i.isImageDeleted()){
+									GenericMessage deleteApiResonse = client.deleteBuild(projectName, i.getVersion());
+									if(deleteApiResonse.getSuccess().equalsIgnoreCase("SUCCESS")){
+										i.setImageDeleted(true);
+									}									
+								}
+							});
+						// }
+						if("int".equalsIgnoreCase(targetEnv)){	
+							buildDeployData.setIntBuildAuditLogs(buildAuditLogs);
+						}else{
+							buildDeployData.setProdBuildAuditLogs(buildAuditLogs);
+						}
 						 buildDeployentity.setData(buildDeployData);
 						 buildDeployRepo.save(buildDeployentity);
 					 }
@@ -2793,16 +2863,37 @@
 				   if(optionalBuildDeployentity != null){
 					   buildDeployentity = optionalBuildDeployentity;
 					   buildDeployData = buildDeployentity.getData();
+					   Boolean keepBuildImage = false;
+					   Boolean buildImageDeleted = false;
 					   if("int".equalsIgnoreCase(targetEnv)){							
 						   int lastIndex = buildDeployData.getIntBuildAuditLogs().size() - 1;
 						   buildDeployData.getIntBuildAuditLogs().get(lastIndex).setBuildOn(now);
 						   buildDeployData.getIntBuildAuditLogs().get(lastIndex).setBuildStatus(latestStatus);
-						   
+						   keepBuildImage = buildDeployData.getIntBuildAuditLogs().get(lastIndex).isKeepBuildImage();
 					   }else{
 						   int lastIndex = buildDeployData.getProdBuildAuditLogs().size() - 1;
 						   buildDeployData.getProdBuildAuditLogs().get(lastIndex).setBuildOn(now);
 						   buildDeployData.getProdBuildAuditLogs().get(lastIndex).setBuildStatus(latestStatus);
+						   keepBuildImage = buildDeployData.getProdBuildAuditLogs().get(lastIndex).isKeepBuildImage();
 					   }
+					   if("BUILD_SUCCESS".equalsIgnoreCase(latestStatus) && buildDetails.getLastBuildType().equalsIgnoreCase("build")){
+					if(!keepBuildImage){
+							GenericMessage deleteApiResonse = client.deleteBuild(projectName, version);
+									if(deleteApiResonse.getSuccess().equalsIgnoreCase("SUCCESS")){
+										buildImageDeleted = true;
+									}
+					}
+					}
+					if(buildImageDeleted){
+						if("int".equalsIgnoreCase(targetEnv)){
+							int lastIndex = buildDeployData.getIntBuildAuditLogs().size() - 1;
+							buildDeployData.getIntBuildAuditLogs().get(lastIndex).setImageDeleted(true);
+						}else{
+							int lastIndex = buildDeployData.getProdBuildAuditLogs().size() - 1;
+							buildDeployData.getProdBuildAuditLogs().get(lastIndex).setImageDeleted(true);
+						}
+					}
+
 					   buildDeployentity.setData(buildDeployData);
 					   buildDeployRepo.save(buildDeployentity);
 				   }
@@ -4292,13 +4383,14 @@
 					}else{
 						auditLog.setCommitId(commitId.getSha());
 					}
-					
+					 auditLog.setImageDeleted(Boolean.FALSE);
 					 auditLog.setTriggeredOn(now);
 					 auditLog.setTriggeredBy(entity.getData().getWorkspaceOwner().getGitUserName());
 					 auditLog.setBranch(branch);
 					 auditLog.setBuildStatus("BUILD_REQUESTED");
 					 auditLog.setComments(buildRequestDto.getComments());
 					 auditLog.setVersion(appVersion);
+					 auditLog.setKeepBuildImage(buildRequestDto.isKeepBuildImage() != null && buildRequestDto.isKeepBuildImage());
 					 auditLogs.add(auditLog);
 					 CodeServerBuildDeploy buildDeployLogs = null;
 					 CodeServerBuildDeployNsql auditLogEntity = null;

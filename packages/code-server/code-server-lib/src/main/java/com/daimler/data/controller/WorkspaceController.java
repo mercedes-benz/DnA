@@ -1275,6 +1275,9 @@ import org.springframework.beans.factory.annotation.Value;
                 else {
 				   responseMsg = service.deployWorkspace(userId, id, environment, branch,
 							 isPrivateRecipe,deployRequestDto.getVersion(),"deploy");
+					if ("FAILED".equalsIgnoreCase(responseMsg.getSuccess())) {
+						return new ResponseEntity<>(responseMsg, HttpStatus.BAD_REQUEST);
+					}
 				   log.info("User {} deployed workspace {} project {}", userId, vo.getWorkspaceId(),
 						   vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
 			   }
