@@ -1758,6 +1758,8 @@ definitions:
         type: boolean
       aliceRoleEnabled:
         type: boolean
+      entitlementPrefixEnabled:
+        type: boolean
       selectedAliceRoles:
         type: array
         items:
@@ -1816,6 +1818,8 @@ definitions:
       secureWithDnaRequired:
         type: boolean
       aliceRoleEnabled:
+        type: boolean
+      entitlementPrefixEnabled:
         type: boolean
       selectedAliceRoles:
         type: array

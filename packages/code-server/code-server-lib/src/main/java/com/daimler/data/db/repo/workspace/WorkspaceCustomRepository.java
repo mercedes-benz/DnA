@@ -63,7 +63,7 @@ public interface WorkspaceCustomRepository extends CommonDataRepository<CodeServ
 	GenericMessage updateDeployedAppConfig(String projectName, String environment, boolean secureWithIAMRequired,
 			String oneApiVersionShortName, boolean isSecuredWithCookie, String deploymentType, String clientID,
 			String redirectUri, String ignorePaths, String scope, String ssoType, boolean secureWithDnaRequired,
-			boolean isAliceRoleEnabled, List<String> selectedAliceRoles);
+			boolean isAliceRoleEnabled, boolean isEntitlementPrefixEnabled, List<String> selectedAliceRoles);
 
 	GenericMessage updateBuildDetails(String projectName, String environment,CodeServerBuildDetails buildDetails);
 	
