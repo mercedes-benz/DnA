@@ -277,13 +277,15 @@ definitions:
         type: "string"
       department:
         type: "string"
-      service:
-        type: "object"
-        properties:
-          serviceName:
-            type: "string"
-          serviceQuantity:
-            type: "integer"
+      services:
+        type: "array"
+        items:
+          type: "object"
+          properties:
+            serviceName:
+              type: "string"
+            serviceQuantity:
+              type: "integer"
       stakeholders:
         type: "array"
         items:
@@ -310,6 +312,8 @@ definitions:
       inactiveDate:
         type: "string"
         format: "date"
+      createdBy:
+        type: "string"
 
 
   CreateADAProjectResponseVO:

@@ -1,6 +1,6 @@
 {
   "name": "fabric-mfe",
-  "version": "1.2.3",
+  "version": "1.2.7",
   "private": true,
   "scripts": {
     "start": "env-cmd -f .env webpack server --config config/webpack.config.js",

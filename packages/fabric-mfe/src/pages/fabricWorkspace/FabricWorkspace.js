@@ -24,7 +24,7 @@ const WorkspaceDetails = ({ workspace }) => {
           <div className={Styles.formWrapper}>
             <div className={classNames(Styles.flex)}>
               <div className={Styles.col3}>
-                <p className={Styles.label}>Workspace Name</p> {workspace?.name || 'null'}
+                <p className={Styles.label}>Workspace Name</p> <div className={Styles.workspaceName}>{workspace?.name || 'null'}</div>
               </div>
               <div className={Styles.col3}>
                 <p className={Styles.label}>Created on</p>
@@ -162,6 +162,7 @@ const FabricWorkspace = ({ user }) => {
       <div className={classNames(Styles.mainPanel)}>
         <div className={classNames(Styles.wrapper)}>
           {!loading && 
+            <div className={Styles.workspaceName}>
             <Caption title={`Fabric Workspace - ${workspace?.name || 'null'}`}>
               <div className={Styles.draftIndicatorCol}>
                   <span className={Styles.draftIndicator}>{userRoles}</span>
@@ -171,7 +172,8 @@ const FabricWorkspace = ({ user }) => {
                   <i className="icon mbc-icon refresh"></i>
                 </button>
               </div>
-            </Caption>    
+            </Caption>
+            </div>  
           }
           <div className={Styles.statusBtns}>
             {workspace?.status?.state === 'IN_PROGRESS' &&
@@ -193,6 +195,7 @@ const FabricWorkspace = ({ user }) => {
             workspace={workspace} 
             lakehouses={workspace?.lakehouses ? workspace?.lakehouses : []} 
             onDeleteLakehouse={getWorkspace} 
+            onRefreshWorkspace={getWorkspace}
           />
           <WorkspaceDetails workspace={workspace} />
         </div>
