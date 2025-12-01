@@ -231,8 +231,8 @@ dependencies {
     implementation ('net.javacrumbs.shedlock:shedlock-provider-jdbc-template:6.3.1')
 
     // OpenMetadata SDK
-    implementation 'org.open-metadata:openmetadata-java-client:1.6.13'
-    implementation 'org.open-metadata:openmetadata-spec:1.6.13'
+    implementation 'org.open-metadata:openmetadata-java-client:1.7.7'
+    implementation 'org.open-metadata:openmetadata-spec:1.7.7'
 
     // Feign for HTTP client
     implementation 'io.github.openfeign:feign-core:13.6'

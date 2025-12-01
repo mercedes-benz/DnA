@@ -1686,7 +1686,7 @@
 				if (isprivateRecipe) {
 					repoUrl = entity.getData().getProjectDetails().getRecipeDetails().getRepodetails();
 					if(Objects.nonNull(repoUrl) && repoUrl.contains(".git")){
-						repoUrl = repoUrl.replaceAll(".git","/");
+						repoUrl = repoUrl.replaceAll("\\.git$", "/");
 					} else {
 						repoUrl.concat("/");
 					}
@@ -1736,6 +1736,9 @@
 						}else{
 							auditLogs = optionalBuildDeployentity.getData().getProdDeploymentAuditLogs();
 						}
+					}
+					 if(null == auditLogs){
+						auditLogs = new ArrayList<>();
 					}
 					DeploymentAudit auditLog = new DeploymentAudit();
 					 if("APPROVAL_PENDING".equalsIgnoreCase(deploymentDetails.getLastDeploymentStatus())){						
@@ -4199,7 +4202,7 @@
   			if (isPrivateRecipe) {
 					repoUrl = entity.getData().getProjectDetails().getRecipeDetails().getRepodetails();
 					if(Objects.nonNull(repoUrl) && repoUrl.contains(".git")){
-						repoUrl = repoUrl.replaceAll(".git","/");
+						repoUrl = repoUrl.replaceAll("\\.git$", "/");
 					} else {
 						repoUrl.concat("/");
 					}
