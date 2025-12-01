@@ -119,7 +119,7 @@ public class FabricWorkspaceClient {
 	private String tokenTypeHint;
 	
 	@Value("${fabricWorkspaces.capacityId}")
-	private String capacityId;
+	private String powerbiCapacityId;
 	
 	@Value("${fabricWorkspaces.uri.login}")
 	private String loginUrl;
@@ -161,6 +161,8 @@ public class FabricWorkspaceClient {
 	
 	@Autowired
 	private RestTemplate restTemplate;
+
+	private String fabricCapacityId="xyz";
 
 	public String getToken() {
 		MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
@@ -874,8 +876,9 @@ public class FabricWorkspaceClient {
 		return workspaceDetailDto;
 	}
 	
-	public ErrorResponseDto assignCapacity(String workspaceId) {
+	public ErrorResponseDto assignCapacity(String workspaceId, boolean isPowerBI) {
 		ErrorResponseDto errorResponse = new ErrorResponseDto();
+		String capacityId = isPowerBI ? powerbiCapacityId : fabricCapacityId;
 		try {
 			String token = getToken();
 			if(!Objects.nonNull(token)) {
@@ -940,8 +943,9 @@ public class FabricWorkspaceClient {
 		return errorResponse;
 	}
 	
-	public ErrorResponseDto unassignCapacity(String workspaceId) {
+	public ErrorResponseDto unassignCapacity(String workspaceId, boolean isPowerBI) {
 		ErrorResponseDto errorResponse = new ErrorResponseDto();
+		String capacityId = isPowerBI ? powerbiCapacityId : fabricCapacityId;
 		try {
 			String token = getToken();
 			if(!Objects.nonNull(token)) {

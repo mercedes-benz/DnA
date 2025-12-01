@@ -153,10 +153,10 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 
 
 	@Value("${fabricWorkspaces.capacityId}")
-	private String capacityId;
+	private String powerbiCapacityId;
 	
 	@Value("${fabricWorkspaces.capacityName}")
-	private String capacityName;
+	private String powerbiCapacityName;
 	
 	@Value("${fabricWorkspaces.capacitySku}")
 	private String capacitySku;
@@ -224,6 +224,10 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 
 	@Value("${fabricWorkspaces.userRemoval.ignorePatterns}")
 	private String[] userRemovalIgnorePatterns;
+
+	private String fabricCapacityId="fabCapacity"
+
+	private String fabricCapacityName="fabRegion";
 
 	public BaseFabricWorkspaceService() {
 		super();
@@ -377,7 +381,9 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 	@Override
 	@Transactional
 	public FabricWorkspaceVO getById(String id) {
+		log.info("before super call");
 		FabricWorkspaceVO voFromDb =  super.getById(id);
+		log.info("vof from db after super {}", voFromDb.getSubscription());
 		log.info("Fetched fabric project record from db successfully for id {} ", id);
 //		WorkspaceDetailDto dtoFromFabric = fabricWorkspaceClient.getWorkspaceDetails(id);
 //		if(dtoFromFabric!=null) {
@@ -402,6 +408,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 					lakehouseVOs = value.stream().map(n -> assembler.toLakehouseVOFromDto(n)).collect(Collectors.toList());
 					voFromDb.setLakehouses(lakehouseVOs);
 				}
+				log.info("vo from db", voFromDb.getSubscription());
 				FabricWorkspaceNsql updatedEntity = assembler.toEntity(voFromDb);
 				log.info("Successfully updated latest displayName and description from Fabric to Database for project id {}", id);
 				jpaRepo.save(updatedEntity);
@@ -480,17 +487,26 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 					data.setId(createResponse.getId());
 					data.setHasPii(vo.isHasPii());
 					
-					ErrorResponseDto assignCapacityResponse = fabricWorkspaceClient.assignCapacity(createResponse.getId());
+					boolean isPowerBI = vo.getSubscription() != null && vo.getSubscription().name().equals("PowerBI");
+					ErrorResponseDto assignCapacityResponse = fabricWorkspaceClient.assignCapacity(createResponse.getId(), isPowerBI);
 					CapacityVO capacityVO = new CapacityVO();
 					if(assignCapacityResponse!=null && assignCapacityResponse.getErrorCode()!=null && "500".equalsIgnoreCase(assignCapacityResponse.getErrorCode())) {
 						capacityVO = null;
 						warnings.add(new MessageDescription("Failed to assign capacity, please reassign or update workspace to assign capacity automatically."));
 					}else {
-						capacityVO.setId(capacityId);
-						capacityVO.setName(capacityName);
-						capacityVO.setRegion(capacityRegion);
-						capacityVO.setSku(capacitySku);
-						capacityVO.setState(capacityState);
+						if(isPowerBI) {
+							capacityVO.setId(powerbiCapacityId);
+							capacityVO.setName(powerbiCapacityName);
+							capacityVO.setRegion(capacityRegion);
+							capacityVO.setSku(capacitySku);
+							capacityVO.setState(capacityState);
+						} else {
+							capacityVO.setId(fabricCapacityId);
+							capacityVO.setName(fabricCapacityName);
+							capacityVO.setRegion(capacityRegion);
+							capacityVO.setSku(capacitySku);
+							capacityVO.setState(capacityState);
+						}
 					}
 					updateTags(data);
 					data.setCapacity(capacityVO);
