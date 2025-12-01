@@ -18,6 +18,7 @@ import com.daimler.data.db.json.BuildAudit;
 import com.daimler.data.db.json.DeploymentAudit;
 import com.daimler.data.db.repo.workspace.WorkSpaceCodeServerBuildDeployRepository;
 import com.daimler.data.db.repo.workspace.WorkspaceCustomBuildDeployRepo;
+import org.springframework.beans.factory.annotation.Value;
 import com.daimler.data.db.repo.workspace.WorkspaceCustomRepository;
 
 import org.springframework.web.bind.annotation.PathVariable;
@@ -69,6 +70,9 @@ public class BuildDeployController implements CodeServerBuildDeployServiceApi {
 
      @Autowired
 	 private WorkspaceCustomBuildDeployRepo buildDeployCustomRepo;
+
+     @Value("${codeServer.build.retainedlimit}")
+     private String retainedBuildLimitValue;
 
      @Autowired
 	 private WorkspaceCustomRepository workspaceCustomRepository;
@@ -204,35 +208,46 @@ public class BuildDeployController implements CodeServerBuildDeployServiceApi {
             return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
         }
         
-        String projectName = vo.getProjectDetails().getProjectName();
-
+        String projectName = vo.getProjectDetails() != null ? vo.getProjectDetails().getProjectName() : null;
         List<BuildAudit> auditLogs = new ArrayList<>();
         CodeServerBuildDeployNsql optionalBuildDeployEntity = buildDeployCustomRepo.findByProjectName(projectName);
-
-        if (optionalBuildDeployEntity != null) {
-            if ("int".equalsIgnoreCase(environment)) {
+        if (optionalBuildDeployEntity != null && optionalBuildDeployEntity.getData() != null) {
+            if ("int".equalsIgnoreCase(environment)
+                    && optionalBuildDeployEntity.getData().getIntBuildAuditLogs() != null) {
                 auditLogs = optionalBuildDeployEntity.getData().getIntBuildAuditLogs();
-            } else {
+            } else if ("prod".equalsIgnoreCase(environment)
+                    && optionalBuildDeployEntity.getData().getProdBuildAuditLogs() != null) {
                 auditLogs = optionalBuildDeployEntity.getData().getProdBuildAuditLogs();
             }
         }
-
         if (auditLogs == null) {
             auditLogs = new ArrayList<>();
         }
-
-        long imageCount = auditLogs.stream()
+        long retainedCount = auditLogs.stream()
+                .filter(b -> "BUILD_SUCCESS".equalsIgnoreCase(b.getBuildStatus()))
                 .filter(b -> !b.isImageDeleted())
                 .count();
-
-        if (imageCount >= 10) {
+        
+        int retainedBuildLimit;
+        try {
+            retainedBuildLimit = Integer.parseInt(retainedBuildLimitValue.trim());
+        } catch (NumberFormatException ex) {
+            log.error("Invalid retained build limit value '{}'. Please correct it in Vault.",
+                    retainedBuildLimitValue);
+            throw new IllegalStateException("Invalid retained build limit value: " + retainedBuildLimitValue);
+        }
+        
+        if (retainedCount >= retainedBuildLimit) {
             MessageDescription invalidMsg = new MessageDescription();
-            invalidMsg.setMessage(
-                    "Maximum build images reached. Please delete one of the builds before creating a new build.");
+            invalidMsg.setMessage("Build not allowed. There are already " + retainedCount +
+                    " successful builds with images retained. Please delete older images before triggering a new build.");
             GenericMessage errorMessage = new GenericMessage();
             errorMessage.addErrors(invalidMsg);
+            log.info("User {} attempted to build workspace {} but retained image limit reached ({} builds).",
+                    userId, vo != null ? vo.getWorkspaceId() : "UNKNOWN", retainedCount);
             return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
         }
+         
         String lastBuildType = "build";
         GenericMessage responseMsg = service.buildWorkSpace(userId,id,branch,buildRequestDto,isPrivateRecipe,environment,lastBuildType);
 				 log.info("User {} build workspace {} project {}", userId, vo.getWorkspaceId(),
