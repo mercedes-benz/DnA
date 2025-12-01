@@ -47,6 +47,7 @@ management.endpoint.health.show-details: always
 corsPlugin:
   allowedUrls: ${ALLOWED_URLS:xxxxx}
   maxAge: ${MAX_AGE:xxxxx}
+  oneApiAllowedUrls: ${ONE_API_ALLOWED_URLS:xxxxx}
 
 logging:
   service:

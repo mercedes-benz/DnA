@@ -938,6 +938,9 @@ definitions:
       name:
         type: string
         enum: ["oidc","jwt","cors"]
+      isSecureWithOneApi:
+        type: boolean
+        default: false
     
         
  AttachPluginConfigVO:
