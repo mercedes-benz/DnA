@@ -5,6 +5,7 @@ metadata:
   namespace: {{ .Values.namespace }}
   labels:
     name: {{ .Values.app.backend.name }}
+    app.kubernetes.io/name: {{ .Values.app.backend.name }}
 spec:
   {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.app.backend.replicaCount }}
@@ -16,6 +17,7 @@ spec:
     metadata:
       labels:
         name: {{ .Values.app.backend.name }}
+        app.kubernetes.io/name: {{ .Values.app.backend.name }}
       {{- if .Values.vaultInjector.enable }}      
       {{- with .Values.vaultInjector.annotations }}
       annotations:
