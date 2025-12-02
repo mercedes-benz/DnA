@@ -584,7 +584,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		AttachPluginVO attachCorsPluginVO = new AttachPluginVO();
 		AttachPluginRequestVO attachCorsPluginRequestVO = new AttachPluginRequestVO();
 		attachCorsPluginVO.setName(CORS_PLUGIN);
-		attachCorsPluginVO.setIsSecureWithOneApi(Objects.nonNull(oneApiVersionShortName) && !oneApiVersionShortName.isBlank());
+		attachCorsPluginVO.setOneApiVersionShortName(oneApiVersionShortName);
 		attachCorsPluginRequestVO.setData(attachCorsPluginVO);
 
 		//request for attaching RequestTransformer Plugin to service
@@ -656,6 +656,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 				else {
 					//attaching cors plugin to deployments
 					LOGGER.info("kongApiForDeploymentURL is true, calling CORS plugin " );
+					LOGGER.info("cors plugin request vo is {}",attachCorsPluginRequestVO);
 					attachCorsPluginResponse = attachPluginToService(attachCorsPluginRequestVO,serviceName.toLowerCase()+"-"+env,cloudServiceProvider);
 					LOGGER.info("kong attach CORS plugin to service status is: {} and errors if any: {}, warnings if any:", attachCorsPluginResponse.getSuccess(),
 					attachCorsPluginResponse.getErrors(), attachCorsPluginResponse.getWarnings());
