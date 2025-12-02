@@ -12,6 +12,7 @@ import com.daimler.data.db.entities.AuthoriserRolesNsql;
 import com.daimler.data.db.entities.FabricWorkspaceNsql;
 import com.daimler.data.db.json.AuthoriserRoleDeatils;
 import com.daimler.data.db.json.Capacity;
+import com.daimler.data.db.json.CdcPublishedLakeHouseDetails;
 import com.daimler.data.db.json.EntitlementDetails;
 import com.daimler.data.db.json.FabricWorkspace;
 import com.daimler.data.db.json.FabricWorkspaceStatus;
@@ -24,7 +25,9 @@ import com.daimler.data.db.json.UserDetails;
 import com.daimler.data.dto.fabric.LakehouseDto;
 import com.daimler.data.dto.fabric.LakehouseS3ShortcutDto;
 import com.daimler.data.dto.fabricWorkspace.CapacityVO;
+import com.daimler.data.dto.fabricWorkspace.CdcPublishedLakeHouseDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.CreatedByVO;
+import com.daimler.data.dto.fabricWorkspace.CustomGroupNameCollectionVO;
 import com.daimler.data.dto.fabricWorkspace.DnaRolesVO;
 import com.daimler.data.dto.fabricWorkspace.EntitlementDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.FabricLakehouseVO;
@@ -36,6 +39,10 @@ import com.daimler.data.dto.fabricWorkspace.RoleDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.ShortcutVO;
 import com.daimler.data.db.json.LeanIXDetails;
 import com.daimler.data.dto.fabricWorkspace.LeanIXDetailsVO;
+import java.util.Collections;
+import java.util.Objects;
+import org.springframework.util.CollectionUtils;
+import com.daimler.data.db.json.CustomGroupNameCollection;
 
 
 @Component
@@ -132,6 +139,17 @@ public class FabricWorkspaceAssembler implements GenericAssembler<FabricWorkspac
 				}else {
 					workspaceStatusVO.setState(null);
 				}
+				if(!CollectionUtils.isEmpty(data.getCustomGroupNameCollection())) {
+					vo.setCustomGroupNameCollection(data.getCustomGroupNameCollection().stream()
+					.filter(Objects::nonNull)
+					.map(CustomGroupNameCollection -> {
+						CustomGroupNameCollectionVO c = new CustomGroupNameCollectionVO();
+						BeanUtils.copyProperties(CustomGroupNameCollection, c);
+						return c;
+					}).collect(Collectors.toList()));
+				}else {
+					vo.setCustomGroupNameCollection(Collections.emptyList());
+				}
 				vo.setStatus(workspaceStatusVO);
 				vo.setCreatedBy(createdByVO);
 				vo.setHasPii(data.getHasPii());
@@ -139,6 +157,12 @@ public class FabricWorkspaceAssembler implements GenericAssembler<FabricWorkspac
 					LeanIXDetailsVO leanIXDetails = new LeanIXDetailsVO();
 					BeanUtils.copyProperties(data.getLeanIXDetails(), leanIXDetails);
 					vo.setLeanIXDetails(leanIXDetails);
+				}
+				if(!ObjectUtils.isEmpty(data.getCdcPublishedLakeHouseDetails())){
+					CdcPublishedLakeHouseDetailsVO cdcPublishedLakeHouseDetails = new CdcPublishedLakeHouseDetailsVO();
+					BeanUtils.copyProperties(data.getCdcPublishedLakeHouseDetails(), cdcPublishedLakeHouseDetails);
+					cdcPublishedLakeHouseDetails.setIsLakeHousesPublishedToCdc(data.getCdcPublishedLakeHouseDetails().getIsLakeHousesPublishedToCdc());
+					vo.setCdcPublishedLakeHouseDetails(cdcPublishedLakeHouseDetails);
 				}
 			}
 		}
@@ -339,6 +363,16 @@ public class FabricWorkspaceAssembler implements GenericAssembler<FabricWorkspac
 				workspaceStatus.setState(null);
 			}
 			data.setStatus(workspaceStatus);
+
+			if(!CollectionUtils.isEmpty(vo.getCustomGroupNameCollection())){
+				data.setCustomGroupNameCollection(vo.getCustomGroupNameCollection().stream()
+				.filter(Objects::nonNull)
+				.map(CustomGroupNameCollection -> {
+					CustomGroupNameCollection c = new CustomGroupNameCollection();
+					BeanUtils.copyProperties(CustomGroupNameCollection, c);
+					return c;
+				}).collect(Collectors.toList()));	 
+			}
 			
 			List<FabricLakehouseVO> lakehouseVOs = vo.getLakehouses();
 			List<Lakehouse> lakehouses = new ArrayList<>();
@@ -350,6 +384,13 @@ public class FabricWorkspaceAssembler implements GenericAssembler<FabricWorkspac
 				LeanIXDetails leanIXDetails = new LeanIXDetails();
 				BeanUtils.copyProperties(vo.getLeanIXDetails(), leanIXDetails);
 				data.setLeanIXDetails(leanIXDetails);
+			}
+			// Set CDC Lakehouse Details
+			if (!ObjectUtils.isEmpty(vo.getCdcPublishedLakeHouseDetails())) {
+				CdcPublishedLakeHouseDetails cdcLakehouseDetails = new CdcPublishedLakeHouseDetails();
+				BeanUtils.copyProperties(vo.getCdcPublishedLakeHouseDetails(), cdcLakehouseDetails);
+				cdcLakehouseDetails.setIsLakeHousesPublishedToCdc(vo.getCdcPublishedLakeHouseDetails().isIsLakeHousesPublishedToCdc());
+				data.setCdcPublishedLakeHouseDetails(cdcLakehouseDetails);
 			}
 			entity.setData(data);
 		}

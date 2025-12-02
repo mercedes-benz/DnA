@@ -74,7 +74,7 @@ swaggerSources {
             components = ['models', 'apis']
         }
     }
-        tag {
+    tag {
         def tagyaml = "${rootDir}/lib/src/main/resources/api/Tag.yaml"
         def tagJson = "${rootDir}/lib/src/main/resources/api/Tag.json"
         inputFile = file(tagyaml)
@@ -89,6 +89,38 @@ swaggerSources {
             components = ['models', 'apis']
         }
     }
+
+    adaProjects {
+        def adaProjectsYaml = "${rootDir}/lib/src/main/resources/api/adaProjects.yaml"
+        def adaProjectsJson = "${rootDir}/lib/src/main/resources/api/adaProjects.json"
+        inputFile = file(adaProjectsYaml)
+
+        def ignoreFile = "${rootDir}/lib/src/main/resources/api/.swagger-codegen-ignore"
+
+        code {
+            language = 'spring'
+            configFile = file(adaProjectsJson)
+            rawOptions = ['--ignore-file-override', ignoreFile]
+
+            components = ['models', 'apis']
+        }
+    }
+
+    fabricCatalogManagement {
+        def fabricCatalogManagementyaml = "${rootDir}/lib/src/main/resources/api/fabricCatalogManagement.yaml"
+        def fabricCatalogManagementJson = "${rootDir}/lib/src/main/resources/api/fabricCatalogManagement.json"
+        inputFile = file(fabricCatalogManagementyaml)
+
+        def ignoreFile = "${rootDir}/lib/src/main/resources/api/.swagger-codegen-ignore"
+
+        code {
+            language = 'spring'
+            configFile = file(fabricCatalogManagementJson)
+            rawOptions = ['--ignore-file-override', ignoreFile]
+
+            components = ['models', 'apis']
+        }
+    }
 }
 
 compileJava {
@@ -96,7 +128,11 @@ compileJava {
     dependsOn swaggerSources.fabricWorkspace.code
     source "${swaggerSources.fabricWorkspace.code.outputDir}/src/main/java" 
     dependsOn swaggerSources.tag.code
-    source "${swaggerSources.tag.code.outputDir}/src/main/java" 
+    source "${swaggerSources.tag.code.outputDir}/src/main/java"
+    dependsOn swaggerSources.adaProjects.code
+    source "${swaggerSources.adaProjects.code.outputDir}/src/main/java"
+    dependsOn swaggerSources.fabricCatalogManagement.code
+    source "${swaggerSources.fabricCatalogManagement.code.outputDir}/src/main/java"
 }
 
 sourceSets {
@@ -109,6 +145,7 @@ sourceSets {
         java { srcDirs = srcDirs }
 		java { srcDirs += "${swaggerSources.fabricWorkspace.code.outputDir}/src/main/java" }
         java { srcDirs += "${swaggerSources.tag.code.outputDir}/src/main/java"}
+        java { srcDirs += "${swaggerSources.adaProjects.code.outputDir}/src/main/java"}
     }
 }
 
@@ -192,6 +229,15 @@ dependencies {
 
     implementation ('net.javacrumbs.shedlock:shedlock-spring:6.3.1')
     implementation ('net.javacrumbs.shedlock:shedlock-provider-jdbc-template:6.3.1')
+
+    // OpenMetadata SDK
+    implementation 'org.open-metadata:openmetadata-java-client:1.7.7'
+    implementation 'org.open-metadata:openmetadata-spec:1.7.7'
+
+    // Feign for HTTP client
+    implementation 'io.github.openfeign:feign-core:13.6'
+    implementation 'io.github.openfeign:feign-jackson:13.6'
+    implementation 'io.github.openfeign:feign-okhttp:13.6'
 }
 
 tasks.named('test') {

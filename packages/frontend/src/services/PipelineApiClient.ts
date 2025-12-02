@@ -29,8 +29,8 @@ export class PipelineApiClient {
   public static delete(endpoint: string, body?: any) {
     return ApiClient.fetch(getUrl(endpoint), HTTP_METHOD.DELETE, body);
   }
-
-
+  
+  
   public static getPipelineProjectList() {
     return this.get('v1/projects');
   }
@@ -68,6 +68,11 @@ export class PipelineApiClient {
   public static updateDagPermissions(dagName: string, projectId: string, data: any ) {
     return this.put('v1/dags/' + dagName + '/' + projectId + '/permission', data);
   }
+    
+  public static triggerDag(dagName: string) {
+    return this.post(`v1/dags/${dagName}/run`,{});
+  }
+
   public static getPiplineStatus(projectId: string) {
     return this.get(`v1/projects/status/${projectId}`);
   }

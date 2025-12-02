@@ -25,7 +25,7 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.repo.forecast;
+package com.daimler.data.db.repo.fabric;
 
 import java.math.BigInteger;
 import java.util.List;
