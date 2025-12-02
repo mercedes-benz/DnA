@@ -25,17 +25,19 @@
  * LICENSE END 
  */
 
-package com.daimler.data.db.repo.forecast;
+package com.daimler.data.db.repo.adaProjects;
 
 import java.util.List;
 
-import com.daimler.data.db.entities.FabricWorkspaceNsql;
+import com.daimler.data.db.entities.ADAProjectsNsql;
 import com.daimler.data.db.repo.common.CommonDataRepository;
 
-public interface FabricWorkspaceCustomRepository extends CommonDataRepository<FabricWorkspaceNsql, String> {
+public interface ADAProjectsCustomRepository extends CommonDataRepository<ADAProjectsNsql, String> {
 
-	List<FabricWorkspaceNsql> getAll(String userId, int offset, int limit);
+	// List<FabricWorkspaceNsql> getAll(String userId, int offset, int limit);
 
-	long getTotalCount(String userId);
+	// long getTotalCount(String userId);
+	List<ADAProjectsNsql> findAllByCreator (String creator, int offset, int limit);
+	
 
 }

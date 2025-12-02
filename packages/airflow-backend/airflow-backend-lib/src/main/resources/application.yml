@@ -1,7 +1,7 @@
 spring:
   application:
     name: dna-airflow-backend
-    version: 3.2.4
+    version: 3.2.5
   profile:
     active: production
   flyway:
@@ -79,6 +79,9 @@ dag:
   menuCreate:
      waitTime: ${AIRFLOW_DAG_MENU_CREATE_WAIT_TIME:4}
      reTry: ${AIRFLOW_DAGMENU_CREATE_RETRY:1}
+  run:
+    authToken: ${AIRFLOW_DAG_RUN_AUTH_TOKEN:XXXX}
+    Url: ${AIRFLOW_DAG_RUN_URL:XXXX}
 
 management.endpoints.web.exposure.include: loggers,health
 management.endpoint.loggers.enabled: true
@@ -98,3 +101,4 @@ logging:
           dna:
             airflow: ${LOGGING_LEVEL:DEBUG}
     org.springframework.boot.autoconfigure.logging: INFO
+    

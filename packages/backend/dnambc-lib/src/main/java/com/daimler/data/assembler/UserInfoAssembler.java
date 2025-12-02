@@ -41,6 +41,9 @@ import com.daimler.data.dto.userinfo.UserRoleVO;
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
+import com.daimler.data.db.repo.userinfo.UserInfoCustomRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import java.util.Optional;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -48,6 +51,8 @@ import java.util.stream.Collectors;
 
 @Component
 public class UserInfoAssembler implements GenericAssembler<UserInfoVO, UserInfoNsql> {
+	@Autowired
+	private UserInfoCustomRepository customRepo;
 	public List<UserInfoVO> toUserInfoVo(List<TeamsApiResponseDto> entries) {
 		List<UserInfoVO> userInfoVOList = new ArrayList<UserInfoVO>();
 		if (entries != null) {
@@ -140,17 +145,35 @@ public class UserInfoAssembler implements GenericAssembler<UserInfoVO, UserInfoN
 				entity.setId(id);
 			}
 		}
+		String id = vo.getId();
+		UserInfoNsql existingEntity = customRepo.findById(id).orElse(null);
 		/* entity.setToken(vo.getToken()); */
 		UserInfo jsonData = new UserInfo();
 		BeanUtils.copyProperties(vo, jsonData);
 
 		List<UserInfoRole> jsonRoles = new ArrayList<>();
-		vo.getRoles().stream().forEach(userRoleVO -> {
-			UserInfoRole jsonRole = new UserInfoRole(userRoleVO.getId(), userRoleVO.getName());
-			jsonRoles.add(jsonRole);
-		});
-		jsonData.setRoles(jsonRoles);
-
+		if(existingEntity == null){
+			if (vo.getRoles() != null) {
+			List<UserInfoRole> jsonRole = vo.getRoles().stream()
+				.map(r -> new UserInfoRole(r.getId(), r.getName()))
+				.collect(Collectors.toList());
+			jsonData.setRoles(jsonRole);	
+			}
+			jsonData.setFavoriteUsecases(null);
+			jsonData.setIsDeleted(null);
+			jsonData.setDivisionAdmins(null);
+			jsonData.setIsDeleted(false);
+		}
+		else{
+		if (vo.getRoles() != null) {
+			vo.getRoles().stream().forEach(userRoleVO -> {
+				UserInfoRole jsonRole = new UserInfoRole(userRoleVO.getId(), userRoleVO.getName());
+				jsonRoles.add(jsonRole);
+			});
+			jsonData.setRoles(jsonRoles);
+		} else {
+			jsonData.setRoles(existingEntity.getData().getRoles());
+		}
 		if (vo.getFavoriteUsecases() != null) {
 			List<UserFavoriteUseCase> jsonFavUsecases = new ArrayList<>();
 			vo.getFavoriteUsecases().stream().forEach(usecaseVO -> {
@@ -159,7 +182,14 @@ public class UserInfoAssembler implements GenericAssembler<UserInfoVO, UserInfoN
 				jsonFavUsecases.add(jsonFavUsecase);
 			});
 			jsonData.setFavoriteUsecases(jsonFavUsecases);
+		} else {
+			jsonData.setFavoriteUsecases(existingEntity.getData().getFavoriteUsecases());
 		}
+		jsonData.setIsDeleted(existingEntity.getData().getIsDeleted());
+		if(vo.getDivisionAdmins() == null){
+			jsonData.setDivisionAdmins(existingEntity.getData().getDivisionAdmins());
+		}
+	}
 		entity.setData(jsonData);
 		return entity;
 	}

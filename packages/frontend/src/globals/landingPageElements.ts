@@ -38,6 +38,8 @@ const enableFabricService = Envs.ENABLE_FABRIC_SERVICE;
 // const enableDataEntryService = Envs.ENABLE_DATA_ENTRY_SERVICE;
 const enablePowerPlatformService = Envs.ENABLE_POWER_PLATFORM_SERVICE;
 const enablePromptCraftService = Envs.ENABLE_PROMPT_CRAFT_SERVICE;
+const MBAIEcosystemUrl = Envs.MB_AI_ECOSYSTEM_URL;
+const MBAIUseCaseUrl = Envs.MB_AI_USE_CASE_URL;
 const genAIDirectChatUrl = Envs.GENAI_DIRECT_CHAT_URL;
 const bisoContactsLink = Envs.BISO_CONTACTS_URL;
 const clamavImagwUrl = Envs.CLAMAV_IMAGE_URL;
@@ -835,30 +837,30 @@ export const TrainingsLandingPageElements = [
 
 export const GenAILandingPageElements = [
   {
-    name: 'Create GenAI Solution',
+    name: 'AI Use Case',
     description:
-      'Create new GenAI solutions which answer business questions and create their plannings or reports.',
+      'Register and manage AI use cases on MASSP4AI.',
     tags: ['Self Service', 'FOSS'],
-    url: '/createnewgenaisolution',
-    isExternalLink: false,
+    url: MBAIUseCaseUrl,
+    isExternalLink: true,
     isTextAlignLeft: false,
-    isDisabled: false,
-    isSmallCard: false,
-    isMediumCard: false,
-    svgIconId: 'genai-create',
-  },
-  {
-    name: 'GenAI Solutions',
-    description:
-      'GenAI Solutions are at the heart of our landscape and provide data and functions to business users to answer their questions and create their plannings or reports.',
-    tags: ['Self Service', 'FOSS'],
-    url: '/viewsolutions/tag/GenAI',
-    isExternalLink: false,
-    isTextAlignLeft: false,
-    isDisabled: false,
+    isDisabled: !MBAIUseCaseUrl?.startsWith('http'),
     isSmallCard: false,
     isMediumCard: false,
     svgIconId: 'genai-solutions',
+  },
+  {
+    name: 'AI Ecosystem',
+    description:
+      'A holistic portal with the right tools and resources for AI practitioners to accelerate their AI projects.',
+    tags: ['Self Service', 'FOSS'],
+    url: MBAIEcosystemUrl,
+    isExternalLink: true,
+    isTextAlignLeft: false,
+    isDisabled: !MBAIEcosystemUrl?.startsWith('http'),
+    isSmallCard: false,
+    isMediumCard: false,
+    svgIconId: 'genai-create',
   },
   {
     name: 'Mercedes-Benz Direct Chat',
