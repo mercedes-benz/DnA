@@ -2,7 +2,7 @@ spring:
   mvc.pathmatch.matching-strategy: ant_path_matcher
   application:
     name: dna-codeserver-service
-    version: 1.7.0
+    version: 1.8.1
   profile:
     active: production
 
@@ -52,6 +52,18 @@ spring:
     username: ${API_DB_USER:XXXX_user}
     password: ${API_DB_PASS:XXXX_pass}
     driverClassName: org.postgresql.Driver
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  health:
+    db:
+      enabled: true
+  endpoint:
+    health:
+      show-details: always    
     
 dna:
   uri: ${DNA_URI:XXXXXX}
@@ -109,6 +121,7 @@ codeServer:
   vault.baseuri: ${CODE_SERVER_VAULT_BASEURI:XXXX}
   codespace.filename: ${CODESPACE_FILE_NAME:YOUR_CODESPACE_FILE_NAME}
   technical.id: ${CODE_SERVER_TECHNICAL_USER:XXXX}
+  build.deleteuri: ${CODE_SERVER_BUILD_DELETE_URI:XXXX}
 
 swagger.headers.authorization.token: ${SWAGGER_HEADER_AUTH:XXXXXX}
 management.endpoints.web.exposure.include: loggers,health
@@ -187,12 +200,21 @@ kong:
    authoriserIntrospectionEndpoint: ${AUTHORISER_INTROSPECTION_ENDPOINT:XXXX}
    preFunctionBackendFileName: ${PRE_FUNCTION_BACKEND_FILE_NAME:XXXX}
    postFunctionFrontendFileName: ${POST_FUNCTION_FRONTEND_FILE_NAME:XXXX}
+   postFunctionPrefixFileName: ${POST_FUNCTION_PREFIX_FILE_NAME:XXXX}
+   postFunctionEntitlementFileName: ${POST_FUNCTION_ENTITLEMENT_FILE_NAME:XXXX}
+   postFunctionNoEntitlementFileName: ${POST_FUNCTION_NO_ENTITLEMENT_FILE_NAME:XXXX}
    preFunctionFrontendFileName: ${PRE_FUNCTION_FRONTENDFILE_NAMEVALUE:XXXX}
    functionPluginGitUrl: ${FUNCTION_PLUGINS_GIT_URL:XXXX}
    functionPluginsFolderPath : ${FUNCTION_PLUGIN_FOLDER_PATH:XXXX}
    requestTransformerPluginRemoveHeaders : ${REQUEST_TRANSFORMER_PLUGIN_REMOVE_HEADERS:XXXX}
    accessTokenHeaderName :  ${ACCESS_TOKEN_HEADER_NAME:XXXX}
    accessTokenAsBearer :  ${ACCESS_TOKEN_AS_BEARER:XXXX}
+   dnaClientSecret : ${DNA_CLIENT_SECRET:XXXX}
+   dnaAppId : ${DNA_APP_ID:XXXX}
+
+alice:
+  aliceBaseUrl: ${ALICE_SERVICE_BASE_URL:XXXX}
+  aliceAuthToken: ${ALICE_SERVICE_AUTH_TOKEN:XXXX}
 
 workspace:
   migrate: ${MIGRATE_WORKSPACE:YOUR_MIGRATE_BOOLEAN}    

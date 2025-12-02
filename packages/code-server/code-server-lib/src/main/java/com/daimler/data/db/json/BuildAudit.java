@@ -23,6 +23,7 @@ public class BuildAudit implements Serializable{
     private String version;
     private String comments;
     private String commitId;
+    private boolean imageDeleted;
     private String gitjobRunID;
 
 }

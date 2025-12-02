@@ -59,6 +59,7 @@ public class WorkspaceBackgroundJobsService {
 	}
 	
 	private SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+	private SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
 	
 	@PostConstruct
 	public void initForEnablingExistingOwnersToFabricRole() {
@@ -124,9 +125,14 @@ public class WorkspaceBackgroundJobsService {
 //		}
 //	}
 	
-	@Scheduled(cron = "0 0/7 * * * *")
-	@SchedulerLock(name = "updateWorkspacesJob", lockAtMostFor = "PT7M", lockAtLeastFor = "PT5M")
+	@Scheduled(fixedDelay = 7 * 60 * 1000) // 7 minutes between COMPLETION and next start
+	@SchedulerLock(
+		name = "updateWorkspacesJob", 
+		lockAtMostFor = "35m", 
+		lockAtLeastFor = "10m" 
+	)
 	public void updateWorkspacesJob() {	
+		log.info("Scheduled task started at {}", dateFormatter.format(new Date()));
 		try {
 			FabricWorkspacesCollectionVO collection = fabricService.getAllLov(0,0);
 			WorkspacesCollectionDto collectionFromListWorkspaces = fabricWorkspaceClient.listWorkspaces();
@@ -165,7 +171,7 @@ public class WorkspaceBackgroundJobsService {
 							FabricWorkspaceStatusVO updatedStatus = new FabricWorkspaceStatusVO();
 							FabricWorkspaceVO tempWorkspaceVO =  workspaceVO;
 							try {
-								updatedStatus = fabricService.processWorkspaceUserManagement(currentStatus,updatedName, workspaceVO.getCreatedBy().getId(), workspaceVO.getId(),workspaceVO.getCustomGroupName(), isDivisionAllowed);
+								updatedStatus = fabricService.processWorkspaceUserManagement(currentStatus,updatedName, workspaceVO.getCreatedBy().getId(), workspaceVO.getId(),workspaceVO.getCustomGroupName(), isDivisionAllowed, workspaceVO.getCustomGroupNameCollection());
 								tempWorkspaceVO.setStatus(updatedStatus);
 								try {
 									tempWorkspaceVO.setName(updatedName);
@@ -181,7 +187,7 @@ public class WorkspaceBackgroundJobsService {
 						}
 						if(workspaceVO!=null && workspaceVO.getStatus()!=null && ConstantsUtility.COMPLETED_STATE.equalsIgnoreCase(workspaceVO.getStatus().getState())){
 							FabricWorkspaceVO tempWorkspaceVO =  workspaceVO;
-							List<GroupDetailsVO> updatedGroupDetails = fabricService.autoProcessGroupsUsers(workspaceVO.getStatus().getMicrosoftGroups(), updatedName, workspaceVO.getCreatedBy().getId(), workspaceVO.getId(), workspaceVO.getCustomGroupName());
+							List<GroupDetailsVO> updatedGroupDetails = fabricService.autoProcessGroupsUsers(workspaceVO.getStatus().getMicrosoftGroups(), updatedName, workspaceVO.getCreatedBy().getId(), workspaceVO.getId(), workspaceVO.getCustomGroupName(), workspaceVO.getCustomGroupNameCollection());
 							tempWorkspaceVO.getStatus().setMicrosoftGroups(updatedGroupDetails);
 							try {
 								tempWorkspaceVO.setName(updatedName);
@@ -194,6 +200,7 @@ public class WorkspaceBackgroundJobsService {
 					}
 				}
 			}
+			log.info("Scheduled task completed at {}", dateFormatter.format(new Date()));
 		}catch(Exception e) {
 			e.printStackTrace();
 			log.error("During scheduled job, failed to process workspaces user management with exception {}", e.getMessage());
