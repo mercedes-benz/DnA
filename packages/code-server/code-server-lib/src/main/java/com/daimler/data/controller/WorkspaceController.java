@@ -3509,4 +3509,38 @@ import org.springframework.beans.factory.annotation.Value;
 		}
 	}
 
+	@Override
+	@ApiOperation(value = "Get status by gitjobrunId for a given project name.", nickname = "getStatusByGitJobRunId", notes = "Get status by gitjobrunId for a given project name.", response = GenericMessage.class, tags={ "code-server", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns message of success or failure", response = GenericMessage.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/workspaces/{wsId}/getStatus",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.POST)
+    public ResponseEntity<GenericMessage> getStatusByGitJobRunId(@ApiParam(value = "Workspace ID to be fetched",required=true) @PathVariable("wsId") String wsId){
+		GenericMessage response = new GenericMessage();
+		response.setSuccess("FAILED");
+		try {			
+				CodeServerWorkspaceNsql entity = workspaceCustomRepository.findByWorkspaceId(wsId);
+			if(entity != null){
+					response = service.getStatusByJobRunId(entity);
+			}
+			if(response.getErrors() != null && !response.getErrors().isEmpty())
+				return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+			else			
+				return new ResponseEntity<>(response, HttpStatus.OK);
+		} catch (Exception e) {
+			log.error("Failed to delete workspcae group, with exception {}", e.getLocalizedMessage());
+			MessageDescription exceptionMsg = new MessageDescription("Failed to delete group due to internal error.");
+			response.addErrors(exceptionMsg);
+			return new ResponseEntity<>(response,HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
  }

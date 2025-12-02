@@ -58,6 +58,9 @@ public class CodeServerClient {
 
 	@Value("${codeServer.jupyter.url.aws}")
 	private String jupyterUrlAws;
+
+	@Value("${codeServer.gitjob.getWorkflowRun}")
+	private String codeServerGitGetWorkflowRun;
 	
 	@Autowired
 	RestTemplate restTemplate;
@@ -703,6 +706,34 @@ public class CodeServerClient {
 		response.setWarnings(warnings);
 		response.setErrors(errors);
 		return response;
+	}
+
+
+	public ResponseEntity<String> getStatusByJobRunId(String jobRunId) {
+		try {
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Content-Type", "application/json");
+			headers.set("Authorization", "Bearer " + personalAccessToken);
+			HttpEntity<String> entity = new HttpEntity<String>(headers);
+			ResponseEntity<String> manageResponse = restTemplate.exchange(codeServerGitGetWorkflowRun, HttpMethod.GET, entity, String.class,jobRunId);
+			if (manageResponse != null && manageResponse.getStatusCode()!=null) {
+				if(manageResponse.getStatusCode().equals(HttpStatus.valueOf(200))) {
+					log.info("Success while Getting status using jobRunId {}", jobRunId);
+					return manageResponse;
+				}
+				else {
+					log.info("Warnings while Getting status using jobRunId {} , httpstatuscode is {}", jobRunId,manageResponse.getStatusCodeValue());
+					return manageResponse;
+				}
+			}
+			
+		} catch (Exception e) {
+			log.error("Error occured while Getting status using jobRunId with exception {} {} ", jobRunId, e.getMessage());
+			return null;
+		}
+		return null;
+		
 	}
 	
 	

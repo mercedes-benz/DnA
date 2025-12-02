@@ -50,6 +50,7 @@
  import org.springframework.beans.factory.annotation.Autowired;
  import org.springframework.beans.factory.annotation.Value;
  import org.springframework.http.HttpStatus;
+ import org.springframework.http.ResponseEntity;
  import org.springframework.stereotype.Service;
  import org.springframework.transaction.annotation.Transactional;
  import org.springframework.util.ObjectUtils;
@@ -119,6 +120,7 @@
  import com.daimler.data.util.CommonUtils;
  import com.daimler.data.util.ConstantsUtility;
  import com.daimler.dna.notifications.common.producer.KafkaProducerService;
+ import com.fasterxml.jackson.databind.JsonNode;
  import com.fasterxml.jackson.databind.ObjectMapper;
  import com.daimler.data.db.json.DeploymentAudit;
  import lombok.extern.slf4j.Slf4j;
@@ -2810,6 +2812,7 @@
 						 buildDeployentity.setData(buildDeployData);
 						 buildDeployRepo.save(buildDeployentity);
 					 }
+					 status = "SUCCESS";
 					 log.info(
 							 "updated deployment details successfully for projectName {} , branch {} , targetEnv {} and status {}",
 							 projectName, branch, targetEnv, latestStatus);
@@ -2846,6 +2849,7 @@
 						 buildDeployentity.setData(buildDeployData);
 						 buildDeployRepo.save(buildDeployentity);
 					 }
+					 status = "SUCCESS";
 					 log.info(
 							 "updated deployment details successfully for projectName {} , branch {} , targetEnv {} and status {}",
 							 projectName, branch, targetEnv, latestStatus);
@@ -2896,6 +2900,7 @@
 					   buildDeployentity.setData(buildDeployData);
 					   buildDeployRepo.save(buildDeployentity);
 				   }
+				   status = "SUCCESS";
 				   boolean isPrivateRecipe = false;
 				   if(entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase().startsWith("private")){
 					isPrivateRecipe = true;
@@ -2934,12 +2939,18 @@
 						 }
 						 buildDeployentity.setData(buildDeployData);
 						 buildDeployRepo.save(buildDeployentity);
+						 status = "SUCCESS";
 					 }
 					 log.info(
 							 "updated deployment details successfully for projectName {} , branch {} , targetEnv {} and status {}",
 							 projectName, branch, targetEnv, latestStatus);
 				 }
+
 				 
+				 responseMessage.setSuccess(status);
+				 responseMessage.setErrors(errors);
+				 responseMessage.setWarnings(warnings);
+				 return responseMessage;
 			 }
 		 } catch (Exception e) {
 			 log.error("caught exception while updating status {}", e.getMessage());
@@ -2950,7 +2961,6 @@
 			 responseMessage.setErrors(errors);
 			 return responseMessage;
 		 }
-		 return null;
 	 }
   
 	 @Override
@@ -4789,6 +4799,181 @@
 		responseMessage.setSuccess(status);
 		return responseMessage;
 	}
+
+
+	public GenericMessage getStatusByJobRunId(CodeServerWorkspaceNsql entity){
+		GenericMessage responseMessage = new GenericMessage();
+		String status = "SUCCESS";
+		List<MessageDescription> warnings = new ArrayList<>();
+		List<MessageDescription> errors = new ArrayList<>();
+		String gitJobRunId = "";
+		String branch = "";
+		String appVersion = "";
+		String message = "";
+		String eventType = "";
+		String environment = "Staging";
+		try {
+			CodeServerWorkspace data = entity.getData();
+			String resourceID = data.getWorkspaceId();
+			List<String> teamMembers = new ArrayList<>();
+			List<String> teamMembersEmails = new ArrayList<>();
+			UserInfo projectOwner = data.getProjectDetails().getProjectOwner();
+			teamMembers.add(projectOwner.getId());
+			teamMembersEmails.add(projectOwner.getEmail());
+			if(data.getProjectDetails().getLastBuildOrDeployedStatus().equalsIgnoreCase("BUILD_REQUESTED")){
+				CodeServerBuildDetails buildDetails = entity.getData().getProjectDetails().getIntBuildDetails();
+					 if (!"int".equalsIgnoreCase(data.getProjectDetails().getLastBuildOrDeployedEnv())) {
+						 buildDetails = entity.getData().getProjectDetails().getProdBuildDetails();
+					 }
+				gitJobRunId = buildDetails.getGitjobRunID();
+				branch = buildDetails.getLastBuildBranch();
+				appVersion = buildDetails.getVersion();	 
+			}else if(data.getProjectDetails().getLastBuildOrDeployedStatus().equalsIgnoreCase("DEPLOY_REQUESTED")){
+				CodeServerDeploymentDetails deploymentDetails = entity.getData().getProjectDetails().getIntDeploymentDetails();
+					 if (!"int".equalsIgnoreCase(data.getProjectDetails().getLastBuildOrDeployedEnv())) {
+						 deploymentDetails = entity.getData().getProjectDetails().getProdDeploymentDetails();
+					 }
+				gitJobRunId = deploymentDetails.getGitjobRunID();
+				branch = deploymentDetails.getLastDeployedBranch();
+				appVersion = deploymentDetails.getLastDeployedVersion();		 
+			}
+			if(data.getProjectDetails().getLastBuildOrDeployedEnv().equalsIgnoreCase("prod")) {
+				environment = "Production";
+			}
+			if(gitJobRunId != null && !gitJobRunId.isBlank() && !gitJobRunId.isEmpty()){
+			ResponseEntity<String> gitJobResponse = client.getStatusByJobRunId(gitJobRunId);
+
+					ObjectMapper objectMapper = new ObjectMapper();
+            		JsonNode rootNode = objectMapper.readTree(gitJobResponse.getBody());
+            		String responseStatus = rootNode.path("status").asText();
+            		String conclusion = rootNode.path("conclusion").asText();
+					String latestStatus = null;
+					String updateStatus = "";
+					if(responseStatus.equalsIgnoreCase("completed") && conclusion.equalsIgnoreCase("success") ){
+						latestStatus = "success";
+					}else if(responseStatus.equalsIgnoreCase("completed") && conclusion.equalsIgnoreCase("failure")){
+						latestStatus = "failure";
+					}
+			if(latestStatus != null){
+			if(data.getProjectDetails().getLastBuildOrDeployedStatus().equalsIgnoreCase("BUILD_REQUESTED")){
+				if(latestStatus.equalsIgnoreCase("success"))
+					updateStatus = 	"BUILD_SUCCESS";
+				else
+					updateStatus = 	"BUILD_FAILED";	 
+			}else if(data.getProjectDetails().getLastBuildOrDeployedStatus().equalsIgnoreCase("DEPLOY_REQUESTED")){
+				if(latestStatus.equalsIgnoreCase("success"))
+					updateStatus = 	"DEPLOYED";
+				else
+					updateStatus = 	"DEPLOYMENT_FAILED";	 
+			}	
+			String projectName = data.getProjectDetails().getProjectName();
+			String  userId = data.getProjectDetails().getProjectOwner().getId();
+				if(updateStatus.equalsIgnoreCase("BUILD_SUCCESS")) {
+					eventType = "Codespace-build";
+					log.info("Latest status is {}, and eventType is {}",latestStatus,eventType);
+					message = "Successfully build Codespace "+ projectName + " with branch " + data.getProjectDetails() +" on " + environment + " triggered by " +userId;
+				}
+				if(updateStatus.equalsIgnoreCase("BUILD_FAILED")) {
+					eventType = "Codespace-build Failed";
+					log.info("Latest status is {}, and eventType is {}",latestStatus,eventType);
+					message = "Failed to build Codespace " + projectName + " with branch " + branch +" on " +  environment + " triggered by " +userId;
+				}
+				if(updateStatus.equalsIgnoreCase("DEPLOYED")) {
+					eventType = "Codespace-Deploy";
+					log.info("Latest status is {}, and eventType is {}",latestStatus,eventType);
+					message = "Successfully deployed Codespace "+ projectName + " with branch " + branch +" on " + environment + " triggered by " +userId;
+				}													
+				if(updateStatus.equalsIgnoreCase("DEPLOYMENT_FAILED")) {
+					eventType = "Codespace-Deploy Failed";
+					log.info("Latest status is {}, and eventType is {}",latestStatus,eventType);
+					message = "Failed to deploy Codespace " + projectName + " with branch " + branch +" on " +  environment + " triggered by " +userId;
+				}
+				GenericMessage updateResponse = this.update(userId,data.getWorkspaceId(),projectName,data.getStatus(),updateStatus,data.getProjectDetails().getLastBuildOrDeployedEnv(),branch,gitJobRunId,appVersion);
+				if(updateResponse != null && updateResponse.getErrors() != null && !updateResponse.getErrors().isEmpty()){
+					errors.addAll(updateResponse.getErrors());
+					status = "FAILED";
+				}else{
+					kafkaProducer.send(eventType, resourceID, "", userId, message, true, teamMembers, teamMembersEmails, null);
+					status = "SUCCESS";
+				}
+			}	
+		}		 
+		} catch (Exception e) {
+			MessageDescription error = new MessageDescription();
+			log.info("Failed while getStatusByJobRunId  with exception " + e.getMessage());
+			error.setMessage("Failed while getStatusByJobRunId  with exception " + e.getMessage());
+			errors.add(error);
+			status = "FAILED";
+		}
+
+		responseMessage.setErrors(errors);
+		responseMessage.setWarnings(warnings);
+		responseMessage.setSuccess(status);
+		return responseMessage;
+	}
+
+	public String updateGitJobRunId(GitJobRunIdRequestVO requestVo){
+		String response = "FAILED";
+		try {
+			CodeServerWorkspaceNsql entity = workspaceCustomRepository.findByWorkspaceId(requestVo.getWsId());
+			CodeServerWorkspace data = entity.getData();
+			CodeServerBuildDeployNsql optionalBuildDeployentity =  buildDeployCustomRepo.findByProjectName(requestVo.getProjectName());	
+			CodeServerBuildDeployNsql buildDeployentity = null;
+			CodeServerBuildDeploy buildDeployData = null;
+			if(data.getProjectDetails().getLastBuildOrDeployedStatus().equalsIgnoreCase("BUILD_REQUESTED")){
+				CodeServerBuildDetails buildDetails = entity.getData().getProjectDetails().getIntBuildDetails();
+					 if (!"int".equalsIgnoreCase(data.getProjectDetails().getLastBuildOrDeployedEnv())) {
+						 buildDetails = entity.getData().getProjectDetails().getProdBuildDetails();
+					 }
+				buildDetails.setGitjobRunID(requestVo.getGitJobRunId());
+				workspaceCustomRepository.updateBuildDetails(requestVo.getProjectName(),data.getProjectDetails().getLastBuildOrDeployedEnv(),buildDetails);	 
+				if(optionalBuildDeployentity != null){
+					   buildDeployentity = optionalBuildDeployentity;
+					   buildDeployData = buildDeployentity.getData();
+					   if("int".equalsIgnoreCase(data.getProjectDetails().getLastBuildOrDeployedEnv())){							
+						   int lastIndex = buildDeployData.getIntBuildAuditLogs().size() - 1;
+						   buildDeployData.getIntBuildAuditLogs().get(lastIndex).setGitjobRunID(requestVo.getGitJobRunId());						   
+					   }else{
+						   int lastIndex = buildDeployData.getProdBuildAuditLogs().size() - 1;
+						   buildDeployData.getProdBuildAuditLogs().get(lastIndex).setGitjobRunID(requestVo.getGitJobRunId());
+					   }
+					   buildDeployentity.setData(buildDeployData);
+					   buildDeployRepo.save(buildDeployentity);
+				   }
+				   response = "SUCCESS";
+				
+			}else if(data.getProjectDetails().getLastBuildOrDeployedStatus().equalsIgnoreCase("DEPLOY_REQUESTED")){
+				 CodeServerDeploymentDetails deploymentDetails = entity.getData().getProjectDetails().getIntDeploymentDetails();
+					 if (!"int".equalsIgnoreCase(data.getProjectDetails().getLastBuildOrDeployedEnv())) {
+						 deploymentDetails = entity.getData().getProjectDetails().getProdDeploymentDetails();
+					 }
+				deploymentDetails.setGitjobRunID(requestVo.getGitJobRunId());	
+				workspaceCustomRepository.updateDeploymentDetails(requestVo.getProjectName(), data.getProjectDetails().getLastBuildOrDeployedEnv(),deploymentDetails,data.getProjectDetails().getLastBuildOrDeployedStatus()); 				
+				 //setting audit log details
+					 if(optionalBuildDeployentity != null){
+						 buildDeployentity = optionalBuildDeployentity;
+						 buildDeployData = buildDeployentity.getData();
+						 if("int".equalsIgnoreCase(data.getProjectDetails().getLastBuildOrDeployedEnv())){							
+							 int lastIndex = buildDeployData.getIntDeploymentAuditLogs().size() - 1;
+							 buildDeployData.getIntDeploymentAuditLogs().get(lastIndex).setGitjobRunID(requestVo.getGitJobRunId());							 
+							 
+						 }else{
+							 int lastIndex = buildDeployData.getProdDeploymentAuditLogs().size() - 1;
+							 buildDeployData.getProdDeploymentAuditLogs().get(lastIndex).setGitjobRunID(requestVo.getGitJobRunId());		
+						 }
+						 buildDeployentity.setData(buildDeployData);
+						 buildDeployRepo.save(buildDeployentity);
+					 }
+					  response = "SUCCESS";
+			}
+			return response;
+		} catch (Exception e) {
+			log.info("Failed to get gitJobRunId with exception " + e.getMessage());
+			return response;
+		}
+	}
+
+	
 
 	
 }

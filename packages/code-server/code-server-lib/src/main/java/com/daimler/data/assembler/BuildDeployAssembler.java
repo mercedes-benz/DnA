@@ -41,7 +41,7 @@ public class BuildDeployAssembler implements GenericAssembler<CodeServerBuildDep
                     auditDetails.setBranch(audit.getBranch());
                     auditDetails.setVersion(audit.getVersion());
                     auditDetails.setComments(audit.getComments());
-                    auditDetails.setCommitId(audit.getCommitId());
+                    auditDetails.setCommitId(audit.getCommitId()); 
                     if(audit.isImageDeleted()){
                         auditDetails.setImageDeleted(true);
                      }else{
@@ -52,6 +52,7 @@ public class BuildDeployAssembler implements GenericAssembler<CodeServerBuildDep
                      } else {
                          auditDetails.setKeepBuildImage(false);
                      }
+                    auditDetails.setGitjobRunID(audit.getGitjobRunID());                   
                     auditDetailsVO.add(auditDetails);
                 }
             }
@@ -118,6 +119,7 @@ public class BuildDeployAssembler implements GenericAssembler<CodeServerBuildDep
                     auditDetails.setBranch(audit.getBranch());
                     auditDetails.setCommitId(audit.getCommitId());
                     auditDetails.setVersion(audit.getVersion());
+                    auditDetails.setGitjobRunID(audit.getGitjobRunID());
                     auditDetailsVO.add(auditDetails);
                 }
             }
@@ -147,6 +149,7 @@ public class BuildDeployAssembler implements GenericAssembler<CodeServerBuildDep
 					 }
 					 auditDetails.setBranch(audit.getBranch());
 					 auditDetails.setCommitId(audit.getCommitId());
+                     auditDetails.setGitjobRunID(audit.getGitjobRunID());
 					 deployedAuditLogDetails.add(auditDetails);
 				 }
 			 }
