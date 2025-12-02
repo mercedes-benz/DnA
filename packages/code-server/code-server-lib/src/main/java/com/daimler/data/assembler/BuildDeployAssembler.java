@@ -91,6 +91,7 @@ public class BuildDeployAssembler implements GenericAssembler<CodeServerBuildDep
                      } else {
                          auditDetails.setKeepBuildImage(false);
                      }
+                     auditDetails.setGitjobRunID(audit.getGitjobRunID());
 					 buildAuditLogDetails.add(auditDetails);
                 }
             }
