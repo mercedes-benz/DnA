@@ -47,6 +47,7 @@ public class FabricWorkspace implements Serializable{
 	// private String secondaryRoleApproverId;
 	// private String customEntitlementName;
 	private String customGroupName;
+	private List<CustomGroupNameCollection> customGroupNameCollection; 
 	private String appId;
 	private LeanIXDetails leanIXDetails;
 	private String projectId;

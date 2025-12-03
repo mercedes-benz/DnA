@@ -2,7 +2,7 @@ spring:
   mvc.pathmatch.matching-strategy: ant_path_matcher
   application:
     name: dna-fabric-workspace-service
-    version: 1.3.20
+    version: 1.4.5
   profile:
     active: production
 
@@ -31,6 +31,18 @@ spring:
     username: ${API_DB_USER:dbuser}
     password: ${API_DB_PASS:dbpassword}
     driverClassName: org.postgresql.Driver
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  health:
+    db:
+      enabled: true
+  endpoint:
+    health:
+      show-details: always      
 
 fabricWorkspaces:
   clientId: ${FABRIC_OAUTH_CLIENT_ID:XXXX}
@@ -82,7 +94,7 @@ fabricWorkspaces:
     id: ${AUTHORISER_TECH_USER_ID:XXXX}
   ada:
     apiKey: ${ADA_API_KEY:XXXX}
-
+    extollo.apiKey: ${EXTOLLO_API_KEY:XXXX}
 authoriser:
   uri: ${IDENTITY_AUTH_URI:XXXX}
   ssoUri: ${IDENTITY_SSO_URI:XXXX}

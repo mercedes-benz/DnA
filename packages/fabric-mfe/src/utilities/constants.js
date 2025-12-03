@@ -35,14 +35,18 @@ export const DIVISIONS = [
   'Mercedes-Benz Vans',
 ];
 
-export const DATA_ORIGINS = ['Internal', 'External', 'Mixed'];
-export const YES_NO_OPTIONS = ['Yes', 'No'];
-export const DATA_TIER = ['Tier1 [DATA ASSET]', 'Tier2 [NON DATA ASSET]'];
+export const DATA_TIER = [
+  'Tier1 [DATA ASSET]', 
+  'Tier2 [NON DATA ASSET]'
+];
+
 export const DATA_TIER_MAP = {
   'Tier1 [DATA ASSET]': 1,
   'Tier2 [NON DATA ASSET]': 2,
 };
 
+
+export const TEAMS_PROFILE_LINK_URL_PREFIX = 'https://your-team-profile-url-prefix/';
   export const USER_ROLE = { 
     GUEST : '0',
     USER : '1',

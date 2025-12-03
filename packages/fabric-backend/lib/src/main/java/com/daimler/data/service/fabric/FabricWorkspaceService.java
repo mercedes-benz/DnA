@@ -48,7 +48,7 @@ public interface FabricWorkspaceService extends CommonService<FabricWorkspaceVO,
 	GroupDetailsVO callGroupAssign(GroupDetailsVO existingGroupDetailsVO, String workspaceId, String permissionName);
 
 	FabricWorkspaceStatusVO processWorkspaceUserManagement(FabricWorkspaceStatusVO currentStatus, String workspaceName,
-			String creatorId, String workspaceId, String customGroupName, boolean isDivisionAllowed);
+			String creatorId, String workspaceId, String customGroupName, boolean isDivisionAllowed, List<CustomGroupNameCollectionVO> customGroupNameCollection);
 
 	FabricWorkspacesCollectionVO getAll(int limit, int offset, String user, List<String> allEntitlementsList, Boolean isTechnicalUser);
 	
@@ -58,7 +58,7 @@ public interface FabricWorkspaceService extends CommonService<FabricWorkspaceVO,
 			String creatorId, String workspaceId);
 
 	List<GroupDetailsVO> autoProcessGroupsUsers(List<GroupDetailsVO> existingGroupsDetails, String workspaceName,
-			String creatorId, String workspaceId, String customGroupName);
+			String creatorId, String workspaceId, String customGroupName, List<CustomGroupNameCollectionVO> customGroupNameCollection);
 
 	FabricWorkspacesCollectionVO getAllLov(int limit, int offset);
 
@@ -80,6 +80,8 @@ public interface FabricWorkspaceService extends CommonService<FabricWorkspaceVO,
 	AuthoriserRoleDetailsVO getRoleDetails(String roleId);
 
 	EntraGroupResponseVO getEntraGroupMembers(String roleName);
+
+	GenericMessage transferOwnership(FabricWorkspaceVO existingFabricWorkspace, CreatedByVO currentOwner, CreatedByVO newOwner);
 
 	ADAProjectDetailsCollectionVO searchProjects(String projectName);
 }

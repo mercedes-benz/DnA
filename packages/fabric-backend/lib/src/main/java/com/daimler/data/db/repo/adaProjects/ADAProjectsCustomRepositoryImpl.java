@@ -37,6 +37,12 @@ import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Expression;
+import javax.persistence.criteria.Root;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 
@@ -102,6 +108,33 @@ public class ADAProjectsCustomRepositoryImpl extends CommonDataRepositoryImpl<AD
 	// 	}).collect(Collectors.toList());
 	// 	return convertedResults;
 	// }
+
+	@Override
+	public List<ADAProjectsNsql> findAllByCreator(String creator, int limit, int offset) {
+	
+		CriteriaBuilder cb = em.getCriteriaBuilder();
+		CriteriaQuery<ADAProjectsNsql> cq = cb.createQuery(ADAProjectsNsql.class);
+		Root<ADAProjectsNsql> root = cq.from(ADAProjectsNsql.class);
+		
+		Expression<String> createdByPath = cb.function(
+			"jsonb_extract_path_text",
+			String.class,           
+			root.get("data"),         
+			cb.literal("createdBy")  
+		);
+
+		Predicate creatorPredicate = cb.equal(
+			cb.lower(createdByPath),
+			cb.lower(cb.literal(creator))
+		);
+		cq.where(creatorPredicate);
+		TypedQuery<ADAProjectsNsql> query = em.createQuery(cq);
+		
+		query.setFirstResult(offset);
+		query.setMaxResults(limit);  
+
+		return query.getResultList();
+	}
 
 	@Override
 	public List<ADAProjectsNsql> searchProjectsByName(String projectName) {
