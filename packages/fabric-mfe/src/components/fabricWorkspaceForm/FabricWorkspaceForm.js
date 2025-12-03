@@ -20,7 +20,7 @@ import { USER_ROLE } from '../../utilities/constants';
 
 const FabricWorkspaceForm = ({ workspace, edit, onSave, user}) => {
   let history = useHistory();
-  const isFabricAdmin = user.roles.find((role) => role.id === USER_ROLE.FABRICADMIN) !== undefined;
+  const isFabricAdmin = user?.roles?.find((role) => role?.id === USER_ROLE.FABRICADMIN) !== undefined;
   const isWorkspaceOwner = edit && workspace?.createdBy?.id === user.id;
   const isRestrictedEdit = isFabricAdmin && edit && !isWorkspaceOwner;
 
@@ -47,7 +47,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave, user}) => {
   const [reports, setReports] = useState([]);
   const [fabricTags, setFabricTags] = useState([]);
   const [projectList, setProjectList] = useState([]);
-  const [selectedProject, setSelectedProject] = useState({});
+  const [selectedProject, setSelectedProject] = useState(edit && workspace?.projectId ? { projectID: workspace?.projectId } : {});
   const selectedDivision = watch('division');
 
   const [costCenter, setCostCenter] = useState(edit && workspace?.costCenter !== null ? workspace?.costCenter : '');
@@ -207,55 +207,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave, user}) => {
 
   useEffect(() => {
     SelectBox.defaultSetup();
-
-    if (!isRestrictedEdit) return;
-
-    setTimeout(() => {
-      const disableSelectField = (fieldId) => {
-        const select = document.getElementById(fieldId);
-        if (!select) return;
-
-        select.disabled = true;
-        select.style.cssText = 'pointer-events: none; cursor: not-allowed; opacity: 0.6';
-
-        const customSelect = select.closest('.custom-select');
-        const selectSelected = customSelect?.querySelector('.select-selected');
-        if (selectSelected) {
-          selectSelected.style.cssText = 'pointer-events: none; cursor: not-allowed; opacity: 0.6';
-          selectSelected.setAttribute('aria-disabled', 'true');
-        }
-      };
-
-      const disableFieldGroup = (labelText) => {
-        const allFieldGroups = document.querySelectorAll('.input-field-group');
-        allFieldGroups.forEach(group => {
-          const label = group.querySelector('.input-label, label');
-          if (!label?.textContent.includes(labelText)) return;
-
-          group.querySelectorAll('input[type="text"], input:not([type])').forEach(input => {
-            input.disabled = true;
-            input.style.cssText = 'pointer-events: none; cursor: not-allowed; opacity: 0.6';
-          });
-
-          const selector = labelText === 'LeanIX'
-            ? 'button, [role="button"], .remove, [class*="remove"], [class*="close"], [class*="clear"], [class*="delete"], [aria-label*="remove"], [aria-label*="clear"], [aria-label*="delete"], svg, [class*="icon"]'
-            : 'button, [role="button"], .remove, [class*="remove"], [class*="close"], [class*="clear"], svg';
-
-          group.querySelectorAll(selector).forEach(btn => {
-            btn.style.cssText = 'pointer-events: none !important; cursor: not-allowed; opacity: 0.3';
-            btn.setAttribute('aria-disabled', 'true');
-            if (btn.tagName === 'BUTTON') btn.disabled = true;
-          });
-        });
-      };
-
-      disableSelectField('reportStatusField');
-      disableSelectField('classificationField');
-      disableFieldGroup('LeanIX');
-      disableFieldGroup('Related Solutions');
-      disableFieldGroup('Related Reports');
-    }, 300);
-  }, [isRestrictedEdit, typeOfProject, dataClassification, solutions, reports, selectedLeanIX]);
+  }, []);
 
   const onRelatedSolutionsChange = (selectedTags) => {
     const tempSolutions = solutions.filter(solution => {
@@ -297,7 +249,8 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave, user}) => {
   };
   
   const filteredProjects = useMemo(() => {
-    if (!selectedDivision || projectList.length === 0) return null;  
+    if (projectList.length === 0) return null;
+    if (!selectedDivision) return []; 
     const divisionName = selectedDivision.split('@-@')[1]?.trim().toLowerCase(); 
     return projectList.filter(
       (p) => p.division?.trim().toLowerCase() === divisionName
@@ -841,6 +794,61 @@ const isProjectDetailsRequired = typeOfProject === 'Production' && mandate;
                 </div>
               </div>
             </div>
+            <div className={Styles.col2}>
+              <div className={classNames('input-field-group')}>
+                <Controller
+                  control={control}
+                  name="projectDetails"
+                  rules={{
+                    required: isProjectDetailsRequired ? '*Missing entry' : false,
+                  }}
+                  render={({ field }) => (
+                    <TypeAheadBox
+                      label={'Project Details *'}
+                      placeholder={'Search Project Name'}
+                      defaultValue={selectedProject?.projectID}
+                      list={filteredProjects}
+                      setSelected={(selectedProject) => {
+                        setSelectedProject(selectedProject || {});
+                        field.onChange(selectedProject?.projectID || '');
+                      }}
+                      onInputChange={(value, showSpinner) =>
+                        handleProjectSearch(value, showSpinner, selectedDivision)
+                      }
+                      required={false}
+                      showError={errors.projectDetails?.message}
+                      render={(item) => {
+                        const stakeholderIds = item?.stakeholders?.map((s) => s.userID).join(', ') || '—';
+                        const tagValues = item?.tags?.map((t) => t.value).join(', ') || '—';
+
+                        return (
+                          <div className={Styles.optionContainer}>
+                            <div className={Styles.optionHeader}>
+                              <span className={Styles.optionText}>
+                                {item?.projectID ? `${item.projectID} — ${item.projectName}` : item.projectName}
+                              </span>
+                              {item?.division && (
+                                <span className={Styles.suggestionListBadge}>{item.division}</span>
+                              )}
+                            </div>
+                            {stakeholderIds !== '—' && (
+                              <div className={Styles.optionSubText}>
+                                <strong>Stakeholders:</strong> {stakeholderIds}
+                              </div>
+                            )}
+                            {tagValues !== '—' && (
+                              <div className={Styles.optionSubText}>
+                                <strong>Tags:</strong> {tagValues}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      }}
+                    />
+                  )}
+                />
+              </div>
+            </div>
             {typeOfProject !== 'Playground' &&
               <>
                 <div className={Styles.col2}>
@@ -883,61 +891,6 @@ const isProjectDetailsRequired = typeOfProject === 'Production' && mandate;
                       />
                       <span className={'error-message'}>{errors.procedureId?.type === 'pattern' && 'Procedure ID should be of type PO-XXXXX / ITPLC-XXXXX'}</span>
                     </div>
-                  </div>
-                </div>
-                <div className={Styles.col2}>
-                  <div className={classNames('input-field-group')}>
-                    <Controller
-                      control={control}
-                      name="projectDetails"
-                      rules={{
-                        required: isProjectDetailsRequired ? '*Missing entry' : false, 
-                      }}
-                      render={({ field }) => (
-                        <TypeAheadBox
-                          label={'Project Details *'}
-                          placeholder={'Search Project Name'}
-                          defaultValue={selectedProject?.projectName}
-                          list={filteredProjects} 
-                          setSelected={(selectedProject) => {
-                            setSelectedProject(selectedProject || {});
-                            field.onChange(selectedProject?.projectID || '');
-                          }}
-                          onInputChange={(value, showSpinner) =>
-                            handleProjectSearch(value, showSpinner, selectedDivision)
-                          }
-                          required={false}
-                          showError={errors.projectDetails?.message}
-                          render={(item) => {
-                            const stakeholderIds = item?.stakeholders?.map((s) => s.userID).join(', ') || '—';
-                            const tagValues = item?.tags?.map((t) => t.value).join(', ') || '—';
-
-                            return (
-                              <div className={Styles.optionContainer}>
-                                <div className={Styles.optionHeader}>
-                                  <span className={Styles.optionText}>
-                                    {item?.projectID ? `${item.projectID} — ${item.projectName}` : item.projectName}
-                                  </span>
-                                  {item?.division && (
-                                    <span className={Styles.suggestionListBadge}>{item.division}</span>
-                                  )}
-                                </div>
-                                {stakeholderIds !== '—' && (
-                                  <div className={Styles.optionSubText}>
-                                    <strong>Stakeholders:</strong> {stakeholderIds}
-                                  </div>
-                                )}
-                                {tagValues !== '—' && (
-                                  <div className={Styles.optionSubText}>
-                                    <strong>Tags:</strong> {tagValues}
-                                  </div>
-                                )}
-                              </div>
-                            );
-                          }}
-                        />
-                      )}
-                    />
                   </div>
                 </div>
               </>
