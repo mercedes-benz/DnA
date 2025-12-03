@@ -1696,9 +1696,12 @@
 								.filter(b -> !b.isImageDeleted())
 								.count();
 
-						log.info("Build-and-deploy flow: Retained successful builds = {}, Limit = {}", retainedCount,
-								retainedBuildLimit);
+						BuildAudit latestBuild = builds.isEmpty() ? null : builds.get(builds.size() - 1);
 
+						if (latestBuild != null && !latestBuild.isKeepBuildImage()) {
+							log.info("KeepBuildImage unchecked, skipping retained build limit check");
+						}
+						else{
 						if (retainedCount >= retainedBuildLimit) {
 							MessageDescription invalidMsg = new MessageDescription();
 							invalidMsg.setMessage("Build not allowed: There are already " + retainedCount +
@@ -1708,9 +1711,10 @@
 							log.info(
 									"User {} attempted buildAndDeploy for project {} but retained image limit ({}) reached.",
 									userId, projectName, retainedBuildLimit);
-							return errorMessage; // Prevent build-and-deploy
+							return errorMessage;
 						}
 					}
+				}
 				ManageBuildRequestDto buildRequestDto = new ManageBuildRequestDto();
 				buildRequestDto.setBranch(branch);
 				buildRequestDto.setEnvironment(environment);

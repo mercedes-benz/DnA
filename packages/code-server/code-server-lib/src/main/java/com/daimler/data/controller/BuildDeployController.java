@@ -236,18 +236,24 @@ public class BuildDeployController implements CodeServerBuildDeployServiceApi {
                     retainedBuildLimitValue);
             throw new IllegalStateException("Invalid retained build limit value: " + retainedBuildLimitValue);
         }
-        
-        if (retainedCount >= retainedBuildLimit) {
-            MessageDescription invalidMsg = new MessageDescription();
-            invalidMsg.setMessage("Build not allowed. There are already " + retainedCount +
-                    " successful builds with images retained. Please delete older images before triggering a new build.");
-            GenericMessage errorMessage = new GenericMessage();
-            errorMessage.addErrors(invalidMsg);
-            log.info("User {} attempted to build workspace {} but retained image limit reached ({} builds).",
-                    userId, vo != null ? vo.getWorkspaceId() : "UNKNOWN", retainedCount);
-            return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
+
+        BuildAudit latestBuild = auditLogs.isEmpty() ? null : auditLogs.get(auditLogs.size() - 1);
+
+        if (latestBuild != null && !latestBuild.isKeepBuildImage()) {
+            log.info("KeepBuildImage unchecked, Skipping retained build limit check");
+        } else {
+            if (retainedCount >= retainedBuildLimit) {
+                MessageDescription invalidMsg = new MessageDescription();
+                invalidMsg.setMessage("Build not allowed. There are already " + retainedCount +
+                        " successful builds with images retained. Please delete older images before triggering a new build.");
+                GenericMessage errorMessage = new GenericMessage();
+                errorMessage.addErrors(invalidMsg);
+                log.info("User {} attempted to build workspace {} but retained image limit reached ({} builds).",
+                        userId, vo != null ? vo.getWorkspaceId() : "UNKNOWN", retainedCount);
+                return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
+            }
         }
-         
+
         String lastBuildType = "build";
         GenericMessage responseMsg = service.buildWorkSpace(userId,id,branch,buildRequestDto,isPrivateRecipe,environment,lastBuildType);
 				 log.info("User {} build workspace {} project {}", userId, vo.getWorkspaceId(),
