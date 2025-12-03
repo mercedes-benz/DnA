@@ -296,7 +296,7 @@ public class DataikuController {
 			// 		}
 			// 	}
 			// }
-			
+
 			List<String> failedCollaboratorIds = new ArrayList<>(); 
 
 			if (collaborators != null && !collaborators.isEmpty()) {
@@ -304,9 +304,8 @@ public class DataikuController {
 					UserPrivilegeResponseDto collabDetails = userPrivilegeService.getByShortId(collab.getUserId());
 
 					if (collabDetails == null || collabDetails.getData() == null || collabDetails.getData().getUserId() == null) {
-						
-						String userId = collab.getUserId();
-						failedCollaboratorIds.add(userId);
+
+						failedCollaboratorIds.add(collab.getUserId());
 						log.error("Collaborator {} privileges not found. User ID collected for final error message.", userId);
 						
 					} else {
