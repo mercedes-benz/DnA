@@ -2,7 +2,7 @@ spring:
   mvc.pathmatch.matching-strategy: ant_path_matcher
   application:
     name: dna-codeserver-service
-    version: 1.7.2
+    version: 1.8.1
   profile:
     active: production
 
@@ -52,6 +52,18 @@ spring:
     username: ${API_DB_USER:XXXX_user}
     password: ${API_DB_PASS:XXXX_pass}
     driverClassName: org.postgresql.Driver
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  health:
+    db:
+      enabled: true
+  endpoint:
+    health:
+      show-details: always    
     
 dna:
   uri: ${DNA_URI:XXXXXX}
