@@ -1692,6 +1692,7 @@
 							try {
 								retainedBuildLimit = Integer.parseInt(retainedBuildLimitValue.trim());
 							} catch (NumberFormatException ex) {
+								
 								log.error("Invalid retained build limit value '{}'. Please correct it in Vault.",
 										retainedBuildLimitValue);
 								throw new IllegalStateException(
