@@ -118,8 +118,11 @@ public class FabricWorkspaceClient {
 	@Value("${fabricWorkspaces.tokenTypeHint}")
 	private String tokenTypeHint;
 	
-	@Value("${fabricWorkspaces.capacityId}")
+	@Value("${fabricWorkspaces.powerbiCapacityId}")
 	private String powerbiCapacityId;
+
+	@Value("${fabricWorkspaces.fabricCapacityId}")
+	private String fabricCapacityId;
 	
 	@Value("${fabricWorkspaces.uri.login}")
 	private String loginUrl;
@@ -161,8 +164,6 @@ public class FabricWorkspaceClient {
 	
 	@Autowired
 	private RestTemplate restTemplate;
-
-	private String fabricCapacityId="xyz";
 
 	public String getToken() {
 		MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
