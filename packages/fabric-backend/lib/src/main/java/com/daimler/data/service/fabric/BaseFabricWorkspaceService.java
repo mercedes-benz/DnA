@@ -152,11 +152,14 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 	private ADAProjectsCustomRepository adaProjectsRepo;
 
 
-	@Value("${fabricWorkspaces.capacityId}")
+	@Value("${fabricWorkspaces.powerbiCapacityId}")
 	private String powerbiCapacityId;
+
+	@Value("${fabricWorkspaces.fabricCapacityId}")
+	private String fabricCapacityId;
 	
 	@Value("${fabricWorkspaces.capacityName}")
-	private String powerbiCapacityName;
+	private String capacityName;
 	
 	@Value("${fabricWorkspaces.capacitySku}")
 	private String capacitySku;
@@ -224,10 +227,6 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 
 	@Value("${fabricWorkspaces.userRemoval.ignorePatterns}")
 	private String[] userRemovalIgnorePatterns;
-
-	private String fabricCapacityId="fabCapacity";
-
-	private String fabricCapacityName="fabRegion";
 
 	public BaseFabricWorkspaceService() {
 		super();
@@ -493,13 +492,13 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 					}else {
 						if(isPowerBI) {
 							capacityVO.setId(powerbiCapacityId);
-							capacityVO.setName(powerbiCapacityName);
+							capacityVO.setName(capacityName);
 							capacityVO.setRegion(capacityRegion);
 							capacityVO.setSku(capacitySku);
 							capacityVO.setState(capacityState);
 						} else {
 							capacityVO.setId(fabricCapacityId);
-							capacityVO.setName(fabricCapacityName);
+							capacityVO.setName(capacityName);
 							capacityVO.setRegion(capacityRegion);
 							capacityVO.setSku(capacitySku);
 							capacityVO.setState(capacityState);

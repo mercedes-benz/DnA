@@ -39,7 +39,8 @@ fabricWorkspaces:
   scope: ${FABRIC_OAUTH_SCOPE:XXXX}
   accessToken: ${FABRIC_OAUTH_ACCESS_TOKEN:XXXX}
   tokenTypeHint: ${FABRIC_OAUTH_TOKEN_TYPE_HINT:access_token}
-  capacityId: ${FABRIC_CAPACITY_ID:XXXX}
+  powerbiCapacityId: ${POWERBI_CAPACITY_ID:XXXX}
+  fabricCapacityId: ${FABRIC_CAPACITY_ID:XXXX}
   capacityName: ${FABRIC_CAPACITY_NAME:XXXX}
   capacitySku: ${FABRIC_CAPACITY_SKU:XXXX}
   capacityRegion: ${FABRIC_CAPACITY_REGION:XXXX}
