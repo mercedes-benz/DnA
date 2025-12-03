@@ -227,11 +227,7 @@ public class BuildDeployController implements CodeServerBuildDeployServiceApi {
                 .filter(b -> "BUILD_SUCCESS".equalsIgnoreCase(b.getBuildStatus()))
                 .filter(b -> !b.isImageDeleted())
                 .count();
-        
-        log.info("build request dto is: {} and keepBuildImages is: {}", buildRequestDto, buildRequestDto.isKeepBuildImage());
-        
         if (buildRequestDto != null && buildRequestDto.isKeepBuildImage()) {
-            log.info("retained build limit");
             int retainedBuildLimit;
             try {
                 retainedBuildLimit = Integer.parseInt(retainedBuildLimitValue.trim());
@@ -243,8 +239,7 @@ public class BuildDeployController implements CodeServerBuildDeployServiceApi {
 
             if (retainedCount >= retainedBuildLimit) {
                 MessageDescription invalidMsg = new MessageDescription();
-                invalidMsg.setMessage("Build not allowed. There are already " + retainedCount +
-                        " successful builds with images retained. Please delete older images before triggering a new build.");
+                invalidMsg.setMessage("Maximum build limit reached (" + retainedCount + "). Please delete older retained images before triggering a new build.");
                 GenericMessage errorMessage = new GenericMessage();
                 errorMessage.addErrors(invalidMsg);
                 log.info("User {} attempted to build workspace {} but retained image limit reached ({} builds).",
