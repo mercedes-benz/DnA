@@ -228,7 +228,10 @@ public class BuildDeployController implements CodeServerBuildDeployServiceApi {
                 .filter(b -> !b.isImageDeleted())
                 .count();
         
+        log.info("build request dto is: {} and keepBuildImages is: {}", buildRequestDto, buildRequestDto.isKeepBuildImage());
+        
         if (buildRequestDto != null && buildRequestDto.isKeepBuildImage()) {
+            log.info("retained build limit");
             int retainedBuildLimit;
             try {
                 retainedBuildLimit = Integer.parseInt(retainedBuildLimitValue.trim());
