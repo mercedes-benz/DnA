@@ -159,8 +159,11 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 	@Value("${fabricWorkspaces.fabricCapacityId}")
 	private String fabricCapacityId;
 	
-	@Value("${fabricWorkspaces.capacityName}")
-	private String capacityName;
+	@Value("${fabricWorkspaces.powerbiCapacityName}")
+	private String powerbiCapacityName;
+
+	@Value("${fabricWorkspaces.fabricCapacityName}")
+	private String fabricCapacityName;
 	
 	@Value("${fabricWorkspaces.capacitySku}")
 	private String capacitySku;
@@ -493,13 +496,13 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 					}else {
 						if(isPowerBI) {
 							capacityVO.setId(powerbiCapacityId);
-							capacityVO.setName(capacityName);
+							capacityVO.setName(powerbiCapacityName);
 							capacityVO.setRegion(capacityRegion);
 							capacityVO.setSku(capacitySku);
 							capacityVO.setState(capacityState);
 						} else {
 							capacityVO.setId(fabricCapacityId);
-							capacityVO.setName(capacityName);
+							capacityVO.setName(fabricCapacityName);
 							capacityVO.setRegion(capacityRegion);
 							capacityVO.setSku(capacitySku);
 							capacityVO.setState(capacityState);

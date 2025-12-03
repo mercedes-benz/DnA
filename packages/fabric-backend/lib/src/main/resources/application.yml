@@ -53,7 +53,8 @@ fabricWorkspaces:
   tokenTypeHint: ${FABRIC_OAUTH_TOKEN_TYPE_HINT:access_token}
   powerbiCapacityId: ${POWERBI_CAPACITY_ID:XXXX}
   fabricCapacityId: ${FABRIC_CAPACITY_ID:XXXX}
-  capacityName: ${FABRIC_CAPACITY_NAME:XXXX}
+  powerbiCapacityName: ${POWERBI_CAPACITY_NAME:XXXX}
+  fabricCapacityName: ${FABRIC_CAPACITY_NAME:XXXX}
   capacitySku: ${FABRIC_CAPACITY_SKU:XXXX}
   capacityRegion: ${FABRIC_CAPACITY_REGION:XXXX}
   capacityState: ${FABRIC_CAPACITY_STATE:Active}
