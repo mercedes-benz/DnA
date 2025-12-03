@@ -1583,7 +1583,7 @@
 	 @Override
 	 @Transactional
 	 	public GenericMessage deployWorkspace(String userId, String id, String environment, String branch,
-				 boolean isprivateRecipe,String version,String deployType) {
+				 boolean isprivateRecipe,String version,String deployType, Boolean keepImage) {
 		 GenericMessage responseMessage = new GenericMessage();
 		 String status = "FAILED";
 		 List<MessageDescription> warnings = new ArrayList<>();
@@ -1671,15 +1671,6 @@
 				if (version == null || version.isEmpty() || version.isBlank()) {
 					String lastBuildType = "buildAndDeploy";
 					buildDeployEntity = buildDeployCustomRepo.findByProjectName(projectName);
-					int retainedBuildLimit;
-					try {
-						retainedBuildLimit = Integer.parseInt(retainedBuildLimitValue.trim());
-					} catch (NumberFormatException ex) {
-						log.error("Invalid retained build limit value '{}'. Please correct it in Vault.",
-								retainedBuildLimitValue);
-						throw new IllegalStateException(
-								"Invalid retained build limit value: " + retainedBuildLimitValue);
-					}
 
 					if (buildDeployEntity != null && buildDeployEntity.getData() != null) {
 						CodeServerBuildDeploy buildDeployData = buildDeployEntity.getData();
@@ -1696,25 +1687,39 @@
 								.filter(b -> !b.isImageDeleted())
 								.count();
 
-						log.info("Build-and-deploy flow: Retained successful builds = {}, Limit = {}", retainedCount,
-								retainedBuildLimit);
+						if (keepImage != null && keepImage) {
+							int retainedBuildLimit;
+							try {
+								retainedBuildLimit = Integer.parseInt(retainedBuildLimitValue.trim());
+							} catch (NumberFormatException ex) {
+								log.error("Invalid retained build limit value '{}'. Please correct it in Vault.",
+										retainedBuildLimitValue);
+								throw new IllegalStateException(
+										"Invalid retained build limit value: " + retainedBuildLimitValue);
+							}
 
-						if (retainedCount >= retainedBuildLimit) {
-							MessageDescription invalidMsg = new MessageDescription();
-							invalidMsg.setMessage("Build not allowed: There are already " + retainedCount +
-									" successful builds with images retained. Please delete older images before triggering a new build.");
-							GenericMessage errorMessage = new GenericMessage();
-							errorMessage.addErrors(invalidMsg);
-							log.info(
-									"User {} attempted buildAndDeploy for project {} but retained image limit ({}) reached.",
-									userId, projectName, retainedBuildLimit);
-							return errorMessage; // Prevent build-and-deploy
+							if (retainedCount >= retainedBuildLimit) {
+								MessageDescription invalidMsg = new MessageDescription();
+								invalidMsg.setMessage("Build not allowed: There are already " + retainedCount +
+										" successful builds with images retained. Please delete older images before triggering a new build.");
+								GenericMessage errorMessage = new GenericMessage();
+								errorMessage.addErrors(invalidMsg);
+
+								log.info(
+										"User {} attempted buildAndDeploy for project {} but retained image limit ({}) reached.",
+										userId, projectName, retainedBuildLimit);
+
+								return errorMessage;
+							}
+						} else {
+							log.info("KeepBuildImage unchecked, skipping retained build limit check");
 						}
 					}
 				ManageBuildRequestDto buildRequestDto = new ManageBuildRequestDto();
 				buildRequestDto.setBranch(branch);
 				buildRequestDto.setEnvironment(environment);
 				buildRequestDto.setComments("Build and Deploy");
+				buildRequestDto.setKeepBuildImage(keepImage);
 				log.info("build triggered for workspaceId {} and branch {} and environment {} and lastBuildType {}",workspaceId,branch,environment,lastBuildType);
 				responseMessage = this.buildWorkSpace(userId, id, branch, buildRequestDto, isprivateRecipe, environment,lastBuildType);
 				if(responseMessage.getSuccess().equalsIgnoreCase("SUCCESS")){
@@ -2863,10 +2868,11 @@
 						workspaceCustomRepository.updateBuildDetails(projectName, targetEnv,
 						buildDetails);	
 				   
+				   Boolean keepBuildImage = false;
+				   
 				   if(optionalBuildDeployentity != null){
 					   buildDeployentity = optionalBuildDeployentity;
 					   buildDeployData = buildDeployentity.getData();
-					   Boolean keepBuildImage = false;
 					   Boolean buildImageDeleted = false;
 					   if("int".equalsIgnoreCase(targetEnv)){							
 						   int lastIndex = buildDeployData.getIntBuildAuditLogs().size() - 1;
@@ -2910,7 +2916,7 @@
 							projectName, branch, targetEnv, latestStatus);
 							if("BUILD_SUCCESS".equalsIgnoreCase(latestStatus) && buildDetails.getLastBuildType().equalsIgnoreCase("buildAndDeploy")){
 								this.deployWorkspace(userId, entity.getId(), targetEnv, branch,
-								isPrivateRecipe,version,"buildAndDeploy");
+								isPrivateRecipe,version,"buildAndDeploy", keepBuildImage);
 				   log.info("User {} deployed workspace {} project {}", userId, wsId,
 						   entity.getData().getProjectDetails().getRecipeDetails().getRecipeId());
 							   

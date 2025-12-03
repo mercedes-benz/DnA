@@ -1756,6 +1756,8 @@ definitions:
         type: string
       version:
         type: string
+      keepBuildImage:
+        type: boolean
 
   DeployedAppConfigDto:
     type: object

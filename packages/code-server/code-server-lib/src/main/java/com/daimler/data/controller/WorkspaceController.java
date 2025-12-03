@@ -1250,6 +1250,7 @@ import org.springframework.beans.factory.annotation.Value;
 				   }
 			   }
 			   Boolean deploymentApprovalEnabled = false;
+			   Boolean keepImage = deployRequestDto.isKeepBuildImage();
 			   deploymentApprovalEnabled = Boolean.TRUE
 					   .equals(vo.getProjectDetails().getDataGovernance().isEnableDeployApproval());
 			   if (environment.equalsIgnoreCase("prod") && deploymentApprovalEnabled
@@ -1274,7 +1275,7 @@ import org.springframework.beans.factory.annotation.Value;
                 }
                 else {
 				   responseMsg = service.deployWorkspace(userId, id, environment, branch,
-							 isPrivateRecipe,deployRequestDto.getVersion(),"deploy");
+							 isPrivateRecipe,deployRequestDto.getVersion(),"deploy",keepImage);
 					if ("FAILED".equalsIgnoreCase(responseMsg.getSuccess())) {
 						return new ResponseEntity<>(responseMsg, HttpStatus.BAD_REQUEST);
 					}
