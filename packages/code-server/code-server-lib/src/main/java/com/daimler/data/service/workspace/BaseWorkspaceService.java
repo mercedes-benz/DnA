@@ -1698,23 +1698,27 @@
 
 						BuildAudit latestBuild = builds.isEmpty() ? null : builds.get(builds.size() - 1);
 
-						if (latestBuild != null && !latestBuild.isKeepBuildImage()) {
+						boolean applyLimit = latestBuild != null && latestBuild.isKeepBuildImage();
+
+						if (!applyLimit) {
 							log.info("KeepBuildImage unchecked, skipping retained build limit check");
-						}
-						else{
-						if (retainedCount >= retainedBuildLimit) {
-							MessageDescription invalidMsg = new MessageDescription();
-							invalidMsg.setMessage("Build not allowed: There are already " + retainedCount +
-									" successful builds with images retained. Please delete older images before triggering a new build.");
-							GenericMessage errorMessage = new GenericMessage();
-							errorMessage.addErrors(invalidMsg);
-							log.info(
-									"User {} attempted buildAndDeploy for project {} but retained image limit ({}) reached.",
-									userId, projectName, retainedBuildLimit);
-							return errorMessage;
+						} else {
+
+							if (retainedCount >= retainedBuildLimit) {
+								MessageDescription invalidMsg = new MessageDescription();
+								invalidMsg.setMessage("Build not allowed: There are already " + retainedCount +
+										" successful builds with images retained. Please delete older images before triggering a new build.");
+								GenericMessage errorMessage = new GenericMessage();
+								errorMessage.addErrors(invalidMsg);
+
+								log.info(
+										"User {} attempted buildAndDeploy for project {} but retained image limit ({}) reached.",
+										userId, projectName, retainedBuildLimit);
+
+								return errorMessage;
+							}
 						}
 					}
-				}
 				ManageBuildRequestDto buildRequestDto = new ManageBuildRequestDto();
 				buildRequestDto.setBranch(branch);
 				buildRequestDto.setEnvironment(environment);

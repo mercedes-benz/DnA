@@ -228,20 +228,16 @@ public class BuildDeployController implements CodeServerBuildDeployServiceApi {
                 .filter(b -> !b.isImageDeleted())
                 .count();
         
-        int retainedBuildLimit;
-        try {
-            retainedBuildLimit = Integer.parseInt(retainedBuildLimitValue.trim());
-        } catch (NumberFormatException ex) {
-            log.error("Invalid retained build limit value '{}'. Please correct it in Vault.",
-                    retainedBuildLimitValue);
-            throw new IllegalStateException("Invalid retained build limit value: " + retainedBuildLimitValue);
-        }
+        if (buildRequestDto != null && buildRequestDto.isKeepBuildImage()) {
+            int retainedBuildLimit;
+            try {
+                retainedBuildLimit = Integer.parseInt(retainedBuildLimitValue.trim());
+            } catch (NumberFormatException ex) {
+                log.error("Invalid retained build limit value '{}'. Please correct it in Vault.",
+                        retainedBuildLimitValue);
+                throw new IllegalStateException("Invalid retained build limit value: " + retainedBuildLimitValue);
+            }
 
-        BuildAudit latestBuild = auditLogs.isEmpty() ? null : auditLogs.get(auditLogs.size() - 1);
-
-        if (latestBuild != null && !latestBuild.isKeepBuildImage()) {
-            log.info("KeepBuildImage unchecked, Skipping retained build limit check");
-        } else {
             if (retainedCount >= retainedBuildLimit) {
                 MessageDescription invalidMsg = new MessageDescription();
                 invalidMsg.setMessage("Build not allowed. There are already " + retainedCount +
@@ -252,6 +248,8 @@ public class BuildDeployController implements CodeServerBuildDeployServiceApi {
                         userId, vo != null ? vo.getWorkspaceId() : "UNKNOWN", retainedCount);
                 return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
             }
+        } else {
+            log.info("KeepBuildImage unchecked, Skipping retained build limit check");
         }
 
         String lastBuildType = "build";
