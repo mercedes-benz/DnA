@@ -483,7 +483,8 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 					data.setId(createResponse.getId());
 					data.setHasPii(vo.isHasPii());
 					
-					boolean isPowerBI = vo.getSubscription() != null && vo.getSubscription().name().equals("PowerBI");
+					boolean isPowerBI = vo.getSubscription() != null && vo.getSubscription().name().equalsIgnoreCase("PowerBI");
+					// log.info("sub value: " + vo.getSubscription() + ", isPowerBI: " + isPowerBI);
 					ErrorResponseDto assignCapacityResponse = fabricWorkspaceClient.assignCapacity(createResponse.getId(), isPowerBI);
 					CapacityVO capacityVO = new CapacityVO();
 					if(assignCapacityResponse!=null && assignCapacityResponse.getErrorCode()!=null && "500".equalsIgnoreCase(assignCapacityResponse.getErrorCode())) {

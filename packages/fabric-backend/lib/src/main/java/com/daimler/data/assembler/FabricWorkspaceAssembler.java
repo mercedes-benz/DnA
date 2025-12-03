@@ -80,6 +80,9 @@ public class FabricWorkspaceAssembler implements GenericAssembler<FabricWorkspac
 			FabricWorkspace data = entity.getData();
 			if(data!=null) {
 				BeanUtils.copyProperties(data, vo);
+				if(data.getSubscription() != null) {
+                	vo.setSubscription(FabricWorkspaceVO.SubscriptionEnum.valueOf(data.getSubscription()));
+            	}
 				Capacity capacity = data.getCapacity();
 				CapacityVO capacityVO = new CapacityVO();
 				if(capacity != null) {
