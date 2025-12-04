@@ -47,3 +47,14 @@ export const DATA_TIER_MAP = {
 
 
 export const TEAMS_PROFILE_LINK_URL_PREFIX = 'https://your-team-profile-url-prefix/';
+  export const USER_ROLE = { 
+    GUEST : '0',
+    USER : '1',
+    EXTENDED : '2',
+    ADMIN : '3',
+    REPORTADMIN : '4',
+    DIVISIONADMIN : '5',
+    DATACOMPLIANCEADMIN : '6',
+    CODESPACEADMIN : '7',
+    FABRICADMIN : '8',
+  };

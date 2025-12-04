@@ -1,5 +1,5 @@
 import classNames from 'classnames';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useForm, FormProvider, Controller } from 'react-hook-form';
 import { useHistory } from "react-router-dom";
 // styles
@@ -15,16 +15,21 @@ import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indica
 import { Envs } from '../../utilities/envs';
 // Api
 import { hostServer } from '../../server/api';
-import { fabricApi } from '../../apis/fabric.api';
+import { fabricApi} from '../../apis/fabric.api';
+import { USER_ROLE } from '../../utilities/constants';
 
-const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
+const FabricWorkspaceForm = ({ workspace, edit, onSave, user}) => {
   let history = useHistory();
-  
+  const isFabricAdmin = user?.roles?.find((role) => role?.id === USER_ROLE.FABRICADMIN) !== undefined;
+  const isWorkspaceOwner = edit && workspace?.createdBy?.id === user.id;
+  const isRestrictedEdit = isFabricAdmin && edit && !isWorkspaceOwner;
+
   const methods = useForm();
   const {
     register,
     handleSubmit,
     setValue,
+    watch,
     control,
     formState: { errors },
   } = methods;
@@ -41,6 +46,9 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
   const [solutions, setSolutions] = useState([]);
   const [reports, setReports] = useState([]);
   const [fabricTags, setFabricTags] = useState([]);
+  const [projectList, setProjectList] = useState([]);
+  const [selectedProject, setSelectedProject] = useState(edit && workspace?.projectId ? { projectID: workspace?.projectId } : {});
+  const selectedDivision = watch('division');
 
   const [costCenter, setCostCenter] = useState(edit && workspace?.costCenter !== null ? workspace?.costCenter : '');
   const [internalOrder, setInternalOrder] = useState(edit && workspace?.internalOrder !== null ? workspace?.internalOrder : '');
@@ -51,6 +59,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
   const [typeOfProject, setTypeOfProject] = useState(edit && workspace?.typeOfProject ? workspace?.typeOfProject : '0');
   const [dataClassification, setDataClassification] = useState(edit && workspace?.dataClassification ? workspace?.dataClassification : '0');
   const [PII, setPII] = useState(edit && workspace?.hasPii ? workspace?.hasPii : false);
+  const [subscription, setSubscription] = useState(edit && workspace?.subscription ? workspace?.subscription : 'PowerBI');
   const [tags, setTags] = useState(edit && workspace?.tags !== null ? [...workspace.tags] : []);
   const [relatedSolutionsTags, setRelatedSolutionsTags] = useState(edit && workspace?.relatedSolutions !== null ? workspace.relatedSolutions.map(sols => sols.name) : []);
   const [relatedReportsTags, setRelatedReportsTags] = useState(edit && workspace?.relatedReports !== null ? workspace.relatedReports.map(repos => repos.name) : []);
@@ -158,7 +167,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
     if (divId && divId!=='0' ) {
       ProgressIndicator.show();
       hostServer.get('/subdivisions/' + divId)
-        .then((res) => {
+        .then((res) => { 
           setSubDivisions(res?.data || []);
           SelectBox.defaultSetup();
           ProgressIndicator.hide();
@@ -195,6 +204,10 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
     setValue('department', departmentName[0]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [departmentName[0]]);
+
+  useEffect(() => {
+    SelectBox.defaultSetup();
+  }, []);
 
   const onRelatedSolutionsChange = (selectedTags) => {
     const tempSolutions = solutions.filter(solution => {
@@ -234,6 +247,34 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
         });
     }
   };
+  
+  const filteredProjects = useMemo(() => {
+    if (projectList.length === 0) return null;
+    if (!selectedDivision) return []; 
+    const divisionName = selectedDivision.split('@-@')[1]?.trim().toLowerCase(); 
+    return projectList.filter(
+      (p) => p.division?.trim().toLowerCase() === divisionName
+    );
+  }, [projectList, selectedDivision]);
+
+  const handleProjectSearch = (searchTerm, showSpinner) => {
+    if (searchTerm.length > 2) {
+      showSpinner(true);
+      fabricApi
+        .searchProjectDetails(searchTerm)
+        .then((res) => {
+          setProjectList(res.data?.records || []);
+          showSpinner(false);
+        })
+        .catch((e) => {
+          showSpinner(false);
+          Notification.show(
+            e.response?.data?.errors?.[0]?.message || 'Error while fetching project list.',
+            'alert',
+          );
+        });
+    }
+  };
 
   const handleCreateWorkspace = (values) => {
     ProgressIndicator.show();
@@ -241,6 +282,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
       name: values.name.trim(),
       tags: tags,
       hasPii: values?.pii,
+      subscription: values?.subscription,
       archerId: values?.archerId,
       divisionId: values?.division?.includes('@-@') ? values?.division?.split('@-@')[0] : '',
       division: values?.division?.includes('@-@') ? values?.division?.split('@-@')[1] : '',
@@ -256,6 +298,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
       internalOrder: values?.internalOrder.trim(),
       relatedSolutions: relatedSolutions,
       relatedReports: relatedReports,
+      projectId: values?.projectDetails || null,
       ...(values.leanIX || {})
     };
     fabricApi.createFabricWorkspace(data).then((res) => {
@@ -275,6 +318,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
       name: values.name.trim(),
       tags: tags,
       hasPii: values?.pii,
+      subscription: values?.subscription,
       archerId: values?.archerId,
       divisionId: values?.division?.includes('@-@') ? values?.division?.split('@-@')[0] : '',
       division: values?.division?.includes('@-@') ? values?.division?.split('@-@')[1] : '',
@@ -290,6 +334,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
       internalOrder: values?.internalOrder.trim(),
       relatedSolutions: relatedSolutions,
       relatedReports: relatedReports,
+      projectId: values?.projectDetails || null,
       ...(values.leanIX || {})
     }
     ProgressIndicator.show();
@@ -311,6 +356,7 @@ const mandate = divisionId && Envs.MANDATE_LEANIX_FOR_DIVISIONS
   ? Envs.MANDATE_LEANIX_FOR_DIVISIONS.split(',').includes(divisionId) 
   : false;
 const isLeanIXRequired = typeOfProject === 'Production' && mandate;
+const isProjectDetailsRequired = typeOfProject === 'Production' && mandate;
 
   return (
     <>
@@ -368,6 +414,7 @@ const isLeanIXRequired = typeOfProject === 'Production' && mandate;
                   autoComplete="off"
                   maxLength={256}
                   defaultValue={nameOfWorkspace}
+                  disabled={isRestrictedEdit}
                   {...register('name', { required: '*Missing entry', pattern: /^(?!Admin monitoring$)(?!^\s+$)[\w\d-_]+$/, onChange: (e) => { setNameOfWorkspace(e.target.value) } })}
                 />
                 <span className={'error-message'}>{errors?.name?.message}{errors.name?.type === 'pattern' && 'Workspace names must contain alphanumeric characters only - and _ are allowed. \'Admin monitoring\' name and spaces are not allowed.'}</span>
@@ -383,6 +430,7 @@ const isLeanIXRequired = typeOfProject === 'Production' && mandate;
                   className={'input-field-area'}
                   type="text"
                   defaultValue={description}
+                  disabled={isRestrictedEdit}
                   rows={50}
                   {...register('description', { required: '*Missing entry', pattern: /^(?!\s+$)(\s*\S+\s*)+$/, onChange: (e) => { setDescription(e.target.value) } })}
                 />
@@ -705,6 +753,102 @@ const isLeanIXRequired = typeOfProject === 'Production' && mandate;
                 </div>
               </div>
             </div>
+            <div className={Styles.col2}>
+              <div className={classNames('input-field-group include-error')}>
+                <label className={'input-label'}>
+                  Subscription <sup>*</sup>
+                </label>
+                <div className={Styles.pIIField}>
+                  <label className={classNames('radio')}>
+                    <span className="wrapper">
+                      <input
+                        type="radio"
+                        className="ff-only"
+                        value="PowerBI"
+                        name="subscription"
+                        defaultChecked={subscription === 'PowerBI'}
+                        {...register('subscription', {
+                          required: '*Missing entry',
+                          onChange: (e) => { setSubscription(e.target.value) }
+                        })}
+                      />
+                    </span>
+                    <span className="label">PowerBI</span>
+                  </label>
+                  <label className={classNames('radio')}>
+                    <span className="wrapper">
+                      <input
+                        type="radio"
+                        className="ff-only"
+                        value="Fabric"
+                        name="subscription"
+                        defaultChecked={subscription === 'Fabric'}
+                        {...register('subscription', {
+                          required: '*Missing entry',
+                          onChange: (e) => { setSubscription(e.target.value) }
+                        })}
+                      />
+                    </span>
+                    <span className="label">Fabric</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+            <div className={Styles.col2}>
+              <div className={classNames('input-field-group')}>
+                <Controller
+                  control={control}
+                  name="projectDetails"
+                  rules={{
+                    required: isProjectDetailsRequired ? '*Missing entry' : false,
+                  }}
+                  render={({ field }) => (
+                    <TypeAheadBox
+                      label={'Project Details *'}
+                      placeholder={'Search Project Name'}
+                      defaultValue={selectedProject?.projectID}
+                      list={filteredProjects}
+                      setSelected={(selectedProject) => {
+                        setSelectedProject(selectedProject || {});
+                        field.onChange(selectedProject?.projectID || '');
+                      }}
+                      onInputChange={(value, showSpinner) =>
+                        handleProjectSearch(value, showSpinner, selectedDivision)
+                      }
+                      required={false}
+                      showError={errors.projectDetails?.message}
+                      render={(item) => {
+                        const stakeholderIds = item?.stakeholders?.map((s) => s.userID).join(', ') || '—';
+                        const tagValues = item?.tags?.map((t) => t.value).join(', ') || '—';
+
+                        return (
+                          <div className={Styles.optionContainer}>
+                            <div className={Styles.optionHeader}>
+                              <span className={Styles.optionText}>
+                                {item?.projectID ? `${item.projectID} — ${item.projectName}` : item.projectName}
+                              </span>
+                              {item?.division && (
+                                <span className={Styles.suggestionListBadge}>{item.division}</span>
+                              )}
+                            </div>
+                            {stakeholderIds !== '—' && (
+                              <div className={Styles.optionSubText}>
+                                <strong>Stakeholders:</strong> {stakeholderIds}
+                              </div>
+                            )}
+                            {tagValues !== '—' && (
+                              <div className={Styles.optionSubText}>
+                                <strong>Tags:</strong> {tagValues}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      }}
+                    />
+                  )}
+                />
+              </div>
+            </div>
             {typeOfProject !== 'Playground' &&
               <>
                 <div className={Styles.col2}>
@@ -721,6 +865,7 @@ const isLeanIXRequired = typeOfProject === 'Production' && mandate;
                         autoComplete="off"
                         maxLength={55}
                         defaultValue={archerId}
+                        disabled={isRestrictedEdit}
                         {...register('archerId', { pattern: /^(INFO)-\d{1,10}$/, onChange: (e) => { setArcherID(e.target.value) } })}
                       />
                       <span className={'error-message'}>{errors.archerId?.type === 'pattern' && 'Archer ID should be of type INFO-XXXXX'}</span>
@@ -741,6 +886,7 @@ const isLeanIXRequired = typeOfProject === 'Production' && mandate;
                         autoComplete="off"
                         maxLength={55}
                         defaultValue={procedureId}
+                        disabled={isRestrictedEdit}
                         {...register('procedureId', { pattern: /^(PO|ITPLC)-\d{1,10}$/, onChange: (e) => { setProcedureID(e.target.value) } })}
                       />
                       <span className={'error-message'}>{errors.procedureId?.type === 'pattern' && 'Procedure ID should be of type PO-XXXXX / ITPLC-XXXXX'}</span>
