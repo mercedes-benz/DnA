@@ -654,7 +654,9 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 					attachAppAuthoriserPluginResponse = attachAppAuthoriserPluginToService(appAuthoriserPluginRequestVO, serviceName, cloudServiceProvider);
 				}
 				else {
-					
+
+					GenericMessage deletePluginResponse = new GenericMessage();
+
 					//deleting cors plugin
 					deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,CORS_PLUGIN,cloudServiceProvider);
 					LOGGER.info("kong deleting one api plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
@@ -668,7 +670,6 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 					attachCorsPluginResponse.getErrors(), attachCorsPluginResponse.getWarnings());
 
 					//deleteing jwt issuer plugin if any
-					GenericMessage deletePluginResponse = new GenericMessage();
 					deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,JWTISSUER_PLUGIN,cloudServiceProvider);
 					LOGGER.info("kong deleting jwt issuer plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
 					deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
