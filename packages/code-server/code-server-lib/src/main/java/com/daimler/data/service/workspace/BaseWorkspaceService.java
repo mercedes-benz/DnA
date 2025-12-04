@@ -1700,7 +1700,7 @@
 
 							if (retainedCount >= retainedBuildLimit) {
 								MessageDescription invalidMsg = new MessageDescription();
-								invalidMsg.setMessage("Maximum build limit reached (" + retainedCount + "). Please delete older retained images before triggering a new build.You can delete a build from Manage Build in the context menu.");
+								invalidMsg.setMessage("Maximum build image retention limit reached (You currently have " + retainedCount + " retained images). The maximum allowed is 5. Please delete older retained images before triggering a new build. You can delete a build from Manage Build in the context menu.");
 								GenericMessage errorMessage = new GenericMessage();
 								errorMessage.addErrors(invalidMsg);
 

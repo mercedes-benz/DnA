@@ -239,7 +239,7 @@ public class BuildDeployController implements CodeServerBuildDeployServiceApi {
 
             if (retainedCount >= retainedBuildLimit) {
                 MessageDescription invalidMsg = new MessageDescription();
-                invalidMsg.setMessage("Maximum build limit reached (" + retainedCount + "). Please delete older retained images before triggering a new build.");
+                invalidMsg.setMessage("Maximum build image retention limit reached (You currently have " + retainedCount + " retained images). The maximum allowed is 5. Please delete older retained images before triggering a new build.");
                 GenericMessage errorMessage = new GenericMessage();
                 errorMessage.addErrors(invalidMsg);
                 log.info("User {} attempted to build workspace {} but retained image limit reached ({} builds).",
