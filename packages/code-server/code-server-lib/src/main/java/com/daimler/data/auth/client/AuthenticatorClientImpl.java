@@ -654,6 +654,12 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 					attachAppAuthoriserPluginResponse = attachAppAuthoriserPluginToService(appAuthoriserPluginRequestVO, serviceName, cloudServiceProvider);
 				}
 				else {
+					
+					//deleting cors plugin
+					deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,CORS_PLUGIN,cloudServiceProvider);
+					LOGGER.info("kong deleting one api plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
+					deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
+
 					//attaching cors plugin to deployments
 					LOGGER.info("kongApiForDeploymentURL is true, calling CORS plugin " );
 					LOGGER.info("cors plugin request vo is {}",attachCorsPluginRequestVO);
