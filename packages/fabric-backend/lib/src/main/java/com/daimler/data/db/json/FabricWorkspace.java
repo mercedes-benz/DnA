@@ -51,6 +51,7 @@ public class FabricWorkspace implements Serializable{
 	private String appId;
 	private LeanIXDetails leanIXDetails;
 	private String projectId;
+	private String subscription;
 	private Date lastModifiedOn;
 	private CdcPublishedLakeHouseDetails cdcPublishedLakeHouseDetails;
 }

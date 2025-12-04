@@ -6,6 +6,20 @@ const getFabricWorkspaces = (offset, limit) => {
   });
 };
 
+const getFabricWorkspacesForAdmin = (offset, limit, search = '') => {
+  let url = `/fabric-workspaces/admin/workspaces?limit=${limit}&offset=${offset}`;
+  if (search && search.trim() !== '') {
+    url += `&search=${encodeURIComponent(search.trim())}`;
+  }
+  return server.get(url, { data: {} });
+};
+
+const searchProjectDetails = (projectName) => {
+  return server.get(`/fabric-workspaces/searchADAProjects?projectName=${projectName}`, {
+    data: {},
+  });
+};
+
 const createFabricWorkspace = (data) => {
   return server.post(`/fabric-workspaces`, {
     data,
@@ -157,6 +171,8 @@ const takeOwnership = (id) => {
 
 export const fabricApi = {
   getFabricWorkspaces,
+  getFabricWorkspacesForAdmin,
+  searchProjectDetails,
   getFabricWorkspace,
   createFabricWorkspace,
   updateFabricWorkspace,

@@ -28,16 +28,24 @@
 package com.daimler.data.db.repo.fabric;
 
 import java.math.BigInteger;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.Collections;
 
 import javax.persistence.Query;
+import javax.persistence.TypedQuery;
+import javax.persistence.criteria.CriteriaBuilder;
+import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Predicate;
+import javax.persistence.criteria.Root;
 
 import org.springframework.stereotype.Repository;
 
 import com.daimler.data.db.entities.FabricWorkspaceNsql;
 import com.daimler.data.db.json.FabricWorkspace;
 import com.daimler.data.db.repo.common.CommonDataRepositoryImpl;
+import com.daimler.data.util.ConstantsUtility;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.extern.slf4j.Slf4j;
@@ -87,6 +95,87 @@ public class FabricWorkspaceCustomRepositoryImpl extends CommonDataRepositoryImp
 			return entity;
 		}).collect(Collectors.toList());
 		return convertedResults;
+	}
+
+	@Override
+	public long getTotalCountForAdmin(String search) {
+		try {
+			CriteriaBuilder cb = em.getCriteriaBuilder();
+			CriteriaQuery<Long> cq = cb.createQuery(Long.class);
+			Root<FabricWorkspaceNsql> root = cq.from(FabricWorkspaceNsql.class);
+			List<Predicate> predicates = new ArrayList<>();
+			
+			Predicate notDeleted = cb.notEqual(
+					cb.lower(cb.function("jsonb_extract_path_text", String.class,
+							root.get("data"), cb.literal("status"), cb.literal("state"))),
+					"deleted");
+			predicates.add(notDeleted);
+
+			if (search != null && !search.trim().isEmpty()) {
+				Predicate nameLike = cb.like(
+						cb.lower(cb.function("jsonb_extract_path_text", String.class,
+								root.get("data"), cb.literal("name"))),
+						"%" + search.trim().toLowerCase() + "%");
+				predicates.add(nameLike);
+			}
+			cq.select(cb.count(root));
+			cq.where(cb.and(predicates.toArray(new Predicate[0])));
+
+			TypedQuery<Long> query = em.createQuery(cq);
+			Long result = query.getSingleResult();
+			return result != null ? result : 0L;
+
+		} catch (Exception e) {
+			log.error("Error counting Fabric workspaces (search='{}'): {}", search, e.getMessage(), e);
+			return 0L;
+		}
+	}
+
+	@Override
+	public List<FabricWorkspaceNsql> getAllForAdmin(int limit, int offset, String search) {
+		try {
+			CriteriaBuilder cb = em.getCriteriaBuilder();
+			CriteriaQuery<FabricWorkspaceNsql> cq = cb.createQuery(FabricWorkspaceNsql.class);
+			Root<FabricWorkspaceNsql> root = cq.from(FabricWorkspaceNsql.class);
+
+			List<Predicate> predicates = new ArrayList<>();
+
+			Predicate notDeleted = cb.notEqual(
+					cb.lower(cb.function("jsonb_extract_path_text", String.class,
+							root.get("data"), cb.literal("status"), cb.literal("state"))),
+					"deleted");
+			predicates.add(notDeleted);
+
+			if (search != null && !search.trim().isEmpty()) {
+				Predicate nameLike = cb.like(
+						cb.lower(cb.function("jsonb_extract_path_text", String.class,
+								root.get("data"), cb.literal("name"))),
+						"%" + search.trim().toLowerCase() + "%");
+				predicates.add(nameLike);
+			}
+			cq.select(root);
+			cq.where(cb.and(predicates.toArray(new Predicate[0])));
+			cq.orderBy(cb.asc(
+					cb.function("jsonb_extract_path_text", String.class,
+							root.get("data"), cb.literal("name"))));
+
+			TypedQuery<FabricWorkspaceNsql> query = em.createQuery(cq);
+
+			if (limit > 0) {
+				query.setMaxResults(limit);
+			}
+			if (offset >= 0) {
+				query.setFirstResult(offset);
+			}
+
+			List<FabricWorkspaceNsql> results = query.getResultList();
+			log.info("Found {} workspaces (search='{}')", results.size(), search);
+			return results;
+
+		} catch (Exception e) {
+			log.error("Error fetching Fabric workspaces (search='{}'): {}", search, e.getMessage(), e);
+			return Collections.emptyList();
+		}
 	}
 
 }
