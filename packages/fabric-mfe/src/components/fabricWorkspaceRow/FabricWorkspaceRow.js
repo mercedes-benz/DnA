@@ -5,9 +5,11 @@ import Styles from './fabric-workspace-row.scss';
 import Tooltip from '../../common/modules/uilab/js/src/tooltip';
 import { regionalDateAndTimeConversionSolution } from '../../utilities/utils';
 import Spinner from '../spinner/Spinner';
+import { USER_ROLE } from '../../utilities/constants';
 
 const FabricWorkspaceRow = ({user, workspace, onSelectWorkspace, onEditWorkspace, onDeleteWorkspace}) => {
   const history = useHistory();
+  const isAdmin = user.roles.find(role => role.id === USER_ROLE.FABRICADMIN);
 
   useEffect(() => {
     Tooltip.defaultSetup();
@@ -50,7 +52,7 @@ const FabricWorkspaceRow = ({user, workspace, onSelectWorkspace, onEditWorkspace
         {workspace?.dataClassification}
       </div>
       <div className={Styles.col6}>
-        {user?.id === workspace?.createdBy?.id &&
+        {(user?.id === workspace?.createdBy?.id || isAdmin) &&
           <div className={Styles.btnTblGrp}>
             <button
               className={classNames('btn btn-primary', Styles.projectLink)}
