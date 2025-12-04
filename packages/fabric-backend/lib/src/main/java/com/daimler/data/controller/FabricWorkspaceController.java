@@ -122,7 +122,7 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 			return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
 		}else {
 				if(workspaceRequestVO.getDescription()==null || workspaceRequestVO.getDivision() == null || workspaceRequestVO.getDataClassification() ==null
-				|| workspaceRequestVO.isHasPii() == null || workspaceRequestVO.isTermsOfUse() == null  || workspaceRequestVO.getDepartment() == null || workspaceRequestVO.getProjectId() == null || workspaceRequestVO.getSubscription() == null) {
+				|| workspaceRequestVO.isHasPii() == null || workspaceRequestVO.isTermsOfUse() == null  || workspaceRequestVO.getDepartment() == null || workspaceRequestVO.getSubscription() == null) {
 					log.error("Fabric workspace project mandatory fields cannot be null for project, please check and send valid input.");
 					MessageDescription invalidMsg = new MessageDescription("Fabric workspace project mandatory fields cannot be null for project, please check and send valid input.");
 					errorMessage.setSuccess(HttpStatus.BAD_REQUEST.name());
@@ -777,8 +777,8 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 				existingFabricWorkspace.setAppId(workspaceUpdateRequestVO.getAppId());			
 			if (workspaceUpdateRequestVO.getLeanIXDetails() != null)
 				existingFabricWorkspace.setLeanIXDetails(workspaceUpdateRequestVO.getLeanIXDetails());
-			if(workspaceUpdateRequestVO.getProjectId() != null)
-				existingFabricWorkspace.setProjectId(workspaceUpdateRequestVO.getProjectId());
+			// if(workspaceUpdateRequestVO.getProjectId() != null)
+			// 	existingFabricWorkspace.setProjectId(workspaceUpdateRequestVO.getProjectId());
 			if(workspaceUpdateRequestVO.getSubscription() !=null)
 				existingFabricWorkspace.setSubscription(FabricWorkspaceVO.SubscriptionEnum.valueOf(workspaceUpdateRequestVO.getSubscription().name()));
 			
