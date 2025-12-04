@@ -3637,6 +3637,15 @@ import org.springframework.beans.factory.annotation.Value;
 
 			String userId = currentUser.getId().toLowerCase();
 
+			String workspaceId = path.contains("/") ? path.split("/")[0] : path;
+
+			CodeServerWorkspaceNsql workspace = workspaceCustomRepository.findByWorkspaceId(workspaceId);
+			if (workspace == null) {
+				log.warn("Workspace not found for path={}", path);
+				return ResponseEntity.status(HttpStatus.NOT_FOUND)
+						.body("Workspace not found.");
+			}
+
 			boolean isOwner = vo.getProjectDetails() != null && 
 							  vo.getProjectDetails().getProjectOwner() != null &&
 							  userId.equalsIgnoreCase(vo.getProjectDetails().getProjectOwner().getId());
@@ -3720,6 +3729,16 @@ import org.springframework.beans.factory.annotation.Value;
 				return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
 						.body("User not authenticated.");
 			}
+
+			String workspaceId = path.contains("/") ? path.split("/")[0] : path;
+
+			CodeServerWorkspaceNsql workspace = workspaceCustomRepository.findByWorkspaceId(workspaceId);
+			if (workspace == null) {
+				log.warn("Workspace not found for path={}", path);
+				return ResponseEntity.status(HttpStatus.NOT_FOUND)
+						.body("Workspace not found.");
+			}
+
 
 			String userId = currentUser.getId().toLowerCase();
 
@@ -3808,6 +3827,15 @@ import org.springframework.beans.factory.annotation.Value;
 						.body("User not authenticated.");
 			}
 
+			String workspaceId = path.contains("/") ? path.split("/")[0] : path;
+
+			CodeServerWorkspaceNsql workspace = workspaceCustomRepository.findByWorkspaceId(workspaceId);
+			if (workspace == null) {
+				log.warn("Workspace not found for path={}", path);
+				return ResponseEntity.status(HttpStatus.NOT_FOUND)
+						.body("Workspace not found.");
+			}
+			
 			String userId = currentUser.getId().toLowerCase();
 
 			boolean isOwner = vo.getProjectDetails() != null && 
