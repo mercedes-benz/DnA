@@ -25,14 +25,18 @@ public class VaultAuthorizationServiceClient {
         try {
             HttpHeaders headers = new HttpHeaders();
             headers.set("Authorization", apiKey);
-            headers.setAccept(MediaType.parseMediaTypes(MediaType.APPLICATION_JSON_VALUE));
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.set("Accept", "application/json");
 
             String url = UriComponentsBuilder
                     .fromHttpUrl(baseUrl + "/secret/" + codeSpaceName + "/" + env)
                     .toUriString();
 
-            log.info("Fetching secret from Vault API: {}", url);
-            return restTemplate.exchange(url, HttpMethod.GET, new HttpEntity<>(headers), String.class);
+            
+            ResponseEntity<String> response =
+             restTemplate.exchange(url, HttpMethod.GET, new HttpEntity<>(headers), String.class);
+             
+             return response;
 
         } catch (Exception e) {
             log.error("Error calling Vault service getSecret: {}", e.getMessage(), e);
@@ -46,6 +50,7 @@ public class VaultAuthorizationServiceClient {
             HttpHeaders headers = new HttpHeaders();
             headers.set("Authorization", apiKey);
             headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.set("Accept", "application/json");
 
             String url = baseUrl + "/secret/" + path;
             HttpEntity<String> entity = new HttpEntity<>(secretJson, headers);
@@ -65,6 +70,7 @@ public class VaultAuthorizationServiceClient {
             HttpHeaders headers = new HttpHeaders();
             headers.set("Authorization", apiKey);
             headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.set("Accept", "application/json");
 
             String url = baseUrl + "/secret/" + path + "/" + env;
             HttpEntity<String> entity = new HttpEntity<>(secretJson, headers);
@@ -82,7 +88,8 @@ public class VaultAuthorizationServiceClient {
         try {
             HttpHeaders headers = new HttpHeaders();
             headers.set("Authorization", apiKey);
-            headers.setAccept(MediaType.parseMediaTypes(MediaType.APPLICATION_JSON_VALUE));
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            headers.set("Accept", "application/json");
 
             String url = baseUrl + "/secret/" + path + "/" + secretName;
             HttpEntity<Void> entity = new HttpEntity<>(headers);

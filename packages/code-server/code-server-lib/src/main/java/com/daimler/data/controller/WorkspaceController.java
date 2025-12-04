@@ -3546,7 +3546,7 @@ import org.springframework.beans.factory.annotation.Value;
 
 		Boolean isAdmin =false;
 
-		List<UserInfoVO>collabList =vo.getProjectDetails().getProjectCollaborators();
+		List<UserInfoVO>collabList = vo.getProjectDetails() != null ? vo.getProjectDetails().getProjectCollaborators() : null;
 		if(collabList!=null){
 			for(UserInfoVO user : collabList){
 				if(userId.equalsIgnoreCase(user.getId())){
@@ -3557,7 +3557,7 @@ import org.springframework.beans.factory.annotation.Value;
 			}
 		}
 
-		boolean hasWorkspaceAccess = isAdmin && (userId.equalsIgnoreCase(workspaceData.getWorkspaceOwner().getId()) ||
+		boolean hasWorkspaceAccess = isAdmin || (userId.equalsIgnoreCase(workspaceData.getWorkspaceOwner().getId()) ||
 				workspaceData.getProjectDetails()
 						.getProjectCollaborators()
 						.stream()
@@ -3637,9 +3637,13 @@ import org.springframework.beans.factory.annotation.Value;
 
 			String userId = currentUser.getId().toLowerCase();
 
+			boolean isOwner = vo.getProjectDetails() != null && 
+							  vo.getProjectDetails().getProjectOwner() != null &&
+							  userId.equalsIgnoreCase(vo.getProjectDetails().getProjectOwner().getId());
+
 			Boolean isAdmin = false;
 
-			List<UserInfoVO> collabList = vo.getProjectDetails().getProjectCollaborators();
+			List<UserInfoVO> collabList = vo.getProjectDetails() != null ? vo.getProjectDetails().getProjectCollaborators() : null;
 			if (collabList != null) {
 				for (UserInfoVO user : collabList) {
 					if (userId.equalsIgnoreCase(user.getId())) {
@@ -3650,33 +3654,10 @@ import org.springframework.beans.factory.annotation.Value;
 				}
 			}
 
-			if (!isAdmin) {
-				log.warn("Access denied: User {} is not an Admin", currentUser.getId());
+			if (!isOwner && !isAdmin) {
+				log.warn("Access denied: User {} is not the owner or an admin for workspace {}", currentUser.getId(), path);
 				return ResponseEntity.status(HttpStatus.FORBIDDEN)
-						.body("Access denied: Only Admins can create secrets.");
-			}
-
-			String workspaceId = path.contains("/") ? path.split("/")[0] : path;
-
-			CodeServerWorkspaceNsql workspace = workspaceCustomRepository.findByWorkspaceId(workspaceId);
-			if (workspace == null) {
-				log.warn("Workspace not found for path={}", path);
-				return ResponseEntity.status(HttpStatus.NOT_FOUND)
-						.body("Workspace not found.");
-			}
-
-			var workspaceData = workspace.getData();
-
-			boolean hasWorkspaceAccess = userId.equalsIgnoreCase(workspaceData.getWorkspaceOwner().getId()) ||
-					workspaceData.getProjectDetails()
-							.getProjectCollaborators()
-							.stream()
-							.anyMatch(c -> userId.equalsIgnoreCase(c.getId()));
-
-			if (!hasWorkspaceAccess) {
-				log.warn("User {} does not have access to workspace {}", userId, workspaceId);
-				return ResponseEntity.status(HttpStatus.FORBIDDEN)
-						.body("Access denied: You don’t have permission to this workspace.");
+						.body("Access denied: Only workspace owner or admins can create secrets.");
 			}
 
 			String secretJson = new ObjectMapper().writeValueAsString(secretValue);
@@ -3742,9 +3723,13 @@ import org.springframework.beans.factory.annotation.Value;
 
 			String userId = currentUser.getId().toLowerCase();
 
+			boolean isOwner = vo.getProjectDetails() != null && 
+							  vo.getProjectDetails().getProjectOwner() != null &&
+							  userId.equalsIgnoreCase(vo.getProjectDetails().getProjectOwner().getId());
+
 			Boolean isAdmin = false;
 
-			List<UserInfoVO> collabList = vo.getProjectDetails().getProjectCollaborators();
+			List<UserInfoVO> collabList = vo.getProjectDetails() != null ? vo.getProjectDetails().getProjectCollaborators() : null;
 			if (collabList != null) {
 				for (UserInfoVO user : collabList) {
 					if (userId.equalsIgnoreCase(user.getId())) {
@@ -3755,33 +3740,10 @@ import org.springframework.beans.factory.annotation.Value;
 				}
 			}
 
-			if (!isAdmin) {
-				log.warn("Access denied: User {} is not an Admin", currentUser.getId());
+			if (!isOwner && !isAdmin) {
+				log.warn("Access denied: User {} is not the owner or an admin for workspace {}", currentUser.getId(), path);
 				return ResponseEntity.status(HttpStatus.FORBIDDEN)
-						.body("Access denied: Only Admins can update secrets.");
-			}
-
-			String workspaceId = path.contains("/") ? path.split("/")[0] : path;
-
-			CodeServerWorkspaceNsql workspace = workspaceCustomRepository.findByWorkspaceId(workspaceId);
-			if (workspace == null) {
-				log.warn("Workspace not found for path={}", path);
-				return ResponseEntity.status(HttpStatus.NOT_FOUND)
-						.body("Workspace not found.");
-			}
-
-			var workspaceData = workspace.getData();
-
-			boolean hasWorkspaceAccess = userId.equalsIgnoreCase(workspaceData.getWorkspaceOwner().getId()) ||
-					workspaceData.getProjectDetails()
-							.getProjectCollaborators()
-							.stream()
-							.anyMatch(c -> userId.equalsIgnoreCase(c.getId()));
-
-			if (!hasWorkspaceAccess) {
-				log.warn("User {} does not have access to workspace {}", userId, workspaceId);
-				return ResponseEntity.status(HttpStatus.FORBIDDEN)
-						.body("Access denied: You don’t have permission to this workspace.");
+						.body("Access denied: Only workspace owner or admins can update secrets.");
 			}
 			String secretJson = new com.fasterxml.jackson.databind.ObjectMapper().writeValueAsString(secretValue);
 			ResponseEntity<String> vaultResponse = vaultClient.updateSecret(path, env, secretJson);
@@ -3848,9 +3810,13 @@ import org.springframework.beans.factory.annotation.Value;
 
 			String userId = currentUser.getId().toLowerCase();
 
+			boolean isOwner = vo.getProjectDetails() != null && 
+							  vo.getProjectDetails().getProjectOwner() != null &&
+							  userId.equalsIgnoreCase(vo.getProjectDetails().getProjectOwner().getId());
+
 			Boolean isAdmin = false;
 
-			List<UserInfoVO> collabList = vo.getProjectDetails().getProjectCollaborators();
+			List<UserInfoVO> collabList = vo.getProjectDetails() != null ? vo.getProjectDetails().getProjectCollaborators() : null;
 			if (collabList != null) {
 				for (UserInfoVO user : collabList) {
 					if (userId.equalsIgnoreCase(user.getId())) {
@@ -3860,38 +3826,14 @@ import org.springframework.beans.factory.annotation.Value;
 					}
 				}
 			}
-			if (!isAdmin) {
-				log.warn("Access denied: User {} is not an Admin", currentUser.getId());
+			if (!isOwner && !isAdmin) {
+				log.warn("Access denied: User {} is not the owner or an admin for workspace {}", currentUser.getId(), path);
 				return ResponseEntity.status(HttpStatus.FORBIDDEN)
-						.body("Access denied: Only Admins can delete secrets.");
-			}
-
-			String workspaceId = path.contains("/") ? path.split("/")[0] : path;
-
-			CodeServerWorkspaceNsql workspace = workspaceCustomRepository.findByWorkspaceId(workspaceId);
-			if (workspace == null) {
-				log.warn("Workspace not found for path={}", path);
-				return ResponseEntity.status(HttpStatus.NOT_FOUND)
-						.body("Workspace not found.");
-			}
-
-			var workspaceData = workspace.getData();
-			boolean hasWorkspaceAccess = userId.equalsIgnoreCase(workspaceData.getWorkspaceOwner().getId()) ||
-					workspaceData.getProjectDetails()
-							.getProjectCollaborators()
-							.stream()
-							.anyMatch(c -> userId.equalsIgnoreCase(c.getId()));
-
-			if (!hasWorkspaceAccess) {
-				log.warn("User {} does not have access to workspace {}", userId, workspaceId);
-				return ResponseEntity.status(HttpStatus.FORBIDDEN)
-						.body("Access denied: You don’t have permission to this workspace.");
+						.body("Access denied: Only workspace owner or admins can delete secrets.");
 			}
 			ResponseEntity<String> vaultResponse = vaultClient.deleteSecret(path, secretName);
 
 			if (vaultResponse == null) {
-				log.error("Vault service returned null while deleting secret for path={}, secretName={}", path,
-						secretName);
 				return new ResponseEntity<>("Vault service unavailable", HttpStatus.INTERNAL_SERVER_ERROR);
 			}
 
