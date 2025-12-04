@@ -356,7 +356,7 @@ const mandate = divisionId && Envs.MANDATE_LEANIX_FOR_DIVISIONS
   ? Envs.MANDATE_LEANIX_FOR_DIVISIONS.split(',').includes(divisionId) 
   : false;
 const isLeanIXRequired = typeOfProject === 'Production' && mandate;
-const isProjectDetailsRequired = typeOfProject === 'Production' && mandate;
+// const isProjectDetailsRequired = typeOfProject === 'Production' && mandate;
 
   return (
     <>
@@ -799,12 +799,12 @@ const isProjectDetailsRequired = typeOfProject === 'Production' && mandate;
                 <Controller
                   control={control}
                   name="projectDetails"
-                  rules={{
-                    required: isProjectDetailsRequired ? '*Missing entry' : false,
-                  }}
+                  // rules={{
+                  //   required: isProjectDetailsRequired ? '*Missing entry' : false,
+                  // }}
                   render={({ field }) => (
                     <TypeAheadBox
-                      label={'Project Details *'}
+                      label={'Project Details '}
                       placeholder={'Search Project Name'}
                       defaultValue={selectedProject?.projectID}
                       list={filteredProjects}
