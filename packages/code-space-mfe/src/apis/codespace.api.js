@@ -1,4 +1,4 @@
-import { server, hostServer, reportsServer, vaultServer, storageServer, fabricServer, baseURL, readJwt} from '../server/api';
+import { server, hostServer, reportsServer, storageServer, fabricServer, baseURL, readJwt} from '../server/api';
 import { EventSourcePolyfill } from 'event-source-polyfill';
 import { Envs } from '../Utility/envs';
 
@@ -343,16 +343,12 @@ const publishSecurityConfigRequest = (id) => { //not used
     });
 };
 
-const read_secret = (codeSpaceName, env) => { 
-    return vaultServer.get(`/secret/${codeSpaceName}/${env}`, {
-        data: {},
-    });
+const read_secret = (codeSpaceName, env) => {
+    return server.get(`/vault/secrets?codeSpaceName=${codeSpaceName}&env=${env}`);
 };
 
-const update_secret = (path, secret_value, env) => { 
-    return vaultServer.put(`/secret/${path}/${env}`, 
-        secret_value,
-    );
+const update_secret = (path, secret_value, env) => {
+    return server.put(`/vault/secrets?path=${path}&env=${env}`, secret_value);
 };
 
 const startStopWorkSpace = (id, serverStarted, env, manual) => { 
