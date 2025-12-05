@@ -2961,7 +2961,6 @@
 				   if(optionalBuildDeployentity != null){
 					   buildDeployentity = optionalBuildDeployentity;
 					   buildDeployData = buildDeployentity.getData();
-					   Boolean keepBuildImage = false;
 					   Boolean buildImageDeleted = false;
 					   if("int".equalsIgnoreCase(targetEnv)){							
 						   int lastIndex = buildDeployData.getIntBuildAuditLogs().size() - 1;
