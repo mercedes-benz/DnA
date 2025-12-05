@@ -1303,6 +1303,31 @@
 						List<String> repoDetails = CommonUtils.getRepoNameFromGitUrl(vo.getProjectDetails().getRecipeDetails().getRepodetails());
 						String orgName = repoDetails.get(0);
 						repoName = repoDetails.get(1);
+						String gitHubUrl = "https://" + gitOrgUri + orgName ;
+						if(vo.getProjectDetails().getRecipeDetails().getRepodetails().contains(gitHubUrl)){
+						HttpStatus addGitUser = gitClient.addUserToRepo(collaborator.getId(), repoName);
+					
+					 if (addGitUser == HttpStatus.UNPROCESSABLE_ENTITY) {
+									log.info("Failed while adding {} as collaborator with status {}",collaborator.getId(), addGitUser.name());
+									MessageDescription errMsg = new MessageDescription(
+											"Failed while adding " + collaborator.getId()
+													+ " as collaborator, Because"
+													+ " the Git user account Suspended, please ask the user to Login again and add this user manually in the git repo.");
+									errors.add(errMsg);
+									responseVO.setSuccess("FAILED");
+									responseVO.setErrors(errors);
+									return responseVO;
+								}
+								if (!addGitUser.is2xxSuccessful()) {
+									MessageDescription warnMsg = new MessageDescription("Failed while adding " + collaborator.getId()
+											+ " as collaborator to repository. Please add manually and try again.");
+									log.info(
+											"Failed while adding {} as collaborator to repository. Please add manually",
+											collaborator.getId());
+									warnings.add(warnMsg);
+									responseVO.setWarnings(warnings);
+								}
+					}else{
 						HttpStatus status = gitClient.isUserCollaborator(orgName, collaborator.getId(), repoName);
 						if(!status.is2xxSuccessful()) {
 							log.info("Collaborator {} Addition failed for recipe {}  ",collaborator.getId(),vo.getProjectDetails().getRecipeDetails().getRecipeId());
@@ -1313,8 +1338,9 @@
 							responseVO.setData(null);
 							return responseVO;
 						}
-						ownerCollab.add(workspaceAssembler.toUserInfo(collaborator));
-					}else{
+					}
+					ownerCollab.add(workspaceAssembler.toUserInfo(collaborator));
+				}else{
 						ownerCollab.add(workspaceAssembler.toUserInfo(collaborator));
 					}
 					 CodeServerWorkspaceNsql collabEntity = new CodeServerWorkspaceNsql();
@@ -2341,7 +2367,31 @@
 					List<String> repoDetails = CommonUtils.getRepoNameFromGitUrl(vo.getProjectDetails().getRecipeDetails().getRepodetails());
 					String repoOwner = repoDetails.get(0);
 					repoName = repoDetails.get(1);
-					HttpStatus status = gitClient.isUserCollaborator(repoOwner,gitUser, repoName);
+					String gitHubUrl = "https://" + gitOrgUri + orgName ;
+					if(gitUrl.contains(gitHubUrl)){
+						HttpStatus addGitUser = gitClient.addUserToRepo(gitUser, repoName);
+					if(addGitUser == HttpStatus.UNPROCESSABLE_ENTITY){
+						log.info("Failed while adding {} as collaborator with status {}", repoName,
+								userRequestDto.getGitUserName(), addGitUser.name());
+						MessageDescription errMsg = new MessageDescription(
+								"Failed while adding " + userRequestDto.getGitUserName() + " as collaborator, Because"
+										+ " the Git user account Suspended, please ask the user to Login again and add this user manually in the git repo.");
+						errors.add(errMsg);
+						responseMessage.setSuccess("FAILED");
+						responseMessage.setErrors(errors); 
+						return responseMessage;
+					}
+					 if (!addGitUser.is2xxSuccessful()) {
+						 log.info("Failed while adding {} as collaborator with status {}", repoName,
+								 userRequestDto.getGitUserName(), addGitUser.name());
+						 MessageDescription errMsg = new MessageDescription(
+								 "Failed while adding " + userRequestDto.getGitUserName() + " as collaborator . Please make "
+										 + userRequestDto.getGitUserName()
+										 + " is valid git user and add this user manually in the git repo.");
+						 warnings.add(errMsg);
+					 }
+					}else{
+						HttpStatus status = gitClient.isUserCollaborator(repoOwner,gitUser, repoName);
 					if(!status.is2xxSuccessful()){
 						log.info("Cannot add User {} as collaborator because the user is  not a collaborator to the private repo {}",userRequestDto.getGitUserName(),repoName);
 						MessageDescription msg = new MessageDescription("Cannot add User "+userRequestDto.getGitUserName()+" as collaborator because the user is  not a collaborator to the private repo "+repoName+" add the user to the repo and try again");
@@ -2350,6 +2400,8 @@
 						responseMessage.setErrors(errors); 
 						return responseMessage;
 					}
+					}
+					
 				}
  
 				 if(! (vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")
