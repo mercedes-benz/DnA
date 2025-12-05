@@ -1,0 +1,79 @@
+server: "https://kubernetes.default.svc"
+# Environment to deploy it  (dev|test|prod)
+env: prod
+branch: main
+namespace: argocd
+repoURL: "https://git.i.mercedes-benz.com/DNA/NeuDnAPlatform.git"
+enableSync: true
+gitRepo:
+  username: <path:dna_aws_kv/data/prod/kubernetesSecret/argocd#username | base64encode>
+  password: <path:dna_aws_kv/data/prod/kubernetesSecret/argocd#password | base64encode>
+
+annotations: 
+  notifications.argoproj.io/subscribe.on-created.teams: channelName
+  notifications.argoproj.io/subscribe.on-deleted.teams: channelName
+  notifications.argoproj.io/subscribe.on-deployed.teams: channelName
+  notifications.argoproj.io/subscribe.on-health-degraded.teams: channelName
+  notifications.argoproj.io/subscribe.on-sync-failed.teams: channelName
+  notifications.argoproj.io/subscribe.on-sync-running.teams: channelName
+  notifications.argoproj.io/subscribe.on-sync-status-unknown.teams: channelName
+  notifications.argoproj.io/subscribe.on-sync-succeeded.teams: channelName
+  argocd.argoproj.io/manifest-generate-paths: .
+repositories:
+  - name: dna-kong
+    url: https://git.i.mercedes-benz.com/DNA/dna-kong.git
+    
+  ### Adding BAT Project repos
+  - name: bat-helm-charts
+    url: https://git.i.mercedes-benz.com/BAT/bat-helm-charts.git
+  - name: bat-infra
+    url: https://git.i.mercedes-benz.com/BAT/bat-infra.git
+  - name: bat-i3-postgresql
+    url: https://git.i.mercedes-benz.com/i3/i3-postgresql.git
+
+  ### Adding Byron 
+
+  - name: byron-chat
+    url: https://git.i.mercedes-benz.com/DNA-CodeSpaces/byron-chat-bot.git
+
+db:
+ - name: wbv
+   env: dev
+ - name: wbv
+   env: test
+ - name: wbv
+   env: uat 
+ - name: minerva
+   env: dev
+ - name: minerva
+   env: prod
+ - name: seatsync
+   env: dev
+ - name: profit-support
+   env: prod
+ - name: sct-be
+   env: prod
+ - name: costagent
+   env: prod
+ - name: code-server
+   env: prod  
+ - name: ai-agentic
+   env: prod 
+ - name: hot-portfolio
+   env: prod 
+ - name: grc-virtualassitant
+   env: prod 
+ - name: fabric-transparency
+   env: prod
+ - name: currencytool
+   env: prod 
+ - name: scriptick-ai
+   env: prod
+ - name: digital-qua
+   env: int
+ - name: digital-qua
+   env: prod
+ - name: wbv
+   env: prod
+ - name: codewhiz
+   env: prod

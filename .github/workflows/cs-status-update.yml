@@ -1,0 +1,114 @@
+
+name: CS Status Update
+
+on:
+  workflow_call:
+    inputs:
+      status:
+        required: true
+        type: string
+      projectName:
+        required: true
+        type: string
+      action:
+        required: true
+        type: string
+      environment:
+        required: true
+        type: string
+      target_env:
+        type: string
+      branch:
+        type: string   
+      wsid:
+        required: true
+        type: string   
+      shortid:
+        required: true
+        type: string 
+      appVersion:
+        required: true
+        type: string          
+    secrets:
+      PAT:
+        required: true
+      CS_STATUS_UPDATE_DOMAIN:
+        required: true
+
+jobs:
+  status:
+    name: 'Update Status'
+    environment: ${{ inputs.environment }}
+    runs-on: [os-small-amd64-linux]
+    steps:
+
+      - name: Get Status Code
+        id: statusCode
+        run: |
+          echo  "${{ inputs.action }} ${{ inputs.status }}"
+
+          case "${{ inputs.action }}_${{ inputs.status }}" in
+            
+            build_success)
+              echo "code=BUILD_SUCCESS" >> $GITHUB_OUTPUT
+              ;;
+
+            build_failure | build_skipped)
+              echo "code=BUILD_FAILED" >> $GITHUB_OUTPUT
+              ;;
+
+            deploy_success)
+              echo "code=DEPLOYED" >> $GITHUB_OUTPUT
+              ;;
+
+            deploy_failure | deploy_skipped)
+              echo "code=DEPLOYMENT_FAILED" >> $GITHUB_OUTPUT
+              ;;
+
+            undeploy_success)
+              echo "code=UNDEPLOYED" >> $GITHUB_OUTPUT
+              ;;
+
+            undeploy_failure | undeploy_skipped)
+              echo "code=UNDEPLOY_FAILED" >> $GITHUB_OUTPUT
+              ;;
+
+            restart_success)
+              echo "code=RESTARTED" >> $GITHUB_OUTPUT
+              ;;
+              
+            restart_failure | restart_skipped)
+              echo "code=RESTART_FAILED" >> $GITHUB_OUTPUT
+              ;;              
+
+            *)
+              echo -n "Status not matched"
+              exit 1
+              ;;
+          esac
+
+
+      - name: Trigger update status API
+        id: myRequest
+        uses: CamiloGarciaLaRotta/watermelon-http-client@v1.7
+        with:
+          url: 'https://${{ secrets.CS_STATUS_UPDATE_DOMAIN }}/workspaces/${{ inputs.wsid }}/${{ inputs.shortid }}'
+          method: 'PUT'
+          headers: '{"Content-Type": "application/json", "Accept": "*/*", "Authorization": "${{ secrets.PAT }}"}'
+          data: '{"status":"${{ steps.statusCode.outputs.code }}","targetEnvironment":"${{ inputs.target_env }}","wsid":"${{ inputs.wsid }}","branch":"${{ inputs.branch }}","gitjobRunID":"${{ github.run_id }}","appVersion":"${{ inputs.appVersion }}"}'
+          fail_fast: false
+          verbose: true
+        env:
+          no_proxy: "${{ secrets.CS_STATUS_UPDATE_DOMAIN }}" 
+         
+      - name: Update status
+        run: |
+          echo ${{ steps.myRequest.outputs.status }}
+          if [ "${{ steps.myRequest.outputs.status }}" == "200" ]
+          then
+              echo "Status updated successfully!!!"
+          else
+              echo "Status updated failed"
+              echo ${{ steps.myRequest.outputs.response }}
+              exit 1 
+          fi

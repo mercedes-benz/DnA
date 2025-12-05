@@ -5,8 +5,11 @@ metadata:
   namespace: {{ .Values.namespace }}
   labels:
     name: {{ .Chart.Name }}-backend
+    app.kubernetes.io/name: {{ .Chart.Name }}-backend
 spec:
+  {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.app.backend.replicaCount }}
+  {{- end }}
   selector:
     matchLabels:
       name: {{ .Chart.Name }}-backend
@@ -14,6 +17,7 @@ spec:
     metadata:
       labels:
         name: {{ .Chart.Name }}-backend
+        app.kubernetes.io/name: {{ .Chart.Name }}-backend
       {{- if .Values.vaultInjector.enable }}      
       {{- with .Values.vaultInjector.annotations }}
       annotations:
@@ -38,7 +42,7 @@ spec:
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           {{- if .Values.vaultInjector.enable }}           
           command: ["/bin/sh", "-c"]
-          args: ['source /vault/secrets/envvar && java -jar /{{ .Values.vaultInjector.jarName }}']
+          args: ['source /vault/secrets/envvar && java -XX:+UseContainerSupport -XX:MaxRAMPercentage=98.0 -jar /{{ .Values.vaultInjector.jarName }}']
           {{ else }}          
           env:
             - name: API_DB_URL
@@ -97,7 +101,7 @@ spec:
               cpu: {{ .Values.app.resources.requests.cpu }}
             limits:
               memory: {{ .Values.app.resources.limits.memory }}
-              cpu: {{ .Values.app.resources.limits.cpu }}
+            #  cpu: {{ .Values.app.resources.limits.cpu }}
           livenessProbe:
             initialDelaySeconds: {{ .Values.app.probes.initialDelaySeconds }}
             timeoutSeconds: {{ .Values.app.probes.timeoutSeconds }}

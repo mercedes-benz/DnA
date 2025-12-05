@@ -169,6 +169,7 @@
 	 @Value("${codeServer.codespace.filename}")
 	 private String codespaceFileName;
 
+
 	 @Value("${codeServer.technical.id}")
 	 private String technicalId;
 
@@ -2960,6 +2961,7 @@
 				   if(optionalBuildDeployentity != null){
 					   buildDeployentity = optionalBuildDeployentity;
 					   buildDeployData = buildDeployentity.getData();
+					   Boolean keepBuildImage = false;
 					   Boolean buildImageDeleted = false;
 					   if("int".equalsIgnoreCase(targetEnv)){							
 						   int lastIndex = buildDeployData.getIntBuildAuditLogs().size() - 1;
