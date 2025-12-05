@@ -77,3 +77,5 @@ db:
    env: prod
  - name: codewhiz
    env: prod
+ - name: ai-chatbot
+   env: int
