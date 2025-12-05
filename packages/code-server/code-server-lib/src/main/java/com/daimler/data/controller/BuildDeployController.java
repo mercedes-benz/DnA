@@ -227,27 +227,29 @@ public class BuildDeployController implements CodeServerBuildDeployServiceApi {
                 .filter(b -> "BUILD_SUCCESS".equalsIgnoreCase(b.getBuildStatus()))
                 .filter(b -> !b.isImageDeleted())
                 .count();
-        
-        int retainedBuildLimit;
-        try {
-            retainedBuildLimit = Integer.parseInt(retainedBuildLimitValue.trim());
-        } catch (NumberFormatException ex) {
-            log.error("Invalid retained build limit value '{}'. Please correct it in Vault.",
-                    retainedBuildLimitValue);
-            throw new IllegalStateException("Invalid retained build limit value: " + retainedBuildLimitValue);
+        if (buildRequestDto != null && buildRequestDto.isKeepBuildImage()) {
+            int retainedBuildLimit;
+            try {
+                retainedBuildLimit = Integer.parseInt(retainedBuildLimitValue.trim());
+            } catch (NumberFormatException ex) {
+                log.error("Invalid retained build limit value '{}'. Please correct it in Vault.",
+                        retainedBuildLimitValue);
+                throw new IllegalStateException("Invalid retained build limit value: " + retainedBuildLimitValue);
+            }
+
+            if (retainedCount >= retainedBuildLimit) {
+                MessageDescription invalidMsg = new MessageDescription();
+                invalidMsg.setMessage("Maximum build image retention limit reached (You currently have " + retainedCount + " retained images). The maximum allowed is 5. Please delete older retained images before triggering a new build.");
+                GenericMessage errorMessage = new GenericMessage();
+                errorMessage.addErrors(invalidMsg);
+                log.info("User {} attempted to build workspace {} but retained image limit reached ({} builds).",
+                        userId, vo != null ? vo.getWorkspaceId() : "UNKNOWN", retainedCount);
+                return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
+            }
+        } else {
+            log.info("KeepBuildImage unchecked, Skipping retained build limit check");
         }
-        
-        if (retainedCount >= retainedBuildLimit) {
-            MessageDescription invalidMsg = new MessageDescription();
-            invalidMsg.setMessage("Build not allowed. There are already " + retainedCount +
-                    " successful builds with images retained. Please delete older images before triggering a new build.");
-            GenericMessage errorMessage = new GenericMessage();
-            errorMessage.addErrors(invalidMsg);
-            log.info("User {} attempted to build workspace {} but retained image limit reached ({} builds).",
-                    userId, vo != null ? vo.getWorkspaceId() : "UNKNOWN", retainedCount);
-            return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
-        }
-         
+
         String lastBuildType = "build";
         GenericMessage responseMsg = service.buildWorkSpace(userId,id,branch,buildRequestDto,isPrivateRecipe,environment,lastBuildType);
 				 log.info("User {} build workspace {} project {}", userId, vo.getWorkspaceId(),

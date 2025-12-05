@@ -66,7 +66,7 @@ public interface WorkspaceService {
 
 	GenericMessage approveRequestWorkspace(String userId, String id, String environment, String branch, boolean isprivateRecipe, String version);
 
-	GenericMessage deployWorkspace(String userId, String id, String environment, String branch, boolean isprivateRecipe, String version, String deployType);
+	GenericMessage deployWorkspace(String userId, String id, String environment, String branch, boolean isprivateRecipe, String version, String deployType, Boolean keepImage);
 
 	GenericMessage deployedAppConfig(String userId, String id, String environment, DeployedAppConfigDto deployedAppConfigDto);
 
@@ -138,5 +138,9 @@ public interface WorkspaceService {
 	CodeServerUserGroupCollectionVO deleteWorkSpaceGroup(String id);
 
 	GenericMessage deleteBuild(String projectName,String version);
+
+	GenericMessage getStatusByJobRunId(CodeServerWorkspaceNsql entity);
+
+	String updateGitJobRunId(GitJobRunIdRequestVO request);
 	
 }
