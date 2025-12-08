@@ -35,36 +35,36 @@ public class WorkspaceLogsMigrate {
 
     @PostConstruct
 	public void init() {
-		if (migrateWorkspace) {
-            GenericMessage migrateWorkspaceMsg = null;
-			try {
-				log.info("Workspace logs Migration Start");
-				// CodeServerWorkspaceNsql codeserverNsql = customRepository.findByWorkspaceId("ws2572");
-				List<CodeServerWorkspaceNsql> workspaceNsql = customRepository.findAll();
-				for(CodeServerWorkspaceNsql codeserverNsql: workspaceNsql){
-					 if(Objects.nonNull(codeserverNsql)){							
-							if(codeserverNsql.getData().getWorkspaceOwner().getId().equalsIgnoreCase(codeserverNsql.getData().getProjectDetails().getProjectOwner().getId())){
-								log.info("Workspace logs Migration Started for Workspace "+ codeserverNsql.getData().getWorkspaceId());														
-								migrateWorkspaceMsg = service.migrateWorkspaceLogs(codeserverNsql);							
-							}
-						if(Objects.nonNull(migrateWorkspaceMsg)) {
-							if(Objects.nonNull(migrateWorkspaceMsg.getErrors()) && migrateWorkspaceMsg.getErrors().size() > 0){ 
-							List<MessageDescription> error =	migrateWorkspaceMsg.getErrors();
-							log.info("Error occured while migrating logs of Workspace "+codeserverNsql.getData().getWorkspaceId());
-							for(MessageDescription msg: error){
-								log.info("Error Message " + msg.getMessage());
-							}
-							} else if(Objects.nonNull(migrateWorkspaceMsg.getSuccess())){
-								log.info("Migration of Workspace logs "+codeserverNsql.getData().getWorkspaceId() +" : "+ migrateWorkspaceMsg.getSuccess().toString());
-							}
-						}
-					}	
-				}
+		// if (migrateWorkspace) {
+            // GenericMessage migrateWorkspaceMsg = null;
+			// try {
+			// 	log.info("Workspace logs Migration Start");
+			// 	// CodeServerWorkspaceNsql codeserverNsql = customRepository.findByWorkspaceId("ws2572");
+			// 	List<CodeServerWorkspaceNsql> workspaceNsql = customRepository.findAll();
+			// 	for(CodeServerWorkspaceNsql codeserverNsql: workspaceNsql){
+			// 		 if(Objects.nonNull(codeserverNsql)){							
+			// 				if(codeserverNsql.getData().getWorkspaceOwner().getId().equalsIgnoreCase(codeserverNsql.getData().getProjectDetails().getProjectOwner().getId())){
+			// 					log.info("Workspace logs Migration Started for Workspace "+ codeserverNsql.getData().getWorkspaceId());														
+			// 					migrateWorkspaceMsg = service.migrateWorkspaceLogs(codeserverNsql);							
+			// 				}
+			// 			if(Objects.nonNull(migrateWorkspaceMsg)) {
+			// 				if(Objects.nonNull(migrateWorkspaceMsg.getErrors()) && migrateWorkspaceMsg.getErrors().size() > 0){ 
+			// 				List<MessageDescription> error =	migrateWorkspaceMsg.getErrors();
+			// 				log.info("Error occured while migrating logs of Workspace "+codeserverNsql.getData().getWorkspaceId());
+			// 				for(MessageDescription msg: error){
+			// 					log.info("Error Message " + msg.getMessage());
+			// 				}
+			// 				} else if(Objects.nonNull(migrateWorkspaceMsg.getSuccess())){
+			// 					log.info("Migration of Workspace logs "+codeserverNsql.getData().getWorkspaceId() +" : "+ migrateWorkspaceMsg.getSuccess().toString());
+			// 				}
+			// 			}
+			// 		}	
+			// 	}
                 
-            } catch (Exception e) {
-                log.error("Exception occured while migrating workspaces logs ",e);
-            }
+            // } catch (Exception e) {
+            //     log.error("Exception occured while migrating workspaces logs ",e);
+            // }
 
-            }
+            // }
         }
 }
