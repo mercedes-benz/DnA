@@ -2,7 +2,7 @@ spring:
   mvc.pathmatch.matching-strategy: ant_path_matcher
   application:
     name: dna-fabric-workspace-service
-    version: 1.3.22
+    version: 1.4.7
   profile:
     active: production
 
@@ -51,8 +51,10 @@ fabricWorkspaces:
   scope: ${FABRIC_OAUTH_SCOPE:XXXX}
   accessToken: ${FABRIC_OAUTH_ACCESS_TOKEN:XXXX}
   tokenTypeHint: ${FABRIC_OAUTH_TOKEN_TYPE_HINT:access_token}
-  capacityId: ${FABRIC_CAPACITY_ID:XXXX}
-  capacityName: ${FABRIC_CAPACITY_NAME:XXXX}
+  powerbiCapacityId: ${POWERBI_CAPACITY_ID:XXXX}
+  fabricCapacityId: ${FABRIC_CAPACITY_ID:XXXX}
+  powerbiCapacityName: ${POWERBI_CAPACITY_NAME:XXXX}
+  fabricCapacityName: ${FABRIC_CAPACITY_NAME:XXXX}
   capacitySku: ${FABRIC_CAPACITY_SKU:XXXX}
   capacityRegion: ${FABRIC_CAPACITY_REGION:XXXX}
   capacityState: ${FABRIC_CAPACITY_STATE:Active}
@@ -93,7 +95,7 @@ fabricWorkspaces:
     id: ${AUTHORISER_TECH_USER_ID:XXXX}
   ada:
     apiKey: ${ADA_API_KEY:XXXX}
-
+    extollo.apiKey: ${EXTOLLO_API_KEY:XXXX}
 authoriser:
   uri: ${IDENTITY_AUTH_URI:XXXX}
   ssoUri: ${IDENTITY_SSO_URI:XXXX}
