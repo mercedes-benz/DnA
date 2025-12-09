@@ -171,6 +171,42 @@ paths:
           description: "Method not allowed"
         500:
           description: "Internal error"
+  /catalog/ddx/group-update/{id}:
+    post:
+      tags:
+        - "fabric-catalog-management"
+      summary: "update groups from ddx."
+      description: "This endpoint will be used to update groups from ddx."
+      operationId: "updateGroupsFromDDX"
+      parameters:
+        - name:   updateDDXGroupsRequest
+          in: body
+          description: "The groups update request from DDX."
+          required: true
+          schema:
+            $ref: "#/definitions/updateDDXGroupsRequestVO"
+        - name: ddxId
+          in: path
+          description: "The ID of DDX data product ."
+          required: true
+          type: "string"
+      responses:
+        201:
+          description: "Returns message of success or failure "
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
 
 definitions:
 
@@ -335,3 +371,16 @@ definitions:
           $ref: "#/definitions/CreatedByVO"
       mandatoryFields:
         $ref: "#/definitions/MandatoryFieldsVO"
+
+  updateDDXGroupsRequestVO:
+    type: object
+    required:
+      - groups
+    properties:
+      groups:
+        type: array
+        items:
+          type: string
+      type:
+        enum:
+          - FABRIC_TO_FABRIC
