@@ -288,7 +288,6 @@ public class KongClientImpl implements KongClient {
 
 				corsRequestWrapper.setName(attachPluginVO.getName().name().toLowerCase());
 				attachCorsPluginConfigRequestDto.setMax_age(maxAge);
-				LOGGER.info("attach plugin Vo is {}",attachPluginVO);
 				Boolean isSecureWithOneApi = Objects.nonNull(attachPluginVO.getOneApiVersionShortName()) && !attachPluginVO.getOneApiVersionShortName().isBlank();
 				LOGGER.info("isSecureWithOneApi {}",isSecureWithOneApi);
 				String[] urls = isSecureWithOneApi ? oneApiAllowedUrls.split(",") : allowedUrls.split(",");
