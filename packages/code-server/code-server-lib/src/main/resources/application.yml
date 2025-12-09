@@ -2,7 +2,7 @@ spring:
   mvc.pathmatch.matching-strategy: ant_path_matcher
   application:
     name: dna-codeserver-service
-    version: 1.8.4
+    version: 1.8.5
   profile:
     active: production
 
@@ -216,6 +216,11 @@ kong:
 alice:
   aliceBaseUrl: ${ALICE_SERVICE_BASE_URL:XXXX}
   aliceAuthToken: ${ALICE_SERVICE_AUTH_TOKEN:XXXX}
+
+vaultIntegration:
+  service:
+    baseUrl: ${VAULT_SERVICE_URL:XXXX}
+    apiKey: ${VAULT_SERVICE_API_KEY:XXXX}
 
 workspace:
   migrate: ${MIGRATE_WORKSPACE:YOUR_MIGRATE_BOOLEAN}    
