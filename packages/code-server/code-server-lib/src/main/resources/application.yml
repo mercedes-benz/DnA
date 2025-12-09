@@ -2,7 +2,7 @@ spring:
   mvc.pathmatch.matching-strategy: ant_path_matcher
   application:
     name: dna-codeserver-service
-    version: 1.8.0
+    version: 1.8.5
   profile:
     active: production
 
@@ -91,6 +91,7 @@ allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:http://*}
 codeServer:
   gitjob.deployuri: ${CODE_SERVER_GITJOB_DEPLOY_URI:XXXX}
   gitjob.manageuri: ${CODE_SERVER_GITJOB_MANAGE_URI:XXXX}
+  gitjob.getWorkflowRun: ${CODE_SERVER_GITJOB_GET_WORKFLOW_RUN_URI:xxxx}
   gitjob.pat: ${CODE_SERVER_GITJOB_PAT:XXXX}
   git.pat: ${CODE_SERVER_GIT_PAT:XXXX}
   git.orgname: ${CODE_SERVER_ORGNAME:XXXXX}
@@ -121,6 +122,7 @@ codeServer:
   codespace.filename: ${CODESPACE_FILE_NAME:YOUR_CODESPACE_FILE_NAME}
   technical.id: ${CODE_SERVER_TECHNICAL_USER:XXXX}
   build.deleteuri: ${CODE_SERVER_BUILD_DELETE_URI:XXXX}
+  build.retainedlimit: ${CODE_SERVER_BUILD_RETAINED_LIMIT:XX}
 
 swagger.headers.authorization.token: ${SWAGGER_HEADER_AUTH:XXXXXX}
 management.endpoints.web.exposure.include: loggers,health
