@@ -38,4 +38,7 @@ public interface FabricWorkspaceCustomRepository extends CommonDataRepository<Fa
 
 	long getTotalCount(String userId);
 
+    List<FabricWorkspaceNsql> getAllForAdmin( int limit, int offset,String search);
+
+    long getTotalCountForAdmin(String search);
 }

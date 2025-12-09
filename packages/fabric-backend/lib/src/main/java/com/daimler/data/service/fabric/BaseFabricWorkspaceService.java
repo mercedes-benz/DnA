@@ -12,6 +12,9 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 import javax.persistence.PersistenceException;
+import javax.persistence.Query;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,17 +28,22 @@ import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.application.client.AuthoriserClient;
 import com.daimler.data.application.client.FabricWorkspaceClient;
 import com.daimler.data.application.client.RSAEncryptionUtil;
+import com.daimler.data.assembler.ADAProjectsAssembler;
 import com.daimler.data.assembler.FabricWorkspaceAssembler;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
+import com.daimler.data.db.entities.ADAProjectsNsql;
 import com.daimler.data.db.entities.AuthoriserRolesNsql;
 import com.daimler.data.db.entities.FabricWorkspaceNsql;
+import com.daimler.data.db.json.ADAProjectDetails;
 import com.daimler.data.db.json.AuthoriserRoleDeatils;
 import com.daimler.data.db.json.UserDetails;
 import com.daimler.data.db.repo.fabric.FabricWorkspaceCustomRepository;
 import com.daimler.data.db.repo.fabric.FabricWorkspaceRepository;
 import com.daimler.data.db.repo.roles.AuthoriserRolesCustomRepository;
 import com.daimler.data.db.repo.roles.AuthoriserRolesRepository;
+import com.daimler.data.dto.adaProjects.ADAProjectDetailsCollectionVO;
+import com.daimler.data.dto.adaProjects.ADAProjectDetailsVO;
 import com.daimler.data.dto.fabric.AccessReviewDto;
 import com.daimler.data.dto.fabric.AddGroupDto;
 import com.daimler.data.dto.fabric.CreateDatasourceRequestDto;
@@ -95,6 +103,8 @@ import com.daimler.data.util.ConstantsUtility;
 import com.daimler.data.util.FabricWorkspaceUtility;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.daimler.data.service.tag.TagService;
+import com.daimler.data.db.repo.adaProjects.ADAProjectsCustomRepository;
+import com.daimler.data.db.repo.adaProjects.ADAProjectsCustomRepositoryImpl;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -136,11 +146,24 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 	@Autowired
 	private UserStore userStore;
 
-	@Value("${fabricWorkspaces.capacityId}")
-	private String capacityId;
+	@Autowired
+	private ADAProjectsAssembler adaProjectsAssemblerssembler;
+
+	@Autowired
+	private ADAProjectsCustomRepository adaProjectsRepo;
+
+
+	@Value("${fabricWorkspaces.powerbiCapacityId}")
+	private String powerbiCapacityId;
+
+	@Value("${fabricWorkspaces.fabricCapacityId}")
+	private String fabricCapacityId;
 	
-	@Value("${fabricWorkspaces.capacityName}")
-	private String capacityName;
+	@Value("${fabricWorkspaces.powerbiCapacityName}")
+	private String powerbiCapacityName;
+
+	@Value("${fabricWorkspaces.fabricCapacityName}")
+	private String fabricCapacityName;
 	
 	@Value("${fabricWorkspaces.capacitySku}")
 	private String capacitySku;
@@ -444,37 +467,49 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 						log.info("Successfully added  user {} to workspace {} ", vo.getCreatedBy().getEmail(), createResponse.getId());
 					}
 					this.createDefaultFolders(createResponse.getId());
-					AddGroupDto addGroupDto = new AddGroupDto();
-					addGroupDto.setDisplayName(onboardGroupDisplayName);
-					addGroupDto.setIdentifier(onboardGroupIdenitifier);
-					addGroupDto.setPrincipalType("Group");
-					addGroupDto.setGroupUserAccessRight("Admin");
-					GenericMessage addGroupResponse = fabricWorkspaceClient.addGroup(createResponse.getId(),addGroupDto);
-					if(addGroupResponse == null || !"SUCCESS".equalsIgnoreCase(addGroupResponse.getSuccess())) {
-						log.error("Failed to add default group to workspace {}", createResponse.getId());
-						MessageDescription message = new MessageDescription();
-						message.setMessage("Failed to add default group to created workspace " + vo.getName() + ". Please add Default Group to your workspace manually or contact Admin.");
-						warnings.add(message);
-					}else {
-						log.info("Successfully added  default Group to workspace {} ", createResponse.getId());
+					if (vo.getDivision() != null && "fc".equalsIgnoreCase(vo.getDivision())) {
+						AddGroupDto addGroupDto = new AddGroupDto();
+						addGroupDto.setDisplayName(onboardGroupDisplayName);
+						addGroupDto.setIdentifier(onboardGroupIdenitifier);
+						addGroupDto.setPrincipalType("Group");
+						addGroupDto.setGroupUserAccessRight("Admin");
+						GenericMessage addGroupResponse = fabricWorkspaceClient.addGroup(createResponse.getId(),
+								addGroupDto);
+						if (addGroupResponse == null || !"SUCCESS".equalsIgnoreCase(addGroupResponse.getSuccess())) {
+							log.error("Failed to add default group to workspace {}", createResponse.getId());
+							MessageDescription message = new MessageDescription();
+							message.setMessage("Failed to add default group to created workspace " + vo.getName()
+									+ ". Please add Default Group to your workspace manually or contact Admin.");
+							warnings.add(message);
+						} else {
+							log.info("Successfully added  default Group to workspace {} ", createResponse.getId());
+						}
 					}
-					
 					FabricWorkspaceVO data = new FabricWorkspaceVO();
 					BeanUtils.copyProperties(vo, data);
 					data.setId(createResponse.getId());
 					data.setHasPii(vo.isHasPii());
 					
-					ErrorResponseDto assignCapacityResponse = fabricWorkspaceClient.assignCapacity(createResponse.getId());
+					boolean isPowerBI = vo.getSubscription() != null && vo.getSubscription().name().equalsIgnoreCase("PowerBI");
+					ErrorResponseDto assignCapacityResponse = fabricWorkspaceClient.assignCapacity(createResponse.getId(), isPowerBI);
 					CapacityVO capacityVO = new CapacityVO();
 					if(assignCapacityResponse!=null && assignCapacityResponse.getErrorCode()!=null && "500".equalsIgnoreCase(assignCapacityResponse.getErrorCode())) {
 						capacityVO = null;
 						warnings.add(new MessageDescription("Failed to assign capacity, please reassign or update workspace to assign capacity automatically."));
 					}else {
-						capacityVO.setId(capacityId);
-						capacityVO.setName(capacityName);
-						capacityVO.setRegion(capacityRegion);
-						capacityVO.setSku(capacitySku);
-						capacityVO.setState(capacityState);
+						if(isPowerBI) {
+							capacityVO.setId(powerbiCapacityId);
+							capacityVO.setName(powerbiCapacityName);
+							capacityVO.setRegion(capacityRegion);
+							capacityVO.setSku(capacitySku);
+							capacityVO.setState(capacityState);
+						} else {
+							capacityVO.setId(fabricCapacityId);
+							capacityVO.setName(fabricCapacityName);
+							capacityVO.setRegion(capacityRegion);
+							capacityVO.setSku(capacitySku);
+							capacityVO.setState(capacityState);
+						}
 					}
 					updateTags(data);
 					data.setCapacity(capacityVO);
@@ -2249,5 +2284,34 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		return responses;
 	}
 
+
+	@Override
+	public ADAProjectDetailsCollectionVO searchProjects(String projectName) {
+		ADAProjectDetailsCollectionVO collection = new ADAProjectDetailsCollectionVO();
+		GenericMessage message = new GenericMessage();
+		log.info("Received request to search ADA Projects. projectName='{}'", projectName);
+
+		try {
+			log.info("Initiating ADA project search in repository. Search term='{}'", projectName);
+			List<ADAProjectsNsql> entities = adaProjectsRepo.searchProjectsByName(projectName);
+
+			List<ADAProjectDetailsVO> projects = entities.stream()
+					.map(adaProjectsAssemblerssembler::toVo)
+					.collect(Collectors.toList());
+
+			collection.setRecords(projects);
+			collection.setTotalCount(projects.size());
+			message.setSuccess("SUCCESS");
+			log.info("Successfully fetched {} ADA Projects from repository for search term='{}'", projects.size(), projectName);
+
+		} catch (Exception e) {
+			log.error("Error searching ADA Projects by name: {}", projectName, e);
+			message.setSuccess("ERROR");
+			message.setErrors(List.of(new MessageDescription("Failed to search projects: " + e.getMessage())));
+		}
+
+		collection.responses(message);
+		return collection;
+	}
 
 }

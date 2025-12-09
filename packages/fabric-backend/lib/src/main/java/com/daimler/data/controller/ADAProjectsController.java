@@ -108,8 +108,17 @@ public class ADAProjectsController implements AdaProjectsApi{
                 return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
             }
         } else{
-            log.warn("ADA Project with id {} already exists", body.getProjectID());
-            errors.add(new MessageDescription("Project with ID " + body.getProjectID() + " already exists"));
+            if (existingADAProjectID != null && existingADAProjectName != null) {
+                log.warn("ADA Project with id {} and projectName '{}' both already exist", body.getProjectID(), body.getProjectName());
+                errors.add(new MessageDescription("Project with ID " + body.getProjectID() + " already exists"));
+                errors.add(new MessageDescription("Project with Name " + body.getProjectName() + " already exists"));
+            } else if (existingADAProjectID != null) {
+                log.warn("ADA Project with id {} already exists", body.getProjectID());
+                errors.add(new MessageDescription("Project with ID " + body.getProjectID() + " already exists"));
+            } else if (existingADAProjectName != null) {
+                log.warn("ADA Project with projectName '{}' already exists", body.getProjectName());
+                errors.add(new MessageDescription("Project with Name " + body.getProjectName() + " already exists"));
+            }
             responseMessage.setErrors(errors);
             responseMessage.setSuccess("CONFLICT");
             response.setResponses(responseMessage);
