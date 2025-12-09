@@ -584,6 +584,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		AttachPluginVO attachCorsPluginVO = new AttachPluginVO();
 		AttachPluginRequestVO attachCorsPluginRequestVO = new AttachPluginRequestVO();
 		attachCorsPluginVO.setName(CORS_PLUGIN);
+		attachCorsPluginVO.setOneApiVersionShortName(oneApiVersionShortName);
 		attachCorsPluginRequestVO.setData(attachCorsPluginVO);
 
 		//request for attaching RequestTransformer Plugin to service
@@ -653,6 +654,14 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 					attachAppAuthoriserPluginResponse = attachAppAuthoriserPluginToService(appAuthoriserPluginRequestVO, serviceName, cloudServiceProvider);
 				}
 				else {
+
+					GenericMessage deletePluginResponse = new GenericMessage();
+
+					//deleting cors plugin
+					deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,CORS_PLUGIN,cloudServiceProvider);
+					LOGGER.info("kong deleting cors plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
+					deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
+
 					//attaching cors plugin to deployments
 					LOGGER.info("kongApiForDeploymentURL is true, calling CORS plugin " );
 					attachCorsPluginResponse = attachPluginToService(attachCorsPluginRequestVO,serviceName.toLowerCase()+"-"+env,cloudServiceProvider);
@@ -660,7 +669,6 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 					attachCorsPluginResponse.getErrors(), attachCorsPluginResponse.getWarnings());
 
 					//deleteing jwt issuer plugin if any
-					GenericMessage deletePluginResponse = new GenericMessage();
 					deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,JWTISSUER_PLUGIN,cloudServiceProvider);
 					LOGGER.info("kong deleting jwt issuer plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
 					deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
@@ -856,7 +864,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 							if(("int".equalsIgnoreCase(env) && !intSecureIAM && !intSecureDna) ||("prod".equalsIgnoreCase(env) && !prodSecureIAM && !prodSecureDna) ){
 
 								String exsistingOneApiVersionShortName = "int".equalsIgnoreCase(env)?intDeploymentDetails.getOneApiVersionShortName():prodDeploymentDetails.getOneApiVersionShortName();
-								if(!exsistingOneApiVersionShortName.equalsIgnoreCase(oneApiVersionShortName) || Objects.isNull(exsistingOneApiVersionShortName) ){
+								if(Objects.isNull(exsistingOneApiVersionShortName) || !exsistingOneApiVersionShortName.equalsIgnoreCase(oneApiVersionShortName)){
 
 									GenericMessage attachOneApiPluginResponse = new GenericMessage();
 									//delete oneapi plugin if any
