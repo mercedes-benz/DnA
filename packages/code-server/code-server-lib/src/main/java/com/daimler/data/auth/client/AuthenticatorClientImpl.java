@@ -584,7 +584,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		AttachPluginVO attachCorsPluginVO = new AttachPluginVO();
 		AttachPluginRequestVO attachCorsPluginRequestVO = new AttachPluginRequestVO();
 		attachCorsPluginVO.setName(CORS_PLUGIN);
-		attachCorsPluginVO.setIsSecureWithOneApi(Objects.nonNull(oneApiVersionShortName) && !oneApiVersionShortName.isBlank());
+		attachCorsPluginVO.setOneApiVersionShortName(oneApiVersionShortName);
 		attachCorsPluginRequestVO.setData(attachCorsPluginVO);
 
 		//request for attaching RequestTransformer Plugin to service
@@ -654,14 +654,22 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 					attachAppAuthoriserPluginResponse = attachAppAuthoriserPluginToService(appAuthoriserPluginRequestVO, serviceName, cloudServiceProvider);
 				}
 				else {
+
+					GenericMessage deletePluginResponse = new GenericMessage();
+
+					//deleting cors plugin
+					deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,CORS_PLUGIN,cloudServiceProvider);
+					LOGGER.info("kong deleting one api plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
+					deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
+
 					//attaching cors plugin to deployments
 					LOGGER.info("kongApiForDeploymentURL is true, calling CORS plugin " );
+					LOGGER.info("cors plugin request vo is {}",attachCorsPluginRequestVO);
 					attachCorsPluginResponse = attachPluginToService(attachCorsPluginRequestVO,serviceName.toLowerCase()+"-"+env,cloudServiceProvider);
 					LOGGER.info("kong attach CORS plugin to service status is: {} and errors if any: {}, warnings if any:", attachCorsPluginResponse.getSuccess(),
 					attachCorsPluginResponse.getErrors(), attachCorsPluginResponse.getWarnings());
 
 					//deleteing jwt issuer plugin if any
-					GenericMessage deletePluginResponse = new GenericMessage();
 					deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,JWTISSUER_PLUGIN,cloudServiceProvider);
 					LOGGER.info("kong deleting jwt issuer plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
 					deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
