@@ -1,0 +1,109 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ .Release.Name }}-dashboard-customizer-{{ .Release.Revision }}
+  labels:
+    app: dashboard-customizer
+spec:
+  backoffLimit: 3
+  template:
+    metadata:
+      labels:
+        app: dashboard-customizer
+        i3-logging-opensearch-master-transport-client: "true"
+    spec:
+        containers:
+        - name: i3-dashboard-customizer
+          image: "registry-emea.app.corpintra.net/dockerhub/python:3.12.2-slim-bookworm"
+          securityContext:
+            runAsUser: 1000
+            runAsNonRoot: true
+          env:
+          - name: SAVED_OBJECT_API_ENABLED
+            valueFrom:
+              configMapKeyRef:
+                name: {{ .Release.Name }}-config-data-{{ .Release.Revision }}
+                key: savedObjectApiEnabled
+          - name: OPENSEARCH_HOSTS
+            valueFrom:
+              configMapKeyRef:
+                name: {{ .Release.Name }}-config-data-{{ .Release.Revision }}
+                key: opensearchHosts
+          - name: OPENSEARCH_DASHBOARD_HOSTS
+            valueFrom:
+              configMapKeyRef:
+                name: {{ .Release.Name }}-config-data-{{ .Release.Revision }}
+                key: opensearchDashboardHosts
+          - name: OPENSEARCH_USERNAME
+            valueFrom:
+              configMapKeyRef:
+                name: {{ .Release.Name }}-config-data-{{ .Release.Revision }}
+                key: opensearchUsername
+          - name: OPENSEARCH_PASSWORD
+            valueFrom:
+              configMapKeyRef:
+                name: {{ .Release.Name }}-config-data-{{ .Release.Revision }}
+                key: opensearchPassword                         
+          - name: OPENSEARCH_DASHBOARD_VERSION
+            valueFrom:
+              configMapKeyRef:
+                name: {{ .Release.Name }}-config-data-{{ .Release.Revision }}
+                key: opensearchDashboardVersion
+          - name: SAVED_OBJECT_API_PATH
+            valueFrom:
+              configMapKeyRef:
+                name: {{ .Release.Name }}-config-data-{{ .Release.Revision }}
+                key: savedObjectApiPath
+          - name: SAVED_OBJECT_API_PARAMS
+            valueFrom:
+              configMapKeyRef:
+                name: {{ .Release.Name }}-config-data-{{ .Release.Revision }}
+                key: savedObjectApiParams
+          - name: I3_ISM
+            valueFrom:
+              configMapKeyRef:
+                name: {{ .Release.Name }}-config-data-{{ .Release.Revision }}
+                key: ism
+          - name: I3_ANOMALY
+            valueFrom:
+              configMapKeyRef:
+                name: {{ .Release.Name }}-config-data-{{ .Release.Revision }}
+                key: i3-access-anomaly
+          volumeMounts:
+          - name: scripts
+            mountPath: /code/i3-os-dashboard-config.py          
+            subPath: i3-os-dashboard-config.py
+          - name: configs
+            mountPath: /etc/config
+{{- if .Values.savedObjectApi.enabled }}
+          - name: savedobjects
+            mountPath: /etc/savedobjects
+            readOnly: true
+{{- end }}
+{{- range $v := .Values.savedObjectApi.additionalConfigMapNames }}
+          - name: {{ $v }}
+            mountPath: /etc/additionalcms/{{ $v }}
+            readOnly: true
+{{- end }}
+          workingDir: /code
+          command: ["python", "-u", "i3-os-dashboard-config.py"]
+        volumes:
+        - name: scripts
+          configMap:
+            name: {{ .Release.Name }}-config-files-{{ .Release.Revision }}
+        - name: configs
+          configMap:
+            name: {{ .Release.Name }}-config-data-{{ .Release.Revision }}
+        - emptyDir: {}
+          name: code
+{{- if .Values.savedObjectApi.enabled }}
+        - name: savedobjects
+          configMap:
+            name: {{ .Release.Name }}-savedobjects-config-{{ .Release.Revision }}
+{{- end }}
+{{- range $v := .Values.savedObjectApi.additionalConfigMapNames }}
+        - name: {{ $v }}
+          configMap:
+            name: {{ $v }}
+{{- end }}
+        restartPolicy: OnFailure

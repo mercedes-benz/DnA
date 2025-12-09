@@ -1,0 +1,31 @@
+{{/*
+Copyright (c) HashiCorp, Inc.
+SPDX-License-Identifier: MPL-2.0
+*/}}
+
+{{ template "vault.mode" . }}
+{{- if ne .mode "external" }}
+{{- if .serverEnabled -}}
+{{- if ne .mode "dev" -}}
+{{ if or (.Values.server.standalone.config) (.Values.server.ha.config) -}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "vault.fullname" . }}-config
+  namespace: {{ include "vault.namespace" . }}
+  labels:
+    helm.sh/chart: {{ include "vault.chart" . }}
+    app.kubernetes.io/name: {{ include "vault.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+{{- if .Values.server.includeConfigAnnotation }}
+  annotations:
+    vault.hashicorp.com/config-checksum: {{ include "vault.config" . | sha256sum }}
+{{- end }}
+data:
+  extraconfig-from-values.hcl: |-
+    {{ template "vault.config" . }}
+{{- end }}
+{{- end }}
+{{- end }}
+{{- end }}
