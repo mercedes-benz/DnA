@@ -305,7 +305,7 @@ public class DataikuController {
 
 					if (collabDetails == null || collabDetails.getData() == null || collabDetails.getData().getUserId() == null) {
 
-						failedCollaboratorIds.add(collab.getUserId());
+						failedCollaboratorIds.add(collab.getGivenName());
 						log.error("Collaborator {} privileges not found. User ID collected for final error message.", userId);
 						
 					} else {
