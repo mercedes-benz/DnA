@@ -87,6 +87,9 @@ public class KongClientImpl implements KongClient {
 	@Value("${corsPlugin.allowedUrls}")
 	private String allowedUrls;
 
+	@Value("${corsPlugin.oneApiAllowedUrls}")
+	private String oneApiAllowedUrls;
+
 	@Value("${corsPlugin.maxAge}")
 	private long maxAge;
 
@@ -285,7 +288,9 @@ public class KongClientImpl implements KongClient {
 
 				corsRequestWrapper.setName(attachPluginVO.getName().name().toLowerCase());
 				attachCorsPluginConfigRequestDto.setMax_age(maxAge);
-				String [] urls = allowedUrls.split(",");
+				Boolean isSecureWithOneApi = Objects.nonNull(attachPluginVO.getOneApiVersionShortName()) && !attachPluginVO.getOneApiVersionShortName().isBlank();
+				LOGGER.info("isSecureWithOneApi {}",isSecureWithOneApi);
+				String[] urls = isSecureWithOneApi ? oneApiAllowedUrls.split(",") : allowedUrls.split(",");
 				List<String> origins = Arrays.asList(urls);
 				attachCorsPluginConfigRequestDto.setOrigins(origins);
 				attachCorsPluginConfigRequestDto.setCredentials(true);

@@ -345,3 +345,29 @@
     }
   }
 }
+
+.actionBtns {
+  border-right: 1px solid #252a33;
+  margin-right: 8px;
+  height: 25px;
+}
+
+.btnOutline {
+  background: none;
+  border: none !important;
+  color: #c0c8d0;
+  height: auto;
+  margin: 0px 8px;
+  outline: none;
+  padding: 0;
+  
+  > i {
+    margin-right: 5px;
+    transform: translateY(-1px);
+  }
+
+  &:hover {
+      color: #00adef;
+      background: unset;
+  }
+}
