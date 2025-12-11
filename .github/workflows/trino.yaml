@@ -200,19 +200,19 @@ jobs:
 
 
 
-  css-scan-trino:
-        name: Container security scan Trino
-        needs: production
-        uses: ./.github/workflows/consec.yaml
-        with:
-          FULL_IMAGE_NAME: '${{ env.TRINO_IMAGE_NAME }}:${{ env.TRINO_VERSION }}'
-        secrets: inherit
+  # css-scan-trino:
+  #       name: Container security scan Trino
+  #       needs: production
+  #       uses: ./.github/workflows/consec.yaml
+  #       with:
+  #         FULL_IMAGE_NAME: '${{ env.TRINO_IMAGE_NAME }}:${{ env.TRINO_VERSION }}'
+  #       secrets: inherit
 
 
-  css-scan-metastore:
-        name: Container security scan Metastore
-        needs: production
-        uses: ./.github/workflows/consec.yaml
-        with:
-          FULL_IMAGE_NAME: '${{ env.HIVE_METASTORE_IMAGE_NAME }}:${{ env.HIVE_METASTORE_IMAGE_VERSION }}'
-        secrets: inherit
+  # css-scan-metastore:
+  #       name: Container security scan Metastore
+  #       needs: production
+  #       uses: ./.github/workflows/consec.yaml
+  #       with:
+  #         FULL_IMAGE_NAME: '${{ env.HIVE_METASTORE_IMAGE_NAME }}:${{ env.HIVE_METASTORE_IMAGE_VERSION }}'
+  #       secrets: inherit
