@@ -5,7 +5,7 @@ WORKDIR /home/gradle/src
 RUN gradle build --no-daemon
 
 #Step-2
-FROM openjdk:14-jdk-alpine
+FROM eclipse-temurin:17-jre-jammy
 ENV ARTIFACT_NAME=airflow-backend-lib-1.0.0.jar
 RUN apk add git
 RUN addgroup -S 1000 && adduser -S 1000 -G 1000
