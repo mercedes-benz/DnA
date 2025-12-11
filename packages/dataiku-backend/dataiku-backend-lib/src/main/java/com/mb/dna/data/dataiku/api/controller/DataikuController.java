@@ -318,7 +318,7 @@ public class DataikuController {
 			if (!failedCollaboratorIds.isEmpty()) {
 				
 				String userListFormatted = failedCollaboratorIds.stream()
-					.map(i -> String.format("[%s]", id)) 
+					.map(i -> String.format("[%s]", i)) 
 					.collect(java.util.stream.Collectors.joining(", ")); 
 
 				String summaryErrorMessageText = String.format(
@@ -326,7 +326,7 @@ public class DataikuController {
 					"To continue with the Dataiku project update, please ask them to request a license or remove them from the list.",
 					userListFormatted
 				);
-				
+				log.error("Cannot update project : {}", summaryErrorMessageText);
 				MessageDescription summaryErrMsg = new MessageDescription(summaryErrorMessageText);
 				errors.add(summaryErrMsg);
 				responseMsg.setErrors(errors);
