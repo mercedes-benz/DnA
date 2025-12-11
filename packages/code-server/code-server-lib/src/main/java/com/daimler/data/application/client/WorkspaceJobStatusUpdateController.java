@@ -24,6 +24,7 @@ import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.dto.workspace.CodeServerWorkspaceVO;
 import com.daimler.data.dto.workspace.UserInfoVO;
 import com.daimler.data.dto.workspace.WorkspaceUpdateRequestVO;
+import com.daimler.data.dto.workspace.buildDeploy.GitJobRunIdRequestVO;
 import com.daimler.data.service.workspace.WorkspaceService;
 import com.daimler.dna.notifications.common.producer.KafkaProducerService;
 
@@ -241,4 +242,66 @@ public class WorkspaceJobStatusUpdateController  {
 			return new ResponseEntity<>(errorMessage, HttpStatus.OK);
 		}
     }
+
+	@ApiOperation(value = "Get GitJobRunId for a given project name.", nickname = "getGitJobRunId", notes = "Get GitJobRunId for a given project name.", response = GenericMessage.class, tags={ "code-server-build-deploy-service", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 200, message = "Returns message of success or failure", response = GenericMessage.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/workspaces/getGitJobRunId",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.PUT)
+    public ResponseEntity<GenericMessage> getGitJobRunId(@ApiParam(value = "request body for the project to be built" ,required=true )  @Valid @RequestBody GitJobRunIdRequestVO requestVo){
+        List<MessageDescription> errors = new ArrayList<>();
+        GenericMessage response = new GenericMessage();
+        List<MessageDescription> warnings = new ArrayList<>();
+        response.setErrors(errors);
+        response.setWarnings(warnings);
+        response.setSuccess("FAILED");
+        try {
+            String gitJobPat = httpRequest.getHeader("Authorization");
+		if(!gitJobPat.equalsIgnoreCase(personalAccessToken)) {
+			MessageDescription notAuthorizedMsg = new MessageDescription();
+			notAuthorizedMsg.setMessage(
+					"Authentication failed");
+			GenericMessage errorMessage = new GenericMessage();
+			errorMessage.addErrors(notAuthorizedMsg);
+			log.info("Authentication failed to use API. ");
+			return new ResponseEntity<>(errorMessage, HttpStatus.UNAUTHORIZED);
+		}
+		CodeServerWorkspaceVO existingVO = service.findByWorkspaceId(requestVo.getWsId());	
+		if (existingVO != null && existingVO.getWorkspaceId() != null) {
+            String success = service.updateGitJobRunId(requestVo);
+            if(success.equalsIgnoreCase("SUCCESS")){
+                response.setSuccess("SUCCESS");
+                return new ResponseEntity<>(response, HttpStatus.OK);
+            }else{
+            MessageDescription exceptionMsg = new MessageDescription("Failed to get gitJobRunId  due to internal error.");
+            errors.add(exceptionMsg);
+			response.setErrors(errors);
+            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR); 
+            }
+        }else {
+			log.info("workspace {} doesnt exists for User {} , or workspace already deleted and hence update not required",requestVo.getWsId(), requestVo.getUserId());
+			MessageDescription invalidMsg = new MessageDescription("No Workspace with the given id");
+			GenericMessage errorMessage = new GenericMessage();
+			errorMessage.addErrors(invalidMsg);
+			log.error("No workspace found with id {}, failed to update", requestVo.getWsId());
+			return new ResponseEntity<>(errorMessage, HttpStatus.OK);
+		}
+            
+        } catch (Exception e) {
+           log.error("Failed to get gitJobRunId with exception {}", e.getLocalizedMessage());
+            MessageDescription exceptionMsg = new MessageDescription("Failed to build due to internal error.");
+            errors.add(exceptionMsg);
+			response.setErrors(errors);
+            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
 }

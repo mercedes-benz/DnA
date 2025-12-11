@@ -39,5 +39,6 @@ public interface ADAProjectsCustomRepository extends CommonDataRepository<ADAPro
 	// long getTotalCount(String userId);
 	List<ADAProjectsNsql> findAllByCreator (String creator, int offset, int limit);
 	
+    List<ADAProjectsNsql> searchProjectsByName(String projectName);
 
 }
