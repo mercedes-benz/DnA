@@ -6,14 +6,10 @@ const baseUrl = Envs.DATA_PIPELINES_API_BASEURL
   ? Envs.DATA_PIPELINES_API_BASEURL
   : `http://${window.location.hostname}:7172/airflow/api`;
 
-const vaultBaseUrl = Envs.DNA_VAULT_API_BASEURL
-  ? Envs.DNA_VAULT_API_BASEURL
-  : `http://${window.location.hostname}:8080`;
 
 const getUrl = (endpoint: string) => {
   return `${baseUrl}/${endpoint}`;
 };
-const getVaultUrl = (endpoint: string) => `${vaultBaseUrl}/${endpoint}`;
 
 export class PipelineApiClient {
   public static get(endpoint: string) {
@@ -89,12 +85,12 @@ export class PipelineApiClient {
   }
   public static getVaultSecret(dagName: string) {
   const envDagName = `${Envs. DNA_ENVIRONMENT}_${dagName}`;
-  return this.getVault(`airflow/secret/${envDagName}`);
+  return this.get(`airflow/secret/${envDagName}`);
 }
 
   public static putVaultSecret(dagName: string, data: any) {
   const envDagName = `${Envs. DNA_ENVIRONMENT}_${dagName}`;
-  return this.putVault(`airflow/secret/${envDagName}`, data);
+  return this.put(`airflow/secret/${envDagName}`, data);
 }
 
 }
