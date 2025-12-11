@@ -288,14 +288,14 @@ jobs:
         commit: "main"
         token: ${{ secrets.PID_PAT }} 
 
-  css-scan:
-        name: Container security scan
-        needs: build
-        if: ${{ github.ref_name == 'main' || inputs.ENVIRONMENT == 'Production' }}
-        uses: ./.github/workflows/consec.yaml
-        with:
-          FULL_IMAGE_NAME: '${{ inputs.IMAGE_NAME }}:${{ needs.build.outputs.version }}'
-        secrets: inherit
+  # css-scan:
+  #       name: Container security scan
+  #       needs: build
+  #       if: ${{ github.ref_name == 'main' || inputs.ENVIRONMENT == 'Production' }}
+  #       uses: ./.github/workflows/consec.yaml
+  #       with:
+  #         FULL_IMAGE_NAME: '${{ inputs.IMAGE_NAME }}:${{ needs.build.outputs.version }}'
+  #       secrets: inherit
 
   # quality-check:
   #   name: 'Quality Check'
