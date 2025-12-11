@@ -101,4 +101,9 @@ logging:
           dna:
             airflow: ${LOGGING_LEVEL:DEBUG}
     org.springframework.boot.autoconfigure.logging: INFO
+
+vaultIntegration:
+  service:
+    baseUrl: ${VAULT_SERVICE_URL:XXXX}
+    apiKey: ${VAULT_SERVICE_API_KEY:XXXX}
     
