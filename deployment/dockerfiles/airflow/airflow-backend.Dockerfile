@@ -7,8 +7,8 @@ RUN gradle build --no-daemon
 #Step-2
 FROM eclipse-temurin:17-jre-jammy
 ENV ARTIFACT_NAME=airflow-backend-lib-1.0.0.jar
-RUN apk add git
-RUN addgroup -S 1000 && adduser -S 1000 -G 1000
+RUN apt-get update && apt-get install -y git && rm -rf /var/lib/apt/lists/*
+RUN groupadd -g 1000 appgroup && useradd -u 1000 -g appgroup appuser
 USER 1000:1000
 COPY --from=TEMP_BUILD_IMAGE /home/gradle/src/airflow-backend-lib/build/libs/$ARTIFACT_NAME $ARTIFACT_NAME
 COPY --chown=1000:1000 ./airflow-git-init.sh /tmp
