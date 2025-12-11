@@ -84,7 +84,7 @@ jobs:
       uses: CumulusDS/get-yaml-paths-action@v1.0.1
       with:
         file: ${{ inputs.APP_VERSION_FILE_PATH }}
-        version: spring.application.version
+        version: ${{ (inputs.DETECT_PROJECT_NAME == 'dss-be' || inputs.DETECT_PROJECT_NAME == 'another-micronaut-service') && 'micronaut.application.version' || 'spring.application.version' }}
 
     # Uncomment below two task if package is react
     - name: Get app version from package json
