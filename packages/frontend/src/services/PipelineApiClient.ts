@@ -30,12 +30,6 @@ export class PipelineApiClient {
   public static delete(endpoint: string, body?: any) {
     return ApiClient.fetch(getUrl(endpoint), HTTP_METHOD.DELETE, body);
   }
-  public static getVault(endpoint: string) {
-    return ApiClient.fetch(getVaultUrl(endpoint), HTTP_METHOD.GET);
-  }
-  public static putVault(endpoint: string, body?: any) {
-    return ApiClient.fetch(getVaultUrl(endpoint), HTTP_METHOD.PUT, body);
-  }
 
 
   public static getPipelineProjectList() {
