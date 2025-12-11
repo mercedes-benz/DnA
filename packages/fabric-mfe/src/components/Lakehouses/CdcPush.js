@@ -5,7 +5,7 @@ import SelectBox from 'dna-container/SelectBox';
 import Tooltip from '../../common/modules/uilab/js/src/tooltip';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 import Notification from '../../common/modules/uilab/js/src/notification';
-import {DIVISIONS, DATA_ORIGINS, DATA_TIER, DATA_TIER_MAP } from '../../utilities/constants';
+import {DIVISIONS, DATA_TIER, DATA_TIER_MAP } from '../../utilities/constants';
 import { fabricApi } from '../../apis/fabric.api';
 import ExpansionPanel from '../../common/modules/uilab/js/src/expansion-panel';
 import { useForm } from 'react-hook-form';
@@ -21,11 +21,8 @@ export const buildCdcPayload = ({
   columnsByTable,
   tables,
   divisions,
-  dataOrigin,
   dataTier,
-  isDataLakeAvailability,
   isDocumentationUpdated,
-  isDataAsset,
   description,
   workspaceCreator
 }) => {
@@ -93,12 +90,9 @@ export const buildCdcPayload = ({
     mandatoryFields: {
       divisions: divisions || [],
       department: workspaceMetadata?.department || "",
-      dataOrigin: dataOrigin || "",
       tier: dataTier || "",
-      isDataLakeAvailability: isDataLakeAvailability ? "Yes" : "No",
       leanIXId: workspaceMetadata?.appId || "",
       isDocumentationUpdated: isDocumentationUpdated ? "Yes" : "No",
-      isDataAsset: isDataAsset ? "Yes" : "No",
       dataConfidentiality: workspaceMetadata?.dataClassification.toLowerCase() || ""
     },
     owners: [workspaceCreator]
@@ -113,11 +107,8 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
   const [selectedColumns, setSelectedColumns] = useState({});
   const [selectAll, setSelectAll] = useState(false);
   const [division, setDivision] = useState("0");
-  const [dataOrigin, setDataOrigin] = useState("0");
   const [dataTier, setDataTier] = useState("0");
   const [isDocumentationUpdated, setIsDocumentationUpdated] = useState(false);
-  const [isDataAsset, setIsDataAsset] = useState(false);
-  const [isDataLakeAvailability, setIsDataLakeAvailability] = useState(true);
   const [workspaceMetadata, setWorkspaceMetadata] = useState(null);
   const [workspaceCreator, setWorkspaceCreator] = useState(null);
   const [description, setDescription] = useState(null);
@@ -133,8 +124,6 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
     formState: { errors }
   } = methods;
 
-
-  const [dataOriginError, setDataOriginError] = useState('');
   const [dataTierError, setDataTierError] = useState('');
   const [divisionError, setDivisionError] = useState('');
 
@@ -306,10 +295,6 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
       setDivisionError("*Missing entry");
       hasError = true;
     }
-    if (dataOrigin === "0" || !dataOrigin) {
-      setDataOriginError("*Missing entry");
-      hasError = true;
-    }
     if (dataTier === "0" || !dataTier) {
       setDataTierError("*Missing entry");
       hasError = true;
@@ -328,12 +313,9 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
       selectedColumns,
       columnsByTable,
       tables,
-      dataOrigin: (dataOrigin || '').toLowerCase(),
       dataTier: DATA_TIER_MAP[dataTier] || null,
       divisions: division || [],
-      isDataAsset,
       isDocumentationUpdated,
-      isDataLakeAvailability,
       description,
       workspaceCreator
     });
@@ -374,7 +356,6 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
     workspaceId,
     workspaceMetadata,
     division,
-    dataOrigin,
     dataTier,
     lakehouseId,
     lakehouseName,
@@ -382,9 +363,7 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
     tables,
     selectedTables,
     selectedColumns,
-    isDataAsset,
     isDocumentationUpdated,
-    isDataLakeAvailability,
     description,
     workspaceCreator,
     onRefreshWorkspace,
@@ -405,44 +384,6 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
     <div className={Styles.modalFAQContentWrapper}>
 
         <div className={Styles.flex}>
-          <div className={Styles.col3}>
-            <div
-              className={classNames(
-                'input-field-group include-error',
-                dataOriginError.length ? 'error' : '',
-              )}
-            >
-              <label className={classNames(Styles.inputLabel, 'input-label')}>
-                Data Origin <sup>*</sup>
-              </label>
-              <div className={classNames('custom-select')}>
-                <select
-                  id="dataOriginField"
-                  defaultValue={dataOrigin}
-                  onChange={(e) => {
-                    setDataOrigin(e.target.value);
-                    if (dataOriginError) setDataOriginError(""); 
-                  }}
-                >
-                  <option value={0}>Choose</option>
-                  {DATA_ORIGINS?.map((origin, index) => (
-                    <option key={index} value={origin}>
-                      {origin}
-                    </option>
-                  ))}
-                </select>
-              </div>
-              <span
-                className={classNames(
-                  'error-message',
-                  dataOriginError.length ? '' : 'hide'
-                )}
-              >
-                {dataOriginError}
-              </span>
-            </div>
-          </div>
-
           <div className={Styles.col3}>
             <div
               className={classNames(
@@ -514,86 +455,6 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
               <span className={classNames('error-message', divisionError.length ? '' : 'hide')}>
                 {divisionError}
               </span>
-            </div>
-          </div>
-
-          <div className={Styles.col3}>
-            <div className={classNames('input-field-group include-error')}>
-              <label className="input-label">Data Asset <sup>*</sup></label>
-              <div className={Styles.boolean}>
-                <label className={classNames('radio')}>
-                  <span className="wrapper">
-                    <input
-                      type="radio"
-                      className="ff-only"
-                      value="true"
-                      name="dataAsset"
-                      checked={isDataAsset === true}
-                      onClick={() => {
-                        setIsDataAsset(true);
-                        setValue('dataAsset', 'true');
-                      }}
-                    />
-                  </span>
-                  <span className="label">Yes</span>
-                </label>
-                <label className={classNames('radio')}>
-                  <span className="wrapper">
-                    <input
-                      type="radio"
-                      className="ff-only"
-                      value="false"
-                      name="dataAsset"
-                      checked={isDataAsset === false}
-                      onClick={() => {
-                        setIsDataAsset(false);
-                        setValue('dataAsset', 'false');
-                      }}
-                    />
-                  </span>
-                  <span className="label">No</span>
-                </label>
-              </div>
-            </div>
-          </div>
-
-          <div className={Styles.col3}>
-            <div className={classNames('input-field-group include-error')}>
-              <label className="input-label">DataLake Available <sup>*</sup></label>
-              <div className={Styles.boolean}>
-                <label className={classNames('radio')}>
-                  <span className="wrapper">
-                    <input
-                      type="radio"
-                      className="ff-only"
-                      value="true"
-                      name="dataLakeAvailability"
-                      checked={isDataLakeAvailability === true}
-                      onClick={() => {
-                        setIsDataLakeAvailability(true);
-                        setValue('dataLakeAvailability', 'true');
-                      }}
-                    />
-                  </span>
-                  <span className="label">Yes</span>
-                </label>
-                <label className={classNames('radio')}>
-                  <span className="wrapper">
-                    <input
-                      type="radio"
-                      className="ff-only"
-                      value="false"
-                      name="dataLakeAvailability"
-                      checked={isDataLakeAvailability === false}
-                      onClick={() => {
-                        setIsDataLakeAvailability(false);
-                        setValue('dataLakeAvailability', 'false');
-                      }}
-                    />
-                  </span>
-                  <span className="label">No</span>
-                </label>
-              </div>
             </div>
           </div>
 
