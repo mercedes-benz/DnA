@@ -895,6 +895,11 @@ const isLeanIXRequired = typeOfProject === 'Production' && mandate;
               </>
             }
             <div className={Styles.col}>
+                <p className={Styles.warning}>
+                  <i className="icon mbc-icon alert circle" /> If you do not have projects mapped under the division selected or for any other queries reagrding projects creation, kindly reach to our support team through our Email: <a href={`mailto:${Envs.DNA_MAIL}`} target="_blank" rel="noreferrer">{Envs.DNA_MAIL}</a>
+                </p>
+            </div>
+            <div className={Styles.col}>
               <div className={classNames(errors?.termsOfUse?.message ? 'error' : '')}>
                 <div className={Styles.termsOfUseContent}>
                   <div>
