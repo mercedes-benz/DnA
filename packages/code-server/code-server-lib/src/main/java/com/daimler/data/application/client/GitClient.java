@@ -219,6 +219,69 @@ public class GitClient {
   		return HttpStatus.INTERNAL_SERVER_ERROR;
 	}
 
+	public HttpStatus validateGitUserWithPid(String gitBaseUrl, String repoName, String applicationName, String pid, String pat) {
+    try {
+        if (!gitBaseUrl.endsWith("/")) {
+            gitBaseUrl += "/";
+        }
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Accept", "application/vnd.github+json");
+        headers.set("Content-Type", "application/json");
+        headers.set("Authorization", "Bearer " + pat);
+
+        String url = gitBaseUrl
+                + "api/v3/repos/"
+                + applicationName + "/"
+                + repoName
+                + "/collaborators/"
+                + pid
+                + "/permission";
+
+        log.info("GHE PID Validation URL: {}", url);
+
+        HttpEntity<?> entity = new HttpEntity<>(headers);
+
+        ResponseEntity<String> response =
+                restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
+
+        log.info("GHE PID validation status: {}", 
+                 response != null ? response.getStatusCode() : "NULL");
+
+        if (response != null && response.getStatusCode() != null) {
+
+            String responseBody = response.getBody();
+            JSONObject json = new JSONObject(responseBody);
+
+            if (json.has("permission")) {
+                String permission = json.getString("permission");
+
+                if ("admin".equalsIgnoreCase(permission)) {
+                    log.info("PID {} has admin access on repo {}/{}", pid, applicationName, repoName);
+                    return HttpStatus.OK;
+                } else {
+                    log.warn("PID {} has '{}' permission on repo {}/{}", pid, permission, applicationName, repoName);
+                    return HttpStatus.FORBIDDEN;
+                }
+            }
+
+            log.error("GHE response has no 'permission' field. Body: {}", responseBody);
+            return HttpStatus.INTERNAL_SERVER_ERROR;
+        }
+
+    } catch (HttpClientErrorException e) {
+        log.error("GHE PID validation failed: HTTP {} for PID {} repo {}/{}. Response: {}",
+                e.getStatusCode(), pid, applicationName, repoName, e.getResponseBodyAsString());
+        return e.getStatusCode();
+    } catch (Exception e) {
+        log.error("Unexpected GHE PID validation error for PID {} repo {}/{}: {}",
+                pid, applicationName, repoName, e.getMessage(), e);
+    }
+
+    return HttpStatus.INTERNAL_SERVER_ERROR;
+}
+
+
 	public HttpStatus addAdminAccessToRepo(String username, String repoName) {
 		try {
 			HttpHeaders headers = new HttpHeaders();

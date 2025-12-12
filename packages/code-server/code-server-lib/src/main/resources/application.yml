@@ -123,6 +123,12 @@ codeServer:
   technical.id: ${CODE_SERVER_TECHNICAL_USER:XXXX}
   build.deleteuri: ${CODE_SERVER_BUILD_DELETE_URI:XXXX}
   build.retainedlimit: ${CODE_SERVER_BUILD_RETAINED_LIMIT:XX}
+  git:
+    enterprise:
+      url: ${CODE_SERVER_GHE_BASEURI:XXXX}
+    ghe:
+      pid: ${CODE_SERVER_GHE_PID:XXXX}
+      pat: ${CODE_SERVER_GHE_PAT:XXXX}
 
 swagger.headers.authorization.token: ${SWAGGER_HEADER_AUTH:XXXXXX}
 management.endpoints.web.exposure.include: loggers,health
