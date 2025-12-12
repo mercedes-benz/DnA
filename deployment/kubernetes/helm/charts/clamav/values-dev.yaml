@@ -84,6 +84,26 @@ Storage:
   storageClass: dhc-gp3
   accessModes: ReadWriteOnce
   size: 5G
+probes:
+  livenessProbe:
+    tcpSocket:
+      port: 3310
+    initialDelaySeconds: 20
+    periodSeconds: 20
+    failureThreshold: 3
+    timeoutSeconds: 1
+  readinessProbe:
+    tcpSocket:
+      port: 3310
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    failureThreshold: 3
+    timeoutSeconds: 1
+  startupProbe:
+    tcpSocket:
+      port: 3310
+    failureThreshold: 30
+    periodSeconds: 10
 resources:
   requests:
     memory: 1716Mi
