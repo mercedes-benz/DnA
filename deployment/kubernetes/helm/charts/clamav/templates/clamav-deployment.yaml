@@ -5,6 +5,7 @@ metadata:
   namespace: {{ .Values.namespace }}
   labels:
     name: {{ .Chart.Name }}
+    app.kubernetes.io/name: {{ .Chart.Name }}
 spec:
   {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.image.replicaCount }}
@@ -16,6 +17,7 @@ spec:
     metadata:
       labels:
         name: {{ .Chart.Name }}
+        app.kubernetes.io/name: {{ .Chart.Name }}
     spec:
       topologySpreadConstraints:
         - maxSkew: 1
@@ -36,7 +38,26 @@ spec:
               name: api
               protocol: TCP
 
-   
+          livenessProbe:
+            tcpSocket: 
+              port:  {{ .Values.probes.livenessProbe.tcpSocket.port }}
+            initialDelaySeconds: {{ .Values.probes.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.probes.livenessProbe.periodSeconds }}
+            failureThreshold: {{ .Values.probes.livenessProbe.failureThreshold }}
+            timeoutSeconds: {{ .Values.probes.livenessProbe.timeoutSeconds }}
+          readinessProbe:
+            tcpSocket: 
+              port:  {{ .Values.probes.readinessProbe.tcpSocket.port }}
+            initialDelaySeconds: {{ .Values.probes.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ .Values.probes.readinessProbe.periodSeconds }}
+            failureThreshold: {{ .Values.probes.readinessProbe.failureThreshold }}
+            timeoutSeconds: {{ .Values.probes.readinessProbe.timeoutSeconds }}
+          startupProbe:
+            tcpSocket:
+              port:  {{ .Values.probes.startupProbe.tcpSocket.port }}
+            failureThreshold: {{ .Values.probes.startupProbe.failureThreshold }}
+            periodSeconds: {{ .Values.probes.startupProbe.periodSeconds }}
+
           resources:
             requests:
               memory: {{ .Values.resources.requests.memory | quote }}

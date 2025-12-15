@@ -254,8 +254,33 @@ public class AuthoriserClient {
 				response.setErrors(errors);
 				response.setWarnings(warnings);
 			}
-		}catch(Exception e) {
-			log.error("Failed to delete Entitlement with displayName {} with error {} ", entitlementId, e.getMessage());
+			
+		} catch(HttpClientErrorException e) {
+		   
+			if (HttpStatus.NOT_FOUND.equals(e.getStatusCode())) {
+				
+				log.error("Entitlement with displayName {} deletion failed: Entity not found (404).", entitlementId);
+				
+				MessageDescription error = new MessageDescription("Entitlement deletion failed: Not Found (404). so considered as deleted.");
+				errors.add(error);
+				response.setErrors(errors);
+			 
+			} else {
+				log.error("Entitlement with displayName {} deletion failed with status code {} ", 
+						  entitlementId, e.getStatusCode());
+						  
+				MessageDescription error = new MessageDescription("Entitlement deletion failed with status code "+e.getStatusCode());
+				errors.add(error);
+				response.setErrors(errors);
+			}
+			
+		} catch(Exception e) {
+			log.error("Failed to delete Entitlement with displayName {} due to unexpected error: {} ", 
+					  entitlementId, e.getMessage());
+			
+			MessageDescription error = new MessageDescription("Entitlement deletion failed due to unexpected error.");
+			errors.add(error);
+			response.setErrors(errors);
 		}
 		return response;
     }
@@ -290,9 +315,34 @@ public class AuthoriserClient {
 				response.setErrors(errors);
 				response.setWarnings(warnings);
 			}
-		}catch(Exception e) {
-			log.error("Failed to delete Role with displayName {} with error {} ", roleId, e.getMessage());
-		}
+
+		} catch(HttpClientErrorException e) {
+           
+            if (HttpStatus.NOT_FOUND.equals(e.getStatusCode())) {
+                
+                log.error("Role with displayName {} deletion failed: Entity not found (404).", roleId);
+                
+                MessageDescription error = new MessageDescription("Role deletion failed: Not Found (404). so considered as deleted.");
+                errors.add(error);
+                response.setErrors(errors);
+             
+            } else {
+                log.error("Role with displayName {} deletion failed with status code {} ", 
+                          roleId, e.getStatusCode());
+                          
+                MessageDescription error = new MessageDescription("Role deletion failed with status code "+e.getStatusCode());
+                errors.add(error);
+                response.setErrors(errors);
+            }
+            
+        } catch(Exception e) {
+            log.error("Failed to delete Role with displayName {} due to unexpected error: {} ", 
+                      roleId, e.getMessage());
+            
+            MessageDescription error = new MessageDescription("Role deletion failed due to unexpected error.");
+            errors.add(error);
+            response.setErrors(errors);
+        }
 		return response;
     }
 

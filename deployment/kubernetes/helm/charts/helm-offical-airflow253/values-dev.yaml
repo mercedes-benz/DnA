@@ -259,9 +259,23 @@ env:
 # - name: ""
 #   value: ""
   - name: REQUESTS_CA_BUNDLE	
-    value: /usr/local/share/ca-certificates/ca-bundle.crt	
+    value: /etc/ssl/certs/	
   - name: SSL_CERT_FILE	
-    value: /usr/local/share/ca-certificates/ca-bundle.crt
+    value: /etc/ssl/certs/
+  - name: http_proxy
+    value: http://security-proxy.emea.svc.corpintra.net:3128
+  - name: https_proxy
+    value: http://security-proxy.emea.svc.corpintra.net:3128
+  - name: HTTP_PROXY
+    value: http://security-proxy.emea.svc.corpintra.net:3128
+  - name: HTTPS_PROXY
+    value: http://security-proxy.emea.svc.corpintra.net:3128
+  - name: no_proxy
+    value: >-
+      53.137.137.54,.corpintra.net,.svc.cluster.local,.mercedes-benz.com,localhost,127.0.0.0,127.0.1.1,local.home,.daimler.com,10.0.0.0/8,53.0.0.0/8,127.0.0.1,dev-36980595.okta.com,https://dev-36980595-admin.okta.com/admin/getting-started,91.189.94.4,91.189.94.4:123,localaddress,https://krew.sh,krew.sh,2d5c6418-fe7d-483c-9fab-b4265c885e30.hana.prod-eu20.hanacloud.ondemand.com,.ondemand.com,developer.download.nvidia.com
+  - name: no_proxy
+    value: >-
+      53.137.137.54,.corpintra.net,.svc.cluster.local,.mercedes-benz.com,localhost,127.0.0.0,127.0.1.1,local.home,.daimler.com,10.0.0.0/8,53.0.0.0/8,127.0.0.1,dev-36980595.okta.com,https://dev-36980595-admin.okta.com/admin/getting-started,91.189.94.4,91.189.94.4:123,localaddress,https://krew.sh,krew.sh,2d5c6418-fe7d-483c-9fab-b4265c885e30.hana.prod-eu20.hanacloud.ondemand.com,.ondemand.com,developer.download.nvidia.com
 # Volumes for all airflow containers
 volumes:
   - name: officalairflow-webserver-config

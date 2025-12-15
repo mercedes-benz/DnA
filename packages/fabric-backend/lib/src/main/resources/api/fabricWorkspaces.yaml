@@ -560,7 +560,61 @@ paths:
         500:
           description: "Internal server error."
 
+  /fabric-workspaces/searchADAProjects:
+    get:
+      tags:
+        - "fabric-workspaces"
+      summary: "Search ADA Projects"
+      description: "Search ADA Projects by project name,"
+      operationId: "searchADAProjects"
+      produces:
+        - "application/json"
+      parameters:
+        - name: projectName
+          in: query
+          description: "Filter by project name"
+          required: false
+          type: string
+      responses:
+        200:
+          description: "List of ADA Projects matching search criteria"
+          schema:
+            $ref: "#/definitions/ADAProjectDetailsCollectionVO"
+        204:
+          description: "No ADA Projects found matching search criteria"
+        400:
+          description: "Bad request"
+        500:
+          description: "Internal server error"
 
+  /fabric-workspaces/{id}/takeOwnership:
+    patch:
+      tags:
+        - "fabric-workspaces"
+      summary: "Take ownership of a workspace"
+      description: "Allows an Admin to take ownership of a workspace. The current owner will lose ownership and all related privileges."
+      operationId: "takeWorkspaceOwnership"
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          description: "The ID of the workspace"
+          type: "string"
+      responses:
+        200:
+          description: "Ownership taken successfully"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        400:
+          description: "Bad Request"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
 
 definitions:
   CapacityVO:
@@ -681,6 +735,8 @@ definitions:
           type: string
       projectId:
           type: string
+      subscription:
+          enum: ["PowerBI", "Fabric"]
       lastModifiedOn:
           type: string
           format: date
@@ -814,6 +870,10 @@ definitions:
         type: string
       leanIXDetails:
         $ref: "#/definitions/LeanIXDetailsVO"
+      projectId:
+        type: string
+      subscription:
+        enum: ["PowerBI", "Fabric"]
       
   FabricWorkspacesCollectionVO:
     description: "Collection of fabric workspaces."

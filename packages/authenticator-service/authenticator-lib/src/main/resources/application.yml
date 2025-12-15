@@ -1,7 +1,7 @@
 spring:
   application:
     name: dna-authenticator-service
-    version: 1.1.5
+    version: 1.1.6
   profile:
     active: production
   jpa:
@@ -47,6 +47,7 @@ management.endpoint.health.show-details: always
 corsPlugin:
   allowedUrls: ${ALLOWED_URLS:xxxxx}
   maxAge: ${MAX_AGE:xxxxx}
+  oneApiAllowedUrls: ${ONE_API_ALLOWED_URLS:xxxxx}
 
 logging:
   service:

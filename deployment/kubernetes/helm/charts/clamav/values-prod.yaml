@@ -62,7 +62,7 @@ app:
       port: api
 image:
   replicaCount: 4
-  repo: registry-emea.app.corpintra.net/dnaplatform/clamav:2025-11-13
+  repo: registry-emea.app.corpintra.net/dnaplatform/clamav:2025-12-15
   pullPolicy: Always
 ingress:
   enabled: false
@@ -84,12 +84,32 @@ Storage:
   storageClass: dhc-gp3
   accessModes: ReadWriteOnce
   size: 5G
+probes:
+  livenessProbe:
+    tcpSocket:
+      port: 3310
+    initialDelaySeconds: 20
+    periodSeconds: 20
+    failureThreshold: 3
+    timeoutSeconds: 1
+  readinessProbe:
+    tcpSocket:
+      port: 3310
+    initialDelaySeconds: 5
+    periodSeconds: 10
+    failureThreshold: 3
+    timeoutSeconds: 1
+  startupProbe:
+    tcpSocket:
+      port: 3310
+    failureThreshold: 30
+    periodSeconds: 10
 resources:
   requests:
-    memory: 2716Mi
+    memory: 3072Mi
     cpu: 13m
   limits:
-    memory: 2716Mi
+    memory: 4096Mi
 vaultInjector:
   enable: true
   annotations:

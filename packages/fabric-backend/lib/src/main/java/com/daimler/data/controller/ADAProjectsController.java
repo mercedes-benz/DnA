@@ -53,6 +53,8 @@ public class ADAProjectsController implements AdaProjectsApi{
     @Autowired
     private FabricWorkspaceService fabricWorkspaceService;
 
+    final String DEFAULT_CREATOR = "ada";
+
     @RequiresApiKeyAuthorization
     @Override
     @ApiOperation(value = "Create a new ADA Project", nickname = "createADAProject", notes = "This can only be done by the logged in user.", response = CreateADAProjectResponseVO.class, tags={ "adaProjects", })
@@ -70,22 +72,10 @@ public class ADAProjectsController implements AdaProjectsApi{
         List<MessageDescription> warnings = new ArrayList<>();
         List<MessageDescription> errors = new ArrayList<>();
 
-        final String DEFAULT_CREATOR = "ada";
-        String createdBy;
-
-        try {
-            ServletRequestAttributes attributes = 
-                (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
-            HttpServletRequest request = attributes.getRequest();
-            createdBy = (String) request.getAttribute("CREATOR_ATTRIBUTE");
-            
-        } catch (IllegalStateException e) {
-            createdBy = DEFAULT_CREATOR;
-        }
         
-        // Fallback if the attribute was null (e.g., annotation was missing or interceptor skipped)
+        String createdBy = getCreatedByFromRequest();
         if (createdBy == null) {
-            createdBy = DEFAULT_CREATOR;
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
         ADAProjectDetailsVO existingADAProjectID = service.getByUniqueliteral("projectID", body.getProjectID());
@@ -108,8 +98,17 @@ public class ADAProjectsController implements AdaProjectsApi{
                 return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
             }
         } else{
-            log.warn("ADA Project with id {} already exists", body.getProjectID());
-            errors.add(new MessageDescription("Project with ID " + body.getProjectID() + " already exists"));
+            if (existingADAProjectID != null && existingADAProjectName != null) {
+                log.warn("ADA Project with id {} and projectName '{}' both already exist", body.getProjectID(), body.getProjectName());
+                errors.add(new MessageDescription("Project with ID " + body.getProjectID() + " already exists"));
+                errors.add(new MessageDescription("Project with Name " + body.getProjectName() + " already exists"));
+            } else if (existingADAProjectID != null) {
+                log.warn("ADA Project with id {} already exists", body.getProjectID());
+                errors.add(new MessageDescription("Project with ID " + body.getProjectID() + " already exists"));
+            } else if (existingADAProjectName != null) {
+                log.warn("ADA Project with projectName '{}' already exists", body.getProjectName());
+                errors.add(new MessageDescription("Project with Name " + body.getProjectName() + " already exists"));
+            }
             responseMessage.setErrors(errors);
             responseMessage.setSuccess("CONFLICT");
             response.setResponses(responseMessage);
@@ -133,22 +132,10 @@ public class ADAProjectsController implements AdaProjectsApi{
         MessageDescription description = new MessageDescription();
         List<MessageDescription> warnings = new ArrayList<>();
         List<MessageDescription> errors = new ArrayList<>();
-            final String DEFAULT_CREATOR = "ada";
-        String createdBy;
-
-        try {
-            ServletRequestAttributes attributes = 
-                (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
-            HttpServletRequest request = attributes.getRequest();
-            createdBy = (String) request.getAttribute("CREATOR_ATTRIBUTE");
-            
-        } catch (IllegalStateException e) {
-            createdBy = DEFAULT_CREATOR;
-        }
         
-        // Fallback if the attribute was null (e.g., annotation was missing or interceptor skipped)
+        String createdBy = getCreatedByFromRequest();
         if (createdBy == null) {
-            createdBy = DEFAULT_CREATOR;
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
         ADAProjectDetailsVO existingADAProject = service.getByUniqueliteral("projectID", projectId);
@@ -156,7 +143,7 @@ public class ADAProjectsController implements AdaProjectsApi{
             log.warn("No ADA Project found with id {}", projectId);
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
         }else{
-            if(!createdBy.equals(existingADAProject.getCreatedBy())){
+            if(!createdBy.equals(existingADAProject.getCreatedBy()) && !DEFAULT_CREATOR.equals(createdBy)){
                 
                 log.error("Not Athorized to delete Project with ID",projectId);
                 errors.add(new MessageDescription("Not Athorized to delete Project with ID " + projectId));
@@ -185,29 +172,16 @@ public class ADAProjectsController implements AdaProjectsApi{
     public ResponseEntity<ADAProjectDetailsVO> getADAProjectById(@ApiParam(value = "ID of ADA Project to return",required=true) @PathVariable("projectId") String projectId) {
         ADAProjectDetailsVO existingADAProject = service.getByUniqueliteral("projectID", projectId);
 
-            final String DEFAULT_CREATOR = "ada";
-        String createdBy;
-
-        try {
-            ServletRequestAttributes attributes = 
-                (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
-            HttpServletRequest request = attributes.getRequest();
-            createdBy = (String) request.getAttribute("CREATOR_ATTRIBUTE");
-            
-        } catch (IllegalStateException e) {
-            createdBy = DEFAULT_CREATOR;
-        }
-        
-        // Fallback if the attribute was null (e.g., annotation was missing or interceptor skipped)
+        String createdBy = getCreatedByFromRequest();
         if (createdBy == null) {
-            createdBy = DEFAULT_CREATOR;
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
 		if(existingADAProject == null) {
             log.warn("No ADA Project found with id {}", projectId);
 			return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
 		}else{
-             if(!createdBy.equals(existingADAProject.getCreatedBy())){
+             if(!createdBy.equals(existingADAProject.getCreatedBy()) && !DEFAULT_CREATOR.equals(createdBy)){
                 log.error("Not Athorized to get Project with ID",projectId);
                 return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
             }
@@ -232,21 +206,9 @@ public class ADAProjectsController implements AdaProjectsApi{
         method = RequestMethod.GET)
     public ResponseEntity<ADAProjectDetailsCollectionVO> getAllADAProjects(@ApiParam(value = "Page number from which listing of ADA Projects should start. Example: 2") @Valid @RequestParam(value = "offset", required = false) Integer offset,@ApiParam(value = "Page size to limit the number of ADA Projects. Example: 15") @Valid @RequestParam(value = "limit", required = false) Integer limit) {
 
-        final String DEFAULT_CREATOR = "ada";
-        String createdBy;
-
-        try {
-            ServletRequestAttributes attributes = 
-                (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
-            HttpServletRequest request = attributes.getRequest();
-            createdBy = (String) request.getAttribute("CREATOR_ATTRIBUTE");
-        } catch (IllegalStateException e) {
-            createdBy = DEFAULT_CREATOR;
-        }
-        
-        // Fallback if the attribute was null (e.g., annotation was missing or interceptor skipped)
+        String createdBy = getCreatedByFromRequest();
         if (createdBy == null) {
-            createdBy = DEFAULT_CREATOR;
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
         
         ADAProjectDetailsCollectionVO collection = new ADAProjectDetailsCollectionVO();
@@ -282,22 +244,9 @@ public class ADAProjectsController implements AdaProjectsApi{
         List<MessageDescription> warnings = new ArrayList<>();
         List<MessageDescription> errors = new ArrayList<>();
 
-        final String DEFAULT_CREATOR = "ada";
-        String createdBy;
-
-        try {
-            ServletRequestAttributes attributes = 
-                (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
-            HttpServletRequest request = attributes.getRequest();
-            createdBy = (String) request.getAttribute("CREATOR_ATTRIBUTE");
-            
-        } catch (IllegalStateException e) {
-            createdBy = DEFAULT_CREATOR;
-        }
-        
-        // Fallback if the attribute was null (e.g., annotation was missing or interceptor skipped)
+        String createdBy = getCreatedByFromRequest();
         if (createdBy == null) {
-            createdBy = DEFAULT_CREATOR;
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
         ADAProjectDetailsVO existingADAProject = service.getByUniqueliteral("projectID",projectId);
@@ -345,6 +294,11 @@ public class ADAProjectsController implements AdaProjectsApi{
         FabricWorkspaceVO existingWorkspaceVO = new FabricWorkspaceVO();
         ADAProjectDetailsVO existingADAProject = new ADAProjectDetailsVO();
 
+        String createdBy = getCreatedByFromRequest();
+        if (createdBy == null) {
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
         existingADAProject = service.getByUniqueliteral("projectID", body.getProjectID());
         if(existingADAProject == null) {
             log.error("ADA Project with ID {} not found", body.getProjectID());
@@ -369,5 +323,21 @@ public class ADAProjectsController implements AdaProjectsApi{
             responseMessage.setErrors(message.getErrors());
             return new ResponseEntity<>(message, HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
+
+
+    private String getCreatedByFromRequest() {
+        String createdBy = null;
+
+        try {
+            ServletRequestAttributes attributes = 
+                (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
+            HttpServletRequest request = attributes.getRequest();
+            createdBy = (String) request.getAttribute("CREATOR_ATTRIBUTE");
+        } catch (IllegalStateException e) {
+            log.error("Could not retrieve RequestContext for CREATOR_ATTRIBUTE.", e);
+        }
+
+        return createdBy;
     }
 }

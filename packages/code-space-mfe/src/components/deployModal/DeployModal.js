@@ -20,6 +20,7 @@ const DeployModal = (props) => {
   const [deployEnvironment, setDeployEnvironment] = useState('staging');
   const [acceptContinueCodingOnDeployment, setAcceptContinueCodingOnDeployment] = useState(true);
   const projectDetails = props.codeSpaceData?.projectDetails;
+  const [retainBuildImage, setRetainBuildImage] = useState(false);
 
   //details from build
   const version = props?.buildDetails?.version || '';
@@ -106,6 +107,7 @@ const DeployModal = (props) => {
           : 'prod', // int or prod
         branch: version?.length ? buildBranch : branchValue[0],
         version: version || '',
+        keepBuildImage: retainBuildImage,
       };
       ProgressIndicator.show();
       CodeSpaceApiClient.deployCodeSpace(props.codeSpaceData.id, deployRequest)
@@ -147,7 +149,7 @@ const DeployModal = (props) => {
   return (
     <>
       <Modal
-        title={'Deploy Code'}
+        title={`Deploy Code - ${props?.codeSpaceData?.projectDetails?.projectName || ''}`}
         showAcceptButton={true}
         acceptButtonTitle={'Deploy'}
         cancelButtonTitle={'Cancel'}
@@ -222,6 +224,21 @@ const DeployModal = (props) => {
                     disableSelfTagAdd={true}
                     suggestionPopupHeight={150}
                   />
+                    {!version && (
+                      <div className={Styles.checkboxRow}>
+                        <label className="checkbox">
+                          <span className="wrapper">
+                            <input
+                              type="checkbox"
+                              className="ff-only"
+                              checked={retainBuildImage}
+                              onChange={(e) => setRetainBuildImage(e.target.checked)}
+                            />
+                          </span>
+                          <span className="label">Do you want to retain the build image?</span>
+                        </label>
+                      </div>
+                    )}
                 </div>
               </div>
             )}

@@ -123,6 +123,12 @@ public class UserStore {
 		    return this.getEntitlement_group().stream()
         		.anyMatch(s -> s.toLowerCase().contains(entitlementName.toLowerCase()));
 		}
+
+		public boolean hasFabricAdminAccess() {
+			return this.getUserRole().stream().anyMatch(
+					n -> "FabricAdmin".equalsIgnoreCase(n.getName()));
+		}
+
 	}
 
 	@Data

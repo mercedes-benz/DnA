@@ -313,7 +313,7 @@ jobs:
     name: 'Restart Code Server Workspace'
     if: ${{ github.event.inputs.action == 'restart'}}
     environment: ${{ github.event.inputs.environment }}
-    runs-on: [os-small-amd64-linux]
+    runs-on: [azure-small-amd64-linux]
 
     steps:
         

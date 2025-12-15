@@ -71,13 +71,13 @@ jobs:
       run: |
         echo "Pull Request Info - ${{ steps.cpr.outputs.pull_request }}"
 
-  css-scan:
-        name: Container security scan
-        needs: build
-        uses: ./.github/workflows/consec.yaml
-        with:
-          FULL_IMAGE_NAME: 'registry-emea.app.corpintra.net/dnaplatform/clamav:${{ needs.build.outputs.date }}'
-        secrets: inherit
+  # css-scan:
+  #       name: Container security scan
+  #       needs: build
+  #       uses: ./.github/workflows/consec.yaml
+  #       with:
+  #         FULL_IMAGE_NAME: 'registry-emea.app.corpintra.net/dnaplatform/clamav:${{ needs.build.outputs.date }}'
+  #       secrets: inherit
 
   staging:
     name: "Update tag staging"

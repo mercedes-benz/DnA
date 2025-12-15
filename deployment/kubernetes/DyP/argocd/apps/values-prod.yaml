@@ -64,7 +64,7 @@ db:
  - name: grc-virtualassitant
    env: prod 
  - name: fabric-transparency
-   env: prod 
+   env: prod
  - name: currencytool
    env: prod 
  - name: scriptick-ai
@@ -73,3 +73,9 @@ db:
    env: int
  - name: digital-qua
    env: prod
+ - name: wbv
+   env: prod
+ - name: codewhiz
+   env: prod
+ - name: ai-chatbot
+   env: int
