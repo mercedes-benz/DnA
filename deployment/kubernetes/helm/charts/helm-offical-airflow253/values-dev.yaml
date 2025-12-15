@@ -259,9 +259,9 @@ env:
 # - name: ""
 #   value: ""
   - name: REQUESTS_CA_BUNDLE	
-    value: /usr/local/share/ca-certificates/ca-bundle.crt	
+    value: /etc/ssl/certs/	
   - name: SSL_CERT_FILE	
-    value: /usr/local/share/ca-certificates/ca-bundle.crt
+    value: /etc/ssl/certs/
   - name: http_proxy
     value: http://security-proxy.emea.svc.corpintra.net:3128
   - name: https_proxy

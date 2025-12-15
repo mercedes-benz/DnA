@@ -6,8 +6,8 @@ COPY proxy.conf /etc/apt/apt.conf.d/proxy.conf
 USER root
 
 # Add CA bundle to main ca-certificates folder
-ADD Corp-Root-CA-G2.crt /usr/local/share/ca-certificates/ca-bundle.crt
-RUN chmod 644 /usr/local/share/ca-certificates/ca-bundle.crt && update-ca-certificates
+ADD Corp-Root-CA-G2.crt /etc/ssl/certs/
+RUN chmod 644 /etc/ssl/certs/ && update-ca-certificates
 
 RUN sudo apt-get update \
  && sudo apt-get install -y \
