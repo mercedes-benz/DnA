@@ -42,10 +42,10 @@ RUN cd /opt/oracle && \
 # Fix permissions for the airflow user
 RUN chown -R airflow: /opt/oracle
 
-ADD chain.crt /etc/ssl/certs/
-RUN chmod 644 /etc/ssl/certs/ && update-ca-certificates
+ADD chain.crt /usr/local/share/ca-certificates/ca-bundle.crt
+RUN chmod 644 /usr/local/share/ca-certificates/ca-bundle.crt && update-ca-certificates
 USER 50000
 COPY requirements.txt /
 RUN pip install --no-cache-dir "apache-airflow==${AIRFLOW_VERSION}" -r /requirements.txt
-ENV REQUESTS_CA_BUNDLE="/etc/ssl/certs/"
-ENV SSL_CERT_FILE="/etc/ssl/certs/"
+ENV REQUESTS_CA_BUNDLE="/usr/local/share/ca-certificates/ca-bundle.crt"
+ENV SSL_CERT_FILE="/usr/local/share/ca-certificates/ca-bundle.crt"
