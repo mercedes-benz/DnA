@@ -273,36 +273,42 @@ public class BaseRecipeService implements RecipeService{
 	public GenericMessage validateGitHubUrl(String gitHubUrl) {
 		GenericMessage responseMessage = new GenericMessage();
 		responseMessage.setSuccess("SUCCESS");
-		try
-		{
-			String repoName = null;
-			String gitUrl = null;
-			String applicationName = null;
-				if(gitHubUrl.contains(".git")) {
+		try {
+			if (gitHubUrl.contains(".git")) {
 				gitHubUrl = gitHubUrl.replaceAll("\\.git$", "/");
 			}
-			String[] codespaceSplitValues = gitHubUrl.split("/");
-			int length = codespaceSplitValues.length;
-			repoName = codespaceSplitValues[length - 1];
-			applicationName = codespaceSplitValues[length - 2];
-			gitUrl = gitHubUrl.replace("/" + codespaceSplitValues[length - 1], "");
-			gitUrl = gitUrl.replace("/" + codespaceSplitValues[length - 2], "");
-			// HttpStatus validateUserPatstatus = gitClient.validateGitUser(gitUrl,repoName,applicationName);
-			HttpStatus validateUserPatstatus;
+			String[] parts = gitHubUrl.split("/");
+			int length = parts.length;
 
-			CodeServerRecipeNsql recipeEntity = workspaceCustomRecipeRepo.findByRecipeName(repoName);
+			String repoName = parts[length - 1];
+			String applicationName = parts[length - 2];
 
-			boolean isPrivate = recipeEntity != null &&
-					recipeEntity.getData() != null &&
-					Boolean.FALSE.equals(recipeEntity.getData().getIsPublic());
+			String gitUrl = gitHubUrl
+					.replace("/" + repoName, "")
+					.replace("/" + applicationName, "");
 
-			if (isPrivate && gitUrl.contains("ghe.com")) {
-				validateUserPatstatus = gitClient.validateGitUserWithPid(
-						gitUrl, repoName, applicationName, configuredPid, ghePat);
+			HttpStatus status;
+
+			boolean isGheRepo = gitHubUrl.contains("ghe.com");
+
+			if (isGheRepo) {
+				log.info("Validating PRIVATE GHE repo using PID");
+
+				status = gitClient.validateGitUserWithPid(
+						gitUrl,
+						repoName,
+						applicationName,
+						configuredPid,
+						ghePat);
 			} else {
-				validateUserPatstatus = gitClient.validateGitUser(gitUrl, repoName, applicationName);
+				log.info("Validating normal Git repo");
+
+				status = gitClient.validateGitUser(
+						gitUrl,
+						repoName,
+						applicationName);
 			}
-			if (!validateUserPatstatus.is2xxSuccessful()) {
+			if (!status.is2xxSuccessful()) {
 				MessageDescription msg = new MessageDescription();
 				List<MessageDescription> errorMessage = new ArrayList<>();
 					msg.setMessage("Unexpected error occured while validating PID onboarding for the given git repo. Please try again.");
