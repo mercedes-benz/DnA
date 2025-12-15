@@ -815,7 +815,7 @@ const isProjectDetailsRequired = typeOfProject !== 'Playground';
                       onInputChange={(value, showSpinner) =>
                         handleProjectSearch(value, showSpinner, selectedDivision)
                       }
-                      required={false}
+                      required={isProjectDetailsRequired}
                       showError={errors.projectDetails?.message}
                       render={(item) => {
                         const stakeholderIds = item?.stakeholders?.map((s) => s.userID).join(', ') || '—';
