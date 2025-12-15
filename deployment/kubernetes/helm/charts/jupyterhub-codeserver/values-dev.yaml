@@ -284,7 +284,7 @@ hub:
     enabled: true
     initialDelaySeconds: 0
     periodSeconds: 2
-    failureThreshold: 1000
+    failureThreshold: 5
     timeoutSeconds: 1
   existingSecret:
   serviceAccount:
