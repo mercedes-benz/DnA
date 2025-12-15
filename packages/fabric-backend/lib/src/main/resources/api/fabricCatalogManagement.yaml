@@ -171,7 +171,7 @@ paths:
           description: "Method not allowed"
         500:
           description: "Internal error"
-  /catalog/ddx/group-update/{id}:
+  /catalog/ddx/group-update/{id}/{workspaceId}/{lakehouseId}:
     post:
       tags:
         - "fabric-catalog-management"
@@ -195,7 +195,7 @@ paths:
           description: "The ID of the workspace."
           required: true
           type: "string"
-        - name: LakehouseId
+        - name: lakehouseId
           in: path
           description: "The ID of Lakehouse."
           required: true

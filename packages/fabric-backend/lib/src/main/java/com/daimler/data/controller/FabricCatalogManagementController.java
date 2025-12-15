@@ -276,7 +276,7 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
     }
 
     @Override
-     @ApiOperation(value = "update groups from ddx.", nickname = "updateGroupsFromDDX", notes = "This endpoint will be used to update groups from ddx.", response = GenericMessage.class, tags={ "fabric-catalog-management", })
+    @ApiOperation(value = "update groups from ddx.", nickname = "updateGroupsFromDDX", notes = "This endpoint will be used to update groups from ddx.", response = GenericMessage.class, tags={ "fabric-catalog-management", })
     @ApiResponses(value = { 
         @ApiResponse(code = 201, message = "Returns message of success or failure ", response = GenericMessage.class),
         @ApiResponse(code = 400, message = "Bad Request", response = GenericMessage.class),
@@ -284,11 +284,12 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
         @ApiResponse(code = 403, message = "Request is not authorized."),
         @ApiResponse(code = 405, message = "Method not allowed"),
         @ApiResponse(code = 500, message = "Internal error") })
-    @RequestMapping(value = "/catalog/ddx/group-update/{id}",
+    @RequestMapping(value = "/catalog/ddx/group-update/{id}/{workspaceId}/{lakehouseId}",
         produces = { "application/json" }, 
         consumes = { "application/json" },
         method = RequestMethod.POST)
-    public ResponseEntity<GenericMessage> updateGroupsFromDDX(@ApiParam(value = "The groups update request from DDX." ,required=true )  @Valid @RequestBody UpdateDDXGroupsRequestVO updateDDXGroupsRequest,@ApiParam(value = "The ID of DDX data product .",required=true) @PathVariable("ddxId") String ddxId,@ApiParam(value = "The ID of the workspace.",required=true) @PathVariable("workspaceId") String workspaceId,@ApiParam(value = "The ID of Lakehouse.",required=true) @PathVariable("LakehouseId") String lakehouseId) {
+    public ResponseEntity<GenericMessage> updateGroupsFromDDX(@ApiParam(value = "The groups update request from DDX." ,required=true )  @Valid @RequestBody UpdateDDXGroupsRequestVO updateDDXGroupsRequest,@ApiParam(value = "The ID of DDX data product .",required=true) @PathVariable("ddxId") String ddxId,@ApiParam(value = "The ID of the workspace.",required=true) @PathVariable("workspaceId") String workspaceId,@ApiParam(value = "The ID of Lakehouse.",required=true) @PathVariable("lakehouseId") String lakehouseId){
+
         GenericMessage responseMessage = new GenericMessage();
         try {
           return new ResponseEntity<>(responseMessage, HttpStatus.OK);
