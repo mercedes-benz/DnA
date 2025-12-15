@@ -1204,8 +1204,6 @@ public class BaseStorageService implements StorageService {
 				// Setting permission in Minio
 				if("".equalsIgnoreCase(policy) || policy == null || !StringUtils.hasText(policy)) {
 					dnaMinioClient.deleteUser(userId);
-				}else {
-					dnaMinioClient.setPolicy(userId, false, policy, false);
 				}
 
 			}
