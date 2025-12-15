@@ -811,7 +811,7 @@ scheduling:
       pullPolicy:
       pullSecrets: []
     revisionHistoryLimit:
-    replicas: 3
+    replicas: 5
     labels: {}
     annotations: {}
     containerSecurityContext:
@@ -823,7 +823,13 @@ scheduling:
         drop: ["ALL"]
       seccompProfile:
         type: "RuntimeDefault"
-    resources: {}
+    resources: 
+      limits:
+        cpu: "200m"
+        memory: "8Gi"
+      requests:
+        cpu: "200m"
+        memory: "6Gi"
   corePods:
     tolerations:
       - key: hub.jupyter.org/dedicated
