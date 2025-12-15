@@ -122,7 +122,7 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 			return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
 		}else {
 				if(workspaceRequestVO.getDescription()==null || workspaceRequestVO.getDivision() == null || workspaceRequestVO.getDataClassification() ==null
-				|| workspaceRequestVO.isHasPii() == null || workspaceRequestVO.isTermsOfUse() == null  || workspaceRequestVO.getDepartment() == null || workspaceRequestVO.getSubscription() == null || workspaceRequestVO.getProjectId() == null) {
+				|| workspaceRequestVO.isHasPii() == null || workspaceRequestVO.isTermsOfUse() == null  || workspaceRequestVO.getDepartment() == null || workspaceRequestVO.getSubscription() == null) {
 					log.error("Fabric workspace project mandatory fields cannot be null for project, please check and send valid input.");
 					MessageDescription invalidMsg = new MessageDescription("Fabric workspace project mandatory fields cannot be null for project, please check and send valid input.");
 					errorMessage.setSuccess(HttpStatus.BAD_REQUEST.name());
@@ -131,6 +131,15 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 					responseVO.setResponses(errorMessage);
 					return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
 				}
+                if(workspaceRequestVO.getProjectId() == null && !"Playground".equalsIgnoreCase(workspaceRequestVO.getTypeOfProject())) {
+                    log.error("Fabric workspace project ID cannot be null for non-playground projects (typeOfProject: {}), please check and send valid input.", workspaceRequestVO.getTypeOfProject());
+                    MessageDescription invalidMsg = new MessageDescription("Fabric workspace project Details is mandatory for non-playground projects. Please provide a valid project details.");
+                    errorMessage.setSuccess(HttpStatus.BAD_REQUEST.name());
+                    errorMessage.addErrors(invalidMsg);
+                    responseVO.setData(workspaceRequestVO);
+                    responseVO.setResponses(errorMessage);
+                    return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+                }				
 		}
 		workspaceRequestVO.setName(workspaceRequestVO.getName().trim());
 		if(workspaceRequestVO!=null && workspaceRequestVO.getName()!=null && "Admin monitoring".equalsIgnoreCase(workspaceRequestVO.getName())) {
