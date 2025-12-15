@@ -171,7 +171,7 @@ paths:
           description: "Method not allowed"
         500:
           description: "Internal error"
-  /catalog/ddx/group-update/{id}/{workspaceId}/{lakehouseId}:
+  /catalog/ddx/group-update/{ddxId}/{workspaceId}/{lakehouseId}:
     post:
       tags:
         - "fabric-catalog-management"

@@ -284,7 +284,7 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
         @ApiResponse(code = 403, message = "Request is not authorized."),
         @ApiResponse(code = 405, message = "Method not allowed"),
         @ApiResponse(code = 500, message = "Internal error") })
-    @RequestMapping(value = "/catalog/ddx/group-update/{id}/{workspaceId}/{lakehouseId}",
+    @RequestMapping(value = "/catalog/ddx/group-update/{ddxId}/{workspaceId}/{lakehouseId}",
         produces = { "application/json" }, 
         consumes = { "application/json" },
         method = RequestMethod.POST)
