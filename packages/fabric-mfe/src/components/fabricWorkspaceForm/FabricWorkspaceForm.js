@@ -356,6 +356,7 @@ const mandate = divisionId && Envs.MANDATE_LEANIX_FOR_DIVISIONS
   ? Envs.MANDATE_LEANIX_FOR_DIVISIONS.split(',').includes(divisionId) 
   : false;
 const isLeanIXRequired = typeOfProject === 'Production' && mandate;
+const isProjectDetailsRequired = typeOfProject !== 'Playground';
 
   return (
     <>
@@ -799,7 +800,7 @@ const isLeanIXRequired = typeOfProject === 'Production' && mandate;
                   control={control}
                   name="projectDetails"
                   rules={{
-                    required: '*Missing entry',
+                    required: isProjectDetailsRequired ? '*Missing entry' : false,
                   }}
                   render={({ field }) => (
                     <TypeAheadBox
@@ -814,7 +815,7 @@ const isLeanIXRequired = typeOfProject === 'Production' && mandate;
                       onInputChange={(value, showSpinner) =>
                         handleProjectSearch(value, showSpinner, selectedDivision)
                       }
-                      required={true}
+                      required={false}
                       showError={errors.projectDetails?.message}
                       render={(item) => {
                         const stakeholderIds = item?.stakeholders?.map((s) => s.userID).join(', ') || '—';
@@ -824,12 +825,14 @@ const isLeanIXRequired = typeOfProject === 'Production' && mandate;
                           <div className={Styles.optionContainer}>
                             <div className={Styles.optionHeader}>
                               <span className={Styles.optionText}>
-                                {item?.projectID ? `${item.projectID} — ${item.projectName}` : item.projectName}
+                                {item.projectName}
                               </span>
-                              {item?.division && (
-                                <span className={Styles.suggestionListBadge}>{item.division}</span>
-                              )}
                             </div>
+                            {item?.division && (
+                              <div className={Styles.optionSubText}>
+                                <strong>Division:</strong> {item.division}
+                              </div>
+                            )}
                             {stakeholderIds !== '—' && (
                               <div className={Styles.optionSubText}>
                                 <strong>Stakeholders:</strong> {stakeholderIds}
