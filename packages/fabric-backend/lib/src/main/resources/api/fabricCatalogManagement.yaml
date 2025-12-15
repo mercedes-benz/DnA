@@ -190,6 +190,16 @@ paths:
           description: "The ID of DDX data product ."
           required: true
           type: "string"
+        - name: "workspaceId"
+          in: path
+          description: "The ID of the workspace."
+          required: true
+          type: "string"
+        - name: LakehouseId
+          in: path
+          description: "The ID of Lakehouse."
+          required: true
+          type: "string"
       responses:
         201:
           description: "Returns message of success or failure "
