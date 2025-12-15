@@ -284,7 +284,7 @@ hub:
     enabled: true
     initialDelaySeconds: 0
     periodSeconds: 2
-    failureThreshold: 1000
+    failureThreshold: 5
     timeoutSeconds: 1
   existingSecret:
   serviceAccount:
@@ -372,7 +372,7 @@ proxy:
       enabled: true
       initialDelaySeconds: 0
       periodSeconds: 2
-      failureThreshold: 1000
+      failureThreshold: 5
       timeoutSeconds: 1
     resources: 
       limits:
@@ -791,9 +791,9 @@ scheduling:
       annotations: {}
     extraPodSpec: {}
   podPriority:
-    enabled: false
+    enabled: true
     globalDefault: false
-    defaultPriority: 0
+    defaultPriority: 700000
     imagePullerPriority: -5
     userPlaceholderPriority: -10
   userPlaceholder:
@@ -809,7 +809,7 @@ scheduling:
       pullPolicy:
       pullSecrets: []
     revisionHistoryLimit:
-    replicas: 0
+    replicas: 3
     labels: {}
     annotations: {}
     containerSecurityContext:
