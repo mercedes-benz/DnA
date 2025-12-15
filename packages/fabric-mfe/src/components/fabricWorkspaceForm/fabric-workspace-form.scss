@@ -46,3 +46,12 @@
 .disabledTags {
   pointer-events: none;
 }
+.warning {
+  margin-bottom: 0;
+  margin-top: -16px;
+  color: #FFEE58;
+
+  pre {
+    display: inline;
+  }
+}
