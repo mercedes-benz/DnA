@@ -1,0 +1,44 @@
+{{- if and (eq (include "mimir.gateway.isEnabled" .) "true") .Values.gateway.ingress.enabled -}}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ .Values.gateway.ingress.nameOverride | default (include "mimir.resourceName" (dict "ctx" . "component" "gateway") ) }}
+  labels:
+    {{- include "mimir.labels" (dict "ctx" . "component" "gateway") | nindent 4 }}
+  {{- with .Values.gateway.ingress.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  namespace: {{ .Release.Namespace | quote }}
+spec:
+  {{- with .Values.gateway.ingress.ingressClassName }}
+  ingressClassName: {{ . }}
+  {{- end -}}
+  {{- with .Values.gateway.ingress.tls }}
+  tls:
+    {{- range . }}
+    - hosts:
+        {{- range .hosts }}
+        - {{ tpl . $ | quote }}
+        {{- end }}
+      {{- with .secretName }}
+      secretName: {{ . }}
+      {{- end }}
+    {{- end }}
+  {{- end }}
+  rules:
+    {{- range .Values.gateway.ingress.hosts }}
+    - host: {{ tpl .host $ | quote }}
+      http:
+        paths:
+          {{- range .paths }}
+          - path: {{ .path }}
+            pathType: {{ .pathType }}
+            backend:
+              service:
+                name: {{ include "mimir.gateway.service.name" $ }}
+                port:
+                  number: {{ $.Values.gateway.service.port }}
+          {{- end }}
+    {{- end }}
+{{- end -}}

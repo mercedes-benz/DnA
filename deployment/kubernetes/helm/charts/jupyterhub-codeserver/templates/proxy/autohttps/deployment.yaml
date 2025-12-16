@@ -8,7 +8,7 @@ metadata:
   labels:
     {{- include "jupyterhub.labels" . | nindent 4 }}
 spec:
-  {{- if typeIs "int" .Values.proxy.traefik.revisionHistoryLimit }}
+  {{- if not (typeIs "<nil>" .Values.proxy.traefik.revisionHistoryLimit) }}
   revisionHistoryLimit: {{ .Values.proxy.traefik.revisionHistoryLimit }}
   {{- end }}
   replicas: 1
@@ -130,10 +130,10 @@ spec:
           {{- end }}
           args:
             - watch-save
-            - --label=app={{ include "jupyterhub.appLabel" . }}
-            - --label=release={{ .Release.Name }}
-            - --label=chart={{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
-            - --label=heritage=secret-sync
+            - --label=app.kubernetes.io/name={{ include "jupyterhub.appLabel" . }}
+            - --label=app.kubernetes.io/instance={{ .Release.Name }}
+            - --label=helm.sh/chart={{ .Chart.Name }}-{{ .Chart.Version | replace "+" "_" }}
+            - --label=app.kubernetes.io/managed-by=secret-sync
             - {{ include "jupyterhub.proxy-public-tls.fullname" . }}
             - acme.json
             - /etc/acme/acme.json

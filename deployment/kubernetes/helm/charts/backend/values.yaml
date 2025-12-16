@@ -10,6 +10,7 @@ imagePullSecrets:
 ingress:
   enabled: true
   namespace: ingress
+  className: "traefik"  
   host: "ingress-host"
   lbIP: ""
 
