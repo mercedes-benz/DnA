@@ -279,22 +279,63 @@ public class DataikuController {
 				return Response.status(Status.FORBIDDEN).entity(responseDetailDto).build();
 			}
 			
-			if(collaborators!= null && !collaborators.isEmpty()) {
-				for(CollaboratorDetailsDto collab : collaborators) {
+			// if(collaborators!= null && !collaborators.isEmpty()) {
+			// 	for(CollaboratorDetailsDto collab : collaborators) {
+			// 		UserPrivilegeResponseDto collabDetails = userPrivilegeService.getByShortId(collab.getUserId());
+			// 		if(collabDetails==null || collabDetails.getData()==null || collabDetails.getData().getUserId()==null ) {
+			// 			MessageDescription errMsg = new MessageDescription("Collaborator " + collab.getUserId() + " or privileges not found, cannot add to dataiku project");
+			// 			log.error("Collaborator {} or privileges not found, cannot update dataiku project", collab.getUserId());
+			// 			errors.add(errMsg);
+			// 			responseMsg.setErrors(errors);
+			// 			responseMsg.setWarnings(warnings);
+			// 			responseDetailDto.setData(assembler.toProjectSummaryDetails(responseDto.getData(),userId));
+			// 			responseDetailDto.setResponse(responseMsg);
+			// 			return Response.status(Status.BAD_REQUEST).entity(responseDetailDto).build();
+			// 		}else {
+			// 			collabPrivilegeDetails.add(collabDetails);
+			// 		}
+			// 	}
+			// }
+			
+
+			List<String> failedCollaboratorIds = new ArrayList<>(); 
+
+			if (collaborators != null && !collaborators.isEmpty()) {
+				for (CollaboratorDetailsDto collab : collaborators) {
 					UserPrivilegeResponseDto collabDetails = userPrivilegeService.getByShortId(collab.getUserId());
-					if(collabDetails==null || collabDetails.getData()==null || collabDetails.getData().getUserId()==null ) {
-						MessageDescription errMsg = new MessageDescription("Collaborator " + collab.getUserId() + " or privileges not found, cannot add to dataiku project");
-						log.error("Collaborator {} or privileges not found, cannot update dataiku project", collab.getUserId());
-						errors.add(errMsg);
-						responseMsg.setErrors(errors);
-						responseMsg.setWarnings(warnings);
-						responseDetailDto.setData(assembler.toProjectSummaryDetails(responseDto.getData(),userId));
-						responseDetailDto.setResponse(responseMsg);
-						return Response.status(Status.BAD_REQUEST).entity(responseDetailDto).build();
-					}else {
+
+					if (collabDetails == null || collabDetails.getData() == null || collabDetails.getData().getUserId() == null) {
+
+						failedCollaboratorIds.add(collab.getGivenName());
+						log.error("Collaborator {} privileges not found. User ID collected for final error message.", userId);
+						
+					} else {
 						collabPrivilegeDetails.add(collabDetails);
 					}
 				}
+			}
+
+			if (!failedCollaboratorIds.isEmpty()) {
+				
+				String userListFormatted = failedCollaboratorIds.stream()
+					.map(i -> String.format("[%s]", i)) 
+					.collect(java.util.stream.Collectors.joining(", ")); 
+
+				String summaryErrorMessageText = String.format(
+					"Collaborators %s privileges not found (License possibly expired). " + 
+					"To continue with the Dataiku project update, please ask them to request a license or remove them from the list.",
+					userListFormatted
+				);
+				log.error("Cannot update project : {}", summaryErrorMessageText);
+				MessageDescription summaryErrMsg = new MessageDescription(summaryErrorMessageText);
+				errors.add(summaryErrMsg);
+				responseMsg.setErrors(errors);
+				responseMsg.setWarnings(warnings); 
+				
+				responseDetailDto.setData(assembler.toProjectSummaryDetails(responseDto.getData(), userId));
+				responseDetailDto.setResponse(responseMsg);
+
+				return Response.status(Status.BAD_REQUEST).entity(responseDetailDto).build();
 			}
 			
 		}else {
