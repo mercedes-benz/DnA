@@ -14,7 +14,7 @@ on:
         default: 'Development'
         required: true  
       repo:
-        description: "Github repo(org/repo name)"         
+        description: "Github repo URL"         
       branch:
         description: "Branch to deploy it"  
         default: "main"         
@@ -64,10 +64,29 @@ jobs:
     runs-on: [road-runner, medium]
     steps:
 
+    - name: Parse repo URL
+      id: parse
+      run: |
+        REPO_URL="${{ github.event.inputs.repo }}"
+          
+        # Extract git server domain
+        if [[ "$REPO_URL" =~ https://([^/]+)/(.+) ]]; then
+          SERVER_URL="https://${BASH_REMATCH[1]}/"
+          REPO_PATH="${BASH_REMATCH[2]}"          
+        else
+          echo "Error: Invalid repo URL format"
+          exit 1
+        fi
+        
+        echo "REPO_PATH=$REPO_PATH" >> $GITHUB_OUTPUT
+        echo "SERVER_URL=$SERVER_URL" >> $GITHUB_OUTPUT
+
     - name: Inputs
       run: |
         echo "environment: ${{ github.event.inputs.environment }}"
-        echo "repo: ${{ github.event.inputs.repo }}"
+        echo "repo_url: ${{ github.event.inputs.repo }}"
+        echo "repo_path: ${{ steps.parse.outputs.REPO_PATH }}"
+        echo "server_url: ${{ steps.parse.outputs.SERVER_URL }}"
         echo "branch: ${{ github.event.inputs.branch }}"
         echo "action: ${{ github.event.inputs.action }}"
         echo "target_env: ${{ github.event.inputs.target_env }}"
@@ -83,15 +102,43 @@ jobs:
     environment: ${{ github.event.inputs.environment }}
     runs-on: [os-large-amd64-linux]
     steps:
+    
+    - name: Parse repo URL
+      id: parse
+      run: |
+        REPO_URL="${{ github.event.inputs.repo }}"
+          
+        # Extract git server domain
+        if [[ "$REPO_URL" =~ https://([^/]+)/(.+) ]]; then
+          SERVER_URL="https://${BASH_REMATCH[1]}/"
+          REPO_PATH="${BASH_REMATCH[2]}"          
+        else
+          echo "Error: Invalid repo URL format"
+          exit 1
+        fi
         
-    - name: Check user repo
+        echo "REPO_PATH=$REPO_PATH" >> $GITHUB_OUTPUT
+        echo "SERVER_URL=$SERVER_URL" >> $GITHUB_OUTPUT
+        
+    - name: Check user repo (Github cloud)
+      if: ${{ steps.parse.outputs.SERVER_URL == 'https://mercedes-benz.ghe.com/' }}
       uses: actions/checkout@v3
       with:
-        repository: ${{ github.event.inputs.repo }}
+        repository: ${{ steps.parse.outputs.REPO_PATH }}
+        token: ${{ secrets.PID_PAT_GHE }}
+        ref: ${{ github.event.inputs.branch }}
+        path: workspace-repo
+        github-server-url: ${{ steps.parse.outputs.SERVER_URL }}             
+
+    - name: Check user repo (Github onprem)
+      if: ${{ steps.parse.outputs.SERVER_URL == 'https://git.i.mercedes-benz.com/' }}
+      uses: actions/checkout@v3
+      with:
+        repository: ${{ steps.parse.outputs.REPO_PATH }}
         token: ${{ secrets.PID_PAT }}
         ref: ${{ github.event.inputs.branch }}
         path: workspace-repo
-        github-server-url: "https://git.i.mercedes-benz.com/"             
+        github-server-url: ${{ steps.parse.outputs.SERVER_URL }}
 
     - name: Use .npmrc
       if: ${{ github.event.inputs.action == 'build' }}      
@@ -366,14 +413,42 @@ jobs:
       - uses: actions/checkout@v3
         with:
           fetch-depth: 0  # Shallow clones should be disabled for a better relevancy of analysis
-      - name: Check user repo
+      - name: Parse repo URL
+        id: parse
+        run: |
+          REPO_URL="${{ github.event.inputs.repo }}"
+            
+          # Extract git server domain
+          if [[ "$REPO_URL" =~ https://([^/]+)/(.+) ]]; then
+            SERVER_URL="https://${BASH_REMATCH[1]}/"
+            REPO_PATH="${BASH_REMATCH[2]}"          
+          else
+            echo "Error: Invalid repo URL format"
+            exit 1
+          fi
+          
+          echo "REPO_PATH=$REPO_PATH" >> $GITHUB_OUTPUT
+          echo "SERVER_URL=$SERVER_URL" >> $GITHUB_OUTPUT
+          
+      - name: Check user repo (Github cloud)
+        if: ${{ steps.parse.outputs.SERVER_URL == 'https://mercedes-benz.ghe.com/' }}
         uses: actions/checkout@v3
         with:
-          repository: ${{ github.event.inputs.repo }}
+          repository: ${{ steps.parse.outputs.REPO_PATH }}
+          token: ${{ secrets.PID_PAT_GHE }}
+          ref: ${{ github.event.inputs.branch }}
+          path: workspace-repo
+          github-server-url: ${{ steps.parse.outputs.SERVER_URL }}
+            
+      - name: Check user repo (Github onprem)
+        if: ${{ steps.parse.outputs.SERVER_URL == 'https://git.i.mercedes-benz.com/' }}
+        uses: actions/checkout@v3
+        with:
+          repository: ${{ steps.parse.outputs.REPO_PATH }}
           token: ${{ secrets.PID_PAT }}
           ref: ${{ github.event.inputs.branch }}
           path: workspace-repo
-          github-server-url: "https://git.i.mercedes-benz.com/"           
+          github-server-url: ${{ steps.parse.outputs.SERVER_URL }}          
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
@@ -430,14 +505,42 @@ jobs:
               github.event.inputs.projectName == 'ffclers-wbv-ext-buyer-fe' }}
     runs-on: [ os-small-amd64-linux ]
     steps:
-      - name: Check user repo
+      - name: Parse repo URL
+        id: parse
+        run: |
+          REPO_URL="${{ github.event.inputs.repo }}"
+            
+          # Extract git server domain
+          if [[ "$REPO_URL" =~ https://([^/]+)/(.+) ]]; then
+            SERVER_URL="https://${BASH_REMATCH[1]}/"
+            REPO_PATH="${BASH_REMATCH[2]}"          
+          else
+            echo "Error: Invalid repo URL format"
+            exit 1
+          fi
+          
+          echo "REPO_PATH=$REPO_PATH" >> $GITHUB_OUTPUT
+          echo "SERVER_URL=$SERVER_URL" >> $GITHUB_OUTPUT
+          
+      - name: Check user repo (Github cloud)
+        if: ${{ steps.parse.outputs.SERVER_URL == 'https://mercedes-benz.ghe.com/' }}
         uses: actions/checkout@v3
         with:
-          repository: ${{ github.event.inputs.repo }}
+          repository: ${{ steps.parse.outputs.REPO_PATH }}
+          token: ${{ secrets.PID_PAT_GHE }}
+          ref: ${{ github.event.inputs.branch }}
+          github-server-url: ${{ steps.parse.outputs.SERVER_URL }}    
+          fetch-depth: 0 
+
+      - name: Check user repo(Github onprem)
+        if: ${{ steps.parse.outputs.SERVER_URL == 'https://git.i.mercedes-benz.com/' }}
+        uses: actions/checkout@v3
+        with:
+          repository: ${{ steps.parse.outputs.REPO_PATH }}
           token: ${{ secrets.PID_PAT }}
           ref: ${{ github.event.inputs.branch }}
-          github-server-url: "https://git.i.mercedes-benz.com/"    
-          fetch-depth: 0       
+          github-server-url: ${{ steps.parse.outputs.SERVER_URL }}    
+          fetch-depth: 0     
 
       - uses: sonarsource/sonarqube-scan-action@master
         env:
