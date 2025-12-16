@@ -131,6 +131,15 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 					responseVO.setResponses(errorMessage);
 					return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
 				}
+                if(workspaceRequestVO.getProjectId() == null && !"Playground".equalsIgnoreCase(workspaceRequestVO.getTypeOfProject())) {
+                    log.error("Fabric workspace project ID cannot be null for non-playground projects (typeOfProject: {}), please check and send valid input.", workspaceRequestVO.getTypeOfProject());
+                    MessageDescription invalidMsg = new MessageDescription("Fabric workspace project Details is mandatory for non-playground projects. Please provide a valid project details.");
+                    errorMessage.setSuccess(HttpStatus.BAD_REQUEST.name());
+                    errorMessage.addErrors(invalidMsg);
+                    responseVO.setData(workspaceRequestVO);
+                    responseVO.setResponses(errorMessage);
+                    return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+                }				
 		}
 		workspaceRequestVO.setName(workspaceRequestVO.getName().trim());
 		if(workspaceRequestVO!=null && workspaceRequestVO.getName()!=null && "Admin monitoring".equalsIgnoreCase(workspaceRequestVO.getName())) {
@@ -777,8 +786,8 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 				existingFabricWorkspace.setAppId(workspaceUpdateRequestVO.getAppId());			
 			if (workspaceUpdateRequestVO.getLeanIXDetails() != null)
 				existingFabricWorkspace.setLeanIXDetails(workspaceUpdateRequestVO.getLeanIXDetails());
-			// if(workspaceUpdateRequestVO.getProjectId() != null)
-			// 	existingFabricWorkspace.setProjectId(workspaceUpdateRequestVO.getProjectId());
+			if(workspaceUpdateRequestVO.getProjectId() != null)
+				existingFabricWorkspace.setProjectId(workspaceUpdateRequestVO.getProjectId());
 			if(workspaceUpdateRequestVO.getSubscription() !=null)
 				existingFabricWorkspace.setSubscription(FabricWorkspaceVO.SubscriptionEnum.valueOf(workspaceUpdateRequestVO.getSubscription().name()));
 			
