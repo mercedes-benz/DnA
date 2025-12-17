@@ -14,12 +14,25 @@ import Modal from '../../formElements/modal/Modal';
 import CreateNewWorkspace from './createNewWorkspace/CreateNewWorkspace';
 import { useHistory } from 'react-router-dom';
 
+export interface leanGovernance {
+  costCenter?: string;
+  dataClassification?: string;
+  department?: string;
+  description?: string;
+  division?: string;
+  divisionId?: string;
+  hasPii?: boolean;
+  internalOrder?: string;
+  subDivision?: string;
+  subDivisionId?: string;
+};
+
 const Uilicious = () => {
   const [workspaceList, setWorkspaceList] = useState([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
-  const [leanGovernance, setLeanGovernance] = useState();
-  const [accountId, setAccountId] = useState('');
+  const [leanGovernance, setLeanGovernance] = useState<leanGovernance>();
+  const [selectedSpaceId, setSelectedSpaceId] = useState('');
 
   const History = useHistory();
   const goback = () => {
@@ -36,14 +49,19 @@ const Uilicious = () => {
     ApiClient.getUiliciousWorkspaces()
       .then((response) => {
         setWorkspaceList(response?.items);
-        setLeanGovernance(response?.leanGovernance[0]);
-        setAccountId(response?.accountId);
         ProgressIndicator.hide();
       })
       .catch((err) => {
         ProgressIndicator.hide();
       });
   };
+
+  const onEditWorkspace = (spaceId: string, leanGovernance: leanGovernance) => {
+    setSelectedSpaceId(spaceId);
+    setLeanGovernance(leanGovernance);
+    setIsEditMode(true);
+    setShowCreateModal(true);
+  }
 
   return (
     <React.Fragment>
@@ -54,7 +72,7 @@ const Uilicious = () => {
           </button>
           <div className={classNames(Styles.caption)}>
             <h3>My Uilicious Workspaces</h3>
-            <div className={classNames(Styles.listHeader)}>
+            {/* <div className={classNames(Styles.listHeader)}>
               {workspaceList?.length ? (
                 <React.Fragment>
                   <button
@@ -67,7 +85,7 @@ const Uilicious = () => {
                   </button>
                 </React.Fragment>
               ) : null}
-            </div>
+            </div> */}
           </div>
           {!workspaceList?.length ? (
             <div className={classNames(Styles.content)}>
@@ -97,6 +115,7 @@ const Uilicious = () => {
                   <UiliciousCardItem
                     key={index}
                     project={project}
+                    onEditWorkspace={() => onEditWorkspace(project?.spaceId, project?.leanGovernance)}
                   />
                 );
               })}
@@ -117,7 +136,7 @@ const Uilicious = () => {
             <CreateNewWorkspace
               project={leanGovernance}
               edit={isEditMode}
-              accountId={accountId}
+              spaceId={selectedSpaceId}
               setShowCreateModal={() => setShowCreateModal(false)}
               getWorkspaceList={getWorkspaceList}
             />
