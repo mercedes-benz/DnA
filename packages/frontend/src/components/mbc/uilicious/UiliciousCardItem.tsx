@@ -6,17 +6,32 @@ import Tooltip from '../../../assets/modules/uilab/js/src/tooltip';
 import SelectBox from 'components/formElements/SelectBox/SelectBox';
 import { Envs } from 'globals/Envs';
 
+export interface leanGovernance {
+  costCenter?: string;
+  dataClassification?: string;
+  department?: string;
+  description?: string;
+  division?: string;
+  divisionId?: string;
+  hasPii?: boolean;
+  internalOrder?: string;
+  subDivision?: string;
+  subDivisionId?: string;
+}
+
 interface IUiliciousProjectDetail {
   spaceId: string,
   spaceName: string,
-  userRole: string
+  userRole: string,
+  leanGovernance?: leanGovernance
 }
 
 interface Props {
   project: IUiliciousProjectDetail;
+  onEditWorkspace: (spaceId: string, leanGovernance:leanGovernance) => void;
 }
 
-const UiliciousCardItem = ({ project}: Props) => {
+const UiliciousCardItem = ({ project, onEditWorkspace}: Props) => {
 
   useEffect(() => {
     SelectBox.defaultSetup();
@@ -50,6 +65,17 @@ const UiliciousCardItem = ({ project}: Props) => {
               <div>Permission</div>
               <div>{project?.userRole}</div>
             </div>
+          </div>
+        </div>
+        <div className={Styles.cardFooter}>
+          <div>&nbsp;</div>
+          <div className={Styles.btnGrp}>
+            <button className="btn btn-primary" onClick={() => onEditWorkspace(project?.spaceId, project?.leanGovernance)}>
+              <i className="icon mbc-icon edit"></i>
+            </button>
+            {/* <button className="btn btn-primary" onClick={() => {}} disabled={true}>
+              <i className="icon delete"></i>
+            </button> */}
           </div>
         </div>
       </div>

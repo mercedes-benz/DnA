@@ -24,12 +24,12 @@ export interface leanGovernance {
 interface Props {
   project?: leanGovernance;
   edit?: boolean;
-  accountId?: string;
+  spaceId?: string;
   setShowCreateModal?: () => void;
   getWorkspaceList?: () => void;
 }
 
-const CreateNewWorkspace = ({ project, edit, accountId, setShowCreateModal, getWorkspaceList }: Props) => {
+const CreateNewWorkspace = ({ project, edit, spaceId, setShowCreateModal, getWorkspaceList }: Props) => {
 
   const [costCenter, setCostCenter] = useState(project?.costCenter || '');
 
@@ -156,7 +156,7 @@ const CreateNewWorkspace = ({ project, edit, accountId, setShowCreateModal, getW
     }
     if (formValid) {
       const formData = {
-        accountId: accountId || '',
+        spaceId: spaceId || '',
         leanGovernance: {
           costCenter: costCenter,
           internalOrder: internalOrder,
@@ -222,7 +222,7 @@ const CreateNewWorkspace = ({ project, edit, accountId, setShowCreateModal, getW
       ApiClient.createUiliciousWorkspace(formData)
         .then(() => {
           ProgressIndicator.hide();
-          Notification.show('Lean Governance details saved successfully.');
+          Notification.show('Uilicious Workspace created successfully.');
           setShowCreateModal();
           getWorkspaceList();
         })
