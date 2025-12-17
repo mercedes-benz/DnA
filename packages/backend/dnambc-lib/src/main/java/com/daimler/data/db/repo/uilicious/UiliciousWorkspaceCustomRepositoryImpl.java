@@ -51,94 +51,92 @@ public class UiliciousWorkspaceCustomRepositoryImpl extends CommonDataRepository
     private final ObjectMapper objectMapper = new ObjectMapper();
 
     @Override
-    public JsonNode findUiliciousWorkspacesByEmail(String email) {
-        log.debug("Finding UiliciousWorkspace by createdBy email: {}", email);
-        String getQuery = "SELECT CAST(data AS text) FROM uiliciousworkspace_nsql " +
-                "WHERE data->'createdBy'->>'email' = :email";
-
-        Query query = em.createNativeQuery(getQuery);
-
-        query.setParameter("email", email);
-        log.debug("SQL Query: {}", getQuery);
-        log.debug("Query parameter - email: {}", email);
-        log.debug("Query object: {}", query);
-        try {
-            Object result = query.getSingleResult();
-            if (result != null) {
-                log.debug("UiliciousWorkspace found for email: {}", result.toString());
-                return objectMapper.readTree(result.toString());
-            }
-            return null;
-        } catch (Exception e) {
-            e.printStackTrace();
-            log.warn("No workspace found for email: {}", email);
-            return null;
-        }
-
-    }
-
-    @Override
     @Transactional
-    public boolean updateAccountIdByEmail(String email, String accountId) {
-        log.debug("Updating accountId for email: {} with accountId: {}", email, accountId);
-        String updateQuery = "UPDATE uiliciousworkspace_nsql " +
-                "SET data = jsonb_set(data, '{accountId}', to_jsonb(CAST(? AS text))) " +
-                "WHERE data->'createdBy'->>'email' = ?";
-
-        log.debug("Update SQL Query: {}", updateQuery);
-        log.debug("Parameters - accountId: {}, email: {}", accountId, email);
-
-        try {
-            Query query = em.createNativeQuery(updateQuery);
-            query.setParameter(1, accountId);
-            query.setParameter(2, email);
-
-            int updatedRows = query.executeUpdate();
-            log.debug("Updated {} rows for email: {}", updatedRows, email);
-
-            // Flush to ensure immediate persistence
-            em.flush();
-
-            return updatedRows > 0;
-        } catch (Exception e) {
-            log.error("Failed to update accountId for email: {}, error: {}", email, e.getMessage());
-            e.printStackTrace();
-            return false;
-        }
-    }
-
-    @Override
-    @Transactional
-    public boolean updateLeanGovernanceByAccountId(String accountId, JsonNode leanGovernance) {
-        log.debug("Updating leanGovernance for accountId: {}", accountId);
+    public boolean updateLeanGovernanceBySpaceId(String spaceId, JsonNode leanGovernance) {
+        log.debug("Attempting upsert for leanGovernance for spaceId: {}", spaceId);
 
         try {
             // Convert JsonNode to JSON string for PostgreSQL
             String leanGovernanceJson = objectMapper.writeValueAsString(leanGovernance);
             log.debug("LeanGovernance JSON: {}", leanGovernanceJson);
 
-            String updateQuery = "UPDATE uiliciousworkspace_nsql " +
-                    "SET data = jsonb_set(data, '{leanGovernance}', CAST(? AS jsonb)) " +
-                    "WHERE data->>'accountId' = ?";
+            // 1. Check if a row with the given spaceId already exists
+            String checkExistenceQuery = "SELECT COUNT(*) FROM uiliciousworkspace_nsql WHERE data->>'spaceId' = ?";
+            Query checkQuery = em.createNativeQuery(checkExistenceQuery);
+            checkQuery.setParameter(1, spaceId);
+            long count = ((Number) checkQuery.getSingleResult()).longValue();
 
-            log.debug("Update SQL Query: {}", updateQuery);
-            log.debug("Parameters - accountId: {}, leanGovernance: {}", accountId, leanGovernanceJson);
+            int affectedRows = 0;
 
-            Query query = em.createNativeQuery(updateQuery);
-            query.setParameter(1, leanGovernanceJson);
-            query.setParameter(2, accountId);
+            if (count > 0) {
+                // Row exists, perform update
+                String updateQuery = "UPDATE uiliciousworkspace_nsql " +
+                                    "SET data = jsonb_set(data, '{leanGovernance}', CAST(? AS jsonb), true) " +
+                                    "WHERE data->>'spaceId' = ?";
 
-            int updatedRows = query.executeUpdate();
-            log.debug("Updated {} rows for accountId: {}", updatedRows, accountId);
+                log.debug("Executing UPDATE SQL Query: {}", updateQuery);
+                log.debug("Parameters - leanGovernanceJson: {}, spaceId: {}", leanGovernanceJson, spaceId);
+
+                Query query = em.createNativeQuery(updateQuery);
+                query.setParameter(1, leanGovernanceJson);
+                query.setParameter(2, spaceId);
+
+                affectedRows = query.executeUpdate();
+                log.debug("Updated {} rows for spaceId: {}", affectedRows, spaceId);
+            } else {
+                // Row does not exist, perform insert with UUID for id column
+                String id = java.util.UUID.randomUUID().toString();
+                String insertQuery = "INSERT INTO uiliciousworkspace_nsql (id, data) VALUES (?, jsonb_build_object('spaceId', ?, 'leanGovernance', CAST(? AS jsonb)))";
+
+                log.debug("Executing INSERT SQL Query: {}", insertQuery);
+                log.debug("Parameters - id: {}, spaceId: {}, leanGovernanceJson: {}", id, spaceId, leanGovernanceJson);
+
+                Query query = em.createNativeQuery(insertQuery);
+                query.setParameter(1, id);
+                query.setParameter(2, spaceId);
+                query.setParameter(3, leanGovernanceJson);
+
+                affectedRows = query.executeUpdate();
+                log.debug("Inserted {} rows for spaceId: {}", affectedRows, spaceId);
+            }
 
             // Flush to ensure immediate persistence
             em.flush();
 
-            return updatedRows > 0;
+            return affectedRows > 0;
         } catch (Exception e) {
-            log.error("Failed to update leanGovernance for accountId: {}, error: {}", accountId, e.getMessage());
-            e.printStackTrace();
+            log.error("Failed to upsert leanGovernance for spaceId: {}, error: {}", spaceId, e.getMessage(), e);
             return false;
+        }
+    }
+
+    @Override
+    public JsonNode findLeanGovernanceBySpaceId(String spaceId) {
+        log.info("Finding leanGovernance by spaceId: {}", spaceId);
+        String getQuery = "SELECT CAST(data->'leanGovernance' AS text) FROM uiliciousworkspace_nsql " +
+                "WHERE data->>'spaceId' = :spaceId";
+
+        Query query = em.createNativeQuery(getQuery);
+        query.setParameter("spaceId", spaceId);
+        
+        log.info("SQL Query: {}", getQuery);
+        log.info("Query parameter - spaceId: {}", spaceId);
+        
+        try {
+            List<?> results = query.getResultList();
+            if (results != null && !results.isEmpty()) {
+                Object result = results.get(0);
+                if (result != null) {
+                    String jsonString = result.toString();
+                    log.info("LeanGovernance found for spaceId: {}, raw value: {}", spaceId, jsonString);
+                    return objectMapper.readTree(jsonString);
+                }
+            }
+            log.info("No leanGovernance found for spaceId: {}", spaceId);
+            return null;
+        } catch (Exception e) {
+            log.info("Error finding leanGovernance for spaceId: {}, error: {}", spaceId, e.getMessage(), e);
+            return null;
         }
     }
 

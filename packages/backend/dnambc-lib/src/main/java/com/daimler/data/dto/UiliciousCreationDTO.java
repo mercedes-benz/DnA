@@ -41,8 +41,7 @@ public class UiliciousCreationDTO {
     private static final long serialVersionUID = 1L;
 
     private String id;
-    private String accountId;
-    private CreatedBy createdBy;
+    private String spaceId;
     private LeanGovernanceVO leanGovernance;
   
 }
