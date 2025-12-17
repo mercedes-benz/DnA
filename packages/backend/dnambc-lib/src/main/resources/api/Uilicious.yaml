@@ -118,12 +118,12 @@ paths:
       tags:
         - "uilicious-workspaces"
       summary: "Update lean governance for Uilicious workspace"
-      description: "Updates the lean governance information for an existing Uilicious workspace identified by accountId."
+      description: "Updates the lean governance information for an existing Uilicious workspace identified by spaceId."
       operationId: "updateUiliciousWorkspace"
       parameters:
         - name: "UiliciousWorkspaceUpdateRequestVO"
           in: "body"
-          description: "Request Body that contains accountId and lean governance data to be updated"
+          description: "Request Body that contains spaceId and lean governance data to be updated"
           required: true
           schema:
             $ref: "#/definitions/UiliciousWorkspaceUpdateRequestVO"          
@@ -186,13 +186,6 @@ definitions:
       totalRecords:
         type: integer
         description: "Total number of workspace records available for the current query."
-      leanGovernance:
-        type: object
-        items:
-          $ref: "#/definitions/leanGovernanceVO"
-      accountId:
-        type: string
-        description: "Uilicious Account ID."
       items:
         type: array
         items:
@@ -248,17 +241,21 @@ definitions:
       userRole:
         type: string
         description: "Role of the user in this workspace (e.g. admin, editor, viewer)."
+      leanGovernance:
+        type: object
+        items:
+          $ref: "#/definitions/leanGovernanceVO"
 
   # Request body for updating lean governance
   UiliciousWorkspaceUpdateRequestVO:
     type: object
     required:
-      - accountId
+      - spaceId
       - leanGovernance
     properties:
-      accountId:
+      spaceId:
         type: string
-        description: "Uilicious Account ID to identify which workspace to update."
+        description: "Uilicious Space ID to identify which workspace to update."
       leanGovernance:
         $ref: "#/definitions/leanGovernanceVO"
 
@@ -266,9 +263,9 @@ definitions:
   UiliciousWorkspaceUpdateResponseVO:
     type: object
     properties:
-      accountId:
+      spaceId:
         type: string
-        description: "Uilicious Account ID of the updated workspace."
+        description: "Uilicious Space ID of the updated workspace."
       leanGovernance:
         $ref: "#/definitions/leanGovernanceVO"
       message:

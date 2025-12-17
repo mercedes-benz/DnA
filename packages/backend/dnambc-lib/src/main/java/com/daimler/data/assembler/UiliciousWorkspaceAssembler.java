@@ -45,8 +45,7 @@ public class UiliciousWorkspaceAssembler implements GenericAssembler<UiliciousCr
         UiliciousCreationDTO vo = null;
         if (Objects.nonNull(entity)) {
             vo = new UiliciousCreationDTO();
-            vo.setAccountId(entity.getData().getAccountId());
-            vo.setCreatedBy(entity.getData().getCreatedBy());
+            vo.setSpaceId(entity.getData().getSpaceId());
             if (entity.getData().getLeanGovernance() != null) {
                 LeanGovernanceVO leanGovernanceVO = new LeanGovernanceVO();
                 BeanUtils.copyProperties(entity.getData().getLeanGovernance(), leanGovernanceVO);
@@ -63,8 +62,7 @@ public class UiliciousWorkspaceAssembler implements GenericAssembler<UiliciousCr
         if (Objects.nonNull(vo)) {
             entity = new UiliciousWorkspaceNsql();
             UiliciousWorkspace data = new UiliciousWorkspace();
-            data.setAccountId(vo.getAccountId());
-            data.setCreatedBy(vo.getCreatedBy());
+            data.setSpaceId(vo.getSpaceId());
 
             LeanGovernance leanGovernanceEntity = new LeanGovernance();
             if (vo.getLeanGovernance() != null) {

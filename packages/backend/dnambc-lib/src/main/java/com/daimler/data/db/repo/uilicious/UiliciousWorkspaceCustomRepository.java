@@ -35,12 +35,10 @@ import com.fasterxml.jackson.databind.JsonNode;
 
 public interface UiliciousWorkspaceCustomRepository extends
  CommonDataRepository<UiliciousWorkspaceNsql, String> {
+     
+     boolean updateLeanGovernanceBySpaceId(String spaceId, JsonNode leanGovernance);
 
-     JsonNode findUiliciousWorkspacesByEmail(String email);
-     
-     boolean updateAccountIdByEmail(String email, String accountId);
-     
-     boolean updateLeanGovernanceByAccountId(String accountId, JsonNode leanGovernance);
+     JsonNode findLeanGovernanceBySpaceId(String spaceId);
 
 }
 
