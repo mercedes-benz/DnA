@@ -4328,6 +4328,18 @@
 		}
 	}
 
+	private String normalizeRepoForWorkflow(String repoUrl) {
+		if (repoUrl == null) {
+			return null;
+		}
+
+		if (repoUrl.endsWith(".git")) {
+			repoUrl = repoUrl.substring(0, repoUrl.length() - 4);
+		}
+
+		return repoUrl;
+	}
+
 	@Override
 	@Transactional
 	public GenericMessage buildWorkSpace(String userId,String id,String branch,ManageBuildRequestDto buildRequestDto,boolean isPrivateRecipe,String environment,String lastBuildType){
@@ -4352,25 +4364,40 @@
 				 deployJobInputDto.setEnvironment(codeServerEnvValue);
 				 deployJobInputDto.setTarget_env(environment);
 
+			// if (isPrivateRecipe) {
+			// 	repoUrl = entity.getData().getProjectDetails().getRecipeDetails().getRepodetails();
+			// 	// Remove .git suffix if present
+			// 	if(Objects.nonNull(repoUrl) && repoUrl.endsWith(".git")){
+			// 		repoUrl = repoUrl.substring(0, repoUrl.length() - 4);
+			// 	}
+			// 	// Ensure trailing slash for URL parsing
+			// 	if(!repoUrl.endsWith("/")){
+			// 		repoUrl = repoUrl + "/";
+			// 	}
+			// 	List<String> repoDetails = CommonUtils.getDetailsFromUrl(repoUrl);
+			// 	if (repoDetails.size() > 0 && repoDetails != null) {
+			// 		repoName = repoDetails.get(2);
+			// 		gitOrg = repoDetails.get(1);
+			// 	}
+			// 	deployJobInputDto.setRepo(gitOrg + "/" + repoName);		
+			// }
 			if (isPrivateRecipe) {
-				repoUrl = entity.getData().getProjectDetails().getRecipeDetails().getRepodetails();
-				// Remove .git suffix if present
-				if(Objects.nonNull(repoUrl) && repoUrl.endsWith(".git")){
-					repoUrl = repoUrl.substring(0, repoUrl.length() - 4);
-				}
-				// Ensure trailing slash for URL parsing
-				if(!repoUrl.endsWith("/")){
-					repoUrl = repoUrl + "/";
-				}
-				List<String> repoDetails = CommonUtils.getDetailsFromUrl(repoUrl);
-				if (repoDetails.size() > 0 && repoDetails != null) {
-					repoName = repoDetails.get(2);
-					gitOrg = repoDetails.get(1);
-				}
-				deployJobInputDto.setRepo(gitOrg + "/" + repoName);		
+
+				repoUrl = entity.getData()
+						.getProjectDetails()
+						.getRecipeDetails()
+						.getRepodetails();
+
+				repoUrl = normalizeRepoForWorkflow(repoUrl);
+
+				deployJobInputDto.setRepo(repoUrl);
+
+				log.info("Private recipe workflow repo = {}", repoUrl);
+
 			} else {
 				repoName = entity.getData().getProjectDetails().getGitRepoName();
-				deployJobInputDto.setRepo(gitOrgName + "/" + repoName);				}
+				deployJobInputDto.setRepo(gitOrgName + "/" + repoName);
+			}
 				 String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
 				 String workspaceOwner = entity.getData().getWorkspaceOwner().getId();
 				 deployJobInputDto.setShortid(workspaceOwner);
