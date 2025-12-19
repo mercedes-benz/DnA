@@ -1729,8 +1729,11 @@ import org.springframework.beans.factory.annotation.Value;
 		 log.debug("Sending all workspaces");
 		 if (workspaces != null && workspaces.size() > 0) {
 			for(CodeServerWorkspaceVO vo :workspaces ){
-				if(vo.getProjectDetails().getRecipeDetails().isIsDeployEnabled() == null || !vo.getProjectDetails().getRecipeDetails().isIsDeployEnabled()) {
-					if(vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private")||vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")||vo.getProjectDetails().getRecipeDetails().getRecipeId().name().equalsIgnoreCase("template")){
+				if (vo.getProjectDetails().getRecipeDetails().isIsDeployEnabled() == null
+						|| !vo.getProjectDetails().getRecipeDetails().isIsDeployEnabled()) {
+					String recipeIdLower = vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase();
+					if ((recipeIdLower.startsWith("public") || recipeIdLower.equalsIgnoreCase("template")) ||
+							(recipeIdLower.startsWith("private") && recipeIdLower.equals("private-user-defined"))) {
 						vo.getProjectDetails().getRecipeDetails().setIsDeployEnabled(false);
 					}else{
 						vo.getProjectDetails().getRecipeDetails().setIsDeployEnabled(true);
@@ -1782,6 +1785,7 @@ import org.springframework.beans.factory.annotation.Value;
 		 }
 	 }
  
+	 @Override
 	 @ApiOperation(value = "Get workspace details for a given Id.", nickname = "getByName", notes = "Get workspace details for a given Id.", response = CodeServerWorkspaceVO.class, tags = {
 			 "code-server", })
 	 @ApiResponses(value = {
@@ -1792,13 +1796,13 @@ import org.springframework.beans.factory.annotation.Value;
 			 @ApiResponse(code = 403, message = "Request is not authorized."),
 			 @ApiResponse(code = 405, message = "Method not allowed"),
 			 @ApiResponse(code = 500, message = "Internal error") })
-	 @RequestMapping(value = "/workspaces/status/{name}", produces = { "application/json" }, consumes = {
+	 @RequestMapping(value = "/workspaces/status/{name}/", produces = { "application/json" }, consumes = {
 			 "application/json" }, method = RequestMethod.GET)
 	 public ResponseEntity<CodeServerWorkspaceVO> getByName(
 			 @ApiParam(value = "Workspace name to be fetched", required = true) @PathVariable("name") String name) {
 		 CreatedByVO currentUser = this.userStore.getVO();
 		 String userId = currentUser != null ? currentUser.getId() : "";
-		 CodeServerWorkspaceVO vo = service.getByUniqueliteral(userId, "workspaceId", name);
+		 CodeServerWorkspaceVO vo = service.getByProjectName(userId, name);
 		 if (vo != null && vo.getWorkspaceId() != null) {
 			 if (!(vo.getWorkspaceOwner() != null && vo.getWorkspaceOwner().getId().equalsIgnoreCase(userId))) {
 				 MessageDescription notAuthorizedMsg = new MessageDescription();
@@ -1807,20 +1811,13 @@ import org.springframework.beans.factory.annotation.Value;
 				 GenericMessage errorMessage = new GenericMessage();
 				 errorMessage.addErrors(notAuthorizedMsg);
 				 log.info("User {} cannot view other's workspace, insufficient privileges. Workspace name: {}", userId,
-						 vo.getWorkspaceId());
+						 name);
 				 return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
 			 }
-			 log.info("Returning workspace details");
-			 if(vo.getProjectDetails().getRecipeDetails().isIsDeployEnabled() == null || !vo.getProjectDetails().getRecipeDetails().isIsDeployEnabled()) {
-				if(vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private")||vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")||vo.getProjectDetails().getRecipeDetails().getRecipeId().name().equalsIgnoreCase("template")){
-					vo.getProjectDetails().getRecipeDetails().setIsDeployEnabled(false);
-				}else{
-					vo.getProjectDetails().getRecipeDetails().setIsDeployEnabled(true);
-				}
-			 }
+			 log.info("Returning workspace details for name: {}", name);
 			 return new ResponseEntity<>(vo, HttpStatus.OK);
 		 } else {
-			 log.debug("No workspace found, returning empty");
+			 log.debug("No workspace found for name: {}, returning empty", name);
 			 return new ResponseEntity<>(vo, HttpStatus.NOT_FOUND);
 		 }
 	 }

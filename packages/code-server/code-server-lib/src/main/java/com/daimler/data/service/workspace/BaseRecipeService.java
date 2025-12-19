@@ -106,6 +106,9 @@ public class BaseRecipeService implements RecipeService{
 
 	@Value("${codeServer.git.ghe.pat}")
 	private String ghePat;
+	
+	@Value("${codeServer.git.pat}")
+	private String gitIPat;
     
 	@Override
 	@Transactional
@@ -114,73 +117,92 @@ public class BaseRecipeService implements RecipeService{
 		return entities.stream().map(n -> recipeAssembler.toVo(n)).collect(Collectors.toList());
 	}
 
-	@Override
-	@Transactional
-	public RecipeVO createRecipe(RecipeVO recipeRequestVO) {
-		SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
-		
-		if (recipeRequestVO.isIsPublic() != null && !recipeRequestVO.isIsPublic()
-				&& recipeRequestVO.getRepodetails() != null
-				&& recipeRequestVO.getRepodetails().contains("ghe.com")) {
-			
-			String repoUrl = recipeRequestVO.getRepodetails();
-			String[] urlParts = repoUrl.replaceAll("\\.git$", "").split("/");
-			if (urlParts.length >= 2) {
-				String repoName = urlParts[urlParts.length - 1];
-				String applicationName = urlParts[urlParts.length - 2];
-				String gitUrl = repoUrl.substring(0, repoUrl.lastIndexOf("/" + applicationName));
-				
-				log.info("Validating GHE access for private recipe: {}/{}", applicationName, repoName);
-				HttpStatus validationStatus = gitClient.validateGitUserWithPid(
-						gitUrl, repoName, applicationName, configuredPid, ghePat);
-				
-				if (!validationStatus.is2xxSuccessful()) {
-					log.error("GHE validation failed for private recipe: {}/{}", applicationName, repoName);
-					throw new RuntimeException("Unable to access GHE repository. Please verify the configured PID has access permissions.");
-				}
-			}
+@Override
+@Transactional
+public RecipeVO createRecipe(RecipeVO recipeRequestVO) {
+
+	SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
+	String repoUrl = recipeRequestVO.getRepodetails();
+	if (Boolean.FALSE.equals(recipeRequestVO.isIsPublic())
+			&& repoUrl != null
+			&& repoUrl.contains("ghe.com")) {
+
+		String cleanUrl = repoUrl.replaceAll("\\.git$", "");
+		String[] parts = cleanUrl.split("/");
+
+		if (parts.length < 2) {
+			throw new RuntimeException("Invalid GHE repository URL");
 		}
-		
-		CodeServerRecipeNsql entity = recipeAssembler.toEntity(recipeRequestVO);
-		CodeServerRecipeNsql savedEntity = new CodeServerRecipeNsql();
-		savedEntity = saveEntity(isoFormat, entity, savedEntity);
-		return recipeAssembler.toVo(savedEntity);
+
+		String repoName = parts[parts.length - 1];
+		String orgName = parts[parts.length - 2];
+		String gitUrl = cleanUrl.substring(0, cleanUrl.lastIndexOf("/" + orgName));
+
+		HttpStatus status = gitClient.validateGitUserWithPid(
+				gitUrl,
+				repoName,
+				orgName,
+				configuredPid,
+				ghePat);
+
+		if (!status.is2xxSuccessful()) {
+			throw new RuntimeException(
+					"Unable to access GHE repository. Please verify PID access.");
+		}
 	}
 
-	@Override
-	@Transactional
-	public RecipeVO updateRecipe(RecipeVO recipeRequestVO) {
-		SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
-		
-		if (recipeRequestVO.isIsPublic() != null && !recipeRequestVO.isIsPublic()
-				&& recipeRequestVO.getRepodetails() != null
-				&& recipeRequestVO.getRepodetails().contains("ghe.com")) {
-			
-			String repoUrl = recipeRequestVO.getRepodetails();
-			String[] urlParts = repoUrl.replaceAll("\\.git$", "").split("/");
-			if (urlParts.length >= 2) {
-				String repoName = urlParts[urlParts.length - 1];
-				String applicationName = urlParts[urlParts.length - 2];
-				String gitUrl = repoUrl.substring(0, repoUrl.lastIndexOf("/" + applicationName));
-				
-				log.info("Validating GHE access for private recipe: {}/{}", applicationName, repoName);
-				HttpStatus validationStatus = gitClient.validateGitUserWithPid(
-						gitUrl, repoName, applicationName, configuredPid, ghePat);
-				
-				if (!validationStatus.is2xxSuccessful()) {
-					log.error("GHE validation failed for private recipe: {}/{}", applicationName, repoName);
-					throw new RuntimeException("Unable to access GHE repository. Please verify the configured PID has access permissions.");
-				}
-			}
+	CodeServerRecipeNsql entity = recipeAssembler.toEntity(recipeRequestVO);
+	CodeServerRecipeNsql savedEntity = saveEntity(isoFormat, entity, new CodeServerRecipeNsql());
+	return recipeAssembler.toVo(savedEntity);
+}
+
+@Override
+@Transactional
+public RecipeVO updateRecipe(RecipeVO recipeRequestVO) {
+
+	SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
+
+	String repoUrl = recipeRequestVO.getRepodetails();
+
+	if (Boolean.FALSE.equals(recipeRequestVO.isIsPublic())
+			&& repoUrl != null
+			&& repoUrl.contains("ghe.com")) {
+
+		String cleanUrl = repoUrl.replaceAll("\\.git$", "");
+		String[] parts = cleanUrl.split("/");
+
+		if (parts.length < 2) {
+			throw new RuntimeException("Invalid GHE repository URL");
 		}
-		
-		CodeServerRecipeNsql savedEntity = new CodeServerRecipeNsql();
-		CodeServerRecipeNsql entity = recipeAssembler.toEntity(recipeRequestVO);
-		CodeServerRecipeNsql recipeEntity = workspaceCustomRecipeRepo.findByRecipeName(recipeRequestVO.getRecipeName());
-		recipeEntity.setData(entity.getData());
-		savedEntity = saveEntity(isoFormat, recipeEntity, savedEntity);
-		return recipeAssembler.toVo(savedEntity);
+
+		String repoName = parts[parts.length - 1];
+		String orgName = parts[parts.length - 2];
+		String gitUrl = cleanUrl.substring(0, cleanUrl.lastIndexOf("/" + orgName));
+
+		HttpStatus status = gitClient.validateGitUserWithPid(
+				gitUrl,
+				repoName,
+				orgName,
+				configuredPid,
+				ghePat);
+
+		if (!status.is2xxSuccessful()) {
+			throw new RuntimeException(
+					"Unable to access GHE repository. Please verify PID access.");
+		}
 	}
+
+	CodeServerRecipeNsql existing = workspaceCustomRecipeRepo.findByRecipeName(
+			recipeRequestVO.getRecipeName());
+
+	if (existing == null) {
+		throw new RuntimeException("Recipe not found");
+	}
+	CodeServerRecipeNsql updatedEntity = recipeAssembler.toEntity(recipeRequestVO);
+	existing.setData(updatedEntity.getData());
+	CodeServerRecipeNsql savedEntity = saveEntity(isoFormat, existing, new CodeServerRecipeNsql());
+	return recipeAssembler.toVo(savedEntity);
+}
 
 	private CodeServerRecipeNsql saveEntity(SimpleDateFormat isoFormat, CodeServerRecipeNsql entity,
 			CodeServerRecipeNsql savedEntity) {
@@ -214,8 +236,24 @@ public class BaseRecipeService implements RecipeService{
 			repoName = codespaceSplitValues[length-1];
 			repoOwner = codespaceSplitValues[length-2];
 			gitUrl = gitHubUrl.replace("/"+repoOwner, "");
-			gitUrl = gitUrl.replace("/"+repoName, "");
-			JSONObject jsonResponse = gitClient.readFileFromGit(repoName, repoOwner, gitUrl, gitFileName);
+		gitUrl = gitUrl.replace("/"+repoName, "");
+		
+		String patToUse;
+
+		if (gitHubUrl.contains("ghe.com")) {
+			patToUse = ghePat;
+			log.info("Using GHE PAT, token present: {}", ghePat != null && !ghePat.isEmpty());
+		} else if (gitHubUrl.contains("git.i")) {
+			patToUse = gitIPat;
+			log.info("Using git.i PAT, token present: {}, token prefix: {}", 
+				gitIPat != null && !gitIPat.isEmpty(),
+				gitIPat != null && gitIPat.length() > 8 ? gitIPat.substring(0, 8) + "..." : "N/A");
+		} else {
+			patToUse = null;
+			log.info("No specific PAT matched, using default");
+		}
+
+		JSONObject jsonResponse = gitClient.readFileFromGit(repoName, repoOwner, gitUrl, gitFileName, patToUse);
 			if(jsonResponse !=null && jsonResponse.has("name") && jsonResponse.has("content")) {
 				softwareFileName  = jsonResponse.getString("name");
 				SHA =  jsonResponse.has("sha")? jsonResponse.getString("sha") : null;
@@ -229,13 +267,13 @@ public class BaseRecipeService implements RecipeService{
 				fileContent.append("\ncode-server --install-extension ms-dotnettools.vscode-dotnet-runtime\ncode-server --install-extension aliasadidev.nugetpackagemanagergui");
 			}
 			fileContent.append("\ncode-server --install-extension mtxr.sqltools-driver-pg\ncode-server --install-extension mtxr.sqltools\ncode-server --install-extension cweijan.vscode-database-client2\ncode-server --install-extension cweijan.vscode-redis-client\n");
-			encodedFileContent = Base64.getEncoder().encodeToString(fileContent.toString().getBytes());
-			if( encodedFileContent != null) {
-				status = gitClient.createOrValidateSoftwareInGit(repoName, repoOwner, SHA, gitUrl, encodedFileContent);
-				if(status.is2xxSuccessful()) {
-					log.info("Software creation was successfull in Git.");
-					responseMessage.setSuccess("SUCCESS");
-					return responseMessage;
+		encodedFileContent = Base64.getEncoder().encodeToString(fileContent.toString().getBytes());
+		if( encodedFileContent != null) {
+			status = gitClient.createOrValidateSoftwareInGit(repoName, repoOwner, SHA, gitUrl, encodedFileContent, patToUse);
+			if(status.is2xxSuccessful()) {
+				log.info("Software creation was successfull in Git.");
+				responseMessage.setSuccess("SUCCESS");
+				return responseMessage;
 				}
 			}
 			else {
@@ -245,19 +283,54 @@ public class BaseRecipeService implements RecipeService{
 			log.info("Software creation failed in Git.");
 			responseMessage.setSuccess("FAILED");
 			return responseMessage;
-		} catch(Exception e) {
-			log.error(e.getMessage());
-			if(e.getMessage().contains("pull request")){
-				responseMessage = getMessageDescrption("Conflict in Git while creating Software File","FAILED");
-			} else {
-				responseMessage = 	getMessageDescrption("An unexpected error occurred while uploading a software file to the Git repository.", "FAILED");
+	} catch (Exception e) {
+    log.error("Exception in createOrValidateSoftwareTemplate: {}", e.getMessage(), e);
 
-			}
-			responseMessage.setSuccess("FAILED");
-		}
-		return responseMessage;
+    if (gitHubUrl != null
+        && e.getMessage() != null
+        && e.getMessage().contains("Branch protection")) {
+
+        if (gitHubUrl.contains("ghe.com")) {
+
+            responseMessage = getMessageDescrption(
+                "Your GHE repository main branch is protected. "
+              + "Please allow bypass in branch protection rules "
+              + "or use a non-protected branch.",
+                "FAILED");
+
+        } else if (gitHubUrl.contains("git.i")) {
+
+            responseMessage = getMessageDescrption(
+                "Your git.i repository main branch is protected. "
+              + "Please create a feature branch or update branch protection rules.",
+                "FAILED");
+
+        } else {
+            responseMessage = getMessageDescrption(
+                "Your repository branch is protected. "
+              + "Please update branch protection settings.",
+                "FAILED");
+        }
+
+    } else if (e.getMessage() != null && e.getMessage().contains("pull request")) {
+
+        responseMessage = getMessageDescrption(
+            "Conflict in Git while creating Software File",
+            "FAILED");
+
+    } else {
+
+        responseMessage = getMessageDescrption(
+            "An unexpected error occurred while uploading a software file to the Git repository.",
+            "FAILED");
+    }
+
+    responseMessage.setSuccess("FAILED");
+    return responseMessage;
+}
 	}
 
+	
 	private GenericMessage getMessageDescrption(String message, String statusMsg ) {
 		GenericMessage responseMessage = new GenericMessage();
 		MessageDescription msg = new MessageDescription();
@@ -270,67 +343,53 @@ public class BaseRecipeService implements RecipeService{
 	}
 
 	@Override
-	public GenericMessage validateGitHubUrl(String gitHubUrl) {
-		GenericMessage responseMessage = new GenericMessage();
-		responseMessage.setSuccess("SUCCESS");
-		try {
-			if (gitHubUrl.contains(".git")) {
-				gitHubUrl = gitHubUrl.replaceAll("\\.git$", "/");
-			}
-			String[] parts = gitHubUrl.split("/");
-			int length = parts.length;
+public GenericMessage validateGitHubUrl(String gitHubUrl) {
+    GenericMessage responseMessage = new GenericMessage();
+    responseMessage.setSuccess("SUCCESS");
 
-			String repoName = parts[length - 1];
-			String applicationName = parts[length - 2];
+    try {
+        if (gitHubUrl.endsWith(".git")) {
+            gitHubUrl = gitHubUrl.substring(0, gitHubUrl.length() - 4);
+        }
 
-			String gitUrl = gitHubUrl
-					.replace("/" + repoName, "")
-					.replace("/" + applicationName, "");
+        String[] parts = gitHubUrl.split("/");
+        int length = parts.length;
 
-			HttpStatus status;
+        String repoName = parts[length - 1];
+        String applicationName = parts[length - 2];
 
-			boolean isGheRepo = gitHubUrl.contains("ghe.com");
+        String gitUrl = gitHubUrl
+                .replace("/" + repoName, "")
+                .replace("/" + applicationName, "");
 
-			if (isGheRepo) {
-				log.info("Validating PRIVATE GHE repo using PID");
+        HttpStatus status;
+		boolean isGheRepo = gitHubUrl.contains("ghe.com");
 
-				status = gitClient.validateGitUserWithPid(
-						gitUrl,
-						repoName,
-						applicationName,
-						configuredPid,
-						ghePat);
-			} else {
-				log.info("Validating normal Git repo");
-
-				status = gitClient.validateGitUser(
-						gitUrl,
-						repoName,
-						applicationName);
-			}
-			if (!status.is2xxSuccessful()) {
-				MessageDescription msg = new MessageDescription();
-				List<MessageDescription> errorMessage = new ArrayList<>();
-					msg.setMessage("Unexpected error occured while validating PID onboarding for the given git repo. Please try again.");
-				errorMessage.add(msg);
-				responseMessage.addErrors(msg);
-				responseMessage.setSuccess("FAILED");
-				responseMessage.setErrors(errorMessage);
-				return responseMessage;
-			}
-		} 
-		catch(Exception e)
-		{
-			MessageDescription msg = new MessageDescription();
-			List<MessageDescription> errorMessage = new ArrayList<>();
-			msg.setMessage("Unexpected error occured while validating PID onboarding for the given git repo.");
-			errorMessage.add(msg);
-			responseMessage.addErrors(msg);
-			responseMessage.setSuccess("FAILED");
-			responseMessage.setErrors(errorMessage);
+		if (isGheRepo) {
+			log.info("Validating PRIVATE GHE repo using PID");
+			status = gitClient.validateGitUserWithPid(
+					gitUrl, repoName, applicationName, configuredPid, ghePat);
+		} else {
+			log.info("Non-GHE repo detected – skipping PID validation");
+			return responseMessage;
 		}
-		return responseMessage;
-	}
+        if (!status.is2xxSuccessful()) {
+            MessageDescription msg = new MessageDescription();
+            msg.setMessage("Unexpected error occured while validating PID onboarding for the given git repo. Please try again.");
+            responseMessage.setSuccess("FAILED");
+            responseMessage.addErrors(msg);
+            return responseMessage;
+        }
+
+    } catch (Exception e) {
+        log.error("Validation failed", e);
+        MessageDescription msg = new MessageDescription();
+        msg.setMessage("Unexpected error occured while validating PID onboarding for the given git repo.");
+        responseMessage.setSuccess("FAILED");
+        responseMessage.addErrors(msg);
+    }
+    return responseMessage;
+}
 
 	@Override
 	@Transactional
