@@ -61,6 +61,12 @@ public class GitClient {
 	@Value("${codeserver.recipe.software.filename}")
 	private String gitFileName;
 
+	@Value("${codeServer.git.enterprise.url}")
+	private String gheBaseUri;
+
+	@Value("${codeServer.git.ghe.pat}")
+	private String ghePat;
+
 	private static String HTTP_HEADER ="https://";
 
 	private HttpHeaders buildHeaders(String baseUrl, String pat) {
@@ -382,12 +388,18 @@ public class GitClient {
         String gitOrg = null;
         int page = 1;
         int pageSize = 100;
+        boolean isGhe = repo.contains("ghe.com");
         HttpHeaders headers = new HttpHeaders();
         headers.set("Accept", "application/json");
         headers.set("Content-Type", "application/json");
-        headers.set("Authorization", "token " + personalAccessToken);
-        boolean isGhe = repo.contains("ghe.com") || repo.contains("git.i");
-        if (repo.contains(HTTP_HEADER)) {
+
+        if (isGhe) {
+            headers.set("Authorization", "token " + ghePat);
+        } else {
+            headers.set("Authorization", "token " + personalAccessToken);
+        }
+
+        if (repo.startsWith("https://")) {
             if (repo.endsWith(".git")) {
                 repo = repo.substring(0, repo.length() - 4);
             }
@@ -403,12 +415,9 @@ public class GitClient {
             repoName = repo;
         }
         String orgName = Objects.nonNull(gitOrg) ? gitOrg : gitOrgName;
+        String baseApiUrl = isGhe ? gheBaseUri : gitBaseUri;
 
         while (true) {
-            String baseApiUrl = isGhe
-                    ? repo.substring(0, repo.indexOf("/", 8)) + "/api/v3"
-                    : gitBaseUri;
-
             String url = baseApiUrl
                     + "/repos/"
                     + orgName
@@ -418,6 +427,8 @@ public class GitClient {
                     + pageSize
                     + "&page="
                     + page;
+
+            log.info("Fetching branches from URL: {}", url);
 
             HttpEntity<String> entity = new HttpEntity<>(headers);
             ResponseEntity<GitBranchesCollectionDto> response =
@@ -429,22 +440,16 @@ public class GitClient {
                 GitBranchesCollectionDto branches = response.getBody();
                 allBranches.addAll(branches);
 
-                if (branches.size() < pageSize) {
-                    break;
-                }
+                if (branches.size() < pageSize) break;
                 page++;
             } else {
                 break;
             }
         }
-
-        log.info("Completed fetching branches from git repo {} by user {}", repoName, username);
-
+        log.info("Fetched {} branches from repo {}", allBranches.size(), repoName);
     } catch (Exception e) {
-        log.error("Error occurred while fetching branches from git repo {}, exception: {}",
-                repo, e.getMessage(), e);
+        log.error("Error occurred while fetching branches from git repo {}", repo, e);
     }
-
     return allBranches;
 }
 
