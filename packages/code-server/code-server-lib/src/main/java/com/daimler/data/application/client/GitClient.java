@@ -65,18 +65,14 @@ public class GitClient {
 
 	private HttpHeaders buildHeaders(String baseUrl, String pat) {
 		HttpHeaders headers = new HttpHeaders();
-		headers.set("Content-Type", "application/json");
 		headers.set("Accept", "application/json");
+		headers.set("Content-Type", "application/json");
 
-		if (pat != null && !pat.isBlank()) {
-			if (baseUrl != null && baseUrl.contains("git.i")) {
-				headers.set("Authorization", "Bearer " + pat.trim());
-			} else {
-				headers.set("Authorization", "token " + pat.trim());
-			}
-		} else {
-			log.warn("Git call host={}, pat is null or empty", baseUrl);
+		if (pat == null || pat.isBlank()) {
+			log.warn("Git call host={}, PAT is null or empty", baseUrl);
+			return headers;
 		}
+		headers.set("Authorization", "token " + pat.trim());
 
 		return headers;
 	}
@@ -380,60 +376,78 @@ public class GitClient {
 	}
 	
 	public GitBranchesCollectionDto getBranchesFromRepo(String username, String repo) {
-		GitBranchesCollectionDto allBranches = new GitBranchesCollectionDto();
-		try {
-			String repoName = null;
-			String gitOrg = null;
-			int page = 1;
-			int pageSize = 100;
-			HttpHeaders headers = new HttpHeaders();
-			headers.set("Accept", "application/json");
-			headers.set("Content-Type", "application/json");
-			headers.set("Authorization", "token " + personalAccessToken);
-			if (repo.contains(HTTP_HEADER)) {
-				if (!repo.endsWith("/") && repo.contains(".git")) {
-					repo = repo.replace(".git", "/");
-				} else if (!repo.endsWith("/")) {
-					repo.concat("/");
-				}
-				List<String> repoDetails = CommonUtils.getDetailsFromUrl(repo);
-				if (repoDetails.size() > 0 && repoDetails != null) {
-					repoName = repoDetails.get(2);
-					gitOrg = repoDetails.get(1);
-				}
-			} else {
-				repoName = repo;
-			}
-			String OrgName = Objects.nonNull(gitOrg) ? gitOrg : gitOrgName;
+    GitBranchesCollectionDto allBranches = new GitBranchesCollectionDto();
+    try {
+        String repoName = null;
+        String gitOrg = null;
+        int page = 1;
+        int pageSize = 100;
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Accept", "application/json");
+        headers.set("Content-Type", "application/json");
+        headers.set("Authorization", "token " + personalAccessToken);
+        boolean isGhe = repo.contains("ghe.com") || repo.contains("git.i");
+        if (repo.contains(HTTP_HEADER)) {
+            if (repo.endsWith(".git")) {
+                repo = repo.substring(0, repo.length() - 4);
+            }
+            if (!repo.endsWith("/")) {
+                repo = repo + "/";
+            }
+            List<String> repoDetails = CommonUtils.getDetailsFromUrl(repo);
+            if (repoDetails != null && repoDetails.size() > 2) {
+                gitOrg = repoDetails.get(1);
+                repoName = repoDetails.get(2);
+            }
+        } else {
+            repoName = repo;
+        }
+        String orgName = Objects.nonNull(gitOrg) ? gitOrg : gitOrgName;
 
-			while (true) {
-				String url = gitBaseUri + "/repos/" + OrgName + "/" + repoName + "/branches?per_page=" + pageSize
-						+ "&page=" + page;
-				HttpEntity<String> entity = new HttpEntity<>(headers);
-				ResponseEntity<GitBranchesCollectionDto> response = restTemplate.exchange(url, HttpMethod.GET, entity,
-						GitBranchesCollectionDto.class);
+        while (true) {
+            String baseApiUrl = isGhe
+                    ? repo.substring(0, repo.indexOf("/", 8)) + "/api/v3"
+                    : gitBaseUri;
 
-				if (response != null && response.getStatusCode() != null && response.getBody() != null) {
-					GitBranchesCollectionDto branches = response.getBody();
-					allBranches.addAll(branches);
+            String url = baseApiUrl
+                    + "/repos/"
+                    + orgName
+                    + "/"
+                    + repoName
+                    + "/branches?per_page="
+                    + pageSize
+                    + "&page="
+                    + page;
 
-					if (branches.size() < pageSize) {
-						break; // No more pages to fetch
-					}
-					page++;
-				} else {
-					break; // Exit loop if response is null or status code is not OK
-				}
-			}
+            HttpEntity<String> entity = new HttpEntity<>(headers);
+            ResponseEntity<GitBranchesCollectionDto> response =
+                    restTemplate.exchange(url, HttpMethod.GET, entity, GitBranchesCollectionDto.class);
 
-			log.info("Completed fetching branches from git repo {} by user {}", repoName, username);
-		} catch (Exception e) {
-			log.error("Error occurred while fetching branches from git repo {} with exception {}", username, gitOrgName,
-					e.getMessage());
-		}
-		return allBranches;
-	}
-	
+            if (response != null && response.getStatusCode().is2xxSuccessful()
+                    && response.getBody() != null) {
+
+                GitBranchesCollectionDto branches = response.getBody();
+                allBranches.addAll(branches);
+
+                if (branches.size() < pageSize) {
+                    break;
+                }
+                page++;
+            } else {
+                break;
+            }
+        }
+
+        log.info("Completed fetching branches from git repo {} by user {}", repoName, username);
+
+    } catch (Exception e) {
+        log.error("Error occurred while fetching branches from git repo {}, exception: {}",
+                repo, e.getMessage(), e);
+    }
+
+    return allBranches;
+}
+
 	
 	public HttpStatus validateGitPat( String username, String pat) {
 		try {
