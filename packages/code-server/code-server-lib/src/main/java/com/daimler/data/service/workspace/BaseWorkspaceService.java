@@ -177,6 +177,9 @@
 
 	 @Value("${kong.dnaAppId}")
 	 private String dnaAppId;
+
+	 @Value("${codeServer.git.ghe.pat}")
+     private String ghePat;
  
 	 @Autowired
 	 private WorkspaceAssembler workspaceAssembler;
@@ -1507,7 +1510,10 @@
 		repoOwner = codespaceSplitValues[length-2];
 		gitUrl = gitHubUrl.replace("/"+repoOwner, "");
 		gitUrl = gitUrl.replace("/"+repoName, "");
-		JSONObject jsonResponse = gitClient.readFileFromGit(repoName, repoOwner, gitUrl, codespaceFileName);
+		boolean isProtectedRepo = gitHubUrl.contains("ghe.com") || gitHubUrl.contains("git.i");
+
+		String patToUse = isProtectedRepo ? ghePat : null;
+		JSONObject jsonResponse = gitClient.readFileFromGit(repoName, repoOwner, gitUrl, codespaceFileName, patToUse);
 		if(jsonResponse !=null && jsonResponse.has("name") && jsonResponse.has("content")) {
 			readmeFileContent =  jsonResponse.getString("content");
 			log.info("Retrieving a software's SHA was successfull from Git.");
@@ -1807,7 +1813,7 @@
 						repoName = repoDetails.get(2);
 						gitOrg = repoDetails.get(1);
 					}
-					deployJobInputDto.setRepo(gitOrg + "/" + repoName);		
+					deployJobInputDto.setRepo(gitOrg + "/" + repoName);
 				} else {
 					repoName = entity.getData().getProjectDetails().getGitRepoName();
 					deployJobInputDto.setRepo(gitOrgName + "/" + repoName);		
@@ -4346,24 +4352,25 @@
 				 deployJobInputDto.setEnvironment(codeServerEnvValue);
 				 deployJobInputDto.setTarget_env(environment);
 
-  			if (isPrivateRecipe) {
-					repoUrl = entity.getData().getProjectDetails().getRecipeDetails().getRepodetails();
-					if(Objects.nonNull(repoUrl) && repoUrl.contains(".git")){
-						repoUrl = repoUrl.replaceAll("\\.git$", "/");
-					} else {
-						repoUrl.concat("/");
-					}
-					List<String> repoDetails = CommonUtils.getDetailsFromUrl(repoUrl);
-					if (repoDetails.size() > 0 && repoDetails != null) {
-						repoName = repoDetails.get(2);
-						gitOrg = repoDetails.get(1);
-					}
-					deployJobInputDto.setRepo(gitOrg + "/" + repoName);		
-				} else {
-					repoName = entity.getData().getProjectDetails().getGitRepoName();
-					deployJobInputDto.setRepo(gitOrgName + "/" + repoName);		
-
+			if (isPrivateRecipe) {
+				repoUrl = entity.getData().getProjectDetails().getRecipeDetails().getRepodetails();
+				// Remove .git suffix if present
+				if(Objects.nonNull(repoUrl) && repoUrl.endsWith(".git")){
+					repoUrl = repoUrl.substring(0, repoUrl.length() - 4);
 				}
+				// Ensure trailing slash for URL parsing
+				if(!repoUrl.endsWith("/")){
+					repoUrl = repoUrl + "/";
+				}
+				List<String> repoDetails = CommonUtils.getDetailsFromUrl(repoUrl);
+				if (repoDetails.size() > 0 && repoDetails != null) {
+					repoName = repoDetails.get(2);
+					gitOrg = repoDetails.get(1);
+				}
+				deployJobInputDto.setRepo(gitOrg + "/" + repoName);		
+			} else {
+				repoName = entity.getData().getProjectDetails().getGitRepoName();
+				deployJobInputDto.setRepo(gitOrgName + "/" + repoName);				}
 				 String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
 				 String workspaceOwner = entity.getData().getWorkspaceOwner().getId();
 				 deployJobInputDto.setShortid(workspaceOwner);

@@ -12,6 +12,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
 import com.daimler.data.util.CommonUtils;
 
+import java.util.Base64;
 import java.util.List;
 import java.util.Objects;
 
@@ -62,12 +63,30 @@ public class GitClient {
 
 	private static String HTTP_HEADER ="https://";
 
+	private HttpHeaders buildHeaders(String baseUrl, String pat) {
+		HttpHeaders headers = new HttpHeaders();
+		headers.set("Content-Type", "application/json");
+		headers.set("Accept", "application/json");
+
+		if (pat != null && !pat.isBlank()) {
+			if (baseUrl != null && baseUrl.contains("git.i")) {
+				headers.set("Authorization", "Bearer " + pat.trim());
+			} else {
+				headers.set("Authorization", "token " + pat.trim());
+			}
+		} else {
+			log.warn("Git call host={}, pat is null or empty", baseUrl);
+		}
+
+		return headers;
+	}
+
 	public HttpStatus createRepo(String applicationName, String repoName, String recipeName) {
 		try {
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/vnd.github+json");
 			headers.set("Content-Type", "application/json");
-			headers.set("Authorization", "Bearer " + personalAccessToken);
+			headers.set("Authorization", "token " + personalAccessToken);
 
 			String url = gitBaseUri + "/repos/" + applicationName + "/" + recipeName + "/generate";
 			String requestJsonString = "{\"owner\":\"" + gitOrgName + "\",\"name\":\"" + repoName
@@ -80,10 +99,10 @@ public class GitClient {
 						response.getStatusCode());
 				return response.getStatusCode();
 			}
-		}catch (HttpClientErrorException.UnprocessableEntity ex) {
-				log.error("Error: Name already exists while creating git repo {} with exception {}", gitOrgName,
-						ex.getMessage());
-				return HttpStatus.CONFLICT; // Return HTTP 409 Conflict status for name conflict
+		} catch (HttpClientErrorException.UnprocessableEntity ex) {
+			log.error("Error: Name already exists while creating git repo {} with exception {}", gitOrgName,
+					ex.getMessage());
+			return HttpStatus.CONFLICT;
 		} catch (Exception e) {
 			log.error("Error occured while creating git repo {} with exception {} ", gitOrgName, e.getMessage());
 		}
@@ -109,12 +128,11 @@ public class GitClient {
 		return HttpStatus.INTERNAL_SERVER_ERROR;
 	}
 
-	public JSONObject readFileFromGit(String repoName, String repoOwner, String gitUrl, String fileName) throws Exception {
+	public JSONObject readFileFromGit(String repoName, String repoOwner, String gitUrl, String fileName, String pat)
+			throws Exception {
 		try {
-			HttpHeaders headers = new HttpHeaders();
-			headers.set("Accept", "application/json");
-			headers.set("Content-Type", "application/json");
-			headers.set("Authorization", "Bearer "+ personalAccessToken );
+			String authToken = (pat != null && !pat.isEmpty()) ? pat : personalAccessToken;
+			HttpHeaders headers = buildHeaders(gitUrl, authToken);
 			String url = gitUrl+"api/v3/repos/"+repoOwner+"/"+repoName+"/contents/.codespaces/"+gitFoldername+"/"+ fileName;
 			HttpEntity entity = new HttpEntity<>(headers);
 			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
@@ -138,26 +156,47 @@ public class GitClient {
 		return null;
 	}
 
-	public HttpStatus createOrValidateSoftwareInGit(String repoName, String repoOwner, String SHA ,String gitUrl, String softwareFileContent) {
-		HttpHeaders headers = new HttpHeaders();
-		String RequestString = null;
-		headers.set("Accept", "application/json");
-		headers.set("Content-Type", "application/json");
-		headers.set("Authorization", "Bearer "+ personalAccessToken);
-		String url = gitUrl+"api/v3/repos/"+repoOwner+"/"+repoName+"/contents/.codespaces/"+gitFoldername+"/"+gitFileName;
-		if(SHA != null) {
-			RequestString ="{\"message\":\"CodeSpacesoftwarefilecommit\",\"committer\":{\"name\":\""+repoOwner+"\",\"email\":\""+repoOwner+"\"},\"sha\":\""+SHA+"\",\"content\":\""+softwareFileContent+"\"}";
-		} else {
-			RequestString ="{\"message\":\"CodeSpacesoftwarefilecommit\",\"committer\":{\"name\":\""+repoOwner+"\",\"email\":\""+repoOwner+"\"},\"content\":\""+softwareFileContent+"\"}";
+	public HttpStatus createOrValidateSoftwareInGit(String repoName, String repoOwner, String SHA, String gitUrl,
+			String softwareFileContent, String pat) {
+		try {
+			String authToken = (pat != null && !pat.isEmpty()) ? pat : personalAccessToken;
+			HttpHeaders headers = buildHeaders(gitUrl, authToken);
+			String RequestString = null;
+			String url = gitUrl + "api/v3/repos/" + repoOwner + "/" + repoName + "/contents/.codespaces/"
+					+ gitFoldername + "/" + gitFileName;
+			if (SHA != null) {
+				RequestString = "{\"message\":\"CodeSpacesoftwarefilecommit\",\"committer\":{\"name\":\"" + repoOwner
+						+ "\",\"email\":\"" + repoOwner + "\"},\"sha\":\"" + SHA + "\",\"content\":\""
+						+ softwareFileContent + "\"}";
+			} else {
+				RequestString = "{\"message\":\"CodeSpacesoftwarefilecommit\",\"committer\":{\"name\":\"" + repoOwner
+						+ "\",\"email\":\"" + repoOwner + "\"},\"content\":\"" + softwareFileContent + "\"}";
+			}
+			HttpEntity entity = new HttpEntity<>(RequestString, headers);
+			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.PUT, entity, String.class);
+			if (response != null && response.getStatusCode() != null) {
+				log.info("Successfully created software file in Git repository.");
+				return response.getStatusCode();
+			}
+			log.info("Failed to create software file in the Git repository.");
+			return HttpStatus.INTERNAL_SERVER_ERROR;
+		} catch (HttpClientErrorException e) {
+			String responseBody = e.getResponseBodyAsString();
+			log.error("HTTP error while creating software file: {} - {}", e.getStatusCode(), responseBody);
+			if (e.getStatusCode().value() == 403 || e.getStatusCode().value() == 422) {
+				if (pat != null && (responseBody.contains("protected") || responseBody.contains("branch protection") ||
+						responseBody.contains("required status check") || responseBody.contains("Protected branch"))) {
+					log.error("Branch protection error for repo {}/{}: {}", repoOwner, repoName, responseBody);
+					throw new RuntimeException("Branch protection error: " + responseBody);
+				}
+			}
+			return e.getStatusCode();
+		} catch (RuntimeException re) {
+			throw re;
+		} catch (Exception e) {
+			log.error("Error creating software file in repo {}/{}: {}", repoOwner, repoName, e.getMessage());
+			return HttpStatus.INTERNAL_SERVER_ERROR;
 		}
-		HttpEntity entity = new HttpEntity<>(RequestString , headers);
-		ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.PUT, entity, String.class);
-		if (response != null && response.getStatusCode() != null) {
-			log.info("Successfully created software file in Git repository.");
-			return response.getStatusCode();
-		}
-		log.info("Failed to create software file in the Git repository.");
-		return HttpStatus.INTERNAL_SERVER_ERROR;
 	}
 
 	public HttpStatus addUserToRepo(String username, String repoName) {
@@ -193,7 +232,7 @@ public class GitClient {
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/vnd.github+json");
 			headers.set("Content-Type", "application/json");
-			headers.set("Authorization", "Bearer "+ personalAccessToken);
+			headers.set("Authorization", "token "+ personalAccessToken);
 			String url = gitBaseUrl+ "api/v3/repos/" + applicationName + "/"+ repoName+ "/collaborators/" + pidValue +"/permission";
 			HttpEntity entity = new HttpEntity<>(headers);
 			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
@@ -468,7 +507,7 @@ public class GitClient {
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");
-			headers.set("Authorization", "Bearer "+ personalAccessToken);
+			headers.set("Authorization", "token "+ personalAccessToken);
 			String url = gitBaseUri+"/repos/" + orgName + "/"+ repoName+ "/collaborators/" + username;
 			HttpEntity entity = new HttpEntity<>(headers);
 			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
@@ -488,7 +527,7 @@ public class GitClient {
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");
-			headers.set("Authorization", "Bearer "+ personalAccessToken);
+			headers.set("Authorization", "token "+ personalAccessToken);
 			String url = gitBaseUri+"/repos/" + orgName + "/"+ repoName+ "/collaborators/" + username+"/permission";
 			HttpEntity entity = new HttpEntity<>(headers);
 			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
@@ -517,7 +556,7 @@ public class GitClient {
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");
-			headers.set("Authorization", "Bearer "+ personalAccessToken );
+			headers.set("Authorization", "token "+ personalAccessToken );
 			String url = gitUrl+"/api/v3/repos/"+repoOwner+"/"+repoName+"/contents/"+folderPath+"/"+fileName+"?ref="+branch;
 			HttpEntity entity = new HttpEntity<>(headers);
 			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
