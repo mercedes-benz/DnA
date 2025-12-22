@@ -7,22 +7,10 @@ import Notification from '../../../../assets/modules/uilab/js/src/notification';
 import ProgressIndicator from '../../../../assets/modules/uilab/js/src/progress-indicator';
 import { CodeSpaceApiClient } from '../../../../services/CodeSpaceApiClient';
 import { ApiClient } from '../../../../services/ApiClient';
-
-export interface leanGovernance {
-  costCenter?: string;
-  dataClassification?: string;
-  department?: string;
-  description?: string;
-  division?: string;
-  divisionId?: string;
-  hasPii?: boolean;
-  internalOrder?: string;
-  subDivision?: string;
-  subDivisionId?: string;
-}
+import { IUiliciousLeanGovernance } from 'globals/types';
 
 interface Props {
-  project?: leanGovernance;
+  project?: IUiliciousLeanGovernance;
   edit?: boolean;
   spaceId?: string;
   setShowCreateModal?: () => void;

@@ -5,30 +5,18 @@ import Styles from './UiliciousCardItem.scss';
 import Tooltip from '../../../assets/modules/uilab/js/src/tooltip';
 import SelectBox from 'components/formElements/SelectBox/SelectBox';
 import { Envs } from 'globals/Envs';
-
-export interface leanGovernance {
-  costCenter?: string;
-  dataClassification?: string;
-  department?: string;
-  description?: string;
-  division?: string;
-  divisionId?: string;
-  hasPii?: boolean;
-  internalOrder?: string;
-  subDivision?: string;
-  subDivisionId?: string;
-}
+import { IUiliciousLeanGovernance } from 'globals/types';
 
 interface IUiliciousProjectDetail {
   spaceId: string,
   spaceName: string,
   userRole: string,
-  leanGovernance?: leanGovernance
+  leanGovernance?: IUiliciousLeanGovernance
 }
 
 interface Props {
   project: IUiliciousProjectDetail;
-  onEditWorkspace: (spaceId: string, leanGovernance:leanGovernance) => void;
+  onEditWorkspace: (spaceId: string, leanGovernance:IUiliciousLeanGovernance) => void;
 }
 
 const UiliciousCardItem = ({ project, onEditWorkspace}: Props) => {

@@ -1559,3 +1559,16 @@ export interface IInfoItem {
   title: string;
   description: string;
 }
+
+export interface IUiliciousLeanGovernance {
+  costCenter?: string;
+  dataClassification?: string;
+  department?: string;
+  description?: string;
+  division?: string;
+  divisionId?: string;
+  hasPii?: boolean;
+  internalOrder?: string;
+  subDivision?: string;
+  subDivisionId?: string;
+}
