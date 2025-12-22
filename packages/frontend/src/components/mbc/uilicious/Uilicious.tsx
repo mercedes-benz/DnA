@@ -13,25 +13,13 @@ import UiliciousCardItem from './UiliciousCardItem';
 import Modal from '../../formElements/modal/Modal';
 import CreateNewWorkspace from './createNewWorkspace/CreateNewWorkspace';
 import { useHistory } from 'react-router-dom';
-
-export interface leanGovernance {
-  costCenter?: string;
-  dataClassification?: string;
-  department?: string;
-  description?: string;
-  division?: string;
-  divisionId?: string;
-  hasPii?: boolean;
-  internalOrder?: string;
-  subDivision?: string;
-  subDivisionId?: string;
-};
+import { IUiliciousLeanGovernance } from 'globals/types';
 
 const Uilicious = () => {
   const [workspaceList, setWorkspaceList] = useState([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
-  const [leanGovernance, setLeanGovernance] = useState<leanGovernance>();
+  const [leanGovernance, setLeanGovernance] = useState<IUiliciousLeanGovernance>();
   const [selectedSpaceId, setSelectedSpaceId] = useState('');
 
   const History = useHistory();
@@ -56,7 +44,7 @@ const Uilicious = () => {
       });
   };
 
-  const onEditWorkspace = (spaceId: string, leanGovernance: leanGovernance) => {
+  const onEditWorkspace = (spaceId: string, leanGovernance: IUiliciousLeanGovernance) => {
     setSelectedSpaceId(spaceId);
     setLeanGovernance(leanGovernance);
     setIsEditMode(true);
