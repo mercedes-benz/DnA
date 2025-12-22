@@ -1803,10 +1803,15 @@
 				//deploy flow
 				if (isprivateRecipe) {
 					repoUrl = entity.getData().getProjectDetails().getRecipeDetails().getRepodetails();
-					if(Objects.nonNull(repoUrl) && repoUrl.contains(".git")){
-						repoUrl = repoUrl.replaceAll("\\.git$", "/");
-					} else {
-						repoUrl.concat("/");
+					// if(Objects.nonNull(repoUrl) && repoUrl.contains(".git")){
+					// 	repoUrl = repoUrl.replaceAll("\\.git$", "/");
+					// } else {
+					// 	repoUrl.concat("/");
+					// }
+
+					if (Objects.nonNull(repoUrl)) {
+						repoUrl = repoUrl.replaceAll("\\.git$", "");
+						repoUrl = repoUrl.replaceAll("/$", "");
 					}
 					List<String> repoDetails = CommonUtils.getDetailsFromUrl(repoUrl);
 					if (repoDetails.size() > 0 && repoDetails != null) {
