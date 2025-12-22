@@ -1813,7 +1813,8 @@
 						repoName = repoDetails.get(2);
 						gitOrg = repoDetails.get(1);
 					}
-					deployJobInputDto.setRepo(gitOrg + "/" + repoName);
+					// deployJobInputDto.setRepo(gitOrg + "/" + repoName);
+					deployJobInputDto.setRepo(repoUrl);
 				} else {
 					repoName = entity.getData().getProjectDetails().getGitRepoName();
 					deployJobInputDto.setRepo(gitOrgName + "/" + repoName);		
