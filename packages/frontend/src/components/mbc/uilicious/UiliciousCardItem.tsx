@@ -58,7 +58,7 @@ const UiliciousCardItem = ({ project, onEditWorkspace}: Props) => {
         <div className={Styles.cardFooter}>
           <div>&nbsp;</div>
           <div className={Styles.btnGrp}>
-            <button className="btn btn-primary" onClick={() => onEditWorkspace(project?.spaceId, project?.leanGovernance)}>
+            <button className="btn btn-primary" disabled={project?.userRole !== "owner"} onClick={() => onEditWorkspace(project?.spaceId, project?.leanGovernance)}>
               <i className="icon mbc-icon edit"></i>
             </button>
             {/* <button className="btn btn-primary" onClick={() => {}} disabled={true}>
