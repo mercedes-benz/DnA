@@ -1801,30 +1801,18 @@
 				}
 			}else{
 				//deploy flow
-				if (isprivateRecipe) {
-					repoUrl = entity.getData().getProjectDetails().getRecipeDetails().getRepodetails();
-					// if(Objects.nonNull(repoUrl) && repoUrl.contains(".git")){
-					// 	repoUrl = repoUrl.replaceAll("\\.git$", "/");
-					// } else {
-					// 	repoUrl.concat("/");
-					// }
+				 repoUrl = entity.getData()
+						.getProjectDetails()
+						.getRecipeDetails()
+						.getRepodetails();
 
-					if (Objects.nonNull(repoUrl)) {
-						repoUrl = repoUrl.replaceAll("\\.git$", "");
-						repoUrl = repoUrl.replaceAll("/$", "");
-					}
-					List<String> repoDetails = CommonUtils.getDetailsFromUrl(repoUrl);
-					if (repoDetails.size() > 0 && repoDetails != null) {
-						repoName = repoDetails.get(2);
-						gitOrg = repoDetails.get(1);
-					}
-					// deployJobInputDto.setRepo(gitOrg + "/" + repoName);
-					deployJobInputDto.setRepo(repoUrl);
-				} else {
-					repoName = entity.getData().getProjectDetails().getGitRepoName();
-					deployJobInputDto.setRepo(gitOrgName + "/" + repoName);		
- 
+				if (Objects.nonNull(repoUrl)) {
+					// normalize for workflow
+					repoUrl = repoUrl.replaceAll("\\.git$", "");
+					repoUrl = repoUrl.replaceAll("/$", "");
 				}
+
+				deployJobInputDto.setRepo(repoUrl);
 				 
 				 deployJobInputDto.setShortid(workspaceOwner);
 				 deployJobInputDto.setTarget_env(environment);
@@ -4401,8 +4389,15 @@
 				log.info("Private recipe workflow repo = {}", repoUrl);
 
 			} else {
-				repoName = entity.getData().getProjectDetails().getGitRepoName();
-				deployJobInputDto.setRepo(gitOrgName + "/" + repoName);
+				repoUrl = entity.getData()
+						.getProjectDetails()
+						.getGitRepoName();
+
+				repoUrl = normalizeRepoForWorkflow(repoUrl);
+
+				deployJobInputDto.setRepo(repoUrl);
+
+				log.info("Template workflow repo = {}", repoUrl);
 			}
 				 String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
 				 String workspaceOwner = entity.getData().getWorkspaceOwner().getId();
