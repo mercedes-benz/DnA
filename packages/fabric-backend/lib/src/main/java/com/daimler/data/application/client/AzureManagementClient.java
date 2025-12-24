@@ -384,6 +384,9 @@ public class AzureManagementClient {
             }
             
             String fullRoleDefinitionId = "/subscriptions/" + azureSubscriptionId + roleDefinitionId;
+
+            log.info("Role assignment details - Type: {}, Definition ID: {}, Full Role Definition: {}", 
+                roleType, roleDefinitionId, fullRoleDefinitionId);
             
             RoleAssignmentPropertiesDto properties = new RoleAssignmentPropertiesDto();
             properties.setRoleDefinitionId(fullRoleDefinitionId);
@@ -408,12 +411,17 @@ public class AzureManagementClient {
                     .replace("{keyVaultName}", keyVaultName)
                     .replace("{roleAssignmentId}", roleAssignmentId);
             
-            log.info("Assigning role {} to user {} for Key Vault {}", roleType, userPrincipalId, keyVaultName);
+            // log.info("Assigning role {} to user {} for Key Vault {}", roleType, userPrincipalId, keyVaultName);
+            log.info("Assigning role '{}' to user {} for Key Vault '{}'. Role Assignment ID: {}", 
+                roleType, userPrincipalId, keyVaultName, roleAssignmentId);
+            log.info("Role assignment URL: {}", url);
+
             ResponseEntity<RoleAssignmentResponseDto> response = proxyRestTemplate.exchange(
                     url, HttpMethod.PUT, requestEntity, RoleAssignmentResponseDto.class);
             
             responseDto = response.getBody();
-            log.info("Successfully assigned role to user for Key Vault: {}", keyVaultName);
+            // log.info("Successfully assigned role to user for Key Vault: {}", keyVaultName);
+            log.info("Successfully assigned role '{}' to user {} for Key Vault: {}", roleType, userPrincipalId, keyVaultName);
             return responseDto;
         } catch (HttpClientErrorException e) {
             if (e.getStatusCode().value() == 409) {
