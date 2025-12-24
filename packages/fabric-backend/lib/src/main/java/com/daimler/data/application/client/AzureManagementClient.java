@@ -254,14 +254,14 @@ public class AzureManagementClient {
             headers.setContentType(MediaType.APPLICATION_JSON);
             
             HttpEntity<String> requestEntity = new HttpEntity<>(headers);
-
-            String url = azureUserSearchUrl;
-            url = url.replace("{userEmail}", userEmail);
+            
+            String url = azureUserSearchUrl + "?$filter=mail eq '" + userEmail + "'";
+            log.info("User search URL: {}", url);
             
             log.info("Searching for user with email: {}", userEmail);
             ResponseEntity<AzureUserSearchResponseDto> response = proxyRestTemplate.exchange(
                     url, HttpMethod.GET, requestEntity, AzureUserSearchResponseDto.class);
-            
+            log.info("res body: {}", response.getBody());
             AzureUserSearchResponseDto searchResponse = response.getBody();
             if (searchResponse != null && searchResponse.getValue() != null && !searchResponse.getValue().isEmpty()) {
                 AzureUserDto user = searchResponse.getValue().get(0);
