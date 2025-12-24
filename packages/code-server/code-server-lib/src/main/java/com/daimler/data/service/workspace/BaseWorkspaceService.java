@@ -1809,23 +1809,26 @@
 						.getRecipeDetails()
 						.getRepodetails();
 
-				if (repoUrl == null || repoUrl.isBlank()) {
+				String repoPath;
+				if (repoUrl != null && !repoUrl.isBlank()) {
 
-				    repoName = entity.getData()
+					repoUrl = repoUrl.replaceAll("\\.git$", "").replaceAll("/$", "");
+					List<String> repoParts = CommonUtils.getRepoNameFromGitUrl(repoUrl);
+
+					repoPath = repoParts.get(0) + "/" + repoParts.get(1);
+
+				} else {
+
+					repoName = entity.getData()
 							.getProjectDetails()
 							.getGitRepoName();
 
 					if (repoName == null || repoName.isBlank()) {
-						throw new IllegalStateException("Git repository name is missing");
+						throw new IllegalStateException("Git repo name missing");
 					}
-
-					repoUrl = gitBaseUri + "/" + gitOrgName + "/" + repoName;
+					repoPath = gitOrgName + "/" + repoName;
 				}
-
-				repoUrl = repoUrl.replaceAll("\\.git$", "");
-				repoUrl = repoUrl.replaceAll("/$", "");
-
-				deployJobInputDto.setRepo(repoUrl);
+				deployJobInputDto.setRepo(repoPath);
 
 				 deployJobInputDto.setShortid(workspaceOwner);
 				 deployJobInputDto.setTarget_env(environment);
@@ -1893,24 +1896,28 @@
 								.getRecipeDetails()
 								.getRepodetails();
 
-						if (repoUrl == null || repoUrl.isBlank()) {
-							repoName = entity.getData()
+						String org;
+						String repo;
+						if (repoUrl != null && !repoUrl.isBlank()) {
+							repoUrl = repoUrl.replaceAll("\\.git$", "").replaceAll("/$", "");
+							List<String> repoParts = CommonUtils.getRepoNameFromGitUrl(repoUrl);
+							org = repoParts.get(0);
+							repo = repoParts.get(1);
+						} else {
+							repo = entity.getData()
 									.getProjectDetails()
 									.getGitRepoName();
-							if (repoName != null && !repoName.isBlank()) {
-								repoUrl = gitBaseUri + "/repos/" + gitOrgName + "/" + repoName;
+
+							if (repo == null || repo.isBlank()) {
+								log.warn("Cannot fetch commitId – repo missing");
+								org = null;
+							} else {
+								org = gitOrgName;
 							}
 						}
-						if (repoUrl != null && !repoUrl.isBlank()) {
-							repoUrl = repoUrl.replaceAll("\\.git$", "");
-							repoUrl = repoUrl.replaceAll("/$", "");
 
-							List<String> repoDetails = CommonUtils.getRepoNameFromGitUrl(repoUrl);
-
-							commitId = gitClient.getLatestCommitId(
-									repoDetails.get(0),
-									branch,
-									repoDetails.get(1));
+						if (org != null && repo != null) {
+							commitId = gitClient.getLatestCommitId(org, branch, repo);
 						}
 						if (commitId != null && commitId.getSha() != null) {
 							auditLog.setCommitId(commitId.getSha());
@@ -4419,22 +4426,23 @@
 					.getRecipeDetails()
 					.getRepodetails();
 
-			if (repoUrl == null || repoUrl.isBlank()) {
+			String repoPath; // ORG/REPO only
+
+			if (repoUrl != null && !repoUrl.isBlank()) {
+
+				repoUrl = repoUrl.replaceAll("\\.git$", "").replaceAll("/$", "");
+				List<String> repoParts = CommonUtils.getRepoNameFromGitUrl(repoUrl);
+				repoPath = repoParts.get(0) + "/" + repoParts.get(1);
+			} else {
 				repoName = entity.getData()
 						.getProjectDetails()
 						.getGitRepoName();
-
 				if (repoName == null || repoName.isBlank()) {
-					throw new IllegalStateException("Git repository name is missing");
+					throw new IllegalStateException("Git repo name missing");
 				}
-				repoUrl = gitBaseUri + "/" + gitOrgName + "/" + repoName;
+				repoPath = gitOrgName + "/" + repoName;
 			}
-
-			repoUrl = repoUrl.replaceAll("\\.git$", "");
-			repoUrl = repoUrl.replaceAll("/$", "");
-
-			deployJobInputDto.setRepo(repoUrl);
-
+			deployJobInputDto.setRepo(repoPath);
 				 String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
 				 String workspaceOwner = entity.getData().getWorkspaceOwner().getId();
 				 deployJobInputDto.setShortid(workspaceOwner);
@@ -4555,32 +4563,29 @@
 							.getRecipeDetails()
 							.getRepodetails();
 
-					if (repoUrl == null || repoUrl.isBlank()) {
+					String org;
+					String repo;
+					if (repoUrl != null && !repoUrl.isBlank()) {
 
-						repoName = entity.getData()
+						repoUrl = repoUrl.replaceAll("\\.git$", "").replaceAll("/$", "");
+						List<String> repoParts = CommonUtils.getRepoNameFromGitUrl(repoUrl);
+						org = repoParts.get(0);
+						repo = repoParts.get(1);
+					} else {
+						repo = entity.getData()
 								.getProjectDetails()
 								.getGitRepoName();
 
-						if (repoName == null || repoName.isBlank()) {
-							log.warn("Git repo name missing, cannot fetch commit ID");
+						if (repo == null || repo.isBlank()) {
+							log.warn("Cannot fetch commitId – repo missing");
+							org = null;
 						} else {
-							repoUrl = gitBaseUri + "/repos/" + gitOrgName + "/" + repoName;
+							org = gitOrgName;
 						}
 					}
-
-					if (repoUrl != null && !repoUrl.isBlank()) {
-
-						repoUrl = repoUrl.replaceAll("\\.git$", "");
-						repoUrl = repoUrl.replaceAll("/$", "");
-
-						List<String> repoDetails = CommonUtils.getRepoNameFromGitUrl(repoUrl);
-
-						commitId = gitClient.getLatestCommitId(
-								repoDetails.get(0),
-								branch,
-								repoDetails.get(1));
+					if (org != null && repo != null) {
+						commitId = gitClient.getLatestCommitId(org, branch, repo);
 					}
-
 					if (commitId != null && commitId.getSha() != null) {
 						auditLog.setCommitId(commitId.getSha());
 					} else {
