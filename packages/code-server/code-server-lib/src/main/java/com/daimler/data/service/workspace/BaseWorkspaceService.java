@@ -1801,20 +1801,17 @@
 				}
 			}else{
 				//deploy flow
-				if (isprivateRecipe) {
-					repoUrl = entity.getData()
-							.getProjectDetails()
-							.getRecipeDetails()
-							.getRepodetails();
-				} else {
-					repoUrl = entity.getData()
-							.getProjectDetails()
-							.getGitRepoName();
+				repoUrl = entity.getData()
+						.getProjectDetails()
+						.getRecipeDetails()
+						.getRepodetails();
+
+				if (repoUrl == null || repoUrl.isBlank()) {
+					throw new IllegalStateException("Repo URL is missing in recipe details");
 				}
-				if (Objects.nonNull(repoUrl)) {
-					repoUrl = repoUrl.replaceAll("\\.git$", "");
-					repoUrl = repoUrl.replaceAll("/$", "");
-				}
+
+				repoUrl = repoUrl.replaceAll("\\.git$", "");
+				repoUrl = repoUrl.replaceAll("/$", "");
 
 				deployJobInputDto.setRepo(repoUrl);
 				 
@@ -1871,19 +1868,37 @@
 					 }
 
 					 GitLatestCommitIdDto commitId =null;
-						if(entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase()
-						.startsWith("private")){
-							List<String> repoDetails = CommonUtils.getRepoNameFromGitUrl(entity.getData().getProjectDetails().getGitRepoName());
-							commitId = gitClient.getLatestCommitId(repoDetails.get(0),branch,repoDetails.get(1));
-						}else{
-							commitId = gitClient.getLatestCommitId(gitOrgName,branch,entity.getData().getProjectDetails().getGitRepoName());
+						// if(entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase()
+						// .startsWith("private")){
+						// 	List<String> repoDetails = CommonUtils.getRepoNameFromGitUrl(entity.getData().getProjectDetails().getGitRepoName());
+						// 	commitId = gitClient.getLatestCommitId(repoDetails.get(0),branch,repoDetails.get(1));
+						// }else{
+						// 	commitId = gitClient.getLatestCommitId(gitOrgName,branch,entity.getData().getProjectDetails().getGitRepoName());
 							
+						// }
+						repoUrl = entity.getData()
+								.getProjectDetails()
+								.getRecipeDetails()
+								.getRepodetails();
+
+						if (repoUrl != null && !repoUrl.isBlank()) {
+							repoUrl = repoUrl.replaceAll("\\.git$", "");
+							repoUrl = repoUrl.replaceAll("/$", "");
+
+							List<String> repoDetails = CommonUtils.getRepoNameFromGitUrl(repoUrl);
+
+							commitId = gitClient.getLatestCommitId(
+									repoDetails.get(0),
+									branch,
+									repoDetails.get(1));
 						}
-						if(commitId == null){
+						if (commitId != null && commitId.getSha() != null) {
+							auditLog.setCommitId(commitId.getSha());
+						} else {
 							MessageDescription warning = new MessageDescription();
-							warning.setMessage("Error while adding commit id to deployment audit log");
+							warning.setMessage("Commit ID could not be fetched");
+							warnings.add(warning);
 						}
-						auditLog.setCommitId(commitId.getSha());
 						auditLog.setDeploymentStatus("DEPLOY_REQUESTED");
 						auditLog.setVersion(version);
 						if("APPROVAL_PENDING".equalsIgnoreCase(deploymentDetails.getLastDeploymentStatus())){
@@ -4379,22 +4394,19 @@
 			// 	}
 			// 	deployJobInputDto.setRepo(gitOrg + "/" + repoName);		
 			// }
-			if (isPrivateRecipe) {
 				repoUrl = entity.getData()
 						.getProjectDetails()
 						.getRecipeDetails()
 						.getRepodetails();
-			} else {
-				repoUrl = entity.getData()
-						.getProjectDetails()
-						.getGitRepoName();
-			}
 
-			if (repoUrl != null) {
+				if (repoUrl == null || repoUrl.isBlank()) {
+					throw new IllegalStateException("Repo URL is missing in recipe details");
+				}
+
 				repoUrl = repoUrl.replaceAll("\\.git$", "");
 				repoUrl = repoUrl.replaceAll("/$", "");
-			}
-			deployJobInputDto.setRepo(repoUrl);
+
+				deployJobInputDto.setRepo(repoUrl);
 
 				 String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
 				 String workspaceOwner = entity.getData().getWorkspaceOwner().getId();
@@ -4503,19 +4515,37 @@
 					}
 					 BuildAudit auditLog = new BuildAudit();
 					 GitLatestCommitIdDto commitId =null;
-					 if(entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase()
-					 .startsWith("private")){
-						List<String> repoDetails = CommonUtils.getRepoNameFromGitUrl(entity.getData().getProjectDetails().getGitRepoName());
-						commitId = gitClient.getLatestCommitId(repoDetails.get(0),branch,repoDetails.get(1));
-					}else{
-						commitId = gitClient.getLatestCommitId(gitOrgName,branch,entity.getData().getProjectDetails().getGitRepoName());
+					//  if(entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase()
+					//  .startsWith("private")){
+					// 	List<String> repoDetails = CommonUtils.getRepoNameFromGitUrl(entity.getData().getProjectDetails().getGitRepoName());
+					// 	commitId = gitClient.getLatestCommitId(repoDetails.get(0),branch,repoDetails.get(1));
+					// }else{
+					// 	commitId = gitClient.getLatestCommitId(gitOrgName,branch,entity.getData().getProjectDetails().getGitRepoName());
 						
+					// }
+					repoUrl = entity.getData()
+							.getProjectDetails()
+							.getRecipeDetails()
+							.getRepodetails();
+
+					if (repoUrl != null && !repoUrl.isBlank()) {
+
+						repoUrl = repoUrl.replaceAll("\\.git$", "");
+						repoUrl = repoUrl.replaceAll("/$", "");
+
+						List<String> repoDetails = CommonUtils.getRepoNameFromGitUrl(repoUrl);
+
+						commitId = gitClient.getLatestCommitId(
+								repoDetails.get(0),
+								branch,
+								repoDetails.get(1));
 					}
-					if(commitId == null){
-						MessageDescription warning = new MessageDescription();
-						warning.setMessage("Error while adding commit id to deployment audit log");
-					}else{
+					if (commitId != null && commitId.getSha() != null) {
 						auditLog.setCommitId(commitId.getSha());
+					} else {
+						MessageDescription warning = new MessageDescription();
+						warning.setMessage("Commit ID could not be fetched");
+						warnings.add(warning);
 					}
 					 auditLog.setImageDeleted(Boolean.FALSE);
 					 auditLog.setTriggeredOn(now);
