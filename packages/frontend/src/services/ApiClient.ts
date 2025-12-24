@@ -96,6 +96,10 @@ export class ApiClient {
     return this.fetch(getFabricUrl(endpoint), HTTP_METHOD.GET, body);
   }
 
+  public static fabricPut(endpoint: string, body?: any) {
+    return this.fetch(getFabricUrl(endpoint), HTTP_METHOD.PUT, body);
+  }
+
   public static dataProductGet(endpoint: string, body?: any) {
     return this.fetch(getDataProductUrl(endpoint), HTTP_METHOD.GET, body);
   }
@@ -550,6 +554,18 @@ export class ApiClient {
 
   public static getEntraGroupMembers(roleName: string) {
     return this.fabricGet(`fabric-workspaces/${roleName}/entraGroupMembers`);
+  }
+
+  public static getKeyVaults() {
+    return this.fabricGet(`fabric-workspaces/keyVault`);
+  }
+
+  public static createKeyVault(data: any) {
+    return this.fabricPost('fabric-workspaces/keyVault', data);
+  }
+
+  public static updateKeyVault(id: string, data: any) {
+    return this.fabricPut(`fabric-workspaces/keyVault/${id}`, data);
   }
 
   public static updateSolution(data: ICreateNewSolutionRequest): Promise<ICreateNewSolutionResult> {
