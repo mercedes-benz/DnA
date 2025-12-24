@@ -1810,7 +1810,8 @@
 						.getRepodetails();
 
 				if (repoUrl == null || repoUrl.isBlank()) {
-					repoName = entity.getData()
+
+				    repoName = entity.getData()
 							.getProjectDetails()
 							.getGitRepoName();
 
@@ -1892,6 +1893,14 @@
 								.getRecipeDetails()
 								.getRepodetails();
 
+						if (repoUrl == null || repoUrl.isBlank()) {
+							repoName = entity.getData()
+									.getProjectDetails()
+									.getGitRepoName();
+							if (repoName != null && !repoName.isBlank()) {
+								repoUrl = gitBaseUri + "/repos/" + gitOrgName + "/" + repoName;
+							}
+						}
 						if (repoUrl != null && !repoUrl.isBlank()) {
 							repoUrl = repoUrl.replaceAll("\\.git$", "");
 							repoUrl = repoUrl.replaceAll("/$", "");
@@ -4546,6 +4555,19 @@
 							.getRecipeDetails()
 							.getRepodetails();
 
+					if (repoUrl == null || repoUrl.isBlank()) {
+
+						repoName = entity.getData()
+								.getProjectDetails()
+								.getGitRepoName();
+
+						if (repoName == null || repoName.isBlank()) {
+							log.warn("Git repo name missing, cannot fetch commit ID");
+						} else {
+							repoUrl = gitBaseUri + "/repos/" + gitOrgName + "/" + repoName;
+						}
+					}
+
 					if (repoUrl != null && !repoUrl.isBlank()) {
 
 						repoUrl = repoUrl.replaceAll("\\.git$", "");
@@ -4558,6 +4580,7 @@
 								branch,
 								repoDetails.get(1));
 					}
+
 					if (commitId != null && commitId.getSha() != null) {
 						auditLog.setCommitId(commitId.getSha());
 					} else {
