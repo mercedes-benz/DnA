@@ -1651,7 +1651,7 @@
          return responseMessage;
      }
  
-	 @Override
+      @Override
 	 @Transactional
 	 	public GenericMessage deployWorkspace(String userId, String id, String environment, String branch,
 				 boolean isprivateRecipe,String version,String deployType, Boolean keepImage) {
@@ -1809,26 +1809,23 @@
 						.getRecipeDetails()
 						.getRepodetails();
 
-				String repoPath;
-				if (repoUrl != null && !repoUrl.isBlank()) {
+				if (repoUrl == null || repoUrl.isBlank()) {
 
-					repoUrl = repoUrl.replaceAll("\\.git$", "").replaceAll("/$", "");
-					List<String> repoParts = CommonUtils.getRepoNameFromGitUrl(repoUrl);
-
-					repoPath = repoParts.get(0) + "/" + repoParts.get(1);
-
-				} else {
-
-					repoName = entity.getData()
+				    repoName = entity.getData()
 							.getProjectDetails()
 							.getGitRepoName();
 
 					if (repoName == null || repoName.isBlank()) {
-						throw new IllegalStateException("Git repo name missing");
+						throw new IllegalStateException("Git repository name is missing");
 					}
-					repoPath = gitOrgName + "/" + repoName;
+
+					repoUrl = gitBaseUri + "/" + gitOrgName + "/" + repoName;
 				}
-				deployJobInputDto.setRepo(repoPath);
+
+				repoUrl = repoUrl.replaceAll("\\.git$", "");
+				repoUrl = repoUrl.replaceAll("/$", "");
+
+				deployJobInputDto.setRepo(repoUrl);
 
 				 deployJobInputDto.setShortid(workspaceOwner);
 				 deployJobInputDto.setTarget_env(environment);
@@ -1896,28 +1893,24 @@
 								.getRecipeDetails()
 								.getRepodetails();
 
-						String org;
-						String repo;
-						if (repoUrl != null && !repoUrl.isBlank()) {
-							repoUrl = repoUrl.replaceAll("\\.git$", "").replaceAll("/$", "");
-							List<String> repoParts = CommonUtils.getRepoNameFromGitUrl(repoUrl);
-							org = repoParts.get(0);
-							repo = repoParts.get(1);
-						} else {
-							repo = entity.getData()
+						if (repoUrl == null || repoUrl.isBlank()) {
+							repoName = entity.getData()
 									.getProjectDetails()
 									.getGitRepoName();
-
-							if (repo == null || repo.isBlank()) {
-								log.warn("Cannot fetch commitId – repo missing");
-								org = null;
-							} else {
-								org = gitOrgName;
+							if (repoName != null && !repoName.isBlank()) {
+								repoUrl = gitBaseUri + "/repos/" + gitOrgName + "/" + repoName;
 							}
 						}
+						if (repoUrl != null && !repoUrl.isBlank()) {
+							repoUrl = repoUrl.replaceAll("\\.git$", "");
+							repoUrl = repoUrl.replaceAll("/$", "");
 
-						if (org != null && repo != null) {
-							commitId = gitClient.getLatestCommitId(org, branch, repo);
+							List<String> repoDetails = CommonUtils.getRepoNameFromGitUrl(repoUrl);
+
+							commitId = gitClient.getLatestCommitId(
+									repoDetails.get(0),
+									branch,
+									repoDetails.get(1));
 						}
 						if (commitId != null && commitId.getSha() != null) {
 							auditLog.setCommitId(commitId.getSha());
@@ -4380,7 +4373,7 @@
 		return repoUrl;
 	}
 
-	@Override
+	 @Override
 	@Transactional
 	public GenericMessage buildWorkSpace(String userId,String id,String branch,ManageBuildRequestDto buildRequestDto,boolean isPrivateRecipe,String environment,String lastBuildType){
 		GenericMessage responseMessage = new GenericMessage();
@@ -4426,23 +4419,21 @@
 					.getRecipeDetails()
 					.getRepodetails();
 
-			String repoPath; // ORG/REPO only
-
-			if (repoUrl != null && !repoUrl.isBlank()) {
-
-				repoUrl = repoUrl.replaceAll("\\.git$", "").replaceAll("/$", "");
-				List<String> repoParts = CommonUtils.getRepoNameFromGitUrl(repoUrl);
-				repoPath = repoParts.get(0) + "/" + repoParts.get(1);
-			} else {
+			if (repoUrl == null || repoUrl.isBlank()) {
 				repoName = entity.getData()
 						.getProjectDetails()
 						.getGitRepoName();
 				if (repoName == null || repoName.isBlank()) {
-					throw new IllegalStateException("Git repo name missing");
+					throw new IllegalStateException("Git repository name is missing");
 				}
-				repoPath = gitOrgName + "/" + repoName;
+				repoUrl = gitBaseUri + "/" + gitOrgName + "/" + repoName;
 			}
-			deployJobInputDto.setRepo(repoPath);
+
+			repoUrl = repoUrl.replaceAll("\\.git$", "");
+			repoUrl = repoUrl.replaceAll("/$", "");
+
+			deployJobInputDto.setRepo(repoUrl);
+
 				 String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
 				 String workspaceOwner = entity.getData().getWorkspaceOwner().getId();
 				 deployJobInputDto.setShortid(workspaceOwner);
@@ -4563,28 +4554,30 @@
 							.getRecipeDetails()
 							.getRepodetails();
 
-					String org;
-					String repo;
-					if (repoUrl != null && !repoUrl.isBlank()) {
+					if (repoUrl == null || repoUrl.isBlank()) {
 
-						repoUrl = repoUrl.replaceAll("\\.git$", "").replaceAll("/$", "");
-						List<String> repoParts = CommonUtils.getRepoNameFromGitUrl(repoUrl);
-						org = repoParts.get(0);
-						repo = repoParts.get(1);
-					} else {
-						repo = entity.getData()
+						repoName = entity.getData()
 								.getProjectDetails()
 								.getGitRepoName();
 
-						if (repo == null || repo.isBlank()) {
-							log.warn("Cannot fetch commitId – repo missing");
-							org = null;
+						if (repoName == null || repoName.isBlank()) {
+							log.warn("Git repo name missing, cannot fetch commit ID");
 						} else {
-							org = gitOrgName;
+							repoUrl = gitBaseUri + "/repos/" + gitOrgName + "/" + repoName;
 						}
 					}
-					if (org != null && repo != null) {
-						commitId = gitClient.getLatestCommitId(org, branch, repo);
+
+					if (repoUrl != null && !repoUrl.isBlank()) {
+
+						repoUrl = repoUrl.replaceAll("\\.git$", "");
+						repoUrl = repoUrl.replaceAll("/$", "");
+
+						List<String> repoDetails = CommonUtils.getRepoNameFromGitUrl(repoUrl);
+
+						commitId = gitClient.getLatestCommitId(
+								repoDetails.get(0),
+								branch,
+								repoDetails.get(1));
 					}
 					if (commitId != null && commitId.getSha() != null) {
 						auditLog.setCommitId(commitId.getSha());
