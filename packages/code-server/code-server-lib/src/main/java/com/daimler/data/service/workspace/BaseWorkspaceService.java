@@ -180,6 +180,9 @@
 
 	 @Value("${codeServer.git.ghe.pat}")
      private String ghePat;
+
+	 @Value("${codeServer.git.baseuri}")
+	 private String gitBaseUri;
  
 	 @Autowired
 	 private WorkspaceAssembler workspaceAssembler;
@@ -1807,14 +1810,22 @@
 						.getRepodetails();
 
 				if (repoUrl == null || repoUrl.isBlank()) {
-					throw new IllegalStateException("Repo URL is missing in recipe details");
+					repoName = entity.getData()
+							.getProjectDetails()
+							.getGitRepoName();
+
+					if (repoName == null || repoName.isBlank()) {
+						throw new IllegalStateException("Git repository name is missing");
+					}
+
+					repoUrl = gitBaseUri + "/" + gitOrgName + "/" + repoName;
 				}
 
 				repoUrl = repoUrl.replaceAll("\\.git$", "");
 				repoUrl = repoUrl.replaceAll("/$", "");
 
 				deployJobInputDto.setRepo(repoUrl);
-				 
+
 				 deployJobInputDto.setShortid(workspaceOwner);
 				 deployJobInputDto.setTarget_env(environment);
  
@@ -4394,19 +4405,26 @@
 			// 	}
 			// 	deployJobInputDto.setRepo(gitOrg + "/" + repoName);		
 			// }
-				repoUrl = entity.getData()
+			repoUrl = entity.getData()
+					.getProjectDetails()
+					.getRecipeDetails()
+					.getRepodetails();
+
+			if (repoUrl == null || repoUrl.isBlank()) {
+				repoName = entity.getData()
 						.getProjectDetails()
-						.getRecipeDetails()
-						.getRepodetails();
+						.getGitRepoName();
 
-				if (repoUrl == null || repoUrl.isBlank()) {
-					throw new IllegalStateException("Repo URL is missing in recipe details");
+				if (repoName == null || repoName.isBlank()) {
+					throw new IllegalStateException("Git repository name is missing");
 				}
+				repoUrl = gitBaseUri + "/" + gitOrgName + "/" + repoName;
+			}
 
-				repoUrl = repoUrl.replaceAll("\\.git$", "");
-				repoUrl = repoUrl.replaceAll("/$", "");
+			repoUrl = repoUrl.replaceAll("\\.git$", "");
+			repoUrl = repoUrl.replaceAll("/$", "");
 
-				deployJobInputDto.setRepo(repoUrl);
+			deployJobInputDto.setRepo(repoUrl);
 
 				 String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
 				 String workspaceOwner = entity.getData().getWorkspaceOwner().getId();
