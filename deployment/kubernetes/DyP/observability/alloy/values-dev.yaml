@@ -396,7 +396,7 @@ alloy:
       prometheus.relabel "drop_unused_cadvisor_metrics" {
         rule {
           source_labels = ["__name__"]
-          regex = "(container_blkio.*)"
+          regex = "(container_blkio.*|container_fs_.*|container_memory_failures_total|container_threads|prober_probe_.*|kubelet_.*|container_spec_.*|container_tasks_state|container_last_seen|container_sockets|container_ulimits_.*|container_start_time_seconds)"
           action = "drop"
         }
         forward_to = [prometheus.relabel.add_cluster_labels.receiver]
@@ -445,6 +445,8 @@ alloy:
         endpoint {
           url = "http://loki-gateway/loki/api/v1/push"
           headers = {"X-Scope-OrgID" = "c82p085"}
+          batch_wait = "1s"
+          batch_size = "1MiB"
         }
       }
 
@@ -479,9 +481,16 @@ alloy:
           replacement = "$1"
         }
         rule {
+          source_labels = ["__meta_kubernetes_pod_label_app"]
+          action = "replace"
+          target_label = "app"
+          regex = "(.+)"
+        }
+        rule {
           source_labels = ["__meta_kubernetes_pod_label_app_kubernetes_io_name"]
           action = "replace"
           target_label = "app"
+          regex = "(.+)"
         }
       }
 
@@ -499,8 +508,12 @@ alloy:
         stage.cri {}
         stage.decolorize {}
         stage.drop {
-          expression  = ".*debug.*"
+          expression  = ".*(debug|kube-probe|HealthChecker|Connection closed).*"
           longer_than = "1MB"
+        }
+        stage.drop {
+          expression = "^\\s*$"
+          drop_counter_reason = "empty_line"
         }
         forward_to = [loki.write.loki.receiver]
       }
@@ -568,7 +581,7 @@ alloy:
 
   clustering:
     # -- Deploy Alloy in a cluster to allow for load distribution.
-    enabled: false
+    enabled: true
 
     # -- Name for the Alloy cluster. Used for differentiating between clusters.
     name: ""
@@ -602,7 +615,11 @@ alloy:
   enableReporting: true
 
   # -- Extra environment variables to pass to the Alloy container.
-  extraEnv: []
+  extraEnv: 
+    - name: GOMEMLIMIT
+      value: "5500MiB"
+    - name: GOMAXPROCS
+      value: "4"
 
   # -- Maps all the keys on a ConfigMap or Secret as environment variables. https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#envfromsource-v1-core
   envFrom: []
@@ -623,7 +640,15 @@ alloy:
     - name: zipkin
       port: 9411
       targetPort: 9411
-      protocol: TCP       
+      protocol: TCP
+    - name: cluster-tcp
+      port: 7946
+      targetPort: 7946
+      protocol: TCP
+    - name: cluster-udp
+      port: 7946
+      targetPort: 7946
+      protocol: UDP       
   # - name: "faro"
   #   port: 12347
   #   targetPort: 12347
@@ -653,9 +678,9 @@ alloy:
   # -- Resource requests and limits to apply to the Grafana Alloy container.
   resources: 
     requests:
+      cpu: "1000m"
       memory: "6Gi"
     limits:
-      cpu: "200m"
       memory: "6Gi"
 
   # -- Set lifecycle hooks for the Grafana Alloy container.
