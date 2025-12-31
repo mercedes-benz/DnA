@@ -481,9 +481,16 @@ alloy:
           replacement = "$1"
         }
         rule {
+          source_labels = ["__meta_kubernetes_pod_label_app"]
+          action = "replace"
+          target_label = "app"
+          regex = "(.+)"
+        }
+        rule {
           source_labels = ["__meta_kubernetes_pod_label_app_kubernetes_io_name"]
           action = "replace"
           target_label = "app"
+          regex = "(.+)"
         }
       }
 
@@ -501,8 +508,12 @@ alloy:
         stage.cri {}
         stage.decolorize {}
         stage.drop {
-          expression  = ".*debug.*"
+          expression  = ".*(debug|kube-probe|HealthChecker|Connection closed).*"
           longer_than = "1MB"
+        }
+        stage.drop {
+          expression = "^\\s*$"
+          drop_counter_reason = "empty_line"
         }
         forward_to = [loki.write.loki.receiver]
       }
