@@ -446,7 +446,7 @@ alloy:
           url = "http://loki-gateway/loki/api/v1/push"
           headers = {"X-Scope-OrgID" = "c82p160"}
           batch_wait = "1s"
-          batch_size = "1048576"
+          batch_size = "1MiB"
         }
       }
 
