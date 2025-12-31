@@ -396,7 +396,7 @@ alloy:
       prometheus.relabel "drop_unused_cadvisor_metrics" {
         rule {
           source_labels = ["__name__"]
-          regex = "(container_blkio.*)"
+          regex = "(container_blkio.*|container_fs_.*|container_memory_failures_total|container_threads|prober_probe_.*|kubelet_.*)"
           action = "drop"
         }
         forward_to = [prometheus.relabel.add_cluster_labels.receiver]
