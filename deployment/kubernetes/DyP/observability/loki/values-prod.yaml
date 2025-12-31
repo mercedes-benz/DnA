@@ -80,7 +80,7 @@ ingester:
     enabled: true
     claims:
       - name: data
-        size: 50Gi    
+        size: 10Gi    
   rolloutGroupPrefix: "loki"  
   addIngesterNamePrefix: true 
 
