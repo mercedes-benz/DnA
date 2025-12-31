@@ -445,6 +445,8 @@ alloy:
         endpoint {
           url = "http://loki-gateway/loki/api/v1/push"
           headers = {"X-Scope-OrgID" = "c82p085"}
+          batch_wait = "1s"
+          batch_size = "1048576"
         }
       }
 
