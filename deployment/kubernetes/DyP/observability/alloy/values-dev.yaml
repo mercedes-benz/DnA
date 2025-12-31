@@ -602,7 +602,11 @@ alloy:
   enableReporting: true
 
   # -- Extra environment variables to pass to the Alloy container.
-  extraEnv: []
+  extraEnv: 
+    - name: GOMEMLIMIT
+      value: "5500MiB"
+    - name: GOMAXPROCS
+      value: "4"
 
   # -- Maps all the keys on a ConfigMap or Secret as environment variables. https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.24/#envfromsource-v1-core
   envFrom: []
