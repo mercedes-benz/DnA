@@ -640,7 +640,15 @@ alloy:
     - name: zipkin
       port: 9411
       targetPort: 9411
-      protocol: TCP       
+      protocol: TCP
+    - name: cluster-tcp
+      port: 7946
+      targetPort: 7946
+      protocol: TCP
+    - name: cluster-udp
+      port: 7946
+      targetPort: 7946
+      protocol: UDP       
   # - name: "faro"
   #   port: 12347
   #   targetPort: 12347

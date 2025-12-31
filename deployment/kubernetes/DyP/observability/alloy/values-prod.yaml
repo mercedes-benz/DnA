@@ -640,7 +640,15 @@ alloy:
     - name: zipkin
       port: 9411
       targetPort: 9411
-      protocol: TCP       
+      protocol: TCP
+    - name: cluster-tcp
+      port: 7946
+      targetPort: 7946
+      protocol: TCP
+    - name: cluster-udp
+      port: 7946
+      targetPort: 7946
+      protocol: UDP       
   # - name: "faro"
   #   port: 12347
   #   targetPort: 12347
@@ -754,7 +762,7 @@ controller:
   type: 'statefulset'
 
   # -- Number of pods to deploy. Ignored when controller.type is 'daemonset'.
-  replicas: 4
+  replicas: 5
 
   # -- Annotations to add to controller.
   extraAnnotations: {}
