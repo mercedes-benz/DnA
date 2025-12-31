@@ -681,7 +681,6 @@ alloy:
       cpu: "1000m"
       memory: "6Gi"
     limits:
-      cpu: "4000m"
       memory: "6Gi"
 
   # -- Set lifecycle hooks for the Grafana Alloy container.
