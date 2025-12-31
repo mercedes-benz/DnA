@@ -568,7 +568,7 @@ alloy:
 
   clustering:
     # -- Deploy Alloy in a cluster to allow for load distribution.
-    enabled: false
+    enabled: true
 
     # -- Name for the Alloy cluster. Used for differentiating between clusters.
     name: ""
