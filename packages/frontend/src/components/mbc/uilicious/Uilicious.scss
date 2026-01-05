@@ -61,7 +61,7 @@
         background-color: #0a0b0e;
 
         i {
-            font-size: var(--font-size-icon-content);
+            font-size: var(--font-size-icon);
             color: #00adef;
         }
 
@@ -209,3 +209,8 @@
     padding-top: 30px;
 }
 
+.infoPopup{
+    .info {
+        color: #00adef;
+    }
+}
