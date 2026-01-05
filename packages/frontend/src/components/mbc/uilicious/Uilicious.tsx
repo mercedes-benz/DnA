@@ -11,9 +11,11 @@ import Tooltip from '../../../assets/modules/uilab/js/src/tooltip';
 import { ApiClient } from '../../../../src/services/ApiClient';
 import UiliciousCardItem from './UiliciousCardItem';
 import Modal from '../../formElements/modal/Modal';
+import InfoModal from 'components/formElements/modal/infoModal/InfoModal';
 import CreateNewWorkspace from './createNewWorkspace/CreateNewWorkspace';
 import { useHistory } from 'react-router-dom';
 import { IUiliciousLeanGovernance } from 'globals/types';
+import { Envs } from 'globals/Envs';
 
 const Uilicious = () => {
   const [workspaceList, setWorkspaceList] = useState([]);
@@ -21,6 +23,7 @@ const Uilicious = () => {
   const [isEditMode, setIsEditMode] = useState(false);
   const [leanGovernance, setLeanGovernance] = useState<IUiliciousLeanGovernance>();
   const [selectedSpaceId, setSelectedSpaceId] = useState('');
+  const [showContactModal, setShowContactModal] = useState(false);
 
   const History = useHistory();
   const goback = () => {
@@ -51,6 +54,12 @@ const Uilicious = () => {
     setShowCreateModal(true);
   }
 
+  const infoModalContent = (
+    <div className={Styles.infoPopup}>
+        For further assistance please contact <span className={Styles.info}>{Envs.UILICIOUS_CONTACT}</span>.
+    </div>
+  );
+
   return (
     <React.Fragment>
       <div className={classNames(Styles.mainPanel)}>
@@ -60,20 +69,19 @@ const Uilicious = () => {
           </button>
           <div className={classNames(Styles.caption)}>
             <h3>My Uilicious Workspaces</h3>
-            {/* <div className={classNames(Styles.listHeader)}>
+            <div className={classNames(Styles.listHeader)}>
               {workspaceList?.length ? (
                 <React.Fragment>
                   <button
                     className={'btn btn-primary'}
                     type="button"
-                    onClick={() => { setShowCreateModal(true); setIsEditMode(true); }}
+                    onClick={() => { setShowContactModal(true); }}
                   >
-                    <i className="icon mbc-icon edit" />
-                    <span>Update Lean Governance</span>
+                    <i className="icon mbc-icon info" tooltip-data="More information"/>
                   </button>
                 </React.Fragment>
               ) : null}
-            </div> */}
+            </div> 
           </div>
           {!workspaceList?.length ? (
             <div className={classNames(Styles.content)}>
@@ -131,6 +139,16 @@ const Uilicious = () => {
           }
           scrollableContent={true}
           onCancel={() => { setShowCreateModal(false); setIsEditMode(false); getWorkspaceList(); }}
+        />
+      )}
+      {showContactModal && (
+        <InfoModal
+          title={''}
+          modalWidth={'40vw'}
+          show={showContactModal}
+          content={infoModalContent}
+          modalStyle={{ minHeight: '30%' }}
+          onCancel={() => {setShowContactModal(false);}}
         />
       )}
     </React.Fragment>
