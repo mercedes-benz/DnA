@@ -183,6 +183,12 @@
 
 	 @Value("${codeServer.git.baseuri}")
 	 private String gitBaseUri;
+
+	 @Value("${codeServer.git.orguri}")
+	 private String codeserverGitOrgUri;
+
+	 @Value("${codeServer.git.orgname}")
+	 private String codeServerGitOrgName;
  
 	 @Autowired
 	 private WorkspaceAssembler workspaceAssembler;
@@ -1819,7 +1825,13 @@
 						throw new IllegalStateException("Git repository name is missing");
 					}
 
-					repoUrl = gitBaseUri + "/" + gitOrgName + "/" + repoName;
+					repoUrl = codeserverGitOrgUri;
+
+					if (!repoUrl.endsWith("/")) {
+						repoUrl = repoUrl + "/";
+					}
+
+					repoUrl = repoUrl + codeServerGitOrgName + "/" + projectName.toLowerCase();
 				}
 
 				repoUrl = repoUrl.replaceAll("\\.git$", "");
@@ -4389,6 +4401,7 @@
 			 String repoUrl = null;
 			 String gitOrg = null;
 			 CodeServerWorkspaceNsql entity = workspaceCustomRepository.findById(userId, id);
+			 String projectName = entity.getData().getProjectDetails().getProjectName();
 			 if (entity != null ) {
 				 DeploymentManageDto deploymentJobDto = new DeploymentManageDto();
 				 DeploymentManageInputDto deployJobInputDto = new DeploymentManageInputDto();
@@ -4426,7 +4439,13 @@
 				if (repoName == null || repoName.isBlank()) {
 					throw new IllegalStateException("Git repository name is missing");
 				}
-				repoUrl = gitBaseUri + "/" + gitOrgName + "/" + repoName;
+				repoUrl = codeserverGitOrgUri;
+
+				if (!repoUrl.endsWith("/")) {
+					repoUrl = repoUrl + "/";
+				}
+
+				repoUrl = repoUrl + codeServerGitOrgName + "/" + projectName.toLowerCase();
 			}
 
 			repoUrl = repoUrl.replaceAll("\\.git$", "");
@@ -4438,7 +4457,6 @@
 				 String workspaceOwner = entity.getData().getWorkspaceOwner().getId();
 				 deployJobInputDto.setShortid(workspaceOwner);
  
-				 String projectName = entity.getData().getProjectDetails().getProjectName();
 				 CodeServerWorkspaceNsql ownerEntity = workspaceCustomRepository.findbyProjectName(projectOwner,projectName);
 				 cloudServiceProvider = ownerEntity.getData().getProjectDetails().getRecipeDetails().getCloudServiceProvider();
 				 if(Objects.nonNull(ownerEntity.getData().getIsWorkspaceMigrated())) {
