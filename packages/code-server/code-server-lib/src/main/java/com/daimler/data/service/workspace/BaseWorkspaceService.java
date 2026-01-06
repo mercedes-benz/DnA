@@ -3925,12 +3925,41 @@
 				} else {
 					deployJobInputDto.setEnvironment(codeServerEnvValueAws);
 				}
-				deployJobInputDto.setRepo(gitOrgName + "/" + entity.getData().getProjectDetails().getGitRepoName());
+				String projectName = entity.getData().getProjectDetails().getProjectName();
+
+				String repoUrl = entity.getData()
+						.getProjectDetails()
+						.getRecipeDetails()
+						.getRepodetails();
+
+				if (repoUrl == null || repoUrl.isBlank()) {
+
+					String repoName = entity.getData()
+							.getProjectDetails()
+							.getGitRepoName();
+
+					if (repoName == null || repoName.isBlank()) {
+						throw new IllegalStateException("Git repository name is missing");
+					}
+
+					repoUrl = codeserverGitOrgUri;
+
+					if (!repoUrl.endsWith("/")) {
+						repoUrl = repoUrl + "/";
+					}
+
+					repoUrl = repoUrl + codeServerGitOrgName + "/" + projectName.toLowerCase();
+				}
+
+				repoUrl = repoUrl.replaceAll("\\.git$", "");
+				repoUrl = repoUrl.replaceAll("/$", "");
+
+				deployJobInputDto.setRepo(repoUrl);
+
 				String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
 				deployJobInputDto.setShortid(projectOwner);
 				deployJobInputDto.setTarget_env(env);
 				// deployJobInputDto.setType("RESTART");
-				String projectName = entity.getData().getProjectDetails().getProjectName();
 				CodeServerWorkspaceNsql ownerEntity = workspaceCustomRepository.findbyProjectName(projectOwner,
 						projectName);
 				if (ownerEntity == null || ownerEntity.getData() == null
