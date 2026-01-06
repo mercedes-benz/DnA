@@ -34,6 +34,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 
+import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
+import com.daimler.data.db.repo.workspace.WorkspaceCustomRepository;
 import com.daimler.data.dto.workspace.CreatedByVO;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
