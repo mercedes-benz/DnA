@@ -5163,7 +5163,7 @@
 			CodeServerBuildDeployNsql optionalBuildDeployentity =  buildDeployCustomRepo.findByProjectName(requestVo.getProjectName());	
 			CodeServerBuildDeployNsql buildDeployentity = null;
 			CodeServerBuildDeploy buildDeployData = null;
-			    if(data.getProjectDetails().getLastBuildOrDeployedStatus().equalsIgnoreCase("BUILD_REQUESTED")){
+			if(data.getProjectDetails().getLastBuildOrDeployedStatus().equalsIgnoreCase("BUILD_REQUESTED")){
 				CodeServerBuildDetails buildDetails = entity.getData().getProjectDetails().getIntBuildDetails();
 					 if (!"int".equalsIgnoreCase(data.getProjectDetails().getLastBuildOrDeployedEnv())) {
 						 buildDetails = entity.getData().getProjectDetails().getProdBuildDetails();
@@ -5190,7 +5190,7 @@
 					 if (!"int".equalsIgnoreCase(data.getProjectDetails().getLastBuildOrDeployedEnv())) {
 						 deploymentDetails = entity.getData().getProjectDetails().getProdDeploymentDetails();
 					 }
-							deploymentDetails.setGitjobRunID(requestVo.getGitJobRunId());
+				deploymentDetails.setGitjobRunID(requestVo.getGitJobRunId());
 				workspaceCustomRepository.updateDeploymentDetails(requestVo.getProjectName(), data.getProjectDetails().getLastBuildOrDeployedEnv(),deploymentDetails,data.getProjectDetails().getLastBuildOrDeployedStatus()); 				
 				 //setting audit log details
 					 if(optionalBuildDeployentity != null){
@@ -5203,7 +5203,7 @@
 						 }else{
 							 int lastIndex = buildDeployData.getProdDeploymentAuditLogs().size() - 1;
 							 buildDeployData.getProdDeploymentAuditLogs().get(lastIndex).setGitjobRunID(requestVo.getGitJobRunId());		
-						 }	
+						 }
 						 buildDeployentity.setData(buildDeployData);
 						 buildDeployRepo.save(buildDeployentity);
 					 }
