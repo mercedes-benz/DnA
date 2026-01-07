@@ -14,7 +14,7 @@ metadata:
   namespace: {{ include "cert-manager.namespace" . }}
 spec:
   acme:
-    server: https://acme.app.corpintra.net/acme/ws/Acme.svc/InternalWebserverACME/directory
+    server: https://acme.app.corpintra.net/acme/ws/Acme.svc/temporaryG2/directory
     email: dna@mercedes-benz.com
     privateKeySecretRef:
       name: mercedes-benz-acme
