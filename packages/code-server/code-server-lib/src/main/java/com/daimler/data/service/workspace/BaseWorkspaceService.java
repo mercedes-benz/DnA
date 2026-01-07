@@ -4010,6 +4010,10 @@
 					// 	environmentJsonbName = "prodDeploymentDetails";
 					// 	deploymentDetails = entity.getData().getProjectDetails().getProdDeploymentDetails();
 					// }
+					SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
+					Date now = isoFormat.parse(isoFormat.format(new Date()));
+					
+					workspaceCustomRepository.updateLatestBuildOrDeployStatus("RESTART_REQUESTED", env, now, projectName);
 					
 					List<DeploymentAudit> auditLogs = new ArrayList<>();
 					CodeServerBuildDeployNsql optionalBuildDeployentity =  buildDeployCustomRepo.findByProjectName(projectName);	
@@ -4023,8 +4027,6 @@
 					if (auditLogs == null) {
 						auditLogs = new ArrayList<>();
 					}
-					SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
-					Date now = isoFormat.parse(isoFormat.format(new Date()));
 					DeploymentAudit auditLog = new DeploymentAudit();
 					auditLog.setTriggeredOn(now);
 					auditLog.setTriggeredBy(entity.getData().getWorkspaceOwner().getGitUserName());				
@@ -5188,7 +5190,7 @@
 					 if (!"int".equalsIgnoreCase(data.getProjectDetails().getLastBuildOrDeployedEnv())) {
 						 deploymentDetails = entity.getData().getProjectDetails().getProdDeploymentDetails();
 					 }
-				deploymentDetails.setGitjobRunID(requestVo.getGitJobRunId());	
+							deploymentDetails.setGitjobRunID(requestVo.getGitJobRunId());
 				workspaceCustomRepository.updateDeploymentDetails(requestVo.getProjectName(), data.getProjectDetails().getLastBuildOrDeployedEnv(),deploymentDetails,data.getProjectDetails().getLastBuildOrDeployedStatus()); 				
 				 //setting audit log details
 					 if(optionalBuildDeployentity != null){
@@ -5201,11 +5203,34 @@
 						 }else{
 							 int lastIndex = buildDeployData.getProdDeploymentAuditLogs().size() - 1;
 							 buildDeployData.getProdDeploymentAuditLogs().get(lastIndex).setGitjobRunID(requestVo.getGitJobRunId());		
-						 }
+						 }	
 						 buildDeployentity.setData(buildDeployData);
 						 buildDeployRepo.save(buildDeployentity);
 					 }
 					  response = "SUCCESS";
+			} else if (data.getProjectDetails().getLastBuildOrDeployedStatus().equalsIgnoreCase("RESTART_REQUESTED")) {
+
+				if (optionalBuildDeployentity != null) {
+					buildDeployentity = optionalBuildDeployentity;
+					buildDeployData = buildDeployentity.getData();
+
+					if ("int".equalsIgnoreCase(data.getProjectDetails().getLastBuildOrDeployedEnv())) {
+						int lastIndex = buildDeployData.getIntDeploymentAuditLogs().size() - 1;
+						buildDeployData.getIntDeploymentAuditLogs()
+								.get(lastIndex)
+								.setGitjobRunID(requestVo.getGitJobRunId());
+					} else {
+						int lastIndex = buildDeployData.getProdDeploymentAuditLogs().size() - 1;
+						buildDeployData.getProdDeploymentAuditLogs()
+								.get(lastIndex)
+								.setGitjobRunID(requestVo.getGitJobRunId());
+					}
+
+					buildDeployentity.setData(buildDeployData);
+					buildDeployRepo.save(buildDeployentity);
+				}
+
+				response = "SUCCESS";
 			}
 			return response;
 		} catch (Exception e) {
