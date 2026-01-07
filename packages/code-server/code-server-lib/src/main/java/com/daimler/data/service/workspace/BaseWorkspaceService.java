@@ -2970,10 +2970,13 @@
 					 // 	log.info("projectRecipe: {} and service name is : {}", projectRecipe, serviceName);
 					 // 	authenticatorClient.callingKongApis(name, serviceName, targetEnv, apiRecipe,null,null);
 					 // }
-				} else if ("UNDEPLOYED".equalsIgnoreCase(latestStatus) || "RESTART_FAILED".equalsIgnoreCase(latestStatus) || "RESTARTED".equalsIgnoreCase(latestStatus) ) {
+				} else if ("UNDEPLOYED".equalsIgnoreCase(latestStatus) || "RESTART_FAILED".equalsIgnoreCase(latestStatus) || "RESTARTED".equalsIgnoreCase(latestStatus) || "RESTART_REQUESTED".equalsIgnoreCase(latestStatus) ) {
 					if("UNDEPLOYED".equalsIgnoreCase(latestStatus)){
 					 deploymentDetails.setDeploymentUrl(null);
 					 deploymentDetails.setLastDeploymentStatus(latestStatus);
+					} else if("RESTART_REQUESTED".equalsIgnoreCase(latestStatus)){
+						deploymentDetails.setLastDeploymentStatus(latestStatus);
+						deploymentDetails.setLastDeployedOn(now);
 					}
 					 
 						 workspaceCustomRepository.updateDeploymentDetails(projectName, targetEnv,
@@ -4010,6 +4013,23 @@
 					// 	environmentJsonbName = "prodDeploymentDetails";
 					// 	deploymentDetails = entity.getData().getProjectDetails().getProdDeploymentDetails();
 					// }
+					SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
+					Date now = isoFormat.parse(isoFormat.format(new Date()));
+					
+					CodeServerDeploymentDetails deploymentDetails = null;
+					if ("int".equalsIgnoreCase(env)) {
+						deploymentDetails = entity.getData().getProjectDetails().getIntDeploymentDetails();
+					} else {
+						deploymentDetails = entity.getData().getProjectDetails().getProdDeploymentDetails();
+					}
+					
+					deploymentDetails.setLastDeploymentStatus("RESTART_REQUESTED");
+					deploymentDetails.setLastDeployedOn(now);
+					
+					workspaceCustomRepository.updateDeploymentDetails(projectName, env,
+							deploymentDetails, "RESTART_REQUESTED");
+					
+					workspaceCustomRepository.updateLatestBuildOrDeployStatus("RESTART_REQUESTED", env, now, projectName);
 					
 					List<DeploymentAudit> auditLogs = new ArrayList<>();
 					CodeServerBuildDeployNsql optionalBuildDeployentity =  buildDeployCustomRepo.findByProjectName(projectName);	
@@ -4023,8 +4043,6 @@
 					if (auditLogs == null) {
 						auditLogs = new ArrayList<>();
 					}
-					SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
-					Date now = isoFormat.parse(isoFormat.format(new Date()));
 					DeploymentAudit auditLog = new DeploymentAudit();
 					auditLog.setTriggeredOn(now);
 					auditLog.setTriggeredBy(entity.getData().getWorkspaceOwner().getGitUserName());				
@@ -5161,7 +5179,10 @@
 			CodeServerBuildDeployNsql optionalBuildDeployentity =  buildDeployCustomRepo.findByProjectName(requestVo.getProjectName());	
 			CodeServerBuildDeployNsql buildDeployentity = null;
 			CodeServerBuildDeploy buildDeployData = null;
-			if(data.getProjectDetails().getLastBuildOrDeployedStatus().equalsIgnoreCase("BUILD_REQUESTED")){
+			if (data.getProjectDetails().getLastBuildOrDeployedStatus().equalsIgnoreCase("RESTART_REQUESTED")) {
+				log.info("Restart does not require git job run id. Skipping.");
+				return "SUCCESS";
+			} else if(data.getProjectDetails().getLastBuildOrDeployedStatus().equalsIgnoreCase("BUILD_REQUESTED")){
 				CodeServerBuildDetails buildDetails = entity.getData().getProjectDetails().getIntBuildDetails();
 					 if (!"int".equalsIgnoreCase(data.getProjectDetails().getLastBuildOrDeployedEnv())) {
 						 buildDetails = entity.getData().getProjectDetails().getProdBuildDetails();
