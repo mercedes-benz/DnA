@@ -70,18 +70,18 @@ const Uilicious = () => {
           <div className={classNames(Styles.caption)}>
             <h3>My Uilicious Workspaces</h3>
             <div className={classNames(Styles.listHeader)}>
-              {workspaceList?.length ? (
-                <React.Fragment>
-                  <button
-                    className={'btn btn-primary'}
-                    type="button"
-                    onClick={() => { setShowContactModal(true); }}
-                  >
-                    <i className="icon mbc-icon info" tooltip-data="More information"/>
-                  </button>
-                </React.Fragment>
-              ) : null}
-            </div> 
+              <React.Fragment>
+                <button
+                  className={'btn btn-primary'}
+                  type="button"
+                  onClick={() => {
+                    setShowContactModal(true);
+                  }}
+                >
+                  <i className="icon mbc-icon info" tooltip-data="More information" />
+                </button>
+              </React.Fragment>
+            </div>
           </div>
           {!workspaceList?.length ? (
             <div className={classNames(Styles.content)}>
@@ -89,12 +89,20 @@ const Uilicious = () => {
                 <div className={Styles.emptyCodeSpaces}>
                   <span>
                     You don&apos;t have any workspaces at this time.
-                    <br /> Please create a new one.
+                    <br /> Please create a new one.<br/>
+                    <p className={Styles.warning}>Note: If you have already created a workspace but it is not being displayed please check your mail for any pending collaboration requests.</p>
                   </span>
                 </div>
                 <div className={Styles.subscriptionListEmpty}>
                   <br />
-                  <button className={'btn btn-tertiary'} type="button" onClick={() => { setShowCreateModal(true); setIsEditMode(false); }}>
+                  <button
+                    className={'btn btn-tertiary'}
+                    type="button"
+                    onClick={() => {
+                      setShowCreateModal(true);
+                      setIsEditMode(false);
+                    }}
+                  >
                     <span>Create new Workspace</span>
                   </button>
                 </div>
@@ -138,7 +146,11 @@ const Uilicious = () => {
             />
           }
           scrollableContent={true}
-          onCancel={() => { setShowCreateModal(false); setIsEditMode(false); getWorkspaceList(); }}
+          onCancel={() => {
+            setShowCreateModal(false);
+            setIsEditMode(false);
+            getWorkspaceList();
+          }}
         />
       )}
       {showContactModal && (
@@ -148,7 +160,9 @@ const Uilicious = () => {
           show={showContactModal}
           content={infoModalContent}
           modalStyle={{ minHeight: '30%' }}
-          onCancel={() => {setShowContactModal(false);}}
+          onCancel={() => {
+            setShowContactModal(false);
+          }}
         />
       )}
     </React.Fragment>
