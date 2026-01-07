@@ -2970,13 +2970,10 @@
 					 // 	log.info("projectRecipe: {} and service name is : {}", projectRecipe, serviceName);
 					 // 	authenticatorClient.callingKongApis(name, serviceName, targetEnv, apiRecipe,null,null);
 					 // }
-				} else if ("UNDEPLOYED".equalsIgnoreCase(latestStatus) || "RESTART_FAILED".equalsIgnoreCase(latestStatus) || "RESTARTED".equalsIgnoreCase(latestStatus) || "RESTART_REQUESTED".equalsIgnoreCase(latestStatus) ) {
+				} else if ("UNDEPLOYED".equalsIgnoreCase(latestStatus) || "RESTART_FAILED".equalsIgnoreCase(latestStatus) || "RESTARTED".equalsIgnoreCase(latestStatus)) {
 					if("UNDEPLOYED".equalsIgnoreCase(latestStatus)){
 					 deploymentDetails.setDeploymentUrl(null);
 					 deploymentDetails.setLastDeploymentStatus(latestStatus);
-					} else if("RESTART_REQUESTED".equalsIgnoreCase(latestStatus)){
-						deploymentDetails.setLastDeploymentStatus(latestStatus);
-						deploymentDetails.setLastDeployedOn(now);
 					}
 					 
 						 workspaceCustomRepository.updateDeploymentDetails(projectName, targetEnv,
