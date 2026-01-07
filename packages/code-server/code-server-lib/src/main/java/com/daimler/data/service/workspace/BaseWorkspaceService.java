@@ -5163,10 +5163,7 @@
 			CodeServerBuildDeployNsql optionalBuildDeployentity =  buildDeployCustomRepo.findByProjectName(requestVo.getProjectName());	
 			CodeServerBuildDeployNsql buildDeployentity = null;
 			CodeServerBuildDeploy buildDeployData = null;
-			if (data.getProjectDetails().getLastBuildOrDeployedStatus().equalsIgnoreCase("RESTART_REQUESTED")) {
-				log.info("Restart does not require git job run id. Skipping.");
-				return "SUCCESS";
-			} else if(data.getProjectDetails().getLastBuildOrDeployedStatus().equalsIgnoreCase("BUILD_REQUESTED")){
+			    if(data.getProjectDetails().getLastBuildOrDeployedStatus().equalsIgnoreCase("BUILD_REQUESTED")){
 				CodeServerBuildDetails buildDetails = entity.getData().getProjectDetails().getIntBuildDetails();
 					 if (!"int".equalsIgnoreCase(data.getProjectDetails().getLastBuildOrDeployedEnv())) {
 						 buildDetails = entity.getData().getProjectDetails().getProdBuildDetails();
