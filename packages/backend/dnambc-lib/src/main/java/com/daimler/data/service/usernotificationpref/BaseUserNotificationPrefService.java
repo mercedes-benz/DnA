@@ -92,6 +92,9 @@ public class BaseUserNotificationPrefService extends BaseCommonService<UserNotif
 	
 	@Value("${notification.email.powerPlatformNotificationPref}")
 	private boolean defaultpowerPlatformEmailNotificationPref;
+
+	@Value("${notification.email.fabricNotificationPref}")
+	private boolean defaultFabricEmailNotificationPref;	
 	
 	@Value("${notification.app.solutionNotificationPref}")
 	private boolean defaultSolutionAppNotificationPref;
@@ -131,6 +134,9 @@ public class BaseUserNotificationPrefService extends BaseCommonService<UserNotif
 	
 	@Value("${notification.app.powerPlatformNotificationPref}")
 	private boolean defaultpowerPlatformAppNotificationPref;
+
+	@Value("${notification.app.fabricNotificationPref}")
+	private boolean defaultFabricAppNotificationPref;
 
 	public BaseUserNotificationPrefService() {
 		super();
@@ -209,6 +215,10 @@ public class BaseUserNotificationPrefService extends BaseCommonService<UserNotif
 				powerPlatformNotificationPref.setEnableAppNotifications(defaultpowerPlatformAppNotificationPref);
 				powerPlatformNotificationPref.setEnableEmailNotifications(defaultpowerPlatformEmailNotificationPref);
 				preferencesVO.setPowerPlatformNotificationPref(powerPlatformNotificationPref);
+				NotificationPreferenceVO fabricNotificationPref = new NotificationPreferenceVO();
+				fabricNotificationPref.setEnableAppNotifications(defaultFabricAppNotificationPref);
+				fabricNotificationPref.setEnableEmailNotifications(defaultFabricEmailNotificationPref);
+				preferencesVO.setFabricNotificationPref(fabricNotificationPref);
 				try {
 					UserNotificationPrefVO savedPreferencesVO = this.create(preferencesVO);
 					log.info("Notification preferences created for user {} ", value);

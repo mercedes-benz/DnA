@@ -131,6 +131,7 @@ notification:
       dataEntryNotificationPref: ${DEFAULT_EMAIL_DATAENTRY_NOTIFICATION_PREF:false}
       useCaseOwnerNotificationPref: ${DEFAULT_EMAIL_USE_CASE_OWNER_NOTIFICATION_PREF:true}
       powerPlatformNotificationPref: ${DEFAULT_EMAIL_POWER_PLATFORM_NOTIFICATION_PREF:false}
+      fabricNotificationPref: ${DEFAULT_EMAIL_FABRIC_NOTIFICATION_PREF:true}
   app:
       solutionNotificationPref: ${DEFAULT_APP_SOLUTION_NOTIFICATION_PREF:true}
       notebookNotificationPref: ${DEFAULT_APP_NOTEBOOK_NOTIFICATION_PREF:true}
@@ -145,6 +146,7 @@ notification:
       dataEntryNotificationPref: ${DEFAULT_APP_DATAENTRY_NOTIFICATION_PREF:true}
       useCaseOwnerNotificationPref: ${DEFAULT_APP_USE_CASE_OWNER_NOTIFICATION_PREF:true}
       powerPlatformNotificationPref: ${DEFAULT_APP_POWER_PLATFORM_NOTIFICATION_PREF:true}
+      fabricNotificationPref: ${DEFAULT_EMAIL_FABRIC_NOTIFICATION_PREF:true}
 graphql:
   servlet:
     mapping: /api/minified

@@ -170,7 +170,9 @@ definitions:
     useCaseOwnerNotificationPref:
       $ref: "#/definitions/NotificationPreferenceVO" 
     powerPlatformNotificationPref:
-      $ref: "#/definitions/NotificationPreferenceVO"      
+      $ref: "#/definitions/NotificationPreferenceVO" 
+    fabricNotificationPref:
+      $ref: "#/definitions/NotificationPreferenceVO"        
   required:
      - userId
      - termsOfUse
@@ -184,6 +186,7 @@ definitions:
      - codespaceNotificationPref
      - useCaseOwnerNotificationPref
      - powerPlatformNotificationPref
+     - fabricNotificationPref
      
  NotificationPreferenceVO:
   type: object
