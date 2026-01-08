@@ -1175,6 +1175,7 @@ export interface INoticationModules {
   dataLakeNotificationPref: INotificationEnableDisable;
   dataEntryNotificationPref: INotificationEnableDisable;
   powerPlatformNotificationPref: INotificationEnableDisable;
+  fabricNotificationPref: INotificationEnableDisable;
   termsOfUse: string;
   userId: string;
 }

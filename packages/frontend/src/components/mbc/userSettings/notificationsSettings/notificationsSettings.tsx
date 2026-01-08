@@ -84,6 +84,9 @@ const NotificationsSettings = (props: INotificationSettings) => {
           case 'powerPlatformNotificationPref':
             temp.title = 'Configure Notification for Power Platform'
             break;
+          case 'fabricNotificationPref':
+            temp.title = 'Configure Notification for Fabric'
+            break;
         }
         tempArr.push(temp);
       }
@@ -211,6 +214,16 @@ const NotificationsSettings = (props: INotificationSettings) => {
     callToUpdatePreference(messageForNotification);
   }
 
+  const onChangeEmailNotificationForFabric = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const target = notificationPreferences?.fabricNotificationPref;
+    target['enableEmailNotifications'] = e.target.checked;
+    setNotificationPreferences(notificationPreferences);
+    const messageForNotification = e.target.checked
+      ? 'Enabled Email Notification Successfully'
+      : 'Disabled Email Notification Successfully';
+    callToUpdatePreference(messageForNotification);
+  }
+
   const callToUpdatePreference = (message: string) => {
     ProgressIndicator.show();
     ApiClient.enableEmailNotifications(notificationPreferences)
@@ -266,6 +279,10 @@ const NotificationsSettings = (props: INotificationSettings) => {
         break;
       case 'powerPlatformNotificationPref':
         onChangeEmailNotificationForPowerPlatform(e);
+        break;
+      case 'fabricNotificationPref':
+        onChangeEmailNotificationForFabric(e);
+        break;
     }
   };
 
