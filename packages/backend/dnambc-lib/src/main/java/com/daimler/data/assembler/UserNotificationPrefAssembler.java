@@ -92,6 +92,18 @@ public class UserNotificationPrefAssembler  implements GenericAssembler<UserNoti
 				NotificationPreferenceVO powerPlatformNotificationPrefVO = this.toNotificationPrefVO(powerPlatformNotificationPrefJson);
 				vo.setPowerPlatformNotificationPref(powerPlatformNotificationPrefVO);
 
+				NotificationPreference fabricNotificationPrefJson = data.getFabricNotificationPref();
+				NotificationPreferenceVO fabricNotificationPrefVO = new NotificationPreferenceVO();
+				if(fabricNotificationPrefJson != null) {
+					fabricNotificationPrefVO.setEnableAppNotifications(fabricNotificationPrefJson.isEnableAppNotifications());
+					fabricNotificationPrefVO.setEnableEmailNotifications(fabricNotificationPrefJson.isEnableEmailNotifications());
+				}
+				else {
+					fabricNotificationPrefVO.setEnableAppNotifications(true);
+					fabricNotificationPrefVO.setEnableEmailNotifications(true);
+				}
+				vo.setFabricNotificationPref(fabricNotificationPrefVO);
+
 				NotificationPreference useCaseOwnerNotificationPrefJson = data.getUseCaseOwnerNotificationPref();
 				NotificationPreferenceVO useCaseOwnerNotificationPrefVO = this.toNotificationPrefVO(useCaseOwnerNotificationPrefJson);
 				if(useCaseOwnerNotificationPrefJson != null) {
@@ -157,6 +169,8 @@ public class UserNotificationPrefAssembler  implements GenericAssembler<UserNoti
 			userNotificationPreferenceJsonb.setUseCaseOwnerNotificationPref(useCaseOwnerPreference);
 			NotificationPreference powerPlatformNotificationPref = this.toNotificationPrefJson(vo.getPowerPlatformNotificationPref());
 			userNotificationPreferenceJsonb.setPowerPlatformNotificationPref(powerPlatformNotificationPref);
+			NotificationPreference fabricNotificationPref = this.toNotificationPrefJson(vo.getFabricNotificationPref());
+			userNotificationPreferenceJsonb.setFabricNotificationPref(fabricNotificationPref);			
 			entity.setId(vo.getId());
 		}
 		entity.setData(userNotificationPreferenceJsonb);

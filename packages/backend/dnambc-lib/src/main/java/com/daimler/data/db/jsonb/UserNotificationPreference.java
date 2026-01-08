@@ -31,4 +31,5 @@ public class UserNotificationPreference implements Serializable{
 	private NotificationPreference dataEntryNotificationPref;
 	private NotificationPreference useCaseOwnerNotificationPref;
 	private NotificationPreference powerPlatformNotificationPref;
+	private NotificationPreference fabricNotificationPref;
 }
