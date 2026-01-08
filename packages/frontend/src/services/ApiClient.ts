@@ -1256,4 +1256,16 @@ export class ApiClient {
   public static notifyUseCaseOwners(data: any):Promise<any>{
     return this.post('/solutions/broadcast/usecaseowners',data.data);
   }
+
+  public static getUiliciousWorkspaces():Promise<any>{
+    return this.get('uilicious-workspaces');
+  }
+
+  public static createUiliciousWorkspace(data: any):Promise<any>{
+    return this.post('uilicious-workspaces', data);
+  }
+
+  public static updateUiliciousWorkspace(data: any):Promise<any>{
+    return this.put('uilicious-workspaces', data);
+  }
 }
