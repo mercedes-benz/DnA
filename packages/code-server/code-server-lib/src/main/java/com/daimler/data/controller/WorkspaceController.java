@@ -3712,4 +3712,43 @@ import org.springframework.beans.factory.annotation.Value;
 		}
 	};
 
+	@Override
+	@ApiOperation(value = "Add governance to existing AI workspace group projects", nickname = "updateAiGovernance", notes = "Add governance to existing AI workspace group projects", response = GenericMessage.class, tags={ "code-server", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns message of success or failure", response = GenericMessage.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/workspaces/aiagent/{id}",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.PATCH)
+    public ResponseEntity<GenericMessage> updateAiGovernance(@ApiParam(value = "Workspace ID to be fetched",required=true) @PathVariable("id") String id,@ApiParam(value = "dataGovernanceInfo to add codespace" ,required=true )  @Valid @RequestBody DataGovernanceRequestInfo dataGovernanceInfo){
+		CreatedByVO currentUser = this.userStore.getVO();			
+		Optional<CodeServerUserGroupNsql> entityOptional = userGroupRepository.findById(currentUser.getId());
+		if(entityOptional.isPresent()){
+			CodeServerUserGroupNsql entity = entityOptional.get();
+			if(!entity.getData().getGroups().stream().anyMatch(i -> i.getGroupId().equalsIgnoreCase(id))){
+				GenericMessage emptyResponse = new GenericMessage();
+				List<MessageDescription> errors = new ArrayList<>();
+				MessageDescription msg = new MessageDescription();
+				msg.setMessage("Group Id does not exist.");
+				errors.add(msg);
+				emptyResponse.setErrors(errors);
+				return new ResponseEntity<>(emptyResponse, HttpStatus.BAD_REQUEST);
+			}
+		}
+		GenericMessage responseMsg;
+		responseMsg = service.editAiAgentSpace(id, dataGovernanceInfo);
+		if ("FAILED".equalsIgnoreCase(responseMsg.getSuccess())) {
+			return new ResponseEntity<>(responseMsg, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		return new ResponseEntity<>(responseMsg, HttpStatus.OK);
+		
+	};
+
+
  }

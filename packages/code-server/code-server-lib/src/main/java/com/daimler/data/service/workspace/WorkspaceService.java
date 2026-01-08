@@ -143,5 +143,7 @@ public interface WorkspaceService {
 	CodeServerUserGroupCollectionVO getAllAiWorkSpaceGroup();
 
 	CodeServerUserGroupCollectionVO deleteAiWorkSpaces(String id);
+
+	GenericMessage editAiAgentSpace(String id, DataGovernanceRequestInfo dataGovernanceInfo);
 	
 }

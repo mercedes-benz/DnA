@@ -4933,4 +4933,31 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 		}
 	}
 
+	@Override
+	public GenericMessage editAiAgentSpace(String id, DataGovernanceRequestInfo dataGovernanceInfo){
+		InitializeWorkspaceResponseVO createResponseMessage = new InitializeWorkspaceResponseVO();
+		GenericMessage responseMessage = new GenericMessage();
+		responseMessage.setSuccess("FAILED");
+		responseMessage.setErrors(new ArrayList<>());
+		responseMessage.setWarnings(new ArrayList<>());
+		CreatedByVO currentUser = this.userStore.getVO();
+		try {
+			CodeServerUserGroupByIdVO groupData = this.getWorkSpaceGroupById(id);
+			if(groupData!=null){
+				List<CodeServerWorkspaceVO> workspaces = groupData.getWorkspaces();
+				for(CodeServerWorkspaceVO item : workspaces){
+					GenericMessage responseMsg = this.updateGovernancenceValues(currentUser.getId(),item.getId(), dataGovernanceInfo);
+					if ("FAILED".equalsIgnoreCase(responseMsg.getSuccess())) {
+						responseMessage.setSuccess("FAILED");
+						return responseMessage;
+					}
+				}
+			}
+			responseMessage.setSuccess("SUCCESS");
+		} catch (Exception e) {
+			log.info("Failed while updating codeserver workspace group with exception " + e.getMessage());
+		}
+		return responseMessage;
+	}
+
 }
