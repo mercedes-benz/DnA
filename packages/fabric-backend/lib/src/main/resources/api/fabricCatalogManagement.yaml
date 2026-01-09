@@ -218,46 +218,46 @@ paths:
         500:
           description: "Internal error"
 
-  /catalog/ddx/fabric-lakehouses/objects:
-    get:
-      tags:
-        - "fabric-catalog-management"
-      summary: "get lakehouse objects."
-      description: "This endpoint will be used to get lakehouse objects."
-      operationId: "getLakehouseObjects"
-      parameters:
-        - name: workspaceId
-          in: query
-          description: "The ID of the workspace."
-          required: true
-          type: string
-        - name: lakehouseId
-          in: query
-          description: "The ID of Lakehouse."
-          required: true
-          type: string
-        - name: schemaName
-          in: query
-          description: "The name of schema."
-          required: false
-          type: string
-      responses:
-        201:
-          description: "Returns message of success or failure "
-          schema:
-            $ref: "#/definitions/LakehouseObjectsResponseVO"
-        400:
-          description: "Bad Request"
-          schema:
-            $ref: "#/definitions/GenericMessage"
-        401:
-          description: "Request does not have sufficient credentials."
-        403:
-          description: "Request is not authorized."
-        405:
-          description: "Method not allowed"
-        500:
-          description: "Internal error"
+  # /catalog/ddx/fabric-lakehouses/objects:
+  #   get:
+  #     tags:
+  #       - "fabric-catalog-management"
+  #     summary: "get lakehouse objects."
+  #     description: "This endpoint will be used to get lakehouse objects."
+  #     operationId: "getLakehouseObjects"
+  #     parameters:
+  #       - name: workspaceId
+  #         in: query
+  #         description: "The ID of the workspace."
+  #         required: true
+  #         type: string
+  #       - name: lakehouseId
+  #         in: query
+  #         description: "The ID of Lakehouse."
+  #         required: true
+  #         type: string
+  #       - name: schemaName
+  #         in: query
+  #         description: "The name of schema."
+  #         required: false
+  #         type: string
+  #     responses:
+  #       201:
+  #         description: "Returns message of success or failure "
+  #         schema:
+  #           $ref: "#/definitions/LakehouseObjectsResponseVO"
+  #       400:
+  #         description: "Bad Request"
+  #         schema:
+  #           $ref: "#/definitions/GenericMessage"
+  #       401:
+  #         description: "Request does not have sufficient credentials."
+  #       403:
+  #         description: "Request is not authorized."
+  #       405:
+  #         description: "Method not allowed"
+  #       500:
+  #         description: "Internal error"
 
 definitions:
 
