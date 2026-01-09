@@ -17,5 +17,5 @@ public interface FabricCatalogManagementService extends CommonService<FabricCata
 	PublishCatalogResponseVO publishCatalogMetaData(PublishCatalogRequestVO request, FabricWorkspaceVO existingFabricWorkspace);
 	PublishCatalogResponseVO getCatalogMetadata(String serviceName);
 	PublishCatalogResponseVO updateCatalogMetaData(PublishCatalogRequestVO request, FabricWorkspaceVO existingFabricWorkspace);
-	LakehouseObjectsResponseVO getLakehouseObjects(String workspaceId, String lakehouseId, String schemaName);
+	// LakehouseObjectsResponseVO getLakehouseObjects(String workspaceId, String lakehouseId, String schemaName);
 }
