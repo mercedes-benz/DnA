@@ -111,4 +111,36 @@ public class BaseJMailer implements JMailer {
 	public void sendMailWithAttachments(String to, String subject, String msgTxt, String attachmentsPath) {
 
 	}
+
+	@Override
+	public void sendSimpleMailWithCc(String eventId, String to, String cc, String subject, String msgTxt) {
+
+		MimeMessage message = javaMailSender.createMimeMessage();
+		MimeMessageHelper helper = new MimeMessageHelper(message);
+
+		try {
+			helper.setFrom(senderEmailId);
+			helper.setTo(to);
+			helper.setCc(cc);
+			helper.setSubject(subject);
+
+			boolean html = true;
+
+			helper.setText("Dear User,<br/>" +
+					msgTxt
+					+ "<br/><br/>"
+					+ "Best regards,</br>" +
+					"<p>DnA TEAM</p>" 
+					+ "<p>You received this auto-generated email from DNA as per your notification settings.</p>",
+					html
+			);
+
+			javaMailSender.send(message);
+
+			log.info("Mail with CC sent successfully for eventRecord {}", eventId);
+
+		} catch (Exception e) {
+			log.error("Failed sending CC email for eventRecord {} : {}", eventId, e.getMessage());
+		}
+	}
 }

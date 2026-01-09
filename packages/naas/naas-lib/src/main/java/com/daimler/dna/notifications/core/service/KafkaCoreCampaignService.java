@@ -94,6 +94,9 @@ public class KafkaCoreCampaignService {
 	private static String USE_CASE_OWNER_NOTIFICATION_KEY = "UseCaseOwners";
 	private static String POWERPLATFORM_NOTIFICATION_KEY = "Power platform";
 	private static String SOLUTION_URI_PATH = "/#/summary/";
+	private static final String FABRIC_PROJECT_MISSING = "Fabric_Project_Missing";
+	private static final String FABRIC_PROJECT_MAPPED = "Fabric_Project_Mapped";
+	private static final String FABRIC_CC_EMAIL = "ada@mercedes-benz.com";
 	
 	/*
 	 * @KafkaListener(topics = "dnaCentralEventTopic") public void
@@ -176,6 +179,10 @@ public class KafkaCoreCampaignService {
 						appNotificationPreferenceFlag = preferenceVO.getPowerPlatformNotificationPref().isEnableAppNotifications();
 						emailNotificationPreferenceFlag =  preferenceVO.getPowerPlatformNotificationPref().isEnableEmailNotifications();
 					}
+					if (message.getEventType().contains(FABRIC_PROJECT_MISSING) || message.getEventType().contains(FABRIC_PROJECT_MAPPED)) {
+						appNotificationPreferenceFlag = preferenceVO.getFabricNotificationPref().isEnableAppNotifications();
+						emailNotificationPreferenceFlag = preferenceVO.getFabricNotificationPref().isEnableEmailNotifications();
+					}
 
 					NotificationVO vo = new NotificationVO();
 					vo.setDateTime(message.getTime());
@@ -227,6 +234,25 @@ public class KafkaCoreCampaignService {
 						emailBody += "<br/> <br/> You are receiving this email because you are the use case owner of the solution " + "<a href=\"" + solutionURL +"\">"+ splitResourceId[1] +"</a>";
 						String notificationMessage = "Email Received from division admin regarding solution "+ "<a href=\"" + solutionURL +"\">"+ splitResourceId[1] +"</a>";
 						vo.setMessage(notificationMessage);
+					}
+					if (message.getEventType().contains(FABRIC_PROJECT_MISSING)) {
+
+						emailBody =
+							"<br/> <br/>We have detected that the workspace created does not have a project, or that additional information is required in order to proceed with project creation.<br/><br/>" +
+							"To continue, please contact the ADA team at ada@mercedes-benz.com and provide the necessary billing information, including the Cost Center and Plant to which the charges should be billed.<br/><br/>" +
+							"<b>Please note the following important points:</b><br/><br/>" +
+							"1) Every workspace must be mapped to a project for billing purposes.<br/>" +
+							"2) If billing information is not received before the 30th day of the month, default billing will apply.<br/>" +
+							"3) The workspace may be deleted if required information is not provided.<br/><br/>" +
+							"Best regards,<br/>ADA Team";
+					}
+					else if (message.getEventType().contains(FABRIC_PROJECT_MAPPED)) {
+
+						emailBody =
+							"<br/> <br/>We would like to inform you that a new Microsoft Fabric workspace has been successfully mapped to your project.<br/><br/>" +
+							message + "No further action is required from your side at this moment.<br/><br/>" +
+							"If you notice any inconsistencies, please contact the ADA team at ada@mercedes-benz.com.<br/><br/>" +
+							"Best regards,<br/>ADA Team";
 					}					
 
 					if(appNotificationPreferenceFlag) {
@@ -237,20 +263,35 @@ public class KafkaCoreCampaignService {
 						LOGGER.info("Skipped message as per user preference, Details: user {}, eventType {}, uuid {} ", user,
 								message.getEventType(), message.getUuid());
 					}
-					if(emailNotificationPreferenceFlag && (enableEmail!=null && "true".equalsIgnoreCase(enableEmail))) {
+					if (emailNotificationPreferenceFlag && (enableEmail != null && "true".equalsIgnoreCase(enableEmail))) {
 						String userEmail = usersEmails.get(userListPivot);
-						if(userEmail!= null && !"".equalsIgnoreCase(userEmail)) {
-							String emailSubject = message.getEventType()+" Email Notification";
-							mailer.sendSimpleMail(message.getUuid(),userEmail, emailSubject , emailBody);
-							LOGGER.info("Sent email as per user preference, Details: user {}, eventType {}, uuid {}", user,
-									message.getEventType(), message.getUuid());
-						}else {
-							LOGGER.info("Skipped sending email even after user preference is enabled. Cause is email id not found for the user. Details: user {}, eventType {}, uuid {}", user,
-									message.getEventType(), message.getUuid());
+						if (userEmail != null && !"".equalsIgnoreCase(userEmail)) {
+							if (message.getEventType().contains(FABRIC_PROJECT_MISSING) || message.getEventType().contains(FABRIC_PROJECT_MAPPED)) {
+								String emailSubject;
+								if (message.getEventType().contains(FABRIC_PROJECT_MISSING)) {
+									emailSubject = "Action Required - Project Creation and Workspace Billing Mapping";
+									mailer.	sendSimpleMailWithCc(message.getUuid(),userEmail, FABRIC_CC_EMAIL, emailSubject, emailBody);
+								} else {
+									emailSubject = "New Workspace Mapped to Your Project";
+									mailer.sendSimpleMailWithCc(message.getUuid(),FABRIC_CC_EMAIL, null, emailSubject, emailBody);
+								}
+								LOGGER.info("Sent FABRIC email with CC. user={}, eventType={}, uuid={}",
+										user, message.getEventType(), message.getUuid());
+
+							} else {
+								String emailSubject = message.getEventType() + " Email Notification";
+								mailer.sendSimpleMail(message.getUuid(), userEmail, emailSubject, emailBody);
+								LOGGER.info("Sent email as per user preference, user={}, eventType={}, uuid={}",
+										user, message.getEventType(), message.getUuid());
+							}
+						} else {
+							LOGGER.info(
+									"Skipped sending email even after user preference is enabled. Email not found. user={}, eventType={}, uuid={}",
+									user, message.getEventType(), message.getUuid());
 						}
-					}else {
-						LOGGER.info("Skipped email as per user preference, Details: user {}, eventType {}, uuid {}", user,
-								message.getEventType(), message.getUuid());
+					} else {
+						LOGGER.info("Skipped email as per user preference, user={}, eventType={}, uuid={}",
+								user, message.getEventType(), message.getUuid());
 					}
 				}
 				userListPivot++;

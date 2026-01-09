@@ -65,6 +65,9 @@ public class UserNotificationPrefVO   {
   @JsonProperty("powerPlatformNotificationPref")
   private NotificationPreferenceVO powerPlatformNotificationPref = null;
 
+  @JsonProperty("fabricNotificationPref")
+  private NotificationPreferenceVO fabricNotificationPref = null;
+
   public UserNotificationPrefVO id(String id) {
     this.id = id;
     return this;
@@ -410,6 +413,27 @@ public class UserNotificationPrefVO   {
     this.powerPlatformNotificationPref = powerPlatformNotificationPref;
   }
 
+  public UserNotificationPrefVO fabricNotificationPref(NotificationPreferenceVO fabricNotificationPref) {
+    this.fabricNotificationPref = fabricNotificationPref;
+    return this;
+  }
+
+  /**
+   * Get fabricNotificationPref
+   * @return fabricNotificationPref
+  **/
+  @ApiModelProperty(required = true, value = "")
+  @NotNull
+
+  @Valid
+
+  public NotificationPreferenceVO getFabricNotificationPref() {
+    return fabricNotificationPref;
+  }
+
+  public void setFabricNotificationPref(NotificationPreferenceVO fabricNotificationPref) {
+    this.fabricNotificationPref = fabricNotificationPref;
+  }
 
   @Override
   public boolean equals(java.lang.Object o) {
@@ -435,7 +459,8 @@ public class UserNotificationPrefVO   {
         Objects.equals(this.dataLakeNotificationPref, userNotificationPrefVO.dataLakeNotificationPref) &&
         Objects.equals(this.dataEntryNotificationPref, userNotificationPrefVO.dataEntryNotificationPref) &&
         Objects.equals(this.useCaseOwnerNotificationPref, userNotificationPrefVO.useCaseOwnerNotificationPref) &&
-        Objects.equals(this.powerPlatformNotificationPref, userNotificationPrefVO.powerPlatformNotificationPref);
+        Objects.equals(this.powerPlatformNotificationPref, userNotificationPrefVO.powerPlatformNotificationPref) &&
+        Objects.equals(this.fabricNotificationPref, userNotificationPrefVO.fabricNotificationPref);
   }
 
   @Override
@@ -464,6 +489,7 @@ public class UserNotificationPrefVO   {
     sb.append("    dataEntryNotificationPref: ").append(toIndentedString(dataEntryNotificationPref)).append("\n");
     sb.append("    useCaseOwnerNotificationPref: ").append(toIndentedString(useCaseOwnerNotificationPref)).append("\n");
     sb.append("    powerPlatformNotificationPref: ").append(toIndentedString(powerPlatformNotificationPref)).append("\n");
+    sb.append("    fabricNotificationPref: ").append(toIndentedString(fabricNotificationPref)).append("\n");
     sb.append("}");
     return sb.toString();
   }

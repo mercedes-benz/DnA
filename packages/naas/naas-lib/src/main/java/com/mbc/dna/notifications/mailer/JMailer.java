@@ -33,4 +33,5 @@ public interface JMailer {
 
 	void sendMailWithAttachments(String to, String subject, String msgTxt, String attachmentsPath);
 
+	void sendSimpleMailWithCc(String eventId, String to, String cc, String subject, String msgTxt);
 }
