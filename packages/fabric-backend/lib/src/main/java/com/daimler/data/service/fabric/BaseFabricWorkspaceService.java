@@ -101,6 +101,7 @@ import com.daimler.data.dto.fabricWorkspace.ShortcutVO;
 import com.daimler.data.service.common.BaseCommonService;
 import com.daimler.data.util.ConstantsUtility;
 import com.daimler.data.util.FabricWorkspaceUtility;
+import com.daimler.dna.notifications.common.producer.KafkaProducerService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.daimler.data.service.tag.TagService;
 import com.daimler.data.db.repo.adaProjects.ADAProjectsCustomRepository;
@@ -151,6 +152,9 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 
 	@Autowired
 	private ADAProjectsCustomRepository adaProjectsRepo;
+
+	@Autowired
+	private KafkaProducerService kafkaProducerService;
 
 
 	@Value("${fabricWorkspaces.powerbiCapacityId}")
@@ -529,6 +533,39 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 						log.error("Failed to save record to db after processing usermanagement successfully for a new fabric record with data {}", mapper.writeValueAsString(data));
 					}
 					log.info("created workspace project {} with id {} saved to database successfully", vo.getName(), createResponse.getId());
+					try {
+						String projectId = vo.getProjectId();
+						String workspaceId = createResponse.getId();
+						String workspaceName = vo.getName();
+						
+						String adaProjectName = "";
+						if (projectId != null && !projectId.trim().isEmpty()) {
+							Optional<ADAProjectsNsql> adaProjectOpt = adaProjectsRepo.findByProjectId(projectId);
+							if (adaProjectOpt.isPresent() && adaProjectOpt.get().getData() != null) {
+								adaProjectName = adaProjectOpt.get().getData().getProjectName();
+							}
+						}
+
+						String message = String.format("Project: %s\nWorkspace: %s\nWorkspace ID: %s",
+								adaProjectName, workspaceName, workspaceId);
+
+						String publishingUser = vo.getCreatedBy().getEmail();
+						List<String> subscribedUsers = Collections.singletonList(vo.getCreatedBy().getId());
+						List<String> subscribedUsersEmail = Collections.singletonList(vo.getCreatedBy().getEmail());
+
+						if (projectId == null || projectId.trim().isEmpty()) {
+							kafkaProducerService.send(ConstantsUtility.FABRIC_PROJECTID_MISSING, workspaceId, "Fabric workspace created without project mapping", publishingUser,
+								message, true, subscribedUsers, subscribedUsersEmail, null);
+							log.info("Triggered FABRIC_PROJECT_MISSING mail event for workspace {}", workspaceId);
+						} else {
+							kafkaProducerService.send(ConstantsUtility.FABRIC_PROJECTID_MAPPED, workspaceId, "Fabric workspace mapped to project", publishingUser,
+								message, true, subscribedUsers, subscribedUsersEmail, null);
+							log.info("Triggered FABRIC_WORKSPACE_MAPPED mail event for workspace {}", workspaceId);
+						}
+
+					} catch (Exception ex) {
+						log.error("Failed to send Kafka mail event for workspace {} : {}", createResponse.getId(), ex.getMessage());
+					}
 					//fabricWorkspaceClient.provisionWorkspace(createResponse.getId());
 					
 					// try {

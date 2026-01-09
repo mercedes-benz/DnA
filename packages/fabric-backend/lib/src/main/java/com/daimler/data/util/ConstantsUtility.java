@@ -55,5 +55,8 @@ public class ConstantsUtility {
 	public static final String GROUPPRINCIPAL_GROUP_TYPE = "Group";
 	public static final String GROUPPRINCIPAL_USER_TYPE = "User";
 	public static final String GROUPPRINCIPAL_APP_TYPE = "App";
+
+	public static final String FABRIC_PROJECTID_MISSING = "Fabric_Project_Missing";
+	public static final String FABRIC_PROJECTID_MAPPED = "Fabric_Project_Mapped";
 	
 }
