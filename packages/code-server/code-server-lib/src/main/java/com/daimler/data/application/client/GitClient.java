@@ -473,6 +473,26 @@ public class GitClient {
 		return HttpStatus.INTERNAL_SERVER_ERROR;
 	}
 
+	public HttpStatus validateGhePat(String username, String pat) {
+		try {
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Content-Type", "application/json");
+			headers.set("Authorization", "token "+ pat);
+			String url = gheBaseUri + "/users/" + username;
+			log.info("[GHE VALIDATION] Validating user {} against GHE endpoint: {}", username, url);
+			HttpEntity entity = new HttpEntity<>(headers);
+			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
+			if (response != null && response.getStatusCode()!=null) {
+				log.info("completed validating user {} PAT against GHE with http status {}", username, response.getStatusCode().name());
+				return response.getStatusCode();
+			}
+		} catch (Exception e) {
+			log.error("Error occured while validating user {} PAT against GHE endpoint {} with exception {}", username, gheBaseUri, e.getMessage());
+		}
+		return HttpStatus.INTERNAL_SERVER_ERROR;
+	}
+
 	public HttpStatus validatePublicGitPat(String gitUserName, String pat, String publicGitUrl) {
 		try {
 			HttpHeaders headers = new HttpHeaders();
