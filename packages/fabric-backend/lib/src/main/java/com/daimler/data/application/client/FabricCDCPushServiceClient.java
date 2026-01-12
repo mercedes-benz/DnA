@@ -148,7 +148,7 @@ public class FabricCDCPushServiceClient {
 			headers.setContentType(MediaType.APPLICATION_JSON);
 			HttpEntity<String> requestEntity = new HttpEntity<>(headers);
 
-			String url = UriComponentsBuilder.fromHttpUrl(baseUrl + "/tables/objects")
+			String url = UriComponentsBuilder.fromHttpUrl(baseUrl + "/lakehouse/objects")
 					.queryParam("workspaceId", workspaceId)
 					.queryParam("lakehouseId", lakehouseId)
 					.queryParam("schemaName", schemaName)
