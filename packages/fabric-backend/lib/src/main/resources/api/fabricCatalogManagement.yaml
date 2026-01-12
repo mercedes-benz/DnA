@@ -435,10 +435,23 @@ definitions:
       type:
         enum:
           - FABRIC_TO_FABRIC
+
   LakehouseObjectsResponseVO:
     type: object
     properties:
       tables:
+        type: array
+        items:
+          $ref: "#/definitions/LakehouseTableObjectVO"
+
+  LakehouseTableObjectVO:
+    type: object
+    properties:
+      name:
+        type: string
+      formatType:
+        type: string
+      columns:
         type: array
         items:
           $ref: "#/definitions/LakehouseColumnObjectVO"
