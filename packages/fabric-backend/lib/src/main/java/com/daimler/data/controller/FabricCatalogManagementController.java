@@ -3,6 +3,7 @@ package com.daimler.data.controller;
 import java.util.List;
 import java.util.ArrayList;
 import javax.validation.Valid;
+import javax.validation.constraints.NotNull;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -299,27 +300,27 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
         }
     }
 
-    // @Override
-    // @ApiOperation(value = "get lakehouse objects.", nickname = "getLakehouseObjects", notes = "This endpoint will be used to get lakehouse objects.", response = LakehouseObjectsResponseVO.class, tags={ "fabric-catalog-management", })
-    // @ApiResponses(value = { 
-    //     @ApiResponse(code = 201, message = "Returns message of success or failure ", response = LakehouseObjectsResponseVO.class),
-    //     @ApiResponse(code = 400, message = "Bad Request", response = GenericMessage.class),
-    //     @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
-    //     @ApiResponse(code = 403, message = "Request is not authorized."),
-    //     @ApiResponse(code = 405, message = "Method not allowed"),
-    //     @ApiResponse(code = 500, message = "Internal error") })
-    // @RequestMapping(value = "/catalog/ddx/fabric-lakehouses/objects",
-    //     produces = { "application/json" }, 
-    //     consumes = { "application/json" },
-    //     method = RequestMethod.GET)
-    // public  ResponseEntity<LakehouseObjectsResponseVO> getLakehouseObjects(@ApiParam(value = "The ID of the workspace.", required = true) @Valid @RequestParam(value = "workspaceId", required = true) String workspaceId, @ApiParam(value = "The ID of Lakehouse.", required = true) @Valid @RequestParam(value = "lakehouseId", required = true) String lakehouseId,@ApiParam(value = "The name of schema.") @Valid @RequestParam(value = "schemaName", required = false) String schemaName){
-    //     LakehouseObjectsResponseVO responseVO = new LakehouseObjectsResponseVO();
-    //     responseVO = service.getLakehouseObjects(workspaceId, lakehouseId, schemaName);
-    //     try {
-    //       return new ResponseEntity<>(responseVO, HttpStatus.OK);
-    //     } catch (Exception e) {
-    //         return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
-    //     }
-    // }
+    @Override
+    @ApiOperation(value = "get lakehouse objects.", nickname = "getLakehouseObjects", notes = "This endpoint will be used to get lakehouse objects.", response = LakehouseObjectsResponseVO.class, tags={ "fabric-catalog-management", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns message of success or failure ", response = LakehouseObjectsResponseVO.class),
+        @ApiResponse(code = 400, message = "Bad Request", response = GenericMessage.class),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/catalog/ddx/fabric-lakehouses/objects",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.GET)
+    public ResponseEntity<LakehouseObjectsResponseVO> getLakehouseObjects(@NotNull @ApiParam(value = "The ID of the workspace.", required = true) @Valid @RequestParam(value = "workspaceId", required = true) String workspaceId,@NotNull @ApiParam(value = "The ID of Lakehouse.", required = true) @Valid @RequestParam(value = "lakehouseId", required = true) String lakehouseId,@ApiParam(value = "The name of schema.") @Valid @RequestParam(value = "schemaName", required = false) String schemaName){
+        LakehouseObjectsResponseVO responseVO = new LakehouseObjectsResponseVO();
+        responseVO = service.getLakehouseObjects(workspaceId, lakehouseId, schemaName);
+        try {
+          return new ResponseEntity<>(responseVO, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 
 }
