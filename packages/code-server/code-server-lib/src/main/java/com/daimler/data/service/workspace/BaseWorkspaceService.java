@@ -677,7 +677,13 @@
 		   }
 		   if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().equalsIgnoreCase("default") && 
 				!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")) {
-				HttpStatus validateUserPatstatus = gitClient.validateGitPat(collabPid, pat);
+				boolean isGheRepo = repoNameWithOrg != null && repoNameWithOrg.toLowerCase().contains("ghe.com");
+				HttpStatus validateUserPatstatus;
+				if (isGheRepo) {
+					validateUserPatstatus = gitClient.validateGhePat(collabPid, ghePat);
+				} else {
+					validateUserPatstatus = gitClient.validateGitPat(collabPid, pat);
+				}
 				if (!validateUserPatstatus.is2xxSuccessful()) {
 					MessageDescription errMsg = new MessageDescription(
 							"Invalid Git Personal Access Token provided. Please verify and retry.");
@@ -862,7 +868,17 @@
 			}
 			if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().equalsIgnoreCase("default") && 
 				 !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")) {
-				 HttpStatus validateUserPatstatus = gitClient.validateGitPat(entity.getData().getGitUserName(), pat);
+				 boolean isGheRepo = repoNameWithOrg != null && repoNameWithOrg.toLowerCase().contains("ghe.com");
+				 HttpStatus validateUserPatstatus;
+				 if (isGheRepo) {
+					 log.info("[INITIATE_WORKSPACE] Using GHE PAT validation for recipe: {} with system GHE PAT", 
+							vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
+					 validateUserPatstatus = gitClient.validateGhePat(entity.getData().getGitUserName(), ghePat);
+				 } else {
+					 log.info("[INITIATE_WORKSPACE] Using git.i PAT validation for recipe: {}", 
+							vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
+					 validateUserPatstatus = gitClient.validateGitPat(entity.getData().getGitUserName(), pat);
+				 }
 				 if (!validateUserPatstatus.is2xxSuccessful()) {
 					 MessageDescription errMsg = new MessageDescription(
 							 "Invalid Git Personal Access Token provided. Please verify and retry.");
@@ -872,6 +888,8 @@
 				 }
 			 }
 			 else {
+				 log.info("[INITIATE_WORKSPACE] Using PUBLIC GitHub PAT validation for recipe: {}", 
+						vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
 				 if(!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().equalsIgnoreCase("default")) {
 					 HttpStatus publicGitPatStatus = gitClient.validatePublicGitPat(entity.getData().getGitUserName(), pat, repoName);
 					 if(!publicGitPatStatus.is2xxSuccessful()) {
@@ -1001,6 +1019,9 @@
 		 List<MessageDescription> warnings = new ArrayList<>();
 		 try {
 			 RecipeIdEnum recipe = vo.getProjectDetails().getRecipeDetails().getRecipeId();
+			 log.info("[CREATE_WORKSPACE] Starting with Recipe ID: {}, Repodetails: {}", 
+					recipe != null ? recipe.name() : "NULL", 
+					vo.getProjectDetails().getRecipeDetails().getRepodetails());
 			 String recipeIdType = vo.getProjectDetails().getRecipeDetails().getToDeployType();
 			 if(recipeIdType==null){
 				 recipeIdType = "default";
@@ -1013,13 +1034,25 @@
 			 if (vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public") || vo
 					 .getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private")) {
 				 repoName = vo.getProjectDetails().getRecipeDetails().getRepodetails();
+				 log.info("[PRIVATE/PUBLIC RECIPE] Recipe ID: {}, Repodetails: {}", 
+						vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), repoName);
 			 }
 			 List<UserInfoVO> collabs = new ArrayList<>();
 			 if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")) {
 				 // validate user pat
 				 if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
 						 .equalsIgnoreCase("default")) {
-					 HttpStatus validateUserPatstatus = gitClient.validateGitPat(owner.getGitUserName(), pat);
+					 log.info("[PAT VALIDATION] About to validate PAT for user: {}, repodetails: {}", 
+							owner.getGitUserName(), repoName);
+					 boolean isGheRepo = repoName != null && repoName.toLowerCase().contains("ghe.com");
+					 HttpStatus validateUserPatstatus;
+					 if (isGheRepo) {
+						 log.info("[PAT VALIDATION] Detected GHE repository, validating against GHE endpoint using system GHE PAT");
+						 validateUserPatstatus = gitClient.validateGhePat(owner.getGitUserName(), ghePat);
+					 } else {
+						 log.info("[PAT VALIDATION] Detected git.i repository, validating against git.i endpoint");
+						 validateUserPatstatus = gitClient.validateGitPat(owner.getGitUserName(), pat);
+					 }
 					 if (!validateUserPatstatus.is2xxSuccessful()) {
 						 MessageDescription errMsg = new MessageDescription(
 								 "Invalid GitHub Personal Access Token provided. Please verify and retry.");
@@ -1141,6 +1174,8 @@
 				 }
 			 } else {
 				 // repoName = vo.getProjectDetails().getRecipeDetails().getRepodetails();
+				 log.info("[PUBLIC RECIPE BLOCK] Entered public recipe validation block for recipe: {}", 
+						vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
 				 HttpStatus publicGitPatStatus = gitClient.validatePublicGitPat(vo.getGitUserName(), pat, repoName);
 				 if (!publicGitPatStatus.is2xxSuccessful()) {
 					 MessageDescription errMsg = new MessageDescription(
@@ -1195,7 +1230,11 @@
 				ownerWorkbenchCreateInputsDto.setEnvironment(codeServerEnvValueAws);
 			}
 			 ownerWorkbenchCreateInputsDto.setIsCollaborator("false");
-			 ownerWorkbenchCreateInputsDto.setPat(pat);
+			 String repoUrl = vo.getProjectDetails().getRecipeDetails().getRepodetails();
+			 boolean useGhePat = repoUrl != null && repoUrl.toLowerCase().contains("ghe.com");
+			 String patToUse = useGhePat ? ghePat : pat;
+			 log.info("[PAT SELECTION] Using {} PAT for repo: {}", useGhePat ? "GHE" : "user", repoUrl);
+			 ownerWorkbenchCreateInputsDto.setPat(patToUse);
 			 String repoNameWithOrg = "";
 			 String pathCheckout = "";
 			 if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")
@@ -1206,16 +1245,25 @@
 			 } else {
 				 repoNameWithOrg = vo.getProjectDetails().getRecipeDetails().getGitPath();
 				 pathCheckout = vo.getProjectDetails().getRecipeDetails().getGitRepoLoc();
+				 log.info("[PRIVATE/PUBLIC RECIPE DATA] GitPath: {}, GitRepoLoc: {}", 
+						repoNameWithOrg, pathCheckout);
 				 if(pathCheckout.isEmpty() && repoNameWithOrg.isEmpty()) {
 					 pathCheckout = "";
 					 repoNameWithOrg = vo.getProjectDetails().getGitRepoName().replace("https://", "");
+					 log.info("[PRIVATE/PUBLIC RECIPE DATA] Using fallback - GitRepoName: {}", repoNameWithOrg);
 				 }
 				 // repoNameWithOrg = vo.getProjectDetails().getRecipeDetails().getRepodetails();
 				 // String url[] = repoNameWithOrg.split(",");
 				 // repoNameWithOrg = url[0];
 				 // pathCheckout = url[1];
 			 }
-			 ownerWorkbenchCreateInputsDto.setRepo(repoNameWithOrg.replace("https://", ""));
+			 // For GHE repos, keep https://, for others strip it
+			 boolean isGheUrl = repoNameWithOrg != null && repoNameWithOrg.toLowerCase().contains("ghe.com");
+			 String finalRepo = isGheUrl ? repoNameWithOrg : repoNameWithOrg.replace("https://", "");
+			 log.info("[SENDING TO JUPYTERHUB] Recipe: {}, GITHUBREPO_URL: {}, pathCheckout: {}, User: {}, isGHE: {}",
+					vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), 
+					finalRepo, pathCheckout, owner.getGitUserName(), isGheUrl);
+			 ownerWorkbenchCreateInputsDto.setRepo(finalRepo);
 			 String projectOwnerId = ownerEntity.getData().getWorkspaceOwner().getId();
 			 ownerWorkbenchCreateInputsDto.setShortid(projectOwnerId);
 			 if(vo.getProjectDetails().getRecipeDetails().getToDeployType()!=null){

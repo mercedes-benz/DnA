@@ -1,5 +1,6 @@
 package com.daimler.data.service.workspace;
 
+import java.net.URI;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Base64;
@@ -123,6 +124,14 @@ public RecipeVO createRecipe(RecipeVO recipeRequestVO) {
 
 	SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
 	String repoUrl = recipeRequestVO.getRepodetails();
+	
+	if (Boolean.TRUE.equals(recipeRequestVO.isIsPublic())
+			&& repoUrl != null
+			&& repoUrl.contains("ghe.com")) {
+		throw new RuntimeException(
+				"Public recipes are not allowed for GHE repositories. Please set recipe visibility to Private.");
+	}
+
 	if (Boolean.FALSE.equals(recipeRequestVO.isIsPublic())
 			&& repoUrl != null
 			&& repoUrl.contains("ghe.com")) {
@@ -163,8 +172,8 @@ public RecipeVO updateRecipe(RecipeVO recipeRequestVO) {
 	SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
 
 	String repoUrl = recipeRequestVO.getRepodetails();
-
-	if (Boolean.FALSE.equals(recipeRequestVO.isIsPublic())
+	
+	if (Boolean.TRUE.equals(recipeRequestVO.isIsPublic())
 			&& repoUrl != null
 			&& repoUrl.contains("ghe.com")) {
 
@@ -172,10 +181,10 @@ public RecipeVO updateRecipe(RecipeVO recipeRequestVO) {
 		String[] parts = cleanUrl.split("/");
 
 		if (parts.length < 2) {
-			throw new RuntimeException("Invalid GHE repository URL");
-		}
+            throw new RuntimeException("Invalid GHE repository URL");
+        }
 
-		String repoName = parts[parts.length - 1];
+        String repoName = parts[parts.length - 1];
 		String orgName = parts[parts.length - 2];
 		String gitUrl = cleanUrl.substring(0, cleanUrl.lastIndexOf("/" + orgName));
 
@@ -367,6 +376,11 @@ public GenericMessage validateGitHubUrl(String gitHubUrl) {
 
 		if (isGheRepo) {
 			log.info("Validating PRIVATE GHE repo using PID");
+			
+			MessageDescription gheWarning = new MessageDescription();
+			gheWarning.setMessage("GHE_REPO_DETECTED");
+			responseMessage.addWarnings(gheWarning);
+			
 			status = gitClient.validateGitUserWithPid(
 					gitUrl, repoName, applicationName, configuredPid, ghePat);
 		} else {
