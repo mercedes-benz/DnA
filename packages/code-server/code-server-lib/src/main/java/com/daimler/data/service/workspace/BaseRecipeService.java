@@ -125,7 +125,6 @@ public RecipeVO createRecipe(RecipeVO recipeRequestVO) {
 	SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
 	String repoUrl = recipeRequestVO.getRepodetails();
 	
-	// Prevent public recipes with GHE URLs
 	if (Boolean.TRUE.equals(recipeRequestVO.isIsPublic())
 			&& repoUrl != null
 			&& repoUrl.contains("ghe.com")) {
@@ -174,7 +173,6 @@ public RecipeVO updateRecipe(RecipeVO recipeRequestVO) {
 
 	String repoUrl = recipeRequestVO.getRepodetails();
 	
-	// Prevent public recipes with GHE URLs
 	if (Boolean.TRUE.equals(recipeRequestVO.isIsPublic())
 			&& repoUrl != null
 			&& repoUrl.contains("ghe.com")) {
@@ -379,7 +377,6 @@ public GenericMessage validateGitHubUrl(String gitHubUrl) {
 		if (isGheRepo) {
 			log.info("Validating PRIVATE GHE repo using PID");
 			
-			// Add warning to inform frontend that public visibility should be disabled
 			MessageDescription gheWarning = new MessageDescription();
 			gheWarning.setMessage("GHE_REPO_DETECTED");
 			responseMessage.addWarnings(gheWarning);
