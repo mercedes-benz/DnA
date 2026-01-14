@@ -454,21 +454,34 @@ public class GitClient {
 }
 
 	
-	public HttpStatus validateGitPat( String username, String pat) {
+	public HttpStatus validateGitPat(String username, String pat, String gitBaseUrl) {
 		try {
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");
 			headers.set("Authorization", "token "+ pat);
-			String url = gitBaseUri+"/users/" + username;
+			String baseUrl = gitBaseUrl;
+			if (!baseUrl.endsWith("/")) {
+				baseUrl += "/";
+			}
+
+			String url = baseUrl + "user";
+			
+			log.info("Validating PAT for user {} against URL: {}", username, url);
+			
 			HttpEntity entity = new HttpEntity<>(headers);
 			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
 			if (response != null && response.getStatusCode()!=null) {
 				log.info("completed validating user {} PAT with http status {}", username, response.getStatusCode().name());
 				return response.getStatusCode();
 			}
+		} catch (HttpClientErrorException e) {
+			log.error("HTTP error while validating user {} PAT: status={}, response={}", 
+					username, e.getStatusCode(), e.getResponseBodyAsString());
+			return e.getStatusCode();
 		} catch (Exception e) {
-			log.error("Error occured while validating user {} PAT with exception {}", username, e.getMessage());
+			log.error("Error occured while validating user {} PAT against URL {} with exception {}", 
+					username, gitBaseUrl, e.getMessage(), e);
 		}
 		return HttpStatus.INTERNAL_SERVER_ERROR;
 	}
