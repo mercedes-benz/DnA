@@ -179,6 +179,10 @@ export const Envs = {
     getInjectedEnv('ENABLE_FABRIC_SERVICE') !== undefined
       ? getInjectedEnv('ENABLE_FABRIC_SERVICE')
       : EnvParser.parseBool(process.env.ENABLE_FABRIC_SERVICE, false),
+  ENABLE_UILICIOUS_SERVICE:
+    getInjectedEnv('ENABLE_UILICIOUS_SERVICE') !== undefined
+      ? getInjectedEnv('ENABLE_UILICIOUS_SERVICE')
+      : EnvParser.parseBool(process.env.ENABLE_UILICIOUS_SERVICE, false),
   ENABLE_DATA_ENTRY_SERVICE:
     getInjectedEnv('ENABLE_DATA_ENTRY_SERVICE') !== undefined
       ? getInjectedEnv('ENABLE_DATA_ENTRY_SERVICE')
@@ -245,6 +249,7 @@ export const Envs = {
   ODIN_URL: getInjectedEnv('ODIN_URL') || process.env.ODIN_URL,
   SASS_URL: getInjectedEnv('SASS_URL') || process.env.SASS_URL,
   MB_AI_ECOSYSTEM_URL: getInjectedEnv('MB_AI_ECOSYSTEM_URL') || process.env.MB_AI_ECOSYSTEM_URL,
+  MB_AI_USE_CASE_URL: getInjectedEnv('MB_AI_USE_CASE_URL') || process.env.MB_AI_USE_CASE_URL,
   GENAI_DIRECT_CHAT_URL: getInjectedEnv('GENAI_DIRECT_CHAT_URL') || process.env.GENAI_DIRECT_CHAT_URL,
   GENAI_LLM_PROMPT_ENG_URL:getInjectedEnv('GENAI_LLM_PROMPT_ENG_URL') || process.env.GENAI_LLM_PROMPT_ENG_URL,
   CLAMAV_IMAGE_URL:  getInjectedEnv('CLAMAV_IMAGE_URL') || process.env.CLAMAV_IMAGE_URL,
@@ -260,4 +265,6 @@ export const Envs = {
       ? getInjectedEnv('ONEAPI_PROMPT_CRAFT_USAGE_LINK')
       : EnvParser.parseBool(process.env.ONEAPI_PROMPT_CRAFT_USAGE_LINK, false),
   LEANIX_BASEURL: getInjectedEnv('LEANIX_BASEURL') || process.env.LEANIX_BASEURL,
+  UILICIOUS_URL: getInjectedEnv('UILICIOUS_URL') || process.env.UILICIOUS_URL,
+  UILICIOUS_CONTACT: getInjectedEnv('UILICIOUS_CONTACT') || process.env.UILICIOUS_CONTACT,
 };

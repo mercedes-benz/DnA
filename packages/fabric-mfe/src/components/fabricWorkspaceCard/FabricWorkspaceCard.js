@@ -11,12 +11,14 @@ import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indica
 import Notification from '../../common/modules/uilab/js/src/notification';
 import { fabricApi } from '../../apis/fabric.api';
 import AddUser from 'dna-container/AddUser';
+import { USER_ROLE } from '../../utilities/constants';
 
 const FabricWorkspaceCard = ({user, workspace, onSelectWorkspace, onEditWorkspace, onDeleteWorkspace}) => {
   const history = useHistory();
   const [newOwnerDetails, setNewOwnerDetails] = useState(null);
   const [showTransferOwnershipModal, setShowTransferOwnershipModal] = useState(false);
-  
+  const [showTakeOwnershipModal, setShowTakeOwnershipModal] = useState(false);
+  const isFabricAdmin = user.roles.find(role => role.id === USER_ROLE.FABRICADMIN);
   useEffect(() => {
     Tooltip.defaultSetup();
   }, [workspace]);
@@ -36,6 +38,52 @@ const FabricWorkspaceCard = ({user, workspace, onSelectWorkspace, onEditWorkspac
         Notification.show('Error while transferring ownership.', 'alert');
       });
   };
+
+  const takeOwnershipModalContent = (
+    <div className={classNames('input-field-group include-error')}>
+      <label className="input-labels">
+        Are you sure you want to take ownership of this workspace from {' '} 
+        <a
+        href={`${Envs.MB_INSIDE_URL}${workspace?.createdBy?.id}`}
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        {workspace?.createdBy?.firstName} {workspace?.createdBy?.lastName}
+      </a>
+        ? Once you take ownership,
+        the current owner will lose their ownership rights.
+      </label>
+      <div className={Styles.transferButton}>
+        <button
+          className="btn btn-tertiary"
+          onClick={() => {
+            ProgressIndicator.show();
+            fabricApi
+              .takeOwnership(workspace?.id)
+              .then(() => {
+                ProgressIndicator.hide();
+                Notification.show('You are now the owner of this workspace.');
+                setShowTakeOwnershipModal(false);
+                history.push('/');
+              })
+              .catch(() => {
+                ProgressIndicator.hide();
+                Notification.show('Error while taking ownership.', 'alert');
+              });
+          }}
+        >
+          Yes
+        </button>
+        <button
+          className="btn btn-tertiary"
+          style={{ marginLeft: '12px' }}
+          onClick={() => setShowTakeOwnershipModal(false)}
+        >
+          No
+        </button>
+      </div>
+    </div>
+  );
 
   const getCollaborators = (collaborator) => {
     const collaborationData = {
@@ -96,7 +144,7 @@ const FabricWorkspaceCard = ({user, workspace, onSelectWorkspace, onEditWorkspac
 
   const userRole = workspace?.userRole;
   const isOwner = user?.id === workspace?.createdBy?.id;
-
+  const isAdmin = userRole === 'Admin';
   return (
     <>
     <div className={classNames(Styles.projectCard)}>
@@ -116,10 +164,21 @@ const FabricWorkspaceCard = ({user, workspace, onSelectWorkspace, onEditWorkspac
           <div>
             <div>Workspace Link</div>
             <div>
-              <a href={`https://app.fabric.microsoft.com/groups/${workspace.id}`} target='_blank' rel='noopener noreferrer'>
-                Access Workspace
-                <i className={classNames('icon mbc-icon new-tab')} />
-              </a>
+              {isFabricAdmin && workspace?.createdBy?.id !== user?.id ? (
+                <span className={Styles.disabledLink} title="Admins can only access their own workspaces">
+                  Access Workspace
+                  <i className={classNames('icon mbc-icon new-tab')} />
+                </span>
+              ) : (
+                <a
+                  href={`https://app.fabric.microsoft.com/groups/${workspace.id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Access Workspace
+                  <i className={classNames('icon mbc-icon new-tab')} />
+                </a>
+              )}
             </div>
           </div>
           <div>
@@ -147,6 +206,14 @@ const FabricWorkspaceCard = ({user, workspace, onSelectWorkspace, onEditWorkspac
                 style={{ cursor: 'pointer', marginLeft: '6px' }}
               />
                 )}
+                 {isAdmin && (
+                  <i
+                    className="icon mbc-icon comparison"
+                    tooltip-data="Take Ownership"
+                    onClick={() => setShowTakeOwnershipModal(true)}
+                    style={{ cursor: 'pointer', marginLeft: '6px' }}
+                  />
+                )}
             </div>
           </div>
           <div>
@@ -170,7 +237,7 @@ const FabricWorkspaceCard = ({user, workspace, onSelectWorkspace, onEditWorkspac
               {/* {isRequestedWorkspace && workspace?.status?.state === 'IN_PROGRESS' && <p className={Styles.requestStatus}>Workspace Accesss Requested</p>} */}
             </div>
           </div>
-          {user?.id === workspace?.createdBy?.id &&
+          {(user?.id === workspace?.createdBy?.id || isFabricAdmin) &&
             <div className={Styles.btnGrp}>
               <button
                 className={'btn btn-primary'}
@@ -208,6 +275,21 @@ const FabricWorkspaceCard = ({user, workspace, onSelectWorkspace, onEditWorkspac
         />
       </div>
     )}
+    {showTakeOwnershipModal && (
+        <div className={Styles.confirmModal}>
+          <InfoModal
+            title={`Take ownership of ${workspace?.name}`}
+            modalWidth={'40%'}
+            modalStyle={{
+              maxWidth: '50%',
+              minHeight: '30%',
+            }}
+            show={showTakeOwnershipModal}
+            content={takeOwnershipModalContent}
+            onCancel={() => setShowTakeOwnershipModal(false)}
+          />
+        </div>
+      )}
     </>
   );
 };

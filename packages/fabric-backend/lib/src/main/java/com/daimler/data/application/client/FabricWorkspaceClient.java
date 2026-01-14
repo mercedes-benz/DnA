@@ -118,8 +118,11 @@ public class FabricWorkspaceClient {
 	@Value("${fabricWorkspaces.tokenTypeHint}")
 	private String tokenTypeHint;
 	
-	@Value("${fabricWorkspaces.capacityId}")
-	private String capacityId;
+	@Value("${fabricWorkspaces.powerbiCapacityId}")
+	private String powerbiCapacityId;
+
+	@Value("${fabricWorkspaces.fabricCapacityId}")
+	private String fabricCapacityId;
 	
 	@Value("${fabricWorkspaces.uri.login}")
 	private String loginUrl;
@@ -874,8 +877,9 @@ public class FabricWorkspaceClient {
 		return workspaceDetailDto;
 	}
 	
-	public ErrorResponseDto assignCapacity(String workspaceId) {
+	public ErrorResponseDto assignCapacity(String workspaceId, boolean isPowerBI) {
 		ErrorResponseDto errorResponse = new ErrorResponseDto();
+		String capacityId = isPowerBI ? powerbiCapacityId : fabricCapacityId;
 		try {
 			String token = getToken();
 			if(!Objects.nonNull(token)) {
@@ -940,8 +944,9 @@ public class FabricWorkspaceClient {
 		return errorResponse;
 	}
 	
-	public ErrorResponseDto unassignCapacity(String workspaceId) {
+	public ErrorResponseDto unassignCapacity(String workspaceId, boolean isPowerBI) {
 		ErrorResponseDto errorResponse = new ErrorResponseDto();
+		String capacityId = isPowerBI ? powerbiCapacityId : fabricCapacityId;
 		try {
 			String token = getToken();
 			if(!Objects.nonNull(token)) {

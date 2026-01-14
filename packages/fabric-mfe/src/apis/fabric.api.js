@@ -6,6 +6,20 @@ const getFabricWorkspaces = (offset, limit) => {
   });
 };
 
+const getFabricWorkspacesForAdmin = (offset, limit, search = '') => {
+  let url = `/fabric-workspaces/admin/workspaces?limit=${limit}&offset=${offset}`;
+  if (search && search.trim() !== '') {
+    url += `&search=${encodeURIComponent(search.trim())}`;
+  }
+  return server.get(url, { data: {} });
+};
+
+const searchProjectDetails = (projectName) => {
+  return server.get(`/fabric-workspaces/searchADAProjects?projectName=${projectName}`, {
+    data: {},
+  });
+};
+
 const createFabricWorkspace = (data) => {
   return server.post(`/fabric-workspaces`, {
     data,
@@ -149,8 +163,16 @@ const pushSelectedTables = (workspaceId, payload) => {
   return server.post(`fabric-workspaces/catalog/${workspaceId}/publish`, payload);
 };
 
+const takeOwnership = (id) => {
+  return server.patch(`/fabric-workspaces/${id}/takeOwnership`, {
+    data: {},
+  });
+};
+
 export const fabricApi = {
   getFabricWorkspaces,
+  getFabricWorkspacesForAdmin,
+  searchProjectDetails,
   getFabricWorkspace,
   createFabricWorkspace,
   updateFabricWorkspace,
@@ -172,5 +194,6 @@ export const fabricApi = {
   transferOwnership,
   getLakehouseTables,
   getTableSchema,
-  pushSelectedTables
+  pushSelectedTables,
+  takeOwnership,
 };
