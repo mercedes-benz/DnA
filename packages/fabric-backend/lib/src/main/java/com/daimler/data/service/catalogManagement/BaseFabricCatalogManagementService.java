@@ -683,12 +683,6 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
 
     public LakehouseObjectsResponseVO getLakehouseObjects(String workspaceId, String lakehouseName, String schemaName) {
         log.info("Fetching lakehouse object details for: {}", lakehouseName);
-        try {
-            return cdcPushServiceClient.getLakehouseObjects(workspaceId, lakehouseName, schemaName);
-        } catch (Exception e) {
-            log.error("Failed to fetch lakehouse object details for {}: {}", lakehouseName, e.getMessage());
-          //  throw new OpenMetadataClientException("Failed to fetch lakehouse object details for " + lakehouseName + ": " + e.getMessage(), e);
-        }
-        return null;
+        return cdcPushServiceClient.getLakehouseObjects(workspaceId, lakehouseName, schemaName);
     }
 }

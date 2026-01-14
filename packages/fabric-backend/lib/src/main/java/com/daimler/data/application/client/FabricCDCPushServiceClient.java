@@ -138,44 +138,35 @@ public class FabricCDCPushServiceClient {
 	}
 
 	
-	public LakehouseObjectsResponseVO getLakehouseObjects( String workspaceId, String lakehouseId, String schemaName){
-		LakehouseObjectsResponseVO vo = new LakehouseObjectsResponseVO();
+	public LakehouseObjectsResponseVO getLakehouseObjects(String workspaceId, String lakehouseId, String schemaName) {
+		HttpHeaders headers = new HttpHeaders();
+		headers.set("Accept", "application/json");
+		headers.set("x-api-key", authToken);
+		headers.setContentType(MediaType.APPLICATION_JSON);
+		HttpEntity<String> requestEntity = new HttpEntity<>(headers);
 
-		try{
-			HttpHeaders headers = new HttpHeaders();
-			headers.set("Accept", "application/json");
-			headers.set("x-api-key", authToken);
-			headers.setContentType(MediaType.APPLICATION_JSON);
-			HttpEntity<String> requestEntity = new HttpEntity<>(headers);
+		String url = UriComponentsBuilder.fromHttpUrl(baseUrl + "/lakehouse/objects")
+				.queryParam("workspaceId", workspaceId)
+				.queryParam("lakehouseId", lakehouseId)
+				.queryParam("schemaName", schemaName)
+				.toUriString();
 
-			String url = UriComponentsBuilder.fromHttpUrl(baseUrl + "/lakehouse/objects")
-					.queryParam("workspaceId", workspaceId)
-					.queryParam("lakehouseId", lakehouseId)
-					.queryParam("schemaName", schemaName)
-					.toUriString();
+		ResponseEntity<LakehouseObjectsResponseVO> response = restTemplate.exchange(
+				url,
+				HttpMethod.GET,
+				requestEntity,
+				LakehouseObjectsResponseVO.class
+		);
 
-
-			ResponseEntity<LakehouseObjectsResponseVO> response = restTemplate.exchange(url, HttpMethod.GET,
-					requestEntity, LakehouseObjectsResponseVO.class
-			);
-			if(response.getStatusCode().is2xxSuccessful()) {
-				
-				if (response != null && response.hasBody()) {
-					vo = response.getBody();
-					// vo.setResponseCode(response.getStatusCode().toString());
-					log.info("Fetched table schema for workspaceId: {}, lakehouseId: {}, tableName: {}", workspaceId, lakehouseId, schemaName);
-				} else {
-					log.warn("Empty response received for workspaceId: {}, lakehouseId: {}, tableName: {}", workspaceId, lakehouseId, schemaName);
-					// vo.setResponseCode(response.getStatusCode().toString());
-				}
-			}
-			// vo.setResponseCode(response.getStatusCode().toString());
-
-		} catch (Exception e) {
-			log.error("Exception occurred while fetching table schema: {}", e.getMessage());
-			// vo.setResponseCode(String.valueOf(HttpStatus.SC_INTERNAL_SERVER_ERROR));
+		if (response != null && response.hasBody()) {
+			log.info("Fetched lakehouse objects for workspaceId: {}, lakehouseId: {}, schemaName: {}",
+					workspaceId, lakehouseId, schemaName);
+			return response.getBody();
 		}
-		return vo;
+
+		log.warn("Empty lakehouse objects response for workspaceId: {}, lakehouseId: {}, schemaName: {}",
+				workspaceId, lakehouseId, schemaName);
+		return new LakehouseObjectsResponseVO();
 	}
 
 

@@ -9,6 +9,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -303,10 +304,11 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
     @Override
     @ApiOperation(value = "get lakehouse objects.", nickname = "getLakehouseObjects", notes = "This endpoint will be used to get lakehouse objects.", response = LakehouseObjectsResponseVO.class, tags={ "fabric-catalog-management", })
     @ApiResponses(value = { 
-        @ApiResponse(code = 201, message = "Returns message of success or failure ", response = LakehouseObjectsResponseVO.class),
+        @ApiResponse(code = 200, message = "Returns message of success or failure ", response = LakehouseObjectsResponseVO.class),
         @ApiResponse(code = 400, message = "Bad Request", response = GenericMessage.class),
         @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
         @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 404, message = "Not found"),
         @ApiResponse(code = 405, message = "Method not allowed"),
         @ApiResponse(code = 500, message = "Internal error") })
     @RequestMapping(value = "/catalog/ddx/fabric-lakehouses/objects",
@@ -314,12 +316,15 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
         consumes = { "application/json" },
         method = RequestMethod.GET)
     public ResponseEntity<LakehouseObjectsResponseVO> getLakehouseObjects(@NotNull @ApiParam(value = "The ID of the workspace.", required = true) @Valid @RequestParam(value = "workspaceId", required = true) String workspaceId,@NotNull @ApiParam(value = "The ID of Lakehouse.", required = true) @Valid @RequestParam(value = "lakehouseId", required = true) String lakehouseId,@ApiParam(value = "The name of schema.") @Valid @RequestParam(value = "schemaName", required = false) String schemaName){
-        LakehouseObjectsResponseVO responseVO = new LakehouseObjectsResponseVO();
-        responseVO = service.getLakehouseObjects(workspaceId, lakehouseId, schemaName);
         try {
-          return new ResponseEntity<>(responseVO, HttpStatus.OK);
+            LakehouseObjectsResponseVO responseVO = service.getLakehouseObjects(workspaceId, lakehouseId, schemaName);
+            return new ResponseEntity<>(responseVO, HttpStatus.OK);
+        } catch (HttpStatusCodeException ex) {
+            log.error("HTTP error while fetching lakehouse objects: status={}, message={}", ex.getStatusCode(), ex.getMessage());
+            return new ResponseEntity<>(null, ex.getStatusCode());
         } catch (Exception e) {
-            return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
+            log.error("Error occurred while fetching lakehouse objects: {}", e.getMessage());
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
