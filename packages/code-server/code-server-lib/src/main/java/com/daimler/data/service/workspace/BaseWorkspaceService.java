@@ -1065,7 +1065,10 @@
 							recipeName = repoDetails.get(1);
 						}
 						String repoOwner = repoDetails.get(0);
-						HttpStatus createRepoStatus = gitClient.createRepo(repoOwner,repoName,recipeName);
+						String gitCreationUrl = (gitUrl != null && gitUrl.contains("ghe.com")) 
+								? gheBaseUri 
+								: gitBaseUri;
+						HttpStatus createRepoStatus = gitClient.createRepo(repoOwner,repoName,recipeName,gitCreationUrl,pat);
 						if (!createRepoStatus.is2xxSuccessful()) {
 							 MessageDescription errMsg = new MessageDescription(
 									 "Failed while initializing git repository " + repoName
