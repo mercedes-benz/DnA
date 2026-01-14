@@ -181,6 +181,9 @@
 	 @Value("${codeServer.git.ghe.pat}")
      private String ghePat;
 
+	 @Value("${codeServer.git.enterprise.url}")
+	 private String gheBaseUri;
+
 	 @Value("${codeServer.git.baseuri}")
 	 private String gitBaseUri;
 
@@ -677,7 +680,11 @@
 		   }
 		   if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().equalsIgnoreCase("default") && 
 				!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")) {
-				HttpStatus validateUserPatstatus = gitClient.validateGitPat(collabPid, pat);
+				String repoDetails = vo.getProjectDetails().getRecipeDetails().getRepodetails();
+				String gitValidationUrl = (repoDetails != null && repoDetails.contains("ghe.com")) 
+					? gheBaseUri 
+					: gitBaseUri;
+				HttpStatus validateUserPatstatus = gitClient.validateGitPat(collabPid, pat, gitValidationUrl);
 				if (!validateUserPatstatus.is2xxSuccessful()) {
 					MessageDescription errMsg = new MessageDescription(
 							"Invalid Git Personal Access Token provided. Please verify and retry.");
@@ -862,7 +869,11 @@
 			}
 			if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().equalsIgnoreCase("default") && 
 				 !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")) {
-				 HttpStatus validateUserPatstatus = gitClient.validateGitPat(entity.getData().getGitUserName(), pat);
+				 String repoDetails = vo.getProjectDetails().getRecipeDetails().getRepodetails();
+				 String gitValidationUrl = (repoDetails != null && repoDetails.contains("ghe.com")) 
+						 ? gheBaseUri 
+						 : gitBaseUri;
+				 HttpStatus validateUserPatstatus = gitClient.validateGitPat(entity.getData().getGitUserName(), pat, gitValidationUrl);
 				 if (!validateUserPatstatus.is2xxSuccessful()) {
 					 MessageDescription errMsg = new MessageDescription(
 							 "Invalid Git Personal Access Token provided. Please verify and retry.");
@@ -1023,7 +1034,11 @@
 				 // validate user pat
 				 if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
 						 .equalsIgnoreCase("default")) {
-					 HttpStatus validateUserPatstatus = gitClient.validateGitPat(owner.getGitUserName(), pat);
+					 String repoDetails = vo.getProjectDetails().getRecipeDetails().getRepodetails();
+					 String gitValidationUrl = (repoDetails != null && repoDetails.contains("ghe.com")) 
+							 ? gheBaseUri 
+							 : gitBaseUri;
+					 HttpStatus validateUserPatstatus = gitClient.validateGitPat(owner.getGitUserName(), pat, gitValidationUrl);
 					 if (!validateUserPatstatus.is2xxSuccessful()) {
 						 MessageDescription errMsg = new MessageDescription(
 								 "Invalid GitHub Personal Access Token provided. Please verify and retry.");
