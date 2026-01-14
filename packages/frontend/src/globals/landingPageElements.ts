@@ -36,10 +36,12 @@ const odinUrl = Envs.ODIN_URL;
 const sassUrl = Envs.SASS_URL;
 const enableDatalakeService = Envs.ENABLE_DATALAKE_SERVICE;
 const enableFabricService = Envs.ENABLE_FABRIC_SERVICE;
+const enableuiliciousService = Envs.ENABLE_UILICIOUS_SERVICE;
 // const enableDataEntryService = Envs.ENABLE_DATA_ENTRY_SERVICE;
 const enablePowerPlatformService = Envs.ENABLE_POWER_PLATFORM_SERVICE;
 const enablePromptCraftService = Envs.ENABLE_PROMPT_CRAFT_SERVICE;
 const MBAIEcosystemUrl = Envs.MB_AI_ECOSYSTEM_URL;
+const MBAIUseCaseUrl = Envs.MB_AI_USE_CASE_URL;
 const genAIDirectChatUrl = Envs.GENAI_DIRECT_CHAT_URL;
 const bisoContactsLink = Envs.BISO_CONTACTS_URL;
 const clamavImagwUrl = Envs.CLAMAV_IMAGE_URL;
@@ -621,6 +623,23 @@ export const ToolsLandingPageElements = [
     svgIcon: 'tools',
     isDnAInternalTool: false,
   },
+    {
+    id: 'Uilicious',
+    name: 'Uilicious',
+    description:'Uilicious is a simple and robust tool for automating interactions with modern web applications.Use it to test your web applications to make sure that your users arent running into unexpected errors in critical user flows like when they are registering for an account or checking out their order',
+    tags: ['No/Low Code', 'Onprem'],
+    url: '/Uilicious',
+    isExternalLink: false,
+    isTextAlignLeft: true,
+    animation: true,
+    isDisabled: !enableuiliciousService,
+    isDetailedPage: true,
+    isMoreServicesCard:false,
+    isSmallCard: false,
+    isMediumCard: true,
+    svgIcon: 'tools',
+    isDnAInternalTool: false,
+  },
 ];
 
 export const TranparencyLandingPageElements = [
@@ -855,6 +874,19 @@ export const TrainingsLandingPageElements = [
 
 export const GenAILandingPageElements = [
   {
+    name: 'AI Use Case',
+    description:
+      'Register and manage AI use cases on MASSP4AI.',
+    tags: ['Self Service', 'FOSS'],
+    url: MBAIUseCaseUrl,
+    isExternalLink: true,
+    isTextAlignLeft: false,
+    isDisabled: !MBAIUseCaseUrl?.startsWith('http'),
+    isSmallCard: false,
+    isMediumCard: false,
+    svgIconId: 'genai-solutions',
+  },
+  {
     name: 'AI Ecosystem',
     description:
       'A holistic portal with the right tools and resources for AI practitioners to accelerate their AI projects.',
@@ -866,19 +898,6 @@ export const GenAILandingPageElements = [
     isSmallCard: false,
     isMediumCard: false,
     svgIconId: 'genai-create',
-  },
-  {
-    name: 'AI Use Cases',
-    description:
-      '(Available on 23 October 2025) Existing AI use cases have been successfully migrated to MASSP4AI app, owners would have received an email on next steps. Submission on new AI use cases at MASSP4AI will commence from 23 October.',
-    tags: ['Self Service', 'FOSS'],
-    url: '/viewsolutions/tag/GenAI',
-    isExternalLink: false,
-    isTextAlignLeft: false,
-    isDisabled: true,
-    isSmallCard: false,
-    isMediumCard: false,
-    svgIconId: 'genai-solutions',
   },
   {
     name: 'Mercedes-Benz Direct Chat',

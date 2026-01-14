@@ -312,6 +312,8 @@ definitions:
       inactiveDate:
         type: "string"
         format: "date"
+      createdBy:
+        type: "string"
 
 
   CreateADAProjectResponseVO:

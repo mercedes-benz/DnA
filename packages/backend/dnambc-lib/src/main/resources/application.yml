@@ -1,7 +1,7 @@
 spring:
   application:
     name: dna-backend-service
-    version: 3.6.4
+    version: 3.6.8
   profile:
     active: production
   flyway:
@@ -71,7 +71,19 @@ spring:
       default-binder: kafka
       kafka:
         binder:
-          brokers: ${NAAS_BROKER:localhost:9092}   
+          brokers: ${NAAS_BROKER:localhost:9092}  
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  health:
+    db:
+      enabled: true
+  endpoint:
+    health:
+      show-details: always            
 
 dnadss:
   provisionSolutionuri: ${PROVSION_SOLUTION_URI:XXXX}
@@ -247,6 +259,7 @@ promptsraftsubscriptions:
     pidUser: ${PID_UESR:XXXX}
     pidPassword: ${UILICIOUS_PID_UESR_PASSWORD:XXXX}
     accessKey: ${UILICIOUS_ACCESS_KEY:XXXX}
+    baseURL: ${UILICIOUS_BASE_URL:XXXX}
     browser: ${UILICIOUS_BROWSER_KEY:XXXX}
     width: ${UILICIOUS_BROWSER_WIDTH:XXXX}
     height: ${UILICIOUS_BROWSER_HEIGHT:XXXX}
