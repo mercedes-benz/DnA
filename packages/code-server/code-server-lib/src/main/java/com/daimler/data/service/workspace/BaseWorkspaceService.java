@@ -5140,7 +5140,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 					String branch = "main";
 					GenericMessage responseMsg;
 					responseMsg = this.deployWorkspace(userId, workspace.getId(), environment, branch,
-							false, "", "deploy");
+							false, "", "deploy", false);
 					log.info("User {} deployed workspace {} project {}", userId, workspace.getWorkspaceId(),
 							workspace.getProjectDetails().getRecipeDetails().getRecipeId().name());
 					if ("FAILED".equalsIgnoreCase(responseMsg.getSuccess())) {
