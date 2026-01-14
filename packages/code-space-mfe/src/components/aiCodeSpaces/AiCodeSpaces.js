@@ -74,7 +74,7 @@ const AiCodeSpaces = (props) => {
 
   const deleteCodeSpaceGroupContent = (
     <div>
-      Do you really want to delete <br /> this Code Space Group?
+      Do you really want to delete <br /> this AI Agent Code Space? 
     </div>
   );
 
@@ -141,7 +141,23 @@ const AiCodeSpaces = (props) => {
   };
 
   const deleteCodeSpaceGroupAccept = () => {
-    console.log('Delete all codespaces');
+    ProgressIndicator.show();
+    CodeSpaceApiClient.deleteAiWorkspaces(selectedCodeSpaceGroup?.groupId)
+      .then(() => {
+        setShowDeleteCodespaceGroupModal(false);
+        Notification.show(`Ai Agent Workspace group deleted successfully`);
+        getAiCodeSpacesData();
+        ProgressIndicator.hide();
+      })
+      .catch((e) => {
+        ProgressIndicator.hide();
+        Notification.show(
+          e.response.data.errors?.length
+            ? e.response.data.errors[0].message
+            : 'Deleting code space group failed!',
+          'alert',
+        );
+      });
   }
 
   const codespacesModalContent = <>
@@ -284,6 +300,7 @@ const AiCodeSpaces = (props) => {
             ProgressIndicator.hide();
             Notification.show("Workspace successfully initialized. Please start your workspace after some time.");
             getAiCodeSpacesData();
+            setShowInitializeModal(false);
           } else {
             ProgressIndicator.hide();
             Notification.show(

@@ -442,6 +442,12 @@ const initializeAiWorkflowSpace = (id, data) => {
     );
 };
 
+const deleteAiWorkspaces = (id) => {
+    return server.delete(`/workspaces/aiagent/${id}`,{
+        data: {},
+    });
+};
+
 export const CodeSpaceApiClient = {
     getCodeSpacesList,
     createCodeSpace,
@@ -515,4 +521,5 @@ export const CodeSpaceApiClient = {
     createAiAgentWorkflow,
     getAiAgentGroups,
     initializeAiWorkflowSpace,
+    deleteAiWorkspaces,
 };
