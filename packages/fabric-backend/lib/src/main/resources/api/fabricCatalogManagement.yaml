@@ -451,6 +451,10 @@ definitions:
         type: string
       formatType:
         type: string
+      type:
+        type: string
+      comments:
+        type: string  
       columns:
         type: array
         items:
