@@ -1060,8 +1060,7 @@ public class FabricWorkspaceClient {
 			HttpEntity<RoleAssignmentRequestDto> requestEntity = new HttpEntity<>(requestDto, headers);
 			
 			// Construct admin API URL: https://api.fabric.microsoft.com/v1/admin/workspaces/{workspaceId}/roleAssignments
-			String roleAssignmentUrl = workspacesBaseUrl.replace("/v1/workspaces", "/v1/admin/workspaces") 
-					+ "/" + workspaceId + "/roleAssignments";
+			String roleAssignmentUrl = workspacesBaseUrl + "/" + workspaceId + "/roleAssignments";
 			
 			ResponseEntity<RoleAssignmentResponseDto> response = proxyRestTemplate.exchange(roleAssignmentUrl, HttpMethod.POST,
 					requestEntity, RoleAssignmentResponseDto.class);
