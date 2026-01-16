@@ -18,6 +18,7 @@ import org.openmetadata.client.model.*;
 
 import com.daimler.data.api.fabricCatalogManagement.FabricCatalogManagementApi;
 import com.daimler.data.application.auth.UserStore;
+import com.daimler.data.application.client.FabricWorkspaceClient;
 import com.daimler.data.application.client.OpenMetadataClient;
 import com.daimler.data.controller.exceptions.EntityNotFoundException;
 import com.daimler.data.controller.exceptions.GenericMessage;
@@ -62,6 +63,9 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
 
     @Autowired
     private FabricCatalogManagementCustomRepository catalogCustomRepo;
+
+    @Autowired
+    private FabricWorkspaceClient fabricWorkspaceClient;
 
     @Override
      @ApiOperation(value = "Publish a new catalog.", nickname = "publishCatalogRequest", notes = "This endpoint will be used to publish a new fabric catalog.", response = PublishCatalogResponseVO.class, tags={ "fabric-catalog-management", })
@@ -291,11 +295,117 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
     public ResponseEntity<GenericMessage> updateGroupsFromDDX(@ApiParam(value = "The groups update request from DDX." ,required=true )  @Valid @RequestBody UpdateDDXGroupsRequestVO updateDDXGroupsRequest,@ApiParam(value = "The ID of DDX data product .",required=true) @PathVariable("ddxId") String ddxId,@ApiParam(value = "The ID of the workspace.",required=true) @PathVariable("workspaceId") String workspaceId,@ApiParam(value = "The ID of Lakehouse.",required=true) @PathVariable("lakehouseId") String lakehouseId){
 
         GenericMessage responseMessage = new GenericMessage();
+        List<MessageDescription> errors = new ArrayList<>();
+        List<MessageDescription> warnings = new ArrayList<>();
         try {
-          return new ResponseEntity<>(responseMessage, HttpStatus.OK);
+            // Validate workspace exists
+            FabricWorkspaceVO existingFabricWorkspace = fabricWorkspaceService.getById(workspaceId);
+            if (existingFabricWorkspace == null || !workspaceId.equalsIgnoreCase(existingFabricWorkspace.getId())) {
+                log.error("No Fabric Workspace found with id {}", workspaceId);
+                MessageDescription error = new MessageDescription();
+                error.setMessage("No Fabric Workspace found with id: " + workspaceId);
+                errors.add(error);
+                responseMessage.setErrors(errors);
+                responseMessage.setWarnings(warnings);
+                responseMessage.setSuccess("FAILED");
+                return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+            }
+
+            // Validate request
+            if (updateDDXGroupsRequest == null || updateDDXGroupsRequest.getGroups() == null || updateDDXGroupsRequest.getGroups().isEmpty()) {
+                log.error("Invalid request: groups list is empty or null");
+                MessageDescription error = new MessageDescription();
+                error.setMessage("Invalid request: groups list cannot be empty");
+                errors.add(error);
+                responseMessage.setErrors(errors);
+                responseMessage.setWarnings(warnings);
+                responseMessage.setSuccess("FAILED");
+                return new ResponseEntity<>(responseMessage, HttpStatus.BAD_REQUEST);
+            }
+
+            // Role is hardcoded to "Viewer" - type field is only for identification
+            String role = "Viewer";
+
+            int successCount = 0;
+            int failureCount = 0;
+
+            // Process each group
+            for (String groupId : updateDDXGroupsRequest.getGroups()) {
+                if (groupId == null || groupId.trim().isEmpty()) {
+                    MessageDescription warning = new MessageDescription();
+                    warning.setMessage("Skipping empty or null group ID");
+                    warnings.add(warning);
+                    continue;
+                }
+
+                try {
+                    com.daimler.data.dto.fabric.RoleAssignmentResponseDto roleResponse = 
+                        fabricWorkspaceClient.assignRoleToWorkspace(workspaceId, groupId.trim(), role);
+                    
+                    if (roleResponse != null && roleResponse.getErrorCode() == null) {
+                        successCount++;
+                        log.info("Successfully assigned role {} to group {} for workspace {}", role, groupId, workspaceId);
+                    } else {
+                        failureCount++;
+                        MessageDescription error = new MessageDescription();
+                        String errorMsg = String.format("Failed to assign role %s to group %s: %s", 
+                            role, groupId, 
+                            roleResponse != null && roleResponse.getMessage() != null ? roleResponse.getMessage() : "Unknown error");
+                        error.setMessage(errorMsg);
+                        errors.add(error);
+                        log.error("Failed to assign role {} to group {} for workspace {}: {}", 
+                            role, groupId, workspaceId, 
+                            roleResponse != null ? roleResponse.getMessage() : "Unknown error");
+                    }
+                } catch (Exception e) {
+                    failureCount++;
+                    MessageDescription error = new MessageDescription();
+                    error.setMessage(String.format("Exception while assigning role %s to group %s: %s", 
+                        role, groupId, e.getMessage()));
+                    errors.add(error);
+                    log.error("Exception while assigning role {} to group {} for workspace {}: {}", 
+                        role, groupId, workspaceId, e.getMessage(), e);
+                }
+            }
+
+            // Prepare response
+            if (errors.isEmpty() && successCount > 0) {
+                responseMessage.setSuccess("SUCCESS");
+                MessageDescription successMsg = new MessageDescription();
+                successMsg.setMessage(String.format("Successfully assigned role %s to %d group(s)", role, successCount));
+                warnings.add(successMsg);
+            } else if (successCount > 0 && failureCount > 0) {
+                responseMessage.setSuccess("PARTIAL_SUCCESS");
+                MessageDescription partialMsg = new MessageDescription();
+                partialMsg.setMessage(String.format("Partially successful: %d succeeded, %d failed", successCount, failureCount));
+                warnings.add(partialMsg);
+            } else {
+                responseMessage.setSuccess("FAILED");
+            }
+
+            responseMessage.setErrors(errors);
+            responseMessage.setWarnings(warnings);
+
+            // Return appropriate HTTP status
+            if ("SUCCESS".equals(responseMessage.getSuccess())) {
+                return new ResponseEntity<>(responseMessage, HttpStatus.CREATED);
+            } else if ("PARTIAL_SUCCESS".equals(responseMessage.getSuccess())) {
+                return new ResponseEntity<>(responseMessage, HttpStatus.MULTI_STATUS);
+            } else {
+                return new ResponseEntity<>(responseMessage, HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+
         } catch (Exception e) {
+            log.error("Unexpected error in updateGroupsFromDDX for workspace {}: {}", workspaceId, e.getMessage(), e);
+            MessageDescription error = new MessageDescription();
+            error.setMessage("Unexpected error occurred: " + e.getMessage());
+            errors.add(error);
+            responseMessage.setErrors(errors);
+            responseMessage.setWarnings(warnings);
+            responseMessage.setSuccess("FAILED");
             return new ResponseEntity<>(responseMessage, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
 }
+
