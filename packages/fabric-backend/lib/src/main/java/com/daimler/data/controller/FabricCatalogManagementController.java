@@ -299,8 +299,8 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
         List<MessageDescription> errors = new ArrayList<>();
         List<MessageDescription> warnings = new ArrayList<>();
         
+        // Validate workspace exists
         try {
-            // Validate workspace exists
             com.daimler.data.dto.fabric.WorkspaceDetailDto workspace = fabricWorkspaceClient.getWorkspaceDetails(workspaceId);
             if (workspace == null || workspace.getErrorCode() != null) {
                 String errorMsg = workspace != null && workspace.getMessage() != null ? workspace.getMessage() 
@@ -314,8 +314,19 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
                 responseMessage.setSuccess("FAILED");
                 return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
             }
+        } catch (Exception e) {
+            log.error("Error validating workspace {}: {}", workspaceId, e.getMessage());
+            MessageDescription error = new MessageDescription();
+            error.setMessage("Error validating workspace: " + e.getMessage());
+            errors.add(error);
+            responseMessage.setErrors(errors);
+            responseMessage.setWarnings(warnings);
+            responseMessage.setSuccess("FAILED");
+            return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+        }
 
-            // Validate lakehouse exists
+        // Validate lakehouse exists
+        try {
             com.daimler.data.dto.fabric.LakehouseCollectionDto lakehouses = fabricWorkspaceClient.listLakehouses(workspaceId);
             boolean lakehouseExists = false;
             if (lakehouses != null && lakehouses.getValue() != null) {
@@ -332,7 +343,20 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
                 responseMessage.setSuccess("FAILED");
                 return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
             }
+        } catch (Exception e) {
+            log.error("Error validating lakehouse {} in workspace {}: {}", lakehouseId, workspaceId, e.getMessage());
+            MessageDescription error = new MessageDescription();
+            error.setMessage("Error validating lakehouse: " + e.getMessage());
+            errors.add(error);
+            responseMessage.setErrors(errors);
+            responseMessage.setWarnings(warnings);
+            responseMessage.setSuccess("FAILED");
+            return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+        }
+        
+        try {
 
+        
             // Validate request
             if (updateDDXGroupsRequest == null || updateDDXGroupsRequest.getGroups() == null || updateDDXGroupsRequest.getGroups().isEmpty()) {
                 log.error("Invalid request: groups list is empty or null");
@@ -360,12 +384,21 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
                 String trimmedGroupId = groupId.trim();
 
                 // Validate group exists
-                if (!fabricWorkspaceClient.checkGroupExists(trimmedGroupId)) {
+                try {
+                    if (!fabricWorkspaceClient.checkGroupExists(trimmedGroupId)) {
+                        failureCount++;
+                        MessageDescription error = new MessageDescription();
+                        error.setMessage("Group not found: " + trimmedGroupId);
+                        errors.add(error);
+                        log.error("Group {} not found", trimmedGroupId);
+                        continue;
+                    }
+                } catch (Exception e) {
                     failureCount++;
                     MessageDescription error = new MessageDescription();
-                    error.setMessage("Group not found: " + trimmedGroupId);
+                    error.setMessage("Error validating group: " + trimmedGroupId + " - " + e.getMessage());
                     errors.add(error);
-                    log.error("Group {} not found", trimmedGroupId);
+                    log.error("Error checking if group {} exists: {}", trimmedGroupId, e.getMessage());
                     continue;
                 }
 
@@ -425,12 +458,24 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
                 return new ResponseEntity<>(responseMessage, HttpStatus.OK);
             } else if ("PARTIAL_SUCCESS".equals(responseMessage.getSuccess())) {
                 return new ResponseEntity<>(responseMessage, HttpStatus.MULTI_STATUS);
+            } else if (!errors.isEmpty()) {
+                // Return NOT_FOUND if we have specific validation errors
+                return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
             } else {
                 return new ResponseEntity<>(responseMessage, HttpStatus.INTERNAL_SERVER_ERROR);
             }
 
+        } catch (IllegalArgumentException e) {
+            log.error("Invalid argument in updateGroupsFromDDX for workspace {}: {}", workspaceId, e.getMessage());
+            MessageDescription error = new MessageDescription();
+            error.setMessage("Invalid argument: " + e.getMessage());
+            errors.add(error);
+            responseMessage.setErrors(errors);
+            responseMessage.setWarnings(warnings);
+            responseMessage.setSuccess("FAILED");
+            return new ResponseEntity<>(responseMessage, HttpStatus.BAD_REQUEST);
         } catch (Exception e) {
-            log.error("Unexpected error in updateGroupsFromDDX for workspace {}: {}", workspaceId, e.getMessage(), e);
+            log.error("Unexpected error in updateGroupsFromDDX for workspace {}, lakehouse {}: {}", workspaceId, lakehouseId, e.getMessage(), e);
             MessageDescription error = new MessageDescription();
             error.setMessage("Unexpected error occurred: " + e.getMessage());
             errors.add(error);
