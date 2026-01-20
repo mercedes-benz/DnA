@@ -282,10 +282,11 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
     @Override
     @ApiOperation(value = "update groups from ddx.", nickname = "updateGroupsFromDDX", notes = "This endpoint will be used to update groups from ddx.", response = GenericMessage.class, tags={ "fabric-catalog-management", })
     @ApiResponses(value = { 
-        @ApiResponse(code = 201, message = "Returns message of success or failure ", response = GenericMessage.class),
+        @ApiResponse(code = 200, message = "Returns message of success or failure ", response = GenericMessage.class),
         @ApiResponse(code = 400, message = "Bad Request", response = GenericMessage.class),
         @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
         @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 404, message = "Workspace, Lakehouse, or Group not found", response = GenericMessage.class),
         @ApiResponse(code = 405, message = "Method not allowed"),
         @ApiResponse(code = 500, message = "Internal error") })
     @RequestMapping(value = "/catalog/ddx/group-update/{ddxId}/{workspaceId}/{lakehouseId}",
@@ -297,13 +298,34 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
         GenericMessage responseMessage = new GenericMessage();
         List<MessageDescription> errors = new ArrayList<>();
         List<MessageDescription> warnings = new ArrayList<>();
+        
         try {
             // Validate workspace exists
-            FabricWorkspaceVO existingFabricWorkspace = fabricWorkspaceService.getById(workspaceId);
-            if (existingFabricWorkspace == null || !workspaceId.equalsIgnoreCase(existingFabricWorkspace.getId())) {
-                log.error("No Fabric Workspace found with id {}", workspaceId);
+            com.daimler.data.dto.fabric.WorkspaceDetailDto workspace = fabricWorkspaceClient.getWorkspaceDetails(workspaceId);
+            if (workspace == null || workspace.getErrorCode() != null) {
+                String errorMsg = workspace != null && workspace.getMessage() != null ? workspace.getMessage() 
+                    : "Workspace not found";
+                log.error("Workspace {} not found or error: {}", workspaceId, errorMsg);
                 MessageDescription error = new MessageDescription();
-                error.setMessage("No Fabric Workspace found with id: " + workspaceId);
+                error.setMessage("Workspace not found: " + workspaceId);
+                errors.add(error);
+                responseMessage.setErrors(errors);
+                responseMessage.setWarnings(warnings);
+                responseMessage.setSuccess("FAILED");
+                return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
+            }
+
+            // Validate lakehouse exists
+            com.daimler.data.dto.fabric.LakehouseCollectionDto lakehouses = fabricWorkspaceClient.listLakehouses(workspaceId);
+            boolean lakehouseExists = false;
+            if (lakehouses != null && lakehouses.getValue() != null) {
+                lakehouseExists = lakehouses.getValue().stream()
+                    .anyMatch(lh -> lh != null && lakehouseId.equals(lh.getId()));
+            }
+            if (!lakehouseExists) {
+                log.error("Lakehouse {} not found in workspace {}", lakehouseId, workspaceId);
+                MessageDescription error = new MessageDescription();
+                error.setMessage("Lakehouse not found: " + lakehouseId + " in workspace: " + workspaceId);
                 errors.add(error);
                 responseMessage.setErrors(errors);
                 responseMessage.setWarnings(warnings);
@@ -323,9 +345,6 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
                 return new ResponseEntity<>(responseMessage, HttpStatus.BAD_REQUEST);
             }
 
-            // Role is hardcoded to "Viewer" - type field is only for identification
-            String role = "Viewer";
-
             int successCount = 0;
             int failureCount = 0;
 
@@ -338,33 +357,48 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
                     continue;
                 }
 
+                String trimmedGroupId = groupId.trim();
+
+                // Validate group exists
+                if (!fabricWorkspaceClient.checkGroupExists(trimmedGroupId)) {
+                    failureCount++;
+                    MessageDescription error = new MessageDescription();
+                    error.setMessage("Group not found: " + trimmedGroupId);
+                    errors.add(error);
+                    log.error("Group {} not found", trimmedGroupId);
+                    continue;
+                }
+
+                // Role is hardcoded to "Viewer" - type field is only for identification
+                String role = "Viewer";
+
                 try {
                     com.daimler.data.dto.fabric.RoleAssignmentResponseDto roleResponse = 
-                        fabricWorkspaceClient.assignRoleToWorkspace(workspaceId, groupId.trim(), role);
+                        fabricWorkspaceClient.assignRoleToWorkspace(workspaceId, trimmedGroupId, role);
                     
                     if (roleResponse != null && roleResponse.getErrorCode() == null) {
                         successCount++;
-                        log.info("Successfully assigned role {} to group {} for workspace {}", role, groupId, workspaceId);
+                        log.info("Successfully assigned role {} to group {} for workspace {}", role, trimmedGroupId, workspaceId);
                     } else {
                         failureCount++;
                         MessageDescription error = new MessageDescription();
                         String errorMsg = String.format("Failed to assign role %s to group %s: %s", 
-                            role, groupId, 
+                            role, trimmedGroupId, 
                             roleResponse != null && roleResponse.getMessage() != null ? roleResponse.getMessage() : "Unknown error");
                         error.setMessage(errorMsg);
                         errors.add(error);
                         log.error("Failed to assign role {} to group {} for workspace {}: {}", 
-                            role, groupId, workspaceId, 
+                            role, trimmedGroupId, workspaceId, 
                             roleResponse != null ? roleResponse.getMessage() : "Unknown error");
                     }
                 } catch (Exception e) {
                     failureCount++;
                     MessageDescription error = new MessageDescription();
                     error.setMessage(String.format("Exception while assigning role %s to group %s: %s", 
-                        role, groupId, e.getMessage()));
+                        role, trimmedGroupId, e.getMessage()));
                     errors.add(error);
                     log.error("Exception while assigning role {} to group {} for workspace {}: {}", 
-                        role, groupId, workspaceId, e.getMessage(), e);
+                        role, trimmedGroupId, workspaceId, e.getMessage(), e);
                 }
             }
 
@@ -372,7 +406,7 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
             if (errors.isEmpty() && successCount > 0) {
                 responseMessage.setSuccess("SUCCESS");
                 MessageDescription successMsg = new MessageDescription();
-                successMsg.setMessage(String.format("Successfully assigned role %s to %d group(s)", role, successCount));
+                successMsg.setMessage(String.format("Successfully processed %d group(s)", successCount));
                 warnings.add(successMsg);
             } else if (successCount > 0 && failureCount > 0) {
                 responseMessage.setSuccess("PARTIAL_SUCCESS");
@@ -388,7 +422,7 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
 
             // Return appropriate HTTP status
             if ("SUCCESS".equals(responseMessage.getSuccess())) {
-                return new ResponseEntity<>(responseMessage, HttpStatus.CREATED);
+                return new ResponseEntity<>(responseMessage, HttpStatus.OK);
             } else if ("PARTIAL_SUCCESS".equals(responseMessage.getSuccess())) {
                 return new ResponseEntity<>(responseMessage, HttpStatus.MULTI_STATUS);
             } else {

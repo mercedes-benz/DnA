@@ -1032,6 +1032,17 @@ public class FabricWorkspaceClient {
 		return  HttpStatus.INTERNAL_SERVER_ERROR;
 	}
 	
+	public boolean checkGroupExists(String groupId) {
+		try {
+			MicrosoftGroupMemberCollectionDto collection = getGroupMembers(groupId);
+			// If we can get members (even if empty), the group exists
+			return collection != null;
+		} catch (Exception e) {
+			log.error("Failed to check if group {} exists: {}", groupId, e.getMessage());
+			return false;
+		}
+	}
+	
 	public RoleAssignmentResponseDto assignRoleToWorkspace(String workspaceId, String groupId, String role) {
 		RoleAssignmentResponseDto responseDto = new RoleAssignmentResponseDto();
 		try {
@@ -1081,10 +1092,16 @@ public class FabricWorkspaceClient {
 						role, groupId, workspaceId, response.getStatusCode().value());
 			}
 		} catch (HttpClientErrorException.Conflict e) {
-			log.error("Failed to assign role {} to group {} for workspace {} with conflict error {}", 
-					role, groupId, workspaceId, e.getMessage());
-			responseDto.setErrorCode("409");
-			responseDto.setMessage("Role assignment already exists or conflict occurred: " + e.getMessage());
+			log.info("Role {} already assigned to group {} for workspace {} - treating as success", 
+					role, groupId, workspaceId);
+			// Return success response for duplicate assignment
+			responseDto.setErrorCode(null);
+			responseDto.setMessage(null);
+			responseDto.setRole(role);
+			PrincipalDto principal = new PrincipalDto();
+			principal.setId(groupId);
+			principal.setType("Group");
+			responseDto.setPrincipal(principal);
 		} catch (HttpClientErrorException.BadRequest e) {
 			log.error("Failed to assign role {} to group {} for workspace {} with bad request error {}", 
 					role, groupId, workspaceId, e.getMessage());
@@ -1100,6 +1117,11 @@ public class FabricWorkspaceClient {
 					role, groupId, workspaceId, e.getMessage());
 			responseDto.setErrorCode("403");
 			responseDto.setMessage("Forbidden: " + e.getMessage());
+		} catch (HttpClientErrorException.NotFound e) {
+			log.error("Failed to assign role {} to group {} for workspace {} with not found error {}", 
+					role, groupId, workspaceId, e.getMessage());
+			responseDto.setErrorCode("404");
+			responseDto.setMessage("Not found: " + e.getMessage());
 		} catch (Exception e) {
 			log.error("Failed to assign role {} to group {} for workspace {} with error {}", 
 					role, groupId, workspaceId, e.getMessage());
