@@ -238,7 +238,16 @@ const FabricWorkspaceCard = ({user, workspace, onSelectWorkspace, onEditWorkspac
             </div>
           </div>
           {(user?.id === workspace?.createdBy?.id || isFabricAdmin) &&
-            <div className={Styles.btnGrp}>
+          <div className={Styles.btnGrp}>
+              <button
+                className={'btn btn-primary'}
+                type="button"
+                onClick={() => window.open(`${Envs.FABRIC_REPORT_URL}%27${encodeURIComponent(workspace?.name)}%27`, '_blank', 'noopener,noreferrer')}
+                tooltip-data="Fabric Consumption Dashboard"
+              >
+                <i className="icon mbc-icon reportView"></i>
+                <span>Report</span>
+              </button>              
               <button
                 className={'btn btn-primary'}
                 type="button"
