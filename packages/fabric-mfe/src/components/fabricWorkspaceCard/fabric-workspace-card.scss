@@ -96,6 +96,7 @@
     display: flex;
     justify-content: flex-end;
     font-size: var(--font-size-medium);
+    padding-inline-start: 10px;
     button {
         background-color: transparent;
         border: 0;
@@ -116,6 +117,7 @@
     .statusItem {
       height: 40px;
       display: flex;
+      padding-block-start: 6px;
       .completedStatus {
         margin-bottom: 0;
         color: #0ae6ab;
