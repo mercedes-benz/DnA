@@ -84,4 +84,6 @@ public interface FabricWorkspaceService extends CommonService<FabricWorkspaceVO,
 	GenericMessage transferOwnership(FabricWorkspaceVO existingFabricWorkspace, CreatedByVO currentOwner, CreatedByVO newOwner);
 
 	ADAProjectDetailsCollectionVO searchProjects(String projectName);
+
+	FabricWorkspacesCollectionVO searchWorkspacesLov(int limit, int offset, String searchText);
 }

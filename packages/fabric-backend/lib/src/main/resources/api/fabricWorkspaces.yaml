@@ -113,6 +113,59 @@ paths:
           description: "Method not allowed"
         500:
           description: "Internal error"
+
+  /lov/fabric-workspaces/search:
+    get:
+      tags:
+        - "lovs"
+      summary: "Search workspaces by name"
+      description: "Search and filter workspaces by name or other criteria. This endpoint is specifically designed for searching workspace records."
+      operationId: "searchWorkspacesLov"
+      parameters:            
+        - name: searchText
+          in: query
+          description: Text to search workspaces by name
+          required: true
+          type: string
+        - name: offset
+          in: query
+          description: page number from which listing of workspaces should start. Offset. Example 2
+          required: false
+          type: integer
+        - name: limit
+          in: query
+          description: page size to limit the number of workspaces, Example 15
+          required: false
+          type: integer
+        - name: sortBy
+          in: query
+          description: Sort workspaces by a given variable like name, createdOn
+          required: false
+          type: string
+          enum: [name, createdOn]
+        - name: sortOrder
+          in: query
+          description: Sort solutions based on the given order, example asc,desc
+          required: false
+          type: string
+          enum: [asc,desc]
+      responses:
+        200:
+          description: "Returns search results"
+          schema:
+            $ref: "#/definitions/FabricWorkspacesCollectionVO"
+        204:
+          description: "Search complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
           
   /fabric-workspaces:
     get:
