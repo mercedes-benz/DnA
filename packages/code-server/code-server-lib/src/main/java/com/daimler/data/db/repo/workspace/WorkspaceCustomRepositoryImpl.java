@@ -922,10 +922,14 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 				+ " \"typeOfProject\": " + addQuotes(newGovFeilds.getTypeOfProject()) + ","
 				+ " \"classificationType\": " + addQuotes(newGovFeilds.getClassificationType()) + "}')\n"
 				+ "where data->'projectDetails'->>'projectName' = '" + projectName + "'";
+		log.info("update query is {}",updateQuery);
 
 		try {
+			log.info("forming query");
 			Query q = em.createNativeQuery(updateQuery);
+			log.info("query is formed and runnig execute update");
 			q.executeUpdate();
+			log.info("ran the update");
 			updateResponse.setSuccess("SUCCESS");
 			updateResponse.setErrors(new ArrayList<>());
 			updateResponse.setWarnings(new ArrayList<>());
@@ -933,6 +937,8 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 		} catch (Exception e) {
 			MessageDescription errMsg = new MessageDescription("Failed while updating the governance details.");
 			errors.add(errMsg);
+			log.info("DB update for governance exception {}",e);
+			e.printStackTrace();
 			log.error("Governance details Failed while updating the governance with Exception {} ", e.getMessage());
 		}
 		return updateResponse;
