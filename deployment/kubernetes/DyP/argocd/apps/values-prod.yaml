@@ -81,3 +81,5 @@ db:
    env: int
  - name: mb-assist
    env: int
+ - name: fc-ai-hackathon
+   env: int
