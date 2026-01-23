@@ -70,9 +70,9 @@ ingester:
   resources:
     requests:
       cpu: 250m
-      memory: 1Gi
-    limits:
       memory: 2Gi
+    limits:
+      memory: 3Gi
   wal:
     dir: /var/loki/wal
     enabled: true
@@ -172,7 +172,7 @@ minio:
   mcImage:
     repository: registry-emea.app.corpintra.net/quaycache/minio/mc
   persistence:
-    size: 1500Gi
+    size: 3000Gi
 
 memcachedExporter:
   image:
