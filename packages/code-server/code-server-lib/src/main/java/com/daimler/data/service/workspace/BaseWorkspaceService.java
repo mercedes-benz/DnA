@@ -5252,12 +5252,14 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 		responseMessage.setErrors(new ArrayList<>());
 		responseMessage.setWarnings(new ArrayList<>());
 		CreatedByVO currentUser = this.userStore.getVO();
+		String userId = currentUser != null ? currentUser.getId() : null;
 		try {
 			CodeServerUserGroupByIdVO groupData = this.getWorkSpaceGroupById(id);
 			if(groupData!=null){
 				List<CodeServerWorkspaceVO> workspaces = groupData.getWorkspaces();
 				for(CodeServerWorkspaceVO item : workspaces){
-					GenericMessage responseMsg = this.updateGovernancenceValues(currentUser.getId(),item.getId(), dataGovernanceInfo);
+					log.info("user {} is updating governance for {} with data {}",userId, item.getId(),dataGovernanceInfo);
+					GenericMessage responseMsg = this.updateGovernancenceValues(userId,item.getId(), dataGovernanceInfo);
 					if ("FAILED".equalsIgnoreCase(responseMsg.getSuccess())) {
 						responseMessage.setSuccess("FAILED");
 						return responseMessage;
