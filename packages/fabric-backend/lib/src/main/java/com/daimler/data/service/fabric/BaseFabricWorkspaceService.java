@@ -2314,4 +2314,45 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		return collection;
 	}
 
+	@Override
+	public FabricWorkspacesCollectionVO searchWorkspacesLov(int limit, int offset, String searchText) {
+		FabricWorkspacesCollectionVO collectionVO = new FabricWorkspacesCollectionVO();
+		List<FabricWorkspaceVO> vos = new ArrayList<>();
+
+		if (searchText == null || searchText.trim().isEmpty()) {
+			collectionVO.setRecords(vos);
+			collectionVO.setTotalCount(0);
+			return collectionVO;
+		}
+
+		List<FabricWorkspaceNsql> allEntities = customRepo.getAllForAdmin(0, 0, searchText);
+		
+		if (allEntities != null && !allEntities.isEmpty()) {
+			for (FabricWorkspaceNsql entity : allEntities) {
+				if (entity != null && !ConstantsUtility.DELETED_STATE.equalsIgnoreCase(entity.getData().getStatus().getState())) {
+					FabricWorkspaceVO updatedVO = assembler.toVo(entity);
+					vos.add(updatedVO);
+				}
+			}
+		}
+
+		List<FabricWorkspaceVO> paginatedVOs = new ArrayList<>();
+		int totalCount = 0;
+		
+		if (vos != null && !vos.isEmpty()) {
+			totalCount = vos.size();
+			int startIndex = offset;
+			int endIndex = Math.min(offset + limit, totalCount);
+			
+			if (startIndex < totalCount) {
+				paginatedVOs = vos.subList(startIndex, endIndex);
+			}
+		}
+		
+		collectionVO.setRecords(paginatedVOs);
+		collectionVO.setTotalCount(totalCount);
+		
+		return collectionVO;
+	}
+
 }

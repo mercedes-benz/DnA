@@ -1229,4 +1229,39 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
             return new ResponseEntity<>(collection, HttpStatus.OK);
     }
 
+	@Override
+    @ApiOperation(value = "Search workspaces by name", nickname = "searchWorkspacesLov", notes = "Search and filter workspaces by name or other criteria. This endpoint is specifically designed for searching workspace records.", response = FabricWorkspacesCollectionVO.class, tags={ "lovs", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 200, message = "Returns search results", response = FabricWorkspacesCollectionVO.class),
+        @ApiResponse(code = 204, message = "Search complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/lov/fabric-workspaces/search",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.GET)
+    public ResponseEntity<FabricWorkspacesCollectionVO> searchWorkspacesLov(@NotNull @ApiParam(value = "Text to search workspaces by name", required = true) @Valid @RequestParam(value = "searchText", required = true) String searchText,@ApiParam(value = "page number from which listing of workspaces should start. Offset. Example 2") @Valid @RequestParam(value = "offset", required = false) Integer offset,@ApiParam(value = "page size to limit the number of workspaces, Example 15") @Valid @RequestParam(value = "limit", required = false) Integer limit,@ApiParam(value = "Sort workspaces by a given variable like name, createdOn", allowableValues = "name, createdOn") @Valid @RequestParam(value = "sortBy", required = false) String sortBy,@ApiParam(value = "Sort solutions based on the given order, example asc,desc", allowableValues = "asc, desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder) {
+		
+		FabricWorkspacesCollectionVO collection = new FabricWorkspacesCollectionVO();
+		int defaultLimit = 15;
+		if (offset == null || offset < 0)
+			offset = 0;
+		if (limit == null || limit < 0) {
+			limit = defaultLimit;
+		}
+
+		if (searchText == null || searchText.trim().isEmpty()) {
+			return new ResponseEntity<>(collection, HttpStatus.BAD_REQUEST);
+		}
+		collection = service.searchWorkspacesLov(limit, offset, searchText);
+		HttpStatus responseCode = collection.getRecords() != null && !collection.getRecords().isEmpty() 
+			? HttpStatus.OK 
+			: HttpStatus.NO_CONTENT;
+		
+		return new ResponseEntity<>(collection, responseCode);
+	}
+
 }
