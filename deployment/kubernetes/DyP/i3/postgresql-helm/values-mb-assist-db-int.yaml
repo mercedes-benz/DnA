@@ -469,7 +469,7 @@ antiAffinity:
   enabled: true
 
 podDisruptionBudget:
-  enabled: true
+  enabled: false
   maxUnavailable: "50%"
 
 terminationGracePeriodSeconds: 300
