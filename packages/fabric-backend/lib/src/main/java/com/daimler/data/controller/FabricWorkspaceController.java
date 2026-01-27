@@ -1262,6 +1262,8 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 			offset = 0;
 		if (limit == null || limit < 0) {
 			limit = defaultLimit;
+		} else if (limit == 0) {
+			limit = Integer.MAX_VALUE; 
 		}
 
 		if (searchText == null || searchText.trim().isEmpty()) {
