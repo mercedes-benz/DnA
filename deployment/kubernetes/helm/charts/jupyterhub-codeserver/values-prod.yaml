@@ -661,7 +661,7 @@ scheduling:
   userScheduler:
     enabled: true
     revisionHistoryLimit:
-    replicas: 2
+    replicas: 4
     logLevel: 4
     # plugins are configured on the user-scheduler to make us score how we
     # schedule user pods in a way to help us schedule on the most busy node. By
