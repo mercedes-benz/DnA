@@ -549,9 +549,9 @@ singleuser:
       mode: 0777
       stringData: |
           ## Cleanup
-          export CS_MINIO_ENDPOINT=""
-          export CS_MINIO_KEY=""
-          export CS_MINIO_SECRET=""
+          # export CS_MINIO_ENDPOINT=""
+          # export CS_MINIO_KEY=""
+          # export CS_MINIO_SECRET=""
           export PATH=$PATH:$HOME/bin:/home/coder/.local/bin
     init.sh:
       mountPath: /home/coder/entrypoint.d/init.sh
@@ -584,9 +584,9 @@ singleuser:
                 ./pkg-install.sh
                 
                 # Copy extensions
-                mc --insecure alias set myminio $CS_MINIO_ENDPOINT $CS_MINIO_KEY $CS_MINIO_SECRET
-                mc --insecure cp --recursive myminio/code-server/tools/extension /home/coder/
-                mc alias remove myminio
+                # mc --insecure alias set myminio $CS_MINIO_ENDPOINT $CS_MINIO_KEY $CS_MINIO_SECRET
+                # mc --insecure cp --recursive myminio/code-server/tools/extension /home/coder/
+                # mc alias remove myminio
                 
               
           fi 
