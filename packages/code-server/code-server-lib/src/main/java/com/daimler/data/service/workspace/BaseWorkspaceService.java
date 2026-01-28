@@ -5472,13 +5472,13 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 		}
 
 		String currentStatus = dto.getStatus();
-		/* 1️⃣ Terminal states → return directly */
+		/* Terminal states → return directly */
 		if (isTerminalStatus(currentStatus)) {
 			statusVo.setStatus(currentStatus);
 			return vo;
 		}
 
-		/* 2️⃣ Requested states → call GitHub */
+		/* Requested states → call GitHub */
 		if (isRequestedStatus(currentStatus)) {
 			GitHubWorkflowRunDto run = gitClient.getWorkflowRun(dto.getGitjobRunId());
 			if (run == null) {
@@ -5491,7 +5491,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 				return vo;
 			}
 
-			/* 3️⃣ Completed */
+			/* Completed */
 			// status = "completed"
 			// conclusion = "success"
 			// conclusion = failure | cancelled | timed_out | skipped | neutral | action_required
