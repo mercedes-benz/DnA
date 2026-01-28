@@ -549,9 +549,9 @@ singleuser:
       mode: 0777
       stringData: |
           ## Cleanup
-          export CS_MINIO_ENDPOINT=""
-          export CS_MINIO_KEY=""
-          export CS_MINIO_SECRET=""
+          # export CS_MINIO_ENDPOINT=""
+          # export CS_MINIO_KEY=""
+          # export CS_MINIO_SECRET=""
           export PATH=$PATH:$HOME/bin:/home/coder/.local/bin
     init.sh:
       mountPath: /home/coder/entrypoint.d/init.sh
@@ -584,9 +584,9 @@ singleuser:
                 ./pkg-install.sh
                 
                 # Copy extensions
-                mc --insecure alias set myminio $CS_MINIO_ENDPOINT $CS_MINIO_KEY $CS_MINIO_SECRET
-                mc --insecure cp --recursive myminio/code-server/tools/extension /home/coder/
-                mc alias remove myminio
+                # mc --insecure alias set myminio $CS_MINIO_ENDPOINT $CS_MINIO_KEY $CS_MINIO_SECRET
+                # mc --insecure cp --recursive myminio/code-server/tools/extension /home/coder/
+                # mc alias remove myminio
                 
               
           fi 
@@ -600,9 +600,9 @@ singleuser:
     NO_PROXY : 53.0.0.0/8,10.0.0.0/8,192.168.0.0/16,corpshared.net,corpintra.net,cluster.local,git.daimler.com,login.daimler.com,sso.daimler.com,matter.i.mercedes-benz.com,git.i.mercedes-benz.com,artifacts.i.mercedes-benz.com,localhost,127.0.0.1
     no_proxy : 53.0.0.0/8,10.0.0.0/8,192.168.0.0/16,corpshared.net,corpintra.net,cluster.local,git.daimler.com,login.daimler.com,sso.daimler.com,matter.i.mercedes-benz.com,git.i.mercedes-benz.com,artifacts.i.mercedes-benz.com,localhost,127.0.0.1
     ENTRYPOINTD : /home/coder/entrypoint.d    
-    CS_MINIO_ENDPOINT: <path:dna_aws_kv/data/prod/kubernetesSecret/jupyterhub-codeserver#minio_endpoint> 
-    CS_MINIO_KEY: <path:dna_aws_kv/data/prod/kubernetesSecret/jupyterhub-codeserver#minio_key>
-    CS_MINIO_SECRET: <path:dna_aws_kv/data/prod/kubernetesSecret/jupyterhub-codeserver#minio_secret>    
+    # CS_MINIO_ENDPOINT: <path:dna_aws_kv/data/prod/kubernetesSecret/jupyterhub-codeserver#minio_endpoint> 
+    # CS_MINIO_KEY: <path:dna_aws_kv/data/prod/kubernetesSecret/jupyterhub-codeserver#minio_key>
+    # CS_MINIO_SECRET: <path:dna_aws_kv/data/prod/kubernetesSecret/jupyterhub-codeserver#minio_secret>    
     EXTENSIONS_GALLERY: '{{"serviceUrl":"https://marketplace.visualstudio.com/_apis/public/gallery","itemUrl":"https://marketplace.visualstudio.com/items"}}'                
   lifecycleHooks: {}
   initContainers: []
