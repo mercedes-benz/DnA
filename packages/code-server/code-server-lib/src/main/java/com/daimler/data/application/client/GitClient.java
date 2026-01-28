@@ -83,14 +83,14 @@ public class GitClient {
 		return headers;
 	}
 
-	public HttpStatus createRepo(String applicationName, String repoName, String recipeName, String gitBaseUrl, String pat) {
+	public HttpStatus createRepo(String applicationName, String repoName, String recipeName) {
 		try {
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/vnd.github+json");
 			headers.set("Content-Type", "application/json");
-			headers.set("Authorization", "token " + pat);
+			headers.set("Authorization", "token " + personalAccessToken);
 
-			String url = gitBaseUrl + "/repos/" + applicationName + "/" + recipeName + "/generate";
+			String url = gitBaseUri + "/repos/" + applicationName + "/" + recipeName + "/generate";
 			String requestJsonString = "{\"owner\":\"" + gitOrgName + "\",\"name\":\"" + repoName
 					+ "\",\"description\":\"" + recipeName
 					+ " Repository creation from DnA\",\"private\":true,\"include_all_branches\":false }";
@@ -229,44 +229,6 @@ public class GitClient {
 		return HttpStatus.INTERNAL_SERVER_ERROR;
 	}
 
-	public HttpStatus addUserToRepo(String username, String repoName, String gitBaseUrl, String orgName, String pat) {
-		try {
-			String baseUrl = gitBaseUrl;
-			if (!baseUrl.endsWith("/")) {
-				baseUrl += "/";
-			}
-
-			HttpHeaders headers = new HttpHeaders();
-			headers.set("Accept", "application/json");
-			headers.set("Content-Type", "application/json");
-			headers.set("Authorization", "token " + pat);
-			
-			String url = baseUrl + "api/v3/repos/" + orgName + "/" + repoName + "/collaborators/" + username;
-			log.info("Adding user {} as collaborator to repo {}/{} at URL: {}", username, orgName, repoName, url);
-			
-			HttpEntity entity = new HttpEntity<>(headers);
-			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.PUT, entity, String.class);
-			if (response != null && response.getStatusCode() != null) {
-				log.info("Completed adding user {} as collaborator to git repo {}/{} with status {}", 
-						username, orgName, repoName, response.getStatusCode());
-				return response.getStatusCode();
-			}
-		} catch (HttpClientErrorException e) {
-			if (e.getStatusCode().value() == 422) {
-				log.error("Caught 422 Unprocessable Entity error while adding {} to {}/{}: {}", 
-						username, orgName, repoName, e.getResponseBodyAsString());
-				return HttpStatus.UNPROCESSABLE_ENTITY;
-			} else {
-				log.error("HTTP client error while adding {} to {}/{}: status={}, response={}", 
-						username, orgName, repoName, e.getStatusCode(), e.getResponseBodyAsString());
-				return e.getStatusCode();
-			}
-		} catch (Exception e) {
-			log.error("Error occurred while adding collaborator {} to git repo {}/{} with exception {}", 
-					username, orgName, repoName, e.getMessage());
-		}
-		return HttpStatus.INTERNAL_SERVER_ERROR;
-	}
 
 	public HttpStatus validateGitUser(String gitBaseUrl,String repoName, String applicationName) {
 		try {
@@ -620,44 +582,6 @@ public class GitClient {
 		}
 		return isAdmin;
 		
-	}
-
-	public Boolean isUserAdmin(String orgName, String username, String repoName, String gitBaseUrl, String pat) {
-		Boolean isAdmin = false;
-		try {
-			String baseUrl = gitBaseUrl;
-			if (!baseUrl.endsWith("/")) {
-				baseUrl += "/";
-			}
-
-			HttpHeaders headers = new HttpHeaders();
-			headers.set("Accept", "application/json");
-			headers.set("Content-Type", "application/json");
-			headers.set("Authorization", "token " + pat);
-			
-			String url = baseUrl + "api/v3/repos/" + orgName + "/" + repoName + "/collaborators/" + username + "/permission";
-			log.info("Checking if user {} is admin for repo {}/{} at URL: {}", username, orgName, repoName, url);
-			
-			HttpEntity entity = new HttpEntity<>(headers);
-			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
-			if (response != null && response.getStatusCode() != null) {
-				if (response.getStatusCode().is2xxSuccessful()) {
-					String responseBody = response.getBody();
-					JSONObject jsonResponse = new JSONObject(responseBody);
-					if (jsonResponse != null && jsonResponse.has("permission")) {
-						log.info("Completed checking user {} as admin for git repo {}/{}.", username, orgName, repoName);
-						String permission = jsonResponse.get("permission").toString();
-						if ("admin".equalsIgnoreCase(permission)) {
-							isAdmin = true;
-						}
-					}
-				}
-			}
-		} catch (Exception e) {
-			log.error("Error occurred while checking admin {} for git repo {}/{} with exception {}", 
-					username, orgName, repoName, e.getMessage());
-		}
-		return isAdmin;
 	}
 
 	public JSONObject getFileContent(String repoName, String repoOwner, String gitUrl, String folderPath, String fileName, String branch) throws Exception {
