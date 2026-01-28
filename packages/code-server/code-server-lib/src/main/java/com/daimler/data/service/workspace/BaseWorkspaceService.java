@@ -28,7 +28,9 @@
  package com.daimler.data.service.workspace;
 
  import java.text.SimpleDateFormat;
- import java.util.ArrayList;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.ArrayList;
  import java.util.Arrays;
  import java.util.Date;
  import java.util.HashMap;
@@ -92,8 +94,10 @@
  import com.daimler.data.dto.CodespaceSecurityConfigDto;
  import com.daimler.data.dto.DeploymentManageDto;
  import com.daimler.data.dto.DeploymentManageInputDto;
- import com.daimler.data.dto.GitLatestCommitIdDto;
- import com.daimler.data.dto.WorkbenchManageDto;
+import com.daimler.data.dto.GitHubWorkflowRunDto;
+import com.daimler.data.dto.GitLatestCommitIdDto;
+import com.daimler.data.dto.GitRunIdDetailsDto;
+import com.daimler.data.dto.WorkbenchManageDto;
  import com.daimler.data.dto.WorkbenchManageInputDto;
  import com.daimler.data.dto.solution.ChangeLogVO;
  import com.daimler.data.dto.userinfo.UsersCollection;
@@ -109,7 +113,9 @@
  import com.daimler.data.dto.workspace.CreatedByVO;
  import com.daimler.data.dto.workspace.DataGovernanceRequestInfo;
  import com.daimler.data.dto.workspace.DeployedAppConfigDto;
- import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
+import com.daimler.data.dto.workspace.GitJobRunIdStatusVO;
+import com.daimler.data.dto.workspace.GitJobStatusVO;
+import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
  import com.daimler.data.dto.workspace.ResourceVO;
  import com.daimler.data.dto.workspace.UpdateUserGroupRequestVO;
  import com.daimler.data.dto.workspace.UserInfoVO;
@@ -5093,7 +5099,123 @@
 		}
 	}
 
-	
+
+	@Override
+	@Transactional
+	public GitJobRunIdStatusVO getGitRunIdStatus(String projectName) {
+
+		GitJobRunIdStatusVO vo = new GitJobRunIdStatusVO();
+		GitJobStatusVO statusVo = new GitJobStatusVO();
+		vo.setData(statusVo);
+		GitRunIdDetailsDto dto = workspaceCustomRepository.getGitRunId(projectName);
+		if (dto == null || dto.getStatus() == null) {
+			return vo;
+		}
+
+		String currentStatus = dto.getStatus();
+		/* 1️⃣ Terminal states → return directly */
+		if (isTerminalStatus(currentStatus)) {
+			statusVo.setStatus(currentStatus);
+			return vo;
+		}
+
+		/* 2️⃣ Requested states → call GitHub */
+		if (isRequestedStatus(currentStatus)) {
+			GitHubWorkflowRunDto run = gitClient.getWorkflowRun(dto.getGitjobRunId());
+			if (run == null) {
+				MessageDescription warning = new MessageDescription();
+					warning.setMessage(
+							"Failed to fetch GitHub workflow run details for Job Run ID: " + dto.getGitjobRunId()
+					);
+
+					vo.setWarnings(List.of(warning));
+				return vo;
+			}
+
+			/* 3️⃣ Completed */
+			// status = "completed"
+			// conclusion = "success"
+			// conclusion = failure | cancelled | timed_out | skipped | neutral | action_required
+			if ("completed".equalsIgnoreCase(run.getStatus()) && run.getConclusion() != null) {
+				String finalStatus = resolveFinalStatus(
+						currentStatus,
+						run.getConclusion()
+				);
+
+				boolean statusUpdated =workspaceCustomRepository.updateGitRunIdStatus(
+										projectName,
+										finalStatus,
+										dto.getEnvironment()
+								);
+
+				boolean auditUpdated =
+					workspaceCustomRepository.updateBuildDeployAuditStatus(
+										projectName,
+										finalStatus,
+										dto.getEnvironment(),
+										dto.getGitjobRunId()
+								);
+
+				if (!statusUpdated || !auditUpdated) {
+					MessageDescription error = new MessageDescription();
+					error.setMessage("Failed to persist Git build/deploy status");
+					vo.setErrors(List.of(error));
+					return vo;
+				}
+				statusVo.setStatus(finalStatus);
+			}
+			else {
+				// status = queued | in_progress
+				// conclusion = null
+
+				statusVo.setStatus(null);
+
+				MessageDescription warning = new MessageDescription();
+				warning.setMessage(
+					"GitHub workflow is not completed yet. " +
+					"Status=" + run.getStatus() +
+					", Conclusion=" + run.getConclusion()
+				);
+
+				vo.setWarnings(List.of(warning));
+			}
+
+		}
+
+		return vo;
+	}
+
+
+	private boolean isTerminalStatus(String status) {
+		return Set.of(
+			"DEPLOYED",
+			"BUILD_SUCCESS",
+			"DEPLOY_FAILED",
+			"BUILD_FAILED"
+		).contains(status);
+	}
+
+	private boolean isRequestedStatus(String status) {
+		return Set.of(
+			"DEPLOY_REQUESTED",
+			"BUILD_REQUESTED"
+		).contains(status);
+	}
+
+	private String resolveFinalStatus(String requestedStatus, String conclusion) {
+
+		boolean success = "success".equalsIgnoreCase(conclusion);
+
+		if ("BUILD_REQUESTED".equalsIgnoreCase(requestedStatus)) {
+			return success ? "BUILD_SUCCESS" : "BUILD_FAILED";
+		}
+
+		if ("DEPLOY_REQUESTED".equalsIgnoreCase(requestedStatus)) {
+			return success ? "DEPLOYED" : "DEPLOY_FAILED";
+		}
+
+		return requestedStatus;
+	}
 
 	
 }
