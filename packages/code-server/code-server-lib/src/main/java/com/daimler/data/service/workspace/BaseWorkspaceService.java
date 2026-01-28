@@ -63,6 +63,7 @@
  import com.daimler.data.assembler.WorkspaceAssembler;
  import com.daimler.data.auth.client.AuthenticatorClient;
  import com.daimler.data.auth.client.DnaAuthClient;
+ import com.daimler.data.service.ArgoCdService;
  import com.daimler.data.controller.exceptions.GenericMessage;
  import com.daimler.data.controller.exceptions.MessageDescription;
  import com.daimler.data.db.entities.CodeServerBuildDeployNsql;
@@ -230,8 +231,11 @@
 	 @Autowired
 	 private WorkspaceCustomBuildDeployRepo buildDeployCustomRepo;
 
+	 @Autowired
+	 private ArgoCdService argoCdService;
+
 	 @Value("${codeServer.build.retainedlimit}")
-     private String retainedBuildLimitValue;
+     private String retainedBuildLimitValue;  
  
   
 	 public BaseWorkspaceService() {
@@ -1831,15 +1835,31 @@
 				 }
 				 String workspaceOwnerWsId = entity.getData().getWorkspaceId();
 				 //String projectOwnerWsId = ownerEntity.getData().getWorkspaceId();
-				 deployJobInputDto.setWsid(workspaceOwnerWsId);
-				 deployJobInputDto.setProjectName(projectName.toLowerCase());
-				 deployJobInputDto.setValutInjectorEnable(isValutInjectorEnable);
-				 deploymentJobDto.setInputs(deployJobInputDto);
-				 deploymentJobDto.setRef(codeServerEnvRef);
-				 GenericMessage jobResponse = client.manageDeployment(deploymentJobDto);
-				 if (jobResponse != null && "SUCCESS".equalsIgnoreCase(jobResponse.getSuccess())) {
-					 
-					
+                deployJobInputDto.setWsid(workspaceOwnerWsId);
+                deployJobInputDto.setProjectName(projectName.toLowerCase());
+                deployJobInputDto.setValutInjectorEnable(isValutInjectorEnable);
+                deploymentJobDto.setInputs(deployJobInputDto);
+                deploymentJobDto.setRef(codeServerEnvRef);
+                
+                String argoToken = argoCdService.getArgoToken();
+                String argoDeployResult = "failed";
+                if (argoToken != null) {
+                    String gitRepoUrl;
+                    if (isprivateRecipe) {
+                        gitRepoUrl = repoUrl;
+                    } else {
+                        gitRepoUrl = "https://" + gitOrgUri + gitOrgName + "/" + repoName + ".git";
+                    }
+                    
+                    String imageTag = environment + "-" + (version != null && !version.isEmpty() ? "v" + version : "latest");
+                    
+                    argoDeployResult = argoCdService.createArgoApp(argoToken, projectName.toLowerCase(), workspaceOwner, 
+                                                                    environment, gitRepoUrl, imageTag, isValutInjectorEnable);
+                } else {
+                    log.error("Failed to get ArgoCD token for deployment: {}-{}", projectName, environment);
+                }                GenericMessage jobResponse = new GenericMessage();
+                if ("success".equalsIgnoreCase(argoDeployResult)) {
+                    jobResponse.setSuccess("SUCCESS");					
 					 List<DeploymentAudit> auditLogs = new ArrayList<>();
 					CodeServerBuildDeployNsql optionalBuildDeployentity =  buildDeployCustomRepo.findByProjectName(projectName);	
 					if(optionalBuildDeployentity != null){
@@ -3921,8 +3941,33 @@
 				deployJobInputDto.setValutInjectorEnable(isValutInjectorEnable);
 				deploymentJobDto.setInputs(deployJobInputDto);
 				deploymentJobDto.setRef(codeServerEnvRef);
-				GenericMessage jobResponse = client.manageDeployment(deploymentJobDto);
-				if (jobResponse != null && "SUCCESS".equalsIgnoreCase(jobResponse.getSuccess())) {
+				
+				String argoToken = argoCdService.getArgoToken();
+				String argoRestartResult = "failed";
+				if (argoToken != null) {
+					String gitRepoUrl = "https://" + gitOrgUri + gitOrgName + "/" + entity.getData().getProjectDetails().getGitRepoName() + ".git";
+					
+					CodeServerDeploymentDetails deployDetails = "int".equalsIgnoreCase(env) 
+						? entity.getData().getProjectDetails().getIntDeploymentDetails()
+						: entity.getData().getProjectDetails().getProdDeploymentDetails();
+					String imageTag = (deployDetails != null && deployDetails.getLastDeployedVersion() != null && !deployDetails.getLastDeployedVersion().isEmpty())
+						? env + "-v" + deployDetails.getLastDeployedVersion()
+						: env + "-latest";
+					
+					String deleteResult = argoCdService.deleteArgoApp(argoToken, projectName.toLowerCase(), env);
+					if ("success".equalsIgnoreCase(deleteResult) || "not_found".equalsIgnoreCase(deleteResult)) {
+						argoRestartResult = argoCdService.createArgoApp(argoToken, projectName.toLowerCase(), projectOwner, 
+						                                                env, gitRepoUrl, imageTag, isValutInjectorEnable);
+					} else {
+						log.error("Failed to delete ArgoCD app during restart: {}-{}", projectName, env);
+					}
+				} else {
+					log.error("Failed to get ArgoCD token for restart: {}-{}", projectName, env);
+				}
+				
+				GenericMessage jobResponse = new GenericMessage();
+				if ("success".equalsIgnoreCase(argoRestartResult)) {
+					jobResponse.setSuccess("SUCCESS");
 					// String environmentJsonbName = "intDeploymentDetails";
 					// CodeServerDeploymentDetails deploymentDetails = entity.getData().getProjectDetails()
 					// 		.getIntDeploymentDetails();

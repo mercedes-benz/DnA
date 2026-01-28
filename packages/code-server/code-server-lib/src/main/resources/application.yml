@@ -227,3 +227,12 @@ workspace:
   callKongApisFromBackend: ${CALL_KONG_APIS_FROM_BACKEND:XXXX}
   logs:
       migrate: ${WORKSPACE_LOGS_MIGRATE:YOUR_MIGRATE_BOOLEAN}
+
+argocd:
+  argocdTokenUrl: ${ARGOCD_TOKEN_URL:XXXX}
+  argocdCreateUrl: ${ARGOCD_CREATE_URL:XXXX}
+  createProjectName: ${ARGOCD_PROJECT_NAME:XXXX}
+  tokenUserName: ${ARGOCD_USERNAME:XXXX}
+  tokenPassword: ${ARGOCD_PASSWORD:XXXX}
+  imageRegistry: ${ARGOCD_IMAGE_REGISTRY:XXXX}
+  vaultKvPath: ${ARGOCD_VAULT_KV_PATH:XXXX}
