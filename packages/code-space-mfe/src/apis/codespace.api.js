@@ -448,6 +448,12 @@ const deleteAiWorkspaces = (id) => {
     });
 };
 
+const editAiWorkspaces = (id, data) => {
+    return server.patch(`/workspaces/aiagent/${id}`,
+        data,
+    );
+};
+
 export const CodeSpaceApiClient = {
     getCodeSpacesList,
     createCodeSpace,
@@ -522,4 +528,5 @@ export const CodeSpaceApiClient = {
     getAiAgentGroups,
     initializeAiWorkflowSpace,
     deleteAiWorkspaces,
+    editAiWorkspaces,
 };

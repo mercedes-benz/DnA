@@ -691,6 +691,7 @@ const AllCodeSpaces = (props) => {
                                 onShowCodeSpacesModal={(show, group) => { setShowCodespacesModal(show); setSelectedCodeSpaceGroup(group);  }}
                                 onShowCodeSpaceGroupModal={(show) => { setSelectedCodeSpaceGroup(group); setShowEditCodespaceGroupModal(show); }}
                                 onCodeSpaceGroupDeleteModal={(show, group) => { setSelectedCodeSpaceGroup(group); setShowDeleteCodespaceGroupModal(show); }}
+                                onCodeSpaceGroupEditModal={() => {}}
                                 onCodeSpaceDropped={() => { getCodeSpaceGroupsData(); getCodeSpacesData();}}
                                 onStartStopCodeSpace={onStartStopCodeSpace}
                                 onShowDeployModal={onCodeSpaceDeploy}

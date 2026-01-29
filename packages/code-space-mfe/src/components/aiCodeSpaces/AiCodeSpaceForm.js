@@ -18,46 +18,47 @@ import { Envs } from '../../Utility/envs';
 const classNames = cn.bind(Styles);
 
 const AiCodeSpaceForm = (props) => {
-  console.log(props?.user);
+
+  const projectDetails = props?.group?.workspaces[0]?.projectDetails;
   const [divisions, setDivisions] = useState([]);
   const [subDivisions, setSubDivisions] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [dataClassificationDropdown, setDataClassificationDropdown] = useState([]);
 
-  const [projectName, setProjectName] = useState('');
+  const [projectName, setProjectName] = useState(projectDetails?.projectName || '');
   const [projectNameError, setProjectNameError] = useState('');
 
   const [environment, setEnvironment] = useState('DHC-CaaS-AWS');
 
-  const [typeOfProject, setTypeOfProject] = useState('0');
+  const [typeOfProject, setTypeOfProject] = useState(projectDetails?.dataGovernance?.typeOfProject || '0');
   const [typeOfProjectError, setTypeOfProjectError] = useState('');
   const isPlayground = typeOfProject === 'Playground';
 
-  const [description, setDescription] = useState('');
+  const [description, setDescription] = useState(projectDetails?.dataGovernance?.description || '');
   const [descriptionError, setDescriptionError] = useState('');
 
-  const [division, setDivision] = useState('0');
+  const [division, setDivision] = useState(projectDetails?.dataGovernance?.division ? projectDetails?.dataGovernance?.divisionId+'@-@'+projectDetails?.dataGovernance?.division : '0');
   const [divisionError, setDivisionError] = useState('');
 
-  const [subDivision, setSubDivision] = useState('0');
+  const [subDivision, setSubDivision] = useState(projectDetails?.dataGovernance?.subDivision ? projectDetails?.dataGovernance?.subDivisionId+'@-@'+projectDetails?.dataGovernance?.subDivision : '0');
 
-  const [department, setDepartment] = useState([]);
+  const [department, setDepartment] = useState(props?.isEdit && projectDetails?.dataGovernance?.department ? [projectDetails?.dataGovernance?.department] : []);
   const [departmentError, setDepartmentError] = useState(false);
 
-  const [classificationType, setClassificationType] = useState('0');
+  const [classificationType, setClassificationType] = useState(projectDetails?.dataGovernance?.classificationType || '0');
   const [classificationTypeError, setClassificationTypeError] = useState('');
 
-  const [PII, setPII] = useState(false);
+  const [PII, setPII] = useState(projectDetails?.dataGovernance?.piiData || false);
 
   // const tags = [];
 
-  const [archerId, setArcherId] = useState('');
+  const [archerId, setArcherId] = useState(projectDetails?.dataGovernance?.archerId || '');
   const [archerIdError, setArcherIdError] = useState('');
 
-  const [procedureID, setProcedureID] = useState('');
+  const [procedureID, setProcedureID] = useState(projectDetails?.dataGovernance?.procedureID || '');
   const [procedureIDError, setProcedureIDError] = useState('');
 
-  const [enableDeployApproval, setEnableDeployApproval] = useState(false);
+  const [enableDeployApproval, setEnableDeployApproval] = useState(projectDetails?.dataGovernance?.enableDeployApproval || false);
 
   const [modelSource, setModelSource] = useState('Azure');
   const [modelSourceError, setModelSourceError] = useState('');
@@ -85,8 +86,8 @@ const AiCodeSpaceForm = (props) => {
         setDataClassificationDropdown(response[0]?.data.data || []);
         setDivisions(response[1]?.data || []);
         setDepartments(response[2]?.data.data || []);
-        // onEditingMode && setDivision(projectDetails?.dataGovernance?.division ? projectDetails?.dataGovernance?.divisionId + '@-@' + projectDetails?.dataGovernance?.division : '0');
-        // onEditingMode && setClassificationType(projectDetails?.dataGovernance?.classificationType ? projectDetails?.dataGovernance?.classificationType : '0');
+        props?.isEdit && setDivision(projectDetails?.dataGovernance?.division ? projectDetails?.dataGovernance?.divisionId + '@-@' + projectDetails?.dataGovernance?.division : '0');
+        props?.isEdit && setClassificationType(projectDetails?.dataGovernance?.classificationType ? projectDetails?.dataGovernance?.classificationType : '0');
         SelectBox.defaultSetup();
       })
       .catch((err) => {
@@ -111,7 +112,7 @@ const AiCodeSpaceForm = (props) => {
         .get('/subdivisions/' + divId)
         .then((res) => {
           setSubDivisions(res?.data || []);
-          // onEditingMode && setSubDivision(projectDetails?.dataGovernance?.subDivision ? projectDetails?.dataGovernance?.subDivisionId + '@-@' + projectDetails?.dataGovernance?.subDivision : '0');
+          props?.isEdit && setSubDivision(projectDetails?.dataGovernance?.subDivision ? projectDetails?.dataGovernance?.subDivisionId + '@-@' + projectDetails?.dataGovernance?.subDivision : '0');
           SelectBox.defaultSetup();
           ProgressIndicator.hide();
         })
@@ -207,6 +208,62 @@ const AiCodeSpaceForm = (props) => {
   const onModelSourceChange = (e) => {
     const selectedOption = e.currentTarget.value;
     setModelSource(selectedOption);
+  };
+
+  const onEditAgent = () => {
+    let formValid = true;
+    if (typeOfProject === '0') {
+      setTypeOfProjectError(requiredError);
+      formValid = false;
+    }
+    if (!description.length) {
+      setDescriptionError(requiredError);
+      formValid = false;
+    }
+    if (!isPlayground && division === '0') {
+      setDivisionError(requiredError);
+      formValid = false;
+    }
+    if (!department.length) {
+      setDepartmentError(true);
+      formValid = false;
+    }
+    if (!isPlayground && classificationType === '0') {
+      setClassificationTypeError(requiredError);
+      formValid = false;
+    }
+    if(formValid){
+      const editCodeSpaceRequest = {
+        data: {
+          typeOfProject: typeOfProject,
+          description: description,
+          divisionId: division.split('@-@')[0],
+          division: division.split('@-@')[1],
+          subDivisionId: subDivision.split('@-@')[0],
+          subDivision: subDivision.split('@-@')[1],
+          department: department[0],
+          classificationType: classificationType,
+          tags: [],
+          piiData: PII,
+          archerId: archerId,
+          procedureID: procedureID,
+          enableDeployApproval: enableDeployApproval,
+        },
+      };
+      ProgressIndicator.show();
+      CodeSpaceApiClient.editAiWorkspaces(props?.group?.groupId, editCodeSpaceRequest)
+      .then(() => {
+        Notification.show('AI Agent group updated successfully.');
+        ProgressIndicator.hide();
+        props?.onUpdateGroupComplete();
+    
+        })
+        .catch((err) => {
+          ProgressIndicator.hide();
+          Notification.show('Error in updating AI Agent group. Please try again later.\n' + err.message, 'alert');
+
+        });
+    }
   };
 
   const onCreateAgent = () => {
@@ -369,10 +426,10 @@ const AiCodeSpaceForm = (props) => {
   };
 
   return (
-    //before aiCodeSpacePanel add onboard and below panel there is not edit condition
     <React.Fragment>
-      <div className={classNames(Styles.mainPanel)}>
-        <div className={classNames(Styles.wrapper)}>
+      <div className={classNames(props?.isEdit ? Styles.newWorkSpacePanel : Styles.mainPanel)}>
+        <div className={classNames(props?.isEdit ? '' : Styles.wrapper)}>
+          {!props?.isEdit && (
           <div className={classNames(Styles.caption)}>
             <div>
               <button className={classNames('btn btn-text back arrow')} type="submit" onClick={goback}>
@@ -380,12 +437,17 @@ const AiCodeSpaceForm = (props) => {
               </button>
               <h3>New AI Agent Code Space</h3>
             </div>
-          </div>
-          <div className={classNames(Styles.content)}>
-            <div className={Styles.aiFormContent}>
-              <span className={classNames('label')}>
+          </div>)}
+          <div className={classNames(props?.isEdit ? '' : Styles.content)}>
+            <div className={props?.isEdit ? '' : Styles.aiFormContent}>
+              { props?.isEdit ? (<>
+              <div className={Styles.editicon}>
+                <i className="icon mbc-icon edit small " />
+              </div>
+              <h3>Edit Lean Governance</h3>
+            </>) : (<span className={classNames('label')}>
                 <p className={Styles.contentHeader}>Lean Governance Fields</p>
-              </span>
+              </span>)}
               <div className={Styles.flexLayout}>
                 <div>
                   <TextBox
@@ -399,6 +461,7 @@ const AiCodeSpaceForm = (props) => {
                     required={true}
                     maxLength={39}
                     onChange={onProjectNameOnChange}
+                    readOnly={props?.isEdit}
                   />
                 </div>
                 <div className={Styles.flexLayout}>
@@ -785,7 +848,7 @@ const AiCodeSpaceForm = (props) => {
               </div>
             </div>
           </div>
-          <div className={classNames(Styles.content)}>
+          {!props?.isEdit && (<div className={classNames(Styles.content)}>
             <div className={Styles.aiFormContent}>
               <span className={classNames('label')}>
                 <p className={Styles.contentHeader}>a2a Agentic Recipe Config</p>
@@ -874,8 +937,8 @@ const AiCodeSpaceForm = (props) => {
                 </div>
               </div>)}
             </div>
-          </div>
-          <div className={classNames(Styles.content)}>
+          </div>)}
+          {!props?.isEdit && (<div className={classNames(Styles.content)}>
             <div className={Styles.aiFormContent}>
               <span className={classNames('label')}>
                 <p className={Styles.contentHeader}>FCOS Agentic UI Config</p>
@@ -923,14 +986,14 @@ const AiCodeSpaceForm = (props) => {
                 </div>
               </div>
             </div>
-          </div>
+          </div>)}
           <div className={Styles.createBtn}>
             <button
               className={'btn btn-tertiary'}
               type="button"
-              onClick={onCreateAgent}
+              onClick={props?.isEdit ? onEditAgent : onCreateAgent}
             >
-              <span>Create AI Agent</span>
+              <span>{props?.isEdit ? 'Update AI Agent' : 'Create AI Agent'}</span>
             </button>
           </div>
         </div>
