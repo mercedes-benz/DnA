@@ -508,10 +508,8 @@ public class CodeServerClient {
 			headers.set("Authorization", "Bearer " + personalAccessToken);
 			HttpEntity<DeploymentManageDto> entity = new HttpEntity<DeploymentManageDto>(deployDto,headers);
 			ResponseEntity<String> manageDeploymentResponse = restTemplate.exchange(codeServerGitJobDeployUri, HttpMethod.POST, entity, String.class);
-			log.info(manageDeploymentResponse.toString()+"---------------------------");
 			if (manageDeploymentResponse != null && manageDeploymentResponse.getStatusCode()!=null) {
 				if(manageDeploymentResponse.getStatusCode().equals(HttpStatus.valueOf(204))) {
-					log.info(manageDeploymentResponse.getBody()+"*******************");
 					status = "SUCCESS";
 					log.info("Success while performing {} action for codeServer workbench for wsid {} with repo {} ", deployDto.getInputs().getAction(), deployDto.getInputs().getWsid(),deployDto.getInputs().getRepo());
 				}

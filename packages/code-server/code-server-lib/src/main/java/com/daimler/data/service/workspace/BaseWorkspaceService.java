@@ -5121,6 +5121,12 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 
 		/* Requested states → call GitHub */
 		if (isRequestedStatus(currentStatus)) {
+			if(dto.getGitjobRunId() == null || dto.getGitjobRunId().isBlank()) {
+				MessageDescription error = new MessageDescription();
+				error.setMessage("Workspace is queued for build/deploy generating GitJobRunId wait for some time.");
+				vo.setWarnings(List.of(error));
+				return vo;
+			}
 			GitHubWorkflowRunDto run = gitClient.getWorkflowRun(dto.getGitjobRunId());
 			if (run == null) {
 				MessageDescription warning = new MessageDescription();
