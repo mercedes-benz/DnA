@@ -604,7 +604,6 @@ public class CodeServerClient {
 			ResponseEntity<String> manageDeploymentResponse = restTemplate.exchange(workflowUri, HttpMethod.POST, entity, String.class);
 			if (manageDeploymentResponse != null && manageDeploymentResponse.getStatusCode()!=null) {
 				if(manageDeploymentResponse.getStatusCode().equals(HttpStatus.valueOf(204))) {
-					log.info(manageDeploymentResponse.getBody()+"*******************");
 					status = "SUCCESS";
 					log.info("Success while performing {} action for codeServer workbench for wsid {} with repo {} ", deployDto.getInputs().getAction(), deployDto.getInputs().getWsid(),deployDto.getInputs().getRepo());
 				}
