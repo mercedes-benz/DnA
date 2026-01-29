@@ -5,7 +5,6 @@ import java.nio.charset.StandardCharsets;
 import java.util.Map;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpEntity;
@@ -49,19 +48,28 @@ public class ArgoCdService {
     @Autowired
     private RestTemplate restTemplate;
 
-    public String getArgoToken() {
+    public String getArgoToken() throws Exception {
+        String url = argocdTokenUrl;
+        log.info("Attempting to get ArgoCD token from: {}", url);
         try {
-            String url = argocdTokenUrl;
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             Map<String, String> request = Map.of("username", tokenUserName, "password", tokenPassword);
             HttpEntity<Map<String, String>> entity = new HttpEntity<>(request, headers);
         
             ResponseEntity<Map> response = restTemplate.postForEntity(url, entity, Map.class);
-            return (String) response.getBody().get("token");
+            @SuppressWarnings("unchecked")
+            Map<String, Object> body = response.getBody();
+            log.info("Successfully obtained ArgoCD token");
+            return (String) body.get("token");
+        } catch (org.springframework.web.client.HttpClientErrorException e) {
+            String errorMsg = "ArgoCD authentication failed (HTTP " + e.getStatusCode() + "): " + e.getResponseBodyAsString();
+            log.error("Failed to get ArgoCD token from URL: {}. Error: {}", url, errorMsg);
+            throw new Exception(errorMsg);
         } catch (Exception e) {
-            log.error("exception {}", e.getMessage());            
-            return null;
+            String errorMsg = "Failed to connect to ArgoCD server at " + url + ": " + e.getMessage();
+            log.error("ArgoCD connection error: {}", errorMsg, e);
+            throw new Exception(errorMsg);
         }
     }
 
