@@ -1612,6 +1612,10 @@
 				 if(optionalBuildDeployentity != null){
 					auditLogEntity = optionalBuildDeployentity;
 					buildDeployLogs =  auditLogEntity.getData();						
+					if(buildDeployLogs.getIntBuildAuditLogs() == null) buildDeployLogs.setIntBuildAuditLogs(new ArrayList<>());
+					if(buildDeployLogs.getProdBuildAuditLogs() == null) buildDeployLogs.setProdBuildAuditLogs(new ArrayList<>());
+					if(buildDeployLogs.getIntDeploymentAuditLogs() == null) buildDeployLogs.setIntDeploymentAuditLogs(new ArrayList<>());
+					if(buildDeployLogs.getProdDeploymentAuditLogs() == null) buildDeployLogs.setProdDeploymentAuditLogs(new ArrayList<>());						
 				 }else{
 					 buildDeployLogs = new CodeServerBuildDeploy();
 					 auditLogEntity = new CodeServerBuildDeployNsql();
