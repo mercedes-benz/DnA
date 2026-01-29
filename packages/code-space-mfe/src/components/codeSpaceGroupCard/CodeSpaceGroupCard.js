@@ -8,7 +8,7 @@ import CodeSpaceGCard from './CodeSpaceGCard';
 import { SESSION_STORAGE_KEYS } from '../../Utility/constants';
 import Tooltip from '../../common/modules/uilab/js/src/tooltip';
 
-const CodeSpaceGroupCard = ({ group, userInfo, onStartStopCodeSpace, onShowDeployModal, onShowCodeSpaceOnBoard, onShowCodeSpacesModal, onShowCodeSpaceGroupModal, onCodeSpaceGroupDeleteModal, onCodeSpaceDropped, onShowBlueprintModal, onShowBuildModal, isAiGroupModal=false }) => {
+const CodeSpaceGroupCard = ({ group, userInfo, onStartStopCodeSpace, onShowDeployModal, onShowCodeSpaceOnBoard, onShowCodeSpacesModal, onShowCodeSpaceGroupModal, onCodeSpaceGroupDeleteModal, onCodeSpaceGroupEditModal, onCodeSpaceDropped, onShowBlueprintModal, onShowBuildModal, isAiGroupModal=false }) => {
   const [highlight, setHighlight] = useState(false);
 
   const hostWorkspace = group?.workspaces?.find(
@@ -16,6 +16,15 @@ const CodeSpaceGroupCard = ({ group, userInfo, onStartStopCodeSpace, onShowDeplo
   );
   const hostProdDeployedUrl = hostWorkspace?.projectDetails?.prodDeploymentDetails?.deploymentUrl;
 
+  let hasBuildOrDeployRequested = false;
+  if (group && Array.isArray(group.workspaces)) {
+    for (const workspace of group.workspaces) {
+      if (workspace?.projectDetails?.lastBuildOrDeployedStatus === 'BUILD_REQUESTED' || workspace?.projectDetails?.lastBuildOrDeployedStatus === 'DEPLOY_REQUESTED') {
+        hasBuildOrDeployRequested = true;
+        break;
+      }
+    }
+  }
   useEffect(() => {
     Tooltip.defaultSetup();
   }, []);// eslint-disable-line react-hooks/exhaustive-deps
@@ -101,9 +110,12 @@ const CodeSpaceGroupCard = ({ group, userInfo, onStartStopCodeSpace, onShowDeplo
           <button className={classNames('btn btn-primary')} onClick={() => {onShowCodeSpacesModal(true, group); isAiGroupModal ? sessionStorage.setItem(SESSION_STORAGE_KEYS.AI_CODE_SPACE_SELECTED_GROUPS,JSON.stringify(group)) : sessionStorage.setItem(SESSION_STORAGE_KEYS.CODE_SPACE_SELECTED_GROUPS,JSON.stringify(group));}}>
             <i className="icon mbc-icon visibility-show"></i> View all
           </button>
-          <button className={classNames('btn btn-primary')} onClick={() => onCodeSpaceGroupDeleteModal(true, group)}>
+          {!hasBuildOrDeployRequested && (<button className={classNames('btn btn-primary')} onClick={() => onCodeSpaceGroupDeleteModal(true, group)}>
             <i className="icon delete"></i> Delete
-          </button>
+          </button>)}
+          {!hasBuildOrDeployRequested && isAiGroupModal && (<button className={classNames('btn btn-primary')} onClick={() => onCodeSpaceGroupEditModal(true, group)}>
+            <i className="icon edit"></i> Edit
+          </button>)}
         </div>
       </div>
     </div>

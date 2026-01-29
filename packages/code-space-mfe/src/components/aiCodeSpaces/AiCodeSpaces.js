@@ -5,7 +5,7 @@ import { useHistory } from 'react-router-dom';
 import { aiHistory } from '../../store';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 import Notification from '../../common/modules/uilab/js/src/notification';
-// import AiCodeSpaceForm from './AiCodeSpaceForm';
+import AiCodeSpaceForm from './AiCodeSpaceForm';
 import Modal from 'dna-container/Modal';
 import ConfirmModal from 'dna-container/ConfirmModal';
 import DeployApprovalModal from '../DeployApprovalModal/DeployApprovalModal';
@@ -25,7 +25,9 @@ const AiCodeSpaces = (props) => {
   const [loading, setLoading] = useState(true);
   const [aiCodeSpaces, setAiCodeSpaces] = useState([]);
   const [showCodespacesModal, setShowCodespacesModal] = useState(false);
-  const [selectedCodeSpaceGroup, setSelectedCodeSpaceGroup] = useState(JSON.parse(sessionStorage.getItem(SESSION_STORAGE_KEYS.AI_CODE_SPACE_SELECTED_GROUPS)));
+  const [selectedCodeSpaceGroup, setSelectedCodeSpaceGroup] = useState(
+    JSON.parse(sessionStorage.getItem(SESSION_STORAGE_KEYS.AI_CODE_SPACE_SELECTED_GROUPS)),
+  );
   const [showDeleteCodespaceGroupModal, setShowDeleteCodespaceGroupModal] = useState(false);
   const [showDeployCodeSpaceModal, setShowDeployCodeSpaceModal] = useState(false);
   const [showBuildCodeSpaceModal, setShowBuildCodeSpaceModal] = useState(false);
@@ -36,9 +38,9 @@ const AiCodeSpaces = (props) => {
   const [isApiCallTakeTime, setIsApiCallTakeTime] = useState(false);
   const [showInitializeModal, setShowInitializeModal] = useState(false);
   const [initializeId, setInitializeId] = useState(false);
-  const [patToken, setPatToken] = useState("");
-  const [patTokenError, setPatTokenError] = useState("");
-  // const [showAiCodeSpaceForm, setShowAiCodeSpaceForm] = useState(false);
+  const [patToken, setPatToken] = useState('');
+  const [patTokenError, setPatTokenError] = useState('');
+  const [showEditCodespaceGroupModal, setShowEditCodespaceGroupModal] = useState(false);
 
   const getAiCodeSpacesData = () => {
     setLoading(false);
@@ -74,7 +76,7 @@ const AiCodeSpaces = (props) => {
 
   const deleteCodeSpaceGroupContent = (
     <div>
-      Do you really want to delete <br /> this AI Agent Code Space? 
+      Do you really want to delete <br /> this AI Agent Code Space?
     </div>
   );
 
@@ -112,14 +114,13 @@ const AiCodeSpaces = (props) => {
           if (res.data.success === 'SUCCESS') {
             Notification.show(
               'Your Codespace for project ' +
-              codeSpace.projectDetails?.projectName +
-              ' is requested to ' +
-              ((serverStarted && !manual) ? 'stop' : 'start') +
-              '.',
+                codeSpace.projectDetails?.projectName +
+                ' is requested to ' +
+                (serverStarted && !manual ? 'stop' : 'start') +
+                '.',
             );
 
             !manual && startSuccessCB();
-
           } else {
             Notification.show(
               'Error in ' + (serverStarted ? 'stopping' : 'starting') + ' your code spaces. Please try again later.',
@@ -133,11 +134,11 @@ const AiCodeSpaces = (props) => {
             'Error in ' + (serverStarted ? 'stopping' : 'starting') + ' your code spaces - ' + err.message,
             'alert',
           );
-        }).finally(() => {
+        })
+        .finally(() => {
           Tooltip.defaultSetup();
         });
     }
-
   };
 
   const deleteCodeSpaceGroupAccept = () => {
@@ -152,153 +153,166 @@ const AiCodeSpaces = (props) => {
       .catch((e) => {
         ProgressIndicator.hide();
         Notification.show(
-          e.response.data.errors?.length
-            ? e.response.data.errors[0].message
-            : 'Deleting code space group failed!',
+          e.response.data.errors?.length ? e.response.data.errors[0].message : 'Deleting code space group failed!',
           'alert',
         );
       });
-  }
+  };
 
-  const codespacesModalContent = <>
-    <h2 className={classNames(Styles.modalTitle)}>{selectedCodeSpaceGroup?.name}</h2>
-    {loading ? (
-      <div className={'progress-block-wrapper ' + Styles.preloaderCutomnize}>
-        <div className="progress infinite" />
-      </div>
-    ) : (
-      <div className={Styles.csCardsContainer}>
-        <div>
-          {selectedCodeSpaceGroup?.workspaces?.length === 0 ? (
-            <div className={classNames(Styles.content)}>
-              <div className={Styles.listContent}>
-                <div className={Styles.emptyCodeSpaces}>
-                  <span>
-                    You don&apos;t have any code space at this time.
-                    <br /> Please create a new one.
-                  </span>
-                </div>
-                <div className={Styles.subscriptionListEmpty}>
-                  <br />
-                  <button className={'btn btn-tertiary'} type="button" onClick={() => {
-                    aiHistory.push('aicodespaceform');
-                  }}>
-                    <span>Create new Code Space</span>
-                  </button>
-                </div>
-              </div>
-            </div>
-          ) : (
-            <>
-              <div className={Styles.cardsSeparator}>
-                <h5 className="sub-title-text">My Code Spaces</h5>
-                <hr />
-              </div>
-              <div className={Styles.allCodeSpacesContent}>
-                <div className={classNames('cardSolutions', Styles.allCodeSpacesCardviewContent)}>
-                  {selectedCodeSpaceGroup?.workspaces?.filter((workspace) => workspace?.projectDetails?.projectOwner?.id === props.user.id)?.map((workspace, index) => {
-                    return (
-                      <CodeSpaceCardItem
-                        key={index}
-                        userInfo={props.user}
-                        codeSpace={workspace}
-                        toggleProgressMessage={toggleProgressMessage}
-                        onDeleteSuccess={() => { }}
-                        onShowCodeSpaceOnBoard={() => { }}
-                        onCodeSpaceEdit={() => { }}
-                        onShowDeployModal={onCodeSpaceDeploy}
-                        onShowBuildModal={onCodeSpaceBuild}
-                        onShowDeployApprovalModal={onShowDeployApprovalModal}
-                        onStartStopCodeSpace={onStartStopCodeSpace}
-                        onShowBlueprintModal={onCodeSpaceShowBlueprint}
-                        onGetCodespaceData={() => { getAiCodeSpacesData(); }}
-                        isAiGroupModal={true}
-                      />
-                    );
-                  })}
-
+  const codespacesModalContent = (
+    <>
+      <h2 className={classNames(Styles.modalTitle)}>{selectedCodeSpaceGroup?.name}</h2>
+      {loading ? (
+        <div className={'progress-block-wrapper ' + Styles.preloaderCutomnize}>
+          <div className="progress infinite" />
+        </div>
+      ) : (
+        <div className={Styles.csCardsContainer}>
+          <div>
+            {selectedCodeSpaceGroup?.workspaces?.length === 0 ? (
+              <div className={classNames(Styles.content)}>
+                <div className={Styles.listContent}>
+                  <div className={Styles.emptyCodeSpaces}>
+                    <span>
+                      You don&apos;t have any code space at this time.
+                      <br /> Please create a new one.
+                    </span>
+                  </div>
+                  <div className={Styles.subscriptionListEmpty}>
+                    <br />
+                    <button
+                      className={'btn btn-tertiary'}
+                      type="button"
+                      onClick={() => {
+                        aiHistory.push('aicodespaceform');
+                      }}
+                    >
+                      <span>Create new Code Space</span>
+                    </button>
+                  </div>
                 </div>
               </div>
-              {(selectedCodeSpaceGroup?.workspaces?.some(workspace => workspace?.projectDetails?.projectOwner?.id !== props.user.id)) && (
-
+            ) : (
+              <>
                 <div className={Styles.cardsSeparator}>
-                  <h5 className="sub-title-text">Collaborated Code Spaces</h5>
+                  <h5 className="sub-title-text">My Code Spaces</h5>
                   <hr />
                 </div>
-
-              )}
-              <div className={Styles.allCodeSpacesContent}>
-                <div className={classNames('cardSolutions', Styles.allCodeSpacesCardviewContent)}>
-                  {selectedCodeSpaceGroup?.workspaces?.filter((workspace) => workspace?.projectDetails?.projectOwner?.id !== props.user.id)?.map((workspace, index) => {
-                    return (
-                      <CodeSpaceCardItem
-                        key={index}
-                        userInfo={props.user}
-                        codeSpace={workspace}
-                        toggleProgressMessage={toggleProgressMessage}
-                        onDeleteSuccess={() => { }}
-                        onShowCodeSpaceOnBoard={() => { }}
-                        onCodeSpaceEdit={() => { }}
-                        onShowDeployModal={onCodeSpaceDeploy}
-                        onShowBuildModal={onCodeSpaceBuild}
-                        onShowDeployApprovalModal={onShowDeployApprovalModal}
-                        onStartStopCodeSpace={onStartStopCodeSpace}
-                        onShowBlueprintModal={onCodeSpaceShowBlueprint}
-                        onGetCodespaceData={() => { getAiCodeSpacesData(); }}
-                        isAiGroupModal={true}
-                      />
-                    );
-                  })}
+                <div className={Styles.allCodeSpacesContent}>
+                  <div className={classNames('cardSolutions', Styles.allCodeSpacesCardviewContent)}>
+                    {selectedCodeSpaceGroup?.workspaces
+                      ?.filter((workspace) => workspace?.projectDetails?.projectOwner?.id === props.user.id)
+                      ?.map((workspace, index) => {
+                        return (
+                          <CodeSpaceCardItem
+                            key={index}
+                            userInfo={props.user}
+                            codeSpace={workspace}
+                            toggleProgressMessage={toggleProgressMessage}
+                            onDeleteSuccess={() => {}}
+                            onShowCodeSpaceOnBoard={() => {}}
+                            onCodeSpaceEdit={() => {}}
+                            onShowDeployModal={onCodeSpaceDeploy}
+                            onShowBuildModal={onCodeSpaceBuild}
+                            onShowDeployApprovalModal={onShowDeployApprovalModal}
+                            onStartStopCodeSpace={onStartStopCodeSpace}
+                            onShowBlueprintModal={onCodeSpaceShowBlueprint}
+                            onGetCodespaceData={() => {
+                              getAiCodeSpacesData();
+                            }}
+                            isAiGroupModal={true}
+                          />
+                        );
+                      })}
+                  </div>
                 </div>
-              </div>
-            </>
-          )}
+                {selectedCodeSpaceGroup?.workspaces?.some(
+                  (workspace) => workspace?.projectDetails?.projectOwner?.id !== props.user.id,
+                ) && (
+                  <div className={Styles.cardsSeparator}>
+                    <h5 className="sub-title-text">Collaborated Code Spaces</h5>
+                    <hr />
+                  </div>
+                )}
+                <div className={Styles.allCodeSpacesContent}>
+                  <div className={classNames('cardSolutions', Styles.allCodeSpacesCardviewContent)}>
+                    {selectedCodeSpaceGroup?.workspaces
+                      ?.filter((workspace) => workspace?.projectDetails?.projectOwner?.id !== props.user.id)
+                      ?.map((workspace, index) => {
+                        return (
+                          <CodeSpaceCardItem
+                            key={index}
+                            userInfo={props.user}
+                            codeSpace={workspace}
+                            toggleProgressMessage={toggleProgressMessage}
+                            onDeleteSuccess={() => {}}
+                            onShowCodeSpaceOnBoard={() => {}}
+                            onCodeSpaceEdit={() => {}}
+                            onShowDeployModal={onCodeSpaceDeploy}
+                            onShowBuildModal={onCodeSpaceBuild}
+                            onShowDeployApprovalModal={onShowDeployApprovalModal}
+                            onStartStopCodeSpace={onStartStopCodeSpace}
+                            onShowBlueprintModal={onCodeSpaceShowBlueprint}
+                            onGetCodespaceData={() => {
+                              getAiCodeSpacesData();
+                            }}
+                            isAiGroupModal={true}
+                          />
+                        );
+                      })}
+                  </div>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
+    </>
+  );
+
+  const initializeModalContent = (
+    <>
+      <p>Enter the information to start your workspace!</p>
+      <div>
+        <div>
+          <TextBox
+            type="password"
+            controlId={'patTokenInput'}
+            labelId={'patTokenLabel'}
+            label={`Your Github(${Envs.CODE_SPACE_GIT_PAT_APP_URL}) Personal Access Token`}
+            infoTip="Not stored only used for Code Space initial setup"
+            placeholder={'Type here'}
+            value={patToken}
+            errorText={patTokenError}
+            required={true}
+            maxLength={50}
+            onChange={(e) => {
+              const githubTokenVal = e.currentTarget.value.trim();
+              setPatToken(githubTokenVal);
+              setPatTokenError(githubTokenVal.length ? '' : '*Missing entry');
+            }}
+          />
         </div>
       </div>
-    )}
-  </>;
-
-  const initializeModalContent = <>
-    <p>Enter the information to start your workspace!</p>
-    <div>
-      <div>
-        <TextBox
-          type="password"
-          controlId={'patTokenInput'}
-          labelId={'patTokenLabel'}
-          label={`Your Github(${Envs.CODE_SPACE_GIT_PAT_APP_URL}) Personal Access Token`}
-          infoTip="Not stored only used for Code Space initial setup"
-          placeholder={'Type here'}
-          value={patToken}
-          errorText={patTokenError}
-          required={true}
-          maxLength={50}
-          onChange={(e) => {
-            const githubTokenVal = e.currentTarget.value.trim();
-            setPatToken(githubTokenVal);
-            setPatTokenError(githubTokenVal.length ? '' : "*Missing entry");
-          }}
-        />
-      </div>
-    </div>
-  </>;
+    </>
+  );
 
   const onInitializeWorkspace = () => {
     let formValid = true;
-    if (patToken === "") {
+    if (patToken === '') {
       formValid = false;
-      setPatTokenError("*Missing Entry");
+      setPatTokenError('*Missing Entry');
     }
     if (formValid) {
       const onBoardCodeSpaceRequest = {
-        pat: patToken
+        pat: patToken,
       };
       ProgressIndicator.show();
       CodeSpaceApiClient.initializeAiWorkflowSpace(initializeId, onBoardCodeSpaceRequest)
         .then((res) => {
           if (res.data?.data?.projectDetails?.isAgentInitialized) {
             ProgressIndicator.hide();
-            Notification.show("Workspace successfully initialized. Please start your workspace after some time.");
+            Notification.show('Workspace successfully initialized. Please start your workspace after some time.');
             getAiCodeSpacesData();
             setShowInitializeModal(false);
           } else {
@@ -312,10 +326,7 @@ const AiCodeSpaces = (props) => {
         .catch((err) => {
           ProgressIndicator.hide();
           if (err.response.status === 409) {
-            Notification.show(
-              `Given workspace is already initialized`,
-              'alert',
-            );
+            Notification.show(`Given workspace is already initialized`, 'alert');
           } else {
             Notification.show('Error in initializing code space. Please try again later.\n' + err.message, 'alert');
           }
@@ -413,32 +424,52 @@ const AiCodeSpaces = (props) => {
               </div>
             ) : (
               <div className={classNames(Styles.groupContainer)}>
-                <div className={classNames(Styles.group, Styles.createNew)} onClick={() => {
-                  aiHistory.push('aicodespaceform');
-                }}>
+                <div
+                  className={classNames(Styles.group, Styles.createNew)}
+                  onClick={() => {
+                    aiHistory.push('aicodespaceform');
+                  }}
+                >
                   <div className={Styles.newCodeSpaceCard}>
                     <div className={Styles.addicon}> &nbsp; </div>
                     <label className={Styles.addlabel}>Create new AI Agent</label>
                   </div>
                 </div>
-                {!loading && aiCodeSpaces?.map(group =>
-                  <CodeSpaceGroupCard
-                    key={group?.id}
-                    group={group}
-                    userInfo={props.user}
-                    onShowCodeSpacesModal={(show, group) => { setShowCodespacesModal(show); setSelectedCodeSpaceGroup(group); }}
-                    onShowCodeSpaceGroupModal={() => { setSelectedCodeSpaceGroup(group); }}
-                    onCodeSpaceGroupDeleteModal={(show, group) => { setSelectedCodeSpaceGroup(group); setShowDeleteCodespaceGroupModal(show); }}
-                    onCodeSpaceDropped={() => { getAiCodeSpacesData(); }}
-                    onStartStopCodeSpace={onStartStopCodeSpace}
-                    onShowDeployModal={onCodeSpaceDeploy}
-                    onShowCodeSpaceOnBoard={() => { }}
-                    onShowBlueprintModal={onCodeSpaceShowBlueprint}
-                    onShowBuildModal={onCodeSpaceBuild}
-                    onGetCodespaceData={() => { getAiCodeSpacesData(); }}
-                    isAiGroupModal={true}
-                  />
-                )}
+                {!loading &&
+                  aiCodeSpaces?.map((group) => (
+                    <CodeSpaceGroupCard
+                      key={group?.id}
+                      group={group}
+                      userInfo={props.user}
+                      onShowCodeSpacesModal={(show, group) => {
+                        setShowCodespacesModal(show);
+                        setSelectedCodeSpaceGroup(group);
+                      }}
+                      onShowCodeSpaceGroupModal={() => {
+                        setSelectedCodeSpaceGroup(group);
+                      }}
+                      onCodeSpaceGroupDeleteModal={(show, group) => {
+                        setSelectedCodeSpaceGroup(group);
+                        setF(show);
+                      }}
+                      onCodeSpaceGroupEditModal={(show, group) => {
+                        setSelectedCodeSpaceGroup(group);
+                        setShowEditCodespaceGroupModal(show);
+                      }}
+                      onCodeSpaceDropped={() => {
+                        getAiCodeSpacesData();
+                      }}
+                      onStartStopCodeSpace={onStartStopCodeSpace}
+                      onShowDeployModal={onCodeSpaceDeploy}
+                      onShowCodeSpaceOnBoard={() => {}}
+                      onShowBlueprintModal={onCodeSpaceShowBlueprint}
+                      onShowBuildModal={onCodeSpaceBuild}
+                      onGetCodespaceData={() => {
+                        getAiCodeSpacesData();
+                      }}
+                      isAiGroupModal={true}
+                    />
+                  ))}
               </div>
             )}
           </div>
@@ -454,7 +485,10 @@ const AiCodeSpaces = (props) => {
           show={showCodespacesModal}
           content={codespacesModalContent}
           scrollableContent={true}
-          onCancel={() => { setShowCodespacesModal(false); sessionStorage.removeItem('aiCodeSpaceSelectedGroups') }}
+          onCancel={() => {
+            setShowCodespacesModal(false);
+            sessionStorage.removeItem('aiCodeSpaceSelectedGroups');
+          }}
         />
       )}
       {showDeleteCodespaceGroupModal && (
@@ -489,7 +523,9 @@ const AiCodeSpaces = (props) => {
           //     onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'react'
           // }
           setShowCodeDeployModal={(isVisible) => setShowDeployCodeSpaceModal(isVisible)}
-          setCodeDeploying={() => { getAiCodeSpacesData(); }}
+          setCodeDeploying={() => {
+            getAiCodeSpacesData();
+          }}
           setIsApiCallTakeTime={setIsApiCallTakeTime}
         />
       )}
@@ -513,8 +549,12 @@ const AiCodeSpaces = (props) => {
           //     onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'react'
           // }
           setShowCodeDeployModal={(isVisible) => setShowDeployCodeSpaceModal(isVisible)}
-          setCodeDeploying={() => { getAiCodeSpacesData(); }}
-          setCodeBuilding={() => { getAiCodeSpacesData(); }}
+          setCodeDeploying={() => {
+            getAiCodeSpacesData();
+          }}
+          setCodeBuilding={() => {
+            getAiCodeSpacesData();
+          }}
           setIsApiCallTakeTime={setIsApiCallTakeTime}
         />
       )}
@@ -523,7 +563,9 @@ const AiCodeSpaces = (props) => {
           show={showDeployApprovalModal}
           setShowDeployApprovalModal={setShowDeployApprovalModal}
           codeSpaceData={onDeployCodeSpace}
-          setCodeDeploying={() => { getAiCodeSpacesData(); }}
+          setCodeDeploying={() => {
+            getAiCodeSpacesData();
+          }}
           setIsApiCallTakeTime={setIsApiCallTakeTime}
         />
       )}
@@ -538,7 +580,9 @@ const AiCodeSpaces = (props) => {
           show={showBlueprintModal}
           content={<CodeSpaceBlueprint codespace={blueprintCodespace} />}
           scrollableContent={true}
-          onCancel={() => { setShowBlueprintModal(false) }}
+          onCancel={() => {
+            setShowBlueprintModal(false);
+          }}
         />
       )}
       {isApiCallTakeTime && (
@@ -566,27 +610,41 @@ const AiCodeSpaces = (props) => {
           show={showInitializeModal}
           content={initializeModalContent}
           scrollableContent={true}
-          onCancel={() => { setShowInitializeModal(false); setPatTokenError(false); setPatToken("");}}
+          onCancel={() => {
+            setShowInitializeModal(false);
+            setPatTokenError(false);
+            setPatToken('');
+          }}
           onAccept={onInitializeWorkspace}
         />
       )}
-      {/* {showAiCodeSpaceForm && (
+      {showEditCodespaceGroupModal && (
         <Modal
           title={''}
           hiddenTitle={true}
           showAcceptButton={false}
           showCancelButton={false}
-          modalWidth="1200px"
+          modalWidth="90%"
           buttonAlignment="right"
-          show={showAiCodeSpaceForm}
-          content={<AiCodeSpaceForm user={props.user} />}
+          show={showEditCodespaceGroupModal}
+          content={
+            <AiCodeSpaceForm
+              user={props.user}
+              isEdit={true}
+              group={selectedCodeSpaceGroup}
+              onUpdateGroupComplete={() => {
+                setShowEditCodespaceGroupModal(false);
+                getAiCodeSpacesData();
+              }}
+            />
+          }
           scrollableContent={true}
           onCancel={() => {
-            setShowAiCodeSpaceForm(false);
+            setShowEditCodespaceGroupModal(false);
             getAiCodeSpacesData();
           }}
         />
-      )} */}
+      )}
     </div>
   );
 };
