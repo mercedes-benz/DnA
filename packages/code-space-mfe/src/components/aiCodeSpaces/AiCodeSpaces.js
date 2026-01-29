@@ -450,7 +450,7 @@ const AiCodeSpaces = (props) => {
                       }}
                       onCodeSpaceGroupDeleteModal={(show, group) => {
                         setSelectedCodeSpaceGroup(group);
-                        setF(show);
+                        setShowDeleteCodespaceGroupModal(show);
                       }}
                       onCodeSpaceGroupEditModal={(show, group) => {
                         setSelectedCodeSpaceGroup(group);
