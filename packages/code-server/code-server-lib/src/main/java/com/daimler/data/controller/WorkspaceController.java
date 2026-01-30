@@ -3941,4 +3941,24 @@ import org.springframework.beans.factory.annotation.Value;
     	return ResponseEntity.ok(responseVo);
 	}
 
+	@Override
+	@ApiOperation(value = "cancel workspace run by gitjobRunID.", nickname = "cancelWorkspaceRun", notes = "Cancel a workspace run by gitjobRunID.", response = GenericMessage.class, tags={ "code-server", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns message of success or failure", response = GenericMessage.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/workspaces/getGitJobStatus",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.PATCH)
+    public ResponseEntity<GenericMessage> cancelWorkspaceRun(@ApiParam(value = "project-name of workspace") @Valid @RequestParam(value = "projectName", required = false) String projectName)
+	{
+		GenericMessage responseVo = service.cancelWorkspaceRun(projectName);
+		return ResponseEntity.ok(responseVo);
+	}
+
 }
