@@ -1724,6 +1724,10 @@
 			 String serviceName = projectName;
 			 String workspaceId = entity.getData().getWorkspaceId();
 
+			 if (!isprivateRecipe && repoName == null) {
+				 repoName = entity.getData().getProjectDetails().getGitRepoName();
+				 log.info("Initialized repoName from entity for project {}: {}", projectName, repoName);
+			 }
 			 
 			 CodeServerDeploymentDetails deploymentDetails = entity.getData().getProjectDetails().getIntDeploymentDetails();
 					 if (!"int".equalsIgnoreCase(environment)) {
