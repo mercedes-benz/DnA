@@ -76,6 +76,9 @@ public class ArgoCdService {
     public String createArgoApp(String token, String projectName, String userId, String environment,
                                 String gitRepoUrl, String imageTag, boolean vaultInjectorEnable) throws Exception {
         try {
+            log.info("createArgoApp - projectName: {}, gitRepoUrl: {}, imageTag: {}, environment: {}", 
+                     projectName, gitRepoUrl, imageTag, environment);
+            
             String appName = projectName + "-" + environment;
             String url = argocdCreateUrl + "?upsert=true";
     
