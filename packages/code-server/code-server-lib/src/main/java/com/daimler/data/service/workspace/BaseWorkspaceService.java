@@ -1867,7 +1867,7 @@
                             gitRepoUrl = "https://" + gitOrgUri + gitOrgName + "/" + repoName + ".git";
                         }
                         
-                        String imageTag = environment + "-" + (version != null && !version.isEmpty() ? "v" + version : "latest");
+                        String imageTag = (version != null && !version.isEmpty()) ? version : environment + "-latest";
                         
                         log.info("ArgoCD deployment - projectName: {}, gitRepoUrl: {}, imageTag: {}, repoName: {}", 
                                  projectName, gitRepoUrl, imageTag, repoName);
