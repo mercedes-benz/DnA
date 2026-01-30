@@ -144,5 +144,7 @@ public interface WorkspaceService {
 	String updateGitJobRunId(GitJobRunIdRequestVO request);
 
     GitJobRunIdStatusVO getGitRunIdStatus(String projectName);
+
+    GenericMessage cancelWorkspaceRun(String projectName);
 	
 }
