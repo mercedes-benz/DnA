@@ -1845,23 +1845,33 @@
                 deploymentJobDto.setInputs(deployJobInputDto);
                 deploymentJobDto.setRef(codeServerEnvRef);
                 
-                String argoToken = argoCdService.getArgoToken();
+                GenericMessage jobResponse = new GenericMessage();
+                jobResponse.setErrors(new ArrayList<>());
                 String argoDeployResult = "failed";
-                if (argoToken != null) {
-                    String gitRepoUrl;
-                    if (isprivateRecipe) {
-                        gitRepoUrl = repoUrl;
+                String argoErrorMessage = null;
+                
+                try {
+                    String argoToken = argoCdService.getArgoToken();
+                    if (argoToken != null) {
+                        String gitRepoUrl;
+                        if (isprivateRecipe) {
+                            gitRepoUrl = repoUrl;
+                        } else {
+                            gitRepoUrl = "https://" + gitOrgUri + gitOrgName + "/" + repoName + ".git";
+                        }
+                        
+                        String imageTag = environment + "-" + (version != null && !version.isEmpty() ? "v" + version : "latest");
+                        
+                        argoDeployResult = argoCdService.createArgoApp(argoToken, projectName.toLowerCase(), workspaceOwner, 
+                                                                        environment, gitRepoUrl, imageTag, isValutInjectorEnable);
                     } else {
-                        gitRepoUrl = "https://" + gitOrgUri + gitOrgName + "/" + repoName + ".git";
+                        argoErrorMessage = "Failed to get ArgoCD token for deployment";
+                        log.error("Failed to get ArgoCD token for deployment: {}-{}", projectName, environment);
                     }
-                    
-                    String imageTag = environment + "-" + (version != null && !version.isEmpty() ? "v" + version : "latest");
-                    
-                    argoDeployResult = argoCdService.createArgoApp(argoToken, projectName.toLowerCase(), workspaceOwner, 
-                                                                    environment, gitRepoUrl, imageTag, isValutInjectorEnable);
-                } else {
-                    log.error("Failed to get ArgoCD token for deployment: {}-{}", projectName, environment);
-                }                GenericMessage jobResponse = new GenericMessage();
+                } catch (Exception e) {
+                    argoErrorMessage = e.getMessage();
+                    log.error("ArgoCD deployment error for {}-{}: {}", projectName, environment, e.getMessage());
+                } 
                 if ("success".equalsIgnoreCase(argoDeployResult)) {
                     jobResponse.setSuccess("SUCCESS");					
 					 List<DeploymentAudit> auditLogs = new ArrayList<>();
@@ -1952,7 +1962,13 @@
 					status = "SUCCESS";
 				 } else {
 					 status = "FAILED";
-					 errors.addAll(jobResponse.getErrors());
+					 if (argoErrorMessage != null && !argoErrorMessage.isEmpty()) {
+						 MessageDescription error = new MessageDescription();
+						 error.setMessage("Error in deploying code space. " + argoErrorMessage);
+						 errors.add(error);
+					 } else {
+						 errors.addAll(jobResponse.getErrors());
+					 }
 				 }
 			 }
 			 log.info("project name {} updating deployment details to db",serviceName);	
