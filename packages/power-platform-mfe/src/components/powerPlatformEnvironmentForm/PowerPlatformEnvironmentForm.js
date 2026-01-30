@@ -38,7 +38,7 @@ const PowerPlatformEnvironmentForm = ({ user, onOrderAccount }) => {
       billingPlant: '',
       billingCostCentre: '',
       customRequirements: '',
-      prodEnvAvailability: 'LATER',
+      // prodEnvAvailability: 'LATER',
       termsOfUse: false,
     }
   });
@@ -131,7 +131,7 @@ const PowerPlatformEnvironmentForm = ({ user, onOrderAccount }) => {
       billingPlant: values?.billingPlant?.trim(),
       billingCostCentre: values?.billingCostCentre?.trim(),
       customRequirements: values?.customRequirements?.trim(),
-      prodEnvAvailability: values?.prodEnvAvailability,
+      // prodEnvAvailability: values?.prodEnvAvailability,
       developers: userLincenses,
       subscriptionType: '',
     }
@@ -354,7 +354,7 @@ const PowerPlatformEnvironmentForm = ({ user, onOrderAccount }) => {
                 <span className={'error-message'}>{errors?.customRequirements?.message}{errors.customRequirements?.type === 'pattern' && `Spaces (and special characters) not allowed as field value.`}</span>
               </div>
             </div>
-            <div className={Styles.col}>
+            {/* <div className={Styles.col}>
               <div className={classNames('input-field-group include-error', errors?.prodEnvAvailability?.message ? 'error' : '')}>
                 <label className={'input-label'}>
                   Do you want the PROD environment immediately or later? <sup>*</sup>
@@ -391,7 +391,7 @@ const PowerPlatformEnvironmentForm = ({ user, onOrderAccount }) => {
                   {errors?.prodEnvAvailability?.message}
                 </span>
               </div>
-            </div>
+            </div> */}
             <div className={Styles.col}>
               <div className={classNames('input-field-group include-error')}>
                 <AddUser getCollabarators={getDevelopers} isRequired={false} isUserprivilegeSearch={false} title={'User Licenses to Add'} />
