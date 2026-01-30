@@ -74,7 +74,7 @@ public class ArgoCdService {
     }
 
     public String createArgoApp(String token, String projectName, String userId, String environment,
-                                String gitRepoUrl, String imageTag, boolean vaultInjectorEnable) {
+                                String gitRepoUrl, String imageTag, boolean vaultInjectorEnable) throws Exception {
         try {
             String appName = projectName + "-" + environment;
             String url = argocdCreateUrl + "?upsert=true";
@@ -92,12 +92,21 @@ public class ArgoCdService {
                 log.info("ArgoCD application created/updated successfully: {}", appName);
                 return "success";
             } else {
-                log.info("Failed: " + (response != null ? response.getBody() : ""));
-                return "failed";
+                String errorMsg = "ArgoCD application creation failed: " + (response != null ? response.getBody() : "No response");
+                log.error(errorMsg);
+                throw new Exception(errorMsg);
             }
+        } catch (org.springframework.web.client.HttpClientErrorException e) {
+            String errorMsg = "ArgoCD API error (HTTP " + e.getStatusCode() + "): " + e.getResponseBodyAsString();
+            log.error("Failed to create ArgoCD application: {}", errorMsg, e);
+            throw new Exception(errorMsg);
         } catch (Exception e) {
-            log.error("Failed to create ArgoCD application", e);            
-            return "failed";
+            if (e.getMessage() != null && e.getMessage().startsWith("ArgoCD")) {
+                throw e; // Re-throw our custom exceptions
+            }
+            String errorMsg = "Failed to create ArgoCD application: " + e.getMessage();
+            log.error(errorMsg, e);
+            throw new Exception(errorMsg);
         }
     }
 
