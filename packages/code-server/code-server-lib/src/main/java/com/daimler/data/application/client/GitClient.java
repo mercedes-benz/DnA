@@ -13,6 +13,8 @@ import org.springframework.web.client.RestTemplate;
 import com.daimler.data.util.CommonUtils;
 
 import java.util.Base64;
+import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
@@ -21,6 +23,8 @@ import org.json.JSONObject;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.HttpStatusCodeException;
 
+import com.daimler.data.controller.exceptions.GenericMessage;
+import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.dto.GitBranchesCollectionDto;
 import com.daimler.data.dto.GitHubWorkflowRunDto;
 import com.daimler.data.dto.GitLatestCommitIdDto;
@@ -724,7 +728,7 @@ public class GitClient {
 		}
 	}
 
-	public void cancelWorkflowRun(String runId) {
+	public GenericMessage cancelWorkflowRun(String runId) {
 
 		try {
 			HttpHeaders headers = new HttpHeaders();
@@ -739,9 +743,11 @@ public class GitClient {
 			restTemplate.exchange(url, HttpMethod.POST, entity, Void.class);
 
 			log.info("Cancelled workflow run {}", runId);
+			return new GenericMessage("SUCCESS", null, null);
 
 		} catch (Exception e) {
 			log.error("Error cancelling workflow run {}", runId, e);
+			return new GenericMessage("FAILED", null, List.of(new MessageDescription("Error cancelling workflow run: " + e.getMessage())));
 		}
 	}
 

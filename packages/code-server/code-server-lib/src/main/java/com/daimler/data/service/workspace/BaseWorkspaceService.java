@@ -41,7 +41,8 @@ import java.util.ArrayList;
  import java.util.Optional;
  import java.util.Set;
  import java.util.UUID;
- import java.util.regex.Matcher;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
  import java.util.regex.Pattern;
  import java.util.stream.Collector;
  import java.util.stream.Collectors;
@@ -5582,5 +5583,92 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 		return requestedStatus;
 	}
 
-	
-}
+	@Override
+	@Transactional
+	public GenericMessage cancelWorkspaceRun(String projectName) {
+		// TODO Auto-generated method stub
+		GenericMessage responseMessage = new GenericMessage();
+		String status = "FAILED";
+		List<MessageDescription> warnings = new ArrayList<>();
+		List<MessageDescription> errors = new ArrayList<>();
+		try {
+			GitRunIdDetailsDto dto = workspaceCustomRepository.getGitRunId(projectName);
+			if (dto == null || dto.getGitjobRunId() == null || dto.getGitjobRunId().isBlank()) {
+				MessageDescription error = new MessageDescription();
+				error.setMessage("No ongoing build/deploy found for project: " + projectName);
+				errors.add(error);
+				responseMessage.setErrors(errors);
+				responseMessage.setWarnings(warnings);
+				responseMessage.setSuccess(status);
+				return responseMessage;	
+			}
+			GitHubWorkflowRunDto run = gitClient.getWorkflowRun(dto.getGitjobRunId());
+			if (run == null) {
+				MessageDescription error = new MessageDescription();
+				error.setMessage("Failed to fetch GitHub workflow run details for Job Run ID: " + dto.getGitjobRunId());
+				errors.add(error);
+				responseMessage.setErrors(errors);
+				responseMessage.setWarnings(warnings);
+				responseMessage.setSuccess(status);
+				return responseMessage;	
+			}
+			if(run.getCreatedAt() != null) {
+				Date now = new Date();
+				long diffInMillies = now.getTime() - run.getCreatedAt().getTime();
+				long diffInHours = TimeUnit.MILLISECONDS.toHours(diffInMillies);
+				if(diffInHours >= 1) {
+					GenericMessage cancelResponse = gitClient.cancelWorkflowRun(dto.getGitjobRunId());
+					if("SUCCESS".equalsIgnoreCase(cancelResponse.getSuccess())) {
+						String currentStatus = dto.getStatus();
+						boolean newStatus = isRequestedStatus(currentStatus);
+						String newStatusStr = resolveFinalStatus(currentStatus, run.getConclusion());
+						boolean statusUpdated =workspaceCustomRepository.updateGitRunIdStatus(
+												projectName,
+												newStatusStr,
+												dto.getEnvironment()
+										);
+						boolean auditUpdated =
+							workspaceCustomRepository.updateBuildDeployAuditStatus(
+												projectName,
+												newStatusStr,
+												dto.getEnvironment(),
+												dto.getGitjobRunId()
+										);
+						if (!statusUpdated || !auditUpdated) {
+							MessageDescription error = new MessageDescription();
+							error.setMessage("Failed to persist Git build/deploy status");
+							errors.add(error);
+							responseMessage.setErrors(errors);
+							responseMessage.setWarnings(warnings);
+							responseMessage.setSuccess("FAILED");
+							return responseMessage;
+						}
+						MessageDescription warning = new MessageDescription();
+						warning.setMessage("Build/Deploy cancelled for project: " + projectName + ". Please check the logs for more details.");
+						warnings.add(warning);
+						status = "SUCCESS";
+					}else {
+						errors.addAll(cancelResponse.getErrors());
+					}
+				}else {
+					MessageDescription warning = new MessageDescription();
+					warning.setMessage("Build/Deploy is still in progress for project: " + projectName + ". Cannot cancel before 1 hour of run time.");
+					warnings.add(warning);
+					status = "SUCCESS";
+				}
+			}else {
+				MessageDescription error = new MessageDescription();
+				error.setMessage("Failed to determine the start time of the workflow run for Job Run ID: " + dto.getGitjobRunId());
+				errors.add(error);
+			}
+		} catch (Exception e) {
+			MessageDescription error = new MessageDescription();
+			error.setMessage("Error cancelling workflow run: " + e.getMessage());
+			errors.add(error);
+		}
+		responseMessage.setErrors(errors);
+		responseMessage.setWarnings(warnings);
+		responseMessage.setSuccess(status);
+		return responseMessage;
+	}
+ }
