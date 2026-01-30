@@ -1853,9 +1853,10 @@
                 jobResponse.setErrors(new ArrayList<>());
                 String argoDeployResult = "failed";
                 String argoErrorMessage = null;
+                String argoToken = null;
                 
                 try {
-                    String argoToken = argoCdService.getArgoToken();
+                    argoToken = argoCdService.getArgoToken();
                     if (argoToken != null) {
                         String gitRepoUrl;
                         if (isprivateRecipe) {
@@ -1964,10 +1965,36 @@
 						 authenticatorClient.callingKongApis(workspaceId, projectName, environment, isApiRecipe, deploymentDetails.getClientId(), "", deploymentDetails.getRedirectUri(), deploymentDetails.getIgnorePaths(), deploymentDetails.getScope(), deploymentDetails.getOneApiVersionShortName(), isSecuredWithCookie, secureWithIAMRequired, deploymentDetails.getSsoType(), secureWithDnaRequired, false, false, deploymentDetails.getSelectedAliceRoles(), cloudServiceProvider);
 					 }
 					
+					String appName = projectName.toLowerCase() + "-" + environment;
+					String finalDeployStatus = "DEPLOY_REQUESTED";
+					int maxAttempts = 20;
+					int attempt = 0;
+					
+					while (attempt < maxAttempts) {
+						try {
+							Thread.sleep(5000);
+							String argoStatus = argoCdService.checkArgoAppDeploymentStatus(argoToken, appName);
+							log.info("ArgoCD deployment status check {}/{} for {}: {}", attempt + 1, maxAttempts, appName, argoStatus);
+							
+							if ("DEPLOY_SUCCESS".equals(argoStatus)) {
+								finalDeployStatus = "DEPLOY_SUCCESS";
+								break;
+							} else if ("DEPLOY_FAILED".equals(argoStatus)) {
+								finalDeployStatus = "DEPLOY_FAILED";
+								break;
+							}
+						} catch (InterruptedException e) {
+							log.warn("ArgoCD status polling interrupted", e);
+							Thread.currentThread().interrupt();
+							break;
+						}
+						attempt++;
+					}
+					
 					// deploymentDetails.setLastDeployedBranch(branch);
 					// deploymentDetails.setLastDeployedVersion(version);	
-					lastBuildOrDeployStatus = "DEPLOY_REQUESTED";				
-					deploymentDetails.setLastDeploymentStatus("DEPLOY_REQUESTED");
+					lastBuildOrDeployStatus = finalDeployStatus;				
+					deploymentDetails.setLastDeploymentStatus(finalDeployStatus);
 					
 					status = "SUCCESS";
 				 } else {

@@ -203,6 +203,73 @@ public class ArgoCdService {
         return finalJson;
     }
     
+    public String getArgoAppStatus(String token, String appName) {
+        try {
+            String url = argocdCreateUrl + "/" + appName;
+    
+            HttpHeaders headers = new HttpHeaders();
+            headers.setBearerAuth(token);
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<Object> entity = new HttpEntity<>(headers);
+            
+            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
+            
+            if (response.getStatusCode().is2xxSuccessful()) {
+                log.info("ArgoCD app status retrieved successfully for: {}", appName);
+                return response.getBody();
+            } else {
+                log.warn("Failed to get ArgoCD app status for {}: {}", appName, response.getStatusCode());
+                return null;
+            }
+        } catch (org.springframework.web.client.HttpClientErrorException.NotFound e) {
+            log.info("ArgoCD application not found: {}", appName);
+            return null;
+        } catch (Exception e) {
+            log.error("Failed to get ArgoCD app status for {}: {}", appName, e.getMessage());            
+            return null;
+        }
+    }
+    
+    @SuppressWarnings("unchecked")
+    public String checkArgoAppDeploymentStatus(String token, String appName) {
+        try {
+            String statusJson = getArgoAppStatus(token, appName);
+            if (statusJson == null) {
+                return "NOT_FOUND";
+            }
+            
+            ObjectMapper mapper = new ObjectMapper();
+            Map<String, Object> appData = mapper.readValue(statusJson, Map.class);
+            Map<String, Object> status = (Map<String, Object>) appData.get("status");
+            
+            if (status == null) {
+                return "UNKNOWN";
+            }
+            
+            Map<String, Object> health = (Map<String, Object>) status.get("health");
+            Map<String, Object> sync = (Map<String, Object>) status.get("sync");
+            
+            String healthStatus = health != null ? (String) health.get("status") : "Unknown";
+            String syncStatus = sync != null ? (String) sync.get("status") : "Unknown";
+            
+            log.info("ArgoCD app {} - Health: {}, Sync: {}", appName, healthStatus, syncStatus);
+            
+            if ("Healthy".equalsIgnoreCase(healthStatus) && "Synced".equalsIgnoreCase(syncStatus)) {
+                return "DEPLOY_SUCCESS";
+            } else if ("Progressing".equalsIgnoreCase(healthStatus) || "OutOfSync".equalsIgnoreCase(syncStatus)) {
+                return "DEPLOYING";
+            } else if ("Degraded".equalsIgnoreCase(healthStatus) || "Missing".equalsIgnoreCase(healthStatus)) {
+                return "DEPLOY_FAILED";
+            } else {
+                return "DEPLOYING";
+            }
+            
+        } catch (Exception e) {
+            log.error("Failed to check ArgoCD deployment status for {}: {}", appName, e.getMessage());
+            return "UNKNOWN";
+        }
+    }
+    
     private String getNamespaceForEnvironment(String clusterEnv, String targetEnv) {
        
         if ("int".equalsIgnoreCase(targetEnv)) {
