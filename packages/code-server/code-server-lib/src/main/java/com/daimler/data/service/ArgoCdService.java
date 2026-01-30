@@ -130,6 +130,33 @@ public class ArgoCdService {
         }
     }
 
+    public String restartArgoApp(String token, String workspaceName, String environment) {
+        try {
+            String appName = workspaceName + "-" + environment;
+            String url = argocdCreateUrl + "/" + appName + "/resources/actions";
+    
+            HttpHeaders headers = new HttpHeaders();
+            headers.setBearerAuth(token);
+            headers.setContentType(MediaType.APPLICATION_JSON);
+        
+            String payload = "{\"resourceName\":\"*\",\"kind\":\"Pod\",\"namespace\":\"*\",\"action\":\"restart\"}";
+            HttpEntity<String> entity = new HttpEntity<>(payload, headers);
+        
+            ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
+        
+            if (response != null && response.getStatusCode().is2xxSuccessful()) {
+                log.info("ArgoCD application restarted successfully: {}", appName);
+                return "success";
+            } else {
+                log.info("Failed to restart: " + (response != null ? response.getBody() : ""));
+                return "failed";
+            }
+        } catch (Exception e) {
+            log.error("Failed to restart ArgoCD application", e);            
+            return "failed";
+        }
+    }
+
     @SuppressWarnings("unchecked")
     public String buildPayload(String appName, String projectName, String clusterEnv, String targetEnv, String gitRepoUrl, 
                                String imageTag, boolean vaultInjectorEnable) throws IOException {
