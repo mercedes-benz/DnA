@@ -40,4 +40,5 @@ export const Envs = {
   DNA_MAIL: getInjectedEnv('DNA_MAIL') || process.env.DNA_MAIL,
   CONFLUENCE_PAGE: getInjectedEnv('CONFLUENCE_PAGE') || process.env.CONFLUENCE_PAGE,
   CDC_SIGNIN_URL: getInjectedEnv('CDC_SIGNIN_URL') || process.env.CDC_SIGNIN_URL,
+  ADA_MAIL: getInjectedEnv('ADA_MAIL') || process.env.ADA_MAIL,  
 };

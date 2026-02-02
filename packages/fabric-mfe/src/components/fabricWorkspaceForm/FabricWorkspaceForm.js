@@ -896,7 +896,8 @@ const isLeanIXRequired = typeOfProject === 'Production' && mandate;
                 </div>
                 <div className={Styles.col}>
                   <p className={Styles.warning}>
-                    <i className="icon mbc-icon alert circle" /> If you do not have projects mapped under the division selected or for any other queries reagrding projects creation, kindly reach to our support team through our Email: <a href={`mailto:${Envs.DNA_MAIL}`} target="_blank" rel="noreferrer">{Envs.DNA_MAIL}</a>
+                    <i className="icon mbc-icon alert circle" /> If you do not have projects mapped under the selected division or have any other queries regarding project creation, please contact our support team at: <a href={`mailto:${Envs.ADA_MAIL}`} target="_blank" rel="noreferrer">{Envs.ADA_MAIL}</a>.
+                    &nbsp;<b>Please note:</b> Every workspace must be mapped to a project for billing purposes. If a workspace is not mapped to a project before the 30th day of each month, the workspace creator’s Plant and Cost Center from MB Inside will be used and the workspace will be deleted. 
                   </p>
                 </div>
               </>
