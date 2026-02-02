@@ -1966,7 +1966,11 @@
 					 }
 					
 					String appName = projectName.toLowerCase() + "-" + environment;
-					String finalDeployStatus = "DEPLOY_REQUESTED";
+				
+				String finalDeployStatus = "DEPLOYING";
+				deploymentDetails.setLastDeploymentStatus("DEPLOYING");
+				workspaceCustomRepository.updateDeploymentDetails(projectName, environment, deploymentDetails, "DEPLOYING");
+				
 					int maxAttempts = 20;
 					int attempt = 0;
 					
