@@ -214,7 +214,6 @@ public class ArgoCdService {
                 helmParameters.add(createHelmParam("resources.requests.memory", memory + "Mi"));
                 helmParameters.add(createHelmParam("resources.limits.memory", memory + "Mi"));
             }
-            helmParameters.add(createHelmParam("resources.limits.cpu", "null"));
         }
         
         Map<String, Object> payload = new HashMap<>();
