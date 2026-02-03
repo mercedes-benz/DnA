@@ -1961,45 +1961,45 @@
 					 auditLogEntity.setData(buildDeployLogs);
 					 buildDeployRepo.save(auditLogEntity);
 
-					 if(deployType.equalsIgnoreCase("deploy") && (deploymentDetails.getDeploymentUrl() == null || deploymentDetails.getDeploymentUrl().isEmpty())){
-						 authenticatorClient.callingKongApis(workspaceId, projectName, environment, isApiRecipe, deploymentDetails.getClientId(), "", deploymentDetails.getRedirectUri(), deploymentDetails.getIgnorePaths(), deploymentDetails.getScope(), deploymentDetails.getOneApiVersionShortName(), isSecuredWithCookie, secureWithIAMRequired, deploymentDetails.getSsoType(), secureWithDnaRequired, false, false, deploymentDetails.getSelectedAliceRoles(), cloudServiceProvider);
-					 }
-					
-					String appName = projectName.toLowerCase() + "-" + environment;
+				 if(deployType.equalsIgnoreCase("deploy") && (deploymentDetails.getDeploymentUrl() == null || deploymentDetails.getDeploymentUrl().isEmpty())){
+					 authenticatorClient.callingKongApis(workspaceId, projectName, environment, isApiRecipe, deploymentDetails.getClientId(), "", deploymentDetails.getRedirectUri(), deploymentDetails.getIgnorePaths(), deploymentDetails.getScope(), deploymentDetails.getOneApiVersionShortName(), isSecuredWithCookie, secureWithIAMRequired, deploymentDetails.getSsoType(), secureWithDnaRequired, false, false, deploymentDetails.getSelectedAliceRoles(), cloudServiceProvider);
+				 }
+				
+				String appName = projectName.toLowerCase() + "-" + environment;
 				
 				String finalDeployStatus = "DEPLOYING";
 				deploymentDetails.setLastDeploymentStatus("DEPLOYING");
 				workspaceCustomRepository.updateDeploymentDetails(projectName, environment, deploymentDetails, "DEPLOYING");
 				
-					int maxAttempts = 20;
-					int attempt = 0;
-					
-					while (attempt < maxAttempts) {
-						try {
-							Thread.sleep(5000);
-							String argoStatus = argoCdService.checkArgoAppDeploymentStatus(argoToken, appName);
-							log.info("ArgoCD deployment status check {}/{} for {}: {}", attempt + 1, maxAttempts, appName, argoStatus);
-							
-							if ("DEPLOY_SUCCESS".equals(argoStatus)) {
-								finalDeployStatus = "DEPLOY_SUCCESS";
-								break;
-							} else if ("DEPLOY_FAILED".equals(argoStatus)) {
-								finalDeployStatus = "DEPLOY_FAILED";
-								break;
-							}
-						} catch (InterruptedException e) {
-							log.warn("ArgoCD status polling interrupted", e);
-							Thread.currentThread().interrupt();
+				int maxAttempts = 20;
+				int attempt = 0;
+
+				while (attempt < maxAttempts) {
+					try {
+						Thread.sleep(5000);
+						String argoStatus = argoCdService.checkArgoAppDeploymentStatus(argoToken, appName);
+						log.info("ArgoCD deployment status check {}/{} for {}: {}", attempt + 1, maxAttempts, appName,
+								argoStatus);
+
+						if ("DEPLOYED".equals(argoStatus)) {
+							finalDeployStatus = "DEPLOYED";
+							break;
+						} else if ("FAILED".equals(argoStatus)) {
+							finalDeployStatus = "FAILED";
 							break;
 						}
-						attempt++;
+					} catch (InterruptedException e) {
+						log.warn("ArgoCD status polling interrupted", e);
+						Thread.currentThread().interrupt();
+						break;
 					}
-					
-					// deploymentDetails.setLastDeployedBranch(branch);
-					// deploymentDetails.setLastDeployedVersion(version);	
-					lastBuildOrDeployStatus = finalDeployStatus;				
-					deploymentDetails.setLastDeploymentStatus(finalDeployStatus);
-					
+					attempt++;
+				}
+				// deploymentDetails.setLastDeployedBranch(branch);
+				// deploymentDetails.setLastDeployedVersion(version);
+				lastBuildOrDeployStatus = finalDeployStatus;
+				deploymentDetails.setLastDeploymentStatus(finalDeployStatus);
+	
 					status = "SUCCESS";
 				 } else {
 					 status = "FAILED";
