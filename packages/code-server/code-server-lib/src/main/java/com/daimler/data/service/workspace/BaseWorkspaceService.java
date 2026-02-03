@@ -1969,38 +1969,11 @@
 				
 				String finalDeployStatus = "DEPLOYING";
 				deploymentDetails.setLastDeploymentStatus("DEPLOYING");
-				workspaceCustomRepository.updateDeploymentDetails(projectName, environment, deploymentDetails, "DEPLOYING");
-				
-				int maxAttempts = 20;
-				int attempt = 0;
-
-				while (attempt < maxAttempts) {
-					try {
-						Thread.sleep(5000);
-						String argoStatus = argoCdService.checkArgoAppDeploymentStatus(argoToken, appName);
-						log.info("ArgoCD deployment status check {}/{} for {}: {}", attempt + 1, maxAttempts, appName,
-								argoStatus);
-
-						if ("DEPLOYED".equals(argoStatus)) {
-							finalDeployStatus = "DEPLOYED";
-							break;
-						} else if ("FAILED".equals(argoStatus)) {
-							finalDeployStatus = "FAILED";
-							break;
-						}
-					} catch (InterruptedException e) {
-						log.warn("ArgoCD status polling interrupted", e);
-						Thread.currentThread().interrupt();
-						break;
-					}
-					attempt++;
-				}
-				// deploymentDetails.setLastDeployedBranch(branch);
-				// deploymentDetails.setLastDeployedVersion(version);
-				lastBuildOrDeployStatus = finalDeployStatus;
-				deploymentDetails.setLastDeploymentStatus(finalDeployStatus);
-	
-					status = "SUCCESS";
+			    workspaceCustomRepository.updateDeploymentDetails(projectName, environment, deploymentDetails, "DEPLOYING");
+			// deploymentDetails.setLastDeployedBranch(branch);
+			// deploymentDetails.setLastDeployedVersion(version);
+			lastBuildOrDeployStatus = finalDeployStatus;
+			deploymentDetails.setLastDeploymentStatus(finalDeployStatus);					status = "SUCCESS";
 				 } else {
 					 status = "FAILED";
 					 if (argoErrorMessage != null && !argoErrorMessage.isEmpty()) {
