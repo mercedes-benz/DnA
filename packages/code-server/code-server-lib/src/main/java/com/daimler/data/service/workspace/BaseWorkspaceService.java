@@ -1968,14 +1968,15 @@
 				String appName = projectName.toLowerCase() + "-" + environment;
 				
 				String finalDeployStatus = "DEPLOYING";
+				lastBuildOrDeployStatus = "DEPLOYING";
 				deploymentDetails.setLastDeploymentStatus("DEPLOYING");
-			    workspaceCustomRepository.updateDeploymentDetails(projectName, environment, deploymentDetails, "DEPLOYING");
-			// deploymentDetails.setLastDeployedBranch(branch);
-			// deploymentDetails.setLastDeployedVersion(version);
-			lastBuildOrDeployStatus = finalDeployStatus;
-			deploymentDetails.setLastDeploymentStatus(finalDeployStatus);					status = "SUCCESS";
-				 } else {
-					 status = "FAILED";
+				workspaceCustomRepository.updateDeploymentDetails(projectName, environment, deploymentDetails,
+						"DEPLOYING");
+				status = "SUCCESS";
+			} else {
+				status = "FAILED";
+				deploymentDetails.setLastDeploymentStatus("FAILED");
+					 workspaceCustomRepository.updateDeploymentDetails(projectName, environment, deploymentDetails, "FAILED");
 					 if (argoErrorMessage != null && !argoErrorMessage.isEmpty()) {
 						 MessageDescription error = new MessageDescription();
 						 error.setMessage("Error in deploying code space. " + argoErrorMessage);
