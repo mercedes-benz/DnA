@@ -83,3 +83,5 @@ db:
    env: int
  - name: fc-ai-hackathon
    env: int
+ - name: phoenix
+   env: int
