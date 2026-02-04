@@ -325,8 +325,8 @@ public class ArgoCdService {
             @SuppressWarnings("unchecked")
             Map<String, Object> resourcesSection = (Map<String, Object>) values.get("resources");
             
-            if (resourcesSection == null || !resourcesSection.containsKey("requests")) {
-                log.info("No resources.requests section found in values.yaml");
+            if (resourcesSection == null || resourcesSection.isEmpty() || !resourcesSection.containsKey("requests")) {
+                log.info("No resources.requests section found in values.yaml or resources is empty");
                 return null;
             }
             

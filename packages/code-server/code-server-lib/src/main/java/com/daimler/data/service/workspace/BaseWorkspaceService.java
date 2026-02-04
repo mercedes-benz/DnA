@@ -1485,6 +1485,45 @@
 		 else{
 		  entity = workspaceCustomRepository.findById(userId, id);
 		 }
+		 
+		 if (entity != null && entity.getData() != null && entity.getData().getProjectDetails() != null) {
+			 String projectName = entity.getData().getProjectDetails().getProjectName();
+			 
+			 CodeServerDeploymentDetails intDeployment = entity.getData().getProjectDetails().getIntDeploymentDetails();
+			 if (intDeployment != null && "DEPLOYING".equalsIgnoreCase(intDeployment.getLastDeploymentStatus())) {
+				 try {
+					 String argoToken = argoCdService.getArgoToken();
+					 String appName = projectName.toLowerCase() + "-int";
+					 String argoStatus = argoCdService.checkArgoAppDeploymentStatus(argoToken, appName);
+					 
+					 if ("DEPLOYED".equals(argoStatus) || "FAILED".equals(argoStatus)) {
+						 intDeployment.setLastDeploymentStatus(argoStatus);
+						 workspaceCustomRepository.updateDeploymentDetails(projectName, "int", intDeployment, argoStatus);
+						 entity = workspaceCustomRepository.findById(userId, id);
+					 }
+				 } catch (Exception e) {
+					 log.warn("Failed to check ArgoCD status for int deployment: {}", e.getMessage());
+				 }
+			 }
+			 
+			 CodeServerDeploymentDetails prodDeployment = entity.getData().getProjectDetails().getProdDeploymentDetails();
+			 if (prodDeployment != null && "DEPLOYING".equalsIgnoreCase(prodDeployment.getLastDeploymentStatus())) {
+				 try {
+					 String argoToken = argoCdService.getArgoToken();
+					 String appName = projectName.toLowerCase() + "-prod";
+					 String argoStatus = argoCdService.checkArgoAppDeploymentStatus(argoToken, appName);
+					 
+					 if ("DEPLOYED".equals(argoStatus) || "FAILED".equals(argoStatus)) {
+						 prodDeployment.setLastDeploymentStatus(argoStatus);
+						 workspaceCustomRepository.updateDeploymentDetails(projectName, "prod", prodDeployment, argoStatus);
+						 entity = workspaceCustomRepository.findById(userId, id);
+					 }
+				 } catch (Exception e) {
+					 log.warn("Failed to check ArgoCD status for prod deployment: {}", e.getMessage());
+				 }
+			 }
+		 }
+		 
 		 return workspaceAssembler.toVo(entity);
 	 }
   
