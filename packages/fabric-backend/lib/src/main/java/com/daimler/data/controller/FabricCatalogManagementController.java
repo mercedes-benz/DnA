@@ -35,6 +35,7 @@ import com.daimler.data.dto.fabricWorkspace.CreatedByVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceVO;
 import com.daimler.data.service.catalogManagement.FabricCatalogManagementService;
 import com.daimler.data.service.fabric.FabricWorkspaceService;
+import com.daimler.data.util.FabricWorkspaceUtility;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -63,6 +64,8 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
 
     @Autowired
     private FabricCatalogManagementCustomRepository catalogCustomRepo;
+    @Autowired 
+    private FabricWorkspaceUtility utility;
 
     @Autowired
     private FabricWorkspaceClient fabricWorkspaceClient;
@@ -102,7 +105,7 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
         String creatorId = existingFabricWorkspace.getCreatedBy().getId();
 
         if (!requestUser.getId().equalsIgnoreCase(creatorId)
-                && !userStore.getUserInfo().hasProjectAdminAccess(workspaceId)) {
+                && !utility.hasProjectAdminAccess(requestUser.getId(), workspaceId)) {
             log.error(
                     "Fabric workspace {} {} doesnt belong to User or user not admin {} , Not authorized to publish catalog.",
                     workspaceId, existingFabricWorkspace.getName(), requestUser.getId());
@@ -180,7 +183,7 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
             String creatorId = existingFabricWorkspace.getCreatedBy().getId();
 
             if (!requestUser.getId().equalsIgnoreCase(creatorId)
-                    && !userStore.getUserInfo().hasProjectAdminAccess(workspaceId)) {
+                    && !utility.hasProjectAdminAccess(requestUser.getId(), workspaceId)) {
                 log.error(
                         "Fabric workspace {} {} doesnt belong to User or user not admin {} , Not authorized to publish catalog.",
                         workspaceId, existingFabricWorkspace.getName(), requestUser.getId());
