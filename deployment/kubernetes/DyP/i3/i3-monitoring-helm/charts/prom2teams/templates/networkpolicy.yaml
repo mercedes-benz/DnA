@@ -1,0 +1,22 @@
+{{- if .Values.networkPolicy.enabled -}}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "prom2teams.fullname" . }}
+  labels:
+{{ include "prom2teams.labels" . | indent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "prom2teams.name" . }}
+  ingress:
+    - from:
+      - podSelector:
+          matchLabels:
+            app: prometheus
+            component: alertmanager
+            release: i3-monitoring
+    - ports:
+      - port: 8089
+      - port: 9090
+{{- end -}}

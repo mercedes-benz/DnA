@@ -74,7 +74,6 @@ import com.daimler.data.dto.fabricWorkspace.CreatedByVO;
 import com.daimler.data.db.json.AuthoriserRoleDeatils;
 import com.daimler.data.db.entities.AuthoriserRolesNsql;
 import com.daimler.data.dto.fabricWorkspace.DnaRolesVO;
-
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -327,7 +326,15 @@ public class AuthoriserClient {
                 errors.add(error);
                 response.setErrors(errors);
              
-            } else {
+            } else if (HttpStatus.FORBIDDEN.equals(e.getStatusCode())) {
+
+				log.error("Role with displayName {} deletion failed: Forbidden (403).", roleId);
+
+				MessageDescription error = new MessageDescription("Role deletion failed: Forbidden (403).");
+				errors.add(error);
+				response.setErrors(errors);
+
+			} else {
                 log.error("Role with displayName {} deletion failed with status code {} ", 
                           roleId, e.getStatusCode());
                           

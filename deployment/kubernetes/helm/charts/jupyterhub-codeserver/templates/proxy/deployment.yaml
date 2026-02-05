@@ -7,7 +7,7 @@ metadata:
   labels:
     {{- include "jupyterhub.labels" . | nindent 4 }}
 spec:
-  {{- if typeIs "int" .Values.proxy.chp.revisionHistoryLimit }}
+  {{- if not (typeIs "<nil>" .Values.proxy.chp.revisionHistoryLimit) }}
   revisionHistoryLimit: {{ .Values.proxy.chp.revisionHistoryLimit }}
   {{- end }}
   replicas: 1
@@ -99,6 +99,9 @@ spec:
             {{- end }}
             {{- if .Values.debug.enabled }}
             - --log-level=debug
+            {{- end }}
+            {{- if .Values.hub.config.JupyterHub.subdomain_host }}
+            - --host-routing
             {{- end }}
             {{- range .Values.proxy.chp.extraCommandLineFlags }}
             - {{ tpl . $ }}

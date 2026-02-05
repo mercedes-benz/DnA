@@ -1,0 +1,23 @@
+enabled: true
+
+resourceName: i3-alerts
+
+labels:
+  prometheus_alert: "1"
+
+## Configmap annotations
+annotations: {}
+
+alerts:
+- file: k8s-jobs
+  extension: yaml
+  src: alerts/k8s-jobs.yaml
+- file: k8s-pods
+  extension: yaml
+  src: alerts/k8s-pods.yaml
+- file: k8s-replicatables
+  extension: yaml
+  src: alerts/k8s-replicatables.yaml
+- file: k8s-pdb
+  extension: yaml
+  src: alerts/k8s-pdb.yaml

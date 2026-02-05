@@ -4,12 +4,11 @@ COPY --chown=gradle:gradle . /home/gradle/src
 WORKDIR /home/gradle/src
 RUN gradle build --no-daemon
 #Step-2
-FROM openjdk:17-jdk
+FROM eclipse-temurin:17-jre-jammy
 USER 1000
 ENV ARTIFACT_NAME=code-server-lib-1.0.0.jar
 ENV APP_HOME=/usr/app/
 WORKDIR $APP_HOME
 COPY --from=TEMP_BUILD_IMAGE /home/gradle/src/code-server-lib/build/libs/$ARTIFACT_NAME $ARTIFACT_NAME
-
 EXPOSE 7173
 CMD java -jar $ARTIFACT_NAME

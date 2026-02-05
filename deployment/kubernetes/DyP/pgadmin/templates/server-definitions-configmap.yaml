@@ -1,0 +1,12 @@
+{{- if and .Values.serverDefinitions.enabled ( ne .Values.serverDefinitions.resourceType "Secret" ) }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "pgadmin.fullname" . }}-server-definitions
+  namespace: {{ include "pgadmin.namespaceName" . }}
+  labels:
+    {{- include "pgadmin.labels" . | nindent 4 }}
+data:
+  servers.json: |-
+{{ include "pgadmin.serverDefinitions" . | indent 4 }}
+{{- end }}

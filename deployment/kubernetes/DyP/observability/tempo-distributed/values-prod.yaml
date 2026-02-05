@@ -1,0 +1,38 @@
+fullnameOverride: tempo
+global:
+  image:
+    registry: registry-emea.app.corpintra.net/dockerhub  
+storage:
+  trace:
+    backend: s3
+    s3:
+      access_key: <path:dna_aws_kv/data/dev/kubernetesSecret/loki#rootUser>
+      secret_key: <path:dna_aws_kv/data/dev/kubernetesSecret/loki#rootPassword>
+      bucket: 'tempo-traces'
+      endpoint: 'loki-minio:9000'
+      insecure: true
+ingester:
+  persistence:
+    enabled: true
+    size: 5Gi
+    storageClass: dhc-gp3
+compactor:
+  config:
+    compaction:
+      compaction_window: 720h # 30days
+      max_compaction_objects: 1000000
+      block_retention: 720h
+      compacted_block_retention: 10m
+traces:
+  otlp:
+    grpc:
+      enabled: true
+    http:
+      enabled: true        
+  zipkin:
+    enabled: true      
+overrides:
+  defaults:
+    metrics_generator:
+      processors: ['service-graphs', 'span-metrics', 'local-blocks']
+      generate_native_histograms: both
