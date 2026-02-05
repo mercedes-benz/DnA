@@ -304,10 +304,14 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
         
         // Validate workspace exists
         try {
-            com.daimler.data.dto.fabric.WorkspaceDetailDto workspace = fabricWorkspaceClient.getWorkspaceDetails(workspaceId);
-            if (workspace == null || workspace.getErrorCode() != null) {
-                String errorMsg = workspace != null && workspace.getMessage() != null ? workspace.getMessage() 
-                    : "Workspace not found";
+            com.daimler.data.dto.fabric.WorkspacesCollectionDto workspaces = fabricWorkspaceClient.getAllWorkspacesDetails();
+            boolean workspaceExists = false;
+            if (workspaces != null && workspaces.getValue() != null) {
+                workspaceExists = workspaces.getValue().stream()
+                    .anyMatch(w -> w != null && workspaceId.equals(w.getId()));
+            }
+            if (!workspaceExists) {
+                String errorMsg = "Workspace not found";
                 log.error("Workspace {} not found or error: {}", workspaceId, errorMsg);
                 MessageDescription error = new MessageDescription();
                 error.setMessage("Workspace not found: " + workspaceId);
@@ -374,6 +378,20 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
 
             int successCount = 0;
             int failureCount = 0;
+
+            // Check if single group is null or empty - return 400 Bad Request
+            if (updateDDXGroupsRequest.getGroups().size() == 1) {
+                String singleGroup = updateDDXGroupsRequest.getGroups().get(0);
+                if (singleGroup == null || singleGroup.trim().isEmpty()) {
+                    MessageDescription error = new MessageDescription();
+                    error.setMessage("Invalid request: group ID cannot be empty or null");
+                    errors.add(error);
+                    responseMessage.setErrors(errors);
+                    responseMessage.setWarnings(warnings);
+                    responseMessage.setSuccess("FAILED");
+                    return new ResponseEntity<>(responseMessage, HttpStatus.BAD_REQUEST);
+                }
+            }
 
             // Process each group
             for (String groupId : updateDDXGroupsRequest.getGroups()) {
@@ -442,8 +460,8 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
             if (errors.isEmpty() && successCount > 0) {
                 responseMessage.setSuccess("SUCCESS");
                 MessageDescription successMsg = new MessageDescription();
-                successMsg.setMessage(String.format("Successfully processed %d group(s)", successCount));
-                warnings.add(successMsg);
+                // successMsg.setMessage(String.format("Successfully processed %d group(s)", successCount));
+                // warnings.add(successMsg);
             } else if (successCount > 0 && failureCount > 0) {
                 responseMessage.setSuccess("PARTIAL_SUCCESS");
                 MessageDescription partialMsg = new MessageDescription();
