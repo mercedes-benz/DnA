@@ -9,7 +9,6 @@ import ConfirmModal from 'components/formElements/modal/confirmModal/ConfirmModa
 import AceEditor from 'react-ace';
 import 'ace-builds/src-noconflict/mode-json';
 import 'ace-builds/src-noconflict/theme-solarized_dark';
-import { Envs } from 'globals/Envs';
 
 type KeyValueItem = {
   key: string;
@@ -22,7 +21,7 @@ interface VaultManagementProps {
    dagId: string | null;
 }
 
-const environment = Envs.DNA_ENVIRONMENT;
+// const environment = Envs.DNA_ENVIRONMENT;
 
 const deleteCodeSpaceContent: ReactNode = (
   <div>
@@ -48,7 +47,7 @@ const VaultManagement: React.FC<VaultManagementProps> = ({ projectName, dagId}) 
   const [jsonError, setJsonError] = useState('');
   const [isJsonTouched, setIsJsonTouched] = useState(false);
   const [toggleError, setToggleError] = useState('');
-  const vaultPrefix = `${environment}_${dagId}_`;
+  // const vaultPrefix = `${environment}_${dagId}_`;
 
   useEffect(() => {
     loadVaultValues();
@@ -154,13 +153,21 @@ const VaultManagement: React.FC<VaultManagementProps> = ({ projectName, dagId}) 
       data[item.key] = item.value;
     });
 
+    ProgressIndicator.show();
     PipelineApiClient.putVaultSecret(dagId, data)
-
-    setKeyValue({ keyValueList: updatedList });
-    setKey('');
-    setValue('');
-    setEditingMode(false);
-    loadVaultValues();
+      .then(() => {
+        Notification.show('Vault secret saved successfully');
+        setKey('');
+        setValue('');
+        setEditingMode(false);
+        loadVaultValues();
+      })
+      .catch((err: any) => {
+        Notification.show(err.message || 'Failed to save vault secret', 'alert');
+      })
+      .finally(() => {
+        ProgressIndicator.hide();
+      });
   };
 
   const handleEdit = (key: string, value: string) => {
@@ -197,27 +204,6 @@ const VaultManagement: React.FC<VaultManagementProps> = ({ projectName, dagId}) 
       return;
     }
 
-    const requiredPrefix = vaultPrefix;
-
-    const invalidKeys: string[] = [];
-
-    for (const key of Object.keys(rawJson)) {
-      const startsCorrectly = key.startsWith(requiredPrefix);
-      const hasSuffix = key.length > requiredPrefix.length;
-
-      if (!startsCorrectly || !hasSuffix) {
-        invalidKeys.push(key);
-      }
-    }
-
-    if (invalidKeys.length > 0) {
-      setJsonError(
-        `Invalid keys detected:\n${invalidKeys
-          .map((k) => `- ${k}`)
-          .join('\n')}\n\n.Each key must start with the prefix: "${requiredPrefix}"`
-      );
-      return;
-    }
     PipelineApiClient.putVaultSecret(projectName, rawJson)
       .then(() => Notification.show('Saved JSON'))
       .catch(() => Notification.show('Failed to save JSON', 'alert'));
@@ -483,8 +469,8 @@ const VaultManagement: React.FC<VaultManagementProps> = ({ projectName, dagId}) 
         title=""
         acceptButtonTitle="Yes"
         cancelButtonTitle="Cancel"
-        showAcceptButton
-        showCancelButton
+        showAcceptButton={true}
+        showCancelButton={true}
         show={showConfirmModal}
         content={deleteCodeSpaceContent}
         onCancel={() => setShowConfirmModal(false)}
