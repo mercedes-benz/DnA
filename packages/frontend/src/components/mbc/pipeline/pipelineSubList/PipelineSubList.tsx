@@ -488,7 +488,8 @@ const PipelineSubList = (props: IPipelineProjectProps) => {
         <Modal
           title="Configure Environment Variables"
           showAcceptButton={false}
-          showCancelButton={true}
+          showCancelButton={false}
+          hideCloseButton={true}
           buttonAlignment="right"
           modalWidth="80vw"
           modalStyle={{ height: '80vh', maxWidth: 'none' }}
