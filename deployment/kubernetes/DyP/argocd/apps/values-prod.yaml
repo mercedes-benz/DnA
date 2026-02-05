@@ -85,3 +85,5 @@ db:
    env: int
  - name: phoenix
    env: int
+ - name: mb-assist
+   env: prod
