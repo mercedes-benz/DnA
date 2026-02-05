@@ -196,6 +196,11 @@ const VaultManagement: React.FC<VaultManagementProps> = ({ projectName, dagId}) 
   const handleSaveJson = () => {
     if (jsonError) return;
 
+    if (!dagId) {
+      Notification.show('DAG ID is missing', 'alert');
+      return;
+    }
+
     let rawJson: Record<string, string>;
     try {
       rawJson = JSON.parse(jsonData);
@@ -204,13 +209,21 @@ const VaultManagement: React.FC<VaultManagementProps> = ({ projectName, dagId}) 
       return;
     }
 
-    PipelineApiClient.putVaultSecret(projectName, rawJson)
-      .then(() => Notification.show('Saved JSON'))
-      .catch(() => Notification.show('Failed to save JSON', 'alert'));
-    setIsJsonTouched(false);
-    setJsonError('');
-    loadVaultValues();
-    setToggleError('');
+    ProgressIndicator.show();
+    PipelineApiClient.putVaultSecret(dagId, rawJson)
+      .then(() => {
+        Notification.show('Saved JSON successfully');
+        setIsJsonTouched(false);
+        setJsonError('');
+        setToggleError('');
+        loadVaultValues();
+      })
+      .catch((err: any) => {
+        Notification.show(err.message || 'Failed to save JSON', 'alert');
+      })
+      .finally(() => {
+        ProgressIndicator.hide();
+      });
   };
 
   const onMagnify = (key: string) => {
