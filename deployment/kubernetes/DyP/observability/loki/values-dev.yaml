@@ -201,7 +201,6 @@ ingress:
     traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd 
   hosts:
     - api.logs.dev.dna.app.corpintra.net
-  path: /
   tls:
     - hosts:
         - api.logs.dev.dna.app.corpintra.net
