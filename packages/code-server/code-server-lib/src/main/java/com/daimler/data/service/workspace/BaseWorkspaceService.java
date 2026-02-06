@@ -1487,24 +1487,18 @@
 		 }
 		 
 		 if (entity != null && entity.getData() != null && entity.getData().getProjectDetails() != null) {
-			 String projectName = entity.getData().getProjectDetails().getProjectName();
-			 boolean statusUpdated = false;
-			 
+			 String projectName = entity.getData().getProjectDetails().getProjectName();			 
 			 CodeServerDeploymentDetails intDeployment = entity.getData().getProjectDetails().getIntDeploymentDetails();
-			 if (intDeployment != null && intDeployment.getLastDeploymentStatus() != null && !intDeployment.getLastDeploymentStatus().isEmpty()) {
+			 if (intDeployment != null && "DEPLOYING".equalsIgnoreCase(intDeployment.getLastDeploymentStatus())) {
 				 try {
 					 String argoToken = argoCdService.getArgoToken();
 					 String appName = projectName.toLowerCase() + "-int";
 					 String argoStatus = argoCdService.checkArgoAppDeploymentStatus(argoToken, appName);
 					 
-					 if (argoStatus != null && !argoStatus.equals("NOT_FOUND") && !argoStatus.equals("UNKNOWN")) {
-						 String currentStatus = intDeployment.getLastDeploymentStatus();
-						 if (!argoStatus.equals(currentStatus)) {
-							 log.info("Updating int deployment status from {} to {} for app {}", currentStatus, argoStatus, appName);
-							 intDeployment.setLastDeploymentStatus(argoStatus);
-							 workspaceCustomRepository.updateDeploymentDetails(projectName, "int", intDeployment, argoStatus);
-							 statusUpdated = true;
-						 }
+					 if ("DEPLOYED".equals(argoStatus) || "FAILED".equals(argoStatus)) {
+						 intDeployment.setLastDeploymentStatus(argoStatus);
+						 workspaceCustomRepository.updateDeploymentDetails(projectName, "int", intDeployment, argoStatus);
+						 entity = workspaceCustomRepository.findById(userId, id);
 					 }
 				 } catch (Exception e) {
 					 log.warn("Failed to check ArgoCD status for int deployment: {}", e.getMessage());
@@ -1512,31 +1506,19 @@
 			 }
 			 
 			 CodeServerDeploymentDetails prodDeployment = entity.getData().getProjectDetails().getProdDeploymentDetails();
-			 if (prodDeployment != null && prodDeployment.getLastDeploymentStatus() != null && !prodDeployment.getLastDeploymentStatus().isEmpty()) {
+			 if (prodDeployment != null && "DEPLOYING".equalsIgnoreCase(prodDeployment.getLastDeploymentStatus())) {
 				 try {
 					 String argoToken = argoCdService.getArgoToken();
 					 String appName = projectName.toLowerCase() + "-prod";
 					 String argoStatus = argoCdService.checkArgoAppDeploymentStatus(argoToken, appName);
 					 
-					 if (argoStatus != null && !argoStatus.equals("NOT_FOUND") && !argoStatus.equals("UNKNOWN")) {
-						 String currentStatus = prodDeployment.getLastDeploymentStatus();
-						 if (!argoStatus.equals(currentStatus)) {
-							 log.info("Updating prod deployment status from {} to {} for app {}", currentStatus, argoStatus, appName);
-							 prodDeployment.setLastDeploymentStatus(argoStatus);
-							 workspaceCustomRepository.updateDeploymentDetails(projectName, "prod", prodDeployment, argoStatus);
-							 statusUpdated = true;
-						 }
+					 if ("DEPLOYED".equals(argoStatus) || "FAILED".equals(argoStatus)) {
+						 prodDeployment.setLastDeploymentStatus(argoStatus);
+						 workspaceCustomRepository.updateDeploymentDetails(projectName, "prod", prodDeployment, argoStatus);
+						 entity = workspaceCustomRepository.findById(userId, id);
 					 }
 				 } catch (Exception e) {
 					 log.warn("Failed to check ArgoCD status for prod deployment: {}", e.getMessage());
-				 }
-			 }
-			 
-			 if (statusUpdated) {
-				 if(technicalId.equalsIgnoreCase(userId)){
-					 entity = workspaceCustomRepository.findByWorkspaceId(id);
-				 } else {
-					 entity = workspaceCustomRepository.findById(userId, id);
 				 }
 			 }
 		 }
