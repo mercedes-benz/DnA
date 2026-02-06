@@ -259,7 +259,7 @@ jobs:
     runs-on: [azure-large-amd64-linux]
     environment: ${{ github.event.inputs.environment }}
     needs: build_deploy
-    if: ${{ (!cancelled() && (success() || failure())) && (github.event.inputs.branch == 'dev' ||  github.event.inputs.environment == 'AWSDevelopment' || github.event.inputs.branch == 'staging' ||  github.event.inputs.environment == 'AWSStaging') }}
+    if: ${{ (!cancelled() && (success() || failure())) && (github.event.inputs.environment == 'AWSDevelopment' || github.event.inputs.environment == 'AWSStaging') }}
     steps:
       - name: Set up Python
         uses: actions/setup-python@v4
@@ -278,7 +278,7 @@ jobs:
     runs-on: [azure-large-amd64-linux]
     environment: ${{ github.event.inputs.environment }}
     needs: build_deploy
-    if: ${{ (!cancelled() && (success() || failure())) && (github.event.inputs.branch == 'main' ||  github.event.inputs.environment == 'AWSProduction') }}
+    if: ${{ (!cancelled() && (success() || failure())) && (github.event.inputs.environment == 'AWSProduction') }}
     steps:
       - name: Set up Python
         uses: actions/setup-python@v4
