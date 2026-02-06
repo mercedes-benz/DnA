@@ -20,6 +20,7 @@ import org.springframework.util.StreamUtils;
 import org.springframework.web.client.RestTemplate;
 import org.yaml.snakeyaml.Yaml;
 
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.extern.slf4j.Slf4j;
@@ -206,13 +207,16 @@ public class ArgoCdService {
         if (resources != null && !resources.isEmpty()) {
             String cpu = resources.get("cpu");
             String memory = resources.get("memory");
-            
+            String memoryLimit = resources.get("memoryLimit");
             if (cpu != null) {
                 helmParameters.add(createHelmParam("resources.requests.cpu", cpu + "m"));
+                helmParameters.add(createHelmParam("resources.limits.cpu", cpu + "m"));
             }
             if (memory != null) {
                 helmParameters.add(createHelmParam("resources.requests.memory", memory + "Mi"));
-                helmParameters.add(createHelmParam("resources.limits.memory", memory + "Mi"));
+            }
+            if (memoryLimit != null) {
+                helmParameters.add(createHelmParam("resources.limits.memory", memoryLimit + "Mi"));
             }
         }
         
@@ -306,60 +310,57 @@ public class ArgoCdService {
     }
     
     public Map<String, String> calculateResources(String gitRepoUrl) {
-        try {
-            String valuesYamlContent = fetchValuesYaml(gitRepoUrl);
-            
-            if (valuesYamlContent == null || valuesYamlContent.trim().isEmpty()) {
-                log.info("values.yaml not found or empty for repository: {}", gitRepoUrl);
-                return null;
-            }
-            
-            Yaml yaml = new Yaml();
-            Map<String, Object> values = yaml.load(valuesYamlContent);
-            
-            if (values == null || !values.containsKey("resources")) {
-                log.info("No resources section found in values.yaml");
-                return null;
-            }
-            
-            @SuppressWarnings("unchecked")
-            Map<String, Object> resourcesSection = (Map<String, Object>) values.get("resources");
-            
-            if (resourcesSection == null || resourcesSection.isEmpty() || !resourcesSection.containsKey("requests")) {
-                log.info("No resources.requests section found in values.yaml or resources is empty");
-                return null;
-            }
-            
-            @SuppressWarnings("unchecked")
-            Map<String, Object> requests = (Map<String, Object>) resourcesSection.get("requests");
-            
-            Map<String, String> convertedResources = new HashMap<>();
-            
-            if (requests.containsKey("cpu")) {
-                String cpuValue = String.valueOf(requests.get("cpu"));
-                convertedResources.put("cpu", convertCpu(cpuValue));
-            }
-            
-            if (requests.containsKey("memory")) {
-                String memoryValue = String.valueOf(requests.get("memory"));
-                convertedResources.put("memory", convertMemory(memoryValue));
-            }
-            
-            if (convertedResources.isEmpty()) {
-                log.info("No CPU or Memory values found in resources.requests");
-                return null;
-            }
-            
-            log.info("Calculated resources - CPU: {}m, Memory: {}Mi", 
-                     convertedResources.get("cpu"), convertedResources.get("memory"));
-            return convertedResources;
-            
-        } catch (Exception e) {
-            log.error("Failed to calculate resources from values.yaml: {}", e.getMessage());
+    try {
+        String valuesYamlContent = fetchValuesYaml(gitRepoUrl);
+        if (valuesYamlContent == null || valuesYamlContent.trim().isEmpty()) {
             return null;
         }
+        Yaml yaml = new Yaml();
+        Map<String, Object> values = yaml.load(valuesYamlContent);
+        if (values == null || !values.containsKey("resources")) {
+            return null;
+        }
+        @SuppressWarnings("unchecked")
+        Map<String, Object> resourcesSection =
+                (Map<String, Object>) values.get("resources");
+        if (!resourcesSection.containsKey("requests")) {
+            return null;
+        }
+        @SuppressWarnings("unchecked")
+        Map<String, Object> requests =
+                (Map<String, Object>) resourcesSection.get("requests");
+        Map<String, String> convertedResources = new HashMap<>();
+        if (requests.containsKey("cpu")) {
+            String cpuValue = String.valueOf(requests.get("cpu"));
+            String convertedCpu = convertCpu(cpuValue);
+            if (convertedCpu != null) {
+                convertedResources.put("cpu", convertedCpu);
+            }
+        }
+        if (requests.containsKey("memory")) {
+            String memoryValue = String.valueOf(requests.get("memory"));
+            String convertedMemory = convertMemory(memoryValue);
+            if (convertedMemory != null) {
+                convertedResources.put("memory", convertedMemory);
+            }
+        }
+        @SuppressWarnings("unchecked")
+        Map<String, Object> limits =
+                (Map<String, Object>) resourcesSection.get("limits");
+
+        if (limits != null && limits.containsKey("memory")) {
+            String memoryLimitValue = String.valueOf(limits.get("memory"));
+            String convertedLimit = convertMemory(memoryLimitValue);
+            if (convertedLimit != null) {
+                convertedResources.put("memoryLimit", convertedLimit);
+            }
+        }
+        return convertedResources.isEmpty() ? null : convertedResources;
+    } catch (Exception e) {
+        log.error("Failed to calculate resources", e);
+        return null;
     }
-    
+}
     private String convertCpu(String cpuValue) {
         cpuValue = cpuValue.trim();
         
@@ -367,17 +368,12 @@ public class ArgoCdService {
             return cpuValue.substring(0, cpuValue.length() - 1);
         }
         
-        if (cpuValue.endsWith("c")) {
-            cpuValue = cpuValue.substring(0, cpuValue.length() - 1);
-        }
-        
         try {
             double cores = Double.parseDouble(cpuValue);
-            int millicores = (int) (cores * 1000);
-            return String.valueOf(millicores);
+            return String.valueOf((int) (cores * 1000));
         } catch (NumberFormatException e) {
-            log.warn("Failed to parse CPU value: {}", cpuValue);
-            return "1000";
+            log.warn("Invalid CPU value (must be 'm' or cores): {}", cpuValue);
+            return null;
         }
     }
     
@@ -389,24 +385,17 @@ public class ArgoCdService {
         }
         
         if (memoryValue.endsWith("Gi")) {
-            String numericPart = memoryValue.substring(0, memoryValue.length() - 2);
             try {
-                double gigabytes = Double.parseDouble(numericPart);
-                int megabytes = (int) (gigabytes * 1024);
-                return String.valueOf(megabytes);
+                double gigabytes = Double.parseDouble(memoryValue.substring(0, memoryValue.length() - 2));
+                return String.valueOf((int) (gigabytes * 1024));
             } catch (NumberFormatException e) {
-                log.warn("Failed to parse memory value: {}", memoryValue);
-                return "512";
+                log.warn("Invalid memory value: {}", memoryValue);
+                return null;
             }
         }
         
-        try {
-            Integer.parseInt(memoryValue);
-            return memoryValue;
-        } catch (NumberFormatException e) {
-            log.warn("Failed to parse memory value: {}", memoryValue);
-            return "512";
-        }
+        log.warn("Unsupported memory unit (must be 'Mi' or 'Gi'): {}", memoryValue);
+        return null;
     }
     
     private String fetchValuesYaml(String gitRepoUrl) {
@@ -444,61 +433,40 @@ public class ArgoCdService {
     public ResponseEntity<String> getStatusOfArgoApp(String token, String appName) {
         try {
             String url = argocdCreateUrl + "/" + appName;
-    
             HttpHeaders headers = new HttpHeaders();
             headers.setBearerAuth(token);
             headers.setContentType(MediaType.APPLICATION_JSON);
             HttpEntity<Object> entity = new HttpEntity<>(headers);
-            
-            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
-            
-            if (response.getStatusCode().is4xxClientError()) {
-                log.info("Application is in progress!");
-                return null;
-            } else if (response.getStatusCode().is2xxSuccessful()) {
-                log.info("Application status retrieved successfully for: {}", appName);
-                return response;
-            }
-            return null;
+            return restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
         } catch (org.springframework.web.client.HttpClientErrorException.NotFound e) {
             log.info("ArgoCD application not found: {}", appName);
-            return null;
+            return ResponseEntity.status(404).build();
         } catch (Exception e) {
-            log.error("Failed to get ArgoCD app status for {}: {}", appName, e.getMessage());            
-            return null;
+            log.error("Failed to get ArgoCD app status for {}", appName, e);
+            return ResponseEntity.status(500).build();
         }
     }
     
     public String checkArgoAppDeploymentStatus(String token, String appName) {
         try {
             ResponseEntity<String> argoResponse = getStatusOfArgoApp(token, appName);
-            if (argoResponse == null) {
-                return "NOT_FOUND";
+            if (argoResponse == null || !argoResponse.getStatusCode().is2xxSuccessful()) {
+                log.info("ArgoCD app {} not ready yet - DEPLOYING", appName);
+                return "DEPLOYING";
             }
-            
             ObjectMapper mapper = new ObjectMapper();
-            com.fasterxml.jackson.databind.JsonNode rootNode = mapper.readTree(argoResponse.getBody());
-            
-            com.fasterxml.jackson.databind.JsonNode healthNode = rootNode.path("status").path("health").path("status");
-            com.fasterxml.jackson.databind.JsonNode syncNode = rootNode.path("status").path("sync").path("status");
-            
-            if (healthNode.isMissingNode()) {
-                log.info("Health status not found for application {}", appName);
-                return "UNKNOWN";
-            }
-            
-            String healthStatus = healthNode.asText();
-            String syncStatus = syncNode.isMissingNode() ? "Unknown" : syncNode.asText();
-            
+            JsonNode rootNode = mapper.readTree(argoResponse.getBody());
+            String healthStatus = rootNode.path("status").path("health").path("status").asText("");
+            String syncStatus = rootNode.path("status").path("sync").path("status").asText("");
             log.info("ArgoCD app {} - Health: {}, Sync: {}", appName, healthStatus, syncStatus);
-            
             switch (healthStatus.toLowerCase()) {
                 case "healthy":
-                    if ("Synced".equalsIgnoreCase(syncStatus)) {
+                    if ("synced".equalsIgnoreCase(syncStatus)) {
                         log.info("Application {} is healthy and synced - DEPLOYED", appName);
                         return "DEPLOYED";
                     } else {
-                        log.info("Application {} is healthy but sync status is {} - DEPLOYING", appName, syncStatus);
+                        log.info("Application {} is healthy but sync status is {} - DEPLOYING",
+                                appName, syncStatus);
                         return "DEPLOYING";
                     }
                 case "progressing":
@@ -517,16 +485,15 @@ public class ArgoCdService {
                     log.info("Application {} has unknown health status - DEPLOYING", appName);
                     return "DEPLOYING";
                 default:
-                    log.info("Unexpected health status: {} for application {} - DEPLOYING", healthStatus, appName);
+                    log.info("Unexpected health status {} for application {} - DEPLOYING",
+                            healthStatus, appName);
                     return "DEPLOYING";
             }
-            
         } catch (Exception e) {
-            log.error("Failed to check ArgoCD deployment status for {}: {}", appName, e.getMessage());
-            return "UNKNOWN";
+            log.error("Failed to check ArgoCD deployment status for {}", appName, e);
+            return "DEPLOYING";
         }
     }
-    
     private String getNamespaceForEnvironment(String clusterEnv, String targetEnv) {
        
         if ("int".equalsIgnoreCase(targetEnv)) {
