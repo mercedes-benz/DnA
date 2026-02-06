@@ -269,7 +269,7 @@ jobs:
         uses: sathishkumar-p/gh-logs-to-loki@1.0
         with:
           loki_endpoint: "https://api.logs.dev.dna.app.corpintra.net/"
-          labels: "job=github-actions,run_id=${{ github.run_id }},app=${{ github.event.inputs.projectName }},action={{ github.event.inputs.action }}"
+          labels: "job=github-actions,run_id=${{ github.run_id }},app=${{ github.event.inputs.projectName }},action=${{ github.event.inputs.action }}"
           github_token: "${{ secrets.PID_PAT }}" 
           github_api_url: "https://git.i.mercedes-benz.com/api/v3"
 
@@ -288,7 +288,7 @@ jobs:
         uses: sathishkumar-p/gh-logs-to-loki@1.0
         with:
           loki_endpoint: "https://logs-gateway.dna.app.corpintra.net"
-          labels: "job=github-actions,run_id=${{ github.run_id }},app=${{ github.event.inputs.projectName }},action={{ github.event.inputs.action }}"
+          labels: "job=github-actions,run_id=${{ github.run_id }},app=${{ github.event.inputs.projectName }},action=${{ github.event.inputs.action }}"
           github_token: "${{ secrets.PID_PAT }}" 
           github_api_url: "https://git.i.mercedes-benz.com/api/v3"
 
