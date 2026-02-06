@@ -53,6 +53,13 @@ public class ArgoCdService {
     @Autowired
     private RestTemplate restTemplate;
 
+    public String getArgocdBaseUrl() {
+        if (argocdCreateUrl != null && argocdCreateUrl.contains("/api/")) {
+            return argocdCreateUrl.substring(0, argocdCreateUrl.indexOf("/api/"));
+        }
+        return argocdCreateUrl;
+    }
+
     public String getArgoToken() throws Exception {
         String url = argocdTokenUrl;
         log.info("Attempting to get ArgoCD token from: {}", url);
