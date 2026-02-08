@@ -1497,6 +1497,11 @@
 					 
 					 if ("DEPLOYED".equals(argoStatus) || "FAILED".equals(argoStatus)) {
 						 intDeployment.setLastDeploymentStatus(argoStatus);
+						 if ("DEPLOYED".equals(argoStatus)) {
+							 intDeployment.setLastDeployedOn(new Date());
+							 intDeployment.setLastDeployedBy(entity.getData().getWorkspaceOwner());
+							 log.info("ArgoCD deployment completed for {}-int, setting lastDeployedBy to {}", projectName, entity.getData().getWorkspaceOwner().getId());
+						 }
 						 workspaceCustomRepository.updateDeploymentDetails(projectName, "int", intDeployment, argoStatus);
 						 entity = workspaceCustomRepository.findById(userId, id);
 					 }
@@ -1514,6 +1519,11 @@
 					 
 					 if ("DEPLOYED".equals(argoStatus) || "FAILED".equals(argoStatus)) {
 						 prodDeployment.setLastDeploymentStatus(argoStatus);
+						 if ("DEPLOYED".equals(argoStatus)) {
+							 prodDeployment.setLastDeployedOn(new Date());
+							 prodDeployment.setLastDeployedBy(entity.getData().getWorkspaceOwner());
+							 log.info("ArgoCD deployment completed for {}-prod, setting lastDeployedBy to {}", projectName, entity.getData().getWorkspaceOwner().getId());
+						 }
 						 workspaceCustomRepository.updateDeploymentDetails(projectName, "prod", prodDeployment, argoStatus);
 						 entity = workspaceCustomRepository.findById(userId, id);
 					 }
