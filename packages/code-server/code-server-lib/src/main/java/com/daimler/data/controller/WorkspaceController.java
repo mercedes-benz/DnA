@@ -173,6 +173,15 @@ import org.springframework.beans.factory.annotation.Value;
 	@Value("${codeServer.technical.id}")
 	private String technicalId;
 
+	@Value("${codeServer.git.enterprise.url}")
+	private String gheBaseUri;
+
+	@Value("${codeServer.git.ghe.pat}")
+	private String ghePat;
+
+	@Value("${codeServer.git.orguri}")
+	private String gitOrgUri;
+
 	 @Autowired
 	 private WorkspaceRepository jpaRepo;
    
@@ -2783,7 +2792,15 @@ import org.springframework.beans.factory.annotation.Value;
 			if(isCollabIdPartOfProject){
 				if(isAdmin && vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private")){
 					List<String> repoDetails = CommonUtils.getRepoNameFromGitUrl(vo.getProjectDetails().getRecipeDetails().getRepodetails());
-					Boolean isUserAdmin = gitClient.isUserAdmin(repoDetails.get(0), collabUserId, repoDetails.get(1));
+					String orgName = repoDetails.get(0);
+					String repoName = repoDetails.get(1);
+					String gitHubUrl = "https://" + gitOrgUri + orgName;
+					Boolean isUserAdmin;
+					if(!vo.getProjectDetails().getRecipeDetails().getRepodetails().contains(gitHubUrl)){
+						isUserAdmin = gitClient.isUserAdmin(orgName, collabUserId, repoName, gheBaseUri, ghePat);
+					} else {
+						isUserAdmin = gitClient.isUserAdmin(orgName, collabUserId, repoName);
+					}
 					if(!isUserAdmin){
 						log.error("collab user is not an admin for the private repo, cannot make user as admin");
 						GenericMessage emptyResponse = new GenericMessage();

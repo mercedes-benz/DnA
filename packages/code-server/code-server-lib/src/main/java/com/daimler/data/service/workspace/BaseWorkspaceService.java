@@ -1368,7 +1368,7 @@
 									responseVO.setWarnings(warnings);
 								}
 					}else{
-						HttpStatus status = gitClient.isUserCollaborator(orgName, collaborator.getId(), repoName);
+						HttpStatus status = gitClient.isUserCollaborator(orgName, collaborator.getId(), repoName, gheBaseUri, ghePat);
 						if(!status.is2xxSuccessful()) {
 							log.info("Collaborator {} Addition failed for recipe {}  ",collaborator.getId(),vo.getProjectDetails().getRecipeDetails().getRecipeId());
 							errors.add(new MessageDescription("Cannot add User "+collaborator.getId()+" as collaborator because the user is  not a collaborator to the private repo "+repoName+" add the user to the repo and try again"));
@@ -2468,18 +2468,17 @@
 										 + " is valid git user and add this user manually in the git repo.");
 						 warnings.add(errMsg);
 					 }
-					}else{
-						HttpStatus status = gitClient.isUserCollaborator(repoOwner,gitUser, repoName);
-					if(!status.is2xxSuccessful()){
-						log.info("Cannot add User {} as collaborator because the user is  not a collaborator to the private repo {}",userRequestDto.getGitUserName(),repoName);
-						MessageDescription msg = new MessageDescription("Cannot add User "+userRequestDto.getGitUserName()+" as collaborator because the user is  not a collaborator to the private repo "+repoName+" add the user to the repo and try again");
-						errors.add(msg);
-						responseMessage.setSuccess("FAILED");
-						responseMessage.setErrors(errors); 
-						return responseMessage;
-					}
-					}
-					
+				}else{
+					HttpStatus status = gitClient.isUserCollaborator(repoOwner,gitUser, repoName, gheBaseUri, ghePat);
+				if(!status.is2xxSuccessful()){
+					log.info("Cannot add User {} as collaborator because the user is  not a collaborator to the private repo {}",userRequestDto.getGitUserName(),repoName);
+					MessageDescription msg = new MessageDescription("Cannot add User "+userRequestDto.getGitUserName()+" as collaborator because the user is  not a collaborator to the private repo "+repoName+" add the user to the repo and try again");
+					errors.add(msg);
+					responseMessage.setSuccess("FAILED");
+					responseMessage.setErrors(errors); 
+					return responseMessage;
+				}
+				}
 				}
  
 				 if(! (vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")

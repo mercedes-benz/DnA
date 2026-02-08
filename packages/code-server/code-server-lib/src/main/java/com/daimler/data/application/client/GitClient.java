@@ -536,32 +536,40 @@ public class GitClient {
 	}
 	
 	public HttpStatus isUserCollaborator( String orgName,String username, String repoName) {
+		return isUserCollaborator(orgName, username, repoName, gitBaseUri, personalAccessToken);
+	}
+	
+	public HttpStatus isUserCollaborator( String orgName,String username, String repoName, String baseUri, String pat) {
   	try {
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");
-			headers.set("Authorization", "token "+ personalAccessToken);
-			String url = gitBaseUri+"/repos/" + orgName + "/"+ repoName+ "/collaborators/" + username;
+			headers.set("Authorization", "token "+ pat);
+			String url = baseUri+"/repos/" + orgName + "/"+ repoName+ "/collaborators/" + username;
 			HttpEntity entity = new HttpEntity<>(headers);
 			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
 			if (response != null && response.getStatusCode()!=null) {
-				log.info("completed checking user {} as collaborator for git repo {}, with status ", username, gitOrgName,response.getStatusCode());
+				log.info("completed checking user {} as collaborator for git repo {} at {}, with status ", username, repoName, baseUri, response.getStatusCode());
 				return response.getStatusCode();
 			}
 		} catch (Exception e) {
-			log.error("Error occured while checking collaborator {} for git repo {} with exception {}", username, gitOrgName, e.getMessage());
+			log.error("Error occured while checking collaborator {} for git repo {} at {} with exception {}", username, repoName, baseUri, e.getMessage());
 		}
 		return HttpStatus.INTERNAL_SERVER_ERROR;
 		
 	}
 	public Boolean isUserAdmin( String orgName,String username, String repoName) {
+		return isUserAdmin(orgName, username, repoName, gitBaseUri, personalAccessToken);
+	}
+	
+	public Boolean isUserAdmin( String orgName,String username, String repoName, String baseUri, String pat) {
 		Boolean isAdmin = false;
 		try {
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");
-			headers.set("Authorization", "token "+ personalAccessToken);
-			String url = gitBaseUri+"/repos/" + orgName + "/"+ repoName+ "/collaborators/" + username+"/permission";
+			headers.set("Authorization", "token "+ pat);
+			String url = baseUri+"/repos/" + orgName + "/"+ repoName+ "/collaborators/" + username+"/permission";
 			HttpEntity entity = new HttpEntity<>(headers);
 			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
 			if (response != null && response.getStatusCode()!=null) {
@@ -569,7 +577,7 @@ public class GitClient {
 					String responseBody = response.getBody();
 					JSONObject jsonResponse = new JSONObject(responseBody);
 					if(jsonResponse !=null && jsonResponse.has("permission")) {
-						log.info("completed checking user {} as admin for git repo {}.", username, gitOrgName);
+						log.info("completed checking user {} as admin for git repo {} at {}.", username, repoName, baseUri);
 						String permission = jsonResponse.get("permission").toString();
 						if("admin".equalsIgnoreCase(permission)){
 							isAdmin = true;
@@ -578,7 +586,7 @@ public class GitClient {
 				}
 			}
 		} catch (Exception e) {
-			log.error("Error occured while checking admin {} for git repo {} with exception {}", username, gitOrgName, e.getMessage());
+			log.error("Error occured while checking admin {} for git repo {} at {} with exception {}", username, repoName, baseUri, e.getMessage());
 		}
 		return isAdmin;
 		
