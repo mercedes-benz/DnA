@@ -1,3 +1,9 @@
+oldairflow:
+  enabled: false
+airflowIngressRoute:
+  enabled: false
+airflowMiddleware:
+  enabled: false
 appName: airflow
 namespace: test-dna-airflow
 imagePullSecret:
