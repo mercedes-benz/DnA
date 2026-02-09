@@ -1531,6 +1531,27 @@
 					 log.warn("Failed to check ArgoCD status for prod deployment: {}", e.getMessage());
 				 }
 			 }
+			 
+			 boolean needsUpdate = false;
+			 if (intDeployment != null && "DEPLOYED".equalsIgnoreCase(intDeployment.getLastDeploymentStatus()) 
+				 && intDeployment.getLastDeployedBy() == null && intDeployment.getDeploymentUrl() != null) {
+				 intDeployment.setLastDeployedOn(new Date());
+				 intDeployment.setLastDeployedBy(entity.getData().getWorkspaceOwner());
+				 log.info("Backfilling missing lastDeployedBy for {}-int", projectName);
+				 workspaceCustomRepository.updateDeploymentDetails(projectName, "int", intDeployment, "DEPLOYED");
+				 needsUpdate = true;
+			 }
+			 if (prodDeployment != null && "DEPLOYED".equalsIgnoreCase(prodDeployment.getLastDeploymentStatus()) 
+				 && prodDeployment.getLastDeployedBy() == null && prodDeployment.getDeploymentUrl() != null) {
+				 prodDeployment.setLastDeployedOn(new Date());
+				 prodDeployment.setLastDeployedBy(entity.getData().getWorkspaceOwner());
+				 log.info("Backfilling missing lastDeployedBy for {}-prod", projectName);
+				 workspaceCustomRepository.updateDeploymentDetails(projectName, "prod", prodDeployment, "DEPLOYED");
+				 needsUpdate = true;
+			 }
+			 if (needsUpdate) {
+				 entity = workspaceCustomRepository.findById(userId, id);
+			 }
 		 }
 		 
 		 return workspaceAssembler.toVo(entity);
@@ -2051,6 +2072,12 @@
 				}
 				lastBuildOrDeployStatus = finalDeployStatus;
 				deploymentDetails.setLastDeploymentStatus(finalDeployStatus);
+				
+				if ("DEPLOYED".equals(finalDeployStatus)) {
+					deploymentDetails.setLastDeployedOn(new Date());
+					deploymentDetails.setLastDeployedBy(entity.getData().getWorkspaceOwner());
+					log.info("ArgoCD deployment completed for {}, setting lastDeployedBy to {}", appName, entity.getData().getWorkspaceOwner().getId());
+				}
 				
 				status = "SUCCESS";
 			} else {
