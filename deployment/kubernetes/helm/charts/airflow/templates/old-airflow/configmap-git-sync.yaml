@@ -1,3 +1,4 @@
+{{- if .Values.oldairflow.enabled }}
 apiVersion: v1
 kind: ConfigMap
 metadata:
@@ -9,3 +10,4 @@ data:
   GIT_SYNC_BRANCH: {{ .Values.gitSync.branch }}
   GIT_SYNC_SSH: {{ .Values.gitSync.ssh | quote }}
   GIT_SYNC_ROOT: {{ .Values.gitSync.root }}
+{{- end }}
