@@ -255,7 +255,7 @@ jobs:
           opensearch_index: "ci-cd"  
 
   upload-dev-test-build_deploy-logs-to-loki:
-    name: "Upload dev and test Logs to Loki" 
+    name: "Upload dev and test cs apps Logs to Loki" 
     runs-on: [azure-large-amd64-linux]
     environment: ${{ github.event.inputs.environment }}
     needs: build_deploy
@@ -266,15 +266,17 @@ jobs:
         with:
           python-version: '3.x'
       - name: Send Logs to Loki
-        uses: sathishkumar-p/gh-logs-to-loki@1.0
+        uses: sathishkumar-p/push-logs-to-loki-github-enterprise@v1.0.0
         with:
           loki_endpoint: "https://api.logs.dev.dna.app.corpintra.net/"
-          labels: "job=github-actions,run_id=${{ github.run_id }},app=${{ github.event.inputs.projectName }},action=${{ github.event.inputs.action }}"
+          labels: "job=github-actions,run_id=${{ github.run_id }},app=${{ github.event.inputs.projectName }},action=${{ github.event.inputs.action }},env=${{ github.event.inputs.branch}}"
           github_token: "${{ secrets.PID_PAT }}" 
           github_api_url: "https://git.i.mercedes-benz.com/api/v3"
+          job_filter: |
+            build_deploy
 
   upload-prod-build_deploy-logs-to-loki:
-    name: "Upload prod Logs to Loki" 
+    name: "Upload prod cs apps Logs to Loki" 
     runs-on: [azure-large-amd64-linux]
     environment: ${{ github.event.inputs.environment }}
     needs: build_deploy
@@ -285,12 +287,14 @@ jobs:
         with:
           python-version: '3.x'
       - name: Send Logs to Loki
-        uses: sathishkumar-p/gh-logs-to-loki@1.0
+        uses: sathishkumar-p/push-logs-to-loki-github-enterprise@v1.0.0
         with:
           loki_endpoint: "https://logs-gateway.dna.app.corpintra.net"
-          labels: "job=github-actions,run_id=${{ github.run_id }},app=${{ github.event.inputs.projectName }},action=${{ github.event.inputs.action }}"
+          labels: "job=github-actions,run_id=${{ github.run_id }},app=${{ github.event.inputs.projectName }},action=${{ github.event.inputs.action }},env=${{ github.event.inputs.branch}}"
           github_token: "${{ secrets.PID_PAT }}" 
           github_api_url: "https://git.i.mercedes-benz.com/api/v3"
+          job_filter: |
+            build_deploy
 
   statusUpdateBuildDeploy:
     name: Update Status build_deploy
