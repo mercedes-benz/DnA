@@ -1,0 +1,50 @@
+{{- if .Values.vaultWebhook.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "airflow.name" . }}-vault-injector-webhook
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ include "airflow.name" . }}-vault-injector-webhook
+    namespace: {{ .Values.namespace }}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: {{ include "airflow.name" . }}-vault-injector-webhook
+      namespace: {{ .Values.namespace }}
+  template:
+    metadata:
+      labels:
+        app: {{ include "airflow.name" . }}-vault-injector-webhook
+        namespace: {{ .Values.namespace }}
+    spec:
+      serviceAccountName: {{ .Values.vaultWebhook.serviceAccountName }}
+      containers:
+      - name: {{ .Values.vaultWebhook.container.name }}
+        image: {{ printf "%s:%s" .Values.vaultWebhook.container.image.repository .Values.vaultWebhook.container.image.tag }}
+        ports:
+        {{- range .Values.vaultWebhook.ports }}
+        - containerPort: {{ .targetPort }}
+          name: {{ .name }}
+          protocol: {{ .protocol }}
+        {{- end }}
+        env:
+        {{- toYaml .Values.vaultWebhook.container.env | nindent 8 }}
+        volumeMounts:
+        {{- toYaml .Values.vaultWebhook.container.volumeMounts | nindent 8 }}
+        resources:
+        {{- toYaml .Values.vaultWebhook.container.resources | nindent 10 }}
+        livenessProbe:
+        {{- toYaml .Values.vaultWebhook.container.livenessProbe | nindent 10 }}
+        readinessProbe:
+        {{- toYaml .Values.vaultWebhook.container.readinessProbe | nindent 10 }}
+        securityContext:
+        {{- toYaml .Values.vaultWebhook.container.securityContext | nindent 10 }}
+      volumes:
+      {{- toYaml .Values.vaultWebhook.volumes | nindent 6 }}
+      securityContext:
+        runAsNonRoot: {{ .Values.vaultWebhook.container.securityContext.runAsNonRoot }}
+        runAsUser: {{ .Values.vaultWebhook.container.securityContext.runAsUser }}
+        fsGroup: {{ .Values.vaultWebhook.container.securityContext.runAsUser }}
+{{- end }}

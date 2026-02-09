@@ -1,4 +1,4 @@
-{{- if .Values.airflowIngressRoute.enabled -}}
+{{- if and .Values.airflowIngressRoute.enabled .Values.oldairflow.enabled }}
 apiVersion: traefik.io/v1alpha1
 kind: IngressRoute
 metadata:
@@ -18,7 +18,7 @@ spec:
         - name: airflow-traefik-middleware-x-forwarded-headers
 {{- end }}
 ---
-{{- if .Values.airflowMiddleware.enabled -}}
+{{- if and .Values.airflowIngressRoute.enabled .Values.oldairflow.enabled }}
 apiVersion: traefik.io/v1alpha1
 kind: Middleware
 metadata:

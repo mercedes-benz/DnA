@@ -2019,6 +2019,8 @@ config:
     # For Airflow 1.10, backward compatibility; moved to [logging] in 2.0
     colored_console_log: 'False'
     remote_logging: '{{- ternary "True" "False" .Values.elasticsearch.enabled }}'
+    fernet_key: '{{ .Values.fernetKey }}'
+    sensitive_var_conn_names: 'fernet,gpg,secret_key,AIRFLOW__CORE__FERNET_KEY,FERNET_KEY,AIRFLOW__WEBSERVER__SECRET_KEY,WEBSERVER__SECRET_KEY,GPG_KEY'
   logging:
     remote_logging: '{{- ternary "True" "False" .Values.elasticsearch.enabled }}'
     colored_console_log: 'False'
@@ -2033,6 +2035,7 @@ config:
     enable_proxy_fix: 'True'
     # For Airflow 1.10
     rbac: 'True'
+    secret_key: '{{ .Values.webserverSecretKey }}'
   celery:
     flower_url_prefix: '{{ .Values.ingress.flower.path }}'
     worker_concurrency: 16

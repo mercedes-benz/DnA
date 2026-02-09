@@ -1,3 +1,4 @@
+{{- if .Values.oldairflow.enabled }}
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -211,3 +212,4 @@ spec:
         - name: client-secret
           secret:
             secretName: {{ include "airflow-client.secret" . }}
+{{- end }}

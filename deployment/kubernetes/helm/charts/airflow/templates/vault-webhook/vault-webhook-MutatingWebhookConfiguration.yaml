@@ -1,0 +1,33 @@
+{{- if .Values.vaultWebhook.enabled }}
+apiVersion: admissionregistration.k8s.io/v1
+kind: MutatingWebhookConfiguration
+metadata:
+  name: {{ include "airflow.name" . }}-vault-mutator
+  annotations:
+    # cert-manager will automatically inject the CA bundle from your Certificate
+    cert-manager.io/inject-ca-from: {{ .Values.namespace }}/{{ include "airflow.name" . }}-vault-injector-webhook-tls
+webhooks:
+- name: {{ include "airflow.name" . }}-vault-mutatingwebhook.{{ .Values.namespace }}.svc
+  admissionReviewVersions: ["v1", "v1beta1"]
+  clientConfig:
+    service:
+      name: {{ include "airflow.name" . }}-vault-injector-webhook
+      namespace: {{ .Values.namespace }}
+      path: "/mutate"
+      port: 443
+    # caBundle is automatically injected by cert-manager
+  rules:
+  - operations: ["CREATE"]
+    apiGroups: [""]
+    apiVersions: ["v1"]
+    resources: ["pods"]
+  namespaceSelector:
+    matchLabels:
+      kubernetes.io/metadata.name: {{ .Values.namespace }}
+  objectSelector:
+    matchLabels:
+      component: worker
+  sideEffects: None
+  reinvocationPolicy: Never
+  timeoutSeconds: 10
+{{- end }}
