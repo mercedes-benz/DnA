@@ -2228,26 +2228,19 @@
  
 		try {
  
-			if (entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase()
-					.startsWith("private")) {
-				List<String> repoDetails = CommonUtils
-						.getRepoNameFromGitUrl(vo.getProjectDetails().getRecipeDetails().getRepodetails());
-				Boolean isUserAdmin = gitClient.isUserAdmin(repoDetails.get(0), newOwnerDeatils.getId(),
-						repoDetails.get(1));
-				if (!isUserAdmin) {
-					log.error("collab user is not an admin for the private repo, cannot transfer ownership");
-					MessageDescription msg = new MessageDescription(
-							"Collab user not an admin of the repo, cannot transfer ownership.");
-					errors.add(msg);
-					responseMessage.setSuccess("FAILED");
-					responseMessage.setErrors(errors);
-					return responseMessage;
-				}
-			}
- 
 			UserInfo currentOwnerAsCollab = entity.getData().getProjectDetails().getProjectOwner();
 			UserInfo newOwner = new UserInfo();
 			BeanUtils.copyProperties(newOwnerDeatils, newOwner);
+
+			if (newOwner.getIsAdmin() == null) {
+				newOwner.setIsAdmin(false);
+			}
+			if (newOwner.getIsApprover() == null) {
+				newOwner.setIsApprover(false);
+			}
+
+			log.info("Transferring ownership - Current: {}, New: {}, Project: {}", projectOwnerId, newOwner.getId(),
+					projectName);
  
 			// To update project owner.
 			GenericMessage updateProjectOwnerDetails = workspaceCustomRepository
@@ -2307,16 +2300,23 @@
 				return responseMessage;
 			}
 			//Notifying transfered user  
-			String eventType = "Codespace-Transfer Ownership Status Update";
-			String resourceID = vo.getProjectDetails().getProjectName();
-			List <String> transferedUserId = new ArrayList<>();
-			List <String> transferedUserEmail = new ArrayList<>();
-			transferedUserId.add(newOwnerDeatils.getId());
-			transferedUserEmail.add(newOwnerDeatils.getEmail());
-			String message = "Ownership of the Codespace \"" + vo.getProjectDetails().getProjectName() + "\" has been transferred to you by user " + currentUser.getId() + ".";
-			kafkaProducer.send(eventType, resourceID, "", currentUser.getId(), message, true, transferedUserId, transferedUserEmail, null);
+			try {
+				String eventType = "Codespace-Transfer Ownership Status Update";
+				String resourceID = vo.getProjectDetails().getProjectName();
+				List <String> transferedUserId = new ArrayList<>();
+				List <String> transferedUserEmail = new ArrayList<>();
+				transferedUserId.add(newOwnerDeatils.getId());
+				transferedUserEmail.add(newOwnerDeatils.getEmail());
+				String message = "Ownership of the Codespace \"" + vo.getProjectDetails().getProjectName() + "\" has been transferred to you by user " + currentUser.getId() + ".";
+				kafkaProducer.send(eventType, resourceID, "", currentUser.getId(), message, true, transferedUserId, transferedUserEmail, null);
+			} catch (Exception e) {
+				log.warn("Failed to send Kafka notification for ownership transfer: {}", e.getMessage());
+				MessageDescription warnMsg = new MessageDescription("Ownership transferred successfully, but notification failed to send.");
+				warnings.add(warnMsg);
+			}
 			
 			responseMessage.setSuccess("SUCCESS");
+			responseMessage.setWarnings(warnings);
 		} catch (Exception e) {
 			log.error("Failed to add collaborator details as requested with Exception: {} ", e.getMessage());
 			MessageDescription msg = new MessageDescription("Failed to add collaborator details");
