@@ -266,7 +266,7 @@ jobs:
         with:
           python-version: '3.x'
       - name: Send Logs to Loki
-        uses: sathishkumar-p/sat-sys-labs/gh-logs-loki@v1.0.0
+        uses: sat-sys-labs/gh-logs-loki@v1.0.0
         with:
           loki_endpoint: "https://api.logs.dev.dna.app.corpintra.net/"
           labels: "job=github-actions,run_id=${{ github.run_id }},app=${{ github.event.inputs.projectName }},action=${{ github.event.inputs.action }},env=${{ github.event.inputs.branch}}"
@@ -287,7 +287,7 @@ jobs:
         with:
           python-version: '3.x'
       - name: Send Logs to Loki
-        uses: sathishkumar-p/sat-sys-labs/gh-logs-loki@v1.0.0
+        uses: sat-sys-labs/gh-logs-loki@v1.0.0
         with:
           loki_endpoint: "https://logs-gateway.dna.app.corpintra.net"
           labels: "job=github-actions,run_id=${{ github.run_id }},app=${{ github.event.inputs.projectName }},action=${{ github.event.inputs.action }},env=${{ github.event.inputs.branch}}"
