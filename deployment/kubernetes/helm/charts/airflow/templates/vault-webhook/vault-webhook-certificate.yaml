@@ -18,9 +18,9 @@ spec:
     - key encipherment
   dnsNames:
   - {{ include "airflow.name" . }}-vault-injector-webhook
-  - {{ include "airflow.name" . }}-vault-injector-webhook.dev-dna-airflow
-  - {{ include "airflow.name" . }}-vault-injector-webhook.dev-dna-airflow.svc
-  - {{ include "airflow.name" . }}-vault-injector-webhook.dev-dna-airflow.svc.cluster.local
+  - {{ include "airflow.name" . }}-vault-injector-webhook.{{ .Values.namespace }}
+  - {{ include "airflow.name" . }}-vault-injector-webhook.{{ .Values.namespace }}.svc
+  - {{ include "airflow.name" . }}-vault-injector-webhook.{{ .Values.namespace }}.svc.cluster.local
   issuerRef:
     name: selfsigned-issuer
     kind: Issuer
