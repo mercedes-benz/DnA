@@ -273,7 +273,7 @@ jobs:
           github_token: "${{ secrets.PID_PAT }}" 
           github_api_url: "https://git.i.mercedes-benz.com/api/v3"
           job_filter: |
-            build_deploy
+            Build or Deploy workspace application
 
   upload-prod-build_deploy-logs-to-loki:
     name: "Upload prod cs apps Logs to Loki" 
@@ -294,7 +294,7 @@ jobs:
           github_token: "${{ secrets.PID_PAT }}" 
           github_api_url: "https://git.i.mercedes-benz.com/api/v3"
           job_filter: |
-            build_deploy
+            Build or Deploy workspace application
 
   statusUpdateBuildDeploy:
     name: Update Status build_deploy
