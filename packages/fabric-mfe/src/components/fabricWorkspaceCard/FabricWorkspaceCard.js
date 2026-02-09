@@ -220,6 +220,29 @@ const FabricWorkspaceCard = ({user, workspace, onSelectWorkspace, onEditWorkspac
             <div>Classification</div>
             <div>{workspace?.dataClassification || 'N/A'}</div>
           </div>
+          <div>
+            <div>Report</div>
+            <div>
+              <a
+                href={`${Envs.FABRIC_REPORT_URL}%27${encodeURIComponent(workspace?.name)}%27`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Consumption
+                <i className={classNames('icon mbc-icon new-tab')} />
+              </a>
+              {(isAdmin || isOwner) && (
+                <a
+                  href={`${Envs.FABRIC_ACTIVITY_REPORT_URL}'${encodeURIComponent(workspace?.name)}'`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Activity
+                  <i className={classNames('icon mbc-icon new-tab')} />
+                </a>
+              )}
+            </div>
+          </div>
         </div>
       </div>
       <div className={Styles.cardFooter}>
@@ -239,15 +262,6 @@ const FabricWorkspaceCard = ({user, workspace, onSelectWorkspace, onEditWorkspac
           </div>
           {(user?.id === workspace?.createdBy?.id || isFabricAdmin) &&
           <div className={Styles.btnGrp}>
-              <button
-                className={'btn btn-primary'}
-                type="button"
-                onClick={() => window.open(`${Envs.FABRIC_REPORT_URL}%27${encodeURIComponent(workspace?.name)}%27`, '_blank', 'noopener,noreferrer')}
-                tooltip-data="Fabric Consumption Dashboard"
-              >
-                <i className="icon mbc-icon reportView"></i>
-                <span>Report</span>
-              </button>              
               <button
                 className={'btn btn-primary'}
                 type="button"
