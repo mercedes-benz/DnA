@@ -130,7 +130,7 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 					responseVO.setData(workspaceRequestVO);
 					responseVO.setResponses(errorMessage);
 					return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
-				}
+				}			
 		}
 		workspaceRequestVO.setName(workspaceRequestVO.getName().trim());
 		if(workspaceRequestVO!=null && workspaceRequestVO.getName()!=null && "Admin monitoring".equalsIgnoreCase(workspaceRequestVO.getName())) {
@@ -777,8 +777,8 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 				existingFabricWorkspace.setAppId(workspaceUpdateRequestVO.getAppId());			
 			if (workspaceUpdateRequestVO.getLeanIXDetails() != null)
 				existingFabricWorkspace.setLeanIXDetails(workspaceUpdateRequestVO.getLeanIXDetails());
-			// if(workspaceUpdateRequestVO.getProjectId() != null)
-			// 	existingFabricWorkspace.setProjectId(workspaceUpdateRequestVO.getProjectId());
+			if(workspaceUpdateRequestVO.getProjectId() != null)
+				existingFabricWorkspace.setProjectId(workspaceUpdateRequestVO.getProjectId());
 			if(workspaceUpdateRequestVO.getSubscription() !=null)
 				existingFabricWorkspace.setSubscription(FabricWorkspaceVO.SubscriptionEnum.valueOf(workspaceUpdateRequestVO.getSubscription().name()));
 			

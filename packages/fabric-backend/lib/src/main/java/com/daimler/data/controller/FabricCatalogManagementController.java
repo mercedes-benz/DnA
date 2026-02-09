@@ -34,6 +34,7 @@ import com.daimler.data.dto.fabricWorkspace.CreatedByVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceVO;
 import com.daimler.data.service.catalogManagement.FabricCatalogManagementService;
 import com.daimler.data.service.fabric.FabricWorkspaceService;
+import com.daimler.data.util.FabricWorkspaceUtility;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -62,6 +63,8 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
 
     @Autowired
     private FabricCatalogManagementCustomRepository catalogCustomRepo;
+    @Autowired 
+    private FabricWorkspaceUtility utility;
 
     @Override
      @ApiOperation(value = "Publish a new catalog.", nickname = "publishCatalogRequest", notes = "This endpoint will be used to publish a new fabric catalog.", response = PublishCatalogResponseVO.class, tags={ "fabric-catalog-management", })
@@ -98,7 +101,7 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
         String creatorId = existingFabricWorkspace.getCreatedBy().getId();
 
         if (!requestUser.getId().equalsIgnoreCase(creatorId)
-                && !userStore.getUserInfo().hasProjectAdminAccess(workspaceId)) {
+                && !utility.hasProjectAdminAccess(requestUser.getId(), workspaceId)) {
             log.error(
                     "Fabric workspace {} {} doesnt belong to User or user not admin {} , Not authorized to publish catalog.",
                     workspaceId, existingFabricWorkspace.getName(), requestUser.getId());
@@ -176,7 +179,7 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
             String creatorId = existingFabricWorkspace.getCreatedBy().getId();
 
             if (!requestUser.getId().equalsIgnoreCase(creatorId)
-                    && !userStore.getUserInfo().hasProjectAdminAccess(workspaceId)) {
+                    && !utility.hasProjectAdminAccess(requestUser.getId(), workspaceId)) {
                 log.error(
                         "Fabric workspace {} {} doesnt belong to User or user not admin {} , Not authorized to publish catalog.",
                         workspaceId, existingFabricWorkspace.getName(), requestUser.getId());
@@ -284,11 +287,12 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
         @ApiResponse(code = 403, message = "Request is not authorized."),
         @ApiResponse(code = 405, message = "Method not allowed"),
         @ApiResponse(code = 500, message = "Internal error") })
-    @RequestMapping(value = "/catalog/ddx/group-update/{id}",
+    @RequestMapping(value = "/catalog/ddx/group-update/{ddxId}/{workspaceId}/{lakehouseId}",
         produces = { "application/json" }, 
         consumes = { "application/json" },
         method = RequestMethod.POST)
-    public ResponseEntity<GenericMessage> updateGroupsFromDDX(@ApiParam(value = "The groups update request from DDX." ,required=true )  @Valid @RequestBody UpdateDDXGroupsRequestVO updateDDXGroupsRequest,@ApiParam(value = "The ID of DDX data product .",required=true) @PathVariable("ddxId") String ddxId){
+    public ResponseEntity<GenericMessage> updateGroupsFromDDX(@ApiParam(value = "The groups update request from DDX." ,required=true )  @Valid @RequestBody UpdateDDXGroupsRequestVO updateDDXGroupsRequest,@ApiParam(value = "The ID of DDX data product .",required=true) @PathVariable("ddxId") String ddxId,@ApiParam(value = "The ID of the workspace.",required=true) @PathVariable("workspaceId") String workspaceId,@ApiParam(value = "The ID of Lakehouse.",required=true) @PathVariable("lakehouseId") String lakehouseId){
+
         GenericMessage responseMessage = new GenericMessage();
         try {
           return new ResponseEntity<>(responseMessage, HttpStatus.OK);

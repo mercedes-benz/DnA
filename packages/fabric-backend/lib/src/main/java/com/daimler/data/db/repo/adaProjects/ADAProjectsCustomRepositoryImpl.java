@@ -144,6 +144,22 @@ public class ADAProjectsCustomRepositoryImpl extends CommonDataRepositoryImpl<AD
 			Root<ADAProjectsNsql> root = cq.from(ADAProjectsNsql.class);
 			List<Predicate> predicates = new ArrayList<>();
 
+			List<String> tenantTags = List.of("eXtollo"); 
+			
+			Expression<String> tagsJson = cb.function("jsonb_extract_path_text", String.class,
+					cb.function("to_jsonb", Object.class, root.get("data")),
+					cb.literal("tags"));
+			
+			List<Predicate> tenantExclusionPredicates = new ArrayList<>();
+			for (String tenantTag : tenantTags) {
+				Predicate notTenantProject = cb.not(
+					cb.like(cb.lower(tagsJson), "%" + tenantTag.toLowerCase() + "%")
+				);
+				tenantExclusionPredicates.add(notTenantProject);
+			}
+
+			predicates.add(cb.and(tenantExclusionPredicates.toArray(new Predicate[0])));
+
 			if (projectName != null && !projectName.trim().isEmpty()) {
 				String loweredTerm = "%" + projectName.trim().toLowerCase() + "%";
 				Predicate name = cb.like(

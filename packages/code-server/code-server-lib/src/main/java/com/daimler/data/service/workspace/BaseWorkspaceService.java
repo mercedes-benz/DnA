@@ -1785,7 +1785,7 @@
 				responseMessage = this.buildWorkSpace(userId, id, branch, buildRequestDto, isprivateRecipe, environment,lastBuildType);
 				if(responseMessage.getSuccess().equalsIgnoreCase("SUCCESS")){
 					if(deploymentDetails.getDeploymentUrl() == null || deploymentDetails.getDeploymentUrl().isEmpty()){
-						authenticatorClient.callingKongApis(workspaceId, projectName, environment, isApiRecipe, deploymentDetails.getClientId(), "", deploymentDetails.getRedirectUri(), deploymentDetails.getIgnorePaths(), deploymentDetails.getScope(), deploymentDetails.getOneApiVersionShortName(), isSecuredWithCookie, secureWithIAMRequired, deploymentDetails.getSsoType(), secureWithDnaRequired, deploymentDetails.getAliceRoleEnabled(), deploymentDetails.getEntitlementPrefixEnabled(), deploymentDetails.getSelectedAliceRoles(), cloudServiceProvider);
+						authenticatorClient.callingKongApis(workspaceId, projectName, environment, isApiRecipe, deploymentDetails.getClientId(), "", deploymentDetails.getRedirectUri(), deploymentDetails.getIgnorePaths(), deploymentDetails.getScope(), deploymentDetails.getOneApiVersionShortName(), isSecuredWithCookie, secureWithIAMRequired, deploymentDetails.getSsoType(), secureWithDnaRequired, false, false, deploymentDetails.getSelectedAliceRoles(), cloudServiceProvider);
 					}
 					status = "SUCCESS";
 					lastBuildOrDeployStatus = "BUILD_REQUESTED";
@@ -1917,7 +1917,7 @@
 					 buildDeployRepo.save(auditLogEntity);
 
 					 if(deployType.equalsIgnoreCase("deploy") && (deploymentDetails.getDeploymentUrl() == null || deploymentDetails.getDeploymentUrl().isEmpty())){
-						 authenticatorClient.callingKongApis(workspaceId, projectName, environment, isApiRecipe, deploymentDetails.getClientId(), "", deploymentDetails.getRedirectUri(), deploymentDetails.getIgnorePaths(), deploymentDetails.getScope(), deploymentDetails.getOneApiVersionShortName(), isSecuredWithCookie, secureWithIAMRequired, deploymentDetails.getSsoType(), secureWithDnaRequired, deploymentDetails.getAliceRoleEnabled(), deploymentDetails.getEntitlementPrefixEnabled(), deploymentDetails.getSelectedAliceRoles(), cloudServiceProvider);
+						 authenticatorClient.callingKongApis(workspaceId, projectName, environment, isApiRecipe, deploymentDetails.getClientId(), "", deploymentDetails.getRedirectUri(), deploymentDetails.getIgnorePaths(), deploymentDetails.getScope(), deploymentDetails.getOneApiVersionShortName(), isSecuredWithCookie, secureWithIAMRequired, deploymentDetails.getSsoType(), secureWithDnaRequired, false, false, deploymentDetails.getSelectedAliceRoles(), cloudServiceProvider);
 					 }
 					
 					// deploymentDetails.setLastDeployedBranch(branch);
@@ -3930,6 +3930,11 @@
 					// 	environmentJsonbName = "prodDeploymentDetails";
 					// 	deploymentDetails = entity.getData().getProjectDetails().getProdDeploymentDetails();
 					// }
+
+					SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
+					Date now = isoFormat.parse(isoFormat.format(new Date()));
+
+					workspaceCustomRepository.updateLatestBuildOrDeployStatus("RESTART_REQUESTED", env, now, projectName);
 					
 					List<DeploymentAudit> auditLogs = new ArrayList<>();
 					CodeServerBuildDeployNsql optionalBuildDeployentity =  buildDeployCustomRepo.findByProjectName(projectName);	
@@ -3943,8 +3948,6 @@
 					if (auditLogs == null) {
 						auditLogs = new ArrayList<>();
 					}
-					SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
-					Date now = isoFormat.parse(isoFormat.format(new Date()));
 					DeploymentAudit auditLog = new DeploymentAudit();
 					auditLog.setTriggeredOn(now);
 					auditLog.setTriggeredBy(entity.getData().getWorkspaceOwner().getGitUserName());				
@@ -5058,6 +5061,30 @@
 						 buildDeployRepo.save(buildDeployentity);
 					 }
 					  response = "SUCCESS";
+			}
+			else if (data.getProjectDetails().getLastBuildOrDeployedStatus().equalsIgnoreCase("RESTART_REQUESTED")) {
+
+				if (optionalBuildDeployentity != null) {
+					buildDeployentity = optionalBuildDeployentity;
+					buildDeployData = buildDeployentity.getData();
+
+					if ("int".equalsIgnoreCase(data.getProjectDetails().getLastBuildOrDeployedEnv())) {
+						int lastIndex = buildDeployData.getIntDeploymentAuditLogs().size() - 1;
+						buildDeployData.getIntDeploymentAuditLogs()
+								.get(lastIndex)
+								.setGitjobRunID(requestVo.getGitJobRunId());
+					} else {
+						int lastIndex = buildDeployData.getProdDeploymentAuditLogs().size() - 1;
+						buildDeployData.getProdDeploymentAuditLogs()
+								.get(lastIndex)
+								.setGitjobRunID(requestVo.getGitJobRunId());
+					}
+
+					buildDeployentity.setData(buildDeployData);
+					buildDeployRepo.save(buildDeployentity);
+				}
+
+				response = "SUCCESS";
 			}
 			return response;
 		} catch (Exception e) {
