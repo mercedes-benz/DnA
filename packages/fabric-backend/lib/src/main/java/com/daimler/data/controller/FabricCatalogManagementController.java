@@ -29,6 +29,7 @@ import com.daimler.data.db.repo.catalogManagement.FabricCatalogManagementCustomR
 import com.daimler.data.dto.fabricCatalogManagement.FabricCatalogMetadataVO;
 import com.daimler.data.dto.fabricCatalogManagement.PublishCatalogResponseVO;
 import com.daimler.data.dto.fabricCatalogManagement.PublishCatalogRequestVO;
+import com.daimler.data.dto.fabricCatalogManagement.UpdateDDXGroupsRequestVO;
 import com.daimler.data.dto.fabricWorkspace.CreatedByVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceVO;
 import com.daimler.data.service.catalogManagement.FabricCatalogManagementService;
@@ -272,6 +273,28 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
 			return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
+    }
+
+    @Override
+    @ApiOperation(value = "update groups from ddx.", nickname = "updateGroupsFromDDX", notes = "This endpoint will be used to update groups from ddx.", response = GenericMessage.class, tags={ "fabric-catalog-management", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns message of success or failure ", response = GenericMessage.class),
+        @ApiResponse(code = 400, message = "Bad Request", response = GenericMessage.class),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/catalog/ddx/group-update/{id}",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.POST)
+    public ResponseEntity<GenericMessage> updateGroupsFromDDX(@ApiParam(value = "The groups update request from DDX." ,required=true )  @Valid @RequestBody UpdateDDXGroupsRequestVO updateDDXGroupsRequest,@ApiParam(value = "The ID of DDX data product .",required=true) @PathVariable("ddxId") String ddxId){
+        GenericMessage responseMessage = new GenericMessage();
+        try {
+          return new ResponseEntity<>(responseMessage, HttpStatus.OK);
+        } catch (Exception e) {
+            return new ResponseEntity<>(responseMessage, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
 }

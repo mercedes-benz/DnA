@@ -28,6 +28,9 @@ public class VaultClient {
     @Value("${codeServer.vault.baseuri}")
 	private String vaultBaseUri;
 
+    @Value("${vaultIntegration.service.apiKey}")
+    private String apiKey;
+
     @Autowired
 	RestTemplate restTemplate;
 
@@ -36,6 +39,7 @@ public class VaultClient {
         boolean isEnabled = false;
         try {
             HttpHeaders headers = new HttpHeaders();
+            headers.set("Authorization", apiKey);
             headers.set("Accept", "application/json");
             headers.set("Content-Type", "application/json");
     

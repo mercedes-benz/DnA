@@ -1,7 +1,7 @@
 spring:
   application:
     name: dna-storage-service
-    version: 3.2.36
+    version: 3.3.0
   profile:
     active: production
   cache:
@@ -86,6 +86,18 @@ spring:
   mvc:
     async:
       request-timeout : 600000
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  health:
+    db:
+      enabled: true
+  endpoint:
+    health:
+      show-details: always        
 
 kafka:
   centralTopic:

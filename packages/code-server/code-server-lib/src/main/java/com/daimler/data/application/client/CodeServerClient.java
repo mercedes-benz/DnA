@@ -58,6 +58,9 @@ public class CodeServerClient {
 
 	@Value("${codeServer.jupyter.url.aws}")
 	private String jupyterUrlAws;
+
+	@Value("${codeServer.gitjob.getWorkflowRun}")
+	private String codeServerGitGetWorkflowRun;
 	
 	@Autowired
 	RestTemplate restTemplate;
@@ -681,17 +684,17 @@ public class CodeServerClient {
 			
 		}catch(HttpClientErrorException ex){
 			if(ex.getRawStatusCode() == 404){
-				String responseBody = ex.getResponseBodyAsString();
-				if (responseBody != null && responseBody.contains(projectName+":"+version)) {
+				// String responseBody = ex.getResponseBodyAsString();
+				// if (responseBody != null && responseBody.contains(projectName+":"+version)) {
             		status = "SUCCESS";
 					log.info("Success while performing delete build action for codeServer projectName {} version {}",projectName,version);
         		}
-			}else{
-				log.error("Failure while performing delete build action for codeServer projectName {} version {} with exception {}",projectName,version,ex.getMessage());
-			MessageDescription error = new MessageDescription();
-			error.setMessage("Failure while performing delete build action for codeServer projectName "+projectName+" version "+version);
-			errors.add(error);
-			}
+			// }else{
+			// 	log.error("Failure while performing delete build action for codeServer projectName {} version {} with exception {}",projectName,version,ex.getMessage());
+			// MessageDescription error = new MessageDescription();
+			// error.setMessage("Failure while performing delete build action for codeServer projectName "+projectName+" version "+version);
+			// errors.add(error);
+			// }
 
 		}catch (Exception e) {
 			log.error("Failure while performing delete build action for codeServer projectName {} version {} with exception {}",projectName,version,e.getMessage());
@@ -703,6 +706,34 @@ public class CodeServerClient {
 		response.setWarnings(warnings);
 		response.setErrors(errors);
 		return response;
+	}
+
+
+	public ResponseEntity<String> getStatusByJobRunId(String jobRunId) {
+		try {
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Content-Type", "application/json");
+			headers.set("Authorization", "Bearer " + personalAccessToken);
+			HttpEntity<String> entity = new HttpEntity<String>(headers);
+			ResponseEntity<String> manageResponse = restTemplate.exchange(codeServerGitGetWorkflowRun, HttpMethod.GET, entity, String.class,jobRunId);
+			if (manageResponse != null && manageResponse.getStatusCode()!=null) {
+				if(manageResponse.getStatusCode().equals(HttpStatus.valueOf(200))) {
+					log.info("Success while Getting status using jobRunId {}", jobRunId);
+					return manageResponse;
+				}
+				else {
+					log.info("Warnings while Getting status using jobRunId {} , httpstatuscode is {}", jobRunId,manageResponse.getStatusCodeValue());
+					return manageResponse;
+				}
+			}
+			
+		} catch (Exception e) {
+			log.error("Error occured while Getting status using jobRunId with exception {} {} ", jobRunId, e.getMessage());
+			return null;
+		}
+		return null;
+		
 	}
 	
 	

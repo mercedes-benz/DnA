@@ -850,7 +850,7 @@ configurations {
 
 dependencies {
 
-	implementation group: 'org.springframework.boot', name: 'spring-boot-starter-actuator', version: '2.4.0'
+	implementation group: 'org.springframework.boot', name: 'spring-boot-starter-actuator'
     
     implementation group: 'org.springframework.cloud', name: 'spring-cloud-stream', version: '3.1.4'
 	implementation group: 'org.springframework.cloud', name: 'spring-cloud-stream-binder-kafka', version: '3.1.4'
