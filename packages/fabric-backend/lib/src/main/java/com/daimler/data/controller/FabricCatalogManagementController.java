@@ -315,10 +315,19 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
         method = RequestMethod.GET)
     public ResponseEntity<LakehouseObjectsResponseVO> getLakehouseObjects(@NotNull @ApiParam(value = "The ID of the workspace.", required = true) @Valid @RequestParam(value = "workspaceId", required = true) String workspaceId,@NotNull @ApiParam(value = "The ID of Lakehouse.", required = true) @Valid @RequestParam(value = "lakehouseId", required = true) String lakehouseId,@ApiParam(value = "The name of schema.") @Valid @RequestParam(value = "schemaName", required = false) String schemaName){
         LakehouseObjectsResponseVO responseVO = new LakehouseObjectsResponseVO();
-        responseVO = service.getLakehouseObjects(workspaceId, lakehouseId, schemaName);
         try {
-          return new ResponseEntity<>(responseVO, HttpStatus.OK);
+            responseVO = service.getLakehouseObjects(workspaceId, lakehouseId, schemaName);
+            
+            if (responseVO != null && responseVO.getResponseCode() != null) {
+                int statusCode = Integer.parseInt(responseVO.getResponseCode());
+                return new ResponseEntity<>(responseVO, HttpStatus.valueOf(statusCode));
+            }
+            
+            return new ResponseEntity<>(responseVO, HttpStatus.OK);
         } catch (Exception e) {
+            log.error("Exception occurred while fetching lakehouse objects: {}", e.getMessage());
+            responseVO.setErrorMessage("Exception occurred while fetching lakehouse objects: " + e.getMessage());
+            responseVO.setResponseCode(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()));
             return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
