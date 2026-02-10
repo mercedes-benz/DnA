@@ -37,6 +37,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.daimler.data.dto.fabricWorkspace.LakehouseColumnCollectionResponseVO;
@@ -176,6 +177,11 @@ public class FabricCDCPushServiceClient {
 				vo.setErrorMessage(errorMessage);
 			}
 
+		} catch (HttpStatusCodeException e) {
+			String errorMessage = e.getResponseBodyAsString();
+			log.error("HTTP error occurred while fetching table schema: {} - {}", e.getStatusCode(), errorMessage);
+			vo.setResponseCode(String.valueOf(e.getStatusCode().value()));
+			vo.setErrorMessage(errorMessage);
 		} catch (Exception e) {
 			String errorMessage = "Exception occurred while fetching table schema: " + e.getMessage();
 			log.error("Exception occurred while fetching table schema: {}", e.getMessage());
