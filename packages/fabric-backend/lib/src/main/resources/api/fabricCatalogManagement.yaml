@@ -442,6 +442,12 @@ definitions:
         type: array
         items:
           $ref: "#/definitions/LakehouseColumnObjectVO"
+      responseCode:
+        type: string
+        description: "Response code from the service"
+      errorMessage:
+        type: string
+        description: "Error message if any error occurred"
   
   LakehouseColumnObjectVO:
     type: object
