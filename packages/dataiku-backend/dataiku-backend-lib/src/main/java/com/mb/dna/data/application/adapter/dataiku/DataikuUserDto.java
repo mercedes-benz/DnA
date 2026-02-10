@@ -24,5 +24,14 @@ public class DataikuUserDto extends DataikuErrorResponseDto implements Serializa
 	private String email;
 	private String userProfile;
 	private Boolean enabled;
+
+	private Preferences preferences = new Preferences();
+    
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    public static class Preferences implements Serializable {
+        private String uiLanguage = "en";
+    }
 	
 }

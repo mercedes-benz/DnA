@@ -17,5 +17,5 @@ spec:
       name: memory
       target:
         type: Utilization
-        averageUtilization: 85  
+        averageUtilization: 70  
 {{- end }}

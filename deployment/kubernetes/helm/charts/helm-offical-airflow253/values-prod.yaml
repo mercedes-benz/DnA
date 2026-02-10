@@ -48,7 +48,7 @@ airflowHome: /opt/airflow
 defaultAirflowRepository: registry-emea.app.corpintra.net/dnaplatform/airflow/officalairflow
 
 # Default airflow tag to deploy
-defaultAirflowTag: "11082025-oracle-db-v1"
+defaultAirflowTag: "21012025-g3-g2-v2"
 
 # Default airflow digest. If specified, it takes precedence over tag
 defaultAirflowDigest: ~
@@ -259,9 +259,23 @@ env:
 # - name: ""
 #   value: ""
   - name: REQUESTS_CA_BUNDLE	
-    value: /usr/local/share/ca-certificates/ca-bundle.crt	
+    value: /etc/ssl/certs/ca-certificates.crt	
   - name: SSL_CERT_FILE	
-    value: /usr/local/share/ca-certificates/ca-bundle.crt
+    value: /etc/ssl/certs/
+  - name: http_proxy
+    value: http://security-proxy.emea.svc.corpintra.net:3128
+  - name: https_proxy
+    value: http://security-proxy.emea.svc.corpintra.net:3128
+  - name: HTTP_PROXY
+    value: http://security-proxy.emea.svc.corpintra.net:3128
+  - name: HTTPS_PROXY
+    value: http://security-proxy.emea.svc.corpintra.net:3128
+  - name: no_proxy
+    value: >-
+      53.137.137.54,.corpintra.net,.svc.cluster.local,.mercedes-benz.com,localhost,127.0.0.0,127.0.1.1,local.home,.daimler.com,10.0.0.0/8,53.0.0.0/8,127.0.0.1,dev-36980595.okta.com,https://dev-36980595-admin.okta.com/admin/getting-started,91.189.94.4,91.189.94.4:123,localaddress,https://krew.sh,krew.sh,2d5c6418-fe7d-483c-9fab-b4265c885e30.hana.prod-eu20.hanacloud.ondemand.com,.ondemand.com,developer.download.nvidia.com
+  - name: no_proxy
+    value: >-
+      53.137.137.54,.corpintra.net,.svc.cluster.local,.mercedes-benz.com,localhost,127.0.0.0,127.0.1.1,local.home,.daimler.com,10.0.0.0/8,53.0.0.0/8,127.0.0.1,dev-36980595.okta.com,https://dev-36980595-admin.okta.com/admin/getting-started,91.189.94.4,91.189.94.4:123,localaddress,https://krew.sh,krew.sh,2d5c6418-fe7d-483c-9fab-b4265c885e30.hana.prod-eu20.hanacloud.ondemand.com,.ondemand.com,developer.download.nvidia.com
 # Volumes for all airflow containers
 volumes:
   - name: officalairflow-webserver-config
@@ -758,10 +772,10 @@ scheduler:
 
   resources:
    limits:
-    memory: 1145Mi
+    memory: 4048Mi
    requests:
     cpu: 1234m
-    memory: 1145Mi
+    memory: 3048Mi
 
   # This setting tells kubernetes that its ok to evict
   # when it wants to scale a node down.
@@ -1097,10 +1111,10 @@ webserver:
 
   resources:
     limits:
-      memory: 1000Mi
+      memory: 2048Mi
     requests:
       cpu: 3m
-      memory: 1000Mi
+      memory: 2048Mi
 
   # Create initial user.
   defaultUser:
@@ -2005,6 +2019,8 @@ config:
     # For Airflow 1.10, backward compatibility; moved to [logging] in 2.0
     colored_console_log: 'False'
     remote_logging: '{{- ternary "True" "False" .Values.elasticsearch.enabled }}'
+    fernet_key: '{{ .Values.fernetKey }}'
+    sensitive_var_conn_names: 'fernet,gpg,secret_key,AIRFLOW__CORE__FERNET_KEY,FERNET_KEY,AIRFLOW__WEBSERVER__SECRET_KEY,WEBSERVER__SECRET_KEY,GPG_KEY'
   logging:
     remote_logging: '{{- ternary "True" "False" .Values.elasticsearch.enabled }}'
     colored_console_log: 'False'
@@ -2019,6 +2035,7 @@ config:
     enable_proxy_fix: 'True'
     # For Airflow 1.10
     rbac: 'True'
+    secret_key: '{{ .Values.webserverSecretKey }}'
   celery:
     flower_url_prefix: '{{ .Values.ingress.flower.path }}'
     worker_concurrency: 16

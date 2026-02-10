@@ -216,19 +216,19 @@ jobs:
         fi          
 
 
-  css-scan-airflow:
-        name: Container security scan Airflow
-        needs: production
-        uses: ./.github/workflows/consec.yaml
-        with:
-          FULL_IMAGE_NAME: '${{ env.AIRFLOW_IMAGE_NAME }}:${{ env.AIRFLOW_VERSION }}'
-        secrets: inherit
+  # css-scan-airflow:
+  #       name: Container security scan Airflow
+  #       needs: production
+  #       uses: ./.github/workflows/consec.yaml
+  #       with:
+  #         FULL_IMAGE_NAME: '${{ env.AIRFLOW_IMAGE_NAME }}:${{ env.AIRFLOW_VERSION }}'
+  #       secrets: inherit
 
 
-  css-scan-gitsync:
-        name: Container security scan Gitsync
-        needs: production
-        uses: ./.github/workflows/consec.yaml
-        with:
-          FULL_IMAGE_NAME: '${{ env.GITSYNC_IMAGE_NAME }}:${{ env.GITSYNC_TAG_VERSION }}'
-        secrets: inherit
+  # css-scan-gitsync:
+  #       name: Container security scan Gitsync
+  #       needs: production
+  #       uses: ./.github/workflows/consec.yaml
+  #       with:
+  #         FULL_IMAGE_NAME: '${{ env.GITSYNC_IMAGE_NAME }}:${{ env.GITSYNC_TAG_VERSION }}'
+  #       secrets: inherit

@@ -1,3 +1,9 @@
+oldairflow:
+  enabled: false
+airflowIngressRoute:
+  enabled: false
+airflowMiddleware:
+  enabled: false
 appName: airflow
 namespace: dev-dna-airflow
 imagePullSecret:
@@ -241,3 +247,82 @@ vaultInjector:
   jarName: airflow-backend-lib*.jar
 autoscaling:
   enabled: false
+vaultWebhook:
+  enabled: true
+  serviceAccountName: dev-dna-officalairflow253-worker
+  volumes:
+    - name: webhook-certs
+      secret:
+        secretName: airflow-vault-injector-webhook-tls
+        defaultMode: 0400
+  container:
+    name: vault-injector-webhook
+    image:
+      repository: registry-emea.app.corpintra.net/dnaplatform/airflow/airflow-webhook
+      tag: 01122026-v2
+    env:
+      - name: PYTHONUNBUFFERED
+        value: <path:dna_aws_kv/data/dev/kubernetesSecret/airflowvaultWebhook#PYTHONUNBUFFERED>
+      - name: VAULT_ADDR
+        value: <path:dna_aws_kv/data/dev/kubernetesSecret/airflowvaultWebhook#VAULT_ADDR>
+      - name: VAULT_NAMESPACE
+        value: <path:dna_aws_kv/data/dev/kubernetesSecret/airflowvaultWebhook#VAULT_NAMESPACE>
+      - name: VAULT_AUTH_PATH
+        value: <path:dna_aws_kv/data/dev/kubernetesSecret/airflowvaultWebhook#VAULT_AUTH_PATH>
+      - name: VAULT_ROLE
+        value: <path:dna_aws_kv/data/dev/kubernetesSecret/airflowvaultWebhook#VAULT_ROLE>
+      - name: VAULT_TLS_SKIP_VERIFY
+        value: <path:dna_aws_kv/data/dev/kubernetesSecret/airflowvaultWebhook#VAULT_TLS_SKIP_VERIFY>
+      - name: VAULT_KV_MOUNT
+        value: <path:dna_aws_kv/data/dev/kubernetesSecret/airflowvaultWebhook#VAULT_KV_MOUNT>
+      - name: VAULT_ENV
+        value: <path:dna_aws_kv/data/dev/kubernetesSecret/airflowvaultWebhook#VAULT_ENV>
+      - name: AIRFLOW_ENV
+        value: <path:dna_aws_kv/data/dev/kubernetesSecret/airflowvaultWebhook#AIRFLOW_ENV>
+      # TLS certificate paths - matches your certificate secret
+      - name: TLS_CERT_FILE
+        value: <path:dna_aws_kv/data/dev/kubernetesSecret/airflowvaultWebhook#TLS_CERT_FILE>
+      - name: TLS_KEY_FILE
+        value: <path:dna_aws_kv/data/dev/kubernetesSecret/airflowvaultWebhook#TLS_KEY_FILE>
+    resources:
+      requests:
+        memory: 128Mi
+        cpu: 100m
+      limits:
+        memory: 256Mi
+        cpu: 200m
+    livenessProbe:
+      httpGet:
+        path: /health
+        port: 8443
+        scheme: HTTPS
+      initialDelaySeconds: 30
+      periodSeconds: 10
+      timeoutSeconds: 5
+      failureThreshold: 3
+    readinessProbe:
+      httpGet:
+        path: /ready
+        port: 8443
+        scheme: HTTPS
+      initialDelaySeconds: 5
+      periodSeconds: 5
+      timeoutSeconds: 3
+      failureThreshold: 3
+    securityContext:
+      allowPrivilegeEscalation: false
+      readOnlyRootFilesystem: true
+      runAsNonRoot: true
+      runAsUser: 10001
+      capabilities:
+        drop:
+        - ALL
+    volumeMounts:
+      - name: webhook-certs
+        mountPath: /etc/webhook/certs
+        readOnly: true
+  ports:
+    - name: https
+      protocol: TCP
+      port: 443
+      targetPort: 8443
