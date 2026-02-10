@@ -269,7 +269,7 @@ jobs:
         uses: sat-sys-labs/gh-logs-loki@v1.0.0
         with:
           loki_endpoint: "https://api.logs.dev.dna.app.corpintra.net/"
-          labels: "job=github-actions,run_id=${{ github.run_id }},app=${{ github.event.inputs.projectName }},action=${{ github.event.inputs.action }},env=${{ github.event.inputs.target_env}}"
+          labels: "job=github-actions,run_id=${{ github.run_id }},app=${{ github.event.inputs.projectName }}-${{ github.event.inputs.target_env}},action=${{ github.event.inputs.action }}"
           github_token: "${{ secrets.PID_PAT }}" 
           github_api_url: "https://git.i.mercedes-benz.com/api/v3"
           job_filter: |
