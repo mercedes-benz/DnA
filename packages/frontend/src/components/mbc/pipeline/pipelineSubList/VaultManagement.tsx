@@ -323,11 +323,6 @@ const VaultManagement: React.FC<VaultManagementProps> = ({ projectName, dagId}) 
               </div>
             </div>
 
-            <p>
-              <i className="icon mbc-icon alert circle"></i>
-              Vault Key names starting with &apos;BUILD_&apos; can be used in the Codespace docker build file for handling secret values.
-            </p>
-
             {keyValue?.keyValueList?.length > 0 && (
               <>
                 <hr />
