@@ -1431,7 +1431,8 @@
 		 }
 		 if (!defaultRecipeId.equalsIgnoreCase(recipeId))
 			 workspaceUrl += "/app";
-		 if (recipeId.toLowerCase().startsWith("public") || recipeId.toLowerCase().startsWith("private")) {
+		 if (recipeId.toLowerCase().startsWith("public") || recipeId.toLowerCase().startsWith("private") 
+				 || recipeId.equalsIgnoreCase("template") || recipeId.toLowerCase().contains("user-defined")) {
 			 switch (recipeId) {
 				 case "public-dna-backend":
 					 workspaceUrl = workspaceUrl + "/" + "packages/backend";
@@ -2831,6 +2832,7 @@
   
 						 }
 					 }
+					entity.getData().setWorkspaceUrl(workspaceUrl);
 				 }
 				 entity.getData().setStatus(latestStatus);
 				 workspaceCustomRepository.update(entity);
