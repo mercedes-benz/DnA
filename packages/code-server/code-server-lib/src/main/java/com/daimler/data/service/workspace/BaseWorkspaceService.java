@@ -2745,12 +2745,12 @@
 			 log.info("projectRecipe: {}", projectRecipe);
 			 if (isCreateDeleteStatuses) {
 				 if ("CREATED".equalsIgnoreCase(latestStatus)) {
-					 String workspaceUrl = codeServerBaseUri + "/" + workspaceName + "/?folder=/home/coder";
+					 String workspaceUrl = codeServerBaseUri + "/" + workspaceOwner.toLowerCase() + "/" + workspaceName + "/?folder=/home/coder";
 					 cloudServiceProvider = entity.getData().getProjectDetails().getRecipeDetails().getCloudServiceProvider();
 					 if(cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS_AWS)){
-						workspaceUrl = codespaceUrlAWS + "/" + workspaceName + "/?folder=/home/coder";
+						workspaceUrl = codespaceUrlAWS + "/" + workspaceOwner.toLowerCase() + "/" + workspaceName + "/?folder=/home/coder";
 					 } else {
-						workspaceUrl = codespaceUrl + "/" + workspaceName + "/?folder=/home/coder";
+						workspaceUrl = codespaceUrl + "/" + workspaceOwner.toLowerCase() + "/" + workspaceName + "/?folder=/home/coder";
 					 }
 					 if (!defaultRecipeId.equalsIgnoreCase(projectRecipe))
 						 workspaceUrl += "/app";
