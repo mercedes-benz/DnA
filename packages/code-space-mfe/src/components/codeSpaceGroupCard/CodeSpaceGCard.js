@@ -72,6 +72,7 @@ const CodeSpaceGCard = ({ codeSpace, userInfo, onStartStopCodeSpace, onShowDeplo
   };
 
   const disableDeployment = !codeSpace?.projectDetails?.recipeDetails?.isDeployEnabled;
+  const isGheRecipe = !!codeSpace?.projectDetails?.gitRepoName;
 
   const [showContextMenu, setShowContextMenu] = useState(false);
   const [contextMenuOffsetTop, setContextMenuOffsetTop] = useState(0);
@@ -147,7 +148,7 @@ const CodeSpaceGCard = ({ codeSpace, userInfo, onStartStopCodeSpace, onShowDeplo
               </span>
             )}
           </div>
-          {!enableOnboard && !creationFailed && !createInProgress && !disableDeployment && (
+          {!enableOnboard && !creationFailed && !createInProgress && (!disableDeployment || isGheRecipe) && (
             <div>
               <span
                 onClick={toggleContextMenu}
