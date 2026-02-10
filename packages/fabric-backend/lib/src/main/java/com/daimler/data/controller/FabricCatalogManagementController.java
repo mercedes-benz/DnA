@@ -319,8 +319,13 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
             responseVO = service.getLakehouseObjects(workspaceId, lakehouseId, schemaName);
             
             if (responseVO != null && responseVO.getResponseCode() != null) {
-                int statusCode = Integer.parseInt(responseVO.getResponseCode());
-                return new ResponseEntity<>(responseVO, HttpStatus.valueOf(statusCode));
+                try {
+                    int statusCode = Integer.parseInt(responseVO.getResponseCode());
+                    return new ResponseEntity<>(responseVO, HttpStatus.valueOf(statusCode));
+                } catch (NumberFormatException | IllegalArgumentException e) {
+                    log.warn("Invalid response code format: {}", responseVO.getResponseCode());
+                    return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
+                }
             }
             
             return new ResponseEntity<>(responseVO, HttpStatus.OK);
