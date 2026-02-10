@@ -1431,7 +1431,7 @@
 		 }
 		 if (!defaultRecipeId.equalsIgnoreCase(recipeId))
 			 workspaceUrl += "/app";
-		 if (recipeId.toLowerCase().startsWith("public")) {
+		 if (recipeId.toLowerCase().startsWith("public") || recipeId.toLowerCase().startsWith("private")) {
 			 switch (recipeId) {
 				 case "public-dna-backend":
 					 workspaceUrl = workspaceUrl + "/" + "packages/backend";
@@ -2754,7 +2754,7 @@
 					 }
 					 if (!defaultRecipeId.equalsIgnoreCase(projectRecipe))
 						 workspaceUrl += "/app";
-					 if (projectRecipe.toLowerCase().startsWith("public")) {
+					 if (projectRecipe.toLowerCase().startsWith("public") || projectRecipe.toLowerCase().startsWith("private")) {
 						 switch (projectRecipe) {
 							 case "public-dna-backend":
 								 workspaceUrl = workspaceUrl + "/" + "packages/backend";
