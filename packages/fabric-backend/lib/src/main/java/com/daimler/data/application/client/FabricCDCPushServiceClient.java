@@ -162,18 +162,25 @@ public class FabricCDCPushServiceClient {
 				
 				if (response != null && response.hasBody()) {
 					vo = response.getBody();
-					// vo.setResponseCode(response.getStatusCode().toString());
+					vo.setResponseCode(response.getStatusCode().toString());
 					log.info("Fetched table schema for workspaceId: {}, lakehouseId: {}, tableName: {}", workspaceId, lakehouseId, schemaName);
 				} else {
 					log.warn("Empty response received for workspaceId: {}, lakehouseId: {}, tableName: {}", workspaceId, lakehouseId, schemaName);
-					// vo.setResponseCode(response.getStatusCode().toString());
+					vo.setResponseCode(response.getStatusCode().toString());
+					vo.setErrorMessage("Empty response received");
 				}
+			} else {
+				String errorMessage = "Error response received with status: " + response.getStatusCode();
+				log.error("Error response received for workspaceId: {}, lakehouseId: {}, schemaName: {} with status: {}", workspaceId, lakehouseId, schemaName, response.getStatusCode());
+				vo.setResponseCode(response.getStatusCode().toString());
+				vo.setErrorMessage(errorMessage);
 			}
-			// vo.setResponseCode(response.getStatusCode().toString());
 
 		} catch (Exception e) {
+			String errorMessage = "Exception occurred while fetching table schema: " + e.getMessage();
 			log.error("Exception occurred while fetching table schema: {}", e.getMessage());
-			// vo.setResponseCode(String.valueOf(HttpStatus.SC_INTERNAL_SERVER_ERROR));
+			vo.setResponseCode(String.valueOf(HttpStatus.SC_INTERNAL_SERVER_ERROR));
+			vo.setErrorMessage(errorMessage);
 		}
 		return vo;
 	}
