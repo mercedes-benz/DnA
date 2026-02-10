@@ -41,4 +41,5 @@ export const Envs = {
   CONFLUENCE_PAGE: getInjectedEnv('CONFLUENCE_PAGE') || process.env.CONFLUENCE_PAGE,
   CDC_SIGNIN_URL: getInjectedEnv('CDC_SIGNIN_URL') || process.env.CDC_SIGNIN_URL,
   FABRIC_REPORT_URL: getInjectedEnv('FABRIC_REPORT_URL') || process.env.FABRIC_REPORT_URL,
+  FABRIC_ACTIVITY_REPORT_URL: getInjectedEnv('FABRIC_ACTIVITY_REPORT_URL') || process.env.FABRIC_ACTIVITY_REPORT_URL, 
 };
