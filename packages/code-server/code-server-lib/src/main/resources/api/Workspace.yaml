@@ -903,7 +903,7 @@ paths:
   #
   # path example ../workspaces/status/{name}
 
-  /workspaces/status/{name}/:
+  /workspaces/status/{name}:
     get:
       tags:
         - "code-server"
