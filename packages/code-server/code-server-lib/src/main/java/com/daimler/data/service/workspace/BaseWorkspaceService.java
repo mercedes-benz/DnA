@@ -1431,8 +1431,7 @@
 		 }
 		 if (!defaultRecipeId.equalsIgnoreCase(recipeId))
 			 workspaceUrl += "/app";
-		 if (recipeId.toLowerCase().startsWith("public") || recipeId.toLowerCase().startsWith("private") 
-				 || recipeId.equalsIgnoreCase("template") || recipeId.toLowerCase().contains("user-defined")) {
+		 if (recipeId.toLowerCase().startsWith("public")){
 			 switch (recipeId) {
 				 case "public-dna-backend":
 					 workspaceUrl = workspaceUrl + "/" + "packages/backend";
@@ -2746,12 +2745,12 @@
 			 log.info("projectRecipe: {}", projectRecipe);
 			 if (isCreateDeleteStatuses) {
 				 if ("CREATED".equalsIgnoreCase(latestStatus)) {
-					 String workspaceUrl = codeServerBaseUri + "/" + workspaceOwner.toLowerCase() + "/" + workspaceName + "/?folder=/home/coder";
+					 String workspaceUrl = codeServerBaseUri + "/" + workspaceName + "/?folder=/home/coder";
 					 cloudServiceProvider = entity.getData().getProjectDetails().getRecipeDetails().getCloudServiceProvider();
 					 if(cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS_AWS)){
-						workspaceUrl = codespaceUrlAWS + "/" + workspaceOwner.toLowerCase() + "/" + workspaceName + "/?folder=/home/coder";
+						workspaceUrl = codespaceUrlAWS + "/" + workspaceName + "/?folder=/home/coder";
 					 } else {
-						workspaceUrl = codespaceUrl + "/" + workspaceOwner.toLowerCase() + "/" + workspaceName + "/?folder=/home/coder";
+						workspaceUrl = codespaceUrl + "/" + workspaceName + "/?folder=/home/coder";
 					 }
 					 if (!defaultRecipeId.equalsIgnoreCase(projectRecipe))
 						 workspaceUrl += "/app";
@@ -2832,7 +2831,6 @@
   
 						 }
 					 }
-					entity.getData().setWorkspaceUrl(workspaceUrl);
 				 }
 				 entity.getData().setStatus(latestStatus);
 				 workspaceCustomRepository.update(entity);

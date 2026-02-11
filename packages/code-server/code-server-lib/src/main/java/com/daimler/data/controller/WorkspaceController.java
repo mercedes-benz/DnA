@@ -1805,7 +1805,7 @@ import org.springframework.beans.factory.annotation.Value;
 			 @ApiResponse(code = 403, message = "Request is not authorized."),
 			 @ApiResponse(code = 405, message = "Method not allowed"),
 			 @ApiResponse(code = 500, message = "Internal error") })
-	 @RequestMapping(value = "/workspaces/status/{name}/", produces = { "application/json" }, consumes = {
+	 @RequestMapping(value = "/workspaces/status/{name}", produces = { "application/json" }, consumes = {
 			 "application/json" }, method = RequestMethod.GET)
 	 public ResponseEntity<CodeServerWorkspaceVO> getByName(
 			 @ApiParam(value = "Workspace name to be fetched", required = true) @PathVariable("name") String name) {
