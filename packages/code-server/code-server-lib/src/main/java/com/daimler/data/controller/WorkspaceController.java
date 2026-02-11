@@ -1794,7 +1794,6 @@ import org.springframework.beans.factory.annotation.Value;
 		 }
 	 }
  
-	 @Override
 	 @ApiOperation(value = "Get workspace details for a given Id.", nickname = "getByName", notes = "Get workspace details for a given Id.", response = CodeServerWorkspaceVO.class, tags = {
 			 "code-server", })
 	 @ApiResponses(value = {
