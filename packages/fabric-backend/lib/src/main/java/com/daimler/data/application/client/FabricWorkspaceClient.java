@@ -879,7 +879,7 @@ public class FabricWorkspaceClient {
 	
 	public ErrorResponseDto assignCapacity(String workspaceId, boolean isPowerBI) {
 		ErrorResponseDto errorResponse = new ErrorResponseDto();
-		String capacityId = powerbiCapacityId;
+		String capacityId = isPowerBI ? powerbiCapacityId : fabricCapacityId;
 		try {
 			String token = getToken();
 			if(!Objects.nonNull(token)) {
@@ -946,7 +946,7 @@ public class FabricWorkspaceClient {
 	
 	public ErrorResponseDto unassignCapacity(String workspaceId, boolean isPowerBI) {
 		ErrorResponseDto errorResponse = new ErrorResponseDto();
-		String capacityId = powerbiCapacityId;;
+		String capacityId = isPowerBI ? powerbiCapacityId : fabricCapacityId;
 		try {
 			String token = getToken();
 			if(!Objects.nonNull(token)) {
