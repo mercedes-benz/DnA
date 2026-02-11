@@ -636,7 +636,7 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
           accuracy and timeliness of all relevant information. Should you require assistance
           or clarification, please do not hesitate to reach out to the support team. 
           Email:&nbsp;
-          <a href={Envs.DNA_MAIL} target="_blank" rel="noopener noreferrer">dna@mercedes-benz.com</a> **
+          <a href={`mailto:${Envs.DNA_MAIL}`} target="_blank" rel="noreferrer">{Envs.DNA_MAIL}</a> **
         </p>
       </div>
 
