@@ -356,7 +356,6 @@ const mandate = divisionId && Envs.MANDATE_LEANIX_FOR_DIVISIONS
   ? Envs.MANDATE_LEANIX_FOR_DIVISIONS.split(',').includes(divisionId) 
   : false;
 const isLeanIXRequired = typeOfProject === 'Production' && mandate;
-// const isProjectDetailsRequired = typeOfProject === 'Production' && mandate;
 
   return (
     <>
@@ -799,12 +798,12 @@ const isLeanIXRequired = typeOfProject === 'Production' && mandate;
                 <Controller
                   control={control}
                   name="projectDetails"
-                  // rules={{
-                  //   required: isProjectDetailsRequired ? '*Missing entry' : false,
-                  // }}
+                  rules={{
+                    required: false,
+                  }}
                   render={({ field }) => (
                     <TypeAheadBox
-                      label={'Project Details '}
+                      label={'Project Details (Recommended for Billing Purpose)'}
                       placeholder={'Search Project Name'}
                       defaultValue={selectedProject?.projectID}
                       list={filteredProjects}
@@ -825,12 +824,14 @@ const isLeanIXRequired = typeOfProject === 'Production' && mandate;
                           <div className={Styles.optionContainer}>
                             <div className={Styles.optionHeader}>
                               <span className={Styles.optionText}>
-                                {item?.projectID ? `${item.projectID} — ${item.projectName}` : item.projectName}
+                                {item.projectName}
                               </span>
-                              {item?.division && (
-                                <span className={Styles.suggestionListBadge}>{item.division}</span>
-                              )}
                             </div>
+                            {item?.division && (
+                              <div className={Styles.optionSubText}>
+                                <strong>Division:</strong> {item.division}
+                              </div>
+                            )}
                             {stakeholderIds !== '—' && (
                               <div className={Styles.optionSubText}>
                                 <strong>Stakeholders:</strong> {stakeholderIds}
@@ -892,6 +893,11 @@ const isLeanIXRequired = typeOfProject === 'Production' && mandate;
                       <span className={'error-message'}>{errors.procedureId?.type === 'pattern' && 'Procedure ID should be of type PO-XXXXX / ITPLC-XXXXX'}</span>
                     </div>
                   </div>
+                </div>
+                <div className={Styles.col}>
+                  <p className={Styles.warning}>
+                    <i className="icon mbc-icon alert circle" /> If you do not have projects mapped under the division selected or for any other queries reagrding projects creation, kindly reach to our support team through our Email: <a href={`mailto:${Envs.DNA_MAIL}`} target="_blank" rel="noreferrer">{Envs.DNA_MAIL}</a>
+                  </p>
                 </div>
               </>
             }

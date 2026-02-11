@@ -124,7 +124,7 @@ const CodeSpaceGCard = ({ codeSpace, userInfo, onStartStopCodeSpace, onShowDeplo
         </div>
         <div className={Styles.flexDisplay}>
           <div>
-            {!createInProgress && !creationFailed && !serverFailed && (
+            {!createInProgress && !creationFailed && !enableOnboard && !serverFailed && (
               <span
                 onClick={() => onStartStopCodeSpaceLocal(codeSpace)}
                 tooltip-data={(serverStarted ? 'Stop' : 'Start') + ' the Codespace'}
@@ -138,6 +138,19 @@ const CodeSpaceGCard = ({ codeSpace, userInfo, onStartStopCodeSpace, onShowDeplo
                 {!serverStarted && serverProgress > 0 ? `ing... ${serverProgress}%` : ''}
               </span>
             )}
+            {(enableOnboard && (
+              <span
+                onClick={() => {onShowCodeSpaceOnBoard(codeSpace);}}
+                tooltip-data={'onBoard to codespace'}
+                className={classNames(
+                  Styles.statusIndicator,
+                  Styles.wsStartStop,
+                  Styles.colloboration
+                )}
+              >
+                Initialize
+              </span>
+            ))}
             {serverFailed && (
               <span
                 title={'Server Start Failed: Please contact Codespace Admin'}
