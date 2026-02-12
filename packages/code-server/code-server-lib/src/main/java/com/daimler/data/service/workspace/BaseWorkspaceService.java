@@ -1864,6 +1864,17 @@
 				repoUrl = repoUrl.replaceAll("\\.git$", "");
 				repoUrl = repoUrl.replaceAll("/$", "");
 
+				//specifically for public-private recipes 
+				String recipeId = entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toString(); 
+				String recipeType = entity.getData().getProjectDetails().getRecipeDetails().getToDeployType();  
+				if("template".equalsIgnoreCase(recipeId) && "public".equalsIgnoreCase(recipeType)){ 
+					repoName = entity.getData()  
+							.getProjectDetails() 
+							.getGitRepoName(); 
+							
+					repoUrl = repoUrl + "/" + codeServerGitOrgName + "/" + projectName.toLowerCase(); 
+				} 
+
 				deployJobInputDto.setRepo(repoUrl);
 
 				 deployJobInputDto.setShortid(workspaceOwner);
@@ -4507,6 +4518,17 @@
 
 			repoUrl = repoUrl.replaceAll("\\.git$", "");
 			repoUrl = repoUrl.replaceAll("/$", "");
+
+			//specifically for public-private recipes 
+				String recipeId = entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toString(); 
+				String recipeType = entity.getData().getProjectDetails().getRecipeDetails().getToDeployType(); 
+				if("template".equalsIgnoreCase(recipeId) && "public".equalsIgnoreCase(recipeType)){ 
+					repoName = entity.getData() 
+							.getProjectDetails() 
+							.getGitRepoName(); 
+							
+					repoUrl = repoUrl + "/" + codeServerGitOrgName + "/" + projectName.toLowerCase(); 
+				} 
 
 			deployJobInputDto.setRepo(repoUrl);
 
