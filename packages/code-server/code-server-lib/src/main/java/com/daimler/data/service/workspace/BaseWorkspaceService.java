@@ -191,6 +191,9 @@
 	 @Value("${codeServer.git.orguri}")
 	 private String codeserverGitOrgUri;
 
+	 @Value("${codeServer.git.ghe.orguri}")
+	 private String codeserverGheOrgUri;
+
 	 @Value("${codeServer.git.orgname}")
 	 private String codeServerGitOrgName;
  
@@ -1837,31 +1840,34 @@
 		 			return responseMessage;
 				}
 			}else{
-				//deploy flow
+				// deploy flow
 				if (isprivateRecipe) {
-                    repoUrl = entity.getData().getProjectDetails().getRecipeDetails().getRepodetails();
-                    if(Objects.nonNull(repoUrl) && repoUrl.contains(".git")){
-                        repoUrl = repoUrl.replaceAll("\\.git$", "/");
-                    } else {
-                        repoUrl.concat("/");
-                    }
-                    List<String> repoDetails = CommonUtils.getDetailsFromUrl(repoUrl);
-                    if (repoDetails.size() > 0 && repoDetails != null) {
-                        repoName = repoDetails.get(2);
-                        gitOrg = repoDetails.get(1);
-                    }
-                    deployJobInputDto.setRepo(codeserverGitOrgUri + gitOrg + "/" + repoName);     
-                } else {
-                    repoName = entity.getData().getProjectDetails().getGitRepoName();
-                    deployJobInputDto.setRepo(codeserverGitOrgUri + gitOrgName + "/" + repoName);
-                }
-				 deployJobInputDto.setShortid(workspaceOwner);
-				 deployJobInputDto.setTarget_env(environment);
- 
-				Boolean isValutInjectorEnable = false;
-				 try{
+					repoUrl = entity.getData().getProjectDetails().getRecipeDetails().getRepodetails();
+					if (Objects.nonNull(repoUrl) && repoUrl.contains(".git")) {
+						repoUrl = repoUrl.replaceAll("\\.git$", "/");
+					} else {
+						repoUrl.concat("/");
+					}
+					List<String> repoDetails = CommonUtils.getDetailsFromUrl(repoUrl);
+					if (repoDetails.size() > 0 && repoDetails != null) {
+						repoName = repoDetails.get(2);
+						gitOrg = repoDetails.get(1);
+					}
+					if (Objects.nonNull(repoUrl) && repoUrl.contains("ghe.com")) {
+						deployJobInputDto.setRepo(codeserverGheOrgUri + gitOrg + "/" + repoName);
+					} else {
+						deployJobInputDto.setRepo(codeserverGitOrgUri + gitOrg + "/" + repoName);
+					}
+				} else {
+					repoName = entity.getData().getProjectDetails().getGitRepoName();
+					deployJobInputDto.setRepo(codeserverGitOrgUri + gitOrgName + "/" + repoName);
+				}
+				deployJobInputDto.setShortid(workspaceOwner);
+				deployJobInputDto.setTarget_env(environment);
+				Boolean isValutInjectorEnable = false; 
+				try {
 					isValutInjectorEnable = VaultClient.enableVaultInjector(projectName.toLowerCase(), environment);
-				 }catch(Exception e){
+				} catch (Exception e) {
 					MessageDescription error = new MessageDescription();
 					error.setMessage("Some error occured during deployment, with exception " + e.getMessage());
 					errors.add(error);
@@ -1869,7 +1875,7 @@
 					responseMessage.setWarnings(warnings);
 					responseMessage.setSuccess(status);
 					return responseMessage;
-				 }
+				}
 				 String workspaceOwnerWsId = entity.getData().getWorkspaceId();
 				 //String projectOwnerWsId = ownerEntity.getData().getWorkspaceId();
 				 deployJobInputDto.setWsid(workspaceOwnerWsId);
@@ -3933,7 +3939,11 @@
                         repoName = repoDetails.get(2);
                         gitOrg = repoDetails.get(1);
                     }
-                    deployJobInputDto.setRepo(codeserverGitOrgUri + gitOrg + "/" + repoName);     
+                    if (Objects.nonNull(repoUrl) && repoUrl.contains("ghe.com")) {
+                        deployJobInputDto.setRepo(codeserverGheOrgUri + gitOrg + "/" + repoName);
+                    } else {
+                        deployJobInputDto.setRepo(codeserverGitOrgUri + gitOrg + "/" + repoName);
+                    }
                 } else {
                     repoName = entity.getData().getProjectDetails().getGitRepoName();
                     deployJobInputDto.setRepo(codeserverGitOrgUri + gitOrgName + "/" + repoName);
@@ -4454,7 +4464,11 @@
                         repoName = repoDetails.get(2);
                         gitOrg = repoDetails.get(1);
                     }
-                    deployJobInputDto.setRepo(codeserverGitOrgUri + gitOrg + "/" + repoName);     
+                    if (Objects.nonNull(repoUrl) && repoUrl.contains("ghe.com")) {
+                        deployJobInputDto.setRepo(codeserverGheOrgUri + gitOrg + "/" + repoName);
+                    } else {
+                        deployJobInputDto.setRepo(codeserverGitOrgUri + gitOrg + "/" + repoName);
+                    }
                 } else {
                     repoName = entity.getData().getProjectDetails().getGitRepoName();
                     deployJobInputDto.setRepo(codeserverGitOrgUri + gitOrgName + "/" + repoName);
