@@ -129,6 +129,7 @@ codeServer:
     ghe:
       pid: ${CODE_SERVER_GHE_PID:XXXX}
       pat: ${CODE_SERVER_GHE_PAT:XXXX}
+      orguri: ${CODE_SERVER_GHE_ORGURI:XXXX}
 
 swagger.headers.authorization.token: ${SWAGGER_HEADER_AUTH:XXXXXX}
 management.endpoints.web.exposure.include: loggers,health
