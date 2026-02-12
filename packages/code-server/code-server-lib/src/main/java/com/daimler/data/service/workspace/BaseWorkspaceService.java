@@ -1837,48 +1837,23 @@
 				}
 			}else{
 				//deploy flow
-				repoUrl = entity.getData()
-						.getProjectDetails()
-						.getRecipeDetails()
-						.getRepodetails();
-
-				if (repoUrl == null || repoUrl.isBlank()) {
-
-				    repoName = entity.getData()
-							.getProjectDetails()
-							.getGitRepoName();
-
-					if (repoName == null || repoName.isBlank()) {
-						throw new IllegalStateException("Git repository name is missing");
-					}
-
-					repoUrl = codeserverGitOrgUri;
-
-					if (!repoUrl.endsWith("/")) {
-						repoUrl = repoUrl + "/";
-					}
-
-					repoUrl = repoUrl + codeServerGitOrgName + "/" + projectName.toLowerCase();
-				}
-
-				repoUrl = repoUrl.replaceAll("\\.git$", "");
-				repoUrl = repoUrl.replaceAll("/$", "");
-
-				//specifically for public-private recipes 
-				String recipeId = entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toString(); 
-				String recipeType = entity.getData().getProjectDetails().getRecipeDetails().getToDeployType();
-				log.info(recipeId + " recipe type is " + recipeType);  
-				if("template".equalsIgnoreCase(recipeId) && "public".equalsIgnoreCase(recipeType)){ 
-					log.info(" public template recipe {}", projectName);
-					repoName = entity.getData()  
-							.getProjectDetails() 
-							.getGitRepoName(); 
-							
-					repoUrl = repoUrl + "/" + codeServerGitOrgName + "/" + repoName.toLowerCase(); 
-				} 
-
-				deployJobInputDto.setRepo(repoUrl);
-
+				if (isprivateRecipe) {
+                    repoUrl = entity.getData().getProjectDetails().getRecipeDetails().getRepodetails();
+                    if(Objects.nonNull(repoUrl) && repoUrl.contains(".git")){
+                        repoUrl = repoUrl.replaceAll("\\.git$", "/");
+                    } else {
+                        repoUrl.concat("/");
+                    }
+                    List<String> repoDetails = CommonUtils.getDetailsFromUrl(repoUrl);
+                    if (repoDetails.size() > 0 && repoDetails != null) {
+                        repoName = repoDetails.get(2);
+                        gitOrg = repoDetails.get(1);
+                    }
+                    deployJobInputDto.setRepo(codeserverGitOrgUri + gitOrg + "/" + repoName);     
+                } else {
+                    repoName = entity.getData().getProjectDetails().getGitRepoName();
+                    deployJobInputDto.setRepo(codeserverGitOrgUri + gitOrgName + "/" + repoName);
+                }
 				 deployJobInputDto.setShortid(workspaceOwner);
 				 deployJobInputDto.setTarget_env(environment);
  
@@ -1932,45 +1907,19 @@
 					 }
 
 					 GitLatestCommitIdDto commitId =null;
-						// if(entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase()
-						// .startsWith("private")){
-						// 	List<String> repoDetails = CommonUtils.getRepoNameFromGitUrl(entity.getData().getProjectDetails().getGitRepoName());
-						// 	commitId = gitClient.getLatestCommitId(repoDetails.get(0),branch,repoDetails.get(1));
-						// }else{
-						// 	commitId = gitClient.getLatestCommitId(gitOrgName,branch,entity.getData().getProjectDetails().getGitRepoName());
+						if(entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase()
+						.startsWith("private")){
+							List<String> repoDetails = CommonUtils.getRepoNameFromGitUrl(entity.getData().getProjectDetails().getGitRepoName());
+							commitId = gitClient.getLatestCommitId(repoDetails.get(0),branch,repoDetails.get(1));
+						}else{
+							commitId = gitClient.getLatestCommitId(gitOrgName,branch,entity.getData().getProjectDetails().getGitRepoName());
 							
-						// }
-						repoUrl = entity.getData()
-								.getProjectDetails()
-								.getRecipeDetails()
-								.getRepodetails();
-
-						if (repoUrl == null || repoUrl.isBlank()) {
-							repoName = entity.getData()
-									.getProjectDetails()
-									.getGitRepoName();
-							if (repoName != null && !repoName.isBlank()) {
-								repoUrl = gitBaseUri + "/repos/" + gitOrgName + "/" + repoName;
-							}
 						}
-						if (repoUrl != null && !repoUrl.isBlank()) {
-							repoUrl = repoUrl.replaceAll("\\.git$", "");
-							repoUrl = repoUrl.replaceAll("/$", "");
-
-							List<String> repoDetails = CommonUtils.getRepoNameFromGitUrl(repoUrl);
-
-							commitId = gitClient.getLatestCommitId(
-									repoDetails.get(0),
-									branch,
-									repoDetails.get(1));
-						}
-						if (commitId != null && commitId.getSha() != null) {
-							auditLog.setCommitId(commitId.getSha());
-						} else {
-							MessageDescription warning = new MessageDescription();
-							warning.setMessage("Commit ID could not be fetched");
-							warnings.add(warning);
-						}
+						if(commitId == null){
+						MessageDescription warning = new MessageDescription();
+						warning.setMessage("Error while adding commit id to deployment audit log");
+					}else{
+						auditLog.setCommitId(commitId.getSha());
 						auditLog.setDeploymentStatus("DEPLOY_REQUESTED");
 						auditLog.setVersion(version);
 						if("APPROVAL_PENDING".equalsIgnoreCase(deploymentDetails.getLastDeploymentStatus())){
@@ -1983,6 +1932,7 @@
 						}else{
 							auditLogs.add(auditLog);
 						}
+					}
 
 					 CodeServerBuildDeploy buildDeployLogs = null;
 					 CodeServerBuildDeployNsql auditLogEntity = null;
@@ -3937,6 +3887,10 @@
 		boolean hasProdUrl = false;
 		boolean hasIntUrl = false;
 		try {
+			String repoName = null;
+			String repoUrl = null;
+			String gitOrg = null;
+			
 			CodeServerWorkspaceNsql entity = workspaceCustomRepository.findById(userId, id);
 			if (entity != null) {
 				DeploymentManageDto deploymentJobDto = new DeploymentManageDto();
@@ -3944,6 +3898,7 @@
 				deployJobInputDto.setAction("restart");
 				deployJobInputDto.setBranch("main");
 				cloudServiceProvider = entity.getData().getProjectDetails().getRecipeDetails().getCloudServiceProvider();
+				boolean isprivateRecipe = entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase().startsWith("private");
 				hasProdUrl = Objects.nonNull(
 					entity.getData().getProjectDetails().getProdDeploymentDetails().getDeploymentUrl());
 				hasIntUrl = Objects.nonNull(
@@ -3965,34 +3920,23 @@
 				}
 				String projectName = entity.getData().getProjectDetails().getProjectName();
 
-				String repoUrl = entity.getData()
-						.getProjectDetails()
-						.getRecipeDetails()
-						.getRepodetails();
-
-				if (repoUrl == null || repoUrl.isBlank()) {
-
-					String repoName = entity.getData()
-							.getProjectDetails()
-							.getGitRepoName();
-
-					if (repoName == null || repoName.isBlank()) {
-						throw new IllegalStateException("Git repository name is missing");
-					}
-
-					repoUrl = codeserverGitOrgUri;
-
-					if (!repoUrl.endsWith("/")) {
-						repoUrl = repoUrl + "/";
-					}
-
-					repoUrl = repoUrl + codeServerGitOrgName + "/" + projectName.toLowerCase();
-				}
-
-				repoUrl = repoUrl.replaceAll("\\.git$", "");
-				repoUrl = repoUrl.replaceAll("/$", "");
-
-				deployJobInputDto.setRepo(repoUrl);
+				if (isprivateRecipe) {
+                    repoUrl = entity.getData().getProjectDetails().getRecipeDetails().getRepodetails();
+                    if(Objects.nonNull(repoUrl) && repoUrl.contains(".git")){
+                        repoUrl = repoUrl.replaceAll("\\.git$", "/");
+                    } else {
+                        repoUrl.concat("/");
+                    }
+                    List<String> repoDetails = CommonUtils.getDetailsFromUrl(repoUrl);
+                    if (repoDetails.size() > 0 && repoDetails != null) {
+                        repoName = repoDetails.get(2);
+                        gitOrg = repoDetails.get(1);
+                    }
+                    deployJobInputDto.setRepo(gitOrg + "/" + repoName);     
+                } else {
+                    repoName = entity.getData().getProjectDetails().getGitRepoName();
+                    deployJobInputDto.setRepo(codeserverGitOrgUri + gitOrgName + "/" + repoName);
+                }
 
 				String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
 				deployJobInputDto.setShortid(projectOwner);
@@ -4497,42 +4441,23 @@
 			// 	}
 			// 	deployJobInputDto.setRepo(gitOrg + "/" + repoName);		
 			// }
-			repoUrl = entity.getData()
-					.getProjectDetails()
-					.getRecipeDetails()
-					.getRepodetails();
-
-			if (repoUrl == null || repoUrl.isBlank()) {
-				repoName = entity.getData()
-						.getProjectDetails()
-						.getGitRepoName();
-				if (repoName == null || repoName.isBlank()) {
-					throw new IllegalStateException("Git repository name is missing");
-				}
-				repoUrl = codeserverGitOrgUri;
-
-				if (!repoUrl.endsWith("/")) {
-					repoUrl = repoUrl + "/";
-				}
-
-				repoUrl = repoUrl + codeServerGitOrgName + "/" + projectName.toLowerCase();
-			}
-
-			repoUrl = repoUrl.replaceAll("\\.git$", "");
-			repoUrl = repoUrl.replaceAll("/$", "");
-
-			//specifically for public-private recipes 
-				String recipeId = entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toString(); 
-				String recipeType = entity.getData().getProjectDetails().getRecipeDetails().getToDeployType(); 
-				if("template".equalsIgnoreCase(recipeId) && "public".equalsIgnoreCase(recipeType)){ 
-					repoName = entity.getData() 
-							.getProjectDetails() 
-							.getGitRepoName(); 
-							
-					repoUrl = repoUrl + "/" + codeServerGitOrgName + "/" + repoName.toLowerCase(); 
-				} 
-
-			deployJobInputDto.setRepo(repoUrl);
+			if (isPrivateRecipe) {
+                    repoUrl = entity.getData().getProjectDetails().getRecipeDetails().getRepodetails();
+                    if(Objects.nonNull(repoUrl) && repoUrl.contains(".git")){
+                        repoUrl = repoUrl.replaceAll("\\.git$", "/");
+                    } else {
+                        repoUrl.concat("/");
+                    }
+                    List<String> repoDetails = CommonUtils.getDetailsFromUrl(repoUrl);
+                    if (repoDetails.size() > 0 && repoDetails != null) {
+                        repoName = repoDetails.get(2);
+                        gitOrg = repoDetails.get(1);
+                    }
+                    deployJobInputDto.setRepo(codeserverGitOrgUri + gitOrg + "/" + repoName);     
+                } else {
+                    repoName = entity.getData().getProjectDetails().getGitRepoName();
+                    deployJobInputDto.setRepo(codeserverGitOrgUri + gitOrgName + "/" + repoName);
+                }
 
 				 String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
 				 String workspaceOwner = entity.getData().getWorkspaceOwner().getId();
@@ -4640,51 +4565,20 @@
 					}
 					 BuildAudit auditLog = new BuildAudit();
 					 GitLatestCommitIdDto commitId =null;
-					//  if(entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase()
-					//  .startsWith("private")){
-					// 	List<String> repoDetails = CommonUtils.getRepoNameFromGitUrl(entity.getData().getProjectDetails().getGitRepoName());
-					// 	commitId = gitClient.getLatestCommitId(repoDetails.get(0),branch,repoDetails.get(1));
-					// }else{
-					// 	commitId = gitClient.getLatestCommitId(gitOrgName,branch,entity.getData().getProjectDetails().getGitRepoName());
+					 if(entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase()
+					 .startsWith("private")){
+						List<String> repoDetails = CommonUtils.getRepoNameFromGitUrl(entity.getData().getProjectDetails().getGitRepoName());
+						commitId = gitClient.getLatestCommitId(repoDetails.get(0),branch,repoDetails.get(1));
+					}else{
+						commitId = gitClient.getLatestCommitId(gitOrgName,branch,entity.getData().getProjectDetails().getGitRepoName());
 						
-					// }
-					repoUrl = entity.getData()
-							.getProjectDetails()
-							.getRecipeDetails()
-							.getRepodetails();
-
-					if (repoUrl == null || repoUrl.isBlank()) {
-
-						repoName = entity.getData()
-								.getProjectDetails()
-								.getGitRepoName();
-
-						if (repoName == null || repoName.isBlank()) {
-							log.warn("Git repo name missing, cannot fetch commit ID");
-						} else {
-							repoUrl = gitBaseUri + "/repos/" + gitOrgName + "/" + repoName;
-						}
 					}
-
-					if (repoUrl != null && !repoUrl.isBlank()) {
-
-						repoUrl = repoUrl.replaceAll("\\.git$", "");
-						repoUrl = repoUrl.replaceAll("/$", "");
-
-						List<String> repoDetails = CommonUtils.getRepoNameFromGitUrl(repoUrl);
-
-						commitId = gitClient.getLatestCommitId(
-								repoDetails.get(0),
-								branch,
-								repoDetails.get(1));
-					}
-					if (commitId != null && commitId.getSha() != null) {
-						auditLog.setCommitId(commitId.getSha());
-					} else {
+					
+					if(commitId == null){
 						MessageDescription warning = new MessageDescription();
-						warning.setMessage("Commit ID could not be fetched");
-						warnings.add(warning);
+						warning.setMessage("Error while adding commit id to deployment audit log");
 					}
+					auditLog.setCommitId(commitId.getSha());
 					 auditLog.setImageDeleted(Boolean.FALSE);
 					 auditLog.setTriggeredOn(now);
 					 auditLog.setTriggeredBy(entity.getData().getWorkspaceOwner().getGitUserName());
