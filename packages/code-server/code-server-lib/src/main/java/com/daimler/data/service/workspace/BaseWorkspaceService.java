@@ -3932,7 +3932,7 @@
                         repoName = repoDetails.get(2);
                         gitOrg = repoDetails.get(1);
                     }
-                    deployJobInputDto.setRepo(gitOrg + "/" + repoName);     
+                    deployJobInputDto.setRepo(codeserverGitOrgUri + gitOrg + "/" + repoName);     
                 } else {
                     repoName = entity.getData().getProjectDetails().getGitRepoName();
                     deployJobInputDto.setRepo(codeserverGitOrgUri + gitOrgName + "/" + repoName);
