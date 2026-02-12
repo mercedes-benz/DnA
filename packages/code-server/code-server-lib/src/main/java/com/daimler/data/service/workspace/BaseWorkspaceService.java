@@ -1853,9 +1853,9 @@
                         gitOrg = repoDetails.get(1);
                     }
                     if (Objects.nonNull(repoUrl) && repoUrl.contains("ghe.com")) {
-                        deployJobInputDto.setRepo(codeserverGheOrgUri + gitOrgName + "/" + repoName);
+                        deployJobInputDto.setRepo(codeserverGheOrgUri + gitOrg + "/" + repoName);
                     } else {
-                        deployJobInputDto.setRepo(codeserverGitOrgUri + gitOrgName + "/" + repoName);
+                        deployJobInputDto.setRepo(codeserverGitOrgUri + gitOrg + "/" + repoName);
                     }
                 } else {
                     repoName = entity.getData().getProjectDetails().getGitRepoName();
