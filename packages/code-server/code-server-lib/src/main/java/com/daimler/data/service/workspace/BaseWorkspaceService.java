@@ -1866,13 +1866,15 @@
 
 				//specifically for public-private recipes 
 				String recipeId = entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toString(); 
-				String recipeType = entity.getData().getProjectDetails().getRecipeDetails().getToDeployType();  
+				String recipeType = entity.getData().getProjectDetails().getRecipeDetails().getToDeployType();
+				log.info(recipeId + " recipe type is " + recipeType);  
 				if("template".equalsIgnoreCase(recipeId) && "public".equalsIgnoreCase(recipeType)){ 
+					log.info(" public template recipe {}", projectName);
 					repoName = entity.getData()  
 							.getProjectDetails() 
 							.getGitRepoName(); 
 							
-					repoUrl = repoUrl + "/" + codeServerGitOrgName + "/" + projectName.toLowerCase(); 
+					repoUrl = repoUrl + "/" + codeServerGitOrgName + "/" + repoName.toLowerCase(); 
 				} 
 
 				deployJobInputDto.setRepo(repoUrl);
@@ -4527,7 +4529,7 @@
 							.getProjectDetails() 
 							.getGitRepoName(); 
 							
-					repoUrl = repoUrl + "/" + codeServerGitOrgName + "/" + projectName.toLowerCase(); 
+					repoUrl = repoUrl + "/" + codeServerGitOrgName + "/" + repoName.toLowerCase(); 
 				} 
 
 			deployJobInputDto.setRepo(repoUrl);
