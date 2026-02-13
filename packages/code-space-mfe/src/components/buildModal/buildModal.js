@@ -61,7 +61,10 @@ const BuildModal = (props) => {
       });
 
     ProgressIndicator.show();
-    CodeSpaceApiClient.getCodeSpacesGitBranchList(projectDetails?.gitRepoName)
+    // CodeSpaceApiClient.getCodeSpacesGitBranchList(projectDetails?.gitRepoName)
+    CodeSpaceApiClient.getCodeSpacesGitBranchList(
+      projectDetails?.repoDetails || projectDetails?.gitRepoName
+    )
       .then((res) => {
         ProgressIndicator.hide();
         props.setShowCodeBuildModal(true);
@@ -141,9 +144,10 @@ const BuildModal = (props) => {
       formValid = false;
       setIsBranchValueMissing(true);
     }
-    const found = branches.some(branch => 
-     Object.values(branch).includes(branchValue[0])
-    );
+    // const found = branches.some(branch => 
+    //  Object.values(branch).includes(branchValue[0])
+    // );
+    const found = branches.some(branch => branch.name === branchValue[0]);
     if (!found) {
       formValid = false;
       Notification.show('Branch doesnot exist.','alert',);
