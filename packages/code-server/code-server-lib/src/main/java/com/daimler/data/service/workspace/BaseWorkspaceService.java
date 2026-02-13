@@ -1346,7 +1346,7 @@
 						List<String> repoDetails = CommonUtils.getRepoNameFromGitUrl(vo.getProjectDetails().getRecipeDetails().getRepodetails());
 						String orgName = repoDetails.get(0);
 						repoName = repoDetails.get(1);
-						String gitHubUrl = "https://" + gitOrgUri + orgName ;
+						String gitHubUrl = gitOrgUri + orgName ;
 						if(vo.getProjectDetails().getRecipeDetails().getRepodetails().contains(gitHubUrl)){
 						HttpStatus addGitUser = gitClient.addUserToRepo(collaborator.getId(), repoName);
 					
@@ -1371,7 +1371,13 @@
 									responseVO.setWarnings(warnings);
 								}
 					}else{
-						HttpStatus status = gitClient.isUserCollaborator(orgName, collaborator.getId(), repoName, gheBaseUri, ghePat);
+						HttpStatus status;
+						if (vo.getProjectDetails().getRecipeDetails().getRepodetails().contains("ghe.com")) {
+							status = gitClient.isUserCollaborator(orgName, collaborator.getId(), repoName, gheBaseUri,
+									ghePat);
+						} else {
+							status = gitClient.isUserCollaborator(orgName, collaborator.getId(), repoName);
+						}
 						if(!status.is2xxSuccessful()) {
 							log.info("Collaborator {} Addition failed for recipe {}  ",collaborator.getId(),vo.getProjectDetails().getRecipeDetails().getRecipeId());
 							errors.add(new MessageDescription("Cannot add User "+collaborator.getId()+" as collaborator because the user is  not a collaborator to the private repo "+repoName+" add the user to the repo and try again"));
@@ -1538,7 +1544,7 @@
 		String gitHubUrl= entity.getData().getProjectDetails().getRecipeDetails().getRepodetails();
 		String projectName = entity.getData().getProjectDetails().getProjectName();
 		if(gitHubUrl == null || gitHubUrl.isEmpty()) {
-			gitHubUrl = "https://" + gitOrgUri + orgName + "/"+projectName+"/";
+			gitHubUrl = gitOrgUri + orgName + "/"+projectName+"/";
 		}
 		if(gitHubUrl.contains(".git")) {
 			gitHubUrl = gitHubUrl.replaceAll("\\.git$", "/");
@@ -2414,7 +2420,7 @@
 					List<String> repoDetails = CommonUtils.getRepoNameFromGitUrl(vo.getProjectDetails().getRecipeDetails().getRepodetails());
 					String repoOwner = repoDetails.get(0);
 					repoName = repoDetails.get(1);
-					String gitHubUrl = "https://" + gitOrgUri + orgName ;
+					String gitHubUrl = gitOrgUri + orgName ;
 					if(gitUrl.contains(gitHubUrl)){
 						HttpStatus addGitUser = gitClient.addUserToRepo(gitUser, repoName);
 					if(addGitUser == HttpStatus.UNPROCESSABLE_ENTITY){
@@ -2438,18 +2444,28 @@
 						 warnings.add(errMsg);
 					 }
 				}else{
-					HttpStatus status = gitClient.isUserCollaborator(repoOwner,gitUser, repoName, gheBaseUri, ghePat);
-				if(!status.is2xxSuccessful()){
-					log.info("Cannot add User {} as collaborator because the user is  not a collaborator to the private repo {}",userRequestDto.getGitUserName(),repoName);
-					MessageDescription msg = new MessageDescription("Cannot add User "+userRequestDto.getGitUserName()+" as collaborator because the user is  not a collaborator to the private repo "+repoName+" add the user to the repo and try again");
-					errors.add(msg);
-					responseMessage.setSuccess("FAILED");
-					responseMessage.setErrors(errors); 
-					return responseMessage;
+					HttpStatus status;
+					if (gitUrl.contains("ghe.com")) {
+						status = gitClient.isUserCollaborator(repoOwner, gitUser, repoName, gheBaseUri, ghePat);
+					} else {
+						status = gitClient.isUserCollaborator(repoOwner, gitUser, repoName);
+					}
+					if(!status.is2xxSuccessful()) {
+						log.info(
+								"Cannot add User {} as collaborator because the user is  not a collaborator to the private repo {}",
+								userRequestDto.getGitUserName(), repoName);
+						MessageDescription msg = new MessageDescription("Cannot add User "
+								+ userRequestDto.getGitUserName()
+								+ " as collaborator because the user is  not a collaborator to the private repo "
+								+ repoName + " add the user to the repo and try again");
+						errors.add(msg);
+						responseMessage.setSuccess("FAILED");
+						responseMessage.setErrors(errors);
+						return responseMessage;
+					}
 				}
-				}
-				}
- 
+			}
+
 				 if(! (vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")
 						 || vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private") 
 						 || vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().equalsIgnoreCase("default"))) {

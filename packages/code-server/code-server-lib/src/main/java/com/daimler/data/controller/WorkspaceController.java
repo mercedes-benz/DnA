@@ -2813,7 +2813,7 @@ import org.springframework.beans.factory.annotation.Value;
 					List<String> repoDetails = CommonUtils.getRepoNameFromGitUrl(vo.getProjectDetails().getRecipeDetails().getRepodetails());
 					String orgName = repoDetails.get(0);
 					String repoName = repoDetails.get(1);
-					String gitHubUrl = "https://" + gitOrgUri + orgName;
+					String gitHubUrl = gitOrgUri + orgName;
 					Boolean isUserAdmin;
 					if(!vo.getProjectDetails().getRecipeDetails().getRepodetails().contains(gitHubUrl)){
 						isUserAdmin = gitClient.isUserAdmin(orgName, collabUserId, repoName, gheBaseUri, ghePat);
