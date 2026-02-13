@@ -1,0 +1,50 @@
+{{/* Append the hardcoded settings */}}
+{{- define "healthchecks.harcodedValues" -}}
+env:
+  PAPERLESS_TIME_ZONE: {{ .Values.env.TZ }}
+  PAPERLESS_PORT: {{ quote .Values.service.main.ports.http.port }}
+
+  {{- with .Values.ingress.main }}
+  {{- if and .enabled .hosts }}
+  PAPERLESS_URL: http{{ if .tls }}s{{ end }}://{{ (first .hosts).host }}
+  {{- end }}
+  {{- end }}
+
+  {{- if .Values.postgresql.enabled }}
+  {{- with .Values.postgresql }}
+  PAPERLESS_DBENGINE: postgresql
+  PAPERLESS_DBHOST: {{ $.Release.Name }}-postgresql
+  PAPERLESS_DBNAME: {{ .auth.database }}
+  PAPERLESS_DBUSER: {{ default "postgres" .auth.username }}
+  PAPERLESS_DBPASS:
+    secretKeyRef:
+      name: {{ $.Release.Name }}-postgresql
+      key: {{ if not .auth.password }}postgres-{{ end }}password
+  {{- end }}
+  {{- else if .Values.mariadb.enabled }}
+  {{- with .Values.mariadb}}
+  PAPERLESS_DBENGINE: mariadb
+  PAPERLESS_DBHOST: {{ $.Release.Name }}-mariadb
+  PAPERLESS_DBNAME: {{ .auth.database }}
+  PAPERLESS_DBUSER: {{ .auth.username }}
+  PAPERLESS_DBPASS:
+    secretKeyRef:
+      name: {{ $.Release.Name }}-mariadb
+      key: mariadb-password
+  {{- end }}
+  {{- end }}
+
+  {{- if .Values.redis.enabled }}
+  {{- with .Values.redis }}
+  A_REDIS_PASSWORD:
+    secretKeyRef:
+      name: {{ $.Release.Name }}-redis
+      key: redis-password
+  PAPERLESS_REDIS: redis://{{ .auth.username }}:$(A_REDIS_PASSWORD)@{{ $.Release.Name }}-redis-master
+  {{- end }}
+  {{- end }}
+{{- end -}}
+{{- $_ := merge .Values (include "healthchecks.harcodedValues" . | fromYaml) -}}
+
+{{/* Render the templates */}}
+{{ include "bjw-s.common.loader.all" . }}

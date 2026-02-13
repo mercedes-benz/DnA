@@ -1,0 +1,36 @@
+{{- if eq .Values.env "prod" }}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  {{- with .Values.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  name: qdrant-mbfs-us
+  namespace: {{ .Values.namespace }}
+  labels:
+    name: service
+    env: {{ .Values.env }}
+    project: {{ .Values.env }}-dna
+spec:
+  destination:
+    namespace: cs-apps-services
+    server: {{ .Values.server | squote }}
+  source:
+    path: deployment/kubernetes/DyP/qdrant
+    repoURL: {{ .Values.repoURL | squote }}
+    targetRevision: {{ .Values.branch }}
+    plugin:
+      name: argocd-vault-plugin-helm
+      env:
+        - name: HELM_ARGS
+          value: --namespace cs-apps-services -f values-qdrant-mbfs-us.yaml
+  project: {{ .Values.env }}-dna
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - ApplyOutOfSyncOnly=true
+      - CreateNamespace=true
+{{- end }}      

@@ -60,6 +60,7 @@ containerPort: 7174
 
 ingress:
   enabled: true
+  className: "traefik" 
   host: ""
   annotations:
     traefik.frontend.rule.type: PathPrefix

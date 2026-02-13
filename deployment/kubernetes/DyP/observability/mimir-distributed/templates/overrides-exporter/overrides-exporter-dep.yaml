@@ -1,0 +1,146 @@
+{{- if and .Values.overrides_exporter.enabled (not .Values.federation_frontend.disableOtherComponents) -}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    {{- toYaml .Values.overrides_exporter.annotations | nindent 4 }}
+  labels:
+    {{- include "mimir.labels" (dict "ctx" . "component" "overrides-exporter") | nindent 4 }}
+  name: {{ include "mimir.resourceName" (dict "ctx" . "component" "overrides-exporter") }}
+  namespace: {{ .Release.Namespace | quote }}
+spec:
+  replicas: {{ .Values.overrides_exporter.replicas }}
+  selector:
+    matchLabels:
+      {{- include "mimir.selectorLabels" (dict "ctx" . "component" "overrides-exporter") | nindent 6 }}
+  strategy:
+    {{- toYaml .Values.overrides_exporter.strategy | nindent 4 }}
+  template:
+    metadata:
+      labels:
+        {{- include "mimir.podLabels" (dict "ctx" . "component" "overrides-exporter") | nindent 8 }}
+      annotations:
+        {{- include "mimir.podAnnotations" (dict "ctx" . "component" "overrides-exporter") | nindent 8 }}
+      namespace: {{ .Release.Namespace | quote }}
+    spec:
+      serviceAccountName: {{ template "mimir.serviceAccountName" . }}
+      {{- if .Values.overrides_exporter.priorityClassName }}
+      priorityClassName: {{ .Values.overrides_exporter.priorityClassName }}
+      {{- end }}
+      securityContext:
+        {{- include "mimir.lib.podSecurityContext" (dict "ctx" . "component" "overrides-exporter") | nindent 8 }}
+      {{- if .Values.image.pullSecrets }}
+      imagePullSecrets:
+      {{- range .Values.image.pullSecrets }}
+        - name: {{ . }}
+      {{- end }}
+      {{- end }}
+      {{- with .Values.overrides_exporter.initContainers }}
+      initContainers:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: overrides-exporter
+          image: {{ include "mimir.imageReference" (dict "ctx" . "component" "overrides-exporter") }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args:
+            - "-target=overrides-exporter"
+            - "-config.expand-env=true"
+            - "-config.file=/etc/mimir/mimir.yaml"
+            {{- range $key, $value := .Values.overrides_exporter.extraArgs }}
+            - -{{ $key }}={{ $value }}
+            {{- end }}
+          volumeMounts:
+            {{- if .Values.overrides_exporter.extraVolumeMounts }}
+              {{ toYaml .Values.overrides_exporter.extraVolumeMounts | nindent 12}}
+            {{- end }}
+            {{- if .Values.global.extraVolumeMounts }}
+              {{ toYaml .Values.global.extraVolumeMounts | nindent 12}}
+            {{- end }}
+            - name: config
+              mountPath: /etc/mimir
+            {{- if .Values.enterprise.enabled }}
+            - name: license
+              mountPath: /license
+            {{- end }}
+            - name: runtime-config
+              mountPath: /var/{{ include "mimir.name" . }}
+            - name: storage
+              mountPath: "/data"
+              {{- if .Values.overrides_exporter.persistence.subPath }}
+              subPath: {{ .Values.overrides_exporter.persistence.subPath }}
+              {{- end }}
+            - name: active-queries
+              mountPath: /active-query-tracker
+          ports:
+            - name: http-metrics
+              containerPort: {{ include "mimir.serverHttpListenPort" . }}
+              protocol: TCP
+            - name: grpc
+              containerPort: {{ include "mimir.serverGrpcListenPort" . }}
+              protocol: TCP
+          livenessProbe:
+            {{- toYaml .Values.overrides_exporter.livenessProbe | nindent 12 }}
+          readinessProbe:
+            {{- toYaml .Values.overrides_exporter.readinessProbe | nindent 12 }}
+          resources:
+            {{- toYaml .Values.overrides_exporter.resources | nindent 12 }}
+          securityContext:
+            {{- toYaml .Values.overrides_exporter.containerSecurityContext | nindent 12 }}
+          {{- if or .Values.global.extraEnv .Values.overrides_exporter.env }}
+          env:
+            {{- with .Values.global.extraEnv }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+            {{- with .Values.overrides_exporter.env }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- end }}
+          {{- if or .Values.global.extraEnvFrom .Values.overrides_exporter.extraEnvFrom }}
+          envFrom:
+            {{- with .Values.global.extraEnvFrom }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+            {{- with .Values.overrides_exporter.extraEnvFrom }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- end }}
+        {{- with .Values.overrides_exporter.extraContainers }}
+        {{ toYaml . | nindent 8 }}
+        {{- end }}
+      {{- with .Values.overrides_exporter.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.overrides_exporter.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- include "mimir.lib.topologySpreadConstraints" (dict "ctx" . "component" "overrides-exporter") | nindent 6 }}
+      {{- with .Values.overrides_exporter.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      terminationGracePeriodSeconds: {{ .Values.overrides_exporter.terminationGracePeriodSeconds }}
+      volumes:
+        - name: config
+          {{- include "mimir.configVolume" . | nindent 10 }}
+        {{- if .Values.enterprise.enabled }}
+        - name: license
+          secret:
+            secretName: {{ tpl .Values.license.secretName . }}
+        {{- end }}
+        - name: runtime-config
+          configMap:
+            name: {{ template "mimir.fullname" . }}-runtime
+        {{- if .Values.overrides_exporter.extraVolumes }}
+        {{ toYaml .Values.overrides_exporter.extraVolumes | nindent 8}}
+        {{- end }}
+        {{- if .Values.global.extraVolumes }}
+        {{ toYaml .Values.global.extraVolumes | nindent 8}}
+        {{- end }}
+        - name: storage
+          emptyDir: {}
+        - name: active-queries
+          emptyDir: {}
+{{- end -}}

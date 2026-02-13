@@ -1,0 +1,18 @@
+{{- with (.Values.metaMonitoring).grafanaAgent }}
+{{- if .enabled }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ include "mimir.resourceName" (dict "ctx" $ "component" "grafana-agent") }}
+  labels:
+    {{- include "mimir.labels" (dict "ctx" $ "component" "meta-monitoring" ) | nindent 4 }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ include "mimir.resourceName" (dict "ctx" $ "component" "grafana-agent") }}
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "mimir.serviceAccountName" $ }}
+    namespace: {{ .namespace | default $.Release.Namespace }}
+{{- end }}
+{{- end }}

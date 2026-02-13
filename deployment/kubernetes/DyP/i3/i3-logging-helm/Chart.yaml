@@ -1,0 +1,32 @@
+apiVersion: v2
+name: i3-logging-helm
+version: 3.2.0
+appVersion: 3.2.0
+description: i3-logging Helm Chart
+home: https://git.i.mercedes-benz.com/i3/i3-logging
+keywords:
+  - observabiliy
+  - logging
+  - kubernetes
+
+maintainers:
+  - name: i3
+    email: i3.consulting@mercedes-benz.com
+    url: https://pages.git.i.mercedes-benz.com/i3/welcome/
+icon: https://opensearch.org/assets/brand/SVG/Mark/opensearch_mark_darkmode.svg
+dependencies:
+  - name: opensearch
+    condition: opensearch.enabled
+    version: 2.26.0
+    repository: file://charts/opensearch
+  - name: opensearch-dashboards
+    condition: opensearch-dashboards.enabled
+    version: 2.24.0
+    repository: file://charts/opensearch-dashboards
+  - name: fluent-bit
+    condition: fluent-bit.enabled
+    version: 0.47.10
+    repository: file://charts/fluent-bit
+  - name: i3-opensearch-config
+    condition: i3-opensearch-config.enabled
+    version: 3.2.0

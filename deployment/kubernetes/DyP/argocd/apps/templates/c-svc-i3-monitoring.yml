@@ -1,0 +1,37 @@
+{{- if ne .Values.env "test" }}
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  {{- with .Values.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  name: i3-monitoring
+  namespace: {{ .Values.namespace }}
+  labels:
+    name: service
+    project: c-svc
+spec:
+  destination:
+    namespace: i3-monitoring
+    server: {{ .Values.server | squote }}
+  source:
+    path: deployment/kubernetes/DyP/i3/i3-monitoring-helm
+    repoURL: {{ .Values.repoURL | squote }}
+    targetRevision: {{ .Values.branch }}
+    plugin:
+      name: argocd-vault-plugin-helm
+      env:
+        - name: HELM_ARGS
+          value: --namespace i3-monitoring -f values-scrapeconfig-dhc.yaml -f values-{{ .Values.env }}.yaml
+  project: c-svc
+{{- if .Values.enableSync }}
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - ApplyOutOfSyncOnly=true
+      - CreateNamespace=true
+{{- end }}
+{{- end -}}

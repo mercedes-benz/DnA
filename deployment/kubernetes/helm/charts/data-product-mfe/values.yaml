@@ -36,6 +36,7 @@ service:
 
 ingress:
   enabled: true
+  className: "traefik" 
   annotations:
     # kubernetes.io/ingress.class: nginx
     # kubernetes.io/tls-acme: "true"
@@ -63,7 +64,7 @@ resources:
   # resources, such as Minikube. If you do want to specify resources, uncomment the following
   # lines, adjust them as necessary, and remove the curly braces after 'resources:'.
   limits:
-    cpu: 100m
+  #  cpu: 100m
     memory: 128Mi
   requests:
     cpu: 100m

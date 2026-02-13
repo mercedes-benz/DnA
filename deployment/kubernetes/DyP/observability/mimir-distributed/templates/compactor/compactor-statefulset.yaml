@@ -1,0 +1,187 @@
+{{- if and .Values.compactor.enabled (not .Values.federation_frontend.disableOtherComponents) }}
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: {{ include "mimir.resourceName" (dict "ctx" . "component" "compactor") }}
+  labels:
+    {{- include "mimir.labels" (dict "ctx" . "component" "compactor" "memberlist" true) | nindent 4 }}
+  annotations:
+    {{- toYaml .Values.compactor.annotations | nindent 4 }}
+  namespace: {{ .Release.Namespace | quote }}
+spec:
+  podManagementPolicy: {{ .Values.compactor.podManagementPolicy }}
+  {{- if and (semverCompare ">= 1.23-0" (include "mimir.kubeVersion" .)) (.Values.compactor.persistentVolume.enableRetentionPolicy)  }}
+  persistentVolumeClaimRetentionPolicy:
+    whenDeleted: {{ .Values.compactor.persistentVolume.whenDeleted }}
+    whenScaled: {{ .Values.compactor.persistentVolume.whenScaled }}
+  {{- end }}
+  replicas: {{ .Values.compactor.replicas }}
+  selector:
+    matchLabels:
+      {{- include "mimir.selectorLabels" (dict "ctx" . "component" "compactor" "memberlist" true) | nindent 6 }}
+  updateStrategy:
+    {{- toYaml .Values.compactor.strategy | nindent 4 }}
+  serviceName: {{ template "mimir.fullname" . }}-compactor
+  {{- if .Values.compactor.persistentVolume.enabled }}
+  {{- with .Values.compactor.persistentVolume }}
+  volumeClaimTemplates:
+    - apiVersion: v1
+      kind: PersistentVolumeClaim
+      metadata:
+        name: {{ .name }}
+        {{- if .annotations }}
+        annotations:
+          {{ toYaml .annotations | nindent 10 }}
+        {{- end }}
+      spec:
+        {{- if .storageClass }}
+        {{- if (eq "-" .storageClass) }}
+        storageClassName: ""
+        {{- else }}
+        storageClassName: "{{ .storageClass }}"
+        {{- end }}
+        {{- end }}
+        accessModes:
+          {{- toYaml .accessModes | nindent 10 }}
+        resources:
+          requests:
+            storage: "{{ .size }}"
+  {{- end }}
+  {{- end }}
+  template:
+    metadata:
+      labels:
+        {{- include "mimir.podLabels" (dict "ctx" . "component" "compactor" "memberlist" true) | nindent 8 }}
+      annotations:
+        {{- include "mimir.podAnnotations" (dict "ctx" . "component" "compactor") | nindent 8 }}
+      namespace: {{ .Release.Namespace | quote }}
+    spec:
+      {{- with .Values.compactor.schedulerName }}
+      schedulerName: {{ . | quote }}
+      {{- end }}
+      serviceAccountName: {{ template "mimir.serviceAccountName" . }}
+      {{- if .Values.compactor.priorityClassName }}
+      priorityClassName: {{ .Values.compactor.priorityClassName }}
+      {{- end }}
+      securityContext:
+        {{- include "mimir.lib.podSecurityContext" (dict "ctx" . "component" "compactor") | nindent 8 }}
+      {{- with .Values.compactor.initContainers }}
+      initContainers:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- if .Values.image.pullSecrets }}
+      imagePullSecrets:
+      {{- range .Values.image.pullSecrets }}
+        - name: {{ . }}
+      {{- end }}
+      {{- end }}
+      {{- with .Values.compactor.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.compactor.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- include "mimir.lib.topologySpreadConstraints" (dict "ctx" . "component" "compactor") | nindent 6 }}
+      {{- with .Values.compactor.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      terminationGracePeriodSeconds: {{ .Values.compactor.terminationGracePeriodSeconds }}
+      volumes:
+        - name: config
+          {{- include "mimir.configVolume" . | nindent 10 }}
+        {{- if .Values.enterprise.enabled }}
+        - name: license
+          secret:
+            secretName: {{ tpl .Values.license.secretName . }}
+        {{- end }}
+        - name: runtime-config
+          configMap:
+            name: {{ template "mimir.fullname" . }}-runtime
+        {{- if not .Values.compactor.persistentVolume.enabled }}
+        - name: storage
+          emptyDir: {}
+        {{- end }}
+        {{- if .Values.compactor.extraVolumes }}
+        {{ toYaml .Values.compactor.extraVolumes | nindent 8 }}
+        {{- end }}
+        {{- if .Values.global.extraVolumes }}
+        {{ toYaml .Values.global.extraVolumes | nindent 8 }}
+        {{- end }}
+        - name: active-queries
+          emptyDir: {}
+      containers:
+        {{- if .Values.compactor.extraContainers }}
+        {{ toYaml .Values.compactor.extraContainers | nindent 8 }}
+        {{- end }}
+        - name: compactor
+          image: {{ include "mimir.imageReference" (dict "ctx" . "component" "compactor") }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          args:
+            - "-target=compactor"
+            - "-config.expand-env=true"
+            - "-config.file=/etc/mimir/mimir.yaml"
+            {{- range $key, $value := .Values.compactor.extraArgs }}
+            - -{{ $key }}={{ $value }}
+            {{- end }}
+          volumeMounts:
+            {{- if .Values.compactor.extraVolumeMounts }}
+            {{ toYaml .Values.compactor.extraVolumeMounts | nindent 12}}
+            {{- end }}
+            {{- if .Values.global.extraVolumeMounts }}
+            {{ toYaml .Values.global.extraVolumeMounts | nindent 12}}
+            {{- end }}
+            - name: config
+              mountPath: /etc/mimir
+            {{- if .Values.enterprise.enabled }}
+            - name: license
+              mountPath: /license
+            {{- end }}
+            - name: runtime-config
+              mountPath: /var/{{ include "mimir.name" . }}
+            - name: storage
+              mountPath: "/data"
+              {{- if .Values.compactor.persistentVolume.subPath }}
+              subPath: {{ .Values.compactor.persistentVolume.subPath }}
+              {{- end }}
+            - name: active-queries
+              mountPath: /active-query-tracker
+          ports:
+            - name: http-metrics
+              containerPort: {{ include "mimir.serverHttpListenPort" . }}
+              protocol: TCP
+            - name: grpc
+              containerPort: {{ include "mimir.serverGrpcListenPort" . }}
+              protocol: TCP
+            - name: memberlist
+              containerPort: {{ include "mimir.memberlistBindPort" . }}
+              protocol: TCP
+          livenessProbe:
+            {{- toYaml .Values.compactor.livenessProbe | nindent 12 }}
+          readinessProbe:
+            {{- toYaml .Values.compactor.readinessProbe | nindent 12 }}
+          resources:
+            {{- toYaml .Values.compactor.resources | nindent 12 }}
+          securityContext:
+            {{- toYaml .Values.compactor.containerSecurityContext | nindent 12 }}
+          {{- if or .Values.global.extraEnv .Values.compactor.env }}
+          env:
+            {{- with .Values.global.extraEnv }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+            {{- with .Values.compactor.env }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- end }}
+          {{- if or .Values.global.extraEnvFrom .Values.compactor.extraEnvFrom }}
+          envFrom:
+            {{- with .Values.global.extraEnvFrom }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+            {{- with .Values.compactor.extraEnvFrom }}
+              {{- toYaml . | nindent 12 }}
+            {{- end }}
+          {{- end }}
+{{- end }}
