@@ -87,3 +87,7 @@ db:
    env: int
  - name: mb-assist
    env: prod
+ - name: mira
+   env: int
+ - name: mira
+   env: prod
