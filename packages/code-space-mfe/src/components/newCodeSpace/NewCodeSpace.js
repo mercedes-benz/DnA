@@ -24,6 +24,7 @@ import { Envs } from '../../Utility/envs';
 import ConfirmModal from 'dna-container/ConfirmModal';
 import { DEPLOYMENT_DISABLED_RECIPE_IDS } from '../../Utility/constants';
 import Tags from 'dna-container/Tags';
+import InfoModal from 'dna-container/InfoModal';
 
 const classNames = cn.bind(Styles);
 
@@ -121,6 +122,8 @@ const NewCodeSpace = (props) => {
   const [showProgressIndicator, setShowProgressIndicator] = useState(false);
 
   const [enableDeployApproval, setEnableDeployApproval] = useState(projectDetails?.dataGovernance?.enableDeployApproval ? true : false);
+
+  const [showSsoInfoPopup, setShowSsoInfoPopup] = useState(false);
 
   const requiredError = '*Missing entry';
   const livelinessIntervalRef = React.useRef();
@@ -920,8 +923,36 @@ const NewCodeSpace = (props) => {
   const recipe = recipesMaster.find((item) => item.id === recipeValue);
 
   const isPublicRecipeChoosen = recipe?.aliasId && recipe?.aliasId?.startsWith('public');
-  const githubUrlValue = isPublicRecipeChoosen ? 'https://github.com/' : Envs.CODE_SPACE_GIT_PAT_APP_URL;
+  const githubUrlValue = isPublicRecipeChoosen ? 'https://github.com/' : (selectedRecipe?.repodetails?.includes(Envs.CODE_SPACE_GHE_PAT_APP_URL) ? Envs.CODE_SPACE_GHE_PAT_APP_URL : Envs.CODE_SPACE_GIT_PAT_APP_URL);
   const resources = projectDetails?.recipeDetails?.resource?.split(',');
+
+  const ssoInfoPopupContent = (
+    <div className={Styles.ssoInfoModalWrapper}>
+      <ol>
+        <li>
+          <label className={Styles.modalHeader}>Steps to generate Personal access token:</label>
+          <ul>
+            <li>login to <a href={Envs.CODE_SPACE_GHE_PAT_APP_URL} target='_blank' rel='noopener noreferrer'>{Envs.CODE_SPACE_GHE_PAT_APP_URL}</a>.</li>
+            <li>Go to <span className={classNames(Styles.listInfo)}> Account Icon -&gt; Settings -&gt; Developer Settings</span>.</li>
+            <li>Under <span className={classNames(Styles.listInfo)}>Personal access tokens</span> select <span className={classNames(Styles.listInfo)}>Token (classic)</span>.</li>
+            <li>click on <span className={classNames(Styles.listInfo)}>Generate new token -&gt; Generate new token (classic)</span>.</li>
+            <li>Give the required <span className={classNames(Styles.listInfo)}>expiry</span> and select all the <span className={classNames(Styles.listInfo)}>scopes</span> and generate your token.</li>
+            <li>Once your token is generated copy and save it for future use.</li>
+          </ul>
+        </li>
+        <li><label className={classNames(Styles.modalHeader, Styles.padding)}>Steps to configure SSO for your Personal access Token:</label>
+          <ul>
+            <li>Once your token is generated click on <span className={classNames(Styles.listInfo)}>Configure SSO</span> and select <span className={classNames(Styles.listInfo)}>mb-home</span> as the authorizer.</li>
+            <li>Use the previously copied pat token to create your codespace.</li>
+          </ul>
+        </li>
+      </ol>
+
+    </div>
+
+
+  );
+
   return (
     <React.Fragment>
       {onBoadingMode ? (
@@ -1058,7 +1089,7 @@ const NewCodeSpace = (props) => {
           {recipe?.aliasId !== 'default' && <>
             <p>Enter the information to start creating!</p>
             <div>
-              <div>
+              <div className={classNames(githubUrlValue?.includes(Envs.CODE_SPACE_GHE_PAT_APP_URL) ? Styles.patToken : '')}>
                 <TextBox
                   type="password"
                   controlId={'githubTokenInput'}
@@ -1072,6 +1103,11 @@ const NewCodeSpace = (props) => {
                   maxLength={50}
                   onChange={onGithubTokenOnChange}
                 />
+                {githubUrlValue?.includes(Envs.CODE_SPACE_GHE_PAT_APP_URL) && (<span className={Styles.warning}>
+                  <strong>Note:</strong> Please ensure SSO is enabled for your Personal Access Token. For more information click <button className={Styles.ssoInfoPopup} onClick={() => { setShowSsoInfoPopup(true); }}>
+                    here
+                  </button>.
+                </span>)}
               </div>
             </div>
           </>}
@@ -1678,7 +1714,7 @@ const NewCodeSpace = (props) => {
               )}
               {recipe?.aliasId !== 'default' && (
                 <div>
-                  <div>
+                  <div className={classNames(githubUrlValue?.includes(Envs.CODE_SPACE_GHE_PAT_APP_URL) ? Styles.patToken : '')}>
                     <TextBox
                       type="password"
                       controlId={'githubTokenInput'}
@@ -1692,6 +1728,11 @@ const NewCodeSpace = (props) => {
                       maxLength={50}
                       onChange={onGithubTokenOnChange}
                     />
+                      {githubUrlValue?.includes(Envs.CODE_SPACE_GHE_PAT_APP_URL) && (<span className={Styles.warning}>
+                        <strong>Note:</strong> Please ensure SSO is enabled for your Personal Access Token. For more information click <button className={Styles.ssoInfoPopup} onClick={() => {setShowSsoInfoPopup(true); console.log("click");}}>
+                          here
+                        </button>.
+                      </span>)}
                   </div>
                 </div>
               )}
@@ -2209,6 +2250,18 @@ const NewCodeSpace = (props) => {
             )}
           </div>
         </div>
+      )}
+      {showSsoInfoPopup && (
+        <InfoModal
+          title={'Cofigure SSO for Personal Access Token'}
+          modalWidth={'60%'}
+          modalStyle={{
+            maxWidth: '70%',
+          }}
+          show={showSsoInfoPopup}
+          content={ssoInfoPopupContent}
+          onCancel={() => setShowSsoInfoPopup(false)}
+        />
       )}
     </React.Fragment>
   );
