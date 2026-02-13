@@ -1,6 +1,6 @@
 namespace: cs-apps-services
 annotations:
-  argocdvault: "dna_aws_kv/data/prod/cs-services/mira-db"
+  argocdvault: "dna_aws_kv/data/prod/cs-services/mira-db-int"
 ## I³ PostgreSQL image version
 ## ref: https://registry-emea.app.corpintra.net/repository/i3-releases/postgresql?tab=tags
 ##
@@ -13,7 +13,7 @@ image:
   ##
   pullPolicy: IfNotPresent
 
-fullnameOverride: "mira-db"
+fullnameOverride: "mira-int"
 ## PostgreSQL replica count
 ##
 replicaCount: 1
@@ -80,19 +80,19 @@ SSL:
 
 ## Specify PGDATABASE
 ##
-DBName: mira
+DBName: mira_int
 
 ## Configure S3 properties if S3 storage will be used
 ##
 s3:
   ## provided by s3 provider
-  accesskey: <path:dna_aws_kv/data/prod/cs-services/mira-db#accesskey>
+  accesskey: <path:dna_aws_kv/data/prod/cs-services/mira-db-int#accesskey>
   ## provided by s3 provider
-  secretkey: <path:dna_aws_kv/data/prod/cs-services/mira-db#secretkey>
+  secretkey: <path:dna_aws_kv/data/prod/cs-services/mira-db-int#secretkey>
   ## internally used
   hostAlias: s3
   ## url of the S3 endpoint
-  host: <path:dna_aws_kv/data/prod/cs-services/mira-db#s3.host>
+  host: <path:dna_aws_kv/data/prod/cs-services/mira-db-int#s3.host>
   ## use rclone client in insecure mode
   ## recommended is false, the postgres image already has daimler certificates installed and is able to verify Daimler certificates.
   ## in some cases, e.g. if you want to test with your own S3 service hosted on your own hardware, the certificate might not be verifiable.
@@ -145,7 +145,7 @@ walArchiving:
     ## Configuration for S3 storage
     subfolder: postgresql-cluster
     ## fill in the bucket name you have ordered!
-    bucketName: <path:dna_aws_kv/data/prod/cs-services/mira-db#bucketName>
+    bucketName: <path:dna_aws_kv/data/prod/cs-services/mira-db-int#bucketName>
 
 ## Configure extra options for liveness and readiness probes
 ## ref: https://kubernetes.io/docs/tasks/configure-pod-container/configure-liveness-readiness-probes/#configure-probes)
@@ -200,11 +200,11 @@ dbusers:
   ## backup user, will be used for synchronizing between the cluster nodes and for backup
   backup:
     username: backupuser
-    password: <path:dna_aws_kv/data/prod/cs-services/mira-db#backup.password>
+    password: <path:dna_aws_kv/data/prod/cs-services/mira-db-int#backup.password>
   ## the database (not the instance) owner
   dbadm:
     username: admin
-    password: <path:dna_aws_kv/data/prod/cs-services/mira-db#dbadm.password>
+    password: <path:dna_aws_kv/data/prod/cs-services/mira-db-int#dbadm.password>
 
     createSchema:
       # Usually this is required if you use an ORM and do not create the table via the initdb script
@@ -212,20 +212,20 @@ dbusers:
       # name: customschema
   ## technical user, e.g. to do switchover and other cluster operations
   patroni:
-    password: <path:dna_aws_kv/data/prod/cs-services/mira-db#patroni.password>
+    password: <path:dna_aws_kv/data/prod/cs-services/mira-db-int#patroni.password>
   ## technical user for postgresql monitoring
   pgmon:
     username: pgmon
-    password: <path:dna_aws_kv/data/prod/cs-services/mira-db#pgmon.password>
+    password: <path:dna_aws_kv/data/prod/cs-services/mira-db-int#pgmon.password>
   ## if a technical user for Debezium is needed, then set a password
   ## otherwise no user for Debezium is created
   debezium:
     username: debezium
-    password: <path:dna_aws_kv/data/prod/cs-services/mira-db#debezium.password>
+    password: <path:dna_aws_kv/data/prod/cs-services/mira-db-int#debezium.password>
   ## if technical user 'DATA_CATALOG' for CORPORATE DATA CATALOG is needed, then set a password
   ## otherwise no user for CORPORATE DATA CATALOG is created
   dataCatalog:
-    password: <path:dna_aws_kv/data/prod/cs-services/mira-db#dataCatalog.password>
+    password: <path:dna_aws_kv/data/prod/cs-services/mira-db-int#dataCatalog.password>
 
 ## Enable PostgreSQL service
 ##
@@ -242,7 +242,7 @@ service:
 ##
 persistence:
   enabled: true
-  size: <path:dna_aws_kv/data/prod/cs-services/mira-db#size>
+  size: <path:dna_aws_kv/data/prod/cs-services/mira-db-int#size>
   # storageClass: cinder
   # PVCName: name
   wal:
@@ -306,10 +306,10 @@ backup:
     ## Configuration for S3 storage
     # subfolder: postgresql-cluster
     ## fill in the bucket name you have ordered!
-    bucketName: <path:dna_aws_kv/data/prod/cs-services/mira-db#bucketName>
+    bucketName: <path:dna_aws_kv/data/prod/cs-services/mira-db-int#bucketName>
   ## general configuration for backup
   schedule: "30 0 * * *"
-  retention: <path:dna_aws_kv/data/prod/cs-services/mira-db#retention>
+  retention: <path:dna_aws_kv/data/prod/cs-services/mira-db-int#retention>
   ## Please read documentation at docs/operations/operations.md#cleanup-wal-archives before enabling this feature
   cleanupWalArchives: false
   image:
@@ -334,7 +334,7 @@ backup:
     size: 5Gi
     # storageClass: cinder
   file:
-    name: mira-backup
+    name: mira-int-backup
     # label: test
 
 ## PostgreSQL restore configuration
@@ -390,7 +390,7 @@ restore:
 initdbScripts:
   enabled: true
   name: init_db.sh
-  script: <path:dna_aws_kv/data/prod/cs-services/mira-db#init-db>
+  script: <path:dna_aws_kv/data/prod/cs-services/mira-db-int#init-db>
 
 test:
   enabled: true

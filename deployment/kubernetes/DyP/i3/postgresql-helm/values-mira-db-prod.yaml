@@ -13,7 +13,7 @@ image:
   ##
   pullPolicy: IfNotPresent
 
-fullnameOverride: "mira-db-prod"
+fullnameOverride: "mira-prod"
 ## PostgreSQL replica count
 ##
 replicaCount: 2
@@ -25,7 +25,7 @@ printEnv: true
 ##
 pgconnectionconfig:
   enabled: true
-  maxconnections: 700
+  maxconnections: 1500
 
 ## PostgreSQL memory resource limits - shared buffers
 ## ref: https://www.postgresql.org/docs/current/runtime-config-resource.html#GUC-SHARED-BUFFERS
@@ -80,7 +80,7 @@ SSL:
 
 ## Specify PGDATABASE
 ##
-DBName: mira-db-prod
+DBName: mira_prod
 
 ## Configure S3 properties if S3 storage will be used
 ##
@@ -108,11 +108,11 @@ resources:
   ## uncomment fitting parts when you wand to enable setting cpu and memory requests and limits
   limits:
     enabled: true
-    memory: 116Mi
+    memory: 242Mi
   request:
     enabled: true
-    cpu: 3m
-    memory: 116Mi
+    cpu: 10m
+    memory: 242Mi
 
 ## Configure additional env variables
 env:
@@ -247,7 +247,7 @@ persistence:
   # PVCName: name
   wal:
     enabled: false
-    size: 1Gi
+    size: 5Gi
     # storageClass: cinder
     # PVCName: name
 
@@ -308,7 +308,7 @@ backup:
     ## fill in the bucket name you have ordered!
     bucketName: <path:dna_aws_kv/data/prod/cs-services/mira-db-prod#bucketName>
   ## general configuration for backup
-  schedule: "15 0 * * *"
+  schedule: "1 0 * * *"
   retention: <path:dna_aws_kv/data/prod/cs-services/mira-db-prod#retention>
   ## Please read documentation at docs/operations/operations.md#cleanup-wal-archives before enabling this feature
   cleanupWalArchives: false
@@ -331,10 +331,10 @@ backup:
   tempPgdataVolume:
     ## recommended
     enabled: true
-    size: 1Gi
+    size: 5Gi
     # storageClass: cinder
   file:
-    name: mira-db-prod-backup
+    name: mira-prod-backup
     # label: test
 
 ## PostgreSQL restore configuration
@@ -420,11 +420,11 @@ pgmonitoring:
     enabled: false
     limits:
       enabled: false
-      # memory: 100Mi
+      #memory: 100Mi
     request:
       enabled: false
-      # cpu: 10m
-      # memory: 100Mi
+      #cpu: 10m
+      #memory: 100Mi
   queryMonitoring:
     enabled: true
   customQueries: {}
