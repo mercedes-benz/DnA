@@ -433,8 +433,10 @@ definitions:
         items:
           type: string
       type:
+        type: string
         enum:
           - FABRIC_TO_FABRIC
+        description: "Type identifier for DDX group update"
 
   LakehouseObjectsResponseVO:
     type: object
