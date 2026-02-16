@@ -177,6 +177,24 @@
 
 	 @Value("${kong.dnaAppId}")
 	 private String dnaAppId;
+
+	 @Value("${codeServer.git.ghe.pat}")
+     private String ghePat;
+
+	 @Value("${codeServer.git.enterprise.url}")
+	 private String gheBaseUri;
+
+	 @Value("${codeServer.git.baseuri}")
+	 private String gitBaseUri;
+
+	 @Value("${codeServer.git.orguri}")
+	 private String codeserverGitOrgUri;
+
+	 @Value("${codeServer.git.ghe.orguri}")
+	 private String codeserverGheOrgUri;
+
+	 @Value("${codeServer.git.orgname}")
+	 private String codeServerGitOrgName;
  
 	 @Autowired
 	 private WorkspaceAssembler workspaceAssembler;
@@ -665,7 +683,11 @@
 		   }
 		   if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().equalsIgnoreCase("default") && 
 				!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")) {
-				HttpStatus validateUserPatstatus = gitClient.validateGitPat(collabPid, pat);
+				String repoDetails = vo.getProjectDetails().getRecipeDetails().getRepodetails();
+				String gitValidationUrl = (repoDetails != null && repoDetails.contains("ghe.com")) 
+					? gheBaseUri 
+					: gitBaseUri;
+				HttpStatus validateUserPatstatus = gitClient.validateGitPat(collabPid, pat, gitValidationUrl);
 				if (!validateUserPatstatus.is2xxSuccessful()) {
 					MessageDescription errMsg = new MessageDescription(
 							"Invalid Git Personal Access Token provided. Please verify and retry.");
@@ -850,7 +872,11 @@
 			}
 			if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().equalsIgnoreCase("default") && 
 				 !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")) {
-				 HttpStatus validateUserPatstatus = gitClient.validateGitPat(entity.getData().getGitUserName(), pat);
+				 String repoDetails = vo.getProjectDetails().getRecipeDetails().getRepodetails();
+				 String gitValidationUrl = (repoDetails != null && repoDetails.contains("ghe.com")) 
+						 ? gheBaseUri 
+						 : gitBaseUri;
+				 HttpStatus validateUserPatstatus = gitClient.validateGitPat(entity.getData().getGitUserName(), pat, gitValidationUrl);
 				 if (!validateUserPatstatus.is2xxSuccessful()) {
 					 MessageDescription errMsg = new MessageDescription(
 							 "Invalid Git Personal Access Token provided. Please verify and retry.");
@@ -903,11 +929,14 @@
 			  }
 			 ownerWorkbenchCreateInputsDto.setPat(pat);
 			 if(repoNameWithOrg.endsWith("/")){
-				 StringBuffer fixRepoSuffix = new StringBuffer();
-				 fixRepoSuffix.append(repoNameWithOrg);
-				 fixRepoSuffix.deleteCharAt(repoNameWithOrg.length()-1);
-				 repoNameWithOrg = fixRepoSuffix.toString();
-			  }
+                StringBuffer fixRepoSuffix = new StringBuffer();
+                fixRepoSuffix.append(repoNameWithOrg);
+                fixRepoSuffix.deleteCharAt(repoNameWithOrg.length()-1);
+                repoNameWithOrg = fixRepoSuffix.toString();
+             }
+			 if(!repoNameWithOrg.endsWith(".git")){
+				  repoNameWithOrg = repoNameWithOrg.concat(".git");
+			 }
 			 ownerWorkbenchCreateInputsDto.setRepo(repoNameWithOrg.replace("https://", ""));
 			 ownerWorkbenchCreateInputsDto.setShortid(entity.getData().getWorkspaceOwner().getId());
 			 if(entity.getData().getProjectDetails().getRecipeDetails().getToDeployType()!=null){
@@ -933,6 +962,7 @@
 			 ownerWorkbenchCreateInputsDto.setWsid(entity.getData().getWorkspaceId());
 			 ownerWorkbenchCreateInputsDto.setResource(vo.getProjectDetails().getRecipeDetails().getResource());
 			 ownerWorkbenchCreateDto.setInputs(ownerWorkbenchCreateInputsDto);
+			 log.info("workBench details: {}",ownerWorkbenchCreateDto );
 			 String codespaceName = vo.getProjectDetails().getProjectName();
 			 String ownerwsid = vo.getWorkspaceId();
 			 GenericMessage createOwnerWSResponse = client.doCreateCodeServer(ownerWorkbenchCreateDto,codespaceName);
@@ -977,7 +1007,7 @@
 			 return responseVO;
 		 }
 	 }
-  
+
 	 @Override
 	 @Transactional
 	 public InitializeWorkspaceResponseVO createWorkspace(CodeServerWorkspaceVO vo, String pat) {
@@ -1007,7 +1037,11 @@
 				 // validate user pat
 				 if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
 						 .equalsIgnoreCase("default")) {
-					 HttpStatus validateUserPatstatus = gitClient.validateGitPat(owner.getGitUserName(), pat);
+					 String repoDetails = vo.getProjectDetails().getRecipeDetails().getRepodetails();
+					 String gitValidationUrl = (repoDetails != null && repoDetails.contains("ghe.com")) 
+							 ? gheBaseUri 
+							 : gitBaseUri;
+					 HttpStatus validateUserPatstatus = gitClient.validateGitPat(owner.getGitUserName(), pat, gitValidationUrl);
 					 if (!validateUserPatstatus.is2xxSuccessful()) {
 						 MessageDescription errMsg = new MessageDescription(
 								 "Invalid GitHub Personal Access Token provided. Please verify and retry.");
@@ -1203,6 +1237,15 @@
 				 // repoNameWithOrg = url[0];
 				 // pathCheckout = url[1];
 			 }
+			 if(repoNameWithOrg.endsWith("/")){
+                StringBuffer fixRepoSuffix = new StringBuffer();
+                fixRepoSuffix.append(repoNameWithOrg);
+                fixRepoSuffix.deleteCharAt(repoNameWithOrg.length()-1);
+                repoNameWithOrg = fixRepoSuffix.toString();
+             }
+			 if(!repoNameWithOrg.endsWith(".git")){
+				repoNameWithOrg = repoNameWithOrg.concat(".git");
+			 }
 			 ownerWorkbenchCreateInputsDto.setRepo(repoNameWithOrg.replace("https://", ""));
 			 String projectOwnerId = ownerEntity.getData().getWorkspaceOwner().getId();
 			 ownerWorkbenchCreateInputsDto.setShortid(projectOwnerId);
@@ -1303,7 +1346,7 @@
 						List<String> repoDetails = CommonUtils.getRepoNameFromGitUrl(vo.getProjectDetails().getRecipeDetails().getRepodetails());
 						String orgName = repoDetails.get(0);
 						repoName = repoDetails.get(1);
-						String gitHubUrl = "https://" + gitOrgUri + orgName ;
+						String gitHubUrl = gitOrgUri + orgName ;
 						if(vo.getProjectDetails().getRecipeDetails().getRepodetails().contains(gitHubUrl)){
 						HttpStatus addGitUser = gitClient.addUserToRepo(collaborator.getId(), repoName);
 					
@@ -1328,7 +1371,13 @@
 									responseVO.setWarnings(warnings);
 								}
 					}else{
-						HttpStatus status = gitClient.isUserCollaborator(orgName, collaborator.getId(), repoName);
+						HttpStatus status;
+						if (vo.getProjectDetails().getRecipeDetails().getRepodetails().contains("ghe.com")) {
+							status = gitClient.isUserCollaborator(orgName, collaborator.getId(), repoName, gheBaseUri,
+									ghePat);
+						} else {
+							status = gitClient.isUserCollaborator(orgName, collaborator.getId(), repoName);
+						}
 						if(!status.is2xxSuccessful()) {
 							log.info("Collaborator {} Addition failed for recipe {}  ",collaborator.getId(),vo.getProjectDetails().getRecipeDetails().getRecipeId());
 							errors.add(new MessageDescription("Cannot add User "+collaborator.getId()+" as collaborator because the user is  not a collaborator to the private repo "+repoName+" add the user to the repo and try again"));
@@ -1380,7 +1429,6 @@
 			 return responseVO;
 		 }
 	 }
-  
 	 private String getWorkspaceUrl(String recipeId,String wsId, String shortId, String cloudServiceProvider)
 	 {
 		 String defaultRecipeId = RecipeIdEnum.DEFAULT.toString();
@@ -1392,7 +1440,7 @@
 		 }
 		 if (!defaultRecipeId.equalsIgnoreCase(recipeId))
 			 workspaceUrl += "/app";
-		 if (recipeId.toLowerCase().startsWith("public")) {
+		 if (recipeId.toLowerCase().startsWith("public")){
 			 switch (recipeId) {
 				 case "public-dna-backend":
 					 workspaceUrl = workspaceUrl + "/" + "packages/backend";
@@ -1496,7 +1544,7 @@
 		String gitHubUrl= entity.getData().getProjectDetails().getRecipeDetails().getRepodetails();
 		String projectName = entity.getData().getProjectDetails().getProjectName();
 		if(gitHubUrl == null || gitHubUrl.isEmpty()) {
-			gitHubUrl = "https://" + gitOrgUri + orgName + "/"+projectName+"/";
+			gitHubUrl = gitOrgUri + orgName + "/"+projectName+"/";
 		}
 		if(gitHubUrl.contains(".git")) {
 			gitHubUrl = gitHubUrl.replaceAll("\\.git$", "/");
@@ -1507,7 +1555,10 @@
 		repoOwner = codespaceSplitValues[length-2];
 		gitUrl = gitHubUrl.replace("/"+repoOwner, "");
 		gitUrl = gitUrl.replace("/"+repoName, "");
-		JSONObject jsonResponse = gitClient.readFileFromGit(repoName, repoOwner, gitUrl, codespaceFileName);
+		boolean isProtectedRepo = gitHubUrl.contains("ghe.com") || gitHubUrl.contains("git.i");
+
+		String patToUse = isProtectedRepo ? ghePat : null;
+		JSONObject jsonResponse = gitClient.readFileFromGit(repoName, repoOwner, gitUrl, codespaceFileName, patToUse);
 		if(jsonResponse !=null && jsonResponse.has("name") && jsonResponse.has("content")) {
 			readmeFileContent =  jsonResponse.getString("content");
 			log.info("Retrieving a software's SHA was successfull from Git.");
@@ -1642,7 +1693,7 @@
          return responseMessage;
      }
  
-	 @Override
+      @Override
 	 @Transactional
 	 	public GenericMessage deployWorkspace(String userId, String id, String environment, String branch,
 				 boolean isprivateRecipe,String version,String deployType, Boolean keepImage) {
@@ -1794,10 +1845,10 @@
 		 			return responseMessage;
 				}
 			}else{
-				//deploy flow
+				// deploy flow
 				if (isprivateRecipe) {
 					repoUrl = entity.getData().getProjectDetails().getRecipeDetails().getRepodetails();
-					if(Objects.nonNull(repoUrl) && repoUrl.contains(".git")){
+					if (Objects.nonNull(repoUrl) && repoUrl.contains(".git")) {
 						repoUrl = repoUrl.replaceAll("\\.git$", "/");
 					} else {
 						repoUrl.concat("/");
@@ -1807,20 +1858,21 @@
 						repoName = repoDetails.get(2);
 						gitOrg = repoDetails.get(1);
 					}
-					deployJobInputDto.setRepo(gitOrg + "/" + repoName);		
+					if (Objects.nonNull(repoUrl) && repoUrl.contains("ghe.com")) {
+						deployJobInputDto.setRepo(codeserverGheOrgUri + gitOrg + "/" + repoName);
+					} else {
+						deployJobInputDto.setRepo(codeserverGitOrgUri + gitOrg + "/" + repoName);
+					}
 				} else {
 					repoName = entity.getData().getProjectDetails().getGitRepoName();
-					deployJobInputDto.setRepo(gitOrgName + "/" + repoName);		
- 
+					deployJobInputDto.setRepo(codeserverGitOrgUri + gitOrgName + "/" + repoName);
 				}
-				 
-				 deployJobInputDto.setShortid(workspaceOwner);
-				 deployJobInputDto.setTarget_env(environment);
- 
-				Boolean isValutInjectorEnable = false;
-				 try{
+				deployJobInputDto.setShortid(workspaceOwner);
+				deployJobInputDto.setTarget_env(environment);
+				Boolean isValutInjectorEnable = false; 
+				try {
 					isValutInjectorEnable = VaultClient.enableVaultInjector(projectName.toLowerCase(), environment);
-				 }catch(Exception e){
+				} catch (Exception e) {
 					MessageDescription error = new MessageDescription();
 					error.setMessage("Some error occured during deployment, with exception " + e.getMessage());
 					errors.add(error);
@@ -1828,7 +1880,7 @@
 					responseMessage.setWarnings(warnings);
 					responseMessage.setSuccess(status);
 					return responseMessage;
-				 }
+				}
 				 String workspaceOwnerWsId = entity.getData().getWorkspaceId();
 				 //String projectOwnerWsId = ownerEntity.getData().getWorkspaceId();
 				 deployJobInputDto.setWsid(workspaceOwnerWsId);
@@ -1876,9 +1928,9 @@
 							
 						}
 						if(commitId == null){
-							MessageDescription warning = new MessageDescription();
-							warning.setMessage("Error while adding commit id to deployment audit log");
-						}
+						MessageDescription warning = new MessageDescription();
+						warning.setMessage("Error while adding commit id to deployment audit log");
+					}else{
 						auditLog.setCommitId(commitId.getSha());
 						auditLog.setDeploymentStatus("DEPLOY_REQUESTED");
 						auditLog.setVersion(version);
@@ -1892,6 +1944,7 @@
 						}else{
 							auditLogs.add(auditLog);
 						}
+					}
 
 					 CodeServerBuildDeploy buildDeployLogs = null;
 					 CodeServerBuildDeployNsql auditLogEntity = null;
@@ -2150,26 +2203,19 @@
  
 		try {
  
-			if (entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase()
-					.startsWith("private")) {
-				List<String> repoDetails = CommonUtils
-						.getRepoNameFromGitUrl(vo.getProjectDetails().getRecipeDetails().getRepodetails());
-				Boolean isUserAdmin = gitClient.isUserAdmin(repoDetails.get(0), newOwnerDeatils.getId(),
-						repoDetails.get(1));
-				if (!isUserAdmin) {
-					log.error("collab user is not an admin for the private repo, cannot transfer ownership");
-					MessageDescription msg = new MessageDescription(
-							"Collab user not an admin of the repo, cannot transfer ownership.");
-					errors.add(msg);
-					responseMessage.setSuccess("FAILED");
-					responseMessage.setErrors(errors);
-					return responseMessage;
-				}
-			}
- 
 			UserInfo currentOwnerAsCollab = entity.getData().getProjectDetails().getProjectOwner();
 			UserInfo newOwner = new UserInfo();
 			BeanUtils.copyProperties(newOwnerDeatils, newOwner);
+
+			if (newOwner.getIsAdmin() == null) {
+				newOwner.setIsAdmin(false);
+			}
+			if (newOwner.getIsApprover() == null) {
+				newOwner.setIsApprover(false);
+			}
+
+			log.info("Transferring ownership - Current: {}, New: {}, Project: {}", projectOwnerId, newOwner.getId(),
+					projectName);
  
 			// To update project owner.
 			GenericMessage updateProjectOwnerDetails = workspaceCustomRepository
@@ -2229,16 +2275,23 @@
 				return responseMessage;
 			}
 			//Notifying transfered user  
-			String eventType = "Codespace-Transfer Ownership Status Update";
-			String resourceID = vo.getProjectDetails().getProjectName();
-			List <String> transferedUserId = new ArrayList<>();
-			List <String> transferedUserEmail = new ArrayList<>();
-			transferedUserId.add(newOwnerDeatils.getId());
-			transferedUserEmail.add(newOwnerDeatils.getEmail());
-			String message = "Ownership of the Codespace \"" + vo.getProjectDetails().getProjectName() + "\" has been transferred to you by user " + currentUser.getId() + ".";
-			kafkaProducer.send(eventType, resourceID, "", currentUser.getId(), message, true, transferedUserId, transferedUserEmail, null);
+			try {
+				String eventType = "Codespace-Transfer Ownership Status Update";
+				String resourceID = vo.getProjectDetails().getProjectName();
+				List <String> transferedUserId = new ArrayList<>();
+				List <String> transferedUserEmail = new ArrayList<>();
+				transferedUserId.add(newOwnerDeatils.getId());
+				transferedUserEmail.add(newOwnerDeatils.getEmail());
+				String message = "Ownership of the Codespace \"" + vo.getProjectDetails().getProjectName() + "\" has been transferred to you by user " + currentUser.getId() + ".";
+				kafkaProducer.send(eventType, resourceID, "", currentUser.getId(), message, true, transferedUserId, transferedUserEmail, null);
+			} catch (Exception e) {
+				log.warn("Failed to send Kafka notification for ownership transfer: {}", e.getMessage());
+				MessageDescription warnMsg = new MessageDescription("Ownership transferred successfully, but notification failed to send.");
+				warnings.add(warnMsg);
+			}
 			
 			responseMessage.setSuccess("SUCCESS");
+			responseMessage.setWarnings(warnings);
 		} catch (Exception e) {
 			log.error("Failed to add collaborator details as requested with Exception: {} ", e.getMessage());
 			MessageDescription msg = new MessageDescription("Failed to add collaborator details");
@@ -2367,7 +2420,7 @@
 					List<String> repoDetails = CommonUtils.getRepoNameFromGitUrl(vo.getProjectDetails().getRecipeDetails().getRepodetails());
 					String repoOwner = repoDetails.get(0);
 					repoName = repoDetails.get(1);
-					String gitHubUrl = "https://" + gitOrgUri + orgName ;
+					String gitHubUrl = gitOrgUri + orgName ;
 					if(gitUrl.contains(gitHubUrl)){
 						HttpStatus addGitUser = gitClient.addUserToRepo(gitUser, repoName);
 					if(addGitUser == HttpStatus.UNPROCESSABLE_ENTITY){
@@ -2390,20 +2443,29 @@
 										 + " is valid git user and add this user manually in the git repo.");
 						 warnings.add(errMsg);
 					 }
-					}else{
-						HttpStatus status = gitClient.isUserCollaborator(repoOwner,gitUser, repoName);
-					if(!status.is2xxSuccessful()){
-						log.info("Cannot add User {} as collaborator because the user is  not a collaborator to the private repo {}",userRequestDto.getGitUserName(),repoName);
-						MessageDescription msg = new MessageDescription("Cannot add User "+userRequestDto.getGitUserName()+" as collaborator because the user is  not a collaborator to the private repo "+repoName+" add the user to the repo and try again");
+				}else{
+					HttpStatus status;
+					if (gitUrl.contains("ghe.com")) {
+						status = gitClient.isUserCollaborator(repoOwner, gitUser, repoName, gheBaseUri, ghePat);
+					} else {
+						status = gitClient.isUserCollaborator(repoOwner, gitUser, repoName);
+					}
+					if(!status.is2xxSuccessful()) {
+						log.info(
+								"Cannot add User {} as collaborator because the user is  not a collaborator to the private repo {}",
+								userRequestDto.getGitUserName(), repoName);
+						MessageDescription msg = new MessageDescription("Cannot add User "
+								+ userRequestDto.getGitUserName()
+								+ " as collaborator because the user is  not a collaborator to the private repo "
+								+ repoName + " add the user to the repo and try again");
 						errors.add(msg);
 						responseMessage.setSuccess("FAILED");
-						responseMessage.setErrors(errors); 
+						responseMessage.setErrors(errors);
 						return responseMessage;
 					}
-					}
-					
 				}
- 
+			}
+
 				 if(! (vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")
 						 || vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private") 
 						 || vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().equalsIgnoreCase("default"))) {
@@ -2482,7 +2544,6 @@
   
 		 return responseMessage;
 	 }
-  
 	 @Override
 	 @Transactional
 	 public GenericMessage undeployWorkspace(String userId, String id, String environment, String branch) {
@@ -2678,7 +2739,7 @@
 					 }
 					 if (!defaultRecipeId.equalsIgnoreCase(projectRecipe))
 						 workspaceUrl += "/app";
-					 if (projectRecipe.toLowerCase().startsWith("public")) {
+					 if (projectRecipe.toLowerCase().startsWith("public") || projectRecipe.toLowerCase().startsWith("private")) {
 						 switch (projectRecipe) {
 							 case "public-dna-backend":
 								 workspaceUrl = workspaceUrl + "/" + "packages/backend";
@@ -2919,8 +2980,8 @@
 					 // 	log.info("projectRecipe: {} and service name is : {}", projectRecipe, serviceName);
 					 // 	authenticatorClient.callingKongApis(name, serviceName, targetEnv, apiRecipe,null,null);
 					 // }
-				} else if ("UNDEPLOYED".equalsIgnoreCase(latestStatus) || "RESTART_FAILED".equalsIgnoreCase(latestStatus) || "RESTARTED".equalsIgnoreCase(latestStatus) ) {
-					if("UNDEPLOYED".equalsIgnoreCase(latestStatus)){
+				} else if ("UNDEPLOYED".equalsIgnoreCase(latestStatus) || "RESTART_FAILED".equalsIgnoreCase(latestStatus) || "RESTARTED".equalsIgnoreCase(latestStatus)) {
+					if("UNDEPLOYED".equalsIgnoreCase(latestStatus) ){
 					 deploymentDetails.setDeploymentUrl(null);
 					 deploymentDetails.setLastDeploymentStatus(latestStatus);
 					}
@@ -3848,6 +3909,10 @@
 		boolean hasProdUrl = false;
 		boolean hasIntUrl = false;
 		try {
+			String repoName = null;
+			String repoUrl = null;
+			String gitOrg = null;
+			
 			CodeServerWorkspaceNsql entity = workspaceCustomRepository.findById(userId, id);
 			if (entity != null) {
 				DeploymentManageDto deploymentJobDto = new DeploymentManageDto();
@@ -3855,6 +3920,7 @@
 				deployJobInputDto.setAction("restart");
 				deployJobInputDto.setBranch("main");
 				cloudServiceProvider = entity.getData().getProjectDetails().getRecipeDetails().getCloudServiceProvider();
+				boolean isprivateRecipe = entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase().startsWith("private");
 				hasProdUrl = Objects.nonNull(
 					entity.getData().getProjectDetails().getProdDeploymentDetails().getDeploymentUrl());
 				hasIntUrl = Objects.nonNull(
@@ -3874,12 +3940,34 @@
 				} else {
 					deployJobInputDto.setEnvironment(codeServerEnvValueAws);
 				}
-				deployJobInputDto.setRepo(gitOrgName + "/" + entity.getData().getProjectDetails().getGitRepoName());
+				String projectName = entity.getData().getProjectDetails().getProjectName();
+
+				if (isprivateRecipe) {
+                    repoUrl = entity.getData().getProjectDetails().getRecipeDetails().getRepodetails();
+                    if(Objects.nonNull(repoUrl) && repoUrl.contains(".git")){
+                        repoUrl = repoUrl.replaceAll("\\.git$", "/");
+                    } else {
+                        repoUrl.concat("/");
+                    }
+                    List<String> repoDetails = CommonUtils.getDetailsFromUrl(repoUrl);
+                    if (repoDetails.size() > 0 && repoDetails != null) {
+                        repoName = repoDetails.get(2);
+                        gitOrg = repoDetails.get(1);
+                    }
+                    if (Objects.nonNull(repoUrl) && repoUrl.contains("ghe.com")) {
+                        deployJobInputDto.setRepo(codeserverGheOrgUri + gitOrg + "/" + repoName);
+                    } else {
+                        deployJobInputDto.setRepo(codeserverGitOrgUri + gitOrg + "/" + repoName);
+                    }
+                } else {
+                    repoName = entity.getData().getProjectDetails().getGitRepoName();
+                    deployJobInputDto.setRepo(codeserverGitOrgUri + gitOrgName + "/" + repoName);
+                }
+
 				String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
 				deployJobInputDto.setShortid(projectOwner);
 				deployJobInputDto.setTarget_env(env);
 				// deployJobInputDto.setType("RESTART");
-				String projectName = entity.getData().getProjectDetails().getProjectName();
 				CodeServerWorkspaceNsql ownerEntity = workspaceCustomRepository.findbyProjectName(projectOwner,
 						projectName);
 				if (ownerEntity == null || ownerEntity.getData() == null
@@ -4325,7 +4413,19 @@
 		}
 	}
 
-	@Override
+	private String normalizeRepoForWorkflow(String repoUrl) {
+		if (repoUrl == null) {
+			return null;
+		}
+
+		if (repoUrl.endsWith(".git")) {
+			repoUrl = repoUrl.substring(0, repoUrl.length() - 4);
+		}
+
+		return repoUrl;
+	}
+
+	 @Override
 	@Transactional
 	public GenericMessage buildWorkSpace(String userId,String id,String branch,ManageBuildRequestDto buildRequestDto,boolean isPrivateRecipe,String environment,String lastBuildType){
 		GenericMessage responseMessage = new GenericMessage();
@@ -4341,6 +4441,7 @@
 			 String repoUrl = null;
 			 String gitOrg = null;
 			 CodeServerWorkspaceNsql entity = workspaceCustomRepository.findById(userId, id);
+			 String projectName = entity.getData().getProjectDetails().getProjectName();
 			 if (entity != null ) {
 				 DeploymentManageDto deploymentJobDto = new DeploymentManageDto();
 				 DeploymentManageInputDto deployJobInputDto = new DeploymentManageInputDto();
@@ -4349,29 +4450,49 @@
 				 deployJobInputDto.setEnvironment(codeServerEnvValue);
 				 deployJobInputDto.setTarget_env(environment);
 
-  			if (isPrivateRecipe) {
-					repoUrl = entity.getData().getProjectDetails().getRecipeDetails().getRepodetails();
-					if(Objects.nonNull(repoUrl) && repoUrl.contains(".git")){
-						repoUrl = repoUrl.replaceAll("\\.git$", "/");
-					} else {
-						repoUrl.concat("/");
-					}
-					List<String> repoDetails = CommonUtils.getDetailsFromUrl(repoUrl);
-					if (repoDetails.size() > 0 && repoDetails != null) {
-						repoName = repoDetails.get(2);
-						gitOrg = repoDetails.get(1);
-					}
-					deployJobInputDto.setRepo(gitOrg + "/" + repoName);		
-				} else {
-					repoName = entity.getData().getProjectDetails().getGitRepoName();
-					deployJobInputDto.setRepo(gitOrgName + "/" + repoName);		
+			// if (isPrivateRecipe) {
+			// 	repoUrl = entity.getData().getProjectDetails().getRecipeDetails().getRepodetails();
+			// 	// Remove .git suffix if present
+			// 	if(Objects.nonNull(repoUrl) && repoUrl.endsWith(".git")){
+			// 		repoUrl = repoUrl.substring(0, repoUrl.length() - 4);
+			// 	}
+			// 	// Ensure trailing slash for URL parsing
+			// 	if(!repoUrl.endsWith("/")){
+			// 		repoUrl = repoUrl + "/";
+			// 	}
+			// 	List<String> repoDetails = CommonUtils.getDetailsFromUrl(repoUrl);
+			// 	if (repoDetails.size() > 0 && repoDetails != null) {
+			// 		repoName = repoDetails.get(2);
+			// 		gitOrg = repoDetails.get(1);
+			// 	}
+			// 	deployJobInputDto.setRepo(gitOrg + "/" + repoName);		
+			// }
+			if (isPrivateRecipe) {
+                    repoUrl = entity.getData().getProjectDetails().getRecipeDetails().getRepodetails();
+                    if(Objects.nonNull(repoUrl) && repoUrl.contains(".git")){
+                        repoUrl = repoUrl.replaceAll("\\.git$", "/");
+                    } else {
+                        repoUrl.concat("/");
+                    }
+                    List<String> repoDetails = CommonUtils.getDetailsFromUrl(repoUrl);
+                    if (repoDetails.size() > 0 && repoDetails != null) {
+                        repoName = repoDetails.get(2);
+                        gitOrg = repoDetails.get(1);
+                    }
+                    if (Objects.nonNull(repoUrl) && repoUrl.contains("ghe.com")) {
+                        deployJobInputDto.setRepo(codeserverGheOrgUri + gitOrg + "/" + repoName);
+                    } else {
+                        deployJobInputDto.setRepo(codeserverGitOrgUri + gitOrg + "/" + repoName);
+                    }
+                } else {
+                    repoName = entity.getData().getProjectDetails().getGitRepoName();
+                    deployJobInputDto.setRepo(codeserverGitOrgUri + gitOrgName + "/" + repoName);
+                }
 
-				}
 				 String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
 				 String workspaceOwner = entity.getData().getWorkspaceOwner().getId();
 				 deployJobInputDto.setShortid(workspaceOwner);
  
-				 String projectName = entity.getData().getProjectDetails().getProjectName();
 				 CodeServerWorkspaceNsql ownerEntity = workspaceCustomRepository.findbyProjectName(projectOwner,projectName);
 				 cloudServiceProvider = ownerEntity.getData().getProjectDetails().getRecipeDetails().getCloudServiceProvider();
 				 if(Objects.nonNull(ownerEntity.getData().getIsWorkspaceMigrated())) {
@@ -4482,12 +4603,12 @@
 						commitId = gitClient.getLatestCommitId(gitOrgName,branch,entity.getData().getProjectDetails().getGitRepoName());
 						
 					}
+					
 					if(commitId == null){
 						MessageDescription warning = new MessageDescription();
 						warning.setMessage("Error while adding commit id to deployment audit log");
-					}else{
-						auditLog.setCommitId(commitId.getSha());
 					}
+					auditLog.setCommitId(commitId.getSha());
 					 auditLog.setImageDeleted(Boolean.FALSE);
 					 auditLog.setTriggeredOn(now);
 					 auditLog.setTriggeredBy(entity.getData().getWorkspaceOwner().getGitUserName());
@@ -5043,7 +5164,7 @@
 					 if (!"int".equalsIgnoreCase(data.getProjectDetails().getLastBuildOrDeployedEnv())) {
 						 deploymentDetails = entity.getData().getProjectDetails().getProdDeploymentDetails();
 					 }
-				deploymentDetails.setGitjobRunID(requestVo.getGitJobRunId());	
+				deploymentDetails.setGitjobRunID(requestVo.getGitJobRunId());
 				workspaceCustomRepository.updateDeploymentDetails(requestVo.getProjectName(), data.getProjectDetails().getLastBuildOrDeployedEnv(),deploymentDetails,data.getProjectDetails().getLastBuildOrDeployedStatus()); 				
 				 //setting audit log details
 					 if(optionalBuildDeployentity != null){
