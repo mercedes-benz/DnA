@@ -704,6 +704,9 @@ definitions:
       createdOn:
         type: string
         format: date
+      deletedOn:
+        type: string
+        format: date
       role:
         type: string
       lakehouses:

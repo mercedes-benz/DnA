@@ -89,9 +89,12 @@ export const buildLogViewAWSURL = (deployedInstance, isStagging = false) => { //
   }
 };
 export const isValidGitUrl = (str) => {
+  if (!str) return false;
   const privateHost = new URL(Envs.CODE_SPACE_GIT_PAT_APP_URL).host;
-  const regex = new RegExp(`((http|https)?:\\/\\/)?(?:github.com|${privateHost})\\/([\\w.@:/\\-~]+)(\\.git)`);
-  return (str == null) ? false : regex.test(str);
+  const regex = new RegExp(
+    `^https://(github\\.com|${privateHost}|.*\\.ghe\\.com)/[\\w.@:/\\-~]+(\\.git)$`
+  );
+  return regex.test(str);
 };
 
 export const isValidGITRepoUrl = (str, isPublicRecipeChoosen) => {
