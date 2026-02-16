@@ -1197,6 +1197,7 @@
 			 Long ownerwsseqid = jpaRepo.getNextWorkspaceSeqId();
 			 String ownerwsid = ConstantsUtility.WORKSPACEPREFIX + String.valueOf(ownerwsseqid);
 			 ownerEntity.getData().setWorkspaceId(ownerwsid);
+			 ownerEntity.getData().setIsWorkspaceMigratedToGHE(true);
 			 WorkbenchManageDto ownerWorkbenchCreateDto = new WorkbenchManageDto();
 			 ownerWorkbenchCreateDto.setRef(codeServerEnvRef);
 			 WorkbenchManageInputDto ownerWorkbenchCreateInputsDto = new WorkbenchManageInputDto();
@@ -1728,6 +1729,10 @@
 				 cloudServiceProvider = ownerEntity.getData().getProjectDetails().getRecipeDetails().getCloudServiceProvider();
 				 if(Objects.nonNull(ownerEntity.getData().getIsWorkspaceMigrated())) {
 					workspaceMigrated = ownerEntity.getData().getIsWorkspaceMigrated();
+				 }
+				 boolean gheWorkspaceMigrated = false;
+				 if(Objects.nonNull(ownerEntity.getData().getIsWorkspaceMigratedToGHE())) {
+					gheWorkspaceMigrated = ownerEntity.getData().getIsWorkspaceMigratedToGHE();
 				 }
 				
 				 if (ownerEntity == null || ownerEntity.getData() == null
@@ -4123,6 +4128,43 @@
 		responseMessage.setSuccess(status);
 		return responseMessage;
 	}
+
+	@Override
+	@Transactional
+	public GenericMessage migrateWorkspaceToGHE(CodeServerWorkspaceNsql entity){
+		GenericMessage responseMessage = new GenericMessage();
+		String status = "FAILED";
+		List<MessageDescription> warnings = new ArrayList<>();
+		List<MessageDescription> errors = new ArrayList<>();
+		try{
+			String repoDetails = entity.getData().getProjectDetails().getRecipeDetails().getRepodetails();
+			if(repoDetails != null && repoDetails.contains("ghe.com")){
+				if(Objects.isNull(entity.getData().getIsWorkspaceMigratedToGHE()) || !entity.getData().getIsWorkspaceMigratedToGHE()) {
+					entity.getData().setIsWorkspaceMigratedToGHE(true);
+					jpaRepo.save(entity);
+					log.info("Workspace {} migrated to GHE", entity.getData().getWorkspaceId());
+					status = "SUCCESS";
+				} else {
+					log.info("Workspace {} already marked as GHE migrated", entity.getData().getWorkspaceId());
+					status = "SUCCESS";
+				}
+			} else {
+				MessageDescription error = new MessageDescription();
+				log.info("workspace repository is not on GHE: " + entity.getData().getWorkspaceId());
+				error.setMessage("workspace repository is not on GHE, cannot mark as migrated");
+				errors.add(error);
+			}
+		} catch (Exception e) {
+			MessageDescription error = new MessageDescription();
+			log.info("Failed while marking workspace as GHE migrated with exception " + e.getMessage());
+			error.setMessage("Failed while marking workspace as GHE migrated with exception " + e.getMessage());
+			errors.add(error);
+		}
+		responseMessage.setErrors(errors);
+		responseMessage.setWarnings(warnings);
+		responseMessage.setSuccess(status);
+		return responseMessage;
+	}
  
 	@Override
 	public CodeServerUserGroupCollectionVO createWorkSpaceGroup(CodeServerUserGroupVO vo){
@@ -4497,6 +4539,10 @@
 				 cloudServiceProvider = ownerEntity.getData().getProjectDetails().getRecipeDetails().getCloudServiceProvider();
 				 if(Objects.nonNull(ownerEntity.getData().getIsWorkspaceMigrated())) {
 					workspaceMigrated = ownerEntity.getData().getIsWorkspaceMigrated();
+				 }
+				 boolean gheWorkspaceMigrated = false;
+				 if(Objects.nonNull(ownerEntity.getData().getIsWorkspaceMigratedToGHE())) {
+					gheWorkspaceMigrated = ownerEntity.getData().getIsWorkspaceMigratedToGHE();
 				 }
 				hasProdUrl = Objects.nonNull(
 						ownerEntity.getData().getProjectDetails().getProdDeploymentDetails().getDeploymentUrl());
