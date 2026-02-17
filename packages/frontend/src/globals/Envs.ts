@@ -44,6 +44,8 @@ export const Envs = {
   LOGINREDIRECTURL: getInjectedEnv('LOGINREDIRECTURL') || process.env.LOGINREDIRECTURL,
   DATAIKU_API_BASEURL: getInjectedEnv('DATAIKU_API_BASEURL') || process.env.DATAIKU_API_BASEURL,
   DATA_PIPELINES_API_BASEURL: getInjectedEnv('DATA_PIPELINES_API_BASEURL') || process.env.DATA_PIPELINES_API_BASEURL,
+  DNA_VAULT_API_BASEURL: getInjectedEnv('DNA_VAULT_API_BASEURL') || process.env.DNA_VAULT_API_BASEURL,
+  DNA_ENVIRONMENT: getInjectedEnv('DNA_ENVIRONMENT') || process.env.DNA_ENVIRONMENT,
   DATA_PIPELINES_APP_BASEURL: getInjectedEnv('DATA_PIPELINES_APP_BASEURL') || process.env.DATA_PIPELINES_APP_BASEURL,
   NOTIFICATIONS_API_BASEURL: getInjectedEnv('NOTIFICATIONS_API_BASEURL') || process.env.NOTIFICATIONS_API_BASEURL,
   DASHBOARD_API_BASEURL: getInjectedEnv('DASHBOARD_API_BASEURL') || process.env.DASHBOARD_API_BASEURL,
@@ -179,6 +181,10 @@ export const Envs = {
     getInjectedEnv('ENABLE_FABRIC_SERVICE') !== undefined
       ? getInjectedEnv('ENABLE_FABRIC_SERVICE')
       : EnvParser.parseBool(process.env.ENABLE_FABRIC_SERVICE, false),
+  ENABLE_UILICIOUS_SERVICE:
+    getInjectedEnv('ENABLE_UILICIOUS_SERVICE') !== undefined
+      ? getInjectedEnv('ENABLE_UILICIOUS_SERVICE')
+      : EnvParser.parseBool(process.env.ENABLE_UILICIOUS_SERVICE, false),
   ENABLE_DATA_ENTRY_SERVICE:
     getInjectedEnv('ENABLE_DATA_ENTRY_SERVICE') !== undefined
       ? getInjectedEnv('ENABLE_DATA_ENTRY_SERVICE')
@@ -261,5 +267,7 @@ export const Envs = {
       ? getInjectedEnv('ONEAPI_PROMPT_CRAFT_USAGE_LINK')
       : EnvParser.parseBool(process.env.ONEAPI_PROMPT_CRAFT_USAGE_LINK, false),
   LEANIX_BASEURL: getInjectedEnv('LEANIX_BASEURL') || process.env.LEANIX_BASEURL,
+  UILICIOUS_URL: getInjectedEnv('UILICIOUS_URL') || process.env.UILICIOUS_URL,
+  UILICIOUS_CONTACT: getInjectedEnv('UILICIOUS_CONTACT') || process.env.UILICIOUS_CONTACT,
   AZURE_KEY_VAULT_URL: getInjectedEnv('AZURE_KEY_VAULT_URL') || process.env.AZURE_KEY_VAULT_URL,
 };
