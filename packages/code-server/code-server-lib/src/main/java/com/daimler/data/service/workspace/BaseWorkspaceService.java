@@ -473,7 +473,7 @@
 		 ownerWorkbenchDeleteInputsDto.setIsCollaborator("false");
 		 ownerWorkbenchDeleteInputsDto.setPat("");
 		 ownerWorkbenchDeleteInputsDto.setResource("");
-		 String repoNameWithOrg = gitOrgUri + gitOrgName + "/" + repoName;
+		 String repoNameWithOrg = codeserverGheOrgUri + gitOrgName + "/" + repoName;
 		 ownerWorkbenchDeleteInputsDto.setRepo(repoNameWithOrg);
 		 String workspaceUserId = entity.getData().getWorkspaceOwner().getId();
 		 ownerWorkbenchDeleteInputsDto.setShortid(workspaceUserId);
@@ -654,7 +654,8 @@
 					&& !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
 							.startsWith("private")
 			   ) {
-				repoNameWithOrg = gitOrgUri + gitOrgName + "/" + repoName;
+				// repoNameWithOrg = gitOrgUri + gitOrgName + "/" + repoName;
+				repoNameWithOrg = codeserverGheOrgUri + gitOrgName + "/" + repoName;
 			} else {
 				repoNameWithOrg = vo.getProjectDetails().getRecipeDetails().getRepodetails();
 				if(repoNameWithOrg.contains(",")) {
@@ -843,7 +844,8 @@
 					 && !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
 							 .startsWith("private")
 				) {
-				 repoNameWithOrg = gitOrgUri + gitOrgName + "/" + repoName;
+				//  repoNameWithOrg = gitOrgUri + gitOrgName + "/" + repoName;
+				 repoNameWithOrg = codeserverGheOrgUri + gitOrgName + "/" + repoName;
 			 } else {
 				 repoNameWithOrg = vo.getProjectDetails().getRecipeDetails().getRepodetails();
 				 if(repoNameWithOrg.contains(",")) {
@@ -1224,8 +1226,8 @@
 			 if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")
 					 && !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
 							 .startsWith("private")) {
-								 
-								 repoNameWithOrg = gitOrgUri + gitOrgName + "/" + repoName;
+								//  repoNameWithOrg = gitOrgUri + gitOrgName + "/" + repoName;
+								 repoNameWithOrg = codeserverGheOrgUri + gitOrgName + "/" + repoName;
 			 } else {
 				 repoNameWithOrg = vo.getProjectDetails().getRecipeDetails().getGitPath();
 				 pathCheckout = vo.getProjectDetails().getRecipeDetails().getGitRepoLoc();
