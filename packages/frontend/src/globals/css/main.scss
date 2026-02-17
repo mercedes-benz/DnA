@@ -1497,6 +1497,9 @@
     &.localcomplianceofficer::before{
       content: '\e977'
     }
+    &.reportView::before{
+      content: '\e936'
+    }
     
   }
 

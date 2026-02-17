@@ -104,7 +104,8 @@ public class RecipeController implements CodeServerRecipeApi {
 		if (name == null) {
 			// recipeRequestVO.setStatus("REQUESTED");
 			GenericMessage softwareMessage = service.createOrValidateSoftwareTemplate(recipeRequestVO.getRepodetails(), recipeRequestVO.getSoftware());
-			if(softwareMessage.getSuccess().equals("SUCCESS")) {
+			// if(softwareMessage.getSuccess().equals("SUCCESS"))
+			if (!"FAILED".equalsIgnoreCase(softwareMessage.getSuccess())) {
 				RecipeVO recipeVO = service.createRecipe(recipeRequestVO);
 				if (Objects.nonNull(recipeVO)) {
 					responseMessage.setData(recipeVO);
@@ -159,7 +160,8 @@ public class RecipeController implements CodeServerRecipeApi {
 		String name = service.getRecipeById(id)!= null ? service.getRecipeById(id).getRecipeName() : null;
 		if(name!=null) {
 			GenericMessage softwareMessage = service.createOrValidateSoftwareTemplate(recipeRequestVO.getRepodetails(), recipeRequestVO.getSoftware());
-			if(softwareMessage.getSuccess().equals("SUCCESS")) {
+			// if(softwareMessage.getSuccess().equals("SUCCESS"))
+			if (!"FAILED".equalsIgnoreCase(softwareMessage.getSuccess())) {
 				RecipeVO recipeVO = service.updateRecipe(recipeRequestVO);
 				if (Objects.nonNull(recipeVO)) {
 					responseMessage.setData(recipeVO);
