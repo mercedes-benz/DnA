@@ -16,7 +16,7 @@ on:
           - main   
       reviewers:
         description: 'Reviewers'  
-        default: 'AMARIAR,ARAARUM,POOJAMS,VKURAPA'
+        default: 'AMARIAR'
         required: true   
 
 env:
