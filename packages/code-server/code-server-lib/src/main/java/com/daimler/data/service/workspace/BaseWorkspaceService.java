@@ -1866,13 +1866,15 @@
 						gitOrg = repoDetails.get(1);
 					}
 					if (Objects.nonNull(repoUrl) && repoUrl.contains("ghe.com")) {
-						deployJobInputDto.setRepo(codeserverGheOrgUri + gitOrg + "/" + repoName);
+						// deployJobInputDto.setRepo(codeserverGheOrgUri + gitOrg + "/" + repoName);
+						deployJobInputDto.setRepo(gitOrg + "/" + repoName);
 					} else {
 						deployJobInputDto.setRepo(codeserverGitOrgUri + gitOrg + "/" + repoName);
 					}
 				} else {
 					repoName = entity.getData().getProjectDetails().getGitRepoName();
-					deployJobInputDto.setRepo(codeserverGitOrgUri + gitOrgName + "/" + repoName);
+					// deployJobInputDto.setRepo(codeserverGitOrgUri + gitOrgName + "/" + repoName);
+					deployJobInputDto.setRepo(gitOrgName + "/" + repoName);
 				}
 				deployJobInputDto.setShortid(workspaceOwner);
 				deployJobInputDto.setTarget_env(environment);
@@ -4524,13 +4526,15 @@
                         gitOrg = repoDetails.get(1);
                     }
                     if (Objects.nonNull(repoUrl) && repoUrl.contains("ghe.com")) {
-                        deployJobInputDto.setRepo(codeserverGheOrgUri + gitOrg + "/" + repoName);
+						// deployJobInputDto.setRepo(codeserverGheOrgUri + gitOrg + "/" + repoName);
+                        deployJobInputDto.setRepo(gitOrg + "/" + repoName);
                     } else {
                         deployJobInputDto.setRepo(codeserverGitOrgUri + gitOrg + "/" + repoName);
                     }
                 } else {
                     repoName = entity.getData().getProjectDetails().getGitRepoName();
-                    deployJobInputDto.setRepo(codeserverGheOrgUri + gitOrgName + "/" + repoName);
+					// deployJobInputDto.setRepo(codeserverGheOrgUri + gitOrgName + "/" + repoName);
+                    deployJobInputDto.setRepo(gitOrgName + "/" + repoName);
                 }
 
 				 String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
