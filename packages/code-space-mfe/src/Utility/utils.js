@@ -52,8 +52,21 @@ export const buildGitJobLogViewAWSURL = (gitJobRunId) => {
   }
 };
 
+// export const buildGitUrl = (gitRepoInfo) => {
+//     if (gitRepoInfo.includes('.git')) return gitRepoInfo.split(',')[0];
+//     return Envs.CODE_SPACE_GIT_PAT_APP_URL + Envs.CODE_SPACE_GIT_ORG_NAME + '/' + gitRepoInfo;
+// };
+
 export const buildGitUrl = (gitRepoInfo) => {
-    if (gitRepoInfo.includes('.git')) return gitRepoInfo.split(',')[0];
+    if (gitRepoInfo.includes('http://') || gitRepoInfo.includes('https://')) {
+        return gitRepoInfo.split(',')[0];
+    }
+    if (gitRepoInfo.includes('.ghe.com/')) {
+        return 'https://' + gitRepoInfo.split(',')[0];
+    }
+    if (gitRepoInfo.includes('.git')) {
+        return gitRepoInfo.split(',')[0];
+    }
     return Envs.CODE_SPACE_GIT_PAT_APP_URL + Envs.CODE_SPACE_GIT_ORG_NAME + '/' + gitRepoInfo;
 };
 
