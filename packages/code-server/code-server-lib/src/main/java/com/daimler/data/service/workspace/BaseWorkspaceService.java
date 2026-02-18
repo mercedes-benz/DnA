@@ -473,7 +473,7 @@
 		 ownerWorkbenchDeleteInputsDto.setIsCollaborator("false");
 		 ownerWorkbenchDeleteInputsDto.setPat("");
 		 ownerWorkbenchDeleteInputsDto.setResource("");
-		 String repoNameWithOrg = codeserverGheOrgUri + gitOrgName + "/" + repoName;
+		 String repoNameWithOrg = gitOrgUri + gitOrgName + "/" + repoName;
 		 ownerWorkbenchDeleteInputsDto.setRepo(repoNameWithOrg);
 		 String workspaceUserId = entity.getData().getWorkspaceOwner().getId();
 		 ownerWorkbenchDeleteInputsDto.setShortid(workspaceUserId);
@@ -4530,7 +4530,7 @@
                     }
                 } else {
                     repoName = entity.getData().getProjectDetails().getGitRepoName();
-                    deployJobInputDto.setRepo(codeserverGitOrgUri + gitOrgName + "/" + repoName);
+                    deployJobInputDto.setRepo(codeserverGheOrgUri + gitOrgName + "/" + repoName);
                 }
 
 				 String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
