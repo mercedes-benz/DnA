@@ -102,8 +102,8 @@ fabricWorkspaces:
     tenantId: ${FABRIC_LAKEHOUSE_TENANTID:XXXX}
     objectId: ${FABRIC_LAKEHOUSE_OBJECTID:XXXX}
     management:
-      clientId: ${FABRIC_LAKEHOUSE_CLIENTID:XXXX}
-      clientSecret: ${FABRIC_LAKEHOUSE_CLIENTSECRET:XXXX}
+      clientId: ${FABRIC_OAUTH_CLIENT_ID:XXXX}
+      clientSecret: ${FABRIC_OAUTH_CLIENT_SECRET:XXXX}
       scope: ${AZURE_MANAGEMENT_SCOPE:XXXX}
     keyvault:
       location: ${AZURE_KEYVAULT_LOCATION:XXXX}
