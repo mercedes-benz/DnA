@@ -25,4 +25,5 @@ public class KeyVaultPropertiesDto implements Serializable {
 	private Boolean enabledForTemplateDeployment;
 	private Boolean enablePurgeProtection;
 	private String publicNetworkAccess;
+	private Boolean enableRbacAuthorization;
 }
