@@ -36,6 +36,7 @@ const sassUrl = Envs.SASS_URL;
 const enableDatalakeService = Envs.ENABLE_DATALAKE_SERVICE;
 const enableFabricService = Envs.ENABLE_FABRIC_SERVICE;
 const enableuiliciousService = Envs.ENABLE_UILICIOUS_SERVICE;
+const enableAzureKeyVaultService = Envs.ENABLE_AZURE_KEY_VAULT_SERVICE;
 // const enableDataEntryService = Envs.ENABLE_DATA_ENTRY_SERVICE;
 const enablePowerPlatformService = Envs.ENABLE_POWER_PLATFORM_SERVICE;
 const enablePromptCraftService = Envs.ENABLE_PROMPT_CRAFT_SERVICE;
@@ -614,6 +615,23 @@ export const ToolsLandingPageElements = [
     isTextAlignLeft: true,
     animation: true,
     isDisabled: !enableuiliciousService,
+    isDetailedPage: true,
+    isMoreServicesCard:false,
+    isSmallCard: false,
+    isMediumCard: true,
+    svgIcon: 'tools',
+    isDnAInternalTool: false,
+  },
+  {
+    id: 'azureKeyVault',
+    name: 'Azure Key Vault',
+    description:'Azure Key Vault is a cloud service that provides a secure and centralized solution for storing and managing cryptographic keys, secrets (like passwords and API keys), and certificates.',
+    tags: ['FOSS'],
+    url: '/azurekeyvault',
+    isExternalLink: false,
+    isTextAlignLeft: true,
+    animation: true,
+    isDisabled: !enableAzureKeyVaultService,
     isDetailedPage: true,
     isMoreServicesCard:false,
     isSmallCard: false,
