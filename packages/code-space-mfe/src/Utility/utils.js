@@ -54,7 +54,16 @@ export const buildGitJobLogViewAWSURL = (gitJobRunId) => {
 
 export const buildGitUrl = (gitRepoInfo) => {
     if (gitRepoInfo.includes('.git')) return gitRepoInfo.split(',')[0];
-    return Envs.CODE_SPACE_GHE_PAT_APP_URL + Envs.CODE_SPACE_GIT_ORG_NAME + '/' + gitRepoInfo;
+    const repoName = gitRepoInfo.startsWith('dev_cs') ? gitRepoInfo : 'dev_cs' + gitRepoInfo;
+    return Envs.CODE_SPACE_GHE_PAT_APP_URL + Envs.CODE_SPACE_GIT_ORG_NAME + '/' + repoName;
+};
+
+export const getRepoNameWithPrefix = (gitRepoInfo) => {
+    if (!gitRepoInfo) return gitRepoInfo;
+    if (gitRepoInfo.includes('.git') || gitRepoInfo.includes('http://') || gitRepoInfo.includes('https://')) {
+        return gitRepoInfo;
+    }
+    return gitRepoInfo.startsWith('dev_cs') ? gitRepoInfo : 'dev_cs' + gitRepoInfo;
 };
 
 // export const buildGitUrl = (gitRepoInfo) => {
