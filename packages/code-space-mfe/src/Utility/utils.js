@@ -58,12 +58,30 @@ export const buildGitUrl = (gitRepoInfo) => {
     return Envs.CODE_SPACE_GHE_PAT_APP_URL + Envs.CODE_SPACE_GIT_ORG_NAME + '/' + repoName;
 };
 
+export const buildGitRepoUrl = (gitRepoInfo) => {
+    if (!gitRepoInfo) return gitRepoInfo;
+    if (gitRepoInfo.includes('http://') || gitRepoInfo.includes('https://')) {
+        return gitRepoInfo;
+    }
+    if (gitRepoInfo.includes('.git')) {
+        return gitRepoInfo;
+    }
+    const repoName = gitRepoInfo.startsWith('dev_cs') ? gitRepoInfo : 'dev_cs' + gitRepoInfo;
+    return Envs.CODE_SPACE_GHE_PAT_APP_URL + Envs.CODE_SPACE_GIT_ORG_NAME + '/' + repoName + '.git';
+};
+
 export const getRepoNameWithPrefix = (gitRepoInfo) => {
     if (!gitRepoInfo) return gitRepoInfo;
     if (gitRepoInfo.includes('.git') || gitRepoInfo.includes('http://') || gitRepoInfo.includes('https://')) {
         return gitRepoInfo;
     }
-    return gitRepoInfo.startsWith('dev_cs') ? gitRepoInfo : 'dev_cs' + gitRepoInfo;
+    // Handle repoDetails format that might include comma-separated path (e.g., "reponame,path/*")
+    let repoName = gitRepoInfo;
+    if (gitRepoInfo.includes(',')) {
+        repoName = gitRepoInfo.split(',')[0];
+    }
+    // Add dev_cs prefix if not already present
+    return repoName.startsWith('dev_cs') ? gitRepoInfo : 'dev_cs' + gitRepoInfo;
 };
 
 // export const buildGitUrl = (gitRepoInfo) => {
