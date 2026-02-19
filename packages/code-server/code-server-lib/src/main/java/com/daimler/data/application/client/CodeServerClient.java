@@ -32,6 +32,12 @@ public class CodeServerClient {
 	@Value("${codeServer.gitjob.manageuri}")
 	private String codeServerGitJobManageUri;
 
+	@Value("${codeServer.git.ghe.deployuri:}")
+	private String codeServerGheJobDeployUri;
+	
+	@Value("${codeServer.git.ghe.manageuri:}")
+	private String codeServerGheJobManageUri;
+
 	@Value("${codeServer.git.orguri}")
 	private String codeserverGitOrgUri;
 
@@ -507,7 +513,11 @@ public class CodeServerClient {
 			headers.set("Content-Type", "application/json");
 			headers.set("Authorization", "Bearer " + personalAccessToken);
 			HttpEntity<DeploymentManageDto> entity = new HttpEntity<DeploymentManageDto>(deployDto,headers);
-			ResponseEntity<String> manageDeploymentResponse = restTemplate.exchange(codeServerGitJobDeployUri, HttpMethod.POST, entity, String.class);
+			
+			String workflowUri = codeServerGheJobDeployUri;
+			log.info("Using GHE workflow endpoint for deployment: {}", workflowUri);
+			
+			ResponseEntity<String> manageDeploymentResponse = restTemplate.exchange(workflowUri, HttpMethod.POST, entity, String.class);
 			if (manageDeploymentResponse != null && manageDeploymentResponse.getStatusCode()!=null) {
 				if(manageDeploymentResponse.getStatusCode().equals(HttpStatus.valueOf(204))) {
 					status = "SUCCESS";

@@ -130,6 +130,8 @@ codeServer:
       pid: ${CODE_SERVER_GHE_PID:XXXX}
       pat: ${CODE_SERVER_GHE_PAT:XXXX}
       orguri: ${CODE_SERVER_GHE_ORGURI:XXXX}
+      deployuri: ${CODE_SERVER_GHE_GITJOB_DEPLOY_URI:XXXX}
+      manageuri: ${CODE_SERVER_GHE_GITJOB_MANAGE_URI:XXXX}
 
 swagger.headers.authorization.token: ${SWAGGER_HEADER_AUTH:XXXXXX}
 management.endpoints.web.exposure.include: loggers,health
