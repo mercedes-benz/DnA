@@ -2,7 +2,7 @@ spring:
   mvc.pathmatch.matching-strategy: ant_path_matcher
   application:
     name: dna-fabric-workspace-service
-    version: 1.4.19
+    version: 1.5.0
   profile:
     active: production
 
@@ -116,6 +116,7 @@ fabricWorkspaces:
       roles:
         cryptoOfficer: ${KEYVAULT_CRYPTO_OFFICER_ROLE:XXXX}
         cryptoUser: ${KEYVAULT_CRYPTO_USER_ROLE:XXXX}
+        keyVaultAdminRole: ${KEYVAULT_ADMIN_ROLE:XXXX}
 
 authoriser:
   uri: ${IDENTITY_AUTH_URI:XXXX}

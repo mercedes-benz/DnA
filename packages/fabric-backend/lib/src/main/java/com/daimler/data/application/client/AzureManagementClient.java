@@ -141,6 +141,9 @@ public class AzureManagementClient {
     @Value("${fabricWorkspaces.azure.keyvault.roles.cryptoUser}")
     private String keyVaultCryptoUserRole;
 
+    @Value("${fabricWorkspaces.azure.keyvault.roles.keyVaultAdminRole}")
+    private String keyVaultAdminRole;
+
     @Autowired
     private RestTemplate proxyRestTemplate;
 
@@ -299,27 +302,29 @@ public class AzureManagementClient {
 			sku.setName("standard");
 			properties.setSku(sku);
 
-			KeyVaultAccessPolicyDto accessPolicy = new KeyVaultAccessPolicyDto();
-			accessPolicy.setTenantId(azureTenantId);
-			accessPolicy.setObjectId(azureObjectId);
+            //Not added access policies as RBAC is enabled, so permissions will be managed via role assignments
+			// KeyVaultAccessPolicyDto accessPolicy = new KeyVaultAccessPolicyDto();
+			// accessPolicy.setTenantId(azureTenantId);
+			// accessPolicy.setObjectId(azureObjectId);
 			
-			KeyVaultPermissionsDto permissions = new KeyVaultPermissionsDto();
-			permissions.setKeys(Arrays.asList(
-				"encrypt", "decrypt", "wrapKey", "unwrapKey", "sign", "verify",
-				"get", "list", "create", "update", "import", "delete",
-				"backup", "restore", "recover", "purge"
-			));
-			permissions.setSecrets(Arrays.asList(
-				"get", "list", "set", "delete", "backup", "restore", "recover", "purge"
-			));
-			permissions.setCertificates(Arrays.asList(
-				"get", "list", "delete", "create", "import", "update",
-				"managecontacts", "getissuers", "listissuers", "setissuers",
-				"deleteissuers", "manageissuers", "recover", "purge"
-			));
-			accessPolicy.setPermissions(permissions);
+			// KeyVaultPermissionsDto permissions = new KeyVaultPermissionsDto();
+			// permissions.setKeys(Arrays.asList(
+			// 	"encrypt", "decrypt", "wrapKey", "unwrapKey", "sign", "verify",
+			// 	"get", "list", "create", "update", "import", "delete",
+			// 	"backup", "restore", "recover", "purge"
+			// ));
+			// permissions.setSecrets(Arrays.asList(
+			// 	"get", "list", "set", "delete", "backup", "restore", "recover", "purge"
+			// ));
+			// permissions.setCertificates(Arrays.asList(
+			// 	"get", "list", "delete", "create", "import", "update",
+			// 	"managecontacts", "getissuers", "listissuers", "setissuers",
+			// 	"deleteissuers", "manageissuers", "recover", "purge"
+			// ));
+			// accessPolicy.setPermissions(permissions);
 			
-			properties.setAccessPolicies(Arrays.asList(accessPolicy));
+            properties.setEnableRbacAuthorization(true);
+			// properties.setAccessPolicies(Arrays.asList(accessPolicy));
 			properties.setEnabledForDeployment(true);
 			properties.setEnabledForDiskEncryption(true);
 			properties.setEnabledForTemplateDeployment(true);
@@ -378,7 +383,7 @@ public class AzureManagementClient {
                 return responseDto;
             }
 
-            String roleDefinitionId = keyVaultCryptoOfficerRole;
+            String roleDefinitionId = keyVaultAdminRole;
             if ("user".equalsIgnoreCase(roleType)) {
                 roleDefinitionId = keyVaultCryptoUserRole;
             }
