@@ -10,7 +10,7 @@ import { CodeSpaceApiClient } from '../../apis/codespace.api';
 import SelectBox from 'dna-container/SelectBox';
 import Modal from 'dna-container/Modal';
 import { SESSION_STORAGE_KEYS } from '../../Utility/constants.js';
-import { regionalDateAndTimeConversionSolution, buildGitJobLogViewAWSURL } from '../../Utility/utils';
+import { regionalDateAndTimeConversionSolution, buildGitJobLogViewAWSURL, getRepoNameWithPrefix } from '../../Utility/utils';
 import TextBox from 'dna-container/TextBox';
 import Tags from 'dna-container/Tags';
 import Tooltip from '../../common/modules/uilab/js/src/tooltip';
@@ -62,9 +62,8 @@ const BuildModal = (props) => {
 
     ProgressIndicator.show();
     // CodeSpaceApiClient.getCodeSpacesGitBranchList(projectDetails?.gitRepoName)
-    CodeSpaceApiClient.getCodeSpacesGitBranchList(
-      projectDetails?.repoDetails || projectDetails?.gitRepoName
-    )
+    const repoName = getRepoNameWithPrefix(projectDetails?.repoDetails || projectDetails?.gitRepoName);
+    CodeSpaceApiClient.getCodeSpacesGitBranchList(repoName)
       .then((res) => {
         ProgressIndicator.hide();
         props.setShowCodeBuildModal(true);
