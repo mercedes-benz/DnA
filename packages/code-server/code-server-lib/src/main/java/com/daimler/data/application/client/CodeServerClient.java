@@ -47,6 +47,9 @@ public class CodeServerClient {
 	@Value("${codeServer.gitjob.pat}")
 	private String personalAccessToken;
 	
+	@Value("${codeServer.git.ghe.pat}")
+	private String ghePersonalAccessToken;
+	
 	@Value("${codeServer.base.uri}")
 	private String codeServerBaseUri;
 	
@@ -511,7 +514,7 @@ public class CodeServerClient {
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");
-			headers.set("Authorization", "Bearer " + personalAccessToken);
+			headers.set("Authorization", "Bearer " + ghePersonalAccessToken);
 			HttpEntity<DeploymentManageDto> entity = new HttpEntity<DeploymentManageDto>(deployDto,headers);
 			
 			String workflowUri = codeServerGheJobDeployUri;
