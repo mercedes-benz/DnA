@@ -4525,16 +4525,18 @@
                         repoName = repoDetails.get(2);
                         gitOrg = repoDetails.get(1);
                     }
+                    String prefixedRepoName = gitClient.addEnvironmentPrefix(repoName);
                     if (Objects.nonNull(repoUrl) && repoUrl.contains("ghe.com")) {
-						// deployJobInputDto.setRepo(codeserverGheOrgUri + gitOrg + "/" + repoName);
-                        deployJobInputDto.setRepo(gitOrg + "/" + repoName);
+						// deployJobInputDto.setRepo(codeserverGheOrgUri + gitOrg + "/" + prefixedRepoName);
+                        deployJobInputDto.setRepo(gitOrg + "/" + prefixedRepoName);
                     } else {
-                        deployJobInputDto.setRepo(codeserverGitOrgUri + gitOrg + "/" + repoName);
+                        deployJobInputDto.setRepo(codeserverGitOrgUri + gitOrg + "/" + prefixedRepoName);
                     }
                 } else {
                     repoName = entity.getData().getProjectDetails().getGitRepoName();
-					// deployJobInputDto.setRepo(codeserverGheOrgUri + gitOrgName + "/" + repoName);
-                    deployJobInputDto.setRepo(gitOrgName + "/" + repoName);
+                    String prefixedRepoName = gitClient.addEnvironmentPrefix(repoName);
+					// deployJobInputDto.setRepo(codeserverGheOrgUri + gitOrgName + "/" + prefixedRepoName);
+                    deployJobInputDto.setRepo(gitOrgName + "/" + prefixedRepoName);
                 }
 
 				 String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
@@ -4615,7 +4617,8 @@
 				String workspaceOwnerWsId = entity.getData().getWorkspaceId();
 				 //String projectOwnerWsId = ownerEntity.getData().getWorkspaceId();
 				 deployJobInputDto.setWsid(workspaceOwnerWsId);
-				 deployJobInputDto.setProjectName(projectName.toLowerCase());
+				 String prefixedProjectName = gitClient.addEnvironmentPrefix(projectName.toLowerCase());
+				 deployJobInputDto.setProjectName(prefixedProjectName);
 				 deployJobInputDto.setValutInjectorEnable(isValutInjectorEnable);
 				 deploymentJobDto.setInputs(deployJobInputDto);
 				 deploymentJobDto.setRef(codeServerEnvRef);
