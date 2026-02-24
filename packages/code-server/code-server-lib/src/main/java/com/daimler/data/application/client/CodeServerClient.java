@@ -506,6 +506,10 @@ public class CodeServerClient {
 	}
 	
 	public GenericMessage manageDeployment(DeploymentManageDto deployDto) {
+		return manageDeployment(deployDto, false);
+	}
+
+	public GenericMessage manageDeployment(DeploymentManageDto deployDto, boolean useGHE) {
 		GenericMessage response = new GenericMessage();
 		String status = "FAILED";
 		List<MessageDescription> warnings = new ArrayList<>();
@@ -514,11 +518,23 @@ public class CodeServerClient {
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");
-			headers.set("Authorization", "Bearer " + ghePersonalAccessToken);
-			HttpEntity<DeploymentManageDto> entity = new HttpEntity<DeploymentManageDto>(deployDto,headers);
 			
-			String workflowUri = codeServerGheJobDeployUri;
-			log.info("Using GHE workflow endpoint for deployment: {}", workflowUri);
+			String workflowUri;
+			String pat;
+			
+			if (useGHE) {
+				headers.set("Authorization", "Bearer " + ghePersonalAccessToken);
+				workflowUri = codeServerGheJobDeployUri;
+				pat = ghePersonalAccessToken;
+				log.info("Using GHE workflow endpoint for deployment: {}", workflowUri);
+			} else {
+				headers.set("Authorization", "Bearer " + personalAccessToken);
+				workflowUri = codeServerGitJobDeployUri;
+				pat = personalAccessToken;
+				log.info("Using GitLab workflow endpoint for deployment: {}", workflowUri);
+			}
+			
+			HttpEntity<DeploymentManageDto> entity = new HttpEntity<DeploymentManageDto>(deployDto,headers);
 			
 			ResponseEntity<String> manageDeploymentResponse = restTemplate.exchange(workflowUri, HttpMethod.POST, entity, String.class);
 			if (manageDeploymentResponse != null && manageDeploymentResponse.getStatusCode()!=null) {
