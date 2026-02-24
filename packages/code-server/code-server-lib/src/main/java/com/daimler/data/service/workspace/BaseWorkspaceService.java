@@ -275,6 +275,10 @@
 		 String cloudServiceProvider = entity.getData().getProjectDetails().getRecipeDetails().getCloudServiceProvider();
 		 boolean isProjectOwner = false;
 		 boolean isCodespaceDeployed = false;
+		 boolean gheWorkspaceMigrated = false;
+		 if(Objects.nonNull(entity.getData().getIsWorkspaceMigratedToGHE())) {
+			gheWorkspaceMigrated = entity.getData().getIsWorkspaceMigratedToGHE();
+		 }
 		 CodeServerBuildDeployNsql buildDeployNsql = buildDeployCustomRepo.findByProjectName(entity.getData().getProjectDetails().getProjectName());
 		 String projectOwnerId = entity.getData().getProjectDetails().getProjectOwner().getId();
 		 if (projectOwnerId.equalsIgnoreCase(userId)|| technicalId.equalsIgnoreCase(userId)) {
@@ -317,7 +321,7 @@
 				 deployJobInputDto.setProjectName(projectName);
 				 deploymentJobDto.setInputs(deployJobInputDto);
 				 deploymentJobDto.setRef(codeServerEnvRef);
-				 GenericMessage jobResponse = client.manageDeployment(deploymentJobDto);
+				 GenericMessage jobResponse = client.manageDeployment(deploymentJobDto, gheWorkspaceMigrated);
 				 if (jobResponse != null && "SUCCESS".equalsIgnoreCase(jobResponse.getSuccess())) {
 					 log.info(
 							 "Found deployment of branch {} on Staging environment, undeploy triggered successfully by user {}",
@@ -367,7 +371,7 @@
 				 deployJobInputDto.setProjectName(projectName);
 				 deploymentJobDto.setInputs(deployJobInputDto);
 				 deploymentJobDto.setRef(codeServerEnvRef);
-				 GenericMessage jobResponse = client.manageDeployment(deploymentJobDto);
+				 GenericMessage jobResponse = client.manageDeployment(deploymentJobDto, gheWorkspaceMigrated);
 				 if (jobResponse != null && "SUCCESS".equalsIgnoreCase(jobResponse.getSuccess())) {
 					 log.info(
 							 "Found deployment of branch {} on Production environment, undeploy triggered successfully by user {}",
@@ -1897,7 +1901,7 @@
 				 deployJobInputDto.setValutInjectorEnable(isValutInjectorEnable);
 				 deploymentJobDto.setInputs(deployJobInputDto);
 				 deploymentJobDto.setRef(codeServerEnvRef);
-				 GenericMessage jobResponse = client.manageDeployment(deploymentJobDto);
+				 GenericMessage jobResponse = client.manageDeployment(deploymentJobDto, gheWorkspaceMigrated);
 				 if (jobResponse != null && "SUCCESS".equalsIgnoreCase(jobResponse.getSuccess())) {
 					 
 					
@@ -2584,6 +2588,10 @@
 				 String projectName = entity.getData().getProjectDetails().getProjectName();
 				 CodeServerWorkspaceNsql ownerEntity = workspaceCustomRepository.findbyProjectName(projectOwner,
 						 projectName);
+				 boolean gheWorkspaceMigrated = false;
+				 if(Objects.nonNull(ownerEntity.getData().getIsWorkspaceMigratedToGHE())) {
+					gheWorkspaceMigrated = ownerEntity.getData().getIsWorkspaceMigratedToGHE();
+				 }
 				 if (ownerEntity == null || ownerEntity.getData() == null
 						 || ownerEntity.getData().getWorkspaceId() == null) {
 					 MessageDescription error = new MessageDescription();
@@ -2599,7 +2607,7 @@
 				 deployJobInputDto.setProjectName(projectName);
 				 deploymentJobDto.setInputs(deployJobInputDto);
 				 deploymentJobDto.setRef(codeServerEnvRef);
-				 GenericMessage jobResponse = client.manageDeployment(deploymentJobDto);
+				 GenericMessage jobResponse = client.manageDeployment(deploymentJobDto, gheWorkspaceMigrated);
 				 if (jobResponse != null && "SUCCESS".equalsIgnoreCase(jobResponse.getSuccess())) {
 					 String environmentJsonbName = "intDeploymentDetails";
 					 CodeServerDeploymentDetails deploymentDetails = entity.getData().getProjectDetails()
@@ -3979,6 +3987,10 @@
 				// deployJobInputDto.setType("RESTART");
 				CodeServerWorkspaceNsql ownerEntity = workspaceCustomRepository.findbyProjectName(projectOwner,
 						projectName);
+				boolean gheWorkspaceMigrated = false;
+				if(Objects.nonNull(ownerEntity.getData().getIsWorkspaceMigratedToGHE())) {
+					gheWorkspaceMigrated = ownerEntity.getData().getIsWorkspaceMigratedToGHE();
+				}
 				if (ownerEntity == null || ownerEntity.getData() == null
 						|| ownerEntity.getData().getWorkspaceId() == null) {
 					MessageDescription error = new MessageDescription();
@@ -4018,7 +4030,7 @@
 				deployJobInputDto.setValutInjectorEnable(isValutInjectorEnable);
 				deploymentJobDto.setInputs(deployJobInputDto);
 				deploymentJobDto.setRef(codeServerEnvRef);
-				GenericMessage jobResponse = client.manageDeployment(deploymentJobDto);
+				GenericMessage jobResponse = client.manageDeployment(deploymentJobDto, gheWorkspaceMigrated);
 				if (jobResponse != null && "SUCCESS".equalsIgnoreCase(jobResponse.getSuccess())) {
 					// String environmentJsonbName = "intDeploymentDetails";
 					// CodeServerDeploymentDetails deploymentDetails = entity.getData().getProjectDetails()
@@ -4525,18 +4537,16 @@
                         repoName = repoDetails.get(2);
                         gitOrg = repoDetails.get(1);
                     }
-                    String prefixedRepoName = gitClient.addEnvironmentPrefix(repoName);
                     if (Objects.nonNull(repoUrl) && repoUrl.contains("ghe.com")) {
-						// deployJobInputDto.setRepo(codeserverGheOrgUri + gitOrg + "/" + prefixedRepoName);
-                        deployJobInputDto.setRepo(gitOrg + "/" + prefixedRepoName);
+						// deployJobInputDto.setRepo(codeserverGheOrgUri + gitOrg + "/" + repoName);
+                        deployJobInputDto.setRepo(gitOrg + "/" + repoName);
                     } else {
-                        deployJobInputDto.setRepo(codeserverGitOrgUri + gitOrg + "/" + prefixedRepoName);
+                        deployJobInputDto.setRepo(codeserverGitOrgUri + gitOrg + "/" + repoName);
                     }
                 } else {
                     repoName = entity.getData().getProjectDetails().getGitRepoName();
-                    String prefixedRepoName = gitClient.addEnvironmentPrefix(repoName);
-					// deployJobInputDto.setRepo(codeserverGheOrgUri + gitOrgName + "/" + prefixedRepoName);
-                    deployJobInputDto.setRepo(gitOrgName + "/" + prefixedRepoName);
+					// deployJobInputDto.setRepo(codeserverGheOrgUri + gitOrgName + "/" + repoName);
+                    deployJobInputDto.setRepo(gitOrgName + "/" + repoName);
                 }
 
 				 String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
@@ -4617,13 +4627,12 @@
 				String workspaceOwnerWsId = entity.getData().getWorkspaceId();
 				 //String projectOwnerWsId = ownerEntity.getData().getWorkspaceId();
 				 deployJobInputDto.setWsid(workspaceOwnerWsId);
-				 String prefixedProjectName = gitClient.addEnvironmentPrefix(projectName.toLowerCase());
-				 deployJobInputDto.setProjectName(prefixedProjectName);
+				 deployJobInputDto.setProjectName(projectName.toLowerCase());
 				 deployJobInputDto.setValutInjectorEnable(isValutInjectorEnable);
 				 deploymentJobDto.setInputs(deployJobInputDto);
 				 deploymentJobDto.setRef(codeServerEnvRef);
 				 log.info("deploymentJobDto {}",deploymentJobDto);
-				 GenericMessage jobResponse = client.manageDeployment(deploymentJobDto);
+				 GenericMessage jobResponse = client.manageDeployment(deploymentJobDto, gheWorkspaceMigrated);
 				 if (jobResponse != null && "SUCCESS".equalsIgnoreCase(jobResponse.getSuccess())) {
 					SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
 					Date now = isoFormat.parse(isoFormat.format(new Date()));
