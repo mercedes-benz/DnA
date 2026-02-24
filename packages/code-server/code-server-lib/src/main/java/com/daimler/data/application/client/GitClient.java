@@ -87,7 +87,7 @@ public class GitClient {
 		return "";
 	}
 
-	private String addEnvironmentPrefix(String repoName) {
+	public String addEnvironmentPrefix(String repoName) {
 		if (repoName == null || repoName.isEmpty()) {
 			return repoName;
 		}
