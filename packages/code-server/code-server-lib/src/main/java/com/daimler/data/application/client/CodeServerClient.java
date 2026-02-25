@@ -535,7 +535,9 @@ public class CodeServerClient {
 			}
 			
 			HttpEntity<DeploymentManageDto> entity = new HttpEntity<DeploymentManageDto>(deployDto,headers);
-			
+			log.info("Deploy action with url: {}", workflowUri);
+			log.debug("[CodeServerClient] manageDeployment - Calling REST API - Method: POST, URL: {}, UseGHE: {}, Action: {}, WsId: {}, Repo: {}", 
+					workflowUri, useGHE, deployDto.getInputs().getAction(), deployDto.getInputs().getWsid(), deployDto.getInputs().getRepo());
 			ResponseEntity<String> manageDeploymentResponse = restTemplate.exchange(workflowUri, HttpMethod.POST, entity, String.class);
 			if (manageDeploymentResponse != null && manageDeploymentResponse.getStatusCode()!=null) {
 				if(manageDeploymentResponse.getStatusCode().equals(HttpStatus.valueOf(204))) {
