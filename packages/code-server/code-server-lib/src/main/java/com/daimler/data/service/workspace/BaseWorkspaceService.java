@@ -1039,14 +1039,19 @@
 			 if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")) {
 			 if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
 					 .equalsIgnoreCase("default")) {
+				 log.info("Validating GHE PAT for user: {} against GHE URI: {}", owner.getGitUserName(), gheBaseUri);
 				 HttpStatus validateUserPatstatus = gitClient.validateGitPat(owner.getGitUserName(), pat, gheBaseUri);
 				 if (!validateUserPatstatus.is2xxSuccessful()) {
+					 log.error("GHE PAT validation failed for user: {} with status: {}", owner.getGitUserName(), validateUserPatstatus.name());
 					 MessageDescription errMsg = new MessageDescription(
-							 "Invalid GitHub Personal Access Token provided. Please verify and retry.");
+							 "Invalid GitHub Enterprise (GHE) Personal Access Token. All new workspaces are created in GHE. "
+							 + "Please generate a PAT from " + gheBaseUri.replace("/api/v3", "") + " (NOT from git.i) and retry. "
+							 + "Validation status: " + validateUserPatstatus.name());
 					 errors.add(errMsg);
 					 responseVO.setErrors(errors);
 					 return responseVO;
 				 }
+				 log.info("GHE PAT validation successful for user: {}", owner.getGitUserName());
 			 }
 			 	  // initialize repo
 				 if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
