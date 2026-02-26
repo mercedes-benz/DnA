@@ -1580,6 +1580,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 			}
 			existingWorkspace.getStatus().setState(ConstantsUtility.DELETED_STATE);
 			existingWorkspace.setLastModifiedOn(new Date());
+			existingWorkspace.setDeletedOn(new Date());
 			jpaRepo.save(assembler.toEntity(existingWorkspace));
 			responseMessage.setSuccess("SUCCESS");
 			responseMessage.setErrors(errors);
