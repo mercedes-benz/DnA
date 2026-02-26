@@ -2832,13 +2832,7 @@ import org.springframework.beans.factory.annotation.Value;
 					}
 				}
 				if(isAdmin && !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private")){
-					boolean gheWorkspaceMigrated = vo.isIsWorkspaceMigratedToGHE() != null && vo.isIsWorkspaceMigratedToGHE();
-					HttpStatus addAdminAccessToGitUser;
-					if (gheWorkspaceMigrated) {
-						addAdminAccessToGitUser = gitClient.addAdminAccessToRepo(collabUserId, vo.getProjectDetails().getGitRepoName(), gheBaseUri, ghePat);
-					} else {
-						addAdminAccessToGitUser = gitClient.addAdminAccessToRepo(collabUserId, vo.getProjectDetails().getGitRepoName());
-					}
+					HttpStatus addAdminAccessToGitUser = gitClient.addAdminAccessToRepo(collabUserId,vo.getProjectDetails().getGitRepoName());
 					if(!addAdminAccessToGitUser.is2xxSuccessful())
 					{
 						MessageDescription warnMsg = new MessageDescription("Failed while adding " + collabUserId
@@ -2850,13 +2844,7 @@ import org.springframework.beans.factory.annotation.Value;
 					}
 				}
 				if(!isAdmin && !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private")){
-					boolean gheWorkspaceMigrated = vo.isIsWorkspaceMigratedToGHE() != null && vo.isIsWorkspaceMigratedToGHE();
-					HttpStatus removeAdminAccessToGitUser;
-					if (gheWorkspaceMigrated) {
-						removeAdminAccessToGitUser = gitClient.removeAdminAccessFromRepo(collabUserId, vo.getProjectDetails().getGitRepoName(), gheBaseUri, ghePat);
-					} else {
-						removeAdminAccessToGitUser = gitClient.removeAdminAccessFromRepo(collabUserId, vo.getProjectDetails().getGitRepoName());
-					}
+					HttpStatus removeAdminAccessToGitUser = gitClient.removeAdminAccessFromRepo(collabUserId,vo.getProjectDetails().getGitRepoName());
 					if(!removeAdminAccessToGitUser.is2xxSuccessful())
 					{
 						MessageDescription warnMsg = new MessageDescription("Failed while removing " + collabUserId
