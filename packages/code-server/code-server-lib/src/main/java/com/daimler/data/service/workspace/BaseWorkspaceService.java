@@ -817,6 +817,12 @@
 			entity.getData().setIntiatedOn(isoFormat.parse(isoFormat.format(new Date())));
 			// entity.getData().setStatus(ConstantsUtility.CREATEREQUESTEDSTATE);
 			entity.getData().setStatus(ConstantsUtility.CREATEDSTATE);//added
+			
+			String repoDetails = vo.getProjectDetails().getRecipeDetails().getRepodetails();
+			if (repoDetails != null && repoDetails.contains("ghe.com")) {
+				entity.getData().setIsWorkspaceMigratedToGHE(true);
+			}
+			
 			String recipeId = vo.getProjectDetails().getRecipeDetails().getRecipeId().toString();
 			String workspaceUrl = this.getWorkspaceUrl(recipeId,ownerwsid,workspaceOwner.getId(),vo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().toString());
 			entity.getData().setWorkspaceUrl(workspaceUrl);
@@ -1027,6 +1033,12 @@
 			 entity.getData().setIntiatedOn(isoFormat.parse(isoFormat.format(new Date())));
 			 // entity.getData().setStatus(ConstantsUtility.CREATEREQUESTEDSTATE);
 			 entity.getData().setStatus(ConstantsUtility.CREATEDSTATE);//added
+			 
+			 String repoDetails = vo.getProjectDetails().getRecipeDetails().getRepodetails();
+			 if (repoDetails != null && repoDetails.contains("ghe.com")) {
+				 entity.getData().setIsWorkspaceMigratedToGHE(true);
+			 }
+			 
 			 String recipeId = vo.getProjectDetails().getRecipeDetails().getRecipeId().toString();
 			 String workspaceUrl = this.getWorkspaceUrl(recipeId,ownerwsid,workspaceOwner.getId(),ConstantsUtility.DHC_CAAS_AWS);
 			 entity.getData().setWorkspaceUrl(workspaceUrl);
@@ -1742,6 +1754,8 @@
 		 boolean workspaceMigrated = false;
 		 boolean hasProdUrl = false;
 		 boolean hasIntUrl = false;
+		 boolean gheWorkspaceMigrated = false;
+
 		 try {
 			SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
 			Date now = isoFormat.parse(isoFormat.format(new Date()));
@@ -1766,7 +1780,6 @@
 				 if(Objects.nonNull(ownerEntity.getData().getIsWorkspaceMigrated())) {
 					workspaceMigrated = ownerEntity.getData().getIsWorkspaceMigrated();
 				 }
-				 boolean gheWorkspaceMigrated = false;
 				 if(Objects.nonNull(ownerEntity.getData().getIsWorkspaceMigratedToGHE())) {
 					gheWorkspaceMigrated = ownerEntity.getData().getIsWorkspaceMigratedToGHE();
 				 }
