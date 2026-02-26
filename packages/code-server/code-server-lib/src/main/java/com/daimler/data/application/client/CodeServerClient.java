@@ -32,10 +32,10 @@ public class CodeServerClient {
 	@Value("${codeServer.gitjob.manageuri}")
 	private String codeServerGitJobManageUri;
 
-	@Value("${codeServer.git.ghe.deployuri:}")
+	@Value("${codeServer.git.ghe.deployuri}")
 	private String codeServerGheJobDeployUri;
 	
-	@Value("${codeServer.git.ghe.manageuri:}")
+	@Value("${codeServer.git.ghe.manageuri}")
 	private String codeServerGheJobManageUri;
 
 	@Value("${codeServer.git.orguri}")
