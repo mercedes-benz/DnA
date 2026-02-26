@@ -1377,9 +1377,9 @@
 			 //  ownerEntity.getData().setStatus(ConstantsUtility.CREATEREQUESTEDSTATE);
 			 ownerEntity.getData().setStatus(ConstantsUtility.CREATEDSTATE);//added
 			 
-			 String repoDetailsCreate = vo.getProjectDetails().getRecipeDetails().getRepodetails();
-			 if (repoDetailsCreate != null && repoDetailsCreate.contains("ghe.com")) {
-				 ownerEntity.getData().setIsWorkspaceMigratedToGHE(true);
+			 String repoDetailsCreate = vo.getProjectDetails().getRecipeDetails().getRepodetails(); 
+			 if (repoDetailsCreate != null && repoDetailsCreate.contains("ghe.com")) { 
+				 ownerEntity.getData().setIsWorkspaceMigratedToGHE(true); 
 			 }
 			 
 			 String recipeId = vo.getProjectDetails().getRecipeDetails().getRecipeId().toString();
