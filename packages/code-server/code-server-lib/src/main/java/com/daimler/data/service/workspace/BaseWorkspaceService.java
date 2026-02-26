@@ -1868,9 +1868,11 @@
 						gitOrg = repoDetails.get(1);
 					}
 					if (Objects.nonNull(repoUrl) && repoUrl.contains("ghe.com")) {
-						deployJobInputDto.setRepo(codeserverGheOrgUri + gitOrg + "/" + repoName);
+						// deployJobInputDto.setRepo(codeserverGheOrgUri + gitOrg + "/" + repoName);
+						deployJobInputDto.setRepo(gitOrg + "/" + repoName);
 					} else {
-						deployJobInputDto.setRepo(codeserverGitOrgUri + gitOrg + "/" + repoName);
+						// deployJobInputDto.setRepo(codeserverGitOrgUri + gitOrg + "/" + repoName);
+						deployJobInputDto.setRepo(gitOrgName + "/" + repoName);
 					}
 				} else {
 					repoName = entity.getData().getProjectDetails().getGitRepoName();
@@ -4546,6 +4548,8 @@
                     }
                 } else {
                     repoName = entity.getData().getProjectDetails().getGitRepoName();
+					// deployJobInputDto.setRepo(codeserverGheOrgUri + gitOrgName + "/" + repoName);
+                    deployJobInputDto.setRepo(gitOrgName + "/" + repoName);
                 }
 				String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
 				 String workspaceOwner = entity.getData().getWorkspaceOwner().getId();
@@ -4560,8 +4564,6 @@
 				 if(Objects.nonNull(ownerEntity.getData().getIsWorkspaceMigratedToGHE())) {
 					gheWorkspaceMigrated = ownerEntity.getData().getIsWorkspaceMigratedToGHE();
 				 }
-
-				 deployJobInputDto.setShortid(workspaceOwner);
 				hasProdUrl = Objects.nonNull(
 						ownerEntity.getData().getProjectDetails().getProdDeploymentDetails().getDeploymentUrl());
 				hasIntUrl = Objects.nonNull(
@@ -4671,9 +4673,8 @@
 					if(commitId == null){
 						MessageDescription warning = new MessageDescription();
 						warning.setMessage("Error while adding commit id to deployment audit log");
-					}else{
-						auditLog.setCommitId(commitId.getSha());
 					}
+					 auditLog.setCommitId(commitId.getSha());
 					 auditLog.setImageDeleted(Boolean.FALSE);
 					 auditLog.setTriggeredOn(now);
 					 auditLog.setTriggeredBy(entity.getData().getWorkspaceOwner().getGitUserName());
