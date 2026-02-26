@@ -712,6 +712,22 @@
 					}
 				}
 			}
+			if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private")) {
+				String repoDetails = vo.getProjectDetails().getRecipeDetails().getRepodetails();
+				if (repoDetails == null || !repoDetails.contains("ghe.com")) {
+					HttpStatus addAdminAccessToGitUser = gitClient.addAdminAccessToRepo(entity.getData().getWorkspaceOwner().getGitUserName(),
+							repoName);
+					if (!addAdminAccessToGitUser.is2xxSuccessful()) {
+						MessageDescription warnMsg = new MessageDescription(
+								"Failed while adding " + entity.getData().getWorkspaceOwner().getGitUserName()
+										+ " as admin to repository");
+						log.info("Failed while adding {} as admin to repository. Please add manually",
+								entity.getData().getWorkspaceOwner().getGitUserName());
+						warnings.add(warnMsg);
+						responseVO.setWarnings(warnings);
+					}
+				}
+			}
  
 			WorkbenchManageDto ownerWorkbenchCreateDto = new WorkbenchManageDto();
 			ownerWorkbenchCreateDto.setRef(codeServerEnvRef);
@@ -899,6 +915,22 @@
 						 errors.add(errMsg);
 						 responseVO.setErrors(errors);
 						 return responseVO;
+					 }
+				 }
+			 }
+			 if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private")) {
+				 String repoDetails = vo.getProjectDetails().getRecipeDetails().getRepodetails();
+				 if (repoDetails == null || !repoDetails.contains("ghe.com")) {
+					 HttpStatus addAdminAccessToGitUser = gitClient.addAdminAccessToRepo(entity.getData().getWorkspaceOwner().getGitUserName(),
+							 repoName);
+					 if (!addAdminAccessToGitUser.is2xxSuccessful()) {
+						 MessageDescription warnMsg = new MessageDescription(
+								 "Failed while adding " + entity.getData().getWorkspaceOwner().getGitUserName()
+										 + " as admin to repository");
+						 log.info("Failed while adding {} as admin to repository. Please add manually",
+								 entity.getData().getWorkspaceOwner().getGitUserName());
+						 warnings.add(warnMsg);
+						 responseVO.setWarnings(warnings);
 					 }
 				 }
 			 }
