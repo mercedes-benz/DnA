@@ -1142,14 +1142,7 @@
 								}
 								if (gitUser.getValue() != null) {
 									if (gitUser.getValue()) {
-										String repoUrl = vo.getProjectDetails().getRecipeDetails().getRepodetails();
-										boolean isGheRepo = repoUrl != null && repoUrl.contains("ghe.com");
-										HttpStatus addAdminAccessToGitUser;
-										if (isGheRepo) {
-											addAdminAccessToGitUser = gitClient.addAdminAccessToRepo(gitUser.getKey(), repoName, gheBaseUri, ghePat);
-										} else {
-											addAdminAccessToGitUser = gitClient.addAdminAccessToRepo(gitUser.getKey(), repoName);
-										}
+										HttpStatus addAdminAccessToGitUser = gitClient.addAdminAccessToRepo(gitUser.getKey(), repoName);
 										if (!addAdminAccessToGitUser.is2xxSuccessful()) {
 											MessageDescription warnMsg = new MessageDescription(
 													"Failed while adding " + gitUser.getKey()
@@ -1178,14 +1171,8 @@
 				 repoName = vo.getProjectDetails().getRecipeDetails().getGitPath()+","+vo.getProjectDetails().getRecipeDetails().getGitRepoLoc();
 				}
 				if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private")) {
-					String gitUrl = vo.getProjectDetails().getRecipeDetails().getRepodetails();
-					boolean isGheRepo = gitUrl != null && gitUrl.contains("ghe.com");
-					HttpStatus addAdminAccessToGitUser;
-					if (isGheRepo) {
-						addAdminAccessToGitUser = gitClient.addAdminAccessToRepo(owner.getGitUserName(), repoName, gheBaseUri, ghePat);
-					} else {
-						addAdminAccessToGitUser = gitClient.addAdminAccessToRepo(owner.getGitUserName(), repoName);
-					}
+					HttpStatus addAdminAccessToGitUser = gitClient.addAdminAccessToRepo(owner.getGitUserName(),
+							repoName);
 					if (!addAdminAccessToGitUser.is2xxSuccessful()) {
 						MessageDescription warnMsg = new MessageDescription(
 								"Failed while adding " + owner.getGitUserName()
