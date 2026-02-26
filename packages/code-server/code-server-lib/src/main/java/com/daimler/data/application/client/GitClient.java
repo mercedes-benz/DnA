@@ -333,6 +333,10 @@ public class GitClient {
 }
 
 
+	// public HttpStatus addAdminAccessToRepo(String username, String repoName) {
+	// 	return addAdminAccessToRepo(username, repoName, gitBaseUri, personalAccessToken);
+	// }
+
 	public HttpStatus addAdminAccessToRepo(String username, String repoName) {
 		try {
 			HttpHeaders headers = new HttpHeaders();
