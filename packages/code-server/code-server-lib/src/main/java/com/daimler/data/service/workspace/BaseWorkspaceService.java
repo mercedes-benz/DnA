@@ -1178,14 +1178,8 @@
 				 repoName = vo.getProjectDetails().getRecipeDetails().getGitPath()+","+vo.getProjectDetails().getRecipeDetails().getGitRepoLoc();
 				}
 				if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private")) {
-					String gitUrl = vo.getProjectDetails().getRecipeDetails().getRepodetails();
-					boolean isGheRepo = gitUrl != null && gitUrl.contains("ghe.com");
-					HttpStatus addAdminAccessToGitUser;
-					if (isGheRepo) {
-						addAdminAccessToGitUser = gitClient.addAdminAccessToRepo(owner.getGitUserName(), repoName, gheBaseUri, ghePat);
-					} else {
-						addAdminAccessToGitUser = gitClient.addAdminAccessToRepo(owner.getGitUserName(), repoName);
-					}
+					HttpStatus addAdminAccessToGitUser = gitClient.addAdminAccessToRepo(owner.getGitUserName(),
+							repoName);
 					if (!addAdminAccessToGitUser.is2xxSuccessful()) {
 						MessageDescription warnMsg = new MessageDescription(
 								"Failed while adding " + owner.getGitUserName()
