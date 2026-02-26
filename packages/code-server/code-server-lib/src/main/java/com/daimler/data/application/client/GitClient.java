@@ -86,15 +86,19 @@ public class GitClient {
 	}
 
 	public HttpStatus createRepo(String applicationName, String repoName, String recipeName) {
+		return createRepo(applicationName, repoName, recipeName, gheBaseUri, ghePat);
+	}
+
+	public HttpStatus createRepo(String applicationName, String repoName, String recipeName, String baseUri, String pat) {
 		try {
-			log.info("Creating repo: name={}, application={}, recipe={}", 
-					repoName, applicationName, recipeName);
+			log.info("Creating repo: name={}, application={}, recipe={}, baseUri={}", 
+					repoName, applicationName, recipeName, baseUri);
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/vnd.github+json");
 			headers.set("Content-Type", "application/json");
-			headers.set("Authorization", "token " + ghePat);
+			headers.set("Authorization", "token " + pat);
 
-			String url = gheBaseUri + "/repos/" + applicationName + "/" + recipeName + "/generate";
+			String url = baseUri + "/repos/" + applicationName + "/" + recipeName + "/generate";
 			log.info("Create repo URL: {}", url);
 			String requestJsonString = "{\"owner\":\"" + gitOrgName + "\",\"name\":\"" + repoName
 					+ "\",\"description\":\"" + recipeName
@@ -102,16 +106,16 @@ public class GitClient {
 			HttpEntity<String> entity = new HttpEntity<String>(requestJsonString, headers);
 			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
 			if (response != null && response.getStatusCode() != null) {
-				log.info("Completed creating git repo in GHE {} initiated by user with status {}", gitOrgName,
+				log.info("Completed creating git repo {} at {} initiated by user with status {}", repoName, baseUri,
 						response.getStatusCode());
 				return response.getStatusCode();
 			}
 		} catch (HttpClientErrorException.UnprocessableEntity ex) {
-			log.error("Error: Name already exists while creating git repo {} with exception {}", gitOrgName,
+			log.error("Error: Name already exists while creating git repo {} at {} with exception {}", repoName, baseUri,
 					ex.getMessage());
 			return HttpStatus.CONFLICT;
 		} catch (Exception e) {
-			log.error("Error occured while creating git repo {} with exception {} ", gitOrgName, e.getMessage());
+			log.error("Error occured while creating git repo {} at {} with exception {} ", repoName, baseUri, e.getMessage());
 		}
 		return HttpStatus.INTERNAL_SERVER_ERROR;
 	}

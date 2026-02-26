@@ -1037,24 +1037,18 @@
 			 }
 			 List<UserInfoVO> collabs = new ArrayList<>();
 			 if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")) {
-				 // validate user pat
-				 if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
-						 .equalsIgnoreCase("default")) {
-					 String repoDetails = vo.getProjectDetails().getRecipeDetails().getRepodetails();
-					 String gitValidationUrl = (repoDetails != null && repoDetails.contains("ghe.com")) 
-							 ? gheBaseUri 
-							 : gitBaseUri;
-					 HttpStatus validateUserPatstatus = gitClient.validateGitPat(owner.getGitUserName(), pat, gitValidationUrl);
-					 if (!validateUserPatstatus.is2xxSuccessful()) {
-						 MessageDescription errMsg = new MessageDescription(
-								 "Invalid GitHub Personal Access Token provided. Please verify and retry.");
-						 errors.add(errMsg);
-						 responseVO.setErrors(errors);
-						 return responseVO;
-					 }
+			 if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
+					 .equalsIgnoreCase("default")) {
+				 HttpStatus validateUserPatstatus = gitClient.validateGitPat(owner.getGitUserName(), pat, gheBaseUri);
+				 if (!validateUserPatstatus.is2xxSuccessful()) {
+					 MessageDescription errMsg = new MessageDescription(
+							 "Invalid GitHub Personal Access Token provided. Please verify and retry.");
+					 errors.add(errMsg);
+					 responseVO.setErrors(errors);
+					 return responseVO;
 				 }
- 
-				 // initialize repo
+			 }
+			 	  // initialize repo
 				 if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
 						 .startsWith("private") &&
 						 !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
@@ -1071,7 +1065,8 @@
 							recipeName = repoDetails.get(1);
 						}
 						String repoOwner = repoDetails.get(0);
-						HttpStatus createRepoStatus = gitClient.createRepo(repoOwner,repoName,recipeName);
+						// All new workspace creations happen in GHE
+						HttpStatus createRepoStatus = gitClient.createRepo(repoOwner, repoName, recipeName, gheBaseUri, pat);
 						if (!createRepoStatus.is2xxSuccessful()) {
 							 MessageDescription errMsg = new MessageDescription(
 									 "Failed while initializing git repository " + repoName
