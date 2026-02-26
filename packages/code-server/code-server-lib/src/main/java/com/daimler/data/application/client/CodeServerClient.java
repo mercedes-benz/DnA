@@ -170,64 +170,64 @@ public class CodeServerClient {
 		return response;
 	}
 	
-	public GenericMessage manageWorkBench(WorkbenchManageDto manageDto, boolean useGHE) {
-		GenericMessage response = new GenericMessage();
-		String status = "FAILED";
-		List<MessageDescription> warnings = new ArrayList<>();
-		List<MessageDescription> errors = new ArrayList<>();
-		try {
-			HttpHeaders headers = new HttpHeaders();
-			headers.set("Accept", "application/json");
-			headers.set("Content-Type", "application/json");
+	// public GenericMessage manageWorkBench(WorkbenchManageDto manageDto, boolean useGHE) {
+	// 	GenericMessage response = new GenericMessage();
+	// 	String status = "FAILED";
+	// 	List<MessageDescription> warnings = new ArrayList<>();
+	// 	List<MessageDescription> errors = new ArrayList<>();
+	// 	try {
+	// 		HttpHeaders headers = new HttpHeaders();
+	// 		headers.set("Accept", "application/json");
+	// 		headers.set("Content-Type", "application/json");
 
-			String workflowUri;
-			if (useGHE) {
-				headers.set("Authorization", "Bearer " + ghePersonalAccessToken);
-				workflowUri = codeServerGheJobManageUri;
-				log.info("Using GHE workflow URI for workspace management: {}", workflowUri);
-			} else {
-				headers.set("Authorization", "Bearer " + personalAccessToken);
-				workflowUri = codeServerGitJobManageUri;
-				log.info("Using GitLab workflow URI for workspace management: {}", workflowUri);
-			}
+	// 		String workflowUri;
+	// 		if (useGHE) {
+	// 			headers.set("Authorization", "Bearer " + ghePersonalAccessToken);
+	// 			workflowUri = codeServerGheJobManageUri;
+	// 			log.info("Using GHE workflow URI for workspace management: {}", workflowUri);
+	// 		} else {
+	// 			headers.set("Authorization", "Bearer " + personalAccessToken);
+	// 			workflowUri = codeServerGitJobManageUri;
+	// 			log.info("Using GitLab workflow URI for workspace management: {}", workflowUri);
+	// 		}
 
-			log.debug(
-					"[CodeServerClient] manageWorkBench (GHE routing) - Calling REST API - Method: POST, URL: {}, UseGHE: {}, Action: {}, ShortId: {}, DTO: {}",
-					workflowUri, useGHE, manageDto.getInputs().getAction(), manageDto.getInputs().getShortid(),
-					manageDto);
+	// 		log.debug(
+	// 				"[CodeServerClient] manageWorkBench (GHE routing) - Calling REST API - Method: POST, URL: {}, UseGHE: {}, Action: {}, ShortId: {}, DTO: {}",
+	// 				workflowUri, useGHE, manageDto.getInputs().getAction(), manageDto.getInputs().getShortid(),
+	// 				manageDto);
 
-			HttpEntity<WorkbenchManageDto> entity = new HttpEntity<WorkbenchManageDto>(manageDto, headers);
-			ResponseEntity<String> manageWorkbenchResponse = restTemplate.exchange(workflowUri, HttpMethod.POST, entity,
-					String.class);
-			if (manageWorkbenchResponse != null && manageWorkbenchResponse.getStatusCode() != null) {
-				if (manageWorkbenchResponse.getStatusCode().is2xxSuccessful()) {
-					status = "SUCCESS";
-					log.info("Success while performing {} action for codeServer workbench for user {} ",
-							manageDto.getInputs().getAction(), manageDto.getInputs().getShortid());
-				} else {
-					log.info("Warnings while performing {} for codeServer workbench of user {}, httpstatuscode is {}",
-							manageDto.getInputs().getAction(), manageDto.getInputs().getShortid(),
-							manageWorkbenchResponse.getStatusCodeValue());
-					MessageDescription warning = new MessageDescription();
-					warning.setMessage("Response from codeServer Initialize : " + manageWorkbenchResponse.getBody()
-							+ " Response Code is : " + manageWorkbenchResponse.getStatusCodeValue());
-					warnings.add(warning);
-				}
-			}
+	// 		HttpEntity<WorkbenchManageDto> entity = new HttpEntity<WorkbenchManageDto>(manageDto, headers);
+	// 		ResponseEntity<String> manageWorkbenchResponse = restTemplate.exchange(workflowUri, HttpMethod.POST, entity,
+	// 				String.class);
+	// 		if (manageWorkbenchResponse != null && manageWorkbenchResponse.getStatusCode() != null) {
+	// 			if (manageWorkbenchResponse.getStatusCode().is2xxSuccessful()) {
+	// 				status = "SUCCESS";
+	// 				log.info("Success while performing {} action for codeServer workbench for user {} ",
+	// 						manageDto.getInputs().getAction(), manageDto.getInputs().getShortid());
+	// 			} else {
+	// 				log.info("Warnings while performing {} for codeServer workbench of user {}, httpstatuscode is {}",
+	// 						manageDto.getInputs().getAction(), manageDto.getInputs().getShortid(),
+	// 						manageWorkbenchResponse.getStatusCodeValue());
+	// 				MessageDescription warning = new MessageDescription();
+	// 				warning.setMessage("Response from codeServer Initialize : " + manageWorkbenchResponse.getBody()
+	// 						+ " Response Code is : " + manageWorkbenchResponse.getStatusCodeValue());
+	// 				warnings.add(warning);
+	// 			}
+	// 		}
 
-		} catch (Exception e) {
-			log.error(
-					"Error occured while calling codeServer manage workbench for user {} and action {} with exception {} ",
-					manageDto.getInputs().getAction(), manageDto.getInputs().getShortid(), e.getMessage());
-			MessageDescription error = new MessageDescription();
-			error.setMessage("Failed while managing codeserver workbench with exception " + e.getMessage());
-			errors.add(error);
-		}
-		response.setSuccess(status);
-		response.setWarnings(warnings);
-		response.setErrors(errors);
-		return response;
-	}
+	// 	} catch (Exception e) {
+	// 		log.error(
+	// 				"Error occured while calling codeServer manage workbench for user {} and action {} with exception {} ",
+	// 				manageDto.getInputs().getAction(), manageDto.getInputs().getShortid(), e.getMessage());
+	// 		MessageDescription error = new MessageDescription();
+	// 		error.setMessage("Failed while managing codeserver workbench with exception " + e.getMessage());
+	// 		errors.add(error);
+	// 	}
+	// 	response.setSuccess(status);
+	// 	response.setWarnings(warnings);
+	// 	response.setErrors(errors);
+	// 	return response;
+	// }
 
     // create code server using jupyter hub for a user 
 	public GenericMessage doCreateCodeServer(WorkbenchManageDto manageDto, String codespaceName) {
