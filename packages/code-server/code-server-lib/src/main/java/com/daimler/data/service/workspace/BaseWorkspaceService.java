@@ -1376,6 +1376,12 @@
 			 ownerEntity.getData().setIntiatedOn(now);
 			 //  ownerEntity.getData().setStatus(ConstantsUtility.CREATEREQUESTEDSTATE);
 			 ownerEntity.getData().setStatus(ConstantsUtility.CREATEDSTATE);//added
+			 
+			 String repoDetailsCreate = vo.getProjectDetails().getRecipeDetails().getRepodetails();
+			 if (repoDetailsCreate != null && repoDetailsCreate.contains("ghe.com")) {
+				 ownerEntity.getData().setIsWorkspaceMigratedToGHE(true);
+			 }
+			 
 			 String recipeId = vo.getProjectDetails().getRecipeDetails().getRecipeId().toString();
 			 String workspaceUrl = this.getWorkspaceUrl(recipeId,ownerwsid,projectOwnerId, vo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().toString());
 			 ownerEntity.getData().setWorkspaceUrl(workspaceUrl);
