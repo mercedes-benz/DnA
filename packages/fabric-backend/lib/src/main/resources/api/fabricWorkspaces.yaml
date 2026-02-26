@@ -616,6 +616,113 @@ paths:
         500:
           description: "Internal error"
 
+  /fabric-workspaces/keyVault:
+    post:
+      tags:
+        - "fabric-workspaces"
+      summary: "Create Azure Key Vault with Data Governance"
+      description: "Creates a new Azure Key Vault with data governance fields and assigns Key Vault Crypto Officer role to the creator."
+      operationId: "createKeyVault"
+      parameters:
+        - name: "keyVaultRequest"
+          in: "body"
+          description: "Request Body that contains data required for creating a new Key Vault including data governance fields"
+          required: true
+          schema:
+            $ref: "#/definitions/KeyVaultCreateRequestVO"
+      responses:
+        201:
+          description: "Returns Key Vault data with success or failure messages"
+          schema:
+            $ref: "#/definitions/KeyVaultResponseVO"
+        400:
+          description: "Bad Request - validation failed"
+          schema:
+            $ref: "#/definitions/KeyVaultResponseVO"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        409:
+          description: "Key Vault name already exists"
+          schema:
+            $ref: "#/definitions/KeyVaultResponseVO"
+        500:
+          description: "Internal error"
+          schema:
+            $ref: "#/definitions/KeyVaultResponseVO"
+    get:
+      tags:
+        - "fabric-workspaces"
+      summary: "Get all Azure Key Vaults created by the authenticated user"
+      description: "Retrieves all Azure Key Vaults created by the current user from the database with pagination support."
+      operationId: "getAllKeyVaults"
+      parameters:
+        - name: offset
+          in: query
+          description: "Page number from which listing should start. Offset. Example: 0"
+          required: false
+          type: integer
+        - name: limit
+          in: query
+          description: "Page size to limit the number of Key Vaults. Example: 15"
+          required: false
+          type: integer
+      responses:
+        200:
+          description: "Successfully retrieved Key Vaults"
+          schema:
+            $ref: "#/definitions/KeyVaultCollectionVO"
+        204:
+          description: "No Key Vaults found"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        500:
+          description: "Internal error"
+          schema:
+            $ref: "#/definitions/KeyVaultCollectionVO"
+
+  /fabric-workspaces/keyVault/{id}:
+    put:
+      tags:
+        - "fabric-workspaces"
+      summary: "Update Azure Key Vault Data Governance Fields"
+      description: "Updates an Azure Key Vault's data governance fields (description, division, department, etc.). Note: Key Vault name cannot be changed as Azure does not support renaming Key Vaults."
+      operationId: "updateKeyVault"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Key Vault ID to be updated"
+          required: true
+          type: "string"
+        - name: "keyVaultRequest"
+          in: "body"
+          description: "Request Body that contains data required for updating Key Vault data governance fields. Name must remain the same."
+          required: true
+          schema:
+            $ref: "#/definitions/KeyVaultCreateRequestVO"
+      responses:
+        200:
+          description: "Returns Key Vault data with success or failure messages"
+          schema:
+            $ref: "#/definitions/KeyVaultResponseVO"
+        400:
+          description: "Bad Request - validation failed or name change attempted"
+          schema:
+            $ref: "#/definitions/KeyVaultResponseVO"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        404:
+          description: "Key Vault not found."
+        500:
+          description: "Internal error"
+          schema:
+            $ref: "#/definitions/KeyVaultResponseVO"
+
 definitions:
   CapacityVO:
     type: object
@@ -1277,6 +1384,84 @@ definitions:
       groupName:
         type: string
         description: "Custom group name of the fabric workspace"
+
+  KeyVaultCreateRequestVO:
+    description: "Request object for creating Azure Key Vault with data governance fields"
+    type: object
+    properties:
+      data:
+        $ref: "#/definitions/KeyVaultVO"
+
+  KeyVaultResponseVO:
+    description: "Response object for Azure Key Vault operations"
+    type: object
+    properties:
+      data:
+        $ref: "#/definitions/KeyVaultVO"
+      responses:
+        $ref: "#/definitions/GenericMessage"
+  
+  KeyVaultVO:
+    description: "Azure Key Vault details with data governance fields"
+    type: object
+    properties:
+      id:
+        type: string
+        description: "Azure Resource ID of the Key Vault"
+      keyVaultName:
+        type: string
+        description: "Name of the Azure Key Vault (must start with 'kv-')"
+        minLength: 3
+        maxLength: 24
+      description:
+        type: string
+        description: "Description of the Key Vault purpose"
+        maxLength: 4000
+      dataClassification:
+        type: string
+        description: "Data classification level"
+      divisionId:
+        type: string
+        description: "Division ID"
+      division:
+        type: string
+        description: "Division name"
+      subDivisionId:
+        type: string
+        description: "Sub-division ID"
+      subDivision:
+        type: string
+        description: "Sub-division name"
+      department:
+        type: string
+        description: "Department name"
+      hasPii:
+        type: boolean
+        description: "Indicates if PII data will be stored"
+      location:
+        type: string
+        description: "Azure region where the Key Vault is located"
+      createdBy:
+        $ref: "#/definitions/CreatedByVO"
+      createdOn:
+        type: string
+        format: date
+        description: "Creation timestamp"
+
+  KeyVaultCollectionVO:
+    description: "Collection of Azure Key Vaults with pagination info"
+    type: object
+    properties:
+      totalCount:
+        type: integer
+        description: "Total number of Key Vault records"
+      records:
+        type: array
+        items:
+          $ref: "#/definitions/KeyVaultVO"
+      responses:
+        $ref: "#/definitions/GenericMessage"
+      
       
       
 
