@@ -1037,23 +1037,24 @@
 			 }
 			 List<UserInfoVO> collabs = new ArrayList<>();
 			 if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")) {
-			 if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
-					 .equalsIgnoreCase("default")) {
-				 log.info("Validating GHE PAT for user: {} against GHE URI: {}", owner.getGitUserName(), gheBaseUri);
-				 HttpStatus validateUserPatstatus = gitClient.validateGitPat(owner.getGitUserName(), pat, gheBaseUri);
-				 if (!validateUserPatstatus.is2xxSuccessful()) {
-					 log.error("GHE PAT validation failed for user: {} with status: {}", owner.getGitUserName(), validateUserPatstatus.name());
-					 MessageDescription errMsg = new MessageDescription(
-							 "Invalid GitHub Enterprise (GHE) Personal Access Token. All new workspaces are created in GHE. "
-							 + "Please generate a PAT from " + gheBaseUri.replace("/api/v3", "") + " (NOT from git.i) and retry. "
-							 + "Validation status: " + validateUserPatstatus.name());
-					 errors.add(errMsg);
-					 responseVO.setErrors(errors);
-					 return responseVO;
+				 // validate user pat
+				 if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
+						 .equalsIgnoreCase("default")) {
+					 String repoDetails = vo.getProjectDetails().getRecipeDetails().getRepodetails();
+					 String gitValidationUrl = (repoDetails != null && repoDetails.contains("ghe.com")) 
+							 ? gheBaseUri 
+							 : gitBaseUri;
+					 HttpStatus validateUserPatstatus = gitClient.validateGitPat(owner.getGitUserName(), pat, gitValidationUrl);
+					 if (!validateUserPatstatus.is2xxSuccessful()) {
+						 MessageDescription errMsg = new MessageDescription(
+								 "Invalid GitHub Personal Access Token provided. Please verify and retry.");
+						 errors.add(errMsg);
+						 responseVO.setErrors(errors);
+						 return responseVO;
+					 }
 				 }
-				 log.info("GHE PAT validation successful for user: {}", owner.getGitUserName());
-			 }
-			 	  // initialize repo
+ 
+				 // initialize repo
 				 if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
 						 .startsWith("private") &&
 						 !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
@@ -1070,8 +1071,7 @@
 							recipeName = repoDetails.get(1);
 						}
 						String repoOwner = repoDetails.get(0);
-						// All new workspace creations happen in GHE
-						HttpStatus createRepoStatus = gitClient.createRepo(repoOwner, repoName, recipeName, gheBaseUri, pat);
+						HttpStatus createRepoStatus = gitClient.createRepo(repoOwner,repoName,recipeName);
 						if (!createRepoStatus.is2xxSuccessful()) {
 							 MessageDescription errMsg = new MessageDescription(
 									 "Failed while initializing git repository " + repoName
@@ -1147,7 +1147,8 @@
 								}
 								if (gitUser.getValue() != null) {
 									if (gitUser.getValue()) {
-										HttpStatus addAdminAccessToGitUser = gitClient.addAdminAccessToRepo(gitUser.getKey(), repoName);
+										HttpStatus addAdminAccessToGitUser = gitClient
+												.addAdminAccessToRepo(gitUser.getKey(), repoName);
 										if (!addAdminAccessToGitUser.is2xxSuccessful()) {
 											MessageDescription warnMsg = new MessageDescription(
 													"Failed while adding " + gitUser.getKey()
@@ -1199,7 +1200,6 @@
 			 Long ownerwsseqid = jpaRepo.getNextWorkspaceSeqId();
 			 String ownerwsid = ConstantsUtility.WORKSPACEPREFIX + String.valueOf(ownerwsseqid);
 			 ownerEntity.getData().setWorkspaceId(ownerwsid);
-			 ownerEntity.getData().setIsWorkspaceMigratedToGHE(true);
 			 WorkbenchManageDto ownerWorkbenchCreateDto = new WorkbenchManageDto();
 			 ownerWorkbenchCreateDto.setRef(codeServerEnvRef);
 			 WorkbenchManageInputDto ownerWorkbenchCreateInputsDto = new WorkbenchManageInputDto();
@@ -1226,8 +1226,8 @@
 			 if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")
 					 && !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
 							 .startsWith("private")) {
-								//  repoNameWithOrg = gitOrgUri + gitOrgName + "/" + repoName;
-								 repoNameWithOrg = codeserverGheOrgUri + gitOrgName + "/" + repoName;
+								 
+								 repoNameWithOrg = gitOrgUri + gitOrgName + "/" + repoName;
 			 } else {
 				 repoNameWithOrg = vo.getProjectDetails().getRecipeDetails().getGitPath();
 				 pathCheckout = vo.getProjectDetails().getRecipeDetails().getGitRepoLoc();
@@ -1431,8 +1431,7 @@
 			 responseVO.setErrors(errors);
 			 return responseVO;
 		 }
-	 }
-	 private String getWorkspaceUrl(String recipeId,String wsId, String shortId, String cloudServiceProvider)
+	 } private String getWorkspaceUrl(String recipeId,String wsId, String shortId, String cloudServiceProvider)
 	 {
 		 String defaultRecipeId = RecipeIdEnum.DEFAULT.toString();
 		 String workspaceUrl = null;
