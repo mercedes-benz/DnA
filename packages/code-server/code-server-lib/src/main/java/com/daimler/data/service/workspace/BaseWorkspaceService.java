@@ -153,22 +153,25 @@
   
 	 @Value("${codeServer.git.orgname}")
 	 private String orgName;
+    
+	 @Value("${codeServer.git.ghe.pat}")
+     private String ghePat;
 
-	 @Value("${codeServer.git.ghe.orguri}")
-	 private String codeserverGheOrgUri;
-
-	 @Value("${codeServer.git.ghe.baseuri}")
+	 @Value("${codeServer.git.enterprise.url}")
 	 private String gheBaseUri;
 
 	 @Value("${codeServer.git.baseuri}")
 	 private String gitBaseUri;
 
-	 @Value("${codeServer.git.ghe.pat}")
-	 private String ghePat;
-
 	 @Value("${codeServer.git.orguri}")
 	 private String codeserverGitOrgUri;
-  
+
+	 @Value("${codeServer.git.ghe.orguri}")
+	 private String codeserverGheOrgUri;
+
+	 @Value("${codeServer.git.orgname}")
+	 private String codeServerGitOrgName;
+	 
 	 @Value("${codeServer.jupyter.url}")
 	 private String jupyterUrl;
   
