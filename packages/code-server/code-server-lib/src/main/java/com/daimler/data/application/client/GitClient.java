@@ -338,21 +338,25 @@ public class GitClient {
 	// }
 
 	public HttpStatus addAdminAccessToRepo(String username, String repoName) {
+		return addAdminAccessToRepo(username, repoName, gitBaseUri, personalAccessToken);
+	}
+
+	public HttpStatus addAdminAccessToRepo(String username, String repoName, String baseUri, String pat) {
 		try {
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");
-			headers.set("Authorization", "token "+ personalAccessToken);
-			String url = gitBaseUri+"/repos/" + gitOrgName + "/"+ repoName+ "/collaborators/" + username;
+			headers.set("Authorization", "token "+ pat);
+			String url = baseUri+"/repos/" + gitOrgName + "/"+ repoName+ "/collaborators/" + username;
 			String requestJsonString = "{\"permission\":\"admin\"}";
 			HttpEntity<String> entity = new HttpEntity<String>(requestJsonString, headers);
 			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.PUT, entity, String.class);
 			if (response != null && response.getStatusCode()!=null) {
-				log.info("completed adding user {}  as admin to git repo {} at {} , with status {} ", username, repoName, gitBaseUri, response.getStatusCode());
+				log.info("completed adding user {}  as admin to git repo {} at {} , with status {} ", username, repoName, baseUri, response.getStatusCode());
 				return response.getStatusCode();
 			}
 		} catch (Exception e) {
-			log.error("Error occured while adding {} as admin to git repo {} at {} with exception {}", username, repoName, gitBaseUri, e.getMessage());
+			log.error("Error occured while adding {} as admin to git repo {} at {} with exception {}", username, repoName, baseUri, e.getMessage());
 		}
 		return HttpStatus.INTERNAL_SERVER_ERROR;
 	}
