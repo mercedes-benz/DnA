@@ -80,7 +80,7 @@ public class WorkspaceJobStatusUpdateController  {
 	@ApiParam(value = "Request Body that contains data required for updating code server workbench status for user" ,required=true )  @Valid @RequestBody WorkspaceUpdateRequestVO updateRequestVO){
 		
 		String gitJobPat = httpRequest.getHeader("Authorization");
-		if(!gitJobPat.equalsIgnoreCase(personalAccessToken) && !gitJobPat.equalsIgnoreCase(ghePat)) {
+		if(!gitJobPat.equalsIgnoreCase(personalAccessToken) || !gitJobPat.equalsIgnoreCase(ghePat)) {
 			MessageDescription notAuthorizedMsg = new MessageDescription();
 			notAuthorizedMsg.setMessage(
 					"Authentication failed");
@@ -268,7 +268,7 @@ public class WorkspaceJobStatusUpdateController  {
         response.setSuccess("FAILED");
         try {
             String gitJobPat = httpRequest.getHeader("Authorization");
-		if(!gitJobPat.equalsIgnoreCase(personalAccessToken) && !gitJobPat.equalsIgnoreCase(ghePat)) {
+		if(!gitJobPat.equalsIgnoreCase(personalAccessToken) || !gitJobPat.equalsIgnoreCase(ghePat)) {
 			MessageDescription notAuthorizedMsg = new MessageDescription();
 			notAuthorizedMsg.setMessage(
 					"Authentication failed");
