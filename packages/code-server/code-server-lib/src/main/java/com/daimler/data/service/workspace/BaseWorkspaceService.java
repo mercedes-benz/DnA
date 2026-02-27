@@ -672,7 +672,7 @@
 			}
 			if(repoNameWithOrg.isEmpty()) {
 			   pathCheckout = "";
-			   repoNameWithOrg = vo.getProjectDetails().getGitRepoName().replace("https://", "");
+			   repoNameWithOrg = vo.getProjectDetails().getGitRepoName();
 		   }
 			UserInfoVO projectOwner = vo.getProjectDetails().getProjectOwner();
 			UserInfoVO workspaceOwner = vo.getWorkspaceOwner();
@@ -762,7 +762,7 @@
 				 ownerWorkbenchCreateInputsDto.setIsCollaborator("true");
 			 }
 			ownerWorkbenchCreateInputsDto.setPat(pat);
-			ownerWorkbenchCreateInputsDto.setRepo(repoNameWithOrg.replace("https://", ""));
+			ownerWorkbenchCreateInputsDto.setRepo(repoNameWithOrg);
 			ownerWorkbenchCreateInputsDto.setShortid(entity.getData().getWorkspaceOwner().getId());
 			if(entity.getData().getProjectDetails().getRecipeDetails().getToDeployType()!=null){
 				ownerWorkbenchCreateInputsDto.setType(entity.getData().getProjectDetails().getRecipeDetails().getToDeployType());
@@ -884,7 +884,7 @@
 			 }
 			 if(repoNameWithOrg.isEmpty()) {
 				pathCheckout = "";
-				repoNameWithOrg = vo.getProjectDetails().getGitRepoName().replace("https://", "");
+				repoNameWithOrg = vo.getProjectDetails().getGitRepoName();
 			}
 			 UserInfoVO projectOwner = vo.getProjectDetails().getProjectOwner();
 			 UserInfoVO workspaceOwner = vo.getWorkspaceOwner();
@@ -981,7 +981,7 @@
 			 if(!repoNameWithOrg.endsWith(".git")){
 				  repoNameWithOrg = repoNameWithOrg.concat(".git");
 			 }
-			 ownerWorkbenchCreateInputsDto.setRepo(repoNameWithOrg.replace("https://", ""));
+			 ownerWorkbenchCreateInputsDto.setRepo(repoNameWithOrg);
 			 ownerWorkbenchCreateInputsDto.setShortid(entity.getData().getWorkspaceOwner().getId());
 			 if(entity.getData().getProjectDetails().getRecipeDetails().getToDeployType()!=null){
 				 ownerWorkbenchCreateInputsDto.setType(entity.getData().getProjectDetails().getRecipeDetails().getToDeployType());
@@ -1280,7 +1280,7 @@
 				 pathCheckout = vo.getProjectDetails().getRecipeDetails().getGitRepoLoc();
 				 if(pathCheckout.isEmpty() && repoNameWithOrg.isEmpty()) {
 					 pathCheckout = "";
-					 repoNameWithOrg = vo.getProjectDetails().getGitRepoName().replace("https://", "");
+					 repoNameWithOrg = vo.getProjectDetails().getGitRepoName();
 				 }
 				 // repoNameWithOrg = vo.getProjectDetails().getRecipeDetails().getRepodetails();
 				 // String url[] = repoNameWithOrg.split(",");
@@ -1296,7 +1296,7 @@
 			 if(!repoNameWithOrg.endsWith(".git")){
 				repoNameWithOrg = repoNameWithOrg.concat(".git");
 			 }
-			 ownerWorkbenchCreateInputsDto.setRepo(repoNameWithOrg.replace("https://", ""));
+			 ownerWorkbenchCreateInputsDto.setRepo(repoNameWithOrg);
 			 String projectOwnerId = ownerEntity.getData().getWorkspaceOwner().getId();
 			 ownerWorkbenchCreateInputsDto.setShortid(projectOwnerId);
 			 if(vo.getProjectDetails().getRecipeDetails().getToDeployType()!=null){
