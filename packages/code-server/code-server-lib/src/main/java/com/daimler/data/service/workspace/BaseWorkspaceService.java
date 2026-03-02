@@ -157,6 +157,9 @@
 	 @Value("${codeServer.git.ghe.pat}")
      private String ghePat;
 
+	 @Value("${codeServer.git.pat}")
+	 private String gitPat;
+
 	 @Value("${codeServer.git.enterprise.url}")
 	 private String gheBaseUri;
 
@@ -821,6 +824,8 @@
 			String repoDetails = vo.getProjectDetails().getRecipeDetails().getRepodetails();
 			if (repoDetails != null && repoDetails.contains("ghe.com")) {
 				entity.getData().setIsWorkspaceMigratedToGHE(true);
+			} else {
+				entity.getData().setIsWorkspaceMigratedToGHE(false);
 			}
 			
 			String recipeId = vo.getProjectDetails().getRecipeDetails().getRecipeId().toString();
@@ -1037,6 +1042,8 @@
 			 String repoDetails = vo.getProjectDetails().getRecipeDetails().getRepodetails();
 			 if (repoDetails != null && repoDetails.contains("ghe.com")) {
 				 entity.getData().setIsWorkspaceMigratedToGHE(true);
+			 } else {
+				 entity.getData().setIsWorkspaceMigratedToGHE(false);
 			 }
 			 
 			 String recipeId = vo.getProjectDetails().getRecipeDetails().getRecipeId().toString();
@@ -1380,6 +1387,8 @@
 			 String repoDetailsCreate = vo.getProjectDetails().getRecipeDetails().getRepodetails(); 
 			 if (repoDetailsCreate != null && repoDetailsCreate.contains("ghe.com")) { 
 				 ownerEntity.getData().setIsWorkspaceMigratedToGHE(true); 
+			 } else {
+				 ownerEntity.getData().setIsWorkspaceMigratedToGHE(false);
 			 }
 			 
 			 String recipeId = vo.getProjectDetails().getRecipeDetails().getRecipeId().toString();
