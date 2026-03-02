@@ -5259,6 +5259,10 @@
 			CodeServerBuildDeployNsql optionalBuildDeployentity =  buildDeployCustomRepo.findByProjectName(requestVo.getProjectName());	
 			CodeServerBuildDeployNsql buildDeployentity = null;
 			CodeServerBuildDeploy buildDeployData = null;
+			log.info("updateGitJobRunId called for wsId={}, projectName={}, currentStatus={}, currentEnv={}, runId={}",
+					requestVo.getWsId(), requestVo.getProjectName(),
+					data.getProjectDetails().getLastBuildOrDeployedStatus(),
+					data.getProjectDetails().getLastBuildOrDeployedEnv(), requestVo.getGitJobRunId());
 			if(data.getProjectDetails().getLastBuildOrDeployedStatus().equalsIgnoreCase("BUILD_REQUESTED")){
 				CodeServerBuildDetails buildDetails = entity.getData().getProjectDetails().getIntBuildDetails();
 					 if (!"int".equalsIgnoreCase(data.getProjectDetails().getLastBuildOrDeployedEnv())) {
