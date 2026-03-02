@@ -5256,6 +5256,18 @@
 		try {
 			CodeServerWorkspaceNsql entity = workspaceCustomRepository.findByWorkspaceId(requestVo.getWsId());
 			CodeServerWorkspace data = entity.getData();
+			String currentStatus = data.getProjectDetails().getLastBuildOrDeployedStatus();
+			String currentEnv = data.getProjectDetails().getLastBuildOrDeployedEnv();
+			
+			log.info("updateGitJobRunId called for wsId={}, projectName={}, currentStatus={}, currentEnv={}, gitJobRunId={}", 
+				requestVo.getWsId(), requestVo.getProjectName(), currentStatus, currentEnv, requestVo.getGitJobRunId());
+			
+			if(currentStatus == null) {
+				log.error("updateGitJobRunId - currentStatus is null for wsId={}, projectName={}. Cannot update gitJobRunId.", 
+					requestVo.getWsId(), requestVo.getProjectName());
+				return response;
+			}
+			
 			CodeServerBuildDeployNsql optionalBuildDeployentity =  buildDeployCustomRepo.findByProjectName(requestVo.getProjectName());	
 			CodeServerBuildDeployNsql buildDeployentity = null;
 			CodeServerBuildDeploy buildDeployData = null;
@@ -5263,7 +5275,7 @@
 					requestVo.getWsId(), requestVo.getProjectName(),
 					data.getProjectDetails().getLastBuildOrDeployedStatus(),
 					data.getProjectDetails().getLastBuildOrDeployedEnv(), requestVo.getGitJobRunId());
-			if(data.getProjectDetails().getLastBuildOrDeployedStatus().equalsIgnoreCase("BUILD_REQUESTED")){
+			if(currentStatus.equalsIgnoreCase("BUILD_REQUESTED") || currentStatus.equalsIgnoreCase("BUILD_SUCCESS") || currentStatus.equalsIgnoreCase("BUILD_FAILED")){
 				CodeServerBuildDetails buildDetails = entity.getData().getProjectDetails().getIntBuildDetails();
 					 if (!"int".equalsIgnoreCase(data.getProjectDetails().getLastBuildOrDeployedEnv())) {
 						 buildDetails = entity.getData().getProjectDetails().getProdBuildDetails();
@@ -5273,19 +5285,29 @@
 				if(optionalBuildDeployentity != null){
 					   buildDeployentity = optionalBuildDeployentity;
 					   buildDeployData = buildDeployentity.getData();
-					   if("int".equalsIgnoreCase(data.getProjectDetails().getLastBuildOrDeployedEnv())){							
-						   int lastIndex = buildDeployData.getIntBuildAuditLogs().size() - 1;
-						   buildDeployData.getIntBuildAuditLogs().get(lastIndex).setGitjobRunID(requestVo.getGitJobRunId());						   
+					   if("int".equalsIgnoreCase(data.getProjectDetails().getLastBuildOrDeployedEnv())){
+						   List<BuildAudit> intLogs = buildDeployData.getIntBuildAuditLogs();
+						   if(intLogs != null && !intLogs.isEmpty()) {
+							   int lastIndex = intLogs.size() - 1;
+							   intLogs.get(lastIndex).setGitjobRunID(requestVo.getGitJobRunId());
+						   } else {
+							   log.warn("No int build audit logs found for wsId={}, projectName={}", requestVo.getWsId(), requestVo.getProjectName());
+						   }
 					   }else{
-						   int lastIndex = buildDeployData.getProdBuildAuditLogs().size() - 1;
-						   buildDeployData.getProdBuildAuditLogs().get(lastIndex).setGitjobRunID(requestVo.getGitJobRunId());
+						   List<BuildAudit> prodLogs = buildDeployData.getProdBuildAuditLogs();
+						   if(prodLogs != null && !prodLogs.isEmpty()) {
+							   int lastIndex = prodLogs.size() - 1;
+							   prodLogs.get(lastIndex).setGitjobRunID(requestVo.getGitJobRunId());
+						   } else {
+							   log.warn("No prod build audit logs found for wsId={}, projectName={}", requestVo.getWsId(), requestVo.getProjectName());
+						   }
 					   }
 					   buildDeployentity.setData(buildDeployData);
 					   buildDeployRepo.save(buildDeployentity);
 				   }
 				   response = "SUCCESS";
 				
-			}else if(data.getProjectDetails().getLastBuildOrDeployedStatus().equalsIgnoreCase("DEPLOY_REQUESTED")){
+			}else if(currentStatus.equalsIgnoreCase("DEPLOY_REQUESTED") || currentStatus.equalsIgnoreCase("DEPLOYED") || currentStatus.equalsIgnoreCase("DEPLOYMENT_FAILED")){
 				 CodeServerDeploymentDetails deploymentDetails = entity.getData().getProjectDetails().getIntDeploymentDetails();
 					 if (!"int".equalsIgnoreCase(data.getProjectDetails().getLastBuildOrDeployedEnv())) {
 						 deploymentDetails = entity.getData().getProjectDetails().getProdDeploymentDetails();
@@ -5296,46 +5318,62 @@
 					 if(optionalBuildDeployentity != null){
 						 buildDeployentity = optionalBuildDeployentity;
 						 buildDeployData = buildDeployentity.getData();
-						 if("int".equalsIgnoreCase(data.getProjectDetails().getLastBuildOrDeployedEnv())){							
-							 int lastIndex = buildDeployData.getIntDeploymentAuditLogs().size() - 1;
-							 buildDeployData.getIntDeploymentAuditLogs().get(lastIndex).setGitjobRunID(requestVo.getGitJobRunId());							 
-							 
+						 if("int".equalsIgnoreCase(data.getProjectDetails().getLastBuildOrDeployedEnv())){
+							 if(buildDeployData.getIntDeploymentAuditLogs() != null && !buildDeployData.getIntDeploymentAuditLogs().isEmpty()) {
+								 int lastIndex = buildDeployData.getIntDeploymentAuditLogs().size() - 1;
+								 buildDeployData.getIntDeploymentAuditLogs().get(lastIndex).setGitjobRunID(requestVo.getGitJobRunId());
+							 } else {
+								 log.warn("No int deployment audit logs found for wsId={}, projectName={}", requestVo.getWsId(), requestVo.getProjectName());
+							 }
 						 }else{
-							 int lastIndex = buildDeployData.getProdDeploymentAuditLogs().size() - 1;
-							 buildDeployData.getProdDeploymentAuditLogs().get(lastIndex).setGitjobRunID(requestVo.getGitJobRunId());		
+							 if(buildDeployData.getProdDeploymentAuditLogs() != null && !buildDeployData.getProdDeploymentAuditLogs().isEmpty()) {
+								 int lastIndex = buildDeployData.getProdDeploymentAuditLogs().size() - 1;
+								 buildDeployData.getProdDeploymentAuditLogs().get(lastIndex).setGitjobRunID(requestVo.getGitJobRunId());
+							 } else {
+								 log.warn("No prod deployment audit logs found for wsId={}, projectName={}", requestVo.getWsId(), requestVo.getProjectName());
+							 }
 						 }
 						 buildDeployentity.setData(buildDeployData);
 						 buildDeployRepo.save(buildDeployentity);
 					 }
 					  response = "SUCCESS";
 			}
-			else if (data.getProjectDetails().getLastBuildOrDeployedStatus().equalsIgnoreCase("RESTART_REQUESTED")) {
+			else if (currentStatus.equalsIgnoreCase("RESTART_REQUESTED") || currentStatus.equalsIgnoreCase("RESTARTED") || currentStatus.equalsIgnoreCase("RESTART_FAILED")) {
 
-				if (optionalBuildDeployentity != null) {
-					buildDeployentity = optionalBuildDeployentity;
-					buildDeployData = buildDeployentity.getData();
+			if (optionalBuildDeployentity != null) {
+				buildDeployentity = optionalBuildDeployentity;
+				buildDeployData = buildDeployentity.getData();
 
-					if ("int".equalsIgnoreCase(data.getProjectDetails().getLastBuildOrDeployedEnv())) {
-						int lastIndex = buildDeployData.getIntDeploymentAuditLogs().size() - 1;
-						buildDeployData.getIntDeploymentAuditLogs()
-								.get(lastIndex)
-								.setGitjobRunID(requestVo.getGitJobRunId());
+				if ("int".equalsIgnoreCase(data.getProjectDetails().getLastBuildOrDeployedEnv())) {
+					List<DeploymentAudit> intRestartLogs = buildDeployData.getIntDeploymentAuditLogs();
+					if(intRestartLogs != null && !intRestartLogs.isEmpty()) {
+						int lastIndex = intRestartLogs.size() - 1;
+						intRestartLogs.get(lastIndex).setGitjobRunID(requestVo.getGitJobRunId());
 					} else {
-						int lastIndex = buildDeployData.getProdDeploymentAuditLogs().size() - 1;
-						buildDeployData.getProdDeploymentAuditLogs()
-								.get(lastIndex)
-								.setGitjobRunID(requestVo.getGitJobRunId());
+						log.warn("No int restart deployment audit logs found for wsId={}, projectName={}", requestVo.getWsId(), requestVo.getProjectName());
 					}
-
-					buildDeployentity.setData(buildDeployData);
+				} else {
+					List<DeploymentAudit> prodRestartLogs = buildDeployData.getProdDeploymentAuditLogs();
+					if(prodRestartLogs != null && !prodRestartLogs.isEmpty()) {
+						int lastIndex = prodRestartLogs.size() - 1;
+						prodRestartLogs.get(lastIndex).setGitjobRunID(requestVo.getGitJobRunId());
+					} else {
+						log.warn("No prod restart deployment audit logs found for wsId={}, projectName={}", requestVo.getWsId(), requestVo.getProjectName());
+					}
+				}					buildDeployentity.setData(buildDeployData);
 					buildDeployRepo.save(buildDeployentity);
 				}
 
 				response = "SUCCESS";
 			}
+			else {
+				log.warn("updateGitJobRunId - Unhandled status '{}' for wsId={}, projectName={}. Cannot update gitJobRunId.", 
+					currentStatus, requestVo.getWsId(), requestVo.getProjectName());
+			}
 			return response;
 		} catch (Exception e) {
-			log.info("Failed to get gitJobRunId with exception " + e.getMessage());
+			log.error("Failed to update gitJobRunId for wsId={}, projectName={} with exception: {}", 
+				requestVo.getWsId(), requestVo.getProjectName(), e.getMessage(), e);
 			return response;
 		}
 	}
