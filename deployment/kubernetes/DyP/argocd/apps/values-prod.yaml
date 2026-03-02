@@ -91,3 +91,7 @@ db:
    env: int
  - name: mira
    env: prod
+ - name: fabric-assistant
+   env: int
+ - name: fabric-assistant
+   env: prod
