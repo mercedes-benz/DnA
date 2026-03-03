@@ -36,7 +36,8 @@ const DeployModal = (props) => {
       setBranchValue([projectDetails?.intDeploymentDetails?.lastDeployedBranch]);
     version?.length && setDeployEnvironment(buildEnvironment);
     ProgressIndicator.show();
-    const repoUrl = buildGitRepoUrl(projectDetails?.gitRepoName);
+    const isWorkspaceMigratedToGHE = props.codeSpaceData?.isWorkspaceMigratedToGHE;
+    const repoUrl = buildGitRepoUrl(projectDetails?.gitRepoName, isWorkspaceMigratedToGHE);
     CodeSpaceApiClient.getCodeSpacesGitBranchList(repoUrl)
       .then((res) => {
         ProgressIndicator.hide();

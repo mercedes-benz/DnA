@@ -288,7 +288,7 @@ const AllCodeSpaces = (props) => {
               <input type="checkbox" className="ff-only" id="faq-1" />
               <label className={classNames('expansion-panel-label', Styles.faqHeader)} htmlFor="faq-1">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-                  <span>1. I am not able to see my code post migrating to AWS</span>
+                  <span>1. I am not able to see my code post migrating</span>
                   <i tooltip-data="Expand" className="icon down-up-flip" />
                 </div>
               </label>

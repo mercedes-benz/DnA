@@ -3,6 +3,34 @@ import { PRIVATE_RECIPES } from './constants';
 import { matchPath } from 'react-router';
 import { routes } from '../components/CodeSpaceRoutes';
 
+const getGitRepoPrefix = () => {
+  let envRef = Envs.CODE_SERVER_GIT_ENVREF || '';
+
+  if (!envRef && window.CODE_SPACE_INJECTED_ENVIRONMENT) {
+    envRef = window.CODE_SPACE_INJECTED_ENVIRONMENT.CODE_SERVER_GIT_ENVREF || '';
+  }
+
+  if (!envRef) {
+    const apiUrl = Envs.API_BASEURL || '';
+    const codeSpaceApiUrl = Envs.CODE_SPACE_API_BASEURL || '';
+
+    if (apiUrl.includes('dev.') || codeSpaceApiUrl.includes('dev.')) {
+      envRef = 'dev';
+    } else if (apiUrl.includes('test.') || codeSpaceApiUrl.includes('test.')) {
+      envRef = 'test';
+    } else if (apiUrl.includes('prod.') || codeSpaceApiUrl.includes('prod.')) {
+      envRef = 'prod';
+    }
+  }
+
+  if (envRef.toLowerCase() === 'dev') {
+    return 'dev_cs';
+  } else if (envRef.toLowerCase() === 'test') {
+    return 'test_cs';
+  }
+  return '';
+};
+
 export const getParams = () => {
   for (const route of routes) {
     const match = matchPath(window.location.hash, {
@@ -54,20 +82,26 @@ export const buildGitJobLogViewAWSURL = (gitJobRunId) => {
 
 export const buildGitUrl = (gitRepoInfo) => {
     if (gitRepoInfo.includes('.git')) return gitRepoInfo.split(',')[0];
-    const repoName = gitRepoInfo.startsWith('dev_cs') ? gitRepoInfo : 'dev_cs' + gitRepoInfo;
+    const prefix = getGitRepoPrefix();
+    const repoName = gitRepoInfo.startsWith(prefix) ? gitRepoInfo : prefix + gitRepoInfo;
     return Envs.CODE_SPACE_GHE_PAT_APP_URL + Envs.CODE_SPACE_GIT_ORG_NAME + '/' + repoName;
 };
 
-export const buildGitRepoUrl = (gitRepoInfo) => {
+export const buildGitRepoUrl = (gitRepoInfo, isWorkspaceMigratedToGHE = true) => {
     if (!gitRepoInfo) return gitRepoInfo;
     if (gitRepoInfo.includes('http://') || gitRepoInfo.includes('https://')) {
         return gitRepoInfo;
     }
-    if (gitRepoInfo.includes('.git')) {
-        return gitRepoInfo;
+    if (gitRepoInfo.includes('.ghe.com')) {
+        return 'https://' + gitRepoInfo;
     }
-    const repoName = gitRepoInfo.startsWith('dev_cs') ? gitRepoInfo : 'dev_cs' + gitRepoInfo;
-    return Envs.CODE_SPACE_GHE_PAT_APP_URL + Envs.CODE_SPACE_GIT_ORG_NAME + '/' + repoName + '.git';
+    if (gitRepoInfo.includes('.git')) {
+        return 'https://' + gitRepoInfo;
+    }
+    const prefix = getGitRepoPrefix();
+    const repoName = gitRepoInfo.startsWith(prefix) ? gitRepoInfo : prefix + gitRepoInfo;
+    const baseUrl = isWorkspaceMigratedToGHE ? Envs.CODE_SPACE_GHE_PAT_APP_URL : Envs.CODE_SPACE_GIT_PAT_APP_URL;
+    return baseUrl + Envs.CODE_SPACE_GIT_ORG_NAME + '/' + repoName + '.git';
 };
 
 export const getRepoNameWithPrefix = (gitRepoInfo) => {
@@ -80,8 +114,8 @@ export const getRepoNameWithPrefix = (gitRepoInfo) => {
     if (gitRepoInfo.includes(',')) {
         repoName = gitRepoInfo.split(',')[0];
     }
-    // Add dev_cs prefix if not already present
-    return repoName.startsWith('dev_cs') ? gitRepoInfo : 'dev_cs' + gitRepoInfo;
+    const prefix = getGitRepoPrefix();
+    return repoName.startsWith(prefix) ? gitRepoInfo : prefix + gitRepoInfo;
 };
 
 // export const buildGitUrl = (gitRepoInfo) => {
