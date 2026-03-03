@@ -1934,18 +1934,20 @@
 						gitOrg = repoDetails.get(1);
 					}
 					if (Objects.nonNull(repoUrl) && repoUrl.contains("ghe.com")) {
-						deployJobInputDto.setRepo(codeserverGheOrgUri + gitOrg + "/" + repoName);
+						deployJobInputDto.setRepo(codeserverGheOrgUri + gitOrg + "/" + repoName); 
+						log.info("Repo URL contains ghe.com, using GHE URI for deployment: {}", deployJobInputDto.getRepo());
 					} else {
 						deployJobInputDto.setRepo(codeserverGitOrgUri + gitOrg + "/" + repoName);
-					}
-				} else {
-					repoName = entity.getData().getProjectDetails().getGitRepoName();
-					if (gheWorkspaceMigrated) {
-						deployJobInputDto.setRepo(codeserverGheOrgUri + gitOrgName + "/" + repoName);
-					} else {
-						deployJobInputDto.setRepo(codeserverGitOrgUri + gitOrgName + "/" + repoName);
-					}
-				}
+						log.info("Repo URL does not contain ghe.com, using Git URI for deployment: {}", deployJobInputDto.getRepo());
+					} 
+				} else { 
+					repoName = entity.getData().getProjectDetails().getGitRepoName(); 
+					if (gheWorkspaceMigrated) { 
+						deployJobInputDto.setRepo(codeserverGheOrgUri + gitOrgName + "/" + repoName); 
+					} else { 
+						deployJobInputDto.setRepo(codeserverGitOrgUri + gitOrgName + "/" + repoName); 
+					} 
+				} 
 				deployJobInputDto.setShortid(workspaceOwner);
 				deployJobInputDto.setTarget_env(environment);
 				Boolean isValutInjectorEnable = false; 
