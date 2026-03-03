@@ -427,7 +427,7 @@ public class GitClient {
         String gitOrg = null;
 		int page = 1;
 		int pageSize = 100;
-		String selectedBaseUri = Boolean.TRUE.equals(isWorkspaceMigratedToGHE) ? gheBaseUri : gitBaseUri;
+		String selectedBaseUri = isWorkspaceMigratedToGHE ? gheBaseUri : gitBaseUri;
 		log.info("Fetching branches from repo {} using {} (isWorkspaceMigratedToGHE={})", 
 				repo, selectedBaseUri, isWorkspaceMigratedToGHE);
 		
@@ -435,7 +435,7 @@ public class GitClient {
 		headers.set("Accept", "application/json");
 		headers.set("Content-Type", "application/json");
 
-		if (Boolean.TRUE.equals(isWorkspaceMigratedToGHE)) {
+		if (isWorkspaceMigratedToGHE) {
 			headers.set("Authorization", "token " + ghePat);
 		} else {
 			headers.set("Authorization", "token " + personalAccessToken);
@@ -456,7 +456,7 @@ public class GitClient {
             repoName = repo;
         }
         String orgName = Objects.nonNull(gitOrg) ? gitOrg : gitOrgName;
-        String baseApiUrl = Boolean.TRUE.equals(isWorkspaceMigratedToGHE) ? gheBaseUri : gitBaseUri;
+        String baseApiUrl = isWorkspaceMigratedToGHE ? gheBaseUri : gitBaseUri;
 
         while (true) {
             String url = baseApiUrl
