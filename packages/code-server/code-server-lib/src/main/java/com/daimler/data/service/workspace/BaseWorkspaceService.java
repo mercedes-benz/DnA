@@ -1308,7 +1308,9 @@
 			 if(!repoNameWithOrg.endsWith(".git")){
 				repoNameWithOrg = repoNameWithOrg.concat(".git");
 			 }
-			 ownerWorkbenchCreateInputsDto.setRepo(repoNameWithOrg);
+			 String jupyterRepoUrl = repoNameWithOrg.replaceFirst("^https://", "");
+			 ownerWorkbenchCreateInputsDto.setRepo(jupyterRepoUrl);
+			 log.info("JupyterHub repo URL: {}", jupyterRepoUrl);
 			 String projectOwnerId = ownerEntity.getData().getWorkspaceOwner().getId();
 			 ownerWorkbenchCreateInputsDto.setShortid(projectOwnerId);
 			 if(vo.getProjectDetails().getRecipeDetails().getToDeployType()!=null){
