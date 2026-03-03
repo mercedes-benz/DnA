@@ -1283,10 +1283,10 @@
 			 log.info("Setting repo URL for JupyterHub - isWorkspaceMigratedToGHE={}, using={}", 
 				 isWorkspaceMigratedToGHE, isWorkspaceMigratedToGHE ? "GHE" : "git.i");
 			 if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")
-								 repoNameWithOrg = effectiveGitOrgUri + gitOrgName + "/" + repoName;
+					 && !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
 							 .startsWith("private")) {
 								 
-								 repoNameWithOrg = gitOrgUri + gitOrgName + "/" + repoName;
+								 repoNameWithOrg = effectiveGitOrgUri + gitOrgName + "/" + repoName;
 			 } else {
 				 repoNameWithOrg = vo.getProjectDetails().getRecipeDetails().getGitPath();
 				 pathCheckout = vo.getProjectDetails().getRecipeDetails().getGitRepoLoc();
