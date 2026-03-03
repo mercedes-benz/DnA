@@ -1083,7 +1083,10 @@
 			 //map to store git username and is admin permission to repo
 			 Map<String,Boolean> gitUsers = new HashMap<>();
 			 UserInfoVO owner = vo.getProjectDetails().getProjectOwner();
-  
+		 	 String repoDetails = vo.getProjectDetails().getRecipeDetails().getRepodetails();
+			 boolean isWorkspaceMigratedToGHE = (repoDetails != null && repoDetails.contains("ghe.com"));
+			 log.info("Creating workspace with repo: {} - isWorkspaceMigratedToGHE: {} (will use {} server)", 
+			 		repoDetails, isWorkspaceMigratedToGHE, isWorkspaceMigratedToGHE ? "GHE" : "git.i");
 			 String repoName = vo.getProjectDetails().getGitRepoName();
 			 if (vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public") || vo
 					 .getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private")) {
@@ -1094,8 +1097,7 @@
 				 // validate user pat
 				 if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
 						 .equalsIgnoreCase("default")) {
-					 String repoDetails = vo.getProjectDetails().getRecipeDetails().getRepodetails();
-					 String gitValidationUrl = (repoDetails != null && repoDetails.contains("ghe.com")) 
+					 String gitValidationUrl = isWorkspaceMigratedToGHE
 							 ? gheBaseUri 
 							 : gitBaseUri;
 					 HttpStatus validateUserPatstatus = gitClient.validateGitPat(owner.getGitUserName(), pat, gitValidationUrl);
@@ -1119,12 +1121,12 @@
 						recipeName = recipeName+"-template";
 					 }
 						String gitUrl = vo.getProjectDetails().getRecipeDetails().getRepodetails();
-						List<String> repoDetails = null;
-						repoDetails = CommonUtils.getRepoNameFromGitUrl(gitUrl);
+						List<String> repoUrlParts = null;
+						repoUrlParts = CommonUtils.getRepoNameFromGitUrl(gitUrl);
 						if(null!=gitUrl && !gitUrl.isBlank()) {
-							recipeName = repoDetails.get(1);
+							recipeName = repoUrlParts.get(1);
 						}
-						String repoOwner = repoDetails.get(0);
+						String repoOwner = repoUrlParts.get(0);
 						HttpStatus createRepoStatus = gitClient.createRepo(repoOwner,repoName,recipeName);
 						if (!createRepoStatus.is2xxSuccessful()) {
 							 MessageDescription errMsg = new MessageDescription(
@@ -1154,7 +1156,7 @@
 							 }
 						 }
 							for (Map.Entry<String, Boolean> gitUser : gitUsers.entrySet()) {
-								HttpStatus addGitUser = gitClient.addUserToRepo(gitUser.getKey(), repoName);
+								HttpStatus addGitUser = gitClient.addUserToRepo(gitUser.getKey(), repoName, isWorkspaceMigratedToGHE);
 								if (addGitUser == HttpStatus.UNPROCESSABLE_ENTITY) {
 									log.info("Failed while adding {} as collaborator with status {}",gitUser.getKey(), addGitUser.name());
 									MessageDescription errMsg = new MessageDescription(
@@ -1202,7 +1204,7 @@
 								if (gitUser.getValue() != null) {
 									if (gitUser.getValue()) {
 										HttpStatus addAdminAccessToGitUser = gitClient
-												.addAdminAccessToRepo(gitUser.getKey(), repoName);
+												.addAdminAccessToRepo(gitUser.getKey(), repoName, isWorkspaceMigratedToGHE);
 										if (!addAdminAccessToGitUser.is2xxSuccessful()) {
 											MessageDescription warnMsg = new MessageDescription(
 													"Failed while adding " + gitUser.getKey()
@@ -1232,7 +1234,7 @@
 				}
 				if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private")) {
 					HttpStatus addAdminAccessToGitUser = gitClient.addAdminAccessToRepo(owner.getGitUserName(),
-							repoName);
+							repoName, isWorkspaceMigratedToGHE);
 					if (!addAdminAccessToGitUser.is2xxSuccessful()) {
 						MessageDescription warnMsg = new MessageDescription(
 								"Failed while adding " + owner.getGitUserName()
@@ -1408,13 +1410,12 @@
 				 for (UserInfoVO collaborator : collabs) {
 					if(vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
 					.startsWith("private")) {
-						List<String> repoDetails = CommonUtils.getRepoNameFromGitUrl(vo.getProjectDetails().getRecipeDetails().getRepodetails());
-						String orgName = repoDetails.get(0);
-						repoName = repoDetails.get(1);
+						List<String> privateRepoDetails = CommonUtils.getRepoNameFromGitUrl(vo.getProjectDetails().getRecipeDetails().getRepodetails());
+						String orgName = privateRepoDetails.get(0);
+						repoName = privateRepoDetails.get(1);
 						String gitHubUrl = gitOrgUri + orgName ;
 						if(vo.getProjectDetails().getRecipeDetails().getRepodetails().contains(gitHubUrl)){
-						HttpStatus addGitUser = gitClient.addUserToRepo(collaborator.getId(), repoName);
-					
+						HttpStatus addGitUser = gitClient.addUserToRepo(collaborator.getId(), repoName, isWorkspaceMigratedToGHE);
 					 if (addGitUser == HttpStatus.UNPROCESSABLE_ENTITY) {
 									log.info("Failed while adding {} as collaborator with status {}",collaborator.getId(), addGitUser.name());
 									MessageDescription errMsg = new MessageDescription(

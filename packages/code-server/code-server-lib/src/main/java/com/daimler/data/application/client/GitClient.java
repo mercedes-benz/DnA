@@ -211,12 +211,21 @@ public class GitClient {
 	}
 
 	public HttpStatus addUserToRepo(String username, String repoName) {
+		return addUserToRepo(username, repoName, null);
+	}
+
+	public HttpStatus addUserToRepo(String username, String repoName, Boolean isWorkspaceMigratedToGHE) {
 		try {
+			String baseUri = Boolean.TRUE.equals(isWorkspaceMigratedToGHE) ? gheBaseUri : gitBaseUri;
+			String pat = Boolean.TRUE.equals(isWorkspaceMigratedToGHE) ? ghePat : personalAccessToken;
+			log.info("Adding user {} to repo {} using {} (isWorkspaceMigratedToGHE={})", 
+					username, repoName, baseUri, isWorkspaceMigratedToGHE);
+			
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");
-			headers.set("Authorization", "token "+ personalAccessToken);
-			String url = gitBaseUri+"/repos/" + gitOrgName + "/"+ repoName+ "/collaborators/" + username;
+			headers.set("Authorization", "token "+ pat);
+			String url = baseUri+"/repos/" + gitOrgName + "/"+ repoName+ "/collaborators/" + username;
 			HttpEntity entity = new HttpEntity<>(headers);
 			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.PUT, entity, String.class);
 			if (response != null && response.getStatusCode()!=null) {
@@ -341,6 +350,14 @@ public class GitClient {
 		return addAdminAccessToRepo(username, repoName, gitBaseUri, personalAccessToken);
 	}
 
+	public HttpStatus addAdminAccessToRepo(String username, String repoName, Boolean isWorkspaceMigratedToGHE) {
+		String baseUri = Boolean.TRUE.equals(isWorkspaceMigratedToGHE) ? gheBaseUri : gitBaseUri;
+		String pat = Boolean.TRUE.equals(isWorkspaceMigratedToGHE) ? ghePat : personalAccessToken;
+		log.info("Adding admin access for user {} to repo {} using {} (isWorkspaceMigratedToGHE={})", 
+				username, repoName, baseUri, isWorkspaceMigratedToGHE);
+		return addAdminAccessToRepo(username, repoName, baseUri, pat);
+	}
+
 	public HttpStatus addAdminAccessToRepo(String username, String repoName, String baseUri, String pat) {
 		try {
 			HttpHeaders headers = new HttpHeaders();
@@ -403,25 +420,27 @@ public class GitClient {
 		return HttpStatus.INTERNAL_SERVER_ERROR;
 	}
 	
-	public GitBranchesCollectionDto getBranchesFromRepo(String username, String repo) {
+	public GitBranchesCollectionDto getBranchesFromRepo(String username, String repo, Boolean isWorkspaceMigratedToGHE) {
     GitBranchesCollectionDto allBranches = new GitBranchesCollectionDto();
     try {
         String repoName = null;
         String gitOrg = null;
-        int page = 1;
-        int pageSize = 100;
-        boolean isGhe = repo.contains("ghe.com");
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Accept", "application/json");
-        headers.set("Content-Type", "application/json");
+		int page = 1;
+		int pageSize = 100;
+		String selectedBaseUri = Boolean.TRUE.equals(isWorkspaceMigratedToGHE) ? gheBaseUri : gitBaseUri;
+		log.info("Fetching branches from repo {} using {} (isWorkspaceMigratedToGHE={})", 
+				repo, selectedBaseUri, isWorkspaceMigratedToGHE);
+		
+		HttpHeaders headers = new HttpHeaders();
+		headers.set("Accept", "application/json");
+		headers.set("Content-Type", "application/json");
 
-        if (isGhe) {
-            headers.set("Authorization", "token " + ghePat);
-        } else {
-            headers.set("Authorization", "token " + personalAccessToken);
-        }
-
-        if (repo.startsWith("https://")) {
+		if (Boolean.TRUE.equals(isWorkspaceMigratedToGHE)) {
+			headers.set("Authorization", "token " + ghePat);
+		} else {
+			headers.set("Authorization", "token " + personalAccessToken);
+		}        
+		if (repo.startsWith("https://")) {
             if (repo.endsWith(".git")) {
                 repo = repo.substring(0, repo.length() - 4);
             }
@@ -437,7 +456,7 @@ public class GitClient {
             repoName = repo;
         }
         String orgName = Objects.nonNull(gitOrg) ? gitOrg : gitOrgName;
-        String baseApiUrl = isGhe ? gheBaseUri : gitBaseUri;
+        String baseApiUrl = isWorkspaceMigratedToGHE ? gheBaseUri : gitBaseUri;
 
         while (true) {
             String url = baseApiUrl
