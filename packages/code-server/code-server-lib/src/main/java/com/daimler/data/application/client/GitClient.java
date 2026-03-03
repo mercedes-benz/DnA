@@ -456,7 +456,7 @@ public class GitClient {
             repoName = repo;
         }
         String orgName = Objects.nonNull(gitOrg) ? gitOrg : gitOrgName;
-        String baseApiUrl = isWorkspaceMigratedToGHE ? gheBaseUri : gitBaseUri;
+        String baseApiUrl = Boolean.TRUE.equals(isWorkspaceMigratedToGHE) ? gheBaseUri : gitBaseUri;
 
         while (true) {
             String url = baseApiUrl

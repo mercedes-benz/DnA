@@ -3654,10 +3654,16 @@
 				 repoName = workspace.getProjectDetails().getRecipeDetails().getRepodetails();
 			 }
 			 String pathCheckout = "";
+			 
+			 boolean isWorkspaceMigratedToGHE = Boolean.TRUE.equals(workspace.getIsWorkspaceMigratedToGHE());
+			 String effectiveGitOrgUri = isWorkspaceMigratedToGHE ? codeserverGheOrgUri : gitOrgUri;
+			 log.info("updateResourceValue - isWorkspaceMigratedToGHE: {}, using Git server: {}", 
+				 isWorkspaceMigratedToGHE, isWorkspaceMigratedToGHE ? "GHE" : "git.i");
+			 
 			 if (!workspace.getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase().startsWith("public")
 					 && !workspace.getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase()
 							 .startsWith("private")) {
-				 repoNameWithOrg = gitOrgUri + gitOrgName + "/" + repoName;
+				 repoNameWithOrg = effectiveGitOrgUri + gitOrgName + "/" + repoName;
 			 } else {
 				 repoNameWithOrg = workspace.getProjectDetails().getRecipeDetails().getRepodetails();
 				 if(repoNameWithOrg==null || repoNameWithOrg.isEmpty() || repoNameWithOrg.isBlank()){
