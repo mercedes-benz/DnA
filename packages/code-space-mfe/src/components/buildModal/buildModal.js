@@ -61,9 +61,11 @@ const BuildModal = (props) => {
       });
 
     ProgressIndicator.show();
-    const repoUrl = buildGitRepoUrl(projectDetails?.gitRepoName);
+    const isWorkspaceMigratedToGHE = props.codeSpaceData?.isWorkspaceMigratedToGHE;
+    const repoUrl = buildGitRepoUrl(projectDetails?.gitRepoName, isWorkspaceMigratedToGHE);
     console.log('BUILD MODAL DEBUG');
     console.log('Original gitRepoName:', projectDetails?.gitRepoName);
+    console.log('isWorkspaceMigratedToGHE:', isWorkspaceMigratedToGHE);
     console.log('Built repoUrl:', repoUrl);
     console.log('Expected format: dev_cs{repoName}');
     CodeSpaceApiClient.getCodeSpacesGitBranchList(repoUrl)
