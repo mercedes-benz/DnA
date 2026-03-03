@@ -1279,8 +1279,11 @@
 			 ownerWorkbenchCreateInputsDto.setPat(pat);
 			 String repoNameWithOrg = "";
 			 String pathCheckout = "";
+			 String effectiveGitOrgUri = isWorkspaceMigratedToGHE ? codeserverGheOrgUri : gitOrgUri;
+			 log.info("Setting repo URL for JupyterHub - isWorkspaceMigratedToGHE={}, using={}", 
+				 isWorkspaceMigratedToGHE, isWorkspaceMigratedToGHE ? "GHE" : "git.i");
 			 if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")
-					 && !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
+								 repoNameWithOrg = effectiveGitOrgUri + gitOrgName + "/" + repoName;
 							 .startsWith("private")) {
 								 
 								 repoNameWithOrg = gitOrgUri + gitOrgName + "/" + repoName;
