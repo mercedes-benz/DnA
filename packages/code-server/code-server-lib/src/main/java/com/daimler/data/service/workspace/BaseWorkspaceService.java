@@ -657,12 +657,18 @@
 				repoName = vo.getProjectDetails().getRecipeDetails().getRepodetails();
 			}
 			String pathCheckout = "";
+			boolean isWorkspaceMigratedToGHE = false;
+			String repoDetails = vo.getProjectDetails().getRecipeDetails().getRepodetails();
+			if (repoDetails != null && repoDetails.contains("ghe.com")) {
+				isWorkspaceMigratedToGHE = true;
+			}
 			if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")
 					&& !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
 							.startsWith("private")
 			   ) {
-				// repoNameWithOrg = gitOrgUri + gitOrgName + "/" + repoName;
-				repoNameWithOrg = codeserverGheOrgUri + gitOrgName + "/" + repoName;
+				String effectiveGitOrgUri = isWorkspaceMigratedToGHE ? codeserverGheOrgUri : codeserverGitOrgUri;
+				String effectiveOrgName = isWorkspaceMigratedToGHE ? gitOrgName : codeServerGitOrgName;
+				repoNameWithOrg = effectiveGitOrgUri + effectiveOrgName + "/" + repoName;
 			} else {
 				repoNameWithOrg = vo.getProjectDetails().getRecipeDetails().getRepodetails();
 				if(repoNameWithOrg.contains(",")) {
@@ -691,7 +697,6 @@
 		   }
 		   if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().equalsIgnoreCase("default") && 
 				!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")) {
-				String repoDetails = vo.getProjectDetails().getRecipeDetails().getRepodetails();
 				String gitValidationUrl = (repoDetails != null && repoDetails.contains("ghe.com")) 
 					? gheBaseUri 
 					: gitBaseUri;
@@ -716,7 +721,6 @@
 				}
 			}
 			if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private")) {
-				String repoDetails = vo.getProjectDetails().getRecipeDetails().getRepodetails();
 				if (repoDetails == null || !repoDetails.contains("ghe.com")) {
 					HttpStatus addAdminAccessToGitUser = gitClient.addAdminAccessToRepo(entity.getData().getWorkspaceOwner().getGitUserName(),
 							repoName);
@@ -823,7 +827,6 @@
 			// entity.getData().setStatus(ConstantsUtility.CREATEREQUESTEDSTATE);
 			entity.getData().setStatus(ConstantsUtility.CREATEDSTATE);//added
 			
-			String repoDetails = vo.getProjectDetails().getRecipeDetails().getRepodetails();
 			if (repoDetails != null && repoDetails.contains("ghe.com")) {
 				entity.getData().setIsWorkspaceMigratedToGHE(true);
 			} else {
@@ -873,12 +876,18 @@
 				 repoName = vo.getProjectDetails().getRecipeDetails().getRepodetails();
 			 }
 			 String pathCheckout = "";
+			 boolean isWorkspaceMigratedToGHE = false;
+			 String repoDetails = vo.getProjectDetails().getRecipeDetails().getRepodetails();
+			 if (repoDetails != null && repoDetails.contains("ghe.com")) {
+				 isWorkspaceMigratedToGHE = true;
+			 }
 			 if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")
 					 && !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
 							 .startsWith("private")
 				) {
-				//  repoNameWithOrg = gitOrgUri + gitOrgName + "/" + repoName;
-				 repoNameWithOrg = codeserverGheOrgUri + gitOrgName + "/" + repoName;
+				 String effectiveGitOrgUri = isWorkspaceMigratedToGHE ? codeserverGheOrgUri : codeserverGitOrgUri;
+				 String effectiveOrgName = isWorkspaceMigratedToGHE ? gitOrgName : codeServerGitOrgName;
+				 repoNameWithOrg = effectiveGitOrgUri + effectiveOrgName + "/" + repoName;
 			 } else {
 				 repoNameWithOrg = vo.getProjectDetails().getRecipeDetails().getRepodetails();
 				 if(repoNameWithOrg.contains(",")) {
@@ -907,7 +916,6 @@
 			}
 			if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().equalsIgnoreCase("default") && 
 				 !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")) {
-				 String repoDetails = vo.getProjectDetails().getRecipeDetails().getRepodetails();
 				 String gitValidationUrl = (repoDetails != null && repoDetails.contains("ghe.com")) 
 						 ? gheBaseUri 
 						 : gitBaseUri;
@@ -932,7 +940,6 @@
 				 }
 			 }
 			 if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private")) {
-				 String repoDetails = vo.getProjectDetails().getRecipeDetails().getRepodetails();
 				 if (repoDetails == null || !repoDetails.contains("ghe.com")) {
 					 HttpStatus addAdminAccessToGitUser = gitClient.addAdminAccessToRepo(entity.getData().getWorkspaceOwner().getGitUserName(),
 							 repoName);
@@ -1043,7 +1050,6 @@
 			 // entity.getData().setStatus(ConstantsUtility.CREATEREQUESTEDSTATE);
 			 entity.getData().setStatus(ConstantsUtility.CREATEDSTATE);//added
 			 
-			 String repoDetails = vo.getProjectDetails().getRecipeDetails().getRepodetails();
 			 if (repoDetails != null && repoDetails.contains("ghe.com")) {
 				 entity.getData().setIsWorkspaceMigratedToGHE(true);
 			 } else {
