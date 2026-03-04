@@ -769,7 +769,7 @@ const CodeSpace = (props) => {
                           {projectDetails?.gitRepoName && (
                             <>
                               <li>
-                                <a target="_blank" href={buildGitUrl(projectDetails?.gitRepoName)} rel="noreferrer">
+                                <a target="_blank" href={buildGitUrl(projectDetails?.gitRepoName, codeSpaceData?.isWorkspaceMigratedToGHE)} rel="noreferrer">
                                   Go to code repo
                                   <i className="icon mbc-icon new-tab" />
                                 </a>
