@@ -4571,7 +4571,9 @@
 		 String cloudServiceProvider = null;
 		 boolean workspaceMigrated = false;
 		 boolean hasProdUrl = false;
-		boolean hasIntUrl = false;
+		 boolean hasIntUrl = false;
+		 boolean gheWorkspaceMigrated = false;
+
 		 try {
 			 String repoName = null;
 			 String repoUrl = null;
@@ -4621,8 +4623,12 @@
                         deployJobInputDto.setRepo(codeserverGitOrgUri + gitOrg + "/" + repoName);
                     }
                 } else {
-                    repoName = entity.getData().getProjectDetails().getGitRepoName();
-					deployJobInputDto.setRepo(codeserverGheOrgUri + gitOrgName + "/" + repoName);
+                    repoName = entity.getData().getProjectDetails().getGitRepoName(); 
+					if(gheWorkspaceMigrated) { 
+						deployJobInputDto.setRepo(codeserverGheOrgUri + gitOrgName + "/" + repoName); 
+					} else { 
+						deployJobInputDto.setRepo(codeserverGitOrgUri + gitOrgName + "/" + repoName); 
+					}
                 }
 				String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
 				 String workspaceOwner = entity.getData().getWorkspaceOwner().getId();
@@ -4633,7 +4639,6 @@
 				 if(Objects.nonNull(ownerEntity.getData().getIsWorkspaceMigrated())) {
 					workspaceMigrated = ownerEntity.getData().getIsWorkspaceMigrated();
 				 }
-				 boolean gheWorkspaceMigrated = false;
 				 if(Objects.nonNull(ownerEntity.getData().getIsWorkspaceMigratedToGHE())) {
 					gheWorkspaceMigrated = ownerEntity.getData().getIsWorkspaceMigratedToGHE();
 				 }
