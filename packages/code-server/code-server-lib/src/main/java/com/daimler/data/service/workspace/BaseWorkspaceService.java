@@ -765,7 +765,9 @@
 				 ownerWorkbenchCreateInputsDto.setIsCollaborator("true");
 			 }
 			ownerWorkbenchCreateInputsDto.setPat(pat);
-			ownerWorkbenchCreateInputsDto.setRepo(repoNameWithOrg);
+			String jupyterRepoUrl = repoNameWithOrg.replaceFirst("^https://", "");
+			ownerWorkbenchCreateInputsDto.setRepo(jupyterRepoUrl);
+			log.info("JupyterHub repo URL: {}", jupyterRepoUrl);
 			ownerWorkbenchCreateInputsDto.setShortid(entity.getData().getWorkspaceOwner().getId());
 			if(entity.getData().getProjectDetails().getRecipeDetails().getToDeployType()!=null){
 				ownerWorkbenchCreateInputsDto.setType(entity.getData().getProjectDetails().getRecipeDetails().getToDeployType());
@@ -986,7 +988,9 @@
 			 if(!repoNameWithOrg.endsWith(".git")){
 				  repoNameWithOrg = repoNameWithOrg.concat(".git");
 			 }
-			 ownerWorkbenchCreateInputsDto.setRepo(repoNameWithOrg);
+			 String jupyterRepoUrl = repoNameWithOrg.replaceFirst("^https://", "");
+			 ownerWorkbenchCreateInputsDto.setRepo(jupyterRepoUrl);
+			 log.info("JupyterHub repo URL: {}", jupyterRepoUrl);
 			 ownerWorkbenchCreateInputsDto.setShortid(entity.getData().getWorkspaceOwner().getId());
 			 if(entity.getData().getProjectDetails().getRecipeDetails().getToDeployType()!=null){
 				 ownerWorkbenchCreateInputsDto.setType(entity.getData().getProjectDetails().getRecipeDetails().getToDeployType());
@@ -3711,7 +3715,9 @@
 					ownerWorkbenchCreateInputsDto.setEnvironment(codeServerEnvValueAws);
 				}
 				 ownerWorkbenchCreateInputsDto.setIsCollaborator("false");
-				 ownerWorkbenchCreateInputsDto.setRepo(repoNameWithOrg);
+				 String jupyterRepoUrl = repoNameWithOrg.replaceFirst("^https://", "");
+				 ownerWorkbenchCreateInputsDto.setRepo(jupyterRepoUrl);
+				 log.info("JupyterHub repo URL: {}", jupyterRepoUrl);
 				 ownerWorkbenchCreateInputsDto.setShortid(workspace.getWorkspaceOwner().getId());
 				 if(workspace.getProjectDetails().getRecipeDetails().getToDeployType()!=null){
 					 ownerWorkbenchCreateInputsDto.setType(workspace.getProjectDetails().getRecipeDetails().getToDeployType());
@@ -3834,7 +3840,9 @@
 					ownerWorkbenchCreateInputsDto.setEnvironment(codeServerEnvValueAws);
 				}
 				 ownerWorkbenchCreateInputsDto.setIsCollaborator("false");
-				 ownerWorkbenchCreateInputsDto.setRepo(repoNameWithOrg);
+				 String jupyterRepoUrl = repoNameWithOrg.replaceFirst("^https://", "");
+				 ownerWorkbenchCreateInputsDto.setRepo(jupyterRepoUrl);
+				 log.info("JupyterHub repo URL: {}", jupyterRepoUrl);
 				 ownerWorkbenchCreateInputsDto.setShortid(workspace.getWorkspaceOwner().getId());
 				 if(workspace.getProjectDetails().getRecipeDetails().getToDeployType()!=null){
 					 ownerWorkbenchCreateInputsDto.setType(workspace.getProjectDetails().getRecipeDetails().getToDeployType());
