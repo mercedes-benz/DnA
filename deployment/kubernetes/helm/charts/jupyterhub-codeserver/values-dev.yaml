@@ -109,6 +109,29 @@ hub:
       from kubespawner.spawner import KubeSpawner
       from jupyterhub.spawner import _quote_safe
 
+      def redact_sensitive_data(data):
+          """Redact sensitive information like tokens and passwords from logs"""
+          if not isinstance(data, dict):
+              return data
+          
+          import copy
+          redacted = copy.deepcopy(data)
+          sensitive_keys = ['token', 'password', 'secret', 'pat', 'key', 'credential']
+          
+          # Redact top-level sensitive keys
+          for key in list(redacted.keys()):
+              if any(sensitive in key.lower() for sensitive in sensitive_keys):
+                  redacted[key] = '***REDACTED***'
+          
+          # Redact env variables
+          if 'env' in redacted and isinstance(redacted['env'], dict):
+              redacted['env'] = {
+                  k: '***REDACTED***' if any(s in k.upper() for s in ['TOKEN', 'PASSWORD', 'SECRET', 'PAT', 'KEY', 'CREDENTIAL']) else v
+                  for k, v in redacted['env'].items()
+              }
+          
+          return redacted
+
       class CodeSpaceKubeSpawner(KubeSpawner):
           """
           Custom KubeSpawner that stores complete workspace configuration
@@ -122,12 +145,12 @@ hub:
               """
               # Log the complete user_options being stored in database
               self.log.info(f"[WORKSPACE-START] Server: '{self.name}', User: '{self.user.name}'")
-              self.log.info(f"[WORKSPACE-CONFIG] Complete user_options stored in DB: {json.dumps(self.user_options, indent=2)}")
+              self.log.info(f"[WORKSPACE-CONFIG] Complete user_options stored in DB: {json.dumps(redact_sensitive_data(self.user_options), indent=2)}")
               
               # Extract environment variables from user_options
               user_options_env = self.user_options.get("env", {})
               if user_options_env:
-                  self.log.info(f"[WORKSPACE-ENV] Environment variables: {json.dumps(user_options_env, indent=2)}")
+                  self.log.info(f"[WORKSPACE-ENV] Environment variables: {json.dumps(redact_sensitive_data({'env': user_options_env})['env'], indent=2)}")
               
               # Extract and log resource configurations
               storage_capacity = self.user_options.get('storage_capacity')
@@ -149,7 +172,7 @@ hub:
           async def stop(self, now=False):
               """Override stop to log workspace shutdown."""
               self.log.info(f"[WORKSPACE-STOP] Server: '{self.name}', User: '{self.user.name}'")
-              self.log.info(f"[WORKSPACE-CONFIG] Stored user_options: {json.dumps(self.user_options, indent=2)}")
+              self.log.info(f"[WORKSPACE-CONFIG] Stored user_options: {json.dumps(redact_sensitive_data(self.user_options), indent=2)}")
               return await super().stop(now=now)
           
           def get_args(self):
@@ -221,8 +244,21 @@ hub:
           Apply resource configurations from user_options stored in JupyterHub database.
           All configuration details sent via API are preserved here.
           """
+          # Redact sensitive data for logging
+          def redact_log_data(data):
+              if not isinstance(data, dict):
+                  return data
+              import copy
+              redacted = copy.deepcopy(data)
+              if 'env' in redacted and isinstance(redacted['env'], dict):
+                  redacted['env'] = {
+                      k: '***REDACTED***' if any(s in k.upper() for s in ['TOKEN', 'PASSWORD', 'SECRET', 'PAT', 'KEY']) else v
+                      for k, v in redacted['env'].items()
+                  }
+              return redacted
+          
           spawner.log.info(f"[PRE-SPAWN] Applying resources for user '{spawner.user.name}', server '{spawner.name}'")
-          spawner.log.info(f"[PRE-SPAWN] user_options from DB: {json.dumps(spawner.user_options, indent=2)}")
+          spawner.log.info(f"[PRE-SPAWN] user_options from DB: {json.dumps(redact_log_data(spawner.user_options), indent=2)}")
           
           # Apply storage capacity
           storage_capacity = spawner.user_options.get("storage_capacity", "1Gi")
