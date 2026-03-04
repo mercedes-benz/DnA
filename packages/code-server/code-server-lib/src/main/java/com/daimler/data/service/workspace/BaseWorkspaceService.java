@@ -141,6 +141,9 @@
   
 	 @Value("${codeServer.git.orgname}")
 	 private String gitOrgName;
+
+	 @Value("${codeServer.git.gitOrgname}")
+	 private String codeServerGitOrgName;
   
 	 @Value("${codeServer.env.value}")
 	 private String codeServerEnvValue;
@@ -171,9 +174,6 @@
 
 	 @Value("${codeServer.git.ghe.orguri}")
 	 private String codeserverGheOrgUri;
-
-	 @Value("${codeServer.git.orgname}")
-	 private String codeServerGitOrgName;
 
 	 @Value("${codeServer.jupyter.url}")
 	 private String jupyterUrl;
@@ -1280,13 +1280,14 @@
 			 String repoNameWithOrg = "";
 			 String pathCheckout = "";
 			 String effectiveGitOrgUri = isWorkspaceMigratedToGHE ? codeserverGheOrgUri : gitOrgUri;
+			 String effectiveOrgName = isWorkspaceMigratedToGHE ? gitOrgName : codeServerGitOrgName;
 			 log.info("Setting repo URL for JupyterHub - isWorkspaceMigratedToGHE={}, using={}", 
 				 isWorkspaceMigratedToGHE, isWorkspaceMigratedToGHE ? "GHE" : "git.i");
 			 if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")
 					 && !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
 							 .startsWith("private")) {
 								 
-								 repoNameWithOrg = effectiveGitOrgUri + gitOrgName + "/" + repoName;
+								 repoNameWithOrg = effectiveGitOrgUri + effectiveOrgName + "/" + repoName;
 			 } else {
 				 repoNameWithOrg = vo.getProjectDetails().getRecipeDetails().getGitPath();
 				 pathCheckout = vo.getProjectDetails().getRecipeDetails().getGitRepoLoc();
@@ -1945,7 +1946,7 @@
 					if (gheWorkspaceMigrated) { 
 						deployJobInputDto.setRepo(codeserverGheOrgUri + gitOrgName + "/" + repoName); 
 					} else { 
-						deployJobInputDto.setRepo(codeserverGitOrgUri + gitOrgName + "/" + repoName); 
+						deployJobInputDto.setRepo(codeserverGitOrgUri + codeServerGitOrgName + "/" + repoName); 
 					} 
 				} 
 				deployJobInputDto.setShortid(workspaceOwner);
@@ -3667,13 +3668,14 @@
 			 
 			 boolean isWorkspaceMigratedToGHE = Boolean.TRUE.equals(workspace.getIsWorkspaceMigratedToGHE());
 			 String effectiveGitOrgUri = isWorkspaceMigratedToGHE ? codeserverGheOrgUri : gitOrgUri;
+			 String effectiveOrgName = isWorkspaceMigratedToGHE ? gitOrgName : codeServerGitOrgName;
 			 log.info("updateResourceValue - isWorkspaceMigratedToGHE: {}, using Git server: {}", 
 				 isWorkspaceMigratedToGHE, isWorkspaceMigratedToGHE ? "GHE" : "git.i");
 			 
 			 if (!workspace.getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase().startsWith("public")
 					 && !workspace.getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase()
 							 .startsWith("private")) {
-				 repoNameWithOrg = effectiveGitOrgUri + gitOrgName + "/" + repoName;
+				 repoNameWithOrg = effectiveGitOrgUri + effectiveOrgName + "/" + repoName;
 			 } else {
 				 repoNameWithOrg = workspace.getProjectDetails().getRecipeDetails().getRepodetails();
 				 if(repoNameWithOrg==null || repoNameWithOrg.isEmpty() || repoNameWithOrg.isBlank()){
@@ -4627,7 +4629,7 @@
 					if(gheWorkspaceMigrated) { 
 						deployJobInputDto.setRepo(codeserverGheOrgUri + gitOrgName + "/" + repoName); 
 					} else { 
-						deployJobInputDto.setRepo(codeserverGitOrgUri + gitOrgName + "/" + repoName); 
+						deployJobInputDto.setRepo(codeserverGitOrgUri + codeServerGitOrgName + "/" + repoName); 
 					}
                 }
 				String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
