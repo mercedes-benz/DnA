@@ -24,9 +24,9 @@ const getGitRepoPrefix = () => {
   }
 
   if (envRef.toLowerCase() === 'dev') {
-    return 'dev_cs';
+    return 'dev-cs';
   } else if (envRef.toLowerCase() === 'test') {
-    return 'test_cs';
+    return 'test-cs';
   }
   return '';
 };
