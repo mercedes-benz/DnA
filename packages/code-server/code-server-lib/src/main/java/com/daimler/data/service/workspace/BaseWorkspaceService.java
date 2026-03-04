@@ -1934,18 +1934,20 @@
 						gitOrg = repoDetails.get(1);
 					}
 					if (Objects.nonNull(repoUrl) && repoUrl.contains("ghe.com")) {
-						deployJobInputDto.setRepo(codeserverGheOrgUri + gitOrg + "/" + repoName);
+						deployJobInputDto.setRepo(codeserverGheOrgUri + gitOrg + "/" + repoName); 
+						log.info("Repo URL contains ghe.com, using GHE URI for deployment: {}", deployJobInputDto.getRepo());
 					} else {
 						deployJobInputDto.setRepo(codeserverGitOrgUri + gitOrg + "/" + repoName);
-					}
-				} else {
-					repoName = entity.getData().getProjectDetails().getGitRepoName();
-					if (gheWorkspaceMigrated) {
-						deployJobInputDto.setRepo(codeserverGheOrgUri + gitOrgName + "/" + repoName);
-					} else {
-						deployJobInputDto.setRepo(codeserverGitOrgUri + gitOrgName + "/" + repoName);
-					}
-				}
+						log.info("Repo URL does not contain ghe.com, using Git URI for deployment: {}", deployJobInputDto.getRepo());
+					} 
+				} else { 
+					repoName = entity.getData().getProjectDetails().getGitRepoName(); 
+					if (gheWorkspaceMigrated) { 
+						deployJobInputDto.setRepo(codeserverGheOrgUri + gitOrgName + "/" + repoName); 
+					} else { 
+						deployJobInputDto.setRepo(codeserverGitOrgUri + gitOrgName + "/" + repoName); 
+					} 
+				} 
 				deployJobInputDto.setShortid(workspaceOwner);
 				deployJobInputDto.setTarget_env(environment);
 				Boolean isValutInjectorEnable = false; 
@@ -2479,6 +2481,9 @@
 				 String repoName = entity.getData().getProjectDetails().getGitRepoName();
 				 String projectName = entity.getData().getProjectDetails().getProjectName();
   
+				 Boolean isWorkspaceMigratedToGHE = entity.getData().getIsWorkspaceMigratedToGHE();
+				 log.info("Adding collaborator to workspace - isWorkspaceMigratedToGHE: {}", isWorkspaceMigratedToGHE);
+
 				 UserInfo collaborator = new UserInfo();
 				 BeanUtils.copyProperties(userRequestDto, collaborator);
 				 if(!userRequestDto.isIsAdmin()){
@@ -2501,7 +2506,7 @@
 					repoName = repoDetails.get(1);
 					String gitHubUrl = gitOrgUri + orgName ;
 					if(gitUrl.contains(gitHubUrl)){
-						HttpStatus addGitUser = gitClient.addUserToRepo(gitUser, repoName);
+						HttpStatus addGitUser = gitClient.addUserToRepo(gitUser, repoName, isWorkspaceMigratedToGHE);
 					if(addGitUser == HttpStatus.UNPROCESSABLE_ENTITY){
 						log.info("Failed while adding {} as collaborator with status {}", repoName,
 								userRequestDto.getGitUserName(), addGitUser.name());
@@ -2548,7 +2553,7 @@
 				 if(! (vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")
 						 || vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private") 
 						 || vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().equalsIgnoreCase("default"))) {
-					 HttpStatus addGitUser = gitClient.addUserToRepo(gitUser, repoName);
+					 HttpStatus addGitUser = gitClient.addUserToRepo(gitUser, repoName, isWorkspaceMigratedToGHE);
 					if(addGitUser == HttpStatus.UNPROCESSABLE_ENTITY){
 						log.info("Failed while adding {} as collaborator with status {}", repoName,
 								userRequestDto.getGitUserName(), addGitUser.name());
