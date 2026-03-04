@@ -222,7 +222,7 @@ const ContextMenu = (props) => {
           </li>
           {projectDetails?.gitRepoName && (
             <li>
-              <a target="_blank" href={buildGitUrl(codeSpace.projectDetails?.gitRepoName)} rel="noreferrer">
+              <a target="_blank" href={buildGitUrl(codeSpace.projectDetails?.gitRepoName, codeSpace.isWorkspaceMigratedToGHE)} rel="noreferrer">
                 Go to code repo
                 <i className="icon mbc-icon new-tab" />
               </a>
