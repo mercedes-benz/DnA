@@ -241,8 +241,7 @@ hub:
           cpu_limit = spawner.user_options.get("cpu_limit")
           spawner.log.info(f"[PRE-SPAWN] Applying CPU - guarantee: {cpu_guarantee}, limit: {cpu_limit}")
           spawner.cpu_guarantee = cpu_guarantee
-          if cpu_limit is not None:
-              # spawner.cpu_limit = cpu_limit
+          # CPU limit intentionally not set to allow pods to burst above guarantee
           
           # Apply extra containers if provided
           extra_containers = spawner.user_options.get("extra_containers", [])
