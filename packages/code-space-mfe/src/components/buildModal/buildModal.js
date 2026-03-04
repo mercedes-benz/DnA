@@ -67,7 +67,7 @@ const BuildModal = (props) => {
     console.log('Original gitRepoName:', projectDetails?.gitRepoName);
     console.log('isWorkspaceMigratedToGHE:', isWorkspaceMigratedToGHE);
     console.log('Built repoUrl:', repoUrl);
-    console.log('Expected format: dev_cs{repoName}');
+    console.log('Expected format: dev-cs{repoName}');
     CodeSpaceApiClient.getCodeSpacesGitBranchList(repoUrl)
       .then((res) => {
         ProgressIndicator.hide();
