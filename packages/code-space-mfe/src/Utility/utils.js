@@ -118,12 +118,9 @@ export const buildGitRepoUrl = (gitRepoInfo, isWorkspaceMigratedToGHE = true) =>
     let baseUrl;
     
     if (isWorkspaceMigratedToGHE) {
-        const prefix = getGitRepoPrefix();
-        repoName = gitRepoInfo.startsWith(prefix) ? gitRepoInfo : prefix + gitRepoInfo;
         orgName = Envs.CODE_SPACE_GHE_ORG_NAME;
         baseUrl = Envs.CODE_SPACE_GHE_PAT_APP_URL;
     } else {
-        repoName = gitRepoInfo;
         orgName = Envs.CODE_SPACE_GIT_ORG_NAME;
         baseUrl = Envs.CODE_SPACE_GIT_PAT_APP_URL;
     }
