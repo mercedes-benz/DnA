@@ -765,7 +765,7 @@
 				 ownerWorkbenchCreateInputsDto.setIsCollaborator("true");
 			 }
 			ownerWorkbenchCreateInputsDto.setPat(pat);
-			String jupyterRepoUrl = repoNameWithOrg.replaceFirst("^https://", "");
+			String jupyterRepoUrl = repoNameWithOrg.replaceFirst("^https://", "").replaceAll("\\.git$", "");
 			ownerWorkbenchCreateInputsDto.setRepo(jupyterRepoUrl);
 			log.info("JupyterHub repo URL: {}", jupyterRepoUrl);
 			ownerWorkbenchCreateInputsDto.setShortid(entity.getData().getWorkspaceOwner().getId());
@@ -988,7 +988,7 @@
 			 if(!repoNameWithOrg.endsWith(".git")){
 				  repoNameWithOrg = repoNameWithOrg.concat(".git");
 			 }
-			 String jupyterRepoUrl = repoNameWithOrg.replaceFirst("^https://", "");
+			 String jupyterRepoUrl = repoNameWithOrg.replaceFirst("^https://", "").replaceAll("\\.git$", "");
 			 ownerWorkbenchCreateInputsDto.setRepo(jupyterRepoUrl);
 			 log.info("JupyterHub repo URL: {}", jupyterRepoUrl);
 			 ownerWorkbenchCreateInputsDto.setShortid(entity.getData().getWorkspaceOwner().getId());
@@ -3715,7 +3715,7 @@
 					ownerWorkbenchCreateInputsDto.setEnvironment(codeServerEnvValueAws);
 				}
 				 ownerWorkbenchCreateInputsDto.setIsCollaborator("false");
-				 String jupyterRepoUrl = repoNameWithOrg.replaceFirst("^https://", "");
+				 String jupyterRepoUrl = repoNameWithOrg.replaceFirst("^https://", "").replaceAll("\\.git$", "");
 				 ownerWorkbenchCreateInputsDto.setRepo(jupyterRepoUrl);
 				 log.info("JupyterHub repo URL: {}", jupyterRepoUrl);
 				 ownerWorkbenchCreateInputsDto.setShortid(workspace.getWorkspaceOwner().getId());
@@ -3840,7 +3840,7 @@
 					ownerWorkbenchCreateInputsDto.setEnvironment(codeServerEnvValueAws);
 				}
 				 ownerWorkbenchCreateInputsDto.setIsCollaborator("false");
-				 String jupyterRepoUrl = repoNameWithOrg.replaceFirst("^https://", "");
+				 String jupyterRepoUrl = repoNameWithOrg.replaceFirst("^https://", "").replaceAll("\\.git$", "");
 				 ownerWorkbenchCreateInputsDto.setRepo(jupyterRepoUrl);
 				 log.info("JupyterHub repo URL: {}", jupyterRepoUrl);
 				 ownerWorkbenchCreateInputsDto.setShortid(workspace.getWorkspaceOwner().getId());
