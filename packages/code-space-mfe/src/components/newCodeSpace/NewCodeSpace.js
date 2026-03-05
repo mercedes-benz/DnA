@@ -977,7 +977,13 @@ const NewCodeSpace = (props) => {
   const recipe = recipesMaster.find((item) => item.id === recipeValue);
 
   const isPublicRecipeChoosen = recipe?.aliasId && recipe?.aliasId?.startsWith('public');
-  const githubUrlValue = isPublicRecipeChoosen ? 'https://github.com/' : (selectedRecipe?.repodetails?.includes(Envs.CODE_SPACE_GHE_PAT_APP_URL) ? Envs.CODE_SPACE_GHE_PAT_APP_URL : Envs.CODE_SPACE_GIT_PAT_APP_URL);
+  const isWorkspaceMigratedToGHE = props.onBoardingCodeSpace?.isWorkspaceMigratedToGHE || props.onEditingCodeSpace?.isWorkspaceMigratedToGHE;
+  const repoDetailsUrl = projectDetails?.recipeDetails?.repodetails;
+  const githubUrlValue = isPublicRecipeChoosen 
+    ? 'https://github.com/' 
+    : (isWorkspaceMigratedToGHE || repoDetailsUrl?.includes('ghe.com') || repoDetailsUrl?.includes('mercedes-benz.ghe.com'))
+      ? Envs.CODE_SPACE_GHE_PAT_APP_URL 
+      : Envs.CODE_SPACE_GIT_PAT_APP_URL;
   const resources = projectDetails?.recipeDetails?.resource?.split(',');
 
   const ssoInfoPopupContent = (
