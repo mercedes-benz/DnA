@@ -1948,7 +1948,7 @@
 						deployJobInputDto.setRepo(codeserverGheOrgUri + gitOrg + "/" + repoName); 
 						log.info("Repo URL contains ghe.com, using GHE URI for deployment: {}", deployJobInputDto.getRepo());
 					} else {
-						deployJobInputDto.setRepo(codeserverGitOrgUri + gitOrg + "/" + repoName);
+						deployJobInputDto.setRepo(codeserverGitOrgUri + codeServerGitOrgName + "/" + repoName);
 						log.info("Repo URL does not contain ghe.com, using Git URI for deployment: {}", deployJobInputDto.getRepo());
 					} 
 				} else { 
@@ -4604,6 +4604,9 @@
 				 deployJobInputDto.setEnvironment(codeServerEnvValue);
 				 deployJobInputDto.setTarget_env(environment);
 
+		         gheWorkspaceMigrated = entity.getData().getIsWorkspaceMigratedToGHE() != null ? entity.getData().getIsWorkspaceMigratedToGHE() : false;
+
+
 			// if (isPrivateRecipe) {
 			// 	repoUrl = entity.getData().getProjectDetails().getRecipeDetails().getRepodetails();
 			// 	// Remove .git suffix if present
@@ -4636,7 +4639,7 @@
                     if (Objects.nonNull(repoUrl) && repoUrl.contains("ghe.com")) {
 						deployJobInputDto.setRepo(codeserverGheOrgUri + gitOrg + "/" + repoName);
                     } else {
-                        deployJobInputDto.setRepo(codeserverGitOrgUri + gitOrg + "/" + repoName);
+                        deployJobInputDto.setRepo(codeserverGitOrgUri + codeServerGitOrgName + "/" + repoName);
                     }
                 } else {
                     repoName = entity.getData().getProjectDetails().getGitRepoName(); 
