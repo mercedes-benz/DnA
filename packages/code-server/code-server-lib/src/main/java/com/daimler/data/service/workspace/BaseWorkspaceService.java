@@ -5323,25 +5323,29 @@
 				if(optionalBuildDeployentity != null){
 					   buildDeployentity = optionalBuildDeployentity;
 					   buildDeployData = buildDeployentity.getData();
-					   if("int".equalsIgnoreCase(data.getProjectDetails().getLastBuildOrDeployedEnv())){
-						   List<BuildAudit> intLogs = buildDeployData.getIntBuildAuditLogs();
-						   if(intLogs != null && !intLogs.isEmpty()) {
-							   int lastIndex = intLogs.size() - 1;
-							   intLogs.get(lastIndex).setGitjobRunID(requestVo.getGitJobRunId());
-						   } else {
-							   log.warn("No int build audit logs found for wsId={}, projectName={}", requestVo.getWsId(), requestVo.getProjectName());
+					   if(buildDeployData != null) {
+						   if("int".equalsIgnoreCase(data.getProjectDetails().getLastBuildOrDeployedEnv())){
+							   List<BuildAudit> intLogs = buildDeployData.getIntBuildAuditLogs();
+							   if(intLogs != null && !intLogs.isEmpty()) {
+								   int lastIndex = intLogs.size() - 1;
+								   intLogs.get(lastIndex).setGitjobRunID(requestVo.getGitJobRunId());
+							   } else {
+								   log.warn("No int build audit logs found for wsId={}, projectName={}", requestVo.getWsId(), requestVo.getProjectName());
+							   }
+						   }else{
+							   List<BuildAudit> prodLogs = buildDeployData.getProdBuildAuditLogs();
+							   if(prodLogs != null && !prodLogs.isEmpty()) {
+								   int lastIndex = prodLogs.size() - 1;
+								   prodLogs.get(lastIndex).setGitjobRunID(requestVo.getGitJobRunId());
+							   } else {
+								   log.warn("No prod build audit logs found for wsId={}, projectName={}", requestVo.getWsId(), requestVo.getProjectName());
+							   }
 						   }
-					   }else{
-						   List<BuildAudit> prodLogs = buildDeployData.getProdBuildAuditLogs();
-						   if(prodLogs != null && !prodLogs.isEmpty()) {
-							   int lastIndex = prodLogs.size() - 1;
-							   prodLogs.get(lastIndex).setGitjobRunID(requestVo.getGitJobRunId());
-						   } else {
-							   log.warn("No prod build audit logs found for wsId={}, projectName={}", requestVo.getWsId(), requestVo.getProjectName());
-						   }
+						   buildDeployentity.setData(buildDeployData);
+						   buildDeployRepo.save(buildDeployentity);
+					   } else {
+						   log.warn("BuildDeployData is null for wsId={}, projectName={}. Skipping build audit log update.", requestVo.getWsId(), requestVo.getProjectName());
 					   }
-					   buildDeployentity.setData(buildDeployData);
-					   buildDeployRepo.save(buildDeployentity);
 				   }
 				   response = "SUCCESS";
 				
@@ -5356,23 +5360,27 @@
 					 if(optionalBuildDeployentity != null){
 						 buildDeployentity = optionalBuildDeployentity;
 						 buildDeployData = buildDeployentity.getData();
-						 if("int".equalsIgnoreCase(data.getProjectDetails().getLastBuildOrDeployedEnv())){
-							 if(buildDeployData.getIntDeploymentAuditLogs() != null && !buildDeployData.getIntDeploymentAuditLogs().isEmpty()) {
-								 int lastIndex = buildDeployData.getIntDeploymentAuditLogs().size() - 1;
-								 buildDeployData.getIntDeploymentAuditLogs().get(lastIndex).setGitjobRunID(requestVo.getGitJobRunId());
-							 } else {
-								 log.warn("No int deployment audit logs found for wsId={}, projectName={}", requestVo.getWsId(), requestVo.getProjectName());
+						 if(buildDeployData != null) {
+							 if("int".equalsIgnoreCase(data.getProjectDetails().getLastBuildOrDeployedEnv())){
+								 if(buildDeployData.getIntDeploymentAuditLogs() != null && !buildDeployData.getIntDeploymentAuditLogs().isEmpty()) {
+									 int lastIndex = buildDeployData.getIntDeploymentAuditLogs().size() - 1;
+									 buildDeployData.getIntDeploymentAuditLogs().get(lastIndex).setGitjobRunID(requestVo.getGitJobRunId());
+								 } else {
+									 log.warn("No int deployment audit logs found for wsId={}, projectName={}", requestVo.getWsId(), requestVo.getProjectName());
+								 }
+							 }else{
+								 if(buildDeployData.getProdDeploymentAuditLogs() != null && !buildDeployData.getProdDeploymentAuditLogs().isEmpty()) {
+									 int lastIndex = buildDeployData.getProdDeploymentAuditLogs().size() - 1;
+									 buildDeployData.getProdDeploymentAuditLogs().get(lastIndex).setGitjobRunID(requestVo.getGitJobRunId());
+								 } else {
+									 log.warn("No prod deployment audit logs found for wsId={}, projectName={}", requestVo.getWsId(), requestVo.getProjectName());
+								 }
 							 }
-						 }else{
-							 if(buildDeployData.getProdDeploymentAuditLogs() != null && !buildDeployData.getProdDeploymentAuditLogs().isEmpty()) {
-								 int lastIndex = buildDeployData.getProdDeploymentAuditLogs().size() - 1;
-								 buildDeployData.getProdDeploymentAuditLogs().get(lastIndex).setGitjobRunID(requestVo.getGitJobRunId());
-							 } else {
-								 log.warn("No prod deployment audit logs found for wsId={}, projectName={}", requestVo.getWsId(), requestVo.getProjectName());
-							 }
+							 buildDeployentity.setData(buildDeployData);
+							 buildDeployRepo.save(buildDeployentity);
+						 } else {
+							 log.warn("BuildDeployData is null for wsId={}, projectName={}. Skipping audit log update.", requestVo.getWsId(), requestVo.getProjectName());
 						 }
-						 buildDeployentity.setData(buildDeployData);
-						 buildDeployRepo.save(buildDeployentity);
 					 }
 					  response = "SUCCESS";
 			}
@@ -5382,24 +5390,29 @@
 				buildDeployentity = optionalBuildDeployentity;
 				buildDeployData = buildDeployentity.getData();
 
-				if ("int".equalsIgnoreCase(data.getProjectDetails().getLastBuildOrDeployedEnv())) {
-					List<DeploymentAudit> intRestartLogs = buildDeployData.getIntDeploymentAuditLogs();
-					if(intRestartLogs != null && !intRestartLogs.isEmpty()) {
-						int lastIndex = intRestartLogs.size() - 1;
-						intRestartLogs.get(lastIndex).setGitjobRunID(requestVo.getGitJobRunId());
+				if(buildDeployData != null) {
+					if ("int".equalsIgnoreCase(data.getProjectDetails().getLastBuildOrDeployedEnv())) {
+						List<DeploymentAudit> intRestartLogs = buildDeployData.getIntDeploymentAuditLogs();
+						if(intRestartLogs != null && !intRestartLogs.isEmpty()) {
+							int lastIndex = intRestartLogs.size() - 1;
+							intRestartLogs.get(lastIndex).setGitjobRunID(requestVo.getGitJobRunId());
+						} else {
+							log.warn("No int restart deployment audit logs found for wsId={}, projectName={}", requestVo.getWsId(), requestVo.getProjectName());
+						}
 					} else {
-						log.warn("No int restart deployment audit logs found for wsId={}, projectName={}", requestVo.getWsId(), requestVo.getProjectName());
+						List<DeploymentAudit> prodRestartLogs = buildDeployData.getProdDeploymentAuditLogs();
+						if(prodRestartLogs != null && !prodRestartLogs.isEmpty()) {
+							int lastIndex = prodRestartLogs.size() - 1;
+							prodRestartLogs.get(lastIndex).setGitjobRunID(requestVo.getGitJobRunId());
+						} else {
+							log.warn("No prod restart deployment audit logs found for wsId={}, projectName={}", requestVo.getWsId(), requestVo.getProjectName());
+						}
 					}
-				} else {
-					List<DeploymentAudit> prodRestartLogs = buildDeployData.getProdDeploymentAuditLogs();
-					if(prodRestartLogs != null && !prodRestartLogs.isEmpty()) {
-						int lastIndex = prodRestartLogs.size() - 1;
-						prodRestartLogs.get(lastIndex).setGitjobRunID(requestVo.getGitJobRunId());
-					} else {
-						log.warn("No prod restart deployment audit logs found for wsId={}, projectName={}", requestVo.getWsId(), requestVo.getProjectName());
-					}
-				}					buildDeployentity.setData(buildDeployData);
+					buildDeployentity.setData(buildDeployData);
 					buildDeployRepo.save(buildDeployentity);
+				} else {
+					log.warn("BuildDeployData is null for wsId={}, projectName={}. Skipping restart audit log update.", requestVo.getWsId(), requestVo.getProjectName());
+				}
 				}
 
 				response = "SUCCESS";
