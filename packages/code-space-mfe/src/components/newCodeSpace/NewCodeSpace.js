@@ -978,7 +978,7 @@ const NewCodeSpace = (props) => {
 
   const isPublicRecipeChoosen = recipe?.aliasId && recipe?.aliasId?.startsWith('public');
   const isWorkspaceMigratedToGHE = props.onBoardingCodeSpace?.isWorkspaceMigratedToGHE || props.onEditingCodeSpace?.isWorkspaceMigratedToGHE;
-  const repoDetailsUrl = projectDetails?.recipeDetails?.repodetails;
+  const repoDetailsUrl = projectDetails?.recipeDetails?.repodetails || selectedRecipe?.repodetails;
   const githubUrlValue = isPublicRecipeChoosen 
     ? 'https://github.com/' 
     : (isWorkspaceMigratedToGHE || repoDetailsUrl?.includes('ghe.com') || repoDetailsUrl?.includes('mercedes-benz.ghe.com'))
