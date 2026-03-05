@@ -35,6 +35,9 @@ public class GitClient {
 	
 	@Value("${codeServer.git.orgname}")
 	private String gitOrgName;
+
+	@Value("${codeServer.git.gitOrgname}")
+	private String codeServerGitOrgName;
 	
 	@Value("${codeServer.git.pat}")
 	private String personalAccessToken;
@@ -218,14 +221,15 @@ public class GitClient {
 		try {
 			String baseUri = Boolean.TRUE.equals(isWorkspaceMigratedToGHE) ? gheBaseUri : gitBaseUri;
 			String pat = Boolean.TRUE.equals(isWorkspaceMigratedToGHE) ? ghePat : personalAccessToken;
-			log.info("Adding user {} to repo {} using {} (isWorkspaceMigratedToGHE={})", 
-					username, repoName, baseUri, isWorkspaceMigratedToGHE);
+			String orgName = Boolean.TRUE.equals(isWorkspaceMigratedToGHE) ? gitOrgName : codeServerGitOrgName;
+			log.info("Adding user {} to repo {}/{} using {} (isWorkspaceMigratedToGHE={})", 
+					username, orgName, repoName, baseUri, isWorkspaceMigratedToGHE);
 			
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");
 			headers.set("Authorization", "token "+ pat);
-			String url = baseUri+"/repos/" + gitOrgName + "/"+ repoName+ "/collaborators/" + username;
+			String url = baseUri+"/repos/" + orgName + "/"+ repoName+ "/collaborators/" + username;
 			HttpEntity entity = new HttpEntity<>(headers);
 			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.PUT, entity, String.class);
 			if (response != null && response.getStatusCode()!=null) {
@@ -347,24 +351,25 @@ public class GitClient {
 	// }
 
 	public HttpStatus addAdminAccessToRepo(String username, String repoName) {
-		return addAdminAccessToRepo(username, repoName, gitBaseUri, personalAccessToken);
+		return addAdminAccessToRepo(username, repoName, codeServerGitOrgName, gitBaseUri, personalAccessToken);
 	}
 
 	public HttpStatus addAdminAccessToRepo(String username, String repoName, Boolean isWorkspaceMigratedToGHE) {
 		String baseUri = Boolean.TRUE.equals(isWorkspaceMigratedToGHE) ? gheBaseUri : gitBaseUri;
 		String pat = Boolean.TRUE.equals(isWorkspaceMigratedToGHE) ? ghePat : personalAccessToken;
-		log.info("Adding admin access for user {} to repo {} using {} (isWorkspaceMigratedToGHE={})", 
-				username, repoName, baseUri, isWorkspaceMigratedToGHE);
-		return addAdminAccessToRepo(username, repoName, baseUri, pat);
+		String orgName = Boolean.TRUE.equals(isWorkspaceMigratedToGHE) ? gitOrgName : codeServerGitOrgName;
+		log.info("Adding admin access for user {} to repo {}/{} using {} (isWorkspaceMigratedToGHE={})", 
+				username, orgName, repoName, baseUri, isWorkspaceMigratedToGHE);
+		return addAdminAccessToRepo(username, repoName, orgName, baseUri, pat);
 	}
 
-	public HttpStatus addAdminAccessToRepo(String username, String repoName, String baseUri, String pat) {
+	public HttpStatus addAdminAccessToRepo(String username, String repoName, String orgName, String baseUri, String pat) {
 		try {
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");
 			headers.set("Authorization", "token "+ pat);
-			String url = baseUri+"/repos/" + gitOrgName + "/"+ repoName+ "/collaborators/" + username;
+			String url = baseUri+"/repos/" + orgName + "/"+ repoName+ "/collaborators/" + username;
 			String requestJsonString = "{\"permission\":\"admin\"}";
 			HttpEntity<String> entity = new HttpEntity<String>(requestJsonString, headers);
 			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.PUT, entity, String.class);
@@ -387,7 +392,7 @@ public class GitClient {
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Authorization", "token " + personalAccessToken);
-			String url = gitBaseUri + "/repos/" + gitOrgName + "/" + repoName + "/collaborators/" + username;
+			String url = gitBaseUri + "/repos/" + codeServerGitOrgName + "/" + repoName + "/collaborators/" + username;
 			String requestJsonString = "{\"permission\":\"write\"}";
 			HttpEntity<String> entity = new HttpEntity<String>(requestJsonString, headers);
 			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.PUT, entity, String.class);
@@ -407,7 +412,7 @@ public class GitClient {
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");
 			headers.set("Authorization", "token "+ personalAccessToken);
-			String url = gitBaseUri+"/repos/" + gitOrgName + "/"+ repoName+ "/collaborators/" + username;
+			String url = gitBaseUri+"/repos/" + codeServerGitOrgName + "/"+ repoName+ "/collaborators/" + username;
 			HttpEntity entity = new HttpEntity<>(headers);
 			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.DELETE, entity, String.class);
 			if (response != null && response.getStatusCode()!=null) {
