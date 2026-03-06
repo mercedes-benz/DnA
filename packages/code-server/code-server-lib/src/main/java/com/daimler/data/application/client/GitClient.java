@@ -196,12 +196,12 @@ public class GitClient {
 			return HttpStatus.INTERNAL_SERVER_ERROR;
 		} catch (HttpClientErrorException e) {
 			String responseBody = e.getResponseBodyAsString();
-			log.error("HTTP error while creating software file: {} - {}", e.getStatusCode(), responseBody);
+			log.error("HTTP error while creating software file: {}", e.getStatusCode());
 			if (e.getStatusCode().value() == 403 || e.getStatusCode().value() == 422) {
 				if (pat != null && (responseBody.contains("protected") || responseBody.contains("branch protection") ||
 						responseBody.contains("required status check") || responseBody.contains("Protected branch"))) {
-					log.error("Branch protection error for repo {}/{}: {}", repoOwner, repoName, responseBody);
-					throw new RuntimeException("Branch protection error: " + responseBody);
+					log.error("Branch protection error for repo {}/{}", repoOwner, repoName);
+					throw new RuntimeException("Branch protection error");
 				}
 			}
 			return e.getStatusCode();
@@ -240,7 +240,7 @@ public class GitClient {
 		} catch (HttpClientErrorException e) {
             // Catch specific 422 error
             if (e.getStatusCode().value() == 422) {
-                log.error("Caught 422 Unprocessable Entity error: " + e.getResponseBodyAsString());
+                log.error("Caught 422 Unprocessable Entity error");
 				return HttpStatus.UNPROCESSABLE_ENTITY;
             } else {
                 log.error("Caught HTTP client error: " + e.getStatusCode());
@@ -329,13 +329,13 @@ public class GitClient {
                 }
             }
 
-            log.error("GHE response has no 'permission' field. Body: {}", responseBody);
+            log.error("GHE response has no 'permission' field");
             return HttpStatus.INTERNAL_SERVER_ERROR;
         }
 
     } catch (HttpClientErrorException e) {
-        log.error("GHE PID validation failed: HTTP {} for PID {} repo {}/{}. Response: {}",
-                e.getStatusCode(), pid, applicationName, repoName, e.getResponseBodyAsString());
+        log.error("GHE PID validation failed: HTTP {} for PID {} repo {}/{}",
+                e.getStatusCode(), pid, applicationName, repoName);
         return e.getStatusCode();
     } catch (Exception e) {
         log.error("Unexpected GHE PID validation error for PID {} repo {}/{}: {}",
@@ -522,8 +522,8 @@ public class GitClient {
 				return response.getStatusCode();
 			}
 		} catch (HttpClientErrorException e) {
-			log.error("HTTP error while validating user {} PAT: status={}, response={}", 
-					username, e.getStatusCode(), e.getResponseBodyAsString());
+			log.error("HTTP error while validating user {} PAT: status={}", 
+					username, e.getStatusCode());
 			return e.getStatusCode();
 		} catch (Exception e) {
 			log.error("Error occured while validating user {} PAT against URL {} with exception {}", 
