@@ -1948,7 +1948,7 @@
 						deployJobInputDto.setRepo(codeserverGheOrgUri + gitOrg + "/" + repoName); 
 						log.info("Repo URL contains ghe.com, using GHE URI for deployment: {}", deployJobInputDto.getRepo());
 					} else {
-						deployJobInputDto.setRepo(codeserverGitOrgUri + codeServerGitOrgName + "/" + repoName);
+						deployJobInputDto.setRepo(codeserverGitOrgUri + gitOrg + "/" + repoName);
 						log.info("Repo URL does not contain ghe.com, using Git URI for deployment: {}", deployJobInputDto.getRepo());
 					} 
 				} else { 
@@ -4639,7 +4639,7 @@
                     if (Objects.nonNull(repoUrl) && repoUrl.contains("ghe.com")) {
 						deployJobInputDto.setRepo(codeserverGheOrgUri + gitOrg + "/" + repoName);
                     } else {
-                        deployJobInputDto.setRepo(codeserverGitOrgUri + codeServerGitOrgName + "/" + repoName);
+                        deployJobInputDto.setRepo(codeserverGitOrgUri + gitOrg + "/" + repoName);
                     }
                 } else {
                     repoName = entity.getData().getProjectDetails().getGitRepoName(); 
