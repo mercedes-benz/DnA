@@ -981,7 +981,7 @@ const NewCodeSpace = (props) => {
   const repoDetailsUrl = projectDetails?.recipeDetails?.repodetails || selectedRecipe?.repodetails;
   const githubUrlValue = isPublicRecipeChoosen 
     ? 'https://github.com/' 
-    : (isWorkspaceMigratedToGHE || repoDetailsUrl?.includes('ghe.com') || repoDetailsUrl?.includes('mercedes-benz.ghe.com'))
+    : (isWorkspaceMigratedToGHE || repoDetailsUrl?.includes('ghe.com'))
       ? Envs.CODE_SPACE_GHE_PAT_APP_URL 
       : Envs.CODE_SPACE_GIT_PAT_APP_URL;
   const resources = projectDetails?.recipeDetails?.resource?.split(',');
