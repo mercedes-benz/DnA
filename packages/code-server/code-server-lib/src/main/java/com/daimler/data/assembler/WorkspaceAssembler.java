@@ -760,6 +760,11 @@ import com.daimler.data.dto.workspace.DeploymentAuditVO;
 					 }else{
 						vo.setIsWorkspaceMigrated(false);
 					 }
+					 if(data.getIsWorkspaceMigratedToGHE()!= null){
+						vo.setIsWorkspaceMigratedToGHE(data.getIsWorkspaceMigratedToGHE());
+					 }else{
+						vo.setIsWorkspaceMigratedToGHE(false);
+					 }
 					 if(data.getActiveInGroup() != null){
 						vo.setActiveInGroup(data.getActiveInGroup());
 					 }else{
@@ -887,8 +892,13 @@ import com.daimler.data.dto.workspace.DeploymentAuditVO;
 			 if(vo.isIsWorkspaceMigrated()!=null){
 				data.setIsWorkspaceMigrated(vo.isIsWorkspaceMigrated());
 			 }else{
-				data.setIsWorkspaceMigrated(false);
+				data.setIsWorkspaceMigratedToGHE(false);
 			 }
+			if(vo.isIsWorkspaceMigratedToGHE()!=null){
+				data.setIsWorkspaceMigratedToGHE(vo.isIsWorkspaceMigratedToGHE());
+			}else{
+				data.setIsWorkspaceMigratedToGHE(false);
+			}
 			 if(vo.isActiveInGroup() !=null){
 				data.setActiveInGroup(vo.isActiveInGroup());
 			 }else{

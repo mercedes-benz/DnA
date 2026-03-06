@@ -171,7 +171,7 @@ export const blueprintTemplate = (codespace) => {
         <mxCell id="ujUrj7wP6LcdkLsmr5C5-35" value="" style="verticalLabelPosition=bottom;html=1;verticalAlign=top;align=center;strokeColor=none;fillColor=#00BEF2;shape=mxgraph.azure.github_code;pointerEvents=1;" parent="1" vertex="1">
           <mxGeometry x="864" y="98.46000000000001" width="22" height="22" as="geometry" />
         </mxCell>
-        <mxCell id="ujUrj7wP6LcdkLsmr5C5-34" value="&lt;a href=&quot;${escapeHTML(buildGitUrl(codespace.projectDetails?.gitRepoName))}&quot;&gt;&lt;font style=&quot;color: light-dark(rgb(0, 0, 0), rgb(0, 173, 239));&quot;&gt;Go to Repo&lt;/font&gt;&lt;/a&gt;" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontColor=light-dark(#000000,#00ADEF);fontFamily=Verdana;fontStyle=0" parent="1" vertex="1">
+        <mxCell id="ujUrj7wP6LcdkLsmr5C5-34" value="&lt;a href=&quot;${escapeHTML(buildGitUrl(codespace.projectDetails?.gitRepoName, codespace.isWorkspaceMigratedToGHE))}&quot;&gt;&lt;font style=&quot;color: light-dark(rgb(0, 0, 0), rgb(0, 173, 239));&quot;&gt;Go to Repo&lt;/font&gt;&lt;/a&gt;" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontColor=light-dark(#000000,#00ADEF);fontFamily=Verdana;fontStyle=0" parent="1" vertex="1">
           <mxGeometry x="890.05" y="95.46000000000001" width="100" height="30" as="geometry" />
         </mxCell>
         ${{/* Header Section End */}}

@@ -2832,7 +2832,8 @@ import org.springframework.beans.factory.annotation.Value;
 					}
 				}
 				if(isAdmin && !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private")){
-					HttpStatus addAdminAccessToGitUser = gitClient.addAdminAccessToRepo(collabUserId,vo.getProjectDetails().getGitRepoName());
+					Boolean isWorkspaceMigratedToGHE = entity.getData().getIsWorkspaceMigratedToGHE();
+					HttpStatus addAdminAccessToGitUser = gitClient.addAdminAccessToRepo(collabUserId,vo.getProjectDetails().getGitRepoName(), isWorkspaceMigratedToGHE);
 					if(!addAdminAccessToGitUser.is2xxSuccessful())
 					{
 						MessageDescription warnMsg = new MessageDescription("Failed while adding " + collabUserId

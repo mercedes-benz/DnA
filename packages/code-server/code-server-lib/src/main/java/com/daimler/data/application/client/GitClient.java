@@ -21,7 +21,6 @@ import org.json.JSONObject;
 import org.springframework.web.client.HttpClientErrorException;
 import com.daimler.data.dto.GitBranchesCollectionDto;
 import com.daimler.data.dto.GitLatestCommitIdDto;
-import com.daimler.data.util.CommonUtils;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -36,6 +35,9 @@ public class GitClient {
 	
 	@Value("${codeServer.git.orgname}")
 	private String gitOrgName;
+
+	@Value("${codeServer.git.gitOrgname}")
+	private String codeServerGitOrgName;
 	
 	@Value("${codeServer.git.pat}")
 	private String personalAccessToken;
@@ -67,6 +69,9 @@ public class GitClient {
 	@Value("${codeServer.git.ghe.pat}")
 	private String ghePat;
 
+	@Value("${codeServer.env.ref}")
+	private String codeServerEnvRef;
+
 	private static String HTTP_HEADER ="https://";
 
 	private HttpHeaders buildHeaders(String baseUrl, String pat) {
@@ -84,29 +89,36 @@ public class GitClient {
 	}
 
 	public HttpStatus createRepo(String applicationName, String repoName, String recipeName) {
+		return createRepo(applicationName, repoName, recipeName, gheBaseUri, ghePat);
+	}
+
+	public HttpStatus createRepo(String applicationName, String repoName, String recipeName, String baseUri, String pat) {
 		try {
+			log.info("Creating repo: name={}, application={}, recipe={}, baseUri={}", 
+					repoName, applicationName, recipeName, baseUri);
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/vnd.github+json");
 			headers.set("Content-Type", "application/json");
-			headers.set("Authorization", "token " + personalAccessToken);
+			headers.set("Authorization", "token " + pat);
 
-			String url = gitBaseUri + "/repos/" + applicationName + "/" + recipeName + "/generate";
+			String url = baseUri + "/repos/" + applicationName + "/" + recipeName + "/generate";
+			log.info("Create repo URL: {}", url);
 			String requestJsonString = "{\"owner\":\"" + gitOrgName + "\",\"name\":\"" + repoName
 					+ "\",\"description\":\"" + recipeName
 					+ " Repository creation from DnA\",\"private\":true,\"include_all_branches\":false }";
 			HttpEntity<String> entity = new HttpEntity<String>(requestJsonString, headers);
 			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.POST, entity, String.class);
 			if (response != null && response.getStatusCode() != null) {
-				log.info("Completed creating git repo {} initated by user with status {}", gitOrgName,
+				log.info("Completed creating git repo {} at {} initiated by user with status {}", repoName, baseUri,
 						response.getStatusCode());
 				return response.getStatusCode();
 			}
 		} catch (HttpClientErrorException.UnprocessableEntity ex) {
-			log.error("Error: Name already exists while creating git repo {} with exception {}", gitOrgName,
+			log.error("Error: Name already exists while creating git repo {} at {} with exception {}", repoName, baseUri,
 					ex.getMessage());
 			return HttpStatus.CONFLICT;
 		} catch (Exception e) {
-			log.error("Error occured while creating git repo {} with exception {} ", gitOrgName, e.getMessage());
+			log.error("Error occured while creating git repo {} at {} with exception {} ", repoName, baseUri, e.getMessage());
 		}
 		return HttpStatus.INTERNAL_SERVER_ERROR;
 	}
@@ -184,12 +196,12 @@ public class GitClient {
 			return HttpStatus.INTERNAL_SERVER_ERROR;
 		} catch (HttpClientErrorException e) {
 			String responseBody = e.getResponseBodyAsString();
-			log.error("HTTP error while creating software file: {} - {}", e.getStatusCode(), responseBody);
+			log.error("HTTP error while creating software file: {}", e.getStatusCode());
 			if (e.getStatusCode().value() == 403 || e.getStatusCode().value() == 422) {
 				if (pat != null && (responseBody.contains("protected") || responseBody.contains("branch protection") ||
 						responseBody.contains("required status check") || responseBody.contains("Protected branch"))) {
-					log.error("Branch protection error for repo {}/{}: {}", repoOwner, repoName, responseBody);
-					throw new RuntimeException("Branch protection error: " + responseBody);
+					log.error("Branch protection error for repo {}/{}", repoOwner, repoName);
+					throw new RuntimeException("Branch protection error");
 				}
 			}
 			return e.getStatusCode();
@@ -202,12 +214,22 @@ public class GitClient {
 	}
 
 	public HttpStatus addUserToRepo(String username, String repoName) {
+		return addUserToRepo(username, repoName, null);
+	}
+
+	public HttpStatus addUserToRepo(String username, String repoName, Boolean isWorkspaceMigratedToGHE) {
 		try {
+			String baseUri = Boolean.TRUE.equals(isWorkspaceMigratedToGHE) ? gheBaseUri : gitBaseUri;
+			String pat = Boolean.TRUE.equals(isWorkspaceMigratedToGHE) ? ghePat : personalAccessToken;
+			String orgName = Boolean.TRUE.equals(isWorkspaceMigratedToGHE) ? gitOrgName : codeServerGitOrgName;
+			log.info("Adding user {} to repo {}/{} using {} (isWorkspaceMigratedToGHE={})", 
+					username, orgName, repoName, baseUri, isWorkspaceMigratedToGHE);
+			
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");
-			headers.set("Authorization", "token "+ personalAccessToken);
-			String url = gitBaseUri+"/repos/" + gitOrgName + "/"+ repoName+ "/collaborators/" + username;
+			headers.set("Authorization", "token "+ pat);
+			String url = baseUri+"/repos/" + orgName + "/"+ repoName+ "/collaborators/" + username;
 			HttpEntity entity = new HttpEntity<>(headers);
 			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.PUT, entity, String.class);
 			if (response != null && response.getStatusCode()!=null) {
@@ -218,7 +240,7 @@ public class GitClient {
 		} catch (HttpClientErrorException e) {
             // Catch specific 422 error
             if (e.getStatusCode().value() == 422) {
-                log.error("Caught 422 Unprocessable Entity error: " + e.getResponseBodyAsString());
+                log.error("Caught 422 Unprocessable Entity error");
 				return HttpStatus.UNPROCESSABLE_ENTITY;
             } else {
                 log.error("Caught HTTP client error: " + e.getStatusCode());
@@ -307,13 +329,13 @@ public class GitClient {
                 }
             }
 
-            log.error("GHE response has no 'permission' field. Body: {}", responseBody);
+            log.error("GHE response has no 'permission' field");
             return HttpStatus.INTERNAL_SERVER_ERROR;
         }
 
     } catch (HttpClientErrorException e) {
-        log.error("GHE PID validation failed: HTTP {} for PID {} repo {}/{}. Response: {}",
-                e.getStatusCode(), pid, applicationName, repoName, e.getResponseBodyAsString());
+        log.error("GHE PID validation failed: HTTP {} for PID {} repo {}/{}",
+                e.getStatusCode(), pid, applicationName, repoName);
         return e.getStatusCode();
     } catch (Exception e) {
         log.error("Unexpected GHE PID validation error for PID {} repo {}/{}: {}",
@@ -324,41 +346,62 @@ public class GitClient {
 }
 
 
+	// public HttpStatus addAdminAccessToRepo(String username, String repoName) {
+	// 	return addAdminAccessToRepo(username, repoName, gitBaseUri, personalAccessToken);
+	// }
+
 	public HttpStatus addAdminAccessToRepo(String username, String repoName) {
+		return addAdminAccessToRepo(username, repoName, codeServerGitOrgName, gitBaseUri, personalAccessToken);
+	}
+
+	public HttpStatus addAdminAccessToRepo(String username, String repoName, Boolean isWorkspaceMigratedToGHE) {
+		String baseUri = Boolean.TRUE.equals(isWorkspaceMigratedToGHE) ? gheBaseUri : gitBaseUri;
+		String pat = Boolean.TRUE.equals(isWorkspaceMigratedToGHE) ? ghePat : personalAccessToken;
+		String orgName = Boolean.TRUE.equals(isWorkspaceMigratedToGHE) ? gitOrgName : codeServerGitOrgName;
+		log.info("Adding admin access for user {} to repo {}/{} using {} (isWorkspaceMigratedToGHE={})", 
+				username, orgName, repoName, baseUri, isWorkspaceMigratedToGHE);
+		return addAdminAccessToRepo(username, repoName, orgName, baseUri, pat);
+	}
+
+	public HttpStatus addAdminAccessToRepo(String username, String repoName, String orgName, String baseUri, String pat) {
 		try {
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");
-			headers.set("Authorization", "token "+ personalAccessToken);
-			String url = gitBaseUri+"/repos/" + gitOrgName + "/"+ repoName+ "/collaborators/" + username;
+			headers.set("Authorization", "token "+ pat);
+			String url = baseUri+"/repos/" + orgName + "/"+ repoName+ "/collaborators/" + username;
 			String requestJsonString = "{\"permission\":\"admin\"}";
 			HttpEntity<String> entity = new HttpEntity<String>(requestJsonString, headers);
 			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.PUT, entity, String.class);
 			if (response != null && response.getStatusCode()!=null) {
-				log.info("completed adding user {}  as admin to git repo {} initated by user , with status {} ", username, gitOrgName,response.getStatusCode());
+				log.info("completed adding user {}  as admin to git repo {} at {} , with status {} ", username, repoName, baseUri, response.getStatusCode());
 				return response.getStatusCode();
 			}
 		} catch (Exception e) {
-			log.error("Error occured while adding {} as admin to git repo {} with exception {}", username, gitOrgName, e.getMessage());
+			log.error("Error occured while adding {} as admin to git repo {} at {} with exception {}", username, repoName, baseUri, e.getMessage());
 		}
 		return HttpStatus.INTERNAL_SERVER_ERROR;
 	}
+
+	// public HttpStatus removeAdminAccessFromRepo(String username, String repoName) {
+	// 	return removeAdminAccessFromRepo(username, repoName, gitBaseUri, personalAccessToken);
+	// }
 
 	public HttpStatus removeAdminAccessFromRepo(String username, String repoName) {
 		try {
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Authorization", "token " + personalAccessToken);
-			String url = gitBaseUri + "/repos/" + gitOrgName + "/" + repoName + "/collaborators/" + username;
+			String url = gitBaseUri + "/repos/" + codeServerGitOrgName + "/" + repoName + "/collaborators/" + username;
 			String requestJsonString = "{\"permission\":\"write\"}";
 			HttpEntity<String> entity = new HttpEntity<String>(requestJsonString, headers);
 			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.PUT, entity, String.class);
 			if (response != null && response.getStatusCode() != null) {
-				log.info("Completed removing user {} as admin from git repo {} initiated by user, with status {}", username, gitOrgName, response.getStatusCode());
+				log.info("Completed removing user {} as admin from git repo {} at {} , with status {}", username, repoName, gitBaseUri, response.getStatusCode());
 				return response.getStatusCode();
 			}
 		} catch (Exception e) {
-			log.error("Error occurred while removing {} as admin from git repo {} with exception {}", username, gitOrgName, e.getMessage());
+			log.error("Error occurred while removing {} as admin from git repo {} at {} with exception {}", username, repoName, gitBaseUri, e.getMessage());
 		}
 		return HttpStatus.INTERNAL_SERVER_ERROR;
 	}
@@ -369,7 +412,7 @@ public class GitClient {
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");
 			headers.set("Authorization", "token "+ personalAccessToken);
-			String url = gitBaseUri+"/repos/" + gitOrgName + "/"+ repoName+ "/collaborators/" + username;
+			String url = gitBaseUri+"/repos/" + codeServerGitOrgName + "/"+ repoName+ "/collaborators/" + username;
 			HttpEntity entity = new HttpEntity<>(headers);
 			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.DELETE, entity, String.class);
 			if (response != null && response.getStatusCode()!=null) {
@@ -382,25 +425,27 @@ public class GitClient {
 		return HttpStatus.INTERNAL_SERVER_ERROR;
 	}
 	
-	public GitBranchesCollectionDto getBranchesFromRepo(String username, String repo) {
+	public GitBranchesCollectionDto getBranchesFromRepo(String username, String repo, Boolean isWorkspaceMigratedToGHE) {
     GitBranchesCollectionDto allBranches = new GitBranchesCollectionDto();
     try {
         String repoName = null;
         String gitOrg = null;
-        int page = 1;
-        int pageSize = 100;
-        boolean isGhe = repo.contains("ghe.com");
-        HttpHeaders headers = new HttpHeaders();
-        headers.set("Accept", "application/json");
-        headers.set("Content-Type", "application/json");
+		int page = 1;
+		int pageSize = 100;
+		String selectedBaseUri = isWorkspaceMigratedToGHE ? gheBaseUri : gitBaseUri;
+		log.info("Fetching branches from repo {} using {} (isWorkspaceMigratedToGHE={})", 
+				repo, selectedBaseUri, isWorkspaceMigratedToGHE);
+		
+		HttpHeaders headers = new HttpHeaders();
+		headers.set("Accept", "application/json");
+		headers.set("Content-Type", "application/json");
 
-        if (isGhe) {
-            headers.set("Authorization", "token " + ghePat);
-        } else {
-            headers.set("Authorization", "token " + personalAccessToken);
-        }
-
-        if (repo.startsWith("https://")) {
+		if (isWorkspaceMigratedToGHE) {
+			headers.set("Authorization", "token " + ghePat);
+		} else {
+			headers.set("Authorization", "token " + personalAccessToken);
+		}        
+		if (repo.startsWith("https://")) {
             if (repo.endsWith(".git")) {
                 repo = repo.substring(0, repo.length() - 4);
             }
@@ -416,7 +461,7 @@ public class GitClient {
             repoName = repo;
         }
         String orgName = Objects.nonNull(gitOrg) ? gitOrg : gitOrgName;
-        String baseApiUrl = isGhe ? gheBaseUri : gitBaseUri;
+        String baseApiUrl = isWorkspaceMigratedToGHE ? gheBaseUri : gitBaseUri;
 
         while (true) {
             String url = baseApiUrl
@@ -449,7 +494,7 @@ public class GitClient {
         }
         log.info("Fetched {} branches from repo {}", allBranches.size(), repoName);
     } catch (Exception e) {
-        log.error("Error occurred while fetching branches from git repo {}", repo, e);
+        log.error("Error occurred while fetching branches from git repo {}: {}", repo, e.getMessage(), e);
     }
     return allBranches;
 }
@@ -477,8 +522,8 @@ public class GitClient {
 				return response.getStatusCode();
 			}
 		} catch (HttpClientErrorException e) {
-			log.error("HTTP error while validating user {} PAT: status={}, response={}", 
-					username, e.getStatusCode(), e.getResponseBodyAsString());
+			log.error("HTTP error while validating user {} PAT: status={}", 
+					username, e.getStatusCode());
 			return e.getStatusCode();
 		} catch (Exception e) {
 			log.error("Error occured while validating user {} PAT against URL {} with exception {}", 
@@ -514,6 +559,8 @@ public class GitClient {
 	public GitLatestCommitIdDto getLatestCommitId( String orgName, String branch, String repoName) {
 		GitLatestCommitIdDto commitId = null;
 		try {
+			log.info("Getting latest commit ID: org={}, repo={}, branch={}", orgName, repoName, branch);
+			
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");
@@ -541,11 +588,13 @@ public class GitClient {
 	
 	public HttpStatus isUserCollaborator( String orgName,String username, String repoName, String baseUri, String pat) {
   	try {
+			log.info("Checking if user is collaborator: user={}, org={}, repo={}, baseUri={}", 
+					username, orgName, repoName, baseUri);
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");
 			headers.set("Authorization", "token "+ pat);
-			String url = baseUri+"/repos/" + orgName + "/"+ repoName+ "/collaborators/" + username;
+			String url = baseUri+"/repos/" + orgName + "/"+ repoName+ "/collaborators/" + username;			
 			HttpEntity entity = new HttpEntity<>(headers);
 			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
 			if (response != null && response.getStatusCode()!=null) {
@@ -565,6 +614,9 @@ public class GitClient {
 	public Boolean isUserAdmin( String orgName,String username, String repoName, String baseUri, String pat) {
 		Boolean isAdmin = false;
 		try {
+			log.info("Checking if user is admin: user={}, org={}, repo={}, baseUri={}", 
+					username, orgName, repoName, baseUri);
+			
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");
@@ -594,6 +646,9 @@ public class GitClient {
 
 	public JSONObject getFileContent(String repoName, String repoOwner, String gitUrl, String folderPath, String fileName, String branch) throws Exception {
 		try {
+			log.info("Getting file content: repo={}, owner={}, folder={}, file={}, branch={}, gitUrl={}", 
+					repoName, repoOwner, folderPath, fileName, branch, gitUrl);
+			
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");
