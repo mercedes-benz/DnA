@@ -609,7 +609,7 @@ const AllCodeSpaces = (props) => {
                     rel="noopener noreferrer"
                 >
                     Personal Access Token (PAT)
-                </a>. Navigate to your Developer Settings, generate a new token (classic), and ensure the token has at least repo scope access. After generating the token, configure SSO authorization for it by opening the token's SSO settings, selecting the DnA-Codespaces organization, and authorizing the token.
+                </a>. Navigate to your Developer Settings, generate a new token (classic), and ensure the token has at least repo scope access. After generating the token, configure SSO authorization for it by opening the token&apos;s SSO settings, selecting the DnA-Codespaces organization, and authorizing the token.
             </p>
             <p>
                 The migration activities are scheduled over the weekends on March 7, 8, and 14. You should have already received an email with detailed instructions. Before the migration window, please ensure that all your code changes are committed to your branch and pushed to the origin repository.
@@ -1257,7 +1257,7 @@ const AllCodeSpaces = (props) => {
                                 <strong>Important:</strong> You may experience issues with pulling or pushing code if your local repository is still pointing to the old remote URL.
                             </p>
                             <p>
-                                Please refer to <strong>FAQ #2: "I am unable to pull or push code after the GHE migration"</strong> in the{' '}
+                                Please refer to <strong>FAQ #2: &quot;I am unable to pull or push code after the GHE migration&quot;</strong> in the{' '}
                                 <a 
                                     href="#" 
                                     onClick={(e) => {
