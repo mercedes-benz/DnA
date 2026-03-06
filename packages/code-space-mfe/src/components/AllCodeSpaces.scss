@@ -374,11 +374,14 @@
 }
 
 .sundownWarning {
-  text-align: left;
-}.sundownWarning p {
+  text-align: left !important;
+}
+
+.sundownWarning p {
     margin-bottom: 15px;
     margin-top: 0;
     font-size: medium;
+    text-align: left !important;
 }
 
 .sundownWarning a {
