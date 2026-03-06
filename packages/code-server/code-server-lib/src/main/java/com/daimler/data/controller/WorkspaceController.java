@@ -2813,7 +2813,7 @@ import org.springframework.beans.factory.annotation.Value;
 					List<String> repoDetails = CommonUtils.getRepoNameFromGitUrl(vo.getProjectDetails().getRecipeDetails().getRepodetails());
 					String orgName = repoDetails.get(0);
 					String repoName = repoDetails.get(1);
-					String gitHubUrl = "https://" + gitOrgUri + orgName;
+					String gitHubUrl = gitOrgUri + orgName;
 					Boolean isUserAdmin;
 					if(!vo.getProjectDetails().getRecipeDetails().getRepodetails().contains(gitHubUrl)){
 						isUserAdmin = gitClient.isUserAdmin(orgName, collabUserId, repoName, gheBaseUri, ghePat);
@@ -2832,7 +2832,8 @@ import org.springframework.beans.factory.annotation.Value;
 					}
 				}
 				if(isAdmin && !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private")){
-					HttpStatus addAdminAccessToGitUser = gitClient.addAdminAccessToRepo(collabUserId,vo.getProjectDetails().getGitRepoName());
+					Boolean isWorkspaceMigratedToGHE = entity.getData().getIsWorkspaceMigratedToGHE();
+					HttpStatus addAdminAccessToGitUser = gitClient.addAdminAccessToRepo(collabUserId,vo.getProjectDetails().getGitRepoName(), isWorkspaceMigratedToGHE);
 					if(!addAdminAccessToGitUser.is2xxSuccessful())
 					{
 						MessageDescription warnMsg = new MessageDescription("Failed while adding " + collabUserId

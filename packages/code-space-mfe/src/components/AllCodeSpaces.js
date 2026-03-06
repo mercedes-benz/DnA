@@ -64,6 +64,7 @@ const AllCodeSpaces = (props) => {
         History.goBack();
     };
     const [showAWSWarningModal, setShowAWSWarningModal] = useState(false);
+    const [showSundownWarningModal, setShowSundownWarningModal] = useState(false);
     const [groupLoading, setGroupLoading] = useState(true);
 
     const getCodeSpacesData = () => {
@@ -99,6 +100,7 @@ const AllCodeSpaces = (props) => {
 
     useEffect(() => {
         setShowAWSWarningModal(Envs.SHOW_AWS_MIGRATION_WARNING);
+        setShowSundownWarningModal(true);
         getCodeSpacesData();
         getCodeSpaceGroupsData();
     }, []);
@@ -286,7 +288,7 @@ const AllCodeSpaces = (props) => {
               <input type="checkbox" className="ff-only" id="faq-1" />
               <label className={classNames('expansion-panel-label', Styles.faqHeader)} htmlFor="faq-1">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-                  <span>1. I am not able to see my code post migrating to AWS</span>
+                  <span>1. I am not able to see my code post migrating</span>
                   <i tooltip-data="Expand" className="icon down-up-flip" />
                 </div>
               </label>
@@ -409,6 +411,38 @@ const AllCodeSpaces = (props) => {
     const [showEditCodespaceGroupModal, setShowEditCodespaceGroupModal]  = useState(false);
     const [showCodespacesModal, setShowCodespacesModal] = useState(false);
     const [selectedCodeSpaceGroup, setSelectedCodeSpaceGroup] = useState(JSON.parse(sessionStorage.getItem(SESSION_STORAGE_KEYS.CODE_SPACE_SELECTED_GROUPS)));
+
+    const sundownWarningContent = (
+        <div className={Styles.sundownWarning}>
+            <p>
+                As part of the GitHub migration activities, the DNA platform team will take care of your git repositories migration from GHES (On-Premises GitHub) to GHEC (GitHub Cloud) by February 2026.
+                To make the migration seamless, please ensure you log in at least once to{' '}
+                <a
+                    href={Envs.CODE_SPACE_GHE_PAT_APP_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    {Envs.CODE_SPACE_GHE_PAT_APP_URL}
+                </a>
+            </p>
+            <p>
+                If you would like to prioritise your migration, please contact us via the{' '}
+                <a
+                    href={Envs.CODESPACE_TEAMS_LINK}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                >
+                    Teams channel
+                </a>.
+            </p>
+            <p>
+                You will be clearly notified when the migration for your repositories is initiated. At that time, ensure that all code changes are committed to your branch and pushed to the origin.
+            </p>
+            <p>
+                After the migration, you will be provided with instructions to switch from your current GHES (On-Premises GitHub) to new GHEC (GitHub Cloud) repository.
+            </p>
+        </div>
+    );
 
     useEffect(() => {
         // if (selectedCodeSpaceGroup) {
@@ -975,6 +1009,19 @@ const AllCodeSpaces = (props) => {
                     }
                     scrollableContent={false}
                     onCancel={() => { setShowTutorialsModel(false) }}
+                />
+            )}
+            {showSundownWarningModal && (
+                <ConfirmModal
+                    title={''}
+                    acceptButtonTitle="OK"
+                    showAcceptButton={true}
+                    showCancelButton={false}
+                    show={showSundownWarningModal}
+                    content={sundownWarningContent}
+                    onCancel={() => setShowSundownWarningModal(false)}
+                    onAccept={() => setShowSundownWarningModal(false)}
+                    
                 />
             )}
             {showAWSWarningModal && (
