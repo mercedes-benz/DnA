@@ -2,7 +2,7 @@ spring:
   mvc.pathmatch.matching-strategy: ant_path_matcher
   application:
     name: dna-codeserver-service
-    version: 1.9.2
+    version: 1.9.3
   profile:
     active: production
 
@@ -95,6 +95,7 @@ codeServer:
   gitjob.pat: ${CODE_SERVER_GITJOB_PAT:XXXX}
   git.pat: ${CODE_SERVER_GIT_PAT:XXXX}
   git.orgname: ${CODE_SERVER_ORGNAME:XXXXX}
+  git.gitOrgname: ${CODE_SERVER_GIT_ORGNAME:XXXXX}
   git.orguri: ${CODE_SERVER_ORGURI:XXXXX}
   git.baseuri: ${CODE_SERVER_GIT_BASEURI:XXXXXX}
   base.uri: ${CODE_BASE_URI:XXXX}
@@ -130,6 +131,8 @@ codeServer:
       pid: ${CODE_SERVER_GHE_PID:XXXX}
       pat: ${CODE_SERVER_GHE_PAT:XXXX}
       orguri: ${CODE_SERVER_GHE_ORGURI:XXXX}
+      deployuri: ${CODE_SERVER_GHE_GITJOB_DEPLOY_URI:XXXX}
+      manageuri: ${CODE_SERVER_GHE_GITJOB_MANAGE_URI:XXXX}
 
 swagger.headers.authorization.token: ${SWAGGER_HEADER_AUTH:XXXXXX}
 management.endpoints.web.exposure.include: loggers,health

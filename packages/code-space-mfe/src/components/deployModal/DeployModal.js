@@ -9,7 +9,7 @@ import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indica
 import { CodeSpaceApiClient } from '../../apis/codespace.api';
 import SelectBox from 'dna-container/SelectBox';
 import Modal from 'dna-container/Modal';
-import { trackEvent, regionalDateAndTimeConversionSolution } from '../../Utility/utils';
+import { trackEvent, regionalDateAndTimeConversionSolution, buildGitRepoUrl } from '../../Utility/utils';
 import Tags from 'dna-container/Tags';
 import Tooltip from '../../common/modules/uilab/js/src/tooltip';
 
@@ -36,11 +36,9 @@ const DeployModal = (props) => {
       setBranchValue([projectDetails?.intDeploymentDetails?.lastDeployedBranch]);
     version?.length && setDeployEnvironment(buildEnvironment);
     ProgressIndicator.show();
-    CodeSpaceApiClient.getCodeSpacesGitBranchList(
-      projectDetails?.recipeDetails?.recipeId === 'private-user-defined'
-        ? projectDetails?.recipeDetails?.repodetails
-        : projectDetails?.gitRepoName,
-    )
+    const isWorkspaceMigratedToGHE = props.codeSpaceData?.isWorkspaceMigratedToGHE;
+    const repoUrl = buildGitRepoUrl(projectDetails?.gitRepoName, isWorkspaceMigratedToGHE);
+    CodeSpaceApiClient.getCodeSpacesGitBranchList(repoUrl)
       .then((res) => {
         ProgressIndicator.hide();
         props.setShowCodeDeployModal(true);

@@ -141,6 +141,9 @@
   
 	 @Value("${codeServer.git.orgname}")
 	 private String gitOrgName;
+
+	 @Value("${codeServer.git.gitOrgname}")
+	 private String codeServerGitOrgName;
   
 	 @Value("${codeServer.env.value}")
 	 private String codeServerEnvValue;
@@ -153,7 +156,25 @@
   
 	 @Value("${codeServer.git.orgname}")
 	 private String orgName;
-  
+    
+	 @Value("${codeServer.git.ghe.pat}")
+     private String ghePat;
+
+	 @Value("${codeServer.git.pat}")
+	 private String gitPat;
+
+	 @Value("${codeServer.git.enterprise.url}")
+	 private String gheBaseUri;
+
+	 @Value("${codeServer.git.baseuri}")
+	 private String gitBaseUri;
+
+	 @Value("${codeServer.git.orguri}")
+	 private String codeserverGitOrgUri;
+
+	 @Value("${codeServer.git.ghe.orguri}")
+	 private String codeserverGheOrgUri;
+
 	 @Value("${codeServer.jupyter.url}")
 	 private String jupyterUrl;
   
@@ -177,24 +198,6 @@
 
 	 @Value("${kong.dnaAppId}")
 	 private String dnaAppId;
-
-	 @Value("${codeServer.git.ghe.pat}")
-     private String ghePat;
-
-	 @Value("${codeServer.git.enterprise.url}")
-	 private String gheBaseUri;
-
-	 @Value("${codeServer.git.baseuri}")
-	 private String gitBaseUri;
-
-	 @Value("${codeServer.git.orguri}")
-	 private String codeserverGitOrgUri;
-
-	 @Value("${codeServer.git.ghe.orguri}")
-	 private String codeserverGheOrgUri;
-
-	 @Value("${codeServer.git.orgname}")
-	 private String codeServerGitOrgName;
  
 	 @Autowired
 	 private WorkspaceAssembler workspaceAssembler;
@@ -275,6 +278,10 @@
 		 String cloudServiceProvider = entity.getData().getProjectDetails().getRecipeDetails().getCloudServiceProvider();
 		 boolean isProjectOwner = false;
 		 boolean isCodespaceDeployed = false;
+		 boolean gheWorkspaceMigrated = false;
+		 if(Objects.nonNull(entity.getData().getIsWorkspaceMigratedToGHE())) {
+			gheWorkspaceMigrated = entity.getData().getIsWorkspaceMigratedToGHE();
+		 }
 		 CodeServerBuildDeployNsql buildDeployNsql = buildDeployCustomRepo.findByProjectName(entity.getData().getProjectDetails().getProjectName());
 		 String projectOwnerId = entity.getData().getProjectDetails().getProjectOwner().getId();
 		 if (projectOwnerId.equalsIgnoreCase(userId)|| technicalId.equalsIgnoreCase(userId)) {
@@ -317,7 +324,7 @@
 				 deployJobInputDto.setProjectName(projectName);
 				 deploymentJobDto.setInputs(deployJobInputDto);
 				 deploymentJobDto.setRef(codeServerEnvRef);
-				 GenericMessage jobResponse = client.manageDeployment(deploymentJobDto);
+				 GenericMessage jobResponse = client.manageDeployment(deploymentJobDto, gheWorkspaceMigrated);
 				 if (jobResponse != null && "SUCCESS".equalsIgnoreCase(jobResponse.getSuccess())) {
 					 log.info(
 							 "Found deployment of branch {} on Staging environment, undeploy triggered successfully by user {}",
@@ -367,7 +374,7 @@
 				 deployJobInputDto.setProjectName(projectName);
 				 deploymentJobDto.setInputs(deployJobInputDto);
 				 deploymentJobDto.setRef(codeServerEnvRef);
-				 GenericMessage jobResponse = client.manageDeployment(deploymentJobDto);
+				 GenericMessage jobResponse = client.manageDeployment(deploymentJobDto, gheWorkspaceMigrated);
 				 if (jobResponse != null && "SUCCESS".equalsIgnoreCase(jobResponse.getSuccess())) {
 					 log.info(
 							 "Found deployment of branch {} on Production environment, undeploy triggered successfully by user {}",
@@ -650,11 +657,18 @@
 				repoName = vo.getProjectDetails().getRecipeDetails().getRepodetails();
 			}
 			String pathCheckout = "";
+			boolean isWorkspaceMigratedToGHE = false;
+			String repoDetails = vo.getProjectDetails().getRecipeDetails().getRepodetails();
+			if (repoDetails != null && repoDetails.contains("ghe.com")) {
+				isWorkspaceMigratedToGHE = true;
+			}
 			if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")
 					&& !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
 							.startsWith("private")
 			   ) {
-				repoNameWithOrg = gitOrgUri + gitOrgName + "/" + repoName;
+				String effectiveGitOrgUri = isWorkspaceMigratedToGHE ? codeserverGheOrgUri : codeserverGitOrgUri;
+				String effectiveOrgName = isWorkspaceMigratedToGHE ? gitOrgName : codeServerGitOrgName;
+				repoNameWithOrg = effectiveGitOrgUri + effectiveOrgName + "/" + repoName;
 			} else {
 				repoNameWithOrg = vo.getProjectDetails().getRecipeDetails().getRepodetails();
 				if(repoNameWithOrg.contains(",")) {
@@ -667,7 +681,7 @@
 			}
 			if(repoNameWithOrg.isEmpty()) {
 			   pathCheckout = "";
-			   repoNameWithOrg = vo.getProjectDetails().getGitRepoName().replace("https://", "");
+			   repoNameWithOrg = vo.getProjectDetails().getGitRepoName();
 		   }
 			UserInfoVO projectOwner = vo.getProjectDetails().getProjectOwner();
 			UserInfoVO workspaceOwner = vo.getWorkspaceOwner();
@@ -683,7 +697,6 @@
 		   }
 		   if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().equalsIgnoreCase("default") && 
 				!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")) {
-				String repoDetails = vo.getProjectDetails().getRecipeDetails().getRepodetails();
 				String gitValidationUrl = (repoDetails != null && repoDetails.contains("ghe.com")) 
 					? gheBaseUri 
 					: gitBaseUri;
@@ -704,6 +717,21 @@
 						errors.add(errMsg);
 						responseVO.setErrors(errors);
 						return responseVO;
+					}
+				}
+			}
+			if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private")) {
+				if (repoDetails == null || !repoDetails.contains("ghe.com")) {
+					HttpStatus addAdminAccessToGitUser = gitClient.addAdminAccessToRepo(entity.getData().getWorkspaceOwner().getGitUserName(),
+							repoName);
+					if (!addAdminAccessToGitUser.is2xxSuccessful()) {
+						MessageDescription warnMsg = new MessageDescription(
+								"Failed while adding " + entity.getData().getWorkspaceOwner().getGitUserName()
+										+ " as admin to repository");
+						log.info("Failed while adding {} as admin to repository. Please add manually",
+								entity.getData().getWorkspaceOwner().getGitUserName());
+						warnings.add(warnMsg);
+						responseVO.setWarnings(warnings);
 					}
 				}
 			}
@@ -741,7 +769,9 @@
 				 ownerWorkbenchCreateInputsDto.setIsCollaborator("true");
 			 }
 			ownerWorkbenchCreateInputsDto.setPat(pat);
-			ownerWorkbenchCreateInputsDto.setRepo(repoNameWithOrg.replace("https://", ""));
+			String jupyterRepoUrl = repoNameWithOrg.replaceFirst("^https://", "").replaceAll("\\.git$", "");
+			ownerWorkbenchCreateInputsDto.setRepo(jupyterRepoUrl);
+			log.info("JupyterHub repo URL: {}", jupyterRepoUrl);
 			ownerWorkbenchCreateInputsDto.setShortid(entity.getData().getWorkspaceOwner().getId());
 			if(entity.getData().getProjectDetails().getRecipeDetails().getToDeployType()!=null){
 				ownerWorkbenchCreateInputsDto.setType(entity.getData().getProjectDetails().getRecipeDetails().getToDeployType());
@@ -796,6 +826,13 @@
 			entity.getData().setIntiatedOn(isoFormat.parse(isoFormat.format(new Date())));
 			// entity.getData().setStatus(ConstantsUtility.CREATEREQUESTEDSTATE);
 			entity.getData().setStatus(ConstantsUtility.CREATEDSTATE);//added
+			
+			if (repoDetails != null && repoDetails.contains("ghe.com")) {
+				entity.getData().setIsWorkspaceMigratedToGHE(true);
+			} else {
+				entity.getData().setIsWorkspaceMigratedToGHE(false);
+			}
+			
 			String recipeId = vo.getProjectDetails().getRecipeDetails().getRecipeId().toString();
 			String workspaceUrl = this.getWorkspaceUrl(recipeId,ownerwsid,workspaceOwner.getId(),vo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().toString());
 			entity.getData().setWorkspaceUrl(workspaceUrl);
@@ -839,11 +876,18 @@
 				 repoName = vo.getProjectDetails().getRecipeDetails().getRepodetails();
 			 }
 			 String pathCheckout = "";
+			 boolean isWorkspaceMigratedToGHE = false;
+			 String repoDetails = vo.getProjectDetails().getRecipeDetails().getRepodetails();
+			 if (repoDetails != null && repoDetails.contains("ghe.com")) {
+				 isWorkspaceMigratedToGHE = true;
+			 }
 			 if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")
 					 && !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
 							 .startsWith("private")
 				) {
-				 repoNameWithOrg = gitOrgUri + gitOrgName + "/" + repoName;
+				 String effectiveGitOrgUri = isWorkspaceMigratedToGHE ? codeserverGheOrgUri : codeserverGitOrgUri;
+				 String effectiveOrgName = isWorkspaceMigratedToGHE ? gitOrgName : codeServerGitOrgName;
+				 repoNameWithOrg = effectiveGitOrgUri + effectiveOrgName + "/" + repoName;
 			 } else {
 				 repoNameWithOrg = vo.getProjectDetails().getRecipeDetails().getRepodetails();
 				 if(repoNameWithOrg.contains(",")) {
@@ -856,7 +900,7 @@
 			 }
 			 if(repoNameWithOrg.isEmpty()) {
 				pathCheckout = "";
-				repoNameWithOrg = vo.getProjectDetails().getGitRepoName().replace("https://", "");
+				repoNameWithOrg = vo.getProjectDetails().getGitRepoName();
 			}
 			 UserInfoVO projectOwner = vo.getProjectDetails().getProjectOwner();
 			 UserInfoVO workspaceOwner = vo.getWorkspaceOwner();
@@ -872,7 +916,6 @@
 			}
 			if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().equalsIgnoreCase("default") && 
 				 !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")) {
-				 String repoDetails = vo.getProjectDetails().getRecipeDetails().getRepodetails();
 				 String gitValidationUrl = (repoDetails != null && repoDetails.contains("ghe.com")) 
 						 ? gheBaseUri 
 						 : gitBaseUri;
@@ -893,6 +936,21 @@
 						 errors.add(errMsg);
 						 responseVO.setErrors(errors);
 						 return responseVO;
+					 }
+				 }
+			 }
+			 if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private")) {
+				 if (repoDetails == null || !repoDetails.contains("ghe.com")) {
+					 HttpStatus addAdminAccessToGitUser = gitClient.addAdminAccessToRepo(entity.getData().getWorkspaceOwner().getGitUserName(),
+							 repoName);
+					 if (!addAdminAccessToGitUser.is2xxSuccessful()) {
+						 MessageDescription warnMsg = new MessageDescription(
+								 "Failed while adding " + entity.getData().getWorkspaceOwner().getGitUserName()
+										 + " as admin to repository");
+						 log.info("Failed while adding {} as admin to repository. Please add manually",
+								 entity.getData().getWorkspaceOwner().getGitUserName());
+						 warnings.add(warnMsg);
+						 responseVO.setWarnings(warnings);
 					 }
 				 }
 			 }
@@ -937,7 +995,9 @@
 			 if(!repoNameWithOrg.endsWith(".git")){
 				  repoNameWithOrg = repoNameWithOrg.concat(".git");
 			 }
-			 ownerWorkbenchCreateInputsDto.setRepo(repoNameWithOrg.replace("https://", ""));
+			 String jupyterRepoUrl = repoNameWithOrg.replaceFirst("^https://", "").replaceAll("\\.git$", "");
+			 ownerWorkbenchCreateInputsDto.setRepo(jupyterRepoUrl);
+			 log.info("JupyterHub repo URL: {}", jupyterRepoUrl);
 			 ownerWorkbenchCreateInputsDto.setShortid(entity.getData().getWorkspaceOwner().getId());
 			 if(entity.getData().getProjectDetails().getRecipeDetails().getToDeployType()!=null){
 				 ownerWorkbenchCreateInputsDto.setType(entity.getData().getProjectDetails().getRecipeDetails().getToDeployType());
@@ -989,6 +1049,13 @@
 			 entity.getData().setIntiatedOn(isoFormat.parse(isoFormat.format(new Date())));
 			 // entity.getData().setStatus(ConstantsUtility.CREATEREQUESTEDSTATE);
 			 entity.getData().setStatus(ConstantsUtility.CREATEDSTATE);//added
+			 
+			 if (repoDetails != null && repoDetails.contains("ghe.com")) {
+				 entity.getData().setIsWorkspaceMigratedToGHE(true);
+			 } else {
+				 entity.getData().setIsWorkspaceMigratedToGHE(false);
+			 }
+			 
 			 String recipeId = vo.getProjectDetails().getRecipeDetails().getRecipeId().toString();
 			 String workspaceUrl = this.getWorkspaceUrl(recipeId,ownerwsid,workspaceOwner.getId(),ConstantsUtility.DHC_CAAS_AWS);
 			 entity.getData().setWorkspaceUrl(workspaceUrl);
@@ -1026,7 +1093,10 @@
 			 //map to store git username and is admin permission to repo
 			 Map<String,Boolean> gitUsers = new HashMap<>();
 			 UserInfoVO owner = vo.getProjectDetails().getProjectOwner();
-  
+		 	 String repoDetails = vo.getProjectDetails().getRecipeDetails().getRepodetails();
+			 boolean isWorkspaceMigratedToGHE = (repoDetails != null && repoDetails.contains("ghe.com"));
+			 log.info("Creating workspace with repo: {} - isWorkspaceMigratedToGHE: {} (will use {} server)", 
+			 		repoDetails, isWorkspaceMigratedToGHE, isWorkspaceMigratedToGHE ? "GHE" : "git.i");
 			 String repoName = vo.getProjectDetails().getGitRepoName();
 			 if (vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public") || vo
 					 .getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private")) {
@@ -1037,8 +1107,7 @@
 				 // validate user pat
 				 if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
 						 .equalsIgnoreCase("default")) {
-					 String repoDetails = vo.getProjectDetails().getRecipeDetails().getRepodetails();
-					 String gitValidationUrl = (repoDetails != null && repoDetails.contains("ghe.com")) 
+					 String gitValidationUrl = isWorkspaceMigratedToGHE
 							 ? gheBaseUri 
 							 : gitBaseUri;
 					 HttpStatus validateUserPatstatus = gitClient.validateGitPat(owner.getGitUserName(), pat, gitValidationUrl);
@@ -1062,12 +1131,12 @@
 						recipeName = recipeName+"-template";
 					 }
 						String gitUrl = vo.getProjectDetails().getRecipeDetails().getRepodetails();
-						List<String> repoDetails = null;
-						repoDetails = CommonUtils.getRepoNameFromGitUrl(gitUrl);
+						List<String> repoUrlParts = null;
+						repoUrlParts = CommonUtils.getRepoNameFromGitUrl(gitUrl);
 						if(null!=gitUrl && !gitUrl.isBlank()) {
-							recipeName = repoDetails.get(1);
+							recipeName = repoUrlParts.get(1);
 						}
-						String repoOwner = repoDetails.get(0);
+						String repoOwner = repoUrlParts.get(0);
 						HttpStatus createRepoStatus = gitClient.createRepo(repoOwner,repoName,recipeName);
 						if (!createRepoStatus.is2xxSuccessful()) {
 							 MessageDescription errMsg = new MessageDescription(
@@ -1097,7 +1166,7 @@
 							 }
 						 }
 							for (Map.Entry<String, Boolean> gitUser : gitUsers.entrySet()) {
-								HttpStatus addGitUser = gitClient.addUserToRepo(gitUser.getKey(), repoName);
+								HttpStatus addGitUser = gitClient.addUserToRepo(gitUser.getKey(), repoName, isWorkspaceMigratedToGHE);
 								if (addGitUser == HttpStatus.UNPROCESSABLE_ENTITY) {
 									log.info("Failed while adding {} as collaborator with status {}",gitUser.getKey(), addGitUser.name());
 									MessageDescription errMsg = new MessageDescription(
@@ -1145,7 +1214,7 @@
 								if (gitUser.getValue() != null) {
 									if (gitUser.getValue()) {
 										HttpStatus addAdminAccessToGitUser = gitClient
-												.addAdminAccessToRepo(gitUser.getKey(), repoName);
+												.addAdminAccessToRepo(gitUser.getKey(), repoName, isWorkspaceMigratedToGHE);
 										if (!addAdminAccessToGitUser.is2xxSuccessful()) {
 											MessageDescription warnMsg = new MessageDescription(
 													"Failed while adding " + gitUser.getKey()
@@ -1175,7 +1244,7 @@
 				}
 				if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private")) {
 					HttpStatus addAdminAccessToGitUser = gitClient.addAdminAccessToRepo(owner.getGitUserName(),
-							repoName);
+							repoName, isWorkspaceMigratedToGHE);
 					if (!addAdminAccessToGitUser.is2xxSuccessful()) {
 						MessageDescription warnMsg = new MessageDescription(
 								"Failed while adding " + owner.getGitUserName()
@@ -1220,17 +1289,21 @@
 			 ownerWorkbenchCreateInputsDto.setPat(pat);
 			 String repoNameWithOrg = "";
 			 String pathCheckout = "";
+			 String effectiveGitOrgUri = isWorkspaceMigratedToGHE ? codeserverGheOrgUri : gitOrgUri;
+			 String effectiveOrgName = isWorkspaceMigratedToGHE ? gitOrgName : codeServerGitOrgName;
+			 log.info("Setting repo URL for JupyterHub - isWorkspaceMigratedToGHE={}, using={}", 
+				 isWorkspaceMigratedToGHE, isWorkspaceMigratedToGHE ? "GHE" : "git.i");
 			 if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")
 					 && !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
 							 .startsWith("private")) {
 								 
-								 repoNameWithOrg = gitOrgUri + gitOrgName + "/" + repoName;
+								 repoNameWithOrg = effectiveGitOrgUri + effectiveOrgName + "/" + repoName;
 			 } else {
 				 repoNameWithOrg = vo.getProjectDetails().getRecipeDetails().getGitPath();
 				 pathCheckout = vo.getProjectDetails().getRecipeDetails().getGitRepoLoc();
 				 if(pathCheckout.isEmpty() && repoNameWithOrg.isEmpty()) {
 					 pathCheckout = "";
-					 repoNameWithOrg = vo.getProjectDetails().getGitRepoName().replace("https://", "");
+					 repoNameWithOrg = vo.getProjectDetails().getGitRepoName();
 				 }
 				 // repoNameWithOrg = vo.getProjectDetails().getRecipeDetails().getRepodetails();
 				 // String url[] = repoNameWithOrg.split(",");
@@ -1246,7 +1319,9 @@
 			 if(!repoNameWithOrg.endsWith(".git")){
 				repoNameWithOrg = repoNameWithOrg.concat(".git");
 			 }
-			 ownerWorkbenchCreateInputsDto.setRepo(repoNameWithOrg.replace("https://", ""));
+			 String jupyterRepoUrl = repoNameWithOrg.replaceFirst("^https://", "");
+			 ownerWorkbenchCreateInputsDto.setRepo(jupyterRepoUrl);
+			 log.info("JupyterHub repo URL: {}", jupyterRepoUrl);
 			 String projectOwnerId = ownerEntity.getData().getWorkspaceOwner().getId();
 			 ownerWorkbenchCreateInputsDto.setShortid(projectOwnerId);
 			 if(vo.getProjectDetails().getRecipeDetails().getToDeployType()!=null){
@@ -1326,6 +1401,14 @@
 			 ownerEntity.getData().setIntiatedOn(now);
 			 //  ownerEntity.getData().setStatus(ConstantsUtility.CREATEREQUESTEDSTATE);
 			 ownerEntity.getData().setStatus(ConstantsUtility.CREATEDSTATE);//added
+			 
+			 String repoDetailsCreate = vo.getProjectDetails().getRecipeDetails().getRepodetails(); 
+			 if (repoDetailsCreate != null && repoDetailsCreate.contains("ghe.com")) { 
+				 ownerEntity.getData().setIsWorkspaceMigratedToGHE(true); 
+			 } else {
+				 ownerEntity.getData().setIsWorkspaceMigratedToGHE(false);
+			 }
+			 
 			 String recipeId = vo.getProjectDetails().getRecipeDetails().getRecipeId().toString();
 			 String workspaceUrl = this.getWorkspaceUrl(recipeId,ownerwsid,projectOwnerId, vo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().toString());
 			 ownerEntity.getData().setWorkspaceUrl(workspaceUrl);
@@ -1343,13 +1426,12 @@
 				 for (UserInfoVO collaborator : collabs) {
 					if(vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
 					.startsWith("private")) {
-						List<String> repoDetails = CommonUtils.getRepoNameFromGitUrl(vo.getProjectDetails().getRecipeDetails().getRepodetails());
-						String orgName = repoDetails.get(0);
-						repoName = repoDetails.get(1);
+						List<String> privateRepoDetails = CommonUtils.getRepoNameFromGitUrl(vo.getProjectDetails().getRecipeDetails().getRepodetails());
+						String orgName = privateRepoDetails.get(0);
+						repoName = privateRepoDetails.get(1);
 						String gitHubUrl = gitOrgUri + orgName ;
 						if(vo.getProjectDetails().getRecipeDetails().getRepodetails().contains(gitHubUrl)){
-						HttpStatus addGitUser = gitClient.addUserToRepo(collaborator.getId(), repoName);
-					
+						HttpStatus addGitUser = gitClient.addUserToRepo(collaborator.getId(), repoName, isWorkspaceMigratedToGHE);
 					 if (addGitUser == HttpStatus.UNPROCESSABLE_ENTITY) {
 									log.info("Failed while adding {} as collaborator with status {}",collaborator.getId(), addGitUser.name());
 									MessageDescription errMsg = new MessageDescription(
@@ -1428,8 +1510,7 @@
 			 responseVO.setErrors(errors);
 			 return responseVO;
 		 }
-	 }
-	 private String getWorkspaceUrl(String recipeId,String wsId, String shortId, String cloudServiceProvider)
+	 } private String getWorkspaceUrl(String recipeId,String wsId, String shortId, String cloudServiceProvider)
 	 {
 		 String defaultRecipeId = RecipeIdEnum.DEFAULT.toString();
 		 String workspaceUrl = null;
@@ -1705,6 +1786,8 @@
 		 boolean workspaceMigrated = false;
 		 boolean hasProdUrl = false;
 		 boolean hasIntUrl = false;
+		 boolean gheWorkspaceMigrated = false;
+
 		 try {
 			SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
 			Date now = isoFormat.parse(isoFormat.format(new Date()));
@@ -1728,6 +1811,9 @@
 				 cloudServiceProvider = ownerEntity.getData().getProjectDetails().getRecipeDetails().getCloudServiceProvider();
 				 if(Objects.nonNull(ownerEntity.getData().getIsWorkspaceMigrated())) {
 					workspaceMigrated = ownerEntity.getData().getIsWorkspaceMigrated();
+				 }
+				 if(Objects.nonNull(ownerEntity.getData().getIsWorkspaceMigratedToGHE())) {
+					gheWorkspaceMigrated = ownerEntity.getData().getIsWorkspaceMigratedToGHE();
 				 }
 				
 				 if (ownerEntity == null || ownerEntity.getData() == null
@@ -1859,14 +1945,20 @@
 						gitOrg = repoDetails.get(1);
 					}
 					if (Objects.nonNull(repoUrl) && repoUrl.contains("ghe.com")) {
-						deployJobInputDto.setRepo(codeserverGheOrgUri + gitOrg + "/" + repoName);
+						deployJobInputDto.setRepo(codeserverGheOrgUri + gitOrg + "/" + repoName); 
+						log.info("Repo URL contains ghe.com, using GHE URI for deployment: {}", deployJobInputDto.getRepo());
 					} else {
 						deployJobInputDto.setRepo(codeserverGitOrgUri + gitOrg + "/" + repoName);
-					}
-				} else {
-					repoName = entity.getData().getProjectDetails().getGitRepoName();
-					deployJobInputDto.setRepo(codeserverGitOrgUri + gitOrgName + "/" + repoName);
-				}
+						log.info("Repo URL does not contain ghe.com, using Git URI for deployment: {}", deployJobInputDto.getRepo());
+					} 
+				} else { 
+					repoName = entity.getData().getProjectDetails().getGitRepoName(); 
+					if (gheWorkspaceMigrated) { 
+						deployJobInputDto.setRepo(codeserverGheOrgUri + gitOrgName + "/" + repoName); 
+					} else { 
+						deployJobInputDto.setRepo(codeserverGitOrgUri + codeServerGitOrgName + "/" + repoName); 
+					} 
+				} 
 				deployJobInputDto.setShortid(workspaceOwner);
 				deployJobInputDto.setTarget_env(environment);
 				Boolean isValutInjectorEnable = false; 
@@ -1888,7 +1980,7 @@
 				 deployJobInputDto.setValutInjectorEnable(isValutInjectorEnable);
 				 deploymentJobDto.setInputs(deployJobInputDto);
 				 deploymentJobDto.setRef(codeServerEnvRef);
-				 GenericMessage jobResponse = client.manageDeployment(deploymentJobDto);
+				 GenericMessage jobResponse = client.manageDeployment(deploymentJobDto, gheWorkspaceMigrated);
 				 if (jobResponse != null && "SUCCESS".equalsIgnoreCase(jobResponse.getSuccess())) {
 					 
 					
@@ -2400,6 +2492,9 @@
 				 String repoName = entity.getData().getProjectDetails().getGitRepoName();
 				 String projectName = entity.getData().getProjectDetails().getProjectName();
   
+				 Boolean isWorkspaceMigratedToGHE = entity.getData().getIsWorkspaceMigratedToGHE();
+				 log.info("Adding collaborator to workspace - isWorkspaceMigratedToGHE: {}", isWorkspaceMigratedToGHE);
+
 				 UserInfo collaborator = new UserInfo();
 				 BeanUtils.copyProperties(userRequestDto, collaborator);
 				 if(!userRequestDto.isIsAdmin()){
@@ -2422,7 +2517,7 @@
 					repoName = repoDetails.get(1);
 					String gitHubUrl = gitOrgUri + orgName ;
 					if(gitUrl.contains(gitHubUrl)){
-						HttpStatus addGitUser = gitClient.addUserToRepo(gitUser, repoName);
+						HttpStatus addGitUser = gitClient.addUserToRepo(gitUser, repoName, isWorkspaceMigratedToGHE);
 					if(addGitUser == HttpStatus.UNPROCESSABLE_ENTITY){
 						log.info("Failed while adding {} as collaborator with status {}", repoName,
 								userRequestDto.getGitUserName(), addGitUser.name());
@@ -2469,7 +2564,7 @@
 				 if(! (vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")
 						 || vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private") 
 						 || vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().equalsIgnoreCase("default"))) {
-					 HttpStatus addGitUser = gitClient.addUserToRepo(gitUser, repoName);
+					 HttpStatus addGitUser = gitClient.addUserToRepo(gitUser, repoName, isWorkspaceMigratedToGHE);
 					if(addGitUser == HttpStatus.UNPROCESSABLE_ENTITY){
 						log.info("Failed while adding {} as collaborator with status {}", repoName,
 								userRequestDto.getGitUserName(), addGitUser.name());
@@ -2491,7 +2586,7 @@
 						 warnings.add(errMsg);
 					 }
 				 }
-				 HttpStatus addAdminAccessToGitUser = gitClient.addAdminAccessToRepo(projectOwnerId, repoName);
+				  HttpStatus addAdminAccessToGitUser = gitClient.addAdminAccessToRepo(projectOwnerId, repoName);
 				 if(!addAdminAccessToGitUser.is2xxSuccessful())
 				 {
 					 MessageDescription warnMsg = new MessageDescription("Failed while adding " +projectOwnerId
@@ -2575,6 +2670,10 @@
 				 String projectName = entity.getData().getProjectDetails().getProjectName();
 				 CodeServerWorkspaceNsql ownerEntity = workspaceCustomRepository.findbyProjectName(projectOwner,
 						 projectName);
+				 boolean gheWorkspaceMigrated = false;
+				 if(Objects.nonNull(ownerEntity.getData().getIsWorkspaceMigratedToGHE())) {
+					gheWorkspaceMigrated = ownerEntity.getData().getIsWorkspaceMigratedToGHE();
+				 }
 				 if (ownerEntity == null || ownerEntity.getData() == null
 						 || ownerEntity.getData().getWorkspaceId() == null) {
 					 MessageDescription error = new MessageDescription();
@@ -2590,7 +2689,7 @@
 				 deployJobInputDto.setProjectName(projectName);
 				 deploymentJobDto.setInputs(deployJobInputDto);
 				 deploymentJobDto.setRef(codeServerEnvRef);
-				 GenericMessage jobResponse = client.manageDeployment(deploymentJobDto);
+				 GenericMessage jobResponse = client.manageDeployment(deploymentJobDto, gheWorkspaceMigrated);
 				 if (jobResponse != null && "SUCCESS".equalsIgnoreCase(jobResponse.getSuccess())) {
 					 String environmentJsonbName = "intDeploymentDetails";
 					 CodeServerDeploymentDetails deploymentDetails = entity.getData().getProjectDetails()
@@ -3576,10 +3675,17 @@
 				 repoName = workspace.getProjectDetails().getRecipeDetails().getRepodetails();
 			 }
 			 String pathCheckout = "";
+			 
+			 boolean isWorkspaceMigratedToGHE = Boolean.TRUE.equals(workspace.getIsWorkspaceMigratedToGHE());
+			 String effectiveGitOrgUri = isWorkspaceMigratedToGHE ? codeserverGheOrgUri : gitOrgUri;
+			 String effectiveOrgName = isWorkspaceMigratedToGHE ? gitOrgName : codeServerGitOrgName;
+			 log.info("updateResourceValue - isWorkspaceMigratedToGHE: {}, using Git server: {}", 
+				 isWorkspaceMigratedToGHE, isWorkspaceMigratedToGHE ? "GHE" : "git.i");
+			 
 			 if (!workspace.getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase().startsWith("public")
 					 && !workspace.getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase()
 							 .startsWith("private")) {
-				 repoNameWithOrg = gitOrgUri + gitOrgName + "/" + repoName;
+				 repoNameWithOrg = effectiveGitOrgUri + effectiveOrgName + "/" + repoName;
 			 } else {
 				 repoNameWithOrg = workspace.getProjectDetails().getRecipeDetails().getRepodetails();
 				 if(repoNameWithOrg==null || repoNameWithOrg.isEmpty() || repoNameWithOrg.isBlank()){
@@ -3615,7 +3721,9 @@
 					ownerWorkbenchCreateInputsDto.setEnvironment(codeServerEnvValueAws);
 				}
 				 ownerWorkbenchCreateInputsDto.setIsCollaborator("false");
-				 ownerWorkbenchCreateInputsDto.setRepo(repoNameWithOrg);
+				 String jupyterRepoUrl = repoNameWithOrg.replaceFirst("^https://", "").replaceAll("\\.git$", "");
+				 ownerWorkbenchCreateInputsDto.setRepo(jupyterRepoUrl);
+				 log.info("JupyterHub repo URL: {}", jupyterRepoUrl);
 				 ownerWorkbenchCreateInputsDto.setShortid(workspace.getWorkspaceOwner().getId());
 				 if(workspace.getProjectDetails().getRecipeDetails().getToDeployType()!=null){
 					 ownerWorkbenchCreateInputsDto.setType(workspace.getProjectDetails().getRecipeDetails().getToDeployType());
@@ -3738,7 +3846,9 @@
 					ownerWorkbenchCreateInputsDto.setEnvironment(codeServerEnvValueAws);
 				}
 				 ownerWorkbenchCreateInputsDto.setIsCollaborator("false");
-				 ownerWorkbenchCreateInputsDto.setRepo(repoNameWithOrg);
+				 String jupyterRepoUrl = repoNameWithOrg.replaceFirst("^https://", "").replaceAll("\\.git$", "");
+				 ownerWorkbenchCreateInputsDto.setRepo(jupyterRepoUrl);
+				 log.info("JupyterHub repo URL: {}", jupyterRepoUrl);
 				 ownerWorkbenchCreateInputsDto.setShortid(workspace.getWorkspaceOwner().getId());
 				 if(workspace.getProjectDetails().getRecipeDetails().getToDeployType()!=null){
 					 ownerWorkbenchCreateInputsDto.setType(workspace.getProjectDetails().getRecipeDetails().getToDeployType());
@@ -3954,8 +4064,9 @@
                         repoName = repoDetails.get(2);
                         gitOrg = repoDetails.get(1);
                     }
-                    if (Objects.nonNull(repoUrl) && repoUrl.contains("ghe.com")) {
-                        deployJobInputDto.setRepo(codeserverGheOrgUri + gitOrg + "/" + repoName);
+                   if (Objects.nonNull(repoUrl) && repoUrl.contains("ghe.com")) {
+						deployJobInputDto.setRepo(codeserverGheOrgUri + gitOrg + "/" + repoName);
+                        // deployJobInputDto.setRepo(gitOrg + "/" + repoName);
                     } else {
                         deployJobInputDto.setRepo(codeserverGitOrgUri + gitOrg + "/" + repoName);
                     }
@@ -3970,6 +4081,10 @@
 				// deployJobInputDto.setType("RESTART");
 				CodeServerWorkspaceNsql ownerEntity = workspaceCustomRepository.findbyProjectName(projectOwner,
 						projectName);
+				boolean gheWorkspaceMigrated = false;
+				if(Objects.nonNull(ownerEntity.getData().getIsWorkspaceMigratedToGHE())) {
+					gheWorkspaceMigrated = ownerEntity.getData().getIsWorkspaceMigratedToGHE();
+				}
 				if (ownerEntity == null || ownerEntity.getData() == null
 						|| ownerEntity.getData().getWorkspaceId() == null) {
 					MessageDescription error = new MessageDescription();
@@ -4009,7 +4124,7 @@
 				deployJobInputDto.setValutInjectorEnable(isValutInjectorEnable);
 				deploymentJobDto.setInputs(deployJobInputDto);
 				deploymentJobDto.setRef(codeServerEnvRef);
-				GenericMessage jobResponse = client.manageDeployment(deploymentJobDto);
+				GenericMessage jobResponse = client.manageDeployment(deploymentJobDto, gheWorkspaceMigrated);
 				if (jobResponse != null && "SUCCESS".equalsIgnoreCase(jobResponse.getSuccess())) {
 					// String environmentJsonbName = "intDeploymentDetails";
 					// CodeServerDeploymentDetails deploymentDetails = entity.getData().getProjectDetails()
@@ -4116,6 +4231,43 @@
 			MessageDescription error = new MessageDescription();
 			log.info("Failed while Migrating codeserver workspace project with exception " + e.getMessage());
 			error.setMessage("Failed while Migrating codeserver workspace project with exception " + e.getMessage());
+			errors.add(error);
+		}
+		responseMessage.setErrors(errors);
+		responseMessage.setWarnings(warnings);
+		responseMessage.setSuccess(status);
+		return responseMessage;
+	}
+
+	@Override
+	@Transactional
+	public GenericMessage migrateWorkspaceToGHE(CodeServerWorkspaceNsql entity){
+		GenericMessage responseMessage = new GenericMessage();
+		String status = "FAILED";
+		List<MessageDescription> warnings = new ArrayList<>();
+		List<MessageDescription> errors = new ArrayList<>();
+		try{
+			String repoDetails = entity.getData().getProjectDetails().getRecipeDetails().getRepodetails();
+			if(repoDetails != null && repoDetails.contains("ghe.com")){
+				if(Objects.isNull(entity.getData().getIsWorkspaceMigratedToGHE()) || !entity.getData().getIsWorkspaceMigratedToGHE()) {
+					entity.getData().setIsWorkspaceMigratedToGHE(true);
+					jpaRepo.save(entity);
+					log.info("Workspace {} migrated to GHE", entity.getData().getWorkspaceId());
+					status = "SUCCESS";
+				} else {
+					log.info("Workspace {} already marked as GHE migrated", entity.getData().getWorkspaceId());
+					status = "SUCCESS";
+				}
+			} else {
+				MessageDescription error = new MessageDescription();
+				log.info("workspace repository is not on GHE: " + entity.getData().getWorkspaceId());
+				error.setMessage("workspace repository is not on GHE, cannot mark as migrated");
+				errors.add(error);
+			}
+		} catch (Exception e) {
+			MessageDescription error = new MessageDescription();
+			log.info("Failed while marking workspace as GHE migrated with exception " + e.getMessage());
+			error.setMessage("Failed while marking workspace as GHE migrated with exception " + e.getMessage());
 			errors.add(error);
 		}
 		responseMessage.setErrors(errors);
@@ -4435,7 +4587,9 @@
 		 String cloudServiceProvider = null;
 		 boolean workspaceMigrated = false;
 		 boolean hasProdUrl = false;
-		boolean hasIntUrl = false;
+		 boolean hasIntUrl = false;
+		 boolean gheWorkspaceMigrated = false;
+
 		 try {
 			 String repoName = null;
 			 String repoUrl = null;
@@ -4449,6 +4603,9 @@
 				 deployJobInputDto.setBranch(branch);
 				 deployJobInputDto.setEnvironment(codeServerEnvValue);
 				 deployJobInputDto.setTarget_env(environment);
+
+		         gheWorkspaceMigrated = entity.getData().getIsWorkspaceMigratedToGHE() != null ? entity.getData().getIsWorkspaceMigratedToGHE() : false;
+
 
 			// if (isPrivateRecipe) {
 			// 	repoUrl = entity.getData().getProjectDetails().getRecipeDetails().getRepodetails();
@@ -4480,16 +4637,19 @@
                         gitOrg = repoDetails.get(1);
                     }
                     if (Objects.nonNull(repoUrl) && repoUrl.contains("ghe.com")) {
-                        deployJobInputDto.setRepo(codeserverGheOrgUri + gitOrg + "/" + repoName);
+						deployJobInputDto.setRepo(codeserverGheOrgUri + gitOrg + "/" + repoName);
                     } else {
                         deployJobInputDto.setRepo(codeserverGitOrgUri + gitOrg + "/" + repoName);
                     }
                 } else {
-                    repoName = entity.getData().getProjectDetails().getGitRepoName();
-                    deployJobInputDto.setRepo(codeserverGitOrgUri + gitOrgName + "/" + repoName);
+                    repoName = entity.getData().getProjectDetails().getGitRepoName(); 
+					if(gheWorkspaceMigrated) { 
+						deployJobInputDto.setRepo(codeserverGheOrgUri + gitOrgName + "/" + repoName); 
+					} else { 
+						deployJobInputDto.setRepo(codeserverGitOrgUri + codeServerGitOrgName + "/" + repoName); 
+					}
                 }
-
-				 String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
+				String projectOwner = entity.getData().getProjectDetails().getProjectOwner().getId();
 				 String workspaceOwner = entity.getData().getWorkspaceOwner().getId();
 				 deployJobInputDto.setShortid(workspaceOwner);
  
@@ -4497,6 +4657,9 @@
 				 cloudServiceProvider = ownerEntity.getData().getProjectDetails().getRecipeDetails().getCloudServiceProvider();
 				 if(Objects.nonNull(ownerEntity.getData().getIsWorkspaceMigrated())) {
 					workspaceMigrated = ownerEntity.getData().getIsWorkspaceMigrated();
+				 }
+				 if(Objects.nonNull(ownerEntity.getData().getIsWorkspaceMigratedToGHE())) {
+					gheWorkspaceMigrated = ownerEntity.getData().getIsWorkspaceMigratedToGHE();
 				 }
 				hasProdUrl = Objects.nonNull(
 						ownerEntity.getData().getProjectDetails().getProdDeploymentDetails().getDeploymentUrl());
@@ -4568,7 +4731,7 @@
 				 deploymentJobDto.setInputs(deployJobInputDto);
 				 deploymentJobDto.setRef(codeServerEnvRef);
 				 log.info("deploymentJobDto {}",deploymentJobDto);
-				 GenericMessage jobResponse = client.manageDeployment(deploymentJobDto);
+				 GenericMessage jobResponse = client.manageDeployment(deploymentJobDto, gheWorkspaceMigrated);
 				 if (jobResponse != null && "SUCCESS".equalsIgnoreCase(jobResponse.getSuccess())) {
 					SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
 					Date now = isoFormat.parse(isoFormat.format(new Date()));
@@ -4608,7 +4771,7 @@
 						MessageDescription warning = new MessageDescription();
 						warning.setMessage("Error while adding commit id to deployment audit log");
 					}
-					auditLog.setCommitId(commitId.getSha());
+					 auditLog.setCommitId(commitId.getSha());
 					 auditLog.setImageDeleted(Boolean.FALSE);
 					 auditLog.setTriggeredOn(now);
 					 auditLog.setTriggeredBy(entity.getData().getWorkspaceOwner().getGitUserName());
@@ -5134,10 +5297,26 @@
 		try {
 			CodeServerWorkspaceNsql entity = workspaceCustomRepository.findByWorkspaceId(requestVo.getWsId());
 			CodeServerWorkspace data = entity.getData();
+			String currentStatus = data.getProjectDetails().getLastBuildOrDeployedStatus();
+			String currentEnv = data.getProjectDetails().getLastBuildOrDeployedEnv();
+			
+			log.info("updateGitJobRunId called for wsId={}, projectName={}, currentStatus={}, currentEnv={}, gitJobRunId={}", 
+				requestVo.getWsId(), requestVo.getProjectName(), currentStatus, currentEnv, requestVo.getGitJobRunId());
+			
+			if(currentStatus == null) {
+				log.error("updateGitJobRunId - currentStatus is null for wsId={}, projectName={}. Cannot update gitJobRunId.", 
+					requestVo.getWsId(), requestVo.getProjectName());
+				return response;
+			}
+			
 			CodeServerBuildDeployNsql optionalBuildDeployentity =  buildDeployCustomRepo.findByProjectName(requestVo.getProjectName());	
 			CodeServerBuildDeployNsql buildDeployentity = null;
 			CodeServerBuildDeploy buildDeployData = null;
-			if(data.getProjectDetails().getLastBuildOrDeployedStatus().equalsIgnoreCase("BUILD_REQUESTED")){
+			log.info("updateGitJobRunId called for wsId={}, projectName={}, currentStatus={}, currentEnv={}, runId={}",
+					requestVo.getWsId(), requestVo.getProjectName(),
+					data.getProjectDetails().getLastBuildOrDeployedStatus(),
+					data.getProjectDetails().getLastBuildOrDeployedEnv(), requestVo.getGitJobRunId());
+			if(currentStatus.equalsIgnoreCase("BUILD_REQUESTED") || currentStatus.equalsIgnoreCase("BUILD_SUCCESS") || currentStatus.equalsIgnoreCase("BUILD_FAILED")){
 				CodeServerBuildDetails buildDetails = entity.getData().getProjectDetails().getIntBuildDetails();
 					 if (!"int".equalsIgnoreCase(data.getProjectDetails().getLastBuildOrDeployedEnv())) {
 						 buildDetails = entity.getData().getProjectDetails().getProdBuildDetails();
@@ -5147,19 +5326,33 @@
 				if(optionalBuildDeployentity != null){
 					   buildDeployentity = optionalBuildDeployentity;
 					   buildDeployData = buildDeployentity.getData();
-					   if("int".equalsIgnoreCase(data.getProjectDetails().getLastBuildOrDeployedEnv())){							
-						   int lastIndex = buildDeployData.getIntBuildAuditLogs().size() - 1;
-						   buildDeployData.getIntBuildAuditLogs().get(lastIndex).setGitjobRunID(requestVo.getGitJobRunId());						   
-					   }else{
-						   int lastIndex = buildDeployData.getProdBuildAuditLogs().size() - 1;
-						   buildDeployData.getProdBuildAuditLogs().get(lastIndex).setGitjobRunID(requestVo.getGitJobRunId());
+					   if(buildDeployData != null) {
+						   if("int".equalsIgnoreCase(data.getProjectDetails().getLastBuildOrDeployedEnv())){
+							   List<BuildAudit> intLogs = buildDeployData.getIntBuildAuditLogs();
+							   if(intLogs != null && !intLogs.isEmpty()) {
+								   int lastIndex = intLogs.size() - 1;
+								   intLogs.get(lastIndex).setGitjobRunID(requestVo.getGitJobRunId());
+							   } else {
+								   log.warn("No int build audit logs found for wsId={}, projectName={}", requestVo.getWsId(), requestVo.getProjectName());
+							   }
+						   }else{
+							   List<BuildAudit> prodLogs = buildDeployData.getProdBuildAuditLogs();
+							   if(prodLogs != null && !prodLogs.isEmpty()) {
+								   int lastIndex = prodLogs.size() - 1;
+								   prodLogs.get(lastIndex).setGitjobRunID(requestVo.getGitJobRunId());
+							   } else {
+								   log.warn("No prod build audit logs found for wsId={}, projectName={}", requestVo.getWsId(), requestVo.getProjectName());
+							   }
+						   }
+						   buildDeployentity.setData(buildDeployData);
+						   buildDeployRepo.save(buildDeployentity);
+					   } else {
+						   log.warn("BuildDeployData is null for wsId={}, projectName={}. Skipping build audit log update.", requestVo.getWsId(), requestVo.getProjectName());
 					   }
-					   buildDeployentity.setData(buildDeployData);
-					   buildDeployRepo.save(buildDeployentity);
 				   }
 				   response = "SUCCESS";
 				
-			}else if(data.getProjectDetails().getLastBuildOrDeployedStatus().equalsIgnoreCase("DEPLOY_REQUESTED")){
+			}else if(currentStatus.equalsIgnoreCase("DEPLOY_REQUESTED") || currentStatus.equalsIgnoreCase("DEPLOYED") || currentStatus.equalsIgnoreCase("DEPLOYMENT_FAILED")){
 				 CodeServerDeploymentDetails deploymentDetails = entity.getData().getProjectDetails().getIntDeploymentDetails();
 					 if (!"int".equalsIgnoreCase(data.getProjectDetails().getLastBuildOrDeployedEnv())) {
 						 deploymentDetails = entity.getData().getProjectDetails().getProdDeploymentDetails();
@@ -5170,46 +5363,71 @@
 					 if(optionalBuildDeployentity != null){
 						 buildDeployentity = optionalBuildDeployentity;
 						 buildDeployData = buildDeployentity.getData();
-						 if("int".equalsIgnoreCase(data.getProjectDetails().getLastBuildOrDeployedEnv())){							
-							 int lastIndex = buildDeployData.getIntDeploymentAuditLogs().size() - 1;
-							 buildDeployData.getIntDeploymentAuditLogs().get(lastIndex).setGitjobRunID(requestVo.getGitJobRunId());							 
-							 
-						 }else{
-							 int lastIndex = buildDeployData.getProdDeploymentAuditLogs().size() - 1;
-							 buildDeployData.getProdDeploymentAuditLogs().get(lastIndex).setGitjobRunID(requestVo.getGitJobRunId());		
+						 if(buildDeployData != null) {
+							 if("int".equalsIgnoreCase(data.getProjectDetails().getLastBuildOrDeployedEnv())){
+								 if(buildDeployData.getIntDeploymentAuditLogs() != null && !buildDeployData.getIntDeploymentAuditLogs().isEmpty()) {
+									 int lastIndex = buildDeployData.getIntDeploymentAuditLogs().size() - 1;
+									 buildDeployData.getIntDeploymentAuditLogs().get(lastIndex).setGitjobRunID(requestVo.getGitJobRunId());
+								 } else {
+									 log.warn("No int deployment audit logs found for wsId={}, projectName={}", requestVo.getWsId(), requestVo.getProjectName());
+								 }
+							 }else{
+								 if(buildDeployData.getProdDeploymentAuditLogs() != null && !buildDeployData.getProdDeploymentAuditLogs().isEmpty()) {
+									 int lastIndex = buildDeployData.getProdDeploymentAuditLogs().size() - 1;
+									 buildDeployData.getProdDeploymentAuditLogs().get(lastIndex).setGitjobRunID(requestVo.getGitJobRunId());
+								 } else {
+									 log.warn("No prod deployment audit logs found for wsId={}, projectName={}", requestVo.getWsId(), requestVo.getProjectName());
+								 }
+							 }
+							 buildDeployentity.setData(buildDeployData);
+							 buildDeployRepo.save(buildDeployentity);
+						 } else {
+							 log.warn("BuildDeployData is null for wsId={}, projectName={}. Skipping audit log update.", requestVo.getWsId(), requestVo.getProjectName());
 						 }
-						 buildDeployentity.setData(buildDeployData);
-						 buildDeployRepo.save(buildDeployentity);
 					 }
 					  response = "SUCCESS";
 			}
-			else if (data.getProjectDetails().getLastBuildOrDeployedStatus().equalsIgnoreCase("RESTART_REQUESTED")) {
+			else if (currentStatus.equalsIgnoreCase("RESTART_REQUESTED") || currentStatus.equalsIgnoreCase("RESTARTED") || currentStatus.equalsIgnoreCase("RESTART_FAILED")) {
 
-				if (optionalBuildDeployentity != null) {
-					buildDeployentity = optionalBuildDeployentity;
-					buildDeployData = buildDeployentity.getData();
+			if (optionalBuildDeployentity != null) {
+				buildDeployentity = optionalBuildDeployentity;
+				buildDeployData = buildDeployentity.getData();
 
+				if(buildDeployData != null) {
 					if ("int".equalsIgnoreCase(data.getProjectDetails().getLastBuildOrDeployedEnv())) {
-						int lastIndex = buildDeployData.getIntDeploymentAuditLogs().size() - 1;
-						buildDeployData.getIntDeploymentAuditLogs()
-								.get(lastIndex)
-								.setGitjobRunID(requestVo.getGitJobRunId());
+						List<DeploymentAudit> intRestartLogs = buildDeployData.getIntDeploymentAuditLogs();
+						if(intRestartLogs != null && !intRestartLogs.isEmpty()) {
+							int lastIndex = intRestartLogs.size() - 1;
+							intRestartLogs.get(lastIndex).setGitjobRunID(requestVo.getGitJobRunId());
+						} else {
+							log.warn("No int restart deployment audit logs found for wsId={}, projectName={}", requestVo.getWsId(), requestVo.getProjectName());
+						}
 					} else {
-						int lastIndex = buildDeployData.getProdDeploymentAuditLogs().size() - 1;
-						buildDeployData.getProdDeploymentAuditLogs()
-								.get(lastIndex)
-								.setGitjobRunID(requestVo.getGitJobRunId());
+						List<DeploymentAudit> prodRestartLogs = buildDeployData.getProdDeploymentAuditLogs();
+						if(prodRestartLogs != null && !prodRestartLogs.isEmpty()) {
+							int lastIndex = prodRestartLogs.size() - 1;
+							prodRestartLogs.get(lastIndex).setGitjobRunID(requestVo.getGitJobRunId());
+						} else {
+							log.warn("No prod restart deployment audit logs found for wsId={}, projectName={}", requestVo.getWsId(), requestVo.getProjectName());
+						}
 					}
-
 					buildDeployentity.setData(buildDeployData);
 					buildDeployRepo.save(buildDeployentity);
+				} else {
+					log.warn("BuildDeployData is null for wsId={}, projectName={}. Skipping restart audit log update.", requestVo.getWsId(), requestVo.getProjectName());
+				}
 				}
 
 				response = "SUCCESS";
 			}
+			else {
+				log.warn("updateGitJobRunId - Unhandled status '{}' for wsId={}, projectName={}. Cannot update gitJobRunId.", 
+					currentStatus, requestVo.getWsId(), requestVo.getProjectName());
+			}
 			return response;
 		} catch (Exception e) {
-			log.info("Failed to get gitJobRunId with exception " + e.getMessage());
+			log.error("Failed to update gitJobRunId for wsId={}, projectName={} with exception: {}", 
+				requestVo.getWsId(), requestVo.getProjectName(), e.getMessage(), e);
 			return response;
 		}
 	}
