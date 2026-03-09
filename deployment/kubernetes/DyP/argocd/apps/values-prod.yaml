@@ -95,3 +95,5 @@ db:
    env: int
  - name: fabric-assistant
    env: prod
+ - name: ai-questionnaire
+   env: int
