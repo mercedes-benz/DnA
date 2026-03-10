@@ -192,6 +192,14 @@ definitions:
         type: array
         items:
           $ref: "#/definitions/CreatedByVO"
+      sourceConfig:
+        type: object
+        properties:
+          config:
+            type: object
+            properties:
+              type:
+                type: string
 
   FabricCatalogMetadataVO:
     type: object
