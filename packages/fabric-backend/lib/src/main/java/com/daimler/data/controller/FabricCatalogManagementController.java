@@ -29,6 +29,7 @@ import com.daimler.data.db.repo.catalogManagement.FabricCatalogManagementCustomR
 import com.daimler.data.dto.fabricCatalogManagement.FabricCatalogMetadataVO;
 import com.daimler.data.dto.fabricCatalogManagement.PublishCatalogResponseVO;
 import com.daimler.data.dto.fabricCatalogManagement.PublishCatalogRequestVO;
+import com.daimler.data.dto.fabricCatalogManagement.LegalEntitiesResponseVO;
 import com.daimler.data.dto.fabricWorkspace.CreatedByVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceVO;
 import com.daimler.data.service.catalogManagement.FabricCatalogManagementService;
@@ -270,6 +271,28 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
 			responseVO.setResponses(failedResponse);
 			log.error("Exception occurred:{} while publishing fabric workspace catalog...", e.getMessage());
 			return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+    }
+
+    @ApiOperation(value = "get all the legal entities in the fabric", nickname = "getAllFabricLegalEntities", notes = "This endpoint will be used to get all the legal entites in the fabric.", response = List.class, tags={ "fabric-catalog-management", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns message of success or failure ", response = List.class),
+        @ApiResponse(code = 400, message = "Bad Request", response = GenericMessage.class),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/catalog/getLegalEntities",
+        produces = { "application/json" },
+        method = RequestMethod.GET)
+    public ResponseEntity<List<LegalEntitiesResponseVO>> getAllFabricLegalEntities(@RequestParam String searchTerm){
+        try{
+            List<LegalEntitiesResponseVO> responseDtoList = this.service.getAllFabricLegalEntities(searchTerm);
+            log.info(responseDtoList.size()+ ": legal entities have been featched from the Genesis for the query : "+ searchTerm);
+            return new ResponseEntity<>(responseDtoList,HttpStatus.OK);
+        } catch(Exception e){
+            log.error("Error while featching the legal entetis");
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
 
     }
