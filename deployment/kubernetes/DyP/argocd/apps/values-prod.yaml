@@ -101,3 +101,5 @@ db:
    env: int
  - name: fc-integration-layer
    env: prod
+ - name: fc-ai-portfolio
+   env: prod
