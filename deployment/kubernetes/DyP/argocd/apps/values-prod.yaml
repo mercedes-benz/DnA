@@ -97,3 +97,7 @@ db:
    env: prod
  - name: ai-questionnaire
    env: int
+ - name: fc-integration-layer
+   env: int
+ - name: fc-integration-layer
+   env: prod
