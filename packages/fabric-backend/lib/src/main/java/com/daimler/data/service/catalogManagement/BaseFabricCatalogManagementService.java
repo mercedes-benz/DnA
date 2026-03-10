@@ -1,5 +1,6 @@
 package com.daimler.data.service.catalogManagement;
 
+import com.daimler.data.application.client.GenesisApiClient;
 import com.daimler.data.application.client.OpenMetadataClient;
 import com.daimler.data.assembler.FabricCatalogMetadataAssembler;
 import com.daimler.data.assembler.FabricWorkspaceAssembler;
@@ -14,6 +15,7 @@ import com.daimler.data.db.repo.fabric.FabricWorkspaceRepository;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceVO;
 import com.daimler.data.dto.fabricWorkspace.CdcPublishedLakeHouseDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.CreatedByVO;
+import com.daimler.data.dto.fabric.LegalEntityDto;
 import com.daimler.data.dto.fabricCatalogManagement.*;
 import com.daimler.data.service.common.BaseCommonService;
 import com.daimler.data.util.OpenMetadataFqnBuilder;
@@ -44,6 +46,7 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
     private final FabricCatalogManagementRepository catalogRepo;
     private final FabricCatalogManagementCustomRepository catalogCustomRepo;
     private final FabricCatalogMetadataAssembler catalogAssembler;
+    private final GenesisApiClient genesisApiClient;
 	
 
     @Autowired
@@ -54,7 +57,8 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
             OpenMetadataClient openMetadataClient,
             FabricCatalogManagementRepository catalogRepo,
             FabricCatalogManagementCustomRepository catalogCustomRepo,
-            FabricCatalogMetadataAssembler catalogAssembler) {
+            FabricCatalogMetadataAssembler catalogAssembler,
+            GenesisApiClient genesisApiClient) {
         this.customRepo = customRepo;
         this.jpaRepo = jpaRepo;
         this.assembler = assembler;
@@ -62,6 +66,7 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
         this.catalogRepo = catalogRepo;
         this.catalogCustomRepo = catalogCustomRepo;
         this.catalogAssembler = catalogAssembler;
+        this.genesisApiClient = genesisApiClient;
     }
 
     @Override
@@ -196,6 +201,15 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
         }
         
         return response;
+    }
+
+    @Override
+    public List<LegalEntitiesResponseVO> getAllFabricLegalEntities(String queryString){
+
+        List<LegalEntityDto> legalEntityCache = new ArrayList<>();
+        legalEntityCache = this.genesisApiClient.getLegalEntities();
+        return legalEntityCache.stream().filter(dto -> dto.getLegalName().toLowerCase().contains(queryString.toLowerCase()) ||
+                    dto.getCompanyCode().contains(queryString)).map(dto -> this.genesisApiClient.createVoObject(dto)).toList();
     }
 
     private List<EntityReference> validateAndProcessOwners(List<CreatedByVO> owners, PublishCatalogResponseVO response) {

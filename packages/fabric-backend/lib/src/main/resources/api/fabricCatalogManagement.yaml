@@ -335,3 +335,11 @@ definitions:
           $ref: "#/definitions/CreatedByVO"
       mandatoryFields:
         $ref: "#/definitions/MandatoryFieldsVO"
+
+  LegalEntitiesResponseVO:
+    type: object
+    properties:
+      legalName:
+        type: string
+      companyCode:
+        type: string
