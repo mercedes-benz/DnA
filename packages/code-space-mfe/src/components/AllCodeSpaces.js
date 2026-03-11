@@ -458,11 +458,11 @@ const AllCodeSpaces = (props) => {
                       <ol>
                         <li><span className={classNames(Styles.list)}>mkdir -p /home/coder/app</span></li>
                         <li><span className={classNames(Styles.list)}>git config --global credential.helper cache</span></li>
-                        <li><span className={classNames(Styles.list)}>git config --global user.email &ldquo;$SHORTID&ldquo;</span></li>
-                        <li><span className={classNames(Styles.list)}>git config --global user.name &ldquo;$SHORTID&ldquo;</span></li>
+                                                <li><span className={classNames(Styles.list)}>git config --global user.email &lt;EMAILID&gt;</span></li>
+                                                <li><span className={classNames(Styles.list)}>git config --global user.name &lt;SHORTID&gt;</span></li>
                         <li>
                           <span className={classNames(Styles.list)}>
-                            git clone https://$GITHUB_TOKEN@$GITHUBREPO_URL /home/coder/app
+                                                        git clone https://&lt;GITHUB_TOKEN&gt;@&lt;GITHUBREPO_URL&gt; /home/coder/app
                           </span>
                           <br />
                           (e.g., git clone https://ghp_xxxx@{(Envs.CODE_SPACE_GIT_PAT_APP_URL).split('https://')[1]}org_name/repo_name.git /home/coder/app)
@@ -481,20 +481,20 @@ const AllCodeSpaces = (props) => {
                     <li>
                       Install required packages:
                       <ol>
-                        <li><span className={classNames(Styles.list)}>TEMP_DIR=/tmp/.codespaces/DO_NOT_DELETE_MODIFY/</span></li>
-                        <li><span className={classNames(Styles.list)}>mkdir -pv $TEMP_DIR</span></li>
+                                                <li><span className={classNames(Styles.list)}>TEMP_DIR=/tmp/.codespaces/DO_NOT_DELETE_MODIFY/</span></li>
+                                                <li><span className={classNames(Styles.list)}>mkdir -pv /tmp/.codespaces/DO_NOT_DELETE_MODIFY/</span></li>
                         <li>
                           <span className={classNames(Styles.list)}>
-                            cp /home/coder/app/.codespaces/DO_NOT_DELETE_MODIFY/pkg-install.sh $TEMP_DIR
+                                                        cp /home/coder/app/.codespaces/DO_NOT_DELETE_MODIFY/pkg-install.sh /tmp/.codespaces/DO_NOT_DELETE_MODIFY/
                           </span>
                           <br />
                           <span className={classNames(Styles.listInfo)}>If additional folder:</span>
                           <br />
                           <span className={classNames(Styles.list)}>
-                            cp /home/coder/app/$YOUR_FOLDER/.codespaces/DO_NOT_DELETE_MODIFY/pkg-install.sh $TEMP_DIR
+                                                        cp /home/coder/app/%YOUR_FOLDER%/.codespaces/DO_NOT_DELETE_MODIFY/pkg-install.sh /tmp/.codespaces/DO_NOT_DELETE_MODIFY/
                           </span>
                         </li>
-                        <li><span className={classNames(Styles.list)}>cd $TEMP_DIR</span></li>
+                                                <li><span className={classNames(Styles.list)}>cd /tmp/.codespaces/DO_NOT_DELETE_MODIFY/</span></li>
                         <li><span className={classNames(Styles.list)}>chmod +x pkg-install.sh</span></li>
                         <li><span className={classNames(Styles.list)}>./pkg-install.sh</span></li>
                       </ol>

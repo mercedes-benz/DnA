@@ -1002,7 +1002,7 @@ const NewCodeSpace = (props) => {
         </li>
         <li><label className={classNames(Styles.modalHeader, Styles.padding)}>Steps to configure SSO for your Personal access Token:</label>
           <ul>
-            <li>Once your token is generated click on <span className={classNames(Styles.listInfo)}>Configure SSO</span> and select <span className={classNames(Styles.listInfo)}>mb-home</span> as the authorizer.</li>
+            <li>Once your token is generated click on <span className={classNames(Styles.highlightYellow)}>Configure SSO</span> and select <span className={classNames(Styles.listInfo)}>DNA-CodeSpaces</span> as the authorizer.</li>
             <li>Use the previously copied pat token to create your codespace.</li>
           </ul>
         </li>
