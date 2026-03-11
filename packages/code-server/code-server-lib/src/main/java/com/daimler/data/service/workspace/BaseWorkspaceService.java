@@ -702,8 +702,14 @@
 					: gitBaseUri;
 				HttpStatus validateUserPatstatus = gitClient.validateGitPat(collabPid, pat, gitValidationUrl);
 				if (!validateUserPatstatus.is2xxSuccessful()) {
-					MessageDescription errMsg = new MessageDescription(
-							"Invalid Git Personal Access Token provided. Please verify and retry.");
+					MessageDescription errMsg;
+					if (validateUserPatstatus == HttpStatus.FORBIDDEN) {
+						errMsg = new MessageDescription(
+								"PAT is valid but SSO is not configured for " + orgName + ". Please authorize SSO for your Personal Access Token.");
+					} else {
+						errMsg = new MessageDescription(
+								"Invalid Git Personal Access Token provided. Please verify and retry.");
+					}
 					errors.add(errMsg);
 					responseVO.setErrors(errors);
 					return responseVO;
@@ -921,8 +927,14 @@
 						 : gitBaseUri;
 				 HttpStatus validateUserPatstatus = gitClient.validateGitPat(entity.getData().getGitUserName(), pat, gitValidationUrl);
 				 if (!validateUserPatstatus.is2xxSuccessful()) {
-					 MessageDescription errMsg = new MessageDescription(
-							 "Invalid Git Personal Access Token provided. Please verify and retry.");
+					 MessageDescription errMsg;
+					 if (validateUserPatstatus == HttpStatus.FORBIDDEN) {
+						errMsg = new MessageDescription(
+								"PAT is valid but SSO is not configured for " + orgName + ". Please authorize SSO for your Personal Access Token.");
+					 } else {
+						errMsg = new MessageDescription(
+								"Invalid Git Personal Access Token provided. Please verify and retry.");
+					 }
 					 errors.add(errMsg);
 					 responseVO.setErrors(errors);
 					 return responseVO;
@@ -1112,8 +1124,14 @@
 							 : gitBaseUri;
 					 HttpStatus validateUserPatstatus = gitClient.validateGitPat(owner.getGitUserName(), pat, gitValidationUrl);
 					 if (!validateUserPatstatus.is2xxSuccessful()) {
-						 MessageDescription errMsg = new MessageDescription(
-								 "Invalid GitHub Personal Access Token provided. Please verify and retry.");
+						 MessageDescription errMsg;
+						 if (validateUserPatstatus == HttpStatus.FORBIDDEN) {
+							errMsg = new MessageDescription(
+									"PAT is valid but SSO is not configured for " + orgName + ". Please authorize SSO for your Personal Access Token.");
+						 } else {
+							errMsg = new MessageDescription(
+									"Invalid GitHub Personal Access Token provided. Please verify and retry.");
+						 }
 						 errors.add(errMsg);
 						 responseVO.setErrors(errors);
 						 return responseVO;
