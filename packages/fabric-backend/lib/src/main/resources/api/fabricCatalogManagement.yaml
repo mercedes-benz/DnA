@@ -171,6 +171,93 @@ paths:
           description: "Method not allowed"
         500:
           description: "Internal error"
+  /catalog/ddx/group-update/{ddxId}/{workspaceId}/{lakehouseId}:
+    post:
+      tags:
+        - "fabric-catalog-management"
+      summary: "update groups from ddx."
+      description: "This endpoint will be used to update groups from ddx."
+      operationId: "updateGroupsFromDDX"
+      parameters:
+        - name:   updateDDXGroupsRequest
+          in: body
+          description: "The groups update request from DDX."
+          required: true
+          schema:
+            $ref: "#/definitions/updateDDXGroupsRequestVO"
+        - name: ddxId
+          in: path
+          description: "The ID of DDX data product ."
+          required: true
+          type: "string"
+        - name: "workspaceId"
+          in: path
+          description: "The ID of the workspace."
+          required: true
+          type: "string"
+        - name: lakehouseId
+          in: path
+          description: "The ID of Lakehouse."
+          required: true
+          type: "string"
+      responses:
+        201:
+          description: "Returns message of success or failure "
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
+  /catalog/ddx/fabric-lakehouses/objects:
+    get:
+      tags:
+        - "fabric-catalog-management"
+      summary: "get lakehouse objects."
+      description: "This endpoint will be used to get lakehouse objects."
+      operationId: "getLakehouseObjects"
+      parameters:
+        - name: workspaceId
+          in: query
+          description: "The ID of the workspace."
+          required: true
+          type: string
+        - name: lakehouseId
+          in: query
+          description: "The ID of Lakehouse."
+          required: true
+          type: string
+        - name: schemaName
+          in: query
+          description: "The name of schema."
+          required: false
+          type: string
+      responses:
+        201:
+          description: "Returns message of success or failure "
+          schema:
+            $ref: "#/definitions/LakehouseObjectsResponseVO"
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
 
 definitions:
 
@@ -292,11 +379,11 @@ definitions:
     required:
       - divisions
       - department
-      - dataOrigin
+      # - dataOrigin
       - leanIXId
       - isDocumentationUpdated
-      - isDataLakeAvailability
-      - isDataAsset
+      # - isDataLakeAvailability
+      # - isDataAsset
       - dataConfidentiality
       - tier
     properties:
@@ -308,21 +395,21 @@ definitions:
       department:
         type: string
         minLength: 1
-      dataOrigin:
-        type: string
-        enum: ["internal","external","mixed"]
+      # dataOrigin:
+      #   type: string
+      #   enum: ["internal","external","mixed"]
       leanIXId:
         type: string
         minLength: 1
       isDocumentationUpdated:
         type: string
         enum: ["Yes","No"]
-      isDataLakeAvailability:
-        type: string
-        enum: ["Yes","No"]
-      isDataAsset:
-        type: string
-        enum: ["Yes","No"]
+      # isDataLakeAvailability:
+      #   type: string
+      #   enum: ["Yes","No"]
+#      isDataAsset:
+#        type: string
+#        enum: ["Yes","No"]
       dataConfidentiality:
         type: string
         enum: [public,confidential,secret,internal]
@@ -343,3 +430,60 @@ definitions:
           $ref: "#/definitions/CreatedByVO"
       mandatoryFields:
         $ref: "#/definitions/MandatoryFieldsVO"
+
+  updateDDXGroupsRequestVO:
+    type: object
+    required:
+      - groups
+    properties:
+      groups:
+        type: array
+        items:
+          type: string
+      type:
+        type: string
+        enum:
+          - FABRIC_TO_FABRIC
+        description: "Type identifier for DDX group update"
+
+  LakehouseObjectsResponseVO:
+    type: object
+    properties:
+      tables:
+        type: array
+        items:
+          $ref: "#/definitions/LakehouseTableObjectVO"
+      responseCode:
+        type: string
+        description: "Response code from the service"
+      errorMessage:
+        type: string
+        description: "Error message if any error occurred"
+
+  LakehouseTableObjectVO:
+    type: object
+    properties:
+      name:
+        type: string
+      formatType:
+        type: string
+      type:
+        type: string
+      comments:
+        type: string  
+      columns:
+        type: array
+        items:
+          $ref: "#/definitions/LakehouseColumnObjectVO"
+  
+  LakehouseColumnObjectVO:
+    type: object
+    properties:
+      columnName:
+        type: string
+      dataType:
+        type: string
+      comment:
+        type: string
+      columnMaskingRule:
+        type: string

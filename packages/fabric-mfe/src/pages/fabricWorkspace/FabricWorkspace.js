@@ -14,6 +14,7 @@ import Spinner from '../../components/spinner/Spinner';
 import RoleCreationModal from '../../components/roleCreationModal/RoleCreationModal';
 import Lakehouses from '../../components/Lakehouses/Lakehouses';
 import { Envs } from '../../utilities/envs';
+import { USER_ROLE } from '../../utilities/constants';
 
 const WorkspaceDetails = ({ workspace }) => {
   return (
@@ -186,9 +187,29 @@ const FabricWorkspace = ({ user }) => {
                 <p className={Styles.addlabel}><i className="icon mbc-icon check circle" /> <span>Provisioned</span></p>
               </button>
             }
-            <button className={classNames('btn btn-secondary', Styles.createNewCard)} type="button" onClick={() => window.open(`https://app.fabric.microsoft.com/groups/${workspace?.id}`)}>
-              <p className={Styles.addlabel}>Access Workspace <i className="icon mbc-icon new-tab" /></p>
-            </button>
+            {user?.roles?.some(role => role.id === USER_ROLE.FABRICADMIN) &&
+              user?.id !== workspace?.createdBy?.id ? (
+              <button
+                className={classNames('btn btn-secondary', Styles.createNewCard, Styles.disabledBtn)}
+                type="button"
+                disabled
+                title="Admins can only access workspaces they created"
+              >
+                <p className={Styles.addlabel}>
+                  Access Workspace <i className="icon mbc-icon new-tab" />
+                </p>
+              </button>
+            ) : (
+              <button
+                className={classNames('btn btn-secondary', Styles.createNewCard)}
+                type="button"
+                onClick={() => window.open(`https://app.fabric.microsoft.com/groups/${workspace?.id}`)}
+              >
+                <p className={Styles.addlabel}>
+                  Access Workspace <i className="icon mbc-icon new-tab" />
+                </p>
+              </button>
+            )}
           </div>
           <Lakehouses 
             user={user} 

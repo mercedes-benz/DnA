@@ -1559,3 +1559,41 @@ export interface IInfoItem {
   title: string;
   description: string;
 }
+
+export interface IUiliciousLeanGovernance {
+  costCenter?: string;
+  dataClassification?: string;
+  department?: string;
+  description?: string;
+  division?: string;
+  divisionId?: string;
+  hasPii?: boolean;
+  internalOrder?: string;
+  subDivision?: string;
+  subDivisionId?: string;
+}
+
+export interface IKeyVaultCreatedBy {
+  id?: string;
+  firstName?: string;
+  lastName?: string;
+  department?: string;
+  email?: string;
+  mobileNumber?: string;
+}
+
+export interface IKeyVault {
+  id?: string;
+  keyVaultName?: string;
+  description?: string;
+  dataClassification?: string;
+  divisionId?: string;
+  division?: string;
+  subDivisionId?: string;
+  subDivision?: string;
+  department?: string;
+  hasPii?: boolean;
+  location?: string;
+  createdBy?: IKeyVaultCreatedBy;
+  createdOn?: string;
+}
