@@ -741,7 +741,7 @@ singleuser:
       storageAccessModes: [ReadWriteOnce]
   image:
     name: registry-emea.app.corpintra.net/dnaplatform/cs-default
-    tag: "4.106.2"
+    tag: "4.111.0"
     pullPolicy: IfNotPresent
     pullSecrets: 
       - name: imagepullsecret
@@ -764,7 +764,7 @@ singleuser:
       description: "Default environment for development"
       default: true
       kubespawner_override:
-        image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.106.2
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.111.0
         image_pull_policy: IfNotPresent
         start_timeout: 900
         http_timeout: 900
