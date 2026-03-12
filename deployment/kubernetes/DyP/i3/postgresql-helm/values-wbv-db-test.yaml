@@ -16,7 +16,7 @@ image:
 fullnameOverride: "dna-cs-wbv-db-int"
 ## PostgreSQL replica count
 ##
-replicaCount: 1
+replicaCount: 2
 
 printEnv: true
 
