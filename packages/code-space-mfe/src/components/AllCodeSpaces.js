@@ -481,20 +481,20 @@ const AllCodeSpaces = (props) => {
                     <li>
                       Install required packages:
                       <ol>
-                                                <li><span className={classNames(Styles.list)}>TEMP_DIR=/tmp/.codespaces/DO_NOT_DELETE_MODIFY/</span></li>
-                                                <li><span className={classNames(Styles.list)}>mkdir -pv /tmp/.codespaces/DO_NOT_DELETE_MODIFY/</span></li>
+                        <li><span className={classNames(Styles.list)}>TEMP_DIR=/tmp/.codespaces/DO_NOT_DELETE_MODIFY/</span></li>
+                        <li><span className={classNames(Styles.list)}>mkdir -pv $TEMP_DIR</span></li>
                         <li>
                           <span className={classNames(Styles.list)}>
-                                                        cp /home/coder/app/.codespaces/DO_NOT_DELETE_MODIFY/pkg-install.sh /tmp/.codespaces/DO_NOT_DELETE_MODIFY/
+                            cp /home/coder/app/.codespaces/DO_NOT_DELETE_MODIFY/pkg-install.sh $TEMP_DIR
                           </span>
                           <br />
                           <span className={classNames(Styles.listInfo)}>If additional folder:</span>
                           <br />
                           <span className={classNames(Styles.list)}>
-                                                        cp /home/coder/app/%YOUR_FOLDER%/.codespaces/DO_NOT_DELETE_MODIFY/pkg-install.sh /tmp/.codespaces/DO_NOT_DELETE_MODIFY/
+                            cp /home/coder/app/$YOUR_FOLDER/.codespaces/DO_NOT_DELETE_MODIFY/pkg-install.sh $TEMP_DIR
                           </span>
                         </li>
-                                                <li><span className={classNames(Styles.list)}>cd /tmp/.codespaces/DO_NOT_DELETE_MODIFY/</span></li>
+                        <li><span className={classNames(Styles.list)}>cd $TEMP_DIR</span></li>
                         <li><span className={classNames(Styles.list)}>chmod +x pkg-install.sh</span></li>
                         <li><span className={classNames(Styles.list)}>./pkg-install.sh</span></li>
                       </ol>
