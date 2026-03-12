@@ -503,7 +503,7 @@
   margin-bottom: 20px;
   .warning{
     font-size: var(--font-size-smallest);
-    // color: #f3e537;
+    color: #FFD700;
   }
 }
 
@@ -537,6 +537,14 @@
 
   .listInfo {
     font-weight: var(--font-weight-bold);
+  }
+
+  .highlightYellow {
+    font-weight: var(--font-weight-bold);
+    background-color: #FFD700;
+    color: #000;
+    padding: 2px 4px;
+    border-radius: 3px;
   }
 }
 

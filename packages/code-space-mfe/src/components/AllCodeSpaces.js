@@ -458,11 +458,11 @@ const AllCodeSpaces = (props) => {
                       <ol>
                         <li><span className={classNames(Styles.list)}>mkdir -p /home/coder/app</span></li>
                         <li><span className={classNames(Styles.list)}>git config --global credential.helper cache</span></li>
-                        <li><span className={classNames(Styles.list)}>git config --global user.email &ldquo;$SHORTID&ldquo;</span></li>
-                        <li><span className={classNames(Styles.list)}>git config --global user.name &ldquo;$SHORTID&ldquo;</span></li>
+                                                <li><span className={classNames(Styles.list)}>git config --global user.email &lt;EMAILID&gt;</span></li>
+                                                <li><span className={classNames(Styles.list)}>git config --global user.name &lt;SHORTID&gt;</span></li>
                         <li>
                           <span className={classNames(Styles.list)}>
-                            git clone https://$GITHUB_TOKEN@$GITHUBREPO_URL /home/coder/app
+                                                        git clone https://&lt;GITHUB_TOKEN&gt;@&lt;GITHUBREPO_URL&gt; /home/coder/app
                           </span>
                           <br />
                           (e.g., git clone https://ghp_xxxx@{(Envs.CODE_SPACE_GIT_PAT_APP_URL).split('https://')[1]}org_name/repo_name.git /home/coder/app)
