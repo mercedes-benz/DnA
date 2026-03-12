@@ -40,7 +40,10 @@ public class RepoSoftwareFileUpdate {
 
     @Value("${codeserver.recipe.software.filename}")
 	private String gitFileName;
-  
+
+    @Value("${codeServer.git.ghe.pat}")
+    private String ghePat;
+
     @Autowired
     private GitClient gitClient;
 
@@ -334,6 +337,8 @@ public class RepoSoftwareFileUpdate {
 
     private void addSoftwareFileToGit(String gitHubUrl, List<String> softwares) {
         HttpStatus status = null;
+        boolean isGitI = gitHubUrl.contains("git.i");
+        String patToUse = isGitI ? ghePat : null;
         try {
             String repoName = null;
             String softwareFileName = null;
@@ -352,7 +357,7 @@ public class RepoSoftwareFileUpdate {
             gitUrl = gitHubUrl.replace("/" + repoOwner, "");
             gitUrl = gitUrl.replace("/" + repoName, "");
             log.info("repo creation for url "+gitHubUrl);
-            JSONObject jsonResponse = gitClient.readFileFromGit(repoName, repoOwner, gitUrl, gitFileName);
+            JSONObject jsonResponse = gitClient.readFileFromGit(repoName, repoOwner, gitUrl, gitFileName, patToUse);
             if (jsonResponse != null && jsonResponse.has("name") && jsonResponse.has("content")) {
                 softwareFileName = jsonResponse.getString("name");
                 SHA = jsonResponse.has("sha") ? jsonResponse.getString("sha") : null;
@@ -371,7 +376,7 @@ public class RepoSoftwareFileUpdate {
                 encodedFileContent = Base64.getEncoder().encodeToString(fileContent.toString().getBytes());
                 if (encodedFileContent != null) {
                     status = gitClient.createOrValidateSoftwareInGit(repoName, repoOwner,SHA, gitUrl,
-                            encodedFileContent);
+                            encodedFileContent, patToUse);
                     if (status.is2xxSuccessful()) {
                         log.info("Software creation was successfull in Git for migration for repo "+repoName);
                     }

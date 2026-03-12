@@ -9,7 +9,7 @@ import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indica
 import { CodeSpaceApiClient } from '../../apis/codespace.api';
 import SelectBox from 'dna-container/SelectBox';
 import Modal from 'dna-container/Modal';
-import { trackEvent, regionalDateAndTimeConversionSolution } from '../../Utility/utils';
+import { trackEvent, regionalDateAndTimeConversionSolution, buildGitRepoUrl } from '../../Utility/utils';
 import Tags from 'dna-container/Tags';
 import Tooltip from '../../common/modules/uilab/js/src/tooltip';
 
@@ -20,6 +20,7 @@ const DeployModal = (props) => {
   const [deployEnvironment, setDeployEnvironment] = useState('staging');
   const [acceptContinueCodingOnDeployment, setAcceptContinueCodingOnDeployment] = useState(true);
   const projectDetails = props.codeSpaceData?.projectDetails;
+  const [retainBuildImage, setRetainBuildImage] = useState(false);
 
   //details from build
   const version = props?.buildDetails?.version || '';
@@ -35,11 +36,9 @@ const DeployModal = (props) => {
       setBranchValue([projectDetails?.intDeploymentDetails?.lastDeployedBranch]);
     version?.length && setDeployEnvironment(buildEnvironment);
     ProgressIndicator.show();
-    CodeSpaceApiClient.getCodeSpacesGitBranchList(
-      projectDetails?.recipeDetails?.recipeId === 'private-user-defined'
-        ? projectDetails?.recipeDetails?.repodetails
-        : projectDetails?.gitRepoName,
-    )
+    const isWorkspaceMigratedToGHE = props.codeSpaceData?.isWorkspaceMigratedToGHE;
+    const repoUrl = buildGitRepoUrl(projectDetails?.gitRepoName, isWorkspaceMigratedToGHE);
+    CodeSpaceApiClient.getCodeSpacesGitBranchList(repoUrl)
       .then((res) => {
         ProgressIndicator.hide();
         props.setShowCodeDeployModal(true);
@@ -106,6 +105,7 @@ const DeployModal = (props) => {
           : 'prod', // int or prod
         branch: version?.length ? buildBranch : branchValue[0],
         version: version || '',
+        keepBuildImage: retainBuildImage,
       };
       ProgressIndicator.show();
       CodeSpaceApiClient.deployCodeSpace(props.codeSpaceData.id, deployRequest)
@@ -147,7 +147,7 @@ const DeployModal = (props) => {
   return (
     <>
       <Modal
-        title={'Deploy Code'}
+        title={`Deploy Code - ${props?.codeSpaceData?.projectDetails?.projectName || ''}`}
         showAcceptButton={true}
         acceptButtonTitle={'Deploy'}
         cancelButtonTitle={'Cancel'}
@@ -222,6 +222,21 @@ const DeployModal = (props) => {
                     disableSelfTagAdd={true}
                     suggestionPopupHeight={150}
                   />
+                    {!version && (
+                      <div className={Styles.checkboxRow}>
+                        <label className="checkbox">
+                          <span className="wrapper">
+                            <input
+                              type="checkbox"
+                              className="ff-only"
+                              checked={retainBuildImage}
+                              onChange={(e) => setRetainBuildImage(e.target.checked)}
+                            />
+                          </span>
+                          <span className="label">Do you want to retain the build image?</span>
+                        </label>
+                      </div>
+                    )}
                 </div>
               </div>
             )}

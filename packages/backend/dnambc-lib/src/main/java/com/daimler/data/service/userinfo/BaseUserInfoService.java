@@ -61,6 +61,7 @@ import com.daimler.data.service.solution.SolutionService;
 import com.daimler.data.dto.userinfo.UserRoleVO;
 import com.daimler.data.service.userinfo.UserInfoService;
 import com.daimler.dna.notifications.common.producer.KafkaProducerService;
+import org.springframework.web.server.ResponseStatusException;
 
 import io.jsonwebtoken.Claims;
 import lombok.extern.slf4j.Slf4j;
@@ -105,7 +106,7 @@ public class BaseUserInfoService extends BaseCommonService<UserInfoVO, UserInfoN
 
 	@Override
 	public boolean updateNewUserToken(final String id, boolean isLogin) {
-		UserInfoNsql userinfo = jpaRepo.findById(id).get();
+		UserInfoNsql userinfo = findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "User not found"));
 		if (isLogin) {
 			userinfo.setIsLoggedIn("Y");
 		} else {
@@ -135,7 +136,7 @@ public class BaseUserInfoService extends BaseCommonService<UserInfoVO, UserInfoN
 	@Override
 	public UserInfoVO updateBookMarkedSolutions(final String id, List<String> bookmarks, boolean deleteBookmarks) {
 		log.debug("updating bookmarks {} with delete flag as ", bookmarks, deleteBookmarks);
-		UserInfoNsql userInfoEntityExisting = jpaRepo.findById(id).get();
+		UserInfoNsql userInfoEntityExisting = findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "User not found")); // otherwise .get() throws NoSuchElementFoundException
 		UserInfoVO userInfoVO = userinfoAssembler.toVo(userInfoEntityExisting);
 		for (String bookmark : bookmarks) {
 			if (!deleteBookmarks) {
@@ -177,7 +178,7 @@ public class BaseUserInfoService extends BaseCommonService<UserInfoVO, UserInfoN
 
 	@Override
 	public List<SolutionVO> getAllBookMarkedSolutionsForUser(final String userId) {
-		UserInfoNsql userinfo = jpaRepo.findById(userId).get();
+		UserInfoNsql userinfo = findById(userId).orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "User not found"));
 		List<UserFavoriteUseCase> favoriteUseCases = userinfo.getData().getFavoriteUsecases();
 		if (favoriteUseCases != null && favoriteUseCases.size() > 0) {
 			List<SolutionVO> solutionVOList = new ArrayList<>();
@@ -288,7 +289,7 @@ public class BaseUserInfoService extends BaseCommonService<UserInfoVO, UserInfoN
 
 	@Override
 	public boolean isLoggedIn(String id) {
-		UserInfoNsql userinfo = jpaRepo.findById(id).get();
+		UserInfoNsql userinfo = findById(id).orElseThrow(() -> new ResponseStatusException(HttpStatus.BAD_REQUEST, "User not found"));
 		return !ObjectUtils.isEmpty(userinfo) && userinfo.getIsLoggedIn().equalsIgnoreCase("Y");
 	}
 
@@ -343,5 +344,23 @@ public class BaseUserInfoService extends BaseCommonService<UserInfoVO, UserInfoN
 		Optional<UserInfoNsql> userInfo = customRepo.findById(id);
 		return userInfo.isPresent() ? userinfoAssembler.toVo(userInfo.get()) : null;
 	}
+
+	@Override
+	public boolean deleteById(String id){
+		Optional<UserInfoNsql> userInfo = customRepo.findById(id);
+		if (userInfo.isPresent()) {
+			customRepo.deleteById(id);
+			return true;
+		}
+		return false;
+	}
+	
+	public Optional<UserInfoNsql> findById(String id){
+		Optional<UserInfoNsql> entity = jpaRepo.findById(id);
+		if (entity.isPresent() && Boolean.TRUE.equals(entity.get().getData().getIsDeleted())) {
+            return Optional.empty(); 
+        }
+        return entity;
+    }
 
 }
