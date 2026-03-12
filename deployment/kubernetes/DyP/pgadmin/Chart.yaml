@@ -1,0 +1,17 @@
+apiVersion: v1
+appVersion: "8.4"
+description: pgAdmin4 is a web based administration tool for PostgreSQL database
+home: https://www.pgadmin.org/
+icon: https://wiki.postgresql.org/images/3/30/PostgreSQL_logo.3colors.120x120.png
+keywords:
+- pgadmin
+- postgres
+- database
+- sql
+maintainers:
+- email: rowanruseler@gmail.com
+  name: rowanruseler
+name: pgadmin4
+sources:
+- https://github.com/rowanruseler/helm-charts
+version: 1.24.0

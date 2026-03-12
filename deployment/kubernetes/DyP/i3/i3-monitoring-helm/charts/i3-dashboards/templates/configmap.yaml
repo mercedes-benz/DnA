@@ -1,0 +1,35 @@
+{{- $resourceName := .Values.resourceName -}}
+{{- $namespace := .Release.Namespace -}}
+{{- $chart := printf "%s-%s" .Chart.Name .Chart.Version | trunc 63 | trimSuffix "-" | trimSuffix "." -}}
+{{- $files := .Files }}
+{{- $labels := .Values.labels -}}
+{{- $annotations := .Values.annotations -}}
+{{- range .Values.dashboards }}
+{{- if .enabled }}
+---
+{{- $src := printf "%s/%s%s" "dashboards" .name ".json" }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ $resourceName }}-{{ .name | lower}}
+  namespace: {{ $namespace }}
+  labels:
+    name: {{ $resourceName }}
+    chart: {{ $chart }}
+{{- with $labels }}
+{{ toYaml . | indent 4 }}
+{{- end }}
+{{- with $annotations }}
+  annotations:
+{{ toYaml . | indent 4 }}
+{{- end }}
+data:
+
+{{ (print .name "." "json") | nindent 2 }}: |
+{{- if .replace }}
+{{- ($files.Get $src) | nindent 4 | replace .replace .replace_with }}
+{{- else }}
+{{- ($files.Get $src) | nindent 4 }}
+{{- end }}
+{{- end}}
+{{- end}}

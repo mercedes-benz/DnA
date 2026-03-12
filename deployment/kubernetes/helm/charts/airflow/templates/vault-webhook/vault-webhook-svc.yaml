@@ -1,0 +1,16 @@
+{{- if .Values.vaultWebhook.enabled }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "airflow.name" . }}-vault-injector-webhook
+  namespace: {{ .Values.namespace }}
+  labels:
+    app: {{ include "airflow.name" . }}-vault-injector-webhook
+spec:
+  type: ClusterIP
+  selector:
+    app: {{ include "airflow.name" . }}-vault-injector-webhook
+  ports:
+{{- toYaml .Values.vaultWebhook.ports | nindent 2 }}
+  sessionAffinity: None
+{{- end }}

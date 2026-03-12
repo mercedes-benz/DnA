@@ -16,7 +16,7 @@ global:
   imagePullSecrets:
     name: harbor-pull-secret
     key: *************************************************
-  storageClass: "cinder"
+  storageClass: "dhc-gp3"
 
 ## @section Common parameters
 
@@ -70,8 +70,8 @@ diagnosticMode:
 ## @param image.debug Specify if debug logs should be enabled
 ##
 image:
-  registry: dna
-  repository: bitnami/mysql
+  registry: registry-emea.app.corpintra.net
+  repository: dnaplatform/bitnami/mysql
   tag: 8.0.28-debian-10-r0
   ## Specify a imagePullPolicy
   ## Defaults to 'Always' if image tag is 'latest', else set to 'IfNotPresent'

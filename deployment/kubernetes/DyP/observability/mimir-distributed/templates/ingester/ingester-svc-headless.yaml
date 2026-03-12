@@ -1,0 +1,32 @@
+{{- if and .Values.ingester.enabled (not .Values.federation_frontend.disableOtherComponents) }}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "mimir.resourceName" (dict "ctx" . "component" "ingester") }}-headless
+  labels:
+    {{- include "mimir.labels" (dict "ctx" . "component" "ingester" "memberlist" true) | nindent 4 }}
+    prometheus.io/service-monitor: "false"
+    {{- with .Values.ingester.service.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  annotations:
+    {{- toYaml .Values.ingester.service.annotations | nindent 4 }}
+  namespace: {{ .Release.Namespace | quote }}
+spec:
+  type: ClusterIP
+  clusterIP: None
+  ports:
+    - port: {{ include "mimir.serverHttpListenPort" .}}
+      protocol: TCP
+      name: http-metrics
+      targetPort: http-metrics
+    - port: {{ include "mimir.serverGrpcListenPort" . }}
+      protocol: TCP
+      name: grpc
+      targetPort: grpc
+    {{- if .Values.ingester.service.extraPorts }}
+    {{- toYaml .Values.ingester.service.extraPorts | nindent 4 }}
+    {{- end }}
+  selector:
+    {{- include "mimir.selectorLabels" (dict "ctx" . "component" "ingester" "memberlist" true) | nindent 4 }}
+{{- end }}

@@ -1,0 +1,11 @@
+persistence:
+  kafka: 20Gi
+  kafkaStorageClass: dhc-gp3
+  zookeeper: 5Gi
+  zookeeperStorageClass: dhc-gp3
+resources:
+  limits:
+    memory: 512Mi
+  requests:
+    cpu: 10m
+    memory: 512Mi  

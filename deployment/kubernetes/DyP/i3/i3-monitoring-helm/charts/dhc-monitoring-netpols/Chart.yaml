@@ -1,0 +1,7 @@
+apiVersion: v1
+name: dhc-monitoring-netpols
+version: 6.3.1
+appVersion: 6.3.1
+description: Network policies for i3-monitoring in DHC
+keywords:
+- monitoring

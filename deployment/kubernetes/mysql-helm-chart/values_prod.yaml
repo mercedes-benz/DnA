@@ -16,7 +16,7 @@ global:
   imagePullSecrets:
     name: harbor-pull-secret
     key: *************************************************
-  storageClass: "cinder"
+  storageClass: "dhc-gp3"
 
 ## @section Common parameters
 
@@ -98,7 +98,7 @@ auth:
   ## @param auth.rootPassword Password for the `root` user. Ignored if existing secret is provided
   ## ref: https://github.com/bitnami/bitnami-docker-mysql#setting-the-root-password-on-first-run
   ##
-  rootPassword: ""
+  rootPassword: "C53Mm3uAMtFZM7aHwXMgQ7iYP5"
   ## @param auth.database Name for a custom database to create
   ## ref: https://github.com/bitnami/bitnami-docker-mysql/blob/master/README.md#creating-a-database-on-first-run
   ##
@@ -873,8 +873,8 @@ metrics:
   ## @param metrics.image.pullSecrets [array] Specify docker-registry secret names as an array
   ##
   image:
-    registry: dna
-    repository: bitnami/mysqld-exporter
+    registry: registry-emea.app.corpintra.net
+    repository: dnaplatform/bitnami/mysqld-exporter
     tag: 0.13.0-debian-10-r216
     pullPolicy: IfNotPresent
     ## Optionally specify an array of imagePullSecrets.

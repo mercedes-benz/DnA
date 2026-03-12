@@ -1,0 +1,10 @@
+{{- $soa := index .Values "i3-opensearch-config" "savedObjectApi" "enabled" }}
+{{- if $soa }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-savedobjects-config-{{ .Release.Revision }}
+data:
+  {{ (.Files.Glob "savedobjects/*.ndjson").AsConfig | indent 2 }}
+immutable: true
+{{- end }}

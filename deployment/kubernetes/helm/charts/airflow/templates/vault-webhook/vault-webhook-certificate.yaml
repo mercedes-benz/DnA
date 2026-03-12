@@ -1,0 +1,28 @@
+{{- if .Values.vaultWebhook.enabled }}
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: {{ include "airflow.name" . }}-vault-injector-webhook-tls
+  namespace: {{ .Values.namespace }}
+spec:
+  secretName: {{ include "airflow.name" . }}-vault-injector-webhook-tls  # Secret where certs will be stored
+  duration: 8760h0m0s # 1 year
+  renewBefore: 720h0m0s # 30 days before expiry
+  privateKey:
+    algorithm: RSA
+    encoding: PKCS1
+    size: 2048
+  usages:
+    - server auth
+    - digital signature
+    - key encipherment
+  dnsNames:
+  - {{ include "airflow.name" . }}-vault-injector-webhook
+  - {{ include "airflow.name" . }}-vault-injector-webhook.{{ .Values.namespace }}
+  - {{ include "airflow.name" . }}-vault-injector-webhook.{{ .Values.namespace }}.svc
+  - {{ include "airflow.name" . }}-vault-injector-webhook.{{ .Values.namespace }}.svc.cluster.local
+  issuerRef:
+    name: selfsigned-issuer
+    kind: Issuer
+    group: cert-manager.io
+{{- end }}

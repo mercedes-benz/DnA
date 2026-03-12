@@ -1,0 +1,50 @@
+{{- if .Values.networkPolicy.enabled }}
+apiVersion: {{ template "k8s.networkPolicy.apiVersion" . }}
+kind: NetworkPolicy
+metadata:
+  name: {{ include "postgres.fullname" . }}
+  namespace: {{ .Values.namespace }}
+  labels:
+    app.kubernetes.io/name: {{ include "postgres.name" . }}
+    helm.sh/chart: {{ include "postgres.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "postgres.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  ingress:
+  # - from:
+  #   - podSelector:
+  #       matchLabels:
+          # Intentionally we allow everything deployed with this release to communicate with i3-postgres
+          #app.kubernetes.io/name: {{ include "postgres.name" . }}
+          #app.kubernetes.io/instance: {{ .Release.Name }}
+{{- if .Values.networkPolicy.ingress }}
+{{ .Values.networkPolicy.ingress | toYaml | indent 2 }}
+{{- end }}
+{{- end }}
+{{- if .Values.pgmonitoring.dashboard.deploy }}
+---
+# Allow traffic from i3-monitoring to models
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: monitoring.{{ include "postgres.fullname" . }}-allow-prometheus
+  namespace: {{ .Values.namespace }}
+spec:
+  podSelector:
+    matchLabels:
+      app.kubernetes.io/name: {{ include "postgres.name" . }}
+      app.kubernetes.io/instance: {{ .Release.Name }}
+  ingress:
+    - from:
+        - namespaceSelector:
+            matchLabels:
+              kubernetes.io/metadata.name: {{ index .Values.pgmonitoring.dashboard "i3-monitoring-namespace" }}
+      ports:
+        - port: 9187
+  policyTypes:
+    - Ingress
+{{- end }}

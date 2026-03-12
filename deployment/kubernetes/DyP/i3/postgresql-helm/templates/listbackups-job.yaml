@@ -1,0 +1,118 @@
+{{- if .Values.restore.createListBackupJob }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "postgres.fullname" . }}-backup-list
+  namespace: {{ .Values.namespace }}
+  labels:
+    app.kubernetes.io/name: {{ include "postgres.name" . }}
+    helm.sh/chart: {{ include "postgres.chart" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+    app.kubernetes.io/managed-by: {{ .Release.Service }}
+spec:
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: {{ include "postgres.name" . }}
+        helm.sh/chart: {{ include "postgres.chart" . }}
+        app.kubernetes.io/instance: {{ .Release.Name }}
+        app.kubernetes.io/managed-by: {{ .Release.Service }}
+    spec:
+      containers:
+      - name: listbackups
+        image: {{ .Values.restore.image.repository }}:{{ .Values.restore.image.tag }}
+        imagePullPolicy: {{ .Values.restore.image.pullPolicy }}
+        {{- if .Values.restore.resources.enabled }}
+        resources:
+          {{- if .Values.restore.resources.limits.enabled }}
+          limits:
+            {{- if .Values.restore.resources.limits.cpu  }}
+            cpu: {{ .Values.restore.resources.limits.cpu | quote }}
+            {{- end }}
+            {{- if .Values.restore.resources.limits.memory  }}
+            memory: {{ .Values.restore.resources.limits.memory | quote }}
+            {{- end }}
+          {{- end }}
+          {{- if .Values.restore.resources.request.enabled }}
+          requests:
+            {{- if .Values.restore.resources.request.cpu  }}
+            cpu: {{ .Values.restore.resources.request.cpu | quote }}
+            {{- end }}
+            {{- if .Values.restore.resources.request.memory  }}
+            memory: {{ .Values.restore.resources.request.memory | quote }}
+            {{- end }}
+          {{- end }}
+        {{- end }}
+        env:
+        - name: ACTION
+          value: "listBackups"
+        - name: S3_BACKUP
+        {{- if eq .Values.restore.storage "s3" }}
+          value: "true"
+        {{- else }}
+          value: "false"
+        {{- end}}
+        {{- if eq .Values.restore.storage "s3" }}
+        - name: S3_HOST_ALIAS
+          value: {{ .Values.s3.hostAlias | quote }}
+        - name: S3_BUCKET_NAME
+          value: {{ .Values.restore.s3.bucketName | quote }}
+        - name: S3_SUB_FOLDER
+          value: {{ .Values.restore.s3.subfolder | quote }}
+        - name: S3_HOST
+          value: {{ .Values.s3.host | quote }}
+        {{- if .Values.s3.insecure }}
+        - name: S3_INSECURE
+          value: {{ .Values.s3.insecure | quote }}
+        {{- end}}
+        {{- if .Values.s3.debug }}
+        - name: S3_DEBUG
+          value: {{ .Values.s3.debug | quote }}
+        {{- end}}
+        - name: S3_ACCESS_KEY
+          {{- if .Values.secrets.enabled }}
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "postgres.secretName" . }}
+              key: postgres.s3.accesskey
+          {{- else }}
+          value: {{ .Values.s3.accesskey | quote }}
+          {{- end }}
+        - name: S3_SECRET_KEY
+          {{- if .Values.secrets.enabled }}
+          valueFrom:
+            secretKeyRef:
+              name: {{ include "postgres.secretName" . }}
+              key: postgres.s3.secretkey
+          {{- else }}
+          value: {{ .Values.s3.secretkey | quote }}
+          {{- end }}
+        {{- end }}
+        volumeMounts:
+          {{- if eq .Values.restore.storage "fs" }}
+          - name: {{ include "postgres.fullname" . }}-backup
+            mountPath: "/backup"
+          {{- end}}
+      restartPolicy: OnFailure
+      {{- if or .Values.securityContext.setuid .Values.securityContext.setgid }}
+      securityContext:
+        {{- if .Values.securityContext.setuid}}
+        runAsUser: {{ .Values.securityContext.runAsUser | default 987 }}
+        {{- end }}
+        {{- if .Values.securityContext.setgid }}
+        fsGroup: {{ .Values.securityContext.fsGroup | default 987}}
+        runAsGroup: {{ .Values.securityContext.runAsGroup | default 987 }}
+        {{- end }}
+      {{- end }}
+      volumes:
+        {{- if eq .Values.restore.storage "fs" }}
+        - name: {{ include "postgres.fullname" . }}-backup
+          {{- if .Values.restore.fs.volume.enabled }}
+          persistentVolumeClaim:
+            claimName: {{ include "postgres.fullname" . }}-backup
+          {{- else }}
+          emptyDir: {}
+          {{- end }}
+        {{- end }}
+---
+{{- end }}
