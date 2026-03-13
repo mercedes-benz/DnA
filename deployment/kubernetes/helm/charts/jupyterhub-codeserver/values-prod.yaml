@@ -107,12 +107,79 @@ hub:
   args: []
   extraConfig: 
     code_spawner.py: |
+      import json
       from kubespawner.spawner import KubeSpawner
       from jupyterhub.spawner import _quote_safe
 
+      def redact_sensitive_data(data):
+          """Redact sensitive information like tokens and passwords from logs"""
+          if not isinstance(data, dict):
+              return data
+          
+          import copy
+          redacted = copy.deepcopy(data)
+          sensitive_keys = ['token', 'password', 'secret', 'pat', 'key', 'credential']
+          
+          # Redact top-level sensitive keys
+          for key in list(redacted.keys()):
+              if any(sensitive in key.lower() for sensitive in sensitive_keys):
+                  redacted[key] = '***REDACTED***'
+          
+          # Redact env variables
+          if 'env' in redacted and isinstance(redacted['env'], dict):
+              redacted['env'] = {
+                  k: '***REDACTED***' if any(s in k.upper() for s in ['TOKEN', 'PASSWORD', 'SECRET', 'PAT', 'KEY', 'CREDENTIAL']) else v
+                  for k, v in redacted['env'].items()
+              }
+          
+          return redacted
+
       class CodeSpaceKubeSpawner(KubeSpawner):
+          """
+          Custom KubeSpawner that stores complete workspace configuration
+          in user_options and logs all spawn operations for debugging.
+          """
+          
+          async def start(self):
+              """
+              Override start to log and preserve all user_options before spawning.
+              All configuration sent via API will be stored in JupyterHub database.
+              """
+              # Log the complete user_options being stored in database
+              self.log.info(f"[WORKSPACE-START] Server: '{self.name}', User: '{self.user.name}'")
+              self.log.info(f"[WORKSPACE-CONFIG] Complete user_options stored in DB: {json.dumps(redact_sensitive_data(self.user_options), indent=2)}")
+              
+              # Extract environment variables from user_options
+              user_options_env = self.user_options.get("env", {})
+              if user_options_env:
+                  self.log.info(f"[WORKSPACE-ENV] Environment variables: {json.dumps(redact_sensitive_data({'env': user_options_env})['env'], indent=2)}")
+              
+              # Extract and log resource configurations
+              storage_capacity = self.user_options.get('storage_capacity')
+              mem_guarantee = self.user_options.get('mem_guarantee')
+              mem_limit = self.user_options.get('mem_limit')
+              cpu_guarantee = self.user_options.get('cpu_guarantee')
+              cpu_limit = self.user_options.get('cpu_limit')
+              extra_containers = self.user_options.get('extra_containers')
+              profile = self.user_options.get('profile', 'default')
+              
+              self.log.info(f"[WORKSPACE-RESOURCES] Profile: {profile}, "
+                           f"Storage: {storage_capacity}, Memory: {mem_guarantee}/{mem_limit}, "
+                           f"CPU: {cpu_guarantee}/{cpu_limit}, "
+                           f"Extra Containers: {len(extra_containers) if extra_containers else 0}")
+              
+              # Call parent start method
+              return await super().start()
+          
+          async def stop(self, now=False):
+              """Override stop to log workspace shutdown."""
+              self.log.info(f"[WORKSPACE-STOP] Server: '{self.name}', User: '{self.user.name}'")
+              self.log.info(f"[WORKSPACE-CONFIG] Stored user_options: {json.dumps(redact_sensitive_data(self.user_options), indent=2)}")
+              return await super().stop(now=now)
+          
           def get_args(self):
               """Custom args function for the coder"""
+              self.log.info(f"[WORKSPACE-ARGS] Building args for server '{self.name}'")
 
               # Turn off authentication (happens via jupyterhub)
               args = ["--auth", "none"]
@@ -149,17 +216,23 @@ hub:
               #     args += ["-vvv"]
 
               args.extend(self.args)
+              self.log.info(f"[WORKSPACE-ARGS] Final args: {args}")
               return args
 
           def get_env(self):
+              """Extract and merge environment variables from user_options"""
               env = super().get_env()
               user_options_env = self.user_options.get("env", {})
-              env.update(user_options_env)
+              if user_options_env:
+                  self.log.info(f"[WORKSPACE-ENV] Merging user_options env: {list(user_options_env.keys())}")
+                  env.update(user_options_env)
               return env        
       # Use the configured spawner
       c.JupyterHub.spawner_class = CodeSpaceKubeSpawner
 
     code_settings.py: |
+      import json
+      
       # The working dir is by default set to
       # /home/coder in the VSCode image
       c.CodeSpaceKubeSpawner.working_dir = "/home/coder"
@@ -168,19 +241,64 @@ hub:
       # VSCode command to call, so we just set it to an empty string here
       c.CodeSpaceKubeSpawner.cmd = ""    
           
-      # Dynamically Get the set_resource capacity from the user options or set default values
+      # Pre-spawn hook to apply resource configurations from user_options
+      # This ensures all details are read from JupyterHub DB (user_options)
+      # rather than relying on code-server database
       def set_resource(spawner):
-          # user_storage_capacity = spawner.storage_capacity
-          # user_pvc_name = spawner.pvc_name
-
-          spawner.storage_capacity = spawner.user_options.get("storage_capacity", "1Gi")       
-          spawner.mem_guarantee = spawner.user_options.get("mem_guarantee", "6000M")       
-          spawner.mem_limit = spawner.user_options.get("mem_limit", "8000M")       
-          # spawner.cpu_limit = spawner.user_options.get("cpu_limit", 3)       
-          spawner.cpu_guarantee = 0.2 
-          spawner.extra_containers = spawner.user_options.get("extra_containers",[])
-          # expand_pvc_command = f'kubectl patch pvc {user_pvc_name} -p \'{{"spec":{{"resources":{{"requests":{{"storage":"{user_storage_capacity}"}}}}}}}}\''
-          # os.system(expand_pvc_command)           
+          """
+          Apply resource configurations from user_options stored in JupyterHub database.
+          All configuration details sent via API are preserved here.
+          """
+          # Redact sensitive data for logging
+          def redact_log_data(data):
+              if not isinstance(data, dict):
+                  return data
+              import copy
+              redacted = copy.deepcopy(data)
+              if 'env' in redacted and isinstance(redacted['env'], dict):
+                  redacted['env'] = {
+                      k: '***REDACTED***' if any(s in k.upper() for s in ['TOKEN', 'PASSWORD', 'SECRET', 'PAT', 'KEY']) else v
+                      for k, v in redacted['env'].items()
+                  }
+              return redacted
+          
+          spawner.log.info(f"[PRE-SPAWN] Applying resources for user '{spawner.user.name}', server '{spawner.name}'")
+          spawner.log.info(f"[PRE-SPAWN] user_options from DB: {json.dumps(redact_log_data(spawner.user_options), indent=2)}")
+          
+          # Apply storage capacity
+          storage_capacity = spawner.user_options.get("storage_capacity", "1Gi")
+          spawner.log.info(f"[PRE-SPAWN] Applying storage_capacity: {storage_capacity}")
+          spawner.storage_capacity = storage_capacity
+          
+          # Apply memory settings
+          mem_guarantee = spawner.user_options.get("mem_guarantee", "1000M")
+          mem_limit = spawner.user_options.get("mem_limit", "2000M")
+          spawner.log.info(f"[PRE-SPAWN] Applying memory - guarantee: {mem_guarantee}, limit: {mem_limit}")
+          spawner.mem_guarantee = mem_guarantee
+          spawner.mem_limit = mem_limit
+          
+          # Apply CPU settings
+          cpu_guarantee = spawner.user_options.get("cpu_guarantee", 0.2)
+          cpu_limit = spawner.user_options.get("cpu_limit")
+          spawner.log.info(f"[PRE-SPAWN] Applying CPU - guarantee: {cpu_guarantee}, limit: {cpu_limit}")
+          spawner.cpu_guarantee = cpu_guarantee
+          # CPU limit intentionally not set to allow pods to burst above guarantee
+          
+          # Apply extra containers if provided
+          extra_containers = spawner.user_options.get("extra_containers", [])
+          if extra_containers:
+              spawner.log.info(f"[PRE-SPAWN] Applying {len(extra_containers)} extra_containers")
+              spawner.extra_containers = extra_containers
+          
+          profile = spawner.user_options.get("profile", "default")
+          spawner.log.info(f"[PRE-SPAWN] Profile: {profile}")
+          
+          # Log final configuration summary
+          cpu_limit_value = getattr(spawner, 'cpu_limit', 'N/A')
+          spawner.log.info(f"[PRE-SPAWN] Resource configuration complete - "
+                          f"Storage: {spawner.storage_capacity}, "
+                          f"Memory: {spawner.mem_guarantee}/{spawner.mem_limit}, "
+                          f"CPU: {spawner.cpu_guarantee}/{cpu_limit_value}")
 
       c.CodeSpaceKubeSpawner.pre_spawn_hook = set_resource     
 
@@ -628,7 +746,7 @@ singleuser:
       storageAccessModes: [ReadWriteOnce]
   image:
     name: registry-emea.app.corpintra.net/dnaplatform/cs-default
-    tag: "4.106.2"
+    tag: "4.111.0"
     pullPolicy: IfNotPresent
     pullSecrets: 
       - name: imagepullsecret
@@ -651,7 +769,7 @@ singleuser:
       description: "Default environment for development"
       default: true
       kubespawner_override:
-        image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.106.2
+        image: registry-emea.app.corpintra.net/dnaplatform/cs-default:4.111.0
         image_pull_policy: IfNotPresent
         start_timeout: 900
         http_timeout: 900

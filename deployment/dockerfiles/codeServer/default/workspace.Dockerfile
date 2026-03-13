@@ -1,5 +1,5 @@
 # Author: Sathishkumar - PALANSA
-FROM registry-emea.app.corpintra.net/dockerhub/codercom/code-server:4.106.2
+FROM registry-emea.app.corpintra.net/dockerhub/codercom/code-server:4.111.0
 
 COPY proxy.conf /etc/apt/apt.conf.d/proxy.conf
 
