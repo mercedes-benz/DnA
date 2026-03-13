@@ -1002,8 +1002,8 @@ const NewCodeSpace = (props) => {
         </li>
         <li><label className={classNames(Styles.modalHeader, Styles.padding)}>Steps to configure SSO for your Personal access Token:</label>
           <ul>
-            <li>Once your token is generated click on <span className={classNames(Styles.listInfo)}>Configure SSO</span> and select <span className={classNames(Styles.listInfo)}>mb-home</span> as the authorizer.</li>
-            <li>Use the previously copied pat token to create your codespace.</li>
+            <li>Once your token is generated click on <span className={classNames(Styles.highlightYellow)}>Configure SSO</span> and select <span className={classNames(Styles.listInfo)}>DNA-CodeSpaces</span> as the authorizer.</li>
+            <li>Use the previously copied PAT token to create your codespace.</li>
           </ul>
         </li>
       </ol>
@@ -1164,7 +1164,7 @@ const NewCodeSpace = (props) => {
                   onChange={onGithubTokenOnChange}
                 />
                 {githubUrlValue?.includes(Envs.CODE_SPACE_GHE_PAT_APP_URL) && (<span className={Styles.warning}>
-                  <strong>Note:</strong> Please ensure SSO is enabled for your Personal Access Token. For more information click <button className={Styles.ssoInfoPopup} onClick={() => { setShowSsoInfoPopup(true); }}>
+                  <strong>Important Note:</strong> Please ensure SSO is enabled for your Personal Access Token(classic) to DNA-CodeSpaces. For more information click <button className={Styles.ssoInfoPopup} onClick={() => { setShowSsoInfoPopup(true); }}>
                     here
                   </button>.
                 </span>)}
@@ -1789,7 +1789,7 @@ const NewCodeSpace = (props) => {
                       onChange={onGithubTokenOnChange}
                     />
                       {githubUrlValue?.includes(Envs.CODE_SPACE_GHE_PAT_APP_URL) && (<span className={Styles.warning}>
-                        <strong>Note:</strong> Please ensure SSO is enabled for your Personal Access Token. For more information click <button className={Styles.ssoInfoPopup} onClick={() => {setShowSsoInfoPopup(true); console.log("click");}}>
+                        <strong>Important Note:</strong> Please ensure SSO is enabled for your Personal Access Token(classic) to DNA-CodeSpaces. For more information click <button className={Styles.ssoInfoPopup} onClick={() => {setShowSsoInfoPopup(true); console.log("click");}}>
                           here
                         </button>.
                       </span>)}
