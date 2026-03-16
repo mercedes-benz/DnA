@@ -38,7 +38,7 @@ jobs:
       - name: Get Head Commit Message and create branch
         env:
           GH_TOKEN: ${{ secrets.PID_PAT }}
-          GH_HOST: git.i.mercedes-benz.com
+          GH_HOST: mercedes-benz.ghe.com
         id: get_head_commit_message
         run: |
           echo "HEAD_COMMIT_MESSAGE=$(git log --format=%B -n 1 HEAD | head -n 1)" >> "$GITHUB_OUTPUT"

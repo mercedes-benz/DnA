@@ -21,7 +21,7 @@ on:
 
 env:
   PUBLIC_SRC_REPO: https://github.com/mercedes-benz/DnA.git
-  DEST_REPO: git.i.mercedes-benz.com/DNA/NeuDnAPlatform.git
+  DEST_REPO: mercedes-benz.ghe.com/DNA/NeuDnAPlatform.git
 
 jobs:
   gitsync:

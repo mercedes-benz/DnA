@@ -16,12 +16,12 @@ jobs:
     # - name: Checkout repo-b (ashokpoc branch)
     #   uses: actions/checkout@v2
     #   with:
-    #     repository: https://git.i.mercedes-benz.com/BAT/airflow-dags.git
+    #     repository: https://mercedes-benz.ghe.com/BAT/airflow-dags.git
     #     ref: ashokpoc
     #     path: repo-b
     - name: Checkout repo-b
       run: |
-        git clone https://${{ secrets.BAT_REPO_USERNAME }}:${{ secrets.BAT_REPO_PASSWORD }}@git.i.mercedes-benz.com/DNA/airflow-user-dags.git repo-b
+        git clone https://${{ secrets.BAT_REPO_USERNAME }}:${{ secrets.BAT_REPO_PASSWORD }}@mercedes-benz.ghe.com/DNA/airflow-user-dags.git repo-b
         cd repo-b
         git checkout ashokpoc
 
@@ -31,7 +31,7 @@ jobs:
 
     - name: Checkout repo-a
       run: |
-        git clone https://${{ secrets.DNA_REPO_USERNAME }}:${{ secrets.DNA_REPO_PASSWORD }}@git.i.mercedes-benz.com/DNA/airflow-user-dags.git repo-a
+        git clone https://${{ secrets.DNA_REPO_USERNAME }}:${{ secrets.DNA_REPO_PASSWORD }}@mercedes-benz.ghe.com/DNA/airflow-user-dags.git repo-a
         cd repo-a
         git checkout dev
 
