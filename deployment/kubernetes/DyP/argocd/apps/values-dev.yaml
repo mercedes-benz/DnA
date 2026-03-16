@@ -1,7 +1,7 @@
 server: "https://kubernetes.default.svc"
 # Environment to deploy it  (dev|test|prod)
 env: dev
-branch: infra/argocd-ghec-sync
+branch: dev
 namespace: argocd
 repoURL: "https://mercedes-benz.ghe.com/DNA/NeuDnAPlatform.git"
 enableSync: true
