@@ -16,7 +16,7 @@ jobs:
   
   build:
     name: "Build Clamav Docker Image (Create PR to main)"
-    runs-on: [os-small-amd64-linux]
+    runs-on: [ubuntu-8core-amd64]
     outputs:
       date: ${{ steps.date.outputs.date }}
 
@@ -82,7 +82,7 @@ jobs:
   staging:
     name: "Update tag staging"
     needs: build
-    runs-on: [road-runner]
+    runs-on: [ubuntu-8core-amd64]
     
     steps:
     - name: Check out repository code
@@ -123,7 +123,7 @@ jobs:
   dev:
     name: "Update tag dev"
     needs: build
-    runs-on: [road-runner]
+    runs-on: [ubuntu-8core-amd64]
     
     steps:
     - name: Check out repository code

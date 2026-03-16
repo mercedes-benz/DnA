@@ -23,7 +23,7 @@ jobs:
 
   docker:
     name: 'Pull and push docker image'
-    runs-on: [ self-hosted ]
+    runs-on: [ ubuntu-8core-amd64 ]
 
     
     steps:

@@ -10,7 +10,7 @@ on:
 
 jobs:
   build:
-    runs-on: [os-large-amd64-linux]
+    runs-on: [ubuntu-8core-amd64]
 
     env:
       IMAGE_TAG: ${{ github.event.inputs.tag || github.sha }}

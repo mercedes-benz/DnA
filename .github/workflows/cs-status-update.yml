@@ -39,7 +39,7 @@ jobs:
   status:
     name: 'Update Status'
     environment: ${{ inputs.environment }}
-    runs-on: [azure-small-amd64-linux]
+    runs-on: [ubuntu-8core-amd64]
     steps:
 
       - name: Get Status Code
