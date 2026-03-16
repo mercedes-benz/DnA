@@ -11,7 +11,7 @@ spec:
     server: https://kubernetes.default.svc
   source:
     path: deployment/kubernetes/DyP/argocd/apps
-    repoURL: https://git.i.mercedes-benz.com/DNA/NeuDnAPlatform.git
+    repoURL: https://mercedes-benz.ghe.com.com/DNA/NeuDnAPlatform.git
     targetRevision: dev
     plugin:
       name: argocd-vault-plugin-helm

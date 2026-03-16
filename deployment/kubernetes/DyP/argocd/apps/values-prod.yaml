@@ -3,7 +3,7 @@ server: "https://kubernetes.default.svc"
 env: prod
 branch: main
 namespace: argocd
-repoURL: "https://git.i.mercedes-benz.com/DNA/NeuDnAPlatform.git"
+repoURL: "https://mercedes-benz.ghe.com.com/DNA/NeuDnAPlatform.git"
 enableSync: true
 gitRepo:
   username: <path:dna_aws_kv/data/prod/kubernetesSecret/argocd#username | base64encode>
@@ -21,20 +21,20 @@ annotations:
   argocd.argoproj.io/manifest-generate-paths: .
 repositories:
   - name: dna-kong
-    url: https://git.i.mercedes-benz.com/DNA/dna-kong.git
+    url: https://mercedes-benz.ghe.com.com/DNA/dna-kong.git
     
   ### Adding BAT Project repos
   - name: bat-helm-charts
-    url: https://git.i.mercedes-benz.com/BAT/bat-helm-charts.git
+    url: https://mercedes-benz.ghe.com.com/BAT/bat-helm-charts.git
   - name: bat-infra
-    url: https://git.i.mercedes-benz.com/BAT/bat-infra.git
+    url: https://mercedes-benz.ghe.com.com/BAT/bat-infra.git
   - name: bat-i3-postgresql
-    url: https://git.i.mercedes-benz.com/i3/i3-postgresql.git
+    url: https://mercedes-benz.ghe.com.com/i3/i3-postgresql.git
 
   ### Adding Byron 
 
   - name: byron-chat
-    url: https://git.i.mercedes-benz.com/DNA-CodeSpaces/byron-chat-bot.git
+    url: https://mercedes-benz.ghe.com.com/DNA-CodeSpaces/byron-chat-bot.git
 
 db:
  - name: wbv
