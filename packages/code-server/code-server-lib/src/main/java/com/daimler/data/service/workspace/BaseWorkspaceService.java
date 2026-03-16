@@ -2032,9 +2032,11 @@
 						if(entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase()
 						.startsWith("private")){
 							List<String> repoDetails = CommonUtils.getRepoNameFromGitUrl(entity.getData().getProjectDetails().getGitRepoName());
-							commitId = gitClient.getLatestCommitId(repoDetails.get(0),branch,repoDetails.get(1));
+							String privateRepoUrl = entity.getData().getProjectDetails().getRecipeDetails().getRepodetails();
+							boolean isPrivateRepoOnGHE = Objects.nonNull(privateRepoUrl) && privateRepoUrl.contains("ghe.com");
+							commitId = gitClient.getLatestCommitId(repoDetails.get(0),branch,repoDetails.get(1), isPrivateRepoOnGHE);
 						}else{
-							commitId = gitClient.getLatestCommitId(gitOrgName,branch,entity.getData().getProjectDetails().getGitRepoName());
+							commitId = gitClient.getLatestCommitId(gitOrgName,branch,entity.getData().getProjectDetails().getGitRepoName(), gheWorkspaceMigrated);
 							
 						}
 						if(commitId == null){
@@ -4776,20 +4778,24 @@
 					}
 					 BuildAudit auditLog = new BuildAudit();
 					 GitLatestCommitIdDto commitId =null;
+					 Boolean gheWorkspaceMigratedForBuild = entity.getData().getIsWorkspaceMigratedToGHE();
 					 if(entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase()
 					 .startsWith("private")){
 						List<String> repoDetails = CommonUtils.getRepoNameFromGitUrl(entity.getData().getProjectDetails().getGitRepoName());
-						commitId = gitClient.getLatestCommitId(repoDetails.get(0),branch,repoDetails.get(1));
+						String privateRepoUrl = entity.getData().getProjectDetails().getRecipeDetails().getRepodetails();
+						boolean isPrivateRepoOnGHE = Objects.nonNull(privateRepoUrl) && privateRepoUrl.contains("ghe.com");
+						commitId = gitClient.getLatestCommitId(repoDetails.get(0),branch,repoDetails.get(1), isPrivateRepoOnGHE);
 					}else{
-						commitId = gitClient.getLatestCommitId(gitOrgName,branch,entity.getData().getProjectDetails().getGitRepoName());
+						commitId = gitClient.getLatestCommitId(gitOrgName,branch,entity.getData().getProjectDetails().getGitRepoName(), gheWorkspaceMigratedForBuild);
 						
 					}
 					
 					if(commitId == null){
 						MessageDescription warning = new MessageDescription();
-						warning.setMessage("Error while adding commit id to deployment audit log");
+						warning.setMessage("Error while adding commit id to build audit log");
+					} else {
+						auditLog.setCommitId(commitId.getSha());
 					}
-					 auditLog.setCommitId(commitId.getSha());
 					 auditLog.setImageDeleted(Boolean.FALSE);
 					 auditLog.setTriggeredOn(now);
 					 auditLog.setTriggeredBy(entity.getData().getWorkspaceOwner().getGitUserName());

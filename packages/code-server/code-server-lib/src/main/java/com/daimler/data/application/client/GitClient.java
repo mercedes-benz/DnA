@@ -568,15 +568,23 @@ public class GitClient {
 	}
 
 	public GitLatestCommitIdDto getLatestCommitId( String orgName, String branch, String repoName) {
+		return getLatestCommitId(orgName, branch, repoName, null);
+	}
+	
+	public GitLatestCommitIdDto getLatestCommitId( String orgName, String branch, String repoName, Boolean isWorkspaceMigratedToGHE) {
 		GitLatestCommitIdDto commitId = null;
 		try {
-			log.info("Getting latest commit ID: org={}, repo={}, branch={}", orgName, repoName, branch);
+			String baseUri = Boolean.TRUE.equals(isWorkspaceMigratedToGHE) ? gheBaseUri : gitBaseUri;
+			String pat = Boolean.TRUE.equals(isWorkspaceMigratedToGHE) ? ghePat : personalAccessToken;
+			
+			log.info("Getting latest commit ID: org={}, repo={}, branch={}, baseUri={} (isWorkspaceMigratedToGHE={})", 
+					orgName, repoName, branch, baseUri, isWorkspaceMigratedToGHE);
 			
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");
-			headers.set("Authorization", "token "+ personalAccessToken);
-			String url = gitBaseUri+"/repos/" + orgName + "/"+ repoName+ "/commits?sha="+branch+"&per_page=1";
+			headers.set("Authorization", "token "+ pat);
+			String url = baseUri+"/repos/" + orgName + "/"+ repoName+ "/commits?sha="+branch+"&per_page=1";
 			HttpEntity entity = new HttpEntity<>(headers);
 			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
 			ObjectMapper objectMapper = new ObjectMapper();
@@ -590,7 +598,7 @@ public class GitClient {
 		} catch (Exception e) {
 			log.error("Error occured while  fetching latest commit id from git repo {} and branch {} with exception {}", repoName, branch, e.getMessage());
 		}
-		return new GitLatestCommitIdDto();
+		return null;
 	}
 	
 	public HttpStatus isUserCollaborator( String orgName,String username, String repoName) {
