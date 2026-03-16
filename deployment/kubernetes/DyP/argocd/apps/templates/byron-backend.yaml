@@ -18,7 +18,7 @@ spec:
     server: {{ .Values.server | squote }}
   source:
     path: deploy/helm/charts/backend
-    repoURL: https://mercedes-benz.ghe.com.com/DNA-CodeSpaces/byron-chat-bot.git
+    repoURL: https://mercedes-benz.ghe.com/DNA-CodeSpaces/byron-chat-bot.git
     targetRevision: main
     helm:
       releaseName: byron-chat-backend

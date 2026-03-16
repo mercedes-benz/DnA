@@ -16,4 +16,4 @@ spec:
       kind: '*'
   sourceRepos:
     - {{ .Values.repoURL }}
-    - https://mercedes-benz.ghe.com.com/DNA/dna-kong.git
+    - https://mercedes-benz.ghe.com/DNA/dna-kong.git

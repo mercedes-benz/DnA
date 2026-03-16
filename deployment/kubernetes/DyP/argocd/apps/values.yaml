@@ -5,7 +5,7 @@ gitRepo:
 
 repositories: []
   # - name: chronos-frontend
-  #   url: https://mercedes-benz.ghe.com.com/DNA/dna-chronos-frontend.git
+  #   url: https://mercedes-benz.ghe.com/DNA/dna-chronos-frontend.git
 
 server: "https://kubernetes.default.svc"
 # Environment to deploy it  (dev|test|prod)

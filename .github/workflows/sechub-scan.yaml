@@ -24,7 +24,7 @@ jobs:
 
   development:
     name: 'sechub scan'
-    runs-on: [ ubuntu-8core-amd64]
+    runs-on: [ ubuntu-8core-amd64 ]
 
     steps:
 
