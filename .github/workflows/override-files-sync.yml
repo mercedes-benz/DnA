@@ -16,7 +16,7 @@ permissions:
 jobs:
   override-files-sync:
     name: "Override Or Additional Files Sync"
-    runs-on: [os-small-amd64-linux ]
+    runs-on: [ubuntu-8core-amd64 ]
     steps:
 
       - name: Check Source Branch

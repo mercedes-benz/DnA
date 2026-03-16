@@ -25,7 +25,7 @@ jobs:
   status:
     name: 'Update RunId'
     environment: ${{ inputs.environment }}
-    runs-on: [os-medium-amd64-linux]
+    runs-on: [ubuntu-8core-amd64]
     steps:
 
       - name: Trigger update githubrunid API
