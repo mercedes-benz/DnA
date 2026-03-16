@@ -184,7 +184,7 @@ jobs:
         labels: 'dev, update-image-version'
         commitChange: true
         message: 'Update Image Version to ${{ github.run_number }}' 
-        githubAPI: https://git.i.mercedes-benz.com/api/v3
+        githubAPI: https://mercedes-benz.ghe.com/api/v3
         token: ${{ secrets.PID_PAT }}  
 
     - name: Print pull request details
@@ -228,7 +228,7 @@ jobs:
         labels: 'staging, update-image-version'
         commitChange: true
         message: 'Update Image Version to ${{ github.run_number }}' 
-        githubAPI: https://git.i.mercedes-benz.com/api/v3
+        githubAPI: https://mercedes-benz.ghe.com/api/v3
         token: ${{ secrets.PID_PAT }} 
         
     - name: Print pull request details
@@ -273,7 +273,7 @@ jobs:
         reviewers: 'AMARIAR,VKURAPA,SKOLLUR'
         commitChange: true
         message: 'Update Image Version to ${{ needs.build.outputs.version }}' 
-        githubAPI: https://git.i.mercedes-benz.com/api/v3
+        githubAPI: https://mercedes-benz.ghe.com/api/v3
         token: ${{ secrets.PID_PAT }}
 
     - name: Print pull request details
@@ -370,7 +370,7 @@ jobs:
   #       repository: ""
   #       token: ""
   #       ref: ""
-  #       github-server-url: "https://git.i.mercedes-benz.com/"  
+  #       github-server-url: "https://mercedes-benz.ghe.com/"  
 
   #   - name: Download tha sechub client 
   #     run: |

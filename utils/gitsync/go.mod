@@ -1,4 +1,4 @@
-module git.i.mercedes-benz.com/DNA/DnAPlatform.git
+module mercedes-benz.ghe.com/DNA/DnAPlatform.git
 
 go 1.19
 

@@ -50,7 +50,7 @@ jobs:
         createPR: false
         commitChange: false
         message: 'Update Image Version to ${{ github.run_number }}' 
-        githubAPI: https://git.i.mercedes-benz.com/api/v3
+        githubAPI: https://mercedes-benz.ghe.com/api/v3
         token: ${{ secrets.PID_PAT }}    
 
     - name: Update Hive Metastore Image Version values.yaml
@@ -63,7 +63,7 @@ jobs:
         createPR: false
         commitChange: true
         message: 'Update Image Version to ${{ github.run_number }}' 
-        githubAPI: https://git.i.mercedes-benz.com/api/v3
+        githubAPI: https://mercedes-benz.ghe.com/api/v3
         token: ${{ secrets.PID_PAT }}    
 
   staging:
@@ -89,7 +89,7 @@ jobs:
         createPR: false
         commitChange: false
         message: 'Update Image Version to ${{ github.run_number }}' 
-        githubAPI: https://git.i.mercedes-benz.com/api/v3
+        githubAPI: https://mercedes-benz.ghe.com/api/v3
         token: ${{ secrets.PID_PAT }}
 
     - name: Update Hive Metastore Image Version values.yaml
@@ -102,7 +102,7 @@ jobs:
         createPR: false
         commitChange: true
         message: 'Update Image Version to ${{ github.run_number }}' 
-        githubAPI: https://git.i.mercedes-benz.com/api/v3
+        githubAPI: https://mercedes-benz.ghe.com/api/v3
         token: ${{ secrets.PID_PAT }}    
 
 
@@ -129,7 +129,7 @@ jobs:
         createPR: false
         commitChange: false
         message: 'Update Image Version to ${{ env.TRINO_VERSION }}' 
-        githubAPI: https://git.i.mercedes-benz.com/api/v3
+        githubAPI: https://mercedes-benz.ghe.com/api/v3
         token: ${{ secrets.PID_PAT }}
 
     - name: Update Hive Metastore Image Version values.yaml
@@ -142,7 +142,7 @@ jobs:
         createPR: false
         commitChange: true
         message: 'Update Image Version to ${{ env.HIVE_METASTORE_IMAGE_VERSION }}' 
-        githubAPI: https://git.i.mercedes-benz.com/api/v3
+        githubAPI: https://mercedes-benz.ghe.com/api/v3
         token: ${{ secrets.PID_PAT }}    
 
   build:
