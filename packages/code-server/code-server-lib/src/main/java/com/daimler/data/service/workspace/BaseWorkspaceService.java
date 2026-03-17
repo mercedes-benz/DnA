@@ -2032,7 +2032,8 @@
 							boolean isPrivateRepoOnGHE = Objects.nonNull(privateRepoUrl) && privateRepoUrl.contains("ghe.com");
 							commitId = gitClient.getLatestCommitId(repoDetails.get(0),branch,repoDetails.get(1), isPrivateRepoOnGHE);
 						}else{
-							commitId = gitClient.getLatestCommitId(gitOrgName,branch,entity.getData().getProjectDetails().getGitRepoName(), gheWorkspaceMigrated);
+							String effectiveOrgName = gheWorkspaceMigrated ? gitOrgName : codeServerGitOrgName;
+							commitId = gitClient.getLatestCommitId(effectiveOrgName,branch,entity.getData().getProjectDetails().getGitRepoName(), gheWorkspaceMigrated);
 							
 						}
 						if(commitId == null){
@@ -4779,7 +4780,8 @@
 						boolean isPrivateRepoOnGHE = Objects.nonNull(privateRepoUrl) && privateRepoUrl.contains("ghe.com");
 						commitId = gitClient.getLatestCommitId(repoDetails.get(0),branch,repoDetails.get(1), isPrivateRepoOnGHE);
 					}else{
-						commitId = gitClient.getLatestCommitId(gitOrgName,branch,entity.getData().getProjectDetails().getGitRepoName(), gheWorkspaceMigratedForBuild);
+						String effectiveOrgName = gheWorkspaceMigratedForBuild ? gitOrgName : codeServerGitOrgName;
+						commitId = gitClient.getLatestCommitId(effectiveOrgName,branch,entity.getData().getProjectDetails().getGitRepoName(), gheWorkspaceMigratedForBuild);
 						
 					}
 					
