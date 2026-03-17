@@ -125,6 +125,16 @@ export const buildGitRepoUrl = (gitRepoInfo, isWorkspaceMigratedToGHE = true) =>
     return baseUrl + orgName + '/' + repoName + '.git';
 };
 
+export const buildGitCommitUrl = (gitRepoInfo, commitId, isWorkspaceMigratedToGHE = true) => {
+    if (!gitRepoInfo || !commitId) return '';
+    
+    const baseUrl = isWorkspaceMigratedToGHE ? Envs.CODE_SPACE_GHE_PAT_APP_URL : Envs.CODE_SPACE_GIT_PAT_APP_URL;
+    const orgName = isWorkspaceMigratedToGHE ? Envs.CODE_SPACE_GHE_ORG_NAME : Envs.CODE_SPACE_GIT_ORG_NAME;
+    const repoPath = gitRepoInfo.includes('/') ? gitRepoInfo : `${orgName}/${gitRepoInfo}`;
+    
+    return `${baseUrl}${repoPath}/commit/${commitId}`;
+};
+
 export const getRepoNameWithPrefix = (gitRepoInfo) => {
     if (!gitRepoInfo) return gitRepoInfo;
     if (gitRepoInfo.includes('.git') || gitRepoInfo.includes('http://') || gitRepoInfo.includes('https://')) {
