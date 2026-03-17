@@ -601,8 +601,12 @@ public class GitClient {
 		return null;
 	}
 	
-	public HttpStatus isUserCollaborator( String orgName,String username, String repoName) {
-		return isUserCollaborator(orgName, username, repoName, gitBaseUri, personalAccessToken);
+	public HttpStatus isUserCollaborator( String orgName,String username, String repoName, Boolean isWorkspaceMigratedToGHE) {
+		String baseUri = Boolean.TRUE.equals(isWorkspaceMigratedToGHE) ? gheBaseUri : gitBaseUri;
+		String pat = Boolean.TRUE.equals(isWorkspaceMigratedToGHE) ? ghePat : personalAccessToken;
+		log.info("Checking if user is collaborator: user={}, org={}, repo={}, baseUri={} (isWorkspaceMigratedToGHE={})", 
+				username, orgName, repoName, baseUri, isWorkspaceMigratedToGHE);
+		return isUserCollaborator(orgName, username, repoName, baseUri, pat);
 	}
 	
 	public HttpStatus isUserCollaborator( String orgName,String username, String repoName, String baseUri, String pat) {

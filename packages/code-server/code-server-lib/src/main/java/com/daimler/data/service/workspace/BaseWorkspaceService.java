@@ -1472,12 +1472,8 @@
 								}
 					}else{
 						HttpStatus status;
-						if (vo.getProjectDetails().getRecipeDetails().getRepodetails().contains("ghe.com")) {
-							status = gitClient.isUserCollaborator(orgName, collaborator.getId(), repoName, gheBaseUri,
-									ghePat);
-						} else {
-							status = gitClient.isUserCollaborator(orgName, collaborator.getId(), repoName);
-						}
+						Boolean isGHE = vo.getProjectDetails().getRecipeDetails().getRepodetails().contains("ghe.com");
+						status = gitClient.isUserCollaborator(orgName, collaborator.getId(), repoName, isGHE);
 						if(!status.is2xxSuccessful()) {
 							log.info("Collaborator {} Addition failed for recipe {}  ",collaborator.getId(),vo.getProjectDetails().getRecipeDetails().getRecipeId());
 							errors.add(new MessageDescription("Cannot add User "+collaborator.getId()+" as collaborator because the user is  not a collaborator to the private repo "+repoName+" add the user to the repo and try again"));
@@ -2560,11 +2556,8 @@
 					 }
 				}else{
 					HttpStatus status;
-					if (gitUrl.contains("ghe.com")) {
-						status = gitClient.isUserCollaborator(repoOwner, gitUser, repoName, gheBaseUri, ghePat);
-					} else {
-						status = gitClient.isUserCollaborator(repoOwner, gitUser, repoName);
-					}
+					Boolean isGHE = gitUrl.contains("ghe.com");
+					status = gitClient.isUserCollaborator(repoOwner, gitUser, repoName, isGHE);
 					if(!status.is2xxSuccessful()) {
 						log.info(
 								"Cannot add User {} as collaborator because the user is  not a collaborator to the private repo {}",
