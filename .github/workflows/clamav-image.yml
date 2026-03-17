@@ -68,8 +68,10 @@ jobs:
         token: ${{ secrets.PID_PAT }} 
 
     - name: Print pull request details
+      env:
+        PR_INFO: ${{ steps.cpr.outputs.pull_request }}
       run: |
-        echo "Pull Request Info - ${{ steps.cpr.outputs.pull_request }}"
+        echo "Pull Request Info - $PR_INFO"
 
   # css-scan:
   #       name: Container security scan

@@ -192,7 +192,7 @@ jobs:
 
     - name: CSS Image Scan
       if: ${{ ( github.event.pull_request.merged == true && github.ref_name == 'staging' ) || ( github.event.pull_request.merged == true && github.ref_name == 'main' ) || github.event.inputs.environment == 'Production' || github.event.inputs.environment == 'Staging' }}
-      id: scan
+      id: scan2
       uses: consec/scan@v3
       with:
         pcc_console_url: "https://consec-img-scan.app.corpintra.net/"
