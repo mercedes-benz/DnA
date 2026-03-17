@@ -1203,6 +1203,8 @@ const CodeSpace = (props) => {
           show={showAuditLogsModal}
           setShowAuditLogsModal={setShowAuditLogsModal}
           projectName={projectDetails.projectName.toLowerCase()}
+          gitRepoName={projectDetails.gitRepoName}
+          isWorkspaceMigratedToGHE={codeSpaceData?.isWorkspaceMigratedToGHE}
         />
       )}
 

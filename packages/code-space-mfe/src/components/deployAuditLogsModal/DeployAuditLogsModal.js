@@ -2,7 +2,7 @@ import classNames from 'classnames';
 import React, { useEffect, useState } from 'react';
 import Styles from './DeployAuditLogsModal.scss';
 import Modal from 'dna-container/Modal';
-import { regionalDateAndTimeConversionSolution } from '../../Utility/utils';
+import { regionalDateAndTimeConversionSolution, buildGitCommitUrl } from '../../Utility/utils';
 import Pagination from 'dna-container/Pagination';
 import SelectBox from 'dna-container/SelectBox';
 import { Envs } from '../../Utility/envs';
@@ -226,7 +226,7 @@ const DeployAuditLogsModal = (props) => {
                         <td>
                           {item?.commitId ? (
                             <a
-                              href={`${Envs.CODE_SPACE_GIT_PAT_APP_URL}/${Envs.CODE_SPACE_GIT_ORG_NAME}/${props.projectName}/commit/${item.commitId}`}
+                              href={buildGitCommitUrl(props.gitRepoName || props.projectName, item.commitId, props.isWorkspaceMigratedToGHE)}
                               target="_blank"
                               rel="noreferrer"
                             >

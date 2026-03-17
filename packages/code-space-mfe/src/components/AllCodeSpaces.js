@@ -572,57 +572,29 @@ const AllCodeSpaces = (props) => {
     const sundownWarningContent = (
         <div className={Styles.sundownWarning}>
             <p>
-                As part of the GitHub migration initiative, the DnA Platform team will migrate your Git repositories from{' '}
-                <a
-                    href={Envs.CODE_SPACE_GHES_ORG_URL}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                >
-                    GHES (On-Premises GitHub)
-                </a>
-                {' '}to{' '}
+                Your repositories under the <a href={Envs.CODE_SPACE_GHEC_ORG_URL} target="_blank" rel="noopener noreferrer">DNA-CodeSpaces</a> organization have been successfully migrated from GHES to GitHub Cloud (GHEC). 🎉 All repositories can now be accessed using the following link{' '}
                 <a
                     href={Envs.CODE_SPACE_GHEC_ORG_URL}
                     target="_blank"
                     rel="noopener noreferrer"
+                    style={{ whiteSpace: 'nowrap' }}
                 >
-                    GHEC (GitHub Cloud)
+                    {Envs.CODE_SPACE_GHEC_ORG_URL}
                 </a>
-                {' '}by March 15, 2026.
+                .
+                <br /><br />
             </p>
             <p>
-                To ensure a smooth migration, please log in at least once to{' '}
-                <a
-                    href={Envs.CODE_SPACE_GHE_PAT_APP_URL}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                >
-                    {Envs.CODE_SPACE_GHE_PAT_APP_URL}
-                </a>
-                {' '}before the migration. This step is critical—if you do not log in at least once, your repositories may still be migrated, but your user account and repository permissions may not be provisioned correctly in GitHub Cloud.
-            </p>
-            <p>
-                You are also required to create a{' '}
+                As part of the migration, please create a Personal Access Token (PAT) from{' '}
                 <a
                     href={Envs.CODE_SPACE_GHE_PAT_SETTINGS_URL}
                     target="_blank"
                     rel="noopener noreferrer"
+                    style={{ whiteSpace: 'nowrap' }}
                 >
-                    Personal Access Token (PAT)
-                </a>. Navigate to your Developer Settings, generate a new token (classic), and ensure the token has at least repo scope access. After generating the token, configure SSO authorization for it by opening the token&apos;s SSO settings, selecting the DnA-Codespaces organization, and authorizing the token.
-            </p>
-            <p>
-                The migration activities are scheduled over the weekends on March 7, 8, and 14. You should have already received an email with detailed instructions. Before the migration window, please ensure that all your code changes are committed to your branch and pushed to the origin repository.
-            </p>
-            <p>
-                For any queries, please refer to the Codespaces FAQs or contact us via the{' '}
-                <a
-                    href={Envs.CODESPACE_TEAMS_LINK}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                >
-                    DnA Codespaces Teams channel
-                </a>.
+                    {Envs.CODE_SPACE_GHE_PAT_SETTINGS_URL}
+                </a>
+                {' '}by selecting &quot;Generate new token (classic)&quot;. Under Scopes, ensure the token has at least <strong>repo</strong> access. After creating the token, make sure to authorize it for SSO under the <strong>DnA-Codespaces</strong> organization. <br /><br />Also, update your Git remote URL to point to the new host using<br /><code>git remote set-url origin {Envs.CODE_SPACE_GHEC_ORG_URL}/&lt;REPO_NAME&gt;.git</code>.<br /><br />For any queries, please refer to the Codespaces FAQs or contact us via the <a href={Envs.CODESPACE_TEAMS_LINK} target="_blank" rel="noopener noreferrer">DnA Codespaces Teams channel</a>.
             </p>
         </div>
     );
