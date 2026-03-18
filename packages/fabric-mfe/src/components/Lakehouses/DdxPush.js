@@ -3,10 +3,11 @@ import classNames from 'classnames';
 import Styles from './DdxPush.scss';
 import AddUser from 'dna-container/AddUser';
 import SelectBox from 'dna-container/SelectBox';
+import TypeAheadBox from 'dna-container/TypeAheadBox';
 import Tooltip from '../../common/modules/uilab/js/src/tooltip';
 import Notification from '../../common/modules/uilab/js/src/notification';
-import { fabricApi } from '../../apis/fabric.api';import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
-import { DIVISIONS, BUSINESS_DOMAINS, CLOUD_PROVIDERS, DATA_HUBS,TECHNOLOGIES, PURPOSES, CRITERIA_TRANSFER_PRICING, QUALIFICATION_TRANSFER_PRICING} from '../../utilities/constants';
+import { fabricApi } from '../../apis/fabric.api';
+import { DIVISIONS, BUSINESS_DOMAINS, CLOUD_PROVIDERS, DATA_HUBS,TECHNOLOGIES, PURPOSES, CRITERIA_TRANSFER_PRICING, QUALIFICATION_TRANSFER_PRICING, SECURITY_LEVELS} from '../../utilities/constants';
 
 const Step1_BasicIdentification = ({ formData, setFormData, errors, clearError }) => (
   <div className={Styles.stepForm}>
@@ -59,6 +60,26 @@ const Step2_OwnershipGovernance = ({
   workspaceOwner,
   workspaceDivision,
 }) => {
+
+  const [legalEntityOptions, setLegalEntityOptions] = useState([]);
+
+  const handleLegalEntitySearch = (searchTerm, showSpinner) => {
+    clearError('legalEntityError');
+    if (searchTerm.length > 3) {
+      showSpinner && showSpinner(true);
+      fabricApi.getLegalEntities(searchTerm)
+        .then((response) => {
+          showSpinner && showSpinner(false);
+          setLegalEntityOptions(response?.data || []); 
+        })
+        .catch((err) => {
+          showSpinner && showSpinner(false);
+          Notification.show(err?.response?.data?.errors?.[0]?.message || 'Something went wrong.', 'alert');
+        });
+    } else {
+      setLegalEntityOptions([]);
+    }
+  };
 
   useEffect(() => {
     if (workspaceOwner) {
@@ -219,20 +240,33 @@ const Step2_OwnershipGovernance = ({
 
       <div className={Styles.col}>
         <div className={classNames('input-field-group include-error', errors.legalEntityError ? 'error' : '')}>
-          <label htmlFor="legalEntity" className="input-label">
-            Legal Entity <sup>*</sup>
-          </label>
-          <input
-            id="legalEntity"
-            className="input-field"
-            autoComplete="off"
-            value={formData.legalEntity || ''}
-            onChange={(e) => {
-              setFormData({ ...formData, legalEntity: e.target.value });
+          {/* <label className="input-label">
+            Data Providers <sup>*</sup>
+          </label> */}
+          <TypeAheadBox
+            label={'Legal Entity'}
+            placeholder={'Enter minimum 4 characters to search'}
+            defaultValue={formData.legalEntity?.legalName ? `${formData.legalEntity.legalName} (${formData.legalEntity.companyCode})` : ''}
+            list={legalEntityOptions}
+            maxOptions={1}
+            setSelected={(selected) => {
+              setFormData((prev) => ({
+                ...prev,
+                legalEntity: { legalName: selected.legalName, companyCode: selected.companyCode },
+              }));
               clearError('legalEntityError');
             }}
+            onInputChange={handleLegalEntitySearch}
+            required={true}
+            showError={errors.legalEntityError}
+            render={(item) => (
+              <div className={Styles.optionContainer}>
+                  <span className={Styles.optionText}>
+                    {`${item.legalName} (${item.companyCode})`}
+                  </span>
+              </div>
+            )}
           />
-          {errors.legalEntityError && <span className="error-message">{errors.legalEntityError}</span>}
         </div>
       </div>
 
@@ -411,32 +445,14 @@ const Step4_ComplianceUsage = ({
   setFormData,
   errors,
   clearError,
+  securityLevel,
   purposes,
   criteriaTransferPricing,
   qualificationTransferPricing
 }) => {
-  
-  const [securityLevelDropdown, setSecurityLevelDropdown] = useState([]);
 
   useEffect(() => {
-    ProgressIndicator.show();
-    fabricApi.getLovData()
-      .then((response) => {
-        ProgressIndicator.hide();
-        setSecurityLevelDropdown(response[0]?.data?.data || []);
-        SelectBox.defaultSetup();
-      })
-      .catch((err) => {
-        ProgressIndicator.hide();
-        if (err?.response?.data?.errors?.length > 0) {
-          err?.response?.data?.errors.forEach((err) => {
-            Notification.show(err?.message || 'Something went wrong.', 'alert');
-          });
-        } else {
-          Notification.show(err?.message || 'Something went wrong.', 'alert');
-        }
-      });
-    //eslint-disable-next-line react-hooks/exhaustive-deps
+    SelectBox.defaultSetup();
   }, []);
 
   return (
@@ -456,13 +472,9 @@ const Step4_ComplianceUsage = ({
               }}
             >
               <option value="">Choose</option>
-              {securityLevelDropdown.map((item) => (
-                <option
-                  id={item.id}
-                  key={item.id}
-                  value={item.name}
-                >
-                  {item.name}
+              {securityLevel.map((name, index) => (
+                <option key={index} value={name}>
+                  {name}
                 </option>
               ))}
             </select>
@@ -671,7 +683,7 @@ const ViewDdxTablesModalContent = ({ workspaceOwner, workspaceDivision }) => {
       if (!formData.businessDomain) {
         newErrors.businessDomainError = '*Missing entry';
       }
-      if (!formData.legalEntity?.trim()) {
+      if (!formData.legalEntity?.legalName) {
         newErrors.legalEntityError = '*Missing entry';
       }
       if (!formData.dataProviders || formData.dataProviders.length < 2) {
@@ -834,6 +846,7 @@ const ViewDdxTablesModalContent = ({ workspaceOwner, workspaceDivision }) => {
           setFormData={setFormData}
           errors={errors}
           clearError={clearError}
+          securityLevel={SECURITY_LEVELS || []}
           purposes={PURPOSES || []}
           criteriaTransferPricing={CRITERIA_TRANSFER_PRICING || []}
           qualificationTransferPricing={QUALIFICATION_TRANSFER_PRICING || []}
