@@ -616,6 +616,8 @@ const ContextMenu = (props) => {
           show={showAuditLogsModal}
           setShowAuditLogsModal={setShowAuditLogsModal}
           projectName={projectDetails.projectName.toLowerCase()}
+          gitRepoName={projectDetails.gitRepoName}
+          isWorkspaceMigratedToGHE={codeSpace?.isWorkspaceMigratedToGHE}
         />
       )}
       {showRestartModal && (
