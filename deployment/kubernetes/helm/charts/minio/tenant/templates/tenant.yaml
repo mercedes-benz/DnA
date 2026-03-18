@@ -19,7 +19,7 @@ scheduler:
   name: {{ dig "scheduler" "name" "" . }}
 {{- end }}
 spec:
-  image: {{ dig "image" "repository" "minio/minio" . }}:{{ dig "image" "tag" "RELEASE.2022-01-08T03-11-54Z" . }}
+  image: "{{ .image.repository }}:{{ .image.digest | default .image.tag }}"
   imagePullPolicy: {{ dig "image" "pullPolicy" "IfNotPresent" . }}
   {{- if dig "imagePullSecret" "name" "" . }}
   imagePullSecret:
@@ -39,8 +39,13 @@ spec:
       volumeClaimTemplate:
         metadata:
           name: data
+      {{- with (dig "storageAnnotations" (dict) .) }}
+          annotations: {{- toYaml . | nindent 12 }}
+      {{- end }}
         spec:
+          {{- if dig "storageClassName" "" . }}
           storageClassName: {{ dig "storageClassName" "" . }}
+          {{- end }}
           accessModes:
             - ReadWriteOnce
           resources:
@@ -64,11 +69,17 @@ spec:
       {{- with (dig "resources" (dict) .) }}
       resources: {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{- if hasKey . "securityContext" }}
+      securityContext: {{- if eq (len .securityContext) 0 }} {} {{- end }}
       {{- with (dig "securityContext" (dict) .) }}
-      securityContext: {{- toYaml . | nindent 8 }}
+      {{- toYaml . | nindent 8 }}
       {{- end }}
+      {{- end }}
+      {{- if hasKey . "containerSecurityContext" }}
+      containerSecurityContext: {{- if eq (len .containerSecurityContext) 0 }} {} {{- end }}
       {{- with (dig "containerSecurityContext" (dict) .) }}
-      containerSecurityContext: {{- toYaml . | nindent 8 }}
+      {{- toYaml . | nindent 8 }}
+      {{- end }}
       {{- end }}
       {{- with (dig "topologySpreadConstraints" (list) .) }}
       topologySpreadConstraints: {{- toYaml . | nindent 8 }}
@@ -83,6 +94,9 @@ spec:
   externalCertSecret: {{- toYaml . | nindent 6 }}
   {{- end }}
   requestAutoCert: {{ dig "certificate" "requestAutoCert" false . }}
+  {{- if ((.certificate).certExpiryAlertThreshold) }}
+  certExpiryAlertThreshold: {{ ((.certificate).certExpiryAlertThreshold) }}
+  {{- end }}
   {{- if dig "s3" "bucketDNS" false . }}
     {{- fail "Value 'tenant.s3.bucketDNS' is deprecated since Operator v4.3.2, use 'tenant.features.bucketDNS' instead" }}
   {{- end }}
@@ -91,6 +105,7 @@ spec:
     {{- with (dig "features" "domains" (dict) .) }}
     domains: {{- toYaml . | nindent 6 }}
     {{- end }}
+    enableSFTP: {{ dig "features" "enableSFTP" false . }}
   {{- with (dig "buckets" (list) .) }}
   buckets: {{- toYaml . | nindent 4 }}
   {{- end }}
@@ -109,6 +124,9 @@ spec:
   {{- end }}
   {{- with (dig "startup" (dict) .) }}
   startup: {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with (dig "lifecycle" (dict) .) }}
+  lifecycle: {{- toYaml . | nindent 4 }}
   {{- end }}
   {{- with (dig "exposeServices" (dict) .) }}
   exposeServices: {{- toYaml . | nindent 4 }}
@@ -129,9 +147,15 @@ spec:
   {{- if dig "priorityClassName" "" . }}
   priorityClassName: {{ dig "priorityClassName" "" . }}
   {{- end }}
+  {{- with (dig "additionalVolumes" (list) .) }}
+  additionalVolumes: {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with (dig "additionalVolumeMounts" (list) .) }}
+  additionalVolumeMounts: {{- toYaml . | nindent 4 }}
+  {{- end }}
   {{- if dig "kes" "configuration" false . }}
   kes:
-    image: {{ .kes.image | quote }}
+    image: "{{ .kes.image.repository }}:{{ .kes.image.digest | default .kes.image.tag }}"
     {{- with (dig "kes" "env" (list) .) }}
     env: {{- toYaml . | nindent 4 }}
     {{- end }}
@@ -165,10 +189,17 @@ spec:
     labels: {{- toYaml . | nindent 4 }}
     {{- end }}
     serviceAccountName: {{ .kes.serviceAccountName | quote }}
-    securityContext:
-      runAsUser: {{ .kes.securityContext.runAsUser | int }}
-      runAsGroup: {{ .kes.securityContext.runAsGroup | int }}
-      runAsNonRoot: {{ .kes.securityContext.runAsNonRoot }}
-      fsGroup: {{ .kes.securityContext.fsGroup | int }}
+    {{- if hasKey .kes "securityContext" }}
+    securityContext: {{- if eq (len .kes.securityContext) 0 }} {} {{- end }}
+    {{- with (dig "kes" "securityContext" (dict) .) }}
+    {{- toYaml . | nindent 6 }}
+    {{- end }}
+    {{- end }}
+    {{- if hasKey .kes "containerSecurityContext" }}
+    containerSecurityContext: {{- if eq (len .kes.containerSecurityContext) 0 }} { } {{- end }}
+      {{- with (dig "kes" "containerSecurityContext" (dict) .) }}
+      {{- toYaml . | nindent 6 }}
+      {{- end }}
+      {{- end }}
   {{- end }}
 {{- end }}

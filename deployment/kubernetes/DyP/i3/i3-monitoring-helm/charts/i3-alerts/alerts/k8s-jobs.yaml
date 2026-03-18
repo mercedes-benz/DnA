@@ -1,0 +1,22 @@
+groups:
+  - name: Services
+    rules:
+      - alert: CronJobNotRunning
+        expr: time() - kube_cronjob_next_schedule_time{namespace!~"(kube|caas)-system"} > 3600
+        for: 1h
+        labels:
+          severity: warning
+          kubernetes_source: cronjob/{{$labels.cronjob}}
+        annotations:
+          description: Cronjob `{{$labels.cronjob}}` in namespace `{{$labels.namespace}}` is taking more than 1h to schedule job
+          summary: CronJob didn't schedule after 1h
+
+      - alert: JobSuccess
+        expr: ((kube_job_status_start_time{namespace!~"(caas|kube)-system"} > time() - 3600) * kube_job_status_succeeded{namespace!~"(caas|kube)-system"}) == 0
+        for: 1h
+        labels:
+          severity: critical
+          kubernetes_source: job/{{$labels.job_name}}
+        annotations:
+          description: Job {{$labels.namespace}}/{{$labels.job_name}} failed to succeed
+          summary: Job `{{$labels.job}}` in namespace `{{$labels.namespace}}` couldn't complete successfully for at least 1h

@@ -1,0 +1,85 @@
+prometheus:
+  kubeStateMetrics:
+    enabled: true
+  nodeExporter:
+    enabled: true
+    hostRootfs: false
+  alertmanager:
+    enabled: true
+    baseURL: "http://localhost:9093/alertmanager"
+    prefixURL: /alertmanager
+    ingress:
+      enabled: true
+      hosts: [minikube.infra/alertmanager]
+      path: /alertmanager
+      annotations:
+        kubernetes.io/ingress.class: "traefik-external"
+
+  pushgateway:
+    enabled: false
+
+  server:
+    baseURL: "https://minikube.infra/prometheus"
+    prefixURL: /prometheus
+    ingress:
+      enabled: true
+      hosts: [minikube.infra/prometheus]
+      path: /prometheus
+      annotations:
+        kubernetes.io/ingress.class: "traefik-external"
+
+    sidecarContainers:
+      reloadAlerts:
+        name: reload-alerts
+        image: "registry-emea.app.corpintra.net/dockerhub/kiwigrid/k8s-sidecar:0.1.151"
+        imagePullPolicy: IfNotPresent
+        env:
+          - name: METHOD
+            value: WATCH
+          - name: LABEL
+            value: "prometheus_alert"
+          - name: FOLDER
+            value: "/alerts"
+          - name: RESOURCE
+            value: "configmap"
+          - name: SKIP_TLS_VERIFY
+            value: "true"
+          - name: REQ_URL
+            value: "http://127.0.0.1:9090/prometheus/-/reload"
+          - name: REQ_METHOD
+            value: POST
+        resources:
+          limits:
+            memory: "128Mi"
+        volumeMounts:
+          - name: alert-storage-volume
+            mountPath: /alerts
+grafana:
+  ingress:
+    enabled: true
+    path: /grafana
+    hosts:
+      - minikube.infra
+      - localhost
+    annotations:
+      kubernetes.io/ingress.class: "traefik-external"
+
+  adminUser: admin
+  adminPassword: admin
+
+  datasources:
+    datasources.yaml:
+      apiVersion: 1
+      datasources:
+        - name: Prometheus
+          type: prometheus
+          access: proxy
+          url: http://i3-monitoring-prometheus-server/prometheus
+          isDefault: true
+          basic_auth: false
+
+  grafana.ini:
+    server:
+      domain: minikube.infra
+      root_url: "%(protocol)s://%(domain)s/grafana"
+      serve_from_sub_path: true

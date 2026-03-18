@@ -1,0 +1,30 @@
+{{- $usePSP := (eq (include "mimir.rbac.usePodSecurityPolicy" .) "true") }}
+{{- $useSCC := (eq (include "mimir.rbac.useSecurityContextConstraints" .) "true") }}
+{{- if or $usePSP $useSCC }}
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: {{ include "mimir.resourceName" (dict "ctx" .) }}
+  labels:
+    {{- include "mimir.labels" (dict "ctx" .) | nindent 4 }}
+  namespace: {{ .Release.Namespace | quote }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: {{ include "mimir.resourceName" (dict "ctx" .) }}
+subjects:
+- kind: ServiceAccount
+  name: {{ template "mimir.serviceAccountName" . }}
+{{- if .Values.rollout_operator.enabled }}
+- kind: ServiceAccount
+  name: {{ include "rollout-operator.serviceAccountName" . }}
+{{- end }}
+{{- if .Values.ruler.serviceAccount.create }}
+- kind: ServiceAccount
+  name: {{ template "mimir.ruler.serviceAccountName" . }}
+{{- end }}
+{{- if .Values.alertmanager.serviceAccount.create }}
+- kind: ServiceAccount
+  name: {{ template "mimir.alertmanager.serviceAccountName" . }}
+{{- end }}
+{{- end }}

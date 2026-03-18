@@ -1,0 +1,19 @@
+repoURL: ""
+gitRepo:
+  username:
+  password:
+
+repositories: []
+  # - name: chronos-frontend
+  #   url: https://mercedes-benz.ghe.com/DNA/dna-chronos-frontend.git
+
+server: "https://kubernetes.default.svc"
+# Environment to deploy it  (dev|test|prod)
+env: dev
+branch: dev
+namespace: argocd
+enableSync: false
+annotations: []
+db: []
+#  - name
+#    env:

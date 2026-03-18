@@ -9,4 +9,4 @@ spec:
   resources:
     requests:
       storage: 1Gi
-  storageClassName: cinder-retain
+  storageClassName: dhc-gp3-retain
