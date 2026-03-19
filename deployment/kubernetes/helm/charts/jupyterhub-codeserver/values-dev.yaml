@@ -221,7 +221,41 @@ hub:
               if user_options_env:
                   self.log.info(f"[WORKSPACE-ENV] Merging user_options env: {list(user_options_env.keys())}")
                   env.update(user_options_env)
-              return env        
+              return env
+
+          async def get_options_from_form(self, formdata):
+              """
+              Preserve rich user_options when the restart API sends no body (empty dict).
+              Without this override, KubeSpawner maps an empty form submission to
+              {"profile": "default"}, overwriting all custom workspace configuration
+              (storage, memory, CPU, env vars, extra_containers) that was stored in
+              the JupyterHub DB during the initial server creation.
+
+              Guard logic:
+                - If the incoming formdata has substantive keys beyond 'profile',
+                  forward normally to super() so intentional re-configuration works.
+                - If the stored user_options already contains only {'profile': ...},
+                  forward normally — there is nothing richer to preserve.
+                - Otherwise (restart with empty/profile-only body against a workspace
+                  that has full options stored), return the stored user_options as-is.
+              """
+              has_substantive_options = any(
+                  k not in ('profile',) for k in (formdata or {})
+              )
+              has_rich_stored_options = bool(self.user_options) and any(
+                  k not in ('profile',) for k in self.user_options
+              )
+              if not has_substantive_options and has_rich_stored_options:
+                  self.log.info(
+                      "[PRESERVE-OPTIONS] Incoming formdata minimal (%s), "
+                      "preserving stored user_options for server '%s' (keys: %s)",
+                      list((formdata or {}).keys()),
+                      self.name,
+                      list(self.user_options.keys())
+                  )
+                  return self.user_options
+              return await super().get_options_from_form(formdata)
+
       # Use the configured spawner
       c.JupyterHub.spawner_class = CodeSpaceKubeSpawner
 
