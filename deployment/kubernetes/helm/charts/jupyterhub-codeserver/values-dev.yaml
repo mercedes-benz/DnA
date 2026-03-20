@@ -96,7 +96,7 @@ hub:
         - ReadWriteOnce
       storage: 1Gi
       subPath:
-      storageClassName: dhc-gp3
+      storageClassName: caas-gp3
     url: postgresql+psycopg2://cs-hub-db:64000/jupyterhub
     password: <path:dna_aws_kv/data/dev/kubernetesSecret/csdb#dbadm.password>
   labels: {}
@@ -785,7 +785,7 @@ singleuser:
     capacity: 1Gi
     homeMountPath: /home/coder
     dynamic:
-      storageClass: dhc-gp3
+      storageClass: caas-gp3
       pvcNameTemplate: "{servername}"
       volumeNameTemplate: "{servername}"
       storageAccessModes: [ReadWriteOnce]
