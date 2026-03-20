@@ -305,6 +305,22 @@ hub:
           spawner.log.info(f"[PRE-SPAWN] Applying memory - guarantee: {mem_guarantee}, limit: {mem_limit}")
           spawner.mem_guarantee = mem_guarantee
           spawner.mem_limit = mem_limit
+
+          # Compute NODE_OPTIONS --max-old-space-size dynamically from mem_limit
+          # Rule: if mem_limit > 2GB → heap = mem_limit_MB - 1024; else → heap = mem_limit_MB
+          def _parse_mem_mb(mem_str):
+              s = str(mem_str).strip()
+              if s.endswith('Gi'): return int(float(s[:-2]) * 1024)
+              if s.endswith('G'):  return int(float(s[:-1]) * 1024)
+              if s.endswith('Mi'): return int(float(s[:-2]))
+              if s.endswith('M'):  return int(float(s[:-1]))
+              if s.endswith('Ki'): return int(float(s[:-2]) / 1024)
+              if s.endswith('K'):  return int(float(s[:-1]) / 1024)
+              return int(float(s)) // (1024 * 1024)  # assume bytes
+          mem_limit_mb = _parse_mem_mb(mem_limit)
+          node_heap_mb = mem_limit_mb - 1024 if mem_limit_mb > 2048 else mem_limit_mb
+          spawner.environment['NODE_OPTIONS'] = f'--max-old-space-size={node_heap_mb}'
+          spawner.log.info(f"[PRE-SPAWN] NODE_OPTIONS set: --max-old-space-size={node_heap_mb} (mem_limit: {mem_limit})")
           
           # Apply CPU settings
           cpu_guarantee = spawner.user_options.get("cpu_guarantee", 0.2)
