@@ -46,8 +46,12 @@ public class GitOperationsController {
         produces = { "application/json" }, 
         consumes = { "application/json" },
         method = RequestMethod.GET)
-    public ResponseEntity<GitBranchesCollectionDto> getGitBranches(@ApiParam(value = "git repo name for which branches needed to be fetched", required=true) @Valid @RequestParam(value = "repoDetail", required = true) String repoDetail) {
-		GitBranchesCollectionDto branchesCollection = gitClient.getBranchesFromRepo(null, repoDetail);
+    public ResponseEntity<GitBranchesCollectionDto> getGitBranches(
+			@ApiParam(value = "git repo name for which branches needed to be fetched", required=true) @Valid @RequestParam(value = "repoDetail", required = true) String repoDetail) {
+		Boolean isWorkspaceMigratedToGHE = (repoDetail != null && repoDetail.contains("ghe.com"));
+		log.info("Fetching branches for repo: {} - Determined isWorkspaceMigratedToGHE: {} (will use {} server)", 
+				repoDetail, isWorkspaceMigratedToGHE, isWorkspaceMigratedToGHE ? "GHE" : "git.i");
+		GitBranchesCollectionDto branchesCollection = gitClient.getBranchesFromRepo(null, repoDetail, isWorkspaceMigratedToGHE);
 		return new ResponseEntity<>(branchesCollection,HttpStatus.OK);
 	}
 	
