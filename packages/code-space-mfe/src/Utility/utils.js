@@ -3,6 +3,34 @@ import { PRIVATE_RECIPES } from './constants';
 import { matchPath } from 'react-router';
 import { routes } from '../components/CodeSpaceRoutes';
 
+const getGitRepoPrefix = () => {
+  let envRef = Envs.CODE_SERVER_GIT_ENVREF || '';
+
+  if (!envRef && window.CODE_SPACE_INJECTED_ENVIRONMENT) {
+    envRef = window.CODE_SPACE_INJECTED_ENVIRONMENT.CODE_SERVER_GIT_ENVREF || '';
+  }
+
+  if (!envRef) {
+    const apiUrl = Envs.API_BASEURL || '';
+    const codeSpaceApiUrl = Envs.CODE_SPACE_API_BASEURL || '';
+
+    if (apiUrl.includes('dev.') || codeSpaceApiUrl.includes('dev.')) {
+      envRef = 'dev';
+    } else if (apiUrl.includes('test.') || codeSpaceApiUrl.includes('test.')) {
+      envRef = 'test';
+    } else if (apiUrl.includes('prod.') || codeSpaceApiUrl.includes('prod.')) {
+      envRef = 'prod';
+    }
+  }
+
+  if (envRef.toLowerCase() === 'dev') {
+    return 'dev-cs';
+  } else if (envRef.toLowerCase() === 'test') {
+    return 'test-cs';
+  }
+  return '';
+};
+
 export const getParams = () => {
   for (const route of routes) {
     const match = matchPath(window.location.hash, {
@@ -52,10 +80,77 @@ export const buildGitJobLogViewAWSURL = (gitJobRunId) => {
   }
 };
 
-export const buildGitUrl = (gitRepoInfo) => {
+export const buildGitUrl = (gitRepoInfo, isWorkspaceMigratedToGHE = true) => {
     if (gitRepoInfo.includes('.git')) return gitRepoInfo.split(',')[0];
-    return Envs.CODE_SPACE_GIT_PAT_APP_URL + Envs.CODE_SPACE_GIT_ORG_NAME + '/' + gitRepoInfo;
+    
+    let repoName = gitRepoInfo;
+    let orgName;
+    let baseUrl;
+    
+    if (isWorkspaceMigratedToGHE) {
+        orgName = Envs.CODE_SPACE_GHE_ORG_NAME;
+        baseUrl = Envs.CODE_SPACE_GHE_PAT_APP_URL;
+    } else {
+        orgName = Envs.CODE_SPACE_GIT_ORG_NAME;
+        baseUrl = Envs.CODE_SPACE_GIT_PAT_APP_URL;
+    }
+    
+    return baseUrl + orgName + '/' + repoName;
 };
+
+export const buildGitRepoUrl = (gitRepoInfo, isWorkspaceMigratedToGHE = true) => {
+    if (!gitRepoInfo) return gitRepoInfo;
+    if (gitRepoInfo.includes('http://') || gitRepoInfo.includes('https://')) {
+        return gitRepoInfo;
+    }
+    if (gitRepoInfo.includes('.ghe.com')) {
+        return 'https://' + gitRepoInfo;
+    }
+    if (gitRepoInfo.includes('.git')) {
+        return 'https://' + gitRepoInfo;
+    }
+    
+    let repoName = gitRepoInfo;
+    let orgName;
+    let baseUrl;
+    
+    if (isWorkspaceMigratedToGHE) {
+        orgName = Envs.CODE_SPACE_GHE_ORG_NAME;
+        baseUrl = Envs.CODE_SPACE_GHE_PAT_APP_URL;
+    } else {
+        orgName = Envs.CODE_SPACE_GIT_ORG_NAME;
+        baseUrl = Envs.CODE_SPACE_GIT_PAT_APP_URL;
+    }
+    
+    return baseUrl + orgName + '/' + repoName + '.git';
+};
+
+export const getRepoNameWithPrefix = (gitRepoInfo) => {
+    if (!gitRepoInfo) return gitRepoInfo;
+    if (gitRepoInfo.includes('.git') || gitRepoInfo.includes('http://') || gitRepoInfo.includes('https://')) {
+        return gitRepoInfo;
+    }
+    // Handle repoDetails format that might include comma-separated path (e.g., "reponame,path/*")
+    let repoName = gitRepoInfo;
+    if (gitRepoInfo.includes(',')) {
+        repoName = gitRepoInfo.split(',')[0];
+    }
+    const prefix = getGitRepoPrefix();
+    return repoName.startsWith(prefix) ? gitRepoInfo : prefix + gitRepoInfo;
+};
+
+// export const buildGitUrl = (gitRepoInfo) => {
+//     if (gitRepoInfo.includes('http://') || gitRepoInfo.includes('https://')) {
+//         return gitRepoInfo.split(',')[0];
+//     }
+//     if (gitRepoInfo.includes('.ghe.com/')) {
+//         return 'https://' + gitRepoInfo.split(',')[0];
+//     }
+//     if (gitRepoInfo.includes('.git')) {
+//         return gitRepoInfo.split(',')[0];
+//     }
+//     return Envs.CODE_SPACE_GIT_PAT_APP_URL + Envs.CODE_SPACE_GIT_ORG_NAME + '/' + gitRepoInfo;
+// };
 
 const isValidURL = (urlString) => {
   try {
@@ -89,9 +184,12 @@ export const buildLogViewAWSURL = (deployedInstance, isStagging = false) => { //
   }
 };
 export const isValidGitUrl = (str) => {
+  if (!str) return false;
   const privateHost = new URL(Envs.CODE_SPACE_GIT_PAT_APP_URL).host;
-  const regex = new RegExp(`((http|https)?:\\/\\/)?(?:github.com|${privateHost})\\/([\\w.@:/\\-~]+)(\\.git)`);
-  return (str == null) ? false : regex.test(str);
+  const regex = new RegExp(
+    `^https://(github\\.com|${privateHost}|.*\\.ghe\\.com)/[\\w.@:/\\-~]+(\\.git)$`
+  );
+  return regex.test(str);
 };
 
 export const isValidGITRepoUrl = (str, isPublicRecipeChoosen) => {
