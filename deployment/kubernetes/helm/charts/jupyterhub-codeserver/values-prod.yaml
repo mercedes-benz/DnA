@@ -1109,15 +1109,15 @@ ingress:
   pathSuffix: hub
   pathType: Prefix
   hosts:
-    - code-spaces.dna-prod.app.corpintra.net
     - code-spaces.dna.app.corpintra.net
+    - code-spaces.dna-prod.app.corpintra.net
   tls:
-    - hosts:
-        - code-spaces.dna-prod.app.corpintra.net
-      secretName: cs-tls-secret
     - hosts:
         - code-spaces.dna.app.corpintra.net
       secretName: cs-non-prod-secret     
+    - hosts:
+        - code-spaces.dna-prod.app.corpintra.net
+      secretName: cs-tls-secret
 
 # cull relates to the jupyterhub-idle-culler service, responsible for evicting
 # inactive singleuser pods.
