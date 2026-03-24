@@ -1472,12 +1472,8 @@
 								}
 					}else{
 						HttpStatus status;
-						if (vo.getProjectDetails().getRecipeDetails().getRepodetails().contains("ghe.com")) {
-							status = gitClient.isUserCollaborator(orgName, collaborator.getId(), repoName, gheBaseUri,
-									ghePat);
-						} else {
-							status = gitClient.isUserCollaborator(orgName, collaborator.getId(), repoName);
-						}
+						Boolean isGHE = vo.getProjectDetails().getRecipeDetails().getRepodetails().contains("ghe.com");
+						status = gitClient.isUserCollaborator(orgName, collaborator.getId(), repoName, isGHE);
 						if(!status.is2xxSuccessful()) {
 							log.info("Collaborator {} Addition failed for recipe {}  ",collaborator.getId(),vo.getProjectDetails().getRecipeDetails().getRecipeId());
 							errors.add(new MessageDescription("Cannot add User "+collaborator.getId()+" as collaborator because the user is  not a collaborator to the private repo "+repoName+" add the user to the repo and try again"));
@@ -2032,9 +2028,12 @@
 						if(entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase()
 						.startsWith("private")){
 							List<String> repoDetails = CommonUtils.getRepoNameFromGitUrl(entity.getData().getProjectDetails().getGitRepoName());
-							commitId = gitClient.getLatestCommitId(repoDetails.get(0),branch,repoDetails.get(1));
+							String privateRepoUrl = entity.getData().getProjectDetails().getRecipeDetails().getRepodetails();
+							boolean isPrivateRepoOnGHE = Objects.nonNull(privateRepoUrl) && privateRepoUrl.contains("ghe.com");
+							commitId = gitClient.getLatestCommitId(repoDetails.get(0),branch,repoDetails.get(1), isPrivateRepoOnGHE);
 						}else{
-							commitId = gitClient.getLatestCommitId(gitOrgName,branch,entity.getData().getProjectDetails().getGitRepoName());
+							String effectiveOrgName = gheWorkspaceMigrated ? gitOrgName : codeServerGitOrgName;
+							commitId = gitClient.getLatestCommitId(effectiveOrgName,branch,entity.getData().getProjectDetails().getGitRepoName(), gheWorkspaceMigrated);
 							
 						}
 						if(commitId == null){
@@ -2558,11 +2557,8 @@
 					 }
 				}else{
 					HttpStatus status;
-					if (gitUrl.contains("ghe.com")) {
-						status = gitClient.isUserCollaborator(repoOwner, gitUser, repoName, gheBaseUri, ghePat);
-					} else {
-						status = gitClient.isUserCollaborator(repoOwner, gitUser, repoName);
-					}
+					Boolean isGHE = gitUrl.contains("ghe.com");
+					status = gitClient.isUserCollaborator(repoOwner, gitUser, repoName, isGHE);
 					if(!status.is2xxSuccessful()) {
 						log.info(
 								"Cannot add User {} as collaborator because the user is  not a collaborator to the private repo {}",
@@ -4776,20 +4772,25 @@
 					}
 					 BuildAudit auditLog = new BuildAudit();
 					 GitLatestCommitIdDto commitId =null;
+					 Boolean gheWorkspaceMigratedForBuild = entity.getData().getIsWorkspaceMigratedToGHE();
 					 if(entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase()
 					 .startsWith("private")){
 						List<String> repoDetails = CommonUtils.getRepoNameFromGitUrl(entity.getData().getProjectDetails().getGitRepoName());
-						commitId = gitClient.getLatestCommitId(repoDetails.get(0),branch,repoDetails.get(1));
+						String privateRepoUrl = entity.getData().getProjectDetails().getRecipeDetails().getRepodetails();
+						boolean isPrivateRepoOnGHE = Objects.nonNull(privateRepoUrl) && privateRepoUrl.contains("ghe.com");
+						commitId = gitClient.getLatestCommitId(repoDetails.get(0),branch,repoDetails.get(1), isPrivateRepoOnGHE);
 					}else{
-						commitId = gitClient.getLatestCommitId(gitOrgName,branch,entity.getData().getProjectDetails().getGitRepoName());
+						String effectiveOrgName = gheWorkspaceMigratedForBuild ? gitOrgName : codeServerGitOrgName;
+						commitId = gitClient.getLatestCommitId(effectiveOrgName,branch,entity.getData().getProjectDetails().getGitRepoName(), gheWorkspaceMigratedForBuild);
 						
 					}
 					
 					if(commitId == null){
 						MessageDescription warning = new MessageDescription();
-						warning.setMessage("Error while adding commit id to deployment audit log");
+						warning.setMessage("Error while adding commit id to build audit log");
+					} else {
+						auditLog.setCommitId(commitId.getSha());
 					}
-					 auditLog.setCommitId(commitId.getSha());
 					 auditLog.setImageDeleted(Boolean.FALSE);
 					 auditLog.setTriggeredOn(now);
 					 auditLog.setTriggeredBy(entity.getData().getWorkspaceOwner().getGitUserName());
