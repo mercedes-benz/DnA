@@ -249,7 +249,8 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave, user}) => {
   };
   
   const filteredProjects = projectList.length === 0 ? null : projectList;
-
+  
+  
   const handleProjectSearch = (searchTerm, showSpinner) => {
     if (searchTerm.length > 2) {
       showSpinner(true);
