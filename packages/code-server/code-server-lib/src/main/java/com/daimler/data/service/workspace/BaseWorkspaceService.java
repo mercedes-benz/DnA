@@ -4791,7 +4791,6 @@
 					} else {
 						auditLog.setCommitId(commitId.getSha());
 					}
-					 auditLog.setCommitId(commitId.getSha());
 					 auditLog.setImageDeleted(Boolean.FALSE);
 					 auditLog.setTriggeredOn(now);
 					 auditLog.setTriggeredBy(entity.getData().getWorkspaceOwner().getGitUserName());
