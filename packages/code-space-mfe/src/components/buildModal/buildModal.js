@@ -10,7 +10,7 @@ import { CodeSpaceApiClient } from '../../apis/codespace.api';
 import SelectBox from 'dna-container/SelectBox';
 import Modal from 'dna-container/Modal';
 import { SESSION_STORAGE_KEYS } from '../../Utility/constants.js';
-import { regionalDateAndTimeConversionSolution, buildGitJobLogViewAWSURL, buildGitRepoUrl } from '../../Utility/utils';
+import { regionalDateAndTimeConversionSolution, buildGitJobLogViewAWSURL, buildGitRepoUrl, buildGitCommitUrl } from '../../Utility/utils';
 import TextBox from 'dna-container/TextBox';
 import Tags from 'dna-container/Tags';
 import Tooltip from '../../common/modules/uilab/js/src/tooltip';
@@ -427,7 +427,19 @@ const BuildModal = (props) => {
                               </a>
                             </td>
                             <td>{item?.buildOn ? regionalDateAndTimeConversionSolution(item?.buildOn) : 'N/A'}</td>
-                            <td>{item?.commitId || 'N/A'}</td>
+                            <td>
+                              {item?.commitId ? (
+                                <a
+                                  href={buildGitCommitUrl(projectDetails?.gitRepoName, item.commitId, props.codeSpaceData?.isWorkspaceMigratedToGHE)}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                >
+                                  {item.commitId}
+                                </a>
+                              ) : (
+                                'N/A'
+                              )}
+                            </td>
                             <td>
                               {item?.version ? (
                                 <>
