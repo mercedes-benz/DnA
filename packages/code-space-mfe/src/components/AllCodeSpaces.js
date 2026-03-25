@@ -594,7 +594,7 @@ const AllCodeSpaces = (props) => {
                 >
                     {Envs.CODE_SPACE_GHE_PAT_SETTINGS_URL}
                 </a>
-                {' '}by selecting &quot;Generate new token (classic)&quot;. Under Scopes, ensure the token has at least <strong>repo</strong> access. After creating the token, make sure to authorize it for SSO under the <strong>DnA-Codespaces</strong> organization. <br /><br />Also, update your Git remote URL to point to the new host using<br /><code>git remote set-url origin {Envs.CODE_SPACE_GHEC_ORG_URL}/&lt;REPO_NAME&gt;.git</code>.<br /><br />For any queries, please refer to the Codespaces FAQs or contact us via the <a href={Envs.CODESPACE_TEAMS_LINK} target="_blank" rel="noopener noreferrer">DnA Codespaces Teams channel</a>.
+                {' '}by selecting &quot;Generate new token (classic)&quot;. Under Scopes, ensure the token has at least <strong>repo</strong> access. After creating the token, make sure to authorize it for SSO under the <strong>DnA-Codespaces</strong> organization. <br /><br />Also, update your Git remote URL to point to the new host using<br /><code>git remote set-url origin {Envs.CODE_SPACE_GHEC_ORG_URL}/&lt;REPO_NAME&gt;.git</code><br /><br />For any queries, please refer to the Codespaces FAQs or contact us via the <a href={Envs.CODESPACE_TEAMS_LINK} target="_blank" rel="noopener noreferrer">DnA Codespaces Teams channel</a>.
             </p>
         </div>
     );
