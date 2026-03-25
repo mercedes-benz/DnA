@@ -1,5 +1,5 @@
 import classNames from 'classnames';
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useForm, FormProvider, Controller } from 'react-hook-form';
 import { useHistory } from "react-router-dom";
 // styles
@@ -248,14 +248,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave, user}) => {
     }
   };
   
-  const filteredProjects = useMemo(() => {
-    if (projectList.length === 0) return null;
-    if (!selectedDivision) return []; 
-    const divisionName = selectedDivision.split('@-@')[1]?.trim().toLowerCase(); 
-    return projectList.filter(
-      (p) => p.division?.trim().toLowerCase() === divisionName
-    );
-  }, [projectList, selectedDivision]);
+  const filteredProjects = projectList.length === 0 ? null : projectList;
 
   const handleProjectSearch = (searchTerm, showSpinner) => {
     if (searchTerm.length > 2) {
