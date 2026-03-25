@@ -28,7 +28,7 @@ const PowerPlatformEnvironmentForm = ({ user, onOrderAccount }) => {
     defaultValues: {
       name: '',
       subscriptionType: '',
-      environment: 'SHARED-DEVELOPMENT',
+      environment: 'SHARED',
       envOwnerName: '',
       envOwnerId: '',
       dyEnvOwnerName: '',
@@ -187,9 +187,8 @@ const PowerPlatformEnvironmentForm = ({ user, onOrderAccount }) => {
                 </label>
                 <div className={classNames('custom-select')}>
                   <select {...register('environment')}>
-                    <option value={'SHARED-DEVELOPMENT'}>Shared Development</option>
-                    <option value={'SHARED-INTEGRATION'}>Shared Integration</option>
-                    <option value={'DEDICATED-PRODUCTION'}>Dedicated Production</option>
+                    <option value={'SHARED'}>Shared Environment</option>
+                    <option value={'DEDICATED'}>Dedicated Environment</option>
                   </select>
                 </div>
               </div>
