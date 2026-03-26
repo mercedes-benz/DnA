@@ -55,5 +55,8 @@ public class ConstantsUtility {
 	public static final String GROUPPRINCIPAL_GROUP_TYPE = "Group";
 	public static final String GROUPPRINCIPAL_USER_TYPE = "User";
 	public static final String GROUPPRINCIPAL_APP_TYPE = "App";
+
+	// Genisis api constants
+	public static final String GENESIS_AUTH_HEADER = "x-api-key";
 	
 }

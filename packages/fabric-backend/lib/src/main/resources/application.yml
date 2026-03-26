@@ -82,6 +82,10 @@ fabricWorkspaces:
   ada:
     apiKey: ${ADA_API_KEY:XXXX}
 
+genesis:
+  apiKey: ${GENESIS_API_KEY:XXXX}
+  uri: ${GENESIS_LEGAL_ENTITIES_URI:XXXX}
+
 authoriser:
   uri: ${IDENTITY_AUTH_URI:XXXX}
   ssoUri: ${IDENTITY_SSO_URI:XXXX}

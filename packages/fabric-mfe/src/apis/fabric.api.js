@@ -143,6 +143,10 @@ const pushSelectedTables = (workspaceId, payload) => {
   return server.post(`fabric-workspaces/catalog/${workspaceId}/publish`, payload);
 };
 
+const getLegalEntities = (searchTerm) => {
+  return server.get(`fabric-workspaces/catalog/getLegalEntities?searchTerm=${searchTerm}`);
+};
+
 export const fabricApi = {
   getFabricWorkspaces,
   getFabricWorkspace,
@@ -165,5 +169,6 @@ export const fabricApi = {
   getLeanIX,
   getLakehouseTables,
   getTableSchema,
-  pushSelectedTables
+  pushSelectedTables,
+  getLegalEntities
 };
