@@ -31,6 +31,12 @@ const getCodeSpaceStatus = (id) => {
         data: {},
     });
 };
+
+const getWorkspaceById = (id) => { 
+    return server.get(`workspaces/${id}`, {
+        data: {},
+    });
+};
   
 const deleteCodeSpace = (id) => { 
     return server.delete(`workspaces/${id}`, {
@@ -431,6 +437,7 @@ export const CodeSpaceApiClient = {
     createCodeSpace,
     editCodeSpace,
     getCodeSpaceStatus,
+    getWorkspaceById,
     deleteCodeSpace,
     getCodeSpacesGitBranchList,
     deployCodeSpace,
