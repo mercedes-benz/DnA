@@ -1400,7 +1400,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 					if(ConstantsUtility.GROUPPRINCIPAL_USER_TYPE.equalsIgnoreCase(userGroupDetail.getPrincipalType())) {
 						if(!userGroupDetail.getIdentifier().toLowerCase().contains(creatorId.toLowerCase()+"@")
 						&& Arrays.stream(userRemovalIgnorePatterns).noneMatch(pattern -> userGroupDetail.getIdentifier().toLowerCase().contains(pattern.toLowerCase()))) {
-							fabricWorkspaceClient.removeUserGroup(workspaceId, userGroupDetail.getIdentifier());
+							// fabricWorkspaceClient.removeUserGroup(workspaceId, userGroupDetail.getIdentifier());
 						}
 					}
 					else if(ConstantsUtility.GROUPPRINCIPAL_GROUP_TYPE.equalsIgnoreCase(userGroupDetail.getPrincipalType())) {
@@ -1580,6 +1580,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 			}
 			existingWorkspace.getStatus().setState(ConstantsUtility.DELETED_STATE);
 			existingWorkspace.setLastModifiedOn(new Date());
+			existingWorkspace.setDeletedOn(new Date());
 			jpaRepo.save(assembler.toEntity(existingWorkspace));
 			responseMessage.setSuccess("SUCCESS");
 			responseMessage.setErrors(errors);

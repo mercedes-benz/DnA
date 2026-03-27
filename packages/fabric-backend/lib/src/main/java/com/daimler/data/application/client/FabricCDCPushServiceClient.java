@@ -37,10 +37,14 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import com.daimler.data.dto.fabricWorkspace.LakehouseColumnCollectionResponseVO;
 import com.daimler.data.dto.fabricWorkspace.LakehouseTableCollectionResponseVO;
+import com.daimler.data.dto.fabricCatalogManagement.LakehouseObjectsResponseVO;
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -57,6 +61,27 @@ public class FabricCDCPushServiceClient {
 
     @Autowired
     private RestTemplate restTemplate;
+
+    private String extractErrorMessage(String jsonResponse) {
+        try {
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode node = mapper.readTree(jsonResponse);
+            
+            // Try to extract 'detail' field first
+            if (node.has("detail")) {
+                return node.get("detail").asText();
+            }
+            // Try to extract 'message' field
+            if (node.has("message")) {
+                return node.get("message").asText();
+            }
+            // Return the whole response if no specific field found
+            return jsonResponse;
+        } catch (Exception e) {
+            // If parsing fails, return the original response
+            return jsonResponse;
+        }
+    }
 
      public LakehouseTableCollectionResponseVO getLakehouseTables(String workspaceId, String lakehouseId) {
         LakehouseTableCollectionResponseVO vo = new LakehouseTableCollectionResponseVO();
@@ -135,6 +160,60 @@ public class FabricCDCPushServiceClient {
 		}
 		return vo;
 	}
+
+	
+	public LakehouseObjectsResponseVO getLakehouseObjects( String workspaceId, String lakehouseId, String schemaName){
+		LakehouseObjectsResponseVO vo = new LakehouseObjectsResponseVO();
+
+		try{
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("x-api-key", authToken);
+			headers.setContentType(MediaType.APPLICATION_JSON);
+			HttpEntity<String> requestEntity = new HttpEntity<>(headers);
+
+			String url = UriComponentsBuilder.fromHttpUrl(baseUrl + "/lakehouse/objects")
+					.queryParam("workspaceId", workspaceId)
+					.queryParam("lakehouseId", lakehouseId)
+					.queryParam("schemaName", schemaName)
+					.toUriString();
+
+			ResponseEntity<LakehouseObjectsResponseVO> response = restTemplate.exchange(url, HttpMethod.GET,
+					requestEntity, LakehouseObjectsResponseVO.class
+			);
+			if(response.getStatusCode().is2xxSuccessful()) {
+				
+				if (response != null && response.hasBody()) {
+					vo = response.getBody();
+					vo.setResponseCode(String.valueOf(response.getStatusCode().value()));
+					log.info("Fetched table schema for workspaceId: {}, lakehouseId: {}, tableName: {}", workspaceId, lakehouseId, schemaName);
+				} else {
+					log.warn("Empty response received for workspaceId: {}, lakehouseId: {}, tableName: {}", workspaceId, lakehouseId, schemaName);
+					vo.setResponseCode(String.valueOf(response.getStatusCode().value()));
+					vo.setErrorMessage("Empty response received");
+				}
+			} else {
+				String errorMessage = "Error response received with status: " + response.getStatusCode();
+				log.error("Error response received for workspaceId: {}, lakehouseId: {}, schemaName: {} with status: {}", workspaceId, lakehouseId, schemaName, response.getStatusCode());
+				vo.setResponseCode(String.valueOf(response.getStatusCode().value()));
+				vo.setErrorMessage(errorMessage);
+			}
+
+		} catch (HttpStatusCodeException e) {
+			String errorResponse = e.getResponseBodyAsString();
+			String errorMessage = extractErrorMessage(errorResponse);
+			log.error("HTTP error occurred while fetching table schema: {} - {}", e.getStatusCode(), errorMessage);
+			vo.setResponseCode(String.valueOf(e.getStatusCode().value()));
+			vo.setErrorMessage(errorMessage);
+		} catch (Exception e) {
+			String errorMessage = "Exception occurred while fetching table schema: " + e.getMessage();
+			log.error("Exception occurred while fetching table schema: {}", e.getMessage());
+			vo.setResponseCode(String.valueOf(HttpStatus.SC_INTERNAL_SERVER_ERROR));
+			vo.setErrorMessage(errorMessage);
+		}
+		return vo;
+	}
+
 
 
 }

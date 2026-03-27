@@ -65,8 +65,8 @@ public class PowerAppController implements PowerappsApi
 	@Value("${powerapps.defaults.environment}")
 	private String defaultEnvironment;
 	
-	@Value("${powerapps.defaults.productionAvailability}")
-	private String prodAvailabilityDefault;
+	// @Value("${powerapps.defaults.productionAvailability}")
+	// private String prodAvailabilityDefault;
 	
 	@Value("${powerapps.defaults.developerlicense}")
 	private String developerlicenseDefault;
@@ -207,21 +207,21 @@ public class PowerAppController implements PowerappsApi
 					return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
 				}
 			}
-			if(projectCreateVO.getProdEnvAvailability()== null || "".equalsIgnoreCase(projectCreateVO.getProdEnvAvailability())){
-				projectCreateVO.setProdEnvAvailability(prodAvailabilityDefault);
-			}else {
-				if(!(projectCreateVO.getProdEnvAvailability().toString().equalsIgnoreCase(ConstantsUtility.IMMEDIATE_PROD_ENV_AVAIL)
-						|| projectCreateVO.getProdEnvAvailability().toString().equalsIgnoreCase(ConstantsUtility.LATER_PROD_ENV_AVAIL))) {
-					log.error("Invalid Production environment availability details {} passed power app {} create request.",projectCreateVO.getProdEnvAvailability().toString(), projectCreateVO.getName());
-					MessageDescription mandatoryFieldsError = new MessageDescription("Bad Request, Invalid Production availability details.");
-					GenericMessage errorMessage = new GenericMessage();
-					errorMessage.setSuccess(HttpStatus.BAD_REQUEST.name());
-					errorMessage.addErrors(mandatoryFieldsError);
-					responseVO.setData(null);
-					responseVO.setResponse(errorMessage);
-					return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
-				}
-			}
+			// if(projectCreateVO.getProdEnvAvailability()== null || "".equalsIgnoreCase(projectCreateVO.getProdEnvAvailability())){
+			// 	projectCreateVO.setProdEnvAvailability(prodAvailabilityDefault);
+			// }else {
+			// 	if(!(projectCreateVO.getProdEnvAvailability().toString().equalsIgnoreCase(ConstantsUtility.IMMEDIATE_PROD_ENV_AVAIL)
+			// 			|| projectCreateVO.getProdEnvAvailability().toString().equalsIgnoreCase(ConstantsUtility.LATER_PROD_ENV_AVAIL))) {
+			// 		log.error("Invalid Production environment availability details {} passed power app {} create request.",projectCreateVO.getProdEnvAvailability().toString(), projectCreateVO.getName());
+			// 		MessageDescription mandatoryFieldsError = new MessageDescription("Bad Request, Invalid Production availability details.");
+			// 		GenericMessage errorMessage = new GenericMessage();
+			// 		errorMessage.setSuccess(HttpStatus.BAD_REQUEST.name());
+			// 		errorMessage.addErrors(mandatoryFieldsError);
+			// 		responseVO.setData(null);
+			// 		responseVO.setResponse(errorMessage);
+			// 		return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+			// 	}
+			// }
 			List<MessageDescription> errors = new ArrayList<>();
 			PowerAppVO vo = new PowerAppVO();
 			vo = assembler.toVo(projectCreateVO);

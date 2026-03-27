@@ -1891,6 +1891,8 @@ definitions:
         description: "Status of server - SERVER-STARTED,SERVER-STOPPED"
       isWorkspaceMigrated:
         type: boolean
+      isWorkspaceMigratedToGHE:
+        type: boolean
       required:
         -projectDetails
         -workspaceOwner
