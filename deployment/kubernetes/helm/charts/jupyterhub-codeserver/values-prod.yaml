@@ -379,10 +379,10 @@ hub:
     pullSecrets: []
   resources: 
       limits:
-        memory: 240Mi
+        memory: 540Mi
       requests:
         cpu: 11m
-        memory: 240Mi
+        memory: 540Mi
   podSecurityContext:
     runAsNonRoot: true
     fsGroup: 1000
@@ -951,10 +951,10 @@ scheduling:
       minAvailable:
     resources: 
       limits:
-        memory: 200Mi
+        memory: 500Mi
       requests:
         cpu: 4m
-        memory: 200Mi
+        memory: 500Mi
     serviceAccount:
       create: true
       name:
