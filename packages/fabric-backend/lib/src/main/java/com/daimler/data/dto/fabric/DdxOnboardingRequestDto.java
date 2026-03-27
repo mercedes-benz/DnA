@@ -37,6 +37,5 @@ public class DdxOnboardingRequestDto implements Serializable {
     private Boolean fulfillsDataCloudFramework;
     private String businessDomain;
     private Boolean personalDataContained;
-    private DigitalUsageInformationDataDto digitalUsageInformationData;
     private List<DataProductConnectionsDto> dataProductConnections;
 }

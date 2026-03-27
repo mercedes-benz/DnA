@@ -115,6 +115,13 @@ public class BaseDdxOnboardingService implements DdxOnboardingService {
             
             log.info("🎉 --- Databricks Fabric Setup Completed Successfully ---");
 
+            publishDdxRequest.getDataProductConnections().forEach(connection -> {
+                if(connection.getTechnology().equalsIgnoreCase("UnityCatalog")){
+                    connection.setCatalogName(catalogName);
+                }
+            });
+
+            publishDdxRequest.setDataProductConnections();
             //onboard to DDX
 
             DdxResponseDto onboardingResponse = fabricWorkspaceClient.ddxProductOnboarding(publishDdxRequest);
