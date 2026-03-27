@@ -20,6 +20,7 @@ import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.dto.fabricCatalogManagement.PublishCatalogResponseVO;
 import com.daimler.data.dto.fabricCatalogManagement.PublishCatalogRequestVO;
 import com.daimler.data.dto.fabric.DdxOnboardingRequestDto;
+import com.daimler.data.dto.fabricWorkspace.CreatedByVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceVO;
 import com.daimler.data.service.fabric.FabricWorkspaceService;
 import com.daimler.data.service.fabric.DdxOnboardingService;
@@ -87,6 +88,7 @@ public class DdxOnboardingController {
 
 			// Validate user authorization
 			String requestUserId = userStore.getVO().getId();
+			CreatedByVO createdByVO = userStore.getVO();
 			String creatorId = existingFabricWorkspace.getCreatedBy().getId();
 
 			if (!requestUserId.equalsIgnoreCase(creatorId)
@@ -103,7 +105,7 @@ public class DdxOnboardingController {
 				return new ResponseEntity<>(responseVO, HttpStatus.FORBIDDEN);
 			}
 
-			responseVO.setResponses(ddxOnboardingService.onboardToDdx(publishDdxRequest,workspaceId, existingFabricWorkspace.getName(), lakehouseId, requestUserId));
+			responseVO.setResponses(ddxOnboardingService.onboardToDdx(publishDdxRequest,workspaceId, existingFabricWorkspace.getName(), lakehouseId, requestUserId, createdByVO));
 
 
 			return new ResponseEntity<>(responseVO, HttpStatus.CREATED);

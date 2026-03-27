@@ -13,6 +13,9 @@ import com.daimler.data.db.entities.FabricWorkspaceNsql;
 import com.daimler.data.db.json.AuthoriserRoleDeatils;
 import com.daimler.data.db.json.Capacity;
 import com.daimler.data.db.json.CdcPublishedLakeHouseDetails;
+import com.daimler.data.db.json.DdxPublishedLakeHouseDetails;
+import com.daimler.data.db.json.DdxUnityDetails;
+import com.daimler.data.db.json.Fabric2FabricDetails;
 import com.daimler.data.db.json.EntitlementDetails;
 import com.daimler.data.db.json.FabricWorkspace;
 import com.daimler.data.db.json.FabricWorkspaceStatus;
@@ -26,6 +29,9 @@ import com.daimler.data.dto.fabric.LakehouseDto;
 import com.daimler.data.dto.fabric.LakehouseS3ShortcutDto;
 import com.daimler.data.dto.fabricWorkspace.CapacityVO;
 import com.daimler.data.dto.fabricWorkspace.CdcPublishedLakeHouseDetailsVO;
+import com.daimler.data.dto.fabricWorkspace.DdxPublishedLakeHouseDetailsVO;
+import com.daimler.data.dto.fabricWorkspace.DdxUnityDetailsVO;
+import com.daimler.data.dto.fabricWorkspace.Fabric2FabricDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.CreatedByVO;
 import com.daimler.data.dto.fabricWorkspace.DnaRolesVO;
 import com.daimler.data.dto.fabricWorkspace.EntitlementDetailsVO;
@@ -147,6 +153,25 @@ public class FabricWorkspaceAssembler implements GenericAssembler<FabricWorkspac
 					BeanUtils.copyProperties(data.getCdcPublishedLakeHouseDetails(), cdcPublishedLakeHouseDetails);
 					cdcPublishedLakeHouseDetails.setIsLakeHousesPublishedToCdc(data.getCdcPublishedLakeHouseDetails().getIsLakeHousesPublishedToCdc());
 					vo.setCdcPublishedLakeHouseDetails(cdcPublishedLakeHouseDetails);
+				}
+				if (!ObjectUtils.isEmpty(data.getDdxPublishedLakeHouseDetails())) {
+					DdxPublishedLakeHouseDetails ddxDetails = data.getDdxPublishedLakeHouseDetails();
+					DdxPublishedLakeHouseDetailsVO ddxVO = new DdxPublishedLakeHouseDetailsVO();
+					BeanUtils.copyProperties(ddxDetails, ddxVO);
+					if (!ObjectUtils.isEmpty(ddxDetails.getCreatedBy())) {
+						ddxVO.setCreatedBy(toCreatedByVO(ddxDetails.getCreatedBy()));
+					}
+					if (!ObjectUtils.isEmpty(ddxDetails.getFabric2FabricDetails())) {
+						Fabric2FabricDetailsVO f2fVO = new Fabric2FabricDetailsVO();
+						BeanUtils.copyProperties(ddxDetails.getFabric2FabricDetails(), f2fVO);
+						ddxVO.setFabric2FabricDetails(f2fVO);
+					}
+					if (!ObjectUtils.isEmpty(ddxDetails.getUnityDetails())) {
+						DdxUnityDetailsVO unityVO = new DdxUnityDetailsVO();
+						BeanUtils.copyProperties(ddxDetails.getUnityDetails(), unityVO);
+						ddxVO.setUnityDetails(unityVO);
+					}
+					vo.setDdxPublishedLakeHouseDetails(ddxVO);
 				}
 			}
 		}
@@ -365,6 +390,26 @@ public class FabricWorkspaceAssembler implements GenericAssembler<FabricWorkspac
 				BeanUtils.copyProperties(vo.getCdcPublishedLakeHouseDetails(), cdcLakehouseDetails);
 				cdcLakehouseDetails.setIsLakeHousesPublishedToCdc(vo.getCdcPublishedLakeHouseDetails().isIsLakeHousesPublishedToCdc());
 				data.setCdcPublishedLakeHouseDetails(cdcLakehouseDetails);
+			}
+			// Set DDX Lakehouse Details
+			if (!ObjectUtils.isEmpty(vo.getDdxPublishedLakeHouseDetails())) {
+				DdxPublishedLakeHouseDetailsVO ddxVO = vo.getDdxPublishedLakeHouseDetails();
+				DdxPublishedLakeHouseDetails ddxDetails = new DdxPublishedLakeHouseDetails();
+				BeanUtils.copyProperties(ddxVO, ddxDetails);
+				if (!ObjectUtils.isEmpty(ddxVO.getCreatedBy())) {
+					ddxDetails.setCreatedBy(toUserDetails(ddxVO.getCreatedBy()));
+				}
+				if (!ObjectUtils.isEmpty(ddxVO.getFabric2FabricDetails())) {
+					Fabric2FabricDetails f2fDetails = new Fabric2FabricDetails();
+					BeanUtils.copyProperties(ddxVO.getFabric2FabricDetails(), f2fDetails);
+					ddxDetails.setFabric2FabricDetails(f2fDetails);
+				}
+				if (!ObjectUtils.isEmpty(ddxVO.getUnityDetails())) {
+					DdxUnityDetails unityDetails = new DdxUnityDetails();
+					BeanUtils.copyProperties(ddxVO.getUnityDetails(), unityDetails);
+					ddxDetails.setUnityDetails(unityDetails);
+				}
+				data.setDdxPublishedLakeHouseDetails(ddxDetails);
 			}
 			entity.setData(data);
 		}
