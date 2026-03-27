@@ -1,9 +1,12 @@
 package com.daimler.data.service.fabric;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -16,9 +19,15 @@ import com.databricks.sdk.service.sql.ExecuteStatementRequest;
 import com.databricks.sdk.service.sql.StatementResponse;
 import com.databricks.sdk.WorkspaceClient;
 import com.daimler.data.application.client.FabricWorkspaceClient;
+import com.daimler.data.assembler.FabricWorkspaceAssembler;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
+import com.daimler.data.db.repo.fabric.FabricWorkspaceRepository;
 import com.daimler.data.dto.fabric.FabricSqlEndpointResponseDto;
+import com.daimler.data.dto.fabricWorkspace.CreatedByVO;
+import com.daimler.data.dto.fabricWorkspace.DdxPublishedLakeHouseDetailsVO;
+import com.daimler.data.dto.fabricWorkspace.DdxUnityDetailsVO;
+import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceVO;
 import com.daimler.data.util.ProxyConfig;
 import com.daimler.data.util.CommonsHttpClient;
 import org.apache.http.impl.client.CloseableHttpClient;
@@ -47,6 +56,15 @@ public class BaseDdxOnboardingService implements DdxOnboardingService {
     @Autowired
     private AzureTokenService azureTokenService;
 
+    @Autowired
+    private FabricWorkspaceService fabricWorkspaceService;
+
+    @Autowired
+    private FabricWorkspaceRepository jpaRepo;
+
+    @Autowired
+    private FabricWorkspaceAssembler assembler;
+
     @Value("${proxy.host}")
     private String proxyHost;
 
@@ -69,7 +87,7 @@ public class BaseDdxOnboardingService implements DdxOnboardingService {
     private String databricksSpScope;
 
     @Override
-    public GenericMessage onboardToDdx(DdxOnboardingRequestDto publishDdxRequest, String workspaceId, String workspaceName, String lakehouseId, String userId) {
+    public GenericMessage onboardToDdx(DdxOnboardingRequestDto publishDdxRequest, String workspaceId, String workspaceName, String lakehouseId, String userId, CreatedByVO createdBy) {
 
         
 
@@ -123,7 +141,10 @@ public class BaseDdxOnboardingService implements DdxOnboardingService {
 			    errors.add(message);
 			    responseMessage.setErrors(errors);
 			    responseMessage.setSuccess("FAILED");
+                return responseMessage;
             }
+
+            updateDdxLakeHouseDetails(workspaceId, lakehouseId, fabricDatabaseName, catalogName, onboardingResponse, createdBy);
 
             message.setMessage("Product onboard to ddx successfully for product: " + publishDdxRequest.getDataProductName());
 			responseMessage.setSuccess("SUCCESS");
@@ -141,7 +162,44 @@ public class BaseDdxOnboardingService implements DdxOnboardingService {
 
 
         return responseMessage;
-    } 
+    }
+
+    private void updateDdxLakeHouseDetails(String workspaceId, String lakehouseId, String lakehouseName, String catalogName, DdxResponseDto onboardingResponse, CreatedByVO createdBy) {
+        try {
+            FabricWorkspaceVO workspace = fabricWorkspaceService.getById(workspaceId);
+            DdxPublishedLakeHouseDetailsVO details = Optional.ofNullable(workspace.getDdxPublishedLakeHouseDetails())
+                .orElse(new DdxPublishedLakeHouseDetailsVO());
+
+            details.setIsLakeHousesPublishedToDdx(true);
+
+            List<String> publishedNames = Optional.ofNullable(details.getPublishedLakeHouseNames())
+                .orElse(new ArrayList<>());
+            if (!publishedNames.contains(lakehouseName)) {
+                publishedNames.add(lakehouseName);
+            }
+            details.setPublishedLakeHouseNames(publishedNames);
+
+            details.setProductName(onboardingResponse.getDataProductName());
+            details.setProductId(String.valueOf(onboardingResponse.getDataProductId()));
+            details.setCreatedBy(createdBy);
+            Date now = new Date();
+            if (details.getCreatedOn() == null) {
+                details.setCreatedOn(now);
+            }
+            details.setModifiedOn(now);
+
+            DdxUnityDetailsVO unityDetails = Optional.ofNullable(details.getUnityDetails())
+                .orElse(new DdxUnityDetailsVO());
+            unityDetails.setCatalogName(catalogName);
+            details.setUnityDetails(unityDetails);
+
+            workspace.setDdxPublishedLakeHouseDetails(details);
+            jpaRepo.save(assembler.toEntity(workspace));
+
+            log.info("Successfully updated DDX published lakehouse details for workspace: {}", workspaceId);
+        } catch (Exception e) {
+            log.error("Failed to update DDX lake house details for workspace {}: {}", workspaceId, e.getMessage(), e);
+        }
+    }
     
 }
- 
