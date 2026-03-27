@@ -114,7 +114,7 @@ public class PowerAppsAssembler implements GenericAssembler<PowerAppVO, PowerApp
 			vo.setDyEnvOwnerName(createRequest.getDyEnvOwnerName());
 			vo.setDepartment(createRequest.getDepartment());
 			vo.setEnvironment(createRequest.getEnvironment().toString().toUpperCase());
-			vo.setProdEnvAvailability(createRequest.getProdEnvAvailability().toString().toUpperCase());
+			// vo.setProdEnvAvailability(createRequest.getProdEnvAvailability().toString().toUpperCase());
 			vo.setBillingContact(createRequest.getBillingContact());
 			vo.setBillingPlant(createRequest.getBillingPlant());
 			vo.setBillingCostCentre(createRequest.getBillingCostCentre());

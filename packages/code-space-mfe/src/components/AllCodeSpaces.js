@@ -64,6 +64,10 @@ const AllCodeSpaces = (props) => {
         History.goBack();
     };
     const [showAWSWarningModal, setShowAWSWarningModal] = useState(false);
+    const [showSundownWarningModal, setShowSundownWarningModal] = useState(false);
+    const [showMigrationWarningModal, setShowMigrationWarningModal] = useState(false);
+    const [pendingStartCodeSpace, setPendingStartCodeSpace] = useState(null);
+    const [pendingStartParams, setPendingStartParams] = useState(null);
     const [groupLoading, setGroupLoading] = useState(true);
 
     const getCodeSpacesData = () => {
@@ -99,6 +103,7 @@ const AllCodeSpaces = (props) => {
 
     useEffect(() => {
         setShowAWSWarningModal(Envs.SHOW_AWS_MIGRATION_WARNING);
+        setShowSundownWarningModal(true);
         getCodeSpacesData();
         getCodeSpaceGroupsData();
     }, []);
@@ -264,6 +269,14 @@ const AllCodeSpaces = (props) => {
     const onStartStopCodeSpace = (codeSpace, startSuccessCB, env, manual = false) => {
         Tooltip.clear();
         const serverStarted = codeSpace.serverStatus === 'SERVER_STARTED';
+        
+        if (!serverStarted && codeSpace.isWorkspaceMigratedToGHE) {
+            setPendingStartCodeSpace(codeSpace);
+            setPendingStartParams({ startSuccessCB, env, manual });
+            setShowMigrationWarningModal(true);
+            return;
+        }
+        
         serverStarted ? setLoading(true) : ProgressIndicator.show();
         CodeSpaceApiClient.startStopWorkSpace(codeSpace.id, serverStarted, env, manual)
             .then((res) => {
@@ -295,6 +308,44 @@ const AllCodeSpaces = (props) => {
             }).finally(() => {
                 Tooltip.defaultSetup();
             });
+    };
+    
+    const handleMigrationWarningAccept = () => {
+        setShowMigrationWarningModal(false);
+        
+        if (pendingStartCodeSpace && pendingStartParams) {
+            const { startSuccessCB, env, manual } = pendingStartParams;
+            ProgressIndicator.show();
+            
+            CodeSpaceApiClient.startStopWorkSpace(pendingStartCodeSpace.id, false, env, manual)
+                .then((res) => {
+                    ProgressIndicator.hide();
+                    if (res.data.success === 'SUCCESS') {
+                        Notification.show(
+                            'Your Codespace for project ' +
+                            pendingStartCodeSpace.projectDetails?.projectName +
+                            ' is requested to start.',
+                        );
+                        !manual && startSuccessCB();
+                    } else {
+                        Notification.show(
+                            'Error in starting your code spaces. Please try again later.',
+                            'alert',
+                        );
+                    }
+                })
+                .catch((err) => {
+                    ProgressIndicator.hide();
+                    Notification.show(
+                        'Error in starting your code spaces - ' + err.message,
+                        'alert',
+                    );
+                }).finally(() => {
+                    Tooltip.defaultSetup();
+                    setPendingStartCodeSpace(null);
+                    setPendingStartParams(null);
+                });
+        }
     };
 
     const switchBackToCodeSpace = () => {
@@ -330,7 +381,115 @@ const AllCodeSpaces = (props) => {
               <input type="checkbox" className="ff-only" id="faq-1" />
               <label className={classNames('expansion-panel-label', Styles.faqHeader)} htmlFor="faq-1">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-                  <span>1. I am not able to see my code post migrating to AWS</span>
+                  <span>1. My PAT token is invalid</span>
+                  <i tooltip-data="Expand" className="icon down-up-flip" />
+                </div>
+              </label>
+              <div className="expansion-panel-content">
+                <div className={classNames(Styles.info)}>
+                  This issue usually occurs when the Personal Access Token (PAT) you generated is not authorized with DnA CodeSpaces.
+                  <br /><br />
+                  To resolve this issue, please generate and authorize a new PAT token by following the steps below.
+                  <br /><br />
+                  <strong>Steps to Generate a Personal Access Token</strong>
+                  <ol>
+                    <li>Log in to <a href={Envs.CODE_SPACE_GHE_PAT_APP_URL} target="_blank" rel="noopener noreferrer">{Envs.CODE_SPACE_GHE_PAT_APP_URL}</a>.</li>
+                    <li>Click on your Account Icon in the top-right corner and select <strong>Settings</strong>.</li>
+                    <li>Navigate to <strong>Developer Settings</strong>.</li>
+                    <li>Select <strong>Personal access tokens</strong> → <strong>Tokens (classic)</strong>.</li>
+                    <li>Click <strong>Generate new token</strong> → <strong>Generate new token (classic)</strong>.</li>
+                    <li>Provide the required expiry period.</li>
+                    <li>Select all required scopes.</li>
+                    <li>Click <strong>Generate Token</strong>.</li>
+                    <li>Copy and securely save the generated token for future use (you will not be able to see it again).</li>
+                  </ol>
+                  <br />
+                  <strong>Steps to Configure SSO for Your Personal Access Token</strong>
+                  <ol>
+                    <li>After generating the token, click <strong>Configure SSO</strong> next to the token.</li>
+                    <li>Select <strong>DNA-CodeSpaces</strong> as the authorizer.</li>
+                    <li>Authorize the token.</li>
+                  </ol>
+                  <br />
+                  <strong>Final Step</strong>
+                  <ul>
+                    <li>Use the authorized PAT token when creating your CodeSpace.</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+
+            <div className={classNames('expansion-panel')}>
+              <span className="animation-wrapper"></span>
+              <input type="checkbox" className="ff-only" id="faq-2" />
+              <label className={classNames('expansion-panel-label', Styles.faqHeader)} htmlFor="faq-2">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                  <span>2. I am unable to pull or push code after the GHE migration</span>
+                  <i tooltip-data="Expand" className="icon down-up-flip" />
+                </div>
+              </label>
+              <div className="expansion-panel-content">
+                <div className={classNames(Styles.info)}>
+                  After the migration from GHES to GHEC, your local repository may still be pointing to the old remote URL, which can prevent you from pulling or pushing code.
+                  <br /><br />
+                  You need to update the remote origin URL in your local repository.
+                  <br /><br />
+                  <strong>Steps to Update the Remote Repository URL</strong>
+                  <ol>
+                    <li>
+                      Check the current remote URL:
+                      <br />
+                      <span className={classNames(Styles.list)}>git remote -v</span>
+                      <br />
+                      <span className={classNames(Styles.listInfo)}>If the migration has not been updated locally, this command may show the old remote (git.i).</span>
+                    </li>
+                    <li>
+                      Update the remote origin to the new repository URL:
+                      <br />
+                      <span className={classNames(Styles.list)}>git remote set-url origin &lt;new_repo_url&gt;</span>
+                      <br />
+                      <span className={classNames(Styles.listInfo)}>Example:</span>
+                      <br />
+                      <span className={classNames(Styles.list)}>git remote set-url origin https://mercedes-benz.ghe.com/&lt;org&gt;/&lt;repo&gt;.git</span>
+                    </li>
+                    <li>
+                      Verify the updated remote:
+                      <br />
+                      <span className={classNames(Styles.list)}>git remote -v</span>
+                      <br />
+                      <span className={classNames(Styles.listInfo)}>You should now see the new GHE repository URL.</span>
+                    </li>
+                    <li>
+                      Pull the latest changes:
+                      <br />
+                      <span className={classNames(Styles.list)}>git pull</span>
+                      <br />
+                      <span className={classNames(Styles.listInfo)}>When prompted for credentials:</span>
+                      <br />
+                      <span className={classNames(Styles.listInfo)}><strong>Username:</strong> Your official Mercedes-Benz email ID</span>
+                      <br />
+                      <span className={classNames(Styles.listInfo)}><strong>Password:</strong> Your GHE Personal Access Token (PAT)</span>
+                    </li>
+                  </ol>
+                  <br />
+                  <strong>Alternative Method</strong>
+                  <ul>
+                    <li>
+                      You can also configure the remote URL with your SSO-authorized PAT directly:
+                      <br />
+                      <span className={classNames(Styles.list)}>git remote set-url origin https://&lt;DnA-Codespaces SSO authorized classic PAT from GHE&gt;@&lt;repo_url&gt;</span>
+                    </li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+      
+            <div className={classNames('expansion-panel')}>
+              <span className="animation-wrapper"></span>
+              <input type="checkbox" className="ff-only" id="faq-3" />
+              <label className={classNames('expansion-panel-label', Styles.faqHeader)} htmlFor="faq-3">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+                  <span>3. I am not able to see my code post migrating</span>
                   <i tooltip-data="Expand" className="icon down-up-flip" />
                 </div>
               </label>
@@ -343,11 +502,11 @@ const AllCodeSpaces = (props) => {
                       <ol>
                         <li><span className={classNames(Styles.list)}>mkdir -p /home/coder/app</span></li>
                         <li><span className={classNames(Styles.list)}>git config --global credential.helper cache</span></li>
-                        <li><span className={classNames(Styles.list)}>git config --global user.email &ldquo;$SHORTID&ldquo;</span></li>
-                        <li><span className={classNames(Styles.list)}>git config --global user.name &ldquo;$SHORTID&ldquo;</span></li>
+                                                <li><span className={classNames(Styles.list)}>git config --global user.email &lt;EMAILID&gt;</span></li>
+                                                <li><span className={classNames(Styles.list)}>git config --global user.name &lt;SHORTID&gt;</span></li>
                         <li>
                           <span className={classNames(Styles.list)}>
-                            git clone https://$GITHUB_TOKEN@$GITHUBREPO_URL /home/coder/app
+                                                        git clone https://&lt;GITHUB_TOKEN&gt;@&lt;GITHUBREPO_URL&gt; /home/coder/app
                           </span>
                           <br />
                           (e.g., git clone https://ghp_xxxx@{(Envs.CODE_SPACE_GIT_PAT_APP_URL).split('https://')[1]}org_name/repo_name.git /home/coder/app)
@@ -400,7 +559,7 @@ const AllCodeSpaces = (props) => {
               <input type="checkbox" className="ff-only" id="faq-2" />
               <label className={classNames('expansion-panel-label', Styles.faqHeader)} htmlFor="faq-2">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-                  <span>2. I am getting a WebSocket error: “The workbench failed to connect to the server”</span>
+                  <span>4. I am getting a WebSocket error: “The workbench failed to connect to the server”</span>
                   <i tooltip-data="Expand" className="icon down-up-flip" />
                 </div>
               </label>
@@ -424,7 +583,7 @@ const AllCodeSpaces = (props) => {
               <input type="checkbox" className="ff-only" id="faq-3" />
               <label className={classNames('expansion-panel-label', Styles.faqHeader)} htmlFor="faq-3">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
-                  <span>3. CodeSpace stopped and keeps reloading while working</span>
+                  <span>5. CodeSpace stopped and keeps reloading while working</span>
                   <i tooltip-data="Expand" className="icon down-up-flip" />
                 </div>
               </label>
@@ -453,6 +612,36 @@ const AllCodeSpaces = (props) => {
     const [showEditCodespaceGroupModal, setShowEditCodespaceGroupModal]  = useState(false);
     const [showCodespacesModal, setShowCodespacesModal] = useState(false);
     const [selectedCodeSpaceGroup, setSelectedCodeSpaceGroup] = useState(JSON.parse(sessionStorage.getItem(SESSION_STORAGE_KEYS.CODE_SPACE_SELECTED_GROUPS)));
+
+    const sundownWarningContent = (
+        <div className={Styles.sundownWarning}>
+            <p>
+                Your repositories under the <a href={Envs.CODE_SPACE_GHEC_ORG_URL} target="_blank" rel="noopener noreferrer">DNA-CodeSpaces</a> organization have been successfully migrated from GHES to GitHub Cloud (GHEC). 🎉 All repositories can now be accessed using the following link{' '}
+                <a
+                    href={Envs.CODE_SPACE_GHEC_ORG_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ whiteSpace: 'nowrap' }}
+                >
+                    {Envs.CODE_SPACE_GHEC_ORG_URL}
+                </a>
+                .
+                <br /><br />
+            </p>
+            <p>
+                As part of the migration, please create a Personal Access Token (PAT) from{' '}
+                <a
+                    href={Envs.CODE_SPACE_GHE_PAT_SETTINGS_URL}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    style={{ whiteSpace: 'nowrap' }}
+                >
+                    {Envs.CODE_SPACE_GHE_PAT_SETTINGS_URL}
+                </a>
+                {' '}by selecting &quot;Generate new token (classic)&quot;. Under Scopes, ensure the token has at least <strong>repo</strong> access. After creating the token, make sure to authorize it for SSO under the <strong>DnA-Codespaces</strong> organization. <br /><br />Also, update your Git remote URL to point to the new host using<br /><code>git remote set-url origin {Envs.CODE_SPACE_GHEC_ORG_URL}/&lt;REPO_NAME&gt;.git</code><br /><br />For any queries, please refer to the Codespaces FAQs or contact us via the <a href={Envs.CODESPACE_TEAMS_LINK} target="_blank" rel="noopener noreferrer">DnA Codespaces Teams channel</a>.
+            </p>
+        </div>
+    );
 
     useEffect(() => {
         // if (selectedCodeSpaceGroup) {
@@ -1025,6 +1214,19 @@ const AllCodeSpaces = (props) => {
                     onCancel={() => { setShowTutorialsModel(false) }}
                 />
             )}
+            {showSundownWarningModal && (
+                <ConfirmModal
+                    title={''}
+                    acceptButtonTitle="OK"
+                    showAcceptButton={true}
+                    showCancelButton={false}
+                    show={showSundownWarningModal}
+                    content={sundownWarningContent}
+                    onCancel={() => setShowSundownWarningModal(false)}
+                    onAccept={() => setShowSundownWarningModal(false)}
+                    
+                />
+            )}
             {showAWSWarningModal && (
                 <ConfirmModal
                     title={''}
@@ -1056,6 +1258,47 @@ const AllCodeSpaces = (props) => {
                     show={showAwsFAQModal}
                     content={FAQModalContent}
                     onCancel={() => setShowAwsFAQModal(false)}
+                />
+            )}
+            {showMigrationWarningModal && (
+                <ConfirmModal
+                    title={'Important: Workspace Migrated to GitHub Cloud'}
+                    acceptButtonTitle="OK"
+                    showAcceptButton={true}
+                    showCancelButton={false}
+                    modalWidth="50%"
+                    show={showMigrationWarningModal}
+                    content={
+                        <div className={Styles.modalContentWrapper}>
+                            <p>
+                                This workspace has been migrated to GitHub Enterprise Cloud (GHEC).
+                            </p>
+                            <p>
+                                <strong>Important:</strong> You may experience issues with pulling or pushing code if your local repository is still pointing to the old remote URL.
+                            </p>
+                            <p>
+                                Please refer to <strong>FAQ #2: &quot;I am unable to pull or push code after the GHE migration&quot;</strong> in the{' '}
+                                <a 
+                                    href="#" 
+                                    onClick={(e) => {
+                                        e.preventDefault();
+                                        setShowMigrationWarningModal(false);
+                                        setShowAwsFAQModal(true);
+                                    }}
+                                    style={{ textDecoration: 'underline', cursor: 'pointer' }}
+                                >
+                                    CodeSpace FAQs
+                                </a>
+                                {' '}for detailed instructions on updating your remote repository URL.
+                            </p>
+                        </div>
+                    }
+                    onCancel={() => {
+                        setShowMigrationWarningModal(false);
+                        setPendingStartCodeSpace(null);
+                        setPendingStartParams(null);
+                    }}
+                    onAccept={handleMigrationWarningAccept}
                 />
             )}
             {showBlueprintModal && (
