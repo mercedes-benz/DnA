@@ -11,6 +11,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.util.LinkedMultiValueMap;
 import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.RestTemplate;
+import org.springframework.beans.factory.annotation.Value;
 
 import com.daimler.data.dto.azure.AzureTokenRequestDto;
 import com.daimler.data.dto.azure.AzureTokenResponseDto;

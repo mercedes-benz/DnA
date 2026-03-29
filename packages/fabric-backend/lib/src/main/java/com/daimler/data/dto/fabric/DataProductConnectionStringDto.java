@@ -19,6 +19,5 @@ public class DataProductConnectionStringDto {
 
     private String catalogName;
     private String schemaName;
-    private Boolean withoutLocation;
     private Boolean fullSchema;
 }
