@@ -319,9 +319,7 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
     });
   };
 
-  const onRefreshClick = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
+  const handleRefresh = () => {
     setIsRefreshing(true);
     CodeSpaceApiClient.getWorkspaceById(codeSpace.id)
       .then((res) => {
@@ -335,6 +333,12 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
         setIsRefreshing(false);
         Notification.show('Error refreshing: ' + err.message, 'alert');
       });
+  };
+
+  const onRefreshClick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    handleRefresh();
   };
 
   const projectDetails = codeSpace?.projectDetails;
@@ -445,6 +449,7 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
                     onShowBuildModal={props?.onShowBuildModal}
                     onGetCodespaceData={props?.onGetCodespaceData}
                     onRefreshCard={props?.onRefreshCard}
+                    handleRefresh={handleRefresh}
                   />
                 </div>
               </div>
