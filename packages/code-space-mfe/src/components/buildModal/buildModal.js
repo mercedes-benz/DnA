@@ -10,7 +10,7 @@ import { CodeSpaceApiClient } from '../../apis/codespace.api';
 import SelectBox from 'dna-container/SelectBox';
 import Modal from 'dna-container/Modal';
 import { SESSION_STORAGE_KEYS } from '../../Utility/constants.js';
-import { regionalDateAndTimeConversionSolution, buildGitJobLogViewAWSURL } from '../../Utility/utils';
+import { regionalDateAndTimeConversionSolution, buildGitJobLogViewAWSURL, buildGitRepoUrl, buildGitCommitUrl } from '../../Utility/utils';
 import TextBox from 'dna-container/TextBox';
 import Tags from 'dna-container/Tags';
 import Tooltip from '../../common/modules/uilab/js/src/tooltip';
@@ -61,11 +61,20 @@ const BuildModal = (props) => {
       });
 
     ProgressIndicator.show();
-    CodeSpaceApiClient.getCodeSpacesGitBranchList(projectDetails?.gitRepoName)
+    const isWorkspaceMigratedToGHE = props.codeSpaceData?.isWorkspaceMigratedToGHE;
+    const repoUrl = buildGitRepoUrl(projectDetails?.gitRepoName, isWorkspaceMigratedToGHE);
+    console.log('BUILD MODAL DEBUG');
+    console.log('Original gitRepoName:', projectDetails?.gitRepoName);
+    console.log('isWorkspaceMigratedToGHE:', isWorkspaceMigratedToGHE);
+    console.log('Built repoUrl:', repoUrl);
+    console.log('Expected format: dev-cs{repoName}');
+    CodeSpaceApiClient.getCodeSpacesGitBranchList(repoUrl)
       .then((res) => {
         ProgressIndicator.hide();
         props.setShowCodeBuildModal(true);
         let branches = res?.data;
+        console.log('Branches fetched successfully:', branches);
+        console.log('Number of branches:', branches?.length);
         branches.forEach((element) => {
           element.id = element.name;
         });
@@ -75,6 +84,7 @@ const BuildModal = (props) => {
       })
       .catch((err) => {
         ProgressIndicator.hide();
+        console.error('Error fetching branches:', err);
         Notification.show('Error in getting code space branch list - ' + err.message, 'alert');
       });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -141,9 +151,11 @@ const BuildModal = (props) => {
       formValid = false;
       setIsBranchValueMissing(true);
     }
-    const found = branches.some(branch => 
-     Object.values(branch).includes(branchValue[0])
-    );
+    // const found = branches.some(branch => 
+    //  Object.values(branch).includes(branchValue[0])
+    // );
+    const found = branches.some(branch => branch.name === branchValue[0]);
+    console.log('Branch validation:', { branchValue: branchValue[0], found, availableBranches: branches.map(b => b.name) });
     if (!found) {
       formValid = false;
       Notification.show('Branch doesnot exist.','alert',);
@@ -415,7 +427,19 @@ const BuildModal = (props) => {
                               </a>
                             </td>
                             <td>{item?.buildOn ? regionalDateAndTimeConversionSolution(item?.buildOn) : 'N/A'}</td>
-                            <td>{item?.commitId || 'N/A'}</td>
+                            <td>
+                              {item?.commitId ? (
+                                <a
+                                  href={buildGitCommitUrl(projectDetails?.gitRepoName, item.commitId, props.codeSpaceData?.isWorkspaceMigratedToGHE)}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                >
+                                  {item.commitId}
+                                </a>
+                              ) : (
+                                'N/A'
+                              )}
+                            </td>
                             <td>
                               {item?.version ? (
                                 <>
