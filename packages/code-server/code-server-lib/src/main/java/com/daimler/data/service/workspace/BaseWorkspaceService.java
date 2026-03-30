@@ -2092,13 +2092,17 @@
                             if (repoName == null || repoName.isEmpty()) {
                                 throw new Exception("Git repository name is not set for this workspace. Cannot deploy to ArgoCD.");
                             }
-                            gitRepoUrl = "https://" + gitOrgUri + gitOrgName + "/" + repoName + ".git";
+                            if (gheWorkspaceMigrated) {
+                                gitRepoUrl = codeserverGheOrgUri + gitOrgName + "/" + repoName + ".git";
+                            } else {
+                                gitRepoUrl = codeserverGitOrgUri + gitOrgName + "/" + repoName + ".git";
+                            }
                         }
                         
                         String imageTag = (version != null && !version.isEmpty()) ? version : environment + "-latest";
                         
-                        log.info("ArgoCD deployment - projectName: {}, gitRepoUrl: {}, imageTag: {}, repoName: {}", 
-                                 projectName, gitRepoUrl, imageTag, repoName);
+                        log.info("ArgoCD deployment - projectName: {}, gitRepoUrl: {}, imageTag: {}, repoName: {}, gheWorkspaceMigrated: {}", 
+                                 projectName, gitRepoUrl, imageTag, repoName, gheWorkspaceMigrated);
                         
                         argoDeployResult = argoCdService.createArgoApp(argoToken, projectName.toLowerCase(), workspaceOwner, 
                                                                         environment, gitRepoUrl, imageTag, isValutInjectorEnable);
