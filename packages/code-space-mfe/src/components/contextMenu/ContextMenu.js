@@ -220,6 +220,28 @@ const ContextMenu = (props) => {
               Deploy Code
             </span>
           </li>
+          <li>
+            <span
+              onClick={() => {
+                props.setShowContextMenu(false);
+                ProgressIndicator.show();
+                CodeSpaceApiClient.getWorkspaceById(codeSpace.id)
+                  .then((res) => {
+                    ProgressIndicator.hide();
+                    if (res.data && props.onRefreshCard) {
+                      props.onRefreshCard(codeSpace.id, res.data);
+                    }
+                    Notification.show(`${projectDetails?.projectName || 'Workspace'} status refreshed`);
+                  })
+                  .catch((err) => {
+                    ProgressIndicator.hide();
+                    Notification.show('Error refreshing: ' + err.message, 'alert');
+                  });
+              }}
+            >
+              Refresh
+            </span>
+          </li>
           {projectDetails?.gitRepoName && (
             <li>
               <a target="_blank" href={buildGitUrl(codeSpace.projectDetails?.gitRepoName, codeSpace.isWorkspaceMigratedToGHE)} rel="noreferrer">

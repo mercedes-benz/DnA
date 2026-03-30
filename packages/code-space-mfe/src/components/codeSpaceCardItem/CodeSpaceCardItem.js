@@ -444,6 +444,7 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
                     onShowBlueprintModal={props?.onShowBlueprintModal}
                     onShowBuildModal={props?.onShowBuildModal}
                     onGetCodespaceData={props?.onGetCodespaceData}
+                    onRefreshCard={props?.onRefreshCard}
                   />
                 </div>
               </div>
