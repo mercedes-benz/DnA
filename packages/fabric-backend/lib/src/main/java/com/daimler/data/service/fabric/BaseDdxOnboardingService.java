@@ -111,7 +111,7 @@ public class BaseDdxOnboardingService implements DdxOnboardingService {
 
             // --- Fabric Lakehouse & Connection Details ---
             String connectionName = "fcos_fabric_test_api";
-            String catalogName = "westeurope_Test" + lakehouseId;
+            String catalogName = "westeurope_oneFabric_Test" + lakehouseId;
 
             // 1. Fetch SQL Endpoint Details
             log.info("Fetching SQL endpoint details for workspace: {} and lakehouse: {}", workspaceId, lakehouseId);

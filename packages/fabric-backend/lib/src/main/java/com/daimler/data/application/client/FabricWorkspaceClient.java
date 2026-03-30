@@ -51,6 +51,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
+import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.dto.fabric.AddDatasourceUserDto;
@@ -138,6 +139,8 @@ public class FabricWorkspaceClient {
 
 	@Value("${ddxIntegration.fabricDdxPush.baseUrl}")
 	private String ddxBaseUrl;
+
+	private UserStore userStore;
 		
     private static String WORKSPACED_IDENTIFIER = "id";
     private static String GATEWAY_IDENTIFIER = "id";
@@ -1041,6 +1044,8 @@ public class FabricWorkspaceClient {
 				return responseDto;
 			}
 
+			// token = JwtTokenUtil.extractAuthToken(token);
+
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Authorization", "Bearer " + token);
@@ -1070,11 +1075,9 @@ public class FabricWorkspaceClient {
 	public DdxResponseDto ddxProductOnboarding(DdxOnboardingRequestDto request) {
 		DdxResponseDto res = new DdxResponseDto();
 		try {
-			String token = getToken();
-			if(!Objects.nonNull(token)) {
-				log.error("Failed to fetch token to invoke fabric Apis");
-				return res;
-			}
+
+			String token = this.userStore.getUserInfo().getAuthToken();
+
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Authorization", "Bearer "+token);
@@ -1082,7 +1085,11 @@ public class FabricWorkspaceClient {
 			HttpEntity requestEntity = new HttpEntity<>( request, headers);
 			String url = ddxBaseUrl + "/v1/dataproducts";
 
-			ResponseEntity<DdxResponseDto> response = proxyRestTemplate.exchange(url , HttpMethod.POST,
+			log.info("DDX Product Onboarding URL: {}", url);
+
+			log.info("DDX Product Onboarding Headers: {}", headers.toString());
+
+			ResponseEntity<DdxResponseDto> response = restTemplate.exchange(url , HttpMethod.POST,
 					requestEntity, DdxResponseDto.class);
 
 			if(response.getStatusCode().is2xxSuccessful()) {
