@@ -57,6 +57,7 @@ const DataEntryComponent = React.lazy(() => import('data-entry-mfe/DataEntry'));
 const CodeSpaceComponent = React.lazy(() => import('code-space-mfe/CodeSpace'));
 const PowerPlatformComponent = React.lazy(() => import('power-platform-mfe/PowerPlatform'));
 const PromptCraftComponent = React.lazy(() => import('components/mbc/promptCraft/promptCraftSubscriptions/PromptCraftSubscriptions'));
+const AzureKeyVaultComponent = React.lazy(() => import('components/mbc/azureKeyVault/AzureKeyVault'));
 
 const UserAndAdminRole = [
   USER_ROLE.USER,
@@ -465,6 +466,13 @@ const protectedRoutes = [
     exact: false,
     path: '/uilicious',
     title: 'Uilicious',
+  },
+  {
+    allowedRoles: UserAndAdminRole,
+    component: AzureKeyVaultComponent,
+    exact: false,
+    path: '/azurekeyvault',
+    title: 'Azure Key Vault',
   },
 ];
 
