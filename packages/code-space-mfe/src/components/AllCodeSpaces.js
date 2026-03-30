@@ -690,7 +690,7 @@ const AllCodeSpaces = (props) => {
                         </div>
                         <div className={Styles.allCodeSpacesContent}>
                             <div className={classNames('cardSolutions', Styles.allCodeSpacesCardviewContent)}>
-                                {selectedCodeSpaceGroup?.workspaces?.filter((workspace) => workspace?.projectDetails?.projectOwner?.id === props.user.id)?.map((workspace, index) => {
+                                {selectedCodeSpaceGroup?.workspaces?.filter((workspace) => workspace?.projectDetails?.projectOwner?.id === props.user.id)?.map((workspace) => {
                                     return (
                                         <CodeSpaceCardItem
                                             key={`${workspace.id}-${workspace.projectDetails?.lastBuildOrDeployedOn}`}
@@ -723,7 +723,7 @@ const AllCodeSpaces = (props) => {
                         )}
                         <div className={Styles.allCodeSpacesContent}>
                             <div className={classNames('cardSolutions', Styles.allCodeSpacesCardviewContent)}>
-                                {selectedCodeSpaceGroup?.workspaces?.filter((workspace) => workspace?.projectDetails?.projectOwner?.id !== props.user.id)?.map((workspace, index) => {
+                                {selectedCodeSpaceGroup?.workspaces?.filter((workspace) => workspace?.projectDetails?.projectOwner?.id !== props.user.id)?.map((workspace) => {
                                     return (
                                         <CodeSpaceCardItem
                                             key={`${workspace.id}-${workspace.projectDetails?.lastBuildOrDeployedOn}`}
@@ -973,7 +973,7 @@ const AllCodeSpaces = (props) => {
                                                 <div className={Styles.addicon}> &nbsp; </div>
                                                 <label className={Styles.addlabel}>Create new Code Space</label>
                                             </div>
-                                            {filteredCodeSpaces?.filter((codespace) => codespace?.projectDetails?.projectOwner?.id === props.user.id)?.map((codeSpace, index) => {
+                                            {filteredCodeSpaces?.filter((codespace) => codespace?.projectDetails?.projectOwner?.id === props.user.id)?.map((codeSpace) => {
                                                 return (
                                                     <CodeSpaceCardItem
                                                         ref={draggableItemRef}
@@ -1007,7 +1007,7 @@ const AllCodeSpaces = (props) => {
                                     )}
                                     <div className={Styles.allCodeSpacesContent}>
                                         <div className={classNames('cardSolutions', Styles.allCodeSpacesCardviewContent)}>
-                                            {filteredCodeSpaces?.filter((codespace) => codespace?.projectDetails?.projectOwner?.id !== props.user.id)?.map((codeSpace, index) => {
+                                            {filteredCodeSpaces?.filter((codespace) => codespace?.projectDetails?.projectOwner?.id !== props.user.id)?.map((codeSpace) => {
                                                 return (
                                                     <CodeSpaceCardItem
                                                         key={`${codeSpace.id}-${codeSpace.projectDetails?.lastBuildOrDeployedOn}`}
