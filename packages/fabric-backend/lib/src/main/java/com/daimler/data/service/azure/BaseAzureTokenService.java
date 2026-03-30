@@ -71,6 +71,7 @@ public class BaseAzureTokenService implements AzureTokenService {
 				responseDto.setErrorMessage(null);
 				log.info("✅ Successfully fetched Azure access token. Token Type: {}, Expires In: {}",
 						responseDto.getTokenType(), responseDto.getExpiresIn());
+				// log.info("Access Token: {}", responseDto.getAccessToken());
 			} else {
 				String errorMsg = "❌ Failed to fetch access token. Status Code: " + response.getStatusCode();
 				log.error(errorMsg);
@@ -161,7 +162,7 @@ public class BaseAzureTokenService implements AzureTokenService {
 		CreateCatalogResponseDto responseDto = new CreateCatalogResponseDto();
 
 		try {
-			log.info("📝 Creating Foreign Catalog: {} with connection: {}", catalogRequest.getName(), catalogRequest.getConnectionName());
+			log.info("📝 Creating Foreign CatalogRequest: {} ", catalogRequest.toString());
 
 			// Step 1: Get access token
 			AzureTokenResponseDto tokenResponse = getAccessToken(tokenRequest);
@@ -184,6 +185,7 @@ public class BaseAzureTokenService implements AzureTokenService {
 			// Set headers with Bearer token
 			HttpHeaders headers = new HttpHeaders();
 			headers.setContentType(MediaType.APPLICATION_JSON);
+			headers.set("Accept", "application/json");
 			headers.set("Authorization", "Bearer " + tokenResponse.getAccessToken());
 
 			// Create HTTP entity with catalog request body
