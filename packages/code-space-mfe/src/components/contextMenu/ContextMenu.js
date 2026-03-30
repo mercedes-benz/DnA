@@ -224,19 +224,9 @@ const ContextMenu = (props) => {
             <span
               onClick={() => {
                 props.setShowContextMenu(false);
-                ProgressIndicator.show();
-                CodeSpaceApiClient.getWorkspaceById(codeSpace.id)
-                  .then((res) => {
-                    ProgressIndicator.hide();
-                    if (res.data && props.onRefreshCard) {
-                      props.onRefreshCard(codeSpace.id, res.data);
-                    }
-                    Notification.show(`${projectDetails?.projectName || 'Workspace'} status refreshed`);
-                  })
-                  .catch((err) => {
-                    ProgressIndicator.hide();
-                    Notification.show('Error refreshing: ' + err.message, 'alert');
-                  });
+                if (props.handleRefresh) {
+                  props.handleRefresh();
+                }
               }}
             >
               Refresh
