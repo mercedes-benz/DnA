@@ -40,6 +40,8 @@ import com.daimler.data.dto.azure.AzureTokenRequestDto;
 import com.daimler.data.dto.azure.AzureTokenResponseDto;
 import com.daimler.data.dto.databricks.CreateCatalogRequestDto;
 import com.daimler.data.dto.databricks.CreateCatalogResponseDto;
+import com.daimler.data.dto.databricks.CreateConnectionRequestDto;
+import com.daimler.data.dto.databricks.CreateConnectionResponseDto;
 import com.daimler.data.dto.fabric.DataProductConnectionStringDto;
 
 // import com.databricks.sdk.core.http.ProxyConfig;
@@ -110,8 +112,8 @@ public class BaseDdxOnboardingService implements DdxOnboardingService {
             }
 
             // --- Fabric Lakehouse & Connection Details ---
-            String connectionName = "fcos_fabric_test_api";
-            String catalogName = "westeurope_oneFabric_Test" + lakehouseId;
+            String connectionName = "oneFabric_" + lakehouseId;
+            String catalogName = "westeurope_" + lakehouseId;
 
             // 1. Fetch SQL Endpoint Details
             log.info("Fetching SQL endpoint details for workspace: {} and lakehouse: {}", workspaceId, lakehouseId);
@@ -163,7 +165,46 @@ public class BaseDdxOnboardingService implements DdxOnboardingService {
             tokenRequest.setScope(databricksSpScope);
             tokenRequest.setGrantType("client_credentials");
 
-            // 4. Create Catalog Request
+            // 4. Create Connection in Databricks Unity Catalog
+            log.info("Creating Databricks connection: {} for workspace: {}", connectionName, workspaceId);
+            CreateConnectionRequestDto createConnectionRequest = new CreateConnectionRequestDto();
+            createConnectionRequest.setName(connectionName);
+            createConnectionRequest.setConnectionType("SQLSERVER");
+            Map<String, String> connectionOptions = new HashMap<>();
+            connectionOptions.put("host", fabricSqlEndpoint);
+            connectionOptions.put("port", "1433");
+            connectionOptions.put("client_id", databricksSpClientId);
+            connectionOptions.put("client_secret", databricksSpClientSecret);
+            connectionOptions.put("token_endpoint", "https://login.microsoftonline.com/" + databricksSpTenantId + "/oauth2/v2.0/token");
+            createConnectionRequest.setOptions(connectionOptions);
+            createConnectionRequest.setComment("Connection for fabric lakehouse: " + lakehouseId + " in workspace: " + workspaceId);
+
+            CreateConnectionResponseDto connectionResponse;
+            try {
+                connectionResponse = azureTokenService.createConnection(tokenRequest, createConnectionRequest);
+            } catch (Exception e) {
+                log.error("Failed to create connection: {} for workspace: {}", connectionName, workspaceId, e);
+                throw new RuntimeException("Databricks connection creation failed: " + e.getMessage(), e);
+            }
+
+            if (connectionResponse == null) {
+                throw new RuntimeException("Connection creation response is null");
+            }
+
+            if (Boolean.TRUE.equals(connectionResponse.getSuccess())) {
+                log.info("Connection created successfully: {}", connectionResponse.getName());
+                connectionName = connectionResponse.getName();
+            } else {
+                String connError = connectionResponse.getErrorMessage() != null ? connectionResponse.getErrorMessage() : "";
+                if (connError.toLowerCase().contains("already exists")) {
+                    log.info("Connection {} already exists, proceeding with existing connection", connectionName);
+                } else {
+                    log.error("Failed to create connection: {}, error: {}", connectionName, connError);
+                    throw new RuntimeException("Databricks connection creation failed: " + connError);
+                }
+            }
+
+            // 5. Create Catalog Request
             CreateCatalogRequestDto createCatalogRequest = new CreateCatalogRequestDto();
             createCatalogRequest.setName(catalogName);
             createCatalogRequest.setConnectionName(connectionName);
@@ -172,7 +213,7 @@ public class BaseDdxOnboardingService implements DdxOnboardingService {
                 put("database", "DnA_dataiku");
             }});
 
-            // 5. Create Catalog via Azure Token Service
+            // 6. Create Catalog via Azure Token Service
             log.info("Creating Databricks catalog: {} with connection: {}", catalogName, connectionName);
             CreateCatalogResponseDto catalogResponse;
             try {
@@ -186,10 +227,21 @@ public class BaseDdxOnboardingService implements DdxOnboardingService {
                 throw new RuntimeException("Catalog creation response is null");
             }
 
-            log.info("✅ Catalog creation response: {}", catalogResponse);
+            if (Boolean.TRUE.equals(catalogResponse.getSuccess())) {
+                log.info("✅ Catalog created successfully: {}", catalogResponse.getName());
+            } else {
+                String errorMsg = catalogResponse.getErrorMessage() != null ? catalogResponse.getErrorMessage() : "";
+                if (errorMsg.toLowerCase().contains("already exists")) {
+                    log.info("Catalog {} already exists, proceeding with existing catalog for onboarding", catalogName);
+                } else {
+                    log.error("Failed to create catalog: {}, error: {}", catalogName, errorMsg);
+                    throw new RuntimeException("Databricks catalog creation failed: " + errorMsg);
+                }
+            }
+
             log.info("🎉 --- Databricks Fabric Setup Completed Successfully ---");
 
-            // 6. Prepare DDX Onboarding Request
+            // 7. Prepare DDX Onboarding Request
             log.info("Preparing DDX onboarding request with {} data product connections", publishDdxRequest.getDataProductConnections().size());
             try {
                 if (publishDdxRequest.getDataProductConnections() == null || publishDdxRequest.getDataProductConnections().isEmpty()) {
@@ -206,18 +258,18 @@ public class BaseDdxOnboardingService implements DdxOnboardingService {
                     if (connectionString == null) {
                         throw new RuntimeException("DataProductConnectionString is null for a connection");
                     }
-                    
-                    connectionString.setCatalogName(catalogName);
-                    connectionString.setSchemaName("dbo");
-                    connectionString.setFullSchema(true);
+                    connectionString.setCatalogName(null);
+                    connectionString.setSchemaName(null);
+                    connectionString.setFullSchema(null);
                 });
+                log.info(" DDX request: {}", publishDdxRequest);
                 log.info("Prepared DDX onboarding request: {}", publishDdxRequest.getDataProductName());
             } catch (RuntimeException e) {
                 log.error("Failed to prepare DDX onboarding request: {}", e.getMessage());
                 throw e;
             }
 
-            // 7. Onboard to DDX
+            // 8. Onboard to DDX
             log.info("Onboarding product: {} to DDX for workspace: {}", publishDdxRequest.getDataProductName(), workspaceId);
             DdxResponseDto onboardingResponse;
             try {
@@ -231,7 +283,7 @@ public class BaseDdxOnboardingService implements DdxOnboardingService {
                 throw new RuntimeException("DDX onboarding response is null");
             }
 
-            // 8. Validate DDX Onboarding Response
+            // 9. Validate DDX Onboarding Response
             if (onboardingResponse.getStatusCode() != 201) {
                 String errorMsg = onboardingResponse.getMessage() != null 
                     ? onboardingResponse.getMessage() 
@@ -244,7 +296,7 @@ public class BaseDdxOnboardingService implements DdxOnboardingService {
                 return responseMessage;
             }
 
-            // 9. Update DDX Lakehouse Details
+            // 10. Update DDX Lakehouse Details
             log.info("Updating DDX lakehouse details for workspace: {} and lakehouse: {}", workspaceId, lakehouseId);
             try {
                 updateDdxLakeHouseDetails(workspaceId, lakehouseId, fabricDatabaseName, catalogName, onboardingResponse, createdBy);
@@ -258,7 +310,7 @@ public class BaseDdxOnboardingService implements DdxOnboardingService {
                 return responseMessage;
             }
 
-            // 10. Success Response
+            // 11. Success Response
             message.setMessage("Product onboarded to DDX successfully for product: " + publishDdxRequest.getDataProductName());
             responseMessage.setSuccess("SUCCESS");
             log.info("✅ Successfully onboarded product: {} to DDX for workspace: {}", publishDdxRequest.getDataProductName(), workspaceId);

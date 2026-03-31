@@ -17,6 +17,9 @@ import com.daimler.data.dto.databricks.ClustersListResponseDto;
 import com.daimler.data.dto.databricks.CreateCatalogRequestDto;
 import com.daimler.data.dto.databricks.CreateCatalogResponseDto;
 import com.daimler.data.dto.databricks.CreateCatalogWithAuthRequestDto;
+import com.daimler.data.dto.databricks.CreateConnectionRequestDto;
+import com.daimler.data.dto.databricks.CreateConnectionResponseDto;
+import com.daimler.data.dto.databricks.CreateConnectionWithAuthRequestDto;
 import com.daimler.data.service.azure.AzureTokenService;
 
 import io.swagger.annotations.Api;
@@ -144,6 +147,81 @@ public class AzureTokenController {
 
 		} catch (Exception e) {
 			log.error("❌ Exception occurred while listing clusters: {}", e.getMessage(), e);
+			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	@PostMapping("/create-connection")
+	@ApiOperation(value = "Create Connection in Databricks", 
+		nickname = "createConnection", 
+		notes = "Fetch access token from Azure and create a Connection in Databricks Unity Catalog", 
+		response = CreateConnectionResponseDto.class, 
+		tags = { "databricks-connections" })
+	@ApiResponses(value = {
+		@ApiResponse(code = 200, message = "Connection created successfully", response = CreateConnectionResponseDto.class),
+		@ApiResponse(code = 400, message = "Bad Request - Missing or invalid parameters"),
+		@ApiResponse(code = 401, message = "Unauthorized - Invalid credentials"),
+		@ApiResponse(code = 500, message = "Internal Server Error") })
+	public ResponseEntity<CreateConnectionResponseDto> createConnection(
+		@ApiParam(value = "Connection creation request with Azure authentication details", required = true) @Valid @RequestBody CreateConnectionWithAuthRequestDto request) {
+
+		log.info("📝 Received request to create Connection for lakehouseId: {} for tenant: {}", request.getLakehouseId(), request.getAzureTokenRequest().getTenantId());
+
+		try {
+			// Validate token request input
+			AzureTokenRequestDto tokenRequest = request.getAzureTokenRequest();
+			if (tokenRequest.getTenantId() == null || tokenRequest.getTenantId().isEmpty()) {
+				log.error("❌ Tenant ID is missing");
+				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+			}
+
+			if (tokenRequest.getClientId() == null || tokenRequest.getClientId().isEmpty()) {
+				log.error("❌ Client ID is missing");
+				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+			}
+
+			if (tokenRequest.getClientSecret() == null || tokenRequest.getClientSecret().isEmpty()) {
+				log.error("❌ Client Secret is missing");
+				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+			}
+
+			if (tokenRequest.getScope() == null || tokenRequest.getScope().isEmpty()) {
+				log.error("❌ Scope is missing");
+				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+			}
+
+			// Validate connection request input
+			if (request.getLakehouseId() == null || request.getLakehouseId().isEmpty()) {
+				log.error("❌ Lakehouse ID is missing");
+				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+			}
+
+			if (request.getConnectionType() == null || request.getConnectionType().isEmpty()) {
+				log.error("❌ Connection type is missing");
+				return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+			}
+
+			// Create connection request DTO from the combined request
+			String connectionName = "oneFabric_" + request.getLakehouseId();
+			CreateConnectionRequestDto connectionRequest = new CreateConnectionRequestDto();
+			connectionRequest.setName(connectionName);
+			connectionRequest.setConnectionType(request.getConnectionType());
+			connectionRequest.setOptions(request.getOptions());
+			connectionRequest.setComment(request.getComment());
+
+			// Call service to create connection
+			CreateConnectionResponseDto response = azureTokenService.createConnection(tokenRequest, connectionRequest);
+
+			if (response != null && Boolean.TRUE.equals(response.getSuccess()) && response.getConnectionId() != null) {
+				log.info("✅ Successfully created Connection. Connection ID: {}, Connection Name: {}", response.getConnectionId(), response.getName());
+				return new ResponseEntity<>(response, HttpStatus.OK);
+			} else {
+				log.error("❌ Failed to create Connection: {}", response != null ? response.getErrorMessage() : "Unknown error");
+				return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+
+		} catch (Exception e) {
+			log.error("❌ Exception occurred while creating connection: {}", e.getMessage(), e);
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
