@@ -265,7 +265,7 @@ const ContextMenu = (props) => {
               }}
             >
               <div>
-                <strong>Staging:</strong> {intDeploymentDetails?.lastDeployedBranch ? 'Deployed' : 'No Deployment'}
+                <strong>Staging:</strong> {intDeployed ? 'Deployed' : 'No Deployment'}
                 <span className={classNames(Styles.metricsTrigger, 'hide')} onClick={handleOpenDoraMetrics}>
                   (DORA Metrics)
                 </span>
@@ -419,7 +419,7 @@ const ContextMenu = (props) => {
               }}
             >
               <div>
-                <strong>Production:</strong> {prodDeploymentDetails?.lastDeployedBranch ? 'Deployed' : 'No Deployment'}
+                <strong>Production:</strong> {prodDeployed ? 'Deployed' : 'No Deployment'}
                 <span className={classNames(Styles.metricsTrigger, 'hide')} onClick={handleOpenDoraMetrics}>
                   (DORA Metrics)
                 </span>
