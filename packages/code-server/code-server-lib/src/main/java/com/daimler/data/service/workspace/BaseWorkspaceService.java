@@ -1630,7 +1630,22 @@
 		 }
 		 
 		 if (entity != null && entity.getData() != null && entity.getData().getProjectDetails() != null) {
-			 String projectName = entity.getData().getProjectDetails().getProjectName();			 
+			 String projectName = entity.getData().getProjectDetails().getProjectName();
+			 
+			 CodeServerBuildDetails intBuild = entity.getData().getProjectDetails().getIntBuildDetails();
+			 if (intBuild != null && "BUILD_REQUESTED".equalsIgnoreCase(entity.getData().getProjectDetails().getLastBuildOrDeployedStatus())
+				 && "int".equalsIgnoreCase(entity.getData().getProjectDetails().getLastBuildOrDeployedEnv())) {
+				 checkAndUpdateStaleBuild(entity, intBuild, projectName, "int");
+				 entity = workspaceCustomRepository.findById(userId, id);
+			 }
+			 
+			 CodeServerBuildDetails prodBuild = entity.getData().getProjectDetails().getProdBuildDetails();
+			 if (prodBuild != null && "BUILD_REQUESTED".equalsIgnoreCase(entity.getData().getProjectDetails().getLastBuildOrDeployedStatus())
+				 && "prod".equalsIgnoreCase(entity.getData().getProjectDetails().getLastBuildOrDeployedEnv())) {
+				 checkAndUpdateStaleBuild(entity, prodBuild, projectName, "prod");
+				 entity = workspaceCustomRepository.findById(userId, id);
+			 }			 
+			 
 			 CodeServerDeploymentDetails intDeployment = entity.getData().getProjectDetails().getIntDeploymentDetails();
 			 if (intDeployment != null && "DEPLOYING".equalsIgnoreCase(intDeployment.getLastDeploymentStatus())) {
 				 try {
@@ -1698,6 +1713,37 @@
 		 }
 		 
 		 return workspaceAssembler.toVo(entity);
+	 }
+	 
+	 private void checkAndUpdateStaleBuild(CodeServerWorkspaceNsql entity, CodeServerBuildDetails buildDetails, 
+										   String projectName, String environment) {
+		 try {
+			 String gitJobRunId = buildDetails.getGitjobRunID();
+			 if (gitJobRunId != null && !gitJobRunId.isBlank()) {
+				 log.info("Checking stale build status for {} in {} environment, job run ID: {}", projectName, environment, gitJobRunId);
+				 
+				 ResponseEntity<String> gitJobResponse = client.getStatusByJobRunId(gitJobRunId);
+				 if (gitJobResponse != null && gitJobResponse.getBody() != null) {
+					 ObjectMapper objectMapper = new ObjectMapper();
+					 JsonNode rootNode = objectMapper.readTree(gitJobResponse.getBody());
+					 String responseStatus = rootNode.path("status").asText();
+					 String conclusion = rootNode.path("conclusion").asText();
+					 
+					 if ("completed".equalsIgnoreCase(responseStatus)) {
+						 String updateStatus = "success".equalsIgnoreCase(conclusion) ? "BUILD_SUCCESS" : "BUILD_FAILED";
+						 String userId = entity.getData().getProjectDetails().getProjectOwner().getId();
+						 String branch = buildDetails.getLastBuildBranch();
+						 String appVersion = buildDetails.getVersion();
+						 
+						 log.info("Updating stale build status for {} to {}", projectName, updateStatus);
+						 this.update(userId, entity.getData().getWorkspaceId(), projectName, 
+									 entity.getData().getStatus(), updateStatus, environment, branch, gitJobRunId, appVersion);
+					 }
+				 }
+			 }
+		 } catch (Exception e) {
+			 log.warn("Failed to check stale build status for {}: {}", projectName, e.getMessage());
+		 }
 	 }
   
 	 @Override
@@ -2201,49 +2247,22 @@
 				 }
 				
 				String appName = projectName.toLowerCase() + "-" + environment;
+				
+				String deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + environment + "/";
+				deploymentDetails.setDeploymentUrl(deploymentUrl);
+				log.info("Setting deployment URL for {}: {}", appName, deploymentUrl);
+				
 				String argocdBaseUrl = argoCdService.getArgocdBaseUrl();
 				String argocdAppUrl = argocdBaseUrl + "/applications/" + appName;
-				deploymentDetails.setDeploymentUrl(argocdAppUrl);
-				log.info("Setting deployment URL for {}: {}", appName, argocdAppUrl);
+				log.info("ArgoCD application URL: {}", argocdAppUrl);
 				
 				String finalDeployStatus = "DEPLOYING";
 				lastBuildOrDeployStatus = "DEPLOYING";
 				deploymentDetails.setLastDeploymentStatus("DEPLOYING");
 				workspaceCustomRepository.updateDeploymentDetails(projectName, environment, deploymentDetails,
 						"DEPLOYING");
-
-				int maxAttempts = 20;
-				int attempt = 0;
-
-				while (attempt < maxAttempts) {
-					try {
-						Thread.sleep(5000);
-						String argoStatus = argoCdService.checkArgoAppDeploymentStatus(argoToken, appName);
-						log.info("ArgoCD deployment status check {}/{} for {}: {}", attempt + 1, maxAttempts, appName,
-								argoStatus);
-
-						if ("DEPLOYED".equals(argoStatus)) {
-							finalDeployStatus = "DEPLOYED";
-							break;
-						} else if ("FAILED".equals(argoStatus)) {
-							finalDeployStatus = "FAILED";
-							break;
-						}
-					} catch (InterruptedException e) {
-						log.warn("ArgoCD status polling interrupted", e);
-						Thread.currentThread().interrupt();
-						break;
-					}
-					attempt++;
-				}
-				lastBuildOrDeployStatus = finalDeployStatus;
-				deploymentDetails.setLastDeploymentStatus(finalDeployStatus);
 				
-				if ("DEPLOYED".equals(finalDeployStatus)) {
-					deploymentDetails.setLastDeployedOn(new Date());
-					deploymentDetails.setLastDeployedBy(entity.getData().getWorkspaceOwner());
-					log.info("ArgoCD deployment completed for {}, setting lastDeployedBy to {}", appName, entity.getData().getWorkspaceOwner().getId());
-				}
+				log.info("ArgoCD deployment initiated for {}. Status will be updated asynchronously by background job.", appName);
 				
 				status = "SUCCESS";
 			} else {
@@ -2273,7 +2292,7 @@
 		 responseMessage.setSuccess(status);
 		 return responseMessage;
 	 }
- 
+
 	 @Override
 	 @Transactional
 	 public GenericMessage deployedAppConfig(String userId, String id, String environment, DeployedAppConfigDto deployedAppConfigDto){
@@ -4893,12 +4912,37 @@
 				 if (ownerEntity == null || ownerEntity.getData() == null
 						 || ownerEntity.getData().getWorkspaceId() == null) {
 					 MessageDescription error = new MessageDescription();
-					 error.setMessage(
-							 "Failed while deploying codeserver workspace project, couldnt fetch project owner details");
+					 error.setMessage("Failed while building codeserver workspace project, couldn't fetch project owner details");
 					 errors.add(error);
 					 responseMessage.setErrors(errors);
+					 responseMessage.setSuccess("FAILED");
 					 return responseMessage;
 				 }
+				 
+				 String currentStatus = ownerEntity.getData().getProjectDetails().getLastBuildOrDeployedStatus();
+				 String currentEnv = ownerEntity.getData().getProjectDetails().getLastBuildOrDeployedEnv();
+				 
+				 if (environment.equalsIgnoreCase(currentEnv)) {
+					 if ("BUILD_REQUESTED".equalsIgnoreCase(currentStatus)) {
+						 MessageDescription error = new MessageDescription();
+						 error.setMessage("Build is already in progress for " + environment + " environment. Please wait for the current build to complete.");
+						 errors.add(error);
+						 responseMessage.setErrors(errors);
+						 responseMessage.setSuccess("FAILED");
+						 log.warn("Blocked build for {} - build already in progress on {}", projectName, environment);
+						 return responseMessage;
+					 }
+					 if ("DEPLOY_REQUESTED".equalsIgnoreCase(currentStatus) || "DEPLOYING".equalsIgnoreCase(currentStatus)) {
+						 MessageDescription error = new MessageDescription();
+						 error.setMessage("Deployment is already in progress for " + environment + " environment. Please wait for the current deployment to complete before starting a new build.");
+						 errors.add(error);
+						 responseMessage.setErrors(errors);
+						 responseMessage.setSuccess("FAILED");
+						 log.warn("Blocked build for {} - deployment in progress on {}", projectName, environment);
+						 return responseMessage;
+					 }
+				 }
+				 
 				 Boolean isValutInjectorEnable = false;
 				 try{
 					isValutInjectorEnable = VaultClient.enableVaultInjector(projectName.toLowerCase(), environment);
