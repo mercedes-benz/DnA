@@ -12,7 +12,7 @@ on:
 jobs:
   create-pr:
     name: "Create and Merge Public PR"
-    runs-on: [os-small-amd64-linux ]
+    runs-on: [ubuntu-8core-amd64 ]
     steps:
 
       - name: Create PR on Public Repo

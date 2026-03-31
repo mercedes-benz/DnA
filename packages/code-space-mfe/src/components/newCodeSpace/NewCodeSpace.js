@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import cn from 'classnames';
 import Styles from './NewCodeSpace.scss';
+import { Envs } from '../../Utility/envs';
 // @ts-ignore
 import Notification from '../../common/modules/uilab/js/src/notification';
 // @ts-ignore
@@ -19,11 +20,11 @@ import { CodeSpaceApiClient } from '../../apis/codespace.api';
 import { hostServer } from '../../server/api';
 // import { ApiClient } from '../../../../services/ApiClient';
 import AddUser from 'dna-container/AddUser';
-import { Envs } from '../../Utility/envs';
 // import { recipesMaster } from '../../Utility/utils';
 import ConfirmModal from 'dna-container/ConfirmModal';
 import { DEPLOYMENT_DISABLED_RECIPE_IDS } from '../../Utility/constants';
 import Tags from 'dna-container/Tags';
+import InfoModal from 'dna-container/InfoModal';
 
 const classNames = cn.bind(Styles);
 
@@ -52,12 +53,43 @@ const NewCodeSpace = (props) => {
   const onBoadingMode = props.onBoardingCodeSpace !== undefined;
   const onEditingMode = props.onEditingCodeSpace !== undefined;
   const projectDetails = props.onBoardingCodeSpace?.projectDetails || props.onEditingCodeSpace?.projectDetails;
+  
+  const getEnvironmentPrefix = () => {
+    let envRef = Envs.CODE_SERVER_GIT_ENVREF || '';
+    
+    if (!envRef && window.CODE_SPACE_INJECTED_ENVIRONMENT) {
+      envRef = window.CODE_SPACE_INJECTED_ENVIRONMENT.CODE_SERVER_GIT_ENVREF || '';
+    }
+    
+    if (!envRef) {
+      const apiUrl = Envs.API_BASEURL || '';
+      const codeSpaceApiUrl = Envs.CODE_SPACE_API_BASEURL || '';
+      
+      if (apiUrl.includes('dev.') || codeSpaceApiUrl.includes('dev.')) {
+        envRef = 'dev';
+      } else if (apiUrl.includes('test.') || codeSpaceApiUrl.includes('test.')) {
+        envRef = 'test';
+      } else if (apiUrl.includes('prod.') || codeSpaceApiUrl.includes('prod.')) {
+        envRef = 'prod';
+      }
+    }
+    
+    if (envRef.toLowerCase() === 'dev') {
+      return 'dev-cs';
+    } else if (envRef.toLowerCase() === 'test') {
+      return 'test-cs';
+    }
+    return '';
+  };
+
+  const envPrefix = getEnvironmentPrefix();
+  
   const [divisions, setDivisions] = useState([]);
   const [subDivisions, setSubDivisions] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [dataClassificationDropdown, setDataClassificationDropdown] = useState([]);
 
-  const [projectName, setProjectName] = useState('');
+  const [projectName, setProjectName] = useState(envPrefix);
   const [projectNameError, setProjectNameError] = useState('');
   const [environment, setEnvironment] = useState('DHC-CaaS-AWS');
   const [recipeValue, setRecipeValue] = useState(projectDetails?.recipeDetails?.Id ? projectDetails?.recipeDetails?.Id : '0');
@@ -121,6 +153,8 @@ const NewCodeSpace = (props) => {
   const [showProgressIndicator, setShowProgressIndicator] = useState(false);
 
   const [enableDeployApproval, setEnableDeployApproval] = useState(projectDetails?.dataGovernance?.enableDeployApproval ? true : false);
+
+  const [showSsoInfoPopup, setShowSsoInfoPopup] = useState(false);
 
   const requiredError = '*Missing entry';
   const livelinessIntervalRef = React.useRef();
@@ -211,26 +245,49 @@ const NewCodeSpace = (props) => {
   }, [codeSpaceCollaborators]);// eslint-disable-line react-hooks/exhaustive-deps
 
   const sanitizedRepositoryName = (name) => {
-    return name.replace(/[\s_-]/g, '-');
+    return name.replace(/[\s]/g, '-').replace(/[_-]+/g, (match) => {
+      if (envPrefix && name.indexOf(match) < envPrefix.length) {
+        return match;
+      }
+      return '-';
+    });
   };
 
   const onProjectNameOnChange = (evnt) => {
-    const projectNameVal = sanitizedRepositoryName(evnt.currentTarget.value);
+    let projectNameVal = evnt.currentTarget.value;
+    
+    if (envPrefix && !projectNameVal.startsWith(envPrefix)) {
+      projectNameVal = envPrefix;
+    }
+    
+    if (envPrefix && projectNameVal.length > envPrefix.length) {
+      const userPart = projectNameVal.substring(envPrefix.length);
+      const sanitizedUserPart = userPart.replace(/[\s_]/g, '-');
+      projectNameVal = envPrefix + sanitizedUserPart;
+    } else if (!envPrefix) {
+      projectNameVal = sanitizedRepositoryName(projectNameVal);
+    }
+    
     setProjectName(projectNameVal);    
-    const hasSpecialChars = /[^A-Za-z0-9-]/.test(projectNameVal);
+    const hasSpecialChars = /[^A-Za-z0-9-_]/.test(projectNameVal);
     const startsOrEndswith = /^-|-$|(--)|^\d+$/i.test(projectNameVal);
     const startsWithNumber = /^\d/.test(projectNameVal);
     
+    const nameWithoutPrefix = envPrefix ? projectNameVal.substring(envPrefix.length) : projectNameVal;
+    
     if (hasSpecialChars) {
-      setProjectNameError('Invalid name: Should not contain any special characters except for "-".');
+      setProjectNameError('Invalid name: Should not contain any special characters except for "-" and "_".');
     }
-    else if (!projectNameVal.length) {
+    else if (projectNameVal.length <= envPrefix.length) {
       setProjectNameError(requiredError);
     }
-    else if (startsWithNumber) {
+    else if (!nameWithoutPrefix.length) {
+      setProjectNameError(requiredError);
+    }
+    else if (startsWithNumber && !envPrefix) {
       setProjectNameError('Invalid name: Should not start with a number.');
     }
-    else if (startsOrEndswith) {
+    else if (startsOrEndswith && !envPrefix) {
       setProjectNameError('Invalid name: Should not start or end with "-" or name contains only numbers.');
     }
     else {
@@ -584,7 +641,7 @@ const NewCodeSpace = (props) => {
 
   const validateNewCodeSpaceForm = (isPublicRecipeChoosen) => {
     let formValid = true;
-    if (!projectName.length) {
+    if (!projectName.length || projectName.length <= envPrefix.length) {
       setProjectNameError(requiredError);
       formValid = false;
     }
@@ -920,8 +977,42 @@ const NewCodeSpace = (props) => {
   const recipe = recipesMaster.find((item) => item.id === recipeValue);
 
   const isPublicRecipeChoosen = recipe?.aliasId && recipe?.aliasId?.startsWith('public');
-  const githubUrlValue = isPublicRecipeChoosen ? 'https://github.com/' : Envs.CODE_SPACE_GIT_PAT_APP_URL;
+  const isWorkspaceMigratedToGHE = props.onBoardingCodeSpace?.isWorkspaceMigratedToGHE || props.onEditingCodeSpace?.isWorkspaceMigratedToGHE;
+  const repoDetailsUrl = projectDetails?.recipeDetails?.repodetails || selectedRecipe?.repodetails;
+  const githubUrlValue = isPublicRecipeChoosen 
+    ? 'https://github.com/' 
+    : (isWorkspaceMigratedToGHE || repoDetailsUrl?.includes('ghe.com'))
+      ? Envs.CODE_SPACE_GHE_PAT_APP_URL 
+      : Envs.CODE_SPACE_GIT_PAT_APP_URL;
   const resources = projectDetails?.recipeDetails?.resource?.split(',');
+
+  const ssoInfoPopupContent = (
+    <div className={Styles.ssoInfoModalWrapper}>
+      <ol>
+        <li>
+          <label className={Styles.modalHeader}>Steps to generate Personal access token:</label>
+          <ul>
+            <li>login to <a href={Envs.CODE_SPACE_GHE_PAT_APP_URL} target='_blank' rel='noopener noreferrer'>{Envs.CODE_SPACE_GHE_PAT_APP_URL}</a>.</li>
+            <li>Go to <span className={classNames(Styles.listInfo)}> Account Icon -&gt; Settings -&gt; Developer Settings</span>.</li>
+            <li>Under <span className={classNames(Styles.listInfo)}>Personal access tokens</span> select <span className={classNames(Styles.listInfo)}>Token (classic)</span>.</li>
+            <li>click on <span className={classNames(Styles.listInfo)}>Generate new token -&gt; Generate new token (classic)</span>.</li>
+            <li>Give the required <span className={classNames(Styles.listInfo)}>expiry</span> and select all the <span className={classNames(Styles.listInfo)}>scopes</span> and generate your token.</li>
+            <li>Once your token is generated copy and save it for future use.</li>
+          </ul>
+        </li>
+        <li><label className={classNames(Styles.modalHeader, Styles.padding)}>Steps to configure SSO for your Personal access Token:</label>
+          <ul>
+            <li>Once your token is generated click on <span className={classNames(Styles.highlightYellow)}>Configure SSO</span> and select <span className={classNames(Styles.listInfo)}>DNA-CodeSpaces</span> as the authorizer.</li>
+            <li>Use the previously copied PAT token to create your codespace.</li>
+          </ul>
+        </li>
+      </ol>
+
+    </div>
+
+
+  );
+
   return (
     <React.Fragment>
       {onBoadingMode ? (
@@ -1058,7 +1149,7 @@ const NewCodeSpace = (props) => {
           {recipe?.aliasId !== 'default' && <>
             <p>Enter the information to start creating!</p>
             <div>
-              <div>
+              <div className={classNames(githubUrlValue?.includes(Envs.CODE_SPACE_GHE_PAT_APP_URL) ? Styles.patToken : '')}>
                 <TextBox
                   type="password"
                   controlId={'githubTokenInput'}
@@ -1072,6 +1163,11 @@ const NewCodeSpace = (props) => {
                   maxLength={50}
                   onChange={onGithubTokenOnChange}
                 />
+                {githubUrlValue?.includes(Envs.CODE_SPACE_GHE_PAT_APP_URL) && (<span className={Styles.warning}>
+                  <strong>Important Note:</strong> Please ensure SSO is enabled for your Personal Access Token(classic) to DNA-CodeSpaces. For more information click <button className={Styles.ssoInfoPopup} onClick={() => { setShowSsoInfoPopup(true); }}>
+                    here
+                  </button>.
+                </span>)}
               </div>
             </div>
           </>}
@@ -1096,7 +1192,7 @@ const NewCodeSpace = (props) => {
                     controlId={'productNameInput'}
                     labelId={'productNameLabel'}
                     label={'Code Space Name'}
-                    placeholder={'Type here'}
+                    placeholder={envPrefix ? `${envPrefix}your-name-here` : 'Type here'}
                     value={projectName}
                     errorText={projectNameError}
                     required={true}
@@ -1678,7 +1774,7 @@ const NewCodeSpace = (props) => {
               )}
               {recipe?.aliasId !== 'default' && (
                 <div>
-                  <div>
+                  <div className={classNames(githubUrlValue?.includes(Envs.CODE_SPACE_GHE_PAT_APP_URL) ? Styles.patToken : '')}>
                     <TextBox
                       type="password"
                       controlId={'githubTokenInput'}
@@ -1692,6 +1788,11 @@ const NewCodeSpace = (props) => {
                       maxLength={50}
                       onChange={onGithubTokenOnChange}
                     />
+                      {githubUrlValue?.includes(Envs.CODE_SPACE_GHE_PAT_APP_URL) && (<span className={Styles.warning}>
+                        <strong>Important Note:</strong> Please ensure SSO is enabled for your Personal Access Token(classic) to DNA-CodeSpaces. For more information click <button className={Styles.ssoInfoPopup} onClick={() => {setShowSsoInfoPopup(true); console.log("click");}}>
+                          here
+                        </button>.
+                      </span>)}
                   </div>
                 </div>
               )}
@@ -2209,6 +2310,18 @@ const NewCodeSpace = (props) => {
             )}
           </div>
         </div>
+      )}
+      {showSsoInfoPopup && (
+        <InfoModal
+          title={'Cofigure SSO for Personal Access Token'}
+          modalWidth={'60%'}
+          modalStyle={{
+            maxWidth: '70%',
+          }}
+          show={showSsoInfoPopup}
+          content={ssoInfoPopupContent}
+          onCancel={() => setShowSsoInfoPopup(false)}
+        />
       )}
     </React.Fragment>
   );

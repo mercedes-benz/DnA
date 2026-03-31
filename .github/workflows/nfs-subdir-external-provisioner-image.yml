@@ -20,7 +20,7 @@ jobs:
 
   build:
     name: 'Pull and push docker image'
-    runs-on: [ os-small-amd64-linux ]
+    runs-on: [ ubuntu-8core-amd64 ]
 
     
     steps:

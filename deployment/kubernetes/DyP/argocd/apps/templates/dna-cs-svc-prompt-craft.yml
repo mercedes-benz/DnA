@@ -16,7 +16,7 @@ spec:
     server: {{ .Values.server | squote }}
   source:
     path: helm
-    repoURL: https://git.i.mercedes-benz.com/DNA/prompt-craft.git
+    repoURL: https://mercedes-benz.ghe.com/DNA/prompt-craft.git
     targetRevision: {{ .Values.branch }}
     plugin:
       name: argocd-vault-plugin-helm
@@ -51,7 +51,7 @@ spec:
     server: {{ .Values.server | squote }}
   source:
     path: helm
-    repoURL: https://git.i.mercedes-benz.com/DNA/prompt-craft.git
+    repoURL: https://mercedes-benz.ghe.com/DNA/prompt-craft.git
     targetRevision: {{ .Values.branch }}
     plugin:
       name: argocd-vault-plugin-helm

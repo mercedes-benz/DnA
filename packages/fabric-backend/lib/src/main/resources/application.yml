@@ -2,7 +2,7 @@ spring:
   mvc.pathmatch.matching-strategy: ant_path_matcher
   application:
     name: dna-fabric-workspace-service
-    version: 1.4.15
+    version: 1.5.2
   profile:
     active: production
   flyway:
@@ -95,6 +95,28 @@ fabricWorkspaces:
   ada:
     apiKey: ${ADA_API_KEY:XXXX}
     extollo.apiKey: ${EXTOLLO_API_KEY:XXXX}
+  azure:
+    subscriptionId: ${AZURE_SUBSCRIPTION_ID:XXXX}
+    resourceGroup: ${AZURE_RESOURCE_GROUP:XXXX}
+    tenantId: ${FABRIC_LAKEHOUSE_TENANTID:XXXX}
+    objectId: ${FABRIC_LAKEHOUSE_OBJECTID:XXXX}
+    management:
+      clientId: ${FABRIC_OAUTH_CLIENT_ID:XXXX}
+      clientSecret: ${FABRIC_OAUTH_CLIENT_SECRET:XXXX}
+      scope: ${AZURE_MANAGEMENT_SCOPE:XXXX}
+    keyvault:
+      location: ${AZURE_KEYVAULT_LOCATION:XXXX}
+      publicNetworkAccess: ${AZURE_KEYVAULT_PUBLIC_ACCESS:XXXX}
+      baseUrl: ${AZURE_KEYVAULT_BASE_URL:XXXX}
+      createUrl: ${AZURE_KEYVAULT_CREATE_URL:XXXX}
+      checkNameUrl: ${AZURE_KEYVAULT_CHECK_NAME_URL:XXXX}
+      roleAssignmentUrl: ${AZURE_ROLE_ASSIGNMENT_URL:XXXX}
+      userSearchUrl: ${AZURE_USER_SEARCH_URL:XXXX}
+      roles:
+        cryptoOfficer: ${KEYVAULT_CRYPTO_OFFICER_ROLE:XXXX}
+        cryptoUser: ${KEYVAULT_CRYPTO_USER_ROLE:XXXX}
+        keyVaultAdminRole: ${KEYVAULT_ADMIN_ROLE:XXXX}
+
 authoriser:
   uri: ${IDENTITY_AUTH_URI:XXXX}
   ssoUri: ${IDENTITY_SSO_URI:XXXX}

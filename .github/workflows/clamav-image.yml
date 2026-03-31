@@ -16,7 +16,7 @@ jobs:
   
   build:
     name: "Build Clamav Docker Image (Create PR to main)"
-    runs-on: [os-small-amd64-linux]
+    runs-on: [ubuntu-8core-amd64]
     outputs:
       date: ${{ steps.date.outputs.date }}
 
@@ -64,12 +64,14 @@ jobs:
         reviewers: 'AMARIAR,VKURAPA,SKOLLUR'
         commitChange: true
         message: 'Update Image Version to ${{ steps.date.outputs.date }}' 
-        githubAPI: https://git.i.mercedes-benz.com/api/v3
+        githubAPI: https://mercedes-benz.ghe.com/api/v3
         token: ${{ secrets.PID_PAT }} 
 
     - name: Print pull request details
+      env:
+        PR_INFO: ${{ steps.cpr.outputs.pull_request }}
       run: |
-        echo "Pull Request Info - ${{ steps.cpr.outputs.pull_request }}"
+        echo "Pull Request Info - $PR_INFO"
 
   # css-scan:
   #       name: Container security scan
@@ -82,7 +84,7 @@ jobs:
   staging:
     name: "Update tag staging"
     needs: build
-    runs-on: [road-runner]
+    runs-on: [ubuntu-8core-amd64]
     
     steps:
     - name: Check out repository code
@@ -104,7 +106,7 @@ jobs:
         labels: 'staging, update-image-version'
         commitChange: true
         message: 'Update Image Version to ${{ needs.build.outputs.date }}' 
-        githubAPI: https://git.i.mercedes-benz.com/api/v3
+        githubAPI: https://mercedes-benz.ghe.com/api/v3
         token: ${{ secrets.PID_PAT }}  
 
     - name: Print pull request details
@@ -123,7 +125,7 @@ jobs:
   dev:
     name: "Update tag dev"
     needs: build
-    runs-on: [road-runner]
+    runs-on: [ubuntu-8core-amd64]
     
     steps:
     - name: Check out repository code
@@ -145,7 +147,7 @@ jobs:
         labels: 'dev, update-image-version'
         commitChange: true
         message: 'Update Image Version to ${{ needs.build.outputs.date }}' 
-        githubAPI: https://git.i.mercedes-benz.com/api/v3
+        githubAPI: https://mercedes-benz.ghe.com/api/v3
         token: ${{ secrets.PID_PAT }}  
 
     - name: Print pull request details

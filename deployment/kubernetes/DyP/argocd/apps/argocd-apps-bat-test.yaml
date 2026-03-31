@@ -8,7 +8,7 @@ metadata:
 spec:
   project: 'bat-testing'
   source:
-    repoURL: 'https://git.i.mercedes-benz.com/BAT/bat-infra.git'
+    repoURL: 'https://mercedes-benz.ghe.com/DNA-CodeSpaces/bat-infra.git'
     targetRevision: 'infra/aws-migration-test'
     path: c82p085-test
     plugin:

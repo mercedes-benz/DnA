@@ -16,17 +16,17 @@ on:
           - main   
       reviewers:
         description: 'Reviewers'  
-        default: 'AMARIAR,ARAARUM,POOJAMS,VKURAPA'
+        default: 'AMARIAR'
         required: true   
 
 env:
   PUBLIC_SRC_REPO: https://github.com/mercedes-benz/DnA.git
-  DEST_REPO: git.i.mercedes-benz.com/DNA/NeuDnAPlatform.git
+  DEST_REPO: mercedes-benz.ghe.com/DNA/NeuDnAPlatform.git
 
 jobs:
   gitsync:
     name: "Git Sync"
-    runs-on: [os-small-amd64-linux ]
+    runs-on: [ubuntu-8core-amd64 ]
     steps:
 
       - name: Check Source Branch

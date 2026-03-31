@@ -8,7 +8,7 @@ on:
 jobs:
   build:
     name: Build
-    runs-on: [ dot-enterprise-runner ]
+    runs-on: [ ubuntu-8core-amd64 ]
     steps:
       - uses: actions/checkout@v3
         with:

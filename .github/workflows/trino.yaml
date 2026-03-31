@@ -29,7 +29,7 @@ jobs:
     name: 'Deploy to Development'
     needs: build
     if: ${{ ( github.event.pull_request.merged == true  && github.ref_name == 'dev' ) || ( github.event_name == 'push' && github.ref_name == 'dev' ) || github.event.inputs.environment == 'Development' }}
-    runs-on: [ os-small-amd64-linux ]
+    runs-on: [ ubuntu-8core-amd64 ]
     environment:
       name: Development
       url: https://trino.dev.dna.app.corpintra.net/
@@ -50,7 +50,7 @@ jobs:
         createPR: false
         commitChange: false
         message: 'Update Image Version to ${{ github.run_number }}' 
-        githubAPI: https://git.i.mercedes-benz.com/api/v3
+        githubAPI: https://mercedes-benz.ghe.com/api/v3
         token: ${{ secrets.PID_PAT }}    
 
     - name: Update Hive Metastore Image Version values.yaml
@@ -63,14 +63,14 @@ jobs:
         createPR: false
         commitChange: true
         message: 'Update Image Version to ${{ github.run_number }}' 
-        githubAPI: https://git.i.mercedes-benz.com/api/v3
+        githubAPI: https://mercedes-benz.ghe.com/api/v3
         token: ${{ secrets.PID_PAT }}    
 
   staging:
     name: 'Deploy to staging'
     needs: build
     if: ${{ ( github.event.pull_request.merged == true && github.ref_name == 'staging' ) || github.event.inputs.environment == 'Staging' }}
-    runs-on: [ os-small-amd64-linux ]
+    runs-on: [ ubuntu-8core-amd64 ]
     environment:
       name: Staging
       url:  https://trino.test.dna.app.corpintra.net/
@@ -89,7 +89,7 @@ jobs:
         createPR: false
         commitChange: false
         message: 'Update Image Version to ${{ github.run_number }}' 
-        githubAPI: https://git.i.mercedes-benz.com/api/v3
+        githubAPI: https://mercedes-benz.ghe.com/api/v3
         token: ${{ secrets.PID_PAT }}
 
     - name: Update Hive Metastore Image Version values.yaml
@@ -102,7 +102,7 @@ jobs:
         createPR: false
         commitChange: true
         message: 'Update Image Version to ${{ github.run_number }}' 
-        githubAPI: https://git.i.mercedes-benz.com/api/v3
+        githubAPI: https://mercedes-benz.ghe.com/api/v3
         token: ${{ secrets.PID_PAT }}    
 
 
@@ -110,7 +110,7 @@ jobs:
     name: 'Deploy to Production'
     needs: build
     if: ${{ ( github.event.pull_request.merged == true && github.ref_name == 'main' ) || github.event.inputs.environment == 'Production' }}
-    runs-on: [ os-small-amd64-linux ]
+    runs-on: [ ubuntu-8core-amd64 ]
     environment:
       name: Production
       url:  https://trino.dna.app.corpintra.net/
@@ -129,7 +129,7 @@ jobs:
         createPR: false
         commitChange: false
         message: 'Update Image Version to ${{ env.TRINO_VERSION }}' 
-        githubAPI: https://git.i.mercedes-benz.com/api/v3
+        githubAPI: https://mercedes-benz.ghe.com/api/v3
         token: ${{ secrets.PID_PAT }}
 
     - name: Update Hive Metastore Image Version values.yaml
@@ -142,13 +142,13 @@ jobs:
         createPR: false
         commitChange: true
         message: 'Update Image Version to ${{ env.HIVE_METASTORE_IMAGE_VERSION }}' 
-        githubAPI: https://git.i.mercedes-benz.com/api/v3
+        githubAPI: https://mercedes-benz.ghe.com/api/v3
         token: ${{ secrets.PID_PAT }}    
 
   build:
     name: 'Build App'
     if: github.event_name == 'push' || github.event.pull_request.merged == true || github.event_name == 'workflow_dispatch'
-    runs-on: [ os-small-amd64-linux ]
+    runs-on: [ ubuntu-8core-amd64 ]
     outputs:
       version: ${{ steps.updated.outputs.version }}
     steps:

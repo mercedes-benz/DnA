@@ -30,7 +30,7 @@ jobs:
     name: 'Deploy to Development'
     needs: build
     if: ${{ ( github.event.pull_request.merged == true  && github.ref_name == 'dev' ) || ( github.event_name == 'push' && github.ref_name == 'dev' ) || github.event.inputs.environment == 'Development' }}
-    runs-on: [ os-medium-amd64-linux ]
+    runs-on: [ ubuntu-8core-amd64 ]
     environment:
       name: Development
       url: https://pipeline.dev.dna.app.corpintra.net/
@@ -49,7 +49,7 @@ jobs:
         createPR: false
         commitChange: false
         message: 'Update Image Version to ${{ github.run_number }}' 
-        githubAPI: https://git.i.mercedes-benz.com/api/v3
+        githubAPI: https://mercedes-benz.ghe.com/api/v3
         token: ${{ secrets.PID_PAT }}
 
     - name: Update gitSync Version values.yaml
@@ -62,13 +62,13 @@ jobs:
         createPR: false
         commitChange: true
         message: 'Update Image Version to ${{ github.run_number }}' 
-        githubAPI: https://git.i.mercedes-benz.com/api/v3
+        githubAPI: https://mercedes-benz.ghe.com/api/v3
         token: ${{ secrets.PID_PAT }}    
 
   staging:
     name: 'Deploy to staging'
     if: ${{ ( github.event.pull_request.merged == true && github.ref_name == 'staging' ) || github.event.inputs.environment == 'Staging' }}
-    runs-on: [ os-medium-amd64-linux ]
+    runs-on: [ ubuntu-8core-amd64 ]
     needs: build
     environment:
       name: Staging
@@ -88,7 +88,7 @@ jobs:
         createPR: false
         commitChange: false
         message: 'Update Image Version to ${{ github.run_number }}' 
-        githubAPI: https://git.i.mercedes-benz.com/api/v3
+        githubAPI: https://mercedes-benz.ghe.com/api/v3
         token: ${{ secrets.PID_PAT }}
 
     - name: Update gitSync Version values.yaml
@@ -101,14 +101,14 @@ jobs:
         createPR: false
         commitChange: true
         message: 'Update Image Version to ${{ github.run_number }}' 
-        githubAPI: https://git.i.mercedes-benz.com/api/v3
+        githubAPI: https://mercedes-benz.ghe.com/api/v3
         token: ${{ secrets.PID_PAT }}  
 
   production:
     name: 'Deploy to Production'
     if: ${{ ( github.event.pull_request.merged == true && github.ref_name == 'main' ) || github.event.inputs.environment == 'Production' }}
     needs: build
-    runs-on: [ os-medium-amd64-linux ]
+    runs-on: [ ubuntu-8core-amd64 ]
     environment:
       name: Production
       url:  https://pipeline.dna.app.corpintra.net/
@@ -127,7 +127,7 @@ jobs:
         createPR: false
         commitChange: false
         message: 'Update Image Version to ${{ github.run_number }}' 
-        githubAPI: https://git.i.mercedes-benz.com/api/v3
+        githubAPI: https://mercedes-benz.ghe.com/api/v3
         token: ${{ secrets.PID_PAT }}
 
     - name: Update gitSync Version values.yaml
@@ -140,13 +140,13 @@ jobs:
         createPR: false
         commitChange: true
         message: 'Update Image Version to ${{ github.run_number }}' 
-        githubAPI: https://git.i.mercedes-benz.com/api/v3
+        githubAPI: https://mercedes-benz.ghe.com/api/v3
         token: ${{ secrets.PID_PAT }}  
 
   build:
     name: 'Build App'
     if: github.event_name == 'push' || github.event.pull_request.merged == true || github.event_name == 'workflow_dispatch'
-    runs-on: [ os-medium-amd64-linux ]
+    runs-on: [ ubuntu-8core-amd64 ]
     outputs:
       version: ${{ steps.updated.outputs.version }}
     steps:
@@ -192,7 +192,7 @@ jobs:
 
     - name: CSS Image Scan
       if: ${{ ( github.event.pull_request.merged == true && github.ref_name == 'staging' ) || ( github.event.pull_request.merged == true && github.ref_name == 'main' ) || github.event.inputs.environment == 'Production' || github.event.inputs.environment == 'Staging' }}
-      id: scan
+      id: scan2
       uses: consec/scan@v3
       with:
         pcc_console_url: "https://consec-img-scan.app.corpintra.net/"

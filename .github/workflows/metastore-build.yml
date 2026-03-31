@@ -7,7 +7,7 @@ jobs:
 
   development:
     name: 'Deploy to Development'
-    runs-on: [ os-small-amd64-linux ]
+    runs-on: [ ubuntu-8core-amd64 ]
 
     steps:
 
