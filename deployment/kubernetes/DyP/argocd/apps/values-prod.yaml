@@ -105,3 +105,5 @@ db:
    env: prod
  - name: ai-handboook
    env: prod
+ - name: aisurvey
+   env: prod
