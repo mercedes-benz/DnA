@@ -38,4 +38,5 @@ public class DdxOnboardingRequestDto implements Serializable {
     private String businessDomain;
     private Boolean personalDataContained;
     private List<DataProductConnectionsDto> dataProductConnections;
+    // private List<Object> dataProductConnections;
 }

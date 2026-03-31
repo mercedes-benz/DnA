@@ -21,6 +21,7 @@ public class DataProductConnectionsDto {
     private String technology;
     private String frequency;
     private String cloudProvider;
-    private DataProductConnectionStringDto dataProductConnectionString;
+    // private DataProductConnectionStringDto dataProductConnectionString;
+    private Object dataProductConnectionString;
     private List<Object> dataSources;
 }

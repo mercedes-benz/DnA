@@ -140,8 +140,6 @@ public class FabricWorkspaceClient {
 
 	@Value("${ddxIntegration.fabricDdxPush.baseUrl}")
 	private String ddxBaseUrl;
-
-	private UserStore userStore;
 		
     private static String WORKSPACED_IDENTIFIER = "id";
     private static String GATEWAY_IDENTIFIER = "id";
