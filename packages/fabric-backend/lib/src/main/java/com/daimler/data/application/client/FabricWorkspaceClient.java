@@ -80,6 +80,7 @@ import com.daimler.data.util.ConstantsUtility;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.daimler.data.dto.fabric.FabricSqlEndpointResponseDto;
 import com.daimler.data.dto.fabric.DdxResponseDto;
+import com.daimler.data.application.auth.UserStore;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -167,6 +168,9 @@ public class FabricWorkspaceClient {
 	
 	@Autowired
 	private RestTemplate restTemplate;
+
+	@Autowired
+	private UserStore userStore;
 
 	public String getToken() {
 		MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
@@ -1070,11 +1074,14 @@ public class FabricWorkspaceClient {
 	public DdxResponseDto ddxProductOnboarding(DdxOnboardingRequestDto request) {
 		DdxResponseDto res = new DdxResponseDto();
 		try {
-			String token = getToken();
-			if(!Objects.nonNull(token)) {
-				log.error("Failed to fetch token to invoke fabric Apis");
-				return res;
-			}
+			// String token = getToken();
+			// if(!Objects.nonNull(token)) {
+			// 	log.error("Failed to fetch token to invoke fabric Apis");
+			// 	return res;
+			// }
+
+			String token = this.userStore.getUserInfo().getAuthToken();
+			log.info("Token fetched successfully for DDX onboarding, invoking API with token: {}", token);
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Authorization", "Bearer "+token);
@@ -1082,7 +1089,7 @@ public class FabricWorkspaceClient {
 			HttpEntity requestEntity = new HttpEntity<>( request, headers);
 			String url = ddxBaseUrl + "/v1/dataproducts";
 
-			ResponseEntity<DdxResponseDto> response = proxyRestTemplate.exchange(url , HttpMethod.POST,
+			ResponseEntity<DdxResponseDto> response = restTemplate.exchange(url , HttpMethod.POST,
 					requestEntity, DdxResponseDto.class);
 
 			if(response.getStatusCode().is2xxSuccessful()) {
