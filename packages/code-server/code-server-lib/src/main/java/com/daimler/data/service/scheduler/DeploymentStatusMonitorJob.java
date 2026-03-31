@@ -2,6 +2,7 @@ package com.daimler.data.service.scheduler;
 
 import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
 import com.daimler.data.db.json.CodeServerDeploymentDetails;
+import com.daimler.data.db.json.DeploymentAudit;
 import com.daimler.data.db.repo.workspace.WorkspaceCustomRepository;
 import com.daimler.data.service.ArgoCdService;
 import lombok.extern.slf4j.Slf4j;
@@ -86,6 +87,15 @@ public class DeploymentStatusMonitorJob {
                 
                 deployment.setLastDeploymentStatus(argoStatus);
                 
+                DeploymentAudit latestAudit = null;
+                if (deployment.getDeploymentAuditLogs() != null && !deployment.getDeploymentAuditLogs().isEmpty()) {
+                    latestAudit = deployment.getDeploymentAuditLogs().stream()
+                        .filter(audit -> "DEPLOY_REQUESTED".equalsIgnoreCase(audit.getDeploymentStatus()))
+                        .sorted((a1, a2) -> a2.getTriggeredOn().compareTo(a1.getTriggeredOn()))
+                        .findFirst()
+                        .orElse(null);
+                }
+                
                 if ("DEPLOYED".equals(argoStatus)) {
                     if (deployment.getLastDeployedBy() == null) {
                         deployment.setLastDeployedBy(workspace.getData().getWorkspaceOwner());
@@ -93,6 +103,25 @@ public class DeploymentStatusMonitorJob {
                     if (deployment.getLastDeployedOn() == null) {
                         deployment.setLastDeployedOn(new Date());
                     }
+                    
+                    if (latestAudit != null) {
+                        if (deployment.getLastDeployedBranch() == null && latestAudit.getBranch() != null) {
+                            deployment.setLastDeployedBranch(latestAudit.getBranch());
+                        }
+                        if (deployment.getLastDeployedVersion() == null && latestAudit.getVersion() != null) {
+                            deployment.setLastDeployedVersion(latestAudit.getVersion());
+                        }
+                        if (deployment.getGitjobRunID() == null && latestAudit.getGitjobRunID() != null) {
+                            deployment.setGitjobRunID(latestAudit.getGitjobRunID());
+                        }
+                    }
+                }
+                if (latestAudit != null) {
+                    latestAudit.setDeploymentStatus(argoStatus);
+                    if ("DEPLOYED".equals(argoStatus)) {
+                        latestAudit.setDeployedOn(new Date());
+                    }
+                    log.info("Updated audit log status to {} for deployment at {}", argoStatus, latestAudit.getTriggeredOn());
                 }
 
                 workspaceCustomRepository.updateDeploymentDetails(projectName, environment, deployment, argoStatus);
