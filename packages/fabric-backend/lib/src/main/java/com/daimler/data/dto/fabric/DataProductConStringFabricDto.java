@@ -11,9 +11,11 @@ import lombok.AllArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class DataProductConnectionStringDto {
+public class DataProductConStringFabricDto {
 
-    private String catalogName;
-    private String schemaName;
-    private Boolean fullSchema;
+    private String workspaceName;
+    private String lakehouseName;
+    private Boolean fullLakehouse;
+    private String workspaceId;
+    private String lakehouseId;
 }

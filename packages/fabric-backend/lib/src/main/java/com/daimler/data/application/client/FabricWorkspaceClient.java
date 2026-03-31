@@ -51,6 +51,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
+import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.dto.fabric.AddDatasourceUserDto;
@@ -1044,6 +1045,8 @@ public class FabricWorkspaceClient {
 				responseDto.setMessage("Failed to login using service principal, please try later.");
 				return responseDto;
 			}
+
+			// token = JwtTokenUtil.extractAuthToken(token);
 
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");

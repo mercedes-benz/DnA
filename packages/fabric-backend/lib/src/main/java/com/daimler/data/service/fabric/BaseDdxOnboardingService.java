@@ -43,6 +43,8 @@ import com.daimler.data.dto.databricks.CreateCatalogResponseDto;
 import com.daimler.data.dto.databricks.CreateConnectionRequestDto;
 import com.daimler.data.dto.databricks.CreateConnectionResponseDto;
 import com.daimler.data.dto.fabric.DataProductConnectionStringDto;
+import com.daimler.data.dto.fabric.DataProductConStringUnityDto;
+import com.daimler.data.dto.fabric.DataProductConStringFabricDto;
 
 // import com.databricks.sdk.core.http.ProxyConfig;
 // import com.databricks.sdk.core.http.impl.CommonsHttpClient;
@@ -240,6 +242,7 @@ public class BaseDdxOnboardingService implements DdxOnboardingService {
             }
 
             log.info("🎉 --- Databricks Fabric Setup Completed Successfully ---");
+            log.info("DDX Onboarding Request=========={}===========", publishDdxRequest);
 
             // 7. Prepare DDX Onboarding Request
             log.info("Preparing DDX onboarding request with {} data product connections", publishDdxRequest.getDataProductConnections().size());
@@ -254,13 +257,34 @@ public class BaseDdxOnboardingService implements DdxOnboardingService {
                     connection.setCloudProvider("Azure");
                     connection.getStoringCountries().add("Germany");
                     
-                    DataProductConnectionStringDto connectionString = connection.getDataProductConnectionString();
-                    if (connectionString == null) {
-                        throw new RuntimeException("DataProductConnectionString is null for a connection");
+                    // DataProductConnectionStringDto connectionString = connection.getDataProductConnectionString();
+                    // if (connectionString == null) {
+                    //     throw new RuntimeException("DataProductConnectionString is null for a connection");
+                    // }
+                    
+                    if ("UnityCatalog".equals(connection.getTechnology())) {
+                        DataProductConStringUnityDto unityDto = new DataProductConStringUnityDto();
+
+                        unityDto.setCatalogName(catalogName);
+                        unityDto.setSchemaName("dbo");
+                        unityDto.setFullSchema(true);
+
+                        connection.setDataProductConnectionString(unityDto);
                     }
-                    connectionString.setCatalogName(null);
-                    connectionString.setSchemaName(null);
-                    connectionString.setFullSchema(null);
+                    else if ("Fabric".equals(connection.getTechnology())) {
+                        DataProductConStringFabricDto fabricDto = new DataProductConStringFabricDto();
+
+                        fabricDto.setLakehouseId(lakehouseId);
+                        fabricDto.setLakehouseName("TestLakehouse");
+                        fabricDto.setWorkspaceId(workspaceId);
+                        fabricDto.setWorkspaceName(workspaceName);
+                        fabricDto.setFullLakehouse(true);
+
+                        connection.setDataProductConnectionString(fabricDto);
+                    } else {
+                        throw new RuntimeException("Unsupported technology type: " + connection.getTechnology());
+                    }
+
                 });
                 log.info(" DDX request: {}", publishDdxRequest);
                 log.info("Prepared DDX onboarding request: {}", publishDdxRequest.getDataProductName());
@@ -271,6 +295,9 @@ public class BaseDdxOnboardingService implements DdxOnboardingService {
 
             // 8. Onboard to DDX
             log.info("Onboarding product: {} to DDX for workspace: {}", publishDdxRequest.getDataProductName(), workspaceId);
+
+            log.info("Calling DDX onboarding API with request: {}", publishDdxRequest);
+
             DdxResponseDto onboardingResponse;
             try {
                 onboardingResponse = fabricWorkspaceClient.ddxProductOnboarding(publishDdxRequest);

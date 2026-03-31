@@ -11,7 +11,7 @@ import lombok.AllArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class DataProductConnectionStringDto {
+public class DataProductConStringUnityDto {
 
     private String catalogName;
     private String schemaName;
