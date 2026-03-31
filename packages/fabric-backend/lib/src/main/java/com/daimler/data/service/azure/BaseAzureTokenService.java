@@ -18,6 +18,8 @@ import com.daimler.data.dto.azure.AzureTokenResponseDto;
 import com.daimler.data.dto.databricks.ClustersListResponseDto;
 import com.daimler.data.dto.databricks.CreateCatalogRequestDto;
 import com.daimler.data.dto.databricks.CreateCatalogResponseDto;
+import com.daimler.data.dto.databricks.CreateConnectionRequestDto;
+import com.daimler.data.dto.databricks.CreateConnectionResponseDto;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -157,6 +159,84 @@ public class BaseAzureTokenService implements AzureTokenService {
 	}
 
 	@Override
+	public CreateConnectionResponseDto createConnection(AzureTokenRequestDto tokenRequest, CreateConnectionRequestDto connectionRequest) {
+
+		CreateConnectionResponseDto responseDto = new CreateConnectionResponseDto();
+
+		try {
+			log.info("📝 Creating Connection: {} ", connectionRequest.getName());
+
+			// Step 1: Get access token
+			AzureTokenResponseDto tokenResponse = getAccessToken(tokenRequest);
+
+			if (tokenResponse == null || tokenResponse.getAccessToken() == null) {
+				String errorMsg = "❌ Failed to retrieve access token for connection creation";
+				log.error(errorMsg);
+				responseDto.setSuccess(false);
+				responseDto.setErrorMessage(tokenResponse != null && tokenResponse.getErrorMessage() != null ? tokenResponse.getErrorMessage() : "Failed to retrieve access token from Azure");
+				return responseDto;
+			}
+
+			log.info("✅ Access token obtained successfully for connection creation");
+
+			// Step 2: Call Databricks create connection API
+			String connectionsEndpoint = databricksBaseUrl + "/api/2.1/unity-catalog/connections";
+
+			log.info("📝 Calling Databricks Create Connection API: {}", connectionsEndpoint);
+
+			// Set headers with Bearer token
+			HttpHeaders headers = new HttpHeaders();
+			headers.setContentType(MediaType.APPLICATION_JSON);
+			headers.set("Accept", "application/json");
+			headers.set("Authorization", "Bearer " + tokenResponse.getAccessToken());
+
+			// Create HTTP entity with connection request body
+			HttpEntity<CreateConnectionRequestDto> apiRequest = new HttpEntity<>(connectionRequest, headers);
+
+			// Make the API call using proxyRestTemplate
+			ResponseEntity<CreateConnectionResponseDto> response = proxyRestTemplate.exchange(
+					connectionsEndpoint,
+					HttpMethod.POST,
+					apiRequest,
+					CreateConnectionResponseDto.class);
+
+			if (response.getStatusCode() == HttpStatus.OK && response.hasBody()) {
+				responseDto = response.getBody();
+				responseDto.setSuccess(true);
+				responseDto.setErrorMessage(null);
+				log.info("✅ Successfully created Connection. Connection ID: {}, Connection Name: {}",
+						responseDto.getConnectionId(), responseDto.getName());
+			} else {
+				String errorMsg = "❌ Failed to create connection. Status Code: " + response.getStatusCode();
+				log.error(errorMsg);
+				responseDto.setSuccess(false);
+				responseDto.setErrorMessage("Failed to create connection in Databricks. HTTP Status: " + response.getStatusCode());
+			}
+
+		} catch (org.springframework.web.client.HttpClientErrorException e) {
+			String responseBody = e.getResponseBodyAsString();
+			if (responseBody != null && responseBody.contains("ALREADY_EXISTS")) {
+				log.info("Connection '{}' already exists in Databricks, proceeding with existing connection", connectionRequest.getName());
+				responseDto.setName(connectionRequest.getName());
+				responseDto.setSuccess(true);
+				responseDto.setErrorMessage(null);
+			} else {
+				String errorMsg = "❌ HTTP error occurred while creating connection: " + e.getStatusCode() + " - " + responseBody;
+				log.error(errorMsg, e);
+				responseDto.setSuccess(false);
+				responseDto.setErrorMessage(e.getMessage());
+			}
+		} catch (Exception e) {
+			String errorMsg = "❌ Exception occurred while creating connection: " + e.getMessage();
+			log.error(errorMsg, e);
+			responseDto.setSuccess(false);
+			responseDto.setErrorMessage(e.getMessage());
+		}
+
+		return responseDto;
+	}
+
+	@Override
 	public CreateCatalogResponseDto createCatalog(AzureTokenRequestDto tokenRequest, CreateCatalogRequestDto catalogRequest) {
 
 		CreateCatalogResponseDto responseDto = new CreateCatalogResponseDto();
@@ -211,6 +291,19 @@ public class BaseAzureTokenService implements AzureTokenService {
 				responseDto.setErrorMessage("Failed to create catalog in Databricks. HTTP Status: " + response.getStatusCode());
 			}
 
+		} catch (org.springframework.web.client.HttpClientErrorException e) {
+			String responseBody = e.getResponseBodyAsString();
+			if (responseBody != null && responseBody.contains("CATALOG_ALREADY_EXISTS")) {
+				log.info("Catalog '{}' already exists in Databricks, proceeding with existing catalog", catalogRequest.getName());
+				responseDto.setName(catalogRequest.getName());
+				responseDto.setSuccess(true);
+				responseDto.setErrorMessage(null);
+			} else {
+				String errorMsg = "❌ HTTP error occurred while creating catalog: " + e.getStatusCode() + " - " + responseBody;
+				log.error(errorMsg, e);
+				responseDto.setSuccess(false);
+				responseDto.setErrorMessage(e.getMessage());
+			}
 		} catch (Exception e) {
 			String errorMsg = "❌ Exception occurred while creating catalog: " + e.getMessage();
 			log.error(errorMsg, e);

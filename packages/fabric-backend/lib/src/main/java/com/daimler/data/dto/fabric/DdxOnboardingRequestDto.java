@@ -5,7 +5,7 @@ import lombok.Data;
 import lombok.Builder;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
-import com.daimler.data.dto.fabric.LegalEntityDto;
+import com.daimler.data.dto.fabric.DdxLegalEntityDto;
 import com.daimler.data.dto.fabric.DigitalUsageInformationDataDto;
 import com.daimler.data.dto.fabric.DataProductConnectionsDto;
 
@@ -33,7 +33,7 @@ public class DdxOnboardingRequestDto implements Serializable {
     private Boolean isTransferPricing;
     private List<String> criteriaTransferPricing;
     private List<String> qualificationTransferPricing;
-    private LegalEntityDto legalEntity;
+    private DdxLegalEntityDto legalEntity;
     private Boolean fulfillsDataCloudFramework;
     private String businessDomain;
     private Boolean personalDataContained;
