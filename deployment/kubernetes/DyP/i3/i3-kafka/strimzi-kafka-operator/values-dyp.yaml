@@ -1,3 +1,7 @@
+# Set Kubernetes version for Strimzi operator compatibility with K8s 1.33+
+extraEnvs:
+  - name: STRIMZI_KUBERNETES_VERSION
+    value: "major=1,minor=33"
 image:
   registry: registry-emea.app.corpintra.net
   repository: publicquay
