@@ -80,6 +80,9 @@ public class GitClient {
 	@Value("${codeServer.env.ref}")
 	private String codeServerEnvRef;
 
+	@Value("${codeserver.git.deploy.appname}")
+	private String gitAppName;
+
 	private static String HTTP_HEADER ="https://";
 
 	private HttpHeaders buildHeaders(String baseUrl, String pat) {
