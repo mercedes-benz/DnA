@@ -364,18 +364,20 @@ const CodeSpace = (props) => {
         const intDeployedUrl = intDeploymentDetails?.deploymentUrl;
         const prodDeployedUrl = prodDeploymentDetails?.deploymentUrl;
         const intDeployed =
-          intDeploymentDetails.lastDeploymentStatus === 'DEPLOYED' ||
-          (intDeployedUrl !== null && intDeployedUrl !== 'null');
-        const intDeployFailed = intDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
+          intDeploymentDetails.lastDeploymentStatus === 'DEPLOYED';
+        const intDeployFailed = intDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED' ||
+          intDeploymentDetails.lastDeploymentStatus === 'FAILED';
         const prodDeployed =
-          prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYED' ||
-          (prodDeployedUrl !== null && prodDeployedUrl !== 'null');
-        const prodDeployFailed = prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
+          prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYED';
+        const prodDeployFailed = prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED' ||
+          prodDeploymentDetails.lastDeploymentStatus === 'FAILED';
         const deployingInProgress =
           intDeploymentDetails.lastDeploymentStatus === 'DEPLOY_REQUESTED' ||
+          intDeploymentDetails.lastDeploymentStatus === 'DEPLOYING' ||
           prodDeploymentDetails?.lastDeploymentStatus === 'APPROVAL_PENDING' ||
           projectDetails?.lastBuildOrDeployedStatus === 'APPROVAL_PENDING' ||
-          prodDeploymentDetails.lastDeploymentStatus === 'DEPLOY_REQUESTED';
+          prodDeploymentDetails.lastDeploymentStatus === 'DEPLOY_REQUESTED' ||
+          prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYING';
         // const deployed =
         //   intDeploymentDetails.lastDeploymentStatus === 'DEPLOYED' ||
         //   prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYED' ||
@@ -403,7 +405,8 @@ const CodeSpace = (props) => {
         Tabs.defaultSetup();
         if (deployingInProgress) {
           const deployingEnv =
-            intDeploymentDetails.lastDeploymentStatus === 'DEPLOY_REQUESTED' ? 'staging' : 'production';
+            intDeploymentDetails.lastDeploymentStatus === 'DEPLOY_REQUESTED' ||
+            intDeploymentDetails.lastDeploymentStatus === 'DEPLOYING' ? 'staging' : 'production';
           // setDeployEnvironment(deployingEnv);
           setCodeDeploying(true);
           enableDeployLivelinessCheck(res.data.workspaceId, deployingEnv);
@@ -529,9 +532,11 @@ const CodeSpace = (props) => {
   const disableDeployment = !projectDetails?.recipeDetails?.isDeployEnabled;
   const deployingInProgress =
     projectDetails?.intDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED' ||
+    projectDetails?.intDeploymentDetails?.lastDeploymentStatus === 'DEPLOYING' ||
     projectDetails?.prodDeploymentDetails?.lastDeploymentStatus === 'APPROVAL_PENDING' ||
     projectDetails?.lastBuildOrDeployedStatus === 'APPROVAL_PENDING' ||
-    projectDetails?.prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED';
+    projectDetails?.prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED' ||
+    projectDetails?.prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOYING';
   const securedWithIAMContent = (
     <svg
       xmlns="http://www.w3.org/2000/svg"
