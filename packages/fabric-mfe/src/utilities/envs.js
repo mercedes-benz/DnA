@@ -39,4 +39,8 @@ export const Envs = {
   DNA_MAIL: getInjectedEnv('DNA_MAIL') || process.env.DNA_MAIL,
   CONFLUENCE_PAGE: getInjectedEnv('CONFLUENCE_PAGE') || process.env.CONFLUENCE_PAGE,
   CDC_SIGNIN_URL: getInjectedEnv('CDC_SIGNIN_URL') || process.env.CDC_SIGNIN_URL,
+  INFORMATION_OWNER_URL: getInjectedEnv('INFORMATION_OWNER_URL') || process.env.INFORMATION_OWNER_URL,
+  DATA_AT_CLOUD_URL: getInjectedEnv('DATA_AT_CLOUD_URL') || process.env.DATA_AT_CLOUD_URL,
+  DDX_PRICING_URL: getInjectedEnv('DDX_PRICING_URL') || process.env.DDX_PRICING_URL,
+  DDX_DOF_BASE_URL: getInjectedEnv('DDX_DOF_BASE_URL') || process.env.DDX_DOF_BASE_URL,
 };

@@ -58,8 +58,7 @@ export const BUSINESS_DOMAINS = [
 ];
 
 export const CLOUD_PROVIDERS = [
-  'Azure',
-  'AWS',
+  'Azure'
 ];
 
 export const DATA_HUBS = [
@@ -90,6 +89,19 @@ export const PURPOSES = [
   'Direct marketing and promotion',
   'Identify new trends and market developments',
   'Optimize product portfolio and pricing and revenue stream',
+];
+
+export const UPDATE_FREQUENCIES = [
+  'ANNUALLY',
+  'QUARTERLY',
+  'MONTHLY',
+  'WEEKLY',
+  'DAILY',
+  'HALF_DAILY',
+  'HOURLY',
+  'LIVE',
+  'NEVER',
+  'OTHER',
 ];
 
 export const CRITERIA_TRANSFER_PRICING = [
