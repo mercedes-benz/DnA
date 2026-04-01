@@ -566,7 +566,8 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
                           </a>
                         </span>
                       )}
-                      {projectDetails?.lastBuildOrDeployedStatus === 'DEPLOYMENT_FAILED' && (
+                      {(projectDetails?.lastBuildOrDeployedStatus === 'DEPLOYMENT_FAILED' ||
+                        projectDetails?.lastBuildOrDeployedStatus === 'FAILED') && (
                         <span className={classNames(Styles.statusIndicator, Styles.deployFailed)}>
                           <a
                             href={(projectDetails?.lastBuildOrDeployedEnv === 'int')
