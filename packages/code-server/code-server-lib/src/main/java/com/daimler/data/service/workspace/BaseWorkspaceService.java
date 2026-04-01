@@ -2205,7 +2205,7 @@
 						warning.setMessage("Error while adding commit id to deployment audit log");
 					}else{
 						auditLog.setCommitId(commitId.getSha());
-						auditLog.setDeploymentStatus("DEPLOY_REQUESTED");
+						auditLog.setDeploymentStatus("DEPLOYING");
 						auditLog.setVersion(version);
 						if("APPROVAL_PENDING".equalsIgnoreCase(deploymentDetails.getLastDeploymentStatus())){
 							if (!auditLogs.isEmpty()){
