@@ -1,7 +1,5 @@
 package com.daimler.data.controller;
 
-import java.util.ArrayList;
-import java.util.List;
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -17,9 +15,10 @@ import org.springframework.web.bind.annotation.RestController;
 import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
-import com.daimler.data.dto.fabricCatalogManagement.PublishCatalogResponseVO;
-import com.daimler.data.dto.fabricCatalogManagement.PublishCatalogRequestVO;
+import com.daimler.data.dto.fabric.DdxOnboardingResponseVO;
+import com.daimler.data.dto.fabric.DdxOnboardingResultDto;
 import com.daimler.data.dto.fabric.DdxOnboardingRequestDto;
+import com.daimler.data.dto.fabric.DdxResponseDto;
 import com.daimler.data.dto.fabricWorkspace.CreatedByVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceVO;
 import com.daimler.data.service.fabric.FabricWorkspaceService;
@@ -49,9 +48,9 @@ public class DdxOnboardingController {
 
 	@ApiOperation(value = "Publish a new catalog for DDX onboarding.", nickname = "publishCatalogRequest", 
 		notes = "This endpoint will be used to onboard data from fabric to databricks.", 
-		response = PublishCatalogResponseVO.class, tags = { "fabric-catalog-management" })
+		response = DdxOnboardingResponseVO.class, tags = { "fabric-catalog-management" })
 	@ApiResponses(value = {
-		@ApiResponse(code = 201, message = "Returns message of success or failure", response = PublishCatalogResponseVO.class),
+		@ApiResponse(code = 201, message = "Returns message of success or failure", response = DdxOnboardingResponseVO.class),
 		@ApiResponse(code = 400, message = "Bad Request", response = GenericMessage.class),
 		@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
 		@ApiResponse(code = 403, message = "Request is not authorized."),
@@ -61,12 +60,12 @@ public class DdxOnboardingController {
 		produces = { "application/json" }, 
 		consumes = { "application/json" }, 
 		method = RequestMethod.POST)
-	public ResponseEntity<PublishCatalogResponseVO> publishCatalogRequest(
+	public ResponseEntity<DdxOnboardingResponseVO> publishCatalogRequest(
 		@ApiParam(value = "The catalog to publish.", required = true) @Valid @RequestBody DdxOnboardingRequestDto publishDdxRequest,
 		@ApiParam(value = "The ID of the workspace.", required = true) @PathVariable("workspaceId") String workspaceId,
 		@ApiParam(value = "The ID of the lakehouse.", required = true) @PathVariable("lakehouseId") String lakehouseId) {
 
-		PublishCatalogResponseVO responseVO = new PublishCatalogResponseVO();
+		DdxOnboardingResponseVO responseVO = new DdxOnboardingResponseVO();
 
 		log.info("Publishing catalog for workspace: {} and lakehouse: {}", workspaceId, lakehouseId);
 
@@ -105,20 +104,30 @@ public class DdxOnboardingController {
 				return new ResponseEntity<>(responseVO, HttpStatus.FORBIDDEN);
 			}
 
-			responseVO.setResponses(ddxOnboardingService.onboardToDdx(publishDdxRequest,workspaceId, existingFabricWorkspace.getName(), lakehouseId, requestUserId, createdByVO));
+			DdxOnboardingResultDto serviceResult = ddxOnboardingService.onboardToDdx(publishDdxRequest, workspaceId, existingFabricWorkspace.getName(), lakehouseId, requestUserId, createdByVO);
+			responseVO.setResponses(serviceResult.getResponseMessage());
+			responseVO.setData(serviceResult.getDdxResponse());
 
-
-			return new ResponseEntity<>(responseVO, HttpStatus.CREATED);
-
-			
+			String status = serviceResult.getResponseMessage().getSuccess();
+			if ("SUCCESS".equals(status)) {
+				return new ResponseEntity<>(responseVO, HttpStatus.CREATED);
+			} else if ("PARTIAL_SUCCESS".equals(status)) {
+				return new ResponseEntity<>(responseVO, HttpStatus.OK);
+			} else {
+				responseVO.setData(null);
+				DdxResponseDto ddxResp = serviceResult.getDdxResponse();
+				if (ddxResp != null && ddxResp.getMessage() != null
+						&& ddxResp.getMessage().toLowerCase().contains("already exists")) {
+					return new ResponseEntity<>(responseVO, HttpStatus.CONFLICT);
+				}
+				return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
+			}
 
 		} catch (Exception e) {
 			log.error("Exception occurred while publishing DDX onboarding catalog: {}", e.getMessage(), e);
 			GenericMessage failedResponse = new GenericMessage();
-			List<MessageDescription> messages = new ArrayList<>();
 			MessageDescription message = new MessageDescription();
 			message.setMessage("Failed to publish catalog due to internal error: " + e.getMessage());
-			messages.add(message);
 			failedResponse.addErrors(message);
 			failedResponse.setSuccess("FAILED");
 			responseVO.setData(null);
