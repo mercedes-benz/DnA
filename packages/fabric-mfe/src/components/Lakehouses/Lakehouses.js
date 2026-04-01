@@ -655,12 +655,33 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
                           className={Styles.deployedTag}
                           tooltip-data="Lakehouse successfully deployed to CDC."
                         >
-                          Published
+                          CDC
                         </span>
                       </span>
                       <div className={Styles.cdcNewTab}>
                         <a
                           href={`${Envs.CDC_URL}/${workspace?.name}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <i className="icon mbc-icon new-tab" />
+                        </a>
+                      </div>
+                    </>
+                  )}
+                  {workspace?.ddxPublishedLakeHouseDetails?.publishedLakeHouseNames?.includes(lakehouse.id) && (
+                    <>
+                      <span className={Styles.statusIndicator}>
+                        <span
+                          className={Styles.deployedTag}
+                          tooltip-data="Lakehouse successfully deployed to DDX."
+                        >
+                          DDX
+                        </span>
+                      </span>
+                      <div className={Styles.cdcNewTab}>
+                        <a
+                          href={`${(Envs.DDX_DOF_BASE_URL || '').replace(/\/$/, '')}/myDataProducts/onboardingForm/${workspace?.ddxPublishedLakeHouseDetails?.dataProductId}`}
                           target="_blank"
                           rel="noopener noreferrer"
                         >
