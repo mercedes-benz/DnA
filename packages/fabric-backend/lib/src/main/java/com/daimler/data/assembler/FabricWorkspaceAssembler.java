@@ -409,6 +409,7 @@ public class FabricWorkspaceAssembler implements GenericAssembler<FabricWorkspac
 					BeanUtils.copyProperties(ddxVO.getUnityDetails(), unityDetails);
 					ddxDetails.setUnityDetails(unityDetails);
 				}
+				ddxDetails.setIsLakeHousesPublishedToDdx(ddxVO.isIsLakeHousesPublishedToDdx());
 				data.setDdxPublishedLakeHouseDetails(ddxDetails);
 			}
 			entity.setData(data);

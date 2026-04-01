@@ -1097,16 +1097,41 @@ public class FabricWorkspaceClient {
 
 			if(response.getStatusCode().is2xxSuccessful()) {
 				res = response.getBody();
+				log.info("ddx res: {}",res);
+				log.info("ddx response: {}", response);
+				log.info("ddx response body: {}", response.getBody());
 				log.info("Fabric to DDX Onboarding Successful");
+				return res;
 			}
 			else{
 				res = response.getBody();
 				log.error("Fabric to DDX Onboarding Failed");
+				return res;
+			}
+		}catch(HttpClientErrorException e) {
+			log.error("Failed to call DDX product onboarding API with {} exception ", e.getMessage());
+			try {
+				String responseBody = e.getResponseBodyAsString();
+				ObjectMapper mapper = new ObjectMapper();
+				res = mapper.readValue(responseBody, DdxResponseDto.class);
+				res.setStatus("Failure");
+				return res;
+			} catch (Exception parseEx) {
+				log.error("Failed to parse DDX error response body", parseEx);
+				return DdxResponseDto.builder()
+					.status("Failure")
+					.statusCode(e.getRawStatusCode())
+					.message(e.getMessage())
+					.build();
 			}
 		}catch(Exception e) {
 			log.error("Failed to call DDX product onboarding API with {} exception ", e.getMessage());
+			return DdxResponseDto.builder()
+			.status("Failure")
+        	.statusCode(500)
+        	.message(e.getMessage())
+        	.build();
 		}
-		return res;
 	}
 	
 	

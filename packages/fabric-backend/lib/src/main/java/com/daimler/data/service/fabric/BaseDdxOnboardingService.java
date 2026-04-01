@@ -34,6 +34,7 @@ import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.HttpHost;
 import com.daimler.data.dto.fabric.DdxOnboardingRequestDto;
+import com.daimler.data.dto.fabric.DdxOnboardingResultDto;
 import com.daimler.data.dto.fabric.DdxResponseDto;
 import com.daimler.data.service.azure.AzureTokenService;
 import com.daimler.data.dto.azure.AzureTokenRequestDto;
@@ -92,11 +93,12 @@ public class BaseDdxOnboardingService implements DdxOnboardingService {
     private String databricksSpScope;
 
     @Override
-    public GenericMessage onboardToDdx(DdxOnboardingRequestDto publishDdxRequest, String workspaceId, String workspaceName, String lakehouseId, String userId, CreatedByVO createdBy) {
+    public DdxOnboardingResultDto onboardToDdx(DdxOnboardingRequestDto publishDdxRequest, String workspaceId, String workspaceName, String lakehouseId, String userId, CreatedByVO createdBy) {
 
         GenericMessage responseMessage = new GenericMessage();
         List<MessageDescription> errors = new ArrayList<>();
         MessageDescription message = new MessageDescription();
+        DdxResponseDto ddxResponse = null;
 
         try {
             // --- Input Validation ---
@@ -115,7 +117,8 @@ public class BaseDdxOnboardingService implements DdxOnboardingService {
 
             // --- Fabric Lakehouse & Connection Details ---
             String connectionName = "oneFabric_" + lakehouseId;
-            String catalogName = "westeurope_" + lakehouseId;
+            // String catalogName = "westeurope_Test_" + lakehouseId;
+            String catalogName = "westeurope_fcos_dna_testddxlakehouseschema_catalog";
 
             // 1. Fetch SQL Endpoint Details
             log.info("Fetching SQL endpoint details for workspace: {} and lakehouse: {}", workspaceId, lakehouseId);
@@ -311,17 +314,23 @@ public class BaseDdxOnboardingService implements DdxOnboardingService {
             }
 
             // 9. Validate DDX Onboarding Response
-            if (onboardingResponse.getStatusCode() != 201) {
+            if (!"200".equals(onboardingResponse.getStatus())) {
                 String errorMsg = onboardingResponse.getMessage() != null 
                     ? onboardingResponse.getMessage() 
                     : "Unknown error from DDX service";
-                log.warn("DDX onboarding failed with status code: {} and message: {}", onboardingResponse.getStatusCode(), errorMsg);
-                message.setMessage("Failed to onboard to DDX with status code: " + onboardingResponse.getStatusCode() + ", error: " + errorMsg);
+                log.warn("DDX onboarding failed with status: {} and message: {}", onboardingResponse.getStatus(), errorMsg);
+                message.setMessage("Failed to onboard to DDX with status: " + onboardingResponse.getStatus() + ", error: " + errorMsg);
                 errors.add(message);
                 responseMessage.setErrors(errors);
                 responseMessage.setSuccess("FAILED");
-                return responseMessage;
+                return DdxOnboardingResultDto.builder().responseMessage(responseMessage).ddxResponse(onboardingResponse).build();
             }
+            onboardingResponse.setStatusCode(201);
+            // Clear internal fields so only data-relevant fields appear in the response
+            onboardingResponse.setStatus(null);
+            onboardingResponse.setStatusCode(null);
+            onboardingResponse.setSystem(null);
+            ddxResponse = onboardingResponse;
 
             // 10. Update DDX Lakehouse Details
             log.info("Updating DDX lakehouse details for workspace: {} and lakehouse: {}", workspaceId, lakehouseId);
@@ -334,13 +343,13 @@ public class BaseDdxOnboardingService implements DdxOnboardingService {
                 errors.add(message);
                 responseMessage.setErrors(errors);
                 responseMessage.setSuccess("PARTIAL_SUCCESS");
-                return responseMessage;
+                return DdxOnboardingResultDto.builder().responseMessage(responseMessage).ddxResponse(ddxResponse).build();
             }
 
             // 11. Success Response
-            message.setMessage("Product onboarded to DDX successfully for product: " + publishDdxRequest.getDataProductName());
             responseMessage.setSuccess("SUCCESS");
-            log.info("✅ Successfully onboarded product: {} to DDX for workspace: {}", publishDdxRequest.getDataProductName(), workspaceId);
+            log.info("✅ Successfully onboarded product: {} to DDX for workspace: {}. DataProductId: {}, DofUrl: {}",
+                publishDdxRequest.getDataProductName(), workspaceId, onboardingResponse.getDataProductId(), onboardingResponse.getDofUrl());
 
         } catch (IllegalArgumentException e) {
             message.setMessage("Invalid input parameter: " + e.getMessage());
@@ -348,24 +357,24 @@ public class BaseDdxOnboardingService implements DdxOnboardingService {
             responseMessage.setErrors(errors);
             responseMessage.setSuccess("FAILED");
             log.error("Invalid input provided for onboarding to DDX - workspace: {}, lakehouse: {}, userId: {}", workspaceId, lakehouseId, userId, e);
-            return responseMessage;
+            return DdxOnboardingResultDto.builder().responseMessage(responseMessage).build();
         } catch (RuntimeException e) {
             message.setMessage("Failed to onboard product to DDX: " + e.getMessage());
             errors.add(message);
             responseMessage.setErrors(errors);
             responseMessage.setSuccess("FAILED");
             log.error("Runtime exception occurred while onboarding to DDX for userId: {}, workspace: {}, lakehouse: {}", userId, workspaceId, lakehouseId, e);
-            return responseMessage;
+            return DdxOnboardingResultDto.builder().responseMessage(responseMessage).build();
         } catch (Exception e) {
             message.setMessage("Unexpected error occurred during DDX onboarding: " + e.getClass().getSimpleName() + " - " + e.getMessage());
             errors.add(message);
             responseMessage.setErrors(errors);
             responseMessage.setSuccess("FAILED");
             log.error("Unexpected exception occurred for userId: {} during onboarding to DDX for workspace: {} and lakehouse: {}", userId, workspaceId, lakehouseId, e);
-            return responseMessage;
+            return DdxOnboardingResultDto.builder().responseMessage(responseMessage).build();
         }
 
-        return responseMessage;
+        return DdxOnboardingResultDto.builder().responseMessage(responseMessage).ddxResponse(ddxResponse).build();
     }
 
     private void updateDdxLakeHouseDetails(String workspaceId, String lakehouseId, String lakehouseName, String catalogName, DdxResponseDto onboardingResponse, CreatedByVO createdBy) {
@@ -375,6 +384,8 @@ public class BaseDdxOnboardingService implements DdxOnboardingService {
                 .orElse(new DdxPublishedLakeHouseDetailsVO());
 
             details.setIsLakeHousesPublishedToDdx(true);
+
+            log.info("isLakeHouseFlag :: {}", details.toString());
 
             List<String> publishedNames = Optional.ofNullable(details.getPublishedLakeHouseNames())
                 .orElse(new ArrayList<>());
