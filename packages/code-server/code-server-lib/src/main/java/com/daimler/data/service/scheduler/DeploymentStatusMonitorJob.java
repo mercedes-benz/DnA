@@ -90,7 +90,7 @@ public class DeploymentStatusMonitorJob {
                 DeploymentAudit latestAudit = null;
                 if (deployment.getDeploymentAuditLogs() != null && !deployment.getDeploymentAuditLogs().isEmpty()) {
                     latestAudit = deployment.getDeploymentAuditLogs().stream()
-                        .filter(audit -> "DEPLOY_REQUESTED".equalsIgnoreCase(audit.getDeploymentStatus()))
+                        .filter(audit -> "DEPLOYING".equalsIgnoreCase(audit.getDeploymentStatus()))
                         .sorted((a1, a2) -> a2.getTriggeredOn().compareTo(a1.getTriggeredOn()))
                         .findFirst()
                         .orElse(null);
