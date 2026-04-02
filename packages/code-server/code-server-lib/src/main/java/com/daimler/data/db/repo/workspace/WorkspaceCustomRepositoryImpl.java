@@ -56,6 +56,7 @@ import com.daimler.data.db.json.UserInfo;
 import com.daimler.data.db.repo.common.CommonDataRepositoryImpl;
 import com.daimler.data.dto.CodespaceSecurityConfigDto;
 import com.daimler.data.dto.workspace.CodeServerWorkspaceValidateVO;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.extern.slf4j.Slf4j;
@@ -370,7 +371,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 		return updateResponse;
 	}
 
-	
+	@Transactional
 	@Override
 	public GenericMessage updateDeploymentDetails(String projectName, String environment, CodeServerDeploymentDetails deploymentDetails,String lastBuildOrDeployStatus) {
 		log.info("{} - starting DB update.",projectName);
@@ -415,6 +416,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 				" \"ssoType\": " + (deploymentDetails.getSsoType() != null ? addQuotes(String.valueOf(deploymentDetails.getSsoType())) : "null") + "," +
 				" \"secureWithDnaRequired\": " + deploymentDetails.getSecureWithDnaRequired() + "," +
 				" \"aliceRoleEnabled\": " + deploymentDetails.getAliceRoleEnabled() + "," +
+				" \"entitlementPrefixEnabled\": " + deploymentDetails.getEntitlementPrefixEnabled() + "," +
 				" \"selectedAliceRoles\": " + selectedAliceRolesJson + "," +				
 				" \"lastDeployedVersion\": " + addQuotes(deploymentDetails.getLastDeployedVersion()) + "," +
 				" \"lastDeploymentStatus\": " + addQuotes(deploymentDetails.getLastDeploymentStatus()) +"}'),\r\n" + 
@@ -471,19 +473,19 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 			String oneApiVersionShortName,
 			boolean isSecuredWithCookie, String deploymentType, String clientID, String redirectUri, String ignorePaths,
 			String scope, String ssoType,
-			boolean secureWithDnaRequired, boolean isAliceRoleEnabled, List<String> selectedAliceRoles) {
+			boolean secureWithDnaRequired, boolean isAliceRoleEnabled, boolean isEntitlementPrefixEnabled, List<String> selectedAliceRoles) {
 		GenericMessage updateResponse = new GenericMessage();
 		updateResponse.setSuccess("FAILED");
 		List<MessageDescription> errors = new ArrayList<>();
 		List<MessageDescription> warnings = new ArrayList<>();
 
-		String selectedAliceRolesJson = (selectedAliceRoles != null ? selectedAliceRoles.stream()
+		String selectedAliceRolesJson = ((selectedAliceRoles != null && !selectedAliceRoles.isEmpty()) ? selectedAliceRoles.stream()
 				.map(role -> "\"" + role + "\"")
 				.collect(Collectors.joining(",", "[", "]"))
 				: "[]");
 
 		String updateQuery = "update workspace_nsql " +
-				"set data = jsonb_set(jsonb_set(jsonb_set(jsonb_set(jsonb_set(jsonb_set(jsonb_set(jsonb_set(jsonb_set(jsonb_set(jsonb_set(jsonb_set(data,"
+				"set data = jsonb_set(jsonb_set(jsonb_set(jsonb_set(jsonb_set(jsonb_set(jsonb_set(jsonb_set(jsonb_set(jsonb_set(jsonb_set(jsonb_set(jsonb_set(data,"
 				+
 				"'{projectDetails," + addQuotes(environment) + ",secureWithIAMRequired}', '" + secureWithIAMRequired
 				+ "')," +
@@ -501,6 +503,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 				"'{projectDetails," + addQuotes(environment) + ",secureWithDnaRequired}', '" + secureWithDnaRequired
 				+ "')," +
 				"'{projectDetails," + addQuotes(environment) + ",aliceRoleEnabled}', '" + isAliceRoleEnabled + "')," +
+				"'{projectDetails," + addQuotes(environment) + ",entitlementPrefixEnabled}', '" + isEntitlementPrefixEnabled + "')," +
 				"'{projectDetails," + addQuotes(environment) + ",selectedAliceRoles}', '" + selectedAliceRolesJson
 				+ "')";
 
@@ -559,6 +562,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 
 	}
 
+	@Transactional
 	@Override
 	public GenericMessage updateBuildDetails(String projectName, String environment,CodeServerBuildDetails buildDetails) {
 		GenericMessage updateResponse = new GenericMessage();
@@ -606,7 +610,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 		}catch(Exception e) {
 			MessageDescription errMsg = new MessageDescription("Failed while updating build details.");
 			errors.add(errMsg);
-			log.error("failed to update build details for project {} and environment {} , branch {} ", projectName,environment,buildDetails.getLastBuildBranch());
+			log.error("failed to update build details for project {} and environment {} , branch {} exception {} ", projectName,environment,buildDetails.getLastBuildBranch(),e.getMessage());
 		}
 		return updateResponse;
 	}

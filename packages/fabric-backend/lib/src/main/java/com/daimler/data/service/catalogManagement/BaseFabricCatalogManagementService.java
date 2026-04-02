@@ -1,5 +1,6 @@
 package com.daimler.data.service.catalogManagement;
 
+import com.daimler.data.application.client.FabricCDCPushServiceClient;
 import com.daimler.data.application.client.GenesisApiClient;
 import com.daimler.data.application.client.OpenMetadataClient;
 import com.daimler.data.assembler.FabricCatalogMetadataAssembler;
@@ -46,6 +47,7 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
     private final FabricCatalogManagementRepository catalogRepo;
     private final FabricCatalogManagementCustomRepository catalogCustomRepo;
     private final FabricCatalogMetadataAssembler catalogAssembler;
+    private final FabricCDCPushServiceClient cdcPushServiceClient;
     private final GenesisApiClient genesisApiClient;
 	
 
@@ -58,6 +60,7 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
             FabricCatalogManagementRepository catalogRepo,
             FabricCatalogManagementCustomRepository catalogCustomRepo,
             FabricCatalogMetadataAssembler catalogAssembler,
+            FabricCDCPushServiceClient cdcPushServiceClient,
             GenesisApiClient genesisApiClient) {
         this.customRepo = customRepo;
         this.jpaRepo = jpaRepo;
@@ -66,6 +69,7 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
         this.catalogRepo = catalogRepo;
         this.catalogCustomRepo = catalogCustomRepo;
         this.catalogAssembler = catalogAssembler;
+        this.cdcPushServiceClient = cdcPushServiceClient;
         this.genesisApiClient = genesisApiClient;
     }
 
@@ -689,5 +693,16 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
         response.setErrors(Collections.singletonList(msg));
         response.setSuccess(status);
         return response;
+    }
+
+    public LakehouseObjectsResponseVO getLakehouseObjects(String workspaceId, String lakehouseName, String schemaName) {
+        log.info("Fetching lakehouse object details for: {}", lakehouseName);
+        try {
+            return cdcPushServiceClient.getLakehouseObjects(workspaceId, lakehouseName, schemaName);
+        } catch (Exception e) {
+            log.error("Failed to fetch lakehouse object details for {}: {}", lakehouseName, e.getMessage());
+          //  throw new OpenMetadataClientException("Failed to fetch lakehouse object details for " + lakehouseName + ": " + e.getMessage(), e);
+        }
+        return null;
     }
 }

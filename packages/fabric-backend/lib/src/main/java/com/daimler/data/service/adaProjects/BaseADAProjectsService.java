@@ -21,6 +21,7 @@ import com.daimler.data.service.common.BaseCommonService;
 
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -49,26 +50,42 @@ public class BaseADAProjectsService extends BaseCommonService<ADAProjectDetailsV
 	}
 
 	@Override
-	public ADAProjectDetailsCollectionVO getAllProjects(int limit, int offset) {
+	public ADAProjectDetailsCollectionVO getAllProjects(int limit, int offset, String createdBy) {
 		ADAProjectDetailsCollectionVO collection = new ADAProjectDetailsCollectionVO();
 		GenericMessage message = new GenericMessage();
 		List<MessageDescription> errors = null;
 		List<MessageDescription> warnings = null;
-		try {
 
-			List<ADAProjectsNsql> adaProjects = customRepo.findAll(limit, offset);
+		try {
+			List<ADAProjectsNsql> adaProjects;
+			
+			
+			if ("ada".equalsIgnoreCase(createdBy)) {
+				adaProjects = customRepo.findAll(limit, offset);
+			} else if (createdBy != null && !createdBy.isBlank()) {
+				adaProjects = customRepo.findAllByCreator(createdBy, limit, offset);
+			} else {
+				log.warn("Attempt to fetch projects with no 'createdBy' marker.");
+				adaProjects = new ArrayList<>(); 
+			}
+
 			List<ADAProjectDetailsVO> projects = adaProjects.stream()
 					.map(project -> assembler.toVo(project))
 					.collect(Collectors.toList());
 			collection.setRecords(projects);
+			
+			message.setSuccess("SUCCESS");
+
 		} catch (Exception e) {
 			log.error("Error fetching ADA Projects", e);
-			errors = List.of(new MessageDescription("Failed to fetch projects with error : " + e.getMessage()));
+			errors = List.of(new MessageDescription("Failed to fetch projects with error: " + e.getMessage()));
 			message.setErrors(errors);
 			message.setSuccess("ERROR");
 			collection.responses(message);
+			
+			return collection; 
 		}
-		message.setSuccess("SUCCESS");
+
 		if (errors != null) {
 			message.setErrors(errors);
 		}

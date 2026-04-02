@@ -1,6 +1,7 @@
 package com.daimler.data.controller;
 
 import javax.servlet.ServletRequest;
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 
 import org.hibernate.mapping.Array;
@@ -14,6 +15,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.context.request.RequestContextHolder;
+import org.springframework.web.context.request.ServletRequestAttributes;
 
 import com.daimler.data.api.adaProjects.AdaProjectsApi;
 import com.daimler.data.application.annotation.RequiresApiKeyAuthorization;
@@ -50,6 +53,8 @@ public class ADAProjectsController implements AdaProjectsApi{
     @Autowired
     private FabricWorkspaceService fabricWorkspaceService;
 
+    final String DEFAULT_CREATOR = "ada";
+
     @RequiresApiKeyAuthorization
     @Override
     @ApiOperation(value = "Create a new ADA Project", nickname = "createADAProject", notes = "This can only be done by the logged in user.", response = CreateADAProjectResponseVO.class, tags={ "adaProjects", })
@@ -66,8 +71,18 @@ public class ADAProjectsController implements AdaProjectsApi{
         GenericMessage responseMessage = new GenericMessage();
         List<MessageDescription> warnings = new ArrayList<>();
         List<MessageDescription> errors = new ArrayList<>();
-        ADAProjectDetailsVO existingADAProject = service.getByUniqueliteral("projectID", body.getProjectID());
-        if (existingADAProject == null) {
+
+        
+        String createdBy = getCreatedByFromRequest();
+        if (createdBy == null) {
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
+        ADAProjectDetailsVO existingADAProjectID = service.getByUniqueliteral("projectID", body.getProjectID());
+        ADAProjectDetailsVO existingADAProjectName = service.getByUniqueliteral("projectName", body.getProjectName());
+        if (existingADAProjectID == null && existingADAProjectName == null) {
+            body.createdBy(createdBy);
+
             GenericMessage createMessage  = service.createNewProject(body);
             
             if(createMessage.getSuccess().equals("CREATED")) {
@@ -83,8 +98,17 @@ public class ADAProjectsController implements AdaProjectsApi{
                 return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
             }
         } else{
-            log.warn("ADA Project with id {} already exists", body.getProjectID());
-            errors.add(new MessageDescription("Project with ID " + body.getProjectID() + " already exists"));
+            if (existingADAProjectID != null && existingADAProjectName != null) {
+                log.warn("ADA Project with id {} and projectName '{}' both already exist", body.getProjectID(), body.getProjectName());
+                errors.add(new MessageDescription("Project with ID " + body.getProjectID() + " already exists"));
+                errors.add(new MessageDescription("Project with Name " + body.getProjectName() + " already exists"));
+            } else if (existingADAProjectID != null) {
+                log.warn("ADA Project with id {} already exists", body.getProjectID());
+                errors.add(new MessageDescription("Project with ID " + body.getProjectID() + " already exists"));
+            } else if (existingADAProjectName != null) {
+                log.warn("ADA Project with projectName '{}' already exists", body.getProjectName());
+                errors.add(new MessageDescription("Project with Name " + body.getProjectName() + " already exists"));
+            }
             responseMessage.setErrors(errors);
             responseMessage.setSuccess("CONFLICT");
             response.setResponses(responseMessage);
@@ -108,11 +132,27 @@ public class ADAProjectsController implements AdaProjectsApi{
         MessageDescription description = new MessageDescription();
         List<MessageDescription> warnings = new ArrayList<>();
         List<MessageDescription> errors = new ArrayList<>();
+        
+        String createdBy = getCreatedByFromRequest();
+        if (createdBy == null) {
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
         ADAProjectDetailsVO existingADAProject = service.getByUniqueliteral("projectID", projectId);
         if (existingADAProject == null) {
             log.warn("No ADA Project found with id {}", projectId);
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+        }else{
+            if(!createdBy.equals(existingADAProject.getCreatedBy()) && !DEFAULT_CREATOR.equals(createdBy)){
+                
+                log.error("Not Athorized to delete Project with ID",projectId);
+                errors.add(new MessageDescription("Not Athorized to delete Project with ID " + projectId));
+                responseMessage.setErrors(errors);
+                responseMessage.setSuccess("UNAUTHORIZED");
+                return new ResponseEntity<>(responseMessage, HttpStatus.UNAUTHORIZED);
+            }
         }
+
         service.deleteById(existingADAProject.getId());
         responseMessage.setSuccess("SUCCESS");
         return new ResponseEntity<>(responseMessage, HttpStatus.OK);
@@ -132,10 +172,20 @@ public class ADAProjectsController implements AdaProjectsApi{
     public ResponseEntity<ADAProjectDetailsVO> getADAProjectById(@ApiParam(value = "ID of ADA Project to return",required=true) @PathVariable("projectId") String projectId) {
         ADAProjectDetailsVO existingADAProject = service.getByUniqueliteral("projectID", projectId);
 
+        String createdBy = getCreatedByFromRequest();
+        if (createdBy == null) {
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
 		if(existingADAProject == null) {
             log.warn("No ADA Project found with id {}", projectId);
 			return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
-		}
+		}else{
+             if(!createdBy.equals(existingADAProject.getCreatedBy()) && !DEFAULT_CREATOR.equals(createdBy)){
+                log.error("Not Athorized to get Project with ID",projectId);
+                return new ResponseEntity<>(null, HttpStatus.UNAUTHORIZED);
+            }
+        }
         return new ResponseEntity<>(existingADAProject, HttpStatus.OK);
     }
 
@@ -156,19 +206,24 @@ public class ADAProjectsController implements AdaProjectsApi{
         method = RequestMethod.GET)
     public ResponseEntity<ADAProjectDetailsCollectionVO> getAllADAProjects(@ApiParam(value = "Page number from which listing of ADA Projects should start. Example: 2") @Valid @RequestParam(value = "offset", required = false) Integer offset,@ApiParam(value = "Page size to limit the number of ADA Projects. Example: 15") @Valid @RequestParam(value = "limit", required = false) Integer limit) {
 
-        	ADAProjectDetailsCollectionVO collection = new ADAProjectDetailsCollectionVO();
-            int defaultLimit = 15;
-            if (offset == null || offset < 0)
-                offset = 0;
-            if (limit == null || limit < 0) {
-                limit = defaultLimit;
-            }
-            collection = service.getAllProjects(limit, offset);
-            if(!collection.getRecords().isEmpty()){
-                collection.setTotalCount(collection.getRecords().size());
-            }
-            HttpStatus responseCode = collection.getRecords()!=null && !collection.getRecords().isEmpty() ? HttpStatus.OK : HttpStatus.NO_CONTENT;
-            return new ResponseEntity<>(collection, responseCode);
+        String createdBy = getCreatedByFromRequest();
+        if (createdBy == null) {
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+        
+        ADAProjectDetailsCollectionVO collection = new ADAProjectDetailsCollectionVO();
+        int defaultLimit = 15;
+        if (offset == null || offset < 0)
+            offset = 0;
+        if (limit == null || limit < 0) {
+            limit = defaultLimit;
+        }
+        collection = service.getAllProjects(limit, offset, createdBy);
+        if(!collection.getRecords().isEmpty()){
+            collection.setTotalCount(collection.getRecords().size());
+        }
+        HttpStatus responseCode = collection.getRecords()!=null && !collection.getRecords().isEmpty() ? HttpStatus.OK : HttpStatus.NO_CONTENT;
+        return new ResponseEntity<>(collection, responseCode);
     }
 
     @RequiresApiKeyAuthorization
@@ -188,6 +243,12 @@ public class ADAProjectsController implements AdaProjectsApi{
         GenericMessage responseMessage = new GenericMessage();
         List<MessageDescription> warnings = new ArrayList<>();
         List<MessageDescription> errors = new ArrayList<>();
+
+        String createdBy = getCreatedByFromRequest();
+        if (createdBy == null) {
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
         ADAProjectDetailsVO existingADAProject = service.getByUniqueliteral("projectID",projectId);
         if (existingADAProject != null) {
             GenericMessage createMessage  = service.updateProject(existingADAProject.getId(),body);
@@ -233,6 +294,11 @@ public class ADAProjectsController implements AdaProjectsApi{
         FabricWorkspaceVO existingWorkspaceVO = new FabricWorkspaceVO();
         ADAProjectDetailsVO existingADAProject = new ADAProjectDetailsVO();
 
+        String createdBy = getCreatedByFromRequest();
+        if (createdBy == null) {
+            return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+
         existingADAProject = service.getByUniqueliteral("projectID", body.getProjectID());
         if(existingADAProject == null) {
             log.error("ADA Project with ID {} not found", body.getProjectID());
@@ -257,5 +323,21 @@ public class ADAProjectsController implements AdaProjectsApi{
             responseMessage.setErrors(message.getErrors());
             return new ResponseEntity<>(message, HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
+
+
+    private String getCreatedByFromRequest() {
+        String createdBy = null;
+
+        try {
+            ServletRequestAttributes attributes = 
+                (ServletRequestAttributes) RequestContextHolder.currentRequestAttributes();
+            HttpServletRequest request = attributes.getRequest();
+            createdBy = (String) request.getAttribute("CREATOR_ATTRIBUTE");
+        } catch (IllegalStateException e) {
+            log.error("Could not retrieve RequestContext for CREATOR_ATTRIBUTE.", e);
+        }
+
+        return createdBy;
     }
 }

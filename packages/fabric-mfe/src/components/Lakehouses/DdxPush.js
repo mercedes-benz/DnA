@@ -734,7 +734,7 @@ const ViewDdxTablesModalContent = ({ workspaceId, workspaceOwner, workspaceDivis
     }] : [],
     technology: 'UnityCatalog',   
     cloudProvider: 'Azure',
-    dataHubName: 'JP Fabric',
+    dataHubName: 'Jp Fabric',
     securityLevel: 'Internal',
   });
 
@@ -864,7 +864,8 @@ const ViewDdxTablesModalContent = ({ workspaceId, workspaceOwner, workspaceDivis
       securityLevel: securityLevel || '',
       purposes: formData.purposes || [],
       dataProviders: (formData.dataProviders || []).map((u) => u.id),
-      divisions: formData.divisions || '',
+      divisions: (formData.divisions || '').replace(/-/g, ' ') || '',
+
       isTransferPricing: !!formData.isTransferPricing,
       criteriaTransferPricing: formData.criteriaTransferPricing || [],
       qualificationTransferPricing: formData.qualificationTransferPricing || [],

@@ -33,6 +33,7 @@ import com.daimler.data.dto.fabricWorkspace.DdxPublishedLakeHouseDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.DdxUnityDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.Fabric2FabricDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.CreatedByVO;
+import com.daimler.data.dto.fabricWorkspace.CustomGroupNameCollectionVO;
 import com.daimler.data.dto.fabricWorkspace.DnaRolesVO;
 import com.daimler.data.dto.fabricWorkspace.EntitlementDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.FabricLakehouseVO;
@@ -44,6 +45,10 @@ import com.daimler.data.dto.fabricWorkspace.RoleDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.ShortcutVO;
 import com.daimler.data.db.json.LeanIXDetails;
 import com.daimler.data.dto.fabricWorkspace.LeanIXDetailsVO;
+import java.util.Collections;
+import java.util.Objects;
+import org.springframework.util.CollectionUtils;
+import com.daimler.data.db.json.CustomGroupNameCollection;
 
 
 @Component
@@ -86,6 +91,9 @@ public class FabricWorkspaceAssembler implements GenericAssembler<FabricWorkspac
 			FabricWorkspace data = entity.getData();
 			if(data!=null) {
 				BeanUtils.copyProperties(data, vo);
+				if(data.getSubscription() != null) {
+                	vo.setSubscription(FabricWorkspaceVO.SubscriptionEnum.valueOf(data.getSubscription()));
+            	}
 				Capacity capacity = data.getCapacity();
 				CapacityVO capacityVO = new CapacityVO();
 				if(capacity != null) {
@@ -139,6 +147,17 @@ public class FabricWorkspaceAssembler implements GenericAssembler<FabricWorkspac
 					
 				}else {
 					workspaceStatusVO.setState(null);
+				}
+				if(!CollectionUtils.isEmpty(data.getCustomGroupNameCollection())) {
+					vo.setCustomGroupNameCollection(data.getCustomGroupNameCollection().stream()
+					.filter(Objects::nonNull)
+					.map(CustomGroupNameCollection -> {
+						CustomGroupNameCollectionVO c = new CustomGroupNameCollectionVO();
+						BeanUtils.copyProperties(CustomGroupNameCollection, c);
+						return c;
+					}).collect(Collectors.toList()));
+				}else {
+					vo.setCustomGroupNameCollection(Collections.emptyList());
 				}
 				vo.setStatus(workspaceStatusVO);
 				vo.setCreatedBy(createdByVO);
@@ -323,6 +342,9 @@ public class FabricWorkspaceAssembler implements GenericAssembler<FabricWorkspac
 			entity.setId(vo.getId());
 			FabricWorkspace data = new FabricWorkspace();
 			BeanUtils.copyProperties(vo, data);
+			if(vo.getSubscription() != null) {
+            data.setSubscription(vo.getSubscription().name());
+        	}
 			CapacityVO capacityVO = vo.getCapacity();
 			Capacity capacity = new Capacity();
 			if(capacityVO!=null) {
@@ -372,6 +394,16 @@ public class FabricWorkspaceAssembler implements GenericAssembler<FabricWorkspac
 				workspaceStatus.setState(null);
 			}
 			data.setStatus(workspaceStatus);
+
+			if(!CollectionUtils.isEmpty(vo.getCustomGroupNameCollection())){
+				data.setCustomGroupNameCollection(vo.getCustomGroupNameCollection().stream()
+				.filter(Objects::nonNull)
+				.map(CustomGroupNameCollection -> {
+					CustomGroupNameCollection c = new CustomGroupNameCollection();
+					BeanUtils.copyProperties(CustomGroupNameCollection, c);
+					return c;
+				}).collect(Collectors.toList()));	 
+			}
 			
 			List<FabricLakehouseVO> lakehouseVOs = vo.getLakehouses();
 			List<Lakehouse> lakehouses = new ArrayList<>();
