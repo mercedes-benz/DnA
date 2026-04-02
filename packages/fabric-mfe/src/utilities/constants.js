@@ -94,16 +94,16 @@ export const PURPOSES = [
 ];
 
 export const UPDATE_FREQUENCIES = [
-  'ANNUALLY',
-  'QUARTERLY',
-  'MONTHLY',
-  'WEEKLY',
-  'DAILY',
-  'HALF_DAILY',
-  'HOURLY',
-  'LIVE',
-  'NEVER',
-  'OTHER',
+  'Annually',
+  'Quarterly',
+  'Monthly',
+  'Weekly',
+  'Daily',
+  'Half-daily',
+  'Hourly',
+  'Live',
+  'Never',
+  'Other',
 ];
 
 export const CRITERIA_TRANSFER_PRICING = [

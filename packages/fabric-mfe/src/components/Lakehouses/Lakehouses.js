@@ -628,7 +628,7 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
                         </button>
                       </li>
                       <li className="contextListItem">
-                        <button className={classNames('btn btn-primary', Styles.outlineBtn, Styles.disabledBtn)}
+                        <button className={classNames('btn btn-primary', Styles.outlineBtn, !(workspace?.cdcPublishedLakeHouseDetails?.publishedLakeHouseNames?.includes(lakehouse.id)) && Styles.disabledBtn)}
                           onClick={() => {
                             setSelectedLakehouse(lakehouse);
                             if (workspace?.typeOfProject?.toLowerCase() !== "production") {
@@ -669,7 +669,7 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
                       </div>
                     </>
                   )}
-                  {workspace?.ddxPublishedLakeHouseDetails?.publishedLakeHouseNames?.includes(lakehouse.id) && (
+                  {workspace?.ddxPublishedLakeHouseDetails?.publishedLakeHouseNames?.includes(lakehouse.name) && (
                     <>
                       <span className={Styles.statusIndicator}>
                         <span
@@ -681,7 +681,7 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
                       </span>
                       <div className={Styles.cdcNewTab}>
                         <a
-                          href={`${(Envs.DDX_DOF_BASE_URL || '').replace(/\/$/, '')}/myDataProducts/onboardingForm/${workspace?.ddxPublishedLakeHouseDetails?.dataProductId}`}
+                          href={`${(Envs.DDX_DOF_BASE_URL || '').replace(/\/$/, '')}/myDataProducts/onboardingForm/${workspace?.ddxPublishedLakeHouseDetails?.productId}`}
                           target="_blank"
                           rel="noopener noreferrer"
                         >
