@@ -769,7 +769,7 @@ const CodeSpace = (props) => {
                           {projectDetails?.gitRepoName && (
                             <>
                               <li>
-                                <a target="_blank" href={buildGitUrl(projectDetails?.gitRepoName)} rel="noreferrer">
+                                <a target="_blank" href={buildGitUrl(projectDetails?.gitRepoName, codeSpaceData?.isWorkspaceMigratedToGHE)} rel="noreferrer">
                                   Go to code repo
                                   <i className="icon mbc-icon new-tab" />
                                 </a>
@@ -1203,6 +1203,8 @@ const CodeSpace = (props) => {
           show={showAuditLogsModal}
           setShowAuditLogsModal={setShowAuditLogsModal}
           projectName={projectDetails.projectName.toLowerCase()}
+          gitRepoName={projectDetails.gitRepoName}
+          isWorkspaceMigratedToGHE={codeSpaceData?.isWorkspaceMigratedToGHE}
         />
       )}
 

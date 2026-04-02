@@ -25,6 +25,11 @@
       font-size: var(--font-size-small);
       margin-top: 20px;
     }
+    p.prefixInfo {
+      font-size: var(--font-size-small);
+      color: #666;
+      margin-top: 4px;
+    }
     .addicon {
       width: 60px;
       height: 60px;
@@ -493,3 +498,54 @@
     height: 40px;
   }
 }
+
+.patToken {
+  margin-bottom: 20px;
+  .warning{
+    font-size: var(--font-size-smallest);
+    color: #FFD700;
+  }
+}
+
+.ssoInfoPopup {
+  background-color: transparent;
+  border: none;
+  color: #00adef;
+  cursor: pointer;
+  text-decoration: none;
+  padding: 0;
+  font-family: inherit;
+  font-size: inherit;
+}
+
+.ssoInfoPopup:hover {
+  text-decoration: underline;
+}
+
+.ssoInfoModalWrapper {
+  font-size: var(--font-size-small);
+  font-weight: var(--font-weight-regular);
+
+  .modalHeader {
+    font-size: var(--font-size-sub-headline);
+    font-weight: var(--font-weight-bold);
+  }
+  
+  .padding {
+    padding-top: 10px;
+  }
+
+  .listInfo {
+    font-weight: var(--font-weight-bold);
+  }
+
+  .highlightYellow {
+    font-weight: var(--font-weight-bold);
+    background-color: #FFD700;
+    color: #000;
+    padding: 2px 4px;
+    border-radius: 3px;
+  }
+}
+
+

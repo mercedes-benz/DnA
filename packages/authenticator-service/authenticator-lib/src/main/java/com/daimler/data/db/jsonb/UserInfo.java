@@ -49,6 +49,7 @@ public class UserInfo implements Serializable {
 	String email;
 	String mobileNumber;
 	String department;
+	Boolean isDeleted;
 
 	List<UserInfoRole> roles;
 	List<UserFavoriteUseCase> favoriteUsecases;

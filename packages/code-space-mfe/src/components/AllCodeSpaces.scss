@@ -372,3 +372,18 @@
     background: #1c2026;
     padding: 1px 20px;
 }
+
+.sundownWarning {
+  text-align: left !important;
+}
+
+.sundownWarning p {
+    margin-bottom: 15px;
+    margin-top: 0;
+    font-size: medium;
+    text-align: left !important;
+}
+
+.sundownWarning a {
+    font-size: inherit;
+}

@@ -5,6 +5,7 @@ import java.util.List;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.db.entities.FabricCatalogMetadataNsql;
 import com.daimler.data.db.entities.FabricWorkspaceNsql;
+import com.daimler.data.dto.fabricCatalogManagement.LakehouseObjectsResponseVO;
 import com.daimler.data.dto.fabricCatalogManagement.PublishCatalogRequestVO;
 import com.daimler.data.dto.fabricCatalogManagement.PublishCatalogResponseVO;
 import com.daimler.data.dto.fabricCatalogManagement.FabricCatalogMetadataVO;
@@ -19,6 +20,7 @@ public interface FabricCatalogManagementService extends CommonService<FabricCata
 	PublishCatalogResponseVO publishCatalogMetaData(PublishCatalogRequestVO request, FabricWorkspaceVO existingFabricWorkspace);
 	PublishCatalogResponseVO getCatalogMetadata(String serviceName);
 	PublishCatalogResponseVO updateCatalogMetaData(PublishCatalogRequestVO request, FabricWorkspaceVO existingFabricWorkspace);
+	LakehouseObjectsResponseVO getLakehouseObjects(String workspaceId, String lakehouseId, String schemaName);
 	
 	/**
 	 * This method is fetech and retrun all the legal enteties from the genesis 

@@ -628,7 +628,7 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
                         </button>
                       </li>
                       <li className="contextListItem">
-                        <button className={classNames('btn btn-primary', Styles.outlineBtn, !(workspace?.cdcPublishedLakeHouseDetails?.publishedLakeHouseNames?.includes(lakehouse.id)) && Styles.disabledBtn)}
+                        <button className={classNames('btn btn-primary', Styles.outlineBtn, Styles.disabledBtn)}
                           onClick={() => {
                             setSelectedLakehouse(lakehouse);
                             if (workspace?.typeOfProject?.toLowerCase() !== "production") {

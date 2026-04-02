@@ -23,5 +23,6 @@ public class DeploymentAudit implements Serializable{
     private String commitId;
     private String approvedBy;
     private String version;
+    private String gitjobRunID;
 
 }

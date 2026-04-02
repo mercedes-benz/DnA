@@ -11,9 +11,9 @@ const GenAI = () => {
 
   return (
     <LandingSummary
-      title={'GenAI'}
+      title={'Artificial Intelligence (AI)'}
       subTitle={
-        'We want to foster transparency and collaboration. Find all GenAI use cases at Mercedes-Benz.'
+        'Explore available AI tools and services here.'
       }
       headerImage={headerImageURL}
       isBackButton={true}
