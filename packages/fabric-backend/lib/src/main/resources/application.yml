@@ -150,6 +150,22 @@ cdcIntegration:
       baseUrl: ${FABRIC_CDC_PUSH_SERVICE_BASE_URL:XXXX}
       authToken: ${FABRIC_CDC_PUSH_SERVICE_AUTH_TOKEN:XXXX}
 
+ddxIntegration:
+  fabricDdxPush:
+    baseUrl: ${FABRIC_DDX_PUSH_SERVICE_BASE_URL:XXXX}
+  client:
+    host: ${DDX_API_HOST:XXXX}
+    id: ${DDX_OAUTH_CLIENT_ID:XXXX}
+    secret: ${DDX_OAUTH_CLIENT_SECRET:XXXX}
+    grantType: ${DDX_OAUTH_GRANT_TYPE:client_credentials}
+    scope: ${DDX_OAUTH_SCOPE:XXXX}
+    tenantId: ${DDX_OAUTH_TENANT_ID:XXXX}
+
+databricksIntegration:
+  url:
+    base: ${DATABRICKS_BASE_URL:XXXX}
+
+
 server:
   port: 9292
 
@@ -164,6 +180,7 @@ management.endpoint.health.show-details: always
 proxy: 
   port: ${CUSTOMPROXY_PORT:1234}
   host: ${CUSTOMPROXY_HOST:XXXX}
+  noProxyHosts: ${PROXY_NO_PROXY_HOSTS:}
   
 logging:
   service:

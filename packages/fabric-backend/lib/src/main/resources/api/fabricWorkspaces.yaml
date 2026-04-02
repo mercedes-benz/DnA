@@ -852,6 +852,8 @@ definitions:
           format: date
       cdcPublishedLakeHouseDetails:
         $ref: "#/definitions/CdcPublishedLakeHouseDetailsVO"
+      ddxPublishedLakeHouseDetails:
+        $ref: "#/definitions/DdxPublishedLakeHouseDetailsVO"
 
   FabricWorkspaceStatusVO:
     type: object
@@ -1315,6 +1317,53 @@ definitions:
         type: array
         items:
           type: string
+
+  DdxPublishedLakeHouseDetailsVO:
+    type: object
+    properties:
+      isLakeHousesPublishedToDdx:
+        type: boolean
+      publishedLakeHouseNames:
+        type: array
+        items:
+          type: string
+      productName:
+        type: string
+        description: "Name of the DDX data product"
+      productId:
+        type: string
+        description: "ID of the DDX data product"
+      createdBy:
+        $ref: "#/definitions/CreatedByVO"
+      createdOn:
+        type: string
+        format: date
+      modifiedOn:
+        type: string
+        format: date
+      fabric2FabricDetails:
+        $ref: "#/definitions/Fabric2FabricDetailsVO"
+      unityDetails:
+        $ref: "#/definitions/DdxUnityDetailsVO"
+
+  Fabric2FabricDetailsVO:
+    type: object
+    properties:
+      groupNames:
+        type: array
+        items:
+          type: string
+        description: "Group names associated with the fabric-to-fabric connection"
+      initialisedOn:
+        type: string
+        format: date
+
+  DdxUnityDetailsVO:
+    type: object
+    properties:
+      catalogName:
+        type: string
+        description: "Unity catalog name"
 
   
 
