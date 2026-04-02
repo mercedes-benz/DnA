@@ -304,6 +304,7 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
             log.error("Error while featching the legal entetis");
             return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
         }
+    }
 
     @Override
     @ApiOperation(value = "update groups from ddx.", nickname = "updateGroupsFromDDX", notes = "This endpoint will be used to update groups from ddx.", response = GenericMessage.class, tags={ "fabric-catalog-management", })
