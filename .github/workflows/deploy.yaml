@@ -198,7 +198,8 @@ jobs:
       with:
         github-token: ${{ secrets.PID_PAT }}
         number: ${{ steps.pr_number.outputs.PR_NUMBER }}
-        filter-label: dev  
+        filter-label: dev
+        merge-method: rebase  
         
   staging:
     name: 'Deploy to staging'
@@ -242,7 +243,8 @@ jobs:
       with:
         github-token: ${{ secrets.PID_PAT }}
         number: ${{ steps.pr_number.outputs.PR_NUMBER }}
-        filter-label: staging 
+        filter-label: staging
+        merge-method: rebase 
 
   production:
     name: 'Create Production Deployment PR'
