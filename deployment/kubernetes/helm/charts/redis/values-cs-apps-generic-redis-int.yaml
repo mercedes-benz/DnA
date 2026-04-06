@@ -16,7 +16,7 @@ global:
   ##   - myRegistryKeySecretName
   ##
   imagePullSecrets: []
-  storageClass: caas-gp3
+  storageClass: dhc-gp3
   redis:
     password: ""
 
