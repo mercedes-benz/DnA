@@ -1693,6 +1693,66 @@ paths:
         500:
           description: "Internal server error"
 
+  /workspaces/getGitJobStatus:
+    get:
+      tags:
+        - "code-server"
+      summary: "Get workspace status by gitjobRunID."
+      description: "Get updated status based on gitjobRunID and re-trigger if status not updated."
+      operationId: "getGitJobStatus"
+      parameters:
+          - name: projectName
+            in: query
+            description: project-name of workspace
+            required: false
+            type: string
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/GitJobRunIdStatusVO"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
+    patch:
+      tags:
+        - "code-server"
+      summary: "cancel workspace run by gitjobRunID."
+      description: "Cancel a workspace run by gitjobRunID."
+      operationId: "cancelWorkspaceRun"
+      parameters:
+          - name: projectName
+            in: query
+            description: project-name of workspace
+            required: false
+            type: string
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
 
 definitions:
   CodeSpaceReadmeVo:
@@ -2626,6 +2686,28 @@ definitions:
         type: array
         items:
           $ref: "#/definitions/MessageDescription"
+
+  GitJobRunIdStatusVO:
+    type: object
+    properties:
+      data:
+        $ref: "#/definitions/GitJobStatusVO"
+      success:
+        type: string
+      errors:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"
+      warnings:
+        type: array
+        items:
+          $ref: "#/definitions/MessageDescription"
+
+  GitJobStatusVO:
+    type: object
+    properties:
+      status:
+        type: string
           
 
 

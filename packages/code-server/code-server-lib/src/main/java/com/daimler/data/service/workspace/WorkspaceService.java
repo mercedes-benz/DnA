@@ -144,5 +144,9 @@ public interface WorkspaceService {
 	GenericMessage getStatusByJobRunId(CodeServerWorkspaceNsql entity);
 
 	String updateGitJobRunId(GitJobRunIdRequestVO request);
+
+    GitJobRunIdStatusVO getGitRunIdStatus(String projectName);
+
+    GenericMessage cancelWorkspaceRun(String projectName);
 	
 }
