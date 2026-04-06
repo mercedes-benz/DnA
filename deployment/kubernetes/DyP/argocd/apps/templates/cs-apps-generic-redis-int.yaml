@@ -20,10 +20,11 @@ spec:
     path: deployment/kubernetes/helm/charts/redis
     repoURL: {{ .Values.repoURL | squote }}
     targetRevision: {{ .Values.branch }}
-    helm:
-      releaseName: generic-redis-int
-      valueFiles:
-        - values-cs-apps-generic-redis-int.yaml
+    plugin:
+      name: argocd-vault-plugin-helm
+      env:
+        - name: HELM_ARGS
+          value: -f values-cs-apps-generic-redis-int.yaml --set fullnameOverride=generic-redis-int
   project: {{ .Values.env }}-dna
 {{- if .Values.enableSync }}
   syncPolicy:
