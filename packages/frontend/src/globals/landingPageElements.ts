@@ -27,7 +27,7 @@ const datasphereUrl = Envs.DATASPHERE_TOOL_URL;
 const extolloUrl = Envs.EXTOLLO_TOOL_URL;
 const powerBIUrl = Envs.POWER_BI_TOOL_URL;
 const dataModelUrl = Envs.DATA_MODEL_URL;
-const dataCatalogUrl = Envs.DATA_CATALOG_URL;
+const ddxUrl = Envs.DDX_URL;
 const corporateDataCatalogUrl = Envs.CORPORATE_DATA_CATALOG_URL;
 const smartDataGovernanceUrl = Envs.SMART_DATA_GOVERNANCE_URL;
 const spireUrl = Envs.SPIRE_URL;
@@ -700,54 +700,54 @@ export const DataLandingPageElements = [
   {
     name: 'Data Products',
     description:
-      'Data is one of the most valuable assets in our company, therefore we treat our data as a product! We offer you a growing selection of intuitive to use and well documented data products - check it out!',
-    tags: ['Self Service', 'FOSS'],
-    url: '/data/dataproducts',
-    isExternalLink: false,
+      'Data is an excellent source to support all kinds of user groups. But where can you actually get valuable data in the company? Say hi to DDX! DDX offers a growing selection of data products, including direct request and access.',
+    tags: ['Self Service'],
+    url: ddxUrl,
+    isExternalLink: true,
     isTextAlignLeft: false,
-    isDisabled: false,
+    isDisabled: !ddxUrl?.startsWith('http'),
     isSmallCard: false,
     isMediumCard: false,
     svgIcon: 'dataproductoverview',
   },
+  // {
+  //   name: 'Data Layer',
+  //   description:
+  //     'More information and definitions of applications, key figures and data.',
+  //   tags: ['Self Service', 'FOSS'],
+  //   url: '/data/datalayer',
+  //   isExternalLink: false,
+  //   isTextAlignLeft: false,
+  //   isDisabled: false,
+  //   isSmallCard: false,
+  //   isMediumCard: false,
+  //   svgIcon: 'datamodel',
+  // },
+  // {
+  //   name: 'Data Governance',
+  //   description:
+  //     'Understanding & fulfilling ever more complex Legal & Compliance requirements can be challenging. Data Governance helps you to navigate through these requirements and supports on you data journey.',
+  //   tags: ['Self Service', 'FOSS'],
+  //   url: '/data/datagovernance',
+  //   isExternalLink: false,
+  //   isTextAlignLeft: false,
+  //   isDisabled: false,
+  //   isSmallCard: false,
+  //   isMediumCard: false,
+  //   svgIcon: 'datagovernance',
+  // },
   {
-    name: 'Data Layer',
+    name: 'Corporate Data Catalogue',
     description:
-      'More information and definitions of applications, key figures and data.',
+      'Catalog of Mercedes-Benz data assets. If you never logged in the CDC before, a user will be generated for your this can take a while. CarLA systems can be found by searching for CarLA.',
     tags: ['Self Service', 'FOSS'],
-    url: '/data/datalayer',
-    isExternalLink: false,
-    isTextAlignLeft: false,
-    isDisabled: false,
-    isSmallCard: false,
-    isMediumCard: false,
-    svgIcon: 'datamodel',
-  },
-  {
-    name: 'Data Governance',
-    description:
-      'Understanding & fulfilling ever more complex Legal & Compliance requirements can be challenging. Data Governance helps you to navigate through these requirements and supports on you data journey.',
-    tags: ['Self Service', 'FOSS'],
-    url: '/data/datagovernance',
-    isExternalLink: false,
-    isTextAlignLeft: false,
-    isDisabled: false,
-    isSmallCard: false,
-    isMediumCard: false,
-    svgIcon: 'datagovernance',
-  },
-  {
-    name: 'Data Catalog (OpenMetadata)',
-    description:
-      'Unlock the value of data assets with an end-to-end metadata management solution that includes data discovery, governance, data quality, observability, and people collaboration.',
-    tags: ['Self Service', 'FOSS'],
-    url: dataCatalogUrl,
+    url: corporateDataCatalogUrl,
     isExternalLink: true,
     isTextAlignLeft: false,
-    isDisabled: !dataCatalogUrl?.startsWith('http'),
+    isDisabled: !corporateDataCatalogUrl?.startsWith('http'),
     isSmallCard: false,
     isMediumCard: false,
-    svgIcon: 'data-mini',
+    svgIcon: 'dataproduct',
   },
 ];
 
