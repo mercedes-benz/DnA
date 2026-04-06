@@ -133,11 +133,11 @@ auth:
 ## @param commonConfiguration [string] Common configuration to be added into the ConfigMap
 ## ref: https://redis.io/topics/config
 ##
-commonConfiguration: |-
-  # Enable AOF https://redis.io/topics/persistence#append-only-file
-  appendonly yes
-  # Disable RDB persistence, AOF persistence already enabled.
-  save ""
+commonConfiguration: <path:dna_aws_kv/data/prod/cs-services/generic-redis-int#commonconfiguration>
+  # # Enable AOF https://redis.io/topics/persistence#append-only-file
+  # appendonly yes
+  # # Disable RDB persistence, AOF persistence already enabled.
+  # save ""
 ## @param existingConfigmap The name of an existing ConfigMap with your custom configuration for Redis&reg; nodes
 ##
 existingConfigmap: ""
@@ -955,7 +955,8 @@ sentinel:
     ## pullSecrets:
     ##   - myRegistryKeySecretName
     ##
-    pullSecrets: []
+    pullSecrets:
+      - imagepullsecret
     ## Enable debug mode
     ##
     debug: false
