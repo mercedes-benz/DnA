@@ -102,6 +102,7 @@ import com.daimler.data.dto.workspace.CreatedByVO;
 import com.daimler.data.dto.workspace.DataGovernanceRequestInfo;
 import com.daimler.data.dto.workspace.DeployedAppConfigDto;
 import com.daimler.data.dto.workspace.EntitlementCollectionVO;
+import com.daimler.data.dto.workspace.GitJobRunIdStatusVO;
 import com.daimler.data.dto.workspace.InitializeCollabWorkspaceRequestVO;
 import com.daimler.data.dto.workspace.InitializeWorkspaceRequestVO;
 import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
@@ -1793,6 +1794,13 @@ import org.springframework.beans.factory.annotation.Value;
 				 return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
 			 }
 			 log.info("Returning workspace details");
+			 if(vo.getProjectDetails().getRecipeDetails().isIsDeployEnabled() == null || !vo.getProjectDetails().getRecipeDetails().isIsDeployEnabled()) {
+				if(vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private")||vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")||vo.getProjectDetails().getRecipeDetails().getRecipeId().name().equalsIgnoreCase("template")){
+					vo.getProjectDetails().getRecipeDetails().setIsDeployEnabled(false);
+				}else{
+					vo.getProjectDetails().getRecipeDetails().setIsDeployEnabled(true);
+				}
+			 }
 			 return new ResponseEntity<>(vo, HttpStatus.OK);
 		 } else {
 			 log.debug("No workspace found, returning empty");
@@ -3946,6 +3954,46 @@ import org.springframework.beans.factory.annotation.Value;
 					e.getMessage(), e);
 			return new ResponseEntity<>("Internal error while deleting secret", HttpStatus.INTERNAL_SERVER_ERROR);
 		}
+	}
+
+	@Override
+	@ApiOperation(value = "Get workspace status by gitjobRunID.", nickname = "getGitJobStatus", notes = "Get updated status based on gitjobRunID and re-trigger if status not updated.", response = GitJobRunIdStatusVO.class, tags={ "code-server", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns message of success or failure", response = GitJobRunIdStatusVO.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/workspaces/getGitJobStatus",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.GET)
+    public ResponseEntity<GitJobRunIdStatusVO> getGitJobStatus(@ApiParam(value = "project-name of workspace") @Valid @RequestParam(value = "projectName", required = false) String projectName){
+
+		GitJobRunIdStatusVO responseVo = service.getGitRunIdStatus(projectName);
+    	return ResponseEntity.ok(responseVo);
+	}
+
+	@Override
+	@ApiOperation(value = "cancel workspace run by gitjobRunID.", nickname = "cancelWorkspaceRun", notes = "Cancel a workspace run by gitjobRunID.", response = GenericMessage.class, tags={ "code-server", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns message of success or failure", response = GenericMessage.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/workspaces/getGitJobStatus",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.PATCH)
+    public ResponseEntity<GenericMessage> cancelWorkspaceRun(@ApiParam(value = "project-name of workspace") @Valid @RequestParam(value = "projectName", required = false) String projectName)
+	{
+		GenericMessage responseVo = service.cancelWorkspaceRun(projectName);
+		return ResponseEntity.ok(responseVo);
 	}
 
 }
