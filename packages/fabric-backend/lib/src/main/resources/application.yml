@@ -2,7 +2,7 @@ spring:
   mvc.pathmatch.matching-strategy: ant_path_matcher
   application:
     name: dna-fabric-workspace-service
-    version: 1.2.15
+    version: 1.5.2
   profile:
     active: production
 
@@ -32,6 +32,18 @@ spring:
     password: ${API_DB_PASS:dbpassword}
     driverClassName: org.postgresql.Driver
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+  health:
+    db:
+      enabled: true
+  endpoint:
+    health:
+      show-details: always      
+
 fabricWorkspaces:
   clientId: ${FABRIC_OAUTH_CLIENT_ID:XXXX}
   clientSecret: ${FABRIC_OAUTH_CLIENT_SECRET:XXXX}
@@ -39,20 +51,25 @@ fabricWorkspaces:
   scope: ${FABRIC_OAUTH_SCOPE:XXXX}
   accessToken: ${FABRIC_OAUTH_ACCESS_TOKEN:XXXX}
   tokenTypeHint: ${FABRIC_OAUTH_TOKEN_TYPE_HINT:access_token}
-  capacityId: ${FABRIC_CAPACITY_ID:XXXX}
-  capacityName: ${FABRIC_CAPACITY_NAME:XXXX}
+  powerbiCapacityId: ${POWERBI_CAPACITY_ID:XXXX}
+  fabricCapacityId: ${FABRIC_CAPACITY_ID:XXXX}
+  powerbiCapacityName: ${POWERBI_CAPACITY_NAME:XXXX}
+  fabricCapacityName: ${FABRIC_CAPACITY_NAME:XXXX}
   capacitySku: ${FABRIC_CAPACITY_SKU:XXXX}
   capacityRegion: ${FABRIC_CAPACITY_REGION:XXXX}
   capacityState: ${FABRIC_CAPACITY_STATE:Active}
   startup.workspaceprovisioning:  ${FABRIC_WORKSPACE_PROVISION_ONSTARTUP:false}
   startup.onboardOwnersToFabricOperationsRole:  ${FABRIC_ONBOARDOWNER_FABRICROLE_ONSTARTUP:true}
   dnaGroupPrefix: ${FABRIC_ONBOARD_GROUP_PREFIX:XXXX}
+  defaultFolders: ${FABRIC_DEFAULT_FOLDERS:XXXX}
   subgroupPrefix: ${FABRIC_SUB_GROUP_PREFIX:XXXX}
   shortcutNameprefix: ${FABRIC_SHORTCUT_PREFIX:XXXX}
   shortcutLocation: ${FABRIC_SHORTCUT_LOCATION:XXXX}
   gateway.id: ${FABRIC_GATEWAY_ID:XXXX}
   gateway.encryption.publickey.modulus: ${FABRIC_ENCRYPTION_PUBLICKEY_MODULUS:XXXX}
   gateway.encryption.publickey.exponent: ${FABRIC_ENCRYPTION_PUBLICKEY_EXPONENT:XXXX}
+  allowed.divisions.fabric.enabled: ${FABRIC_ENABLED_ENTITLEMENT:XXXX}
+  userRemoval.ignorePatterns: ${FABRIC_USERREMOVAL_IGNORE_PATTERNS:XXXX}
   datasource:
     credentialType: ${FABRIC_DS_CREDENTIALTYPE:Basic}
     encryptedConnection: ${FABRIC_DS_ENCRYPTEDCONN:Any}
@@ -74,7 +91,32 @@ fabricWorkspaces:
     datasourceUrl: ${FABRIC_CREATEDATASOURCE_URL:https://api.powerbi.com/v1.0/myorg/gateways/id/datasources}
     datasourceUserUrl: ${FABRIC_DATASOURCE_ADDUSER_URL:https://api.powerbi.com/v1.0/myorg/gateways/id/datasources/connectionid/users}
     shortcutUrl: ${FABRIC_SHORTCUT_URL:https://api.fabric.microsoft.com/v1/workspaces/id/items/lakehouseid/shortcuts}
-    
+  technicalUser:
+    id: ${AUTHORISER_TECH_USER_ID:XXXX}
+  ada:
+    apiKey: ${ADA_API_KEY:XXXX}
+    extollo.apiKey: ${EXTOLLO_API_KEY:XXXX}
+  azure:
+    subscriptionId: ${AZURE_SUBSCRIPTION_ID:XXXX}
+    resourceGroup: ${AZURE_RESOURCE_GROUP:XXXX}
+    tenantId: ${FABRIC_LAKEHOUSE_TENANTID:XXXX}
+    objectId: ${FABRIC_LAKEHOUSE_OBJECTID:XXXX}
+    management:
+      clientId: ${FABRIC_OAUTH_CLIENT_ID:XXXX}
+      clientSecret: ${FABRIC_OAUTH_CLIENT_SECRET:XXXX}
+      scope: ${AZURE_MANAGEMENT_SCOPE:XXXX}
+    keyvault:
+      location: ${AZURE_KEYVAULT_LOCATION:XXXX}
+      publicNetworkAccess: ${AZURE_KEYVAULT_PUBLIC_ACCESS:XXXX}
+      baseUrl: ${AZURE_KEYVAULT_BASE_URL:XXXX}
+      createUrl: ${AZURE_KEYVAULT_CREATE_URL:XXXX}
+      checkNameUrl: ${AZURE_KEYVAULT_CHECK_NAME_URL:XXXX}
+      roleAssignmentUrl: ${AZURE_ROLE_ASSIGNMENT_URL:XXXX}
+      userSearchUrl: ${AZURE_USER_SEARCH_URL:XXXX}
+      roles:
+        cryptoOfficer: ${KEYVAULT_CRYPTO_OFFICER_ROLE:XXXX}
+        cryptoUser: ${KEYVAULT_CRYPTO_USER_ROLE:XXXX}
+        keyVaultAdminRole: ${KEYVAULT_ADMIN_ROLE:XXXX}
 
 authoriser:
   uri: ${IDENTITY_AUTH_URI:XXXX}
@@ -89,7 +131,21 @@ authoriser:
   clientId: ${IDENTITY_CLIENT_ID:XXXX}
   clientSecret: ${IDENTITY_CLIENT_SECRET:XXXX}
   role.fabricRoleName: ${IDENTITY_FABRIC_OPERATIONS_ROLENAME:XXXX}
-  
+  appIdPrefix: ${IDENTITY_APPID_PREFIX:XXXX}
+
+jwtAuthenticationFilter:
+  exclusion:
+    urlPatterns: ${AUTH_FILTER_EXCLUSION_PATTERNS:/api/fabric-workspaces/ada/**}
+
+cdcIntegration:
+  openmetadata:
+    serverUrl: ${OPENMETADATA_SERVER_URL:XXXX}
+    jwtToken: ${OPENMETADATA_JWT_TOKEN:XXXX}
+    tags: ${OPENMETADATA_TAGS:XXXX}
+  fabricCdcPushService:
+      baseUrl: ${FABRIC_CDC_PUSH_SERVICE_BASE_URL:XXXX}
+      authToken: ${FABRIC_CDC_PUSH_SERVICE_AUTH_TOKEN:XXXX}
+
 server:
   port: 9292
 

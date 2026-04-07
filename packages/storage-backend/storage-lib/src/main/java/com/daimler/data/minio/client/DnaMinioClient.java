@@ -192,7 +192,7 @@ public interface DnaMinioClient {
 	 * @param isGroup
 	 * @param policyName{comma separated <eg:policy1,policy2>}
 	 */
-	public void setPolicy(@Nonnull String userOrGroupName, boolean isGroup, @Nonnull String policyName);
+	public void setPolicy(@Nonnull String userOrGroupName, boolean isGroup, @Nonnull String policyName, @Nonnull boolean isaddPolicy);
 	
 	/**
 	 * To get access uri of bucket for user

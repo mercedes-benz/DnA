@@ -5,10 +5,11 @@ import { ApiClient } from './ApiClient';
 const baseUrl = Envs.DATA_PIPELINES_API_BASEURL
   ? Envs.DATA_PIPELINES_API_BASEURL
   : `http://${window.location.hostname}:7172/airflow/api`;
+
+
 const getUrl = (endpoint: string) => {
   return `${baseUrl}/${endpoint}`;
 };
-
 
 export class PipelineApiClient {
   public static get(endpoint: string) {
@@ -68,8 +69,22 @@ export class PipelineApiClient {
   public static updateDagPermissions(dagName: string, projectId: string, data: any ) {
     return this.put('v1/dags/' + dagName + '/' + projectId + '/permission', data);
   }
+    
+  public static triggerDag(dagName: string) {
+    return this.post(`v1/dags/${dagName}/run`,{});
+  }
+
   public static getPiplineStatus(projectId: string) {
     return this.get(`v1/projects/status/${projectId}`);
   }
-  
+  public static getVaultSecret(dagName: string) {
+  const envDagName = `${Envs. DNA_ENVIRONMENT}_${dagName}`;
+  return this.get(`v1/airflow/secret/${envDagName}`);
+}
+
+  public static putVaultSecret(dagName: string, data: any) {
+  const envDagName = `${Envs. DNA_ENVIRONMENT}_${dagName}`;
+  return this.put(`v1/airflow/secret/${envDagName}`, data);
+}
+
 }

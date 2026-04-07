@@ -103,6 +103,20 @@ swaggerSources {
             components = ['models', 'apis']
         }
     }
+    workspaceBuildDeploy {
+        def workspaceBuildDeployyaml = "${rootDir}/code-server-lib/src/main/resources/api/WorkspaceBuildDeploy.yaml"
+        def workspaceBuildDeployJson = "${rootDir}/code-server-lib/src/main/resources/api/WorkspaceBuildDeploy.json"
+        inputFile = file(workspaceBuildDeployyaml)
+
+        def ignoreFile = "${rootDir}/code-server-lib/src/main/resources/api/.swagger-codegen-ignore"
+
+        code {
+            language = 'spring'
+            configFile = file(workspaceBuildDeployJson)
+            rawOptions = ['--ignore-file-override', ignoreFile]
+            components = ['models', 'apis']
+        }
+    }
         
 }
 
@@ -111,9 +125,12 @@ compileJava {
     dependsOn swaggerSources.workspace.code
     dependsOn swaggerSources.workspaceAdmin.code
     dependsOn swaggerSources.workspaceRecipe.code
+    dependsOn swaggerSources.workspaceBuildDeploy.code
     source "${swaggerSources.workspace.code.outputDir}/src/main/java"  
     source "${swaggerSources.workspaceAdmin.code.outputDir}/src/main/java"  
     source "${swaggerSources.workspaceRecipe.code.outputDir}/src/main/java" 
+    source "${swaggerSources.workspaceBuildDeploy.code.outputDir}/src/main/java"
+
 }
 
 sourceSets {
@@ -127,6 +144,7 @@ sourceSets {
 		java { srcDirs += "${swaggerSources.workspace.code.outputDir}/src/main/java" }
 		java { srcDirs += "${swaggerSources.workspaceAdmin.code.outputDir}/src/main/java" }
 	    java { srcDirs += "${swaggerSources.workspaceRecipe.code.outputDir}/src/main/java" }
+        java { srcDirs += "${swaggerSources.workspaceBuildDeploy.code.outputDir}/src/main/java" }
     }
 }
 

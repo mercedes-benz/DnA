@@ -44,6 +44,7 @@ import org.json.JSONArray;
 import org.json.JSONObject;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 import org.springframework.util.StringUtils;
@@ -52,6 +53,7 @@ import org.springframework.web.context.support.WebApplicationContextUtils;
 
 import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.application.auth.UserStore.UserRole;
+import com.daimler.data.util.ExclusionUtils;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -65,6 +67,9 @@ public class JWTAuthenticationFilter implements Filter {
 	
 	private UserStore userStore;
 
+	@Value("${jwtAuthenticationFilter.exclusion.urlPatterns}")
+		private List<String> urlPatterns;
+
 	@Override
 	public void doFilter(ServletRequest servletRequest, ServletResponse servletResponse, FilterChain filterChain)
 			throws IOException, ServletException {
@@ -74,6 +79,14 @@ public class JWTAuthenticationFilter implements Filter {
 		String requestUri = httpRequest.getRequestURI();
 		log.debug("Intercepting Request to store userinfo:" + requestUri);
 		String userinfo = httpRequest.getHeader("dna-request-userdetails");
+
+		//exclude from validation
+		if (ExclusionUtils.isExcluded(requestUri, urlPatterns)) {
+			log.debug("Request is exempted from validation");
+			filterChain.doFilter(servletRequest, servletResponse);
+			return;
+		}
+		
 		if (!StringUtils.hasText(userinfo)) {
 				log.error("Request UnAuthorized");
 				forbidResponse(servletResponse);

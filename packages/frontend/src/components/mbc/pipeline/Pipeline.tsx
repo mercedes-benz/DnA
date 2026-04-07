@@ -19,6 +19,8 @@ import { SESSION_STORAGE_KEYS } from 'globals/constants';
 import Tooltip from '../../../assets/modules/uilab/js/src/tooltip';
 import { PipelineApiClient } from '../../../services/PipelineApiClient';
 import InfoModal from 'components/formElements/modal/infoModal/InfoModal';
+import PipelineCardItem from './PipelineCardItem';
+import { history } from '../../../router/History';
 
 const Pipeline = () => {
   // const [subscribePopup, setSubscribePopup] = useState(false);
@@ -32,18 +34,17 @@ const Pipeline = () => {
   );
 
   const [info, setInfo] = useState(false);
+  const [cardViewMode, setCardViewMode] = useState(
+    sessionStorage.getItem(SESSION_STORAGE_KEYS.LISTVIEW_MODE_ENABLE) === null,
+  );
+  const [listViewMode, setListViewMode] = useState(
+    sessionStorage.getItem(SESSION_STORAGE_KEYS.LISTVIEW_MODE_ENABLE) !== null,
+  );
 
-  // const subscriPopupClose = () => {
-  //   setSubscribePopup(false);
-  // };
-  // const addAirflowSuccessFn = (action: string) => {
-  //   setSubscribePopup(false);
-  //   setAirflowSuccess(action);
-  //   Notification.show('Subscription created Successfully!');
-  // };
   const onInfoModalCancel = () => {
     setInfo(false);
   };
+
   const getRefreshedDagPermission = (projectId: string, dagIndex: number) => {
     const modDagList: IPipelineProjectDetail[] = pipelineProjectList.map((item: IPipelineProjectDetail) => {
       if (item.projectId === projectId) {
@@ -51,6 +52,7 @@ const Pipeline = () => {
       }
       return item;
     });
+
     setPipelineProjectList([...modDagList]);
   };
   const openInfo = () => {
@@ -58,6 +60,17 @@ const Pipeline = () => {
   };
   const getProjectSorted = (prjIdSortVal: any) => {
     setPipelineProjectList([...prjIdSortVal]);
+  };
+
+  const toggleToCardView = () => {
+    setCardViewMode(true);
+    setListViewMode(false);
+    sessionStorage.removeItem(SESSION_STORAGE_KEYS.LISTVIEW_MODE_ENABLE);
+  };
+  const toggleToListView = () => {
+    setCardViewMode(false);
+    setListViewMode(true);
+    sessionStorage.setItem(SESSION_STORAGE_KEYS.LISTVIEW_MODE_ENABLE, 'true');
   };
 
   const onPaginationPreviousClick = () => {
@@ -122,110 +135,170 @@ const Pipeline = () => {
   return (
     <React.Fragment>
       <div className={classNames(Styles.mainPanel)}>
-        <div className={Styles.wrapper}>
-          <Caption title="Pipeline" />
+        <div className={classNames(Styles.wrapper)}>
+          <Caption title="Pipeline">
+            <div className={Styles.listHeader}>
+              <div tooltip-data="Card View" className={Styles.toggleIcon}>
+                <span className={cardViewMode ? Styles.iconactive : Styles.iconInActive} onClick={toggleToCardView}>
+                  <i className="icon mbc-icon widgets" />
+                  <span className={Styles.dividerLine}> &nbsp; </span>
+                </span>
+              </div>
+              <div tooltip-data="List View">
+                <span className={listViewMode ? Styles.iconactive : Styles.iconInActive} onClick={toggleToListView}>
+                  <i className="icon mbc-icon listview big" />
+                </span>
+              </div>
+            </div>
+          </Caption>
         </div>
-        <div className={Styles.content}>
-          <div className={Styles.NoSubscription}>
-            <div className={Styles.addNewSubscrHeader}>
-              <React.Fragment>
-                <div className={Styles.appHeaderDetails}>
-                  <button
-                    className={pipelineProjectList?.length === 0 ? Styles.btnHide : Styles.refreshButton + ' btn btn-icon-circle'}
-                    tooltip-data="Refresh"
-                    onClick={getPipelineProjectList}
-                  >
-                    <i className={Styles.refresh + " icon mbc-icon refresh"} />
-                  </button>
-                  {pipelineProjectList.length === 0 ? (
-                    ''
-                  ) : (
-                    <React.Fragment>
+        {listViewMode && (
+          <div className={Styles.content}>
+            <div className={Styles.NoSubscription}>
+              <div className={Styles.addNewSubscrHeader}>
+                <React.Fragment>
+                  <div className={Styles.appHeaderDetails}>
+                    <button
+                      className={
+                        pipelineProjectList?.length === 0
+                          ? Styles.btnHide
+                          : Styles.refreshButton + ' btn btn-icon-circle'
+                      }
+                      tooltip-data="Refresh"
+                      onClick={getPipelineProjectList}
+                    >
+                      <i className={Styles.refresh + ' icon mbc-icon refresh'} />
+                    </button>
+                    {pipelineProjectList.length === 0 ? (
+                      ''
+                    ) : (
+                      <React.Fragment>
+                        <Link to="createnewpipeline">
+                          <button
+                            className={
+                              pipelineProjectList === null
+                                ? Styles.btnHide
+                                : ' ' + ' btn btn-primary ' + Styles.addNewSubcibtn
+                            }
+                            type="button"
+                          >
+                            <i className="icon mbc-icon plus" />
+                            <span>Create New Pipeline Project</span>
+                          </button>
+                        </Link>
+                        <i
+                          className={Styles.iconsmd + ' icon mbc-icon info iconsmd'}
+                          onClick={openInfo}
+                          tooltip-data="Info"
+                        />
+                      </React.Fragment>
+                    )}
+                  </div>
+                </React.Fragment>
+              </div>
+              <div className={Styles.subsriContent}>
+                {pipelineProjectList.length === 0 ? (
+                  <div className={Styles.pipelineDescription}>
+                    <p>
+                      Pipeline service helps in creating data workflows that can have multiple data processing steps in
+                      order to perform data transformation and to later identify data patterns using AI and ML.
+                    </p>
+                    <i
+                      className={Styles.iconsmd + ' icon mbc-icon info iconsmd'}
+                      onClick={openInfo}
+                      tooltip-data="Info"
+                    />
+                  </div>
+                ) : (
+                  ''
+                )}
+                {pipelineProjectList.length === 0 ? (
+                  <div className={Styles.subscriptionListEmpty}>
+                    <Link to="createnewpipeline">
+                      <button className={Styles.addNewSubcibtn + ' btn btn-tertiary'} type="button">
+                        <span>Create New Pipeline Project</span>
+                      </button>
+                    </Link>
+                  </div>
+                ) : (
+                  <div className={Styles.subscriptionList}>
+                    <PipelineSubList
+                      listOfProject={pipelineProjectList}
+                      getRefreshedDagPermission={getRefreshedDagPermission}
+                      getProjectSorted={getProjectSorted}
+                    />
+                    {pipelineProjectList ? (
+                      <Pagination
+                        totalPages={totalNumberOfPages}
+                        pageNumber={currentPageNumber}
+                        onPreviousClick={onPaginationPreviousClick}
+                        onNextClick={onPaginationNextClick}
+                        onViewByNumbers={onViewByPageNum}
+                        displayByPage={true}
+                      />
+                    ) : (
+                      ''
+                    )}
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+        {cardViewMode && (
+          <div className={classNames(Styles.content, Styles.pipelineCardView)}>
+            <div>
+              <div className={Styles.cardContent}>
+                {pipelineProjectList?.length === 0 ? (
+                  <>
+                    <div className={Styles.emptyPipeline}>
+                      <span>
+                        You don&apos;t have any airflow projects at this time.
+                        <br /> Please create a new one.
+                      </span>
+                    </div>
+                    <div className={Styles.subscriptionListEmpty}>
                       <Link to="createnewpipeline">
-                        <button
-                          className={
-                            pipelineProjectList === null
-                              ? Styles.btnHide
-                              : ' ' + ' btn btn-primary ' + Styles.addNewSubcibtn
-                          }
-                          type="button"
-                        >
-                          <i className="icon mbc-icon plus" />
+                        <button className={Styles.addNewSubcibtn + ' btn btn-tertiary'} type="button">
                           <span>Create New Pipeline Project</span>
                         </button>
                       </Link>
-                      <i
-                        className={Styles.iconsmd + ' icon mbc-icon info iconsmd'}
-                        onClick={openInfo}
-                        tooltip-data="Info"
+                    </div>
+                  </>
+                ) : (
+                  <div className={Styles.subscriptionList}>
+                    <div className={Styles.newPipelineCard} onClick={() => history.push('/createnewpipeline')}>
+                      {/* <Link to="createnewpipeline"> */}
+                        <div className={Styles.addicon}> &nbsp; </div>
+                        <label className={Styles.addlabel}>Create new Pipeline Project</label>
+                      {/* </Link> */}
+                    </div>
+                    {pipelineProjectList.map((project, index) => (
+                      <PipelineCardItem
+                        key={index}
+                        project={project}
+                        getRefreshedDagPermission={getRefreshedDagPermission}
                       />
-                    </React.Fragment>
-                  )}
-                </div>
-              </React.Fragment>
-            </div>
-            <div className={Styles.subsriContent}>
-              {pipelineProjectList.length === 0 ? (
-                <div className={Styles.pipelineDescription}>
-                  <p>
-                    Pipeline service helps in creating data workflows that can have multiple data processing steps in
-                    order to perform data transformation and to later identify data patterns using AI and ML.
-                  </p>
-                  <i
-                    className={Styles.iconsmd + ' icon mbc-icon info iconsmd'}
-                    onClick={openInfo}
-                    tooltip-data="Info"
-                  />
-                </div>
-              ) : (
-                ''
-              )}
-              {pipelineProjectList.length === 0 ? (
-                <div className={Styles.subscriptionListEmpty}>
-                  <Link to="createnewpipeline">
-                    <button className={Styles.addNewSubcibtn + ' btn btn-tertiary'} type="button">
-                      <span>Create New Pipeline Project</span>
-                    </button>
-                  </Link>
-                </div>
-              ) : (
-                <div className={Styles.subscriptionList}>
-                  <PipelineSubList
-                    listOfProject={pipelineProjectList}
-                    getRefreshedDagPermission={getRefreshedDagPermission}
-                    getProjectSorted={getProjectSorted}
-                  />
-                  {pipelineProjectList ? (
-                    <Pagination
-                      totalPages={totalNumberOfPages}
-                      pageNumber={currentPageNumber}
-                      onPreviousClick={onPaginationPreviousClick}
-                      onNextClick={onPaginationNextClick}
-                      onViewByNumbers={onViewByPageNum}
-                      displayByPage={true}
-                    />
-                  ) : (
-                    ''
-                  )}
-                </div>
-              )}
+                    ))}
+                    {pipelineProjectList ? (
+                      <Pagination
+                        totalPages={totalNumberOfPages}
+                        pageNumber={currentPageNumber}
+                        onPreviousClick={onPaginationPreviousClick}
+                        onNextClick={onPaginationNextClick}
+                        onViewByNumbers={onViewByPageNum}
+                        displayByPage={true}
+                      />
+                    ) : (
+                      ''
+                    )}
+                  </div>
+                )}
+              </div>
             </div>
           </div>
-        </div>
+        )}
       </div>
-      {/* {subscribePopup && (
-        <Modal
-          title={'Create New Pipeline Project'}
-          showAcceptButton={false}
-          showCancelButton={false}
-          modalWidth={'60%'}
-          buttonAlignment="right"
-          show={subscribePopup}
-          content={<PipelineSubModel addAirflowSuccessFn={addAirflowSuccessFn} />}
-          scrollableContent={false}
-          onCancel={subscriPopupClose}
-        />
-      )} */}
       {info && (
         <InfoModal
           title={'About Pipeline'}

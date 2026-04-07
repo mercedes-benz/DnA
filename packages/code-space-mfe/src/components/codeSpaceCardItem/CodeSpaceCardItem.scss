@@ -104,6 +104,7 @@
           }
           > div:last-child {
             flex: 1;
+            user-select: text;
           }
         }
         ul {
@@ -357,6 +358,13 @@
       }
     }
   }
+
+  .oneAPILink{
+    color: #99a5b3;
+    &:hover {
+      color: #99a5b3 !important; 
+    }
+  }
   
   @keyframes OpenNewTab {
     0% {
@@ -377,3 +385,70 @@
       color: #00adef;
   }
    }
+
+  .refreshOverlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(37, 42, 51, 0.9);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    z-index: 100;
+    border-radius: inherit;
+
+    span {
+      margin-top: 15px;
+      color: #00adef;
+      font-size: var(--font-size-medium);
+    }
+  }
+
+  .refreshProgress {
+    width: 80%;
+    height: 4px;
+    background: #383F49;
+    border-radius: 2px;
+    overflow: hidden;
+  }
+
+  .progressBar {
+    width: 30%;
+    height: 100%;
+    background: linear-gradient(90deg, #00adef, #0AE6AB);
+    border-radius: 2px;
+    animation: progressAnimation 1.5s infinite ease-in-out;
+  }
+
+  @keyframes progressAnimation {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(400%);
+    }
+  }
+
+  .statusWithRefresh {
+    display: inline;
+  }
+
+  .refreshIcon {
+    cursor: pointer;
+    color: inherit;
+    transition: opacity 0.2s ease;
+    margin-left: 4px;
+    vertical-align: middle;
+
+    &:hover {
+      opacity: 0.7;
+    }
+
+    i {
+      font-size: inherit;
+      margin: 0;
+    }
+  }

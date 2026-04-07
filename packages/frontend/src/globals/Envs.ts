@@ -44,6 +44,8 @@ export const Envs = {
   LOGINREDIRECTURL: getInjectedEnv('LOGINREDIRECTURL') || process.env.LOGINREDIRECTURL,
   DATAIKU_API_BASEURL: getInjectedEnv('DATAIKU_API_BASEURL') || process.env.DATAIKU_API_BASEURL,
   DATA_PIPELINES_API_BASEURL: getInjectedEnv('DATA_PIPELINES_API_BASEURL') || process.env.DATA_PIPELINES_API_BASEURL,
+  DNA_VAULT_API_BASEURL: getInjectedEnv('DNA_VAULT_API_BASEURL') || process.env.DNA_VAULT_API_BASEURL,
+  DNA_ENVIRONMENT: getInjectedEnv('DNA_ENVIRONMENT') || process.env.DNA_ENVIRONMENT,
   DATA_PIPELINES_APP_BASEURL: getInjectedEnv('DATA_PIPELINES_APP_BASEURL') || process.env.DATA_PIPELINES_APP_BASEURL,
   NOTIFICATIONS_API_BASEURL: getInjectedEnv('NOTIFICATIONS_API_BASEURL') || process.env.NOTIFICATIONS_API_BASEURL,
   DASHBOARD_API_BASEURL: getInjectedEnv('DASHBOARD_API_BASEURL') || process.env.DASHBOARD_API_BASEURL,
@@ -163,6 +165,10 @@ export const Envs = {
   CODESPACE_SOFTWARE_REQUEST_TEMPLATE:getInjectedEnv('CODESPACE_SOFTWARE_REQUEST_TEMPLATE') || process.env.CODESPACE_SOFTWARE_REQUEST_TEMPLATE,
   VAULT_API_BASEURL: getInjectedEnv('VAULT_API_BASEURL') || process.env.VAULT_API_BASEURL,
   SIMILARITY_SEARCH_API_BASEURL: getInjectedEnv('SIMILARITY_SEARCH_API_BASEURL') || process.env.SIMILARITY_SEARCH_API_BASEURL,
+  ENABLE_AZURE_KEY_VAULT_SERVICE:
+    getInjectedEnv('ENABLE_AZURE_KEY_VAULT_SERVICE') !== undefined
+      ? getInjectedEnv('ENABLE_AZURE_KEY_VAULT_SERVICE')
+      : EnvParser.parseBool(process.env.ENABLE_AZURE_KEY_VAULT_SERVICE, false),  
   ENABLE_CHRONOS_FORECASTING_SERVICE:
     getInjectedEnv('ENABLE_CHRONOS_FORECASTING_SERVICE') !== undefined
       ? getInjectedEnv('ENABLE_CHRONOS_FORECASTING_SERVICE')
@@ -175,6 +181,10 @@ export const Envs = {
     getInjectedEnv('ENABLE_FABRIC_SERVICE') !== undefined
       ? getInjectedEnv('ENABLE_FABRIC_SERVICE')
       : EnvParser.parseBool(process.env.ENABLE_FABRIC_SERVICE, false),
+  ENABLE_UILICIOUS_SERVICE:
+    getInjectedEnv('ENABLE_UILICIOUS_SERVICE') !== undefined
+      ? getInjectedEnv('ENABLE_UILICIOUS_SERVICE')
+      : EnvParser.parseBool(process.env.ENABLE_UILICIOUS_SERVICE, false),
   ENABLE_DATA_ENTRY_SERVICE:
     getInjectedEnv('ENABLE_DATA_ENTRY_SERVICE') !== undefined
       ? getInjectedEnv('ENABLE_DATA_ENTRY_SERVICE')
@@ -237,10 +247,13 @@ export const Envs = {
   SPIRE_URL: getInjectedEnv('SPIRE_URL') || process.env.SPIRE_URL,
   ODIN_URL: getInjectedEnv('ODIN_URL') || process.env.ODIN_URL,
   SASS_URL: getInjectedEnv('SASS_URL') || process.env.SASS_URL,
+  MB_AI_ECOSYSTEM_URL: getInjectedEnv('MB_AI_ECOSYSTEM_URL') || process.env.MB_AI_ECOSYSTEM_URL,
+  MB_AI_USE_CASE_URL: getInjectedEnv('MB_AI_USE_CASE_URL') || process.env.MB_AI_USE_CASE_URL,
   GENAI_DIRECT_CHAT_URL: getInjectedEnv('GENAI_DIRECT_CHAT_URL') || process.env.GENAI_DIRECT_CHAT_URL,
   GENAI_LLM_PROMPT_ENG_URL:getInjectedEnv('GENAI_LLM_PROMPT_ENG_URL') || process.env.GENAI_LLM_PROMPT_ENG_URL,
   CLAMAV_IMAGE_URL:  getInjectedEnv('CLAMAV_IMAGE_URL') || process.env.CLAMAV_IMAGE_URL,
   CODESPACE_SECURITY_APP_ID: getInjectedEnv('CODESPACE_SECURITY_APP_ID') || process.env.CODESPACE_SECURITY_APP_ID,
+  CDC_DATABASE_URL:  getInjectedEnv('CDC_DATABASE_URL') || process.env.CDC_DATABASE_URL,
 
   ONEAPI_SUBSCRIPTION_URL:
     getInjectedEnv('ONEAPI_SUBSCRIPTION_URL') !== undefined
@@ -251,4 +264,7 @@ export const Envs = {
       ? getInjectedEnv('ONEAPI_PROMPT_CRAFT_USAGE_LINK')
       : EnvParser.parseBool(process.env.ONEAPI_PROMPT_CRAFT_USAGE_LINK, false),
   LEANIX_BASEURL: getInjectedEnv('LEANIX_BASEURL') || process.env.LEANIX_BASEURL,
+  UILICIOUS_URL: getInjectedEnv('UILICIOUS_URL') || process.env.UILICIOUS_URL,
+  UILICIOUS_CONTACT: getInjectedEnv('UILICIOUS_CONTACT') || process.env.UILICIOUS_CONTACT,
+  AZURE_KEY_VAULT_URL: getInjectedEnv('AZURE_KEY_VAULT_URL') || process.env.AZURE_KEY_VAULT_URL,
 };

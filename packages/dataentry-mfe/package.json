@@ -1,6 +1,6 @@
 {
   "name": "data-entry-mfe",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "private": true,
   "scripts": {
     "start": "env-cmd -f .env webpack server --config config/webpack.config.js",
@@ -100,6 +100,8 @@
     "redux": "^5.0.1",
     "redux-logger": "^3.0.6",
     "redux-thunk": "^3.1.0",
+    "@reduxjs/toolkit": "^1.9.3",
+    "regenerator-runtime": "^0.14.1",
     "rxjs": "^7.8.1",
     "sass": "^1.53.0",
     "sass-loader": "^13.0.2",

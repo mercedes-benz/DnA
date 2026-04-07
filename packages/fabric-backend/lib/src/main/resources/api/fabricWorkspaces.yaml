@@ -393,6 +393,335 @@ paths:
           500:
             description: "Internal error"
 
+  /fabric-workspaces/{roleId}/details:
+    get:
+        tags:
+          - "fabric-workspaces"
+        summary: "get the role details."
+        description: "get the role details."
+        operationId: "getRoleDetails"
+        parameters:
+          - name: "roleId"
+            in: "path"
+            required: true
+            type: "string"  
+        responses:
+          201:
+            description: "Returns message of succes or failure "
+            schema:
+              $ref: "#/definitions/AuthoriserRoleDetailsResponseVO"
+          400:
+            description: "Bad Request"
+          401:
+            description: "Request does not have sufficient credentials."
+          403:
+            description: "Request is not authorized."
+          405:
+            description: "Method not allowed"
+          500:
+            description: "Internal error"
+
+  /fabric-workspaces/{roleName}/entraGroupMembers:
+    get:
+        tags:
+          - "fabric-workspaces"
+        summary: "get the EntraID group member details."
+        description: "get the group member details."
+        operationId: "getGroupMemberDetails"
+        parameters:
+          - name: "roleName"
+            in: "path"
+            required: true
+            type: "string"  
+        responses:
+          200:
+            description: "Returns message of succes or failure "
+            schema:
+              $ref: "#/definitions/EntraGroupResponseVO"  
+          400:
+            description: "Bad Request"
+          401:
+            description: "Request does not have sufficient credentials."
+          403:
+            description: "Request is not authorized."
+          405:
+            description: "Method not allowed"
+          500:
+            description: "Internal error"
+
+  /fabric-workspaces/{id}/transferOwnership:
+    patch:
+        tags:
+          - "fabric-workspaces"
+        summary: "Transfer ownership of a workspace"
+        description: "Changes the owner of the given workspace to another user."
+        operationId: "transferWorkspaceOwnership"
+        parameters:
+          - name: "id"
+            in: "path"
+            required: true
+            description: "The ID of the workspace"
+            type: "string"
+          - name: "userInfo"
+            in: "body"
+            required: true
+            description: "The user info of the new owner"
+            schema:
+              $ref: "#/definitions/CreatedByVO"
+        responses:
+          200:
+            description: "Ownership transferred successfully"
+            schema:
+              $ref: "#/definitions/GenericMessage"
+          400:
+            description: "Bad Request"
+          401:
+            description: "Request does not have sufficient credentials."
+          403:
+            description: "Request is not authorized."
+          405:
+            description: "Method not allowed"
+          500:
+            description: "Internal error"
+
+  /fabric-workspaces/lakehouses/tables:
+    get:
+      tags:
+        - "fabric-workspaces"
+      summary: "Get tables for a given lakehouse"
+      description: "Get all tables for a given Fabric lakehouse under a workspace."
+      operationId: "getLakehouseTables"
+      parameters:
+        - name: "workspaceId"
+          in: "query"
+          required: true
+          type: "string"
+        - name: "lakehouseId"
+          in: "query"
+          required: true
+          type: "string"
+      responses:
+        200:
+          description: "List of tables in the lakehouse"
+          schema:
+            $ref: "#/definitions/LakehouseTableCollectionResponseVO"
+        204:
+          description: "Fetch complete, but no tables found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have valid credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed."
+        500:
+          description: "Internal server error."
+
+  /fabric-workspaces/lakehouses/table/schema:
+    get:
+      tags:
+        - "fabric-workspaces"
+      summary: "Get table schema"
+      description: "Get column schema for a table inside a Fabric lakehouse."
+      operationId: "getTableSchema"
+      parameters:
+        - name: "workspaceId"
+          in: "query"
+          required: true
+          type: "string"
+        - name: "lakehouseId"
+          in: "query"
+          required: true
+          type: "string"
+        - name: "tableName"
+          in: "query"
+          required: true
+          type: "string"
+        - name: "schemaName"
+          in: "query"
+          required: false
+          type: "string"
+      responses:
+        200:
+          description: "Successfully fetched table schema."
+          schema:
+            $ref: "#/definitions/LakehouseColumnCollectionResponseVO"
+        204:
+          description: "Fetch complete, but no schema found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have valid credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed."
+        500:
+          description: "Internal server error."
+
+  /fabric-workspaces/searchADAProjects:
+    get:
+      tags:
+        - "fabric-workspaces"
+      summary: "Search ADA Projects"
+      description: "Search ADA Projects by project name,"
+      operationId: "searchADAProjects"
+      produces:
+        - "application/json"
+      parameters:
+        - name: projectName
+          in: query
+          description: "Filter by project name"
+          required: false
+          type: string
+      responses:
+        200:
+          description: "List of ADA Projects matching search criteria"
+          schema:
+            $ref: "#/definitions/ADAProjectDetailsCollectionVO"
+        204:
+          description: "No ADA Projects found matching search criteria"
+        400:
+          description: "Bad request"
+        500:
+          description: "Internal server error"
+
+  /fabric-workspaces/{id}/takeOwnership:
+    patch:
+      tags:
+        - "fabric-workspaces"
+      summary: "Take ownership of a workspace"
+      description: "Allows an Admin to take ownership of a workspace. The current owner will lose ownership and all related privileges."
+      operationId: "takeWorkspaceOwnership"
+      parameters:
+        - name: "id"
+          in: "path"
+          required: true
+          description: "The ID of the workspace"
+          type: "string"
+      responses:
+        200:
+          description: "Ownership taken successfully"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        400:
+          description: "Bad Request"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
+  /fabric-workspaces/keyVault:
+    post:
+      tags:
+        - "fabric-workspaces"
+      summary: "Create Azure Key Vault with Data Governance"
+      description: "Creates a new Azure Key Vault with data governance fields and assigns Key Vault Crypto Officer role to the creator."
+      operationId: "createKeyVault"
+      parameters:
+        - name: "keyVaultRequest"
+          in: "body"
+          description: "Request Body that contains data required for creating a new Key Vault including data governance fields"
+          required: true
+          schema:
+            $ref: "#/definitions/KeyVaultCreateRequestVO"
+      responses:
+        201:
+          description: "Returns Key Vault data with success or failure messages"
+          schema:
+            $ref: "#/definitions/KeyVaultResponseVO"
+        400:
+          description: "Bad Request - validation failed"
+          schema:
+            $ref: "#/definitions/KeyVaultResponseVO"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        409:
+          description: "Key Vault name already exists"
+          schema:
+            $ref: "#/definitions/KeyVaultResponseVO"
+        500:
+          description: "Internal error"
+          schema:
+            $ref: "#/definitions/KeyVaultResponseVO"
+    get:
+      tags:
+        - "fabric-workspaces"
+      summary: "Get all Azure Key Vaults created by the authenticated user"
+      description: "Retrieves all Azure Key Vaults created by the current user from the database with pagination support."
+      operationId: "getAllKeyVaults"
+      parameters:
+        - name: offset
+          in: query
+          description: "Page number from which listing should start. Offset. Example: 0"
+          required: false
+          type: integer
+        - name: limit
+          in: query
+          description: "Page size to limit the number of Key Vaults. Example: 15"
+          required: false
+          type: integer
+      responses:
+        200:
+          description: "Successfully retrieved Key Vaults"
+          schema:
+            $ref: "#/definitions/KeyVaultCollectionVO"
+        204:
+          description: "No Key Vaults found"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        500:
+          description: "Internal error"
+          schema:
+            $ref: "#/definitions/KeyVaultCollectionVO"
+
+  /fabric-workspaces/keyVault/{id}:
+    put:
+      tags:
+        - "fabric-workspaces"
+      summary: "Update Azure Key Vault Data Governance Fields"
+      description: "Updates an Azure Key Vault's data governance fields (description, division, department, etc.). Note: Key Vault name cannot be changed as Azure does not support renaming Key Vaults."
+      operationId: "updateKeyVault"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Key Vault ID to be updated"
+          required: true
+          type: "string"
+        - name: "keyVaultRequest"
+          in: "body"
+          description: "Request Body that contains data required for updating Key Vault data governance fields. Name must remain the same."
+          required: true
+          schema:
+            $ref: "#/definitions/KeyVaultCreateRequestVO"
+      responses:
+        200:
+          description: "Returns Key Vault data with success or failure messages"
+          schema:
+            $ref: "#/definitions/KeyVaultResponseVO"
+        400:
+          description: "Bad Request - validation failed or name change attempted"
+          schema:
+            $ref: "#/definitions/KeyVaultResponseVO"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        404:
+          description: "Key Vault not found."
+        500:
+          description: "Internal error"
+          schema:
+            $ref: "#/definitions/KeyVaultResponseVO"
 
 definitions:
   CapacityVO:
@@ -482,6 +811,9 @@ definitions:
       createdOn:
         type: string
         format: date
+      deletedOn:
+        type: string
+        format: date
       role:
         type: string
       lakehouses:
@@ -500,7 +832,27 @@ definitions:
       customGroupName: 
         type: string
         default: null
-  
+      customGroupNameCollection:
+        type: array
+        items:
+          type: object
+          $ref: "#/definitions/CustomGroupNameCollectionVO" 
+      appId:
+        type: string
+      leanIXDetails:
+        $ref: "#/definitions/LeanIXDetailsVO"
+      userRole:
+          type: string
+      projectId:
+          type: string
+      subscription:
+          enum: ["PowerBI", "Fabric"]
+      lastModifiedOn:
+          type: string
+          format: date
+      cdcPublishedLakeHouseDetails:
+        $ref: "#/definitions/CdcPublishedLakeHouseDetailsVO"
+
   FabricWorkspaceStatusVO:
     type: object
     properties:
@@ -624,6 +976,14 @@ definitions:
         type: array
         items:
          $ref: "#/definitions/ProjectReferenceDetailsVO"
+      appId:
+        type: string
+      leanIXDetails:
+        $ref: "#/definitions/LeanIXDetailsVO"
+      projectId:
+        type: string
+      subscription:
+        enum: ["PowerBI", "Fabric"]
       
   FabricWorkspacesCollectionVO:
     description: "Collection of fabric workspaces."
@@ -838,17 +1198,272 @@ definitions:
           roleName:
             type: string
             pattern: "^[A-Za-z0-9]+[A-Za-z0-9._-]{1,60}$"
+          isDynamic:
+            type: boolean
+            default: false
 
   DnaRoleCollectionVO:
+      type: object
+      properties:
+        roles:
+          type: array
+          items:
+            $ref: "#/definitions/DnaRolesVO" 
+  
+  DnaRolesVO:
+    type: object
+    properties:
+      isDynamic:
+        type: boolean
+      roleID:
+        type: string
+      ownerDetails:
+        type: array
+        items: 
+          $ref: "#/definitions/CreatedByVO"
+
+  LeanIXDetailsVO:
+    type: object
+    properties :
+      appReferenceStr:
+        type: string
+      name:
+        type: string
+        description: "Name of the LeanIX"
+        minLength: 1
+      shortName:
+        type: string
+        description: "Short Name of the LeanIX"
+      ObjectState:
+        type: string
+        description: "State of the LeanIX"
+      providerOrgRefstr:
+        type: string
+        description: "Details of provider Org of the LeanIX"
+      providerOrgId:
+        type: string
+      providerOrgShortname:
+        type: string
+      providerOrgDeptid:
+        type: string
+
+  AuthoriserRoleDetailsResponseVO:
     type: object
     properties:
       data:
         type: object
-        properties:
-          roles:
-            type: array
-            items: 
-              type: string
+        items:
+           $ref: "#/definitions/AuthoriserRoleDetailsVO"
 
+  AuthoriserRoleDetailsVO:
+    type: object
+    properties:
+      roleName:
+        type: string
+      description:
+        type: string
+      isDynamic:
+        type: boolean
+      isSelfRequestable:
+        type: boolean
+      roleOwners:
+        type: array
+        items:
+          $ref: "#/definitions/MembersVO"
+      roleMembers:
+        type: array
+        items:
+          $ref: "#/definitions/MembersVO"
+ 
+  MembersVO:
+    type: object
+    properties:
+      departmentNumber:
+        type: string
+      id:
+        type: string
+      completeName:
+        type: string
 
+  EntraGroupResponseVO:
+    type: object
+    properties:
+      members:
+        type: array
+        items:
+          $ref: "#/definitions/EntraGroupMembersVO"
+
+  
+  EntraGroupMembersVO:
+    type: object
+    properties:
+      id:
+        type: string
+      displayName:
+        type: string
+      mail:
+        type: string
+      shortId:
+        type: string
+
+  CdcPublishedLakeHouseDetailsVO:
+    type: object
+    properties:
+      isLakeHousesPublishedToCdc:
+        type: boolean
+      publishedLakeHouseNames:
+        type: array
+        items:
+          type: string
+
+  
+
+  LakeHouseTableVO:
+    type: object
+    properties:
+      tableName:
+        type: string
+        description: "Name of the table in lakehouse"
+      schemaName:
+        type: string
+        description: "Schema name of the table in lakehouse"
+     
+  LakehouseTableCollectionVO:
+    type: object
+    properties:
+      tables:
+        type: array
+        items:
+          $ref: "#/definitions/LakeHouseTableVO"
+
+  LakehouseTableCollectionResponseVO:
+      type: object
+      properties:
+        data:
+          $ref: "#/definitions/LakehouseTableCollectionVO"
+        responseCode:
+          type: string
+          description: "Response code of the operation"
+
+  LakehouseColumnVO:
+    type: object
+    properties:
+      columnName:
+        type: string
+        description: "Name of the column in table"
+      colType:
+        type: string
+        description: "Data type of the column in table"
+      colConstraint:
+        type: string
+        description: "Is the column nullable or not"
+
+  LakehouseColumnCollectionVO:
+    type: object
+    properties:
+      columns:
+        type: array
+        items:
+          $ref: "#/definitions/LakehouseColumnVO"
+
+  LakehouseColumnCollectionResponseVO:
+    type: object
+    properties:
+      data:
+        $ref: "#/definitions/LakehouseColumnCollectionVO"
+      responseCode:
+        type: string
+        description: "Response code of the operation"
     
+  CustomGroupNameCollectionVO:
+    type: object
+    properties:
+      roleName:
+        type: string
+        description: "Role name of the fabric workspace"
+      groupName:
+        type: string
+        description: "Custom group name of the fabric workspace"
+
+  KeyVaultCreateRequestVO:
+    description: "Request object for creating Azure Key Vault with data governance fields"
+    type: object
+    properties:
+      data:
+        $ref: "#/definitions/KeyVaultVO"
+
+  KeyVaultResponseVO:
+    description: "Response object for Azure Key Vault operations"
+    type: object
+    properties:
+      data:
+        $ref: "#/definitions/KeyVaultVO"
+      responses:
+        $ref: "#/definitions/GenericMessage"
+  
+  KeyVaultVO:
+    description: "Azure Key Vault details with data governance fields"
+    type: object
+    properties:
+      id:
+        type: string
+        description: "Azure Resource ID of the Key Vault"
+      keyVaultName:
+        type: string
+        description: "Name of the Azure Key Vault (must start with 'kv-')"
+        minLength: 3
+        maxLength: 24
+      description:
+        type: string
+        description: "Description of the Key Vault purpose"
+        maxLength: 4000
+      dataClassification:
+        type: string
+        description: "Data classification level"
+      divisionId:
+        type: string
+        description: "Division ID"
+      division:
+        type: string
+        description: "Division name"
+      subDivisionId:
+        type: string
+        description: "Sub-division ID"
+      subDivision:
+        type: string
+        description: "Sub-division name"
+      department:
+        type: string
+        description: "Department name"
+      hasPii:
+        type: boolean
+        description: "Indicates if PII data will be stored"
+      location:
+        type: string
+        description: "Azure region where the Key Vault is located"
+      createdBy:
+        $ref: "#/definitions/CreatedByVO"
+      createdOn:
+        type: string
+        format: date
+        description: "Creation timestamp"
+
+  KeyVaultCollectionVO:
+    description: "Collection of Azure Key Vaults with pagination info"
+    type: object
+    properties:
+      totalCount:
+        type: integer
+        description: "Total number of Key Vault records"
+      records:
+        type: array
+        items:
+          $ref: "#/definitions/KeyVaultVO"
+      responses:
+        $ref: "#/definitions/GenericMessage"
+      
+      
+      
+
+
+  

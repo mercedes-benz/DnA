@@ -47,6 +47,14 @@ public class AttachPluginConfigVO  implements Serializable {
 	  private String recovery_page_path;
 	  
 	  private String revoke_tokens_on_logout;
+
+	  private String filters;
+
+	  private String ignore_auth_filters;
+
+	  private String access_token_as_bearer;
+
+	  private String access_token_header_name;
 	  
 //	  private String claims_to_verify;
 //	  

@@ -27,16 +27,19 @@
 
 package com.daimler.data.db.repo.workspace;
 
+import java.util.Date;
 import java.util.List;
 
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
+import com.daimler.data.db.json.CodeServerBuildDetails;
 import com.daimler.data.db.json.CodeServerDeploymentDetails;
 import com.daimler.data.db.json.CodeServerLeanGovernanceFeilds;
 import com.daimler.data.db.json.UserInfo;
 import com.daimler.data.db.repo.common.CommonDataRepository;
 import com.daimler.data.dto.CodespaceSecurityConfigCollectionDto;
 import com.daimler.data.dto.CodespaceSecurityConfigDto;
+import com.daimler.data.dto.GitRunIdDetailsDto;
 import com.daimler.data.dto.workspace.CodeServerWorkspaceVO;
 import com.daimler.data.dto.workspace.CodeServerWorkspaceValidateVO;
 import com.daimler.data.dto.workspace.CodespaceSecurityConfigVO;
@@ -56,7 +59,16 @@ public interface WorkspaceCustomRepository extends CommonDataRepository<CodeServ
 	CodeServerWorkspaceNsql findbyProjectName(String userId, String projectName);
 
 	GenericMessage updateDeploymentDetails(String projectName, String environment,
-			CodeServerDeploymentDetails deploymentDetails);
+			CodeServerDeploymentDetails deploymentDetails,String lastBuildOrDeployStatus);
+
+	GenericMessage updateDeployedAppConfig(String projectName, String environment, boolean secureWithIAMRequired,
+			String oneApiVersionShortName, boolean isSecuredWithCookie, String deploymentType, String clientID,
+			String redirectUri, String ignorePaths, String scope, String ssoType, boolean secureWithDnaRequired,
+			boolean isAliceRoleEnabled, boolean isEntitlementPrefixEnabled, List<String> selectedAliceRoles);
+
+	GenericMessage updateBuildDetails(String projectName, String environment,CodeServerBuildDetails buildDetails);
+	
+	GenericMessage updateLatestBuildOrDeployStatus(String status, String environment,Date date,String projectName);
 
 	GenericMessage  updateRecipeDetails(CodeServerWorkspaceNsql codeServerWorkspaceNsql);
 
@@ -91,4 +103,10 @@ public interface WorkspaceCustomRepository extends CommonDataRepository<CodeServ
 	CodeServerWorkspaceNsql findbyProjectName(String projectName);
 
 	List<CodeServerWorkspaceNsql> findAllByUniqueLiteral();
+
+    GitRunIdDetailsDto getGitRunId(String projectName);
+
+    boolean updateGitRunIdStatus(String projectName, String status, String string);
+
+	boolean updateBuildDeployAuditStatus(String projectName, String status, String environment, String gitjobRunId);
 }

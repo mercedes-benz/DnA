@@ -18,7 +18,8 @@ export enum USER_ROLE {
   REPORTADMIN = '4',
   DIVISIONADMIN = '5',
   DATACOMPLIANCEADMIN = '6',
-  CODESPACEADMIN = '7'
+  CODESPACEADMIN = '7',
+  FABRICADMIN = '8'
 }
 
 export enum SESSION_STORAGE_KEYS {
@@ -37,7 +38,8 @@ export enum SESSION_STORAGE_KEYS {
   LISTVIEW_MODE_ENABLE = 'listViewModeEnable',
   SOLUTION_SORT_VALUES = 'sortingInfo',
   REPORT_SORT_VALUES = 'reportsSortingInfo',
-  ALICE_ROLES_CREATED = 'aliceRolesCreated'
+  ALICE_ROLES_CREATED = 'aliceRolesCreated',
+  CODE_SPACE_SELECTED_GROUPS = 'codeSpaceSelectedGroups'
 }
 
 export enum LOCAL_STORAGE_KEYS {

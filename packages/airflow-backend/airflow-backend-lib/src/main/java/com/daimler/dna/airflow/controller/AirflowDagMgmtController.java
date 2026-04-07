@@ -65,17 +65,21 @@ import com.daimler.dna.airflow.exceptions.MessageDescription;
 import com.daimler.dna.airflow.service.DagMgmtService;
 import com.daimler.dna.airflow.service.DnaProjectServiceImpl;
 import com.daimler.dna.airflow.service.UserService;
+import com.daimler.dna.airflow.client.InternalAirflowClient;
+
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import io.swagger.annotations.ApiParam;
 import io.swagger.annotations.ApiResponse;
 import io.swagger.annotations.ApiResponses;
+import com.daimler.dna.airflow.api.AirflowApi;
+import com.daimler.dna.airflow.client.AirflowVaultServiceClient;
 
 @RestController
 @RequestMapping("/api/v1")
 @Api(value = "Dags", tags = { "dags" })
-public class AirflowDagMgmtController implements DagsApi {
+public class AirflowDagMgmtController implements DagsApi, AirflowApi {
 
 	private static Logger LOGGER = LoggerFactory.getLogger(AirflowDagMgmtController.class);
 
@@ -90,6 +94,14 @@ public class AirflowDagMgmtController implements DagsApi {
 
 	@Autowired
 	private DagMgmtService dagMgmtService;
+
+	@Autowired
+	private InternalAirflowClient internalAirflowClient;
+
+	@Autowired
+	private AirflowVaultServiceClient airflowVaultService;
+
+
 
 //	@Override
 //	public ResponseEntity<AirflowDagResponseVO> createDag(@Valid AirflowProjectRequestVO airflowProjectRequestVO) {
@@ -174,4 +186,84 @@ public class AirflowDagMgmtController implements DagsApi {
 			@Valid AirflowDagRetryRequestVO airflowRetryDagVo) {
 		return dagMgmtService.updatePermission(dagName, projectId, airflowRetryDagVo.getData());
 	}
+
+	    @ApiOperation(value = "Triggering the dag", nickname = "triggerDag", notes = "Triggers using Dag ID", response = com.daimler.dna.airflow.exceptions.GenericMessage.class, tags={ "dags", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 200, message = "Successfully triggered.", response = com.daimler.dna.airflow.exceptions.GenericMessage.class),
+        @ApiResponse(code = 400, message = "Bad request"),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 404, message = "Invalid id, record not found."),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/dags/{dagName}/run",
+        method = RequestMethod.POST)
+    public ResponseEntity<com.daimler.dna.airflow.exceptions.GenericMessage> triggerDag(@ApiParam(value = "dagId for which it will trigger the Dag",required=true) @PathVariable("dagName") String dagName){
+
+
+GenericMessage response = internalAirflowClient.triggerDag(dagName);
+
+
+if (response.getSuccess() != null && response.getSuccess().contains("Failed")) {
+    return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+}
+
+
+return new ResponseEntity<>(response, HttpStatus.OK);
+
+	}
+
+	@Override
+	@ApiOperation(value = "Get secret for given DAG", nickname = "getAirflowDagSecret", notes = "Fetch secret from Vault for a given DAG name", response = Object.class, tags={ "airflow", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 200, message = "Secret retrieved successfully", response = Object.class),
+        @ApiResponse(code = 204, message = "No secret found"),
+        @ApiResponse(code = 400, message = "Bad request"),
+        @ApiResponse(code = 401, message = "Unauthorized"),
+        @ApiResponse(code = 403, message = "Forbidden request"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/airflow/secret/{dagname}",
+        method = RequestMethod.GET)
+	public ResponseEntity<Object> getAirflowDagSecret(@PathVariable("dagname") String dagname) {
+
+		LOGGER.info("Fetching Vault secret for DAG: {}", dagname);
+
+		ResponseEntity<String> response = airflowVaultService.getSecret(dagname);
+
+		if (response.getStatusCode() == HttpStatus.NO_CONTENT) {
+			return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+		}
+
+		return new ResponseEntity<>(response.getBody(), response.getStatusCode());
+	}
+
+	@Override
+	@ApiOperation(value = "Update/Create secret for DAG", nickname = "updateAirflowDagSecret", notes = "Store updated JSON secret for specific DAG in Vault", response = Object.class, tags={ "airflow", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 200, message = "Secret updated successfully", response = Object.class),
+        @ApiResponse(code = 400, message = "Bad request"),
+        @ApiResponse(code = 401, message = "Unauthorized access"),
+        @ApiResponse(code = 403, message = "Forbidden request"),
+        @ApiResponse(code = 500, message = "Internal server error") })
+    @RequestMapping(value = "/airflow/secret/{dagname}",
+        method = RequestMethod.PUT)
+	public ResponseEntity<Object> updateAirflowDagSecret(
+			@PathVariable("dagname") String dagname,
+			@Valid @RequestBody Object secret) {
+
+		LOGGER.info("Updating Vault secret for DAG: {}", dagname);
+
+		try {
+			String secretJson = new com.fasterxml.jackson.databind.ObjectMapper()
+					.writeValueAsString(secret);
+
+			ResponseEntity<String> response = airflowVaultService.updateSecret(dagname, secretJson);
+
+			return new ResponseEntity<>(response.getBody(), response.getStatusCode());
+
+		} catch (Exception e) {
+			LOGGER.error("Failed to update secret for DAG {}", dagname, e);
+			return new ResponseEntity<>("Failed to update secret", HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
 }

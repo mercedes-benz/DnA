@@ -1493,12 +1493,15 @@ export interface ISubsriptionExpiryObjectData {
   data: ISubsriptionExpiryObject;
 }
 export interface IPipelineProjectDetail {
+  collaborators: any;
   projectStatus: string;
   projectId: string;
   projectName: string;
   projectDescription: string;
+  createdBy: string;
   isOwner: boolean;
   dags: IPipelineProjectDag[];
+  permission: boolean;
 }
 
 export interface IPipelineProjectDag {
@@ -1509,6 +1512,7 @@ export interface IPipelineProjectDag {
   permissions: string[];
   dagId: number;
   active?: boolean;
+  dagEditUrl: string;
 }
 export interface IPipelineProjectDagData {
   data: IPipelineProjectDag;
@@ -1554,4 +1558,42 @@ export interface IDatawarehouseInItem {
 export interface IInfoItem {
   title: string;
   description: string;
+}
+
+export interface IUiliciousLeanGovernance {
+  costCenter?: string;
+  dataClassification?: string;
+  department?: string;
+  description?: string;
+  division?: string;
+  divisionId?: string;
+  hasPii?: boolean;
+  internalOrder?: string;
+  subDivision?: string;
+  subDivisionId?: string;
+}
+
+export interface IKeyVaultCreatedBy {
+  id?: string;
+  firstName?: string;
+  lastName?: string;
+  department?: string;
+  email?: string;
+  mobileNumber?: string;
+}
+
+export interface IKeyVault {
+  id?: string;
+  keyVaultName?: string;
+  description?: string;
+  dataClassification?: string;
+  divisionId?: string;
+  division?: string;
+  subDivisionId?: string;
+  subDivision?: string;
+  department?: string;
+  hasPii?: boolean;
+  location?: string;
+  createdBy?: IKeyVaultCreatedBy;
+  createdOn?: string;
 }

@@ -5,6 +5,7 @@ import java.util.Date;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.daimler.data.db.json.catalogManangement.FabricCatalogMetadata;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -37,6 +38,7 @@ public class FabricWorkspace implements Serializable{
 	private Capacity capacity;
 	private UserDetails createdBy;
 	private Date createdOn;
+	private Date deletedOn;
 	private String role;
 	private FabricWorkspaceStatus status;
 	private List<ProjectDetails> relatedSolutions;
@@ -46,4 +48,11 @@ public class FabricWorkspace implements Serializable{
 	// private String secondaryRoleApproverId;
 	// private String customEntitlementName;
 	private String customGroupName;
+	private List<CustomGroupNameCollection> customGroupNameCollection; 
+	private String appId;
+	private LeanIXDetails leanIXDetails;
+	private String projectId;
+	private String subscription;
+	private Date lastModifiedOn;
+	private CdcPublishedLakeHouseDetails cdcPublishedLakeHouseDetails;
 }

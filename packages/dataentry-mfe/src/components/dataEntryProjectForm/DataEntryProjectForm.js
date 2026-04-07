@@ -413,7 +413,7 @@ const DataEntryProjectForm = ({ user, project, edit, onSave }) => {
                         placeholder="Type here eg.[INFO-XXXXX]"
                         autoComplete="off"
                         maxLength={55}
-                        {...register('archerId', { pattern: /^(INFO)-\d{5}$/ })}
+                        {...register('archerId', { pattern: /^(INFO)-\d{1,10}$/ })}
                       />
                       <span className={'error-message'}>{errors.archerId?.type === 'pattern' && 'Archer ID should be of type INFO-XXXXX'}</span>
                     </div>
@@ -432,7 +432,7 @@ const DataEntryProjectForm = ({ user, project, edit, onSave }) => {
                         placeholder="Type here eg.[PO-XXXXX / ITPLC-XXXXX]"
                         autoComplete="off"
                         maxLength={55}
-                        {...register('procedureId', { pattern: /^(PO|ITPLC)-\d{5}$/ })}
+                        {...register('procedureId', { pattern: /^(PO|ITPLC)-\d{1,10}$/ })}
                       />
                       <span className={'error-message'}>{errors.procedureId?.type === 'pattern' && 'Procedure ID should be of type PO-XXXXX / ITPLC-XXXXX'}</span>
                     </div>

@@ -44,6 +44,11 @@ export const hostServer = axios.create({
   headers,
 });
 
+export const fabricServer = axios.create({
+  baseURL: Envs.FABRIC_API_BASEURL ? Envs.FABRIC_API_BASEURL : `http://${window.location.hostname}:9292/api`,
+  headers,
+});
+
 function createRefreshInterceptor(instance) {
   instance.interceptors.request.use((config) => {
     if (config.method === 'get') {
@@ -112,3 +117,6 @@ createRefreshInterceptor(storageServer);
 
 // Apply interceptor to hostServer
 createRefreshInterceptor(hostServer);
+
+// Apply interceptor to fabricServer
+createRefreshInterceptor(fabricServer);
