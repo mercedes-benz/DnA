@@ -199,13 +199,13 @@ const MainNavigation: React.FC<IMainNavigationProps> = (props) => {
           title: 'DataProducts',
           enabled: true,
         },
-        {
-          allowedRoles: UserAndAdminRole,
-          id: 2,
-          route: `/data/datalayer`,
-          title: 'DataLayer',
-          enabled: true,
-        },
+        // {
+        //   allowedRoles: UserAndAdminRole,
+        //   id: 2,
+        //   route: `/data/datalayer`,
+        //   title: 'DataLayer',
+        //   enabled: true,
+        // },
         {
           allowedRoles: UserAndAdminRole,
           id: 3,
