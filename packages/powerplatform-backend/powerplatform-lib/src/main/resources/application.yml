@@ -2,7 +2,7 @@ spring:
   mvc.pathmatch.matching-strategy: ant_path_matcher
   application:
     name: dna-powerplatform-service
-    version: 1.0.1
+    version: 1.0.2
   profiles:
     active: production
 
@@ -63,7 +63,7 @@ server:
 powerapps:
   defaults:
     environment: ${POWERAPP_ENVIRONMENT_DEFAULT:XXXX}
-    productionAvailability: ${POWERAPP_PRODUCTION_AVAIL_DEFAULT:XXXX}
+    # productionAvailability: ${POWERAPP_PRODUCTION_AVAIL_DEFAULT:XXXX}
     developerlicense: ${POWERAPP_DEVELOPERLICENSE_DEFAULT:XXXX}
     powerBiApproverKey: ${POWERAPP_APPROVERKEY_DEFAULT:XKEYX}
     powerBiApproverId: ${POWERAPP_APPROVERID_DEFAULT:XIDX}

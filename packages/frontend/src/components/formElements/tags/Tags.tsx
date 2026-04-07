@@ -25,6 +25,8 @@ export interface ITagsFieldProps {
   placeholder?: string;
   showAllTagsOnFocus?: boolean;
   disableSelfTagAdd?: boolean;
+  isDeployedAppConfig?: boolean;
+  errorText?: string;
 }
 
 export interface ITagsFiledState {
@@ -35,6 +37,8 @@ export interface ITagsFiledState {
   userInput?: string;
   activeSuggestionIndex: number;
   isFocused: boolean;
+  isDeployedAppConfig: boolean;
+  errorText: string;
 }
 
 export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledState> {
@@ -62,6 +66,8 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
       userInput: '',
       activeSuggestionIndex: -1,
       isFocused: false,
+      isDeployedAppConfig: false,
+      errorText: '',
     };
   }
 
@@ -93,7 +99,7 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
       }
 
       return (
-        <div className="chips" key={index}>
+        <div className={classNames("chips", this?.props?.isDeployedAppConfig ? Styles.deployConfig : '' )} key={index}>
           <label className={"name "+Styles.chipName}>
             {this.props.isDataSource ? (
               <>
@@ -168,9 +174,9 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
       <div
         id={'tagcontainer_' + this.props.title.replace(' ', '_')}
         className={classNames(
-          'input-field-group' + (this.props.showMissingEntryError ? ' include-error' : ''),
+          'input-field-group' + ((this.props.showMissingEntryError || this.props.errorText) ? ' include-error' : ''),
           !this.props.isDisabled && this.state.isFocused ? 'focused' : '',
-          this.props.showMissingEntryError ? Styles.validationError + ' error' : '',
+          (this.props.showMissingEntryError || this.props.errorText) ? Styles.validationError + ' error' : '',
           this.state.filteredTags?.length ? 'open-suggestion' : '',
         )}
       >
@@ -233,6 +239,9 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
             {missingEntryMessage}
           </span>
         )}
+        <span className={classNames('error-message', this.props.errorText ? '' : 'hide')}>
+          {this.props.errorText}
+        </span>
       </div>
     );
   }
@@ -249,6 +258,12 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
     if (!this.props.disableOnBlurAdd && !this.props.disableSelfTagAdd) {
       if (target.value) {
         this.updateChips(target.value);
+      }
+      else{
+        this.setState({
+          userInput: '',
+          filteredTags: [],
+        });
       }
     } else {
       this.setState({
@@ -395,11 +410,13 @@ export default class Tags extends React.Component<ITagsFieldProps, ITagsFiledSta
       } else {
         this.props.setTags(chips);
       }
-      this.setState({
-        chips,
-        filteredTags: [],
-        activeSuggestionIndex: -1,
-      });
+      this.setState(
+        {
+          chips,
+          filteredTags: [],
+          activeSuggestionIndex: -1,
+        },
+      );
     }
   };
 }

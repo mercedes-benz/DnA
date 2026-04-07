@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useHistory } from 'react-router-dom';
 import cn from 'classnames';
 import Styles from './NewCodeSpace.scss';
+import { Envs } from '../../Utility/envs';
 // @ts-ignore
 import Notification from '../../common/modules/uilab/js/src/notification';
 // @ts-ignore
@@ -19,11 +20,11 @@ import { CodeSpaceApiClient } from '../../apis/codespace.api';
 import { hostServer } from '../../server/api';
 // import { ApiClient } from '../../../../services/ApiClient';
 import AddUser from 'dna-container/AddUser';
-import { Envs } from '../../Utility/envs';
 // import { recipesMaster } from '../../Utility/utils';
 import ConfirmModal from 'dna-container/ConfirmModal';
 import { DEPLOYMENT_DISABLED_RECIPE_IDS } from '../../Utility/constants';
 import Tags from 'dna-container/Tags';
+import InfoModal from 'dna-container/InfoModal';
 
 const classNames = cn.bind(Styles);
 
@@ -52,12 +53,43 @@ const NewCodeSpace = (props) => {
   const onBoadingMode = props.onBoardingCodeSpace !== undefined;
   const onEditingMode = props.onEditingCodeSpace !== undefined;
   const projectDetails = props.onBoardingCodeSpace?.projectDetails || props.onEditingCodeSpace?.projectDetails;
+  
+  const getEnvironmentPrefix = () => {
+    let envRef = Envs.CODE_SERVER_GIT_ENVREF || '';
+    
+    if (!envRef && window.CODE_SPACE_INJECTED_ENVIRONMENT) {
+      envRef = window.CODE_SPACE_INJECTED_ENVIRONMENT.CODE_SERVER_GIT_ENVREF || '';
+    }
+    
+    if (!envRef) {
+      const apiUrl = Envs.API_BASEURL || '';
+      const codeSpaceApiUrl = Envs.CODE_SPACE_API_BASEURL || '';
+      
+      if (apiUrl.includes('dev.') || codeSpaceApiUrl.includes('dev.')) {
+        envRef = 'dev';
+      } else if (apiUrl.includes('test.') || codeSpaceApiUrl.includes('test.')) {
+        envRef = 'test';
+      } else if (apiUrl.includes('prod.') || codeSpaceApiUrl.includes('prod.')) {
+        envRef = 'prod';
+      }
+    }
+    
+    if (envRef.toLowerCase() === 'dev') {
+      return 'dev-cs';
+    } else if (envRef.toLowerCase() === 'test') {
+      return 'test-cs';
+    }
+    return '';
+  };
+
+  const envPrefix = getEnvironmentPrefix();
+  
   const [divisions, setDivisions] = useState([]);
   const [subDivisions, setSubDivisions] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [dataClassificationDropdown, setDataClassificationDropdown] = useState([]);
 
-  const [projectName, setProjectName] = useState('');
+  const [projectName, setProjectName] = useState(envPrefix);
   const [projectNameError, setProjectNameError] = useState('');
   const [environment, setEnvironment] = useState('DHC-CaaS-AWS');
   const [recipeValue, setRecipeValue] = useState(projectDetails?.recipeDetails?.Id ? projectDetails?.recipeDetails?.Id : '0');
@@ -120,6 +152,9 @@ const NewCodeSpace = (props) => {
   const [procedureIDError, setProcedureIDError] = useState('');
   const [showProgressIndicator, setShowProgressIndicator] = useState(false);
 
+  const [enableDeployApproval, setEnableDeployApproval] = useState(projectDetails?.dataGovernance?.enableDeployApproval ? true : false);
+
+  const [showSsoInfoPopup, setShowSsoInfoPopup] = useState(false);
 
   const requiredError = '*Missing entry';
   const livelinessIntervalRef = React.useRef();
@@ -210,26 +245,49 @@ const NewCodeSpace = (props) => {
   }, [codeSpaceCollaborators]);// eslint-disable-line react-hooks/exhaustive-deps
 
   const sanitizedRepositoryName = (name) => {
-    return name.replace(/[\s_-]/g, '-');
+    return name.replace(/[\s]/g, '-').replace(/[_-]+/g, (match) => {
+      if (envPrefix && name.indexOf(match) < envPrefix.length) {
+        return match;
+      }
+      return '-';
+    });
   };
 
   const onProjectNameOnChange = (evnt) => {
-    const projectNameVal = sanitizedRepositoryName(evnt.currentTarget.value);
+    let projectNameVal = evnt.currentTarget.value;
+    
+    if (envPrefix && !projectNameVal.startsWith(envPrefix)) {
+      projectNameVal = envPrefix;
+    }
+    
+    if (envPrefix && projectNameVal.length > envPrefix.length) {
+      const userPart = projectNameVal.substring(envPrefix.length);
+      const sanitizedUserPart = userPart.replace(/[\s_]/g, '-');
+      projectNameVal = envPrefix + sanitizedUserPart;
+    } else if (!envPrefix) {
+      projectNameVal = sanitizedRepositoryName(projectNameVal);
+    }
+    
     setProjectName(projectNameVal);    
-    const hasSpecialChars = /[^A-Za-z0-9-]/.test(projectNameVal);
+    const hasSpecialChars = /[^A-Za-z0-9-_]/.test(projectNameVal);
     const startsOrEndswith = /^-|-$|(--)|^\d+$/i.test(projectNameVal);
     const startsWithNumber = /^\d/.test(projectNameVal);
     
+    const nameWithoutPrefix = envPrefix ? projectNameVal.substring(envPrefix.length) : projectNameVal;
+    
     if (hasSpecialChars) {
-      setProjectNameError('Invalid name: Should not contain any special characters except for "-".');
+      setProjectNameError('Invalid name: Should not contain any special characters except for "-" and "_".');
     }
-    else if (!projectNameVal.length) {
+    else if (projectNameVal.length <= envPrefix.length) {
       setProjectNameError(requiredError);
     }
-    else if (startsWithNumber) {
+    else if (!nameWithoutPrefix.length) {
+      setProjectNameError(requiredError);
+    }
+    else if (startsWithNumber && !envPrefix) {
       setProjectNameError('Invalid name: Should not start with a number.');
     }
-    else if (startsOrEndswith) {
+    else if (startsOrEndswith && !envPrefix) {
       setProjectNameError('Invalid name: Should not start or end with "-" or name contains only numbers.');
     }
     else {
@@ -303,14 +361,14 @@ const NewCodeSpace = (props) => {
   const onArcherIdChange = (e) => {
     const currentValue = e.currentTarget.value;
     setArcherId(currentValue);
-    const pattern = /^(INFO)-\d{5}$/.test(currentValue);
+    const pattern = /^(INFO)-\d{1,10}$/.test(currentValue);
     setArcherIdError(currentValue.length && !pattern ? 'Archer ID should be of type INFO-XXXXX' : '');
   };
 
   const onProcedureIDChange = (e) => {
     const currentValue = e.currentTarget.value;
     setProcedureID(currentValue);
-    const pattern = /^(PO|ITPLC)-\d{5}$/.test(currentValue);
+    const pattern = /^(PO|ITPLC)-\d{1,10}$/.test(currentValue);
     setProcedureIDError(currentValue.length && !pattern ? 'Procedure ID should be of type PO-XXXXX / ITPLC-XXXXX' : '');
   };
 
@@ -353,6 +411,7 @@ const NewCodeSpace = (props) => {
       mobileNumber: collaborator.mobileNumber,
       gitUserName: collaborator.shortId,
       isAdmin: collaborator.isAdmin,
+      isApprover : collaborator.isApprover,
       // permission: { read: true, write: false },
     };
 
@@ -375,20 +434,51 @@ const NewCodeSpace = (props) => {
     }
   };
 
-  const onCollaboratorPermission = (e, userId) => {
+  const onCollaboratorPermission = async (e, userId) => {
+    const codeSpaceCollaborator = codeSpaceCollaborators.find((item) => {
+      return item.id == userId;
+    });
+    const previousValue = codeSpaceCollaborator.isAdmin;
+    codeSpaceCollaborator.isAdmin = e.target.checked;
+    setCodeSpaceCollaborators([...codeSpaceCollaborators]);
+    if (onEditingMode) {
+      ProgressIndicator.show();
+      try {
+        await CodeSpaceApiClient.assignAdminRole(
+          props.onEditingCodeSpace.id,
+          userId,
+          e.target.checked
+        );
+        Notification.show("Admin privilege updated.", "success");
+      } catch (err) {
+        codeSpaceCollaborator.isAdmin = previousValue;
+        setCodeSpaceCollaborators([...codeSpaceCollaborators]);
+
+        Notification.show(
+          err?.response?.data?.errors?.[0]?.message ||
+          "Failed due to an internal error",
+          'alert'
+        );
+      } finally {
+        ProgressIndicator.hide();
+      }
+    }
+  };
+
+  const onCollaboratorApproverPermission = (e, userId) => {
     const codeSpaceCollaborator = codeSpaceCollaborators.find((item) => {
       return item.id == userId;
     });
 
     if (e.target.checked) {
-      codeSpaceCollaborator.isAdmin = true;
+      codeSpaceCollaborator.isApprover = true;
       if (onEditingMode) {
-        CodeSpaceApiClient.assignAdminRole(props.onEditingCodeSpace.id, userId, true);
+        CodeSpaceApiClient.assignApproverRole(props.onEditingCodeSpace.id, userId, true);
       }
     } else {
-      codeSpaceCollaborator.isAdmin = false;
+      codeSpaceCollaborator.isApprover = false;
       if (onEditingMode) {
-        CodeSpaceApiClient.assignAdminRole(props.onEditingCodeSpace.id, userId, false);
+        CodeSpaceApiClient.assignApproverRole(props.onEditingCodeSpace.id, userId, false);
       }
     }
     setCodeSpaceCollaborators([...codeSpaceCollaborators]);
@@ -467,25 +557,26 @@ const NewCodeSpace = (props) => {
   };
 
   const processDeleteCollaborator = () => {
-    CodeSpaceApiClient.deleteCollaborator(props.onEditingCodeSpace.id, collaboratorToDelete.id).then((res) => {
-      ProgressIndicator.hide();
-      if (res.data.success === 'SUCCESS') {
-        trackEvent('DnA Code Space', 'Delete Collaborator', 'Existing Code Space');
-        props.onEditingCodeSpace.projectDetails.projectCollaborators = [...updateCollaborator(collaboratorToDelete.id)];
-        Notification.show(
-          `Collaborator '${collaboratorToDelete.firstName}' has been removed successfully from the Code Space.`,
-        );
-      } else {
-        Notification.show(
-          `Error removing collaborator '${collaboratorToDelete.firstName}' from the Code Space. Please try again later.\n ${res.errors[0].message}`,
-          'alert',
-        );
-      }
-    })
-    .catch((err) => {
-      ProgressIndicator.hide();
-      Notification.show('Error in removing colloborator from code space. Please try again later.\n' + err.message, 'alert');
-    });
+        CodeSpaceApiClient.deleteCollaborator(props.onEditingCodeSpace.id, collaboratorToDelete.id).then((res) => {
+        ProgressIndicator.hide();
+        if (res.data.success === 'SUCCESS') {
+          trackEvent('DnA Code Space', 'Delete Collaborator', 'Existing Code Space');
+          props.onEditingCodeSpace.projectDetails.projectCollaborators = [...updateCollaborator(collaboratorToDelete.id)];
+          Notification.show(
+            `Collaborator '${collaboratorToDelete.firstName}' has been removed successfully from the Code Space.`,
+          );
+        } else {
+          Notification.show(
+            `Error removing collaborator '${collaboratorToDelete.firstName}' from the Code Space. Please try again later.\n ${res.errors[0].message}`,
+            'alert',
+          );
+        }
+      })
+      .catch((err) => {
+        ProgressIndicator.hide();
+        Notification.show('Error in removing colloborator from code space. Please try again later.\n' + err.message, 'alert');
+      });
+    
     setCollaboratorToDelete(undefined);
   };
 
@@ -550,7 +641,7 @@ const NewCodeSpace = (props) => {
 
   const validateNewCodeSpaceForm = (isPublicRecipeChoosen) => {
     let formValid = true;
-    if (!projectName.length) {
+    if (!projectName.length || projectName.length <= envPrefix.length) {
       setProjectNameError(requiredError);
       formValid = false;
     }
@@ -711,6 +802,7 @@ const NewCodeSpace = (props) => {
           tags: tags,
           archerId: archerId,
           procedureID: procedureID,
+          enableDeployApproval: enableDeployApproval,
         },
       };
 
@@ -757,6 +849,7 @@ const NewCodeSpace = (props) => {
               piiData: PII,
               archerId: archerId,
               procedureID: procedureID,
+              enableDeployApproval: enableDeployApproval,
             },
             recipeDetails: {
               cloudServiceProvider: environment, 
@@ -884,8 +977,42 @@ const NewCodeSpace = (props) => {
   const recipe = recipesMaster.find((item) => item.id === recipeValue);
 
   const isPublicRecipeChoosen = recipe?.aliasId && recipe?.aliasId?.startsWith('public');
-  const githubUrlValue = isPublicRecipeChoosen ? 'https://github.com/' : Envs.CODE_SPACE_GIT_PAT_APP_URL;
+  const isWorkspaceMigratedToGHE = props.onBoardingCodeSpace?.isWorkspaceMigratedToGHE || props.onEditingCodeSpace?.isWorkspaceMigratedToGHE;
+  const repoDetailsUrl = projectDetails?.recipeDetails?.repodetails || selectedRecipe?.repodetails;
+  const githubUrlValue = isPublicRecipeChoosen 
+    ? 'https://github.com/' 
+    : (isWorkspaceMigratedToGHE || repoDetailsUrl?.includes('ghe.com'))
+      ? Envs.CODE_SPACE_GHE_PAT_APP_URL 
+      : Envs.CODE_SPACE_GIT_PAT_APP_URL;
   const resources = projectDetails?.recipeDetails?.resource?.split(',');
+
+  const ssoInfoPopupContent = (
+    <div className={Styles.ssoInfoModalWrapper}>
+      <ol>
+        <li>
+          <label className={Styles.modalHeader}>Steps to generate Personal access token:</label>
+          <ul>
+            <li>login to <a href={Envs.CODE_SPACE_GHE_PAT_APP_URL} target='_blank' rel='noopener noreferrer'>{Envs.CODE_SPACE_GHE_PAT_APP_URL}</a>.</li>
+            <li>Go to <span className={classNames(Styles.listInfo)}> Account Icon -&gt; Settings -&gt; Developer Settings</span>.</li>
+            <li>Under <span className={classNames(Styles.listInfo)}>Personal access tokens</span> select <span className={classNames(Styles.listInfo)}>Token (classic)</span>.</li>
+            <li>click on <span className={classNames(Styles.listInfo)}>Generate new token -&gt; Generate new token (classic)</span>.</li>
+            <li>Give the required <span className={classNames(Styles.listInfo)}>expiry</span> and select all the <span className={classNames(Styles.listInfo)}>scopes</span> and generate your token.</li>
+            <li>Once your token is generated copy and save it for future use.</li>
+          </ul>
+        </li>
+        <li><label className={classNames(Styles.modalHeader, Styles.padding)}>Steps to configure SSO for your Personal access Token:</label>
+          <ul>
+            <li>Once your token is generated click on <span className={classNames(Styles.highlightYellow)}>Configure SSO</span> and select <span className={classNames(Styles.listInfo)}>DNA-CodeSpaces</span> as the authorizer.</li>
+            <li>Use the previously copied PAT token to create your codespace.</li>
+          </ul>
+        </li>
+      </ol>
+
+    </div>
+
+
+  );
+
   return (
     <React.Fragment>
       {onBoadingMode ? (
@@ -926,8 +1053,8 @@ const NewCodeSpace = (props) => {
                 <label>Department</label>
               </div>
               <div>{projectDetails?.dataGovernance?.department ? projectDetails?.dataGovernance?.department : 'N/A'}</div>
-              <div></div>
-              <div></div>
+              <div>Deployment Approval Enabled</div>
+              <div>{projectDetails?.dataGovernance?.enableDeployApproval ? 'Yes' : 'No'}</div>
             </div>
             {projectDetails?.dataGovernance?.typeOfProject !== 'Playground' && <div className={Styles.flexLayout}>
               <div>
@@ -1022,7 +1149,7 @@ const NewCodeSpace = (props) => {
           {recipe?.aliasId !== 'default' && <>
             <p>Enter the information to start creating!</p>
             <div>
-              <div>
+              <div className={classNames(githubUrlValue?.includes(Envs.CODE_SPACE_GHE_PAT_APP_URL) ? Styles.patToken : '')}>
                 <TextBox
                   type="password"
                   controlId={'githubTokenInput'}
@@ -1036,6 +1163,11 @@ const NewCodeSpace = (props) => {
                   maxLength={50}
                   onChange={onGithubTokenOnChange}
                 />
+                {githubUrlValue?.includes(Envs.CODE_SPACE_GHE_PAT_APP_URL) && (<span className={Styles.warning}>
+                  <strong>Important Note:</strong> Please ensure SSO is enabled for your Personal Access Token(classic) to DNA-CodeSpaces. For more information click <button className={Styles.ssoInfoPopup} onClick={() => { setShowSsoInfoPopup(true); }}>
+                    here
+                  </button>.
+                </span>)}
               </div>
             </div>
           </>}
@@ -1054,54 +1186,89 @@ const NewCodeSpace = (props) => {
               <p>Enter the information to start creating!</p>
               {/* <p className={Styles.passwordInfo}>Note: Password should be minimum 8 chars in length and alpha numeric.</p> */}
               <div className={Styles.flexLayout}>
-                <div
-                  className={classNames('input-field-group include-error', typeOfProjectError?.length ? 'error' : '')}
-                >
-                  <label className={classNames(Styles.inputLabel, 'input-label')}>
-                    Type of Project <sup>*</sup>
-                  </label>
-
-                  <div className={classNames('custom-select')}>
-                    <select
-                      id="reportStatusField"
-                      defaultValue={typeOfProject}
-                      required={true}
-                      required-error={requiredError}
-                      onChange={onTypeOfProjectChange}
-                      value={typeOfProject}
-                    >
-                      <option id="typeOfProjectOption" value={0}>
-                        Choose
-                      </option>
-                      <option value={'Playground'}>Playground</option>
-                      <option value={'Proof of Concept'}>Proof of Concept</option>
-                      <option value={'Production'}>Production</option>
-                    </select>
-                  </div>
-                  <p
-                    style={{ color: 'var(--color-orange)' , marginLeft:'-143px'}}
-                    className={classNames(typeOfProject !== 'Playground' ? ' hide' : '')}
-                  >
-                    <i className="icon mbc-icon alert circle"></i> Playground projects are deleted after 2 months of not
-                    being used.
-                  </p>
-                  <span className={classNames('error-message', typeOfProjectError.length ? '' : 'hide')}>
-                    {typeOfProjectError}
-                  </span>
-                </div>
                 <div>
                   <TextBox
                     type="text"
                     controlId={'productNameInput'}
                     labelId={'productNameLabel'}
                     label={'Code Space Name'}
-                    placeholder={'Type here'}
+                    placeholder={envPrefix ? `${envPrefix}your-name-here` : 'Type here'}
                     value={projectName}
                     errorText={projectNameError}
                     required={true}
                     maxLength={39}
                     onChange={onProjectNameOnChange}
                   />
+                </div>
+                <div className={Styles.flexLayout}>
+                  <div
+                    className={classNames('input-field-group include-error', typeOfProjectError?.length ? 'error' : '')}
+                  >
+                    <label className={classNames(Styles.inputLabel, 'input-label')}>
+                      Type of Project <sup>*</sup>
+                    </label>
+
+                    <div className={classNames('custom-select')}>
+                      <select
+                        id="reportStatusField"
+                        defaultValue={typeOfProject}
+                        required={true}
+                        required-error={requiredError}
+                        onChange={onTypeOfProjectChange}
+                        value={typeOfProject}
+                      >
+                        <option id="typeOfProjectOption" value={0}>
+                          Choose
+                        </option>
+                        <option value={'Playground'}>Playground</option>
+                        <option value={'Proof of Concept'}>Proof of Concept</option>
+                        <option value={'Production'}>Production</option>
+                      </select>
+                    </div>
+                    <p
+                      style={{ color: 'var(--color-orange)'}}
+                      className={classNames(typeOfProject !== 'Playground' ? ' hide' : '')}
+                    >
+                      <i className="icon mbc-icon alert circle"></i> Playground projects are deleted after 2 months of not
+                      being used.
+                    </p>
+                    <span className={classNames('error-message', typeOfProjectError.length ? '' : 'hide')}>
+                      {typeOfProjectError}
+                    </span>
+                  </div>
+                  <div className={classNames('input-field-group')}>
+                    <label className={classNames(Styles.inputLabel, 'input-label')}>
+                      Enable deployment approval workflow <sup>*</sup>
+                    </label>
+                    <div className={Styles.pIIField}>
+                      <label className={classNames('radio')}>
+                        <span className="wrapper">
+                          <input
+                            type="radio"
+                            className="ff-only"
+                            value="true"
+                            name="enableDeployApproval"
+                            defaultChecked={enableDeployApproval === true}
+                            onChange={() => {setEnableDeployApproval(true)}}
+                          />
+                        </span>
+                        <span className="label">Yes</span>
+                      </label>
+                      <label className={classNames('radio')}>
+                        <span className="wrapper">
+                          <input
+                            type="radio"
+                            className="ff-only"
+                            value="false"
+                            name="enableDeployApproval"
+                            defaultChecked={enableDeployApproval === false}
+                            onChange={() => {setEnableDeployApproval(false)}}
+                          />
+                        </span>
+                        <span className="label">No</span>
+                      </label>
+                    </div>
+                  </div>
                 </div>
               </div>
               <div className={Styles.flexLayout}>
@@ -1508,20 +1675,6 @@ const NewCodeSpace = (props) => {
                         <input
                           type="radio"
                           className="ff-only"
-                          value="DHC-CaaS"
-                          name="environment"
-                          onChange={onEnvironmentChange}
-                          checked={environment==='DHC-CaaS'}
-                          disabled={true}
-                        />
-                      </span>
-                      <span className="label">DyP CaaS (On-Prem)</span>
-                    </label>
-                    <label className={classNames('radio')}>
-                      <span className="wrapper">
-                        <input
-                          type="radio"
-                          className="ff-only"
                           value="azure"
                           name="environment"
                           onChange={onEnvironmentChange}
@@ -1621,7 +1774,7 @@ const NewCodeSpace = (props) => {
               )}
               {recipe?.aliasId !== 'default' && (
                 <div>
-                  <div>
+                  <div className={classNames(githubUrlValue?.includes(Envs.CODE_SPACE_GHE_PAT_APP_URL) ? Styles.patToken : '')}>
                     <TextBox
                       type="password"
                       controlId={'githubTokenInput'}
@@ -1635,6 +1788,11 @@ const NewCodeSpace = (props) => {
                       maxLength={50}
                       onChange={onGithubTokenOnChange}
                     />
+                      {githubUrlValue?.includes(Envs.CODE_SPACE_GHE_PAT_APP_URL) && (<span className={Styles.warning}>
+                        <strong>Important Note:</strong> Please ensure SSO is enabled for your Personal Access Token(classic) to DNA-CodeSpaces. For more information click <button className={Styles.ssoInfoPopup} onClick={() => {setShowSsoInfoPopup(true); console.log("click");}}>
+                          here
+                        </button>.
+                      </span>)}
                   </div>
                 </div>
               )}
@@ -1700,30 +1858,65 @@ const NewCodeSpace = (props) => {
                       {typeOfProjectError}
                     </span>
                   </div>
-                  <div
-                    className={classNames(
-                      Styles.bucketNameInputField,
-                      'input-field-group include-error',
-                      departmentError ? 'error' : '',
-                    )}
-                  >
-                    <div>
-                      <div className={Styles.departmentTags}>
-                        <Tags
-                          title={'Department'}
-                          max={1}
-                          chips={department}
-                          tags={departments}
-                          setTags={(selectedTags) => {
-                            const dept = selectedTags?.map((item) => item.toUpperCase());
-                            setDepartment(dept);
-                            setDepartmentError(false);
-                          }}
-                          isMandatory={true}
-                          showMissingEntryError={departmentError}
+                  <div className={Styles.flexLayout}>
+                    <div
+                      className={classNames(
+                        Styles.bucketNameInputField,
+                        'input-field-group include-error',
+                        departmentError ? 'error' : '',
+                      )}
+                    >
+                      <div>
+                        <div className={Styles.departmentTags}>
+                          <Tags
+                            title={'Department'}
+                            max={1}
+                            chips={department}
+                            tags={departments}
+                            setTags={(selectedTags) => {
+                              const dept = selectedTags?.map((item) => item.toUpperCase());
+                              setDepartment(dept);
+                              setDepartmentError(false);
+                            }}
+                            isMandatory={true}
+                            showMissingEntryError={departmentError}
 
-                        />
+                          />
 
+                        </div>
+                      </div>
+                    </div>
+                    <div className={classNames('input-field-group')}>
+                      <label className={classNames(Styles.inputLabel, 'input-label')}>
+                        Enable deployment approval workflow <sup>*</sup>
+                      </label>
+                      <div className={Styles.pIIField}>
+                        <label className={classNames('radio')}>
+                          <span className="wrapper">
+                            <input
+                              type="radio"
+                              className="ff-only"
+                              value="true"
+                              name="enableDeployApproval"
+                              defaultChecked={enableDeployApproval === true}
+                              onChange={() => {setEnableDeployApproval(true)}}
+                            />
+                          </span>
+                          <span className="label">Yes</span>
+                        </label>
+                        <label className={classNames('radio')}>
+                          <span className="wrapper">
+                            <input
+                              type="radio"
+                              className="ff-only"
+                              value="false"
+                              name="enableDeployApproval"
+                              defaultChecked={enableDeployApproval === false}
+                              onChange={() => {setEnableDeployApproval(false)}}
+                            />
+                          </span>
+                          <span className="label">No</span>
+                        </label>
                       </div>
                     </div>
                   </div>
@@ -2045,12 +2238,31 @@ const NewCodeSpace = (props) => {
                                           type="checkbox"
                                           className="ff-only"
                                           value="admin"
-                                          disabled={props.user.id === item.id}
+                                          disabled={
+                                            props.user.id === item.id ||
+                                            (!onEditingMode && !selectedRecipe?.isPublic)
+                                          }
                                           checked={item?.isAdmin || false}
                                           onChange={(e) => onCollaboratorPermission(e, item?.id)}
                                         />
                                       </span>
                                       <label className={Styles.permissionContent}>Admin</label>
+                                    </label>
+                                  </div>
+                                  &nbsp;&nbsp;&nbsp;
+                                  <div className={classNames('input-field-group include-error ' + Styles.inputGrp)}>
+                                    <label className={'checkbox'}>
+                                      <span className="wrapper">
+                                        <input
+                                          type="checkbox"
+                                          className="ff-only"
+                                          value="approver"
+                                          disabled={!enableDeployApproval}
+                                          checked={item?.isApprover || false}
+                                          onChange={(e) => onCollaboratorApproverPermission(e, item?.id)}
+                                        />
+                                      </span>
+                                      <label className={Styles.permissionContent}>Approver</label>
                                     </label>
                                   </div>
                                 </div>
@@ -2098,6 +2310,18 @@ const NewCodeSpace = (props) => {
             )}
           </div>
         </div>
+      )}
+      {showSsoInfoPopup && (
+        <InfoModal
+          title={'Cofigure SSO for Personal Access Token'}
+          modalWidth={'60%'}
+          modalStyle={{
+            maxWidth: '70%',
+          }}
+          show={showSsoInfoPopup}
+          content={ssoInfoPopupContent}
+          onCancel={() => setShowSsoInfoPopup(false)}
+        />
       )}
     </React.Fragment>
   );

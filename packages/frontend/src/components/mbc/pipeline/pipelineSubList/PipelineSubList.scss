@@ -189,14 +189,21 @@
               font-size: var(--font-size-smallest);
               margin: 0;
               i {
-                font-size: var(--font-size-icon-small);
+                  font-size: var(--font-size-icon-small);
+                }
+              
+                &:hover {
+                  color: #00adef;
+                }
+              
+                &:focus {
+                  outline: none !important;
+                  box-shadow: none !important;
+                  border: none !important;
+                }
               }
-              &:hover {
-                color: #00adef;
               }
-            }
-          }
-        }
+              }
         .dagTileContentCollabarationPanel {
           padding-right: 0;
           .dagCollTile {
@@ -546,11 +553,23 @@
 .expansionLabel {
   .dagTile {
     .dagTitleCol {
+      padding-right: 10px;
+      margin-left: 5px;
+      margin-right: -10px;
+
       &:nth-child(2) {
-        padding-left: 19px;
+        padding-left: 21px;
+        padding-right: 10px;
       }
+
       &:nth-child(3) {
-        padding-left: 19px;
+        padding-left: 21px;
+        padding-right: 10px;
+      }
+
+      &:nth-child(4) {
+        padding-left: 21px;
+        padding-right: 30px;
       }
     }
   }
@@ -574,3 +593,36 @@
     right: 10px;
   }
 }
+.iconBtn {
+  background: transparent;
+  border: none;
+  padding: 4px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  outline: none; 
+  width: 28px;
+  height: 28px;
+
+  i {
+    font-size: var(--font-size-icon);
+    color: #acb8c4;
+    transition: color 0.2s ease;
+  }
+
+  &:hover {
+    background: transparent;
+  }
+
+  &:hover i {
+    color: #00adef;
+  }
+
+  &:focus {
+    outline: none !important;       // 🔥 prevents white glow
+    box-shadow: none !important;    // 🔥 removes black ring
+    border: none !important;        // ensures no fallback border
+  }
+}
+

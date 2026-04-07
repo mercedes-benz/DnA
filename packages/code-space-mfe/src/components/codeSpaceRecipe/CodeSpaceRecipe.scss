@@ -10,8 +10,16 @@
   }
 
   .btnConatiner{
-    text-align: right;
-    margin-bottom: 12px;
+    display: flex;
+    justify-content: flex-end;
+    padding: 24px 0;
+    margin-bottom: 40px; 
+  }
+
+  .disableVerifyButton{
+    color: #c0c8d0 !important;
+    background-color: #383f49 !important;
+    border-color: #383f49 !important;
   }
 
   .actionWrapper {
@@ -129,11 +137,6 @@
       right: 0px;
     }
 
-    .disableVerifyButton{
-      color: #c0c8d0 !important;
-      background-color: #383f49 !important;
-      border-color: #383f49 !important;
-    }
 
     .verifyButton {
       padding: 0 !important;
@@ -257,5 +260,53 @@
 
   pre {
     display: inline;
+  }
+}
+
+.deployWrapper {
+  background: #252a33 !important;
+  margin-top: 15px !important;
+  padding: 25px 38px;
+  .formWrapper {
+    margin: 60px 70px 0;
+    min-height: 150px;
+    .checkboxWrapper{
+      margin-left: -10px;
+    }
+  }
+}
+
+.smallPanel {
+  background: #252a33;
+  padding: 20px 30px; 
+}
+
+.description {
+  border-radius: 8px;
+  margin-top: 16px;
+
+  p {
+    margin: 8px 0;
+    font-size: 14px;
+    color: #d1d5db;
+  }
+
+  a {
+    color: #58a6ff;
+    text-decoration: none;
+
+    &:hover {
+      text-decoration: underline;
+    }
+  }
+}
+
+.imageContainer {
+  margin-bottom: 12px;
+
+  img {
+    max-width: 200px;
+    height: auto;
+    border-radius: 6px;
   }
 }

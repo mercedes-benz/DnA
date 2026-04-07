@@ -1,8 +1,37 @@
+/* LICENSE START
+ * 
+ * MIT License
+ * 
+ * Copyright (c) 2019 Daimler TSS GmbH
+ * 
+ * Permission is hereby granted, free of charge, to any person obtaining a copy
+ * of this software and associated documentation files (the "Software"), to deal
+ * in the Software without restriction, including without limitation the rights
+ * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+ * copies of the Software, and to permit persons to whom the Software is
+ * furnished to do so, subject to the following conditions:
+ * 
+ * The above copyright notice and this permission notice shall be included in all
+ * copies or substantial portions of the Software.
+ * 
+ * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+ * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+ * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+ * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+ * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+ * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+ * SOFTWARE.
+ * 
+ * LICENSE END 
+ */
+
 package com.daimler.data.application.client;
 
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 
@@ -13,6 +42,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
@@ -40,6 +70,11 @@ import com.daimler.data.dto.fabric.LakehouseS3ShortcutDto;
 import com.daimler.data.dto.fabric.LakehouseS3ShortcutResponseDto;
 import com.daimler.data.dto.fabric.MicrosoftGroupDetailCollectionDto;
 import com.daimler.data.dto.fabric.MicrosoftGroupDetailDto;
+import com.daimler.data.dto.fabric.MicrosoftGroupMemberCollectionDto;
+import com.daimler.data.dto.fabric.MicrosoftGroupMembersDto;
+import com.daimler.data.dto.fabric.PrincipalDto;
+import com.daimler.data.dto.fabric.RoleAssignmentRequestDto;
+import com.daimler.data.dto.fabric.RoleAssignmentResponseDto;
 import com.daimler.data.dto.fabric.WorkspaceDetailDto;
 import com.daimler.data.dto.fabric.WorkspaceUpdateDto;
 import com.daimler.data.dto.fabric.WorkspacesCollectionDto;
@@ -86,8 +121,11 @@ public class FabricWorkspaceClient {
 	@Value("${fabricWorkspaces.tokenTypeHint}")
 	private String tokenTypeHint;
 	
-	@Value("${fabricWorkspaces.capacityId}")
-	private String capacityId;
+	@Value("${fabricWorkspaces.powerbiCapacityId}")
+	private String powerbiCapacityId;
+
+	@Value("${fabricWorkspaces.fabricCapacityId}")
+	private String fabricCapacityId;
 	
 	@Value("${fabricWorkspaces.uri.login}")
 	private String loginUrl;
@@ -196,7 +234,7 @@ public class FabricWorkspaceClient {
 			headers.set("Authorization", "Bearer "+token);
 			headers.setContentType(MediaType.APPLICATION_JSON);
 			HttpEntity requestEntity = new HttpEntity<>(headers);
-			String groupSearchUrl = ConstantsUtility.GROUPSEARCH_URL_PREFIX + groupDisplayName + ConstantsUtility.GROUPSEARCH_URL_SUFFIX;
+			String groupSearchUrl = ConstantsUtility.GROUPSEARCH_URL + ConstantsUtility.GROUPSEARCH_URL_PREFIX + groupDisplayName + ConstantsUtility.GROUPSEARCH_URL_SUFFIX;
 			ResponseEntity<MicrosoftGroupDetailCollectionDto> response = proxyRestTemplate.exchange(groupSearchUrl , HttpMethod.GET,
 					requestEntity, MicrosoftGroupDetailCollectionDto.class);
 			if (response !=null && response.hasBody()) {
@@ -213,6 +251,37 @@ public class FabricWorkspaceClient {
 		return microsoftGroupDetailDto;
 	}
 	
+	public MicrosoftGroupMemberCollectionDto getGroupMembers(String groupDisplayName) {
+		MicrosoftGroupMemberCollectionDto collection = new MicrosoftGroupMemberCollectionDto();
+		try {
+			String token = getTokenForGroupSearch(); 
+			if (!Objects.nonNull(token)) {
+				log.error("Failed to fetch token to invoke group member search API");
+				return null;
+			}
+			HttpHeaders headers = new HttpHeaders();
+			headers.setAccept(List.of(MediaType.APPLICATION_JSON));
+			headers.setBearerAuth(token);
+			headers.setContentType(MediaType.APPLICATION_JSON);
+			HttpEntity<String> requestEntity = new HttpEntity<>(headers);
+			String groupMembersUrl = ConstantsUtility.GROUPSEARCH_URL + "/" + groupDisplayName + "/members";
+			ResponseEntity<MicrosoftGroupMemberCollectionDto> response = proxyRestTemplate.exchange(groupMembersUrl, HttpMethod.GET,
+					requestEntity, MicrosoftGroupMemberCollectionDto.class);
+			if (response != null && response.hasBody()) {
+				collection = response.getBody();
+				if (collection != null && collection.getValue() != null && !collection.getValue().isEmpty()) {
+					log.info("Successfully fetched members for groupId {}", groupDisplayName);
+				} else {
+					log.info("GroupId {} has no members", groupDisplayName);
+				}
+			}
+		} catch (Exception e) {
+			log.error("Failed to get members for groupId {} with exception {}", groupDisplayName, e.getMessage());
+			collection = null;
+		}
+		return collection;
+	}
+
 	public GenericMessage addUserToDatasource(String datasourceConnectionId, String emailAddress) {
 		GenericMessage response = new GenericMessage();
 		try {
@@ -811,8 +880,9 @@ public class FabricWorkspaceClient {
 		return workspaceDetailDto;
 	}
 	
-	public ErrorResponseDto assignCapacity(String workspaceId) {
+	public ErrorResponseDto assignCapacity(String workspaceId, boolean isPowerBI) {
 		ErrorResponseDto errorResponse = new ErrorResponseDto();
+		String capacityId = isPowerBI ? powerbiCapacityId : fabricCapacityId;
 		try {
 			String token = getToken();
 			if(!Objects.nonNull(token)) {
@@ -877,8 +947,9 @@ public class FabricWorkspaceClient {
 		return errorResponse;
 	}
 	
-	public ErrorResponseDto unassignCapacity(String workspaceId) {
+	public ErrorResponseDto unassignCapacity(String workspaceId, boolean isPowerBI) {
 		ErrorResponseDto errorResponse = new ErrorResponseDto();
+		String capacityId = isPowerBI ? powerbiCapacityId : fabricCapacityId;
 		try {
 			String token = getToken();
 			if(!Objects.nonNull(token)) {
@@ -932,6 +1003,131 @@ public class FabricWorkspaceClient {
 			log.error("Failed to delete workspace details for id {} with {} exception ", workspaceId, e.getMessage());
 		}
 		return errorResponse;
+	}
+
+	public HttpStatus createFolder(String workspaceId, String folderName) {
+		try {
+			String token = getToken();
+			if(!Objects.nonNull(token)) {
+				log.error("Failed to fetch token to invoke fabric Apis");
+				return  HttpStatus.INTERNAL_SERVER_ERROR;
+			}
+
+			Map<String, String> requestBody = new HashMap<>();
+        	requestBody.put("displayName", folderName);
+
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Authorization", "Bearer "+token);
+			headers.setContentType(MediaType.APPLICATION_JSON);
+
+			HttpEntity requestEntity = new HttpEntity<>(requestBody,headers);
+			String workspaceUrl = workspacesBaseUrl + "/" + workspaceId +"/folders";
+			ResponseEntity<String> response = proxyRestTemplate.exchange(workspaceUrl , HttpMethod.POST,
+					requestEntity, String.class);
+			return response.getStatusCode();
+		}catch(Exception e) {
+			log.error("Failed to create folder  for diaplayName {} with {} exception ", folderName, e.getMessage());	
+		}
+		return  HttpStatus.INTERNAL_SERVER_ERROR;
+	}
+	
+	public boolean checkGroupExists(String groupId) {
+		try {
+			MicrosoftGroupMemberCollectionDto collection = getGroupMembers(groupId);
+			// If we can get members (even if empty), the group exists
+			return collection != null;
+		} catch (Exception e) {
+			log.error("Failed to check if group {} exists: {}", groupId, e.getMessage());
+			return false;
+		}
+	}
+	
+	public RoleAssignmentResponseDto assignRoleToWorkspace(String workspaceId, String groupId, String role) {
+		RoleAssignmentResponseDto responseDto = new RoleAssignmentResponseDto();
+		try {
+			String token = getToken();
+			if(!Objects.nonNull(token)) {
+				log.error("Failed to fetch token to invoke fabric Apis");
+				responseDto.setErrorCode("500");
+				responseDto.setMessage("Failed to login using service principal, please try later.");
+				return responseDto;
+			}
+			
+			// Build request DTO
+			PrincipalDto principal = new PrincipalDto();
+			principal.setId(groupId);
+			principal.setType("Group");
+			
+			RoleAssignmentRequestDto requestDto = new RoleAssignmentRequestDto();
+			requestDto.setPrincipal(principal);
+			requestDto.setRole(role);
+			
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Authorization", "Bearer "+token);
+			headers.setContentType(MediaType.APPLICATION_JSON);
+			
+			HttpEntity<RoleAssignmentRequestDto> requestEntity = new HttpEntity<>(requestDto, headers);
+			
+			// Construct admin API URL: https://api.fabric.microsoft.com/v1/admin/workspaces/{workspaceId}/roleAssignments
+			String roleAssignmentUrl = workspacesBaseUrl + "/" + workspaceId + "/roleAssignments";
+			
+			ResponseEntity<RoleAssignmentResponseDto> response = proxyRestTemplate.exchange(roleAssignmentUrl, HttpMethod.POST,
+					requestEntity, RoleAssignmentResponseDto.class);
+			
+			if (response != null && response.hasBody() && response.getStatusCode().is2xxSuccessful()) {
+				responseDto = response.getBody();
+				// Ensure errorCode is null for successful responses
+				if (responseDto != null) {
+					responseDto.setErrorCode(null);
+					responseDto.setMessage(null);
+				}
+				log.info("Successfully assigned role {} to group {} for workspace {}", role, groupId, workspaceId);
+			} else if (response != null && !response.getStatusCode().is2xxSuccessful()) {
+				responseDto.setErrorCode(String.valueOf(response.getStatusCode().value()));
+				responseDto.setMessage("Failed to assign role: HTTP " + response.getStatusCode().value());
+				log.error("Failed to assign role {} to group {} for workspace {}: HTTP {}", 
+						role, groupId, workspaceId, response.getStatusCode().value());
+			}
+		} catch (HttpClientErrorException.Conflict e) {
+			log.info("Role {} already assigned to group {} for workspace {} - treating as success", 
+					role, groupId, workspaceId);
+			// Return success response for duplicate assignment
+			responseDto.setErrorCode(null);
+			responseDto.setMessage(null);
+			responseDto.setRole(role);
+			PrincipalDto principal = new PrincipalDto();
+			principal.setId(groupId);
+			principal.setType("Group");
+			responseDto.setPrincipal(principal);
+		} catch (HttpClientErrorException.BadRequest e) {
+			log.error("Failed to assign role {} to group {} for workspace {} with bad request error {}", 
+					role, groupId, workspaceId, e.getMessage());
+			responseDto.setErrorCode("400");
+			responseDto.setMessage("Bad request: " + e.getMessage());
+		} catch (HttpClientErrorException.Unauthorized e) {
+			log.error("Failed to assign role {} to group {} for workspace {} with unauthorized error {}", 
+					role, groupId, workspaceId, e.getMessage());
+			responseDto.setErrorCode("401");
+			responseDto.setMessage("Unauthorized: " + e.getMessage());
+		} catch (HttpClientErrorException.Forbidden e) {
+			log.error("Failed to assign role {} to group {} for workspace {} with forbidden error {}", 
+					role, groupId, workspaceId, e.getMessage());
+			responseDto.setErrorCode("403");
+			responseDto.setMessage("Forbidden: " + e.getMessage());
+		} catch (HttpClientErrorException.NotFound e) {
+			log.error("Failed to assign role {} to group {} for workspace {} with not found error {}", 
+					role, groupId, workspaceId, e.getMessage());
+			responseDto.setErrorCode("404");
+			responseDto.setMessage("Not found: " + e.getMessage());
+		} catch (Exception e) {
+			log.error("Failed to assign role {} to group {} for workspace {} with error {}", 
+					role, groupId, workspaceId, e.getMessage());
+			responseDto.setErrorCode("500");
+			responseDto.setMessage("Failed to assign role: " + e.getMessage());
+		}
+		return responseDto;
 	}
 	
 	

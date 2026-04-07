@@ -564,6 +564,17 @@
     }
   }
 
+  .oneAPILink{
+    color: #99a5b3;
+    &:hover {
+      color: #99a5b3 !important; 
+    }
+  }
+
+  .builDeployMargin{
+    margin-left: 12px;
+  }
+
   @keyframes fsbtn11 {
     0% {
       right: 3px;

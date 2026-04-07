@@ -579,6 +579,7 @@ public class BaseStorageService implements StorageService {
 
 		LOGGER.debug("list bucket objects through minio client");
 		MinioGenericResponse minioObjectResponse = dnaMinioClient.getBucketObjectsUsingMC(currentUser, bucketName, prefix);
+		LOGGER.debug("minioObjectResponse :"+ minioObjectResponse);
 		if (minioObjectResponse != null && minioObjectResponse.getStatus().equals(ConstantsUtility.SUCCESS)) {
 			LOGGER.debug("Success from list objects minio client");
 			BucketObjectResponseVO bucketObjectResponseVO = new BucketObjectResponseVO();
@@ -587,7 +588,7 @@ public class BaseStorageService implements StorageService {
 
 			LOGGER.debug("Fetching bucket:{} permission for user:{}",bucketName,currentUser);
 			bucketObjectResponseVO.setBucketPermission(dnaMinioClient.getBucketPermission(bucketName, currentUser));
-
+			LOGGER.debug("bucketObjectResponseVO :"+ bucketObjectResponseVO);
 			objectResponseWrapperVO.setData(bucketObjectResponseVO);
 			httpStatus = minioObjectResponse.getHttpStatus();
 
@@ -1139,23 +1140,27 @@ public class BaseStorageService implements StorageService {
 				// if read permission available adding it
 				// if read permission not available removing it
 				if (Boolean.TRUE.equals(permissionVO.isRead())) {
-					policy = StorageUtility.addPolicy(policy, readPolicy);
+				//	policy = StorageUtility.addPolicy(policy, readPolicy);
+					dnaMinioClient.setPolicy(userId, false, readPolicy, true);
 				} else {
-					policy = StorageUtility.removePolicy(policy, readPolicy);
+					//policy = StorageUtility.removePolicy(policy, readPolicy);
+					dnaMinioClient.setPolicy(userId, false, readPolicy, false);
 				}
 				// Checking for read/write permission
 				// if read/write permission available adding it
 				// if read/write permission not available removing it
 				if (Boolean.TRUE.equals(permissionVO.isWrite())) {
-					policy = StorageUtility.addPolicy(policy, readWritePolicy);
+					//policy = StorageUtility.addPolicy(policy, readWritePolicy);
+					dnaMinioClient.setPolicy(userId, false, readWritePolicy, true);
 				} else {
-					policy = StorageUtility.removePolicy(policy, readWritePolicy);
+					//policy = StorageUtility.removePolicy(policy, readWritePolicy);
+					dnaMinioClient.setPolicy(userId, false, readWritePolicy, false);
 				}
 				// Setting permission in Minio
 				if("".equalsIgnoreCase(policy) || policy == null || !StringUtils.hasText(policy)) {
 					dnaMinioClient.deleteUser(userId);
 				}else {
-					dnaMinioClient.setPolicy(userId, false, policy);
+					//dnaMinioClient.setPolicy(userId, false, policy, true);
 				}
 
 			}
@@ -1191,15 +1196,15 @@ public class BaseStorageService implements StorageService {
 				// Getting policy from user
 				policy = userInfo.policyName();
 				// Removing read permission
-				policy = StorageUtility.removePolicy(policy, readPolicy);
+				//policy = StorageUtility.removePolicy(policy, readPolicy);
+				dnaMinioClient.setPolicy(userId, false, readPolicy, false);
 				// Removing read/write permission
-				policy = StorageUtility.removePolicy(policy, readWritePolicy);
+				dnaMinioClient.setPolicy(userId, false, readWritePolicy, false);
+				//policy = StorageUtility.removePolicy(policy, readWritePolicy);
 				// Setting permission in Minio
-				if("".equalsIgnoreCase(policy) || policy == null || !StringUtils.hasText(policy)) {
-					dnaMinioClient.deleteUser(userId);
-				}else {
-					dnaMinioClient.setPolicy(userId, false, policy);
-				}
+				// if("".equalsIgnoreCase(policy) || policy == null || !StringUtils.hasText(policy)) {
+				// 	dnaMinioClient.deleteUser(userId);
+				// }
 
 			}
 		}
@@ -1505,8 +1510,8 @@ public class BaseStorageService implements StorageService {
 				//Getting policy from user
 				newOwnerpolicy = newOwnerUserInfo.policyName();
 				//Add read-write policy to the new owner
-				newOwnerpolicy = StorageUtility.addPolicy(newOwnerpolicy, readWritePolicy);
-				dnaMinioClient.setPolicy(newOwner.getId(), false, newOwnerpolicy);
+				//newOwnerpolicy = StorageUtility.addPolicy(newOwnerpolicy, readWritePolicy);
+				dnaMinioClient.setPolicy(newOwner.getId(), false, readWritePolicy, true);
 			}catch(Exception e) {
 				LOGGER.error("Failed while calling DnaMinioClient with Exception: {} ", e.getMessage());
 				MessageDescription msg = new MessageDescription("Failed while calling DnaMinioClient.");

@@ -1,0 +1,14 @@
+{
+    "library": "spring-mvc",
+    "dateLibrary": "legacy",
+    "hideGenerationTimestamp": true,
+    "useTags": true,
+    "modelPackage": "com.daimler.data.dto.adaProjects",
+    "apiPackage": "com.daimler.data.api.adaProjects",
+    "invokerPackage": "com.daimler.data.service.adaProjects",
+    "importMappings": {
+        "BindingResult": "org.springframework.validation.BindingResult",
+        "GenericMessage": "com.daimler.data.controller.exceptions.GenericMessage",
+        "MessageDescription": "com.daimler.data.controller.exceptions.MessageDescription"
+    }
+}

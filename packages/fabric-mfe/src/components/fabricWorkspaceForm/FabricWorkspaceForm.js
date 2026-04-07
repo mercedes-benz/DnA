@@ -1,12 +1,13 @@
 import classNames from 'classnames';
 import React, { useState, useEffect } from 'react';
-import { useForm, FormProvider } from 'react-hook-form';
+import { useForm, FormProvider, Controller } from 'react-hook-form';
 import { useHistory } from "react-router-dom";
 // styles
 import Styles from './fabric-workspace-form.scss';
 // import from DNA Container
 import Tags from 'dna-container/Tags';
 import SelectBox from 'dna-container/SelectBox';
+import TypeAheadBox from 'dna-container/TypeAheadBox';
 // App components
 import Notification from '../../common/modules/uilab/js/src/notification';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
@@ -14,16 +15,22 @@ import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indica
 import { Envs } from '../../utilities/envs';
 // Api
 import { hostServer } from '../../server/api';
-import { fabricApi } from '../../apis/fabric.api';
+import { fabricApi} from '../../apis/fabric.api';
+import { USER_ROLE } from '../../utilities/constants';
 
-const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
+const FabricWorkspaceForm = ({ workspace, edit, onSave, user}) => {
   let history = useHistory();
-  
+  const isFabricAdmin = user?.roles?.find((role) => role?.id === USER_ROLE.FABRICADMIN) !== undefined;
+  const isWorkspaceOwner = edit && workspace?.createdBy?.id === user.id;
+  const isRestrictedEdit = isFabricAdmin && edit && !isWorkspaceOwner;
+
   const methods = useForm();
   const {
     register,
     handleSubmit,
     setValue,
+    watch,
+    control,
     formState: { errors },
   } = methods;
 
@@ -38,7 +45,10 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
   const [dataClassificationDropdown, setDataClassificationDropdown] = useState([]);
   const [solutions, setSolutions] = useState([]);
   const [reports, setReports] = useState([]);
-  const [fabricTags] = useState([]);
+  const [fabricTags, setFabricTags] = useState([]);
+  const [projectList, setProjectList] = useState([]);
+  const [selectedProject, setSelectedProject] = useState(edit && workspace?.projectId ? { projectID: workspace?.projectId } : {});
+  const selectedDivision = watch('division');
 
   const [costCenter, setCostCenter] = useState(edit && workspace?.costCenter !== null ? workspace?.costCenter : '');
   const [internalOrder, setInternalOrder] = useState(edit && workspace?.internalOrder !== null ? workspace?.internalOrder : '');
@@ -49,6 +59,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
   const [typeOfProject, setTypeOfProject] = useState(edit && workspace?.typeOfProject ? workspace?.typeOfProject : '0');
   const [dataClassification, setDataClassification] = useState(edit && workspace?.dataClassification ? workspace?.dataClassification : '0');
   const [PII, setPII] = useState(edit && workspace?.hasPii ? workspace?.hasPii : false);
+  const [subscription, setSubscription] = useState(edit && workspace?.subscription ? workspace?.subscription : 'PowerBI');
   const [tags, setTags] = useState(edit && workspace?.tags !== null ? [...workspace.tags] : []);
   const [relatedSolutionsTags, setRelatedSolutionsTags] = useState(edit && workspace?.relatedSolutions !== null ? workspace.relatedSolutions.map(sols => sols.name) : []);
   const [relatedReportsTags, setRelatedReportsTags] = useState(edit && workspace?.relatedReports !== null ? workspace.relatedReports.map(repos => repos.name) : []);
@@ -57,6 +68,10 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
   const [archerId, setArcherID] = useState(edit && workspace?.archerId ? workspace?.archerId : '');
   const [procedureId, setProcedureID] = useState(edit && workspace?.procedureId ? workspace?.procedureId : '');
   const [termsOfUse, setTermsOfUse] = useState(edit && workspace?.termsOfUse ? [workspace?.termsOfUse] : false);
+  const [leanIXList, setLeanIXList] = useState([]);
+  const [selectedLeanIX, setSelectedLeanIX] = useState(
+    edit && workspace?.appId ? { id: workspace?.appId, ...workspace?.leanIXDetails } : []
+  );
 
   useEffect(() => {
     ProgressIndicator.show();
@@ -81,6 +96,25 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
       });
     //eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    if (selectedLeanIX.id) {
+      setValue('leanIX', {
+        appId: selectedLeanIX.id,
+        leanIXDetails: {
+          objectState: selectedLeanIX.ObjectState,
+          appReferenceStr: selectedLeanIX.appReferenceStr,
+          name: selectedLeanIX.name,
+          providerOrgDeptid: selectedLeanIX.providerOrgDeptid,
+          providerOrgId: selectedLeanIX.providerOrgId,
+          providerOrgRefstr: selectedLeanIX.providerOrgRefstr,
+          providerOrgShortname: selectedLeanIX.providerOrgShortname,
+          shortName: selectedLeanIX.shortName,
+        },
+      });
+    }
+  }, [selectedLeanIX, setValue]);
+
 
   useEffect(() => {
     ProgressIndicator.show();
@@ -114,11 +148,26 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
   }, []);
 
   useEffect(() => {
+    ProgressIndicator.show();
+    fabricApi.getAllTags()
+      .then((res) => {
+        ProgressIndicator.hide();
+        const tagList = res?.data?.map((tag) => {return { id: tag.id, name: tag.name}});
+        setFabricTags([...tagList]);
+      })
+      .catch((err) => {
+        ProgressIndicator.hide();
+        Notification.show(err?.message || 'Failed to fetch tags', 'alert');
+      });
+  }, []);
+
+
+  useEffect(() => {
     const divId = division.includes('@-@') ? division.split('@-@')[0] : division;
     if (divId && divId!=='0' ) {
       ProgressIndicator.show();
       hostServer.get('/subdivisions/' + divId)
-        .then((res) => {
+        .then((res) => { 
           setSubDivisions(res?.data || []);
           SelectBox.defaultSetup();
           ProgressIndicator.hide();
@@ -156,6 +205,10 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [departmentName[0]]);
 
+  useEffect(() => {
+    SelectBox.defaultSetup();
+  }, []);
+
   const onRelatedSolutionsChange = (selectedTags) => {
     const tempSolutions = solutions.filter(solution => {
       if(selectedTags.includes(solution.name)) {
@@ -176,12 +229,54 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
     setRelatedReportsTags(tempReports.map(rep => rep.name));
   }
 
+  const handleLeanIXSearch = (searchTerm, showSpinner) => {
+    if (searchTerm.length > 3) {
+      showSpinner(true);
+      fabricApi
+        .getLeanIX(searchTerm)
+        .then((res) => {
+          setLeanIXList(res.data.data || []);
+          showSpinner(false);
+        })
+        .catch((e) => {
+          showSpinner(false);
+          Notification.show(
+            e.response?.data?.errors?.[0]?.message || 'Error while fethcing planning IT list.',
+            'alert',
+          );
+        });
+    }
+  };
+  
+  const filteredProjects = projectList.length === 0 ? null : projectList;
+  
+  
+  const handleProjectSearch = (searchTerm, showSpinner) => {
+    if (searchTerm.length > 2) {
+      showSpinner(true);
+      fabricApi
+        .searchProjectDetails(searchTerm)
+        .then((res) => {
+          setProjectList(res.data?.records || []);
+          showSpinner(false);
+        })
+        .catch((e) => {
+          showSpinner(false);
+          Notification.show(
+            e.response?.data?.errors?.[0]?.message || 'Error while fetching project list.',
+            'alert',
+          );
+        });
+    }
+  };
+
   const handleCreateWorkspace = (values) => {
     ProgressIndicator.show();
     const data = {
       name: values.name.trim(),
       tags: tags,
       hasPii: values?.pii,
+      subscription: values?.subscription,
       archerId: values?.archerId,
       divisionId: values?.division?.includes('@-@') ? values?.division?.split('@-@')[0] : '',
       division: values?.division?.includes('@-@') ? values?.division?.split('@-@')[1] : '',
@@ -197,6 +292,8 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
       internalOrder: values?.internalOrder.trim(),
       relatedSolutions: relatedSolutions,
       relatedReports: relatedReports,
+      projectId: values?.projectDetails || null,
+      ...(values.leanIX || {})
     };
     fabricApi.createFabricWorkspace(data).then((res) => {
       ProgressIndicator.hide();
@@ -215,6 +312,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
       name: values.name.trim(),
       tags: tags,
       hasPii: values?.pii,
+      subscription: values?.subscription,
       archerId: values?.archerId,
       divisionId: values?.division?.includes('@-@') ? values?.division?.split('@-@')[0] : '',
       division: values?.division?.includes('@-@') ? values?.division?.split('@-@')[1] : '',
@@ -230,6 +328,8 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
       internalOrder: values?.internalOrder.trim(),
       relatedSolutions: relatedSolutions,
       relatedReports: relatedReports,
+      projectId: values?.projectDetails || null,
+      ...(values.leanIX || {})
     }
     ProgressIndicator.show();
     fabricApi.updateFabricWorkspace(workspace.id, data).then(() => {
@@ -244,6 +344,12 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
       );
     });
   };
+  
+const divisionId = division ? division.split('@-@')[0] : null;
+const mandate = divisionId && Envs.MANDATE_LEANIX_FOR_DIVISIONS 
+  ? Envs.MANDATE_LEANIX_FOR_DIVISIONS.split(',').includes(divisionId) 
+  : false;
+const isLeanIXRequired = typeOfProject === 'Production' && mandate;
 
   return (
     <>
@@ -301,6 +407,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
                   autoComplete="off"
                   maxLength={256}
                   defaultValue={nameOfWorkspace}
+                  disabled={isRestrictedEdit}
                   {...register('name', { required: '*Missing entry', pattern: /^(?!Admin monitoring$)(?!^\s+$)[\w\d-_]+$/, onChange: (e) => { setNameOfWorkspace(e.target.value) } })}
                 />
                 <span className={'error-message'}>{errors?.name?.message}{errors.name?.type === 'pattern' && 'Workspace names must contain alphanumeric characters only - and _ are allowed. \'Admin monitoring\' name and spaces are not allowed.'}</span>
@@ -316,6 +423,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
                   className={'input-field-area'}
                   type="text"
                   defaultValue={description}
+                  disabled={isRestrictedEdit}
                   rows={50}
                   {...register('description', { required: '*Missing entry', pattern: /^(?!\s+$)(\s*\S+\s*)+$/, onChange: (e) => { setDescription(e.target.value) } })}
                 />
@@ -325,7 +433,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
             <div className={Styles.col2}>
               <div className={classNames('input-field-group include-error', errors?.costCenter ? 'error' : '')}>
                   <label className={'input-label'}>
-                    Cost Center <sup>*</sup>
+                    Cost Center 
                   </label>
                   <div>
                     <input
@@ -336,7 +444,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
                       autoComplete="off"
                       maxLength={256}
                       defaultValue={costCenter}
-                      {...register('costCenter', { required: '*Missing entry', pattern: /^(?!^\s+$)[\w\d -]+$/g, onChange: (e) => { setCostCenter(e.target.value) } })}
+                      {...register('costCenter', { pattern: /^(?!^\s+$)[\w\d -]+$/g, onChange: (e) => { setCostCenter(e.target.value) } })}
                     />
                     <span className={'error-message'}>{errors?.costCenter?.message}{errors.costCenter?.type === 'pattern' && `Spaces (and special characters) not allowed as field value.`}</span>
                   </div>
@@ -345,7 +453,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
             <div className={Styles.col2}>
               <div className={classNames('input-field-group', errors?.internalOrder ? 'error' : '')}>
                   <label className={'input-label'}>
-                    Internal Order <sup>*</sup>
+                    Internal Order 
                   </label>
                   <div>
                     <input
@@ -356,12 +464,66 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
                       autoComplete="off"
                       maxLength={256}
                       defaultValue={internalOrder}
-                      {...register('internalOrder', { required: '*Missing entry', pattern: /^(?!^\s+$)[\w\d -]+$/g, onChange: (e) => { setInternalOrder(e.target.value) } })}
+                      {...register('internalOrder', { pattern: /^(?!^\s+$)[\w\d -]+$/g, onChange: (e) => { setInternalOrder(e.target.value) } })}
                     />
                     <span className={'error-message'}>{errors?.internalOrder?.message}{errors.internalOrder?.type === 'pattern' && `Spaces not allowed as field value..`}</span>
                   </div>
                 </div>
             </div>
+            {(typeOfProject !== 'Playground' && typeOfProject !== 'Proof of Concept') && 
+              (
+                <div className={Styles.col2}>
+                  <div className={classNames('input-field-group')}>
+                  <Controller
+                    control={control}
+                    name="leanIX"
+                    rules={{
+                      required: isLeanIXRequired ? '*Missing entry' : false,
+                    }}
+                    render={({ field }) => (
+                        <TypeAheadBox
+                          label={'LeanIX App-ID'}
+                          placeholder={'Select App-ID (Enter minimum 4 characters)'}
+                          defaultValue={selectedLeanIX.id}
+                          list={leanIXList}
+                          setSelected={(selectedTags) => {
+                            const leanIXData = {
+                              appId: selectedTags.id,
+                              leanIXDetails: {
+                                objectState: selectedTags.ObjectState,
+                                appReferenceStr: selectedTags.appReferenceStr,
+                                name: selectedTags.name,
+                                providerOrgDeptid: selectedTags.providerOrgDeptid,
+                                providerOrgId: selectedTags.providerOrgId,
+                                providerOrgRefstr: selectedTags.providerOrgRefstr,
+                                providerOrgShortname: selectedTags.providerOrgShortname,
+                                shortName: selectedTags.shortName,
+                              },
+                            };
+                            setSelectedLeanIX(selectedTags || {});
+                            field.onChange(leanIXData);
+                          }}
+                          onInputChange={handleLeanIXSearch}
+                          required={isLeanIXRequired}
+                          showError={errors.leanIX?.message}
+                          render={(item) => (
+                            <div className={Styles.optionContainer}>
+                              <div>
+                                <span className={Styles.optionText}>
+                                  {item?.id} {item.shortName ? `(${item?.shortName})` : null}
+                                </span>
+                                <span className={Styles.suggestionListBadge}>{item?.providerOrgShortname}</span>
+                              </div>
+                              <span className={Styles.optionText}>{item?.name}</span>
+                            </div>
+                          )}
+                        />
+                      )}
+                  />
+                  </div>
+                </div>
+              )
+            }
             {typeOfProject !== 'Playground' && 
               <>
                 <div className={Styles.col2}>
@@ -584,6 +746,104 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
                 </div>
               </div>
             </div>
+            <div className={Styles.col2}>
+              <div className={classNames('input-field-group include-error')}>
+                <label className={'input-label'}>
+                  Subscription <sup>*</sup>
+                </label>
+                <div className={Styles.pIIField}>
+                  <label className={classNames('radio')}>
+                    <span className="wrapper">
+                      <input
+                        type="radio"
+                        className="ff-only"
+                        value="PowerBI"
+                        name="subscription"
+                        defaultChecked={subscription === 'PowerBI'}
+                        {...register('subscription', {
+                          required: '*Missing entry',
+                          onChange: (e) => { setSubscription(e.target.value) }
+                        })}
+                      />
+                    </span>
+                    <span className="label">PowerBI</span>
+                  </label>
+                  <label className={classNames('radio')}>
+                    <span className="wrapper">
+                      <input
+                        type="radio"
+                        className="ff-only"
+                        value="Fabric"
+                        name="subscription"
+                        defaultChecked={subscription === 'Fabric'}
+                        {...register('subscription', {
+                          required: '*Missing entry',
+                          onChange: (e) => { setSubscription(e.target.value) }
+                        })}
+                      />
+                    </span>
+                    <span className="label">Fabric</span>
+                  </label>
+                </div>
+              </div>
+            </div>
+            <div className={Styles.col2}>
+              <div className={classNames('input-field-group')}>
+                <Controller
+                  control={control}
+                  name="projectDetails"
+                  rules={{
+                    required: false,
+                  }}
+                  render={({ field }) => (
+                    <TypeAheadBox
+                      label={'Project Details (Recommended for Billing Purpose)'}
+                      placeholder={'Search Project Name'}
+                      defaultValue={selectedProject?.projectID}
+                      list={filteredProjects}
+                      setSelected={(selectedProject) => {
+                        setSelectedProject(selectedProject || {});
+                        field.onChange(selectedProject?.projectID || '');
+                      }}
+                      onInputChange={(value, showSpinner) =>
+                        handleProjectSearch(value, showSpinner, selectedDivision)
+                      }
+                      required={false}
+                      showError={errors.projectDetails?.message}
+                      render={(item) => {
+                        const stakeholderIds = item?.stakeholders?.map((s) => s.userID).join(', ') || '—';
+                        const tagValues = item?.tags?.map((t) => t.value).join(', ') || '—';
+
+                        return (
+                          <div className={Styles.optionContainer}>
+                            <div className={Styles.optionHeader}>
+                              <span className={Styles.optionText}>
+                                {item.projectName}
+                              </span>
+                            </div>
+                            {item?.division && (
+                              <div className={Styles.optionSubText}>
+                                <strong>Division:</strong> {item.division}
+                              </div>
+                            )}
+                            {stakeholderIds !== '—' && (
+                              <div className={Styles.optionSubText}>
+                                <strong>Stakeholders:</strong> {stakeholderIds}
+                              </div>
+                            )}
+                            {tagValues !== '—' && (
+                              <div className={Styles.optionSubText}>
+                                <strong>Tags:</strong> {tagValues}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      }}
+                    />
+                  )}
+                />
+              </div>
+            </div>
             {typeOfProject !== 'Playground' &&
               <>
                 <div className={Styles.col2}>
@@ -600,7 +860,8 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
                         autoComplete="off"
                         maxLength={55}
                         defaultValue={archerId}
-                        {...register('archerId', { pattern: /^(INFO)-\d{5}$/, onChange: (e) => { setArcherID(e.target.value) } })}
+                        disabled={isRestrictedEdit}
+                        {...register('archerId', { pattern: /^(INFO)-\d{1,10}$/, onChange: (e) => { setArcherID(e.target.value) } })}
                       />
                       <span className={'error-message'}>{errors.archerId?.type === 'pattern' && 'Archer ID should be of type INFO-XXXXX'}</span>
                     </div>
@@ -620,11 +881,17 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave }) => {
                         autoComplete="off"
                         maxLength={55}
                         defaultValue={procedureId}
-                        {...register('procedureId', { pattern: /^(PO|ITPLC)-\d{5}$/, onChange: (e) => { setProcedureID(e.target.value) } })}
+                        disabled={isRestrictedEdit}
+                        {...register('procedureId', { pattern: /^(PO|ITPLC)-\d{1,10}$/, onChange: (e) => { setProcedureID(e.target.value) } })}
                       />
                       <span className={'error-message'}>{errors.procedureId?.type === 'pattern' && 'Procedure ID should be of type PO-XXXXX / ITPLC-XXXXX'}</span>
                     </div>
                   </div>
+                </div>
+                <div className={Styles.col}>
+                  <p className={Styles.warning}>
+                    <i className="icon mbc-icon alert circle" /> If you do not have projects mapped under the division selected or for any other queries reagrding projects creation, kindly reach to our support team through our Email: <a href={`mailto:${Envs.DNA_MAIL}`} target="_blank" rel="noreferrer">{Envs.DNA_MAIL}</a>
+                  </p>
                 </div>
               </>
             }

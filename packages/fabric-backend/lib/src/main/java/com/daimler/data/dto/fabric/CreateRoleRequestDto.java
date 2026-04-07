@@ -8,6 +8,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 
@@ -27,6 +28,7 @@ public class CreateRoleRequestDto implements Serializable{
     private boolean isJobTitle;
     private boolean notificationsActive;
 
+    @Getter
     @JsonProperty("isDynamic")
     private boolean isDynamic;
     @JsonProperty("isSelfRequestable")

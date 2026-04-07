@@ -11,6 +11,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import com.daimler.data.controller.exceptions.GenericMessage;
@@ -31,6 +32,12 @@ public class CodeServerClient {
 	@Value("${codeServer.gitjob.manageuri}")
 	private String codeServerGitJobManageUri;
 
+	@Value("${codeServer.git.ghe.deployuri}")
+	private String codeServerGheJobDeployUri;
+	
+	@Value("${codeServer.git.ghe.manageuri}")
+	private String codeServerGheJobManageUri;
+
 	@Value("${codeServer.git.orguri}")
 	private String codeserverGitOrgUri;
 
@@ -39,6 +46,9 @@ public class CodeServerClient {
 	
 	@Value("${codeServer.gitjob.pat}")
 	private String personalAccessToken;
+	
+	@Value("${codeServer.git.ghe.pat}")
+	private String ghePersonalAccessToken;
 	
 	@Value("${codeServer.base.uri}")
 	private String codeServerBaseUri;
@@ -57,9 +67,15 @@ public class CodeServerClient {
 
 	@Value("${codeServer.jupyter.url.aws}")
 	private String jupyterUrlAws;
+
+	@Value("${codeServer.gitjob.getWorkflowRun}")
+	private String codeServerGitGetWorkflowRun;
 	
 	@Autowired
 	RestTemplate restTemplate;
+
+	@Value("${codeServer.build.deleteuri}")
+	private String codeserverBuildDeleteUri;
 	
 
 	
@@ -125,6 +141,8 @@ public class CodeServerClient {
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");
 			headers.set("Authorization", "Bearer " + personalAccessToken);
+			log.debug("[CodeServerClient] manageWorkBench - Calling REST API - Method: POST, URL: {}, Action: {}, ShortId: {}, DTO: {}", 
+				codeServerGitJobManageUri, manageDto.getInputs().getAction(), manageDto.getInputs().getShortid(), manageDto);
 			HttpEntity<WorkbenchManageDto> entity = new HttpEntity<WorkbenchManageDto>(manageDto,headers);
 			ResponseEntity<String> manageWorkbenchResponse = restTemplate.exchange(codeServerGitJobManageUri, HttpMethod.POST, entity, String.class);
 						if (manageWorkbenchResponse != null && manageWorkbenchResponse.getStatusCode()!=null) {
@@ -151,6 +169,65 @@ public class CodeServerClient {
 		response.setErrors(errors);
 		return response;
 	}
+	
+	// public GenericMessage manageWorkBench(WorkbenchManageDto manageDto, boolean useGHE) {
+	// 	GenericMessage response = new GenericMessage();
+	// 	String status = "FAILED";
+	// 	List<MessageDescription> warnings = new ArrayList<>();
+	// 	List<MessageDescription> errors = new ArrayList<>();
+	// 	try {
+	// 		HttpHeaders headers = new HttpHeaders();
+	// 		headers.set("Accept", "application/json");
+	// 		headers.set("Content-Type", "application/json");
+
+	// 		String workflowUri;
+	// 		if (useGHE) {
+	// 			headers.set("Authorization", "Bearer " + ghePersonalAccessToken);
+	// 			workflowUri = codeServerGheJobManageUri;
+	// 			log.info("Using GHE workflow URI for workspace management: {}", workflowUri);
+	// 		} else {
+	// 			headers.set("Authorization", "Bearer " + personalAccessToken);
+	// 			workflowUri = codeServerGitJobManageUri;
+	// 			log.info("Using GitLab workflow URI for workspace management: {}", workflowUri);
+	// 		}
+
+	// 		log.debug(
+	// 				"[CodeServerClient] manageWorkBench (GHE routing) - Calling REST API - Method: POST, URL: {}, UseGHE: {}, Action: {}, ShortId: {}, DTO: {}",
+	// 				workflowUri, useGHE, manageDto.getInputs().getAction(), manageDto.getInputs().getShortid(),
+	// 				manageDto);
+
+	// 		HttpEntity<WorkbenchManageDto> entity = new HttpEntity<WorkbenchManageDto>(manageDto, headers);
+	// 		ResponseEntity<String> manageWorkbenchResponse = restTemplate.exchange(workflowUri, HttpMethod.POST, entity,
+	// 				String.class);
+	// 		if (manageWorkbenchResponse != null && manageWorkbenchResponse.getStatusCode() != null) {
+	// 			if (manageWorkbenchResponse.getStatusCode().is2xxSuccessful()) {
+	// 				status = "SUCCESS";
+	// 				log.info("Success while performing {} action for codeServer workbench for user {} ",
+	// 						manageDto.getInputs().getAction(), manageDto.getInputs().getShortid());
+	// 			} else {
+	// 				log.info("Warnings while performing {} for codeServer workbench of user {}, httpstatuscode is {}",
+	// 						manageDto.getInputs().getAction(), manageDto.getInputs().getShortid(),
+	// 						manageWorkbenchResponse.getStatusCodeValue());
+	// 				MessageDescription warning = new MessageDescription();
+	// 				warning.setMessage("Response from codeServer Initialize : " + manageWorkbenchResponse.getBody()
+	// 						+ " Response Code is : " + manageWorkbenchResponse.getStatusCodeValue());
+	// 				warnings.add(warning);
+	// 			}
+	// 		}
+
+	// 	} catch (Exception e) {
+	// 		log.error(
+	// 				"Error occured while calling codeServer manage workbench for user {} and action {} with exception {} ",
+	// 				manageDto.getInputs().getAction(), manageDto.getInputs().getShortid(), e.getMessage());
+	// 		MessageDescription error = new MessageDescription();
+	// 		error.setMessage("Failed while managing codeserver workbench with exception " + e.getMessage());
+	// 		errors.add(error);
+	// 	}
+	// 	response.setSuccess(status);
+	// 	response.setWarnings(warnings);
+	// 	response.setErrors(errors);
+	// 	return response;
+	// }
 
     // create code server using jupyter hub for a user 
 	public GenericMessage doCreateCodeServer(WorkbenchManageDto manageDto, String codespaceName) {
@@ -490,6 +567,10 @@ public class CodeServerClient {
 	}
 	
 	public GenericMessage manageDeployment(DeploymentManageDto deployDto) {
+		return manageDeployment(deployDto, false);
+	}
+
+	public GenericMessage manageDeployment(DeploymentManageDto deployDto, boolean useGHE) {
 		GenericMessage response = new GenericMessage();
 		String status = "FAILED";
 		List<MessageDescription> warnings = new ArrayList<>();
@@ -498,16 +579,36 @@ public class CodeServerClient {
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");
-			headers.set("Authorization", "Bearer " + personalAccessToken);
-			HttpEntity<DeploymentManageDto> entity = new HttpEntity<DeploymentManageDto>(deployDto,headers);
-			ResponseEntity<String> manageDeploymentResponse = restTemplate.exchange(codeServerGitJobDeployUri, HttpMethod.POST, entity, String.class);
+			
+			String workflowUri;
+			String pat;
+			
+			if (useGHE) {
+				headers.set("Authorization", "Bearer " + ghePersonalAccessToken);
+				workflowUri = codeServerGheJobDeployUri;
+				pat = ghePersonalAccessToken;
+				log.info("Using GHE workflow endpoint for deployment: {}", workflowUri);
+			} else {
+				headers.set("Authorization", "Bearer " + personalAccessToken);
+				workflowUri = codeServerGitJobDeployUri;
+				pat = personalAccessToken;
+				log.info("Using GitLab workflow endpoint for deployment: {}", workflowUri);
+			}
+			
+			HttpEntity<DeploymentManageDto> entity = new HttpEntity<DeploymentManageDto>(deployDto, headers);
+			log.info("Deploy action with url: {}", workflowUri);
+			log.debug(
+					"[CodeServerClient] manageDeployment - Calling REST API - Method: POST, URL: {}, UseGHE: {}, Action: {}, WsId: {}, Repo: {}, DTO: {}",
+					workflowUri, useGHE, deployDto.getInputs().getAction(), deployDto.getInputs().getWsid(),
+					deployDto.getInputs().getRepo(), deployDto);
+			ResponseEntity<String> manageDeploymentResponse = restTemplate.exchange(workflowUri, HttpMethod.POST, entity, String.class);
 			if (manageDeploymentResponse != null && manageDeploymentResponse.getStatusCode()!=null) {
-				if(manageDeploymentResponse.getStatusCode().is2xxSuccessful()) {
+				if(manageDeploymentResponse.getStatusCode().equals(HttpStatus.valueOf(204))) {
 					status = "SUCCESS";
-					log.info("Success while performing {} action for codeServer workbench for user {} ", deployDto.getInputs().getAction(), deployDto.getInputs().getShortid());
+					log.info("Success while performing {} action for codeServer workbench for wsid {} with repo {} ", deployDto.getInputs().getAction(), deployDto.getInputs().getWsid(),deployDto.getInputs().getRepo());
 				}
 				else {
-					log.info("Warnings while performing {} for codeServer workbench of user {}, httpstatuscode is {}", deployDto.getInputs().getAction(), deployDto.getInputs().getShortid(),manageDeploymentResponse.getStatusCodeValue());
+					log.info("Warnings while performing {} for codeServer workbench for wsid {} with repo {} , httpstatuscode is {}", deployDto.getInputs().getAction(), deployDto.getInputs().getWsid(),deployDto.getInputs().getRepo(),manageDeploymentResponse.getStatusCodeValue());
 					MessageDescription warning = new MessageDescription();
 					warning.setMessage("Response from codeServer Initialize : " + manageDeploymentResponse.getBody() + " Response Code is : " + manageDeploymentResponse.getStatusCodeValue());
 					warnings.add(warning);
@@ -515,7 +616,7 @@ public class CodeServerClient {
 			}
 			
 		} catch (Exception e) {
-			log.error("Error occured while calling codeServer manage workbench for user {} and action {} with exception {} ", deployDto.getInputs().getAction(), deployDto.getInputs().getShortid(), e.getMessage());
+			log.error("Error occured while calling codeServer manage workbench for wsid {} with repo {} and action {} with exception {} ", deployDto.getInputs().getAction(), deployDto.getInputs().getWsid(),deployDto.getInputs().getRepo(), e.getMessage());
 			MessageDescription error = new MessageDescription();
 			error.setMessage("Failed while managing codeserver workbench with exception " + e.getMessage());
 			errors.add(error);
@@ -648,6 +749,87 @@ public class CodeServerClient {
 			log.error("Error occurred while creating git repo {} with exception: {}", codespaceName, e.getMessage());
 		}
 		return false;
+	}
+
+
+	public GenericMessage deleteBuild(String projectName,String version) {
+		GenericMessage response = new GenericMessage();
+		String status = "FAILED";
+		List<MessageDescription> warnings = new ArrayList<>();
+		List<MessageDescription> errors = new ArrayList<>();
+		ResponseEntity<String> responseEntity = null;
+		try {
+			String url = codeserverBuildDeleteUri.replace("{projectName}",projectName).replace("{version}",version);
+
+        // Use exchange to get the full response back
+        responseEntity = restTemplate.exchange(url,HttpMethod.DELETE,null,String.class);
+			if (responseEntity != null && responseEntity.getStatusCode()!=null) {
+				if(responseEntity.getStatusCode().equals(HttpStatus.valueOf(200)) || responseEntity.getStatusCode().equals(HttpStatus.valueOf(204))) {
+					status = "SUCCESS";
+					log.info("Success while performing delete build action for codeServer projectName {} version {}",projectName,version);
+				}
+				else {
+					log.info("Failure while performing delete build action for codeServer projectName {} version {}",projectName,version);
+					MessageDescription warning = new MessageDescription();
+					warning.setMessage("Failure while performing delete build action for codeServer projectName "+projectName+" version "+version);
+					warnings.add(warning);
+				}
+			}
+			
+		}catch(HttpClientErrorException ex){
+			if(ex.getRawStatusCode() == 404){
+				// String responseBody = ex.getResponseBodyAsString();
+				// if (responseBody != null && responseBody.contains(projectName+":"+version)) {
+            		status = "SUCCESS";
+					log.info("Success while performing delete build action for codeServer projectName {} version {}",projectName,version);
+        		}
+			// }else{
+			// 	log.error("Failure while performing delete build action for codeServer projectName {} version {} with exception {}",projectName,version,ex.getMessage());
+			// MessageDescription error = new MessageDescription();
+			// error.setMessage("Failure while performing delete build action for codeServer projectName "+projectName+" version "+version);
+			// errors.add(error);
+			// }
+
+		}catch (Exception e) {
+			log.error("Failure while performing delete build action for codeServer projectName {} version {} with exception {}",projectName,version,e.getMessage());
+			MessageDescription error = new MessageDescription();
+			error.setMessage("Failure while performing delete build action for codeServer projectName "+projectName+" version "+version);
+			errors.add(error);
+		}
+		response.setSuccess(status);
+		response.setWarnings(warnings);
+		response.setErrors(errors);
+		return response;
+	}
+
+
+	public ResponseEntity<String> getStatusByJobRunId(String jobRunId) {
+		try {
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Content-Type", "application/json");
+			headers.set("Authorization", "Bearer " + personalAccessToken);
+			log.debug("[CodeServerClient] getStatusByJobRunId - Calling REST API - Method: GET, URL: {}, JobRunId: {}", 
+					codeServerGitGetWorkflowRun, jobRunId);
+			HttpEntity<String> entity = new HttpEntity<String>(headers);
+			ResponseEntity<String> manageResponse = restTemplate.exchange(codeServerGitGetWorkflowRun, HttpMethod.GET, entity, String.class,jobRunId);
+			if (manageResponse != null && manageResponse.getStatusCode()!=null) {
+				if(manageResponse.getStatusCode().equals(HttpStatus.valueOf(200))) {
+					log.info("Success while Getting status using jobRunId {}", jobRunId);
+					return manageResponse;
+				}
+				else {
+					log.info("Warnings while Getting status using jobRunId {} , httpstatuscode is {}", jobRunId,manageResponse.getStatusCodeValue());
+					return manageResponse;
+				}
+			}
+			
+		} catch (Exception e) {
+			log.error("Error occured while Getting status using jobRunId with exception {} {} ", jobRunId, e.getMessage());
+			return null;
+		}
+		return null;
+		
 	}
 	
 	

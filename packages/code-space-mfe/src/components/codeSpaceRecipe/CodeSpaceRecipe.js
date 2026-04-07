@@ -32,12 +32,14 @@ const CodeSpaceRecipe = (props) => {
 
   const [recipeName, setRecipeName] = useState('');
   const [isPublic, setIsPublic] = useState(false);
+  const [isDeployEnabled, setIsDeployEnabled] =  useState(false);
   const [gitUrl, setGitUrl] = useState('');
   const [hardware, setHardware] = useState('small');
   const [software, setSoftware] = useState([]);
   const [gitPath] = useState('');
   const [gitRepoLoc, setGitRepoLoc] = useState('');
   const [deployPath, setDeployPath] = useState('');
+  const [isGheRepo, setIsGheRepo] = useState(false);
   
   const [diskSpace, setDiskSpace] = useState('');
   const [minCpu, setMinCpu] = useState('0.5');
@@ -92,6 +94,7 @@ const CodeSpaceRecipe = (props) => {
           recipe?.maxCpu === '1' && setHardware('medium');
           recipe?.maxCpu === '1.5' && setHardware('large');
           setIsPublic(recipe?.isPublic);
+          setIsDeployEnabled(recipe?.isDeployEnabled ?? false);
           setGitRepoLoc(recipe?.gitRepoLoc);
           setDeployPath(recipe?.deployPath);
           setSelectedAdditionalServices(additionalServices?.filter(service => recipe?.additionalServices.includes(service?.serviceName)));
@@ -159,6 +162,12 @@ const CodeSpaceRecipe = (props) => {
       });
   }, []);
 
+  useEffect(() => {
+    if (isGheRepo && isPublic) {
+      setIsPublic(false);
+    }
+  }, [isGheRepo]);
+
   const onRecipeNameChange = (e) => {
     const value = e.currentTarget.value;
     setRecipeName(value);
@@ -169,17 +178,25 @@ const CodeSpaceRecipe = (props) => {
   };
 
   const onGitUrlChange = (e) => {
-    const githubUrlVal = e.currentTarget.value.trim();
-    setGitUrl(githubUrlVal);
-    setEnableCreate(false);
-    const errorText = githubUrlVal.length
-      ? (isValidGitUrl(githubUrlVal) ? '' : `Provide valid https://github.com/ or ${Envs.CODE_SPACE_GIT_PAT_APP_URL} git url.`)
-      : requiredError;
-    setErrorObj((prevState) => ({
-      ...prevState,
-      gitUrl: errorText,
-    }));
-  };
+  const githubUrlVal = e.currentTarget.value.trim();
+  setGitUrl(githubUrlVal);
+  setEnableCreate(false);
+
+  const isGhe = githubUrlVal.toLowerCase().includes('ghe');
+  setIsGheRepo(isGhe);
+
+  if (isGhe && isPublic) {
+    setIsPublic(false);
+    Notification.show('GHE repositories must use Private visibility.', 'alert');
+  }
+
+  const errorText = githubUrlVal.length
+    ? (isValidGitUrl(githubUrlVal) ? '' : `Provide valid https://github.com/ or ${Envs.CODE_SPACE_GIT_PAT_APP_URL} git url.`)
+    : requiredError;
+
+  setErrorObj(prev => ({ ...prev, gitUrl: errorText }));
+};
+
 
   const onSoftwareChange = (selectedTags) => {
     setSoftware(selectedTags);
@@ -249,15 +266,20 @@ const CodeSpaceRecipe = (props) => {
   };
 
   const onIsPublicChange = (e) => {
-    const currentValue = e.currentTarget.value;
-    if (currentValue === 'true') {
-      setIsPublic(true);
-      setNotificationMsg(true);
-    } else {
-      setIsPublic(false);
-      setNotificationMsg(false);
-    }
-  };
+  const currentValue = e.currentTarget.value;
+  
+  if (currentValue === 'true' && isGheRepo) {
+    Notification.show('GHE repositories cannot be set to Public visibility. Please use Private.', 'alert');
+    return;
+  }
+  if (currentValue === 'true') {
+    setIsPublic(true);
+    setNotificationMsg(true);
+  } else {
+    setIsPublic(false);
+    setNotificationMsg(false);
+  }
+};
 
   const onNotificationMsgAccept = () => {
     setIsPublic(true);
@@ -281,6 +303,9 @@ const CodeSpaceRecipe = (props) => {
       .then((response) => {
         ProgressIndicator.hide();
         if (response?.data.success === 'SUCCESS') {
+          if (isGheRepo) {
+            setIsPublic(false);
+          }    
           setEnableCreate(true);
         } else {
           setEnableCreate(false);
@@ -324,6 +349,7 @@ const CodeSpaceRecipe = (props) => {
         repodetails: gitUrl,
         software: software,
         isPublic: isPublic,
+        isDeployEnabled: isDeployEnabled,
         gitPath: gitPath,
         gitRepoLoc: gitRepoLoc,
         deployPath: deployPath,
@@ -383,6 +409,7 @@ const CodeSpaceRecipe = (props) => {
         repodetails: gitUrl,
         software: software,
         isPublic: isPublic,
+        isDeployEnabled: isDeployEnabled,
         gitPath: gitPath,
         gitRepoLoc: gitRepoLoc,
         deployPath: deployPath,
@@ -537,6 +564,7 @@ const CodeSpaceRecipe = (props) => {
                                 name="isPublic"
                                 checked={isPublic === true}
                                 onChange={onIsPublicChange}
+                                disabled={isGheRepo || edit}
                               />
                             </span>
                             <span className="label">Public</span>
@@ -555,6 +583,12 @@ const CodeSpaceRecipe = (props) => {
                             <span className="label">Private</span>
                           </label>
                         </div>
+                        {isGheRepo && (
+                          <p className={Styles.warning}>
+                            <i className="icon mbc-icon alert circle" />
+                            <span>GHE repositories must use Private visibility for security compliance.</span>
+                          </p>
+                        )}
                       </div>
                     </div>
                     <div className={classNames(Styles.col2)}>
@@ -733,12 +767,43 @@ const CodeSpaceRecipe = (props) => {
                   </div>
                 </div>
 
-                <div className={Styles.btnConatiner}>
-                  <button className={classNames(enableCreate ? 'btn-tertiary' : Styles.disableVerifyButton, 'btn')} type="button" disabled={!enableCreate} onClick={() => edit ? setShowUpdateRecipeModal(true) : onCreateRecipe()}>
-                    {edit ? 'Update Recipe' : 'Create Recipe'}
-                  </button>
-                </div>
               </div>
+            </div>
+            <div className={classNames(Styles.deployWrapper)}>
+              <div className={classNames(Styles.smallPanel)}>
+                <h3>Deployment Config</h3>
+                <div className={classNames(Styles.formWrapper)}>
+                  <div className={Styles.checkboxWrapper}>
+                      <label className="checkbox">
+                          <span className="wrapper">
+                          <input
+                            type="checkbox"
+                            className="ff-only"
+                            checked={isDeployEnabled}
+                            onChange={(e) => setIsDeployEnabled(e.target.checked)}
+                          />
+                          </span>
+                          <span className={classNames("label")}>Enable deployment through codespace </span>
+                      </label>
+                  </div>
+                  {isDeployEnabled && (
+                    <div className={Styles.description}>
+                      <div className={Styles.imageContainer}>
+                        <p><strong>Kindly follow the folder structure below to make the Codespaces take care of your deployments:</strong></p>
+                        <img src="images/codeSpaceMfeImages/Deploy-folder-stuct.jpg" />
+                      </div>
+                      <p>For further help kindly reach us through our communication channels mentioned below. </p>
+                      <p>Mattermost: <a href={Envs.CODESPACE_MATTERMOST_LINK} target="_blank" rel="noreferrer">{Envs.CODESPACE_MATTERMOST_LINK}</a></p>
+                      <p>Email: <a href={`mailto:${Envs.CODESPACE_EMAIL_LINK}`} target="_blank" rel="noreferrer">{Envs.CODESPACE_EMAIL_LINK}</a></p>
+                    </div>
+                  )}
+                </div>  
+              </div>              
+            </div> 
+            <div className={Styles.btnConatiner}>
+              <button className={classNames(enableCreate ? 'btn-tertiary' : Styles.disableVerifyButton, 'btn')} type="button" disabled={!enableCreate} onClick={() => edit ? setShowUpdateRecipeModal(true) : onCreateRecipe()}>
+                {edit ? 'Update Recipe' : 'Create Recipe'}
+              </button>
             </div>
           </div>
         </div>

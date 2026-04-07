@@ -1491,8 +1491,14 @@
     &.dublicate::before{
       content: "\e947";
     }
+    &.deploy::before {
+      content: "\e996";
+    }
     &.localcomplianceofficer::before{
       content: '\e977'
+    }
+    &.reportView::before{
+      content: '\e936'
     }
     
   }

@@ -3,6 +3,7 @@ package com.daimler.data.controller;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
+import java.util.Map;
 
 import javax.validation.Valid;
 
@@ -15,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.PathVariable;
 
 import com.daimler.data.api.kongGateway.KongApi;
 import com.daimler.data.controller.exceptions.GenericMessage;
@@ -23,18 +25,24 @@ import com.daimler.data.dto.kongGateway.AttachAppAuthoriserPluginRequestVO;
 import com.daimler.data.dto.kongGateway.AttachAppAuthoriserPluginVO;
 import com.daimler.data.dto.kongGateway.AttachApiAuthoriserPluginRequestVO;
 import com.daimler.data.dto.kongGateway.AttachApiAuthoriserPluginVO;
+import com.daimler.data.dto.kongGateway.AttachFunctionPluginVO;
+import com.daimler.data.dto.kongGateway.AttachFunctionPluginRequestVO;
 import com.daimler.data.dto.kongGateway.AttachJwtPluginRequestVO;
+import com.daimler.data.dto.kongGateway.AttachOneApiPluginVO;
+import com.daimler.data.dto.kongGateway.AttachOneApiPluginRequestVO;
 import com.daimler.data.dto.kongGateway.AttachJwtPluginVO;
 import com.daimler.data.dto.kongGateway.AttachPluginConfigVO;
 import com.daimler.data.dto.kongGateway.AttachPluginRequestVO;
 import com.daimler.data.dto.kongGateway.AttachPluginVO;
+import com.daimler.data.dto.kongGateway.AttachRequestTransformerPluginRequestVO;
+import com.daimler.data.dto.kongGateway.AttachRequestTransformerPluginVO;
 import com.daimler.data.dto.kongGateway.CreateRouteRequestVO;
 import com.daimler.data.dto.kongGateway.CreateRouteResponseVO;
+import com.daimler.data.dto.kongGateway.PluginStatusResponseVO;
 import com.daimler.data.dto.kongGateway.CreateRouteVO;
 import com.daimler.data.dto.kongGateway.CreateServiceRequestVO;
 import com.daimler.data.dto.kongGateway.CreateServiceVO;
 import com.daimler.data.kong.client.KongClient;
-
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -449,6 +457,164 @@ public class KongGatewayController implements KongApi{
 		
 	}
 
+@Override
+	@ApiOperation(value = "Attach functionPlugin to service.", nickname = "attachFunctionPlugin", notes = "Attach functionPlugin to service.", response = GenericMessage.class, tags={ "kong", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 200, message = "Returns message of success", response = GenericMessage.class),
+        @ApiResponse(code = 400, message = "Bad Request", response = GenericMessage.class),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 409, message = "Conflict", response = GenericMessage.class),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/kong/services/{serviceName}/functionPlugin",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.POST)
+    public ResponseEntity<GenericMessage> attachFunctionPlugin(@Valid AttachFunctionPluginRequestVO attachFunctionPluginRequestVO, String serviceName){
+
+		GenericMessage response = new GenericMessage();
+		List<MessageDescription> errors = new ArrayList<>();
+		AttachFunctionPluginVO attachFunctionPluginVO = attachFunctionPluginRequestVO.getData();
+		try {
+			if(Objects.nonNull(attachFunctionPluginVO) && Objects.nonNull(serviceName)) {
+				response = kongClient.attachFunctionPluginToService(attachFunctionPluginVO, serviceName);
+			}
+			if(Objects.nonNull(response) && Objects.nonNull(response.getSuccess()) && response.getSuccess().equalsIgnoreCase("Success")) {
+				LOGGER.info("Plugin: {} attached successfully to the service {}", attachFunctionPluginVO.getName(),serviceName);
+				return new ResponseEntity<>(response, HttpStatus.CREATED);
+			}
+			else {
+				LOGGER.info("Attaching plugin {} to the service {} failed with error {}", attachFunctionPluginVO.getName(), serviceName);
+				return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+
+		}
+		catch(Exception e) {
+			LOGGER.error("Failed to attach plugin {} with exception {} ", attachFunctionPluginVO.getName(),e.getMessage());
+			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+
+	}
+  
+  @Override
+	@ApiOperation(value = "update status of a  plugin.", nickname = "upatePluginStatus", notes = "update status plugin", response = GenericMessage.class, tags={ "kong", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns message of success", response = GenericMessage.class),
+        @ApiResponse(code = 400, message = "Bad Request", response = GenericMessage.class),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 409, message = "Conflict", response = GenericMessage.class),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/kong/services/{serviceName}/plugins/{pluginName}",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.PATCH)
+    public ResponseEntity<GenericMessage> upatePluginStatus(String serviceName, String pluginName, Boolean enable){
+		GenericMessage response = new GenericMessage();		
+		try {
+			if(Objects.nonNull(serviceName) && Objects.nonNull(pluginName) && Objects.nonNull(enable)) {
+				response = kongClient.updatePluginStatus(serviceName, pluginName,enable);
+			}
+			else {
+				LOGGER.info("Kong plugin {} update status  failed", pluginName);
+				return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+			if(Objects.nonNull(response) && Objects.nonNull(response.getSuccess()) && response.getSuccess().equalsIgnoreCase("Success")) {
+				LOGGER.info("Kong plugin {} updated the status successfully", pluginName);
+				return new ResponseEntity<>(response, HttpStatus.OK);
+			}
+			if(Objects.nonNull(response) && Objects.nonNull(response.getErrors()) && response.getSuccess().equalsIgnoreCase("NOT_FOUND")) {
+				LOGGER.info("Kong plugin {} not exsits", pluginName);
+				return new ResponseEntity<>(response, HttpStatus.NOT_FOUND);
+			}
+			LOGGER.info("Kong plugin {} update status  failed with error", pluginName);
+			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+
+		}catch(Exception e) {
+			LOGGER.error("Failed to update status of Kong plugin {} with exception {} ", pluginName,e.getMessage());
+			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	@Override
+	@ApiOperation(value = "Attach requesttransformerplugin to service.", nickname = "attachRequestTransformnerPlugin", notes = "Attach requesttransformerplugin to service.", response = GenericMessage.class, tags={ "kong", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 200, message = "Returns message of success", response = GenericMessage.class),
+        @ApiResponse(code = 400, message = "Bad Request", response = GenericMessage.class),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 409, message = "Conflict", response = GenericMessage.class),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/kong/services/{serviceName}/requestTransformerPlugin",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.POST)
+    public ResponseEntity<GenericMessage> attachRequestTransformerPlugin(@Valid  AttachRequestTransformerPluginRequestVO attachRequestTransformerPluginRequestVO, String serviceName){
+		GenericMessage response = new GenericMessage();
+		List<MessageDescription> errors = new ArrayList<>();
+
+		AttachRequestTransformerPluginVO attachRequestTransformerPluginVO = attachRequestTransformerPluginRequestVO.getData();
+		try {
+			if(Objects.nonNull(attachRequestTransformerPluginVO) && Objects.nonNull(serviceName)) {
+				response = kongClient.attachRequestTransformerPluginToService(attachRequestTransformerPluginVO, serviceName);
+			}
+			if(Objects.nonNull(response) && Objects.nonNull(response.getSuccess()) && response.getSuccess().equalsIgnoreCase("Success")) {
+				LOGGER.info("Plugin: {} attached successfully to the service {}", attachRequestTransformerPluginVO.getName(),serviceName);
+				return new ResponseEntity<>(response, HttpStatus.CREATED);
+			}
+			else {
+				LOGGER.info("Attaching request transformer plugin {} to the service {} failed with error {}", attachRequestTransformerPluginVO.getName(), serviceName);
+				return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+
+		}
+		catch(Exception e) {
+			LOGGER.error("Failed to attach request transformer plugin {} with exception {} ", attachRequestTransformerPluginVO.getName(),e.getMessage());
+			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	@Override
+	@ApiOperation(value = "Attach one api Plugin to service.", nickname = "attachOneApiPlugin", notes = "Attach one api Plugin to service.", response = GenericMessage.class, tags={ "kong", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 200, message = "Returns message of success", response = GenericMessage.class),
+        @ApiResponse(code = 400, message = "Bad Request", response = GenericMessage.class),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 409, message = "Conflict", response = GenericMessage.class),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/kong/services/{serviceName}/oneApiPlugin",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.POST)
+    public ResponseEntity<GenericMessage> attachOneApiPlugin( AttachOneApiPluginRequestVO attachOneApiPluginRequestVO,String serviceName){
+		GenericMessage response = new GenericMessage();
+		List<MessageDescription> errors = new ArrayList<>();
+
+		AttachOneApiPluginVO attachOneApiPluginVO = attachOneApiPluginRequestVO.getData();
+		try {
+			if(Objects.nonNull(attachOneApiPluginVO) && Objects.nonNull(serviceName)) {
+				response = kongClient.attachOneApiPluginToService(attachOneApiPluginVO, serviceName);
+			}
+			if(Objects.nonNull(response) && Objects.nonNull(response.getSuccess()) && response.getSuccess().equalsIgnoreCase("Success")) {
+				LOGGER.info("Plugin: {} attached successfully to the service {}", attachOneApiPluginVO.getName(),serviceName);
+				return new ResponseEntity<>(response, HttpStatus.CREATED);
+			}
+			else {
+				LOGGER.info("Attaching request transformer plugin {} to the service {} failed with error {}", attachOneApiPluginVO.getName(), serviceName);
+				return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+
+		}
+		catch(Exception e) {
+			LOGGER.error("Failed to attach request transformer plugin {} with exception {} ", attachOneApiPluginVO.getName(),e.getMessage());
+			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
 	@Override
 	public ResponseEntity<CreateRouteResponseVO> getRouteByName(String serviceName, String routeName) {
 		try{
@@ -465,6 +631,41 @@ public class KongGatewayController implements KongApi{
 		}
 	}
 
+	@Override
+	@ApiOperation(value = "Get status of the plugin.", nickname = "getPluginStatus", notes = "Get status of the plugin.", response = PluginStatusResponseVO.class, tags={ "kong", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 200, message = "Returns message of success or failure", response = PluginStatusResponseVO.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/kong/services/{serviceName}/plugin/{pluginName}/status",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.GET)
+    public ResponseEntity<PluginStatusResponseVO> getPluginStatus(@ApiParam(value = "Name of the service for which plugin status has to be fetched",required=true) @PathVariable("serviceName") String serviceName,@ApiParam(value = "Name of the plugin for which the status need to be fetched",required=true) @PathVariable("pluginName") String pluginName){
+		try{
+			Map<String, Boolean> statusMap = kongClient.getPluginStatus(serviceName, pluginName);
+			LOGGER.info("plugin status map for serviceName {} is {}",serviceName,statusMap);
+			if (statusMap.isEmpty()) {
+				LOGGER.info("Error while finding status of plugin {} for service {}",pluginName,serviceName);
+                return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+            }
+            PluginStatusResponseVO pluginStatusResponse = new PluginStatusResponseVO();
+			if(statusMap.get(pluginName) == null){
+				LOGGER.info("Status of plugin {} for service {} is null.",pluginName,serviceName);
+                return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+			}
+            pluginStatusResponse.setEnabled(statusMap.get(pluginName));
+            return new ResponseEntity<>(pluginStatusResponse, HttpStatus.OK);
+		}catch(Exception e){
+			LOGGER.error("Failed to get plugin status for plugin {} and service {} with error {}", pluginName, serviceName, e.getMessage());
+			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
 //	@Override
 //	public ResponseEntity<CreateServiceResponseVO> getServiceByName(String serviceName) {
 //		CreateServiceResponseVO response = kongClient.getServiceByName(serviceName);
@@ -476,5 +677,6 @@ public class KongGatewayController implements KongApi{
 //		}
 //		
 //	}
+	
 
 }

@@ -115,6 +115,7 @@ export interface ICreateNewSolutionState {
   customerJourneyPhasesLOV: IMarketingCustomerJourney[];
   marketingCommunicationChannelsLOV: IMarketingCommunicationChannel[];
   marketingRolesLOV: IMarketingRole[];
+  mandatoryTabsFilled: boolean;
 }
 
 export interface ICreateNewSolutionProps {
@@ -173,6 +174,8 @@ export interface IDescriptionRequest {
   additionalResource: string;
   department: string;
   leanIXDetails: any;
+  publish?: boolean;
+  openSegments?: string[];
   appId: string;
   createdBy?: IUserInfo;
 }
@@ -263,6 +266,8 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
           department: '',
           leanIXDetails: {},
           appId: '',
+          publish: false,
+          openSegments: [],
         },
         openSegments: [],
         team: { team: [] },
@@ -342,6 +347,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
       customerJourneyPhasesLOV: [],
       marketingCommunicationChannelsLOV: [],
       marketingRolesLOV: [],
+      mandatoryTabsFilled: false,
     };
   }
   // public componentWillReceiveProps(nextProps: any) {
@@ -730,6 +736,11 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
                   isProvision={this.state.isProvision}
                   isGenAI={this.state.isGenAI}
                   id={this.state.id}
+                  publish={this.state.solution.publish}
+                  openSegments={this.state.solution.openSegments} 
+                  isPublished={this.state.solution.publish} 
+                  mandatoryTabsFilled={this.state.mandatoryTabsFilled}
+                  
                 />
               </div>
               <div id="tab-content-2" className="tab-content">
@@ -856,6 +867,7 @@ export default class CreateNewSolution extends React.Component<ICreateNewSolutio
             cancelButtonTitle="Cancel"
             showAcceptButton={true}
             showCancelButton={true}
+            showPortButton={false}
             show={this.state.showAlertChangesModal}
             content={
               <div id="contentparentdiv">
