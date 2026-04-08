@@ -801,7 +801,7 @@ const CodeSpace = (props) => {
                             >
                               <div>
                                 <strong>Staging:</strong>{' '}
-                                {intDeploymentDetails?.lastDeployedBranch ? 'Deployed' : 'No Deployment'}
+                                {codeDeployed ? 'Deployed' : 'No Deployment'}
                                 <span
                                   className={classNames(Styles.metricsTrigger, 'hide')}
                                   onClick={handleOpenDoraMetrics}
@@ -934,7 +934,7 @@ const CodeSpace = (props) => {
                             >
                               <div>
                                 <strong>Production:</strong>{' '}
-                                {prodDeploymentDetails?.lastDeployedBranch ? 'Deployed' : 'No Deployment'}
+                                {prodCodeDeployed ? 'Deployed' : 'No Deployment'}
                                 <span
                                   className={classNames(Styles.metricsTrigger, 'hide')}
                                   onClick={handleOpenDoraMetrics}
