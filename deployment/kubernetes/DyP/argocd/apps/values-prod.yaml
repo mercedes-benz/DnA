@@ -109,3 +109,7 @@ db:
    env: prod
  - name: fc-rd-costagent
    env: int
+ - name: bw-decoder
+   env: prod
+ - name: bw-decoder
+   env: int
