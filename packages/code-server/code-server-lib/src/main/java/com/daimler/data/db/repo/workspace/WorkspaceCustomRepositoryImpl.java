@@ -40,7 +40,6 @@ import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
-
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -55,6 +54,7 @@ import com.daimler.data.db.json.DeploymentAudit;
 import com.daimler.data.db.json.UserInfo;
 import com.daimler.data.db.repo.common.CommonDataRepositoryImpl;
 import com.daimler.data.dto.CodespaceSecurityConfigDto;
+import com.daimler.data.dto.GitRunIdDetailsDto;
 import com.daimler.data.dto.workspace.CodeServerWorkspaceValidateVO;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -950,6 +950,249 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
         return result != null ? result : new ArrayList<>();
 	}
 
+	@Override
+	public GitRunIdDetailsDto getGitRunId(String projectName) {
+
+		String query = """
+				SELECT
+					jsonb_extract_path_text(data,'projectDetails','lastBuildOrDeployedStatus') AS status,
+					jsonb_extract_path_text(data,'projectDetails','lastBuildOrDeployedEnv') AS env,
+					jsonb_extract_path_text(data,'projectDetails','projectName') AS projectName,
+					jsonb_extract_path_text(data,'projectDetails','projectOwner','gitUserName') AS gitUserName,
+
+					CASE
+						WHEN jsonb_extract_path_text(data,'projectDetails','lastBuildOrDeployedStatus')
+							IN ('BUILD_REQUESTED','BUILD_SUCCESS','BUILD_FAILED')
+						AND jsonb_extract_path_text(data,'projectDetails','lastBuildOrDeployedEnv') = 'int'
+							THEN jsonb_extract_path_text(data,'projectDetails','intBuildDetails','gitjobRunID')
+
+						WHEN jsonb_extract_path_text(data,'projectDetails','lastBuildOrDeployedStatus')
+							IN ('BUILD_REQUESTED','BUILD_SUCCESS','BUILD_FAILED')
+						AND jsonb_extract_path_text(data,'projectDetails','lastBuildOrDeployedEnv') = 'prod'
+							THEN jsonb_extract_path_text(data,'projectDetails','prodBuildDetails','gitjobRunID')
+
+						WHEN jsonb_extract_path_text(data,'projectDetails','lastBuildOrDeployedStatus')
+							IN ('DEPLOY_REQUESTED','DEPLOYED','DEPLOY_FAILED')
+						AND jsonb_extract_path_text(data,'projectDetails','lastBuildOrDeployedEnv') = 'int'
+							THEN jsonb_extract_path_text(data,'projectDetails','intDeploymentDetails','gitjobRunID')
+
+						WHEN jsonb_extract_path_text(data,'projectDetails','lastBuildOrDeployedStatus')
+							IN ('DEPLOY_REQUESTED','DEPLOYED','DEPLOY_FAILED')
+						AND jsonb_extract_path_text(data,'projectDetails','lastBuildOrDeployedEnv') = 'prod'
+							THEN jsonb_extract_path_text(data,'projectDetails','prodDeploymentDetails','gitjobRunID')
+
+						ELSE NULL
+					END AS gitJobRunId
+
+				FROM public.workspace_nsql
+				WHERE jsonb_extract_path_text(data,'projectDetails','projectName') = CAST(? AS text)
+			""";
+
+		try
+		{
+			Query q = em.createNativeQuery(query);
+			q.setParameter(1, projectName);
+			ObjectMapper mapper = new ObjectMapper();
+			List<Object[]> results = q.getResultList();
+			if (results.isEmpty()) {
+				return null;
+			}
+
+			Object[] row = results.get(0);
+
+			GitRunIdDetailsDto dto = new GitRunIdDetailsDto();
+			dto.setStatus((String) row[0]);
+			dto.setEnvironment((String) row[1]);
+			dto.setProjectName((String) row[2]);
+			dto.setOwner((String) row[3]);
+			dto.setGitjobRunId((String) row[4]);
+
+			return dto;
+		}
+		catch (Exception e)
+		{
+			e.printStackTrace();
+			log.error("Failed while fetching the Git Run Id Details using native query with exception {} ", e.getMessage());
+			return null;
+		}
+	}
+
+	@Override
+	public boolean updateGitRunIdStatus(String projectName, String status, String environment) {
+
+		String updateQuery;
+
+		if ("int".equalsIgnoreCase(environment) &&
+			("BUILD_REQUESTED".equalsIgnoreCase(status)
+				|| "BUILD_SUCCESS".equalsIgnoreCase(status)
+				|| "BUILD_FAILED".equalsIgnoreCase(status))) {
+
+			updateQuery =
+				"update workspace_nsql set data = jsonb_set(" +
+				"jsonb_set(data, '{projectDetails,lastBuildOrDeployedStatus}', '" + addQuotes(status) + "', true)," +
+				"'{projectDetails,intBuildDetails,lastBuildStatus}', '" + addQuotes(status) + "', true)";
+
+		} else if ("prod".equalsIgnoreCase(environment) &&
+			("BUILD_REQUESTED".equalsIgnoreCase(status)
+				|| "BUILD_SUCCESS".equalsIgnoreCase(status)
+				|| "BUILD_FAILED".equalsIgnoreCase(status))) {
+
+			updateQuery =
+				"update workspace_nsql set data = jsonb_set(" +
+				"jsonb_set(data, '{projectDetails,lastBuildOrDeployedStatus}', '" + addQuotes(status) + "', true)," +
+				"'{projectDetails,prodBuildDetails,lastBuildStatus}', '" + addQuotes(status) + "', true)";
+
+		} else if ("int".equalsIgnoreCase(environment) &&
+			("DEPLOY_REQUESTED".equalsIgnoreCase(status)
+				|| "DEPLOYED".equalsIgnoreCase(status)
+				|| "DEPLOY_FAILED".equalsIgnoreCase(status))) {
+
+			updateQuery =
+				"update workspace_nsql set data = jsonb_set(" +
+				"jsonb_set(data, '{projectDetails,lastBuildOrDeployedStatus}', '" + addQuotes(status) + "', true)," +
+				"'{projectDetails,intDeploymentDetails,deploymentStatus}', '" + addQuotes(status) + "', true)";
+
+		} else if ("prod".equalsIgnoreCase(environment) &&
+			("DEPLOY_REQUESTED".equalsIgnoreCase(status)
+				|| "DEPLOYED".equalsIgnoreCase(status)
+				|| "DEPLOY_FAILED".equalsIgnoreCase(status))) {
+
+			updateQuery =
+				"update workspace_nsql set data = jsonb_set(" +
+				"jsonb_set(data, '{projectDetails,lastBuildOrDeployedStatus}', '" + addQuotes(status) + "', true)," +
+				"'{projectDetails,prodDeploymentDetails,deploymentStatus}', '" + addQuotes(status) + "', true)";
+
+		} else {
+			log.warn(
+				"Fallback global status update used. project={} env={} status={}",
+				projectName, environment, status
+			);
+
+			updateQuery =
+				"update workspace_nsql set data = jsonb_set(" +
+				"data, '{projectDetails,lastBuildOrDeployedStatus}', '" + addQuotes(status) + "', true)";
+		}
+
+		updateQuery +=
+			" where data->'projectDetails'->>'projectName' = '" + projectName + "'";
+
+		try {
+			log.info("Final update query = {}", updateQuery);
+
+			Query q = em.createNativeQuery(updateQuery);
+			int rows = q.executeUpdate();
+
+			if (rows == 0) {
+				log.warn("No rows updated for project {}", projectName);
+				return false;
+			}
+
+			log.info("Git Run Id Status updated successfully for project {}", projectName);
+			return true;
+
+		} catch (Exception e) {
+			log.error("Failed while updating the Git Run Id Status", e);
+			return false;
+		}
+	}
+
+	@Override
+	public boolean updateBuildDeployAuditStatus(String projectName,String status,String environment,String gitJobRunId) {
+
+		if (gitJobRunId == null) {
+			log.warn("gitJobRunId is null, skipping audit update");
+			return false;
+		}
+
+		String updateQuery;
+
+		if ("int".equalsIgnoreCase(environment) &&
+			("BUILD_REQUESTED".equalsIgnoreCase(status)
+				|| "BUILD_SUCCESS".equalsIgnoreCase(status)
+				|| "BUILD_FAILED".equalsIgnoreCase(status))) {
+
+			updateQuery =
+				"update build_deploy_nsql set data = jsonb_set(data," +
+				"'{intBuildAuditLogs}', (" +
+				" select jsonb_agg(" +
+				"   case when log->>'gitjobRunID' = '" + gitJobRunId + "' then " +
+				"     jsonb_set(log, '{buildStatus}', to_jsonb(CAST('" + status + "' AS text)), true) " +
+				"   else log end" +
+				" ) from jsonb_array_elements(data->'intBuildAuditLogs') as log" +
+				" ), true)";
+
+		} else if ("prod".equalsIgnoreCase(environment) &&
+			("BUILD_REQUESTED".equalsIgnoreCase(status)
+				|| "BUILD_SUCCESS".equalsIgnoreCase(status)
+				|| "BUILD_FAILED".equalsIgnoreCase(status))) {
+
+			updateQuery =
+				"update build_deploy_nsql set data = jsonb_set(data," +
+				"'{prodBuildAuditLogs}', (" +
+				" select jsonb_agg(" +
+				"   case when log->>'gitjobRunID' = '" + gitJobRunId + "' then " +
+				"     jsonb_set(log, '{buildStatus}', to_jsonb(CAST('" + status + "' AS text)), true) " +
+				"   else log end" +
+				" ) from jsonb_array_elements(data->'prodBuildAuditLogs') as log" +
+				" ), true)";
+
+		} else if ("int".equalsIgnoreCase(environment) &&
+			("DEPLOY_REQUESTED".equalsIgnoreCase(status)
+				|| "DEPLOYED".equalsIgnoreCase(status)
+				|| "DEPLOY_FAILED".equalsIgnoreCase(status))) {
+
+			updateQuery =
+				"update build_deploy_nsql set data = jsonb_set(data," +
+				"'{intDeploymentAuditLogs}', (" +
+				" select jsonb_agg(" +
+				"   case when log->>'gitjobRunID' = '" + gitJobRunId + "' then " +
+				"     jsonb_set(log, '{deploymentStatus}', to_jsonb(CAST('" + status + "' AS text)), true) " +
+				"   else log end" +
+				" ) from jsonb_array_elements(data->'intDeploymentAuditLogs') as log" +
+				" ), true)";
+
+		} else if ("prod".equalsIgnoreCase(environment) &&
+			("DEPLOY_REQUESTED".equalsIgnoreCase(status)
+				|| "DEPLOYED".equalsIgnoreCase(status)
+				|| "DEPLOY_FAILED".equalsIgnoreCase(status))) {
+
+			updateQuery =
+				"update build_deploy_nsql set data = jsonb_set(data," +
+				"'{prodDeploymentAuditLogs}', (" +
+				" select jsonb_agg(" +
+				"   case when log->>'gitjobRunID' = '" + gitJobRunId + "' then " +
+				"     jsonb_set(log, '{deploymentStatus}', to_jsonb(CAST('" + status + "' AS text)), true) " +
+				"   else log end" +
+				" ) from jsonb_array_elements(data->'prodDeploymentAuditLogs') as log" +
+				" ), true)";
+
+		} else {
+			log.warn("No matching audit update rule for env={} status={}", environment, status);
+			return false;
+		}
+
+		updateQuery +=
+			" where data->>'projectName' = '" + projectName + "'";
+
+		try {
+			log.info("Final audit update query = {}", updateQuery);
+
+			Query q = em.createNativeQuery(updateQuery);
+			int rows = q.executeUpdate();
+
+			if (rows == 0) {
+				log.warn("No audit rows updated for project {}", projectName);
+				return false;
+			}
+
+			log.info("Build Deploy Audit Status updated successfully for project {}", projectName);
+			return true;
+
+		} catch (Exception e) {
+			log.error("Failed while updating the Build Deploy Audit Status", e);
+			return false;
+		}
+	}
+
 
 }
-
