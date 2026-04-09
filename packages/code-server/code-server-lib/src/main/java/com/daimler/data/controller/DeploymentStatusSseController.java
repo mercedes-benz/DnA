@@ -121,10 +121,15 @@ public class DeploymentStatusSseController {
                 return data;
             }
 
-            DeploymentAudit latestAudit = auditLogs.get(auditLogs.size() - 1);
+            DeploymentAudit latestAudit = auditLogs.stream()
+                .filter(audit -> audit.getTriggeredOn() != null)
+                .sorted((a1, a2) -> a2.getTriggeredOn().compareTo(a1.getTriggeredOn()))
+                .findFirst()
+                .orElse(auditLogs.get(auditLogs.size() - 1));
 
-            data.put("currentStatus", latestAudit.getDeploymentStatus() != null ? 
-                     latestAudit.getDeploymentStatus() : "UNKNOWN");
+            String dbStatus = latestAudit.getDeploymentStatus() != null ? 
+                     latestAudit.getDeploymentStatus() : "UNKNOWN";
+            
             data.put("version", latestAudit.getVersion());
             data.put("branch", latestAudit.getBranch());
             data.put("commitId", latestAudit.getCommitId());
@@ -132,6 +137,9 @@ public class DeploymentStatusSseController {
             data.put("triggeredOn", latestAudit.getTriggeredOn());
             data.put("deployedOn", latestAudit.getDeployedOn());
 
+            String argoHealthStatus = "UNAVAILABLE";
+            String argoSyncStatus = "UNAVAILABLE";
+            
             try {
                 String argoAppName = projectName + "-" + environment;
                 String token = argoCdService.getArgoToken();
@@ -140,19 +148,23 @@ public class DeploymentStatusSseController {
                 if (argoResponse != null && argoResponse.getStatusCode().is2xxSuccessful()) {
                     ObjectMapper mapper = new ObjectMapper();
                     JsonNode rootNode = mapper.readTree(argoResponse.getBody());
-                    String healthStatus = rootNode.path("status").path("health").path("status").asText("");
-                    String syncStatus = rootNode.path("status").path("sync").path("status").asText("");
+                    argoHealthStatus = rootNode.path("status").path("health").path("status").asText("");
+                    argoSyncStatus = rootNode.path("status").path("sync").path("status").asText("");
                     
-                    data.put("argocdHealthStatus", healthStatus);
-                    data.put("argocdSyncStatus", syncStatus);
+                    data.put("argocdHealthStatus", argoHealthStatus);
+                    data.put("argocdSyncStatus", argoSyncStatus);
                     data.put("argocdAppUrl", argoCdService.getArgocdBaseUrl() + "/applications/" + argoAppName);
-                } else {
-                    data.put("argocdHealthStatus", "UNAVAILABLE");
                 }
             } catch (Exception e) {
                 log.debug("Could not fetch ArgoCD status: {}", e.getMessage());
                 data.put("argocdHealthStatus", "UNAVAILABLE");
             }
+
+            String actualStatus = determineActualStatus(dbStatus, argoHealthStatus, argoSyncStatus);
+            data.put("currentStatus", actualStatus);
+            
+            log.debug("Status for {}-{}: DB={}, ArgoHealth={}, ArgoSync={}, Actual={}", 
+                projectName, environment, dbStatus, argoHealthStatus, argoSyncStatus, actualStatus);
 
         } catch (Exception e) {
             log.error("Error fetching deployment status for {}/{}: {}", projectName, environment, e.getMessage());
@@ -161,5 +173,28 @@ public class DeploymentStatusSseController {
         }
 
         return data;
+    }
+    
+    private String determineActualStatus(String dbStatus, String argoHealth, String argoSync) {
+        if ("UNAVAILABLE".equals(argoHealth) || argoHealth == null || argoHealth.isEmpty()) {
+            return dbStatus;
+        }
+        
+        if ("Progressing".equalsIgnoreCase(argoHealth) || 
+            "Suspended".equalsIgnoreCase(argoHealth) ||
+            "OutOfSync".equalsIgnoreCase(argoSync)) {
+            return "DEPLOYING";
+        }
+        
+        if ("Healthy".equalsIgnoreCase(argoHealth) && "Synced".equalsIgnoreCase(argoSync)) {
+            return "DEPLOYED";
+        }
+        
+        if ("Degraded".equalsIgnoreCase(argoHealth) || 
+            "Missing".equalsIgnoreCase(argoHealth)) {
+            return "FAILED";
+        }
+        
+        return dbStatus;
     }
 }
