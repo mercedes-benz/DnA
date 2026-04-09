@@ -81,6 +81,8 @@ import com.daimler.data.util.ConstantsUtility;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.daimler.data.dto.fabric.FabricSqlEndpointResponseDto;
 import com.daimler.data.dto.fabric.DdxResponseDto;
+import com.daimler.data.dto.databricks.DatabricksSqlStatementRequestDto;
+import com.daimler.data.dto.databricks.DatabricksSqlStatementResponseDto;
 import com.daimler.data.application.auth.UserStore;
 
 import lombok.extern.slf4j.Slf4j;
@@ -161,6 +163,19 @@ public class FabricWorkspaceClient {
 	@Value("${fabricWorkspaces.gateway.id}")
 	private String gatewayId;
 	
+	@Value("${ddxIntegration.client.id}")
+	private String databricksSpClientId;
+
+	@Value("${ddxIntegration.client.secret}")
+	private String databricksSpClientSecret;
+
+	@Value("${ddxIntegration.client.scope}")
+	private String databricksSpScope;
+
+	@Value("${ddxIntegration.client.host}")
+	private String databricksHost;
+
+
 	@Autowired
 	HttpServletRequest httpRequest;
 
@@ -224,6 +239,55 @@ public class FabricWorkspaceClient {
 			return null;
 		}
 	}
+
+	public String getTokenForDataBricks() {
+		MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
+		String basicAuthenticationHeader = Base64.getEncoder()
+				.encodeToString(new StringBuffer(databricksSpClientId).append(":").append(databricksSpClientSecret).toString().getBytes());
+		map.add("grant_type", grantType);
+		map.add("scope", scope);
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+		headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
+		headers.set("Authorization", "Basic " + basicAuthenticationHeader);
+		HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(map, headers);
+		try {
+			ResponseEntity<String> response = proxyRestTemplate.postForEntity(loginUrl, request, String.class);
+			ObjectMapper objectMapper = new ObjectMapper();
+			FabricOAuthResponse introspectionResponse = objectMapper.readValue(response.getBody(),
+					FabricOAuthResponse.class);
+			log.debug("Introspection Response:" + introspectionResponse);
+			log.info("Successfully fetch oidc token post login for group search");
+			return introspectionResponse.getAccess_token();
+		} catch (Exception e) {
+			log.error("Failed to fetch OIDC token for group search with error {} ",e.getMessage());
+			return null;
+		}
+	}
+
+	public String getTokenForCatalog() {
+      MultiValueMap<String, String> map = new LinkedMultiValueMap();
+      String basicAuthenticationHeader = Base64.getEncoder().encodeToString((this.databricksSpClientId + ":" + this.databricksSpClientSecret).getBytes());
+      map.add("grant_type", this.grantType);
+      map.add("scope", this.databricksSpScope);
+      HttpHeaders headers = new HttpHeaders();
+      headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+      headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
+      headers.set("Authorization", "Basic " + basicAuthenticationHeader);
+      HttpEntity<MultiValueMap<String, String>> request = new HttpEntity(map, headers);
+
+      try {
+         ResponseEntity<String> response = this.proxyRestTemplate.postForEntity(this.loginUrl, request, String.class, new Object[0]);
+         ObjectMapper objectMapper = new ObjectMapper();
+         FabricOAuthResponse introspectionResponse = (FabricOAuthResponse)objectMapper.readValue((String)response.getBody(), FabricOAuthResponse.class);
+         log.debug("Introspection Response:" + introspectionResponse);
+         log.info("Successfully fetch oidc token post login for group search");
+         return introspectionResponse.getAccess_token();
+      } catch (Exception e) {
+         log.error("Failed to fetch OIDC token for group search with error {} ", e.getMessage());
+         return null;
+      }
+   }
 	
 	public MicrosoftGroupDetailDto searchGroup(String groupDisplayName) {
 		MicrosoftGroupDetailDto microsoftGroupDetailDto = new MicrosoftGroupDetailDto();
@@ -1038,7 +1102,8 @@ public class FabricWorkspaceClient {
 	public FabricSqlEndpointResponseDto getSqlEndpoint(String workspaceId, String lakehouseId) {
 		FabricSqlEndpointResponseDto responseDto = new FabricSqlEndpointResponseDto();
 		try {
-			String token = getToken();
+			// String token = getToken();
+			String token = getTokenForDataBricks();
 			if (!Objects.nonNull(token)) {
 				log.error("Failed to fetch token to invoke fabric Apis");
 				responseDto.setErrorCode("500");
@@ -1131,6 +1196,54 @@ public class FabricWorkspaceClient {
         	.statusCode(500)
         	.message(e.getMessage())
         	.build();
+		}
+
+
+	}
+
+	public DatabricksSqlStatementResponseDto catalogComputeProcess(String catalogName) {
+		try {
+			String token = getTokenForCatalog();
+			if (!Objects.nonNull(token)) {
+				log.error("Failed to fetch token for Databricks SQL statement execution");
+				throw new RuntimeException("Failed to obtain Databricks authentication token");
+			}
+
+			DatabricksSqlStatementRequestDto requestBody = new DatabricksSqlStatementRequestDto();
+			requestBody.setWarehouseId("44a03d9b0d6612b6");
+			requestBody.setCatalog(catalogName);
+			requestBody.setStatement("SHOW TABLES IN `" + catalogName + "`.dbo");
+			requestBody.setWaitTimeout("30s");
+
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Authorization", "Bearer " + token);
+			headers.setContentType(MediaType.APPLICATION_JSON);
+
+			HttpEntity<DatabricksSqlStatementRequestDto> requestEntity = new HttpEntity<>(requestBody, headers);
+			String url = databricksHost + "/api/2.0/sql/statements";
+
+			log.info("Executing SHOW SCHEMAS on catalog: {}", catalogName);
+			ResponseEntity<DatabricksSqlStatementResponseDto> response = proxyRestTemplate.exchange(
+					url, HttpMethod.POST, requestEntity, DatabricksSqlStatementResponseDto.class);
+
+			if (response != null && response.hasBody()) {
+				DatabricksSqlStatementResponseDto responseDto = response.getBody();
+				log.info("SQL statement execution completed with state: {}",
+						responseDto != null && responseDto.getStatus() != null ? responseDto.getStatus().getState() : "UNKNOWN");
+				return responseDto;
+			}
+
+			throw new RuntimeException("Empty response from Databricks SQL statement API");
+		} catch (HttpClientErrorException e) {
+			log.error("HTTP error during catalog compute process for catalog: {}, status: {}, response: {}",
+					catalogName, e.getStatusCode(), e.getResponseBodyAsString());
+			throw new RuntimeException("Databricks SQL statement API call failed with status " + e.getStatusCode() + ": " + e.getResponseBodyAsString(), e);
+		} catch (RuntimeException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("Failed to execute catalog compute process for catalog: {} with exception: {}", catalogName, e.getMessage());
+			throw new RuntimeException("Catalog compute process failed: " + e.getMessage(), e);
 		}
 	}
 	
