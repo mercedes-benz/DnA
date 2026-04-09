@@ -527,6 +527,10 @@ const BuildModal = (props) => {
               setCodeDeploying={props.setCodeDeploying}
               setIsApiCallTakeTime={props.setIsApiCallTakeTime}
               buildDetails={buildDetails}
+              startDeploymentStatusListener={props.startDeploymentStatusListener}
+              onDeploymentStatusUpdate={props.onDeploymentStatusUpdate}
+              onDeploymentComplete={props.onDeploymentComplete}
+              onDeploymentSSEError={props.onDeploymentSSEError}
             />
           )}
         </>

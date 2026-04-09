@@ -114,6 +114,17 @@ const DeployModal = (props) => {
           if (res.data.success === 'SUCCESS') {
             // setCreatedCodeSpaceName(res.data.name);
             props.setCodeDeploying(true);
+            
+            if (props.startDeploymentStatusListener) {
+              props.startDeploymentStatusListener(
+                projectDetails.projectName,
+                deployRequest.targetEnvironment,
+                props.onDeploymentStatusUpdate,
+                props.onDeploymentComplete,
+                props.onDeploymentSSEError
+              );
+            }
+            
             if (acceptContinueCodingOnDeployment) {
               ProgressIndicator.hide();
               Notification.show(
