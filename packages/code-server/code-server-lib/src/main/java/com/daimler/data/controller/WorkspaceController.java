@@ -1255,6 +1255,17 @@ import org.springframework.beans.factory.annotation.Value;
 			   //if approval enabled workspace and and deployment tp prod then go to service.approveWorkspace
 			   GenericMessage responseMsg;
 			   Boolean isApprover =false;
+
+			   // Determine if this is the first deployment for the target environment
+               boolean isFirstDeployment = false;
+               if ("int".equalsIgnoreCase(environment)) {
+                   isFirstDeployment = Objects.isNull(ownerVo.getProjectDetails().getIntDeploymentDetails().getDeploymentUrl())
+                           || ownerVo.getProjectDetails().getIntDeploymentDetails().getDeploymentUrl().isEmpty();
+               } else {
+                   isFirstDeployment = Objects.isNull(ownerVo.getProjectDetails().getProdDeploymentDetails().getDeploymentUrl())
+                           || ownerVo.getProjectDetails().getProdDeploymentDetails().getDeploymentUrl().isEmpty();
+               }
+
 			   List<UserInfoVO>collabList =vo.getProjectDetails().getProjectCollaborators();
 			   if(collabList!=null){
 				   for(UserInfoVO user : collabList){
@@ -1295,6 +1306,20 @@ import org.springframework.beans.factory.annotation.Value;
 					if ("FAILED".equalsIgnoreCase(responseMsg.getSuccess())) {
 						return new ResponseEntity<>(responseMsg, HttpStatus.BAD_REQUEST);
 					}
+
+					// Create OpenTelemetry plugin only on first deployment
+                    if (isFirstDeployment && "SUCCESS".equalsIgnoreCase(responseMsg.getSuccess())) {
+                        try {
+                            String serviceName = vo.getProjectDetails().getProjectName() + "-" + environment;
+                            service.createOpenTelemetryPlugin(id, environment, serviceName);
+                            log.info("OpenTelemetry plugin created for workspace {} in {} environment (first deployment)",
+                                vo.getWorkspaceId(), environment);
+                        } catch (Exception e) {
+                            log.warn("Failed to create OpenTelemetry plugin for workspace {} in {} environment: {}",
+                                vo.getWorkspaceId(), environment, e.getMessage());
+                            // Don't fail the deployment if plugin creation fails
+                        }
+                    }
 				   log.info("User {} deployed workspace {} project {}", userId, vo.getWorkspaceId(),
 						   vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
 			   }
