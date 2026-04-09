@@ -654,14 +654,14 @@ export const TranparencyLandingPageElements = [
 
 export const DataLandingPageElements = [
   {
-    name: 'Data Products',
+    name: 'FC Data Products',
     description:
-      'Data is an excellent source to support all kinds of user groups. But where can you actually get valuable data in the company? Say hi to DDX! DDX offers a growing selection of data products, including direct request and access.',
-    tags: ['Self Service'],
-    url: ddxUrl,
-    isExternalLink: true,
+      'Data is one of the most valuable assets in our company, therefore we treat our data as a product! We offer you a growing selection of intuitive to use and well documented FC data products - check it out!',
+    tags: ['Self Service', 'FOSS'],
+    url: '/data/dataproducts',
+    isExternalLink: false,
     isTextAlignLeft: false,
-    isDisabled: !ddxUrl?.startsWith('http'),
+    isDisabled: false,
     isSmallCard: false,
     isMediumCard: false,
     svgIcon: 'dataproductoverview',
@@ -679,19 +679,32 @@ export const DataLandingPageElements = [
   //   isMediumCard: false,
   //   svgIcon: 'datamodel',
   // },
-  // {
-  //   name: 'Data Governance',
-  //   description:
-  //     'Understanding & fulfilling ever more complex Legal & Compliance requirements can be challenging. Data Governance helps you to navigate through these requirements and supports on you data journey.',
-  //   tags: ['Self Service', 'FOSS'],
-  //   url: '/data/datagovernance',
-  //   isExternalLink: false,
-  //   isTextAlignLeft: false,
-  //   isDisabled: false,
-  //   isSmallCard: false,
-  //   isMediumCard: false,
-  //   svgIcon: 'datagovernance',
-  // },
+  {
+    name: 'Data Governance',
+    description:
+      'Understanding & fulfilling ever more complex Legal & Compliance requirements can be challenging. Data Governance helps you to navigate through these requirements and supports on you data journey.',
+    tags: ['Self Service', 'FOSS'],
+    url: '/data/datagovernance',
+    isExternalLink: false,
+    isTextAlignLeft: false,
+    isDisabled: false,
+    isSmallCard: false,
+    isMediumCard: false,
+    svgIcon: 'datagovernance',
+  },
+  {
+    name: 'DDX Data Products',
+    description:
+      'Data is an excellent source to support all kinds of user groups. But where can you actually get valuable data in the company? Say hi to DDX! DDX offers a growing selection of data products, including direct request and access.',
+    tags: ['Self Service'],
+    url: ddxUrl,
+    isExternalLink: true,
+    isTextAlignLeft: false,
+    isDisabled: !ddxUrl?.startsWith('http'),
+    isSmallCard: false,
+    isMediumCard: false,
+    svgIcon: 'dataproductoverview',
+  },
   {
     name: 'Corporate Data Catalogue',
     description:
