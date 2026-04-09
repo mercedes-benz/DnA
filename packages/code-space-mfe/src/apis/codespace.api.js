@@ -392,6 +392,46 @@ const serverStatusFromHub = (env, userId, workspaceId, onMessageCB, onCloseCB) =
     };
 }
 
+const subscribeToDeploymentStatus = (projectName, environment, onStatusUpdate, onComplete, onError) => {
+    const url = `${baseURL}/workspace/deployment/stream/${projectName}/${environment}`;
+    
+    const sse = new EventSourcePolyfill(url, {
+        withCredentials: true,
+        headers: { 
+            Authorization: readJwt(),
+            Accept: 'text/event-stream'
+        },
+    });
+
+    sse.addEventListener('deployment-status', (event) => {
+        try {
+            const data = JSON.parse(event.data);
+            onStatusUpdate && onStatusUpdate(data);
+        } catch (error) {
+            console.error('Error parsing deployment-status event:', error);
+        }
+    });
+
+    sse.addEventListener('deployment-complete', (event) => {
+        try {
+            const data = JSON.parse(event.data);
+            onComplete && onComplete(data);
+            sse.close();
+        } catch (error) {
+            console.error('Error parsing deployment-complete event:', error);
+            sse.close();
+        }
+    });
+
+    sse.onerror = (error) => {
+        console.error('SSE connection error:', error);
+        onError && onError(error);
+        sse.close();
+    };
+
+    return sse;
+};
+
 const restartDeployments = (id, env) => {
     return server.post(`/workspaces/${id}/restart?env=${env}`, {data: {},});
 };
@@ -495,6 +535,7 @@ export const CodeSpaceApiClient = {
     startStopWorkSpace,
     workSpaceStatus,
     serverStatusFromHub,
+    subscribeToDeploymentStatus,
     restartDeployments,
     migrateWorkplace,
     getCodeSpaceGroups,
