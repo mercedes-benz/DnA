@@ -73,40 +73,6 @@ const AllCodeSpaces = (props) => {
 
     const { startListening } = useDeploymentStatus();
 
-    const onRefreshSingleCodeSpace = (codeSpaceId, latestCard) => {
-        if (!latestCard) {
-            return;
-        }
-
-        setCodeSpaces((prev) => prev.map((item) => (item.id === codeSpaceId ? latestCard : item)));
-        setFilteredCodespaces((prev) => {
-            if (!Array.isArray(prev)) return prev;
-            return prev.map((item) => (item.id === codeSpaceId ? latestCard : item));
-        });
-
-        setCodeSpaceGroups((prev) => {
-            if (!Array.isArray(prev)) return prev;
-            return prev.map((group) => ({
-                ...group,
-                workspaces: group.workspaces?.map((ws) => 
-                    ws.id === codeSpaceId ? latestCard : ws
-                )
-            }));
-        });
-
-        setSelectedCodeSpaceGroup((prevGroup) => {
-            if (prevGroup && prevGroup.workspaces) {
-                return {
-                    ...prevGroup,
-                    workspaces: prevGroup.workspaces.map((ws) => 
-                        ws.id === codeSpaceId ? latestCard : ws
-                    )
-                };
-            }
-            return prevGroup;
-        });
-    };
-
     const handleDeploymentStatusUpdate = (codeSpaceId, statusData) => {
         console.log('Deployment status update for', codeSpaceId, statusData);
         
