@@ -222,6 +222,18 @@ const ContextMenu = (props) => {
               Deploy Code
             </span>
           </li>
+          <li>
+            <span
+              onClick={() => {
+                props.setShowContextMenu(false);
+                if (props.handleRefresh) {
+                  props.handleRefresh();
+                }
+              }}
+            >
+              Refresh
+            </span>
+          </li>
           {projectDetails?.gitRepoName && (
             <li>
               <a target="_blank" href={buildGitUrl(codeSpace.projectDetails?.gitRepoName, codeSpace.isWorkspaceMigratedToGHE)} rel="noreferrer">

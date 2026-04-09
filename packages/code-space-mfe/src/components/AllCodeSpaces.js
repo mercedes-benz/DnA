@@ -298,6 +298,50 @@ const AllCodeSpaces = (props) => {
         getCodeSpaceGroupsData();
     }
 
+    const onRefreshSingleCodeSpace = (codeSpaceId, latestCard) => {
+        if (!latestCard) {
+            return null;
+        }
+
+        setCodeSpaces((prev) => prev.map((item) => (item.id === codeSpaceId ? latestCard : item)));
+        setFilteredCodespaces((prev) => {
+            if (!Array.isArray(prev)) return prev;
+            return prev.map((item) => (item.id === codeSpaceId ? latestCard : item));
+        });
+
+        // Also update codeSpaceGroups
+        setCodeSpaceGroups((prev) => {
+            if (!Array.isArray(prev)) return prev;
+            return prev.map((group) => ({
+                ...group,
+                workspaces: group.workspaces?.map((ws) => 
+                    ws.id === codeSpaceId ? latestCard : ws
+                )
+            }));
+        });
+
+        // Update selectedCodeSpaceGroup using functional update to get current state
+        setSelectedCodeSpaceGroup((prevGroup) => {
+            if (prevGroup && prevGroup.workspaces) {
+                const updatedGroup = {
+                    ...prevGroup,
+                    workspaces: prevGroup.workspaces.map((ws) => 
+                        ws.id === codeSpaceId ? latestCard : ws
+                    )
+                };
+                sessionStorage.setItem(SESSION_STORAGE_KEYS.CODE_SPACE_SELECTED_GROUPS, JSON.stringify(updatedGroup));
+                return updatedGroup;
+            }
+            return prevGroup;
+        });
+
+        return latestCard;
+    }
+
+    const onRefreshCard = (codeSpaceId, updatedData) => {
+        return onRefreshSingleCodeSpace(codeSpaceId, updatedData);
+    };
+
     const onStartStopCodeSpace = (codeSpace, startSuccessCB, env, manual = false) => {
         Tooltip.clear();
         const serverStarted = codeSpace.serverStatus === 'SERVER_STARTED';
@@ -722,10 +766,10 @@ const AllCodeSpaces = (props) => {
                         </div>
                         <div className={Styles.allCodeSpacesContent}>
                             <div className={classNames('cardSolutions', Styles.allCodeSpacesCardviewContent)}>
-                                {selectedCodeSpaceGroup?.workspaces?.filter((workspace) => workspace?.projectDetails?.projectOwner?.id === props.user.id)?.map((workspace, index) => {
+                                {selectedCodeSpaceGroup?.workspaces?.filter((workspace) => workspace?.projectDetails?.projectOwner?.id === props.user.id)?.map((workspace) => {
                                     return (
                                         <CodeSpaceCardItem
-                                            key={index}
+                                            key={`${workspace.id}-${workspace.projectDetails?.lastBuildOrDeployedOn}`}
                                             userInfo={props.user}
                                             codeSpace={workspace}
                                             toggleProgressMessage={toggleProgressMessage}
@@ -738,6 +782,7 @@ const AllCodeSpaces = (props) => {
                                             onStartStopCodeSpace={onStartStopCodeSpace}
                                             onShowBlueprintModal={onCodeSpaceShowBlueprint}
                                             onGetCodespaceData={onGetCodespaceData}
+                                            onRefreshCard={onRefreshCard}
                                         />
                                     );
                                 })}
@@ -754,10 +799,10 @@ const AllCodeSpaces = (props) => {
                         )}
                         <div className={Styles.allCodeSpacesContent}>
                             <div className={classNames('cardSolutions', Styles.allCodeSpacesCardviewContent)}>
-                                {selectedCodeSpaceGroup?.workspaces?.filter((workspace) => workspace?.projectDetails?.projectOwner?.id !== props.user.id)?.map((workspace, index) => {
+                                {selectedCodeSpaceGroup?.workspaces?.filter((workspace) => workspace?.projectDetails?.projectOwner?.id !== props.user.id)?.map((workspace) => {
                                     return (
                                         <CodeSpaceCardItem
-                                            key={index}
+                                            key={`${workspace.id}-${workspace.projectDetails?.lastBuildOrDeployedOn}`}
                                             userInfo={props.user}
                                             codeSpace={workspace}
                                             toggleProgressMessage={toggleProgressMessage}
@@ -770,6 +815,7 @@ const AllCodeSpaces = (props) => {
                                             onStartStopCodeSpace={onStartStopCodeSpace}
                                             onShowBlueprintModal={onCodeSpaceShowBlueprint}
                                             onGetCodespaceData={onGetCodespaceData}
+                                            onRefreshCard={onRefreshCard}
                                         />
                                     );
                                 })}
@@ -1003,11 +1049,11 @@ const AllCodeSpaces = (props) => {
                                                 <div className={Styles.addicon}> &nbsp; </div>
                                                 <label className={Styles.addlabel}>Create new Code Space</label>
                                             </div>
-                                            {filteredCodeSpaces?.filter((codespace) => codespace?.projectDetails?.projectOwner?.id === props.user.id)?.map((codeSpace, index) => {
+                                            {filteredCodeSpaces?.filter((codespace) => codespace?.projectDetails?.projectOwner?.id === props.user.id)?.map((codeSpace) => {
                                                 return (
                                                     <CodeSpaceCardItem
                                                         ref={draggableItemRef}
-                                                        key={index}
+                                                        key={`${codeSpace.id}-${codeSpace.projectDetails?.lastBuildOrDeployedOn}`}
                                                         userInfo={props.user}
                                                         codeSpace={codeSpace}
                                                         toggleProgressMessage={toggleProgressMessage}
@@ -1020,6 +1066,7 @@ const AllCodeSpaces = (props) => {
                                                         onStartStopCodeSpace={onStartStopCodeSpace}
                                                         onShowBlueprintModal={onCodeSpaceShowBlueprint}
                                                         onGetCodespaceData={onGetCodespaceData}
+                                                        onRefreshCard={onRefreshCard}
                                                     />
                                                 );
                                             })}
@@ -1036,10 +1083,10 @@ const AllCodeSpaces = (props) => {
                                     )}
                                     <div className={Styles.allCodeSpacesContent}>
                                         <div className={classNames('cardSolutions', Styles.allCodeSpacesCardviewContent)}>
-                                            {filteredCodeSpaces?.filter((codespace) => codespace?.projectDetails?.projectOwner?.id !== props.user.id)?.map((codeSpace, index) => {
+                                            {filteredCodeSpaces?.filter((codespace) => codespace?.projectDetails?.projectOwner?.id !== props.user.id)?.map((codeSpace) => {
                                                 return (
                                                     <CodeSpaceCardItem
-                                                        key={index}
+                                                        key={`${codeSpace.id}-${codeSpace.projectDetails?.lastBuildOrDeployedOn}`}
                                                         userInfo={props.user}
                                                         codeSpace={codeSpace}
                                                         toggleProgressMessage={toggleProgressMessage}
@@ -1052,6 +1099,7 @@ const AllCodeSpaces = (props) => {
                                                         onStartStopCodeSpace={onStartStopCodeSpace}
                                                         onShowBlueprintModal={onCodeSpaceShowBlueprint}
                                                         onGetCodespaceData={onGetCodespaceData}
+                                                        onRefreshCard={onRefreshCard}
                                                     />
                                                 );
                                             })}

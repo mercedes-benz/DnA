@@ -31,6 +31,7 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
   const creationFailed = codeSpace.status === 'CREATE_FAILED';
 
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const collaborator = codeSpace.projectDetails?.projectCollaborators?.find((collaborator) => {return collaborator?.id === props?.userInfo?.id });
   const isOwner = codeSpace.projectDetails?.projectOwner?.id === props.userInfo.id || collaborator?.isAdmin;
   const isApprover = codeSpace.projectDetails?.projectOwner?.id === props.userInfo.id || collaborator?.isApprover;
@@ -318,6 +319,28 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
     });
   };
 
+  const handleRefresh = () => {
+    setIsRefreshing(true);
+    CodeSpaceApiClient.getWorkspaceById(codeSpace.id)
+      .then((res) => {
+        setIsRefreshing(false);
+        if (res.data && props.onRefreshCard) {
+          props.onRefreshCard(codeSpace.id, res.data);
+        }
+        Notification.show(`${codeSpace?.projectDetails?.projectName || 'Workspace'} status refreshed`);
+      })
+      .catch((err) => {
+        setIsRefreshing(false);
+        Notification.show('Error refreshing: ' + err.message, 'alert');
+      });
+  };
+
+  const onRefreshClick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    handleRefresh();
+  };
+
   const projectDetails = codeSpace?.projectDetails;
   const intDeploymentDetails = projectDetails?.intDeploymentDetails;
   const prodDeploymentDetails = projectDetails?.prodDeploymentDetails;
@@ -427,6 +450,8 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
                     onShowBlueprintModal={props?.onShowBlueprintModal}
                     onShowBuildModal={props?.onShowBuildModal}
                     onGetCodespaceData={props?.onGetCodespaceData}
+                    onRefreshCard={props?.onRefreshCard}
+                    handleRefresh={handleRefresh}
                   />
                 </div>
               </div>
@@ -525,7 +550,16 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
                               : 'Building Production environment'
                           }
                         >
-                          <span className={classNames(Styles.statusIndicator, Styles.deploying)}>Building...</span>
+                          <span className={classNames(Styles.statusIndicator, Styles.deploying, Styles.statusWithRefresh)}>
+                            Building...
+                            <span 
+                              className={Styles.refreshIcon} 
+                              onClick={onRefreshClick}
+                              tooltip-data="Refresh status"
+                            >
+                              <i className="icon mbc-icon refresh"></i>
+                            </span>
+                          </span>
                         </a>
                       )}
                       {(projectDetails?.lastBuildOrDeployedStatus === 'DEPLOY_REQUESTED' || 
@@ -544,7 +578,16 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
                               : 'Deploying to Production'
                           }
                         >
-                          <span className={classNames(Styles.statusIndicator, Styles.deploying)}>Deploying...</span>
+                          <span className={classNames(Styles.statusIndicator, Styles.deploying, Styles.statusWithRefresh)}>
+                            Deploying...
+                            <span 
+                              className={Styles.refreshIcon} 
+                              onClick={onRefreshClick}
+                              tooltip-data="Refresh status"
+                            >
+                              <i className="icon mbc-icon refresh"></i>
+                            </span>
+                          </span>
                         </a>
                       )}
                       {projectDetails?.lastBuildOrDeployedStatus === 'BUILD_FAILED' && (
@@ -769,6 +812,14 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
             </>
           )}
         </div>
+        {isRefreshing && (
+          <div className={Styles.refreshOverlay}>
+            <div className={Styles.refreshProgress}>
+              <div className={Styles.progressBar}></div>
+            </div>
+            <span>Refreshing...</span>
+          </div>
+        )}
       </div>
       <ConfirmModal
         title={''}
