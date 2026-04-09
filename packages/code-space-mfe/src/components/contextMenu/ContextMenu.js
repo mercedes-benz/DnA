@@ -42,7 +42,9 @@ const ContextMenu = (props) => {
 
   const deployingInProgress =
     intDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED' ||
-    prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED';
+    intDeploymentDetails?.lastDeploymentStatus === 'DEPLOYING' ||
+    prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED' ||
+    prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOYING';
 
   const buildInProgress = projectDetails?.lastBuildOrDeployedStatus === 'BUILD_REQUESTED';
 
@@ -53,19 +55,19 @@ const ContextMenu = (props) => {
   // const intDeploymentMigrated = intDeployedUrl?.includes(Envs.CODESPACE_AWS_POPUP_URL);
   // const prodDeploymentMigrated = prodDeployedUrl?.includes(Envs.CODESPACE_AWS_POPUP_URL);
 
-  const prodCodeDeployFailed = prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
-  const intCodeDeployFailed = intDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
+  const prodCodeDeployFailed = prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED' ||
+    prodDeploymentDetails.lastDeploymentStatus === 'FAILED';
+  const intCodeDeployFailed = intDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED' ||
+    intDeploymentDetails.lastDeploymentStatus === 'FAILED';
   const prodCodeBuildFailed = prodBuildDetails.lastDeploymentStatus === 'BUILD_FAILED';
   const intCodeBuildFailed = intBuildDetails.lastDeploymentStatus === 'BUILD_FAILED';
 
   const intDeployed =
     intDeploymentDetails?.lastDeploymentStatus === 'DEPLOYED' ||
-    (intDeployedUrl !== null && intDeployedUrl !== 'null') ||
     false;
 
   const prodDeployed =
     prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOYED' ||
-    (prodDeployedUrl !== null && prodDeployedUrl !== 'null') ||
     false;
 
   const intAppResourceUsageUrl =

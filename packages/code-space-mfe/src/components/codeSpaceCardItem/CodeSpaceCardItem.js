@@ -346,7 +346,9 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
   const prodDeploymentDetails = projectDetails?.prodDeploymentDetails;
   const deployingInProgress =
     intDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED' ||
-    prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED' || 
+    intDeploymentDetails?.lastDeploymentStatus === 'DEPLOYING' ||
+    prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED' ||
+    prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOYING' || 
     prodDeploymentDetails?.lastDeploymentStatus === 'APPROVAL_PENDING' ||
     projectDetails?.lastBuildOrDeployedStatus === 'APPROVAL_PENDING';
   const buildInProgress = projectDetails?.lastBuildOrDeployedStatus === 'BUILD_REQUESTED';
@@ -560,7 +562,8 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
                           </span>
                         </a>
                       )}
-                      {projectDetails?.lastBuildOrDeployedStatus === 'DEPLOY_REQUESTED' && (
+                      {(projectDetails?.lastBuildOrDeployedStatus === 'DEPLOY_REQUESTED' || 
+                        projectDetails?.lastBuildOrDeployedStatus === 'DEPLOYING') && (
                         <a
                           href={(projectDetails?.lastBuildOrDeployedEnv === 'int')
                             ? buildGitJobLogViewAWSURL(projectDetails?.intDeploymentDetails?.gitjobRunID)
@@ -606,7 +609,8 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
                           </a>
                         </span>
                       )}
-                      {projectDetails?.lastBuildOrDeployedStatus === 'DEPLOYMENT_FAILED' && (
+                      {(projectDetails?.lastBuildOrDeployedStatus === 'DEPLOYMENT_FAILED' ||
+                        projectDetails?.lastBuildOrDeployedStatus === 'FAILED') && (
                         <span className={classNames(Styles.statusIndicator, Styles.deployFailed)}>
                           <a
                             href={(projectDetails?.lastBuildOrDeployedEnv === 'int')
