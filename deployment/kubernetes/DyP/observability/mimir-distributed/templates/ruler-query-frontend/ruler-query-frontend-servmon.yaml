@@ -1,3 +1,0 @@
-{{- if .Values.ruler.remoteEvaluationDedicatedQueryPath }}
-{{- include "mimir.lib.serviceMonitor" (dict "ctx" $ "component" "ruler-query-frontend") }}
-{{- end }}
