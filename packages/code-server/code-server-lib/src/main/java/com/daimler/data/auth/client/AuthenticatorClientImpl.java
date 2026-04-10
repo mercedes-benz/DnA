@@ -1937,8 +1937,12 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		try {
 			LOGGER.info("Creating OpenTelemetry plugin via Kong Admin API for service {}", kongServiceName);
 
+			// Wrap plugin config in {"data": {...}} format expected by authenticator service
+			Map<String, Object> requestBody = new java.util.HashMap<>();
+			requestBody.put("data", pluginConfig);
+
 			ObjectMapper mapper = new ObjectMapper();
-			String pluginConfigJson = mapper.writeValueAsString(pluginConfig);
+			String pluginConfigJson = mapper.writeValueAsString(requestBody);
 
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
