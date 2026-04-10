@@ -1,3 +1,0 @@
-{{- if index .Values "chunks-cache" "enabled" }}
-{{- include "mimir.lib.podDisruptionBudget" (dict "ctx" $ "component" "chunks-cache") }}
-{{- end -}}

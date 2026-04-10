@@ -1,3 +1,0 @@
-{{- if index .Values "results-cache" "enabled" }}
-{{- include "mimir.lib.podDisruptionBudget" (dict "ctx" $ "component" "results-cache") }}
-{{- end -}}
