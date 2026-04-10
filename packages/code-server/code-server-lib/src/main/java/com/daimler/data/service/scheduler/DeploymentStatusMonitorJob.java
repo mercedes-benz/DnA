@@ -51,7 +51,7 @@ public class DeploymentStatusMonitorJob {
                 }
 
                 CodeServerDeploymentDetails intDeployment = workspace.getData().getProjectDetails().getIntDeploymentDetails();
-                if (intDeployment != null && "DEPLOYING".equalsIgnoreCase(intDeployment.getLastDeploymentStatus())) {
+                if (intDeployment != null && shouldCheckDeployment(intDeployment.getLastDeploymentStatus())) {
                     checkedCount++;
                     if (checkAndUpdateDeployment(argoToken, workspace, intDeployment, projectName, "int")) {
                         updatedCount++;
@@ -59,7 +59,7 @@ public class DeploymentStatusMonitorJob {
                 }
 
                 CodeServerDeploymentDetails prodDeployment = workspace.getData().getProjectDetails().getProdDeploymentDetails();
-                if (prodDeployment != null && "DEPLOYING".equalsIgnoreCase(prodDeployment.getLastDeploymentStatus())) {
+                if (prodDeployment != null && shouldCheckDeployment(prodDeployment.getLastDeploymentStatus())) {
                     checkedCount++;
                     if (checkAndUpdateDeployment(argoToken, workspace, prodDeployment, projectName, "prod")) {
                         updatedCount++;
@@ -75,22 +75,36 @@ public class DeploymentStatusMonitorJob {
         }
     }
 
+    private boolean shouldCheckDeployment(String status) {
+        if (status == null) return false;
+        return "DEPLOYING".equalsIgnoreCase(status) || "FAILED".equalsIgnoreCase(status);
+    }
+
     private boolean checkAndUpdateDeployment(String argoToken, CodeServerWorkspaceNsql workspace, 
                                             CodeServerDeploymentDetails deployment, 
                                             String projectName, String environment) {
         try {
             String appName = projectName.toLowerCase() + "-" + environment;
+            String currentDbStatus = deployment.getLastDeploymentStatus();
             String argoStatus = argoCdService.checkArgoAppDeploymentStatus(argoToken, appName);
 
-            if ("DEPLOYED".equals(argoStatus) || "FAILED".equals(argoStatus)) {
-                log.info("Updating deployment status for {} from DEPLOYING to {}", appName, argoStatus);
+            
+            boolean needsUpdate = false;
+            if ("DEPLOYED".equals(argoStatus) && !"DEPLOYED".equalsIgnoreCase(currentDbStatus)) {
+                needsUpdate = true;
+            } else if ("FAILED".equals(argoStatus) && "DEPLOYING".equalsIgnoreCase(currentDbStatus)) {
+                needsUpdate = true;
+            }
+
+            if (needsUpdate) {
+                log.info("Reconciling deployment status for {} from {} to {}", appName, currentDbStatus, argoStatus);
                 
                 deployment.setLastDeploymentStatus(argoStatus);
                 
                 DeploymentAudit latestAudit = null;
                 if (deployment.getDeploymentAuditLogs() != null && !deployment.getDeploymentAuditLogs().isEmpty()) {
                     latestAudit = deployment.getDeploymentAuditLogs().stream()
-                        .filter(audit -> "DEPLOYING".equalsIgnoreCase(audit.getDeploymentStatus()))
+                        .filter(audit -> audit.getTriggeredOn() != null)
                         .sorted((a1, a2) -> a2.getTriggeredOn().compareTo(a1.getTriggeredOn()))
                         .findFirst()
                         .orElse(null);
@@ -100,9 +114,7 @@ public class DeploymentStatusMonitorJob {
                     if (deployment.getLastDeployedBy() == null) {
                         deployment.setLastDeployedBy(workspace.getData().getWorkspaceOwner());
                     }
-                    if (deployment.getLastDeployedOn() == null) {
-                        deployment.setLastDeployedOn(new Date());
-                    }
+                    deployment.setLastDeployedOn(new Date());
                     
                     if (latestAudit != null) {
                         if (deployment.getLastDeployedBranch() == null && latestAudit.getBranch() != null) {
