@@ -154,6 +154,9 @@ indexGateway:
     limits:
       memory: 512Mi
 
+gateway:
+  replicas: 2
+
 bloomPlanner:
   replicas: 0
 
@@ -215,8 +218,13 @@ ruler:
 
 chunksCache:
   enabled: true
+  replicas: 2
   defaultValidity: 1h
   writebackSizeLimit: 1GB
+
+resultsCache:
+  enabled: true
+  replicas: 2
 
 table_manager:
   retention_deletes_enabled: true
