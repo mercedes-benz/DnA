@@ -44,7 +44,6 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.daimler.data.util.ConstantsUtility;
 import com.daimler.data.util.CommonUtils;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Component
 public class AuthenticatorClientImpl  implements AuthenticatorClient{
@@ -254,6 +253,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 	private static final String ATTACH_FUNCTION_PLUGIN_TO_SERVICE = "/functionPlugin";
 	private static final String ATTACH_REQUEST_TRANSFORMER_PLUGIN_TO_SERVICE = "/requestTransformerPlugin";
 	private static final String ATTACH_ONE_API_PLUGIN_TO_SERVICE = "/oneApiPlugin";
+	private static final String ATTACH_OPENTELEMETRY_PLUGIN_TO_SERVICE = "/openTelemetryPlugin";
 
 	@Override
 	public GenericMessage createService(CreateServiceRequestVO createServiceRequestVO, String cloudServiceProvider) {
@@ -1949,7 +1949,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 			headers.set("Content-Type", "application/json");
 			headers.set("apikey", apiKey);
 
-			String attachPluginUri = authenticatorBaseUri + CREATE_SERVICE + "/" + kongServiceName + ATTACH_PLUGIN_TO_SERVICE;
+			String attachPluginUri = authenticatorBaseUri + CREATE_SERVICE + "/" + kongServiceName + ATTACH_OPENTELEMETRY_PLUGIN_TO_SERVICE;
 			HttpEntity<String> entity = new HttpEntity<>(pluginConfigJson, headers);
 
 			LOGGER.info("Calling Kong Admin API: POST {}", attachPluginUri);
