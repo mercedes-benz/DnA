@@ -45,9 +45,12 @@ public class DeploymentStatusSseController {
         executor.execute(() -> {
             int errorCount = 0;
             int maxErrors = 5;
+            int maxIterations = 600;
+            int iteration = 0;
             
             try {
-                while (true) {
+                while (iteration < maxIterations) {
+                    iteration++;
                     try {
                         Map<String, Object> statusData = getDeploymentStatusData(projectName, environment);
                         
@@ -56,9 +59,10 @@ public class DeploymentStatusSseController {
                                 .data(objectMapper.writeValueAsString(statusData)));
 
                         String status = (String) statusData.get("currentStatus");
+                        log.debug("SSE iteration {}: status={} for {}/{}", iteration, status, projectName, environment);
                         
                         if ("DEPLOYED".equals(status) || "FAILED".equals(status)) {
-                            log.info("Deployment finished with status: {}", status);
+                            log.info("Deployment finished with status: {} after {} iterations", status, iteration);
                             emitter.send(SseEmitter.event()
                                     .name("deployment-complete")
                                     .data(objectMapper.writeValueAsString(statusData)));
@@ -69,31 +73,44 @@ public class DeploymentStatusSseController {
                             errorCount++;
                             log.warn("SSE got error status (attempt {}/{}): {}", errorCount, maxErrors, statusData.get("message"));
                             if (errorCount >= maxErrors) {
-                                log.error("Too many errors, closing SSE stream");
+                                log.error("Too many errors, closing SSE stream after {} iterations", iteration);
                                 emitter.send(SseEmitter.event()
                                         .name("deployment-error")
                                         .data(objectMapper.writeValueAsString(statusData)));
                                 break;
                             }
                         } else {
-                            errorCount = 0; // Reset on success
+                            errorCount = 0;
                         }
 
                         Thread.sleep(3000);
 
                     } catch (IOException e) {
-                        log.warn("Client disconnected from SSE stream");
+                        log.warn("Client disconnected from SSE stream at iteration {}", iteration);
                         emitter.completeWithError(e);
                         return;
                     } catch (InterruptedException e) {
-                        log.warn("SSE stream interrupted");
+                        log.warn("SSE stream interrupted at iteration {}", iteration);
                         Thread.currentThread().interrupt();
                         emitter.completeWithError(e);
                         return;
                     }
                 }
+                
+                if (iteration >= maxIterations) {
+                    log.warn("SSE stream reached max iterations ({}) for {}/{}", maxIterations, projectName, environment);
+                    Map<String, Object> timeoutData = new HashMap<>();
+                    timeoutData.put("currentStatus", "TIMEOUT");
+                    timeoutData.put("message", "Deployment monitoring timed out after 30 minutes");
+                    timeoutData.put("projectName", projectName);
+                    timeoutData.put("environment", environment);
+                    emitter.send(SseEmitter.event()
+                            .name("deployment-timeout")
+                            .data(objectMapper.writeValueAsString(timeoutData)));
+                }
+                
                 emitter.complete();
-                log.info("SSE stream completed successfully");
+                log.info("SSE stream completed successfully after {} iterations", iteration);
 
             } catch (Exception e) {
                 log.error("Error in SSE stream", e);
@@ -203,14 +220,13 @@ public class DeploymentStatusSseController {
     }
     
     private String determineActualStatus(String dbStatus, String argoHealth, String argoSync) {
-        if ("UNAVAILABLE".equals(argoHealth) || argoHealth == null || argoHealth.isEmpty()) {
+        if ("DEPLOYED".equalsIgnoreCase(dbStatus) || "FAILED".equalsIgnoreCase(dbStatus)) {
+            log.debug("Using terminal DB status: {}", dbStatus);
             return dbStatus;
         }
         
-        if ("Progressing".equalsIgnoreCase(argoHealth) || 
-            "Suspended".equalsIgnoreCase(argoHealth) ||
-            "OutOfSync".equalsIgnoreCase(argoSync)) {
-            return "DEPLOYING";
+        if ("UNAVAILABLE".equals(argoHealth) || argoHealth == null || argoHealth.isEmpty()) {
+            return dbStatus;
         }
         
         if ("Healthy".equalsIgnoreCase(argoHealth) && "Synced".equalsIgnoreCase(argoSync)) {
@@ -220,6 +236,12 @@ public class DeploymentStatusSseController {
         if ("Degraded".equalsIgnoreCase(argoHealth) || 
             "Missing".equalsIgnoreCase(argoHealth)) {
             return "FAILED";
+        }
+        
+        if ("Progressing".equalsIgnoreCase(argoHealth) || 
+            "Suspended".equalsIgnoreCase(argoHealth) ||
+            "OutOfSync".equalsIgnoreCase(argoSync)) {
+            return "DEPLOYING";
         }
         
         return dbStatus;
