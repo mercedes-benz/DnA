@@ -214,16 +214,12 @@ public class ArgoCdService {
         if (resources != null && !resources.isEmpty()) {
             String cpu = resources.get("cpu");
             String memory = resources.get("memory");
-            String memoryLimit = resources.get("memoryLimit");
             if (cpu != null) {
                 helmParameters.add(createHelmParam("resources.requests.cpu", cpu + "m"));
-                helmParameters.add(createHelmParam("resources.limits.cpu", cpu + "m"));
             }
             if (memory != null) {
                 helmParameters.add(createHelmParam("resources.requests.memory", memory + "Mi"));
-            }
-            if (memoryLimit != null) {
-                helmParameters.add(createHelmParam("resources.limits.memory", memoryLimit + "Mi"));
+                helmParameters.add(createHelmParam("resources.limits.memory", memory + "Mi"));
             }
         }
         
@@ -349,17 +345,6 @@ public class ArgoCdService {
             String convertedMemory = convertMemory(memoryValue);
             if (convertedMemory != null) {
                 convertedResources.put("memory", convertedMemory);
-            }
-        }
-        @SuppressWarnings("unchecked")
-        Map<String, Object> limits =
-                (Map<String, Object>) resourcesSection.get("limits");
-
-        if (limits != null && limits.containsKey("memory")) {
-            String memoryLimitValue = String.valueOf(limits.get("memory"));
-            String convertedLimit = convertMemory(memoryLimitValue);
-            if (convertedLimit != null) {
-                convertedResources.put("memoryLimit", convertedLimit);
             }
         }
         return convertedResources.isEmpty() ? null : convertedResources;
