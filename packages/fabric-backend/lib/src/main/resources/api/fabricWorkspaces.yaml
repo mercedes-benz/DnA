@@ -853,7 +853,10 @@ definitions:
       cdcPublishedLakeHouseDetails:
         $ref: "#/definitions/CdcPublishedLakeHouseDetailsVO"
       ddxPublishedLakeHouseDetails:
-        $ref: "#/definitions/DdxPublishedLakeHouseDetailsVO"
+        type: array
+        items:
+          type: string
+        description: "List of lakehouse detail IDs referencing lakehouse_detail_nsql table"
 
   FabricWorkspaceStatusVO:
     type: object
@@ -1321,12 +1324,16 @@ definitions:
   DdxPublishedLakeHouseDetailsVO:
     type: object
     properties:
+      workspaceName:
+        type: string
+      workspaceId:
+        type: string
+      lakehouseName:
+        type: string
+      lakeHouseId:
+        type: string
       isLakeHousesPublishedToDdx:
         type: boolean
-      publishedLakeHouseNames:
-        type: array
-        items:
-          type: string
       productName:
         type: string
         description: "Name of the DDX data product"
@@ -1341,10 +1348,47 @@ definitions:
       modifiedOn:
         type: string
         format: date
-      fabric2FabricDetails:
-        $ref: "#/definitions/Fabric2FabricDetailsVO"
       unityDetails:
         $ref: "#/definitions/DdxUnityDetailsVO"
+      fabric2fabricDetails:
+        type: array
+        items:
+          $ref: "#/definitions/Fabric2FabricDetailVO"
+
+  Fabric2FabricDetailVO:
+    type: object
+    properties:
+      isFabric2Fabric:
+        type: boolean
+      initiatedOn:
+        type: string
+        format: date
+      groupsNames:
+        type: array
+        items:
+          $ref: "#/definitions/GroupNameDetailVO"
+
+  GroupNameDetailVO:
+    type: object
+    properties:
+      testRunId:
+        type: string
+      groupNameList:
+        type: array
+        items:
+          $ref: "#/definitions/GroupNameListVO"
+      runStatus:
+        type: string
+
+  GroupNameListVO:
+    type: object
+    properties:
+      groupName:
+        type: string
+      status:
+        type: string
+      message:
+        type: string
 
   Fabric2FabricDetailsVO:
     type: object
