@@ -306,12 +306,11 @@ public class PromptCraftSubscriptionsController  implements PromptCraftSubscript
                         return new ResponseEntity<>(response, HttpStatus.OK);
                     }
                     else{
-                        log.info("Refresh request re-triggering subscription creation for projectName={}, previousStatus={}", projectName, existingVO.getStatus());
-                        PromptCraftSubscriptionsResponseVO createSubscriptionResponse = new PromptCraftSubscriptionsResponseVO();
-                        createSubscriptionResponse = service.createSubscription(existingVO);
-                        response.setSuccess(createSubscriptionResponse.getSuccess());
-                        response.setErrors(createSubscriptionResponse.getErrors());
-                        response.setWarnings(createSubscriptionResponse.getWarnings());
+                        log.info("Refresh request retrying with existing runId for projectName={}, runId={}, previousStatus={}",
+                                projectName, existingVO.getRunId(), existingVO.getStatus());
+                        existingVO.setStatus("IN_PROGRESS");
+                        asyncService.checkForKeysFromUiLicious(projectName, existingVO.getRunId());
+                        response.setSuccess("SUCCESS");
                         return new ResponseEntity<>(response, HttpStatus.OK);
                     }
                 }else{
