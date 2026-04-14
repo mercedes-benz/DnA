@@ -5418,9 +5418,10 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 							builds.stream().forEach(i ->{
 								if(i.getVersion().equalsIgnoreCase(version)){
 									GenericMessage deleteApiResonse = client.deleteBuild(projectName, version);
-									if(deleteApiResonse.getSuccess().equalsIgnoreCase("SUCCESS")){
-										i.setImageDeleted(true);
-									}									
+									i.setImageDeleted(true);
+									if(!deleteApiResonse.getSuccess().equalsIgnoreCase("SUCCESS")){
+										log.warn("Image deletion from registry failed for version {}, but marking as deleted in audit logs", version);
+									}
 								}
 							});
 						}
