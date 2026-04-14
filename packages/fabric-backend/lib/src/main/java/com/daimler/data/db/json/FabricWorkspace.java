@@ -52,5 +52,5 @@ public class FabricWorkspace implements Serializable{
 	private String projectId;
 	private Date lastModifiedOn;
 	private CdcPublishedLakeHouseDetails cdcPublishedLakeHouseDetails;
-	private DdxPublishedLakeHouseDetails ddxPublishedLakeHouseDetails;
+	private List<String> ddxPublishedLakeHouseDetails;
 }

@@ -20,14 +20,16 @@ import com.databricks.sdk.service.sql.StatementResponse;
 import com.databricks.sdk.WorkspaceClient;
 import com.daimler.data.application.client.FabricWorkspaceClient;
 import com.daimler.data.assembler.FabricWorkspaceAssembler;
+import com.daimler.data.assembler.LakehouseDetailAssembler;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
+import com.daimler.data.db.entities.LakehouseDetailNsql;
 import com.daimler.data.db.repo.fabric.FabricWorkspaceRepository;
+import com.daimler.data.db.repo.lakehouseDetail.LakehouseDetailRepository;
 import com.daimler.data.dto.fabric.FabricSqlEndpointResponseDto;
 import com.daimler.data.dto.fabricWorkspace.CreatedByVO;
 import com.daimler.data.dto.fabricWorkspace.DdxPublishedLakeHouseDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.DdxUnityDetailsVO;
-import com.daimler.data.dto.fabricWorkspace.Fabric2FabricDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceVO;
 import com.daimler.data.util.ProxyConfig;
 import com.daimler.data.util.CommonsHttpClient;
@@ -73,6 +75,12 @@ public class BaseDdxOnboardingService implements DdxOnboardingService {
 
     @Autowired
     private FabricWorkspaceAssembler assembler;
+
+    @Autowired
+    private LakehouseDetailAssembler lakehouseDetailAssembler;
+
+    @Autowired
+    private LakehouseDetailRepository lakehouseDetailRepo;
 
     @Value("${proxy.host}")
     private String proxyHost;
@@ -418,43 +426,40 @@ public class BaseDdxOnboardingService implements DdxOnboardingService {
     private void updateDdxLakeHouseDetails(String workspaceId, String lakehouseId, String lakehouseName, String catalogName, DdxResponseDto onboardingResponse, CreatedByVO createdBy) {
         try {
             FabricWorkspaceVO workspace = fabricWorkspaceService.getById(workspaceId);
-            DdxPublishedLakeHouseDetailsVO details = Optional.ofNullable(workspace.getDdxPublishedLakeHouseDetails())
-                .orElse(new DdxPublishedLakeHouseDetailsVO());
 
+            // Build the lakehouse detail VO for the new table
+            DdxPublishedLakeHouseDetailsVO details = new DdxPublishedLakeHouseDetailsVO();
+            details.setWorkspaceId(workspaceId);
+            details.setWorkspaceName(workspace.getName());
+            details.setLakehouseName(lakehouseName);
+            details.setLakeHouseId(lakehouseId);
             details.setIsLakeHousesPublishedToDdx(true);
-
-            log.info("isLakeHouseFlag :: {}", details.toString());
-
-            List<String> publishedNames = Optional.ofNullable(details.getPublishedLakeHouseNames())
-                .orElse(new ArrayList<>());
-            if (!publishedNames.contains(lakehouseId)) {
-                publishedNames.add(lakehouseId);
-            }
-            details.setPublishedLakeHouseNames(publishedNames);
-
             details.setProductName(onboardingResponse.getDataProductName());
             details.setProductId(String.valueOf(onboardingResponse.getDataProductId()));
             details.setCreatedBy(createdBy);
             Date now = new Date();
-            if (details.getCreatedOn() == null) {
-                details.setCreatedOn(now);
-            }
+            details.setCreatedOn(now);
             details.setModifiedOn(now);
 
-            DdxUnityDetailsVO unityDetails = Optional.ofNullable(details.getUnityDetails())
-                .orElse(new DdxUnityDetailsVO());
+            DdxUnityDetailsVO unityDetails = new DdxUnityDetailsVO();
             unityDetails.setCatalogName(catalogName);
             details.setUnityDetails(unityDetails);
 
-            // Fabric2FabricDetailsVO fabric2fabricDetails = Optional.ofNullable(details.getFabric2FabricDetails())
-            //     .orElse(new Fabric2FabricDetailsVO());
-            // fabric2fabricDetails.setGroupName("oneFabric_" + lakehouseId);//umang
-            // details.setFabric2FabricDetails(fabric2fabricDetails);
+            // Save to lakehouse_detail_nsql table
+            LakehouseDetailNsql entity = lakehouseDetailAssembler.toEntity(details);
+            entity.setId(lakehouseId);
+            lakehouseDetailRepo.save(entity);
 
-            workspace.setDdxPublishedLakeHouseDetails(details);
+            // Add the ID to workspace's ddxPublishedLakeHouseDetails list
+            List<String> detailIds = Optional.ofNullable(workspace.getDdxPublishedLakeHouseDetails())
+                .orElse(new ArrayList<>());
+            if (!detailIds.contains(lakehouseId)) {
+                detailIds.add(lakehouseId);
+            }
+            workspace.setDdxPublishedLakeHouseDetails(detailIds);
             jpaRepo.save(assembler.toEntity(workspace));
 
-            log.info("Successfully updated DDX published lakehouse details for workspace: {}", workspaceId);
+            log.info("Successfully updated DDX published lakehouse details for workspace: {}, lakehouseId: {}", workspaceId, lakehouseId);
         } catch (Exception e) {
             log.error("Failed to update DDX lake house details for workspace {}: {}", workspaceId, e.getMessage(), e);
         }
