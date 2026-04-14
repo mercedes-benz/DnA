@@ -80,20 +80,23 @@ public class AsyncService {
 
 		PromptCraftSubscriptionsNsql entity = null;
 
+		log.info("checkForKeysFromUiLicious started for projectName={}, runId={}", projectName, runId);
 
 		PromptCraftSubscriptionsVO vo = service.getByUniqueliteral("projectName",projectName);
 		if(!"COMPLETED".equalsIgnoreCase(vo.getStatus())){
 
 		
 			while (retries < MAX_RETRIES && !stepsSizeSufficient) {
+				log.info("checkForKeysFromUiLicious retry={}/{} for projectName={}, runId={}", retries, MAX_RETRIES, projectName, runId);
 				JsonNode jsonResponse = uiLiciousClient.getSubscriptionRunDetails(runId);
 				if (jsonResponse != null) {
-					log.debug("Subscription keys are available for the run id {}", runId);
+					log.info("Received response from UiLicious for runId={}", runId);
 
 					JsonNode stepsNode = jsonResponse.path("result").path("result").path("steps");
+					log.info("Steps count from UiLicious for runId={} : {}", runId, stepsNode.isArray() ? stepsNode.size() : "not an array");
 					if (stepsNode.isArray() && stepsNode.size() >= 10) {
 						stepsSizeSufficient = true;
-						log.debug("Steps size is sufficient: {}", stepsNode.size());
+						log.info("Steps size is sufficient: {} for runId={}", stepsNode.size(), runId);
 
 						for (JsonNode step : stepsNode) {
 							int stepNum = step.path("stepNum").asInt();
@@ -101,7 +104,11 @@ public class AsyncService {
 							String description = step.path("description").asText();
 							String cmd = step.path("cmd").asText();
 							String error = step.path("error").asText();
+							String returnVal = step.path("return").asText();
 						
+							log.info("Step[{}] cmd={} status={} description='{}' return='{}' error='{}'",
+									stepNum, cmd, status, description, returnVal, error);
+
 							// Normalize for case-insensitive checks
 							String lowerDescription = description.toLowerCase();
 							String lowerStatus = status.toLowerCase();
@@ -113,7 +120,7 @@ public class AsyncService {
 									&& "grabText".equalsIgnoreCase(cmd) 
 									&& "success".equalsIgnoreCase(status)) {
 								keys.setPrivateKey(step.path("return").asText());
-								log.debug("PA Key: {}", keys.getPrivateKey());
+								log.info("Private Key extracted at step {}", stepNum);
 							}
 				
 							// Check for Public Key condition
@@ -122,7 +129,7 @@ public class AsyncService {
 									&& "grabText".equalsIgnoreCase(cmd) 
 									&& "success".equalsIgnoreCase(status)) {
 								keys.setPublicKey(step.path("return").asText());
-								log.debug("PU Key: {}", keys.getPublicKey());
+								log.info("Public Key extracted at step {}", stepNum);
 							}
 
 							if (lowerDescription.startsWith("i get text") 
@@ -150,6 +157,9 @@ public class AsyncService {
 							}
 						
 						}
+
+						log.info("After processing all steps for runId={}: privateKeyFound={}, publicKeyFound={}",
+								runId, keys.getPrivateKey() != null, keys.getPublicKey() != null);
 		
 						if(keys.getPrivateKey() != null && keys.getPublicKey() != null){
 
