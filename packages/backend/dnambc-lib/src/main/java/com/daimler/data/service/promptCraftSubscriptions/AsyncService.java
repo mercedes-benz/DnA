@@ -49,7 +49,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class AsyncService {
 
-   	@Autowired
+	@Autowired
 	private PromptCraftSubscriptionsCustomRepository customRepo;
 
 	@Autowired
@@ -59,7 +59,7 @@ public class AsyncService {
 	private PromptCraftSubscriptionsAssembler promptCraftSubscriptionsAssembler;
 
 	@Autowired
-	private  UiLiciousClient uiLiciousClient;
+	private UiLiciousClient uiLiciousClient;
 
 	@Autowired
 	private VaultAuthClientImpl vaultAuthClient;
@@ -67,14 +67,16 @@ public class AsyncService {
 	@Autowired
 	private PromptCraftSubscriptionsService service;
 
-	private static final int MAX_RETRIES = 8; // 2 minutes with 10 seconds interval
-    private static final int RETRY_INTERVAL_MS = 15000; // 10 seconds
+	private static final int MAX_RETRIES = 8;
+	private static final int RETRY_INTERVAL_MS = 15000;
+	private static final int VAULT_MAX_RETRIES = 3;
+	private static final int VAULT_RETRY_INTERVAL_MS = 10000;
 
 
 	@Async
 	public void checkForKeysFromUiLicious(String projectName, String runId) {
-        int retries = 0;
-        boolean stepsSizeSufficient = false;
+		int retries = 0;
+		boolean stepsSizeSufficient = false;
 
 		SubscriptionkeysVO keys = new SubscriptionkeysVO();
 
@@ -82,10 +84,9 @@ public class AsyncService {
 
 		log.info("checkForKeysFromUiLicious started for projectName={}, runId={}", projectName, runId);
 
-		PromptCraftSubscriptionsVO vo = service.getByUniqueliteral("projectName",projectName);
-		if(!"COMPLETED".equalsIgnoreCase(vo.getStatus())){
+		PromptCraftSubscriptionsVO vo = service.getByUniqueliteral("projectName", projectName);
+		if (!"COMPLETED".equalsIgnoreCase(vo.getStatus())) {
 
-		
 			while (retries < MAX_RETRIES && !stepsSizeSufficient) {
 				log.info("checkForKeysFromUiLicious retry={}/{} for projectName={}, runId={}", retries, MAX_RETRIES, projectName, runId);
 				JsonNode jsonResponse = uiLiciousClient.getSubscriptionRunDetails(runId);
@@ -167,37 +168,60 @@ public class AsyncService {
 						log.info("After processing all steps for runId={}: privateKeyFound={}, publicKeyFound={}",
 								runId, keys.getPrivateKey() != null, keys.getPublicKey() != null);
 		
-						if(keys.getPrivateKey() != null && keys.getPublicKey() != null){
+						if (keys.getPrivateKey() != null && keys.getPublicKey() != null) {
 
-							String userID = service.getPromptCraftSubscriptionUserID( keys.getPublicKey(), keys.getPrivateKey());
-							if( userID != null) {
+							String userID = service.getPromptCraftSubscriptionUserID(keys.getPublicKey(), keys.getPrivateKey());
+							if (userID != null) {
 								keys.setUserID(userID);
-							log.info("PromptCraft userID obtained successfully for projectName={}", projectName);
-							
-							GenericMessage vaultResponse = vaultAuthClient.createSubscriptionKeys(projectName,keys);
-							if(vaultResponse!=null && "SUCCESS".equalsIgnoreCase(vaultResponse.getSuccess())){
-								log.info("Successfully added subscription keys to vault for projectName={}", projectName);
-								vo.setStatus("COMPLETED");
-								entity = promptCraftSubscriptionsAssembler.toEntity(vo);
-								jpaRepo.save(entity);
+								log.info("PromptCraft userID obtained successfully for projectName={}", projectName);
+
+								// Retry vault operations to handle transient DNS/network failures
+								boolean vaultSuccess = false;
+								for (int vaultAttempt = 0; vaultAttempt < VAULT_MAX_RETRIES; vaultAttempt++) {
+									log.info("Vault store attempt {}/{} for projectName={}", vaultAttempt + 1, VAULT_MAX_RETRIES, projectName);
+									GenericMessage vaultResponse = vaultAuthClient.createSubscriptionKeys(projectName, keys);
+									if (vaultResponse != null && "SUCCESS".equalsIgnoreCase(vaultResponse.getSuccess())) {
+										log.info("Successfully added subscription keys to vault for projectName={}", projectName);
+										vo.setStatus("COMPLETED");
+										entity = promptCraftSubscriptionsAssembler.toEntity(vo);
+										jpaRepo.save(entity);
+										vaultSuccess = true;
+										break;
+									} else {
+										log.error("Vault store attempt {}/{} failed for projectName={}. VaultResponse: {}",
+												vaultAttempt + 1, VAULT_MAX_RETRIES, projectName,
+												vaultResponse != null ? vaultResponse.getSuccess() : "null");
+										if (vaultAttempt < VAULT_MAX_RETRIES - 1) {
+											try {
+												Thread.sleep(VAULT_RETRY_INTERVAL_MS);
+											} catch (InterruptedException e) {
+												Thread.currentThread().interrupt();
+												log.error("Thread was interrupted during vault retry", e);
+												break;
+											}
+										}
+									}
+								}
+
+								if (!vaultSuccess) {
+									vo.setStatus("FAILED");
+									entity = promptCraftSubscriptionsAssembler.toEntity(vo);
+									jpaRepo.save(entity);
+									log.error("Failed to store keys in Vault after {} attempts for projectName={}", VAULT_MAX_RETRIES, projectName);
+								}
 							} else {
 								vo.setStatus("FAILED");
 								entity = promptCraftSubscriptionsAssembler.toEntity(vo);
 								jpaRepo.save(entity);
-								log.error("Failed to store keys in Vault for projectName={}. VaultResponse: {}", 
-									projectName, vaultResponse != null ? vaultResponse.getSuccess() : "null");
+								log.error("Failed to get PromptCraft userID for projectName={}", projectName);
 							}
-						}
-						else {
+						} else {
 							vo.setStatus("FAILED");
 							entity = promptCraftSubscriptionsAssembler.toEntity(vo);
 							jpaRepo.save(entity);
-							log.error("Failed to get PromptCraft userID for projectName={}", projectName);
+							log.error("Keys not found after processing all steps for projectName={}. privateKey={}, publicKey={}",
+									projectName, keys.getPrivateKey() != null, keys.getPublicKey() != null);
 						}
-					} else {
-						log.warn("Keys not found after processing all steps for projectName={}. privateKey={}, publicKey={}", 
-							projectName, keys.getPrivateKey() != null, keys.getPublicKey() != null);
-					}
 
 
 				} else {
@@ -223,11 +247,10 @@ public class AsyncService {
 				}
 			}
 		}
+
+		if (!stepsSizeSufficient) {
+			log.error("Failed to get sufficient steps size within the timeout period for run id {}", runId);
+		}
 	}
 
-	if (!stepsSizeSufficient) {
-		log.error("Failed to get sufficient steps size within the timeout period for run id {}", runId);
-	}
-}
-    
 }
