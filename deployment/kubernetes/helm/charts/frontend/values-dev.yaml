@@ -102,7 +102,7 @@ probes:
     path: /
     port: 3000
 appFrontend:
-  replicaCount: 1
+  replicaCount: 2
   image:
     repository: registry-emea.app.corpintra.net/dnaplatform/dna-frontend
     tag: '1083'
@@ -250,3 +250,6 @@ app:
     image:
       tag: '72'
 resources: {}
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 50%

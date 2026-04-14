@@ -1,4 +1,4 @@
-replicaCount: 1
+replicaCount: 2
 namespace: dev-dna-cs-workspaces
 image:
   repository: registry-emea.app.corpintra.net/dnaplatform/code-server-be
@@ -85,3 +85,6 @@ affinity: {}
 vaultInjector:
   enable: true
   jarName: code-server-lib*.jar
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 50%
