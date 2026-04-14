@@ -280,6 +280,7 @@ public class PromptCraftSubscriptionsController  implements PromptCraftSubscript
     public ResponseEntity<GenericMessage> refresh(@ApiParam(value = "",required=true) @PathVariable("projectName") String projectName){
         
         UserInfo currentUser = this.userStore.getUserInfo();
+        log.info("Refresh endpoint hit for projectName={}, userId={}", projectName, currentUser != null ? currentUser.getId() : "unknown");
 
         GenericMessage response = new GenericMessage();
         List<MessageDescription> errors = new ArrayList<>();
@@ -299,11 +300,13 @@ public class PromptCraftSubscriptionsController  implements PromptCraftSubscript
                 }
                 if(!"COMPLETED".equalsIgnoreCase(existingVO.getStatus())){
                     if(!"FAILED".equalsIgnoreCase(existingVO.getStatus())){
+                        log.info("Refresh request accepted for projectName={}, runId={}, status={}", projectName, existingVO.getRunId(), existingVO.getStatus());
                         asyncService.checkForKeysFromUiLicious(projectName, existingVO.getRunId());
                         response.setSuccess("SUCCESS");
                         return new ResponseEntity<>(response, HttpStatus.OK);
                     }
                     else{
+                        log.info("Refresh request re-triggering subscription creation for projectName={}, previousStatus={}", projectName, existingVO.getStatus());
                         PromptCraftSubscriptionsResponseVO createSubscriptionResponse = new PromptCraftSubscriptionsResponseVO();
                         createSubscriptionResponse = service.createSubscription(existingVO);
                         response.setSuccess(createSubscriptionResponse.getSuccess());
