@@ -114,46 +114,52 @@ public class AsyncService {
 							String lowerStatus = status.toLowerCase();
 							String lowerError = error.toLowerCase();
 						
-							// Check for Private Key condition
+							// Check for Private Key - supports both UiLicious patterns:
+							// Pattern 1: "//div[text()='Secret Key']//..//code"
+							// Pattern 2: "(//div[@data-sentry-component='CodeView']//code)[1]"
 							if (lowerDescription.startsWith("i get text") 
-									&& lowerDescription.contains("secret key") 
+									&& (lowerDescription.contains("'secret key'") || lowerDescription.contains("code)[1]"))
 									&& "grabText".equalsIgnoreCase(cmd) 
 									&& "success".equalsIgnoreCase(status)) {
 								keys.setPrivateKey(step.path("return").asText());
-								log.info("Private Key extracted at step {}", stepNum);
+								log.info("Private Key extracted at step {} with value starting: {}...", stepNum, 
+									returnVal.length() > 10 ? returnVal.substring(0, 10) : returnVal);
 							}
 				
-							// Check for Public Key condition
+							// Check for Public Key - supports both UiLicious patterns:
+							// Pattern 1: "//div[text()='Public Key']//..//code"
+							// Pattern 2: "(//div[@data-sentry-component='CodeView']//code)[2]"
 							if (lowerDescription.startsWith("i get text") 
-									&& lowerDescription.contains("public key") 
+									&& (lowerDescription.contains("'public key'") || lowerDescription.contains("code)[2]"))
 									&& "grabText".equalsIgnoreCase(cmd) 
 									&& "success".equalsIgnoreCase(status)) {
 								keys.setPublicKey(step.path("return").asText());
-								log.info("Public Key extracted at step {}", stepNum);
+								log.info("Public Key extracted at step {} with value starting: {}...", stepNum,
+									returnVal.length() > 10 ? returnVal.substring(0, 10) : returnVal);
 							}
 
+							// Check for failures when trying to extract keys
 							if (lowerDescription.startsWith("i get text") 
-									&& (lowerDescription.contains("secret key") 
-									||lowerDescription.contains("public key"))
+									&& (lowerDescription.contains("'secret key'") || lowerDescription.contains("'public key'")
+									    || lowerDescription.contains("code)[1]") || lowerDescription.contains("code)[2]"))
 									&& "grabText".equalsIgnoreCase(cmd) 
 									&& "failure".equalsIgnoreCase(status)) {
 
 										vo.setStatus("FAILED");
 										entity = promptCraftSubscriptionsAssembler.toEntity(vo);
 										jpaRepo.save(entity);
-										log.info("Failed while prompt craft keys");
+										log.info("Failed extracting key at step {}: {}", stepNum, error);
 								}
 
-								if (lowerError.startsWith("I don't see") 
-								&& (lowerError.contains("secret key") 
-								||lowerError.contains("public key"))
+								if (lowerError.startsWith("i don't see") 
+								&& (lowerDescription.contains("codeview") || lowerDescription.contains("secret") || lowerDescription.contains("public"))
 								&& "grabText".equalsIgnoreCase(cmd) 
 								&& "failure".equalsIgnoreCase(status)) {
 
 									vo.setStatus("FAILED");
 									entity = promptCraftSubscriptionsAssembler.toEntity(vo);
 									jpaRepo.save(entity);
-									log.info("Failed while prompt craft keys");
+									log.info("Failed finding key element at step {}: {}", stepNum, error);
 							}
 						
 						}
