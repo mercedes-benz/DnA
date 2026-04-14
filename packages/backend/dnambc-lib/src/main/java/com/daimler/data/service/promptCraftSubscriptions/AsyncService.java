@@ -172,25 +172,31 @@ public class AsyncService {
 							String userID = service.getPromptCraftSubscriptionUserID( keys.getPublicKey(), keys.getPrivateKey());
 							if( userID != null) {
 								keys.setUserID(userID);
-								GenericMessage vaultResponse = vaultAuthClient.createSubscriptionKeys(projectName,keys);
-								if(vaultResponse!=null && "SUCCESS".equalsIgnoreCase(vaultResponse.getSuccess())){
-									log.info("Successfully added subscription keys to vault");
-									vo.setStatus("COMPLETED");
-									entity = promptCraftSubscriptionsAssembler.toEntity(vo);
-									jpaRepo.save(entity);
-								}
-							}
-							else {
+							log.info("PromptCraft userID obtained successfully for projectName={}", projectName);
+							
+							GenericMessage vaultResponse = vaultAuthClient.createSubscriptionKeys(projectName,keys);
+							if(vaultResponse!=null && "SUCCESS".equalsIgnoreCase(vaultResponse.getSuccess())){
+								log.info("Successfully added subscription keys to vault for projectName={}", projectName);
+								vo.setStatus("COMPLETED");
+								entity = promptCraftSubscriptionsAssembler.toEntity(vo);
+								jpaRepo.save(entity);
+							} else {
 								vo.setStatus("FAILED");
 								entity = promptCraftSubscriptionsAssembler.toEntity(vo);
 								jpaRepo.save(entity);
-								log.info("Failed while getting prompt craft userID");
-							}							
+								log.error("Failed to store keys in Vault for projectName={}. VaultResponse: {}", 
+									projectName, vaultResponse != null ? vaultResponse.getSuccess() : "null");
+							}
 						}
-
-
+						else {
+							vo.setStatus("FAILED");
+							entity = promptCraftSubscriptionsAssembler.toEntity(vo);
+							jpaRepo.save(entity);
+							log.error("Failed to get PromptCraft userID for projectName={}", projectName);
+						}
 					} else {
-						log.info("Steps size is insufficient: {}. Retrying...", stepsNode.size());
+						log.warn("Keys not found after processing all steps for projectName={}. privateKey={}, publicKey={}", 
+							projectName, keys.getPrivateKey() != null, keys.getPublicKey() != null);
 						retries++;
 						try {
 							Thread.sleep(RETRY_INTERVAL_MS);
