@@ -20,9 +20,12 @@ import com.databricks.sdk.service.sql.StatementResponse;
 import com.databricks.sdk.WorkspaceClient;
 import com.daimler.data.application.client.FabricWorkspaceClient;
 import com.daimler.data.assembler.FabricWorkspaceAssembler;
+import com.daimler.data.assembler.LakehouseDetailAssembler;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
+import com.daimler.data.db.entities.LakehouseDetailNsql;
 import com.daimler.data.db.repo.fabric.FabricWorkspaceRepository;
+import com.daimler.data.db.repo.lakehouseDetail.LakehouseDetailRepository;
 import com.daimler.data.dto.fabric.FabricSqlEndpointResponseDto;
 import com.daimler.data.dto.fabricWorkspace.CreatedByVO;
 import com.daimler.data.dto.fabricWorkspace.DdxPublishedLakeHouseDetailsVO;
@@ -46,6 +49,8 @@ import com.daimler.data.dto.databricks.CreateConnectionResponseDto;
 import com.daimler.data.dto.fabric.DataProductConnectionStringDto;
 import com.daimler.data.dto.fabric.DataProductConStringUnityDto;
 import com.daimler.data.dto.fabric.DataProductConStringFabricDto;
+import com.daimler.data.dto.databricks.DatabricksSqlStatementResponseDto;
+import org.springframework.transaction.annotation.Transactional;
 
 // import com.databricks.sdk.core.http.ProxyConfig;
 // import com.databricks.sdk.core.http.impl.CommonsHttpClient;
@@ -71,6 +76,12 @@ public class BaseDdxOnboardingService implements DdxOnboardingService {
     @Autowired
     private FabricWorkspaceAssembler assembler;
 
+    @Autowired
+    private LakehouseDetailAssembler lakehouseDetailAssembler;
+
+    @Autowired
+    private LakehouseDetailRepository lakehouseDetailRepo;
+
     @Value("${proxy.host}")
     private String proxyHost;
 
@@ -92,7 +103,11 @@ public class BaseDdxOnboardingService implements DdxOnboardingService {
     @Value("${ddxIntegration.client.scope}")
     private String databricksSpScope;
 
+    @Value("${fabricWorkspaces.scope}")
+    private String scope;
+
     @Override
+    @Transactional
     public DdxOnboardingResultDto onboardToDdx(DdxOnboardingRequestDto publishDdxRequest, String workspaceId, String workspaceName, String lakehouseId, String userId, CreatedByVO createdBy) {
 
         GenericMessage responseMessage = new GenericMessage();
@@ -117,8 +132,8 @@ public class BaseDdxOnboardingService implements DdxOnboardingService {
 
             // --- Fabric Lakehouse & Connection Details ---
             String connectionName = "oneFabric_" + lakehouseId;
-            // String catalogName = "westeurope_Test_" + lakehouseId;
-            String catalogName = "westeurope_fcos_dna_testddxlakehouseschema_catalog";
+            String catalogName = "westeurope_" + lakehouseId;
+            // String catalogName = "westeurope_fcos_dna_testddxlakehouseschema_catalog";
 
             // 1. Fetch SQL Endpoint Details
             log.info("Fetching SQL endpoint details for workspace: {} and lakehouse: {}", workspaceId, lakehouseId);
@@ -159,7 +174,7 @@ public class BaseDdxOnboardingService implements DdxOnboardingService {
 
             // 3. Prepare and Validate Azure Token Request
             log.info("🔐 Requesting Azure access token for Databricks authentication");
-            if (databricksSpTenantId == null || databricksSpClientId == null || databricksSpClientSecret == null) {
+            if (databricksSpTenantId == null || databricksSpClientId == null || databricksSpClientSecret == null || databricksSpScope == null) {
                 throw new RuntimeException("Databricks service principal configuration is incomplete");
             }
 
@@ -213,9 +228,9 @@ public class BaseDdxOnboardingService implements DdxOnboardingService {
             CreateCatalogRequestDto createCatalogRequest = new CreateCatalogRequestDto();
             createCatalogRequest.setName(catalogName);
             createCatalogRequest.setConnectionName(connectionName);
-            createCatalogRequest.setComment("Catalog for fabric lakehouse: " + lakehouseId + " in workspace: " + workspaceId);
+            createCatalogRequest.setComment("Federated catalog for fabric lakehouse: " + lakehouseId + " in workspace: " + workspaceId);
             createCatalogRequest.setOptions(new HashMap<String, String>(){{
-                put("database", "DnA_dataiku");
+                put("database", fabricDatabaseName);
             }});
 
             // 6. Create Catalog via Azure Token Service
@@ -223,6 +238,7 @@ public class BaseDdxOnboardingService implements DdxOnboardingService {
             CreateCatalogResponseDto catalogResponse;
             try {
                 catalogResponse = azureTokenService.createCatalog(tokenRequest, createCatalogRequest);
+                log.info("catalogResponse :=================== {} ========================", catalogResponse);
             } catch (Exception e) {
                 log.error("Failed to create catalog: {} for workspace: {}", catalogName, workspaceId, e);
                 throw new RuntimeException("Databricks catalog creation failed: " + e.getMessage(), e);
@@ -243,6 +259,36 @@ public class BaseDdxOnboardingService implements DdxOnboardingService {
                     throw new RuntimeException("Databricks catalog creation failed: " + errorMsg);
                 }
             }
+
+            //6.2 compute process
+            log.info("Starting catalog compute process for catalog: {}", catalogName);
+            DatabricksSqlStatementResponseDto computeResponse;
+            try {
+                computeResponse = fabricWorkspaceClient.catalogComputeProcess(catalogName);
+            } catch (Exception e) {
+                log.error("Catalog compute process failed for catalog: {}", catalogName, e);
+                throw new RuntimeException("Catalog compute process failed: " + e.getMessage(), e);
+            }
+
+            if (computeResponse == null || computeResponse.getStatus() == null) {
+                throw new RuntimeException("Catalog compute process returned null response for catalog: " + catalogName);
+            }
+
+            if ("FAILED".equals(computeResponse.getStatus().getState())) {
+                String errorDetail = "";
+                if (computeResponse.getStatus().getError() != null) {
+                    errorDetail = " [" + computeResponse.getStatus().getError().getErrorCode() + "]: "
+                            + computeResponse.getStatus().getError().getMessage();
+                }
+                throw new RuntimeException("Catalog compute process failed for catalog: " + catalogName + errorDetail);
+            }
+
+            if (!"SUCCEEDED".equals(computeResponse.getStatus().getState())) {
+                throw new RuntimeException("Catalog compute process returned unexpected state: " + computeResponse.getStatus().getState() + " for catalog: " + catalogName);
+            }
+
+            log.info("Catalog compute process completed successfully for catalog: {}. Schemas found: {}",
+                catalogName, computeResponse.getResult() != null ? computeResponse.getResult().getRowCount() : 0);
 
             log.info("🎉 --- Databricks Fabric Setup Completed Successfully ---");
             log.info("DDX Onboarding Request=========={}===========", publishDdxRequest);
@@ -319,7 +365,7 @@ public class BaseDdxOnboardingService implements DdxOnboardingService {
                     ? onboardingResponse.getMessage() 
                     : "Unknown error from DDX service";
                 log.warn("DDX onboarding failed with status: {} and message: {}", onboardingResponse.getStatus(), errorMsg);
-                message.setMessage("Failed to onboard to DDX with status: " + onboardingResponse.getStatus() + ", error: " + errorMsg);
+                message.setMessage(errorMsg);
                 errors.add(message);
                 responseMessage.setErrors(errors);
                 responseMessage.setSuccess("FAILED");
@@ -380,38 +426,40 @@ public class BaseDdxOnboardingService implements DdxOnboardingService {
     private void updateDdxLakeHouseDetails(String workspaceId, String lakehouseId, String lakehouseName, String catalogName, DdxResponseDto onboardingResponse, CreatedByVO createdBy) {
         try {
             FabricWorkspaceVO workspace = fabricWorkspaceService.getById(workspaceId);
-            DdxPublishedLakeHouseDetailsVO details = Optional.ofNullable(workspace.getDdxPublishedLakeHouseDetails())
-                .orElse(new DdxPublishedLakeHouseDetailsVO());
 
+            // Build the lakehouse detail VO for the new table
+            DdxPublishedLakeHouseDetailsVO details = new DdxPublishedLakeHouseDetailsVO();
+            details.setWorkspaceId(workspaceId);
+            details.setWorkspaceName(workspace.getName());
+            details.setLakehouseName(lakehouseName);
+            details.setLakeHouseId(lakehouseId);
             details.setIsLakeHousesPublishedToDdx(true);
-
-            log.info("isLakeHouseFlag :: {}", details.toString());
-
-            List<String> publishedNames = Optional.ofNullable(details.getPublishedLakeHouseNames())
-                .orElse(new ArrayList<>());
-            if (!publishedNames.contains(lakehouseName)) {
-                publishedNames.add(lakehouseName);
-            }
-            details.setPublishedLakeHouseNames(publishedNames);
-
             details.setProductName(onboardingResponse.getDataProductName());
             details.setProductId(String.valueOf(onboardingResponse.getDataProductId()));
             details.setCreatedBy(createdBy);
             Date now = new Date();
-            if (details.getCreatedOn() == null) {
-                details.setCreatedOn(now);
-            }
+            details.setCreatedOn(now);
             details.setModifiedOn(now);
 
-            DdxUnityDetailsVO unityDetails = Optional.ofNullable(details.getUnityDetails())
-                .orElse(new DdxUnityDetailsVO());
+            DdxUnityDetailsVO unityDetails = new DdxUnityDetailsVO();
             unityDetails.setCatalogName(catalogName);
             details.setUnityDetails(unityDetails);
 
-            workspace.setDdxPublishedLakeHouseDetails(details);
+            // Save to lakehouse_detail_nsql table
+            LakehouseDetailNsql entity = lakehouseDetailAssembler.toEntity(details);
+            entity.setId(lakehouseId);
+            lakehouseDetailRepo.save(entity);
+
+            // Add the ID to workspace's ddxPublishedLakeHouseDetails list
+            List<String> detailIds = Optional.ofNullable(workspace.getDdxPublishedLakeHouseDetails())
+                .orElse(new ArrayList<>());
+            if (!detailIds.contains(lakehouseId)) {
+                detailIds.add(lakehouseId);
+            }
+            workspace.setDdxPublishedLakeHouseDetails(detailIds);
             jpaRepo.save(assembler.toEntity(workspace));
 
-            log.info("Successfully updated DDX published lakehouse details for workspace: {}", workspaceId);
+            log.info("Successfully updated DDX published lakehouse details for workspace: {}, lakehouseId: {}", workspaceId, lakehouseId);
         } catch (Exception e) {
             log.error("Failed to update DDX lake house details for workspace {}: {}", workspaceId, e.getMessage(), e);
         }
