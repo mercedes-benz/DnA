@@ -25,13 +25,16 @@
  * LICENSE END
  */
 
-package com.daimler.data.application.auth.vault;
+package com.daimler.data.auth.vault;
 
 import com.daimler.data.application.config.VaultConfig;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
-import com.daimler.data.dto.promptCraftSubscriptions.SubscriptionkeysVO;
+import com.daimler.data.dto.auth.ApiKeyValidationResponseVO;
+import com.daimler.data.dto.auth.ApiKeyValidationVO;
+import com.daimler.data.dto.forecast.ForecastVO;
 import com.daimler.data.dto.vault.VaultGenericResponse;
+import com.daimler.data.service.forecast.ForecastService;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -51,73 +54,50 @@ public class VaultAuthClientImpl implements VaultAuthClient {
 
     private Logger LOGGER = LoggerFactory.getLogger(VaultAuthClientImpl.class);
 
-    private static final int VAULT_MAX_RETRIES = 3;
-    private static final int VAULT_RETRY_INTERVAL_MS = 10000;
+    @Autowired
+    private ForecastService service;
 
     @Autowired
     private VaultConfig vaultConfig;
 
     @Override
-    public GenericMessage createSubscriptionKeys(String projectName, SubscriptionkeysVO subscriptionKeys) {
-        GenericMessage responseMessage = new GenericMessage();
-        List<MessageDescription> errors = new ArrayList<>();
-
-        if (projectName != null) {
-            for (int attempt = 1; attempt <= VAULT_MAX_RETRIES; attempt++) {
-                LOGGER.info("Vault createSubscriptionKeys attempt {}/{} for projectName {}", attempt, VAULT_MAX_RETRIES, projectName);
-                VaultGenericResponse vaultResponse = vaultConfig.createSubscriptionKeys(projectName,
-                    subscriptionKeys);
-                if (vaultResponse != null && "200".equals(vaultResponse.getStatus())) {
-                    LOGGER.info("create apikey for projectName {} is success on attempt {}/{}", projectName, attempt, VAULT_MAX_RETRIES);
-                    responseMessage.setSuccess("SUCCESS");
-                    return responseMessage;
-                } else if (vaultResponse != null && vaultResponse.getMessage() != null
-                        && vaultResponse.getMessage().contains("already exists")) {
-                    LOGGER.info("subscriptionKeys already exists for projectName {}, skipping retry", projectName);
-                    responseMessage.setSuccess("FAILED");
-                    MessageDescription msg = new MessageDescription("subscriptionKeys already exists for projectName " + projectName);
-                    errors.add(msg);
-                    responseMessage.setErrors(errors);
-                    return responseMessage;
-                } else {
-                    LOGGER.error("Vault attempt {}/{} failed for projectName {}. Response: status={}, message={}",
-                        attempt, VAULT_MAX_RETRIES, projectName,
-                        vaultResponse != null ? vaultResponse.getStatus() : "null",
-                        vaultResponse != null ? vaultResponse.getMessage() : "null");
-                    if (attempt < VAULT_MAX_RETRIES) {
-                        try {
-                            Thread.sleep(VAULT_RETRY_INTERVAL_MS);
-                        } catch (InterruptedException e) {
-                            Thread.currentThread().interrupt();
-                            LOGGER.error("Thread interrupted during vault retry for projectName {}", projectName);
-                            break;
-                        }
-                    }
-                }
+    public ApiKeyValidationResponseVO validateApiKey(ApiKeyValidationVO apiKeyValidationVO) {
+        ApiKeyValidationResponseVO validationResponseVO = new ApiKeyValidationResponseVO();
+        List<MessageDescription> messages = new ArrayList<>();
+        MessageDescription message = null;
+        String uniqueAppId = apiKeyValidationVO.getAppId();
+        if (uniqueAppId != null) {
+            LOGGER.info("Entering validateApiKey for appId {}", uniqueAppId);
+            VaultGenericResponse vaultResponse = vaultConfig.validateApiKey(apiKeyValidationVO.getAppId(),
+                    apiKeyValidationVO.getApiKey());
+            if (vaultResponse != null && "200".equals(vaultResponse.getStatus())) {
+                LOGGER.info("Valid apikey for appId {}", uniqueAppId);
+                validationResponseVO.setValidApiKey(true);
+            } else {
+                message = new MessageDescription();
+                LOGGER.error("Failed to validate apikey for appId {}", uniqueAppId);
+                message.setMessage("Failed to validate");
+                messages.add(message);
+                validationResponseVO.setValidApiKey(false);
             }
-            MessageDescription msg = new MessageDescription("Failed to create apikey for projectName " + projectName + " after " + VAULT_MAX_RETRIES + " attempts");
-            LOGGER.error("Failed to create apikey for projectName {} after {} attempts", projectName, VAULT_MAX_RETRIES);
-            responseMessage.setSuccess("FAILED");
-            errors.add(msg);
-            responseMessage.setErrors(errors);
         }
-        return responseMessage;
+        return validationResponseVO;
     }
 
     @Override
-    public GenericMessage updateSubscriptionKeys(String projectName, SubscriptionkeysVO subscriptionKeys) {
+    public GenericMessage createApiKey(String appId, String appKey) {
         GenericMessage responseMessage = new GenericMessage();
         List<MessageDescription> errors = new ArrayList<>();
 
-        if (projectName != null) {
-            VaultGenericResponse vaultResponse = vaultConfig.updateSubscriptionKeys(projectName,
-            subscriptionKeys);
+        if (appId != null) {
+            VaultGenericResponse vaultResponse = vaultConfig.createApiKey(appId,
+                    appKey);
             if (vaultResponse != null && "200".equals(vaultResponse.getStatus())) {
-                LOGGER.info("update subscriptionKeys for projectName {} is success", projectName);
+                LOGGER.info("create apikey for appId {} is success", appId);
                 responseMessage.setSuccess("SUCCESS");
             } else {
-                MessageDescription msg = new MessageDescription("Failed to update apikey for projectName " + projectName);
-                LOGGER.error("Failed to update subscriptionKeys for projectName {}", projectName);
+                MessageDescription msg = new MessageDescription("Failed to create apikey for appId " + appId);
+                LOGGER.error("Failed to create apikey for appId {}", appId);
                 responseMessage.setSuccess("FAILED");
                 errors.add(msg);
                 responseMessage.setErrors(errors);
@@ -127,16 +107,57 @@ public class VaultAuthClientImpl implements VaultAuthClient {
     }
 
     @Override
-    public SubscriptionkeysVO getSubscriptionKeys(String projectName) {
-        SubscriptionkeysVO subscriptionKeys = null;
-        if (projectName != null) {
-            SubscriptionkeysVO response = vaultConfig.getSubscriptionKeys(projectName);
-            if (response != null) {
-                subscriptionKeys = response;
+    public GenericMessage updateApiKey(String appId, String appKey) {
+        GenericMessage responseMessage = new GenericMessage();
+        List<MessageDescription> errors = new ArrayList<>();
+
+        if (appId != null) {
+            VaultGenericResponse vaultResponse = vaultConfig.updateApiKey(appId,
+                    appKey);
+            if (vaultResponse != null && "200".equals(vaultResponse.getStatus())) {
+                LOGGER.info("update apikey for appId {} is success", appId);
+                responseMessage.setSuccess("SUCCESS");
             } else {
-                LOGGER.error("failed to get api key for projectName {}", projectName);
+                MessageDescription msg = new MessageDescription("Failed to update apikey for appId " + appId);
+                LOGGER.error("Failed to update apikey for appId {}", appId);
+                responseMessage.setSuccess("FAILED");
+                errors.add(msg);
+                responseMessage.setErrors(errors);
             }
         }
-        return subscriptionKeys;
+        return responseMessage;
+    }
+
+    @Override
+    public String getApiKeys(String appId) {
+        String apiKey = null;
+        if (appId != null) {
+            String response = vaultConfig.getApiKey(appId);
+            if (response != null) {
+                apiKey = response;
+            } else {
+                LOGGER.error("failed to get api key for appId {}", appId);
+            }
+        }
+        return apiKey;
+    }
+
+    @Override
+    public JSONObject getUserDetails(String appId) {
+        JSONObject res = null;
+
+        try {
+            ForecastVO existingForecast = service.getById(appId);
+            if(existingForecast!=null) {
+                res = (JSONObject) new JSONObject(existingForecast.getCreatedBy());
+
+                LOGGER.info("existingForecast" + res);
+            }
+        } catch (Exception e) {
+            LOGGER.error("Error occurred while getting user detailse: {}", e.getMessage());
+            throw e;
+        }
+
+        return res;
     }
 }

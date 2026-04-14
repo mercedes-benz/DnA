@@ -49,7 +49,7 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class AsyncService {
 
-	@Autowired
+   	@Autowired
 	private PromptCraftSubscriptionsCustomRepository customRepo;
 
 	@Autowired
@@ -59,7 +59,7 @@ public class AsyncService {
 	private PromptCraftSubscriptionsAssembler promptCraftSubscriptionsAssembler;
 
 	@Autowired
-	private UiLiciousClient uiLiciousClient;
+	private  UiLiciousClient uiLiciousClient;
 
 	@Autowired
 	private VaultAuthClientImpl vaultAuthClient;
@@ -67,37 +67,33 @@ public class AsyncService {
 	@Autowired
 	private PromptCraftSubscriptionsService service;
 
-	private static final int MAX_RETRIES = 8;
-	private static final int RETRY_INTERVAL_MS = 15000;
-	private static final int VAULT_MAX_RETRIES = 3;
-	private static final int VAULT_RETRY_INTERVAL_MS = 10000;
+	private static final int MAX_RETRIES = 8; // 2 minutes with 10 seconds interval
+    private static final int RETRY_INTERVAL_MS = 15000; // 10 seconds
 
 
 	@Async
 	public void checkForKeysFromUiLicious(String projectName, String runId) {
-		int retries = 0;
-		boolean stepsSizeSufficient = false;
+        int retries = 0;
+        boolean stepsSizeSufficient = false;
 
 		SubscriptionkeysVO keys = new SubscriptionkeysVO();
 
 		PromptCraftSubscriptionsNsql entity = null;
 
-		log.info("checkForKeysFromUiLicious started for projectName={}, runId={}", projectName, runId);
 
-		PromptCraftSubscriptionsVO vo = service.getByUniqueliteral("projectName", projectName);
-		if (!"COMPLETED".equalsIgnoreCase(vo.getStatus())) {
+		PromptCraftSubscriptionsVO vo = service.getByUniqueliteral("projectName",projectName);
+		if(!"COMPLETED".equalsIgnoreCase(vo.getStatus())){
 
+		
 			while (retries < MAX_RETRIES && !stepsSizeSufficient) {
-				log.info("checkForKeysFromUiLicious retry={}/{} for projectName={}, runId={}", retries, MAX_RETRIES, projectName, runId);
 				JsonNode jsonResponse = uiLiciousClient.getSubscriptionRunDetails(runId);
 				if (jsonResponse != null) {
-					log.info("Received response from UiLicious for runId={}", runId);
+					log.debug("Subscription keys are available for the run id {}", runId);
 
 					JsonNode stepsNode = jsonResponse.path("result").path("result").path("steps");
-					log.info("Steps count from UiLicious for runId={} : {}", runId, stepsNode.isArray() ? stepsNode.size() : "not an array");
-					if (stepsNode.isArray() && stepsNode.size() >= 10) {
+					if (stepsNode.isArray() && stepsNode.size() >= 24) {
 						stepsSizeSufficient = true;
-						log.info("Steps size is sufficient: {} for runId={}", stepsNode.size(), runId);
+						log.debug("Steps size is sufficient: {}", stepsNode.size());
 
 						for (JsonNode step : stepsNode) {
 							int stepNum = step.path("stepNum").asInt();
@@ -105,127 +101,91 @@ public class AsyncService {
 							String description = step.path("description").asText();
 							String cmd = step.path("cmd").asText();
 							String error = step.path("error").asText();
-							String returnVal = step.path("return").asText();
 						
-							log.info("Step[{}] cmd={} status={} description='{}' return='{}' error='{}'",
-									stepNum, cmd, status, description, returnVal, error);
-
 							// Normalize for case-insensitive checks
 							String lowerDescription = description.toLowerCase();
 							String lowerStatus = status.toLowerCase();
 							String lowerError = error.toLowerCase();
 						
-							// Check for Private Key - supports both UiLicious patterns:
-							// Pattern 1: "//div[text()='Secret Key']//..//code"
-							// Pattern 2: "(//div[@data-sentry-component='CodeView']//code)[1]"
+							// Check for Private Key condition
 							if (lowerDescription.startsWith("i get text") 
-									&& (lowerDescription.contains("'secret key'") || lowerDescription.contains("code)[1]"))
+									&& lowerDescription.contains("secret key") 
 									&& "grabText".equalsIgnoreCase(cmd) 
 									&& "success".equalsIgnoreCase(status)) {
 								keys.setPrivateKey(step.path("return").asText());
-								log.info("Private Key extracted at step {} with value starting: {}...", stepNum, 
-									returnVal.length() > 10 ? returnVal.substring(0, 10) : returnVal);
+								log.debug("PA Key: {}", keys.getPrivateKey());
 							}
 				
-							// Check for Public Key - supports both UiLicious patterns:
-							// Pattern 1: "//div[text()='Public Key']//..//code"
-							// Pattern 2: "(//div[@data-sentry-component='CodeView']//code)[2]"
+							// Check for Public Key condition
 							if (lowerDescription.startsWith("i get text") 
-									&& (lowerDescription.contains("'public key'") || lowerDescription.contains("code)[2]"))
+									&& lowerDescription.contains("public key") 
 									&& "grabText".equalsIgnoreCase(cmd) 
 									&& "success".equalsIgnoreCase(status)) {
 								keys.setPublicKey(step.path("return").asText());
-								log.info("Public Key extracted at step {} with value starting: {}...", stepNum,
-									returnVal.length() > 10 ? returnVal.substring(0, 10) : returnVal);
+								log.debug("PU Key: {}", keys.getPublicKey());
 							}
 
-							// Check for failures when trying to extract keys
 							if (lowerDescription.startsWith("i get text") 
-									&& (lowerDescription.contains("'secret key'") || lowerDescription.contains("'public key'")
-									    || lowerDescription.contains("code)[1]") || lowerDescription.contains("code)[2]"))
+									&& (lowerDescription.contains("secret key") 
+									||lowerDescription.contains("public key"))
 									&& "grabText".equalsIgnoreCase(cmd) 
 									&& "failure".equalsIgnoreCase(status)) {
 
 										vo.setStatus("FAILED");
 										entity = promptCraftSubscriptionsAssembler.toEntity(vo);
 										jpaRepo.save(entity);
-										log.info("Failed extracting key at step {}: {}", stepNum, error);
+										log.info("Failed while prompt craft keys");
 								}
 
-								if (lowerError.startsWith("i don't see") 
-								&& (lowerDescription.contains("codeview") || lowerDescription.contains("secret") || lowerDescription.contains("public"))
+								if (lowerError.startsWith("I don't see") 
+								&& (lowerError.contains("secret key") 
+								||lowerError.contains("public key"))
 								&& "grabText".equalsIgnoreCase(cmd) 
 								&& "failure".equalsIgnoreCase(status)) {
 
 									vo.setStatus("FAILED");
 									entity = promptCraftSubscriptionsAssembler.toEntity(vo);
 									jpaRepo.save(entity);
-									log.info("Failed finding key element at step {}: {}", stepNum, error);
+									log.info("Failed while prompt craft keys");
 							}
 						
 						}
-
-						log.info("After processing all steps for runId={}: privateKeyFound={}, publicKeyFound={}",
-								runId, keys.getPrivateKey() != null, keys.getPublicKey() != null);
 		
-						if (keys.getPrivateKey() != null && keys.getPublicKey() != null) {
+						if(keys.getPrivateKey() != null && keys.getPublicKey() != null){
 
-							String userID = service.getPromptCraftSubscriptionUserID(keys.getPublicKey(), keys.getPrivateKey());
-							if (userID != null) {
+							String userID = service.getPromptCraftSubscriptionUserID( keys.getPublicKey(), keys.getPrivateKey());
+							if( userID != null) {
 								keys.setUserID(userID);
-								log.info("PromptCraft userID obtained successfully for projectName={}", projectName);
-
-								// Retry vault operations to handle transient DNS/network failures
-								boolean vaultSuccess = false;
-								for (int vaultAttempt = 0; vaultAttempt < VAULT_MAX_RETRIES; vaultAttempt++) {
-									log.info("Vault store attempt {}/{} for projectName={}", vaultAttempt + 1, VAULT_MAX_RETRIES, projectName);
-									GenericMessage vaultResponse = vaultAuthClient.createSubscriptionKeys(projectName, keys);
-									if (vaultResponse != null && "SUCCESS".equalsIgnoreCase(vaultResponse.getSuccess())) {
-										log.info("Successfully added subscription keys to vault for projectName={}", projectName);
-										vo.setStatus("COMPLETED");
-										entity = promptCraftSubscriptionsAssembler.toEntity(vo);
-										jpaRepo.save(entity);
-										vaultSuccess = true;
-										break;
-									} else {
-										log.error("Vault store attempt {}/{} failed for projectName={}. VaultResponse: {}",
-												vaultAttempt + 1, VAULT_MAX_RETRIES, projectName,
-												vaultResponse != null ? vaultResponse.getSuccess() : "null");
-										if (vaultAttempt < VAULT_MAX_RETRIES - 1) {
-											try {
-												Thread.sleep(VAULT_RETRY_INTERVAL_MS);
-											} catch (InterruptedException e) {
-												Thread.currentThread().interrupt();
-												log.error("Thread was interrupted during vault retry", e);
-												break;
-											}
-										}
-									}
-								}
-
-								if (!vaultSuccess) {
-									vo.setStatus("FAILED");
+								GenericMessage vaultResponse = vaultAuthClient.createSubscriptionKeys(projectName,keys);
+								if(vaultResponse!=null && "SUCCESS".equalsIgnoreCase(vaultResponse.getSuccess())){
+									log.info("Successfully added subscription keys to vault");
+									vo.setStatus("COMPLETED");
 									entity = promptCraftSubscriptionsAssembler.toEntity(vo);
 									jpaRepo.save(entity);
-									log.error("Failed to store keys in Vault after {} attempts for projectName={}", VAULT_MAX_RETRIES, projectName);
 								}
-							} else {
+							}
+							else {
 								vo.setStatus("FAILED");
 								entity = promptCraftSubscriptionsAssembler.toEntity(vo);
 								jpaRepo.save(entity);
-								log.error("Failed to get PromptCraft userID for projectName={}", projectName);
-							}
-						} else {
-							vo.setStatus("FAILED");
-							entity = promptCraftSubscriptionsAssembler.toEntity(vo);
-							jpaRepo.save(entity);
-							log.error("Keys not found after processing all steps for projectName={}. privateKey={}, publicKey={}",
-									projectName, keys.getPrivateKey() != null, keys.getPublicKey() != null);
+								log.info("Failed while getting prompt craft userID");
+							}							
 						}
 
 
+					} else {
+						log.info("Steps size is insufficient: {}. Retrying...", stepsNode.size());
+						retries++;
+						try {
+							Thread.sleep(RETRY_INTERVAL_MS);
+						} catch (InterruptedException e) {
+							Thread.currentThread().interrupt();
+							log.error("Thread was interrupted", e);
+							break;
+						}
+					}
 				} else {
-					log.info("Steps size is insufficient: {}. Retrying...", stepsNode.size());
+					log.warn("Received null response for run id {}", runId);
 					retries++;
 					try {
 						Thread.sleep(RETRY_INTERVAL_MS);
@@ -235,23 +195,12 @@ public class AsyncService {
 						break;
 					}
 				}
-			} else {
-				log.warn("Received null response for run id {}", runId);
-				retries++;
-				try {
-					Thread.sleep(RETRY_INTERVAL_MS);
-				} catch (InterruptedException e) {
-					Thread.currentThread().interrupt();
-					log.error("Thread was interrupted", e);
-					break;
-				}
 			}
 		}
 
-		if (!stepsSizeSufficient) {
-			log.error("Failed to get sufficient steps size within the timeout period for run id {}", runId);
+        if (!stepsSizeSufficient) {
+            log.error("Failed to get sufficient steps size within the timeout period for run id {}", runId);
 		}
 	}
-	}
-
+    
 }
