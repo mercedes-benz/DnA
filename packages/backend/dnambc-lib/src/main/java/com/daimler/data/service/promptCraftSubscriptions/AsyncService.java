@@ -197,17 +197,11 @@ public class AsyncService {
 					} else {
 						log.warn("Keys not found after processing all steps for projectName={}. privateKey={}, publicKey={}", 
 							projectName, keys.getPrivateKey() != null, keys.getPublicKey() != null);
-						retries++;
-						try {
-							Thread.sleep(RETRY_INTERVAL_MS);
-						} catch (InterruptedException e) {
-							Thread.currentThread().interrupt();
-							log.error("Thread was interrupted", e);
-							break;
-						}
 					}
+
+
 				} else {
-					log.warn("Received null response for run id {}", runId);
+					log.info("Steps size is insufficient: {}. Retrying...", stepsNode.size());
 					retries++;
 					try {
 						Thread.sleep(RETRY_INTERVAL_MS);
@@ -217,12 +211,23 @@ public class AsyncService {
 						break;
 					}
 				}
+			} else {
+				log.warn("Received null response for run id {}", runId);
+				retries++;
+				try {
+					Thread.sleep(RETRY_INTERVAL_MS);
+				} catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+					log.error("Thread was interrupted", e);
+					break;
+				}
 			}
 		}
-
-        if (!stepsSizeSufficient) {
-            log.error("Failed to get sufficient steps size within the timeout period for run id {}", runId);
-		}
 	}
+
+	if (!stepsSizeSufficient) {
+		log.error("Failed to get sufficient steps size within the timeout period for run id {}", runId);
+	}
+}
     
 }
