@@ -51,32 +51,11 @@ public class VaultAuthClientImpl implements VaultAuthClient {
 
     private Logger LOGGER = LoggerFactory.getLogger(VaultAuthClientImpl.class);
 
+    private static final int VAULT_MAX_RETRIES = 3;
+    private static final int VAULT_RETRY_INTERVAL_MS = 10000;
+
     @Autowired
     private VaultConfig vaultConfig;
-
-    // @Override
-    // public ApiKeyValidationResponseVO validateApiKey(ApiKeyValidationVO apiKeyValidationVO) {
-    //     ApiKeyValidationResponseVO validationResponseVO = new ApiKeyValidationResponseVO();
-    //     List<MessageDescription> messages = new ArrayList<>();
-    //     MessageDescription message = null;
-    //     String uniqueprojectName = apiKeyValidationVO.getprojectName();
-    //     if (uniqueprojectName != null) {
-    //         LOGGER.info("Entering validateApiKey for projectName {}", uniqueprojectName);
-    //         VaultGenericResponse vaultResponse = vaultConfig.validateApiKey(apiKeyValidationVO.getprojectName(),
-    //                 apiKeyValidationVO.getApiKey());
-    //         if (vaultResponse != null && "200".equals(vaultResponse.getStatus())) {
-    //             LOGGER.info("Valid apikey for projectName {}", uniqueprojectName);
-    //             validationResponseVO.setValidApiKey(true);
-    //         } else {
-    //             message = new MessageDescription();
-    //             LOGGER.error("Failed to validate apikey for projectName {}", uniqueprojectName);
-    //             message.setMessage("Failed to validate");
-    //             messages.add(message);
-    //             validationResponseVO.setValidApiKey(false);
-    //         }
-    //     }
-    //     return validationResponseVO;
-    // }
 
     @Override
     public GenericMessage createSubscriptionKeys(String projectName, SubscriptionkeysVO subscriptionKeys) {
@@ -84,18 +63,43 @@ public class VaultAuthClientImpl implements VaultAuthClient {
         List<MessageDescription> errors = new ArrayList<>();
 
         if (projectName != null) {
-            VaultGenericResponse vaultResponse = vaultConfig.createSubscriptionKeys(projectName,
-            subscriptionKeys);
-            if (vaultResponse != null && "200".equals(vaultResponse.getStatus())) {
-                LOGGER.info("create apikey for projectName {} is success", projectName);
-                responseMessage.setSuccess("SUCCESS");
-            } else {
-                MessageDescription msg = new MessageDescription("Failed to create apikey for projectName " + projectName);
-                LOGGER.error("Failed to create apikey for projectName {}", projectName);
-                responseMessage.setSuccess("FAILED");
-                errors.add(msg);
-                responseMessage.setErrors(errors);
+            for (int attempt = 1; attempt <= VAULT_MAX_RETRIES; attempt++) {
+                LOGGER.info("Vault createSubscriptionKeys attempt {}/{} for projectName {}", attempt, VAULT_MAX_RETRIES, projectName);
+                VaultGenericResponse vaultResponse = vaultConfig.createSubscriptionKeys(projectName,
+                    subscriptionKeys);
+                if (vaultResponse != null && "200".equals(vaultResponse.getStatus())) {
+                    LOGGER.info("create apikey for projectName {} is success on attempt {}/{}", projectName, attempt, VAULT_MAX_RETRIES);
+                    responseMessage.setSuccess("SUCCESS");
+                    return responseMessage;
+                } else if (vaultResponse != null && vaultResponse.getMessage() != null
+                        && vaultResponse.getMessage().contains("already exists")) {
+                    LOGGER.info("subscriptionKeys already exists for projectName {}, skipping retry", projectName);
+                    responseMessage.setSuccess("FAILED");
+                    MessageDescription msg = new MessageDescription("subscriptionKeys already exists for projectName " + projectName);
+                    errors.add(msg);
+                    responseMessage.setErrors(errors);
+                    return responseMessage;
+                } else {
+                    LOGGER.error("Vault attempt {}/{} failed for projectName {}. Response: status={}, message={}",
+                        attempt, VAULT_MAX_RETRIES, projectName,
+                        vaultResponse != null ? vaultResponse.getStatus() : "null",
+                        vaultResponse != null ? vaultResponse.getMessage() : "null");
+                    if (attempt < VAULT_MAX_RETRIES) {
+                        try {
+                            Thread.sleep(VAULT_RETRY_INTERVAL_MS);
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
+                            LOGGER.error("Thread interrupted during vault retry for projectName {}", projectName);
+                            break;
+                        }
+                    }
+                }
             }
+            MessageDescription msg = new MessageDescription("Failed to create apikey for projectName " + projectName + " after " + VAULT_MAX_RETRIES + " attempts");
+            LOGGER.error("Failed to create apikey for projectName {} after {} attempts", projectName, VAULT_MAX_RETRIES);
+            responseMessage.setSuccess("FAILED");
+            errors.add(msg);
+            responseMessage.setErrors(errors);
         }
         return responseMessage;
     }
@@ -135,23 +139,4 @@ public class VaultAuthClientImpl implements VaultAuthClient {
         }
         return subscriptionKeys;
     }
-
-    // @Override
-    // public JSONObject getUserDetails(String projectName) {
-    //     JSONObject res = null;
-
-    //     try {
-    //         ForecastVO existingForecast = service.getById(projectName);
-    //         if(existingForecast!=null) {
-    //             res = (JSONObject) new JSONObject(existingForecast.getCreatedBy());
-
-    //             LOGGER.info("existingForecast" + res);
-    //         }
-    //     } catch (Exception e) {
-    //         LOGGER.error("Error occurred while getting user detailse: {}", e.getMessage());
-    //         throw e;
-    //     }
-
-    //     return res;
-    // }
 }
