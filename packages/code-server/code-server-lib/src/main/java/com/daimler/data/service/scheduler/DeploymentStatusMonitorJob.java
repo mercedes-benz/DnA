@@ -1,8 +1,12 @@
 package com.daimler.data.service.scheduler;
 
+import com.daimler.data.db.entities.CodeServerBuildDeployNsql;
 import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
+import com.daimler.data.db.json.CodeServerBuildDeploy;
 import com.daimler.data.db.json.CodeServerDeploymentDetails;
 import com.daimler.data.db.json.DeploymentAudit;
+import com.daimler.data.db.repo.workspace.WorkSpaceCodeServerBuildDeployRepository;
+import com.daimler.data.db.repo.workspace.WorkspaceCustomBuildDeployRepo;
 import com.daimler.data.db.repo.workspace.WorkspaceCustomRepository;
 import com.daimler.data.service.ArgoCdService;
 import lombok.extern.slf4j.Slf4j;
@@ -23,6 +27,12 @@ public class DeploymentStatusMonitorJob {
 
     @Autowired
     private ArgoCdService argoCdService;
+
+    @Autowired
+    private WorkspaceCustomBuildDeployRepo buildDeployCustomRepo;
+
+    @Autowired
+    private WorkSpaceCodeServerBuildDeployRepository buildDeployRepo;
 
 
     @Scheduled(fixedDelay = 10000, initialDelay = 5000)
@@ -137,11 +147,47 @@ public class DeploymentStatusMonitorJob {
                 }
 
                 workspaceCustomRepository.updateDeploymentDetails(projectName, environment, deployment, argoStatus);
+                
+                // Also update deployment audit logs in the build deploy entity (used by frontend)
+                updateBuildDeployAuditLog(projectName, environment, argoStatus);
+                
                 return true;
             }
         } catch (Exception e) {
             log.warn("Failed to check ArgoCD status for {}-{}: {}", projectName, environment, e.getMessage());
         }
         return false;
+    }
+
+    private void updateBuildDeployAuditLog(String projectName, String environment, String argoStatus) {
+        try {
+            CodeServerBuildDeployNsql buildDeployEntity = buildDeployCustomRepo.findByProjectName(projectName);
+            if (buildDeployEntity == null) {
+                return;
+            }
+            CodeServerBuildDeploy data = buildDeployEntity.getData();
+            List<DeploymentAudit> auditLogs = "int".equalsIgnoreCase(environment)
+                    ? data.getIntDeploymentAuditLogs()
+                    : data.getProdDeploymentAuditLogs();
+            if (auditLogs == null || auditLogs.isEmpty()) {
+                return;
+            }
+            // Find the latest DEPLOYING audit log and update its status
+            for (int i = auditLogs.size() - 1; i >= 0; i--) {
+                DeploymentAudit audit = auditLogs.get(i);
+                if ("DEPLOYING".equalsIgnoreCase(audit.getDeploymentStatus())) {
+                    audit.setDeploymentStatus(argoStatus);
+                    if ("DEPLOYED".equals(argoStatus)) {
+                        audit.setDeployedOn(new Date());
+                    }
+                    log.info("Updated build deploy audit log status to {} for {}-{}", argoStatus, projectName, environment);
+                    break;
+                }
+            }
+            buildDeployEntity.setData(data);
+            buildDeployRepo.save(buildDeployEntity);
+        } catch (Exception e) {
+            log.warn("Failed to update build deploy audit log for {}-{}: {}", projectName, environment, e.getMessage());
+        }
     }
 }
