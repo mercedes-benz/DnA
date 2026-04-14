@@ -148,4 +148,6 @@ public interface WorkspaceService {
     GitJobRunIdStatusVO getGitRunIdStatus(String projectName);
 
     GenericMessage cancelWorkspaceRun(String projectName);
+
+    void ensureOpenTelemetryPlugin(String workspaceId, String environment);
 }

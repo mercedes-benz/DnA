@@ -5671,4 +5671,30 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 		responseMessage.setSuccess(status);
 		return responseMessage;
 	}
+
+	@Override
+	public void ensureOpenTelemetryPlugin(String workspaceId, String environment) {
+		try {
+			CodeServerWorkspaceNsql entity = workspaceCustomRepository.findById(null, workspaceId);
+			if (entity == null) {
+				log.info("No workspace found for id {}, skipping OpenTelemetry plugin check.", workspaceId);
+				return;
+			}
+			String projectName = entity.getData().getProjectDetails().getProjectName();
+			String kongServiceName = projectName.toLowerCase() + "-" + environment;
+
+			String cloudServiceProvider = ConstantsUtility.DHC_CAAS;
+			CodeServerDeploymentDetails deploymentDetails = "int".equalsIgnoreCase(environment)
+					? entity.getData().getProjectDetails().getIntDeploymentDetails()
+					: entity.getData().getProjectDetails().getProdDeploymentDetails();
+			if (Objects.nonNull(deploymentDetails) && Objects.nonNull(deploymentDetails.getDeploymentUrl())
+					&& deploymentDetails.getDeploymentUrl().contains(codeServerBaseUriAws)) {
+				cloudServiceProvider = ConstantsUtility.DHC_CAAS_AWS;
+			}
+
+			authenticatorClient.ensureOpenTelemetryPlugin(kongServiceName, cloudServiceProvider);
+		} catch (Exception e) {
+			log.error("Error ensuring OpenTelemetry plugin for workspace {}: {}", workspaceId, e.getMessage());
+		}
+	}
  }
