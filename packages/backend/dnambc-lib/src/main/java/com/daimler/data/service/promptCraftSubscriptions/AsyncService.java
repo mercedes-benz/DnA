@@ -252,5 +252,6 @@ public class AsyncService {
 			log.error("Failed to get sufficient steps size within the timeout period for run id {}", runId);
 		}
 	}
+	}
 
 }
