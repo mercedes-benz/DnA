@@ -1,8 +1,9 @@
 package com.daimler.data.controller;
 
-import com.daimler.data.db.entities.CodeServerBuildDeployNsql;
+import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
+import com.daimler.data.db.json.CodeServerDeploymentDetails;
 import com.daimler.data.db.json.DeploymentAudit;
-import com.daimler.data.db.repo.workspace.WorkspaceCustomBuildDeployRepo;
+import com.daimler.data.db.repo.workspace.WorkspaceCustomRepository;
 import com.daimler.data.service.ArgoCdService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -24,7 +25,7 @@ import java.util.concurrent.Executors;
 public class DeploymentStatusSseController {
 
     @Autowired
-    private WorkspaceCustomBuildDeployRepo buildDeployRepo;
+    private WorkspaceCustomRepository workspaceRepository;
 
     @Autowired
     private ArgoCdService argoCdService;
@@ -42,8 +43,14 @@ public class DeploymentStatusSseController {
         SseEmitter emitter = new SseEmitter(Long.MAX_VALUE);
 
         executor.execute(() -> {
+            int errorCount = 0;
+            int maxErrors = 5;
+            int maxIterations = 600;
+            int iteration = 0;
+            
             try {
-                while (true) {
+                while (iteration < maxIterations) {
+                    iteration++;
                     try {
                         Map<String, Object> statusData = getDeploymentStatusData(projectName, environment);
                         
@@ -52,29 +59,58 @@ public class DeploymentStatusSseController {
                                 .data(objectMapper.writeValueAsString(statusData)));
 
                         String status = (String) statusData.get("currentStatus");
-                        if ("DEPLOYED".equals(status) || "FAILED".equals(status) || "ERROR".equals(status)) {
-                            log.info("Deployment finished with status: {}", status);
+                        log.debug("SSE iteration {}: status={} for {}/{}", iteration, status, projectName, environment);
+                        
+                        if ("DEPLOYED".equals(status) || "FAILED".equals(status)) {
+                            log.info("Deployment finished with status: {} after {} iterations", status, iteration);
                             emitter.send(SseEmitter.event()
                                     .name("deployment-complete")
                                     .data(objectMapper.writeValueAsString(statusData)));
                             break;
                         }
+                        
+                        if ("ERROR".equals(status) || "NOT_FOUND".equals(status)) {
+                            errorCount++;
+                            log.warn("SSE got error status (attempt {}/{}): {}", errorCount, maxErrors, statusData.get("message"));
+                            if (errorCount >= maxErrors) {
+                                log.error("Too many errors, closing SSE stream after {} iterations", iteration);
+                                emitter.send(SseEmitter.event()
+                                        .name("deployment-error")
+                                        .data(objectMapper.writeValueAsString(statusData)));
+                                break;
+                            }
+                        } else {
+                            errorCount = 0;
+                        }
 
                         Thread.sleep(3000);
 
                     } catch (IOException e) {
-                        log.warn("Client disconnected from SSE stream");
+                        log.warn("Client disconnected from SSE stream at iteration {}", iteration);
                         emitter.completeWithError(e);
                         return;
                     } catch (InterruptedException e) {
-                        log.warn("SSE stream interrupted");
+                        log.warn("SSE stream interrupted at iteration {}", iteration);
                         Thread.currentThread().interrupt();
                         emitter.completeWithError(e);
                         return;
                     }
                 }
+                
+                if (iteration >= maxIterations) {
+                    log.warn("SSE stream reached max iterations ({}) for {}/{}", maxIterations, projectName, environment);
+                    Map<String, Object> timeoutData = new HashMap<>();
+                    timeoutData.put("currentStatus", "TIMEOUT");
+                    timeoutData.put("message", "Deployment monitoring timed out after 30 minutes");
+                    timeoutData.put("projectName", projectName);
+                    timeoutData.put("environment", environment);
+                    emitter.send(SseEmitter.event()
+                            .name("deployment-timeout")
+                            .data(objectMapper.writeValueAsString(timeoutData)));
+                }
+                
                 emitter.complete();
-                log.info("SSE stream completed successfully");
+                log.info("SSE stream completed successfully after {} iterations", iteration);
 
             } catch (Exception e) {
                 log.error("Error in SSE stream", e);
@@ -96,46 +132,54 @@ public class DeploymentStatusSseController {
         data.put("timestamp", new Date());
 
         try {
-            CodeServerBuildDeployNsql entity = buildDeployRepo.findByProjectName(projectName);
+            CodeServerWorkspaceNsql entity = workspaceRepository.findbyProjectName(projectName);
 
-            if (entity == null) {
+            if (entity == null || entity.getData() == null || entity.getData().getProjectDetails() == null) {
                 data.put("currentStatus", "NOT_FOUND");
                 data.put("message", "No deployment data found for project: " + projectName);
                 return data;
             }
+            
+            CodeServerDeploymentDetails deploymentDetails;
             List<DeploymentAudit> auditLogs;
 
             if ("int".equalsIgnoreCase(environment)) {
-                auditLogs = entity.getData().getIntDeploymentAuditLogs();
+                deploymentDetails = entity.getData().getProjectDetails().getIntDeploymentDetails();
             } else if ("prod".equalsIgnoreCase(environment)) {
-                auditLogs = entity.getData().getProdDeploymentAuditLogs();
+                deploymentDetails = entity.getData().getProjectDetails().getProdDeploymentDetails();
             } else {
                 data.put("currentStatus", "ERROR");
                 data.put("message", "Invalid environment. Use 'int' or 'prod'");
                 return data;
             }
 
-            if (auditLogs == null || auditLogs.isEmpty()) {
+            if (deploymentDetails == null) {
                 data.put("currentStatus", "NO_DEPLOYMENT");
-                data.put("message", "No deployment history found");
+                data.put("message", "No deployment details found for environment: " + environment);
                 return data;
             }
-
-            DeploymentAudit latestAudit = auditLogs.stream()
-                .filter(audit -> audit.getTriggeredOn() != null)
-                .sorted((a1, a2) -> a2.getTriggeredOn().compareTo(a1.getTriggeredOn()))
-                .findFirst()
-                .orElse(auditLogs.get(auditLogs.size() - 1));
-
-            String dbStatus = latestAudit.getDeploymentStatus() != null ? 
-                     latestAudit.getDeploymentStatus() : "UNKNOWN";
             
-            data.put("version", latestAudit.getVersion());
-            data.put("branch", latestAudit.getBranch());
-            data.put("commitId", latestAudit.getCommitId());
-            data.put("triggeredBy", latestAudit.getTriggeredBy());
-            data.put("triggeredOn", latestAudit.getTriggeredOn());
-            data.put("deployedOn", latestAudit.getDeployedOn());
+            String dbStatus = deploymentDetails.getLastDeploymentStatus() != null ? 
+                     deploymentDetails.getLastDeploymentStatus() : "UNKNOWN";
+            
+            data.put("version", deploymentDetails.getLastDeployedVersion());
+            data.put("branch", deploymentDetails.getLastDeployedBranch());
+            data.put("deployedOn", deploymentDetails.getLastDeployedOn());
+            data.put("deployedBy", deploymentDetails.getLastDeployedBy());
+            data.put("deploymentUrl", deploymentDetails.getDeploymentUrl());
+            
+            auditLogs = deploymentDetails.getDeploymentAuditLogs();
+            if (auditLogs != null && !auditLogs.isEmpty()) {
+                DeploymentAudit latestAudit = auditLogs.stream()
+                    .filter(audit -> audit.getTriggeredOn() != null)
+                    .sorted((a1, a2) -> a2.getTriggeredOn().compareTo(a1.getTriggeredOn()))
+                    .findFirst()
+                    .orElse(auditLogs.get(auditLogs.size() - 1));
+                    
+                data.put("commitId", latestAudit.getCommitId());
+                data.put("triggeredBy", latestAudit.getTriggeredBy());
+                data.put("triggeredOn", latestAudit.getTriggeredOn());
+            }
 
             String argoHealthStatus = "UNAVAILABLE";
             String argoSyncStatus = "UNAVAILABLE";
@@ -176,14 +220,13 @@ public class DeploymentStatusSseController {
     }
     
     private String determineActualStatus(String dbStatus, String argoHealth, String argoSync) {
-        if ("UNAVAILABLE".equals(argoHealth) || argoHealth == null || argoHealth.isEmpty()) {
+        if ("DEPLOYED".equalsIgnoreCase(dbStatus) || "FAILED".equalsIgnoreCase(dbStatus)) {
+            log.debug("Using terminal DB status: {}", dbStatus);
             return dbStatus;
         }
         
-        if ("Progressing".equalsIgnoreCase(argoHealth) || 
-            "Suspended".equalsIgnoreCase(argoHealth) ||
-            "OutOfSync".equalsIgnoreCase(argoSync)) {
-            return "DEPLOYING";
+        if ("UNAVAILABLE".equals(argoHealth) || argoHealth == null || argoHealth.isEmpty()) {
+            return dbStatus;
         }
         
         if ("Healthy".equalsIgnoreCase(argoHealth) && "Synced".equalsIgnoreCase(argoSync)) {
@@ -193,6 +236,12 @@ public class DeploymentStatusSseController {
         if ("Degraded".equalsIgnoreCase(argoHealth) || 
             "Missing".equalsIgnoreCase(argoHealth)) {
             return "FAILED";
+        }
+        
+        if ("Progressing".equalsIgnoreCase(argoHealth) || 
+            "Suspended".equalsIgnoreCase(argoHealth) ||
+            "OutOfSync".equalsIgnoreCase(argoSync)) {
+            return "DEPLOYING";
         }
         
         return dbStatus;
