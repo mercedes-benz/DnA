@@ -1295,6 +1295,15 @@ import org.springframework.beans.factory.annotation.Value;
 					if ("FAILED".equalsIgnoreCase(responseMsg.getSuccess())) {
 						return new ResponseEntity<>(responseMsg, HttpStatus.BAD_REQUEST);
 					}
+
+					// Ensure OpenTelemetry plugin exists on every deployment
+					try {
+						service.ensureOpenTelemetryPlugin(id, environment);
+					} catch (Exception e) {
+						log.warn("Failed to ensure OpenTelemetry plugin for workspace {} in {} environment: {}",
+							vo.getWorkspaceId(), environment, e.getMessage());
+					}
+
 				   log.info("User {} deployed workspace {} project {}", userId, vo.getWorkspaceId(),
 						   vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
 			   }
