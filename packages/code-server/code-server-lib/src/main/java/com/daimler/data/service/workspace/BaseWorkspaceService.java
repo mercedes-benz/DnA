@@ -2157,6 +2157,9 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
                         log.info("ArgoCD deployment - projectName: {}, gitRepoUrl: {}, imageTag: {}, repoName: {}, gheWorkspaceMigrated: {}", 
                                  projectName, gitRepoUrl, imageTag, repoName, gheWorkspaceMigrated);
                         
+                        String repoAccessPat = gheWorkspaceMigrated ? ghePat : gitPat;
+                        argoCdService.registerRepository(argoToken, gitRepoUrl, "x-access-token", repoAccessPat);
+                        
                         argoDeployResult = argoCdService.createArgoApp(argoToken, projectName.toLowerCase(), workspaceOwner, 
                                                                         environment, gitRepoUrl, imageTag, isValutInjectorEnable);
                     } else {

@@ -448,6 +448,9 @@ public class ArgoCdService {
         } catch (org.springframework.web.client.HttpClientErrorException.NotFound e) {
             log.info("ArgoCD application not found: {}", appName);
             return ResponseEntity.status(404).build();
+        } catch (org.springframework.web.client.HttpClientErrorException.Forbidden e) {
+            log.warn("Permission denied accessing ArgoCD application: {}", appName);
+            return ResponseEntity.status(403).build();
         } catch (Exception e) {
             log.error("Failed to get ArgoCD app status for {}", appName, e);
             return ResponseEntity.status(500).build();
@@ -458,6 +461,15 @@ public class ArgoCdService {
         try {
             ResponseEntity<String> argoResponse = getStatusOfArgoApp(token, appName);
             if (argoResponse == null || !argoResponse.getStatusCode().is2xxSuccessful()) {
+                int statusCode = argoResponse != null ? argoResponse.getStatusCode().value() : 0;
+                if (statusCode == 403) {
+                    log.warn("ArgoCD app {} - permission denied, marking as FAILED", appName);
+                    return "FAILED";
+                }
+                if (statusCode == 404) {
+                    log.warn("ArgoCD app {} - not found, marking as FAILED", appName);
+                    return "FAILED";
+                }
                 log.info("ArgoCD app {} not ready yet - DEPLOYING", appName);
                 return "DEPLOYING";
             }
