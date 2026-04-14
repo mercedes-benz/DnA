@@ -91,7 +91,7 @@ public class AsyncService {
 					log.debug("Subscription keys are available for the run id {}", runId);
 
 					JsonNode stepsNode = jsonResponse.path("result").path("result").path("steps");
-					if (stepsNode.isArray() && stepsNode.size() >= 17) {
+					if (stepsNode.isArray() && stepsNode.size() >= 10) {
 						stepsSizeSufficient = true;
 						log.debug("Steps size is sufficient: {}", stepsNode.size());
 
