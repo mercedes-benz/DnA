@@ -477,11 +477,11 @@ public class ArgoCdService {
                     log.info("Application {} is progressing - DEPLOYING", appName);
                     return "DEPLOYING";
                 case "degraded":
-                    log.info("Application {} is degraded - FAILED", appName);
-                    return "FAILED";
+                    log.info("Application {} is degraded - still DEPLOYING (may be transient during startup)", appName);
+                    return "DEPLOYING";
                 case "missing":
-                    log.info("Application {} is missing - FAILED", appName);
-                    return "FAILED";
+                    log.info("Application {} is missing - still DEPLOYING (resources not yet created)", appName);
+                    return "DEPLOYING";
                 case "suspended":
                     log.info("Application {} is suspended - FAILED", appName);
                     return "FAILED";
