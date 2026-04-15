@@ -221,6 +221,8 @@ public class ArgoCdService {
                 helmParameters.add(createHelmParam("resources.requests.memory", memory + "Mi"));
                 helmParameters.add(createHelmParam("resources.limits.memory", memory + "Mi"));
             }
+            // Explicitly remove limits.cpu by setting to "0" - Kubernetes treats 0 as no limit
+            helmParameters.add(createHelmParam("resources.limits.cpu", "0"));
         }
         
         Map<String, Object> payload = new HashMap<>();
