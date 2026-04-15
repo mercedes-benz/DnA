@@ -461,9 +461,9 @@ public class BaseDdxOnboardingService implements DdxOnboardingService {
             DdxProduct product = ddxDataProductsDetailsAssembler.toProduct(details);
 
             // Save to ddx_dataProducts_details_nsql table.
-            // Each row is keyed by workspaceId; ddxProducts is a list of all
-            // published products for that workspace.
-            Optional<DdxDataProductsDetailsNsql> existingOpt = ddxDataProductsDetailsRepo.findById(workspaceId);
+            // Each row is keyed by lakehouseId; ddxProducts is a list of all
+            // published products for that lakehouse.
+            Optional<DdxDataProductsDetailsNsql> existingOpt = ddxDataProductsDetailsRepo.findById(lakehouseId);
             DdxDataProductsDetailsNsql ddxEntity;
             if (existingOpt.isPresent()) {
                 ddxEntity = existingOpt.get();
@@ -487,7 +487,7 @@ public class BaseDdxOnboardingService implements DdxOnboardingService {
                 ddxEntity.setData(data);
             } else {
                 ddxEntity = new DdxDataProductsDetailsNsql();
-                ddxEntity.setId(workspaceId);
+                ddxEntity.setId(lakehouseId);
                 DdxDataProductsDetail data = new DdxDataProductsDetail();
                 List<DdxProduct> products = new ArrayList<>();
                 products.add(product);
