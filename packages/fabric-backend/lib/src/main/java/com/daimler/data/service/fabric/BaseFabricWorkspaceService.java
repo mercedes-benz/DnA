@@ -659,7 +659,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		adminRoleRequestDto.setDescription(permissionName +" role for workspace " + workspaceName);
 		adminRoleRequestDto.setDynamic(false);
 		adminRoleRequestDto.setGlobalCentralAvailable(true);
-		adminRoleRequestDto.setId(workspaceName + "_" +  permissionName);
+		adminRoleRequestDto.setId((workspaceName + "_" +  permissionName).replace(" ", ""));
 		adminRoleRequestDto.setJobTitle(false);
 		adminRoleRequestDto.setMarketAvailabilities(new ArrayList<>());
 		adminRoleRequestDto.setName(workspaceName + "_" +  permissionName);
@@ -683,7 +683,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		createRoleVO.setState(ConstantsUtility.PENDING_STATE);
 		try {
 			log.info("Calling identity management system to add role {} for workspace {} ", workspaceName + "_" + permissionName, workspaceName);
-			CreateRoleResponseDto getResponse = identityClient.getRole(createRequestDto.getName());
+			CreateRoleResponseDto getResponse = identityClient.getRole(createRequestDto.getId());
 			if(getResponse!=null && getResponse.getId()!=null) {
 				createRoleVO.setId(getResponse.getId());
 				createRoleVO.setLink(identityRoleUrl+workspaceName + "_" +  permissionName);
