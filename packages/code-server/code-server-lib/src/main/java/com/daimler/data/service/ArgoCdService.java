@@ -464,15 +464,19 @@ public class ArgoCdService {
             JsonNode rootNode = mapper.readTree(argoResponse.getBody());
             String healthStatus = rootNode.path("status").path("health").path("status").asText("");
             String syncStatus = rootNode.path("status").path("sync").path("status").asText("");
-            log.info("ArgoCD app {} - Health: {}, Sync: {}", appName, healthStatus, syncStatus);
+            String operationPhase = rootNode.path("status").path("operationState").path("phase").asText("");
+            log.info("ArgoCD app {} - Health: {}, Sync: {}, OperationPhase: {}", appName, healthStatus, syncStatus, operationPhase);
             switch (healthStatus.toLowerCase()) {
                 case "healthy":
                     if ("synced".equalsIgnoreCase(syncStatus)) {
                         log.info("Application {} is healthy and synced - DEPLOYED", appName);
                         return "DEPLOYED";
+                    } else if ("failed".equalsIgnoreCase(operationPhase) || "error".equalsIgnoreCase(operationPhase)) {
+                        log.info("Application {} is healthy but sync failed (phase: {}) - FAILED", appName, operationPhase);
+                        return "FAILED";
                     } else {
-                        log.info("Application {} is healthy but sync status is {} - DEPLOYING",
-                                appName, syncStatus);
+                        log.info("Application {} is healthy but sync status is {} (phase: {}) - DEPLOYING",
+                                appName, syncStatus, operationPhase);
                         return "DEPLOYING";
                     }
                 case "progressing":
