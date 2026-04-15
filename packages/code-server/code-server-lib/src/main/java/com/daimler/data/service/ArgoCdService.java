@@ -464,29 +464,19 @@ public class ArgoCdService {
             JsonNode rootNode = mapper.readTree(argoResponse.getBody());
             String healthStatus = rootNode.path("status").path("health").path("status").asText("");
             String syncStatus = rootNode.path("status").path("sync").path("status").asText("");
-            String operationPhase = rootNode.path("status").path("operationState").path("phase").asText("");
-            log.info("ArgoCD app {} - Health: {}, Sync: {}, OperationPhase: {}", appName, healthStatus, syncStatus, operationPhase);
+            log.info("ArgoCD app {} - Health: {}, Sync: {}", appName, healthStatus, syncStatus);
             switch (healthStatus.toLowerCase()) {
                 case "healthy":
-                    if ("synced".equalsIgnoreCase(syncStatus)) {
-                        log.info("Application {} is healthy and synced - DEPLOYED", appName);
-                        return "DEPLOYED";
-                    } else if ("failed".equalsIgnoreCase(operationPhase) || "error".equalsIgnoreCase(operationPhase)) {
-                        log.info("Application {} is healthy but sync failed (phase: {}) - FAILED", appName, operationPhase);
-                        return "FAILED";
-                    } else {
-                        log.info("Application {} is healthy but sync status is {} (phase: {}) - DEPLOYING",
-                                appName, syncStatus, operationPhase);
-                        return "DEPLOYING";
-                    }
+                    log.info("Application {} is healthy - DEPLOYED", appName);
+                    return "DEPLOYED";
+                case "degraded":
+                    log.info("Application {} is degraded - FAILED", appName);
+                    return "FAILED";
                 case "progressing":
                     log.info("Application {} is progressing - DEPLOYING", appName);
                     return "DEPLOYING";
-                case "degraded":
-                    log.info("Application {} is degraded - still DEPLOYING (may be transient during startup)", appName);
-                    return "DEPLOYING";
                 case "missing":
-                    log.info("Application {} is missing - still DEPLOYING (resources not yet created)", appName);
+                    log.info("Application {} is missing - DEPLOYING (resources not yet created)", appName);
                     return "DEPLOYING";
                 case "suspended":
                     log.info("Application {} is suspended - FAILED", appName);
