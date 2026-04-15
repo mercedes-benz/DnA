@@ -167,13 +167,7 @@ public class FabricWorkspaceAssembler implements GenericAssembler<FabricWorkspac
 					cdcPublishedLakeHouseDetails.setIsLakeHousesPublishedToCdc(data.getCdcPublishedLakeHouseDetails().getIsLakeHousesPublishedToCdc());
 					vo.setCdcPublishedLakeHouseDetails(cdcPublishedLakeHouseDetails);
 				}
-				Object ddxDetails = data.getDdxPublishedLakeHouseDetails();
-				if (ddxDetails instanceof List<?>) {
-					boolean allStrings = ((List<?>) ddxDetails).stream().allMatch(item -> item instanceof String);
-					vo.setDdxPublishedLakeHouseDetails(allStrings ? (List<String>) ddxDetails : null);
-				} else {
-					vo.setDdxPublishedLakeHouseDetails(null);
-				}
+				vo.setDdxPublishedLakeHouseDetails(data.getDdxPublishedLakeHouseDetails());
 			}
 		}
 		return vo;
@@ -405,13 +399,7 @@ public class FabricWorkspaceAssembler implements GenericAssembler<FabricWorkspac
 				cdcLakehouseDetails.setIsLakeHousesPublishedToCdc(vo.getCdcPublishedLakeHouseDetails().isIsLakeHousesPublishedToCdc());
 				data.setCdcPublishedLakeHouseDetails(cdcLakehouseDetails);
 			}
-			Object ddxDetails = vo.getDdxPublishedLakeHouseDetails();
-			if (ddxDetails instanceof List<?>) {
-				boolean allStrings = ((List<?>) ddxDetails).stream().allMatch(item -> item instanceof String);
-				data.setDdxPublishedLakeHouseDetails(allStrings ? (List<String>) ddxDetails : null);
-			} else {
-				data.setDdxPublishedLakeHouseDetails(null);
-			}
+			data.setDdxPublishedLakeHouseDetails(vo.getDdxPublishedLakeHouseDetails());
 			entity.setData(data);
 		}
 		return entity;
