@@ -476,9 +476,10 @@ public class BaseDdxOnboardingService implements DdxOnboardingService {
                 if (products == null) {
                     products = new ArrayList<>();
                 }
-                // Avoid duplicates by lakehouseId
+                // Avoid duplicates by productName (unique identifier for DDX products)
+                String productName = onboardingResponse.getDataProductName();
                 boolean exists = products.stream()
-                    .anyMatch(p -> lakehouseId.equals(p.getLakeHouseId()));
+                    .anyMatch(p -> productName != null && productName.equals(p.getProductName()));
                 if (!exists) {
                     products.add(product);
                 }
