@@ -35,24 +35,26 @@ const DeployModal = (props) => {
     projectDetails?.intDeploymentDetails?.lastDeployedBranch?.length &&
       setBranchValue([projectDetails?.intDeploymentDetails?.lastDeployedBranch]);
     version?.length && setDeployEnvironment(buildEnvironment);
-    ProgressIndicator.show();
-    const isWorkspaceMigratedToGHE = props.codeSpaceData?.isWorkspaceMigratedToGHE;
-    const repoUrl = buildGitRepoUrl(projectDetails?.gitRepoName, isWorkspaceMigratedToGHE);
-    CodeSpaceApiClient.getCodeSpacesGitBranchList(repoUrl)
-      .then((res) => {
-        ProgressIndicator.hide();
-        props.setShowCodeDeployModal(true);
-        let branches = res?.data;
-        branches.forEach((element) => {
-          element.id = element.name;
+    if (!version?.length) {
+      ProgressIndicator.show();
+      const isWorkspaceMigratedToGHE = props.codeSpaceData?.isWorkspaceMigratedToGHE;
+      const repoUrl = buildGitRepoUrl(projectDetails?.gitRepoName, isWorkspaceMigratedToGHE);
+      CodeSpaceApiClient.getCodeSpacesGitBranchList(repoUrl)
+        .then((res) => {
+          ProgressIndicator.hide();
+          props.setShowCodeDeployModal(true);
+          let branches = res?.data;
+          branches.forEach((element) => {
+            element.id = element.name;
+          });
+          setBranches(branches);
+          SelectBox.defaultSetup();
+        })
+        .catch((err) => {
+          ProgressIndicator.hide();
+          Notification.show('Error in getting code space branch list - ' + err.message, 'alert');
         });
-        setBranches(branches);
-        SelectBox.defaultSetup();
-      })
-      .catch((err) => {
-        ProgressIndicator.hide();
-        Notification.show('Error in getting code space branch list - ' + err.message, 'alert');
-      });
+    }
     // setVault();
     return Tooltip.clear();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -87,12 +89,14 @@ const DeployModal = (props) => {
       formValid = false;
       setIsBranchValueMissing(true);
     }
-    const found = branches.some(branch => 
-     Object.values(branch).includes(branchValue[0])
-    );
-    if (!found) {
-      formValid = false;
-      Notification.show('Branch doesnot exist.','alert',);
+    if (!version?.length) {
+      const found = branches.some(branch => 
+       Object.values(branch).includes(branchValue[0])
+      );
+      if (!found) {
+        formValid = false;
+        Notification.show('Branch doesnot exist.','alert',);
+      }
     }
     if (formValid) {
       const deployRequest = {
