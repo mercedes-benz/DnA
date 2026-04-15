@@ -66,6 +66,10 @@ public class DeploymentStatusMonitorJob {
                     if (checkAndUpdateDeployment(argoToken, workspace, intDeployment, projectName, "int")) {
                         updatedCount++;
                     }
+                } else if (intDeployment != null && "DEPLOYED".equalsIgnoreCase(intDeployment.getLastDeploymentStatus())) {
+                    // Fix stale build deploy entities for workspaces that were already updated
+                    // before the build deploy audit log fix was deployed
+                    fixStaleBuildDeployAuditLog(projectName, "int");
                 }
 
                 CodeServerDeploymentDetails prodDeployment = workspace.getData().getProjectDetails().getProdDeploymentDetails();
@@ -74,6 +78,8 @@ public class DeploymentStatusMonitorJob {
                     if (checkAndUpdateDeployment(argoToken, workspace, prodDeployment, projectName, "prod")) {
                         updatedCount++;
                     }
+                } else if (prodDeployment != null && "DEPLOYED".equalsIgnoreCase(prodDeployment.getLastDeploymentStatus())) {
+                    fixStaleBuildDeployAuditLog(projectName, "prod");
                 }
             }
 
@@ -157,6 +163,12 @@ public class DeploymentStatusMonitorJob {
             log.warn("Failed to check ArgoCD status for {}-{}: {}", projectName, environment, e.getMessage());
         }
         return false;
+    }
+
+    private void fixStaleBuildDeployAuditLog(String projectName, String environment) {
+        // For workspaces already at DEPLOYED, check if the build deploy entity
+        // still has stale DEPLOYING audit logs and fix them (no ArgoCD API call needed)
+        updateBuildDeployAuditLog(projectName, environment, "DEPLOYED");
     }
 
     private void updateBuildDeployAuditLog(String projectName, String environment, String argoStatus) {
