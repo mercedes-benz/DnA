@@ -14,7 +14,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class LakehouseDetail implements Serializable {
+public class DdxProduct implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private String workspaceName;

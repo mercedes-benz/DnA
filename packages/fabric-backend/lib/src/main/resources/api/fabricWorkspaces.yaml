@@ -856,7 +856,7 @@ definitions:
         type: array
         items:
           type: string
-        description: "List of lakehouse detail IDs referencing lakehouse_detail_nsql table"
+        description: "List of lakehouse detail IDs referencing ddx_dataProducts_details_nsql table"
 
   FabricWorkspaceStatusVO:
     type: object
