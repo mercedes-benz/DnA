@@ -5673,28 +5673,73 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 	}
 
 	@Override
-	public void ensureOpenTelemetryPlugin(String workspaceId, String environment) {
-		try {
-			CodeServerWorkspaceNsql entity = workspaceCustomRepository.findById(null, workspaceId);
-			if (entity == null) {
-				log.info("No workspace found for id {}, skipping OpenTelemetry plugin check.", workspaceId);
-				return;
-			}
-			String projectName = entity.getData().getProjectDetails().getProjectName();
-			String kongServiceName = projectName.toLowerCase() + "-" + environment;
+    public GenericMessage createOpenTelemetryPlugin(String workspaceId, String environment, String serviceName) {
+        GenericMessage responseMessage = new GenericMessage();
+        List<MessageDescription> errors = new ArrayList<>();
+        try {
+            log.info("Creating OpenTelemetry plugin for workspace {} in {} env with service.name={}",
+                    workspaceId, environment, serviceName);
 
-			String cloudServiceProvider = ConstantsUtility.DHC_CAAS;
-			CodeServerDeploymentDetails deploymentDetails = "int".equalsIgnoreCase(environment)
-					? entity.getData().getProjectDetails().getIntDeploymentDetails()
-					: entity.getData().getProjectDetails().getProdDeploymentDetails();
-			if (Objects.nonNull(deploymentDetails) && Objects.nonNull(deploymentDetails.getDeploymentUrl())
-					&& deploymentDetails.getDeploymentUrl().contains(codeServerBaseUriAws)) {
-				cloudServiceProvider = ConstantsUtility.DHC_CAAS_AWS;
-			}
+            // Build the OpenTelemetry plugin configuration
+            Map<String, Object> pluginConfig = new HashMap<>();
+            pluginConfig.put("name", "opentelemetry");
+            pluginConfig.put("enabled", true);
 
-			authenticatorClient.ensureOpenTelemetryPlugin(kongServiceName, cloudServiceProvider);
-		} catch (Exception e) {
-			log.error("Error ensuring OpenTelemetry plugin for workspace {}: {}", workspaceId, e.getMessage());
-		}
-	}
+            Map<String, Object> config = new HashMap<>();
+            config.put("endpoint", "http://alloy.observability:4318/v1/traces");
+            config.put("header_type", "b3");
+            config.put("read_timeout", 5000);
+            config.put("connect_timeout", 1000);
+            config.put("send_timeout", 5000);
+
+            // Queue configuration
+            Map<String, Object> queue = new HashMap<>();
+            queue.put("max_entries", 100);
+            queue.put("max_coalescing_delay", 1);
+            queue.put("max_retry_time", 60);
+            queue.put("max_retry_delay", 60);
+            queue.put("initial_retry_delay", 0.01);
+            queue.put("max_batch_size", 100);
+            config.put("queue", queue);
+
+            // Propagation configuration
+            Map<String, Object> propagation = new HashMap<>();
+            propagation.put("inject", Arrays.asList("b3", "w3c"));
+            propagation.put("extract", Arrays.asList("b3", "w3c"));
+            propagation.put("clear", Collections.emptyList());
+            propagation.put("default_format", "b3");
+            config.put("propagation", propagation);
+
+            // Dynamic service name based on the deployed workspace
+            Map<String, String> resourceAttributes = new HashMap<>();
+            resourceAttributes.put("service.name", serviceName);
+            config.put("resource_attributes", resourceAttributes);
+
+            pluginConfig.put("config", config);
+            pluginConfig.put("protocols", Arrays.asList("grpc", "grpcs", "http", "https"));
+
+            // Call the AuthenticatorClient to create the plugin on the Kong service
+            String kongServiceName = serviceName.toLowerCase();
+            GenericMessage result = authenticatorClient.createOpenTelemetryPlugin(kongServiceName, pluginConfig);
+
+            if (result != null && "SUCCESS".equalsIgnoreCase(result.getSuccess())) {
+                responseMessage.setSuccess("SUCCESS");
+                log.info("OpenTelemetry plugin created successfully for workspace {} in {} env with service.name={}",
+                        workspaceId, environment, serviceName);
+            } else {
+                responseMessage.setSuccess("FAILED");
+                if (result != null && result.getErrors() != null) {
+                    responseMessage.setErrors(result.getErrors());
+                }
+                log.error("Failed to create OpenTelemetry plugin for workspace {}", workspaceId);
+            }
+        } catch (Exception e) {
+            log.error("Exception creating OpenTelemetry plugin for workspace {}: {}", workspaceId, e.getMessage());
+            responseMessage.setSuccess("FAILED");
+            MessageDescription errorMsg = new MessageDescription("Failed to create OpenTelemetry plugin: " + e.getMessage());
+            errors.add(errorMsg);
+            responseMessage.setErrors(errors);
+        }
+        return responseMessage;
+    }
  }

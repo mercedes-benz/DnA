@@ -3,8 +3,6 @@ package com.daimler.data.auth.client;
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Base64;
-import java.util.Collections;
-import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -1931,78 +1929,55 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 	}
 
 	@Override
-	public void ensureOpenTelemetryPlugin(String kongServiceName, String cloudServiceProvider) {
+	public GenericMessage createOpenTelemetryPlugin(String kongServiceName, Map<String, Object> pluginConfig) {
+		GenericMessage response = new GenericMessage();
+		String status = "FAILED";
+		List<MessageDescription> warnings = new ArrayList<>();
+		List<MessageDescription> errors = new ArrayList<>();
 		try {
-			LOGGER.info("Attempting to attach OpenTelemetry plugin to service {}.", kongServiceName);
+			LOGGER.info("Creating OpenTelemetry plugin via Kong Admin API for service {}", kongServiceName);
 
-			Map<String, Object> otelPluginConfig = new HashMap<>();
-			otelPluginConfig.put("name", "opentelemetry");
-			otelPluginConfig.put("enabled", true);
+			// Wrap plugin config in {"data": {...}} format expected by authenticator service
+			Map<String, Object> requestBody = new java.util.HashMap<>();
+			requestBody.put("data", pluginConfig);
 
-			Map<String, Object> otelConfig = new HashMap<>();
-			otelConfig.put("endpoint", "http://alloy.observability:4318/v1/traces");
-			otelConfig.put("header_type", "b3");
-			otelConfig.put("read_timeout", 5000);
-			otelConfig.put("connect_timeout", 1000);
-			otelConfig.put("send_timeout", 5000);
+			ObjectMapper mapper = new ObjectMapper();
+			String pluginConfigJson = mapper.writeValueAsString(requestBody);
 
-			Map<String, Object> otelQueue = new HashMap<>();
-			otelQueue.put("max_entries", 100);
-			otelQueue.put("max_coalescing_delay", 1);
-			otelQueue.put("max_retry_time", 60);
-			otelQueue.put("max_retry_delay", 60);
-			otelQueue.put("initial_retry_delay", 0.01);
-			otelQueue.put("max_batch_size", 100);
-			otelConfig.put("queue", otelQueue);
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Content-Type", "application/json");
+			headers.set("apikey", apiKey);
 
-			Map<String, Object> otelPropagation = new HashMap<>();
-			otelPropagation.put("inject", Arrays.asList("b3", "w3c"));
-			otelPropagation.put("extract", Arrays.asList("b3", "w3c"));
-			otelPropagation.put("clear", Collections.emptyList());
-			otelPropagation.put("default_format", "b3");
-			otelConfig.put("propagation", otelPropagation);
+			String attachPluginUri = authenticatorBaseUri + CREATE_SERVICE + "/" + kongServiceName + ATTACH_OPENTELEMETRY_PLUGIN_TO_SERVICE;
+			HttpEntity<String> entity = new HttpEntity<>(pluginConfigJson, headers);
 
-			Map<String, String> otelResourceAttributes = new HashMap<>();
-			otelResourceAttributes.put("service.name", kongServiceName);
-			otelConfig.put("resource_attributes", otelResourceAttributes);
-
-			otelPluginConfig.put("config", otelConfig);
-			otelPluginConfig.put("protocols", Arrays.asList("grpc", "grpcs", "http", "https"));
-
-			Map<String, Object> otelRequestBody = new HashMap<>();
-			otelRequestBody.put("data", otelPluginConfig);
-
-			ObjectMapper otelMapper = new ObjectMapper();
-			String otelPluginConfigJson = otelMapper.writeValueAsString(otelRequestBody);
-
-			HttpHeaders otelHeaders = new HttpHeaders();
-			otelHeaders.set("Accept", "application/json");
-			otelHeaders.set("Content-Type", "application/json");
-			if(cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS_AWS) && apiKey.equals("NA")){
-				if(awsApiKey!=null){
-					otelHeaders.set("apikey", awsApiKey);
+			LOGGER.info("Calling Kong Admin API: POST {}", attachPluginUri);
+			ResponseEntity<String> attachPluginResponse = restTemplate.exchange(attachPluginUri, HttpMethod.POST, entity, String.class);
+			if (attachPluginResponse != null && attachPluginResponse.getStatusCode() != null) {
+				if (attachPluginResponse.getStatusCode().is2xxSuccessful()) {
+					status = "SUCCESS";
+					LOGGER.info("Success while creating OpenTelemetry plugin on Kong for service {}", kongServiceName);
+				} else {
+					LOGGER.info("Warnings while creating OpenTelemetry plugin for service: {}, httpstatuscode is {}",
+							kongServiceName, attachPluginResponse.getStatusCodeValue());
+					MessageDescription warning = new MessageDescription();
+					warning.setMessage("Response from kong create OpenTelemetry plugin : " + attachPluginResponse.getBody()
+							+ " Response Code is : " + attachPluginResponse.getStatusCodeValue());
+					warnings.add(warning);
 				}
-			}else{
-				otelHeaders.set("apikey", apiKey);
-			}
-
-			String otelUri = (cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS_AWS)? authenticatorBaseUriAWS:authenticatorBaseUri) + CREATE_SERVICE + "/" + kongServiceName + ATTACH_OPENTELEMETRY_PLUGIN_TO_SERVICE;
-			HttpEntity<String> otelEntity = new HttpEntity<>(otelPluginConfigJson, otelHeaders);
-
-			ResponseEntity<String> otelResponse = restTemplate.exchange(otelUri, HttpMethod.POST, otelEntity, String.class);
-			if (otelResponse != null && otelResponse.getStatusCode() != null && otelResponse.getStatusCode().is2xxSuccessful()) {
-				LOGGER.info("OpenTelemetry plugin attached successfully to service: {}", kongServiceName);
-			} else {
-				LOGGER.warn("Failed to attach OpenTelemetry plugin to service: {}, status: {}", kongServiceName, otelResponse != null ? otelResponse.getStatusCodeValue() : "null");
-			}
-		} catch (HttpClientErrorException ex) {
-			if (ex.getRawStatusCode() == HttpStatus.CONFLICT.value()) {
-				LOGGER.info("OpenTelemetry plugin already exists on service {}, skipping.", kongServiceName);
-			} else {
-				LOGGER.error("Error attaching OpenTelemetry plugin to service {}: {} - {}", kongServiceName, ex.getRawStatusCode(), ex.getMessage());
 			}
 		} catch (Exception e) {
-			LOGGER.error("Error attaching OpenTelemetry plugin to service {}: {}", kongServiceName, e.getMessage());
+			LOGGER.error("Error occurred while creating OpenTelemetry plugin for service: {} with exception {}",
+					kongServiceName, e.getMessage());
+			MessageDescription error = new MessageDescription();
+			error.setMessage("Error occurred while creating OpenTelemetry plugin for service: " + kongServiceName
+					+ " with exception: " + e.getMessage());
+			errors.add(error);
 		}
+		response.setSuccess(status);
+		response.setWarnings(warnings);
+		response.setErrors(errors);
+		return response;
 	}
 }

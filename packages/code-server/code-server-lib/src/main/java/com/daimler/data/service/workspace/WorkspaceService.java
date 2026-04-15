@@ -149,5 +149,5 @@ public interface WorkspaceService {
 
     GenericMessage cancelWorkspaceRun(String projectName);
 
-    void ensureOpenTelemetryPlugin(String workspaceId, String environment);
+	GenericMessage createOpenTelemetryPlugin(String workspaceId, String environment, String serviceName);
 }

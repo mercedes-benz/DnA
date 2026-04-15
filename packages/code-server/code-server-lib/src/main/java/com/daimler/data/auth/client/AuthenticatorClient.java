@@ -1,6 +1,7 @@
 package com.daimler.data.auth.client;
  
 import java.util.List;
+import java.util.Map;
 
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.db.json.CodespaceSecurityConfig;
@@ -33,5 +34,5 @@ public interface AuthenticatorClient {
  
 	public GenericMessage attachOneApiPluginToService(AttachOneApiPluginRequestVO attachOneApiPluginRequestVO, String serviceName);
 
-	public void ensureOpenTelemetryPlugin(String kongServiceName, String cloudServiceProvider);
+	public GenericMessage createOpenTelemetryPlugin(String kongServiceName, Map<String, Object> pluginConfig);
 }
