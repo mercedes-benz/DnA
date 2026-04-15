@@ -20,14 +20,16 @@ import org.springframework.stereotype.Service;
 // import com.databricks.sdk.WorkspaceClient;
 import com.daimler.data.application.client.FabricWorkspaceClient;
 import com.daimler.data.assembler.FabricWorkspaceAssembler;
-import com.daimler.data.assembler.LakehouseDetailAssembler;
+import com.daimler.data.assembler.DdxDataProductsDetailsAssembler;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.db.entities.FabricWorkspaceNsql;
-import com.daimler.data.db.entities.LakehouseDetailNsql;
+import com.daimler.data.db.entities.DdxDataProductsDetailsNsql;
+import com.daimler.data.db.json.DdxDataProductsDetail;
+import com.daimler.data.db.json.DdxProduct;
 import com.daimler.data.db.json.FabricWorkspace;
 import com.daimler.data.db.repo.fabric.FabricWorkspaceRepository;
-import com.daimler.data.db.repo.lakehouseDetail.LakehouseDetailRepository;
+import com.daimler.data.db.repo.ddxDataProductsDetails.DdxDataProductsDetailsRepository;
 import com.daimler.data.dto.fabric.FabricSqlEndpointResponseDto;
 import com.daimler.data.dto.fabricWorkspace.CreatedByVO;
 import com.daimler.data.dto.fabricWorkspace.DdxPublishedLakeHouseDetailsVO;
@@ -79,10 +81,10 @@ public class BaseDdxOnboardingService implements DdxOnboardingService {
     private FabricWorkspaceAssembler assembler;
 
     @Autowired
-    private LakehouseDetailAssembler lakehouseDetailAssembler;
+    private DdxDataProductsDetailsAssembler ddxDataProductsDetailsAssembler;
 
     @Autowired
-    private LakehouseDetailRepository lakehouseDetailRepo;
+    private DdxDataProductsDetailsRepository ddxDataProductsDetailsRepo;
 
     @Value("${proxy.host}")
     private String proxyHost;
@@ -429,7 +431,7 @@ public class BaseDdxOnboardingService implements DdxOnboardingService {
 
     private void updateDdxLakeHouseDetails(String workspaceId, String lakehouseId, String lakehouseName, String catalogName, DdxResponseDto onboardingResponse, CreatedByVO createdBy) {
         try {
-            // Load the entity directly from the repository to avoid the lossy
+            // Load the workspace entity directly from the repository to avoid the lossy
             // getById round-trip (VO <-> Entity conversion drops fields like
             // capacityAssignmentProgress and can overwrite JSONB data).
             Optional<FabricWorkspaceNsql> entityOpt = jpaRepo.findById(workspaceId);
@@ -440,7 +442,7 @@ public class BaseDdxOnboardingService implements DdxOnboardingService {
             FabricWorkspaceNsql workspaceEntity = entityOpt.get();
             FabricWorkspace workspaceData = workspaceEntity.getData();
 
-            // Build the lakehouse detail VO for the new table
+            // Build the DDX product object
             DdxPublishedLakeHouseDetailsVO details = new DdxPublishedLakeHouseDetailsVO();
             details.setWorkspaceId(workspaceId);
             details.setWorkspaceName(workspaceData != null ? workspaceData.getName() : null);
@@ -458,10 +460,43 @@ public class BaseDdxOnboardingService implements DdxOnboardingService {
             unityDetails.setCatalogName(catalogName);
             details.setUnityDetails(unityDetails);
 
-            // Save to lakehouse_detail_nsql table
-            LakehouseDetailNsql entity = lakehouseDetailAssembler.toEntity(details);
-            entity.setId(lakehouseId);
-            lakehouseDetailRepo.save(entity);
+            DdxProduct product = ddxDataProductsDetailsAssembler.toProduct(details);
+
+            // Save to ddx_dataProducts_details_nsql table.
+            // Each row is keyed by lakehouseId; ddxProducts is a list of all
+            // published products for that lakehouse.
+            Optional<DdxDataProductsDetailsNsql> existingOpt = ddxDataProductsDetailsRepo.findById(lakehouseId);
+            DdxDataProductsDetailsNsql ddxEntity;
+            if (existingOpt.isPresent()) {
+                ddxEntity = existingOpt.get();
+                DdxDataProductsDetail data = ddxEntity.getData();
+                if (data == null) {
+                    data = new DdxDataProductsDetail();
+                    data.setDdxProducts(new ArrayList<>());
+                }
+                List<DdxProduct> products = data.getDdxProducts();
+                if (products == null) {
+                    products = new ArrayList<>();
+                }
+                // Avoid duplicates by productName (unique identifier for DDX products)
+                String productName = onboardingResponse.getDataProductName();
+                boolean exists = products.stream()
+                    .anyMatch(p -> productName != null && productName.equals(p.getProductName()));
+                if (!exists) {
+                    products.add(product);
+                }
+                data.setDdxProducts(products);
+                ddxEntity.setData(data);
+            } else {
+                ddxEntity = new DdxDataProductsDetailsNsql();
+                ddxEntity.setId(lakehouseId);
+                DdxDataProductsDetail data = new DdxDataProductsDetail();
+                List<DdxProduct> products = new ArrayList<>();
+                products.add(product);
+                data.setDdxProducts(products);
+                ddxEntity.setData(data);
+            }
+            ddxDataProductsDetailsRepo.save(ddxEntity);
 
             // Update the workspace's ddxPublishedLakeHouseDetails list directly
             // on the managed entity — no VO round-trip needed.
