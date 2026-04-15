@@ -662,7 +662,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		adminRoleRequestDto.setId(workspaceName + "_" +  permissionName);
 		adminRoleRequestDto.setJobTitle(false);
 		adminRoleRequestDto.setMarketAvailabilities(new ArrayList<>());
-		adminRoleRequestDto.setName(workspaceName + "_" +  permissionName);
+		adminRoleRequestDto.setName((workspaceName + " " +  permissionName).replace("_", " "));
 		adminRoleRequestDto.setNeedsAdditionalSelfRequestApproval(false);
 		adminRoleRequestDto.setNeedsCustomScopes(false);
 		adminRoleRequestDto.setNeedsOrgScopes(false);
@@ -2060,7 +2060,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		roleRequestDto.setId(roleName);
 		roleRequestDto.setJobTitle(false);
 		roleRequestDto.setMarketAvailabilities(new ArrayList<>());
-		roleRequestDto.setName(roleName);
+		roleRequestDto.setName(roleName.replace("_", " "));
 		roleRequestDto.setNeedsAdditionalSelfRequestApproval(false);
 		roleRequestDto.setNeedsCustomScopes(false);
 		roleRequestDto.setNeedsOrgScopes(false);
