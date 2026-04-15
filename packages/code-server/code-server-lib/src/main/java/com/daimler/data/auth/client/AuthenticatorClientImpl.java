@@ -1933,12 +1933,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 	@Override
 	public void ensureOpenTelemetryPlugin(String kongServiceName, String cloudServiceProvider) {
 		try {
-			WorkspacePluginStatusVO otelStatus = getPluginStatus(kongServiceName, "opentelemetry", cloudServiceProvider);
-			if (Objects.nonNull(otelStatus) && Objects.nonNull(otelStatus.isEnabled())) {
-				LOGGER.info("OpenTelemetry plugin already exists on service {}, skipping.", kongServiceName);
-				return;
-			}
-			LOGGER.info("OpenTelemetry plugin not found on service {}, creating it.", kongServiceName);
+			LOGGER.info("Attempting to attach OpenTelemetry plugin to service {}.", kongServiceName);
 
 			Map<String, Object> otelPluginConfig = new HashMap<>();
 			otelPluginConfig.put("name", "opentelemetry");
@@ -1983,9 +1978,15 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 			HttpHeaders otelHeaders = new HttpHeaders();
 			otelHeaders.set("Accept", "application/json");
 			otelHeaders.set("Content-Type", "application/json");
-			otelHeaders.set("apikey", apiKey);
+			if(cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS_AWS) && apiKey.equals("NA")){
+				if(awsApiKey!=null){
+					otelHeaders.set("apikey", awsApiKey);
+				}
+			}else{
+				otelHeaders.set("apikey", apiKey);
+			}
 
-			String otelUri = authenticatorBaseUri + CREATE_SERVICE + "/" + kongServiceName + ATTACH_OPENTELEMETRY_PLUGIN_TO_SERVICE;
+			String otelUri = (cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS_AWS)? authenticatorBaseUriAWS:authenticatorBaseUri) + CREATE_SERVICE + "/" + kongServiceName + ATTACH_OPENTELEMETRY_PLUGIN_TO_SERVICE;
 			HttpEntity<String> otelEntity = new HttpEntity<>(otelPluginConfigJson, otelHeaders);
 
 			ResponseEntity<String> otelResponse = restTemplate.exchange(otelUri, HttpMethod.POST, otelEntity, String.class);
@@ -1993,6 +1994,12 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 				LOGGER.info("OpenTelemetry plugin attached successfully to service: {}", kongServiceName);
 			} else {
 				LOGGER.warn("Failed to attach OpenTelemetry plugin to service: {}, status: {}", kongServiceName, otelResponse != null ? otelResponse.getStatusCodeValue() : "null");
+			}
+		} catch (HttpClientErrorException ex) {
+			if (ex.getRawStatusCode() == HttpStatus.CONFLICT.value()) {
+				LOGGER.info("OpenTelemetry plugin already exists on service {}, skipping.", kongServiceName);
+			} else {
+				LOGGER.error("Error attaching OpenTelemetry plugin to service {}: {} - {}", kongServiceName, ex.getRawStatusCode(), ex.getMessage());
 			}
 		} catch (Exception e) {
 			LOGGER.error("Error attaching OpenTelemetry plugin to service {}: {}", kongServiceName, e.getMessage());

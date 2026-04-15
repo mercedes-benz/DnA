@@ -710,6 +710,9 @@ public class KongGatewayController implements KongApi{
 			if (Objects.nonNull(response) && Objects.nonNull(response.getSuccess()) && response.getSuccess().equalsIgnoreCase("Success")) {
 				LOGGER.info("OpenTelemetry plugin attached successfully to the service {}", serviceName);
 				return new ResponseEntity<>(response, HttpStatus.CREATED);
+			} else if (Objects.nonNull(response) && Objects.nonNull(response.getErrors()) && response.getErrors().stream().anyMatch(e -> e.getMessage() != null && e.getMessage().contains("already attached"))) {
+				LOGGER.info("OpenTelemetry plugin already exists on the service {}", serviceName);
+				return new ResponseEntity<>(response, HttpStatus.CONFLICT);
 			} else {
 				LOGGER.info("Attaching opentelemetry plugin to the service {} failed", serviceName);
 				return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
