@@ -23,7 +23,9 @@ import com.daimler.data.assembler.FabricWorkspaceAssembler;
 import com.daimler.data.assembler.LakehouseDetailAssembler;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
+import com.daimler.data.db.entities.FabricWorkspaceNsql;
 import com.daimler.data.db.entities.LakehouseDetailNsql;
+import com.daimler.data.db.json.FabricWorkspace;
 import com.daimler.data.db.repo.fabric.FabricWorkspaceRepository;
 import com.daimler.data.db.repo.lakehouseDetail.LakehouseDetailRepository;
 import com.daimler.data.dto.fabric.FabricSqlEndpointResponseDto;
@@ -425,12 +427,21 @@ public class BaseDdxOnboardingService implements DdxOnboardingService {
 
     private void updateDdxLakeHouseDetails(String workspaceId, String lakehouseId, String lakehouseName, String catalogName, DdxResponseDto onboardingResponse, CreatedByVO createdBy) {
         try {
-            FabricWorkspaceVO workspace = fabricWorkspaceService.getById(workspaceId);
+            // Load the entity directly from the repository to avoid the lossy
+            // getById round-trip (VO <-> Entity conversion drops fields like
+            // capacityAssignmentProgress and can overwrite JSONB data).
+            Optional<FabricWorkspaceNsql> entityOpt = jpaRepo.findById(workspaceId);
+            if (entityOpt.isEmpty()) {
+                log.error("Workspace not found with id {} while updating DDX lakehouse details", workspaceId);
+                return;
+            }
+            FabricWorkspaceNsql workspaceEntity = entityOpt.get();
+            FabricWorkspace workspaceData = workspaceEntity.getData();
 
             // Build the lakehouse detail VO for the new table
             DdxPublishedLakeHouseDetailsVO details = new DdxPublishedLakeHouseDetailsVO();
             details.setWorkspaceId(workspaceId);
-            details.setWorkspaceName(workspace.getName());
+            details.setWorkspaceName(workspaceData != null ? workspaceData.getName() : null);
             details.setLakehouseName(lakehouseName);
             details.setLakeHouseId(lakehouseId);
             details.setIsLakeHousesPublishedToDdx(true);
@@ -450,14 +461,20 @@ public class BaseDdxOnboardingService implements DdxOnboardingService {
             entity.setId(lakehouseId);
             lakehouseDetailRepo.save(entity);
 
-            // Add the ID to workspace's ddxPublishedLakeHouseDetails list
-            List<String> detailIds = Optional.ofNullable(workspace.getDdxPublishedLakeHouseDetails())
-                .orElse(new ArrayList<>());
-            if (!detailIds.contains(lakehouseId)) {
-                detailIds.add(lakehouseId);
+            // Update the workspace's ddxPublishedLakeHouseDetails list directly
+            // on the managed entity — no VO round-trip needed.
+            if (workspaceData != null) {
+                List<String> detailIds = workspaceData.getDdxPublishedLakeHouseDetails();
+                if (detailIds == null) {
+                    detailIds = new ArrayList<>();
+                }
+                if (!detailIds.contains(lakehouseId)) {
+                    detailIds.add(lakehouseId);
+                }
+                workspaceData.setDdxPublishedLakeHouseDetails(detailIds);
+                workspaceEntity.setData(workspaceData);
+                jpaRepo.save(workspaceEntity);
             }
-            workspace.setDdxPublishedLakeHouseDetails(detailIds);
-            jpaRepo.save(assembler.toEntity(workspace));
 
             log.info("Successfully updated DDX published lakehouse details for workspace: {}, lakehouseId: {}", workspaceId, lakehouseId);
         } catch (Exception e) {
