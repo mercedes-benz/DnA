@@ -221,6 +221,8 @@ public class ArgoCdService {
                 helmParameters.add(createHelmParam("resources.requests.memory", memory + "Mi"));
                 helmParameters.add(createHelmParam("resources.limits.memory", memory + "Mi"));
             }
+            // Explicitly remove limits.cpu by setting to "0" - Kubernetes treats 0 as no limit
+            helmParameters.add(createHelmParam("resources.limits.cpu", "0"));
         }
         
         Map<String, Object> payload = new HashMap<>();
@@ -465,23 +467,17 @@ public class ArgoCdService {
             log.info("ArgoCD app {} - Health: {}, Sync: {}", appName, healthStatus, syncStatus);
             switch (healthStatus.toLowerCase()) {
                 case "healthy":
-                    if ("synced".equalsIgnoreCase(syncStatus)) {
-                        log.info("Application {} is healthy and synced - DEPLOYED", appName);
-                        return "DEPLOYED";
-                    } else {
-                        log.info("Application {} is healthy but sync status is {} - DEPLOYING",
-                                appName, syncStatus);
-                        return "DEPLOYING";
-                    }
-                case "progressing":
-                    log.info("Application {} is progressing - DEPLOYING", appName);
-                    return "DEPLOYING";
+                    log.info("Application {} is healthy - DEPLOYED", appName);
+                    return "DEPLOYED";
                 case "degraded":
                     log.info("Application {} is degraded - FAILED", appName);
                     return "FAILED";
+                case "progressing":
+                    log.info("Application {} is progressing - DEPLOYING", appName);
+                    return "DEPLOYING";
                 case "missing":
-                    log.info("Application {} is missing - FAILED", appName);
-                    return "FAILED";
+                    log.info("Application {} is missing - DEPLOYING (resources not yet created)", appName);
+                    return "DEPLOYING";
                 case "suspended":
                     log.info("Application {} is suspended - FAILED", appName);
                     return "FAILED";
