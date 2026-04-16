@@ -235,6 +235,11 @@ public class ArgoCdService {
             // Explicitly remove limits.cpu by setting to "0" - Kubernetes treats 0 as no limit
             helmParameters.add(createHelmParam("resources.limits.cpu", "0"));
             log.info("[Resources] Sending -> resources.limits.cpu: 0 (override to suppress chart default)");
+            log.info("[Resources] Final resources being sent to ArgoCD: " +
+                "requests.cpu={}, requests.memory={}, limits.memory={} (same as requests.memory), limits.cpu=0 (removed)",
+                cpu != null ? cpu + "m" : "not set",
+                memory != null ? memory + "Mi" : "not set",
+                memory != null ? memory + "Mi" : "not set");
         } else {
             log.info("[Resources] No resource overrides to apply (resources map is null or empty)");
         }
