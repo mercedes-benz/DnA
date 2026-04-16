@@ -203,7 +203,7 @@ const CodeSpaceRecipe = (props) => {
 
   if (isGitI && !isPublic) {
     setIsPublic(true);
-    Notification.show('git.i repositories must use Public visibility.', 'alert');
+    Notification.show('Only repos from GHE is allowed.', 'alert');
   }
 
   const errorText = githubUrlVal.length
@@ -289,7 +289,7 @@ const CodeSpaceRecipe = (props) => {
     return;
   }
   if (currentValue === 'false' && isGitIRepo) {
-    Notification.show('git.i repositories cannot be set to Private visibility. Please use Public.', 'alert');
+    Notification.show('Only repos from GHE is allowed.', 'alert');
     return;
   }
   if (currentValue === 'true') {
@@ -611,7 +611,7 @@ const CodeSpaceRecipe = (props) => {
                         {isGitIRepo && (
                           <p className={Styles.warning}>
                             <i className="icon mbc-icon alert circle" />
-                            <span>git.i repositories must use Public visibility. Private recipes are not allowed.</span>
+                            <span>Only repos from <a href={Envs.CODE_SPACE_GHE_PAT_APP_URL} target="_blank" rel="noopener noreferrer">GHE</a> is allowed.</span>
                           </p>
                         )}
                       </div>
