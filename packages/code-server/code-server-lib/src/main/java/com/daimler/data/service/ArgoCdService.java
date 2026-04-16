@@ -53,6 +53,12 @@ public class ArgoCdService {
     @Value("${argocd.namespacePrefix}")
     private String argocdNamespacePrefix;
 
+    @Value("${codeServer.git.ghe.pat}")
+    private String ghePat;
+
+    @Value("${codeServer.git.pat}")
+    private String gitPat;
+
     @Autowired
     private RestTemplate restTemplate;
 
@@ -412,7 +418,16 @@ public class ArgoCdService {
             
             log.info("Attempting to fetch values.yaml from: {}", rawFileUrl);
             
-            ResponseEntity<String> response = restTemplate.getForEntity(rawFileUrl, String.class);
+            HttpHeaders headers = new HttpHeaders();
+            // Use GHE PAT for GHE repos, standard PAT otherwise
+            boolean isGheRepo = gitRepoUrl.contains(".ghe.");
+            String pat = isGheRepo ? ghePat : gitPat;
+            if (pat != null && !pat.isEmpty()) {
+                headers.set("Authorization", "token " + pat);
+            }
+            HttpEntity<Void> entity = new HttpEntity<>(headers);
+            
+            ResponseEntity<String> response = restTemplate.exchange(rawFileUrl, HttpMethod.GET, entity, String.class);
             
             if (response.getStatusCode().is2xxSuccessful()) {
                 log.info("Successfully fetched values.yaml");
