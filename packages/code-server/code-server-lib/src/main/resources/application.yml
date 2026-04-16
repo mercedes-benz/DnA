@@ -247,3 +247,4 @@ argocd:
   tokenPassword: ${ARGOCD_PASSWORD:XXXX}
   imageRegistry: ${ARGOCD_IMAGE_REGISTRY:XXXX}
   vaultKvPath: ${ARGOCD_VAULT_KV_PATH:XXXX}
+  namespacePrefix: ${ARGOCD_NAMESPACE_PREFIX:}
