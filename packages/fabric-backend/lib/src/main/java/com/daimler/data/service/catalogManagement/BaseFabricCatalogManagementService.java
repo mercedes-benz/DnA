@@ -11,6 +11,7 @@ import com.daimler.data.db.repo.catalogManagement.FabricCatalogManagementCustomR
 import com.daimler.data.db.repo.catalogManagement.FabricCatalogManagementRepository;
 import com.daimler.data.db.repo.fabric.FabricWorkspaceCustomRepository;
 import com.daimler.data.db.repo.fabric.FabricWorkspaceRepository;
+import com.daimler.data.dto.fabricWorkspace.FabricLakehouseVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceVO;
 import com.daimler.data.dto.fabricWorkspace.CdcPublishedLakeHouseDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.CreatedByVO;
@@ -22,6 +23,9 @@ import org.openmetadata.client.model.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -44,7 +48,9 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
     private final FabricCatalogManagementRepository catalogRepo;
     private final FabricCatalogManagementCustomRepository catalogCustomRepo;
     private final FabricCatalogMetadataAssembler catalogAssembler;
-	
+
+    @PersistenceContext
+    private EntityManager entityManager;
 
     @Autowired
     public BaseFabricCatalogManagementService(
@@ -87,7 +93,7 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
             updateLakeHouseDetails(existingFabricWorkspace, request.getMetadata());
 
             // Save metadata to repository
-            saveCatalogMetadata(request, catalogMetadataDetails);
+            saveCatalogMetadata(request, catalogMetadataDetails, existingFabricWorkspace);
 
             // Prepare success response
             prepareSuccessResponse(response, catalogMetadataDetails);
@@ -174,7 +180,7 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
             updateLakeHouseDetails(existingFabricWorkspace, request.getMetadata());
 
             // Update stored metadata
-            updateStoredMetadata(request);
+            updateStoredMetadata(request, existingFabricWorkspace);
 
             // Prepare success response
 			FabricCatalogMetadataNsql entity = catalogCustomRepo.findByServiceName(request.getMetadata().getServiceName())
@@ -284,11 +290,47 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
     }
 
     private void saveCatalogMetadata(PublishCatalogRequestVO request, 
-            FabricCatalogMetadataDetailsVO catalogMetadataDetails) {
+            FabricCatalogMetadataDetailsVO catalogMetadataDetails,
+            FabricWorkspaceVO existingFabricWorkspace) {
         catalogMetadataDetails.setMetadata(request.getMetadata());
         catalogMetadataDetails.setOwners(request.getOwners());
         catalogMetadataDetails.setMandatoryFields(request.getMandatoryFields());
-        catalogRepo.save(catalogAssembler.toEntity(catalogMetadataDetails));
+
+        FabricCatalogMetadataNsql entity = catalogAssembler.toEntity(catalogMetadataDetails);
+
+        // Set the published lakehouse ID as the entity primary key
+        String lakehouseId = findPublishedLakehouseId(request.getMetadata(), existingFabricWorkspace);
+        if (lakehouseId != null) {
+            entity.setId(lakehouseId);
+        }
+
+        entityManager.persist(entity);
+        entityManager.flush();
+    }
+
+    private String findPublishedLakehouseId(FabricCatalogMetadataVO metadata, FabricWorkspaceVO workspace) {
+        if (metadata == null || metadata.getDatabases() == null || metadata.getDatabases().isEmpty()
+                || workspace.getLakehouses() == null || workspace.getLakehouses().isEmpty()) {
+            return null;
+        }
+        String dbName = metadata.getDatabases().get(0).getDbName();
+        log.info("Looking for lakehouse matching dbName: {}", dbName);
+
+        Optional<String> matchedId = workspace.getLakehouses().stream()
+                .filter(lh -> lh.getName() != null && lh.getId() != null)
+                .filter(lh -> lh.getName().equalsIgnoreCase(dbName))
+                .map(FabricLakehouseVO::getId)
+                .findFirst();
+
+        if (matchedId.isPresent()) {
+            log.info("Matched lakehouse by name: {} -> {}", dbName, matchedId.get());
+            return matchedId.get();
+        }
+
+        // Fallback: use the first lakehouse ID from the workspace
+        String fallbackId = workspace.getLakehouses().get(0).getId();
+        log.info("No exact match for dbName '{}', using fallback lakehouse ID: {}", dbName, fallbackId);
+        return fallbackId;
     }
 
     private void prepareSuccessResponse(PublishCatalogResponseVO response, 
@@ -508,18 +550,36 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
             updateDatabase(dbMetadata, serviceName, request.getMandatoryFields(), ownerReferences));
     }
     
-    private void updateStoredMetadata(PublishCatalogRequestVO request) {
+    private void updateStoredMetadata(PublishCatalogRequestVO request, FabricWorkspaceVO workspace) {
         try {
             FabricCatalogMetadataNsql entity = catalogCustomRepo.findByServiceName(request.getMetadata().getServiceName())
                 .orElseThrow(() -> new EntityNotFoundException("Catalog metadata", request.getMetadata().getServiceName()));
+            String oldEntityId = entity.getId();
             FabricCatalogMetadataDetailsVO vo = catalogAssembler.toVo(entity);
             
             // Update all fields
             vo.setMetadata(request.getMetadata());
             vo.setOwners(request.getOwners());
             vo.setMandatoryFields(request.getMandatoryFields());
-            
-            catalogRepo.save(catalogAssembler.toEntity(vo));
+
+            // Set the lakehouse ID as the entity primary key
+            String lakehouseId = findPublishedLakehouseId(request.getMetadata(), workspace);
+            if (lakehouseId != null) {
+                vo.setId(lakehouseId);
+            }
+
+            FabricCatalogMetadataNsql updatedEntity = catalogAssembler.toEntity(vo);
+
+            // If the ID changed (e.g., old UUID -> new lakehouse ID), delete the old row first
+            if (lakehouseId != null && !lakehouseId.equals(oldEntityId)) {
+                log.info("Migrating catalog metadata ID from {} to lakehouse ID {}", oldEntityId, lakehouseId);
+                catalogRepo.deleteById(oldEntityId);
+                entityManager.flush();
+                entityManager.persist(updatedEntity);
+            } else {
+                catalogRepo.save(updatedEntity);
+            }
+            entityManager.flush();
         } catch (EntityNotFoundException e) {
             log.error("Catalog metadata not found for service: {}", request.getMetadata().getServiceName());
             throw new EntityNotFoundException("Catalog metadata", request.getMetadata().getServiceName());
