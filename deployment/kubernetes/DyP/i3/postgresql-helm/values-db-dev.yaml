@@ -17,7 +17,7 @@ fullnameOverride: "dna-db"
 # nameOverride: "postgresql"
 ## PostgreSQL replica count
 ##
-replicaCount: 1
+replicaCount: 2
 
 printEnv: true
 
@@ -470,7 +470,8 @@ antiAffinity:
   enabled: true
 
 podDisruptionBudget:
-  enabled: false
+  enabled: true
+  maxUnvailable: 50%
 
 terminationGracePeriodSeconds: 300
 

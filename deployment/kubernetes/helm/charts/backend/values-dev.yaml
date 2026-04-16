@@ -15,7 +15,7 @@ ingress:
     traefik.ingress.kubernetes.io/router.middlewares: default-redirect@kubernetescrd
 app:
   backend:
-    replicaCount: 1
+    replicaCount: 2
     image:
       repository: registry-emea.app.corpintra.net/dnaplatform/dna-backend
       tag: '613'
@@ -126,3 +126,6 @@ resources:
     memory: 1839Mi
 autoscaling:
   enabled: false
+podDisruptionBudget:
+  enabled: true
+  minAvailable: 50%
