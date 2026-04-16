@@ -50,7 +50,7 @@ public class ArgoCdService {
     @Value("${codeServer.env.ref}")
     private String codeServerEnvRef;
 
-    @Value("${argocd.namespacePrefix:#{null}}")
+    @Value("${argocd.namespacePrefix}")
     private String argocdNamespacePrefix;
 
     @Autowired
