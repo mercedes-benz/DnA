@@ -126,11 +126,13 @@ public class DeploymentStatusMonitorJob {
                         .orElse(null);
                 }
                 
+                // Set timestamp for both DEPLOYED and FAILED
+                deployment.setLastDeployedOn(new Date());
+                
                 if ("DEPLOYED".equals(argoStatus)) {
                     if (deployment.getLastDeployedBy() == null) {
                         deployment.setLastDeployedBy(workspace.getData().getWorkspaceOwner());
                     }
-                    deployment.setLastDeployedOn(new Date());
                     
                     if (latestAudit != null) {
                         if (deployment.getLastDeployedBranch() == null && latestAudit.getBranch() != null) {
@@ -146,9 +148,7 @@ public class DeploymentStatusMonitorJob {
                 }
                 if (latestAudit != null) {
                     latestAudit.setDeploymentStatus(argoStatus);
-                    if ("DEPLOYED".equals(argoStatus)) {
-                        latestAudit.setDeployedOn(new Date());
-                    }
+                    latestAudit.setDeployedOn(new Date());
                     log.info("Updated audit log status to {} for deployment at {}", argoStatus, latestAudit.getTriggeredOn());
                 }
 
@@ -189,9 +189,7 @@ public class DeploymentStatusMonitorJob {
                 DeploymentAudit audit = auditLogs.get(i);
                 if ("DEPLOYING".equalsIgnoreCase(audit.getDeploymentStatus())) {
                     audit.setDeploymentStatus(argoStatus);
-                    if ("DEPLOYED".equals(argoStatus)) {
-                        audit.setDeployedOn(new Date());
-                    }
+                    audit.setDeployedOn(new Date());
                     log.info("Updated build deploy audit log status to {} for {}-{}", argoStatus, projectName, environment);
                     break;
                 }
