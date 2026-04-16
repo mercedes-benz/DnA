@@ -135,6 +135,15 @@ public class BaseADAProjectsService extends BaseCommonService<ADAProjectDetailsV
 	public GenericMessage createWorkspaceProjectAssociation(FabricWorkspaceVO workspace, String projectId) {
 		
 		try {
+			ADAProjectsNsql adaProject = customRepo.findbyUniqueLiteral("projectID", projectId);
+			if (adaProject == null || adaProject.getData() == null || adaProject.getData().getProjectID() == null) {
+				log.error("ADA Project with projectID {} not found in adaprojects table", projectId);
+				GenericMessage message = new GenericMessage("ERROR");
+				message.setErrors(List.of(new MessageDescription("ADA Project with projectID " + projectId + " not found in adaprojects table")));
+				return message;
+			}
+			log.info("Validated projectID {} exists in adaprojects table", projectId);
+
 			Optional<FabricWorkspaceNsql> existingEntityOpt = fabricWorkspaceRepo.findById(workspace.getId());
 			if (existingEntityOpt.isPresent()) {
 				FabricWorkspaceNsql existingEntity = existingEntityOpt.get();
