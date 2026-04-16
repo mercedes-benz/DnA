@@ -55,4 +55,5 @@ public class FabricWorkspace implements Serializable{
 	private String subscription;
 	private Date lastModifiedOn;
 	private CdcPublishedLakeHouseDetails cdcPublishedLakeHouseDetails;
+	private DdxPublishedLakeHouseDetails ddxPublishedLakeHouseDetails;
 }
