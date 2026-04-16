@@ -1223,7 +1223,7 @@ public class FabricWorkspaceClient {
 			HttpEntity<DatabricksSqlStatementRequestDto> requestEntity = new HttpEntity<>(requestBody, headers);
 			String url = databricksHost + "/api/2.0/sql/statements";
 
-			log.info("Executing SHOW SCHEMAS on catalog: {}", catalogName);
+			log.info("Executing SHOW TABLES IN catalog: {}", catalogName);
 			ResponseEntity<DatabricksSqlStatementResponseDto> response = proxyRestTemplate.exchange(
 					url, HttpMethod.POST, requestEntity, DatabricksSqlStatementResponseDto.class);
 
