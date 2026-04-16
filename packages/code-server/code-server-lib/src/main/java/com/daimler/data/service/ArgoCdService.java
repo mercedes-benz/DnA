@@ -50,6 +50,9 @@ public class ArgoCdService {
     @Value("${codeServer.env.ref}")
     private String codeServerEnvRef;
 
+    @Value("${argocd.namespacePrefix:#{null}}")
+    private String argocdNamespacePrefix;
+
     @Autowired
     private RestTemplate restTemplate;
 
@@ -495,11 +498,12 @@ public class ArgoCdService {
         }
     }
     private String getNamespaceForEnvironment(String clusterEnv, String targetEnv) {
-       
+        String prefix = (argocdNamespacePrefix != null && !argocdNamespacePrefix.isEmpty()) 
+            ? argocdNamespacePrefix : clusterEnv;
         if ("int".equalsIgnoreCase(targetEnv)) {
-            return clusterEnv + "-dna-cs-apps-int";
+            return prefix + "-dna-cs-apps-int";
         }
-        return clusterEnv + "-dna-cs-apps";
+        return prefix + "-dna-cs-apps";
     }
     
     private String getVaultAuthPath(String clusterEnv) {
