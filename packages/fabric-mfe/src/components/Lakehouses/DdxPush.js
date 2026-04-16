@@ -5,6 +5,7 @@ import AddUser from 'dna-container/AddUser';
 import SelectBox from 'dna-container/SelectBox';
 import TypeAheadBox from 'dna-container/TypeAheadBox';
 import Tooltip from '../../common/modules/uilab/js/src/tooltip';
+import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 import Notification from '../../common/modules/uilab/js/src/notification';
 import { fabricApi } from '../../apis/fabric.api';
 import { DIVISIONS, BUSINESS_DOMAINS, CLOUD_PROVIDERS, TECHNOLOGIES, PURPOSES, CRITERIA_TRANSFER_PRICING, QUALIFICATION_TRANSFER_PRICING, SECURITY_LEVELS, UPDATE_FREQUENCIES } from '../../utilities/constants';
@@ -220,7 +221,7 @@ const Step2_OwnershipGovernance = ({
           <div className="custom-select">
             <select
               id="businessDomain"
-              value={formData.businessDomain || ''}
+              defaultValue={formData.businessDomain || ''}
               onChange={(e) => {
                 setFormData((prev) => ({ ...prev, businessDomain: e?.target?.value }));
                 clearError('businessDomainError');
@@ -329,9 +330,9 @@ const Step2_OwnershipGovernance = ({
 
 const Step3_TechnicalMetadata = ({
   formData,
-  setFormData,
+  // setFormData,
   errors,
-  clearError,
+  // clearError,
 }) => {
 
   useEffect(() => {
@@ -349,7 +350,7 @@ const Step3_TechnicalMetadata = ({
           <input
             id="dataHub"
             className="input-field"
-            value="JP Fabric"
+            value="oneFabric"
             disabled
             readOnly
           />
@@ -371,11 +372,9 @@ const Step3_TechnicalMetadata = ({
                   className="ff-only"
                   name="fulfillsDataCloudFramework"
                   value="true"
-                  defaultChecked={formData.fulfillsDataCloudFramework === true}
-                  onChange={() => {
-                    setFormData({ ...formData, fulfillsDataCloudFramework: true });
-                    clearError('fulfillsDataCloudFrameworkError');
-                  }}
+                  checked={true}
+                  disabled
+                  readOnly
                 />
               </span>
               <span className="label">Yes</span>
@@ -387,11 +386,9 @@ const Step3_TechnicalMetadata = ({
                   className="ff-only"
                   name="fulfillsDataCloudFramework"
                   value="false"
-                  defaultChecked={formData.fulfillsDataCloudFramework === false}
-                  onChange={() => {
-                    setFormData({ ...formData, fulfillsDataCloudFramework: false });
-                    clearError('fulfillsDataCloudFrameworkError');
-                  }}
+                  checked={false}
+                  disabled
+                  readOnly
                 />
               </span>
               <span className="label">No</span>
@@ -430,24 +427,25 @@ const Step3_TechnicalMetadata = ({
 
         <div className={Styles.col2}>
           <div className={classNames('input-field-group include-error', errors.technologyError ? 'error' : '')}>
-            <label htmlFor="technology" className="input-label">
+            <label className="input-label">
               Technology <sup>*</sup>
             </label>
-            <div className="custom-select">
-              <select
-                id="technology"
-                value={formData.technology || 'UnityCatalog'}
-                onChange={(e) => {
-                  setFormData({ ...formData, technology: e.target.value });
-                  clearError('technologyError');
-                }}
-              >
-                {TECHNOLOGIES.map((t) => (
-                  <option key={t} value={t} disabled={t === 'Fabric'}>
-                    {t}
-                  </option>
-                ))}
-              </select>
+            <div className={Styles.boolean}>
+              {TECHNOLOGIES.map((t) => (
+                <label key={t} className="checkbox">
+                  <span className="wrapper">
+                    <input
+                      type="checkbox"
+                      className="ff-only"
+                      value={t}
+                      checked={true}
+                      disabled
+                      readOnly
+                    />
+                  </span>
+                  <span className="label">{t}</span>
+                </label>
+              ))}
             </div>
             {errors.technologyError && <span className="error-message">{errors.technologyError}</span>}
           </div>
@@ -481,11 +479,11 @@ const Step4_ComplianceUsage = ({
           <div className={classNames('custom-select')}>
             <select
               id="securityLevel"
-              value="Internal"
+              value="Public"
               onChange={() => {}}
             >
               {SECURITY_LEVELS.map((sl) => (
-                <option key={sl} value={sl} disabled={sl !== 'Internal'}>
+                <option key={sl} value={sl} disabled={sl !== 'Public'}>
                   {sl}
                 </option>
               ))}
@@ -604,18 +602,9 @@ const Step5_PersonalData = ({ formData, setFormData, errors, clearError, criteri
   <div className={Styles.stepForm}>
     <div className={Styles.col}>
       <div className={classNames('input-field-group include-error', errors.priceError ? 'error' : '')}>
-        <label className="input-label">Price <sup>*</sup>  &nbsp;
+        <label className="input-label">Free of Charge <sup>*</sup>  &nbsp;
         (The data is available in the public space as well for consumers outside of the Mercedes-Benz environment and does not have a price tag.
         For further informmation click <a href={Envs.DDX_PRICING_URL} target="_blank" rel="noopener noreferrer"> here</a>)
-        {/* <a
-          target="_blank"
-          rel="noopener noreferrer"
-          title="Is the provided data product publicly available and free of charge?"
-        >
-          <i className="icon mbc-icon help" />
-        </a> */}
-        {/* <br/>
-        The data is available in the public space as well for consumers outside of the Mercedes-Benz environment and does not have a price tag. */}
         </label>
         <div className={Styles.boolean}>
           <label className="radio">
@@ -625,11 +614,9 @@ const Step5_PersonalData = ({ formData, setFormData, errors, clearError, criteri
                 className="ff-only"
                 name="isPricing"
                 value="true"
-                defaultChecked={formData.price === true}
-                onChange={() => {
-                  setFormData({ ...formData, price: true });
-                  clearError('priceError');
-                }}
+                checked={true}
+                disabled
+                readOnly
               />
             </span>
             <span className="label">Yes</span>
@@ -641,11 +628,9 @@ const Step5_PersonalData = ({ formData, setFormData, errors, clearError, criteri
                 className="ff-only"
                 name="isPricing"
                 value="false"
-                defaultChecked={formData.price === false}
-                onChange={() => {
-                  setFormData({ ...formData, price: false });
-                  clearError('priceError');
-                }}
+                checked={false}
+                disabled
+                readOnly
               />
             </span>
             <span className="label">No</span>
@@ -711,13 +696,14 @@ const Step5_PersonalData = ({ formData, setFormData, errors, clearError, criteri
   );
 };
 
-const ViewDdxTablesModalContent = ({ workspaceId, workspaceOwner, workspaceDivision, lakehouseId, onRefreshWorkspace }) => {
+const ViewDdxTablesModalContent = ({ workspaceId, workspaceName, workspaceOwner, workspaceDivision, lakehouseId, lakehouseName, onRefreshWorkspace }) => {
 
   useEffect(() => {
     Tooltip.defaultSetup();
   }, []);
 
   const [currentStep, setCurrentStep] = useState('step1');
+  const [hasSubmittedOnce, setHasSubmittedOnce] = useState(false);
 
   useEffect(() => {
     SelectBox.defaultSetup();    
@@ -732,10 +718,12 @@ const ViewDdxTablesModalContent = ({ workspaceId, workspaceOwner, workspaceDivis
       email: workspaceOwner.email,
       isOwner: true,
     }] : [],
-    technology: 'UnityCatalog',   
+    technology: ['UnityCatalog', 'Fabric'],   
     cloudProvider: 'Azure',
-    dataHubName: 'Jp Fabric',
-    securityLevel: 'Internal',
+    dataHubName: 'oneFabric',
+    securityLevel: 'Public',
+    fulfillsDataCloudFramework: true,
+    price: true,
   });
 
   useEffect(() => {
@@ -881,7 +869,7 @@ const ViewDdxTablesModalContent = ({ workspaceId, workspaceOwner, workspaceDivis
           storingCountries: [],
           cloudRegion: '',
           formatType: '',
-          technology: formData.technology || '',
+          technology: 'UnityCatalog',
           frequency: formData.frequency || '',
           cloudProvider: formData.cloudProvider || '',
           dataProductConnectionString: {
@@ -891,23 +879,44 @@ const ViewDdxTablesModalContent = ({ workspaceId, workspaceOwner, workspaceDivis
           },
           dataSources: [],
         },
+        {
+          dataHubName: formData.dataHubName || '',
+          storingCountries: [],
+          cloudRegion: '',
+          formatType: '',
+          technology: 'Fabric',
+          frequency: formData.frequency || '',
+          cloudProvider: formData.cloudProvider || '',
+          dataProductConnectionString: {
+            workspaceName: workspaceName || '',
+            lakehouseName: lakehouseName || '',
+            fullLakehouse: true,
+            workspaceId: workspaceId || '',
+            lakehouseId: lakehouseId || '',
+          },
+          dataSources: [],
+        },
       ],
     };
     //remove for testing
     console.log('Submit payload:', JSON.stringify(payload, null, 2));
 
+    ProgressIndicator.show();
     fabricApi.publishDdxDataProduct(workspaceId, lakehouseId, payload)
       .then((response) => {
+        ProgressIndicator.hide();
         const dataProductId = response?.data?.dataProductId;
         const baseUrl = (Envs.DDX_DOF_BASE_URL || '').replace(/\/$/, '');
         const dofUrl = `${baseUrl}/myDataProducts/onboardingForm/${dataProductId}`;
         Notification.show('Data product onboarded successfully.', 'success');
+        setHasSubmittedOnce(true);
         if (dataProductId) {
           window.open(dofUrl, '_blank', 'noopener,noreferrer');
         }
         onRefreshWorkspace && onRefreshWorkspace();
       })
       .catch((err) => {
+        ProgressIndicator.hide();
         Notification.show(err?.response?.data?.errors?.[0]?.message || 'Failed to onboard data product.', 'alert');
       });
   };
@@ -1022,7 +1031,7 @@ const ViewDdxTablesModalContent = ({ workspaceId, workspaceOwner, workspaceDivis
         )}
 
         {currentStep === 'step5' && (
-          <button className="btn btn-tertiary" type="button" onClick={handleSubmit}>
+          <button className={hasSubmittedOnce ? 'btn btn-primary' : 'btn btn-tertiary'} type="button" disabled={hasSubmittedOnce} onClick={handleSubmit}>
             Submit
           </button>
         )}
