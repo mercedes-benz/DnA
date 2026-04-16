@@ -1,7 +1,7 @@
 package com.daimler.data.service.fabric;
 
 import java.util.ArrayList;
-import java.util.Arrays;
+// import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -12,12 +12,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
-import com.databricks.sdk.core.DatabricksConfig;
+// import com.databricks.sdk.core.DatabricksConfig;
 // import com.databricks.sdk.core.http.CommonsHttpClient;
-import com.databricks.sdk.service.catalog.CreateCatalog;
-import com.databricks.sdk.service.sql.ExecuteStatementRequest;
-import com.databricks.sdk.service.sql.StatementResponse;
-import com.databricks.sdk.WorkspaceClient;
+// import com.databricks.sdk.service.catalog.CreateCatalog;
+// import com.databricks.sdk.service.sql.ExecuteStatementRequest;
+// import com.databricks.sdk.service.sql.StatementResponse;
+// import com.databricks.sdk.WorkspaceClient;
 import com.daimler.data.application.client.FabricWorkspaceClient;
 import com.daimler.data.assembler.FabricWorkspaceAssembler;
 import com.daimler.data.assembler.DdxDataProductsDetailsAssembler;
@@ -34,23 +34,23 @@ import com.daimler.data.dto.fabric.FabricSqlEndpointResponseDto;
 import com.daimler.data.dto.fabricWorkspace.CreatedByVO;
 import com.daimler.data.dto.fabricWorkspace.DdxPublishedLakeHouseDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.DdxUnityDetailsVO;
-import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceVO;
-import com.daimler.data.util.ProxyConfig;
-import com.daimler.data.util.CommonsHttpClient;
-import org.apache.http.impl.client.CloseableHttpClient;
-import org.apache.http.impl.client.HttpClients;
-import org.apache.http.HttpHost;
+// import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceVO;
+// import com.daimler.data.util.ProxyConfig;
+// import com.daimler.data.util.CommonsHttpClient;
+// import org.apache.http.impl.client.CloseableHttpClient;
+// import org.apache.http.impl.client.HttpClients;
+// import org.apache.http.HttpHost;
 import com.daimler.data.dto.fabric.DdxOnboardingRequestDto;
 import com.daimler.data.dto.fabric.DdxOnboardingResultDto;
 import com.daimler.data.dto.fabric.DdxResponseDto;
 import com.daimler.data.service.azure.AzureTokenService;
 import com.daimler.data.dto.azure.AzureTokenRequestDto;
-import com.daimler.data.dto.azure.AzureTokenResponseDto;
+// import com.daimler.data.dto.azure.AzureTokenResponseDto;
 import com.daimler.data.dto.databricks.CreateCatalogRequestDto;
 import com.daimler.data.dto.databricks.CreateCatalogResponseDto;
 import com.daimler.data.dto.databricks.CreateConnectionRequestDto;
 import com.daimler.data.dto.databricks.CreateConnectionResponseDto;
-import com.daimler.data.dto.fabric.DataProductConnectionStringDto;
+// import com.daimler.data.dto.fabric.DataProductConnectionStringDto;
 import com.daimler.data.dto.fabric.DataProductConStringUnityDto;
 import com.daimler.data.dto.fabric.DataProductConStringFabricDto;
 import com.daimler.data.dto.databricks.DatabricksSqlStatementResponseDto;
@@ -309,6 +309,8 @@ public class BaseDdxOnboardingService implements DdxOnboardingService {
                     connection.setFormatType("SQLSERVER_FORMAT");
                     connection.setCloudProvider("Azure");
                     connection.getStoringCountries().add("Germany");
+                    connection.setDataHubName("oneFabric");
+
                     
                     // DataProductConnectionStringDto connectionString = connection.getDataProductConnectionString();
                     // if (connectionString == null) {
@@ -328,7 +330,7 @@ public class BaseDdxOnboardingService implements DdxOnboardingService {
                         DataProductConStringFabricDto fabricDto = new DataProductConStringFabricDto();
 
                         fabricDto.setLakehouseId(lakehouseId);
-                        fabricDto.setLakehouseName("TestLakehouse");
+                        fabricDto.setLakehouseName(fabricDatabaseName);
                         fabricDto.setWorkspaceId(workspaceId);
                         fabricDto.setWorkspaceName(workspaceName);
                         fabricDto.setFullLakehouse(true);
