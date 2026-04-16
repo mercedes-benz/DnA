@@ -2,6 +2,7 @@ package com.daimler.data.assembler;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.BeanUtils;
@@ -148,7 +149,9 @@ public class FabricWorkspaceAssembler implements GenericAssembler<FabricWorkspac
 					cdcPublishedLakeHouseDetails.setIsLakeHousesPublishedToCdc(data.getCdcPublishedLakeHouseDetails().getIsLakeHousesPublishedToCdc());
 					vo.setCdcPublishedLakeHouseDetails(cdcPublishedLakeHouseDetails);
 				}
-				vo.setDdxPublishedLakeHouseDetails(data.getDdxPublishedLakeHouseDetails());
+				if (data.getDdxPublishedLakeHouseDetails() != null) {
+					vo.setDdxPublishedLakeHouseDetails(new ArrayList<>(data.getDdxPublishedLakeHouseDetails()));
+				}
 			}
 		}
 		return vo;
@@ -367,7 +370,20 @@ public class FabricWorkspaceAssembler implements GenericAssembler<FabricWorkspac
 				cdcLakehouseDetails.setIsLakeHousesPublishedToCdc(vo.getCdcPublishedLakeHouseDetails().isIsLakeHousesPublishedToCdc());
 				data.setCdcPublishedLakeHouseDetails(cdcLakehouseDetails);
 			}
-			data.setDdxPublishedLakeHouseDetails(vo.getDdxPublishedLakeHouseDetails());
+			// Extract lakehouse IDs from the VO's ddxPublishedLakeHouseDetails.
+			// The list may contain plain Strings (IDs) or enriched Maps (keyed by lakehouseId).
+			List<Object> ddxDetails = vo.getDdxPublishedLakeHouseDetails();
+			if (ddxDetails != null) {
+				List<String> lakehouseIds = new ArrayList<>();
+				for (Object item : ddxDetails) {
+					if (item instanceof String) {
+						lakehouseIds.add((String) item);
+					} else if (item instanceof Map) {
+						((Map<?, ?>) item).keySet().forEach(key -> lakehouseIds.add(String.valueOf(key)));
+					}
+				}
+				data.setDdxPublishedLakeHouseDetails(lakehouseIds);
+			}
 			entity.setData(data);
 		}
 		return entity;

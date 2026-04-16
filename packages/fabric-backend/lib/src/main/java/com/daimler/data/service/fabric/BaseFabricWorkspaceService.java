@@ -6,7 +6,10 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -25,13 +28,18 @@ import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.application.client.AuthoriserClient;
 import com.daimler.data.application.client.FabricWorkspaceClient;
 import com.daimler.data.application.client.RSAEncryptionUtil;
+import com.daimler.data.assembler.DdxDataProductsDetailsAssembler;
 import com.daimler.data.assembler.FabricWorkspaceAssembler;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.db.entities.AuthoriserRolesNsql;
+import com.daimler.data.db.entities.DdxDataProductsDetailsNsql;
 import com.daimler.data.db.entities.FabricWorkspaceNsql;
+import com.daimler.data.db.json.DdxDataProductsDetail;
+import com.daimler.data.db.json.DdxProduct;
 import com.daimler.data.db.json.AuthoriserRoleDeatils;
 import com.daimler.data.db.json.UserDetails;
+import com.daimler.data.db.repo.ddxDataProductsDetails.DdxDataProductsDetailsRepository;
 import com.daimler.data.db.repo.fabric.FabricWorkspaceCustomRepository;
 import com.daimler.data.db.repo.fabric.FabricWorkspaceRepository;
 import com.daimler.data.db.repo.roles.AuthoriserRolesCustomRepository;
@@ -116,6 +124,12 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 	
 	@Autowired
 	private FabricWorkspaceAssembler assembler;
+
+	@Autowired
+	private DdxDataProductsDetailsRepository ddxDataProductsDetailsRepo;
+
+	@Autowired
+	private DdxDataProductsDetailsAssembler ddxDataProductsDetailsAssembler;
 
 	@Autowired
 	private TagService tagService;
@@ -392,10 +406,46 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 				log.error("Failed to update latest displayName and description from Fabric to Database for project id {}, with error {} . Will be updated in next fetch", id, e.getMessage());
 			}
 //		}
+		// Enrich ddxPublishedLakeHouseDetails with full product data from ddx_dataProducts_details_nsql
+		enrichDdxPublishedLakeHouseDetails(voFromDb);
 		return voFromDb;
 	}
 
-	
+	/**
+	 * Replaces the lakehouse ID strings in ddxPublishedLakeHouseDetails with
+	 * enriched maps of { lakehouseId -> [product details] } from the
+	 * ddx_dataProducts_details_nsql table.
+	 */
+	private void enrichDdxPublishedLakeHouseDetails(FabricWorkspaceVO vo) {
+		if (vo == null || vo.getDdxPublishedLakeHouseDetails() == null || vo.getDdxPublishedLakeHouseDetails().isEmpty()) {
+			return;
+		}
+		try {
+			List<Object> enrichedList = new ArrayList<>();
+			for (Object item : vo.getDdxPublishedLakeHouseDetails()) {
+				String lakehouseId = (item instanceof String) ? (String) item : String.valueOf(item);
+				Optional<DdxDataProductsDetailsNsql> detailOpt = ddxDataProductsDetailsRepo.findById(lakehouseId);
+				Map<String, Object> lakehouseEntry = new LinkedHashMap<>();
+				if (detailOpt.isPresent()) {
+					DdxDataProductsDetail data = detailOpt.get().getData();
+					if (data != null && data.getDdxProducts() != null) {
+						lakehouseEntry.put(lakehouseId, data.getDdxProducts().stream()
+							.map(ddxDataProductsDetailsAssembler::toVo)
+							.collect(Collectors.toList()));
+					} else {
+						lakehouseEntry.put(lakehouseId, new ArrayList<>());
+					}
+				} else {
+					lakehouseEntry.put(lakehouseId, new ArrayList<>());
+				}
+				enrichedList.add(lakehouseEntry);
+			}
+			vo.setDdxPublishedLakeHouseDetails(enrichedList);
+		} catch (Exception e) {
+			log.error("Failed to enrich ddxPublishedLakeHouseDetails for workspace {}: {}", vo.getId(), e.getMessage(), e);
+		}
+	}
+
 	@Override
 	@Transactional
 	public ResponseEntity<FabricWorkspaceResponseVO> createWorkspace(FabricWorkspaceVO vo) {
