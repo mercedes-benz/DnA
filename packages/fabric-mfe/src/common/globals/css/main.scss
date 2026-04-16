@@ -1216,6 +1216,9 @@
     &.share::before {
       content: "\e94e";
     }
+    &.reportView::before{
+      content: '\e936'
+    }
   }
   .airflowexpansionPanel {
     .expansion-panel.open .expansion-panel-content {
