@@ -804,7 +804,8 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
           show={showDdxViewTables}
           content={
             <ViewDdxTablesModalContent 
-              workspaceId={workspace?.id} 
+              workspaceId={workspace?.id}
+              workspaceName={workspace?.name}
               workspaceOwner={workspace?.createdBy}
               workspaceDivision={workspace?.division} 
               lakehouseId={selectedLakehouse?.id} 
