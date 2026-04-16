@@ -403,7 +403,7 @@ public class FabricWorkspaceAssembler implements GenericAssembler<FabricWorkspac
 				data.setCdcPublishedLakeHouseDetails(cdcLakehouseDetails);
 			}
 			// Extract lakehouse IDs from the VO's ddxPublishedLakeHouseDetails.
-			// The list may contain plain Strings (IDs) or enriched Maps (keyed by lakehouseId).
+			// The list may contain plain Strings (IDs) or enriched Maps with "lakeHouseId" field.
 			List<Object> ddxDetails = vo.getDdxPublishedLakeHouseDetails();
 			if (ddxDetails != null) {
 				List<String> lakehouseIds = new ArrayList<>();
@@ -411,7 +411,11 @@ public class FabricWorkspaceAssembler implements GenericAssembler<FabricWorkspac
 					if (item instanceof String) {
 						lakehouseIds.add((String) item);
 					} else if (item instanceof Map) {
-						((Map<?, ?>) item).keySet().forEach(key -> lakehouseIds.add(String.valueOf(key)));
+						Map<?, ?> map = (Map<?, ?>) item;
+						Object idVal = map.get("lakeHouseId");
+						if (idVal != null) {
+							lakehouseIds.add(String.valueOf(idVal));
+						}
 					}
 				}
 				data.setDdxPublishedLakeHouseDetails(lakehouseIds);

@@ -437,7 +437,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 
 	/**
 	 * Replaces the lakehouse ID strings in ddxPublishedLakeHouseDetails with
-	 * enriched maps of { lakehouseId -> [product details] } from the
+	 * enriched objects containing lakeHouseId and dataProducts from the
 	 * ddx_dataProducts_details_nsql table.
 	 */
 	private void enrichDdxPublishedLakeHouseDetails(FabricWorkspaceVO vo) {
@@ -450,17 +450,18 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 				String lakehouseId = (item instanceof String) ? (String) item : String.valueOf(item);
 				Optional<DdxDataProductsDetailsNsql> detailOpt = ddxDataProductsDetailsRepo.findById(lakehouseId);
 				Map<String, Object> lakehouseEntry = new LinkedHashMap<>();
+				lakehouseEntry.put("lakeHouseId", lakehouseId);
 				if (detailOpt.isPresent()) {
 					DdxDataProductsDetail data = detailOpt.get().getData();
 					if (data != null && data.getDdxProducts() != null) {
-						lakehouseEntry.put(lakehouseId, data.getDdxProducts().stream()
+						lakehouseEntry.put("dataProducts", data.getDdxProducts().stream()
 							.map(ddxDataProductsDetailsAssembler::toVo)
 							.collect(Collectors.toList()));
 					} else {
-						lakehouseEntry.put(lakehouseId, new ArrayList<>());
+						lakehouseEntry.put("dataProducts", new ArrayList<>());
 					}
 				} else {
-					lakehouseEntry.put(lakehouseId, new ArrayList<>());
+					lakehouseEntry.put("dataProducts", new ArrayList<>());
 				}
 				enrichedList.add(lakehouseEntry);
 			}
