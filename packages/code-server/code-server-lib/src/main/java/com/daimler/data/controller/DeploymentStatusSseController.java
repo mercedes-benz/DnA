@@ -229,21 +229,15 @@ public class DeploymentStatusSseController {
             return dbStatus;
         }
         
-        if ("Healthy".equalsIgnoreCase(argoHealth) && "Synced".equalsIgnoreCase(argoSync)) {
+        if ("Healthy".equalsIgnoreCase(argoHealth)) {
             return "DEPLOYED";
         }
         
-        if ("Degraded".equalsIgnoreCase(argoHealth) || 
-            "Missing".equalsIgnoreCase(argoHealth)) {
+        if ("Degraded".equalsIgnoreCase(argoHealth)) {
             return "FAILED";
         }
         
-        if ("Progressing".equalsIgnoreCase(argoHealth) || 
-            "Suspended".equalsIgnoreCase(argoHealth) ||
-            "OutOfSync".equalsIgnoreCase(argoSync)) {
-            return "DEPLOYING";
-        }
-        
-        return dbStatus;
+        // Missing, Progressing, Suspended, Unknown — still deploying
+        return "DEPLOYING";
     }
 }

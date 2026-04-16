@@ -50,6 +50,15 @@ public class ArgoCdService {
     @Value("${codeServer.env.ref}")
     private String codeServerEnvRef;
 
+    @Value("${argocd.namespacePrefix}")
+    private String argocdNamespacePrefix;
+
+    @Value("${codeServer.git.ghe.pat}")
+    private String ghePat;
+
+    @Value("${codeServer.git.pat}")
+    private String gitPat;
+
     @Autowired
     private RestTemplate restTemplate;
 
@@ -216,13 +225,23 @@ public class ArgoCdService {
             String memory = resources.get("memory");
             if (cpu != null) {
                 helmParameters.add(createHelmParam("resources.requests.cpu", cpu + "m"));
+                log.info("[Resources] Sending -> resources.requests.cpu: {}", cpu + "m");
             }
             if (memory != null) {
                 helmParameters.add(createHelmParam("resources.requests.memory", memory + "Mi"));
                 helmParameters.add(createHelmParam("resources.limits.memory", memory + "Mi"));
+                log.info("[Resources] Sending -> resources.requests.memory: {}, resources.limits.memory: {}", memory + "Mi", memory + "Mi");
             }
             // Explicitly remove limits.cpu by setting to "0" - Kubernetes treats 0 as no limit
             helmParameters.add(createHelmParam("resources.limits.cpu", "0"));
+            log.info("[Resources] Sending -> resources.limits.cpu: 0 (override to suppress chart default)");
+            log.info("[Resources] Final resources being sent to ArgoCD: " +
+                "requests.cpu={}, requests.memory={}, limits.memory={} (same as requests.memory), limits.cpu=0 (removed)",
+                cpu != null ? cpu + "m" : "not set",
+                memory != null ? memory + "Mi" : "not set",
+                memory != null ? memory + "Mi" : "not set");
+        } else {
+            log.info("[Resources] No resource overrides to apply (resources map is null or empty)");
         }
         
         Map<String, Object> payload = new HashMap<>();
@@ -316,28 +335,36 @@ public class ArgoCdService {
     
     public Map<String, String> calculateResources(String gitRepoUrl) {
     try {
+        log.info("[Resources] Starting resource calculation for repo: {}", gitRepoUrl);
         String valuesYamlContent = fetchValuesYaml(gitRepoUrl);
         if (valuesYamlContent == null || valuesYamlContent.trim().isEmpty()) {
+            log.info("[Resources] values.yaml content is null or empty, skipping resource overrides");
             return null;
         }
+        log.info("[Resources] Received values.yaml content (length={})", valuesYamlContent.length());
         Yaml yaml = new Yaml();
         Map<String, Object> values = yaml.load(valuesYamlContent);
         if (values == null || !values.containsKey("resources")) {
+            log.info("[Resources] No 'resources' section found in values.yaml");
             return null;
         }
         @SuppressWarnings("unchecked")
         Map<String, Object> resourcesSection =
                 (Map<String, Object>) values.get("resources");
+        log.info("[Resources] Raw resources from values.yaml: {}", resourcesSection);
         if (!resourcesSection.containsKey("requests")) {
+            log.info("[Resources] No 'requests' section found in resources");
             return null;
         }
         @SuppressWarnings("unchecked")
         Map<String, Object> requests =
                 (Map<String, Object>) resourcesSection.get("requests");
+        log.info("[Resources] Raw requests from values.yaml: {}", requests);
         Map<String, String> convertedResources = new HashMap<>();
         if (requests.containsKey("cpu")) {
             String cpuValue = String.valueOf(requests.get("cpu"));
             String convertedCpu = convertCpu(cpuValue);
+            log.info("[Resources] CPU: raw='{}' -> converted='{}'", cpuValue, convertedCpu);
             if (convertedCpu != null) {
                 convertedResources.put("cpu", convertedCpu);
             }
@@ -345,13 +372,15 @@ public class ArgoCdService {
         if (requests.containsKey("memory")) {
             String memoryValue = String.valueOf(requests.get("memory"));
             String convertedMemory = convertMemory(memoryValue);
+            log.info("[Resources] Memory: raw='{}' -> converted='{}'", memoryValue, convertedMemory);
             if (convertedMemory != null) {
                 convertedResources.put("memory", convertedMemory);
             }
         }
+        log.info("[Resources] Final calculated resources: {}", convertedResources);
         return convertedResources.isEmpty() ? null : convertedResources;
     } catch (Exception e) {
-        log.error("Failed to calculate resources", e);
+        log.error("[Resources] Failed to calculate resources", e);
         return null;
     }
 }
@@ -409,17 +438,26 @@ public class ArgoCdService {
             
             log.info("Attempting to fetch values.yaml from: {}", rawFileUrl);
             
-            ResponseEntity<String> response = restTemplate.getForEntity(rawFileUrl, String.class);
+            HttpHeaders headers = new HttpHeaders();
+            // Use GHE PAT for GHE repos, standard PAT otherwise
+            boolean isGheRepo = gitRepoUrl.contains(".ghe.");
+            String pat = isGheRepo ? ghePat : gitPat;
+            if (pat != null && !pat.isEmpty()) {
+                headers.set("Authorization", "token " + pat);
+            }
+            HttpEntity<Void> entity = new HttpEntity<>(headers);
+            
+            ResponseEntity<String> response = restTemplate.exchange(rawFileUrl, HttpMethod.GET, entity, String.class);
             
             if (response.getStatusCode().is2xxSuccessful()) {
-                log.info("Successfully fetched values.yaml");
+                log.info("[Resources] Successfully fetched values.yaml (HTTP {})", response.getStatusCode().value());
                 return response.getBody();
             } else {
-                log.info("values.yaml not accessible, will deploy without custom resources");
+                log.info("[Resources] values.yaml fetch returned HTTP {}, will deploy without custom resources", response.getStatusCode().value());
                 return null;
             }
         } catch (Exception e) {
-            log.info("Could not fetch values.yaml ({}), continuing without custom resources", e.getMessage());
+            log.info("[Resources] Could not fetch values.yaml ({}), continuing without custom resources", e.getMessage());
             return null;
         }
     }
@@ -495,11 +533,12 @@ public class ArgoCdService {
         }
     }
     private String getNamespaceForEnvironment(String clusterEnv, String targetEnv) {
-       
+        String prefix = (argocdNamespacePrefix != null && !argocdNamespacePrefix.isEmpty()) 
+            ? argocdNamespacePrefix : clusterEnv;
         if ("int".equalsIgnoreCase(targetEnv)) {
-            return clusterEnv + "-dna-cs-apps-int";
+            return prefix + "-dna-cs-apps-int";
         }
-        return clusterEnv + "-dna-cs-apps";
+        return prefix + "-dna-cs-apps";
     }
     
     private String getVaultAuthPath(String clusterEnv) {
