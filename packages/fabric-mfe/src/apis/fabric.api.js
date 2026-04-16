@@ -6,6 +6,20 @@ const getFabricWorkspaces = (offset, limit) => {
   });
 };
 
+const getFabricWorkspacesForAdmin = (offset, limit, search = '') => {
+  let url = `/fabric-workspaces/admin/workspaces?limit=${limit}&offset=${offset}`;
+  if (search && search.trim() !== '') {
+    url += `&search=${encodeURIComponent(search.trim())}`;
+  }
+  return server.get(url, { data: {} });
+};
+
+const searchProjectDetails = (projectName) => {
+  return server.get(`/fabric-workspaces/searchADAProjects?projectName=${projectName}`, {
+    data: {},
+  });
+};
+
 const createFabricWorkspace = (data) => {
   return server.post(`/fabric-workspaces`, {
     data,
@@ -127,6 +141,12 @@ const getLeanIX = (searchTerm) => {
   return dataProductServer.get(`/planningit?searchTerm=${searchTerm}`, { data: {} });
 };
 
+const transferOwnership = (id, data) => {
+   return server.patch(`/fabric-workspaces/${id}/transferOwnership`,
+    data,
+  );
+}
+
 const getLakehouseTables = (workspaceId, lakehouseId) => {
   return server.get(`/fabric-workspaces/lakehouses/tables?workspaceId=${workspaceId}&lakehouseId=${lakehouseId}`, {
     data: {} 
@@ -143,12 +163,24 @@ const pushSelectedTables = (workspaceId, payload) => {
   return server.post(`fabric-workspaces/catalog/${workspaceId}/publish`, payload);
 };
 
+const takeOwnership = (id) => {
+  return server.patch(`/fabric-workspaces/${id}/takeOwnership`, {
+    data: {},
+  });
+};
+
 const getLegalEntities = (searchTerm) => {
   return server.get(`fabric-workspaces/catalog/getLegalEntities?searchTerm=${searchTerm}`);
 };
 
+const publishDdxDataProduct = (workspaceId, lakehouseId, payload) => {
+  return server.post(`fabric-workspaces/catalog/ddx/${workspaceId}/${lakehouseId}/publish`, payload);
+};
+
 export const fabricApi = {
   getFabricWorkspaces,
+  getFabricWorkspacesForAdmin,
+  searchProjectDetails,
   getFabricWorkspace,
   createFabricWorkspace,
   updateFabricWorkspace,
@@ -167,8 +199,11 @@ export const fabricApi = {
   getConnectionInfo,
   getLovData,
   getLeanIX,
+  transferOwnership,
   getLakehouseTables,
   getTableSchema,
   pushSelectedTables,
-  getLegalEntities
+  takeOwnership,
+  getLegalEntities,
+  publishDdxDataProduct
 };
