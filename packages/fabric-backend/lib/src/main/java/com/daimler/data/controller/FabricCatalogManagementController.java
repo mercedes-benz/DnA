@@ -24,6 +24,7 @@ import com.daimler.data.application.client.OpenMetadataClient;
 import com.daimler.data.controller.exceptions.EntityNotFoundException;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
+import com.daimler.data.controller.exceptions.OpenMetadataClientException;
 import com.daimler.data.db.entities.FabricCatalogMetadataNsql;
 import com.daimler.data.db.json.catalogManangement.FabricCatalogMetadata;
 import com.daimler.data.db.json.catalogManangement.FabricCatalogMetadataDetails;
@@ -130,14 +131,26 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
              GenericMessage failedResponse = new GenericMessage();
 			List<MessageDescription> messages = new ArrayList<>();
 			MessageDescription message = new MessageDescription();
-			message.setMessage("Failed to publish fabric workspace catalog : user didn't log in to cdc");
+			message.setMessage("User " + requestUser.getId() + " not found in CDC. Please log in to CDC first and try again.");
 			messages.add(message);
 			failedResponse.addErrors(message);
 			failedResponse.setSuccess("FAILED");
             responseVO.setData(null);
 			responseVO.setResponses(failedResponse);
-			log.error("User:{} didnt logged into cdc {} ", userStore.getUserInfo().getId(), e.getMessage());
+			log.error("User:{} not found in CDC (OpenMetadata). Details: {} ", userStore.getUserInfo().getId(), e.getMessage());
 			return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+        } catch (OpenMetadataClientException e) {
+            GenericMessage failedResponse = new GenericMessage();
+			List<MessageDescription> messages = new ArrayList<>();
+			MessageDescription message = new MessageDescription();
+			message.setMessage("Failed to publish fabric workspace catalog: unable to connect to CDC. " + e.getMessage());
+			messages.add(message);
+			failedResponse.addErrors(message);
+			failedResponse.setSuccess("FAILED");
+            responseVO.setData(null);
+			responseVO.setResponses(failedResponse);
+			log.error("CDC connection error while publishing catalog for user:{}, error:{}", userStore.getUserInfo().getId(), e.getMessage());
+			return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
         } catch (Exception e) {
             GenericMessage failedResponse = new GenericMessage();
 			List<MessageDescription> messages = new ArrayList<>();
@@ -260,25 +273,37 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
              GenericMessage failedResponse = new GenericMessage();
 			List<MessageDescription> messages = new ArrayList<>();
 			MessageDescription message = new MessageDescription();
-			message.setMessage("Failed to publish fabric workspace catalog : user didn't log in to cdc");
+			message.setMessage("User " + requestUser.getId() + " not found in CDC. Please log in to CDC first and try again.");
 			messages.add(message);
 			failedResponse.addErrors(message);
 			failedResponse.setSuccess("FAILED");
             responseVO.setData(null);
 			responseVO.setResponses(failedResponse);
-			log.error("User:{} didnt logged into cdc {} ", userStore.getUserInfo().getId(), e.getMessage());
+			log.error("User:{} not found in CDC (OpenMetadata). Details: {} ", userStore.getUserInfo().getId(), e.getMessage());
 			return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+        } catch (OpenMetadataClientException e) {
+            GenericMessage failedResponse = new GenericMessage();
+			List<MessageDescription> messages = new ArrayList<>();
+			MessageDescription message = new MessageDescription();
+			message.setMessage("Failed to update fabric workspace catalog: unable to connect to CDC. " + e.getMessage());
+			messages.add(message);
+			failedResponse.addErrors(message);
+			failedResponse.setSuccess("FAILED");
+            responseVO.setData(null);
+			responseVO.setResponses(failedResponse);
+			log.error("CDC connection error while updating catalog for user:{}, error:{}", userStore.getUserInfo().getId(), e.getMessage());
+			return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
         } catch (Exception e) {
             GenericMessage failedResponse = new GenericMessage();
 			List<MessageDescription> messages = new ArrayList<>();
 			MessageDescription message = new MessageDescription();
-			message.setMessage("Failed to publish fabric workspace catalog due to internal error");
+			message.setMessage("Failed to update fabric workspace catalog due to internal error");
 			messages.add(message);
 			failedResponse.addErrors(message);
 			failedResponse.setSuccess("FAILED");
             responseVO.setData(null);
 			responseVO.setResponses(failedResponse);
-			log.error("Exception occurred:{} while publishing fabric workspace catalog...", e.getMessage());
+			log.error("Exception occurred:{} while updating fabric workspace catalog...", e.getMessage());
 			return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
         }
 

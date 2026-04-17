@@ -45,8 +45,13 @@ public class OpenMetadataClient {
         try {
             return apiClient.buildClient(UsersApi.class)
                     .getUserByFQN(username, null, null);
-        } catch (Exception e) {
+        } catch (FeignException.NotFound e) {
+            log.error("User {} not found in OpenMetadata", username);
             throw new EntityNotFoundException("User", username);
+        } catch (Exception e) {
+            log.error("Failed to look up user {} in OpenMetadata: {}", username, e.getMessage());
+            throw new OpenMetadataClientException(
+                    "Failed to verify user in CDC: " + e.getMessage(), e);
         }
     }
 

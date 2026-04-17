@@ -335,18 +335,18 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
       .catch((e) => {
         ProgressIndicator.hide();
 
-        if (e?.response?.status === 400) {
-          Notification.show("Failed to publish fabric workspace catalog: User didn't log in to CDC", "alert");
-          setShowCdcLogin(true);
-          return;
-        }
-
         const backendMessage =
           e?.response?.data?.responses?.errors?.[0]?.message ||
           e?.response?.data?.errors?.[0]?.message ||
           '';
 
-        Notification.show(backendMessage, 'alert');
+        if (e?.response?.status === 400) {
+          Notification.show(backendMessage || "Failed to publish fabric workspace catalog. Please check if you are logged in to CDC.", "alert");
+          setShowCdcLogin(true);
+          return;
+        }
+
+        Notification.show(backendMessage || 'Failed to publish fabric workspace catalog.', 'alert');
       });
 
     // console.log("CDC Payload to be sent:");
