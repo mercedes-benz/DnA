@@ -7,8 +7,11 @@ import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 
-import javax.annotation.PostConstruct;
 import javax.transaction.Transactional;
+
+import org.springframework.boot.context.event.ApplicationReadyEvent;
+import org.springframework.context.event.EventListener;
+import org.springframework.scheduling.annotation.Async;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -61,7 +64,8 @@ public class WorkspaceBackgroundJobsService {
 	private SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
 	private SimpleDateFormat dateFormatter = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
 	
-	@PostConstruct
+	@Async
+	@EventListener(ApplicationReadyEvent.class)
 	public void initForEnablingExistingOwnersToFabricRole() {
 		if(enableOwnersOnboardingToFabricRoleOnStartup!=null && enableOwnersOnboardingToFabricRoleOnStartup.equalsIgnoreCase("true")) {
 			FabricWorkspacesCollectionVO collection = fabricService.getAllLov(0,0);
