@@ -19,6 +19,7 @@ import org.springframework.stereotype.Service;
 // import com.databricks.sdk.service.sql.StatementResponse;
 // import com.databricks.sdk.WorkspaceClient;
 import com.daimler.data.application.client.FabricWorkspaceClient;
+import com.daimler.data.application.client.UiLiciousClient;
 import com.daimler.data.assembler.FabricWorkspaceAssembler;
 import com.daimler.data.assembler.DdxDataProductsDetailsAssembler;
 import com.daimler.data.controller.exceptions.GenericMessage;
@@ -67,6 +68,9 @@ public class BaseDdxOnboardingService implements DdxOnboardingService {
 
     @Autowired
     private FabricWorkspaceClient fabricWorkspaceClient;
+
+    @Autowired
+    private UiLiciousClient uiLiciousClient;
 
     @Autowired
     private AzureTokenService azureTokenService;
@@ -398,9 +402,24 @@ public class BaseDdxOnboardingService implements DdxOnboardingService {
                 return DdxOnboardingResultDto.builder().responseMessage(responseMessage).ddxResponse(ddxResponse).build();
             }
 
-            // 11. Success Response
+            // 11. Trigger UiLicious test run after successful CDC push
+            log.info("Triggering UiLicious service principal addition for workspace: {} and lakehouse: {}", workspaceId, lakehouseId);
+            try {
+                String testRunId = uiLiciousClient.addServicePrincipalToLakehouse(
+                        workspaceId, lakehouseId, workspaceName, fabricDatabaseName, null);
+                if (testRunId != null) {
+                    log.info("UiLicious test run triggered successfully with testRunId: {} for workspace: {} and lakehouse: {}",
+                            testRunId, workspaceId, lakehouseId);
+                } else {
+                    log.warn("UiLicious test run returned null testRunId for workspace: {} and lakehouse: {}", workspaceId, lakehouseId);
+                }
+            } catch (Exception e) {
+                log.error("Failed to trigger UiLicious test run for workspace: {} and lakehouse: {}", workspaceId, lakehouseId, e);
+            }
+
+            // 12. Success Response
             responseMessage.setSuccess("SUCCESS");
-            log.info("✅ Successfully onboarded product: {} to DDX for workspace: {}. DataProductId: {}, DofUrl: {}",
+            log.info("Successfully onboarded product: {} to DDX for workspace: {}. DataProductId: {}, DofUrl: {}",
                 publishDdxRequest.getDataProductName(), workspaceId, onboardingResponse.getDataProductId(), onboardingResponse.getDofUrl());
 
         } catch (IllegalArgumentException e) {

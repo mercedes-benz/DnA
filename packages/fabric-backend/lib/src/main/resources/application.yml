@@ -161,6 +161,18 @@ ddxIntegration:
     scope: ${DDX_OAUTH_SCOPE:XXXX}
     tenantId: ${DDX_OAUTH_TENANT_ID:XXXX}
 
+uilicious:
+  email: ${UILICIOUS_EMAIL:XXXX}
+  password: ${UILICIOUS_PASSWORD:XXXX}
+  accessKey: ${UILICIOUS_ACCESS_KEY:XXXX}
+  browser: ${UILICIOUS_BROWSER:firefox}
+  width: ${UILICIOUS_WIDTH:1280}
+  height: ${UILICIOUS_HEIGHT:800}
+  filePath: ${UILICIOUS_FILE_PATH:XXXX}
+  projectID: ${UILICIOUS_PROJECT_ID:XXXX}
+  baseURL: ${UILICIOUS_BASE_URL:XXXX}
+  servicePrincipalName: ${UILICIOUS_SERVICE_PRINCIPAL_NAME:XXXX}
+
 databricksIntegration:
   url:
     base: ${DATABRICKS_BASE_URL:XXXX}
