@@ -118,12 +118,21 @@ public class ArgoCdService {
                 log.info("ArgoCD application created/updated successfully: {}", appName);
                 return "success";
             } else {
-                log.info("Failed: " + (response != null ? response.getBody() : ""));
-                return "failed";
+                String errorBody = response != null ? response.getBody() : "no response";
+                log.error("ArgoCD create/update failed for {}: HTTP {} - {}", appName, 
+                         response != null ? response.getStatusCode() : "null", errorBody);
+                throw new Exception("ArgoCD deployment failed for " + appName + ": " + errorBody);
             }
+        } catch (org.springframework.web.client.HttpClientErrorException e) {
+            log.error("ArgoCD HTTP error for {}-{}: {} - {}", projectName, environment, 
+                     e.getStatusCode(), e.getResponseBodyAsString());
+            throw new Exception("ArgoCD error (" + e.getStatusCode() + "): " + e.getResponseBodyAsString());
+        } catch (org.springframework.web.client.ResourceAccessException e) {
+            log.error("ArgoCD connection error for {}-{}: {}", projectName, environment, e.getMessage());
+            throw new Exception("Cannot connect to ArgoCD server: " + e.getMessage());
         } catch (Exception e) {
-            log.error("exception {}", e.getMessage());
-            return "failed";
+            log.error("ArgoCD deployment exception for {}-{}: {}", projectName, environment, e.getMessage());
+            throw e;
         }
     }
 
