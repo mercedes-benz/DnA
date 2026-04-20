@@ -571,7 +571,7 @@ const CodeSpaceRecipe = (props) => {
                                 name="isPublic"
                                 checked={isPublic === true}
                                 onChange={onIsPublicChange}
-                                disabled={isGheRepo || edit}
+                                disabled={edit}
                               />
                             </span>
                             <span className="label">Public</span>
