@@ -110,23 +110,7 @@ public class BaseRecipeService implements RecipeService{
 	
 	@Value("${codeServer.git.pat}")
 	private String gitIPat;
-
-	@Value("${codeServer.git.baseuri}")
-	private String gitBaseUri;
     
-	private boolean isGitIRepo(String repoUrl) {
-		if (repoUrl == null || gitBaseUri == null) {
-			return false;
-		}
-		try {
-			String host = new URI(gitBaseUri).getHost();
-			return host != null && repoUrl.contains(host);
-		} catch (Exception e) {
-			log.warn("Failed to parse gitBaseUri: {}", gitBaseUri, e);
-			return false;
-		}
-	}
-
 	@Override
 	@Transactional
 	public List<RecipeVO> getAllRecipes(int offset, int limit,String id) {
@@ -140,13 +124,7 @@ public RecipeVO createRecipe(RecipeVO recipeRequestVO) {
 
 	SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
 	String repoUrl = recipeRequestVO.getRepodetails();
-
-	if (Boolean.FALSE.equals(recipeRequestVO.isIsPublic())
-			&& isGitIRepo(repoUrl)) {
-		throw new RuntimeException(
-				"Private recipes are not allowed for git.i repositories. Please set recipe visibility to Public.");
-	}
-
+	
 	if (Boolean.TRUE.equals(recipeRequestVO.isIsPublic())
 			&& repoUrl != null
 			&& repoUrl.contains("ghe.com")) {
@@ -194,13 +172,7 @@ public RecipeVO updateRecipe(RecipeVO recipeRequestVO) {
 	SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
 
 	String repoUrl = recipeRequestVO.getRepodetails();
-
-	if (Boolean.FALSE.equals(recipeRequestVO.isIsPublic())
-			&& isGitIRepo(repoUrl)) {
-		throw new RuntimeException(
-				"Private recipes are not allowed for git.i repositories. Please set recipe visibility to Public.");
-	}
-
+	
 	if (Boolean.TRUE.equals(recipeRequestVO.isIsPublic())
 			&& repoUrl != null
 			&& repoUrl.contains("ghe.com")) {
@@ -411,14 +383,6 @@ public GenericMessage validateGitHubUrl(String gitHubUrl) {
 			
 			status = gitClient.validateGitUserWithPid(
 					gitUrl, repoName, applicationName, configuredPid, ghePat);
-		} else if (isGitIRepo(gitHubUrl)) {
-			log.info("git.i repo detected – private recipes not allowed");
-
-			MessageDescription gitIWarning = new MessageDescription();
-			gitIWarning.setMessage("GIT_I_REPO_DETECTED");
-			responseMessage.addWarnings(gitIWarning);
-
-			return responseMessage;
 		} else {
 			log.info("Non-GHE repo detected – skipping PID validation");
 			return responseMessage;
