@@ -39,7 +39,6 @@ const CodeSpaceRecipe = (props) => {
   const [gitPath] = useState('');
   const [gitRepoLoc, setGitRepoLoc] = useState('');
   const [deployPath, setDeployPath] = useState('');
-  const [isGheRepo, setIsGheRepo] = useState(false);
   const [isGitIRepo, setIsGitIRepo] = useState(false);
   
   const [diskSpace, setDiskSpace] = useState('');
@@ -183,9 +182,6 @@ const CodeSpaceRecipe = (props) => {
   const githubUrlVal = e.currentTarget.value.trim();
   setGitUrl(githubUrlVal);
   setEnableCreate(false);
-
-  const isGhe = githubUrlVal.toLowerCase().includes('ghe');
-  setIsGheRepo(isGhe);
 
   const gitIHost = Envs.CODE_SPACE_GIT_PAT_APP_URL ? new URL(Envs.CODE_SPACE_GIT_PAT_APP_URL).host : '';
   const isGitI = gitIHost && githubUrlVal.includes(gitIHost);
