@@ -1,8 +1,12 @@
 package com.daimler.data.application.client;
 
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -13,9 +17,15 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
+
+import com.daimler.data.dto.fabric.UiLicioueStepsDto;
+import com.daimler.data.dto.fabricCatalogManagement.GroupStatusResponseVO;
+import com.daimler.data.util.ConstantsUtility;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.google.api.client.json.Json;
+
 import lombok.extern.slf4j.Slf4j;
 
 @Component
@@ -56,13 +66,138 @@ public class UiLiciousClient {
     @Value("${uilicious.baseURL}")
     private String baseURL;
 
+    @Value("${uilicious.userAgent}")
+    private String userAgent;
+
     @Value("${uilicious.servicePrincipalName}")
     private String defaultServicePrincipalName;
+
+    @Value("${uilicious.contentType}")
+    private String contentType;
 
     @Autowired
     public UiLiciousClient(RestTemplate restTemplate) {
         this.restTemplate = restTemplate;
         this.objectMapper = new ObjectMapper();
+    }
+
+    public String addWorkspaceGroupsToLakehouse(String workspaceId, String lakehouseId, String workspaceName, String lakehouseName, List<String> groupName) {
+ 
+        Map<String, Object> requestBody = new HashMap<>();
+ 
+        StringBuilder groupNamesStringBuilder = new StringBuilder();
+        groupNamesStringBuilder.append("[");
+        for(String group : groupName){
+            groupNamesStringBuilder.append("\"").append(group).append("\"").append(",");
+        }
+        groupNamesStringBuilder.setLength(groupNamesStringBuilder.length() - 1); // Remove the trailing comma
+        groupNamesStringBuilder.append("]");
+ 
+        Map<String, Object> dataMap = new HashMap<>();
+        dataMap.put("email", email);
+        dataMap.put("password", password);
+        dataMap.put("WorkspaceName", workspaceName);
+        dataMap.put("WorkspaceID", workspaceId);
+        dataMap.put("Lakehouse", lakehouseName);
+        dataMap.put("LakehouseID", lakehouseId);
+        dataMap.put("Groups", groupName);
+ 
+        String data;
+        try {
+            data = objectMapper.writeValueAsString(dataMap);
+        } catch (Exception e) {
+            log.error("Error serializing data to JSON: {}", e.getMessage());
+            return null;
+        }
+ 
+        requestBody.put("projectID", projectID);
+        requestBody.put("filePath", filePath);
+        requestBody.put("data", data);
+        requestBody.put("browser", browser);
+        requestBody.put("width", width);
+        requestBody.put("height", height);
+ 
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("accessKey", accessKey);
+        headers.set("User-Agent", userAgent);
+        headers.set("Content-Type", contentType);
+       
+        // licious API call to trigger the test suite which adds the workspace groups to lakehouse and returns the response containing the details of the triggered test run
+        JsonNode response = callUiLiciousApi(baseURL + "start", JsonNode.class, requestBody, HttpMethod.POST, headers);
+ 
+        JsonNode testRunIDsJson = response.get("result").get("testRunIDs");
+ 
+        List<String> testRunIDsList = objectMapper.convertValue(
+            testRunIDsJson,
+            new TypeReference<List<String>>() {}
+        );
+ 
+        if(testRunIDsList.isEmpty()){
+            log.warn("No test run ID returned from UiLicious API for workspaceId: {} and lakehouseId: {}", workspaceId, lakehouseId);
+            return null;
+        }
+ 
+        return testRunIDsList.get(0);
+    }
+ 
+    public List<GroupStatusResponseVO> getStatusOfGroupsAdditionToLakehouse(String workspaceName, String workspaceId, String lakehouseName, String lakehouseId, List<String> groupName, String testRunID) {
+ 
+        Map<String, Object> requestBody = new HashMap<>();
+       
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        headers.set("accessKey", accessKey);
+        headers.set("User-Agent", userAgent);
+        headers.set("Content-Type", contentType);
+       
+        JsonNode response = null;
+        requestBody.put("id", testRunID);
+        response = callUiLiciousApi(baseURL + "get", JsonNode.class, requestBody, HttpMethod.POST, headers); // Adjust the response type as needed
+ 
+        String testRunLakehouseId = response.get("result").get("data").get("LakehouseID").asText();
+        JsonNode groupsNode = response.get("result").get("data").get("Groups");
+        List<String> groups = objectMapper.convertValue(groupsNode, new TypeReference<List<String>>() {});
+       
+        JsonNode stepsNode = response.get("result").get("result").get("steps");
+        // fetching out the steps node from the API response
+ 
+        List<UiLicioueStepsDto> steps = objectMapper.convertValue(
+            stepsNode,
+            new TypeReference<List<UiLicioueStepsDto>>() {}
+        );
+        List<UiLicioueStepsDto> groupsStatusStep = steps
+            .stream()
+            .filter(step -> step != null && step.getDescription() != null && step.getDescription().contains((ConstantsUtility.UILICIOUS_GROUP_STATUS_CONSTANT)) &&
+                       step.getDescription().contains(ConstantsUtility.UILICIOUS_GROUP_CONSTANT))
+            .toList();
+        if(groupsStatusStep.isEmpty()){
+            log.warn("No group status found in the API response for lakehouseId: {}", lakehouseId);
+            return new ArrayList<>();
+        }
+        List<Map<String, String>> responseGroupsStatusList = new ArrayList<>();
+        try {
+            responseGroupsStatusList = objectMapper.readValue(
+                groupsStatusStep.get(0).getDescription(),
+                new TypeReference<List<Map<String, String>>>() {}
+            );  
+        } catch (Exception e) {
+            log.error("Error parsing group status from API response for lakehouseId: {}: {}", lakehouseId, e.getMessage());
+            return Collections.emptyList();
+        }
+ 
+        List<GroupStatusResponseVO> groupStatusList = new ArrayList<>();
+ 
+        for(Map<String, String> groupStatus : responseGroupsStatusList){
+            GroupStatusResponseVO groupStatusResponseVO = new GroupStatusResponseVO();
+            groupStatusResponseVO.setGroupName(groupStatus.get(ConstantsUtility.UILICIOUS_GROUP_CONSTANT));
+            groupStatusResponseVO.setStatus((groupStatus.get(ConstantsUtility.UILICIOUS_GROUP_STATUS_CONSTANT)));
+            groupStatusResponseVO.setMessage(ConstantsUtility
+                .GROUPES_ERROR_MESSAGES_CONSTANT_MAP.get(groupStatus.get(ConstantsUtility.UILICIOUS_GROUP_STATUS_CONSTANT)));
+            groupStatusList.add(groupStatusResponseVO);
+        }
+ 
+        return groupStatusList;
     }
 
     public String addServicePrincipalToLakehouse(String workspaceId, String lakehouseId,

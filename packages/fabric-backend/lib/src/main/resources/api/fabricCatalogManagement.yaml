@@ -187,7 +187,7 @@ paths:
             $ref: "#/definitions/updateDDXGroupsRequestVO"
         - name: ddxId
           in: path
-          description: "The ID of DDX data product ."
+          description: "The ID of DDX data product."
           required: true
           type: "string"
         - name: "workspaceId"
@@ -254,6 +254,59 @@ paths:
           description: "Request does not have sufficient credentials."
         403:
           description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+  
+  /catalog/ddx/get-groups-status/{ddxId}/{workspaceId}/{lakehouseId}:
+    get:
+      tags:
+        - "fabric-catalog-management"
+      summary: "get the groups status which are requested to add to the lakehouse."
+      description: "This endpoint will return the status of groups requested to be added to a lakehouse."
+      operationId: "getGroupsAssignmentStatus"
+      parameters:
+        - name: updateDDXGroupsRequest
+          in: body
+          description: "The groups name to get the status for."
+          required: true
+          schema:
+            $ref: "#/definitions/updateDDXGroupsRequestVO"
+        - name: ddxId
+          in: path
+          description: "The ID of DDX data product."
+          required: true
+          type: "string"
+        - name: workspaceId
+          in: path
+          description: "The ID of the workspace."
+          required: true
+          type: "string"
+        - name: lakehouseId
+          in: path
+          description: "The ID of Lakehouse."
+          required: true
+          type: "string"
+      responses:
+        200:
+          description: "Returns list of group name and their status"
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/GroupStatusResponseVO"
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        404:
+          description: "Workspace, Lakehouse, or Group not found"
+          schema:
+            $ref: "#/definitions/GenericMessage"
         405:
           description: "Method not allowed"
         500:
@@ -488,6 +541,16 @@ definitions:
       columnMaskingRule:
         type: string
 
+  GroupStatusResponseVO:
+    type: object
+    properties:
+      groupName:
+        type: string
+      status:
+        type: string
+      message:
+        type: string
+        description: "Error message if the group addition failed"
 
   LegalEntitiesResponseVO:
     type: object
