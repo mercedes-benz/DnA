@@ -3,6 +3,7 @@ package com.daimler.data.service.catalogManagement;
 import com.daimler.data.application.client.FabricCDCPushServiceClient;
 import com.daimler.data.application.client.GenesisApiClient;
 import com.daimler.data.application.client.OpenMetadataClient;
+import com.daimler.data.application.client.UiLiciousClient;
 import com.daimler.data.assembler.FabricCatalogMetadataAssembler;
 import com.daimler.data.assembler.FabricWorkspaceAssembler;
 import com.daimler.data.controller.exceptions.*;
@@ -13,6 +14,7 @@ import com.daimler.data.db.repo.catalogManagement.FabricCatalogManagementCustomR
 import com.daimler.data.db.repo.catalogManagement.FabricCatalogManagementRepository;
 import com.daimler.data.db.repo.fabric.FabricWorkspaceCustomRepository;
 import com.daimler.data.db.repo.fabric.FabricWorkspaceRepository;
+import com.daimler.data.dto.fabricWorkspace.FabricLakehouseVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceVO;
 import com.daimler.data.dto.fabricWorkspace.CdcPublishedLakeHouseDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.CreatedByVO;
@@ -49,7 +51,7 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
     private final FabricCatalogMetadataAssembler catalogAssembler;
     private final FabricCDCPushServiceClient cdcPushServiceClient;
     private final GenesisApiClient genesisApiClient;
-	
+    private final UiLiciousClient uiLiciousClient;
 
     @Autowired
     public BaseFabricCatalogManagementService(
@@ -61,7 +63,8 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
             FabricCatalogManagementCustomRepository catalogCustomRepo,
             FabricCatalogMetadataAssembler catalogAssembler,
             FabricCDCPushServiceClient cdcPushServiceClient,
-            GenesisApiClient genesisApiClient) {
+            GenesisApiClient genesisApiClient,
+            UiLiciousClient uiLiciousClient) {
         this.customRepo = customRepo;
         this.jpaRepo = jpaRepo;
         this.assembler = assembler;
@@ -71,6 +74,7 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
         this.catalogAssembler = catalogAssembler;
         this.cdcPushServiceClient = cdcPushServiceClient;
         this.genesisApiClient = genesisApiClient;
+        this.uiLiciousClient = uiLiciousClient;
     }
 
     @Override
@@ -100,7 +104,10 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
 
             // Prepare success response
             prepareSuccessResponse(response, catalogMetadataDetails);
-            
+
+            // Trigger UiLicious service principal addition after successful CDC push
+            triggerUiLiciousForLakehouses(existingFabricWorkspace);
+
         } catch (EntityAlreadyExistsException e) {
             log.error("Catalog metadata already exists for workspace: {}", existingFabricWorkspace.getName(), e);
             response.setResponses(createErrorResponse(CONFLICT_STATUS,
@@ -191,7 +198,10 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
         	FabricCatalogMetadataDetailsVO vo = catalogAssembler.toVo(entity);
 			response.setData(vo);
             response.setResponses(new GenericMessage(SUCCESS_STATUS));
-            
+
+            // Trigger UiLicious service principal addition after successful CDC push
+            triggerUiLiciousForLakehouses(existingFabricWorkspace);
+
         } catch (EntityNotFoundException e) {
             log.error("Catalog metadata not found for service: {}", existingFabricWorkspace.getName(), e);
             response.setResponses(createErrorResponse(NOT_FOUND_STATUS, 
@@ -704,5 +714,31 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
           //  throw new OpenMetadataClientException("Failed to fetch lakehouse object details for " + lakehouseName + ": " + e.getMessage(), e);
         }
         return null;
+    }
+
+    private void triggerUiLiciousForLakehouses(FabricWorkspaceVO workspace) {
+        String workspaceId = workspace.getId();
+        String workspaceName = workspace.getName();
+        List<FabricLakehouseVO> lakehouses = workspace.getLakehouses();
+        if (lakehouses == null || lakehouses.isEmpty()) {
+            log.warn("No lakehouses found for workspace: {}, skipping UiLicious trigger", workspaceName);
+            return;
+        }
+        for (FabricLakehouseVO lakehouse : lakehouses) {
+            try {
+                String testRunId = uiLiciousClient.addServicePrincipalToLakehouse(
+                        workspaceId, lakehouse.getId(), workspaceName, lakehouse.getName(), null);
+                if (testRunId != null) {
+                    log.info("UiLicious test run triggered with testRunId: {} for workspace: {} and lakehouse: {}",
+                            testRunId, workspaceName, lakehouse.getName());
+                } else {
+                    log.warn("UiLicious test run returned null testRunId for workspace: {} and lakehouse: {}",
+                            workspaceName, lakehouse.getName());
+                }
+            } catch (Exception e) {
+                log.error("Failed to trigger UiLicious for workspace: {} and lakehouse: {}",
+                        workspaceName, lakehouse.getName(), e);
+            }
+        }
     }
 }
