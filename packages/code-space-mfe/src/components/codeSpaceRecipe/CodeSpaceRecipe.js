@@ -163,11 +163,6 @@ const CodeSpaceRecipe = (props) => {
       });
   }, []);
 
-  useEffect(() => {
-    if (isGheRepo && isPublic) {
-      setIsPublic(false);
-    }
-  }, [isGheRepo]);
 
   useEffect(() => {
     if (isGitIRepo && !isPublic) {
@@ -196,12 +191,7 @@ const CodeSpaceRecipe = (props) => {
   const isGitI = gitIHost && githubUrlVal.includes(gitIHost);
   setIsGitIRepo(isGitI);
 
-  if (isGhe && isPublic) {
-    setIsPublic(false);
-    Notification.show('GHE repositories must use Private visibility.', 'alert');
-  }
-
-  if (isGitI && !isPublic) {
+  if (isGitI) {
     setIsPublic(true);
     Notification.show('Only repos from GHE is allowed.', 'alert');
   }
@@ -284,10 +274,6 @@ const CodeSpaceRecipe = (props) => {
   const onIsPublicChange = (e) => {
   const currentValue = e.currentTarget.value;
   
-  if (currentValue === 'true' && isGheRepo) {
-    Notification.show('GHE repositories cannot be set to Public visibility. Please use Private.', 'alert');
-    return;
-  }
   if (currentValue === 'false' && isGitIRepo) {
     Notification.show('Only repos from GHE is allowed.', 'alert');
     return;
@@ -323,9 +309,6 @@ const CodeSpaceRecipe = (props) => {
       .then((response) => {
         ProgressIndicator.hide();
         if (response?.data.success === 'SUCCESS') {
-          if (isGheRepo) {
-            setIsPublic(false);
-          }
           if (response?.data?.warnings?.some(w => w.message === 'GIT_I_REPO_DETECTED')) {
             setIsGitIRepo(true);
             setIsPublic(true);
