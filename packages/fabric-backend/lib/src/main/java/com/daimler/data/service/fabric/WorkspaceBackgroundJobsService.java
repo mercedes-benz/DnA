@@ -167,16 +167,12 @@ public class WorkspaceBackgroundJobsService {
 					}
 					if(!isDeleted) {
 						if(workspaceVO!=null && workspaceVO.getStatus()!=null && ConstantsUtility.INPROGRESS_STATE.equalsIgnoreCase(workspaceVO.getStatus().getState())){
-							FabricWorkspaceStatusVO currentStatus = workspaceVO.getStatus();
+								FabricWorkspaceStatusVO currentStatus = workspaceVO.getStatus();
 							FabricWorkspaceStatusVO updatedStatus = new FabricWorkspaceStatusVO();
-							FabricWorkspaceVO tempWorkspaceVO =  workspaceVO;
 							try {
 								updatedStatus = fabricService.processWorkspaceUserManagement(currentStatus,updatedName, workspaceVO.getCreatedBy().getId(), workspaceVO.getId(),workspaceVO.getCustomGroupName(), isDivisionAllowed, workspaceVO.getCustomGroupNameCollection());
-								tempWorkspaceVO.setStatus(updatedStatus);
 								try {
-									tempWorkspaceVO.setName(updatedName);
-									tempWorkspaceVO.setDescription(updatedDescription);
-									fabricService.create(tempWorkspaceVO);
+									fabricService.updateWorkspaceDirectly(workspaceVO.getId(), updatedStatus, updatedName, updatedDescription);
 								}catch(Exception saveException) {
 									log.error("During scheduled job, failed to update the workspace with latest status {} for workspace {} and id {} with exception {}",
 												updatedStatus.getState(), workspaceVO.getName(), workspaceVO.getId(), saveException.getMessage());
@@ -185,14 +181,12 @@ public class WorkspaceBackgroundJobsService {
 								log.error("During scheduled job, failed to process workspace user management for workspace {} and id {} with exception {}", workspaceVO.getName(), workspaceVO.getId(), e.getMessage());
 							}
 						}
-						if(workspaceVO!=null && workspaceVO.getStatus()!=null && ConstantsUtility.COMPLETED_STATE.equalsIgnoreCase(workspaceVO.getStatus().getState())){
-							FabricWorkspaceVO tempWorkspaceVO =  workspaceVO;
+							if(workspaceVO!=null && workspaceVO.getStatus()!=null && ConstantsUtility.COMPLETED_STATE.equalsIgnoreCase(workspaceVO.getStatus().getState())){
 							List<GroupDetailsVO> updatedGroupDetails = fabricService.autoProcessGroupsUsers(workspaceVO.getStatus().getMicrosoftGroups(), updatedName, workspaceVO.getCreatedBy().getId(), workspaceVO.getId(), workspaceVO.getCustomGroupName(), workspaceVO.getCustomGroupNameCollection());
-							tempWorkspaceVO.getStatus().setMicrosoftGroups(updatedGroupDetails);
+							FabricWorkspaceStatusVO updatedCompletedStatus = workspaceVO.getStatus();
+							updatedCompletedStatus.setMicrosoftGroups(updatedGroupDetails);
 							try {
-								tempWorkspaceVO.setName(updatedName);
-								tempWorkspaceVO.setDescription(updatedDescription);
-								fabricService.create(tempWorkspaceVO);
+								fabricService.updateWorkspaceDirectly(workspaceVO.getId(), updatedCompletedStatus, updatedName, updatedDescription);
 							}catch(Exception saveException) {
 								log.error("During scheduled job, failed to update the workspace with latest group assignments for workspace {} and id {} with exception {}", workspaceVO.getName(), workspaceVO.getId(), saveException.getMessage());
 							}

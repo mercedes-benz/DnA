@@ -310,6 +310,32 @@ public class FabricWorkspaceAssembler implements GenericAssembler<FabricWorkspac
 	}
 	
 	
+	public FabricWorkspaceStatus toFabricWorkspaceStatus(FabricWorkspaceStatusVO statusVO) {
+		FabricWorkspaceStatus status = new FabricWorkspaceStatus();
+		if(statusVO != null) {
+			status.setState(statusVO.getState());
+			List<EntitlementDetailsVO> entitlementsVO = statusVO.getEntitlements();
+			List<EntitlementDetails> entitlements = new ArrayList<>();
+			if(entitlementsVO != null && !entitlementsVO.isEmpty()) {
+				entitlements = entitlementsVO.stream().map(n -> fromEntitlementDetailsVO(n)).collect(Collectors.toList());
+			}
+			status.setEntitlements(entitlements);
+			List<RoleDetails> roles = new ArrayList<>();
+			List<RoleDetailsVO> rolesVO = statusVO.getRoles();
+			if(rolesVO != null && !rolesVO.isEmpty()) {
+				roles = rolesVO.stream().map(n -> fromRoleDetailsVO(n)).collect(Collectors.toList());
+			}
+			status.setRoles(roles);
+			List<GroupDetails> groups = new ArrayList<>();
+			List<GroupDetailsVO> groupDetailsVO = statusVO.getMicrosoftGroups();
+			if(groupDetailsVO != null && !groupDetailsVO.isEmpty()) {
+				groups = groupDetailsVO.stream().map(n -> fromGroupDetailsVO(n)).collect(Collectors.toList());
+			}
+			status.setMicrosoftGroups(groups);
+		}
+		return status;
+	}
+
 	@Override
 	public FabricWorkspaceNsql toEntity(FabricWorkspaceVO vo) {
 		FabricWorkspaceNsql entity = null;

@@ -37,6 +37,8 @@ import com.daimler.data.db.entities.AuthoriserRolesNsql;
 import com.daimler.data.db.entities.FabricWorkspaceNsql;
 import com.daimler.data.db.json.ADAProjectDetails;
 import com.daimler.data.db.json.AuthoriserRoleDeatils;
+import com.daimler.data.db.json.FabricWorkspace;
+import com.daimler.data.db.json.Lakehouse;
 import com.daimler.data.db.json.UserDetails;
 import com.daimler.data.db.repo.fabric.FabricWorkspaceCustomRepository;
 import com.daimler.data.db.repo.fabric.FabricWorkspaceRepository;
@@ -386,21 +388,6 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 	public FabricWorkspaceVO getById(String id) {
 		FabricWorkspaceVO voFromDb =  super.getById(id);
 		log.info("Fetched fabric project record from db successfully for id {} ", id);
-//		WorkspaceDetailDto dtoFromFabric = fabricWorkspaceClient.getWorkspaceDetails(id);
-//		if(dtoFromFabric!=null) {
-//			if(dtoFromFabric.getErrorCode()!=null && ("WorkspaceNotFound".equalsIgnoreCase(dtoFromFabric.getErrorCode()) || "InsufficientPrivileges".equalsIgnoreCase(dtoFromFabric.getErrorCode()))) {
-//				log.info("No fabric project with id {} found at Microsoft Fabric, WorkspaceNotFound error.", id);
-//				try{
-//					jpaRepo.deleteById(id);
-//					log.info("Project id {} not found in Microsoft Fabric, hence successfully removed from database.", id);
-//				}catch(Exception e) {
-//					log.error("Project id {} not found in Microsoft Fabric. Failed to remove from database, will remove in next fetch", id);
-//				}
-//				return null;
-//			}
-//			log.info("getbyid-record found-Updating- ID : {} Name : {} and Description : {}",id,dtoFromFabric.getDisplayName(),dtoFromFabric.getDescription());
-//			voFromDb.setName(dtoFromFabric.getDisplayName());
-//			voFromDb.setDescription(dtoFromFabric.getDescription());
 			try {
 				LakehouseCollectionDto lakehousesCollection = fabricWorkspaceClient.listLakehouses(id);
 				if(lakehousesCollection!=null && lakehousesCollection.getValue()!=null && !lakehousesCollection.getValue().isEmpty()) {
@@ -409,13 +396,35 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 					lakehouseVOs = value.stream().map(n -> assembler.toLakehouseVOFromDto(n)).collect(Collectors.toList());
 					voFromDb.setLakehouses(lakehouseVOs);
 				}
-				FabricWorkspaceNsql updatedEntity = assembler.toEntity(voFromDb);
-				log.info("Successfully updated latest displayName and description from Fabric to Database for project id {}", id);
-				jpaRepo.save(updatedEntity);
+				// Update lakehouses directly on the entity to avoid
+				// the lossy VO <-> Entity round-trip that drops JSONB
+				// fields not mapped in the current FabricWorkspace class.
+				Optional<FabricWorkspaceNsql> entityOpt = jpaRepo.findById(id);
+				if(entityOpt.isPresent()) {
+					FabricWorkspaceNsql entity = entityOpt.get();
+					FabricWorkspace data = entity.getData();
+					if(data != null && lakehousesCollection!=null && lakehousesCollection.getValue()!=null && !lakehousesCollection.getValue().isEmpty()) {
+						List<Lakehouse> lakehouses = lakehousesCollection.getValue().stream().map(n -> {
+							Lakehouse lh = new Lakehouse();
+							lh.setId(n.getId());
+							lh.setName(n.getDisplayName());
+							lh.setDescription(n.getDescription());
+							if(n.getDisplayName()!=null && n.getDisplayName().toLowerCase().contains("dev")) {
+								lh.setSensitivityLabel("Internal");
+							}else {
+								lh.setSensitivityLabel("Confidential");
+							}
+							return lh;
+						}).collect(Collectors.toList());
+						data.setLakehouses(lakehouses);
+						entity.setData(data);
+						jpaRepo.save(entity);
+					}
+				}
+				log.info("Successfully updated lakehouses from Fabric to Database for project id {}", id);
 			}catch(Exception e) {
-				log.error("Failed to update latest displayName and description from Fabric to Database for project id {}, with error {} . Will be updated in next fetch", id, e.getMessage());
+				log.error("Failed to update lakehouses from Fabric to Database for project id {}, with error {} . Will be updated in next fetch", id, e.getMessage());
 			}
-//		}
 		return voFromDb;
 	}
 
@@ -2285,6 +2294,34 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		return responses;
 	}
 
+
+	@Override
+	@Transactional
+	public void updateWorkspaceDirectly(String workspaceId, FabricWorkspaceStatusVO statusVO, String name, String description) {
+		Optional<FabricWorkspaceNsql> entityOpt = jpaRepo.findById(workspaceId);
+		if (entityOpt.isEmpty()) {
+			log.error("Workspace not found with id {} while updating workspace directly", workspaceId);
+			return;
+		}
+		FabricWorkspaceNsql entity = entityOpt.get();
+		FabricWorkspace data = entity.getData();
+		if (data == null) {
+			log.error("Workspace data is null for id {} while updating workspace directly", workspaceId);
+			return;
+		}
+		if (name != null) {
+			data.setName(name);
+		}
+		if (description != null) {
+			data.setDescription(description);
+		}
+		if (statusVO != null) {
+			data.setStatus(assembler.toFabricWorkspaceStatus(statusVO));
+		}
+		entity.setData(data);
+		jpaRepo.save(entity);
+		log.info("Successfully updated workspace directly for id {}", workspaceId);
+	}
 
 	@Override
 	public ADAProjectDetailsCollectionVO searchProjects(String projectName) {
