@@ -201,7 +201,7 @@ const CodeSpaceRecipe = (props) => {
     Notification.show('GHE repositories must use Private visibility.', 'alert');
   }
 
-  if (isGitI && !isPublic) {
+  if (isGitI) {
     setIsPublic(true);
     Notification.show('Only repos from GHE is allowed.', 'alert');
   }
