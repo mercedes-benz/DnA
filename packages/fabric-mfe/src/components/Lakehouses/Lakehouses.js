@@ -810,6 +810,7 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
               workspaceDivision={workspace?.division} 
               lakehouseId={selectedLakehouse?.id} 
               lakehouseName={selectedLakehouse?.name} 
+              ddxPublishedLakeHouseDetails={workspace?.ddxPublishedLakeHouseDetails}
               onRefreshWorkspace={onRefreshWorkspace} />}
           scrollableContent={true}
           onCancel={() => { setSelectedLakehouse(); setShowDdxViewTablesModal(false) }}
