@@ -305,11 +305,9 @@ const CodeSpaceRecipe = (props) => {
       .then((response) => {
         ProgressIndicator.hide();
         if (response?.data.success === 'SUCCESS') {
-          if (response?.data?.warnings?.some(w => w.message === 'GIT_I_REPO_DETECTED')) {
-            setIsGitIRepo(true);
-            setIsPublic(true);
+          if (!isGitIRepo) {
+            setEnableCreate(true);
           }
-          setEnableCreate(true);
         } else {
           setEnableCreate(false);
         }
