@@ -4354,7 +4354,8 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 					log.error("Failed to get ArgoCD token for restart: {}-{}", projectName, env);
 				}
 				
-				GenericMessage jobResponse = new GenericMessage();
+					GenericMessage jobResponse = new GenericMessage();
+				jobResponse.setErrors(new ArrayList<>());
 				if ("success".equalsIgnoreCase(argoRestartResult)) {
 					jobResponse.setSuccess("SUCCESS");
 					// String environmentJsonbName = "intDeploymentDetails";
