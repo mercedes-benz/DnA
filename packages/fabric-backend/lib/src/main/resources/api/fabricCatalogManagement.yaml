@@ -218,6 +218,44 @@ paths:
         500:
           description: "Internal error"
 
+  /catalog/{workspaceId}/check-mismatch:
+    get:
+      tags:
+        - "fabric-catalog-management"
+      summary: "Check table mismatch between Fabric and CDC."
+      description: "Compares current Fabric lakehouse tables with published CDC metadata to detect mismatches."
+      operationId: "checkTableMismatch"
+      parameters:
+        - name: "workspaceId"
+          in: "path"
+          description: "The ID of the workspace."
+          required: true
+          type: "string"
+        - name: "lakehouseId"
+          in: "query"
+          description: "The ID of the lakehouse."
+          required: true
+          type: "string"
+      responses:
+        200:
+          description: "Returns mismatch detection results"
+          schema:
+            $ref: "#/definitions/TableMismatchResponseVO"
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        404:
+          description: "Catalog metadata not found."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
   /catalog/ddx/fabric-lakehouses/objects:
     get:
       tags:
@@ -487,3 +525,40 @@ definitions:
         type: string
       columnMaskingRule:
         type: string
+
+  TableMismatchResponseVO:
+    type: object
+    properties:
+      hasMismatch:
+        type: boolean
+        description: "Whether any mismatch was detected"
+      mismatches:
+        type: array
+        items:
+          $ref: "#/definitions/TableMismatchDetailVO"
+      responses:
+        $ref: "#/definitions/GenericMessage"
+
+  TableMismatchDetailVO:
+    type: object
+    properties:
+      tableName:
+        type: string
+        description: "Name of the table"
+      mismatchType:
+        type: string
+        description: "Type of mismatch detected"
+        enum:
+          - NEW_TABLE
+          - DELETED_TABLE
+          - COLUMNS_ADDED
+          - COLUMNS_REMOVED
+          - COLUMN_TYPE_CHANGED
+      details:
+        type: string
+        description: "Details about the mismatch"
+      affectedColumns:
+        type: array
+        items:
+          type: string
+        description: "List of affected column names"

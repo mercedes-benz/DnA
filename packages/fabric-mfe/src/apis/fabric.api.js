@@ -169,6 +169,12 @@ const takeOwnership = (id) => {
   });
 };
 
+const checkTableMismatch = (workspaceId, lakehouseId) => {
+  return server.get(`/fabric-workspaces/catalog/${workspaceId}/check-mismatch?lakehouseId=${lakehouseId}`, {
+    data: {},
+  });
+};
+
 export const fabricApi = {
   getFabricWorkspaces,
   getFabricWorkspacesForAdmin,
@@ -196,4 +202,5 @@ export const fabricApi = {
   getTableSchema,
   pushSelectedTables,
   takeOwnership,
+  checkTableMismatch,
 };

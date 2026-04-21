@@ -32,6 +32,7 @@ import com.daimler.data.dto.fabricCatalogManagement.FabricCatalogMetadataVO;
 import com.daimler.data.dto.fabricCatalogManagement.LakehouseObjectsResponseVO;
 import com.daimler.data.dto.fabricCatalogManagement.PublishCatalogResponseVO;
 import com.daimler.data.dto.fabricCatalogManagement.PublishCatalogRequestVO;
+import com.daimler.data.dto.fabricCatalogManagement.TableMismatchResponseVO;
 import com.daimler.data.dto.fabricCatalogManagement.UpdateDDXGroupsRequestVO;
 import com.daimler.data.dto.fabricWorkspace.CreatedByVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceVO;
@@ -542,6 +543,74 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
             log.error("Exception occurred while fetching lakehouse objects: {}", e.getMessage());
             responseVO.setErrorMessage("Exception occurred while fetching lakehouse objects: " + e.getMessage());
             responseVO.setResponseCode(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()));
+            return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @Override
+    @ApiOperation(value = "Check table mismatch between Fabric and CDC.", nickname = "checkTableMismatch", notes = "Compares current Fabric lakehouse tables with published CDC metadata to detect mismatches.", response = TableMismatchResponseVO.class, tags={ "fabric-catalog-management", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 200, message = "Returns mismatch detection results", response = TableMismatchResponseVO.class),
+        @ApiResponse(code = 400, message = "Bad Request", response = GenericMessage.class),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 404, message = "Catalog metadata not found."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/catalog/{workspaceId}/check-mismatch",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.GET)
+    public ResponseEntity<TableMismatchResponseVO> checkTableMismatch(
+            @ApiParam(value = "The ID of the workspace.", required = true) @PathVariable("workspaceId") String workspaceId,
+            @NotNull @ApiParam(value = "The ID of the lakehouse.", required = true) @Valid @RequestParam(value = "lakehouseId", required = true) String lakehouseId) {
+
+        TableMismatchResponseVO responseVO = new TableMismatchResponseVO();
+
+        try {
+            FabricWorkspaceVO existingFabricWorkspace = fabricWorkspaceService.getById(workspaceId);
+
+            if (existingFabricWorkspace == null
+                    || !workspaceId.equalsIgnoreCase(existingFabricWorkspace.getId())) {
+                log.error("No Fabric Workspace found with id {}", workspaceId);
+                return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+            }
+
+            CreatedByVO requestUser = this.userStore.getVO();
+            String creatorId = existingFabricWorkspace.getCreatedBy().getId();
+
+            if (!requestUser.getId().equalsIgnoreCase(creatorId)
+                    && !utility.hasProjectAdminAccess(requestUser.getId(), workspaceId)) {
+                log.error("User {} not authorized to check mismatch for workspace {}",
+                        requestUser.getId(), workspaceId);
+                return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
+            }
+
+            responseVO = service.checkTableMismatch(workspaceId, lakehouseId, existingFabricWorkspace.getName());
+
+            GenericMessage responseMessage = responseVO.getResponses();
+            if (responseMessage != null && "SUCCESS".equalsIgnoreCase(responseMessage.getSuccess())) {
+                return new ResponseEntity<>(responseVO, HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        } catch (EntityNotFoundException e) {
+            log.error("Catalog metadata not found for workspace {}: {}", workspaceId, e.getMessage());
+            GenericMessage failedResponse = new GenericMessage();
+            MessageDescription message = new MessageDescription();
+            message.setMessage("Catalog metadata not found. Lakehouse may not have been published to CDC yet.");
+            failedResponse.addErrors(message);
+            failedResponse.setSuccess("NOT_FOUND");
+            responseVO.setResponses(failedResponse);
+            return new ResponseEntity<>(responseVO, HttpStatus.NOT_FOUND);
+        } catch (Exception e) {
+            log.error("Exception occurred while checking table mismatch: {}", e.getMessage());
+            GenericMessage failedResponse = new GenericMessage();
+            MessageDescription message = new MessageDescription();
+            message.setMessage("Failed to check table mismatch: " + e.getMessage());
+            failedResponse.addErrors(message);
+            failedResponse.setSuccess("FAILED");
+            responseVO.setResponses(failedResponse);
             return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
