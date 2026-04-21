@@ -4355,6 +4355,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 				}
 				
 				GenericMessage jobResponse = new GenericMessage();
+				jobResponse.setErrors(new ArrayList<>());
 				if ("success".equalsIgnoreCase(argoRestartResult)) {
 					jobResponse.setSuccess("SUCCESS");
 					// String environmentJsonbName = "intDeploymentDetails";
