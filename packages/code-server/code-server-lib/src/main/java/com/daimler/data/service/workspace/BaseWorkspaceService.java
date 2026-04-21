@@ -260,6 +260,9 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 
 	 @Value("${codeServer.build.retainedlimit}")
      private String retainedBuildLimitValue;
+
+	 @Value("${opentelemetry.plugin.endpoint}")
+     private String opentelemetryPluginEndpoint;
  
   
 	 public BaseWorkspaceService() {
@@ -5686,7 +5689,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
             pluginConfig.put("enabled", true);
 
             Map<String, Object> config = new HashMap<>();
-            config.put("endpoint", "http://alloy.observability:4318/v1/traces");
+            config.put("endpoint", opentelemetryPluginEndpoint);
             config.put("header_type", "b3");
             config.put("read_timeout", 5000);
             config.put("connect_timeout", 1000);

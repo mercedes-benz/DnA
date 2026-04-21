@@ -233,6 +233,10 @@ vaultIntegration:
     baseUrl: ${VAULT_SERVICE_URL:XXXX}
     apiKey: ${VAULT_SERVICE_API_KEY:XXXX}
 
+opentelemetry:
+  plugin:
+    endpoint: ${OTEL_PLUGIN_ENDPOINT:XXXX}
+
 workspace:
   migrate: ${MIGRATE_WORKSPACE:YOUR_MIGRATE_BOOLEAN}    
   callKongApisFromBackend: ${CALL_KONG_APIS_FROM_BACKEND:XXXX}
