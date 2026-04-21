@@ -170,7 +170,7 @@ const Step2_OwnershipGovernance = ({
       <div className={Styles.col}>
         <div className={classNames('input-field-group include-error', errors.informationOwnerError ? 'error' : '')}>
           <label htmlFor="informationOwner" className="input-label">
-            Information Owner <sup>*</sup> (Please provide ShortID.Kindly find more information
+            Information Owner <sup>*</sup> (Please provide ShortID. Kindly find more information
             <a href={Envs.INFORMATION_OWNER_URL} target="_blank" rel="noopener noreferrer"> here</a>)
           </label>
           <input
