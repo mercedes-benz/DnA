@@ -23,6 +23,7 @@ import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -134,9 +135,27 @@ public class BaseADAProjectsService extends BaseCommonService<ADAProjectDetailsV
 	public GenericMessage createWorkspaceProjectAssociation(FabricWorkspaceVO workspace, String projectId) {
 		
 		try {
-			workspace.setProjectId(projectId);
-			FabricWorkspaceNsql entity = fabricWorkspaceAssembler.toEntity(workspace);
-			fabricWorkspaceRepo.save(entity);
+			ADAProjectsNsql adaProject = customRepo.findbyUniqueLiteral("projectID", projectId);
+			if (adaProject == null || adaProject.getData() == null || adaProject.getData().getProjectID() == null) {
+				log.error("ADA Project with projectID {} not found in adaprojects table", projectId);
+				GenericMessage message = new GenericMessage("ERROR");
+				message.setErrors(List.of(new MessageDescription("ADA Project with projectID " + projectId + " not found in adaprojects table")));
+				return message;
+			}
+			log.info("Validated projectID {} exists in adaprojects table", projectId);
+
+			Optional<FabricWorkspaceNsql> existingEntityOpt = fabricWorkspaceRepo.findById(workspace.getId());
+			if (existingEntityOpt.isPresent()) {
+				FabricWorkspaceNsql existingEntity = existingEntityOpt.get();
+				existingEntity.getData().setProjectId(projectId);
+				fabricWorkspaceRepo.save(existingEntity);
+				log.info("Successfully associated workspace {} with project {}", workspace.getId(), projectId);
+			} else {
+				log.error("Workspace entity not found in DB for id {}", workspace.getId());
+				GenericMessage message = new GenericMessage("ERROR");
+				message.setErrors(List.of(new MessageDescription("Workspace entity not found for id: " + workspace.getId())));
+				return message;
+			}
 			return new GenericMessage("SUCCESS");
 		} catch (Exception e) {
 			log.error("Error creating workspace-project association", e);
