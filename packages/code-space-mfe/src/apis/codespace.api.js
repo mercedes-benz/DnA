@@ -469,6 +469,12 @@ const deleteCodeSpaceGroup = (id) => {
 const getExistingRoles = (appId) => {
     return fabricServer.get(`fabric-workspaces/${appId}/dnaroles`, {
         data: {},
+        validateStatus: (status) => (status >= 200 && status < 300) || status === 204,
+    }).then(response => {
+        if (response.status === 204 || !response.data) {
+            return { data: { roles: [] } };
+        }
+        return response;
     });
 };
 
