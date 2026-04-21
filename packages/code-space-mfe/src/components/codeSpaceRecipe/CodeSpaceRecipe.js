@@ -39,7 +39,7 @@ const CodeSpaceRecipe = (props) => {
   const [gitPath] = useState('');
   const [gitRepoLoc, setGitRepoLoc] = useState('');
   const [deployPath, setDeployPath] = useState('');
-  const [isGheRepo, setIsGheRepo] = useState(false);
+  const [isGitIRepo, setIsGitIRepo] = useState(false);
   
   const [diskSpace, setDiskSpace] = useState('');
   const [minCpu, setMinCpu] = useState('0.5');
@@ -162,11 +162,12 @@ const CodeSpaceRecipe = (props) => {
       });
   }, []);
 
+
   useEffect(() => {
-    if (isGheRepo && isPublic) {
-      setIsPublic(false);
+    if (isGitIRepo && !isPublic) {
+      setIsPublic(true);
     }
-  }, [isGheRepo]);
+  }, [isGitIRepo]);
 
   const onRecipeNameChange = (e) => {
     const value = e.currentTarget.value;
@@ -182,12 +183,13 @@ const CodeSpaceRecipe = (props) => {
   setGitUrl(githubUrlVal);
   setEnableCreate(false);
 
-  const isGhe = githubUrlVal.toLowerCase().includes('ghe');
-  setIsGheRepo(isGhe);
+  const gitIHost = Envs.CODE_SPACE_GIT_PAT_APP_URL ? new URL(Envs.CODE_SPACE_GIT_PAT_APP_URL).host : '';
+  const isGitI = gitIHost && githubUrlVal.includes(gitIHost);
+  setIsGitIRepo(isGitI);
 
-  if (isGhe && isPublic) {
-    setIsPublic(false);
-    Notification.show('GHE repositories must use Private visibility.', 'alert');
+  if (isGitI) {
+    setIsPublic(true);
+    Notification.show('Only repos from GHE is allowed.', 'alert');
   }
 
   const errorText = githubUrlVal.length
@@ -268,8 +270,8 @@ const CodeSpaceRecipe = (props) => {
   const onIsPublicChange = (e) => {
   const currentValue = e.currentTarget.value;
   
-  if (currentValue === 'true' && isGheRepo) {
-    Notification.show('GHE repositories cannot be set to Public visibility. Please use Private.', 'alert');
+  if (currentValue === 'false' && isGitIRepo) {
+    Notification.show('Only repos from GHE is allowed.', 'alert');
     return;
   }
   if (currentValue === 'true') {
@@ -303,10 +305,9 @@ const CodeSpaceRecipe = (props) => {
       .then((response) => {
         ProgressIndicator.hide();
         if (response?.data.success === 'SUCCESS') {
-          if (isGheRepo) {
-            setIsPublic(false);
-          }    
-          setEnableCreate(true);
+          if (!isGitIRepo) {
+            setEnableCreate(true);
+          }
         } else {
           setEnableCreate(false);
         }
@@ -564,7 +565,7 @@ const CodeSpaceRecipe = (props) => {
                                 name="isPublic"
                                 checked={isPublic === true}
                                 onChange={onIsPublicChange}
-                                disabled={isGheRepo || edit}
+                                disabled={edit}
                               />
                             </span>
                             <span className="label">Public</span>
@@ -578,15 +579,16 @@ const CodeSpaceRecipe = (props) => {
                                 name="isPublic"
                                 checked={isPublic === false}
                                 onChange={onIsPublicChange}
+                                disabled={isGitIRepo || edit}
                               />
                             </span>
                             <span className="label">Private</span>
                           </label>
                         </div>
-                        {isGheRepo && (
+                        {isGitIRepo && (
                           <p className={Styles.warning}>
                             <i className="icon mbc-icon alert circle" />
-                            <span>GHE repositories must use Private visibility for security compliance.</span>
+                            <span>Only repos from <a href={Envs.CODE_SPACE_GHE_PAT_APP_URL} target="_blank" rel="noopener noreferrer">GHE</a> is allowed.</span>
                           </p>
                         )}
                       </div>
