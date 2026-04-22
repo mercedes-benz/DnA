@@ -42,4 +42,8 @@ export const Envs = {
   CDC_SIGNIN_URL: getInjectedEnv('CDC_SIGNIN_URL') || process.env.CDC_SIGNIN_URL,
   FABRIC_REPORT_URL: getInjectedEnv('FABRIC_REPORT_URL') || process.env.FABRIC_REPORT_URL,
   FABRIC_ACTIVITY_REPORT_URL: getInjectedEnv('FABRIC_ACTIVITY_REPORT_URL') || process.env.FABRIC_ACTIVITY_REPORT_URL, 
+  INFORMATION_OWNER_URL: getInjectedEnv('INFORMATION_OWNER_URL') || process.env.INFORMATION_OWNER_URL,
+  DATA_AT_CLOUD_URL: getInjectedEnv('DATA_AT_CLOUD_URL') || process.env.DATA_AT_CLOUD_URL,
+  DDX_PRICING_URL: getInjectedEnv('DDX_PRICING_URL') || process.env.DDX_PRICING_URL,
+  DDX_DOF_BASE_URL: getInjectedEnv('DDX_DOF_BASE_URL') || process.env.DDX_DOF_BASE_URL,
 };
