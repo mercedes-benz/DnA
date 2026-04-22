@@ -852,6 +852,11 @@ definitions:
           format: date
       cdcPublishedLakeHouseDetails:
         $ref: "#/definitions/CdcPublishedLakeHouseDetailsVO"
+      ddxPublishedLakeHouseDetails:
+        type: array
+        items:
+          type: object
+        description: "List of enriched DDX product details keyed by lakehouseId from ddx_dataProducts_details_nsql table"
 
   FabricWorkspaceStatusVO:
     type: object
@@ -1315,6 +1320,94 @@ definitions:
         type: array
         items:
           type: string
+
+  DdxPublishedLakeHouseDetailsVO:
+    type: object
+    properties:
+      workspaceName:
+        type: string
+      workspaceId:
+        type: string
+      lakehouseName:
+        type: string
+      lakeHouseId:
+        type: string
+      isLakeHousesPublishedToDdx:
+        type: boolean
+      productName:
+        type: string
+        description: "Name of the DDX data product"
+      productId:
+        type: string
+        description: "ID of the DDX data product"
+      createdBy:
+        $ref: "#/definitions/CreatedByVO"
+      createdOn:
+        type: string
+        format: date
+      modifiedOn:
+        type: string
+        format: date
+      unityDetails:
+        $ref: "#/definitions/DdxUnityDetailsVO"
+      fabric2fabricDetails:
+        type: array
+        items:
+          $ref: "#/definitions/Fabric2FabricDetailVO"
+
+  Fabric2FabricDetailVO:
+    type: object
+    properties:
+      isFabric2Fabric:
+        type: boolean
+      initiatedOn:
+        type: string
+        format: date
+      groupsNames:
+        type: array
+        items:
+          $ref: "#/definitions/GroupNameDetailVO"
+
+  GroupNameDetailVO:
+    type: object
+    properties:
+      testRunId:
+        type: string
+      groupNameList:
+        type: array
+        items:
+          $ref: "#/definitions/GroupNameListVO"
+      runStatus:
+        type: string
+
+  GroupNameListVO:
+    type: object
+    properties:
+      groupName:
+        type: string
+      status:
+        type: string
+      message:
+        type: string
+
+  Fabric2FabricDetailsVO:
+    type: object
+    properties:
+      groupNames:
+        type: array
+        items:
+          type: string
+        description: "Group names associated with the fabric-to-fabric connection"
+      initialisedOn:
+        type: string
+        format: date
+
+  DdxUnityDetailsVO:
+    type: object
+    properties:
+      catalogName:
+        type: string
+        description: "Unity catalog name"
 
   
 
