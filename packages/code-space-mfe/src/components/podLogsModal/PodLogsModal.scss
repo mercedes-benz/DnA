@@ -2,8 +2,9 @@
   .podInfo {
     margin-bottom: 10px;
     padding: 8px 12px;
-    background-color: #1e2329;
-    border-radius: 4px;
+    background-color: #252a33;
+    border: 1px solid #383f49;
+    border-radius: 1px;
     font-size: var(--font-size-small);
 
     .podName {
@@ -13,35 +14,35 @@
 
     .podStatus {
       margin-left: 10px;
-      color: #8c939a;
+      color: #99a5b3;
     }
   }
 
   .logsContainer {
-    background-color: #0d1117;
-    border: 1px solid #30363d;
-    border-radius: 4px;
+    background-color: #252a33;
+    border: 1px solid #383f49;
+    border-radius: 1px;
     padding: 12px;
     max-height: 500px;
     min-height: 300px;
     overflow-y: auto;
     font-family: 'Courier New', Courier, monospace;
-    font-size: 12px;
+    font-size: var(--font-size-smallest);
     line-height: 1.6;
 
     .logLine {
-      color: #c9d1d9;
+      color: #c0c8d0;
       white-space: pre-wrap;
       word-break: break-all;
       padding: 1px 0;
 
       &:hover {
-        background-color: #161b22;
+        background-color: #1e2329;
       }
     }
 
     .noLogs {
-      color: #8b949e;
+      color: #99a5b3;
       text-align: center;
       padding: 40px 0;
     }
@@ -65,7 +66,7 @@
     align-items: center;
     margin-top: 8px;
     font-size: var(--font-size-small);
-    color: #8c939a;
+    color: #99a5b3;
 
     .statusIndicator {
       display: flex;
@@ -84,7 +85,7 @@
         }
 
         &.stopped {
-          background-color: #8b949e;
+          background-color: #99a5b3;
         }
 
         &.error {
