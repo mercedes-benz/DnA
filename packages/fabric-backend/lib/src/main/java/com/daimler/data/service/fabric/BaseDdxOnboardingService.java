@@ -501,14 +501,17 @@ public class BaseDdxOnboardingService implements DdxOnboardingService {
             // Update the workspace's ddxPublishedLakeHouseDetails list directly
             // on the managed entity — no VO round-trip needed.
             if (workspaceData != null) {
-                List<String> detailIds = workspaceData.getDdxPublishedLakeHouseDetails();
-                if (detailIds == null) {
-                    detailIds = new ArrayList<>();
+                List<DdxProduct> existingProducts = workspaceData.getDdxPublishedLakeHouseDetails();
+                if (existingProducts == null) {
+                    existingProducts = new ArrayList<>();
                 }
-                if (!detailIds.contains(lakehouseId)) {
-                    detailIds.add(lakehouseId);
+                String productName = onboardingResponse.getDataProductName();
+                boolean alreadyExists = existingProducts.stream()
+                    .anyMatch(p -> productName != null && productName.equals(p.getProductName()));
+                if (!alreadyExists) {
+                    existingProducts.add(product);
                 }
-                workspaceData.setDdxPublishedLakeHouseDetails(detailIds);
+                workspaceData.setDdxPublishedLakeHouseDetails(existingProducts);
                 workspaceEntity.setData(workspaceData);
                 jpaRepo.save(workspaceEntity);
             }

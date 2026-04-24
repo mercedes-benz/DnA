@@ -43,10 +43,16 @@ import java.util.Collections;
 import java.util.Objects;
 import org.springframework.util.CollectionUtils;
 import com.daimler.data.db.json.CustomGroupNameCollection;
+import com.daimler.data.db.json.DdxProduct;
+import com.daimler.data.dto.fabricWorkspace.DdxPublishedLakeHouseDetailsVO;
+import org.springframework.beans.factory.annotation.Autowired;
 
 
 @Component
 public class FabricWorkspaceAssembler implements GenericAssembler<FabricWorkspaceVO, FabricWorkspaceNsql> {
+
+	@Autowired
+	private DdxDataProductsDetailsAssembler ddxAssembler;
 	
 	public FabricLakehouseVO toLakehouseVOFromDto(LakehouseDto lakehouseDto) {
 		FabricLakehouseVO vo = new FabricLakehouseVO();
@@ -167,7 +173,13 @@ public class FabricWorkspaceAssembler implements GenericAssembler<FabricWorkspac
 					cdcPublishedLakeHouseDetails.setIsLakeHousesPublishedToCdc(data.getCdcPublishedLakeHouseDetails().getIsLakeHousesPublishedToCdc());
 					vo.setCdcPublishedLakeHouseDetails(cdcPublishedLakeHouseDetails);
 				}
-				vo.setDdxPublishedLakeHouseDetails(data.getDdxPublishedLakeHouseDetails());
+				List<DdxProduct> ddxProducts = data.getDdxPublishedLakeHouseDetails();
+				if(ddxProducts != null && !ddxProducts.isEmpty()) {
+					List<DdxPublishedLakeHouseDetailsVO> ddxVOs = ddxProducts.stream()
+						.map(ddxAssembler::toVo)
+						.collect(Collectors.toList());
+					vo.setDdxPublishedLakeHouseDetails(ddxVOs);
+				}
 			}
 		}
 		return vo;
@@ -425,7 +437,13 @@ public class FabricWorkspaceAssembler implements GenericAssembler<FabricWorkspac
 				cdcLakehouseDetails.setIsLakeHousesPublishedToCdc(vo.getCdcPublishedLakeHouseDetails().isIsLakeHousesPublishedToCdc());
 				data.setCdcPublishedLakeHouseDetails(cdcLakehouseDetails);
 			}
-			data.setDdxPublishedLakeHouseDetails(vo.getDdxPublishedLakeHouseDetails());
+			List<DdxPublishedLakeHouseDetailsVO> ddxVOs = vo.getDdxPublishedLakeHouseDetails();
+			if(ddxVOs != null && !ddxVOs.isEmpty()) {
+				List<DdxProduct> ddxProducts = ddxVOs.stream()
+					.map(ddxAssembler::toProduct)
+					.collect(Collectors.toList());
+				data.setDdxPublishedLakeHouseDetails(ddxProducts);
+			}
 			entity.setData(data);
 		}
 		return entity;
