@@ -8,6 +8,8 @@ import com.daimler.data.assembler.FabricWorkspaceAssembler;
 import com.daimler.data.controller.exceptions.*;
 import com.daimler.data.db.entities.FabricCatalogMetadataNsql;
 import com.daimler.data.db.entities.FabricWorkspaceNsql;
+import com.daimler.data.db.json.CdcPublishedLakeHouseDetails;
+import com.daimler.data.db.json.FabricWorkspace;
 import com.daimler.data.db.json.catalogManangement.FabricCatalogMetadataDetails;
 import com.daimler.data.db.repo.catalogManagement.FabricCatalogManagementCustomRepository;
 import com.daimler.data.db.repo.catalogManagement.FabricCatalogManagementRepository;
@@ -547,17 +549,28 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
 
     private void updateLakeHouseDetails(FabricWorkspaceVO workspace, FabricCatalogMetadataVO metadata) {
         try {
-            CdcPublishedLakeHouseDetailsVO details = Optional.ofNullable(workspace.getCdcPublishedLakeHouseDetails())
-                .orElse(new CdcPublishedLakeHouseDetailsVO());
-                
-            details.setIsLakeHousesPublishedToCdc(true);
-            details.setPublishedLakeHouseNames(
-                metadata.getDatabases().stream()
-                    .map(DatabaseMetadataVO::getDbId)
-                    .collect(Collectors.toList()));
-            
-            workspace.setCdcPublishedLakeHouseDetails(details);
-            jpaRepo.save(assembler.toEntity(workspace));
+            List<String> publishedNames = metadata.getDatabases().stream()
+                .map(DatabaseMetadataVO::getDbId)
+                .collect(Collectors.toList());
+
+            // Update the entity directly to avoid the lossy VO <-> Entity
+            // round-trip that drops unmapped JSONB fields.
+            Optional<FabricWorkspaceNsql> entityOpt = jpaRepo.findById(workspace.getId());
+            if (entityOpt.isPresent()) {
+                FabricWorkspaceNsql entity = entityOpt.get();
+                FabricWorkspace data = entity.getData();
+                if (data != null) {
+                    CdcPublishedLakeHouseDetails cdcDetails = data.getCdcPublishedLakeHouseDetails();
+                    if (cdcDetails == null) {
+                        cdcDetails = new CdcPublishedLakeHouseDetails();
+                    }
+                    cdcDetails.setIsLakeHousesPublishedToCdc(true);
+                    cdcDetails.setPublishedLakeHouseNames(publishedNames);
+                    data.setCdcPublishedLakeHouseDetails(cdcDetails);
+                    entity.setData(data);
+                    jpaRepo.save(entity);
+                }
+            }
         } catch (Exception e) {
             log.error("Failed to update lake house details: {}", e.getMessage());
             throw new OpenMetadataClientException("Failed to update lake house details: " + e.getMessage(), e);

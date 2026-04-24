@@ -38,6 +38,7 @@ import com.daimler.data.db.entities.FabricWorkspaceNsql;
 import com.daimler.data.db.json.ADAProjectDetails;
 import com.daimler.data.db.json.AuthoriserRoleDeatils;
 import com.daimler.data.db.json.FabricWorkspace;
+import com.daimler.data.db.json.FabricWorkspaceStatus;
 import com.daimler.data.db.json.Lakehouse;
 import com.daimler.data.db.json.UserDetails;
 import com.daimler.data.db.repo.fabric.FabricWorkspaceCustomRepository;
@@ -1587,10 +1588,23 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 					}
 				}
 			}
-			existingWorkspace.getStatus().setState(ConstantsUtility.DELETED_STATE);
-			existingWorkspace.setLastModifiedOn(new Date());
-			existingWorkspace.setDeletedOn(new Date());
-			jpaRepo.save(assembler.toEntity(existingWorkspace));
+			// Update the entity directly to avoid the lossy VO <-> Entity
+			// round-trip that drops unmapped JSONB fields.
+			Optional<FabricWorkspaceNsql> entityOpt = jpaRepo.findById(id);
+			if (entityOpt.isPresent()) {
+				FabricWorkspaceNsql entity = entityOpt.get();
+				FabricWorkspace data = entity.getData();
+				if (data != null) {
+					FabricWorkspaceStatus status = data.getStatus();
+					if (status != null) {
+						status.setState(ConstantsUtility.DELETED_STATE);
+					}
+					data.setLastModifiedOn(new Date());
+					data.setDeletedOn(new Date());
+					entity.setData(data);
+					jpaRepo.save(entity);
+				}
+			}
 			responseMessage.setSuccess("SUCCESS");
 			responseMessage.setErrors(errors);
 			responseMessage.setWarnings(warnings);
@@ -1618,9 +1632,34 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		}catch(Exception e) {
 			log.error("Failed to update project {} details in MicrosoftFabric, Will be updated in next action.", existingFabricWorkspace.getId());
 		}
-		FabricWorkspaceNsql updatedEntity = assembler.toEntity(existingFabricWorkspace);
 		updateTags(existingFabricWorkspace);
-		jpaRepo.save(updatedEntity);
+		// Update the entity directly to avoid the lossy VO <-> Entity
+		// round-trip that drops unmapped JSONB fields.
+		Optional<FabricWorkspaceNsql> entityOpt = jpaRepo.findById(existingFabricWorkspace.getId());
+		if (entityOpt.isPresent()) {
+			FabricWorkspaceNsql entity = entityOpt.get();
+			FabricWorkspace data = entity.getData();
+			if (data != null) {
+				data.setName(existingFabricWorkspace.getName());
+				data.setDescription(existingFabricWorkspace.getDescription());
+				data.setDivisionId(existingFabricWorkspace.getDivisionId());
+				data.setDivision(existingFabricWorkspace.getDivision());
+				data.setSubDivisionId(existingFabricWorkspace.getSubDivisionId());
+				data.setSubDivision(existingFabricWorkspace.getSubDivision());
+				data.setDepartment(existingFabricWorkspace.getDepartment());
+				data.setTags(existingFabricWorkspace.getTags());
+				data.setDataClassification(existingFabricWorkspace.getDataClassification());
+				data.setArcherId(existingFabricWorkspace.getArcherId());
+				data.setProcedureId(existingFabricWorkspace.getProcedureId());
+				data.setTermsOfUse(existingFabricWorkspace.isTermsOfUse());
+				data.setHasPii(existingFabricWorkspace.isHasPii());
+				data.setCostCenter(existingFabricWorkspace.getCostCenter());
+				data.setInternalOrder(existingFabricWorkspace.getInternalOrder());
+				data.setLastModifiedOn(new Date());
+				entity.setData(data);
+				jpaRepo.save(entity);
+			}
+		}
 		return existingFabricWorkspace;
 	}
 	
