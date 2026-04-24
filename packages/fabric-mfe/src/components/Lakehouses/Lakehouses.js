@@ -669,7 +669,7 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
                       </div>
                     </>
                   )}
-                  {workspace?.ddxPublishedLakeHouseDetails?.publishedLakeHouseNames?.includes(lakehouse.name) && (
+                  {workspace?.ddxPublishedLakeHouseDetails?.some(d => d.lakeHouseId === lakehouse.id) && (
                     <>
                       <span className={Styles.statusIndicator}>
                         <span
@@ -681,7 +681,7 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
                       </span>
                       <div className={Styles.cdcNewTab}>
                         <a
-                          href={`${(Envs.DDX_DOF_BASE_URL || '').replace(/\/$/, '')}/myDataProducts/onboardingForm/${workspace?.ddxPublishedLakeHouseDetails?.productId}`}
+                          href={`${(Envs.DDX_DOF_BASE_URL || '').replace(/\/$/, '')}/myDataProducts/onboardingForm/${workspace?.ddxPublishedLakeHouseDetails?.find(d => d.lakeHouseId === lakehouse.id)?.dataProducts?.slice()?.sort((a, b) => new Date(b.createdOn) - new Date(a.createdOn))?.[0]?.productId}`}
                           target="_blank"
                           rel="noopener noreferrer"
                         >
@@ -810,6 +810,7 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
               workspaceDivision={workspace?.division} 
               lakehouseId={selectedLakehouse?.id} 
               lakehouseName={selectedLakehouse?.name} 
+              ddxPublishedLakeHouseDetails={workspace?.ddxPublishedLakeHouseDetails}
               onRefreshWorkspace={onRefreshWorkspace} />}
           scrollableContent={true}
           onCancel={() => { setSelectedLakehouse(); setShowDdxViewTablesModal(false) }}

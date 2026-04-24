@@ -31,6 +31,12 @@ const getCodeSpaceStatus = (id) => {
         data: {},
     });
 };
+
+const getWorkspaceById = (id) => { 
+    return server.get(`workspaces/${id}`, {
+        data: {},
+    });
+};
   
 const deleteCodeSpace = (id) => { 
     return server.delete(`workspaces/${id}`, {
@@ -423,6 +429,12 @@ const deleteCodeSpaceGroup = (id) => {
 const getExistingRoles = (appId) => {
     return fabricServer.get(`fabric-workspaces/${appId}/dnaroles`, {
         data: {},
+        validateStatus: (status) => (status >= 200 && status < 300) || status === 204,
+    }).then(response => {
+        if (response.status === 204 || !response.data) {
+            return { data: { roles: [] } };
+        }
+        return response;
     });
 };
 
@@ -431,6 +443,7 @@ export const CodeSpaceApiClient = {
     createCodeSpace,
     editCodeSpace,
     getCodeSpaceStatus,
+    getWorkspaceById,
     deleteCodeSpace,
     getCodeSpacesGitBranchList,
     deployCodeSpace,

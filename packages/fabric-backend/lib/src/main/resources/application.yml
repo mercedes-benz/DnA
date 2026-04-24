@@ -2,7 +2,7 @@ spring:
   mvc.pathmatch.matching-strategy: ant_path_matcher
   application:
     name: dna-fabric-workspace-service
-    version: 1.5.2
+    version: 1.5.6
   profile:
     active: production
 
@@ -160,6 +160,21 @@ ddxIntegration:
     grantType: ${DDX_OAUTH_GRANT_TYPE:client_credentials}
     scope: ${DDX_OAUTH_SCOPE:XXXX}
     tenantId: ${DDX_OAUTH_TENANT_ID:XXXX}
+
+uilicious:
+  email: ${UILICIOUS_PID_USER:XXXX}
+  password: ${UILICIOUS_PID_PASSWORD:XXXX}
+  accessKey: ${UILICIOUS_ACCESS_KEY:XXXX}
+  browser: ${UILICIOUS_BROWSER:firefox}
+  width: ${UILICIOUS_WIDTH:1280}
+  height: ${UILICIOUS_HEIGHT:800}
+  filePath: ${UILICIOUS_FILE_PATH:XXXX}
+  projectID: ${UILICIOUS_PROJECT_ID:XXXX}
+  baseURL: ${UILICIOUS_BASE_URL:XXXX}
+  contentType: ${UILICIOUS_CONTENT_TYPE:XXXX}
+  userAgent: ${UILICIOUS_USER_AGENT:XXXX}
+  servicePrincipalName: ${UILICIOUS_SERVICE_PRINCIPAL_NAME:XXXX}
+  identifier: ${UILICIOUS_PID_USER_IDENTIFIER:XXXX}
 
 databricksIntegration:
   url:

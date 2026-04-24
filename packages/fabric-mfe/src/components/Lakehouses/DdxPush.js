@@ -170,7 +170,7 @@ const Step2_OwnershipGovernance = ({
       <div className={Styles.col}>
         <div className={classNames('input-field-group include-error', errors.informationOwnerError ? 'error' : '')}>
           <label htmlFor="informationOwner" className="input-label">
-            Information Owner <sup>*</sup> (Kindly find more information
+            Information Owner <sup>*</sup> (Please provide ShortID. Kindly find more information
             <a href={Envs.INFORMATION_OWNER_URL} target="_blank" rel="noopener noreferrer"> here</a>)
           </label>
           <input
@@ -696,7 +696,9 @@ const Step5_PersonalData = ({ formData, setFormData, errors, clearError, criteri
   );
 };
 
-const ViewDdxTablesModalContent = ({ workspaceId, workspaceName, workspaceOwner, workspaceDivision, lakehouseId, lakehouseName, onRefreshWorkspace }) => {
+const ViewDdxTablesModalContent = ({ workspaceId, workspaceName, workspaceOwner, workspaceDivision, lakehouseId, lakehouseName, ddxPublishedLakeHouseDetails, onRefreshWorkspace }) => {
+
+  const isDdxAlreadyPushed = ddxPublishedLakeHouseDetails?.some(d => d.lakeHouseId === lakehouseId);
 
   useEffect(() => {
     Tooltip.defaultSetup();
@@ -1031,7 +1033,7 @@ const ViewDdxTablesModalContent = ({ workspaceId, workspaceName, workspaceOwner,
         )}
 
         {currentStep === 'step5' && (
-          <button className={hasSubmittedOnce ? 'btn btn-primary' : 'btn btn-tertiary'} type="button" disabled={hasSubmittedOnce} onClick={handleSubmit}>
+          <button className={(hasSubmittedOnce || isDdxAlreadyPushed) ? 'btn btn-primary' : 'btn btn-tertiary'} type="button" disabled={hasSubmittedOnce || isDdxAlreadyPushed} onClick={handleSubmit} title={isDdxAlreadyPushed ? 'A DDX data product has already been published for this lakehouse' : ''}>
             Submit
           </button>
         )}
