@@ -2,10 +2,10 @@ package com.daimler.data.assembler;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Map;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.BeanUtils;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.util.ObjectUtils;
 
@@ -14,6 +14,7 @@ import com.daimler.data.db.entities.FabricWorkspaceNsql;
 import com.daimler.data.db.json.AuthoriserRoleDeatils;
 import com.daimler.data.db.json.Capacity;
 import com.daimler.data.db.json.CdcPublishedLakeHouseDetails;
+import com.daimler.data.db.json.DdxProduct;
 import com.daimler.data.db.json.EntitlementDetails;
 import com.daimler.data.db.json.FabricWorkspace;
 import com.daimler.data.db.json.FabricWorkspaceStatus;
@@ -28,6 +29,7 @@ import com.daimler.data.dto.fabric.LakehouseS3ShortcutDto;
 import com.daimler.data.dto.fabricWorkspace.CapacityVO;
 import com.daimler.data.dto.fabricWorkspace.CdcPublishedLakeHouseDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.CreatedByVO;
+import com.daimler.data.dto.fabricWorkspace.DdxPublishedLakeHouseDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.CustomGroupNameCollectionVO;
 import com.daimler.data.dto.fabricWorkspace.DnaRolesVO;
 import com.daimler.data.dto.fabricWorkspace.EntitlementDetailsVO;
@@ -48,6 +50,9 @@ import com.daimler.data.db.json.CustomGroupNameCollection;
 
 @Component
 public class FabricWorkspaceAssembler implements GenericAssembler<FabricWorkspaceVO, FabricWorkspaceNsql> {
+
+	@Autowired
+	private DdxDataProductsDetailsAssembler ddxAssembler;
 	
 	public FabricLakehouseVO toLakehouseVOFromDto(LakehouseDto lakehouseDto) {
 		FabricLakehouseVO vo = new FabricLakehouseVO();
@@ -169,7 +174,10 @@ public class FabricWorkspaceAssembler implements GenericAssembler<FabricWorkspac
 					vo.setCdcPublishedLakeHouseDetails(cdcPublishedLakeHouseDetails);
 				}
 				if (data.getDdxPublishedLakeHouseDetails() != null) {
-					vo.setDdxPublishedLakeHouseDetails(new ArrayList<>(data.getDdxPublishedLakeHouseDetails()));
+					List<DdxPublishedLakeHouseDetailsVO> ddxVOs = data.getDdxPublishedLakeHouseDetails().stream()
+						.map(ddxAssembler::toVo)
+						.collect(Collectors.toList());
+					vo.setDdxPublishedLakeHouseDetails(ddxVOs);
 				}
 			}
 		}
@@ -402,23 +410,12 @@ public class FabricWorkspaceAssembler implements GenericAssembler<FabricWorkspac
 				cdcLakehouseDetails.setIsLakeHousesPublishedToCdc(vo.getCdcPublishedLakeHouseDetails().isIsLakeHousesPublishedToCdc());
 				data.setCdcPublishedLakeHouseDetails(cdcLakehouseDetails);
 			}
-			// Extract lakehouse IDs from the VO's ddxPublishedLakeHouseDetails.
-			// The list may contain plain Strings (IDs) or enriched Maps with "lakeHouseId" field.
-			List<Object> ddxDetails = vo.getDdxPublishedLakeHouseDetails();
-			if (ddxDetails != null) {
-				List<String> lakehouseIds = new ArrayList<>();
-				for (Object item : ddxDetails) {
-					if (item instanceof String) {
-						lakehouseIds.add((String) item);
-					} else if (item instanceof Map) {
-						Map<?, ?> map = (Map<?, ?>) item;
-						Object idVal = map.get("lakeHouseId");
-						if (idVal != null) {
-							lakehouseIds.add(String.valueOf(idVal));
-						}
-					}
-				}
-				data.setDdxPublishedLakeHouseDetails(lakehouseIds);
+			if (vo.getDdxPublishedLakeHouseDetails() != null) {
+				List<DdxProduct> ddxProducts = vo.getDdxPublishedLakeHouseDetails().stream()
+					.filter(item -> item instanceof DdxPublishedLakeHouseDetailsVO)
+					.map(item -> ddxAssembler.toProduct((DdxPublishedLakeHouseDetailsVO) item))
+					.collect(Collectors.toList());
+				data.setDdxPublishedLakeHouseDetails(ddxProducts);
 			}
 			entity.setData(data);
 		}

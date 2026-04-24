@@ -855,8 +855,8 @@ definitions:
       ddxPublishedLakeHouseDetails:
         type: array
         items:
-          type: object
-        description: "List of enriched DDX product details keyed by lakehouseId from ddx_dataProducts_details_nsql table"
+          $ref: "#/definitions/DdxPublishedLakeHouseDetailsVO"
+        description: "List of DDX published lakehouse details with full product information"
 
   FabricWorkspaceStatusVO:
     type: object

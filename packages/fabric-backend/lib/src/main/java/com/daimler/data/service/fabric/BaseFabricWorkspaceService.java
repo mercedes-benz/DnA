@@ -44,6 +44,10 @@ import com.daimler.data.db.json.ADAProjectDetails;
 import com.daimler.data.db.json.DdxDataProductsDetail;
 import com.daimler.data.db.json.DdxProduct;
 import com.daimler.data.db.json.AuthoriserRoleDeatils;
+import com.daimler.data.db.json.CdcPublishedLakeHouseDetails;
+import com.daimler.data.db.json.FabricWorkspace;
+import com.daimler.data.db.json.FabricWorkspaceStatus;
+import com.daimler.data.db.json.Lakehouse;
 import com.daimler.data.db.json.UserDetails;
 import com.daimler.data.db.repo.ddxDataProductsDetails.DdxDataProductsDetailsRepository;
 import com.daimler.data.db.repo.fabric.FabricWorkspaceCustomRepository;
@@ -423,11 +427,31 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 					lakehouseVOs = value.stream().map(n -> assembler.toLakehouseVOFromDto(n)).collect(Collectors.toList());
 					voFromDb.setLakehouses(lakehouseVOs);
 				}
-				FabricWorkspaceNsql updatedEntity = assembler.toEntity(voFromDb);
-				log.info("Successfully updated latest displayName and description from Fabric to Database for project id {}", id);
-				jpaRepo.save(updatedEntity);
+				Optional<FabricWorkspaceNsql> entityOpt = jpaRepo.findById(id);
+				if(entityOpt.isPresent()) {
+					FabricWorkspaceNsql entity = entityOpt.get();
+					FabricWorkspace data = entity.getData();
+					if(data != null && lakehousesCollection!=null && lakehousesCollection.getValue()!=null && !lakehousesCollection.getValue().isEmpty()) {
+						List<Lakehouse> lakehouses = lakehousesCollection.getValue().stream().map(n -> {
+							Lakehouse lh = new Lakehouse();
+							lh.setId(n.getId());
+							lh.setName(n.getDisplayName());
+							lh.setDescription(n.getDescription());
+							if(n.getDisplayName()!=null && n.getDisplayName().toLowerCase().contains("dev")) {
+								lh.setSensitivityLabel("Internal");
+							}else {
+								lh.setSensitivityLabel("Confidential");
+							}
+							return lh;
+						}).collect(Collectors.toList());
+						data.setLakehouses(lakehouses);
+						entity.setData(data);
+						jpaRepo.save(entity);
+					}
+				}
+				log.info("Successfully updated lakehouses from Fabric to Database for project id {}", id);
 			}catch(Exception e) {
-				log.error("Failed to update latest displayName and description from Fabric to Database for project id {}, with error {} . Will be updated in next fetch", id, e.getMessage());
+				log.error("Failed to update lakehouses from Fabric to Database for project id {}, with error {} . Will be updated in next fetch", id, e.getMessage());
 			}
 //		}
 		// Enrich ddxPublishedLakeHouseDetails with full product data from ddx_dataProducts_details_nsql
@@ -436,39 +460,14 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 	}
 
 	/**
-	 * Replaces the lakehouse ID strings in ddxPublishedLakeHouseDetails with
-	 * enriched objects containing lakeHouseId and dataProducts from the
-	 * ddx_dataProducts_details_nsql table.
+	 * The ddxPublishedLakeHouseDetails are already fully typed DdxPublishedLakeHouseDetailsVO
+	 * objects after the assembler conversion, so no extra enrichment is needed.
+	 * This method is kept as a no-op placeholder for forward compatibility.
 	 */
 	private void enrichDdxPublishedLakeHouseDetails(FabricWorkspaceVO vo) {
-		if (vo == null || vo.getDdxPublishedLakeHouseDetails() == null || vo.getDdxPublishedLakeHouseDetails().isEmpty()) {
-			return;
-		}
-		try {
-			List<Object> enrichedList = new ArrayList<>();
-			for (Object item : vo.getDdxPublishedLakeHouseDetails()) {
-				String lakehouseId = (item instanceof String) ? (String) item : String.valueOf(item);
-				Optional<DdxDataProductsDetailsNsql> detailOpt = ddxDataProductsDetailsRepo.findById(lakehouseId);
-				Map<String, Object> lakehouseEntry = new LinkedHashMap<>();
-				lakehouseEntry.put("lakeHouseId", lakehouseId);
-				if (detailOpt.isPresent()) {
-					DdxDataProductsDetail data = detailOpt.get().getData();
-					if (data != null && data.getDdxProducts() != null) {
-						lakehouseEntry.put("dataProducts", data.getDdxProducts().stream()
-							.map(ddxDataProductsDetailsAssembler::toVo)
-							.collect(Collectors.toList()));
-					} else {
-						lakehouseEntry.put("dataProducts", new ArrayList<>());
-					}
-				} else {
-					lakehouseEntry.put("dataProducts", new ArrayList<>());
-				}
-				enrichedList.add(lakehouseEntry);
-			}
-			vo.setDdxPublishedLakeHouseDetails(enrichedList);
-		} catch (Exception e) {
-			log.error("Failed to enrich ddxPublishedLakeHouseDetails for workspace {}: {}", vo.getId(), e.getMessage(), e);
-		}
+		// No-op: ddxPublishedLakeHouseDetails are now stored as typed DdxProduct
+		// objects in the entity and converted to DdxPublishedLakeHouseDetailsVO
+		// by the assembler. No additional enrichment needed.
 	}
 
 	@Override
@@ -1629,10 +1628,21 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 					}
 				}
 			}
-			existingWorkspace.getStatus().setState(ConstantsUtility.DELETED_STATE);
-			existingWorkspace.setLastModifiedOn(new Date());
-			existingWorkspace.setDeletedOn(new Date());
-			jpaRepo.save(assembler.toEntity(existingWorkspace));
+				existingWorkspace.getStatus().setState(ConstantsUtility.DELETED_STATE);
+				existingWorkspace.setLastModifiedOn(new Date());
+				existingWorkspace.setDeletedOn(new Date());
+				Optional<FabricWorkspaceNsql> deleteEntityOpt = jpaRepo.findById(id);
+				if (deleteEntityOpt.isPresent()) {
+					FabricWorkspaceNsql deleteEntity = deleteEntityOpt.get();
+					FabricWorkspace deleteData = deleteEntity.getData();
+					if (deleteData != null && deleteData.getStatus() != null) {
+						deleteData.getStatus().setState(ConstantsUtility.DELETED_STATE);
+					}
+					deleteData.setLastModifiedOn(new Date());
+					deleteData.setDeletedOn(new Date());
+					deleteEntity.setData(deleteData);
+					jpaRepo.save(deleteEntity);
+				}
 			responseMessage.setSuccess("SUCCESS");
 			responseMessage.setErrors(errors);
 			responseMessage.setWarnings(warnings);
@@ -1660,9 +1670,19 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		}catch(Exception e) {
 			log.error("Failed to update project {} details in MicrosoftFabric, Will be updated in next action.", existingFabricWorkspace.getId());
 		}
-		FabricWorkspaceNsql updatedEntity = assembler.toEntity(existingFabricWorkspace);
 		updateTags(existingFabricWorkspace);
-		jpaRepo.save(updatedEntity);
+		Optional<FabricWorkspaceNsql> updateEntityOpt = jpaRepo.findById(existingFabricWorkspace.getId());
+		if (updateEntityOpt.isPresent()) {
+			FabricWorkspaceNsql updateEntity = updateEntityOpt.get();
+			FabricWorkspace updateData = updateEntity.getData();
+			if (updateData != null) {
+				updateData.setName(existingFabricWorkspace.getName());
+				updateData.setDescription(existingFabricWorkspace.getDescription());
+				updateData.setTags(existingFabricWorkspace.getTags());
+				updateEntity.setData(updateData);
+				jpaRepo.save(updateEntity);
+			}
+		}
 		return existingFabricWorkspace;
 	}
 	
@@ -2336,6 +2356,70 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		return responses;
 	}
 
+
+	@Override
+	@Transactional
+	public void updateWorkspaceDirectly(String workspaceId, FabricWorkspaceStatusVO statusVO, String name, String description) {
+		Optional<FabricWorkspaceNsql> entityOpt = jpaRepo.findById(workspaceId);
+		if (entityOpt.isPresent()) {
+			FabricWorkspaceNsql entity = entityOpt.get();
+			FabricWorkspace data = entity.getData();
+			if (data != null) {
+				if (name != null) {
+					data.setName(name);
+				}
+				if (description != null) {
+					data.setDescription(description);
+				}
+				if (statusVO != null) {
+					FabricWorkspaceStatus status = data.getStatus();
+					if (status == null) {
+						status = new FabricWorkspaceStatus();
+					}
+					status.setState(statusVO.getState());
+					if (statusVO.getEntitlements() != null) {
+						List<com.daimler.data.db.json.EntitlementDetails> entitlements = statusVO.getEntitlements().stream()
+							.map(e -> {
+								com.daimler.data.db.json.EntitlementDetails ed = new com.daimler.data.db.json.EntitlementDetails();
+								org.springframework.beans.BeanUtils.copyProperties(e, ed);
+								return ed;
+							}).collect(Collectors.toList());
+						status.setEntitlements(entitlements);
+					}
+					if (statusVO.getRoles() != null) {
+						List<com.daimler.data.db.json.RoleDetails> roles = statusVO.getRoles().stream()
+							.map(r -> {
+								com.daimler.data.db.json.RoleDetails rd = new com.daimler.data.db.json.RoleDetails();
+								org.springframework.beans.BeanUtils.copyProperties(r, rd);
+								if (r.getEntitlements() != null) {
+									List<com.daimler.data.db.json.EntitlementDetails> roleEnts = r.getEntitlements().stream()
+										.map(re -> {
+											com.daimler.data.db.json.EntitlementDetails red = new com.daimler.data.db.json.EntitlementDetails();
+											org.springframework.beans.BeanUtils.copyProperties(re, red);
+											return red;
+										}).collect(Collectors.toList());
+									rd.setEntitlements(roleEnts);
+								}
+								return rd;
+							}).collect(Collectors.toList());
+						status.setRoles(roles);
+					}
+					if (statusVO.getMicrosoftGroups() != null) {
+						List<com.daimler.data.db.json.GroupDetails> groups = statusVO.getMicrosoftGroups().stream()
+							.map(g -> {
+								com.daimler.data.db.json.GroupDetails gd = new com.daimler.data.db.json.GroupDetails();
+								org.springframework.beans.BeanUtils.copyProperties(g, gd);
+								return gd;
+							}).collect(Collectors.toList());
+						status.setMicrosoftGroups(groups);
+					}
+					data.setStatus(status);
+				}
+				entity.setData(data);
+				jpaRepo.save(entity);
+			}
+		}
+	}
 
 	@Override
 	public ADAProjectDetailsCollectionVO searchProjects(String projectName) {
