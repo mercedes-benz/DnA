@@ -20,6 +20,7 @@ import org.springframework.web.client.RestTemplate;
 
 import com.daimler.data.dto.fabric.UiLicioueStepsDto;
 import com.daimler.data.dto.fabricCatalogManagement.GroupStatusResponseVO;
+import com.daimler.data.service.catalogManagement.BaseFabricCatalogManagementService;
 import com.daimler.data.util.ConstantsUtility;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -173,7 +174,7 @@ public class UiLiciousClient {
             .toList();
         if(groupsStatusStep.isEmpty()){
             log.warn("No group status found in the API response for lakehouseId: {}", lakehouseId);
-            return new ArrayList<>();
+            return Collections.emptyList();
         }
         List<Map<String, String>> responseGroupsStatusList = new ArrayList<>();
         try {
