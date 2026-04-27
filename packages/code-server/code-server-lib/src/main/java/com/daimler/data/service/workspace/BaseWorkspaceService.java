@@ -168,6 +168,9 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 	 @Value("${codeServer.git.ghe.pat}")
      private String ghePat;
 
+	 @Value("${workspace.git-job.stale-threshold-minutes:30}")
+	 private int staleThresholdMinutes;
+
 	 @Value("${codeServer.git.pat}")
 	 private String gitPat;
 
@@ -5726,6 +5729,39 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 			else {
 				// status = queued | in_progress
 				// conclusion = null
+
+				// Check if the workflow is stuck beyond the stale threshold
+				if (run.getUpdatedAt() != null) {
+					long minutesSinceUpdate = Duration.between(
+						run.getUpdatedAt().toInstant(), Instant.now()
+					).toMinutes();
+
+					if (minutesSinceUpdate >= staleThresholdMinutes) {
+						String failedStatus = "BUILD_REQUESTED".equalsIgnoreCase(currentStatus)
+							? "BUILD_FAILED" : "DEPLOY_FAILED";
+
+						log.warn("GitHub workflow run {} stuck for {} minutes (threshold: {}). Marking as {}.",
+							dto.getGitjobRunId(), minutesSinceUpdate, staleThresholdMinutes, failedStatus);
+
+						workspaceCustomRepository.updateGitRunIdStatus(
+							projectName, failedStatus, dto.getEnvironment()
+						);
+						workspaceCustomRepository.updateBuildDeployAuditStatus(
+							projectName, failedStatus, dto.getEnvironment(), dto.getGitjobRunId()
+						);
+
+						statusVo.setStatus(failedStatus);
+						MessageDescription warning = new MessageDescription();
+						warning.setMessage(
+							"GitHub workflow stuck for " + minutesSinceUpdate +
+							" minutes (threshold: " + staleThresholdMinutes +
+							"min). Marked as " + failedStatus +
+							". Run ID: " + dto.getGitjobRunId()
+						);
+						vo.setWarnings(List.of(warning));
+						return vo;
+					}
+				}
 
 				statusVo.setStatus(null);
 
