@@ -64,48 +64,36 @@ public class WorkspaceBackgroundJobsService {
 	@PostConstruct
 	public void initForEnablingExistingOwnersToFabricRole() {
 		if(enableOwnersOnboardingToFabricRoleOnStartup!=null && enableOwnersOnboardingToFabricRoleOnStartup.equalsIgnoreCase("true")) {
-			log.info("Owner onboarding to fabric operations role is enabled on startup, starting background thread");
-			Thread onboardingThread = new Thread(() -> {
-				try {
-					FabricWorkspacesCollectionVO collection = fabricService.getAllLov(0,0);
-					List<FabricWorkspaceVO> workspaceVOs = collection!=null ? collection.getRecords() : new ArrayList<>();
-					log.info("Fetched all fabric workspaces from service successfully during startup onboarding job");
-					if(workspaceVOs!=null && !workspaceVOs.isEmpty()) {
-						log.info("During startup onboarding job, fetch success. Workspaces available, proceeding with onboarding owners for each");
-						for(FabricWorkspaceVO workspaceVO: workspaceVOs) {
-							try {
-								String ownerId = workspaceVO.getCreatedBy().getId();
-								Date validFromDate = new Date();
-								String validFrom = sdf.format(validFromDate);
-								Calendar calendar = Calendar.getInstance();
-								calendar.setTime(validFromDate);
-								calendar.add(Calendar.YEAR, 1);
-								Date validToDate = calendar.getTime();
-								String validTo = sdf.format(validToDate);
-								UserRoleRequestDto roleRequestDto = new UserRoleRequestDto();
-								roleRequestDto.setReason("Onboarding owner to role to enable fabric operations.");
-								roleRequestDto.setValidTo(validTo);
-								roleRequestDto.setValidFrom(validFrom);
-								HttpStatus status = identityClient.RequestRoleForUser(roleRequestDto, ownerId, fabricOperationsRoleName);
-								if(status.is2xxSuccessful()){
-									log.info("Successfully onboarded owner {} of workspace {} : {} to role {} for enabling fabric operations", ownerId, workspaceVO.getId(), workspaceVO.getName(), fabricOperationsRoleName);
-								}else {
-									log.warn("Failed to onboard owner {} of workspace {} : {} to role {} for enabling fabric operations", ownerId, workspaceVO.getId(), workspaceVO.getName(), fabricOperationsRoleName);
-								}
-							}catch(Exception e) {
-								log.warn("Failed to onboard owner of workspace {} : {} to role {} : {}", workspaceVO.getId(), workspaceVO.getName(), fabricOperationsRoleName, e.getMessage());
-							}
-						}
+			FabricWorkspacesCollectionVO collection = fabricService.getAllLov(0,0);
+			List<FabricWorkspaceVO> workspaceVOs = collection!=null ? collection.getRecords() : new ArrayList<>();
+			log.info("Fetched all fabric workspaces from service successfully during scheduled job");
+			if(workspaceVOs!=null && !workspaceVOs.isEmpty()) {
+				log.info("During scheduled job, fetch success. Workspaces available, proceeding with processing user management for each");
+				for(FabricWorkspaceVO workspaceVO: workspaceVOs) {
+					try {
+						String ownerId = workspaceVO.getCreatedBy().getId();
+						Date validFromDate = new Date();//workspaceVO.getCreatedOn();
+						String validFrom = sdf.format(validFromDate);
+						Calendar calendar = Calendar.getInstance();
+				        calendar.setTime(validFromDate);
+				        calendar.add(Calendar.YEAR, 1);
+				        Date validToDate = calendar.getTime();
+						String validTo = sdf.format(validToDate);
+						UserRoleRequestDto roleRequestDto = new UserRoleRequestDto();
+						roleRequestDto.setReason("Onboarding owner to role to enable fabric operations.");
+						roleRequestDto.setValidTo(validTo);
+						roleRequestDto.setValidFrom(validFrom);
+						HttpStatus status = identityClient.RequestRoleForUser(roleRequestDto, ownerId, fabricOperationsRoleName);
+						if(status.is2xxSuccessful()){
+				            log.info("Successfully onboarded owner {} of workspace {} : {} to role {} for enabling fabric operations", ownerId, workspaceVO.getId(), workspaceVO.getName(), fabricOperationsRoleName);
+				        }else {
+				        	log.error("Failed to onboarded owner {} of workspace {} : {} to role {} for enabling fabric operations", ownerId, workspaceVO.getId(), workspaceVO.getName(), fabricOperationsRoleName);
+				        }
+					}catch(Exception e) {
+						log.error("Failed to onboard owner of workspace {} : {} to role {} ",workspaceVO.getId(),workspaceVO.getName(),fabricOperationsRoleName);
 					}
-					log.info("Startup onboarding job completed");
-				} catch (Exception e) {
-					log.error("Startup onboarding job failed with exception: {}", e.getMessage(), e);
 				}
-			}, "fabric-owner-onboarding");
-			onboardingThread.setDaemon(true);
-			onboardingThread.start();
-		} else {
-			log.info("Owner onboarding to fabric operations role is disabled on startup");
+			}
 		}
 	}
 	
