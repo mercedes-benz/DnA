@@ -53,7 +53,7 @@ spring:
     
 workspace:
   git-job:
-    stale-threshold-minutes: ${GIT_JOB_STALE_THRESHOLD_MINUTES:30}
+    stale-threshold-minutes: ${GIT_JOB_STALE_THRESHOLD_MINUTES:3}
 
 dna:
   uri: ${DNA_URI:XXXXXX}
