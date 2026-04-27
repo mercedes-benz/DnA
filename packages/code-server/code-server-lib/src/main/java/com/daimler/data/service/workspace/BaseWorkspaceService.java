@@ -167,6 +167,9 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 	 @Value("${codeServer.git.ghe.pat}")
      private String ghePat;
 
+	 @Value("${workspace.git-job.stale-threshold-minutes:3}")
+	 private int staleThresholdMinutes;
+
 	 @Value("${codeServer.git.pat}")
 	 private String gitPat;
 
@@ -5482,9 +5485,40 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 		/* Requested states → call GitHub */
 		if (isRequestedStatus(currentStatus)) {
 			if(dto.getGitjobRunId() == null || dto.getGitjobRunId().isBlank()) {
-				MessageDescription error = new MessageDescription();
-				error.setMessage("Workspace is queued for build/deploy generating GitJobRunId wait for some time.");
-				vo.setWarnings(List.of(error));
+				// Check if the request has been waiting too long without generating a run ID
+				if (dto.getLastBuildOrDeployedOn() != null) {
+					long minutesSinceRequest = Duration.between(
+						dto.getLastBuildOrDeployedOn().toInstant(), Instant.now()
+					).toMinutes();
+
+					if (minutesSinceRequest >= staleThresholdMinutes) {
+						String failedStatus = "BUILD_REQUESTED".equalsIgnoreCase(currentStatus)
+							? "BUILD_FAILED" : "DEPLOY_FAILED";
+
+						log.warn("GitJobRunId not generated for project {} after {} minutes (threshold: {}). Marking as {}.",
+							projectName, minutesSinceRequest, staleThresholdMinutes, failedStatus);
+
+						workspaceCustomRepository.updateGitRunIdStatus(
+							projectName, failedStatus, dto.getEnvironment()
+						);
+						workspaceCustomRepository.updateBuildDeployAuditStatus(
+							projectName, failedStatus, dto.getEnvironment(), null
+						);
+
+						statusVo.setStatus(failedStatus);
+						MessageDescription warning = new MessageDescription();
+						warning.setMessage(
+							"GitJobRunId was not generated within " + staleThresholdMinutes +
+							" minutes. Marked as " + failedStatus
+						);
+						vo.setWarnings(List.of(warning));
+						return vo;
+					}
+				}
+
+				MessageDescription info = new MessageDescription();
+				info.setMessage("Workspace is queued for build/deploy generating GitJobRunId wait for some time.");
+				vo.setWarnings(List.of(info));
 				return vo;
 			}
 			GitHubWorkflowRunDto run = gitClient.getWorkflowRun(dto.getGitjobRunId());
@@ -5508,7 +5542,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 						run.getConclusion()
 				);
 
-				boolean statusUpdated =workspaceCustomRepository.updateGitRunIdStatus(
+				boolean statusUpdated = workspaceCustomRepository.updateGitRunIdStatus(
 										projectName,
 										finalStatus,
 										dto.getEnvironment()
@@ -5523,11 +5557,13 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 								);
 
 				if (!statusUpdated || !auditUpdated) {
-					MessageDescription error = new MessageDescription();
-					error.setMessage("Failed to persist Git build/deploy status");
-					vo.setErrors(List.of(error));
-					return vo;
+					log.warn("Intermittent failure updating status for project {}. statusUpdated={}, auditUpdated={}. Will retry on next poll.",
+						projectName, statusUpdated, auditUpdated);
+					MessageDescription warning = new MessageDescription();
+					warning.setMessage("Status update pending, will be retried on next poll.");
+					vo.setWarnings(List.of(warning));
 				}
+				// Always return the resolved status from GitHub so the UI knows the real outcome
 				statusVo.setStatus(finalStatus);
 			}
 			else {
