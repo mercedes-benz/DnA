@@ -53,6 +53,10 @@ spring:
     password: ${API_DB_PASS:XXXX_pass}
     driverClassName: org.postgresql.Driver
 
+workspace:
+  git-job:
+    stale-threshold-minutes: ${GIT_JOB_STALE_THRESHOLD_MINUTES:XXXX}
+
 management:
   endpoints:
     web:
