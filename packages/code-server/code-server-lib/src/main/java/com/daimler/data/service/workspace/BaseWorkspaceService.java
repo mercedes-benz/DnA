@@ -5678,6 +5678,8 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 		/* Requested states → call GitHub */
 		if (isRequestedStatus(currentStatus)) {
 			if(dto.getGitjobRunId() == null || dto.getGitjobRunId().isBlank()) {
+				log.info("getGitRunIdStatus - GitJobRunId NOT generated yet for project={}, currentStatus={}, lastBuildOrDeployedOn={}, staleThreshold={}min",
+					projectName, currentStatus, dto.getLastBuildOrDeployedOn(), staleThresholdMinutes);
 				// Check if the request has been waiting too long without generating a run ID
 				if (dto.getLastBuildOrDeployedOn() != null) {
 					long minutesSinceRequest = Duration.between(
@@ -5714,6 +5716,8 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 				vo.setWarnings(List.of(info));
 				return vo;
 			}
+			log.info("getGitRunIdStatus - GitJobRunId EXISTS for project={}, runId={}, currentStatus={}, environment={}",
+				projectName, dto.getGitjobRunId(), currentStatus, dto.getEnvironment());
 			GitHubWorkflowRunDto run = gitClient.getWorkflowRun(dto.getGitjobRunId());
 			if (run == null) {
 				MessageDescription warning = new MessageDescription();
