@@ -139,7 +139,7 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
             updateLakeHouseDetails(existingFabricWorkspace, request.getMetadata());
 
             // Save metadata to repository
-            saveCatalogMetadata(request, catalogMetadataDetails);
+            saveCatalogMetadata(request, catalogMetadataDetails, existingFabricWorkspace.getId());
 
             // Prepare success response
             prepareSuccessResponse(response, catalogMetadataDetails);
@@ -349,11 +349,13 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
     }
 
     private void saveCatalogMetadata(PublishCatalogRequestVO request, 
-            FabricCatalogMetadataDetailsVO catalogMetadataDetails) {
+            FabricCatalogMetadataDetailsVO catalogMetadataDetails, String workspaceId) {
         catalogMetadataDetails.setMetadata(request.getMetadata());
         catalogMetadataDetails.setOwners(request.getOwners());
         catalogMetadataDetails.setMandatoryFields(request.getMandatoryFields());
-        catalogRepo.save(catalogAssembler.toEntity(catalogMetadataDetails));
+        FabricCatalogMetadataNsql entity = catalogAssembler.toEntity(catalogMetadataDetails);
+        entity.setId(workspaceId);
+        catalogRepo.save(entity);
     }
 
     private void prepareSuccessResponse(PublishCatalogResponseVO response, 
@@ -952,6 +954,12 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
         if (lakehouses == null || lakehouses.isEmpty()) {
             log.warn("No lakehouses found for workspace: {}, skipping UiLicious trigger", workspaceName);
             return;
+        }
+        try{
+            fabricWorkspaceClient.addUser(workspace.getId(), pidUser);
+            log.info("Added user: {} to workspace: {} to facilitate UIlicious test case execution for adding groups to lakehouse", pidUser, workspaceName);
+        } catch(Exception e){
+            log.error("Exception while adding the user to the workspace : {} with exception", workspaceName, e.getMessage());
         }
         for (FabricLakehouseVO lakehouse : lakehouses) {
             try {
