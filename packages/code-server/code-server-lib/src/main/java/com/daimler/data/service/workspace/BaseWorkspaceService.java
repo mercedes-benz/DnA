@@ -1687,15 +1687,31 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 						 if (gitJobRunId != null && !gitJobRunId.isBlank()) {
 							 log.info("getById - Fetching latest status from GitHub for project={}, runId={}",
 									 entity.getData().getProjectDetails().getProjectName(), gitJobRunId);
-							 GenericMessage result = getStatusByJobRunId(entity);
-							 log.info("getById - getStatusByJobRunId result={} for project={}",
-									 result.getSuccess(), entity.getData().getProjectDetails().getProjectName());
 
-							 // Re-fetch entity to get updated status
-							 if (technicalId.equalsIgnoreCase(userId)) {
-								 entity = workspaceCustomRepository.findByWorkspaceId(id);
+							 GitHubWorkflowRunDto run = gitClient.getWorkflowRun(gitJobRunId);
+							 if (run != null && "completed".equalsIgnoreCase(run.getStatus()) && run.getConclusion() != null) {
+								 String finalStatus = resolveFinalStatus(currentStatus, run.getConclusion());
+								 String projectName = entity.getData().getProjectDetails().getProjectName();
+								 String environment = entity.getData().getProjectDetails().getLastBuildOrDeployedEnv();
+
+								 log.info("getById - GitHub says completed for project={}, conclusion={}, resolvedStatus={}",
+										 projectName, run.getConclusion(), finalStatus);
+
+								 workspaceCustomRepository.updateGitRunIdStatus(projectName, finalStatus, environment);
+								 workspaceCustomRepository.updateBuildDeployAuditStatus(projectName, finalStatus, environment, gitJobRunId);
+
+								 // Re-fetch entity to get updated status
+								 if (technicalId.equalsIgnoreCase(userId)) {
+									 entity = workspaceCustomRepository.findByWorkspaceId(id);
+								 } else {
+									 entity = workspaceCustomRepository.findById(userId, id);
+								 }
+							 } else if (run == null) {
+								 log.warn("getById - GitHub API returned null for project={}, runId={}",
+										 entity.getData().getProjectDetails().getProjectName(), gitJobRunId);
 							 } else {
-								 entity = workspaceCustomRepository.findById(userId, id);
+								 log.info("getById - GitHub workflow not completed yet for project={}, status={}, conclusion={}",
+										 entity.getData().getProjectDetails().getProjectName(), run.getStatus(), run.getConclusion());
 							 }
 						 } else {
 							 log.info("getById - No gitJobRunId found for project={}, status stuck as {} for {} minutes",
