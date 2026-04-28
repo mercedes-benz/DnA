@@ -1791,8 +1791,8 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 								 log.warn("getById - Build/Deploy job not found for project={}, runId={}",
 										 entity.getData().getProjectDetails().getProjectName(), gitJobRunId);
 							 } else {
-								 log.info("getById - Build/Deploy job not completed yet for project={}, status={}, conclusion={}",
-										 entity.getData().getProjectDetails().getProjectName(), buildDeployJob.getStatus(), buildDeployJob.getConclusion());
+								 log.info("getById - GitHub workflow not completed yet for project={}, status={}, conclusion={}",
+										 entity.getData().getProjectDetails().getProjectName(), run.getStatus(), run.getConclusion());
 							 }
 						 } else {
 							 log.info("getById - No gitJobRunId found for project={}, status stuck as {} for {} minutes",
