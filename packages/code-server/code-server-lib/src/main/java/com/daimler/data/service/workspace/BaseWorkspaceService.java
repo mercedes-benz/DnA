@@ -1634,6 +1634,67 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 		 else{
 		  entity = workspaceCustomRepository.findById(userId, id);
 		 }
+
+		 // If status is REQUESTED and has a gitJobRunId, check if it's stale and fetch latest from GitHub
+		 if (entity != null && entity.getData() != null
+				 && entity.getData().getProjectDetails() != null
+				 && entity.getData().getProjectDetails().getLastBuildOrDeployedStatus() != null) {
+
+			 String currentStatus = entity.getData().getProjectDetails().getLastBuildOrDeployedStatus();
+			 boolean isRequested = "BUILD_REQUESTED".equalsIgnoreCase(currentStatus)
+					 || "DEPLOY_REQUESTED".equalsIgnoreCase(currentStatus);
+
+			 if (isRequested) {
+				 Date requestedOn = entity.getData().getProjectDetails().getLastBuildOrDeployedOn();
+				 if (requestedOn != null) {
+					 long minutesSinceRequest = Duration.between(requestedOn.toInstant(), Instant.now()).toMinutes();
+					 log.info("getById - project={}, status={}, minutesSinceRequest={}, staleThreshold={}min",
+							 entity.getData().getProjectDetails().getProjectName(), currentStatus,
+							 minutesSinceRequest, staleThresholdMinutes);
+
+					 if (minutesSinceRequest >= staleThresholdMinutes) {
+						 // Determine if gitJobRunId exists
+						 String gitJobRunId = null;
+						 if ("BUILD_REQUESTED".equalsIgnoreCase(currentStatus)) {
+							 CodeServerBuildDetails buildDetails = entity.getData().getProjectDetails().getIntBuildDetails();
+							 if (!"int".equalsIgnoreCase(entity.getData().getProjectDetails().getLastBuildOrDeployedEnv())) {
+								 buildDetails = entity.getData().getProjectDetails().getProdBuildDetails();
+							 }
+							 if (buildDetails != null) {
+								 gitJobRunId = buildDetails.getGitjobRunID();
+							 }
+						 } else {
+							 CodeServerDeploymentDetails deployDetails = entity.getData().getProjectDetails().getIntDeploymentDetails();
+							 if (!"int".equalsIgnoreCase(entity.getData().getProjectDetails().getLastBuildOrDeployedEnv())) {
+								 deployDetails = entity.getData().getProjectDetails().getProdDeploymentDetails();
+							 }
+							 if (deployDetails != null) {
+								 gitJobRunId = deployDetails.getGitjobRunID();
+							 }
+						 }
+
+						 if (gitJobRunId != null && !gitJobRunId.isBlank()) {
+							 log.info("getById - Fetching latest status from GitHub for project={}, runId={}",
+									 entity.getData().getProjectDetails().getProjectName(), gitJobRunId);
+							 GenericMessage result = getStatusByJobRunId(entity);
+							 log.info("getById - getStatusByJobRunId result={} for project={}",
+									 result.getSuccess(), entity.getData().getProjectDetails().getProjectName());
+
+							 // Re-fetch entity to get updated status
+							 if (technicalId.equalsIgnoreCase(userId)) {
+								 entity = workspaceCustomRepository.findByWorkspaceId(id);
+							 } else {
+								 entity = workspaceCustomRepository.findById(userId, id);
+							 }
+						 } else {
+							 log.info("getById - No gitJobRunId found for project={}, status stuck as {} for {} minutes",
+									 entity.getData().getProjectDetails().getProjectName(), currentStatus, minutesSinceRequest);
+						 }
+					 }
+				 }
+			 }
+		 }
+
 		 return workspaceAssembler.toVo(entity);
 	 }
   
@@ -5525,14 +5586,29 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 			}
 			log.info("getGitRunIdStatus - GitJobRunId EXISTS for project={}, runId={}, currentStatus={}, environment={}",
 				projectName, dto.getGitjobRunId(), currentStatus, dto.getEnvironment());
+
 			GitHubWorkflowRunDto run = gitClient.getWorkflowRun(dto.getGitjobRunId());
 			if (run == null) {
-				MessageDescription warning = new MessageDescription();
-					warning.setMessage(
-							"Failed to fetch GitHub workflow run details for Job Run ID: " + dto.getGitjobRunId()
-					);
+				String failedStatus = "BUILD_REQUESTED".equalsIgnoreCase(currentStatus)
+					? "BUILD_FAILED" : "DEPLOY_FAILED";
 
-					vo.setWarnings(List.of(warning));
+				log.warn("GitHub API failed for project={}, runId={}. Marking as {}.",
+					projectName, dto.getGitjobRunId(), failedStatus);
+
+				workspaceCustomRepository.updateGitRunIdStatus(
+					projectName, failedStatus, dto.getEnvironment()
+				);
+				workspaceCustomRepository.updateBuildDeployAuditStatus(
+					projectName, failedStatus, dto.getEnvironment(), dto.getGitjobRunId()
+				);
+
+				statusVo.setStatus(failedStatus);
+				MessageDescription warning = new MessageDescription();
+				warning.setMessage(
+					"Failed to fetch GitHub workflow run details for Job Run ID: " + dto.getGitjobRunId() +
+					". Marked as " + failedStatus
+				);
+				vo.setWarnings(List.of(warning));
 				return vo;
 			}
 
