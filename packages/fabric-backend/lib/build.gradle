@@ -10,14 +10,19 @@ buildscript {
     ext {
         springBootVersion = "2.7.0"
         releaseVersion = "1.0.0"
+        artifactoryUrl = System.getenv('ARTIFACTORY_URL')
+        artifactoryUser = System.getenv('ARTIFACTORY_USER')
+        artifactoryPassword = System.getenv('ARTIFACTORY_PASSWORD')
     }
     repositories {
         mavenLocal()
-        mavenCentral()
-		gradlePluginPortal()
-		maven {
-		  url "https://plugins.gradle.org/m2/"
-		}
+        maven {
+            url artifactoryUrl
+            credentials {
+                username artifactoryUser
+                password artifactoryPassword
+            }
+        }
     }
     dependencies {
         classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
@@ -41,11 +46,13 @@ apply plugin: "org.hidetake.swagger.generator"
 
 repositories {
         mavenLocal()
-        mavenCentral()
-		gradlePluginPortal()
-		maven {
-		  url "https://plugins.gradle.org/m2/"
-		}
+        maven {
+            url artifactoryUrl
+            credentials {
+                username artifactoryUser
+                password artifactoryPassword
+            }
+        }
 }
 
 group 'com.mb.dna'
