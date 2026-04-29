@@ -213,10 +213,9 @@ public class UiLiciousClient {
         dataMap.put("LakehouseID", lakehouseId);
 
         String effectiveServicePrincipalName = (servicePrincipalName != null && !servicePrincipalName.trim().isEmpty())
-                ? servicePrincipalName
-                : this.defaultServicePrincipalName;
-        dataMap.put("servicePrincipalName", effectiveServicePrincipalName);
+                ? servicePrincipalName : this.defaultServicePrincipalName;
 
+        dataMap.put("Groups", "[\"" + effectiveServicePrincipalName + "\"]");
         String data;
         try {
             data = objectMapper.writeValueAsString(dataMap);
