@@ -95,10 +95,10 @@ public class ArgoCdService {
     }
 
     public String createArgoApp(String token, String projectName, String userId, String environment,
-                                String gitRepoUrl, String imageTag, boolean vaultInjectorEnable) throws Exception {
+                                String gitRepoUrl, String imageTag, boolean vaultInjectorEnable, String branch) throws Exception {
         try {
-            log.info("createArgoApp - projectName: {}, gitRepoUrl: {}, imageTag: {}, environment: {}", 
-                     projectName, gitRepoUrl, imageTag, environment);
+            log.info("createArgoApp - projectName: {}, gitRepoUrl: {}, imageTag: {}, environment: {}, branch: {}", 
+                     projectName, gitRepoUrl, imageTag, environment, branch);
     
             String appName = projectName + "-" + environment;
             String url = argocdCreateUrl + "?upsert=true";
@@ -108,8 +108,9 @@ public class ArgoCdService {
             headers.setContentType(MediaType.APPLICATION_JSON);
         
             Map<String, String> resources = calculateResources(gitRepoUrl);
+            String targetRevision = (branch != null && !branch.isEmpty()) ? branch : "main";
             
-            String payload = this.buildPayload(appName, projectName, codeServerEnvRef, environment, gitRepoUrl, imageTag, vaultInjectorEnable, resources);
+            String payload = this.buildPayload(appName, projectName, codeServerEnvRef, environment, gitRepoUrl, imageTag, vaultInjectorEnable, resources, targetRevision);
             HttpEntity<String> entity = new HttpEntity<>(payload, headers);
         
             ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
@@ -203,7 +204,7 @@ public class ArgoCdService {
 
     @SuppressWarnings("unchecked")
     public String buildPayload(String appName, String projectName, String clusterEnv, String targetEnv, String gitRepoUrl, 
-                               String imageTag, boolean vaultInjectorEnable, Map<String, String> resources) throws IOException {
+                               String imageTag, boolean vaultInjectorEnable, Map<String, String> resources, String targetRevision) throws IOException {
         
         String namespace = getNamespaceForEnvironment(clusterEnv, targetEnv);
         String vaultAuthPath = getVaultAuthPath(clusterEnv);
@@ -241,16 +242,17 @@ public class ArgoCdService {
                 helmParameters.add(createHelmParam("resources.limits.memory", memory + "Mi"));
                 log.info("[Resources] Sending -> resources.requests.memory: {}, resources.limits.memory: {}", memory + "Mi", memory + "Mi");
             }
-            // Explicitly remove limits.cpu by setting to "0" - Kubernetes treats 0 as no limit
-            helmParameters.add(createHelmParam("resources.limits.cpu", "0"));
-            log.info("[Resources] Sending -> resources.limits.cpu: 0 (override to suppress chart default)");
+            // Explicitly remove limits.cpu by setting to "null" string
+            helmParameters.add(createHelmParam("resources.limits.cpu", "null"));
+            log.info("[Resources] Sending -> resources.limits.cpu: null (override to suppress chart default)");
             log.info("[Resources] Final resources being sent to ArgoCD: " +
-                "requests.cpu={}, requests.memory={}, limits.memory={} (same as requests.memory), limits.cpu=0 (removed)",
+                "requests.cpu={}, requests.memory={}, limits.memory={} (same as requests.memory), limits.cpu=null (removed)",
                 cpu != null ? cpu + "m" : "not set",
                 memory != null ? memory + "Mi" : "not set",
                 memory != null ? memory + "Mi" : "not set");
         } else {
-            log.info("[Resources] No resource overrides to apply (resources map is null or empty)");
+            helmParameters.add(createHelmParam("resources", "{}"));
+            log.info("[Resources] No resource overrides to apply, sending resources={}");
         }
         
         Map<String, Object> payload = new HashMap<>();
@@ -259,7 +261,9 @@ public class ArgoCdService {
         metadata.put("name", appName);
         metadata.put("namespace", "argocd");
         Map<String, String> labels = new HashMap<>();
-        labels.put("env", clusterEnv);
+        String envLabel = (argocdNamespacePrefix != null && !argocdNamespacePrefix.isEmpty()) 
+            ? argocdNamespacePrefix : clusterEnv;
+        labels.put("env", envLabel);
         labels.put("project", "cs-apps");
         metadata.put("labels", labels);
         payload.put("metadata", metadata);
@@ -270,7 +274,7 @@ public class ArgoCdService {
         Map<String, Object> source = new HashMap<>();
         source.put("repoURL", gitRepoUrl);
         source.put("path", "deploy/helm");
-        source.put("targetRevision", "main");
+        source.put("targetRevision", targetRevision);
         
         Map<String, Object> helm = new HashMap<>();
         helm.put("parameters", helmParameters);
@@ -441,11 +445,12 @@ public class ArgoCdService {
             String owner = urlParts[urlParts.length - 2];
             String repo = urlParts[urlParts.length - 1];
             
+            // Use GHE/GitHub API endpoint instead of web UI raw URL
             String baseUrl = gitRepoUrl.substring(0, gitRepoUrl.lastIndexOf("/"));
             baseUrl = baseUrl.substring(0, baseUrl.lastIndexOf("/"));
-            String rawFileUrl = baseUrl + "/" + owner + "/" + repo + "/raw/main/deploy/helm/values.yaml";
+            String apiUrl = baseUrl + "/api/v3/repos/" + owner + "/" + repo + "/contents/deploy/helm/values.yaml?ref=main";
             
-            log.info("Attempting to fetch values.yaml from: {}", rawFileUrl);
+            log.info("[Resources] Attempting to fetch values.yaml from API: {}", apiUrl);
             
             HttpHeaders headers = new HttpHeaders();
             // Use GHE PAT for GHE repos, standard PAT otherwise
@@ -454,9 +459,10 @@ public class ArgoCdService {
             if (pat != null && !pat.isEmpty()) {
                 headers.set("Authorization", "token " + pat);
             }
+            headers.set("Accept", "application/vnd.github.v3.raw");
             HttpEntity<Void> entity = new HttpEntity<>(headers);
             
-            ResponseEntity<String> response = restTemplate.exchange(rawFileUrl, HttpMethod.GET, entity, String.class);
+            ResponseEntity<String> response = restTemplate.exchange(apiUrl, HttpMethod.GET, entity, String.class);
             
             if (response.getStatusCode().is2xxSuccessful()) {
                 log.info("[Resources] Successfully fetched values.yaml (HTTP {})", response.getStatusCode().value());

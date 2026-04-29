@@ -2158,7 +2158,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
                                  projectName, gitRepoUrl, imageTag, repoName, gheWorkspaceMigrated);
                         
                         argoDeployResult = argoCdService.createArgoApp(argoToken, projectName.toLowerCase(), workspaceOwner, 
-                                                                        environment, gitRepoUrl, imageTag, isValutInjectorEnable);
+                                                                        environment, gitRepoUrl, imageTag, isValutInjectorEnable, branch);
                     } else {
                         argoErrorMessage = "Failed to get ArgoCD token for deployment";
                         log.error("Failed to get ArgoCD token for deployment: {}-{}", projectName, environment);
@@ -2255,9 +2255,22 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 				
 				String appName = projectName.toLowerCase() + "-" + environment;
 				
+				String projectRecipe = entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toString();
+				String pythonRecipeId = RecipeIdEnum.PY_FASTAPI.toString();
+				String quarkusRecipeId = RecipeIdEnum.QUARKUS.toString();
+				String micronautRecipeId = RecipeIdEnum.MICRONAUT.toString();
 				String deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + environment + "/";
+				if (pythonRecipeId.equalsIgnoreCase(projectRecipe)) {
+					deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + environment + "/docs";
+				}
+				if (quarkusRecipeId.equalsIgnoreCase(projectRecipe)) {
+					deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + environment + "/q/swagger-ui";
+				}
+				if (micronautRecipeId.equalsIgnoreCase(projectRecipe)) {
+					deploymentUrl = codeServerBaseUri + "/" + projectName.toLowerCase() + "/" + environment + "/swagger-ui/index.html";
+				}
 				deploymentDetails.setDeploymentUrl(deploymentUrl);
-				log.info("Setting deployment URL for {}: {}", appName, deploymentUrl);
+				log.info("Setting deployment URL for {}: {} (recipe: {})", appName, deploymentUrl, projectRecipe);
 				
 				String argocdBaseUrl = argoCdService.getArgocdBaseUrl();
 				String argocdAppUrl = argocdBaseUrl + "/applications/" + appName;
@@ -4345,8 +4358,10 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 					
 					String deleteResult = argoCdService.deleteArgoApp(argoToken, projectName.toLowerCase(), env);
 					if ("success".equalsIgnoreCase(deleteResult) || "not_found".equalsIgnoreCase(deleteResult)) {
+						String restartBranch = (deployDetails != null && deployDetails.getLastDeployedBranch() != null && !deployDetails.getLastDeployedBranch().isEmpty())
+							? deployDetails.getLastDeployedBranch() : "main";
 						argoRestartResult = argoCdService.createArgoApp(argoToken, projectName.toLowerCase(), projectOwner, 
-						                                                env, gitRepoUrl, imageTag, isValutInjectorEnable);
+						                                                env, gitRepoUrl, imageTag, isValutInjectorEnable, restartBranch);
 					} else {
 						log.error("Failed to delete ArgoCD app during restart: {}-{}", projectName, env);
 					}
