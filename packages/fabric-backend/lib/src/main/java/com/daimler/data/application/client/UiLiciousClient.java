@@ -1,6 +1,7 @@
 package com.daimler.data.application.client;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -215,7 +216,7 @@ public class UiLiciousClient {
         String effectiveServicePrincipalName = (servicePrincipalName != null && !servicePrincipalName.trim().isEmpty())
                 ? servicePrincipalName : this.defaultServicePrincipalName;
 
-        dataMap.put("Groups", "[\"" + effectiveServicePrincipalName + "\"]");
+        dataMap.put("Groups", Arrays.asList(effectiveServicePrincipalName));
         String data;
         try {
             data = objectMapper.writeValueAsString(dataMap);
