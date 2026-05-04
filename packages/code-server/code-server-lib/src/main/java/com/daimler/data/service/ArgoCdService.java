@@ -356,6 +356,7 @@ public class ArgoCdService {
             return null;
         }
         log.info("[Resources] Received values.yaml content (length={})", valuesYamlContent.length());
+        log.info("[Resources] Full values.yaml content:\n{}", valuesYamlContent);
         
         // Parse YAML with explicit error handling
         Object yamlRoot;
