@@ -3,6 +3,7 @@ package com.daimler.data.service;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -95,10 +96,10 @@ public class ArgoCdService {
     }
 
     public String createArgoApp(String token, String projectName, String userId, String environment,
-                                String gitRepoUrl, String imageTag, boolean vaultInjectorEnable) throws Exception {
+                                String gitRepoUrl, String imageTag, boolean vaultInjectorEnable, String branch) throws Exception {
         try {
-            log.info("createArgoApp - projectName: {}, gitRepoUrl: {}, imageTag: {}, environment: {}", 
-                     projectName, gitRepoUrl, imageTag, environment);
+            log.info("createArgoApp - projectName: {}, gitRepoUrl: {}, imageTag: {}, environment: {}, branch: {}", 
+                     projectName, gitRepoUrl, imageTag, environment, branch);
     
             String appName = projectName + "-" + environment;
             String url = argocdCreateUrl + "?upsert=true";
@@ -108,8 +109,9 @@ public class ArgoCdService {
             headers.setContentType(MediaType.APPLICATION_JSON);
         
             Map<String, String> resources = calculateResources(gitRepoUrl);
+            String targetRevision = (branch != null && !branch.isEmpty()) ? branch : "main";
             
-            String payload = this.buildPayload(appName, projectName, codeServerEnvRef, environment, gitRepoUrl, imageTag, vaultInjectorEnable, resources);
+            String payload = this.buildPayload(appName, projectName, codeServerEnvRef, environment, gitRepoUrl, imageTag, vaultInjectorEnable, resources, targetRevision);
             HttpEntity<String> entity = new HttpEntity<>(payload, headers);
         
             ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
@@ -203,7 +205,7 @@ public class ArgoCdService {
 
     @SuppressWarnings("unchecked")
     public String buildPayload(String appName, String projectName, String clusterEnv, String targetEnv, String gitRepoUrl, 
-                               String imageTag, boolean vaultInjectorEnable, Map<String, String> resources) throws IOException {
+                               String imageTag, boolean vaultInjectorEnable, Map<String, String> resources, String targetRevision) throws IOException {
         
         String namespace = getNamespaceForEnvironment(clusterEnv, targetEnv);
         String vaultAuthPath = getVaultAuthPath(clusterEnv);
@@ -241,16 +243,17 @@ public class ArgoCdService {
                 helmParameters.add(createHelmParam("resources.limits.memory", memory + "Mi"));
                 log.info("[Resources] Sending -> resources.requests.memory: {}, resources.limits.memory: {}", memory + "Mi", memory + "Mi");
             }
-            // Explicitly remove limits.cpu by setting to "0" - Kubernetes treats 0 as no limit
-            helmParameters.add(createHelmParam("resources.limits.cpu", "0"));
-            log.info("[Resources] Sending -> resources.limits.cpu: 0 (override to suppress chart default)");
+            // Explicitly remove limits.cpu by setting to "null" string
+            helmParameters.add(createHelmParam("resources.limits.cpu", "null"));
+            log.info("[Resources] Sending -> resources.limits.cpu: null (override to suppress chart default)");
             log.info("[Resources] Final resources being sent to ArgoCD: " +
-                "requests.cpu={}, requests.memory={}, limits.memory={} (same as requests.memory), limits.cpu=0 (removed)",
+                "requests.cpu={}, requests.memory={}, limits.memory={} (same as requests.memory), limits.cpu=null (removed)",
                 cpu != null ? cpu + "m" : "not set",
                 memory != null ? memory + "Mi" : "not set",
                 memory != null ? memory + "Mi" : "not set");
         } else {
-            log.info("[Resources] No resource overrides to apply (resources map is null or empty)");
+            helmParameters.add(createHelmParam("resources", "{}"));
+            log.info("[Resources] No resource overrides to apply, sending resources={}");
         }
         
         Map<String, Object> payload = new HashMap<>();
@@ -259,7 +262,9 @@ public class ArgoCdService {
         metadata.put("name", appName);
         metadata.put("namespace", "argocd");
         Map<String, String> labels = new HashMap<>();
-        labels.put("env", clusterEnv);
+        String envLabel = (argocdNamespacePrefix != null && !argocdNamespacePrefix.isEmpty()) 
+            ? argocdNamespacePrefix : clusterEnv;
+        labels.put("env", envLabel);
         labels.put("project", "cs-apps");
         metadata.put("labels", labels);
         payload.put("metadata", metadata);
@@ -270,7 +275,7 @@ public class ArgoCdService {
         Map<String, Object> source = new HashMap<>();
         source.put("repoURL", gitRepoUrl);
         source.put("path", "deploy/helm");
-        source.put("targetRevision", "main");
+        source.put("targetRevision", targetRevision);
         
         Map<String, Object> helm = new HashMap<>();
         helm.put("parameters", helmParameters);
@@ -351,23 +356,62 @@ public class ArgoCdService {
             return null;
         }
         log.info("[Resources] Received values.yaml content (length={})", valuesYamlContent.length());
-        Yaml yaml = new Yaml();
-        Map<String, Object> values = yaml.load(valuesYamlContent);
-        if (values == null || !values.containsKey("resources")) {
-            log.info("[Resources] No 'resources' section found in values.yaml");
+        log.info("[Resources] Full values.yaml content:\n{}", valuesYamlContent);
+        
+        // Parse YAML with explicit error handling
+        Object yamlRoot;
+        try {
+            Yaml yaml = new Yaml();
+            yamlRoot = yaml.load(valuesYamlContent);
+        } catch (Exception yamlEx) {
+            log.error("[Resources] Failed to parse values.yaml as YAML: {}. First 500 chars: {}", 
+                yamlEx.getMessage(), valuesYamlContent.substring(0, Math.min(500, valuesYamlContent.length())));
             return null;
         }
+        
+        if (yamlRoot == null) {
+            log.info("[Resources] YAML parsed to null, skipping resource overrides");
+            return null;
+        }
+        if (!(yamlRoot instanceof Map)) {
+            log.warn("[Resources] YAML root is not a Map but a {}. First 500 chars: {}", 
+                yamlRoot.getClass().getSimpleName(), valuesYamlContent.substring(0, Math.min(500, valuesYamlContent.length())));
+            return null;
+        }
+        
         @SuppressWarnings("unchecked")
-        Map<String, Object> resourcesSection =
-                (Map<String, Object>) values.get("resources");
+        Map<String, Object> values = (Map<String, Object>) yamlRoot;
+        
+        if (!values.containsKey("resources")) {
+            log.info("[Resources] No 'resources' section found in values.yaml. Available top-level keys: {}", values.keySet());
+            return null;
+        }
+        
+        Object resourcesObj = values.get("resources");
+        if (resourcesObj == null || !(resourcesObj instanceof Map)) {
+            log.warn("[Resources] 'resources' is not a Map but: {} (value={})", 
+                resourcesObj != null ? resourcesObj.getClass().getSimpleName() : "null", resourcesObj);
+            return null;
+        }
+        
+        @SuppressWarnings("unchecked")
+        Map<String, Object> resourcesSection = (Map<String, Object>) resourcesObj;
         log.info("[Resources] Raw resources from values.yaml: {}", resourcesSection);
+        
         if (!resourcesSection.containsKey("requests")) {
-            log.info("[Resources] No 'requests' section found in resources");
+            log.info("[Resources] No 'requests' section found in resources. Available keys: {}", resourcesSection.keySet());
             return null;
         }
+        
+        Object requestsObj = resourcesSection.get("requests");
+        if (requestsObj == null || !(requestsObj instanceof Map)) {
+            log.warn("[Resources] 'requests' is not a Map but: {} (value={})", 
+                requestsObj != null ? requestsObj.getClass().getSimpleName() : "null", requestsObj);
+            return null;
+        }
+        
         @SuppressWarnings("unchecked")
-        Map<String, Object> requests =
-                (Map<String, Object>) resourcesSection.get("requests");
+        Map<String, Object> requests = (Map<String, Object>) requestsObj;
         log.info("[Resources] Raw requests from values.yaml: {}", requests);
         Map<String, String> convertedResources = new HashMap<>();
         if (requests.containsKey("cpu")) {
@@ -389,7 +433,7 @@ public class ArgoCdService {
         log.info("[Resources] Final calculated resources: {}", convertedResources);
         return convertedResources.isEmpty() ? null : convertedResources;
     } catch (Exception e) {
-        log.error("[Resources] Failed to calculate resources", e);
+        log.error("[Resources] Failed to calculate resources: {}", e.getMessage(), e);
         return null;
     }
 }
@@ -441,11 +485,12 @@ public class ArgoCdService {
             String owner = urlParts[urlParts.length - 2];
             String repo = urlParts[urlParts.length - 1];
             
+            // Use GHE/GitHub API endpoint instead of web UI raw URL
             String baseUrl = gitRepoUrl.substring(0, gitRepoUrl.lastIndexOf("/"));
             baseUrl = baseUrl.substring(0, baseUrl.lastIndexOf("/"));
-            String rawFileUrl = baseUrl + "/" + owner + "/" + repo + "/raw/main/deploy/helm/values.yaml";
+            String apiUrl = baseUrl + "/api/v3/repos/" + owner + "/" + repo + "/contents/deploy/helm/values.yaml?ref=main";
             
-            log.info("Attempting to fetch values.yaml from: {}", rawFileUrl);
+            log.info("[Resources] Attempting to fetch values.yaml from API: {}", apiUrl);
             
             HttpHeaders headers = new HttpHeaders();
             // Use GHE PAT for GHE repos, standard PAT otherwise
@@ -453,16 +498,56 @@ public class ArgoCdService {
             String pat = isGheRepo ? ghePat : gitPat;
             if (pat != null && !pat.isEmpty()) {
                 headers.set("Authorization", "token " + pat);
+            } else {
+                log.warn("[Resources] No PAT configured for {} repo, request will be unauthenticated", isGheRepo ? "GHE" : "Git");
             }
+            headers.set("Accept", "application/vnd.github.v3.raw");
             HttpEntity<Void> entity = new HttpEntity<>(headers);
             
-            ResponseEntity<String> response = restTemplate.exchange(rawFileUrl, HttpMethod.GET, entity, String.class);
+            ResponseEntity<String> response = restTemplate.exchange(apiUrl, HttpMethod.GET, entity, String.class);
             
-            if (response.getStatusCode().is2xxSuccessful()) {
-                log.info("[Resources] Successfully fetched values.yaml (HTTP {})", response.getStatusCode().value());
-                return response.getBody();
+            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+                String body = response.getBody();
+                String preview = body.substring(0, Math.min(300, body.length()));
+                log.info("[Resources] Successfully fetched values.yaml (HTTP {}, length={}). Preview: {}", 
+                    response.getStatusCode().value(), body.length(), preview);
+                
+                // Detect HTML response (GHE returns login page with HTTP 200 when auth fails)
+                String trimmed = body.trim();
+                if (trimmed.startsWith("<") || trimmed.startsWith("<!DOCTYPE")) {
+                    log.warn("[Resources] Response is HTML, not YAML — likely GHE login page (auth issue). PAT may be missing/expired/invalid. First 300 chars: {}", preview);
+                    return null;
+                }
+                
+                // Detect JSON API response (Accept header was ignored, got JSON wrapper with base64 content)
+                if (trimmed.startsWith("{")) {
+                    log.info("[Resources] Response is JSON instead of raw YAML — Accept header may have been ignored. Attempting to extract base64 content.");
+                    try {
+                        ObjectMapper mapper = new ObjectMapper();
+                        JsonNode jsonNode = mapper.readTree(body);
+                        String encoding = jsonNode.path("encoding").asText("");
+                        String content = jsonNode.path("content").asText("");
+                        if ("base64".equals(encoding) && !content.isEmpty()) {
+                            // GitHub API returns base64 with newlines, strip them before decoding
+                            String cleanContent = content.replaceAll("\\s", "");
+                            String decoded = new String(Base64.getDecoder().decode(cleanContent), StandardCharsets.UTF_8);
+                            log.info("[Resources] Successfully decoded base64 content from JSON response (decoded length={})", decoded.length());
+                            return decoded;
+                        } else {
+                            log.warn("[Resources] JSON response has no base64 content field. Keys: {}", jsonNode.fieldNames());
+                            return null;
+                        }
+                    } catch (Exception jsonEx) {
+                        log.warn("[Resources] Failed to parse JSON response: {}", jsonEx.getMessage());
+                        return null;
+                    }
+                }
+                
+                // Content looks like raw YAML, return as-is
+                return body;
             } else {
-                log.info("[Resources] values.yaml fetch returned HTTP {}, will deploy without custom resources", response.getStatusCode().value());
+                log.info("[Resources] values.yaml fetch returned HTTP {}, will deploy without custom resources", 
+                    response != null ? response.getStatusCode().value() : "null");
                 return null;
             }
         } catch (Exception e) {
