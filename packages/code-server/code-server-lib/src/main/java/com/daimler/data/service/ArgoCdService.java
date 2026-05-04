@@ -355,23 +355,61 @@ public class ArgoCdService {
             return null;
         }
         log.info("[Resources] Received values.yaml content (length={})", valuesYamlContent.length());
-        Yaml yaml = new Yaml();
-        Map<String, Object> values = yaml.load(valuesYamlContent);
-        if (values == null || !values.containsKey("resources")) {
-            log.info("[Resources] No 'resources' section found in values.yaml");
+        
+        // Parse YAML with explicit error handling
+        Object yamlRoot;
+        try {
+            Yaml yaml = new Yaml();
+            yamlRoot = yaml.load(valuesYamlContent);
+        } catch (Exception yamlEx) {
+            log.error("[Resources] Failed to parse values.yaml as YAML: {}. First 500 chars: {}", 
+                yamlEx.getMessage(), valuesYamlContent.substring(0, Math.min(500, valuesYamlContent.length())));
             return null;
         }
+        
+        if (yamlRoot == null) {
+            log.info("[Resources] YAML parsed to null, skipping resource overrides");
+            return null;
+        }
+        if (!(yamlRoot instanceof Map)) {
+            log.warn("[Resources] YAML root is not a Map but a {}. First 500 chars: {}", 
+                yamlRoot.getClass().getSimpleName(), valuesYamlContent.substring(0, Math.min(500, valuesYamlContent.length())));
+            return null;
+        }
+        
         @SuppressWarnings("unchecked")
-        Map<String, Object> resourcesSection =
-                (Map<String, Object>) values.get("resources");
+        Map<String, Object> values = (Map<String, Object>) yamlRoot;
+        
+        if (!values.containsKey("resources")) {
+            log.info("[Resources] No 'resources' section found in values.yaml. Available top-level keys: {}", values.keySet());
+            return null;
+        }
+        
+        Object resourcesObj = values.get("resources");
+        if (resourcesObj == null || !(resourcesObj instanceof Map)) {
+            log.warn("[Resources] 'resources' is not a Map but: {} (value={})", 
+                resourcesObj != null ? resourcesObj.getClass().getSimpleName() : "null", resourcesObj);
+            return null;
+        }
+        
+        @SuppressWarnings("unchecked")
+        Map<String, Object> resourcesSection = (Map<String, Object>) resourcesObj;
         log.info("[Resources] Raw resources from values.yaml: {}", resourcesSection);
+        
         if (!resourcesSection.containsKey("requests")) {
-            log.info("[Resources] No 'requests' section found in resources");
+            log.info("[Resources] No 'requests' section found in resources. Available keys: {}", resourcesSection.keySet());
             return null;
         }
+        
+        Object requestsObj = resourcesSection.get("requests");
+        if (requestsObj == null || !(requestsObj instanceof Map)) {
+            log.warn("[Resources] 'requests' is not a Map but: {} (value={})", 
+                requestsObj != null ? requestsObj.getClass().getSimpleName() : "null", requestsObj);
+            return null;
+        }
+        
         @SuppressWarnings("unchecked")
-        Map<String, Object> requests =
-                (Map<String, Object>) resourcesSection.get("requests");
+        Map<String, Object> requests = (Map<String, Object>) requestsObj;
         log.info("[Resources] Raw requests from values.yaml: {}", requests);
         Map<String, String> convertedResources = new HashMap<>();
         if (requests.containsKey("cpu")) {
@@ -393,7 +431,7 @@ public class ArgoCdService {
         log.info("[Resources] Final calculated resources: {}", convertedResources);
         return convertedResources.isEmpty() ? null : convertedResources;
     } catch (Exception e) {
-        log.error("[Resources] Failed to calculate resources", e);
+        log.error("[Resources] Failed to calculate resources: {}", e.getMessage(), e);
         return null;
     }
 }
