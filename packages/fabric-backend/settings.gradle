@@ -12,7 +12,12 @@ pluginManagement {
         mavenCentral()
         gradlePluginPortal()
 		maven {
-		  url "https://plugins.gradle.org/m2/"
+			println "ARTIFACTORY_URL: ${System.getenv('ARTIFACTORY_URL')}"
+            url System.getenv('ARTIFACTORY_URL')
+            credentials {
+                username System.getenv('ARTIFACTORY_USER')
+                password System.getenv('ARTIFACTORY_PASSWORD')
+            }
 		}
     }
     plugins {
