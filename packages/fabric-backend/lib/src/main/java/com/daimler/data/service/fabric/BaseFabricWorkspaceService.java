@@ -283,7 +283,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 //					FabricWorkspaceVO updatedVO = assembler.toVo(entity);
 //					vos.add(updatedVO);
 //				}
-				if(	entity!=null && !ConstantsUtility.DELETED_STATE.equalsIgnoreCase(entity.getData().getStatus().getState())) {
+				if(	entity!=null && entity.getData().getStatus()!=null && !ConstantsUtility.DELETED_STATE.equalsIgnoreCase(entity.getData().getStatus().getState())) {
 					FabricWorkspaceVO updatedVO = assembler.toVo(entity);
 					vos.add(updatedVO);
 				}
@@ -315,7 +315,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		if(allEntities!=null && !allEntities.isEmpty()) {
 			if(user!=null && !"".equalsIgnoreCase(user.trim())){
 				for(FabricWorkspaceNsql existingEntity : allEntities) {
-					if(existingEntity!=null && !ConstantsUtility.DELETED_STATE.equalsIgnoreCase(existingEntity.getData().getStatus().getState())) {
+					if(existingEntity!=null && existingEntity.getData().getStatus()!=null && !ConstantsUtility.DELETED_STATE.equalsIgnoreCase(existingEntity.getData().getStatus().getState())) {
 						if(isTechnicalUser){
 							String initiatedBy = Optional.ofNullable(existingEntity.getData().getInitiatedBy()).orElse("");
 							if(user.equalsIgnoreCase(initiatedBy)){
@@ -1629,7 +1629,13 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 					}
 				}
 			}
-			existingWorkspace.getStatus().setState(ConstantsUtility.DELETED_STATE);
+			if(existingWorkspace.getStatus()!=null) {
+				existingWorkspace.getStatus().setState(ConstantsUtility.DELETED_STATE);
+			} else {
+				FabricWorkspaceStatusVO deletedStatus = new FabricWorkspaceStatusVO();
+				deletedStatus.setState(ConstantsUtility.DELETED_STATE);
+				existingWorkspace.setStatus(deletedStatus);
+			}
 			existingWorkspace.setLastModifiedOn(new Date());
 			existingWorkspace.setDeletedOn(new Date());
 			jpaRepo.save(assembler.toEntity(existingWorkspace));
@@ -2264,7 +2270,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 			log.info("Successfully added  user {} to workspace {} ", newOwner.getEmail(),
 					existingFabricWorkspace.getId());
 		}
-		List<RoleDetailsVO> roles = existingFabricWorkspace.getStatus().getRoles();
+		List<RoleDetailsVO> roles = existingFabricWorkspace.getStatus()!=null ? existingFabricWorkspace.getStatus().getRoles() : null;
 		List<RoleDetailsVO> updatedRoles = new ArrayList<>();
 		if (roles != null) {
     		for (RoleDetailsVO role : roles) {
@@ -2321,7 +2327,9 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 				updatedRoles.add(role);
 			}
 		}
-		existingFabricWorkspace.getStatus().setRoles(updatedRoles);
+		if(existingFabricWorkspace.getStatus()!=null) {
+			existingFabricWorkspace.getStatus().setRoles(updatedRoles);
+		}
 		try {
 			FabricWorkspaceVO updatedRecord = updateFabricProject(existingFabricWorkspace);
 			log.info("Fabric workspace {} {}  updated successfully", existingFabricWorkspace.getId(),
