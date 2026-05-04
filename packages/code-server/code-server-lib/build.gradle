@@ -16,8 +16,12 @@ buildscript {
         mavenCentral()
 		gradlePluginPortal()
 		maven {
-		  url "https://plugins.gradle.org/m2/"
-		}
+            url System.getenv('ARTIFACTORY_URL')
+            credentials {
+                username System.getenv('ARTIFACTORY_USER')
+                password System.getenv('ARTIFACTORY_PASSWORD')
+            }
+        }
     }
     dependencies {
         classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
@@ -44,8 +48,12 @@ repositories {
         mavenCentral()
 		gradlePluginPortal()
 		maven {
-		  url "https://plugins.gradle.org/m2/"
-		}
+            url System.getenv('ARTIFACTORY_URL')
+            credentials {
+                username System.getenv('ARTIFACTORY_USER')
+                password System.getenv('ARTIFACTORY_PASSWORD')
+            }
+        }
 }
 
 group 'com.daimler.data'
