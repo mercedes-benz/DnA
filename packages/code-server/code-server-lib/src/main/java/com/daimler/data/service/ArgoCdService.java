@@ -3,6 +3,7 @@ package com.daimler.data.service;
 import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -496,17 +497,56 @@ public class ArgoCdService {
             String pat = isGheRepo ? ghePat : gitPat;
             if (pat != null && !pat.isEmpty()) {
                 headers.set("Authorization", "token " + pat);
+            } else {
+                log.warn("[Resources] No PAT configured for {} repo, request will be unauthenticated", isGheRepo ? "GHE" : "Git");
             }
             headers.set("Accept", "application/vnd.github.v3.raw");
             HttpEntity<Void> entity = new HttpEntity<>(headers);
             
             ResponseEntity<String> response = restTemplate.exchange(apiUrl, HttpMethod.GET, entity, String.class);
             
-            if (response.getStatusCode().is2xxSuccessful()) {
-                log.info("[Resources] Successfully fetched values.yaml (HTTP {})", response.getStatusCode().value());
-                return response.getBody();
+            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+                String body = response.getBody();
+                String preview = body.substring(0, Math.min(300, body.length()));
+                log.info("[Resources] Successfully fetched values.yaml (HTTP {}, length={}). Preview: {}", 
+                    response.getStatusCode().value(), body.length(), preview);
+                
+                // Detect HTML response (GHE returns login page with HTTP 200 when auth fails)
+                String trimmed = body.trim();
+                if (trimmed.startsWith("<") || trimmed.startsWith("<!DOCTYPE")) {
+                    log.warn("[Resources] Response is HTML, not YAML — likely GHE login page (auth issue). PAT may be missing/expired/invalid. First 300 chars: {}", preview);
+                    return null;
+                }
+                
+                // Detect JSON API response (Accept header was ignored, got JSON wrapper with base64 content)
+                if (trimmed.startsWith("{")) {
+                    log.info("[Resources] Response is JSON instead of raw YAML — Accept header may have been ignored. Attempting to extract base64 content.");
+                    try {
+                        ObjectMapper mapper = new ObjectMapper();
+                        JsonNode jsonNode = mapper.readTree(body);
+                        String encoding = jsonNode.path("encoding").asText("");
+                        String content = jsonNode.path("content").asText("");
+                        if ("base64".equals(encoding) && !content.isEmpty()) {
+                            // GitHub API returns base64 with newlines, strip them before decoding
+                            String cleanContent = content.replaceAll("\\s", "");
+                            String decoded = new String(Base64.getDecoder().decode(cleanContent), StandardCharsets.UTF_8);
+                            log.info("[Resources] Successfully decoded base64 content from JSON response (decoded length={})", decoded.length());
+                            return decoded;
+                        } else {
+                            log.warn("[Resources] JSON response has no base64 content field. Keys: {}", jsonNode.fieldNames());
+                            return null;
+                        }
+                    } catch (Exception jsonEx) {
+                        log.warn("[Resources] Failed to parse JSON response: {}", jsonEx.getMessage());
+                        return null;
+                    }
+                }
+                
+                // Content looks like raw YAML, return as-is
+                return body;
             } else {
-                log.info("[Resources] values.yaml fetch returned HTTP {}, will deploy without custom resources", response.getStatusCode().value());
+                log.info("[Resources] values.yaml fetch returned HTTP {}, will deploy without custom resources", 
+                    response != null ? response.getStatusCode().value() : "null");
                 return null;
             }
         } catch (Exception e) {
