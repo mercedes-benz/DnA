@@ -29,5 +29,4 @@ public class DdxProduct implements Serializable {
     private Date modifiedOn;
     private DdxUnityDetails unityDetails;
     private List<Fabric2FabricDetail> fabric2fabricDetails;
-    private List<MirroredCatalogDetail> mirroredCatalogDetails;
 }
