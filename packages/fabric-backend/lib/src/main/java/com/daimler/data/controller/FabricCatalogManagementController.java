@@ -38,6 +38,10 @@ import com.daimler.data.dto.fabricCatalogManagement.PublishCatalogRequestVO;
 import com.daimler.data.dto.fabricCatalogManagement.LegalEntitiesResponseVO;
 import com.daimler.data.dto.fabricCatalogManagement.UpdateDDXGroupsRequestVO;
 import com.daimler.data.dto.fabricCatalogManagement.GroupStatusResponseVO;
+import com.daimler.data.dto.fabricCatalogManagement.CreateMirroredCatalogRequestVO;
+import com.daimler.data.dto.fabricCatalogManagement.MirroredCatalogResponseVO;
+import com.daimler.data.dto.fabricCatalogManagement.MirroredCatalogErrorResponseVO;
+import com.daimler.data.dto.fabricCatalogManagement.MirroredCatalogStatusRequestVO;
 import com.daimler.data.dto.fabricWorkspace.CreatedByVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceVO;
 import com.daimler.data.service.catalogManagement.BaseFabricCatalogManagementService;
@@ -668,6 +672,49 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
             return new ResponseEntity<>(BaseFabricCatalogManagementService.buildGroupStatusListResponse(updateDDXGroupsRequest.getGroups(), ConstantsUtility.GROUPS_FAILED_CONSTANT), HttpStatus.INTERNAL_SERVER_ERROR);
         }
         return new ResponseEntity<>(groupStatusList, HttpStatus.OK);
+    }
+
+    @Override
+    @ApiOperation(value = "Create Databricks Mirrored Catalog in Fabric central workspace.", nickname = "createMirroredCatalog", notes = "This endpoint will provision a Databricks Mirrored Catalog hosted in a Fabric central workspace, backed by an ADLS Gen2 storage account, and grant permissions to create Fabric shortcuts to a DDX group.", response = MirroredCatalogResponseVO.class, tags={ "fabric-catalog-management", })
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "Returns mirrored catalog creation response", response = MirroredCatalogResponseVO.class),
+        @ApiResponse(code = 400, message = "Bad Request", response = MirroredCatalogErrorResponseVO.class),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Storage access denied", response = MirroredCatalogErrorResponseVO.class),
+        @ApiResponse(code = 404, message = "Databricks data product or DDX group not found", response = MirroredCatalogErrorResponseVO.class),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error", response = MirroredCatalogErrorResponseVO.class) })
+    @RequestMapping(value = "/catalog/databricks/mirrored-catalog/{ddxId}/{lakehouseId}",
+        produces = { "application/json" },
+        consumes = { "application/json" },
+        method = RequestMethod.POST)
+    public ResponseEntity<MirroredCatalogResponseVO> createMirroredCatalog(
+            @ApiParam(value = "The mirrored catalog creation request.", required = true) @Valid @RequestBody CreateMirroredCatalogRequestVO createMirroredCatalogRequest,
+            @ApiParam(value = "The ID of DDX data product.", required = true) @PathVariable("ddxId") String ddxId,
+            @ApiParam(value = "The ID of Lakehouse.", required = true) @PathVariable("lakehouseId") String lakehouseId) {
+        // TODO: Implementation pending team approval
+        return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
+    }
+
+    @Override
+    @ApiOperation(value = "Get Databricks Mirrored Catalog status.", nickname = "getMirroredCatalogStatus", notes = "This endpoint will query the status of mirrored catalog creation and group permission assignment, update the DB, and return the current status.", response = MirroredCatalogResponseVO.class, tags={ "fabric-catalog-management", })
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "Returns mirrored catalog status response", response = MirroredCatalogResponseVO.class),
+        @ApiResponse(code = 400, message = "Bad Request", response = MirroredCatalogErrorResponseVO.class),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 404, message = "Mirrored catalog record not found", response = MirroredCatalogErrorResponseVO.class),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error", response = MirroredCatalogErrorResponseVO.class) })
+    @RequestMapping(value = "/catalog/databricks/mirrored-catalog/status/{ddxId}/{lakehouseId}",
+        produces = { "application/json" },
+        consumes = { "application/json" },
+        method = RequestMethod.POST)
+    public ResponseEntity<MirroredCatalogResponseVO> getMirroredCatalogStatus(
+            @ApiParam(value = "The mirrored catalog status request with correlation ID.", required = true) @Valid @RequestBody MirroredCatalogStatusRequestVO mirroredCatalogStatusRequest,
+            @ApiParam(value = "The ID of DDX data product.", required = true) @PathVariable("ddxId") String ddxId,
+            @ApiParam(value = "The ID of Lakehouse.", required = true) @PathVariable("lakehouseId") String lakehouseId) {
+        // TODO: Implementation pending team approval
+        return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
     }
 
 }
