@@ -65,10 +65,11 @@ const AllCodeSpaces = (props) => {
         History.goBack();
     };
     const [showAWSWarningModal, setShowAWSWarningModal] = useState(false);
-    const [showSundownWarningModal, setShowSundownWarningModal] = useState(false);
-    const [showMigrationWarningModal, setShowMigrationWarningModal] = useState(false);
-    const [pendingStartCodeSpace, setPendingStartCodeSpace] = useState(null);
-    const [pendingStartParams, setPendingStartParams] = useState(null);
+    // Migration complete - commented out unused states
+    // const [showSundownWarningModal, setShowSundownWarningModal] = useState(false);
+    // const [showMigrationWarningModal, setShowMigrationWarningModal] = useState(false);
+    // const [pendingStartCodeSpace, setPendingStartCodeSpace] = useState(null);
+    // const [pendingStartParams, setPendingStartParams] = useState(null);
     const [groupLoading, setGroupLoading] = useState(true);
 
     const { startListening } = useDeploymentStatus();
@@ -145,7 +146,7 @@ const AllCodeSpaces = (props) => {
 
     useEffect(() => {
         setShowAWSWarningModal(Envs.SHOW_AWS_MIGRATION_WARNING);
-        setShowSundownWarningModal(true);
+        // setShowSundownWarningModal(true); // Commented out - migration complete
         getCodeSpacesData();
         getCodeSpaceGroupsData();
     }, []);
@@ -312,12 +313,13 @@ const AllCodeSpaces = (props) => {
         Tooltip.clear();
         const serverStarted = codeSpace.serverStatus === 'SERVER_STARTED';
         
-        if (!serverStarted && codeSpace.isWorkspaceMigratedToGHE) {
-            setPendingStartCodeSpace(codeSpace);
-            setPendingStartParams({ startSuccessCB, env, manual });
-            setShowMigrationWarningModal(true);
-            return;
-        }
+        // Migration complete - commented out
+        // if (!serverStarted && codeSpace.isWorkspaceMigratedToGHE) {
+        //     setPendingStartCodeSpace(codeSpace);
+        //     setPendingStartParams({ startSuccessCB, env, manual });
+        //     setShowMigrationWarningModal(true);
+        //     return;
+        // }
         
         serverStarted ? setLoading(true) : ProgressIndicator.show();
         CodeSpaceApiClient.startStopWorkSpace(codeSpace.id, serverStarted, env, manual)
@@ -352,43 +354,44 @@ const AllCodeSpaces = (props) => {
             });
     };
     
-    const handleMigrationWarningAccept = () => {
-        setShowMigrationWarningModal(false);
-        
-        if (pendingStartCodeSpace && pendingStartParams) {
-            const { startSuccessCB, env, manual } = pendingStartParams;
-            ProgressIndicator.show();
-            
-            CodeSpaceApiClient.startStopWorkSpace(pendingStartCodeSpace.id, false, env, manual)
-                .then((res) => {
-                    ProgressIndicator.hide();
-                    if (res.data.success === 'SUCCESS') {
-                        Notification.show(
-                            'Your Codespace for project ' +
-                            pendingStartCodeSpace.projectDetails?.projectName +
-                            ' is requested to start.',
-                        );
-                        !manual && startSuccessCB();
-                    } else {
-                        Notification.show(
-                            'Error in starting your code spaces. Please try again later.',
-                            'alert',
-                        );
-                    }
-                })
-                .catch((err) => {
-                    ProgressIndicator.hide();
-                    Notification.show(
-                        'Error in starting your code spaces - ' + err.message,
-                        'alert',
-                    );
-                }).finally(() => {
-                    Tooltip.defaultSetup();
-                    setPendingStartCodeSpace(null);
-                    setPendingStartParams(null);
-                });
-        }
-    };
+    // Migration complete - commented out unused handler
+    // const handleMigrationWarningAccept = () => {
+    //     setShowMigrationWarningModal(false);
+    //     
+    //     if (pendingStartCodeSpace && pendingStartParams) {
+    //         const { startSuccessCB, env, manual } = pendingStartParams;
+    //         ProgressIndicator.show();
+    //         
+    //         CodeSpaceApiClient.startStopWorkSpace(pendingStartCodeSpace.id, false, env, manual)
+    //             .then((res) => {
+    //                 ProgressIndicator.hide();
+    //                 if (res.data.success === 'SUCCESS') {
+    //                     Notification.show(
+    //                         'Your Codespace for project ' +
+    //                         pendingStartCodeSpace.projectDetails?.projectName +
+    //                         ' is requested to start.',
+    //                     );
+    //                     !manual && startSuccessCB();
+    //                 } else {
+    //                     Notification.show(
+    //                         'Error in starting your code spaces. Please try again later.',
+    //                         'alert',
+    //                     );
+    //                 }
+    //             })
+    //             .catch((err) => {
+    //                 ProgressIndicator.hide();
+    //                 Notification.show(
+    //                     'Error in starting your code spaces - ' + err.message,
+    //                     'alert',
+    //                 );
+    //             }).finally(() => {
+    //                 Tooltip.defaultSetup();
+    //                 setPendingStartCodeSpace(null);
+    //                 setPendingStartParams(null);
+    //             });
+    //     }
+    // };
 
     const switchBackToCodeSpace = () => {
         setOnEditCodeSpace(undefined);
@@ -598,8 +601,8 @@ const AllCodeSpaces = (props) => {
       
             <div className={classNames('expansion-panel')}>
               <span className="animation-wrapper"></span>
-              <input type="checkbox" className="ff-only" id="faq-2" />
-              <label className={classNames('expansion-panel-label', Styles.faqHeader)} htmlFor="faq-2">
+              <input type="checkbox" className="ff-only" id="faq-4" />
+              <label className={classNames('expansion-panel-label', Styles.faqHeader)} htmlFor="faq-4">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
                   <span>4. I am getting a WebSocket error: “The workbench failed to connect to the server”</span>
                   <i tooltip-data="Expand" className="icon down-up-flip" />
@@ -622,8 +625,8 @@ const AllCodeSpaces = (props) => {
       
             <div className={classNames('expansion-panel')}>
               <span className="animation-wrapper"></span>
-              <input type="checkbox" className="ff-only" id="faq-3" />
-              <label className={classNames('expansion-panel-label', Styles.faqHeader)} htmlFor="faq-3">
+              <input type="checkbox" className="ff-only" id="faq-5" />
+              <label className={classNames('expansion-panel-label', Styles.faqHeader)} htmlFor="faq-5">
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
                   <span>5. CodeSpace stopped and keeps reloading while working</span>
                   <i tooltip-data="Expand" className="icon down-up-flip" />
@@ -655,35 +658,36 @@ const AllCodeSpaces = (props) => {
     const [showCodespacesModal, setShowCodespacesModal] = useState(false);
     const [selectedCodeSpaceGroup, setSelectedCodeSpaceGroup] = useState(JSON.parse(sessionStorage.getItem(SESSION_STORAGE_KEYS.CODE_SPACE_SELECTED_GROUPS)));
 
-    const sundownWarningContent = (
-        <div className={Styles.sundownWarning}>
-            <p>
-                Your repositories under the <a href={Envs.CODE_SPACE_GHEC_ORG_URL} target="_blank" rel="noopener noreferrer">DNA-CodeSpaces</a> organization have been successfully migrated from GHES to GitHub Cloud (GHEC). 🎉 All repositories can now be accessed using the following link{' '}
-                <a
-                    href={Envs.CODE_SPACE_GHEC_ORG_URL}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{ whiteSpace: 'nowrap' }}
-                >
-                    {Envs.CODE_SPACE_GHEC_ORG_URL}
-                </a>
-                .
-                <br /><br />
-            </p>
-            <p>
-                As part of the migration, please create a Personal Access Token (PAT) from{' '}
-                <a
-                    href={Envs.CODE_SPACE_GHE_PAT_SETTINGS_URL}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    style={{ whiteSpace: 'nowrap' }}
-                >
-                    {Envs.CODE_SPACE_GHE_PAT_SETTINGS_URL}
-                </a>
-                {' '}by selecting &quot;Generate new token (classic)&quot;. Under Scopes, ensure the token has at least <strong>repo</strong> access. After creating the token, make sure to authorize it for SSO under the <strong>DnA-Codespaces</strong> organization. <br /><br />Also, update your Git remote URL to point to the new host using<br /><code>git remote set-url origin {Envs.CODE_SPACE_GHEC_ORG_URL}/&lt;REPO_NAME&gt;.git</code><br /><br />For any queries, please refer to the Codespaces FAQs or contact us via the <a href={Envs.CODESPACE_TEAMS_LINK} target="_blank" rel="noopener noreferrer">DnA Codespaces Teams channel</a>.
-            </p>
-        </div>
-    );
+    // Migration complete - commented out unused content
+    // const sundownWarningContent = (
+    //     <div className={Styles.sundownWarning}>
+    //         <p>
+    //             Your repositories under the <a href={Envs.CODE_SPACE_GHEC_ORG_URL} target="_blank" rel="noopener noreferrer">DNA-CodeSpaces</a> organization have been successfully migrated from GHES to GitHub Cloud (GHEC). 🎉 All repositories can now be accessed using the following link{' '}
+    //             <a
+    //                 href={Envs.CODE_SPACE_GHEC_ORG_URL}
+    //                 target="_blank"
+    //                 rel="noopener noreferrer"
+    //                 style={{ whiteSpace: 'nowrap' }}
+    //             >
+    //                 {Envs.CODE_SPACE_GHEC_ORG_URL}
+    //             </a>
+    //             .
+    //             <br /><br />
+    //         </p>
+    //         <p>
+    //             As part of the migration, please create a Personal Access Token (PAT) from{' '}
+    //             <a
+    //                 href={Envs.CODE_SPACE_GHE_PAT_SETTINGS_URL}
+    //                 target="_blank"
+    //                 rel="noopener noreferrer"
+    //                 style={{ whiteSpace: 'nowrap' }}
+    //             >
+    //                 {Envs.CODE_SPACE_GHE_PAT_SETTINGS_URL}
+    //             </a>
+    //             {' '}by selecting &quot;Generate new token (classic)&quot;. Under Scopes, ensure the token has at least <strong>repo</strong> access. After creating the token, make sure to authorize it for SSO under the <strong>DnA-Codespaces</strong> organization. <br /><br />Also, update your Git remote URL to point to the new host using<br /><code>git remote set-url origin {Envs.CODE_SPACE_GHEC_ORG_URL}/&lt;REPO_NAME&gt;.git</code><br /><br />For any queries, please refer to the Codespaces FAQs or contact us via the <a href={Envs.CODESPACE_TEAMS_LINK} target="_blank" rel="noopener noreferrer">DnA Codespaces Teams channel</a>.
+    //         </p>
+    //     </div>
+    // );
 
     useEffect(() => {
         // if (selectedCodeSpaceGroup) {
@@ -1268,6 +1272,7 @@ const AllCodeSpaces = (props) => {
                     onCancel={() => { setShowTutorialsModel(false) }}
                 />
             )}
+            {/* Migration complete - modal commented out
             {showSundownWarningModal && (
                 <ConfirmModal
                     title={''}
@@ -1281,6 +1286,7 @@ const AllCodeSpaces = (props) => {
                     
                 />
             )}
+            */}
             {showAWSWarningModal && (
                 <ConfirmModal
                     title={''}
@@ -1314,6 +1320,7 @@ const AllCodeSpaces = (props) => {
                     onCancel={() => setShowAwsFAQModal(false)}
                 />
             )}
+            {/* Migration complete - modal commented out
             {showMigrationWarningModal && (
                 <ConfirmModal
                     title={'Important: Workspace Migrated to GitHub Cloud'}
@@ -1355,6 +1362,7 @@ const AllCodeSpaces = (props) => {
                     onAccept={handleMigrationWarningAccept}
                 />
             )}
+            */}
             {showBlueprintModal && (
                 <Modal
                     title={'Code Space Blueprint'}

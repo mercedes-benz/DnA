@@ -16,7 +16,11 @@ buildscript {
         mavenCentral()
 		gradlePluginPortal()
 		maven {
-		  url "https://plugins.gradle.org/m2/"
+            url System.getenv('ARTIFACTORY_URL')
+            credentials {
+                username System.getenv('ARTIFACTORY_USER')
+                password System.getenv('ARTIFACTORY_PASSWORD')
+            }
 		}
     }
     dependencies {
@@ -44,7 +48,11 @@ repositories {
         mavenCentral()
 		gradlePluginPortal()
 		maven {
-		  url "https://plugins.gradle.org/m2/"
+            url System.getenv('ARTIFACTORY_URL')
+            credentials {
+                username System.getenv('ARTIFACTORY_USER')
+                password System.getenv('ARTIFACTORY_PASSWORD')
+            }
 		}
 }
 
@@ -256,6 +264,9 @@ dependencies {
     implementation 'io.github.openfeign:feign-core:13.6'
     implementation 'io.github.openfeign:feign-jackson:13.6'
     implementation 'io.github.openfeign:feign-okhttp:13.6'
+
+    // databricks SDK
+    implementation("com.databricks:databricks-sdk-java:0.103.0")
 }
 
 tasks.named('test') {
