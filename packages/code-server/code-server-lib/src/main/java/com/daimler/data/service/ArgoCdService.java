@@ -252,8 +252,11 @@ public class ArgoCdService {
                 memory != null ? memory + "Mi" : "not set",
                 memory != null ? memory + "Mi" : "not set");
         } else {
-            // Don't send any resources parameter — let the chart's default values.yaml apply
-            log.info("[Resources] No resource overrides to apply, using chart defaults");
+            // Use dot notation to force resources as a map (not a list)
+            // This overwrites any previously corrupted resources: [""] from --set resources={}
+            helmParameters.add(createHelmParam("resources.limits", "null"));
+            helmParameters.add(createHelmParam("resources.requests", "null"));
+            log.info("[Resources] No resource overrides to apply, sending resources.limits=null, resources.requests=null");
         }
         
         Map<String, Object> payload = new HashMap<>();
