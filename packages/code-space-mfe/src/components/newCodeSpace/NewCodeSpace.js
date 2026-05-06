@@ -308,7 +308,7 @@ const NewCodeSpace = (props) => {
       githubUrlVal.length
         ? isValidGITRepoUrl(githubUrlVal, isPublicRecipeChoosen)
           ? ''
-          : `Please provide valid ${isPublicRecipeChoosen ? 'https://github.com/' : Envs.CODE_SPACE_GIT_PAT_APP_URL} git repository clone url.`
+          : `Please provide valid ${isPublicRecipeChoosen ? 'https://github.com/' : Envs.CODE_SPACE_GHE_PAT_APP_URL} git repository clone url.`
         : requiredError,
     );
   };

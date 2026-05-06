@@ -9,7 +9,7 @@ import { Envs } from '../../Utility/envs';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 import Notification from '../../common/modules/uilab/js/src/notification';
 import { CodeSpaceApiClient } from '../../apis/codespace.api';
-import { isValidGitUrl } from '../../Utility/utils';
+import { isValidGitUrl, ensureGitSuffix } from '../../Utility/utils';
 import { useHistory } from 'react-router-dom';
 import { useParams } from 'react-router-dom';
 import Tags from 'dna-container/Tags';
@@ -180,7 +180,8 @@ const CodeSpaceRecipe = (props) => {
 
   const onGitUrlChange = (e) => {
   const githubUrlVal = e.currentTarget.value.trim();
-  setGitUrl(githubUrlVal);
+  const urlWithGit = ensureGitSuffix(githubUrlVal);
+  setGitUrl(urlWithGit);
   setEnableCreate(false);
 
   const gitIHost = Envs.CODE_SPACE_GIT_PAT_APP_URL ? new URL(Envs.CODE_SPACE_GIT_PAT_APP_URL).host : '';
@@ -193,7 +194,7 @@ const CodeSpaceRecipe = (props) => {
   }
 
   const errorText = githubUrlVal.length
-    ? (isValidGitUrl(githubUrlVal) ? '' : `Provide valid https://github.com/ or ${Envs.CODE_SPACE_GIT_PAT_APP_URL} git url.`)
+    ? (isValidGitUrl(githubUrlVal) ? '' : `Provide valid https://github.com/ or ${Envs.CODE_SPACE_GHE_PAT_APP_URL} git url.`)
     : requiredError;
 
   setErrorObj(prev => ({ ...prev, gitUrl: errorText }));
