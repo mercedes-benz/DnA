@@ -170,17 +170,16 @@ public class ArgoCdService {
     public String restartArgoApp(String token, String workspaceName, String environment) {
         try {
             String appName = workspaceName + "-" + environment;
-            String namespace = getNamespaceForEnvironment(environment, environment);
+            String namespace = getNamespaceForEnvironment(codeServerEnvRef, environment);
             
-            String resourceName = appName;
             String url = argocdCreateUrl + "/" + appName + "/resource/actions" +
                         "?namespace=" + namespace +
-                        "&resourceName=" + resourceName +
+                        "&resourceName=" + appName +
                         "&version=v1" +
                         "&kind=Deployment" +
                         "&group=apps";
             
-            log.info("Restarting ArgoCD application: {} in namespace: {}", appName, namespace);
+            log.info("[Restart] Calling ArgoCD restart: appName={}, namespace={}, url={}", appName, namespace, url);
     
             HttpHeaders headers = new HttpHeaders();
             headers.setBearerAuth(token);
@@ -191,14 +190,19 @@ public class ArgoCdService {
             ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
         
             if (response != null && response.getStatusCode().is2xxSuccessful()) {
-                log.info("ArgoCD application restarted successfully: {}", appName);
+                log.info("[Restart] ArgoCD application restarted successfully: {}", appName);
                 return "success";
             } else {
-                log.info("Failed to restart: " + (response != null ? response.getBody() : ""));
+                log.error("[Restart] Failed to restart ArgoCD app {}: status={}, body={}", 
+                    appName, (response != null ? response.getStatusCode() : "null"), (response != null ? response.getBody() : "no response"));
                 return "failed";
             }
+        } catch (org.springframework.web.client.HttpClientErrorException e) {
+            log.error("[Restart] ArgoCD HTTP error for {}: status={}, body={}", 
+                workspaceName + "-" + environment, e.getStatusCode(), e.getResponseBodyAsString(), e);
+            return "failed";
         } catch (Exception e) {
-            log.error("Failed to restart ArgoCD application", e);            
+            log.error("[Restart] Failed to restart ArgoCD application {}: {}", workspaceName + "-" + environment, e.getMessage(), e);            
             return "failed";
         }
     }
@@ -268,6 +272,7 @@ public class ArgoCdService {
             ? argocdNamespacePrefix : clusterEnv;
         labels.put("env", envLabel);
         labels.put("project", "cs-apps");
+        labels.put("cs-env", targetEnv);
         metadata.put("labels", labels);
         payload.put("metadata", metadata);
         
@@ -307,6 +312,14 @@ public class ArgoCdService {
         syncPolicy.put("syncOptions", syncOptions);
         
         spec.put("syncPolicy", syncPolicy);
+        
+        List<Map<String, String>> infoList = new ArrayList<>();
+        Map<String, String> csEnvInfo = new HashMap<>();
+        csEnvInfo.put("name", "cs-env");
+        csEnvInfo.put("value", targetEnv);
+        infoList.add(csEnvInfo);
+        spec.put("info", infoList);
+        
         payload.put("spec", spec);
         
         ObjectMapper mapper = new ObjectMapper();
