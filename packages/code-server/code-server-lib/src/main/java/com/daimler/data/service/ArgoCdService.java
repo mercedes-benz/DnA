@@ -272,6 +272,7 @@ public class ArgoCdService {
             ? argocdNamespacePrefix : clusterEnv;
         labels.put("env", envLabel);
         labels.put("project", "cs-apps");
+        labels.put("cs-env", targetEnv);
         metadata.put("labels", labels);
         payload.put("metadata", metadata);
         
