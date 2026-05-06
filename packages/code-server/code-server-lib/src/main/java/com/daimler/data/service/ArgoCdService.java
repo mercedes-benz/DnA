@@ -170,22 +170,53 @@ public class ArgoCdService {
     public String restartArgoApp(String token, String workspaceName, String environment) {
         try {
             String appName = workspaceName + "-" + environment;
-            String namespace = getNamespaceForEnvironment(environment, environment);
+            log.info("Restarting ArgoCD application: {}", appName);
+
+            // Step 1: Get resource tree to find the actual Deployment resource name and namespace
+            String treeUrl = argocdCreateUrl + "/" + appName + "/resource-tree";
+            HttpHeaders headers = new HttpHeaders();
+            headers.setBearerAuth(token);
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<Object> treeEntity = new HttpEntity<>(headers);
+
+            ResponseEntity<String> treeResponse = restTemplate.exchange(treeUrl, HttpMethod.GET, treeEntity, String.class);
             
-            String resourceName = appName;
+            String deploymentName = null;
+            String deploymentNamespace = null;
+            
+            if (treeResponse.getStatusCode().is2xxSuccessful() && treeResponse.getBody() != null) {
+                ObjectMapper mapper = new ObjectMapper();
+                JsonNode root = mapper.readTree(treeResponse.getBody());
+                JsonNode nodes = root.path("nodes");
+                if (nodes.isArray()) {
+                    for (JsonNode node : nodes) {
+                        String kind = node.path("kind").asText("");
+                        String group = node.path("group").asText("");
+                        if ("Deployment".equalsIgnoreCase(kind) && "apps".equalsIgnoreCase(group)) {
+                            deploymentName = node.path("name").asText("");
+                            deploymentNamespace = node.path("namespace").asText("");
+                            log.info("Found Deployment resource: name={}, namespace={}", deploymentName, deploymentNamespace);
+                            break;
+                        }
+                    }
+                }
+            }
+
+            if (deploymentName == null || deploymentName.isEmpty()) {
+                log.error("No Deployment resource found in ArgoCD app: {}", appName);
+                return "failed";
+            }
+
+            // Step 2: Call resource actions API with the actual Deployment name
             String url = argocdCreateUrl + "/" + appName + "/resource/actions" +
-                        "?namespace=" + namespace +
-                        "&resourceName=" + resourceName +
+                        "?namespace=" + deploymentNamespace +
+                        "&resourceName=" + deploymentName +
                         "&version=v1" +
                         "&kind=Deployment" +
                         "&group=apps";
             
-            log.info("Restarting ArgoCD application: {} in namespace: {}", appName, namespace);
-    
-            HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth(token);
-            headers.setContentType(MediaType.APPLICATION_JSON);
-        
+            log.info("Calling restart action on Deployment: {} in namespace: {}", deploymentName, deploymentNamespace);
+
             HttpEntity<String> entity = new HttpEntity<>("restart", headers);
         
             ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
@@ -194,11 +225,11 @@ public class ArgoCdService {
                 log.info("ArgoCD application restarted successfully: {}", appName);
                 return "success";
             } else {
-                log.info("Failed to restart: " + (response != null ? response.getBody() : ""));
+                log.error("Failed to restart ArgoCD app {}: {}", appName, (response != null ? response.getBody() : "no response"));
                 return "failed";
             }
         } catch (Exception e) {
-            log.error("Failed to restart ArgoCD application", e);            
+            log.error("Failed to restart ArgoCD application: {}", e.getMessage(), e);            
             return "failed";
         }
     }
