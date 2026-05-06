@@ -312,6 +312,14 @@ public class ArgoCdService {
         syncPolicy.put("syncOptions", syncOptions);
         
         spec.put("syncPolicy", syncPolicy);
+        
+        List<Map<String, String>> infoList = new ArrayList<>();
+        Map<String, String> csEnvInfo = new HashMap<>();
+        csEnvInfo.put("name", "cs-env");
+        csEnvInfo.put("value", targetEnv);
+        infoList.add(csEnvInfo);
+        spec.put("info", infoList);
+        
         payload.put("spec", spec);
         
         ObjectMapper mapper = new ObjectMapper();
