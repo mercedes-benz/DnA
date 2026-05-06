@@ -6,6 +6,7 @@ import java.util.List;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.daimler.data.db.json.UserDetails;
 import com.daimler.data.db.json.catalogManangement.Databases;
+import com.daimler.data.db.json.catalogManangement.LakehouseTableDetail;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -20,4 +21,7 @@ public class FabricCatalogMetadataDetails implements Serializable{
     private FabricCatalogMetadata metadata;
     private List<UserDetails> owners;
     private MandatoryFields mandatoryFields;
+    private List<String> publishedCdcTables;
+    private List<String> publishedLakehouseTables;
+    private List<LakehouseTableDetail> publishedLakehouseTableDetails;
 }

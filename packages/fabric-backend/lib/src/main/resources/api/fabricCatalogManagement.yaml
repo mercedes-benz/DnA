@@ -437,6 +437,10 @@ definitions:
         type: string
       tableId:
         type: string
+      enabled:
+        type: boolean
+        description: "Indicates if the table is enabled (true) or disabled (false)"
+        default: true
       columns:
         type: array
         items:
@@ -456,6 +460,10 @@ definitions:
         type: string
       colConstraint:
         type: string
+      enabled:
+        type: boolean
+        description: "Indicates if the column is enabled (true) or disabled (false)"
+        default: true
 
   PublishCatalogResponseVO:
     type: object
@@ -521,6 +529,50 @@ definitions:
           $ref: "#/definitions/CreatedByVO"
       mandatoryFields:
         $ref: "#/definitions/MandatoryFieldsVO"
+      publishedCdcTables:
+        type: array
+        description: "List of table names published to CDC"
+        items:
+          type: string
+      publishedLakehouseTables:
+        type: array
+        description: "List of table names available in the lakehouse"
+        items:
+          type: string
+      publishedLakehouseTableDetails:
+        type: array
+        description: "Detailed information about lakehouse tables including enabled status"
+        items:
+          $ref: "#/definitions/LakehouseTableDetailVO"
+
+  LakehouseTableDetailVO:
+    type: object
+    description: "Detailed information about a lakehouse table"
+    properties:
+      tableName:
+        type: string
+        description: "Name of the table"
+      enabled:
+        type: boolean
+        description: "Whether the table is enabled (true) or disabled (false)"
+        default: false
+      columns:
+        type: array
+        description: "List of columns in the table"
+        items:
+          $ref: "#/definitions/LakehouseColumnDetailVO"
+
+  LakehouseColumnDetailVO:
+    type: object
+    description: "Detailed information about a column in a lakehouse table"
+    properties:
+      columnName:
+        type: string
+        description: "Name of the column"
+      enabled:
+        type: boolean
+        description: "Whether the column is enabled (true) or disabled (false)"
+        default: false
 
   updateDDXGroupsRequestVO:
     type: object
