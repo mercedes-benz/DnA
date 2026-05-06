@@ -28,7 +28,9 @@
  package com.daimler.data.service.workspace;
 
  import java.text.SimpleDateFormat;
- import java.util.ArrayList;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.ArrayList;
  import java.util.Arrays;
  import java.util.Date;
  import java.util.HashMap;
@@ -39,7 +41,8 @@
  import java.util.Optional;
  import java.util.Set;
  import java.util.UUID;
- import java.util.regex.Matcher;
+import java.util.concurrent.TimeUnit;
+import java.util.regex.Matcher;
  import java.util.regex.Pattern;
  import java.util.stream.Collector;
  import java.util.stream.Collectors;
@@ -92,8 +95,10 @@
  import com.daimler.data.dto.CodespaceSecurityConfigDto;
  import com.daimler.data.dto.DeploymentManageDto;
  import com.daimler.data.dto.DeploymentManageInputDto;
- import com.daimler.data.dto.GitLatestCommitIdDto;
- import com.daimler.data.dto.WorkbenchManageDto;
+import com.daimler.data.dto.GitHubWorkflowRunDto;
+import com.daimler.data.dto.GitLatestCommitIdDto;
+import com.daimler.data.dto.GitRunIdDetailsDto;
+import com.daimler.data.dto.WorkbenchManageDto;
  import com.daimler.data.dto.WorkbenchManageInputDto;
  import com.daimler.data.dto.solution.ChangeLogVO;
  import com.daimler.data.dto.userinfo.UsersCollection;
@@ -109,7 +114,9 @@
  import com.daimler.data.dto.workspace.CreatedByVO;
  import com.daimler.data.dto.workspace.DataGovernanceRequestInfo;
  import com.daimler.data.dto.workspace.DeployedAppConfigDto;
- import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
+import com.daimler.data.dto.workspace.GitJobRunIdStatusVO;
+import com.daimler.data.dto.workspace.GitJobStatusVO;
+import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
  import com.daimler.data.dto.workspace.ResourceVO;
  import com.daimler.data.dto.workspace.UpdateUserGroupRequestVO;
  import com.daimler.data.dto.workspace.UserInfoVO;
@@ -1472,12 +1479,8 @@
 								}
 					}else{
 						HttpStatus status;
-						if (vo.getProjectDetails().getRecipeDetails().getRepodetails().contains("ghe.com")) {
-							status = gitClient.isUserCollaborator(orgName, collaborator.getId(), repoName, gheBaseUri,
-									ghePat);
-						} else {
-							status = gitClient.isUserCollaborator(orgName, collaborator.getId(), repoName);
-						}
+						Boolean isGHE = vo.getProjectDetails().getRecipeDetails().getRepodetails().contains("ghe.com");
+						status = gitClient.isUserCollaborator(orgName, collaborator.getId(), repoName, isGHE);
 						if(!status.is2xxSuccessful()) {
 							log.info("Collaborator {} Addition failed for recipe {}  ",collaborator.getId(),vo.getProjectDetails().getRecipeDetails().getRecipeId());
 							errors.add(new MessageDescription("Cannot add User "+collaborator.getId()+" as collaborator because the user is  not a collaborator to the private repo "+repoName+" add the user to the repo and try again"));
@@ -2032,9 +2035,12 @@
 						if(entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase()
 						.startsWith("private")){
 							List<String> repoDetails = CommonUtils.getRepoNameFromGitUrl(entity.getData().getProjectDetails().getGitRepoName());
-							commitId = gitClient.getLatestCommitId(repoDetails.get(0),branch,repoDetails.get(1));
+							String privateRepoUrl = entity.getData().getProjectDetails().getRecipeDetails().getRepodetails();
+							boolean isPrivateRepoOnGHE = Objects.nonNull(privateRepoUrl) && privateRepoUrl.contains("ghe.com");
+							commitId = gitClient.getLatestCommitId(repoDetails.get(0),branch,repoDetails.get(1), isPrivateRepoOnGHE);
 						}else{
-							commitId = gitClient.getLatestCommitId(gitOrgName,branch,entity.getData().getProjectDetails().getGitRepoName());
+							String effectiveOrgName = gheWorkspaceMigrated ? gitOrgName : codeServerGitOrgName;
+							commitId = gitClient.getLatestCommitId(effectiveOrgName,branch,entity.getData().getProjectDetails().getGitRepoName(), gheWorkspaceMigrated);
 							
 						}
 						if(commitId == null){
@@ -2558,11 +2564,8 @@
 					 }
 				}else{
 					HttpStatus status;
-					if (gitUrl.contains("ghe.com")) {
-						status = gitClient.isUserCollaborator(repoOwner, gitUser, repoName, gheBaseUri, ghePat);
-					} else {
-						status = gitClient.isUserCollaborator(repoOwner, gitUser, repoName);
-					}
+					Boolean isGHE = gitUrl.contains("ghe.com");
+					status = gitClient.isUserCollaborator(repoOwner, gitUser, repoName, isGHE);
 					if(!status.is2xxSuccessful()) {
 						log.info(
 								"Cannot add User {} as collaborator because the user is  not a collaborator to the private repo {}",
@@ -4776,18 +4779,24 @@
 					}
 					 BuildAudit auditLog = new BuildAudit();
 					 GitLatestCommitIdDto commitId =null;
+					 Boolean gheWorkspaceMigratedForBuild = entity.getData().getIsWorkspaceMigratedToGHE();
 					 if(entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toLowerCase()
 					 .startsWith("private")){
 						List<String> repoDetails = CommonUtils.getRepoNameFromGitUrl(entity.getData().getProjectDetails().getGitRepoName());
-						commitId = gitClient.getLatestCommitId(repoDetails.get(0),branch,repoDetails.get(1));
+						String privateRepoUrl = entity.getData().getProjectDetails().getRecipeDetails().getRepodetails();
+						boolean isPrivateRepoOnGHE = Objects.nonNull(privateRepoUrl) && privateRepoUrl.contains("ghe.com");
+						commitId = gitClient.getLatestCommitId(repoDetails.get(0),branch,repoDetails.get(1), isPrivateRepoOnGHE);
 					}else{
-						commitId = gitClient.getLatestCommitId(gitOrgName,branch,entity.getData().getProjectDetails().getGitRepoName());
+						String effectiveOrgName = gheWorkspaceMigratedForBuild ? gitOrgName : codeServerGitOrgName;
+						commitId = gitClient.getLatestCommitId(effectiveOrgName,branch,entity.getData().getProjectDetails().getGitRepoName(), gheWorkspaceMigratedForBuild);
 						
 					}
 					
 					if(commitId == null){
 						MessageDescription warning = new MessageDescription();
-						warning.setMessage("Error while adding commit id to deployment audit log");
+						warning.setMessage("Error while adding commit id to build audit log");
+					} else {
+						auditLog.setCommitId(commitId.getSha());
 					}
 					 auditLog.setCommitId(commitId.getSha());
 					 auditLog.setImageDeleted(Boolean.FALSE);
@@ -5450,7 +5459,216 @@
 		}
 	}
 
-	
 
-	
-}
+	@Override
+	@Transactional
+	public GitJobRunIdStatusVO getGitRunIdStatus(String projectName) {
+
+		GitJobRunIdStatusVO vo = new GitJobRunIdStatusVO();
+		GitJobStatusVO statusVo = new GitJobStatusVO();
+		vo.setData(statusVo);
+		GitRunIdDetailsDto dto = workspaceCustomRepository.getGitRunId(projectName);
+		if (dto == null || dto.getStatus() == null) {
+			return vo;
+		}
+
+		String currentStatus = dto.getStatus();
+		/* Terminal states → return directly */
+		if (isTerminalStatus(currentStatus)) {
+			statusVo.setStatus(currentStatus);
+			return vo;
+		}
+
+		/* Requested states → call GitHub */
+		if (isRequestedStatus(currentStatus)) {
+			if(dto.getGitjobRunId() == null || dto.getGitjobRunId().isBlank()) {
+				MessageDescription error = new MessageDescription();
+				error.setMessage("Workspace is queued for build/deploy generating GitJobRunId wait for some time.");
+				vo.setWarnings(List.of(error));
+				return vo;
+			}
+			GitHubWorkflowRunDto run = gitClient.getWorkflowRun(dto.getGitjobRunId());
+			if (run == null) {
+				MessageDescription warning = new MessageDescription();
+					warning.setMessage(
+							"Failed to fetch GitHub workflow run details for Job Run ID: " + dto.getGitjobRunId()
+					);
+
+					vo.setWarnings(List.of(warning));
+				return vo;
+			}
+
+			/* Completed */
+			// status = "completed"
+			// conclusion = "success"
+			// conclusion = failure | cancelled | timed_out | skipped | neutral | action_required
+			if ("completed".equalsIgnoreCase(run.getStatus()) && run.getConclusion() != null) {
+				String finalStatus = resolveFinalStatus(
+						currentStatus,
+						run.getConclusion()
+				);
+
+				boolean statusUpdated =workspaceCustomRepository.updateGitRunIdStatus(
+										projectName,
+										finalStatus,
+										dto.getEnvironment()
+								);
+
+				boolean auditUpdated =
+					workspaceCustomRepository.updateBuildDeployAuditStatus(
+										projectName,
+										finalStatus,
+										dto.getEnvironment(),
+										dto.getGitjobRunId()
+								);
+
+				if (!statusUpdated || !auditUpdated) {
+					MessageDescription error = new MessageDescription();
+					error.setMessage("Failed to persist Git build/deploy status");
+					vo.setErrors(List.of(error));
+					return vo;
+				}
+				statusVo.setStatus(finalStatus);
+			}
+			else {
+				// status = queued | in_progress
+				// conclusion = null
+
+				statusVo.setStatus(null);
+
+				MessageDescription warning = new MessageDescription();
+				warning.setMessage(
+					"GitHub workflow is not completed yet. " +
+					"Status=" + run.getStatus() +
+					", Conclusion=" + run.getConclusion()
+				);
+
+				vo.setWarnings(List.of(warning));
+			}
+
+		}
+
+		return vo;
+	}
+
+
+	private boolean isTerminalStatus(String status) {
+		return Set.of(
+			"DEPLOYED",
+			"BUILD_SUCCESS",
+			"DEPLOY_FAILED",
+			"BUILD_FAILED"
+		).contains(status);
+	}
+
+	private boolean isRequestedStatus(String status) {
+		return Set.of(
+			"DEPLOY_REQUESTED",
+			"BUILD_REQUESTED"
+		).contains(status);
+	}
+
+	private String resolveFinalStatus(String requestedStatus, String conclusion) {
+
+		boolean success = "success".equalsIgnoreCase(conclusion);
+
+		if ("BUILD_REQUESTED".equalsIgnoreCase(requestedStatus)) {
+			return success ? "BUILD_SUCCESS" : "BUILD_FAILED";
+		}
+
+		if ("DEPLOY_REQUESTED".equalsIgnoreCase(requestedStatus)) {
+			return success ? "DEPLOYED" : "DEPLOY_FAILED";
+		}
+
+		return requestedStatus;
+	}
+
+	@Override
+	@Transactional
+	public GenericMessage cancelWorkspaceRun(String projectName) {
+		// TODO Auto-generated method stub
+		GenericMessage responseMessage = new GenericMessage();
+		String status = "FAILED";
+		List<MessageDescription> warnings = new ArrayList<>();
+		List<MessageDescription> errors = new ArrayList<>();
+		try {
+			GitRunIdDetailsDto dto = workspaceCustomRepository.getGitRunId(projectName);
+			if (dto == null || dto.getGitjobRunId() == null || dto.getGitjobRunId().isBlank()) {
+				MessageDescription error = new MessageDescription();
+				error.setMessage("No ongoing build/deploy found for project: " + projectName);
+				errors.add(error);
+				responseMessage.setErrors(errors);
+				responseMessage.setWarnings(warnings);
+				responseMessage.setSuccess(status);
+				return responseMessage;	
+			}
+			GitHubWorkflowRunDto run = gitClient.getWorkflowRun(dto.getGitjobRunId());
+			if (run == null) {
+				MessageDescription error = new MessageDescription();
+				error.setMessage("Failed to fetch GitHub workflow run details for Job Run ID: " + dto.getGitjobRunId());
+				errors.add(error);
+				responseMessage.setErrors(errors);
+				responseMessage.setWarnings(warnings);
+				responseMessage.setSuccess(status);
+				return responseMessage;	
+			}
+			if(run.getCreatedAt() != null) {
+				Date now = new Date();
+				long diffInMillies = now.getTime() - run.getCreatedAt().getTime();
+				long diffInHours = TimeUnit.MILLISECONDS.toHours(diffInMillies);
+				if(diffInHours >= 1) {
+					GenericMessage cancelResponse = gitClient.cancelWorkflowRun(dto.getGitjobRunId());
+					if("SUCCESS".equalsIgnoreCase(cancelResponse.getSuccess())) {
+						String currentStatus = dto.getStatus();
+						boolean newStatus = isRequestedStatus(currentStatus);
+						String newStatusStr = resolveFinalStatus(currentStatus, run.getConclusion());
+						boolean statusUpdated =workspaceCustomRepository.updateGitRunIdStatus(
+												projectName,
+												newStatusStr,
+												dto.getEnvironment()
+										);
+						boolean auditUpdated =
+							workspaceCustomRepository.updateBuildDeployAuditStatus(
+												projectName,
+												newStatusStr,
+												dto.getEnvironment(),
+												dto.getGitjobRunId()
+										);
+						if (!statusUpdated || !auditUpdated) {
+							MessageDescription error = new MessageDescription();
+							error.setMessage("Failed to persist Git build/deploy status");
+							errors.add(error);
+							responseMessage.setErrors(errors);
+							responseMessage.setWarnings(warnings);
+							responseMessage.setSuccess("FAILED");
+							return responseMessage;
+						}
+						MessageDescription warning = new MessageDescription();
+						warning.setMessage("Build/Deploy cancelled for project: " + projectName + ". Please check the logs for more details.");
+						warnings.add(warning);
+						status = "SUCCESS";
+					}else {
+						errors.addAll(cancelResponse.getErrors());
+					}
+				}else {
+					MessageDescription warning = new MessageDescription();
+					warning.setMessage("Build/Deploy is still in progress for project: " + projectName + ". Cannot cancel before 1 hour of run time.");
+					warnings.add(warning);
+					status = "SUCCESS";
+				}
+			}else {
+				MessageDescription error = new MessageDescription();
+				error.setMessage("Failed to determine the start time of the workflow run for Job Run ID: " + dto.getGitjobRunId());
+				errors.add(error);
+			}
+		} catch (Exception e) {
+			MessageDescription error = new MessageDescription();
+			error.setMessage("Error cancelling workflow run: " + e.getMessage());
+			errors.add(error);
+		}
+		responseMessage.setErrors(errors);
+		responseMessage.setWarnings(warnings);
+		responseMessage.setSuccess(status);
+		return responseMessage;
+	}
+ }

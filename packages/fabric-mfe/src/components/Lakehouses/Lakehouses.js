@@ -1,5 +1,5 @@
 import classNames from 'classnames';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Styles from './lakehouses.scss';
 import Modal from 'dna-container/Modal';
 import SelectBox from 'dna-container/SelectBox';
@@ -321,6 +321,8 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
   const [showViewTables, setShowViewTablesModal] = useState(false);
   const [showNonProdProjectModal, setShowNonProdProjectModal] = useState(false);
   const [showDdxViewTables, setShowDdxViewTablesModal] = useState(false);
+  const [showMismatchModal, setShowMismatchModal] = useState(false);
+  const [mismatchData, setMismatchData] = useState(null);
 
   const [contextMenus, setContextMenus] = useState({});
   const [showLocationsContextMenu, setShowLocationsContextMenu] = useState(false);
@@ -340,6 +342,33 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
     return Tooltip.clear();
     //eslint-disable-next-line
   }, [workspace]);
+
+  const checkForMismatches = useCallback(() => {
+    if (!workspace?.id || !lakehouses?.length) return;
+    const publishedLakehouseIds = workspace?.cdcPublishedLakeHouseDetails?.publishedLakeHouseNames || [];
+    lakehouses.forEach((lakehouse) => {
+      if (publishedLakehouseIds.includes(lakehouse.id)) {
+        fabricApi
+          .checkTableMismatch(workspace.id, lakehouse.id)
+          .then((res) => {
+            if (res?.data?.hasMismatch) {
+              setMismatchData({
+                lakehouseName: lakehouse.name,
+                mismatches: res.data.mismatches || [],
+              });
+              setShowMismatchModal(true);
+            }
+          })
+          .catch((e) => {
+            console.error('Mismatch check failed for lakehouse:', lakehouse.name, e);
+          });
+      }
+    });
+  }, [workspace, lakehouses]);
+
+  useEffect(() => {
+    checkForMismatches();
+  }, [checkForMismatches]);
 
   // Pagination 
   const [totalNumberOfPages, setTotalNumberOfPages] = useState(0);
@@ -628,7 +657,7 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
                         </button>
                       </li>
                       <li className="contextListItem">
-                        <button className={classNames('btn btn-primary', Styles.outlineBtn, Styles.disabledBtn)}
+                        <button className={classNames('btn btn-primary', Styles.outlineBtn, !(workspace?.cdcPublishedLakeHouseDetails?.publishedLakeHouseNames?.includes(lakehouse.id)) && Styles.disabledBtn)}
                           onClick={() => {
                             setSelectedLakehouse(lakehouse);
                             if (workspace?.typeOfProject?.toLowerCase() !== "production") {
@@ -655,12 +684,33 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
                           className={Styles.deployedTag}
                           tooltip-data="Lakehouse successfully deployed to CDC."
                         >
-                          Published
+                          CDC
                         </span>
                       </span>
                       <div className={Styles.cdcNewTab}>
                         <a
                           href={`${Envs.CDC_URL}/${workspace?.name}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <i className="icon mbc-icon new-tab" />
+                        </a>
+                      </div>
+                    </>
+                  )}
+                  {workspace?.ddxPublishedLakeHouseDetails?.some(d => d.lakeHouseId === lakehouse.id) && (
+                    <>
+                      <span className={Styles.statusIndicator}>
+                        <span
+                          className={Styles.deployedTag}
+                          tooltip-data="Lakehouse successfully deployed to DDX."
+                        >
+                          DDX
+                        </span>
+                      </span>
+                      <div className={Styles.cdcNewTab}>
+                        <a
+                          href={`${(Envs.DDX_DOF_BASE_URL || '').replace(/\/$/, '')}/myDataProducts/onboardingForm/${workspace?.ddxPublishedLakeHouseDetails?.find(d => d.lakeHouseId === lakehouse.id)?.dataProducts?.slice()?.sort((a, b) => new Date(b.createdOn) - new Date(a.createdOn))?.[0]?.productId}`}
                           target="_blank"
                           rel="noopener noreferrer"
                         >
@@ -783,11 +833,13 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
           show={showDdxViewTables}
           content={
             <ViewDdxTablesModalContent 
-              workspaceId={workspace?.id} 
+              workspaceId={workspace?.id}
+              workspaceName={workspace?.name}
               workspaceOwner={workspace?.createdBy}
               workspaceDivision={workspace?.division} 
               lakehouseId={selectedLakehouse?.id} 
               lakehouseName={selectedLakehouse?.name} 
+              ddxPublishedLakeHouseDetails={workspace?.ddxPublishedLakeHouseDetails}
               onRefreshWorkspace={onRefreshWorkspace} />}
           scrollableContent={true}
           onCancel={() => { setSelectedLakehouse(); setShowDdxViewTablesModal(false) }}
@@ -804,6 +856,50 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
           content={deleteLakehouseModalContent}
           onCancel={() => setShowDeleteModal(false)}
           onAccept={deleteLakehouseAccept}
+        />
+      }
+      { showMismatchModal && mismatchData &&
+        <InfoModal
+          title={`Table Mismatch Detected - ${mismatchData.lakehouseName}`}
+          showAcceptButton={false}
+          showCancelButton={true}
+          cancelButtonTitle="Close"
+          buttonAlignment="right"
+          modalWidth="60%"
+          show={showMismatchModal}
+          content={
+            <div className={Styles.mismatchContainer}>
+              <p className={Styles.mismatchWarning}>
+                <i className="icon mbc-icon alert" />
+                Tables in this lakehouse have changed in Fabric since the last CDC publish. Please review the mismatches below and re-publish to CDC if needed.
+              </p>
+              <div className={Styles.mismatchList}>
+                {mismatchData.mismatches.map((mismatch, index) => (
+                  <div key={index} className={Styles.mismatchItem}>
+                    <div className={Styles.mismatchHeader}>
+                      <span className={Styles.mismatchTableName}>{mismatch.tableName}</span>
+                      <span className={classNames(Styles.mismatchType, {
+                        [Styles.mismatchNew]: mismatch.mismatchType === 'NEW_TABLE',
+                        [Styles.mismatchDeleted]: mismatch.mismatchType === 'DELETED_TABLE',
+                        [Styles.mismatchChanged]: ['COLUMNS_ADDED', 'COLUMNS_REMOVED', 'COLUMN_TYPE_CHANGED'].includes(mismatch.mismatchType),
+                      })}>
+                        {mismatch.mismatchType?.replace(/_/g, ' ')}
+                      </span>
+                    </div>
+                    <p className={Styles.mismatchDetails}>{mismatch.details}</p>
+                    {mismatch.affectedColumns?.length > 0 && (
+                      <div className={Styles.mismatchColumns}>
+                        <span>Affected columns: </span>
+                        {mismatch.affectedColumns.join(', ')}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+            </div>
+          }
+          scrollableContent={true}
+          onCancel={() => { setShowMismatchModal(false); setMismatchData(null); }}
         />
       }
     </>

@@ -79,7 +79,7 @@
       display: flex;
       justify-content: flex-end;
       margin-right: 3px;
-      gap: 110px;
+      gap: 80px;
     }
     .cdcContainer {
       margin-top: auto; 
@@ -468,4 +468,87 @@ hr {
   display: flex;
   align-items: center;
   gap: 10px; 
+}
+
+.mismatchContainer {
+  padding: 10px;
+}
+
+.mismatchWarning {
+  color: #FFEB3B;
+  font-size: var(--font-size-medium);
+  margin-bottom: 20px;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+
+  i {
+    color: #FFEB3B;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+}
+
+.mismatchList {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.mismatchItem {
+  background-color: #252a33;
+  border: 1px solid #383f49;
+  border-radius: 4px;
+  padding: 14px 16px;
+}
+
+.mismatchHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.mismatchTableName {
+  font-family: 'Roboto-Medium';
+  font-size: var(--font-size-sub-headline);
+  color: #fff;
+}
+
+.mismatchType {
+  padding: 2px 8px;
+  border-radius: 2px;
+  font-size: var(--font-size-icon-small);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+}
+
+.mismatchNew {
+  border: 1px solid #00adef;
+  color: #00adef;
+}
+
+.mismatchDeleted {
+  border: 1px solid #e84d47;
+  color: #e84d47;
+}
+
+.mismatchChanged {
+  border: 1px solid #FFEB3B;
+  color: #FFEB3B;
+}
+
+.mismatchDetails {
+  color: #99a5b3;
+  font-size: var(--font-size-small);
+  margin: 0 0 6px 0;
+}
+
+.mismatchColumns {
+  color: #697582;
+  font-size: var(--font-size-small);
+
+  span {
+    font-weight: bold;
+  }
 }

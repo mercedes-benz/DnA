@@ -256,6 +256,9 @@ dependencies {
     implementation 'io.github.openfeign:feign-core:13.6'
     implementation 'io.github.openfeign:feign-jackson:13.6'
     implementation 'io.github.openfeign:feign-okhttp:13.6'
+
+    // databricks SDK
+    implementation("com.databricks:databricks-sdk-java:0.103.0")
 }
 
 tasks.named('test') {

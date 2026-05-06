@@ -13,13 +13,21 @@ import org.springframework.web.client.RestTemplate;
 import com.daimler.data.util.CommonUtils;
 
 import java.util.Base64;
+import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 import org.json.JSONObject;
 
 import org.springframework.web.client.HttpClientErrorException;
+
+import com.daimler.data.controller.exceptions.GenericMessage;
+import com.daimler.data.controller.exceptions.MessageDescription;
+import org.springframework.web.client.HttpStatusCodeException;
+
 import com.daimler.data.dto.GitBranchesCollectionDto;
+import com.daimler.data.dto.GitHubWorkflowRunDto;
 import com.daimler.data.dto.GitLatestCommitIdDto;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -71,6 +79,9 @@ public class GitClient {
 
 	@Value("${codeServer.env.ref}")
 	private String codeServerEnvRef;
+
+	@Value("${codeserver.git.deploy.appname}")
+	private String gitAppName;
 
 	private static String HTTP_HEADER ="https://";
 
@@ -568,15 +579,23 @@ public class GitClient {
 	}
 
 	public GitLatestCommitIdDto getLatestCommitId( String orgName, String branch, String repoName) {
+		return getLatestCommitId(orgName, branch, repoName, null);
+	}
+	
+	public GitLatestCommitIdDto getLatestCommitId( String orgName, String branch, String repoName, Boolean isWorkspaceMigratedToGHE) {
 		GitLatestCommitIdDto commitId = null;
 		try {
-			log.info("Getting latest commit ID: org={}, repo={}, branch={}", orgName, repoName, branch);
+			String baseUri = Boolean.TRUE.equals(isWorkspaceMigratedToGHE) ? gheBaseUri : gitBaseUri;
+			String pat = Boolean.TRUE.equals(isWorkspaceMigratedToGHE) ? ghePat : personalAccessToken;
+			
+			log.info("Getting latest commit ID: org={}, repo={}, branch={}, baseUri={} (isWorkspaceMigratedToGHE={})", 
+					orgName, repoName, branch, baseUri, isWorkspaceMigratedToGHE);
 			
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");
-			headers.set("Authorization", "token "+ personalAccessToken);
-			String url = gitBaseUri+"/repos/" + orgName + "/"+ repoName+ "/commits?sha="+branch+"&per_page=1";
+			headers.set("Authorization", "token "+ pat);
+			String url = baseUri+"/repos/" + orgName + "/"+ repoName+ "/commits?sha="+branch+"&per_page=1";
 			HttpEntity entity = new HttpEntity<>(headers);
 			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
 			ObjectMapper objectMapper = new ObjectMapper();
@@ -590,11 +609,15 @@ public class GitClient {
 		} catch (Exception e) {
 			log.error("Error occured while  fetching latest commit id from git repo {} and branch {} with exception {}", repoName, branch, e.getMessage());
 		}
-		return new GitLatestCommitIdDto();
+		return null;
 	}
 	
-	public HttpStatus isUserCollaborator( String orgName,String username, String repoName) {
-		return isUserCollaborator(orgName, username, repoName, gitBaseUri, personalAccessToken);
+	public HttpStatus isUserCollaborator( String orgName,String username, String repoName, Boolean isWorkspaceMigratedToGHE) {
+		String baseUri = Boolean.TRUE.equals(isWorkspaceMigratedToGHE) ? gheBaseUri : gitBaseUri;
+		String pat = Boolean.TRUE.equals(isWorkspaceMigratedToGHE) ? ghePat : personalAccessToken;
+		log.info("Checking if user is collaborator: user={}, org={}, repo={}, baseUri={} (isWorkspaceMigratedToGHE={})", 
+				username, orgName, repoName, baseUri, isWorkspaceMigratedToGHE);
+		return isUserCollaborator(orgName, username, repoName, baseUri, pat);
 	}
 	
 	public HttpStatus isUserCollaborator( String orgName,String username, String repoName, String baseUri, String pat) {
@@ -686,5 +709,73 @@ public class GitClient {
 		log.info("The  file is not present in the Git repository.");
 		return null;
 	}
+
+	public GitHubWorkflowRunDto getWorkflowRun(String runId) {
+
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/vnd.github+json");
+			headers.set("Authorization", "Bearer " + personalAccessToken);
+			String url = gitBaseUri + "/repos/" + applicationName + "/" + gitAppName + "/actions/runs/" + runId;
+
+			HttpEntity<Void> entity = new HttpEntity<>(headers);
+		try {
+			ResponseEntity<GitHubWorkflowRunDto> response =
+					restTemplate.exchange(url, HttpMethod.GET, entity, GitHubWorkflowRunDto.class);
+			return response.getBody();
+
+		} catch (HttpStatusCodeException ex) {
+			log.error("GitHub API error {} for runId {}", ex.getStatusCode(), runId);
+			return null;
+		} catch (Exception ex) {
+			log.error("Unexpected error while calling GitHub", ex);
+			return null;
+		}
+	}
+
+	public GenericMessage cancelWorkflowRun(String runId) {
+
+		try {
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/vnd.github+json");
+			headers.set("Authorization", "Bearer " + personalAccessToken);
+
+			String url = gitBaseUri + "/repos/" + applicationName + "/" + gitAppName
+					+ "/actions/runs/" + runId + "/cancel";
+
+			HttpEntity<Void> entity = new HttpEntity<>(headers);
+
+			restTemplate.exchange(url, HttpMethod.POST, entity, Void.class);
+
+			log.info("Cancelled workflow run {}", runId);
+			return new GenericMessage("SUCCESS", null, null);
+
+		} catch (Exception e) {
+			log.error("Error cancelling workflow run {}", runId, e);
+			return new GenericMessage("FAILED", null, List.of(new MessageDescription("Error cancelling workflow run: " + e.getMessage())));
+		}
+	}
+
+	public void reRunWorkFlow(String gitRunId) {
+
+		try {
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/vnd.github+json");
+			headers.set("Content-Type", "application/json");
+			headers.set("Authorization", "Bearer " + personalAccessToken);
+
+			String url = gitBaseUri + "/repos/" + applicationName + "/" + gitAppName
+					+ "/actions/runs/" + gitRunId + "/rerun";
+
+			HttpEntity<Void> entity = new HttpEntity<>(headers);
+
+			restTemplate.exchange(url, HttpMethod.POST, entity, Void.class);
+
+			log.info("Triggered workflow {} on branch {}", gitRunId);
+
+		} catch (Exception e) {
+			log.error("Error triggering workflow {}", e);
+		}
+	}
+
 	
 }
