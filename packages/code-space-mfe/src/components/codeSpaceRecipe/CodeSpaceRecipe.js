@@ -180,8 +180,7 @@ const CodeSpaceRecipe = (props) => {
 
   const onGitUrlChange = (e) => {
   const githubUrlVal = e.currentTarget.value.trim();
-  const urlWithGit = ensureGitSuffix(githubUrlVal);
-  setGitUrl(urlWithGit);
+  setGitUrl(githubUrlVal);
   setEnableCreate(false);
 
   const gitIHost = Envs.CODE_SPACE_GIT_PAT_APP_URL ? new URL(Envs.CODE_SPACE_GIT_PAT_APP_URL).host : '';
@@ -302,7 +301,7 @@ const CodeSpaceRecipe = (props) => {
   
   const verifyRequest = () => {
     ProgressIndicator.show();
-    CodeSpaceApiClient.verifyGitUser(gitHubUrl)
+    CodeSpaceApiClient.verifyGitUser({ gitHubUrl: ensureGitSuffix(gitUrl) })
       .then((response) => {
         ProgressIndicator.hide();
         if (response?.data.success === 'SUCCESS') {
@@ -348,7 +347,7 @@ const CodeSpaceRecipe = (props) => {
         recipeName: recipeName,
         recipeId: recipeName?.replace(/\s+/g, ''),
         recipeType: isPublic ? 'public' : 'private',
-        repodetails: gitUrl,
+        repodetails: ensureGitSuffix(gitUrl),
         software: software,
         isPublic: isPublic,
         isDeployEnabled: isDeployEnabled,
@@ -408,7 +407,7 @@ const CodeSpaceRecipe = (props) => {
         recipeName: recipeName,
         recipeId: recipeName?.replace(/\s+/g, ''),
         recipeType: isPublic ? 'public' : 'private',
-        repodetails: gitUrl,
+        repodetails: ensureGitSuffix(gitUrl),
         software: software,
         isPublic: isPublic,
         isDeployEnabled: isDeployEnabled,
