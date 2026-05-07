@@ -50,10 +50,6 @@ spring:
     username: ${API_DB_USER:XXXX_user}
     password: ${API_DB_PASS:XXXX_pass}
     driverClassName: org.postgresql.Driver
-    
-workspace:
-  git-job:
-    stale-threshold-minutes: ${GIT_JOB_STALE_THRESHOLD_MINUTES:3}
 
 dna:
   uri: ${DNA_URI:XXXXXX}
@@ -174,3 +170,6 @@ kong:
 workspace:
   update: ${UPDATE_WORKSPACEDATA:XXXX}   
   callKongApisFromBackend: ${CALL_KONG_APIS_FROM_BACKEND:XXXX}
+  git-job:
+    stale-threshold-minutes: ${GIT_JOB_STALE_THRESHOLD_MINUTES:3}
+
