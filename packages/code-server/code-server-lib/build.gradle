@@ -12,17 +12,14 @@ buildscript {
         releaseVersion = "1.0.0"
     }
     repositories {
-        mavenLocal()
-        mavenCentral()
-		gradlePluginPortal()
-		maven {
-            url System.getenv('ARTIFACTORY_URL')
-            credentials {
-                username System.getenv('ARTIFACTORY_USER')
-                password System.getenv('ARTIFACTORY_PASSWORD')
-            }
+    maven {
+        url System.getenv('ARTIFACTORY_URL')
+        credentials {
+            username System.getenv('ARTIFACTORY_USER')
+            password System.getenv('ARTIFACTORY_PASSWORD')
         }
     }
+}
     dependencies {
         classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}")
 		classpath("gradle.plugin.org.hidetake:gradle-swagger-generator-plugin:2.18.2")
@@ -44,16 +41,13 @@ apply plugin: "maven-publish"
 apply plugin: "org.hidetake.swagger.generator"
 
 repositories {
-        mavenLocal()
-        mavenCentral()
-		gradlePluginPortal()
-		maven {
-            url System.getenv('ARTIFACTORY_URL')
-            credentials {
-                username System.getenv('ARTIFACTORY_USER')
-                password System.getenv('ARTIFACTORY_PASSWORD')
-            }
+    maven {
+        url System.getenv('ARTIFACTORY_URL')
+        credentials {
+            username System.getenv('ARTIFACTORY_USER')
+            password System.getenv('ARTIFACTORY_PASSWORD')
         }
+    }
 }
 
 group 'com.daimler.data'
