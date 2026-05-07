@@ -53,6 +53,7 @@ import com.daimler.data.db.repo.roles.AuthoriserRolesRepository;
 import com.daimler.data.dto.adaProjects.ADAProjectDetailsCollectionVO;
 import com.daimler.data.dto.adaProjects.ADAProjectDetailsVO;
 import com.daimler.data.dto.fabric.AccessReviewDto;
+import com.daimler.data.dto.fabric.AccountTypeDto;
 import com.daimler.data.dto.fabric.AddGroupDto;
 import com.daimler.data.dto.fabric.CreateDatasourceRequestDto;
 import com.daimler.data.dto.fabric.CreateEntitlementRequestDto;
@@ -193,6 +194,9 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 	
 	@Value("${authoriser.community}")
 	private String communityAvailability;
+	
+	@Value("${authoriser.accountTypes}")
+	private String accountTypesConfig;
 	
 	@Value("${authoriser.workflowDefinitionId}")
 	private String workflowDefinitionId;
@@ -651,6 +655,12 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		entitlementRequestDto.setDataClassificationInherited(false);
 		entitlementRequestDto.setConnectivity(false);
 		entitlementRequestDto.setMapAsEidGroup(true);
+		List<AccountTypeDto> accountTypes = new ArrayList<>();
+		for (String accountType : accountTypesConfig.split(",")) {
+			String[] parts = accountType.trim().split(":");
+			accountTypes.add(new AccountTypeDto(parts[0].trim(), parts[1].trim()));
+		}
+		entitlementRequestDto.setAccountTypes(accountTypes);
 		return entitlementRequestDto;
 	}
 	
@@ -2054,6 +2064,12 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		entitlementRequestDto.setDataClassificationInherited(false);
 		entitlementRequestDto.setConnectivity(false);
 		entitlementRequestDto.setMapAsEidGroup(true);
+		List<AccountTypeDto> accountTypes = new ArrayList<>();
+		for (String accountType : accountTypesConfig.split(",")) {
+			String[] parts = accountType.trim().split(":");
+			accountTypes.add(new AccountTypeDto(parts[0].trim(), parts[1].trim()));
+		}
+		entitlementRequestDto.setAccountTypes(accountTypes);
 		return entitlementRequestDto;
 	}
 	
