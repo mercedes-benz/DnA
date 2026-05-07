@@ -256,11 +256,8 @@ public class ArgoCdService {
                 memory != null ? memory + "Mi" : "not set",
                 memory != null ? memory + "Mi" : "not set");
         } else {
-            log.info("[Resources] No resource overrides to apply, will use helm values to set resources: {}");
+            log.info("[Resources] No resource overrides to apply, chart values.yaml will be used as-is");
         }
-        
-        // Track whether we need to set resources via values YAML (for empty map)
-        boolean useValuesForResources = (resources == null || resources.isEmpty());
         
         Map<String, Object> payload = new HashMap<>();
         
@@ -286,11 +283,6 @@ public class ArgoCdService {
         
         Map<String, Object> helm = new HashMap<>();
         helm.put("parameters", helmParameters);
-        if (useValuesForResources) {
-            // Use values YAML string to properly set resources: {} as an empty map
-            // Helm --set resources={} incorrectly renders as a list [""]
-            helm.put("values", "resources: {}");
-        }
         source.put("helm", helm);
         
         spec.put("source", source);
