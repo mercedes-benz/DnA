@@ -650,6 +650,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		entitlementRequestDto.setDataClassification(ConstantsUtility.DATACLASSIFICATION_CONFIDENTIAL);
 		entitlementRequestDto.setDataClassificationInherited(false);
 		entitlementRequestDto.setConnectivity(false);
+		entitlementRequestDto.setMapAsEidGroup(true);
 		return entitlementRequestDto;
 	}
 	
@@ -2050,6 +2051,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		entitlementRequestDto.setDataClassification(ConstantsUtility.DATACLASSIFICATION_CONFIDENTIAL);
 		entitlementRequestDto.setDataClassificationInherited(false);
 		entitlementRequestDto.setConnectivity(false);
+		entitlementRequestDto.setMapAsEidGroup(true);
 		return entitlementRequestDto;
 	}
 	
