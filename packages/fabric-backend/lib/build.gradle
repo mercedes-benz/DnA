@@ -12,9 +12,6 @@ buildscript {
         releaseVersion = "1.0.0"
     }
     repositories {
-        mavenLocal()
-        mavenCentral()
-		gradlePluginPortal()
 		maven {
             url System.getenv('ARTIFACTORY_URL')
             credentials {
@@ -44,9 +41,6 @@ apply plugin: "maven-publish"
 apply plugin: "org.hidetake.swagger.generator"
 
 repositories {
-        mavenLocal()
-        mavenCentral()
-		gradlePluginPortal()
 		maven {
             url System.getenv('ARTIFACTORY_URL')
             credentials {
