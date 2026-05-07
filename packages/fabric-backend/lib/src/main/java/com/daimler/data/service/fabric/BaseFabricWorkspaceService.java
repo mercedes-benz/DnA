@@ -692,10 +692,12 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		accessReview.setEnabled(true);
 		accessReview.setStartDate(formatter.format(new Date()));
 		List<ReviewerConfigDto> reviewersConfig = new ArrayList<>();
-		ReviewerConfigDto roleApprover = new ReviewerConfigDto();
-		roleApprover.setType("ROLE_APPROVER");
-		roleApprover.setUserCommunity(communityAvailabilitySplits[0]);
-		reviewersConfig.add(roleApprover);
+		for (String community : communityAvailabilitySplits) {
+			ReviewerConfigDto roleApprover = new ReviewerConfigDto();
+			roleApprover.setType("ROLE_APPROVER");
+			roleApprover.setUserCommunity(community.trim());
+			reviewersConfig.add(roleApprover);
+		}
 		accessReview.setReviewerConfigs(reviewersConfig);
 		
 		WorkflowDefinitionDto workflow = new WorkflowDefinitionDto();
