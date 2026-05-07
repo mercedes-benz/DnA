@@ -23,4 +23,5 @@ public class CreateEntitlementRequestDto implements Serializable{
     private String dataClassification;
     private boolean dataClassificationInherited;
     private boolean connectivity;
+    private boolean mapAsEidGroup;
 }
