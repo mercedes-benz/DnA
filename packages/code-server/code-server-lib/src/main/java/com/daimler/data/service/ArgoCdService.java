@@ -185,7 +185,7 @@ public class ArgoCdService {
             headers.setBearerAuth(token);
             headers.setContentType(MediaType.APPLICATION_JSON);
         
-            HttpEntity<String> entity = new HttpEntity<>("restart", headers);
+            HttpEntity<String> entity = new HttpEntity<>("\"restart\"", headers);
         
             ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
         

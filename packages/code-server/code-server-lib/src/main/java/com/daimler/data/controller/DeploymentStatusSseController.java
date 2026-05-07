@@ -229,13 +229,14 @@ public class DeploymentStatusSseController {
             return dbStatus;
         }
         
-        // When DB says DEPLOYING, trust it — ArgoCD may still show Healthy from the previous deployment
-        // because the new sync hasn't started yet. Only override DB status if ArgoCD shows non-healthy.
+        // When DB says DEPLOYING, check ArgoCD for real-time status
         if ("DEPLOYING".equalsIgnoreCase(dbStatus)) {
             if ("Degraded".equalsIgnoreCase(argoHealth)) {
                 return "FAILED";
             }
-            // ArgoCD still Healthy or Progressing — keep DEPLOYING until scheduler confirms final state
+            if ("Healthy".equalsIgnoreCase(argoHealth) && "Synced".equalsIgnoreCase(argoSync)) {
+                return "DEPLOYED";
+            }
             return "DEPLOYING";
         }
         
