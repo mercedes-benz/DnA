@@ -1213,10 +1213,8 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
         TableMismatchResponseVO response = new TableMismatchResponseVO();
         List<TableMismatchDetailVO> mismatches = new ArrayList<>();
         try {
-            // Retrieve stored metadata from OpenMetadata (what DnA knows)
             FabricCatalogMetadataVO storedMetadata = retrieveMetadataFromOpenMetadata(serviceName);
 
-            // FIRST PUSH HANDLING
             if (storedMetadata == null
                     || storedMetadata.getDatabases() == null
                     || storedMetadata.getDatabases().isEmpty()) {
@@ -1229,7 +1227,6 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
                 return response;
             }
 
-            // Retrieve current tables from Fabric via CDC push service
             LakehouseTableCollectionResponseVO fabricTables = cdcPushServiceClient.getLakehouseTables(workspaceId,
                     lakehouseId);
 
@@ -1246,7 +1243,6 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
                 return response;
             }
 
-            //Collect all stored table names across all databases and schemas
             Map<String, TableMetadataVO> storedTableMap = new HashMap<>();
 
             for (DatabaseMetadataVO db : storedMetadata.getDatabases()) {
@@ -1263,7 +1259,6 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
                 }
             }
 
-            // Collect all Fabric table names
             Set<String> fabricTableNames = new HashSet<>();
             Map<String, com.daimler.data.dto.fabricWorkspace.LakeHouseTableVO> fabricTableMap = new HashMap<>();
             for (com.daimler.data.dto.fabricWorkspace.LakeHouseTableVO fabricTable : fabricTables.getData()
@@ -1272,7 +1267,6 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
                 fabricTableMap.put(fabricTable.getTableName(), fabricTable);
             }
 
-            // Detect NEW tables
             for (String fabricTableName : fabricTableNames) {
 
                 if (!storedTableMap.containsKey(fabricTableName)) {
@@ -1284,7 +1278,6 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
                 }
             }
 
-            // Detect DELETED tables
             for (String storedTableName : storedTableMap.keySet()) {
 
                 if (!fabricTableNames.contains(storedTableName)) {
@@ -1296,9 +1289,7 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
                 }
             }
 
-            // Compare columns for existing tables
             for (String tableName : storedTableMap.keySet()) {
-
                 if (fabricTableNames.contains(tableName)) {
                     TableMetadataVO storedTable = storedTableMap.get(tableName);
                     compareTableColumns(
@@ -1329,7 +1320,7 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
         }
         return response;
     }
-    
+
     private void compareTableColumns(String workspaceId, String lakehouseId, String tableName,
             TableMetadataVO storedTable, List<TableMismatchDetailVO> mismatches) {
         try {
