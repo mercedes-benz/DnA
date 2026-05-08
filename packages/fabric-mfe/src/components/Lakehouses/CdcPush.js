@@ -1,5 +1,5 @@
 import classNames from 'classnames';
-import React, { useState, useEffect, useCallback} from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import Styles from './CdcPush.scss';
 import SelectBox from 'dna-container/SelectBox';
 import Tooltip from '../../common/modules/uilab/js/src/tooltip';
@@ -99,7 +99,6 @@ export const buildCdcPayload = ({
   };
 };
 
-
 const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRefreshWorkspace }) => {
   const [tables, setTables] = useState([]);
   const [columnsByTable, setColumnsByTable] = useState({});
@@ -114,7 +113,6 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
   const [description, setDescription] = useState(null);
   const [showCdcLogin, setShowCdcLogin] = useState(false);
   const [hasPushedOnce, setHasPushedOnce] = useState(false);
-
 
   const methods = useForm();
   const { 
@@ -282,7 +280,7 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
   };
 
 
-  const handlePush = useCallback(() => {
+  const handlePush = useCallback(async () => {
     const leanIXId = workspaceMetadata?.appId;
     if (!leanIXId) {
       Notification.show("Cannot push to CDC. LeanIX ID is missing.", 'alert');
@@ -323,6 +321,26 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
     ProgressIndicator.show();
     fabricApi.pushSelectedTables(workspaceId, payload)
       .then(() => {
+        const publishedSnapshot = {
+          workspaceId,
+          lakehouseId,
+          lakehouseName,
+          publishedAt: new Date().toISOString(),
+          tables: tables.filter(t => selectedTables[t.tableName]).map(table => ({
+            tableName: table.tableName,
+            schemaName: table.schemaName,
+            columns: columnsByTable[table.tableName]?.map(col => ({
+              columnName: col.columnName,
+              colType: col.colType
+            })) || []
+          }))
+        };
+
+        fabricApi.saveLakehouseSnapshot(workspaceId, lakehouseId, publishedSnapshot)
+          .catch(err => {
+            console.error('Failed to save snapshot:', err);
+          });
+
         ProgressIndicator.hide();
         Notification.show("Push to CDC successful!", "success");
 
@@ -371,14 +389,11 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
 
   const onPush = handleSubmit(handlePush);
 
-  const isCdcPublished = !!workspaceMetadata?.cdcPublishedLakeHouseDetails?.isLakeHousesPublishedToCdc;
-
   const isPushDisabled =
   !workspaceMetadata || 
   Object.keys(selectedTables).length === 0 ||
   Object.keys(selectedColumns).length === 0 ||
-  hasPushedOnce ||
-  isCdcPublished;
+  hasPushedOnce;
 
     return (
     <div className={Styles.modalFAQContentWrapper}>
@@ -668,4 +683,3 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
   );
 }
 export default ViewTablesModalContent;
-

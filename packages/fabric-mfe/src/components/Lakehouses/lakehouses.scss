@@ -552,3 +552,56 @@ hr {
     font-weight: bold;
   }
 }
+
+.changeWarningsContainer {
+  background: #2d3139;
+  border: 1px solid #ffc107;
+  border-radius: 4px;
+  padding: 15px;
+  margin: 15px 0;
+  color: #c0c8d0;
+
+  .warningHeader {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-weight: bold;
+    margin-bottom: 12px;
+    color: #ffc107;
+    font-size: 14px;
+    
+    i {
+      color: #ffc107;
+      font-size: 16px;
+    }
+  }
+
+  .warningItem {
+    padding: 8px 0;
+    margin: 8px 0;
+    font-size: 13px;
+    border-left: 3px solid #ffc107;
+    padding-left: 12px;
+    
+    strong {
+      color: #00adef;
+      display: block;
+      margin-bottom: 4px;
+    }
+  }
+
+  .modifiedTablesList {
+    list-style: none;
+    padding: 0;
+    margin: 6px 0 0 0;
+    
+    li {
+      padding: 4px 0;
+      color: #c0c8d0;
+    }
+  }
+
+  button {
+    margin-top: 12px;
+  }
+}

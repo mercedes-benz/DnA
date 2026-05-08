@@ -183,6 +183,16 @@ const checkTableMismatch = (workspaceId, lakehouseId) => {
   });
 };
 
+const getCatalogMetadata = (workspaceId, serviceName) => {
+  return server.get(`/fabric-workspaces/catalog/${workspaceId}/metadata?serviceName=${encodeURIComponent(serviceName)}`, {
+    data: {},
+  });
+};
+
+const saveLakehouseSnapshot = (workspaceId, lakehouseId, payload) => {
+  return server.post(`/fabric-workspaces/catalog/${workspaceId}/lakehouses/${lakehouseId}/snapshot`, payload);
+};
+
 export const fabricApi = {
   getFabricWorkspaces,
   getFabricWorkspacesForAdmin,
@@ -211,6 +221,8 @@ export const fabricApi = {
   pushSelectedTables,
   takeOwnership,
   getLegalEntities,
-  publishDdxDataProduct
+  publishDdxDataProduct,
   checkTableMismatch,
+  getCatalogMetadata,
+  saveLakehouseSnapshot,
 };
