@@ -1216,5 +1216,10 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 		}
 	}
 
+	@Override
+	public void clearPersistenceContext() {
+		em.flush();
+		em.clear();
+	}
 
 }

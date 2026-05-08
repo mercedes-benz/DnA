@@ -1702,6 +1702,9 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 								 workspaceCustomRepository.updateGitRunIdStatus(projectName, finalStatus, environment);
 								 workspaceCustomRepository.updateBuildDeployAuditStatus(projectName, finalStatus, environment, gitJobRunId);
 
+								 // Clear Hibernate persistence context to avoid stale cache after native updates
+								 workspaceCustomRepository.clearPersistenceContext();
+
 								 // Re-fetch entity to get updated status
 								 if (technicalId.equalsIgnoreCase(userId)) {
 									 entity = workspaceCustomRepository.findByWorkspaceId(id);
