@@ -1017,6 +1017,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 		}
 	}
 
+	@Transactional
 	@Override
 	public boolean updateGitRunIdStatus(String projectName, String status, String environment) {
 
@@ -1096,6 +1097,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 		}
 	}
 
+	@Transactional
 	@Override
 	public boolean updateBuildDeployAuditStatus(String projectName,String status,String environment,String gitJobRunId) {
 
