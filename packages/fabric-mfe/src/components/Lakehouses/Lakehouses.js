@@ -319,6 +319,7 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
   const [showCreateShortcutModal, setShowCreateShortcutModal] = useState(false);
   const [showViewTables, setShowViewTablesModal] = useState(false);
   const [showNonProdProjectModal, setShowNonProdProjectModal] = useState(false);
+  const [showDdxViewTables, setShowDdxViewTablesModal] = useState(false);
   const [showMismatchModal, setShowMismatchModal] = useState(false);
   const [mismatchData, setMismatchData] = useState(null);
 
@@ -752,12 +753,33 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
                           className={Styles.deployedTag}
                           tooltip-data="Lakehouse successfully deployed to CDC."
                         >
-                          Published
+                          CDC
                         </span>
                       </span>
                       <div className={Styles.cdcNewTab}>
                         <a
                           href={`${Envs.CDC_URL}/${workspace?.name}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                        >
+                          <i className="icon mbc-icon new-tab" />
+                        </a>
+                      </div>
+                    </>
+                  )}
+                  {workspace?.ddxPublishedLakeHouseDetails?.some(d => d.lakeHouseId === lakehouse.id) && (
+                    <>
+                      <span className={Styles.statusIndicator}>
+                        <span
+                          className={Styles.deployedTag}
+                          tooltip-data="Lakehouse successfully deployed to DDX."
+                        >
+                          DDX
+                        </span>
+                      </span>
+                      <div className={Styles.cdcNewTab}>
+                        <a
+                          href={`${(Envs.DDX_DOF_BASE_URL || '').replace(/\/$/, '')}/myDataProducts/onboardingForm/${workspace?.ddxPublishedLakeHouseDetails?.find(d => d.lakeHouseId === lakehouse.id)?.dataProducts?.slice()?.sort((a, b) => new Date(b.createdOn) - new Date(a.createdOn))?.[0]?.productId}`}
                           target="_blank"
                           rel="noopener noreferrer"
                         >
@@ -890,11 +912,13 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
           show={showDdxViewTables}
           content={
             <ViewDdxTablesModalContent 
-              workspaceId={workspace?.id} 
+              workspaceId={workspace?.id}
+              workspaceName={workspace?.name}
               workspaceOwner={workspace?.createdBy}
               workspaceDivision={workspace?.division} 
               lakehouseId={selectedLakehouse?.id} 
               lakehouseName={selectedLakehouse?.name} 
+              ddxPublishedLakeHouseDetails={workspace?.ddxPublishedLakeHouseDetails}
               onRefreshWorkspace={onRefreshWorkspace} />}
           scrollableContent={true}
           onCancel={() => { setSelectedLakehouse(); setShowDdxViewTablesModal(false) }}

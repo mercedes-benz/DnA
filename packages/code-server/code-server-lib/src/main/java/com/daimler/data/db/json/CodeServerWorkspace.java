@@ -54,5 +54,6 @@ public class CodeServerWorkspace implements Serializable{
 	private String serverStatus;
 	private String workspaceUrl;
 	private Boolean isWorkspaceMigrated;
+    private Boolean isWorkspaceMigratedToGHE;
 	private Boolean activeInGroup;
 }

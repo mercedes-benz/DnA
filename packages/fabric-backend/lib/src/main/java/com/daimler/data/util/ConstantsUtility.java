@@ -27,6 +27,8 @@
 
 package com.daimler.data.util;
 
+import java.util.Map;
+
 public class ConstantsUtility {
 
 	public static final String PENDING_STATE = "PENDING";
@@ -59,4 +61,26 @@ public class ConstantsUtility {
 	// Genisis api constants
 	public static final String GENESIS_AUTH_HEADER = "x-api-key";
 	
+	// UI Licious related constants
+	public static final String UILICIOUS_GROUP_CONSTANT = "group";
+	public static final String UILICIOUS_GROUP_STATUS_CONSTANT = "status";
+
+	// Groups constants
+	public static final String GROUPS_ADDED_CONSTANT = "ADDED";
+	public static final String GROUPS_FAILED_CONSTANT = "FAILED";
+	public static final String GROUPS_IN_PROGRESS_CONSTANT = "IN_PROGRESS";
+	public static final String GROUPS_UNKNOWN_CONSTANT = "UNKNOWN";
+	public static final String GROUPS_NOT_FOUND_CONSTANT = "NOT_FOUND";
+
+	public static final String GROUPS_COMPLETED_CONSTANT = "COMPLETED";
+	
+	public static final Map<String, String> GROUPES_ERROR_MESSAGES_CONSTANT_MAP = Map.of(
+			GROUPS_ADDED_CONSTANT, "Group added successfully",
+			GROUPS_FAILED_CONSTANT, "Execution failed",
+			GROUPS_IN_PROGRESS_CONSTANT, "Still processing",
+			GROUPS_UNKNOWN_CONSTANT, "Unknown, Group not found.",
+			GROUPS_NOT_FOUND_CONSTANT, "Group not found. Please check and reverify the group’s name and their spelling correctly"
+			);
+
+
 }

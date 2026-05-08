@@ -46,6 +46,7 @@ public class UserInfo implements Serializable {
 
 	String firstName;
 	String lastName;
+	Boolean isDeleted;
 	String email;
 	String mobileNumber;
 	String department;

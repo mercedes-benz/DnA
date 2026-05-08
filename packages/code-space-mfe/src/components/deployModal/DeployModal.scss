@@ -9,5 +9,20 @@
     }
 
   }
+    .checkboxRow {
+      display: flex;
+      align-items: center;
+      justify-content: flex-start;
+      margin-top: 6px;
+      margin-left: -103%;
   
+      .wrapper {
+        margin-right: 6px;
+      }
+  
+      .label {
+        font-size: 14px;
+        white-space: nowrap;
+      }
+    }
 }
