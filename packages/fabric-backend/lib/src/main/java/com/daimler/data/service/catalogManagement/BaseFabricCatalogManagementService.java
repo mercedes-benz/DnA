@@ -1210,58 +1210,43 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
     @Override
     public TableMismatchResponseVO checkTableMismatch(String workspaceId, String lakehouseId, String serviceName) {
         log.info("Checking table mismatch for workspace: {}, lakehouse: {}", workspaceId, lakehouseId);
-
         TableMismatchResponseVO response = new TableMismatchResponseVO();
         List<TableMismatchDetailVO> mismatches = new ArrayList<>();
-
         try {
-
-            // 1. Retrieve stored metadata from OpenMetadata (what DnA knows)
+            // Retrieve stored metadata from OpenMetadata (what DnA knows)
             FabricCatalogMetadataVO storedMetadata = retrieveMetadataFromOpenMetadata(serviceName);
 
-            // =========================================================
             // FIRST PUSH HANDLING
-            // If no metadata exists yet in OpenMetadata,
-            // this is the first CDC push -> skip mismatch check
-            // =========================================================
             if (storedMetadata == null
                     || storedMetadata.getDatabases() == null
                     || storedMetadata.getDatabases().isEmpty()) {
-
                 log.info("First CDC push detected - skipping mismatch check for service: {}", serviceName);
-
                 response.setHasMismatch(false);
                 response.setMismatches(new ArrayList<>());
-
                 GenericMessage msg = new GenericMessage();
                 msg.setSuccess(SUCCESS_STATUS);
                 response.setResponses(msg);
-
                 return response;
             }
 
-            // 2. Retrieve current tables from Fabric via CDC push service
+            // Retrieve current tables from Fabric via CDC push service
             LakehouseTableCollectionResponseVO fabricTables = cdcPushServiceClient.getLakehouseTables(workspaceId,
                     lakehouseId);
 
             if (fabricTables == null
                     || fabricTables.getData() == null
                     || fabricTables.getData().getTables() == null) {
-
                 log.warn("No tables returned from Fabric for workspace: {}, lakehouse: {}",
                         workspaceId, lakehouseId);
-
                 response.setHasMismatch(false);
                 response.setMismatches(mismatches);
-
                 GenericMessage msg = new GenericMessage();
                 msg.setSuccess(SUCCESS_STATUS);
                 response.setResponses(msg);
-
                 return response;
             }
 
-            // 3. Collect all stored table names across all databases and schemas
+            //Collect all stored table names across all databases and schemas
             Map<String, TableMetadataVO> storedTableMap = new HashMap<>();
 
             for (DatabaseMetadataVO db : storedMetadata.getDatabases()) {
@@ -1278,59 +1263,44 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
                 }
             }
 
-            // 4. Collect all Fabric table names
+            // Collect all Fabric table names
             Set<String> fabricTableNames = new HashSet<>();
-
             Map<String, com.daimler.data.dto.fabricWorkspace.LakeHouseTableVO> fabricTableMap = new HashMap<>();
-
             for (com.daimler.data.dto.fabricWorkspace.LakeHouseTableVO fabricTable : fabricTables.getData()
                     .getTables()) {
-
                 fabricTableNames.add(fabricTable.getTableName());
                 fabricTableMap.put(fabricTable.getTableName(), fabricTable);
             }
 
-            // =========================================================
             // Detect NEW tables
-            // =========================================================
             for (String fabricTableName : fabricTableNames) {
 
                 if (!storedTableMap.containsKey(fabricTableName)) {
-
                     TableMismatchDetailVO detail = new TableMismatchDetailVO();
                     detail.setTableName(fabricTableName);
                     detail.setMismatchType(TableMismatchDetailVO.MismatchTypeEnum.NEW_TABLE);
                     detail.setDetails("Table exists in Fabric but not in published CDC metadata");
-
                     mismatches.add(detail);
                 }
             }
 
-            // =========================================================
             // Detect DELETED tables
-            // =========================================================
             for (String storedTableName : storedTableMap.keySet()) {
 
                 if (!fabricTableNames.contains(storedTableName)) {
-
                     TableMismatchDetailVO detail = new TableMismatchDetailVO();
                     detail.setTableName(storedTableName);
                     detail.setMismatchType(TableMismatchDetailVO.MismatchTypeEnum.DELETED_TABLE);
                     detail.setDetails("Table exists in published CDC metadata but no longer in Fabric");
-
                     mismatches.add(detail);
                 }
             }
 
-            // =========================================================
             // Compare columns for existing tables
-            // =========================================================
             for (String tableName : storedTableMap.keySet()) {
 
                 if (fabricTableNames.contains(tableName)) {
-
                     TableMetadataVO storedTable = storedTableMap.get(tableName);
-
                     compareTableColumns(
                             workspaceId,
                             lakehouseId,
@@ -1342,16 +1312,12 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
 
             response.setHasMismatch(!mismatches.isEmpty());
             response.setMismatches(mismatches);
-
             GenericMessage successMsg = new GenericMessage();
             successMsg.setSuccess(SUCCESS_STATUS);
             response.setResponses(successMsg);
-
         } catch (Exception e) {
-
             log.error("Error checking table mismatch for workspace {}: {}",
                     workspaceId, e.getMessage(), e);
-
             response.setHasMismatch(false);
             response.setMismatches(mismatches);
             GenericMessage errorMsg = new GenericMessage();
@@ -1361,9 +1327,9 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
             errorMsg.addErrors(message);
             response.setResponses(errorMsg);
         }
-
         return response;
     }
+    
     private void compareTableColumns(String workspaceId, String lakehouseId, String tableName,
             TableMetadataVO storedTable, List<TableMismatchDetailVO> mismatches) {
         try {
