@@ -1,5 +1,5 @@
 import classNames from 'classnames';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Styles from './lakehouses.scss';
 import Modal from 'dna-container/Modal';
 import SelectBox from 'dna-container/SelectBox';
@@ -15,7 +15,6 @@ import { getQueryParameterByName } from '../../utilities/utils';
 import { fabricApi } from '../../apis/fabric.api';
 import Popper from 'popper.js';
 import ViewTablesModalContent from '../../components/Lakehouses/CdcPush';
-import ViewDdxTablesModalContent from '../../components/Lakehouses/DdxPush.js'
 import { Envs } from '../../utilities/envs';
 
 const CreateShortcutModalContent = ({ workspaceId, lakehouseId, onCreateShortcut }) => {
@@ -320,12 +319,16 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
   const [showCreateShortcutModal, setShowCreateShortcutModal] = useState(false);
   const [showViewTables, setShowViewTablesModal] = useState(false);
   const [showNonProdProjectModal, setShowNonProdProjectModal] = useState(false);
-  const [showDdxViewTables, setShowDdxViewTablesModal] = useState(false);
+  const [showMismatchModal, setShowMismatchModal] = useState(false);
+  const [mismatchData, setMismatchData] = useState(null);
 
   const [contextMenus, setContextMenus] = useState({});
   const [showLocationsContextMenu, setShowLocationsContextMenu] = useState(false);
   const [contextMenuOffsetTop, setContextMenuOffsetTop] = useState(0);
   const [contextMenuOffsetLeft, setContextMenuOffsetLeft] = useState(0);
+
+  // Flag to skip mismatch check right after successful push
+  const justPushedRef = useRef(false);
 
   let isTouch = false;
 
@@ -340,6 +343,115 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
     return Tooltip.clear();
     //eslint-disable-next-line
   }, [workspace]);
+
+  // ========== MISMATCH CHECK ON PAGE LOAD ==========
+  const checkForMismatchesOnLoad = useCallback(() => {
+    // Skip check if we just pushed successfully
+    if (justPushedRef.current) {
+      console.log('[MismatchCheck] SKIPPED: justPushedRef is true (push just completed)');
+      // Don't reset the flag here - it will be reset in a separate useEffect
+      return;
+    }
+
+    console.log('[MismatchCheck] Starting page-load check...');
+    console.log('[MismatchCheck] workspace?.id:', workspace?.id);
+    console.log('[MismatchCheck] lakehouses?.length:', lakehouses?.length);
+    console.log('[MismatchCheck] cdcPublishedLakeHouseDetails:', JSON.stringify(workspace?.cdcPublishedLakeHouseDetails));
+
+    if (!workspace?.id || !lakehouses?.length) {
+      console.log('[MismatchCheck] SKIPPED: No workspace ID or no lakehouses');
+      return;
+    }
+    if (!workspace?.cdcPublishedLakeHouseDetails?.isLakeHousesPublishedToCdc) {
+      console.log('[MismatchCheck] SKIPPED: isLakeHousesPublishedToCdc is false/undefined');
+      return;
+    }
+
+    const publishedLakehouseIds = workspace?.cdcPublishedLakeHouseDetails?.publishedLakeHouseNames || [];
+    console.log('[MismatchCheck] publishedLakehouseIds:', JSON.stringify(publishedLakehouseIds));
+
+    lakehouses.forEach((lakehouse) => {
+      console.log('[MismatchCheck] Checking lakehouse:', lakehouse.name, 'id:', lakehouse.id, 'included:', publishedLakehouseIds.includes(lakehouse.id));
+      if (!publishedLakehouseIds.includes(lakehouse.id)) return;
+
+      console.log('[MismatchCheck] Calling checkTableMismatch API for:', lakehouse.name);
+      fabricApi.checkTableMismatch(workspace.id, lakehouse.id)
+        .then((res) => {
+          console.log('[MismatchCheck] API response for', lakehouse.name, ':', JSON.stringify(res?.data));
+          const data = res?.data;
+          if (data?.hasMismatch) {
+            console.log('[MismatchCheck] MISMATCH FOUND! Showing popup for:', lakehouse.name);
+            setMismatchData({
+              lakehouseName: lakehouse.name,
+              mismatches: data.mismatches || [],
+            });
+            setShowMismatchModal(true);
+          } else {
+            console.log('[MismatchCheck] No mismatch for:', lakehouse.name);
+          }
+        })
+        .catch((e) => {
+          console.error('[MismatchCheck] API ERROR for', lakehouse.name, ':', e?.response?.status, e?.message);
+        });
+    });
+  }, [workspace, lakehouses]);
+
+  useEffect(() => {
+    checkForMismatchesOnLoad();
+  }, [checkForMismatchesOnLoad]);
+
+  // Reset the justPushedRef flag after workspace updates have stabilized
+  useEffect(() => {
+    if (justPushedRef.current) {
+      // Use a small delay to ensure all workspace-related updates complete
+      const timer = setTimeout(() => {
+        console.log('[MismatchCheck] Resetting justPushedRef flag');
+        justPushedRef.current = false;
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [workspace?.id, workspace?.cdcPublishedLakeHouseDetails]);
+
+  // ========== PUSH TO CDC BUTTON HANDLER ==========
+  const handlePushToCdc = (lakehouse) => {
+    console.log('[PushToCdc] Button clicked for:', lakehouse.name);
+    setSelectedLakehouse(lakehouse);
+
+    if (workspace?.typeOfProject?.toLowerCase() !== "production") {
+      setShowNonProdProjectModal(true);
+      return;
+    }
+
+    const isAlreadyPublished = workspace?.cdcPublishedLakeHouseDetails?.publishedLakeHouseNames?.includes(lakehouse.id);
+    console.log('[PushToCdc] isAlreadyPublished:', isAlreadyPublished);
+
+    if (!isAlreadyPublished) {
+      setShowViewTablesModal(true);
+      return;
+    }
+
+    ProgressIndicator.show();
+    fabricApi.checkTableMismatch(workspace.id, lakehouse.id)
+      .then((res) => {
+        ProgressIndicator.hide();
+        console.log('[PushToCdc] API response:', JSON.stringify(res?.data));
+        const data = res?.data;
+        if (data?.hasMismatch) {
+          setMismatchData({
+            lakehouseName: lakehouse.name,
+            mismatches: data.mismatches || [],
+          });
+          setShowMismatchModal(true);
+        } else {
+          setShowViewTablesModal(true);
+        }
+      })
+      .catch((e) => {
+        ProgressIndicator.hide();
+        console.error('[PushToCdc] API ERROR:', e?.response?.status, e?.message);
+        setShowViewTablesModal(true);
+      });
+  };
 
   // Pagination 
   const [totalNumberOfPages, setTotalNumberOfPages] = useState(0);
@@ -560,6 +672,8 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
   const userRole = workspace?.userRole;
   const isAdmin = userRole === 'Admin';
   const isOwner = user?.id === workspace?.createdBy?.id;
+  console.log('showMismatchModal', showViewTables);
+ 
   return (
     <>
       <div className={Styles.lakehouseContainer}>
@@ -614,32 +728,10 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
                       </li>
                       <li className="contextListItem">
                         <button className={classNames('btn btn-primary', Styles.outlineBtn)} 
-                          onClick={() => { 
-                            setSelectedLakehouse(lakehouse); 
-                            if (workspace?.typeOfProject?.toLowerCase() !== "production") {
-                              setShowNonProdProjectModal(true);
-                            } else {
-                              setShowViewTablesModal(true);
-                            }
-                          }}
+                          onClick={() => handlePushToCdc(lakehouse)}
                         >
                           <i className="icon mbc-icon dublicate" />
                           <span>Push to CDC</span>
-                        </button>
-                      </li>
-                      <li className="contextListItem">
-                        <button className={classNames('btn btn-primary', Styles.outlineBtn, !(workspace?.cdcPublishedLakeHouseDetails?.publishedLakeHouseNames?.includes(lakehouse.id)) && Styles.disabledBtn)}
-                          onClick={() => {
-                            setSelectedLakehouse(lakehouse);
-                            if (workspace?.typeOfProject?.toLowerCase() !== "production") {
-                              setShowNonProdProjectModal(true);
-                            } else {
-                              setShowDdxViewTablesModal(true);
-                            }
-                          }}
-                        >
-                          <i className="icon mbc-icon dublicate" />
-                          <span>Push to DDX</span>
                         </button>
                       </li>
                     </ul>
@@ -706,7 +798,7 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
       }
       { showCreateShortcutModal &&
         <Modal
-          title={selectedLakehouse ? `${selectedLakehouse.name} - Create Shortcut` : 'Create Shortcut'}
+          title={'Create Shortcut'}
           showAcceptButton={false}
           showCancelButton={false}
           modalWidth={'600px'}
@@ -720,8 +812,8 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
       }
       { showViewShortcutsModal &&
         <Modal
-          title={selectedLakehouse ? `${selectedLakehouse.name}` : ''}
-          // hiddenTitle={true}
+          title={'Shortcuts'}
+          hiddenTitle={true}
           showAcceptButton={false}
           showCancelButton={false}
           modalWidth={'60%'}
@@ -752,7 +844,17 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
           modalWidth={'90%'}
           buttonAlignment="right"
           show={showViewTables}
-          content={<ViewTablesModalContent workspaceId={workspace?.id} lakehouseId={selectedLakehouse?.id} lakehouseName={selectedLakehouse?.name} onRefreshWorkspace={onRefreshWorkspace} />}
+          content={
+            <ViewTablesModalContent
+              workspaceId={workspace?.id}
+              lakehouseId={selectedLakehouse?.id}
+              lakehouseName={selectedLakehouse?.name}
+              onRefreshWorkspace={() => {
+                justPushedRef.current = true;
+                onRefreshWorkspace();
+              }}
+            />
+          }
           scrollableContent={true}
           onCancel={() => { setSelectedLakehouse(); setShowViewTablesModal(false) }}
         />
@@ -773,26 +875,6 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
           onCancel={() => setShowNonProdProjectModal(false)}
         />
       }
-      {showDdxViewTables &&
-        <InfoModal
-          title={selectedLakehouse ? `${selectedLakehouse.name} - Onboard New Data Product` : 'Onboard New Data Product'}
-          showAcceptButton={false}
-          showCancelButton={false}
-          modalWidth={'90%'}
-          buttonAlignment="right"
-          show={showDdxViewTables}
-          content={
-            <ViewDdxTablesModalContent 
-              workspaceId={workspace?.id} 
-              workspaceOwner={workspace?.createdBy}
-              workspaceDivision={workspace?.division} 
-              lakehouseId={selectedLakehouse?.id} 
-              lakehouseName={selectedLakehouse?.name} 
-              onRefreshWorkspace={onRefreshWorkspace} />}
-          scrollableContent={true}
-          onCancel={() => { setSelectedLakehouse(); setShowDdxViewTablesModal(false) }}
-        />
-      }
       { showDeleteModal &&
         <ConfirmModal
           title={''}
@@ -804,6 +886,60 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
           content={deleteLakehouseModalContent}
           onCancel={() => setShowDeleteModal(false)}
           onAccept={deleteLakehouseAccept}
+        />
+      }
+      {/* ========== MISMATCH POPUP MODAL ========== */}
+      { showMismatchModal && mismatchData &&
+        <InfoModal
+          title={`New Tables Detected - ${mismatchData.lakehouseName}`}
+          showAcceptButton={false}
+          showCancelButton={true}
+          cancelButtonTitle="Close"
+          buttonAlignment="right"
+          modalWidth="60%"
+          show={showMismatchModal}
+          content={
+            <div style={{ padding: '16px' }}>
+              <p style={{ color: '#e65100', fontWeight: 'bold', fontSize: '14px', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <i className="icon mbc-icon alert" />
+                Extra tables have been added in Fabric since the last CDC publish.
+              </p>
+              <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
+                {mismatchData.mismatches.map((mismatch, index) => (
+                  <div key={index} style={{ padding: '12px', marginBottom: '8px', border: '1px solid #e0e0e0', borderRadius: '4px', backgroundColor: '#fafafa' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={{ fontWeight: 'bold', fontSize: '14px' }}>{mismatch.tableName}</span>
+                      <span style={{
+                        padding: '2px 8px',
+                        borderRadius: '4px',
+                        fontSize: '12px',
+                        color: '#fff',
+                        backgroundColor: mismatch.mismatchType === 'NEW_TABLE' ? '#4caf50' : mismatch.mismatchType === 'DELETED_TABLE' ? '#f44336' : '#ff9800'
+                      }}>
+                        {mismatch.mismatchType?.replace(/_/g, ' ')}
+                      </span>
+                    </div>
+                    {mismatch.details && <p style={{ margin: '8px 0 0', color: '#666', fontSize: '13px' }}>{mismatch.details}</p>}
+                    {mismatch.affectedColumns?.length > 0 && (
+                      <div style={{ margin: '8px 0 0', fontSize: '13px', color: '#555' }}>
+                        <span style={{ fontWeight: 'bold' }}>Affected columns: </span>
+                        {mismatch.affectedColumns.join(', ')}
+                      </div>
+                    )}
+                  </div>
+                ))}
+              </div>
+              <button
+                className={classNames('btn btn-primary')}
+                style={{ marginTop: '16px' }}
+                onClick={() => { setShowMismatchModal(false); setMismatchData(null); setShowViewTablesModal(true); }}
+              >
+                Continue to Push to CDC
+              </button>
+            </div>
+          }
+          scrollableContent={true}
+          onCancel={() => { setShowMismatchModal(false); setMismatchData(null); }}
         />
       }
     </>
