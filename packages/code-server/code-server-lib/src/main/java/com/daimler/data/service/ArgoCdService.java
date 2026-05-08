@@ -608,10 +608,16 @@ public class ArgoCdService {
             JsonNode rootNode = mapper.readTree(argoResponse.getBody());
             String healthStatus = rootNode.path("status").path("health").path("status").asText("");
             String syncStatus = rootNode.path("status").path("sync").path("status").asText("");
-            log.info("ArgoCD app {} - Health: {}, Sync: {}", appName, healthStatus, syncStatus);
+            String lastSyncPhase = rootNode.path("status").path("operationState").path("phase").asText("");
+            log.info("ArgoCD app {} - Health: {}, Sync: {}, LastSyncPhase: {}", appName, healthStatus, syncStatus, lastSyncPhase);
             switch (healthStatus.toLowerCase()) {
                 case "healthy":
-                    log.info("Application {} is healthy - DEPLOYED", appName);
+                    // Healthy but last sync failed means the new changes didn't apply
+                    if ("Failed".equalsIgnoreCase(lastSyncPhase) || "Error".equalsIgnoreCase(lastSyncPhase)) {
+                        log.info("Application {} is healthy but last sync {} - FAILED", appName, lastSyncPhase);
+                        return "FAILED";
+                    }
+                    log.info("Application {} is healthy, last sync {} - DEPLOYED", appName, lastSyncPhase);
                     return "DEPLOYED";
                 case "degraded":
                     log.info("Application {} is degraded - FAILED", appName);

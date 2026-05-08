@@ -183,6 +183,7 @@ public class DeploymentStatusSseController {
 
             String argoHealthStatus = "UNAVAILABLE";
             String argoSyncStatus = "UNAVAILABLE";
+            String argoLastSyncPhase = "";
             
             try {
                 String argoAppName = projectName + "-" + environment;
@@ -194,9 +195,11 @@ public class DeploymentStatusSseController {
                     JsonNode rootNode = mapper.readTree(argoResponse.getBody());
                     argoHealthStatus = rootNode.path("status").path("health").path("status").asText("");
                     argoSyncStatus = rootNode.path("status").path("sync").path("status").asText("");
+                    argoLastSyncPhase = rootNode.path("status").path("operationState").path("phase").asText("");
                     
                     data.put("argocdHealthStatus", argoHealthStatus);
                     data.put("argocdSyncStatus", argoSyncStatus);
+                    data.put("argocdLastSyncPhase", argoLastSyncPhase);
                     data.put("argocdAppUrl", argoCdService.getArgocdBaseUrl() + "/applications/" + argoAppName);
                 }
             } catch (Exception e) {
@@ -204,11 +207,11 @@ public class DeploymentStatusSseController {
                 data.put("argocdHealthStatus", "UNAVAILABLE");
             }
 
-            String actualStatus = determineActualStatus(dbStatus, argoHealthStatus, argoSyncStatus);
+            String actualStatus = determineActualStatus(dbStatus, argoHealthStatus, argoLastSyncPhase);
             data.put("currentStatus", actualStatus);
             
-            log.debug("Status for {}-{}: DB={}, ArgoHealth={}, ArgoSync={}, Actual={}", 
-                projectName, environment, dbStatus, argoHealthStatus, argoSyncStatus, actualStatus);
+            log.debug("Status for {}-{}: DB={}, ArgoHealth={}, ArgoSync={}, LastSyncPhase={}, Actual={}", 
+                projectName, environment, dbStatus, argoHealthStatus, argoSyncStatus, argoLastSyncPhase, actualStatus);
 
         } catch (Exception e) {
             log.error("Error fetching deployment status for {}/{}: {}", projectName, environment, e.getMessage());
@@ -219,7 +222,7 @@ public class DeploymentStatusSseController {
         return data;
     }
     
-    private String determineActualStatus(String dbStatus, String argoHealth, String argoSync) {
+    private String determineActualStatus(String dbStatus, String argoHealth, String lastSyncPhase) {
         if ("DEPLOYED".equalsIgnoreCase(dbStatus) || "FAILED".equalsIgnoreCase(dbStatus)) {
             log.debug("Using terminal DB status: {}", dbStatus);
             return dbStatus;
@@ -229,18 +232,26 @@ public class DeploymentStatusSseController {
             return dbStatus;
         }
         
-        // When DB says DEPLOYING, check ArgoCD for real-time status
+        // When DB says DEPLOYING, check ArgoCD health + last sync phase for real-time status
         if ("DEPLOYING".equalsIgnoreCase(dbStatus)) {
             if ("Degraded".equalsIgnoreCase(argoHealth)) {
                 return "FAILED";
             }
-            if ("Healthy".equalsIgnoreCase(argoHealth) && "Synced".equalsIgnoreCase(argoSync)) {
-                return "DEPLOYED";
+            if ("Healthy".equalsIgnoreCase(argoHealth)) {
+                if ("Failed".equalsIgnoreCase(lastSyncPhase) || "Error".equalsIgnoreCase(lastSyncPhase)) {
+                    return "FAILED";
+                }
+                if ("Succeeded".equalsIgnoreCase(lastSyncPhase)) {
+                    return "DEPLOYED";
+                }
             }
             return "DEPLOYING";
         }
         
         if ("Healthy".equalsIgnoreCase(argoHealth)) {
+            if ("Failed".equalsIgnoreCase(lastSyncPhase) || "Error".equalsIgnoreCase(lastSyncPhase)) {
+                return "FAILED";
+            }
             return "DEPLOYED";
         }
         
