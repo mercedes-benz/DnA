@@ -281,7 +281,6 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
 
 
   const handlePush = useCallback(async () => {
-    // Mismatch check is handled in Lakehouses.js before opening this modal
     const leanIXId = workspaceMetadata?.appId;
     if (!leanIXId) {
       Notification.show("Cannot push to CDC. LeanIX ID is missing.", 'alert');

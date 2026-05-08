@@ -326,10 +326,7 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
   const [showLocationsContextMenu, setShowLocationsContextMenu] = useState(false);
   const [contextMenuOffsetTop, setContextMenuOffsetTop] = useState(0);
   const [contextMenuOffsetLeft, setContextMenuOffsetLeft] = useState(0);
-
-  // Flag to skip mismatch check right after successful push
   const justPushedRef = useRef(false);
-
   let isTouch = false;
 
   useEffect(() => {
@@ -344,12 +341,9 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
     //eslint-disable-next-line
   }, [workspace]);
 
-  // ========== MISMATCH CHECK ON PAGE LOAD ==========
   const checkForMismatchesOnLoad = useCallback(() => {
-    // Skip check if we just pushed successfully
     if (justPushedRef.current) {
       console.log('[MismatchCheck] SKIPPED: justPushedRef is true (push just completed)');
-      // Don't reset the flag here - it will be reset in a separate useEffect
       return;
     }
 
@@ -400,10 +394,8 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
     checkForMismatchesOnLoad();
   }, [checkForMismatchesOnLoad]);
 
-  // Reset the justPushedRef flag after workspace updates have stabilized
   useEffect(() => {
     if (justPushedRef.current) {
-      // Use a small delay to ensure all workspace-related updates complete
       const timer = setTimeout(() => {
         console.log('[MismatchCheck] Resetting justPushedRef flag');
         justPushedRef.current = false;
@@ -412,7 +404,6 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
     }
   }, [workspace?.id, workspace?.cdcPublishedLakeHouseDetails]);
 
-  // ========== PUSH TO CDC BUTTON HANDLER ==========
   const handlePushToCdc = (lakehouse) => {
     console.log('[PushToCdc] Button clicked for:', lakehouse.name);
     setSelectedLakehouse(lakehouse);
@@ -672,7 +663,6 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
   const userRole = workspace?.userRole;
   const isAdmin = userRole === 'Admin';
   const isOwner = user?.id === workspace?.createdBy?.id;
-  console.log('showMismatchModal', showViewTables);
  
   return (
     <>
@@ -732,6 +722,21 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
                         >
                           <i className="icon mbc-icon dublicate" />
                           <span>Push to CDC</span>
+                        </button>
+                      </li>
+                      <li className="contextListItem">
+                        <button className={classNames('btn btn-primary', Styles.outlineBtn, !(workspace?.cdcPublishedLakeHouseDetails?.publishedLakeHouseNames?.includes(lakehouse.id)) && Styles.disabledBtn)}
+                          onClick={() => {
+                            setSelectedLakehouse(lakehouse);
+                            if (workspace?.typeOfProject?.toLowerCase() !== "production") {
+                              setShowNonProdProjectModal(true);
+                            } else {
+                              setShowDdxViewTablesModal(true);
+                            }
+                          }}
+                        >
+                          <i className="icon mbc-icon dublicate" />
+                          <span>Push to DDX</span>
                         </button>
                       </li>
                     </ul>
@@ -798,7 +803,7 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
       }
       { showCreateShortcutModal &&
         <Modal
-          title={'Create Shortcut'}
+          title={selectedLakehouse ? `${selectedLakehouse.name} - Create Shortcut` : 'Create Shortcut'}
           showAcceptButton={false}
           showCancelButton={false}
           modalWidth={'600px'}
@@ -812,8 +817,8 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
       }
       { showViewShortcutsModal &&
         <Modal
-          title={'Shortcuts'}
-          hiddenTitle={true}
+          title={selectedLakehouse ? `${selectedLakehouse.name}` : ''}
+          // hiddenTitle={true}
           showAcceptButton={false}
           showCancelButton={false}
           modalWidth={'60%'}
@@ -875,6 +880,26 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
           onCancel={() => setShowNonProdProjectModal(false)}
         />
       }
+       {showDdxViewTables &&
+        <InfoModal
+          title={selectedLakehouse ? `${selectedLakehouse.name} - Onboard New Data Product` : 'Onboard New Data Product'}
+          showAcceptButton={false}
+          showCancelButton={false}
+          modalWidth={'90%'}
+          buttonAlignment="right"
+          show={showDdxViewTables}
+          content={
+            <ViewDdxTablesModalContent 
+              workspaceId={workspace?.id} 
+              workspaceOwner={workspace?.createdBy}
+              workspaceDivision={workspace?.division} 
+              lakehouseId={selectedLakehouse?.id} 
+              lakehouseName={selectedLakehouse?.name} 
+              onRefreshWorkspace={onRefreshWorkspace} />}
+          scrollableContent={true}
+          onCancel={() => { setSelectedLakehouse(); setShowDdxViewTablesModal(false) }}
+        />
+      }
       { showDeleteModal &&
         <ConfirmModal
           title={''}
@@ -888,7 +913,6 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
           onAccept={deleteLakehouseAccept}
         />
       }
-      {/* ========== MISMATCH POPUP MODAL ========== */}
       { showMismatchModal && mismatchData &&
         <InfoModal
           title={`New Tables Detected - ${mismatchData.lakehouseName}`}
