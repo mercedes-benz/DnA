@@ -1625,6 +1625,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 	 }
   
   
+	 @Transactional
 	 @Override
 	 public CodeServerWorkspaceVO getById(String userId, String id) {
 		CodeServerWorkspaceNsql entity = new CodeServerWorkspaceNsql();
