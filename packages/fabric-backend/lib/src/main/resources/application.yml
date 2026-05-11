@@ -8,6 +8,7 @@ spring:
 
   flyway:
     enabled: ${FLYWAY_ENABLED:false}
+    validate-on-migrate: false
     baseline-on-migrate: ${FLYWAY_BASELINE_ON_MIGRATE:false}
     baselineVersion: ${FLYWAY_BASELINEVERSION:0}
     schemas: ${FLYWAY_SCHEMA:public}   
