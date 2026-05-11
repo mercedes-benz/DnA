@@ -267,6 +267,8 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		}
 		String uppercased = rawId.toUpperCase();
 		String sanitized = uppercased.replaceAll("[^A-Z0-9._-]", "");
+		// Strip leading chars that are not alphanumeric per regex ^[A-Z0-9]+
+		sanitized = sanitized.replaceAll("^[^A-Z0-9]+", "");
 		if (sanitized.isEmpty()) {
 			return sanitized;
 		}
