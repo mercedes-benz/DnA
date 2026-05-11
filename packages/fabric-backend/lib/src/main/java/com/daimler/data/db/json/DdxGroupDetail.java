@@ -12,11 +12,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class MirroredCatalogDetail implements Serializable {
+public class DdxGroupDetail implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    private String mirroredCatalogId;
-    private String mirrorCatalogName;
-    private String catalogStatus;
+    private String groupName;
+    private String groupAddedStatus;
+    private String grantPermissionStatus;
+    private String testRunId;
     private String message;
 }

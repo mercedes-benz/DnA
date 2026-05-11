@@ -408,6 +408,52 @@ paths:
           schema:
             $ref: "#/definitions/MirroredCatalogErrorResponseVO"
 
+  /catalog/databricks/mirrored-catalog/update-status/{ddxId}/{lakehouseId}:
+    put:
+      tags:
+        - "fabric-catalog-management"
+      summary: "Update Databricks Mirrored Catalog status (Uilicious callback)."
+      description: "This endpoint is called by Uilicious to update the status of mirrored catalog creation and group permission assignment."
+      operationId: "updateMirroredCatalogStatus"
+      parameters:
+        - name: updateMirroredCatalogStatusRequest
+          in: body
+          description: "The status update payload from Uilicious."
+          required: true
+          schema:
+            $ref: "#/definitions/UpdateMirroredCatalogStatusRequestVO"
+        - name: ddxId
+          in: path
+          description: "The ID of DDX data product."
+          required: true
+          type: "string"
+        - name: lakehouseId
+          in: path
+          description: "The ID of Lakehouse."
+          required: true
+          type: "string"
+      responses:
+        200:
+          description: "Returns updated mirrored catalog status"
+          schema:
+            $ref: "#/definitions/MirroredCatalogResponseVO"
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/MirroredCatalogErrorResponseVO"
+        404:
+          description: "Mirrored catalog record not found"
+          schema:
+            $ref: "#/definitions/MirroredCatalogErrorResponseVO"
+        401:
+          description: "Request does not have sufficient credentials."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+          schema:
+            $ref: "#/definitions/MirroredCatalogErrorResponseVO"
+
 definitions:
 
   PublishCatalogRequestVO:
@@ -693,6 +739,9 @@ definitions:
       ddx_correlation_id:
         type: string
         description: "Correlation ID for request tracking"
+      ddx_group_permission:
+        type: string
+        description: "Permission type for the DDX group"
 
   MirroredObjectVO:
     type: object
@@ -713,10 +762,20 @@ definitions:
       ddx_correlation_id:
         type: string
         description: "Correlation ID for request tracking"
+      status:
+        type: string
+        description: "Overall status of the mirrored catalog operation"
+      message:
+        type: string
+        description: "Human-readable message"
       databricks_mirrored_catalog:
         $ref: "#/definitions/MirroredCatalogDataVO"
       grant_permissions:
         $ref: "#/definitions/GrantPermissionsVO"
+      ddx_group_details:
+        type: array
+        items:
+          $ref: "#/definitions/DdxGroupDetailVO"
 
   MirroredCatalogDataVO:
     type: object
@@ -787,3 +846,47 @@ definitions:
       ddx_correlation_id:
         type: string
         description: "Correlation ID to look up the mirrored catalog status"
+
+  UpdateMirroredCatalogStatusRequestVO:
+    type: object
+    required:
+      - ddx_correlation_id
+    properties:
+      ddx_correlation_id:
+        type: string
+        description: "Correlation ID to look up the record"
+      mirrored_catalog_id:
+        type: string
+        description: "Fabric catalog ID"
+      mirror_catalog_name:
+        type: string
+        description: "Mirror catalog name"
+      catalog_status:
+        type: string
+        description: "Status of catalog creation"
+      catalog_message:
+        type: string
+        description: "Message for catalog creation"
+      ddx_group_details:
+        type: array
+        items:
+          $ref: "#/definitions/DdxGroupDetailVO"
+
+  DdxGroupDetailVO:
+    type: object
+    properties:
+      group_name:
+        type: string
+        description: "DDX group name"
+      group_added_status:
+        type: string
+        description: "Status of group addition"
+      grant_permission_status:
+        type: string
+        description: "Status of permission grant"
+      test_run_id:
+        type: string
+        description: "Uilicious test run ID"
+      message:
+        type: string
+        description: "Message for this group operation"

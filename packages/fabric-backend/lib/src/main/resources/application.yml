@@ -176,6 +176,11 @@ uilicious:
   servicePrincipalName: ${UILICIOUS_SERVICE_PRINCIPAL_NAME:XXXX}
   identifier: ${UILICIOUS_PID_USER_IDENTIFIER:XXXX}
 
+mirroredCatalog:
+  central:
+    workspaceId: ${MIRRORED_CATALOG_CENTRAL_WORKSPACE_ID:}
+    workspaceName: ${MIRRORED_CATALOG_CENTRAL_WORKSPACE_NAME:}
+
 databricksIntegration:
   url:
     base: ${DATABRICKS_BASE_URL:XXXX}

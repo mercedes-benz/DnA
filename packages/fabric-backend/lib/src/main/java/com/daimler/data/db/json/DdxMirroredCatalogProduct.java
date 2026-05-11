@@ -1,6 +1,7 @@
 package com.daimler.data.db.json;
 
 import java.io.Serializable;
+import java.util.Date;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -18,5 +19,19 @@ public class DdxMirroredCatalogProduct implements Serializable {
 
     private String ddxId;
     private String lakehouseId;
-    private List<MirroredCatalogDetail> mirroredCatalogDetails;
+    private String catalogName;
+    private String schemaName;
+    private String region;
+    private Boolean fullSchema;
+    private List<MirroredObjectDetail> objects;
+    private String storageAccountUrl;
+    private String ddxCorrelationId;
+    private String ddxGroupPermission;
+    private String workspaceId;
+    private String workspaceName;
+    private String status;
+    private Date initiatedOn;
+    private Date completedOn;
+    private MirroredCatalogDetail mirrorCatalogDetails;
+    private List<DdxGroupDetail> ddxGroupDetails;
 }
