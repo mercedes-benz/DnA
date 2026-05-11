@@ -185,7 +185,7 @@ public class ArgoCdService {
             headers.setBearerAuth(token);
             headers.setContentType(MediaType.APPLICATION_JSON);
         
-            HttpEntity<String> entity = new HttpEntity<>("restart", headers);
+            HttpEntity<String> entity = new HttpEntity<>("\"restart\"", headers);
         
             ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
         
@@ -256,11 +256,8 @@ public class ArgoCdService {
                 memory != null ? memory + "Mi" : "not set",
                 memory != null ? memory + "Mi" : "not set");
         } else {
-            log.info("[Resources] No resource overrides to apply, will use helm values to set resources: {}");
+            log.info("[Resources] No resource overrides to apply, chart values.yaml will be used as-is");
         }
-        
-        // Track whether we need to set resources via values YAML (for empty map)
-        boolean useValuesForResources = (resources == null || resources.isEmpty());
         
         Map<String, Object> payload = new HashMap<>();
         
@@ -286,11 +283,6 @@ public class ArgoCdService {
         
         Map<String, Object> helm = new HashMap<>();
         helm.put("parameters", helmParameters);
-        if (useValuesForResources) {
-            // Use values YAML string to properly set resources: {} as an empty map
-            // Helm --set resources={} incorrectly renders as a list [""]
-            helm.put("values", "resources: {}");
-        }
         source.put("helm", helm);
         
         spec.put("source", source);
@@ -616,10 +608,16 @@ public class ArgoCdService {
             JsonNode rootNode = mapper.readTree(argoResponse.getBody());
             String healthStatus = rootNode.path("status").path("health").path("status").asText("");
             String syncStatus = rootNode.path("status").path("sync").path("status").asText("");
-            log.info("ArgoCD app {} - Health: {}, Sync: {}", appName, healthStatus, syncStatus);
+            String lastSyncPhase = rootNode.path("status").path("operationState").path("phase").asText("");
+            log.info("ArgoCD app {} - Health: {}, Sync: {}, LastSyncPhase: {}", appName, healthStatus, syncStatus, lastSyncPhase);
             switch (healthStatus.toLowerCase()) {
                 case "healthy":
-                    log.info("Application {} is healthy - DEPLOYED", appName);
+                    // Healthy but last sync failed means the new changes didn't apply
+                    if ("Failed".equalsIgnoreCase(lastSyncPhase) || "Error".equalsIgnoreCase(lastSyncPhase)) {
+                        log.info("Application {} is healthy but last sync {} - FAILED", appName, lastSyncPhase);
+                        return "FAILED";
+                    }
+                    log.info("Application {} is healthy, last sync {} - DEPLOYED", appName, lastSyncPhase);
                     return "DEPLOYED";
                 case "degraded":
                     log.info("Application {} is degraded - FAILED", appName);
