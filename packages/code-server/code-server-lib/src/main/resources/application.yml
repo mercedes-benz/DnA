@@ -2,7 +2,7 @@ spring:
   mvc.pathmatch.matching-strategy: ant_path_matcher
   application:
     name: dna-codeserver-service
-    version: 1.9.7
+    version: 1.9.9
   profile:
     active: production
 
@@ -232,6 +232,10 @@ vaultIntegration:
   service:
     baseUrl: ${VAULT_SERVICE_URL:XXXX}
     apiKey: ${VAULT_SERVICE_API_KEY:XXXX}
+
+opentelemetry:
+  plugin:
+    endpoint: ${OTEL_PLUGIN_ENDPOINT:XXXX}
 
 workspace:
   migrate: ${MIGRATE_WORKSPACE:YOUR_MIGRATE_BOOLEAN}    
