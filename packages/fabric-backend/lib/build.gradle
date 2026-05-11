@@ -12,11 +12,12 @@ buildscript {
         releaseVersion = "1.0.0"
     }
     repositories {
-        mavenLocal()
-        mavenCentral()
-		gradlePluginPortal()
 		maven {
-		  url "https://plugins.gradle.org/m2/"
+            url System.getenv('ARTIFACTORY_URL')
+            credentials {
+                username System.getenv('ARTIFACTORY_USER')
+                password System.getenv('ARTIFACTORY_PASSWORD')
+            }
 		}
     }
     dependencies {
@@ -40,11 +41,12 @@ apply plugin: "maven-publish"
 apply plugin: "org.hidetake.swagger.generator"
 
 repositories {
-        mavenLocal()
-        mavenCentral()
-		gradlePluginPortal()
 		maven {
-		  url "https://plugins.gradle.org/m2/"
+            url System.getenv('ARTIFACTORY_URL')
+            credentials {
+                username System.getenv('ARTIFACTORY_USER')
+                password System.getenv('ARTIFACTORY_PASSWORD')
+            }
 		}
 }
 
