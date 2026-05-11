@@ -9,7 +9,7 @@
 buildscript {
     ext {
         springBootVersion = "2.7.0"
-        releaseVersion = "1.0.0"
+        releaseVersion = "1.0.1"
     }
     repositories {
 		maven {
