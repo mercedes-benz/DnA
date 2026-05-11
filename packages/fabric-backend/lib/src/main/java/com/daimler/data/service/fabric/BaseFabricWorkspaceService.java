@@ -257,15 +257,9 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 	private SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
 
 	/**
-	 * Sanitizes a role name for use as a roleId by removing characters
-	 * not allowed by the identity management system.
-	 * Allowed pattern: ^[A-Z0-9]+[A-Z0-9._-]{1,200}
-	 */
-	/**
 	 * Sanitizes a role name for display by:
 	 * - Replacing underscores with spaces
 	 * - Replacing standalone hyphens (not surrounded by spaces) with spaces
-	 * - Converting all-uppercase text to title case
 	 */
 	private String sanitizeRoleName(String rawName) {
 		if (rawName == null || rawName.isEmpty()) {
@@ -274,10 +268,6 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		String name = rawName.replace("_", " ");
 		// Replace hyphens that are not surrounded by spaces
 		name = name.replaceAll("(?<! )-(?! )", " ");
-		// Convert to title case if the name is all uppercase
-		if (name.equals(name.toUpperCase()) && name.chars().anyMatch(Character::isLetter)) {
-			name = toTitleCase(name);
-		}
 		return name.trim().replaceAll(" +", " ");
 	}
 
@@ -785,7 +775,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		adminRoleRequestDto.setId(sanitizeRoleId((workspaceName + "_" +  permissionName).replace(" ", "")));
 		adminRoleRequestDto.setJobTitle(false);
 		adminRoleRequestDto.setMarketAvailabilities(new ArrayList<>());
-		adminRoleRequestDto.setName(sanitizeRoleName((workspaceName + " " +  permissionName)));
+		adminRoleRequestDto.setName(sanitizeRoleName((workspaceName + " " +  toTitleCase(permissionName))));
 		adminRoleRequestDto.setNeedsAdditionalSelfRequestApproval(false);
 		adminRoleRequestDto.setNeedsCustomScopes(false);
 		adminRoleRequestDto.setNeedsOrgScopes(false);
