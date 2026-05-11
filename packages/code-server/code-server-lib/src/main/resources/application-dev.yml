@@ -171,5 +171,5 @@ workspace:
   update: ${UPDATE_WORKSPACEDATA:XXXX}   
   callKongApisFromBackend: ${CALL_KONG_APIS_FROM_BACKEND:XXXX}
   git-job:
-    stale-threshold-minutes: ${GIT_JOB_STALE_THRESHOLD_MINUTES:3}
+    stale-threshold-minutes: ${GIT_JOB_STALE_THRESHOLD_MINUTES:30}
 
