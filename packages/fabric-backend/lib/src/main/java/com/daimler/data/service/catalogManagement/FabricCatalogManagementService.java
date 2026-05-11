@@ -2,8 +2,6 @@ package com.daimler.data.service.catalogManagement;
 
 import java.util.List;
 
-import java.util.List;
-
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.db.entities.FabricCatalogMetadataNsql;
 import com.daimler.data.db.entities.FabricWorkspaceNsql;
