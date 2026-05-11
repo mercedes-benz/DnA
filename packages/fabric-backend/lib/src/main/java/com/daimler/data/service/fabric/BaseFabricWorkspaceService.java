@@ -254,7 +254,27 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		super();
 	}
 
-	private SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");  
+	private SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+
+	/**
+	 * Sanitizes a role name for use as a roleId by removing characters
+	 * not allowed by the identity management system.
+	 * Allowed pattern: ^[A-Z0-9]+[A-Z0-9._-]{1,200}
+	 */
+	private String sanitizeRoleId(String rawId) {
+		if (rawId == null) {
+			return rawId;
+		}
+		String uppercased = rawId.toUpperCase();
+		String sanitized = uppercased.replaceAll("[^A-Z0-9._-]", "");
+		if (sanitized.isEmpty()) {
+			return sanitized;
+		}
+		if (sanitized.length() > 201) {
+			sanitized = sanitized.substring(0, 201);
+		}
+		return sanitized;
+	}
 	
 	@Override
 	@Transactional  
@@ -723,7 +743,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		adminRoleRequestDto.setDescription(permissionName +" role for workspace " + workspaceName);
 		adminRoleRequestDto.setDynamic(false);
 		adminRoleRequestDto.setGlobalCentralAvailable(true);
-		adminRoleRequestDto.setId((workspaceName + "_" +  permissionName).replace(" ", ""));
+		adminRoleRequestDto.setId(sanitizeRoleId((workspaceName + "_" +  permissionName).replace(" ", "")));
 		adminRoleRequestDto.setJobTitle(false);
 		adminRoleRequestDto.setMarketAvailabilities(new ArrayList<>());
 		adminRoleRequestDto.setName((workspaceName + " " +  permissionName).replace("_", " "));
@@ -2130,7 +2150,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		roleRequestDto.setDescription("Generic DNA role");
 		roleRequestDto.setDynamic(isDynamic);
 		roleRequestDto.setGlobalCentralAvailable(true);
-		roleRequestDto.setId(roleName);
+		roleRequestDto.setId(sanitizeRoleId(roleName));
 		roleRequestDto.setJobTitle(false);
 		roleRequestDto.setMarketAvailabilities(new ArrayList<>());
 		roleRequestDto.setName(roleName.replace("_", " "));
