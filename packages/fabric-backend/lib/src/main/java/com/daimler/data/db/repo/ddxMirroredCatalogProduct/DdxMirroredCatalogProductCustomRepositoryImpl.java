@@ -1,12 +1,10 @@
 package com.daimler.data.db.repo.ddxMirroredCatalogProduct;
 
+import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
+import javax.persistence.NoResultException;
 
 import org.springframework.stereotype.Repository;
 
@@ -22,68 +20,59 @@ public class DdxMirroredCatalogProductCustomRepositoryImpl
         implements DdxMirroredCatalogProductCustomRepository {
 
     @Override
-    public DdxMirroredCatalogProductNsql findByCatalogName(String catalogName) {
+    public Optional<DdxMirroredCatalogProductNsql> findByCatalogName(String catalogName) {
+        String sql = "SELECT * FROM ddx_mirrored_catalog_product_nsql " +
+                     "WHERE jsonb_extract_path_text(data, 'catalogName') = :catalogName";
         try {
-            CriteriaBuilder cb = em.getCriteriaBuilder();
-            CriteriaQuery<DdxMirroredCatalogProductNsql> cq = cb.createQuery(DdxMirroredCatalogProductNsql.class);
-            Root<DdxMirroredCatalogProductNsql> root = cq.from(DdxMirroredCatalogProductNsql.class);
-            Predicate condition = cb.equal(
-                cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("catalogName")),
-                catalogName);
-            cq.where(condition);
-            TypedQuery<DdxMirroredCatalogProductNsql> query = em.createQuery(cq);
-            List<DdxMirroredCatalogProductNsql> results = query.getResultList();
-            if (results != null && !results.isEmpty()) {
-                return results.get(0);
-            }
-            return null;
+            DdxMirroredCatalogProductNsql result = (DdxMirroredCatalogProductNsql) em
+                .createNativeQuery(sql, DdxMirroredCatalogProductNsql.class)
+                .setParameter("catalogName", catalogName)
+                .getSingleResult();
+            return Optional.ofNullable(result);
         } catch (Exception e) {
-            log.error("Error fetching by catalogName: {}", catalogName, e);
-            return null;
+            if (e instanceof NoResultException) {
+                log.debug("No result found for catalogName: {}", catalogName);
+            } else {
+                log.error("Error fetching by catalogName: {}", catalogName, e);
+            }
+            return Optional.empty();
         }
     }
 
     @Override
-    public DdxMirroredCatalogProductNsql findByCorrelationId(String ddxCorrelationId) {
+    public Optional<DdxMirroredCatalogProductNsql> findByCorrelationId(String ddxCorrelationId) {
+        String sql = "SELECT * FROM ddx_mirrored_catalog_product_nsql " +
+                     "WHERE jsonb_extract_path_text(data, 'ddxCorrelationId') = :ddxCorrelationId";
         try {
-            CriteriaBuilder cb = em.getCriteriaBuilder();
-            CriteriaQuery<DdxMirroredCatalogProductNsql> cq = cb.createQuery(DdxMirroredCatalogProductNsql.class);
-            Root<DdxMirroredCatalogProductNsql> root = cq.from(DdxMirroredCatalogProductNsql.class);
-            Predicate condition = cb.equal(
-                cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("ddxCorrelationId")),
-                ddxCorrelationId);
-            cq.where(condition);
-            TypedQuery<DdxMirroredCatalogProductNsql> query = em.createQuery(cq);
-            List<DdxMirroredCatalogProductNsql> results = query.getResultList();
-            if (results != null && !results.isEmpty()) {
-                return results.get(0);
-            }
-            return null;
+            DdxMirroredCatalogProductNsql result = (DdxMirroredCatalogProductNsql) em
+                .createNativeQuery(sql, DdxMirroredCatalogProductNsql.class)
+                .setParameter("ddxCorrelationId", ddxCorrelationId)
+                .getSingleResult();
+            return Optional.ofNullable(result);
         } catch (Exception e) {
-            log.error("Error fetching by ddxCorrelationId: {}", ddxCorrelationId, e);
-            return null;
+            if (e instanceof NoResultException) {
+                log.debug("No result found for ddxCorrelationId: {}", ddxCorrelationId);
+            } else {
+                log.error("Error fetching by ddxCorrelationId: {}", ddxCorrelationId, e);
+            }
+            return Optional.empty();
         }
     }
 
+    @SuppressWarnings("unchecked")
     @Override
-    public List<DdxMirroredCatalogProductNsql> findByDdxIdAndLakehouseId(String ddxId, String lakehouseId) {
+    public List<DdxMirroredCatalogProductNsql> findByDdxId(String ddxId) {
+        String sql = "SELECT * FROM ddx_mirrored_catalog_product_nsql " +
+                     "WHERE jsonb_extract_path_text(data, 'ddxId') = :ddxId";
         try {
-            CriteriaBuilder cb = em.getCriteriaBuilder();
-            CriteriaQuery<DdxMirroredCatalogProductNsql> cq = cb.createQuery(DdxMirroredCatalogProductNsql.class);
-            Root<DdxMirroredCatalogProductNsql> root = cq.from(DdxMirroredCatalogProductNsql.class);
-            Predicate ddxIdCondition = cb.equal(
-                cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("ddxId")),
-                ddxId);
-            Predicate lakehouseIdCondition = cb.equal(
-                cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("lakehouseId")),
-                lakehouseId);
-            cq.where(cb.and(ddxIdCondition, lakehouseIdCondition));
-            TypedQuery<DdxMirroredCatalogProductNsql> query = em.createQuery(cq);
-            List<DdxMirroredCatalogProductNsql> results = query.getResultList();
-            return results != null ? results : List.of();
+            List<DdxMirroredCatalogProductNsql> results = em
+                .createNativeQuery(sql, DdxMirroredCatalogProductNsql.class)
+                .setParameter("ddxId", ddxId)
+                .getResultList();
+            return results != null ? results : Collections.emptyList();
         } catch (Exception e) {
-            log.error("Error fetching by ddxId: {} and lakehouseId: {}", ddxId, lakehouseId, e);
-            return List.of();
+            log.error("Error fetching by ddxId: {}", ddxId, e);
+            return Collections.emptyList();
         }
     }
 }

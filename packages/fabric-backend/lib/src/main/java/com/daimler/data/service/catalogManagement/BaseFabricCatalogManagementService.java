@@ -1032,15 +1032,16 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
 
     @Override
     @Transactional
-    public MirroredCatalogResponseVO createMirroredCatalog(CreateMirroredCatalogRequestVO request, String ddxId, String lakehouseId) {
-        log.info("Creating mirrored catalog for ddxId: {}, lakehouseId: {}, catalogName: {}", ddxId, lakehouseId, request.getCatalogName());
+    public MirroredCatalogResponseVO createMirroredCatalog(CreateMirroredCatalogRequestVO request, String ddxId) {
+        log.info("Creating mirrored catalog for ddxId: {}, catalogName: {}", ddxId, request.getCatalogName());
 
         String catalogName = request.getCatalogName();
         String ddxGroup = request.getDdxGroup();
 
-        DdxMirroredCatalogProductNsql existingEntity = mirroredCatalogCustomRepo.findByCatalogName(catalogName);
+        Optional<DdxMirroredCatalogProductNsql> existingOpt = mirroredCatalogCustomRepo.findByCatalogName(catalogName);
 
-        if (existingEntity != null) {
+        if (existingOpt.isPresent()) {
+            DdxMirroredCatalogProductNsql existingEntity = existingOpt.get();
             DdxMirroredCatalogProduct existingData = existingEntity.getData();
             List<DdxGroupDetail> existingGroups = existingData.getDdxGroupDetails();
             if (existingGroups != null) {
@@ -1109,7 +1110,6 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
 
         DdxMirroredCatalogProduct data = new DdxMirroredCatalogProduct();
         data.setDdxId(ddxId);
-        data.setLakehouseId(lakehouseId);
         data.setCatalogName(catalogName);
         data.setSchemaName(request.getSchemaName());
         data.setRegion(request.getRegion());
@@ -1137,19 +1137,19 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
     }
 
     @Override
-    public MirroredCatalogResponseVO getMirroredCatalogStatus(String ddxCorrelationId, String ddxId, String lakehouseId) {
-        log.info("Getting mirrored catalog status for correlationId: {}, ddxId: {}, lakehouseId: {}", ddxCorrelationId, ddxId, lakehouseId);
+    public MirroredCatalogResponseVO getMirroredCatalogStatus(String ddxCorrelationId, String ddxId) {
+        log.info("Getting mirrored catalog status for correlationId: {}, ddxId: {}", ddxCorrelationId, ddxId);
 
-        DdxMirroredCatalogProductNsql entity = mirroredCatalogCustomRepo.findByCorrelationId(ddxCorrelationId);
-        if (entity == null || entity.getData() == null) {
+        Optional<DdxMirroredCatalogProductNsql> entityOpt = mirroredCatalogCustomRepo.findByCorrelationId(ddxCorrelationId);
+        if (entityOpt.isEmpty() || entityOpt.get().getData() == null) {
             log.error("No mirrored catalog record found for correlationId: {}", ddxCorrelationId);
             return null;
         }
 
-        DdxMirroredCatalogProduct data = entity.getData();
-        if (!ddxId.equals(data.getDdxId()) || !lakehouseId.equals(data.getLakehouseId())) {
-            log.error("Mirrored catalog record mismatch: expected ddxId={}, lakehouseId={} but found ddxId={}, lakehouseId={}",
-                    ddxId, lakehouseId, data.getDdxId(), data.getLakehouseId());
+        DdxMirroredCatalogProduct data = entityOpt.get().getData();
+        if (!ddxId.equals(data.getDdxId())) {
+            log.error("Mirrored catalog record mismatch: expected ddxId={} but found ddxId={}",
+                    ddxId, data.getDdxId());
             return null;
         }
 
@@ -1158,15 +1158,16 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
 
     @Override
     @Transactional
-    public MirroredCatalogResponseVO updateMirroredCatalogStatus(UpdateMirroredCatalogStatusRequestVO request, String ddxId, String lakehouseId) {
+    public MirroredCatalogResponseVO updateMirroredCatalogStatus(UpdateMirroredCatalogStatusRequestVO request, String ddxId) {
         log.info("Updating mirrored catalog status for correlationId: {}", request.getDdxCorrelationId());
 
-        DdxMirroredCatalogProductNsql entity = mirroredCatalogCustomRepo.findByCorrelationId(request.getDdxCorrelationId());
-        if (entity == null || entity.getData() == null) {
+        Optional<DdxMirroredCatalogProductNsql> entityOpt = mirroredCatalogCustomRepo.findByCorrelationId(request.getDdxCorrelationId());
+        if (entityOpt.isEmpty() || entityOpt.get().getData() == null) {
             log.error("No mirrored catalog record found for correlationId: {}", request.getDdxCorrelationId());
             return null;
         }
 
+        DdxMirroredCatalogProductNsql entity = entityOpt.get();
         DdxMirroredCatalogProduct data = entity.getData();
 
         if (request.getCatalogStatus() != null || request.getMirroredCatalogId() != null

@@ -18,7 +18,6 @@ public class DdxMirroredCatalogProduct implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private String ddxId;
-    private String lakehouseId;
     private String catalogName;
     private String schemaName;
     private String region;

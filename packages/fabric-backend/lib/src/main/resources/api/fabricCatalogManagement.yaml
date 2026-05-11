@@ -312,7 +312,7 @@ paths:
         500:
           description: "Internal error"
 
-  /catalog/databricks/mirrored-catalog/{ddxId}/{lakehouseId}:
+  /catalog/databricks/mirrored-catalog/{ddxId}:
     post:
       tags:
         - "fabric-catalog-management"
@@ -329,11 +329,6 @@ paths:
         - name: ddxId
           in: path
           description: "The ID of DDX data product."
-          required: true
-          type: "string"
-        - name: lakehouseId
-          in: path
-          description: "The ID of Lakehouse."
           required: true
           type: "string"
       responses:
@@ -362,7 +357,7 @@ paths:
           schema:
             $ref: "#/definitions/MirroredCatalogErrorResponseVO"
 
-  /catalog/databricks/mirrored-catalog/status/{ddxId}/{lakehouseId}:
+  /catalog/databricks/mirrored-catalog/status/{ddxId}:
     post:
       tags:
         - "fabric-catalog-management"
@@ -379,11 +374,6 @@ paths:
         - name: ddxId
           in: path
           description: "The ID of DDX data product."
-          required: true
-          type: "string"
-        - name: lakehouseId
-          in: path
-          description: "The ID of Lakehouse."
           required: true
           type: "string"
       responses:
@@ -408,7 +398,7 @@ paths:
           schema:
             $ref: "#/definitions/MirroredCatalogErrorResponseVO"
 
-  /catalog/databricks/mirrored-catalog/update-status/{ddxId}/{lakehouseId}:
+  /catalog/databricks/mirrored-catalog/update-status/{ddxId}:
     put:
       tags:
         - "fabric-catalog-management"
@@ -425,11 +415,6 @@ paths:
         - name: ddxId
           in: path
           description: "The ID of DDX data product."
-          required: true
-          type: "string"
-        - name: lakehouseId
-          in: path
-          description: "The ID of Lakehouse."
           required: true
           type: "string"
       responses:
