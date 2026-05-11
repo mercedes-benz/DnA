@@ -169,6 +169,14 @@ const takeOwnership = (id) => {
   });
 };
 
+const getLegalEntities = (searchTerm) => {
+  return server.get(`fabric-workspaces/catalog/getLegalEntities?searchTerm=${searchTerm}`);
+};
+
+const publishDdxDataProduct = (workspaceId, lakehouseId, payload) => {
+  return server.post(`fabric-workspaces/catalog/ddx/${workspaceId}/${lakehouseId}/publish`, payload);
+};
+
 export const fabricApi = {
   getFabricWorkspaces,
   getFabricWorkspacesForAdmin,
@@ -196,4 +204,6 @@ export const fabricApi = {
   getTableSchema,
   pushSelectedTables,
   takeOwnership,
+  getLegalEntities,
+  publishDdxDataProduct
 };
