@@ -261,6 +261,43 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 	 * not allowed by the identity management system.
 	 * Allowed pattern: ^[A-Z0-9]+[A-Z0-9._-]{1,200}
 	 */
+	/**
+	 * Sanitizes a role name for display by:
+	 * - Replacing underscores with spaces
+	 * - Replacing standalone hyphens (not surrounded by spaces) with spaces
+	 * - Converting all-uppercase text to title case
+	 */
+	private String sanitizeRoleName(String rawName) {
+		if (rawName == null || rawName.isEmpty()) {
+			return rawName;
+		}
+		String name = rawName.replace("_", " ");
+		// Replace hyphens that are not surrounded by spaces
+		name = name.replaceAll("(?<! )-(?! )", " ");
+		// Convert to title case if the name is all uppercase
+		if (name.equals(name.toUpperCase()) && name.chars().anyMatch(Character::isLetter)) {
+			name = toTitleCase(name);
+		}
+		return name.trim().replaceAll(" +", " ");
+	}
+
+	private String toTitleCase(String input) {
+		StringBuilder result = new StringBuilder();
+		boolean capitalizeNext = true;
+		for (char c : input.toCharArray()) {
+			if (Character.isWhitespace(c)) {
+				result.append(c);
+				capitalizeNext = true;
+			} else if (capitalizeNext) {
+				result.append(Character.toUpperCase(c));
+				capitalizeNext = false;
+			} else {
+				result.append(Character.toLowerCase(c));
+			}
+		}
+		return result.toString();
+	}
+
 	private String sanitizeRoleId(String rawId) {
 		if (rawId == null) {
 			return rawId;
@@ -748,7 +785,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		adminRoleRequestDto.setId(sanitizeRoleId((workspaceName + "_" +  permissionName).replace(" ", "")));
 		adminRoleRequestDto.setJobTitle(false);
 		adminRoleRequestDto.setMarketAvailabilities(new ArrayList<>());
-		adminRoleRequestDto.setName((workspaceName + " " +  permissionName).replace("_", " "));
+		adminRoleRequestDto.setName(sanitizeRoleName((workspaceName + " " +  permissionName)));
 		adminRoleRequestDto.setNeedsAdditionalSelfRequestApproval(false);
 		adminRoleRequestDto.setNeedsCustomScopes(false);
 		adminRoleRequestDto.setNeedsOrgScopes(false);
@@ -2155,7 +2192,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		roleRequestDto.setId(sanitizeRoleId(roleName));
 		roleRequestDto.setJobTitle(false);
 		roleRequestDto.setMarketAvailabilities(new ArrayList<>());
-		roleRequestDto.setName(roleName.replace("_", " "));
+		roleRequestDto.setName(sanitizeRoleName(roleName));
 		roleRequestDto.setNeedsAdditionalSelfRequestApproval(false);
 		roleRequestDto.setNeedsCustomScopes(false);
 		roleRequestDto.setNeedsOrgScopes(false);
