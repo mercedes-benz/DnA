@@ -312,6 +312,102 @@ paths:
         500:
           description: "Internal error"
 
+  /catalog/databricks/mirrored-catalog/{ddxId}/{lakehouseId}:
+    post:
+      tags:
+        - "fabric-catalog-management"
+      summary: "Create Databricks Mirrored Catalog in Fabric central workspace."
+      description: "This endpoint will provision a Databricks Mirrored Catalog hosted in a Fabric central workspace, backed by an ADLS Gen2 storage account, and grant permissions to create Fabric shortcuts to a DDX group."
+      operationId: "createMirroredCatalog"
+      parameters:
+        - name: createMirroredCatalogRequest
+          in: body
+          description: "The mirrored catalog creation request."
+          required: true
+          schema:
+            $ref: "#/definitions/CreateMirroredCatalogRequestVO"
+        - name: ddxId
+          in: path
+          description: "The ID of DDX data product."
+          required: true
+          type: "string"
+        - name: lakehouseId
+          in: path
+          description: "The ID of Lakehouse."
+          required: true
+          type: "string"
+      responses:
+        200:
+          description: "Returns mirrored catalog creation response"
+          schema:
+            $ref: "#/definitions/MirroredCatalogResponseVO"
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/MirroredCatalogErrorResponseVO"
+        403:
+          description: "Storage access denied"
+          schema:
+            $ref: "#/definitions/MirroredCatalogErrorResponseVO"
+        404:
+          description: "Databricks data product or DDX group not found"
+          schema:
+            $ref: "#/definitions/MirroredCatalogErrorResponseVO"
+        401:
+          description: "Request does not have sufficient credentials."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+          schema:
+            $ref: "#/definitions/MirroredCatalogErrorResponseVO"
+
+  /catalog/databricks/mirrored-catalog/status/{ddxId}/{lakehouseId}:
+    post:
+      tags:
+        - "fabric-catalog-management"
+      summary: "Get Databricks Mirrored Catalog status."
+      description: "This endpoint will query the status of mirrored catalog creation and group permission assignment, update the DB, and return the current status."
+      operationId: "getMirroredCatalogStatus"
+      parameters:
+        - name: mirroredCatalogStatusRequest
+          in: body
+          description: "The mirrored catalog status request with correlation ID."
+          required: true
+          schema:
+            $ref: "#/definitions/MirroredCatalogStatusRequestVO"
+        - name: ddxId
+          in: path
+          description: "The ID of DDX data product."
+          required: true
+          type: "string"
+        - name: lakehouseId
+          in: path
+          description: "The ID of Lakehouse."
+          required: true
+          type: "string"
+      responses:
+        200:
+          description: "Returns mirrored catalog status response"
+          schema:
+            $ref: "#/definitions/MirroredCatalogResponseVO"
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/MirroredCatalogErrorResponseVO"
+        404:
+          description: "Mirrored catalog record not found"
+          schema:
+            $ref: "#/definitions/MirroredCatalogErrorResponseVO"
+        401:
+          description: "Request does not have sufficient credentials."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+          schema:
+            $ref: "#/definitions/MirroredCatalogErrorResponseVO"
+
 definitions:
 
   PublishCatalogRequestVO:
@@ -559,3 +655,135 @@ definitions:
         type: string
       companyCode:
         type: string
+
+  CreateMirroredCatalogRequestVO:
+    type: object
+    required:
+      - catalogName
+      - schemaName
+      - region
+      - fullSchema
+      - storageAccountUrl
+      - ddx_group
+      - ddx_correlation_id
+    properties:
+      catalogName:
+        type: string
+        description: "Name of the Databricks catalog"
+      schemaName:
+        type: string
+        description: "Name of the schema within the catalog"
+      region:
+        type: string
+        description: "Region for the mirrored catalog"
+      fullSchema:
+        type: boolean
+        description: "If true, mirror the full schema. If false, objects list is required."
+      objects:
+        type: array
+        description: "List of specific objects to mirror. Required when fullSchema is false."
+        items:
+          $ref: "#/definitions/MirroredObjectVO"
+      storageAccountUrl:
+        type: string
+        description: "ADLS Gen2 storage account URL"
+      ddx_group:
+        type: string
+        description: "DDX group name for permission assignment"
+      ddx_correlation_id:
+        type: string
+        description: "Correlation ID for request tracking"
+
+  MirroredObjectVO:
+    type: object
+    properties:
+      objectName:
+        type: string
+        description: "Name of the object to mirror"
+      objectType:
+        type: string
+        description: "Type of the object (table or view)"
+        enum:
+          - table
+          - view
+
+  MirroredCatalogResponseVO:
+    type: object
+    properties:
+      ddx_correlation_id:
+        type: string
+        description: "Correlation ID for request tracking"
+      databricks_mirrored_catalog:
+        $ref: "#/definitions/MirroredCatalogDataVO"
+      grant_permissions:
+        $ref: "#/definitions/GrantPermissionsVO"
+
+  MirroredCatalogDataVO:
+    type: object
+    properties:
+      mirrored_catalog_id:
+        type: string
+        description: "Fabric object ID of the mirrored catalog"
+      catalog:
+        type: string
+        description: "Databricks catalog name"
+      schema:
+        type: string
+        description: "Databricks schema name"
+      objects:
+        type: array
+        items:
+          type: string
+        description: "List of mirrored object names"
+      storageAccountUrl:
+        type: string
+        description: "ADLS Gen2 storage account URL"
+      status:
+        type: string
+        description: "Status of the mirrored catalog creation"
+        enum:
+          - success
+          - failure
+          - already_exists
+          - in_progress
+
+  GrantPermissionsVO:
+    type: object
+    properties:
+      ddx_group:
+        type: string
+        description: "DDX group name"
+      status:
+        type: string
+        description: "Status of the permission assignment"
+
+  MirroredCatalogErrorResponseVO:
+    type: object
+    properties:
+      ddx_correlation_id:
+        type: string
+        description: "Correlation ID for request tracking"
+      status:
+        type: string
+        description: "Always 'error' for error responses"
+      errorCode:
+        type: string
+        description: "Error code identifying the type of error"
+        enum:
+          - INVALID_REQUEST
+          - STORAGE_ACCESS_DENIED
+          - DATABRICKS_DATAPRODUCT_NOT_FOUND
+          - DDX_GROUP_NOT_FOUND
+          - INTERNAL_ERROR
+      message:
+        type: string
+        description: "Human-readable error message"
+
+  MirroredCatalogStatusRequestVO:
+    type: object
+    required:
+      - ddx_correlation_id
+    properties:
+      ddx_correlation_id:
+        type: string
+        description: "Correlation ID to look up the mirrored catalog status"

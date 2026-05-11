@@ -83,4 +83,17 @@ public class ConstantsUtility {
 			);
 
 
+	// Mirrored Catalog error codes
+	public static final String ERROR_INVALID_REQUEST = "INVALID_REQUEST";
+	public static final String ERROR_STORAGE_ACCESS_DENIED = "STORAGE_ACCESS_DENIED";
+	public static final String ERROR_DATABRICKS_NOT_FOUND = "DATABRICKS_DATAPRODUCT_NOT_FOUND";
+	public static final String ERROR_DDX_GROUP_NOT_FOUND = "DDX_GROUP_NOT_FOUND";
+	public static final String ERROR_INTERNAL = "INTERNAL_ERROR";
+
+	// Mirrored Catalog status constants
+	public static final String MIRRORED_CATALOG_SUCCESS = "success";
+	public static final String MIRRORED_CATALOG_FAILURE = "failure";
+	public static final String MIRRORED_CATALOG_ALREADY_EXISTS = "already_exists";
+	public static final String MIRRORED_CATALOG_IN_PROGRESS = "in_progress";
+
 }

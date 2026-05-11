@@ -14,6 +14,8 @@ import com.daimler.data.dto.fabricCatalogManagement.FabricCatalogMetadataVO;
 import com.daimler.data.dto.fabricCatalogManagement.FabricCatalogMetadataDetailsVO;
 import com.daimler.data.dto.fabricCatalogManagement.LegalEntitiesResponseVO;
 import com.daimler.data.dto.fabricCatalogManagement.GroupStatusResponseVO;
+import com.daimler.data.dto.fabricCatalogManagement.CreateMirroredCatalogRequestVO;
+import com.daimler.data.dto.fabricCatalogManagement.MirroredCatalogResponseVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceVO;
 import com.daimler.data.service.common.CommonService;
 
@@ -41,4 +43,15 @@ public interface FabricCatalogManagementService extends CommonService<FabricCata
 	 * method to get the status of groups added to lakehouse through ui-licious
 	 */
 	List<GroupStatusResponseVO> getGroupsAssignmentStatus(String workspaceName, String workspaceId, String lakehouseName, String lakehouseId, List<String> groupName, String ddxId);
+
+	/**
+	 * method to create a Databricks Mirrored Catalog in Fabric central workspace
+	 * and grant permissions to DDX group
+	 */
+	MirroredCatalogResponseVO createMirroredCatalog(CreateMirroredCatalogRequestVO request, String ddxId, String lakehouseId);
+
+	/**
+	 * method to get the status of mirrored catalog creation and group permission assignment
+	 */
+	MirroredCatalogResponseVO getMirroredCatalogStatus(String ddxCorrelationId, String ddxId, String lakehouseId);
 }

@@ -1011,4 +1011,16 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
         return groupStatusList;
     }
 
+    @Override
+    public MirroredCatalogResponseVO createMirroredCatalog(CreateMirroredCatalogRequestVO request, String ddxId, String lakehouseId) {
+        // TODO: Implementation pending team approval
+        throw new UnsupportedOperationException("createMirroredCatalog implementation pending");
+    }
+
+    @Override
+    public MirroredCatalogResponseVO getMirroredCatalogStatus(String ddxCorrelationId, String ddxId, String lakehouseId) {
+        // TODO: Implementation pending team approval
+        throw new UnsupportedOperationException("getMirroredCatalogStatus implementation pending");
+    }
+
 }
