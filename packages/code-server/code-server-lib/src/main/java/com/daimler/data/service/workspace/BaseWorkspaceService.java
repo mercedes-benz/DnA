@@ -168,7 +168,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 	 @Value("${codeServer.git.ghe.pat}")
      private String ghePat;
 
-	 @Value("${workspace.git-job.stale-threshold-minutes:30}")
+	 @Value("${workspace.git-job.stale-threshold-minutes}")
 	 private int staleThresholdMinutes;
 
 	 @Value("${codeServer.git.pat}")
