@@ -96,6 +96,7 @@ import java.util.regex.Matcher;
  import com.daimler.data.dto.CodespaceSecurityConfigDto;
  import com.daimler.data.dto.DeploymentManageDto;
  import com.daimler.data.dto.DeploymentManageInputDto;
+import com.daimler.data.dto.GitHubWorkflowJobsResponseDto;
 import com.daimler.data.dto.GitHubWorkflowRunDto;
 import com.daimler.data.dto.GitLatestCommitIdDto;
 import com.daimler.data.dto.GitRunIdDetailsDto;
@@ -1690,14 +1691,14 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 							 log.info("getById - Fetching latest status from GitHub for project={}, runId={}, useGHE={}",
 									 entity.getData().getProjectDetails().getProjectName(), gitJobRunId, useGHE);
 
-							 GitHubWorkflowRunDto run = gitClient.getWorkflowRun(gitJobRunId, useGHE);
-							 if (run != null && "completed".equalsIgnoreCase(run.getStatus()) && run.getConclusion() != null) {
-								 String finalStatus = resolveFinalStatus(currentStatus, run.getConclusion());
+							 GitHubWorkflowJobsResponseDto.Job buildDeployJob = gitClient.getBuildDeployJob(gitJobRunId, useGHE);
+							 if (buildDeployJob != null && "completed".equalsIgnoreCase(buildDeployJob.getStatus()) && buildDeployJob.getConclusion() != null) {
+								 String finalStatus = resolveFinalStatus(currentStatus, buildDeployJob.getConclusion());
 								 String projectName = entity.getData().getProjectDetails().getProjectName();
 								 String environment = entity.getData().getProjectDetails().getLastBuildOrDeployedEnv();
 
-								 log.info("getById - GitHub says completed for project={}, conclusion={}, resolvedStatus={}",
-										 projectName, run.getConclusion(), finalStatus);
+								 log.info("getById - Build/Deploy job completed for project={}, conclusion={}, resolvedStatus={}",
+										 projectName, buildDeployJob.getConclusion(), finalStatus);
 
 								 workspaceCustomRepository.updateGitRunIdStatus(projectName, finalStatus, environment);
 								 workspaceCustomRepository.updateBuildDeployAuditStatus(projectName, finalStatus, environment, gitJobRunId);
@@ -1711,12 +1712,12 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 								 } else {
 									 entity = workspaceCustomRepository.findById(userId, id);
 								 }
-							 } else if (run == null) {
-								 log.warn("getById - GitHub API returned null for project={}, runId={}",
+							 } else if (buildDeployJob == null) {
+								 log.warn("getById - Build/Deploy job not found for project={}, runId={}",
 										 entity.getData().getProjectDetails().getProjectName(), gitJobRunId);
 							 } else {
-								 log.info("getById - GitHub workflow not completed yet for project={}, status={}, conclusion={}",
-										 entity.getData().getProjectDetails().getProjectName(), run.getStatus(), run.getConclusion());
+								 log.info("getById - Build/Deploy job not completed yet for project={}, status={}, conclusion={}",
+										 entity.getData().getProjectDetails().getProjectName(), buildDeployJob.getStatus(), buildDeployJob.getConclusion());
 							 }
 						 } else {
 							 log.info("getById - No gitJobRunId found for project={}, status stuck as {} for {} minutes",

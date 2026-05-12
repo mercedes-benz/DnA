@@ -27,6 +27,7 @@ import com.daimler.data.controller.exceptions.MessageDescription;
 import org.springframework.web.client.HttpStatusCodeException;
 
 import com.daimler.data.dto.GitBranchesCollectionDto;
+import com.daimler.data.dto.GitHubWorkflowJobsResponseDto;
 import com.daimler.data.dto.GitHubWorkflowRunDto;
 import com.daimler.data.dto.GitLatestCommitIdDto;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -722,6 +723,38 @@ public class GitClient {
 
 	public GitHubWorkflowRunDto getWorkflowRun(String runId) {
 		return getWorkflowRun(runId, false);
+	}
+
+	public GitHubWorkflowJobsResponseDto.Job getBuildDeployJob(String runId, boolean useGHE) {
+		String baseUri = useGHE ? gheBaseUri : gitBaseUri;
+		String pat = useGHE ? ghePat : personalAccessToken;
+		String repoPath = useGHE ? (applicationName + "/codespace-build-deploy-workflows") : (applicationName + "/" + gitAppName);
+		String url = baseUri + "/repos/" + repoPath + "/actions/runs/" + runId + "/jobs";
+
+		HttpHeaders headers = new HttpHeaders();
+		headers.set("Accept", "application/vnd.github+json");
+		headers.set("Authorization", "Bearer " + pat);
+
+		HttpEntity<Void> entity = new HttpEntity<>(headers);
+		try {
+			log.info("Calling GitHub Jobs API: {} (useGHE={})", url, useGHE);
+			ResponseEntity<GitHubWorkflowJobsResponseDto> response =
+					restTemplate.exchange(url, HttpMethod.GET, entity, GitHubWorkflowJobsResponseDto.class);
+			GitHubWorkflowJobsResponseDto body = response.getBody();
+			if (body != null && body.getJobs() != null) {
+				return body.getJobs().stream()
+						.filter(job -> job.getName() != null && job.getName().toLowerCase().contains("build or deploy workspace application"))
+						.findFirst()
+						.orElse(null);
+			}
+			return null;
+		} catch (HttpStatusCodeException ex) {
+			log.error("GitHub Jobs API error {} for runId {} (useGHE={})", ex.getStatusCode(), runId, useGHE);
+			return null;
+		} catch (Exception ex) {
+			log.error("Unexpected error while calling GitHub Jobs API (useGHE={})", useGHE, ex);
+			return null;
+		}
 	}
 
 	public GitHubWorkflowRunDto getWorkflowRun(String runId, boolean useGHE) {
