@@ -5612,12 +5612,13 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 			log.info("getGitRunIdStatus - GitJobRunId EXISTS for project={}, runId={}, currentStatus={}, environment={}",
 				projectName, dto.getGitjobRunId(), currentStatus, dto.getEnvironment());
 
-			GitHubWorkflowRunDto run = gitClient.getWorkflowRun(dto.getGitjobRunId());
-			if (run == null) {
+			boolean useGHE = Boolean.TRUE.equals(dto.getIsWorkspaceMigratedToGHE());
+			GitHubWorkflowJobsResponseDto.Job buildDeployJob = gitClient.getBuildDeployJob(dto.getGitjobRunId(), useGHE);
+			if (buildDeployJob == null) {
 				String failedStatus = "BUILD_REQUESTED".equalsIgnoreCase(currentStatus)
 					? "BUILD_FAILED" : "DEPLOY_FAILED";
 
-				log.warn("GitHub API failed for project={}, runId={}. Marking as {}.",
+				log.warn("Build/Deploy job not found for project={}, runId={}. Marking as {}.",
 					projectName, dto.getGitjobRunId(), failedStatus);
 
 				workspaceCustomRepository.updateGitRunIdStatus(
@@ -5641,10 +5642,10 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 			// status = "completed"
 			// conclusion = "success"
 			// conclusion = failure | cancelled | timed_out | skipped | neutral | action_required
-			if ("completed".equalsIgnoreCase(run.getStatus()) && run.getConclusion() != null) {
+			if ("completed".equalsIgnoreCase(buildDeployJob.getStatus()) && buildDeployJob.getConclusion() != null) {
 				String finalStatus = resolveFinalStatus(
 						currentStatus,
-						run.getConclusion()
+						buildDeployJob.getConclusion()
 				);
 
 				boolean statusUpdated = workspaceCustomRepository.updateGitRunIdStatus(
@@ -5672,16 +5673,13 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 				statusVo.setStatus(finalStatus);
 			}
 			else {
-				// status = queued | in_progress
-				// conclusion = null
-
 				statusVo.setStatus(null);
 
 				MessageDescription warning = new MessageDescription();
 				warning.setMessage(
-					"GitHub workflow is not completed yet. " +
-					"Status=" + run.getStatus() +
-					", Conclusion=" + run.getConclusion()
+					"Build/Deploy job is not completed yet. " +
+					"Status=" + buildDeployJob.getStatus() +
+					", Conclusion=" + buildDeployJob.getConclusion()
 				);
 
 				vo.setWarnings(List.of(warning));
