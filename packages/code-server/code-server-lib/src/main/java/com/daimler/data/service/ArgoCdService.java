@@ -235,26 +235,37 @@ public class ArgoCdService {
         helmParameters.add(createHelmParam("vaultInjector.authpath", vaultAuthPath));
         helmParameters.add(createHelmParam("vaultInjector.namespace", "/"));
         
-        if (resources != null && !resources.isEmpty()) {
+        if (resources != null && resources.isEmpty()) {
+            // resources: {} in values.yaml — send explicit empty override
+            helmParameters.add(createHelmParam("resources", "{}"));
+            log.info("[Resources] Sending -> resources: {} (explicit empty from values.yaml)");
+        } else if (resources != null && !resources.isEmpty()) {
             String cpu = resources.get("cpu");
             String memory = resources.get("memory");
+            String limitsCpu = resources.get("limitsCpu");
+            String limitsMemory = resources.get("limitsMemory");
             if (cpu != null) {
                 helmParameters.add(createHelmParam("resources.requests.cpu", cpu + "m"));
                 log.info("[Resources] Sending -> resources.requests.cpu: {}", cpu + "m");
             }
             if (memory != null) {
                 helmParameters.add(createHelmParam("resources.requests.memory", memory + "Mi"));
-                helmParameters.add(createHelmParam("resources.limits.memory", memory + "Mi"));
-                log.info("[Resources] Sending -> resources.requests.memory: {}, resources.limits.memory: {}", memory + "Mi", memory + "Mi");
+                log.info("[Resources] Sending -> resources.requests.memory: {}", memory + "Mi");
             }
-            // Explicitly remove limits.cpu by setting to "null" string
-            helmParameters.add(createHelmParam("resources.limits.cpu", "null"));
-            log.info("[Resources] Sending -> resources.limits.cpu: null (override to suppress chart default)");
+            if (limitsMemory != null) {
+                helmParameters.add(createHelmParam("resources.limits.memory", limitsMemory + "Mi"));
+                log.info("[Resources] Sending -> resources.limits.memory: {}", limitsMemory + "Mi");
+            }
+            if (limitsCpu != null) {
+                helmParameters.add(createHelmParam("resources.limits.cpu", limitsCpu + "m"));
+                log.info("[Resources] Sending -> resources.limits.cpu: {}", limitsCpu + "m");
+            }
             log.info("[Resources] Final resources being sent to ArgoCD: " +
-                "requests.cpu={}, requests.memory={}, limits.memory={} (same as requests.memory), limits.cpu=null (removed)",
+                "requests.cpu={}, requests.memory={}, limits.memory={}, limits.cpu={}",
                 cpu != null ? cpu + "m" : "not set",
                 memory != null ? memory + "Mi" : "not set",
-                memory != null ? memory + "Mi" : "not set");
+                limitsMemory != null ? limitsMemory + "Mi" : "not set",
+                limitsCpu != null ? limitsCpu + "m" : "not set");
         } else {
             log.info("[Resources] No resource overrides to apply, chart values.yaml will be used as-is");
         }
@@ -410,6 +421,12 @@ public class ArgoCdService {
         Map<String, Object> resourcesSection = (Map<String, Object>) resourcesObj;
         log.info("[Resources] Raw resources from values.yaml: {}", resourcesSection);
         
+        // If resources is explicitly empty {}, return empty map to signal "resources: {}" override
+        if (resourcesSection.isEmpty()) {
+            log.info("[Resources] resources is explicitly empty {}, will send resources={} override");
+            return new HashMap<>();
+        }
+        
         if (!resourcesSection.containsKey("requests")) {
             log.info("[Resources] No 'requests' section found in resources. Available keys: {}", resourcesSection.keySet());
             return null;
@@ -442,6 +459,33 @@ public class ArgoCdService {
                 convertedResources.put("memory", convertedMemory);
             }
         }
+        
+        // Parse limits section if present
+        if (resourcesSection.containsKey("limits")) {
+            Object limitsObj = resourcesSection.get("limits");
+            if (limitsObj instanceof Map) {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> limits = (Map<String, Object>) limitsObj;
+                log.info("[Resources] Raw limits from values.yaml: {}", limits);
+                if (limits.containsKey("cpu")) {
+                    String limitsCpuValue = String.valueOf(limits.get("cpu"));
+                    String convertedLimitsCpu = convertCpu(limitsCpuValue);
+                    log.info("[Resources] Limits CPU: raw='{}' -> converted='{}'", limitsCpuValue, convertedLimitsCpu);
+                    if (convertedLimitsCpu != null) {
+                        convertedResources.put("limitsCpu", convertedLimitsCpu);
+                    }
+                }
+                if (limits.containsKey("memory")) {
+                    String limitsMemoryValue = String.valueOf(limits.get("memory"));
+                    String convertedLimitsMemory = convertMemory(limitsMemoryValue);
+                    log.info("[Resources] Limits Memory: raw='{}' -> converted='{}'", limitsMemoryValue, convertedLimitsMemory);
+                    if (convertedLimitsMemory != null) {
+                        convertedResources.put("limitsMemory", convertedLimitsMemory);
+                    }
+                }
+            }
+        }
+        
         log.info("[Resources] Final calculated resources: {}", convertedResources);
         return convertedResources.isEmpty() ? null : convertedResources;
     } catch (Exception e) {
