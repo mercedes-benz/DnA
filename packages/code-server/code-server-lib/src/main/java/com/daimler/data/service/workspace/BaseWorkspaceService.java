@@ -5964,9 +5964,6 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 				statusVo.setStatus(finalStatus);
 			}
 			else {
-				// status = queued | in_progress
-				// conclusion = null
-
 				statusVo.setStatus(null);
 
 				MessageDescription warning = new MessageDescription();
