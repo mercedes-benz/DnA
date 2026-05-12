@@ -53,6 +53,47 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
   const enableReadMe =  Envs.CODESPACE_RECIEPES_ENABLE_README?.split(',')?.includes(codeSpace?.projectDetails?.recipeDetails?.Id) || false;
   const [showMigrateOrStartModal, setShowMigrateOrStartModal] = useState(false);
   const contextMenuRef = useRef(null);
+  const restartPollRef = useRef(null);
+
+  // Auto-poll when restart is in progress to detect status transition
+  useEffect(() => {
+    const status = codeSpace?.projectDetails?.lastBuildOrDeployedStatus;
+    if (status === 'RESTART_REQUESTED') {
+      let attempts = 0;
+      const maxAttempts = 60; // 10s interval × 60 = 10 minutes max
+      restartPollRef.current = setInterval(() => {
+        attempts++;
+        if (attempts >= maxAttempts) {
+          clearInterval(restartPollRef.current);
+          restartPollRef.current = null;
+          return;
+        }
+        CodeSpaceApiClient.getWorkspaceById(codeSpace.id)
+          .then((res) => {
+            if (res.data && props.onRefreshCard) {
+              const newStatus = res.data?.projectDetails?.lastBuildOrDeployedStatus;
+              props.onRefreshCard(codeSpace.id, res.data);
+              if (newStatus !== 'RESTART_REQUESTED') {
+                clearInterval(restartPollRef.current);
+                restartPollRef.current = null;
+              }
+            }
+          })
+          .catch(() => {});
+      }, 10000);
+    } else {
+      if (restartPollRef.current) {
+        clearInterval(restartPollRef.current);
+        restartPollRef.current = null;
+      }
+    }
+    return () => {
+      if (restartPollRef.current) {
+        clearInterval(restartPollRef.current);
+        restartPollRef.current = null;
+      }
+    };
+  }, [codeSpace?.projectDetails?.lastBuildOrDeployedStatus]); // eslint-disable-line react-hooks/exhaustive-deps
 
    
     useEffect(() => {
