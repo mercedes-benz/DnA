@@ -114,11 +114,7 @@ public class FabricCatalogMetadataAssembler implements GenericAssembler<FabricCa
             }
             data.setMandatoryFields(mandatoryFields);
             
-            // Map publishedCdcTables, publishedLakehouseTables, and publishedLakehouseTableDetails
-            if (vo.getPublishedCdcTables() != null) {
-                data.setPublishedCdcTables(vo.getPublishedCdcTables());
-            }
-            
+            // Map publishedLakehouseTables and publishedLakehouseTableDetails
             if (vo.getPublishedLakehouseTables() != null) {
                 data.setPublishedLakehouseTables(vo.getPublishedLakehouseTables());
             }
@@ -229,11 +225,7 @@ public class FabricCatalogMetadataAssembler implements GenericAssembler<FabricCa
             }
             vo.setMandatoryFields(mandatoryFieldsVO);
             
-            // Map publishedCdcTables, publishedLakehouseTables, and publishedLakehouseTableDetails
-            if (metadataDetails.getPublishedCdcTables() != null) {
-                vo.setPublishedCdcTables(metadataDetails.getPublishedCdcTables());
-            }
-            
+            // Map publishedLakehouseTables and publishedLakehouseTableDetails
             if (metadataDetails.getPublishedLakehouseTables() != null) {
                 vo.setPublishedLakehouseTables(metadataDetails.getPublishedLakehouseTables());
             }

@@ -529,11 +529,6 @@ definitions:
           $ref: "#/definitions/CreatedByVO"
       mandatoryFields:
         $ref: "#/definitions/MandatoryFieldsVO"
-      publishedCdcTables:
-        type: array
-        description: "List of table names published to CDC"
-        items:
-          type: string
       publishedLakehouseTables:
         type: array
         description: "List of table names available in the lakehouse"

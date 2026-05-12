@@ -471,7 +471,6 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
         catalogMetadataDetails.setMandatoryFields(vo.getMandatoryFields());
         
         // Retrieve lakehouse table details from stored data
-        catalogMetadataDetails.setPublishedCdcTables(vo.getPublishedCdcTables());
         catalogMetadataDetails.setPublishedLakehouseTables(vo.getPublishedLakehouseTables());
         catalogMetadataDetails.setPublishedLakehouseTableDetails(vo.getPublishedLakehouseTableDetails());
         
@@ -487,7 +486,6 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
                 return;
             }
 
-            List<String> publishedCdcTables = new ArrayList<>();
             List<String> publishedLakehouseTables = new ArrayList<>();
             List<LakehouseTableDetailVO> publishedLakehouseTableDetails = new ArrayList<>();
 
@@ -502,8 +500,6 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
                             if (schema.getTables() != null) {
                                 for (TableMetadataVO table : schema.getTables()) {
                                     requestedTableNames.add(table.getTableName());
-                                    publishedCdcTables.add(table.getTableName());
-                                    
                                     Set<String> columnNames = new HashSet<>();
                                     if (table.getColumns() != null) {
                                         for (ColumnMetadataVO col : table.getColumns()) {
@@ -573,12 +569,11 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
             }
 
             // Set the populated lists to the response
-            catalogMetadataDetails.setPublishedCdcTables(publishedCdcTables);
             catalogMetadataDetails.setPublishedLakehouseTables(publishedLakehouseTables);
             catalogMetadataDetails.setPublishedLakehouseTableDetails(publishedLakehouseTableDetails);
             
-            log.info("Populated lakehouse table details: {} tables, {} published to CDC", 
-                publishedLakehouseTables.size(), publishedCdcTables.size());
+            log.info("Populated lakehouse table details: {} tables", 
+                publishedLakehouseTables.size());
             
         } catch (Exception e) {
             log.error("Error populating lakehouse table details: {}", e.getMessage(), e);

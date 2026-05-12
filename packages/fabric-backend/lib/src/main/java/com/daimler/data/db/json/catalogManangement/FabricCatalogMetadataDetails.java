@@ -21,7 +21,6 @@ public class FabricCatalogMetadataDetails implements Serializable{
     private FabricCatalogMetadata metadata;
     private List<UserDetails> owners;
     private MandatoryFields mandatoryFields;
-    private List<String> publishedCdcTables;
     private List<String> publishedLakehouseTables;
     private List<LakehouseTableDetail> publishedLakehouseTableDetails;
 }
