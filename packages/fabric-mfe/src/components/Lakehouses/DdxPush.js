@@ -16,7 +16,7 @@ const Step1_BasicIdentification = ({ formData, setFormData, errors, clearError }
     <div className={Styles.col}>
       <div className={classNames('input-field-group include-error', errors.nameError ? 'error' : '')}>
         <label htmlFor="dataProductName" className="input-label">
-          Name of the Data Product <sup>*</sup>
+          Name of the Data Product <sup>*</sup> (First letter must be uppercase, only alphanumeric characters allowed)
         </label>
         <input
           type="text"
@@ -700,12 +700,17 @@ const ViewDdxTablesModalContent = ({ workspaceId, workspaceName, workspaceOwner,
 
   const isDdxAlreadyPushed = ddxPublishedLakeHouseDetails?.some(d => d.lakeHouseId === lakehouseId);
 
+  const existingProductId = ddxPublishedLakeHouseDetails
+    ?.find(d => d.lakeHouseId === lakehouseId)
+    ?.dataProducts?.slice()?.sort((a, b) => new Date(b.createdOn) - new Date(a.createdOn))?.[0]?.productId;
+
   useEffect(() => {
     Tooltip.defaultSetup();
   }, []);
 
-  const [currentStep, setCurrentStep] = useState('step1');
+  const [currentStep, setCurrentStep] = useState(isDdxAlreadyPushed ? 'step6' : 'step1');
   const [hasSubmittedOnce, setHasSubmittedOnce] = useState(false);
+  const [submittedProductId, setSubmittedProductId] = useState(existingProductId || null);
 
   useEffect(() => {
     SelectBox.defaultSetup();    
@@ -900,26 +905,25 @@ const ViewDdxTablesModalContent = ({ workspaceId, workspaceName, workspaceOwner,
         },
       ],
     };
-    //remove for testing
-    console.log('Submit payload:', JSON.stringify(payload, null, 2));
 
     ProgressIndicator.show();
     fabricApi.publishDdxDataProduct(workspaceId, lakehouseId, payload)
       .then((response) => {
         ProgressIndicator.hide();
         const dataProductId = response?.data?.dataProductId;
-        const baseUrl = (Envs.DDX_DOF_BASE_URL || '').replace(/\/$/, '');
-        const dofUrl = `${baseUrl}/myDataProducts/onboardingForm/${dataProductId}`;
+        // const baseUrl = (Envs.DDX_DOF_BASE_URL || '').replace(/\/$/, '');
+        // const dofUrl = `${baseUrl}/myDataProducts/onboardingForm/${dataProductId}`;
         Notification.show('Data product onboarded successfully.', 'success');
         setHasSubmittedOnce(true);
         if (dataProductId) {
-          window.open(dofUrl, '_blank', 'noopener,noreferrer');
+          setSubmittedProductId(dataProductId);
         }
+        setCurrentStep('step6');
         onRefreshWorkspace && onRefreshWorkspace();
       })
       .catch((err) => {
         ProgressIndicator.hide();
-        Notification.show(err?.response?.data?.errors?.[0]?.message || 'Failed to onboard data product.', 'alert');
+        Notification.show(err?.response?.data?.responses?.errors?.[0]?.message || 'Failed to onboard data product.', 'alert');
       });
   };
 
@@ -959,11 +963,18 @@ const ViewDdxTablesModalContent = ({ workspaceId, workspaceName, workspaceOwner,
           <div className={Styles.stepLabel}>Compliance & Usage</div>
         </div>
 
-        <div className={classNames(Styles.step, currentStep === 'step5' && Styles.complete)}>
+        <div className={classNames(Styles.step, (currentStep === 'step5' || currentStep === 'step6') && Styles.complete)}>
           <div className={classNames(Styles.stepIcon, currentStep === 'step5' && Styles.activeIcon)}>
             <i className="icon mbc-icon tools-mini" />
           </div>
           <div className={Styles.stepLabel}>Personal Data</div>
+        </div>
+
+        <div className={classNames(Styles.step, currentStep === 'step6' && Styles.complete)}>
+          <div className={classNames(Styles.stepIcon, currentStep === 'step6' && Styles.activeIcon)}>
+            <i className="icon mbc-icon tools-mini" />
+          </div>
+          <div className={Styles.stepLabel}>Next Steps</div>
         </div>
       </div>
 
@@ -1019,14 +1030,36 @@ const ViewDdxTablesModalContent = ({ workspaceId, workspaceName, workspaceOwner,
         />
       )}
 
+      {currentStep === 'step6' && (() => {
+        const baseUrl = (Envs.DDX_DOF_BASE_URL || '').replace(/\/$/, '');
+        const dofUrl = `${baseUrl}/myDataProducts/onboardingForm/${submittedProductId}`;
+        return (
+          <div className={Styles.stepForm}>
+            <div className={Styles.successMessage}>
+              <p>
+                The data product has been onboarded in the DDX portal and is currently saved in Draft status. Kindly click{' '}
+                <a href={dofUrl} target="_blank" rel="noopener noreferrer">here</a>{' '}
+                to review and complete the onboarding process by following the steps outlined below:
+              </p>
+              <ol>
+                <li>Navigate through each step in the DDX portal..</li>
+                <li>Upon reaching Step 7, click the <strong>Get Objects</strong> button and then proceed by clicking Next.</li>
+                <li>In Step 8, click the <strong>Get Objects</strong> button again.</li>
+                <li>In the final step, review and verify all the details, agree to the Terms of Use, and complete the onboarding process.</li>                
+              </ol>
+            </div>
+          </div>
+        );
+      })()}
+
       <div className={Styles.formFooter}>
-        {currentStep !== 'step1' && (
+        {currentStep !== 'step1' && currentStep !== 'step6' && (
           <button className="btn btn-primary" type="button" onClick={handlePrev}>
             Prev
           </button>
         )}
 
-        {currentStep !== 'step5' && (
+        {currentStep !== 'step5' && currentStep !== 'step6' && (
           <button className="btn btn-tertiary" type="button" onClick={handleNext}>
             Next
           </button>
