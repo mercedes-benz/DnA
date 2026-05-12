@@ -269,7 +269,12 @@ public class DeploymentStatusSseController {
             if ("Failed".equalsIgnoreCase(lastSyncPhase) || "Error".equalsIgnoreCase(lastSyncPhase)) {
                 return "FAILED";
             }
-            return "DEPLOYED";
+            // Only DEPLOYED when both Healthy AND last sync Succeeded
+            if ("Succeeded".equalsIgnoreCase(lastSyncPhase)) {
+                return "DEPLOYED";
+            }
+            // Healthy but sync not yet succeeded — still deploying
+            return "DEPLOYING";
         }
         
         if ("Degraded".equalsIgnoreCase(argoHealth)) {

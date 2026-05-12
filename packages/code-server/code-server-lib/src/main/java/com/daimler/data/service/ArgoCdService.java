@@ -628,8 +628,14 @@ public class ArgoCdService {
                         log.info("Application {} is healthy but last sync {} - FAILED", appName, lastSyncPhase);
                         return "FAILED";
                     }
-                    log.info("Application {} is healthy, last sync {} - DEPLOYED", appName, lastSyncPhase);
-                    return "DEPLOYED";
+                    // Only mark as DEPLOYED when both Healthy AND last sync Succeeded
+                    if ("Succeeded".equalsIgnoreCase(lastSyncPhase)) {
+                        log.info("Application {} is healthy and last sync succeeded - DEPLOYED", appName);
+                        return "DEPLOYED";
+                    }
+                    // Healthy but sync not yet succeeded (Running, empty, etc.) — still deploying
+                    log.info("Application {} is healthy but last sync phase is {} - DEPLOYING", appName, lastSyncPhase);
+                    return "DEPLOYING";
                 case "degraded":
                     log.info("Application {} is degraded - FAILED", appName);
                     return "FAILED";
