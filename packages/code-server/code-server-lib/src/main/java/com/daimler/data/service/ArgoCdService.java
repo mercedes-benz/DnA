@@ -237,9 +237,8 @@ public class ArgoCdService {
         helmParameters.add(createHelmParamForceString("podAnnotations.prometheus\\.io/scrape", "true"));
         
         if (resources != null && resources.isEmpty()) {
-            // resources: {} in values.yaml — send explicit empty override
-            helmParameters.add(createHelmParam("resources", "{}"));
-            log.info("[Resources] Sending -> resources: {} (explicit empty from values.yaml)");
+            // resources: {} in values.yaml — no override needed, chart default applies as-is
+            log.info("[Resources] resources is empty in values.yaml, skipping override (chart default resources: {} will be used)");
         } else if (resources != null && !resources.isEmpty()) {
             String cpu = resources.get("cpu");
             String memory = resources.get("memory");
