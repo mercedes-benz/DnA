@@ -47,6 +47,12 @@ public class DeploymentStatusSseController {
             int maxErrors = 5;
             int maxIterations = 600;
             int iteration = 0;
+            boolean seenInProgress = false;
+            // Minimum iterations before accepting terminal status from ArgoCD.
+            // This prevents false "DEPLOYED" when re-deploying an already-deployed app,
+            // because ArgoCD still shows the old deployment as Healthy+Succeeded
+            // before the new sync starts.
+            int minIterationsBeforeTerminal = 5; // ~15 seconds at 3s interval
             
             try {
                 while (iteration < maxIterations) {
@@ -59,14 +65,25 @@ public class DeploymentStatusSseController {
                                 .data(objectMapper.writeValueAsString(statusData)));
 
                         String status = (String) statusData.get("currentStatus");
-                        log.debug("SSE iteration {}: status={} for {}/{}", iteration, status, projectName, environment);
+                        log.debug("SSE iteration {}: status={} seenInProgress={} for {}/{}", iteration, status, seenInProgress, projectName, environment);
+                        
+                        // Track if we've seen an in-progress state (proves new sync has started)
+                        if ("DEPLOYING".equals(status)) {
+                            seenInProgress = true;
+                        }
                         
                         if ("DEPLOYED".equals(status) || "FAILED".equals(status)) {
-                            log.info("Deployment finished with status: {} after {} iterations", status, iteration);
-                            emitter.send(SseEmitter.event()
-                                    .name("deployment-complete")
-                                    .data(objectMapper.writeValueAsString(statusData)));
-                            break;
+                            // Only accept terminal status if we've seen the deployment actually start,
+                            // or enough time has passed to rule out stale ArgoCD state
+                            if (seenInProgress || iteration >= minIterationsBeforeTerminal) {
+                                log.info("Deployment finished with status: {} after {} iterations (seenInProgress={})", status, iteration, seenInProgress);
+                                emitter.send(SseEmitter.event()
+                                        .name("deployment-complete")
+                                        .data(objectMapper.writeValueAsString(statusData)));
+                                break;
+                            } else {
+                                log.info("SSE iteration {}: ignoring early terminal status {} (waiting for new sync to start)", iteration, status);
+                            }
                         }
                         
                         if ("ERROR".equals(status) || "NOT_FOUND".equals(status)) {
@@ -252,7 +269,12 @@ public class DeploymentStatusSseController {
             if ("Failed".equalsIgnoreCase(lastSyncPhase) || "Error".equalsIgnoreCase(lastSyncPhase)) {
                 return "FAILED";
             }
-            return "DEPLOYED";
+            // Only DEPLOYED when both Healthy AND last sync Succeeded
+            if ("Succeeded".equalsIgnoreCase(lastSyncPhase)) {
+                return "DEPLOYED";
+            }
+            // Healthy but sync not yet succeeded — still deploying
+            return "DEPLOYING";
         }
         
         if ("Degraded".equalsIgnoreCase(argoHealth)) {

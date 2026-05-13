@@ -53,6 +53,62 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
   const enableReadMe =  Envs.CODESPACE_RECIEPES_ENABLE_README?.split(',')?.includes(codeSpace?.projectDetails?.recipeDetails?.Id) || false;
   const [showMigrateOrStartModal, setShowMigrateOrStartModal] = useState(false);
   const contextMenuRef = useRef(null);
+  const statusPollRef = useRef(null);
+
+  // Auto-poll when any in-progress status is detected (deploy, restart, build)
+  useEffect(() => {
+    const topStatus = codeSpace?.projectDetails?.lastBuildOrDeployedStatus;
+    const intStatus = codeSpace?.projectDetails?.intDeploymentDetails?.lastDeploymentStatus;
+    const prodStatus = codeSpace?.projectDetails?.prodDeploymentDetails?.lastDeploymentStatus;
+
+    const inProgressStatuses = ['DEPLOYING', 'DEPLOY_REQUESTED', 'RESTART_REQUESTED', 'BUILD_REQUESTED'];
+    const isInProgress = inProgressStatuses.includes(topStatus) ||
+      inProgressStatuses.includes(intStatus) ||
+      inProgressStatuses.includes(prodStatus);
+
+    if (isInProgress) {
+      let attempts = 0;
+      const maxAttempts = 60; // 10s interval × 60 = 10 minutes max
+      statusPollRef.current = setInterval(() => {
+        attempts++;
+        if (attempts >= maxAttempts) {
+          clearInterval(statusPollRef.current);
+          statusPollRef.current = null;
+          return;
+        }
+        CodeSpaceApiClient.getWorkspaceById(codeSpace.id)
+          .then((res) => {
+            if (res.data && props.onRefreshCard) {
+              const newTopStatus = res.data?.projectDetails?.lastBuildOrDeployedStatus;
+              const newIntStatus = res.data?.projectDetails?.intDeploymentDetails?.lastDeploymentStatus;
+              const newProdStatus = res.data?.projectDetails?.prodDeploymentDetails?.lastDeploymentStatus;
+              props.onRefreshCard(codeSpace.id, res.data);
+              const stillInProgress = inProgressStatuses.includes(newTopStatus) ||
+                inProgressStatuses.includes(newIntStatus) ||
+                inProgressStatuses.includes(newProdStatus);
+              if (!stillInProgress) {
+                clearInterval(statusPollRef.current);
+                statusPollRef.current = null;
+              }
+            }
+          })
+          .catch(() => {});
+      }, 10000);
+    } else {
+      if (statusPollRef.current) {
+        clearInterval(statusPollRef.current);
+        statusPollRef.current = null;
+      }
+    }
+    return () => {
+      if (statusPollRef.current) {
+        clearInterval(statusPollRef.current);
+        statusPollRef.current = null;
+      }
+    };
+  }, [codeSpace?.projectDetails?.lastBuildOrDeployedStatus,
+      codeSpace?.projectDetails?.intDeploymentDetails?.lastDeploymentStatus,
+      codeSpace?.projectDetails?.prodDeploymentDetails?.lastDeploymentStatus]); // eslint-disable-line react-hooks/exhaustive-deps
 
    
     useEffect(() => {

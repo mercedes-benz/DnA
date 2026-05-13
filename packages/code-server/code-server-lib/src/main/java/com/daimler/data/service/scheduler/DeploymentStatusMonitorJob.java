@@ -93,7 +93,8 @@ public class DeploymentStatusMonitorJob {
 
     private boolean shouldCheckDeployment(String status) {
         if (status == null) return false;
-        return "DEPLOYING".equalsIgnoreCase(status) || "FAILED".equalsIgnoreCase(status);
+        return "DEPLOYING".equalsIgnoreCase(status) || "FAILED".equalsIgnoreCase(status)
+                || "RESTART_REQUESTED".equalsIgnoreCase(status);
     }
 
     private boolean checkAndUpdateDeployment(String argoToken, CodeServerWorkspaceNsql workspace, 
@@ -106,16 +107,27 @@ public class DeploymentStatusMonitorJob {
 
             
             boolean needsUpdate = false;
-            if ("DEPLOYED".equals(argoStatus) && !"DEPLOYED".equalsIgnoreCase(currentDbStatus)) {
+            String targetStatus = argoStatus;
+            
+            if ("RESTART_REQUESTED".equalsIgnoreCase(currentDbStatus)) {
+                // For restart: Healthy+Succeeded → RESTARTED, Degraded/Failed → RESTART_FAILED
+                if ("DEPLOYED".equals(argoStatus)) {
+                    targetStatus = "RESTARTED";
+                    needsUpdate = true;
+                } else if ("FAILED".equals(argoStatus)) {
+                    targetStatus = "RESTART_FAILED";
+                    needsUpdate = true;
+                }
+            } else if ("DEPLOYED".equals(argoStatus) && !"DEPLOYED".equalsIgnoreCase(currentDbStatus)) {
                 needsUpdate = true;
             } else if ("FAILED".equals(argoStatus) && "DEPLOYING".equalsIgnoreCase(currentDbStatus)) {
                 needsUpdate = true;
             }
 
             if (needsUpdate) {
-                log.info("Reconciling deployment status for {} from {} to {}", appName, currentDbStatus, argoStatus);
+                log.info("Reconciling deployment status for {} from {} to {}", appName, currentDbStatus, targetStatus);
                 
-                deployment.setLastDeploymentStatus(argoStatus);
+                deployment.setLastDeploymentStatus(targetStatus);
                 
                 DeploymentAudit latestAudit = null;
                 if (deployment.getDeploymentAuditLogs() != null && !deployment.getDeploymentAuditLogs().isEmpty()) {
@@ -126,7 +138,7 @@ public class DeploymentStatusMonitorJob {
                         .orElse(null);
                 }
                 
-                if ("DEPLOYED".equals(argoStatus)) {
+                if ("DEPLOYED".equals(targetStatus) || "RESTARTED".equals(targetStatus)) {
                     if (deployment.getLastDeployedBy() == null) {
                         deployment.setLastDeployedBy(workspace.getData().getWorkspaceOwner());
                     }
@@ -145,17 +157,17 @@ public class DeploymentStatusMonitorJob {
                     }
                 }
                 if (latestAudit != null) {
-                    latestAudit.setDeploymentStatus(argoStatus);
-                    if ("DEPLOYED".equals(argoStatus)) {
+                    latestAudit.setDeploymentStatus(targetStatus);
+                    if ("DEPLOYED".equals(targetStatus) || "RESTARTED".equals(targetStatus)) {
                         latestAudit.setDeployedOn(new Date());
                     }
-                    log.info("Updated audit log status to {} for deployment at {}", argoStatus, latestAudit.getTriggeredOn());
+                    log.info("Updated audit log status to {} for deployment at {}", targetStatus, latestAudit.getTriggeredOn());
                 }
 
-                workspaceCustomRepository.updateDeploymentDetails(projectName, environment, deployment, argoStatus);
+                workspaceCustomRepository.updateDeploymentDetails(projectName, environment, deployment, targetStatus);
                 
                 // Also update deployment audit logs in the build deploy entity (used by frontend)
-                updateBuildDeployAuditLog(projectName, environment, argoStatus);
+                updateBuildDeployAuditLog(projectName, environment, targetStatus);
                 
                 return true;
             }
@@ -184,12 +196,13 @@ public class DeploymentStatusMonitorJob {
             if (auditLogs == null || auditLogs.isEmpty()) {
                 return;
             }
-            // Find the latest DEPLOYING audit log and update its status
+            // Find the latest in-progress audit log and update its status
             for (int i = auditLogs.size() - 1; i >= 0; i--) {
                 DeploymentAudit audit = auditLogs.get(i);
-                if ("DEPLOYING".equalsIgnoreCase(audit.getDeploymentStatus())) {
+                String auditStatus = audit.getDeploymentStatus();
+                if ("DEPLOYING".equalsIgnoreCase(auditStatus) || "RESTART_REQUESTED".equalsIgnoreCase(auditStatus)) {
                     audit.setDeploymentStatus(argoStatus);
-                    if ("DEPLOYED".equals(argoStatus)) {
+                    if ("DEPLOYED".equals(argoStatus) || "RESTARTED".equals(argoStatus)) {
                         audit.setDeployedOn(new Date());
                     }
                     log.info("Updated build deploy audit log status to {} for {}-{}", argoStatus, projectName, environment);

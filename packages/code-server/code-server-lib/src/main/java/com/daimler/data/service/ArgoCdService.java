@@ -220,7 +220,7 @@ public class ArgoCdService {
         String vaultInjectorRootPath = "/" + projectName + "/" + targetEnv + "/api";
         String vaultInjectorRootPathNonApi = "/" + projectName + "/" + targetEnv + "/";
         
-        List<Map<String, String>> helmParameters = new ArrayList<>();
+        List<Map<String, Object>> helmParameters = new ArrayList<>();
         
         helmParameters.add(createHelmParam("namespace", namespace));
         helmParameters.add(createHelmParam("fullnameOverride", appName));
@@ -234,8 +234,13 @@ public class ArgoCdService {
         helmParameters.add(createHelmParam("vaultInjector.root_path_non_api", vaultInjectorRootPathNonApi));
         helmParameters.add(createHelmParam("vaultInjector.authpath", vaultAuthPath));
         helmParameters.add(createHelmParam("vaultInjector.namespace", "/"));
+        helmParameters.add(createHelmParamForceString("podAnnotations.prometheus\\.io/scrape", "true"));
         
-        if (resources != null && !resources.isEmpty()) {
+        if (resources != null && resources.isEmpty()) {
+            // resources: {} in values.yaml — send explicit empty override
+            helmParameters.add(createHelmParam("resources", "{}"));
+            log.info("[Resources] Sending -> resources: {} (explicit empty from values.yaml)");
+        } else if (resources != null && !resources.isEmpty()) {
             String cpu = resources.get("cpu");
             String memory = resources.get("memory");
             if (cpu != null) {
@@ -320,10 +325,18 @@ public class ArgoCdService {
         return finalJson;
     }
     
-    private Map<String, String> createHelmParam(String name, String value) {
-        Map<String, String> param = new HashMap<>();
+    private Map<String, Object> createHelmParam(String name, String value) {
+        Map<String, Object> param = new HashMap<>();
         param.put("name", name);
         param.put("value", value);
+        return param;
+    }
+
+    private Map<String, Object> createHelmParamForceString(String name, String value) {
+        Map<String, Object> param = new HashMap<>();
+        param.put("name", name);
+        param.put("value", value);
+        param.put("forceString", true);
         return param;
     }
     
@@ -410,6 +423,12 @@ public class ArgoCdService {
         Map<String, Object> resourcesSection = (Map<String, Object>) resourcesObj;
         log.info("[Resources] Raw resources from values.yaml: {}", resourcesSection);
         
+        // If resources is explicitly empty {}, return empty map to signal "resources: {}" override
+        if (resourcesSection.isEmpty()) {
+            log.info("[Resources] resources is explicitly empty {}, will send resources={} override");
+            return new HashMap<>();
+        }
+        
         if (!resourcesSection.containsKey("requests")) {
             log.info("[Resources] No 'requests' section found in resources. Available keys: {}", resourcesSection.keySet());
             return null;
@@ -442,6 +461,7 @@ public class ArgoCdService {
                 convertedResources.put("memory", convertedMemory);
             }
         }
+        
         log.info("[Resources] Final calculated resources: {}", convertedResources);
         return convertedResources.isEmpty() ? null : convertedResources;
     } catch (Exception e) {
@@ -617,8 +637,14 @@ public class ArgoCdService {
                         log.info("Application {} is healthy but last sync {} - FAILED", appName, lastSyncPhase);
                         return "FAILED";
                     }
-                    log.info("Application {} is healthy, last sync {} - DEPLOYED", appName, lastSyncPhase);
-                    return "DEPLOYED";
+                    // Only mark as DEPLOYED when both Healthy AND last sync Succeeded
+                    if ("Succeeded".equalsIgnoreCase(lastSyncPhase)) {
+                        log.info("Application {} is healthy and last sync succeeded - DEPLOYED", appName);
+                        return "DEPLOYED";
+                    }
+                    // Healthy but sync not yet succeeded (Running, empty, etc.) — still deploying
+                    log.info("Application {} is healthy but last sync phase is {} - DEPLOYING", appName, lastSyncPhase);
+                    return "DEPLOYING";
                 case "degraded":
                     log.info("Application {} is degraded - FAILED", appName);
                     return "FAILED";
