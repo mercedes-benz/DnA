@@ -143,6 +143,9 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
             // Populate lakehouse table details with enabled status BEFORE saving
             populateLakehouseTableDetails(catalogMetadataDetails, existingFabricWorkspace, request);
 
+            // Populate CDC table details as object array
+            populateCdcTableDetails(catalogMetadataDetails, existingFabricWorkspace, request);
+
             // Get the lakehouse ID to use as PK
             String lakehouseId = null;
             if (existingFabricWorkspace.getLakehouses() != null && !existingFabricWorkspace.getLakehouses().isEmpty()) {
@@ -258,6 +261,9 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
             
             // Populate lakehouse table details with enabled status
             populateLakehouseTableDetails(vo, existingFabricWorkspace, request);
+
+            // Populate CDC table details as object array
+            populateCdcTableDetails(vo, existingFabricWorkspace, request);
             
             // Save updated metadata with lakehouse table details
             catalogRepo.save(catalogAssembler.toEntity(vo));
@@ -471,6 +477,7 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
         catalogMetadataDetails.setMandatoryFields(vo.getMandatoryFields());
         
         // Retrieve lakehouse table details from stored data
+        catalogMetadataDetails.setPublishedCdcTables(vo.getPublishedCdcTables());
         catalogMetadataDetails.setPublishedLakehouseTables(vo.getPublishedLakehouseTables());
         catalogMetadataDetails.setPublishedLakehouseTableDetails(vo.getPublishedLakehouseTableDetails());
         
@@ -578,6 +585,42 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
         } catch (Exception e) {
             log.error("Error populating lakehouse table details: {}", e.getMessage(), e);
             // Don't fail the whole operation, just log the error
+        }
+    }
+
+    private void populateCdcTableDetails(FabricCatalogMetadataDetailsVO catalogMetadataDetails,
+            FabricWorkspaceVO workspace, PublishCatalogRequestVO request) {
+        try {
+            if (workspace.getLakehouses() == null || workspace.getLakehouses().isEmpty()) {
+                log.warn("No lakehouses found for workspace: {}, skipping CDC table details", workspace.getId());
+                return;
+            }
+
+            List<CdcTableDetailVO> cdcTableDetails = new ArrayList<>();
+            Date now = new Date();
+            CreatedByVO createdBy = (request.getOwners() != null && !request.getOwners().isEmpty())
+                    ? request.getOwners().get(0) : null;
+
+            for (FabricLakehouseVO lakehouse : workspace.getLakehouses()) {
+                CdcTableDetailVO cdcDetail = new CdcTableDetailVO();
+                cdcDetail.setWorkspaceName(workspace.getName());
+                cdcDetail.setWorkspaceId(workspace.getId());
+                cdcDetail.setLakehouseName(lakehouse.getName());
+                cdcDetail.setLakeHouseId(lakehouse.getId());
+                cdcDetail.setIsLakeHousesPublishedToCdc(true);
+                cdcDetail.setProductName(request.getMetadata().getServiceName());
+                cdcDetail.setProductId(lakehouse.getId());
+                cdcDetail.setCreatedBy(createdBy);
+                cdcDetail.setCreatedOn(now);
+                cdcDetail.setModifiedOn(now);
+                cdcTableDetails.add(cdcDetail);
+            }
+
+            catalogMetadataDetails.setPublishedCdcTables(cdcTableDetails);
+            log.info("Populated CDC table details: {} entries", cdcTableDetails.size());
+
+        } catch (Exception e) {
+            log.error("Error populating CDC table details: {}", e.getMessage(), e);
         }
     }
 

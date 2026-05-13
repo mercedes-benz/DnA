@@ -529,6 +529,11 @@ definitions:
           $ref: "#/definitions/CreatedByVO"
       mandatoryFields:
         $ref: "#/definitions/MandatoryFieldsVO"
+      publishedCdcTables:
+        type: array
+        description: "List of CDC table details published from this catalog"
+        items:
+          $ref: "#/definitions/CdcTableDetailVO"
       publishedLakehouseTables:
         type: array
         description: "List of table names available in the lakehouse"
@@ -539,6 +544,35 @@ definitions:
         description: "Detailed information about lakehouse tables including enabled status"
         items:
           $ref: "#/definitions/LakehouseTableDetailVO"
+
+  CdcTableDetailVO:
+    type: object
+    description: "Detailed information about a CDC table product"
+    properties:
+      workspaceName:
+        type: string
+      workspaceId:
+        type: string
+      lakehouseName:
+        type: string
+      lakeHouseId:
+        type: string
+      isLakeHousesPublishedToCdc:
+        type: boolean
+      productName:
+        type: string
+        description: "Name of the CDC data product"
+      productId:
+        type: string
+        description: "ID of the CDC data product"
+      createdBy:
+        $ref: "#/definitions/CreatedByVO"
+      createdOn:
+        type: string
+        format: date
+      modifiedOn:
+        type: string
+        format: date
 
   LakehouseTableDetailVO:
     type: object
