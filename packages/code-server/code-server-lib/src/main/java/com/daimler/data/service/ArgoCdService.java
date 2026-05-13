@@ -236,9 +236,11 @@ public class ArgoCdService {
         helmParameters.add(createHelmParam("vaultInjector.namespace", "/"));
         helmParameters.add(createHelmParamForceString("podAnnotations.prometheus\\.io/scrape", "true"));
         
+        boolean useHelmValuesForEmptyResources = false;
         if (resources != null && resources.isEmpty()) {
-            // resources: {} in values.yaml — no override needed, chart default applies as-is
-            log.info("[Resources] resources is empty in values.yaml, skipping override (chart default resources: {} will be used)");
+            // resources: {} in values.yaml — use helm.values YAML (not --set) to avoid slice parsing issue
+            useHelmValuesForEmptyResources = true;
+            log.info("[Resources] resources is empty in values.yaml, will use helm.values to send resources: {}");
         } else if (resources != null && !resources.isEmpty()) {
             String cpu = resources.get("cpu");
             String memory = resources.get("memory");
@@ -287,6 +289,9 @@ public class ArgoCdService {
         
         Map<String, Object> helm = new HashMap<>();
         helm.put("parameters", helmParameters);
+        if (useHelmValuesForEmptyResources) {
+            helm.put("values", "resources: {}");
+        }
         source.put("helm", helm);
         
         spec.put("source", source);
