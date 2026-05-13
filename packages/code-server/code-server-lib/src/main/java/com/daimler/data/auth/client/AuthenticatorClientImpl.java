@@ -458,15 +458,16 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		// request for kong create service	
 		CreateServiceRequestVO createServiceRequestVO = new CreateServiceRequestVO();
 		CreateServiceVO createServiceVO = new CreateServiceVO();
-		if(kongApiForDeploymentURL) {	
-			url = "http://" + serviceName.toLowerCase() + "-" + env;		
+			if(kongApiForDeploymentURL) {	
+			url = "http://" + serviceName.toLowerCase() + "-" + env;
+			String nsSuffix = "int".equalsIgnoreCase(env) ? "-int" : "";
 			if(cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS_AWS)){
 				if("dev".equalsIgnoreCase(codeServerEnvRef))
-					url = url + ".dev-dna-cs-apps:80";
+					url = url + ".dev-dna-cs-apps" + nsSuffix + ":80";
 				else if("staging".equalsIgnoreCase(codeServerEnvRef))
-					url = url + ".test-dna-cs-apps:80";
+					url = url + ".test-dna-cs-apps" + nsSuffix + ":80";
 				else
-					url = url + ".prod-dna-cs-apps:80";
+					url = url + ".prod-dna-cs-apps" + nsSuffix + ":80";
 			}else{	    		    
 				url = url +  ".codespaces-apps:80";
 			}
