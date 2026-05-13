@@ -1692,13 +1692,37 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 								 log.info("getById - Build/Deploy job completed for project={}, conclusion={}, resolvedStatus={}",
 										 projectName, buildDeployJob.getConclusion(), finalStatus);
 
-								 workspaceCustomRepository.updateGitRunIdStatus(projectName, finalStatus, environment);
-								 workspaceCustomRepository.updateBuildDeployAuditStatus(projectName, finalStatus, environment, gitJobRunId);
+								 // Get branch and version from build/deploy details
+								 String staleBranch = null;
+								 String staleVersion = null;
+								 if ("BUILD_REQUESTED".equalsIgnoreCase(currentStatus)) {
+									 CodeServerBuildDetails staleBuildDetails = entity.getData().getProjectDetails().getIntBuildDetails();
+									 if (!"int".equalsIgnoreCase(environment)) {
+										 staleBuildDetails = entity.getData().getProjectDetails().getProdBuildDetails();
+									 }
+									 if (staleBuildDetails != null) {
+										 staleBranch = staleBuildDetails.getLastBuildBranch();
+										 staleVersion = staleBuildDetails.getVersion();
+									 }
+								 } else {
+									 CodeServerDeploymentDetails staleDeployDetails = entity.getData().getProjectDetails().getIntDeploymentDetails();
+									 if (!"int".equalsIgnoreCase(environment)) {
+										 staleDeployDetails = entity.getData().getProjectDetails().getProdDeploymentDetails();
+									 }
+									 if (staleDeployDetails != null) {
+										 staleBranch = staleDeployDetails.getLastDeployedBranch();
+										 staleVersion = staleDeployDetails.getLastDeployedVersion();
+									 }
+								 }
 
-								 // Clear Hibernate persistence context to avoid stale cache after native updates
+								 // Reuse the existing update() method - same flow as "Update Status" callback
+								 // This handles: build details update, audit logs, image cleanup, and auto-deploy for buildAndDeploy
+								 log.info("getById - Calling update() to auto-correct stale status for project={}, existingStatus={}, finalStatus={}, env={}, branch={}, runId={}, version={}",
+										 projectName, currentStatus, finalStatus, environment, staleBranch, gitJobRunId, staleVersion);
+								 this.update(userId, entity.getId(), projectName, currentStatus, finalStatus, environment, staleBranch, gitJobRunId, staleVersion);
+
+								 // Clear Hibernate persistence context and re-fetch entity to get updated status
 								 workspaceCustomRepository.clearPersistenceContext();
-
-								 // Re-fetch entity to get updated status
 								 if (technicalId.equalsIgnoreCase(userId)) {
 									 entity = workspaceCustomRepository.findByWorkspaceId(id);
 								 } else {
