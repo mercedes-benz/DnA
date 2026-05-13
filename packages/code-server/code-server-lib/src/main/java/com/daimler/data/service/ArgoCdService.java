@@ -220,7 +220,7 @@ public class ArgoCdService {
         String vaultInjectorRootPath = "/" + projectName + "/" + targetEnv + "/api";
         String vaultInjectorRootPathNonApi = "/" + projectName + "/" + targetEnv + "/";
         
-        List<Map<String, String>> helmParameters = new ArrayList<>();
+        List<Map<String, Object>> helmParameters = new ArrayList<>();
         
         helmParameters.add(createHelmParam("namespace", namespace));
         helmParameters.add(createHelmParam("fullnameOverride", appName));
@@ -234,6 +234,7 @@ public class ArgoCdService {
         helmParameters.add(createHelmParam("vaultInjector.root_path_non_api", vaultInjectorRootPathNonApi));
         helmParameters.add(createHelmParam("vaultInjector.authpath", vaultAuthPath));
         helmParameters.add(createHelmParam("vaultInjector.namespace", "/"));
+        helmParameters.add(createHelmParamForceString("podAnnotations.prometheus\\.io/scrape", "true"));
         
         if (resources != null && resources.isEmpty()) {
             // resources: {} in values.yaml — send explicit empty override
@@ -324,10 +325,18 @@ public class ArgoCdService {
         return finalJson;
     }
     
-    private Map<String, String> createHelmParam(String name, String value) {
-        Map<String, String> param = new HashMap<>();
+    private Map<String, Object> createHelmParam(String name, String value) {
+        Map<String, Object> param = new HashMap<>();
         param.put("name", name);
         param.put("value", value);
+        return param;
+    }
+
+    private Map<String, Object> createHelmParamForceString(String name, String value) {
+        Map<String, Object> param = new HashMap<>();
+        param.put("name", name);
+        param.put("value", value);
+        param.put("forceString", true);
         return param;
     }
     
