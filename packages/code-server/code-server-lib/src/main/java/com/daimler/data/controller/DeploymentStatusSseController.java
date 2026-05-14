@@ -249,45 +249,23 @@ public class DeploymentStatusSseController {
             return dbStatus;
         }
         
-        // When DB says DEPLOYING, check ArgoCD health + last sync phase for real-time status
-        if ("DEPLOYING".equalsIgnoreCase(dbStatus)) {
-            if ("Degraded".equalsIgnoreCase(argoHealth)) {
-                return "FAILED";
-            }
-            if ("Healthy".equalsIgnoreCase(argoHealth)) {
-                if ("Failed".equalsIgnoreCase(lastSyncPhase) || "Error".equalsIgnoreCase(lastSyncPhase)) {
-                    return "FAILED";
-                }
-                if ("Succeeded".equalsIgnoreCase(lastSyncPhase)) {
-                    return "DEPLOYED";
-                }
-            }
+        // DEPLOYED: only when BOTH health=Healthy AND lastSyncPhase=Succeeded
+        if ("Healthy".equalsIgnoreCase(argoHealth) && "Succeeded".equalsIgnoreCase(lastSyncPhase)) {
+            return "DEPLOYED";
+        }
+        
+        // DEPLOYING: sync is still running OR health is progressing (actively working)
+        if ("Running".equalsIgnoreCase(lastSyncPhase) || "Progressing".equalsIgnoreCase(argoHealth)) {
             return "DEPLOYING";
         }
         
-        if ("Healthy".equalsIgnoreCase(argoHealth)) {
-            if ("Failed".equalsIgnoreCase(lastSyncPhase) || "Error".equalsIgnoreCase(lastSyncPhase)) {
-                return "FAILED";
-            }
-            // Only DEPLOYED when both Healthy AND last sync Succeeded
-            if ("Succeeded".equalsIgnoreCase(lastSyncPhase)) {
-                return "DEPLOYED";
-            }
-            // Healthy but sync not yet succeeded — still deploying
-            return "DEPLOYING";
+        // DEPLOYING: no sync phase yet (empty/null) means sync hasn't started
+        if (lastSyncPhase == null || lastSyncPhase.isEmpty()) {
+            return dbStatus;
         }
         
-        if ("Degraded".equalsIgnoreCase(argoHealth)) {
-            return "FAILED";
-        }
-        
-        // Missing or Progressing with a failed sync — mark as FAILED
-        if ("Failed".equalsIgnoreCase(lastSyncPhase) || "Error".equalsIgnoreCase(lastSyncPhase)) {
-            return "FAILED";
-        }
-        
-        // Missing, Progressing, Unknown — still deploying
-        return "DEPLOYING";
+        // Everything else = FAILED
+        return "FAILED";
     }
 
     @GetMapping(value = "/workspace/deployment/podlogs/stream/{projectName}/{environment}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
