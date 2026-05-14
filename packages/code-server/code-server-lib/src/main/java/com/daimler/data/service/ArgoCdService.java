@@ -236,10 +236,11 @@ public class ArgoCdService {
         helmParameters.add(createHelmParam("vaultInjector.namespace", "/"));
         helmParameters.add(createHelmParamForceString("podAnnotations.prometheus\\.io/scrape", "true"));
         
+        boolean useHelmValuesForEmptyResources = false;
         if (resources != null && resources.isEmpty()) {
-            // resources: {} in values.yaml — send explicit empty override
-            helmParameters.add(createHelmParam("resources", "{}"));
-            log.info("[Resources] Sending -> resources: {} (explicit empty from values.yaml)");
+            // resources: {} in values.yaml — use helm.values YAML (not --set) to avoid slice parsing issue
+            useHelmValuesForEmptyResources = true;
+            log.info("[Resources] resources is empty in values.yaml, will use helm.values to send resources: {}");
         } else if (resources != null && !resources.isEmpty()) {
             String cpu = resources.get("cpu");
             String memory = resources.get("memory");
@@ -288,6 +289,9 @@ public class ArgoCdService {
         
         Map<String, Object> helm = new HashMap<>();
         helm.put("parameters", helmParameters);
+        if (useHelmValuesForEmptyResources) {
+            helm.put("values", "resources: {}\n");
+        }
         source.put("helm", helm);
         
         spec.put("source", source);
@@ -630,41 +634,28 @@ public class ArgoCdService {
             String syncStatus = rootNode.path("status").path("sync").path("status").asText("");
             String lastSyncPhase = rootNode.path("status").path("operationState").path("phase").asText("");
             log.info("ArgoCD app {} - Health: {}, Sync: {}, LastSyncPhase: {}", appName, healthStatus, syncStatus, lastSyncPhase);
-            switch (healthStatus.toLowerCase()) {
-                case "healthy":
-                    // Healthy but last sync failed means the new changes didn't apply
-                    if ("Failed".equalsIgnoreCase(lastSyncPhase) || "Error".equalsIgnoreCase(lastSyncPhase)) {
-                        log.info("Application {} is healthy but last sync {} - FAILED", appName, lastSyncPhase);
-                        return "FAILED";
-                    }
-                    // Only mark as DEPLOYED when both Healthy AND last sync Succeeded
-                    if ("Succeeded".equalsIgnoreCase(lastSyncPhase)) {
-                        log.info("Application {} is healthy and last sync succeeded - DEPLOYED", appName);
-                        return "DEPLOYED";
-                    }
-                    // Healthy but sync not yet succeeded (Running, empty, etc.) — still deploying
-                    log.info("Application {} is healthy but last sync phase is {} - DEPLOYING", appName, lastSyncPhase);
-                    return "DEPLOYING";
-                case "degraded":
-                    log.info("Application {} is degraded - FAILED", appName);
-                    return "FAILED";
-                case "progressing":
-                    log.info("Application {} is progressing - DEPLOYING", appName);
-                    return "DEPLOYING";
-                case "missing":
-                    log.info("Application {} is missing - DEPLOYING (resources not yet created)", appName);
-                    return "DEPLOYING";
-                case "suspended":
-                    log.info("Application {} is suspended - FAILED", appName);
-                    return "FAILED";
-                case "unknown":
-                    log.info("Application {} has unknown health status - DEPLOYING", appName);
-                    return "DEPLOYING";
-                default:
-                    log.info("Unexpected health status {} for application {} - DEPLOYING",
-                            healthStatus, appName);
-                    return "DEPLOYING";
+            
+            // DEPLOYED: only when BOTH health=Healthy AND lastSyncPhase=Succeeded
+            if ("Healthy".equalsIgnoreCase(healthStatus) && "Succeeded".equalsIgnoreCase(lastSyncPhase)) {
+                log.info("Application {} is healthy and last sync succeeded - DEPLOYED", appName);
+                return "DEPLOYED";
             }
+            
+            // DEPLOYING: sync is still running OR health is progressing (actively working)
+            if ("Running".equalsIgnoreCase(lastSyncPhase) || "Progressing".equalsIgnoreCase(healthStatus)) {
+                log.info("Application {} is still in progress (health={}, syncPhase={}) - DEPLOYING", appName, healthStatus, lastSyncPhase);
+                return "DEPLOYING";
+            }
+            
+            // DEPLOYING: no sync phase yet (empty/null) means sync hasn't started
+            if (lastSyncPhase == null || lastSyncPhase.isEmpty()) {
+                log.info("Application {} has no sync phase yet (health={}) - DEPLOYING", appName, healthStatus);
+                return "DEPLOYING";
+            }
+            
+            // Everything else = FAILED (health not Healthy, or sync Failed/Error, or any other non-success combination)
+            log.info("Application {} is not healthy or sync not succeeded (health={}, syncPhase={}) - FAILED", appName, healthStatus, lastSyncPhase);
+            return "FAILED";
         } catch (Exception e) {
             log.error("Failed to check ArgoCD deployment status for {}", appName, e);
             return "DEPLOYING";
