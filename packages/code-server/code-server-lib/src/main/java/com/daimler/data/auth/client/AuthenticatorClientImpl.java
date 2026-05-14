@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.nio.charset.StandardCharsets;
 
@@ -252,6 +253,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 	private static final String ATTACH_FUNCTION_PLUGIN_TO_SERVICE = "/functionPlugin";
 	private static final String ATTACH_REQUEST_TRANSFORMER_PLUGIN_TO_SERVICE = "/requestTransformerPlugin";
 	private static final String ATTACH_ONE_API_PLUGIN_TO_SERVICE = "/oneApiPlugin";
+	private static final String ATTACH_OPENTELEMETRY_PLUGIN_TO_SERVICE = "/openTelemetryPlugin";
 
 	@Override
 	public GenericMessage createService(CreateServiceRequestVO createServiceRequestVO, String cloudServiceProvider) {
@@ -1925,6 +1927,57 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		attachPluginResponse = attachPluginToService(attachOIDCPluginRequestVO,serviceName.toLowerCase()+"-"+env,cloudServiceProvider);
 		LOGGER.info("calling kong to attach oidc plugin with status {}",attachPluginResponse.getSuccess());
 	}
-	
 
+	@Override
+	public GenericMessage createOpenTelemetryPlugin(String kongServiceName, Map<String, Object> pluginConfig) {
+		GenericMessage response = new GenericMessage();
+		String status = "FAILED";
+		List<MessageDescription> warnings = new ArrayList<>();
+		List<MessageDescription> errors = new ArrayList<>();
+		try {
+			LOGGER.info("Creating OpenTelemetry plugin via Kong Admin API for service {}", kongServiceName);
+
+			// Wrap plugin config in {"data": {...}} format expected by authenticator service
+			Map<String, Object> requestBody = new java.util.HashMap<>();
+			requestBody.put("data", pluginConfig);
+
+			ObjectMapper mapper = new ObjectMapper();
+			String pluginConfigJson = mapper.writeValueAsString(requestBody);
+
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Content-Type", "application/json");
+			headers.set("apikey", apiKey);
+
+			String attachPluginUri = authenticatorBaseUri + CREATE_SERVICE + "/" + kongServiceName + ATTACH_OPENTELEMETRY_PLUGIN_TO_SERVICE;
+			HttpEntity<String> entity = new HttpEntity<>(pluginConfigJson, headers);
+
+			LOGGER.info("Calling Kong Admin API: POST {}", attachPluginUri);
+			ResponseEntity<String> attachPluginResponse = restTemplate.exchange(attachPluginUri, HttpMethod.POST, entity, String.class);
+			if (attachPluginResponse != null && attachPluginResponse.getStatusCode() != null) {
+				if (attachPluginResponse.getStatusCode().is2xxSuccessful()) {
+					status = "SUCCESS";
+					LOGGER.info("Success while creating OpenTelemetry plugin on Kong for service {}", kongServiceName);
+				} else {
+					LOGGER.info("Warnings while creating OpenTelemetry plugin for service: {}, httpstatuscode is {}",
+							kongServiceName, attachPluginResponse.getStatusCodeValue());
+					MessageDescription warning = new MessageDescription();
+					warning.setMessage("Response from kong create OpenTelemetry plugin : " + attachPluginResponse.getBody()
+							+ " Response Code is : " + attachPluginResponse.getStatusCodeValue());
+					warnings.add(warning);
+				}
+			}
+		} catch (Exception e) {
+			LOGGER.error("Error occurred while creating OpenTelemetry plugin for service: {} with exception {}",
+					kongServiceName, e.getMessage());
+			MessageDescription error = new MessageDescription();
+			error.setMessage("Error occurred while creating OpenTelemetry plugin for service: " + kongServiceName
+					+ " with exception: " + e.getMessage());
+			errors.add(error);
+		}
+		response.setSuccess(status);
+		response.setWarnings(warnings);
+		response.setErrors(errors);
+		return response;
+	}
 }

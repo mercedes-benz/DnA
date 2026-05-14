@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import classNames from 'classnames';
 import Styles from './DdxPush.scss';
 import AddUser from 'dna-container/AddUser';
@@ -711,6 +711,15 @@ const ViewDdxTablesModalContent = ({ workspaceId, workspaceName, workspaceOwner,
   const [currentStep, setCurrentStep] = useState(isDdxAlreadyPushed ? 'step6' : 'step1');
   const [hasSubmittedOnce, setHasSubmittedOnce] = useState(false);
   const [submittedProductId, setSubmittedProductId] = useState(existingProductId || null);
+  const [submittedDofUrl, setSubmittedDofUrl] = useState('');
+  const submittedProductIdRef = useRef(existingProductId || null);
+
+  useEffect(() => {
+    if (existingProductId) {
+      submittedProductIdRef.current = existingProductId;
+      setSubmittedProductId(existingProductId);
+    }
+  }, [existingProductId]);
 
   useEffect(() => {
     SelectBox.defaultSetup();    
@@ -850,6 +859,10 @@ const ViewDdxTablesModalContent = ({ workspaceId, workspaceName, workspaceOwner,
 
     const securityLevel = formData.securityLevel === 'Secret' ? 'Confidential' : formData.securityLevel;
 
+    // const cdcBaseUrl = (Envs.CDC_SIGNIN_URL || '').replace(/\/$/, '');
+    // const cdcDatabaseLink = `${cdcBaseUrl}/database/${workspaceName}.${lakehouseName}`;
+    // console.log('cdcDatabaseLink:', cdcDatabaseLink);
+
     const payload = {
       dataProductName: formData.dataProductName || '',
       dataProductDescription: formData.dataProductDescription || '',
@@ -905,17 +918,25 @@ const ViewDdxTablesModalContent = ({ workspaceId, workspaceName, workspaceOwner,
         },
       ],
     };
+    //remove for testing
+    console.log('Submit payload:', JSON.stringify(payload, null, 2));
 
     ProgressIndicator.show();
     fabricApi.publishDdxDataProduct(workspaceId, lakehouseId, payload)
       .then((response) => {
         ProgressIndicator.hide();
-        const dataProductId = response?.data?.dataProductId;
+        const responseData = response?.data?.data || {};
+        const dataProductId = responseData?.dataProductId;
+        const dofUrlFromResponse = responseData?.dofUrl;
         // const baseUrl = (Envs.DDX_DOF_BASE_URL || '').replace(/\/$/, '');
         // const dofUrl = `${baseUrl}/myDataProducts/onboardingForm/${dataProductId}`;
         Notification.show('Data product onboarded successfully.', 'success');
         setHasSubmittedOnce(true);
+        if (dofUrlFromResponse) {
+          setSubmittedDofUrl(dofUrlFromResponse);
+        }
         if (dataProductId) {
+          submittedProductIdRef.current = dataProductId;
           setSubmittedProductId(dataProductId);
         }
         setCurrentStep('step6');
@@ -1032,19 +1053,24 @@ const ViewDdxTablesModalContent = ({ workspaceId, workspaceName, workspaceOwner,
 
       {currentStep === 'step6' && (() => {
         const baseUrl = (Envs.DDX_DOF_BASE_URL || '').replace(/\/$/, '');
-        const dofUrl = `${baseUrl}/myDataProducts/onboardingForm/${submittedProductId}`;
+        const resolvedProductId = submittedProductIdRef.current || submittedProductId || existingProductId;
+        const dofUrl = submittedDofUrl || (resolvedProductId ? `${baseUrl}/myDataProducts/onboardingForm/${resolvedProductId}` : '');
         return (
           <div className={Styles.stepForm}>
             <div className={Styles.successMessage}>
               <p>
                 The data product has been onboarded in the DDX portal and is currently saved in Draft status. Kindly click{' '}
-                <a href={dofUrl} target="_blank" rel="noopener noreferrer">here</a>{' '}
+                {dofUrl ? (
+                  <a href={dofUrl} target="_blank" rel="noopener noreferrer">here</a>
+                ) : (
+                  <strong>here</strong>
+                )}{' '}
                 to review and complete the onboarding process by following the steps outlined below:
               </p>
               <ol>
                 <li>Navigate through each step in the DDX portal..</li>
-                <li>Upon reaching Step 7, click the <strong>Get Objects</strong> button and then proceed by clicking Next.</li>
-                <li>In Step 8, click the <strong>Get Objects</strong> button again.</li>
+                <li>Upon reaching <strong>Step 7</strong>, click the <strong>Get Objects</strong> button and then proceed by clicking Next.</li>
+                <li>In <strong>Step 8</strong>, click the <strong>Get Objects</strong> button again.</li>
                 <li>In the final step, review and verify all the details, agree to the Terms of Use, and complete the onboarding process.</li>                
               </ol>
             </div>
