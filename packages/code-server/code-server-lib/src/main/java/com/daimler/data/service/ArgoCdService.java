@@ -652,6 +652,10 @@ public class ArgoCdService {
                     log.info("Application {} is progressing - DEPLOYING", appName);
                     return "DEPLOYING";
                 case "missing":
+                    if ("Failed".equalsIgnoreCase(lastSyncPhase) || "Error".equalsIgnoreCase(lastSyncPhase)) {
+                        log.info("Application {} is missing and last sync {} - FAILED", appName, lastSyncPhase);
+                        return "FAILED";
+                    }
                     log.info("Application {} is missing - DEPLOYING (resources not yet created)", appName);
                     return "DEPLOYING";
                 case "suspended":

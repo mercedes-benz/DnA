@@ -281,7 +281,12 @@ public class DeploymentStatusSseController {
             return "FAILED";
         }
         
-        // Missing, Progressing, Suspended, Unknown — still deploying
+        // Missing or Progressing with a failed sync — mark as FAILED
+        if ("Failed".equalsIgnoreCase(lastSyncPhase) || "Error".equalsIgnoreCase(lastSyncPhase)) {
+            return "FAILED";
+        }
+        
+        // Missing, Progressing, Unknown — still deploying
         return "DEPLOYING";
     }
 
