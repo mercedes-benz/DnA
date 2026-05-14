@@ -79,4 +79,6 @@ public interface KongClient {
 
 	public  GenericMessage attachOneApiPluginToService(AttachOneApiPluginVO attachOneApiPluginVO, String serviceName);
 
+	public  GenericMessage attachOpenTelemetryPluginToService(String pluginConfigJson, String serviceName);
+
 }
