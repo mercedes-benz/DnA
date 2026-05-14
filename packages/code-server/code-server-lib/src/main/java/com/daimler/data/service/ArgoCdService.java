@@ -290,7 +290,7 @@ public class ArgoCdService {
         Map<String, Object> helm = new HashMap<>();
         helm.put("parameters", helmParameters);
         if (useHelmValuesForEmptyResources) {
-            helm.put("values", "resources: {}");
+            helm.put("values", "resources: {}\n");
         }
         source.put("helm", helm);
         
