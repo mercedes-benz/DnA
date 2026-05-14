@@ -60,8 +60,23 @@ public class DeploymentStatusMonitorJob {
                     continue;
                 }
 
+                // Recovery: if top-level lastBuildOrDeployedStatus is RESTART_REQUESTED but
+                // per-environment lastDeploymentStatus was never updated, force-check it.
+                String topLevelStatus = workspace.getData().getProjectDetails().getLastBuildOrDeployedStatus();
+                String topLevelEnv = workspace.getData().getProjectDetails().getLastBuildOrDeployedEnv();
+
                 CodeServerDeploymentDetails intDeployment = workspace.getData().getProjectDetails().getIntDeploymentDetails();
-                if (intDeployment != null && shouldCheckDeployment(intDeployment.getLastDeploymentStatus())) {
+                boolean intNeedsCheck = intDeployment != null && shouldCheckDeployment(intDeployment.getLastDeploymentStatus());
+                // Recovery for stuck restarts: top-level says RESTART_REQUESTED for this env but per-env field was never updated
+                if (!intNeedsCheck && intDeployment != null 
+                        && "RESTART_REQUESTED".equalsIgnoreCase(topLevelStatus) 
+                        && "int".equalsIgnoreCase(topLevelEnv)) {
+                    log.info("Recovery: workspace {} has top-level RESTART_REQUESTED for int but per-env status is {}",
+                            projectName, intDeployment.getLastDeploymentStatus());
+                    intDeployment.setLastDeploymentStatus("RESTART_REQUESTED");
+                    intNeedsCheck = true;
+                }
+                if (intNeedsCheck) {
                     checkedCount++;
                     if (checkAndUpdateDeployment(argoToken, workspace, intDeployment, projectName, "int")) {
                         updatedCount++;
@@ -73,7 +88,16 @@ public class DeploymentStatusMonitorJob {
                 }
 
                 CodeServerDeploymentDetails prodDeployment = workspace.getData().getProjectDetails().getProdDeploymentDetails();
-                if (prodDeployment != null && shouldCheckDeployment(prodDeployment.getLastDeploymentStatus())) {
+                boolean prodNeedsCheck = prodDeployment != null && shouldCheckDeployment(prodDeployment.getLastDeploymentStatus());
+                if (!prodNeedsCheck && prodDeployment != null 
+                        && "RESTART_REQUESTED".equalsIgnoreCase(topLevelStatus) 
+                        && "prod".equalsIgnoreCase(topLevelEnv)) {
+                    log.info("Recovery: workspace {} has top-level RESTART_REQUESTED for prod but per-env status is {}",
+                            projectName, prodDeployment.getLastDeploymentStatus());
+                    prodDeployment.setLastDeploymentStatus("RESTART_REQUESTED");
+                    prodNeedsCheck = true;
+                }
+                if (prodNeedsCheck) {
                     checkedCount++;
                     if (checkAndUpdateDeployment(argoToken, workspace, prodDeployment, projectName, "prod")) {
                         updatedCount++;
