@@ -1773,7 +1773,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 											 this.deployWorkspace(userId, entity.getId(), environment, branch, isPrivateRecipe, version, "buildAndDeploy", keepBuildImage);
 										 }
 
-									 } else if ("DEPLOYED".equalsIgnoreCase(finalStatus) || "DEPLOY_FAILED".equalsIgnoreCase(finalStatus)) {
+									 } else if ("DEPLOYED".equalsIgnoreCase(finalStatus) || "DEPLOYMENT_FAILED".equalsIgnoreCase(finalStatus)) {
 										 // Update deployment details
 										 deploymentDetails.setLastDeploymentStatus(finalStatus);
 										 deploymentDetails.setGitjobRunID(gitJobRunId);
@@ -5698,7 +5698,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 
 					if (minutesSinceRequest >= staleThresholdMinutes) {
 						String failedStatus = "BUILD_REQUESTED".equalsIgnoreCase(currentStatus)
-							? "BUILD_FAILED" : "DEPLOY_FAILED";
+							? "BUILD_FAILED" : "DEPLOYMENT_FAILED";
 
 						log.warn("GitJobRunId not generated for project {} after {} minutes (threshold: {}). Marking as {}.",
 							projectName, minutesSinceRequest, staleThresholdMinutes, failedStatus);
@@ -5733,7 +5733,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 			GitHubWorkflowJobsResponseDto.Job buildDeployJob = gitClient.getBuildDeployJob(dto.getGitjobRunId(), useGHE);
 			if (buildDeployJob == null) {
 				String failedStatus = "BUILD_REQUESTED".equalsIgnoreCase(currentStatus)
-					? "BUILD_FAILED" : "DEPLOY_FAILED";
+					? "BUILD_FAILED" : "DEPLOYMENT_FAILED";
 
 				log.warn("Build/Deploy job not found for project={}, runId={}. Marking as {}.",
 					projectName, dto.getGitjobRunId(), failedStatus);
@@ -5812,7 +5812,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 		return Set.of(
 			"DEPLOYED",
 			"BUILD_SUCCESS",
-			"DEPLOY_FAILED",
+			"DEPLOYMENT_FAILED",
 			"BUILD_FAILED"
 		).contains(status);
 	}
@@ -5833,7 +5833,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 		}
 
 		if ("DEPLOY_REQUESTED".equalsIgnoreCase(requestedStatus)) {
-			return success ? "DEPLOYED" : "DEPLOY_FAILED";
+			return success ? "DEPLOYED" : "DEPLOYMENT_FAILED";
 		}
 
 		return requestedStatus;
