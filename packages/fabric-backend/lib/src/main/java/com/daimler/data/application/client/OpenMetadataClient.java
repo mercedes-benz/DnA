@@ -226,7 +226,6 @@ public class OpenMetadataClient {
         return createdDatabases;
     }
 
-    // Add database with lakehouse-specific naming (workspacename_lakehousename)
     public Database addDatabaseForLakehouse(String serviceFQN, String workspaceName, 
             FabricLakehouseVO lakehouse, MandatoryFieldsVO fields, 
             List<EntityReference> owners, String description) {
@@ -237,7 +236,6 @@ public class OpenMetadataClient {
                 description + " - Lakehouse: " + lakehouse.getName());
     }
 
-    // Add multiple lakehouse databases to existing service
     public List<Database> addLakehouseDatabasestoExistingService(String serviceFQN, String workspaceName,
             List<FabricLakehouseVO> lakehouses, MandatoryFieldsVO fields,
             List<EntityReference> owners, String description) {

@@ -167,9 +167,6 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
 
             // Save metadata to repository using lakehouse ID as PK
             saveCatalogMetadata(request, catalogMetadataDetails, lakehouseId);
-
-            // Save one metadata row per lakehouse (id = lakehouseId)
-            // saveCatalogMetadataPerLakehouse(request, catalogMetadataDetails, existingFabricWorkspace);
             
             // Prepare success response
             prepareSuccessResponse(response, catalogMetadataDetails);
@@ -399,10 +396,8 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
             FabricWorkspaceVO existingFabricWorkspace, 
             List<EntityReference> ownerReferences,
             FabricCatalogMetadataDetailsVO catalogMetadataDetails) {
-        
         log.info("Adding new databases to existing service for workspace: {}", 
                 existingFabricWorkspace.getName());
-        
         DatabaseService databaseService;
         try {
             databaseService = openMetadataClient.getDatabaseService(existingFabricWorkspace.getName());
@@ -411,7 +406,6 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
             processCatalogMetadata(request, existingFabricWorkspace, ownerReferences, catalogMetadataDetails);
             return;
         }
-        
         log.info("Found existing service: {} with FQN: {}", 
                 databaseService.getName(), databaseService.getFullyQualifiedName());
         
@@ -421,7 +415,6 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
 
             for (FabricLakehouseVO lakehouse : lakehouses) {
                 String dbName = existingFabricWorkspace.getName() + "_" + lakehouse.getName();
-
                 Database database;
                 try {
                     database = openMetadataClient.getDatabase(existingFabricWorkspace.getName(), dbName);
@@ -438,28 +431,22 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
                             "Lakehouse database for workspace: " + existingFabricWorkspace.getName());
                     createdDatabaseCount++;
                 }
-
                 log.info("Created database {} for lakehouse {}, now creating schemas/tables", database.getName(),
                         lakehouse.getName());
-
                 if (request.getMetadata().getDatabases() == null) {
                     continue;
                 }
-
                 for (DatabaseMetadataVO dbMetadata : request.getMetadata().getDatabases()) {
                     if (dbMetadata.getSchemas() == null) {
                         continue;
                     }
-
                     for (SchemaMetadataVO schemaMetadata : dbMetadata.getSchemas()) {
                         DatabaseSchema schema = openMetadataClient.createSchema(
                                 schemaMetadata.getSchemaName(),
                                 database.getFullyQualifiedName());
-
                         if (schemaMetadata.getTables() == null) {
                             continue;
                         }
-
                         for (TableMetadataVO tableMetadata : schemaMetadata.getTables()) {
                             List<Column> columns = (tableMetadata.getColumns() == null ? Collections.<ColumnMetadataVO>emptyList() : tableMetadata.getColumns()).stream()
                                     .map(col -> openMetadataClient.buildColumn(
@@ -492,15 +479,12 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
         try {
             Optional<FabricCatalogMetadataNsql> existingEntityOpt = 
                 catalogCustomRepo.findByServiceName(request.getMetadata().getServiceName());
-            
             FabricCatalogMetadataDetailsVO persistenceVO = new FabricCatalogMetadataDetailsVO();
-            
             if (existingEntityOpt.isPresent()) {
                 log.info("Merging catalog metadata with existing record for service: {}", 
                     request.getMetadata().getServiceName());
                 FabricCatalogMetadataDetailsVO existingVO = catalogAssembler.toVo(existingEntityOpt.get());
                 persistenceVO.setId(existingVO.getId()); // Keep the original ID
-                
                 List<CdcTableDetailVO> mergedCdcTables = mergeCdcTableDetails(
                     existingVO.getPublishedCdcTables(), 
                     catalogMetadataDetails.getPublishedCdcTables()
@@ -520,7 +504,6 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
             persistenceVO.setMetadata(request.getMetadata());
             persistenceVO.setOwners(request.getOwners());
             persistenceVO.setMandatoryFields(request.getMandatoryFields());
-            
             FabricCatalogMetadataNsql entity = catalogAssembler.toEntity(persistenceVO);
             entity.setId(persistenceVO.getId());
             catalogRepo.save(entity);
@@ -539,14 +522,11 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
         if (newDetails == null || newDetails.isEmpty()) {
             return existing;
         }
-        
         Map<String, CdcTableDetailVO> existingMap = existing.stream()
             .collect(Collectors.toMap(CdcTableDetailVO::getLakeHouseId, detail -> detail, (a, b) -> b));
-        
         for (CdcTableDetailVO newDetail : newDetails) {
             existingMap.put(newDetail.getLakeHouseId(), newDetail);
         }
-        
         return new ArrayList<>(existingMap.values());
     }
 
@@ -752,21 +732,17 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
                 if (lakehouseId == null || lakehouseId.isEmpty()) {
                     continue;
                 }
-
                 log.info("Fetching lakehouse tables for workspace: {} and lakehouse: {}", workspaceId, lakehouseId);
-
                 var fabricTablesResponse = cdcPushServiceClient.getLakehouseTables(workspaceId, lakehouseId);
                 if (fabricTablesResponse == null || fabricTablesResponse.getData() == null ||
                         fabricTablesResponse.getData().getTables() == null) {
                     continue;
                 }
-
                 for (var fabricTable : fabricTablesResponse.getData().getTables()) {
                     String tableName = fabricTable.getTableName();
                     if (tableName == null || tableName.trim().isEmpty()) {
                         continue;
                     }
-
                     publishedLakehouseTables.add(tableName);
 
                     LakehouseTableDetailVO tableDetail = publishedLakehouseTableDetailsByName.computeIfAbsent(tableName, name -> {
@@ -801,7 +777,6 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
                         } catch (Exception e) {
                             log.error("Failed to fetch columns for table {}: {}", tableName, e.getMessage());
                         }
-
                         tableDetail.setColumns(columnDetails);
                     }
                 }
@@ -831,7 +806,6 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
             PublishCatalogRequestVO request) {
         List<String> fallbackTables = new ArrayList<>();
         List<LakehouseTableDetailVO> fallbackTableDetails = new ArrayList<>();
-
         if (request != null && request.getMetadata() != null && request.getMetadata().getDatabases() != null) {
             for (DatabaseMetadataVO db : request.getMetadata().getDatabases()) {
                 if (db.getSchemas() == null) {
@@ -864,14 +838,12 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
                                 columnDetails.add(columnDetail);
                             }
                         }
-
                         tableDetail.setColumns(columnDetails);
                         fallbackTableDetails.add(tableDetail);
                     }
                 }
             }
         }
-
         catalogMetadataDetails.setPublishedLakehouseTables(fallbackTables);
         catalogMetadataDetails.setPublishedLakehouseTableDetails(fallbackTableDetails);
     }
