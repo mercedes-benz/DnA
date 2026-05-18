@@ -283,8 +283,6 @@ public class FabricCatalogMetadataAssembler implements GenericAssembler<FabricCa
             vo.setLakehouseName(detail.getLakehouseName());
             vo.setLakeHouseId(detail.getLakeHouseId());
             vo.setIsLakeHousesPublishedToCdc(detail.getIsLakeHousesPublishedToCdc());
-            vo.setProductName(detail.getProductName());
-            vo.setProductId(detail.getProductId());
             vo.setCreatedOn(detail.getCreatedOn());
             vo.setModifiedOn(detail.getModifiedOn());
             if (detail.getCreatedBy() != null) {
@@ -302,8 +300,6 @@ public class FabricCatalogMetadataAssembler implements GenericAssembler<FabricCa
             detail.setLakehouseName(vo.getLakehouseName());
             detail.setLakeHouseId(vo.getLakeHouseId());
             detail.setIsLakeHousesPublishedToCdc(vo.isIsLakeHousesPublishedToCdc());
-            detail.setProductName(vo.getProductName());
-            detail.setProductId(vo.getProductId());
             detail.setCreatedOn(vo.getCreatedOn());
             detail.setModifiedOn(vo.getModifiedOn());
             if (vo.getCreatedBy() != null) {

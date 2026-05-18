@@ -107,10 +107,19 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
         }
 
-        FabricCatalogMetadataNsql existingCatalog = catalogCustomRepo.findByServiceName(existingFabricWorkspace.getName()).orElse(null);
-        if(existingCatalog != null && existingCatalog.getData() != null && existingCatalog.getData().getMetadata().getServiceName() !=null){
-             log.error("Catalog already exists for name {}", existingCatalog.getData().getMetadata().getServiceName());
-            return new ResponseEntity<>(null, HttpStatus.CONFLICT);
+        boolean hasExistingPublish = false;
+        if (existingFabricWorkspace.getCdcPublishedLakeHouseDetails() != null) {
+            hasExistingPublish = Boolean.TRUE.equals(
+                    existingFabricWorkspace.getCdcPublishedLakeHouseDetails().isIsLakeHousesPublishedToCdc());
+            log.info("Workspace has existing published lakehouse details: {}", hasExistingPublish);
+        }
+        
+        if (!hasExistingPublish) {
+            FabricCatalogMetadataNsql existingCatalog = catalogCustomRepo.findByServiceName(existingFabricWorkspace.getName()).orElse(null);
+            if(existingCatalog != null && existingCatalog.getData() != null && existingCatalog.getData().getMetadata().getServiceName() !=null){
+                 log.error("Catalog already exists for name {}", existingCatalog.getData().getMetadata().getServiceName());
+                return new ResponseEntity<>(null, HttpStatus.CONFLICT);
+            }
         }
         CreatedByVO requestUser = this.userStore.getVO();
         String creatorId = existingFabricWorkspace.getCreatedBy().getId();
@@ -126,7 +135,7 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
         try {
 
             openMetadataClient.getUserByFqn(requestUser.getId());
-            responseVO = service.publishCatalogMetaData(publishCatalogRequest, existingFabricWorkspace);
+            responseVO = service.publishCatalogMetaData(publishCatalogRequest, existingFabricWorkspace, hasExistingPublish);
             GenericMessage responseMessage = responseVO.getResponses();
             if (("SUCCESS").equalsIgnoreCase(responseMessage.getSuccess())) {
                 return new ResponseEntity<>(responseVO, HttpStatus.OK);
@@ -151,13 +160,13 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
             GenericMessage failedResponse = new GenericMessage();
 			List<MessageDescription> messages = new ArrayList<>();
 			MessageDescription message = new MessageDescription();
-			message.setMessage("Failed to publish fabric workspace catalog due to internal error");
+            message.setMessage("Failed to publish fabric workspace catalog due to internal error: " + e.getMessage());
 			messages.add(message);
 			failedResponse.addErrors(message);
 			failedResponse.setSuccess("FAILED");
             responseVO.setData(null);
 			responseVO.setResponses(failedResponse);
-			log.error("Exception occurred:{} while publishing fabric workspace catalog...", e.getMessage());
+            log.error("Exception occurred while publishing fabric workspace catalog", e);
 			return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

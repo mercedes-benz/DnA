@@ -22,8 +22,6 @@ public class CdcTableDetail implements Serializable {
     private String lakehouseName;
     private String lakeHouseId;
     private Boolean isLakeHousesPublishedToCdc;
-    private String productName;
-    private String productId;
     private UserDetails createdBy;
     private Date createdOn;
     private Date modifiedOn;

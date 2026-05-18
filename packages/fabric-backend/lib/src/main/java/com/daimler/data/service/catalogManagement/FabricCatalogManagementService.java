@@ -21,7 +21,7 @@ import com.daimler.data.service.common.CommonService;
 
 public interface FabricCatalogManagementService extends CommonService<FabricCatalogMetadataDetailsVO, FabricCatalogMetadataNsql, String> {
 
-	PublishCatalogResponseVO publishCatalogMetaData(PublishCatalogRequestVO request, FabricWorkspaceVO existingFabricWorkspace);
+	PublishCatalogResponseVO publishCatalogMetaData(PublishCatalogRequestVO request, FabricWorkspaceVO existingFabricWorkspace, boolean hasExistingPublish);
 	PublishCatalogResponseVO getCatalogMetadata(String serviceName);
 	PublishCatalogResponseVO updateCatalogMetaData(PublishCatalogRequestVO request, FabricWorkspaceVO existingFabricWorkspace);
 	LakehouseObjectsResponseVO getLakehouseObjects(String workspaceId, String lakehouseId, String schemaName);
