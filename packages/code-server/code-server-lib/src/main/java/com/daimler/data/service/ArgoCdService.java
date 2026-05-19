@@ -236,33 +236,32 @@ public class ArgoCdService {
         helmParameters.add(createHelmParam("vaultInjector.namespace", "/"));
         helmParameters.add(createHelmParamForceString("podAnnotations.prometheus\\.io/scrape", "true"));
         
-        boolean useHelmValuesForEmptyResources = false;
         if (resources != null && resources.isEmpty()) {
-            // resources: {} in values.yaml — use helm.values YAML (not --set) to avoid slice parsing issue
-            useHelmValuesForEmptyResources = true;
-            log.info("[Resources] resources is empty in values.yaml, will use helm.values to send resources: {}");
+            helmParameters.add(createHelmParam("resources.requests.cpu", "200m"));
+            helmParameters.add(createHelmParam("resources.requests.memory", "256Mi"));
+            helmParameters.add(createHelmParam("resources.limits.memory", "1Gi"));
+            log.info("[Resources] Empty resources in values.yaml, sending defaults");
         } else if (resources != null && !resources.isEmpty()) {
             String cpu = resources.get("cpu");
             String memory = resources.get("memory");
             if (cpu != null) {
                 helmParameters.add(createHelmParam("resources.requests.cpu", cpu + "m"));
-                log.info("[Resources] Sending -> resources.requests.cpu: {}", cpu + "m");
             }
             if (memory != null) {
                 helmParameters.add(createHelmParam("resources.requests.memory", memory + "Mi"));
                 helmParameters.add(createHelmParam("resources.limits.memory", memory + "Mi"));
-                log.info("[Resources] Sending -> resources.requests.memory: {}, resources.limits.memory: {}", memory + "Mi", memory + "Mi");
             }
-            // Explicitly remove limits.cpu by setting to "null" string
-            helmParameters.add(createHelmParam("resources.limits.cpu", "null"));
-            log.info("[Resources] Sending -> resources.limits.cpu: null (override to suppress chart default)");
-            log.info("[Resources] Final resources being sent to ArgoCD: " +
-                "requests.cpu={}, requests.memory={}, limits.memory={} (same as requests.memory), limits.cpu=null (removed)",
+            boolean hasLimitsCpu = "true".equals(resources.get("hasLimitsCpu"));
+            if (hasLimitsCpu) {
+                helmParameters.add(createHelmParam("resources.limits.cpu", "null"));
+            }
+            log.info("[Resources] Sending: requests.cpu={}, requests.memory={}, limits.memory={}, limits.cpu={}",
                 cpu != null ? cpu + "m" : "not set",
                 memory != null ? memory + "Mi" : "not set",
-                memory != null ? memory + "Mi" : "not set");
+                memory != null ? memory + "Mi" : "not set",
+                hasLimitsCpu ? "null" : "not sent");
         } else {
-            log.info("[Resources] No resource overrides to apply, chart values.yaml will be used as-is");
+            log.info("[Resources] No resource overrides, using chart defaults");
         }
         
         Map<String, Object> payload = new HashMap<>();
@@ -289,9 +288,6 @@ public class ArgoCdService {
         
         Map<String, Object> helm = new HashMap<>();
         helm.put("parameters", helmParameters);
-        if (useHelmValuesForEmptyResources) {
-            helm.put("values", "resources: {}\n");
-        }
         source.put("helm", helm);
         
         spec.put("source", source);
@@ -463,6 +459,15 @@ public class ArgoCdService {
             log.info("[Resources] Memory: raw='{}' -> converted='{}'", memoryValue, convertedMemory);
             if (convertedMemory != null) {
                 convertedResources.put("memory", convertedMemory);
+            }
+        }
+        
+        Object limitsObj = resourcesSection.get("limits");
+        if (limitsObj instanceof Map) {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> limits = (Map<String, Object>) limitsObj;
+            if (limits.containsKey("cpu")) {
+                convertedResources.put("hasLimitsCpu", "true");
             }
         }
         
