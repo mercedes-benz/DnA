@@ -31,6 +31,7 @@ import DeployModal from './deployModal/DeployModal';
 import { setRippleAnimation } from '../common/modules/uilab/js/src/util';
 import ConfirmModal from 'dna-container/ConfirmModal';
 import BuildModal from './buildModal/buildModal';
+import { useDeploymentStatus, createDeployHandlers } from '../hooks/useDeploymentStatus';
 
 // export interface ICodeSpaceProps {
 //   user: IUserInfo;
@@ -166,6 +167,10 @@ const CodeSpace = (props) => {
   const livelinessIntervalRef = React.useRef();
   const stagingWrapperRef = useRef(null);
   const prodWrapperRef = useRef(null);
+
+  const { startListening } = useDeploymentStatus();
+  const refreshCodeSpace = (csId, data) => setCodeSpaceData({ ...data, running: !!data.intiatedOn });
+  const deployHandlers = createDeployHandlers(codeSpaceData?.id, refreshCodeSpace);
 
   // const [branchValue, setBranchValue] = useState('main');
   // const [deployEnvironment, setDeployEnvironment] = useState('staging');
@@ -1223,6 +1228,10 @@ const CodeSpace = (props) => {
           startDeployLivelinessCheck={enableDeployLivelinessCheck}
           setCodeDeploying={setCodeDeploying}
           setIsApiCallTakeTime={setIsApiCallTakeTime}
+          startDeploymentStatusListener={startListening}
+          onDeploymentStatusUpdate={() => deployHandlers.onStatusUpdate()}
+          onDeploymentComplete={(data) => deployHandlers.onComplete(data)}
+          onDeploymentSSEError={() => deployHandlers.onError()}
         />
       )}
 
@@ -1235,6 +1244,10 @@ const CodeSpace = (props) => {
           setCodeDeploying={setCodeDeploying}
           setCodeBuilding={setCodeBuilding}
           setIsApiCallTakeTime={setIsApiCallTakeTime}
+          startDeploymentStatusListener={startListening}
+          onDeploymentStatusUpdate={() => deployHandlers.onStatusUpdate()}
+          onDeploymentComplete={(data) => deployHandlers.onComplete(data)}
+          onDeploymentSSEError={() => deployHandlers.onError()}
         />
       )}
 

@@ -29,7 +29,7 @@ import AddCodespaceGroupModal from './addCodespaceGroupModal/AddCodespaceGroupMo
 import CodeSpaceGroupCard from './codeSpaceGroupCard/CodeSpaceGroupCard';
 import Spinner from './spinner/Spinner';
 import { SESSION_STORAGE_KEYS } from '../Utility/constants';
-import { useDeploymentStatus } from '../hooks/useDeploymentStatus';
+import { useDeploymentStatus, createDeployHandlers } from '../hooks/useDeploymentStatus';
 
 // export interface IAllCodeSpacesProps {
 //   user: IUserInfo;
@@ -73,44 +73,7 @@ const AllCodeSpaces = (props) => {
 
     const { startListening } = useDeploymentStatus();
 
-    const handleDeploymentStatusUpdate = (codeSpaceId, statusData) => {
-        console.log('Deployment status update for', codeSpaceId, statusData);
-        
-        CodeSpaceApiClient.getWorkspaceById(codeSpaceId)
-            .then((res) => {
-                if (res.data) {
-                    onRefreshSingleCodeSpace(codeSpaceId, res.data);
-                }
-            })
-            .catch((err) => {
-                console.error('Error refreshing codespace:', err);
-            });
-    };
-
-    const handleDeploymentComplete = (codeSpaceId, statusData) => {
-        console.log('Deployment complete for', codeSpaceId, statusData);
-        
-        if (statusData.currentStatus === 'DEPLOYED') {
-            Notification.show(`Deployment completed successfully for ${statusData.projectName}`);
-        } else if (statusData.currentStatus === 'FAILED' || statusData.currentStatus === 'ERROR') {
-            Notification.show(`Deployment failed for ${statusData.projectName}`, 'alert');
-        }
-        
-        CodeSpaceApiClient.getWorkspaceById(codeSpaceId)
-            .then((res) => {
-                if (res.data) {
-                    onRefreshSingleCodeSpace(codeSpaceId, res.data);
-                }
-            })
-            .catch((err) => {
-                console.error('Error refreshing codespace:', err);
-            });
-    };
-
-    const handleDeploymentSSEError = (codeSpaceId, error) => {
-        console.error('SSE connection error for', codeSpaceId, error);
-        Notification.show('Real-time deployment updates disconnected. Please refresh manually.', 'alert');
-    };
+    const getDeployHandlers = (codeSpaceId) => createDeployHandlers(codeSpaceId, onRefreshSingleCodeSpace);
 
     const getCodeSpacesData = () => {
         setLoading(true);
@@ -1192,9 +1155,9 @@ const AllCodeSpaces = (props) => {
                     setCodeDeploying={() => { getCodeSpacesData(); getCodeSpaceGroupsData();}}
                     setIsApiCallTakeTime={setIsApiCallTakeTime}
                     startDeploymentStatusListener={startListening}
-                    onDeploymentStatusUpdate={(data) => handleDeploymentStatusUpdate(onDeployCodeSpace?.id, data)}
-                    onDeploymentComplete={(data) => handleDeploymentComplete(onDeployCodeSpace?.id, data)}
-                    onDeploymentSSEError={(error) => handleDeploymentSSEError(onDeployCodeSpace?.id, error)}
+                    onDeploymentStatusUpdate={() => getDeployHandlers(onDeployCodeSpace?.id).onStatusUpdate()}
+                    onDeploymentComplete={(data) => getDeployHandlers(onDeployCodeSpace?.id).onComplete(data)}
+                    onDeploymentSSEError={() => getDeployHandlers(onDeployCodeSpace?.id).onError()}
                 />
             )}
             {showBuildCodeSpaceModal && (
@@ -1221,9 +1184,9 @@ const AllCodeSpaces = (props) => {
                     setCodeBuilding={() => { getCodeSpacesData(); getCodeSpaceGroupsData();}}
                     setIsApiCallTakeTime={setIsApiCallTakeTime}
                     startDeploymentStatusListener={startListening}
-                    onDeploymentStatusUpdate={(data) => handleDeploymentStatusUpdate(onDeployCodeSpace?.id, data)}
-                    onDeploymentComplete={(data) => handleDeploymentComplete(onDeployCodeSpace?.id, data)}
-                    onDeploymentSSEError={(error) => handleDeploymentSSEError(onDeployCodeSpace?.id, error)}
+                    onDeploymentStatusUpdate={() => getDeployHandlers(onDeployCodeSpace?.id).onStatusUpdate()}
+                    onDeploymentComplete={(data) => getDeployHandlers(onDeployCodeSpace?.id).onComplete(data)}
+                    onDeploymentSSEError={() => getDeployHandlers(onDeployCodeSpace?.id).onError()}
                 />
             )}
             {showDeployApprovalModal && (
@@ -1234,9 +1197,9 @@ const AllCodeSpaces = (props) => {
                       setCodeDeploying={() => {getCodeSpacesData(); getCodeSpaceGroupsData();}}
                       setIsApiCallTakeTime={setIsApiCallTakeTime}
                       startDeploymentStatusListener={startListening}
-                      onDeploymentStatusUpdate={(data) => handleDeploymentStatusUpdate(onDeployCodeSpace?.id, data)}
-                      onDeploymentComplete={(data) => handleDeploymentComplete(onDeployCodeSpace?.id, data)}
-                      onDeploymentSSEError={(error) => handleDeploymentSSEError(onDeployCodeSpace?.id, error)}
+                      onDeploymentStatusUpdate={() => getDeployHandlers(onDeployCodeSpace?.id).onStatusUpdate()}
+                      onDeploymentComplete={(data) => getDeployHandlers(onDeployCodeSpace?.id).onComplete(data)}
+                      onDeploymentSSEError={() => getDeployHandlers(onDeployCodeSpace?.id).onError()}
                     />
             )}
             {isApiCallTakeTime && (

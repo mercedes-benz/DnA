@@ -20,6 +20,7 @@ import { marked } from 'marked';
 import { Envs } from '../../Utility/envs';
 import Tooltip from '../../common/modules/uilab/js/src/tooltip';
 import ContextMenu from '../contextMenu/ContextMenu';
+import { useDeploymentStatus } from '../../hooks/useDeploymentStatus';
 
 let isTouch = false;
 
@@ -397,6 +398,8 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
     handleRefresh();
   };
 
+  const { startListening, stopListening } = useDeploymentStatus();
+
   const handleDeploymentStatusResult = (status) => {
     setIsRefreshing(false);
     const isFailed = status === 'FAILED' || status === 'DEPLOYMENT_FAILED';
@@ -423,25 +426,20 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
     setIsRefreshing(true);
     const projectName = codeSpace?.projectDetails?.projectName;
     const environment = codeSpace?.projectDetails?.lastBuildOrDeployedEnv || 'int';
-    const sse = CodeSpaceApiClient.subscribeToDeploymentStatus(
+    startListening(
       projectName,
       environment,
       (data) => {
         const status = data?.status;
         if (status === 'FAILED' || status === 'DEPLOYMENT_FAILED' || status === 'DEPLOYED') {
-          sse.close();
+          stopListening();
           handleDeploymentStatusResult(status);
         }
       },
       (data) => handleDeploymentStatusResult(data?.status),
       () => { setIsRefreshing(false); handleRefresh(); }
     );
-    setTimeout(() => {
-      if (sse && sse.readyState !== 2) {
-        sse.close();
-        setIsRefreshing(false);
-      }
-    }, 15000);
+    setTimeout(() => { stopListening(); setIsRefreshing(false); }, 15000);
   };
 
   const projectDetails = codeSpace?.projectDetails;
