@@ -237,12 +237,11 @@ public class ArgoCdService {
         helmParameters.add(createHelmParamForceString("podAnnotations.prometheus\\.io/scrape", "true"));
         
         if (resources != null && resources.isEmpty()) {
-            // resources: {} in values.yaml — send default resource values
+            // resources: {} in values.yaml — send default resource values (no limits.cpu)
             helmParameters.add(createHelmParam("resources.requests.cpu", "200m"));
             helmParameters.add(createHelmParam("resources.requests.memory", "256Mi"));
             helmParameters.add(createHelmParam("resources.limits.memory", "1Gi"));
-            helmParameters.add(createHelmParam("resources.limits.cpu", "null"));
-            log.info("[Resources] resources is empty in values.yaml, sending defaults: requests.cpu=200m, requests.memory=256Mi, limits.memory=1Gi, limits.cpu=null");
+            log.info("[Resources] resources is empty in values.yaml, sending defaults: requests.cpu=200m, requests.memory=256Mi, limits.memory=1Gi");
         } else if (resources != null && !resources.isEmpty()) {
             String cpu = resources.get("cpu");
             String memory = resources.get("memory");
@@ -255,14 +254,20 @@ public class ArgoCdService {
                 helmParameters.add(createHelmParam("resources.limits.memory", memory + "Mi"));
                 log.info("[Resources] Sending -> resources.requests.memory: {}, resources.limits.memory: {}", memory + "Mi", memory + "Mi");
             }
-            // Explicitly remove limits.cpu by setting to "null" string
-            helmParameters.add(createHelmParam("resources.limits.cpu", "null"));
-            log.info("[Resources] Sending -> resources.limits.cpu: null (override to suppress chart default)");
+            // Only suppress limits.cpu when it was explicitly defined in the yaml
+            boolean hasLimitsCpu = "true".equals(resources.get("hasLimitsCpu"));
+            if (hasLimitsCpu) {
+                helmParameters.add(createHelmParam("resources.limits.cpu", "null"));
+                log.info("[Resources] Sending -> resources.limits.cpu: null (override to suppress chart value)");
+            } else {
+                log.info("[Resources] No limits.cpu in values.yaml, skipping limits.cpu override");
+            }
             log.info("[Resources] Final resources being sent to ArgoCD: " +
-                "requests.cpu={}, requests.memory={}, limits.memory={} (same as requests.memory), limits.cpu=null (removed)",
+                "requests.cpu={}, requests.memory={}, limits.memory={} (same as requests.memory), limits.cpu={}",
                 cpu != null ? cpu + "m" : "not set",
                 memory != null ? memory + "Mi" : "not set",
-                memory != null ? memory + "Mi" : "not set");
+                memory != null ? memory + "Mi" : "not set",
+                hasLimitsCpu ? "null (suppressed)" : "not sent");
         } else {
             log.info("[Resources] No resource overrides to apply, chart values.yaml will be used as-is");
         }
@@ -462,6 +467,17 @@ public class ArgoCdService {
             log.info("[Resources] Memory: raw='{}' -> converted='{}'", memoryValue, convertedMemory);
             if (convertedMemory != null) {
                 convertedResources.put("memory", convertedMemory);
+            }
+        }
+        
+        // Check if limits.cpu exists in yaml — used by buildPayload to decide whether to send limits.cpu=null
+        Object limitsObj = resourcesSection.get("limits");
+        if (limitsObj instanceof Map) {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> limits = (Map<String, Object>) limitsObj;
+            if (limits.containsKey("cpu")) {
+                convertedResources.put("hasLimitsCpu", "true");
+                log.info("[Resources] limits.cpu found in values.yaml, will send limits.cpu=null override");
             }
         }
         
