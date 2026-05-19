@@ -397,6 +397,64 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
     handleRefresh();
   };
 
+  const onDeployedRefreshClick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (isRefreshing) return;
+    setIsRefreshing(true);
+    const projectName = codeSpace?.projectDetails?.projectName;
+    const environment = codeSpace?.projectDetails?.lastBuildOrDeployedEnv || 'int';
+    const sse = CodeSpaceApiClient.subscribeToDeploymentStatus(
+      projectName,
+      environment,
+      (data) => {
+        const status = data?.status;
+        if (status === 'FAILED' || status === 'DEPLOYMENT_FAILED') {
+          setIsRefreshing(false);
+          sse.close();
+          CodeSpaceApiClient.getWorkspaceById(codeSpace.id)
+            .then((res) => {
+              if (res.data && props.onRefreshCard) {
+                props.onRefreshCard(codeSpace.id, res.data);
+              }
+            })
+            .catch(() => {});
+          Notification.show(`${projectName || 'Workspace'} deployment status: Failed`, 'alert');
+        } else if (status === 'DEPLOYED') {
+          setIsRefreshing(false);
+          sse.close();
+          Notification.show(`${projectName || 'Workspace'} is healthy`);
+        }
+      },
+      (data) => {
+        setIsRefreshing(false);
+        const status = data?.status;
+        if (status === 'FAILED' || status === 'DEPLOYMENT_FAILED') {
+          CodeSpaceApiClient.getWorkspaceById(codeSpace.id)
+            .then((res) => {
+              if (res.data && props.onRefreshCard) {
+                props.onRefreshCard(codeSpace.id, res.data);
+              }
+            })
+            .catch(() => {});
+          Notification.show(`${projectName || 'Workspace'} deployment status: Failed`, 'alert');
+        } else {
+          Notification.show(`${projectName || 'Workspace'} is healthy`);
+        }
+      },
+      () => {
+        setIsRefreshing(false);
+        handleRefresh();
+      }
+    );
+    setTimeout(() => {
+      if (sse && sse.readyState !== 2) {
+        sse.close();
+        setIsRefreshing(false);
+      }
+    }, 15000);
+  };
+
   const projectDetails = codeSpace?.projectDetails;
   const intDeploymentDetails = projectDetails?.intDeploymentDetails;
   const prodDeploymentDetails = projectDetails?.prodDeploymentDetails;
@@ -723,8 +781,8 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
                           </a>
                           <span 
                             className={Styles.refreshIcon} 
-                            onClick={onRefreshClick}
-                            tooltip-data="Refresh status"
+                            onClick={onDeployedRefreshClick}
+                            tooltip-data="Check deployment health"
                           >
                             <i className="icon mbc-icon refresh"></i>
                           </span>
