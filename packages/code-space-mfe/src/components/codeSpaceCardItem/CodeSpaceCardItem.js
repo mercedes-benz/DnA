@@ -397,6 +397,66 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
     handleRefresh();
   };
 
+  const onDeployedRefreshClick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (isRefreshing) return;
+    setIsRefreshing(true);
+    const projectName = codeSpace?.projectDetails?.projectName;
+    const environment = codeSpace?.projectDetails?.lastBuildOrDeployedEnv || 'int';
+    const sse = CodeSpaceApiClient.subscribeToDeploymentStatus(
+      projectName,
+      environment,
+      (data) => {
+        // Status update received — check if failed
+        const status = data?.status;
+        if (status === 'FAILED' || status === 'DEPLOYMENT_FAILED') {
+          setIsRefreshing(false);
+          sse.close();
+          // Refresh card data from backend to get updated status
+          CodeSpaceApiClient.getWorkspaceById(codeSpace.id)
+            .then((res) => {
+              if (res.data && props.onRefreshCard) {
+                props.onRefreshCard(codeSpace.id, res.data);
+              }
+            })
+            .catch(() => {});
+          Notification.show(`${projectName || 'Workspace'} deployment status: Failed`, 'alert');
+        }
+      },
+      (data) => {
+        // Deployment complete — refresh card
+        setIsRefreshing(false);
+        CodeSpaceApiClient.getWorkspaceById(codeSpace.id)
+          .then((res) => {
+            if (res.data && props.onRefreshCard) {
+              props.onRefreshCard(codeSpace.id, res.data);
+            }
+          })
+          .catch(() => {});
+        const status = data?.status;
+        if (status === 'FAILED' || status === 'DEPLOYMENT_FAILED') {
+          Notification.show(`${projectName || 'Workspace'} deployment status: Failed`, 'alert');
+        } else {
+          Notification.show(`${projectName || 'Workspace'} status refreshed`);
+        }
+      },
+      () => {
+        // SSE error
+        setIsRefreshing(false);
+        // Fallback: refresh from DB
+        handleRefresh();
+      }
+    );
+    // Auto-close SSE after 15 seconds to avoid hanging connections
+    setTimeout(() => {
+      if (sse && sse.readyState !== 2) {
+        sse.close();
+        setIsRefreshing(false);
+      }
+    }, 15000);
+  };
+
   const projectDetails = codeSpace?.projectDetails;
   const intDeploymentDetails = projectDetails?.intDeploymentDetails;
   const prodDeploymentDetails = projectDetails?.prodDeploymentDetails;
@@ -705,7 +765,7 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
                         </span>
                       )}
                       {projectDetails?.lastBuildOrDeployedStatus === 'DEPLOYED' && (
-                        <span className={Styles.statusIndicator}>
+                        <span className={classNames(Styles.statusIndicator, Styles.statusWithRefresh)}>
                           <a
                             href={(projectDetails?.lastBuildOrDeployedEnv === 'int')
                               ? buildGitJobLogViewAWSURL(projectDetails?.intDeploymentDetails?.gitjobRunID)
@@ -721,6 +781,13 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
                           >
                             Deployed
                           </a>
+                          <span 
+                            className={Styles.refreshIcon} 
+                            onClick={onDeployedRefreshClick}
+                            tooltip-data="Check deployment health"
+                          >
+                            <i className={classNames('icon mbc-icon refresh', isRefreshing ? Styles.spinning : '')}></i>
+                          </span>
                         </span>
                       )}
                       {projectDetails?.lastBuildOrDeployedStatus === 'APPROVAL_PENDING' && (
