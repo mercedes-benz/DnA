@@ -744,7 +744,7 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
                         </span>
                       )}
                       {projectDetails?.lastBuildOrDeployedStatus === 'BUILD_SUCCESS' && (
-                        <span className={Styles.statusIndicator}>
+                        <span className={classNames(Styles.statusIndicator, Styles.statusWithRefresh)}>
                           <a
                             href={(projectDetails?.lastBuildOrDeployedEnv === 'int')
                               ? buildGitJobLogViewAWSURL(projectDetails?.intBuildDetails?.gitjobRunID)
@@ -760,6 +760,13 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
                           >
                             Built
                           </a>
+                          <span 
+                            className={Styles.refreshIcon} 
+                            onClick={onDeployedRefreshClick}
+                            tooltip-data="Check deployment health"
+                          >
+                            <i className="icon mbc-icon refresh"></i>
+                          </span>
                         </span>
                       )}
                       {projectDetails?.lastBuildOrDeployedStatus === 'DEPLOYED' && (
