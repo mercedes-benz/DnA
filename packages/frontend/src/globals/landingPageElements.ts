@@ -26,65 +26,26 @@ const dataQToolUrl = Envs.DATAQ_TOOL_URL;
 const datasphereUrl = Envs.DATASPHERE_TOOL_URL;
 const extolloUrl = Envs.EXTOLLO_TOOL_URL;
 const powerBIUrl = Envs.POWER_BI_TOOL_URL;
-const dataModelUrl = Envs.DATA_MODEL_URL;
-const dataCatalogUrl = Envs.DATA_CATALOG_URL;
+const ddxUrl = Envs.DDX_URL;
 const corporateDataCatalogUrl = Envs.CORPORATE_DATA_CATALOG_URL;
-const smartDataGovernanceUrl = Envs.SMART_DATA_GOVERNANCE_URL;
 const spireUrl = Envs.SPIRE_URL;
 const odinUrl = Envs.ODIN_URL; 
 const sassUrl = Envs.SASS_URL;
 const enableDatalakeService = Envs.ENABLE_DATALAKE_SERVICE;
 const enableFabricService = Envs.ENABLE_FABRIC_SERVICE;
+const enableuiliciousService = Envs.ENABLE_UILICIOUS_SERVICE;
+const enableAzureKeyVaultService = Envs.ENABLE_AZURE_KEY_VAULT_SERVICE;
 // const enableDataEntryService = Envs.ENABLE_DATA_ENTRY_SERVICE;
 const enablePowerPlatformService = Envs.ENABLE_POWER_PLATFORM_SERVICE;
 const enablePromptCraftService = Envs.ENABLE_PROMPT_CRAFT_SERVICE;
+const MBAIEcosystemUrl = Envs.MB_AI_ECOSYSTEM_URL;
+const MBAIUseCaseUrl = Envs.MB_AI_USE_CASE_URL;
 const genAIDirectChatUrl = Envs.GENAI_DIRECT_CHAT_URL;
 const bisoContactsLink = Envs.BISO_CONTACTS_URL;
 const clamavImagwUrl = Envs.CLAMAV_IMAGE_URL;
 // const formbricksSurveyUrl = Envs.FORMBRICKS_SURVEY_URL;
 const pgAdminUrl = Envs.PGADMIN_URL;
-
-export const DataLayerElements = [
-  {
-    name: 'Data Model',
-    description:
-      'The Data Model shows the most important Master data dimensions and how they relate to each other.',
-    tags: ['Self Service', 'FOSS'],
-    url: dataModelUrl,
-    isExternalLink: true,
-    isTextAlignLeft: false,
-    isDisabled: !dataModelUrl?.startsWith('http'),
-    isSmallCard: false,
-    isMediumCard: true,
-    svgIcon: 'dataproduct',
-  },
-  {
-    name: 'Corporate Data Catalogue',
-    description:
-      'Catalog of Mercedes-Benz data assets. If you never logged in the CDC before, a user will be generated for your this can take a while. CarLA systems can be found by searching for CarLA.',
-    tags: ['Self Service', 'FOSS'],
-    url: corporateDataCatalogUrl,
-    isExternalLink: true,
-    isTextAlignLeft: false,
-    isDisabled: !corporateDataCatalogUrl?.startsWith('http'),
-    isSmallCard: false,
-    isMediumCard: true,
-    svgIcon: 'dataproduct',
-  },
-  {
-    name: 'Smart Data Governance',
-    description:
-      'Information on the compliance with architecture guidelines and the data volume in the CarLA Core Datawarehouse.',
-    tags: ['Self Service', 'FOSS'],
-    url: smartDataGovernanceUrl,
-    isExternalLink: true,
-    isTextAlignLeft: false,
-    isDisabled: !smartDataGovernanceUrl?.startsWith('http'),
-    isSmallCard: false,
-    isMediumCard: true,
-    svgIcon: 'dataproduct',
-  },
-];
+const enableDbService = false;
 
 export const DataGovernanceElements = [
   {
@@ -211,6 +172,24 @@ export const ToolsLandingPageElements = [
     isMediumCard: true,
     isDetailedPage: true,
     svgIcon: 'fabric',
+    isDnAInternalTool: true,
+  },
+  {
+    id: 'dbservice',
+    name: 'DB Service',
+    description:
+      'DB Service provides Self Service PostgreSQL database creation and management using pgAdmin. DB can be connected to many tools using the connection details.',
+    tags: ['Data Engineering', 'Data Storage'],
+    url: '/dbservice',
+    isExternalLink: false,
+    isTextAlignLeft: true,
+    animation: true,
+    isDisabled: !enableDbService,
+    isMoreServicesCard:false,
+    isSmallCard: false,
+    isMediumCard: true,
+    isDetailedPage: false,
+    svgIcon: 'storage',
     isDnAInternalTool: true,
   },
   // {
@@ -601,6 +580,40 @@ export const ToolsLandingPageElements = [
     svgIcon: 'tools',
     isDnAInternalTool: false,
   },
+    {
+    id: 'Uilicious',
+    name: 'Uilicious',
+    description:'Uilicious is a simple and robust tool for automating interactions with modern web applications.Use it to test your web applications to make sure that your users arent running into unexpected errors in critical user flows like when they are registering for an account or checking out their order',
+    tags: ['No/Low Code', 'Onprem'],
+    url: '/Uilicious',
+    isExternalLink: false,
+    isTextAlignLeft: true,
+    animation: true,
+    isDisabled: !enableuiliciousService,
+    isDetailedPage: true,
+    isMoreServicesCard:false,
+    isSmallCard: false,
+    isMediumCard: true,
+    svgIcon: 'tools',
+    isDnAInternalTool: false,
+  },
+  {
+    id: 'azureKeyVault',
+    name: 'Azure Key Vault',
+    description:'Azure Key Vault is a cloud service that provides a secure and centralized solution for storing and managing cryptographic keys, secrets (like passwords and API keys), and certificates.',
+    tags: ['FOSS'],
+    url: '/azurekeyvault',
+    isExternalLink: false,
+    isTextAlignLeft: true,
+    animation: true,
+    isDisabled: !enableAzureKeyVaultService,
+    isDetailedPage: true,
+    isMoreServicesCard:false,
+    isSmallCard: false,
+    isMediumCard: true,
+    svgIcon: 'tools',
+    isDnAInternalTool: false,
+  },
 ];
 
 export const TranparencyLandingPageElements = [
@@ -660,9 +673,9 @@ export const TranparencyLandingPageElements = [
 
 export const DataLandingPageElements = [
   {
-    name: 'Data Products',
+    name: 'FC Data Products',
     description:
-      'Data is one of the most valuable assets in our company, therefore we treat our data as a product! We offer you a growing selection of intuitive to use and well documented data products - check it out!',
+      'Data is one of the most valuable assets in our company, therefore we treat our data as a product! We offer you a growing selection of intuitive to use and well documented FC data products - check it out!',
     tags: ['Self Service', 'FOSS'],
     url: '/data/dataproducts',
     isExternalLink: false,
@@ -672,19 +685,19 @@ export const DataLandingPageElements = [
     isMediumCard: false,
     svgIcon: 'dataproductoverview',
   },
-  {
-    name: 'Data Layer',
-    description:
-      'More information and definitions of applications, key figures and data.',
-    tags: ['Self Service', 'FOSS'],
-    url: '/data/datalayer',
-    isExternalLink: false,
-    isTextAlignLeft: false,
-    isDisabled: false,
-    isSmallCard: false,
-    isMediumCard: false,
-    svgIcon: 'datamodel',
-  },
+  // {
+  //   name: 'Data Layer',
+  //   description:
+  //     'More information and definitions of applications, key figures and data.',
+  //   tags: ['Self Service', 'FOSS'],
+  //   url: '/data/datalayer',
+  //   isExternalLink: false,
+  //   isTextAlignLeft: false,
+  //   isDisabled: false,
+  //   isSmallCard: false,
+  //   isMediumCard: false,
+  //   svgIcon: 'datamodel',
+  // },
   {
     name: 'Data Governance',
     description:
@@ -699,17 +712,30 @@ export const DataLandingPageElements = [
     svgIcon: 'datagovernance',
   },
   {
-    name: 'Data Catalog (OpenMetadata)',
+    name: 'DDX Data Products',
     description:
-      'Unlock the value of data assets with an end-to-end metadata management solution that includes data discovery, governance, data quality, observability, and people collaboration.',
-    tags: ['Self Service', 'FOSS'],
-    url: dataCatalogUrl,
+      'Data is an excellent source to support all kinds of user groups. But where can you actually get valuable data in the company? Say hi to DDX! DDX offers a growing selection of data products, including direct request and access.',
+    tags: ['Self Service'],
+    url: ddxUrl,
     isExternalLink: true,
     isTextAlignLeft: false,
-    isDisabled: !dataCatalogUrl?.startsWith('http'),
+    isDisabled: !ddxUrl?.startsWith('http'),
     isSmallCard: false,
     isMediumCard: false,
-    svgIcon: 'data-mini',
+    svgIcon: 'dataproductoverview',
+  },
+  {
+    name: 'Corporate Data Catalogue',
+    description:
+      'Catalog of Mercedes-Benz data assets. If you never logged in the CDC before, a user will be generated for your this can take a while. CarLA systems can be found by searching for CarLA.',
+    tags: ['Self Service', 'FOSS'],
+    url: corporateDataCatalogUrl,
+    isExternalLink: true,
+    isTextAlignLeft: false,
+    isDisabled: !corporateDataCatalogUrl?.startsWith('http'),
+    isSmallCard: false,
+    isMediumCard: false,
+    svgIcon: 'dataproduct',
   },
 ];
 
@@ -835,30 +861,30 @@ export const TrainingsLandingPageElements = [
 
 export const GenAILandingPageElements = [
   {
-    name: 'Create GenAI Solution',
+    name: 'AI Use Case',
     description:
-      'Create new GenAI solutions which answer business questions and create their plannings or reports.',
+      'Register and manage AI use cases on MASSP4AI.',
     tags: ['Self Service', 'FOSS'],
-    url: '/createnewgenaisolution',
-    isExternalLink: false,
+    url: MBAIUseCaseUrl,
+    isExternalLink: true,
     isTextAlignLeft: false,
-    isDisabled: false,
-    isSmallCard: false,
-    isMediumCard: false,
-    svgIconId: 'genai-create',
-  },
-  {
-    name: 'GenAI Solutions',
-    description:
-      'GenAI Solutions are at the heart of our landscape and provide data and functions to business users to answer their questions and create their plannings or reports.',
-    tags: ['Self Service', 'FOSS'],
-    url: '/viewsolutions/tag/GenAI',
-    isExternalLink: false,
-    isTextAlignLeft: false,
-    isDisabled: false,
+    isDisabled: !MBAIUseCaseUrl?.startsWith('http'),
     isSmallCard: false,
     isMediumCard: false,
     svgIconId: 'genai-solutions',
+  },
+  {
+    name: 'AI Ecosystem',
+    description:
+      'A holistic portal with the right tools and resources for AI practitioners to accelerate their AI projects.',
+    tags: ['Self Service', 'FOSS'],
+    url: MBAIEcosystemUrl,
+    isExternalLink: true,
+    isTextAlignLeft: false,
+    isDisabled: !MBAIEcosystemUrl?.startsWith('http'),
+    isSmallCard: false,
+    isMediumCard: false,
+    svgIconId: 'genai-create',
   },
   {
     name: 'Mercedes-Benz Direct Chat',

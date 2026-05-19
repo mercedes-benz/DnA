@@ -37,19 +37,33 @@ const AliceRoleRequest = () => {
   const validateRole = () => {
     const specialCharPattern = /[^A-Za-z0-9\-_./]/;
     if (roleName.trim() === "") {
-      setRoleNameError('Role name cannot be empty');
+      setRoleNameError('Role ID cannot be empty');
       return false
     }
     if (roleName.includes(" ")) {
-      setRoleNameError('Role name cannot contain spaces');
+      setRoleNameError('Role ID cannot contain spaces');
       return false;
     }
     if (specialCharPattern.test(roleName)) {
-      setRoleNameError('Role name can only contain letters, numbers, and the following characters: . _ -');
+      setRoleNameError('Role ID can only contain letters, numbers, and the following characters: . _ -');
       return false;
     }
     return true;
   }
+
+  const formatRoleName = (name: string) => {
+  if (name.includes('_')) {
+    const lastUnderscoreIndex = name.lastIndexOf('_');
+    const prefix = name.substring(0, lastUnderscoreIndex + 1);
+    const lastWord = name.substring(lastUnderscoreIndex + 1);
+    if (lastWord.length > 0) {
+      return prefix + lastWord.charAt(0).toUpperCase() + lastWord.slice(1).toLowerCase();
+    }
+  } else if (name.length > 0) {
+    return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
+  }
+  return name;
+};
  
   useEffect(() => {
     fetchRole();
@@ -57,7 +71,7 @@ const AliceRoleRequest = () => {
  
   const createRole = () => {
     if (validateRole()) {
-      const value = Envs.ALICE_APP_ID + "_" + roleName
+      const value = Envs.ALICE_APP_ID + "_" + formatRoleName(roleName);
       const data = {
         "data": {
           "roleName": value,
@@ -200,9 +214,9 @@ const AliceRoleRequest = () => {
                 <div className={classNames(Styles.roleName)}>
                   <TextBox
                     type="text"
-                    controlId={'productNameInput'}
-                    labelId={'productNameLabel'}
-                    label={'Role Name'}
+                    controlId={'roleIdInput'}
+                    labelId={'roleIdLabel'}
+                    label={'Role ID'}
                     placeholder={'Type here'}
                     value={roleName}
                     errorText={roleNameError}
@@ -228,13 +242,27 @@ const AliceRoleRequest = () => {
                 <div className={classNames(Styles.roleName, Styles.disabledSection)}>
                   <TextBox
                     type="text"
-                    controlId={'productNameInput'}
-                    labelId={'productNameLabel'}
+                    controlId={'roleNameDisplay'}
+                    labelId={'roleNameDisplayLabel'}
                     label={'Role to be created'}
                     placeholder={'Type here'}
-                    value={roleName?.length > 0 ? Envs.ALICE_APP_ID + "_" + roleName : ''}
+                    value={roleName?.length > 0 ? (Envs.ALICE_APP_ID + ' ' + formatRoleName(roleName)).replace(/_/g, ' ') : ''}
                     required={false}
                     maxLength={50}
+                    onChange={onRoleNameChange}
+                  />
+                </div>
+
+                <div className={classNames(Styles.roleName, Styles.disabledSection)}>
+                  <TextBox
+                    type="text"
+                    controlId={'entitlementDisplay'}
+                    labelId={'entitlementDisplayLabel'}
+                    label={'Entitlement to be created'}
+                    placeholder={'Type here'}
+                    value={roleName?.length > 0 ? Envs.ALICE_APP_ID + '.' + Envs.ALICE_APP_ID + '_' + roleName : ''}
+                    required={false}
+                    maxLength={100}
                     onChange={onRoleNameChange}
                   />
                 </div>

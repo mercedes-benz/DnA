@@ -7,6 +7,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
+import java.util.Map;
 import java.util.stream.Collectors;
 import java.nio.charset.StandardCharsets;
 
@@ -25,12 +26,16 @@ import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
 import com.daimler.data.application.client.GitClient;
+import com.daimler.data.application.client.VaultClient;
+import com.daimler.data.application.client.AliceServiceClient;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
 import com.daimler.data.db.json.CodeServerDeploymentDetails;
 import com.daimler.data.db.json.CodespaceSecurityConfig;
 import com.daimler.data.db.repo.workspace.WorkspaceCustomRepository;
+import com.daimler.data.dto.EntitlementDetailsDto;
+import com.daimler.data.dto.EntitlementsDto;
 import com.daimler.data.dto.workspace.WorkspacePluginStatusVO;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -195,6 +200,15 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 	@Value("${kong.postFunctionFrontendFileName}")
 	private String postFunctionFrontendFileName;
 
+	@Value("${kong.postFunctionPrefixFileName}")
+	private String postFunctionPrefixFileName;
+
+	@Value("${kong.postFunctionEntitlementFileName}")
+	private String postFunctionEntitlementFileName;
+
+	@Value("${kong.postFunctionNoEntitlementFileName}")
+	private String postFunctionNoEntitlementFileName;
+
 	@Value("${kong.preFunctionBackendFileName}")
 	private String preFunctionBackendFileName;
 
@@ -216,6 +230,9 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 
 	@Autowired
 	private GitClient gitClient;
+
+	@Autowired
+	private AliceServiceClient AliceServiceClient;
 	
 	private static final String CREATE_SERVICE = "/api/kong/services";
 	private static final String CREATE_ROUTE = "/routes";
@@ -236,6 +253,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 	private static final String ATTACH_FUNCTION_PLUGIN_TO_SERVICE = "/functionPlugin";
 	private static final String ATTACH_REQUEST_TRANSFORMER_PLUGIN_TO_SERVICE = "/requestTransformerPlugin";
 	private static final String ATTACH_ONE_API_PLUGIN_TO_SERVICE = "/oneApiPlugin";
+	private static final String ATTACH_OPENTELEMETRY_PLUGIN_TO_SERVICE = "/openTelemetryPlugin";
 
 	@Override
 	public GenericMessage createService(CreateServiceRequestVO createServiceRequestVO, String cloudServiceProvider) {
@@ -389,7 +407,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		return response;
 	}
 	
-	public void callingKongApis(String wsid,String serviceName, String env, boolean apiRecipe, String clientID, String clientSecret, String redirectUriFromUser, String ignorePaths, String scope, String oneApiVersionShortName, boolean isSecuredWithCookie, boolean secureWithIAM, String ssoType, boolean secureWithDna, String cloudServiceProvider) {
+	public void callingKongApis(String wsid,String serviceName, String env, boolean apiRecipe, String clientID, String clientSecret, String redirectUriFromUser, String ignorePaths, String scope, String oneApiVersionShortName, boolean isSecuredWithCookie, boolean secureWithIAM, String ssoType, boolean secureWithDna, boolean isAliceRoleEnabled, boolean isEntitlementPrefixEnabled, List<String> selectedAliceRoles, String cloudServiceProvider) {
 		boolean kongApiForDeploymentURL = !wsid.equalsIgnoreCase(serviceName) && Objects.nonNull(env);
 		CodeServerWorkspaceNsql workspaceNsql = customRepository.findByWorkspaceId(wsid);
 		CodeServerDeploymentDetails intDeploymentDetails = workspaceNsql.getData().getProjectDetails().getIntDeploymentDetails();
@@ -568,6 +586,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		AttachPluginVO attachCorsPluginVO = new AttachPluginVO();
 		AttachPluginRequestVO attachCorsPluginRequestVO = new AttachPluginRequestVO();
 		attachCorsPluginVO.setName(CORS_PLUGIN);
+		attachCorsPluginVO.setOneApiVersionShortName(oneApiVersionShortName);
 		attachCorsPluginRequestVO.setData(attachCorsPluginVO);
 
 		//request for attaching RequestTransformer Plugin to service
@@ -637,6 +656,14 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 					attachAppAuthoriserPluginResponse = attachAppAuthoriserPluginToService(appAuthoriserPluginRequestVO, serviceName, cloudServiceProvider);
 				}
 				else {
+
+					GenericMessage deletePluginResponse = new GenericMessage();
+
+					//deleting cors plugin
+					deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,CORS_PLUGIN,cloudServiceProvider);
+					LOGGER.info("kong deleting cors plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
+					deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
+
 					//attaching cors plugin to deployments
 					LOGGER.info("kongApiForDeploymentURL is true, calling CORS plugin " );
 					attachCorsPluginResponse = attachPluginToService(attachCorsPluginRequestVO,serviceName.toLowerCase()+"-"+env,cloudServiceProvider);
@@ -644,7 +671,6 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 					attachCorsPluginResponse.getErrors(), attachCorsPluginResponse.getWarnings());
 
 					//deleteing jwt issuer plugin if any
-					GenericMessage deletePluginResponse = new GenericMessage();
 					deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,JWTISSUER_PLUGIN,cloudServiceProvider);
 					LOGGER.info("kong deleting jwt issuer plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
 					deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
@@ -840,7 +866,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 							if(("int".equalsIgnoreCase(env) && !intSecureIAM && !intSecureDna) ||("prod".equalsIgnoreCase(env) && !prodSecureIAM && !prodSecureDna) ){
 
 								String exsistingOneApiVersionShortName = "int".equalsIgnoreCase(env)?intDeploymentDetails.getOneApiVersionShortName():prodDeploymentDetails.getOneApiVersionShortName();
-								if(!exsistingOneApiVersionShortName.equalsIgnoreCase(oneApiVersionShortName) || Objects.isNull(exsistingOneApiVersionShortName) ){
+								if(Objects.isNull(exsistingOneApiVersionShortName) || !exsistingOneApiVersionShortName.equalsIgnoreCase(oneApiVersionShortName)){
 
 									GenericMessage attachOneApiPluginResponse = new GenericMessage();
 									//delete oneapi plugin if any
@@ -901,6 +927,10 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 									AttachPluginVO attachOIDCPluginVO = new AttachPluginVO();
 									AttachPluginConfigVO attachOIDCPluginConfigVO = new AttachPluginConfigVO();
 
+									//remove post function plugin
+									deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,POST_FUNCTION_PLUGIN,cloudServiceProvider);
+									LOGGER.info("kong deleting post function plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
+									deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
 
 									//for now we removed the prefunction so disabling the prefunction if any...
 									//change function plugin status to disable if any
@@ -989,12 +1019,29 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 									// 		LOGGER.error("Error Occured While fetching preFunction file from Git : {} ",e.getMessage());
 									// 	}
 									// }
-									changePluginStatusResponse = changePluginStatus(serviceName.toLowerCase()+"-"+env,POST_FUNCTION_PLUGIN,true);
-									LOGGER.info("calling kong to change the plugin status to enable for service: {} and status is {}, if warings any {}, if error any {}",serviceName,changePluginStatusResponse.getSuccess(), changePluginStatusResponse.getWarnings(),changePluginStatusResponse.getErrors());
-									if(!changePluginStatusResponse.getErrors().isEmpty() && "NOT_FOUND".equalsIgnoreCase(changePluginStatusResponse.getSuccess())){
-										try{
+
+									// changePluginStatusResponse = changePluginStatus(serviceName.toLowerCase()+"-"+env,POST_FUNCTION_PLUGIN,true);
+									// LOGGER.info("calling kong to change the plugin status to enable for service: {} and status is {}, if warings any {}, if error any {}",serviceName,changePluginStatusResponse.getSuccess(), changePluginStatusResponse.getWarnings(),changePluginStatusResponse.getErrors());
+									// if(!changePluginStatusResponse.getErrors().isEmpty() && "NOT_FOUND".equalsIgnoreCase(changePluginStatusResponse.getSuccess())){
+									// 	try{
+											JSONObject jsonResponse = new JSONObject();
+											if(secureWithDna){
+												if(isAliceRoleEnabled){
+													if(isEntitlementPrefixEnabled){
+														jsonResponse = gitClient.getFileContent(gitDetails.get(2), gitDetails.get(1), gitDetails.get(0), functionPluginsFolderPath, postFunctionPrefixFileName,codeServerEnvRef);
+													} else if(!selectedAliceRoles.isEmpty() && selectedAliceRoles != null){
+														jsonResponse = gitClient.getFileContent(gitDetails.get(2), gitDetails.get(1), gitDetails.get(0), functionPluginsFolderPath, postFunctionEntitlementFileName,codeServerEnvRef);
+														LOGGER.info("role post function content is {}",base64DecodeAandMinifyString(jsonResponse.getString("content")));
+													} else {
+														jsonResponse = gitClient.getFileContent(gitDetails.get(2), gitDetails.get(1), gitDetails.get(0), functionPluginsFolderPath, postFunctionFrontendFileName,codeServerEnvRef);
+													}
+												} else {
+													jsonResponse = gitClient.getFileContent(gitDetails.get(2), gitDetails.get(1), gitDetails.get(0), functionPluginsFolderPath, postFunctionNoEntitlementFileName,codeServerEnvRef);
+												}
+											} else {
+												jsonResponse = gitClient.getFileContent(gitDetails.get(2), gitDetails.get(1), gitDetails.get(0), functionPluginsFolderPath, postFunctionFrontendFileName,codeServerEnvRef);
+											}
 											
-											JSONObject jsonResponse = gitClient.getFileContent(gitDetails.get(2), gitDetails.get(1), gitDetails.get(0), functionPluginsFolderPath, postFunctionFrontendFileName,codeServerEnvRef);
 											if(jsonResponse !=null && jsonResponse.has("name") && jsonResponse.has("content")) {
 												LOGGER.info("Retrieved a Function plugins SHA was successfull from Git.");
 
@@ -1003,8 +1050,34 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 
 												List<String> postFunctionValue =  new ArrayList<>();
 												postFunctionValue.add(postFunctionContent);
-												postFunctionConfigVO.setAccess(postFunctionValue);
 
+												if(isAliceRoleEnabled && secureWithDna){
+													if(isEntitlementPrefixEnabled){
+														LOGGER.info("Entitlement prefix filtering");
+														String commaSeparatedString = String.join(",", selectedAliceRoles);
+														postFunctionValue.clear();
+														String prefixPostFunctionContent = postFunctionContent.replace("entitlement_prefix_value",commaSeparatedString);
+														postFunctionValue.add(prefixPostFunctionContent);
+													} else if(!selectedAliceRoles.isEmpty() && selectedAliceRoles != null){
+														LOGGER.info("Role based entitlement filtering");
+														List<String> entitlementIds = new ArrayList<>();
+        												for (String role : selectedAliceRoles) {
+															EntitlementsDto entitlementsDto = AliceServiceClient.getEntitlements(role);
+															LOGGER.info("entitlements for role {} is {}",role,entitlementsDto);
+															if (entitlementsDto != null && entitlementsDto.getEntitlementList() != null) {
+																for (EntitlementDetailsDto entitlement : entitlementsDto.getEntitlementList()) {
+																	entitlementIds.add(entitlement.getId());
+																}
+															}
+														}
+														String commaSeparatedString = String.join(",", entitlementIds);
+														postFunctionValue.clear();
+														String entitlementPostFunctionContent = postFunctionContent.replace("entitelement_list_value",commaSeparatedString);
+														postFunctionValue.add(entitlementPostFunctionContent);
+													}
+												}
+												LOGGER.info("post function content {}",postFunctionValue);
+												postFunctionConfigVO.setAccess(postFunctionValue);
 												postFunctionPluginVO.setName(POST_FUNCTION_PLUGIN);
 												postFunctionPluginVO.setConfig(postFunctionConfigVO);
 												postFunctionRequestVO.setData(postFunctionPluginVO);
@@ -1012,10 +1085,10 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 												attachPluginResponse = attachFunctionPluginToService(postFunctionRequestVO,serviceName.toLowerCase()+"-"+env);
 												LOGGER.info("calling kong to attach post function plugin for service: {} env: {} and staus is: {}, errors if any: {}, warnings if any: {}",serviceName,env, attachPluginResponse.getSuccess(),attachPluginResponse.getErrors(),attachPluginResponse.getWarnings());
 											}
-										}catch(Exception e) {
-											LOGGER.error("Error Occured While fetching postFunction file from Git : {} ",e.getMessage());
-										}
-									}
+								// 		}catch(Exception e) {
+								// 			LOGGER.error("Error Occured While fetching postFunction file from Git : {} ",e.getMessage());
+								// 		}
+								// 	}
 								}
 							}
 						}
@@ -1033,8 +1106,11 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 							//change function plugin status to disable if any
 							changePluginStatusResponse = changePluginStatus(serviceName.toLowerCase()+"-"+env,PRE_FUNCTION_PLUGIN,false);
 							LOGGER.info("calling kong to change the plugin status to enable for service: {} and status is {}, if warings any {}, if error any {}",serviceName,changePluginStatusResponse.getSuccess(), changePluginStatusResponse.getWarnings(),changePluginStatusResponse.getErrors());
-							changePluginStatusResponse = changePluginStatus(serviceName.toLowerCase()+"-"+env,POST_FUNCTION_PLUGIN,false);
-							LOGGER.info("calling kong to change the plugin status to enable for service: {} and status is {}, if warings any {}, if error any {}",serviceName,changePluginStatusResponse.getSuccess(), changePluginStatusResponse.getWarnings(),changePluginStatusResponse.getErrors());
+							// changePluginStatusResponse = changePluginStatus(serviceName.toLowerCase()+"-"+env,POST_FUNCTION_PLUGIN,false);
+							// LOGGER.info("calling kong to change the plugin status to enable for service: {} and status is {}, if warings any {}, if error any {}",serviceName,changePluginStatusResponse.getSuccess(), changePluginStatusResponse.getWarnings(),changePluginStatusResponse.getErrors());
+							deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,POST_FUNCTION_PLUGIN,cloudServiceProvider);
+							LOGGER.info("kong deleting post function plugin to service status is: {} and errors if any: {}, warnings if any:", deletePluginResponse.getSuccess(),
+							deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
 						}
 					}
 					
@@ -1851,6 +1927,57 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		attachPluginResponse = attachPluginToService(attachOIDCPluginRequestVO,serviceName.toLowerCase()+"-"+env,cloudServiceProvider);
 		LOGGER.info("calling kong to attach oidc plugin with status {}",attachPluginResponse.getSuccess());
 	}
-	
 
+	@Override
+	public GenericMessage createOpenTelemetryPlugin(String kongServiceName, Map<String, Object> pluginConfig) {
+		GenericMessage response = new GenericMessage();
+		String status = "FAILED";
+		List<MessageDescription> warnings = new ArrayList<>();
+		List<MessageDescription> errors = new ArrayList<>();
+		try {
+			LOGGER.info("Creating OpenTelemetry plugin via Kong Admin API for service {}", kongServiceName);
+
+			// Wrap plugin config in {"data": {...}} format expected by authenticator service
+			Map<String, Object> requestBody = new java.util.HashMap<>();
+			requestBody.put("data", pluginConfig);
+
+			ObjectMapper mapper = new ObjectMapper();
+			String pluginConfigJson = mapper.writeValueAsString(requestBody);
+
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Content-Type", "application/json");
+			headers.set("apikey", apiKey);
+
+			String attachPluginUri = authenticatorBaseUri + CREATE_SERVICE + "/" + kongServiceName + ATTACH_OPENTELEMETRY_PLUGIN_TO_SERVICE;
+			HttpEntity<String> entity = new HttpEntity<>(pluginConfigJson, headers);
+
+			LOGGER.info("Calling Kong Admin API: POST {}", attachPluginUri);
+			ResponseEntity<String> attachPluginResponse = restTemplate.exchange(attachPluginUri, HttpMethod.POST, entity, String.class);
+			if (attachPluginResponse != null && attachPluginResponse.getStatusCode() != null) {
+				if (attachPluginResponse.getStatusCode().is2xxSuccessful()) {
+					status = "SUCCESS";
+					LOGGER.info("Success while creating OpenTelemetry plugin on Kong for service {}", kongServiceName);
+				} else {
+					LOGGER.info("Warnings while creating OpenTelemetry plugin for service: {}, httpstatuscode is {}",
+							kongServiceName, attachPluginResponse.getStatusCodeValue());
+					MessageDescription warning = new MessageDescription();
+					warning.setMessage("Response from kong create OpenTelemetry plugin : " + attachPluginResponse.getBody()
+							+ " Response Code is : " + attachPluginResponse.getStatusCodeValue());
+					warnings.add(warning);
+				}
+			}
+		} catch (Exception e) {
+			LOGGER.error("Error occurred while creating OpenTelemetry plugin for service: {} with exception {}",
+					kongServiceName, e.getMessage());
+			MessageDescription error = new MessageDescription();
+			error.setMessage("Error occurred while creating OpenTelemetry plugin for service: " + kongServiceName
+					+ " with exception: " + e.getMessage());
+			errors.add(error);
+		}
+		response.setSuccess(status);
+		response.setWarnings(warnings);
+		response.setErrors(errors);
+		return response;
+	}
 }

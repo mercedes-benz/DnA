@@ -48,9 +48,10 @@ const DeployedAppConfigModal = (props) => {
   const [pluginEnabled, setPluginEnabled] = useState(false);
   const [showEnablePluginWarning, setShowEnablePluginWarning] = useState(false);
   const [securedWithIAMWarning, setSecuredWithIAMWarning] = useState(false);
-  const [enableAliceRole, setEnableAliceRole] = useState(false);
+  const [enableAliceRole, setEnableAliceRole] = useState(props?.deploymentDetails?.aliceRoleEnabled || false);
+  const [enableEntitlementPrefix, setEnableEntitlementPrefix] = useState(props?.deploymentDetails?.entitlementPrefixEnabled || false);
   const [existingRoles, setExistingRoles] = useState([]);
-  const [selectedRoles, setSelectedRoles] = useState([]);
+  const [selectedRoles, setSelectedRoles] = useState(props?.deploymentDetails?.selectedAliceRoles || []);
   const [aliceRolesError, setAliceRolesError] = useState('');
 
   const ignorePaths = [
@@ -64,7 +65,7 @@ const DeployedAppConfigModal = (props) => {
 
   const scopes = [
     { id: '1', name: 'openid' },
-    { id: '2', name: 'autorization_group' },
+    { id: '2', name: 'authorization_group' },
     { id: '3', name: 'entitlement_group' },
     { id: '4', name: 'scoped_entitlement' },
     { id: '5', name: 'email' },
@@ -72,9 +73,44 @@ const DeployedAppConfigModal = (props) => {
     { id: '7', name: 'phone' },
     { id: '8', name: 'offline_access' },
     { id: '9', name: 'group_type' },
+    { id: '10', name: 'organizational_data' },
   ];
 
-  const fixedScope = ['openid', 'offline_access'];
+  const entitlementScope = scopes
+    .filter((scope) =>
+      [
+        'openid',
+        'authorization_group',
+        'entitlement_group',
+        'scoped_entitlement',
+        'email',
+        'profile',
+        'organizational_data',
+      ].includes(scope.name),
+    )
+    .map((scope) => {
+      return (
+        <label key={scope.name} className={classNames('chips',Styles.deployConfigChips)}>
+          {scope.name}
+        </label>
+      );
+    });
+
+  const userInfoScope = scopes
+    .filter((scope) =>
+      ['openid', 'authorization_group', 'scoped_entitlement', 'email', 'profile', 'organizational_data'].includes(
+        scope.name,
+      ),
+    )
+    .map((scope) => {
+      return (
+        <label key={scope.name} className={classNames('chips',Styles.deployConfigChips)}>
+          {scope.name}
+        </label>
+      );
+    });
+
+  const fixedScope = ['openid', 'offline_access', 'entitlement_group'];
 
   const deploymentMigrated = props?.deploymentDetails?.deploymentUrl?.includes(Envs.CODESPACE_OIDC_POPUP_URL);
   const envUrl = deploymentMigrated ? Envs.CODESPACE_AWS_DEPLOYMENT_URL : Envs.CODESPACE_DEPLOYMENT_URL;
@@ -109,11 +145,7 @@ const DeployedAppConfigModal = (props) => {
     );
     props?.deploymentDetails?.ignorePaths?.length && setIgnorePath(props?.deploymentDetails?.ignorePaths?.split(','));
     props?.deploymentDetails?.scope?.length && setScope(props?.deploymentDetails?.scope?.split(' '));
-    if (props?.deploymentDetails?.selectedRoles) {
-      const updatedRoles = props?.deploymentDetails?.selectedRoles.map(role => role.startsWith("DNA.") ? role.replace("DNA.", "") : role);
-      setSelectedRoles(updatedRoles);
-    }
-    if(props?.deploymentDetails?.secureWithIAMRequired || props?.deploymentDetails?.secureWithDnaRequired){
+    if (props?.deploymentDetails?.secureWithIAMRequired || props?.deploymentDetails?.secureWithDnaRequired) {
       ProgressIndicator.show();
       CodeSpaceApiClient.getPluginStatus(props?.workspaceId, props?.isStaging ? 'int' : 'prod', 'oidc')
         .then((res) => {
@@ -137,6 +169,7 @@ const DeployedAppConfigModal = (props) => {
     if (deploymentType === 'API') {
       setIsUiRecipe(false);
       setRedirectUri('');
+      setEnableAliceRole(false);
     } else {
       setIsUiRecipe(true);
       setRedirectUri(`${envUrl}/${props?.projectName.toLowerCase()}/${props?.isStaging ? 'int' : 'prod'}/cb`);
@@ -165,33 +198,47 @@ const DeployedAppConfigModal = (props) => {
 
   useEffect(() => {
     const redirectUri =
-      deploymentType === 'UI' ? `${envUrl}/${props?.projectName.toLowerCase()}/${props?.isStaging ? 'int' : 'prod'}/cb` : '';
+      deploymentType === 'UI'
+        ? `${envUrl}/${props?.projectName.toLowerCase()}/${props?.isStaging ? 'int' : 'prod'}/cb`
+        : '';
     if (resetRequired) {
       setClientId('');
       setClientSecret('');
       setRedirectUri(redirectUri);
       setIgnorePath([]);
       setScope(['openid', 'offline_access']);
+      setEnableAliceRole(false);
+      setEnableEntitlementPrefix(false);
+      setSelectedRoles([]);
     } else {
       setClientId(props?.deploymentDetails?.clientId || '');
       setRedirectUri(
-        props?.deploymentDetails?.redirectUri ? `${envUrl}${props?.deploymentDetails?.redirectUri.toLowerCase()}` : redirectUri,
+        props?.deploymentDetails?.redirectUri
+          ? `${envUrl}${props?.deploymentDetails?.redirectUri.toLowerCase()}`
+          : redirectUri,
       );
       props?.deploymentDetails?.ignorePaths?.length && setIgnorePath(props?.deploymentDetails?.ignorePaths?.split(','));
       props?.deploymentDetails?.scope?.length && setScope(props?.deploymentDetails?.scope?.split(' '));
+      setEnableAliceRole(props?.deploymentDetails?.aliceRoleEnabled || false);
+      if (props?.deploymentDetails?.selectedRoles?.length) {
+        const updatedRoles = props?.deploymentDetails?.selectedRoles.map((role) =>
+          role.startsWith('DNA.') ? role.replace('DNA.', '') : role,
+        );
+        setSelectedRoles(updatedRoles);
+      }
+      setEnableEntitlementPrefix(props?.deploymentDetails?.entitlementPrefixEnabled || false);
     }
   }, [resetRequired]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  useEffect (() => {
-    if(enableAliceRole){
-      ProgressIndicator.show();
+  useEffect(() => {
+    if (enableAliceRole) {
+      setScope(['openid', 'offline_access', 'entitlement_group']);
       CodeSpaceApiClient.getExistingRoles(Envs.CODESPACE_SECURITY_APP_ID)
         .then((res) => {
-          ProgressIndicator.hide();
           if (res?.data?.roles) {
-            const existingRoles = res?.data?.roles.map(role => ({
+            const existingRoles = res?.data?.roles.map((role) => ({
               id: role.roleID,
-              name: role.roleID
+              name: role.roleID,
             }));
             setExistingRoles(existingRoles);
           } else {
@@ -204,11 +251,12 @@ const DeployedAppConfigModal = (props) => {
           }
         })
         .catch((err) => {
-          ProgressIndicator.hide();
           Notification.show(err?.message || 'Something went wrong', 'alert');
         });
+    } else {
+      setScope(['openid', 'offline_access']);
     }
-  },[enableAliceRole]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [enableAliceRole]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const onChangeSecureWithIAM = (e) => {
     if (!e.target.checked && props?.deploymentDetails?.secureWithIAMRequired) {
@@ -247,8 +295,12 @@ const DeployedAppConfigModal = (props) => {
 
   const onIgnorePathChange = (selectedTags) => {
     setIgnorePath(selectedTags);
-    const ignorePathError = selectedTags.some((item) => item.endsWith('/') || item.includes(' ') || !item.startsWith('/'));
-    ignorePathError ? setIgnorePathError(`*path should start with '/' and path should not end with '/' or include white spaces.`) : setIgnorePathError('');
+    const ignorePathError = selectedTags.some(
+      (item) => item.endsWith('/') || item.includes(' ') || !item.startsWith('/'),
+    );
+    ignorePathError
+      ? setIgnorePathError(`*path should start with '/' and path should not end with '/' or include white spaces.`)
+      : setIgnorePathError('');
   };
 
   const onScopeChange = (selectedTags) => {
@@ -256,16 +308,27 @@ const DeployedAppConfigModal = (props) => {
   };
 
   const onRolesChange = (selectedTags) => {
-    const upperCaseTags = selectedTags.map(tag => tag.toUpperCase());
+    const upperCaseTags = selectedTags.map((tag) => tag.toUpperCase());
     setSelectedRoles(upperCaseTags);
-    const aliceRoleError = upperCaseTags.some(tag => !tag.startsWith(`${Envs.CODESPACE_SECURITY_APP_ID}_`));
-    aliceRoleError ? setAliceRolesError(`*Role names should start with ${Envs.CODESPACE_SECURITY_APP_ID}_`) : setAliceRolesError('');
+    if (enableEntitlementPrefix) {
+      const entitlementPrefixError = upperCaseTags.some((tag) => !tag.startsWith(`${Envs.DNA_ENTITLEMENT_PREFIX}.`));
+      entitlementPrefixError
+        ? setAliceRolesError(`*Entitlement prefix should start with ${Envs.DNA_ENTITLEMENT_PREFIX}. and then your prefix name`)
+        : setAliceRolesError('');
+    } else {
+      const aliceRoleError = upperCaseTags.some((tag) => !tag.startsWith(`${Envs.CODESPACE_SECURITY_APP_ID}_`));
+      aliceRoleError
+        ? setAliceRolesError(`*Role names should start with ${Envs.CODESPACE_SECURITY_APP_ID}_`)
+        : setAliceRolesError('');
+    }
   };
 
   const onSaveConfig = () => {
     let formValid = true;
     const secureWithIAMValidation =
       secureWithIAMSelected && (!props?.deploymentDetails?.secureWithIAMRequired || changeSelected || resetRequired);
+    const secureWithDnaValidation =
+      secureWithDnaSelected && (!props?.deploymentDetails?.secureWithDnaRequired || changeSelected || resetRequired);
     if (secureWithIAMValidation && clientId.length === 0) {
       formValid = false;
       setClientIdError('*Missing Entry');
@@ -274,7 +337,7 @@ const DeployedAppConfigModal = (props) => {
       formValid = false;
       setClientSecretError('*Missing Entry');
     }
-    if (secureWithIAMValidation && isUiRecipe && redirectUri.length === 0) {
+    if ((secureWithIAMValidation || secureWithDnaValidation) && isUiRecipe && redirectUri.length === 0) {
       formValid = false;
       setRedirectUriError('*Missing Entry');
     }
@@ -285,8 +348,15 @@ const DeployedAppConfigModal = (props) => {
       formValid = false;
       setOneApiVersionShortNameError('*Missing Entry');
     }
+    if (enableAliceRole && enableEntitlementPrefix && selectedRoles.length === 0) {
+      formValid = false;
+      setAliceRolesError('*Missing Entry');
+    } else{
+      setAliceRolesError('');
+    }
     if (formValid) {
-      const prefixedRoles = selectedRoles.map(role => `DNA.${role}`);
+      const entitlementScope = 'openid authorization_group entitlement_group scoped_entitlement email profile organizational_data';
+      const userInfoScope = 'openid authorization_group scoped_entitlement email profile organizational_data';
       const configRequest = {
         targetEnvironment: props?.isStaging ? 'int' : 'prod',
         secureWithIAMRequired: secureWithIAMSelected,
@@ -294,16 +364,20 @@ const DeployedAppConfigModal = (props) => {
         clientID: secureWithIAMSelected ? clientId : secureWithDnaSelected ? Envs.DNA_CLIENT_ID : '',
         clientSecret: clientSecret,
         redirectUri:
-          (secureWithIAMSelected || secureWithDnaSelected) && deploymentType === 'UI' && redirectUri?.length ? redirectUri?.split(envUrl)[1] : '',
-        ignorePaths: (secureWithIAMSelected || secureWithDnaSelected) && ignorePath?.length ? ignorePath?.join(',') : '',
-        scope: (secureWithIAMSelected || secureWithDnaSelected) ? scope?.join(' ') : '',
+          (secureWithIAMSelected || secureWithDnaSelected) && deploymentType === 'UI' && redirectUri?.length
+            ? redirectUri?.split(envUrl)[1]
+            : '',
+        ignorePaths:
+          (secureWithIAMSelected || secureWithDnaSelected) && ignorePath?.length ? ignorePath?.join(',') : '',
+        scope: secureWithIAMSelected ? scope?.join(' ') : (secureWithDnaSelected ? (enableAliceRole ? entitlementScope : userInfoScope) : ''),
         isApiRecipe: deploymentType === 'API',
         oneApiVersionShortName: oneApiSelected ? oneApiVersionShortName : '',
         // isSecuredWithCookie: (secureWithIAMSelected && deploymentType === 'API' && cookieSelected) || false,
         isSecuredWithCookie: false,
         ssoType: secureWithIAMSelected ? ssoType : secureWithDnaSelected ? Envs.DNA_SSO_TYPE : 'SSO_INT',
-        aliceRoleEnabled: enableAliceRole,
-        selectedAliceRoles: prefixedRoles,
+        aliceRoleEnabled: secureWithDnaSelected ? enableAliceRole : false,
+        selectedAliceRoles: (secureWithDnaSelected && enableAliceRole) ? selectedRoles : [],
+        entitlementPrefixEnabled: secureWithDnaSelected && enableAliceRole && enableEntitlementPrefix,
       };
       ProgressIndicator.show();
       CodeSpaceApiClient.updateDeployedAppConfig(props?.workspaceId, configRequest)
@@ -345,12 +419,7 @@ const DeployedAppConfigModal = (props) => {
   const onPluginStatusChange = (enableAuthorizer = false) => {
     setShowEnablePluginWarning(false);
     ProgressIndicator.show();
-    CodeSpaceApiClient.updatePluginStatus(
-      props?.workspaceId,
-      props?.isStaging ? 'int' : 'prod',
-      'oidc',
-      !pluginEnabled,
-    )
+    CodeSpaceApiClient.updatePluginStatus(props?.workspaceId, props?.isStaging ? 'int' : 'prod', 'oidc', !pluginEnabled)
       .then((res) => {
         if (res?.data?.success === 'SUCCESS') {
           Notification.show(`Oidc plugin updated successfully`);
@@ -367,7 +436,8 @@ const DeployedAppConfigModal = (props) => {
                   Notification.show(` Api authoriser updated successfully`);
                 } else {
                   Notification.show(
-                    'Error in updating api authoriser plugin. Please try again later.\n' + res?.data?.errors[0]?.message,
+                    'Error in updating api authoriser plugin. Please try again later.\n' +
+                      res?.data?.errors[0]?.message,
                     'alert',
                   );
                   // Notification.show('Error in updating api authoriser plugin', 'alert');
@@ -392,8 +462,7 @@ const DeployedAppConfigModal = (props) => {
       })
       .catch((err) => {
         Notification.show(
-          'Error in updating oidc plugin. Please try again later.\n' +
-            err?.response?.data?.errors[0]?.message,
+          'Error in updating oidc plugin. Please try again later.\n' + err?.response?.data?.errors[0]?.message,
           'alert',
         );
         // Notification.show('Error in updating OIDC Plugin. Please try again later.', 'alert');
@@ -605,30 +674,34 @@ const DeployedAppConfigModal = (props) => {
               </a>
             </span>
           )}
-          {secureWithDnaSelected && isUiRecipe && (
-            // <div className={classNames(Styles.align, Styles.flexLayout)}>
-            <div className={classNames('hide',Styles.align, Styles.infoIcon)}>
-              <label className={classNames('switch', enableAliceRole ? 'on' : '')}>
-                <span className="label" style={{ marginRight: '5px' }}>
-                  Enable Alice Role Usage in cookie authentication
-                </span>
-                <span className="wrapper">
-                  <input
-                    value={enableAliceRole}
-                    type="checkbox"
-                    className="ff-only"
-                    onChange={() => {
-                      setEnableAliceRole(!enableAliceRole);
-                    }}
-                    checked={enableAliceRole}
-                    disabled={true}
-                    // maxLength={63}
-                  />
-                </span>
-              </label>
-            </div>
-            // </div>
-          )}
+          {(!props?.deploymentDetails?.secureWithDnaRequired || changeSelected || resetRequired) &&
+            secureWithDnaSelected &&
+            isUiRecipe && (
+              <div>
+                <div className={classNames(Styles.align, Styles.infoIcon)}>
+                  <label className={classNames('switch', enableAliceRole ? 'on' : '')}>
+                    <span className="wrapper">
+                      <input
+                        value={enableAliceRole}
+                        type="checkbox"
+                        className="ff-only"
+                        onChange={() => {
+                          setEnableAliceRole(!enableAliceRole);
+                        }}
+                        checked={enableAliceRole}
+                        // maxLength={63}
+                      />
+                    </span>                  
+                    <span className="label" style={{ marginRight: '5px' }}>
+                      Include DnA Entitlements as part of user info cookie. (useful for authorization of frontend applications using user info cookie)
+                    </span>
+                  </label>
+                </div>
+                <div className={classNames(Styles.align, Styles.clientIdLabel)}>
+                  {!enableAliceRole && 'Since usage of DnA Entitlements as part of user info cookie is disabled, only user id will be passed in the user info cookie.'}  
+                </div>
+              </div>
+            )}
           {/* {secureWithIAMSelected && !isUiRecipe && (
             <div className={classNames(Styles.align, Styles.flexLayout)}>
               <div className={Styles.infoIcon}>
@@ -812,25 +885,32 @@ const DeployedAppConfigModal = (props) => {
                   />
                 </div>
                 <div className={classNames(Styles.align)}>
-                  <Tags
-                    title={'Scope'}
-                    max={100}
-                    chips={scope}
-                    fixedChips={fixedScope}
-                    tags={scopes}
-                    setTags={onScopeChange}
-                    isMandatory={false}
-                    disableSelfTagAdd={true}
-                    suggestionPopupHeight={150}
-                    showAllTagsOnFocus={true}
-                    isDeployedAppConfig={true}
-                  />
+                  {secureWithDnaSelected && isUiRecipe ? (
+                    <div>
+                      <label className={classNames(Styles.clientIdLabel)}>Scope</label>
+                      {enableAliceRole ? (<div>{entitlementScope}</div>) : (<div>{userInfoScope}</div>)}
+                    </div>
+                  ) : (
+                    <Tags
+                      title={'Scope'}
+                      max={100}
+                      chips={scope}
+                      fixedChips={fixedScope}
+                      tags={scopes}
+                      setTags={onScopeChange}
+                      isMandatory={false}
+                      disableSelfTagAdd={true}
+                      suggestionPopupHeight={150}
+                      showAllTagsOnFocus={true}
+                      isDeployedAppConfig={true}
+                    />
+                  )}
                 </div>
               </div>
               {secureWithDnaSelected && enableAliceRole && (
                 <div className={classNames(Styles.wrapper)}>
                   <span className="label">
-                    <p>{`Add Roles from Alice ${Envs.CODESPACE_SECURITY_APP_ID}`}</p>
+                    <p>Filter entitlements ( Alice Role based / Entitlement Prefix based )</p>
                   </span>
                   <div className={classNames(Styles.clientIdLabel, Styles.align)}>
                     {`You can create Alice roles within the DNA platform (Application ID: ${Envs.CODESPACE_SECURITY_APP_ID}
@@ -842,21 +922,51 @@ const DeployedAppConfigModal = (props) => {
                     </span>
                     .
                   </div>
+                  <div className={classNames(Styles.align, Styles.infoIcon)}>
+                    <label className={classNames('switch', enableEntitlementPrefix ? 'on' : '')}>
+                      <span className="label" style={{ marginRight: '5px' }}>
+                        Enable filtering based on entitlement prefix
+                      </span>
+                      <span className="wrapper">
+                        <input
+                          value={enableEntitlementPrefix}
+                          type="checkbox"
+                          className="ff-only"
+                          onChange={() => {
+                            setEnableEntitlementPrefix(!enableEntitlementPrefix);
+                          }}
+                          checked={enableEntitlementPrefix}
+                        />
+                      </span>
+                    </label>
+                  </div>
                   <div className={classNames(Styles.align)}>
                     <Tags
-                      title={'Alice Roles'}
-                      max={100}
+                      title={enableEntitlementPrefix ? 'Entitlement Prefix' : 'Alice Roles'}
+                      max={20}
                       chips={selectedRoles}
-                      tags={existingRoles}
+                      tags={enableEntitlementPrefix ? [] : existingRoles}
                       setTags={onRolesChange}
                       errorText={aliceRolesError}
-                      isMandatory={false}
+                      isMandatory={enableEntitlementPrefix ? true : false}
                       disableSelfTagAdd={false}
                       suggestionPopupHeight={150}
                       showAllTagsOnFocus={true}
                       isDeployedAppConfig={true}
                     />
                   </div>
+                  {enableEntitlementPrefix ? (
+                    <div className={classNames(Styles.clientIdLabel, Styles.align)}>
+                      Please enter the prefixes of the DnA entitlements that you wnat to include in your userInfo cookie.<br/>
+                      Alternatively if you want to include all the user DnA entitlements belonging to specific role/roles please disable the filter based entitlent prefix option.
+                    </div>
+                  ) : (
+                    <div className={classNames(Styles.clientIdLabel, Styles.align)}>
+                      If no roles are selected then all the user DnA entitlements will be added to the userInfo cookie.<br/>
+                      Once you select role/roles only the user DnA entitelements belonging to that specific role/roles will be part of the userInfo cookie.<br/>
+                      Alternatively if you want to filter the entitlements based on certain prefix please enable that option.
+                    </div>
+                  )}
                 </div>
               )}
             </>

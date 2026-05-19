@@ -87,6 +87,9 @@ public class KongClientImpl implements KongClient {
 	@Value("${corsPlugin.allowedUrls}")
 	private String allowedUrls;
 
+	@Value("${corsPlugin.oneApiAllowedUrls}")
+	private String oneApiAllowedUrls;
+
 	@Value("${corsPlugin.maxAge}")
 	private long maxAge;
 
@@ -285,7 +288,9 @@ public class KongClientImpl implements KongClient {
 
 				corsRequestWrapper.setName(attachPluginVO.getName().name().toLowerCase());
 				attachCorsPluginConfigRequestDto.setMax_age(maxAge);
-				String [] urls = allowedUrls.split(",");
+				Boolean isSecureWithOneApi = Objects.nonNull(attachPluginVO.getOneApiVersionShortName()) && !attachPluginVO.getOneApiVersionShortName().isBlank();
+				LOGGER.info("isSecureWithOneApi {}",isSecureWithOneApi);
+				String[] urls = isSecureWithOneApi ? oneApiAllowedUrls.split(",") : allowedUrls.split(",");
 				List<String> origins = Arrays.asList(urls);
 				attachCorsPluginConfigRequestDto.setOrigins(origins);
 				attachCorsPluginConfigRequestDto.setCredentials(true);
@@ -1157,6 +1162,56 @@ public class KongClientImpl implements KongClient {
 			return createRouteResponseVO;
 		}
 		return createRouteResponseVO;
+	}
+
+	@Override
+	public GenericMessage attachOpenTelemetryPluginToService(String pluginConfigJson, String serviceName) {
+		GenericMessage message = new GenericMessage();
+		MessageDescription messageDescription = new MessageDescription();
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+		try {
+			String kongUri = kongBaseUri + "/services/" + serviceName + "/plugins";
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Content-Type", "application/json");
+
+			HttpEntity<String> pluginRequest = new HttpEntity<>(pluginConfigJson, headers);
+			ResponseEntity<String> response = restTemplate.exchange(kongUri, HttpMethod.POST, pluginRequest, String.class);
+			if (response != null && response.hasBody()) {
+				HttpStatus statusCode = response.getStatusCode();
+				if (statusCode == HttpStatus.CREATED) {
+					LOGGER.info("opentelemetry plugin attached successfully to service: {}", serviceName);
+					message.setSuccess("Success");
+					message.setErrors(errors);
+					message.setWarnings(warnings);
+					return message;
+				}
+			}
+		} catch (HttpClientErrorException ex) {
+			if (ex.getRawStatusCode() == HttpStatus.CONFLICT.value()) {
+				LOGGER.info("opentelemetry plugin already attached to service: {}", serviceName);
+				message.setSuccess("Failure");
+				messageDescription.setMessage("OpenTelemetry Plugin already attached to service");
+				errors.add(messageDescription);
+				message.setErrors(errors);
+				return message;
+			}
+			LOGGER.error("Error occured while attaching opentelemetry plugin to service: {}", ex.getMessage());
+			message.setSuccess("Failure");
+			messageDescription.setMessage(ex.getMessage());
+			errors.add(messageDescription);
+			message.setErrors(errors);
+			return message;
+		} catch (Exception e) {
+			LOGGER.error("Error while attaching opentelemetry plugin to service: {}", e.getMessage());
+			message.setSuccess("Failure");
+			messageDescription.setMessage(e.getMessage());
+			errors.add(messageDescription);
+			message.setErrors(errors);
+			return message;
+		}
+		return message;
 	}
 
 

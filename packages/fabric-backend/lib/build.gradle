@@ -12,11 +12,12 @@ buildscript {
         releaseVersion = "1.0.0"
     }
     repositories {
-        mavenLocal()
-        mavenCentral()
-		gradlePluginPortal()
 		maven {
-		  url "https://plugins.gradle.org/m2/"
+            url System.getenv('ARTIFACTORY_URL')
+            credentials {
+                username System.getenv('ARTIFACTORY_USER')
+                password System.getenv('ARTIFACTORY_PASSWORD')
+            }
 		}
     }
     dependencies {
@@ -40,11 +41,12 @@ apply plugin: "maven-publish"
 apply plugin: "org.hidetake.swagger.generator"
 
 repositories {
-        mavenLocal()
-        mavenCentral()
-		gradlePluginPortal()
 		maven {
-		  url "https://plugins.gradle.org/m2/"
+            url System.getenv('ARTIFACTORY_URL')
+            credentials {
+                username System.getenv('ARTIFACTORY_USER')
+                password System.getenv('ARTIFACTORY_PASSWORD')
+            }
 		}
 }
 
@@ -121,6 +123,21 @@ swaggerSources {
             components = ['models', 'apis']
         }
     }
+    
+    fabricWorkspaceAdmin {
+        def fabricWorkspaceAdminyaml = "${rootDir}/lib/src/main/resources/api/fabricWorkspacesAdmin.yaml"
+        def fabricWorkspaceAdminJson = "${rootDir}/lib/src/main/resources/api/fabricWorkspacesAdmin.json"
+        inputFile = file(fabricWorkspaceAdminyaml)
+
+        def ignoreFile = "${rootDir}/lib/src/main/resources/api/.swagger-codegen-ignore"
+
+        code {
+            language = 'spring'
+            configFile = file(fabricWorkspaceAdminJson)
+            rawOptions = ['--ignore-file-override', ignoreFile]
+            components = ['models', 'apis']
+        }
+    }
 }
 
 compileJava {
@@ -133,6 +150,8 @@ compileJava {
     source "${swaggerSources.adaProjects.code.outputDir}/src/main/java"
     dependsOn swaggerSources.fabricCatalogManagement.code
     source "${swaggerSources.fabricCatalogManagement.code.outputDir}/src/main/java"
+    dependsOn swaggerSources.fabricWorkspaceAdmin.code
+    source "${swaggerSources.fabricWorkspaceAdmin.code.outputDir}/src/main/java" 
 }
 
 sourceSets {
@@ -146,6 +165,7 @@ sourceSets {
 		java { srcDirs += "${swaggerSources.fabricWorkspace.code.outputDir}/src/main/java" }
         java { srcDirs += "${swaggerSources.tag.code.outputDir}/src/main/java"}
         java { srcDirs += "${swaggerSources.adaProjects.code.outputDir}/src/main/java"}
+        java { srcDirs += "${swaggerSources.fabricWorkspaceAdmin.code.outputDir}/src/main/java" }
     }
 }
 
@@ -231,13 +251,16 @@ dependencies {
     implementation ('net.javacrumbs.shedlock:shedlock-provider-jdbc-template:6.3.1')
 
     // OpenMetadata SDK
-    implementation 'org.open-metadata:openmetadata-java-client:1.6.13'
-    implementation 'org.open-metadata:openmetadata-spec:1.6.13'
+    implementation 'org.open-metadata:openmetadata-java-client:1.7.7'
+    implementation 'org.open-metadata:openmetadata-spec:1.7.7'
 
     // Feign for HTTP client
     implementation 'io.github.openfeign:feign-core:13.6'
     implementation 'io.github.openfeign:feign-jackson:13.6'
     implementation 'io.github.openfeign:feign-okhttp:13.6'
+
+    // databricks SDK
+    implementation("com.databricks:databricks-sdk-java:0.103.0")
 }
 
 tasks.named('test') {

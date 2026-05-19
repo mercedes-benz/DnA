@@ -1,4 +1,4 @@
-import { server, hostServer, reportsServer, vaultServer, storageServer, fabricServer, baseURL, readJwt} from '../server/api';
+import { server, hostServer, reportsServer, storageServer, fabricServer, baseURL, readJwt} from '../server/api';
 import { EventSourcePolyfill } from 'event-source-polyfill';
 import { Envs } from '../Utility/envs';
 
@@ -28,6 +28,12 @@ const editCodeSpace = (id, data) => {
 
 const getCodeSpaceStatus = (id) => { 
     return server.get(`workspaces/status/${id}`, {
+        data: {},
+    });
+};
+
+const getWorkspaceById = (id) => { 
+    return server.get(`workspaces/${id}`, {
         data: {},
     });
 };
@@ -343,16 +349,12 @@ const publishSecurityConfigRequest = (id) => { //not used
     });
 };
 
-const read_secret = (codeSpaceName, env) => { 
-    return vaultServer.get(`/secret/${codeSpaceName}/${env}`, {
-        data: {},
-    });
+const read_secret = (codeSpaceName, env) => {
+    return server.get(`/vault/secrets?codeSpaceName=${codeSpaceName}&env=${env}`);
 };
 
-const update_secret = (path, secret_value, env) => { 
-    return vaultServer.put(`/secret/${path}/${env}`, 
-        secret_value,
-    );
+const update_secret = (path, secret_value, env) => {
+    return server.put(`/vault/secrets?path=${path}&env=${env}`, secret_value);
 };
 
 const startStopWorkSpace = (id, serverStarted, env, manual) => { 
@@ -427,6 +429,12 @@ const deleteCodeSpaceGroup = (id) => {
 const getExistingRoles = (appId) => {
     return fabricServer.get(`fabric-workspaces/${appId}/dnaroles`, {
         data: {},
+        validateStatus: (status) => (status >= 200 && status < 300) || status === 204,
+    }).then(response => {
+        if (response.status === 204 || !response.data) {
+            return { data: { roles: [] } };
+        }
+        return response;
     });
 };
 
@@ -435,6 +443,7 @@ export const CodeSpaceApiClient = {
     createCodeSpace,
     editCodeSpace,
     getCodeSpaceStatus,
+    getWorkspaceById,
     deleteCodeSpace,
     getCodeSpacesGitBranchList,
     deployCodeSpace,

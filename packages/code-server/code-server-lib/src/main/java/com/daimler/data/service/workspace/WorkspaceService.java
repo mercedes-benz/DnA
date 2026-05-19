@@ -66,7 +66,7 @@ public interface WorkspaceService {
 
 	GenericMessage approveRequestWorkspace(String userId, String id, String environment, String branch, boolean isprivateRecipe, String version);
 
-	GenericMessage deployWorkspace(String userId, String id, String environment, String branch, boolean isprivateRecipe, String version, String deployType);
+	GenericMessage deployWorkspace(String userId, String id, String environment, String branch, boolean isprivateRecipe, String version, String deployType, Boolean keepImage);
 
 	GenericMessage deployedAppConfig(String userId, String id, String environment, DeployedAppConfigDto deployedAppConfigDto);
 
@@ -117,6 +117,8 @@ public interface WorkspaceService {
 
 	GenericMessage migrateWorkspace(CodeServerWorkspaceNsql entity);
 
+	GenericMessage migrateWorkspaceToGHE(CodeServerWorkspaceNsql entity);
+
 	GenericMessage buildWorkSpace(String userId,String id,String branch,ManageBuildRequestDto buildRequestDto,boolean isPrivateRecipe,String environment,String lastBuildType);
 
 	CodeServerWorkspaceVO findByWorkspaceId(String wsId);
@@ -138,5 +140,14 @@ public interface WorkspaceService {
 	CodeServerUserGroupCollectionVO deleteWorkSpaceGroup(String id);
 
 	GenericMessage deleteBuild(String projectName,String version);
-	
+
+	GenericMessage getStatusByJobRunId(CodeServerWorkspaceNsql entity);
+
+	String updateGitJobRunId(GitJobRunIdRequestVO request);
+
+    GitJobRunIdStatusVO getGitRunIdStatus(String projectName);
+
+    GenericMessage cancelWorkspaceRun(String projectName);
+
+	GenericMessage createOpenTelemetryPlugin(String workspaceId, String environment, String serviceName);
 }
