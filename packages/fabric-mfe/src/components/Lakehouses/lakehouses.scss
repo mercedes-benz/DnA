@@ -489,13 +489,34 @@ hr {
   }
 }
 
+// Mismatch Modal Styles
+.mismatchModalContent {
+  padding: 10px;
+}
+
+.mismatchWarning {
+  color: #FFEB3B;
+  font-size: var(--font-size-medium);
+  margin-bottom: 20px;
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+
+  i {
+    color: #FFEB3B;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+}
+
 .mismatchList {
   display: flex;
   flex-direction: column;
   gap: 12px;
+  margin-bottom: 20px;
 }
 
-.mismatchItem {
+.mismatchCard {
   background-color: #252a33;
   border: 1px solid #383f49;
   border-radius: 4px;
@@ -509,13 +530,13 @@ hr {
   margin-bottom: 8px;
 }
 
-.mismatchTableName {
+.tableName {
   font-family: 'Roboto-Medium';
   font-size: var(--font-size-sub-headline);
-  color: #fff;
+  color: grey;
 }
 
-.mismatchType {
+.mismatchBadge {
   padding: 2px 8px;
   border-radius: 2px;
   font-size: var(--font-size-icon-small);
@@ -523,17 +544,17 @@ hr {
   text-transform: uppercase;
 }
 
-.mismatchNew {
+.newTable {
   border: 1px solid #00adef;
   color: #00adef;
 }
 
-.mismatchDeleted {
+.deletedTable {
   border: 1px solid #e84d47;
   color: #e84d47;
 }
 
-.mismatchChanged {
+.modifiedTable {
   border: 1px solid #FFEB3B;
   color: #FFEB3B;
 }
@@ -544,13 +565,20 @@ hr {
   margin: 0 0 6px 0;
 }
 
-.mismatchColumns {
+.affectedColumns {
   color: #697582;
   font-size: var(--font-size-small);
+  margin-top: 8px;
+}
 
-  span {
-    font-weight: bold;
-  }
+.affectedLabel {
+  font-weight: bold;
+}
+
+.continueButton {
+  background-color: #00adef;
+  border-color: #00adef;
+  margin-top: 16px;
 }
 
 .changeWarningsContainer {
