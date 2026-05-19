@@ -8,6 +8,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.beans.BeanUtils;
 
 import com.daimler.data.db.entities.FabricCatalogMetadataNsql;
+import com.daimler.data.db.json.catalogManangement.CdcTableDetail;
 import com.daimler.data.db.json.catalogManangement.FabricCatalogMetadataDetails;
 import com.daimler.data.db.json.catalogManangement.MandatoryFields;
 import com.daimler.data.db.json.catalogManangement.FabricCatalogMetadata;
@@ -17,6 +18,7 @@ import com.daimler.data.db.json.catalogManangement.Tables;
 import com.daimler.data.db.json.catalogManangement.LakehouseTableDetail;
 import com.daimler.data.db.json.catalogManangement.LakehouseColumnDetail;
 import com.daimler.data.db.json.UserDetails;
+import com.daimler.data.dto.fabricCatalogManagement.CdcTableDetailVO;
 import com.daimler.data.dto.fabricCatalogManagement.FabricCatalogMetadataDetailsVO;
 import com.daimler.data.dto.fabricCatalogManagement.FabricCatalogMetadataVO;
 import com.daimler.data.dto.fabricCatalogManagement.DatabaseMetadataVO;
@@ -114,11 +116,16 @@ public class FabricCatalogMetadataAssembler implements GenericAssembler<FabricCa
             }
             data.setMandatoryFields(mandatoryFields);
             
-            // Map publishedCdcTables, publishedLakehouseTables, and publishedLakehouseTableDetails
+            // Map publishedCdcTables
             if (vo.getPublishedCdcTables() != null) {
-                data.setPublishedCdcTables(vo.getPublishedCdcTables());
+                List<CdcTableDetail> cdcTableDetails = new ArrayList<>();
+                for (CdcTableDetailVO cdcVo : vo.getPublishedCdcTables()) {
+                    cdcTableDetails.add(toCdcTableDetail(cdcVo));
+                }
+                data.setPublishedCdcTables(cdcTableDetails);
             }
-            
+
+            // Map publishedLakehouseTables and publishedLakehouseTableDetails
             if (vo.getPublishedLakehouseTables() != null) {
                 data.setPublishedLakehouseTables(vo.getPublishedLakehouseTables());
             }
@@ -229,11 +236,16 @@ public class FabricCatalogMetadataAssembler implements GenericAssembler<FabricCa
             }
             vo.setMandatoryFields(mandatoryFieldsVO);
             
-            // Map publishedCdcTables, publishedLakehouseTables, and publishedLakehouseTableDetails
+            // Map publishedCdcTables
             if (metadataDetails.getPublishedCdcTables() != null) {
-                vo.setPublishedCdcTables(metadataDetails.getPublishedCdcTables());
+                List<CdcTableDetailVO> cdcTableVos = new ArrayList<>();
+                for (CdcTableDetail cdcDetail : metadataDetails.getPublishedCdcTables()) {
+                    cdcTableVos.add(toCdcTableDetailVO(cdcDetail));
+                }
+                vo.setPublishedCdcTables(cdcTableVos);
             }
-            
+
+            // Map publishedLakehouseTables and publishedLakehouseTableDetails
             if (metadataDetails.getPublishedLakehouseTables() != null) {
                 vo.setPublishedLakehouseTables(metadataDetails.getPublishedLakehouseTables());
             }
@@ -261,6 +273,40 @@ public class FabricCatalogMetadataAssembler implements GenericAssembler<FabricCa
             }
         }
         return vo;
+    }
+
+    public CdcTableDetailVO toCdcTableDetailVO(CdcTableDetail detail) {
+        CdcTableDetailVO vo = new CdcTableDetailVO();
+        if (detail != null) {
+            vo.setWorkspaceName(detail.getWorkspaceName());
+            vo.setWorkspaceId(detail.getWorkspaceId());
+            vo.setLakehouseName(detail.getLakehouseName());
+            vo.setLakeHouseId(detail.getLakeHouseId());
+            vo.setIsLakeHousesPublishedToCdc(detail.getIsLakeHousesPublishedToCdc());
+            vo.setCreatedOn(detail.getCreatedOn());
+            vo.setModifiedOn(detail.getModifiedOn());
+            if (detail.getCreatedBy() != null) {
+                vo.setCreatedBy(toCreatedByVO(detail.getCreatedBy()));
+            }
+        }
+        return vo;
+    }
+
+    public CdcTableDetail toCdcTableDetail(CdcTableDetailVO vo) {
+        CdcTableDetail detail = new CdcTableDetail();
+        if (vo != null) {
+            detail.setWorkspaceName(vo.getWorkspaceName());
+            detail.setWorkspaceId(vo.getWorkspaceId());
+            detail.setLakehouseName(vo.getLakehouseName());
+            detail.setLakeHouseId(vo.getLakeHouseId());
+            detail.setIsLakeHousesPublishedToCdc(vo.isIsLakeHousesPublishedToCdc());
+            detail.setCreatedOn(vo.getCreatedOn());
+            detail.setModifiedOn(vo.getModifiedOn());
+            if (vo.getCreatedBy() != null) {
+                detail.setCreatedBy(toUserDetails(vo.getCreatedBy()));
+            }
+        }
+        return detail;
     }
 
     public UserDetails toUserDetails(CreatedByVO createdBy) {
