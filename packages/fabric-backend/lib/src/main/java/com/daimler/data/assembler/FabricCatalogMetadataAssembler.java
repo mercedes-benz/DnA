@@ -14,6 +14,8 @@ import com.daimler.data.db.json.catalogManangement.FabricCatalogMetadata;
 import com.daimler.data.db.json.catalogManangement.Databases;
 import com.daimler.data.db.json.catalogManangement.Schemas;
 import com.daimler.data.db.json.catalogManangement.Tables;
+import com.daimler.data.db.json.catalogManangement.LakehouseTableDetail;
+import com.daimler.data.db.json.catalogManangement.LakehouseColumnDetail;
 import com.daimler.data.db.json.UserDetails;
 import com.daimler.data.dto.fabricCatalogManagement.FabricCatalogMetadataDetailsVO;
 import com.daimler.data.dto.fabricCatalogManagement.FabricCatalogMetadataVO;
@@ -21,6 +23,8 @@ import com.daimler.data.dto.fabricCatalogManagement.DatabaseMetadataVO;
 import com.daimler.data.dto.fabricCatalogManagement.SchemaMetadataVO;
 import com.daimler.data.dto.fabricCatalogManagement.TableMetadataVO;
 import com.daimler.data.dto.fabricCatalogManagement.ColumnMetadataVO;
+import com.daimler.data.dto.fabricCatalogManagement.LakehouseTableDetailVO;
+import com.daimler.data.dto.fabricCatalogManagement.LakehouseColumnDetailVO;
 import com.daimler.data.dto.fabricCatalogManagement.MandatoryFieldsVO;
 import com.daimler.data.dto.fabricCatalogManagement.MandatoryFieldsVO.DivisionsEnum;
 // import com.daimler.data.dto.fabricCatalogManagement.MandatoryFieldsVO.DataOriginEnum;
@@ -109,6 +113,37 @@ public class FabricCatalogMetadataAssembler implements GenericAssembler<FabricCa
                 mandatoryFields.setTier(voMandatoryFields.getTier() != null ? voMandatoryFields.getTier() : null);
             }
             data.setMandatoryFields(mandatoryFields);
+            
+            // Map publishedCdcTables, publishedLakehouseTables, and publishedLakehouseTableDetails
+            if (vo.getPublishedCdcTables() != null) {
+                data.setPublishedCdcTables(vo.getPublishedCdcTables());
+            }
+            
+            if (vo.getPublishedLakehouseTables() != null) {
+                data.setPublishedLakehouseTables(vo.getPublishedLakehouseTables());
+            }
+            
+            if (vo.getPublishedLakehouseTableDetails() != null) {
+                List<LakehouseTableDetail> tableDetails = new ArrayList<>();
+                for (LakehouseTableDetailVO tableVo : vo.getPublishedLakehouseTableDetails()) {
+                    LakehouseTableDetail tableDetail = new LakehouseTableDetail();
+                    tableDetail.setTableName(tableVo.getTableName());
+                    tableDetail.setEnabled(tableVo.isEnabled());
+                    
+                    if (tableVo.getColumns() != null) {
+                        List<LakehouseColumnDetail> columnDetails = new ArrayList<>();
+                        for (LakehouseColumnDetailVO colVo : tableVo.getColumns()) {
+                            LakehouseColumnDetail colDetail = new LakehouseColumnDetail();
+                            colDetail.setColumnName(colVo.getColumnName());
+                            colDetail.setEnabled(colVo.isEnabled());
+                            columnDetails.add(colDetail);
+                        }
+                        tableDetail.setColumns(columnDetails);
+                    }
+                    tableDetails.add(tableDetail);
+                }
+                data.setPublishedLakehouseTableDetails(tableDetails);
+            }
         }
         entity.setData(data);
         return entity;
@@ -193,6 +228,37 @@ public class FabricCatalogMetadataAssembler implements GenericAssembler<FabricCa
                 mandatoryFieldsVO.setTier(mandatoryFields.getTier() != null ?  mandatoryFields.getTier(): null);
             }
             vo.setMandatoryFields(mandatoryFieldsVO);
+            
+            // Map publishedCdcTables, publishedLakehouseTables, and publishedLakehouseTableDetails
+            if (metadataDetails.getPublishedCdcTables() != null) {
+                vo.setPublishedCdcTables(metadataDetails.getPublishedCdcTables());
+            }
+            
+            if (metadataDetails.getPublishedLakehouseTables() != null) {
+                vo.setPublishedLakehouseTables(metadataDetails.getPublishedLakehouseTables());
+            }
+            
+            if (metadataDetails.getPublishedLakehouseTableDetails() != null) {
+                List<LakehouseTableDetailVO> tableDetailVos = new ArrayList<>();
+                for (LakehouseTableDetail tableDetail : metadataDetails.getPublishedLakehouseTableDetails()) {
+                    LakehouseTableDetailVO tableVo = new LakehouseTableDetailVO();
+                    tableVo.setTableName(tableDetail.getTableName());
+                    tableVo.setEnabled(tableDetail.getEnabled());
+                    
+                    if (tableDetail.getColumns() != null) {
+                        List<LakehouseColumnDetailVO> columnVos = new ArrayList<>();
+                        for (LakehouseColumnDetail colDetail : tableDetail.getColumns()) {
+                            LakehouseColumnDetailVO colVo = new LakehouseColumnDetailVO();
+                            colVo.setColumnName(colDetail.getColumnName());
+                            colVo.setEnabled(colDetail.getEnabled());
+                            columnVos.add(colVo);
+                        }
+                        tableVo.setColumns(columnVos);
+                    }
+                    tableDetailVos.add(tableVo);
+                }
+                vo.setPublishedLakehouseTableDetails(tableDetailVos);
+            }
         }
         return vo;
     }

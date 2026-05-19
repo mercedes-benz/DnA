@@ -292,7 +292,8 @@ public class BaseDdxOnboardingService implements DdxOnboardingService {
             }
 
             log.info("Catalog compute process completed successfully for catalog: {}. Schemas found: {}",
-                catalogName, computeResponse.getResult() != null ? computeResponse.getResult().getRowCount() : 0);
+                catalogName, computeResponse.getResult() != null && computeResponse.getResult().getRowCount() != null
+                ? computeResponse.getResult().getRowCount() : 0);
 
             log.info("🎉 --- Databricks Fabric Setup Completed Successfully ---");
             log.info("DDX Onboarding Request=========={}===========", publishDdxRequest);

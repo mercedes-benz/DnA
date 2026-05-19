@@ -320,6 +320,7 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
   const [showCreateShortcutModal, setShowCreateShortcutModal] = useState(false);
   const [showViewTables, setShowViewTablesModal] = useState(false);
   const [showNonProdProjectModal, setShowNonProdProjectModal] = useState(false);
+  const [showDdxViewTables, setShowDdxViewTablesModal] = useState(false);
   const [showMismatchModal, setShowMismatchModal] = useState(false);
   const [mismatchData, setMismatchData] = useState(null);
   const [showDdxViewTables, setShowDdxViewTablesModal] = useState(false);

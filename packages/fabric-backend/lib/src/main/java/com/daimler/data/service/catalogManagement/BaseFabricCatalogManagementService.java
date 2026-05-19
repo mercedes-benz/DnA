@@ -35,6 +35,8 @@ import com.daimler.data.dto.fabricWorkspace.Fabric2FabricDetailVO;
 import com.daimler.data.dto.fabric.LegalEntityDto;
 import com.daimler.data.dto.fabric.AddGroupDto;
 import com.daimler.data.dto.fabricCatalogManagement.*;
+import com.daimler.data.dto.fabricWorkspace.LakehouseTableCollectionResponseVO;
+import com.daimler.data.dto.fabricWorkspace.LakehouseColumnCollectionResponseVO;
 import com.daimler.data.service.common.BaseCommonService;
 import com.daimler.data.util.ConstantsUtility;
 import com.daimler.data.util.OpenMetadataFqnBuilder;
@@ -138,8 +140,24 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
             // Update CDC lake house details
             updateLakeHouseDetails(existingFabricWorkspace, request.getMetadata());
 
-            // Save metadata to repository
-            saveCatalogMetadata(request, catalogMetadataDetails);
+            // Populate lakehouse table details with enabled status BEFORE saving
+            populateLakehouseTableDetails(catalogMetadataDetails, existingFabricWorkspace, request);
+
+            // Get the lakehouse ID to use as PK
+            String lakehouseId = null;
+            if (existingFabricWorkspace.getLakehouses() != null && !existingFabricWorkspace.getLakehouses().isEmpty()) {
+                lakehouseId = existingFabricWorkspace.getLakehouses().get(0).getId();
+            }
+            if (lakehouseId == null || lakehouseId.isEmpty()) {
+                log.warn("No lakehouse ID found, falling back to workspace ID");
+                lakehouseId = existingFabricWorkspace.getId();
+            }
+
+            // Save metadata to repository using lakehouse ID as PK
+            saveCatalogMetadata(request, catalogMetadataDetails, lakehouseId);
+
+            // Save metadata to repository (now includes the populated lakehouse table details)
+            saveCatalogMetadata(request, catalogMetadataDetails, existingFabricWorkspace.getId());
 
             // Prepare success response
             prepareSuccessResponse(response, catalogMetadataDetails);
@@ -176,7 +194,7 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
             // Retrieve metadata from OpenMetadata
             FabricCatalogMetadataVO metadata = retrieveMetadataFromOpenMetadata(serviceName);
             
-            // Retrieve stored metadata details
+            // Retrieve stored metadata details (includes lakehouse table details from database)
             FabricCatalogMetadataDetailsVO catalogMetadataDetails = retrieveStoredMetadataDetails(serviceName, metadata);
             
             // Prepare success response
@@ -228,14 +246,24 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
             // Update CDC lake house details
             updateLakeHouseDetails(existingFabricWorkspace, request.getMetadata());
 
-            // Update stored metadata
-            updateStoredMetadata(request);
+            // Fetch existing entity to update
+            FabricCatalogMetadataNsql entity = catalogCustomRepo.findByServiceName(request.getMetadata().getServiceName())
+                .orElseThrow(() -> new EntityNotFoundException("Catalog metadata", request.getMetadata().getServiceName()));
+            FabricCatalogMetadataDetailsVO vo = catalogAssembler.toVo(entity);
+            
+            // Update metadata fields
+            vo.setMetadata(request.getMetadata());
+            vo.setOwners(request.getOwners());
+            vo.setMandatoryFields(request.getMandatoryFields());
+            
+            // Populate lakehouse table details with enabled status
+            populateLakehouseTableDetails(vo, existingFabricWorkspace, request);
+            
+            // Save updated metadata with lakehouse table details
+            catalogRepo.save(catalogAssembler.toEntity(vo));
 
             // Prepare success response
-			FabricCatalogMetadataNsql entity = catalogCustomRepo.findByServiceName(request.getMetadata().getServiceName())
-            .orElseThrow(() -> new EntityNotFoundException("Catalog metadata", request.getMetadata().getServiceName()));
-        	FabricCatalogMetadataDetailsVO vo = catalogAssembler.toVo(entity);
-			response.setData(vo);
+            response.setData(vo);
             response.setResponses(new GenericMessage(SUCCESS_STATUS));
 
             // Trigger UiLicious service principal addition after successful CDC push
@@ -348,12 +376,14 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
         }
     }
 
-    private void saveCatalogMetadata(PublishCatalogRequestVO request, 
-            FabricCatalogMetadataDetailsVO catalogMetadataDetails) {
+    private void saveCatalogMetadata(PublishCatalogRequestVO request,
+            FabricCatalogMetadataDetailsVO catalogMetadataDetails, String lakehouseId) {
         catalogMetadataDetails.setMetadata(request.getMetadata());
         catalogMetadataDetails.setOwners(request.getOwners());
         catalogMetadataDetails.setMandatoryFields(request.getMandatoryFields());
-        catalogRepo.save(catalogAssembler.toEntity(catalogMetadataDetails));
+        FabricCatalogMetadataNsql entity = catalogAssembler.toEntity(catalogMetadataDetails);
+        entity.setId(lakehouseId);
+        catalogRepo.save(entity);
     }
 
     private void prepareSuccessResponse(PublishCatalogResponseVO response, 
@@ -439,7 +469,121 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
 
         catalogMetadataDetails.setOwners(vo.getOwners());
         catalogMetadataDetails.setMandatoryFields(vo.getMandatoryFields());
+        
+        // Retrieve lakehouse table details from stored data
+        catalogMetadataDetails.setPublishedCdcTables(vo.getPublishedCdcTables());
+        catalogMetadataDetails.setPublishedLakehouseTables(vo.getPublishedLakehouseTables());
+        catalogMetadataDetails.setPublishedLakehouseTableDetails(vo.getPublishedLakehouseTableDetails());
+        
         return catalogMetadataDetails;
+    }
+
+    private void populateLakehouseTableDetails(FabricCatalogMetadataDetailsVO catalogMetadataDetails, 
+            FabricWorkspaceVO workspace, PublishCatalogRequestVO request) {
+        try {
+            // Get lakehouses from workspace
+            if (workspace.getLakehouses() == null || workspace.getLakehouses().isEmpty()) {
+                log.warn("No lakehouses found for workspace: {}", workspace.getId());
+                return;
+            }
+
+            List<String> publishedCdcTables = new ArrayList<>();
+            List<String> publishedLakehouseTables = new ArrayList<>();
+            List<LakehouseTableDetailVO> publishedLakehouseTableDetails = new ArrayList<>();
+
+            // Get published table names from the request metadata
+            Set<String> requestedTableNames = new HashSet<>();
+            Map<String, Set<String>> requestedColumnsByTable = new HashMap<>();
+            
+            if (request.getMetadata() != null && request.getMetadata().getDatabases() != null) {
+                for (DatabaseMetadataVO db : request.getMetadata().getDatabases()) {
+                    if (db.getSchemas() != null) {
+                        for (SchemaMetadataVO schema : db.getSchemas()) {
+                            if (schema.getTables() != null) {
+                                for (TableMetadataVO table : schema.getTables()) {
+                                    requestedTableNames.add(table.getTableName());
+                                    publishedCdcTables.add(table.getTableName());
+                                    
+                                    Set<String> columnNames = new HashSet<>();
+                                    if (table.getColumns() != null) {
+                                        for (ColumnMetadataVO col : table.getColumns()) {
+                                            columnNames.add(col.getColumnName());
+                                        }
+                                    }
+                                    requestedColumnsByTable.put(table.getTableName(), columnNames);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Fetch all tables from the first lakehouse
+            FabricLakehouseVO lakehouse = workspace.getLakehouses().get(0);
+            String workspaceId = workspace.getId();
+            String lakehouseId = lakehouse.getId();
+
+            log.info("Fetching lakehouse tables for workspace: {} and lakehouse: {}", workspaceId, lakehouseId);
+            
+            // Get all tables from Fabric  
+            var fabricTablesResponse = cdcPushServiceClient.getLakehouseTables(workspaceId, lakehouseId);
+            
+            if (fabricTablesResponse != null && fabricTablesResponse.getData() != null && 
+                fabricTablesResponse.getData().getTables() != null) {
+                
+                for (var fabricTable : fabricTablesResponse.getData().getTables()) {
+                    String tableName = fabricTable.getTableName();
+                    publishedLakehouseTables.add(tableName);
+                    
+                    LakehouseTableDetailVO tableDetail = new LakehouseTableDetailVO();
+                    tableDetail.setTableName(tableName);
+                    
+                    // Table is enabled if it's in the published (requested) tables
+                    boolean isTableEnabled = requestedTableNames.contains(tableName);
+                    tableDetail.setEnabled(isTableEnabled);
+                    
+                    // Get columns for this table
+                    List<LakehouseColumnDetailVO> columnDetails = new ArrayList<>();
+                    try {
+                        var columnsResponse = cdcPushServiceClient.getTableSchema(workspaceId, lakehouseId, "dbo", tableName);
+                        
+                        if (columnsResponse != null && columnsResponse.getData() != null && 
+                            columnsResponse.getData().getColumns() != null) {
+                            
+                            Set<String> requestedColumns = requestedColumnsByTable.getOrDefault(tableName, new HashSet<>());
+                            
+                            for (var fabricColumn : columnsResponse.getData().getColumns()) {
+                                LakehouseColumnDetailVO columnDetail = new LakehouseColumnDetailVO();
+                                columnDetail.setColumnName(fabricColumn.getColumnName());
+                                
+                                // Column is enabled if the table is enabled AND the column is in requested columns
+                                boolean isColumnEnabled = isTableEnabled && requestedColumns.contains(fabricColumn.getColumnName());
+                                columnDetail.setEnabled(isColumnEnabled);
+                                
+                                columnDetails.add(columnDetail);
+                            }
+                        }
+                    } catch (Exception e) {
+                        log.error("Failed to fetch columns for table {}: {}", tableName, e.getMessage());
+                    }
+                    
+                    tableDetail.setColumns(columnDetails);
+                    publishedLakehouseTableDetails.add(tableDetail);
+                }
+            }
+
+            // Set the populated lists to the response
+            catalogMetadataDetails.setPublishedCdcTables(publishedCdcTables);
+            catalogMetadataDetails.setPublishedLakehouseTables(publishedLakehouseTables);
+            catalogMetadataDetails.setPublishedLakehouseTableDetails(publishedLakehouseTableDetails);
+            
+            log.info("Populated lakehouse table details: {} tables, {} published to CDC", 
+                publishedLakehouseTables.size(), publishedCdcTables.size());
+            
+        } catch (Exception e) {
+            log.error("Error populating lakehouse table details: {}", e.getMessage(), e);
+            // Don't fail the whole operation, just log the error
+        }
     }
 
 	private void handleDeletions(FabricCatalogMetadataVO existingMetadata, FabricCatalogMetadataVO newMetadata) {
@@ -778,21 +922,37 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
             throw new RuntimeException("No valid groups found to add to lakehouse: " + lakehouseName);
         }
 
+        Map<String, GroupNameList> existingGroups = checkForExistingGroupsInTheLakehouse(validGroups, dbLakehouseDetails);
+
+        List<String> groupsToBeAdded = validGroups.stream()
+                .filter(group -> (!existingGroups.containsKey(group)) || (existingGroups.containsKey(group)
+                        && ConstantsUtility.GROUPS_NOT_FOUND_CONSTANT.equals(existingGroups.get(group).getStatus())))
+                .collect(Collectors.toList());
+        if (groupsToBeAdded.isEmpty()) {
+            log.info("All groups: {} are already added to the lakehouse: {}", validGroups, lakehouseName);
+            return;
+        }
+
         Fabric2FabricDetail fabric2FabricDetail = new Fabric2FabricDetail(); 
         fabric2FabricDetail.setInitiatedOn(new Date());
         fabric2FabricDetail.setIsFabric2Fabric(Boolean.TRUE);
         fabric2FabricDetail.setGroupsNames(new ArrayList<>());
 
         GroupNameDetail groupNameDetail = new GroupNameDetail();
-        groupNameDetail.setGroupNameList(buildGroupStatusList(validGroups, ConstantsUtility.GROUPS_IN_PROGRESS_CONSTANT));
+        groupNameDetail.setGroupNameList(buildGroupStatusList(groupsToBeAdded, ConstantsUtility.GROUPS_IN_PROGRESS_CONSTANT));
         
         // Adding the TRS user in the workspace to make sure the user has access to the lakehouse where the groups are being added. 
         // This is required as part of the UIlicious test case which adds the groups to the lakehouse and needs access to the lakehouse.
-        fabricWorkspaceClient.addUser(workspaceId, pidUser);
+        try{
+            fabricWorkspaceClient.addUser(workspaceId, pidUser);
+            log.info("Added user: {} to workspace: {} to facilitate UIlicious test case execution for adding groups to lakehouse", pidUser, workspaceName);
+        } catch(Exception e){
+            log.error("Exception while adding the user to the workspace : {} with exception", workspaceName, e.getMessage());
+        }
 
         String testRunID = null;
         try{
-            testRunID = this.uiLiciousClient.addWorkspaceGroupsToLakehouse(workspaceId, lakehouseId, workspaceName, lakehouseName, validGroups);
+            testRunID = this.uiLiciousClient.addWorkspaceGroupsToLakehouse(workspaceId, lakehouseId, workspaceName, lakehouseName, groupsToBeAdded);
             groupNameDetail.setRunStatus(ConstantsUtility.GROUPS_IN_PROGRESS_CONSTANT); 
             groupNameDetail.setTestRunId(testRunID);
             fabric2FabricDetail.getGroupsNames().add(groupNameDetail);
@@ -840,38 +1000,15 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
                 throw new EntityNotFoundException("Group details", workspaceId);
             }
 
-            List<GroupStatusResponseVO> finalGroupStatusList = null;
             boolean allRecordsCompleted = true;
             for(Fabric2FabricDetail fabric2FabricDetails : ddxProduct.getFabric2fabricDetails()){
                 for(GroupNameDetail groupNameDetail : fabric2FabricDetails.getGroupsNames()){
-                    List<GroupStatusResponseVO> groupStatusList = null;
-                    List<String> groupNameList = groupNameDetail.getGroupNameList().stream().map(group->group.getGroupName()).collect(Collectors.toList());
-                    Boolean sameGroup = new HashSet<>(groupNameList).equals(new HashSet<>(validGroups));
-                    if(groupNameDetail.getRunStatus().equals(ConstantsUtility.GROUPS_COMPLETED_CONSTANT) && !sameGroup){
+                    if(groupNameDetail.getRunStatus().equals(ConstantsUtility.GROUPS_COMPLETED_CONSTANT)){
                         continue;
                     }
-                    if(sameGroup){
-                        if(groupNameDetail.getRunStatus().equals(ConstantsUtility.GROUPS_COMPLETED_CONSTANT)){
-                            log.info("Groups: {} have been successfully added to lakehouse: {}", validGroups, lakehouseName);
-                            groupStatusList = groupNameDetail.getGroupNameList().stream().map(groupStatus -> {
-                                GroupStatusResponseVO response = new GroupStatusResponseVO();
-                                response.setGroupName(groupStatus.getGroupName());
-                                response.setStatus(groupStatus.getStatus());
-                                response.setMessage(ConstantsUtility.GROUPES_ERROR_MESSAGES_CONSTANT_MAP.get(groupStatus.getStatus()));
-                                return response;
-                            }).collect(Collectors.toList());
-                        } else {
-                            log.info("Groups: {} are still being added to lakehouse: {}, current status: {}", validGroups, lakehouseName, groupNameDetail.getRunStatus());
-                            finalGroupStatusList = this.uiLiciousClient.getStatusOfGroupsAdditionToLakehouse(workspaceName, workspaceId, lakehouseName, lakehouseId, validGroups, groupNameDetail.getTestRunId());
-                            groupStatusList = finalGroupStatusList;
-                        }
-                    }
-                    Boolean unProcessGroupRun = groupNameDetail.getGroupNameList().stream().anyMatch(group-> group.getStatus().equals("IN_PROGRESS"));
-                    if(unProcessGroupRun){
-                        allRecordsCompleted = false;
-                        groupStatusList = this.uiLiciousClient.getStatusOfGroupsAdditionToLakehouse(workspaceName, workspaceId, lakehouseName, lakehouseId, validGroups, groupNameDetail.getTestRunId());
-                    }
-
+                    
+                    List<GroupStatusResponseVO> groupStatusList = this.uiLiciousClient.getStatusOfGroupsAdditionToLakehouse(workspaceName, workspaceId, lakehouseName, lakehouseId, validGroups, groupNameDetail.getTestRunId());
+                    
                     if(groupStatusList != null && !groupStatusList.isEmpty()){
                         log.info("Group status for lakehouseId {}: {}", lakehouseId, groupStatusList);
                         Map<String, String> statusMap = groupStatusList.stream().collect(Collectors.toMap(GroupStatusResponseVO::getGroupName, GroupStatusResponseVO::getStatus));
@@ -879,17 +1016,31 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
                             group.setStatus(statusMap.get(group.getGroupName()));
                             group.setMessage(ConstantsUtility.GROUPES_ERROR_MESSAGES_CONSTANT_MAP.get(group.getStatus()));
                         });
-
-                        groupNameDetail.setRunStatus(groupStatusList.stream().allMatch(status -> ConstantsUtility.GROUPS_ADDED_CONSTANT.equals(status.getStatus())) ? ConstantsUtility.GROUPS_COMPLETED_CONSTANT : ConstantsUtility.GROUPS_IN_PROGRESS_CONSTANT);
-
+                        groupNameDetail.setRunStatus(ConstantsUtility.GROUPS_COMPLETED_CONSTANT);
                     }
-                    if(groupStatusList != null && groupStatusList.isEmpty()){
+                    
+                    if(!ConstantsUtility.GROUPS_COMPLETED_CONSTANT.equals(groupNameDetail.getRunStatus())){
                         allRecordsCompleted = false;
                     }
                 }
             }
             
-            // DdxDataProductsDetailsNsql saveDBEntity = ddxDataProductsDetailsAssembler.toEntity(ddxPublishedLakeHouseDetails);
+            List<GroupStatusResponseVO> finalGroupStatusList = new ArrayList<>();
+            Map<String, GroupNameList> groupsMap = checkForExistingGroupsInTheLakehouse(validGroups, dbEntity);
+            for(String group: validGroups){
+                GroupStatusResponseVO response = new GroupStatusResponseVO();
+                response.setGroupName(group);
+                if(groupsMap.containsKey(group)){
+                    GroupNameList tempGroup = groupsMap.get(group);
+                    response.setStatus(tempGroup.getStatus());
+                    response.setMessage(ConstantsUtility.GROUPES_ERROR_MESSAGES_CONSTANT_MAP.get(tempGroup.getStatus()));
+                } else {
+                    response.setStatus(ConstantsUtility.GROUPS_UNKNOWN_CONSTANT);
+                    response.setMessage(ConstantsUtility.GROUPES_ERROR_MESSAGES_CONSTANT_MAP.get(ConstantsUtility.GROUPS_UNKNOWN_CONSTANT));
+                }
+                finalGroupStatusList.add(response);
+            }
+
             ddxDataProductsDetailsRepository.save(dbEntity);
 
             // List<String> testRunIDList;
@@ -924,11 +1075,12 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
 
 
             if(allRecordsCompleted){
-                this.fabricWorkspaceClient.removeUserGroup(workspaceId, pidUserIdentifier);
+                try{
+                    this.fabricWorkspaceClient.removeUserGroup(workspaceId, pidUserIdentifier);
+                } catch(Exception e){
+                    log.error("Exception while removing the user from the workspace : {} with exception", workspaceName, e.getMessage());
+                }
             }
-            // DB operations to update the status of the workspace groups addition to lakehouse can be done here using the groupStatusList
-            // jpaRepo.save(assembler.toEntity(workspaceVO));
-
             return finalGroupStatusList;
 
         }catch(Exception e){
@@ -944,6 +1096,12 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
         if (lakehouses == null || lakehouses.isEmpty()) {
             log.warn("No lakehouses found for workspace: {}, skipping UiLicious trigger", workspaceName);
             return;
+        }
+        try{
+            fabricWorkspaceClient.addUser(workspace.getId(), pidUser);
+            log.info("Added user: {} to workspace: {} to facilitate UIlicious test case execution for adding groups to lakehouse", pidUser, workspaceName);
+        } catch(Exception e){
+            log.error("Exception while adding the user to the workspace : {} with exception", workspaceName, e.getMessage());
         }
         for (FabricLakehouseVO lakehouse : lakehouses) {
             try {
@@ -961,6 +1119,43 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
                         workspaceName, lakehouse.getName(), e);
             }
         }
+    }
+
+    private Map<String, GroupNameList> checkForExistingGroupsInTheLakehouse(List<String> groupsName, DdxDataProductsDetailsNsql ddxDataProductsDetailsNsql){
+        Map<String, GroupNameList> existingGroups = new HashMap<>();
+        Map<String, GroupNameList> groupNameListMap = new HashMap<>();
+        if(ddxDataProductsDetailsNsql.getData() != null && ddxDataProductsDetailsNsql.getData().getDdxProducts() != null){
+            for(DdxProduct ddx: ddxDataProductsDetailsNsql.getData().getDdxProducts()){
+                if(ddx.getFabric2fabricDetails() != null){
+                    for(Fabric2FabricDetail fabric2FabricDetail : ddx.getFabric2fabricDetails()){
+                        if(fabric2FabricDetail.getGroupsNames() != null){
+                            for(GroupNameDetail groupNameDetail : fabric2FabricDetail.getGroupsNames()){
+                                if(groupNameDetail.getGroupNameList() != null){
+                                    for(GroupNameList groupNameList : groupNameDetail.getGroupNameList()){
+                                        if(!groupNameListMap.containsKey(groupNameList.getGroupName())){
+                                            groupNameListMap.put(groupNameList.getGroupName(), groupNameList);
+                                        } else if(groupNameListMap.containsKey(groupNameList.getGroupName())){
+                                            if(ConstantsUtility.GROUPS_ADDED_CONSTANT.equals(groupNameListMap.get(groupNameList.getGroupName()).getStatus()) && !ConstantsUtility.GROUPS_ADDED_CONSTANT.equals(groupNameList.getStatus())){
+                                                continue;
+                                            } else if(ConstantsUtility.GROUPS_IN_PROGRESS_CONSTANT.equals(groupNameListMap.get(groupNameList.getGroupName()).getStatus()) && !ConstantsUtility.GROUPS_ADDED_CONSTANT.equals(groupNameList.getStatus())){
+                                                continue;
+                                            }
+                                            groupNameListMap.put(groupNameList.getGroupName(), groupNameList);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        for(String groupName : groupsName){
+            if(groupNameListMap.containsKey(groupName)){
+                existingGroups.put(groupName, groupNameListMap.get(groupName));
+            }
+        }
+        return existingGroups;
     }
 
     private List<String> checkForValidGroups(List<String> groups){
@@ -1011,4 +1206,200 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
         return groupStatusList;
     }
 
+
+    @Override
+    public TableMismatchResponseVO checkTableMismatch(String workspaceId, String lakehouseId, String serviceName) {
+        log.info("Checking table mismatch for workspace: {}, lakehouse: {}", workspaceId, lakehouseId);
+        TableMismatchResponseVO response = new TableMismatchResponseVO();
+        List<TableMismatchDetailVO> mismatches = new ArrayList<>();
+        try {
+            FabricCatalogMetadataVO storedMetadata = retrieveMetadataFromOpenMetadata(serviceName);
+
+            if (storedMetadata == null
+                    || storedMetadata.getDatabases() == null
+                    || storedMetadata.getDatabases().isEmpty()) {
+                log.info("First CDC push detected - skipping mismatch check for service: {}", serviceName);
+                response.setHasMismatch(false);
+                response.setMismatches(new ArrayList<>());
+                GenericMessage msg = new GenericMessage();
+                msg.setSuccess(SUCCESS_STATUS);
+                response.setResponses(msg);
+                return response;
+            }
+
+            LakehouseTableCollectionResponseVO fabricTables = cdcPushServiceClient.getLakehouseTables(workspaceId,
+                    lakehouseId);
+
+            if (fabricTables == null
+                    || fabricTables.getData() == null
+                    || fabricTables.getData().getTables() == null) {
+                log.warn("No tables returned from Fabric for workspace: {}, lakehouse: {}",
+                        workspaceId, lakehouseId);
+                response.setHasMismatch(false);
+                response.setMismatches(mismatches);
+                GenericMessage msg = new GenericMessage();
+                msg.setSuccess(SUCCESS_STATUS);
+                response.setResponses(msg);
+                return response;
+            }
+
+            Map<String, TableMetadataVO> storedTableMap = new HashMap<>();
+
+            for (DatabaseMetadataVO db : storedMetadata.getDatabases()) {
+                if (db.getSchemas() != null) {
+
+                    for (SchemaMetadataVO schema : db.getSchemas()) {
+                        if (schema.getTables() != null) {
+
+                            for (TableMetadataVO table : schema.getTables()) {
+                                storedTableMap.put(table.getTableName(), table);
+                            }
+                        }
+                    }
+                }
+            }
+
+            Set<String> fabricTableNames = new HashSet<>();
+            Map<String, com.daimler.data.dto.fabricWorkspace.LakeHouseTableVO> fabricTableMap = new HashMap<>();
+            for (com.daimler.data.dto.fabricWorkspace.LakeHouseTableVO fabricTable : fabricTables.getData()
+                    .getTables()) {
+                fabricTableNames.add(fabricTable.getTableName());
+                fabricTableMap.put(fabricTable.getTableName(), fabricTable);
+            }
+
+            for (String fabricTableName : fabricTableNames) {
+
+                if (!storedTableMap.containsKey(fabricTableName)) {
+                    TableMismatchDetailVO detail = new TableMismatchDetailVO();
+                    detail.setTableName(fabricTableName);
+                    detail.setMismatchType(TableMismatchDetailVO.MismatchTypeEnum.NEW_TABLE);
+                    detail.setDetails("Table exists in Fabric but not in published CDC metadata");
+                    mismatches.add(detail);
+                }
+            }
+
+            for (String storedTableName : storedTableMap.keySet()) {
+
+                if (!fabricTableNames.contains(storedTableName)) {
+                    TableMismatchDetailVO detail = new TableMismatchDetailVO();
+                    detail.setTableName(storedTableName);
+                    detail.setMismatchType(TableMismatchDetailVO.MismatchTypeEnum.DELETED_TABLE);
+                    detail.setDetails("Table exists in published CDC metadata but no longer in Fabric");
+                    mismatches.add(detail);
+                }
+            }
+
+            for (String tableName : storedTableMap.keySet()) {
+                if (fabricTableNames.contains(tableName)) {
+                    TableMetadataVO storedTable = storedTableMap.get(tableName);
+                    compareTableColumns(
+                            workspaceId,
+                            lakehouseId,
+                            tableName,
+                            storedTable,
+                            mismatches);
+                }
+            }
+
+            response.setHasMismatch(!mismatches.isEmpty());
+            response.setMismatches(mismatches);
+            GenericMessage successMsg = new GenericMessage();
+            successMsg.setSuccess(SUCCESS_STATUS);
+            response.setResponses(successMsg);
+        } catch (Exception e) {
+            log.error("Error checking table mismatch for workspace {}: {}",
+                    workspaceId, e.getMessage(), e);
+            response.setHasMismatch(false);
+            response.setMismatches(mismatches);
+            GenericMessage errorMsg = new GenericMessage();
+            errorMsg.setSuccess(FAILED_STATUS);
+            MessageDescription message = new MessageDescription();
+            message.setMessage("Failed to check table mismatch: " + e.getMessage());
+            errorMsg.addErrors(message);
+            response.setResponses(errorMsg);
+        }
+        return response;
+    }
+
+    private void compareTableColumns(String workspaceId, String lakehouseId, String tableName,
+            TableMetadataVO storedTable, List<TableMismatchDetailVO> mismatches) {
+        try {
+            // Fetch current column details from Fabric
+            LakehouseColumnCollectionResponseVO fabricColumns = cdcPushServiceClient.getTableSchema(
+                    workspaceId, lakehouseId, "dbo", tableName);
+
+            if (fabricColumns == null || fabricColumns.getData() == null
+                    || fabricColumns.getData().getColumns() == null) {
+                return;
+            }
+
+            // Build maps for comparison
+            Map<String, String> storedColumnTypes = new HashMap<>();
+            if (storedTable.getColumns() != null) {
+                for (ColumnMetadataVO col : storedTable.getColumns()) {
+                    storedColumnTypes.put(col.getColumnName(), col.getColType());
+                }
+            }
+
+            Map<String, String> fabricColumnTypes = new HashMap<>();
+            for (com.daimler.data.dto.fabricWorkspace.LakehouseColumnVO col : fabricColumns.getData().getColumns()) {
+                fabricColumnTypes.put(col.getColumnName(), col.getColType());
+            }
+
+            // Detect added columns
+            List<String> addedColumns = new ArrayList<>();
+            for (String fabricColName : fabricColumnTypes.keySet()) {
+                if (!storedColumnTypes.containsKey(fabricColName)) {
+                    addedColumns.add(fabricColName);
+                }
+            }
+            if (!addedColumns.isEmpty()) {
+                TableMismatchDetailVO detail = new TableMismatchDetailVO();
+                detail.setTableName(tableName);
+                detail.setMismatchType(TableMismatchDetailVO.MismatchTypeEnum.COLUMNS_ADDED);
+                detail.setDetails("New columns found in Fabric: " + String.join(", ", addedColumns));
+                detail.setAffectedColumns(addedColumns);
+                mismatches.add(detail);
+            }
+
+            // Detect removed columns
+            List<String> removedColumns = new ArrayList<>();
+            for (String storedColName : storedColumnTypes.keySet()) {
+                if (!fabricColumnTypes.containsKey(storedColName)) {
+                    removedColumns.add(storedColName);
+                }
+            }
+            if (!removedColumns.isEmpty()) {
+                TableMismatchDetailVO detail = new TableMismatchDetailVO();
+                detail.setTableName(tableName);
+                detail.setMismatchType(TableMismatchDetailVO.MismatchTypeEnum.COLUMNS_REMOVED);
+                detail.setDetails("Columns removed from Fabric: " + String.join(", ", removedColumns));
+                detail.setAffectedColumns(removedColumns);
+                mismatches.add(detail);
+            }
+
+            // Detect column type changes
+            List<String> typeChangedColumns = new ArrayList<>();
+            for (String colName : storedColumnTypes.keySet()) {
+                if (fabricColumnTypes.containsKey(colName)) {
+                    String storedType = storedColumnTypes.get(colName);
+                    String fabricType = fabricColumnTypes.get(colName);
+                    if (storedType != null && fabricType != null && !storedType.equalsIgnoreCase(fabricType)) {
+                        typeChangedColumns.add(colName);
+                    }
+                }
+            }
+            if (!typeChangedColumns.isEmpty()) {
+                TableMismatchDetailVO detail = new TableMismatchDetailVO();
+                detail.setTableName(tableName);
+                detail.setMismatchType(TableMismatchDetailVO.MismatchTypeEnum.COLUMN_TYPE_CHANGED);
+                detail.setDetails("Column types changed in Fabric: " + String.join(", ", typeChangedColumns));
+                detail.setAffectedColumns(typeChangedColumns);
+                mismatches.add(detail);
+            }
+
+        } catch (Exception e) {
+            log.error("Error comparing columns for table {}: {}", tableName, e.getMessage());
+        }
+    }
 }
