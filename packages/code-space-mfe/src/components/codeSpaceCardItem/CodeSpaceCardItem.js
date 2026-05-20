@@ -397,53 +397,6 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
     handleRefresh();
   };
 
-  const handleDeploymentStatusResult = (status) => {
-    setIsRefreshing(false);
-    const isFailed = status === 'FAILED' || status === 'DEPLOYMENT_FAILED';
-    if (isFailed) {
-      CodeSpaceApiClient.getWorkspaceById(codeSpace.id)
-        .then((res) => {
-          if (res.data && props.onRefreshCard) {
-            props.onRefreshCard(codeSpace.id, res.data);
-          }
-        })
-        .catch(() => {});
-    }
-    const name = codeSpace?.projectDetails?.projectName || 'Workspace';
-    Notification.show(
-      isFailed ? `${name} deployment status: Failed` : `${name} is healthy`,
-      isFailed ? 'alert' : undefined
-    );
-  };
-
-  const onDeployedRefreshClick = (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (isRefreshing) return;
-    setIsRefreshing(true);
-    const projectName = codeSpace?.projectDetails?.projectName;
-    const environment = codeSpace?.projectDetails?.lastBuildOrDeployedEnv || 'int';
-    const sse = CodeSpaceApiClient.subscribeToDeploymentStatus(
-      projectName,
-      environment,
-      (data) => {
-        const status = data?.status;
-        if (status === 'FAILED' || status === 'DEPLOYMENT_FAILED' || status === 'DEPLOYED') {
-          sse.close();
-          handleDeploymentStatusResult(status);
-        }
-      },
-      (data) => handleDeploymentStatusResult(data?.status),
-      () => { setIsRefreshing(false); handleRefresh(); }
-    );
-    setTimeout(() => {
-      if (sse && sse.readyState !== 2) {
-        sse.close();
-        setIsRefreshing(false);
-      }
-    }, 15000);
-  };
-
   const projectDetails = codeSpace?.projectDetails;
   const intDeploymentDetails = projectDetails?.intDeploymentDetails;
   const prodDeploymentDetails = projectDetails?.prodDeploymentDetails;
@@ -733,7 +686,7 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
                         </span>
                       )}
                       {projectDetails?.lastBuildOrDeployedStatus === 'BUILD_SUCCESS' && (
-                        <span className={classNames(Styles.statusIndicator, Styles.statusWithRefresh)}>
+                        <span className={Styles.statusIndicator}>
                           <a
                             href={(projectDetails?.lastBuildOrDeployedEnv === 'int')
                               ? buildGitJobLogViewAWSURL(projectDetails?.intBuildDetails?.gitjobRunID)
@@ -749,17 +702,10 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
                           >
                             Built
                           </a>
-                          <span 
-                            className={Styles.refreshIcon} 
-                            onClick={onDeployedRefreshClick}
-                            tooltip-data="Check deployment health"
-                          >
-                            <i className="icon mbc-icon refresh"></i>
-                          </span>
                         </span>
                       )}
                       {projectDetails?.lastBuildOrDeployedStatus === 'DEPLOYED' && (
-                        <span className={classNames(Styles.statusIndicator, Styles.statusWithRefresh)}>
+                        <span className={Styles.statusIndicator}>
                           <a
                             href={(projectDetails?.lastBuildOrDeployedEnv === 'int')
                               ? buildGitJobLogViewAWSURL(projectDetails?.intDeploymentDetails?.gitjobRunID)
@@ -775,13 +721,6 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
                           >
                             Deployed
                           </a>
-                          <span 
-                            className={Styles.refreshIcon} 
-                            onClick={onDeployedRefreshClick}
-                            tooltip-data="Check deployment health"
-                          >
-                            <i className="icon mbc-icon refresh"></i>
-                          </span>
                         </span>
                       )}
                       {projectDetails?.lastBuildOrDeployedStatus === 'APPROVAL_PENDING' && (
