@@ -323,7 +323,6 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
   const [showDdxViewTables, setShowDdxViewTablesModal] = useState(false);
   const [showMismatchModal, setShowMismatchModal] = useState(false);
   const [mismatchData, setMismatchData] = useState(null);
-  const [showDdxViewTables, setShowDdxViewTablesModal] = useState(false);
   const [contextMenus, setContextMenus] = useState({});
   const [showLocationsContextMenu, setShowLocationsContextMenu] = useState(false);
   const [contextMenuOffsetTop, setContextMenuOffsetTop] = useState(0);
@@ -830,7 +829,7 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
           onCancel={() => setShowNonProdProjectModal(false)}
         />
       }
-      {showDdxViewTables &&
+       {showDdxViewTables &&
         <InfoModal
           title={selectedLakehouse ? `${selectedLakehouse.name} - Onboard New Data Product` : 'Onboard New Data Product'}
           showAcceptButton={false}
@@ -865,7 +864,7 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
           onAccept={deleteLakehouseAccept}
         />
       }
-      {showMismatchModal && mismatchData && (
+      { showMismatchModal && mismatchData && (
         <InfoModal
           title={`Changes Detected - ${mismatchData.lakehouseName}`}
           showAcceptButton={false}
