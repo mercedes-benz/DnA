@@ -489,26 +489,6 @@ hr {
   }
 }
 
-// Mismatch Modal Styles
-.mismatchModalContent {
-  padding: 10px;
-}
-
-.mismatchWarning {
-  color: #FFEB3B;
-  font-size: var(--font-size-medium);
-  margin-bottom: 20px;
-  display: flex;
-  align-items: flex-start;
-  gap: 8px;
-
-  i {
-    color: #FFEB3B;
-    flex-shrink: 0;
-    margin-top: 2px;
-  }
-}
-
 .mismatchList {
   display: flex;
   flex-direction: column;

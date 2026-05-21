@@ -1,5 +1,5 @@
 import classNames from 'classnames';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Styles from './lakehouses.scss';
 import Modal from 'dna-container/Modal';
 import SelectBox from 'dna-container/SelectBox';
@@ -15,7 +15,6 @@ import { getQueryParameterByName } from '../../utilities/utils';
 import { fabricApi } from '../../apis/fabric.api';
 import Popper from 'popper.js';
 import ViewTablesModalContent from '../../components/Lakehouses/CdcPush';
-import ViewDdxTablesModalContent from '../../components/Lakehouses/DdxPush.js'
 import { Envs } from '../../utilities/envs';
 
 const CreateShortcutModalContent = ({ workspaceId, lakehouseId, onCreateShortcut }) => {
@@ -342,6 +341,68 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
     //eslint-disable-next-line
   }, [workspace]);
 
+  const checkForMismatchesOnLoad = useCallback(() => {
+    if (justPushedRef.current) {
+      console.log('[MismatchCheck] SKIPPED: justPushedRef is true (push just completed)');
+      return;
+    }
+
+    console.log('[MismatchCheck] Starting page-load check...');
+    console.log('[MismatchCheck] workspace?.id:', workspace?.id);
+    console.log('[MismatchCheck] lakehouses?.length:', lakehouses?.length);
+    console.log('[MismatchCheck] cdcPublishedLakeHouseDetails:', JSON.stringify(workspace?.cdcPublishedLakeHouseDetails));
+
+    if (!workspace?.id || !lakehouses?.length) {
+      console.log('[MismatchCheck] SKIPPED: No workspace ID or no lakehouses');
+      return;
+    }
+    if (!workspace?.cdcPublishedLakeHouseDetails?.isLakeHousesPublishedToCdc) {
+      console.log('[MismatchCheck] SKIPPED: isLakeHousesPublishedToCdc is false/undefined');
+      return;
+    }
+
+    const publishedLakehouseIds = workspace?.cdcPublishedLakeHouseDetails?.publishedLakeHouseNames || [];
+    console.log('[MismatchCheck] publishedLakehouseIds:', JSON.stringify(publishedLakehouseIds));
+
+    lakehouses.forEach((lakehouse) => {
+      console.log('[MismatchCheck] Checking lakehouse:', lakehouse.name, 'id:', lakehouse.id, 'included:', publishedLakehouseIds.includes(lakehouse.id));
+      if (!publishedLakehouseIds.includes(lakehouse.id)) return;
+
+      console.log('[MismatchCheck] Calling checkTableMismatch API for:', lakehouse.name);
+      fabricApi.checkTableMismatch(workspace.id, lakehouse.id)
+        .then((res) => {
+          console.log('[MismatchCheck] API response for', lakehouse.name, ':', JSON.stringify(res?.data));
+          const data = res?.data;
+          if (data?.hasMismatch) {
+            console.log('[MismatchCheck] MISMATCH FOUND! Showing popup for:', lakehouse.name);
+            setMismatchData({
+              lakehouseName: lakehouse.name,
+              mismatches: data.mismatches || [],
+            });
+            setShowMismatchModal(true);
+          } else {
+            console.log('[MismatchCheck] No mismatch for:', lakehouse.name);
+          }
+        })
+        .catch((e) => {
+          console.error('[MismatchCheck] API ERROR for', lakehouse.name, ':', e?.response?.status, e?.message);
+        });
+    });
+  }, [workspace, lakehouses]);
+
+  useEffect(() => {
+    checkForMismatchesOnLoad();
+  }, [checkForMismatchesOnLoad]);
+
+  useEffect(() => {
+    if (justPushedRef.current) {
+      const timer = setTimeout(() => {
+        console.log('[MismatchCheck] Resetting justPushedRef flag');
+        justPushedRef.current = false;
+      }, 1000);
+      return () => clearTimeout(timer);
+    }
+  }, [workspace?.id, workspace?.cdcPublishedLakeHouseDetails]);
 
   const handlePushToCdc = (lakehouse) => {
     console.log('[PushToCdc] Button clicked for:', lakehouse.name);
@@ -602,6 +663,7 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
   const userRole = workspace?.userRole;
   const isAdmin = userRole === 'Admin';
   const isOwner = user?.id === workspace?.createdBy?.id;
+ 
   return (
     <>
       <div className={Styles.lakehouseContainer}>
