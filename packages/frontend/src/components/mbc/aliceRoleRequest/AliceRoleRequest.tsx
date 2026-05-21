@@ -64,6 +64,14 @@ const AliceRoleRequest = () => {
   }
   return name;
 };
+
+  const sanitizeRoleId = (rawId: string): string => {
+    if (!rawId) return rawId;
+    const uppercased = rawId.toUpperCase();
+    let sanitized = uppercased.replace(/[^A-Z0-9._-]/g, '').replace(/^[^A-Z0-9]+/, '');
+    if (sanitized.length > 201) sanitized = sanitized.substring(0, 201);
+    return sanitized;
+  };
  
   useEffect(() => {
     fetchRole();
@@ -260,7 +268,7 @@ const AliceRoleRequest = () => {
                     labelId={'entitlementDisplayLabel'}
                     label={'Entitlement to be created'}
                     placeholder={'Type here'}
-                    value={roleName?.length > 0 ? Envs.ALICE_APP_ID + '.' + Envs.ALICE_APP_ID + '_' + roleName : ''}
+                    value={roleName?.length > 0 ? Envs.ALICE_APP_ID + '.' + sanitizeRoleId(Envs.ALICE_APP_ID + '_' + formatRoleName(roleName)) : ''}
                     required={false}
                     maxLength={100}
                     onChange={onRoleNameChange}
