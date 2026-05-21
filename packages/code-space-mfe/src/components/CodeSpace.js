@@ -10,7 +10,7 @@ import Tabs from '../common/modules/uilab/js/src/tabs';
 import { Envs } from '../Utility/envs';
 // import { ICodeCollaborator, IUserInfo } from 'globals/types';
 import { history } from '../store';
-import { buildGitUrl, trackEvent, buildGitJobLogViewAWSURL, buildLogViewAWSURL, regionalDateAndTimeConversionSolution } from '../Utility/utils';
+import { buildGitUrl, trackEvent, buildGitJobLogViewAWSURL, buildLogViewAWSURL } from '../Utility/utils';
 import Modal from 'dna-container/Modal';
 import Styles from './CodeSpace.scss';
 import FullScreenModeIcon from 'dna-container/FullScreenModeIcon';
@@ -162,8 +162,7 @@ const CodeSpace = (props) => {
   const [showProdActions, setShowProdActions] = useState(false);
   const [showRestartModal, setShowRestartModal] = useState(false);
   const [env, setEnv] = useState("");
-  const [showIntMigrationModal, setShowIntMigrationModal] = useState(false);
-  const [migrationCopied, setMigrationCopied] = useState(false);
+
 
   const livelinessIntervalRef = React.useRef();
   const stagingWrapperRef = useRef(null);
@@ -403,18 +402,6 @@ const CodeSpace = (props) => {
 
         setCodeBuilding(res?.data?.projectDetails?.lastBuildOrDeployedStatus === 'BUILD_REQUESTED');
 
-        const migrationCutoff = Envs.CODESPACE_INT_MIGRATION_CUTOFF;
-        const intLastDeployedOn = intDeploymentDetails?.lastDeployedOn;
-        if (migrationCutoff && intLastDeployedOn) {
-          const cutoffDate = new Date(migrationCutoff);
-          const deployedDate = new Date(intLastDeployedOn);
-          const projectName = res.data.projectDetails?.projectName;
-          const storageKey = 'intMigrationDismissed_' + projectName;
-          if (deployedDate < cutoffDate && !localStorage.getItem(storageKey)) {
-            setShowIntMigrationModal(true);
-          }
-        }
-
         Tooltip.defaultSetup();
         Tabs.defaultSetup();
         if (deployingInProgress) {
@@ -460,37 +447,6 @@ const CodeSpace = (props) => {
 
   const toggleProgressMessage = (show) => {
     setIsApiCallTakeTime(show);
-  };
-
-  const handleIntMigrationDismiss = () => {
-    const projectName = projectDetails?.projectName;
-    if (projectName) {
-      localStorage.setItem('intMigrationDismissed_' + projectName, 'true');
-    }
-    setShowIntMigrationModal(false);
-    setMigrationCopied(false);
-  };
-
-  const getMigrationDetails = () => {
-    const projectName = projectDetails?.projectName?.toLowerCase();
-    const clusterEnv = Envs.CODE_SERVER_GIT_ENVREF || '';
-    const intDeploymentDetails = codeSpaceData?.projectDetails?.intDeploymentDetails;
-    const deployedAppUrl = intDeploymentDetails?.deploymentUrl || '';
-    const currentHost = projectName + '-int.' + (Envs.CODESERVER_APP_NAMESPACE || '');
-    const newHost = projectName + '-' + clusterEnv + '-int.prod-dna-cs-apps';
-    return { projectName, deployedAppUrl, currentHost, newHost };
-  };
-
-  const onCopyMigrationDetails = () => {
-    const { projectName, deployedAppUrl, currentHost, newHost } = getMigrationDetails();
-    const text = 'Project Name: ' + projectName + '\n' +
-      'Deployed App URL: ' + deployedAppUrl + '\n' +
-      'Current Host: ' + currentHost + '\n' +
-      'New Host: ' + newHost;
-    navigator.clipboard.writeText(text).then(() => {
-      setMigrationCopied(true);
-      setTimeout(() => setMigrationCopied(false), 2000);
-    });
   };
 
   const onNewCodeSpaceModalCancel = () => {
@@ -1310,64 +1266,6 @@ const CodeSpace = (props) => {
       {!serverStarted && (
         <ProgressWithMessage message={`Starting...${serverProgress}%`} />
       )}
-
-      {showIntMigrationModal && (() => {
-        const { projectName, deployedAppUrl, currentHost, newHost } = getMigrationDetails();
-        const intDeploymentDetails = codeSpaceData?.projectDetails?.intDeploymentDetails;
-        const lastDeployedOn = regionalDateAndTimeConversionSolution(intDeploymentDetails?.lastDeployedOn);
-        return (
-          <ConfirmModal
-            title={'Staging Environment Migration Notice'}
-            acceptButtonTitle="OK, I understand"
-            showAcceptButton={true}
-            showCancelButton={false}
-            modalWidth="50%"
-            show={showIntMigrationModal}
-            content={
-              <div>
-                <p>
-                  Your workspace <strong>{projectName}</strong> has an existing staging(int) deployment
-                  (last deployed on <strong>{lastDeployedOn}</strong>) since the last staging deployed
-                  app (<a href={deployedAppUrl} target="_blank" rel="noopener noreferrer">{deployedAppUrl}</a>) needs
-                  to be migrated to a new namespace and we need your support.
-                </p>
-                <p>
-                  Please send the below information to the{' '}
-                  <a href={Envs.CODESPACE_TEAMS_LINK} target="_blank" rel="noopener noreferrer">DnA Team</a>{' '}
-                  before proceeding with the Staging Deployment.
-                </p>
-                <div style={{ background: '#1e1e1e', padding: '12px 16px', borderRadius: '4px', position: 'relative', marginBottom: '16px' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
-                    <strong>Namespace Migration Details</strong>
-                    <button
-                      className="btn btn-secondary"
-                      style={{ padding: '4px 12px', fontSize: '12px' }}
-                      onClick={onCopyMigrationDetails}
-                    >
-                      {migrationCopied ? 'Copied!' : 'Copy'}
-                    </button>
-                  </div>
-                  <div style={{ fontFamily: 'monospace', fontSize: '13px', lineHeight: '1.6' }}>
-                    <div>Project Name: {projectName}</div>
-                    <div>Deployed App URL: {deployedAppUrl}</div>
-                    <div>Current Host: {currentHost}</div>
-                    <div>New Host: {newHost}</div>
-                  </div>
-                </div>
-                <p>
-                  <strong>Note:</strong> This notification will only be displayed once.
-                  Please save the details and contact link below for future reference.
-                </p>
-                <p>
-                  <a href={Envs.CODESPACE_TEAMS_LINK} target="_blank" rel="noopener noreferrer">Contact Codespace Team</a>
-                </p>
-              </div>
-            }
-            onCancel={handleIntMigrationDismiss}
-            onAccept={handleIntMigrationDismiss}
-          />
-        );
-      })()}
     </div>
   );
 };

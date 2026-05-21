@@ -16,6 +16,7 @@ import Tags from 'dna-container/Tags';
 import Tooltip from '../../common/modules/uilab/js/src/tooltip';
 import Pagination from 'dna-container/Pagination';
 import DeployModal from '../deployModal/DeployModal';
+import IntMigrationModal, { needsIntMigration } from '../intMigrationModal/IntMigrationModal';
 
 const BuildModal = (props) => {
   const [branches, setBranches] = useState([]);
@@ -36,6 +37,7 @@ const BuildModal = (props) => {
   const [showDeployCodeSpaceModal, setShowDeployCodeSpaceModal] = useState(false);
   const [buildDetails, setBuildDetails] = useState('');
   const [retainBuildImage, setRetainBuildImage] = useState(false);
+  const [showIntMigrationModal, setShowIntMigrationModal] = useState(false);
 
   const projectDetails = props.codeSpaceData?.projectDetails;
   // const intDeploymentMigrated = props.codeSpaceData?.projectDetails?.intDeploymentDetails?.deploymentUrl?.includes(Envs.CODESPACE_AWS_POPUP_URL);
@@ -466,7 +468,11 @@ const BuildModal = (props) => {
                                     onClick={() => {
                                       item.environment = buildEnvironment;
                                       setBuildDetails(item);
-                                      setShowDeployCodeSpaceModal(true);
+                                      if (buildEnvironment === 'staging' && needsIntMigration(props.codeSpaceData)) {
+                                        setShowIntMigrationModal(true);
+                                      } else {
+                                        setShowDeployCodeSpaceModal(true);
+                                      }
                                     }}
                                   >
                                     <i className="icon mbc-icon deploy" />
@@ -517,6 +523,16 @@ const BuildModal = (props) => {
               startWithFive={true}
             />
           ) : null}
+          {showIntMigrationModal && (
+            <IntMigrationModal
+              show={showIntMigrationModal}
+              codeSpaceData={props.codeSpaceData}
+              onDismiss={() => {
+                setShowIntMigrationModal(false);
+                setShowDeployCodeSpaceModal(true);
+              }}
+            />
+          )}
           {showDeployCodeSpaceModal && (
             <DeployModal
               userInfo={props.userInfo}
