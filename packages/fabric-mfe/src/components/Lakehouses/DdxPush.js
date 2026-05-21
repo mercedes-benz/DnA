@@ -859,15 +859,14 @@ const ViewDdxTablesModalContent = ({ workspaceId, workspaceName, workspaceOwner,
 
     const securityLevel = formData.securityLevel === 'Secret' ? 'Confidential' : formData.securityLevel;
 
-    // const cdcBaseUrl = (Envs.CDC_SIGNIN_URL || '').replace(/\/$/, '');
-    // const cdcDatabaseLink = `${cdcBaseUrl}/database/${workspaceName}.${lakehouseName}`;
-    // console.log('cdcDatabaseLink:', cdcDatabaseLink);
+    const cdcBaseUrl = (Envs.CDC_SIGNIN_URL || '').replace(/\/$/, '');
+    const cdcDatabaseLink = `${cdcBaseUrl}/database/${workspaceName}.${lakehouseName}`;
 
     const payload = {
       dataProductName: formData.dataProductName || '',
       dataProductDescription: formData.dataProductDescription || '',
       informationOwner: formData.informationOwner || '',
-      cdcDatabaseLink: formData.cdcDatabaseLink || '',
+      cdcDatabaseLink: cdcDatabaseLink,
       cdcDataProductLink: formData.cdcDataProductLink || '',
       securityLevel: securityLevel || '',
       purposes: formData.purposes || [],
