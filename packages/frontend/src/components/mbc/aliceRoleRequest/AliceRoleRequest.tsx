@@ -68,7 +68,7 @@ const AliceRoleRequest = () => {
   const sanitizeRoleId = (rawId: string): string => {
     if (!rawId) return rawId;
     const uppercased = rawId.toUpperCase();
-    let sanitized = uppercased.replace(/[^A-Z0-9._-]/g, '').replace(/^[^A-Z0-9]+/, '');
+    let sanitized = uppercased.replace(/[^A-Z0-9_-]/g, '').replace(/^[^A-Z0-9]+/, '');
     if (sanitized.length > 201) sanitized = sanitized.substring(0, 201);
     return sanitized;
   };
