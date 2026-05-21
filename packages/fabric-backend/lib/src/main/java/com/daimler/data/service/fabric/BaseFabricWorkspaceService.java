@@ -2106,7 +2106,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 	public CreateEntitlementRequestDto prepareGenericEntitlementCreateRequestDto(String entitlementName) {
 		CreateEntitlementRequestDto entitlementRequestDto = new CreateEntitlementRequestDto();
 		entitlementRequestDto.setType(ConstantsUtility.ENTITLEMENT_TYPE);
-		entitlementRequestDto.setEntitlementId(entitlementName);
+		entitlementRequestDto.setEntitlementId(sanitizeRoleId(entitlementName));
 		entitlementRequestDto.setDisplayName(entitlementName);
 		entitlementRequestDto.setDescription("Generic DNA Entitlement");
 		entitlementRequestDto.setDataClassification(ConstantsUtility.DATACLASSIFICATION_CONFIDENTIAL);
