@@ -12,6 +12,7 @@ import Modal from 'dna-container/Modal';
 import { trackEvent, regionalDateAndTimeConversionSolution, buildGitRepoUrl } from '../../Utility/utils';
 import Tags from 'dna-container/Tags';
 import Tooltip from '../../common/modules/uilab/js/src/tooltip';
+import IntMigrationModal, { needsIntMigration } from '../intMigrationModal/IntMigrationModal';
 
 const DeployModal = (props) => {
   const [branches, setBranches] = useState([]);
@@ -21,6 +22,7 @@ const DeployModal = (props) => {
   const [acceptContinueCodingOnDeployment, setAcceptContinueCodingOnDeployment] = useState(true);
   const projectDetails = props.codeSpaceData?.projectDetails;
   const [retainBuildImage, setRetainBuildImage] = useState(false);
+  const [showIntMigrationModal, setShowIntMigrationModal] = useState(false);
 
   //details from build
   const version = props?.buildDetails?.version || '';
@@ -99,6 +101,11 @@ const DeployModal = (props) => {
       }
     }
     if (formValid) {
+      const isStaging = version?.length ? buildEnvironment === 'staging' : deployEnvironment === 'staging';
+      if (isStaging && needsIntMigration(props.codeSpaceData)) {
+        setShowIntMigrationModal(true);
+        return;
+      }
       const deployRequest = {
         targetEnvironment: version?.length
           ? buildEnvironment === 'staging'
@@ -276,6 +283,13 @@ const DeployModal = (props) => {
         scrollableBox={true}
         onCancel={() => props.setShowCodeDeployModal(false)}
       />
+      {showIntMigrationModal && (
+        <IntMigrationModal
+          show={showIntMigrationModal}
+          codeSpaceData={props.codeSpaceData}
+          onDismiss={() => setShowIntMigrationModal(false)}
+        />
+      )}
     </>
   );
 };
