@@ -47,6 +47,12 @@ public class DeploymentStatusSseController {
             int maxErrors = 5;
             int maxIterations = 600;
             int iteration = 0;
+            boolean seenInProgress = false;
+            // Minimum iterations before accepting terminal status from ArgoCD.
+            // This prevents false "DEPLOYED" when re-deploying an already-deployed app,
+            // because ArgoCD still shows the old deployment as Healthy+Succeeded
+            // before the new sync starts.
+            int minIterationsBeforeTerminal = 5; // ~15 seconds at 3s interval
             
             try {
                 while (iteration < maxIterations) {
@@ -59,14 +65,25 @@ public class DeploymentStatusSseController {
                                 .data(objectMapper.writeValueAsString(statusData)));
 
                         String status = (String) statusData.get("currentStatus");
-                        log.debug("SSE iteration {}: status={} for {}/{}", iteration, status, projectName, environment);
+                        log.debug("SSE iteration {}: status={} seenInProgress={} for {}/{}", iteration, status, seenInProgress, projectName, environment);
+                        
+                        // Track if we've seen an in-progress state (proves new sync has started)
+                        if ("DEPLOYING".equals(status)) {
+                            seenInProgress = true;
+                        }
                         
                         if ("DEPLOYED".equals(status) || "FAILED".equals(status)) {
-                            log.info("Deployment finished with status: {} after {} iterations", status, iteration);
-                            emitter.send(SseEmitter.event()
-                                    .name("deployment-complete")
-                                    .data(objectMapper.writeValueAsString(statusData)));
-                            break;
+                            // Only accept terminal status if we've seen the deployment actually start,
+                            // or enough time has passed to rule out stale ArgoCD state
+                            if (seenInProgress || iteration >= minIterationsBeforeTerminal) {
+                                log.info("Deployment finished with status: {} after {} iterations (seenInProgress={})", status, iteration, seenInProgress);
+                                emitter.send(SseEmitter.event()
+                                        .name("deployment-complete")
+                                        .data(objectMapper.writeValueAsString(statusData)));
+                                break;
+                            } else {
+                                log.info("SSE iteration {}: ignoring early terminal status {} (waiting for new sync to start)", iteration, status);
+                            }
                         }
                         
                         if ("ERROR".equals(status) || "NOT_FOUND".equals(status)) {
@@ -183,6 +200,7 @@ public class DeploymentStatusSseController {
 
             String argoHealthStatus = "UNAVAILABLE";
             String argoSyncStatus = "UNAVAILABLE";
+            String argoLastSyncPhase = "";
             
             try {
                 String argoAppName = projectName + "-" + environment;
@@ -194,9 +212,11 @@ public class DeploymentStatusSseController {
                     JsonNode rootNode = mapper.readTree(argoResponse.getBody());
                     argoHealthStatus = rootNode.path("status").path("health").path("status").asText("");
                     argoSyncStatus = rootNode.path("status").path("sync").path("status").asText("");
+                    argoLastSyncPhase = rootNode.path("status").path("operationState").path("phase").asText("");
                     
                     data.put("argocdHealthStatus", argoHealthStatus);
                     data.put("argocdSyncStatus", argoSyncStatus);
+                    data.put("argocdLastSyncPhase", argoLastSyncPhase);
                     data.put("argocdAppUrl", argoCdService.getArgocdBaseUrl() + "/applications/" + argoAppName);
                 }
             } catch (Exception e) {
@@ -204,11 +224,11 @@ public class DeploymentStatusSseController {
                 data.put("argocdHealthStatus", "UNAVAILABLE");
             }
 
-            String actualStatus = determineActualStatus(dbStatus, argoHealthStatus, argoSyncStatus);
+            String actualStatus = determineActualStatus(dbStatus, argoHealthStatus, argoLastSyncPhase);
             data.put("currentStatus", actualStatus);
             
-            log.debug("Status for {}-{}: DB={}, ArgoHealth={}, ArgoSync={}, Actual={}", 
-                projectName, environment, dbStatus, argoHealthStatus, argoSyncStatus, actualStatus);
+            log.debug("Status for {}-{}: DB={}, ArgoHealth={}, ArgoSync={}, LastSyncPhase={}, Actual={}", 
+                projectName, environment, dbStatus, argoHealthStatus, argoSyncStatus, argoLastSyncPhase, actualStatus);
 
         } catch (Exception e) {
             log.error("Error fetching deployment status for {}/{}: {}", projectName, environment, e.getMessage());
@@ -219,7 +239,7 @@ public class DeploymentStatusSseController {
         return data;
     }
     
-    private String determineActualStatus(String dbStatus, String argoHealth, String argoSync) {
+    private String determineActualStatus(String dbStatus, String argoHealth, String lastSyncPhase) {
         if ("DEPLOYED".equalsIgnoreCase(dbStatus) || "FAILED".equalsIgnoreCase(dbStatus)) {
             log.debug("Using terminal DB status: {}", dbStatus);
             return dbStatus;
@@ -229,26 +249,23 @@ public class DeploymentStatusSseController {
             return dbStatus;
         }
         
-        // When DB says DEPLOYING, trust it — ArgoCD may still show Healthy from the previous deployment
-        // because the new sync hasn't started yet. Only override DB status if ArgoCD shows non-healthy.
-        if ("DEPLOYING".equalsIgnoreCase(dbStatus)) {
-            if ("Degraded".equalsIgnoreCase(argoHealth)) {
-                return "FAILED";
-            }
-            // ArgoCD still Healthy or Progressing — keep DEPLOYING until scheduler confirms final state
-            return "DEPLOYING";
-        }
-        
-        if ("Healthy".equalsIgnoreCase(argoHealth)) {
+        // DEPLOYED: only when BOTH health=Healthy AND lastSyncPhase=Succeeded
+        if ("Healthy".equalsIgnoreCase(argoHealth) && "Succeeded".equalsIgnoreCase(lastSyncPhase)) {
             return "DEPLOYED";
         }
         
-        if ("Degraded".equalsIgnoreCase(argoHealth)) {
-            return "FAILED";
+        // DEPLOYING: sync is still running OR health is progressing (actively working)
+        if ("Running".equalsIgnoreCase(lastSyncPhase) || "Progressing".equalsIgnoreCase(argoHealth)) {
+            return "DEPLOYING";
         }
         
-        // Missing, Progressing, Suspended, Unknown — still deploying
-        return "DEPLOYING";
+        // DEPLOYING: no sync phase yet (empty/null) means sync hasn't started
+        if (lastSyncPhase == null || lastSyncPhase.isEmpty()) {
+            return dbStatus;
+        }
+        
+        // Everything else = FAILED
+        return "FAILED";
     }
 
     @GetMapping(value = "/workspace/deployment/podlogs/stream/{projectName}/{environment}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)

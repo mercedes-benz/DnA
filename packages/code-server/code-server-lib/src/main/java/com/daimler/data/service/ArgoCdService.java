@@ -170,35 +170,39 @@ public class ArgoCdService {
     public String restartArgoApp(String token, String workspaceName, String environment) {
         try {
             String appName = workspaceName + "-" + environment;
-            String namespace = getNamespaceForEnvironment(environment, environment);
+            String namespace = getNamespaceForEnvironment(codeServerEnvRef, environment);
             
-            String resourceName = appName;
             String url = argocdCreateUrl + "/" + appName + "/resource/actions" +
                         "?namespace=" + namespace +
-                        "&resourceName=" + resourceName +
+                        "&resourceName=" + appName +
                         "&version=v1" +
                         "&kind=Deployment" +
                         "&group=apps";
             
-            log.info("Restarting ArgoCD application: {} in namespace: {}", appName, namespace);
+            log.info("[Restart] Calling ArgoCD restart: appName={}, namespace={}, url={}", appName, namespace, url);
     
             HttpHeaders headers = new HttpHeaders();
             headers.setBearerAuth(token);
             headers.setContentType(MediaType.APPLICATION_JSON);
         
-            HttpEntity<String> entity = new HttpEntity<>("restart", headers);
+            HttpEntity<String> entity = new HttpEntity<>("\"restart\"", headers);
         
             ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
         
             if (response != null && response.getStatusCode().is2xxSuccessful()) {
-                log.info("ArgoCD application restarted successfully: {}", appName);
+                log.info("[Restart] ArgoCD application restarted successfully: {}", appName);
                 return "success";
             } else {
-                log.info("Failed to restart: " + (response != null ? response.getBody() : ""));
+                log.error("[Restart] Failed to restart ArgoCD app {}: status={}, body={}", 
+                    appName, (response != null ? response.getStatusCode() : "null"), (response != null ? response.getBody() : "no response"));
                 return "failed";
             }
+        } catch (org.springframework.web.client.HttpClientErrorException e) {
+            log.error("[Restart] ArgoCD HTTP error for {}: status={}, body={}", 
+                workspaceName + "-" + environment, e.getStatusCode(), e.getResponseBodyAsString(), e);
+            return "failed";
         } catch (Exception e) {
-            log.error("Failed to restart ArgoCD application", e);            
+            log.error("[Restart] Failed to restart ArgoCD application {}: {}", workspaceName + "-" + environment, e.getMessage(), e);            
             return "failed";
         }
     }
@@ -216,7 +220,7 @@ public class ArgoCdService {
         String vaultInjectorRootPath = "/" + projectName + "/" + targetEnv + "/api";
         String vaultInjectorRootPathNonApi = "/" + projectName + "/" + targetEnv + "/";
         
-        List<Map<String, String>> helmParameters = new ArrayList<>();
+        List<Map<String, Object>> helmParameters = new ArrayList<>();
         
         helmParameters.add(createHelmParam("namespace", namespace));
         helmParameters.add(createHelmParam("fullnameOverride", appName));
@@ -230,30 +234,34 @@ public class ArgoCdService {
         helmParameters.add(createHelmParam("vaultInjector.root_path_non_api", vaultInjectorRootPathNonApi));
         helmParameters.add(createHelmParam("vaultInjector.authpath", vaultAuthPath));
         helmParameters.add(createHelmParam("vaultInjector.namespace", "/"));
+        helmParameters.add(createHelmParamForceString("podAnnotations.prometheus\\.io/scrape", "true"));
         
-        if (resources != null && !resources.isEmpty()) {
+        if (resources != null && resources.isEmpty()) {
+            helmParameters.add(createHelmParam("resources.requests.cpu", "200m"));
+            helmParameters.add(createHelmParam("resources.requests.memory", "256Mi"));
+            helmParameters.add(createHelmParam("resources.limits.memory", "1Gi"));
+            log.info("[Resources] Empty resources in values.yaml, sending defaults");
+        } else if (resources != null && !resources.isEmpty()) {
             String cpu = resources.get("cpu");
             String memory = resources.get("memory");
             if (cpu != null) {
                 helmParameters.add(createHelmParam("resources.requests.cpu", cpu + "m"));
-                log.info("[Resources] Sending -> resources.requests.cpu: {}", cpu + "m");
             }
             if (memory != null) {
                 helmParameters.add(createHelmParam("resources.requests.memory", memory + "Mi"));
                 helmParameters.add(createHelmParam("resources.limits.memory", memory + "Mi"));
-                log.info("[Resources] Sending -> resources.requests.memory: {}, resources.limits.memory: {}", memory + "Mi", memory + "Mi");
             }
-            // Explicitly remove limits.cpu by setting to "null" string
-            helmParameters.add(createHelmParam("resources.limits.cpu", "null"));
-            log.info("[Resources] Sending -> resources.limits.cpu: null (override to suppress chart default)");
-            log.info("[Resources] Final resources being sent to ArgoCD: " +
-                "requests.cpu={}, requests.memory={}, limits.memory={} (same as requests.memory), limits.cpu=null (removed)",
+            boolean hasLimitsCpu = "true".equals(resources.get("hasLimitsCpu"));
+            if (hasLimitsCpu) {
+                helmParameters.add(createHelmParam("resources.limits.cpu", "null"));
+            }
+            log.info("[Resources] Sending: requests.cpu={}, requests.memory={}, limits.memory={}, limits.cpu={}",
                 cpu != null ? cpu + "m" : "not set",
                 memory != null ? memory + "Mi" : "not set",
-                memory != null ? memory + "Mi" : "not set");
+                memory != null ? memory + "Mi" : "not set",
+                hasLimitsCpu ? "null" : "not sent");
         } else {
-            helmParameters.add(createHelmParam("resources", "{}"));
-            log.info("[Resources] No resource overrides to apply, sending resources={}");
+            log.info("[Resources] No resource overrides, using chart defaults");
         }
         
         Map<String, Object> payload = new HashMap<>();
@@ -266,6 +274,7 @@ public class ArgoCdService {
             ? argocdNamespacePrefix : clusterEnv;
         labels.put("env", envLabel);
         labels.put("project", "cs-apps");
+        labels.put("cs-env", targetEnv);
         metadata.put("labels", labels);
         payload.put("metadata", metadata);
         
@@ -300,6 +309,14 @@ public class ArgoCdService {
         syncPolicy.put("syncOptions", syncOptions);
         
         spec.put("syncPolicy", syncPolicy);
+        
+        List<Map<String, String>> infoList = new ArrayList<>();
+        Map<String, String> csEnvInfo = new HashMap<>();
+        csEnvInfo.put("name", "cs-env");
+        csEnvInfo.put("value", targetEnv);
+        infoList.add(csEnvInfo);
+        spec.put("info", infoList);
+        
         payload.put("spec", spec);
         
         ObjectMapper mapper = new ObjectMapper();
@@ -308,10 +325,18 @@ public class ArgoCdService {
         return finalJson;
     }
     
-    private Map<String, String> createHelmParam(String name, String value) {
-        Map<String, String> param = new HashMap<>();
+    private Map<String, Object> createHelmParam(String name, String value) {
+        Map<String, Object> param = new HashMap<>();
         param.put("name", name);
         param.put("value", value);
+        return param;
+    }
+
+    private Map<String, Object> createHelmParamForceString(String name, String value) {
+        Map<String, Object> param = new HashMap<>();
+        param.put("name", name);
+        param.put("value", value);
+        param.put("forceString", true);
         return param;
     }
     
@@ -398,6 +423,12 @@ public class ArgoCdService {
         Map<String, Object> resourcesSection = (Map<String, Object>) resourcesObj;
         log.info("[Resources] Raw resources from values.yaml: {}", resourcesSection);
         
+        // If resources is explicitly empty {}, return empty map to signal "resources: {}" override
+        if (resourcesSection.isEmpty()) {
+            log.info("[Resources] resources is explicitly empty {}, will send resources={} override");
+            return new HashMap<>();
+        }
+        
         if (!resourcesSection.containsKey("requests")) {
             log.info("[Resources] No 'requests' section found in resources. Available keys: {}", resourcesSection.keySet());
             return null;
@@ -430,6 +461,16 @@ public class ArgoCdService {
                 convertedResources.put("memory", convertedMemory);
             }
         }
+        
+        Object limitsObj = resourcesSection.get("limits");
+        if (limitsObj instanceof Map) {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> limits = (Map<String, Object>) limitsObj;
+            if (limits.containsKey("cpu")) {
+                convertedResources.put("hasLimitsCpu", "true");
+            }
+        }
+        
         log.info("[Resources] Final calculated resources: {}", convertedResources);
         return convertedResources.isEmpty() ? null : convertedResources;
     } catch (Exception e) {
@@ -596,31 +637,30 @@ public class ArgoCdService {
             JsonNode rootNode = mapper.readTree(argoResponse.getBody());
             String healthStatus = rootNode.path("status").path("health").path("status").asText("");
             String syncStatus = rootNode.path("status").path("sync").path("status").asText("");
-            log.info("ArgoCD app {} - Health: {}, Sync: {}", appName, healthStatus, syncStatus);
-            switch (healthStatus.toLowerCase()) {
-                case "healthy":
-                    log.info("Application {} is healthy - DEPLOYED", appName);
-                    return "DEPLOYED";
-                case "degraded":
-                    log.info("Application {} is degraded - FAILED", appName);
-                    return "FAILED";
-                case "progressing":
-                    log.info("Application {} is progressing - DEPLOYING", appName);
-                    return "DEPLOYING";
-                case "missing":
-                    log.info("Application {} is missing - DEPLOYING (resources not yet created)", appName);
-                    return "DEPLOYING";
-                case "suspended":
-                    log.info("Application {} is suspended - FAILED", appName);
-                    return "FAILED";
-                case "unknown":
-                    log.info("Application {} has unknown health status - DEPLOYING", appName);
-                    return "DEPLOYING";
-                default:
-                    log.info("Unexpected health status {} for application {} - DEPLOYING",
-                            healthStatus, appName);
-                    return "DEPLOYING";
+            String lastSyncPhase = rootNode.path("status").path("operationState").path("phase").asText("");
+            log.info("ArgoCD app {} - Health: {}, Sync: {}, LastSyncPhase: {}", appName, healthStatus, syncStatus, lastSyncPhase);
+            
+            // DEPLOYED: only when BOTH health=Healthy AND lastSyncPhase=Succeeded
+            if ("Healthy".equalsIgnoreCase(healthStatus) && "Succeeded".equalsIgnoreCase(lastSyncPhase)) {
+                log.info("Application {} is healthy and last sync succeeded - DEPLOYED", appName);
+                return "DEPLOYED";
             }
+            
+            // DEPLOYING: sync is still running OR health is progressing (actively working)
+            if ("Running".equalsIgnoreCase(lastSyncPhase) || "Progressing".equalsIgnoreCase(healthStatus)) {
+                log.info("Application {} is still in progress (health={}, syncPhase={}) - DEPLOYING", appName, healthStatus, lastSyncPhase);
+                return "DEPLOYING";
+            }
+            
+            // DEPLOYING: no sync phase yet (empty/null) means sync hasn't started
+            if (lastSyncPhase == null || lastSyncPhase.isEmpty()) {
+                log.info("Application {} has no sync phase yet (health={}) - DEPLOYING", appName, healthStatus);
+                return "DEPLOYING";
+            }
+            
+            // Everything else = FAILED (health not Healthy, or sync Failed/Error, or any other non-success combination)
+            log.info("Application {} is not healthy or sync not succeeded (health={}, syncPhase={}) - FAILED", appName, healthStatus, lastSyncPhase);
+            return "FAILED";
         } catch (Exception e) {
             log.error("Failed to check ArgoCD deployment status for {}", appName, e);
             return "DEPLOYING";

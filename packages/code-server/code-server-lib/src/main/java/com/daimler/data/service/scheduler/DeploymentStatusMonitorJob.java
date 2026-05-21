@@ -60,8 +60,23 @@ public class DeploymentStatusMonitorJob {
                     continue;
                 }
 
+                // Recovery: if top-level lastBuildOrDeployedStatus is RESTART_REQUESTED but
+                // per-environment lastDeploymentStatus was never updated, force-check it.
+                String topLevelStatus = workspace.getData().getProjectDetails().getLastBuildOrDeployedStatus();
+                String topLevelEnv = workspace.getData().getProjectDetails().getLastBuildOrDeployedEnv();
+
                 CodeServerDeploymentDetails intDeployment = workspace.getData().getProjectDetails().getIntDeploymentDetails();
-                if (intDeployment != null && shouldCheckDeployment(intDeployment.getLastDeploymentStatus())) {
+                boolean intNeedsCheck = intDeployment != null && shouldCheckDeployment(intDeployment.getLastDeploymentStatus());
+                // Recovery for stuck restarts: top-level says RESTART_REQUESTED for this env but per-env field was never updated
+                if (!intNeedsCheck && intDeployment != null 
+                        && "RESTART_REQUESTED".equalsIgnoreCase(topLevelStatus) 
+                        && "int".equalsIgnoreCase(topLevelEnv)) {
+                    log.info("Recovery: workspace {} has top-level RESTART_REQUESTED for int but per-env status is {}",
+                            projectName, intDeployment.getLastDeploymentStatus());
+                    intDeployment.setLastDeploymentStatus("RESTART_REQUESTED");
+                    intNeedsCheck = true;
+                }
+                if (intNeedsCheck) {
                     checkedCount++;
                     if (checkAndUpdateDeployment(argoToken, workspace, intDeployment, projectName, "int")) {
                         updatedCount++;
@@ -73,7 +88,16 @@ public class DeploymentStatusMonitorJob {
                 }
 
                 CodeServerDeploymentDetails prodDeployment = workspace.getData().getProjectDetails().getProdDeploymentDetails();
-                if (prodDeployment != null && shouldCheckDeployment(prodDeployment.getLastDeploymentStatus())) {
+                boolean prodNeedsCheck = prodDeployment != null && shouldCheckDeployment(prodDeployment.getLastDeploymentStatus());
+                if (!prodNeedsCheck && prodDeployment != null 
+                        && "RESTART_REQUESTED".equalsIgnoreCase(topLevelStatus) 
+                        && "prod".equalsIgnoreCase(topLevelEnv)) {
+                    log.info("Recovery: workspace {} has top-level RESTART_REQUESTED for prod but per-env status is {}",
+                            projectName, prodDeployment.getLastDeploymentStatus());
+                    prodDeployment.setLastDeploymentStatus("RESTART_REQUESTED");
+                    prodNeedsCheck = true;
+                }
+                if (prodNeedsCheck) {
                     checkedCount++;
                     if (checkAndUpdateDeployment(argoToken, workspace, prodDeployment, projectName, "prod")) {
                         updatedCount++;
@@ -93,7 +117,8 @@ public class DeploymentStatusMonitorJob {
 
     private boolean shouldCheckDeployment(String status) {
         if (status == null) return false;
-        return "DEPLOYING".equalsIgnoreCase(status) || "FAILED".equalsIgnoreCase(status);
+        return "DEPLOYING".equalsIgnoreCase(status) || "FAILED".equalsIgnoreCase(status)
+                || "RESTART_REQUESTED".equalsIgnoreCase(status);
     }
 
     private boolean checkAndUpdateDeployment(String argoToken, CodeServerWorkspaceNsql workspace, 
@@ -106,16 +131,27 @@ public class DeploymentStatusMonitorJob {
 
             
             boolean needsUpdate = false;
-            if ("DEPLOYED".equals(argoStatus) && !"DEPLOYED".equalsIgnoreCase(currentDbStatus)) {
+            String targetStatus = argoStatus;
+            
+            if ("RESTART_REQUESTED".equalsIgnoreCase(currentDbStatus)) {
+                // For restart: Healthy+Succeeded → RESTARTED, Degraded/Failed → RESTART_FAILED
+                if ("DEPLOYED".equals(argoStatus)) {
+                    targetStatus = "RESTARTED";
+                    needsUpdate = true;
+                } else if ("FAILED".equals(argoStatus)) {
+                    targetStatus = "RESTART_FAILED";
+                    needsUpdate = true;
+                }
+            } else if ("DEPLOYED".equals(argoStatus) && !"DEPLOYED".equalsIgnoreCase(currentDbStatus)) {
                 needsUpdate = true;
             } else if ("FAILED".equals(argoStatus) && "DEPLOYING".equalsIgnoreCase(currentDbStatus)) {
                 needsUpdate = true;
             }
 
             if (needsUpdate) {
-                log.info("Reconciling deployment status for {} from {} to {}", appName, currentDbStatus, argoStatus);
+                log.info("Reconciling deployment status for {} from {} to {}", appName, currentDbStatus, targetStatus);
                 
-                deployment.setLastDeploymentStatus(argoStatus);
+                deployment.setLastDeploymentStatus(targetStatus);
                 
                 DeploymentAudit latestAudit = null;
                 if (deployment.getDeploymentAuditLogs() != null && !deployment.getDeploymentAuditLogs().isEmpty()) {
@@ -126,7 +162,7 @@ public class DeploymentStatusMonitorJob {
                         .orElse(null);
                 }
                 
-                if ("DEPLOYED".equals(argoStatus)) {
+                if ("DEPLOYED".equals(targetStatus) || "RESTARTED".equals(targetStatus)) {
                     if (deployment.getLastDeployedBy() == null) {
                         deployment.setLastDeployedBy(workspace.getData().getWorkspaceOwner());
                     }
@@ -145,17 +181,17 @@ public class DeploymentStatusMonitorJob {
                     }
                 }
                 if (latestAudit != null) {
-                    latestAudit.setDeploymentStatus(argoStatus);
-                    if ("DEPLOYED".equals(argoStatus)) {
+                    latestAudit.setDeploymentStatus(targetStatus);
+                    if ("DEPLOYED".equals(targetStatus) || "RESTARTED".equals(targetStatus)) {
                         latestAudit.setDeployedOn(new Date());
                     }
-                    log.info("Updated audit log status to {} for deployment at {}", argoStatus, latestAudit.getTriggeredOn());
+                    log.info("Updated audit log status to {} for deployment at {}", targetStatus, latestAudit.getTriggeredOn());
                 }
 
-                workspaceCustomRepository.updateDeploymentDetails(projectName, environment, deployment, argoStatus);
+                workspaceCustomRepository.updateDeploymentDetails(projectName, environment, deployment, targetStatus);
                 
                 // Also update deployment audit logs in the build deploy entity (used by frontend)
-                updateBuildDeployAuditLog(projectName, environment, argoStatus);
+                updateBuildDeployAuditLog(projectName, environment, targetStatus);
                 
                 return true;
             }
@@ -184,12 +220,13 @@ public class DeploymentStatusMonitorJob {
             if (auditLogs == null || auditLogs.isEmpty()) {
                 return;
             }
-            // Find the latest DEPLOYING audit log and update its status
+            // Find the latest in-progress audit log and update its status
             for (int i = auditLogs.size() - 1; i >= 0; i--) {
                 DeploymentAudit audit = auditLogs.get(i);
-                if ("DEPLOYING".equalsIgnoreCase(audit.getDeploymentStatus())) {
+                String auditStatus = audit.getDeploymentStatus();
+                if ("DEPLOYING".equalsIgnoreCase(auditStatus) || "RESTART_REQUESTED".equalsIgnoreCase(auditStatus)) {
                     audit.setDeploymentStatus(argoStatus);
-                    if ("DEPLOYED".equals(argoStatus)) {
+                    if ("DEPLOYED".equals(argoStatus) || "RESTARTED".equals(argoStatus)) {
                         audit.setDeployedOn(new Date());
                     }
                     log.info("Updated build deploy audit log status to {} for {}-{}", argoStatus, projectName, environment);

@@ -4347,30 +4347,14 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 				deploymentJobDto.setInputs(deployJobInputDto);
 				deploymentJobDto.setRef(codeServerEnvRef);
 				
-				String argoToken = argoCdService.getArgoToken();
-				String argoRestartResult = "failed";
-				if (argoToken != null) {
-					String gitRepoUrl = "https://" + gitOrgUri + gitOrgName + "/" + entity.getData().getProjectDetails().getGitRepoName() + ".git";
-					
-					CodeServerDeploymentDetails deployDetails = "int".equalsIgnoreCase(env) 
-						? entity.getData().getProjectDetails().getIntDeploymentDetails()
-						: entity.getData().getProjectDetails().getProdDeploymentDetails();
-					String imageTag = (deployDetails != null && deployDetails.getLastDeployedVersion() != null && !deployDetails.getLastDeployedVersion().isEmpty())
-						? env + "-v" + deployDetails.getLastDeployedVersion()
-						: env + "-latest";
-					
-					String deleteResult = argoCdService.deleteArgoApp(argoToken, projectName.toLowerCase(), env);
-					if ("success".equalsIgnoreCase(deleteResult) || "not_found".equalsIgnoreCase(deleteResult)) {
-						String restartBranch = (deployDetails != null && deployDetails.getLastDeployedBranch() != null && !deployDetails.getLastDeployedBranch().isEmpty())
-							? deployDetails.getLastDeployedBranch() : "main";
-						argoRestartResult = argoCdService.createArgoApp(argoToken, projectName.toLowerCase(), projectOwner, 
-						                                                env, gitRepoUrl, imageTag, isValutInjectorEnable, restartBranch);
+					String argoToken = argoCdService.getArgoToken();
+					String argoRestartResult = "failed";
+					if (argoToken != null) {
+						// Use ArgoCD resource actions API for rolling restart (no delete)
+						argoRestartResult = argoCdService.restartArgoApp(argoToken, projectName.toLowerCase(), env);
 					} else {
-						log.error("Failed to delete ArgoCD app during restart: {}-{}", projectName, env);
+						log.error("Failed to get ArgoCD token for restart: {}-{}", projectName, env);
 					}
-				} else {
-					log.error("Failed to get ArgoCD token for restart: {}-{}", projectName, env);
-				}
 				
 				GenericMessage jobResponse = new GenericMessage();
 				jobResponse.setErrors(new ArrayList<>());
