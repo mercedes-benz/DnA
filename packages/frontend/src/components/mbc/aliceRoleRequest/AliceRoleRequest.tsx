@@ -31,6 +31,23 @@ const AliceRoleRequest = () => {
   const onRoleNameChange = (e: React.FormEvent<HTMLInputElement>) => {
     const roleNameVal = e.currentTarget.value;
     setRoleName(roleNameVal);
+    validateRoleInput(roleNameVal);
+  };
+
+  const validateRoleInput = (value: string) => {
+    const specialCharPattern = /[^A-Za-z0-9\-_./]/;
+    if (value.length === 0) {
+      setRoleNameError('');
+      return;
+    }
+    if (value.includes(' ')) {
+      setRoleNameError('Role ID cannot contain spaces');
+      return;
+    }
+    if (specialCharPattern.test(value)) {
+      setRoleNameError('Role ID can only contain letters, numbers, and the following characters: . _ -');
+      return;
+    }
     setRoleNameError('');
   };
  
