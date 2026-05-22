@@ -20,6 +20,7 @@ import lombok.NoArgsConstructor;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class FabricCatalogMetadataDetails implements Serializable{
     private static final long serialVersionUID = 1L;
+
     private FabricCatalogMetadata metadata;
     private List<UserDetails> owners;
     private MandatoryFields mandatoryFields;
