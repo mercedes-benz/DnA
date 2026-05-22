@@ -397,8 +397,9 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
     handleRefresh();
   };
 
-  const handleDeploymentStatusResult = (status) => {
+  const handleDeploymentStatusResult = (data) => {
     setIsRefreshing(false);
+    const status = data?.currentStatus;
     const isFailed = status === 'FAILED' || status === 'DEPLOYMENT_FAILED';
     if (isFailed) {
       CodeSpaceApiClient.getWorkspaceById(codeSpace.id)
@@ -410,8 +411,11 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
         .catch(() => {});
     }
     const name = codeSpace?.projectDetails?.projectName || 'Workspace';
+    const errorMsg = data?.argocdOperationMessage;
     Notification.show(
-      isFailed ? `${name} deployment status: Failed` : `${name} is healthy`,
+      isFailed
+        ? `${name} deployment status: Failed` + (errorMsg ? '\n' + errorMsg : '')
+        : `${name} is healthy`,
       isFailed ? 'alert' : undefined
     );
   };
@@ -427,13 +431,13 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
       projectName,
       environment,
       (data) => {
-        const status = data?.status;
+        const status = data?.currentStatus;
         if (status === 'FAILED' || status === 'DEPLOYMENT_FAILED' || status === 'DEPLOYED') {
           sse.close();
-          handleDeploymentStatusResult(status);
+          handleDeploymentStatusResult(data);
         }
       },
-      (data) => handleDeploymentStatusResult(data?.status),
+      (data) => handleDeploymentStatusResult(data),
       () => { setIsRefreshing(false); handleRefresh(); }
     );
     setTimeout(() => {

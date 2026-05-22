@@ -213,11 +213,15 @@ public class DeploymentStatusSseController {
                     argoHealthStatus = rootNode.path("status").path("health").path("status").asText("");
                     argoSyncStatus = rootNode.path("status").path("sync").path("status").asText("");
                     argoLastSyncPhase = rootNode.path("status").path("operationState").path("phase").asText("");
+                    String argoOperationMessage = rootNode.path("status").path("operationState").path("message").asText("");
                     
                     data.put("argocdHealthStatus", argoHealthStatus);
                     data.put("argocdSyncStatus", argoSyncStatus);
                     data.put("argocdLastSyncPhase", argoLastSyncPhase);
                     data.put("argocdAppUrl", argoCdService.getArgocdBaseUrl() + "/applications/" + argoAppName);
+                    if (argoOperationMessage != null && !argoOperationMessage.isEmpty()) {
+                        data.put("argocdOperationMessage", argoOperationMessage);
+                    }
                 }
             } catch (Exception e) {
                 log.debug("Could not fetch ArgoCD status: {}", e.getMessage());
