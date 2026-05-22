@@ -50,8 +50,8 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave, user}) => {
   const [selectedProject, setSelectedProject] = useState(edit && workspace?.projectId ? { projectID: workspace?.projectId } : {});
   const selectedDivision = watch('division');
 
-  // const [costCenter, setCostCenter] = useState(edit && workspace?.costCenter !== null ? workspace?.costCenter : '');
-  // const [internalOrder, setInternalOrder] = useState(edit && workspace?.internalOrder !== null ? workspace?.internalOrder : '');
+  const [costCenter, setCostCenter] = useState(edit && workspace?.costCenter !== null ? workspace?.costCenter : '');
+  const [internalOrder, setInternalOrder] = useState(edit && workspace?.internalOrder !== null ? workspace?.internalOrder : '');
   const [division, setDivision] = useState(edit ? (workspace?.divisionId ? workspace?.divisionId + '@-@' + workspace?.division : '0') : '');
   const [subDivision, setSubDivision] = useState(edit ? (workspace?.subDivisionId ? workspace?.subDivisionId + '@-@' + workspace?.subDivision : '0') : '');
   const [description, setDescription] = useState(edit && workspace?.description ? workspace?.description : '');
@@ -345,7 +345,11 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave, user}) => {
     });
   };
   
-const isLeanIXRequired = false;
+const divisionId = division ? division.split('@-@')[0] : null;
+const mandate = divisionId && Envs.MANDATE_LEANIX_FOR_DIVISIONS 
+  ? Envs.MANDATE_LEANIX_FOR_DIVISIONS.split(',').includes(divisionId) 
+  : false;
+const isLeanIXRequired = typeOfProject === 'Production' && mandate;
 
   return (
     <>
@@ -483,7 +487,7 @@ const isLeanIXRequired = false;
                 />
               </div>
             </div>
-            {/* <div className={Styles.col2}>
+            <div className={Styles.col2}>
               <div className={classNames('input-field-group include-error', errors?.costCenter ? 'error' : '')}>
                   <label className={'input-label'}>
                     Cost Center 
@@ -522,7 +526,7 @@ const isLeanIXRequired = false;
                     <span className={'error-message'}>{errors?.internalOrder?.message}{errors.internalOrder?.type === 'pattern' && `Spaces not allowed as field value..`}</span>
                   </div>
                 </div>
-            </div> */}
+            </div> 
             {(typeOfProject !== 'Playground' && typeOfProject !== 'Proof of Concept') && 
               (
                 <div className={Styles.col2}>
