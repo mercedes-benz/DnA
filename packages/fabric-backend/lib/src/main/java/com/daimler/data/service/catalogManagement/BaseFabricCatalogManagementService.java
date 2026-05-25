@@ -139,7 +139,7 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
             updateLakeHouseDetails(existingFabricWorkspace, request.getMetadata());
 
             // Save metadata to repository
-            saveCatalogMetadata(request, catalogMetadataDetails);
+            saveCatalogMetadata(request, catalogMetadataDetails, existingFabricWorkspace.getId());
 
             // Prepare success response
             prepareSuccessResponse(response, catalogMetadataDetails);
@@ -349,11 +349,13 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
     }
 
     private void saveCatalogMetadata(PublishCatalogRequestVO request, 
-            FabricCatalogMetadataDetailsVO catalogMetadataDetails) {
+            FabricCatalogMetadataDetailsVO catalogMetadataDetails, String workspaceId) {
         catalogMetadataDetails.setMetadata(request.getMetadata());
         catalogMetadataDetails.setOwners(request.getOwners());
         catalogMetadataDetails.setMandatoryFields(request.getMandatoryFields());
-        catalogRepo.save(catalogAssembler.toEntity(catalogMetadataDetails));
+        FabricCatalogMetadataNsql entity = catalogAssembler.toEntity(catalogMetadataDetails);
+        entity.setId(workspaceId);
+        catalogRepo.save(entity);
     }
 
     private void prepareSuccessResponse(PublishCatalogResponseVO response, 
@@ -778,21 +780,37 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
             throw new RuntimeException("No valid groups found to add to lakehouse: " + lakehouseName);
         }
 
+        Map<String, GroupNameList> existingGroups = checkForExistingGroupsInTheLakehouse(validGroups, dbLakehouseDetails);
+
+        List<String> groupsToBeAdded = validGroups.stream()
+                .filter(group -> (!existingGroups.containsKey(group)) || (existingGroups.containsKey(group)
+                        && ConstantsUtility.GROUPS_NOT_FOUND_CONSTANT.equals(existingGroups.get(group).getStatus())))
+                .collect(Collectors.toList());
+        if (groupsToBeAdded.isEmpty()) {
+            log.info("All groups: {} are already added to the lakehouse: {}", validGroups, lakehouseName);
+            return;
+        }
+
         Fabric2FabricDetail fabric2FabricDetail = new Fabric2FabricDetail(); 
         fabric2FabricDetail.setInitiatedOn(new Date());
         fabric2FabricDetail.setIsFabric2Fabric(Boolean.TRUE);
         fabric2FabricDetail.setGroupsNames(new ArrayList<>());
 
         GroupNameDetail groupNameDetail = new GroupNameDetail();
-        groupNameDetail.setGroupNameList(buildGroupStatusList(validGroups, ConstantsUtility.GROUPS_IN_PROGRESS_CONSTANT));
+        groupNameDetail.setGroupNameList(buildGroupStatusList(groupsToBeAdded, ConstantsUtility.GROUPS_IN_PROGRESS_CONSTANT));
         
         // Adding the TRS user in the workspace to make sure the user has access to the lakehouse where the groups are being added. 
         // This is required as part of the UIlicious test case which adds the groups to the lakehouse and needs access to the lakehouse.
-        fabricWorkspaceClient.addUser(workspaceId, pidUser);
+        try{
+            fabricWorkspaceClient.addUser(workspaceId, pidUser);
+            log.info("Added user: {} to workspace: {} to facilitate UIlicious test case execution for adding groups to lakehouse", pidUser, workspaceName);
+        } catch(Exception e){
+            log.error("Exception while adding the user to the workspace : {} with exception", workspaceName, e.getMessage());
+        }
 
         String testRunID = null;
         try{
-            testRunID = this.uiLiciousClient.addWorkspaceGroupsToLakehouse(workspaceId, lakehouseId, workspaceName, lakehouseName, validGroups);
+            testRunID = this.uiLiciousClient.addWorkspaceGroupsToLakehouse(workspaceId, lakehouseId, workspaceName, lakehouseName, groupsToBeAdded);
             groupNameDetail.setRunStatus(ConstantsUtility.GROUPS_IN_PROGRESS_CONSTANT); 
             groupNameDetail.setTestRunId(testRunID);
             fabric2FabricDetail.getGroupsNames().add(groupNameDetail);
@@ -840,38 +858,15 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
                 throw new EntityNotFoundException("Group details", workspaceId);
             }
 
-            List<GroupStatusResponseVO> finalGroupStatusList = null;
             boolean allRecordsCompleted = true;
             for(Fabric2FabricDetail fabric2FabricDetails : ddxProduct.getFabric2fabricDetails()){
                 for(GroupNameDetail groupNameDetail : fabric2FabricDetails.getGroupsNames()){
-                    List<GroupStatusResponseVO> groupStatusList = null;
-                    List<String> groupNameList = groupNameDetail.getGroupNameList().stream().map(group->group.getGroupName()).collect(Collectors.toList());
-                    Boolean sameGroup = new HashSet<>(groupNameList).equals(new HashSet<>(validGroups));
-                    if(groupNameDetail.getRunStatus().equals(ConstantsUtility.GROUPS_COMPLETED_CONSTANT) && !sameGroup){
+                    if(groupNameDetail.getRunStatus().equals(ConstantsUtility.GROUPS_COMPLETED_CONSTANT)){
                         continue;
                     }
-                    if(sameGroup){
-                        if(groupNameDetail.getRunStatus().equals(ConstantsUtility.GROUPS_COMPLETED_CONSTANT)){
-                            log.info("Groups: {} have been successfully added to lakehouse: {}", validGroups, lakehouseName);
-                            groupStatusList = groupNameDetail.getGroupNameList().stream().map(groupStatus -> {
-                                GroupStatusResponseVO response = new GroupStatusResponseVO();
-                                response.setGroupName(groupStatus.getGroupName());
-                                response.setStatus(groupStatus.getStatus());
-                                response.setMessage(ConstantsUtility.GROUPES_ERROR_MESSAGES_CONSTANT_MAP.get(groupStatus.getStatus()));
-                                return response;
-                            }).collect(Collectors.toList());
-                        } else {
-                            log.info("Groups: {} are still being added to lakehouse: {}, current status: {}", validGroups, lakehouseName, groupNameDetail.getRunStatus());
-                            finalGroupStatusList = this.uiLiciousClient.getStatusOfGroupsAdditionToLakehouse(workspaceName, workspaceId, lakehouseName, lakehouseId, validGroups, groupNameDetail.getTestRunId());
-                            groupStatusList = finalGroupStatusList;
-                        }
-                    }
-                    Boolean unProcessGroupRun = groupNameDetail.getGroupNameList().stream().anyMatch(group-> group.getStatus().equals("IN_PROGRESS"));
-                    if(unProcessGroupRun){
-                        allRecordsCompleted = false;
-                        groupStatusList = this.uiLiciousClient.getStatusOfGroupsAdditionToLakehouse(workspaceName, workspaceId, lakehouseName, lakehouseId, validGroups, groupNameDetail.getTestRunId());
-                    }
-
+                    
+                    List<GroupStatusResponseVO> groupStatusList = this.uiLiciousClient.getStatusOfGroupsAdditionToLakehouse(workspaceName, workspaceId, lakehouseName, lakehouseId, validGroups, groupNameDetail.getTestRunId());
+                    
                     if(groupStatusList != null && !groupStatusList.isEmpty()){
                         log.info("Group status for lakehouseId {}: {}", lakehouseId, groupStatusList);
                         Map<String, String> statusMap = groupStatusList.stream().collect(Collectors.toMap(GroupStatusResponseVO::getGroupName, GroupStatusResponseVO::getStatus));
@@ -879,17 +874,31 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
                             group.setStatus(statusMap.get(group.getGroupName()));
                             group.setMessage(ConstantsUtility.GROUPES_ERROR_MESSAGES_CONSTANT_MAP.get(group.getStatus()));
                         });
-
-                        groupNameDetail.setRunStatus(groupStatusList.stream().allMatch(status -> ConstantsUtility.GROUPS_ADDED_CONSTANT.equals(status.getStatus())) ? ConstantsUtility.GROUPS_COMPLETED_CONSTANT : ConstantsUtility.GROUPS_IN_PROGRESS_CONSTANT);
-
+                        groupNameDetail.setRunStatus(ConstantsUtility.GROUPS_COMPLETED_CONSTANT);
                     }
-                    if(groupStatusList != null && groupStatusList.isEmpty()){
+                    
+                    if(!ConstantsUtility.GROUPS_COMPLETED_CONSTANT.equals(groupNameDetail.getRunStatus())){
                         allRecordsCompleted = false;
                     }
                 }
             }
             
-            // DdxDataProductsDetailsNsql saveDBEntity = ddxDataProductsDetailsAssembler.toEntity(ddxPublishedLakeHouseDetails);
+            List<GroupStatusResponseVO> finalGroupStatusList = new ArrayList<>();
+            Map<String, GroupNameList> groupsMap = checkForExistingGroupsInTheLakehouse(validGroups, dbEntity);
+            for(String group: validGroups){
+                GroupStatusResponseVO response = new GroupStatusResponseVO();
+                response.setGroupName(group);
+                if(groupsMap.containsKey(group)){
+                    GroupNameList tempGroup = groupsMap.get(group);
+                    response.setStatus(tempGroup.getStatus());
+                    response.setMessage(ConstantsUtility.GROUPES_ERROR_MESSAGES_CONSTANT_MAP.get(tempGroup.getStatus()));
+                } else {
+                    response.setStatus(ConstantsUtility.GROUPS_UNKNOWN_CONSTANT);
+                    response.setMessage(ConstantsUtility.GROUPES_ERROR_MESSAGES_CONSTANT_MAP.get(ConstantsUtility.GROUPS_UNKNOWN_CONSTANT));
+                }
+                finalGroupStatusList.add(response);
+            }
+
             ddxDataProductsDetailsRepository.save(dbEntity);
 
             // List<String> testRunIDList;
@@ -924,11 +933,12 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
 
 
             if(allRecordsCompleted){
-                this.fabricWorkspaceClient.removeUserGroup(workspaceId, pidUserIdentifier);
+                try{
+                    this.fabricWorkspaceClient.removeUserGroup(workspaceId, pidUserIdentifier);
+                } catch(Exception e){
+                    log.error("Exception while removing the user from the workspace : {} with exception", workspaceName, e.getMessage());
+                }
             }
-            // DB operations to update the status of the workspace groups addition to lakehouse can be done here using the groupStatusList
-            // jpaRepo.save(assembler.toEntity(workspaceVO));
-
             return finalGroupStatusList;
 
         }catch(Exception e){
@@ -944,6 +954,12 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
         if (lakehouses == null || lakehouses.isEmpty()) {
             log.warn("No lakehouses found for workspace: {}, skipping UiLicious trigger", workspaceName);
             return;
+        }
+        try{
+            fabricWorkspaceClient.addUser(workspace.getId(), pidUser);
+            log.info("Added user: {} to workspace: {} to facilitate UIlicious test case execution for adding groups to lakehouse", pidUser, workspaceName);
+        } catch(Exception e){
+            log.error("Exception while adding the user to the workspace : {} with exception", workspaceName, e.getMessage());
         }
         for (FabricLakehouseVO lakehouse : lakehouses) {
             try {
@@ -961,6 +977,43 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
                         workspaceName, lakehouse.getName(), e);
             }
         }
+    }
+
+    private Map<String, GroupNameList> checkForExistingGroupsInTheLakehouse(List<String> groupsName, DdxDataProductsDetailsNsql ddxDataProductsDetailsNsql){
+        Map<String, GroupNameList> existingGroups = new HashMap<>();
+        Map<String, GroupNameList> groupNameListMap = new HashMap<>();
+        if(ddxDataProductsDetailsNsql.getData() != null && ddxDataProductsDetailsNsql.getData().getDdxProducts() != null){
+            for(DdxProduct ddx: ddxDataProductsDetailsNsql.getData().getDdxProducts()){
+                if(ddx.getFabric2fabricDetails() != null){
+                    for(Fabric2FabricDetail fabric2FabricDetail : ddx.getFabric2fabricDetails()){
+                        if(fabric2FabricDetail.getGroupsNames() != null){
+                            for(GroupNameDetail groupNameDetail : fabric2FabricDetail.getGroupsNames()){
+                                if(groupNameDetail.getGroupNameList() != null){
+                                    for(GroupNameList groupNameList : groupNameDetail.getGroupNameList()){
+                                        if(!groupNameListMap.containsKey(groupNameList.getGroupName())){
+                                            groupNameListMap.put(groupNameList.getGroupName(), groupNameList);
+                                        } else if(groupNameListMap.containsKey(groupNameList.getGroupName())){
+                                            if(ConstantsUtility.GROUPS_ADDED_CONSTANT.equals(groupNameListMap.get(groupNameList.getGroupName()).getStatus()) && !ConstantsUtility.GROUPS_ADDED_CONSTANT.equals(groupNameList.getStatus())){
+                                                continue;
+                                            } else if(ConstantsUtility.GROUPS_IN_PROGRESS_CONSTANT.equals(groupNameListMap.get(groupNameList.getGroupName()).getStatus()) && !ConstantsUtility.GROUPS_ADDED_CONSTANT.equals(groupNameList.getStatus())){
+                                                continue;
+                                            }
+                                            groupNameListMap.put(groupNameList.getGroupName(), groupNameList);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        for(String groupName : groupsName){
+            if(groupNameListMap.containsKey(groupName)){
+                existingGroups.put(groupName, groupNameListMap.get(groupName));
+            }
+        }
+        return existingGroups;
     }
 
     private List<String> checkForValidGroups(List<String> groups){
