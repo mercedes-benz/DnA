@@ -72,7 +72,7 @@ public class DeploymentStatusSseController {
                             seenInProgress = true;
                         }
                         
-                        if ("DEPLOYED".equals(status) || "FAILED".equals(status)) {
+                        if ("DEPLOYED".equals(status) || "FAILED".equals(status) || "DEPLOYMENT_FAILED".equals(status)) {
                             // Only accept terminal status if we've seen the deployment actually start,
                             // or enough time has passed to rule out stale ArgoCD state
                             if (seenInProgress || iteration >= minIterationsBeforeTerminal) {
@@ -214,10 +214,15 @@ public class DeploymentStatusSseController {
                     argoSyncStatus = rootNode.path("status").path("sync").path("status").asText("");
                     argoLastSyncPhase = rootNode.path("status").path("operationState").path("phase").asText("");
                     
+                    String argoOperationMessage = rootNode.path("status").path("operationState").path("message").asText("");
+
                     data.put("argocdHealthStatus", argoHealthStatus);
                     data.put("argocdSyncStatus", argoSyncStatus);
                     data.put("argocdLastSyncPhase", argoLastSyncPhase);
                     data.put("argocdAppUrl", argoCdService.getArgocdBaseUrl() + "/applications/" + argoAppName);
+                    if (argoOperationMessage != null && !argoOperationMessage.isEmpty()) {
+                        data.put("argocdOperationMessage", argoOperationMessage);
+                    }
                 }
             } catch (Exception e) {
                 log.debug("Could not fetch ArgoCD status: {}", e.getMessage());
@@ -240,7 +245,8 @@ public class DeploymentStatusSseController {
     }
     
     private String determineActualStatus(String dbStatus, String argoHealth, String lastSyncPhase) {
-        if ("DEPLOYED".equalsIgnoreCase(dbStatus) || "FAILED".equalsIgnoreCase(dbStatus)) {
+        if ("DEPLOYED".equalsIgnoreCase(dbStatus) || "FAILED".equalsIgnoreCase(dbStatus) 
+                || "DEPLOYMENT_FAILED".equalsIgnoreCase(dbStatus)) {
             log.debug("Using terminal DB status: {}", dbStatus);
             return dbStatus;
         }
@@ -266,6 +272,46 @@ public class DeploymentStatusSseController {
         
         // Everything else = FAILED
         return "FAILED";
+    }
+
+    @GetMapping(value = "/workspace/deployment/syncerror/{projectName}/{environment}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Map<String, String>> getSyncError(
+            @PathVariable String projectName,
+            @PathVariable String environment) {
+        Map<String, String> result = new HashMap<>();
+        try {
+            // First check if error is stored in DB
+            CodeServerWorkspaceNsql entity = workspaceRepository.findbyProjectName(projectName);
+            if (entity != null && entity.getData() != null && entity.getData().getProjectDetails() != null) {
+                CodeServerDeploymentDetails details = "int".equalsIgnoreCase(environment)
+                        ? entity.getData().getProjectDetails().getIntDeploymentDetails()
+                        : entity.getData().getProjectDetails().getProdDeploymentDetails();
+                if (details != null && details.getLastDeploymentError() != null && !details.getLastDeploymentError().isEmpty()) {
+                    result.put("errorMessage", details.getLastDeploymentError());
+                    return ResponseEntity.ok(result);
+                }
+            }
+
+            // Fallback: fetch from ArgoCD
+            String argoAppName = projectName + "-" + environment;
+            String token = argoCdService.getArgoToken();
+            ResponseEntity<String> argoResponse = argoCdService.getStatusOfArgoApp(token, argoAppName);
+            if (argoResponse != null && argoResponse.getStatusCode().is2xxSuccessful()) {
+                ObjectMapper mapper = new ObjectMapper();
+                JsonNode rootNode = mapper.readTree(argoResponse.getBody());
+                String message = rootNode.path("status").path("operationState").path("message").asText("");
+                if (!message.isEmpty()) {
+                    result.put("errorMessage", message);
+                    return ResponseEntity.ok(result);
+                }
+            }
+            result.put("errorMessage", "No error details available");
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            log.error("Error fetching sync error for {}/{}: {}", projectName, environment, e.getMessage());
+            result.put("errorMessage", "Failed to fetch error details");
+            return ResponseEntity.ok(result);
+        }
     }
 
     @GetMapping(value = "/workspace/deployment/podlogs/stream/{projectName}/{environment}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)

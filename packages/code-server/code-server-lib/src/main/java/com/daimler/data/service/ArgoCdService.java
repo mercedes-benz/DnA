@@ -666,6 +666,46 @@ public class ArgoCdService {
             return "DEPLOYING";
         }
     }
+    public Map<String, String> checkArgoAppDeploymentStatusWithError(String token, String appName) {
+        Map<String, String> result = new HashMap<>();
+        result.put("status", "DEPLOYING");
+        result.put("errorMessage", "");
+        try {
+            ResponseEntity<String> argoResponse = getStatusOfArgoApp(token, appName);
+            if (argoResponse == null || !argoResponse.getStatusCode().is2xxSuccessful()) {
+                int statusCode = argoResponse != null ? argoResponse.getStatusCode().value() : 0;
+                if (statusCode == 403 || statusCode == 404) {
+                    result.put("status", "FAILED");
+                    result.put("errorMessage", "ArgoCD app " + appName + " - HTTP " + statusCode);
+                    return result;
+                }
+                return result;
+            }
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode rootNode = mapper.readTree(argoResponse.getBody());
+            String healthStatus = rootNode.path("status").path("health").path("status").asText("");
+            String lastSyncPhase = rootNode.path("status").path("operationState").path("phase").asText("");
+            String operationMessage = rootNode.path("status").path("operationState").path("message").asText("");
+
+            if ("Healthy".equalsIgnoreCase(healthStatus) && "Succeeded".equalsIgnoreCase(lastSyncPhase)) {
+                result.put("status", "DEPLOYED");
+                return result;
+            }
+            if ("Running".equalsIgnoreCase(lastSyncPhase) || "Progressing".equalsIgnoreCase(healthStatus)) {
+                return result;
+            }
+            if (lastSyncPhase == null || lastSyncPhase.isEmpty()) {
+                return result;
+            }
+            result.put("status", "FAILED");
+            result.put("errorMessage", operationMessage != null ? operationMessage : "");
+            return result;
+        } catch (Exception e) {
+            log.error("Failed to check ArgoCD deployment status for {}", appName, e);
+            return result;
+        }
+    }
+
     private String getNamespaceForEnvironment(String clusterEnv, String targetEnv) {
         String prefix = (argocdNamespacePrefix != null && !argocdNamespacePrefix.isEmpty()) 
             ? argocdNamespacePrefix : clusterEnv;
