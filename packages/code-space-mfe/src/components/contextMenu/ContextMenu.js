@@ -18,7 +18,6 @@ import {
   buildGitUrl,
 } from '../../Utility/utils';
 import DeployedAppConfigModal from '../deployedAppConfigModal/DeployedAppConfigModal';
-import PodLogsModal from '../podLogsModal/PodLogsModal';
 
 const ContextMenu = (props) => {
   const codeSpace = props?.codeSpace;
@@ -40,9 +39,6 @@ const ContextMenu = (props) => {
   const [env, setEnv] = useState('');
   const [showRestartModal, setShowRestartModal] = useState(false);
   const [showDeployedAppConfigModal, setShowDeployedAppConfigModal] = useState(false);
-  const [showPodLogsModal, setShowPodLogsModal] = useState(false);
-  const [podLogsEnv, setPodLogsEnv] = useState('');
-  const [podLogsEnvLabel, setPodLogsEnvLabel] = useState('');
 
   const intDeployingInProgress =
     intDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED' ||
@@ -413,20 +409,6 @@ const ContextMenu = (props) => {
                   </span>
                 </li>
               )}
-              {intDeployingInProgress && (
-                <li>
-                  <span
-                    onClick={() => {
-                      setPodLogsEnv('int');
-                      setPodLogsEnvLabel('Staging');
-                      setShowPodLogsModal(true);
-                      props.setShowContextMenu(false);
-                    }}
-                  >
-                    View Live Deployment Logs
-                  </span>
-                </li>
-              )}
               {intDeployed && (
                 <li>
                   <a target="_blank" href={intAppResourceUsageUrl} rel="noreferrer">
@@ -580,20 +562,6 @@ const ContextMenu = (props) => {
                   </span>
                 </li>
               )}
-              {prodDeployingInProgress && (
-                <li>
-                  <span
-                    onClick={() => {
-                      setPodLogsEnv('prod');
-                      setPodLogsEnvLabel('Production');
-                      setShowPodLogsModal(true);
-                      props.setShowContextMenu(false);
-                    }}
-                  >
-                    View Live Deployment Logs
-                  </span>
-                </li>
-              )}
               {prodDeployed && (
                 <li>
                   <a target="_blank" href={prodAppResourceUsageUrl} rel="noreferrer">
@@ -686,19 +654,6 @@ const ContextMenu = (props) => {
           onAccept={() => {
             onRestart(env);
             setShowRestartModal(false);
-          }}
-        />
-      )}
-      {showPodLogsModal && (
-        <PodLogsModal
-          projectName={projectDetails.projectName.toLowerCase()}
-          environment={podLogsEnv}
-          envLabel={podLogsEnvLabel}
-          show={showPodLogsModal}
-          onClose={() => {
-            setShowPodLogsModal(false);
-            setPodLogsEnv('');
-            setPodLogsEnvLabel('');
           }}
         />
       )}
