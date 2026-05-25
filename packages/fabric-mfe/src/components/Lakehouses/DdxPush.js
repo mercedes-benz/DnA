@@ -169,20 +169,51 @@ const Step2_OwnershipGovernance = ({
     <div className={Styles.stepForm}>
       <div className={Styles.col}>
         <div className={classNames('input-field-group include-error', errors.informationOwnerError ? 'error' : '')}>
-          <label htmlFor="informationOwner" className="input-label">
-            Information Owner <sup>*</sup> (Please provide ShortID. Kindly find more information
+          <label className="input-label">
+            Information Owner <sup>*</sup> (Kindly find more information
             <a href={Envs.INFORMATION_OWNER_URL} target="_blank" rel="noopener noreferrer"> here</a>)
           </label>
-          <input
-            id="informationOwner"
-            className="input-field"
-            autoComplete="off"
-            value={formData.informationOwner || ''}
-            onChange={(e) => {
-              setFormData({ ...formData, informationOwner: e.target.value.toUpperCase() });
-              clearError('informationOwnerError');
-            }}
-          />
+          {!formData.informationOwner && (
+            <AddUser
+              getCollabarators={(member) => {
+                const memberData = {
+                  id: member?.shortId || member?.id,
+                  firstName: member?.firstName,
+                  lastName: member?.lastName,
+                  department: member?.department,
+                  email: member?.email,
+                };
+                setFormData((prev) => ({ ...prev, informationOwner: memberData }));
+                clearError('informationOwnerError');
+              }}
+              dagId=""
+              isRequired={false}
+              isUserprivilegeSearch={false}
+              title="Information Owner"
+            />
+          )}
+          {formData.informationOwner && (
+            <div className={Styles.dataProvidersList}>
+              <div className={Styles.colHeader}>
+                <div className={Styles.column1}>User ID</div>
+                <div className={Styles.column2}>Name</div>
+                <div className={Styles.column4}></div>
+              </div>
+              <div className={classNames('mbc-scroll', Styles.collaboratorContent)}>
+                <div className={Styles.userRow}>
+                  <div className={Styles.column1}>{formData.informationOwner.id}</div>
+                  <div className={Styles.column2}>{formData.informationOwner.firstName + ' ' + formData.informationOwner.lastName}</div>
+                  <div className={Styles.column4}>
+                    <span tooltip-data="Remove" className={Styles.deleteEntry} onClick={() => {
+                      setFormData((prev) => ({ ...prev, informationOwner: null }));
+                    }}>
+                      <i className="icon mbc-icon trash-outline" tooltip-data={'Delete'} />
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
           {errors.informationOwnerError && <span className="error-message">{errors.informationOwnerError}</span>}
         </div>
       </div>
@@ -773,7 +804,7 @@ const ViewDdxTablesModalContent = ({ workspaceId, workspaceName, workspaceOwner,
     }
 
     if (currentStep === 'step2') {
-      if (!formData.informationOwner?.trim()) {
+      if (!formData.informationOwner?.id) {
         newErrors.informationOwnerError = '*Missing entry';
       }
       if (!formData.divisions) {
@@ -865,7 +896,7 @@ const ViewDdxTablesModalContent = ({ workspaceId, workspaceName, workspaceOwner,
     const payload = {
       dataProductName: formData.dataProductName || '',
       dataProductDescription: formData.dataProductDescription || '',
-      informationOwner: formData.informationOwner || '',
+      informationOwner: (formData.informationOwner?.id || '').toUpperCase(),
       cdcDatabaseLink: cdcDatabaseLink,
       cdcDataProductLink: formData.cdcDataProductLink || '',
       securityLevel: securityLevel || '',
