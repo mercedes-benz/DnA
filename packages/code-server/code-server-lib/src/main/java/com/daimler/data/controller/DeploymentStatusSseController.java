@@ -270,8 +270,8 @@ public class DeploymentStatusSseController {
             return dbStatus;
         }
         
-        // Everything else = FAILED
-        return "FAILED";
+        // Everything else = DEPLOYMENT_FAILED
+        return "DEPLOYMENT_FAILED";
     }
 
     @GetMapping(value = "/workspace/deployment/syncerror/{projectName}/{environment}", produces = MediaType.APPLICATION_JSON_VALUE)
