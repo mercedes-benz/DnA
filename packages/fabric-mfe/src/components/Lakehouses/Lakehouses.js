@@ -322,12 +322,11 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
   const [showDdxViewTables, setShowDdxViewTablesModal] = useState(false);
   const [showMismatchModal, setShowMismatchModal] = useState(false);
   const [mismatchData, setMismatchData] = useState(null);
-
   const [contextMenus, setContextMenus] = useState({});
   const [showLocationsContextMenu, setShowLocationsContextMenu] = useState(false);
   const [contextMenuOffsetTop, setContextMenuOffsetTop] = useState(0);
   const [contextMenuOffsetLeft, setContextMenuOffsetLeft] = useState(0);
-  const justPushedRef = useRef(false);
+
   let isTouch = false;
 
   useEffect(() => {
@@ -871,17 +870,7 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
           modalWidth={'90%'}
           buttonAlignment="right"
           show={showViewTables}
-          content={
-            <ViewTablesModalContent
-              workspaceId={workspace?.id}
-              lakehouseId={selectedLakehouse?.id}
-              lakehouseName={selectedLakehouse?.name}
-              onRefreshWorkspace={() => {
-                justPushedRef.current = true;
-                onRefreshWorkspace();
-              }}
-            />
-          }
+        content={<ViewTablesModalContent workspaceId={workspace?.id} lakehouseId={selectedLakehouse?.id} lakehouseName={selectedLakehouse?.name} onRefreshWorkspace={onRefreshWorkspace} />}
           scrollableContent={true}
           onCancel={() => { setSelectedLakehouse(); setShowViewTablesModal(false) }}
         />
@@ -937,9 +926,9 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
           onAccept={deleteLakehouseAccept}
         />
       }
-      { showMismatchModal && mismatchData &&
+      { showMismatchModal && mismatchData && (
         <InfoModal
-          title={`New Tables Detected - ${mismatchData.lakehouseName}`}
+          title={`Changes Detected - ${mismatchData.lakehouseName}`}
           showAcceptButton={false}
           showCancelButton={true}
           cancelButtonTitle="Close"
@@ -947,49 +936,65 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
           modalWidth="60%"
           show={showMismatchModal}
           content={
-            <div style={{ padding: '16px' }}>
-              <p style={{ color: '#e65100', fontWeight: 'bold', fontSize: '14px', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div className={Styles.mismatchModalContent}>
+              <p className={Styles.mismatchWarning}>
                 <i className="icon mbc-icon alert" />
-                Extra tables have been added in Fabric since the last CDC publish.
+                Changes (tables or columns) have been detected in Fabric since the last CDC publish.
               </p>
-              <div style={{ maxHeight: '400px', overflowY: 'auto' }}>
+
+              <div className={Styles.mismatchList}>
                 {mismatchData.mismatches.map((mismatch, index) => (
-                  <div key={index} style={{ padding: '12px', marginBottom: '8px', border: '1px solid #e0e0e0', borderRadius: '4px', backgroundColor: '#fafafa' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span style={{ fontWeight: 'bold', fontSize: '14px' }}>{mismatch.tableName}</span>
-                      <span style={{
-                        padding: '2px 8px',
-                        borderRadius: '4px',
-                        fontSize: '12px',
-                        color: '#fff',
-                        backgroundColor: mismatch.mismatchType === 'NEW_TABLE' ? '#4caf50' : mismatch.mismatchType === 'DELETED_TABLE' ? '#f44336' : '#ff9800'
-                      }}>
+                  <div key={index} className={Styles.mismatchCard}>
+                    <div className={Styles.mismatchHeader}>
+                      <span className={Styles.tableName}>{mismatch.tableName}</span>
+
+                      <span
+                        className={classNames(
+                          Styles.mismatchBadge,
+                          mismatch.mismatchType === 'NEW_TABLE' && Styles.newTable,
+                          mismatch.mismatchType === 'DELETED_TABLE' && Styles.deletedTable,
+                          mismatch.mismatchType !== 'NEW_TABLE' &&
+                          mismatch.mismatchType !== 'DELETED_TABLE' &&
+                          Styles.modifiedTable
+                        )}
+                      >
                         {mismatch.mismatchType?.replace(/_/g, ' ')}
                       </span>
                     </div>
-                    {mismatch.details && <p style={{ margin: '8px 0 0', color: '#666', fontSize: '13px' }}>{mismatch.details}</p>}
+
+                    {mismatch.details && (
+                      <p className={Styles.mismatchDetails}>{mismatch.details}</p>
+                    )}
+
                     {mismatch.affectedColumns?.length > 0 && (
-                      <div style={{ margin: '8px 0 0', fontSize: '13px', color: '#555' }}>
-                        <span style={{ fontWeight: 'bold' }}>Affected columns: </span>
+                      <div className={Styles.affectedColumns}>
+                        <span className={Styles.affectedLabel}>Affected columns: </span>
                         {mismatch.affectedColumns.join(', ')}
                       </div>
                     )}
                   </div>
                 ))}
               </div>
+
               <button
-                className={classNames('btn btn-primary')}
-                style={{ marginTop: '16px' }}
-                onClick={() => { setShowMismatchModal(false); setMismatchData(null); setShowViewTablesModal(true); }}
+                className={classNames('btn btn-primary', Styles.continueButton)}
+                onClick={() => {
+                  setShowMismatchModal(false);
+                  setMismatchData(null);
+                  setShowViewTablesModal(true);
+                }}
               >
                 Continue to Push to CDC
               </button>
             </div>
           }
           scrollableContent={true}
-          onCancel={() => { setShowMismatchModal(false); setMismatchData(null); }}
+          onCancel={() => {
+            setShowMismatchModal(false);
+            setMismatchData(null);
+          }}
         />
-      }
+      )}
     </>
   )
 }
