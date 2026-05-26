@@ -614,7 +614,6 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
         String lakehouseName = lakehouse.getName() == null ? "" : lakehouse.getName().trim();
         String expectedDbName = workspace.getName() + "_" + lakehouseName;
 
-        // Primary match: canonical naming convention.
         Optional<DatabaseMetadataVO> byCanonicalName = requestDatabases.stream()
             .filter(db -> db.getDbName() != null)
             .filter(db -> expectedDbName.equalsIgnoreCase(db.getDbName().trim()))
@@ -623,7 +622,6 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
             return byCanonicalName;
         }
 
-        // Compatibility match: lakehouse name provided directly as dbName.
         Optional<DatabaseMetadataVO> byLakehouseName = requestDatabases.stream()
             .filter(db -> db.getDbName() != null)
             .filter(db -> lakehouseName.equalsIgnoreCase(db.getDbName().trim()))
@@ -632,7 +630,6 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
             return byLakehouseName;
         }
 
-        // Compatibility match: dbName ends with _<lakehouseName>.
         Optional<DatabaseMetadataVO> bySuffix = requestDatabases.stream()
             .filter(db -> db.getDbName() != null)
             .filter(db -> db.getDbName().trim().toLowerCase(Locale.ROOT)
@@ -642,7 +639,6 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
             return bySuffix;
         }
 
-        // Safe fallback: only when workspace has a single lakehouse and request has one database.
         if (workspace.getLakehouses() != null
                 && workspace.getLakehouses().size() == 1
                 && requestDatabases.size() == 1) {
@@ -729,19 +725,15 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
         FabricCatalogMetadataDetailsVO catalogMetadataDetails = new FabricCatalogMetadataDetailsVO();
         catalogMetadataDetails.setMetadata(metadata);
 
-        // Fetch ALL per-lakehouse rows for this service name and aggregate them.
-        // Each row stores one lakehouse's data; the GET endpoint returns the combined view.
         List<FabricCatalogMetadataNsql> entities = catalogCustomRepo.findAllByServiceName(serviceName);
         if (entities.isEmpty()) {
             throw new EntityNotFoundException("Catalog metadata", serviceName);
         }
 
-        // Use the first row for owners/mandatoryFields (same across all lakehouse rows).
         FabricCatalogMetadataDetailsVO firstVO = catalogAssembler.toVo(entities.get(0));
         catalogMetadataDetails.setOwners(firstVO.getOwners());
         catalogMetadataDetails.setMandatoryFields(firstVO.getMandatoryFields());
 
-        // Aggregate CDC table details from all lakehouse rows.
         List<CdcTableDetailVO> allCdcTables = new ArrayList<>();
         List<String> allLakehouseTables = new ArrayList<>();
         List<LakehouseTableDetailVO> allLakehouseTableDetails = new ArrayList<>();
@@ -965,17 +957,11 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
     }
 
 	private void handleDeletions(FabricCatalogMetadataVO existingMetadata, FabricCatalogMetadataVO newMetadata) {
-		// Collect the dbIds explicitly included in the update request.
-		// Only databases present in the request are being updated – databases for
-		// OTHER lakehouses must not be touched to preserve their isolation.
 		Set<String> requestedDbIds = newMetadata.getDatabases().stream()
 			.filter(db -> db.getDbId() != null)
 			.map(DatabaseMetadataVO::getDbId)
 			.collect(Collectors.toSet());
 
-		// For each database in the request scope, check for deleted schemas / tables
-		// / columns within that database. Databases belonging to other lakehouses are
-		// skipped entirely so their metadata is never modified by this publish call.
 		for (DatabaseMetadataVO existingDb : existingMetadata.getDatabases()) {
 			if (existingDb.getDbId() == null || !requestedDbIds.contains(existingDb.getDbId())) {
 				continue; // Not in scope – belongs to a different lakehouse
@@ -1592,9 +1578,6 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
         TableMismatchResponseVO response = new TableMismatchResponseVO();
         List<TableMismatchDetailVO> mismatches = new ArrayList<>();
         try {
-            // Load the per-lakehouse row directly by lakehouseId so that the
-            // CDC/Inspector comparison is performed against THIS lakehouse's
-            // published metadata only, not the aggregated workspace metadata.
             FabricCatalogMetadataVO storedMetadata;
             Optional<FabricCatalogMetadataNsql> lakehouseEntityOpt = catalogRepo.findById(lakehouseId);
             if (lakehouseEntityOpt.isPresent()) {
