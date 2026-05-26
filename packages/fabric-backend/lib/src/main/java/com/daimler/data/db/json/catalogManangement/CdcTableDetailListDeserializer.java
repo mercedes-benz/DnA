@@ -22,7 +22,6 @@ public class CdcTableDetailListDeserializer extends JsonDeserializer<List<CdcTab
         while (p.nextToken() != JsonToken.END_ARRAY) {
             if (p.currentToken() == JsonToken.VALUE_STRING) {
                 CdcTableDetail detail = new CdcTableDetail();
-                detail.setProductName(p.getText());
                 result.add(detail);
             } else if (p.currentToken() == JsonToken.START_OBJECT) {
                 CdcTableDetail detail = p.readValueAs(CdcTableDetail.class);
