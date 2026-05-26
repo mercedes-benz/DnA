@@ -432,6 +432,70 @@ const subscribeToDeploymentStatus = (projectName, environment, onStatusUpdate, o
     return sse;
 };
 
+const getSyncError = (projectName, environment) => {
+    return httpClient.get(`${baseURL}/workspace/deployment/syncerror/${projectName}/${environment}`);
+};
+
+const subscribeToPodLogs = (projectName, environment, onPodInfo, onPodLogs, onComplete, onError) => {
+    const url = `${baseURL}/workspace/deployment/podlogs/stream/${projectName}/${environment}`;
+
+    const sse = new EventSourcePolyfill(url, {
+        withCredentials: true,
+        headers: {
+            Authorization: readJwt(),
+            Accept: 'text/event-stream'
+        },
+    });
+
+    sse.addEventListener('pod-info', (event) => {
+        try {
+            const data = JSON.parse(event.data);
+            onPodInfo && onPodInfo(data);
+        } catch (error) {
+            console.error('Error parsing pod-info event:', error);
+        }
+    });
+
+    sse.addEventListener('pod-logs', (event) => {
+        try {
+            const data = JSON.parse(event.data);
+            onPodLogs && onPodLogs(data);
+        } catch (error) {
+            console.error('Error parsing pod-logs event:', error);
+        }
+    });
+
+    sse.addEventListener('pod-logs-complete', (event) => {
+        try {
+            const data = JSON.parse(event.data);
+            onComplete && onComplete(data);
+            sse.close();
+        } catch (error) {
+            console.error('Error parsing pod-logs-complete event:', error);
+            sse.close();
+        }
+    });
+
+    sse.addEventListener('pod-logs-error', (event) => {
+        try {
+            const data = JSON.parse(event.data);
+            onError && onError(data);
+            sse.close();
+        } catch (error) {
+            console.error('Error parsing pod-logs-error event:', error);
+            sse.close();
+        }
+    });
+
+    sse.onerror = (error) => {
+        console.error('Pod logs SSE connection error:', error);
+        onError && onError({ message: 'Connection lost' });
+        sse.close();
+    };
+
+    return sse;
+};
+
 const restartDeployments = (id, env) => {
     return server.post(`/workspaces/${id}/restart?env=${env}`, {data: {},});
 };
@@ -542,6 +606,8 @@ export const CodeSpaceApiClient = {
     workSpaceStatus,
     serverStatusFromHub,
     subscribeToDeploymentStatus,
+    getSyncError,
+    subscribeToPodLogs,
     restartDeployments,
     migrateWorkplace,
     getCodeSpaceGroups,

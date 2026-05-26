@@ -16,6 +16,7 @@ import org.springframework.stereotype.Component;
 
 import java.util.Date;
 import java.util.List;
+import java.util.Map;
 
 
 @Component
@@ -127,7 +128,9 @@ public class DeploymentStatusMonitorJob {
         try {
             String appName = projectName.toLowerCase() + "-" + environment;
             String currentDbStatus = deployment.getLastDeploymentStatus();
-            String argoStatus = argoCdService.checkArgoAppDeploymentStatus(argoToken, appName);
+            Map<String, String> argoResult = argoCdService.checkArgoAppDeploymentStatusWithError(argoToken, appName);
+            String argoStatus = argoResult.get("status");
+            String argoErrorMessage = argoResult.get("errorMessage");
 
             
             boolean needsUpdate = false;
@@ -145,6 +148,7 @@ public class DeploymentStatusMonitorJob {
             } else if ("DEPLOYED".equals(argoStatus) && !"DEPLOYED".equalsIgnoreCase(currentDbStatus)) {
                 needsUpdate = true;
             } else if ("FAILED".equals(argoStatus) && "DEPLOYING".equalsIgnoreCase(currentDbStatus)) {
+                targetStatus = "DEPLOYMENT_FAILED";
                 needsUpdate = true;
             }
 
@@ -152,6 +156,11 @@ public class DeploymentStatusMonitorJob {
                 log.info("Reconciling deployment status for {} from {} to {}", appName, currentDbStatus, targetStatus);
                 
                 deployment.setLastDeploymentStatus(targetStatus);
+                if ("DEPLOYMENT_FAILED".equals(targetStatus) || "RESTART_FAILED".equals(targetStatus)) {
+                    deployment.setLastDeploymentError(argoErrorMessage);
+                } else {
+                    deployment.setLastDeploymentError(null);
+                }
                 
                 DeploymentAudit latestAudit = null;
                 if (deployment.getDeploymentAuditLogs() != null && !deployment.getDeploymentAuditLogs().isEmpty()) {
