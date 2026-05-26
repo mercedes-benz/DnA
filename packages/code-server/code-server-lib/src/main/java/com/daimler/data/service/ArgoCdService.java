@@ -666,6 +666,46 @@ public class ArgoCdService {
             return "DEPLOYING";
         }
     }
+    public Map<String, String> checkArgoAppDeploymentStatusWithError(String token, String appName) {
+        Map<String, String> result = new HashMap<>();
+        result.put("status", "DEPLOYING");
+        result.put("errorMessage", "");
+        try {
+            ResponseEntity<String> argoResponse = getStatusOfArgoApp(token, appName);
+            if (argoResponse == null || !argoResponse.getStatusCode().is2xxSuccessful()) {
+                int statusCode = argoResponse != null ? argoResponse.getStatusCode().value() : 0;
+                if (statusCode == 403 || statusCode == 404) {
+                    result.put("status", "FAILED");
+                    result.put("errorMessage", "ArgoCD app " + appName + " - HTTP " + statusCode);
+                    return result;
+                }
+                return result;
+            }
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode rootNode = mapper.readTree(argoResponse.getBody());
+            String healthStatus = rootNode.path("status").path("health").path("status").asText("");
+            String lastSyncPhase = rootNode.path("status").path("operationState").path("phase").asText("");
+            String operationMessage = rootNode.path("status").path("operationState").path("message").asText("");
+
+            if ("Healthy".equalsIgnoreCase(healthStatus) && "Succeeded".equalsIgnoreCase(lastSyncPhase)) {
+                result.put("status", "DEPLOYED");
+                return result;
+            }
+            if ("Running".equalsIgnoreCase(lastSyncPhase) || "Progressing".equalsIgnoreCase(healthStatus)) {
+                return result;
+            }
+            if (lastSyncPhase == null || lastSyncPhase.isEmpty()) {
+                return result;
+            }
+            result.put("status", "FAILED");
+            result.put("errorMessage", operationMessage != null ? operationMessage : "");
+            return result;
+        } catch (Exception e) {
+            log.error("Failed to check ArgoCD deployment status for {}", appName, e);
+            return result;
+        }
+    }
+
     private String getNamespaceForEnvironment(String clusterEnv, String targetEnv) {
         String prefix = (argocdNamespacePrefix != null && !argocdNamespacePrefix.isEmpty()) 
             ? argocdNamespacePrefix : clusterEnv;
@@ -677,93 +717,5 @@ public class ArgoCdService {
     
     private String getVaultAuthPath(String clusterEnv) {
         return "auth/k8_auth_dna_aws_" + clusterEnv;
-    }
-
-    /**
-     * Fetches the resource tree for an ArgoCD application, extracting pod info.
-     * Returns a list of maps with keys: name, status, namespace, kind.
-     */
-    public List<Map<String, String>> getAppPods(String token, String appName) {
-        List<Map<String, String>> pods = new ArrayList<>();
-        try {
-            String url = argocdCreateUrl + "/" + appName + "/resource-tree";
-            HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth(token);
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            HttpEntity<Object> entity = new HttpEntity<>(headers);
-
-            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
-            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-                ObjectMapper mapper = new ObjectMapper();
-                JsonNode root = mapper.readTree(response.getBody());
-                JsonNode nodes = root.path("nodes");
-                if (nodes.isArray()) {
-                    for (JsonNode node : nodes) {
-                        String kind = node.path("kind").asText("");
-                        if ("Pod".equalsIgnoreCase(kind)) {
-                            Map<String, String> podInfo = new HashMap<>();
-                            podInfo.put("name", node.path("name").asText(""));
-                            podInfo.put("namespace", node.path("namespace").asText(""));
-                            podInfo.put("status", node.path("health").path("status").asText("Unknown"));
-                            podInfo.put("kind", kind);
-                            pods.add(podInfo);
-                        }
-                    }
-                }
-            }
-            log.info("Found {} pods for ArgoCD app: {}", pods.size(), appName);
-        } catch (Exception e) {
-            log.error("Failed to get resource tree for ArgoCD app {}: {}", appName, e.getMessage());
-        }
-        return pods;
-    }
-
-    /**
-     * Fetches pod logs from the ArgoCD logs API.
-     * Returns a list of log lines for the given pod.
-     */
-    public List<String> getPodLogs(String token, String appName, String podName, String namespace, int sinceSeconds) {
-        List<String> logLines = new ArrayList<>();
-        try {
-            String url = argocdCreateUrl + "/" + appName + "/logs"
-                    + "?podName=" + podName
-                    + "&namespace=" + namespace
-                    + "&sinceSeconds=" + sinceSeconds
-                    + "&follow=false";
-
-            HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth(token);
-            HttpEntity<Object> entity = new HttpEntity<>(headers);
-
-            log.debug("Fetching pod logs from: {}", url);
-            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
-
-            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-                ObjectMapper mapper = new ObjectMapper();
-                String body = response.getBody();
-                // ArgoCD logs API returns newline-delimited JSON objects: {"result":{"content":"...","podName":"..."}}
-                String[] lines = body.split("\n");
-                for (String line : lines) {
-                    line = line.trim();
-                    if (line.isEmpty()) continue;
-                    try {
-                        JsonNode logEntry = mapper.readTree(line);
-                        String content = logEntry.path("result").path("content").asText("");
-                        if (!content.isEmpty()) {
-                            logLines.add(content);
-                        }
-                    } catch (Exception parseEx) {
-                        // If not JSON, treat as raw log line
-                        logLines.add(line);
-                    }
-                }
-            }
-            log.debug("Fetched {} log lines for pod {} in app {}", logLines.size(), podName, appName);
-        } catch (org.springframework.web.client.HttpClientErrorException.NotFound e) {
-            log.warn("Pod {} not found in ArgoCD app {}", podName, appName);
-        } catch (Exception e) {
-            log.error("Failed to fetch pod logs for {} in app {}: {}", podName, appName, e.getMessage());
-        }
-        return logLines;
     }
 }

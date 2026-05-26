@@ -72,7 +72,7 @@ public class DeploymentStatusSseController {
                             seenInProgress = true;
                         }
                         
-                        if ("DEPLOYED".equals(status) || "FAILED".equals(status)) {
+                        if ("DEPLOYED".equals(status) || "FAILED".equals(status) || "DEPLOYMENT_FAILED".equals(status)) {
                             // Only accept terminal status if we've seen the deployment actually start,
                             // or enough time has passed to rule out stale ArgoCD state
                             if (seenInProgress || iteration >= minIterationsBeforeTerminal) {
@@ -214,10 +214,15 @@ public class DeploymentStatusSseController {
                     argoSyncStatus = rootNode.path("status").path("sync").path("status").asText("");
                     argoLastSyncPhase = rootNode.path("status").path("operationState").path("phase").asText("");
                     
+                    String argoOperationMessage = rootNode.path("status").path("operationState").path("message").asText("");
+
                     data.put("argocdHealthStatus", argoHealthStatus);
                     data.put("argocdSyncStatus", argoSyncStatus);
                     data.put("argocdLastSyncPhase", argoLastSyncPhase);
                     data.put("argocdAppUrl", argoCdService.getArgocdBaseUrl() + "/applications/" + argoAppName);
+                    if (argoOperationMessage != null && !argoOperationMessage.isEmpty()) {
+                        data.put("argocdOperationMessage", argoOperationMessage);
+                    }
                 }
             } catch (Exception e) {
                 log.debug("Could not fetch ArgoCD status: {}", e.getMessage());
@@ -240,7 +245,8 @@ public class DeploymentStatusSseController {
     }
     
     private String determineActualStatus(String dbStatus, String argoHealth, String lastSyncPhase) {
-        if ("DEPLOYED".equalsIgnoreCase(dbStatus) || "FAILED".equalsIgnoreCase(dbStatus)) {
+        if ("DEPLOYED".equalsIgnoreCase(dbStatus) || "FAILED".equalsIgnoreCase(dbStatus) 
+                || "DEPLOYMENT_FAILED".equalsIgnoreCase(dbStatus)) {
             log.debug("Using terminal DB status: {}", dbStatus);
             return dbStatus;
         }
@@ -264,129 +270,47 @@ public class DeploymentStatusSseController {
             return dbStatus;
         }
         
-        // Everything else = FAILED
-        return "FAILED";
+        // Everything else = DEPLOYMENT_FAILED
+        return "DEPLOYMENT_FAILED";
     }
 
-    @GetMapping(value = "/workspace/deployment/podlogs/stream/{projectName}/{environment}", produces = MediaType.TEXT_EVENT_STREAM_VALUE)
-    public SseEmitter streamPodLogs(
+    @GetMapping(value = "/workspace/deployment/syncerror/{projectName}/{environment}", produces = MediaType.APPLICATION_JSON_VALUE)
+    public ResponseEntity<Map<String, String>> getSyncError(
             @PathVariable String projectName,
-            @PathVariable String environment,
-            @RequestParam(defaultValue = "300") int sinceSeconds) {
-
-        log.info("Starting pod logs SSE stream for project: {}, environment: {}", projectName, environment);
-
-        SseEmitter emitter = new SseEmitter(Long.MAX_VALUE);
-
-        executor.execute(() -> {
-            int maxIterations = 200;
-            int iteration = 0;
-            Set<String> sentLogLines = new HashSet<>();
-
-            try {
-                String[] tokenHolder = new String[]{ argoCdService.getArgoToken() };
-                String appName = projectName + "-" + environment;
-
-                // Step 1: Get pods for this app
-                List<Map<String, String>> pods = argoCdService.getAppPods(tokenHolder[0], appName);
-
-                if (pods.isEmpty()) {
-                    Map<String, Object> errorData = new HashMap<>();
-                    errorData.put("appName", appName);
-                    errorData.put("message", "No pods found for application: " + appName);
-                    emitter.send(SseEmitter.event()
-                            .name("pod-logs-error")
-                            .data(objectMapper.writeValueAsString(errorData)));
-                    emitter.complete();
-                    return;
+            @PathVariable String environment) {
+        Map<String, String> result = new HashMap<>();
+        try {
+            // First check if error is stored in DB
+            CodeServerWorkspaceNsql entity = workspaceRepository.findbyProjectName(projectName);
+            if (entity != null && entity.getData() != null && entity.getData().getProjectDetails() != null) {
+                CodeServerDeploymentDetails details = "int".equalsIgnoreCase(environment)
+                        ? entity.getData().getProjectDetails().getIntDeploymentDetails()
+                        : entity.getData().getProjectDetails().getProdDeploymentDetails();
+                if (details != null && details.getLastDeploymentError() != null && !details.getLastDeploymentError().isEmpty()) {
+                    result.put("errorMessage", details.getLastDeploymentError());
+                    return ResponseEntity.ok(result);
                 }
-
-                // Send pod info
-                Map<String, Object> podInfoData = new HashMap<>();
-                podInfoData.put("appName", appName);
-                podInfoData.put("pods", pods);
-                emitter.send(SseEmitter.event()
-                        .name("pod-info")
-                        .data(objectMapper.writeValueAsString(podInfoData)));
-
-                // Step 2: Poll for logs
-                while (iteration < maxIterations) {
-                    iteration++;
-                    try {
-                        // Refresh token periodically (every 50 iterations)
-                        if (iteration % 50 == 0) {
-                            tokenHolder[0] = argoCdService.getArgoToken();
-                        }
-
-                        for (Map<String, String> pod : pods) {
-                            String podName = pod.get("name");
-                            String namespace = pod.get("namespace");
-
-                            List<String> logLines = argoCdService.getPodLogs(tokenHolder[0], appName, podName, namespace, sinceSeconds);
-
-                            // Filter out already-sent lines
-                            List<String> newLines = new ArrayList<>();
-                            for (String line : logLines) {
-                                if (sentLogLines.add(line)) {
-                                    newLines.add(line);
-                                }
-                            }
-
-                            if (!newLines.isEmpty()) {
-                                Map<String, Object> logData = new HashMap<>();
-                                logData.put("podName", podName);
-                                logData.put("logs", newLines);
-                                logData.put("timestamp", new Date());
-                                emitter.send(SseEmitter.event()
-                                        .name("pod-logs")
-                                        .data(objectMapper.writeValueAsString(logData)));
-                            }
-                        }
-
-                        Thread.sleep(5000);
-
-                    } catch (IOException e) {
-                        log.warn("Client disconnected from pod logs SSE stream at iteration {}", iteration);
-                        emitter.completeWithError(e);
-                        return;
-                    } catch (InterruptedException e) {
-                        log.warn("Pod logs SSE stream interrupted at iteration {}", iteration);
-                        Thread.currentThread().interrupt();
-                        emitter.completeWithError(e);
-                        return;
-                    }
-                }
-
-                // Timeout
-                Map<String, Object> completeData = new HashMap<>();
-                completeData.put("appName", appName);
-                completeData.put("message", "Log streaming completed");
-                emitter.send(SseEmitter.event()
-                        .name("pod-logs-complete")
-                        .data(objectMapper.writeValueAsString(completeData)));
-                emitter.complete();
-                log.info("Pod logs SSE stream completed after {} iterations for {}", iteration, appName);
-
-            } catch (Exception e) {
-                log.error("Error in pod logs SSE stream for {}-{}: {}", projectName, environment, e.getMessage());
-                try {
-                    Map<String, Object> errorData = new HashMap<>();
-                    errorData.put("appName", projectName + "-" + environment);
-                    errorData.put("message", "Failed to fetch pod logs: " + e.getMessage());
-                    emitter.send(SseEmitter.event()
-                            .name("pod-logs-error")
-                            .data(objectMapper.writeValueAsString(errorData)));
-                } catch (IOException ignored) {
-                    // Client already disconnected
-                }
-                emitter.completeWithError(e);
             }
-        });
 
-        emitter.onCompletion(() -> log.info("Pod logs SSE emitter completed for {}/{}", projectName, environment));
-        emitter.onTimeout(() -> log.warn("Pod logs SSE emitter timeout for {}/{}", projectName, environment));
-        emitter.onError((ex) -> log.error("Pod logs SSE emitter error for {}/{}", projectName, environment, ex));
-
-        return emitter;
+            // Fallback: fetch from ArgoCD
+            String argoAppName = projectName + "-" + environment;
+            String token = argoCdService.getArgoToken();
+            ResponseEntity<String> argoResponse = argoCdService.getStatusOfArgoApp(token, argoAppName);
+            if (argoResponse != null && argoResponse.getStatusCode().is2xxSuccessful()) {
+                ObjectMapper mapper = new ObjectMapper();
+                JsonNode rootNode = mapper.readTree(argoResponse.getBody());
+                String message = rootNode.path("status").path("operationState").path("message").asText("");
+                if (!message.isEmpty()) {
+                    result.put("errorMessage", message);
+                    return ResponseEntity.ok(result);
+                }
+            }
+            result.put("errorMessage", "No error details available");
+            return ResponseEntity.ok(result);
+        } catch (Exception e) {
+            log.error("Error fetching sync error for {}/{}: {}", projectName, environment, e.getMessage());
+            result.put("errorMessage", "Failed to fetch error details");
+            return ResponseEntity.ok(result);
+        }
     }
 }

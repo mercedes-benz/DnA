@@ -52,6 +52,9 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
   const [readMeContent, setReadMeContent] = useState('');
   const enableReadMe =  Envs.CODESPACE_RECIEPES_ENABLE_README?.split(',')?.includes(codeSpace?.projectDetails?.recipeDetails?.Id) || false;
   const [showMigrateOrStartModal, setShowMigrateOrStartModal] = useState(false);
+  const [showSyncErrorModal, setShowSyncErrorModal] = useState(false);
+  const [syncErrorMessage, setSyncErrorMessage] = useState('');
+  const [syncErrorLoading, setSyncErrorLoading] = useState(false);
   const contextMenuRef = useRef(null);
   const statusPollRef = useRef(null);
 
@@ -397,6 +400,32 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
     handleRefresh();
   };
 
+  const onSyncErrorInfoClick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const env = projectDetails?.lastBuildOrDeployedEnv;
+    const details = env === 'int' ? projectDetails?.intDeploymentDetails : projectDetails?.prodDeploymentDetails;
+    const storedError = details?.lastDeploymentError;
+
+    if (storedError) {
+      setSyncErrorMessage(storedError);
+      setShowSyncErrorModal(true);
+    } else {
+      setSyncErrorLoading(true);
+      setShowSyncErrorModal(true);
+      const projectName = projectDetails?.projectName;
+      CodeSpaceApiClient.getSyncError(projectName, env || 'int')
+        .then((res) => {
+          setSyncErrorMessage(res.data?.errorMessage || 'No error details available');
+          setSyncErrorLoading(false);
+        })
+        .catch(() => {
+          setSyncErrorMessage('Failed to fetch error details');
+          setSyncErrorLoading(false);
+        });
+    }
+  };
+
   const projectDetails = codeSpace?.projectDetails;
   const intDeploymentDetails = projectDetails?.intDeploymentDetails;
   const prodDeploymentDetails = projectDetails?.prodDeploymentDetails;
@@ -667,7 +696,7 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
                       )}
                       {(projectDetails?.lastBuildOrDeployedStatus === 'DEPLOYMENT_FAILED' ||
                         projectDetails?.lastBuildOrDeployedStatus === 'FAILED') && (
-                        <span className={classNames(Styles.statusIndicator, Styles.deployFailed)}>
+                        <span className={classNames(Styles.statusIndicator, Styles.deployFailed, Styles.statusWithRefresh)}>
                           <a
                             href={(projectDetails?.lastBuildOrDeployedEnv === 'int')
                               ? buildGitJobLogViewAWSURL(projectDetails?.intDeploymentDetails?.gitjobRunID)
@@ -683,6 +712,13 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
                           >
                            Failed
                           </a>
+                          <span
+                            className={Styles.syncErrorInfoIcon}
+                            onClick={onSyncErrorInfoClick}
+                            tooltip-data="View sync error details"
+                          >
+                            <i className="icon mbc-icon info"></i>
+                          </span>
                         </span>
                       )}
                       {projectDetails?.lastBuildOrDeployedStatus === 'BUILD_SUCCESS' && (
@@ -776,7 +812,7 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
                         </span>
                       )}
                       {projectDetails?.lastBuildOrDeployedStatus === 'RESTART_FAILED' && (
-                        <span className={classNames(Styles.statusIndicator, Styles.deployFailed)}>
+                        <span className={classNames(Styles.statusIndicator, Styles.deployFailed, Styles.statusWithRefresh)}>
                           <a
                             href={(projectDetails?.lastBuildOrDeployedEnv === 'int')
                               ? buildGitJobLogViewAWSURL(projectDetails?.intDeploymentDetails?.gitjobRunID)
@@ -792,6 +828,13 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
                           >
                            Failed
                           </a>
+                          <span
+                            className={Styles.syncErrorInfoIcon}
+                            onClick={onSyncErrorInfoClick}
+                            tooltip-data="View sync error details"
+                          >
+                            <i className="icon mbc-icon info"></i>
+                          </span>
                         </span>
                       )}
                       {projectDetails?.lastBuildOrDeployedStatus === 'RESTARTED' && (
@@ -917,6 +960,32 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
             setShowMigrateOrStartModal(false);
           }}
           onAccept={onMigrateWorkplace}
+        />
+      )}
+      {showSyncErrorModal && (
+        <Modal
+          showAcceptButton={false}
+          showCancelButton={false}
+          show={showSyncErrorModal}
+          content={
+            <div className={Styles.syncErrorModalContent}>
+              <h3>Deployment Sync Error</h3>
+              {syncErrorLoading ? (
+                <p>Loading error details...</p>
+              ) : (
+                <pre className={Styles.syncErrorPre}>{syncErrorMessage}</pre>
+              )}
+            </div>
+          }
+          scrollableContent={true}
+          onCancel={() => {
+            setShowSyncErrorModal(false);
+            setSyncErrorMessage('');
+          }}
+          modalStyle={{
+            width: '60%',
+            maxHeight: '70%',
+          }}
         />
       )}
     </>

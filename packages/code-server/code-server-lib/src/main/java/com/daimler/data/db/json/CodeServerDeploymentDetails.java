@@ -36,5 +36,6 @@ public class CodeServerDeploymentDetails implements Serializable {
 	private Boolean entitlementPrefixEnabled;
 	private List<String> selectedAliceRoles;
 	private List<DeploymentAudit> deploymentAuditLogs;
+	private String lastDeploymentError;
 	
 }
