@@ -3,6 +3,36 @@
   margin: 0 auto 20px;
   height: 60vh;
   max-height: 60vh;
+
+  .successMessage {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    text-align: left;
+    padding: 40px;
+
+    p {
+      font-size: 16px;
+      line-height: 1.6;
+      color: #fff;
+    }
+
+    ol {
+      color: #fff;
+      font-size: 14px;
+      line-height: 1.8;
+      margin-top: 10px;
+      padding-left: 20px;
+    }
+
+    a {
+      color: #00adef;
+      text-decoration: underline;
+      font-weight: 600;
+    }
+  }
   
   h3 {
     font-size: 16px;
@@ -280,4 +310,13 @@
 .deleteEntry {
   float: right;
   cursor: pointer;
+}
+.warning {
+  margin-bottom: 0;
+  margin-top: -16px;
+  color: #FFEE58;
+
+  pre {
+    display: inline;
+  }
 }
