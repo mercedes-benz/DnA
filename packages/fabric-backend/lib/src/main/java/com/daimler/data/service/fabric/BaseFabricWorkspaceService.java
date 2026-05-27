@@ -703,13 +703,17 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		entitlementRequestDto.setDataClassification(ConstantsUtility.DATACLASSIFICATION_CONFIDENTIAL);
 		entitlementRequestDto.setDataClassificationInherited(false);
 		entitlementRequestDto.setConnectivity(false);
-		entitlementRequestDto.setMapAsEidGroup(true);
-		List<AccountTypeDto> accountTypes = new ArrayList<>();
-		for (String accountType : accountTypesConfig.split(",")) {
-			String[] parts = accountType.trim().split(":");
-			accountTypes.add(new AccountTypeDto(parts[0].trim(), parts[1].trim()));
+		if (accountTypesConfig != null && !accountTypesConfig.trim().isEmpty()) {
+			entitlementRequestDto.setMapAsEidGroup(true);
+			List<AccountTypeDto> accountTypes = new ArrayList<>();
+			for (String accountType : accountTypesConfig.split(",")) {
+				String[] parts = accountType.trim().split(":");
+				if (parts.length == 2) {
+					accountTypes.add(new AccountTypeDto(parts[0].trim(), parts[1].trim()));
+				}
+			}
+			entitlementRequestDto.setAccountTypes(accountTypes);
 		}
-		entitlementRequestDto.setAccountTypes(accountTypes);
 		return entitlementRequestDto;
 	}
 	
@@ -2112,13 +2116,17 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		entitlementRequestDto.setDataClassification(ConstantsUtility.DATACLASSIFICATION_CONFIDENTIAL);
 		entitlementRequestDto.setDataClassificationInherited(false);
 		entitlementRequestDto.setConnectivity(false);
-		entitlementRequestDto.setMapAsEidGroup(true);
-		List<AccountTypeDto> accountTypes = new ArrayList<>();
-		for (String accountType : accountTypesConfig.split(",")) {
-			String[] parts = accountType.trim().split(":");
-			accountTypes.add(new AccountTypeDto(parts[0].trim(), parts[1].trim()));
+		if (accountTypesConfig != null && !accountTypesConfig.trim().isEmpty()) {
+			entitlementRequestDto.setMapAsEidGroup(true);
+			List<AccountTypeDto> accountTypes = new ArrayList<>();
+			for (String accountType : accountTypesConfig.split(",")) {
+				String[] parts = accountType.trim().split(":");
+				if (parts.length == 2) {
+					accountTypes.add(new AccountTypeDto(parts[0].trim(), parts[1].trim()));
+				}
+			}
+			entitlementRequestDto.setAccountTypes(accountTypes);
 		}
-		entitlementRequestDto.setAccountTypes(accountTypes);
 		return entitlementRequestDto;
 	}
 	
