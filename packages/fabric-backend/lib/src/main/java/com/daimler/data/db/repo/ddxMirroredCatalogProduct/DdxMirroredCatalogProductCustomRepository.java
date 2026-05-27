@@ -8,9 +8,9 @@ import com.daimler.data.db.repo.common.CommonDataRepository;
 
 public interface DdxMirroredCatalogProductCustomRepository extends CommonDataRepository<DdxMirroredCatalogProductNsql, String> {
 
-    Optional<DdxMirroredCatalogProductNsql> findByCatalogName(String catalogName);
+    Optional<DdxMirroredCatalogProductNsql> findByCatalogName(String dataProductName);
 
     Optional<DdxMirroredCatalogProductNsql> findByCorrelationId(String ddxCorrelationId);
 
-    List<DdxMirroredCatalogProductNsql> findByDdxId(String ddxId);
+    List<DdxMirroredCatalogProductNsql> findByMirroredCatalogId(String mirroredCatalogId);
 }

@@ -1,6 +1,7 @@
 package com.daimler.data.db.json;
 
 import java.io.Serializable;
+import java.util.Date;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
@@ -20,4 +21,6 @@ public class DdxGroupDetail implements Serializable {
     private String grantPermissionStatus;
     private String testRunId;
     private String message;
+    private Date addedOn;
+    private Date updatedOn;
 }

@@ -20,20 +20,20 @@ public class DdxMirroredCatalogProductCustomRepositoryImpl
         implements DdxMirroredCatalogProductCustomRepository {
 
     @Override
-    public Optional<DdxMirroredCatalogProductNsql> findByCatalogName(String catalogName) {
-        String sql = "SELECT * FROM ddx_mirrored_catalog_product_nsql " +
-                     "WHERE jsonb_extract_path_text(data, 'catalogName') = :catalogName";
+    public Optional<DdxMirroredCatalogProductNsql> findByCatalogName(String dataProductName) {
+        String sql = "SELECT * FROM ddx_mirrored_catalog_product_nsql" +
+                     " WHERE data ->> 'dataProductName' = :dataProductName";
         try {
             DdxMirroredCatalogProductNsql result = (DdxMirroredCatalogProductNsql) em
                 .createNativeQuery(sql, DdxMirroredCatalogProductNsql.class)
-                .setParameter("catalogName", catalogName)
+                .setParameter("dataProductName", dataProductName)
                 .getSingleResult();
             return Optional.ofNullable(result);
         } catch (Exception e) {
             if (e instanceof NoResultException) {
-                log.debug("No result found for catalogName: {}", catalogName);
+                log.debug("No result found for dataProductName: {}", dataProductName);
             } else {
-                log.error("Error fetching by catalogName: {}", catalogName, e);
+                log.error("Error fetching by dataProductName: {}", dataProductName, e);
             }
             return Optional.empty();
         }
@@ -42,7 +42,7 @@ public class DdxMirroredCatalogProductCustomRepositoryImpl
     @Override
     public Optional<DdxMirroredCatalogProductNsql> findByCorrelationId(String ddxCorrelationId) {
         String sql = "SELECT * FROM ddx_mirrored_catalog_product_nsql " +
-                     "WHERE jsonb_extract_path_text(data, 'ddxCorrelationId') = :ddxCorrelationId";
+                     "WHERE data ->> 'ddxCorrelationId' = :ddxCorrelationId";
         try {
             DdxMirroredCatalogProductNsql result = (DdxMirroredCatalogProductNsql) em
                 .createNativeQuery(sql, DdxMirroredCatalogProductNsql.class)
@@ -61,17 +61,17 @@ public class DdxMirroredCatalogProductCustomRepositoryImpl
 
     @SuppressWarnings("unchecked")
     @Override
-    public List<DdxMirroredCatalogProductNsql> findByDdxId(String ddxId) {
+    public List<DdxMirroredCatalogProductNsql> findByMirroredCatalogId(String mirroredCatalogId) {
         String sql = "SELECT * FROM ddx_mirrored_catalog_product_nsql " +
-                     "WHERE jsonb_extract_path_text(data, 'ddxId') = :ddxId";
+                     "WHERE data -> 'mirrorCatalogDetails' ->> 'mirroredCatalogId' = :mirroredCatalogId";
         try {
             List<DdxMirroredCatalogProductNsql> results = em
                 .createNativeQuery(sql, DdxMirroredCatalogProductNsql.class)
-                .setParameter("ddxId", ddxId)
+                .setParameter("mirroredCatalogId", mirroredCatalogId)
                 .getResultList();
             return results != null ? results : Collections.emptyList();
         } catch (Exception e) {
-            log.error("Error fetching by ddxId: {}", ddxId, e);
+            log.error("Error fetching by mirroredCatalogId: {}", mirroredCatalogId, e);
             return Collections.emptyList();
         }
     }

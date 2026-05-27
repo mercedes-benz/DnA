@@ -47,15 +47,15 @@ public interface FabricCatalogManagementService extends CommonService<FabricCata
 	 * method to create a Databricks Mirrored Catalog in Fabric central workspace
 	 * and grant permissions to DDX group
 	 */
-	MirroredCatalogResponseVO createMirroredCatalog(CreateMirroredCatalogRequestVO request, String ddxId);
+	MirroredCatalogResponseVO createMirroredCatalog(CreateMirroredCatalogRequestVO request);
 
 	/**
 	 * method to get the status of mirrored catalog creation and group permission assignment
 	 */
-	MirroredCatalogResponseVO getMirroredCatalogStatus(String ddxCorrelationId, String ddxId);
+	MirroredCatalogResponseVO getMirroredCatalogStatus(String ddxCorrelationId);
 
 	/**
 	 * method to update the status of mirrored catalog creation (called by Uilicious callback)
 	 */
-	MirroredCatalogResponseVO updateMirroredCatalogStatus(UpdateMirroredCatalogStatusRequestVO request, String ddxId);
+	MirroredCatalogResponseVO updateMirroredCatalogStatus(UpdateMirroredCatalogStatusRequestVO request);
 }

@@ -7,6 +7,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import com.daimler.data.util.ConstantsUtility;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -198,6 +200,80 @@ public class UiLiciousClient {
         }
  
         return groupStatusList;
+    }
+
+    public Map<String, String> createMirroredCatalog(String dataProductName, String catalogName,
+            String schemaName, String ddxGroup, String connectionName,
+            String workspaceId, String workspaceName, String storageAccountUrl,
+            List<String> objects, boolean isNewCatalog) {
+
+        // log.info("Calling Uilicious for mirrored catalog: catalog={}, group={}, isNew={}", catalogName, ddxGroup, isNewCatalog);
+
+        // Map<String, Object> dataMap = new HashMap<>();
+        // dataMap.put("email", email);
+        // dataMap.put("password", password);
+        // dataMap.put("dataProductName", dataProductName);
+        // dataMap.put("sourceName", catalogName);
+        // dataMap.put("catalogName", catalogName);
+        // dataMap.put("schemaName", schemaName);
+        // dataMap.put("ddxGroup", ddxGroup);
+        // dataMap.put("connectionName", connectionName);
+        // dataMap.put("WorkspaceID", workspaceId);
+        // dataMap.put("WorkspaceName", workspaceName);
+        // dataMap.put("storageAccountUrl", storageAccountUrl);
+        // dataMap.put("objects", objects);
+        // dataMap.put("isNewCatalog", isNewCatalog);
+
+        // String data;
+        // try {
+        //     data = objectMapper.writeValueAsString(dataMap);
+        // } catch (Exception e) {
+        //     log.error("Error serializing mirrored catalog data to JSON: {}", e.getMessage());
+        //     throw new RuntimeException("Failed to serialize mirrored catalog request", e);
+        // }
+
+        // Map<String, Object> requestBody = new HashMap<>();
+        // requestBody.put("projectID", projectID);
+        // requestBody.put("filePath", filePath);
+        // requestBody.put("data", data);
+        // requestBody.put("browser", browser);
+        // requestBody.put("width", width);
+        // requestBody.put("height", height);
+
+        // HttpHeaders headers = new HttpHeaders();
+        // headers.setContentType(MediaType.APPLICATION_JSON);
+        // headers.set("accessKey", accessKey);
+        // headers.set("User-Agent", userAgent);
+        // headers.set("Content-Type", contentType);
+
+        // JsonNode response = callUiLiciousApi(baseURL + "start", JsonNode.class, requestBody, HttpMethod.POST, headers);
+
+        // Map<String, String> result = new HashMap<>();
+        // JsonNode resultNode = response.get("result");
+
+        // String testRunId = null;
+        // if (resultNode != null && resultNode.get("testRunIDs") != null) {
+        //     List<String> testRunIds = objectMapper.convertValue(
+        //             resultNode.get("testRunIDs"), new TypeReference<List<String>>() {});
+        //     if (!testRunIds.isEmpty()) {
+        //         testRunId = testRunIds.get(0);
+        //     }
+        // }
+
+        // result.put("testRunId", testRunId);
+        // result.put("groupAddedStatus", ConstantsUtility.MIRRORED_CATALOG_IN_PROGRESS);
+        // result.put("grantPermissionStatus", ConstantsUtility.MIRRORED_CATALOG_IN_PROGRESS);
+        // result.put("message", "Mirrored catalog request triggered");
+
+        // if (isNewCatalog) {
+        //     result.put("mirrorCatalogName", catalogName + "_mirror");
+        //     result.put("catalogId", "");
+        //     result.put("catalogStatus", ConstantsUtility.MIRRORED_CATALOG_IN_PROGRESS);
+        // }
+
+        // return result;
+        
+        return null;
     }
 
     public String addServicePrincipalToLakehouse(String workspaceId, String lakehouseId,

@@ -95,11 +95,17 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
     private final DdxMirroredCatalogProductRepository mirroredCatalogRepo;
     private final DdxMirroredCatalogProductCustomRepository mirroredCatalogCustomRepo;
 
-    @Value("${mirroredCatalog.central.workspaceId:}")
+    @Value("${mirroredCatalog.central.workspaceId}")
     private String centralWorkspaceId;
 
-    @Value("${mirroredCatalog.central.workspaceName:}")
+    @Value("${mirroredCatalog.central.workspaceName}")
     private String centralWorkspaceName;
+
+    @Value("${mirroredCatalog.central.connectionName}")
+    private String centralConnectionName;
+
+    @Value("${mirroredCatalog.central.supportedRegion}")
+    private String supportedRegion;
 
     @Autowired
     public BaseFabricCatalogManagementService(
@@ -1032,13 +1038,26 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
 
     @Override
     @Transactional
-    public MirroredCatalogResponseVO createMirroredCatalog(CreateMirroredCatalogRequestVO request, String ddxId) {
-        log.info("Creating mirrored catalog for ddxId: {}, catalogName: {}", ddxId, request.getCatalogName());
+    public MirroredCatalogResponseVO createMirroredCatalog(CreateMirroredCatalogRequestVO request) {
+        log.info("Creating mirrored catalog for dataProduct: {}", request.getDataProductName());
 
         String catalogName = request.getCatalogName();
         String ddxGroup = request.getDdxGroup();
+        String region = request.getRegion();
+        String dataProductName = request.getDataProductName();
 
-        Optional<DdxMirroredCatalogProductNsql> existingOpt = mirroredCatalogCustomRepo.findByCatalogName(catalogName);
+        if (!supportedRegion.equalsIgnoreCase(region)) {
+            log.error("Unsupported region: {}", region);
+            MirroredCatalogResponseVO response = new MirroredCatalogResponseVO();
+            response.setDdxCorrelationId(request.getDdxCorrelationId());
+            response.setStatus(ConstantsUtility.MIRRORED_CATALOG_FAILURE);
+            response.setMessage("Please send correct region. Supported region: " + supportedRegion);
+            return response;
+        }
+
+        // if we are maintaining catalaog wrt workspace then catalog name must be uniquie in perticular workspace.
+        // if we want to make our system future ready we should have the above option enabled as per the structure level.
+        Optional<DdxMirroredCatalogProductNsql> existingOpt = mirroredCatalogCustomRepo.findByCatalogName(dataProductName);
 
         if (existingOpt.isPresent()) {
             DdxMirroredCatalogProductNsql existingEntity = existingOpt.get();
@@ -1048,17 +1067,18 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
                 boolean groupExists = existingGroups.stream()
                         .anyMatch(g -> ddxGroup.equals(g.getGroupName()));
                 if (groupExists) {
-                    log.info("Group {} already exists for catalog {}", ddxGroup, catalogName);
+                    log.info("Group {} already exists for dataProduct {}", ddxGroup, dataProductName);
                     MirroredCatalogResponseVO response = new MirroredCatalogResponseVO();
                     response.setDdxCorrelationId(existingData.getDdxCorrelationId());
                     response.setStatus(ConstantsUtility.MIRRORED_CATALOG_ALREADY_EXISTS);
-                    response.setMessage("Group " + ddxGroup + " already exists for catalog " + catalogName);
+                    response.setMessage("Group " + ddxGroup + " already exists for dataProduct " + dataProductName);
                     response.setDdxGroupDetails(mapDdxGroupDetailsToVO(existingGroups));
                     return response;
                 }
             }
 
-            Map<String, String> uiliciousResponse = callUiliciousDummy(catalogName, ddxGroup, false);
+            Map<String, String> uiliciousResponse = callUiliciousDummy(request, false);
+            // Map<String, String> uiliciousResponse = callUiliciousForMirroredCatalog(request, false);
 
             DdxGroupDetail newGroupDetail = new DdxGroupDetail();
             newGroupDetail.setGroupName(ddxGroup);
@@ -1066,11 +1086,14 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
             newGroupDetail.setGrantPermissionStatus(uiliciousResponse.get("grantPermissionStatus"));
             newGroupDetail.setTestRunId(uiliciousResponse.get("testRunId"));
             newGroupDetail.setMessage(uiliciousResponse.get("message"));
+            newGroupDetail.setAddedOn(new Date());
+            newGroupDetail.setUpdatedOn(new Date());
 
             if (existingGroups == null) {
                 existingData.setDdxGroupDetails(new ArrayList<>());
             }
             existingData.getDdxGroupDetails().add(newGroupDetail);
+            existingEntity.setData(existingData);
             mirroredCatalogRepo.save(existingEntity);
 
             log.info("Added group {} to existing catalog {} with status {}", ddxGroup, catalogName, uiliciousResponse.get("groupAddedStatus"));
@@ -1083,7 +1106,8 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
             return response;
         }
 
-        Map<String, String> uiliciousResponse = callUiliciousDummy(catalogName, ddxGroup, true);
+        Map<String, String> uiliciousResponse = callUiliciousDummy(request, true);
+        // Map<String, String> uiliciousResponse = callUiliciousForMirroredCatalog(request, true);
 
         MirroredCatalogDetail mirrorCatalogDetails = new MirroredCatalogDetail();
         mirrorCatalogDetails.setMirroredCatalogId(uiliciousResponse.get("catalogId"));
@@ -1097,6 +1121,8 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
         firstGroupDetail.setGrantPermissionStatus(uiliciousResponse.get("grantPermissionStatus"));
         firstGroupDetail.setTestRunId(uiliciousResponse.get("testRunId"));
         firstGroupDetail.setMessage(uiliciousResponse.get("message"));
+        firstGroupDetail.setAddedOn(new Date());
+        firstGroupDetail.setUpdatedOn(new Date());
 
         List<MirroredObjectDetail> objects = null;
         if (request.getObjects() != null) {
@@ -1109,7 +1135,7 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
         }
 
         DdxMirroredCatalogProduct data = new DdxMirroredCatalogProduct();
-        data.setDdxId(ddxId);
+        data.setDataProductName(request.getDataProductName());
         data.setCatalogName(catalogName);
         data.setSchemaName(request.getSchemaName());
         data.setRegion(request.getRegion());
@@ -1130,15 +1156,15 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
         entity.setData(data);
         mirroredCatalogRepo.save(entity);
 
-        log.info("Created mirrored catalog {} for ddxId: {} with correlationId: {}", catalogName, ddxId, request.getDdxCorrelationId());
+        log.info("Created mirrored catalog {} with correlationId: {}", catalogName, request.getDdxCorrelationId());
 
         MirroredCatalogResponseVO response = buildMirroredCatalogResponse(data);
         return response;
     }
 
     @Override
-    public MirroredCatalogResponseVO getMirroredCatalogStatus(String ddxCorrelationId, String ddxId) {
-        log.info("Getting mirrored catalog status for correlationId: {}, ddxId: {}", ddxCorrelationId, ddxId);
+    public MirroredCatalogResponseVO getMirroredCatalogStatus(String ddxCorrelationId) {
+        log.info("Getting mirrored catalog status for correlationId: {}", ddxCorrelationId);
 
         Optional<DdxMirroredCatalogProductNsql> entityOpt = mirroredCatalogCustomRepo.findByCorrelationId(ddxCorrelationId);
         if (entityOpt.isEmpty() || entityOpt.get().getData() == null) {
@@ -1147,18 +1173,12 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
         }
 
         DdxMirroredCatalogProduct data = entityOpt.get().getData();
-        if (!ddxId.equals(data.getDdxId())) {
-            log.error("Mirrored catalog record mismatch: expected ddxId={} but found ddxId={}",
-                    ddxId, data.getDdxId());
-            return null;
-        }
-
         return buildMirroredCatalogResponse(data);
     }
 
     @Override
     @Transactional
-    public MirroredCatalogResponseVO updateMirroredCatalogStatus(UpdateMirroredCatalogStatusRequestVO request, String ddxId) {
+    public MirroredCatalogResponseVO updateMirroredCatalogStatus(UpdateMirroredCatalogStatusRequestVO request) {
         log.info("Updating mirrored catalog status for correlationId: {}", request.getDdxCorrelationId());
 
         Optional<DdxMirroredCatalogProductNsql> entityOpt = mirroredCatalogCustomRepo.findByCorrelationId(request.getDdxCorrelationId());
@@ -1201,12 +1221,10 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
                         if (groupUpdate.getGrantPermissionStatus() != null) {
                             existingGroup.setGrantPermissionStatus(groupUpdate.getGrantPermissionStatus());
                         }
-                        if (groupUpdate.getTestRunId() != null) {
-                            existingGroup.setTestRunId(groupUpdate.getTestRunId());
-                        }
                         if (groupUpdate.getMessage() != null) {
                             existingGroup.setMessage(groupUpdate.getMessage());
                         }
+                        existingGroup.setUpdatedOn(new Date());
                         break;
                     }
                 }
@@ -1227,22 +1245,29 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
         return buildMirroredCatalogResponse(data);
     }
 
-    // TODO: Replace with actual Uilicious API integration
-    private Map<String, String> callUiliciousDummy(String catalogName, String ddxGroup, boolean isNewCatalog) {
-        log.info("Calling Uilicious dummy method for catalog: {}, group: {}, isNewCatalog: {}", catalogName, ddxGroup, isNewCatalog);
+    // Uncomment callUiliciousForMirroredCatalog and remove callUiliciousDummy when ready for production
+    private Map<String, String> callUiliciousDummy(CreateMirroredCatalogRequestVO request, boolean isNewCatalog) {
+        String catalogName = request.getCatalogName();
+        String ddxGroup = request.getDdxGroup();
+        log.info("Calling Uilicious DUMMY for catalog: {}, group: {}, isNewCatalog: {}", catalogName, ddxGroup, isNewCatalog);
         Map<String, String> response = new HashMap<>();
 
+        try {
+            java.lang.Thread.sleep(5000); // Simulate some processing delay
+        } catch (InterruptedException e) {
+            java.lang.Thread.currentThread().interrupt();
+            log.error("Thread interrupted during dummy processing delay", e);
+        }
+
         if (isNewCatalog) {
-            response.put("mirrorCatalogName", catalogName + "_mirror");
+            response.put("mirrorCatalogName", request.getDataProductName());
             response.put("catalogId", UUID.randomUUID().toString());
-            response.put("catalogStatus", ConstantsUtility.MIRRORED_CATALOG_SUCCESS);
-            response.put("groupAdded", ddxGroup);
-            response.put("groupAddedStatus", ConstantsUtility.MIRRORED_CATALOG_SUCCESS);
-            response.put("grantPermissionStatus", ConstantsUtility.MIRRORED_CATALOG_SUCCESS);
+            response.put("catalogStatus", ConstantsUtility.MIRRORED_CATALOG_IN_PROGRESS);
+            response.put("groupAddedStatus", ConstantsUtility.MIRRORED_CATALOG_IN_PROGRESS);
+            response.put("grantPermissionStatus", ConstantsUtility.MIRRORED_CATALOG_IN_PROGRESS);
             response.put("testRunId", "dummy-run-" + UUID.randomUUID().toString());
-            response.put("message", "Dummy: Catalog created and group added successfully");
+            response.put("message", "Dummy: Catalog creation and group addition in progress");
         } else {
-            response.put("groupAdded", ddxGroup);
             response.put("groupAddedStatus", ConstantsUtility.MIRRORED_CATALOG_IN_PROGRESS);
             response.put("grantPermissionStatus", ConstantsUtility.MIRRORED_CATALOG_IN_PROGRESS);
             response.put("testRunId", "dummy-run-" + UUID.randomUUID().toString());
@@ -1250,6 +1275,27 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
         }
 
         return response;
+    }
+
+    private Map<String, String> callUiliciousForMirroredCatalog(CreateMirroredCatalogRequestVO request, boolean isNewCatalog) {
+        List<String> objects = null;
+        if (!request.isFullSchema() && request.getObjects() != null) {
+            objects = request.getObjects().stream()
+                    .map(obj -> obj.getObjectName())
+                    .collect(Collectors.toList());
+        }
+
+        return uiLiciousClient.createMirroredCatalog(
+                request.getDataProductName(),
+                request.getCatalogName(),
+                request.getSchemaName(),
+                request.getDdxGroup(),
+                centralConnectionName,
+                centralWorkspaceId,
+                centralWorkspaceName,
+                request.getStorageAccountUrl(),
+                objects,
+                isNewCatalog);
     }
 
     private String deriveOverallStatus(DdxMirroredCatalogProduct data) {
@@ -1292,7 +1338,7 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
         if (data.getMirrorCatalogDetails() != null) {
             MirroredCatalogDataVO catalogDataVO = new MirroredCatalogDataVO();
             catalogDataVO.setMirroredCatalogId(data.getMirrorCatalogDetails().getMirroredCatalogId());
-            catalogDataVO.setCatalog(data.getCatalogName());
+            catalogDataVO.setCatalog(data.getMirrorCatalogDetails().getMirrorCatalogName());
             catalogDataVO.setSchema(data.getSchemaName());
             catalogDataVO.setStorageAccountUrl(data.getStorageAccountUrl());
             catalogDataVO.setStatus(MirroredCatalogDataVO.StatusEnum.fromValue(data.getMirrorCatalogDetails().getCatalogStatus()));
@@ -1325,7 +1371,6 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
             vo.setGroupName(g.getGroupName());
             vo.setGroupAddedStatus(g.getGroupAddedStatus());
             vo.setGrantPermissionStatus(g.getGrantPermissionStatus());
-            vo.setTestRunId(g.getTestRunId());
             vo.setMessage(g.getMessage());
             return vo;
         }).collect(Collectors.toList());

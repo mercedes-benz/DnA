@@ -17,7 +17,7 @@ import lombok.NoArgsConstructor;
 public class DdxMirroredCatalogProduct implements Serializable {
     private static final long serialVersionUID = 1L;
 
-    private String ddxId;
+    private String dataProductName;
     private String catalogName;
     private String schemaName;
     private String region;
