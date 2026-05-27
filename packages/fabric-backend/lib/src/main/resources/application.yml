@@ -178,8 +178,10 @@ uilicious:
 
 mirroredCatalog:
   central:
-    workspaceId: ${MIRRORED_CATALOG_CENTRAL_WORKSPACE_ID:}
-    workspaceName: ${MIRRORED_CATALOG_CENTRAL_WORKSPACE_NAME:}
+    workspaceId: ${MIRRORED_CATALOG_CENTRAL_WORKSPACE_ID:XXXX}
+    workspaceName: ${MIRRORED_CATALOG_CENTRAL_WORKSPACE_NAME:XXXX}
+    connectionName: ${MIRRORED_CATALOG_CENTRAL_CONNECTION_NAME:XXXX}
+    supportedRegion: ${MIRRORED_CATALOG_SUPPORTED_REGION:XXXX}
 
 databricksIntegration:
   url:
