@@ -13,14 +13,21 @@ import com.daimler.data.db.entities.FabricCatalogMetadataNsql;
 import com.daimler.data.db.entities.FabricWorkspaceNsql;
 import com.daimler.data.db.entities.DdxDataProductsDetailsNsql;
 import com.daimler.data.db.json.DdxDataProductsDetail;
+import com.daimler.data.db.json.DdxGroupDetail;
+import com.daimler.data.db.json.DdxMirroredCatalogProduct;
 import com.daimler.data.db.json.DdxProduct;
 import com.daimler.data.db.json.Fabric2FabricDetail;
 import com.daimler.data.db.json.GroupNameDetail;
 import com.daimler.data.db.json.GroupNameList;
+import com.daimler.data.db.json.MirroredCatalogDetail;
+import com.daimler.data.db.json.MirroredObjectDetail;
 import com.daimler.data.db.json.catalogManangement.FabricCatalogMetadataDetails;
+import com.daimler.data.db.entities.DdxMirroredCatalogProductNsql;
 import com.daimler.data.db.repo.catalogManagement.FabricCatalogManagementCustomRepository;
 import com.daimler.data.db.repo.catalogManagement.FabricCatalogManagementRepository;
 import com.daimler.data.db.repo.ddxDataProductsDetails.DdxDataProductsDetailsRepository;
+import com.daimler.data.db.repo.ddxMirroredCatalogProduct.DdxMirroredCatalogProductCustomRepository;
+import com.daimler.data.db.repo.ddxMirroredCatalogProduct.DdxMirroredCatalogProductRepository;
 import com.daimler.data.db.repo.fabric.FabricWorkspaceCustomRepository;
 import com.daimler.data.db.repo.fabric.FabricWorkspaceRepository;
 import com.daimler.data.dto.fabricWorkspace.FabricLakehouseVO;
@@ -85,6 +92,20 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
     private final DdxDataProductsDetailsRepository ddxDataProductsDetailsRepository;
     private final DdxDataProductsDetailsAssembler ddxDataProductsDetailsAssembler;
     private final UiLiciousClient uiLiciousClient;
+    private final DdxMirroredCatalogProductRepository mirroredCatalogRepo;
+    private final DdxMirroredCatalogProductCustomRepository mirroredCatalogCustomRepo;
+
+    @Value("${mirroredCatalog.central.workspaceId}")
+    private String centralWorkspaceId;
+
+    @Value("${mirroredCatalog.central.workspaceName}")
+    private String centralWorkspaceName;
+
+    @Value("${mirroredCatalog.central.connectionName}")
+    private String centralConnectionName;
+
+    @Value("${mirroredCatalog.central.supportedRegion}")
+    private String supportedRegion;
 
     @Autowired
     public BaseFabricCatalogManagementService(
@@ -100,7 +121,9 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
             UiLiciousClient uiLiciousClient,
             FabricWorkspaceClient fabricWorkspaceClient,
             DdxDataProductsDetailsRepository ddxDataProductsDetailsRepository,
-            DdxDataProductsDetailsAssembler ddxDataProductsDetailsAssembler) {
+            DdxDataProductsDetailsAssembler ddxDataProductsDetailsAssembler,
+            DdxMirroredCatalogProductRepository mirroredCatalogRepo,
+            DdxMirroredCatalogProductCustomRepository mirroredCatalogCustomRepo) {
         this.customRepo = customRepo;
         this.jpaRepo = jpaRepo;
         this.assembler = assembler;
@@ -114,6 +137,8 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
         this.ddxDataProductsDetailsRepository = ddxDataProductsDetailsRepository;
         this.ddxDataProductsDetailsAssembler = ddxDataProductsDetailsAssembler;
         this.uiLiciousClient = uiLiciousClient;
+        this.mirroredCatalogRepo = mirroredCatalogRepo;
+        this.mirroredCatalogCustomRepo = mirroredCatalogCustomRepo;
     }
 
     @Override
@@ -1012,15 +1037,343 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
     }
 
     @Override
-    public MirroredCatalogResponseVO createMirroredCatalog(CreateMirroredCatalogRequestVO request, String ddxId, String lakehouseId) {
-        // TODO: Implementation pending team approval
-        throw new UnsupportedOperationException("createMirroredCatalog implementation pending");
+    @Transactional
+    public MirroredCatalogResponseVO createMirroredCatalog(CreateMirroredCatalogRequestVO request) {
+        log.info("Creating mirrored catalog for dataProduct: {}", request.getDataProductName());
+
+        String catalogName = request.getCatalogName();
+        String ddxGroup = request.getDdxGroup();
+        String region = request.getRegion();
+        String dataProductName = request.getDataProductName();
+
+        if (!supportedRegion.equalsIgnoreCase(region)) {
+            log.error("Unsupported region: {}", region);
+            MirroredCatalogResponseVO response = new MirroredCatalogResponseVO();
+            response.setDdxCorrelationId(request.getDdxCorrelationId());
+            response.setStatus(ConstantsUtility.MIRRORED_CATALOG_FAILURE);
+            response.setMessage("Please send correct region. Supported region: " + supportedRegion);
+            return response;
+        }
+
+        // if we are maintaining catalaog wrt workspace then catalog name must be uniquie in perticular workspace.
+        // if we want to make our system future ready we should have the above option enabled as per the structure level.
+        Optional<DdxMirroredCatalogProductNsql> existingOpt = mirroredCatalogCustomRepo.findByCatalogName(dataProductName);
+
+        if (existingOpt.isPresent()) {
+            DdxMirroredCatalogProductNsql existingEntity = existingOpt.get();
+            DdxMirroredCatalogProduct existingData = existingEntity.getData();
+            List<DdxGroupDetail> existingGroups = existingData.getDdxGroupDetails();
+            if (existingGroups != null) {
+                boolean groupExists = existingGroups.stream()
+                        .anyMatch(g -> ddxGroup.equals(g.getGroupName()));
+                if (groupExists) {
+                    log.info("Group {} already exists for dataProduct {}", ddxGroup, dataProductName);
+                    MirroredCatalogResponseVO response = new MirroredCatalogResponseVO();
+                    response.setDdxCorrelationId(existingData.getDdxCorrelationId());
+                    response.setStatus(ConstantsUtility.MIRRORED_CATALOG_ALREADY_EXISTS);
+                    response.setMessage("Group " + ddxGroup + " already exists for dataProduct " + dataProductName);
+                    response.setDdxGroupDetails(mapDdxGroupDetailsToVO(existingGroups));
+                    return response;
+                }
+            }
+
+            Map<String, String> uiliciousResponse = callUiliciousDummy(request, false);
+            // Map<String, String> uiliciousResponse = callUiliciousForMirroredCatalog(request, false);
+
+            DdxGroupDetail newGroupDetail = new DdxGroupDetail();
+            newGroupDetail.setGroupName(ddxGroup);
+            newGroupDetail.setGroupAddedStatus(uiliciousResponse.get("groupAddedStatus"));
+            newGroupDetail.setGrantPermissionStatus(uiliciousResponse.get("grantPermissionStatus"));
+            newGroupDetail.setTestRunId(uiliciousResponse.get("testRunId"));
+            newGroupDetail.setMessage(uiliciousResponse.get("message"));
+            newGroupDetail.setAddedOn(new Date());
+            newGroupDetail.setUpdatedOn(new Date());
+
+            if (existingGroups == null) {
+                existingData.setDdxGroupDetails(new ArrayList<>());
+            }
+            existingData.getDdxGroupDetails().add(newGroupDetail);
+            existingEntity.setData(existingData);
+            mirroredCatalogRepo.save(existingEntity);
+
+            log.info("Added group {} to existing catalog {} with status {}", ddxGroup, catalogName, uiliciousResponse.get("groupAddedStatus"));
+
+            MirroredCatalogResponseVO response = new MirroredCatalogResponseVO();
+            response.setDdxCorrelationId(existingData.getDdxCorrelationId());
+            response.setStatus(uiliciousResponse.get("groupAddedStatus"));
+            response.setMessage(uiliciousResponse.get("message"));
+            response.setDdxGroupDetails(mapDdxGroupDetailsToVO(existingData.getDdxGroupDetails()));
+            return response;
+        }
+
+        Map<String, String> uiliciousResponse = callUiliciousDummy(request, true);
+        // Map<String, String> uiliciousResponse = callUiliciousForMirroredCatalog(request, true);
+
+        MirroredCatalogDetail mirrorCatalogDetails = new MirroredCatalogDetail();
+        mirrorCatalogDetails.setMirroredCatalogId(uiliciousResponse.get("catalogId"));
+        mirrorCatalogDetails.setMirrorCatalogName(uiliciousResponse.get("mirrorCatalogName"));
+        mirrorCatalogDetails.setCatalogStatus(uiliciousResponse.get("catalogStatus"));
+        mirrorCatalogDetails.setMessage(uiliciousResponse.get("message"));
+
+        DdxGroupDetail firstGroupDetail = new DdxGroupDetail();
+        firstGroupDetail.setGroupName(ddxGroup);
+        firstGroupDetail.setGroupAddedStatus(uiliciousResponse.get("groupAddedStatus"));
+        firstGroupDetail.setGrantPermissionStatus(uiliciousResponse.get("grantPermissionStatus"));
+        firstGroupDetail.setTestRunId(uiliciousResponse.get("testRunId"));
+        firstGroupDetail.setMessage(uiliciousResponse.get("message"));
+        firstGroupDetail.setAddedOn(new Date());
+        firstGroupDetail.setUpdatedOn(new Date());
+
+        List<MirroredObjectDetail> objects = null;
+        if (request.getObjects() != null) {
+            objects = request.getObjects().stream().map(obj -> {
+                MirroredObjectDetail detail = new MirroredObjectDetail();
+                detail.setObjectName(obj.getObjectName());
+                detail.setObjectType(obj.getObjectType() != null ? obj.getObjectType().toString() : null);
+                return detail;
+            }).collect(Collectors.toList());
+        }
+
+        DdxMirroredCatalogProduct data = new DdxMirroredCatalogProduct();
+        data.setDataProductName(request.getDataProductName());
+        data.setCatalogName(catalogName);
+        data.setSchemaName(request.getSchemaName());
+        data.setRegion(request.getRegion());
+        data.setFullSchema(request.isFullSchema());
+        data.setObjects(objects);
+        data.setStorageAccountUrl(request.getStorageAccountUrl());
+        data.setDdxCorrelationId(request.getDdxCorrelationId());
+        data.setDdxGroupPermission(request.getDdxGroupPermission());
+        data.setWorkspaceId(centralWorkspaceId);
+        data.setWorkspaceName(centralWorkspaceName);
+        data.setStatus(ConstantsUtility.MIRRORED_CATALOG_IN_PROGRESS);
+        data.setInitiatedOn(new Date());
+        data.setMirrorCatalogDetails(mirrorCatalogDetails);
+        data.setDdxGroupDetails(new ArrayList<>(Collections.singletonList(firstGroupDetail)));
+
+        DdxMirroredCatalogProductNsql entity = new DdxMirroredCatalogProductNsql();
+        entity.setId(UUID.randomUUID().toString());
+        entity.setData(data);
+        mirroredCatalogRepo.save(entity);
+
+        log.info("Created mirrored catalog {} with correlationId: {}", catalogName, request.getDdxCorrelationId());
+
+        MirroredCatalogResponseVO response = buildMirroredCatalogResponse(data);
+        return response;
     }
 
     @Override
-    public MirroredCatalogResponseVO getMirroredCatalogStatus(String ddxCorrelationId, String ddxId, String lakehouseId) {
-        // TODO: Implementation pending team approval
-        throw new UnsupportedOperationException("getMirroredCatalogStatus implementation pending");
+    public MirroredCatalogResponseVO getMirroredCatalogStatus(String mirroredCatalogId) {
+        log.info("Getting mirrored catalog status for mirroredCatalogId: {}", mirroredCatalogId);
+
+        List<DdxMirroredCatalogProductNsql> results = mirroredCatalogCustomRepo.findByMirroredCatalogId(mirroredCatalogId);
+        if (results.isEmpty() || results.get(0).getData() == null) {
+            log.error("No mirrored catalog record found for mirroredCatalogId: {}", mirroredCatalogId);
+            return null;
+        }
+
+        DdxMirroredCatalogProduct data = results.get(0).getData();
+        return buildMirroredCatalogResponse(data);
+    }
+
+    @Override
+    @Transactional
+    public MirroredCatalogResponseVO updateMirroredCatalogStatus(UpdateMirroredCatalogStatusRequestVO request) {
+        log.info("Updating mirrored catalog status for correlationId: {}", request.getDdxCorrelationId());
+
+        Optional<DdxMirroredCatalogProductNsql> entityOpt = mirroredCatalogCustomRepo.findByCorrelationId(request.getDdxCorrelationId());
+        if (entityOpt.isEmpty() || entityOpt.get().getData() == null) {
+            log.error("No mirrored catalog record found for correlationId: {}", request.getDdxCorrelationId());
+            return null;
+        }
+
+        DdxMirroredCatalogProductNsql entity = entityOpt.get();
+        DdxMirroredCatalogProduct data = entity.getData();
+
+        if (request.getCatalogStatus() != null || request.getMirroredCatalogId() != null
+                || request.getMirrorCatalogName() != null || request.getCatalogMessage() != null) {
+            MirroredCatalogDetail catalogDetail = data.getMirrorCatalogDetails();
+            if (catalogDetail == null) {
+                catalogDetail = new MirroredCatalogDetail();
+                data.setMirrorCatalogDetails(catalogDetail);
+            }
+            if (request.getMirroredCatalogId() != null) {
+                catalogDetail.setMirroredCatalogId(request.getMirroredCatalogId());
+            }
+            if (request.getMirrorCatalogName() != null) {
+                catalogDetail.setMirrorCatalogName(request.getMirrorCatalogName());
+            }
+            if (request.getCatalogStatus() != null) {
+                catalogDetail.setCatalogStatus(request.getCatalogStatus());
+            }
+            if (request.getCatalogMessage() != null) {
+                catalogDetail.setMessage(request.getCatalogMessage());
+            }
+        }
+
+        if (request.getDdxGroupDetails() != null && data.getDdxGroupDetails() != null) {
+            for (DdxGroupDetailVO groupUpdate : request.getDdxGroupDetails()) {
+                for (DdxGroupDetail existingGroup : data.getDdxGroupDetails()) {
+                    if (groupUpdate.getGroupName() != null && groupUpdate.getGroupName().equals(existingGroup.getGroupName())) {
+                        if (groupUpdate.getGroupAddedStatus() != null) {
+                            existingGroup.setGroupAddedStatus(groupUpdate.getGroupAddedStatus());
+                        }
+                        if (groupUpdate.getGrantPermissionStatus() != null) {
+                            existingGroup.setGrantPermissionStatus(groupUpdate.getGrantPermissionStatus());
+                        }
+                        if (groupUpdate.getMessage() != null) {
+                            existingGroup.setMessage(groupUpdate.getMessage());
+                        }
+                        existingGroup.setUpdatedOn(new Date());
+                        break;
+                    }
+                }
+            }
+        }
+
+        String derivedStatus = deriveOverallStatus(data);
+        data.setStatus(derivedStatus);
+
+        if (ConstantsUtility.MIRRORED_CATALOG_SUCCESS.equals(derivedStatus)
+                || ConstantsUtility.MIRRORED_CATALOG_FAILURE.equals(derivedStatus)) {
+            data.setCompletedOn(new Date());
+        }
+
+        mirroredCatalogRepo.save(entity);
+        log.info("Updated mirrored catalog status to {} for correlationId: {}", derivedStatus, request.getDdxCorrelationId());
+
+        return buildMirroredCatalogResponse(data);
+    }
+
+    // Uncomment callUiliciousForMirroredCatalog and remove callUiliciousDummy when ready for production
+    private Map<String, String> callUiliciousDummy(CreateMirroredCatalogRequestVO request, boolean isNewCatalog) {
+        String catalogName = request.getCatalogName();
+        String ddxGroup = request.getDdxGroup();
+        log.info("Calling Uilicious DUMMY for catalog: {}, group: {}, isNewCatalog: {}", catalogName, ddxGroup, isNewCatalog);
+        Map<String, String> response = new HashMap<>();
+
+        try {
+            java.lang.Thread.sleep(5000); // Simulate some processing delay
+        } catch (InterruptedException e) {
+            java.lang.Thread.currentThread().interrupt();
+            log.error("Thread interrupted during dummy processing delay", e);
+        }
+
+        if (isNewCatalog) {
+            response.put("mirrorCatalogName", request.getDataProductName());
+            response.put("catalogId", UUID.randomUUID().toString());
+            response.put("catalogStatus", ConstantsUtility.MIRRORED_CATALOG_IN_PROGRESS);
+            response.put("groupAddedStatus", ConstantsUtility.MIRRORED_CATALOG_IN_PROGRESS);
+            response.put("grantPermissionStatus", ConstantsUtility.MIRRORED_CATALOG_IN_PROGRESS);
+            response.put("testRunId", "dummy-run-" + UUID.randomUUID().toString());
+            response.put("message", "Dummy: Catalog creation and group addition in progress");
+        } else {
+            response.put("groupAddedStatus", ConstantsUtility.MIRRORED_CATALOG_IN_PROGRESS);
+            response.put("grantPermissionStatus", ConstantsUtility.MIRRORED_CATALOG_IN_PROGRESS);
+            response.put("testRunId", "dummy-run-" + UUID.randomUUID().toString());
+            response.put("message", "Dummy: Group addition in progress");
+        }
+
+        return response;
+    }
+
+    private Map<String, String> callUiliciousForMirroredCatalog(CreateMirroredCatalogRequestVO request, boolean isNewCatalog) {
+        List<String> objects = null;
+        if (!request.isFullSchema() && request.getObjects() != null) {
+            objects = request.getObjects().stream()
+                    .map(obj -> obj.getObjectName())
+                    .collect(Collectors.toList());
+        }
+
+        return uiLiciousClient.createMirroredCatalog(
+                request.getDataProductName(),
+                request.getCatalogName(),
+                request.getSchemaName(),
+                request.getDdxGroup(),
+                centralConnectionName,
+                centralWorkspaceId,
+                centralWorkspaceName,
+                request.getStorageAccountUrl(),
+                objects,
+                isNewCatalog);
+    }
+
+    private String deriveOverallStatus(DdxMirroredCatalogProduct data) {
+        MirroredCatalogDetail catalogDetail = data.getMirrorCatalogDetails();
+        List<DdxGroupDetail> groups = data.getDdxGroupDetails();
+
+        String catalogStatus = (catalogDetail != null) ? catalogDetail.getCatalogStatus() : null;
+
+        if (ConstantsUtility.MIRRORED_CATALOG_FAILURE.equals(catalogStatus)) {
+            return ConstantsUtility.MIRRORED_CATALOG_FAILURE;
+        }
+        if (groups != null) {
+            for (DdxGroupDetail group : groups) {
+                if (ConstantsUtility.MIRRORED_CATALOG_FAILURE.equals(group.getGroupAddedStatus())
+                        || ConstantsUtility.MIRRORED_CATALOG_FAILURE.equals(group.getGrantPermissionStatus())) {
+                    return ConstantsUtility.MIRRORED_CATALOG_FAILURE;
+                }
+            }
+        }
+
+        boolean allSuccess = ConstantsUtility.MIRRORED_CATALOG_SUCCESS.equals(catalogStatus);
+        if (allSuccess && groups != null) {
+            for (DdxGroupDetail group : groups) {
+                if (!ConstantsUtility.MIRRORED_CATALOG_SUCCESS.equals(group.getGroupAddedStatus())
+                        || !ConstantsUtility.MIRRORED_CATALOG_SUCCESS.equals(group.getGrantPermissionStatus())) {
+                    allSuccess = false;
+                    break;
+                }
+            }
+        }
+
+        return allSuccess ? ConstantsUtility.MIRRORED_CATALOG_SUCCESS : ConstantsUtility.MIRRORED_CATALOG_IN_PROGRESS;
+    }
+
+    private MirroredCatalogResponseVO buildMirroredCatalogResponse(DdxMirroredCatalogProduct data) {
+        MirroredCatalogResponseVO response = new MirroredCatalogResponseVO();
+        response.setDdxCorrelationId(data.getDdxCorrelationId());
+        response.setStatus(data.getStatus());
+
+        if (data.getMirrorCatalogDetails() != null) {
+            MirroredCatalogDataVO catalogDataVO = new MirroredCatalogDataVO();
+            catalogDataVO.setMirroredCatalogId(data.getMirrorCatalogDetails().getMirroredCatalogId());
+            catalogDataVO.setCatalog(data.getMirrorCatalogDetails().getMirrorCatalogName());
+            catalogDataVO.setSchema(data.getSchemaName());
+            catalogDataVO.setStorageAccountUrl(data.getStorageAccountUrl());
+            catalogDataVO.setStatus(MirroredCatalogDataVO.StatusEnum.fromValue(data.getMirrorCatalogDetails().getCatalogStatus()));
+            if (data.getObjects() != null) {
+                catalogDataVO.setObjects(data.getObjects().stream()
+                        .map(MirroredObjectDetail::getObjectName)
+                        .collect(Collectors.toList()));
+            }
+            response.setDatabricksMirroredCatalog(catalogDataVO);
+        }
+
+        if (data.getDdxGroupDetails() != null && !data.getDdxGroupDetails().isEmpty()) {
+            response.setDdxGroupDetails(mapDdxGroupDetailsToVO(data.getDdxGroupDetails()));
+            DdxGroupDetail firstGroup = data.getDdxGroupDetails().get(0);
+            GrantPermissionsVO grantPermissions = new GrantPermissionsVO();
+            grantPermissions.setDdxGroup(firstGroup.getGroupName());
+            grantPermissions.setStatus(firstGroup.getGrantPermissionStatus());
+            response.setGrantPermissions(grantPermissions);
+        }
+
+        return response;
+    }
+
+    private List<DdxGroupDetailVO> mapDdxGroupDetailsToVO(List<DdxGroupDetail> groups) {
+        if (groups == null) {
+            return Collections.emptyList();
+        }
+        return groups.stream().map(g -> {
+            DdxGroupDetailVO vo = new DdxGroupDetailVO();
+            vo.setGroupName(g.getGroupName());
+            vo.setGroupAddedStatus(g.getGroupAddedStatus());
+            vo.setGrantPermissionStatus(g.getGrantPermissionStatus());
+            vo.setMessage(g.getMessage());
+            return vo;
+        }).collect(Collectors.toList());
     }
 
 }

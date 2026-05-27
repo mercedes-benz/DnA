@@ -312,7 +312,7 @@ paths:
         500:
           description: "Internal error"
 
-  /catalog/databricks/mirrored-catalog/{ddxId}/{lakehouseId}:
+  /catalog/databricks/mirrored-catalog:
     post:
       tags:
         - "fabric-catalog-management"
@@ -326,16 +326,6 @@ paths:
           required: true
           schema:
             $ref: "#/definitions/CreateMirroredCatalogRequestVO"
-        - name: ddxId
-          in: path
-          description: "The ID of DDX data product."
-          required: true
-          type: "string"
-        - name: lakehouseId
-          in: path
-          description: "The ID of Lakehouse."
-          required: true
-          type: "string"
       responses:
         200:
           description: "Returns mirrored catalog creation response"
@@ -362,7 +352,7 @@ paths:
           schema:
             $ref: "#/definitions/MirroredCatalogErrorResponseVO"
 
-  /catalog/databricks/mirrored-catalog/status/{ddxId}/{lakehouseId}:
+  /catalog/databricks/mirrored-catalog/status:
     post:
       tags:
         - "fabric-catalog-management"
@@ -376,19 +366,45 @@ paths:
           required: true
           schema:
             $ref: "#/definitions/MirroredCatalogStatusRequestVO"
-        - name: ddxId
-          in: path
-          description: "The ID of DDX data product."
-          required: true
-          type: "string"
-        - name: lakehouseId
-          in: path
-          description: "The ID of Lakehouse."
-          required: true
-          type: "string"
       responses:
         200:
           description: "Returns mirrored catalog status response"
+          schema:
+            $ref: "#/definitions/MirroredCatalogResponseVO"
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/MirroredCatalogErrorResponseVO"
+        404:
+          description: "Mirrored catalog record not found"
+          schema:
+            $ref: "#/definitions/MirroredCatalogErrorResponseVO"
+        401:
+          description: "Request does not have sufficient credentials."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+          schema:
+            $ref: "#/definitions/MirroredCatalogErrorResponseVO"
+
+  /catalog/databricks/mirrored-catalog/update-status:
+    put:
+      tags:
+        - "fabric-catalog-management"
+      summary: "Update Databricks Mirrored Catalog status (Uilicious callback)."
+      description: "This endpoint is called by Uilicious to update the status of mirrored catalog creation and group permission assignment."
+      operationId: "updateMirroredCatalogStatus"
+      parameters:
+        - name: updateMirroredCatalogStatusRequest
+          in: body
+          description: "The status update payload from Uilicious."
+          required: true
+          schema:
+            $ref: "#/definitions/UpdateMirroredCatalogStatusRequestVO"
+      responses:
+        200:
+          description: "Returns updated mirrored catalog status"
           schema:
             $ref: "#/definitions/MirroredCatalogResponseVO"
         400:
@@ -659,14 +675,18 @@ definitions:
   CreateMirroredCatalogRequestVO:
     type: object
     required:
+      - dataProductName
       - catalogName
       - schemaName
       - region
       - fullSchema
       - storageAccountUrl
-      - ddx_group
-      - ddx_correlation_id
+      - ddxGroup
+      - ddxCorrelationId
     properties:
+      dataProductName:
+        type: string
+        description: "Name of the data product"
       catalogName:
         type: string
         description: "Name of the Databricks catalog"
@@ -687,12 +707,15 @@ definitions:
       storageAccountUrl:
         type: string
         description: "ADLS Gen2 storage account URL"
-      ddx_group:
+      ddxGroup:
         type: string
         description: "DDX group name for permission assignment"
-      ddx_correlation_id:
+      ddxCorrelationId:
         type: string
         description: "Correlation ID for request tracking"
+      ddxGroupPermission:
+        type: string
+        description: "Permission type for the DDX group"
 
   MirroredObjectVO:
     type: object
@@ -710,18 +733,28 @@ definitions:
   MirroredCatalogResponseVO:
     type: object
     properties:
-      ddx_correlation_id:
+      ddxCorrelationId:
         type: string
         description: "Correlation ID for request tracking"
-      databricks_mirrored_catalog:
+      status:
+        type: string
+        description: "Overall status of the mirrored catalog operation"
+      message:
+        type: string
+        description: "Human-readable message"
+      databricksMirroredCatalog:
         $ref: "#/definitions/MirroredCatalogDataVO"
-      grant_permissions:
+      grantPermissions:
         $ref: "#/definitions/GrantPermissionsVO"
+      ddxGroupDetails:
+        type: array
+        items:
+          $ref: "#/definitions/DdxGroupDetailVO"
 
   MirroredCatalogDataVO:
     type: object
     properties:
-      mirrored_catalog_id:
+      mirroredCatalogId:
         type: string
         description: "Fabric object ID of the mirrored catalog"
       catalog:
@@ -750,7 +783,7 @@ definitions:
   GrantPermissionsVO:
     type: object
     properties:
-      ddx_group:
+      ddxGroup:
         type: string
         description: "DDX group name"
       status:
@@ -760,7 +793,7 @@ definitions:
   MirroredCatalogErrorResponseVO:
     type: object
     properties:
-      ddx_correlation_id:
+      ddxCorrelationId:
         type: string
         description: "Correlation ID for request tracking"
       status:
@@ -782,8 +815,49 @@ definitions:
   MirroredCatalogStatusRequestVO:
     type: object
     required:
-      - ddx_correlation_id
+      - mirroredCatalogId
     properties:
-      ddx_correlation_id:
+      mirroredCatalogId:
         type: string
-        description: "Correlation ID to look up the mirrored catalog status"
+        description: "Mirrored catalog ID to look up the status"
+
+  UpdateMirroredCatalogStatusRequestVO:
+    type: object
+    required:
+      - ddxCorrelationId
+    properties:
+      ddxCorrelationId:
+        type: string
+        description: "Correlation ID to look up the record"
+      mirroredCatalogId:
+        type: string
+        description: "Fabric catalog ID"
+      mirrorCatalogName:
+        type: string
+        description: "Mirror catalog name"
+      catalogStatus:
+        type: string
+        description: "Status of catalog creation"
+      catalogMessage:
+        type: string
+        description: "Message for catalog creation"
+      ddxGroupDetails:
+        type: array
+        items:
+          $ref: "#/definitions/DdxGroupDetailVO"
+
+  DdxGroupDetailVO:
+    type: object
+    properties:
+      groupName:
+        type: string
+        description: "DDX group name"
+      groupAddedStatus:
+        type: string
+        description: "Status of group addition"
+      grantPermissionStatus:
+        type: string
+        description: "Status of permission grant"
+      message:
+        type: string
+        description: "Message for this group operation"

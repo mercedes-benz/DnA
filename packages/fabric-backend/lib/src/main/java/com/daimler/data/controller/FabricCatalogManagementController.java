@@ -42,6 +42,7 @@ import com.daimler.data.dto.fabricCatalogManagement.CreateMirroredCatalogRequest
 import com.daimler.data.dto.fabricCatalogManagement.MirroredCatalogResponseVO;
 import com.daimler.data.dto.fabricCatalogManagement.MirroredCatalogErrorResponseVO;
 import com.daimler.data.dto.fabricCatalogManagement.MirroredCatalogStatusRequestVO;
+import com.daimler.data.dto.fabricCatalogManagement.UpdateMirroredCatalogStatusRequestVO;
 import com.daimler.data.dto.fabricWorkspace.CreatedByVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceVO;
 import com.daimler.data.service.catalogManagement.BaseFabricCatalogManagementService;
@@ -684,16 +685,41 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
         @ApiResponse(code = 404, message = "Databricks data product or DDX group not found", response = MirroredCatalogErrorResponseVO.class),
         @ApiResponse(code = 405, message = "Method not allowed"),
         @ApiResponse(code = 500, message = "Internal error", response = MirroredCatalogErrorResponseVO.class) })
-    @RequestMapping(value = "/catalog/databricks/mirrored-catalog/{ddxId}/{lakehouseId}",
+    @RequestMapping(value = "/catalog/databricks/mirrored-catalog",
         produces = { "application/json" },
         consumes = { "application/json" },
         method = RequestMethod.POST)
     public ResponseEntity<MirroredCatalogResponseVO> createMirroredCatalog(
-            @ApiParam(value = "The mirrored catalog creation request.", required = true) @Valid @RequestBody CreateMirroredCatalogRequestVO createMirroredCatalogRequest,
-            @ApiParam(value = "The ID of DDX data product.", required = true) @PathVariable("ddxId") String ddxId,
-            @ApiParam(value = "The ID of Lakehouse.", required = true) @PathVariable("lakehouseId") String lakehouseId) {
-        // TODO: Implementation pending team approval
-        return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
+            @ApiParam(value = "The mirrored catalog creation request.", required = true) @Valid @RequestBody CreateMirroredCatalogRequestVO createMirroredCatalogRequest) {
+        try {
+            if (createMirroredCatalogRequest.getDataProductName() == null || createMirroredCatalogRequest.getDataProductName().isBlank()
+                    || createMirroredCatalogRequest.getCatalogName() == null || createMirroredCatalogRequest.getCatalogName().isBlank()
+                    || createMirroredCatalogRequest.getSchemaName() == null || createMirroredCatalogRequest.getSchemaName().isBlank()
+                    || createMirroredCatalogRequest.getRegion() == null || createMirroredCatalogRequest.getRegion().isBlank()
+                    || createMirroredCatalogRequest.getStorageAccountUrl() == null || createMirroredCatalogRequest.getStorageAccountUrl().isBlank()
+                    || createMirroredCatalogRequest.getDdxGroup() == null || createMirroredCatalogRequest.getDdxGroup().isBlank()
+                    || createMirroredCatalogRequest.getDdxCorrelationId() == null || createMirroredCatalogRequest.getDdxCorrelationId().isBlank()) {
+                log.error("Missing required fields in createMirroredCatalog request");
+                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            }
+            if (!createMirroredCatalogRequest.isFullSchema()
+                    && (createMirroredCatalogRequest.getObjects() == null || createMirroredCatalogRequest.getObjects().isEmpty())) {
+                log.error("Objects list is required when fullSchema is false");
+                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            }
+
+            MirroredCatalogResponseVO response = service.createMirroredCatalog(createMirroredCatalogRequest);
+            if (response != null && ConstantsUtility.MIRRORED_CATALOG_ALREADY_EXISTS.equals(response.getStatus())) {
+                return new ResponseEntity<>(response, HttpStatus.CONFLICT);
+            }
+            if (response != null && ConstantsUtility.MIRRORED_CATALOG_FAILURE.equals(response.getStatus())) {
+                return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+            }
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (Exception e) {
+            log.error("Error creating mirrored catalog: {}", e.getMessage(), e);
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
     @Override
@@ -705,16 +731,58 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
         @ApiResponse(code = 404, message = "Mirrored catalog record not found", response = MirroredCatalogErrorResponseVO.class),
         @ApiResponse(code = 405, message = "Method not allowed"),
         @ApiResponse(code = 500, message = "Internal error", response = MirroredCatalogErrorResponseVO.class) })
-    @RequestMapping(value = "/catalog/databricks/mirrored-catalog/status/{ddxId}/{lakehouseId}",
+    @RequestMapping(value = "/catalog/databricks/mirrored-catalog/status",
         produces = { "application/json" },
         consumes = { "application/json" },
         method = RequestMethod.POST)
     public ResponseEntity<MirroredCatalogResponseVO> getMirroredCatalogStatus(
-            @ApiParam(value = "The mirrored catalog status request with correlation ID.", required = true) @Valid @RequestBody MirroredCatalogStatusRequestVO mirroredCatalogStatusRequest,
-            @ApiParam(value = "The ID of DDX data product.", required = true) @PathVariable("ddxId") String ddxId,
-            @ApiParam(value = "The ID of Lakehouse.", required = true) @PathVariable("lakehouseId") String lakehouseId) {
-        // TODO: Implementation pending team approval
-        return new ResponseEntity<>(HttpStatus.NOT_IMPLEMENTED);
+            @ApiParam(value = "The mirrored catalog status request with correlation ID.", required = true) @Valid @RequestBody MirroredCatalogStatusRequestVO mirroredCatalogStatusRequest) {
+        try {
+            if (mirroredCatalogStatusRequest.getMirroredCatalogId() == null || mirroredCatalogStatusRequest.getMirroredCatalogId().isBlank()) {
+                log.error("Missing required mirroredCatalogId in getMirroredCatalogStatus request");
+                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            }
+
+            MirroredCatalogResponseVO response = service.getMirroredCatalogStatus(
+                    mirroredCatalogStatusRequest.getMirroredCatalogId());
+            if (response == null) {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (Exception e) {
+            log.error("Error getting mirrored catalog status: {}", e.getMessage(), e);
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @Override
+    @ApiOperation(value = "Update Databricks Mirrored Catalog status (Uilicious callback).", nickname = "updateMirroredCatalogStatus", notes = "This endpoint is called by Uilicious to update the status of mirrored catalog creation and group permission assignment.", response = MirroredCatalogResponseVO.class, tags={ "fabric-catalog-management", })
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "Returns updated mirrored catalog status", response = MirroredCatalogResponseVO.class),
+        @ApiResponse(code = 400, message = "Bad Request", response = MirroredCatalogErrorResponseVO.class),
+        @ApiResponse(code = 404, message = "Mirrored catalog record not found", response = MirroredCatalogErrorResponseVO.class),
+        @ApiResponse(code = 500, message = "Internal error", response = MirroredCatalogErrorResponseVO.class) })
+    @RequestMapping(value = "/catalog/databricks/mirrored-catalog/update-status",
+        produces = { "application/json" },
+        consumes = { "application/json" },
+        method = RequestMethod.PUT)
+    public ResponseEntity<MirroredCatalogResponseVO> updateMirroredCatalogStatus(
+            @ApiParam(value = "The status update request from Uilicious.", required = true) @Valid @RequestBody UpdateMirroredCatalogStatusRequestVO updateRequest) {
+        try {
+            if (updateRequest.getDdxCorrelationId() == null || updateRequest.getDdxCorrelationId().isBlank()) {
+                log.error("Missing required ddx_correlation_id in updateMirroredCatalogStatus request");
+                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            }
+
+            MirroredCatalogResponseVO response = service.updateMirroredCatalogStatus(updateRequest);
+            if (response == null) {
+                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            }
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (Exception e) {
+            log.error("Error updating mirrored catalog status: {}", e.getMessage(), e);
+            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+        }
     }
 
 }
