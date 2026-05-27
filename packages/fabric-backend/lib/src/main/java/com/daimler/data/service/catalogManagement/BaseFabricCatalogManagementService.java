@@ -1163,16 +1163,16 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
     }
 
     @Override
-    public MirroredCatalogResponseVO getMirroredCatalogStatus(String ddxCorrelationId) {
-        log.info("Getting mirrored catalog status for correlationId: {}", ddxCorrelationId);
+    public MirroredCatalogResponseVO getMirroredCatalogStatus(String mirroredCatalogId) {
+        log.info("Getting mirrored catalog status for mirroredCatalogId: {}", mirroredCatalogId);
 
-        Optional<DdxMirroredCatalogProductNsql> entityOpt = mirroredCatalogCustomRepo.findByCorrelationId(ddxCorrelationId);
-        if (entityOpt.isEmpty() || entityOpt.get().getData() == null) {
-            log.error("No mirrored catalog record found for correlationId: {}", ddxCorrelationId);
+        List<DdxMirroredCatalogProductNsql> results = mirroredCatalogCustomRepo.findByMirroredCatalogId(mirroredCatalogId);
+        if (results.isEmpty() || results.get(0).getData() == null) {
+            log.error("No mirrored catalog record found for mirroredCatalogId: {}", mirroredCatalogId);
             return null;
         }
 
-        DdxMirroredCatalogProduct data = entityOpt.get().getData();
+        DdxMirroredCatalogProduct data = results.get(0).getData();
         return buildMirroredCatalogResponse(data);
     }
 

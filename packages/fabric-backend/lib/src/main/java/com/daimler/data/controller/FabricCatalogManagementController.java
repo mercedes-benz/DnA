@@ -738,13 +738,13 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
     public ResponseEntity<MirroredCatalogResponseVO> getMirroredCatalogStatus(
             @ApiParam(value = "The mirrored catalog status request with correlation ID.", required = true) @Valid @RequestBody MirroredCatalogStatusRequestVO mirroredCatalogStatusRequest) {
         try {
-            if (mirroredCatalogStatusRequest.getDdxCorrelationId() == null || mirroredCatalogStatusRequest.getDdxCorrelationId().isBlank()) {
-                log.error("Missing required ddx_correlation_id in getMirroredCatalogStatus request");
+            if (mirroredCatalogStatusRequest.getMirroredCatalogId() == null || mirroredCatalogStatusRequest.getMirroredCatalogId().isBlank()) {
+                log.error("Missing required mirroredCatalogId in getMirroredCatalogStatus request");
                 return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
             }
 
             MirroredCatalogResponseVO response = service.getMirroredCatalogStatus(
-                    mirroredCatalogStatusRequest.getDdxCorrelationId());
+                    mirroredCatalogStatusRequest.getMirroredCatalogId());
             if (response == null) {
                 return new ResponseEntity<>(HttpStatus.NOT_FOUND);
             }

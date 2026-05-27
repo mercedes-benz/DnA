@@ -52,7 +52,7 @@ public interface FabricCatalogManagementService extends CommonService<FabricCata
 	/**
 	 * method to get the status of mirrored catalog creation and group permission assignment
 	 */
-	MirroredCatalogResponseVO getMirroredCatalogStatus(String ddxCorrelationId);
+	MirroredCatalogResponseVO getMirroredCatalogStatus(String mirroredCatalogId);
 
 	/**
 	 * method to update the status of mirrored catalog creation (called by Uilicious callback)
