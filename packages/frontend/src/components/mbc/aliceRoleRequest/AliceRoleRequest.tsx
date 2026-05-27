@@ -50,6 +50,20 @@ const AliceRoleRequest = () => {
     }
     return true;
   }
+
+  const formatRoleName = (name: string) => {
+  if (name.includes('_')) {
+    const lastUnderscoreIndex = name.lastIndexOf('_');
+    const prefix = name.substring(0, lastUnderscoreIndex + 1);
+    const lastWord = name.substring(lastUnderscoreIndex + 1);
+    if (lastWord.length > 0) {
+      return prefix + lastWord.charAt(0).toUpperCase() + lastWord.slice(1).toLowerCase();
+    }
+  } else if (name.length > 0) {
+    return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
+  }
+  return name;
+};
  
   useEffect(() => {
     fetchRole();
@@ -57,7 +71,7 @@ const AliceRoleRequest = () => {
  
   const createRole = () => {
     if (validateRole()) {
-      const value = Envs.ALICE_APP_ID + "_" + roleName
+      const value = Envs.ALICE_APP_ID + "_" + formatRoleName(roleName);
       const data = {
         "data": {
           "roleName": value,
@@ -232,7 +246,7 @@ const AliceRoleRequest = () => {
                     labelId={'roleNameDisplayLabel'}
                     label={'Role to be created'}
                     placeholder={'Type here'}
-                    value={roleName?.length > 0 ? (Envs.ALICE_APP_ID + ' ' + roleName).replace(/_/g, ' ') : ''}
+                    value={roleName?.length > 0 ? (Envs.ALICE_APP_ID + ' ' + formatRoleName(roleName)).replace(/_/g, ' ') : ''}
                     required={false}
                     maxLength={50}
                     onChange={onRoleNameChange}
