@@ -430,6 +430,63 @@ const isLeanIXRequired = typeOfProject === 'Production' && mandate;
                 <span className={'error-message'}>{errors?.description?.message}{errors.description?.type === 'pattern' && `Spaces (and special characters) not allowed as field value.`}</span>
               </div>
             </div>  
+            <div className={Styles.col}>
+              <div className={classNames('input-field-group')}>
+                <Controller
+                  control={control}
+                  name="projectDetails"
+                  rules={{
+                    required: false,
+                  }}
+                  render={({ field }) => (
+                    <TypeAheadBox
+                      label={'Project Details (Recommended for Billing Purpose)'}
+                      placeholder={'Search Project Name'}
+                      defaultValue={selectedProject?.projectID}
+                      list={filteredProjects}
+                      setSelected={(selectedProject) => {
+                        setSelectedProject(selectedProject || {});
+                        field.onChange(selectedProject?.projectID || '');
+                      }}
+                      onInputChange={(value, showSpinner) =>
+                        handleProjectSearch(value, showSpinner, selectedDivision)
+                      }
+                      required={false}
+                      showError={errors.projectDetails?.message}
+                      render={(item) => {
+                        const stakeholderIds = item?.stakeholders?.map((s) => s.userID).join(', ') || '—';
+                        const tagValues = item?.tags?.map((t) => t.value).join(', ') || '—';
+
+                        return (
+                          <div className={Styles.optionContainer}>
+                            <div className={Styles.optionHeader}>
+                              <span className={Styles.optionText}>
+                                {item.projectName}
+                              </span>
+                            </div>
+                            {item?.division && (
+                              <div className={Styles.optionSubText}>
+                                <strong>Division:</strong> {item.division}
+                              </div>
+                            )}
+                            {stakeholderIds !== '—' && (
+                              <div className={Styles.optionSubText}>
+                                <strong>Stakeholders:</strong> {stakeholderIds}
+                              </div>
+                            )}
+                            {tagValues !== '—' && (
+                              <div className={Styles.optionSubText}>
+                                <strong>Tags:</strong> {tagValues}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      }}
+                    />
+                  )}
+                />
+              </div>
+            </div>
             <div className={Styles.col2}>
               <div className={classNames('input-field-group include-error', errors?.costCenter ? 'error' : '')}>
                   <label className={'input-label'}>
@@ -469,7 +526,7 @@ const isLeanIXRequired = typeOfProject === 'Production' && mandate;
                     <span className={'error-message'}>{errors?.internalOrder?.message}{errors.internalOrder?.type === 'pattern' && `Spaces not allowed as field value..`}</span>
                   </div>
                 </div>
-            </div>
+            </div> 
             {(typeOfProject !== 'Playground' && typeOfProject !== 'Proof of Concept') && 
               (
                 <div className={Styles.col2}>
@@ -785,63 +842,6 @@ const isLeanIXRequired = typeOfProject === 'Production' && mandate;
                     <span className="label">Fabric</span>
                   </label>
                 </div>
-              </div>
-            </div>
-            <div className={Styles.col2}>
-              <div className={classNames('input-field-group')}>
-                <Controller
-                  control={control}
-                  name="projectDetails"
-                  rules={{
-                    required: false,
-                  }}
-                  render={({ field }) => (
-                    <TypeAheadBox
-                      label={'Project Details (Recommended for Billing Purpose)'}
-                      placeholder={'Search Project Name'}
-                      defaultValue={selectedProject?.projectID}
-                      list={filteredProjects}
-                      setSelected={(selectedProject) => {
-                        setSelectedProject(selectedProject || {});
-                        field.onChange(selectedProject?.projectID || '');
-                      }}
-                      onInputChange={(value, showSpinner) =>
-                        handleProjectSearch(value, showSpinner, selectedDivision)
-                      }
-                      required={false}
-                      showError={errors.projectDetails?.message}
-                      render={(item) => {
-                        const stakeholderIds = item?.stakeholders?.map((s) => s.userID).join(', ') || '—';
-                        const tagValues = item?.tags?.map((t) => t.value).join(', ') || '—';
-
-                        return (
-                          <div className={Styles.optionContainer}>
-                            <div className={Styles.optionHeader}>
-                              <span className={Styles.optionText}>
-                                {item.projectName}
-                              </span>
-                            </div>
-                            {item?.division && (
-                              <div className={Styles.optionSubText}>
-                                <strong>Division:</strong> {item.division}
-                              </div>
-                            )}
-                            {stakeholderIds !== '—' && (
-                              <div className={Styles.optionSubText}>
-                                <strong>Stakeholders:</strong> {stakeholderIds}
-                              </div>
-                            )}
-                            {tagValues !== '—' && (
-                              <div className={Styles.optionSubText}>
-                                <strong>Tags:</strong> {tagValues}
-                              </div>
-                            )}
-                          </div>
-                        );
-                      }}
-                    />
-                  )}
-                />
               </div>
             </div>
             {typeOfProject !== 'Playground' &&
