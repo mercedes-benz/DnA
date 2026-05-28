@@ -34,6 +34,7 @@ import com.daimler.data.application.client.RSAEncryptionUtil;
 import com.daimler.data.assembler.ADAProjectsAssembler;
 import com.daimler.data.assembler.DdxDataProductsDetailsAssembler;
 import com.daimler.data.assembler.FabricWorkspaceAssembler;
+import com.daimler.data.controller.FabricWorkspaceController;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.db.entities.ADAProjectsNsql;
@@ -547,7 +548,20 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 					responseData.setResponses(responseMessage);
 					log.error("Error occurred:{} while creating fabric workspace project {} ", createResponse.getErrorCode(), vo.getName());
 					if("409".equalsIgnoreCase(createResponse.getErrorCode())) {
-						return new ResponseEntity<>(responseData, HttpStatus.CONFLICT);
+						if(vo.getInitiatedBy() == null && FabricWorkspaceController.isTechnicalUser(vo.getInitiatedBy())) {
+							message.setMessage("Failed to create workspace. A workspace with the same name already exists. Please choose a different name.");
+							return new ResponseEntity<>(responseData, HttpStatus.CONFLICT);
+						}
+						log.info("Technical user {} attemped to create a workspace with name already exists, this case if getting considered as Spire user trying to add an already created workspace to the Dna DB hance the process will be allowed to ");
+						WorkspaceDetailDto existingWorkspaceDto = fabricWorkspaceClient.getWorkspaceDetailsByName(vo.getName());
+						if(existingWorkspaceDto != null){
+							createResponse.setId(existingWorkspaceDto.getId());
+							createResponse.setDisplayName(existingWorkspaceDto.getDisplayName());
+							createResponse.setDescription(existingWorkspaceDto.getDescription());
+							createResponse.setType(existingWorkspaceDto.getType());
+							createResponse.setMessage(null);
+							createResponse.setErrorCode(null);
+						}
 					}else if("429".equalsIgnoreCase(createResponse.getErrorCode())){
 						return new ResponseEntity<>(responseData, HttpStatus.TOO_MANY_REQUESTS);
 					}else{

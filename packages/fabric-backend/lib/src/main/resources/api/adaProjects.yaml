@@ -254,6 +254,8 @@ definitions:
 
   ADAProjectDetailsVO:
     type: "object"
+    required:
+      - capacity
     properties:
       id:
         type: "string"
@@ -314,6 +316,8 @@ definitions:
         format: "date"
       createdBy:
         type: "string"
+      capacity:
+        $ref: "#/definitions/CapacityVO"
 
 
   CreateADAProjectResponseVO:
@@ -342,3 +346,19 @@ definitions:
         type: "string"
       projectID:
         type: "string"
+
+  CapacityVO:
+    type: object
+    properties:
+      id:
+        type: string
+        description: "Identifier for the capacity"
+      name:
+        type: string
+        description: "Name of the Capacity"
+      sku:
+        type: string
+      region:
+        type: string
+      state:
+        type: string

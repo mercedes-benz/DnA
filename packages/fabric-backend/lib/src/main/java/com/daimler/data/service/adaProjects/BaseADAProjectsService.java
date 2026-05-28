@@ -4,6 +4,7 @@ import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -11,8 +12,10 @@ import com.daimler.data.assembler.ADAProjectsAssembler;
 import com.daimler.data.assembler.FabricWorkspaceAssembler;
 import com.daimler.data.db.entities.ADAProjectsNsql;
 import com.daimler.data.db.entities.FabricWorkspaceNsql;
+import com.daimler.data.db.json.Capacity;
 import com.daimler.data.db.repo.adaProjects.ADAProjectsCustomRepository;
 import com.daimler.data.db.repo.adaProjects.ADAProjectsRepository;
+import com.daimler.data.db.repo.fabric.FabricWorkspaceCustomRepository;
 import com.daimler.data.db.repo.fabric.FabricWorkspaceRepository;
 import com.daimler.data.dto.adaProjects.ADAProjectDetailsCollectionVO;
 import com.daimler.data.dto.adaProjects.ADAProjectDetailsVO;
@@ -45,6 +48,24 @@ public class BaseADAProjectsService extends BaseCommonService<ADAProjectDetailsV
 
 	@Autowired
 	private FabricWorkspaceRepository fabricWorkspaceRepo;
+
+	@Autowired
+	private FabricWorkspaceCustomRepository fabricWorkspaceCustomRepository;
+
+	@Value("${fabricWorkspaces.fabricCapacityId}")
+	private String fabricCapacityId;
+
+	@Value("${fabricWorkspaces.fabricCapacityName}")
+	private String fabricCapacityName;
+	
+	@Value("${fabricWorkspaces.capacitySku}")
+	private String capacitySku;
+	
+	@Value("${fabricWorkspaces.capacityRegion}")
+	private String capacityRegion;
+	
+	@Value("${fabricWorkspaces.capacityState}")
+	private String capacityState;
 
 	public BaseADAProjectsService() {
 		super();
@@ -103,6 +124,9 @@ public class BaseADAProjectsService extends BaseCommonService<ADAProjectDetailsV
 		GenericMessage message = new GenericMessage();
 		try {
 			ADAProjectsNsql entity = assembler.toEntity(project);
+			log.info("Creating new ADA Project with projectID {}", project.getProjectID());
+			updateCapacityForFabricWorkspaces(project);
+			log.info("Successfully updated capacity for associated Fabric workspaces for project id {}", project.getProjectID());
 			jpaRepo.save(entity);
 			message.setSuccess("CREATED");
 		} catch (Exception e) {
@@ -112,7 +136,7 @@ public class BaseADAProjectsService extends BaseCommonService<ADAProjectDetailsV
 		}
 		return message;
 	}
-
+	
 	@Override
 	@Transactional
 	public GenericMessage updateProject(String id, ADAProjectDetailsVO project) {
@@ -120,6 +144,8 @@ public class BaseADAProjectsService extends BaseCommonService<ADAProjectDetailsV
 		try {
 			ADAProjectsNsql entity = assembler.toEntity(project);
 			entity.setId(id);
+			updateCapacityForFabricWorkspaces(project);
+			log.info("Successfully updated capacity for associated Fabric workspaces for project id {}", project.getProjectID());
 			jpaRepo.save(entity);
 			message.setSuccess("UPDATED");
 		} catch (Exception e) {
@@ -164,5 +190,35 @@ public class BaseADAProjectsService extends BaseCommonService<ADAProjectDetailsV
 			return message;
 		}
 	}
-
+	
+	private void updateCapacityForFabricWorkspaces(ADAProjectDetailsVO adaProject){
+		try {
+			List<FabricWorkspaceNsql> workspaces = fabricWorkspaceCustomRepository.getAllByProjectId(adaProject.getProjectID());
+			if(workspaces != null && !workspaces.isEmpty()) {
+				for(FabricWorkspaceNsql workspace : workspaces) {
+					Capacity capacity = new Capacity();
+					if(adaProject.getCapacity() != null){
+						capacity.setId(adaProject.getCapacity().getId());
+						capacity.setName(adaProject.getCapacity().getName());
+						capacity.setRegion(adaProject.getCapacity().getRegion());
+						capacity.setSku(adaProject.getCapacity().getSku());
+						capacity.setState(adaProject.getCapacity().getState());
+					} else {
+						log.info("Capacity details are null for project id {}. Using default capacity values.", adaProject.getProjectID());
+						capacity.setId(fabricCapacityId);
+						capacity.setName(fabricCapacityName);
+						capacity.setRegion(capacityRegion);
+						capacity.setSku(capacitySku);
+						capacity.setState(capacityState);
+					}
+					workspace.getData().setCapacity(capacity);
+					fabricWorkspaceRepo.save(workspace);
+				}
+			}
+		} catch (Exception e) {
+			log.error("Error updating capacity for associated Fabric workspaces for project id {}: {}", adaProject.getProjectID(), e.getMessage(), e);
+			throw new RuntimeException("Failed to update capacity for associated Fabric workspaces for project id " + adaProject.getProjectID() + " with error: " + e.getMessage(), e);
+		}
+	}
+	
 }
