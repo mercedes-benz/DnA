@@ -824,11 +824,9 @@ definitions:
   UpdateMirroredCatalogStatusRequestVO:
     type: object
     required:
-      - ddxCorrelationId
+      - mirroredCatalogId
+      - ddxGroupDetails
     properties:
-      ddxCorrelationId:
-        type: string
-        description: "Correlation ID to look up the record"
       mirroredCatalogId:
         type: string
         description: "Fabric catalog ID"

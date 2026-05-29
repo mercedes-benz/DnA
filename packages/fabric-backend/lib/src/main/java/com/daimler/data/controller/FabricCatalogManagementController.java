@@ -769,19 +769,36 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
     public ResponseEntity<MirroredCatalogResponseVO> updateMirroredCatalogStatus(
             @ApiParam(value = "The status update request from Uilicious.", required = true) @Valid @RequestBody UpdateMirroredCatalogStatusRequestVO updateRequest) {
         try {
-            if (updateRequest.getDdxCorrelationId() == null || updateRequest.getDdxCorrelationId().isBlank()) {
-                log.error("Missing required ddx_correlation_id in updateMirroredCatalogStatus request");
-                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            if (updateRequest.getMirroredCatalogId() == null || updateRequest.getMirroredCatalogId().isBlank()) {
+                log.error("Missing required mirroredCatalogId in updateMirroredCatalogStatus request");
+                MirroredCatalogErrorResponseVO errorResponse = new MirroredCatalogErrorResponseVO();
+                errorResponse.setStatus(ConstantsUtility.MIRRORED_CATALOG_FAILURE);
+                errorResponse.setMessage("Missing required field: mirroredCatalogId");
+                return new ResponseEntity(errorResponse, HttpStatus.BAD_REQUEST);
+            }
+
+            if (updateRequest.getDdxGroupDetails() == null || updateRequest.getDdxGroupDetails().isEmpty()) {
+                log.error("Missing required ddxGroupDetails in updateMirroredCatalogStatus request");
+                MirroredCatalogErrorResponseVO errorResponse = new MirroredCatalogErrorResponseVO();
+                errorResponse.setStatus(ConstantsUtility.MIRRORED_CATALOG_FAILURE);
+                errorResponse.setMessage("Missing required field: ddxGroupDetails");
+                return new ResponseEntity(errorResponse, HttpStatus.BAD_REQUEST);
             }
 
             MirroredCatalogResponseVO response = service.updateMirroredCatalogStatus(updateRequest);
-            if (response == null) {
-                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            if (ConstantsUtility.MIRRORED_CATALOG_FAILURE.equals(response.getStatus()) && response.getDdxCorrelationId() == null) {
+                MirroredCatalogErrorResponseVO errorResponse = new MirroredCatalogErrorResponseVO();
+                errorResponse.setStatus(response.getStatus());
+                errorResponse.setMessage(response.getMessage());
+                return new ResponseEntity(errorResponse, HttpStatus.NOT_FOUND);
             }
             return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (Exception e) {
             log.error("Error updating mirrored catalog status: {}", e.getMessage(), e);
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            MirroredCatalogErrorResponseVO errorResponse = new MirroredCatalogErrorResponseVO();
+            errorResponse.setStatus(ConstantsUtility.MIRRORED_CATALOG_FAILURE);
+            errorResponse.setMessage("Internal error: " + e.getMessage());
+            return new ResponseEntity(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

@@ -1179,13 +1179,17 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
     @Override
     @Transactional
     public MirroredCatalogResponseVO updateMirroredCatalogStatus(UpdateMirroredCatalogStatusRequestVO request) {
-        log.info("Updating mirrored catalog status for correlationId: {}", request.getDdxCorrelationId());
+        log.info("Updating mirrored catalog status for mirroredCatalogId: {}", request.getMirroredCatalogId());
 
-        Optional<DdxMirroredCatalogProductNsql> entityOpt = mirroredCatalogCustomRepo.findByCorrelationId(request.getDdxCorrelationId());
-        if (entityOpt.isEmpty() || entityOpt.get().getData() == null) {
-            log.error("No mirrored catalog record found for correlationId: {}", request.getDdxCorrelationId());
-            return null;
+        List<DdxMirroredCatalogProductNsql> entities = mirroredCatalogCustomRepo.findByMirroredCatalogId(request.getMirroredCatalogId());
+        if (entities.isEmpty() || entities.get(0).getData() == null) {
+            log.error("No mirrored catalog record found for mirroredCatalogId: {}", request.getMirroredCatalogId());
+            MirroredCatalogResponseVO errorResponse = new MirroredCatalogResponseVO();
+            errorResponse.setStatus(ConstantsUtility.MIRRORED_CATALOG_FAILURE);
+            errorResponse.setMessage("No mirrored catalog record found for mirroredCatalogId: " + request.getMirroredCatalogId());
+            return errorResponse;
         }
+        Optional<DdxMirroredCatalogProductNsql> entityOpt = Optional.of(entities.get(0));
 
         DdxMirroredCatalogProductNsql entity = entityOpt.get();
         DdxMirroredCatalogProduct data = entity.getData();
@@ -1240,7 +1244,7 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
         }
 
         mirroredCatalogRepo.save(entity);
-        log.info("Updated mirrored catalog status to {} for correlationId: {}", derivedStatus, request.getDdxCorrelationId());
+        log.info("Updated mirrored catalog status to {} for mirroredCatalogId: {}", derivedStatus, request.getMirroredCatalogId());
 
         return buildMirroredCatalogResponse(data);
     }
