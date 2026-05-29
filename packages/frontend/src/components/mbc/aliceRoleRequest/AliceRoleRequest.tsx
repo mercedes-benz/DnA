@@ -19,7 +19,8 @@ const AliceRoleRequest = () => {
   const goback = () => {
     history.goBack();
   };
-  const [roleName, setRoleName] = useState('');
+  const appIdPrefix = Envs.ALICE_APP_ID + '_';
+  const [roleName, setRoleName] = useState(Envs.ALICE_APP_ID + '_');
   const [roleNameError, setRoleNameError] = useState('');
   const [roleDisplayName, setRoleDisplayName] = useState('');
   const [roleDisplayNameError, setRoleDisplayNameError] = useState('');
@@ -31,11 +32,15 @@ const AliceRoleRequest = () => {
   const [entraGroupMembers, setEntraGroupMembers] = useState<any[]>([]);
  
   const onRoleNameChange = (e: React.FormEvent<HTMLInputElement>) => {
-    const roleNameVal = e.currentTarget.value;
+    let roleNameVal = e.currentTarget.value;
+    if (!roleNameVal.startsWith(appIdPrefix) && roleNameVal.length < appIdPrefix.length) {
+      roleNameVal = appIdPrefix;
+    }
     setRoleName(roleNameVal);
     validateRoleInput(roleNameVal);
-    if (roleNameVal.length > 0) {
-      const autoDisplayName = (Envs.ALICE_APP_ID + ' ' + formatRoleName(roleNameVal)).replace(/_/g, ' ');
+    const suffix = roleNameVal.startsWith(appIdPrefix) ? roleNameVal.substring(appIdPrefix.length) : '';
+    if (suffix.length > 0) {
+      const autoDisplayName = (Envs.ALICE_APP_ID + ' ' + formatRoleName(suffix)).replace(/_/g, ' ');
       setRoleDisplayName(autoDisplayName);
       validateRoleDisplayName(autoDisplayName);
     } else {
@@ -54,6 +59,10 @@ const AliceRoleRequest = () => {
     const specialCharPattern = /[^A-Za-z0-9\-_]/;
     if (value.length === 0) {
       setRoleNameError('');
+      return;
+    }
+    if (!value.startsWith(appIdPrefix)) {
+      setRoleNameError('Role ID must start with ' + appIdPrefix);
       return;
     }
     if (value.includes(' ')) {
@@ -82,8 +91,12 @@ const AliceRoleRequest = () => {
  
   const validateRole = () => {
     const specialCharPattern = /[^A-Za-z0-9\-_]/;
-    if (roleName.trim() === "") {
+    if (roleName.trim() === "" || roleName.trim() === appIdPrefix) {
       setRoleNameError('Role ID cannot be empty');
+      return false;
+    }
+    if (!roleName.startsWith(appIdPrefix)) {
+      setRoleNameError('Role ID must start with ' + appIdPrefix);
       return false;
     }
     if (roleName.includes(" ")) {
@@ -134,7 +147,7 @@ const AliceRoleRequest = () => {
  
   const createRole = () => {
     if (validateRole()) {
-      const value = Envs.ALICE_APP_ID + "_" + roleDisplayName.replace(/\s+/g, '_');
+      const value = roleName;
       const data = {
         "data": {
           "roleName": value,
@@ -150,7 +163,7 @@ const AliceRoleRequest = () => {
             const updatedStatic = isDynamicRole ? rolesCreated.static : [...rolesCreated.static, value];
             const updatedDynamic = isDynamicRole ? [...rolesCreated.dynamic, value] : rolesCreated.dynamic;
             setRolesCreated({ static: updatedStatic, dynamic: updatedDynamic });
-            setRoleName('');
+            setRoleName(appIdPrefix);
             setRoleNameError('');
             setRoleDisplayName('');
             setRoleDisplayNameError('');
@@ -326,7 +339,7 @@ const AliceRoleRequest = () => {
                     labelId={'entitlementDisplayLabel'}
                     label={'Entitlement to be created'}
                     placeholder={'Type here'}
-                    value={roleDisplayName?.length > 0 ? Envs.ALICE_APP_ID + '.' + sanitizeRoleId(Envs.ALICE_APP_ID + '_' + roleDisplayName.replace(/\s+/g, '_')) : ''}
+                    value={roleName?.length > appIdPrefix.length ? Envs.ALICE_APP_ID + '.' + sanitizeRoleId(roleName) : ''}
                     required={false}
                     maxLength={100}
                     onChange={onRoleNameChange}
