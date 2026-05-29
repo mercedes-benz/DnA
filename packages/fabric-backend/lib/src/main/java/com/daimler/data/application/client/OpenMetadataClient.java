@@ -232,8 +232,7 @@ public class OpenMetadataClient {
         String dbName = workspaceName + "_" + lakehouse.getName();
         log.info("Adding database {} for lakehouse {} to service {}", dbName, lakehouse.getId(), serviceFQN);
         
-        return addDatabase(dbName, serviceFQN, fields, owners, 
-                description + " - Lakehouse: " + lakehouse.getName());
+        return addDatabase(dbName, serviceFQN, fields, owners, description);
     }
 
     public List<Database> addLakehouseDatabasestoExistingService(String serviceFQN, String workspaceName,
@@ -360,12 +359,14 @@ public class OpenMetadataClient {
         }
     }
 
-    public Database updateDatabase(String dbId, String name, String serviceFQN, MandatoryFieldsVO fields, List<EntityReference> owners) {
+    public Database updateDatabase(String dbId, String name, String serviceFQN, MandatoryFieldsVO fields,
+            List<EntityReference> owners, String description) {
         try {
             CreateDatabase request = new CreateDatabase()
                 .name(name)
                 .service(serviceFQN)
                 .extension(toExtensions(fields))
+                .description(description)
                 .owners(owners);
 
             return apiClient.buildClient(DatabasesApi.class)
