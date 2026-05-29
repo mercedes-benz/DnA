@@ -698,12 +698,15 @@ definitions:
         description: "Region for the mirrored catalog"
       fullSchema:
         type: boolean
-        description: "If true, mirror the full schema. If false, objects list is required."
+        description: "If true, mirror the full schema. If false, objects map is required."
       objects:
-        type: array
-        description: "List of specific objects to mirror. Required when fullSchema is false."
-        items:
-          $ref: "#/definitions/MirroredObjectVO"
+        type: object
+        description: "Map of object names to their types (table or view). Required when fullSchema is false."
+        additionalProperties:
+          type: string
+          enum:
+            - table
+            - view
       storageAccountUrl:
         type: string
         description: "ADLS Gen2 storage account URL"
@@ -713,22 +716,6 @@ definitions:
       ddxCorrelationId:
         type: string
         description: "Correlation ID for request tracking"
-      ddxGroupPermission:
-        type: string
-        description: "Permission type for the DDX group"
-
-  MirroredObjectVO:
-    type: object
-    properties:
-      objectName:
-        type: string
-        description: "Name of the object to mirror"
-      objectType:
-        type: string
-        description: "Type of the object (table or view)"
-        enum:
-          - table
-          - view
 
   MirroredCatalogResponseVO:
     type: object
@@ -736,20 +723,10 @@ definitions:
       ddxCorrelationId:
         type: string
         description: "Correlation ID for request tracking"
-      status:
-        type: string
-        description: "Overall status of the mirrored catalog operation"
-      message:
-        type: string
-        description: "Human-readable message"
       databricksMirroredCatalog:
         $ref: "#/definitions/MirroredCatalogDataVO"
       grantPermissions:
         $ref: "#/definitions/GrantPermissionsVO"
-      ddxGroupDetails:
-        type: array
-        items:
-          $ref: "#/definitions/DdxGroupDetailVO"
 
   MirroredCatalogDataVO:
     type: object
@@ -757,6 +734,9 @@ definitions:
       mirroredCatalogId:
         type: string
         description: "Fabric object ID of the mirrored catalog"
+      mirroredCatalogUrl:
+        type: string
+        description: "Fabric object URL of the mirrored catalog"
       catalog:
         type: string
         description: "Databricks catalog name"
@@ -778,7 +758,6 @@ definitions:
           - success
           - failure
           - already_exists
-          - in_progress
 
   GrantPermissionsVO:
     type: object
@@ -786,9 +765,6 @@ definitions:
       ddxGroup:
         type: string
         description: "DDX group name"
-      status:
-        type: string
-        description: "Status of the permission assignment"
 
   MirroredCatalogErrorResponseVO:
     type: object
@@ -807,6 +783,7 @@ definitions:
           - STORAGE_ACCESS_DENIED
           - DATABRICKS_DATAPRODUCT_NOT_FOUND
           - DDX_GROUP_NOT_FOUND
+          - ALREADY_EXISTS
           - INTERNAL_ERROR
       message:
         type: string
@@ -830,6 +807,9 @@ definitions:
       mirroredCatalogId:
         type: string
         description: "Fabric catalog ID"
+      mirroredCatalogUrl:
+        type: string
+        description: "Fabric object URL of the mirrored catalog"
       mirrorCatalogName:
         type: string
         description: "Mirror catalog name"

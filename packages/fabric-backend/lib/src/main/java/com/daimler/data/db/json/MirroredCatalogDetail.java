@@ -16,6 +16,7 @@ public class MirroredCatalogDetail implements Serializable {
     private static final long serialVersionUID = 1L;
 
     private String mirroredCatalogId;
+    private String mirroredCatalogUrl;
     private String mirrorCatalogName;
     private String catalogStatus;
     private String message;
