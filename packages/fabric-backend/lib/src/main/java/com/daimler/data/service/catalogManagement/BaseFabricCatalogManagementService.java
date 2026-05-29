@@ -156,13 +156,13 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
             populateCdcTableDetails(catalogMetadataDetails, existingFabricWorkspace, request);
 
             // Each lakehouse row contains only that lakehouse's database metadata by using lakehouse ID.
-            saveCatalogMetadataPerLakehouse(request, catalogMetadataDetails, existingFabricWorkspace);
+             saveCatalogMetadataPerLakehouse(request, catalogMetadataDetails, existingFabricWorkspace);
             
             // Prepare success response
             prepareSuccessResponse(response, catalogMetadataDetails);
 
             // Trigger UiLicious service principal addition after successful CDC push
-            triggerUiLiciousForLakehouses(existingFabricWorkspace);
+            triggerUiLiciousForLakehouses(existingFabricWorkspace, request);
 
         } catch (EntityAlreadyExistsException e) {
             log.error("Catalog metadata already exists for workspace: {}", existingFabricWorkspace.getName(), e);
@@ -269,7 +269,7 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
             response.setResponses(new GenericMessage(SUCCESS_STATUS));
 
             // Trigger UiLicious service principal addition after successful CDC push
-            triggerUiLiciousForLakehouses(existingFabricWorkspace);
+            triggerUiLiciousForLakehouses(existingFabricWorkspace, request);
 
         } catch (EntityNotFoundException e) {
             log.error("Catalog metadata not found for service: {}", existingFabricWorkspace.getName(), e);
@@ -338,8 +338,19 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
                 request.getMandatoryFields().getTier());
 
         for (DatabaseMetadataVO dbMetadata : request.getMetadata().getDatabases()) {
+            String normalizedDbName = dbMetadata.getDbName();
+            if (normalizedDbName != null && !normalizedDbName.trim().isEmpty()) {
+                String expectedPrefix = existingFabricWorkspace.getName() + "_";
+                String trimmedDbName = normalizedDbName.trim();
+                if (!trimmedDbName.toLowerCase(Locale.ROOT).startsWith(expectedPrefix.toLowerCase(Locale.ROOT))) {
+                    normalizedDbName = expectedPrefix + trimmedDbName;
+                } else {
+                    normalizedDbName = trimmedDbName;
+                }
+            }
+
             Database database = openMetadataClient.createDatabase(
-                    dbMetadata.getDbName(),
+                    normalizedDbName,
                     existingFabricWorkspace.getName(), 
                     request.getMandatoryFields(),
                     ownerReferences,
@@ -395,12 +406,21 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
         log.info("Found existing service: {} with FQN: {}", 
                 databaseService.getName(), databaseService.getFullyQualifiedName());
         
-        List<FabricLakehouseVO> lakehouses = existingFabricWorkspace.getLakehouses();
+        List<FabricLakehouseVO> lakehouses = resolveRequestedLakehouses(request, existingFabricWorkspace);
         if (lakehouses != null && !lakehouses.isEmpty()) {
             int createdDatabaseCount = 0;
 
             for (FabricLakehouseVO lakehouse : lakehouses) {
                 String dbName = existingFabricWorkspace.getName() + "_" + lakehouse.getName();
+                Optional<DatabaseMetadataVO> requestDatabase = resolveLakehouseDatabaseForPersistence(
+                    request,
+                    existingFabricWorkspace,
+                    lakehouse
+                );
+                if (!requestDatabase.isPresent()) {
+                    log.info("No request-scoped database found for lakehouse {}, skipping OpenMetadata create", lakehouse.getName());
+                    continue;
+                }
                 Database database;
                 try {
                     database = openMetadataClient.getDatabase(existingFabricWorkspace.getName(), dbName);
@@ -414,39 +434,34 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
                             lakehouse,
                             request.getMandatoryFields(),
                             ownerReferences,
-                            "Lakehouse database for workspace: " + existingFabricWorkspace.getName());
+                        requestDatabase.get().getDescription());
                     createdDatabaseCount++;
                 }
                 log.info("Created database {} for lakehouse {}, now creating schemas/tables", database.getName(),
                         lakehouse.getName());
-                if (request.getMetadata().getDatabases() == null) {
+                if (requestDatabase.get().getSchemas() == null) {
                     continue;
                 }
-                for (DatabaseMetadataVO dbMetadata : request.getMetadata().getDatabases()) {
-                    if (dbMetadata.getSchemas() == null) {
+                for (SchemaMetadataVO schemaMetadata : requestDatabase.get().getSchemas()) {
+                    DatabaseSchema schema = openMetadataClient.createSchema(
+                            schemaMetadata.getSchemaName(),
+                            database.getFullyQualifiedName());
+                    if (schemaMetadata.getTables() == null) {
                         continue;
                     }
-                    for (SchemaMetadataVO schemaMetadata : dbMetadata.getSchemas()) {
-                        DatabaseSchema schema = openMetadataClient.createSchema(
-                                schemaMetadata.getSchemaName(),
-                                database.getFullyQualifiedName());
-                        if (schemaMetadata.getTables() == null) {
-                            continue;
-                        }
-                        for (TableMetadataVO tableMetadata : schemaMetadata.getTables()) {
-                            List<Column> columns = (tableMetadata.getColumns() == null ? Collections.<ColumnMetadataVO>emptyList() : tableMetadata.getColumns()).stream()
-                                    .map(col -> openMetadataClient.buildColumn(
-                                            col.getColumnName(),
-                                            null,
-                                            col.getColType(),
-                                            col.getColConstraint()))
-                                    .collect(Collectors.toList());
+                    for (TableMetadataVO tableMetadata : schemaMetadata.getTables()) {
+                        List<Column> columns = (tableMetadata.getColumns() == null ? Collections.<ColumnMetadataVO>emptyList() : tableMetadata.getColumns()).stream()
+                                .map(col -> openMetadataClient.buildColumn(
+                                        col.getColumnName(),
+                                        null,
+                                        col.getColType(),
+                                        col.getColConstraint()))
+                                .collect(Collectors.toList());
 
-                            openMetadataClient.createTable(
-                                    tableMetadata.getTableName(),
-                                    schema.getFullyQualifiedName(),
-                                    columns);
-                        }
+                        openMetadataClient.createTable(
+                                tableMetadata.getTableName(),
+                                schema.getFullyQualifiedName(),
+                                columns);
                     }
                 }
             }
@@ -458,6 +473,26 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
             throw new OpenMetadataClientException("No lakehouses found for workspace: " + 
                     existingFabricWorkspace.getName());
         }
+    }
+
+    private String resolveLakehouseDatabaseDescription(PublishCatalogRequestVO request,
+            FabricWorkspaceVO workspace,
+            FabricLakehouseVO lakehouse) {
+        if (request.getMetadata() != null && request.getMetadata().getDatabases() != null) {
+            String expectedDbName = workspace.getName() + "_" + lakehouse.getName();
+            Optional<String> requestDescription = request.getMetadata().getDatabases().stream()
+                    .filter(db -> Objects.equals(db.getDbId(), lakehouse.getId())
+                            || Objects.equals(db.getDbName(), expectedDbName))
+                    .map(DatabaseMetadataVO::getDescription)
+                    .findFirst();
+
+            if (requestDescription.isPresent()) {
+                return requestDescription.get();
+            }
+        }
+
+        // Fallback to the lakehouse description instead of generating a fixed text.
+        return lakehouse.getDescription();
     }
 
     private void saveCatalogMetadata(PublishCatalogRequestVO request,
@@ -611,6 +646,14 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
             return Optional.empty();
         }
 
+        Optional<DatabaseMetadataVO> byLakehouseId = requestDatabases.stream()
+            .filter(db -> db.getDbId() != null)
+            .filter(db -> lakehouse.getId() != null && lakehouse.getId().equalsIgnoreCase(db.getDbId().trim()))
+            .findFirst();
+        if (byLakehouseId.isPresent()) {
+            return byLakehouseId;
+        }
+
         String lakehouseName = lakehouse.getName() == null ? "" : lakehouse.getName().trim();
         String expectedDbName = workspace.getName() + "_" + lakehouseName;
 
@@ -628,15 +671,6 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
             .findFirst();
         if (byLakehouseName.isPresent()) {
             return byLakehouseName;
-        }
-
-        Optional<DatabaseMetadataVO> bySuffix = requestDatabases.stream()
-            .filter(db -> db.getDbName() != null)
-            .filter(db -> db.getDbName().trim().toLowerCase(Locale.ROOT)
-                .endsWith("_" + lakehouseName.toLowerCase(Locale.ROOT)))
-            .findFirst();
-        if (bySuffix.isPresent()) {
-            return bySuffix;
         }
 
         if (workspace.getLakehouses() != null
@@ -764,8 +798,9 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
         catalogMetadataDetails.setPublishedLakehouseTableDetails(new ArrayList<>());
 
         try {
-            // Get lakehouses from workspace
-            if (workspace.getLakehouses() == null || workspace.getLakehouses().isEmpty()) {
+            List<FabricLakehouseVO> requestedLakehouses = resolveRequestedLakehouses(request, workspace);
+
+            if (requestedLakehouses.isEmpty()) {
                 log.warn("No lakehouses found for workspace: {}", workspace.getId());
                 populateLakehouseDetailsFromRequest(catalogMetadataDetails, request);
                 return;
@@ -800,7 +835,7 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
             }
 
             String workspaceId = workspace.getId();
-            for (FabricLakehouseVO lakehouse : workspace.getLakehouses()) {
+            for (FabricLakehouseVO lakehouse : requestedLakehouses) {
                 String lakehouseId = lakehouse.getId();
                 if (lakehouseId == null || lakehouseId.isEmpty()) {
                     continue;
@@ -925,7 +960,8 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
     private void populateCdcTableDetails(FabricCatalogMetadataDetailsVO catalogMetadataDetails,
             FabricWorkspaceVO workspace, PublishCatalogRequestVO request) {
         try {
-            if (workspace.getLakehouses() == null || workspace.getLakehouses().isEmpty()) {
+            List<FabricLakehouseVO> requestedLakehouses = resolveRequestedLakehouses(request, workspace);
+            if (requestedLakehouses.isEmpty()) {
                 log.warn("No lakehouses found for workspace: {}, skipping CDC table details", workspace.getId());
                 return;
             }
@@ -935,7 +971,7 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
             CreatedByVO createdBy = (request.getOwners() != null && !request.getOwners().isEmpty())
                     ? request.getOwners().get(0) : null;
 
-            for (FabricLakehouseVO lakehouse : workspace.getLakehouses()) {
+            for (FabricLakehouseVO lakehouse : requestedLakehouses) {
                 CdcTableDetailVO cdcDetail = new CdcTableDetailVO();
                 cdcDetail.setWorkspaceName(workspace.getName());
                 cdcDetail.setWorkspaceId(workspace.getId());
@@ -1122,6 +1158,31 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
         }
     }
 
+    private List<FabricLakehouseVO> resolveRequestedLakehouses(PublishCatalogRequestVO request,
+            FabricWorkspaceVO workspace) {
+        if (workspace == null || workspace.getLakehouses() == null || workspace.getLakehouses().isEmpty()) {
+            return Collections.emptyList();
+        }
+
+        List<FabricLakehouseVO> requestedLakehouses = workspace.getLakehouses().stream()
+            .filter(lakehouse -> resolveLakehouseDatabaseForPersistence(request, workspace, lakehouse).isPresent())
+            .collect(Collectors.toList());
+
+        if (!requestedLakehouses.isEmpty()) {
+            return requestedLakehouses;
+        }
+
+        if (workspace.getLakehouses().size() == 1
+                && request != null
+                && request.getMetadata() != null
+                && request.getMetadata().getDatabases() != null
+                && request.getMetadata().getDatabases().size() == 1) {
+            return Collections.singletonList(workspace.getLakehouses().get(0));
+        }
+
+        return Collections.emptyList();
+    }
+
     private void updateServiceOwners(DatabaseService service, List<EntityReference> newOwners) {
         CreateDatabaseService updateRequest = new CreateDatabaseService()
             .name(service.getName())
@@ -1138,19 +1199,31 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
         MandatoryFieldsVO fields, List<EntityReference> ownerReferences) {
 		try {
 			Database database;
-			
+
+			String normalizedDbName = dbMetadata.getDbName();
+			if (normalizedDbName != null && !normalizedDbName.trim().isEmpty()) {
+				String expectedPrefix = serviceName + "_";
+				String trimmedDbName = normalizedDbName.trim();
+				if (!trimmedDbName.toLowerCase(Locale.ROOT).startsWith(expectedPrefix.toLowerCase(Locale.ROOT))) {
+					normalizedDbName = expectedPrefix + trimmedDbName;
+				} else {
+					normalizedDbName = trimmedDbName;
+				}
+			}
+
 			if (dbMetadata.getDbId() != null) {
 				// Existing database - update it
 				database = openMetadataClient.updateDatabase(
 					dbMetadata.getDbId(),
-					dbMetadata.getDbName(),
+					normalizedDbName,
 					serviceName,
 					fields,
-					ownerReferences);
+					ownerReferences,
+					dbMetadata.getDescription());
 			} else {
 				// New database - create it
 				database = openMetadataClient.createDatabase(
-					dbMetadata.getDbName(),
+					normalizedDbName,
 					serviceName,
 					fields,
 					ownerReferences,
@@ -1454,10 +1527,10 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
         }
     }
 
-    private void triggerUiLiciousForLakehouses(FabricWorkspaceVO workspace) {
+    private void triggerUiLiciousForLakehouses(FabricWorkspaceVO workspace, PublishCatalogRequestVO request) {
         String workspaceId = workspace.getId();
         String workspaceName = workspace.getName();
-        List<FabricLakehouseVO> lakehouses = workspace.getLakehouses();
+        List<FabricLakehouseVO> lakehouses = resolveRequestedLakehouses(request, workspace);
         if (lakehouses == null || lakehouses.isEmpty()) {
             log.warn("No lakehouses found for workspace: {}, skipping UiLicious trigger", workspaceName);
             return;
