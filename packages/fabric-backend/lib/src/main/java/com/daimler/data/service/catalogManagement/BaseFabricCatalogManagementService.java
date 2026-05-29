@@ -1125,7 +1125,7 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
             objects = request.getObjects().entrySet().stream().map(entry -> {
                 MirroredObjectDetail detail = new MirroredObjectDetail();
                 detail.setObjectName(entry.getKey());
-                detail.setObjectType(entry.getValue());
+                detail.setObjectType(entry.getValue() != null ? entry.getValue().toString() : null);
                 return detail;
             }).collect(Collectors.toList());
         }
