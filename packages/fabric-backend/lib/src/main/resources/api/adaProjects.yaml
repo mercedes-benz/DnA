@@ -254,8 +254,6 @@ definitions:
 
   ADAProjectDetailsVO:
     type: "object"
-    required:
-      - capacity
     properties:
       id:
         type: "string"

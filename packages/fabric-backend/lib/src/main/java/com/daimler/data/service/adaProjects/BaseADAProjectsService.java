@@ -19,6 +19,7 @@ import com.daimler.data.db.repo.fabric.FabricWorkspaceCustomRepository;
 import com.daimler.data.db.repo.fabric.FabricWorkspaceRepository;
 import com.daimler.data.dto.adaProjects.ADAProjectDetailsCollectionVO;
 import com.daimler.data.dto.adaProjects.ADAProjectDetailsVO;
+import com.daimler.data.dto.adaProjects.CapacityVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceVO;
 import com.daimler.data.service.common.BaseCommonService;
 
@@ -123,10 +124,10 @@ public class BaseADAProjectsService extends BaseCommonService<ADAProjectDetailsV
 	public GenericMessage createNewProject(ADAProjectDetailsVO project) {
 		GenericMessage message = new GenericMessage();
 		try {
-			ADAProjectsNsql entity = assembler.toEntity(project);
 			log.info("Creating new ADA Project with projectID {}", project.getProjectID());
 			updateCapacityForFabricWorkspaces(project);
 			log.info("Successfully updated capacity for associated Fabric workspaces for project id {}", project.getProjectID());
+			ADAProjectsNsql entity = assembler.toEntity(project);
 			jpaRepo.save(entity);
 			message.setSuccess("CREATED");
 		} catch (Exception e) {
@@ -142,10 +143,10 @@ public class BaseADAProjectsService extends BaseCommonService<ADAProjectDetailsV
 	public GenericMessage updateProject(String id, ADAProjectDetailsVO project) {
 		GenericMessage message = new GenericMessage();
 		try {
-			ADAProjectsNsql entity = assembler.toEntity(project);
-			entity.setId(id);
 			updateCapacityForFabricWorkspaces(project);
 			log.info("Successfully updated capacity for associated Fabric workspaces for project id {}", project.getProjectID());
+			ADAProjectsNsql entity = assembler.toEntity(project);
+			entity.setId(id);
 			jpaRepo.save(entity);
 			message.setSuccess("UPDATED");
 		} catch (Exception e) {
@@ -194,23 +195,24 @@ public class BaseADAProjectsService extends BaseCommonService<ADAProjectDetailsV
 	private void updateCapacityForFabricWorkspaces(ADAProjectDetailsVO adaProject){
 		try {
 			List<FabricWorkspaceNsql> workspaces = fabricWorkspaceCustomRepository.getAllByProjectId(adaProject.getProjectID());
+			if(adaProject.getCapacity() == null){
+				CapacityVO capacityVO = new CapacityVO();
+				log.info("Capacity details are null for project id {}. Using default capacity values.", adaProject.getProjectID());
+				capacityVO.setId(fabricCapacityId);
+				capacityVO.setName(fabricCapacityName);
+				capacityVO.setRegion(capacityRegion);
+				capacityVO.setSku(capacitySku);
+				capacityVO.setState(capacityState);
+				adaProject.setCapacity(capacityVO);
+			}
 			if(workspaces != null && !workspaces.isEmpty()) {
 				for(FabricWorkspaceNsql workspace : workspaces) {
 					Capacity capacity = new Capacity();
-					if(adaProject.getCapacity() != null){
-						capacity.setId(adaProject.getCapacity().getId());
-						capacity.setName(adaProject.getCapacity().getName());
-						capacity.setRegion(adaProject.getCapacity().getRegion());
-						capacity.setSku(adaProject.getCapacity().getSku());
-						capacity.setState(adaProject.getCapacity().getState());
-					} else {
-						log.info("Capacity details are null for project id {}. Using default capacity values.", adaProject.getProjectID());
-						capacity.setId(fabricCapacityId);
-						capacity.setName(fabricCapacityName);
-						capacity.setRegion(capacityRegion);
-						capacity.setSku(capacitySku);
-						capacity.setState(capacityState);
-					}
+					capacity.setId(adaProject.getCapacity().getId());
+					capacity.setName(adaProject.getCapacity().getName());
+					capacity.setRegion(adaProject.getCapacity().getRegion());
+					capacity.setSku(adaProject.getCapacity().getSku());
+					capacity.setState(adaProject.getCapacity().getState());
 					workspace.getData().setCapacity(capacity);
 					fabricWorkspaceRepo.save(workspace);
 				}
