@@ -178,4 +178,28 @@ public class FabricWorkspaceCustomRepositoryImpl extends CommonDataRepositoryImp
 		}
 	}
 
+	@Override
+	public List<FabricWorkspaceNsql> getAllByProjectId(String projectId) {
+		String getAllStmtByProjId = "SELECT id, CAST(data AS text) FROM fabric_workspace_nsql " +
+    "WHERE jsonb_extract_path_text(data, 'projectId') = :projectId";
+		Query q = em.createNativeQuery(getAllStmtByProjId);
+		q.setParameter("projectId", projectId);
+		ObjectMapper mapper = new ObjectMapper();
+		List<Object[]> results = q.getResultList();
+		List<FabricWorkspaceNsql> convertedResults = results.stream().map(temp -> {
+			FabricWorkspaceNsql entity = new FabricWorkspaceNsql();
+			try {
+				String jsonData = temp[1] != null ? temp[1].toString() : "";
+				FabricWorkspace tempForecast = mapper.readValue(jsonData, FabricWorkspace.class);
+				entity.setData(tempForecast);
+			} catch (Exception e) {
+				log.error("Failed while fetching all projects using native query with exception {} ", e.getMessage());
+			}
+			String id = temp[0] != null ? temp[0].toString() : "";
+			entity.setId(id);
+			return entity;
+		}).collect(Collectors.toList());
+		return convertedResults;
+	}
+
 }

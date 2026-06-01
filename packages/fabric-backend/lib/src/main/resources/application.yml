@@ -2,7 +2,7 @@ spring:
   mvc.pathmatch.matching-strategy: ant_path_matcher
   application:
     name: dna-fabric-workspace-service
-    version: 1.6.4
+    version: 1.6.5 
   profile:
     active: production
 
@@ -96,6 +96,7 @@ fabricWorkspaces:
   ada:
     apiKey: ${ADA_API_KEY:XXXX}
     extollo.apiKey: ${EXTOLLO_API_KEY:XXXX}
+    spire.apiKey: ${SPIRE_API_KEY:XXXX}
   azure:
     subscriptionId: ${AZURE_SUBSCRIPTION_ID:XXXX}
     resourceGroup: ${AZURE_RESOURCE_GROUP:XXXX}
