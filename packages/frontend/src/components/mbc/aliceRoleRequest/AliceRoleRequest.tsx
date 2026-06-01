@@ -86,6 +86,11 @@ const AliceRoleRequest = () => {
       setRoleDisplayNameError('Role Name can only contain letters, numbers, spaces and hyphens (-)');
       return;
     }
+    const letters = value.replace(/[^A-Za-z]/g, '');
+    if (letters.length > 0 && letters === letters.toUpperCase()) {
+      setRoleDisplayNameError('Role Name must not contain only capital letters');
+      return;
+    }
     setRoleDisplayNameError('');
   };
  
@@ -114,6 +119,11 @@ const AliceRoleRequest = () => {
     const invalidNamePattern = /[^A-Za-z0-9\s-]/;
     if (invalidNamePattern.test(roleDisplayName)) {
       setRoleDisplayNameError('Role Name can only contain letters, numbers, spaces and hyphens (-)');
+      return false;
+    }
+    const nameLetters = roleDisplayName.replace(/[^A-Za-z]/g, '');
+    if (nameLetters.length > 0 && nameLetters === nameLetters.toUpperCase()) {
+      setRoleDisplayNameError('Role Name must not contain only capital letters');
       return false;
     }
     return true;
