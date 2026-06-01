@@ -56,7 +56,7 @@ const AliceRoleRequest = () => {
   };
 
   const validateRoleInput = (value: string) => {
-    const specialCharPattern = /[^A-Za-z0-9\-_]/;
+    const specialCharPattern = /[^A-Za-z0-9_-]/;
     if (value.length === 0) {
       setRoleNameError('');
       return;
@@ -81,7 +81,7 @@ const AliceRoleRequest = () => {
       setRoleDisplayNameError('');
       return;
     }
-    const invalidPattern = /[^A-Za-z0-9\s\-]/;
+    const invalidPattern = /[^A-Za-z0-9\s-]/;
     if (invalidPattern.test(value)) {
       setRoleDisplayNameError('Role Name can only contain letters, numbers, spaces and hyphens (-)');
       return;
@@ -90,7 +90,7 @@ const AliceRoleRequest = () => {
   };
  
   const validateRole = () => {
-    const specialCharPattern = /[^A-Za-z0-9\-_]/;
+    const specialCharPattern = /[^A-Za-z0-9_-]/;
     if (roleName.trim() === "" || roleName.trim() === appIdPrefix) {
       setRoleNameError('Role ID cannot be empty');
       return false;
@@ -111,7 +111,7 @@ const AliceRoleRequest = () => {
       setRoleDisplayNameError('Role Name cannot be empty');
       return false;
     }
-    const invalidNamePattern = /[^A-Za-z0-9\s\-]/;
+    const invalidNamePattern = /[^A-Za-z0-9\s-]/;
     if (invalidNamePattern.test(roleDisplayName)) {
       setRoleDisplayNameError('Role Name can only contain letters, numbers, spaces and hyphens (-)');
       return false;
