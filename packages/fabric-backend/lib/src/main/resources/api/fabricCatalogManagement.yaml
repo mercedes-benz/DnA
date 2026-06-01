@@ -674,15 +674,6 @@ definitions:
 
   CreateMirroredCatalogRequestVO:
     type: object
-    required:
-      - dataProductName
-      - catalogName
-      - schemaName
-      - region
-      - fullSchema
-      - storageAccountUrl
-      - ddxGroup
-      - ddxCorrelationId
     properties:
       dataProductName:
         type: string
@@ -760,11 +751,10 @@ definitions:
           - already_exists
 
   GrantPermissionsVO:
-    type: object
-    properties:
-      ddxGroup:
-        type: string
-        description: "DDX group name"
+    type: array
+    items:
+      type: string
+      description: "DDX group name"
 
   MirroredCatalogErrorResponseVO:
     type: object

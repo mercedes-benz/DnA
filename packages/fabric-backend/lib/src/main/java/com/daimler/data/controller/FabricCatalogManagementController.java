@@ -51,6 +51,7 @@ import com.daimler.data.service.catalogManagement.FabricCatalogManagementService
 import com.daimler.data.service.fabric.FabricWorkspaceService;
 import com.daimler.data.util.ConstantsUtility;
 import com.daimler.data.util.FabricWorkspaceUtility;
+import com.daimler.data.util.Validator;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -693,19 +694,15 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
     public ResponseEntity createMirroredCatalog(
             @ApiParam(value = "The mirrored catalog creation request.", required = true) @Valid @RequestBody CreateMirroredCatalogRequestVO createMirroredCatalogRequest) {
         try {
-            if (createMirroredCatalogRequest.getDataProductName() == null || createMirroredCatalogRequest.getDataProductName().isBlank()
-                    || createMirroredCatalogRequest.getCatalogName() == null || createMirroredCatalogRequest.getCatalogName().isBlank()
-                    || createMirroredCatalogRequest.getSchemaName() == null || createMirroredCatalogRequest.getSchemaName().isBlank()
-                    || createMirroredCatalogRequest.getRegion() == null || createMirroredCatalogRequest.getRegion().isBlank()
-                    || createMirroredCatalogRequest.getStorageAccountUrl() == null || createMirroredCatalogRequest.getStorageAccountUrl().isBlank()
-                    || createMirroredCatalogRequest.getDdxGroup() == null || createMirroredCatalogRequest.getDdxGroup().isBlank()
-                    || createMirroredCatalogRequest.getDdxCorrelationId() == null || createMirroredCatalogRequest.getDdxCorrelationId().isBlank()) {
-                log.error("Missing required fields in createMirroredCatalog request");
+            String missingField = Validator.getMissingField(createMirroredCatalogRequest);  
+  
+            if (missingField != null) {  
+                log.error("Missing required field in createMirroredCatalog request: {}", missingField);  
                 MirroredCatalogErrorResponseVO errorResponse = new MirroredCatalogErrorResponseVO();
                 errorResponse.setDdxCorrelationId(createMirroredCatalogRequest.getDdxCorrelationId());
                 errorResponse.setStatus("error");
                 errorResponse.setErrorCode(MirroredCatalogErrorResponseVO.ErrorCodeEnum.INVALID_REQUEST);
-                errorResponse.setMessage("Missing required fields in request");
+                errorResponse.setMessage("Missing required fields in request: "+ missingField );
                 return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
             }
             if (!createMirroredCatalogRequest.isFullSchema()
