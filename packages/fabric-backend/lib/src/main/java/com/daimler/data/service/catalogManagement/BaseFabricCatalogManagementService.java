@@ -9,7 +9,6 @@ import com.daimler.data.assembler.FabricCatalogMetadataAssembler;
 import com.daimler.data.assembler.FabricWorkspaceAssembler;
 import com.daimler.data.assembler.DdxDataProductsDetailsAssembler;
 import com.daimler.data.controller.exceptions.*;
-import com.daimler.data.controller.exceptions.MirroredCatalogException;
 import com.daimler.data.db.entities.FabricCatalogMetadataNsql;
 import com.daimler.data.db.entities.FabricWorkspaceNsql;
 import com.daimler.data.db.entities.DdxDataProductsDetailsNsql;
@@ -1263,7 +1262,7 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
             response.put("mirrorCatalogName", request.getDataProductName());
             response.put("catalogId", UUID.randomUUID().toString());
             response.put("mirroredCatalogUrl", "https://app.fabric.microsoft.com/groups/" + centralWorkspaceId + "/mirroredcatalogs/" + UUID.randomUUID().toString());
-            response.put("catalogStatus", ConstantsUtility.MIRRORED_CATALOG_IN_PROGRESS);
+            response.put("catalogStatus", ConstantsUtility.MIRRORED_CATALOG_SUCCESS);
             response.put("groupAddedStatus", ConstantsUtility.MIRRORED_CATALOG_IN_PROGRESS);
             response.put("grantPermissionStatus", ConstantsUtility.MIRRORED_CATALOG_IN_PROGRESS);
             response.put("testRunId", "dummy-run-" + UUID.randomUUID().toString());
@@ -1350,9 +1349,10 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
         }
 
         if (data.getDdxGroupDetails() != null && !data.getDdxGroupDetails().isEmpty()) {
-            DdxGroupDetail firstGroup = data.getDdxGroupDetails().get(0);
+            // DdxGroupDetail firstGroup = data.getDdxGroupDetails().get(0);
+            List<String> groupNameList = data.getDdxGroupDetails().stream().map(DdxGroupDetail::getGroupName).collect(Collectors.toList());
             GrantPermissionsVO grantPermissions = new GrantPermissionsVO();
-            grantPermissions.setDdxGroup(firstGroup.getGroupName());
+            grantPermissions.addAll(groupNameList);
             response.setGrantPermissions(grantPermissions);
         }
 
