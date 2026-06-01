@@ -229,7 +229,7 @@ public class OpenMetadataClient {
     public Database addDatabaseForLakehouse(String serviceFQN, String workspaceName, 
             FabricLakehouseVO lakehouse, MandatoryFieldsVO fields, 
             List<EntityReference> owners, String description) {
-        String dbName = workspaceName + "_" + lakehouse.getName();
+        String dbName = lakehouse.getName();
         log.info("Adding database {} for lakehouse {} to service {}", dbName, lakehouse.getId(), serviceFQN);
         
         return addDatabase(dbName, serviceFQN, fields, owners, description);
@@ -254,7 +254,7 @@ public class OpenMetadataClient {
                         lakehouse.getName(), serviceFQN);
             } catch (EntityAlreadyExistsException e) {
                 log.warn("Database for lakehouse {} already exists", lakehouse.getName());
-                String dbName = workspaceName + "_" + lakehouse.getName();
+                String dbName = lakehouse.getName();
                 try {
                     Database existing = getDatabase(workspaceName, dbName);
                     createdDatabases.add(existing);
