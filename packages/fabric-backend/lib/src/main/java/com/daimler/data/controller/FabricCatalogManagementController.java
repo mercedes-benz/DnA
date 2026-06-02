@@ -27,6 +27,7 @@ import com.daimler.data.controller.exceptions.DDXGroupsResponseMessage;
 import com.daimler.data.controller.exceptions.EntityNotFoundException;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
+import com.daimler.data.controller.exceptions.MirroredCatalogException;
 import com.daimler.data.db.entities.FabricCatalogMetadataNsql;
 import com.daimler.data.db.json.catalogManangement.FabricCatalogMetadata;
 import com.daimler.data.db.json.catalogManangement.FabricCatalogMetadataDetails;
@@ -43,6 +44,7 @@ import com.daimler.data.dto.fabricCatalogManagement.MirroredCatalogResponseVO;
 import com.daimler.data.dto.fabricCatalogManagement.MirroredCatalogErrorResponseVO;
 import com.daimler.data.dto.fabricCatalogManagement.MirroredCatalogStatusRequestVO;
 import com.daimler.data.dto.fabricCatalogManagement.UpdateMirroredCatalogStatusRequestVO;
+import com.daimler.data.dto.fabricCatalogManagement.GroupResponseVO;
 import com.daimler.data.dto.fabricWorkspace.CreatedByVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceVO;
 import com.daimler.data.service.catalogManagement.BaseFabricCatalogManagementService;
@@ -50,6 +52,7 @@ import com.daimler.data.service.catalogManagement.FabricCatalogManagementService
 import com.daimler.data.service.fabric.FabricWorkspaceService;
 import com.daimler.data.util.ConstantsUtility;
 import com.daimler.data.util.FabricWorkspaceUtility;
+import com.daimler.data.util.Validator;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -689,36 +692,49 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
         produces = { "application/json" },
         consumes = { "application/json" },
         method = RequestMethod.POST)
-    public ResponseEntity<MirroredCatalogResponseVO> createMirroredCatalog(
+    public ResponseEntity createMirroredCatalog(
             @ApiParam(value = "The mirrored catalog creation request.", required = true) @Valid @RequestBody CreateMirroredCatalogRequestVO createMirroredCatalogRequest) {
         try {
-            if (createMirroredCatalogRequest.getDataProductName() == null || createMirroredCatalogRequest.getDataProductName().isBlank()
-                    || createMirroredCatalogRequest.getCatalogName() == null || createMirroredCatalogRequest.getCatalogName().isBlank()
-                    || createMirroredCatalogRequest.getSchemaName() == null || createMirroredCatalogRequest.getSchemaName().isBlank()
-                    || createMirroredCatalogRequest.getRegion() == null || createMirroredCatalogRequest.getRegion().isBlank()
-                    || createMirroredCatalogRequest.getStorageAccountUrl() == null || createMirroredCatalogRequest.getStorageAccountUrl().isBlank()
-                    || createMirroredCatalogRequest.getDdxGroup() == null || createMirroredCatalogRequest.getDdxGroup().isBlank()
-                    || createMirroredCatalogRequest.getDdxCorrelationId() == null || createMirroredCatalogRequest.getDdxCorrelationId().isBlank()) {
-                log.error("Missing required fields in createMirroredCatalog request");
-                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            String missingField = Validator.getMissingField(createMirroredCatalogRequest);  
+  
+            if (missingField != null) {  
+                log.error("Missing required field in createMirroredCatalog request: {}", missingField);  
+                MirroredCatalogErrorResponseVO errorResponse = new MirroredCatalogErrorResponseVO();
+                errorResponse.setDdxCorrelationId(createMirroredCatalogRequest.getDdxCorrelationId());
+                errorResponse.setStatus("error");
+                errorResponse.setErrorCode(MirroredCatalogErrorResponseVO.ErrorCodeEnum.INVALID_REQUEST);
+                errorResponse.setMessage("Missing required fields in request: "+ missingField );
+                return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
             }
             if (!createMirroredCatalogRequest.isFullSchema()
                     && (createMirroredCatalogRequest.getObjects() == null || createMirroredCatalogRequest.getObjects().isEmpty())) {
-                log.error("Objects list is required when fullSchema is false");
-                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+                log.error("Objects map is required when fullSchema is false");
+                MirroredCatalogErrorResponseVO errorResponse = new MirroredCatalogErrorResponseVO();
+                errorResponse.setDdxCorrelationId(createMirroredCatalogRequest.getDdxCorrelationId());
+                errorResponse.setStatus("error");
+                errorResponse.setErrorCode(MirroredCatalogErrorResponseVO.ErrorCodeEnum.INVALID_REQUEST);
+                errorResponse.setMessage("Objects map is required when fullSchema is false");
+                return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
             }
 
             MirroredCatalogResponseVO response = service.createMirroredCatalog(createMirroredCatalogRequest);
-            if (response != null && ConstantsUtility.MIRRORED_CATALOG_ALREADY_EXISTS.equals(response.getStatus())) {
-                return new ResponseEntity<>(response, HttpStatus.CONFLICT);
-            }
-            if (response != null && ConstantsUtility.MIRRORED_CATALOG_FAILURE.equals(response.getStatus())) {
-                return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
-            }
             return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (MirroredCatalogException e) {
+            log.error("Mirrored catalog error: {}", e.getMessage());
+            MirroredCatalogErrorResponseVO errorResponse = new MirroredCatalogErrorResponseVO();
+            errorResponse.setDdxCorrelationId(e.getDdxCorrelationId());
+            errorResponse.setStatus("error");
+            errorResponse.setErrorCode(MirroredCatalogErrorResponseVO.ErrorCodeEnum.fromValue(e.getErrorCode()));
+            errorResponse.setMessage(e.getMessage());
+            return new ResponseEntity<>(errorResponse, e.getHttpStatus());
         } catch (Exception e) {
             log.error("Error creating mirrored catalog: {}", e.getMessage(), e);
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            MirroredCatalogErrorResponseVO errorResponse = new MirroredCatalogErrorResponseVO();
+            errorResponse.setDdxCorrelationId(createMirroredCatalogRequest.getDdxCorrelationId());
+            errorResponse.setStatus("error");
+            errorResponse.setErrorCode(MirroredCatalogErrorResponseVO.ErrorCodeEnum.INTERNAL_ERROR);
+            errorResponse.setMessage("Unexpected error during mirrored catalog provisioning");
+            return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -731,27 +747,37 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
         @ApiResponse(code = 404, message = "Mirrored catalog record not found", response = MirroredCatalogErrorResponseVO.class),
         @ApiResponse(code = 405, message = "Method not allowed"),
         @ApiResponse(code = 500, message = "Internal error", response = MirroredCatalogErrorResponseVO.class) })
-    @RequestMapping(value = "/catalog/databricks/mirrored-catalog/status",
+    @RequestMapping(value = "/catalog/databricks/mirrored-catalog/status/{mirroredCatalogId}",
         produces = { "application/json" },
-        consumes = { "application/json" },
-        method = RequestMethod.POST)
-    public ResponseEntity<MirroredCatalogResponseVO> getMirroredCatalogStatus(
-            @ApiParam(value = "The mirrored catalog status request with correlation ID.", required = true) @Valid @RequestBody MirroredCatalogStatusRequestVO mirroredCatalogStatusRequest) {
+        method = RequestMethod.GET)
+    public ResponseEntity getMirroredCatalogStatus(
+            @ApiParam(value = "The ID of the mirrored catalog.", required = true) @PathVariable("mirroredCatalogId") String mirroredCatalogId) {
         try {
-            if (mirroredCatalogStatusRequest.getMirroredCatalogId() == null || mirroredCatalogStatusRequest.getMirroredCatalogId().isBlank()) {
+            if (mirroredCatalogId == null || mirroredCatalogId.isBlank()) {
                 log.error("Missing required mirroredCatalogId in getMirroredCatalogStatus request");
-                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+                MirroredCatalogErrorResponseVO errorResponse = new MirroredCatalogErrorResponseVO();
+                errorResponse.setStatus("error");
+                errorResponse.setErrorCode(MirroredCatalogErrorResponseVO.ErrorCodeEnum.INVALID_REQUEST);
+                errorResponse.setMessage("Missing required field: mirroredCatalogId");
+                return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
             }
 
-            MirroredCatalogResponseVO response = service.getMirroredCatalogStatus(
-                    mirroredCatalogStatusRequest.getMirroredCatalogId());
+            GroupResponseVO response = service.getMirroredCatalogStatus(mirroredCatalogId);
             if (response == null) {
-                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+                MirroredCatalogErrorResponseVO errorResponse = new MirroredCatalogErrorResponseVO();
+                errorResponse.setStatus("error");
+                errorResponse.setErrorCode(MirroredCatalogErrorResponseVO.ErrorCodeEnum.DATABRICKS_DATAPRODUCT_NOT_FOUND);
+                errorResponse.setMessage("No mirrored catalog record found for mirroredCatalogId: " + mirroredCatalogId);
+                return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
             }
             return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (Exception e) {
             log.error("Error getting mirrored catalog status: {}", e.getMessage(), e);
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            MirroredCatalogErrorResponseVO errorResponse = new MirroredCatalogErrorResponseVO();
+            errorResponse.setStatus("error");
+            errorResponse.setErrorCode(MirroredCatalogErrorResponseVO.ErrorCodeEnum.INTERNAL_ERROR);
+            errorResponse.setMessage("Unexpected error while getting mirrored catalog status");
+            return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 
@@ -766,22 +792,43 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
         produces = { "application/json" },
         consumes = { "application/json" },
         method = RequestMethod.PUT)
-    public ResponseEntity<MirroredCatalogResponseVO> updateMirroredCatalogStatus(
+    public ResponseEntity updateMirroredCatalogStatus(
             @ApiParam(value = "The status update request from Uilicious.", required = true) @Valid @RequestBody UpdateMirroredCatalogStatusRequestVO updateRequest) {
         try {
-            if (updateRequest.getDdxCorrelationId() == null || updateRequest.getDdxCorrelationId().isBlank()) {
-                log.error("Missing required ddx_correlation_id in updateMirroredCatalogStatus request");
-                return new ResponseEntity<>(HttpStatus.BAD_REQUEST);
+            if (updateRequest.getMirroredCatalogId() == null || updateRequest.getMirroredCatalogId().isBlank()) {
+                log.error("Missing required mirroredCatalogId in updateMirroredCatalogStatus request");
+                MirroredCatalogErrorResponseVO errorResponse = new MirroredCatalogErrorResponseVO();
+                errorResponse.setStatus("error");
+                errorResponse.setErrorCode(MirroredCatalogErrorResponseVO.ErrorCodeEnum.INVALID_REQUEST);
+                errorResponse.setMessage("Missing required field: mirroredCatalogId");
+                return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+            }
+
+            if (updateRequest.getDdxGroupDetails() == null || updateRequest.getDdxGroupDetails().isEmpty()) {
+                log.error("Missing required ddxGroupDetails in updateMirroredCatalogStatus request");
+                MirroredCatalogErrorResponseVO errorResponse = new MirroredCatalogErrorResponseVO();
+                errorResponse.setStatus("error");
+                errorResponse.setErrorCode(MirroredCatalogErrorResponseVO.ErrorCodeEnum.INVALID_REQUEST);
+                errorResponse.setMessage("Missing required field: ddxGroupDetails");
+                return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
             }
 
             MirroredCatalogResponseVO response = service.updateMirroredCatalogStatus(updateRequest);
             if (response == null) {
-                return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+                MirroredCatalogErrorResponseVO errorResponse = new MirroredCatalogErrorResponseVO();
+                errorResponse.setStatus("error");
+                errorResponse.setErrorCode(MirroredCatalogErrorResponseVO.ErrorCodeEnum.DATABRICKS_DATAPRODUCT_NOT_FOUND);
+                errorResponse.setMessage("No mirrored catalog record found for mirroredCatalogId: " + updateRequest.getMirroredCatalogId());
+                return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
             }
             return new ResponseEntity<>(response, HttpStatus.OK);
         } catch (Exception e) {
             log.error("Error updating mirrored catalog status: {}", e.getMessage(), e);
-            return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
+            MirroredCatalogErrorResponseVO errorResponse = new MirroredCatalogErrorResponseVO();
+            errorResponse.setStatus("error");
+            errorResponse.setErrorCode(MirroredCatalogErrorResponseVO.ErrorCodeEnum.INTERNAL_ERROR);
+            errorResponse.setMessage("Internal error: " + e.getMessage());
+            return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
 

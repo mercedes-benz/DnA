@@ -14,6 +14,7 @@ import com.daimler.data.dto.fabricCatalogManagement.LegalEntitiesResponseVO;
 import com.daimler.data.dto.fabricCatalogManagement.GroupStatusResponseVO;
 import com.daimler.data.dto.fabricCatalogManagement.CreateMirroredCatalogRequestVO;
 import com.daimler.data.dto.fabricCatalogManagement.MirroredCatalogResponseVO;
+import com.daimler.data.dto.fabricCatalogManagement.GroupResponseVO;
 import com.daimler.data.dto.fabricCatalogManagement.UpdateMirroredCatalogStatusRequestVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceVO;
 import com.daimler.data.service.common.CommonService;
@@ -52,7 +53,7 @@ public interface FabricCatalogManagementService extends CommonService<FabricCata
 	/**
 	 * method to get the status of mirrored catalog creation and group permission assignment
 	 */
-	MirroredCatalogResponseVO getMirroredCatalogStatus(String mirroredCatalogId);
+	GroupResponseVO getMirroredCatalogStatus(String mirroredCatalogId);
 
 	/**
 	 * method to update the status of mirrored catalog creation (called by Uilicious callback)
