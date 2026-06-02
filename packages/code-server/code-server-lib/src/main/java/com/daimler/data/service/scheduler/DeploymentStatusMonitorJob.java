@@ -118,7 +118,7 @@ public class DeploymentStatusMonitorJob {
 
     private boolean shouldCheckDeployment(String status) {
         if (status == null) return false;
-        return "DEPLOYING".equalsIgnoreCase(status) || "FAILED".equalsIgnoreCase(status)
+        return "DEPLOYING".equalsIgnoreCase(status) || "DEPLOYMENT_FAILED".equalsIgnoreCase(status)
                 || "RESTART_REQUESTED".equalsIgnoreCase(status);
     }
 
@@ -141,14 +141,13 @@ public class DeploymentStatusMonitorJob {
                 if ("DEPLOYED".equals(argoStatus)) {
                     targetStatus = "RESTARTED";
                     needsUpdate = true;
-                } else if ("FAILED".equals(argoStatus)) {
+                } else if ("DEPLOYMENT_FAILED".equals(argoStatus)) {
                     targetStatus = "RESTART_FAILED";
                     needsUpdate = true;
                 }
             } else if ("DEPLOYED".equals(argoStatus) && !"DEPLOYED".equalsIgnoreCase(currentDbStatus)) {
                 needsUpdate = true;
-            } else if ("FAILED".equals(argoStatus) && "DEPLOYING".equalsIgnoreCase(currentDbStatus)) {
-                targetStatus = "DEPLOYMENT_FAILED";
+            } else if ("DEPLOYMENT_FAILED".equals(argoStatus) && !"DEPLOYMENT_FAILED".equalsIgnoreCase(currentDbStatus)) {
                 needsUpdate = true;
             }
 
@@ -230,20 +229,34 @@ public class DeploymentStatusMonitorJob {
                 return;
             }
             // Find the latest in-progress audit log and update its status
+            boolean foundTerminalAfter = false;
+            boolean updated = false;
             for (int i = auditLogs.size() - 1; i >= 0; i--) {
                 DeploymentAudit audit = auditLogs.get(i);
                 String auditStatus = audit.getDeploymentStatus();
+                if ("DEPLOYED".equalsIgnoreCase(auditStatus) || "DEPLOYMENT_FAILED".equalsIgnoreCase(auditStatus)
+                        || "RESTARTED".equalsIgnoreCase(auditStatus) || "RESTART_FAILED".equalsIgnoreCase(auditStatus)) {
+                    foundTerminalAfter = true;
+                }
                 if ("DEPLOYING".equalsIgnoreCase(auditStatus) || "RESTART_REQUESTED".equalsIgnoreCase(auditStatus)) {
-                    audit.setDeploymentStatus(argoStatus);
-                    if ("DEPLOYED".equals(argoStatus) || "RESTARTED".equals(argoStatus)) {
-                        audit.setDeployedOn(new Date());
+                    if (foundTerminalAfter) {
+                        audit.setDeploymentStatus("DEPLOYMENT_FAILED");
+                        log.info("Marked superseded audit log entry as DEPLOYMENT_FAILED for {}-{} at index {}", projectName, environment, i);
+                    } else {
+                        audit.setDeploymentStatus(argoStatus);
+                        if ("DEPLOYED".equals(argoStatus) || "RESTARTED".equals(argoStatus)) {
+                            audit.setDeployedOn(new Date());
+                        }
+                        log.info("Updated build deploy audit log status to {} for {}-{}", argoStatus, projectName, environment);
                     }
-                    log.info("Updated build deploy audit log status to {} for {}-{}", argoStatus, projectName, environment);
+                    updated = true;
                     break;
                 }
             }
-            buildDeployEntity.setData(data);
-            buildDeployRepo.save(buildDeployEntity);
+            if (updated) {
+                buildDeployEntity.setData(data);
+                buildDeployRepo.save(buildDeployEntity);
+            }
         } catch (Exception e) {
             log.warn("Failed to update build deploy audit log for {}-{}: {}", projectName, environment, e.getMessage());
         }

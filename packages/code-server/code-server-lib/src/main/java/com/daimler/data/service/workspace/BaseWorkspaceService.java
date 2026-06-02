@@ -1663,7 +1663,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 					 String appName = projectName.toLowerCase() + "-int";
 					 String argoStatus = argoCdService.checkArgoAppDeploymentStatus(argoToken, appName);
 					 
-					 if ("DEPLOYED".equals(argoStatus) || "FAILED".equals(argoStatus)) {
+					 if ("DEPLOYED".equals(argoStatus) || "DEPLOYMENT_FAILED".equals(argoStatus)) {
 						 intDeployment.setLastDeploymentStatus(argoStatus);
 						 if ("DEPLOYED".equals(argoStatus)) {
 							 intDeployment.setLastDeployedOn(new Date());
@@ -1685,7 +1685,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 					 String appName = projectName.toLowerCase() + "-prod";
 					 String argoStatus = argoCdService.checkArgoAppDeploymentStatus(argoToken, appName);
 					 
-					 if ("DEPLOYED".equals(argoStatus) || "FAILED".equals(argoStatus)) {
+					 if ("DEPLOYED".equals(argoStatus) || "DEPLOYMENT_FAILED".equals(argoStatus)) {
 						 prodDeployment.setLastDeploymentStatus(argoStatus);
 						 if ("DEPLOYED".equals(argoStatus)) {
 							 prodDeployment.setLastDeployedOn(new Date());
@@ -2282,6 +2282,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 				String finalDeployStatus = "DEPLOYING";
 				lastBuildOrDeployStatus = "DEPLOYING";
 				deploymentDetails.setLastDeploymentStatus("DEPLOYING");
+				deploymentDetails.setLastDeploymentError(null);
 				workspaceCustomRepository.updateDeploymentDetails(projectName, environment, deploymentDetails,
 						"DEPLOYING");
 				
@@ -2290,8 +2291,26 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 				status = "SUCCESS";
 			} else {
 				status = "FAILED";
-				deploymentDetails.setLastDeploymentStatus("FAILED");
-					 workspaceCustomRepository.updateDeploymentDetails(projectName, environment, deploymentDetails, "FAILED");
+				deploymentDetails.setLastDeploymentStatus("DEPLOYMENT_FAILED");
+					 workspaceCustomRepository.updateDeploymentDetails(projectName, environment, deploymentDetails, "DEPLOYMENT_FAILED");
+					 try {
+						 CodeServerBuildDeployNsql auditEntity = buildDeployCustomRepo.findByProjectName(projectName);
+						 if (auditEntity != null) {
+							 List<DeploymentAudit> deployAuditLogs = "int".equalsIgnoreCase(environment)
+								 ? auditEntity.getData().getIntDeploymentAuditLogs()
+								 : auditEntity.getData().getProdDeploymentAuditLogs();
+							 if (deployAuditLogs != null && !deployAuditLogs.isEmpty()) {
+								 DeploymentAudit lastAudit = deployAuditLogs.get(deployAuditLogs.size() - 1);
+								 if ("DEPLOYING".equalsIgnoreCase(lastAudit.getDeploymentStatus())) {
+									 lastAudit.setDeploymentStatus("DEPLOYMENT_FAILED");
+									 auditEntity.setData(auditEntity.getData());
+									 buildDeployRepo.save(auditEntity);
+								 }
+							 }
+						 }
+					 } catch (Exception auditEx) {
+						 log.warn("Failed to update audit log to DEPLOYMENT_FAILED for {}: {}", projectName, auditEx.getMessage());
+					 }
 					 if (argoErrorMessage != null && !argoErrorMessage.isEmpty()) {
 						 MessageDescription error = new MessageDescription();
 						 error.setMessage("Error in deploying code space. " + argoErrorMessage);

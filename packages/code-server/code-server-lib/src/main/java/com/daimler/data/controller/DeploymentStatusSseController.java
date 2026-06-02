@@ -67,15 +67,18 @@ public class DeploymentStatusSseController {
                         String status = (String) statusData.get("currentStatus");
                         log.debug("SSE iteration {}: status={} seenInProgress={} for {}/{}", iteration, status, seenInProgress, projectName, environment);
                         
-                        // Track if we've seen an in-progress state (proves new sync has started)
-                        if ("DEPLOYING".equals(status)) {
+                        if ("DEPLOYING".equals(status) || "BUILDING".equals(status)) {
                             seenInProgress = true;
                         }
                         
                         if ("DEPLOYED".equals(status) || "FAILED".equals(status) || "DEPLOYMENT_FAILED".equals(status)) {
+                            String opMsg = (String) statusData.get("argocdOperationMessage");
+                            boolean argoConfirmedFailed = "DEPLOYMENT_FAILED".equals(status) && 
+                                (("Failed".equalsIgnoreCase((String) statusData.get("argocdLastSyncPhase"))) ||
+                                 (opMsg != null && (opMsg.toLowerCase().contains("failed") || opMsg.toLowerCase().contains("error"))));
                             // Only accept terminal status if we've seen the deployment actually start,
                             // or enough time has passed to rule out stale ArgoCD state
-                            if (seenInProgress || iteration >= minIterationsBeforeTerminal) {
+                            if (seenInProgress || iteration >= minIterationsBeforeTerminal || argoConfirmedFailed) {
                                 log.info("Deployment finished with status: {} after {} iterations (seenInProgress={})", status, iteration, seenInProgress);
                                 emitter.send(SseEmitter.event()
                                         .name("deployment-complete")
@@ -179,6 +182,11 @@ public class DeploymentStatusSseController {
             String dbStatus = deploymentDetails.getLastDeploymentStatus() != null ? 
                      deploymentDetails.getLastDeploymentStatus() : "UNKNOWN";
             
+            String lastBuildOrDeployStatus = entity.getData().getProjectDetails().getLastBuildOrDeployedStatus();
+            if ("BUILD_REQUESTED".equalsIgnoreCase(lastBuildOrDeployStatus)) {
+                dbStatus = "BUILDING";
+            }
+            
             data.put("version", deploymentDetails.getLastDeployedVersion());
             data.put("branch", deploymentDetails.getLastDeployedBranch());
             data.put("deployedOn", deploymentDetails.getLastDeployedOn());
@@ -229,8 +237,24 @@ public class DeploymentStatusSseController {
                 data.put("argocdHealthStatus", "UNAVAILABLE");
             }
 
-            String actualStatus = determineActualStatus(dbStatus, argoHealthStatus, argoLastSyncPhase);
+            String argoOperationMsg = (String) data.get("argocdOperationMessage");
+            String actualStatus = determineActualStatus(dbStatus, argoHealthStatus, argoSyncStatus, argoLastSyncPhase, argoOperationMsg);
             data.put("currentStatus", actualStatus);
+            
+            if ("DEPLOYMENT_FAILED".equals(actualStatus)) {
+                String errorMsg = (String) data.get("argocdOperationMessage");
+                if (errorMsg != null && !errorMsg.isEmpty()) {
+                    data.put("errorMessage", errorMsg);
+                } else {
+                    if ("Degraded".equalsIgnoreCase(argoHealthStatus)) {
+                        data.put("errorMessage", "Deployment failed: pods are in degraded state. Check pod logs for details.");
+                    } else if ("Failed".equalsIgnoreCase(argoLastSyncPhase)) {
+                        data.put("errorMessage", "Deployment failed: sync to cluster failed. Check ArgoCD for details.");
+                    } else {
+                        data.put("errorMessage", "Deployment failed. Check ArgoCD for details.");
+                    }
+                }
+            }
             
             log.debug("Status for {}-{}: DB={}, ArgoHealth={}, ArgoSync={}, LastSyncPhase={}, Actual={}", 
                 projectName, environment, dbStatus, argoHealthStatus, argoSyncStatus, argoLastSyncPhase, actualStatus);
@@ -244,34 +268,32 @@ public class DeploymentStatusSseController {
         return data;
     }
     
-    private String determineActualStatus(String dbStatus, String argoHealth, String lastSyncPhase) {
-        if ("DEPLOYED".equalsIgnoreCase(dbStatus) || "FAILED".equalsIgnoreCase(dbStatus) 
-                || "DEPLOYMENT_FAILED".equalsIgnoreCase(dbStatus)) {
-            log.debug("Using terminal DB status: {}", dbStatus);
-            return dbStatus;
-        }
-        
+    private String determineActualStatus(String dbStatus, String argoHealth, String syncStatus, String lastSyncPhase, String operationMessage) {
         if ("UNAVAILABLE".equals(argoHealth) || argoHealth == null || argoHealth.isEmpty()) {
             return dbStatus;
         }
         
-        // DEPLOYED: only when BOTH health=Healthy AND lastSyncPhase=Succeeded
-        if ("Healthy".equalsIgnoreCase(argoHealth) && "Succeeded".equalsIgnoreCase(lastSyncPhase)) {
+        if (operationMessage != null && !operationMessage.isEmpty() &&
+            (operationMessage.toLowerCase().contains("failed") || operationMessage.toLowerCase().contains("error"))) {
+            return "DEPLOYMENT_FAILED";
+        }
+        
+        if ("Failed".equalsIgnoreCase(lastSyncPhase) || "Error".equalsIgnoreCase(lastSyncPhase)) {
+            return "DEPLOYMENT_FAILED";
+        }
+        
+        if ("Degraded".equalsIgnoreCase(argoHealth)) {
+            return "DEPLOYMENT_FAILED";
+        }
+        
+        if ("Healthy".equalsIgnoreCase(argoHealth)) {
+            if ("DEPLOYING".equalsIgnoreCase(dbStatus) || "BUILDING".equalsIgnoreCase(dbStatus)) {
+                return dbStatus;
+            }
             return "DEPLOYED";
         }
         
-        // DEPLOYING: sync is still running OR health is progressing (actively working)
-        if ("Running".equalsIgnoreCase(lastSyncPhase) || "Progressing".equalsIgnoreCase(argoHealth)) {
-            return "DEPLOYING";
-        }
-        
-        // DEPLOYING: no sync phase yet (empty/null) means sync hasn't started
-        if (lastSyncPhase == null || lastSyncPhase.isEmpty()) {
-            return dbStatus;
-        }
-        
-        // Everything else = DEPLOYMENT_FAILED
-        return "DEPLOYMENT_FAILED";
+        return dbStatus != null ? dbStatus : "DEPLOYING";
     }
 
     @GetMapping(value = "/workspace/deployment/syncerror/{projectName}/{environment}", produces = MediaType.APPLICATION_JSON_VALUE)
