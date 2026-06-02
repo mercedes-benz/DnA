@@ -352,25 +352,24 @@ paths:
           schema:
             $ref: "#/definitions/MirroredCatalogErrorResponseVO"
 
-  /catalog/databricks/mirrored-catalog/status:
-    post:
+  /catalog/databricks/mirrored-catalog/status/{mirroredCatalogId}:
+    get:
       tags:
         - "fabric-catalog-management"
       summary: "Get Databricks Mirrored Catalog status."
       description: "This endpoint will query the status of mirrored catalog creation and group permission assignment, update the DB, and return the current status."
       operationId: "getMirroredCatalogStatus"
       parameters:
-        - name: mirroredCatalogStatusRequest
-          in: body
-          description: "The mirrored catalog status request with correlation ID."
+        - name: mirroredCatalogId
+          in: path
+          description: "The ID of the mirrored catalog."
           required: true
-          schema:
-            $ref: "#/definitions/MirroredCatalogStatusRequestVO"
+          type: string
       responses:
         200:
           description: "Returns mirrored catalog status response"
           schema:
-            $ref: "#/definitions/MirroredCatalogResponseVO"
+            $ref: "#/definitions/GroupResponseVO"
         400:
           description: "Bad Request"
           schema:
@@ -749,6 +748,7 @@ definitions:
           - success
           - failure
           - already_exists
+          - in_progress
 
   GrantPermissionsVO:
     type: array
@@ -829,3 +829,26 @@ definitions:
       message:
         type: string
         description: "Message for this group operation"
+
+  GroupResponseVO:
+    type: object
+    properties:
+      ddxCorrelationId:
+        type: string
+        description: "Correlation ID for request tracking"
+      databricksMirroredCatalog:
+        $ref: "#/definitions/MirroredCatalogDataVO"
+      grantPermissions:
+        type: array
+        items:
+          $ref: "#/definitions/GrantPermissionItemVO"
+
+  GrantPermissionItemVO:
+    type: object
+    properties:
+      groupName:
+        type: string
+        description: "DDX group name"
+      status:
+        type: string
+        description: "Grant permission status"

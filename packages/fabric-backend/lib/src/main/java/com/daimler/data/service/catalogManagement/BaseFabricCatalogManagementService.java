@@ -1157,7 +1157,7 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
     }
 
     @Override
-    public MirroredCatalogResponseVO getMirroredCatalogStatus(String mirroredCatalogId) {
+    public GroupResponseVO getMirroredCatalogStatus(String mirroredCatalogId) {
         log.info("Getting mirrored catalog status for mirroredCatalogId: {}", mirroredCatalogId);
 
         List<DdxMirroredCatalogProductNsql> results = mirroredCatalogCustomRepo.findByMirroredCatalogId(mirroredCatalogId);
@@ -1167,7 +1167,7 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
         }
 
         DdxMirroredCatalogProduct data = results.get(0).getData();
-        return buildMirroredCatalogResponse(data);
+        return buildGroupStatusResponse(data);
     }
 
     @Override
@@ -1353,6 +1353,39 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
             List<String> groupNameList = data.getDdxGroupDetails().stream().map(DdxGroupDetail::getGroupName).collect(Collectors.toList());
             GrantPermissionsVO grantPermissions = new GrantPermissionsVO();
             grantPermissions.addAll(groupNameList);
+            response.setGrantPermissions(grantPermissions);
+        }
+
+        return response;
+    }
+
+    private GroupResponseVO buildGroupStatusResponse(DdxMirroredCatalogProduct data) {
+        GroupResponseVO response = new GroupResponseVO();
+        response.setDdxCorrelationId(data.getDdxCorrelationId());
+
+        if (data.getMirrorCatalogDetails() != null) {
+            MirroredCatalogDataVO catalogDataVO = new MirroredCatalogDataVO();
+            catalogDataVO.setMirroredCatalogId(data.getMirrorCatalogDetails().getMirroredCatalogId());
+            catalogDataVO.setMirroredCatalogUrl(data.getMirrorCatalogDetails().getMirroredCatalogUrl());
+            catalogDataVO.setCatalog(data.getMirrorCatalogDetails().getMirrorCatalogName());
+            catalogDataVO.setSchema(data.getSchemaName());
+            catalogDataVO.setStorageAccountUrl(data.getStorageAccountUrl());
+            catalogDataVO.setStatus(MirroredCatalogDataVO.StatusEnum.fromValue(data.getMirrorCatalogDetails().getCatalogStatus()));
+            if (data.getObjects() != null) {
+                catalogDataVO.setObjects(data.getObjects().stream()
+                        .map(MirroredObjectDetail::getObjectName)
+                        .collect(Collectors.toList()));
+            }
+            response.setDatabricksMirroredCatalog(catalogDataVO);
+        }
+
+        if (data.getDdxGroupDetails() != null && !data.getDdxGroupDetails().isEmpty()) {
+            List<GrantPermissionItemVO> grantPermissions = data.getDdxGroupDetails().stream().map(group -> {
+                GrantPermissionItemVO item = new GrantPermissionItemVO();
+                item.setGroupName(group.getGroupName());
+                item.setStatus(group.getGrantPermissionStatus());
+                return item;
+            }).collect(Collectors.toList());
             response.setGrantPermissions(grantPermissions);
         }
 
