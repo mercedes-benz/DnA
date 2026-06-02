@@ -559,6 +559,18 @@ definitions:
         type: string
       isLakeHousesPublishedToCdc:
         type: boolean
+      mandatoryFields:
+        $ref: "#/definitions/MandatoryFieldsVO"
+      publishedLakehouseTables:
+        type: array
+        description: "List of table names available in this lakehouse"
+        items:
+          type: string
+      publishedLakehouseTableDetails:
+        type: array
+        description: "Detailed information about tables and columns for this lakehouse"
+        items:
+          $ref: "#/definitions/LakehouseTableDetailVO"
       productName:
         type: string
         description: "Name of the CDC data product"
@@ -679,6 +691,9 @@ definitions:
       tableName:
         type: string
         description: "Name of the table"
+      lakeHouseId:
+        type: string
+        description: "ID of the lakehouse"
       mismatchType:
         type: string
         description: "Type of mismatch detected"
