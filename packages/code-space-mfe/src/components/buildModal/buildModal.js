@@ -529,7 +529,52 @@ const BuildModal = (props) => {
               codeSpaceData={props.codeSpaceData}
               onDismiss={() => {
                 setShowIntMigrationModal(false);
-                setShowDeployCodeSpaceModal(true);
+                const deployRequest = {
+                  targetEnvironment: 'int',
+                  branch: buildDetails.branch,
+                  version: buildDetails.version || '',
+                  keepBuildImage: false,
+                };
+                
+                const projectName = props.codeSpaceData?.projectDetails?.projectName;
+                if (projectName) {
+                  localStorage.setItem('intMigrationDismissed_' + projectName, 'true');
+                }
+                
+                ProgressIndicator.show();
+                CodeSpaceApiClient.deployCodeSpace(props.codeSpaceData.id, deployRequest)
+                  .then((res) => {
+                    if (res.data.success === 'SUCCESS') {
+                      ProgressIndicator.hide();
+                      props.setCodeDeploying(true);
+                      Notification.show(
+                        `Code space '${projectName}' deployment successfully started.`
+                      );
+                      
+                      if (props.startDeploymentStatusListener) {
+                        props.startDeploymentStatusListener(
+                          projectName,
+                          deployRequest.targetEnvironment,
+                          props.onDeploymentStatusUpdate,
+                          props.onDeploymentComplete,
+                          props.onDeploymentSSEError
+                        );
+                      }
+                    } else {
+                      ProgressIndicator.hide();
+                      Notification.show(
+                        'Error in deploying code space. Please try again later.\\n' + res.data.errors[0].message,
+                        'alert'
+                      );
+                    }
+                  })
+                  .catch((err) => {
+                    ProgressIndicator.hide();
+                    Notification.show(
+                      'Error in deploying. Please try again later.\\n' + err?.response?.data?.errors[0]?.message,
+                      'alert'
+                    );
+                  });
               }}
             />
           )}
@@ -543,6 +588,7 @@ const BuildModal = (props) => {
               setCodeDeploying={props.setCodeDeploying}
               setIsApiCallTakeTime={props.setIsApiCallTakeTime}
               buildDetails={buildDetails}
+              skipIntMigrationCheck={true}
               startDeploymentStatusListener={props.startDeploymentStatusListener}
               onDeploymentStatusUpdate={props.onDeploymentStatusUpdate}
               onDeploymentComplete={props.onDeploymentComplete}
