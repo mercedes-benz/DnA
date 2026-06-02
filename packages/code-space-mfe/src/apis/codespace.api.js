@@ -432,6 +432,12 @@ const subscribeToDeploymentStatus = (projectName, environment, onStatusUpdate, o
     return sse;
 };
 
+const getSyncError = (projectName, environment) => {
+    return server.get(`workspace/deployment/syncerror/${projectName}/${environment}`, {
+        data: {},
+    });
+};
+
 const subscribeToPodLogs = (projectName, environment, onPodInfo, onPodLogs, onComplete, onError) => {
     const url = `${baseURL}/workspace/deployment/podlogs/stream/${projectName}/${environment}`;
 
@@ -602,6 +608,7 @@ export const CodeSpaceApiClient = {
     workSpaceStatus,
     serverStatusFromHub,
     subscribeToDeploymentStatus,
+    getSyncError,
     subscribeToPodLogs,
     restartDeployments,
     migrateWorkplace,

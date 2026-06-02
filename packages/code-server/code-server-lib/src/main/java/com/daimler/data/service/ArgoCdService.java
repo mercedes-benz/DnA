@@ -215,7 +215,7 @@ public class ArgoCdService {
         String vaultAuthPath = getVaultAuthPath(clusterEnv);
         String imageRepository = imageRegistry + "-" + projectName;
         
-        String vaultStage = "dev".equals(clusterEnv) ? "staging" : "production";
+        String vaultStage = "prod".equalsIgnoreCase(clusterEnv) ? "prod" : "staging";        
         String vaultInjectorPath = vaultKvPath + "/" + vaultStage + "/" + projectName + "/" + targetEnv;
         String vaultInjectorRootPath = "/" + projectName + "/" + targetEnv + "/api";
         String vaultInjectorRootPathNonApi = "/" + projectName + "/" + targetEnv + "/";
@@ -236,33 +236,51 @@ public class ArgoCdService {
         helmParameters.add(createHelmParam("vaultInjector.namespace", "/"));
         helmParameters.add(createHelmParamForceString("podAnnotations.prometheus\\.io/scrape", "true"));
         
-        boolean useHelmValuesForEmptyResources = false;
         if (resources != null && resources.isEmpty()) {
-            // resources: {} in values.yaml — use helm.values YAML (not --set) to avoid slice parsing issue
-            useHelmValuesForEmptyResources = true;
-            log.info("[Resources] resources is empty in values.yaml, will use helm.values to send resources: {}");
+            helmParameters.add(createHelmParam("resources.requests.cpu", "200m"));
+            helmParameters.add(createHelmParam("resources.requests.memory", "256Mi"));
+            helmParameters.add(createHelmParam("resources.limits.memory", "1Gi"));
+            log.info("[Resources] Empty resources in values.yaml, sending defaults");
         } else if (resources != null && !resources.isEmpty()) {
             String cpu = resources.get("cpu");
             String memory = resources.get("memory");
-            if (cpu != null) {
-                helmParameters.add(createHelmParam("resources.requests.cpu", cpu + "m"));
-                log.info("[Resources] Sending -> resources.requests.cpu: {}", cpu + "m");
+            String limitsMemory = resources.get("limitsMemory");
+            boolean hasLimitsCpu = "true".equals(resources.get("hasLimitsCpu"));
+
+            if (!hasLimitsCpu) {
+                if (cpu != null) {
+                    helmParameters.add(createHelmParam("resources.requests.cpu", cpu + "m"));
+                }
+                if (memory != null) {
+                    helmParameters.add(createHelmParam("resources.requests.memory", memory + "Mi"));
+                }
+                if (limitsMemory != null) {
+                    helmParameters.add(createHelmParam("resources.limits.memory", limitsMemory + "Mi"));
+                } else if (memory != null) {
+                    helmParameters.add(createHelmParam("resources.limits.memory", memory + "Mi"));
+                }
+                log.info("[Resources] Case 2: No limits.cpu in values.yaml - requests.cpu={}, requests.memory={}, limits.memory={}",
+                    cpu != null ? cpu + "m" : "not set",
+                    memory != null ? memory + "Mi" : "not set",
+                    limitsMemory != null ? limitsMemory + "Mi" : (memory != null ? memory + "Mi (fallback)" : "not set"));
+
+            } else {
+                if (cpu != null) {
+                    helmParameters.add(createHelmParam("resources.requests.cpu", cpu + "m"));
+                }
+                if (memory != null) {
+                    helmParameters.add(createHelmParam("resources.requests.memory", memory + "Mi"));
+                    helmParameters.add(createHelmParam("resources.limits.memory", memory + "Mi"));
+                }
+                helmParameters.add(createHelmParam("resources.limits.cpu", "null"));
+                log.info("[Resources] Case 3: limits.cpu exists in values.yaml - requests.cpu={}, requests.memory={}, limits.memory={} (same as requests), limits.cpu=null",
+                    cpu != null ? cpu + "m" : "not set",
+                    memory != null ? memory + "Mi" : "not set",
+                    memory != null ? memory + "Mi" : "not set");
             }
-            if (memory != null) {
-                helmParameters.add(createHelmParam("resources.requests.memory", memory + "Mi"));
-                helmParameters.add(createHelmParam("resources.limits.memory", memory + "Mi"));
-                log.info("[Resources] Sending -> resources.requests.memory: {}, resources.limits.memory: {}", memory + "Mi", memory + "Mi");
-            }
-            // Explicitly remove limits.cpu by setting to "null" string
-            helmParameters.add(createHelmParam("resources.limits.cpu", "null"));
-            log.info("[Resources] Sending -> resources.limits.cpu: null (override to suppress chart default)");
-            log.info("[Resources] Final resources being sent to ArgoCD: " +
-                "requests.cpu={}, requests.memory={}, limits.memory={} (same as requests.memory), limits.cpu=null (removed)",
-                cpu != null ? cpu + "m" : "not set",
-                memory != null ? memory + "Mi" : "not set",
-                memory != null ? memory + "Mi" : "not set");
+
         } else {
-            log.info("[Resources] No resource overrides to apply, chart values.yaml will be used as-is");
+            log.info("[Resources] No resource overrides, using chart defaults");
         }
         
         Map<String, Object> payload = new HashMap<>();
@@ -271,7 +289,7 @@ public class ArgoCdService {
         metadata.put("name", appName);
         metadata.put("namespace", "argocd");
         Map<String, String> labels = new HashMap<>();
-        String envLabel = (argocdNamespacePrefix != null && !argocdNamespacePrefix.isEmpty()) 
+        String envLabel = (argocdNamespacePrefix != null && !argocdNamespacePrefix.isEmpty())
             ? argocdNamespacePrefix : clusterEnv;
         labels.put("env", envLabel);
         labels.put("project", "cs-apps");
@@ -289,9 +307,6 @@ public class ArgoCdService {
         
         Map<String, Object> helm = new HashMap<>();
         helm.put("parameters", helmParameters);
-        if (useHelmValuesForEmptyResources) {
-            helm.put("values", "resources: {}\n");
-        }
         source.put("helm", helm);
         
         spec.put("source", source);
@@ -377,109 +392,128 @@ public class ArgoCdService {
     }
     
     public Map<String, String> calculateResources(String gitRepoUrl) {
-    try {
-        log.info("[Resources] Starting resource calculation for repo: {}", gitRepoUrl);
-        String valuesYamlContent = fetchValuesYaml(gitRepoUrl);
-        if (valuesYamlContent == null || valuesYamlContent.trim().isEmpty()) {
-            log.info("[Resources] values.yaml content is null or empty, skipping resource overrides");
-            return null;
-        }
-        log.info("[Resources] Received values.yaml content (length={})", valuesYamlContent.length());
-        log.info("[Resources] Full values.yaml content:\n{}", valuesYamlContent);
-        
-        // Parse YAML with explicit error handling
-        Object yamlRoot;
         try {
-            Yaml yaml = new Yaml();
-            yamlRoot = yaml.load(valuesYamlContent);
-        } catch (Exception yamlEx) {
-            log.error("[Resources] Failed to parse values.yaml as YAML: {}. First 500 chars: {}", 
-                yamlEx.getMessage(), valuesYamlContent.substring(0, Math.min(500, valuesYamlContent.length())));
-            return null;
-        }
-        
-        if (yamlRoot == null) {
-            log.info("[Resources] YAML parsed to null, skipping resource overrides");
-            return null;
-        }
-        if (!(yamlRoot instanceof Map)) {
-            log.warn("[Resources] YAML root is not a Map but a {}. First 500 chars: {}", 
-                yamlRoot.getClass().getSimpleName(), valuesYamlContent.substring(0, Math.min(500, valuesYamlContent.length())));
-            return null;
-        }
-        
-        @SuppressWarnings("unchecked")
-        Map<String, Object> values = (Map<String, Object>) yamlRoot;
-        
-        if (!values.containsKey("resources")) {
-            log.info("[Resources] No 'resources' section found in values.yaml. Available top-level keys: {}", values.keySet());
-            return null;
-        }
-        
-        Object resourcesObj = values.get("resources");
-        if (resourcesObj == null || !(resourcesObj instanceof Map)) {
-            log.warn("[Resources] 'resources' is not a Map but: {} (value={})", 
-                resourcesObj != null ? resourcesObj.getClass().getSimpleName() : "null", resourcesObj);
-            return null;
-        }
-        
-        @SuppressWarnings("unchecked")
-        Map<String, Object> resourcesSection = (Map<String, Object>) resourcesObj;
-        log.info("[Resources] Raw resources from values.yaml: {}", resourcesSection);
-        
-        // If resources is explicitly empty {}, return empty map to signal "resources: {}" override
-        if (resourcesSection.isEmpty()) {
-            log.info("[Resources] resources is explicitly empty {}, will send resources={} override");
-            return new HashMap<>();
-        }
-        
-        if (!resourcesSection.containsKey("requests")) {
-            log.info("[Resources] No 'requests' section found in resources. Available keys: {}", resourcesSection.keySet());
-            return null;
-        }
-        
-        Object requestsObj = resourcesSection.get("requests");
-        if (requestsObj == null || !(requestsObj instanceof Map)) {
-            log.warn("[Resources] 'requests' is not a Map but: {} (value={})", 
-                requestsObj != null ? requestsObj.getClass().getSimpleName() : "null", requestsObj);
-            return null;
-        }
-        
-        @SuppressWarnings("unchecked")
-        Map<String, Object> requests = (Map<String, Object>) requestsObj;
-        log.info("[Resources] Raw requests from values.yaml: {}", requests);
-        Map<String, String> convertedResources = new HashMap<>();
-        if (requests.containsKey("cpu")) {
-            String cpuValue = String.valueOf(requests.get("cpu"));
-            String convertedCpu = convertCpu(cpuValue);
-            log.info("[Resources] CPU: raw='{}' -> converted='{}'", cpuValue, convertedCpu);
-            if (convertedCpu != null) {
-                convertedResources.put("cpu", convertedCpu);
+            log.info("[Resources] Starting resource calculation for repo: {}", gitRepoUrl);
+            String valuesYamlContent = fetchValuesYaml(gitRepoUrl);
+            if (valuesYamlContent == null || valuesYamlContent.trim().isEmpty()) {
+                log.info("[Resources] values.yaml content is null or empty, skipping resource overrides");
+                return null;
             }
-        }
-        if (requests.containsKey("memory")) {
-            String memoryValue = String.valueOf(requests.get("memory"));
-            String convertedMemory = convertMemory(memoryValue);
-            log.info("[Resources] Memory: raw='{}' -> converted='{}'", memoryValue, convertedMemory);
-            if (convertedMemory != null) {
-                convertedResources.put("memory", convertedMemory);
+            log.info("[Resources] Received values.yaml content (length={})", valuesYamlContent.length());
+            log.info("[Resources] Full values.yaml content:\n{}", valuesYamlContent);
+
+            // Parse YAML with explicit error handling
+            Object yamlRoot;
+            try {
+                Yaml yaml = new Yaml();
+                yamlRoot = yaml.load(valuesYamlContent);
+            } catch (Exception yamlEx) {
+                log.error("[Resources] Failed to parse values.yaml as YAML: {}. First 500 chars: {}",
+                    yamlEx.getMessage(), valuesYamlContent.substring(0, Math.min(500, valuesYamlContent.length())));
+                return null;
             }
+
+            if (yamlRoot == null) {
+                log.info("[Resources] YAML parsed to null, skipping resource overrides");
+                return null;
+            }
+            if (!(yamlRoot instanceof Map)) {
+                log.warn("[Resources] YAML root is not a Map but a {}. First 500 chars: {}",
+                    yamlRoot.getClass().getSimpleName(), valuesYamlContent.substring(0, Math.min(500, valuesYamlContent.length())));
+                return null;
+            }
+
+            @SuppressWarnings("unchecked")
+            Map<String, Object> values = (Map<String, Object>) yamlRoot;
+
+            if (!values.containsKey("resources")) {
+                log.info("[Resources] No 'resources' section found in values.yaml. Available top-level keys: {}", values.keySet());
+                return null;
+            }
+
+            Object resourcesObj = values.get("resources");
+            if (resourcesObj == null || !(resourcesObj instanceof Map)) {
+                log.warn("[Resources] 'resources' is not a Map but: {} (value={})",
+                    resourcesObj != null ? resourcesObj.getClass().getSimpleName() : "null", resourcesObj);
+                return null;
+            }
+
+            @SuppressWarnings("unchecked")
+            Map<String, Object> resourcesSection = (Map<String, Object>) resourcesObj;
+            log.info("[Resources] Raw resources from values.yaml: {}", resourcesSection);
+
+            if (resourcesSection.isEmpty()) {
+                log.info("[Resources] resources is explicitly empty {}, will use hardcoded defaults");
+                return new HashMap<>();
+            }
+
+            if (!resourcesSection.containsKey("requests")) {
+                log.info("[Resources] No 'requests' section found in resources. Available keys: {}", resourcesSection.keySet());
+                return null;
+            }
+
+            Object requestsObj = resourcesSection.get("requests");
+            if (requestsObj == null || !(requestsObj instanceof Map)) {
+                log.warn("[Resources] 'requests' is not a Map but: {} (value={})",
+                    requestsObj != null ? requestsObj.getClass().getSimpleName() : "null", requestsObj);
+                return null;
+            }
+
+            @SuppressWarnings("unchecked")
+            Map<String, Object> requests = (Map<String, Object>) requestsObj;
+            log.info("[Resources] Raw requests from values.yaml: {}", requests);
+
+            Map<String, String> convertedResources = new HashMap<>();
+
+            if (requests.containsKey("cpu")) {
+                String cpuValue = String.valueOf(requests.get("cpu"));
+                String convertedCpu = convertCpu(cpuValue);
+                log.info("[Resources] CPU: raw='{}' -> converted='{}'", cpuValue, convertedCpu);
+                if (convertedCpu != null) {
+                    convertedResources.put("cpu", convertedCpu);
+                }
+            }
+            if (requests.containsKey("memory")) {
+                String memoryValue = String.valueOf(requests.get("memory"));
+                String convertedMemory = convertMemory(memoryValue);
+                log.info("[Resources] Memory: raw='{}' -> converted='{}'", memoryValue, convertedMemory);
+                if (convertedMemory != null) {
+                    convertedResources.put("memory", convertedMemory);
+                }
+            }
+
+            Object limitsObj = resourcesSection.get("limits");
+            if (limitsObj instanceof Map) {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> limits = (Map<String, Object>) limitsObj;
+
+                if (limits.containsKey("cpu")) {
+                    convertedResources.put("hasLimitsCpu", "true");
+                }
+
+                if (limits.containsKey("memory")) {
+                    String limitsMemoryValue = String.valueOf(limits.get("memory"));
+                    String convertedLimitsMemory = convertMemory(limitsMemoryValue);
+                    log.info("[Resources] Limits.Memory: raw='{}' -> converted='{}'", limitsMemoryValue, convertedLimitsMemory);
+                    if (convertedLimitsMemory != null) {
+                        convertedResources.put("limitsMemory", convertedLimitsMemory);
+                    }
+                }
+            }
+
+            log.info("[Resources] Final calculated resources: {}", convertedResources);
+            return convertedResources.isEmpty() ? null : convertedResources;
+        } catch (Exception e) {
+            log.error("[Resources] Failed to calculate resources: {}", e.getMessage(), e);
+            return null;
         }
-        
-        log.info("[Resources] Final calculated resources: {}", convertedResources);
-        return convertedResources.isEmpty() ? null : convertedResources;
-    } catch (Exception e) {
-        log.error("[Resources] Failed to calculate resources: {}", e.getMessage(), e);
-        return null;
     }
-}
+
     private String convertCpu(String cpuValue) {
         cpuValue = cpuValue.trim();
-        
         if (cpuValue.endsWith("m")) {
             return cpuValue.substring(0, cpuValue.length() - 1);
         }
-        
         try {
             double cores = Double.parseDouble(cpuValue);
             return String.valueOf((int) (cores * 1000));
@@ -618,12 +652,12 @@ public class ArgoCdService {
             if (argoResponse == null || !argoResponse.getStatusCode().is2xxSuccessful()) {
                 int statusCode = argoResponse != null ? argoResponse.getStatusCode().value() : 0;
                 if (statusCode == 403) {
-                    log.warn("ArgoCD app {} - permission denied, marking as FAILED", appName);
-                    return "FAILED";
+                    log.warn("ArgoCD app {} - permission denied, marking as DEPLOYMENT_FAILED", appName);
+                    return "DEPLOYMENT_FAILED";
                 }
                 if (statusCode == 404) {
-                    log.warn("ArgoCD app {} - not found, marking as FAILED", appName);
-                    return "FAILED";
+                    log.warn("ArgoCD app {} - not found, marking as DEPLOYMENT_FAILED", appName);
+                    return "DEPLOYMENT_FAILED";
                 }
                 log.info("ArgoCD app {} not ready yet - DEPLOYING", appName);
                 return "DEPLOYING";
@@ -631,134 +665,103 @@ public class ArgoCdService {
             ObjectMapper mapper = new ObjectMapper();
             JsonNode rootNode = mapper.readTree(argoResponse.getBody());
             String healthStatus = rootNode.path("status").path("health").path("status").asText("");
-            String syncStatus = rootNode.path("status").path("sync").path("status").asText("");
             String lastSyncPhase = rootNode.path("status").path("operationState").path("phase").asText("");
-            log.info("ArgoCD app {} - Health: {}, Sync: {}, LastSyncPhase: {}", appName, healthStatus, syncStatus, lastSyncPhase);
-            
-            // DEPLOYED: only when BOTH health=Healthy AND lastSyncPhase=Succeeded
-            if ("Healthy".equalsIgnoreCase(healthStatus) && "Succeeded".equalsIgnoreCase(lastSyncPhase)) {
-                log.info("Application {} is healthy and last sync succeeded - DEPLOYED", appName);
+            String operationMessage = rootNode.path("status").path("operationState").path("message").asText("");
+            log.info("ArgoCD app {} - Health: {}, LastSyncPhase: {}, Message: {}", appName, healthStatus, lastSyncPhase, operationMessage);
+
+            if (operationMessage != null && !operationMessage.isEmpty() &&
+                (operationMessage.toLowerCase().contains("failed") || operationMessage.toLowerCase().contains("error"))) {
+                log.info("Application {} has error message - DEPLOYMENT_FAILED", appName);
+                return "DEPLOYMENT_FAILED";
+            }
+
+            if ("Failed".equalsIgnoreCase(lastSyncPhase) || "Error".equalsIgnoreCase(lastSyncPhase)) {
+                log.info("Application {} sync failed (health={}, syncPhase={}) - DEPLOYMENT_FAILED", appName, healthStatus, lastSyncPhase);
+                return "DEPLOYMENT_FAILED";
+            }
+
+            if ("Degraded".equalsIgnoreCase(healthStatus)) {
+                log.info("Application {} is degraded - DEPLOYMENT_FAILED", appName);
+                return "DEPLOYMENT_FAILED";
+            }
+
+            if ("Healthy".equalsIgnoreCase(healthStatus)) {
+                log.info("Application {} is healthy - DEPLOYED", appName);
                 return "DEPLOYED";
             }
-            
-            // DEPLOYING: sync is still running OR health is progressing (actively working)
-            if ("Running".equalsIgnoreCase(lastSyncPhase) || "Progressing".equalsIgnoreCase(healthStatus)) {
-                log.info("Application {} is still in progress (health={}, syncPhase={}) - DEPLOYING", appName, healthStatus, lastSyncPhase);
-                return "DEPLOYING";
-            }
-            
-            // DEPLOYING: no sync phase yet (empty/null) means sync hasn't started
-            if (lastSyncPhase == null || lastSyncPhase.isEmpty()) {
-                log.info("Application {} has no sync phase yet (health={}) - DEPLOYING", appName, healthStatus);
-                return "DEPLOYING";
-            }
-            
-            // Everything else = FAILED (health not Healthy, or sync Failed/Error, or any other non-success combination)
-            log.info("Application {} is not healthy or sync not succeeded (health={}, syncPhase={}) - FAILED", appName, healthStatus, lastSyncPhase);
-            return "FAILED";
+
+            log.info("Application {} is in progress (health={}, syncPhase={}) - DEPLOYING", appName, healthStatus, lastSyncPhase);
+            return "DEPLOYING";
         } catch (Exception e) {
             log.error("Failed to check ArgoCD deployment status for {}", appName, e);
             return "DEPLOYING";
         }
     }
+    public Map<String, String> checkArgoAppDeploymentStatusWithError(String token, String appName) {
+        Map<String, String> result = new HashMap<>();
+        result.put("status", "DEPLOYING");
+        result.put("errorMessage", "");
+        try {
+            ResponseEntity<String> argoResponse = getStatusOfArgoApp(token, appName);
+            if (argoResponse == null || !argoResponse.getStatusCode().is2xxSuccessful()) {
+                int statusCode = argoResponse != null ? argoResponse.getStatusCode().value() : 0;
+                if (statusCode == 403 || statusCode == 404) {
+                    result.put("status", "DEPLOYMENT_FAILED");
+                    result.put("errorMessage", "ArgoCD app " + appName + " - HTTP " + statusCode);
+                    return result;
+                }
+                return result;
+            }
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode rootNode = mapper.readTree(argoResponse.getBody());
+            String healthStatus = rootNode.path("status").path("health").path("status").asText("");
+            String lastSyncPhase = rootNode.path("status").path("operationState").path("phase").asText("");
+            String operationMessage = rootNode.path("status").path("operationState").path("message").asText("");
+
+            if (operationMessage != null && !operationMessage.isEmpty() &&
+                (operationMessage.toLowerCase().contains("failed") || operationMessage.toLowerCase().contains("error"))) {
+                result.put("status", "DEPLOYMENT_FAILED");
+                result.put("errorMessage", operationMessage);
+                return result;
+            }
+            if ("Failed".equalsIgnoreCase(lastSyncPhase) || "Error".equalsIgnoreCase(lastSyncPhase)) {
+                result.put("status", "DEPLOYMENT_FAILED");
+                result.put("errorMessage", operationMessage != null ? operationMessage : "Sync phase failed");
+                return result;
+            }
+            if ("Degraded".equalsIgnoreCase(healthStatus)) {
+                result.put("status", "DEPLOYMENT_FAILED");
+                result.put("errorMessage", operationMessage != null && !operationMessage.isEmpty()
+                    ? operationMessage : "Application health is Degraded. Check pod logs for details.");
+                return result;
+            }
+            if ("Healthy".equalsIgnoreCase(healthStatus)) {
+                result.put("status", "DEPLOYED");
+                return result;
+            }
+            return result;
+        } catch (Exception e) {
+            log.error("Failed to check ArgoCD deployment status for {}", appName, e);
+            return result;
+        }
+    }
+
     private String getNamespaceForEnvironment(String clusterEnv, String targetEnv) {
-        String prefix = (argocdNamespacePrefix != null && !argocdNamespacePrefix.isEmpty()) 
+        String prefix = (argocdNamespacePrefix != null && !argocdNamespacePrefix.isEmpty())
             ? argocdNamespacePrefix : clusterEnv;
         if ("int".equalsIgnoreCase(targetEnv)) {
             return prefix + "-dna-cs-apps-int";
         }
         return prefix + "-dna-cs-apps";
     }
-    
+
     private String getVaultAuthPath(String clusterEnv) {
-        return "auth/k8_auth_dna_aws_" + clusterEnv;
-    }
-
-    /**
-     * Fetches the resource tree for an ArgoCD application, extracting pod info.
-     * Returns a list of maps with keys: name, status, namespace, kind.
-     */
-    public List<Map<String, String>> getAppPods(String token, String appName) {
-        List<Map<String, String>> pods = new ArrayList<>();
-        try {
-            String url = argocdCreateUrl + "/" + appName + "/resource-tree";
-            HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth(token);
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            HttpEntity<Object> entity = new HttpEntity<>(headers);
-
-            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
-            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-                ObjectMapper mapper = new ObjectMapper();
-                JsonNode root = mapper.readTree(response.getBody());
-                JsonNode nodes = root.path("nodes");
-                if (nodes.isArray()) {
-                    for (JsonNode node : nodes) {
-                        String kind = node.path("kind").asText("");
-                        if ("Pod".equalsIgnoreCase(kind)) {
-                            Map<String, String> podInfo = new HashMap<>();
-                            podInfo.put("name", node.path("name").asText(""));
-                            podInfo.put("namespace", node.path("namespace").asText(""));
-                            podInfo.put("status", node.path("health").path("status").asText("Unknown"));
-                            podInfo.put("kind", kind);
-                            pods.add(podInfo);
-                        }
-                    }
-                }
-            }
-            log.info("Found {} pods for ArgoCD app: {}", pods.size(), appName);
-        } catch (Exception e) {
-            log.error("Failed to get resource tree for ArgoCD app {}: {}", appName, e.getMessage());
+        if ("dev".equalsIgnoreCase(clusterEnv)) {
+            return "auth/kubernetes";
+        } else if ("test".equalsIgnoreCase(clusterEnv) || "staging".equalsIgnoreCase(clusterEnv)) {
+            return "auth/k8_auth_dna_aws_dev";
+        } else {
+            return "auth/k8_auth_dna_aws_prod";
         }
-        return pods;
-    }
-
-    /**
-     * Fetches pod logs from the ArgoCD logs API.
-     * Returns a list of log lines for the given pod.
-     */
-    public List<String> getPodLogs(String token, String appName, String podName, String namespace, int sinceSeconds) {
-        List<String> logLines = new ArrayList<>();
-        try {
-            String url = argocdCreateUrl + "/" + appName + "/logs"
-                    + "?podName=" + podName
-                    + "&namespace=" + namespace
-                    + "&sinceSeconds=" + sinceSeconds
-                    + "&follow=false";
-
-            HttpHeaders headers = new HttpHeaders();
-            headers.setBearerAuth(token);
-            HttpEntity<Object> entity = new HttpEntity<>(headers);
-
-            log.debug("Fetching pod logs from: {}", url);
-            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
-
-            if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
-                ObjectMapper mapper = new ObjectMapper();
-                String body = response.getBody();
-                // ArgoCD logs API returns newline-delimited JSON objects: {"result":{"content":"...","podName":"..."}}
-                String[] lines = body.split("\n");
-                for (String line : lines) {
-                    line = line.trim();
-                    if (line.isEmpty()) continue;
-                    try {
-                        JsonNode logEntry = mapper.readTree(line);
-                        String content = logEntry.path("result").path("content").asText("");
-                        if (!content.isEmpty()) {
-                            logLines.add(content);
-                        }
-                    } catch (Exception parseEx) {
-                        // If not JSON, treat as raw log line
-                        logLines.add(line);
-                    }
-                }
-            }
-            log.debug("Fetched {} log lines for pod {} in app {}", logLines.size(), podName, appName);
-        } catch (org.springframework.web.client.HttpClientErrorException.NotFound e) {
-            log.warn("Pod {} not found in ArgoCD app {}", podName, appName);
-        } catch (Exception e) {
-            log.error("Failed to fetch pod logs for {} in app {}: {}", podName, appName, e.getMessage());
-        }
-        return logLines;
     }
 }

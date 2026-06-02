@@ -28,6 +28,7 @@ import { IconGear } from 'dna-container/IconGear';
 import VaultManagement from './vaultManagement/VaultManagement';
 import DeployAuditLogsModal from './deployAuditLogsModal/DeployAuditLogsModal';
 import DeployModal from './deployModal/DeployModal';
+import IntMigrationModal, { needsIntMigration } from './intMigrationModal/IntMigrationModal';
 import { setRippleAnimation } from '../common/modules/uilab/js/src/util';
 import ConfirmModal from 'dna-container/ConfirmModal';
 import BuildModal from './buildModal/buildModal';
@@ -136,6 +137,7 @@ const CodeSpace = (props) => {
   const [isApiCallTakeTime, setIsApiCallTakeTime] = useState(false);
   const [showCodeDeployModal, setShowCodeDeployModal] = useState(false);
   const [showManageBuildModal, setShowManageBuildModal] = useState(false);
+  const [showIntMigrationModal, setShowIntMigrationModal] = useState(false);
   const [codeDeploying, setCodeDeploying] = useState(false);
   const [codeDeployed, setCodeDeployed] = useState(false);
   const [codeDeployedUrl, setCodeDeployedUrl] = useState();
@@ -162,6 +164,7 @@ const CodeSpace = (props) => {
   const [showProdActions, setShowProdActions] = useState(false);
   const [showRestartModal, setShowRestartModal] = useState(false);
   const [env, setEnv] = useState("");
+
 
   const livelinessIntervalRef = React.useRef();
   const stagingWrapperRef = useRef(null);
@@ -456,7 +459,57 @@ const CodeSpace = (props) => {
   };
 
   const onShowCodeDeployModal = () => {
-    setShowCodeDeployModal(true);
+    if (needsIntMigration(codeSpaceData)) {
+      setShowIntMigrationModal(true);
+    } else {
+      setShowCodeDeployModal(true);
+    }
+  };
+
+  const handleIntMigrationOk = () => {
+    const projectDetails = codeSpaceData?.projectDetails;
+    const intDeploymentDetails = projectDetails?.intDeploymentDetails;
+    const defaultBranch = intDeploymentDetails?.lastDeployedBranch || 'main';
+    
+    const deployRequest = {
+      targetEnvironment: 'int',
+      branch: defaultBranch,
+      version: '',
+      keepBuildImage: false,
+    };
+
+    const projectName = projectDetails?.projectName;
+    if (projectName) {
+      localStorage.setItem('intMigrationDismissed_' + projectName, 'true');
+    }
+
+    ProgressIndicator.show();
+    CodeSpaceApiClient.deployCodeSpace(codeSpaceData.id, deployRequest)
+      .then((res) => {
+        trackEvent('DnA Code Space', 'Deploy', 'Deploy code space after IntMigration');
+        if (res.data.success === 'SUCCESS') {
+          setCodeDeploying(true);
+          ProgressIndicator.hide();
+          Notification.show(
+            `Code space '${projectDetails.projectName}' deployment successfully started. Please check the status later.`,
+          );
+          setShowIntMigrationModal(false);
+          enableDeployLivelinessCheck(codeSpaceData.workspaceId, 'staging');
+        } else {
+          ProgressIndicator.hide();
+          Notification.show(
+            'Error in deploying code space. Please try again later.\n' + res.data.errors[0].message,
+            'alert',
+          );
+        }
+      })
+      .catch((err) => {
+        ProgressIndicator.hide();
+        Notification.show(
+          'Error in deploying code space. Please try again later.\n' + err?.response?.data?.errors[0]?.message,
+          'alert',
+        );
+      });
   };
 
   const enableDeployLivelinessCheck = (id, deployEnvironmentValue) => {
@@ -1255,6 +1308,14 @@ const CodeSpace = (props) => {
             onRestart(env);
             setShowRestartModal(false);
           }}
+        />
+      )}
+
+      {showIntMigrationModal && (
+        <IntMigrationModal
+          show={showIntMigrationModal}
+          codeSpaceData={codeSpaceData}
+          onDismiss={handleIntMigrationOk}
         />
       )}
 
