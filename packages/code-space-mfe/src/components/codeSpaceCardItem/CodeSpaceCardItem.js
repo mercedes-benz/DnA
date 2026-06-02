@@ -20,6 +20,9 @@ import { marked } from 'marked';
 import { Envs } from '../../Utility/envs';
 import Tooltip from '../../common/modules/uilab/js/src/tooltip';
 import ContextMenu from '../contextMenu/ContextMenu';
+import AceEditor from 'react-ace';
+import 'ace-builds/src-noconflict/mode-text';
+import 'ace-builds/src-noconflict/theme-solarized_dark';
 
 let isTouch = false;
 
@@ -55,6 +58,7 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
   const [showSyncErrorModal, setShowSyncErrorModal] = useState(false);
   const [syncErrorMessage, setSyncErrorMessage] = useState('');
   const [syncErrorLoading, setSyncErrorLoading] = useState(false);
+  const [errorCopied, setErrorCopied] = useState(false);
   const contextMenuRef = useRef(null);
   const statusPollRef = useRef(null);
 
@@ -400,6 +404,34 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
     handleRefresh();
   };
 
+  const formatErrorMessage = (message) => {
+    if (!message) return '';    
+    try {
+      const parsed = JSON.parse(message);
+      return JSON.stringify(parsed, null, 2);
+    } catch (e) {
+      return message
+        .replace(/,\s*/g, ',\n')
+        .replace(/:\s*/g, ': ')
+        .replace(/\{/g, '{\n  ')
+        .replace(/\}/g, '\n}')
+        .replace(/reason:/gi, '\n\nReason:\n')
+        .replace(/error:/gi, '\n\nError:\n')
+        .trim();
+    }
+  };
+
+  const handleCopyError = () => {
+    if (syncErrorMessage) {
+      navigator.clipboard.writeText(syncErrorMessage).then(() => {
+        setErrorCopied(true);
+        setTimeout(() => setErrorCopied(false), 2000);
+      }).catch(err => {
+        console.error('Failed to copy error message:', err);
+      });
+    }
+  };
+
   const onSyncErrorInfoClick = (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -712,13 +744,16 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
                           >
                            Failed
                           </a>
-                          <span
-                            className={Styles.syncErrorInfoIcon}
-                            onClick={onSyncErrorInfoClick}
-                            tooltip-data="View sync error details"
-                          >
-                            <i className="icon mbc-icon info"></i>
-                          </span>
+                          {((projectDetails?.lastBuildOrDeployedEnv === 'int' && projectDetails?.intDeploymentDetails?.lastDeploymentError) ||
+                            (projectDetails?.lastBuildOrDeployedEnv === 'prod' && projectDetails?.prodDeploymentDetails?.lastDeploymentError)) && (
+                            <span
+                              className={Styles.syncErrorInfoIcon}
+                              onClick={onSyncErrorInfoClick}
+                              tooltip-data="View sync error details"
+                            >
+                              <i className="icon mbc-icon info"></i>
+                            </span>
+                          )}
                         </span>
                       )}
                       {projectDetails?.lastBuildOrDeployedStatus === 'BUILD_SUCCESS' && (
@@ -828,13 +863,16 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
                           >
                            Failed
                           </a>
-                          <span
-                            className={Styles.syncErrorInfoIcon}
-                            onClick={onSyncErrorInfoClick}
-                            tooltip-data="View sync error details"
-                          >
-                            <i className="icon mbc-icon info"></i>
-                          </span>
+                          {((projectDetails?.lastBuildOrDeployedEnv === 'int' && projectDetails?.intDeploymentDetails?.lastDeploymentError) ||
+                            (projectDetails?.lastBuildOrDeployedEnv === 'prod' && projectDetails?.prodDeploymentDetails?.lastDeploymentError)) && (
+                            <span
+                              className={Styles.syncErrorInfoIcon}
+                              onClick={onSyncErrorInfoClick}
+                              tooltip-data="View sync error details"
+                            >
+                              <i className="icon mbc-icon info"></i>
+                            </span>
+                          )}
                         </span>
                       )}
                       {projectDetails?.lastBuildOrDeployedStatus === 'RESTARTED' && (
@@ -964,27 +1002,66 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
       )}
       {showSyncErrorModal && (
         <Modal
+          title={
+            <div className={Styles.modalHeader}>
+              <span>Sync Error Details</span>
+              <button
+                className={Styles.copyButton}
+                onClick={handleCopyError}
+                disabled={syncErrorLoading || !syncErrorMessage}
+                tooltip-data="Copy error message"
+              >
+                {errorCopied ? 'Copied!' : 'Copy'}
+              </button>
+            </div>
+          }
           showAcceptButton={false}
           showCancelButton={false}
           show={showSyncErrorModal}
           content={
             <div className={Styles.syncErrorModalContent}>
-              <h3>Deployment Sync Error</h3>
               {syncErrorLoading ? (
                 <p>Loading error details...</p>
               ) : (
-                <pre className={Styles.syncErrorPre}>{syncErrorMessage}</pre>
+                <div className={Styles.errorContainer}>
+                  <div className={Styles.editorWrapper}>
+                    <AceEditor
+                      width="100%"
+                      height="450px"
+                      mode="text"
+                      theme="solarized_dark"
+                      name="errorLogViewer"
+                      fontSize={13}
+                      showPrintMargin={false}
+                      showGutter={true}
+                      highlightActiveLine={false}
+                      value={formatErrorMessage(syncErrorMessage)}
+                      readOnly={true}
+                      setOptions={{
+                        enableBasicAutocompletion: false,
+                        enableLiveAutocompletion: false,
+                        enableSnippets: false,
+                        showLineNumbers: true,
+                        tabSize: 2,
+                        useWorker: false,
+                        wrap: true,
+                      }}
+                      editorProps={{ $blockScrolling: true }}
+                    />
+                  </div>
+                </div>
               )}
             </div>
           }
-          scrollableContent={true}
+          scrollableContent={false}
           onCancel={() => {
             setShowSyncErrorModal(false);
             setSyncErrorMessage('');
           }}
           modalStyle={{
-            width: '60%',
-            maxHeight: '70%',
+            width: '70%',
+            maxWidth: '1200px',
+            maxHeight: '80%',
           }}
         />
       )}

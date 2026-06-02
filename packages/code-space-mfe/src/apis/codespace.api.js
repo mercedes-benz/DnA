@@ -433,7 +433,9 @@ const subscribeToDeploymentStatus = (projectName, environment, onStatusUpdate, o
 };
 
 const getSyncError = (projectName, environment) => {
-    return httpClient.get(`${baseURL}/workspace/deployment/syncerror/${projectName}/${environment}`);
+    return server.get(`workspace/deployment/syncerror/${projectName}/${environment}`, {
+        data: {},
+    });
 };
 
 const subscribeToPodLogs = (projectName, environment, onPodInfo, onPodLogs, onComplete, onError) => {
