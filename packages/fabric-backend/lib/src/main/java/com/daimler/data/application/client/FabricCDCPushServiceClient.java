@@ -104,17 +104,31 @@ public class FabricCDCPushServiceClient {
 			if(response.getStatusCode().is2xxSuccessful()) {
 				if (response != null && response.hasBody()) {
 					vo = response.getBody();
-					vo.setResponseCode(response.getStatusCode().toString());
+					vo.setResponseCode(String.valueOf(response.getStatusCode().value()));
+					log.info("Fetched lakehouse tables for workspaceId: {}, lakehouseId: {}", workspaceId, lakehouseId);
 				} else {
 					log.warn("Empty response received for workspaceId: {}, lakehouseId: {}", workspaceId, lakehouseId);
-					vo.setResponseCode(response.getStatusCode().toString());
+					vo.setResponseCode(String.valueOf(response.getStatusCode().value()));
+					vo.setErrorMessage("Empty response received");
 				}
+			} else {
+				String errorMessage = "Error response received with status: " + response.getStatusCode();
+				log.error("Error response received for workspaceId: {}, lakehouseId: {} with status: {}", workspaceId, lakehouseId, response.getStatusCode());
+				vo.setResponseCode(String.valueOf(response.getStatusCode().value()));
+				vo.setErrorMessage(errorMessage);
 			}
-			vo.setResponseCode(response.getStatusCode().toString());
 
+        } catch (HttpStatusCodeException e) {
+            String errorResponse = e.getResponseBodyAsString();
+            String errorMessage = extractErrorMessage(errorResponse);
+            log.error("HTTP error occurred while fetching lakehouse tables: {} - {}", e.getStatusCode(), errorMessage);
+            vo.setResponseCode(String.valueOf(e.getStatusCode().value()));
+            vo.setErrorMessage(errorMessage);
         } catch (Exception e) {
+            String errorMessage = "Exception occurred while fetching lakehouse tables: " + e.getMessage();
             log.error("Exception occurred while fetching lakehouse tables: {}", e.getMessage());
 			vo.setResponseCode(String.valueOf(HttpStatus.SC_INTERNAL_SERVER_ERROR));
+			vo.setErrorMessage(errorMessage);
         }
 
         return vo;
@@ -145,18 +159,31 @@ public class FabricCDCPushServiceClient {
 				
 				if (response != null && response.hasBody()) {
 					vo = response.getBody();
-					vo.setResponseCode(response.getStatusCode().toString());
+					vo.setResponseCode(String.valueOf(response.getStatusCode().value()));
 					log.info("Fetched table schema for workspaceId: {}, lakehouseId: {}, tableName: {}", workspaceId, lakehouseId, tableName);
 				} else {
 					log.warn("Empty response received for workspaceId: {}, lakehouseId: {}, tableName: {}", workspaceId, lakehouseId, tableName);
-					vo.setResponseCode(response.getStatusCode().toString());
+					vo.setResponseCode(String.valueOf(response.getStatusCode().value()));
+					vo.setErrorMessage("Empty response received");
 				}
+			} else {
+				String errorMessage = "Error response received with status: " + response.getStatusCode();
+				log.error("Error response received for workspaceId: {}, lakehouseId: {}, tableName: {} with status: {}", workspaceId, lakehouseId, tableName, response.getStatusCode());
+				vo.setResponseCode(String.valueOf(response.getStatusCode().value()));
+				vo.setErrorMessage(errorMessage);
 			}
-			vo.setResponseCode(response.getStatusCode().toString());
 
+		} catch (HttpStatusCodeException e) {
+			String errorResponse = e.getResponseBodyAsString();
+			String errorMessage = extractErrorMessage(errorResponse);
+			log.error("HTTP error occurred while fetching table schema: {} - {}", e.getStatusCode(), errorMessage);
+			vo.setResponseCode(String.valueOf(e.getStatusCode().value()));
+			vo.setErrorMessage(errorMessage);
 		} catch (Exception e) {
+			String errorMessage = "Exception occurred while fetching table schema: " + e.getMessage();
 			log.error("Exception occurred while fetching table schema: {}", e.getMessage());
 			vo.setResponseCode(String.valueOf(HttpStatus.SC_INTERNAL_SERVER_ERROR));
+			vo.setErrorMessage(errorMessage);
 		}
 		return vo;
 	}

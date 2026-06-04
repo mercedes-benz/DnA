@@ -1437,6 +1437,9 @@ definitions:
         responseCode:
           type: string
           description: "Response code of the operation"
+        errorMessage:
+          type: string
+          description: "Error message when operation fails"
 
   LakehouseColumnVO:
     type: object
@@ -1467,6 +1470,9 @@ definitions:
       responseCode:
         type: string
         description: "Response code of the operation"
+      errorMessage:
+        type: string
+        description: "Error message when operation fails"
     
   CustomGroupNameCollectionVO:
     type: object
