@@ -523,15 +523,11 @@ definitions:
         type: string
       metadata:
         $ref: "#/definitions/FabricCatalogMetadataVO"
-      owners:
-        type: array
-        items:
-          $ref: "#/definitions/CreatedByVO"
       mandatoryFields:
         $ref: "#/definitions/MandatoryFieldsVO"
-      publishedCdcTables:
+      publishedCDCCatalogs:
         type: array
-        description: "List of CDC table details published from this catalog"
+        description: "List of CDC catalog details published from this workspace"
         items:
           $ref: "#/definitions/CdcTableDetailVO"
       publishedLakehouseTables:

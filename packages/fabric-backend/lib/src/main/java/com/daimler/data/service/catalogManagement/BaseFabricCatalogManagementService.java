@@ -128,14 +128,27 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
         
         PublishCatalogResponseVO response = new PublishCatalogResponseVO();
         FabricCatalogMetadataDetailsVO catalogMetadataDetails = new FabricCatalogMetadataDetailsVO();
+        boolean effectiveHasExistingPublish = hasExistingPublish;
         
         try {
+            if (!effectiveHasExistingPublish) {
+                try {
+                    openMetadataClient.getDatabaseService(existingFabricWorkspace.getName());
+                    effectiveHasExistingPublish = true;
+                    log.warn("Workspace {} marked as not published, but DatabaseService already exists in OpenMetadata. Switching to existing publish flow.",
+                            existingFabricWorkspace.getName());
+                } catch (EntityNotFoundException ignored) {
+                    log.info("No existing DatabaseService found for workspace {}. Proceeding with first-time publish.",
+                            existingFabricWorkspace.getName());
+                }
+            }
+
             // Validate and process owners
             List<EntityReference> ownerReferences = validateAndProcessOwners(request.getOwners(), response);
             if (ownerReferences.isEmpty()) {
                 return response; 
             }
-            if (hasExistingPublish) {
+            if (effectiveHasExistingPublish) {
                 log.info("Adding new databases to existing service for workspace: {}", 
                         existingFabricWorkspace.getName());
                 // Add databases to existing service
@@ -252,7 +265,6 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
             // Populate an in-memory details VO for the response / per-lakehouse save
             FabricCatalogMetadataDetailsVO vo = new FabricCatalogMetadataDetailsVO();
             vo.setMetadata(request.getMetadata());
-            vo.setOwners(request.getOwners());
 
             // Populate lakehouse table details with enabled status
             populateLakehouseTableDetails(vo, existingFabricWorkspace, request);
@@ -500,23 +512,22 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
                 FabricCatalogMetadataDetailsVO existingVO = catalogAssembler.toVo(existingEntityOpt.get());
                 persistenceVO.setId(existingVO.getId()); // Keep the original ID
                 List<CdcTableDetailVO> mergedCdcTables = mergeCdcTableDetails(
-                    existingVO.getPublishedCdcTables(), 
-                    catalogMetadataDetails.getPublishedCdcTables()
+                    existingVO.getPublishedCDCCatalogs(), 
+                    catalogMetadataDetails.getPublishedCDCCatalogs()
                 );
-                persistenceVO.setPublishedCdcTables(mergedCdcTables);
+                persistenceVO.setPublishedCDCCatalogs(mergedCdcTables);
             } else {
                 log.info("Creating new catalog metadata record for service: {}", 
                     request.getMetadata().getServiceName());
                 persistenceVO.setId(lakehouseId);
-                persistenceVO.setPublishedCdcTables(catalogMetadataDetails.getPublishedCdcTables());
+                persistenceVO.setPublishedCDCCatalogs(catalogMetadataDetails.getPublishedCDCCatalogs());
             }
             
-            persistenceVO.setOwners(request.getOwners());
             FabricCatalogMetadataNsql entity = catalogAssembler.toEntity(persistenceVO);
             entity.setId(persistenceVO.getId());
             catalogRepo.save(entity);
             log.info("Successfully saved catalog metadata with {} CDC entries", 
-                persistenceVO.getPublishedCdcTables() != null ? persistenceVO.getPublishedCdcTables().size() : 0);
+                persistenceVO.getPublishedCDCCatalogs() != null ? persistenceVO.getPublishedCDCCatalogs().size() : 0);
         } catch (Exception e) {
             log.error("Failed to save catalog metadata for lakehouse {}: {}", lakehouseId, e.getMessage(), e);
             throw new OpenMetadataClientException("Failed to save catalog metadata: " + e.getMessage(), e);
@@ -618,15 +629,14 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
 
                 // Filter CDC details for this specific lakehouse only.
                 List<CdcTableDetailVO> lakehouseCdcDetails = new ArrayList<>();
-                if (catalogMetadataDetails.getPublishedCdcTables() != null) {
-                    lakehouseCdcDetails = catalogMetadataDetails.getPublishedCdcTables().stream()
+                if (catalogMetadataDetails.getPublishedCDCCatalogs() != null) {
+                    lakehouseCdcDetails = catalogMetadataDetails.getPublishedCDCCatalogs().stream()
                         .filter(cdc -> lakehouseId.equals(cdc.getLakeHouseId()))
                         .collect(Collectors.toList());
                 }
 
                 FabricCatalogMetadataDetailsVO lakehouseDetails = new FabricCatalogMetadataDetailsVO();
                 lakehouseDetails.setId(lakehouseId);
-                lakehouseDetails.setOwners(request.getOwners());
 
                 Optional<FabricCatalogMetadataNsql> existingEntityOpt = catalogRepo.findById(lakehouseId);
 
@@ -635,12 +645,12 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
                         lakehouseId, workspace.getId());
                     FabricCatalogMetadataDetailsVO existingVO = catalogAssembler.toVo(existingEntityOpt.get());
                     List<CdcTableDetailVO> mergedCdcTables = mergeCdcTableDetails(
-                        existingVO.getPublishedCdcTables(),
+                        existingVO.getPublishedCDCCatalogs(),
                         lakehouseCdcDetails
                     );
-                    lakehouseDetails.setPublishedCdcTables(mergedCdcTables);
+                    lakehouseDetails.setPublishedCDCCatalogs(mergedCdcTables);
                 } else {
-                    lakehouseDetails.setPublishedCdcTables(lakehouseCdcDetails);
+                    lakehouseDetails.setPublishedCDCCatalogs(lakehouseCdcDetails);
                 }
 
                 FabricCatalogMetadataNsql entity = catalogAssembler.toEntity(lakehouseDetails);
@@ -648,7 +658,7 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
                 catalogRepo.save(entity);
 
                 log.info("Successfully saved catalog metadata for lakehouse: {} with {} CDC entries",
-                    lakehouseId, lakehouseDetails.getPublishedCdcTables() != null ? lakehouseDetails.getPublishedCdcTables().size() : 0);
+                    lakehouseId, lakehouseDetails.getPublishedCDCCatalogs() != null ? lakehouseDetails.getPublishedCDCCatalogs().size() : 0);
             }
 
         } catch (Exception e) {
@@ -779,16 +789,15 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
         }
 
         FabricCatalogMetadataDetailsVO firstVO = catalogAssembler.toVo(entities.get(0));
-        catalogMetadataDetails.setOwners(firstVO.getOwners());
 
         List<CdcTableDetailVO> allCdcTables = new ArrayList<>();
 
         for (FabricCatalogMetadataNsql entity : entities) {
             FabricCatalogMetadataDetailsVO vo = catalogAssembler.toVo(entity);
-            allCdcTables = mergeCdcTableDetails(allCdcTables, vo.getPublishedCdcTables());
+            allCdcTables = mergeCdcTableDetails(allCdcTables, vo.getPublishedCDCCatalogs());
         }
 
-        catalogMetadataDetails.setPublishedCdcTables(allCdcTables);
+        catalogMetadataDetails.setPublishedCDCCatalogs(allCdcTables);
 
         return catalogMetadataDetails;
     }
@@ -799,8 +808,8 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
             List<FabricLakehouseVO> requestedLakehouses = resolveRequestedLakehouses(request, workspace);
             Map<String, CdcTableDetailVO> cdcDetailsByLakehouseId = new LinkedHashMap<>();
 
-            if (catalogMetadataDetails.getPublishedCdcTables() != null) {
-                for (CdcTableDetailVO detail : catalogMetadataDetails.getPublishedCdcTables()) {
+            if (catalogMetadataDetails.getPublishedCDCCatalogs() != null) {
+                for (CdcTableDetailVO detail : catalogMetadataDetails.getPublishedCDCCatalogs()) {
                     if (detail != null && detail.getLakeHouseId() != null) {
                         cdcDetailsByLakehouseId.put(detail.getLakeHouseId(), detail);
                     }
@@ -919,7 +928,7 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
                 }
             }
 
-            catalogMetadataDetails.setPublishedCdcTables(new ArrayList<>(cdcDetailsByLakehouseId.values()));
+            catalogMetadataDetails.setPublishedCDCCatalogs(new ArrayList<>(cdcDetailsByLakehouseId.values()));
             
             log.info("Populated lakehouse table details for {} lakehouse entries", 
                 cdcDetailsByLakehouseId.size());
@@ -987,8 +996,8 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
                     ? request.getOwners().get(0) : null;
 
             for (FabricLakehouseVO lakehouse : requestedLakehouses) {
-                CdcTableDetailVO cdcDetail = catalogMetadataDetails.getPublishedCdcTables() != null
-                    ? catalogMetadataDetails.getPublishedCdcTables().stream()
+                CdcTableDetailVO cdcDetail = catalogMetadataDetails.getPublishedCDCCatalogs() != null
+                    ? catalogMetadataDetails.getPublishedCDCCatalogs().stream()
                         .filter(detail -> lakehouse.getId().equals(detail.getLakeHouseId()))
                         .findFirst()
                         .orElseGet(CdcTableDetailVO::new)
@@ -1009,7 +1018,7 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
                 cdcTableDetails.add(cdcDetail);
             }
 
-            catalogMetadataDetails.setPublishedCdcTables(cdcTableDetails);
+            catalogMetadataDetails.setPublishedCDCCatalogs(cdcTableDetails);
             log.info("Populated CDC table details: {} entries", cdcTableDetails.size());
 
         } catch (Exception e) {
@@ -1142,7 +1151,6 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
             FabricCatalogMetadataDetailsVO vo = catalogAssembler.toVo(entity);
             
             // Update all fields
-            vo.setOwners(request.getOwners());
             
             catalogRepo.save(catalogAssembler.toEntity(vo));
         } catch (EntityNotFoundException e) {
@@ -1679,8 +1687,8 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
             }
 
             FabricCatalogMetadataDetailsVO storedVO = catalogAssembler.toVo(lakehouseEntityOpt.get());
-            CdcTableDetailVO storedLakehouseDetail = storedVO.getPublishedCdcTables() == null ? null
-                : storedVO.getPublishedCdcTables().stream()
+            CdcTableDetailVO storedLakehouseDetail = storedVO.getPublishedCDCCatalogs() == null ? null
+                : storedVO.getPublishedCDCCatalogs().stream()
                     .filter(detail -> lakehouseId.equals(detail.getLakeHouseId()))
                     .findFirst()
                     .orElse(null);

@@ -38,20 +38,12 @@ public class FabricCatalogMetadataAssembler implements GenericAssembler<FabricCa
                 entity.setId(vo.getId());
             }
 
-            List<UserDetails> owners = new ArrayList<>();
-            if (vo.getOwners() != null) {
-                List<CreatedByVO> ownersDetails = vo.getOwners();
-                owners = ownersDetails.stream()
-                        .map(this::toUserDetails)
-                        .collect(Collectors.toList());
-            }
-            data.setOwners(owners);           
-            if (vo.getPublishedCdcTables() != null) {
+            if (vo.getPublishedCDCCatalogs() != null) {
                 List<CdcTableDetail> cdcTableDetails = new ArrayList<>();
-                for (CdcTableDetailVO cdcVo : vo.getPublishedCdcTables()) {
+                for (CdcTableDetailVO cdcVo : vo.getPublishedCDCCatalogs()) {
                     cdcTableDetails.add(toCdcTableDetail(cdcVo));
                 }
-                data.setPublishedCdcTables(cdcTableDetails);
+                data.setPublishedCDCCatalogs(cdcTableDetails);
             }
         }
         entity.setData(data);
@@ -67,25 +59,16 @@ public class FabricCatalogMetadataAssembler implements GenericAssembler<FabricCa
             }
             FabricCatalogMetadataDetails metadataDetails = entity.getData();
             if (metadataDetails != null) {
-                List<CreatedByVO> owners = new ArrayList<>();
-                if (metadataDetails.getOwners() != null) {
-                    List<UserDetails> ownerDetails = metadataDetails.getOwners();
-                    owners = ownerDetails.stream()
-                            .map(this::toCreatedByVO)
-                            .collect(Collectors.toList());
-                }
-                vo.setOwners(owners);
-
-                if (metadataDetails.getPublishedCdcTables() != null) {
+                if (metadataDetails.getPublishedCDCCatalogs() != null) {
                     List<CdcTableDetailVO> cdcTableVos = new ArrayList<>();
-                    for (CdcTableDetail cdcDetail : metadataDetails.getPublishedCdcTables()) {
+                    for (CdcTableDetail cdcDetail : metadataDetails.getPublishedCDCCatalogs()) {
                         cdcTableVos.add(toCdcTableDetailVO(
                             cdcDetail,
                             metadataDetails.getMandatoryFields(),
                             metadataDetails.getPublishedLakehouseTables(),
                             metadataDetails.getPublishedLakehouseTableDetails()));
                     }
-                    vo.setPublishedCdcTables(cdcTableVos);
+                    vo.setPublishedCDCCatalogs(cdcTableVos);
                 }
             }
         }

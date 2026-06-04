@@ -5,6 +5,8 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
 import com.daimler.data.db.json.UserDetails;
 import lombok.AllArgsConstructor;
@@ -23,6 +25,8 @@ public class FabricCatalogMetadataDetails implements Serializable {
     private MandatoryFields mandatoryFields;
     private List<String> publishedLakehouseTables;
     private List<LakehouseTableDetail> publishedLakehouseTableDetails;
+    @JsonProperty("publishedCDCCatalogs")
+    @JsonAlias("publishedCdcTables")
     @JsonDeserialize(using = CdcTableDetailListDeserializer.class)
-    private List<CdcTableDetail> publishedCdcTables;
+    private List<CdcTableDetail> publishedCDCCatalogs;
 }
