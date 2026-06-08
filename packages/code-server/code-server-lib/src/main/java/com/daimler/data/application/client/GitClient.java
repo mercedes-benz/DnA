@@ -711,23 +711,17 @@ public class GitClient {
 		return null;
 	}
 
-	public GitHubWorkflowRunDto getWorkflowRun(String runId) {
-		return getWorkflowRun(runId, false);
-	}
-
-	public GitHubWorkflowJobsResponseDto.Job getBuildDeployJob(String runId, boolean useGHE) {
-		String baseUri = useGHE ? gheBaseUri : gitBaseUri;
-		String pat = useGHE ? ghePat : personalAccessToken;
-		String repoPath = useGHE ? (applicationName + "/codespace-build-deploy-workflows") : (applicationName + "/" + gitAppName);
-		String url = baseUri + "/repos/" + repoPath + "/actions/runs/" + runId + "/jobs";
+	public GitHubWorkflowJobsResponseDto.Job getBuildDeployJob(String runId) {
+		String repoPath = applicationName + "/codespace-build-deploy-workflows";
+		String url = gheBaseUri + "/repos/" + repoPath + "/actions/runs/" + runId + "/jobs";
 
 		HttpHeaders headers = new HttpHeaders();
 		headers.set("Accept", "application/vnd.github+json");
-		headers.set("Authorization", "Bearer " + pat);
+		headers.set("Authorization", "Bearer " + ghePat);
 
 		HttpEntity<Void> entity = new HttpEntity<>(headers);
 		try {
-			log.info("Calling GitHub Jobs API: {} (useGHE={})", url, useGHE);
+			log.info("Calling GitHub Jobs API: {}", url);
 			ResponseEntity<GitHubWorkflowJobsResponseDto> response =
 					restTemplate.exchange(url, HttpMethod.GET, entity, GitHubWorkflowJobsResponseDto.class);
 			GitHubWorkflowJobsResponseDto body = response.getBody();
@@ -739,36 +733,34 @@ public class GitClient {
 			}
 			return null;
 		} catch (HttpStatusCodeException ex) {
-			log.error("GitHub Jobs API error {} for runId {} (useGHE={})", ex.getStatusCode(), runId, useGHE);
+			log.error("GitHub Jobs API error {} for runId {}", ex.getStatusCode(), runId);
 			return null;
 		} catch (Exception ex) {
-			log.error("Unexpected error while calling GitHub Jobs API (useGHE={})", useGHE, ex);
+			log.error("Unexpected error while calling GitHub Jobs API", ex);
 			return null;
 		}
 	}
 
-	public GitHubWorkflowRunDto getWorkflowRun(String runId, boolean useGHE) {
-		String baseUri = useGHE ? gheBaseUri : gitBaseUri;
-		String pat = useGHE ? ghePat : personalAccessToken;
-		String repoPath = useGHE ? (applicationName + "/codespace-build-deploy-workflows") : (applicationName + "/" + gitAppName);
-		String url = baseUri + "/repos/" + repoPath + "/actions/runs/" + runId;
+	public GitHubWorkflowRunDto getWorkflowRun(String runId) {
+		String repoPath = applicationName + "/codespace-build-deploy-workflows";
+		String url = gheBaseUri + "/repos/" + repoPath + "/actions/runs/" + runId;
 
 		HttpHeaders headers = new HttpHeaders();
 		headers.set("Accept", "application/vnd.github+json");
-		headers.set("Authorization", "Bearer " + pat);
+		headers.set("Authorization", "Bearer " + ghePat);
 
 		HttpEntity<Void> entity = new HttpEntity<>(headers);
 		try {
-			log.info("Calling GitHub API: {} (useGHE={})", url, useGHE);
+			log.info("Calling GitHub API: {}", url);
 			ResponseEntity<GitHubWorkflowRunDto> response =
 					restTemplate.exchange(url, HttpMethod.GET, entity, GitHubWorkflowRunDto.class);
 			return response.getBody();
 
 		} catch (HttpStatusCodeException ex) {
-			log.error("GitHub API error {} for runId {} (useGHE={})", ex.getStatusCode(), runId, useGHE);
+			log.error("GitHub API error {} for runId {}", ex.getStatusCode(), runId);
 			return null;
 		} catch (Exception ex) {
-			log.error("Unexpected error while calling GitHub (useGHE={})", useGHE, ex);
+			log.error("Unexpected error while calling GitHub", ex);
 			return null;
 		}
 	}
