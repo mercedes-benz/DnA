@@ -193,6 +193,10 @@ const saveLakehouseSnapshot = (workspaceId, lakehouseId, payload) => {
   return server.post(`/fabric-workspaces/catalog/${workspaceId}/lakehouses/${lakehouseId}/snapshot`, payload);
 };
 
+const refreshCdcEntry = (workspaceId, lakehouseId) => {
+  return server.post(`/fabric-workspaces/catalog/${workspaceId}/${lakehouseId}/refresh`);
+};
+
 export const fabricApi = {
   getFabricWorkspaces,
   getFabricWorkspacesForAdmin,
@@ -225,4 +229,5 @@ export const fabricApi = {
   checkTableMismatch,
   getCatalogMetadata,
   saveLakehouseSnapshot,
+  refreshCdcEntry,
 };

@@ -26,7 +26,14 @@ public interface FabricCatalogManagementService extends CommonService<FabricCata
 	PublishCatalogResponseVO updateCatalogMetaData(PublishCatalogRequestVO request, FabricWorkspaceVO existingFabricWorkspace);
 	LakehouseObjectsResponseVO getLakehouseObjects(String workspaceId, String lakehouseId, String schemaName);
 	TableMismatchResponseVO checkTableMismatch(String workspaceId, String lakehouseId, String serviceName);
-	
+
+	/**
+	 * Refreshes the CDC entry for a specific lakehouse by re-fetching published info
+	 * (tables/columns) from Fabric. Preserves manually entered data such as
+	 * mandatoryFields, description, productName, productId, createdBy, and createdOn.
+	 */
+	PublishCatalogResponseVO refreshCdcEntry(String workspaceId, String lakehouseId, FabricWorkspaceVO workspace);
+
 	/**
 	 * This method is fetech and retrun all the legal enteties from the genesis 
 	 * @return List<LegalEntitiesResponseVO>

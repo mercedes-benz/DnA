@@ -218,6 +218,44 @@ paths:
         500:
           description: "Internal error"
 
+  /catalog/{workspaceId}/{lakehouseId}/refresh:
+    post:
+      tags:
+        - "fabric-catalog-management"
+      summary: "Refresh CDC entry for a lakehouse."
+      description: "Re-fetches published info (tables/columns) from Fabric and updates the CDC entry. Preserves manually entered data (mandatoryFields, description, productName, etc.)."
+      operationId: "refreshCdcEntry"
+      parameters:
+        - name: "workspaceId"
+          in: "path"
+          description: "The ID of the workspace."
+          required: true
+          type: "string"
+        - name: "lakehouseId"
+          in: "path"
+          description: "The ID of the lakehouse."
+          required: true
+          type: "string"
+      responses:
+        200:
+          description: "Returns refreshed catalog metadata"
+          schema:
+            $ref: "#/definitions/PublishCatalogResponseVO"
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        404:
+          description: "Workspace or lakehouse not found."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
   /catalog/{workspaceId}/check-mismatch:
     get:
       tags:

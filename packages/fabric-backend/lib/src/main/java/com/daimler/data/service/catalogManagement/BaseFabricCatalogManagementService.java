@@ -1670,6 +1670,217 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
 
 
     @Override
+    @Transactional
+    public PublishCatalogResponseVO refreshCdcEntry(String workspaceId, String lakehouseId,
+            FabricWorkspaceVO workspace) {
+        log.info("Refreshing CDC entry for workspace: {}, lakehouse: {}", workspaceId, lakehouseId);
+
+        PublishCatalogResponseVO response = new PublishCatalogResponseVO();
+        try {
+            Optional<FabricCatalogMetadataNsql> lakehouseEntityOpt = catalogRepo.findById(lakehouseId);
+            if (!lakehouseEntityOpt.isPresent()) {
+                log.error("No existing CDC entry found for lakehouse: {}", lakehouseId);
+                response.setResponses(createErrorResponse(NOT_FOUND_STATUS,
+                        "No existing CDC entry found for lakehouse: " + lakehouseId));
+                return response;
+            }
+
+            FabricCatalogMetadataDetailsVO storedVO = catalogAssembler.toVo(lakehouseEntityOpt.get());
+            CdcTableDetailVO storedDetail = storedVO.getPublishedCDCCatalogs() == null ? null
+                    : storedVO.getPublishedCDCCatalogs().stream()
+                        .filter(d -> lakehouseId.equals(d.getLakeHouseId()))
+                        .findFirst()
+                        .orElse(null);
+
+            if (storedDetail == null) {
+                log.error("No stored CDC detail found for lakehouse: {}", lakehouseId);
+                response.setResponses(createErrorResponse(NOT_FOUND_STATUS,
+                        "No stored CDC detail found for lakehouse: " + lakehouseId));
+                return response;
+            }
+
+            // Re-fetch current tables/columns from Fabric
+            var fabricTablesResponse = cdcPushServiceClient.getLakehouseTables(workspaceId, lakehouseId);
+            if (fabricTablesResponse == null || fabricTablesResponse.getData() == null
+                    || fabricTablesResponse.getData().getTables() == null) {
+                log.warn("No tables returned from Fabric for workspace: {}, lakehouse: {}",
+                        workspaceId, lakehouseId);
+                response.setResponses(createErrorResponse(FAILED_STATUS,
+                        "No tables returned from Fabric for this lakehouse."));
+                return response;
+            }
+
+            // Build fresh table/column details from Fabric, preserving enabled flags
+            Set<String> previouslyEnabledTables = new HashSet<>();
+            Map<String, Set<String>> previouslyEnabledColumns = new HashMap<>();
+            if (storedDetail.getPublishedLakehouseTableDetails() != null) {
+                for (LakehouseTableDetailVO t : storedDetail.getPublishedLakehouseTableDetails()) {
+                    if (t.isEnabled()) {
+                        previouslyEnabledTables.add(t.getTableName());
+                    }
+                    if (t.getColumns() != null) {
+                        Set<String> enabledCols = new HashSet<>();
+                        for (LakehouseColumnDetailVO c : t.getColumns()) {
+                            if (c.isEnabled()) {
+                                enabledCols.add(c.getColumnName());
+                            }
+                        }
+                        previouslyEnabledColumns.put(t.getTableName(), enabledCols);
+                    }
+                }
+            }
+
+            List<String> refreshedTableNames = new ArrayList<>();
+            List<LakehouseTableDetailVO> refreshedTableDetails = new ArrayList<>();
+
+            for (var fabricTable : fabricTablesResponse.getData().getTables()) {
+                String tableName = fabricTable.getTableName();
+                if (tableName == null || tableName.trim().isEmpty()) {
+                    continue;
+                }
+                refreshedTableNames.add(tableName);
+
+                LakehouseTableDetailVO tableDetail = new LakehouseTableDetailVO();
+                tableDetail.setTableName(tableName);
+                // Keep enabled flag for previously enabled tables; new tables default to false
+                tableDetail.setEnabled(previouslyEnabledTables.contains(tableName));
+
+                List<LakehouseColumnDetailVO> columnDetails = new ArrayList<>();
+                try {
+                    var columnsResponse = cdcPushServiceClient.getTableSchema(
+                            workspaceId, lakehouseId, "dbo", tableName);
+                    if (columnsResponse != null && columnsResponse.getData() != null
+                            && columnsResponse.getData().getColumns() != null) {
+                        Set<String> enabledCols = previouslyEnabledColumns.getOrDefault(tableName, new HashSet<>());
+                        for (var fabricColumn : columnsResponse.getData().getColumns()) {
+                            LakehouseColumnDetailVO colDetail = new LakehouseColumnDetailVO();
+                            colDetail.setColumnName(fabricColumn.getColumnName());
+                            colDetail.setEnabled(enabledCols.contains(fabricColumn.getColumnName()));
+                            columnDetails.add(colDetail);
+                        }
+                    }
+                } catch (Exception e) {
+                    log.error("Failed to fetch columns for table {} during refresh: {}", tableName, e.getMessage());
+                }
+                tableDetail.setColumns(columnDetails);
+                refreshedTableDetails.add(tableDetail);
+            }
+
+            // Preserve all manually entered fields, only update the Fabric-derived fields
+            storedDetail.setPublishedLakehouseTables(refreshedTableNames);
+            storedDetail.setPublishedLakehouseTableDetails(refreshedTableDetails);
+            storedDetail.setModifiedOn(LocalDate.now());
+
+            // Update OpenMetadata with new tables/schemas if they exist
+            try {
+                refreshOpenMetadataEntries(workspace, lakehouseId, storedDetail, refreshedTableNames);
+            } catch (Exception e) {
+                log.warn("Failed to refresh OpenMetadata entries for lakehouse {}: {}",
+                        lakehouseId, e.getMessage());
+            }
+
+            // Save updated metadata back to the database
+            FabricCatalogMetadataDetailsVO updatedVO = new FabricCatalogMetadataDetailsVO();
+            updatedVO.setId(lakehouseId);
+            updatedVO.setPublishedCDCCatalogs(storedVO.getPublishedCDCCatalogs());
+
+            FabricCatalogMetadataNsql entity = catalogAssembler.toEntity(updatedVO);
+            entity.setId(lakehouseId);
+            catalogRepo.save(entity);
+
+            prepareSuccessResponse(response, updatedVO);
+            log.info("CDC entry refreshed successfully for lakehouse: {}", lakehouseId);
+        } catch (Exception e) {
+            log.error("Failed to refresh CDC entry for lakehouse {}: {}", lakehouseId, e.getMessage(), e);
+            response.setResponses(createErrorResponse(FAILED_STATUS,
+                    "Failed to refresh CDC entry: " + e.getMessage()));
+        }
+        return response;
+    }
+
+    /**
+     * Syncs OpenMetadata entries for a lakehouse after a CDC refresh. Adds new
+     * tables/columns that appeared in Fabric without removing any existing ones
+     * whose data may have been manually curated.
+     */
+    private void refreshOpenMetadataEntries(FabricWorkspaceVO workspace,
+            String lakehouseId, CdcTableDetailVO storedDetail,
+            List<String> currentFabricTableNames) {
+        try {
+            FabricLakehouseVO lakehouse = workspace.getLakehouses() == null ? null
+                    : workspace.getLakehouses().stream()
+                        .filter(lh -> lakehouseId.equals(lh.getId()))
+                        .findFirst()
+                        .orElse(null);
+            if (lakehouse == null) {
+                return;
+            }
+
+            try {
+                openMetadataClient.getDatabaseService(workspace.getName());
+            } catch (EntityNotFoundException e) {
+                log.info("No database service found in OpenMetadata for workspace {}, skipping OM refresh",
+                        workspace.getName());
+                return;
+            }
+
+            Database database;
+            try {
+                database = openMetadataClient.getDatabase(workspace.getName(), lakehouse.getName());
+            } catch (EntityNotFoundException e) {
+                log.info("Database not found in OpenMetadata for lakehouse {}, skipping OM refresh",
+                        lakehouse.getName());
+                return;
+            }
+
+            List<DatabaseSchema> schemas = openMetadataClient.getSchemasForDatabase(
+                    database.getFullyQualifiedName());
+            if (schemas == null || schemas.isEmpty()) {
+                return;
+            }
+
+            // Collect all existing OM table names across all schemas
+            Set<String> existingOmTableNames = new HashSet<>();
+            for (DatabaseSchema schema : schemas) {
+                List<Table> tables = openMetadataClient.getTablesForSchema(schema.getFullyQualifiedName());
+                if (tables != null) {
+                    for (Table t : tables) {
+                        existingOmTableNames.add(t.getName());
+                    }
+                }
+            }
+
+            // Add new tables that appear in Fabric but not yet in OpenMetadata
+            DatabaseSchema defaultSchema = schemas.get(0);
+            for (String fabricTableName : currentFabricTableNames) {
+                if (!existingOmTableNames.contains(fabricTableName)) {
+                    try {
+                        var columnsResponse = cdcPushServiceClient.getTableSchema(
+                                workspace.getId(), lakehouseId, "dbo", fabricTableName);
+                        List<Column> columns = new ArrayList<>();
+                        if (columnsResponse != null && columnsResponse.getData() != null
+                                && columnsResponse.getData().getColumns() != null) {
+                            for (var col : columnsResponse.getData().getColumns()) {
+                                columns.add(openMetadataClient.buildColumn(
+                                        col.getColumnName(), null,
+                                        col.getDataType(), null));
+                            }
+                        }
+                        openMetadataClient.createTable(fabricTableName,
+                                defaultSchema.getFullyQualifiedName(), columns);
+                        log.info("Created new OM table {} during CDC refresh", fabricTableName);
+                    } catch (Exception e) {
+                        log.warn("Failed to create OM table {} during refresh: {}",
+                                fabricTableName, e.getMessage());
+                    }
+                }
+            }
+        } catch (Exception e) {
+            log.warn("Error refreshing OpenMetadata entries: {}", e.getMessage());
+        }
+    }
+
+    @Override
     public TableMismatchResponseVO checkTableMismatch(String workspaceId, String lakehouseId, String serviceName) {
         log.info("Checking table mismatch for workspace: {}, lakehouse: {}", workspaceId, lakehouseId);
         TableMismatchResponseVO response = new TableMismatchResponseVO();
