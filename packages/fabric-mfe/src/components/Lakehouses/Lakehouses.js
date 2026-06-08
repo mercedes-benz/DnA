@@ -383,6 +383,31 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
       });
   };
 
+  const handleRefreshCdc = (lakehouse) => {
+    if (workspace?.typeOfProject?.toLowerCase() !== "production") {
+      setShowNonProdProjectModal(true);
+      return;
+    }
+
+    ProgressIndicator.show();
+    fabricApi.refreshCdcEntry(workspace.id, lakehouse.id)
+      .then(() => {
+        ProgressIndicator.hide();
+        Notification.show("CDC entry refreshed successfully!", "success");
+        if (onRefreshWorkspace) {
+          onRefreshWorkspace();
+        }
+      })
+      .catch((e) => {
+        ProgressIndicator.hide();
+        const backendMessage =
+          e?.response?.data?.responses?.errors?.[0]?.message ||
+          e?.response?.data?.errors?.[0]?.message ||
+          'Failed to refresh CDC entry';
+        Notification.show(backendMessage, 'alert');
+      });
+  };
+
   // Pagination 
   const [totalNumberOfPages, setTotalNumberOfPages] = useState(0);
   const [currentPageNumber, setCurrentPageNumber] = useState(1);
@@ -660,6 +685,18 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
                         >
                           <i className="icon mbc-icon dublicate" />
                           <span>Push to CDC</span>
+                        </button>
+                      </li>
+                      <li className="contextListItem">
+                        <button className={classNames('btn btn-primary', Styles.outlineBtn, !(workspace?.cdcPublishedLakeHouseDetails?.publishedLakeHouseNames?.includes(lakehouse.id)) && Styles.disabledBtn)}
+                          onClick={() => {
+                            if (workspace?.cdcPublishedLakeHouseDetails?.publishedLakeHouseNames?.includes(lakehouse.id)) {
+                              handleRefreshCdc(lakehouse);
+                            }
+                          }}
+                        >
+                          <i className="icon mbc-icon refresh" />
+                          <span>Refresh CDC</span>
                         </button>
                       </li>
                       <li className="contextListItem">
