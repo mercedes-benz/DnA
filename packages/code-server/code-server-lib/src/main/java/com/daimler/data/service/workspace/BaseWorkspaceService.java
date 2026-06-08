@@ -2143,7 +2143,13 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
                     if (argoToken != null) {
                         String gitRepoUrl;
                         if (isprivateRecipe) {
-                            gitRepoUrl = repoUrl;
+                            gitRepoUrl = entity.getData().getProjectDetails().getRecipeDetails().getRepodetails();
+                            if (gitRepoUrl != null) {
+                                gitRepoUrl = gitRepoUrl.replaceAll("/+$", "");
+                                if (!gitRepoUrl.endsWith(".git")) {
+                                    gitRepoUrl = gitRepoUrl + ".git";
+                                }
+                            }
                         } else {
                             if (repoName == null || repoName.isEmpty()) {
                                 throw new Exception("Git repository name is not set for this workspace. Cannot deploy to ArgoCD.");
@@ -5055,7 +5061,6 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 					} else {
 						auditLog.setCommitId(commitId.getSha());
 					}
-					 auditLog.setCommitId(commitId.getSha());
 					 auditLog.setImageDeleted(Boolean.FALSE);
 					 auditLog.setTriggeredOn(now);
 					 auditLog.setTriggeredBy(entity.getData().getWorkspaceOwner().getGitUserName());
