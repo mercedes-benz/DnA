@@ -93,12 +93,6 @@ const AllCodeSpaces = (props) => {
         
         if (statusData.currentStatus === 'DEPLOYED') {
             Notification.show(`Deployment completed successfully for ${statusData.projectName}`);
-        } else if (statusData.currentStatus === 'FAILED' || statusData.currentStatus === 'DEPLOYMENT_FAILED' || statusData.currentStatus === 'ERROR') {
-            const errorMsg = statusData.argocdOperationMessage;
-            Notification.show(
-                `Deployment failed for ${statusData.projectName}` + (errorMsg ? '\n' + errorMsg : ''),
-                'alert'
-            );
         }
         
         CodeSpaceApiClient.getWorkspaceById(codeSpaceId)
