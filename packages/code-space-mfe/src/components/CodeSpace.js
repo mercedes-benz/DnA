@@ -467,51 +467,14 @@ const CodeSpace = (props) => {
   };
 
   const handleIntMigrationOk = () => {
-    const projectDetails = codeSpaceData?.projectDetails;
-    const intDeploymentDetails = projectDetails?.intDeploymentDetails;
-    const defaultBranch = intDeploymentDetails?.lastDeployedBranch || 'main';
-    
-    const deployRequest = {
-      targetEnvironment: 'int',
-      branch: defaultBranch,
-      version: '',
-      keepBuildImage: false,
-    };
-
-    const projectName = projectDetails?.projectName;
+    const projectName = codeSpaceData?.projectDetails?.projectName;
     if (projectName) {
       localStorage.setItem('intMigrationDismissed_' + projectName, 'true');
     }
-
-    ProgressIndicator.show();
-    CodeSpaceApiClient.deployCodeSpace(codeSpaceData.id, deployRequest)
-      .then((res) => {
-        trackEvent('DnA Code Space', 'Deploy', 'Deploy code space after IntMigration');
-        if (res.data.success === 'SUCCESS') {
-          setCodeDeploying(true);
-          ProgressIndicator.hide();
-          Notification.show(
-            `Code space '${projectDetails.projectName}' deployment successfully started. Please check the status later.`,
-          );
-          setShowIntMigrationModal(false);
-          enableDeployLivelinessCheck(codeSpaceData.workspaceId, 'staging');
-        } else {
-          ProgressIndicator.hide();
-          Notification.show(
-            'Error in deploying code space. Please try again later.\n' + res.data.errors[0].message,
-            'alert',
-          );
-        }
-      })
-      .catch((err) => {
-        ProgressIndicator.hide();
-        Notification.show(
-          'Error in deploying code space. Please try again later.\n' + err?.response?.data?.errors[0]?.message,
-          'alert',
-        );
-      });
+    setShowIntMigrationModal(false);
+    setShowCodeDeployModal(true);
   };
-
+  
   const enableDeployLivelinessCheck = (id, deployEnvironmentValue) => {
     clearInterval(livelinessInterval);
     const intervalId = window.setInterval(() => {
