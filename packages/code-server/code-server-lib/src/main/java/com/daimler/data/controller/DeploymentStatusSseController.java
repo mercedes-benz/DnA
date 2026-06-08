@@ -71,6 +71,14 @@ public class DeploymentStatusSseController {
                             seenInProgress = true;
                         }
                         
+                        if ("BUILT".equals(status) || "BUILD_FAILED".equals(status)) {
+                            log.info("Build finished with status: {} after {} iterations", status, iteration);
+                            emitter.send(SseEmitter.event()
+                                    .name("build-complete")
+                                    .data(objectMapper.writeValueAsString(statusData)));
+                            break;
+                        }
+                        
                         if ("DEPLOYED".equals(status) || "FAILED".equals(status) || "DEPLOYMENT_FAILED".equals(status)) {
                             String opMsg = (String) statusData.get("argocdOperationMessage");
                             boolean argoConfirmedFailed = "DEPLOYMENT_FAILED".equals(status) && 
@@ -185,6 +193,10 @@ public class DeploymentStatusSseController {
             String lastBuildOrDeployStatus = entity.getData().getProjectDetails().getLastBuildOrDeployedStatus();
             if ("BUILD_REQUESTED".equalsIgnoreCase(lastBuildOrDeployStatus)) {
                 dbStatus = "BUILDING";
+            } else if ("BUILD_SUCCESS".equalsIgnoreCase(lastBuildOrDeployStatus)) {
+                dbStatus = "BUILT";
+            } else if ("BUILD_FAILED".equalsIgnoreCase(lastBuildOrDeployStatus)) {
+                dbStatus = "BUILD_FAILED";
             }
             
             data.put("version", deploymentDetails.getLastDeployedVersion());

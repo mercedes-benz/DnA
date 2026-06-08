@@ -70,6 +70,14 @@ public class ArgoCdService {
         return argocdCreateUrl;
     }
 
+    public String getGhePat() {
+        return ghePat;
+    }
+
+    public String getGitPat() {
+        return gitPat;
+    }
+
     public String getArgoToken() throws Exception {
         String url = argocdTokenUrl;
         log.info("Attempting to get ArgoCD token from: {}", url);
@@ -170,6 +178,24 @@ public class ArgoCdService {
     public String restartArgoApp(String token, String workspaceName, String environment) {
         try {
             String appName = workspaceName + "-" + environment;
+            
+            try {
+                ResponseEntity<String> statusResponse = getStatusOfArgoApp(token, appName);
+                if (statusResponse == null || !statusResponse.getStatusCode().is2xxSuccessful()) {
+                    log.warn("[Restart] ArgoCD application does not exist or is not accessible: {}", appName);
+                    return "not_found";
+                }
+            } catch (org.springframework.web.client.HttpClientErrorException.NotFound e) {
+                log.warn("[Restart] ArgoCD application not found (404): {}", appName);
+                return "not_found";
+            } catch (org.springframework.web.client.HttpClientErrorException e) {
+                if (e.getStatusCode().value() == 404 || e.getStatusCode().value() == 403) {
+                    log.warn("[Restart] ArgoCD application not accessible ({}): {}", e.getStatusCode(), appName);
+                    return "not_found";
+                }
+                throw e;
+            }
+            
             String namespace = getNamespaceForEnvironment(codeServerEnvRef, environment);
             
             String url = argocdCreateUrl + "/" + appName + "/resource/actions" +
@@ -197,9 +223,15 @@ public class ArgoCdService {
                     appName, (response != null ? response.getStatusCode() : "null"), (response != null ? response.getBody() : "no response"));
                 return "failed";
             }
+        } catch (org.springframework.web.client.HttpClientErrorException.NotFound e) {
+            log.warn("[Restart] ArgoCD resource not found during restart: {}-{}", workspaceName, environment);
+            return "not_found";
         } catch (org.springframework.web.client.HttpClientErrorException e) {
             log.error("[Restart] ArgoCD HTTP error for {}: status={}, body={}", 
                 workspaceName + "-" + environment, e.getStatusCode(), e.getResponseBodyAsString(), e);
+            if (e.getStatusCode().value() == 404) {
+                return "not_found";
+            }
             return "failed";
         } catch (Exception e) {
             log.error("[Restart] Failed to restart ArgoCD application {}: {}", workspaceName + "-" + environment, e.getMessage(), e);            
@@ -244,25 +276,21 @@ public class ArgoCdService {
         } else if (resources != null && !resources.isEmpty()) {
             String cpu = resources.get("cpu");
             String memory = resources.get("memory");
-            String limitsMemory = resources.get("limitsMemory");
             boolean hasLimitsCpu = "true".equals(resources.get("hasLimitsCpu"));
 
             if (!hasLimitsCpu) {
+                // Case 2: No limits.cpu — limits.memory = requests.memory
                 if (cpu != null) {
                     helmParameters.add(createHelmParam("resources.requests.cpu", cpu + "m"));
                 }
                 if (memory != null) {
                     helmParameters.add(createHelmParam("resources.requests.memory", memory + "Mi"));
-                }
-                if (limitsMemory != null) {
-                    helmParameters.add(createHelmParam("resources.limits.memory", limitsMemory + "Mi"));
-                } else if (memory != null) {
                     helmParameters.add(createHelmParam("resources.limits.memory", memory + "Mi"));
                 }
-                log.info("[Resources] Case 2: No limits.cpu in values.yaml - requests.cpu={}, requests.memory={}, limits.memory={}",
+                log.info("[Resources] Case 2: No limits.cpu in values.yaml - requests.cpu={}, requests.memory={}, limits.memory={} (same as requests)",
                     cpu != null ? cpu + "m" : "not set",
                     memory != null ? memory + "Mi" : "not set",
-                    limitsMemory != null ? limitsMemory + "Mi" : (memory != null ? memory + "Mi (fallback)" : "not set"));
+                    memory != null ? memory + "Mi" : "not set");
 
             } else {
                 if (cpu != null) {
