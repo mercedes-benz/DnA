@@ -356,6 +356,10 @@ public RecipeVO updateRecipe(RecipeVO recipeRequestVO) {
 	
 	private void registerRepoWithArgoCD(String repoUrl) {
 		try {
+			if (repoUrl.contains("DNA-CodeSpaces/")) {
+				log.info("Skipping ArgoCD repo registration for DNA-CodeSpaces repo: {}", repoUrl);
+				return;
+			}
 			String token = argoCdService.getArgoToken();
 			String repoGitUrl = repoUrl.endsWith(".git") ? repoUrl : repoUrl + ".git";
 			argoCdService.registerRepository(token, repoGitUrl, configuredPid, ghePat);
