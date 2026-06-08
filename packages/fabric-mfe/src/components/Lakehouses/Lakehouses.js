@@ -322,6 +322,7 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
   const [showNonProdProjectModal, setShowNonProdProjectModal] = useState(false);
   const [showMismatchModal, setShowMismatchModal] = useState(false);
   const [mismatchData, setMismatchData] = useState(null);
+  const [isCdcRefresh, setIsCdcRefresh] = useState(false);
   const [showDdxViewTables, setShowDdxViewTablesModal] = useState(false);
   const [contextMenus, setContextMenus] = useState({});
   const [showLocationsContextMenu, setShowLocationsContextMenu] = useState(false);
@@ -356,6 +357,7 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
     console.log('[PushToCdc] isAlreadyPublished:', isAlreadyPublished);
 
     if (!isAlreadyPublished) {
+      setIsCdcRefresh(false);
       setShowViewTablesModal(true);
       return;
     }
@@ -373,12 +375,14 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
           });
           setShowMismatchModal(true);
         } else {
+          setIsCdcRefresh(true);
           setShowViewTablesModal(true);
         }
       })
       .catch((e) => {
         ProgressIndicator.hide();
         console.error('[PushToCdc] API ERROR:', e?.response?.status, e?.message);
+        setIsCdcRefresh(true);
         setShowViewTablesModal(true);
       });
   };
@@ -792,7 +796,7 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
         <InfoModal
           title={
             <div className={Styles.modalTitle}>
-              <span>{selectedLakehouse ? `${selectedLakehouse.name} - Tables` : 'Tables'}</span>
+              <span>{selectedLakehouse ? `${selectedLakehouse.name} - ${isCdcRefresh ? 'Refresh CDC' : 'Tables'}` : 'Tables'}</span>
                 <a
                   href={Envs.CONFLUENCE_PAGE}
                   target="_blank"
@@ -808,9 +812,9 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
           modalWidth={'90%'}
           buttonAlignment="right"
           show={showViewTables}
-        content={<ViewTablesModalContent workspaceId={workspace?.id} lakehouseId={selectedLakehouse?.id} lakehouseName={selectedLakehouse?.name} onRefreshWorkspace={onRefreshWorkspace} />}
+        content={<ViewTablesModalContent workspaceId={workspace?.id} lakehouseId={selectedLakehouse?.id} lakehouseName={selectedLakehouse?.name} onRefreshWorkspace={onRefreshWorkspace} isRefresh={isCdcRefresh} workspaceName={workspace?.name} />}
           scrollableContent={true}
-          onCancel={() => { setSelectedLakehouse(); setShowViewTablesModal(false) }}
+          onCancel={() => { setSelectedLakehouse(); setShowViewTablesModal(false); setIsCdcRefresh(false); }}
         />
       }
       {showNonProdProjectModal &&
@@ -919,10 +923,11 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
                 onClick={() => {
                   setShowMismatchModal(false);
                   setMismatchData(null);
+                  setIsCdcRefresh(true);
                   setShowViewTablesModal(true);
                 }}
               >
-                Continue to Push to CDC
+                Continue to Refresh CDC
               </button>
             </div>
           }

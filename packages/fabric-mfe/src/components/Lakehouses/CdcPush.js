@@ -99,7 +99,11 @@ export const buildCdcPayload = ({
   };
 };
 
-const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRefreshWorkspace }) => {
+const REVERSE_TIER_MAP = Object.fromEntries(
+  Object.entries(DATA_TIER_MAP).map(([label, value]) => [value, label])
+);
+
+const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRefreshWorkspace, isRefresh, workspaceName }) => {
   const [tables, setTables] = useState([]);
   const [columnsByTable, setColumnsByTable] = useState({});
   const [selectedTables, setSelectedTables] = useState({});
@@ -113,6 +117,8 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
   const [description, setDescription] = useState(null);
   const [showCdcLogin, setShowCdcLogin] = useState(false);
   const [hasPushedOnce, setHasPushedOnce] = useState(false);
+  const [storedCdcData, setStoredCdcData] = useState(null);
+  const [prePopulated, setPrePopulated] = useState(false);
 
   const methods = useForm();
   const { 
@@ -165,6 +171,103 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
         );
       });
   }, [workspaceId]);
+
+  useEffect(() => {
+    if (!isRefresh || !workspaceId || !workspaceName) return;
+
+    fabricApi.getStoredCdcMetadata(workspaceId, workspaceName)
+      .then(res => {
+        const data = res?.data?.data;
+        if (!data) return;
+
+        const cdcCatalogs = data.publishedCDCCatalogs || [];
+        const lakehouseDetail = cdcCatalogs.find(c => c.lakeHouseId === lakehouseId);
+        if (lakehouseDetail) {
+          setStoredCdcData(lakehouseDetail);
+        }
+
+        const databases = data.metadata?.databases || [];
+        const matchDb = databases.find(db =>
+          db.dbId === lakehouseId || db.dbName === lakehouseName
+        );
+        if (matchDb?.description) {
+          setDescription(matchDb.description);
+          setValue('description', matchDb.description);
+        }
+      })
+      .catch(err => {
+        console.error('Failed to fetch stored CDC metadata:', err);
+      });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isRefresh, workspaceId, workspaceName, lakehouseId]);
+
+  useEffect(() => {
+    if (!storedCdcData || prePopulated) return;
+
+    const mandatoryFields = storedCdcData.mandatoryFields;
+    if (mandatoryFields) {
+      if (mandatoryFields.tier != null) {
+        const tierLabel = REVERSE_TIER_MAP[mandatoryFields.tier];
+        if (tierLabel) {
+          setDataTier(tierLabel);
+        }
+      }
+      if (mandatoryFields.divisions && mandatoryFields.divisions.length > 0) {
+        setDivision(mandatoryFields.divisions);
+        setTimeout(() => {
+          const selectEl = document.getElementById('divisionField');
+          if (selectEl) {
+            Array.from(selectEl.options).forEach(opt => {
+              opt.selected = mandatoryFields.divisions.includes(opt.value);
+            });
+          }
+        }, 0);
+      }
+      if (mandatoryFields.isDocumentationUpdated != null) {
+        setIsDocumentationUpdated(mandatoryFields.isDocumentationUpdated === "Yes");
+        setValue('documentationUpdated', mandatoryFields.isDocumentationUpdated === "Yes" ? 'true' : 'false');
+      }
+    }
+
+    const tableDetails = storedCdcData.publishedLakehouseTableDetails;
+    if (tableDetails && tableDetails.length > 0 && tables.length > 0) {
+      const newSelectedTables = {};
+      const newSelectedColumns = {};
+      const newColumnsByTable = { ...columnsByTable };
+
+      for (const tableDetail of tableDetails) {
+        if (!tableDetail.enabled) continue;
+
+        const tableName = tableDetail.tableName;
+        const tableExists = tables.some(t => t.tableName === tableName);
+        if (!tableExists) continue;
+
+        newSelectedTables[tableName] = true;
+
+        if (tableDetail.columns && tableDetail.columns.length > 0) {
+          const colSelections = {};
+          const colData = [];
+          for (const col of tableDetail.columns) {
+            if (col.enabled) {
+              colSelections[col.columnName] = true;
+            }
+            colData.push({ columnName: col.columnName, colType: '', colConstraint: '' });
+          }
+          newSelectedColumns[tableName] = colSelections;
+          if (!newColumnsByTable[tableName]) {
+            newColumnsByTable[tableName] = colData;
+          }
+        }
+      }
+
+      setSelectedTables(prev => ({ ...prev, ...newSelectedTables }));
+      setSelectedColumns(prev => ({ ...prev, ...newSelectedColumns }));
+      setColumnsByTable(newColumnsByTable);
+    }
+
+    setPrePopulated(true);
+    setTimeout(() => SelectBox.defaultSetup(), 100);
+  }, [storedCdcData, tables, prePopulated, columnsByTable, setValue]);
 
   useEffect(() => {
     ExpansionPanel.defaultSetup();
@@ -319,7 +422,10 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
     });
 
     ProgressIndicator.show();
-    fabricApi.pushSelectedTables(workspaceId, payload)
+    const pushApi = isRefresh
+      ? fabricApi.updateSelectedTables(workspaceId, payload)
+      : fabricApi.pushSelectedTables(workspaceId, payload);
+    pushApi
       .then(() => {
         const publishedSnapshot = {
           workspaceId,
@@ -342,7 +448,7 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
           });
 
         ProgressIndicator.hide();
-        Notification.show("Push to CDC successful!", "success");
+        Notification.show(isRefresh ? "CDC refresh successful!" : "Push to CDC successful!", "success");
 
         setHasPushedOnce(true);
 
@@ -385,14 +491,20 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
     description,
     workspaceCreator,
     onRefreshWorkspace,
+    isRefresh,
   ]);
 
   const onPush = handleSubmit(handlePush);
 
+  const hasSelectedTables = Object.values(selectedTables).some(v => v);
+  const hasSelectedColumns = Object.values(selectedColumns).some(cols =>
+    cols && Object.values(cols).some(v => v)
+  );
+
   const isPushDisabled =
   !workspaceMetadata || 
-  Object.keys(selectedTables).length === 0 ||
-  Object.keys(selectedColumns).length === 0 ||
+  !hasSelectedTables ||
+  !hasSelectedColumns ||
   hasPushedOnce;
 
     return (
@@ -412,7 +524,7 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
               <div className={classNames('custom-select')}>
                 <select
                   id="dataTierField"
-                  defaultValue={dataTier}
+                  value={dataTier}
                   onChange={(e) => {
                     setDataTier(e.target.value);
                     if (dataTierError) setDataTierError(""); 
@@ -524,9 +636,8 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
               id="description"
               className={'input-field-area'}
               type="text"
-              defaultValue={description}
               rows={50}
-              {...register('description', { required: '*Missing entry', pattern: /^(?!\s+$)(\s*\S+\s*)+$/, onChange: (e) => { setDescription(e.target.value) } })}
+              {...register('description', { required: '*Missing entry', pattern: /^(?!\s+$)(\s*\S+\s*)+$/, onChange: (e) => { setDescription(e.target.value) }, value: description || '' })}
             />
             <span className={'error-message'}>{errors?.description?.message}{errors.description?.type === 'pattern' && `Spaces (and special characters) not allowed as field value.`}</span>
           </div>
@@ -657,7 +768,7 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
 
       <div className={Styles.pushButtonContainer}>
         <button className={isPushDisabled ? classNames("btn btn-tertiary") : classNames("btn btn-primary")} type="button" disabled={isPushDisabled} onClick={onPush}>
-          Push
+          {isRefresh ? 'Refresh CDC' : 'Push'}
         </button>
       </div>
 

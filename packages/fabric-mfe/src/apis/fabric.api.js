@@ -163,6 +163,16 @@ const pushSelectedTables = (workspaceId, payload) => {
   return server.post(`fabric-workspaces/catalog/${workspaceId}/publish`, payload);
 };
 
+const updateSelectedTables = (workspaceId, payload) => {
+  return server.put(`fabric-workspaces/catalog/${workspaceId}/publish`, payload);
+};
+
+const getStoredCdcMetadata = (workspaceId, serviceName) => {
+  return server.get(`/fabric-workspaces/catalog/${workspaceId}/${encodeURIComponent(serviceName)}`, {
+    data: {},
+  });
+};
+
 const takeOwnership = (id) => {
   return server.patch(`/fabric-workspaces/${id}/takeOwnership`, {
     data: {},
@@ -219,6 +229,8 @@ export const fabricApi = {
   getLakehouseTables,
   getTableSchema,
   pushSelectedTables,
+  updateSelectedTables,
+  getStoredCdcMetadata,
   takeOwnership,
   getLegalEntities,
   publishDdxDataProduct,
