@@ -42,11 +42,20 @@ const deleteFabricWorkspace = (id) => {
   });
 };
 
-const getFabricWorkspaceLov = () => {
-  return server.get(`/lov/fabric-workspaces?limit=0&offset=0`, {
-    data: {},
-  });
+// const getFabricWorkspaceLov = () => {
+//   return server.get(`/lov/fabric-workspaces?limit=0&offset=0`, {
+//     data: {},
+//   });
+// };
+
+const searchFabricWorkspaceLov = (offset, limit, searchText = '') => {
+  let url = `/lov/fabric-workspaces/search?limit=${limit}&offset=${offset}`;
+  if (searchText && searchText.trim() !== '') {
+    url += `&searchText=${encodeURIComponent(searchText.trim())}`;
+  }
+  return server.get(url, { data: {} });
 };
+
 
 const requestRoles = (id, data) => {
   return server.post(`/fabric-workspaces/${id}/rolerequest`, {
@@ -163,6 +172,7 @@ const pushSelectedTables = (workspaceId, payload) => {
   return server.post(`fabric-workspaces/catalog/${workspaceId}/publish`, payload);
 };
 
+
 const takeOwnership = (id) => {
   return server.patch(`/fabric-workspaces/${id}/takeOwnership`, {
     data: {},
@@ -193,10 +203,6 @@ const saveLakehouseSnapshot = (workspaceId, lakehouseId, payload) => {
   return server.post(`/fabric-workspaces/catalog/${workspaceId}/lakehouses/${lakehouseId}/snapshot`, payload);
 };
 
-const refreshCdcEntry = (workspaceId, lakehouseId) => {
-  return server.post(`/fabric-workspaces/catalog/${workspaceId}/${lakehouseId}/refresh`);
-};
-
 export const fabricApi = {
   getFabricWorkspaces,
   getFabricWorkspacesForAdmin,
@@ -205,7 +211,7 @@ export const fabricApi = {
   createFabricWorkspace,
   updateFabricWorkspace,
   deleteFabricWorkspace,
-  getFabricWorkspaceLov,
+  searchFabricWorkspaceLov,
   createLakehouse,
   deleteLakehouse,
   createShortcut,
@@ -229,5 +235,4 @@ export const fabricApi = {
   checkTableMismatch,
   getCatalogMetadata,
   saveLakehouseSnapshot,
-  refreshCdcEntry,
 };
