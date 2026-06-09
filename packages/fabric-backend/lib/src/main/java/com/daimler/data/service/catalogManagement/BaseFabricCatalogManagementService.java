@@ -1543,8 +1543,7 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
                     log.error("Exception while removing the user from the workspace : {} with exception", workspaceName, e.getMessage());
                 }
             }
-            return finalGroupStatusList;
-
+            return finalGroupStatusList;	
         }catch(Exception e){
             log.error("Failed to get groups assigning status for lakehouse {}: {}", lakehouseId, e.getMessage());
             throw new RuntimeException("Failed to get groups assigning status for lakehouse " + lakehouseId + ": " + e.getMessage(), e);
