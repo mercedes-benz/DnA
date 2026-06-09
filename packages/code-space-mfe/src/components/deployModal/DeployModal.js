@@ -71,6 +71,7 @@ const DeployModal = (props) => {
     }
   }, [deployEnvironment]); // eslint-disable-line react-hooks/exhaustive-deps
 
+
   const onBranchChange = (selectedTags) => {
     setBranchValue(selectedTags);
     setIsBranchValueMissing(false);
