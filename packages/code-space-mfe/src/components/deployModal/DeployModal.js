@@ -12,6 +12,7 @@ import Modal from 'dna-container/Modal';
 import { trackEvent, regionalDateAndTimeConversionSolution, buildGitRepoUrl } from '../../Utility/utils';
 import Tags from 'dna-container/Tags';
 import Tooltip from '../../common/modules/uilab/js/src/tooltip';
+import IntMigrationModal, { needsIntMigration } from '../intMigrationModal/IntMigrationModal';
 
 const DeployModal = (props) => {
   const [branches, setBranches] = useState([]);
@@ -21,6 +22,7 @@ const DeployModal = (props) => {
   const [acceptContinueCodingOnDeployment, setAcceptContinueCodingOnDeployment] = useState(true);
   const projectDetails = props.codeSpaceData?.projectDetails;
   const [retainBuildImage, setRetainBuildImage] = useState(false);
+  const [showIntMigrationModal, setShowIntMigrationModal] = useState(false);
 
   //details from build
   const version = props?.buildDetails?.version || '';
@@ -69,12 +71,6 @@ const DeployModal = (props) => {
     }
   }, [deployEnvironment]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  useEffect(() => {
-    if (props.skipIntMigrationCheck && version?.length) {
-      onAcceptCodeDeploy();
-    }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
   const onBranchChange = (selectedTags) => {
     setBranchValue(selectedTags);
     setIsBranchValueMissing(false);
@@ -105,68 +101,93 @@ const DeployModal = (props) => {
       }
     }
     if (formValid) {
-      const deployRequest = {
-        targetEnvironment: version?.length
-          ? buildEnvironment === 'staging'
-            ? 'int'
-            : 'prod'
-          : deployEnvironment === 'staging'
+      const targetEnv = version?.length ? buildEnvironment : deployEnvironment;
+      
+      if (targetEnv === 'staging' && needsIntMigration(props.codeSpaceData) && !props.skipIntMigrationCheck) {
+        setShowIntMigrationModal(true);
+        return;
+      }
+      proceedWithDeployment();
+    }
+  };
+
+  const proceedWithDeployment = () => {
+    const deployRequest = {
+      targetEnvironment: version?.length
+        ? buildEnvironment === 'staging'
           ? 'int'
-          : 'prod', // int or prod
-        branch: version?.length ? buildBranch : branchValue[0],
-        version: version || '',
-        keepBuildImage: retainBuildImage,
-      };
-      ProgressIndicator.show();
-      CodeSpaceApiClient.deployCodeSpace(props.codeSpaceData.id, deployRequest)
-        .then((res) => {
-          trackEvent('DnA Code Space', 'Deploy', 'Deploy code space');
-          if (res.data.success === 'SUCCESS') {
-            // setCreatedCodeSpaceName(res.data.name);
-            props.setCodeDeploying(true);
-            
-            if (props.startDeploymentStatusListener) {
-              props.startDeploymentStatusListener(
-                projectDetails.projectName,
-                deployRequest.targetEnvironment,
-                props.onDeploymentStatusUpdate,
-                props.onDeploymentComplete,
-                props.onDeploymentSSEError
-              );
-            }
-            
-            if (acceptContinueCodingOnDeployment) {
-              ProgressIndicator.hide();
-              Notification.show(
-                `Code space '${projectDetails.projectName}' deployment successfully started. Please check the status later.`,
-              );
-              props.setShowCodeDeployModal(false);
-            } else {
-              props.setIsApiCallTakeTime(true);
-            }
-            props.startDeployLivelinessCheck &&
-              props.startDeployLivelinessCheck(props.codeSpaceData.workspaceId, deployEnvironment);
-          } else {
-            props.setIsApiCallTakeTime(false);
-            ProgressIndicator.hide();
-            Notification.show(
-              'Error in deploying code space. Please try again later.\n' + res.data.errors[0].message,
-              'alert',
+          : 'prod'
+        : deployEnvironment === 'staging'
+        ? 'int'
+        : 'prod', // int or prod
+      branch: version?.length ? buildBranch : branchValue[0],
+      version: version || '',
+      keepBuildImage: retainBuildImage,
+    };
+    ProgressIndicator.show();
+    CodeSpaceApiClient.deployCodeSpace(props.codeSpaceData.id, deployRequest)
+      .then((res) => {
+        trackEvent('DnA Code Space', 'Deploy', 'Deploy code space');
+        if (res.data.success === 'SUCCESS') {
+          props.setCodeDeploying(true);
+          
+          if (props.startDeploymentStatusListener) {
+            props.startDeploymentStatusListener(
+              projectDetails.projectName,
+              deployRequest.targetEnvironment,
+              props.onDeploymentStatusUpdate,
+              props.onDeploymentComplete,
+              props.onDeploymentSSEError
             );
           }
-        })
-        .catch((err) => {
+          
+          if (acceptContinueCodingOnDeployment) {
+            ProgressIndicator.hide();
+            Notification.show(
+              `Code space '${projectDetails.projectName}' deployment successfully started. Please check the status later.`,
+            );
+            props.setShowCodeDeployModal(false);
+          } else {
+            props.setIsApiCallTakeTime(true);
+          }
+          props.startDeployLivelinessCheck &&
+            props.startDeployLivelinessCheck(props.codeSpaceData.workspaceId, deployEnvironment);
+        } else {
+          props.setIsApiCallTakeTime(false);
           ProgressIndicator.hide();
           Notification.show(
-            'Error in deploying code space. Please try again later.\n' + err?.response?.data?.errors[0]?.message,
+            'Error in deploying code space. Please try again later.\n' + res.data.errors[0].message,
             'alert',
           );
-        });
+        }
+      })
+      .catch((err) => {
+        ProgressIndicator.hide();
+        Notification.show(
+          'Error in deploying code space. Please try again later.\n' + err?.response?.data?.errors[0]?.message,
+          'alert',
+        );
+      });
+  };
+
+  const handleIntMigrationDismiss = () => {
+    setShowIntMigrationModal(false);
+    const projectName = props.codeSpaceData?.projectDetails?.projectName;
+    if (projectName) {
+      localStorage.setItem('intMigrationDismissed_' + projectName, 'true');
     }
+    proceedWithDeployment();
   };
 
   return (
     <>
+      {showIntMigrationModal && (
+        <IntMigrationModal
+          show={showIntMigrationModal}
+          codeSpaceData={props.codeSpaceData}
+          onDismiss={handleIntMigrationDismiss}
+        />
+      )}
       <Modal
         title={`Deploy Code - ${props?.codeSpaceData?.projectDetails?.projectName || ''}`}
         showAcceptButton={true}
