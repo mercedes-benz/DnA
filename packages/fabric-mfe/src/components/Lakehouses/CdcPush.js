@@ -99,7 +99,7 @@ export const buildCdcPayload = ({
   };
 };
 
-const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRefreshWorkspace }) => {
+const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRefreshWorkspace, isCdcPublished = false }) => {
   const [tables, setTables] = useState([]);
   const [columnsByTable, setColumnsByTable] = useState({});
   const [selectedTables, setSelectedTables] = useState({});
@@ -112,7 +112,7 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
   const [workspaceCreator, setWorkspaceCreator] = useState(null);
   const [description, setDescription] = useState(null);
   const [showCdcLogin, setShowCdcLogin] = useState(false);
-  const [hasPushedOnce, setHasPushedOnce] = useState(false);
+  const [hasPushedOnce, setHasPushedOnce] = useState(isCdcPublished);
 
   const methods = useForm();
   const { 
@@ -170,6 +170,10 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
     ExpansionPanel.defaultSetup();
     Tooltip.defaultSetup();
   }, [tables]);
+
+  useEffect(() => {
+    setHasPushedOnce(!!isCdcPublished);
+  }, [isCdcPublished]);
 
   const toggleTableSelect = async (tableName) => {
     const isSelected = !!selectedTables[tableName];
@@ -321,7 +325,7 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
     ProgressIndicator.show();
     fabricApi.pushSelectedTables(workspaceId, payload)
       .then(() => {
-        const publishedSnapshot = {
+        const snapshotData = {
           workspaceId,
           lakehouseId,
           lakehouseName,
@@ -336,9 +340,9 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
           }))
         };
 
-        fabricApi.saveLakehouseSnapshot(workspaceId, lakehouseId, publishedSnapshot)
-          .catch(err => {
-            console.error('Failed to save snapshot:', err);
+        fabricApi.saveLakehouseSnapshot(workspaceId, lakehouseId, snapshotData)
+          .then(() => {
+            console.log('Snapshot saved successfully');
           });
 
         ProgressIndicator.hide();
