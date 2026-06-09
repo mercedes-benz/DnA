@@ -353,7 +353,6 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
   }
 
    const isAlreadyPublished = workspace?.cdcPublishedLakeHouseDetails?.publishedLakeHouseNames?.includes(lakehouse.id);
-   console.log('[PushToCdc] isAlreadyPublished:', isAlreadyPublished);
 
   if (!isAlreadyPublished) {
     setShowViewTablesModal(true);
@@ -395,6 +394,7 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
     })
     .catch((e) => {
       ProgressIndicator.hide();
+      Notification.show(e.response.data.errors?.length ? e.response.data.errors[0].message : ' isAlreadyPublished:', 'alert');
       setShowViewTablesModal(true);
     });
 };
