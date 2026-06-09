@@ -42,20 +42,11 @@ const deleteFabricWorkspace = (id) => {
   });
 };
 
-// const getFabricWorkspaceLov = () => {
-//   return server.get(`/lov/fabric-workspaces?limit=0&offset=0`, {
-//     data: {},
-//   });
-// };
-
-const searchFabricWorkspaceLov = (offset, limit, searchText = '') => {
-  let url = `/lov/fabric-workspaces/search?limit=${limit}&offset=${offset}`;
-  if (searchText && searchText.trim() !== '') {
-    url += `&searchText=${encodeURIComponent(searchText.trim())}`;
-  }
-  return server.get(url, { data: {} });
+const getFabricWorkspaceLov = () => {
+  return server.get(`/lov/fabric-workspaces?limit=0&offset=0`, {
+    data: {},
+  });
 };
-
 
 const requestRoles = (id, data) => {
   return server.post(`/fabric-workspaces/${id}/rolerequest`, {
@@ -172,7 +163,6 @@ const pushSelectedTables = (workspaceId, payload) => {
   return server.post(`fabric-workspaces/catalog/${workspaceId}/publish`, payload);
 };
 
-
 const takeOwnership = (id) => {
   return server.patch(`/fabric-workspaces/${id}/takeOwnership`, {
     data: {},
@@ -211,7 +201,7 @@ export const fabricApi = {
   createFabricWorkspace,
   updateFabricWorkspace,
   deleteFabricWorkspace,
-  searchFabricWorkspaceLov,
+  getFabricWorkspaceLov,
   createLakehouse,
   deleteLakehouse,
   createShortcut,
