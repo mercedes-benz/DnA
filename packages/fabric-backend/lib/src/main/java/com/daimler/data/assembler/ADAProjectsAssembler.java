@@ -6,10 +6,12 @@ import org.springframework.util.CollectionUtils;
 
 import com.daimler.data.db.entities.ADAProjectsNsql;
 import com.daimler.data.db.json.ADAProjectDetails;
+import com.daimler.data.db.json.Capacity;
 import com.daimler.data.dto.adaProjects.ADAProjectDetailsVO;
 import com.daimler.data.dto.adaProjects.ADAProjectDetailsVOServices;
 import com.daimler.data.dto.adaProjects.ADAProjectDetailsVOStakeholders;
 import com.daimler.data.dto.adaProjects.ADAProjectDetailsVOTags;
+import com.daimler.data.dto.adaProjects.CapacityVO;
 
 import java.util.Collections;
 import java.util.Objects;
@@ -66,6 +68,12 @@ public class ADAProjectsAssembler implements GenericAssembler<ADAProjectDetailsV
                     })
                     .collect(Collectors.toList()));
             }
+
+            if(vo.getCapacity() != null){
+                Capacity capacity = new Capacity();
+                BeanUtils.copyProperties(vo.getCapacity(), capacity);
+                details.setCapacity(capacity);
+            }
             
             adaProjectsNsql.setData(details);
         }
@@ -107,6 +115,12 @@ public class ADAProjectsAssembler implements GenericAssembler<ADAProjectDetailsV
                     .collect(Collectors.toList()));
             } else {
                 vo.setStakeholders(Collections.emptyList());
+            }
+            
+            if(details.getCapacity() != null){
+                CapacityVO capacity = new CapacityVO();
+                BeanUtils.copyProperties(details.getCapacity(), capacity);
+                vo.setCapacity(capacity);
             }
             
             // Handle Tags list

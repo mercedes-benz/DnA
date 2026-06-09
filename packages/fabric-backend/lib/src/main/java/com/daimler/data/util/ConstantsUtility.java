@@ -78,7 +78,7 @@ public class ConstantsUtility {
 			GROUPS_ADDED_CONSTANT, "Group added successfully",
 			GROUPS_FAILED_CONSTANT, "Execution failed",
 			GROUPS_IN_PROGRESS_CONSTANT, "Still processing",
-			GROUPS_UNKNOWN_CONSTANT, "Unknown status",
+			GROUPS_UNKNOWN_CONSTANT, "Unknown, Group not found.",
 			GROUPS_NOT_FOUND_CONSTANT, "Group not found. Please check and reverify the group’s name and their spelling correctly"
 			);
 

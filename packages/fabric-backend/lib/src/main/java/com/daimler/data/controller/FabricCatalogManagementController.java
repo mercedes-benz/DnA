@@ -39,6 +39,7 @@ import com.daimler.data.dto.fabricCatalogManagement.LegalEntitiesResponseVO;
 import com.daimler.data.dto.fabricCatalogManagement.UpdateDDXGroupsRequestVO;
 import com.daimler.data.dto.fabricCatalogManagement.GroupStatusResponseVO;
 import com.daimler.data.dto.fabricWorkspace.CreatedByVO;
+import com.daimler.data.dto.fabricWorkspace.FabricLakehouseVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceVO;
 import com.daimler.data.service.catalogManagement.BaseFabricCatalogManagementService;
 import com.daimler.data.service.catalogManagement.FabricCatalogManagementService;
@@ -328,8 +329,8 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
         method = RequestMethod.POST)
     public ResponseEntity<GenericMessage> updateGroupsFromDDX(@ApiParam(value = "The groups update request from DDX." ,required=true )  @Valid @RequestBody UpdateDDXGroupsRequestVO updateDDXGroupsRequest,@ApiParam(value = "The ID of DDX data product .",required=true) @PathVariable("ddxId") String ddxId,@ApiParam(value = "The ID of the workspace.",required=true) @PathVariable("workspaceId") String workspaceId,@ApiParam(value = "The ID of Lakehouse.",required=true) @PathVariable("lakehouseId") String lakehouseId){
 
-        // GenericMessage responseMessage = new DDXGroupsResponseMessage();
-        GenericMessage responseMessage = new GenericMessage();
+        GenericMessage responseMessage = new DDXGroupsResponseMessage();
+        // GenericMessage responseMessage = new GenericMessage();
         List<MessageDescription> errors = new ArrayList<>();
         List<MessageDescription> warnings = new ArrayList<>();
 
@@ -337,18 +338,11 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
         String lakehouseName = null;
         List<String> validGroupsList = new ArrayList<>();
         
-        // Validate workspace exists
+        // Validate workspace exists using fabric_workspace_nsql table
         try {
-            com.daimler.data.dto.fabric.WorkspacesCollectionDto workspaces = fabricWorkspaceClient.getAllWorkspacesDetails();
-            List<com.daimler.data.dto.fabric.WorkspaceDetailDto> matchingWorkspaceList = new ArrayList<>();
-            if (workspaces != null && workspaces.getValue() != null) {
-                matchingWorkspaceList = workspaces.getValue().stream()
-                    .filter(w -> w != null && workspaceId.equals(w.getId())).toList();
-            }
-            
-            if (matchingWorkspaceList.isEmpty()) {
-                String errorMsg = "Workspace not found";
-                log.error("Workspace {} not found or error: {}", workspaceId, errorMsg);
+            FabricWorkspaceVO existingWorkspace = fabricWorkspaceService.getById(workspaceId);
+            if (existingWorkspace == null || !workspaceId.equals(existingWorkspace.getId())) {
+                log.error("Workspace {} not found in database", workspaceId);
                 MessageDescription error = new MessageDescription();
                 error.setMessage("Workspace not found: " + workspaceId);
                 errors.add(error);
@@ -356,29 +350,18 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
                 responseMessage.setWarnings(warnings);
                 responseMessage.setSuccess("FAILED");
                 return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
-            } else {
-                workspaceName = matchingWorkspaceList.get(0).getDisplayName();
             }
-        } catch (Exception e) {
-            log.error("Error validating workspace {}: {}", workspaceId, e.getMessage());
-            MessageDescription error = new MessageDescription();
-            error.setMessage("Error validating workspace: " + e.getMessage());
-            errors.add(error);
-            responseMessage.setErrors(errors);
-            responseMessage.setWarnings(warnings);
-            responseMessage.setSuccess("FAILED");
-            return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
-        }
+            workspaceName = existingWorkspace.getName();
 
-        // Validate lakehouse exists
-        try {
-            com.daimler.data.dto.fabric.LakehouseCollectionDto lakehouses = fabricWorkspaceClient.listLakehouses(workspaceId);
-            List<com.daimler.data.dto.fabric.LakehouseDto> matchingLakehouseList = new ArrayList<>();
-            if (lakehouses != null && lakehouses.getValue() != null) {
-                matchingLakehouseList = lakehouses.getValue().stream()
-                    .filter(lh -> lh != null && lakehouseId.equals(lh.getId())).toList();
+            // Validate lakehouse exists using lakehouses from workspace VO
+            List<FabricLakehouseVO> lakehouses = existingWorkspace.getLakehouses();
+            FabricLakehouseVO matchingLakehouse = null;
+            if (lakehouses != null && !lakehouses.isEmpty()) {
+                matchingLakehouse = lakehouses.stream()
+                    .filter(lh -> lh != null && lakehouseId.equals(lh.getId()))
+                    .findFirst().orElse(null);
             }
-            if (matchingLakehouseList.isEmpty()) {
+            if (matchingLakehouse == null) {
                 log.error("Lakehouse {} not found in workspace {}", lakehouseId, workspaceId);
                 MessageDescription error = new MessageDescription();
                 error.setMessage("Lakehouse not found: " + lakehouseId + " in workspace: " + workspaceId);
@@ -387,13 +370,12 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
                 responseMessage.setWarnings(warnings);
                 responseMessage.setSuccess("FAILED");
                 return new ResponseEntity<>(responseMessage, HttpStatus.NOT_FOUND);
-            } else {
-                lakehouseName = matchingLakehouseList.get(0).getDisplayName();
             }
+            lakehouseName = matchingLakehouse.getName();
         } catch (Exception e) {
-            log.error("Error validating lakehouse {} in workspace {}: {}", lakehouseId, workspaceId, e.getMessage());
+            log.error("Error validating workspace {} or lakehouse {}: {}", workspaceId, lakehouseId, e.getMessage());
             MessageDescription error = new MessageDescription();
-            error.setMessage("Error validating lakehouse: " + e.getMessage());
+            error.setMessage("Error validating workspace/lakehouse: " + e.getMessage());
             errors.add(error);
             responseMessage.setErrors(errors);
             responseMessage.setWarnings(warnings);
@@ -445,23 +427,23 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
                 String trimmedGroupId = groupId.trim();
 
                 // Validate group exists
-                try {
-                    if (!fabricWorkspaceClient.checkGroupExists(trimmedGroupId)) {
-                        failureCount++;
-                        MessageDescription error = new MessageDescription();
-                        error.setMessage("Group not found: " + trimmedGroupId);
-                        errors.add(error);
-                        log.error("Group {} not found", trimmedGroupId);
-                        continue;
-                    }
-                } catch (Exception e) {
-                    failureCount++;
-                    MessageDescription error = new MessageDescription();
-                    error.setMessage("Error validating group: " + trimmedGroupId + " - " + e.getMessage());
-                    errors.add(error);
-                    log.error("Error checking if group {} exists: {}", trimmedGroupId, e.getMessage());
-                    continue;
-                }
+                // try {
+                //     if (!fabricWorkspaceClient.checkGroupExists(trimmedGroupId)) {
+                //         failureCount++;
+                //         MessageDescription error = new MessageDescription();
+                //         error.setMessage("Group not found: " + trimmedGroupId);
+                //         errors.add(error);
+                //         log.error("Group {} not found", trimmedGroupId);
+                //         continue;
+                //     }
+                // } catch (Exception e) {
+                //     failureCount++;
+                //     MessageDescription error = new MessageDescription();
+                //     error.setMessage("Error validating group: " + trimmedGroupId + " - " + e.getMessage());
+                //     errors.add(error);
+                //     log.error("Error checking if group {} exists: {}", trimmedGroupId, e.getMessage());
+                //     continue;
+                // }
 
                 // Role is hardcoded to "Viewer" - type field is only for identification
                 // String role = "Viewer";
@@ -501,6 +483,7 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
                 // adding workspace groups to lakehouse group in lakehouse service which will be used for granting access to lakehouse and its objects based on ddx groups
                 log.info("Adding workspace groups to lakehouse group for workspace {}, lakehouse {} with groups {}", workspaceId, lakehouseId, updateDDXGroupsRequest.getGroups());
                 service.addWorkspaceGropusToLakehouse(workspaceId, lakehouseId, workspaceName, lakehouseName, updateDDXGroupsRequest.getGroups(), ddxId);
+                successCount++;
             }catch(Exception e){
                 log.error("Exception while adding workspace groups to lakehouse group for workspace {}, lakehouse {}: {}", workspaceId, lakehouseId, e.getMessage(), e);
                 MessageDescription error = new MessageDescription();
@@ -618,39 +601,27 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
         String lakehouseName = null;
 
         try {
-            com.daimler.data.dto.fabric.WorkspacesCollectionDto workspaces = fabricWorkspaceClient.getAllWorkspacesDetails();
-            List<com.daimler.data.dto.fabric.WorkspaceDetailDto> matchingWorkspaceList = new ArrayList<>();
-            if (workspaces != null && workspaces.getValue() != null) {
-                matchingWorkspaceList = workspaces.getValue().stream()
-                    .filter(w -> w != null && workspaceId.equals(w.getId())).toList();
-            }
-            if (matchingWorkspaceList.isEmpty()) {
+            FabricWorkspaceVO existingWorkspace = fabricWorkspaceService.getById(workspaceId);
+            if (existingWorkspace == null || !workspaceId.equals(existingWorkspace.getId())) {
                 return new ResponseEntity<>(BaseFabricCatalogManagementService.buildGroupStatusListResponse(updateDDXGroupsRequest.getGroups(), ConstantsUtility.GROUPS_FAILED_CONSTANT), HttpStatus.NOT_FOUND);
-            } else {
-                workspaceName = matchingWorkspaceList.get(0).getDisplayName();
             }
-        } catch (Exception e) {
-            log.error("Error validating workspace {}: {}", workspaceId, e.getMessage());
-            return new ResponseEntity<>(BaseFabricCatalogManagementService.buildGroupStatusListResponse(updateDDXGroupsRequest.getGroups(), ConstantsUtility.GROUPS_FAILED_CONSTANT), HttpStatus.NOT_FOUND);
-        }
+            workspaceName = existingWorkspace.getName();
 
-        try {
-            com.daimler.data.dto.fabric.LakehouseCollectionDto lakehouses = fabricWorkspaceClient.listLakehouses(workspaceId);
-            List<com.daimler.data.dto.fabric.LakehouseDto> matchingLakehouseList = new ArrayList<>();
-            if (lakehouses != null && lakehouses.getValue() != null) {
-                matchingLakehouseList = lakehouses.getValue().stream()
-                    .filter(lh -> lh != null && lakehouseId.equals(lh.getId())).toList();
+            // Validate lakehouse from workspace VO
+            List<FabricLakehouseVO> lakehouses = existingWorkspace.getLakehouses();
+            FabricLakehouseVO matchingLakehouse = null;
+            if (lakehouses != null && !lakehouses.isEmpty()) {
+                matchingLakehouse = lakehouses.stream()
+                    .filter(lh -> lh != null && lakehouseId.equals(lh.getId()))
+                    .findFirst().orElse(null);
             }
-            if (matchingLakehouseList.isEmpty()) {
+            if (matchingLakehouse == null) {
                 log.error("Lakehouse {} not found in workspace {}", lakehouseId, workspaceId);
-                MessageDescription error = new MessageDescription();
                 return new ResponseEntity<>(BaseFabricCatalogManagementService.buildGroupStatusListResponse(updateDDXGroupsRequest.getGroups(), ConstantsUtility.GROUPS_FAILED_CONSTANT), HttpStatus.NOT_FOUND);
-            } else {
-                lakehouseName = matchingLakehouseList.get(0).getDisplayName();
             }
+            lakehouseName = matchingLakehouse.getName();
         } catch (Exception e) {
-            log.error("Error validating lakehouse {} in workspace {}: {}", lakehouseId, workspaceId, e.getMessage());
-            MessageDescription error = new MessageDescription();
+            log.error("Error validating workspace {} or lakehouse {}: {}", workspaceId, lakehouseId, e.getMessage());
             return new ResponseEntity<>(BaseFabricCatalogManagementService.buildGroupStatusListResponse(updateDDXGroupsRequest.getGroups(), ConstantsUtility.GROUPS_FAILED_CONSTANT), HttpStatus.NOT_FOUND);
         }
 
@@ -669,6 +640,7 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
         }
         return new ResponseEntity<>(groupStatusList, HttpStatus.OK);
     }
+
 
 }
 
