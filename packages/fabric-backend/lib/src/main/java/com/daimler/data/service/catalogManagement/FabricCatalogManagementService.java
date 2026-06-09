@@ -27,6 +27,7 @@ public interface FabricCatalogManagementService extends CommonService<FabricCata
 	LakehouseObjectsResponseVO getLakehouseObjects(String workspaceId, String lakehouseId, String schemaName);
 	TableMismatchResponseVO checkTableMismatch(String workspaceId, String lakehouseId, String serviceName);
 
+	
 	/**
 	 * This method is fetech and retrun all the legal enteties from the genesis 
 	 * @return List<LegalEntitiesResponseVO>
