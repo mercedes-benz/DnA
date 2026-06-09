@@ -344,16 +344,16 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
 
 
   const handlePushToCdc = (lakehouse) => {
-  console.log('[PushToCdc] Button clicked for:', lakehouse.name);
-  setSelectedLakehouse(lakehouse);
+   console.log('[PushToCdc] Button clicked for:', lakehouse.name);
+   setSelectedLakehouse(lakehouse);
 
-  if (workspace?.typeOfProject?.toLowerCase() !== "production") {
-    setShowNonProdProjectModal(true);
-    return;
+   if (workspace?.typeOfProject?.toLowerCase() !== "production") {
+     setShowNonProdProjectModal(true);
+     return;
   }
 
-  const isAlreadyPublished = workspace?.cdcPublishedLakeHouseDetails?.publishedLakeHouseNames?.includes(lakehouse.id);
-  console.log('[PushToCdc] isAlreadyPublished:', isAlreadyPublished);
+   const isAlreadyPublished = workspace?.cdcPublishedLakeHouseDetails?.publishedLakeHouseNames?.includes(lakehouse.id);
+   console.log('[PushToCdc] isAlreadyPublished:', isAlreadyPublished);
 
   if (!isAlreadyPublished) {
     setShowViewTablesModal(true);
