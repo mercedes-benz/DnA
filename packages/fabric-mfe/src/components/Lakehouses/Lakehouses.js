@@ -344,44 +344,62 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
 
 
   const handlePushToCdc = (lakehouse) => {
-    console.log('[PushToCdc] Button clicked for:', lakehouse.name);
-    setSelectedLakehouse(lakehouse);
+  console.log('[PushToCdc] Button clicked for:', lakehouse.name);
+  setSelectedLakehouse(lakehouse);
 
-    if (workspace?.typeOfProject?.toLowerCase() !== "production") {
-      setShowNonProdProjectModal(true);
-      return;
-    }
+  if (workspace?.typeOfProject?.toLowerCase() !== "production") {
+    setShowNonProdProjectModal(true);
+    return;
+  }
 
-    const isAlreadyPublished = workspace?.cdcPublishedLakeHouseDetails?.publishedLakeHouseNames?.includes(lakehouse.id);
-    console.log('[PushToCdc] isAlreadyPublished:', isAlreadyPublished);
+  const isAlreadyPublished = workspace?.cdcPublishedLakeHouseDetails?.publishedLakeHouseNames?.includes(lakehouse.id);
+  console.log('[PushToCdc] isAlreadyPublished:', isAlreadyPublished);
 
-    if (!isAlreadyPublished) {
-      setShowViewTablesModal(true);
-      return;
-    }
+  if (!isAlreadyPublished) {
+    setShowViewTablesModal(true);
+    return;
+  }
 
-    ProgressIndicator.show();
-    fabricApi.checkTableMismatch(workspace.id, lakehouse.id)
-      .then((res) => {
-        ProgressIndicator.hide();
-        console.log('[PushToCdc] API response:', JSON.stringify(res?.data));
-        const data = res?.data;
-        if (data?.hasMismatch) {
+  ProgressIndicator.show();
+  fabricApi.checkTableMismatch(workspace.id, lakehouse.id)
+    .then((res) => {
+      ProgressIndicator.hide();
+      console.log('[PushToCdc] API response:', JSON.stringify(res?.data));
+      const data = res?.data;    
+      if (data?.hasMismatch) {
+        const schemaChanges = data.mismatches?.filter(mismatch => {
+          const type = mismatch.mismatchType;
+          const hasAffectedColumns = mismatch.affectedColumns && mismatch.affectedColumns.length > 0;
+          
+          if (type === 'OLD_TABLE' && !hasAffectedColumns) {
+            return false;
+          }
+          
+          const isTableChange = type === 'NEW_TABLE' || type === 'DELETED_TABLE';
+          const isColumnChange = type === 'NEW_COLUMN' || type === 'DELETED_COLUMN';
+          
+          return isTableChange || isColumnChange || hasAffectedColumns;
+        });
+
+        if (schemaChanges && schemaChanges.length > 0) {
           setMismatchData({
             lakehouseName: lakehouse.name,
-            mismatches: data.mismatches || [],
+            mismatches: schemaChanges, 
           });
           setShowMismatchModal(true);
         } else {
           setShowViewTablesModal(true);
         }
-      })
-      .catch((e) => {
-        ProgressIndicator.hide();
-        console.error('[PushToCdc] API ERROR:', e?.response?.status, e?.message);
+      } else {
         setShowViewTablesModal(true);
-      });
-  };
+      }
+    })
+    .catch((e) => {
+      ProgressIndicator.hide();
+      console.error('[PushToCdc] API ERROR:', e?.response?.status, e?.message);
+      setShowViewTablesModal(true);
+    });
+};
 
   // Pagination 
   const [totalNumberOfPages, setTotalNumberOfPages] = useState(0);
@@ -808,7 +826,7 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
           modalWidth={'90%'}
           buttonAlignment="right"
           show={showViewTables}
-        content={<ViewTablesModalContent workspaceId={workspace?.id} lakehouseId={selectedLakehouse?.id} lakehouseName={selectedLakehouse?.name} onRefreshWorkspace={onRefreshWorkspace} />}
+        content={<ViewTablesModalContent workspaceId={workspace?.id} lakehouseId={selectedLakehouse?.id} lakehouseName={selectedLakehouse?.name} onRefreshWorkspace={onRefreshWorkspace} isCdcPublished={workspace?.cdcPublishedLakeHouseDetails?.publishedLakeHouseNames?.includes(selectedLakehouse?.id)} />}
           scrollableContent={true}
           onCancel={() => { setSelectedLakehouse(); setShowViewTablesModal(false) }}
         />
