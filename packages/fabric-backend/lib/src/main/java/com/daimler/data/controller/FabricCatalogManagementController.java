@@ -658,68 +658,6 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
         }
     }
 
-    @ApiOperation(value = "Refresh CDC entry for a lakehouse.", nickname = "refreshCdcEntry", notes = "Re-fetches published info (tables/columns) from Fabric and updates the CDC entry. Preserves manually entered data (mandatoryFields, description, productName, etc.).", response = PublishCatalogResponseVO.class, tags={ "fabric-catalog-management", })
-    @ApiResponses(value = {
-        @ApiResponse(code = 200, message = "Returns refreshed catalog metadata", response = PublishCatalogResponseVO.class),
-        @ApiResponse(code = 400, message = "Bad Request", response = GenericMessage.class),
-        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
-        @ApiResponse(code = 403, message = "Request is not authorized."),
-        @ApiResponse(code = 404, message = "Workspace or lakehouse not found."),
-        @ApiResponse(code = 405, message = "Method not allowed"),
-        @ApiResponse(code = 500, message = "Internal error") })
-    @RequestMapping(value = "/catalog/{workspaceId}/{lakehouseId}/refresh",
-        produces = { "application/json" },
-        method = RequestMethod.POST)
-    public ResponseEntity<PublishCatalogResponseVO> refreshCdcEntry(
-            @ApiParam(value = "The ID of the workspace.", required = true) @PathVariable("workspaceId") String workspaceId,
-            @ApiParam(value = "The ID of the lakehouse.", required = true) @PathVariable("lakehouseId") String lakehouseId) {
-
-        PublishCatalogResponseVO responseVO = new PublishCatalogResponseVO();
-
-        try {
-            FabricWorkspaceVO existingFabricWorkspace = fabricWorkspaceService.getById(workspaceId);
-
-            if (existingFabricWorkspace == null
-                    || !workspaceId.equalsIgnoreCase(existingFabricWorkspace.getId())) {
-                log.error("No Fabric Workspace found with id {}", workspaceId);
-                return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
-            }
-
-            CreatedByVO requestUser = this.userStore.getVO();
-            String creatorId = existingFabricWorkspace.getCreatedBy().getId();
-
-            if (!requestUser.getId().equalsIgnoreCase(creatorId)
-                    && !utility.hasProjectAdminAccess(requestUser.getId(), workspaceId)) {
-                log.error("User {} not authorized to refresh CDC for workspace {}",
-                        requestUser.getId(), workspaceId);
-                return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
-            }
-
-            responseVO = service.refreshCdcEntry(workspaceId, lakehouseId, existingFabricWorkspace);
-
-            GenericMessage responseMessage = responseVO.getResponses();
-            if (responseMessage != null && "SUCCESS".equalsIgnoreCase(responseMessage.getSuccess())) {
-                return new ResponseEntity<>(responseVO, HttpStatus.OK);
-            } else if (responseMessage != null && "NOT_FOUND".equalsIgnoreCase(responseMessage.getSuccess())) {
-                return new ResponseEntity<>(responseVO, HttpStatus.NOT_FOUND);
-            } else {
-                return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
-            }
-        } catch (Exception e) {
-            log.error("Exception occurred while refreshing CDC entry: {}", e.getMessage());
-            GenericMessage failedResponse = new GenericMessage();
-            List<MessageDescription> messages = new ArrayList<>();
-            MessageDescription message = new MessageDescription();
-            message.setMessage("Failed to refresh CDC entry: " + e.getMessage());
-            messages.add(message);
-            failedResponse.addErrors(message);
-            failedResponse.setSuccess("FAILED");
-            responseVO.setData(null);
-            responseVO.setResponses(failedResponse);
-            return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
-        }
-    }
-
     @Override
     @ApiOperation(value = "get the groups status which are request to add to the lakehouse.", nickname = "getGroupsAssignmentStatus", notes = "This endpoint will return the status of groups requested to be added to a lakehouse.", response = List.class, tags={ "fabric-catalog-management", })
     @ApiResponses(value = { 
