@@ -114,7 +114,10 @@ public class BaseRecipeService implements RecipeService{
 	
 	@Value("${codeServer.git.pat}")
 	private String gitIPat;
-    
+
+	@Value("${codeServer.git.orgname}")
+	private String gitOrgName;
+
 	@Override
 	@Transactional
 	public List<RecipeVO> getAllRecipes(int offset, int limit,String id) {
@@ -355,15 +358,19 @@ public RecipeVO updateRecipe(RecipeVO recipeRequestVO) {
 
 	
 	private void registerRepoWithArgoCD(String repoUrl) {
-		try {
-			String token = argoCdService.getArgoToken();
-			String repoGitUrl = repoUrl.endsWith(".git") ? repoUrl : repoUrl + ".git";
-			argoCdService.registerRepository(token, repoGitUrl, configuredPid, ghePat);
-			log.info("Repository registered with ArgoCD for deployment: {}", repoGitUrl);
-		} catch (Exception e) {
-			log.error("Failed to register repository with ArgoCD: {}", e.getMessage());
-		}
-	}
+    try {
+        if (repoUrl.contains(gitOrgName + "/")) {
+            log.info("Skipping ArgoCD repo registration for {} repo: {}", gitOrgName, repoUrl);
+            return;
+        }
+        String token = argoCdService.getArgoToken();
+        String repoGitUrl = repoUrl.endsWith(".git") ? repoUrl : repoUrl + ".git";
+        argoCdService.registerRepository(token, repoGitUrl, configuredPid, ghePat);
+        log.info("Repository registered with ArgoCD for deployment: {}", repoGitUrl);
+    } catch (Exception e) {
+        log.error("Failed to register repository with ArgoCD: {}", e.getMessage());
+    }
+}
 
 	private GenericMessage getMessageDescrption(String message, String statusMsg ) {
 		GenericMessage responseMessage = new GenericMessage();

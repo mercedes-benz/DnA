@@ -67,7 +67,7 @@ public class DeploymentStatusSseController {
                         String status = (String) statusData.get("currentStatus");
                         log.debug("SSE iteration {}: status={} seenInProgress={} for {}/{}", iteration, status, seenInProgress, projectName, environment);
                         
-                        if ("DEPLOYING".equals(status) || "BUILDING".equals(status)) {
+                        if ("DEPLOY_REQUESTED".equals(status) || "BUILDING".equals(status)) {
                             seenInProgress = true;
                         }
                         
@@ -181,31 +181,59 @@ public class DeploymentStatusSseController {
                 return data;
             }
 
-            if (deploymentDetails == null) {
-                data.put("currentStatus", "NO_DEPLOYMENT");
-                data.put("message", "No deployment details found for environment: " + environment);
-                return data;
-            }
-            
-            String dbStatus = deploymentDetails.getLastDeploymentStatus() != null ? 
-                     deploymentDetails.getLastDeploymentStatus() : "UNKNOWN";
-            
+            // Check workspace-level status first
             String lastBuildOrDeployStatus = entity.getData().getProjectDetails().getLastBuildOrDeployedStatus();
-            if ("BUILD_REQUESTED".equalsIgnoreCase(lastBuildOrDeployStatus)) {
-                dbStatus = "BUILDING";
-            } else if ("BUILD_SUCCESS".equalsIgnoreCase(lastBuildOrDeployStatus)) {
-                dbStatus = "BUILT";
-            } else if ("BUILD_FAILED".equalsIgnoreCase(lastBuildOrDeployStatus)) {
-                dbStatus = "BUILD_FAILED";
+            String lastBuildOrDeployedEnv = entity.getData().getProjectDetails().getLastBuildOrDeployedEnv();
+            
+            log.debug("Project {}, Environment {}: deploymentDetails={}, lastBuildOrDeployStatus={}, lastBuildOrDeployedEnv={}", 
+                projectName, environment, (deploymentDetails != null ? "exists" : "null"), lastBuildOrDeployStatus, lastBuildOrDeployedEnv);
+            
+            // If deployment details are null but workspace shows deployment activity for this environment
+            if (deploymentDetails == null) {
+                // Check if there's any deployment activity for this environment at workspace level
+                // Only return NO_DEPLOYMENT if there's truly no deployment data for this specific environment
+                if (lastBuildOrDeployStatus == null) {
+                    // No workspace-level status at all - truly no deployment
+                    data.put("currentStatus", "NO_DEPLOYMENT");
+                    data.put("message", "No deployment details found for environment: " + environment);
+                    log.info("Project {}, Environment {}: NO_DEPLOYMENT - no workspace status", projectName, environment);
+                    return data;
+                }
+                
+                if (!environment.equalsIgnoreCase(lastBuildOrDeployedEnv)) {
+                    // There's a status but for a different environment - this environment has no deployment
+                    data.put("currentStatus", "NO_DEPLOYMENT");
+                    data.put("message", "No deployment details found for environment: " + environment);
+                    log.info("Project {}, Environment {}: NO_DEPLOYMENT - status for different env ({})", 
+                        projectName, environment, lastBuildOrDeployedEnv);
+                    return data;
+                }
+                // Continue with workspace-level status - don't return early, we need to fetch ArgoCD data
+                log.info("Project {}, Environment {}: Using workspace-level status: {}", projectName, environment, lastBuildOrDeployStatus);
             }
             
-            data.put("version", deploymentDetails.getLastDeployedVersion());
-            data.put("branch", deploymentDetails.getLastDeployedBranch());
-            data.put("deployedOn", deploymentDetails.getLastDeployedOn());
-            data.put("deployedBy", deploymentDetails.getLastDeployedBy());
-            data.put("deploymentUrl", deploymentDetails.getDeploymentUrl());
+            String dbStatus;
+            if (deploymentDetails != null && deploymentDetails.getLastDeploymentStatus() != null) {
+                dbStatus = deploymentDetails.getLastDeploymentStatus();
+            } else if (lastBuildOrDeployStatus != null && environment.equalsIgnoreCase(lastBuildOrDeployedEnv)) {
+                // Use workspace-level status when deployment details are null or incomplete
+                dbStatus = lastBuildOrDeployStatus;
+            } else {
+                dbStatus = "UNKNOWN";
+            }
             
-            auditLogs = deploymentDetails.getDeploymentAuditLogs();
+            // Only populate deployment details if the object exists
+            if (deploymentDetails != null) {
+                data.put("version", deploymentDetails.getLastDeployedVersion());
+                data.put("branch", deploymentDetails.getLastDeployedBranch());
+                data.put("deployedOn", deploymentDetails.getLastDeployedOn());
+                data.put("deployedBy", deploymentDetails.getLastDeployedBy());
+                data.put("deploymentUrl", deploymentDetails.getDeploymentUrl());
+                auditLogs = deploymentDetails.getDeploymentAuditLogs();
+            } else {
+                // deploymentDetails is null, set auditLogs to null
+                auditLogs = null;
+            }
             if (auditLogs != null && !auditLogs.isEmpty()) {
                 DeploymentAudit latestAudit = auditLogs.stream()
                     .filter(audit -> audit.getTriggeredOn() != null)
@@ -253,17 +281,25 @@ public class DeploymentStatusSseController {
             String actualStatus = determineActualStatus(dbStatus, argoHealthStatus, argoSyncStatus, argoLastSyncPhase, argoOperationMsg);
             data.put("currentStatus", actualStatus);
             
-            if ("DEPLOYMENT_FAILED".equals(actualStatus)) {
-                String errorMsg = (String) data.get("argocdOperationMessage");
-                if (errorMsg != null && !errorMsg.isEmpty()) {
-                    data.put("errorMessage", errorMsg);
+            if ("DEPLOYMENT_FAILED".equals(actualStatus) || "RESTART_FAILED".equals(actualStatus)) {
+                // First check if error is stored in database
+                String storedError = deploymentDetails.getLastDeploymentError();
+                if (storedError != null && !storedError.isEmpty()) {
+                    data.put("errorMessage", storedError);
                 } else {
-                    if ("Degraded".equalsIgnoreCase(argoHealthStatus)) {
-                        data.put("errorMessage", "Deployment failed: pods are in degraded state. Check pod logs for details.");
-                    } else if ("Failed".equalsIgnoreCase(argoLastSyncPhase)) {
-                        data.put("errorMessage", "Deployment failed: sync to cluster failed. Check ArgoCD for details.");
+                    // Fall back to live ArgoCD message
+                    String errorMsg = (String) data.get("argocdOperationMessage");
+                    if (errorMsg != null && !errorMsg.isEmpty()) {
+                        data.put("errorMessage", errorMsg);
                     } else {
-                        data.put("errorMessage", "Deployment failed. Check ArgoCD for details.");
+                        // Generic fallback messages
+                        if ("Degraded".equalsIgnoreCase(argoHealthStatus)) {
+                            data.put("errorMessage", "Deployment failed: pods are in degraded state. Check pod logs for details.");
+                        } else if ("Failed".equalsIgnoreCase(argoLastSyncPhase)) {
+                            data.put("errorMessage", "Deployment failed: sync to cluster failed. Check ArgoCD for details.");
+                        } else {
+                            data.put("errorMessage", "Deployment failed. Check ArgoCD for details.");
+                        }
                     }
                 }
             }
@@ -299,13 +335,13 @@ public class DeploymentStatusSseController {
         }
         
         if ("Healthy".equalsIgnoreCase(argoHealth)) {
-            if ("DEPLOYING".equalsIgnoreCase(dbStatus) || "BUILDING".equalsIgnoreCase(dbStatus)) {
+            if ("DEPLOY_REQUESTED".equalsIgnoreCase(dbStatus) || "BUILDING".equalsIgnoreCase(dbStatus)) {
                 return dbStatus;
             }
             return "DEPLOYED";
         }
         
-        return dbStatus != null ? dbStatus : "DEPLOYING";
+        return dbStatus != null ? dbStatus : "DEPLOY_REQUESTED";
     }
 
     @GetMapping(value = "/workspace/deployment/syncerror/{projectName}/{environment}", produces = MediaType.APPLICATION_JSON_VALUE)
