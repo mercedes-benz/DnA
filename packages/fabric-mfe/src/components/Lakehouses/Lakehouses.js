@@ -353,7 +353,6 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
   }
 
    const isAlreadyPublished = workspace?.cdcPublishedLakeHouseDetails?.publishedLakeHouseNames?.includes(lakehouse.id);
-   console.log('[PushToCdc] isAlreadyPublished:', isAlreadyPublished);
 
   if (!isAlreadyPublished) {
     setShowViewTablesModal(true);
@@ -364,7 +363,6 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
   fabricApi.checkTableMismatch(workspace.id, lakehouse.id)
     .then((res) => {
       ProgressIndicator.hide();
-      console.log('[PushToCdc] API response:', JSON.stringify(res?.data));
       const data = res?.data;    
       if (data?.hasMismatch) {
         const schemaChanges = data.mismatches?.filter(mismatch => {
@@ -396,7 +394,7 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
     })
     .catch((e) => {
       ProgressIndicator.hide();
-      console.error('[PushToCdc] API ERROR:', e?.response?.status, e?.message);
+      Notification.show(e.response.data.errors?.length ? e.response.data.errors[0].message : ' isAlreadyPublished:', 'alert');
       setShowViewTablesModal(true);
     });
 };
