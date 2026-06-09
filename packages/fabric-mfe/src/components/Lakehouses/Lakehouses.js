@@ -344,72 +344,44 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
 
 
   const handlePushToCdc = (lakehouse) => {
-  console.log('[PushToCdc] Button clicked for:', lakehouse.name);
-  setSelectedLakehouse(lakehouse);
+    console.log('[PushToCdc] Button clicked for:', lakehouse.name);
+    setSelectedLakehouse(lakehouse);
 
-  if (workspace?.typeOfProject?.toLowerCase() !== "production") {
-    setShowNonProdProjectModal(true);
-    return;
-  }
+    if (workspace?.typeOfProject?.toLowerCase() !== "production") {
+      setShowNonProdProjectModal(true);
+      return;
+    }
 
-  const isAlreadyPublished = workspace?.cdcPublishedLakeHouseDetails?.publishedLakeHouseNames?.includes(lakehouse.id);
-  console.log('[PushToCdc] isAlreadyPublished:', isAlreadyPublished);
+    const isAlreadyPublished = workspace?.cdcPublishedLakeHouseDetails?.publishedLakeHouseNames?.includes(lakehouse.id);
+    console.log('[PushToCdc] isAlreadyPublished:', isAlreadyPublished);
 
-  if (!isAlreadyPublished) {
-    setShowViewTablesModal(true);
-    return;
-  }
+    if (!isAlreadyPublished) {
+      setShowViewTablesModal(true);
+      return;
+    }
 
-  ProgressIndicator.show();
-  fabricApi.checkTableMismatch(workspace.id, lakehouse.id)
-    .then((res) => {
-      ProgressIndicator.hide();
-      console.log('[PushToCdc] API response:', JSON.stringify(res?.data));
-      const data = res?.data;    
-      if (data?.hasMismatch) {
-        // ✅ FILTER: Show modal for:
-        // 1. Table changes (NEW_TABLE, DELETED_TABLE)
-        // 2. Column changes (NEW_COLUMN, DELETED_COLUMN, or any mismatch with affectedColumns)
-        const schemaChanges = data.mismatches?.filter(mismatch => {
-          const type = mismatch.mismatchType;
-          const hasAffectedColumns = mismatch.affectedColumns && mismatch.affectedColumns.length > 0;
-          
-          // ❌ EXCLUDE: OLD_TABLE with no affected columns is not a schema change
-          if (type === 'OLD_TABLE' && !hasAffectedColumns) {
-            return false;
-          }
-          
-          // Check for explicit table/column types
-          const isTableChange = type === 'NEW_TABLE' || type === 'DELETED_TABLE';
-          const isColumnChange = type === 'NEW_COLUMN' || type === 'DELETED_COLUMN';
-          
-          // Keep if: explicit schema change types, OR OLD_TABLE with affected columns
-          return isTableChange || isColumnChange || hasAffectedColumns;
-        });
-
-        console.log('[PushToCdc] Schema changes detected:', schemaChanges);
-
-        // Only show modal if there are actual schema changes
-        if (schemaChanges && schemaChanges.length > 0) {
+    ProgressIndicator.show();
+    fabricApi.checkTableMismatch(workspace.id, lakehouse.id)
+      .then((res) => {
+        ProgressIndicator.hide();
+        console.log('[PushToCdc] API response:', JSON.stringify(res?.data));
+        const data = res?.data;
+        if (data?.hasMismatch) {
           setMismatchData({
             lakehouseName: lakehouse.name,
-            mismatches: schemaChanges, // Only pass schema changes
+            mismatches: data.mismatches || [],
           });
           setShowMismatchModal(true);
         } else {
-          // No schema changes - go directly to push
           setShowViewTablesModal(true);
         }
-      } else {
+      })
+      .catch((e) => {
+        ProgressIndicator.hide();
+        console.error('[PushToCdc] API ERROR:', e?.response?.status, e?.message);
         setShowViewTablesModal(true);
-      }
-    })
-    .catch((e) => {
-      ProgressIndicator.hide();
-      console.error('[PushToCdc] API ERROR:', e?.response?.status, e?.message);
-      setShowViewTablesModal(true);
-    });
-};
+      });
+  };
 
   // Pagination 
   const [totalNumberOfPages, setTotalNumberOfPages] = useState(0);
@@ -836,7 +808,7 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
           modalWidth={'90%'}
           buttonAlignment="right"
           show={showViewTables}
-        content={<ViewTablesModalContent workspaceId={workspace?.id} lakehouseId={selectedLakehouse?.id} lakehouseName={selectedLakehouse?.name} onRefreshWorkspace={onRefreshWorkspace} isCdcPublished={workspace?.cdcPublishedLakeHouseDetails?.publishedLakeHouseNames?.includes(selectedLakehouse?.id)} />}
+        content={<ViewTablesModalContent workspaceId={workspace?.id} lakehouseId={selectedLakehouse?.id} lakehouseName={selectedLakehouse?.name} onRefreshWorkspace={onRefreshWorkspace} />}
           scrollableContent={true}
           onCancel={() => { setSelectedLakehouse(); setShowViewTablesModal(false) }}
         />
