@@ -364,7 +364,6 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
   fabricApi.checkTableMismatch(workspace.id, lakehouse.id)
     .then((res) => {
       ProgressIndicator.hide();
-      console.log('[PushToCdc] API response:', JSON.stringify(res?.data));
       const data = res?.data;    
       if (data?.hasMismatch) {
         const schemaChanges = data.mismatches?.filter(mismatch => {
@@ -396,7 +395,6 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
     })
     .catch((e) => {
       ProgressIndicator.hide();
-      console.error('[PushToCdc] API ERROR:', e?.response?.status, e?.message);
       setShowViewTablesModal(true);
     });
 };
