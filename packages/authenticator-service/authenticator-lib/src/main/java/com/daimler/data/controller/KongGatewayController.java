@@ -30,6 +30,10 @@ import com.daimler.data.dto.kongGateway.AttachFunctionPluginRequestVO;
 import com.daimler.data.dto.kongGateway.AttachJwtPluginRequestVO;
 import com.daimler.data.dto.kongGateway.AttachOneApiPluginVO;
 import com.daimler.data.dto.kongGateway.AttachOneApiPluginRequestVO;
+import com.daimler.data.dto.kongGateway.AttachOpenTelemetryPluginRequestVO;
+import com.daimler.data.dto.kongGateway.AttachOpenTelemetryPluginVO;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.daimler.data.dto.kongGateway.AttachJwtPluginVO;
 import com.daimler.data.dto.kongGateway.AttachPluginConfigVO;
 import com.daimler.data.dto.kongGateway.AttachPluginRequestVO;
@@ -677,6 +681,43 @@ public class KongGatewayController implements KongApi{
 //		}
 //		
 //	}
-	
+
+	@Override
+	@ApiOperation(value = "Attach openTelemetry Plugin to service.", nickname = "attachOpenTelemetryPlugin", notes = "Attach openTelemetry Plugin to service.", response = GenericMessage.class, tags={ "kong", })
+	@ApiResponses(value = {
+		@ApiResponse(code = 200, message = "Returns message of success", response = GenericMessage.class),
+		@ApiResponse(code = 400, message = "Bad Request", response = GenericMessage.class),
+		@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+		@ApiResponse(code = 403, message = "Request is not authorized."),
+		@ApiResponse(code = 405, message = "Method not allowed"),
+		@ApiResponse(code = 409, message = "Conflict", response = GenericMessage.class),
+		@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/kong/services/{serviceName}/openTelemetryPlugin",
+		produces = { "application/json" },
+		consumes = { "application/json" },
+		method = RequestMethod.POST)
+	public ResponseEntity<GenericMessage> attachOpenTelemetryPlugin(@Valid AttachOpenTelemetryPluginRequestVO attachOpenTelemetryPluginRequestVO, String serviceName) {
+		GenericMessage response = new GenericMessage();
+		List<MessageDescription> errors = new ArrayList<>();
+
+		AttachOpenTelemetryPluginVO attachOpenTelemetryPluginVO = attachOpenTelemetryPluginRequestVO.getData();
+		try {
+			if (Objects.nonNull(attachOpenTelemetryPluginVO) && Objects.nonNull(serviceName)) {
+				ObjectMapper mapper = new ObjectMapper();
+				String pluginConfigJson = mapper.writeValueAsString(attachOpenTelemetryPluginVO);
+				response = kongClient.attachOpenTelemetryPluginToService(pluginConfigJson, serviceName);
+			}
+			if (Objects.nonNull(response) && Objects.nonNull(response.getSuccess()) && response.getSuccess().equalsIgnoreCase("Success")) {
+				LOGGER.info("OpenTelemetry plugin attached successfully to the service {}", serviceName);
+				return new ResponseEntity<>(response, HttpStatus.CREATED);
+			} else {
+				LOGGER.info("Attaching opentelemetry plugin to the service {} failed", serviceName);
+				return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+		} catch (Exception e) {
+			LOGGER.error("Failed to attach opentelemetry plugin to service {} with exception {}", serviceName, e.getMessage());
+			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
 
 }
