@@ -132,12 +132,12 @@ public RecipeVO createRecipe(RecipeVO recipeRequestVO) {
 	SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
 	String repoUrl = recipeRequestVO.getRepodetails();
 	
-	if (Boolean.TRUE.equals(recipeRequestVO.isIsPublic())
-			&& repoUrl != null
-			&& repoUrl.contains("ghe.com")) {
-		throw new RuntimeException(
-				"Public recipes are not allowed for GHE repositories. Please set recipe visibility to Private.");
-	}
+	// if (Boolean.TRUE.equals(recipeRequestVO.isIsPublic())
+	// 		&& repoUrl != null
+	// 		&& repoUrl.contains("ghe.com")) {
+	// 	throw new RuntimeException(
+	// 			"Public recipes are not allowed for GHE repositories. Please set recipe visibility to Private.");
+	// }
 
 	if (Boolean.FALSE.equals(recipeRequestVO.isIsPublic())
 			&& repoUrl != null
@@ -262,7 +262,8 @@ public RecipeVO updateRecipe(RecipeVO recipeRequestVO) {
 			repoName = codespaceSplitValues[length-1];
 			repoOwner = codespaceSplitValues[length-2];
 			gitUrl = gitHubUrl.replace("/"+repoOwner, "");
-		gitUrl = gitUrl.replace("/"+repoName, "");
+			gitUrl = gitUrl.replace("/"+repoName, "");
+		    gitUrl = gitUrl.trim();
 		
 		String patToUse;
 
@@ -402,6 +403,7 @@ public GenericMessage validateGitHubUrl(String gitHubUrl) {
         String gitUrl = gitHubUrl
                 .replace("/" + repoName, "")
                 .replace("/" + applicationName, "");
+		gitUrl = gitUrl.trim();
 
         HttpStatus status;
 		boolean isGheRepo = gitHubUrl.contains("ghe.com");
