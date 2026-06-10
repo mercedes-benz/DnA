@@ -182,13 +182,6 @@ const DeployModal = (props) => {
 
   return (
     <>
-      {showIntMigrationModal && (
-        <IntMigrationModal
-          show={showIntMigrationModal}
-          codeSpaceData={props.codeSpaceData}
-          onDismiss={handleIntMigrationDismiss}
-        />
-      )}
       <Modal
         title={`Deploy Code - ${props?.codeSpaceData?.projectDetails?.projectName || ''}`}
         showAcceptButton={true}
@@ -304,6 +297,13 @@ const DeployModal = (props) => {
         scrollableBox={true}
         onCancel={() => props.setShowCodeDeployModal(false)}
       />
+      {showIntMigrationModal && (
+        <IntMigrationModal
+          show={showIntMigrationModal}
+          codeSpaceData={props.codeSpaceData}
+          onDismiss={handleIntMigrationDismiss}
+        />
+      )}
     </>
   );
 };
