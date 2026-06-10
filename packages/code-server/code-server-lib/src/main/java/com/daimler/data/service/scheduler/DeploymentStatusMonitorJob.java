@@ -5,6 +5,7 @@ import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
 import com.daimler.data.db.json.CodeServerBuildDeploy;
 import com.daimler.data.db.json.CodeServerDeploymentDetails;
 import com.daimler.data.db.json.DeploymentAudit;
+import com.daimler.data.db.json.UserInfo;
 import com.daimler.data.db.repo.workspace.WorkSpaceCodeServerBuildDeployRepository;
 import com.daimler.data.db.repo.workspace.WorkspaceCustomBuildDeployRepo;
 import com.daimler.data.db.repo.workspace.WorkspaceCustomRepository;
@@ -118,7 +119,7 @@ public class DeploymentStatusMonitorJob {
 
     private boolean shouldCheckDeployment(String status) {
         if (status == null) return false;
-        return "DEPLOYING".equalsIgnoreCase(status) || "DEPLOYMENT_FAILED".equalsIgnoreCase(status)
+        return "DEPLOY_REQUESTED".equalsIgnoreCase(status) || "DEPLOYMENT_FAILED".equalsIgnoreCase(status)
                 || "RESTART_REQUESTED".equalsIgnoreCase(status);
     }
 
@@ -150,6 +151,14 @@ public class DeploymentStatusMonitorJob {
             } else if ("DEPLOYMENT_FAILED".equals(argoStatus) && !"DEPLOYMENT_FAILED".equalsIgnoreCase(currentDbStatus)) {
                 needsUpdate = true;
             }
+            
+            if (!needsUpdate && "DEPLOYMENT_FAILED".equalsIgnoreCase(currentDbStatus)) {
+                if (deployment.getLastDeployedBy() == null || deployment.getLastDeployedOn() == null) {
+                    log.info("Force updating {} - status is DEPLOYMENT_FAILED but critical fields are null", appName);
+                    needsUpdate = true;
+                    targetStatus = "DEPLOYMENT_FAILED"; // Keep same status but update fields
+                }
+            }
 
             if (needsUpdate) {
                 log.info("Reconciling deployment status for {} from {} to {}", appName, currentDbStatus, targetStatus);
@@ -170,21 +179,55 @@ public class DeploymentStatusMonitorJob {
                         .orElse(null);
                 }
                 
-                if ("DEPLOYED".equals(targetStatus) || "RESTARTED".equals(targetStatus)) {
-                    if (deployment.getLastDeployedBy() == null) {
-                        deployment.setLastDeployedBy(workspace.getData().getWorkspaceOwner());
+                if (deployment.getLastDeployedBy() == null) {
+                    UserInfo projectOwner = workspace.getData().getProjectDetails().getProjectOwner();
+                    if (projectOwner != null && projectOwner.getId() != null) {
+                        deployment.setLastDeployedBy(new UserInfo(
+                            projectOwner.getId(),
+                            projectOwner.getFirstName(),
+                            projectOwner.getLastName(),
+                            projectOwner.getDepartment(),
+                            projectOwner.getEmail(),
+                            projectOwner.getMobileNumber(),
+                            projectOwner.getGitUserName(),
+                            projectOwner.getIsAdmin(),
+                            projectOwner.getIsApprover()
+                        ));
                     }
+                }
+                
+                if ("DEPLOYED".equals(targetStatus) || "RESTARTED".equals(targetStatus)) {
                     deployment.setLastDeployedOn(new Date());
-                    
-                    if (latestAudit != null) {
-                        if (deployment.getLastDeployedBranch() == null && latestAudit.getBranch() != null) {
-                            deployment.setLastDeployedBranch(latestAudit.getBranch());
+                } else if (deployment.getLastDeployedOn() == null) {
+                    deployment.setLastDeployedOn(new Date());
+                }
+                
+                if (latestAudit != null) {
+                    if (deployment.getLastDeployedBranch() == null && latestAudit.getBranch() != null) {
+                        deployment.setLastDeployedBranch(latestAudit.getBranch());
+                    }
+                    if (deployment.getLastDeployedVersion() == null && latestAudit.getVersion() != null) {
+                        deployment.setLastDeployedVersion(latestAudit.getVersion());
+                    }
+                    if (deployment.getGitjobRunID() == null && latestAudit.getGitjobRunID() != null) {
+                        deployment.setGitjobRunID(latestAudit.getGitjobRunID());
+                    }
+                }
+                
+                if (deployment.getLastDeployedBranch() == null || deployment.getLastDeployedVersion() == null) {
+                    if ("int".equalsIgnoreCase(environment) && workspace.getData().getProjectDetails().getIntBuildDetails() != null) {
+                        if (deployment.getLastDeployedBranch() == null) {
+                            deployment.setLastDeployedBranch(workspace.getData().getProjectDetails().getIntBuildDetails().getLastBuildBranch());
                         }
-                        if (deployment.getLastDeployedVersion() == null && latestAudit.getVersion() != null) {
-                            deployment.setLastDeployedVersion(latestAudit.getVersion());
+                        if (deployment.getLastDeployedVersion() == null) {
+                            deployment.setLastDeployedVersion(workspace.getData().getProjectDetails().getIntBuildDetails().getVersion());
                         }
-                        if (deployment.getGitjobRunID() == null && latestAudit.getGitjobRunID() != null) {
-                            deployment.setGitjobRunID(latestAudit.getGitjobRunID());
+                    } else if ("prod".equalsIgnoreCase(environment) && workspace.getData().getProjectDetails().getProdBuildDetails() != null) {
+                        if (deployment.getLastDeployedBranch() == null) {
+                            deployment.setLastDeployedBranch(workspace.getData().getProjectDetails().getProdBuildDetails().getLastBuildBranch());
+                        }
+                        if (deployment.getLastDeployedVersion() == null) {
+                            deployment.setLastDeployedVersion(workspace.getData().getProjectDetails().getProdBuildDetails().getVersion());
                         }
                     }
                 }
@@ -238,7 +281,7 @@ public class DeploymentStatusMonitorJob {
                         || "RESTARTED".equalsIgnoreCase(auditStatus) || "RESTART_FAILED".equalsIgnoreCase(auditStatus)) {
                     foundTerminalAfter = true;
                 }
-                if ("DEPLOYING".equalsIgnoreCase(auditStatus) || "RESTART_REQUESTED".equalsIgnoreCase(auditStatus)) {
+                if ("DEPLOY_REQUESTED".equalsIgnoreCase(auditStatus) || "RESTART_REQUESTED".equalsIgnoreCase(auditStatus)) {
                     if (foundTerminalAfter) {
                         audit.setDeploymentStatus("DEPLOYMENT_FAILED");
                         log.info("Marked superseded audit log entry as DEPLOYMENT_FAILED for {}-{} at index {}", projectName, environment, i);

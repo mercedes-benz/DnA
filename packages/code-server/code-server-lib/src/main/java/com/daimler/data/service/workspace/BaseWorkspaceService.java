@@ -1657,7 +1657,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 			 }			 
 			 
 			 CodeServerDeploymentDetails intDeployment = entity.getData().getProjectDetails().getIntDeploymentDetails();
-			 if (intDeployment != null && "DEPLOYING".equalsIgnoreCase(intDeployment.getLastDeploymentStatus())) {
+			 if (intDeployment != null && "DEPLOY_REQUESTED".equalsIgnoreCase(intDeployment.getLastDeploymentStatus())) {
 				 try {
 					 String argoToken = argoCdService.getArgoToken();
 					 String appName = projectName.toLowerCase() + "-int";
@@ -1679,7 +1679,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 			 }
 			 
 			 CodeServerDeploymentDetails prodDeployment = entity.getData().getProjectDetails().getProdDeploymentDetails();
-			 if (prodDeployment != null && "DEPLOYING".equalsIgnoreCase(prodDeployment.getLastDeploymentStatus())) {
+			 if (prodDeployment != null && "DEPLOY_REQUESTED".equalsIgnoreCase(prodDeployment.getLastDeploymentStatus())) {
 				 try {
 					 String argoToken = argoCdService.getArgoToken();
 					 String appName = projectName.toLowerCase() + "-prod";
@@ -2117,7 +2117,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 					isValutInjectorEnable = VaultClient.enableVaultInjector(projectName.toLowerCase(), environment);
 				} catch (Exception e) {
 					MessageDescription error = new MessageDescription();
-					error.setMessage("Some error occured during deployment, with exception " + e.getMessage());
+					error.setMessage("Vault service is unavailable. Unable to check vault injector status for deployment. Please try again later or contact admin. (Details: " + e.getMessage() + ")");
 					errors.add(error);
 					responseMessage.setErrors(errors);
 					responseMessage.setWarnings(warnings);
@@ -2143,13 +2143,16 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
                     if (argoToken != null) {
                         String gitRepoUrl;
                         if (isprivateRecipe) {
-                            gitRepoUrl = entity.getData().getProjectDetails().getRecipeDetails().getRepodetails();
-                            if (gitRepoUrl != null) {
-                                gitRepoUrl = gitRepoUrl.replaceAll("/+$", "");
-                                if (!gitRepoUrl.endsWith(".git")) {
-                                    gitRepoUrl = gitRepoUrl + ".git";
+                            String freshRepoUrl = entity.getData().getProjectDetails().getRecipeDetails().getRepodetails();
+                            if (freshRepoUrl != null) {
+                                if (freshRepoUrl.endsWith("/")) {
+                                    freshRepoUrl = freshRepoUrl.substring(0, freshRepoUrl.length() - 1);
+                                }
+                                if (!freshRepoUrl.endsWith(".git")) {
+                                    freshRepoUrl = freshRepoUrl + ".git";
                                 }
                             }
+                            gitRepoUrl = freshRepoUrl;
                         } else {
                             if (repoName == null || repoName.isEmpty()) {
                                 throw new Exception("Git repository name is not set for this workspace. Cannot deploy to ArgoCD.");
@@ -2232,7 +2235,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 						warning.setMessage("Error while adding commit id to deployment audit log");
 					}else{
 						auditLog.setCommitId(commitId.getSha());
-						auditLog.setDeploymentStatus("DEPLOYING");
+						auditLog.setDeploymentStatus("DEPLOY_REQUESTED");
 						auditLog.setVersion(version);
 						if("APPROVAL_PENDING".equalsIgnoreCase(deploymentDetails.getLastDeploymentStatus())){
 							if (!auditLogs.isEmpty()){
@@ -2296,15 +2299,12 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 				String argocdAppUrl = argocdBaseUrl + "/applications/" + appName;
 				log.info("ArgoCD application URL: {}", argocdAppUrl);
 				
-				String finalDeployStatus = "DEPLOYING";
-				lastBuildOrDeployStatus = "DEPLOYING";
-				deploymentDetails.setLastDeploymentStatus("DEPLOYING");
-				deploymentDetails.setLastDeploymentError(null);
-				workspaceCustomRepository.updateDeploymentDetails(projectName, environment, deploymentDetails,
-						"DEPLOYING");
-				
-				log.info("ArgoCD deployment initiated for {}. Status will be updated asynchronously by background job.", appName);
-				
+			String finalDeployStatus = "DEPLOY_REQUESTED";
+			lastBuildOrDeployStatus = "DEPLOY_REQUESTED";
+			deploymentDetails.setLastDeploymentStatus("DEPLOY_REQUESTED");
+			deploymentDetails.setLastDeploymentError(null);
+			workspaceCustomRepository.updateDeploymentDetails(projectName, environment, deploymentDetails,
+					"DEPLOY_REQUESTED");
 				status = "SUCCESS";
 			} else {
 				status = "FAILED";
@@ -2318,10 +2318,10 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 								 : auditEntity.getData().getProdDeploymentAuditLogs();
 							 if (deployAuditLogs != null && !deployAuditLogs.isEmpty()) {
 								 DeploymentAudit lastAudit = deployAuditLogs.get(deployAuditLogs.size() - 1);
-								 if ("DEPLOYING".equalsIgnoreCase(lastAudit.getDeploymentStatus())) {
-									 lastAudit.setDeploymentStatus("DEPLOYMENT_FAILED");
-									 auditEntity.setData(auditEntity.getData());
-									 buildDeployRepo.save(auditEntity);
+								 if ("DEPLOY_REQUESTED".equalsIgnoreCase(lastAudit.getDeploymentStatus())) {
+								 lastAudit.setDeploymentStatus("DEPLOYMENT_FAILED");
+								 auditEntity.setData(auditEntity.getData());
+								 buildDeployRepo.save(auditEntity);
 								 }
 							 }
 						 }

@@ -4077,8 +4077,8 @@ import org.springframework.beans.factory.annotation.Value;
 			String currentDbStatus = deployment.getLastDeploymentStatus();
 			
 			if (currentDbStatus == null || 
-				"DEPLOYING".equalsIgnoreCase(currentDbStatus) || 
-				"FAILED".equalsIgnoreCase(currentDbStatus)) {
+			"DEPLOY_REQUESTED".equalsIgnoreCase(currentDbStatus) || 
+			"DEPLOYMENT_FAILED".equalsIgnoreCase(currentDbStatus)) {
 				
 				String argoStatus = argoCdService.checkArgoAppDeploymentStatus(argoToken, appName);
 				
@@ -4090,7 +4090,7 @@ import org.springframework.beans.factory.annotation.Value;
 						deployment.setLastDeployedOn(new Date());
 					}
 				}
-				else if ("DEPLOYING".equals(argoStatus) && "FAILED".equalsIgnoreCase(currentDbStatus)) {
+				else if ("DEPLOY_REQUESTED".equals(argoStatus) && "DEPLOYMENT_FAILED".equalsIgnoreCase(currentDbStatus)) {
 					log.info("Reconciling {} status from {} to {} (new deployment in progress)", 
 						appName, currentDbStatus, argoStatus);
 					deployment.setLastDeploymentStatus(argoStatus);

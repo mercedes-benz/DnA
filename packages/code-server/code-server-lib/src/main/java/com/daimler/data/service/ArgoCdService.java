@@ -687,8 +687,8 @@ public class ArgoCdService {
                     log.warn("ArgoCD app {} - not found, marking as DEPLOYMENT_FAILED", appName);
                     return "DEPLOYMENT_FAILED";
                 }
-                log.info("ArgoCD app {} not ready yet - DEPLOYING", appName);
-                return "DEPLOYING";
+                log.info("ArgoCD app {} not ready yet - DEPLOY_REQUESTED", appName);
+                return "DEPLOY_REQUESTED";
             }
             ObjectMapper mapper = new ObjectMapper();
             JsonNode rootNode = mapper.readTree(argoResponse.getBody());
@@ -713,21 +713,32 @@ public class ArgoCdService {
                 return "DEPLOYMENT_FAILED";
             }
 
+            if ("Running".equalsIgnoreCase(lastSyncPhase)) {
+                log.info("Application {} sync still running (health={}) - DEPLOYING", appName, healthStatus);
+                return "DEPLOYING";
+            }
+ 
+            String syncStatus = rootNode.path("status").path("sync").path("status").asText("");
+            if ("OutOfSync".equalsIgnoreCase(syncStatus)) {
+                log.info("Application {} is OutOfSync (health={}, syncPhase={}) - DEPLOYING", appName, healthStatus, lastSyncPhase);
+                return "DEPLOYING";
+            }
+
             if ("Healthy".equalsIgnoreCase(healthStatus)) {
                 log.info("Application {} is healthy - DEPLOYED", appName);
                 return "DEPLOYED";
             }
 
-            log.info("Application {} is in progress (health={}, syncPhase={}) - DEPLOYING", appName, healthStatus, lastSyncPhase);
-            return "DEPLOYING";
+            log.info("Application {} is in progress (health={}, syncPhase={}) - DEPLOY_REQUESTED", appName, healthStatus, lastSyncPhase);
+            return "DEPLOY_REQUESTED";
         } catch (Exception e) {
             log.error("Failed to check ArgoCD deployment status for {}", appName, e);
-            return "DEPLOYING";
+            return "DEPLOY_REQUESTED";
         }
     }
     public Map<String, String> checkArgoAppDeploymentStatusWithError(String token, String appName) {
         Map<String, String> result = new HashMap<>();
-        result.put("status", "DEPLOYING");
+        result.put("status", "DEPLOY_REQUESTED");
         result.put("errorMessage", "");
         try {
             ResponseEntity<String> argoResponse = getStatusOfArgoApp(token, appName);
@@ -762,6 +773,14 @@ public class ArgoCdService {
                 result.put("errorMessage", operationMessage != null && !operationMessage.isEmpty()
                     ? operationMessage : "Application health is Degraded. Check pod logs for details.");
                 return result;
+            }
+            if ("Running".equalsIgnoreCase(lastSyncPhase)) {
+                return result; 
+            }
+ 
+            String syncStatus = rootNode.path("status").path("sync").path("status").asText("");
+            if ("OutOfSync".equalsIgnoreCase(syncStatus)) {
+                return result; 
             }
             if ("Healthy".equalsIgnoreCase(healthStatus)) {
                 result.put("status", "DEPLOYED");
