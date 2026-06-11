@@ -212,3 +212,13 @@
   justify-content: center;
   align-items: center; 
 }
+
+.report-links {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.report-links a {
+  white-space: nowrap;
+} 
