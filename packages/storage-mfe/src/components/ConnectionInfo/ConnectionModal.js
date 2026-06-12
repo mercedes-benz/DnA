@@ -307,8 +307,9 @@ export const ConnectionModal = (props) => {
       <code>
         {`from minio import Minio
           import pandas as pd
+          import urllib3
           MINIO_BUCKET = "${bucketInfo.bucketName}"
-          minio_client = Minio('${bucketInfo.accessInfo.hostName}', access_key='${bucketInfo.accessInfo.accesskey}', secret_key='YOUR_BUCKET_SECRET_KEY', secure=True)
+          minio_client = Minio('${Envs.MINIO_EXTERNAL_ENDPOINT}', access_key='${bucketInfo.accessInfo.accesskey}', secret_key='YOUR_BUCKET_SECRET_KEY', secure=True, http_client=urllib3.PoolManager(cert_reqs='CERT_REQUIRED', ca_certs='${Envs.MINIO_CA_CERT_PATH}'))
           y_file_obj = minio_client.get_object(MINIO_BUCKET, <<filepath>>)
           y = pd.read_csv(y_file_obj)`}
       </code>

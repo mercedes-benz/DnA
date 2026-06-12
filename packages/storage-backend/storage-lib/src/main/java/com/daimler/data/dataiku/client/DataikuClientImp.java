@@ -193,8 +193,9 @@ public class DataikuClientImp implements DataikuClient {
                         createConnectionResponse.setHttpStatus(e.getStatusCode());
                 } catch (Exception e) {
                         logger.error("In createDataikuConnection, Error calling Dataiku API: {}", e.getMessage());
-		return createConnectionResponse;
-	}
+                }
+                return createConnectionResponse;
+        }
 
 	@Override
 	public DataikuGenericResponseDTO deleteDataikuConnection(String connectionName, Boolean live, String cloudProfile) {
@@ -219,7 +220,8 @@ public class DataikuClientImp implements DataikuClient {
                         deleteConnectionResponse.setHttpStatus(e.getStatusCode());
                 } catch (Exception e) {
                         logger.error("In deleteDataikuConnection, Error calling Dataiku API: {}", e.getMessage());
-		return deleteConnectionResponse;
-	}
+                }
+                return deleteConnectionResponse;
+        }
 
 }
