@@ -691,12 +691,12 @@ definitions:
         description: "If true, mirror the full schema. If false, objects map is required."
       objects:
         type: object
-        description: "Map of object names to their types (table or view). Required when fullSchema is false."
         additionalProperties:
           type: string
-          enum:
-            - table
-            - view
+        description: "Map of object names to their types (table or view). Required when fullSchema is false."
+          # enum:
+          #   - table
+          #   - view
       storageAccountUrl:
         type: string
         description: "ADLS Gen2 storage account URL"
@@ -745,10 +745,10 @@ definitions:
         type: string
         description: "Status of the mirrored catalog creation"
         enum:
-          - success
-          - failure
-          - already_exists
-          - in_progress
+          - SUCCESS
+          - FAILURE
+          - ALREADY_EXISTS
+          - IN_PROGRESS
 
   GrantPermissionsVO:
     type: array
