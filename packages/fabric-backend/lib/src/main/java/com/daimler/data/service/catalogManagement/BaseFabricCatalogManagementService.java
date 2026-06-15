@@ -45,6 +45,7 @@ import com.daimler.data.dto.fabricCatalogManagement.*;
 import com.daimler.data.service.common.BaseCommonService;
 import com.daimler.data.util.ConstantsUtility;
 import com.daimler.data.util.OpenMetadataFqnBuilder;
+import com.daimler.data.util.Validator;
 
 import lombok.val;
 import lombok.extern.slf4j.Slf4j;
@@ -1055,8 +1056,6 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
                     org.springframework.http.HttpStatus.BAD_REQUEST);
         }
 
-        // if we are maintaining catalaog wrt workspace then catalog name must be uniquie in perticular workspace.
-        // if we want to make our system future ready we should have the above option enabled as per the structure level.
         Optional<DdxMirroredCatalogProductNsql> existingOpt = mirroredCatalogCustomRepo.findByCatalogName(dataProductName);
 
         if (existingOpt.isPresent()) {
@@ -1076,15 +1075,14 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
                 }
             }
 
-            Map<String, String> uiliciousResponse = callUiliciousDummy(request, false);
-            // Map<String, String> uiliciousResponse = callUiliciousForMirroredCatalog(request, false);
+            Map<String, String> uiliciousResponse = callUiliciousForMirroredCatalog(request, false);
 
             DdxGroupDetail newGroupDetail = new DdxGroupDetail();
             newGroupDetail.setGroupName(ddxGroup);
-            newGroupDetail.setGroupAddedStatus(uiliciousResponse.get("groupAddedStatus"));
-            newGroupDetail.setGrantPermissionStatus(uiliciousResponse.get("grantPermissionStatus"));
+            newGroupDetail.setGroupAddedStatus(ConstantsUtility.INPROGRESS_STATE);
+            newGroupDetail.setGrantPermissionStatus(ConstantsUtility.INPROGRESS_STATE);
             newGroupDetail.setTestRunId(uiliciousResponse.get("testRunId"));
-            newGroupDetail.setMessage(uiliciousResponse.get("message"));
+            newGroupDetail.setMessage(ConstantsUtility.GROUP_ADDED_MESSAGE_IN_PROGRESS);
             newGroupDetail.setAddedOn(new Date());
             newGroupDetail.setUpdatedOn(new Date());
 
@@ -1100,8 +1098,7 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
             return buildMirroredCatalogResponse(existingData);
         }
 
-        Map<String, String> uiliciousResponse = callUiliciousDummy(request, true);
-        // Map<String, String> uiliciousResponse = callUiliciousForMirroredCatalog(request, true);
+        Map<String, String> uiliciousResponse = callUiliciousForMirroredCatalog(request, true);
 
         MirroredCatalogDetail mirrorCatalogDetails = new MirroredCatalogDetail();
         mirrorCatalogDetails.setMirroredCatalogId(uiliciousResponse.get("catalogId"));
@@ -1115,7 +1112,7 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
         firstGroupDetail.setGroupAddedStatus(uiliciousResponse.get("groupAddedStatus"));
         firstGroupDetail.setGrantPermissionStatus(uiliciousResponse.get("grantPermissionStatus"));
         firstGroupDetail.setTestRunId(uiliciousResponse.get("testRunId"));
-        firstGroupDetail.setMessage(uiliciousResponse.get("message"));
+        firstGroupDetail.setMessage(ConstantsUtility.GROUP_ADDED_MESSAGE_IN_PROGRESS);
         firstGroupDetail.setAddedOn(new Date());
         firstGroupDetail.setUpdatedOn(new Date());
 
@@ -1157,17 +1154,51 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
     }
 
     @Override
-    public GroupResponseVO getMirroredCatalogStatus(String mirroredCatalogId) {
-        log.info("Getting mirrored catalog status for mirroredCatalogId: {}", mirroredCatalogId);
+    public MirroredCatalogResponseVO getMirroredCatalogStatus(String dataProductName) {
+        log.info("Getting mirrored catalog status for dataProductName: {}", dataProductName);
 
-        List<DdxMirroredCatalogProductNsql> results = mirroredCatalogCustomRepo.findByMirroredCatalogId(mirroredCatalogId);
-        if (results.isEmpty() || results.get(0).getData() == null) {
-            log.error("No mirrored catalog record found for mirroredCatalogId: {}", mirroredCatalogId);
+        Optional<DdxMirroredCatalogProductNsql> existingOpt = mirroredCatalogCustomRepo.findByCatalogName(dataProductName);
+        if (existingOpt.isEmpty() || existingOpt.get().getData() == null) {
+            log.error("No mirrored catalog record found for dataProductName: {}", dataProductName);
             return null;
         }
 
-        DdxMirroredCatalogProduct data = results.get(0).getData();
-        return buildGroupStatusResponse(data);
+        DdxMirroredCatalogProduct data = existingOpt.get().getData();
+        String testRunId = null;
+        if (data.getDdxGroupDetails() != null && !data.getDdxGroupDetails().isEmpty()) {
+            testRunId = data.getDdxGroupDetails().get(0).getTestRunId();
+        }
+        log.info("Fetched mirrored catalog data for dataProductName: {}, testRunId: {}", dataProductName, testRunId);
+        Map<String, String> resUilicious = uiLiciousClient.getStatusForMirrorCatalog(testRunId);
+
+        if (resUilicious == null || resUilicious.containsKey("error")) {
+        String errorMsg = resUilicious != null ? resUilicious.get("error") : "Received null response";
+        log.error("Error fetching status from UiLicious for Mirror Catalog {}: {}", dataProductName, errorMsg);
+        throw new RuntimeException("Error fetching status from UiLicious for Mirror Catalog " + dataProductName + ": " + errorMsg);
+        }
+
+        data.setCompletedOn(new Date(Long.parseLong(resUilicious.get("createdAt"))));
+        if (!Validator.validateResultMap(resUilicious)) {
+            log.error("Invalid response from UiLicious for Mirror Catalog {}: {}", dataProductName, resUilicious);
+            throw new RuntimeException("UiLicious work is in progress for Mirror Catalog " + dataProductName);
+        }
+        data.setStatus(resUilicious.get("catalogStatus").equalsIgnoreCase("success") ? ConstantsUtility.SUCCESS_STATE : ConstantsUtility.INPROGRESS_STATE);
+
+        DdxGroupDetail groupDetail = data.getDdxGroupDetails().get(0);
+        groupDetail.setGroupAddedStatus(resUilicious.get("Group").equalsIgnoreCase("success") ? ConstantsUtility.SUCCESS_STATE : ConstantsUtility.INPROGRESS_STATE);
+        groupDetail.setUpdatedOn(new Date());
+        groupDetail.setGrantPermissionStatus(resUilicious.get("Permissions").equalsIgnoreCase("success") ? ConstantsUtility.SUCCESS_STATE : ConstantsUtility.INPROGRESS_STATE);
+
+        MirroredCatalogDetail catalogDetail = data.getMirrorCatalogDetails();
+        catalogDetail.setCatalogStatus(resUilicious.get("catalogStatus").equalsIgnoreCase("success") ? ConstantsUtility.SUCCESS_STATE : ConstantsUtility.INPROGRESS_STATE);
+        catalogDetail.setMirroredCatalogUrl(resUilicious.get("mirrorCatalogURL"));
+        catalogDetail.setMirroredCatalogId(resUilicious.get("LakehouseID"));
+
+        existingOpt.get().setData(data);
+        mirroredCatalogRepo.save(existingOpt.get());
+
+        MirroredCatalogResponseVO response = buildMirroredCatalogResponse(data);
+        return response;
     }
 
     @Override
@@ -1282,7 +1313,7 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
         if (!request.isFullSchema() && request.getObjects() != null) {
             objects = new ArrayList<>(request.getObjects().keySet());
         }
-
+        //need to add network connection name here.
         return uiLiciousClient.createMirroredCatalog(
                 request.getDataProductName(),
                 request.getCatalogName(),
@@ -1291,7 +1322,7 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
                 centralConnectionName,
                 centralWorkspaceId,
                 centralWorkspaceName,
-                request.getStorageAccountUrl(),
+                request.getStorageAccountUrl(),//put the network connection name here when it's ready.
                 objects,
                 isNewCatalog);
     }

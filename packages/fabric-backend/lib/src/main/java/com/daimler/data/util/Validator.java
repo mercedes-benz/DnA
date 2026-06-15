@@ -1,5 +1,8 @@
 package com.daimler.data.util;
 
+import java.util.List;
+import java.util.Map;
+
 import com.daimler.data.dto.fabricCatalogManagement.CreateMirroredCatalogRequestVO;
 
 public class Validator {
@@ -28,6 +31,24 @@ public class Validator {
         return "ddxCorrelationId";  
     }  
     return null;  
+}
+
+public static boolean validateResultMap(Map<String, String> resultMap) {  
+    if (resultMap == null || resultMap.isEmpty()) {  
+        return false;  
+    }  
+  
+    List<String> requiredKeys = List.of(  
+        "Group",  
+        "Permissions",  
+        "LakehouseID",  
+        "catalogStatus",  
+        "mirrorCatalogURL",  
+        "createdAt"  
+    );  
+  
+    return requiredKeys.stream()  
+        .allMatch(key -> resultMap.containsKey(key) && resultMap.get(key) != null && !resultMap.get(key).isBlank());  
 }
     
 }

@@ -747,27 +747,27 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
         @ApiResponse(code = 404, message = "Mirrored catalog record not found", response = MirroredCatalogErrorResponseVO.class),
         @ApiResponse(code = 405, message = "Method not allowed"),
         @ApiResponse(code = 500, message = "Internal error", response = MirroredCatalogErrorResponseVO.class) })
-    @RequestMapping(value = "/catalog/databricks/mirrored-catalog/status/{mirroredCatalogId}",
+    @RequestMapping(value = "/catalog/databricks/mirrored-catalog/status/{dataProductName}",
         produces = { "application/json" },
         method = RequestMethod.GET)
     public ResponseEntity getMirroredCatalogStatus(
-            @ApiParam(value = "The ID of the mirrored catalog.", required = true) @PathVariable("mirroredCatalogId") String mirroredCatalogId) {
+            @ApiParam(value = "The name of the data product.", required = true) @PathVariable("dataProductName") String dataProductName) {
         try {
-            if (mirroredCatalogId == null || mirroredCatalogId.isBlank()) {
-                log.error("Missing required mirroredCatalogId in getMirroredCatalogStatus request");
+            if (dataProductName == null || dataProductName.isBlank()) {
+                log.error("Missing required dataProductName in getMirroredCatalogStatus request");
                 MirroredCatalogErrorResponseVO errorResponse = new MirroredCatalogErrorResponseVO();
                 errorResponse.setStatus("error");
                 errorResponse.setErrorCode(MirroredCatalogErrorResponseVO.ErrorCodeEnum.INVALID_REQUEST);
-                errorResponse.setMessage("Missing required field: mirroredCatalogId");
+                errorResponse.setMessage("Missing required field: dataProductName");
                 return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
             }
 
-            GroupResponseVO response = service.getMirroredCatalogStatus(mirroredCatalogId);
+            MirroredCatalogResponseVO response = service.getMirroredCatalogStatus(dataProductName);
             if (response == null) {
                 MirroredCatalogErrorResponseVO errorResponse = new MirroredCatalogErrorResponseVO();
                 errorResponse.setStatus("error");
                 errorResponse.setErrorCode(MirroredCatalogErrorResponseVO.ErrorCodeEnum.DATABRICKS_DATAPRODUCT_NOT_FOUND);
-                errorResponse.setMessage("No mirrored catalog record found for mirroredCatalogId: " + mirroredCatalogId);
+                errorResponse.setMessage("No mirrored catalog record found for Data Product: " + dataProductName);
                 return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
             }
             return new ResponseEntity<>(response, HttpStatus.OK);
@@ -776,7 +776,7 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
             MirroredCatalogErrorResponseVO errorResponse = new MirroredCatalogErrorResponseVO();
             errorResponse.setStatus("error");
             errorResponse.setErrorCode(MirroredCatalogErrorResponseVO.ErrorCodeEnum.INTERNAL_ERROR);
-            errorResponse.setMessage("Unexpected error while getting mirrored catalog status");
+            errorResponse.setMessage( e.getMessage());
             return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

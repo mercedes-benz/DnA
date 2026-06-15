@@ -36,6 +36,7 @@ public class ConstantsUtility {
 	public static final String ASSIGNED_STATE = "ASSIGNED";
 	public static final String FAILED_STATE = "FAILED";
 	
+	public static final String SUCCESS_STATE = "SUCCESS";
 	public static final String COMPLETED_STATE = "COMPLETED";
 	public static final String DELETED_STATE = "DELETED";
 	public static final String INPROGRESS_STATE = "IN_PROGRESS";
@@ -73,6 +74,7 @@ public class ConstantsUtility {
 	public static final String GROUPS_NOT_FOUND_CONSTANT = "NOT_FOUND";
 
 	public static final String GROUPS_COMPLETED_CONSTANT = "COMPLETED";
+	public static final String GROUP_ADDED_MESSAGE_IN_PROGRESS = "Adding group is in process.";
 	
 	public static final Map<String, String> GROUPES_ERROR_MESSAGES_CONSTANT_MAP = Map.of(
 			GROUPS_ADDED_CONSTANT, "Group added successfully",
@@ -91,9 +93,10 @@ public class ConstantsUtility {
 	public static final String ERROR_INTERNAL = "INTERNAL_ERROR";
 
 	// Mirrored Catalog status constants
-	public static final String MIRRORED_CATALOG_SUCCESS = "success";
-	public static final String MIRRORED_CATALOG_FAILURE = "failure";
-	public static final String MIRRORED_CATALOG_ALREADY_EXISTS = "already_exists";
-	public static final String MIRRORED_CATALOG_IN_PROGRESS = "in_progress";
+	public static final String MIRRORED_CATALOG_SUCCESS = "SUCCESS";
+	public static final String MIRRORED_CATALOG_FAILURE = "FAILURE";
+	public static final String MIRRORED_CATALOG_ALREADY_EXISTS = "ALREADY_EXISTS";
+	public static final String MIRRORED_CATALOG_IN_PROGRESS = "IN_PROGRESS";
+	public static final String MIRRORED_CATALOG_MESSAGE_IN_PROGRESS = "Mirrored catalog request triggered";
 
 }
