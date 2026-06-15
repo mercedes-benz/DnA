@@ -1176,15 +1176,15 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
 
         if (resUilicious == null || resUilicious.containsKey("error")) {
         String errorMsg = resUilicious != null ? resUilicious.get("error") : "Received null response";
-        log.error("Error fetching status from UiLicious for dataProductName {}: {}", dataProductName, errorMsg);
-        throw new RuntimeException("Error fetching status from UiLicious for dataProductName " + dataProductName + ": " + errorMsg);
+        log.error("Error fetching status from UiLicious for Mirror Catalog {}: {}", dataProductName, errorMsg);
+        throw new RuntimeException("Error fetching status from UiLicious for Mirror Catalog " + dataProductName + ": " + errorMsg);
         }
 
-        // data.setCompletedOn(resUilicious.get("createdAt"));
-        //check for all the data if they exist or not  and then send error response.
+        data.setCompletedOn(new Date(Long.parseLong(resUilicious.get("createdAt"))));
+
         if (!Validator.validateResultMap(resUilicious)) {
-            log.error("Invalid response from UiLicious for dataProductName {}: {}", dataProductName, resUilicious);
-            throw new RuntimeException("UiLicious work is in progress for dataProductName " + dataProductName);
+            log.error("Invalid response from UiLicious for Mirror Catalog {}: {}", dataProductName, resUilicious);
+            throw new RuntimeException("UiLicious work is in progress for Mirror Catalog " + dataProductName);
         }
         data.setStatus(resUilicious.get("catalogStatus").equalsIgnoreCase("success") ? ConstantsUtility.SUCCESS_STATE : ConstantsUtility.INPROGRESS_STATE);
 
