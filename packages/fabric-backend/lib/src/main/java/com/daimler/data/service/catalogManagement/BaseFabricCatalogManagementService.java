@@ -1056,8 +1056,6 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
                     org.springframework.http.HttpStatus.BAD_REQUEST);
         }
 
-        // if we are maintaining catalaog wrt workspace then catalog name must be uniquie in perticular workspace.
-        // if we want to make our system future ready we should have the above option enabled as per the structure level.
         Optional<DdxMirroredCatalogProductNsql> existingOpt = mirroredCatalogCustomRepo.findByCatalogName(dataProductName);
 
         if (existingOpt.isPresent()) {
@@ -1081,10 +1079,10 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
 
             DdxGroupDetail newGroupDetail = new DdxGroupDetail();
             newGroupDetail.setGroupName(ddxGroup);
-            newGroupDetail.setGroupAddedStatus(ConstantsUtility.INPROGRESS_STATE);//in_progress
-            newGroupDetail.setGrantPermissionStatus(ConstantsUtility.INPROGRESS_STATE);//in_progress
+            newGroupDetail.setGroupAddedStatus(ConstantsUtility.INPROGRESS_STATE);
+            newGroupDetail.setGrantPermissionStatus(ConstantsUtility.INPROGRESS_STATE);
             newGroupDetail.setTestRunId(uiliciousResponse.get("testRunId"));
-            newGroupDetail.setMessage(ConstantsUtility.GROUP_ADDED_MESSAGE_IN_PROGRESS);//adding group is in process.
+            newGroupDetail.setMessage(ConstantsUtility.GROUP_ADDED_MESSAGE_IN_PROGRESS);
             newGroupDetail.setAddedOn(new Date());
             newGroupDetail.setUpdatedOn(new Date());
 
@@ -1103,18 +1101,18 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
         Map<String, String> uiliciousResponse = callUiliciousForMirroredCatalog(request, true);
 
         MirroredCatalogDetail mirrorCatalogDetails = new MirroredCatalogDetail();
-        mirrorCatalogDetails.setMirroredCatalogId(uiliciousResponse.get("catalogId"));//null
-        mirrorCatalogDetails.setMirroredCatalogUrl(uiliciousResponse.get("mirroredCatalogUrl"));//null
-        mirrorCatalogDetails.setMirrorCatalogName(uiliciousResponse.get("mirrorCatalogName"));//set from request
-        mirrorCatalogDetails.setCatalogStatus(uiliciousResponse.get("catalogStatus"));//in_progress
-        mirrorCatalogDetails.setMessage(uiliciousResponse.get("message"));//mirror catalog creation in process.
+        mirrorCatalogDetails.setMirroredCatalogId(uiliciousResponse.get("catalogId"));
+        mirrorCatalogDetails.setMirroredCatalogUrl(uiliciousResponse.get("mirroredCatalogUrl"));
+        mirrorCatalogDetails.setMirrorCatalogName(uiliciousResponse.get("mirrorCatalogName"));
+        mirrorCatalogDetails.setCatalogStatus(uiliciousResponse.get("catalogStatus"));
+        mirrorCatalogDetails.setMessage(uiliciousResponse.get("message"));
 
         DdxGroupDetail firstGroupDetail = new DdxGroupDetail();
-        firstGroupDetail.setGroupName(ddxGroup);//set it directly.
-        firstGroupDetail.setGroupAddedStatus(uiliciousResponse.get("groupAddedStatus"));//in_progress
-        firstGroupDetail.setGrantPermissionStatus(uiliciousResponse.get("grantPermissionStatus"));//in_progress
+        firstGroupDetail.setGroupName(ddxGroup);
+        firstGroupDetail.setGroupAddedStatus(uiliciousResponse.get("groupAddedStatus"));
+        firstGroupDetail.setGrantPermissionStatus(uiliciousResponse.get("grantPermissionStatus"));
         firstGroupDetail.setTestRunId(uiliciousResponse.get("testRunId"));
-        firstGroupDetail.setMessage(ConstantsUtility.GROUP_ADDED_MESSAGE_IN_PROGRESS);//adding group is in process.
+        firstGroupDetail.setMessage(ConstantsUtility.GROUP_ADDED_MESSAGE_IN_PROGRESS);
         firstGroupDetail.setAddedOn(new Date());
         firstGroupDetail.setUpdatedOn(new Date());
 
@@ -1159,7 +1157,6 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
     public MirroredCatalogResponseVO getMirroredCatalogStatus(String dataProductName) {
         log.info("Getting mirrored catalog status for dataProductName: {}", dataProductName);
 
-        // List<DdxMirroredCatalogProductNsql> results = mirroredCatalogCustomRepo.findByMirroredCatalogId(mirroredCatalogId);
         Optional<DdxMirroredCatalogProductNsql> existingOpt = mirroredCatalogCustomRepo.findByCatalogName(dataProductName);
         if (existingOpt.isEmpty() || existingOpt.get().getData() == null) {
             log.error("No mirrored catalog record found for dataProductName: {}", dataProductName);
