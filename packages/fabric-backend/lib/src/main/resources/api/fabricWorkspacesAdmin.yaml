@@ -118,4 +118,96 @@ paths:
           description: "Method not allowed."
         500:
           description: "Internal server error."
+
+  /fabric-workspaces/admin/capacity:
+    post:
+      tags:
+        - "fabric-workspaces-admin"
+      summary: "Create or update a capacity record."
+      description: "Creates a new capacity record or updates an existing one for the given region. This endpoint is available only for users who have the FabricAdmin role."
+      operationId: "createOrUpdateCapacity"
+      parameters:
+        - name: capacity
+          in: body
+          description: "Capacity details to create or update."
+          required: true
+          schema:
+            $ref: "#/definitions/CapacityVO"
+      responses:
+        200:
+          description: "Capacity created or updated successfully."
+          schema:
+            $ref: "#/definitions/CapacityVO"
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "User is not a Fabric Admin."
+        405:
+          description: "Method not allowed."
+        500:
+          description: "Internal server error."
+
+  /fabric-workspaces/admin/capacity/{region}:
+    get:
+      tags:
+        - "fabric-workspaces-admin"
+      summary: "Get capacity details by region."
+      description: "Fetches capacity record for the given region. This endpoint is available only for users who have the FabricAdmin role."
+      operationId: "getCapacityByRegion"
+      parameters:
+        - name: region
+          in: path
+          description: "Region identifier for the capacity (e.g. global, eu, us)."
+          required: true
+          type: string
+      responses:
+        200:
+          description: "Returns capacity details for the given region."
+          schema:
+            $ref: "#/definitions/CapacityVO"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "User is not a Fabric Admin."
+        405:
+          description: "Method not allowed."
+        500:
+          description: "Internal server error."
+    delete:
+      tags:
+        - "fabric-workspaces-admin"
+      summary: "Delete capacity for a given region."
+      description: "Deletes the capacity record for the given region. This endpoint is available only for users who have the FabricAdmin role."
+      operationId: "deleteCapacityByRegion"
+      parameters:
+        - name: region
+          in: path
+          description: "Region identifier for the capacity to be deleted."
+          required: true
+          type: string
+      responses:
+        200:
+          description: "Capacity deleted successfully."
+          schema:
+            $ref: "#/definitions/CapacityVO"
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "User is not a Fabric Admin."
+        404:
+          description: "Capacity not found for the given region."
+        405:
+          description: "Method not allowed."
+        500:
+          description: "Internal server error."
+
+
       
