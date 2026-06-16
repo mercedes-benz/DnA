@@ -184,7 +184,7 @@ const checkTableMismatch = (workspaceId, lakehouseId) => {
 };
 
 const getCatalogMetadata = (workspaceId, serviceName) => {
-  return server.get(`/fabric-workspaces/catalog/${workspaceId}/metadata?serviceName=${encodeURIComponent(serviceName)}`, {
+  return server.get(`/fabric-workspaces/catalog/${workspaceId}/${encodeURIComponent(serviceName)}`, {
     data: {},
   });
 };
