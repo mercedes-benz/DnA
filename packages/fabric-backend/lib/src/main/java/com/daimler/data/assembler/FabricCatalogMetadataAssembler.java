@@ -198,6 +198,7 @@ public class FabricCatalogMetadataAssembler implements GenericAssembler<FabricCa
 
                     LakehouseColumnDetail colDetail = new LakehouseColumnDetail();
                     colDetail.setColumnName(colVo.getColumnName());
+                    colDetail.setColType(colVo.getColType());
                     colDetail.setEnabled(colVo.isEnabled());
                     columnDetails.add(colDetail);
                 }
@@ -232,6 +233,7 @@ public class FabricCatalogMetadataAssembler implements GenericAssembler<FabricCa
 
                     LakehouseColumnDetailVO colVo = new LakehouseColumnDetailVO();
                     colVo.setColumnName(colDetail.getColumnName());
+                    colVo.setColType(colDetail.getColType());
                     colVo.setEnabled(Boolean.TRUE.equals(colDetail.getEnabled()));
                     columnVos.add(colVo);
                 }

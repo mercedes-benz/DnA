@@ -606,6 +606,9 @@ definitions:
       columnName:
         type: string
         description: "Name of the column"
+      colType:
+        type: string
+        description: "Data type of the column"
       enabled:
         type: boolean
         description: "Whether the column is enabled (true) or disabled (false)"
