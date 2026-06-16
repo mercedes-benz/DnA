@@ -274,4 +274,106 @@
   padding: 12px 16px;
   border-top: 1px solid #383f49;
 }
+// Schema Changes Detected panel (inside CDC Push modal)
+.schemaChangesPanel {
+  background-color: #1c2026;
+  border: 1px solid #ffc107;
+  border-radius: 4px;
+  padding: 14px 16px;
+  margin-bottom: 16px;
+}
 
+.schemaChangesPanelHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: bold;
+  color: #ffc107;
+  font-size: 14px;
+  margin-bottom: 12px;
+
+  i {
+    color: #ffc107;
+    font-size: 16px;
+  }
+
+  span:first-of-type {
+    flex: 1;
+  }
+}
+
+.schemaChangesBadgeCount {
+  padding: 2px 8px;
+  border: 1px solid #ffc107;
+  border-radius: 2px;
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  color: #ffc107;
+  white-space: nowrap;
+}
+
+.schemaChangesList {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.schemaChangeItem {
+  background-color: #252a33;
+  border: 1px solid #383f49;
+  border-radius: 4px;
+  padding: 10px 14px;
+}
+
+.schemaChangeItemHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.schemaChangeTableName {
+  font-family: 'Roboto-Medium';
+  font-size: 13px;
+  color: #d1d5db;
+}
+
+.schemaChangeBadge {
+  padding: 2px 8px;
+  border-radius: 2px;
+  font-size: 10px;
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.badgeNew {
+  border: 1px solid #0AE6AB;
+  color: #0AE6AB;
+}
+
+.badgeDeleted {
+  border: 1px solid #e84d47;
+  color: #e84d47;
+}
+
+.badgeModified {
+  border: 1px solid #FFEB3B;
+  color: #FFEB3B;
+}
+
+.schemaChangeDetails {
+  color: #99a5b3;
+  font-size: 12px;
+  margin: 0 0 4px 0;
+}
+
+.schemaChangeColumns {
+  color: #697582;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+.schemaChangeColumnsLabel {
+  font-weight: bold;
+}
