@@ -35,6 +35,7 @@ public class ADAProjectDetails implements Serializable {
     private Date inactiveDate;
     private String createdBy;
     private Capacity capacity;
+    private String region;
 
     public ADAProjectDetails() {
         this.stakeholders = new ArrayList<>();

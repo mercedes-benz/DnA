@@ -561,6 +561,11 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 							createResponse.setType(existingWorkspaceDto.getType());
 							createResponse.setMessage(null);
 							createResponse.setErrorCode(null);
+						} else {
+							log.error("Failed to fetch the workspace details as it is not visible in the service principal scope, please add the service principal and try again!");
+							message.setMessage("Failed to create workspace. The workspace is not visible in the scope of service principal, please add the service princial to the workspace and try again!");
+							errors.add(message);
+							return new ResponseEntity<>(responseData, HttpStatus.INTERNAL_SERVER_ERROR);
 						}
 					}else if("429".equalsIgnoreCase(createResponse.getErrorCode())){
 						return new ResponseEntity<>(responseData, HttpStatus.TOO_MANY_REQUESTS);

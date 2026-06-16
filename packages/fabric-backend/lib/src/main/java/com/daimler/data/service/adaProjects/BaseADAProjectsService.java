@@ -11,10 +11,12 @@ import org.springframework.transaction.annotation.Transactional;
 import com.daimler.data.assembler.ADAProjectsAssembler;
 import com.daimler.data.assembler.FabricWorkspaceAssembler;
 import com.daimler.data.db.entities.ADAProjectsNsql;
+import com.daimler.data.db.entities.CapacityNsql;
 import com.daimler.data.db.entities.FabricWorkspaceNsql;
 import com.daimler.data.db.json.Capacity;
 import com.daimler.data.db.repo.adaProjects.ADAProjectsCustomRepository;
 import com.daimler.data.db.repo.adaProjects.ADAProjectsRepository;
+import com.daimler.data.db.repo.capacity.CapacityRepository;
 import com.daimler.data.db.repo.fabric.FabricWorkspaceCustomRepository;
 import com.daimler.data.db.repo.fabric.FabricWorkspaceRepository;
 import com.daimler.data.dto.adaProjects.ADAProjectDetailsCollectionVO;
@@ -26,6 +28,7 @@ import com.daimler.data.service.common.BaseCommonService;
 import lombok.extern.slf4j.Slf4j;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -67,6 +70,9 @@ public class BaseADAProjectsService extends BaseCommonService<ADAProjectDetailsV
 	
 	@Value("${fabricWorkspaces.capacityState}")
 	private String capacityState;
+
+	@Autowired
+	private CapacityRepository capacityRepo;
 
 	public BaseADAProjectsService() {
 		super();
@@ -195,15 +201,29 @@ public class BaseADAProjectsService extends BaseCommonService<ADAProjectDetailsV
 	private void updateCapacityForFabricWorkspaces(ADAProjectDetailsVO adaProject){
 		try {
 			List<FabricWorkspaceNsql> workspaces = fabricWorkspaceCustomRepository.getAllByProjectId(adaProject.getProjectID());
-			if(adaProject.getCapacity() == null){
-				CapacityVO capacityVO = new CapacityVO();
-				log.info("Capacity details are null for project id {}. Using default capacity values.", adaProject.getProjectID());
-				capacityVO.setId(fabricCapacityId);
-				capacityVO.setName(fabricCapacityName);
-				capacityVO.setRegion(capacityRegion);
-				capacityVO.setSku(capacitySku);
-				capacityVO.setState(capacityState);
-				adaProject.setCapacity(capacityVO);
+			if(adaProject.getCapacity() == null && adaProject.getRegion() == null){
+				log.info("Capacity details and region are null for project id {}. Using default capacity values.", adaProject.getProjectID());
+				adaProject.setCapacity(buildDefaultCapacityVO());
+				adaProject.setRegion(capacityRegion);
+			} else if (adaProject.getRegion() != null && adaProject.getCapacity() == null){
+				CapacityNsql capacityNsql = capacityRepo.findById(adaProject.getRegion().toLowerCase()).get();
+				if(capacityNsql == null) {
+					log.warn("No capacity details found in DB for region {}. Using default capacity values for project id {}.", adaProject.getRegion(), adaProject.getProjectID());
+					adaProject.setCapacity(buildDefaultCapacityVO());
+					adaProject.setRegion(capacityRegion);
+				} else {
+					CapacityVO capacityVO = new CapacityVO();
+					capacityVO.setId(capacityNsql.getData().getId());
+					capacityVO.setName(capacityNsql.getData().getName());
+					capacityVO.setRegion(capacityNsql.getData().getRegion());
+					capacityVO.setSku(capacityNsql.getData().getSku());
+					capacityVO.setState(capacityNsql.getData().getState());
+					capacityVO.setCreatedOn(capacityNsql.getData().getCreatedOn());
+					capacityVO.setModifiedOn(capacityNsql.getData().getModifiedOn());
+					adaProject.setCapacity(capacityVO);
+					adaProject.setRegion(capacityNsql.getData().getRegion());
+					log.info("Region {} provided for project id {}. Using capacity details from DB for the region.", adaProject.getRegion(), adaProject.getProjectID());
+				}
 			}
 			if(workspaces != null && !workspaces.isEmpty()) {
 				for(FabricWorkspaceNsql workspace : workspaces) {
@@ -221,6 +241,18 @@ public class BaseADAProjectsService extends BaseCommonService<ADAProjectDetailsV
 			log.error("Error updating capacity for associated Fabric workspaces for project id {}: {}", adaProject.getProjectID(), e.getMessage(), e);
 			throw new RuntimeException("Failed to update capacity for associated Fabric workspaces for project id " + adaProject.getProjectID() + " with error: " + e.getMessage(), e);
 		}
+	}
+
+	private CapacityVO buildDefaultCapacityVO() {
+		CapacityVO capacityVO = new CapacityVO();
+		capacityVO.setId(fabricCapacityId);
+		capacityVO.setName(fabricCapacityName);
+		capacityVO.setRegion(capacityRegion);
+		capacityVO.setSku(capacitySku);
+		capacityVO.setState(capacityState);
+		capacityVO.setCreatedOn(new Date());
+		capacityVO.setModifiedOn(new Date());
+		return capacityVO;
 	}
 	
 }
