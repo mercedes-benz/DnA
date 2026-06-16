@@ -316,6 +316,8 @@ definitions:
         type: "string"
       capacity:
         $ref: "#/definitions/CapacityVO"
+      region:
+        type: "string"
 
 
   CreateADAProjectResponseVO:
@@ -360,3 +362,9 @@ definitions:
         type: string
       state:
         type: string
+      createdOn:
+        type: "string"
+        format: "date"
+      modifiedOn:
+        type: "string"
+        format: "date"

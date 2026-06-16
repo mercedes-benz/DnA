@@ -10,6 +10,7 @@
 		"BindingResult": "org.springframework.validation.BindingResult",
 		"GenericMessage": "com.daimler.data.controller.exceptions.GenericMessage",
 		"MessageDescription": "com.daimler.data.controller.exceptions.MessageDescription",
-		"FabricWorkspacesCollectionVO": "com.daimler.data.dto.fabricWorkspace.FabricWorkspacesCollectionVO"
+		"FabricWorkspacesCollectionVO": "com.daimler.data.dto.fabricWorkspace.FabricWorkspacesCollectionVO",
+		"CapacityVO": "com.daimler.data.dto.adaProjects.CapacityVO"
 	}
 }
