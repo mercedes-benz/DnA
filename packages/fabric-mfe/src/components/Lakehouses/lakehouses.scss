@@ -336,6 +336,24 @@
   }
 }
 
+.cdcWarning {
+  border: 1px solid #ffc107 !important;
+  color: #ffc107 !important;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+
+  i {
+    font-size: 10px;
+    color: #ffc107;
+  }
+
+  &:hover {
+    background-color: rgba(255, 193, 7, 0.1);
+  }
+}
+
 .deployedLink{
   text-decoration: none;
   color: #0AE6AB;

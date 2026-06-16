@@ -17,6 +17,7 @@ import com.daimler.data.db.json.DdxProduct;
 import com.daimler.data.db.json.Fabric2FabricDetail;
 import com.daimler.data.db.json.GroupNameDetail;
 import com.daimler.data.db.json.GroupNameList;
+import com.daimler.data.db.json.catalogManangement.FabricCatalogMetadata;
 import com.daimler.data.db.json.catalogManangement.FabricCatalogMetadataDetails;
 import com.daimler.data.db.repo.catalogManagement.FabricCatalogManagementCustomRepository;
 import com.daimler.data.db.repo.catalogManagement.FabricCatalogManagementRepository;
@@ -229,6 +230,57 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
     }
 
     @Override
+    public PublishCatalogResponseVO getCatalogMetadata(String serviceName, FabricWorkspaceVO workspace) {
+        log.info("Fetching catalog metadata for service: {} with workspace fallback", serviceName);
+
+        PublishCatalogResponseVO response = new PublishCatalogResponseVO();
+
+        try {
+            FabricCatalogMetadataVO metadata = retrieveMetadataFromOpenMetadata(serviceName);
+
+            FabricCatalogMetadataDetailsVO catalogMetadataDetails;
+            try {
+                catalogMetadataDetails = retrieveStoredMetadataDetails(serviceName, metadata);
+            } catch (EntityNotFoundException e) {
+                // Fallback: find per-lakehouse rows by lakehouse ID directly
+                log.info("findAllByServiceName returned empty for {}, falling back to findById per lakehouse", serviceName);
+                catalogMetadataDetails = new FabricCatalogMetadataDetailsVO();
+                catalogMetadataDetails.setMetadata(metadata);
+
+                List<CdcTableDetailVO> allCdcTables = new ArrayList<>();
+                if (workspace.getLakehouses() != null) {
+                    for (FabricLakehouseVO lakehouse : workspace.getLakehouses()) {
+                        Optional<FabricCatalogMetadataNsql> entityOpt = catalogRepo.findById(lakehouse.getId());
+                        if (entityOpt.isPresent()) {
+                            FabricCatalogMetadataDetailsVO vo = catalogAssembler.toVo(entityOpt.get());
+                            if (vo.getPublishedCDCCatalogs() != null) {
+                                allCdcTables.addAll(vo.getPublishedCDCCatalogs());
+                            }
+                        }
+                    }
+                }
+
+                if (allCdcTables.isEmpty()) {
+                    throw new EntityNotFoundException("Catalog metadata", serviceName);
+                }
+                catalogMetadataDetails.setPublishedCDCCatalogs(allCdcTables);
+            }
+
+            prepareSuccessResponse(response, catalogMetadataDetails);
+
+        } catch (EntityNotFoundException e) {
+            log.error("Metadata not found for service: {}", serviceName, e);
+            throw new EntityNotFoundException("Metadata details", serviceName);
+        } catch (Exception e) {
+            log.error("Failed to get catalog metadata for service: {}", serviceName, e);
+            throw new OpenMetadataClientException("Failed to get catalog metadata for workspace: " +
+                serviceName + " " + e.getMessage(), e);
+        }
+
+        return response;
+    }
+
+    @Override
     @Transactional
     public PublishCatalogResponseVO updateCatalogMetaData(PublishCatalogRequestVO request, 
             FabricWorkspaceVO existingFabricWorkspace) {
@@ -244,7 +296,7 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
             }
 
             // Get existing metadata for comparison
-            PublishCatalogResponseVO catalogDetails = getCatalogMetadata(existingFabricWorkspace.getName());
+            PublishCatalogResponseVO catalogDetails = getCatalogMetadata(existingFabricWorkspace.getName(), existingFabricWorkspace);
             FabricCatalogMetadataVO existingMetadata = catalogDetails.getData().getMetadata();
             
             // Get existing service
@@ -525,6 +577,10 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
             
             FabricCatalogMetadataNsql entity = catalogAssembler.toEntity(persistenceVO);
             entity.setId(persistenceVO.getId());
+            // Persist metadata.serviceName so findAllByServiceName can locate this row
+            FabricCatalogMetadata catalogMeta = new FabricCatalogMetadata();
+            catalogMeta.setServiceName(request.getMetadata().getServiceName());
+            entity.getData().setMetadata(catalogMeta);
             catalogRepo.save(entity);
             log.info("Successfully saved catalog metadata with {} CDC entries", 
                 persistenceVO.getPublishedCDCCatalogs() != null ? persistenceVO.getPublishedCDCCatalogs().size() : 0);
@@ -655,6 +711,10 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
 
                 FabricCatalogMetadataNsql entity = catalogAssembler.toEntity(lakehouseDetails);
                 entity.setId(lakehouseId);
+                // Persist metadata.serviceName so findAllByServiceName can locate per-lakehouse rows
+                FabricCatalogMetadata catalogMeta = new FabricCatalogMetadata();
+                catalogMeta.setServiceName(workspace.getName());
+                entity.getData().setMetadata(catalogMeta);
                 catalogRepo.save(entity);
 
                 log.info("Successfully saved catalog metadata for lakehouse: {} with {} CDC entries",
@@ -730,6 +790,7 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
             DatabaseMetadataVO dbVo = new DatabaseMetadataVO();
             dbVo.setDbName(db.getName());
             dbVo.setDbId(db.getId().toString());
+            dbVo.setDescription(db.getDescription());
 
             // 3. Get all schemas for this database
             List<DatabaseSchema> schemas = openMetadataClient.getSchemasForDatabase(db.getFullyQualifiedName());
@@ -903,6 +964,7 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
                                 for (var fabricColumn : columnsResponse.getData().getColumns()) {
                                     LakehouseColumnDetailVO columnDetail = new LakehouseColumnDetailVO();
                                     columnDetail.setColumnName(fabricColumn.getColumnName());
+                                    columnDetail.setColType(fabricColumn.getColType());
 
                                     boolean isColumnEnabled = tableDetail.isEnabled()
                                             && requestedColumns.contains(fabricColumn.getColumnName());
@@ -967,6 +1029,7 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
                             }
                             LakehouseColumnDetailVO columnDetail = new LakehouseColumnDetailVO();
                             columnDetail.setColumnName(column.getColumnName());
+                            columnDetail.setColType(column.getColType());
                             columnDetail.setEnabled(true);
                             columnDetails.add(columnDetail);
                         }
@@ -1805,7 +1868,6 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
     private void compareTableColumns(String workspaceId, String lakehouseId, String tableName,
             LakehouseTableDetailVO storedTable, List<TableMismatchDetailVO> mismatches) {
         try {
-            // Fetch current column details from Fabric
             LakehouseColumnCollectionResponseVO fabricColumns = cdcPushServiceClient.getTableSchema(
                     workspaceId, lakehouseId, "dbo", tableName);
 
@@ -1815,18 +1877,26 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
             }
 
             Set<String> storedColumnNames = new HashSet<>();
+            Map<String, String> storedColumnTypes = new HashMap<>();
             if (storedTable.getColumns() != null) {
                 for (LakehouseColumnDetailVO col : storedTable.getColumns()) {
                     if (col.getColumnName() != null) {
                         storedColumnNames.add(col.getColumnName());
+                        if (col.getColType() != null) {
+                            storedColumnTypes.put(col.getColumnName(), col.getColType());
+                        }
                     }
                 }
             }
 
             Set<String> fabricColumnNames = new HashSet<>();
+            Map<String, String> fabricColumnTypes = new HashMap<>();
             for (com.daimler.data.dto.fabricWorkspace.LakehouseColumnVO col : fabricColumns.getData().getColumns()) {
                 if (col.getColumnName() != null) {
                     fabricColumnNames.add(col.getColumnName());
+                    if (col.getColType() != null) {
+                        fabricColumnTypes.put(col.getColumnName(), col.getColType());
+                    }
                 }
             }
 
@@ -1842,8 +1912,8 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
                 detail.setLakeHouseId(lakehouseId);
                 detail.setTableName(tableName);
                 detail.setMismatchType(TableMismatchDetailVO.MismatchTypeEnum.COLUMNS_ADDED);
-                detail.setDetails("Columns under this table: " + String.join(", ", addedColumns));
-                // detail.setAffectedColumns(addedColumns);
+                detail.setDetails("New columns: " + String.join(", ", addedColumns));
+                detail.setAffectedColumns(addedColumns);
                 mismatches.add(detail);
             }
 
@@ -1859,8 +1929,33 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
                 detail.setLakeHouseId(lakehouseId);
                 detail.setTableName(tableName);
                 detail.setMismatchType(TableMismatchDetailVO.MismatchTypeEnum.COLUMNS_REMOVED);
-                detail.setDetails("Columns removed from Fabric: " + String.join(", ", removedColumns));
-                // detail.setAffectedColumns(Columns);
+                detail.setDetails("Removed columns: " + String.join(", ", removedColumns));
+                detail.setAffectedColumns(removedColumns);
+                mismatches.add(detail);
+            }
+
+            // Detect column type changes
+            List<String> typeChangedColumns = new ArrayList<>();
+            for (String colName : storedColumnNames) {
+                if (!fabricColumnNames.contains(colName)) {
+                    continue;
+                }
+                String storedType = storedColumnTypes.get(colName);
+                String fabricType = fabricColumnTypes.get(colName);
+                if (storedType != null && fabricType != null && !storedType.equalsIgnoreCase(fabricType)) {
+                    typeChangedColumns.add(colName + " (" + storedType + " -> " + fabricType + ")");
+                }
+            }
+            if (!typeChangedColumns.isEmpty()) {
+                TableMismatchDetailVO detail = new TableMismatchDetailVO();
+                detail.setLakeHouseId(lakehouseId);
+                detail.setTableName(tableName);
+                detail.setMismatchType(TableMismatchDetailVO.MismatchTypeEnum.COLUMN_TYPE_CHANGED);
+                detail.setDetails("Type changed: " + String.join(", ", typeChangedColumns));
+                List<String> affectedColNames = typeChangedColumns.stream()
+                        .map(s -> s.substring(0, s.indexOf(" (")))
+                        .collect(Collectors.toList());
+                detail.setAffectedColumns(affectedColNames);
                 mismatches.add(detail);
             }
 

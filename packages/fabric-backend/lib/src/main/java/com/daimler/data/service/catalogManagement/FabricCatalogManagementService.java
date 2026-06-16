@@ -23,6 +23,7 @@ public interface FabricCatalogManagementService extends CommonService<FabricCata
 
 	PublishCatalogResponseVO publishCatalogMetaData(PublishCatalogRequestVO request, FabricWorkspaceVO existingFabricWorkspace, boolean hasExistingPublish);
 	PublishCatalogResponseVO getCatalogMetadata(String serviceName);
+	PublishCatalogResponseVO getCatalogMetadata(String serviceName, FabricWorkspaceVO workspace);
 	PublishCatalogResponseVO updateCatalogMetaData(PublishCatalogRequestVO request, FabricWorkspaceVO existingFabricWorkspace);
 	LakehouseObjectsResponseVO getLakehouseObjects(String workspaceId, String lakehouseId, String schemaName);
 	TableMismatchResponseVO checkTableMismatch(String workspaceId, String lakehouseId, String serviceName);

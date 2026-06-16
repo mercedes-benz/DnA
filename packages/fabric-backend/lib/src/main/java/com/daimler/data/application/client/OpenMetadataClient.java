@@ -525,10 +525,9 @@ public class OpenMetadataClient {
             Column column = new Column();
             column.setName(name);
             column.setDescription(description);
-            // Convert string to DataTypeEnum
-            Column.DataTypeEnum dataType = Column.DataTypeEnum.fromValue(dataTypeStr.toUpperCase());
-            column.setDataType(dataType);
-            
+
+            parseAndApplyDataType(column, dataTypeStr);
+
             // Handle nullable constraint
             if (constraintStr != null && !constraintStr.isEmpty()) {
                 Column.ConstraintEnum constraint = Column.ConstraintEnum.fromValue(constraintStr.toUpperCase());
@@ -540,6 +539,45 @@ public class OpenMetadataClient {
             throw new OpenMetadataClientException(
                 "Invalid column definition - " + e.getMessage(), e);
         }
+    }
+
+    private void parseAndApplyDataType(Column column, String dataTypeStr) {
+        if (dataTypeStr == null || dataTypeStr.isEmpty()) {
+            throw new IllegalArgumentException("dataType must not be null or empty");
+        }
+
+        String upper = dataTypeStr.trim().toUpperCase();
+
+        if (upper.startsWith("ARRAYTYPE(")) {
+            String inner = extractInner(upper, "ARRAYTYPE(");
+            String elementType = inner.split(",")[0].trim();
+            column.setDataType(Column.DataTypeEnum.ARRAY);
+            column.setArrayDataType(Column.ArrayDataTypeEnum.fromValue(elementType));
+            column.setDataTypeDisplay(dataTypeStr);
+
+        } else if (upper.startsWith("MAPTYPE(")) {
+            String inner = extractInner(upper, "MAPTYPE(");
+            String[] parts = inner.split(",");
+            column.setDataType(Column.DataTypeEnum.MAP);
+            column.setDataTypeDisplay(dataTypeStr);
+
+        } else if (upper.startsWith("STRUCTTYPE(")) {
+            column.setDataType(Column.DataTypeEnum.STRUCT);
+            column.setDataTypeDisplay(dataTypeStr);
+
+        } else {
+            Column.DataTypeEnum dataType = Column.DataTypeEnum.fromValue(upper);
+            column.setDataType(dataType);
+        }
+    }
+
+    private String extractInner(String upper, String prefix) {
+        int start = prefix.length();
+        int end = upper.lastIndexOf(')');
+        if (end < start) {
+            throw new IllegalArgumentException("Malformed type expression: " + upper);
+        }
+        return upper.substring(start, end).trim();
     }
 
     public EntityReference createEntityReference(User user) {

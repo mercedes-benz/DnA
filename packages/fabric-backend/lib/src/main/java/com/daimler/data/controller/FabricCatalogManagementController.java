@@ -210,7 +210,7 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
                 return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
             }
 
-            catalogMetadata = service.getCatalogMetadata(serviceName);
+            catalogMetadata = service.getCatalogMetadata(serviceName, existingFabricWorkspace);
             if (catalogMetadata != null) {
                 return new ResponseEntity<>(catalogMetadata, HttpStatus.OK);
             } else {
