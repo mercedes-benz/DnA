@@ -54,6 +54,12 @@ public class ArgoCdService {
     @Value("${argocd.namespacePrefix}")
     private String argocdNamespacePrefix;
 
+    @Value("${argocd.vaultAuthPath}")
+    private String vaultAuthPath;
+ 
+    @Value("${argocd.vaultMountPath}")
+    private String vaultMountPath;
+
     @Value("${codeServer.git.ghe.pat}")
     private String ghePat;
 
@@ -244,11 +250,9 @@ public class ArgoCdService {
                                String imageTag, boolean vaultInjectorEnable, Map<String, String> resources, String targetRevision) throws IOException {
         
         String namespace = getNamespaceForEnvironment(clusterEnv, targetEnv);
-        String vaultAuthPath = getVaultAuthPath(clusterEnv);
         String imageRepository = imageRegistry + "-" + projectName;
         
-        String vaultStage = "prod".equalsIgnoreCase(clusterEnv) ? "prod" : "staging";        
-        String vaultInjectorPath = vaultKvPath + "/" + vaultStage + "/" + projectName + "/" + targetEnv;
+        String vaultInjectorPath = vaultKvPath + "/" + vaultMountPath + "/" + projectName + "/" + targetEnv;
         String vaultInjectorRootPath = "/" + projectName + "/" + targetEnv + "/api";
         String vaultInjectorRootPathNonApi = "/" + projectName + "/" + targetEnv + "/";
         
@@ -264,7 +268,7 @@ public class ArgoCdService {
         helmParameters.add(createHelmParam("vaultInjector.path", vaultInjectorPath));
         helmParameters.add(createHelmParam("vaultInjector.root_path", vaultInjectorRootPath));
         helmParameters.add(createHelmParam("vaultInjector.root_path_non_api", vaultInjectorRootPathNonApi));
-        helmParameters.add(createHelmParam("vaultInjector.authpath", vaultAuthPath));
+        helmParameters.add(createHelmParam("vaultInjector.authpath", this.vaultAuthPath));
         helmParameters.add(createHelmParam("vaultInjector.namespace", "/"));
         helmParameters.add(createHelmParamForceString("podAnnotations.prometheus\\.io/scrape", "true"));
         
@@ -356,13 +360,6 @@ public class ArgoCdService {
         syncPolicy.put("syncOptions", syncOptions);
         
         spec.put("syncPolicy", syncPolicy);
-        
-        List<Map<String, String>> infoList = new ArrayList<>();
-        Map<String, String> csEnvInfo = new HashMap<>();
-        csEnvInfo.put("name", "cs-env");
-        csEnvInfo.put("value", targetEnv);
-        infoList.add(csEnvInfo);
-        spec.put("info", infoList);
         
         payload.put("spec", spec);
         
@@ -802,13 +799,4 @@ public class ArgoCdService {
         return prefix + "-dna-cs-apps";
     }
 
-    private String getVaultAuthPath(String clusterEnv) {
-        if ("dev".equalsIgnoreCase(clusterEnv)) {
-            return "auth/kubernetes";
-        } else if ("test".equalsIgnoreCase(clusterEnv) || "staging".equalsIgnoreCase(clusterEnv)) {
-            return "auth/k8_auth_dna_aws_dev";
-        } else {
-            return "auth/k8_auth_dna_aws_prod";
-        }
-    }
 }
