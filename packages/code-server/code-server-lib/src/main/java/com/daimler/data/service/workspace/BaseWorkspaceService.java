@@ -6014,7 +6014,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 
             // Dynamic service name based on the deployed workspace
             Map<String, String> resourceAttributes = new HashMap<>();
-            resourceAttributes.put("service.name", serviceName);
+            resourceAttributes.put("service.name", serviceName.toLowerCase());
             config.put("resource_attributes", resourceAttributes);
 
             pluginConfig.put("config", config);
