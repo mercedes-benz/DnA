@@ -253,14 +253,14 @@ export const ConnectionModal = (props) => {
     <>
       <label>Step 1 - Get Access token from OpenID Connect (OIDC).</label>
       <ul>
-        <li>Get access token from OIDC API - Use client creadential grant type or any other method.</li>
+        <li>Get access token from OIDC API - Use client credential grant type or any other method.</li>
       </ul>
       <label>Step 2 - Generate JWT token.</label>
       <ul>
         <li>Request to <b>GET</b> API URL - <b>{Envs.API_BASEURL}/login</b></li>
-        <li>Value in Header: <b>Authorization</b> - Access token recived from Step 1</li>
+        <li>Value in Header: <b>Authorization</b> - Access token received from Step 1</li>
         <li>Value in Header: <b>Content-Type</b> - application/json</li>
-        <li>On Succesful response you will receive a JWT token as JSON data.</li>
+        <li>On Successful response you will receive a JWT token as JSON data.</li>
       </ul>
       <label>Step 3 - Access Storage API&apos;s to manage your bucket contents.</label>
       <ul>
