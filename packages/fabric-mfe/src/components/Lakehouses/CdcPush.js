@@ -128,6 +128,7 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
   const [localMismatches, setLocalMismatches] = useState(mismatchesProp);
   const [previouslyPublishedTables, setPreviouslyPublishedTables] = useState([]);
   const previouslyEnabledColumnsRef = useRef({});
+  const isAutoPopulatingRef = useRef(false);
 
   const methods = useForm();
   const { 
@@ -144,23 +145,27 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
     SelectBox.defaultSetup();
   }, []);
 
-  // Re-sync DOM select elements when values are pre-populated
- useEffect(() => {
-  const tierEl = document.getElementById('dataTierField');
-  if (tierEl && dataTier !== '0') {
-    tierEl.value = dataTier;
-    SelectBox.defaultSetup(true); 
-  }
-}, [dataTier]);
+  useEffect(() => {
+    if (!isAutoPopulatingRef.current) return;
+    const tierEl = document.getElementById('dataTierField');
+    if (tierEl && dataTier !== '0') {
+      tierEl.value = dataTier;
+      SelectBox.defaultSetup(true);
+    }
+  }, [dataTier]);
 
   useEffect(() => {
-    const divEl = document.getElementById('divisionField');
-    if (divEl && Array.isArray(division) && division.length > 0) {
-      Array.from(divEl.options).forEach((opt) => {
-        opt.selected = division.includes(opt.value);
-      });
-      // Delay SelectBox refresh to ensure DOM updates are committed
-      setTimeout(() => SelectBox.defaultSetup(), 0);
+    if (!isAutoPopulatingRef.current) return;
+    if (Array.isArray(division) && division.length > 0) {
+      const divEl = document.getElementById('divisionField');
+      if (divEl) {
+        Array.from(divEl.options).forEach(opt => {
+          opt.selected = division.includes(opt.value);
+        });
+        setTimeout(() => {
+          SelectBox.defaultSetup(true);
+        }, 0);
+      }
     }
   }, [division]);
 
@@ -208,9 +213,13 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
         setWorkspaceMetadata(data);
         setWorkspaceCreator(data?.createdBy);
 
-        // Auto-populate from last CDC publish if lakehouse was previously published
         const isPublished = data?.cdcPublishedLakeHouseDetails?.publishedLakeHouseNames?.includes(lakehouseId);
         console.log('[CdcPush] isPublished:', isPublished, 'lakehouseId:', lakehouseId, 'publishedNames:', data?.cdcPublishedLakeHouseDetails?.publishedLakeHouseNames);
+
+        if (isPublished) {
+          setHasPushedOnce(true);
+        }
+
         if (isPublished && data?.name) {
           console.log('[CdcPush] Fetching catalog metadata for serviceName:', data.name);
           fabricApi.getCatalogMetadata(workspaceId, data.name)
@@ -225,6 +234,7 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
               }
 
               console.log('[CdcPush] Found lakehouse entry, mandatoryFields:', JSON.stringify(lakehouseEntry.mandatoryFields));
+              isAutoPopulatingRef.current = true;
               const mf = lakehouseEntry.mandatoryFields;
               if (mf) {
                 if (mf.tier) {
@@ -251,16 +261,14 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
                 }
               }
 
-              // Pre-fill description from the database entry
               const databases = metaRes?.data?.data?.metadata?.databases || [];
-              const db = databases.find(d => d.dbId === lakehouseId) || databases[0];
+              const db = databases.find(d => d.dbName === lakehouseName) || databases.find(d => d.dbId === lakehouseId) || databases[0];
               if (db?.description) {
                 console.log('[CdcPush] Setting description:', db.description);
                 setDescription(db.description);
-                setValue('description', db.description);
+                setValue('description', db.description, { shouldValidate: true, shouldDirty: true });
               }
 
-              // Pre-select only tables that were enabled (user-selected) during the last push
               const tableDetails = lakehouseEntry.publishedLakehouseTableDetails || [];
               console.log('[CdcPush] Raw publishedLakehouseTableDetails:', JSON.stringify(tableDetails.map(t => ({ name: t.tableName, enabled: t.enabled, cols: (t.columns || []).length }))));
               const enabledTableNames = tableDetails
@@ -268,7 +276,6 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
                 .map(t => t.tableName);
               console.log('[CdcPush] Enabled tables to pre-select:', enabledTableNames, 'from', tableDetails.length, 'total');
 
-              // Build map of previously enabled columns per table for column-level restore
               const enabledColsByTable = {};
               tableDetails.filter(t => t.enabled === true).forEach(t => {
                 if (t.columns && t.columns.length > 0) {
@@ -283,6 +290,7 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
               if (enabledTableNames.length > 0) {
                 setPreviouslyPublishedTables(enabledTableNames);
               }
+              setTimeout(() => { isAutoPopulatingRef.current = false; }, 200);
             })
             .catch((err) => {
               console.error('[CdcPush] Failed to fetch catalog metadata for auto-populate:', err?.response?.status, err?.message);
@@ -328,6 +336,13 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
                   return acc;
                 }, {});
                 setSelectedColumns(prev => ({ ...prev, [tableName]: colSelections }));
+                 const allColsSelected = fetchedColumns.every(col => colSelections[col.columnName]);
+                setSelectedTables(prev => ({ ...prev, [tableName]: allColsSelected }));
+                setSelectedTables(prev => {
+                  const allTablesFullySelected = tables.every(t => prev[t.tableName]);
+                  setSelectAll(allTablesFullySelected);
+                  return prev;
+                });
               })
               .catch(() => {});
           }
@@ -459,8 +474,10 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
     }
 
     let hasError = false;
+    setDivisionError('');
+    setDataTierError('');
 
-    if (division === "0" || !division) {
+    if (division === "0" || !division || (Array.isArray(division) && division.length === 0)) {
       setDivisionError("*Missing entry");
       hasError = true;
     }
@@ -559,16 +576,17 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
   ]);
 
   const onPush = handleSubmit(handlePush);
+  const isLakehousePublished = workspaceMetadata?.cdcPublishedLakeHouseDetails?.publishedLakeHouseNames?.includes(lakehouseId) || false;
 
   const isPushDisabled =
   !workspaceMetadata || 
   Object.keys(selectedTables).length === 0 ||
   Object.keys(selectedColumns).length === 0 ||
-  hasPushedOnce;
+  hasPushedOnce ||
+  isLakehousePublished;
 
     return (
     <div className={Styles.modalFAQContentWrapper}>
-
       {localMismatches.length > 0 && (
         <div className={Styles.schemaChangesPanel}>
           <div className={Styles.schemaChangesPanelHeader}>
@@ -611,7 +629,7 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
               <div className={classNames('custom-select')}>
                 <select
                   id="dataTierField"
-                  value={dataTier}
+                  defaultValue={dataTier}
                   onChange={(e) => {
                     setDataTier(e.target.value);
                     if (dataTierError) setDataTierError(""); 
@@ -650,7 +668,6 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
                   id="divisionField"
                   multiple={true}
                   // defaultValue={division}
-                  value={Array.isArray(division) ? division : []}
                   onChange={(e) => {
                     const values = Array.from(e.target.selectedOptions, opt => opt.value);
                     setDivision(values);
