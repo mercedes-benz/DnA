@@ -168,34 +168,34 @@ public class DataikuClientImp implements DataikuClient {
 		headers.set(ConstantsUtility.CONTENT_TYPE, MediaType.APPLICATION_JSON.toString());
 		String dataikuUri = setDataikuUri(live, headers, connectionsUriPath, cloudProfile);
 		HttpEntity<DataikuConnectionRequestDTO> entity = new HttpEntity<>(requestDTO, headers);
-                try {
-                        ResponseEntity<String> response = restTemplate.exchange(dataikuUri, HttpMethod.POST, entity, String.class);
-                        createConnectionResponse.setHttpStatus(response.getStatusCode());
-                        if (response.hasBody()) {
-                                logger.info("In createDataikuConnection, Success from dataiku");
-                                createConnectionResponse.setStatus(ConstantsUtility.SUCCESS);
-                        }
-                } catch (HttpClientErrorException e) {
-                        if (e.getStatusCode() == HttpStatus.BAD_REQUEST
-                                        && e.getResponseBodyAsString().contains("already exists")) {
-                                logger.warn("In createDataikuConnection, connection already exists in Dataiku, treating as success: {}",
-                                                e.getResponseBodyAsString());
-                                createConnectionResponse.setStatus(ConstantsUtility.SUCCESS);
-                                createConnectionResponse.setHttpStatus(HttpStatus.OK);
-                        } else {
-                                logger.error("In createDataikuConnection, Dataiku client error {}: {}",
-                                                e.getStatusCode(), e.getResponseBodyAsString());
-                                createConnectionResponse.setHttpStatus(e.getStatusCode());
-                        }
-                } catch (HttpServerErrorException e) {
-                        logger.error("In createDataikuConnection, Dataiku server error {}: {}",
-                                        e.getStatusCode(), e.getResponseBodyAsString());
-                        createConnectionResponse.setHttpStatus(e.getStatusCode());
-                } catch (Exception e) {
-                        logger.error("In createDataikuConnection, Error calling Dataiku API: {}", e.getMessage());
-                }
-                return createConnectionResponse;
-        }
+		try {
+			ResponseEntity<String> response = restTemplate.exchange(dataikuUri, HttpMethod.POST, entity, String.class);
+			createConnectionResponse.setHttpStatus(response.getStatusCode());
+			if (response.hasBody()) {
+				logger.info("In createDataikuConnection, Success from dataiku");
+				createConnectionResponse.setStatus(ConstantsUtility.SUCCESS);
+			}
+		} catch (HttpClientErrorException e) {
+			if (e.getStatusCode() == HttpStatus.BAD_REQUEST
+					&& e.getResponseBodyAsString().contains("already exists")) {
+				logger.warn("In createDataikuConnection, connection already exists in Dataiku, treating as success: {}",
+						e.getResponseBodyAsString());
+				createConnectionResponse.setStatus(ConstantsUtility.SUCCESS);
+				createConnectionResponse.setHttpStatus(HttpStatus.OK);
+			} else {
+				logger.error("In createDataikuConnection, Dataiku client error {}: {}",
+						e.getStatusCode(), e.getResponseBodyAsString());
+				createConnectionResponse.setHttpStatus(e.getStatusCode());
+			}
+		} catch (HttpServerErrorException e) {
+			logger.error("In createDataikuConnection, Dataiku server error {}: {}",
+					e.getStatusCode(), e.getResponseBodyAsString());
+			createConnectionResponse.setHttpStatus(e.getStatusCode());
+		} catch (Exception e) {
+			logger.error("In createDataikuConnection, Error calling Dataiku API: {}", e.getMessage());
+		}
+		return createConnectionResponse;
+	}
 
 	@Override
 	public DataikuGenericResponseDTO deleteDataikuConnection(String connectionName, Boolean live, String cloudProfile) {
@@ -207,21 +207,21 @@ public class DataikuClientImp implements DataikuClient {
 		String dataikuUri = setDataikuUri(live, headers, connectionsUriPath, cloudProfile);
 		dataikuUri = dataikuUri+"/"+connectionName;
 		HttpEntity<Object> entity = new HttpEntity<>(headers);
-                try {
-                        ResponseEntity<String> response = restTemplate.exchange(dataikuUri, HttpMethod.DELETE, entity, String.class);
-                        deleteConnectionResponse.setHttpStatus(response.getStatusCode());
-                        if (response.hasBody()) {
-                                logger.info("In deleteDataikuConnection, Success from dataiku");
-                                deleteConnectionResponse.setStatus(ConstantsUtility.SUCCESS);
-                        }
-                } catch (HttpClientErrorException e) {
-                        logger.error("In deleteDataikuConnection, Dataiku client error {}: {}",
-                                        e.getStatusCode(), e.getResponseBodyAsString());
-                        deleteConnectionResponse.setHttpStatus(e.getStatusCode());
-                } catch (Exception e) {
-                        logger.error("In deleteDataikuConnection, Error calling Dataiku API: {}", e.getMessage());
-                }
-                return deleteConnectionResponse;
-        }
+		try {
+			ResponseEntity<String> response = restTemplate.exchange(dataikuUri, HttpMethod.DELETE, entity, String.class);
+			deleteConnectionResponse.setHttpStatus(response.getStatusCode());
+			if (response.hasBody()) {
+				logger.info("In deleteDataikuConnection, Success from dataiku");
+				deleteConnectionResponse.setStatus(ConstantsUtility.SUCCESS);
+			}
+		} catch (HttpClientErrorException e) {
+			logger.error("In deleteDataikuConnection, Dataiku client error {}: {}",
+					e.getStatusCode(), e.getResponseBodyAsString());
+			deleteConnectionResponse.setHttpStatus(e.getStatusCode());
+		} catch (Exception e) {
+			logger.error("In deleteDataikuConnection, Error calling Dataiku API: {}", e.getMessage());
+		}
+		return deleteConnectionResponse;
+	}
 
 }
