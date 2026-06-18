@@ -168,7 +168,8 @@ public RecipeVO createRecipe(RecipeVO recipeRequestVO) {
 	}
 
 	// Register repository with ArgoCD when deployment is enabled
-	if (Boolean.TRUE.equals(recipeRequestVO.isIsDeployEnabled()) && repoUrl != null) {
+	if (Boolean.TRUE.equals(recipeRequestVO.isIsDeployEnabled()) && repoUrl != null
+			&& Boolean.FALSE.equals(recipeRequestVO.isIsPublic())) {
 		registerRepoWithArgoCD(repoUrl);
 	}
 
@@ -214,7 +215,8 @@ public RecipeVO updateRecipe(RecipeVO recipeRequestVO) {
 	}
 
 	// Register repository with ArgoCD when deployment is enabled
-	if (Boolean.TRUE.equals(recipeRequestVO.isIsDeployEnabled()) && repoUrl != null) {
+	if (Boolean.TRUE.equals(recipeRequestVO.isIsDeployEnabled()) && repoUrl != null
+			&& Boolean.FALSE.equals(recipeRequestVO.isIsPublic())) {
 		registerRepoWithArgoCD(repoUrl);
 	}
 
