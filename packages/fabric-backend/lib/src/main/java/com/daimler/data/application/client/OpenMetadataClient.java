@@ -4,6 +4,7 @@ import com.daimler.data.controller.exceptions.OpenMetadataClientException;
 import com.daimler.data.controller.exceptions.EntityNotFoundException;
 import com.daimler.data.controller.exceptions.EntityAlreadyExistsException;
 import com.daimler.data.dto.fabricCatalogManagement.MandatoryFieldsVO;
+import com.daimler.data.dto.fabricWorkspace.FabricLakehouseVO;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -175,6 +176,99 @@ public class OpenMetadataClient {
         }
     }
 
+    public Database addDatabase(String name, String serviceFQN, MandatoryFieldsVO fields, List<EntityReference> owners, String description) {
+        try {
+            CreateDatabase request = new CreateDatabase()
+                    .name(name)
+                    .service(serviceFQN)
+                    .extension(toExtensions(fields))
+                    .description(description)
+                    .tags(getDefaultTags())
+                    .addTagsItem(prepareTag(mapTierValue(fields.getTier())))
+                    .owners(owners);
+            return apiClient.buildClient(DatabasesApi.class)
+                    .createOrUpdateDatabase(request);
+        } catch (FeignException.Conflict e) {
+            throw new EntityAlreadyExistsException("Database already exists: " + name, e);
+        } catch (FeignException.BadRequest e){
+            throw new OpenMetadataClientException("Failed to create Database : " + name + " Bad Request "+ e.getMessage(), e);
+        } catch (Exception e) {
+            throw new OpenMetadataClientException("Failed to create Database: " + name, e);
+        }
+    }
+
+    public List<Database> addDatabasesToExistingService(String serviceFQN, 
+            List<String> databaseNames, MandatoryFieldsVO fields, 
+            List<EntityReference> owners, String description) {
+        List<Database> createdDatabases = new ArrayList<>();
+        
+        if (databaseNames == null || databaseNames.isEmpty()) {
+            log.warn("No database names provided");
+            return createdDatabases;
+        }
+        
+        for (String dbName : databaseNames) {
+            try {
+                Database database = addDatabase(dbName, serviceFQN, fields, owners, description);
+                createdDatabases.add(database);
+                log.info("Added database {} to service {}", dbName, serviceFQN);
+            } catch (EntityAlreadyExistsException e) {
+                log.warn("Database {} already exists in service {}", dbName, serviceFQN);
+                try {
+                    Database existing = getDatabase(serviceFQN.split("\\.")[0], dbName);
+                    createdDatabases.add(existing);
+                } catch (Exception ex) {
+                    throw new OpenMetadataClientException("Failed to retrieve existing database: " + dbName, ex);
+                }
+            }
+        }
+        
+        return createdDatabases;
+    }
+
+    public Database addDatabaseForLakehouse(String serviceFQN, String workspaceName, 
+            FabricLakehouseVO lakehouse, MandatoryFieldsVO fields, 
+            List<EntityReference> owners, String description) {
+        String dbName = lakehouse.getName();
+        log.info("Adding database {} for lakehouse {} to service {}", dbName, lakehouse.getId(), serviceFQN);
+        
+        return addDatabase(dbName, serviceFQN, fields, owners, description);
+    }
+
+    public List<Database> addLakehouseDatabasestoExistingService(String serviceFQN, String workspaceName,
+            List<FabricLakehouseVO> lakehouses, MandatoryFieldsVO fields,
+            List<EntityReference> owners, String description) {
+        List<Database> createdDatabases = new ArrayList<>();
+        
+        if (lakehouses == null || lakehouses.isEmpty()) {
+            log.warn("No lakehouses provided for service: {}", serviceFQN);
+            return createdDatabases;
+        }
+        
+        for (FabricLakehouseVO lakehouse : lakehouses) {
+            try {
+                Database database = addDatabaseForLakehouse(serviceFQN, workspaceName, 
+                        lakehouse, fields, owners, description);
+                createdDatabases.add(database);
+                log.info("Successfully added database for lakehouse {} to service {}", 
+                        lakehouse.getName(), serviceFQN);
+            } catch (EntityAlreadyExistsException e) {
+                log.warn("Database for lakehouse {} already exists", lakehouse.getName());
+                String dbName = lakehouse.getName();
+                try {
+                    Database existing = getDatabase(workspaceName, dbName);
+                    createdDatabases.add(existing);
+                } catch (Exception ex) {
+                    log.error("Failed to retrieve existing database for lakehouse: {}", lakehouse.getName(), ex);
+                    throw new OpenMetadataClientException("Failed to get existing database for lakehouse: " + 
+                            lakehouse.getName(), ex);
+                }
+            }
+        }
+        
+        return createdDatabases;
+    }
+
     public DatabaseSchema createSchema(String name, String dbFQN) {
         try {
             CreateDatabaseSchema request = new CreateDatabaseSchema()
@@ -265,12 +359,14 @@ public class OpenMetadataClient {
         }
     }
 
-    public Database updateDatabase(String dbId, String name, String serviceFQN, MandatoryFieldsVO fields, List<EntityReference> owners) {
+    public Database updateDatabase(String dbId, String name, String serviceFQN, MandatoryFieldsVO fields,
+            List<EntityReference> owners, String description) {
         try {
             CreateDatabase request = new CreateDatabase()
                 .name(name)
                 .service(serviceFQN)
                 .extension(toExtensions(fields))
+                .description(description)
                 .owners(owners);
 
             return apiClient.buildClient(DatabasesApi.class)

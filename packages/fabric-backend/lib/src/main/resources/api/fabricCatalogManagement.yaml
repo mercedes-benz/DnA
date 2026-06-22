@@ -218,6 +218,44 @@ paths:
         500:
           description: "Internal error"
 
+  /catalog/{workspaceId}/check-mismatch:
+    get:
+      tags:
+        - "fabric-catalog-management"
+      summary: "Check table mismatch between Fabric and CDC."
+      description: "Compares current Fabric lakehouse tables with published CDC metadata to detect mismatches."
+      operationId: "checkTableMismatch"
+      parameters:
+        - name: "workspaceId"
+          in: "path"
+          description: "The ID of the workspace."
+          required: true
+          type: "string"
+        - name: "lakehouseId"
+          in: "query"
+          description: "The ID of the lakehouse."
+          required: true
+          type: "string"
+      responses:
+        200:
+          description: "Returns mismatch detection results"
+          schema:
+            $ref: "#/definitions/TableMismatchResponseVO"
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        404:
+          description: "Catalog metadata not found."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
   /catalog/ddx/fabric-lakehouses/objects:
     get:
       tags:
@@ -399,6 +437,10 @@ definitions:
         type: string
       tableId:
         type: string
+      enabled:
+        type: boolean
+        description: "Indicates if the table is enabled (true) or disabled (false)"
+        default: true
       columns:
         type: array
         items:
@@ -418,6 +460,10 @@ definitions:
         type: string
       colConstraint:
         type: string
+      enabled:
+        type: boolean
+        description: "Indicates if the column is enabled (true) or disabled (false)"
+        default: true
 
   PublishCatalogResponseVO:
     type: object
@@ -478,12 +524,96 @@ definitions:
         type: string
       metadata:
         $ref: "#/definitions/FabricCatalogMetadataVO"
-      owners:
-        type: array
-        items:
-          $ref: "#/definitions/CreatedByVO"
       mandatoryFields:
         $ref: "#/definitions/MandatoryFieldsVO"
+      publishedCDCCatalogs:
+        type: array
+        description: "List of CDC catalog details published from this workspace"
+        items:
+          $ref: "#/definitions/CdcTableDetailVO"
+      publishedLakehouseTables:
+        type: array
+        description: "List of table names available in the lakehouse"
+        items:
+          type: string
+      publishedLakehouseTableDetails:
+        type: array
+        description: "Detailed information about lakehouse tables including enabled status"
+        items:
+          $ref: "#/definitions/LakehouseTableDetailVO"
+
+  CdcTableDetailVO:
+    type: object
+    description: "Detailed information about a CDC table product"
+    properties:
+      workspaceName:
+        type: string
+      workspaceId:
+        type: string
+      lakehouseName:
+        type: string
+      lakeHouseId:
+        type: string
+      isLakeHousesPublishedToCdc:
+        type: boolean
+      mandatoryFields:
+        $ref: "#/definitions/MandatoryFieldsVO"
+      publishedLakehouseTables:
+        type: array
+        description: "List of table names available in this lakehouse"
+        items:
+          type: string
+      publishedLakehouseTableDetails:
+        type: array
+        description: "Detailed information about tables and columns for this lakehouse"
+        items:
+          $ref: "#/definitions/LakehouseTableDetailVO"
+      productName:
+        type: string
+        description: "Name of the CDC data product"
+      productId:
+        type: string
+        description: "ID of the CDC data product"
+      createdBy:
+        $ref: "#/definitions/CreatedByVO"
+      createdOn:
+        type: string
+        format: date
+      modifiedOn:
+        type: string
+        format: date
+
+  LakehouseTableDetailVO:
+    type: object
+    description: "Detailed information about a lakehouse table"
+    properties:
+      tableName:
+        type: string
+        description: "Name of the table"
+      enabled:
+        type: boolean
+        description: "Whether the table is enabled (true) or disabled (false)"
+        default: false
+      columns:
+        type: array
+        description: "List of columns in the table"
+        items:
+          $ref: "#/definitions/LakehouseColumnDetailVO"
+
+  LakehouseColumnDetailVO:
+    type: object
+    description: "Detailed information about a column in a lakehouse table"
+    properties:
+      columnName:
+        type: string
+        description: "Name of the column"
+      colType:
+        type: string
+        description: "Data type of the column"
+      enabled:
+        type: boolean
+        description: "Whether the column is enabled (true) or disabled (false)"
+        default: false
 
   updateDDXGroupsRequestVO:
     type: object
@@ -541,6 +671,46 @@ definitions:
         type: string
       columnMaskingRule:
         type: string
+
+  TableMismatchResponseVO:
+    type: object
+    properties:
+      hasMismatch:
+        type: boolean
+        description: "Whether any mismatch was detected"
+      mismatches:
+        type: array
+        items:
+          $ref: "#/definitions/TableMismatchDetailVO"
+      responses:
+        $ref: "#/definitions/GenericMessage"
+
+  TableMismatchDetailVO:
+    type: object
+    properties:
+      tableName:
+        type: string
+        description: "Name of the table"
+      lakeHouseId:
+        type: string
+        description: "ID of the lakehouse"
+      mismatchType:
+        type: string
+        description: "Type of mismatch detected"
+        enum:
+          - NEW_TABLE
+          - DELETED_TABLE
+          - COLUMNS_ADDED
+          - COLUMNS_REMOVED
+          - COLUMN_TYPE_CHANGED
+      details:
+        type: string
+        description: "Details about the mismatch"
+      affectedColumns:
+        type: array
+        items:
+          type: string
+        description: "List of affected column names"
 
   GroupStatusResponseVO:
     type: object
