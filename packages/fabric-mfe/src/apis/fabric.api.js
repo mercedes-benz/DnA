@@ -177,6 +177,22 @@ const publishDdxDataProduct = (workspaceId, lakehouseId, payload) => {
   return server.post(`fabric-workspaces/catalog/ddx/${workspaceId}/${lakehouseId}/publish`, payload);
 };
 
+const getCapacities = () => {
+  return server.get(`fabric-workspaces/admin/capacity`, { data: {} });
+};
+
+const updateCapacity = (id, data) => {
+  return server.post(`fabric-workspaces/admin/capacity`, data);
+};
+
+const addCapacity = (data) => {
+  return server.post(`fabric-workspaces/admin/capacity`, data);
+};
+
+const deleteCapacity = (id) => {
+  return server.delete(`fabric-workspaces/admin/capacity/${id}`, { data: {} });
+};
+
 export const fabricApi = {
   getFabricWorkspaces,
   getFabricWorkspacesForAdmin,
@@ -205,5 +221,9 @@ export const fabricApi = {
   pushSelectedTables,
   takeOwnership,
   getLegalEntities,
-  publishDdxDataProduct
+  publishDdxDataProduct,
+  getCapacities,
+  updateCapacity,
+  addCapacity,
+  deleteCapacity
 };
