@@ -142,6 +142,7 @@ public class FabricCatalogMetadataAssembler implements GenericAssembler<FabricCa
         mandatoryFields.setIsDocumentationUpdated(voMandatoryFields.getIsDocumentationUpdated() != null
             ? voMandatoryFields.getIsDocumentationUpdated().name()
             : null);
+        mandatoryFields.setDataLakeName(voMandatoryFields.getDataLakeName());
         mandatoryFields.setDataConfidentiality(voMandatoryFields.getDataConfidentiality() != null
             ? voMandatoryFields.getDataConfidentiality().name()
             : null);
@@ -163,6 +164,7 @@ public class FabricCatalogMetadataAssembler implements GenericAssembler<FabricCa
         mandatoryFieldsVO.setIsDocumentationUpdated(mandatoryFields.getIsDocumentationUpdated() != null
             ? IsDocumentationUpdatedEnum.valueOf(mandatoryFields.getIsDocumentationUpdated())
             : null);
+        mandatoryFieldsVO.setDataLakeName(mandatoryFields.getDataLakeName());
         mandatoryFieldsVO.setDataConfidentiality(mandatoryFields.getDataConfidentiality() != null
             ? DataConfidentialityEnum.valueOf(mandatoryFields.getDataConfidentiality())
             : null);
