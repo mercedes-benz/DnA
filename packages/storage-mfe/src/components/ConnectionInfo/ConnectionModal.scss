@@ -78,8 +78,15 @@
     .stepLabel {
       color: #acb8c4;
       font-size: var(--font-size-small);
-      margin: 10px 0 4px;
+      margin: 20px 0 6px;
+      padding-top: 12px;
+      border-top: 1px solid #2e3640;
       white-space: normal;
+      &:first-of-type {
+        margin-top: 4px;
+        padding-top: 0;
+        border-top: none;
+      }
     }
     .optionContainer {
       display: flex;
