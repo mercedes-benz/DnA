@@ -6,6 +6,7 @@ import Styles from './IntMigrationModal.scss';
 
 const IntMigrationModal = ({ show, codeSpaceData, onDismiss }) => {
   const [copied, setCopied] = useState(false);
+  const [hasCopied, setHasCopied] = useState(false);
   useEffect(() => {
   }, [show]);
 
@@ -23,7 +24,11 @@ const IntMigrationModal = ({ show, codeSpaceData, onDismiss }) => {
       'Current Host: ' + currentHost;
     navigator.clipboard.writeText(text).then(() => {
       setCopied(true);
+      setHasCopied(true);
       setTimeout(() => setCopied(false), 2000);
+      if (Envs.CODESPACE_TEAMS_LINK) { 
+        window.open(Envs.CODESPACE_TEAMS_LINK, '_blank');
+      }
     });
   };
 
@@ -41,6 +46,7 @@ const IntMigrationModal = ({ show, codeSpaceData, onDismiss }) => {
       showIcon={false}
       modalWidth="35%"
       show={show}
+      acceptButtonDisabled={!hasCopied}
       content={
         <div className={Styles.intMigrationWarning}>
           <div style={{ textAlign: 'center', marginBottom: '16px' }}>
@@ -86,6 +92,11 @@ const IntMigrationModal = ({ show, codeSpaceData, onDismiss }) => {
           <p>
             <a href={Envs.CODESPACE_TEAMS_LINK} target="_blank" rel="noopener noreferrer">Contact Codespace Team</a>
           </p>
+          {!hasCopied && (
+            <p className={Styles.copyHint}>
+              Note: Please copy the Namespace Migration Details above and contact the DnA Team before proceeding. Deployment will remain blocked until the migration details are sent to the DnA Team and all required actions are completed. Failure to complete these steps may result in deployment failures, configuration issues, or other operational impacts.
+            </p>
+          )}
         </div>
       }
       onCancel={handleDismiss}
