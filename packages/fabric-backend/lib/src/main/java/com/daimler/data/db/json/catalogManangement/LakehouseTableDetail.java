@@ -3,8 +3,8 @@ package com.daimler.data.db.json.catalogManangement;
 import java.io.Serializable;
 import java.util.List;
 
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.daimler.data.db.json.catalogManangement.Databases;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -13,9 +13,11 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class FabricCatalogMetadata implements Serializable{
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public class LakehouseTableDetail implements Serializable {
     private static final long serialVersionUID = 1L;
-    private FabricCatalogMetadata metadata;
-    private String serviceName;
-    private List<Databases> databases;
+
+    private String tableName;
+    private Boolean enabled;
+    private List<LakehouseColumnDetail> columns;
 }
