@@ -5,20 +5,7 @@ import Styles from './ManageCapacity.scss';
 import { fabricApi } from '../../apis/fabric.api';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 import SelectBox from 'dna-container/SelectBox';
-
-// TODO: Replace placeholder values with your actual backend values
-const SKU_OPTIONS = ['F2', 'F4', 'F8', 'F16', 'F32', 'F64', 'F128', 'F256', 'F512', 'F1024', 'F2048'];
-const REGION_OPTIONS = [ 'Australia Central', 'Australia Central 2', 'Australia East', 'Australia Southeast',
-  'Austria East', 'Belgium Central', 'Brazil South', 'Brazil Southeast',
-  'Canada Central', 'Canada East', 'Central India', 'Central US', 'Chile Central', 'Denmark East', 'East Asia',
-  'East US', 'East US 2', 'France Central', 'France South', 'Germany North', 'Germany West Central', 'Indonesia Central',
-  'Israel Central', 'Italy North', 'Japan East', 'Japan West', 'Korea Central', 'Korea South', 'Malaysia West', 'Mexico Central', 'New Zealand North',
-  'North Central US', 'North Europe', 'Norway East', 'Norway West', 'Poland Central', 'Qatar Central',
-  'South Africa North', 'South Africa West', 'South Central US', 'South India', 'Southeast Asia', 'Spain Central', 'Sweden Central',
-  'Sweden South', 'Switzerland North', 'Switzerland West', 'UAE Central', 'UAE North', 'UK South', 'UK West', 'US Gov Arizona','US Gov Texas',
-  'US Gov Virginia', 'West Central US', 'West Europe', 'West India', 'West US', 'West US 2', 'West US 3',
-];
-const STATE_OPTIONS = ['Active', 'Deleting', 'Failed', 'Inactive', 'Paused', 'Provisioning'];
+import {SKU_OPTIONS, REGION_OPTIONS, STATE_OPTIONS } from '../../utilities/constants';
 
 const ManageCapacity = ({ onClose }) => {
   const [capacities, setCapacities] = useState([]);
@@ -41,7 +28,6 @@ const ManageCapacity = ({ onClose }) => {
 
   useEffect(() => {
     fetchCapacities();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const fetchCapacities = () => {
