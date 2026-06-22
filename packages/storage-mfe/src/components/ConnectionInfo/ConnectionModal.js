@@ -309,7 +309,9 @@ export const ConnectionModal = (props) => {
           import pandas as pd
           import urllib3
           MINIO_BUCKET = "${bucketInfo.bucketName}"
-          minio_client = Minio('${Envs.MINIO_EXTERNAL_ENDPOINT}', access_key='${bucketInfo.accessInfo.accesskey}', secret_key='YOUR_BUCKET_SECRET_KEY', secure=True, http_client=urllib3.PoolManager(cert_reqs='CERT_REQUIRED', ca_certs='${Envs.MINIO_CA_CERT_PATH}'))
+          # Use the G3-Root CA certificate for SSL verification.
+          # You can download the official certs here: https://social.cloud.corpintra.net/groups/daimler-pki/blog/2018/02/05/ca-certificate-overview
+          minio_client = Minio('${Envs.MINIO_EXTERNAL_ENDPOINT}', access_key='${bucketInfo.accessInfo.accesskey}', secret_key='YOUR_BUCKET_SECRET_KEY', secure=True, http_client=urllib3.PoolManager(cert_reqs='CERT_REQUIRED', ca_certs='/path/to/G3-Root.crt'))
           y_file_obj = minio_client.get_object(MINIO_BUCKET, <<filepath>>)
           y = pd.read_csv(y_file_obj)`}
       </code>
@@ -446,7 +448,7 @@ export const ConnectionModal = (props) => {
                 </li>
                 <li className={'tab'}>
                   <a href="#tab-content-2" id="jupyterNotebook">
-                    <strong>How to Connect from DNA Jupyter NoteBook</strong>
+                    <strong>How to Connect from DnA Code Spaces Apps</strong>
                   </a>
                 </li>
                 <li className={`tab ${!isDataikuEnabled ? 'disable' : ''}`}>
