@@ -1,5 +1,7 @@
 package com.daimler.data.service.capacity;
 
+import java.util.List;
+
 import com.daimler.data.db.entities.CapacityNsql;
 import com.daimler.data.dto.adaProjects.CapacityVO;
 import com.daimler.data.service.common.CommonService;
@@ -36,5 +38,12 @@ public interface CapacityService extends CommonService<CapacityVO, CapacityNsql,
      * @return CapacityVO containing the deleted capacity details or null if not found
      */
     CapacityVO deleteCapacityByRegion(String region);
+
+    /**
+     * Get capacity details for all regions. This method retrieves the capacity details for all regions and returns them as a 
+     * list of CapacityVO objects. If no capacity details are found, an empty list will be returned.
+     * @return List<CapacityVO> List of CapacityVO objects containing the capacity details for all regions
+     */
+    List<CapacityVO> getAllCapacity();
     
 }

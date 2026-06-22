@@ -1,5 +1,7 @@
 package com.daimler.data.controller;
 
+import java.util.List;
+
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -123,6 +125,44 @@ public class FabricWorkspaceAdminController implements FabricWorkspacesAdminApi
 			return new ResponseEntity<>(capacity, HttpStatus.OK);
 		} catch (Exception e) {
 			log.error("Exception occurred while fetching capacity for region {}: {}", region, e.getMessage());
+			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	@ApiOperation(value = "Get All capacity details.", nickname = "getAllCapacity", notes = "Fetches all capacity records. This endpoint is available only for users who have the FabricAdmin role.", response = CapacityVO.class, tags={ "fabric-workspaces-admin", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 200, message = "Returns all capacity details.", response = CapacityVO.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "User is not a Fabric Admin."),
+        @ApiResponse(code = 405, message = "Method not allowed."),
+        @ApiResponse(code = 500, message = "Internal server error.") })
+    @RequestMapping(value = "/fabric-workspaces/admin/capacity",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.GET)
+	public ResponseEntity<List<CapacityVO>> getAllCapacity() {
+		if (this.userStore.getUserInfo() == null || this.userStore.getVO() == null || this.userStore.getVO().getId() == null ||
+					"".equalsIgnoreCase(this.userStore.getVO().getId().trim())) {
+			log.warn("Unauthorized access attempt to getAllCapacity");
+			return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
+		}
+		UserInfo currentUserInfo = this.userStore.getUserInfo();
+		if (!currentUserInfo.hasFabricAdminAccess()) {
+			log.warn("Access denied for getAllCapacity - user does not have FabricAdmin role");
+			return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
+		}
+		try {
+			log.info("Fetching all capacity records");
+			List<CapacityVO> capacities = capacityService.getAllCapacity();
+			if (capacities == null || capacities.isEmpty()) {
+				log.info("No capacity records found");
+				return new ResponseEntity<>(null, HttpStatus.NO_CONTENT);
+			}
+			return new ResponseEntity<>(capacities, HttpStatus.OK);
+		} catch (Exception e) {
+			log.error("Exception occurred while fetching all capacity records: {}", e.getMessage());
 			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}

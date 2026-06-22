@@ -1,6 +1,9 @@
 package com.daimler.data.service.capacity;
 
+import java.util.Collections;
 import java.util.Date;
+import java.util.List;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -88,5 +91,23 @@ public class BaseCapacityService extends BaseCommonService<CapacityVO, CapacityN
             return null;
         }
     }
-    
+
+    @Override
+    public List<CapacityVO> getAllCapacity() {
+        log.info("Fetching all capacity records");
+        try {
+            List<CapacityNsql> capacityList = capacityRepository.findAll();
+            if (capacityList == null || capacityList.isEmpty()) {
+                log.info("No capacity details found");
+                return Collections.emptyList();
+            }
+            log.info("Successfully fetched {} capacity record(s)", capacityList.size());
+            return capacityList.stream()
+                    .map(capacityAssembler::toVo)
+                    .collect(Collectors.toList());
+        } catch (Exception e) {
+            log.error("Exception occurred while fetching all capacity records: {}", e.getMessage(), e);
+            throw e;
+        }
+    }
 }
