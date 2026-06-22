@@ -63,6 +63,24 @@
         cursor: not-allowed;
       }
     }
+    .pythonTemplateLabel {
+      display: inline-block;
+      background-color: #1c4a7a;
+      color: #00adef;
+      padding: 3px 10px;
+      border-radius: 4px;
+      font-size: var(--font-size-small);
+      font-weight: bold;
+      margin-bottom: 12px;
+      letter-spacing: 0.5px;
+      white-space: normal;
+    }
+    .stepLabel {
+      color: #acb8c4;
+      font-size: var(--font-size-small);
+      margin: 10px 0 4px;
+      white-space: normal;
+    }
     .optionContainer {
       display: flex;
       flex-direction: column;

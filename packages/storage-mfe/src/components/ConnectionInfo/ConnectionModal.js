@@ -304,17 +304,15 @@ export const ConnectionModal = (props) => {
 
   const connectToJupyter = (
     <>
-      <code>
-        {`from minio import Minio
-          import pandas as pd
-          import urllib3
-          MINIO_BUCKET = "${bucketInfo.bucketName}"
-          # Use the G3-Root CA certificate for SSL verification.
-          # You can download the official certs here: https://social.cloud.corpintra.net/groups/daimler-pki/blog/2018/02/05/ca-certificate-overview
-          minio_client = Minio('${Envs.MINIO_EXTERNAL_ENDPOINT}', access_key='${bucketInfo.accessInfo.accesskey}', secret_key='YOUR_BUCKET_SECRET_KEY', secure=True, http_client=urllib3.PoolManager(cert_reqs='CERT_REQUIRED', ca_certs='/path/to/G3-Root.crt'))
-          y_file_obj = minio_client.get_object(MINIO_BUCKET, <<filepath>>)
-          y = pd.read_csv(y_file_obj)`}
-      </code>
+      <span className={Styles.pythonTemplateLabel}>Python Template</span>
+      <p className={Styles.stepLabel}><strong>Step 1:</strong> Import required libraries</p>
+      <code>{`from minio import Minio\nimport pandas as pd\nimport urllib3`}</code>
+      <p className={Styles.stepLabel}><strong>Step 2:</strong> Set your bucket name</p>
+      <code>{`MINIO_BUCKET = "${bucketInfo.bucketName}"`}</code>
+      <p className={Styles.stepLabel}><strong>Step 3:</strong> Configure MinIO client with SSL certificate</p>
+      <code>{`# Use the G3-Root CA certificate for SSL verification.\n# Download official certs: https://social.cloud.corpintra.net/groups/daimler-pki/blog/2018/02/05/ca-certificate-overview\nminio_client = Minio('${Envs.MINIO_EXTERNAL_ENDPOINT}',\n    access_key='${bucketInfo.accessInfo.accesskey}',\n    secret_key='YOUR_BUCKET_SECRET_KEY',\n    secure=True,\n    http_client=urllib3.PoolManager(cert_reqs='CERT_REQUIRED', ca_certs='/path/to/G3-Root.crt'))`}</code>
+      <p className={Styles.stepLabel}><strong>Step 4:</strong> Read data from the bucket</p>
+      <code>{`y_file_obj = minio_client.get_object(MINIO_BUCKET, <<filepath>>)\ny = pd.read_csv(y_file_obj)`}</code>
       <div className={Styles.dataikuConnectionBtn}>
         {' '}
         <button
