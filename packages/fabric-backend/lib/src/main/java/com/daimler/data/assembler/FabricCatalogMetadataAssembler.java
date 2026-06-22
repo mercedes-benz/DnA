@@ -8,19 +8,16 @@ import org.springframework.stereotype.Component;
 import org.springframework.beans.BeanUtils;
 
 import com.daimler.data.db.entities.FabricCatalogMetadataNsql;
+import com.daimler.data.db.json.catalogManangement.CdcTableDetail;
 import com.daimler.data.db.json.catalogManangement.FabricCatalogMetadataDetails;
 import com.daimler.data.db.json.catalogManangement.MandatoryFields;
-import com.daimler.data.db.json.catalogManangement.FabricCatalogMetadata;
-import com.daimler.data.db.json.catalogManangement.Databases;
-import com.daimler.data.db.json.catalogManangement.Schemas;
-import com.daimler.data.db.json.catalogManangement.Tables;
+import com.daimler.data.db.json.catalogManangement.LakehouseTableDetail;
+import com.daimler.data.db.json.catalogManangement.LakehouseColumnDetail;
 import com.daimler.data.db.json.UserDetails;
+import com.daimler.data.dto.fabricCatalogManagement.CdcTableDetailVO;
 import com.daimler.data.dto.fabricCatalogManagement.FabricCatalogMetadataDetailsVO;
-import com.daimler.data.dto.fabricCatalogManagement.FabricCatalogMetadataVO;
-import com.daimler.data.dto.fabricCatalogManagement.DatabaseMetadataVO;
-import com.daimler.data.dto.fabricCatalogManagement.SchemaMetadataVO;
-import com.daimler.data.dto.fabricCatalogManagement.TableMetadataVO;
-import com.daimler.data.dto.fabricCatalogManagement.ColumnMetadataVO;
+import com.daimler.data.dto.fabricCatalogManagement.LakehouseTableDetailVO;
+import com.daimler.data.dto.fabricCatalogManagement.LakehouseColumnDetailVO;
 import com.daimler.data.dto.fabricCatalogManagement.MandatoryFieldsVO;
 import com.daimler.data.dto.fabricCatalogManagement.MandatoryFieldsVO.DivisionsEnum;
 // import com.daimler.data.dto.fabricCatalogManagement.MandatoryFieldsVO.DataOriginEnum;
@@ -36,79 +33,18 @@ public class FabricCatalogMetadataAssembler implements GenericAssembler<FabricCa
     public FabricCatalogMetadataNsql toEntity(FabricCatalogMetadataDetailsVO vo) {
         FabricCatalogMetadataNsql entity = new FabricCatalogMetadataNsql();
         FabricCatalogMetadataDetails data = new FabricCatalogMetadataDetails();
-        FabricCatalogMetadata metadata = new FabricCatalogMetadata();
         if (vo != null) {
             if (vo.getId() != null) {
                 entity.setId(vo.getId());
             }
-            if (vo.getMetadata() != null) {
-                FabricCatalogMetadataVO metadataVO = vo.getMetadata();
-                metadata.setServiceName(metadataVO.getServiceName());
 
-                List<Databases> dbEntities = new ArrayList<>();
-                if (metadataVO.getDatabases() != null) {
-                    for (DatabaseMetadataVO dbVo : metadataVO.getDatabases()) {
-                        Databases dbEntity = new Databases();
-                        dbEntity.setDatabaseName(dbVo.getDbName());
-                        dbEntity.setDescription(dbVo.getDescription());
-                        List<Schemas> schemaEntities = new ArrayList<>();
-                        if (dbVo.getSchemas() != null) {
-                            for (SchemaMetadataVO schemaVo : dbVo.getSchemas()) {
-                                Schemas schemaEntity = new Schemas();
-                                schemaEntity.setSchemaName(schemaVo.getSchemaName());
-
-                                List<Tables> tableEntities = new ArrayList<>();
-                                if (schemaVo.getTables() != null) {
-                                    for (TableMetadataVO tableVo : schemaVo.getTables()) {
-                                        Tables tableEntity = new Tables();
-                                        tableEntity.setTableName(tableVo.getTableName());
-
-                                        List<String> columnNames = new ArrayList<>();
-                                        if (tableVo.getColumns() != null) {
-                                            for (ColumnMetadataVO columnVo : tableVo.getColumns()) {
-                                                columnNames.add(columnVo.getColumnName());
-                                            }
-                                        }
-                                        tableEntity.setColumns(columnNames);
-                                        tableEntities.add(tableEntity);
-                                    }
-                                }
-                                schemaEntity.setTables(tableEntities);
-                                schemaEntities.add(schemaEntity);
-                            }
-                        }
-                        dbEntity.setSchemas(schemaEntities);
-                        dbEntities.add(dbEntity);
-                    }
+            if (vo.getPublishedCDCCatalogs() != null) {
+                List<CdcTableDetail> cdcTableDetails = new ArrayList<>();
+                for (CdcTableDetailVO cdcVo : vo.getPublishedCDCCatalogs()) {
+                    cdcTableDetails.add(toCdcTableDetail(cdcVo));
                 }
-                metadata.setDatabases(dbEntities);
+                data.setPublishedCDCCatalogs(cdcTableDetails);
             }
-            data.setMetadata(metadata);
-
-            List<UserDetails> owners = new ArrayList<>();
-            if (vo.getOwners() != null) {
-                List<CreatedByVO> ownersDetails = vo.getOwners();
-                owners = ownersDetails.stream()
-                        .map(this::toUserDetails)
-                        .collect(Collectors.toList());
-            }
-            data.setOwners(owners);
-
-            MandatoryFields mandatoryFields = new MandatoryFields();
-            if (vo.getMandatoryFields() != null) {
-                MandatoryFieldsVO voMandatoryFields = vo.getMandatoryFields();
-                mandatoryFields.setDivisions(voMandatoryFields.getDivisions() != null ?
-                        voMandatoryFields.getDivisions().stream().map(Enum::name).collect(Collectors.toList()) : null);
-                mandatoryFields.setDepartment(voMandatoryFields.getDepartment());
-                // mandatoryFields.setDataOrigin(voMandatoryFields.getDataOrigin() != null ? voMandatoryFields.getDataOrigin().name() : null);
-                mandatoryFields.setLeanIXId(voMandatoryFields.getLeanIXId());
-                mandatoryFields.setIsDocumentationUpdated(voMandatoryFields.getIsDocumentationUpdated() != null ? voMandatoryFields.getIsDocumentationUpdated().name() : null);
-                // mandatoryFields.setIsDataLakeAvailability(voMandatoryFields.getIsDataLakeAvailability() != null ? voMandatoryFields.getIsDataLakeAvailability().name() : null);
-               // mandatoryFields.setIsDataAsset(voMandatoryFields.getIsDataAsset() != null ? voMandatoryFields.getIsDataAsset().name() : null);
-                mandatoryFields.setDataConfidentiality(voMandatoryFields.getDataConfidentiality() != null ? voMandatoryFields.getDataConfidentiality().name() : null);
-                mandatoryFields.setTier(voMandatoryFields.getTier() != null ? voMandatoryFields.getTier() : null);
-            }
-            data.setMandatoryFields(mandatoryFields);
         }
         entity.setData(data);
         return entity;
@@ -116,7 +52,6 @@ public class FabricCatalogMetadataAssembler implements GenericAssembler<FabricCa
 
     public FabricCatalogMetadataDetailsVO toVo(FabricCatalogMetadataNsql entity) {
         FabricCatalogMetadataDetailsVO vo = new FabricCatalogMetadataDetailsVO();
-        FabricCatalogMetadataVO metadataVO = new FabricCatalogMetadataVO();
 
         if (entity != null) {
             if (entity.getId() != null) {
@@ -124,77 +59,189 @@ public class FabricCatalogMetadataAssembler implements GenericAssembler<FabricCa
             }
             FabricCatalogMetadataDetails metadataDetails = entity.getData();
             if (metadataDetails != null) {
-                FabricCatalogMetadata metadata = metadataDetails.getMetadata();
-                metadataVO.setServiceName(metadata.getServiceName());
-
-                List<DatabaseMetadataVO> dbVos = new ArrayList<>();
-                if (metadata.getDatabases() != null) {
-                    for (Databases dbEntity : metadata.getDatabases()) {
-                        DatabaseMetadataVO dbVo = new DatabaseMetadataVO();
-                        dbVo.setDbName(dbEntity.getDatabaseName());
-                        dbVo.setDescription(dbEntity.getDescription());
-                        List<SchemaMetadataVO> schemaVos = new ArrayList<>();
-                        if (dbEntity.getSchemas() != null) {
-                            for (Schemas schemaEntity : dbEntity.getSchemas()) {
-                                SchemaMetadataVO schemaVo = new SchemaMetadataVO();
-                                schemaVo.setSchemaName(schemaEntity.getSchemaName());
-
-                                List<TableMetadataVO> tableVos = new ArrayList<>();
-                                if (schemaEntity.getTables() != null) {
-                                    for (Tables tableEntity : schemaEntity.getTables()) {
-                                        TableMetadataVO tableVo = new TableMetadataVO();
-                                        tableVo.setTableName(tableEntity.getTableName());
-
-                                        List<ColumnMetadataVO> columnVos = new ArrayList<>();
-                                        if (tableEntity.getColumns() != null) {
-                                            for (String columnName : tableEntity.getColumns()) {
-                                                ColumnMetadataVO colVo = new ColumnMetadataVO();
-                                                colVo.setColumnName(columnName);
-                                                columnVos.add(colVo);
-                                            }
-                                        }
-                                        tableVo.setColumns(columnVos);
-                                        tableVos.add(tableVo);
-                                    }
-                                }
-                                schemaVo.setTables(tableVos);
-                                schemaVos.add(schemaVo);
-                            }
-                        }
-                        dbVo.setSchemas(schemaVos);
-                        dbVos.add(dbVo);
+                if (metadataDetails.getPublishedCDCCatalogs() != null) {
+                    List<CdcTableDetailVO> cdcTableVos = new ArrayList<>();
+                    for (CdcTableDetail cdcDetail : metadataDetails.getPublishedCDCCatalogs()) {
+                        cdcTableVos.add(toCdcTableDetailVO(
+                            cdcDetail,
+                            metadataDetails.getMandatoryFields(),
+                            metadataDetails.getPublishedLakehouseTables(),
+                            metadataDetails.getPublishedLakehouseTableDetails()));
                     }
+                    vo.setPublishedCDCCatalogs(cdcTableVos);
                 }
-                metadataVO.setDatabases(dbVos);
             }
-            vo.setMetadata(metadataVO);
-
-            List<CreatedByVO> owners = new ArrayList<>();
-            if (metadataDetails.getOwners() != null) {
-                List<UserDetails> ownerDetails = metadataDetails.getOwners();
-                owners = ownerDetails.stream()
-                        .map(this::toCreatedByVO)
-                        .collect(Collectors.toList());
-            }
-            vo.setOwners(owners);
-
-            MandatoryFields mandatoryFields = metadataDetails.getMandatoryFields();
-            MandatoryFieldsVO mandatoryFieldsVO = new MandatoryFieldsVO();
-            if (mandatoryFields != null) {
-                mandatoryFieldsVO.setDivisions(mandatoryFields.getDivisions() != null ?
-                        mandatoryFields.getDivisions().stream().map(DivisionsEnum::valueOf).collect(Collectors.toList()) : null);
-                mandatoryFieldsVO.setDepartment(mandatoryFields.getDepartment());
-                // mandatoryFieldsVO.setDataOrigin(mandatoryFields.getDataOrigin() != null ? DataOriginEnum.valueOf(mandatoryFields.getDataOrigin()) : null);
-                mandatoryFieldsVO.setLeanIXId(mandatoryFields.getLeanIXId());
-                mandatoryFieldsVO.setIsDocumentationUpdated(mandatoryFields.getIsDocumentationUpdated() != null ? IsDocumentationUpdatedEnum.valueOf(mandatoryFields.getIsDocumentationUpdated()) : null);
-                // mandatoryFieldsVO.setIsDataLakeAvailability(mandatoryFields.getIsDataLakeAvailability() != null ? IsDataLakeAvailabilityEnum.valueOf(mandatoryFields.getIsDataLakeAvailability()) : null);
-                //mandatoryFieldsVO.setIsDataAsset(mandatoryFields.getIsDataAsset() != null ? IsDataAssetEnum.valueOf(mandatoryFields.getIsDataAsset()) : null);
-                mandatoryFieldsVO.setDataConfidentiality(mandatoryFields.getDataConfidentiality() != null ? DataConfidentialityEnum.valueOf(mandatoryFields.getDataConfidentiality()) : null);
-                mandatoryFieldsVO.setTier(mandatoryFields.getTier() != null ?  mandatoryFields.getTier(): null);
-            }
-            vo.setMandatoryFields(mandatoryFieldsVO);
         }
         return vo;
+    }
+
+    public CdcTableDetailVO toCdcTableDetailVO(CdcTableDetail detail) {
+        return toCdcTableDetailVO(detail, null, null, null);
+    }
+
+    public CdcTableDetailVO toCdcTableDetailVO(CdcTableDetail detail,
+            MandatoryFields legacyMandatoryFields,
+            List<String> legacyPublishedLakehouseTables,
+            List<LakehouseTableDetail> legacyPublishedLakehouseTableDetails) {
+        CdcTableDetailVO vo = new CdcTableDetailVO();
+        if (detail != null) {
+            vo.setWorkspaceName(detail.getWorkspaceName());
+            vo.setWorkspaceId(detail.getWorkspaceId());
+            vo.setLakehouseName(detail.getLakehouseName());
+            vo.setLakeHouseId(detail.getLakeHouseId());
+            vo.setIsLakeHousesPublishedToCdc(detail.getIsLakeHousesPublishedToCdc());
+            vo.setMandatoryFields(toMandatoryFieldsVO(
+                detail.getMandatoryFields() != null ? detail.getMandatoryFields() : legacyMandatoryFields));
+            vo.setPublishedLakehouseTables(detail.getPublishedLakehouseTables() != null
+                ? new ArrayList<>(detail.getPublishedLakehouseTables())
+                : copyPublishedLakehouseTables(legacyPublishedLakehouseTables));
+            vo.setPublishedLakehouseTableDetails(toLakehouseTableDetailVOs(
+                detail.getPublishedLakehouseTableDetails() != null
+                    ? detail.getPublishedLakehouseTableDetails()
+                    : legacyPublishedLakehouseTableDetails));
+            vo.setCreatedOn(detail.getCreatedOn());
+            vo.setModifiedOn(detail.getModifiedOn());
+            if (detail.getCreatedBy() != null) {
+                vo.setCreatedBy(toCreatedByVO(detail.getCreatedBy()));
+            }
+        }
+        return vo;
+    }
+
+    public CdcTableDetail toCdcTableDetail(CdcTableDetailVO vo) {
+        CdcTableDetail detail = new CdcTableDetail();
+        if (vo != null) {
+            detail.setWorkspaceName(vo.getWorkspaceName());
+            detail.setWorkspaceId(vo.getWorkspaceId());
+            detail.setLakehouseName(vo.getLakehouseName());
+            detail.setLakeHouseId(vo.getLakeHouseId());
+            detail.setIsLakeHousesPublishedToCdc(vo.isIsLakeHousesPublishedToCdc());
+            detail.setMandatoryFields(toMandatoryFields(vo.getMandatoryFields()));
+            detail.setPublishedLakehouseTables(copyPublishedLakehouseTables(vo.getPublishedLakehouseTables()));
+            detail.setPublishedLakehouseTableDetails(toLakehouseTableDetails(vo.getPublishedLakehouseTableDetails()));
+            detail.setCreatedOn(vo.getCreatedOn());
+            detail.setModifiedOn(vo.getModifiedOn());
+            if (vo.getCreatedBy() != null) {
+                detail.setCreatedBy(toUserDetails(vo.getCreatedBy()));
+            }
+        }
+        return detail;
+    }
+
+    private MandatoryFields toMandatoryFields(MandatoryFieldsVO voMandatoryFields) {
+        if (voMandatoryFields == null) {
+            return null;
+        }
+
+        MandatoryFields mandatoryFields = new MandatoryFields();
+        mandatoryFields.setDivisions(voMandatoryFields.getDivisions() != null
+            ? voMandatoryFields.getDivisions().stream().map(Enum::name).collect(Collectors.toList())
+            : null);
+        mandatoryFields.setDepartment(voMandatoryFields.getDepartment());
+        mandatoryFields.setLeanIXId(voMandatoryFields.getLeanIXId());
+        mandatoryFields.setIsDocumentationUpdated(voMandatoryFields.getIsDocumentationUpdated() != null
+            ? voMandatoryFields.getIsDocumentationUpdated().name()
+            : null);
+        mandatoryFields.setDataConfidentiality(voMandatoryFields.getDataConfidentiality() != null
+            ? voMandatoryFields.getDataConfidentiality().name()
+            : null);
+        mandatoryFields.setTier(voMandatoryFields.getTier());
+        return mandatoryFields;
+    }
+
+    private MandatoryFieldsVO toMandatoryFieldsVO(MandatoryFields mandatoryFields) {
+        if (mandatoryFields == null) {
+            return null;
+        }
+
+        MandatoryFieldsVO mandatoryFieldsVO = new MandatoryFieldsVO();
+        mandatoryFieldsVO.setDivisions(mandatoryFields.getDivisions() != null
+            ? mandatoryFields.getDivisions().stream().map(DivisionsEnum::valueOf).collect(Collectors.toList())
+            : null);
+        mandatoryFieldsVO.setDepartment(mandatoryFields.getDepartment());
+        mandatoryFieldsVO.setLeanIXId(mandatoryFields.getLeanIXId());
+        mandatoryFieldsVO.setIsDocumentationUpdated(mandatoryFields.getIsDocumentationUpdated() != null
+            ? IsDocumentationUpdatedEnum.valueOf(mandatoryFields.getIsDocumentationUpdated())
+            : null);
+        mandatoryFieldsVO.setDataConfidentiality(mandatoryFields.getDataConfidentiality() != null
+            ? DataConfidentialityEnum.valueOf(mandatoryFields.getDataConfidentiality())
+            : null);
+        mandatoryFieldsVO.setTier(mandatoryFields.getTier());
+        return mandatoryFieldsVO;
+    }
+
+    private List<String> copyPublishedLakehouseTables(List<String> publishedLakehouseTables) {
+        return publishedLakehouseTables == null ? null : new ArrayList<>(publishedLakehouseTables);
+    }
+
+    private List<LakehouseTableDetail> toLakehouseTableDetails(List<LakehouseTableDetailVO> tableVos) {
+        if (tableVos == null) {
+            return null;
+        }
+
+        List<LakehouseTableDetail> tableDetails = new ArrayList<>();
+        for (LakehouseTableDetailVO tableVo : tableVos) {
+            if (tableVo == null) {
+                continue;
+            }
+
+            LakehouseTableDetail tableDetail = new LakehouseTableDetail();
+            tableDetail.setTableName(tableVo.getTableName());
+            tableDetail.setEnabled(tableVo.isEnabled());
+
+            if (tableVo.getColumns() != null) {
+                List<LakehouseColumnDetail> columnDetails = new ArrayList<>();
+                for (LakehouseColumnDetailVO colVo : tableVo.getColumns()) {
+                    if (colVo == null) {
+                        continue;
+                    }
+
+                    LakehouseColumnDetail colDetail = new LakehouseColumnDetail();
+                    colDetail.setColumnName(colVo.getColumnName());
+                    colDetail.setColType(colVo.getColType());
+                    colDetail.setEnabled(colVo.isEnabled());
+                    columnDetails.add(colDetail);
+                }
+                tableDetail.setColumns(columnDetails);
+            }
+            tableDetails.add(tableDetail);
+        }
+        return tableDetails;
+    }
+
+    private List<LakehouseTableDetailVO> toLakehouseTableDetailVOs(List<LakehouseTableDetail> tableDetails) {
+        if (tableDetails == null) {
+            return null;
+        }
+
+        List<LakehouseTableDetailVO> tableDetailVos = new ArrayList<>();
+        for (LakehouseTableDetail tableDetail : tableDetails) {
+            if (tableDetail == null) {
+                continue;
+            }
+
+            LakehouseTableDetailVO tableVo = new LakehouseTableDetailVO();
+            tableVo.setTableName(tableDetail.getTableName());
+            tableVo.setEnabled(Boolean.TRUE.equals(tableDetail.getEnabled()));
+
+            if (tableDetail.getColumns() != null) {
+                List<LakehouseColumnDetailVO> columnVos = new ArrayList<>();
+                for (LakehouseColumnDetail colDetail : tableDetail.getColumns()) {
+                    if (colDetail == null) {
+                        continue;
+                    }
+
+                    LakehouseColumnDetailVO colVo = new LakehouseColumnDetailVO();
+                    colVo.setColumnName(colDetail.getColumnName());
+                    colVo.setColType(colDetail.getColType());
+                    colVo.setEnabled(Boolean.TRUE.equals(colDetail.getEnabled()));
+                    columnVos.add(colVo);
+                }
+                tableVo.setColumns(columnVos);
+            }
+            tableDetailVos.add(tableVo);
+        }
+        return tableDetailVos;
     }
 
     public UserDetails toUserDetails(CreatedByVO createdBy) {
