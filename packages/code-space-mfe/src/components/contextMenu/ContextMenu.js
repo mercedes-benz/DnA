@@ -40,9 +40,15 @@ const ContextMenu = (props) => {
   const [showRestartModal, setShowRestartModal] = useState(false);
   const [showDeployedAppConfigModal, setShowDeployedAppConfigModal] = useState(false);
 
-  const deployingInProgress =
+  const intDeployingInProgress =
     intDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED' ||
-    prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED';
+    intDeploymentDetails?.lastDeploymentStatus === 'DEPLOYING';
+
+  const prodDeployingInProgress =
+    prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED' ||
+    prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOYING';
+
+  const deployingInProgress = intDeployingInProgress || prodDeployingInProgress;
 
   const buildInProgress = projectDetails?.lastBuildOrDeployedStatus === 'BUILD_REQUESTED';
 
@@ -53,19 +59,19 @@ const ContextMenu = (props) => {
   // const intDeploymentMigrated = intDeployedUrl?.includes(Envs.CODESPACE_AWS_POPUP_URL);
   // const prodDeploymentMigrated = prodDeployedUrl?.includes(Envs.CODESPACE_AWS_POPUP_URL);
 
-  const prodCodeDeployFailed = prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
-  const intCodeDeployFailed = intDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
+  const prodCodeDeployFailed = prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED' ||
+    prodDeploymentDetails.lastDeploymentStatus === 'FAILED';
+  const intCodeDeployFailed = intDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED' ||
+    intDeploymentDetails.lastDeploymentStatus === 'FAILED';
   const prodCodeBuildFailed = prodBuildDetails.lastDeploymentStatus === 'BUILD_FAILED';
   const intCodeBuildFailed = intBuildDetails.lastDeploymentStatus === 'BUILD_FAILED';
 
   const intDeployed =
     intDeploymentDetails?.lastDeploymentStatus === 'DEPLOYED' ||
-    (intDeployedUrl !== null && intDeployedUrl !== 'null') ||
     false;
 
   const prodDeployed =
     prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOYED' ||
-    (prodDeployedUrl !== null && prodDeployedUrl !== 'null') ||
     false;
 
   const intAppResourceUsageUrl =
@@ -277,7 +283,7 @@ const ContextMenu = (props) => {
               }}
             >
               <div>
-                <strong>Staging:</strong> {intDeploymentDetails?.lastDeployedBranch ? 'Deployed' : 'No Deployment'}
+                <strong>Staging:</strong> {intDeployed ? 'Deployed' : 'No Deployment'}
                 <span className={classNames(Styles.metricsTrigger, 'hide')} onClick={handleOpenDoraMetrics}>
                   (DORA Metrics)
                 </span>
@@ -431,7 +437,7 @@ const ContextMenu = (props) => {
               }}
             >
               <div>
-                <strong>Production:</strong> {prodDeploymentDetails?.lastDeployedBranch ? 'Deployed' : 'No Deployment'}
+                <strong>Production:</strong> {prodDeployed ? 'Deployed' : 'No Deployment'}
                 <span className={classNames(Styles.metricsTrigger, 'hide')} onClick={handleOpenDoraMetrics}>
                   (DORA Metrics)
                 </span>
