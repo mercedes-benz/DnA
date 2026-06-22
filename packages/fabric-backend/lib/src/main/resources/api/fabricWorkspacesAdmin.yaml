@@ -120,6 +120,31 @@ paths:
           description: "Internal server error."
 
   /fabric-workspaces/admin/capacity:
+    get:
+      tags:
+        - "fabric-workspaces-admin"
+      summary: "Get all capacity details."
+      description: "Fetches all capacity records. This endpoint is available only for users who have the FabricAdmin role."
+      operationId: "getAllCapacity"
+      responses:
+        200:
+          description: "Returns all capacity details."
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/CapacityVO"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "User is not a Fabric Admin."
+        405:
+          description: "Method not allowed."
+        500:
+          description: "Internal server error."
     post:
       tags:
         - "fabric-workspaces-admin"
@@ -208,6 +233,3 @@ paths:
           description: "Method not allowed."
         500:
           description: "Internal server error."
-
-
-      
