@@ -1,14 +1,13 @@
 package com.daimler.data.db.json.catalogManangement;
 
 import java.io.Serializable;
+import java.util.Date;
 import java.util.List;
 
+import com.daimler.data.db.json.UserDetails;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonAlias;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.databind.annotation.JsonDeserialize;
-import com.daimler.data.db.json.UserDetails;
+
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -18,15 +17,19 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public class FabricCatalogMetadataDetails implements Serializable {
-
+public class CdcTableDetail implements Serializable {
     private static final long serialVersionUID = 1L;
+
+    private String workspaceName;
+    private String workspaceId;
+    private String lakehouseName;
+    private String lakeHouseId;
+    private Boolean isLakeHousesPublishedToCdc;
     private FabricCatalogMetadata metadata;
-    private List<UserDetails> owners;
     private MandatoryFields mandatoryFields;
     private List<String> publishedLakehouseTables;
     private List<LakehouseTableDetail> publishedLakehouseTableDetails;
-    @JsonProperty("publishedCDCCatalogs")
-    @JsonDeserialize(using = CdcTableDetailListDeserializer.class)
-    private List<CdcTableDetail> publishedCDCCatalogs;
+    private UserDetails createdBy;
+    private Date createdOn;
+    private Date modifiedOn;
 }
