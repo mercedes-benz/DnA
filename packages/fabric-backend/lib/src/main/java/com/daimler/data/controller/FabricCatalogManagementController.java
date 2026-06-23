@@ -3,6 +3,10 @@ package com.daimler.data.controller;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Collections;
+import com.daimler.data.dto.fabric.FabricSqlEndpointResponseDto;
+import com.daimler.data.application.client.FabricCDCPushServiceClient;
+import com.daimler.data.dto.fabricWorkspace.LakehouseTableCollectionResponseVO;
+import com.daimler.data.dto.fabricWorkspace.LakeHouseTableVO;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
@@ -81,6 +85,9 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
     @Autowired
     private FabricWorkspaceClient fabricWorkspaceClient;
 
+    @Autowired
+    private FabricCDCPushServiceClient cdcPushServiceClient;
+
     @Override
      @ApiOperation(value = "Publish a new catalog.", nickname = "publishCatalogRequest", notes = "This endpoint will be used to publish a new fabric catalog.", response = PublishCatalogResponseVO.class, tags={ "fabric-catalog-management", })
     @ApiResponses(value = { 
@@ -105,6 +112,25 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
                 || !workspaceId.equalsIgnoreCase(existingFabricWorkspace.getId())) {
             log.error("No Fabric Workspace found with id {}", workspaceId);
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+        }
+        
+        if (existingFabricWorkspace.getLakehouses() != null && publishCatalogRequest.getMetadata() != null
+                && publishCatalogRequest.getMetadata().getDatabases() != null) {
+            for (var db : publishCatalogRequest.getMetadata().getDatabases()) {
+                String lakehouseId = db.getDbId();
+                if (lakehouseId != null && !lakehouseId.isEmpty()) {
+                    if (!isLakehouseSchemaEnabled(workspaceId, lakehouseId)) {
+                        log.error("Lakehouse {} does not have Lakehouse Schemas enabled, CDC Push rejected", lakehouseId);
+                        GenericMessage failedResponse = new GenericMessage();
+                        MessageDescription message = new MessageDescription();
+                        message.setMessage("CDC Push requires Lakehouse Schemas to be enabled. Please recreate the lakehouse with the Lakehouse Schemas option checked.");
+                        failedResponse.addErrors(message);
+                        failedResponse.setSuccess("FAILED");
+                        responseVO.setResponses(failedResponse);
+                        return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+                    }
+                }
+            }
         }
 
         boolean hasExistingPublish = false;
@@ -249,6 +275,26 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
                 || !workspaceId.equalsIgnoreCase(existingFabricWorkspace.getId())) {
             log.error("No Fabric Workspace found with id {}", workspaceId);
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+        }
+
+        // Validate Lakehouse Schemas is enabled for all lakehouses being published
+        if (existingFabricWorkspace.getLakehouses() != null && updateCatalogRequest.getMetadata() != null
+                && updateCatalogRequest.getMetadata().getDatabases() != null) {
+            for (var db : updateCatalogRequest.getMetadata().getDatabases()) {
+                String lakehouseId = db.getDbId();
+                if (lakehouseId != null && !lakehouseId.isEmpty()) {
+                    if (!isLakehouseSchemaEnabled(workspaceId, lakehouseId)) {
+                        log.error("Lakehouse {} does not have Lakehouse Schemas enabled, CDC Push rejected", lakehouseId);
+                        GenericMessage failedResponse = new GenericMessage();
+                        MessageDescription message = new MessageDescription();
+                        message.setMessage("CDC Push requires Lakehouse Schemas to be enabled. Please recreate the lakehouse with the Lakehouse Schemas option checked.");
+                        failedResponse.addErrors(message);
+                        failedResponse.setSuccess("FAILED");
+                        responseVO.setResponses(failedResponse);
+                        return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+                    }
+                }
+            }
         }
 
         CreatedByVO requestUser = this.userStore.getVO();
@@ -719,6 +765,66 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
         return new ResponseEntity<>(groupStatusList, HttpStatus.OK);
     }
 
+    @ApiOperation(value = "Check if lakehouse has schemas enabled.", nickname = "checkLakehouseSchemaEnabled",
+        notes = "Returns whether the specified lakehouse has Lakehouse Schemas enabled (required for CDC Push).",
+        response = GenericMessage.class, tags = { "fabric-catalog-management" })
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "Schema status check completed", response = GenericMessage.class),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/catalog/{workspaceId}/lakehouses/{lakehouseId}/schema-enabled",
+        produces = { "application/json" },
+        method = RequestMethod.GET)
+    public ResponseEntity<GenericMessage> checkLakehouseSchemaEnabled(
+            @ApiParam(value = "The ID of the workspace.", required = true) @PathVariable("workspaceId") String workspaceId,
+            @ApiParam(value = "The ID of the lakehouse.", required = true) @PathVariable("lakehouseId") String lakehouseId) {
+        GenericMessage response = new GenericMessage();
+        try {
+            boolean schemaEnabled = isLakehouseSchemaEnabled(workspaceId, lakehouseId);
+            response.setSuccess(schemaEnabled ? "true" : "false");
+            if (!schemaEnabled) {
+                MessageDescription msg = new MessageDescription();
+                msg.setMessage("CDC Push requires Lakehouse Schemas to be enabled. Please recreate the lakehouse with the Lakehouse Schemas option checked.");
+                response.addErrors(msg);
+            }
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (Exception e) {
+            log.error("Failed to check lakehouse schema status for workspace: {} lakehouse: {}", workspaceId, lakehouseId, e);
+            response.setSuccess("false");
+            MessageDescription error = new MessageDescription();
+            error.setMessage("Failed to check lakehouse schema status: " + e.getMessage());
+            response.addErrors(error);
+            return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    private boolean isLakehouseSchemaEnabled(String workspaceId, String lakehouseId) {
+        try {
+            LakehouseTableCollectionResponseVO tablesResponse = cdcPushServiceClient.getLakehouseTables(workspaceId, lakehouseId);
+            if (tablesResponse != null && tablesResponse.getData() != null
+                    && tablesResponse.getData().getTables() != null
+                    && !tablesResponse.getData().getTables().isEmpty()) {
+                return tablesResponse.getData().getTables().stream()
+                        .anyMatch(t -> t.getSchemaName() != null && !t.getSchemaName().trim().isEmpty());
+            }
+            // No tables found — cannot determine schema status, allow push
+            log.info("No tables found for workspace: {} lakehouse: {} — cannot determine schema status, allowing push", workspaceId, lakehouseId);
+            return true;
+        } catch (Exception e) {
+            log.warn("Failed to check lakehouse schema status via tables API for workspace: {} lakehouse: {}: {}", workspaceId, lakehouseId, e.getMessage());
+            // On failure, also try getSqlEndpoint as fallback
+            try {
+                FabricSqlEndpointResponseDto sqlEndpoint = fabricWorkspaceClient.getSqlEndpoint(workspaceId, lakehouseId);
+                if (sqlEndpoint != null && sqlEndpoint.getProperties() != null
+                        && sqlEndpoint.getProperties().getDefaultSchema() != null
+                        && !sqlEndpoint.getProperties().getDefaultSchema().trim().isEmpty()) {
+                    return true;
+                }
+            } catch (Exception ex) {
+                log.warn("getSqlEndpoint fallback also failed for workspace: {} lakehouse: {}: {}", workspaceId, lakehouseId, ex.getMessage());
+            }
+            // If both checks fail, default to allowing push
+            return true;
+        }
+    }
 
 }
-
