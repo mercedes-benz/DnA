@@ -124,7 +124,10 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
   const [workspaceCreator, setWorkspaceCreator] = useState(null);
   const [description, setDescription] = useState(null);
   const [showCdcLogin, setShowCdcLogin] = useState(false);
-  const [hasPushedOnce, setHasPushedOnce] = useState(false);
+  const [isAlreadyPublished, setIsAlreadyPublished] = useState(false);
+  const [schemaEnabled, setSchemaEnabled] = useState(true);
+  const [schemaCheckLoading, setSchemaCheckLoading] = useState(true);
+
   const [localMismatches, setLocalMismatches] = useState(mismatchesProp);
   const [previouslyPublishedTables, setPreviouslyPublishedTables] = useState([]);
   const previouslyEnabledColumnsRef = useRef({});
@@ -189,10 +192,15 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
     ProgressIndicator.show();
     fabricApi.getLakehouseTables(workspaceId, lakehouseId)
       .then(res => {
-        setTables(res?.data?.data?.tables || []);
+        const fetchedTables = res?.data?.data?.tables || [];
+        setTables(fetchedTables);
+        const hasSchemaName = fetchedTables.length > 0 && fetchedTables.some(t => t.schemaName && t.schemaName.trim() !== '');
+        setSchemaEnabled(fetchedTables.length === 0 || hasSchemaName);
+        setSchemaCheckLoading(false);
         ProgressIndicator.hide();
       })
       .catch((e) => {
+        setSchemaCheckLoading(false);
         ProgressIndicator.hide();
         if (e?.response?.status === 403) {
           Notification.show('Unauthorized to view this page or not found', 'alert');
@@ -215,10 +223,7 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
 
         const isPublished = data?.cdcPublishedLakeHouseDetails?.publishedLakeHouseNames?.includes(lakehouseId);
         console.log('[CdcPush] isPublished:', isPublished, 'lakehouseId:', lakehouseId, 'publishedNames:', data?.cdcPublishedLakeHouseDetails?.publishedLakeHouseNames);
-
-        if (isPublished) {
-          setHasPushedOnce(true);
-        }
+        if (isPublished) setIsAlreadyPublished(true);
 
         if (isPublished && data?.name) {
           console.log('[CdcPush] Fetching catalog metadata for serviceName:', data.name);
@@ -318,7 +323,6 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
         setSelectedTables(autoSelectedTables);
         setSelectAll(Object.keys(autoSelectedTables).length === tables.length);
 
-        // Fetch columns for each pre-selected table and restore column selections
         Object.keys(autoSelectedTables).forEach((tableName) => {
           const tableObj = tables.find(t => t.tableName === tableName);
           const schemaName = tableObj?.schemaName || 'dbo';
@@ -328,15 +332,15 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
                 const fetchedColumns = res?.data?.data?.columns || [];
                 setColumnsByTable(prev => ({ ...prev, [tableName]: fetchedColumns }));
                 // Restore column selections from stored enabled flags
-                const storedCols = previouslyEnabledColumnsRef.current[tableName] || [];
+                const storedCols = previouslyEnabledColumnsRef.current[tableName];
                 const colSelections = fetchedColumns.reduce((acc, col) => {
-                  acc[col.columnName] = storedCols.length > 0
+                  acc[col.columnName] = storedCols !== undefined
                     ? storedCols.includes(col.columnName)
                     : true;
                   return acc;
                 }, {});
                 setSelectedColumns(prev => ({ ...prev, [tableName]: colSelections }));
-                 const allColsSelected = fetchedColumns.every(col => colSelections[col.columnName]);
+                const allColsSelected = fetchedColumns.every(col => colSelections[col.columnName]);
                 setSelectedTables(prev => ({ ...prev, [tableName]: allColsSelected }));
                 setSelectedTables(prev => {
                   const allTablesFullySelected = tables.every(t => prev[t.tableName]);
@@ -507,7 +511,10 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
     });
 
     ProgressIndicator.show();
-    fabricApi.pushSelectedTables(workspaceId, payload)
+    const pushApi = isAlreadyPublished
+      ? fabricApi.updatePublishedTables(workspaceId, payload)
+      : fabricApi.pushSelectedTables(workspaceId, payload);
+    pushApi
       .then(() => {
         const publishedSnapshot = {
           workspaceId,
@@ -532,8 +539,6 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
         ProgressIndicator.hide();
         Notification.show("Push to CDC successful!", "success");
 
-        setHasPushedOnce(true);
-
         if (onRefreshWorkspace) {
           onRefreshWorkspace();
         }
@@ -555,8 +560,6 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
         Notification.show(backendMessage, 'alert');
       });
 
-    // console.log("CDC Payload to be sent:");
-    // console.log(JSON.stringify(payload, null, 2));
 
   }, [
     workspaceId,
@@ -573,20 +576,28 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
     description,
     workspaceCreator,
     onRefreshWorkspace,
+    isAlreadyPublished,
   ]);
 
   const onPush = handleSubmit(handlePush);
-  const isLakehousePublished = workspaceMetadata?.cdcPublishedLakeHouseDetails?.publishedLakeHouseNames?.includes(lakehouseId) || false;
 
   const isPushDisabled =
   !workspaceMetadata || 
+  !schemaEnabled ||
+  schemaCheckLoading ||
   Object.keys(selectedTables).length === 0 ||
-  Object.keys(selectedColumns).length === 0 ||
-  hasPushedOnce ||
-  isLakehousePublished;
+  Object.keys(selectedColumns).length === 0;
 
     return (
     <div className={Styles.modalFAQContentWrapper}>
+
+        {!schemaCheckLoading && !schemaEnabled && (
+          <div className={Styles.schemaWarningBanner}>
+            <i className="icon mbc-icon alert circle"></i>
+            <span>CDC Push requires Lakehouse Schemas to be enabled. Please recreate the lakehouse with the Lakehouse Schemas option checked.</span>
+          </div>
+        )}
+        
       {localMismatches.length > 0 && (
         <div className={Styles.schemaChangesPanel}>
           <div className={Styles.schemaChangesPanelHeader}>
@@ -801,9 +812,9 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
                           const cols = res.data.data.columns || [];
                           setColumnsByTable(prev => ({ ...prev, [tableName]: cols }));
                           if (selectedTables[tableName]) {
-                            const storedCols = previouslyEnabledColumnsRef.current[tableName] || [];
+                            const storedCols = previouslyEnabledColumnsRef.current[tableName];
                             const colSelections = cols.reduce((acc, col) => {
-                              acc[col.columnName] = storedCols.length > 0
+                              acc[col.columnName] = storedCols !== undefined
                                 ? storedCols.includes(col.columnName)
                                 : true;
                               return acc;
@@ -876,7 +887,7 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
       </div>
 
       <div className={Styles.pushButtonContainer}>
-        <button className={isPushDisabled ? classNames("btn btn-tertiary") : classNames("btn btn-primary")} type="button" disabled={isPushDisabled} onClick={onPush}>
+        <button className={isPushDisabled ? classNames("btn btn-primary") : classNames("btn btn-tertiary")} type="button" disabled={isPushDisabled} onClick={onPush}>
           Push
         </button>
       </div>
