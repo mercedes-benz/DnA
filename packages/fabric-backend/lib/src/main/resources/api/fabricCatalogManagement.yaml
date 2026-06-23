@@ -352,7 +352,7 @@ paths:
           schema:
             $ref: "#/definitions/MirroredCatalogErrorResponseVO"
 
-  /catalog/databricks/mirrored-catalog/status/{mirroredCatalogId}:
+  /catalog/databricks/mirrored-catalog/status/{dataProductName}:
     get:
       tags:
         - "fabric-catalog-management"
@@ -360,7 +360,7 @@ paths:
       description: "This endpoint will query the status of mirrored catalog creation and group permission assignment, update the DB, and return the current status."
       operationId: "getMirroredCatalogStatus"
       parameters:
-        - name: mirroredCatalogId
+        - name: dataProductName
           in: path
           description: "The ID of the mirrored catalog."
           required: true
@@ -369,7 +369,7 @@ paths:
         200:
           description: "Returns mirrored catalog status response"
           schema:
-            $ref: "#/definitions/GroupResponseVO"
+            $ref: "#/definitions/MirroredCatalogResponseVO"
         400:
           description: "Bad Request"
           schema:
@@ -736,8 +736,13 @@ definitions:
       objects:
         type: array
         items:
-          type: string
-        description: "List of mirrored object names"
+          type: object
+          properties:
+            tableName:
+              type: string
+            status:
+              type: string
+        description: "Status of the mirrored object "
       storageAccountUrl:
         type: string
         description: "ADLS Gen2 storage account URL"
@@ -775,6 +780,8 @@ definitions:
           - DDX_GROUP_NOT_FOUND
           - ALREADY_EXISTS
           - INTERNAL_ERROR
+          - NOT_FOUND
+          - IN_PROGRESS
       message:
         type: string
         description: "Human-readable error message"

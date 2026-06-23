@@ -771,9 +771,23 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
                 return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
             }
             return new ResponseEntity<>(response, HttpStatus.OK);
-        } catch (Exception e) {
+        }catch (EntityNotFoundException e) {
             log.error("Error getting mirrored catalog status: {}", e.getMessage(), e);
             MirroredCatalogErrorResponseVO errorResponse = new MirroredCatalogErrorResponseVO();
+            errorResponse.setStatus("error");
+            errorResponse.setErrorCode(MirroredCatalogErrorResponseVO.ErrorCodeEnum.NOT_FOUND);
+            errorResponse.setMessage( e.getMessage());
+            return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+        }
+         catch (Exception e) {
+            log.error("Error getting mirrored catalog status: {}", e.getMessage(), e);
+            MirroredCatalogErrorResponseVO errorResponse = new MirroredCatalogErrorResponseVO();
+            if(e.getMessage().contains("in progress")){
+                errorResponse.setStatus("IN_PROGRESS");
+                errorResponse.setErrorCode(MirroredCatalogErrorResponseVO.ErrorCodeEnum.IN_PROGRESS);
+                errorResponse.setMessage( e.getMessage());
+                return new ResponseEntity<>(errorResponse, HttpStatus.OK);
+            }
             errorResponse.setStatus("error");
             errorResponse.setErrorCode(MirroredCatalogErrorResponseVO.ErrorCodeEnum.INTERNAL_ERROR);
             errorResponse.setMessage( e.getMessage());

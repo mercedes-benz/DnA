@@ -65,6 +65,7 @@ public class ConstantsUtility {
 	// UI Licious related constants
 	public static final String UILICIOUS_GROUP_CONSTANT = "group";
 	public static final String UILICIOUS_GROUP_STATUS_CONSTANT = "status";
+	public static final String UILICIOUS_TABLE_CONSTANT = "table";
 
 	// Groups constants
 	public static final String GROUPS_ADDED_CONSTANT = "ADDED";

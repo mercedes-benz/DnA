@@ -40,6 +40,7 @@ import com.daimler.data.dto.fabricWorkspace.CreatedByVO;
 import com.daimler.data.dto.fabricWorkspace.DdxPublishedLakeHouseDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.Fabric2FabricDetailVO;
 import com.daimler.data.dto.fabric.LegalEntityDto;
+import com.daimler.data.dto.fabricCatalogManagement.MirroredCatalogDataVOObjects;
 import com.daimler.data.dto.fabric.AddGroupDto;
 import com.daimler.data.dto.fabricCatalogManagement.*;
 import com.daimler.data.service.common.BaseCommonService;
@@ -1122,6 +1123,7 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
                 MirroredObjectDetail detail = new MirroredObjectDetail();
                 detail.setObjectName(entry.getKey());
                 detail.setObjectType(entry.getValue() != null ? entry.getValue().toString() : null);
+                detail.setObjectStatus(ConstantsUtility.INPROGRESS_STATE);
                 return detail;
             }).collect(Collectors.toList());
         }
@@ -1169,12 +1171,30 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
             testRunId = data.getDdxGroupDetails().get(0).getTestRunId();
         }
         log.info("Fetched mirrored catalog data for dataProductName: {}, testRunId: {}", dataProductName, testRunId);
-        Map<String, String> resUilicious = uiLiciousClient.getStatusForMirrorCatalog(testRunId);
+        Map<String, String> resUilicious = uiLiciousClient.getStatusForMirrorCatalog(data , testRunId);
 
         if (resUilicious == null || resUilicious.containsKey("error")) {
-        String errorMsg = resUilicious != null ? resUilicious.get("error") : "Received null response";
-        log.error("Error fetching status from UiLicious for Mirror Catalog {}: {}", dataProductName, errorMsg);
-        throw new RuntimeException("Error fetching status from UiLicious for Mirror Catalog " + dataProductName + ": " + errorMsg);
+            String errorMsg = resUilicious != null ? resUilicious.get("error") : "Received null response";
+
+            if(errorMsg.contains("in process")){
+                log.info("UiLicious work is still in progress for Mirror Catalog {}: {}", dataProductName, errorMsg);
+                throw new RuntimeException(" UiLicious work is still in progress for Mirror Catalog " + dataProductName);
+            }
+
+            log.error("Error fetching status from UiLicious for Mirror Catalog {}: {}", dataProductName, errorMsg);
+            if(errorMsg.contains("not found") && errorMsg.contains("connectionName")){
+                throw new EntityNotFoundException(errorMsg);
+            }
+            if(errorMsg.contains("not found") && errorMsg.contains("Connection") && errorMsg.contains("Name")){
+                throw new EntityNotFoundException("Network connection name not found: " +errorMsg);
+            }
+            if(errorMsg.contains("not found") && errorMsg.contains("catalogName")){
+                throw new EntityNotFoundException(errorMsg);
+            }
+            if(errorMsg.contains("NOT_FOUND") && errorMsg.contains("group")){
+                throw new EntityNotFoundException("Added group is not found, Please try again with correct group name.");
+            }
+            throw new RuntimeException("For Mirror Catalog " + dataProductName + ": " + errorMsg);
         }
 
         data.setCompletedOn(new Date(Long.parseLong(resUilicious.get("createdAt"))));
@@ -1184,10 +1204,10 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
         }
         data.setStatus(resUilicious.get("catalogStatus").equalsIgnoreCase("success") ? ConstantsUtility.SUCCESS_STATE : ConstantsUtility.INPROGRESS_STATE);
 
-        DdxGroupDetail groupDetail = data.getDdxGroupDetails().get(0);
-        groupDetail.setGroupAddedStatus(resUilicious.get("Group").equalsIgnoreCase("success") ? ConstantsUtility.SUCCESS_STATE : ConstantsUtility.INPROGRESS_STATE);
-        groupDetail.setUpdatedOn(new Date());
-        groupDetail.setGrantPermissionStatus(resUilicious.get("Permissions").equalsIgnoreCase("success") ? ConstantsUtility.SUCCESS_STATE : ConstantsUtility.INPROGRESS_STATE);
+        // DdxGroupDetail groupDetail = data.getDdxGroupDetails().get(0);
+        // groupDetail.setGroupAddedStatus(resUilicious.get("Group").equalsIgnoreCase("success") ? ConstantsUtility.SUCCESS_STATE : ConstantsUtility.INPROGRESS_STATE);
+        // groupDetail.setUpdatedOn(new Date());
+        // groupDetail.setGrantPermissionStatus(resUilicious.get("Permissions").equalsIgnoreCase("success") ? ConstantsUtility.SUCCESS_STATE : ConstantsUtility.INPROGRESS_STATE);
 
         MirroredCatalogDetail catalogDetail = data.getMirrorCatalogDetails();
         catalogDetail.setCatalogStatus(resUilicious.get("catalogStatus").equalsIgnoreCase("success") ? ConstantsUtility.SUCCESS_STATE : ConstantsUtility.INPROGRESS_STATE);
@@ -1371,10 +1391,21 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
             catalogDataVO.setSchema(data.getSchemaName());
             catalogDataVO.setStorageAccountUrl(data.getStorageAccountUrl());
             catalogDataVO.setStatus(MirroredCatalogDataVO.StatusEnum.fromValue(data.getMirrorCatalogDetails().getCatalogStatus()));
+            // if (data.getObjects() != null) {
+            //     catalogDataVO.setObjects(data.getObjects().stream()
+            //             .map(MirroredObjectDetail::getObjectName)
+            //             .collect(Collectors.toList()));
+            // }
             if (data.getObjects() != null) {
-                catalogDataVO.setObjects(data.getObjects().stream()
-                        .map(MirroredObjectDetail::getObjectName)
-                        .collect(Collectors.toList()));
+                List<MirroredCatalogDataVOObjects> objectsList = data.getObjects().stream()
+                        .map(obj -> {
+                            MirroredCatalogDataVOObjects item = new MirroredCatalogDataVOObjects();
+                            item.setTableName(obj.getObjectName());
+                            item.setStatus(obj.getObjectStatus());
+                            return item;
+                        })
+                        .collect(Collectors.toList());
+                catalogDataVO.setObjects(objectsList);
             }
             response.setDatabricksMirroredCatalog(catalogDataVO);
         }
@@ -1403,9 +1434,15 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
             catalogDataVO.setStorageAccountUrl(data.getStorageAccountUrl());
             catalogDataVO.setStatus(MirroredCatalogDataVO.StatusEnum.fromValue(data.getMirrorCatalogDetails().getCatalogStatus()));
             if (data.getObjects() != null) {
-                catalogDataVO.setObjects(data.getObjects().stream()
-                        .map(MirroredObjectDetail::getObjectName)
-                        .collect(Collectors.toList()));
+                List<MirroredCatalogDataVOObjects> objectsList = data.getObjects().stream()
+                        .map(obj -> {
+                            MirroredCatalogDataVOObjects item = new MirroredCatalogDataVOObjects();
+                            item.setTableName(obj.getObjectName());
+                            item.setStatus(obj.getObjectStatus());
+                            return item;
+                        })
+                        .collect(Collectors.toList());
+                catalogDataVO.setObjects(objectsList);
             }
             response.setDatabricksMirroredCatalog(catalogDataVO);
         }
