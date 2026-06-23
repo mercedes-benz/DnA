@@ -47,6 +47,15 @@ const CreateNewWorkspace = ({ edit, project, setShowCreateModal, getKeyVaultList
   const requiredError = '*Missing entry';
   const keyVaultNameErrorText = '*Key Vault Name should start with kv-';
 
+  const getDisplayErrorMessage = (message?: string) => {
+    if (!message) {
+      return 'Something went wrong.';
+    }
+
+    const cleanedMessage = message.replace(/\s*Follow this link for more information:[\s\S]*$/i, '').trim();
+    return cleanedMessage || message;
+  };
+
   useEffect(() => {
     SelectBox.defaultSetup();
     ProgressIndicator.show();
@@ -167,27 +176,37 @@ const CreateNewWorkspace = ({ edit, project, setShowCreateModal, getKeyVaultList
       ProgressIndicator.show();
       if (edit) {
         ApiClient.updateKeyVault(project?.id, formData)
-          .then(() => {
+          .then((res: any) => {
             ProgressIndicator.hide();
+            const errors = res?.responses?.errors;
+            if (errors?.length) {
+              Notification.show(getDisplayErrorMessage(errors[0]?.message), 'alert');
+              return;
+            }
             Notification.show('Key Vault updated successfully.');
             setShowCreateModal();
             getKeyVaultList();
           })
           .catch((err: any) => {
             ProgressIndicator.hide();
-            Notification.show(err?.message || 'Something went wrong.', 'alert');
+            Notification.show(getDisplayErrorMessage(err?.message), 'alert');
           });
       } else {
         ApiClient.createKeyVault(formData)
-          .then(() => {
+          .then((res: any) => {
             ProgressIndicator.hide();
+            const errors = res?.responses?.errors;
+            if (errors?.length) {
+              Notification.show(getDisplayErrorMessage(errors[0]?.message), 'alert');
+              return;
+            }
             Notification.show('Key Vault created successfully.');
             setShowCreateModal();
             getKeyVaultList();
           })
           .catch((err: any) => {
             ProgressIndicator.hide();
-            Notification.show(err?.message || 'Something went wrong.', 'alert');
+            Notification.show(getDisplayErrorMessage(err?.message), 'alert');
           });
       }
     }
