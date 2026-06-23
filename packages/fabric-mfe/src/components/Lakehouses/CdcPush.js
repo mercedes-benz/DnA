@@ -127,7 +127,6 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
   const [isAlreadyPublished, setIsAlreadyPublished] = useState(false);
   const [schemaEnabled, setSchemaEnabled] = useState(true);
   const [schemaCheckLoading, setSchemaCheckLoading] = useState(true);
-
   const [localMismatches, setLocalMismatches] = useState(mismatchesProp);
   const [previouslyPublishedTables, setPreviouslyPublishedTables] = useState([]);
   const previouslyEnabledColumnsRef = useRef({});
@@ -323,6 +322,7 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
         setSelectedTables(autoSelectedTables);
         setSelectAll(Object.keys(autoSelectedTables).length === tables.length);
 
+        // Fetch columns for each pre-selected table and restore column selections
         Object.keys(autoSelectedTables).forEach((tableName) => {
           const tableObj = tables.find(t => t.tableName === tableName);
           const schemaName = tableObj?.schemaName || 'dbo';
@@ -332,15 +332,15 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
                 const fetchedColumns = res?.data?.data?.columns || [];
                 setColumnsByTable(prev => ({ ...prev, [tableName]: fetchedColumns }));
                 // Restore column selections from stored enabled flags
-                const storedCols = previouslyEnabledColumnsRef.current[tableName];
+                const storedCols = previouslyEnabledColumnsRef.current[tableName] || [];
                 const colSelections = fetchedColumns.reduce((acc, col) => {
-                  acc[col.columnName] = storedCols !== undefined
+                  acc[col.columnName] = storedCols.length > 0
                     ? storedCols.includes(col.columnName)
                     : true;
                   return acc;
                 }, {});
                 setSelectedColumns(prev => ({ ...prev, [tableName]: colSelections }));
-                const allColsSelected = fetchedColumns.every(col => colSelections[col.columnName]);
+                 const allColsSelected = fetchedColumns.every(col => colSelections[col.columnName]);
                 setSelectedTables(prev => ({ ...prev, [tableName]: allColsSelected }));
                 setSelectedTables(prev => {
                   const allTablesFullySelected = tables.every(t => prev[t.tableName]);
@@ -580,6 +580,7 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
   ]);
 
   const onPush = handleSubmit(handlePush);
+  const isLakehousePublished = workspaceMetadata?.cdcPublishedLakeHouseDetails?.publishedLakeHouseNames?.includes(lakehouseId) || false;
 
   const isPushDisabled =
   !workspaceMetadata || 
@@ -590,6 +591,33 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
 
     return (
     <div className={Styles.modalFAQContentWrapper}>
+      {localMismatches.length > 0 && (
+        <div className={Styles.schemaChangesPanel}>
+          <div className={Styles.schemaChangesPanelHeader}>
+            <i className="icon mbc-icon alert circle" />
+            <span>Schema Changes Detected</span>
+            <span className={Styles.schemaChangesBadgeCount}>{localMismatches.length} change{localMismatches.length !== 1 ? 's' : ''}</span>
+          </div>
+          <div className={Styles.schemaChangesList}>
+            {localMismatches.map((mismatch, idx) => {
+              const config = MISMATCH_TYPE_CONFIG[mismatch.mismatchType] || { label: mismatch.mismatchType?.replace(/_/g, ' '), colorClass: 'badgeModified' };
+              return (
+                <div key={idx} className={Styles.schemaChangeItem}>
+                  <div className={Styles.schemaChangeItemHeader}>
+                    <span className={Styles.schemaChangeTableName}>{mismatch.tableName}</span>
+                    <span className={classNames(Styles.schemaChangeBadge, Styles[config.colorClass])}>
+                      {config.label}
+                    </span>
+                  </div>
+                  {mismatch.details && (
+                    <p className={Styles.schemaChangeDetails}>{mismatch.details}</p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
         {!schemaCheckLoading && !schemaEnabled && (
           <div className={Styles.schemaWarningBanner}>
