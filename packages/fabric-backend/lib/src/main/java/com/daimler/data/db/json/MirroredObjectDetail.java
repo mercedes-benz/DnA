@@ -17,4 +17,5 @@ public class MirroredObjectDetail implements Serializable {
 
     private String objectName;
     private String objectType;
+    private String objectStatus;
 }
