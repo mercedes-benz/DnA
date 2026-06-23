@@ -419,7 +419,9 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 				" \"entitlementPrefixEnabled\": " + deploymentDetails.getEntitlementPrefixEnabled() + "," +
 				" \"selectedAliceRoles\": " + selectedAliceRolesJson + "," +				
 				" \"lastDeployedVersion\": " + addQuotes(deploymentDetails.getLastDeployedVersion()) + "," +
-				" \"lastDeploymentStatus\": " + addQuotes(deploymentDetails.getLastDeploymentStatus()) +"}'),\r\n" + 
+				// " \"lastDeploymentStatus\": " + addQuotes(deploymentDetails.getLastDeploymentStatus()) +"}'),\r\n" + 
+				" \"lastDeploymentStatus\": " + addQuotes(deploymentDetails.getLastDeploymentStatus()) + "," +
+				" \"lastDeploymentError\": " + addQuotes(deploymentDetails.getLastDeploymentError()) +"}'),\r\n" + 
 				"'{projectDetails,lastBuildOrDeployedOn}', '" + longdate + "'),\r\n" +
 				"'{projectDetails,lastBuildOrDeployedEnv}', '" + addQuotes(environment) + "'),\r\n" +
 				"'{projectDetails,lastBuildOrDeployedStatus}', '" + addQuotes(lastBuildOrDeployStatus) + "')\r\n"  ;

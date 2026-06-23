@@ -120,6 +120,7 @@ import com.daimler.data.dto.workspace.WorkspacePluginStatusVO;
 import com.daimler.data.dto.workspace.admin.CodespaceSecurityConfigCollectionVO;
 import com.daimler.data.dto.workspace.admin.CodespaceSecurityConfigDetailsVO;
 import com.daimler.data.service.workspace.WorkspaceService;
+import com.daimler.data.service.ArgoCdService;
 import com.daimler.data.util.CommonUtils;
 import com.daimler.data.util.ConstantsUtility;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -194,6 +195,9 @@ import org.springframework.beans.factory.annotation.Value;
    
 	@Autowired
 	 private WorkspaceUserGroupRepository userGroupRepository; 
+
+	@Autowired
+	 private ArgoCdService argoCdService; 
  
 	 @Override
 	 @ApiOperation(value = "remove collaborator from workspace project for a given Id.", nickname = "removeCollab", notes = "remove collaborator from workspace project for a given identifier.", response = CodeServerWorkspaceVO.class, tags = {
@@ -1815,6 +1819,7 @@ import org.springframework.beans.factory.annotation.Value;
 					vo.getProjectDetails().getRecipeDetails().setIsDeployEnabled(true);
 				}
 			 }
+			 reconcileDeploymentStatusWithArgoCD(vo);
 			 return new ResponseEntity<>(vo, HttpStatus.OK);
 		 } else {
 			 log.debug("No workspace found, returning empty");
@@ -4008,6 +4013,92 @@ import org.springframework.beans.factory.annotation.Value;
 	{
 		GenericMessage responseVo = service.cancelWorkspaceRun(projectName);
 		return ResponseEntity.ok(responseVo);
+	}
+
+	private void reconcileDeploymentStatusWithArgoCD(CodeServerWorkspaceVO vo) {
+		try {
+			if (vo == null || vo.getProjectDetails() == null || vo.getProjectDetails().getProjectName() == null) {
+				return;
+			}
+			
+			String projectName = vo.getProjectDetails().getProjectName();
+			String argoToken = argoCdService.getArgoToken();
+			if (argoToken == null) {
+				log.debug("Unable to get ArgoCD token for status reconciliation");
+				return;
+			}
+			
+			CodeServerDeploymentDetailsVO intDeployment = vo.getProjectDetails().getIntDeploymentDetails();
+			if (intDeployment == null) {
+				intDeployment = checkAndCreateDeploymentFromArgoCD(argoToken, projectName, "int");
+				if (intDeployment != null) {
+					vo.getProjectDetails().setIntDeploymentDetails(intDeployment);
+				}
+			} else {
+				reconcileSingleDeployment(argoToken, projectName, "int", intDeployment);
+			}
+			
+			CodeServerDeploymentDetailsVO prodDeployment = vo.getProjectDetails().getProdDeploymentDetails();
+			if (prodDeployment == null) {
+				prodDeployment = checkAndCreateDeploymentFromArgoCD(argoToken, projectName, "prod");
+				if (prodDeployment != null) {
+					vo.getProjectDetails().setProdDeploymentDetails(prodDeployment);
+				}
+			} else {
+				reconcileSingleDeployment(argoToken, projectName, "prod", prodDeployment);
+			}
+		} catch (Exception e) {
+			log.debug("Error reconciling deployment status with ArgoCD: {}", e.getMessage());
+		}
+	}
+
+	private CodeServerDeploymentDetailsVO checkAndCreateDeploymentFromArgoCD(String argoToken, String projectName, String environment) {
+		try {
+			String appName = projectName.toLowerCase() + "-" + environment;
+			String argoStatus = argoCdService.checkArgoAppDeploymentStatus(argoToken, appName);
+			
+			if ("DEPLOYED".equals(argoStatus)) {
+				log.info("Found deployed ArgoCD app {} but DB has no deployment details - creating", appName);
+				CodeServerDeploymentDetailsVO deployment = new CodeServerDeploymentDetailsVO();
+				deployment.setLastDeploymentStatus("DEPLOYED");
+				deployment.setLastDeployedOn(new Date());
+				return deployment;
+			}
+		} catch (Exception e) {
+			log.debug("ArgoCD app check for {}-{} failed: {}", projectName, environment, e.getMessage());
+		}
+		return null;
+	}
+	
+	private void reconcileSingleDeployment(String argoToken, String projectName, String environment, 
+			CodeServerDeploymentDetailsVO deployment) {
+		try {
+			String appName = projectName.toLowerCase() + "-" + environment;
+			String currentDbStatus = deployment.getLastDeploymentStatus();
+			
+			if (currentDbStatus == null || 
+			"DEPLOY_REQUESTED".equalsIgnoreCase(currentDbStatus) || 
+			"DEPLOYMENT_FAILED".equalsIgnoreCase(currentDbStatus)) {
+				
+				String argoStatus = argoCdService.checkArgoAppDeploymentStatus(argoToken, appName);
+				
+				if ("DEPLOYED".equals(argoStatus) && !"DEPLOYED".equalsIgnoreCase(currentDbStatus)) {
+					log.info("Reconciling {} status from {} to {} (ArgoCD source of truth)", 
+						appName, currentDbStatus, argoStatus);
+					deployment.setLastDeploymentStatus(argoStatus);
+					if (deployment.getLastDeployedOn() == null) {
+						deployment.setLastDeployedOn(new Date());
+					}
+				}
+				else if ("DEPLOY_REQUESTED".equals(argoStatus) && "DEPLOYMENT_FAILED".equalsIgnoreCase(currentDbStatus)) {
+					log.info("Reconciling {} status from {} to {} (new deployment in progress)", 
+						appName, currentDbStatus, argoStatus);
+					deployment.setLastDeploymentStatus(argoStatus);
+				}
+			}
+		} catch (Exception e) {
+			log.debug("Could not reconcile ArgoCD status for {}-{}: {}", projectName, environment, e.getMessage());
+		}
 	}
 
 }
