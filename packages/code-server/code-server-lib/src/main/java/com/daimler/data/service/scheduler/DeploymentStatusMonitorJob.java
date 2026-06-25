@@ -184,20 +184,18 @@ public class DeploymentStatusMonitorJob {
                         .orElse(null);
                 }
                 
-                if (deployment.getLastDeployedBy() == null) {
-                    UserInfo projectOwner = workspace.getData().getProjectDetails().getProjectOwner();
-                    if (projectOwner != null && projectOwner.getId() != null) {
-                        deployment.setLastDeployedBy(new UserInfo(
-                            projectOwner.getId(),
-                            projectOwner.getFirstName(),
-                            projectOwner.getLastName(),
-                            projectOwner.getDepartment(),
-                            projectOwner.getEmail(),
-                            projectOwner.getMobileNumber(),
-                            projectOwner.getGitUserName(),
-                            projectOwner.getIsAdmin(),
-                            projectOwner.getIsApprover()
-                        ));
+                // Set lastDeployedBy to the user who triggered the deployment
+                // Look up full UserInfo from collaborators list, fallback to project owner
+                UserInfo deployedByUser = resolveTriggeredByUser(workspace, latestAudit);
+                if ("DEPLOYED".equals(targetStatus) || "RESTARTED".equals(targetStatus)) {
+                    // Always overwrite on successful deploys to reflect the actual deployer
+                    if (deployedByUser != null) {
+                        deployment.setLastDeployedBy(deployedByUser);
+                    }
+                } else if (deployment.getLastDeployedBy() == null) {
+                    // For failures, only set if not already set
+                    if (deployedByUser != null) {
+                        deployment.setLastDeployedBy(deployedByUser);
                     }
                 }
                 
@@ -337,6 +335,34 @@ public class DeploymentStatusMonitorJob {
         }
     }
 
+    private UserInfo resolveTriggeredByUser(CodeServerWorkspaceNsql workspace, DeploymentAudit latestAudit) {
+        UserInfo projectOwner = workspace.getData().getProjectDetails().getProjectOwner();
+        if (latestAudit == null || latestAudit.getTriggeredBy() == null) {
+            return projectOwner;
+        }
+        String triggeredById = latestAudit.getTriggeredBy();
+
+        // Check if projectOwner is the triggering user
+        if (projectOwner != null && triggeredById.equalsIgnoreCase(projectOwner.getId())) {
+            return projectOwner;
+        }
+
+        // Look up from collaborators list
+        List<UserInfo> collaborators = workspace.getData().getProjectDetails().getProjectCollaborators();
+        if (collaborators != null) {
+            for (UserInfo collaborator : collaborators) {
+                if (collaborator != null && triggeredById.equalsIgnoreCase(collaborator.getId())) {
+                    return collaborator;
+                }
+            }
+        }
+
+        // Fallback: create a minimal UserInfo with just the triggeredBy ID
+        UserInfo minimalUser = new UserInfo();
+        minimalUser.setId(triggeredById);
+        return minimalUser;
+    }
+
     private void sendDeploymentNotification(CodeServerWorkspaceNsql workspace,
                                             CodeServerDeploymentDetails deployment,
                                             String projectName, String environment,
@@ -346,8 +372,9 @@ public class DeploymentStatusMonitorJob {
             String message;
             String envLabel = "prod".equalsIgnoreCase(environment) ? "Production" : environment;
             String resourceID = workspace.getData().getWorkspaceId();
+            UserInfo deployedBy = deployment.getLastDeployedBy();
             UserInfo projectOwner = workspace.getData().getProjectDetails().getProjectOwner();
-            String userId = projectOwner != null ? projectOwner.getId() : "";
+            String userId = deployedBy != null ? deployedBy.getId() : (projectOwner != null ? projectOwner.getId() : "");
             String branch = deployment.getLastDeployedBranch() != null ? deployment.getLastDeployedBranch() : "";
             String version = deployment.getLastDeployedVersion() != null ? deployment.getLastDeployedVersion() : "";
 
@@ -378,12 +405,21 @@ public class DeploymentStatusMonitorJob {
 
             List<String> teamMembers = new ArrayList<>();
             List<String> teamMembersEmails = new ArrayList<>();
+            // Notify the project owner
             if (projectOwner != null) {
                 if (projectOwner.getId() != null) {
                     teamMembers.add(projectOwner.getId());
                 }
                 if (projectOwner.getEmail() != null) {
                     teamMembersEmails.add(projectOwner.getEmail());
+                }
+            }
+            // Also notify the deployer if different from project owner
+            if (deployedBy != null && deployedBy.getId() != null
+                    && (projectOwner == null || !deployedBy.getId().equalsIgnoreCase(projectOwner.getId()))) {
+                teamMembers.add(deployedBy.getId());
+                if (deployedBy.getEmail() != null) {
+                    teamMembersEmails.add(deployedBy.getEmail());
                 }
             }
 
