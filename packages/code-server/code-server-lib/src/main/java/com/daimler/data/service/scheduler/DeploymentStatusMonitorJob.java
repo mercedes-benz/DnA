@@ -203,13 +203,14 @@ public class DeploymentStatusMonitorJob {
                 }
                 
                 if (latestAudit != null) {
-                    if (deployment.getLastDeployedBranch() == null && latestAudit.getBranch() != null) {
+                    boolean isSuccessful = "DEPLOYED".equals(targetStatus) || "RESTARTED".equals(targetStatus);
+                    if (latestAudit.getBranch() != null && (isSuccessful || deployment.getLastDeployedBranch() == null)) {
                         deployment.setLastDeployedBranch(latestAudit.getBranch());
                     }
-                    if (deployment.getLastDeployedVersion() == null && latestAudit.getVersion() != null) {
+                    if (latestAudit.getVersion() != null && (isSuccessful || deployment.getLastDeployedVersion() == null)) {
                         deployment.setLastDeployedVersion(latestAudit.getVersion());
                     }
-                    if (deployment.getGitjobRunID() == null && latestAudit.getGitjobRunID() != null) {
+                    if (latestAudit.getGitjobRunID() != null && (isSuccessful || deployment.getGitjobRunID() == null)) {
                         deployment.setGitjobRunID(latestAudit.getGitjobRunID());
                     }
                 }
