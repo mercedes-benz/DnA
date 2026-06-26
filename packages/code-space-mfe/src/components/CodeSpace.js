@@ -367,11 +367,13 @@ const CodeSpace = (props) => {
         const intDeployedUrl = intDeploymentDetails?.deploymentUrl;
         const prodDeployedUrl = prodDeploymentDetails?.deploymentUrl;
         const intDeployed =
-          intDeploymentDetails.lastDeploymentStatus === 'DEPLOYED';
+          intDeploymentDetails.lastDeploymentStatus === 'DEPLOYED' ||
+          (intDeployedUrl != null && intDeployedUrl !== 'null' && intDeployedUrl !== '');
         const intDeployFailed = intDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED' ||
           intDeploymentDetails.lastDeploymentStatus === 'FAILED';
         const prodDeployed =
-          prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYED';
+          prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYED' ||
+          (prodDeployedUrl != null && prodDeployedUrl !== 'null' && prodDeployedUrl !== '');
         const prodDeployFailed = prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED' ||
           prodDeploymentDetails.lastDeploymentStatus === 'FAILED';
         const deployingInProgress =
@@ -546,13 +548,16 @@ const CodeSpace = (props) => {
   const projectDetails = codeSpaceData?.projectDetails;
   // const disableDeployment = projectDetails?.recipeDetails?.recipeId.startsWith('public') || DEPLOYMENT_DISABLED_RECIPE_IDS.includes(projectDetails?.recipeDetails?.recipeId);
   const disableDeployment = !projectDetails?.recipeDetails?.isDeployEnabled;
-  const deployingInProgress =
+  const intDeployingInProgress =
     projectDetails?.intDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED' ||
-    projectDetails?.intDeploymentDetails?.lastDeploymentStatus === 'DEPLOYING' ||
-    projectDetails?.prodDeploymentDetails?.lastDeploymentStatus === 'APPROVAL_PENDING' ||
-    projectDetails?.lastBuildOrDeployedStatus === 'APPROVAL_PENDING' ||
+    projectDetails?.intDeploymentDetails?.lastDeploymentStatus === 'DEPLOYING';
+  const prodDeployingInProgress =
     projectDetails?.prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED' ||
     projectDetails?.prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOYING';
+  const deployingInProgress =
+    intDeployingInProgress || prodDeployingInProgress ||
+    projectDetails?.prodDeploymentDetails?.lastDeploymentStatus === 'APPROVAL_PENDING' ||
+    projectDetails?.lastBuildOrDeployedStatus === 'APPROVAL_PENDING';
   const securedWithIAMContent = (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -822,7 +827,7 @@ const CodeSpace = (props) => {
                             >
                               <div>
                                 <strong>Staging:</strong>{' '}
-                                {codeDeployed ? 'Deployed' : 'No Deployment'}
+                                {intDeployingInProgress ? 'Deploying...' : codeDeployed ? 'Deployed' : 'No Deployment'}
                                 <span
                                   className={classNames(Styles.metricsTrigger, 'hide')}
                                   onClick={handleOpenDoraMetrics}
@@ -955,7 +960,7 @@ const CodeSpace = (props) => {
                             >
                               <div>
                                 <strong>Production:</strong>{' '}
-                                {prodCodeDeployed ? 'Deployed' : 'No Deployment'}
+                                {prodDeployingInProgress ? 'Deploying...' : prodCodeDeployed ? 'Deployed' : 'No Deployment'}
                                 <span
                                   className={classNames(Styles.metricsTrigger, 'hide')}
                                   onClick={handleOpenDoraMetrics}
