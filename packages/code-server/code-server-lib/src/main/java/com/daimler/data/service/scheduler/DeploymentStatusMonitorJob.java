@@ -10,11 +10,13 @@ import com.daimler.data.db.repo.workspace.WorkSpaceCodeServerBuildDeployReposito
 import com.daimler.data.db.repo.workspace.WorkspaceCustomBuildDeployRepo;
 import com.daimler.data.db.repo.workspace.WorkspaceCustomRepository;
 import com.daimler.data.service.ArgoCdService;
+import com.daimler.dna.notifications.common.producer.KafkaProducerService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
@@ -35,6 +37,9 @@ public class DeploymentStatusMonitorJob {
 
     @Autowired
     private WorkSpaceCodeServerBuildDeployRepository buildDeployRepo;
+
+    @Autowired
+    private KafkaProducerService kafkaProducer;
 
 
     @Scheduled(fixedDelay = 10000, initialDelay = 5000)
@@ -179,20 +184,18 @@ public class DeploymentStatusMonitorJob {
                         .orElse(null);
                 }
                 
-                if (deployment.getLastDeployedBy() == null) {
-                    UserInfo projectOwner = workspace.getData().getProjectDetails().getProjectOwner();
-                    if (projectOwner != null && projectOwner.getId() != null) {
-                        deployment.setLastDeployedBy(new UserInfo(
-                            projectOwner.getId(),
-                            projectOwner.getFirstName(),
-                            projectOwner.getLastName(),
-                            projectOwner.getDepartment(),
-                            projectOwner.getEmail(),
-                            projectOwner.getMobileNumber(),
-                            projectOwner.getGitUserName(),
-                            projectOwner.getIsAdmin(),
-                            projectOwner.getIsApprover()
-                        ));
+                // Set lastDeployedBy to the user who triggered the deployment
+                // Look up full UserInfo from collaborators list, fallback to project owner
+                UserInfo deployedByUser = resolveTriggeredByUser(workspace, latestAudit);
+                if ("DEPLOYED".equals(targetStatus) || "RESTARTED".equals(targetStatus)) {
+                    // Always overwrite on successful deploys to reflect the actual deployer
+                    if (deployedByUser != null) {
+                        deployment.setLastDeployedBy(deployedByUser);
+                    }
+                } else if (deployment.getLastDeployedBy() == null) {
+                    // For failures, only set if not already set
+                    if (deployedByUser != null) {
+                        deployment.setLastDeployedBy(deployedByUser);
                     }
                 }
                 
@@ -202,32 +205,56 @@ public class DeploymentStatusMonitorJob {
                     deployment.setLastDeployedOn(new Date());
                 }
                 
-                if (latestAudit != null) {
-                    if (deployment.getLastDeployedBranch() == null && latestAudit.getBranch() != null) {
+                if ("DEPLOYED".equals(targetStatus) || "RESTARTED".equals(targetStatus)) {
+                    // For successful terminal states, always overwrite branch/version/gitjobRunID
+                    // to reflect the actual deployed code
+                    if (latestAudit != null && latestAudit.getBranch() != null) {
                         deployment.setLastDeployedBranch(latestAudit.getBranch());
+                    } else if ("int".equalsIgnoreCase(environment) && workspace.getData().getProjectDetails().getIntBuildDetails() != null) {
+                        deployment.setLastDeployedBranch(workspace.getData().getProjectDetails().getIntBuildDetails().getLastBuildBranch());
+                    } else if ("prod".equalsIgnoreCase(environment) && workspace.getData().getProjectDetails().getProdBuildDetails() != null) {
+                        deployment.setLastDeployedBranch(workspace.getData().getProjectDetails().getProdBuildDetails().getLastBuildBranch());
                     }
-                    if (deployment.getLastDeployedVersion() == null && latestAudit.getVersion() != null) {
+
+                    if (latestAudit != null && latestAudit.getVersion() != null) {
                         deployment.setLastDeployedVersion(latestAudit.getVersion());
+                    } else if ("int".equalsIgnoreCase(environment) && workspace.getData().getProjectDetails().getIntBuildDetails() != null) {
+                        deployment.setLastDeployedVersion(workspace.getData().getProjectDetails().getIntBuildDetails().getVersion());
+                    } else if ("prod".equalsIgnoreCase(environment) && workspace.getData().getProjectDetails().getProdBuildDetails() != null) {
+                        deployment.setLastDeployedVersion(workspace.getData().getProjectDetails().getProdBuildDetails().getVersion());
                     }
-                    if (deployment.getGitjobRunID() == null && latestAudit.getGitjobRunID() != null) {
+
+                    if (latestAudit != null && latestAudit.getGitjobRunID() != null) {
                         deployment.setGitjobRunID(latestAudit.getGitjobRunID());
                     }
-                }
-                
-                if (deployment.getLastDeployedBranch() == null || deployment.getLastDeployedVersion() == null) {
-                    if ("int".equalsIgnoreCase(environment) && workspace.getData().getProjectDetails().getIntBuildDetails() != null) {
-                        if (deployment.getLastDeployedBranch() == null) {
-                            deployment.setLastDeployedBranch(workspace.getData().getProjectDetails().getIntBuildDetails().getLastBuildBranch());
+                } else {
+                    // For failure states, only populate if currently null (preserve previous values)
+                    if (latestAudit != null) {
+                        if (deployment.getLastDeployedBranch() == null && latestAudit.getBranch() != null) {
+                            deployment.setLastDeployedBranch(latestAudit.getBranch());
                         }
-                        if (deployment.getLastDeployedVersion() == null) {
-                            deployment.setLastDeployedVersion(workspace.getData().getProjectDetails().getIntBuildDetails().getVersion());
+                        if (deployment.getLastDeployedVersion() == null && latestAudit.getVersion() != null) {
+                            deployment.setLastDeployedVersion(latestAudit.getVersion());
                         }
-                    } else if ("prod".equalsIgnoreCase(environment) && workspace.getData().getProjectDetails().getProdBuildDetails() != null) {
-                        if (deployment.getLastDeployedBranch() == null) {
-                            deployment.setLastDeployedBranch(workspace.getData().getProjectDetails().getProdBuildDetails().getLastBuildBranch());
+                        if (deployment.getGitjobRunID() == null && latestAudit.getGitjobRunID() != null) {
+                            deployment.setGitjobRunID(latestAudit.getGitjobRunID());
                         }
-                        if (deployment.getLastDeployedVersion() == null) {
-                            deployment.setLastDeployedVersion(workspace.getData().getProjectDetails().getProdBuildDetails().getVersion());
+                    }
+                    if (deployment.getLastDeployedBranch() == null || deployment.getLastDeployedVersion() == null) {
+                        if ("int".equalsIgnoreCase(environment) && workspace.getData().getProjectDetails().getIntBuildDetails() != null) {
+                            if (deployment.getLastDeployedBranch() == null) {
+                                deployment.setLastDeployedBranch(workspace.getData().getProjectDetails().getIntBuildDetails().getLastBuildBranch());
+                            }
+                            if (deployment.getLastDeployedVersion() == null) {
+                                deployment.setLastDeployedVersion(workspace.getData().getProjectDetails().getIntBuildDetails().getVersion());
+                            }
+                        } else if ("prod".equalsIgnoreCase(environment) && workspace.getData().getProjectDetails().getProdBuildDetails() != null) {
+                            if (deployment.getLastDeployedBranch() == null) {
+                                deployment.setLastDeployedBranch(workspace.getData().getProjectDetails().getProdBuildDetails().getLastBuildBranch());
+                            }
+                            if (deployment.getLastDeployedVersion() == null) {
+                                deployment.setLastDeployedVersion(workspace.getData().getProjectDetails().getProdBuildDetails().getVersion());
+                            }
                         }
                     }
                 }
@@ -243,6 +270,9 @@ public class DeploymentStatusMonitorJob {
                 
                 // Also update deployment audit logs in the build deploy entity (used by frontend)
                 updateBuildDeployAuditLog(projectName, environment, targetStatus);
+
+                // Send deployment notification
+                sendDeploymentNotification(workspace, deployment, projectName, environment, targetStatus);
                 
                 return true;
             }
@@ -302,6 +332,101 @@ public class DeploymentStatusMonitorJob {
             }
         } catch (Exception e) {
             log.warn("Failed to update build deploy audit log for {}-{}: {}", projectName, environment, e.getMessage());
+        }
+    }
+
+    private UserInfo resolveTriggeredByUser(CodeServerWorkspaceNsql workspace, DeploymentAudit latestAudit) {
+        UserInfo projectOwner = workspace.getData().getProjectDetails().getProjectOwner();
+        if (latestAudit == null || latestAudit.getTriggeredBy() == null) {
+            return projectOwner;
+        }
+        String triggeredById = latestAudit.getTriggeredBy();
+
+        // Check if projectOwner is the triggering user
+        if (projectOwner != null && triggeredById.equalsIgnoreCase(projectOwner.getId())) {
+            return projectOwner;
+        }
+
+        // Look up from collaborators list
+        List<UserInfo> collaborators = workspace.getData().getProjectDetails().getProjectCollaborators();
+        if (collaborators != null) {
+            for (UserInfo collaborator : collaborators) {
+                if (collaborator != null && triggeredById.equalsIgnoreCase(collaborator.getId())) {
+                    return collaborator;
+                }
+            }
+        }
+
+        // Fallback: create a minimal UserInfo with just the triggeredBy ID
+        UserInfo minimalUser = new UserInfo();
+        minimalUser.setId(triggeredById);
+        return minimalUser;
+    }
+
+    private void sendDeploymentNotification(CodeServerWorkspaceNsql workspace,
+                                            CodeServerDeploymentDetails deployment,
+                                            String projectName, String environment,
+                                            String targetStatus) {
+        try {
+            String eventType;
+            String message;
+            String envLabel = "prod".equalsIgnoreCase(environment) ? "Production" : environment;
+            String resourceID = workspace.getData().getWorkspaceId();
+            UserInfo deployedBy = deployment.getLastDeployedBy();
+            UserInfo projectOwner = workspace.getData().getProjectDetails().getProjectOwner();
+            String userId = deployedBy != null ? deployedBy.getId() : (projectOwner != null ? projectOwner.getId() : "");
+            String branch = deployment.getLastDeployedBranch() != null ? deployment.getLastDeployedBranch() : "";
+            String version = deployment.getLastDeployedVersion() != null ? deployment.getLastDeployedVersion() : "";
+
+            switch (targetStatus) {
+                case "DEPLOYED":
+                    eventType = "Codespace-Deploy";
+                    message = "Successfully deployed Codespace " + projectName + " with branch " + branch
+                            + " version " + version + " on " + envLabel + " triggered by " + userId;
+                    break;
+                case "DEPLOYMENT_FAILED":
+                    eventType = "Codespace-Deploy Failed";
+                    message = "Failed to deploy Codespace " + projectName + " with branch " + branch
+                            + " on " + envLabel + " triggered by " + userId;
+                    break;
+                case "RESTARTED":
+                    eventType = "Codespace-Deploy";
+                    message = "Successfully restarted Codespace " + projectName + " on " + envLabel
+                            + " triggered by " + userId;
+                    break;
+                case "RESTART_FAILED":
+                    eventType = "Codespace-Deploy Failed";
+                    message = "Failed to restart Codespace " + projectName + " on " + envLabel
+                            + " triggered by " + userId;
+                    break;
+                default:
+                    return;
+            }
+
+            List<String> teamMembers = new ArrayList<>();
+            List<String> teamMembersEmails = new ArrayList<>();
+            // Notify the project owner
+            if (projectOwner != null) {
+                if (projectOwner.getId() != null) {
+                    teamMembers.add(projectOwner.getId());
+                }
+                if (projectOwner.getEmail() != null) {
+                    teamMembersEmails.add(projectOwner.getEmail());
+                }
+            }
+            // Also notify the deployer if different from project owner
+            if (deployedBy != null && deployedBy.getId() != null
+                    && (projectOwner == null || !deployedBy.getId().equalsIgnoreCase(projectOwner.getId()))) {
+                teamMembers.add(deployedBy.getId());
+                if (deployedBy.getEmail() != null) {
+                    teamMembersEmails.add(deployedBy.getEmail());
+                }
+            }
+
+            kafkaProducer.send(eventType, resourceID, "", userId, message, true, teamMembers, teamMembersEmails, null);
+            log.info("Sent deployment notification for {}-{}: eventType={}, status={}", projectName, environment, eventType, targetStatus);
+        } catch (Exception e) {
+            log.warn("Failed to send deployment notification for {}-{}: {}", projectName, environment, e.getMessage());
         }
     }
 }
