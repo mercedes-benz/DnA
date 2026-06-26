@@ -1667,8 +1667,21 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 						 intDeployment.setLastDeploymentStatus(argoStatus);
 						 if ("DEPLOYED".equals(argoStatus)) {
 							 intDeployment.setLastDeployedOn(new Date());
-							 intDeployment.setLastDeployedBy(entity.getData().getWorkspaceOwner());
-							 log.info("ArgoCD deployment completed for {}-int, setting lastDeployedBy to {}", projectName, entity.getData().getWorkspaceOwner().getId());
+							 // Use the latest audit entry from build_deploy_nsql as source of truth
+							 DeploymentAudit latestIntAudit = getLatestDeploymentAudit(projectName, "int");
+							 if (latestIntAudit != null) {
+								 UserInfo deployedByUser = resolveDeployedByUser(entity, latestIntAudit);
+								 intDeployment.setLastDeployedBy(deployedByUser);
+								 if (latestIntAudit.getBranch() != null) {
+									 intDeployment.setLastDeployedBranch(latestIntAudit.getBranch());
+								 }
+								 if (latestIntAudit.getVersion() != null) {
+									 intDeployment.setLastDeployedVersion(latestIntAudit.getVersion());
+								 }
+							 } else {
+								 intDeployment.setLastDeployedBy(entity.getData().getWorkspaceOwner());
+							 }
+							 log.info("ArgoCD deployment completed for {}-int, setting lastDeployedBy from audit logs", projectName);
 						 }
 						 workspaceCustomRepository.updateDeploymentDetails(projectName, "int", intDeployment, argoStatus);
 						 entity = workspaceCustomRepository.findById(userId, id);
@@ -1689,8 +1702,21 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 						 prodDeployment.setLastDeploymentStatus(argoStatus);
 						 if ("DEPLOYED".equals(argoStatus)) {
 							 prodDeployment.setLastDeployedOn(new Date());
-							 prodDeployment.setLastDeployedBy(entity.getData().getWorkspaceOwner());
-							 log.info("ArgoCD deployment completed for {}-prod, setting lastDeployedBy to {}", projectName, entity.getData().getWorkspaceOwner().getId());
+							 // Use the latest audit entry from build_deploy_nsql as source of truth
+							 DeploymentAudit latestProdAudit = getLatestDeploymentAudit(projectName, "prod");
+							 if (latestProdAudit != null) {
+								 UserInfo deployedByUser = resolveDeployedByUser(entity, latestProdAudit);
+								 prodDeployment.setLastDeployedBy(deployedByUser);
+								 if (latestProdAudit.getBranch() != null) {
+									 prodDeployment.setLastDeployedBranch(latestProdAudit.getBranch());
+								 }
+								 if (latestProdAudit.getVersion() != null) {
+									 prodDeployment.setLastDeployedVersion(latestProdAudit.getVersion());
+								 }
+							 } else {
+								 prodDeployment.setLastDeployedBy(entity.getData().getWorkspaceOwner());
+							 }
+							 log.info("ArgoCD deployment completed for {}-prod, setting lastDeployedBy from audit logs", projectName);
 						 }
 						 workspaceCustomRepository.updateDeploymentDetails(projectName, "prod", prodDeployment, argoStatus);
 						 entity = workspaceCustomRepository.findById(userId, id);
@@ -1725,6 +1751,49 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 		 return workspaceAssembler.toVo(entity);
 	 }
 	 
+	 private DeploymentAudit getLatestDeploymentAudit(String projectName, String environment) {
+		 try {
+			 CodeServerBuildDeployNsql buildDeployEntity = buildDeployCustomRepo.findByProjectName(projectName);
+			 if (buildDeployEntity != null) {
+				 List<DeploymentAudit> auditLogs = "int".equalsIgnoreCase(environment)
+						 ? buildDeployEntity.getData().getIntDeploymentAuditLogs()
+						 : buildDeployEntity.getData().getProdDeploymentAuditLogs();
+				 if (auditLogs != null && !auditLogs.isEmpty()) {
+					 return auditLogs.stream()
+						 .filter(audit -> audit.getTriggeredOn() != null)
+						 .sorted((a1, a2) -> a2.getTriggeredOn().compareTo(a1.getTriggeredOn()))
+						 .findFirst()
+						 .orElse(null);
+				 }
+			 }
+		 } catch (Exception e) {
+			 log.warn("Failed to load deployment audit logs for {}-{}: {}", projectName, environment, e.getMessage());
+		 }
+		 return null;
+	 }
+
+	 private UserInfo resolveDeployedByUser(CodeServerWorkspaceNsql workspace, DeploymentAudit audit) {
+		 if (audit == null || audit.getTriggeredBy() == null) {
+			 return workspace.getData().getWorkspaceOwner();
+		 }
+		 String triggeredById = audit.getTriggeredBy();
+		 UserInfo projectOwner = workspace.getData().getProjectDetails().getProjectOwner();
+		 if (projectOwner != null && triggeredById.equalsIgnoreCase(projectOwner.getId())) {
+			 return projectOwner;
+		 }
+		 List<UserInfo> collaborators = workspace.getData().getProjectDetails().getProjectCollaborators();
+		 if (collaborators != null) {
+			 for (UserInfo collaborator : collaborators) {
+				 if (collaborator != null && triggeredById.equalsIgnoreCase(collaborator.getId())) {
+					 return collaborator;
+				 }
+			 }
+		 }
+		 UserInfo minimalUser = new UserInfo();
+		 minimalUser.setId(triggeredById);
+		 return minimalUser;
+	 }
+
 	 private void checkAndUpdateStaleBuild(CodeServerWorkspaceNsql entity, CodeServerBuildDetails buildDetails, 
 										   String projectName, String environment) {
 		 try {

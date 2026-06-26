@@ -13,6 +13,7 @@ import com.daimler.data.service.ArgoCdService;
 import com.daimler.dna.notifications.common.producer.KafkaProducerService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -43,6 +44,7 @@ public class DeploymentStatusMonitorJob {
 
 
     @Scheduled(fixedDelay = 10000, initialDelay = 5000)
+    @SchedulerLock(name = "deploymentStatusMonitorJob", lockAtMostFor = "2m", lockAtLeastFor = "5s")
     public void monitorDeploymentStatus() {
         try {
             log.debug("Starting deployment status monitoring job");
@@ -175,8 +177,24 @@ public class DeploymentStatusMonitorJob {
                     deployment.setLastDeploymentError(null);
                 }
                 
+                // Source latestAudit from the build_deploy_nsql entity (the authoritative audit history)
+                // rather than deployment.getDeploymentAuditLogs() which is typically null in workspace_nsql.
                 DeploymentAudit latestAudit = null;
-                if (deployment.getDeploymentAuditLogs() != null && !deployment.getDeploymentAuditLogs().isEmpty()) {
+                CodeServerBuildDeployNsql buildDeployEntity = buildDeployCustomRepo.findByProjectName(projectName);
+                if (buildDeployEntity != null) {
+                    List<DeploymentAudit> buildDeployAuditLogs = "int".equalsIgnoreCase(environment)
+                            ? buildDeployEntity.getData().getIntDeploymentAuditLogs()
+                            : buildDeployEntity.getData().getProdDeploymentAuditLogs();
+                    if (buildDeployAuditLogs != null && !buildDeployAuditLogs.isEmpty()) {
+                        latestAudit = buildDeployAuditLogs.stream()
+                            .filter(audit -> audit.getTriggeredOn() != null)
+                            .sorted((a1, a2) -> a2.getTriggeredOn().compareTo(a1.getTriggeredOn()))
+                            .findFirst()
+                            .orElse(null);
+                    }
+                }
+                // Fallback to the embedded deployment audit logs if build_deploy_nsql had nothing
+                if (latestAudit == null && deployment.getDeploymentAuditLogs() != null && !deployment.getDeploymentAuditLogs().isEmpty()) {
                     latestAudit = deployment.getDeploymentAuditLogs().stream()
                         .filter(audit -> audit.getTriggeredOn() != null)
                         .sorted((a1, a2) -> a2.getTriggeredOn().compareTo(a1.getTriggeredOn()))
