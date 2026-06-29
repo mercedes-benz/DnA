@@ -3,25 +3,25 @@ import classNames from 'classnames';
 import React, { useState, useEffect, useRef } from 'react';
 import Styles from './ManageCapacity.scss';
 import { fabricApi } from '../../apis/fabric.api';
+import Notification from '../../common/modules/uilab/js/src/notification';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 import SelectBox from 'dna-container/SelectBox';
 import {SKU_OPTIONS, REGION_OPTIONS, STATE_OPTIONS } from '../../utilities/constants';
 
 const ManageCapacity = ({ onClose }) => {
   const [capacities, setCapacities] = useState([]);
-  const [listError, setListError] = useState('');
+  const [listError] = useState('');
   const [expandedId, setExpandedId] = useState(undefined);
   const [editValues, setEditValues] = useState({});
   const [updateStatus, setUpdateStatus] = useState({});
   const [deleteConfirmId, setDeleteConfirmId] = useState(null);
-  const [deleteStatus, setDeleteStatus] = useState({});
+  const [deleteStatus] = useState({});
   const [showAddForm, setShowAddForm] = useState(false);
   const [newCapacity, setNewCapacity] = useState({ id: '', name: '', sku: '', region: '', state: '' });
   const [addErrors, setAddErrors] = useState({});
   const [addStatus, setAddStatus] = useState(null);
   const [addLoading, setAddLoading] = useState(false);
   const [updateErrors, setUpdateErrors] = useState({});
-  const [originalValues, setOriginalValues] = useState({});
   const [searchTerm, setSearchTerm] = useState('');
   const addFormRef = useRef(null);
   const scrollPanelRef = useRef(null);
@@ -32,7 +32,6 @@ const ManageCapacity = ({ onClose }) => {
 
   const fetchCapacities = () => {
     ProgressIndicator.show();
-    setListError('');
     setCapacities([]);
     fabricApi
       .getCapacities()
@@ -42,9 +41,7 @@ const ManageCapacity = ({ onClose }) => {
       })
       .catch((e) => {
         ProgressIndicator.hide();
-        setListError(
-          e?.response?.data?.errors?.[0]?.message || 'Failed to fetch capacities.'
-        );
+        Notification.show(e?.response?.data?.errors?.[0]?.message || 'Failed to fetch capacities.');
       });
   };
 
@@ -78,7 +75,6 @@ const ManageCapacity = ({ onClose }) => {
         state: capacity.state || '',
       };
       setEditValues((prev) => ({ ...prev, [rowId]: initial }));
-      setOriginalValues((prev) => ({ ...prev, [rowId]: initial }));
     }
   };
 
@@ -105,12 +101,9 @@ const ManageCapacity = ({ onClose }) => {
     fabricApi
       .updateCapacity(capacityId, editValues[rowId])
       .then(() => {
-        setUpdateStatus((prev) => ({
-          ...prev,
-          [rowId]: { type: 'success', text: 'Updated successfully!' },
-        }));
         setEditValues((prev) => { const u = { ...prev }; delete u[rowId]; return u; });
         setExpandedId(undefined);
+        Notification.show('Capacity updated successfully!');
         fetchCapacities();
         setTimeout(() => {
           setUpdateStatus((prev) => {
@@ -121,13 +114,7 @@ const ManageCapacity = ({ onClose }) => {
         }, 5000);
       })
       .catch((e) => {
-        setUpdateStatus((prev) => ({
-          ...prev,
-          [rowId]: {
-            type: 'error',
-            text: e?.response?.data?.errors?.[0]?.message || 'Update failed.',
-          },
-        }));
+        Notification.show(e?.response?.data?.errors?.[0]?.message || 'Update failed.');
       });
   };
 
@@ -139,16 +126,11 @@ const ManageCapacity = ({ onClose }) => {
         if (expandedId === rowId) setExpandedId(undefined);
         setEditValues((prev) => { const u = { ...prev }; delete u[rowId]; return u; });
         fetchCapacities();
+        Notification.show('Capacity deleted successfully!');
       })
       .catch((e) => {
         setDeleteConfirmId(null);
-        setDeleteStatus((prev) => ({
-          ...prev,
-          [rowId]: {
-            type: 'error',
-            text: e?.response?.data?.errors?.[0]?.message || 'Delete failed.',
-          },
-        }));
+        Notification.show(e?.response?.data?.errors?.[0]?.message || 'Delete failed.');
       });
   };
 
@@ -172,22 +154,15 @@ const ManageCapacity = ({ onClose }) => {
         setShowAddForm(false);
         setNewCapacity({ id: '', name: '', sku: '', region: '', state: '' });
         setAddErrors({});
-        setAddStatus({ type: 'success', text: 'Capacity added successfully!' });
+        Notification.show('Capacity added successfully!');
         fetchCapacities();
         setTimeout(() => setAddStatus(null), 3000);
       })
       .catch((e) => {
         setAddLoading(false);
-        setAddStatus({
-          type: 'error',
-          text: e?.response?.data?.errors?.[0]?.message || 'Failed to add capacity.',
-        });
+        Notification.show(e?.response?.data?.errors?.[0]?.message || 'Failed to add capacity.');
       });
   };
-
-  const isModified = (rowId, field) =>
-    !!(originalValues[rowId] && editValues[rowId] &&
-      editValues[rowId][field] !== originalValues[rowId][field]);
 
   const filteredCapacities = capacities
     .filter((c) => {
@@ -260,7 +235,7 @@ const ManageCapacity = ({ onClose }) => {
             {expandedId === rowId && editValues[rowId] && (
               <div className={Styles.capacityDetails}>
                 <div className={Styles.formRow}>
-                  <div className={classNames('input-field-group include-error', Styles.formGroup, updateErrors[rowId]?.id ? 'error' : '', isModified(rowId, 'id') ? Styles.fieldModified : '')}>
+                  <div className={classNames('input-field-group include-error', Styles.formGroup, updateErrors[rowId]?.id ? 'error' : '')}>
                     <label className="input-label">ID <sup>*</sup></label>
                     <input
                       type="text"
@@ -270,7 +245,7 @@ const ManageCapacity = ({ onClose }) => {
                     />
                     <span className="error-message">{updateErrors[rowId]?.id}</span>
                   </div>
-                  <div className={classNames('input-field-group include-error', Styles.formGroup, updateErrors[rowId]?.name ? 'error' : '', isModified(rowId, 'name') ? Styles.fieldModified : '')}>
+                  <div className={classNames('input-field-group include-error', Styles.formGroup, updateErrors[rowId]?.name ? 'error' : '')}>
                     <label className="input-label">Name <sup>*</sup></label>
                     <input
                       type="text"
@@ -280,9 +255,7 @@ const ManageCapacity = ({ onClose }) => {
                     />
                     <span className="error-message">{updateErrors[rowId]?.name}</span>
                   </div>
-                </div>
-                <div className={Styles.formRow}>
-                  <div className={classNames('input-field-group include-error', Styles.formGroup, updateErrors[rowId]?.sku ? 'error' : '', isModified(rowId, 'sku') ? Styles.fieldModified : '')}>
+                  <div className={classNames('input-field-group include-error', Styles.formGroup, updateErrors[rowId]?.sku ? 'error' : '')}>
                     <label className="input-label">SKU <sup>*</sup></label>
                     <div className="custom-select">
                       <select
@@ -295,7 +268,9 @@ const ManageCapacity = ({ onClose }) => {
                     </div>
                     <span className="error-message">{updateErrors[rowId]?.sku}</span>
                   </div>
-                  <div className={classNames('input-field-group include-error', Styles.formGroup, updateErrors[rowId]?.region ? 'error' : '', isModified(rowId, 'region') ? Styles.fieldModified : '')}>
+                </div>
+                <div className={Styles.formRow}>
+                  <div className={classNames('input-field-group include-error', Styles.formGroup, updateErrors[rowId]?.region ? 'error' : '')}>
                     <label className="input-label">Region <sup>*</sup></label>
                     <div className="custom-select">
                       <select
@@ -308,9 +283,7 @@ const ManageCapacity = ({ onClose }) => {
                     </div>
                     <span className="error-message">{updateErrors[rowId]?.region}</span>
                   </div>
-                </div>
-                <div className={Styles.formRow}>
-                  <div className={classNames('input-field-group include-error', Styles.formGroup, updateErrors[rowId]?.state ? 'error' : '', isModified(rowId, 'state') ? Styles.fieldModified : '')}>
+                  <div className={classNames('input-field-group include-error', Styles.formGroup, updateErrors[rowId]?.state ? 'error' : '')}>
                     <label className="input-label">State <sup>*</sup></label>
                     <div className="custom-select">
                       <select
@@ -396,8 +369,6 @@ const ManageCapacity = ({ onClose }) => {
                 />
                 <span className="error-message">{addErrors.name}</span>
               </div>
-            </div>
-            <div className={Styles.formRow}>
               <div className={classNames('input-field-group include-error', Styles.formGroup, addErrors.sku ? 'error' : '')}>
                 <label className="input-label">SKU <sup>*</sup></label>
                 <div className="custom-select">
@@ -411,6 +382,8 @@ const ManageCapacity = ({ onClose }) => {
                 </div>
                 <span className="error-message">{addErrors.sku}</span>
               </div>
+            </div>
+            <div className={Styles.formRow}>
               <div className={classNames('input-field-group include-error', Styles.formGroup, addErrors.region ? 'error' : '')}>
                 <label className="input-label">Region <sup>*</sup></label>
                 <div className="custom-select">
@@ -424,8 +397,6 @@ const ManageCapacity = ({ onClose }) => {
                 </div>
                 <span className="error-message">{addErrors.region}</span>
               </div>
-            </div>
-            <div className={Styles.formRow}>
               <div className={classNames('input-field-group include-error', Styles.formGroup, addErrors.state ? 'error' : '')}>
                 <label className="input-label">State <sup>*</sup></label>
                 <div className="custom-select">
