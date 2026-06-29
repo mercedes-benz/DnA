@@ -423,30 +423,27 @@ public class DeploymentStatusMonitorJob {
 
             List<String> teamMembers = new ArrayList<>();
             List<String> teamMembersEmails = new ArrayList<>();
-            // Notify the project owner
-            if (projectOwner != null) {
-                if (projectOwner.getId() != null) {
-                    teamMembers.add(projectOwner.getId());
-                }
+            // Collect all recipients: owner, collaborators, deployer — deduplicated by userId
+            java.util.Set<String> addedUserIds = new java.util.HashSet<>();
+
+            if (projectOwner != null && projectOwner.getId() != null && addedUserIds.add(projectOwner.getId())) {
+                teamMembers.add(projectOwner.getId());
                 if (projectOwner.getEmail() != null) {
                     teamMembersEmails.add(projectOwner.getEmail());
                 }
             }
-            // Notify all project collaborators
             List<UserInfo> collaborators = workspace.getData().getProjectDetails().getProjectCollaborators();
             if (collaborators != null) {
                 for (UserInfo collaborator : collaborators) {
-                    if (collaborator.getId() != null) {
+                    if (collaborator.getId() != null && addedUserIds.add(collaborator.getId())) {
                         teamMembers.add(collaborator.getId());
-                    }
-                    if (collaborator.getEmail() != null) {
-                        teamMembersEmails.add(collaborator.getEmail());
+                        if (collaborator.getEmail() != null) {
+                            teamMembersEmails.add(collaborator.getEmail());
+                        }
                     }
                 }
             }
-            // Also notify the deployer if not already included as owner or collaborator
-            if (deployedBy != null && deployedBy.getId() != null
-                    && !teamMembers.contains(deployedBy.getId())) {
+            if (deployedBy != null && deployedBy.getId() != null && addedUserIds.add(deployedBy.getId())) {
                 teamMembers.add(deployedBy.getId());
                 if (deployedBy.getEmail() != null) {
                     teamMembersEmails.add(deployedBy.getEmail());
