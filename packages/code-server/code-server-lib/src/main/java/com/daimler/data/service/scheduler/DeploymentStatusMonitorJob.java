@@ -432,9 +432,21 @@ public class DeploymentStatusMonitorJob {
                     teamMembersEmails.add(projectOwner.getEmail());
                 }
             }
-            // Also notify the deployer if different from project owner
+            // Notify all project collaborators
+            List<UserInfo> collaborators = workspace.getData().getProjectDetails().getProjectCollaborators();
+            if (collaborators != null) {
+                for (UserInfo collaborator : collaborators) {
+                    if (collaborator.getId() != null) {
+                        teamMembers.add(collaborator.getId());
+                    }
+                    if (collaborator.getEmail() != null) {
+                        teamMembersEmails.add(collaborator.getEmail());
+                    }
+                }
+            }
+            // Also notify the deployer if not already included as owner or collaborator
             if (deployedBy != null && deployedBy.getId() != null
-                    && (projectOwner == null || !deployedBy.getId().equalsIgnoreCase(projectOwner.getId()))) {
+                    && !teamMembers.contains(deployedBy.getId())) {
                 teamMembers.add(deployedBy.getId());
                 if (deployedBy.getEmail() != null) {
                     teamMembersEmails.add(deployedBy.getEmail());
