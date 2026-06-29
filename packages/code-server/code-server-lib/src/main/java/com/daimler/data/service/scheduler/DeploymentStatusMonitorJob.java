@@ -370,7 +370,7 @@ public class DeploymentStatusMonitorJob {
         try {
             String eventType;
             String message;
-            String envLabel = "prod".equalsIgnoreCase(environment) ? "Production" : environment;
+            String envLabel = "prod".equalsIgnoreCase(environment) ? "Production" : "Staging";
             String resourceID = workspace.getData().getWorkspaceId();
             UserInfo deployedBy = deployment.getLastDeployedBy();
             UserInfo projectOwner = workspace.getData().getProjectDetails().getProjectOwner();
@@ -414,12 +414,16 @@ public class DeploymentStatusMonitorJob {
                     teamMembersEmails.add(projectOwner.getEmail());
                 }
             }
-            // Also notify the deployer if different from project owner
-            if (deployedBy != null && deployedBy.getId() != null
-                    && (projectOwner == null || !deployedBy.getId().equalsIgnoreCase(projectOwner.getId()))) {
-                teamMembers.add(deployedBy.getId());
-                if (deployedBy.getEmail() != null) {
-                    teamMembersEmails.add(deployedBy.getEmail());
+            // Notify all collaborators
+            List<UserInfo> collaborators = workspace.getData().getProjectDetails().getProjectCollaborators();
+            if (collaborators != null) {
+                for (UserInfo collab : collaborators) {
+                    if (collab != null && collab.getId() != null) {
+                        teamMembers.add(collab.getId());
+                    }
+                    if (collab != null && collab.getEmail() != null) {
+                        teamMembersEmails.add(collab.getEmail());
+                    }
                 }
             }
 

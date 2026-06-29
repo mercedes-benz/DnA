@@ -5529,6 +5529,17 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 			UserInfo projectOwner = data.getProjectDetails().getProjectOwner();
 			teamMembers.add(projectOwner.getId());
 			teamMembersEmails.add(projectOwner.getEmail());
+			List<UserInfo> collaborators = data.getProjectDetails().getProjectCollaborators();
+			if (collaborators != null) {
+				for (UserInfo collab : collaborators) {
+					if (collab != null && collab.getId() != null) {
+						teamMembers.add(collab.getId());
+					}
+					if (collab != null && collab.getEmail() != null) {
+						teamMembersEmails.add(collab.getEmail());
+					}
+				}
+			}
 			if(data.getProjectDetails().getLastBuildOrDeployedStatus().equalsIgnoreCase("BUILD_REQUESTED")){
 				CodeServerBuildDetails buildDetails = entity.getData().getProjectDetails().getIntBuildDetails();
 					 if (!"int".equalsIgnoreCase(data.getProjectDetails().getLastBuildOrDeployedEnv())) {
