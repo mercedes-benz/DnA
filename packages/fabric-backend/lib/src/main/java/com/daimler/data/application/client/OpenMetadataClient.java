@@ -597,7 +597,7 @@ public class OpenMetadataClient {
             //"IsDataAsset", List.of(fields.getIsDataAsset()),
             "LeanIXID", List.of(fields.getLeanIXId()),
             "DocumentationUpdated", List.of(fields.getIsDocumentationUpdated()),
-            // "DataLakeAvailability", List.of(fields.getIsDataLakeAvailability()),
+            "DataLakeName", List.of(fields.getDataLakeName()),
             "DataConfidentiality",List.of(fields.getDataConfidentiality())
         );
     }
