@@ -76,7 +76,7 @@ const ContextMenu = (props) => {
 
   const intAppResourceUsageUrl =
     Envs.MONITORING_DASHBOARD_APP_BASE_URL +
-    `codespace-app-cpu-and-memory-usage?orgId=1&var-namespace=${Envs.CODESERVER_APP_NAMESPACE}&var-app=${projectDetails?.projectName?.toLowerCase()}-int&var-container=`;
+    `codespace-app-cpu-and-memory-usage?orgId=1&var-namespace=${Envs.CODESERVER_APP_NAMESPACE}-int&var-app=${projectDetails?.projectName?.toLowerCase()}-int&var-container=`;
 
   const prodAppResourceUsageUrl =
     Envs.MONITORING_DASHBOARD_APP_BASE_URL +

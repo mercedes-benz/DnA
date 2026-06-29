@@ -150,7 +150,7 @@ export const blueprintTemplate = (codespace) => {
     return `${collaborator?.firstName} ${collaborator?.lastName} (${collaborator?.id})`;
   });
 
-  const intAppResourceUsageUrl = Envs.MONITORING_DASHBOARD_APP_BASE_URL + `codespace-app-cpu-and-memory-usage?orgId=1&var-namespace=${Envs.CODESERVER_APP_NAMESPACE}&var-app=${codespace?.projectDetails?.projectName}-int&var-container=`;
+  const intAppResourceUsageUrl = Envs.MONITORING_DASHBOARD_APP_BASE_URL + `codespace-app-cpu-and-memory-usage?orgId=1&var-namespace=${Envs.CODESERVER_APP_NAMESPACE}-int&var-app=${codespace?.projectDetails?.projectName}-int&var-container=`;
   const prodAppResourceUsageUrl = Envs.MONITORING_DASHBOARD_APP_BASE_URL + `codespace-app-cpu-and-memory-usage?orgId=1&var-namespace=${Envs.CODESERVER_APP_NAMESPACE}&var-app=${codespace?.projectDetails?.projectName}-prod&var-container=`;
 
   const template = `
