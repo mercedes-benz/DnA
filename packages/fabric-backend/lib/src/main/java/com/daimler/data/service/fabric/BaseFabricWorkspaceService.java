@@ -636,6 +636,9 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 					}
 					updateTags(data);
 					data.setCapacity(capacityVO);
+					if(vo.getProjectId() != null && !vo.getProjectId().isEmpty()) {
+						updateFabricWorkspaceCapacity(data);
+					}
 					
 					FabricWorkspaceStatusVO currentStatus = new FabricWorkspaceStatusVO();
 					currentStatus.setState(ConstantsUtility.INPROGRESS_STATE);
@@ -1745,6 +1748,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		}catch(Exception e) {
 			log.error("Failed to update project {} details in MicrosoftFabric, Will be updated in next action.", existingFabricWorkspace.getId());
 		}
+		updateFabricWorkspaceCapacity(existingFabricWorkspace);
 		FabricWorkspaceNsql updatedEntity = assembler.toEntity(existingFabricWorkspace);
 		updateTags(existingFabricWorkspace);
 		jpaRepo.save(updatedEntity);
@@ -2462,6 +2466,27 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 
 		collection.responses(message);
 		return collection;
+	}
+
+	private void updateFabricWorkspaceCapacity(FabricWorkspaceVO workspaceVO){
+		String projectId = workspaceVO.getProjectId();
+		CapacityVO capacityVO = new CapacityVO();
+		capacityVO.setId(fabricCapacityId);
+		capacityVO.setName(fabricCapacityName);
+		capacityVO.setRegion(capacityRegion);
+		capacityVO.setSku(capacitySku);
+		capacityVO.setState(capacityState);
+		if(projectId!=null && !"".equalsIgnoreCase(projectId)) {
+			ADAProjectsNsql projectEntity = adaProjectsRepo.findByProjectId(projectId);
+			if(projectEntity!=null && projectEntity.getData()!=null && projectEntity.getData().getCapacity()!=null) {
+				capacityVO.setId(projectEntity.getData().getCapacity().getId());
+				capacityVO.setName(projectEntity.getData().getCapacity().getName());
+				capacityVO.setRegion(projectEntity.getData().getCapacity().getRegion());
+				capacityVO.setSku(projectEntity.getData().getCapacity().getSku());
+				capacityVO.setState(projectEntity.getData().getCapacity().getState());
+			}
+		} 
+		workspaceVO.setCapacity(capacityVO);
 	}
 
 }

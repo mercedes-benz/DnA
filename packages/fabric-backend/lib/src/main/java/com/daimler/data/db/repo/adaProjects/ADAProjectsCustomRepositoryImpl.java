@@ -51,6 +51,7 @@ import org.springframework.stereotype.Repository;
 
 import com.daimler.data.assembler.ADAProjectsAssembler;
 import com.daimler.data.db.entities.ADAProjectsNsql;
+import com.daimler.data.db.entities.FabricWorkspaceNsql;
 import com.daimler.data.db.json.ADAProjectDetails;
 import com.daimler.data.db.json.FabricWorkspace;
 import com.daimler.data.db.repo.common.CommonDataRepositoryImpl;
@@ -199,6 +200,31 @@ public class ADAProjectsCustomRepositoryImpl extends CommonDataRepositoryImpl<AD
 			log.error("Error fetching ADA projects by name '{}': {}", projectName, e.getMessage(), e);
 			return Collections.emptyList();
 		}
+	}
+
+	@Override
+	public ADAProjectsNsql findByProjectId(String projectId) {
+
+		String getAllStmtByProjId = "SELECT id, CAST(data AS text) FROM ada_projects_nsql " +
+    								"WHERE jsonb_extract_path_text(data, 'projectID') = :projectId";
+		Query q = em.createNativeQuery(getAllStmtByProjId);
+		q.setParameter("projectId", projectId);
+		ObjectMapper mapper = new ObjectMapper();
+		List<Object[]> results = q.getResultList();
+		ADAProjectsNsql convertedResults = results.stream().map(temp -> {
+			ADAProjectsNsql entity = new ADAProjectsNsql();
+			try {
+				String jsonData = temp[1] != null ? temp[1].toString() : "";
+				ADAProjectDetails tempForecast = mapper.readValue(jsonData, ADAProjectDetails.class);
+				entity.setData(tempForecast);
+			} catch (Exception e) {
+				log.error("Failed while fetching all projects using native query with exception {} ", e.getMessage());
+			}
+			String id = temp[0] != null ? temp[0].toString() : "";
+			entity.setId(id);
+			return entity;
+		}).findFirst().orElse(null);
+		return convertedResults;
 	}
 
 }

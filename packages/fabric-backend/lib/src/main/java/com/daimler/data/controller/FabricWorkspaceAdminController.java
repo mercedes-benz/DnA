@@ -192,7 +192,8 @@ public class FabricWorkspaceAdminController implements FabricWorkspacesAdminApi
 			log.warn("Access denied for createOrUpdateCapacity - user does not have FabricAdmin role");
 			return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
 		}
-		if (capacityVO == null || capacityVO.getRegion() == null || capacityVO.getRegion().trim().isEmpty()) {
+		if (capacityVO == null || isEmptyOrNull(capacityVO.getRegion()) || isEmptyOrNull(capacityVO.getId()) || 
+		isEmptyOrNull(capacityVO.getName()) || isEmptyOrNull(capacityVO.getSku()) || isEmptyOrNull(capacityVO.getState())) {
 			log.error("createOrUpdateCapacity called with null/empty capacity or missing region");
 			return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
 		}
@@ -257,5 +258,9 @@ public class FabricWorkspaceAdminController implements FabricWorkspacesAdminApi
 			log.error("Exception occurred while deleting capacity for region {}: {}", region, e.getMessage());
 			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
+	}
+
+	private boolean isEmptyOrNull(String str) {
+		return str == null || str.trim().isEmpty();
 	}
 }
