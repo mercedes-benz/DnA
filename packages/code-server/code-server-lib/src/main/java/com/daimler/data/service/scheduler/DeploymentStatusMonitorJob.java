@@ -85,6 +85,12 @@ public class DeploymentStatusMonitorJob {
                     intDeployment.setLastDeploymentStatus("RESTART_REQUESTED");
                     intNeedsCheck = true;
                 }
+                if (intNeedsCheck && !hasDeploymentHistory(projectName, "int")) {
+                    log.info("Clearing stale status for {}-int: no deployment audit logs exist", projectName);
+                    intDeployment.setLastDeploymentStatus(null);
+                    workspaceCustomRepository.updateDeploymentDetails(projectName, "int", intDeployment, null);
+                    intNeedsCheck = false;
+                }
                 if (intNeedsCheck) {
                     checkedCount++;
                     if (checkAndUpdateDeployment(argoToken, workspace, intDeployment, projectName, "int")) {
@@ -106,6 +112,12 @@ public class DeploymentStatusMonitorJob {
                     prodDeployment.setLastDeploymentStatus("RESTART_REQUESTED");
                     prodNeedsCheck = true;
                 }
+                if (prodNeedsCheck && !hasDeploymentHistory(projectName, "prod")) {
+                    log.info("Clearing stale status for {}-prod: no deployment audit logs exist", projectName);
+                    prodDeployment.setLastDeploymentStatus(null);
+                    workspaceCustomRepository.updateDeploymentDetails(projectName, "prod", prodDeployment, null);
+                    prodNeedsCheck = false;
+                }
                 if (prodNeedsCheck) {
                     checkedCount++;
                     if (checkAndUpdateDeployment(argoToken, workspace, prodDeployment, projectName, "prod")) {
@@ -121,6 +133,22 @@ public class DeploymentStatusMonitorJob {
             }
         } catch (Exception e) {
             log.error("Error in deployment status monitoring job", e);
+        }
+    }
+
+    private boolean hasDeploymentHistory(String projectName, String environment) {
+        try {
+            CodeServerBuildDeployNsql buildDeployEntity = buildDeployCustomRepo.findByProjectName(projectName);
+            if (buildDeployEntity == null) {
+                return false;
+            }
+            List<DeploymentAudit> auditLogs = "int".equalsIgnoreCase(environment)
+                    ? buildDeployEntity.getData().getIntDeploymentAuditLogs()
+                    : buildDeployEntity.getData().getProdDeploymentAuditLogs();
+            return auditLogs != null && !auditLogs.isEmpty();
+        } catch (Exception e) {
+            log.warn("Failed to check deployment history for {}-{}: {}", projectName, environment, e.getMessage());
+            return true;
         }
     }
 
