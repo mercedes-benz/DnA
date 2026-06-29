@@ -122,7 +122,7 @@ public class ArgoCdService {
             headers.setBearerAuth(token);
             headers.setContentType(MediaType.APPLICATION_JSON);
         
-            Map<String, String> resources = calculateResources(gitRepoUrl);
+            Map<String, String> resources = calculateResources(gitRepoUrl, branch);
             String targetRevision = (branch != null && !branch.isEmpty()) ? branch : "main";
             
             String payload = this.buildPayload(appName, projectName, codeServerEnvRef, environment, gitRepoUrl, imageTag, vaultInjectorEnable, resources, targetRevision);
@@ -416,10 +416,10 @@ public class ArgoCdService {
         }
     }
     
-    public Map<String, String> calculateResources(String gitRepoUrl) {
+    public Map<String, String> calculateResources(String gitRepoUrl, String branch) {
         try {
             log.info("[Resources] Starting resource calculation for repo: {}", gitRepoUrl);
-            String valuesYamlContent = fetchValuesYaml(gitRepoUrl);
+            String valuesYamlContent = fetchValuesYaml(gitRepoUrl, branch);
             if (valuesYamlContent == null || valuesYamlContent.trim().isEmpty()) {
                 log.info("[Resources] values.yaml content is null or empty, skipping resource overrides");
                 return null;
@@ -569,7 +569,7 @@ public class ArgoCdService {
         return null;
     }
     
-    private String fetchValuesYaml(String gitRepoUrl) {
+    private String fetchValuesYaml(String gitRepoUrl, String branch) {
         try {
             String[] urlParts = gitRepoUrl.replace(".git", "").split("/");
             if (urlParts.length < 2) {
@@ -580,10 +580,11 @@ public class ArgoCdService {
             String owner = urlParts[urlParts.length - 2];
             String repo = urlParts[urlParts.length - 1];
             
+            String ref = (branch != null && !branch.isEmpty()) ? branch : "main";
             // Use GHE/GitHub API endpoint instead of web UI raw URL
             String baseUrl = gitRepoUrl.substring(0, gitRepoUrl.lastIndexOf("/"));
             baseUrl = baseUrl.substring(0, baseUrl.lastIndexOf("/"));
-            String apiUrl = baseUrl + "/api/v3/repos/" + owner + "/" + repo + "/contents/deploy/helm/values.yaml?ref=main";
+            String apiUrl = baseUrl + "/api/v3/repos/" + owner + "/" + repo + "/contents/deploy/helm/values.yaml?ref=" + ref;
             
             log.info("[Resources] Attempting to fetch values.yaml from API: {}", apiUrl);
             
