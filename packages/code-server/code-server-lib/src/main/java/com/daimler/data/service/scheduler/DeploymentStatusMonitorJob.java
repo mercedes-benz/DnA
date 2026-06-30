@@ -1,7 +1,10 @@
 package com.daimler.data.service.scheduler;
 
+import com.daimler.data.application.client.CodeServerClient;
+import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.db.entities.CodeServerBuildDeployNsql;
 import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
+import com.daimler.data.db.json.BuildAudit;
 import com.daimler.data.db.json.CodeServerBuildDeploy;
 import com.daimler.data.db.json.CodeServerDeploymentDetails;
 import com.daimler.data.db.json.DeploymentAudit;
@@ -41,6 +44,9 @@ public class DeploymentStatusMonitorJob {
 
     @Autowired
     private KafkaProducerService kafkaProducer;
+
+    @Autowired
+    private CodeServerClient codeServerClient;
 
 
     @Scheduled(fixedDelay = 10000, initialDelay = 5000)
@@ -317,6 +323,12 @@ public class DeploymentStatusMonitorJob {
                 // Also update deployment audit logs in the build deploy entity (used by frontend)
                 updateBuildDeployAuditLog(projectName, environment, targetStatus);
 
+                // Clean up non-retained build images after successful deployment
+                if ("DEPLOYED".equals(targetStatus)) {
+                    String deployedVersion = deployment.getLastDeployedVersion();
+                    cleanupNonRetainedBuildImages(projectName, environment, deployedVersion);
+                }
+
                 // Send deployment notification
                 sendDeploymentNotification(workspace, deployment, projectName, environment, targetStatus);
                 
@@ -379,6 +391,51 @@ public class DeploymentStatusMonitorJob {
             }
         } catch (Exception e) {
             log.warn("Failed to update build deploy audit log for {}-{}: {}", projectName, environment, e.getMessage());
+        }
+    }
+
+    private void cleanupNonRetainedBuildImages(String projectName, String environment, String deployedVersion) {
+        try {
+            CodeServerBuildDeployNsql buildDeployEntity = buildDeployCustomRepo.findByProjectName(projectName);
+            if (buildDeployEntity == null || buildDeployEntity.getData() == null) {
+                return;
+            }
+            CodeServerBuildDeploy data = buildDeployEntity.getData();
+            List<BuildAudit> buildAuditLogs = "int".equalsIgnoreCase(environment)
+                    ? data.getIntBuildAuditLogs()
+                    : data.getProdBuildAuditLogs();
+            if (buildAuditLogs == null || buildAuditLogs.isEmpty()) {
+                return;
+            }
+            boolean anyDeleted = false;
+            for (BuildAudit build : buildAuditLogs) {
+                if (build.getVersion() == null) {
+                    continue;
+                }
+                if (deployedVersion != null && build.getVersion().equalsIgnoreCase(deployedVersion)) {
+                    continue;
+                }
+                if (build.isKeepBuildImage() || build.isImageDeleted()) {
+                    continue;
+                }
+                if (!"BUILD_SUCCESS".equalsIgnoreCase(build.getBuildStatus())) {
+                    continue;
+                }
+                GenericMessage deleteResponse = codeServerClient.deleteBuild(projectName, build.getVersion());
+                if ("SUCCESS".equalsIgnoreCase(deleteResponse.getSuccess())) {
+                    build.setImageDeleted(true);
+                    anyDeleted = true;
+                    log.info("Cleaned up non-retained build image {}-{} version {}", projectName, environment, build.getVersion());
+                } else {
+                    log.warn("Failed to delete build image {}-{} version {} from registry", projectName, environment, build.getVersion());
+                }
+            }
+            if (anyDeleted) {
+                buildDeployEntity.setData(data);
+                buildDeployRepo.save(buildDeployEntity);
+            }
+        } catch (Exception e) {
+            log.warn("Failed to clean up build images for {}-{}: {}", projectName, environment, e.getMessage());
         }
     }
 
