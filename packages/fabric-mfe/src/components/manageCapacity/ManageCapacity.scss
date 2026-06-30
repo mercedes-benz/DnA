@@ -9,9 +9,9 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding-bottom: 16px;
-  margin-bottom: 16px;
-  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 8px;
+  margin-bottom: 8px;
+  border-bottom: 1px solid #383F49;
 }
 
 .title {
@@ -20,17 +20,18 @@
 }
 
 .searchBar {
-  margin-bottom: 12px;
+  margin-top: 6px;
+  margin-bottom: 4px;
 }
 
 .scrollPanel {
   overflow-y: auto;
   overflow-x: visible;
   flex: 1;
-  border: 1px solid #e0e0e0;
+  border: 1px solid #383F49;
   border-radius: 4px;
   padding: 8px;
-  margin-bottom: 16px;
+  margin-bottom: 8px;
   min-height: 100px;
 }
 
@@ -39,7 +40,7 @@
   justify-content: center;
   align-items: center;
   height: 80px;
-  color: #888;
+  // color: #888;
   font-style: italic;
 }
 
@@ -99,18 +100,12 @@
   flex: 1;
 }
 
-.fieldModified {
-  border-left: 3px solid #0ae6ab;
-  padding-left: 5px;
-  border-radius: 2px;
-}
-
 .nativeSelect {
   width: 100%;
   height: 40px;
   padding: 0 16px;
   background-color: #252A33;
-  color: #383F49;
+  // color: #383F49;
   border: 1px solid #C0C8D0;
   border-radius: 1px;
   font-family: "Roboto-Regular", sans-serif;
@@ -222,6 +217,6 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-top: 16px;
-  border-top: 1px solid #e0e0e0;
+  padding-top: 8px;
+  border-top: 1px solid #383F49;
 }
