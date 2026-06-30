@@ -97,6 +97,7 @@ export const buildCdcPayload = ({
       tier: dataTier || "",
       leanIXId: workspaceMetadata?.appId || "",
       isDocumentationUpdated: isDocumentationUpdated ? "Yes" : "No",
+      dataLakeName: "OneFabric",
       dataConfidentiality: workspaceMetadata?.dataClassification.toLowerCase() || ""
     },
     owners: [workspaceCreator]

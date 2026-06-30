@@ -481,7 +481,7 @@ definitions:
       # - dataOrigin
       - leanIXId
       - isDocumentationUpdated
-      # - isDataLakeAvailability
+      - dataLakeName
       # - isDataAsset
       - dataConfidentiality
       - tier
@@ -503,9 +503,10 @@ definitions:
       isDocumentationUpdated:
         type: string
         enum: ["Yes","No"]
-      # isDataLakeAvailability:
-      #   type: string
-      #   enum: ["Yes","No"]
+      dataLakeName:
+        type: string
+        minLength: 1
+        description: "Data lake name (e.g., 'OneFabric'). Must be sent as a plain string, not an array."
 #      isDataAsset:
 #        type: string
 #        enum: ["Yes","No"]

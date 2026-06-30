@@ -22,7 +22,7 @@ import com.daimler.data.dto.fabricCatalogManagement.MandatoryFieldsVO;
 import com.daimler.data.dto.fabricCatalogManagement.MandatoryFieldsVO.DivisionsEnum;
 // import com.daimler.data.dto.fabricCatalogManagement.MandatoryFieldsVO.DataOriginEnum;
 import com.daimler.data.dto.fabricCatalogManagement.MandatoryFieldsVO.IsDocumentationUpdatedEnum;
-// import com.daimler.data.dto.fabricCatalogManagement.MandatoryFieldsVO.IsDataLakeAvailabilityEnum;
+// import com.daimler.data.dto.fabricCatalogManagement.MandatoryFieldsVO.DataLakeNameEnum;
 import com.daimler.data.dto.fabricCatalogManagement.MandatoryFieldsVO.DataConfidentialityEnum;
 import com.daimler.data.dto.fabricWorkspace.CreatedByVO;
 
@@ -142,6 +142,7 @@ public class FabricCatalogMetadataAssembler implements GenericAssembler<FabricCa
         mandatoryFields.setIsDocumentationUpdated(voMandatoryFields.getIsDocumentationUpdated() != null
             ? voMandatoryFields.getIsDocumentationUpdated().name()
             : null);
+        mandatoryFields.setDataLakeName(voMandatoryFields.getDataLakeName());
         mandatoryFields.setDataConfidentiality(voMandatoryFields.getDataConfidentiality() != null
             ? voMandatoryFields.getDataConfidentiality().name()
             : null);
@@ -163,6 +164,7 @@ public class FabricCatalogMetadataAssembler implements GenericAssembler<FabricCa
         mandatoryFieldsVO.setIsDocumentationUpdated(mandatoryFields.getIsDocumentationUpdated() != null
             ? IsDocumentationUpdatedEnum.valueOf(mandatoryFields.getIsDocumentationUpdated())
             : null);
+        mandatoryFieldsVO.setDataLakeName(mandatoryFields.getDataLakeName());
         mandatoryFieldsVO.setDataConfidentiality(mandatoryFields.getDataConfidentiality() != null
             ? DataConfidentialityEnum.valueOf(mandatoryFields.getDataConfidentiality())
             : null);
