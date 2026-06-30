@@ -307,7 +307,7 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
           'alert'
         );
       });
-  }, [workspaceId, lakehouseId, setValue]);
+  }, [workspaceId, lakehouseId, lakehouseName, setValue]);
 
   // Auto-select previously published tables once both tables list and publish history are loaded
   useEffect(() => {
@@ -580,7 +580,7 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
   ]);
 
   const onPush = handleSubmit(handlePush);
-  const isLakehousePublished = workspaceMetadata?.cdcPublishedLakeHouseDetails?.publishedLakeHouseNames?.includes(lakehouseId) || false;
+  // const isLakehousePublished = workspaceMetadata?.cdcPublishedLakeHouseDetails?.publishedLakeHouseNames?.includes(lakehouseId) || false;
 
   const isPushDisabled =
   !workspaceMetadata || 
