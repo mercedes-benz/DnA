@@ -49,4 +49,6 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
      private List<DeploymentAudit> prodDeploymentAuditLogs = new ArrayList<>();
      private String status;
      private String projectName;
+     private boolean intResourceExceptionEnabled;
+     private boolean prodResourceExceptionEnabled;
  }

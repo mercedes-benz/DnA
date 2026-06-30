@@ -60,6 +60,15 @@ public class ArgoCdService {
     @Value("${argocd.vaultMountPath}")
     private String vaultMountPath;
 
+    @Value("${argocd.resourceCap.cpuRequestMax}")
+    private int resourceCapCpuRequestMax;
+
+    @Value("${argocd.resourceCap.memoryRequestMax}")
+    private int resourceCapMemoryRequestMax;
+
+    @Value("${argocd.resourceCap.memoryLimitMax}")
+    private int resourceCapMemoryLimitMax;
+
     @Value("${codeServer.git.ghe.pat}")
     private String ghePat;
 
@@ -110,10 +119,11 @@ public class ArgoCdService {
     }
 
     public String createArgoApp(String token, String projectName, String userId, String environment,
-                                String gitRepoUrl, String imageTag, boolean vaultInjectorEnable, String branch) throws Exception {
+                                String gitRepoUrl, String imageTag, boolean vaultInjectorEnable, String branch,
+                                boolean resourceExceptionEnabled) throws Exception {
         try {
-            log.info("createArgoApp - projectName: {}, gitRepoUrl: {}, imageTag: {}, environment: {}, branch: {}", 
-                     projectName, gitRepoUrl, imageTag, environment, branch);
+            log.info("createArgoApp - projectName: {}, gitRepoUrl: {}, imageTag: {}, environment: {}, branch: {}, resourceExceptionEnabled: {}", 
+                     projectName, gitRepoUrl, imageTag, environment, branch, resourceExceptionEnabled);
     
             String appName = projectName + "-" + environment;
             String url = argocdCreateUrl + "?upsert=true";
@@ -123,6 +133,20 @@ public class ArgoCdService {
             headers.setContentType(MediaType.APPLICATION_JSON);
         
             Map<String, String> resources = calculateResources(gitRepoUrl, branch);
+            log.info("[Resources] calculateResources returned: {} for app {}", resources, appName);
+            log.info("[Resources] resourceExceptionEnabled={} for app {}", resourceExceptionEnabled, appName);
+
+            // Always apply defaults to fill missing keys (regardless of exception flag)
+            resources = applyResourceDefaults(resources);
+            log.info("[Resources] After applyResourceDefaults: {} for app {}", resources, appName);
+
+            // Apply caps only when exception flag is NOT enabled
+            if (!resourceExceptionEnabled) {
+                resources = applyResourceCaps(resources);
+                log.info("[Resources] After applyResourceCaps: {} for app {}", resources, appName);
+            } else {
+                log.info("[Resources] Resource exception enabled for {}, skipping resource caps. Final resources: {}", appName, resources);
+            }
             String targetRevision = (branch != null && !branch.isEmpty()) ? branch : "main";
             
             String payload = this.buildPayload(appName, projectName, codeServerEnvRef, environment, gitRepoUrl, imageTag, vaultInjectorEnable, resources, targetRevision);
@@ -272,47 +296,37 @@ public class ArgoCdService {
         helmParameters.add(createHelmParam("vaultInjector.namespace", "/"));
         helmParameters.add(createHelmParamForceString("podAnnotations.prometheus\\.io/scrape", "true"));
         
+        log.info("[Resources][buildPayload] Input resources map for {}: {}", appName, resources);
         if (resources != null && resources.isEmpty()) {
-            helmParameters.add(createHelmParam("resources.requests.cpu", "200m"));
+            // Scenario 1: resources: {} — apply all base defaults
+            helmParameters.add(createHelmParam("resources.requests.cpu", "250m"));
             helmParameters.add(createHelmParam("resources.requests.memory", "256Mi"));
             helmParameters.add(createHelmParam("resources.limits.memory", "1Gi"));
-            log.info("[Resources] Empty resources in values.yaml, sending defaults");
+            log.info("[Resources][buildPayload] Scenario 1: Empty resources in values.yaml, sending defaults: cpu=250m, memory=256Mi, limits.memory=1Gi");
         } else if (resources != null && !resources.isEmpty()) {
-            String cpu = resources.get("cpu");
-            String memory = resources.get("memory");
+            // Scenario 2: resources provided — defaults already filled by applyResourceDefaults
+            String cpu = resources.getOrDefault("cpu", "250");
+            String memory = resources.getOrDefault("memory", "256");
+            String limitsMemory = resources.getOrDefault("limitsMemory", "1024");
             boolean hasLimitsCpu = "true".equals(resources.get("hasLimitsCpu"));
 
-            if (!hasLimitsCpu) {
-                // Case 2: No limits.cpu — limits.memory = requests.memory
-                if (cpu != null) {
-                    helmParameters.add(createHelmParam("resources.requests.cpu", cpu + "m"));
-                }
-                if (memory != null) {
-                    helmParameters.add(createHelmParam("resources.requests.memory", memory + "Mi"));
-                    helmParameters.add(createHelmParam("resources.limits.memory", memory + "Mi"));
-                }
-                log.info("[Resources] Case 2: No limits.cpu in values.yaml - requests.cpu={}, requests.memory={}, limits.memory={} (same as requests)",
-                    cpu != null ? cpu + "m" : "not set",
-                    memory != null ? memory + "Mi" : "not set",
-                    memory != null ? memory + "Mi" : "not set");
+            log.info("[Resources][buildPayload] Scenario 2: Using resolved values - cpu={}m, memory={}Mi, limitsMemory={}Mi, hasLimitsCpu={}",
+                cpu, memory, limitsMemory, hasLimitsCpu);
 
-            } else {
-                if (cpu != null) {
-                    helmParameters.add(createHelmParam("resources.requests.cpu", cpu + "m"));
-                }
-                if (memory != null) {
-                    helmParameters.add(createHelmParam("resources.requests.memory", memory + "Mi"));
-                    helmParameters.add(createHelmParam("resources.limits.memory", memory + "Mi"));
-                }
+            helmParameters.add(createHelmParam("resources.requests.cpu", cpu + "m"));
+            helmParameters.add(createHelmParam("resources.requests.memory", memory + "Mi"));
+            helmParameters.add(createHelmParam("resources.limits.memory", limitsMemory + "Mi"));
+            // CPU limit: only if key existed in YAML, set to null (no limit)
+            if (hasLimitsCpu) {
                 helmParameters.add(createHelmParam("resources.limits.cpu", "null"));
-                log.info("[Resources] Case 3: limits.cpu exists in values.yaml - requests.cpu={}, requests.memory={}, limits.memory={} (same as requests), limits.cpu=null",
-                    cpu != null ? cpu + "m" : "not set",
-                    memory != null ? memory + "Mi" : "not set",
-                    memory != null ? memory + "Mi" : "not set");
             }
 
+            log.info("[Resources][buildPayload] Final Helm params: requests.cpu={}, requests.memory={}, limits.memory={}, limits.cpu={}",
+                cpu + "m", memory + "Mi", limitsMemory + "Mi",
+                hasLimitsCpu ? "null (no limit)" : "not set (key absent)");
         } else {
-            log.info("[Resources] No resource overrides, using chart defaults");
+            log.warn("[Resources][buildPayload] Scenario 3: resources is NULL — no resource helm params sent. Chart defaults will be used. " +
+                     "This likely means values.yaml fetch failed for app: {}", appName);
         }
         
         Map<String, Object> payload = new HashMap<>();
@@ -472,48 +486,47 @@ public class ArgoCdService {
                 return new HashMap<>();
             }
 
-            if (!resourcesSection.containsKey("requests")) {
-                log.info("[Resources] No 'requests' section found in resources. Available keys: {}", resourcesSection.keySet());
-                return null;
-            }
-
-            Object requestsObj = resourcesSection.get("requests");
-            if (requestsObj == null || !(requestsObj instanceof Map)) {
-                log.warn("[Resources] 'requests' is not a Map but: {} (value={})",
-                    requestsObj != null ? requestsObj.getClass().getSimpleName() : "null", requestsObj);
-                return null;
-            }
-
-            @SuppressWarnings("unchecked")
-            Map<String, Object> requests = (Map<String, Object>) requestsObj;
-            log.info("[Resources] Raw requests from values.yaml: {}", requests);
-
             Map<String, String> convertedResources = new HashMap<>();
 
-            if (requests.containsKey("cpu")) {
-                String cpuValue = String.valueOf(requests.get("cpu"));
-                String convertedCpu = convertCpu(cpuValue);
-                log.info("[Resources] CPU: raw='{}' -> converted='{}'", cpuValue, convertedCpu);
-                if (convertedCpu != null) {
-                    convertedResources.put("cpu", convertedCpu);
+            // Parse requests section (may be missing or partial)
+            Object requestsObj = resourcesSection.get("requests");
+            if (requestsObj instanceof Map) {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> requests = (Map<String, Object>) requestsObj;
+                log.info("[Resources] Raw requests from values.yaml: {}", requests);
+
+                if (requests.containsKey("cpu")) {
+                    String cpuValue = String.valueOf(requests.get("cpu"));
+                    String convertedCpu = convertCpu(cpuValue);
+                    log.info("[Resources] CPU: raw='{}' -> converted='{}'", cpuValue, convertedCpu);
+                    if (convertedCpu != null) {
+                        convertedResources.put("cpu", convertedCpu);
+                    }
                 }
-            }
-            if (requests.containsKey("memory")) {
-                String memoryValue = String.valueOf(requests.get("memory"));
-                String convertedMemory = convertMemory(memoryValue);
-                log.info("[Resources] Memory: raw='{}' -> converted='{}'", memoryValue, convertedMemory);
-                if (convertedMemory != null) {
-                    convertedResources.put("memory", convertedMemory);
+                if (requests.containsKey("memory")) {
+                    String memoryValue = String.valueOf(requests.get("memory"));
+                    String convertedMemory = convertMemory(memoryValue);
+                    log.info("[Resources] Memory: raw='{}' -> converted='{}'", memoryValue, convertedMemory);
+                    if (convertedMemory != null) {
+                        convertedResources.put("memory", convertedMemory);
+                    }
                 }
+            } else {
+                log.info("[Resources] No 'requests' section or not a Map. Defaults will be applied later.");
             }
 
+            // Parse limits section (may be missing or partial)
             Object limitsObj = resourcesSection.get("limits");
+            log.info("[Resources] limits section: type={}, value={}", 
+                limitsObj != null ? limitsObj.getClass().getSimpleName() : "null", limitsObj);
             if (limitsObj instanceof Map) {
                 @SuppressWarnings("unchecked")
                 Map<String, Object> limits = (Map<String, Object>) limitsObj;
+                log.info("[Resources] Parsed limits map: {}", limits);
 
                 if (limits.containsKey("cpu")) {
                     convertedResources.put("hasLimitsCpu", "true");
+                    log.info("[Resources] Found limits.cpu, will set to null (no limit)");
                 }
 
                 if (limits.containsKey("memory")) {
@@ -522,12 +535,19 @@ public class ArgoCdService {
                     log.info("[Resources] Limits.Memory: raw='{}' -> converted='{}'", limitsMemoryValue, convertedLimitsMemory);
                     if (convertedLimitsMemory != null) {
                         convertedResources.put("limitsMemory", convertedLimitsMemory);
+                    } else {
+                        log.warn("[Resources] Limits.Memory conversion returned null for '{}'", limitsMemoryValue);
                     }
+                } else {
+                    log.info("[Resources] No 'memory' key in limits section. Default will be applied later.");
                 }
+            } else {
+                log.info("[Resources] No 'limits' section found or not a Map. Defaults will be applied later.");
             }
 
-            log.info("[Resources] Final calculated resources: {}", convertedResources);
-            return convertedResources.isEmpty() ? null : convertedResources;
+            log.info("[Resources] Final calculated resources (before defaults/caps): {}", convertedResources);
+            // Return map even if some keys are missing — defaults will be filled by applyResourceCaps
+            return convertedResources;
         } catch (Exception e) {
             log.error("[Resources] Failed to calculate resources: {}", e.getMessage(), e);
             return null;
@@ -540,8 +560,14 @@ public class ArgoCdService {
             return cpuValue.substring(0, cpuValue.length() - 1);
         }
         try {
-            double cores = Double.parseDouble(cpuValue);
-            return String.valueOf((int) (cores * 1000));
+            double value = Double.parseDouble(cpuValue);
+            // If value is >= 1 and looks like millicores already (e.g. "325" from YAML Integer parsing), keep as-is
+            // If value is < 1, treat as cores (e.g. "0.5" = 500m)
+            if (value < 1) {
+                return String.valueOf((int) (value * 1000));
+            }
+            // Bare number >= 1: treat as millicores directly (SnakeYAML may strip 'm' suffix)
+            return String.valueOf((int) value);
         } catch (NumberFormatException e) {
             log.warn("Invalid CPU value (must be 'm' or cores): {}", cpuValue);
             return null;
@@ -565,8 +591,128 @@ public class ArgoCdService {
             }
         }
         
+        // Handle bare numbers (SnakeYAML may parse "7000Mi" as Integer 7000 if suffix is stripped,
+        // or user may specify memory without unit) - treat as Mi
+        try {
+            int numericValue = Integer.parseInt(memoryValue);
+            log.info("[Resources] Memory value '{}' has no unit suffix, treating as Mi", memoryValue);
+            return String.valueOf(numericValue);
+        } catch (NumberFormatException e) {
+            // Not a number either
+        }
+        
         log.warn("Unsupported memory unit (must be 'Mi' or 'Gi'): {}", memoryValue);
         return null;
+    }
+
+    /**
+     * Applies defaults for missing keys in the resource map.
+     * This should ALWAYS be called regardless of the exception flag,
+     * to ensure buildPayload never receives null values for required keys.
+     *
+     * Defaults:
+     *   CPU Request: 250m
+     *   Memory Request: 256Mi
+     *   Memory Limit: 1024Mi (1Gi)
+     */
+    Map<String, String> applyResourceDefaults(Map<String, String> resources) {
+        if (resources == null) {
+            log.info("[ResourceDefaults] Resources is null (values.yaml fetch likely failed), no defaults to apply");
+            return null;
+        }
+        if (resources.isEmpty()) {
+            log.info("[ResourceDefaults] Resources is empty {{}}, defaults will be applied by buildPayload (Scenario 1)");
+            return resources;
+        }
+
+        Map<String, String> result = new HashMap<>(resources);
+
+        if (!result.containsKey("cpu")) {
+            result.put("cpu", "250");
+            log.info("[ResourceDefaults] CPU request missing, defaulting to 250m");
+        }
+        if (!result.containsKey("memory")) {
+            result.put("memory", "256");
+            log.info("[ResourceDefaults] Memory request missing, defaulting to 256Mi");
+        }
+        if (!result.containsKey("limitsMemory")) {
+            result.put("limitsMemory", "1024");
+            log.info("[ResourceDefaults] Memory limit missing, defaulting to 1024Mi (1Gi)");
+        }
+
+        log.info("[ResourceDefaults] After defaults: {}", result);
+        return result;
+    }
+
+    /**
+     * Applies caps to resource values. Only called when resourceExceptionEnabled is false.
+     *
+     * Caps:
+     *   CPU Request: >= 300m → cap to 300m
+     *   Memory Request: >= 4Gi (4096Mi) → cap to 4Gi
+     *   Memory Limit: >= 6Gi (6144Mi) → cap to 6Gi
+     */
+    Map<String, String> applyResourceCaps(Map<String, String> resources) {
+        if (resources == null) {
+            log.info("[ResourceCaps] Resources is null, no caps to apply");
+            return null;
+        }
+        if (resources.isEmpty()) {
+            log.info("[ResourceCaps] Resources is empty {{}}, no caps to apply");
+            return resources;
+        }
+
+        Map<String, String> capped = new HashMap<>(resources);
+
+        // --- Cap CPU request: >= 300m → 300m ---
+        try {
+            int cpuMillis = Integer.parseInt(capped.get("cpu"));
+            if (cpuMillis >= resourceCapCpuRequestMax) {
+                log.info("[ResourceCaps] CPU request {}m >= cap {}m, capping to {}m", cpuMillis, resourceCapCpuRequestMax, resourceCapCpuRequestMax);
+                capped.put("cpu", String.valueOf(resourceCapCpuRequestMax));
+            } else {
+                log.info("[ResourceCaps] CPU request {}m < cap {}m, keeping value", cpuMillis, resourceCapCpuRequestMax);
+            }
+        } catch (NumberFormatException e) {
+            log.warn("[ResourceCaps] Invalid CPU value '{}', using default 250m", capped.get("cpu"));
+            capped.put("cpu", "250");
+        }
+
+        // --- CPU Limit: if key exists in YAML, buildPayload sets it to null (no limit) ---
+        if ("true".equals(capped.get("hasLimitsCpu"))) {
+            log.info("[ResourceCaps] CPU limit key exists in YAML, will be set to null (no limit) by buildPayload");
+        }
+
+        // --- Cap Memory request: >= 4096Mi → 4096Mi ---
+        try {
+            int memoryMi = Integer.parseInt(capped.get("memory"));
+            if (memoryMi >= resourceCapMemoryRequestMax) {
+                log.info("[ResourceCaps] Memory request {}Mi >= cap {}Mi, capping to {}Mi", memoryMi, resourceCapMemoryRequestMax, resourceCapMemoryRequestMax);
+                capped.put("memory", String.valueOf(resourceCapMemoryRequestMax));
+            } else {
+                log.info("[ResourceCaps] Memory request {}Mi < cap {}Mi, keeping value", memoryMi, resourceCapMemoryRequestMax);
+            }
+        } catch (NumberFormatException e) {
+            log.warn("[ResourceCaps] Invalid memory value '{}', using default 256Mi", capped.get("memory"));
+            capped.put("memory", "256");
+        }
+
+        // --- Cap Memory limit: >= 6144Mi → 6144Mi ---
+        try {
+            int limitsMemoryMi = Integer.parseInt(capped.get("limitsMemory"));
+            if (limitsMemoryMi >= resourceCapMemoryLimitMax) {
+                log.info("[ResourceCaps] Memory limit {}Mi >= cap {}Mi, capping to {}Mi", limitsMemoryMi, resourceCapMemoryLimitMax, resourceCapMemoryLimitMax);
+                capped.put("limitsMemory", String.valueOf(resourceCapMemoryLimitMax));
+            } else {
+                log.info("[ResourceCaps] Memory limit {}Mi < cap {}Mi, keeping value", limitsMemoryMi, resourceCapMemoryLimitMax);
+            }
+        } catch (NumberFormatException e) {
+            log.warn("[ResourceCaps] Invalid limits memory value '{}', using default 1024Mi", capped.get("limitsMemory"));
+            capped.put("limitsMemory", "1024");
+        }
+
+        log.info("[ResourceCaps] Final capped resources: {}", capped);
+        return capped;
     }
     
     private String fetchValuesYaml(String gitRepoUrl, String branch) {

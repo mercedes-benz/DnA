@@ -2,7 +2,7 @@ spring:
   mvc.pathmatch.matching-strategy: ant_path_matcher
   application:
     name: dna-codeserver-service
-    version: 1.11.1
+    version: 1.11.2
   profile:
     active: production
 
@@ -254,3 +254,7 @@ argocd:
   namespacePrefix: ${ARGOCD_NAMESPACE_PREFIX:XXXX}
   vaultAuthPath: ${ARGOCD_VAULT_AUTH_PATH:XXXX}
   vaultMountPath: ${ARGOCD_VAULT_MOUNT_PATH_SUFFIX:XXXX}
+  resourceCap:
+    cpuRequestMax: ${ARGOCD_RESOURCE_CAP_CPU_REQUEST_MAX:XXXX}
+    memoryRequestMax: ${ARGOCD_RESOURCE_CAP_MEMORY_REQUEST_MAX:XXXX}
+    memoryLimitMax: ${ARGOCD_RESOURCE_CAP_MEMORY_LIMIT_MAX:XXXX}
