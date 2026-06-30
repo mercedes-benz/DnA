@@ -707,8 +707,14 @@ public class ArgoCdService {
             }
 
             if ("Degraded".equalsIgnoreCase(healthStatus)) {
-                log.info("Application {} is degraded - DEPLOYMENT_FAILED", appName);
-                return "DEPLOYMENT_FAILED";
+                // Degraded is only a definitive failure if the sync has already completed successfully.
+                // During active deployment, Degraded is often transient (image pull, readiness probe warmup).
+                if ("Succeeded".equalsIgnoreCase(lastSyncPhase)) {
+                    log.info("Application {} is degraded after sync succeeded - DEPLOYMENT_FAILED", appName);
+                    return "DEPLOYMENT_FAILED";
+                }
+                log.info("Application {} is degraded but sync not yet succeeded (syncPhase={}) - treating as DEPLOYING", appName, lastSyncPhase);
+                return "DEPLOYING";
             }
 
             if ("Running".equalsIgnoreCase(lastSyncPhase)) {
@@ -771,9 +777,16 @@ public class ArgoCdService {
                 return result;
             }
             if ("Degraded".equalsIgnoreCase(healthStatus)) {
-                result.put("status", "DEPLOYMENT_FAILED");
-                result.put("errorMessage", operationMessage != null && !operationMessage.isEmpty()
-                    ? operationMessage : "Application health is Degraded. Check pod logs for details.");
+                // Degraded is only a definitive failure if the sync has already completed successfully.
+                // During active deployment, Degraded is often transient (image pull, readiness probe warmup).
+                if ("Succeeded".equalsIgnoreCase(lastSyncPhase)) {
+                    result.put("status", "DEPLOYMENT_FAILED");
+                    result.put("errorMessage", operationMessage != null && !operationMessage.isEmpty()
+                        ? operationMessage : "Application health is Degraded. Check pod logs for details.");
+                    return result;
+                }
+                // Sync hasn't completed — treat as still deploying
+                result.put("status", "DEPLOYING");
                 return result;
             }
             if ("Running".equalsIgnoreCase(lastSyncPhase)) {
