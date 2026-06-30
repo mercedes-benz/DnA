@@ -357,7 +357,8 @@ public class DeploymentStatusMonitorJob {
                         || "RESTARTED".equalsIgnoreCase(auditStatus) || "RESTART_FAILED".equalsIgnoreCase(auditStatus)) {
                     foundTerminalAfter = true;
                 }
-                if ("DEPLOY_REQUESTED".equalsIgnoreCase(auditStatus) || "RESTART_REQUESTED".equalsIgnoreCase(auditStatus)) {
+                if ("DEPLOY_REQUESTED".equalsIgnoreCase(auditStatus) || "RESTART_REQUESTED".equalsIgnoreCase(auditStatus)
+                        || "DEPLOYING".equalsIgnoreCase(auditStatus)) {
                     if (foundTerminalAfter) {
                         audit.setDeploymentStatus("DEPLOYMENT_FAILED");
                         log.info("Marked superseded audit log entry as DEPLOYMENT_FAILED for {}-{} at index {}", projectName, environment, i);
