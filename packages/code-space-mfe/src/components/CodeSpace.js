@@ -368,11 +368,13 @@ const CodeSpace = (props) => {
         const prodDeployedUrl = prodDeploymentDetails?.deploymentUrl;
         const intDeployed =
           intDeploymentDetails.lastDeploymentStatus === 'DEPLOYED' ||
+          intDeploymentDetails.lastDeploymentStatus === 'RESTARTED' ||
           (intDeployedUrl != null && intDeployedUrl !== 'null' && intDeployedUrl !== '');
         const intDeployFailed = intDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED' ||
           intDeploymentDetails.lastDeploymentStatus === 'FAILED';
         const prodDeployed =
           prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYED' ||
+          prodDeploymentDetails.lastDeploymentStatus === 'RESTARTED' ||
           (prodDeployedUrl != null && prodDeployedUrl !== 'null' && prodDeployedUrl !== '');
         const prodDeployFailed = prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED' ||
           prodDeploymentDetails.lastDeploymentStatus === 'FAILED';
@@ -487,7 +489,7 @@ const CodeSpace = (props) => {
             const prodDeploymentDetails = res.data.projectDetails?.prodDeploymentDetails;
 
             const deployStatus = deployEnvironmentValue === 'staging' ? intDeploymentDetails?.lastDeploymentStatus : prodDeploymentDetails?.lastDeploymentStatus;
-            if (deployStatus === 'DEPLOYED') {
+            if (deployStatus === 'DEPLOYED' || deployStatus === 'RESTARTED') {
               setIsApiCallTakeTime(false);
               ProgressIndicator.hide();
               clearInterval(livelinessIntervalRef.current);
