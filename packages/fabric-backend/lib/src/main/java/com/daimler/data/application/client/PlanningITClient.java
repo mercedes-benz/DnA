@@ -2,8 +2,7 @@ package com.daimler.data.application.client;
 
 import java.util.Collections;
 import java.util.List;
-
-import javax.servlet.http.HttpServletRequest;
+import java.util.Objects;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -28,26 +27,28 @@ public class PlanningITClient {
     private String planningItBaseUrl;
 
     @Autowired
-    private RestTemplate restTemplate;
+    private RestTemplate proxyRestTemplate;
 
     @Autowired
-    private HttpServletRequest httpRequest;
+    private AuthoriserClient authoriserClient;
 
     public List<PlanningITApiItemVO> searchPlanningIT(String searchTerm) {
         try {
+            String token = authoriserClient.getToken();
+            if (!Objects.nonNull(token)) {
+                log.error("Failed to fetch token to invoke planningit API");
+                return Collections.emptyList();
+            }
             HttpHeaders headers = new HttpHeaders();
             headers.set("Accept", "application/json");
-            String authHeader = httpRequest.getHeader("Authorization");
-            if (authHeader != null && !authHeader.isBlank()) {
-                headers.set("Authorization", authHeader);
-            }
+            headers.set("Authorization", "Bearer " + token);
             HttpEntity<String> requestEntity = new HttpEntity<>(headers);
 
             String url = UriComponentsBuilder.fromHttpUrl(planningItBaseUrl)
                     .queryParam("searchTerm", searchTerm)
                     .toUriString();
 
-            ResponseEntity<PlanningITApiResponseVO> response = restTemplate.exchange(
+            ResponseEntity<PlanningITApiResponseVO> response = proxyRestTemplate.exchange(
                     url, HttpMethod.GET, requestEntity, PlanningITApiResponseVO.class);
 
             if (response.getStatusCode().is2xxSuccessful() && response.hasBody()
