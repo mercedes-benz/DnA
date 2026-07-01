@@ -66,13 +66,16 @@ const ContextMenu = (props) => {
   const prodCodeBuildFailed = prodBuildDetails.lastDeploymentStatus === 'BUILD_FAILED';
   const intCodeBuildFailed = intBuildDetails.lastDeploymentStatus === 'BUILD_FAILED';
 
+  // A workspace is considered "deployed" if it has a deployment URL
+  // (even during re-deploy/restart when status is temporarily not DEPLOYED)
+  // or if status is exactly DEPLOYED.
   const intDeployed =
     intDeploymentDetails?.lastDeploymentStatus === 'DEPLOYED' ||
-    false;
+    (intDeployedUrl != null && intDeployedUrl !== 'null' && intDeployedUrl !== '');
 
   const prodDeployed =
     prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOYED' ||
-    false;
+    (prodDeployedUrl != null && prodDeployedUrl !== 'null' && prodDeployedUrl !== '');
 
   const intAppResourceUsageUrl =
     Envs.MONITORING_DASHBOARD_APP_BASE_URL +
@@ -283,7 +286,7 @@ const ContextMenu = (props) => {
               }}
             >
               <div>
-                <strong>Staging:</strong> {intDeployed ? 'Deployed' : 'No Deployment'}
+                <strong>Staging:</strong> {intDeployingInProgress ? 'Deploying...' : intDeployed ? 'Deployed' : 'No Deployment'}
                 <span className={classNames(Styles.metricsTrigger, 'hide')} onClick={handleOpenDoraMetrics}>
                   (DORA Metrics)
                 </span>
@@ -437,7 +440,7 @@ const ContextMenu = (props) => {
               }}
             >
               <div>
-                <strong>Production:</strong> {prodDeployed ? 'Deployed' : 'No Deployment'}
+                <strong>Production:</strong> {prodDeployingInProgress ? 'Deploying...' : prodDeployed ? 'Deployed' : 'No Deployment'}
                 <span className={classNames(Styles.metricsTrigger, 'hide')} onClick={handleOpenDoraMetrics}>
                   (DORA Metrics)
                 </span>

@@ -249,6 +249,7 @@ public class DeploymentStatusSseController {
             String argoHealthStatus = "UNAVAILABLE";
             String argoSyncStatus = "UNAVAILABLE";
             String argoLastSyncPhase = "";
+            boolean imageMatchesDesired = true;
             
             try {
                 String argoAppName = projectName + "-" + environment;
@@ -271,6 +272,8 @@ public class DeploymentStatusSseController {
                     if (argoOperationMessage != null && !argoOperationMessage.isEmpty()) {
                         data.put("argocdOperationMessage", argoOperationMessage);
                     }
+
+                    imageMatchesDesired = argoCdService.isDesiredImageDeployed(rootNode, argoAppName);
                 }
             } catch (Exception e) {
                 log.debug("Could not fetch ArgoCD status: {}", e.getMessage());
@@ -278,7 +281,7 @@ public class DeploymentStatusSseController {
             }
 
             String argoOperationMsg = (String) data.get("argocdOperationMessage");
-            String actualStatus = determineActualStatus(dbStatus, argoHealthStatus, argoSyncStatus, argoLastSyncPhase, argoOperationMsg);
+            String actualStatus = determineActualStatus(dbStatus, argoHealthStatus, argoSyncStatus, argoLastSyncPhase, argoOperationMsg, imageMatchesDesired);
             data.put("currentStatus", actualStatus);
             
             if ("DEPLOYMENT_FAILED".equals(actualStatus) || "RESTART_FAILED".equals(actualStatus)) {
@@ -316,7 +319,7 @@ public class DeploymentStatusSseController {
         return data;
     }
     
-    private String determineActualStatus(String dbStatus, String argoHealth, String syncStatus, String lastSyncPhase, String operationMessage) {
+    private String determineActualStatus(String dbStatus, String argoHealth, String syncStatus, String lastSyncPhase, String operationMessage, boolean imageMatchesDesired) {
         if ("UNAVAILABLE".equals(argoHealth) || argoHealth == null || argoHealth.isEmpty()) {
             return dbStatus;
         }
@@ -337,6 +340,10 @@ public class DeploymentStatusSseController {
         if ("Healthy".equalsIgnoreCase(argoHealth)) {
             if ("DEPLOY_REQUESTED".equalsIgnoreCase(dbStatus) || "BUILDING".equalsIgnoreCase(dbStatus)) {
                 return dbStatus;
+            }
+            if (!imageMatchesDesired) {
+                log.info("ArgoCD is Healthy but running stale image - treating as DEPLOYING (waiting for new sync)");
+                return "DEPLOYING";
             }
             return "DEPLOYED";
         }

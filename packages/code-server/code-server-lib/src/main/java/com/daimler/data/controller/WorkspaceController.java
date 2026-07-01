@@ -1819,7 +1819,9 @@ import org.springframework.beans.factory.annotation.Value;
 					vo.getProjectDetails().getRecipeDetails().setIsDeployEnabled(true);
 				}
 			 }
-			 reconcileDeploymentStatusWithArgoCD(vo);
+			 // Status reconciliation with ArgoCD is handled by DeploymentStatusMonitorJob (every 10s).
+			 // Removed inline reconcileDeploymentStatusWithArgoCD(vo) to avoid slow synchronous
+			 // HTTP calls to ArgoCD on every card refresh and spurious 403 logs for undeployed envs.
 			 return new ResponseEntity<>(vo, HttpStatus.OK);
 		 } else {
 			 log.debug("No workspace found, returning empty");
