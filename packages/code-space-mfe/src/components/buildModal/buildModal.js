@@ -16,6 +16,7 @@ import Tags from 'dna-container/Tags';
 import Tooltip from '../../common/modules/uilab/js/src/tooltip';
 import Pagination from 'dna-container/Pagination';
 import DeployModal from '../deployModal/DeployModal';
+import IntMigrationModal, { needsIntMigration } from '../intMigrationModal/IntMigrationModal';
 
 const BuildModal = (props) => {
   const [branches, setBranches] = useState([]);
@@ -36,6 +37,7 @@ const BuildModal = (props) => {
   const [showDeployCodeSpaceModal, setShowDeployCodeSpaceModal] = useState(false);
   const [buildDetails, setBuildDetails] = useState('');
   const [retainBuildImage, setRetainBuildImage] = useState(false);
+  const [showIntMigrationModal, setShowIntMigrationModal] = useState(false);
 
   const projectDetails = props.codeSpaceData?.projectDetails;
   // const intDeploymentMigrated = props.codeSpaceData?.projectDetails?.intDeploymentDetails?.deploymentUrl?.includes(Envs.CODESPACE_AWS_POPUP_URL);
@@ -466,7 +468,11 @@ const BuildModal = (props) => {
                                     onClick={() => {
                                       item.environment = buildEnvironment;
                                       setBuildDetails(item);
-                                      setShowDeployCodeSpaceModal(true);
+                                      if (buildEnvironment === 'staging' && needsIntMigration(props.codeSpaceData)) {
+                                        setShowIntMigrationModal(true);
+                                      } else {
+                                        setShowDeployCodeSpaceModal(true);
+                                      }
                                     }}
                                   >
                                     <i className="icon mbc-icon deploy" />
@@ -517,6 +523,61 @@ const BuildModal = (props) => {
               startWithFive={true}
             />
           ) : null}
+          {showIntMigrationModal && (
+            <IntMigrationModal
+              show={showIntMigrationModal}
+              codeSpaceData={props.codeSpaceData}
+              onDismiss={() => {
+                setShowIntMigrationModal(false);
+                const deployRequest = {
+                  targetEnvironment: 'int',
+                  branch: buildDetails.branch,
+                  version: buildDetails.version || '',
+                  keepBuildImage: false,
+                };
+                
+                const projectName = props.codeSpaceData?.projectDetails?.projectName;
+                if (projectName) {
+                  localStorage.setItem('intMigrationDismissed_' + projectName, 'true');
+                }
+                
+                ProgressIndicator.show();
+                CodeSpaceApiClient.deployCodeSpace(props.codeSpaceData.id, deployRequest)
+                  .then((res) => {
+                    if (res.data.success === 'SUCCESS') {
+                      ProgressIndicator.hide();
+                      props.setCodeDeploying(true);
+                      Notification.show(
+                        `Code space '${projectName}' deployment successfully started.`
+                      );
+                      
+                      if (props.startDeploymentStatusListener) {
+                        props.startDeploymentStatusListener(
+                          projectName,
+                          deployRequest.targetEnvironment,
+                          props.onDeploymentStatusUpdate,
+                          props.onDeploymentComplete,
+                          props.onDeploymentSSEError
+                        );
+                      }
+                    } else {
+                      ProgressIndicator.hide();
+                      Notification.show(
+                        'Error in deploying code space. Please try again later.\\n' + res.data.errors[0].message,
+                        'alert'
+                      );
+                    }
+                  })
+                  .catch((err) => {
+                    ProgressIndicator.hide();
+                    Notification.show(
+                      'Error in deploying. Please try again later.\\n' + err?.response?.data?.errors[0]?.message,
+                      'alert'
+                    );
+                  });
+              }}
+            />
+          )}
           {showDeployCodeSpaceModal && (
             <DeployModal
               userInfo={props.userInfo}
@@ -527,6 +588,11 @@ const BuildModal = (props) => {
               setCodeDeploying={props.setCodeDeploying}
               setIsApiCallTakeTime={props.setIsApiCallTakeTime}
               buildDetails={buildDetails}
+              skipIntMigrationCheck={true}
+              startDeploymentStatusListener={props.startDeploymentStatusListener}
+              onDeploymentStatusUpdate={props.onDeploymentStatusUpdate}
+              onDeploymentComplete={props.onDeploymentComplete}
+              onDeploymentSSEError={props.onDeploymentSSEError}
             />
           )}
         </>

@@ -221,16 +221,15 @@ const FabricWorkspaceCard = ({user, workspace, onSelectWorkspace, onEditWorkspac
             <div>{workspace?.dataClassification || 'N/A'}</div>
           </div>
           <div>
-            <div>Report</div>
-            <div>
+            <div className="report-links">
               <a
                 href={`${Envs.FABRIC_REPORT_URL}%27${encodeURIComponent(workspace?.name)}%27`}
                 target="_blank"
                 rel="noopener noreferrer"
               >
                 Consumption
-                <i className={classNames('icon mbc-icon new-tab')} />
-              </a>
+                <i className={classNames('icon mbc-icon new-tab')} />|&nbsp;&nbsp;
+              </a> 
               {(isAdmin || isOwner) && (
                 <a
                   href={`${Envs.FABRIC_ACTIVITY_REPORT_URL}'${encodeURIComponent(workspace?.name)}'`}
@@ -238,9 +237,17 @@ const FabricWorkspaceCard = ({user, workspace, onSelectWorkspace, onEditWorkspac
                   rel="noopener noreferrer"
                 >
                   Activity
-                  <i className={classNames('icon mbc-icon new-tab')} />
-                </a>
+                  <i className={classNames('icon mbc-icon new-tab')} />|&nbsp;&nbsp;
+                </a> 
               )}
+                <a
+                  href={`${Envs.TICKET_SUPPORT_URL}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Support
+                  <i className={classNames('icon mbc-icon new-tab')} />
+                </a>          
             </div>
           </div>
         </div>
