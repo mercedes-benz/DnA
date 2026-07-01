@@ -115,6 +115,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.daimler.data.service.tag.TagService;
 import com.daimler.data.db.repo.adaProjects.ADAProjectsCustomRepository;
 import com.daimler.data.db.repo.adaProjects.ADAProjectsCustomRepositoryImpl;
+import com.daimler.data.application.client.PlanningITClient;
+import com.daimler.data.dto.planningit.PlanningITApiItemVO;
+import com.daimler.data.dto.fabricWorkspace.LeanIXDetailsVO;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -167,6 +170,9 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 
 	@Autowired
 	private ADAProjectsCustomRepository adaProjectsRepo;
+
+	@Autowired
+	private PlanningITClient planningITClient;
 
 
 	@Value("${fabricWorkspaces.powerbiCapacityId}")
@@ -526,6 +532,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		GenericMessage responseMessage = new GenericMessage();
 		List<MessageDescription> errors = new ArrayList<>();
 		List<MessageDescription> warnings = new ArrayList<>();
+		populateLeanIXDetailsFromProject(vo);
 		CreateWorkspaceDto createRequest = new CreateWorkspaceDto();
 		createRequest.setDescription(vo.getDescription());
 		createRequest.setDisplayName(vo.getName());
@@ -1736,6 +1743,44 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 					tagService.create(newTagVO);
 				}
 			});
+		}
+	}
+
+	@Override
+	public void populateLeanIXDetailsFromProject(FabricWorkspaceVO workspace) {
+		String projectId = workspace.getProjectId();
+		if (projectId == null || projectId.isBlank()) {
+			return;
+		}
+		ADAProjectsNsql adaProject = adaProjectsRepo.findbyUniqueLiteral("projectID", projectId);
+		if (adaProject == null || adaProject.getData() == null) {
+			log.warn("ADA project not found for projectId {}, skipping leanIX population", projectId);
+			return;
+		}
+		String leanIXId = adaProject.getData().getLeanIX();
+		if (leanIXId == null || leanIXId.isBlank()) {
+			log.info("No leanIX value on project {}, skipping leanIX population", projectId);
+			return;
+		}
+		List<PlanningITApiItemVO> planningITItems = planningITClient.searchPlanningIT(leanIXId);
+		if (planningITItems != null && !planningITItems.isEmpty()) {
+			PlanningITApiItemVO matched = planningITItems.stream()
+					.filter(item -> leanIXId.equalsIgnoreCase(item.getId()))
+					.findFirst()
+					.orElse(planningITItems.get(0));
+			workspace.setAppId(matched.getId());
+			LeanIXDetailsVO details = new LeanIXDetailsVO();
+			details.setAppReferenceStr(matched.getAppReferenceStr());
+			details.setName(matched.getName());
+			details.setShortName(matched.getShortName());
+			details.setObjectState(matched.getObjectState());
+			details.setProviderOrgRefstr(matched.getProviderOrgRefstr());
+			details.setProviderOrgId(matched.getProviderOrgId());
+			details.setProviderOrgShortname(matched.getProviderOrgShortname());
+			details.setProviderOrgDeptid(matched.getProviderOrgDeptid());
+			workspace.setLeanIXDetails(details);
+		} else {
+			log.warn("No PlanningIT entry found for leanIX id {}", leanIXId);
 		}
 	}
 

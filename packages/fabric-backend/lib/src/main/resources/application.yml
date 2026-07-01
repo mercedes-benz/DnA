@@ -154,6 +154,10 @@ cdcIntegration:
       baseUrl: ${FABRIC_CDC_PUSH_SERVICE_BASE_URL:XXXX}
       authToken: ${FABRIC_CDC_PUSH_SERVICE_AUTH_TOKEN:XXXX}
 
+dataProduct:
+  planningit:
+    baseUrl: ${DATA_PRODUCT_PLANNINGIT_BASE_URL:XXXX}
+
 ddxIntegration:
   fabricDdxPush:
     baseUrl: ${FABRIC_DDX_PUSH_SERVICE_BASE_URL:XXXX}
