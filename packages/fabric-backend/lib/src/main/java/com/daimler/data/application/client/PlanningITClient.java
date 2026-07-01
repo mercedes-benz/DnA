@@ -37,9 +37,9 @@ public class PlanningITClient {
         try {
             HttpHeaders headers = new HttpHeaders();
             headers.set("Accept", "application/json");
-            String authHeader = httpRequest.getHeader("Authorization");
-            if (authHeader != null && !authHeader.isBlank()) {
-                headers.set("Authorization", authHeader);
+            String userinfo = httpRequest.getHeader("dna-request-userdetails");
+            if (userinfo != null && !userinfo.isBlank()) {
+                headers.set("dna-request-userdetails", userinfo);
             }
             HttpEntity<String> requestEntity = new HttpEntity<>(headers);
 
