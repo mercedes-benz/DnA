@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
@@ -37,6 +38,7 @@ public class PlanningITClient {
         try {
             HttpHeaders headers = new HttpHeaders();
             headers.set("Accept", "application/json");
+            headers.setContentType(MediaType.APPLICATION_JSON);
             String userinfo = httpRequest.getHeader("dna-request-userdetails");
             if (userinfo != null && !userinfo.isBlank()) {
                 headers.set("dna-request-userdetails", userinfo);
