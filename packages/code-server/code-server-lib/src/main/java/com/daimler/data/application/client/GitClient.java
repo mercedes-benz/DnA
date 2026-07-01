@@ -297,15 +297,25 @@ public class GitClient {
 
 	public HttpStatus validateGitUserWithPid(String gitBaseUrl, String repoName, String applicationName, String pid, String pat) {
     try {
-        if (!gitBaseUrl.endsWith("/")) {
-            gitBaseUrl += "/";
-        }
+        gitBaseUrl = gitBaseUrl.trim();
+		if (!gitBaseUrl.endsWith("/")) {
+			gitBaseUrl += "/";
+		}
 
         HttpHeaders headers = new HttpHeaders();
         headers.set("Accept", "application/vnd.github+json");
         headers.set("Content-Type", "application/json");
         headers.set("Authorization", "Bearer " + pat);
 
+		String addUrl = gitBaseUrl + "api/v3/repos/" + applicationName + "/" + repoName + "/collaborators/" + pid;
+		try {
+			HttpEntity<String> addEntity = new HttpEntity<>("{\"permission\":\"admin\"}", headers);
+			restTemplate.exchange(addUrl, HttpMethod.PUT, addEntity, String.class);
+			log.info("PID {} added as collaborator to {}/{}", pid, applicationName, repoName);
+		} catch (Exception ex) {
+			log.warn("Could not add PID {} to {}/{}: {}", pid, applicationName, repoName, ex.getMessage());
+		}
+		
         String url = gitBaseUrl
                 + "api/v3/repos/"
                 + applicationName + "/"
