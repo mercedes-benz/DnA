@@ -2,7 +2,8 @@ package com.daimler.data.application.client;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Objects;
+
+import javax.servlet.http.HttpServletRequest;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -30,18 +31,16 @@ public class PlanningITClient {
     private RestTemplate restTemplate;
 
     @Autowired
-    private AuthoriserClient authoriserClient;
+    private HttpServletRequest httpRequest;
 
     public List<PlanningITApiItemVO> searchPlanningIT(String searchTerm) {
         try {
-            String token = authoriserClient.getToken();
-            if (!Objects.nonNull(token)) {
-                log.error("Failed to fetch token to invoke planningit API");
-                return Collections.emptyList();
-            }
             HttpHeaders headers = new HttpHeaders();
             headers.set("Accept", "application/json");
-            headers.set("Authorization", "Bearer " + token);
+            String userinfo = httpRequest.getHeader("dna-request-userdetails");
+            if (userinfo != null && !userinfo.isBlank()) {
+                headers.set("dna-request-userdetails", userinfo);
+            }
             HttpEntity<String> requestEntity = new HttpEntity<>(headers);
 
             String url = UriComponentsBuilder.fromHttpUrl(planningItBaseUrl)
