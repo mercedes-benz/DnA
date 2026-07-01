@@ -27,7 +27,7 @@ public class PlanningITClient {
     private String planningItBaseUrl;
 
     @Autowired
-    private RestTemplate proxyRestTemplate;
+    private RestTemplate restTemplate;
 
     @Autowired
     private AuthoriserClient authoriserClient;
@@ -48,7 +48,7 @@ public class PlanningITClient {
                     .queryParam("searchTerm", searchTerm)
                     .toUriString();
 
-            ResponseEntity<PlanningITApiResponseVO> response = proxyRestTemplate.exchange(
+            ResponseEntity<PlanningITApiResponseVO> response = restTemplate.exchange(
                     url, HttpMethod.GET, requestEntity, PlanningITApiResponseVO.class);
 
             if (response.getStatusCode().is2xxSuccessful() && response.hasBody()
