@@ -1,6 +1,7 @@
 package com.daimler.data.dto.fabric;
 
 import java.io.Serializable;
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
@@ -24,4 +25,5 @@ public class CreateEntitlementRequestDto implements Serializable{
     private boolean dataClassificationInherited;
     private boolean connectivity;
     private boolean mapAsEidGroup;
+    private List<AccountTypeDto> accountTypes;
 }

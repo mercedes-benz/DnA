@@ -153,36 +153,36 @@ public class WebConfig implements WebMvcConfigurer {
                 .addPathPatterns("/api/**"); // Apply to all API endpoints
     }
 
-	@PostConstruct
-    public void setGlobalProxy() {
-        List<String> bypassList = new ArrayList<>();
-        if (noProxyHosts != null && !noProxyHosts.isBlank()) {
-            Arrays.stream(noProxyHosts.split(","))
-                    .map(String::trim)
-                    .filter(s -> !s.isEmpty())
-                    .forEach(bypassList::add);
-        }
+	// @PostConstruct
+    // public void setGlobalProxy() {
+    //     List<String> bypassList = new ArrayList<>();
+    //     if (noProxyHosts != null && !noProxyHosts.isBlank()) {
+    //         Arrays.stream(noProxyHosts.split(","))
+    //                 .map(String::trim)
+    //                 .filter(s -> !s.isEmpty())
+    //                 .forEach(bypassList::add);
+    //     }
  
-        Proxy httpProxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyHost, proxyPort));
+    //     Proxy httpProxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyHost, proxyPort));
  
-        ProxySelector.setDefault(new ProxySelector() {
-            @Override
-            public List<Proxy> select(URI uri) {
-                String host = uri.getHost() != null ? uri.getHost() : "";
-                for (String bypass : bypassList) {
-                    if (host.contains(bypass)) {
-                        return List.of(Proxy.NO_PROXY);
-                    }
-                }
-                return List.of(httpProxy);
-            }
+    //     ProxySelector.setDefault(new ProxySelector() {
+    //         @Override
+    //         public List<Proxy> select(URI uri) {
+    //             String host = uri.getHost() != null ? uri.getHost() : "";
+    //             for (String bypass : bypassList) {
+    //                 if (host.contains(bypass)) {
+    //                     return List.of(Proxy.NO_PROXY);
+    //                 }
+    //             }
+    //             return List.of(httpProxy);
+    //         }
  
-            @Override
-            public void connectFailed(URI uri, SocketAddress sa, IOException ioe) {
-                // intentionally left blank
-            }
-        });
-	}
+    //         @Override
+    //         public void connectFailed(URI uri, SocketAddress sa, IOException ioe) {
+    //             // intentionally left blank
+    //         }
+    //     });
+	// }
 
 
 }
