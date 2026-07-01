@@ -707,8 +707,14 @@ public class ArgoCdService {
             }
 
             if ("Degraded".equalsIgnoreCase(healthStatus)) {
-                log.info("Application {} is degraded - DEPLOYMENT_FAILED", appName);
-                return "DEPLOYMENT_FAILED";
+                // Degraded is only a definitive failure if the sync has already completed successfully.
+                // During active deployment, Degraded is often transient (image pull, readiness probe warmup).
+                if ("Succeeded".equalsIgnoreCase(lastSyncPhase)) {
+                    log.info("Application {} is degraded after sync succeeded - DEPLOYMENT_FAILED", appName);
+                    return "DEPLOYMENT_FAILED";
+                }
+                log.info("Application {} is degraded but sync not yet succeeded (syncPhase={}) - treating as DEPLOYING", appName, lastSyncPhase);
+                return "DEPLOYING";
             }
 
             if ("Running".equalsIgnoreCase(lastSyncPhase)) {
@@ -723,7 +729,11 @@ public class ArgoCdService {
             }
 
             if ("Healthy".equalsIgnoreCase(healthStatus)) {
-                log.info("Application {} is healthy - DEPLOYED", appName);
+                if (!isDesiredImageDeployed(rootNode, appName)) {
+                    log.info("Application {} is healthy but running stale image (new sync not started yet) - DEPLOYING", appName);
+                    return "DEPLOYING";
+                }
+                log.info("Application {} is healthy with correct image - DEPLOYED", appName);
                 return "DEPLOYED";
             }
 
@@ -767,9 +777,16 @@ public class ArgoCdService {
                 return result;
             }
             if ("Degraded".equalsIgnoreCase(healthStatus)) {
-                result.put("status", "DEPLOYMENT_FAILED");
-                result.put("errorMessage", operationMessage != null && !operationMessage.isEmpty()
-                    ? operationMessage : "Application health is Degraded. Check pod logs for details.");
+                // Degraded is only a definitive failure if the sync has already completed successfully.
+                // During active deployment, Degraded is often transient (image pull, readiness probe warmup).
+                if ("Succeeded".equalsIgnoreCase(lastSyncPhase)) {
+                    result.put("status", "DEPLOYMENT_FAILED");
+                    result.put("errorMessage", operationMessage != null && !operationMessage.isEmpty()
+                        ? operationMessage : "Application health is Degraded. Check pod logs for details.");
+                    return result;
+                }
+                // Sync hasn't completed — treat as still deploying
+                result.put("status", "DEPLOYING");
                 return result;
             }
             if ("Running".equalsIgnoreCase(lastSyncPhase)) {
@@ -781,6 +798,11 @@ public class ArgoCdService {
                 return result; 
             }
             if ("Healthy".equalsIgnoreCase(healthStatus)) {
+                if (!isDesiredImageDeployed(rootNode, appName)) {
+                    log.info("Application {} is healthy but running stale image (new sync not started yet) - DEPLOYING", appName);
+                    result.put("status", "DEPLOYING");
+                    return result;
+                }
                 result.put("status", "DEPLOYED");
                 return result;
             }
@@ -789,6 +811,70 @@ public class ArgoCdService {
             log.error("Failed to check ArgoCD deployment status for {}", appName, e);
             return result;
         }
+    }
+
+    /**
+     * Checks whether the image tag currently running in ArgoCD matches the desired
+     * image tag from the app spec. Returns false (stale) when ArgoCD still serves
+     * a previously-deployed image because the new sync hasn't started yet.
+     *
+     * Extracts the desired tag from spec.source.helm.parameters (image.tag) and
+     * compares it against the list of actually-running images in
+     * status.summary.images. If either field is missing, returns true (optimistic)
+     * to avoid blocking deployments when ArgoCD omits the data.
+     */
+    public boolean isDesiredImageDeployed(JsonNode rootNode, String appName) {
+        try {
+            String desiredTag = getDesiredImageTag(rootNode);
+            if (desiredTag == null || desiredTag.isEmpty()) {
+                log.debug("No desired image.tag found in spec for {} - skipping image validation", appName);
+                return true;
+            }
+
+            List<String> runningImages = getRunningImages(rootNode);
+            if (runningImages.isEmpty()) {
+                log.debug("No running images found in status.summary for {} - skipping image validation", appName);
+                return true;
+            }
+
+            boolean matched = runningImages.stream()
+                    .anyMatch(img -> img.contains(":" + desiredTag));
+            log.info("Image validation for {}: desired tag={}, running images={}, matched={}",
+                    appName, desiredTag, runningImages, matched);
+            return matched;
+        } catch (Exception e) {
+            log.warn("Image validation failed for {} - allowing status through: {}", appName, e.getMessage());
+            return true;
+        }
+    }
+
+    /**
+     * Extracts the desired image.tag from the ArgoCD app spec's Helm parameters.
+     */
+    private String getDesiredImageTag(JsonNode rootNode) {
+        JsonNode parameters = rootNode.path("spec").path("source").path("helm").path("parameters");
+        if (parameters.isArray()) {
+            for (JsonNode param : parameters) {
+                if ("image.tag".equals(param.path("name").asText(""))) {
+                    return param.path("value").asText("");
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Extracts the list of currently-running container images from ArgoCD status.
+     */
+    private List<String> getRunningImages(JsonNode rootNode) {
+        List<String> images = new ArrayList<>();
+        JsonNode imagesNode = rootNode.path("status").path("summary").path("images");
+        if (imagesNode.isArray()) {
+            for (JsonNode img : imagesNode) {
+                images.add(img.asText(""));
+            }
+        }
+        return images;
     }
 
     private String getNamespaceForEnvironment(String clusterEnv, String targetEnv) {
