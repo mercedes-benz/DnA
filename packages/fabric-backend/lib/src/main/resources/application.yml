@@ -154,7 +154,7 @@ cdcIntegration:
 
 dataProduct:
   planningit:
-    baseUrl: ${DATA_PRODUCT_PLANNINGIT_BASE_URL:XXXX}
+    baseUrl: ${DATA_PRODUCT_PLANNINGIT_BASE_URL:http://data-product-be.test-dna-data-product.svc.cluster.local:80/api/planningit}
 
 ddxIntegration:
   fabricDdxPush:
