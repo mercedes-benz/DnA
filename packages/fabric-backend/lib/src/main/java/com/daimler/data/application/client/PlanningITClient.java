@@ -3,12 +3,13 @@ package com.daimler.data.application.client;
 import java.util.Collections;
 import java.util.List;
 
+import javax.servlet.http.HttpServletRequest;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
@@ -29,11 +30,17 @@ public class PlanningITClient {
     @Autowired
     private RestTemplate restTemplate;
 
+    @Autowired
+    private HttpServletRequest httpRequest;
+
     public List<PlanningITApiItemVO> searchPlanningIT(String searchTerm) {
         try {
             HttpHeaders headers = new HttpHeaders();
             headers.set("Accept", "application/json");
-            headers.setContentType(MediaType.APPLICATION_JSON);
+            String authHeader = httpRequest.getHeader("Authorization");
+            if (authHeader != null && !authHeader.isBlank()) {
+                headers.set("Authorization", authHeader);
+            }
             HttpEntity<String> requestEntity = new HttpEntity<>(headers);
 
             String url = UriComponentsBuilder.fromHttpUrl(planningItBaseUrl)
