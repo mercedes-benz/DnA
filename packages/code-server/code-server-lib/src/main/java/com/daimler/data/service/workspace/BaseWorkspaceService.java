@@ -5871,7 +5871,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 			if(dto.getGitjobRunId() == null || dto.getGitjobRunId().isBlank()) {
 				log.info("getGitRunIdStatus - GitJobRunId NOT generated yet for project={}, currentStatus={}, lastBuildOrDeployedOn={}, staleThreshold={}min",
 					projectName, currentStatus, dto.getLastBuildOrDeployedOn(), staleThresholdMinutes);
-				// Check if the request has been waiting too long without generating a run ID
+				// Check if the build request has been waiting too long without generating a run ID
 				if (dto.getLastBuildOrDeployedOn() != null) {
 					long minutesSinceRequest = Duration.between(
 						dto.getLastBuildOrDeployedOn().toInstant(), Instant.now()
