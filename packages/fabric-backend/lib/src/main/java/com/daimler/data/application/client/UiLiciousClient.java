@@ -212,7 +212,7 @@ public class UiLiciousClient {
 
     public Map<String, String> createMirroredCatalog(String dataProductName, String catalogName,
             String schemaName, String ddxGroup, String connectionName,
-            String workspaceId, String workspaceName, String storageAccountUrl,
+            String workspaceId, String workspaceName, String networkConnectionName,
             List<String> objects, boolean isNewCatalog) {
 
         log.info("Calling Uilicious for mirrored catalog: catalog={}, group={}, isNew={}", catalogName, ddxGroup, isNewCatalog);
@@ -229,8 +229,7 @@ public class UiLiciousClient {
         dataMap.put("connectionName", connectionName);
         dataMap.put("WorkspaceID_MirrorCreation", workspaceId);
         dataMap.put("WorkspaceName", workspaceName);
-        // dataMap.put("network_connectionName", storageAccountUrl);
-        dataMap.put("network_connectionName", "ADA_ADLS_WorkspaceIdentity2");//hardcoded need discussion on this.
+        dataMap.put("network_connectionName", networkConnectionName);
         dataMap.put("tables", objects);
 
         String data;

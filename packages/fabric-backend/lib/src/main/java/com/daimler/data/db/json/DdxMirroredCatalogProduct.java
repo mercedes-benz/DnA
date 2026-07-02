@@ -24,6 +24,8 @@ public class DdxMirroredCatalogProduct implements Serializable {
     private Boolean fullSchema;
     private List<MirroredObjectDetail> objects;
     private String storageAccountUrl;
+    private String networkConnectionName;
+    private String networkConnectionId;
     private String ddxCorrelationId;
     private String ddxGroupPermission;
     private String workspaceId;
