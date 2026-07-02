@@ -75,4 +75,24 @@ public class DdxMirroredCatalogProductCustomRepositoryImpl
             return Collections.emptyList();
         }
     }
+
+    @Override
+    public Optional<DdxMirroredCatalogProductNsql> findByStorageAccountUrl(String storageAccountUrl) {
+        String sql = "SELECT * FROM ddx_mirrored_catalog_product_nsql" +
+                     " WHERE data ->> 'storageAccountUrl' = :storageAccountUrl";
+        try {
+            DdxMirroredCatalogProductNsql result = (DdxMirroredCatalogProductNsql) em
+                .createNativeQuery(sql, DdxMirroredCatalogProductNsql.class)
+                .setParameter("storageAccountUrl", storageAccountUrl)
+                .getSingleResult();
+            return Optional.ofNullable(result);
+        } catch (Exception e) {
+            if (e instanceof NoResultException) {
+                log.debug("No result found for storageAccountUrl: {}", storageAccountUrl);
+            } else {
+                log.error("Error fetching by storageAccountUrl: {}", storageAccountUrl, e);
+            }
+            return Optional.empty();
+        }
+    }
 }

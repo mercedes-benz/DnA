@@ -47,6 +47,7 @@ import com.daimler.data.service.common.BaseCommonService;
 import com.daimler.data.util.ConstantsUtility;
 import com.daimler.data.util.OpenMetadataFqnBuilder;
 import com.daimler.data.util.Validator;
+import com.daimler.data.dto.fabric.NetworkConnectionResponseDto;
 
 import lombok.val;
 import lombok.extern.slf4j.Slf4j;
@@ -1143,6 +1144,8 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
         data.setInitiatedOn(new Date());
         data.setMirrorCatalogDetails(mirrorCatalogDetails);
         data.setDdxGroupDetails(new ArrayList<>(Collections.singletonList(firstGroupDetail)));
+        data.setNetworkConnectionName(uiliciousResponse.get("networkConnectionName"));
+        data.setNetworkConnectionId(uiliciousResponse.get("networkConnectionId"));
 
         DdxMirroredCatalogProductNsql entity = new DdxMirroredCatalogProductNsql();
         entity.setId(UUID.randomUUID().toString());
@@ -1203,11 +1206,6 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
             throw new RuntimeException("UiLicious work is in progress for Mirror Catalog " + dataProductName);
         }
         data.setStatus(resUilicious.get("catalogStatus").equalsIgnoreCase("success") ? ConstantsUtility.SUCCESS_STATE : ConstantsUtility.INPROGRESS_STATE);
-
-        // DdxGroupDetail groupDetail = data.getDdxGroupDetails().get(0);
-        // groupDetail.setGroupAddedStatus(resUilicious.get("Group").equalsIgnoreCase("success") ? ConstantsUtility.SUCCESS_STATE : ConstantsUtility.INPROGRESS_STATE);
-        // groupDetail.setUpdatedOn(new Date());
-        // groupDetail.setGrantPermissionStatus(resUilicious.get("Permissions").equalsIgnoreCase("success") ? ConstantsUtility.SUCCESS_STATE : ConstantsUtility.INPROGRESS_STATE);
 
         MirroredCatalogDetail catalogDetail = data.getMirrorCatalogDetails();
         catalogDetail.setCatalogStatus(resUilicious.get("catalogStatus").equalsIgnoreCase("success") ? ConstantsUtility.SUCCESS_STATE : ConstantsUtility.INPROGRESS_STATE);
@@ -1334,7 +1332,29 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
             objects = new ArrayList<>(request.getObjects().keySet());
         }
         //need to add network connection name here.
-        return uiLiciousClient.createMirroredCatalog(
+        String networkConnectionName = null;
+        String networkConnectionId = null;
+        Optional<DdxMirroredCatalogProductNsql> existingOpt = mirroredCatalogCustomRepo.findByStorageAccountUrl(request.getStorageAccountUrl());
+        if(existingOpt.isPresent()){
+            log.info("Storage account URL {} already exists in the system, proceeding with existing connection", request.getStorageAccountUrl());
+            networkConnectionName = existingOpt.get().getData().getNetworkConnectionName();
+        } else {
+            log.info("Storage account URL {} does not exist in the system, proceeding to create a new connection", request.getStorageAccountUrl());
+            //create new connection here and get the connection name and id.
+            NetworkConnectionResponseDto networkConnectionDetails = fabricWorkspaceClient.createNetworkConnectionName(request.getStorageAccountUrl());
+            networkConnectionName = networkConnectionDetails.getDisplayName();
+            networkConnectionId = networkConnectionDetails.getId();
+
+            log.info("Created network connection with name: {} and id: {}", networkConnectionName, networkConnectionId);
+
+            //grant permission to the network connection for the central account.
+            boolean flag =fabricWorkspaceClient.grantPermissionToNetworkConnection(networkConnectionId);
+            if (!flag) {
+                networkConnectionName = "ADA_ADLS_WorkspaceIdentity2";
+            }
+        }
+
+        Map<String, String> response = uiLiciousClient.createMirroredCatalog(
                 request.getDataProductName(),
                 request.getCatalogName(),
                 request.getSchemaName(),
@@ -1342,9 +1362,13 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
                 centralConnectionName,
                 centralWorkspaceId,
                 centralWorkspaceName,
-                request.getStorageAccountUrl(),//put the network connection name here when it's ready.
+                networkConnectionName,//put the network connection name here when it's ready.
                 objects,
                 isNewCatalog);
+        
+        response.put("networkConnectionName", networkConnectionName);
+        response.put("networkConnectionId", networkConnectionId);
+        return response;
     }
 
     private String deriveOverallStatus(DdxMirroredCatalogProduct data) {

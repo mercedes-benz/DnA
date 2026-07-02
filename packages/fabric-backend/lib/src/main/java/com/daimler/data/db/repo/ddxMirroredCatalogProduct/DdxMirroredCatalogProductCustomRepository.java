@@ -13,4 +13,6 @@ public interface DdxMirroredCatalogProductCustomRepository extends CommonDataRep
     Optional<DdxMirroredCatalogProductNsql> findByCorrelationId(String ddxCorrelationId);
 
     List<DdxMirroredCatalogProductNsql> findByMirroredCatalogId(String mirroredCatalogId);
+
+    Optional<DdxMirroredCatalogProductNsql> findByStorageAccountUrl(String storageAccountUrl);
 }

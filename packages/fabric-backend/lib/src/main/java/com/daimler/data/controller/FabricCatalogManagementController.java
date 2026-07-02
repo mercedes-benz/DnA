@@ -6,6 +6,7 @@ import java.util.Collections;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
+import javax.ws.rs.ForbiddenException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -719,21 +720,21 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
 
             MirroredCatalogResponseVO response = service.createMirroredCatalog(createMirroredCatalogRequest);
             return new ResponseEntity<>(response, HttpStatus.OK);
-        } catch (MirroredCatalogException e) {
-            log.error("Mirrored catalog error: {}", e.getMessage());
+        } catch (ForbiddenException e) {
+            log.error("Error creating mirrored catalog: {}", e.getMessage(), e);
             MirroredCatalogErrorResponseVO errorResponse = new MirroredCatalogErrorResponseVO();
-            errorResponse.setDdxCorrelationId(e.getDdxCorrelationId());
+            errorResponse.setDdxCorrelationId(createMirroredCatalogRequest.getDdxCorrelationId());
             errorResponse.setStatus("error");
-            errorResponse.setErrorCode(MirroredCatalogErrorResponseVO.ErrorCodeEnum.fromValue(e.getErrorCode()));
+            errorResponse.setErrorCode(MirroredCatalogErrorResponseVO.ErrorCodeEnum.STORAGE_ACCESS_DENIED);
             errorResponse.setMessage(e.getMessage());
-            return new ResponseEntity<>(errorResponse, e.getHttpStatus());
+            return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
         } catch (Exception e) {
             log.error("Error creating mirrored catalog: {}", e.getMessage(), e);
             MirroredCatalogErrorResponseVO errorResponse = new MirroredCatalogErrorResponseVO();
             errorResponse.setDdxCorrelationId(createMirroredCatalogRequest.getDdxCorrelationId());
             errorResponse.setStatus("error");
             errorResponse.setErrorCode(MirroredCatalogErrorResponseVO.ErrorCodeEnum.INTERNAL_ERROR);
-            errorResponse.setMessage("Unexpected error during mirrored catalog provisioning");
+            errorResponse.setMessage(e.getMessage());
             return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }

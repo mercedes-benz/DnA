@@ -70,6 +70,7 @@ fabricWorkspaces:
   gateway.encryption.publickey.exponent: ${FABRIC_ENCRYPTION_PUBLICKEY_EXPONENT:XXXX}
   allowed.divisions.fabric.enabled: ${FABRIC_ENABLED_ENTITLEMENT:XXXX}
   userRemoval.ignorePatterns: ${FABRIC_USERREMOVAL_IGNORE_PATTERNS:XXXX}
+  servicePrincipleObjectId: ${FABRIC_SERVICE_PRINCIPLE_OBJECT_ID:XXXX}
   datasource:
     credentialType: ${FABRIC_DS_CREDENTIALTYPE:Basic}
     encryptedConnection: ${FABRIC_DS_ENCRYPTEDCONN:Any}
@@ -91,6 +92,7 @@ fabricWorkspaces:
     datasourceUrl: ${FABRIC_CREATEDATASOURCE_URL:https://api.powerbi.com/v1.0/myorg/gateways/id/datasources}
     datasourceUserUrl: ${FABRIC_DATASOURCE_ADDUSER_URL:https://api.powerbi.com/v1.0/myorg/gateways/id/datasources/connectionid/users}
     shortcutUrl: ${FABRIC_SHORTCUT_URL:https://api.fabric.microsoft.com/v1/workspaces/id/items/lakehouseid/shortcuts}
+    fabricBaseUrl: ${FABRIC_BASE_URL:https://api.fabric.microsoft.com/v1}
   technicalUser:
     id: ${AUTHORISER_TECH_USER_ID:XXXX}
   ada:
