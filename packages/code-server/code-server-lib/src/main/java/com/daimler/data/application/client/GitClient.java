@@ -767,10 +767,10 @@ public class GitClient {
 			return response.getBody();
 
 		} catch (HttpStatusCodeException ex) {
-			log.error("GitHub API error {} for runId {} (useGHE={})", ex.getStatusCode(), runId, useGHE);
+			log.error("GitHub API error {} for runId {}", ex.getStatusCode(), runId);
 			return null;
 		} catch (Exception ex) {
-			log.error("Unexpected error while calling GitHub (useGHE={})", useGHE, ex);
+			log.error("Unexpected error while calling GitHub", ex);
 			return null;
 		}
 	}
