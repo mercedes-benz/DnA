@@ -7,7 +7,6 @@ import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.locks.ReentrantLock;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -70,12 +69,6 @@ public class ArgoCdService {
     @Autowired
     private RestTemplate restTemplate;
 
-    private volatile String cachedArgoToken;
-    private volatile long cachedArgoTokenExpiresAt;
-    private static final long ARGO_TOKEN_REFRESH_BUFFER_MS = 5 * 60 * 1000L; // refresh 5 min before expiry
-    private static final long ARGO_TOKEN_FALLBACK_TTL_MS = 23 * 60 * 60 * 1000L; // fallback if exp claim missing
-    private final ReentrantLock tokenLock = new ReentrantLock();
-
     public String getArgocdBaseUrl() {
         if (argocdCreateUrl != null && argocdCreateUrl.contains("/api/")) {
             return argocdCreateUrl.substring(0, argocdCreateUrl.indexOf("/api/"));
@@ -91,64 +84,28 @@ public class ArgoCdService {
         return gitPat;
     }
 
-    private long extractTokenExpiry(String token) {
-        try {
-            String[] parts = token.split("\\.");
-            if (parts.length < 2) {
-                return System.currentTimeMillis() + ARGO_TOKEN_FALLBACK_TTL_MS;
-            }
-            String payload = new String(Base64.getUrlDecoder().decode(parts[1]), StandardCharsets.UTF_8);
-            ObjectMapper mapper = new ObjectMapper();
-            JsonNode claims = mapper.readTree(payload);
-            if (claims.has("exp")) {
-                long expSeconds = claims.get("exp").asLong();
-                return (expSeconds * 1000L) - ARGO_TOKEN_REFRESH_BUFFER_MS;
-            }
-        } catch (Exception e) {
-            log.debug("Could not parse JWT exp claim, using fallback TTL: {}", e.getMessage());
-        }
-        return System.currentTimeMillis() + ARGO_TOKEN_FALLBACK_TTL_MS;
-    }
-
     public String getArgoToken() throws Exception {
-        String token = cachedArgoToken;
-        if (token != null && System.currentTimeMillis() < cachedArgoTokenExpiresAt) {
-            return token;
-        }
-        tokenLock.lock();
+        String url = argocdTokenUrl;
+        log.info("Attempting to get ArgoCD token from: {}", url);
         try {
-            // Double-check after acquiring lock
-            if (cachedArgoToken != null && System.currentTimeMillis() < cachedArgoTokenExpiresAt) {
-                return cachedArgoToken;
-            }
-            String url = argocdTokenUrl;
-            log.info("Requesting new ArgoCD token (previous expired or absent)");
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             Map<String, String> request = Map.of("username", tokenUserName, "password", tokenPassword);
             HttpEntity<Map<String, String>> entity = new HttpEntity<>(request, headers);
-
+        
             ResponseEntity<Map> response = restTemplate.postForEntity(url, entity, Map.class);
             @SuppressWarnings("unchecked")
             Map<String, Object> body = response.getBody();
-            String newToken = (String) body.get("token");
-            cachedArgoToken = newToken;
-            cachedArgoTokenExpiresAt = extractTokenExpiry(newToken);
-            long remainingSec = (cachedArgoTokenExpiresAt - System.currentTimeMillis()) / 1000;
-            log.info("Obtained ArgoCD token, cached until {}s before expiry ({}s from now)", ARGO_TOKEN_REFRESH_BUFFER_MS / 1000, remainingSec);
-            return newToken;
+            log.info("Successfully obtained ArgoCD token");
+            return (String) body.get("token");
         } catch (org.springframework.web.client.HttpClientErrorException e) {
-            cachedArgoToken = null;
             String errorMsg = "ArgoCD authentication failed (HTTP " + e.getStatusCode() + "): " + e.getResponseBodyAsString();
-            log.error("Failed to get ArgoCD token from URL: {}. Error: {}", argocdTokenUrl, errorMsg);
+            log.error("Failed to get ArgoCD token from URL: {}. Error: {}", url, errorMsg);
             throw new Exception(errorMsg);
         } catch (Exception e) {
-            cachedArgoToken = null;
-            String errorMsg = "Failed to connect to ArgoCD server at " + argocdTokenUrl + ": " + e.getMessage();
+            String errorMsg = "Failed to connect to ArgoCD server at " + url + ": " + e.getMessage();
             log.error("ArgoCD connection error: {}", errorMsg, e);
             throw new Exception(errorMsg);
-        } finally {
-            tokenLock.unlock();
         }
     }
 
@@ -707,7 +664,7 @@ public class ArgoCdService {
             log.info("ArgoCD application not found: {}", appName);
             return ResponseEntity.status(404).build();
         } catch (org.springframework.web.client.HttpClientErrorException.Forbidden e) {
-            log.debug("Permission denied accessing ArgoCD application: {} (RBAC may still be propagating)", appName);
+            log.warn("Permission denied accessing ArgoCD application: {}", appName);
             return ResponseEntity.status(403).build();
         } catch (Exception e) {
             log.error("Failed to get ArgoCD app status for {}", appName, e);
@@ -721,8 +678,8 @@ public class ArgoCdService {
             if (argoResponse == null || !argoResponse.getStatusCode().is2xxSuccessful()) {
                 int statusCode = argoResponse != null ? argoResponse.getStatusCode().value() : 0;
                 if (statusCode == 403) {
-                    log.info("ArgoCD app {} - permission denied (RBAC propagating), treating as DEPLOYING", appName);
-                    return "DEPLOYING";
+                    log.warn("ArgoCD app {} - permission denied, marking as DEPLOYMENT_FAILED", appName);
+                    return "DEPLOYMENT_FAILED";
                 }
                 if (statusCode == 404) {
                     log.warn("ArgoCD app {} - not found, marking as DEPLOYMENT_FAILED", appName);
@@ -795,14 +752,9 @@ public class ArgoCdService {
             ResponseEntity<String> argoResponse = getStatusOfArgoApp(token, appName);
             if (argoResponse == null || !argoResponse.getStatusCode().is2xxSuccessful()) {
                 int statusCode = argoResponse != null ? argoResponse.getStatusCode().value() : 0;
-                if (statusCode == 403) {
-                    log.info("ArgoCD app {} - permission denied (RBAC propagating), treating as DEPLOYING", appName);
-                    result.put("status", "DEPLOYING");
-                    return result;
-                }
-                if (statusCode == 404) {
+                if (statusCode == 403 || statusCode == 404) {
                     result.put("status", "DEPLOYMENT_FAILED");
-                    result.put("errorMessage", "ArgoCD app " + appName + " - not found (HTTP 404)");
+                    result.put("errorMessage", "ArgoCD app " + appName + " - HTTP " + statusCode);
                     return result;
                 }
                 return result;
