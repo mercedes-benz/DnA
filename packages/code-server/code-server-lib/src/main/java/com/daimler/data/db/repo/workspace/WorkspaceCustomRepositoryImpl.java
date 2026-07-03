@@ -992,14 +992,14 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 							THEN jsonb_extract_path_text(data,'projectDetails','prodBuildDetails','gitjobRunID')
 
 						WHEN jsonb_extract_path_text(data,'projectDetails','lastBuildOrDeployedStatus')
-							IN ('DEPLOY_REQUESTED','DEPLOYED','DEPLOYMENT_FAILED')
-						AND jsonb_extract_path_text(data,'projectDetails','lastBuildOrDeployedEnv') = 'int'
-							THEN jsonb_extract_path_text(data,'projectDetails','intDeploymentDetails','gitjobRunID')
+						IN ('DEPLOY_REQUESTED','DEPLOYED','DEPLOYMENT_FAILED')
+					AND jsonb_extract_path_text(data,'projectDetails','lastBuildOrDeployedEnv') = 'int'
+						THEN jsonb_extract_path_text(data,'projectDetails','intDeploymentDetails','gitjobRunID')
 
-						WHEN jsonb_extract_path_text(data,'projectDetails','lastBuildOrDeployedStatus')
-							IN ('DEPLOY_REQUESTED','DEPLOYED','DEPLOYMENT_FAILED')
-						AND jsonb_extract_path_text(data,'projectDetails','lastBuildOrDeployedEnv') = 'prod'
-							THEN jsonb_extract_path_text(data,'projectDetails','prodDeploymentDetails','gitjobRunID')
+					WHEN jsonb_extract_path_text(data,'projectDetails','lastBuildOrDeployedStatus')
+						IN ('DEPLOY_REQUESTED','DEPLOYED','DEPLOYMENT_FAILED')
+				AND jsonb_extract_path_text(data,'projectDetails','lastBuildOrDeployedEnv') = 'prod'
+						THEN jsonb_extract_path_text(data,'projectDetails','prodDeploymentDetails','gitjobRunID')
 
 						ELSE NULL
 					END AS gitJobRunId,
@@ -1217,12 +1217,6 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 			log.error("Failed while updating the Build Deploy Audit Status", e);
 			return false;
 		}
-	}
-
-	@Override
-	public void clearPersistenceContext() {
-		em.flush();
-		em.clear();
 	}
 
 }
