@@ -22,6 +22,5 @@ public class GitRunIdDetailsDto implements Serializable{
     private String projectName;
     private String owner;
     private Date lastBuildOrDeployedOn;
-    private Boolean isWorkspaceMigratedToGHE;
     
 }
