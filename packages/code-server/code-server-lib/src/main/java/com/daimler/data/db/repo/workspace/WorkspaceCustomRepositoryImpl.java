@@ -1002,9 +1002,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 						THEN jsonb_extract_path_text(data,'projectDetails','prodDeploymentDetails','gitjobRunID')
 
 						ELSE NULL
-					END AS gitJobRunId,
-
-					COALESCE((data->>'isWorkspaceMigratedToGHE')::boolean, false) AS isWorkspaceMigratedToGHE
+					END AS gitJobRunId
 
 				FROM public.workspace_nsql
 				WHERE jsonb_extract_path_text(data,'projectDetails','projectName') = CAST(? AS text)
@@ -1028,7 +1026,6 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 			dto.setProjectName((String) row[2]);
 			dto.setOwner((String) row[3]);
 			dto.setGitjobRunId((String) row[4]);
-			dto.setIsWorkspaceMigratedToGHE(row[5] != null && (Boolean) row[5]);
 
 			return dto;
 		}
