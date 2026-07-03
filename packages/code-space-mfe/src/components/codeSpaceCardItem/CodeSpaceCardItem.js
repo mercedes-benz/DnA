@@ -69,7 +69,7 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
     const intStatus = codeSpace?.projectDetails?.intDeploymentDetails?.lastDeploymentStatus;
     const prodStatus = codeSpace?.projectDetails?.prodDeploymentDetails?.lastDeploymentStatus;
 
-    const inProgressStatuses = ['DEPLOYING', 'DEPLOY_REQUESTED', 'RESTART_REQUESTED', 'BUILD_REQUESTED'];
+    const inProgressStatuses = ['DEPLOYING', 'DEPLOY_REQUESTED', 'RESTART_REQUESTED', 'BUILD_REQUESTED', 'BUILD_SUCCESS'];
     const isInProgress = inProgressStatuses.includes(topStatus) ||
       inProgressStatuses.includes(intStatus) ||
       inProgressStatuses.includes(prodStatus);
