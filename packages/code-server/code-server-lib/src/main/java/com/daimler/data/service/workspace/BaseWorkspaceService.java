@@ -5383,7 +5383,8 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 		List<MessageDescription> warnings = new ArrayList<>();
 		List<MessageDescription> errors = new ArrayList<>();
 		try {
-			CodeServerBuildDeployNsql optionalBuildDeployentity =  buildDeployCustomRepo.findByProjectName(projectName);
+			// CodeServerBuildDeployNsql optionalBuildDeployentity =  buildDeployCustomRepo.findByProjectName(projectName);
+			CodeServerBuildDeployNsql optionalBuildDeployentity = buildDeployCustomRepo.findByProjectNameIncludingDeleted(projectName);
 			CodeServerBuildDeploy data = optionalBuildDeployentity.getData();
 			 List<BuildAudit> builds = new ArrayList<>();
 			//   List<BuildAudit> newBuilds = new ArrayList<>();
