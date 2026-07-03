@@ -4,6 +4,7 @@ import Styles from './CodeSpaceCardItem.scss';
 import {
   regionalDateAndTimeConversionSolution,
   buildGitJobLogViewAWSURL,
+  buildLogViewAWSURL,
 } from '../../Utility/utils';
 import ConfirmModal from 'dna-container/ConfirmModal';
 import Modal from 'dna-container/Modal';
@@ -775,25 +776,25 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
                           </a>
                         </span>
                       )}
-                      {projectDetails?.lastBuildOrDeployedStatus === 'DEPLOYED' && (
-                        <span className={Styles.statusIndicator}>
-                          <a
-                            href={(projectDetails?.lastBuildOrDeployedEnv === 'int')
-                              ? buildGitJobLogViewAWSURL(projectDetails?.intDeploymentDetails?.gitjobRunID)
-                              : buildGitJobLogViewAWSURL(projectDetails?.prodDeploymentDetails?.gitjobRunID)
-                            }
-                            target="_blank"
-                            rel="noreferrer"
-                            className={Styles.deployedLink}
-                            tooltip-data={
-                              `Deployed to ${projectDetails?.lastBuildOrDeployedEnv === 'int' ? 'staging' : 'production'} on ` +
-                              regionalDateAndTimeConversionSolution(projectDetails?.lastBuildOrDeployedOn)
-                            }
-                          >
-                            Deployed
-                          </a>
-                        </span>
-                      )}
+                          {projectDetails?.lastBuildOrDeployedStatus === 'DEPLOYED' && (
+                            <span className={Styles.statusIndicator}>
+                              <a
+                                href={(projectDetails?.lastBuildOrDeployedEnv === 'int')
+                                  ? buildLogViewAWSURL(projectDetails?.intDeploymentDetails?.deploymentUrl || projectDetails?.projectName?.toLowerCase(), true)
+                                  : buildLogViewAWSURL(projectDetails?.prodDeploymentDetails?.deploymentUrl || projectDetails?.projectName?.toLowerCase(), false)
+                                }
+                                target="_blank"
+                                rel="noreferrer"
+                                className={Styles.deployedLink}
+                                tooltip-data={
+                                  `Deployed to ${projectDetails?.lastBuildOrDeployedEnv === 'int' ? 'staging' : 'production'} on ` +
+                                  regionalDateAndTimeConversionSolution(projectDetails?.lastBuildOrDeployedOn)
+                                }
+                              >
+                                Deployed
+                              </a>
+                            </span>
+                          )}
                       {projectDetails?.lastBuildOrDeployedStatus === 'APPROVAL_PENDING' && (
                         
                         <span className={classNames(Styles.statusIndicator, Styles.deploying)}>
@@ -875,25 +876,25 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
                           )}
                         </span>
                       )}
-                      {projectDetails?.lastBuildOrDeployedStatus === 'RESTARTED' && (
-                        <span className={Styles.statusIndicator}>
-                          <a
-                            href={(projectDetails?.lastBuildOrDeployedEnv === 'int')
-                              ? buildGitJobLogViewAWSURL(projectDetails?.intDeploymentDetails?.gitjobRunID)
-                              : buildGitJobLogViewAWSURL(projectDetails?.prodDeploymentDetails?.gitjobRunID)
-                            }
-                            target="_blank"
-                            rel="noreferrer"
-                            className={Styles.deployedLink}
-                            tooltip-data={
-                              `${projectDetails?.lastBuildOrDeployedEnv === 'int' ? 'Staging' : 'Production'} deployment restarted on ` +
-                              regionalDateAndTimeConversionSolution(projectDetails?.lastBuildOrDeployedOn)
-                            }
-                          >
-                            Restarted
-                          </a>
-                        </span>
-                      )}
+                        {projectDetails?.lastBuildOrDeployedStatus === 'RESTARTED' && (
+                          <span className={Styles.statusIndicator}>
+                            <a
+                              href={(projectDetails?.lastBuildOrDeployedEnv === 'int')
+                                ? buildLogViewAWSURL(projectDetails?.intDeploymentDetails?.deploymentUrl || projectDetails?.projectName?.toLowerCase(), true)
+                                : buildLogViewAWSURL(projectDetails?.prodDeploymentDetails?.deploymentUrl || projectDetails?.projectName?.toLowerCase(), false)
+                              }
+                              target="_blank"
+                              rel="noreferrer"
+                              className={Styles.deployedLink}
+                              tooltip-data={
+                                `${projectDetails?.lastBuildOrDeployedEnv === 'int' ? 'Staging' : 'Production'} deployment restarted on ` +
+                                regionalDateAndTimeConversionSolution(projectDetails?.lastBuildOrDeployedOn)
+                              }
+                              >
+                                Restarted
+                            </a>
+                          </span>
+                        )}
                     </>
                   ) 
                 )}
