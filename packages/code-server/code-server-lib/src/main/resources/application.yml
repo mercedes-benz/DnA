@@ -254,3 +254,6 @@ argocd:
   namespacePrefix: ${ARGOCD_NAMESPACE_PREFIX:XXXX}
   vaultAuthPath: ${ARGOCD_VAULT_AUTH_PATH:XXXX}
   vaultMountPath: ${ARGOCD_VAULT_MOUNT_PATH_SUFFIX:XXXX}
+
+deployment:
+  stuckThresholdMinutes: ${DEPLOYMENT_STUCK_THRESHOLD_MINUTES:15}
