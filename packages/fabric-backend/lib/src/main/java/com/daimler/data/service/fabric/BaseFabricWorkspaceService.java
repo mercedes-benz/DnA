@@ -1757,7 +1757,14 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 			log.warn("ADA project not found for projectId {}, skipping leanIX population", projectId);
 			return;
 		}
-		String leanIXId = adaProject.getData().getLeanIX();
+		ADAProjectDetails projectData = adaProject.getData();
+		if (projectData.getCostCenter() != null && !projectData.getCostCenter().isBlank()) {
+			workspace.setCostCenter(projectData.getCostCenter());
+		}
+		if (projectData.getInternalOrder() != null && !projectData.getInternalOrder().isBlank()) {
+			workspace.setInternalOrder(projectData.getInternalOrder());
+		}
+		String leanIXId = projectData.getLeanIX();
 		if (leanIXId == null || leanIXId.isBlank()) {
 			log.info("No leanIX value on project {}, skipping leanIX population", projectId);
 			return;
