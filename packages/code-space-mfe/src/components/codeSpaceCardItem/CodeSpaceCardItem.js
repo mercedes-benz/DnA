@@ -20,6 +20,9 @@ import { marked } from 'marked';
 import { Envs } from '../../Utility/envs';
 import Tooltip from '../../common/modules/uilab/js/src/tooltip';
 import ContextMenu from '../contextMenu/ContextMenu';
+import AceEditor from 'react-ace';
+import 'ace-builds/src-noconflict/mode-text';
+import 'ace-builds/src-noconflict/theme-solarized_dark';
 
 let isTouch = false;
 
@@ -52,7 +55,67 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
   const [readMeContent, setReadMeContent] = useState('');
   const enableReadMe =  Envs.CODESPACE_RECIEPES_ENABLE_README?.split(',')?.includes(codeSpace?.projectDetails?.recipeDetails?.Id) || false;
   const [showMigrateOrStartModal, setShowMigrateOrStartModal] = useState(false);
+  const [showSyncErrorModal, setShowSyncErrorModal] = useState(false);
+  const [syncErrorMessage, setSyncErrorMessage] = useState('');
+  const [syncErrorLoading, setSyncErrorLoading] = useState(false);
+  const [errorCopied, setErrorCopied] = useState(false);
   const contextMenuRef = useRef(null);
+  const statusPollRef = useRef(null);
+
+  // Auto-poll when any in-progress status is detected (deploy, restart, build)
+  useEffect(() => {
+    const topStatus = codeSpace?.projectDetails?.lastBuildOrDeployedStatus;
+    const intStatus = codeSpace?.projectDetails?.intDeploymentDetails?.lastDeploymentStatus;
+    const prodStatus = codeSpace?.projectDetails?.prodDeploymentDetails?.lastDeploymentStatus;
+
+    const inProgressStatuses = ['DEPLOYING', 'DEPLOY_REQUESTED', 'RESTART_REQUESTED', 'BUILD_REQUESTED'];
+    const isInProgress = inProgressStatuses.includes(topStatus) ||
+      inProgressStatuses.includes(intStatus) ||
+      inProgressStatuses.includes(prodStatus);
+
+    if (isInProgress) {
+      let attempts = 0;
+      const maxAttempts = 60; // 10s interval × 60 = 10 minutes max
+      statusPollRef.current = setInterval(() => {
+        attempts++;
+        if (attempts >= maxAttempts) {
+          clearInterval(statusPollRef.current);
+          statusPollRef.current = null;
+          return;
+        }
+        CodeSpaceApiClient.getWorkspaceById(codeSpace.id)
+          .then((res) => {
+            if (res.data && props.onRefreshCard) {
+              const newTopStatus = res.data?.projectDetails?.lastBuildOrDeployedStatus;
+              const newIntStatus = res.data?.projectDetails?.intDeploymentDetails?.lastDeploymentStatus;
+              const newProdStatus = res.data?.projectDetails?.prodDeploymentDetails?.lastDeploymentStatus;
+              props.onRefreshCard(codeSpace.id, res.data);
+              const stillInProgress = inProgressStatuses.includes(newTopStatus) ||
+                inProgressStatuses.includes(newIntStatus) ||
+                inProgressStatuses.includes(newProdStatus);
+              if (!stillInProgress) {
+                clearInterval(statusPollRef.current);
+                statusPollRef.current = null;
+              }
+            }
+          })
+          .catch(() => {});
+      }, 10000);
+    } else {
+      if (statusPollRef.current) {
+        clearInterval(statusPollRef.current);
+        statusPollRef.current = null;
+      }
+    }
+    return () => {
+      if (statusPollRef.current) {
+        clearInterval(statusPollRef.current);
+        statusPollRef.current = null;
+      }
+    };
+  }, [codeSpace?.projectDetails?.lastBuildOrDeployedStatus,
+      codeSpace?.projectDetails?.intDeploymentDetails?.lastDeploymentStatus,
+      codeSpace?.projectDetails?.prodDeploymentDetails?.lastDeploymentStatus]); // eslint-disable-line react-hooks/exhaustive-deps
 
    
     useEffect(() => {
@@ -341,12 +404,68 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
     handleRefresh();
   };
 
+  const formatErrorMessage = (message) => {
+    if (!message) return '';    
+    try {
+      const parsed = JSON.parse(message);
+      return JSON.stringify(parsed, null, 2);
+    } catch (e) {
+      return message
+        .replace(/,\s*/g, ',\n')
+        .replace(/:\s*/g, ': ')
+        .replace(/\{/g, '{\n  ')
+        .replace(/\}/g, '\n}')
+        .replace(/reason:/gi, '\n\nReason:\n')
+        .replace(/error:/gi, '\n\nError:\n')
+        .trim();
+    }
+  };
+
+  const handleCopyError = () => {
+    if (syncErrorMessage) {
+      navigator.clipboard.writeText(syncErrorMessage).then(() => {
+        setErrorCopied(true);
+        setTimeout(() => setErrorCopied(false), 2000);
+      }).catch(err => {
+        console.error('Failed to copy error message:', err);
+      });
+    }
+  };
+
+  const onSyncErrorInfoClick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const env = projectDetails?.lastBuildOrDeployedEnv;
+    const details = env === 'int' ? projectDetails?.intDeploymentDetails : projectDetails?.prodDeploymentDetails;
+    const storedError = details?.lastDeploymentError;
+
+    if (storedError) {
+      setSyncErrorMessage(storedError);
+      setShowSyncErrorModal(true);
+    } else {
+      setSyncErrorLoading(true);
+      setShowSyncErrorModal(true);
+      const projectName = projectDetails?.projectName;
+      CodeSpaceApiClient.getSyncError(projectName, env || 'int')
+        .then((res) => {
+          setSyncErrorMessage(res.data?.errorMessage || 'No error details available');
+          setSyncErrorLoading(false);
+        })
+        .catch(() => {
+          setSyncErrorMessage('Failed to fetch error details');
+          setSyncErrorLoading(false);
+        });
+    }
+  };
+
   const projectDetails = codeSpace?.projectDetails;
   const intDeploymentDetails = projectDetails?.intDeploymentDetails;
   const prodDeploymentDetails = projectDetails?.prodDeploymentDetails;
   const deployingInProgress =
     intDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED' ||
-    prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED' || 
+    intDeploymentDetails?.lastDeploymentStatus === 'DEPLOYING' ||
+    prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED' ||
+    prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOYING' || 
     prodDeploymentDetails?.lastDeploymentStatus === 'APPROVAL_PENDING' ||
     projectDetails?.lastBuildOrDeployedStatus === 'APPROVAL_PENDING';
   const buildInProgress = projectDetails?.lastBuildOrDeployedStatus === 'BUILD_REQUESTED';
@@ -560,7 +679,8 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
                           </span>
                         </a>
                       )}
-                      {projectDetails?.lastBuildOrDeployedStatus === 'DEPLOY_REQUESTED' && (
+                      {(projectDetails?.lastBuildOrDeployedStatus === 'DEPLOY_REQUESTED' || 
+                        projectDetails?.lastBuildOrDeployedStatus === 'DEPLOYING') && (
                         <a
                           href={(projectDetails?.lastBuildOrDeployedEnv === 'int')
                             ? buildGitJobLogViewAWSURL(projectDetails?.intDeploymentDetails?.gitjobRunID)
@@ -606,8 +726,9 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
                           </a>
                         </span>
                       )}
-                      {projectDetails?.lastBuildOrDeployedStatus === 'DEPLOYMENT_FAILED' && (
-                        <span className={classNames(Styles.statusIndicator, Styles.deployFailed)}>
+                      {(projectDetails?.lastBuildOrDeployedStatus === 'DEPLOYMENT_FAILED' ||
+                        projectDetails?.lastBuildOrDeployedStatus === 'FAILED') && (
+                        <span className={classNames(Styles.statusIndicator, Styles.deployFailed, Styles.statusWithRefresh)}>
                           <a
                             href={(projectDetails?.lastBuildOrDeployedEnv === 'int')
                               ? buildGitJobLogViewAWSURL(projectDetails?.intDeploymentDetails?.gitjobRunID)
@@ -623,6 +744,16 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
                           >
                            Failed
                           </a>
+                          {((projectDetails?.lastBuildOrDeployedEnv === 'int' && projectDetails?.intDeploymentDetails?.lastDeploymentError) ||
+                            (projectDetails?.lastBuildOrDeployedEnv === 'prod' && projectDetails?.prodDeploymentDetails?.lastDeploymentError)) && (
+                            <span
+                              className={Styles.syncErrorInfoIcon}
+                              onClick={onSyncErrorInfoClick}
+                              tooltip-data="View sync error details"
+                            >
+                              <i className="icon mbc-icon info"></i>
+                            </span>
+                          )}
                         </span>
                       )}
                       {projectDetails?.lastBuildOrDeployedStatus === 'BUILD_SUCCESS' && (
@@ -716,7 +847,7 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
                         </span>
                       )}
                       {projectDetails?.lastBuildOrDeployedStatus === 'RESTART_FAILED' && (
-                        <span className={classNames(Styles.statusIndicator, Styles.deployFailed)}>
+                        <span className={classNames(Styles.statusIndicator, Styles.deployFailed, Styles.statusWithRefresh)}>
                           <a
                             href={(projectDetails?.lastBuildOrDeployedEnv === 'int')
                               ? buildGitJobLogViewAWSURL(projectDetails?.intDeploymentDetails?.gitjobRunID)
@@ -732,6 +863,16 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
                           >
                            Failed
                           </a>
+                          {((projectDetails?.lastBuildOrDeployedEnv === 'int' && projectDetails?.intDeploymentDetails?.lastDeploymentError) ||
+                            (projectDetails?.lastBuildOrDeployedEnv === 'prod' && projectDetails?.prodDeploymentDetails?.lastDeploymentError)) && (
+                            <span
+                              className={Styles.syncErrorInfoIcon}
+                              onClick={onSyncErrorInfoClick}
+                              tooltip-data="View sync error details"
+                            >
+                              <i className="icon mbc-icon info"></i>
+                            </span>
+                          )}
                         </span>
                       )}
                       {projectDetails?.lastBuildOrDeployedStatus === 'RESTARTED' && (
@@ -857,6 +998,71 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
             setShowMigrateOrStartModal(false);
           }}
           onAccept={onMigrateWorkplace}
+        />
+      )}
+      {showSyncErrorModal && (
+        <Modal
+          title={
+            <div className={Styles.modalHeader}>
+              <span>Sync Error Details</span>
+              <button
+                className={Styles.copyButton}
+                onClick={handleCopyError}
+                disabled={syncErrorLoading || !syncErrorMessage}
+                tooltip-data="Copy error message"
+              >
+                {errorCopied ? 'Copied!' : 'Copy'}
+              </button>
+            </div>
+          }
+          showAcceptButton={false}
+          showCancelButton={false}
+          show={showSyncErrorModal}
+          content={
+            <div className={Styles.syncErrorModalContent}>
+              {syncErrorLoading ? (
+                <p>Loading error details...</p>
+              ) : (
+                <div className={Styles.errorContainer}>
+                  <div className={Styles.editorWrapper}>
+                    <AceEditor
+                      width="100%"
+                      height="450px"
+                      mode="text"
+                      theme="solarized_dark"
+                      name="errorLogViewer"
+                      fontSize={13}
+                      showPrintMargin={false}
+                      showGutter={true}
+                      highlightActiveLine={false}
+                      value={formatErrorMessage(syncErrorMessage)}
+                      readOnly={true}
+                      setOptions={{
+                        enableBasicAutocompletion: false,
+                        enableLiveAutocompletion: false,
+                        enableSnippets: false,
+                        showLineNumbers: true,
+                        tabSize: 2,
+                        useWorker: false,
+                        wrap: true,
+                      }}
+                      editorProps={{ $blockScrolling: true }}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+          }
+          scrollableContent={false}
+          onCancel={() => {
+            setShowSyncErrorModal(false);
+            setSyncErrorMessage('');
+          }}
+          modalStyle={{
+            width: '70%',
+            maxWidth: '1200px',
+            maxHeight: '80%',
+          }}
         />
       )}
     </>
