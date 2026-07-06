@@ -1763,7 +1763,11 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
                  
                  DeploymentAudit auditLog = new DeploymentAudit();
                  auditLog.setTriggeredOn(now);
-                 auditLog.setTriggeredBy(entity.getData().getWorkspaceOwner().getGitUserName());
+					String triggeredByUser = userId;
+					if (userStore.getUserInfo() != null) {
+						triggeredByUser = userStore.getUserInfo().getId();
+					}
+					auditLog.setTriggeredBy(triggeredByUser);
                  auditLog.setBranch(branch);
                  auditLog.setDeploymentStatus("APPROVAL_PENDING");
 				 auditLog.setVersion(version);
@@ -2105,7 +2109,11 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 					 else{
 												
 						auditLog.setTriggeredOn(now);
-						auditLog.setTriggeredBy(entity.getData().getWorkspaceOwner().getGitUserName());
+						String triggeredByUser = userId;
+						if (userStore.getUserInfo() != null) {
+							triggeredByUser = userStore.getUserInfo().getId();
+						}
+						auditLog.setTriggeredBy(triggeredByUser);
 						auditLog.setBranch(branch);					
 					 }
 
@@ -2867,7 +2875,11 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 					 Date now = isoFormat.parse(isoFormat.format(new Date()));
 					 DeploymentAudit auditLog = new DeploymentAudit();
 					 auditLog.setTriggeredOn(now);
-					 auditLog.setTriggeredBy(entity.getData().getWorkspaceOwner().getGitUserName());
+						String triggeredByUser = userId;
+						if (userStore.getUserInfo() != null) {
+							triggeredByUser = userStore.getUserInfo().getId();
+						}
+						auditLog.setTriggeredBy(triggeredByUser);
 					 auditLog.setBranch(branch);					
 					 auditLog.setDeploymentStatus("UNDEPLOY_REQUESTED");
 					 auditLogs.add(auditLog);
@@ -4255,9 +4267,16 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 					responseMessage.setErrors(errors);
 					return responseMessage;
 				}
-				if(("int".equalsIgnoreCase(env)&& !"DEPLOYED".equalsIgnoreCase(entity.getData().getProjectDetails()
-				.getIntDeploymentDetails().getLastDeploymentStatus())) || "prod".equalsIgnoreCase(env)&& !"DEPLOYED".equalsIgnoreCase(entity.getData().getProjectDetails()
-				.getProdDeploymentDetails().getLastDeploymentStatus())){
+				String intDeployStatus = entity.getData().getProjectDetails().getIntDeploymentDetails()
+						.getLastDeploymentStatus();
+				String prodDeployStatus = entity.getData().getProjectDetails().getProdDeploymentDetails()
+						.getLastDeploymentStatus();
+				if (("int".equalsIgnoreCase(env) && !"DEPLOYED".equalsIgnoreCase(intDeployStatus)
+						&& !"RESTARTED".equalsIgnoreCase(intDeployStatus)
+						&& !"RESTART_FAILED".equalsIgnoreCase(intDeployStatus))
+						|| ("prod".equalsIgnoreCase(env) && !"DEPLOYED".equalsIgnoreCase(prodDeployStatus)
+								&& !"RESTARTED".equalsIgnoreCase(prodDeployStatus)
+								&& !"RESTART_FAILED".equalsIgnoreCase(prodDeployStatus))) {
 					MessageDescription error = new MessageDescription();
 					error.setMessage(
 							"Failed while restarting  codeserver workspace project, couldnt restart project Which is not in deployed state");
@@ -4340,7 +4359,11 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 					}
 					DeploymentAudit auditLog = new DeploymentAudit();
 					auditLog.setTriggeredOn(now);
-					auditLog.setTriggeredBy(entity.getData().getWorkspaceOwner().getGitUserName());				
+					String triggeredByUser = userId;
+					if (userStore.getUserInfo() != null) {
+						triggeredByUser = userStore.getUserInfo().getId();
+					}
+					auditLog.setTriggeredBy(triggeredByUser);		
 					auditLog.setDeploymentStatus("RESTART_REQUESTED");
 					auditLogs.add(auditLog);
 
@@ -4993,7 +5016,11 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 					}
 					 auditLog.setImageDeleted(Boolean.FALSE);
 					 auditLog.setTriggeredOn(now);
-					 auditLog.setTriggeredBy(entity.getData().getWorkspaceOwner().getGitUserName());
+						String triggeredByUser = userId;
+						if (userStore.getUserInfo() != null) {
+							triggeredByUser = userStore.getUserInfo().getId();
+						}
+						auditLog.setTriggeredBy(triggeredByUser);
 					 auditLog.setBranch(branch);
 					 auditLog.setBuildStatus("BUILD_REQUESTED");
 					 auditLog.setComments(buildRequestDto.getComments());
@@ -5356,7 +5383,8 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 		List<MessageDescription> warnings = new ArrayList<>();
 		List<MessageDescription> errors = new ArrayList<>();
 		try {
-			CodeServerBuildDeployNsql optionalBuildDeployentity =  buildDeployCustomRepo.findByProjectName(projectName);
+			// CodeServerBuildDeployNsql optionalBuildDeployentity =  buildDeployCustomRepo.findByProjectName(projectName);
+			CodeServerBuildDeployNsql optionalBuildDeployentity = buildDeployCustomRepo.findByProjectNameIncludingDeleted(projectName);
 			CodeServerBuildDeploy data = optionalBuildDeployentity.getData();
 			 List<BuildAudit> builds = new ArrayList<>();
 			//   List<BuildAudit> newBuilds = new ArrayList<>();
