@@ -6,18 +6,18 @@ import { fabricApi } from '../../apis/fabric.api';
 import Notification from '../../common/modules/uilab/js/src/notification';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 import SelectBox from 'dna-container/SelectBox';
-import {SKU_OPTIONS, REGION_OPTIONS, STATE_OPTIONS } from '../../utilities/constants';
+import {SKU_OPTIONS, STATE_OPTIONS } from '../../utilities/constants';
 
 const ManageCapacity = ({ onClose }) => {
   const [capacities, setCapacities] = useState([]);
+  const [regionOptions, setRegionOptions] = useState([]);
   const [listError] = useState('');
   const [expandedId, setExpandedId] = useState(undefined);
   const [editValues, setEditValues] = useState({});
-  const [updateStatus, setUpdateStatus] = useState({});
+  const [editingRows, setEditingRows] = useState({});
   const [deleteConfirmId, setDeleteConfirmId] = useState(null);
-  const [deleteStatus] = useState({});
   const [showAddForm, setShowAddForm] = useState(false);
-  const [newCapacity, setNewCapacity] = useState({ id: '', name: '', sku: '', region: '', state: '' });
+  const [newCapacity, setNewCapacity] = useState({ id: '', name: '', sku: '', region: '', state: 'Active' });
   const [addErrors, setAddErrors] = useState({});
   const [addStatus, setAddStatus] = useState(null);
   const [addLoading, setAddLoading] = useState(false);
@@ -28,6 +28,14 @@ const ManageCapacity = ({ onClose }) => {
 
   useEffect(() => {
     fetchCapacities();
+    fabricApi
+      .getRegions()
+      .then((res) => {
+        setRegionOptions(res?.data || []);
+      })
+      .catch(() => {
+        Notification.error('Failed to fetch regions.');
+      });
   }, []);
 
   const fetchCapacities = () => {
@@ -41,7 +49,7 @@ const ManageCapacity = ({ onClose }) => {
       })
       .catch((e) => {
         ProgressIndicator.hide();
-        Notification.show(e?.response?.data?.errors?.[0]?.message || 'Failed to fetch capacities.');
+        Notification.error(e?.response?.data?.errors?.[0]?.message || 'Failed to fetch capacities.');
       });
   };
 
@@ -55,6 +63,12 @@ const ManageCapacity = ({ onClose }) => {
   }, [showAddForm]);
 
   useEffect(() => {
+    if (showAddForm) {
+      setTimeout(() => SelectBox.defaultSetup(), 50);
+    }
+  }, [capacities, showAddForm]);
+
+  useEffect(() => {
     if (expandedId !== undefined) {
       setTimeout(() => SelectBox.defaultSetup(), 50);
     }
@@ -63,9 +77,11 @@ const ManageCapacity = ({ onClose }) => {
   const handleSelect = (capacity, rowId) => {
     if (expandedId === rowId) {
       setExpandedId(undefined);
+      setEditingRows((prev) => { const u = { ...prev }; delete u[rowId]; return u; });
       return;
     }
     setExpandedId(rowId);
+    setEditingRows((prev) => ({ ...prev, [rowId]: false }));
     if (!editValues[rowId]) {
       const initial = {
         id: capacity.id || '',
@@ -90,9 +106,7 @@ const ManageCapacity = ({ onClose }) => {
     const errors = {};
     if (!vals.name?.trim()) errors.name = '*Required';
     if (!vals.sku?.trim()) errors.sku = '*Required';
-    if (!vals.region?.trim()) errors.region = '*Required';
     if (!vals.state?.trim()) errors.state = '*Required';
-    if (!vals.id?.trim()) errors.id = '*Required';
     if (Object.keys(errors).length > 0) {
       setUpdateErrors((prev) => ({ ...prev, [rowId]: errors }));
       return;
@@ -101,20 +115,15 @@ const ManageCapacity = ({ onClose }) => {
     fabricApi
       .updateCapacity(capacityId, editValues[rowId])
       .then(() => {
-        setEditValues((prev) => { const u = { ...prev }; delete u[rowId]; return u; });
         setExpandedId(undefined);
+        setEditValues((prev) => { const u = { ...prev }; delete u[rowId]; return u; });
+        setEditingRows((prev) => { const u = { ...prev }; delete u[rowId]; return u; });
+        setUpdateErrors((prev) => { const u = { ...prev }; delete u[rowId]; return u; });
         Notification.show('Capacity updated successfully!');
         fetchCapacities();
-        setTimeout(() => {
-          setUpdateStatus((prev) => {
-            const updated = { ...prev };
-            delete updated[rowId];
-            return updated;
-          });
-        }, 5000);
       })
       .catch((e) => {
-        Notification.show(e?.response?.data?.errors?.[0]?.message || 'Update failed.');
+        Notification.error(e?.response?.data?.errors?.[0]?.message || 'Update failed.');
       });
   };
 
@@ -125,12 +134,13 @@ const ManageCapacity = ({ onClose }) => {
         setDeleteConfirmId(null);
         if (expandedId === rowId) setExpandedId(undefined);
         setEditValues((prev) => { const u = { ...prev }; delete u[rowId]; return u; });
+        setEditingRows((prev) => { const u = { ...prev }; delete u[rowId]; return u; });
         fetchCapacities();
         Notification.show('Capacity deleted successfully!');
       })
       .catch((e) => {
         setDeleteConfirmId(null);
-        Notification.show(e?.response?.data?.errors?.[0]?.message || 'Delete failed.');
+        Notification.error(e?.response?.data?.errors?.[0]?.message || 'Delete failed.');
       });
   };
 
@@ -152,7 +162,7 @@ const ManageCapacity = ({ onClose }) => {
       .then(() => {
         setAddLoading(false);
         setShowAddForm(false);
-        setNewCapacity({ id: '', name: '', sku: '', region: '', state: '' });
+        setNewCapacity({ id: '', name: '', sku: '', region: '', state: 'Active' });
         setAddErrors({});
         Notification.show('Capacity added successfully!');
         fetchCapacities();
@@ -160,17 +170,21 @@ const ManageCapacity = ({ onClose }) => {
       })
       .catch((e) => {
         setAddLoading(false);
-        Notification.show(e?.response?.data?.errors?.[0]?.message || 'Failed to add capacity.');
+        Notification.error(e?.response?.data?.errors?.[0]?.message || 'Failed to add capacity.');
       });
   };
 
-  const filteredCapacities = capacities
-    .filter((c) => {
+  const coveredRegions = new Set(capacities.map((c) => c.region));
+  const availableRegionsForAdd = regionOptions.filter((r) => !coveredRegions.has(r));
+  const allRegionsCovered = availableRegionsForAdd.length === 0;
+
+  const allRegionRows = capacities
+    .filter((capacity) => {
       if (!searchTerm.trim()) return true;
       const term = searchTerm.trim().toLowerCase();
       return (
-        (c.name || '').toLowerCase().includes(term) ||
-        (c.region || '').toLowerCase().includes(term)
+        (capacity.region || '').toLowerCase().includes(term) ||
+        (capacity.name || '').toLowerCase().includes(term)
       );
     })
     .sort((a, b) => (a.region || '').localeCompare(b.region || ''));
@@ -178,7 +192,7 @@ const ManageCapacity = ({ onClose }) => {
   return (
     <div className={Styles.wrapper}>
       <div className={Styles.header}>
-        <h3 className={Styles.title}>Manage Capacity</h3>
+        <h3 className={Styles.title}>Manage Region Capacity</h3>
       </div>
 
       <div className={Styles.searchBar}>
@@ -196,143 +210,119 @@ const ManageCapacity = ({ onClose }) => {
       </div>
 
       <div className={Styles.scrollPanel} ref={scrollPanelRef}>
-        {!showAddForm && addStatus?.type === 'success' && (
-          <div className={classNames(Styles.inlineMsg, Styles.success, Styles.addSuccessBanner)}>
-            <i className="icon mbc-icon check circle" /> {addStatus.text}
-          </div>
-        )}
         {listError && (
           <div className={classNames(Styles.inlineMsg, Styles.error)}>
             <i className="icon mbc-icon alert circle" /> {listError}
           </div>
         )}
 
-        {!listError && capacities.length === 0 && (
-          <div className={Styles.emptyState}>
-            <p>No capacities found. Use &quot;Add Capacity&quot; to add a new one.</p>
-          </div>
-        )}
-
-        {!listError && capacities.length > 0 && filteredCapacities.length === 0 && (
-          <div className={Styles.emptyState}>
-            <p>No capacities match your search.</p>
-          </div>
-        )}
-
-        {filteredCapacities.map((capacity, idx) => {
-          const rowId = capacity.id != null ? capacity.id : `row-${idx}`;
-          return (
-          <div key={rowId} className={Styles.capacityItem}>
-            <div
-              className={classNames(Styles.capacityHeader, expandedId === rowId && Styles.active)}
-              onClick={() => handleSelect(capacity, rowId)}
-            >
-              <span className={Styles.capacityName}>{capacity.name}</span>
-              <span className={Styles.capacityRegion}>{capacity.region}</span>
-              <i className={classNames('icon', expandedId === rowId ? 'mbc-icon arrow-up' : 'mbc-icon arrow-down')} />
-            </div>
-
-            {expandedId === rowId && editValues[rowId] && (
-              <div className={Styles.capacityDetails}>
-                <div className={Styles.formRow}>
-                  <div className={classNames('input-field-group include-error', Styles.formGroup, updateErrors[rowId]?.id ? 'error' : '')}>
-                    <label className="input-label">ID <sup>*</sup></label>
-                    <input
-                      type="text"
-                      className="input-field"
-                      value={editValues[rowId].id}
-                      onChange={(e) => { handleEditChange(rowId, 'id', e.target.value); setUpdateErrors((prev) => ({ ...prev, [rowId]: { ...prev[rowId], id: '' } })); }}
-                    />
-                    <span className="error-message">{updateErrors[rowId]?.id}</span>
-                  </div>
-                  <div className={classNames('input-field-group include-error', Styles.formGroup, updateErrors[rowId]?.name ? 'error' : '')}>
-                    <label className="input-label">Name <sup>*</sup></label>
-                    <input
-                      type="text"
-                      className="input-field"
-                      value={editValues[rowId].name}
-                      onChange={(e) => { handleEditChange(rowId, 'name', e.target.value); setUpdateErrors((prev) => ({ ...prev, [rowId]: { ...prev[rowId], name: '' } })); }}
-                    />
-                    <span className="error-message">{updateErrors[rowId]?.name}</span>
-                  </div>
-                  <div className={classNames('input-field-group include-error', Styles.formGroup, updateErrors[rowId]?.sku ? 'error' : '')}>
-                    <label className="input-label">SKU <sup>*</sup></label>
-                    <div className="custom-select">
-                      <select
-                        value={editValues[rowId].sku}
-                        onChange={(e) => { handleEditChange(rowId, 'sku', e.target.value); setUpdateErrors((prev) => ({ ...prev, [rowId]: { ...prev[rowId], sku: '' } })); }}
-                      >
-                        <option value="">Choose</option>
-                        {SKU_OPTIONS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
-                      </select>
-                    </div>
-                    <span className="error-message">{updateErrors[rowId]?.sku}</span>
-                  </div>
+        {allRegionRows.map((capacity) => {
+            const rowId = capacity.id != null ? capacity.id : `row-${capacity.region}`;
+            const isEditing = !!editingRows[rowId];
+            return (
+              <div key={rowId} className={Styles.capacityItem}>
+                <div
+                  className={classNames(Styles.capacityHeader, expandedId === rowId && Styles.active)}
+                  onClick={() => handleSelect(capacity, rowId)}
+                >
+                  <span className={Styles.capacityName}>{capacity.name}</span>
+                  <span className={Styles.capacityRegion}>{capacity.region}</span>
+                  <i className={classNames('icon', expandedId === rowId ? 'mbc-icon arrow-up' : 'mbc-icon arrow-down')} />
                 </div>
-                <div className={Styles.formRow}>
-                  <div className={classNames('input-field-group include-error', Styles.formGroup, updateErrors[rowId]?.region ? 'error' : '')}>
-                    <label className="input-label">Region <sup>*</sup></label>
-                    <div className="custom-select">
-                      <select
-                        value={editValues[rowId].region}
-                        onChange={(e) => { handleEditChange(rowId, 'region', e.target.value); setUpdateErrors((prev) => ({ ...prev, [rowId]: { ...prev[rowId], region: '' } })); }}
-                      >
-                        <option value="">Choose</option>
-                        {REGION_OPTIONS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
-                      </select>
+
+                {expandedId === rowId && editValues[rowId] && (
+                  <div className={Styles.capacityDetails}>
+                    <div className={Styles.formRow}>
+                      <div className={classNames('input-field-group', Styles.formGroup)}>
+                        <label className="input-label">Region ID</label>
+                        <input
+                          type="text"
+                          className={classNames('input-field', Styles.readOnlyInput)}
+                          value={editValues[rowId].id}
+                          readOnly
+                        />
+                      </div>
+                      <div className={classNames('input-field-group include-error', Styles.formGroup, updateErrors[rowId]?.name ? 'error' : '')}>
+                        <label className="input-label">Region Capacity Name <sup>*</sup></label>
+                        <input
+                          type="text"
+                          className={classNames('input-field', !isEditing && Styles.readOnlyInput)}
+                          value={editValues[rowId].name}
+                          readOnly={!isEditing}
+                          onChange={isEditing ? (e) => { handleEditChange(rowId, 'name', e.target.value); setUpdateErrors((prev) => ({ ...prev, [rowId]: { ...prev[rowId], name: '' } })); } : undefined}
+                        />
+                        <span className="error-message">{updateErrors[rowId]?.name}</span>
+                      </div>
+                      <div className={classNames('input-field-group include-error', Styles.formGroup, updateErrors[rowId]?.sku ? 'error' : '')}>
+                        <label className="input-label">SKU <sup>*</sup></label>
+                        <div className={classNames('custom-select', !isEditing && Styles.readOnlySelect)}>
+                          <select
+                            value={editValues[rowId].sku}
+                            disabled={!isEditing}
+                            onChange={isEditing ? (e) => { handleEditChange(rowId, 'sku', e.target.value); setUpdateErrors((prev) => ({ ...prev, [rowId]: { ...prev[rowId], sku: '' } })); } : undefined}
+                          >
+                            <option value="">Choose</option>
+                            {SKU_OPTIONS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
+                          </select>
+                        </div>
+                        <span className="error-message">{updateErrors[rowId]?.sku}</span>
+                      </div>
                     </div>
-                    <span className="error-message">{updateErrors[rowId]?.region}</span>
-                  </div>
-                  <div className={classNames('input-field-group include-error', Styles.formGroup, updateErrors[rowId]?.state ? 'error' : '')}>
-                    <label className="input-label">State <sup>*</sup></label>
-                    <div className="custom-select">
-                      <select
-                        value={editValues[rowId].state}
-                        onChange={(e) => { handleEditChange(rowId, 'state', e.target.value); setUpdateErrors((prev) => ({ ...prev, [rowId]: { ...prev[rowId], state: '' } })); }}
-                      >
-                        <option value="">Choose</option>
-                        {STATE_OPTIONS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
-                      </select>
+                    <div className={Styles.formRow}>
+                      <div className={classNames('input-field-group', Styles.formGroup)}>
+                        <label className="input-label">Region</label>
+                        <div className={classNames('custom-select', Styles.readOnlySelect)}>
+                          <select value={editValues[rowId].region} disabled>
+                            <option value="">Choose</option>
+                            {regionOptions.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
+                          </select>
+                        </div>
+                      </div>
+                      <div className={classNames('input-field-group include-error', Styles.formGroup, updateErrors[rowId]?.state ? 'error' : '')}>
+                        <label className="input-label">State <sup>*</sup></label>
+                        <div className={classNames('custom-select', !isEditing && Styles.readOnlySelect)}>
+                          <select
+                            value={editValues[rowId].state}
+                            disabled={!isEditing}
+                            onChange={isEditing ? (e) => { handleEditChange(rowId, 'state', e.target.value); setUpdateErrors((prev) => ({ ...prev, [rowId]: { ...prev[rowId], state: '' } })); } : undefined}
+                          >
+                            <option value="">Choose</option>
+                            {STATE_OPTIONS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
+                          </select>
+                        </div>
+                        <span className="error-message">{updateErrors[rowId]?.state}</span>
+                      </div>
+                      <div className={Styles.formGroup} />
                     </div>
-                    <span className="error-message">{updateErrors[rowId]?.state}</span>
-                  </div>
-                  <div className={Styles.formGroup} />
-                </div>
-                <div className={Styles.actionRow}>
-                  <button className="btn btn-primary" onClick={() => handleUpdate(rowId, capacity.id)}>
-                    Update
-                  </button>
-                  {deleteConfirmId === rowId ? (
-                    <>
-                      <span className={Styles.deleteConfirmText}>Are you sure?</span>
-                      <button className={classNames('btn btn-primary', Styles.deleteBtnConfirm)} onClick={() => handleDelete(rowId, capacity.region)}>Yes, Delete</button>
-                      <button className="btn btn-secondary" onClick={() => setDeleteConfirmId(null)}>Cancel</button>
-                    </>
-                  ) : (
-                    <button className={classNames('btn', Styles.deleteBtn)} onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(rowId); }}>
-                      <i className="icon delete" />&nbsp;Delete
-                    </button>
-                  )}
-                  {updateStatus[rowId] && (
-                    <span
-                      className={classNames(
-                        Styles.inlineMsg,
-                        updateStatus[rowId].type === 'success' ? Styles.success : Styles.error
+                    <div className={Styles.actionRow}>
+                      {!isEditing ? (
+                        <button
+                          className="btn btn-secondary"
+                          onClick={() => setEditingRows((prev) => ({ ...prev, [rowId]: true }))}
+                        >
+                          Edit
+                        </button>
+                      ) : (
+                        <button className="btn btn-primary" onClick={() => handleUpdate(rowId, capacity.id)}>
+                          Update
+                        </button>
                       )}
-                    >
-                      {updateStatus[rowId].text}
-                    </span>
-                  )}
-                  {deleteStatus[rowId] && (
-                    <span className={classNames(Styles.inlineMsg, Styles.error)}>
-                      {deleteStatus[rowId].text}
-                    </span>
-                  )}
-                </div>
+                      {deleteConfirmId === rowId ? (
+                        <>
+                          <span className={Styles.deleteConfirmText}>Are you sure?</span>
+                          <button className={classNames('btn btn-primary', Styles.deleteBtnConfirm)} onClick={() => handleDelete(rowId, capacity.region)}>Yes, Delete</button>
+                          <button className="btn btn-secondary" onClick={() => setDeleteConfirmId(null)}>Cancel</button>
+                        </>
+                      ) : (
+                        <button className={classNames('btn', Styles.deleteBtn)} onClick={(e) => { e.stopPropagation(); setDeleteConfirmId(rowId); }}>
+                          <i className="icon delete" />&nbsp;Delete
+                        </button>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-          );
+            );
         })}
 
         {showAddForm && (
@@ -348,7 +338,7 @@ const ManageCapacity = ({ onClose }) => {
             </div>
             <div className={Styles.formRow}>
               <div className={classNames('input-field-group include-error', Styles.formGroup, addErrors.id ? 'error' : '')}>
-                <label className="input-label">ID <sup>*</sup></label>
+                <label className="input-label">Region ID <sup>*</sup></label>
                 <input
                   type="text"
                   className="input-field"
@@ -359,7 +349,7 @@ const ManageCapacity = ({ onClose }) => {
                 <span className="error-message">{addErrors.id}</span>
               </div>
               <div className={classNames('input-field-group include-error', Styles.formGroup, addErrors.name ? 'error' : '')}>
-                <label className="input-label">Name <sup>*</sup></label>
+                <label className="input-label">Region Capacity Name <sup>*</sup></label>
                 <input
                   type="text"
                   className="input-field"
@@ -392,7 +382,7 @@ const ManageCapacity = ({ onClose }) => {
                     onChange={(e) => { setNewCapacity((prev) => ({ ...prev, region: e.target.value })); setAddErrors((prev) => ({ ...prev, region: '' })); }}
                   >
                     <option value="">Choose</option>
-                    {REGION_OPTIONS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
+                    {availableRegionsForAdd.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
                   </select>
                 </div>
                 <span className="error-message">{addErrors.region}</span>
@@ -431,19 +421,21 @@ const ManageCapacity = ({ onClose }) => {
       </div>
 
       <div className={Styles.footer}>
-        <button className="btn btn-secondary" onClick={() => {
-          if (showAddForm) {
-            setShowAddForm(false);
-            setTimeout(() => {
-              setShowAddForm(true);
-            }, 0);
-          } else {
-            setShowAddForm(true);
-          }
-        }}>
-          <i className="icon mbc-icon plus" />
-          <span>&nbsp;Add Capacity</span>
-        </button>
+        <div>
+          {!allRegionsCovered && (
+            <button className="btn btn-secondary" onClick={() => {
+              if (showAddForm) {
+                setShowAddForm(false);
+                setTimeout(() => setShowAddForm(true), 0);
+              } else {
+                setShowAddForm(true);
+              }
+            }}>
+              <i className="icon mbc-icon plus" />
+              <span>&nbsp;Add Capacity</span>
+            </button>
+          )}
+        </div>
         <button className="btn btn-secondary" onClick={onClose}>
           Close
         </button>

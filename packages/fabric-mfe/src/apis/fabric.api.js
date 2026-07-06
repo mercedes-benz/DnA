@@ -177,6 +177,10 @@ const publishDdxDataProduct = (workspaceId, lakehouseId, payload) => {
   return server.post(`fabric-workspaces/catalog/ddx/${workspaceId}/${lakehouseId}/publish`, payload);
 };
 
+const getRegions = () => {
+  return server.get(`/fabric-workspaces/admin/regions`, { data: {} });
+};
+
 const getCapacities = () => {
   return server.get(`fabric-workspaces/admin/capacity`, { data: {} });
 };
@@ -222,6 +226,7 @@ export const fabricApi = {
   takeOwnership,
   getLegalEntities,
   publishDdxDataProduct,
+  getRegions,
   getCapacities,
   updateCapacity,
   addCapacity,

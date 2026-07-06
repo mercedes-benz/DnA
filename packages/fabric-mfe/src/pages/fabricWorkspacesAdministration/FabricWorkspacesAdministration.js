@@ -172,7 +172,7 @@ const getWorkspaces = (query = '') => {
                 onClick={() => setShowManageCapacityModal(true)}
                 >
                 <IconGear size={'14'} />
-                <span>Manage Capacity</span>
+                <span>Manage Region Capacity</span>
               </button>
             </div>
             <div>
@@ -333,7 +333,7 @@ const getWorkspaces = (query = '') => {
 
       {showManageCapacityModal &&
         <Modal
-          title="Manage Capacity"
+          title="Manage Region Capacity"
           hiddenTitle
           showAcceptButton={false}
           showCancelButton={false}
