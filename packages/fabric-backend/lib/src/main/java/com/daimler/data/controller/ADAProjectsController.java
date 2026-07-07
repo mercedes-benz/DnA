@@ -251,6 +251,9 @@ public class ADAProjectsController implements AdaProjectsApi{
 
         ADAProjectDetailsVO existingADAProject = service.getByUniqueliteral("projectID",projectId);
         if (existingADAProject != null) {
+            if(body.getCreatedBy() == null || body.getCreatedBy().isBlank()) {
+                body.setCreatedBy(existingADAProject.getCreatedBy());
+            }
             GenericMessage createMessage  = service.updateProject(existingADAProject.getId(),body);
 
             if(createMessage.getSuccess().equals("UPDATED")) {
