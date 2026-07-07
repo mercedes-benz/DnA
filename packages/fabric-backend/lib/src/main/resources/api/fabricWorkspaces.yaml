@@ -153,7 +153,7 @@ paths:
         200:
           description: "Returns search results"
           schema:
-            $ref: "#/definitions/FabricWorkspacesCollectionVO"
+            $ref: "#/definitions/FabricWorkspaceLovCollectionVO"
         204:
           description: "Search complete, no content found."
         400:
@@ -928,6 +928,33 @@ definitions:
       subscription:
         enum: ["PowerBI", "Fabric"]
       
+  FabricWorkspaceLovVO:
+    description: "Slim workspace view for LOV search responses containing only name, createdBy and createdOn."
+    type: object
+    properties:
+      name:
+        type: string
+        description: "Name of the fabric workspace"
+        maxLength: 256
+      createdBy:
+        $ref: "#/definitions/CreatedByVO"
+      createdOn:
+        type: string
+        format: date-time
+        description: "Timestamp when the workspace was created"
+
+  FabricWorkspaceLovCollectionVO:
+    description: "Collection of slim fabric workspace records for LOV search."
+    type: object
+    properties:
+      totalCount:
+        type: integer
+        description: "Total Record Count"
+      records:
+        type: array
+        items:
+          $ref: "#/definitions/FabricWorkspaceLovVO"
+
   FabricWorkspacesCollectionVO:
     description: "Collection of fabric workspaces."
     type: object
