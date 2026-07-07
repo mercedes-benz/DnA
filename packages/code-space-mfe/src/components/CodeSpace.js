@@ -203,8 +203,9 @@ const CodeSpace = (props) => {
   
     const resources = codeSpaceData?.projectDetails?.recipeDetails?.resource?.split(',');
     const resourceUsageUrl = Envs.MONITORING_DASHBOARD_BASE_URL + `codespace-cpu-and-memory-usage?orgId=1&from=now-1h&to=now&var-namespace=${Envs.CODESERVER_NAMESPACE}&var-pod=${codeSpaceData?.workspaceId}&var-container=notebook`;
-  const intAppResourceUsageUrl = Envs.MONITORING_DASHBOARD_APP_BASE_URL + `codespace-app-cpu-and-memory-usage?orgId=1&var-namespace=${Envs.CODESERVER_APP_NAMESPACE}&var-app=${codeSpaceData?.projectDetails?.projectName}-int&var-container=`;
-  const prodAppResourceUsageUrl = Envs.MONITORING_DASHBOARD_APP_BASE_URL + `codespace-app-cpu-and-memory-usage?orgId=1&var-namespace=${Envs.CODESERVER_APP_NAMESPACE}&var-app=${codeSpaceData?.projectDetails?.projectName}-prod&var-container=`;
+    const intDeploymentMigrated = !needsIntMigration(codeSpaceData);
+    const intAppResourceUsageUrl = Envs.MONITORING_DASHBOARD_APP_BASE_URL + `codespace-app-cpu-and-memory-usage?orgId=1&var-namespace=${Envs.CODESERVER_APP_NAMESPACE}${intDeploymentMigrated ? '-int' : ''}&var-app=${codeSpaceData?.projectDetails?.projectName}-int&var-container=`;
+    const prodAppResourceUsageUrl = Envs.MONITORING_DASHBOARD_APP_BASE_URL + `codespace-app-cpu-and-memory-usage?orgId=1&var-namespace=${Envs.CODESERVER_APP_NAMESPACE}&var-app=${codeSpaceData?.projectDetails?.projectName}-prod&var-container=`;
 
     const intSecuredWithOneApi = codeSpaceData?.projectDetails?.intDeploymentDetails?.oneApiVersionShortName?.length || false;
     const prodSecuredWithOneApi = codeSpaceData?.projectDetails?.prodDeploymentDetails?.oneApiVersionShortName?.length || false;
@@ -368,11 +369,13 @@ const CodeSpace = (props) => {
         const prodDeployedUrl = prodDeploymentDetails?.deploymentUrl;
         const intDeployed =
           intDeploymentDetails.lastDeploymentStatus === 'DEPLOYED' ||
+          intDeploymentDetails.lastDeploymentStatus === 'RESTARTED' ||
           (intDeployedUrl != null && intDeployedUrl !== 'null' && intDeployedUrl !== '');
         const intDeployFailed = intDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED' ||
           intDeploymentDetails.lastDeploymentStatus === 'FAILED';
         const prodDeployed =
           prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYED' ||
+          prodDeploymentDetails.lastDeploymentStatus === 'RESTARTED' ||
           (prodDeployedUrl != null && prodDeployedUrl !== 'null' && prodDeployedUrl !== '');
         const prodDeployFailed = prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED' ||
           prodDeploymentDetails.lastDeploymentStatus === 'FAILED';
@@ -487,7 +490,7 @@ const CodeSpace = (props) => {
             const prodDeploymentDetails = res.data.projectDetails?.prodDeploymentDetails;
 
             const deployStatus = deployEnvironmentValue === 'staging' ? intDeploymentDetails?.lastDeploymentStatus : prodDeploymentDetails?.lastDeploymentStatus;
-            if (deployStatus === 'DEPLOYED') {
+            if (deployStatus === 'DEPLOYED' || deployStatus === 'RESTARTED') {
               setIsApiCallTakeTime(false);
               ProgressIndicator.hide();
               clearInterval(livelinessIntervalRef.current);
