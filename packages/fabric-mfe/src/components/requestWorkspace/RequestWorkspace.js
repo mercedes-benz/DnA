@@ -173,7 +173,7 @@ const RequestWorkspace = ({ onRefresh }) => {
                   <div className={Styles.optionContainer}>
                     <div className={Styles.optionHeader}>
                       <span className={Styles.optionText}>
-                        <i className="icon mbc-icon tools-mini"></i> {item?.name}
+                        <i className="icon mbc-icon tools-mini"></i> <strong>{item?.name}</strong>
                       </span>
                     </div>
                     <div className={Styles.optionSubText}>
