@@ -227,9 +227,9 @@ const FabricWorkspaceCard = ({user, workspace, onSelectWorkspace, onEditWorkspac
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                Consumption
-                <i className={classNames('icon mbc-icon new-tab')} />|&nbsp;&nbsp;
-              </a> 
+                Billing
+                <i className={classNames('icon mbc-icon new-tab')} />
+              </a>
               {(isAdmin || isOwner) && (
                 <a
                   href={`${Envs.FABRIC_ACTIVITY_REPORT_URL}'${encodeURIComponent(workspace?.name)}'`}

@@ -8,7 +8,7 @@ import Tooltip from '../../common/modules/uilab/js/src/tooltip';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 import Notification from '../../common/modules/uilab/js/src/notification';
 import { fabricApi } from '../../apis/fabric.api';
-import { DIVISIONS, BUSINESS_DOMAINS, CLOUD_PROVIDERS, TECHNOLOGIES, PURPOSES, CRITERIA_TRANSFER_PRICING, QUALIFICATION_TRANSFER_PRICING, SECURITY_LEVELS, UPDATE_FREQUENCIES } from '../../utilities/constants';
+import { DIVISIONS, BUSINESS_DOMAINS, CLOUD_PROVIDERS, TECHNOLOGIES, PURPOSES, CRITERIA_TRANSFER_PRICING, QUALIFICATION_TRANSFER_PRICING, UPDATE_FREQUENCIES } from '../../utilities/constants';
 import { Envs } from '../../utilities/envs';
 
 const Step1_BasicIdentification = ({ formData, setFormData, errors, clearError }) => (
@@ -510,11 +510,15 @@ const Step4_ComplianceUsage = ({
           <div className={classNames('custom-select')}>
             <select
               id="securityLevel"
-              value="Public"
-              onChange={() => {}}
+              value={formData.securityLevel || ''}
+              onChange={(e) => {
+                setFormData({ ...formData, securityLevel: e.target.value });
+                clearError('securityLevelError');
+              }}
             >
-              {SECURITY_LEVELS.map((sl) => (
-                <option key={sl} value={sl} disabled={sl !== 'Public'}>
+              <option value="">Choose</option>
+              {Envs.SECURITY_LEVELS.map((sl) => (
+                <option key={sl} value={sl}>
                   {sl}
                 </option>
               ))}
@@ -768,7 +772,7 @@ const ViewDdxTablesModalContent = ({ workspaceId, workspaceName, workspaceOwner,
     technology: ['UnityCatalog', 'Fabric'],   
     cloudProvider: 'Azure',
     dataHubName: 'oneFabric',
-    securityLevel: 'Public',
+    securityLevel: '',
     fulfillsDataCloudFramework: true,
     price: true,
   });
@@ -1064,7 +1068,7 @@ const ViewDdxTablesModalContent = ({ workspaceId, workspaceName, workspaceOwner,
           setFormData={setFormData}
           errors={errors}
           clearError={clearError}
-          securityLevel={SECURITY_LEVELS || []}
+          securityLevel={Envs.SECURITY_LEVELS || []}
           purposes={PURPOSES || []}
           updateFrequencies={UPDATE_FREQUENCIES || []}
         />
