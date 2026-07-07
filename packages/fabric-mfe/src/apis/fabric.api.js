@@ -42,11 +42,20 @@ const deleteFabricWorkspace = (id) => {
   });
 };
 
-const getFabricWorkspaceLov = () => {
-  return server.get(`/lov/fabric-workspaces?limit=0&offset=0`, {
-    data: {},
-  });
+// const getFabricWorkspaceLov = () => {
+//   return server.get(`/lov/fabric-workspaces?limit=0&offset=0`, {
+//     data: {},
+//   });
+// };
+
+const searchFabricWorkspaceLov = (offset, limit, searchText = '') => {
+  let url = `/lov/fabric-workspaces/search?limit=${limit}&offset=${offset}`;
+  if (searchText && searchText.trim() !== '') {
+    url += `&searchText=${encodeURIComponent(searchText.trim())}`;
+  }
+  return server.get(url, { data: {} });
 };
+
 
 const requestRoles = (id, data) => {
   return server.post(`/fabric-workspaces/${id}/rolerequest`, {
@@ -177,7 +186,7 @@ export const fabricApi = {
   createFabricWorkspace,
   updateFabricWorkspace,
   deleteFabricWorkspace,
-  getFabricWorkspaceLov,
+  searchFabricWorkspaceLov,
   createLakehouse,
   deleteLakehouse,
   createShortcut,
