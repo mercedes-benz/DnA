@@ -215,6 +215,27 @@
 .activeIcon i {
   color: #00adef; 
 }
+
+.optionContainer {
+  padding: 2px 0;
+}
+
+.optionHeader {
+  margin-bottom: 2px;
+}
+
+.optionText {
+  strong {
+    font-size: 1.1rem;
+    font-weight: bold;
+  }
+}
+
+.optionSubText {
+  font-size: 0.75rem;
+  color: #acb8c4;
+}
+
 .charCount {
   font-size: 12px;
   color: #999;
