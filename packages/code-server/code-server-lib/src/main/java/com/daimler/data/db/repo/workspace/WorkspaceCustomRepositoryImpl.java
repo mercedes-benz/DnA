@@ -384,6 +384,24 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 		String  envString = "intDeploymentDetails";
 		if(deployedOn!=null)
 			longdate = String.valueOf(deployedOn.getTime()) ;
+		else {
+			// Preserve existing lastDeployedOn from DB when caller doesn't set it.
+			// This prevents race conditions where concurrent callers overwrite
+			// a previously-stored timestamp with null during full-object replacement.
+			try {
+				String readEnv = "int".equalsIgnoreCase(environment) ? "intDeploymentDetails" : "prodDeploymentDetails";
+				Query readQuery = em.createNativeQuery(
+					"SELECT data->'projectDetails'->'" + readEnv + "'->>'lastDeployedOn' FROM workspace_nsql WHERE data->'projectDetails'->>'projectName' = :projectName");
+				readQuery.setParameter("projectName", projectName);
+				Object existingValue = readQuery.getSingleResult();
+				if (existingValue != null && !existingValue.toString().isEmpty() && !"null".equals(existingValue.toString())) {
+					longdate = existingValue.toString();
+					log.debug("{} - preserving existing lastDeployedOn={} from DB", projectName, longdate);
+				}
+			} catch (Exception e) {
+				log.warn("{} - could not read existing lastDeployedOn: {}", projectName, e.getMessage());
+			}
+		}
 			if(!"int".equalsIgnoreCase(environment)){
 				envString = "prodDeploymentDetails";
 			}
@@ -419,7 +437,9 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 				" \"entitlementPrefixEnabled\": " + deploymentDetails.getEntitlementPrefixEnabled() + "," +
 				" \"selectedAliceRoles\": " + selectedAliceRolesJson + "," +				
 				" \"lastDeployedVersion\": " + addQuotes(deploymentDetails.getLastDeployedVersion()) + "," +
-				" \"lastDeploymentStatus\": " + addQuotes(deploymentDetails.getLastDeploymentStatus()) +"}'),\r\n" + 
+				// " \"lastDeploymentStatus\": " + addQuotes(deploymentDetails.getLastDeploymentStatus()) +"}'),\r\n" + 
+				" \"lastDeploymentStatus\": " + addQuotes(deploymentDetails.getLastDeploymentStatus()) + "," +
+				" \"lastDeploymentError\": " + addQuotes(deploymentDetails.getLastDeploymentError()) +"}'),\r\n" + 
 				"'{projectDetails,lastBuildOrDeployedOn}', '" + longdate + "'),\r\n" +
 				"'{projectDetails,lastBuildOrDeployedEnv}', '" + addQuotes(environment) + "'),\r\n" +
 				"'{projectDetails,lastBuildOrDeployedStatus}', '" + addQuotes(lastBuildOrDeployStatus) + "')\r\n"  ;
