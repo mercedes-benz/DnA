@@ -228,7 +228,7 @@ const FabricWorkspaceCard = ({user, workspace, onSelectWorkspace, onEditWorkspac
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                Consumption
+                Billing
                 <i className={classNames('icon mbc-icon new-tab')} />
               </a>
               {(isAdmin || isOwner) && (
