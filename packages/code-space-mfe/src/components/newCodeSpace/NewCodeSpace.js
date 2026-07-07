@@ -302,11 +302,12 @@ const NewCodeSpace = (props) => {
   // };
 
   const onUserDefinedGithubUrlOnChange = (evnt) => {
-    const githubUrlVal = evnt.currentTarget.value.trim();
+    const githubUrlVal = evnt.currentTarget.value;
     setUserDefinedGithubUrl(githubUrlVal);
+    const trimmedVal = githubUrlVal.trim();
     setUserDefinedGithubUrlError(
-      githubUrlVal.length
-        ? isValidGITRepoUrl(githubUrlVal, isPublicRecipeChoosen)
+      trimmedVal.length
+        ? isValidGITRepoUrl(trimmedVal, isPublicRecipeChoosen)
           ? ''
           : `Please provide valid ${isPublicRecipeChoosen ? 'https://github.com/' : Envs.CODE_SPACE_GIT_PAT_APP_URL} git repository clone url.`
         : requiredError,

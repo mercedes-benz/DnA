@@ -111,6 +111,8 @@ public class WebConfig implements WebMvcConfigurer {
 		HttpComponentsClientHttpRequestFactory requestFactory = new HttpComponentsClientHttpRequestFactory();
 
 		requestFactory.setHttpClient(httpClient);
+		requestFactory.setConnectTimeout(5000);
+		requestFactory.setReadTimeout(30000);
 
 		RestTemplate restTemplate = new RestTemplate(requestFactory);
 		MappingJackson2HttpMessageConverter converter = new MappingJackson2HttpMessageConverter();
