@@ -249,6 +249,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave, user}) => {
   };
   
   const filteredProjects = projectList.length === 0 ? null : projectList;
+  const isLeanIXDisabled = Boolean(selectedProject?.projectID);
   
   
   const handleProjectSearch = (searchTerm, showSpinner) => {
@@ -539,7 +540,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave, user}) => {
                           placeholder={'Select App-ID (Enter minimum 4 characters)'}
                           defaultValue={selectedLeanIX.id}
                           list={leanIXList}
-                          disabled={!!selectedProject?.projectID}
+                          disabled={isLeanIXDisabled}
                           setSelected={(selectedTags) => {
                             const leanIXData = {
                               appId: selectedTags.id,
