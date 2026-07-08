@@ -67,6 +67,15 @@ public class ArgoCdService {
     @Value("${codeServer.git.pat}")
     private String gitPat;
 
+    @Value("${argocd.resources.defaults.requests.cpu}")
+    private String defaultRequestCpu;
+
+    @Value("${argocd.resources.defaults.requests.memory.mi}")
+    private String defaultRequestMemoryMi;
+
+    @Value("${argocd.resources.defaults.limits.memory.mi}")
+    private String defaultLimitMemoryMi;
+
     @Autowired
     private RestTemplate restTemplate;
 
@@ -316,43 +325,39 @@ public class ArgoCdService {
         helmParameters.add(createHelmParamForceString("podAnnotations.prometheus\\.io/scrape", "true"));
         
         if (resources != null && resources.isEmpty()) {
-            helmParameters.add(createHelmParam("resources.requests.cpu", "200m"));
-            helmParameters.add(createHelmParam("resources.requests.memory", "256Mi"));
-            helmParameters.add(createHelmParam("resources.limits.memory", "1Gi"));
+            helmParameters.add(createHelmParam("resources.requests.cpu", defaultRequestCpu));
+            helmParameters.add(createHelmParam("resources.requests.memory", defaultRequestMemoryMi + "Mi"));
+            helmParameters.add(createHelmParam("resources.limits.memory", defaultLimitMemoryMi + "Mi"));
             log.info("[Resources] Empty resources in values.yaml, sending defaults");
         } else if (resources != null && !resources.isEmpty()) {
             String cpu = resources.get("cpu");
             String memory = resources.get("memory");
+            String limitsMemory = resources.get("limitsMemory");
             boolean hasLimitsCpu = "true".equals(resources.get("hasLimitsCpu"));
 
-            if (!hasLimitsCpu) {
-                // Case 2: No limits.cpu — limits.memory = requests.memory
-                if (cpu != null) {
-                    helmParameters.add(createHelmParam("resources.requests.cpu", cpu + "m"));
-                }
-                if (memory != null) {
-                    helmParameters.add(createHelmParam("resources.requests.memory", memory + "Mi"));
-                    helmParameters.add(createHelmParam("resources.limits.memory", memory + "Mi"));
-                }
-                log.info("[Resources] Case 2: No limits.cpu in values.yaml - requests.cpu={}, requests.memory={}, limits.memory={} (same as requests)",
-                    cpu != null ? cpu + "m" : "not set",
-                    memory != null ? memory + "Mi" : "not set",
-                    memory != null ? memory + "Mi" : "not set");
+            // Missing keys inside a non-empty resources block should still use case-1 defaults.
+            String requestCpu = (cpu != null) ? cpu + "m" : defaultRequestCpu;
+            boolean requestMemoryDefaulted = (memory == null);
+            String requestMemory = requestMemoryDefaulted ? defaultRequestMemoryMi : memory;
+            String limitMemory = (limitsMemory != null) ? limitsMemory : defaultLimitMemoryMi;
 
-            } else {
-                if (cpu != null) {
-                    helmParameters.add(createHelmParam("resources.requests.cpu", cpu + "m"));
-                }
-                if (memory != null) {
-                    helmParameters.add(createHelmParam("resources.requests.memory", memory + "Mi"));
-                    helmParameters.add(createHelmParam("resources.limits.memory", memory + "Mi"));
-                }
-                helmParameters.add(createHelmParam("resources.limits.cpu", "null"));
-                log.info("[Resources] Case 3: limits.cpu exists in values.yaml - requests.cpu={}, requests.memory={}, limits.memory={} (same as requests), limits.cpu=null",
-                    cpu != null ? cpu + "m" : "not set",
-                    memory != null ? memory + "Mi" : "not set",
-                    memory != null ? memory + "Mi" : "not set");
+            if (requestMemoryDefaulted && parseMemoryMi(limitMemory) < parseMemoryMi(defaultRequestMemoryMi)) {
+                limitMemory = defaultRequestMemoryMi;
             }
+
+            helmParameters.add(createHelmParam("resources.requests.cpu", requestCpu));
+            helmParameters.add(createHelmParam("resources.requests.memory", requestMemory + "Mi"));
+            helmParameters.add(createHelmParam("resources.limits.memory", limitMemory + "Mi"));
+            if (hasLimitsCpu) {
+                helmParameters.add(createHelmParam("resources.limits.cpu", "null"));
+            }
+            log.info("[Resources] Applying Helm params: requests.cpu={}, requests.memory={} (defaulted={}), limits.memory={} (source={}), limits.cpu={}",
+                requestCpu,
+                requestMemory + "Mi",
+                requestMemoryDefaulted,
+                limitMemory + "Mi",
+                limitsMemory != null ? "values.yaml" : "default",
+                hasLimitsCpu ? "null" : "not set");
 
         } else {
             log.info("[Resources] No resource overrides, using chart defaults");
@@ -588,6 +593,15 @@ public class ArgoCdService {
         } catch (NumberFormatException e) {
             log.warn("Invalid CPU value (must be 'm' or cores): {}", cpuValue);
             return null;
+        }
+    }
+    
+    private double parseMemoryMi(String memoryMi) {
+        try {
+            return Double.parseDouble(memoryMi.trim());
+        } catch (NumberFormatException e) {
+            log.warn("[Resources] Unable to parse memory Mi value: {}", memoryMi);
+            return Double.MAX_VALUE;
         }
     }
     
