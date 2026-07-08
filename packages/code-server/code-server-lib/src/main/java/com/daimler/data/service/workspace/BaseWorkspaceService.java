@@ -2075,16 +2075,8 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
                             }
                         }
                         
-                        boolean resourceExceptionEnabled = deploymentDetails.isResourceExceptionEnabled();
-                        log.info("[Deploy] Resource exception flag from DB: {} for {}-{} (source: deploymentDetails.isResourceExceptionEnabled())", 
-                                 resourceExceptionEnabled, projectName, environment);
-                        log.info("[Deploy] Calling createArgoApp - project={}, env={}, gitRepoUrl={}, imageTag={}, vaultInjector={}, branch={}, resourceExceptionEnabled={}",
-                                 projectName, environment, gitRepoUrl, imageTag, isValutInjectorEnable, branch, resourceExceptionEnabled);
-                        
                         argoDeployResult = argoCdService.createArgoApp(argoToken, projectName.toLowerCase(), workspaceOwner, 
-                                                                        environment, gitRepoUrl, imageTag, isValutInjectorEnable, branch,
-                                                                        resourceExceptionEnabled);
-                        log.info("[Deploy] createArgoApp returned: {} for {}-{}", argoDeployResult, projectName, environment);
+                                                                        environment, gitRepoUrl, imageTag, isValutInjectorEnable, branch);
                     } else {
                         argoErrorMessage = "Failed to get ArgoCD token for deployment";
                         log.error("Failed to get ArgoCD token for deployment: {}-{}", projectName, environment);
@@ -2173,10 +2165,8 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 					 }
 					 if("int".equalsIgnoreCase(environment)){
 						buildDeployLogs.setIntDeploymentAuditLogs(auditLogs);
-						buildDeployLogs.setIntResourceExceptionEnabled(deploymentDetails.isResourceExceptionEnabled());
 					 }else{
 						buildDeployLogs.setProdDeploymentAuditLogs(auditLogs);
-						buildDeployLogs.setProdResourceExceptionEnabled(deploymentDetails.isResourceExceptionEnabled());
 					 }
 					 auditLogEntity.setData(buildDeployLogs);
 					 buildDeployRepo.save(auditLogEntity);
