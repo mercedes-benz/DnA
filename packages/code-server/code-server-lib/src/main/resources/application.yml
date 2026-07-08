@@ -2,7 +2,7 @@ spring:
   mvc.pathmatch.matching-strategy: ant_path_matcher
   application:
     name: dna-codeserver-service
-    version: 1.12.2
+    version: 1.12.3
   profile:
     active: production
 
@@ -180,6 +180,7 @@ kong:
    logoutPath: ${LOGOUT_PATH:XXXX}
    realm: ${REALM:XXXX}
    redirectAfterLogoutUri: ${REDIRECT_AFTER_LOGOUT_URI:XXXX}
+   oidcRecoveryPagePath: ${OIDC_RECOVERY_PAGE_PATH:XXXX}
    redirectUriPath: ${REDIRECT_URI_PATH:XXXX}
    revokeTokensOnLogout: ${REVOKE_TOKENS_ON_LOGOUT:XXXX}
    responseType: ${RESPONSE_TYPE:XXXX}

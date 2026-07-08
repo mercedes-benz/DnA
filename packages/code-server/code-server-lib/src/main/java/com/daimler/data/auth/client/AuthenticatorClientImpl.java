@@ -22,6 +22,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
@@ -97,6 +98,9 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 	
 	@Value("${kong.redirectAfterLogoutUri}")
 	private String redirectAfterLogoutUri;
+
+	@Value("${kong.oidcRecoveryPagePath:}")
+	private String oidcRecoveryPagePath;
 	
 	@Value("${kong.redirectUriPath}")
 	private String redirectUriPath;
@@ -536,6 +540,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 
 		String recovery_page_path = "https://" + (cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS_AWS)?codeServerEnvUrlAWS:codeServerEnvUrl) + "/" + serviceName.toLowerCase() + "/";	
 		String redirectUri = "/" + serviceName.toLowerCase();
+		recovery_page_path = resolveOidcRecoveryPagePath(recovery_page_path);
 
 		attachPluginConfigVO.setBearer_only(bearerOnly);
 		attachPluginConfigVO.setClient_id(clientId);
@@ -941,6 +946,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 									attachOIDCPluginVO.setName(OIDC_PLUGIN);
 
 									String authRecovery_page_path = "https://" + codeServerEnvUrl + "/" + serviceName.toLowerCase() + "/"+env+"/";	
+									authRecovery_page_path = resolveOidcRecoveryPagePath(authRecovery_page_path);
 									//String authRedirectUri = "/" + serviceName.toLowerCase()+"/"+env+"/api";
 
 									if("SSO_INT".equalsIgnoreCase(ssoType)){
@@ -1884,6 +1890,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 
 		String authRecovery_page_path = "https://" + (cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS_AWS)?codeServerEnvUrlAWS:codeServerEnvUrl) + "/" + serviceName.toLowerCase() + "/"+env+"/api";	
 		String authRedirectUri = "/" + serviceName.toLowerCase()+"/"+env+"/api";
+		authRecovery_page_path = resolveOidcRecoveryPagePath(authRecovery_page_path);
 
 		if("SSO_INT".equalsIgnoreCase(ssoType)){
 			attachOIDCPluginConfigVO.setDiscovery(authDiscovery);
@@ -1927,6 +1934,10 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		attachOIDCPluginRequestVO.setData(attachOIDCPluginVO);
 		attachPluginResponse = attachPluginToService(attachOIDCPluginRequestVO,serviceName.toLowerCase()+"-"+env,cloudServiceProvider);
 		LOGGER.info("calling kong to attach oidc plugin with status {}",attachPluginResponse.getSuccess());
+	}
+
+	private String resolveOidcRecoveryPagePath(String fallbackPath) {
+		return StringUtils.hasText(oidcRecoveryPagePath) ? oidcRecoveryPagePath : fallbackPath;
 	}
 
 	@Override
