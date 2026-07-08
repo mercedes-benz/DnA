@@ -4,6 +4,7 @@ import com.daimler.data.controller.exceptions.OpenMetadataClientException;
 import com.daimler.data.controller.exceptions.EntityNotFoundException;
 import com.daimler.data.controller.exceptions.EntityAlreadyExistsException;
 import com.daimler.data.dto.fabricCatalogManagement.MandatoryFieldsVO;
+import com.daimler.data.dto.fabricWorkspace.FabricLakehouseVO;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.fasterxml.jackson.databind.DeserializationFeature;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -175,6 +176,99 @@ public class OpenMetadataClient {
         }
     }
 
+    public Database addDatabase(String name, String serviceFQN, MandatoryFieldsVO fields, List<EntityReference> owners, String description) {
+        try {
+            CreateDatabase request = new CreateDatabase()
+                    .name(name)
+                    .service(serviceFQN)
+                    .extension(toExtensions(fields))
+                    .description(description)
+                    .tags(getDefaultTags())
+                    .addTagsItem(prepareTag(mapTierValue(fields.getTier())))
+                    .owners(owners);
+            return apiClient.buildClient(DatabasesApi.class)
+                    .createOrUpdateDatabase(request);
+        } catch (FeignException.Conflict e) {
+            throw new EntityAlreadyExistsException("Database already exists: " + name, e);
+        } catch (FeignException.BadRequest e){
+            throw new OpenMetadataClientException("Failed to create Database : " + name + " Bad Request "+ e.getMessage(), e);
+        } catch (Exception e) {
+            throw new OpenMetadataClientException("Failed to create Database: " + name, e);
+        }
+    }
+
+    public List<Database> addDatabasesToExistingService(String serviceFQN, 
+            List<String> databaseNames, MandatoryFieldsVO fields, 
+            List<EntityReference> owners, String description) {
+        List<Database> createdDatabases = new ArrayList<>();
+        
+        if (databaseNames == null || databaseNames.isEmpty()) {
+            log.warn("No database names provided");
+            return createdDatabases;
+        }
+        
+        for (String dbName : databaseNames) {
+            try {
+                Database database = addDatabase(dbName, serviceFQN, fields, owners, description);
+                createdDatabases.add(database);
+                log.info("Added database {} to service {}", dbName, serviceFQN);
+            } catch (EntityAlreadyExistsException e) {
+                log.warn("Database {} already exists in service {}", dbName, serviceFQN);
+                try {
+                    Database existing = getDatabase(serviceFQN.split("\\.")[0], dbName);
+                    createdDatabases.add(existing);
+                } catch (Exception ex) {
+                    throw new OpenMetadataClientException("Failed to retrieve existing database: " + dbName, ex);
+                }
+            }
+        }
+        
+        return createdDatabases;
+    }
+
+    public Database addDatabaseForLakehouse(String serviceFQN, String workspaceName, 
+            FabricLakehouseVO lakehouse, MandatoryFieldsVO fields, 
+            List<EntityReference> owners, String description) {
+        String dbName = lakehouse.getName();
+        log.info("Adding database {} for lakehouse {} to service {}", dbName, lakehouse.getId(), serviceFQN);
+        
+        return addDatabase(dbName, serviceFQN, fields, owners, description);
+    }
+
+    public List<Database> addLakehouseDatabasestoExistingService(String serviceFQN, String workspaceName,
+            List<FabricLakehouseVO> lakehouses, MandatoryFieldsVO fields,
+            List<EntityReference> owners, String description) {
+        List<Database> createdDatabases = new ArrayList<>();
+        
+        if (lakehouses == null || lakehouses.isEmpty()) {
+            log.warn("No lakehouses provided for service: {}", serviceFQN);
+            return createdDatabases;
+        }
+        
+        for (FabricLakehouseVO lakehouse : lakehouses) {
+            try {
+                Database database = addDatabaseForLakehouse(serviceFQN, workspaceName, 
+                        lakehouse, fields, owners, description);
+                createdDatabases.add(database);
+                log.info("Successfully added database for lakehouse {} to service {}", 
+                        lakehouse.getName(), serviceFQN);
+            } catch (EntityAlreadyExistsException e) {
+                log.warn("Database for lakehouse {} already exists", lakehouse.getName());
+                String dbName = lakehouse.getName();
+                try {
+                    Database existing = getDatabase(workspaceName, dbName);
+                    createdDatabases.add(existing);
+                } catch (Exception ex) {
+                    log.error("Failed to retrieve existing database for lakehouse: {}", lakehouse.getName(), ex);
+                    throw new OpenMetadataClientException("Failed to get existing database for lakehouse: " + 
+                            lakehouse.getName(), ex);
+                }
+            }
+        }
+        
+        return createdDatabases;
+    }
+
     public DatabaseSchema createSchema(String name, String dbFQN) {
         try {
             CreateDatabaseSchema request = new CreateDatabaseSchema()
@@ -265,12 +359,14 @@ public class OpenMetadataClient {
         }
     }
 
-    public Database updateDatabase(String dbId, String name, String serviceFQN, MandatoryFieldsVO fields, List<EntityReference> owners) {
+    public Database updateDatabase(String dbId, String name, String serviceFQN, MandatoryFieldsVO fields,
+            List<EntityReference> owners, String description) {
         try {
             CreateDatabase request = new CreateDatabase()
                 .name(name)
                 .service(serviceFQN)
                 .extension(toExtensions(fields))
+                .description(description)
                 .owners(owners);
 
             return apiClient.buildClient(DatabasesApi.class)
@@ -441,7 +537,7 @@ public class OpenMetadataClient {
             return column;
         } catch (IllegalArgumentException e) {
             throw new OpenMetadataClientException(
-                "Invalid column definition - " + e.getMessage(), e);
+                "Invalid column definition for column '" + name + "' - " + e.getMessage(), e);
         }
     }
 
@@ -469,9 +565,59 @@ public class OpenMetadataClient {
             column.setDataType(Column.DataTypeEnum.STRUCT);
             column.setDataTypeDisplay(dataTypeStr);
 
+        } else if (upper.startsWith("DECIMAL(") || upper.startsWith("NUMERIC(")) {
+            String prefix = upper.startsWith("DECIMAL(") ? "DECIMAL(" : "NUMERIC(";
+            String inner = extractInner(upper, prefix);
+            String[] parts = inner.split(",");
+            column.setDataType(upper.startsWith("DECIMAL(") ? Column.DataTypeEnum.DECIMAL : Column.DataTypeEnum.NUMERIC);
+            try {
+                column.setPrecision(Integer.parseInt(parts[0].trim()));
+                if (parts.length > 1) {
+                    column.setScale(Integer.parseInt(parts[1].trim()));
+                }
+            } catch (NumberFormatException e) {
+                // precision/scale not parseable — still set type
+            }
+            column.setDataTypeDisplay(dataTypeStr);
+        } else if (upper.matches("(N?VARCHAR|N?CHAR|BINARY|VARBINARY)\\(.*\\)")) {
+            String baseType = upper.replaceAll("\\(.*\\)", "");
+            String lenStr = upper.replaceAll(".*\\((.*)\\)", "$1");
+            column.setDataType(Column.DataTypeEnum.fromValue(baseType));
+            if (!lenStr.equalsIgnoreCase("MAX")) {
+                try {
+                    column.setDataLength(Integer.parseInt(lenStr));
+                } catch (NumberFormatException e) {
+                    // non-numeric length — skip
+                }
+            }
+            column.setDataTypeDisplay(dataTypeStr);
+
         } else {
-            Column.DataTypeEnum dataType = Column.DataTypeEnum.fromValue(upper);
+            // Fabric-specific type aliases → OpenMetadata enum mapping
+            String mapped = mapFabricTypeAlias(upper);
+            Column.DataTypeEnum dataType = Column.DataTypeEnum.fromValue(mapped);
             column.setDataType(dataType);
+            if (!mapped.equals(upper)) {
+                column.setDataTypeDisplay(dataTypeStr);
+            }
+        }
+    }
+
+    private String mapFabricTypeAlias(String upper) {
+        switch (upper) {
+            case "UNIQUEIDENTIFIER": return "UUID";
+            case "TIMESTAMP_NTZ":   return "TIMESTAMP";
+            case "MONEY":
+            case "SMALLMONEY":      return "DECIMAL";
+            case "REAL":            return "FLOAT";
+            case "DATETIME2":
+            case "SMALLDATETIME":   return "DATETIME";
+            case "DATETIMEOFFSET":  return "TIMESTAMPZ";
+            case "IMAGE":           return "BLOB";
+            case "NTEXT":           return "TEXT";
+            case "DECIMAL":
+            case "NUMERIC":         return upper; // bare (no precision) — pass through
+            default:                return upper;
         }
     }
 
@@ -501,7 +647,7 @@ public class OpenMetadataClient {
             //"IsDataAsset", List.of(fields.getIsDataAsset()),
             "LeanIXID", List.of(fields.getLeanIXId()),
             "DocumentationUpdated", List.of(fields.getIsDocumentationUpdated()),
-            // "DataLakeAvailability", List.of(fields.getIsDataLakeAvailability()),
+            "DataLakeName", List.of(fields.getDataLakeName()),
             "DataConfidentiality",List.of(fields.getDataConfidentiality())
         );
     }
