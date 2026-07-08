@@ -510,14 +510,16 @@ const Step4_ComplianceUsage = ({
           <div className={classNames('custom-select')}>
             <select
               id="securityLevel"
-              value={formData.securityLevel || ''}
+              defaultValue={formData.securityLevel || ''}
               onChange={(e) => {
-                setFormData({ ...formData, securityLevel: e.target.value });
-                clearError('securityLevelError');
+                if (e.target.value) {
+                  setFormData((prev) => ({ ...prev, securityLevel: e.target.value }));
+                  clearError('securityLevelError');
+                }
               }}
             >
               <option value="">Choose</option>
-              {Envs.SECURITY_LEVELS.map((sl) => (
+              {Envs.SECURITY_LEVELS?.map((sl) => (
                 <option key={sl} value={sl}>
                   {sl}
                 </option>
