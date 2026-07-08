@@ -7,6 +7,7 @@ import java.util.Base64;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -78,6 +79,12 @@ public class ArgoCdService {
     @Autowired
     private RestTemplate restTemplate;
 
+    private volatile String cachedArgoToken;
+    private volatile long cachedArgoTokenExpiresAt;
+    private static final long ARGO_TOKEN_REFRESH_BUFFER_MS = 5 * 60 * 1000L; // refresh 5 min before expiry
+    private static final long ARGO_TOKEN_FALLBACK_TTL_MS = 23 * 60 * 60 * 1000L; // fallback if exp claim missing
+    private final ReentrantLock tokenLock = new ReentrantLock();
+
     public String getArgocdBaseUrl() {
         if (argocdCreateUrl != null && argocdCreateUrl.contains("/api/")) {
             return argocdCreateUrl.substring(0, argocdCreateUrl.indexOf("/api/"));
@@ -93,28 +100,64 @@ public class ArgoCdService {
         return gitPat;
     }
 
-    public String getArgoToken() throws Exception {
-        String url = argocdTokenUrl;
-        log.info("Attempting to get ArgoCD token from: {}", url);
+    private long extractTokenExpiry(String token) {
         try {
+            String[] parts = token.split("\\.");
+            if (parts.length < 2) {
+                return System.currentTimeMillis() + ARGO_TOKEN_FALLBACK_TTL_MS;
+            }
+            String payload = new String(Base64.getUrlDecoder().decode(parts[1]), StandardCharsets.UTF_8);
+            ObjectMapper mapper = new ObjectMapper();
+            JsonNode claims = mapper.readTree(payload);
+            if (claims.has("exp")) {
+                long expSeconds = claims.get("exp").asLong();
+                return (expSeconds * 1000L) - ARGO_TOKEN_REFRESH_BUFFER_MS;
+            }
+        } catch (Exception e) {
+            log.debug("Could not parse JWT exp claim, using fallback TTL: {}", e.getMessage());
+        }
+        return System.currentTimeMillis() + ARGO_TOKEN_FALLBACK_TTL_MS;
+    }
+
+    public String getArgoToken() throws Exception {
+        String token = cachedArgoToken;
+        if (token != null && System.currentTimeMillis() < cachedArgoTokenExpiresAt) {
+            return token;
+        }
+        tokenLock.lock();
+        try {
+            // Double-check after acquiring lock
+            if (cachedArgoToken != null && System.currentTimeMillis() < cachedArgoTokenExpiresAt) {
+                return cachedArgoToken;
+            }
+            String url = argocdTokenUrl;
+            log.info("Requesting new ArgoCD token (previous expired or absent)");
             HttpHeaders headers = new HttpHeaders();
             headers.setContentType(MediaType.APPLICATION_JSON);
             Map<String, String> request = Map.of("username", tokenUserName, "password", tokenPassword);
             HttpEntity<Map<String, String>> entity = new HttpEntity<>(request, headers);
-        
+
             ResponseEntity<Map> response = restTemplate.postForEntity(url, entity, Map.class);
             @SuppressWarnings("unchecked")
             Map<String, Object> body = response.getBody();
-            log.info("Successfully obtained ArgoCD token");
-            return (String) body.get("token");
+            String newToken = (String) body.get("token");
+            cachedArgoToken = newToken;
+            cachedArgoTokenExpiresAt = extractTokenExpiry(newToken);
+            long remainingSec = (cachedArgoTokenExpiresAt - System.currentTimeMillis()) / 1000;
+            log.info("Obtained ArgoCD token, cached until {}s before expiry ({}s from now)", ARGO_TOKEN_REFRESH_BUFFER_MS / 1000, remainingSec);
+            return newToken;
         } catch (org.springframework.web.client.HttpClientErrorException e) {
+            cachedArgoToken = null;
             String errorMsg = "ArgoCD authentication failed (HTTP " + e.getStatusCode() + "): " + e.getResponseBodyAsString();
-            log.error("Failed to get ArgoCD token from URL: {}. Error: {}", url, errorMsg);
+            log.error("Failed to get ArgoCD token from URL: {}. Error: {}", argocdTokenUrl, errorMsg);
             throw new Exception(errorMsg);
         } catch (Exception e) {
-            String errorMsg = "Failed to connect to ArgoCD server at " + url + ": " + e.getMessage();
+            cachedArgoToken = null;
+            String errorMsg = "Failed to connect to ArgoCD server at " + argocdTokenUrl + ": " + e.getMessage();
             log.error("ArgoCD connection error: {}", errorMsg, e);
             throw new Exception(errorMsg);
+        } finally {
+            tokenLock.unlock();
         }
     }
 
@@ -810,7 +853,7 @@ public class ArgoCdService {
             log.info("ArgoCD application not found: {}", appName);
             return ResponseEntity.status(404).build();
         } catch (org.springframework.web.client.HttpClientErrorException.Forbidden e) {
-            log.warn("Permission denied accessing ArgoCD application: {}", appName);
+            log.debug("Permission denied accessing ArgoCD application: {} (RBAC may still be propagating)", appName);
             return ResponseEntity.status(403).build();
         } catch (Exception e) {
             log.error("Failed to get ArgoCD app status for {}", appName, e);
@@ -824,8 +867,8 @@ public class ArgoCdService {
             if (argoResponse == null || !argoResponse.getStatusCode().is2xxSuccessful()) {
                 int statusCode = argoResponse != null ? argoResponse.getStatusCode().value() : 0;
                 if (statusCode == 403) {
-                    log.warn("ArgoCD app {} - permission denied, marking as DEPLOYMENT_FAILED", appName);
-                    return "DEPLOYMENT_FAILED";
+                    log.info("ArgoCD app {} - permission denied (RBAC propagating), treating as DEPLOYING", appName);
+                    return "DEPLOYING";
                 }
                 if (statusCode == 404) {
                     log.warn("ArgoCD app {} - not found, marking as DEPLOYMENT_FAILED", appName);
@@ -853,8 +896,14 @@ public class ArgoCdService {
             }
 
             if ("Degraded".equalsIgnoreCase(healthStatus)) {
-                log.info("Application {} is degraded - DEPLOYMENT_FAILED", appName);
-                return "DEPLOYMENT_FAILED";
+                // Degraded is only a definitive failure if the sync has already completed successfully.
+                // During active deployment, Degraded is often transient (image pull, readiness probe warmup).
+                if ("Succeeded".equalsIgnoreCase(lastSyncPhase)) {
+                    log.info("Application {} is degraded after sync succeeded - DEPLOYMENT_FAILED", appName);
+                    return "DEPLOYMENT_FAILED";
+                }
+                log.info("Application {} is degraded but sync not yet succeeded (syncPhase={}) - treating as DEPLOYING", appName, lastSyncPhase);
+                return "DEPLOYING";
             }
 
             if ("Running".equalsIgnoreCase(lastSyncPhase)) {
@@ -869,7 +918,11 @@ public class ArgoCdService {
             }
 
             if ("Healthy".equalsIgnoreCase(healthStatus)) {
-                log.info("Application {} is healthy - DEPLOYED", appName);
+                if (!isDesiredImageDeployed(rootNode, appName)) {
+                    log.info("Application {} is healthy but running stale image (new sync not started yet) - DEPLOYING", appName);
+                    return "DEPLOYING";
+                }
+                log.info("Application {} is healthy with correct image - DEPLOYED", appName);
                 return "DEPLOYED";
             }
 
@@ -888,9 +941,14 @@ public class ArgoCdService {
             ResponseEntity<String> argoResponse = getStatusOfArgoApp(token, appName);
             if (argoResponse == null || !argoResponse.getStatusCode().is2xxSuccessful()) {
                 int statusCode = argoResponse != null ? argoResponse.getStatusCode().value() : 0;
-                if (statusCode == 403 || statusCode == 404) {
+                if (statusCode == 403) {
+                    log.info("ArgoCD app {} - permission denied (RBAC propagating), treating as DEPLOYING", appName);
+                    result.put("status", "DEPLOYING");
+                    return result;
+                }
+                if (statusCode == 404) {
                     result.put("status", "DEPLOYMENT_FAILED");
-                    result.put("errorMessage", "ArgoCD app " + appName + " - HTTP " + statusCode);
+                    result.put("errorMessage", "ArgoCD app " + appName + " - not found (HTTP 404)");
                     return result;
                 }
                 return result;
@@ -913,9 +971,16 @@ public class ArgoCdService {
                 return result;
             }
             if ("Degraded".equalsIgnoreCase(healthStatus)) {
-                result.put("status", "DEPLOYMENT_FAILED");
-                result.put("errorMessage", operationMessage != null && !operationMessage.isEmpty()
-                    ? operationMessage : "Application health is Degraded. Check pod logs for details.");
+                // Degraded is only a definitive failure if the sync has already completed successfully.
+                // During active deployment, Degraded is often transient (image pull, readiness probe warmup).
+                if ("Succeeded".equalsIgnoreCase(lastSyncPhase)) {
+                    result.put("status", "DEPLOYMENT_FAILED");
+                    result.put("errorMessage", operationMessage != null && !operationMessage.isEmpty()
+                        ? operationMessage : "Application health is Degraded. Check pod logs for details.");
+                    return result;
+                }
+                // Sync hasn't completed — treat as still deploying
+                result.put("status", "DEPLOYING");
                 return result;
             }
             if ("Running".equalsIgnoreCase(lastSyncPhase)) {
@@ -927,6 +992,11 @@ public class ArgoCdService {
                 return result; 
             }
             if ("Healthy".equalsIgnoreCase(healthStatus)) {
+                if (!isDesiredImageDeployed(rootNode, appName)) {
+                    log.info("Application {} is healthy but running stale image (new sync not started yet) - DEPLOYING", appName);
+                    result.put("status", "DEPLOYING");
+                    return result;
+                }
                 result.put("status", "DEPLOYED");
                 return result;
             }
@@ -935,6 +1005,70 @@ public class ArgoCdService {
             log.error("Failed to check ArgoCD deployment status for {}", appName, e);
             return result;
         }
+    }
+
+    /**
+     * Checks whether the image tag currently running in ArgoCD matches the desired
+     * image tag from the app spec. Returns false (stale) when ArgoCD still serves
+     * a previously-deployed image because the new sync hasn't started yet.
+     *
+     * Extracts the desired tag from spec.source.helm.parameters (image.tag) and
+     * compares it against the list of actually-running images in
+     * status.summary.images. If either field is missing, returns true (optimistic)
+     * to avoid blocking deployments when ArgoCD omits the data.
+     */
+    public boolean isDesiredImageDeployed(JsonNode rootNode, String appName) {
+        try {
+            String desiredTag = getDesiredImageTag(rootNode);
+            if (desiredTag == null || desiredTag.isEmpty()) {
+                log.debug("No desired image.tag found in spec for {} - skipping image validation", appName);
+                return true;
+            }
+
+            List<String> runningImages = getRunningImages(rootNode);
+            if (runningImages.isEmpty()) {
+                log.debug("No running images found in status.summary for {} - skipping image validation", appName);
+                return true;
+            }
+
+            boolean matched = runningImages.stream()
+                    .anyMatch(img -> img.contains(":" + desiredTag));
+            log.info("Image validation for {}: desired tag={}, running images={}, matched={}",
+                    appName, desiredTag, runningImages, matched);
+            return matched;
+        } catch (Exception e) {
+            log.warn("Image validation failed for {} - allowing status through: {}", appName, e.getMessage());
+            return true;
+        }
+    }
+
+    /**
+     * Extracts the desired image.tag from the ArgoCD app spec's Helm parameters.
+     */
+    private String getDesiredImageTag(JsonNode rootNode) {
+        JsonNode parameters = rootNode.path("spec").path("source").path("helm").path("parameters");
+        if (parameters.isArray()) {
+            for (JsonNode param : parameters) {
+                if ("image.tag".equals(param.path("name").asText(""))) {
+                    return param.path("value").asText("");
+                }
+            }
+        }
+        return null;
+    }
+
+    /**
+     * Extracts the list of currently-running container images from ArgoCD status.
+     */
+    private List<String> getRunningImages(JsonNode rootNode) {
+        List<String> images = new ArrayList<>();
+        JsonNode imagesNode = rootNode.path("status").path("summary").path("images");
+        if (imagesNode.isArray()) {
+            for (JsonNode img : imagesNode) {
+                images.add(img.asText(""));
+            }
+        }
+        return images;
     }
 
     private String getNamespaceForEnvironment(String clusterEnv, String targetEnv) {

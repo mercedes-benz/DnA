@@ -8,12 +8,15 @@
  */
 pluginManagement {
     repositories {
-        mavenCentral()
-        gradlePluginPortal()
-		maven {
-		  url "https://plugins.gradle.org/m2/"
-		}
+    maven {
+        url System.getenv('ARTIFACTORY_URL')
+        credentials {
+            username System.getenv('ARTIFACTORY_USER')
+            password System.getenv('ARTIFACTORY_PASSWORD')
+        }
     }
+}
+
     plugins {
       id 'org.hidetake.swagger.generator' version '2.18.2'
 	  id 'maven' version '3.1.2'
