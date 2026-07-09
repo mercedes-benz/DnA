@@ -1689,9 +1689,8 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 						 }
 
 						 if (gitJobRunId != null && !gitJobRunId.isBlank()) {
-							 boolean useGHE = Boolean.TRUE.equals(entity.getData().getIsWorkspaceMigratedToGHE());
-							 log.info("getById - Fetching latest status from GitHub for project={}, runId={}, useGHE={}",
-									 entity.getData().getProjectDetails().getProjectName(), gitJobRunId, useGHE);
+							log.info("getById - Fetching latest status from GitHub for project={}, runId={}",
+									 entity.getData().getProjectDetails().getProjectName(), gitJobRunId);
 
 							 GitHubWorkflowJobsResponseDto.Job buildDeployJob = gitClient.getBuildDeployJob(gitJobRunId);
 							 if (buildDeployJob != null && "completed".equalsIgnoreCase(buildDeployJob.getStatus()) && buildDeployJob.getConclusion() != null) {
