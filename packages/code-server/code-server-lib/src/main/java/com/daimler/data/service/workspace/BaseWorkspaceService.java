@@ -1689,7 +1689,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 						 }
 
 						 if (gitJobRunId != null && !gitJobRunId.isBlank()) {
-							log.info("getById - Fetching latest status from GitHub for project={}, runId={}",
+							 log.info("getById - Fetching latest status from GitHub for project={}, runId={}",
 									 entity.getData().getProjectDetails().getProjectName(), gitJobRunId);
 
 							 GitHubWorkflowJobsResponseDto.Job buildDeployJob = gitClient.getBuildDeployJob(gitJobRunId);
