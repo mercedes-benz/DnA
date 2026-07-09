@@ -62,7 +62,7 @@ public class ArgoCdService {
     private String vaultMountPath;
 
     @Value("${codeServer.git.ghe.pat}")
-    private String ghePat;
+    private String ghePat;    
 
     @Value("${codeServer.git.pat}")
     private String gitPat;
