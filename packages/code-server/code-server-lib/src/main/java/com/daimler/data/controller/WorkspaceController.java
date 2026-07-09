@@ -102,6 +102,7 @@ import com.daimler.data.dto.workspace.CreatedByVO;
 import com.daimler.data.dto.workspace.DataGovernanceRequestInfo;
 import com.daimler.data.dto.workspace.DeployedAppConfigDto;
 import com.daimler.data.dto.workspace.EntitlementCollectionVO;
+import com.daimler.data.dto.workspace.GitJobRunIdStatusVO;
 import com.daimler.data.dto.workspace.InitializeCollabWorkspaceRequestVO;
 import com.daimler.data.dto.workspace.InitializeWorkspaceRequestVO;
 import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
@@ -119,6 +120,7 @@ import com.daimler.data.dto.workspace.WorkspacePluginStatusVO;
 import com.daimler.data.dto.workspace.admin.CodespaceSecurityConfigCollectionVO;
 import com.daimler.data.dto.workspace.admin.CodespaceSecurityConfigDetailsVO;
 import com.daimler.data.service.workspace.WorkspaceService;
+import com.daimler.data.service.ArgoCdService;
 import com.daimler.data.util.CommonUtils;
 import com.daimler.data.util.ConstantsUtility;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -179,11 +181,23 @@ import org.springframework.beans.factory.annotation.Value;
 	@Value("${codeServer.technical.id}")
 	private String technicalId;
 
+	@Value("${codeServer.git.enterprise.url}")
+	private String gheBaseUri;
+
+	@Value("${codeServer.git.ghe.pat}")
+	private String ghePat;
+
+	@Value("${codeServer.git.orguri}")
+	private String gitOrgUri;
+
 	 @Autowired
 	 private WorkspaceRepository jpaRepo;
    
 	@Autowired
 	 private WorkspaceUserGroupRepository userGroupRepository; 
+
+	@Autowired
+	 private ArgoCdService argoCdService; 
  
 	 @Override
 	 @ApiOperation(value = "remove collaborator from workspace project for a given Id.", nickname = "removeCollab", notes = "remove collaborator from workspace project for a given identifier.", response = CodeServerWorkspaceVO.class, tags = {
@@ -1245,6 +1259,7 @@ import org.springframework.beans.factory.annotation.Value;
 			   //if approval enabled workspace and and deployment tp prod then go to service.approveWorkspace
 			   GenericMessage responseMsg;
 			   Boolean isApprover =false;
+
 			   List<UserInfoVO>collabList =vo.getProjectDetails().getProjectCollaborators();
 			   if(collabList!=null){
 				   for(UserInfoVO user : collabList){
@@ -1282,6 +1297,19 @@ import org.springframework.beans.factory.annotation.Value;
                 else {
 				   responseMsg = service.deployWorkspace(userId, id, environment, branch,
 							 isPrivateRecipe,deployRequestDto.getVersion(),"deploy",keepImage);
+
+					// Create OpenTelemetry plugin once deployment is triggered (route exists at this point)
+                    try {
+                        String serviceName = vo.getProjectDetails().getProjectName() + "-" + environment;
+                        service.createOpenTelemetryPlugin(id, environment, serviceName);
+                        log.info("OpenTelemetry plugin created for workspace {} in {} environment",
+                            vo.getWorkspaceId(), environment);
+                    } catch (Exception e) {
+                        log.warn("Failed to create OpenTelemetry plugin for workspace {} in {} environment: {}",
+                            vo.getWorkspaceId(), environment, e.getMessage());
+                        // Don't fail the deployment if plugin creation fails
+                    }
+
 					if ("FAILED".equalsIgnoreCase(responseMsg.getSuccess())) {
 						return new ResponseEntity<>(responseMsg, HttpStatus.BAD_REQUEST);
 					}
@@ -1735,8 +1763,11 @@ import org.springframework.beans.factory.annotation.Value;
 		 log.debug("Sending all workspaces");
 		 if (workspaces != null && workspaces.size() > 0) {
 			for(CodeServerWorkspaceVO vo :workspaces ){
-				if(vo.getProjectDetails().getRecipeDetails().isIsDeployEnabled() == null || !vo.getProjectDetails().getRecipeDetails().isIsDeployEnabled()) {
-					if(vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private")||vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")||vo.getProjectDetails().getRecipeDetails().getRecipeId().name().equalsIgnoreCase("template")){
+				if (vo.getProjectDetails().getRecipeDetails().isIsDeployEnabled() == null
+						|| !vo.getProjectDetails().getRecipeDetails().isIsDeployEnabled()) {
+					String recipeIdLower = vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase();
+					if ((recipeIdLower.startsWith("public") || recipeIdLower.equalsIgnoreCase("template")) ||
+							(recipeIdLower.startsWith("private") && recipeIdLower.equals("private-user-defined"))) {
 						vo.getProjectDetails().getRecipeDetails().setIsDeployEnabled(false);
 					}else{
 						vo.getProjectDetails().getRecipeDetails().setIsDeployEnabled(true);
@@ -1781,42 +1812,6 @@ import org.springframework.beans.factory.annotation.Value;
 				 return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
 			 }
 			 log.info("Returning workspace details");
-			 return new ResponseEntity<>(vo, HttpStatus.OK);
-		 } else {
-			 log.debug("No workspace found, returning empty");
-			 return new ResponseEntity<>(vo, HttpStatus.NOT_FOUND);
-		 }
-	 }
- 
-	 @ApiOperation(value = "Get workspace details for a given Id.", nickname = "getByName", notes = "Get workspace details for a given Id.", response = CodeServerWorkspaceVO.class, tags = {
-			 "code-server", })
-	 @ApiResponses(value = {
-			 @ApiResponse(code = 200, message = "Returns message of success or failure", response = CodeServerWorkspaceVO.class),
-			 @ApiResponse(code = 204, message = "Fetch complete, no content found."),
-			 @ApiResponse(code = 400, message = "Bad request."),
-			 @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
-			 @ApiResponse(code = 403, message = "Request is not authorized."),
-			 @ApiResponse(code = 405, message = "Method not allowed"),
-			 @ApiResponse(code = 500, message = "Internal error") })
-	 @RequestMapping(value = "/workspaces/status/{name}", produces = { "application/json" }, consumes = {
-			 "application/json" }, method = RequestMethod.GET)
-	 public ResponseEntity<CodeServerWorkspaceVO> getByName(
-			 @ApiParam(value = "Workspace name to be fetched", required = true) @PathVariable("name") String name) {
-		 CreatedByVO currentUser = this.userStore.getVO();
-		 String userId = currentUser != null ? currentUser.getId() : "";
-		 CodeServerWorkspaceVO vo = service.getByUniqueliteral(userId, "workspaceId", name);
-		 if (vo != null && vo.getWorkspaceId() != null) {
-			 if (!(vo.getWorkspaceOwner() != null && vo.getWorkspaceOwner().getId().equalsIgnoreCase(userId))) {
-				 MessageDescription notAuthorizedMsg = new MessageDescription();
-				 notAuthorizedMsg.setMessage(
-						 "Not authorized to view this workspace. User does not have privileges.");
-				 GenericMessage errorMessage = new GenericMessage();
-				 errorMessage.addErrors(notAuthorizedMsg);
-				 log.info("User {} cannot view other's workspace, insufficient privileges. Workspace name: {}", userId,
-						 vo.getWorkspaceId());
-				 return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
-			 }
-			 log.info("Returning workspace details");
 			 if(vo.getProjectDetails().getRecipeDetails().isIsDeployEnabled() == null || !vo.getProjectDetails().getRecipeDetails().isIsDeployEnabled()) {
 				if(vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private")||vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")||vo.getProjectDetails().getRecipeDetails().getRecipeId().name().equalsIgnoreCase("template")){
 					vo.getProjectDetails().getRecipeDetails().setIsDeployEnabled(false);
@@ -1824,12 +1819,65 @@ import org.springframework.beans.factory.annotation.Value;
 					vo.getProjectDetails().getRecipeDetails().setIsDeployEnabled(true);
 				}
 			 }
+			 // Status reconciliation with ArgoCD is handled by DeploymentStatusMonitorJob (every 10s).
+			 // Removed inline reconcileDeploymentStatusWithArgoCD(vo) to avoid slow synchronous
+			 // HTTP calls to ArgoCD on every card refresh and spurious 403 logs for undeployed envs.
 			 return new ResponseEntity<>(vo, HttpStatus.OK);
 		 } else {
 			 log.debug("No workspace found, returning empty");
 			 return new ResponseEntity<>(vo, HttpStatus.NOT_FOUND);
 		 }
 	 }
+ 
+	 	@ApiOperation(value = "Get workspace details for a given Id.", nickname = "getByName", notes = "Get workspace details for a given Id.", response = CodeServerWorkspaceVO.class, tags = {
+				"code-server", })
+		@ApiResponses(value = {
+				@ApiResponse(code = 200, message = "Returns message of success or failure", response = CodeServerWorkspaceVO.class),
+				@ApiResponse(code = 204, message = "Fetch complete, no content found."),
+				@ApiResponse(code = 400, message = "Bad request."),
+				@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+				@ApiResponse(code = 403, message = "Request is not authorized."),
+				@ApiResponse(code = 405, message = "Method not allowed"),
+				@ApiResponse(code = 500, message = "Internal error") })
+		@RequestMapping(value = "/workspaces/status/{name}", produces = { "application/json" }, consumes = {
+				"application/json" }, method = RequestMethod.GET)
+		public ResponseEntity<CodeServerWorkspaceVO> getByName(
+				@ApiParam(value = "Workspace name to be fetched", required = true) @PathVariable("name") String name) {
+			CreatedByVO currentUser = this.userStore.getVO();
+			String userId = currentUser != null ? currentUser.getId() : "";
+			CodeServerWorkspaceVO vo = service.getByUniqueliteral(userId, "workspaceId", name);
+			if (vo != null && vo.getWorkspaceId() != null) {
+				if (!(vo.getWorkspaceOwner() != null && vo.getWorkspaceOwner().getId().equalsIgnoreCase(userId))) {
+					MessageDescription notAuthorizedMsg = new MessageDescription();
+					notAuthorizedMsg.setMessage(
+							"Not authorized to view this workspace. User does not have privileges.");
+					GenericMessage errorMessage = new GenericMessage();
+					errorMessage.addErrors(notAuthorizedMsg);
+					log.info("User {} cannot view other's workspace, insufficient privileges. Workspace name: {}",
+							userId,
+							vo.getWorkspaceId());
+					return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
+				}
+				log.info("Returning workspace details");
+				if (vo.getProjectDetails().getRecipeDetails().isIsDeployEnabled() == null
+						|| !vo.getProjectDetails().getRecipeDetails().isIsDeployEnabled()) {
+					if (vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
+							.startsWith("private")
+							|| vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
+									.startsWith("public")
+							|| vo.getProjectDetails().getRecipeDetails().getRecipeId().name()
+									.equalsIgnoreCase("template")) {
+						vo.getProjectDetails().getRecipeDetails().setIsDeployEnabled(false);
+					} else {
+						vo.getProjectDetails().getRecipeDetails().setIsDeployEnabled(true);
+					}
+				}
+				return new ResponseEntity<>(vo, HttpStatus.OK);
+			} else {
+				log.debug("No workspace found, returning empty");
+				return new ResponseEntity<>(vo, HttpStatus.NOT_FOUND);
+			}
+		}
  
 	 @Override
 	 @ApiOperation(value = "Number of workspace.", nickname = "getNumberOfWorkspace", notes = "Get number of workspace. This endpoints will be used to get all valid available workspace records.", response = TransparencyVO.class, tags = {
@@ -2792,7 +2840,15 @@ import org.springframework.beans.factory.annotation.Value;
 			if(isCollabIdPartOfProject){
 				if(isAdmin && vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private")){
 					List<String> repoDetails = CommonUtils.getRepoNameFromGitUrl(vo.getProjectDetails().getRecipeDetails().getRepodetails());
-					Boolean isUserAdmin = gitClient.isUserAdmin(repoDetails.get(0), collabUserId, repoDetails.get(1));
+					String orgName = repoDetails.get(0);
+					String repoName = repoDetails.get(1);
+					String gitHubUrl = gitOrgUri + orgName;
+					Boolean isUserAdmin;
+					if(!vo.getProjectDetails().getRecipeDetails().getRepodetails().contains(gitHubUrl)){
+						isUserAdmin = gitClient.isUserAdmin(orgName, collabUserId, repoName, gheBaseUri, ghePat);
+					} else {
+						isUserAdmin = gitClient.isUserAdmin(orgName, collabUserId, repoName);
+					}
 					if(!isUserAdmin){
 						log.error("collab user is not an admin for the private repo, cannot make user as admin");
 						GenericMessage emptyResponse = new GenericMessage();
@@ -2805,7 +2861,8 @@ import org.springframework.beans.factory.annotation.Value;
 					}
 				}
 				if(isAdmin && !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private")){
-					HttpStatus addAdminAccessToGitUser = gitClient.addAdminAccessToRepo(collabUserId,vo.getProjectDetails().getGitRepoName());
+					Boolean isWorkspaceMigratedToGHE = entity.getData().getIsWorkspaceMigratedToGHE();
+					HttpStatus addAdminAccessToGitUser = gitClient.addAdminAccessToRepo(collabUserId,vo.getProjectDetails().getGitRepoName(), isWorkspaceMigratedToGHE);
 					if(!addAdminAccessToGitUser.is2xxSuccessful())
 					{
 						MessageDescription warnMsg = new MessageDescription("Failed while adding " + collabUserId
@@ -3917,6 +3974,132 @@ import org.springframework.beans.factory.annotation.Value;
 			log.error("Exception occurred while deleting secret for path={}, secretName={}: {}", path, secretName,
 					e.getMessage(), e);
 			return new ResponseEntity<>("Internal error while deleting secret", HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	@Override
+	@ApiOperation(value = "Get workspace status by gitjobRunID.", nickname = "getGitJobStatus", notes = "Get updated status based on gitjobRunID and re-trigger if status not updated.", response = GitJobRunIdStatusVO.class, tags={ "code-server", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns message of success or failure", response = GitJobRunIdStatusVO.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/workspaces/getGitJobStatus",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.GET)
+    public ResponseEntity<GitJobRunIdStatusVO> getGitJobStatus(@ApiParam(value = "project-name of workspace") @Valid @RequestParam(value = "projectName", required = false) String projectName){
+
+		GitJobRunIdStatusVO responseVo = service.getGitRunIdStatus(projectName);
+    	return ResponseEntity.ok(responseVo);
+	}
+
+	@Override
+	@ApiOperation(value = "cancel workspace run by gitjobRunID.", nickname = "cancelWorkspaceRun", notes = "Cancel a workspace run by gitjobRunID.", response = GenericMessage.class, tags={ "code-server", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 201, message = "Returns message of success or failure", response = GenericMessage.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/workspaces/getGitJobStatus",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.PATCH)
+    public ResponseEntity<GenericMessage> cancelWorkspaceRun(@ApiParam(value = "project-name of workspace") @Valid @RequestParam(value = "projectName", required = false) String projectName)
+	{
+		GenericMessage responseVo = service.cancelWorkspaceRun(projectName);
+		return ResponseEntity.ok(responseVo);
+	}
+
+	private void reconcileDeploymentStatusWithArgoCD(CodeServerWorkspaceVO vo) {
+		try {
+			if (vo == null || vo.getProjectDetails() == null || vo.getProjectDetails().getProjectName() == null) {
+				return;
+			}
+			
+			String projectName = vo.getProjectDetails().getProjectName();
+			String argoToken = argoCdService.getArgoToken();
+			if (argoToken == null) {
+				log.debug("Unable to get ArgoCD token for status reconciliation");
+				return;
+			}
+			
+			CodeServerDeploymentDetailsVO intDeployment = vo.getProjectDetails().getIntDeploymentDetails();
+			if (intDeployment == null) {
+				intDeployment = checkAndCreateDeploymentFromArgoCD(argoToken, projectName, "int");
+				if (intDeployment != null) {
+					vo.getProjectDetails().setIntDeploymentDetails(intDeployment);
+				}
+			} else {
+				reconcileSingleDeployment(argoToken, projectName, "int", intDeployment);
+			}
+			
+			CodeServerDeploymentDetailsVO prodDeployment = vo.getProjectDetails().getProdDeploymentDetails();
+			if (prodDeployment == null) {
+				prodDeployment = checkAndCreateDeploymentFromArgoCD(argoToken, projectName, "prod");
+				if (prodDeployment != null) {
+					vo.getProjectDetails().setProdDeploymentDetails(prodDeployment);
+				}
+			} else {
+				reconcileSingleDeployment(argoToken, projectName, "prod", prodDeployment);
+			}
+		} catch (Exception e) {
+			log.debug("Error reconciling deployment status with ArgoCD: {}", e.getMessage());
+		}
+	}
+
+	private CodeServerDeploymentDetailsVO checkAndCreateDeploymentFromArgoCD(String argoToken, String projectName, String environment) {
+		try {
+			String appName = projectName.toLowerCase() + "-" + environment;
+			String argoStatus = argoCdService.checkArgoAppDeploymentStatus(argoToken, appName);
+			
+			if ("DEPLOYED".equals(argoStatus)) {
+				log.info("Found deployed ArgoCD app {} but DB has no deployment details - creating", appName);
+				CodeServerDeploymentDetailsVO deployment = new CodeServerDeploymentDetailsVO();
+				deployment.setLastDeploymentStatus("DEPLOYED");
+				deployment.setLastDeployedOn(new Date());
+				return deployment;
+			}
+		} catch (Exception e) {
+			log.debug("ArgoCD app check for {}-{} failed: {}", projectName, environment, e.getMessage());
+		}
+		return null;
+	}
+	
+	private void reconcileSingleDeployment(String argoToken, String projectName, String environment, 
+			CodeServerDeploymentDetailsVO deployment) {
+		try {
+			String appName = projectName.toLowerCase() + "-" + environment;
+			String currentDbStatus = deployment.getLastDeploymentStatus();
+			
+			if (currentDbStatus == null || 
+			"DEPLOY_REQUESTED".equalsIgnoreCase(currentDbStatus) || 
+			"DEPLOYMENT_FAILED".equalsIgnoreCase(currentDbStatus)) {
+				
+				String argoStatus = argoCdService.checkArgoAppDeploymentStatus(argoToken, appName);
+				
+				if ("DEPLOYED".equals(argoStatus) && !"DEPLOYED".equalsIgnoreCase(currentDbStatus)) {
+					log.info("Reconciling {} status from {} to {} (ArgoCD source of truth)", 
+						appName, currentDbStatus, argoStatus);
+					deployment.setLastDeploymentStatus(argoStatus);
+					if (deployment.getLastDeployedOn() == null) {
+						deployment.setLastDeployedOn(new Date());
+					}
+				}
+				else if ("DEPLOY_REQUESTED".equals(argoStatus) && "DEPLOYMENT_FAILED".equalsIgnoreCase(currentDbStatus)) {
+					log.info("Reconciling {} status from {} to {} (new deployment in progress)", 
+						appName, currentDbStatus, argoStatus);
+					deployment.setLastDeploymentStatus(argoStatus);
+				}
+			}
+		} catch (Exception e) {
+			log.debug("Could not reconcile ArgoCD status for {}-{}: {}", projectName, environment, e.getMessage());
 		}
 	}
 

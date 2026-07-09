@@ -220,6 +220,36 @@ const FabricWorkspaceCard = ({user, workspace, onSelectWorkspace, onEditWorkspac
             <div>Classification</div>
             <div>{workspace?.dataClassification || 'N/A'}</div>
           </div>
+          <div>
+            <div className="report-links">
+              <a
+                href={`${Envs.FABRIC_REPORT_URL}%27${encodeURIComponent(workspace?.name)}%27`}
+                target="_blank"
+                rel="noopener noreferrer"
+              >
+                Consumption
+                <i className={classNames('icon mbc-icon new-tab')} />|&nbsp;&nbsp;
+              </a> 
+              {(isAdmin || isOwner) && (
+                <a
+                  href={`${Envs.FABRIC_ACTIVITY_REPORT_URL}'${encodeURIComponent(workspace?.name)}'`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Activity
+                  <i className={classNames('icon mbc-icon new-tab')} />|&nbsp;&nbsp;
+                </a> 
+              )}
+                <a
+                  href={`${Envs.TICKET_SUPPORT_URL}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Support
+                  <i className={classNames('icon mbc-icon new-tab')} />
+                </a>          
+            </div>
+          </div>
         </div>
       </div>
       <div className={Styles.cardFooter}>
@@ -238,7 +268,7 @@ const FabricWorkspaceCard = ({user, workspace, onSelectWorkspace, onEditWorkspac
             </div>
           </div>
           {(user?.id === workspace?.createdBy?.id || isFabricAdmin) &&
-            <div className={Styles.btnGrp}>
+          <div className={Styles.btnGrp}>
               <button
                 className={'btn btn-primary'}
                 type="button"

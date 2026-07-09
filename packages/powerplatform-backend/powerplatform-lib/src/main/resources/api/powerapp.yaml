@@ -309,8 +309,8 @@ definitions:
       environment:
         type: string
         #enum: ["shared-dev","shared-int","dedicated-prodConfidential"]
-      prodEnvAvailability:
-        type: string
+      # prodEnvAvailability:
+      #   type: string
         #enum: ["Immediate","Later"]
       billingContact:
         type: string
@@ -389,10 +389,10 @@ definitions:
         type: string
         description: "Allowed values are SHARED-DEVELOPMENT,SHARED-INTEGRATION,DEDICATED-PRODUCTION"
         example: SHARED-DEVELOPMENT
-      prodEnvAvailability:
-        type: string
-        description: "Allowed values are IMMEDIATE,LATER"
-        example: LATER
+      # prodEnvAvailability:
+      #   type: string
+      #   description: "Allowed values are IMMEDIATE,LATER"
+      #   example: LATER
       billingContact:
         type: string
       billingPlant:
