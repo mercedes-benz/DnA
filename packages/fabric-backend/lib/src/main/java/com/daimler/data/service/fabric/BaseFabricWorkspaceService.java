@@ -29,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.application.client.AuthoriserClient;
+import com.daimler.data.application.client.AzureManagementClient;
 import com.daimler.data.application.client.FabricWorkspaceClient;
 import com.daimler.data.application.client.RSAEncryptionUtil;
 import com.daimler.data.assembler.ADAProjectsAssembler;
@@ -125,6 +126,9 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 
 	@Autowired
 	private FabricWorkspaceClient fabricWorkspaceClient;
+	
+	@Autowired
+	private AzureManagementClient azureManagementClient;
 	
 	@Autowired
 	private FabricWorkspaceCustomRepository customRepo;
@@ -633,6 +637,36 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 					data.setStatus(currentStatus);
 					//data.setStatus(this.processWorkspaceUserManagement(currentStatus, vo.getName(), creatorId,createResponse.getId(), vo.getCustomGroupName()));
 
+					//create cmk key for Fabric workspace
+					if(!isPowerBI) {
+							Map<String, Object> cmkKey = azureManagementClient.createWorkSpaceCmkKey(createResponse.getId());
+
+							if(cmkKey != null && cmkKey.get("keyId") != null) {
+								String cmkKeyId = cmkKey.get("keyId").toString();
+								data.getCmkDetails().setCmkKey(cmkKeyId);
+								boolean cmkKeyCreated = (Boolean) cmkKey.get("cmkFlag");
+								data.getCmkDetails().setCmkKeyCreated(cmkKeyCreated);
+
+								if(cmkKeyCreated) {
+									boolean cmkKeyAssinged = azureManagementClient.assignCmkKeyToWorkspace(createResponse.getId(), cmkKeyId);
+									data.getCmkDetails().setCmkKeyAssign(cmkKeyAssinged);
+									if(cmkKeyAssinged) {
+										log.info("Successfully assigned CMK key for workspace {} ", createResponse.getId());
+									} else {
+										log.error("Failed to assign CMK key for workspace {} ", createResponse.getId());
+									}
+								} else {
+									log.error("Failed to create CMK key for workspace {} ", createResponse.getId());
+								}
+
+							} else {
+								log.error("Failed to create CMK key for workspace {} ", createResponse.getId());
+								MessageDescription message = new MessageDescription();
+								message.setMessage("Failed to create CMK key for created workspace " + vo.getName() + ". Please contact Admin.");
+								warnings.add(message);
+							}
+							log.info("Successfully created CMK key for workspace {} ", createResponse.getId());
+					}
 					FabricWorkspaceVO savedRecord = null;
 					try{
 						savedRecord = super.create(data);  
