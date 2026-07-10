@@ -91,6 +91,18 @@ public class AzureManagementClient {
     @Value("${fabricWorkspaces.tokenTypeHint}")
     private String tokenTypeHint;
     
+    @Value("${fabricWorkspaces.clientId}")
+	private String clientId;
+	
+	@Value("${fabricWorkspaces.clientSecret}")
+	private String clientSecret;
+
+    @Value("${fabricWorkspaces.azure.cmk.createScope}")
+	private String createScope;
+
+    @Value("${fabricWorkspaces.azure.cmk.assignScope}")
+	private String assignScope;
+    
     @Value("${fabricWorkspaces.grantType}")
     private String grantType;
     
@@ -151,6 +163,9 @@ public class AzureManagementClient {
     @Value("${fabricWorkspaces.azure.cmk.createUrl}")
     private String CreateCmkUrl;
 
+    @Value("${fabricWorkspaces.azure.cmk.assignUrl}")
+    private String AssignCmkUrl;
+
     @Autowired
     private RestTemplate proxyRestTemplate;
 
@@ -175,6 +190,33 @@ public class AzureManagementClient {
             return introspectionResponse.getAccess_token();
         } catch (Exception e) {
             log.error("Failed to fetch OIDC token for group search with error {} ",e.getMessage());
+            return null;
+        }
+    }
+
+    public String getCreateToken(boolean flag) {
+		MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
+		String basicAuthenticationHeader = Base64.getEncoder()
+				.encodeToString(new StringBuffer(clientId).append(":").append(clientSecret).toString().getBytes());
+		map.add("token", accessToken);
+		map.add("token_type_hint", tokenTypeHint);
+		map.add("grant_type", grantType);
+		map.add("scope", flag? createScope : assignScope);
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+		headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
+		headers.set("Authorization", "Basic " + basicAuthenticationHeader);
+		HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(map, headers);
+		try {
+			ResponseEntity<String> response = proxyRestTemplate.postForEntity(loginUrl, request, String.class);
+			ObjectMapper objectMapper = new ObjectMapper();
+			FabricOAuthResponse introspectionResponse = objectMapper.readValue(response.getBody(),
+					FabricOAuthResponse.class);
+			log.debug("Introspection Response:" + introspectionResponse);
+			//log.info("Successfully fetch oidc token post login for powerbi");
+			return introspectionResponse.getAccess_token();
+		} catch (Exception e) {
+			log.error("Failed to fetch OIDC token with error {} ",e.getMessage());
             return null;
         }
     }
@@ -460,7 +502,7 @@ public class AzureManagementClient {
 
         boolean cmkFlag = false;
         try {
-            String token = getTokenForAzureManagement();
+            String token = getCreateToken(true);
             if(!Objects.nonNull(token)) {
                 log.error("Failed to fetch token to invoke Azure Management APIs");
                 responseMap.put("cmkFlag", cmkFlag);
@@ -488,8 +530,8 @@ public class AzureManagementClient {
             
             HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(requestBody, headers);
 
-            // String url = azureKeyVaultCheckNameUrl;
-            String url = "https://KV-ADA-CMKFabric.vault.azure.net/keys/cmk-ada-{workspaceId}/create?api-version=7.4";
+            String url = CreateCmkUrl;
+            // String url = "https://KV-ADA-CMKFabric.vault.azure.net/keys/cmk-ada-{workspaceId}/create?api-version=7.4";
             url = url.replace("{workspaceId}", workspaceId);
 
             // log.info("Checking Key Vault name availability for: {}", keyVaultName);
@@ -522,7 +564,7 @@ public class AzureManagementClient {
 
         boolean cmkAssignFlag = false;
         try {
-            String token = getTokenForAzureManagement();
+            String token = getCreateToken(false);
             if(!Objects.nonNull(token)) {
                 log.error("Failed to fetch token to invoke Azure Management APIs");
                 responseMap.put("cmkAssignFlag", cmkAssignFlag);
@@ -541,8 +583,8 @@ public class AzureManagementClient {
             
             HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(requestBody, headers);
 
-            // String url = azureKeyVaultCheckNameUrl;
-            String url = "https://api.fabric.microsoft.com/v1/workspaces/{workspaceId}/encryption/assign";
+            String url = AssignCmkUrl;
+            // String url = "https://api.fabric.microsoft.com/v1/workspaces/{workspaceId}/encryption/assign";
             url = url.replace("{workspaceId}", workspaceId);
 
             // log.info("Checking Key Vault name availability for: {}", keyVaultName);
