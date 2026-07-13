@@ -224,6 +224,8 @@ kong:
    accessTokenAsBearer :  ${ACCESS_TOKEN_AS_BEARER:XXXX}
    dnaClientSecret : ${DNA_CLIENT_SECRET:XXXX}
    dnaAppId : ${DNA_APP_ID:XXXX}
+   oidc:
+     session-secret: ${KONG_OIDC_SESSION_SECRET:XXXX}
 
 alice:
   aliceBaseUrl: ${ALICE_SERVICE_BASE_URL:XXXX}

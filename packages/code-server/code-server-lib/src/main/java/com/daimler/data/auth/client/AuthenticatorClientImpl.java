@@ -228,6 +228,9 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 	@Value("${kong.accessTokenHeaderName}")
 	private String accessTokenHeaderName;
 
+	@Value("${kong.oidc.session-secret}")
+	private String oidcSessionSecret;
+
 
 	@Autowired
 	RestTemplate restTemplate;
@@ -963,6 +966,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 										attachOIDCPluginConfigVO.setIntrospection_endpoint(prodIntrospectionEndpoint);
 										attachOIDCPluginConfigVO.setRedirect_after_logout_uri(prodRedirectAfterLogoutUri);
 									}
+									attachOIDCPluginConfigVO.setSession_secret(oidcSessionSecret);
 									attachOIDCPluginConfigVO.setBearer_only("no");
 									attachOIDCPluginConfigVO.setClient_id(clientID);
 									attachOIDCPluginConfigVO.setClient_secret(clientSecret);
@@ -1906,6 +1910,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 			attachOIDCPluginConfigVO.setIntrospection_endpoint(prodIntrospectionEndpoint);
 			attachOIDCPluginConfigVO.setRedirect_after_logout_uri(prodRedirectAfterLogoutUri);
 		}
+		attachOIDCPluginConfigVO.setSession_secret(oidcSessionSecret);
 		attachOIDCPluginConfigVO.setBearer_only(authoriserBearerOnly);
 		attachOIDCPluginConfigVO.setClient_id(clientID);
 		attachOIDCPluginConfigVO.setClient_secret(clientSecret);

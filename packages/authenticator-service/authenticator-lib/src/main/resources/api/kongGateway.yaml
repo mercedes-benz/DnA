@@ -986,6 +986,8 @@ definitions:
  AttachPluginConfigVO:
     type: object
     properties:
+      session_secret:
+        type: string
       client_secret:
         type: string
       discovery:
