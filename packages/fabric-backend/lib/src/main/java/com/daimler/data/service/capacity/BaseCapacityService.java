@@ -1,11 +1,13 @@
 package com.daimler.data.service.capacity;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -27,6 +29,9 @@ public class BaseCapacityService extends BaseCommonService<CapacityVO, CapacityN
 
     @Autowired 
     private CapacityAssembler capacityAssembler;
+    
+	@Value("${fabricWorkspaces.administration.regionList}")
+	private String regionListString;
 
     @Override
     public CapacityVO getCapacityByRegion(String region) {
@@ -109,5 +114,17 @@ public class BaseCapacityService extends BaseCommonService<CapacityVO, CapacityN
             log.error("Exception occurred while fetching all capacity records: {}", e.getMessage(), e);
             throw e;
         }
+    }
+
+    @Override
+    public List<String> getAllRegions() {
+        log.info("Fetching all regions for which capacity details can be configured");
+        if (regionListString == null || regionListString.trim().isEmpty()) {
+            log.warn("Region list string is null or empty");
+            return Collections.emptyList();
+        }
+        return Arrays.stream(regionListString.split(","))
+	            .map(String::trim)
+	            .collect(Collectors.toList());
     }
 }

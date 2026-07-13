@@ -233,3 +233,28 @@ paths:
           description: "Method not allowed."
         500:
           description: "Internal server error."
+
+  /fabric-workspaces/admin/regions:
+    get:
+      tags:
+        - "fabric-workspaces-admin"
+      summary: "Get list of available regions."
+      description: "Fetches the list of available regions. This endpoint is available only for users who have the FabricAdmin role."
+      operationId: "getRegionList"
+      responses:
+        200:
+          description: "Returns list of available regions."
+          schema:
+            type: array
+            items:
+              type: string
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "User is not a Fabric Admin."
+        405:
+          description: "Method not allowed."
+        500:
+          description: "Internal server error."
