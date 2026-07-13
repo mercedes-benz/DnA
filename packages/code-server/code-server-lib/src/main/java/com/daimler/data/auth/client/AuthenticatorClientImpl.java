@@ -231,6 +231,9 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 	@Value("${kong.oidc.session-secret}")
 	private String oidcSessionSecret;
 
+	@Value("${kong.oidc.skip-already-auth-requests}")
+	private String oidcSkipAlreadyAuthRequests;
+
 
 	@Autowired
 	RestTemplate restTemplate;
@@ -1911,6 +1914,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 			attachOIDCPluginConfigVO.setRedirect_after_logout_uri(prodRedirectAfterLogoutUri);
 		}
 		attachOIDCPluginConfigVO.setSession_secret(oidcSessionSecret);
+		attachOIDCPluginConfigVO.setSkip_already_auth_requests(oidcSkipAlreadyAuthRequests);
 		attachOIDCPluginConfigVO.setBearer_only(authoriserBearerOnly);
 		attachOIDCPluginConfigVO.setClient_id(clientID);
 		attachOIDCPluginConfigVO.setClient_secret(clientSecret);
