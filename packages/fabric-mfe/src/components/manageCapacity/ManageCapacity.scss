@@ -213,10 +213,35 @@
   }
 }
 
+.readOnlyInput {
+  cursor: default !important;
+  background-color: #1e2329 !important;
+  color: #888 !important;
+  opacity: 0.8;
+  user-select: none;
+}
+
+.readOnlySelect {
+  pointer-events: none;
+  cursor: default !important;
+  opacity: 0.6;
+
+  select {
+    cursor: default !important;
+    background-color: #1e2329 !important;
+    color: #888 !important;
+  }
+}
+
 .footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding-top: 8px;
   border-top: 1px solid #383F49;
+
+  > div {
+    display: flex;
+    align-items: center;
+  }
 }
