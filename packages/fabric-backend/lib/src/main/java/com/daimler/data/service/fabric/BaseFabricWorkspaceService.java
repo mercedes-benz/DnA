@@ -62,6 +62,7 @@ import com.daimler.data.dto.fabric.CreateEntitlementRequestDto;
 import com.daimler.data.dto.fabric.CreateLakehouseDto;
 import com.daimler.data.dto.fabric.CreateRoleRequestDto;
 import com.daimler.data.dto.fabric.CreateRoleResponseDto;
+import com.daimler.data.dto.fabric.CreateCmkKeyResponseDto;
 import com.daimler.data.dto.fabric.CreateWorkspaceDto;
 import com.daimler.data.dto.fabric.CredentialDetailsDto;
 import com.daimler.data.dto.fabric.DatasourceResponseDto;
@@ -637,15 +638,13 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 
 					data.setStatus(currentStatus);
 					//data.setStatus(this.processWorkspaceUserManagement(currentStatus, vo.getName(), creatorId,createResponse.getId(), vo.getCustomGroupName()));
-
-					//create cmk key for Fabric workspace
 					if(!isPowerBI) {
 							data.setCmkDetails(new CmkKeyDetailsVO().cmkKey(null).cmkKeyCreated(false).cmkKeyAssign(false));
-							Map<String, Object> cmkKey = azureManagementClient.createWorkSpaceCmkKey(createResponse.getId());
+							CreateCmkKeyResponseDto cmkKeyResponse = azureManagementClient.createWorkSpaceCmkKey(createResponse.getId());
 
-							if(cmkKey != null && cmkKey.get("keyId") != null) {
-								String cmkKeyId = cmkKey.get("keyId").toString();
-								boolean cmkKeyCreated = (Boolean) cmkKey.get("cmkFlag");
+							if(cmkKeyResponse != null && cmkKeyResponse.getKeyId() != null) {
+								String cmkKeyId = cmkKeyResponse.getKeyId();
+								boolean cmkKeyCreated = cmkKeyResponse.getCmkFlag();
 								boolean cmkKeyAssinged = false;
 								log.info("cmkKeyCreated :"+cmkKeyCreated+" cmkKeyAssinged :" +cmkKeyAssinged);
 

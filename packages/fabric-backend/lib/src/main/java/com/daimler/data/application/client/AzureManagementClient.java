@@ -28,9 +28,7 @@ package com.daimler.data.application.client;
 
 import java.util.Arrays;
 import java.util.Base64;
-import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -49,19 +47,19 @@ import org.springframework.web.client.RestTemplate;
 import com.daimler.data.dto.azure.CmkKeyResponseDto;
 import com.daimler.data.dto.azureKeyVault.AzureUserDto;
 import com.daimler.data.dto.azureKeyVault.AzureUserSearchResponseDto;
-import com.daimler.data.dto.azureKeyVault.KeyVaultAccessPolicyDto;
 import com.daimler.data.dto.azureKeyVault.KeyVaultCreateRequestDto;
 import com.daimler.data.dto.azureKeyVault.KeyVaultNameAvailabilityRequestDto;
 import com.daimler.data.dto.azureKeyVault.KeyVaultNameAvailabilityResponseDto;
-import com.daimler.data.dto.azureKeyVault.KeyVaultPermissionsDto;
 import com.daimler.data.dto.azureKeyVault.KeyVaultPropertiesDto;
 import com.daimler.data.dto.azureKeyVault.KeyVaultResponseDto;
 import com.daimler.data.dto.azureKeyVault.KeyVaultSkuDto;
 import com.daimler.data.dto.azureKeyVault.RoleAssignmentPropertiesDto;
 import com.daimler.data.dto.azureKeyVault.RoleAssignmentRequestDto;
 import com.daimler.data.dto.azureKeyVault.RoleAssignmentResponseDto;
+import com.daimler.data.dto.fabric.AssignCmkKeyRequestDto;
+import com.daimler.data.dto.fabric.CreateCmkKeyRequestDto;
+import com.daimler.data.dto.fabric.CreateCmkKeyResponseDto;
 import com.daimler.data.dto.fabric.FabricOAuthResponse;
-import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.extern.slf4j.Slf4j;
@@ -90,7 +88,7 @@ public class AzureManagementClient {
     
     @Value("${fabricWorkspaces.tokenTypeHint}")
     private String tokenTypeHint;
-    
+
     @Value("${fabricWorkspaces.clientId}")
 	private String clientId;
 	
@@ -161,10 +159,10 @@ public class AzureManagementClient {
     private String keyVaultAdminRole;
 
     @Value("${fabricWorkspaces.azure.cmk.createUrl}")
-    private String CreateCmkUrl;
+    private String createCmkUrl;
 
     @Value("${fabricWorkspaces.azure.cmk.assignUrl}")
-    private String AssignCmkUrl;
+    private String assignCmkUrl;
 
     @Autowired
     private RestTemplate proxyRestTemplate;
@@ -194,32 +192,30 @@ public class AzureManagementClient {
         }
     }
 
-    public String getCreateToken(boolean flag) {
+    public String getCreateToken(boolean isCreateScope) {
 		MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
 		String basicAuthenticationHeader = Base64.getEncoder()
 				.encodeToString(new StringBuffer(clientId).append(":").append(clientSecret).toString().getBytes());
 		map.add("token", accessToken);
 		map.add("token_type_hint", tokenTypeHint);
 		map.add("grant_type", grantType);
-		map.add("scope", flag? createScope : assignScope);
+		map.add("scope", isCreateScope? createScope : assignScope);
 		HttpHeaders headers = new HttpHeaders();
 		headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 		headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
 		headers.set("Authorization", "Basic " + basicAuthenticationHeader);
 		HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(map, headers);
 		try {
-			ResponseEntity<String> response = proxyRestTemplate.postForEntity(loginUrl, request, String.class);
-			ObjectMapper objectMapper = new ObjectMapper();
-			FabricOAuthResponse introspectionResponse = objectMapper.readValue(response.getBody(),
-					FabricOAuthResponse.class);
+			ResponseEntity<FabricOAuthResponse> response = proxyRestTemplate.postForEntity(loginUrl, request, FabricOAuthResponse.class);
+			FabricOAuthResponse introspectionResponse = response.getBody();
 			log.debug("Introspection Response:" + introspectionResponse);
 			//log.info("Successfully fetch oidc token post login for powerbi");
 			return introspectionResponse.getAccess_token();
 		} catch (Exception e) {
 			log.error("Failed to fetch OIDC token with error {} ",e.getMessage());
-            return null;
-        }
-    }
+			return null;
+		}
+	}
     
     public String getTokenForAzureManagement() {
         MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
@@ -496,122 +492,91 @@ public class AzureManagementClient {
         }
     }
 
-    public Map<String, Object> createWorkSpaceCmkKey(String workspaceId){
+    public CreateCmkKeyResponseDto createWorkSpaceCmkKey(String workspaceId){
     
-        Map<String, Object> responseMap = new LinkedHashMap<>();
+        CreateCmkKeyResponseDto responseDto = new CreateCmkKeyResponseDto();
 
-        boolean cmkFlag = false;
         try {
             String token = getCreateToken(true);
             if(!Objects.nonNull(token)) {
                 log.error("Failed to fetch token to invoke Azure Management APIs");
-                responseMap.put("cmkFlag", cmkFlag);
-                responseMap.put("message", "Failed to obtain token using service principal, please try later.");
-                return responseMap;
+                responseDto.setCmkFlag(false);
+                responseDto.setMessage("Failed to obtain token using service principal, please try later.");
+                return responseDto;
             }
 
-            // create a body to send
-            Map<String, Object> requestBody = new LinkedHashMap<>();
-            requestBody.put("kty", "RSA");
-            requestBody.put("key_size", 3072);
-            requestBody.put("key_ops", Arrays.asList(
-                "encrypt",
-                "decrypt",
-                "sign",
-                "verify",
-                "wrapKey",
-                "unwrapKey"
-            ));
-            
+            CreateCmkKeyRequestDto requestBody = new CreateCmkKeyRequestDto(
+                "RSA",
+                3072,
+                Arrays.asList("encrypt", "decrypt", "sign", "verify", "wrapKey", "unwrapKey")
+            );
+                        
             HttpHeaders headers = new HttpHeaders();
-            // headers.set("Accept", "application/json");
             headers.set("Authorization", "Bearer " + token);
             headers.setContentType(MediaType.APPLICATION_JSON);
             
-            HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(requestBody, headers);
+            HttpEntity<CreateCmkKeyRequestDto> requestEntity = new HttpEntity<>(requestBody, headers);
 
-            String url = CreateCmkUrl;
-            // String url = "https://KV-ADA-CMKFabric.vault.azure.net/keys/cmk-ada-{workspaceId}/create?api-version=7.4";
+            String url = createCmkUrl;
             url = url.replace("{workspaceId}", workspaceId);
-
-            // log.info("Checking Key Vault name availability for: {}", keyVaultName);
             ResponseEntity<CmkKeyResponseDto> response = proxyRestTemplate.exchange(
                     url, HttpMethod.POST, requestEntity, CmkKeyResponseDto.class);
             
-            CmkKeyResponseDto responseDto = response.getBody();
-            cmkFlag = true;
+            CmkKeyResponseDto cmkKeyResponse = response.getBody();
             log.info("Successfully created CMK key for workspace : {}", workspaceId);
-            responseMap.put("cmkFlag", cmkFlag);
-            responseMap.put("message", "Successfully created CMK key for workspace.");
-            responseMap.put("keyId", responseDto.getKey().getKid());
-            return responseMap;
+            responseDto.setCmkFlag(true);
+            responseDto.setMessage("Successfully created CMK key for workspace.");
+            responseDto.setKeyId(cmkKeyResponse.getKey().getKid());
+            return responseDto;
         } catch (HttpClientErrorException e) {
             log.error("CMK key creation failed for workspace {}: {}", workspaceId, e.getMessage());
-            responseMap.put("cmkFlag", cmkFlag);
-            responseMap.put("message", e.getMessage());
-            return responseMap;
+            responseDto.setCmkFlag(false);
+            responseDto.setMessage(e.getMessage());
+            return responseDto;
         } catch (Exception e) {
             log.error("CMK key creation failed for workspace {}: {}", workspaceId, e.getMessage());
-            responseMap.put("cmkFlag", cmkFlag);
-            responseMap.put("message", e.getMessage());
-            return responseMap;
+            responseDto.setCmkFlag(false);
+            responseDto.setMessage(e.getMessage());
+            return responseDto;
         }
     }
 
     public boolean assignCmkKeyToWorkspace(String workspaceId,String kid){
-
-        Map<String, Object> responseMap = new LinkedHashMap<>();
 
         boolean cmkAssignFlag = false;
         try {
             String token = getCreateToken(false);
             if(!Objects.nonNull(token)) {
                 log.error("Failed to fetch token to invoke Azure Management APIs");
-                responseMap.put("cmkAssignFlag", cmkAssignFlag);
-                responseMap.put("message", "Failed to obtain token using service principal, please try later.");
                 return cmkAssignFlag;
             }
 
-            // create a body to send
-            Map<String, Object> requestBody = new LinkedHashMap<>();
-            requestBody.put("keyIdentifier", kid);
-            
+            AssignCmkKeyRequestDto requestBody = new AssignCmkKeyRequestDto(kid);
+                        
             HttpHeaders headers = new HttpHeaders();
-            // headers.set("Accept", "application/json");
             headers.set("Authorization", "Bearer " + token);
             headers.setContentType(MediaType.APPLICATION_JSON);
             
-            HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(requestBody, headers);
+            HttpEntity<AssignCmkKeyRequestDto> requestEntity = new HttpEntity<>(requestBody, headers);
 
-            String url = AssignCmkUrl;
-            // String url = "https://api.fabric.microsoft.com/v1/workspaces/{workspaceId}/encryption/assign";
+            String url = assignCmkUrl;
             url = url.replace("{workspaceId}", workspaceId);
-
-            // log.info("Checking Key Vault name availability for: {}", keyVaultName);
-            ResponseEntity<JsonNode> response = proxyRestTemplate.exchange(
-                    url, HttpMethod.POST, requestEntity, JsonNode.class);
+            ResponseEntity<Void> response = proxyRestTemplate.exchange(
+                    url, HttpMethod.POST, requestEntity, Void.class);
             
             
             if(response.getStatusCode().is2xxSuccessful()) {
                 cmkAssignFlag = true;
                 log.info("Successfully assigned CMK key to workspace : {}", workspaceId);
-                responseMap.put("cmkAssignFlag", cmkAssignFlag);
-                responseMap.put("message", "Successfully assigned CMK key to workspace.");
             } else {
                 log.error("Failed to assign CMK key to workspace {}: HTTP status {}", workspaceId, response.getStatusCode());
-                responseMap.put("cmkAssignFlag", cmkAssignFlag);
-                responseMap.put("message", "Failed to assign CMK key to workspace: HTTP status " + response.getStatusCode());
             }
             return cmkAssignFlag;
         } catch (HttpClientErrorException e) {
             log.error("CMK key assignment failed for workspace {}: {}", workspaceId, e.getMessage());
-            responseMap.put("cmkAssignFlag", cmkAssignFlag);
-            responseMap.put("message", e.getMessage());
             return cmkAssignFlag;
         } catch (Exception e) {
             log.error("CMK key assignment failed for workspace {}: {}", workspaceId, e.getMessage());
-            responseMap.put("cmkAssignFlag", cmkAssignFlag);
-            responseMap.put("message", e.getMessage());
             return cmkAssignFlag;
         }
     }
