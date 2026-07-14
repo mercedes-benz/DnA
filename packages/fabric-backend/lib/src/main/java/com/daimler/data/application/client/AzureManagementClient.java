@@ -44,7 +44,6 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
-import com.daimler.data.dto.azure.CmkKeyResponseDto;
 import com.daimler.data.dto.azureKeyVault.AzureUserDto;
 import com.daimler.data.dto.azureKeyVault.AzureUserSearchResponseDto;
 import com.daimler.data.dto.azureKeyVault.KeyVaultCreateRequestDto;
@@ -57,6 +56,7 @@ import com.daimler.data.dto.azureKeyVault.RoleAssignmentPropertiesDto;
 import com.daimler.data.dto.azureKeyVault.RoleAssignmentRequestDto;
 import com.daimler.data.dto.azureKeyVault.RoleAssignmentResponseDto;
 import com.daimler.data.dto.fabric.AssignCmkKeyRequestDto;
+import com.daimler.data.dto.fabric.CmkKeyResponseDto;
 import com.daimler.data.dto.fabric.CreateCmkKeyRequestDto;
 import com.daimler.data.dto.fabric.CreateCmkKeyResponseDto;
 import com.daimler.data.dto.fabric.FabricOAuthResponse;

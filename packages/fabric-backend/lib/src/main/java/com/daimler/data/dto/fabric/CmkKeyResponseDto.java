@@ -1,4 +1,4 @@
-package com.daimler.data.dto.azure;
+package com.daimler.data.dto.fabric;
 
 import java.util.List;
 import com.fasterxml.jackson.annotation.JsonProperty;
