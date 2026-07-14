@@ -96,6 +96,7 @@ import java.util.regex.Matcher;
  import com.daimler.data.dto.CodespaceSecurityConfigDto;
  import com.daimler.data.dto.DeploymentManageDto;
  import com.daimler.data.dto.DeploymentManageInputDto;
+import com.daimler.data.dto.GitHubWorkflowJobsResponseDto;
 import com.daimler.data.dto.GitHubWorkflowRunDto;
 import com.daimler.data.dto.GitLatestCommitIdDto;
 import com.daimler.data.dto.GitRunIdDetailsDto;
@@ -167,6 +168,9 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
     
 	 @Value("${codeServer.git.ghe.pat}")
      private String ghePat;
+
+	 @Value("${workspace.git-job.stale-threshold-minutes}")
+	 private int staleThresholdMinutes;
 
 	 @Value("${codeServer.git.pat}")
 	 private String gitPat;
@@ -1631,6 +1635,12 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
   
 	 @Override
 	 public CodeServerWorkspaceVO getById(String userId, String id) {
+		 return getById(userId, id, false);
+	 }
+
+	 @Transactional
+	 @Override
+	 public CodeServerWorkspaceVO getById(String userId, String id, boolean refreshTriggeredByUser) {
 		CodeServerWorkspaceNsql entity = new CodeServerWorkspaceNsql();
 		 if(technicalId.equalsIgnoreCase(userId)){
 			 entity = workspaceCustomRepository.findByWorkspaceId(id);
@@ -1642,6 +1652,160 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 		 // by DeploymentStatusMonitorJob which runs every 10s. Keeping getById
 		 // as a pure DB read avoids slow synchronous HTTP calls to ArgoCD/GitHub
 		 // on every card refresh.
+
+		 // If status is BUILD_REQUESTED and has a gitJobRunId, check if it's stale and fetch latest from GitHub.
+		 // Note: DEPLOY_REQUESTED is NOT handled here — deployment status is managed by ArgoCD.
+		 // This reconciliation only runs when explicitly triggered by user refresh (refreshTriggeredByUser=true).
+		 // Auto-poll requests (every 10s) skip this entirely and return DB state only.
+		 if (refreshTriggeredByUser && entity != null && entity.getData() != null
+				 && entity.getData().getProjectDetails() != null
+				 && entity.getData().getProjectDetails().getLastBuildOrDeployedStatus() != null) {
+
+			 String currentStatus = entity.getData().getProjectDetails().getLastBuildOrDeployedStatus();
+			 boolean isBuildRequested = "BUILD_REQUESTED".equalsIgnoreCase(currentStatus);
+
+			 log.info("getById - User-triggered refresh: project={}, status={}, isBuildRequested={}",
+					 entity.getData().getProjectDetails().getProjectName(), currentStatus, isBuildRequested);
+
+			 if (isBuildRequested) {
+				 Date requestedOn = entity.getData().getProjectDetails().getLastBuildOrDeployedOn();
+				 if (requestedOn != null) {
+					 long minutesSinceRequest = Duration.between(requestedOn.toInstant(), Instant.now()).toMinutes();
+					 log.info("getById - project={}, status={}, minutesSinceRequest={}, staleThreshold={}min",
+							 entity.getData().getProjectDetails().getProjectName(), currentStatus,
+							 minutesSinceRequest, staleThresholdMinutes);
+
+					 if (minutesSinceRequest >= staleThresholdMinutes) {
+						 log.info("getById - Stale threshold exceeded for project={}, proceeding to call GitHub API",
+								 entity.getData().getProjectDetails().getProjectName());
+						 // Determine if gitJobRunId exists for the build
+						 String gitJobRunId = null;
+						 CodeServerBuildDetails buildDetails = entity.getData().getProjectDetails().getIntBuildDetails();
+						 if (!"int".equalsIgnoreCase(entity.getData().getProjectDetails().getLastBuildOrDeployedEnv())) {
+							 buildDetails = entity.getData().getProjectDetails().getProdBuildDetails();
+						 }
+						 if (buildDetails != null) {
+							 gitJobRunId = buildDetails.getGitjobRunID();
+						 }
+
+						 if (gitJobRunId != null && !gitJobRunId.isBlank()) {
+							 log.info("getById - Fetching latest status from GitHub for project={}, runId={}",
+									 entity.getData().getProjectDetails().getProjectName(), gitJobRunId);
+
+							 GitHubWorkflowJobsResponseDto.Job buildDeployJob = gitClient.getBuildDeployJob(gitJobRunId);
+							 if (buildDeployJob != null && "completed".equalsIgnoreCase(buildDeployJob.getStatus()) && buildDeployJob.getConclusion() != null) {
+								 String finalStatus = resolveFinalStatus(currentStatus, buildDeployJob.getConclusion());
+								 String projectName = entity.getData().getProjectDetails().getProjectName();
+								 String environment = entity.getData().getProjectDetails().getLastBuildOrDeployedEnv();
+
+								 log.info("getById - Build/Deploy job completed for project={}, conclusion={}, resolvedStatus={}",
+										 projectName, buildDeployJob.getConclusion(), finalStatus);
+
+								 try {
+									 SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
+									 Date now = isoFormat.parse(isoFormat.format(new Date()));
+
+									 CodeServerBuildDetails resolvedBuildDetails = "int".equalsIgnoreCase(environment)
+											 ? entity.getData().getProjectDetails().getIntBuildDetails()
+											 : entity.getData().getProjectDetails().getProdBuildDetails();
+									 CodeServerDeploymentDetails deploymentDetails = "int".equalsIgnoreCase(environment)
+											 ? entity.getData().getProjectDetails().getIntDeploymentDetails()
+											 : entity.getData().getProjectDetails().getProdDeploymentDetails();
+
+									 // Update workspace entity status
+									 entity.getData().getProjectDetails().setLastBuildOrDeployedStatus(finalStatus);
+
+									 Boolean keepBuildImage = false;
+
+									 if ("BUILD_SUCCESS".equalsIgnoreCase(finalStatus) || "BUILD_FAILED".equalsIgnoreCase(finalStatus)) {
+										 resolvedBuildDetails.setLastBuildStatus(finalStatus);
+										 resolvedBuildDetails.setLastBuildOn(now);
+										 resolvedBuildDetails.setLastBuildBy(entity.getData().getWorkspaceOwner());
+										 resolvedBuildDetails.setGitjobRunID(gitJobRunId);
+									 } else if ("DEPLOYED".equalsIgnoreCase(finalStatus) || "DEPLOYMENT_FAILED".equalsIgnoreCase(finalStatus)) {
+										 deploymentDetails.setLastDeploymentStatus(finalStatus);
+										 deploymentDetails.setGitjobRunID(gitJobRunId);
+										 if ("DEPLOYED".equalsIgnoreCase(finalStatus)) {
+											 deploymentDetails.setLastDeployedOn(now);
+											 deploymentDetails.setLastDeployedBy(entity.getData().getWorkspaceOwner());
+										 }
+									 }
+
+									 // Save workspace entity
+									 workspaceCustomRepository.update(entity);
+
+									 // Update build/deploy audit logs
+									 CodeServerBuildDeployNsql buildDeployEntity = buildDeployCustomRepo.findByProjectName(projectName);
+									 if (buildDeployEntity != null) {
+										 CodeServerBuildDeploy buildDeployData = buildDeployEntity.getData();
+										 if ("BUILD_SUCCESS".equalsIgnoreCase(finalStatus) || "BUILD_FAILED".equalsIgnoreCase(finalStatus)) {
+											 if ("int".equalsIgnoreCase(environment) && buildDeployData.getIntBuildAuditLogs() != null && !buildDeployData.getIntBuildAuditLogs().isEmpty()) {
+												 int lastIndex = buildDeployData.getIntBuildAuditLogs().size() - 1;
+												 buildDeployData.getIntBuildAuditLogs().get(lastIndex).setBuildOn(now);
+												 buildDeployData.getIntBuildAuditLogs().get(lastIndex).setBuildStatus(finalStatus);
+												 keepBuildImage = buildDeployData.getIntBuildAuditLogs().get(lastIndex).isKeepBuildImage();
+											 } else if (buildDeployData.getProdBuildAuditLogs() != null && !buildDeployData.getProdBuildAuditLogs().isEmpty()) {
+												 int lastIndex = buildDeployData.getProdBuildAuditLogs().size() - 1;
+												 buildDeployData.getProdBuildAuditLogs().get(lastIndex).setBuildOn(now);
+												 buildDeployData.getProdBuildAuditLogs().get(lastIndex).setBuildStatus(finalStatus);
+												 keepBuildImage = buildDeployData.getProdBuildAuditLogs().get(lastIndex).isKeepBuildImage();
+											 }
+										 } else if ("DEPLOYED".equalsIgnoreCase(finalStatus) || "DEPLOYMENT_FAILED".equalsIgnoreCase(finalStatus)) {
+											 if ("int".equalsIgnoreCase(environment) && buildDeployData.getIntDeploymentAuditLogs() != null && !buildDeployData.getIntDeploymentAuditLogs().isEmpty()) {
+												 int lastIndex = buildDeployData.getIntDeploymentAuditLogs().size() - 1;
+												 buildDeployData.getIntDeploymentAuditLogs().get(lastIndex).setDeploymentStatus(finalStatus);
+												 if ("DEPLOYED".equalsIgnoreCase(finalStatus)) {
+													 buildDeployData.getIntDeploymentAuditLogs().get(lastIndex).setDeployedOn(now);
+												 }
+											 } else if (buildDeployData.getProdDeploymentAuditLogs() != null && !buildDeployData.getProdDeploymentAuditLogs().isEmpty()) {
+												 int lastIndex = buildDeployData.getProdDeploymentAuditLogs().size() - 1;
+												 buildDeployData.getProdDeploymentAuditLogs().get(lastIndex).setDeploymentStatus(finalStatus);
+												 if ("DEPLOYED".equalsIgnoreCase(finalStatus)) {
+													 buildDeployData.getProdDeploymentAuditLogs().get(lastIndex).setDeployedOn(now);
+												 }
+											 }
+										 }
+										 buildDeployEntity.setData(buildDeployData);
+										 buildDeployRepo.save(buildDeployEntity);
+									 }
+
+									 log.info("getById - Stale auto-correct: updated status for project={}, finalStatus={}, env={}",
+											 projectName, finalStatus, environment);
+
+									 // Auto-trigger deploy if buildAndDeploy and build succeeded
+									 if ("BUILD_SUCCESS".equalsIgnoreCase(finalStatus) && resolvedBuildDetails.getLastBuildType() != null
+											 && resolvedBuildDetails.getLastBuildType().equalsIgnoreCase("buildAndDeploy")) {
+										 boolean isPrivateRecipe = entity.getData().getProjectDetails().getRecipeDetails().getRecipeId() != null
+												 && entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase().startsWith("private");
+										 String branch = resolvedBuildDetails.getLastBuildBranch();
+										 String version = resolvedBuildDetails.getVersion();
+										 log.info("getById - Stale auto-correct: auto-triggering deploy for project={}, branch={}, version={}, env={}",
+												 projectName, branch, version, environment);
+										 this.deployWorkspace(userId, entity.getId(), environment, branch, isPrivateRecipe, version, "buildAndDeploy", keepBuildImage);
+									 }
+
+								 } catch (Exception e) {
+									 log.error("getById - Stale auto-correct failed for project={}, error={}", projectName, e.getMessage(), e);
+								 }
+							 } else if (buildDeployJob == null) {
+								 log.warn("getById - Build/Deploy job not found for project={}, runId={}",
+										 entity.getData().getProjectDetails().getProjectName(), gitJobRunId);
+							 } else {
+								 log.info("getById - Build/Deploy job not completed yet for project={}, status={}, conclusion={}",
+										 entity.getData().getProjectDetails().getProjectName(), buildDeployJob.getStatus(), buildDeployJob.getConclusion());
+							 }
+						 } else {
+							 log.info("getById - No gitJobRunId found for project={}, status stuck as {} for {} minutes",
+									 entity.getData().getProjectDetails().getProjectName(), currentStatus, minutesSinceRequest);
+						 }
+					 } else {
+						 log.info("getById - Stale threshold NOT exceeded for project={}, minutesSinceRequest={}, threshold={}min. Skipping GitHub call.",
+								 entity.getData().getProjectDetails().getProjectName(), minutesSinceRequest, staleThresholdMinutes);
+					 }
+				 }
+			 }
+		 }
+
 		 return workspaceAssembler.toVo(entity);
 	 }
 	 
@@ -5700,22 +5864,67 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 			return vo;
 		}
 
-		/* Requested states → call GitHub */
-		if (isRequestedStatus(currentStatus)) {
+
+		/* BUILD_REQUESTED → apply stale threshold and call GitHub */
+		if ("BUILD_REQUESTED".equalsIgnoreCase(currentStatus)) {
 			if(dto.getGitjobRunId() == null || dto.getGitjobRunId().isBlank()) {
-				MessageDescription error = new MessageDescription();
-				error.setMessage("Workspace is queued for build/deploy generating GitJobRunId wait for some time.");
-				vo.setWarnings(List.of(error));
+				log.info("getGitRunIdStatus - GitJobRunId NOT generated yet for project={}, currentStatus={}, lastBuildOrDeployedOn={}, staleThreshold={}min",
+					projectName, currentStatus, dto.getLastBuildOrDeployedOn(), staleThresholdMinutes);
+				// Check if the build request has been waiting too long without generating a run ID
+				if (dto.getLastBuildOrDeployedOn() != null) {
+					long minutesSinceRequest = Duration.between(
+						dto.getLastBuildOrDeployedOn().toInstant(), Instant.now()
+					).toMinutes();
+
+					if (minutesSinceRequest >= staleThresholdMinutes) {
+						log.warn("getGitRunIdStatus - Build stale threshold exceeded: project={}, minutesSinceRequest={}, threshold={}. Marking as BUILD_FAILED.",
+							projectName, minutesSinceRequest, staleThresholdMinutes);
+
+						workspaceCustomRepository.updateGitRunIdStatus(
+							projectName, "BUILD_FAILED", dto.getEnvironment()
+						);
+						workspaceCustomRepository.updateBuildDeployAuditStatus(
+							projectName, "BUILD_FAILED", dto.getEnvironment(), null
+						);
+
+						statusVo.setStatus("BUILD_FAILED");
+						MessageDescription warning = new MessageDescription();
+						warning.setMessage(
+							"GitJobRunId was not generated within " + staleThresholdMinutes +
+							" minutes. Marked as BUILD_FAILED"
+						);
+						vo.setWarnings(List.of(warning));
+						return vo;
+					}
+				}
+
+				MessageDescription info = new MessageDescription();
+				info.setMessage("Workspace is queued for build, generating GitJobRunId. Please wait.");
+				vo.setWarnings(List.of(info));
 				return vo;
 			}
-			GitHubWorkflowRunDto run = gitClient.getWorkflowRun(dto.getGitjobRunId());
-			if (run == null) {
-				MessageDescription warning = new MessageDescription();
-					warning.setMessage(
-							"Failed to fetch GitHub workflow run details for Job Run ID: " + dto.getGitjobRunId()
-					);
+			log.info("getGitRunIdStatus - GitJobRunId EXISTS for project={}, runId={}, currentStatus=BUILD_REQUESTED, environment={}",
+				projectName, dto.getGitjobRunId(), dto.getEnvironment());
 
-					vo.setWarnings(List.of(warning));
+			GitHubWorkflowJobsResponseDto.Job buildDeployJob = gitClient.getBuildDeployJob(dto.getGitjobRunId());
+			if (buildDeployJob == null) {
+				log.warn("getGitRunIdStatus - Build job not found for project={}, runId={}. Marking as BUILD_FAILED.",
+					projectName, dto.getGitjobRunId());
+
+				workspaceCustomRepository.updateGitRunIdStatus(
+					projectName, "BUILD_FAILED", dto.getEnvironment()
+				);
+				workspaceCustomRepository.updateBuildDeployAuditStatus(
+					projectName, "BUILD_FAILED", dto.getEnvironment(), dto.getGitjobRunId()
+				);
+
+				statusVo.setStatus("BUILD_FAILED");
+				MessageDescription warning = new MessageDescription();
+				warning.setMessage(
+					"Failed to fetch GitHub workflow run details for Job Run ID: " + dto.getGitjobRunId() +
+					". Marked as BUILD_FAILED"
+				);
+				vo.setWarnings(List.of(warning));
 				return vo;
 			}
 
@@ -5723,13 +5932,13 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 			// status = "completed"
 			// conclusion = "success"
 			// conclusion = failure | cancelled | timed_out | skipped | neutral | action_required
-			if ("completed".equalsIgnoreCase(run.getStatus()) && run.getConclusion() != null) {
+			if ("completed".equalsIgnoreCase(buildDeployJob.getStatus()) && buildDeployJob.getConclusion() != null) {
 				String finalStatus = resolveFinalStatus(
 						currentStatus,
-						run.getConclusion()
+						buildDeployJob.getConclusion()
 				);
 
-				boolean statusUpdated =workspaceCustomRepository.updateGitRunIdStatus(
+				boolean statusUpdated = workspaceCustomRepository.updateGitRunIdStatus(
 										projectName,
 										finalStatus,
 										dto.getEnvironment()
@@ -5744,24 +5953,23 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 								);
 
 				if (!statusUpdated || !auditUpdated) {
-					MessageDescription error = new MessageDescription();
-					error.setMessage("Failed to persist Git build/deploy status");
-					vo.setErrors(List.of(error));
-					return vo;
+					log.warn("Intermittent failure updating status for project {}. statusUpdated={}, auditUpdated={}. Will retry on next poll.",
+						projectName, statusUpdated, auditUpdated);
+					MessageDescription warning = new MessageDescription();
+					warning.setMessage("Status update pending, will be retried on next poll.");
+					vo.setWarnings(List.of(warning));
 				}
+				// Always return the resolved status from GitHub so the UI knows the real outcome
 				statusVo.setStatus(finalStatus);
 			}
 			else {
-				// status = queued | in_progress
-				// conclusion = null
-
 				statusVo.setStatus(null);
 
 				MessageDescription warning = new MessageDescription();
 				warning.setMessage(
-					"GitHub workflow is not completed yet. " +
-					"Status=" + run.getStatus() +
-					", Conclusion=" + run.getConclusion()
+					"Build job is not completed yet. " +
+					"Status=" + buildDeployJob.getStatus() +
+					", Conclusion=" + buildDeployJob.getConclusion()
 				);
 
 				vo.setWarnings(List.of(warning));
@@ -5777,7 +5985,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 		return Set.of(
 			"DEPLOYED",
 			"BUILD_SUCCESS",
-			"DEPLOY_FAILED",
+			"DEPLOYMENT_FAILED",
 			"BUILD_FAILED"
 		).contains(status);
 	}
@@ -5786,7 +5994,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 		return Set.of(
 			"DEPLOY_REQUESTED",
 			"BUILD_REQUESTED"
-		).contains(status);
+		).contains(status != null ? status.toUpperCase() : "");
 	}
 
 	private String resolveFinalStatus(String requestedStatus, String conclusion) {
@@ -5798,7 +6006,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 		}
 
 		if ("DEPLOY_REQUESTED".equalsIgnoreCase(requestedStatus)) {
-			return success ? "DEPLOYED" : "DEPLOY_FAILED";
+			return success ? "DEPLOYED" : "DEPLOYMENT_FAILED";
 		}
 
 		return requestedStatus;
