@@ -1423,7 +1423,6 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 		}
 	}
 
-
 	@Override
     @ApiOperation(value = "Search workspaces by name", nickname = "searchWorkspacesLov", notes = "Search and filter workspaces by name or other criteria. This endpoint is specifically designed for searching workspace records.", response = FabricWorkspacesCollectionVO.class, tags={ "lovs", })
     @ApiResponses(value = { 
