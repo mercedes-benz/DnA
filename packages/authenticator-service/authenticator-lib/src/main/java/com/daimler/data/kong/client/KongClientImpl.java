@@ -246,6 +246,8 @@ public class KongClientImpl implements KongClient {
 			ResponseEntity<String> response = null;
 			if(attachPluginVO.getName().name().toLowerCase().equalsIgnoreCase("oidc")) {
 				requestWrapper.setName(attachPluginVO.getName().name().toLowerCase());
+				attachPluginConfigRequestDto.setSession_secret(attachPluginConfigVO.getSessionSecret());
+				attachPluginConfigRequestDto.setSkip_already_auth_requests(attachPluginConfigVO.getSkipAlreadyAuthRequests());
 				attachPluginConfigRequestDto.setBearer_only(attachPluginConfigVO.getBearerOnly());
 				attachPluginConfigRequestDto.setClient_id(attachPluginConfigVO.getClientId());
 				attachPluginConfigRequestDto.setClient_secret(attachPluginConfigVO.getClientSecret());
