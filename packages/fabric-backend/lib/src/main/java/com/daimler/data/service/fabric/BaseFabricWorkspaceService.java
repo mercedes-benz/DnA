@@ -6,7 +6,10 @@ import java.util.Arrays;
 import java.util.Calendar;
 import java.util.Collections;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -29,15 +32,21 @@ import com.daimler.data.application.client.AuthoriserClient;
 import com.daimler.data.application.client.FabricWorkspaceClient;
 import com.daimler.data.application.client.RSAEncryptionUtil;
 import com.daimler.data.assembler.ADAProjectsAssembler;
+import com.daimler.data.assembler.DdxDataProductsDetailsAssembler;
 import com.daimler.data.assembler.FabricWorkspaceAssembler;
+import com.daimler.data.controller.FabricWorkspaceController;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.db.entities.ADAProjectsNsql;
 import com.daimler.data.db.entities.AuthoriserRolesNsql;
+import com.daimler.data.db.entities.DdxDataProductsDetailsNsql;
 import com.daimler.data.db.entities.FabricWorkspaceNsql;
 import com.daimler.data.db.json.ADAProjectDetails;
+import com.daimler.data.db.json.DdxDataProductsDetail;
+import com.daimler.data.db.json.DdxProduct;
 import com.daimler.data.db.json.AuthoriserRoleDeatils;
 import com.daimler.data.db.json.UserDetails;
+import com.daimler.data.db.repo.ddxDataProductsDetails.DdxDataProductsDetailsRepository;
 import com.daimler.data.db.repo.fabric.FabricWorkspaceCustomRepository;
 import com.daimler.data.db.repo.fabric.FabricWorkspaceRepository;
 import com.daimler.data.db.repo.roles.AuthoriserRolesCustomRepository;
@@ -45,6 +54,7 @@ import com.daimler.data.db.repo.roles.AuthoriserRolesRepository;
 import com.daimler.data.dto.adaProjects.ADAProjectDetailsCollectionVO;
 import com.daimler.data.dto.adaProjects.ADAProjectDetailsVO;
 import com.daimler.data.dto.fabric.AccessReviewDto;
+import com.daimler.data.dto.fabric.AccountTypeDto;
 import com.daimler.data.dto.fabric.AddGroupDto;
 import com.daimler.data.dto.fabric.CreateDatasourceRequestDto;
 import com.daimler.data.dto.fabric.CreateEntitlementRequestDto;
@@ -129,6 +139,12 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 	private FabricWorkspaceAssembler assembler;
 
 	@Autowired
+	private DdxDataProductsDetailsRepository ddxDataProductsDetailsRepo;
+
+	@Autowired
+	private DdxDataProductsDetailsAssembler ddxDataProductsDetailsAssembler;
+
+	@Autowired
 	private TagService tagService;
 	
 	@Autowired
@@ -180,14 +196,11 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 	@Value("${authoriser.community}")
 	private String communityAvailability;
 	
+	@Value("${authoriser.accountTypes}")
+	private String accountTypesConfig;
+	
 	@Value("${authoriser.workflowDefinitionId}")
 	private String workflowDefinitionId;
-	
-	@Value("${authoriser.dnaFabricEntitlementName}")
-	private String dnaFabricEntitlementName;
-	
-	@Value("${authoriser.dnaFabricEntitlementId}")
-	private String dnaFabricEntitlementId;
 	
 	@Value("${authoriser.identityRoleUrl}")
 	private String identityRoleUrl;
@@ -236,7 +249,56 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		super();
 	}
 
-	private SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");  
+	private SimpleDateFormat formatter = new SimpleDateFormat("yyyy-MM-dd");
+
+	/**
+	 * Sanitizes a role name for display by:
+	 * - Replacing underscores with spaces
+	 * - Replacing standalone hyphens (not surrounded by spaces) with spaces
+	 */
+	private String sanitizeRoleName(String rawName) {
+		if (rawName == null || rawName.isEmpty()) {
+			return rawName;
+		}
+		String name = rawName.replace("_", " ");
+		// Replace hyphens that are not surrounded by spaces
+		name = name.replaceAll("(?<! )-(?! )", " ");
+		return name.trim().replaceAll(" +", " ");
+	}
+
+	private String toTitleCase(String input) {
+		StringBuilder result = new StringBuilder();
+		boolean capitalizeNext = true;
+		for (char c : input.toCharArray()) {
+			if (Character.isWhitespace(c)) {
+				result.append(c);
+				capitalizeNext = true;
+			} else if (capitalizeNext) {
+				result.append(Character.toUpperCase(c));
+				capitalizeNext = false;
+			} else {
+				result.append(Character.toLowerCase(c));
+			}
+		}
+		return result.toString();
+	}
+
+	private String sanitizeRoleId(String rawId) {
+		if (rawId == null) {
+			return rawId;
+		}
+		String uppercased = rawId.toUpperCase();
+		String sanitized = uppercased.replaceAll("[^A-Z0-9._-]", "");
+		// Strip leading chars that are not alphanumeric per regex ^[A-Z0-9]+
+		sanitized = sanitized.replaceAll("^[^A-Z0-9]+", "");
+		if (sanitized.isEmpty()) {
+			return sanitized;
+		}
+		if (sanitized.length() > 201) {
+			sanitized = sanitized.substring(0, 201);
+		}
+		return sanitized;
+	}
 	
 	@Override
 	@Transactional  
@@ -416,10 +478,47 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 				log.error("Failed to update latest displayName and description from Fabric to Database for project id {}, with error {} . Will be updated in next fetch", id, e.getMessage());
 			}
 //		}
+		// Enrich ddxPublishedLakeHouseDetails with full product data from ddx_dataProducts_details_nsql
+		enrichDdxPublishedLakeHouseDetails(voFromDb);
 		return voFromDb;
 	}
 
-	
+	/**
+	 * Replaces the lakehouse ID strings in ddxPublishedLakeHouseDetails with
+	 * enriched objects containing lakeHouseId and dataProducts from the
+	 * ddx_dataProducts_details_nsql table.
+	 */
+	private void enrichDdxPublishedLakeHouseDetails(FabricWorkspaceVO vo) {
+		if (vo == null || vo.getDdxPublishedLakeHouseDetails() == null || vo.getDdxPublishedLakeHouseDetails().isEmpty()) {
+			return;
+		}
+		try {
+			List<Object> enrichedList = new ArrayList<>();
+			for (Object item : vo.getDdxPublishedLakeHouseDetails()) {
+				String lakehouseId = (item instanceof String) ? (String) item : String.valueOf(item);
+				Optional<DdxDataProductsDetailsNsql> detailOpt = ddxDataProductsDetailsRepo.findById(lakehouseId);
+				Map<String, Object> lakehouseEntry = new LinkedHashMap<>();
+				lakehouseEntry.put("lakeHouseId", lakehouseId);
+				if (detailOpt.isPresent()) {
+					DdxDataProductsDetail data = detailOpt.get().getData();
+					if (data != null && data.getDdxProducts() != null) {
+						lakehouseEntry.put("dataProducts", data.getDdxProducts().stream()
+							.map(ddxDataProductsDetailsAssembler::toVo)
+							.collect(Collectors.toList()));
+					} else {
+						lakehouseEntry.put("dataProducts", new ArrayList<>());
+					}
+				} else {
+					lakehouseEntry.put("dataProducts", new ArrayList<>());
+				}
+				enrichedList.add(lakehouseEntry);
+			}
+			vo.setDdxPublishedLakeHouseDetails(enrichedList);
+		} catch (Exception e) {
+			log.error("Failed to enrich ddxPublishedLakeHouseDetails for workspace {}: {}", vo.getId(), e.getMessage(), e);
+		}
+	}
+
 	@Override
 	@Transactional
 	public ResponseEntity<FabricWorkspaceResponseVO> createWorkspace(FabricWorkspaceVO vo) {
@@ -443,7 +542,20 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 					responseData.setResponses(responseMessage);
 					log.error("Error occurred:{} while creating fabric workspace project {} ", createResponse.getErrorCode(), vo.getName());
 					if("409".equalsIgnoreCase(createResponse.getErrorCode())) {
-						return new ResponseEntity<>(responseData, HttpStatus.CONFLICT);
+						if(vo.getInitiatedBy() == null || (vo.getInitiatedBy() != null && !FabricWorkspaceController.isTechnicalUser(vo.getInitiatedBy()))) {
+							message.setMessage("Failed to create workspace. A workspace with the same name already exists. Please choose a different name.");
+							return new ResponseEntity<>(responseData, HttpStatus.CONFLICT);
+						}
+						log.info("Technical user {} attemped to create a workspace with name already exists, this case if getting considered as Spire user trying to add an already created workspace to the Dna DB hance the process will be allowed to ");
+						WorkspaceDetailDto existingWorkspaceDto = fabricWorkspaceClient.getWorkspaceDetailsByName(vo.getName());
+						if(existingWorkspaceDto != null){
+							createResponse.setId(existingWorkspaceDto.getId());
+							createResponse.setDisplayName(existingWorkspaceDto.getDisplayName());
+							createResponse.setDescription(existingWorkspaceDto.getDescription());
+							createResponse.setType(existingWorkspaceDto.getType());
+							createResponse.setMessage(null);
+							createResponse.setErrorCode(null);
+						}
 					}else if("429".equalsIgnoreCase(createResponse.getErrorCode())){
 						return new ResponseEntity<>(responseData, HttpStatus.TOO_MANY_REQUESTS);
 					}else{
@@ -599,6 +711,17 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		entitlementRequestDto.setDataClassification(ConstantsUtility.DATACLASSIFICATION_CONFIDENTIAL);
 		entitlementRequestDto.setDataClassificationInherited(false);
 		entitlementRequestDto.setConnectivity(false);
+		if (accountTypesConfig != null && !accountTypesConfig.trim().isEmpty()) {
+			entitlementRequestDto.setMapAsEidGroup(true);
+			List<AccountTypeDto> accountTypes = new ArrayList<>();
+			for (String accountType : accountTypesConfig.split(",")) {
+				String[] parts = accountType.trim().split(":");
+				if (parts.length == 2) {
+					accountTypes.add(new AccountTypeDto(parts[0].trim(), parts[1].trim()));
+				}
+			}
+			entitlementRequestDto.setAccountTypes(accountTypes);
+		}
 		return entitlementRequestDto;
 	}
 	
@@ -640,10 +763,12 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		accessReview.setEnabled(true);
 		accessReview.setStartDate(formatter.format(new Date()));
 		List<ReviewerConfigDto> reviewersConfig = new ArrayList<>();
-		ReviewerConfigDto roleApprover = new ReviewerConfigDto();
-		roleApprover.setType("ROLE_APPROVER");
-		roleApprover.setUserCommunity(communityAvailabilitySplits[0]);
-		reviewersConfig.add(roleApprover);
+		for (String community : communityAvailabilitySplits) {
+			ReviewerConfigDto roleApprover = new ReviewerConfigDto();
+			roleApprover.setType("ROLE_APPROVER");
+			roleApprover.setUserCommunity(community.trim());
+			reviewersConfig.add(roleApprover);
+		}
 		accessReview.setReviewerConfigs(reviewersConfig);
 		
 		WorkflowDefinitionDto workflow = new WorkflowDefinitionDto();
@@ -659,10 +784,10 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		adminRoleRequestDto.setDescription(permissionName +" role for workspace " + workspaceName);
 		adminRoleRequestDto.setDynamic(false);
 		adminRoleRequestDto.setGlobalCentralAvailable(true);
-		adminRoleRequestDto.setId(workspaceName + "_" +  permissionName);
+		adminRoleRequestDto.setId(sanitizeRoleId((workspaceName + "_" +  permissionName).replace(" ", "")));
 		adminRoleRequestDto.setJobTitle(false);
 		adminRoleRequestDto.setMarketAvailabilities(new ArrayList<>());
-		adminRoleRequestDto.setName(workspaceName + "_" +  permissionName);
+		adminRoleRequestDto.setName(sanitizeRoleName((workspaceName + " " +  toTitleCase(permissionName))));
 		adminRoleRequestDto.setNeedsAdditionalSelfRequestApproval(false);
 		adminRoleRequestDto.setNeedsCustomScopes(false);
 		adminRoleRequestDto.setNeedsOrgScopes(false);
@@ -683,7 +808,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		createRoleVO.setState(ConstantsUtility.PENDING_STATE);
 		try {
 			log.info("Calling identity management system to add role {} for workspace {} ", workspaceName + "_" + permissionName, workspaceName);
-			CreateRoleResponseDto getResponse = identityClient.getRole(createRequestDto.getName());
+			CreateRoleResponseDto getResponse = identityClient.getRole(createRequestDto.getId());
 			if(getResponse!=null && getResponse.getId()!=null) {
 				createRoleVO.setId(getResponse.getId());
 				createRoleVO.setLink(identityRoleUrl+workspaceName + "_" +  permissionName);
@@ -708,12 +833,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		return createRoleVO;
 	}
 	
-	public RoleDetailsVO updateRoleDetails(EntitlementDetailsVO roleEntitlementVO, RoleDetailsVO existingRoleVO, String workspaceName, String permissionName, String creatorId, boolean isDivisionAllowed) {
-		EntitlementDetailsVO dnaFabricEntitlementVO = new EntitlementDetailsVO();
-		dnaFabricEntitlementVO.setDisplayName(dnaFabricEntitlementName);
-		dnaFabricEntitlementVO.setEntitlementId(dnaFabricEntitlementId);
-		dnaFabricEntitlementVO.setState(ConstantsUtility.CREATED_STATE);
-
+	public RoleDetailsVO updateRoleDetails(EntitlementDetailsVO roleEntitlementVO, RoleDetailsVO existingRoleVO, String workspaceName, String permissionName, String creatorId) {
 		// Boolean isEntitlementsAssigned = false;
 		// Boolean isCustomEntitlementAssigned = false;
 		
@@ -734,23 +854,14 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		if(isRoleAvailable) {
 			//add entitlements
 			List<EntitlementDetailsVO> adminEntitlementsVO = new ArrayList<>();
-			if (isDivisionAllowed) {
-				adminEntitlementsVO.add(dnaFabricEntitlementVO);
-			}
 			adminEntitlementsVO.add(roleEntitlementVO);
 			if(!ConstantsUtility.ASSIGNED_STATE.equalsIgnoreCase(updatedRole.getAssignEntitlementsState())) {
 				HttpStatus assignAdminEntitlementStatus = identityClient.AssignEntitlementToRole(roleEntitlementVO.getEntitlementId(), updatedRole.getId());
-				HttpStatus assignDnaEntitlementStatus = HttpStatus.OK;
-				if (isDivisionAllowed) {
-					identityClient.AssignEntitlementToRole(dnaFabricEntitlementVO.getEntitlementId(), updatedRole.getId());
-				}
 
 				boolean adminEntitlementSuccess = (assignAdminEntitlementStatus.is2xxSuccessful() || (assignAdminEntitlementStatus.compareTo(HttpStatus.CONFLICT) == 0));
-				boolean dnaEntitlementSuccess = (assignDnaEntitlementStatus.is2xxSuccessful() || (assignDnaEntitlementStatus.compareTo(HttpStatus.CONFLICT) == 0));
 
-				if(adminEntitlementSuccess && dnaEntitlementSuccess) {
+				if(adminEntitlementSuccess) {
 					updatedRole.setAssignEntitlementsState(ConstantsUtility.ASSIGNED_STATE);
-					// isEntitlementsAssigned = true;
 				}else {
 					updatedRole.setAssignEntitlementsState(ConstantsUtility.INPROGRESS_STATE);
 				}
@@ -887,11 +998,6 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 					}
 				//remove contributor entitlement and add viewer entitlement
 				List<EntitlementDetailsVO> roleEntitlementsVO = new ArrayList<>();
-				EntitlementDetailsVO dnaFabricEntitlementVO = new EntitlementDetailsVO();
-				dnaFabricEntitlementVO.setDisplayName(dnaFabricEntitlementName);
-				dnaFabricEntitlementVO.setEntitlementId(dnaFabricEntitlementId);
-				dnaFabricEntitlementVO.setState(ConstantsUtility.CREATED_STATE);
-				roleEntitlementsVO.add(dnaFabricEntitlementVO);
 				roleEntitlementsVO.add(existingViewerEntitlementVO);
 				tempRole.setEntitlements(roleEntitlementsVO);
 				HttpStatus removeDnaEntitlementStatus = identityClient.removeEntitlementFromRole(subgroupPrefix +  workspaceId + "_" + ConstantsUtility.PERMISSION_CONTRIBUTOR, role.getId());
@@ -910,7 +1016,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 
 	
 	@Override
-	public FabricWorkspaceStatusVO processWorkspaceUserManagement(FabricWorkspaceStatusVO currentStatus, String workspaceName, String creatorId, String workspaceId, String customGroupName, boolean isDivisionAllowed, List<CustomGroupNameCollectionVO> customGroupNameCollection) {
+	public FabricWorkspaceStatusVO processWorkspaceUserManagement(FabricWorkspaceStatusVO currentStatus, String workspaceName, String creatorId, String workspaceId, String customGroupName, List<CustomGroupNameCollectionVO> customGroupNameCollection) {
 				if(ConstantsUtility.INPROGRESS_STATE.equalsIgnoreCase(currentStatus.getState())) {
 					boolean isAdminEntitlementAvailable = false;
 					boolean isContributorEntitlementAvailable = false;
@@ -1038,7 +1144,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 								existingAdminRoleVO.setState(ConstantsUtility.PENDING_STATE);
 								existingAdminRoleVO.setLink(identityRoleUrl+workspaceName + "_" + ConstantsUtility.PERMISSION_ADMIN);
 							}
-							RoleDetailsVO updatedAdminRoleVO = this.updateRoleDetails(adminEntitlement, existingAdminRoleVO, workspaceName, ConstantsUtility.PERMISSION_ADMIN, creatorId, isDivisionAllowed);
+							RoleDetailsVO updatedAdminRoleVO = this.updateRoleDetails(adminEntitlement, existingAdminRoleVO, workspaceName, ConstantsUtility.PERMISSION_ADMIN, creatorId);
 							adminRole = updatedAdminRoleVO;
 							updatedRoles.add(adminRole);
 						//check for contributor Role
@@ -1051,7 +1157,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 								existingContributorRoleVO.setState(ConstantsUtility.PENDING_STATE);
 								existingContributorRoleVO.setLink(identityRoleUrl+workspaceName + "_" + ConstantsUtility.PERMISSION_CONTRIBUTOR);
 							}
-							RoleDetailsVO updatedContributorRoleVO = this.updateRoleDetails(contributorEntitlement, existingContributorRoleVO, workspaceName, ConstantsUtility.PERMISSION_CONTRIBUTOR, creatorId, isDivisionAllowed);
+							RoleDetailsVO updatedContributorRoleVO = this.updateRoleDetails(contributorEntitlement, existingContributorRoleVO, workspaceName, ConstantsUtility.PERMISSION_CONTRIBUTOR, creatorId);
 							contributorRole = updatedContributorRoleVO;
 							updatedRoles.add(contributorRole);
 						//check for member Role
@@ -1064,7 +1170,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 								existingMemberRoleVO.setState(ConstantsUtility.PENDING_STATE);
 								existingMemberRoleVO.setLink(identityRoleUrl+workspaceName + "_" + ConstantsUtility.PERMISSION_MEMBER);
 							}
-							RoleDetailsVO updatedMemberRoleVO = this.updateRoleDetails(memberEntitlement, existingMemberRoleVO, workspaceName, ConstantsUtility.PERMISSION_MEMBER, creatorId, isDivisionAllowed);
+							RoleDetailsVO updatedMemberRoleVO = this.updateRoleDetails(memberEntitlement, existingMemberRoleVO, workspaceName, ConstantsUtility.PERMISSION_MEMBER, creatorId);
 							memberRole = updatedMemberRoleVO;
 							updatedRoles.add(memberRole);
 						//check for viewer Role
@@ -1077,7 +1183,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 								existingViewerRoleVO.setState(ConstantsUtility.PENDING_STATE);
 								existingViewerRoleVO.setLink(identityRoleUrl+workspaceName + "_" + ConstantsUtility.PERMISSION_VIEWER);
 							}
-							RoleDetailsVO updatedViewerRoleVO = this.updateRoleDetails(viewerEntitlement, existingViewerRoleVO, workspaceName, ConstantsUtility.PERMISSION_VIEWER, creatorId, isDivisionAllowed);
+							RoleDetailsVO updatedViewerRoleVO = this.updateRoleDetails(viewerEntitlement, existingViewerRoleVO, workspaceName, ConstantsUtility.PERMISSION_VIEWER, creatorId);
 							viewerRole = updatedViewerRoleVO;
 							updatedRoles.add(viewerRole);
 					currentStatus.setRoles(updatedRoles);
@@ -1400,7 +1506,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 					if(ConstantsUtility.GROUPPRINCIPAL_USER_TYPE.equalsIgnoreCase(userGroupDetail.getPrincipalType())) {
 						if(!userGroupDetail.getIdentifier().toLowerCase().contains(creatorId.toLowerCase()+"@")
 						&& Arrays.stream(userRemovalIgnorePatterns).noneMatch(pattern -> userGroupDetail.getIdentifier().toLowerCase().contains(pattern.toLowerCase()))) {
-							fabricWorkspaceClient.removeUserGroup(workspaceId, userGroupDetail.getIdentifier());
+							// fabricWorkspaceClient.removeUserGroup(workspaceId, userGroupDetail.getIdentifier());
 						}
 					}
 					else if(ConstantsUtility.GROUPPRINCIPAL_GROUP_TYPE.equalsIgnoreCase(userGroupDetail.getPrincipalType())) {
@@ -1580,6 +1686,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 			}
 			existingWorkspace.getStatus().setState(ConstantsUtility.DELETED_STATE);
 			existingWorkspace.setLastModifiedOn(new Date());
+			existingWorkspace.setDeletedOn(new Date());
 			jpaRepo.save(assembler.toEntity(existingWorkspace));
 			responseMessage.setSuccess("SUCCESS");
 			responseMessage.setErrors(errors);
@@ -1992,12 +2099,23 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 	public CreateEntitlementRequestDto prepareGenericEntitlementCreateRequestDto(String entitlementName) {
 		CreateEntitlementRequestDto entitlementRequestDto = new CreateEntitlementRequestDto();
 		entitlementRequestDto.setType(ConstantsUtility.ENTITLEMENT_TYPE);
-		entitlementRequestDto.setEntitlementId(entitlementName);
+		entitlementRequestDto.setEntitlementId(sanitizeRoleId(entitlementName).replace(".", ""));
 		entitlementRequestDto.setDisplayName(entitlementName);
 		entitlementRequestDto.setDescription("Generic DNA Entitlement");
 		entitlementRequestDto.setDataClassification(ConstantsUtility.DATACLASSIFICATION_CONFIDENTIAL);
 		entitlementRequestDto.setDataClassificationInherited(false);
 		entitlementRequestDto.setConnectivity(false);
+		if (accountTypesConfig != null && !accountTypesConfig.trim().isEmpty()) {
+			entitlementRequestDto.setMapAsEidGroup(true);
+			List<AccountTypeDto> accountTypes = new ArrayList<>();
+			for (String accountType : accountTypesConfig.split(",")) {
+				String[] parts = accountType.trim().split(":");
+				if (parts.length == 2) {
+					accountTypes.add(new AccountTypeDto(parts[0].trim(), parts[1].trim()));
+				}
+			}
+			entitlementRequestDto.setAccountTypes(accountTypes);
+		}
 		return entitlementRequestDto;
 	}
 	
@@ -2037,10 +2155,12 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		accessReview.setEnabled(true);
 		accessReview.setStartDate(formatter.format(new Date()));
 		List<ReviewerConfigDto> reviewersConfig = new ArrayList<>();
-		ReviewerConfigDto roleApprover = new ReviewerConfigDto();
-		roleApprover.setType("ROLE_APPROVER");
-		roleApprover.setUserCommunity(communityAvailabilitySplits[0]);
-		reviewersConfig.add(roleApprover);
+		for (String community : communityAvailabilitySplits) {
+			ReviewerConfigDto roleApprover = new ReviewerConfigDto();
+			roleApprover.setType("ROLE_APPROVER");
+			roleApprover.setUserCommunity(community.trim());
+			reviewersConfig.add(roleApprover);
+		}
 		accessReview.setReviewerConfigs(reviewersConfig);
 		
 		WorkflowDefinitionDto workflow = new WorkflowDefinitionDto();
@@ -2056,10 +2176,10 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		roleRequestDto.setDescription("Generic DNA role");
 		roleRequestDto.setDynamic(isDynamic);
 		roleRequestDto.setGlobalCentralAvailable(true);
-		roleRequestDto.setId(roleName);
+		roleRequestDto.setId(sanitizeRoleId(roleName));
 		roleRequestDto.setJobTitle(false);
 		roleRequestDto.setMarketAvailabilities(new ArrayList<>());
-		roleRequestDto.setName(roleName);
+		roleRequestDto.setName(sanitizeRoleName(roleName));
 		roleRequestDto.setNeedsAdditionalSelfRequestApproval(false);
 		roleRequestDto.setNeedsCustomScopes(false);
 		roleRequestDto.setNeedsOrgScopes(false);

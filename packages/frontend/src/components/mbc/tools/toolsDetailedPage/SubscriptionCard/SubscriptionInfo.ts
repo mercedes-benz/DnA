@@ -23,7 +23,7 @@ export const SubscriptionDetails = [
                 "icon": "profile",
                 "info": {
                     "text": "Did you already had first experience with Power Platform? And you want to build your first application/flow? Then  you can find information here about the Citizen Developer account",
-                    "cost": "starting at 125€ per month*"
+                    "cost": ""
                 },
                 "link": `${Envs.POWER_PLATFORM_CITIZEN_DEVELOPER_ACCOUNT_URL}`
             },
@@ -34,7 +34,7 @@ export const SubscriptionDetails = [
                 "icon": "trino_shared-folder",
                 "info": {
                     "text": "Did you already develop a solution and want to use Premium features? Find here information about the Shared Development account (Suitable for single person)",
-                    "cost": "starting 200€ per month*"
+                    "cost": ""
                 },
                 "link":``
             },

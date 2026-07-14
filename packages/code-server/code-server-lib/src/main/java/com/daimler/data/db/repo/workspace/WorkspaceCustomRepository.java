@@ -39,6 +39,7 @@ import com.daimler.data.db.json.UserInfo;
 import com.daimler.data.db.repo.common.CommonDataRepository;
 import com.daimler.data.dto.CodespaceSecurityConfigCollectionDto;
 import com.daimler.data.dto.CodespaceSecurityConfigDto;
+import com.daimler.data.dto.GitRunIdDetailsDto;
 import com.daimler.data.dto.workspace.CodeServerWorkspaceVO;
 import com.daimler.data.dto.workspace.CodeServerWorkspaceValidateVO;
 import com.daimler.data.dto.workspace.CodespaceSecurityConfigVO;
@@ -102,4 +103,12 @@ public interface WorkspaceCustomRepository extends CommonDataRepository<CodeServ
 	CodeServerWorkspaceNsql findbyProjectName(String projectName);
 
 	List<CodeServerWorkspaceNsql> findAllByUniqueLiteral();
+
+    GitRunIdDetailsDto getGitRunId(String projectName);
+
+    boolean updateGitRunIdStatus(String projectName, String status, String string);
+
+	boolean updateBuildDeployAuditStatus(String projectName, String status, String environment, String gitjobRunId);
+
+
 }

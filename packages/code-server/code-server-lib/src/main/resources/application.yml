@@ -2,7 +2,7 @@ spring:
   mvc.pathmatch.matching-strategy: ant_path_matcher
   application:
     name: dna-codeserver-service
-    version: 1.8.8
+    version: 1.12.3
   profile:
     active: production
 
@@ -95,6 +95,7 @@ codeServer:
   gitjob.pat: ${CODE_SERVER_GITJOB_PAT:XXXX}
   git.pat: ${CODE_SERVER_GIT_PAT:XXXX}
   git.orgname: ${CODE_SERVER_ORGNAME:XXXXX}
+  git.gitOrgname: ${CODE_SERVER_GIT_ORGNAME:XXXXX}
   git.orguri: ${CODE_SERVER_ORGURI:XXXXX}
   git.baseuri: ${CODE_SERVER_GIT_BASEURI:XXXXXX}
   base.uri: ${CODE_BASE_URI:XXXX}
@@ -105,6 +106,7 @@ codeServer:
   env.url: ${CODE_SERVER_ENVURL:XXX}
   env.url.aws: ${CODE_SERVER_ENVURL_AWS:YOUR_AWS_ENV_URL}
   git.appname: ${CODE_SERVER_APPLICATION_NAME:XXXX}
+  git.deploy.appname: ${CODE_SERVER_DEPLOY_APPLICATION_NAME:XXXX}
   jupyter.pat: ${CODE_SERVER_JUPYTER_PAT:XXX}
   jupyter.url: ${CODE_SERVER_JUPYTER_URL:XXX}
   jupyter.url.aws: ${CODE_SERVER_JUPYTER_URL_AWS:YOUR_JUPYTER_AWS_URL}
@@ -123,6 +125,15 @@ codeServer:
   technical.id: ${CODE_SERVER_TECHNICAL_USER:XXXX}
   build.deleteuri: ${CODE_SERVER_BUILD_DELETE_URI:XXXX}
   build.retainedlimit: ${CODE_SERVER_BUILD_RETAINED_LIMIT:XX}
+  git:
+    enterprise:
+      url: ${CODE_SERVER_GHE_BASEURI:XXXX}
+    ghe:
+      pid: ${CODE_SERVER_GHE_PID:XXXX}
+      pat: ${CODE_SERVER_GHE_PAT:XXXX}
+      orguri: ${CODE_SERVER_GHE_ORGURI:XXXX}
+      deployuri: ${CODE_SERVER_GHE_GITJOB_DEPLOY_URI:XXXX}
+      manageuri: ${CODE_SERVER_GHE_GITJOB_MANAGE_URI:XXXX}
 
 swagger.headers.authorization.token: ${SWAGGER_HEADER_AUTH:XXXXXX}
 management.endpoints.web.exposure.include: loggers,health
@@ -222,8 +233,26 @@ vaultIntegration:
     baseUrl: ${VAULT_SERVICE_URL:XXXX}
     apiKey: ${VAULT_SERVICE_API_KEY:XXXX}
 
+opentelemetry:
+  plugin:
+    endpoint: ${OTEL_PLUGIN_ENDPOINT:XXXX}
+
 workspace:
   migrate: ${MIGRATE_WORKSPACE:YOUR_MIGRATE_BOOLEAN}    
+  git-job:
+    stale-threshold-minutes: ${GIT_JOB_STALE_THRESHOLD_MINUTES:XXXX}
   callKongApisFromBackend: ${CALL_KONG_APIS_FROM_BACKEND:XXXX}
   logs:
       migrate: ${WORKSPACE_LOGS_MIGRATE:YOUR_MIGRATE_BOOLEAN}
+
+argocd:
+  argocdTokenUrl: ${ARGOCD_TOKEN_URL:XXXX}
+  argocdCreateUrl: ${ARGOCD_CREATE_URL:XXXX}
+  createProjectName: ${ARGOCD_PROJECT_NAME:XXXX}
+  tokenUserName: ${ARGOCD_USERNAME:XXXX}
+  tokenPassword: ${ARGOCD_PASSWORD:XXXX}
+  imageRegistry: ${ARGOCD_IMAGE_REGISTRY:XXXX}
+  vaultKvPath: ${ARGOCD_VAULT_KV_PATH:XXXX}
+  namespacePrefix: ${ARGOCD_NAMESPACE_PREFIX:XXXX}
+  vaultAuthPath: ${ARGOCD_VAULT_AUTH_PATH:XXXX}
+  vaultMountPath: ${ARGOCD_VAULT_MOUNT_PATH_SUFFIX:XXXX}

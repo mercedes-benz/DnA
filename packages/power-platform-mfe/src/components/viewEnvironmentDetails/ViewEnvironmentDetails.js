@@ -75,12 +75,12 @@ const ViewEnvironmentDetails = ({ environment }) => {
             <p className={Styles.value}>{environment?.customRequirements?.length > 0 ? environment?.customRequirements : 'N/A'}</p>
           </div>
         </div>
-        <div className={Styles.col3}>
+        {/* <div className={Styles.col3}>
           <div className={Styles.projectItem}>
             <p className={Styles.label}>Do you want the PROD environment immediately or later?</p>
             <p className={Styles.value}>{environment?.prodEnvAvailability}</p>
           </div>
-        </div>
+        </div> */}
         <div className={Styles.col}>
           <div className={Styles.projectItem}>
             <p className={Styles.label}>User Licenses</p>

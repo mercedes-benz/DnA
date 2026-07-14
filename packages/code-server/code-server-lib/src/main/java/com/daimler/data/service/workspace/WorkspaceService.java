@@ -45,6 +45,8 @@ public interface WorkspaceService {
 	GenericMessage deleteById(String userId,String id);
 
 	CodeServerWorkspaceVO getById(String userId, String id);
+
+	CodeServerWorkspaceVO getById(String userId, String id, boolean refreshTriggeredByUser);
 	
 	List<CodeServerWorkspaceVO> getAll(String userId,int offset,int limit);
 	
@@ -117,6 +119,8 @@ public interface WorkspaceService {
 
 	GenericMessage migrateWorkspace(CodeServerWorkspaceNsql entity);
 
+	GenericMessage migrateWorkspaceToGHE(CodeServerWorkspaceNsql entity);
+
 	GenericMessage buildWorkSpace(String userId,String id,String branch,ManageBuildRequestDto buildRequestDto,boolean isPrivateRecipe,String environment,String lastBuildType);
 
 	CodeServerWorkspaceVO findByWorkspaceId(String wsId);
@@ -142,5 +146,10 @@ public interface WorkspaceService {
 	GenericMessage getStatusByJobRunId(CodeServerWorkspaceNsql entity);
 
 	String updateGitJobRunId(GitJobRunIdRequestVO request);
-	
+
+    GitJobRunIdStatusVO getGitRunIdStatus(String projectName);
+
+    GenericMessage cancelWorkspaceRun(String projectName);
+
+	GenericMessage createOpenTelemetryPlugin(String workspaceId, String environment, String serviceName);
 }
