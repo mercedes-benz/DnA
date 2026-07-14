@@ -14,6 +14,7 @@ import com.daimler.data.db.entities.FabricWorkspaceNsql;
 import com.daimler.data.db.json.AuthoriserRoleDeatils;
 import com.daimler.data.db.json.Capacity;
 import com.daimler.data.db.json.CdcPublishedLakeHouseDetails;
+import com.daimler.data.db.json.CmkKeyDetails;
 import com.daimler.data.db.json.EntitlementDetails;
 import com.daimler.data.db.json.FabricWorkspace;
 import com.daimler.data.db.json.FabricWorkspaceStatus;
@@ -27,6 +28,7 @@ import com.daimler.data.dto.fabric.LakehouseDto;
 import com.daimler.data.dto.fabric.LakehouseS3ShortcutDto;
 import com.daimler.data.dto.fabricWorkspace.CapacityVO;
 import com.daimler.data.dto.fabricWorkspace.CdcPublishedLakeHouseDetailsVO;
+import com.daimler.data.dto.fabricWorkspace.CmkKeyDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.CreatedByVO;
 import com.daimler.data.dto.fabricWorkspace.CustomGroupNameCollectionVO;
 import com.daimler.data.dto.fabricWorkspace.DnaRolesVO;
@@ -95,6 +97,13 @@ public class FabricWorkspaceAssembler implements GenericAssembler<FabricWorkspac
 					BeanUtils.copyProperties(capacity, capacityVO);
 				}
 				vo.setCapacity(capacityVO);
+
+				CmkKeyDetails cmkKeyDetails = data.getCmkDetails();
+				CmkKeyDetailsVO cmkKeyDetailsVO = new CmkKeyDetailsVO();
+				if(cmkKeyDetails != null) {
+					BeanUtils.copyProperties(cmkKeyDetails, cmkKeyDetailsVO);
+				}
+				vo.setCmkDetails(cmkKeyDetailsVO);
 				
 				UserDetails creator = data.getCreatedBy();
 				CreatedByVO createdByVO = new CreatedByVO();
@@ -335,6 +344,15 @@ public class FabricWorkspaceAssembler implements GenericAssembler<FabricWorkspac
 			if(createdByVO!=null) {
 				BeanUtils.copyProperties(createdByVO, createdBy);
 			}
+			CmkKeyDetailsVO cmkKeyDetailsVO = vo.getCmkDetails();
+			CmkKeyDetails cmkKeyDetails = new CmkKeyDetails();
+			if(cmkKeyDetailsVO!=null) {
+				// BeanUtils.copyProperties(cmkKeyDetailsVO, cmkKeyDetails);
+				cmkKeyDetails.setCmkKey(cmkKeyDetailsVO.getCmkKey());
+				cmkKeyDetails.setCmkKeyCreated(cmkKeyDetailsVO.isCmkKeyCreated());
+				cmkKeyDetails.setCmkKeyAssign(cmkKeyDetailsVO.isCmkKeyAssign());
+			}
+			data.setCmkDetails(cmkKeyDetails);
 			data.setCreatedBy(createdBy);
 			data.setHasPii(vo.isHasPii());
 

@@ -698,6 +698,13 @@ public class FabricWorkspaceClient {
 		}
 		return workspaceDetailDto;
 	}
+
+	public WorkspaceDetailDto getWorkspaceDetailsByName(String workspaceName){
+		return this.getAllWorkspacesDetails().getValue().stream()
+				.filter(workspace -> workspace.getDisplayName().equalsIgnoreCase(workspaceName))
+				.findFirst()
+				.orElse(null);
+	}
 	
 	
 	public WorkspaceDetailDto getWorkspaceDetails(String workspaceId) {

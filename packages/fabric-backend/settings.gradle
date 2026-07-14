@@ -9,10 +9,7 @@
 
 pluginManagement {
     repositories {
-        mavenCentral()
-        gradlePluginPortal()
 		maven {
-			println "ARTIFACTORY_URL: ${System.getenv('ARTIFACTORY_URL')}"
             url System.getenv('ARTIFACTORY_URL')
             credentials {
                 username System.getenv('ARTIFACTORY_USER')
