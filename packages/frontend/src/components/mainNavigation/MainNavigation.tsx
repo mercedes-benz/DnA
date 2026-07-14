@@ -148,35 +148,35 @@ const MainNavigation: React.FC<IMainNavigationProps> = (props) => {
     },
     {
       id: 2,
-      title: 'GenAI',
+      title: 'AI',
       icon: 'genai',
       route: `/genAI`,
       enabled: true,
-      subNavItems: [
-          {
-            allowedRoles: UserAndAdminRole,
-            id: 0,
-            route: `/genAI`,
-            title: 'Overview',
-            enabled: true,
-          },
-          {
-            allowedRoles: UserAndAdminRole,
-            id:1,
-            route:`/createnewgenaisolution`,
-            title:'CreateSolutions',
-            enabled:true,
+      // subNavItems: [
+      //     {
+      //       allowedRoles: UserAndAdminRole,
+      //       id: 0,
+      //       route: `/genAI`,
+      //       title: 'Overview',
+      //       enabled: true,
+      //     },
+      //     {
+      //       allowedRoles: UserAndAdminRole,
+      //       id:1,
+      //       route:`/createnewgenaisolution`,
+      //       title:'CreateSolutions',
+      //       enabled:true,
 
-          },
-          {
-            allowedRoles: UserAndAdminRole,
-            id:2,
-            route:`/viewsolutions/tag/GenAI`,
-            title:'GenAISolutions',
-            enabled:true,
+      //     },
+      //     {
+      //       allowedRoles: UserAndAdminRole,
+      //       id:2,
+      //       route:`/viewsolutions/tag/GenAI`,
+      //       title:'GenAISolutions',
+      //       enabled:true,
 
-          },
-      ],
+      //     },
+      // ],
     },
     {
       id: 3,
@@ -199,13 +199,13 @@ const MainNavigation: React.FC<IMainNavigationProps> = (props) => {
           title: 'DataProducts',
           enabled: true,
         },
-        {
-          allowedRoles: UserAndAdminRole,
-          id: 2,
-          route: `/data/datalayer`,
-          title: 'DataLayer',
-          enabled: true,
-        },
+        // {
+        //   allowedRoles: UserAndAdminRole,
+        //   id: 2,
+        //   route: `/data/datalayer`,
+        //   title: 'DataLayer',
+        //   enabled: true,
+        // },
         {
           allowedRoles: UserAndAdminRole,
           id: 3,

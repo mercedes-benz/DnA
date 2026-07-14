@@ -9,9 +9,10 @@ import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indica
 import { CodeSpaceApiClient } from '../../apis/codespace.api';
 import SelectBox from 'dna-container/SelectBox';
 import Modal from 'dna-container/Modal';
-import { trackEvent, regionalDateAndTimeConversionSolution } from '../../Utility/utils';
+import { trackEvent, regionalDateAndTimeConversionSolution, buildGitRepoUrl } from '../../Utility/utils';
 import Tags from 'dna-container/Tags';
 import Tooltip from '../../common/modules/uilab/js/src/tooltip';
+import IntMigrationModal, { needsIntMigration } from '../intMigrationModal/IntMigrationModal';
 
 const DeployModal = (props) => {
   const [branches, setBranches] = useState([]);
@@ -21,6 +22,7 @@ const DeployModal = (props) => {
   const [acceptContinueCodingOnDeployment, setAcceptContinueCodingOnDeployment] = useState(true);
   const projectDetails = props.codeSpaceData?.projectDetails;
   const [retainBuildImage, setRetainBuildImage] = useState(false);
+  const [showIntMigrationModal, setShowIntMigrationModal] = useState(false);
 
   //details from build
   const version = props?.buildDetails?.version || '';
@@ -35,26 +37,26 @@ const DeployModal = (props) => {
     projectDetails?.intDeploymentDetails?.lastDeployedBranch?.length &&
       setBranchValue([projectDetails?.intDeploymentDetails?.lastDeployedBranch]);
     version?.length && setDeployEnvironment(buildEnvironment);
-    ProgressIndicator.show();
-    CodeSpaceApiClient.getCodeSpacesGitBranchList(
-      projectDetails?.recipeDetails?.recipeId === 'private-user-defined'
-        ? projectDetails?.recipeDetails?.repodetails
-        : projectDetails?.gitRepoName,
-    )
-      .then((res) => {
-        ProgressIndicator.hide();
-        props.setShowCodeDeployModal(true);
-        let branches = res?.data;
-        branches.forEach((element) => {
-          element.id = element.name;
+    if (!version?.length) {
+      ProgressIndicator.show();
+      const isWorkspaceMigratedToGHE = props.codeSpaceData?.isWorkspaceMigratedToGHE;
+      const repoUrl = buildGitRepoUrl(projectDetails?.gitRepoName, isWorkspaceMigratedToGHE);
+      CodeSpaceApiClient.getCodeSpacesGitBranchList(repoUrl)
+        .then((res) => {
+          ProgressIndicator.hide();
+          props.setShowCodeDeployModal(true);
+          let branches = res?.data;
+          branches.forEach((element) => {
+            element.id = element.name;
+          });
+          setBranches(branches);
+          SelectBox.defaultSetup();
+        })
+        .catch((err) => {
+          ProgressIndicator.hide();
+          Notification.show('Error in getting code space branch list - ' + err.message, 'alert');
         });
-        setBranches(branches);
-        SelectBox.defaultSetup();
-      })
-      .catch((err) => {
-        ProgressIndicator.hide();
-        Notification.show('Error in getting code space branch list - ' + err.message, 'alert');
-      });
+    }
     // setVault();
     return Tooltip.clear();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -68,6 +70,7 @@ const DeployModal = (props) => {
         setBranchValue([projectDetails?.prodDeploymentDetails?.lastDeployedBranch]);
     }
   }, [deployEnvironment]); // eslint-disable-line react-hooks/exhaustive-deps
+
 
   const onBranchChange = (selectedTags) => {
     setBranchValue(selectedTags);
@@ -89,61 +92,95 @@ const DeployModal = (props) => {
       formValid = false;
       setIsBranchValueMissing(true);
     }
-    const found = branches.some(branch => 
-     Object.values(branch).includes(branchValue[0])
-    );
-    if (!found) {
-      formValid = false;
-      Notification.show('Branch doesnot exist.','alert',);
+    if (!version?.length) {
+      const found = branches.some(branch => 
+       Object.values(branch).includes(branchValue[0])
+      );
+      if (!found) {
+        formValid = false;
+        Notification.show('Branch doesnot exist.','alert',);
+      }
     }
     if (formValid) {
-      const deployRequest = {
-        targetEnvironment: version?.length
-          ? buildEnvironment === 'staging'
-            ? 'int'
-            : 'prod'
-          : deployEnvironment === 'staging'
+      const targetEnv = version?.length ? buildEnvironment : deployEnvironment;
+      
+      if (targetEnv === 'staging' && needsIntMigration(props.codeSpaceData) && !props.skipIntMigrationCheck) {
+        setShowIntMigrationModal(true);
+        return;
+      }
+      proceedWithDeployment();
+    }
+  };
+
+  const proceedWithDeployment = () => {
+    const deployRequest = {
+      targetEnvironment: version?.length
+        ? buildEnvironment === 'staging'
           ? 'int'
-          : 'prod', // int or prod
-        branch: version?.length ? buildBranch : branchValue[0],
-        version: version || '',
-        keepBuildImage: retainBuildImage,
-      };
-      ProgressIndicator.show();
-      CodeSpaceApiClient.deployCodeSpace(props.codeSpaceData.id, deployRequest)
-        .then((res) => {
-          trackEvent('DnA Code Space', 'Deploy', 'Deploy code space');
-          if (res.data.success === 'SUCCESS') {
-            // setCreatedCodeSpaceName(res.data.name);
-            props.setCodeDeploying(true);
-            if (acceptContinueCodingOnDeployment) {
-              ProgressIndicator.hide();
-              Notification.show(
-                `Code space '${projectDetails.projectName}' deployment successfully started. Please check the status later.`,
-              );
-              props.setShowCodeDeployModal(false);
-            } else {
-              props.setIsApiCallTakeTime(true);
-            }
-            props.startDeployLivelinessCheck &&
-              props.startDeployLivelinessCheck(props.codeSpaceData.workspaceId, deployEnvironment);
-          } else {
-            props.setIsApiCallTakeTime(false);
-            ProgressIndicator.hide();
-            Notification.show(
-              'Error in deploying code space. Please try again later.\n' + res.data.errors[0].message,
-              'alert',
+          : 'prod'
+        : deployEnvironment === 'staging'
+        ? 'int'
+        : 'prod', // int or prod
+      branch: version?.length ? buildBranch : branchValue[0],
+      version: version || '',
+      keepBuildImage: retainBuildImage,
+    };
+    ProgressIndicator.show();
+    CodeSpaceApiClient.deployCodeSpace(props.codeSpaceData.id, deployRequest)
+      .then((res) => {
+        trackEvent('DnA Code Space', 'Deploy', 'Deploy code space');
+        if (res.data.success === 'SUCCESS') {
+          props.setCodeDeploying(true);
+          
+          // Only start SSE for direct deploys (pre-built version).
+          // For build-first flow (no version), the card auto-poll handles status updates
+          // until DEPLOY_REQUESTED is reached.
+          if (props.startDeploymentStatusListener && version?.length) {
+            props.startDeploymentStatusListener(
+              projectDetails.projectName,
+              deployRequest.targetEnvironment,
+              props.onDeploymentStatusUpdate,
+              props.onDeploymentComplete,
+              props.onDeploymentSSEError
             );
           }
-        })
-        .catch((err) => {
+          
+          if (acceptContinueCodingOnDeployment) {
+            ProgressIndicator.hide();
+            Notification.show(
+              `Code space '${projectDetails.projectName}' deployment successfully started. Please check the status later.`,
+            );
+            props.setShowCodeDeployModal(false);
+          } else {
+            props.setIsApiCallTakeTime(true);
+          }
+          props.startDeployLivelinessCheck &&
+            props.startDeployLivelinessCheck(props.codeSpaceData.workspaceId, deployEnvironment);
+        } else {
+          props.setIsApiCallTakeTime(false);
           ProgressIndicator.hide();
           Notification.show(
-            'Error in deploying code space. Please try again later.\n' + err?.response?.data?.errors[0]?.message,
+            'Error in deploying code space. Please try again later.\n' + res.data.errors[0].message,
             'alert',
           );
-        });
+        }
+      })
+      .catch((err) => {
+        ProgressIndicator.hide();
+        Notification.show(
+          'Error in deploying code space. Please try again later.\n' + err?.response?.data?.errors[0]?.message,
+          'alert',
+        );
+      });
+  };
+
+  const handleIntMigrationDismiss = () => {
+    setShowIntMigrationModal(false);
+    const projectName = props.codeSpaceData?.projectDetails?.projectName;
+    if (projectName) {
+      localStorage.setItem('intMigrationDismissed_' + projectName, 'true');
     }
+    proceedWithDeployment();
   };
 
   return (
@@ -263,6 +300,13 @@ const DeployModal = (props) => {
         scrollableBox={true}
         onCancel={() => props.setShowCodeDeployModal(false)}
       />
+      {showIntMigrationModal && (
+        <IntMigrationModal
+          show={showIntMigrationModal}
+          codeSpaceData={props.codeSpaceData}
+          onDismiss={handleIntMigrationDismiss}
+        />
+      )}
     </>
   );
 };

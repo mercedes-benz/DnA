@@ -10,12 +10,13 @@ import { CodeSpaceApiClient } from '../../apis/codespace.api';
 import SelectBox from 'dna-container/SelectBox';
 import Modal from 'dna-container/Modal';
 import { SESSION_STORAGE_KEYS } from '../../Utility/constants.js';
-import { regionalDateAndTimeConversionSolution, buildGitJobLogViewAWSURL } from '../../Utility/utils';
+import { regionalDateAndTimeConversionSolution, buildGitJobLogViewAWSURL, buildGitRepoUrl, buildGitCommitUrl } from '../../Utility/utils';
 import TextBox from 'dna-container/TextBox';
 import Tags from 'dna-container/Tags';
 import Tooltip from '../../common/modules/uilab/js/src/tooltip';
 import Pagination from 'dna-container/Pagination';
 import DeployModal from '../deployModal/DeployModal';
+import IntMigrationModal, { needsIntMigration } from '../intMigrationModal/IntMigrationModal';
 
 const BuildModal = (props) => {
   const [branches, setBranches] = useState([]);
@@ -36,6 +37,7 @@ const BuildModal = (props) => {
   const [showDeployCodeSpaceModal, setShowDeployCodeSpaceModal] = useState(false);
   const [buildDetails, setBuildDetails] = useState('');
   const [retainBuildImage, setRetainBuildImage] = useState(false);
+  const [showIntMigrationModal, setShowIntMigrationModal] = useState(false);
 
   const projectDetails = props.codeSpaceData?.projectDetails;
   // const intDeploymentMigrated = props.codeSpaceData?.projectDetails?.intDeploymentDetails?.deploymentUrl?.includes(Envs.CODESPACE_AWS_POPUP_URL);
@@ -61,11 +63,20 @@ const BuildModal = (props) => {
       });
 
     ProgressIndicator.show();
-    CodeSpaceApiClient.getCodeSpacesGitBranchList(projectDetails?.gitRepoName)
+    const isWorkspaceMigratedToGHE = props.codeSpaceData?.isWorkspaceMigratedToGHE;
+    const repoUrl = buildGitRepoUrl(projectDetails?.gitRepoName, isWorkspaceMigratedToGHE);
+    console.log('BUILD MODAL DEBUG');
+    console.log('Original gitRepoName:', projectDetails?.gitRepoName);
+    console.log('isWorkspaceMigratedToGHE:', isWorkspaceMigratedToGHE);
+    console.log('Built repoUrl:', repoUrl);
+    console.log('Expected format: dev-cs{repoName}');
+    CodeSpaceApiClient.getCodeSpacesGitBranchList(repoUrl)
       .then((res) => {
         ProgressIndicator.hide();
         props.setShowCodeBuildModal(true);
         let branches = res?.data;
+        console.log('Branches fetched successfully:', branches);
+        console.log('Number of branches:', branches?.length);
         branches.forEach((element) => {
           element.id = element.name;
         });
@@ -75,6 +86,7 @@ const BuildModal = (props) => {
       })
       .catch((err) => {
         ProgressIndicator.hide();
+        console.error('Error fetching branches:', err);
         Notification.show('Error in getting code space branch list - ' + err.message, 'alert');
       });
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -141,9 +153,11 @@ const BuildModal = (props) => {
       formValid = false;
       setIsBranchValueMissing(true);
     }
-    const found = branches.some(branch => 
-     Object.values(branch).includes(branchValue[0])
-    );
+    // const found = branches.some(branch => 
+    //  Object.values(branch).includes(branchValue[0])
+    // );
+    const found = branches.some(branch => branch.name === branchValue[0]);
+    console.log('Branch validation:', { branchValue: branchValue[0], found, availableBranches: branches.map(b => b.name) });
     if (!found) {
       formValid = false;
       Notification.show('Branch doesnot exist.','alert',);
@@ -415,7 +429,19 @@ const BuildModal = (props) => {
                               </a>
                             </td>
                             <td>{item?.buildOn ? regionalDateAndTimeConversionSolution(item?.buildOn) : 'N/A'}</td>
-                            <td>{item?.commitId || 'N/A'}</td>
+                            <td>
+                              {item?.commitId ? (
+                                <a
+                                  href={buildGitCommitUrl(projectDetails?.gitRepoName, item.commitId, props.codeSpaceData?.isWorkspaceMigratedToGHE)}
+                                  target="_blank"
+                                  rel="noreferrer"
+                                >
+                                  {item.commitId}
+                                </a>
+                              ) : (
+                                'N/A'
+                              )}
+                            </td>
                             <td>
                               {item?.version ? (
                                 <>
@@ -442,7 +468,11 @@ const BuildModal = (props) => {
                                     onClick={() => {
                                       item.environment = buildEnvironment;
                                       setBuildDetails(item);
-                                      setShowDeployCodeSpaceModal(true);
+                                      if (buildEnvironment === 'staging' && needsIntMigration(props.codeSpaceData)) {
+                                        setShowIntMigrationModal(true);
+                                      } else {
+                                        setShowDeployCodeSpaceModal(true);
+                                      }
                                     }}
                                   >
                                     <i className="icon mbc-icon deploy" />
@@ -493,6 +523,61 @@ const BuildModal = (props) => {
               startWithFive={true}
             />
           ) : null}
+          {showIntMigrationModal && (
+            <IntMigrationModal
+              show={showIntMigrationModal}
+              codeSpaceData={props.codeSpaceData}
+              onDismiss={() => {
+                setShowIntMigrationModal(false);
+                const deployRequest = {
+                  targetEnvironment: 'int',
+                  branch: buildDetails.branch,
+                  version: buildDetails.version || '',
+                  keepBuildImage: false,
+                };
+                
+                const projectName = props.codeSpaceData?.projectDetails?.projectName;
+                if (projectName) {
+                  localStorage.setItem('intMigrationDismissed_' + projectName, 'true');
+                }
+                
+                ProgressIndicator.show();
+                CodeSpaceApiClient.deployCodeSpace(props.codeSpaceData.id, deployRequest)
+                  .then((res) => {
+                    if (res.data.success === 'SUCCESS') {
+                      ProgressIndicator.hide();
+                      props.setCodeDeploying(true);
+                      Notification.show(
+                        `Code space '${projectName}' deployment successfully started.`
+                      );
+                      
+                      if (props.startDeploymentStatusListener) {
+                        props.startDeploymentStatusListener(
+                          projectName,
+                          deployRequest.targetEnvironment,
+                          props.onDeploymentStatusUpdate,
+                          props.onDeploymentComplete,
+                          props.onDeploymentSSEError
+                        );
+                      }
+                    } else {
+                      ProgressIndicator.hide();
+                      Notification.show(
+                        'Error in deploying code space. Please try again later.\\n' + res.data.errors[0].message,
+                        'alert'
+                      );
+                    }
+                  })
+                  .catch((err) => {
+                    ProgressIndicator.hide();
+                    Notification.show(
+                      'Error in deploying. Please try again later.\\n' + err?.response?.data?.errors[0]?.message,
+                      'alert'
+                    );
+                  });
+              }}
+            />
+          )}
           {showDeployCodeSpaceModal && (
             <DeployModal
               userInfo={props.userInfo}
@@ -503,6 +588,11 @@ const BuildModal = (props) => {
               setCodeDeploying={props.setCodeDeploying}
               setIsApiCallTakeTime={props.setIsApiCallTakeTime}
               buildDetails={buildDetails}
+              skipIntMigrationCheck={true}
+              startDeploymentStatusListener={props.startDeploymentStatusListener}
+              onDeploymentStatusUpdate={props.onDeploymentStatusUpdate}
+              onDeploymentComplete={props.onDeploymentComplete}
+              onDeploymentSSEError={props.onDeploymentSSEError}
             />
           )}
         </>

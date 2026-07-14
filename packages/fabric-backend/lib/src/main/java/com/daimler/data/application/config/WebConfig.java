@@ -53,6 +53,15 @@ import com.daimler.data.application.filter.JWTAuthenticationFilter;
 import com.daimler.data.application.interceptor.ApiKeyAuthorizationInterceptor;
 
 import org.springframework.web.util.UrlPathHelper;
+import javax.annotation.PostConstruct;
+ 
+import java.io.IOException;
+import java.net.InetSocketAddress;
+import java.net.Proxy;
+import java.net.ProxySelector;
+import java.net.SocketAddress;
+import java.net.URI;
+import java.util.ArrayList;
 
 @Configuration
 @EnableScheduling
@@ -60,6 +69,16 @@ public class WebConfig implements WebMvcConfigurer {
 
 	@Value("${allowedCorsOriginPatternUrl}")
 	private String corsOriginUrl;
+
+	@Value("${proxy.host}")
+    private String proxyHost;
+ 
+    @Value("${proxy.port}")
+    private int proxyPort;
+ 
+    // Comma-separated list of host substrings that should bypass the proxy
+    @Value("${proxy.noProxyHosts:}")
+    private String noProxyHosts;
 
 	@Autowired
 	private JWTAuthenticationFilter filter;
@@ -133,5 +152,37 @@ public class WebConfig implements WebMvcConfigurer {
         registry.addInterceptor(apiKeyAuthorizationInterceptor)
                 .addPathPatterns("/api/**"); // Apply to all API endpoints
     }
+
+	// @PostConstruct
+    // public void setGlobalProxy() {
+    //     List<String> bypassList = new ArrayList<>();
+    //     if (noProxyHosts != null && !noProxyHosts.isBlank()) {
+    //         Arrays.stream(noProxyHosts.split(","))
+    //                 .map(String::trim)
+    //                 .filter(s -> !s.isEmpty())
+    //                 .forEach(bypassList::add);
+    //     }
+ 
+    //     Proxy httpProxy = new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyHost, proxyPort));
+ 
+    //     ProxySelector.setDefault(new ProxySelector() {
+    //         @Override
+    //         public List<Proxy> select(URI uri) {
+    //             String host = uri.getHost() != null ? uri.getHost() : "";
+    //             for (String bypass : bypassList) {
+    //                 if (host.contains(bypass)) {
+    //                     return List.of(Proxy.NO_PROXY);
+    //                 }
+    //             }
+    //             return List.of(httpProxy);
+    //         }
+ 
+    //         @Override
+    //         public void connectFailed(URI uri, SocketAddress sa, IOException ioe) {
+    //             // intentionally left blank
+    //         }
+    //     });
+	// }
+
 
 }

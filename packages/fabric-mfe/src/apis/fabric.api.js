@@ -178,6 +178,30 @@ const takeOwnership = (id) => {
   });
 };
 
+const getLegalEntities = (searchTerm) => {
+  return server.get(`fabric-workspaces/catalog/getLegalEntities?searchTerm=${searchTerm}`);
+};
+
+const publishDdxDataProduct = (workspaceId, lakehouseId, payload) => {
+  return server.post(`fabric-workspaces/catalog/ddx/${workspaceId}/${lakehouseId}/publish`, payload);
+};
+
+const checkTableMismatch = (workspaceId, lakehouseId) => {
+  return server.get(`/fabric-workspaces/catalog/${workspaceId}/check-mismatch?lakehouseId=${lakehouseId}`, {
+    data: {},
+  });
+};
+
+const getCatalogMetadata = (workspaceId, serviceName) => {
+  return server.get(`/fabric-workspaces/catalog/${workspaceId}/${encodeURIComponent(serviceName)}`, {
+    data: {},
+  });
+};
+
+const saveLakehouseSnapshot = (workspaceId, lakehouseId, payload) => {
+  return server.post(`/fabric-workspaces/catalog/${workspaceId}/lakehouses/${lakehouseId}/snapshot`, payload);
+};
+
 export const fabricApi = {
   getFabricWorkspaces,
   getFabricWorkspacesForAdmin,
@@ -205,4 +229,9 @@ export const fabricApi = {
   getTableSchema,
   pushSelectedTables,
   takeOwnership,
+  getLegalEntities,
+  publishDdxDataProduct,
+  checkTableMismatch,
+  getCatalogMetadata,
+  saveLakehouseSnapshot,
 };

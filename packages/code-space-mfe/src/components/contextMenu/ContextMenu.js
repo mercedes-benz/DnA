@@ -18,6 +18,7 @@ import {
   buildGitUrl,
 } from '../../Utility/utils';
 import DeployedAppConfigModal from '../deployedAppConfigModal/DeployedAppConfigModal';
+import { needsIntMigration } from '../intMigrationModal/IntMigrationModal';
 
 const ContextMenu = (props) => {
   const codeSpace = props?.codeSpace;
@@ -40,9 +41,15 @@ const ContextMenu = (props) => {
   const [showRestartModal, setShowRestartModal] = useState(false);
   const [showDeployedAppConfigModal, setShowDeployedAppConfigModal] = useState(false);
 
-  const deployingInProgress =
+  const intDeployingInProgress =
     intDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED' ||
-    prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED';
+    intDeploymentDetails?.lastDeploymentStatus === 'DEPLOYING';
+
+  const prodDeployingInProgress =
+    prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED' ||
+    prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOYING';
+
+  const deployingInProgress = intDeployingInProgress || prodDeployingInProgress;
 
   const buildInProgress = projectDetails?.lastBuildOrDeployedStatus === 'BUILD_REQUESTED';
 
@@ -53,25 +60,30 @@ const ContextMenu = (props) => {
   // const intDeploymentMigrated = intDeployedUrl?.includes(Envs.CODESPACE_AWS_POPUP_URL);
   // const prodDeploymentMigrated = prodDeployedUrl?.includes(Envs.CODESPACE_AWS_POPUP_URL);
 
-  const prodCodeDeployFailed = prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
-  const intCodeDeployFailed = intDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
+  const isIntNamespaceMigrated = !needsIntMigration(codeSpace);
+  const prodCodeDeployFailed = prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED' ||
+    prodDeploymentDetails.lastDeploymentStatus === 'FAILED';
+  const intCodeDeployFailed = intDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED' ||
+    intDeploymentDetails.lastDeploymentStatus === 'FAILED';
   const prodCodeBuildFailed = prodBuildDetails.lastDeploymentStatus === 'BUILD_FAILED';
   const intCodeBuildFailed = intBuildDetails.lastDeploymentStatus === 'BUILD_FAILED';
 
+  // A workspace is considered "deployed" if it has a deployment URL
+  // (even during re-deploy/restart when status is temporarily not DEPLOYED)
+  // or if status is exactly DEPLOYED.
   const intDeployed =
     intDeploymentDetails?.lastDeploymentStatus === 'DEPLOYED' ||
-    (intDeployedUrl !== null && intDeployedUrl !== 'null') ||
-    false;
+    intDeploymentDetails?.lastDeploymentStatus === 'RESTARTED' ||
+    (intDeployedUrl != null && intDeployedUrl !== 'null' && intDeployedUrl !== '');
 
   const prodDeployed =
     prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOYED' ||
-    (prodDeployedUrl !== null && prodDeployedUrl !== 'null') ||
-    false;
+    prodDeploymentDetails?.lastDeploymentStatus === 'RESTARTED' ||
+    (prodDeployedUrl != null && prodDeployedUrl !== 'null' && prodDeployedUrl !== '');
 
   const intAppResourceUsageUrl =
     Envs.MONITORING_DASHBOARD_APP_BASE_URL +
-    `codespace-app-cpu-and-memory-usage?orgId=1&var-namespace=${Envs.CODESERVER_APP_NAMESPACE}&var-app=${projectDetails?.projectName?.toLowerCase()}-int&var-container=`;
-
+    `codespace-app-cpu-and-memory-usage?orgId=1&var-namespace=${Envs.CODESERVER_APP_NAMESPACE}${isIntNamespaceMigrated ? '-int' : ''}&var-app=${projectDetails?.projectName?.toLowerCase()}-int&var-container=`;
   const prodAppResourceUsageUrl =
     Envs.MONITORING_DASHBOARD_APP_BASE_URL +
     `codespace-app-cpu-and-memory-usage?orgId=1&var-namespace=${Envs.CODESERVER_APP_NAMESPACE}&var-app=${projectDetails?.projectName?.toLowerCase()}-prod&var-container=`;
@@ -220,9 +232,21 @@ const ContextMenu = (props) => {
               Deploy Code
             </span>
           </li>
+          <li>
+            <span
+              onClick={() => {
+                props.setShowContextMenu(false);
+                if (props.handleRefresh) {
+                  props.handleRefresh();
+                }
+              }}
+            >
+              Refresh
+            </span>
+          </li>
           {projectDetails?.gitRepoName && (
             <li>
-              <a target="_blank" href={buildGitUrl(codeSpace.projectDetails?.gitRepoName)} rel="noreferrer">
+              <a target="_blank" href={buildGitUrl(codeSpace.projectDetails?.gitRepoName, codeSpace.isWorkspaceMigratedToGHE)} rel="noreferrer">
                 Go to code repo
                 <i className="icon mbc-icon new-tab" />
               </a>
@@ -265,7 +289,7 @@ const ContextMenu = (props) => {
               }}
             >
               <div>
-                <strong>Staging:</strong> {intDeploymentDetails?.lastDeployedBranch ? 'Deployed' : 'No Deployment'}
+                <strong>Staging:</strong> {intDeployingInProgress ? 'Deploying...' : intDeployed ? 'Deployed' : 'No Deployment'}
                 <span className={classNames(Styles.metricsTrigger, 'hide')} onClick={handleOpenDoraMetrics}>
                   (DORA Metrics)
                 </span>
@@ -329,7 +353,7 @@ const ContextMenu = (props) => {
                   </a>
                 </li>
               )}
-              {intDeploymentDetails?.gitjobRunID && (
+              {intDeploymentDetails?.gitjobRunID && !isIntNamespaceMigrated && (
                 <li>
                   <a
                     target="_blank"
@@ -419,7 +443,7 @@ const ContextMenu = (props) => {
               }}
             >
               <div>
-                <strong>Production:</strong> {prodDeploymentDetails?.lastDeployedBranch ? 'Deployed' : 'No Deployment'}
+                <strong>Production:</strong> {prodDeployingInProgress ? 'Deploying...' : prodDeployed ? 'Deployed' : 'No Deployment'}
                 <span className={classNames(Styles.metricsTrigger, 'hide')} onClick={handleOpenDoraMetrics}>
                   (DORA Metrics)
                 </span>
@@ -616,6 +640,8 @@ const ContextMenu = (props) => {
           show={showAuditLogsModal}
           setShowAuditLogsModal={setShowAuditLogsModal}
           projectName={projectDetails.projectName.toLowerCase()}
+          gitRepoName={projectDetails.gitRepoName}
+          isWorkspaceMigratedToGHE={codeSpace?.isWorkspaceMigratedToGHE}
         />
       )}
       {showRestartModal && (

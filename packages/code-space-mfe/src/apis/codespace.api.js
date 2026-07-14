@@ -31,6 +31,13 @@ const getCodeSpaceStatus = (id) => {
         data: {},
     });
 };
+
+const getWorkspaceById = (id, refreshTriggeredByUser) => { 
+    const query = refreshTriggeredByUser ? '?refreshTriggeredByUser=true' : '';
+    return server.get(`workspaces/${id}${query}`, {
+        data: {},
+    });
+};
   
 const deleteCodeSpace = (id) => { 
     return server.delete(`workspaces/${id}`, {
@@ -386,6 +393,112 @@ const serverStatusFromHub = (env, userId, workspaceId, onMessageCB, onCloseCB) =
     };
 }
 
+const subscribeToDeploymentStatus = (projectName, environment, onStatusUpdate, onComplete, onError) => {
+    const url = `${baseURL}/workspace/deployment/stream/${projectName}/${environment}`;
+    
+    const sse = new EventSourcePolyfill(url, {
+        withCredentials: true,
+        headers: { 
+            Authorization: readJwt(),
+            Accept: 'text/event-stream'
+        },
+    });
+
+    sse.addEventListener('deployment-status', (event) => {
+        try {
+            const data = JSON.parse(event.data);
+            onStatusUpdate && onStatusUpdate(data);
+        } catch (error) {
+            console.error('Error parsing deployment-status event:', error);
+        }
+    });
+
+    sse.addEventListener('deployment-complete', (event) => {
+        try {
+            const data = JSON.parse(event.data);
+            onComplete && onComplete(data);
+            sse.close();
+        } catch (error) {
+            console.error('Error parsing deployment-complete event:', error);
+            sse.close();
+        }
+    });
+
+    sse.onerror = (error) => {
+        console.error('SSE connection error:', error);
+        onError && onError(error);
+        sse.close();
+    };
+
+    return sse;
+};
+
+const getSyncError = (projectName, environment) => {
+    return server.get(`workspace/deployment/syncerror/${projectName}/${environment}`, {
+        data: {},
+    });
+};
+
+const subscribeToPodLogs = (projectName, environment, onPodInfo, onPodLogs, onComplete, onError) => {
+    const url = `${baseURL}/workspace/deployment/podlogs/stream/${projectName}/${environment}`;
+
+    const sse = new EventSourcePolyfill(url, {
+        withCredentials: true,
+        headers: {
+            Authorization: readJwt(),
+            Accept: 'text/event-stream'
+        },
+    });
+
+    sse.addEventListener('pod-info', (event) => {
+        try {
+            const data = JSON.parse(event.data);
+            onPodInfo && onPodInfo(data);
+        } catch (error) {
+            console.error('Error parsing pod-info event:', error);
+        }
+    });
+
+    sse.addEventListener('pod-logs', (event) => {
+        try {
+            const data = JSON.parse(event.data);
+            onPodLogs && onPodLogs(data);
+        } catch (error) {
+            console.error('Error parsing pod-logs event:', error);
+        }
+    });
+
+    sse.addEventListener('pod-logs-complete', (event) => {
+        try {
+            const data = JSON.parse(event.data);
+            onComplete && onComplete(data);
+            sse.close();
+        } catch (error) {
+            console.error('Error parsing pod-logs-complete event:', error);
+            sse.close();
+        }
+    });
+
+    sse.addEventListener('pod-logs-error', (event) => {
+        try {
+            const data = JSON.parse(event.data);
+            onError && onError(data);
+            sse.close();
+        } catch (error) {
+            console.error('Error parsing pod-logs-error event:', error);
+            sse.close();
+        }
+    });
+
+    sse.onerror = (error) => {
+        console.error('Pod logs SSE connection error:', error);
+        onError && onError({ message: 'Connection lost' });
+        sse.close();
+    };
+
+    return sse;
+};
+
 const restartDeployments = (id, env) => {
     return server.post(`/workspaces/${id}/restart?env=${env}`, {data: {},});
 };
@@ -423,6 +536,12 @@ const deleteCodeSpaceGroup = (id) => {
 const getExistingRoles = (appId) => {
     return fabricServer.get(`fabric-workspaces/${appId}/dnaroles`, {
         data: {},
+        validateStatus: (status) => (status >= 200 && status < 300) || status === 204,
+    }).then(response => {
+        if (response.status === 204 || !response.data) {
+            return { data: { roles: [] } };
+        }
+        return response;
     });
 };
 
@@ -431,6 +550,7 @@ export const CodeSpaceApiClient = {
     createCodeSpace,
     editCodeSpace,
     getCodeSpaceStatus,
+    getWorkspaceById,
     deleteCodeSpace,
     getCodeSpacesGitBranchList,
     deployCodeSpace,
@@ -488,6 +608,9 @@ export const CodeSpaceApiClient = {
     startStopWorkSpace,
     workSpaceStatus,
     serverStatusFromHub,
+    subscribeToDeploymentStatus,
+    getSyncError,
+    subscribeToPodLogs,
     restartDeployments,
     migrateWorkplace,
     getCodeSpaceGroups,
