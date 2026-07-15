@@ -847,6 +847,9 @@ import com.daimler.data.dto.workspace.DeploymentAuditVO;
 							 projectDetailsVO.setLastBuildOrDeployedOn(isoFormat.parse(isoFormat.format(projectDetails.getLastBuildOrDeployedOn())));
 						projectDetailsVO.setLastBuildOrDeployedEnv(projectDetails.getLastBuildOrDeployedEnv());
 						projectDetailsVO.setLastBuildOrDeployedStatus(projectDetails.getLastBuildOrDeployedStatus());
+						projectDetailsVO.setWebHookId(projectDetails.getWebHookId());
+						projectDetailsVO.setIntAutoDeployBranchName(projectDetails.getIntAutoDeployBranchName());
+						projectDetailsVO.setProdAutoDeployBranchName(projectDetails.getProdAutoDeployBranchName());
 					 }
 					 vo.setProjectDetails(projectDetailsVO);
 					 

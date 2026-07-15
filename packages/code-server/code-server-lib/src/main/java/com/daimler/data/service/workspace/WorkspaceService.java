@@ -31,13 +31,15 @@ import java.util.List;
 
 import javax.validation.Valid;
 
+import org.springframework.http.ResponseEntity;
+
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.db.entities.CodeServerRecipeNsql;
 import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
+import com.daimler.data.dto.GitWebHookDto;
 import com.daimler.data.dto.workspace.*;
 import com.daimler.data.dto.workspace.admin.CodespaceSecurityConfigDetailsVO;
 import com.daimler.data.dto.workspace.buildDeploy.*;
-import com.daimler.data.dto.workspace.WorkspacePluginStatusVO;
 
 
 public interface WorkspaceService {
@@ -150,4 +152,16 @@ public interface WorkspaceService {
     GenericMessage cancelWorkspaceRun(String projectName);
 
 	GenericMessage createOpenTelemetryPlugin(String workspaceId, String environment, String serviceName);
+	
+	/**
+	 * Pre validate deployment request for given workspace and environment
+	 * Checks like if the workspace is in right state for deployment, if the branch exists in git repo, if the user has 
+	 * necessary permissions etc will be validated in this step
+	 * This is a pre step before actual deployment API and based on the response of this API the deployment will be triggered. 
+	 * This is to avoid unnecessary deployment API calls which will fail due to above mentioned reasons and to
+	 * @param deployRequestDto
+	 * @param id
+	 * @return ResponseEntity containing a GenericMessage with the validation results
+	 */
+	ResponseEntity<GenericMessage> preValidateDeployment(ManageDeployRequestDto dto, String id, String userId);
 }

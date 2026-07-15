@@ -50,6 +50,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.util.ObjectUtils;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -75,6 +76,7 @@ import com.daimler.data.db.repo.workspace.WorkspaceCustomRecipeRepo;
 import com.daimler.data.db.repo.workspace.WorkspaceCustomRepository;
 import com.daimler.data.db.repo.workspace.WorkspaceRepository;
 import com.daimler.data.db.repo.workspace.WorkspaceUserGroupRepository;
+import com.daimler.data.dto.workspace.GitWebHookDto;
 import com.daimler.data.dto.workspace.CodeServerDeploymentDetailsVO;
 import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO;
 import com.daimler.data.dto.workspace.CodeServerUserGroupCollectionVO;
@@ -119,6 +121,7 @@ import com.daimler.data.dto.workspace.WorkspaceCollectionVO;
 import com.daimler.data.dto.workspace.WorkspacePluginStatusVO;
 import com.daimler.data.dto.workspace.admin.CodespaceSecurityConfigCollectionVO;
 import com.daimler.data.dto.workspace.admin.CodespaceSecurityConfigDetailsVO;
+import com.daimler.data.service.GitWebHookService;
 import com.daimler.data.service.workspace.WorkspaceService;
 import com.daimler.data.util.CommonUtils;
 import com.daimler.data.util.ConstantsUtility;
@@ -170,6 +173,9 @@ import org.springframework.beans.factory.annotation.Value;
 
 	@Autowired
 	private VaultAuthorizationServiceClient vaultClient;
+
+	@Autowired
+	private GitWebHookService gitWebHookService;
 
 	@Value("${codeServer.workspace.apikey}")
 	private String apiKeyValue;
@@ -1092,237 +1098,242 @@ import org.springframework.beans.factory.annotation.Value;
 				@ApiParam(value = "Workspace ID for the project to be deployed", required = true) @PathVariable("id") String id,
 				@ApiParam(value = "Workspace ID for the project to be deployed", required = true) @Valid @RequestBody ManageDeployRequestDto deployRequestDto) {
 			try {
-				boolean isPrivateRecipe = false;
+
 				CreatedByVO currentUser = this.userStore.getVO();
 				String userId = currentUser != null ? currentUser.getId() : "";
-				CodeServerWorkspaceVO vo = service.getById(userId, id);
-				Boolean isOwner = false;
-				CodeServerWorkspaceVO ownerVo = null;
-				if (vo == null || vo.getWorkspaceId() == null) {
-					log.debug("No workspace found, returning empty");
-					GenericMessage emptyResponse = new GenericMessage();
-					List<MessageDescription> errors = new ArrayList<>();
-					MessageDescription msg = new MessageDescription();
-					msg.setMessage("No workspace found for given id and the user");
-					errors.add(msg);
-					emptyResponse.setErrors(errors);
-					return new ResponseEntity<>(emptyResponse, HttpStatus.NOT_FOUND);
-				}
-				if(!vo.getProjectDetails().getProjectOwner().getId().equals(vo.getWorkspaceOwner().getId())){
-				   ownerVo = service.getByProjectName(vo.getProjectDetails().getProjectOwner().getId(), vo.getProjectDetails().getProjectName());
-			   } else{
-				   ownerVo = vo;
-				   isOwner = true;
-			   }
-			   if(Objects.isNull(ownerVo.getProjectDetails().getIntDeploymentDetails().getDeploymentUrl()) && Objects.isNull(ownerVo.getProjectDetails().getProdDeploymentDetails().getDeploymentUrl())) {
-				   if((Objects.isNull(ownerVo.isIsWorkspaceMigrated()) || !ownerVo.isIsWorkspaceMigrated()) && ownerVo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().toString().equals(ConstantsUtility.DHC_CAAS)) {
-					   GenericMessage emptyResponse = new GenericMessage();
-					   List<MessageDescription> errors = new ArrayList<>();
-					   MessageDescription msg = new MessageDescription();
-					   msg.setMessage("Kindly ask the owner of your workspace to migrate to AWS before you deploy.");
-					   errors.add(msg);
-					   emptyResponse.setErrors(errors);
-					   return new ResponseEntity<>(emptyResponse, HttpStatus.FORBIDDEN);
-				   }
-			   } 
-				List<String> authorizedUsers = new ArrayList<>();
-				if (vo.getProjectDetails() != null && vo.getProjectDetails().getProjectOwner() != null) {
-					String owner = vo.getProjectDetails().getProjectOwner().getId();
-					authorizedUsers.add(owner);
-				}
-				if (vo.getProjectDetails().getProjectCollaborators() != null
-						&& !vo.getProjectDetails().getProjectCollaborators().isEmpty()) {
-					List<String> collabUsers = vo.getProjectDetails().getProjectCollaborators().stream().map(n -> n.getId())
-							.collect(Collectors.toList());
-					authorizedUsers.addAll(collabUsers);
-				}
-				if (!authorizedUsers.contains(userId)) {
-					MessageDescription notAuthorizedMsg = new MessageDescription();
-					notAuthorizedMsg.setMessage(
-							"Not authorized to deploy project for workspace. User does not have privileges.");
-					GenericMessage errorMessage = new GenericMessage();
-					errorMessage.addErrors(notAuthorizedMsg);
-					log.info("User {} cannot deploy project for workspace {}, insufficient privileges.", userId,
-							vo.getWorkspaceId());
-					return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
-				}
-				if (vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase().startsWith("public") 
-						   || vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().equalsIgnoreCase("default")) {
-					MessageDescription invalidTypeMsg = new MessageDescription();
-					invalidTypeMsg.setMessage(
-							"Invalid type, cannot deploy this type of recipe");
-					GenericMessage errorMessage = new GenericMessage();
-					errorMessage.addErrors(invalidTypeMsg);
-					log.info("User {} cannot deploy project of recipe {} for workspace {}, invalid type.", userId,
-							vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), vo.getWorkspaceId());
-					return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
-				}
-				if(vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase().startsWith("private")){
-				   isPrivateRecipe = true;
-				   deployRequestDto.setRepo(vo.getProjectDetails().getRecipeDetails().getRepodetails());
-				}
-				String environment = "int";
-				String branch = "main";
-				if (deployRequestDto != null && !"int".equalsIgnoreCase(deployRequestDto.getTargetEnvironment().name())) {
-					environment = "prod";
-				}
-				if (deployRequestDto != null && deployRequestDto.getBranch() != null) {
-					branch = deployRequestDto.getBranch();
-				}
-				String intDeployStatus = "";
-				String prodDeployStatus = "";
-				String intBuildStatus = "";
-				String prodBuildStatus = "";
-				String status = "";
-				intBuildStatus = vo.getProjectDetails().getIntBuildDetails().getLastBuildStatus();
-        		prodBuildStatus = vo.getProjectDetails().getProdBuildDetails().getLastBuildStatus();
-					intDeployStatus = vo.getProjectDetails().getIntDeploymentDetails().getLastDeploymentStatus();
-					prodDeployStatus = vo.getProjectDetails().getProdDeploymentDetails().getLastDeploymentStatus();
-					if(environment.equalsIgnoreCase("int")){
-						status = intDeployStatus;
-					}else{
-						status = prodDeployStatus;
-					}
+				return service.preValidateDeployment(deployRequestDto, id, userId);
+				
+// 				boolean isPrivateRecipe = false;
+// 				CreatedByVO currentUser = this.userStore.getVO();
+// 				String userId = currentUser != null ? currentUser.getId() : "";
+// 				CodeServerWorkspaceVO vo = service.getById(userId, id);
+// 				Boolean isOwner = false;
+// 				CodeServerWorkspaceVO ownerVo = null;
+// 				if (vo == null || vo.getWorkspaceId() == null) {
+// 					log.debug("No workspace found, returning empty");
+// 					GenericMessage emptyResponse = new GenericMessage();
+// 					List<MessageDescription> errors = new ArrayList<>();
+// 					MessageDescription msg = new MessageDescription();
+// 					msg.setMessage("No workspace found for given id and the user");
+// 					errors.add(msg);
+// 					emptyResponse.setErrors(errors);
+// 					return new ResponseEntity<>(emptyResponse, HttpStatus.NOT_FOUND);
+// 				}
+// 				if(!vo.getProjectDetails().getProjectOwner().getId().equals(vo.getWorkspaceOwner().getId())){
+// 				   ownerVo = service.getByProjectName(vo.getProjectDetails().getProjectOwner().getId(), vo.getProjectDetails().getProjectName());
+// 			   } else{
+// 				   ownerVo = vo;
+// 				   isOwner = true;
+// 			   }
+// 			   if(Objects.isNull(ownerVo.getProjectDetails().getIntDeploymentDetails().getDeploymentUrl()) && Objects.isNull(ownerVo.getProjectDetails().getProdDeploymentDetails().getDeploymentUrl())) {
+// 				   if((Objects.isNull(ownerVo.isIsWorkspaceMigrated()) || !ownerVo.isIsWorkspaceMigrated()) && ownerVo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().toString().equals(ConstantsUtility.DHC_CAAS)) {
+// 					   GenericMessage emptyResponse = new GenericMessage();
+// 					   List<MessageDescription> errors = new ArrayList<>();
+// 					   MessageDescription msg = new MessageDescription();
+// 					   msg.setMessage("Kindly ask the owner of your workspace to migrate to AWS before you deploy.");
+// 					   errors.add(msg);
+// 					   emptyResponse.setErrors(errors);
+// 					   return new ResponseEntity<>(emptyResponse, HttpStatus.FORBIDDEN);
+// 				   }
+// 			   } 
+// 				List<String> authorizedUsers = new ArrayList<>();
+// 				if (vo.getProjectDetails() != null && vo.getProjectDetails().getProjectOwner() != null) {
+// 					String owner = vo.getProjectDetails().getProjectOwner().getId();
+// 					authorizedUsers.add(owner);
+// 				}
+// 				if (vo.getProjectDetails().getProjectCollaborators() != null
+// 						&& !vo.getProjectDetails().getProjectCollaborators().isEmpty()) {
+// 					List<String> collabUsers = vo.getProjectDetails().getProjectCollaborators().stream().map(n -> n.getId())
+// 							.collect(Collectors.toList());
+// 					authorizedUsers.addAll(collabUsers);
+// 				}
+// 				if (!authorizedUsers.contains(userId)) {
+// 					MessageDescription notAuthorizedMsg = new MessageDescription();
+// 					notAuthorizedMsg.setMessage(
+// 							"Not authorized to deploy project for workspace. User does not have privileges.");
+// 					GenericMessage errorMessage = new GenericMessage();
+// 					errorMessage.addErrors(notAuthorizedMsg);
+// 					log.info("User {} cannot deploy project for workspace {}, insufficient privileges.", userId,
+// 							vo.getWorkspaceId());
+// 					return new ResponseEntity<>(errorMessage, HttpStatus.FORBIDDEN);
+// 				}
+// 				if (vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase().startsWith("public") 
+// 						   || vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().equalsIgnoreCase("default")) {
+// 					MessageDescription invalidTypeMsg = new MessageDescription();
+// 					invalidTypeMsg.setMessage(
+// 							"Invalid type, cannot deploy this type of recipe");
+// 					GenericMessage errorMessage = new GenericMessage();
+// 					errorMessage.addErrors(invalidTypeMsg);
+// 					log.info("User {} cannot deploy project of recipe {} for workspace {}, invalid type.", userId,
+// 							vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), vo.getWorkspaceId());
+// 					return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
+// 				}
+// 				if(vo.getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase().startsWith("private")){
+// 				   isPrivateRecipe = true;
+// 				   deployRequestDto.setRepo(vo.getProjectDetails().getRecipeDetails().getRepodetails());
+// 				}
+// 				String environment = "int";
+// 				String branch = "main";
+// 				if (deployRequestDto != null && !"int".equalsIgnoreCase(deployRequestDto.getTargetEnvironment().name())) {
+// 					environment = "prod";
+// 				}
+// 				if (deployRequestDto != null && deployRequestDto.getBranch() != null) {
+// 					branch = deployRequestDto.getBranch();
+// 				}
+// 				String intDeployStatus = "";
+// 				String prodDeployStatus = "";
+// 				String intBuildStatus = "";
+// 				String prodBuildStatus = "";
+// 				String status = "";
+// 				intBuildStatus = vo.getProjectDetails().getIntBuildDetails().getLastBuildStatus();
+//         		prodBuildStatus = vo.getProjectDetails().getProdBuildDetails().getLastBuildStatus();
+// 					intDeployStatus = vo.getProjectDetails().getIntDeploymentDetails().getLastDeploymentStatus();
+// 					prodDeployStatus = vo.getProjectDetails().getProdDeploymentDetails().getLastDeploymentStatus();
+// 					if(environment.equalsIgnoreCase("int")){
+// 						status = intDeployStatus;
+// 					}else{
+// 						status = prodDeployStatus;
+// 					}
 			
-				   if (intDeployStatus != null && (intDeployStatus.equalsIgnoreCase("DEPLOY_REQUESTED"))) {
-					   MessageDescription invalidTypeMsg = new MessageDescription();
-					   invalidTypeMsg.setMessage(
-							   "cannot deploy workspace since it is already in "+intDeployStatus+" state");
-					   GenericMessage errorMessage = new GenericMessage();
-					   errorMessage.addErrors(invalidTypeMsg);
-					   log.info("User {} cannot deploy project of recipe {} for workspace {}, since it is alredy in {} state.", userId,
-							   vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), vo.getWorkspaceId(),intDeployStatus);
-					   return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
-				   }else if (intBuildStatus != null && intBuildStatus.equalsIgnoreCase("BUILD_REQUESTED")) {
-					MessageDescription invalidTypeMsg = new MessageDescription();
-					invalidTypeMsg.setMessage(
-							"cannot deploy workspace since it is already in BUILD_REQUESTED state");
-					GenericMessage errorMessage = new GenericMessage();
-					errorMessage.addErrors(invalidTypeMsg);
-					log.info("User {} cannot deploy project of recipe {} for workspace {}, since it is alredy in BUILD_REQUESTED state.", userId,
-							vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), vo.getWorkspaceId());
-					return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
-				}
+// 				   if (intDeployStatus != null && (intDeployStatus.equalsIgnoreCase("DEPLOY_REQUESTED"))) {
+// 					   MessageDescription invalidTypeMsg = new MessageDescription();
+// 					   invalidTypeMsg.setMessage(
+// 							   "cannot deploy workspace since it is already in "+intDeployStatus+" state");
+// 					   GenericMessage errorMessage = new GenericMessage();
+// 					   errorMessage.addErrors(invalidTypeMsg);
+// 					   log.info("User {} cannot deploy project of recipe {} for workspace {}, since it is alredy in {} state.", userId,
+// 							   vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), vo.getWorkspaceId(),intDeployStatus);
+// 					   return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
+// 				   }else if (intBuildStatus != null && intBuildStatus.equalsIgnoreCase("BUILD_REQUESTED")) {
+// 					MessageDescription invalidTypeMsg = new MessageDescription();
+// 					invalidTypeMsg.setMessage(
+// 							"cannot deploy workspace since it is already in BUILD_REQUESTED state");
+// 					GenericMessage errorMessage = new GenericMessage();
+// 					errorMessage.addErrors(invalidTypeMsg);
+// 					log.info("User {} cannot deploy project of recipe {} for workspace {}, since it is alredy in BUILD_REQUESTED state.", userId,
+// 							vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), vo.getWorkspaceId());
+// 					return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
+// 				}
 				
-				   if (prodDeployStatus != null && (prodDeployStatus.equalsIgnoreCase("DEPLOY_REQUESTED") || (prodDeployStatus.equalsIgnoreCase("APPROVAL_PENDING") && environment.equalsIgnoreCase("int")) )) {
-					   MessageDescription invalidTypeMsg = new MessageDescription();
-					   invalidTypeMsg.setMessage(
-							   "cannot deploy workspace since it is already in "+prodDeployStatus+" state");
-					   GenericMessage errorMessage = new GenericMessage();
-					   errorMessage.addErrors(invalidTypeMsg);
-					   log.info("User {} cannot deploy project of recipe {} for workspace {}, since it is alredy in {} state.", userId,
-							   vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), vo.getWorkspaceId(),prodDeployStatus);
-					   return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
-				   }else if (prodBuildStatus != null && prodBuildStatus.equalsIgnoreCase("BUILD_REQUESTED")) {
-					MessageDescription invalidTypeMsg = new MessageDescription();
-					invalidTypeMsg.setMessage(
-							"cannot deploy workspace since it is already in BUILD_REQUESTED state");
-					GenericMessage errorMessage = new GenericMessage();
-					errorMessage.addErrors(invalidTypeMsg);
-					log.info("User {} cannot deploy project of recipe {} for workspace {}, since it is alredy in BUILD_REQUESTED state.", userId,
-							vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), vo.getWorkspaceId());
-					return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
-				}
+// 				   if (prodDeployStatus != null && (prodDeployStatus.equalsIgnoreCase("DEPLOY_REQUESTED") || (prodDeployStatus.equalsIgnoreCase("APPROVAL_PENDING") && environment.equalsIgnoreCase("int")) )) {
+// 					   MessageDescription invalidTypeMsg = new MessageDescription();
+// 					   invalidTypeMsg.setMessage(
+// 							   "cannot deploy workspace since it is already in "+prodDeployStatus+" state");
+// 					   GenericMessage errorMessage = new GenericMessage();
+// 					   errorMessage.addErrors(invalidTypeMsg);
+// 					   log.info("User {} cannot deploy project of recipe {} for workspace {}, since it is alredy in {} state.", userId,
+// 							   vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), vo.getWorkspaceId(),prodDeployStatus);
+// 					   return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
+// 				   }else if (prodBuildStatus != null && prodBuildStatus.equalsIgnoreCase("BUILD_REQUESTED")) {
+// 					MessageDescription invalidTypeMsg = new MessageDescription();
+// 					invalidTypeMsg.setMessage(
+// 							"cannot deploy workspace since it is already in BUILD_REQUESTED state");
+// 					GenericMessage errorMessage = new GenericMessage();
+// 					errorMessage.addErrors(invalidTypeMsg);
+// 					log.info("User {} cannot deploy project of recipe {} for workspace {}, since it is alredy in BUILD_REQUESTED state.", userId,
+// 							vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), vo.getWorkspaceId());
+// 					return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
+// 				}
 				
-			   //  if ((Objects.nonNull(deployRequestDto.isSecureWithIAMRequired())
-			   // 		 && deployRequestDto.isSecureWithIAMRequired())
-			   // 		 && (Objects.nonNull(deployRequestDto.getTechnicalUserDetailsForIAMLogin()))) {
-			   // 	 UserRequestVO userRequestVO = new UserRequestVO();
-			   // 	 com.daimler.data.auth.client.UserInfoVO userInfoVO = new com.daimler.data.auth.client.UserInfoVO();
-			   // 	 com.daimler.data.auth.client.UserInfoVO userInfoVOResponse = new com.daimler.data.auth.client.UserInfoVO();
-			   // 	 userInfoVO.setId(deployRequestDto.getTechnicalUserDetailsForIAMLogin());
-			   // 	 userRequestVO.setData(userInfoVO);
-			   // 	 userInfoVOResponse = dnaAuthClient.onboardTechnicalUser(userRequestVO);
-			   // 	 if (Objects.nonNull(userInfoVOResponse) && Objects.isNull(userInfoVOResponse.getId())) {
-			   // 		 log.info(
-			   // 				 "Failed to onboard/fetch technical user {}, returning from controller without triggering deploy action",
-			   // 				 deployRequestDto.getTechnicalUserDetailsForIAMLogin());
-			   // 		 MessageDescription exceptionMsg = new MessageDescription(
-			   // 				 "Failed to onboard/fetch technical user, Please try again.");
-			   // 		 GenericMessage errorMessage = new GenericMessage();
-			   // 		 errorMessage.addErrors(exceptionMsg);
-			   // 		 return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
-			   // 	 }
-			   //  }
-			   //  if(deployRequestDto.isValutInjectorEnable()!=null)
-			   //  {
-			   // 	deployRequestDto.setValutInjectorEnable(deployRequestDto.isValutInjectorEnable());             
-			   //  }
-			   //  else
-			   //  {
-			   // 	deployRequestDto.setValutInjectorEnable(false);
-			   //  }
-			   //if approval enabled workspace and and deployment tp prod then go to service.approveWorkspace
-			   GenericMessage responseMsg;
-			   Boolean isApprover =false;
+// 			   //  if ((Objects.nonNull(deployRequestDto.isSecureWithIAMRequired())
+// 			   // 		 && deployRequestDto.isSecureWithIAMRequired())
+// 			   // 		 && (Objects.nonNull(deployRequestDto.getTechnicalUserDetailsForIAMLogin()))) {
+// 			   // 	 UserRequestVO userRequestVO = new UserRequestVO();
+// 			   // 	 com.daimler.data.auth.client.UserInfoVO userInfoVO = new com.daimler.data.auth.client.UserInfoVO();
+// 			   // 	 com.daimler.data.auth.client.UserInfoVO userInfoVOResponse = new com.daimler.data.auth.client.UserInfoVO();
+// 			   // 	 userInfoVO.setId(deployRequestDto.getTechnicalUserDetailsForIAMLogin());
+// 			   // 	 userRequestVO.setData(userInfoVO);
+// 			   // 	 userInfoVOResponse = dnaAuthClient.onboardTechnicalUser(userRequestVO);
+// 			   // 	 if (Objects.nonNull(userInfoVOResponse) && Objects.isNull(userInfoVOResponse.getId())) {
+// 			   // 		 log.info(
+// 			   // 				 "Failed to onboard/fetch technical user {}, returning from controller without triggering deploy action",
+// 			   // 				 deployRequestDto.getTechnicalUserDetailsForIAMLogin());
+// 			   // 		 MessageDescription exceptionMsg = new MessageDescription(
+// 			   // 				 "Failed to onboard/fetch technical user, Please try again.");
+// 			   // 		 GenericMessage errorMessage = new GenericMessage();
+// 			   // 		 errorMessage.addErrors(exceptionMsg);
+// 			   // 		 return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
+// 			   // 	 }
+// 			   //  }
+// 			   //  if(deployRequestDto.isValutInjectorEnable()!=null)
+// 			   //  {
+// 			   // 	deployRequestDto.setValutInjectorEnable(deployRequestDto.isValutInjectorEnable());             
+// 			   //  }
+// 			   //  else
+// 			   //  {
+// 			   // 	deployRequestDto.setValutInjectorEnable(false);
+// 			   //  }
+// 			   //if approval enabled workspace and and deployment tp prod then go to service.approveWorkspace
+// 			   GenericMessage responseMsg;
+// 			   Boolean isApprover =false;
 
-			   List<UserInfoVO>collabList =vo.getProjectDetails().getProjectCollaborators();
-			   if(collabList!=null){
-				   for(UserInfoVO user : collabList){
-					   if(userId.equalsIgnoreCase(user.getId())){
-						   if(user.isIsApprover()){
-							   isApprover = true;
-						   }
-					   }
-				   }
-			   }
-			   Boolean deploymentApprovalEnabled = false;
-			   Boolean keepImage = deployRequestDto.isKeepBuildImage();
-			   deploymentApprovalEnabled = Boolean.TRUE
-					   .equals(vo.getProjectDetails().getDataGovernance().isEnableDeployApproval());
-			   if (environment.equalsIgnoreCase("prod") && deploymentApprovalEnabled
-					   && !"APPROVAL_PENDING".equalsIgnoreCase(status) && !isApprover && !isOwner) {
-				   responseMsg = service.approveRequestWorkspace(userId, id, environment, branch,
-						   isPrivateRecipe,deployRequestDto.getVersion());
-				   log.info("User {} deployed workspace {} project {}", userId, vo.getWorkspaceId(),
-						   vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
-				   log.info("workspace deployment requires approval");
-			   } else {
+// 			   List<UserInfoVO>collabList =vo.getProjectDetails().getProjectCollaborators();
+// 			   if(collabList!=null){
+// 				   for(UserInfoVO user : collabList){
+// 					   if(userId.equalsIgnoreCase(user.getId())){
+// 						   if(user.isIsApprover()){
+// 							   isApprover = true;
+// 						   }
+// 					   }
+// 				   }
+// 			   }
+// 			   Boolean deploymentApprovalEnabled = false;
+// 			   Boolean keepImage = deployRequestDto.isKeepBuildImage();
+// 			   deploymentApprovalEnabled = Boolean.TRUE
+// 					   .equals(vo.getProjectDetails().getDataGovernance().isEnableDeployApproval());
+// 			   if (environment.equalsIgnoreCase("prod") && deploymentApprovalEnabled
+// 					   && !"APPROVAL_PENDING".equalsIgnoreCase(status) && !isApprover && !isOwner) {
+// 				   responseMsg = service.approveRequestWorkspace(userId, id, environment, branch,
+// 						   isPrivateRecipe,deployRequestDto.getVersion());
+// 				   log.info("User {} deployed workspace {} project {}", userId, vo.getWorkspaceId(),
+// 						   vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
+// 				   log.info("workspace deployment requires approval");
+// 			   } else {
 
-				if(environment.equalsIgnoreCase("prod") && deploymentApprovalEnabled
-                && "APPROVAL_PENDING".equalsIgnoreCase(status) && !isApprover && !isOwner) {
-                    MessageDescription invalidTypeMsg = new MessageDescription();
-                    invalidTypeMsg.setMessage(
-                            "cannot deploy workspace since it is already in APPROVAL_PENDING state");
-                    GenericMessage errorMessage = new GenericMessage();
-                    errorMessage.addErrors(invalidTypeMsg);
-                    log.info("User {} cannot deploy project of recipe {} for workspace {}, since it is alredy in APPROVAL_PENDING state.", userId,
-                            vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), vo.getWorkspaceId());
-                    return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
-                }
-                else {
-				   responseMsg = service.deployWorkspace(userId, id, environment, branch,
-							 isPrivateRecipe,deployRequestDto.getVersion(),"deploy",keepImage);
+// 				if(environment.equalsIgnoreCase("prod") && deploymentApprovalEnabled
+//                 && "APPROVAL_PENDING".equalsIgnoreCase(status) && !isApprover && !isOwner) {
+//                     MessageDescription invalidTypeMsg = new MessageDescription();
+//                     invalidTypeMsg.setMessage(
+//                             "cannot deploy workspace since it is already in APPROVAL_PENDING state");
+//                     GenericMessage errorMessage = new GenericMessage();
+//                     errorMessage.addErrors(invalidTypeMsg);
+//                     log.info("User {} cannot deploy project of recipe {} for workspace {}, since it is alredy in APPROVAL_PENDING state.", userId,
+//                             vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), vo.getWorkspaceId());
+//                     return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
+//                 }
+//                 else {
+// 				   responseMsg = service.deployWorkspace(userId, id, environment, branch,
+// 							 isPrivateRecipe,deployRequestDto.getVersion(),"deploy",keepImage);
 
-					// Create OpenTelemetry plugin once deployment is triggered (route exists at this point)
-                    try {
-                        String serviceName = vo.getProjectDetails().getProjectName() + "-" + environment;
-                        service.createOpenTelemetryPlugin(id, environment, serviceName);
-                        log.info("OpenTelemetry plugin created for workspace {} in {} environment",
-                            vo.getWorkspaceId(), environment);
-                    } catch (Exception e) {
-                        log.warn("Failed to create OpenTelemetry plugin for workspace {} in {} environment: {}",
-                            vo.getWorkspaceId(), environment, e.getMessage());
-                        // Don't fail the deployment if plugin creation fails
-                    }
+// 					// Create OpenTelemetry plugin once deployment is triggered (route exists at this point)
+//                     try {
+//                         String serviceName = vo.getProjectDetails().getProjectName() + "-" + environment;
+//                         service.createOpenTelemetryPlugin(id, environment, serviceName);
+//                         log.info("OpenTelemetry plugin created for workspace {} in {} environment",
+//                             vo.getWorkspaceId(), environment);
+//                     } catch (Exception e) {
+//                         log.warn("Failed to create OpenTelemetry plugin for workspace {} in {} environment: {}",
+//                             vo.getWorkspaceId(), environment, e.getMessage());
+//                         // Don't fail the deployment if plugin creation fails
+//                     }
 
-					if ("FAILED".equalsIgnoreCase(responseMsg.getSuccess())) {
-						return new ResponseEntity<>(responseMsg, HttpStatus.BAD_REQUEST);
-					}
-				   log.info("User {} deployed workspace {} project {}", userId, vo.getWorkspaceId(),
-						   vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
-			   }
-			   }
-   //			 if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")) {
-   //				 log.info("User {} deployed workspace {} project {}", userId, vo.getWorkspaceId(),
-   //						 vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
-   //			 }
-			   if("FAILED".equalsIgnoreCase(responseMsg.getSuccess())){
-				   return new ResponseEntity<>(responseMsg, HttpStatus.INTERNAL_SERVER_ERROR);
-			   }
-			   log.info("User {} deployed workspace {} project {}", userId, vo.getWorkspaceId(),
-						   vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
-				return new ResponseEntity<>(responseMsg, HttpStatus.OK);
+// 					if ("FAILED".equalsIgnoreCase(responseMsg.getSuccess())) {
+// 						return new ResponseEntity<>(responseMsg, HttpStatus.BAD_REQUEST);
+// 					}
+// 				   log.info("User {} deployed workspace {} project {}", userId, vo.getWorkspaceId(),
+// 						   vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
+// 			   }
+// 			   }
+//    //			 if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")) {
+//    //				 log.info("User {} deployed workspace {} project {}", userId, vo.getWorkspaceId(),
+//    //						 vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
+//    //			 }
+// 			   if("FAILED".equalsIgnoreCase(responseMsg.getSuccess())){
+// 				   return new ResponseEntity<>(responseMsg, HttpStatus.INTERNAL_SERVER_ERROR);
+// 			   }
+// 			   log.info("User {} deployed workspace {} project {}", userId, vo.getWorkspaceId(),
+// 						   vo.getProjectDetails().getRecipeDetails().getRecipeId().name());
+// 				return new ResponseEntity<>(responseMsg, HttpStatus.OK);
 			} catch (EntityNotFoundException e) {
 				log.error(e.getLocalizedMessage());
 				MessageDescription invalidMsg = new MessageDescription("No Workspace with the given id");
@@ -4008,6 +4019,37 @@ import org.springframework.beans.factory.annotation.Value;
 	{
 		GenericMessage responseVo = service.cancelWorkspaceRun(projectName);
 		return ResponseEntity.ok(responseVo);
+	}
+
+	@ApiOperation(value = "add a webhook for given git repo", nickname = "addGitWebhook", notes = "Add a webhook for given git repo", response = GenericMessage.class, tags={ "code-server", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 200, message = "Returns message of success or failure", response = GenericMessage.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/workspaces/addWebhook",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.POST)
+    public ResponseEntity<GenericMessage> addGitWebhook(
+			@ApiParam(value = "git repo name in which webhook needs to be added", required=true) @Valid @RequestBody GitWebHookDto repoDetails) {
+        try {
+            log.info("Fetching branches for repo: {} - Determined isWorkspaceMigratedToGHE: {} (will use {} server)");
+            GenericMessage webHookId = gitWebHookService.addGitWebhook(repoDetails);
+            return new ResponseEntity<>(webHookId, HttpStatus.OK);
+        } catch (Exception e) {
+            log.warn("Failed to add webhook for repo: {}. Proceeding to add new webhook. Error: {}", repoDetails, e.getMessage());
+            GenericMessage errorMessage = new GenericMessage();
+            errorMessage.setSuccess("FAILED");
+            MessageDescription errorMsg = new MessageDescription("Failed to add webhook: " + e.getMessage());
+            List<MessageDescription> errors = new ArrayList<>();
+            errors.add(errorMsg);
+            errorMessage.setErrors(errors);
+            return new ResponseEntity<>(errorMessage, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
 	}
 
 }

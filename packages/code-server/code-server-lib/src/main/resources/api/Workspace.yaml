@@ -1754,6 +1754,38 @@ paths:
         500:
           description: "Internal error"
 
+  /workspaces/addWebhook:
+    post:
+      tags:
+        - "code-server"
+      summary: "Add a webhook to a workspace."
+      description: "Add a webhook to a workspace for automated updates."
+      operationId: "addGitWebhook"
+      parameters:
+          - name: repoDetails
+            in: "body"
+            description: "Details of the repository for which the webhook is to be added"
+            required: true
+            schema:
+              $ref: "#/definitions/GitWebHookDto"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
 definitions:
   CodeSpaceReadmeVo:
     type: object
@@ -1902,7 +1934,10 @@ definitions:
       order:
         type: integer
         default: 0
-        description: "order of user group"      
+        description: "order of user group"
+      autoDeploy:
+        type: boolean
+        description: "true if auto deploy enabled for the workspace"    
 
   CodeServerProjectDetailsVO:
     type: object
@@ -1945,6 +1980,12 @@ definitions:
         $ref: "#/definitions/CodespaceSecurityConfigVO"
       dataGovernance:
          $ref: "#/definitions/CodeServerGovernanceVO"
+      webHookId:
+        type: string
+      intAutoDeployBranchName:
+        type: string
+      prodAutoDeployBranchName:
+        type: string
       required:
         -projectName
         -recipeDetails
@@ -2708,6 +2749,24 @@ definitions:
     properties:
       status:
         type: string
+
+  GitWebHookDto:
+    type: object
+    properties:
+      repoName:
+        type: string
+        description: "Git repository name"
+      intRepoName:
+        type: string
+        description: "Integration environment repository name"
+      prodRepoName:
+        type: string
+        description: "Production environment repository name"
+      webHookEnabled:
+        type: boolean
+        description: "Flag to enable or disable webhook"
+    required:
+      - repoName
           
 
 
