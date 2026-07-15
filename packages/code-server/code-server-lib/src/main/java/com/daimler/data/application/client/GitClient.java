@@ -52,6 +52,7 @@ public class GitClient {
 		}
 	}
 
+	// These ETag stores are per-replica in-memory state; conditional 304 requests avoid consuming the shared PAT budget.
 	private final Map<String, EtagEntry<GitBranchesCollectionDto>> branchesPageEtagStore = new ConcurrentHashMap<>();
 	private final Map<String, GitBranchesCollectionDto> branchesLastValueStore = new ConcurrentHashMap<>();
 	private final Map<String, EtagEntry<GitLatestCommitIdDto>> commitEtagStore = new ConcurrentHashMap<>();

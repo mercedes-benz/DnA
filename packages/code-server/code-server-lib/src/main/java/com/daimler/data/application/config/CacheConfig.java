@@ -11,11 +11,17 @@ import org.springframework.context.annotation.Configuration;
 
 import com.github.benmanes.caffeine.cache.Caffeine;
 
+/**
+ * The Caffeine cache and GitClient ETag stores are in-memory per pod, so each replica bounds
+ * staleness independently by the TTL. Server-validated ETag requests returning 304 do not consume
+ * the shared PAT budget and provide the primary rate-limit relief; Redis or another shared cache
+ * would be needed to deduplicate fresh fetches across the Kubernetes deployment.
+ */
 @Configuration
 @EnableCaching
 public class CacheConfig {
 
-	@Value("${git.cache.branches.ttlSeconds:60}")
+	@Value("${git.cache.branches.ttlSeconds:30}")
 	private long ttlSeconds;
 
 	@Value("${git.cache.branches.maxSize:500}")
