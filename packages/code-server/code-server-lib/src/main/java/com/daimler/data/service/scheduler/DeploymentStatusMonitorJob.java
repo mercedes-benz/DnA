@@ -1,12 +1,14 @@
 package com.daimler.data.service.scheduler;
 
 import com.daimler.data.application.client.CodeServerClient;
+import com.daimler.data.application.client.GitClient;
 import com.daimler.data.controller.DeploymentStatusSseController;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.db.entities.CodeServerBuildDeployNsql;
 import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
 import com.daimler.data.db.json.BuildAudit;
 import com.daimler.data.db.json.CodeServerBuildDeploy;
+import com.daimler.data.db.json.CodeServerBuildDetails;
 import com.daimler.data.db.json.CodeServerDeploymentDetails;
 import com.daimler.data.db.json.DeploymentAudit;
 import com.daimler.data.db.json.UserInfo;
@@ -14,6 +16,7 @@ import com.daimler.data.db.repo.workspace.WorkSpaceCodeServerBuildDeployReposito
 import com.daimler.data.db.repo.workspace.WorkspaceCustomBuildDeployRepo;
 import com.daimler.data.db.repo.workspace.WorkspaceCustomRepository;
 import com.daimler.data.service.ArgoCdService;
+import com.daimler.data.dto.GitHubWorkflowRunDto;
 import com.daimler.dna.notifications.common.producer.KafkaProducerService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -25,6 +28,8 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.HashSet;
+import java.util.Set;
 
 
 @Component
@@ -49,6 +54,9 @@ public class DeploymentStatusMonitorJob {
     @Autowired
     private CodeServerClient codeServerClient;
 
+    @Autowired
+    private GitClient gitClient;
+
 
     @Scheduled(fixedDelay = 10000, initialDelay = 5000)
     @SchedulerLock(name = "deploymentStatusMonitorJob", lockAtMostFor = "2m", lockAtLeastFor = "5s")
@@ -56,13 +64,15 @@ public class DeploymentStatusMonitorJob {
         try {
             log.debug("Starting deployment status monitoring job");
             
+            List<CodeServerWorkspaceNsql> workspaces = workspaceCustomRepository.findAll();
+            reconcileRequestedBuilds(workspaces);
+
             String argoToken = argoCdService.getArgoToken();
             if (argoToken == null) {
                 log.warn("Unable to get ArgoCD token, skipping deployment status check");
                 return;
             }
 
-            List<CodeServerWorkspaceNsql> workspaces = workspaceCustomRepository.findAll();
             int checkedCount = 0;
             int updatedCount = 0;
 
@@ -158,6 +168,64 @@ public class DeploymentStatusMonitorJob {
         } catch (Exception e) {
             log.warn("Failed to check deployment history for {}-{}: {}", projectName, environment, e.getMessage());
             return true;
+        }
+    }
+
+    private void reconcileRequestedBuilds(List<CodeServerWorkspaceNsql> workspaces) {
+        Set<String> reconciledRuns = new HashSet<>();
+        for (CodeServerWorkspaceNsql workspace : workspaces) {
+            if (workspace == null || workspace.getData() == null
+                    || workspace.getData().getProjectDetails() == null) {
+                continue;
+            }
+
+            String projectName = workspace.getData().getProjectDetails().getProjectName();
+            if (projectName == null) {
+                continue;
+            }
+
+            reconcileRequestedBuild(projectName, "int",
+                    workspace.getData().getProjectDetails().getIntBuildDetails(), reconciledRuns);
+            reconcileRequestedBuild(projectName, "prod",
+                    workspace.getData().getProjectDetails().getProdBuildDetails(), reconciledRuns);
+        }
+    }
+
+    private void reconcileRequestedBuild(String projectName, String environment,
+            CodeServerBuildDetails buildDetails, Set<String> reconciledRuns) {
+        if (buildDetails == null || !"BUILD_REQUESTED".equalsIgnoreCase(buildDetails.getLastBuildStatus())
+                || buildDetails.getGitjobRunID() == null || buildDetails.getGitjobRunID().isBlank()) {
+            return;
+        }
+
+        String runId = buildDetails.getGitjobRunID();
+        String runKey = projectName + "|" + environment + "|" + runId;
+        if (!reconciledRuns.add(runKey)) {
+            return;
+        }
+
+        try {
+            GitHubWorkflowRunDto run = gitClient.getWorkflowRun(runId);
+            if (run == null || !"completed".equalsIgnoreCase(run.getStatus())
+                    || run.getConclusion() == null) {
+                return;
+            }
+
+            String finalStatus = "success".equalsIgnoreCase(run.getConclusion())
+                    ? "BUILD_SUCCESS" : "BUILD_FAILED";
+            boolean statusUpdated = workspaceCustomRepository.updateGitRunIdStatus(
+                    projectName, finalStatus, environment, runId);
+            boolean auditUpdated = workspaceCustomRepository.updateBuildDeployAuditStatus(
+                    projectName, finalStatus, environment, runId);
+            if (statusUpdated && auditUpdated) {
+                log.info("Reconciled build run {} for {}-{} to {}", runId, projectName, environment, finalStatus);
+            } else {
+                log.warn("Failed to reconcile build run {} for {}-{}: liveStatus={}, audit={}",
+                        runId, projectName, environment, statusUpdated, auditUpdated);
+            }
+        } catch (Exception e) {
+            log.warn("Failed to reconcile build run {} for {}-{}: {}",
+                    runId, projectName, environment, e.getMessage());
         }
     }
 

@@ -1197,7 +1197,8 @@ import org.springframework.beans.factory.annotation.Value;
 					   log.info("User {} cannot deploy project of recipe {} for workspace {}, since it is alredy in {} state.", userId,
 							   vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), vo.getWorkspaceId(),intDeployStatus);
 					   return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
-				   }else if (intBuildStatus != null && intBuildStatus.equalsIgnoreCase("BUILD_REQUESTED")) {
+					}else if ("int".equalsIgnoreCase(environment)
+							&& intBuildStatus != null && intBuildStatus.equalsIgnoreCase("BUILD_REQUESTED")) {
 					MessageDescription invalidTypeMsg = new MessageDescription();
 					invalidTypeMsg.setMessage(
 							"cannot deploy workspace since it is already in BUILD_REQUESTED state");
@@ -1217,7 +1218,8 @@ import org.springframework.beans.factory.annotation.Value;
 					   log.info("User {} cannot deploy project of recipe {} for workspace {}, since it is alredy in {} state.", userId,
 							   vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), vo.getWorkspaceId(),prodDeployStatus);
 					   return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
-				   }else if (prodBuildStatus != null && prodBuildStatus.equalsIgnoreCase("BUILD_REQUESTED")) {
+					   }else if ("prod".equalsIgnoreCase(environment)
+							&& prodBuildStatus != null && prodBuildStatus.equalsIgnoreCase("BUILD_REQUESTED")) {
 					MessageDescription invalidTypeMsg = new MessageDescription();
 					invalidTypeMsg.setMessage(
 							"cannot deploy workspace since it is already in BUILD_REQUESTED state");

@@ -45,17 +45,22 @@ import java.util.concurrent.TimeUnit;
 import java.util.regex.Matcher;
  import java.util.regex.Pattern;
  import java.util.stream.Collector;
- import java.util.stream.Collectors;
- import java.util.Collections;
+import java.util.stream.Collectors;
+import java.util.Collections;
 
- import org.json.JSONObject;
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+
+import org.json.JSONObject;
  import org.springframework.beans.BeanUtils;
  import org.springframework.beans.factory.annotation.Autowired;
  import org.springframework.beans.factory.annotation.Value;
  import org.springframework.http.HttpStatus;
  import org.springframework.http.ResponseEntity;
  import org.springframework.stereotype.Service;
- import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.transaction.PlatformTransactionManager;
+import org.springframework.transaction.support.TransactionTemplate;
  import org.springframework.util.ObjectUtils;
  
  import com.daimler.data.application.auth.UserStore;
@@ -213,6 +218,12 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 	 private WorkspaceCustomRepository workspaceCustomRepository;
 	 @Autowired
 	 private WorkspaceRepository jpaRepo;
+
+	 @Autowired
+	 private PlatformTransactionManager transactionManager;
+
+	 @PersistenceContext
+	 private EntityManager entityManager;
   
 	 @Autowired
 	 private CodeServerClient client;
@@ -3273,8 +3284,10 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 					buildDetails.setGitjobRunID(gitJobRunId);
 					buildDetails.setLastBuildBranch(branch);
 
-						workspaceCustomRepository.updateBuildDetails(projectName, targetEnv,
-						buildDetails);	
+						persistBuildCompletion(projectName, targetEnv, buildDetails, latestStatus, gitJobRunId);
+						if (entityManager.contains(entity)) {
+							entityManager.refresh(entity);
+						}
 				   
 				   Boolean keepBuildImage = false;
 				   
@@ -5429,7 +5442,26 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 	}
 
 
-	public GenericMessage getStatusByJobRunId(CodeServerWorkspaceNsql entity){
+	private void persistBuildCompletion(String projectName, String environment,
+			CodeServerBuildDetails buildDetails, String status, String gitJobRunId) {
+		TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
+		transactionTemplate.setPropagationBehavior(
+				org.springframework.transaction.TransactionDefinition.PROPAGATION_REQUIRES_NEW);
+		transactionTemplate.executeWithoutResult(transactionStatus -> {
+			GenericMessage updateResponse = workspaceCustomRepository.updateBuildDetails(
+					projectName, environment, buildDetails);
+			if (updateResponse == null || !"SUCCESS".equalsIgnoreCase(updateResponse.getSuccess())) {
+				throw new IllegalStateException("Failed to persist build status for project " + projectName);
+			}
+			if (!workspaceCustomRepository.updateBuildDeployAuditStatus(
+					projectName, status, environment, gitJobRunId)) {
+				log.warn("Build status committed but audit status was not updated for project {} and run {}",
+						projectName, gitJobRunId);
+			}
+		});
+	}
+
+		public GenericMessage getStatusByJobRunId(CodeServerWorkspaceNsql entity){
 		GenericMessage responseMessage = new GenericMessage();
 		String status = "SUCCESS";
 		List<MessageDescription> warnings = new ArrayList<>();
@@ -5729,10 +5761,11 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 						run.getConclusion()
 				);
 
-				boolean statusUpdated =workspaceCustomRepository.updateGitRunIdStatus(
-										projectName,
-										finalStatus,
-										dto.getEnvironment()
+					boolean statusUpdated =workspaceCustomRepository.updateGitRunIdStatus(
+											projectName,
+											finalStatus,
+											dto.getEnvironment(),
+											dto.getGitjobRunId()
 								);
 
 				boolean auditUpdated =
@@ -5843,10 +5876,11 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 						String currentStatus = dto.getStatus();
 						boolean newStatus = isRequestedStatus(currentStatus);
 						String newStatusStr = resolveFinalStatus(currentStatus, run.getConclusion());
-						boolean statusUpdated =workspaceCustomRepository.updateGitRunIdStatus(
-												projectName,
-												newStatusStr,
-												dto.getEnvironment()
+							boolean statusUpdated =workspaceCustomRepository.updateGitRunIdStatus(
+													projectName,
+													newStatusStr,
+													dto.getEnvironment(),
+													dto.getGitjobRunId()
 										);
 						boolean auditUpdated =
 							workspaceCustomRepository.updateBuildDeployAuditStatus(
