@@ -55,18 +55,8 @@ const RequestWorkspace = ({ onRefresh }) => {
     setRoleList([]);
     setReason('');
     setReasonError(false);
-    ProgressIndicator.show();
-    fabricApi.getFabricWorkspace(workspace.id).then((res) => {
-      ProgressIndicator.hide();
-      setSelectedWorkspace(res.data);
-      setCurrentStep('role-selection');
-    }).catch((e) => {
-      ProgressIndicator.hide();
-      Notification.show(
-        e.response?.data?.errors?.[0]?.message || 'Error while fetching workspace details.',
-        'alert',
-      );
-    });
+    setSelectedWorkspace(workspace);
+    setCurrentStep('role-selection');
   }
 
   const handleRoleSelectionNext = () => {
