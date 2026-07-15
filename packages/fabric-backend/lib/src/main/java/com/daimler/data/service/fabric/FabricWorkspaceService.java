@@ -85,5 +85,7 @@ public interface FabricWorkspaceService extends CommonService<FabricWorkspaceVO,
 
 	ADAProjectDetailsCollectionVO searchProjects(String projectName);
 
+	void populateLeanIXDetailsFromProject(FabricWorkspaceVO workspace);
+
 	FabricWorkspacesCollectionVO searchWorkspacesLov(int limit, int offset, String searchText);
 }

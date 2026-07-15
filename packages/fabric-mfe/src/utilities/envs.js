@@ -46,5 +46,6 @@ export const Envs = {
   DATA_AT_CLOUD_URL: getInjectedEnv('DATA_AT_CLOUD_URL') || process.env.DATA_AT_CLOUD_URL,
   DDX_PRICING_URL: getInjectedEnv('DDX_PRICING_URL') || process.env.DDX_PRICING_URL,
   DDX_DOF_BASE_URL: getInjectedEnv('DDX_DOF_BASE_URL') || process.env.DDX_DOF_BASE_URL,
+  SECURITY_LEVELS: (getInjectedEnv('SECURITY_LEVELS') || process.env.SECURITY_LEVELS)?.split(',').map(s => s.trim()),
   TICKET_SUPPORT_URL: getInjectedEnv('TICKET_SUPPORT_URL') || process.env.TICKET_SUPPORT_URL,
 };
