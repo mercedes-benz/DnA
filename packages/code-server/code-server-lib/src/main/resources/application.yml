@@ -68,6 +68,12 @@ management:
 dna:
   uri: ${DNA_URI:XXXXXX}
 
+git:
+  cache:
+    branches:
+      ttlSeconds: ${GIT_CACHE_BRANCHES_TTL_SECONDS:60}
+      maxSize: ${GIT_CACHE_BRANCHES_MAX_SIZE:500}
+
 codeserver:
   userauth: ${CODESERVER_USERAUTH:XXXX}
     
