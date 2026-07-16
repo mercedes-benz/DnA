@@ -1458,7 +1458,9 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 			List<FabricWorkspaceLovVO> trimmed = serviceResult.getRecords().stream()
 				.map(ws -> {
 					FabricWorkspaceLovVO slim = new FabricWorkspaceLovVO();
+					slim.setId(ws.getId());
 					slim.setName(ws.getName());
+					slim.setStatus(ws.getStatus());
 					slim.setCreatedBy(ws.getCreatedBy());
 					slim.setCreatedOn(ws.getCreatedOn());
 					return slim;
