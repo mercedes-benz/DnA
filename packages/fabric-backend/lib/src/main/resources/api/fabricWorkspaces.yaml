@@ -1044,13 +1044,18 @@ definitions:
         enum: ["PowerBI", "Fabric"]
       
   FabricWorkspaceLovVO:
-    description: "Slim workspace view for LOV search responses containing only name, createdBy and createdOn."
+    description: "Slim workspace view for LOV search responses containing id, name, status (roles), createdBy and createdOn."
     type: object
     properties:
+      id:
+        type: string
+        description: "ID for the fabric workspace"
       name:
         type: string
         description: "Name of the fabric workspace"
         maxLength: 256
+      status:
+        $ref: "#/definitions/FabricWorkspaceStatusVO"
       createdBy:
         $ref: "#/definitions/CreatedByVO"
       createdOn:
