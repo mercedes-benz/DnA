@@ -106,7 +106,7 @@ public interface WorkspaceCustomRepository extends CommonDataRepository<CodeServ
 
     GitRunIdDetailsDto getGitRunId(String projectName);
 
-    boolean updateGitRunIdStatus(String projectName, String status, String environment, String gitJobRunId);
+    boolean updateGitRunIdStatus(String projectName, String status, String string);
 
 	boolean updateBuildDeployAuditStatus(String projectName, String status, String environment, String gitjobRunId);
 }

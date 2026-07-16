@@ -1004,45 +1004,9 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 						ELSE NULL
 					END AS gitJobRunId
 
-					FROM public.workspace_nsql
-					WHERE jsonb_extract_path_text(data,'projectDetails','projectName') = CAST(? AS text)
-					ORDER BY
-						CASE
-							WHEN jsonb_extract_path_text(data,'projectDetails','lastBuildOrDeployedStatus')
-								IN ('BUILD_REQUESTED','DEPLOY_REQUESTED')
-								AND COALESCE(
-									CASE
-										WHEN jsonb_extract_path_text(data,'projectDetails','lastBuildOrDeployedStatus')
-											IN ('BUILD_REQUESTED','BUILD_SUCCESS','BUILD_FAILED')
-										AND jsonb_extract_path_text(data,'projectDetails','lastBuildOrDeployedEnv') = 'int'
-											THEN jsonb_extract_path_text(data,'projectDetails','intBuildDetails','gitjobRunID')
-										WHEN jsonb_extract_path_text(data,'projectDetails','lastBuildOrDeployedStatus')
-											IN ('BUILD_REQUESTED','BUILD_SUCCESS','BUILD_FAILED')
-										AND jsonb_extract_path_text(data,'projectDetails','lastBuildOrDeployedEnv') = 'prod'
-											THEN jsonb_extract_path_text(data,'projectDetails','prodBuildDetails','gitjobRunID')
-										WHEN jsonb_extract_path_text(data,'projectDetails','lastBuildOrDeployedStatus')
-											IN ('DEPLOY_REQUESTED','DEPLOYED','DEPLOY_FAILED')
-										AND jsonb_extract_path_text(data,'projectDetails','lastBuildOrDeployedEnv') = 'int'
-											THEN jsonb_extract_path_text(data,'projectDetails','intDeploymentDetails','gitjobRunID')
-										WHEN jsonb_extract_path_text(data,'projectDetails','lastBuildOrDeployedStatus')
-											IN ('DEPLOY_REQUESTED','DEPLOYED','DEPLOY_FAILED')
-										AND jsonb_extract_path_text(data,'projectDetails','lastBuildOrDeployedEnv') = 'prod'
-											THEN jsonb_extract_path_text(data,'projectDetails','prodDeploymentDetails','gitjobRunID')
-									END, '') <> ''
-								THEN 0
-							WHEN jsonb_extract_path_text(data,'projectDetails','lastBuildOrDeployedStatus')
-								IN ('BUILD_REQUESTED','DEPLOY_REQUESTED')
-								THEN 1
-							ELSE 2
-						END,
-						CASE
-							WHEN jsonb_extract_path_text(data,'workspaceOwner','id') =
-								jsonb_extract_path_text(data,'projectDetails','projectOwner','id')
-								THEN 0
-							ELSE 1
-						END,
-						id
-				""";
+				FROM public.workspace_nsql
+				WHERE jsonb_extract_path_text(data,'projectDetails','projectName') = CAST(? AS text)
+			""";
 
 		try
 		{
@@ -1074,15 +1038,10 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 	}
 
 	@Override
-	public boolean updateGitRunIdStatus(String projectName, String status, String environment, String gitJobRunId) {
-
-		if (projectName == null || status == null || environment == null
-				|| gitJobRunId == null || gitJobRunId.isBlank()) {
-			log.warn("Cannot update Git Run Id status with missing project, status, environment, or run id");
-			return false;
-		}
+	public boolean updateGitRunIdStatus(String projectName, String status, String environment) {
 
 		String updateQuery;
+
 		if ("int".equalsIgnoreCase(environment) &&
 			("BUILD_REQUESTED".equalsIgnoreCase(status)
 				|| "BUILD_SUCCESS".equalsIgnoreCase(status)
@@ -1090,8 +1049,8 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 
 			updateQuery =
 				"update workspace_nsql set data = jsonb_set(" +
-				"jsonb_set(data, '{projectDetails,lastBuildOrDeployedStatus}', to_jsonb(CAST(:status AS text)), true)," +
-				"'{projectDetails,intBuildDetails,lastBuildStatus}', to_jsonb(CAST(:status AS text)), true)";
+				"jsonb_set(data, '{projectDetails,lastBuildOrDeployedStatus}', '" + addQuotes(status) + "', true)," +
+				"'{projectDetails,intBuildDetails,lastBuildStatus}', '" + addQuotes(status) + "', true)";
 
 		} else if ("prod".equalsIgnoreCase(environment) &&
 			("BUILD_REQUESTED".equalsIgnoreCase(status)
@@ -1100,8 +1059,8 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 
 			updateQuery =
 				"update workspace_nsql set data = jsonb_set(" +
-				"jsonb_set(data, '{projectDetails,lastBuildOrDeployedStatus}', to_jsonb(CAST(:status AS text)), true)," +
-				"'{projectDetails,prodBuildDetails,lastBuildStatus}', to_jsonb(CAST(:status AS text)), true)";
+				"jsonb_set(data, '{projectDetails,lastBuildOrDeployedStatus}', '" + addQuotes(status) + "', true)," +
+				"'{projectDetails,prodBuildDetails,lastBuildStatus}', '" + addQuotes(status) + "', true)";
 
 		} else if ("int".equalsIgnoreCase(environment) &&
 			("DEPLOY_REQUESTED".equalsIgnoreCase(status)
@@ -1110,8 +1069,8 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 
 			updateQuery =
 				"update workspace_nsql set data = jsonb_set(" +
-				"jsonb_set(data, '{projectDetails,lastBuildOrDeployedStatus}', to_jsonb(CAST(:status AS text)), true)," +
-				"'{projectDetails,intDeploymentDetails,lastDeploymentStatus}', to_jsonb(CAST(:status AS text)), true)";
+				"jsonb_set(data, '{projectDetails,lastBuildOrDeployedStatus}', '" + addQuotes(status) + "', true)," +
+				"'{projectDetails,intDeploymentDetails,deploymentStatus}', '" + addQuotes(status) + "', true)";
 
 		} else if ("prod".equalsIgnoreCase(environment) &&
 			("DEPLOY_REQUESTED".equalsIgnoreCase(status)
@@ -1120,35 +1079,27 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 
 			updateQuery =
 				"update workspace_nsql set data = jsonb_set(" +
-				"jsonb_set(data, '{projectDetails,lastBuildOrDeployedStatus}', to_jsonb(CAST(:status AS text)), true)," +
-				"'{projectDetails,prodDeploymentDetails,lastDeploymentStatus}', to_jsonb(CAST(:status AS text)), true)";
+				"jsonb_set(data, '{projectDetails,lastBuildOrDeployedStatus}', '" + addQuotes(status) + "', true)," +
+				"'{projectDetails,prodDeploymentDetails,deploymentStatus}', '" + addQuotes(status) + "', true)";
 
 		} else {
-			log.warn("No matching Git Run Id status update rule for project={} env={} status={}",
-				projectName, environment, status);
-			return false;
+			log.warn(
+				"Fallback global status update used. project={} env={} status={}",
+				projectName, environment, status
+			);
+
+			updateQuery =
+				"update workspace_nsql set data = jsonb_set(" +
+				"data, '{projectDetails,lastBuildOrDeployedStatus}', '" + addQuotes(status) + "', true)";
 		}
 
 		updateQuery +=
-			" where data->'projectDetails'->>'projectName' = CAST(:projectName AS text)" +
-			" and " + ("int".equalsIgnoreCase(environment)
-				? ("BUILD_REQUESTED".equalsIgnoreCase(status)
-					|| "BUILD_SUCCESS".equalsIgnoreCase(status)
-					|| "BUILD_FAILED".equalsIgnoreCase(status)
-					? "data->'projectDetails'->'intBuildDetails'->>'gitjobRunID'"
-					: "data->'projectDetails'->'intDeploymentDetails'->>'gitjobRunID'")
-				: ("BUILD_REQUESTED".equalsIgnoreCase(status)
-					|| "BUILD_SUCCESS".equalsIgnoreCase(status)
-					|| "BUILD_FAILED".equalsIgnoreCase(status)
-					? "data->'projectDetails'->'prodBuildDetails'->>'gitjobRunID'"
-					: "data->'projectDetails'->'prodDeploymentDetails'->>'gitjobRunID'")
-			) + " = CAST(:gitJobRunId AS text)";
+			" where data->'projectDetails'->>'projectName' = '" + projectName + "'";
 
 		try {
+			log.info("Final update query = {}", updateQuery);
+
 			Query q = em.createNativeQuery(updateQuery);
-			q.setParameter("status", status);
-			q.setParameter("projectName", projectName);
-			q.setParameter("gitJobRunId", gitJobRunId);
 			int rows = q.executeUpdate();
 
 			if (rows == 0) {
@@ -1168,95 +1119,85 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 	@Override
 	public boolean updateBuildDeployAuditStatus(String projectName,String status,String environment,String gitJobRunId) {
 
-		if (gitJobRunId == null || gitJobRunId.isBlank()) {
+		if (gitJobRunId == null) {
 			log.warn("gitJobRunId is null, skipping audit update");
 			return false;
 		}
 
 		String updateQuery;
 
-			if ("int".equalsIgnoreCase(environment) &&
-				("BUILD_REQUESTED".equalsIgnoreCase(status)
-				|| "BUILD_SUCCESS".equalsIgnoreCase(status)
-				|| "BUILD_FAILED".equalsIgnoreCase(status))) {
-
-				updateQuery =
-					"update build_deploy_nsql set data = jsonb_set(data," +
-					"'{intBuildAuditLogs}', (" +
-					" select jsonb_agg(" +
-					"   case when log->>'gitjobRunID' = CAST(:gitJobRunId AS text) then " +
-					"     jsonb_set(log, '{buildStatus}', to_jsonb(CAST(:status AS text)), true) " +
-					"   else log end" +
-					" ) from jsonb_array_elements(data->'intBuildAuditLogs') as log" +
-					" ), true)" +
-					" where data->>'projectName' = CAST(:projectName AS text)" +
-					" and exists (select 1 from jsonb_array_elements(data->'intBuildAuditLogs') as log" +
-					" where log->>'gitjobRunID' = CAST(:gitJobRunId AS text))";
-
-			} else if ("prod".equalsIgnoreCase(environment) &&
+		if ("int".equalsIgnoreCase(environment) &&
 			("BUILD_REQUESTED".equalsIgnoreCase(status)
 				|| "BUILD_SUCCESS".equalsIgnoreCase(status)
 				|| "BUILD_FAILED".equalsIgnoreCase(status))) {
 
 			updateQuery =
 				"update build_deploy_nsql set data = jsonb_set(data," +
-					"'{prodBuildAuditLogs}', (" +
-					" select jsonb_agg(" +
-					"   case when log->>'gitjobRunID' = CAST(:gitJobRunId AS text) then " +
-					"     jsonb_set(log, '{buildStatus}', to_jsonb(CAST(:status AS text)), true) " +
-					"   else log end" +
-					" ) from jsonb_array_elements(data->'prodBuildAuditLogs') as log" +
-					" ), true)" +
-					" where data->>'projectName' = CAST(:projectName AS text)" +
-					" and exists (select 1 from jsonb_array_elements(data->'prodBuildAuditLogs') as log" +
-					" where log->>'gitjobRunID' = CAST(:gitJobRunId AS text))";
+				"'{intBuildAuditLogs}', (" +
+				" select jsonb_agg(" +
+				"   case when log->>'gitjobRunID' = '" + gitJobRunId + "' then " +
+				"     jsonb_set(log, '{buildStatus}', to_jsonb(CAST('" + status + "' AS text)), true) " +
+				"   else log end" +
+				" ) from jsonb_array_elements(data->'intBuildAuditLogs') as log" +
+				" ), true)";
 
-			} else if ("int".equalsIgnoreCase(environment) &&
+		} else if ("prod".equalsIgnoreCase(environment) &&
+			("BUILD_REQUESTED".equalsIgnoreCase(status)
+				|| "BUILD_SUCCESS".equalsIgnoreCase(status)
+				|| "BUILD_FAILED".equalsIgnoreCase(status))) {
+
+			updateQuery =
+				"update build_deploy_nsql set data = jsonb_set(data," +
+				"'{prodBuildAuditLogs}', (" +
+				" select jsonb_agg(" +
+				"   case when log->>'gitjobRunID' = '" + gitJobRunId + "' then " +
+				"     jsonb_set(log, '{buildStatus}', to_jsonb(CAST('" + status + "' AS text)), true) " +
+				"   else log end" +
+				" ) from jsonb_array_elements(data->'prodBuildAuditLogs') as log" +
+				" ), true)";
+
+		} else if ("int".equalsIgnoreCase(environment) &&
 			("DEPLOY_REQUESTED".equalsIgnoreCase(status)
 				|| "DEPLOYED".equalsIgnoreCase(status)
 				|| "DEPLOY_FAILED".equalsIgnoreCase(status))) {
 
 			updateQuery =
 				"update build_deploy_nsql set data = jsonb_set(data," +
-					"'{intDeploymentAuditLogs}', (" +
-					" select jsonb_agg(" +
-					"   case when log->>'gitjobRunID' = CAST(:gitJobRunId AS text) then " +
-					"     jsonb_set(log, '{deploymentStatus}', to_jsonb(CAST(:status AS text)), true) " +
-					"   else log end" +
-					" ) from jsonb_array_elements(data->'intDeploymentAuditLogs') as log" +
-					" ), true)" +
-					" where data->>'projectName' = CAST(:projectName AS text)" +
-					" and exists (select 1 from jsonb_array_elements(data->'intDeploymentAuditLogs') as log" +
-					" where log->>'gitjobRunID' = CAST(:gitJobRunId AS text))";
+				"'{intDeploymentAuditLogs}', (" +
+				" select jsonb_agg(" +
+				"   case when log->>'gitjobRunID' = '" + gitJobRunId + "' then " +
+				"     jsonb_set(log, '{deploymentStatus}', to_jsonb(CAST('" + status + "' AS text)), true) " +
+				"   else log end" +
+				" ) from jsonb_array_elements(data->'intDeploymentAuditLogs') as log" +
+				" ), true)";
 
-			} else if ("prod".equalsIgnoreCase(environment) &&
+		} else if ("prod".equalsIgnoreCase(environment) &&
 			("DEPLOY_REQUESTED".equalsIgnoreCase(status)
 				|| "DEPLOYED".equalsIgnoreCase(status)
 				|| "DEPLOY_FAILED".equalsIgnoreCase(status))) {
 
 			updateQuery =
 				"update build_deploy_nsql set data = jsonb_set(data," +
-					"'{prodDeploymentAuditLogs}', (" +
-					" select jsonb_agg(" +
-					"   case when log->>'gitjobRunID' = CAST(:gitJobRunId AS text) then " +
-					"     jsonb_set(log, '{deploymentStatus}', to_jsonb(CAST(:status AS text)), true) " +
-					"   else log end" +
-					" ) from jsonb_array_elements(data->'prodDeploymentAuditLogs') as log" +
-					" ), true)" +
-					" where data->>'projectName' = CAST(:projectName AS text)" +
-					" and exists (select 1 from jsonb_array_elements(data->'prodDeploymentAuditLogs') as log" +
-					" where log->>'gitjobRunID' = CAST(:gitJobRunId AS text))";
+				"'{prodDeploymentAuditLogs}', (" +
+				" select jsonb_agg(" +
+				"   case when log->>'gitjobRunID' = '" + gitJobRunId + "' then " +
+				"     jsonb_set(log, '{deploymentStatus}', to_jsonb(CAST('" + status + "' AS text)), true) " +
+				"   else log end" +
+				" ) from jsonb_array_elements(data->'prodDeploymentAuditLogs') as log" +
+				" ), true)";
 
 		} else {
 			log.warn("No matching audit update rule for env={} status={}", environment, status);
 			return false;
 		}
 
+		updateQuery +=
+			" where data->>'projectName' = '" + projectName + "'";
+
 		try {
+			log.info("Final audit update query = {}", updateQuery);
+
 			Query q = em.createNativeQuery(updateQuery);
-			q.setParameter("projectName", projectName);
-			q.setParameter("status", status);
-			q.setParameter("gitJobRunId", gitJobRunId);
 			int rows = q.executeUpdate();
 
 			if (rows == 0) {
