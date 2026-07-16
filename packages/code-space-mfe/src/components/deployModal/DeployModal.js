@@ -23,6 +23,15 @@ const DeployModal = (props) => {
   const projectDetails = props.codeSpaceData?.projectDetails;
   const [retainBuildImage, setRetainBuildImage] = useState(false);
   const [showIntMigrationModal, setShowIntMigrationModal] = useState(false);
+  const [autoDeployEnabled, setAutoDeployEnabled] = useState(props.codeSpaceData?.autoDeploy || false);
+  const [isStagingBranchMissing, setIsStagingBranchMissing] = useState(false);
+  const [isProdBranchMissing, setIsProdBranchMissing] = useState(false);
+  const [stagingBranchValue, setStagingBranchValue] = useState(
+    projectDetails?.intAutoDeployBranchName ? [projectDetails.intAutoDeployBranchName] : []
+  );
+  const [prodBranchValue, setProdBranchValue] = useState(
+    projectDetails?.prodAutoDeployBranchName ? [projectDetails.prodAutoDeployBranchName] : []
+  );
 
   //details from build
   const version = props?.buildDetails?.version || '';
@@ -37,26 +46,30 @@ const DeployModal = (props) => {
     projectDetails?.intDeploymentDetails?.lastDeployedBranch?.length &&
       setBranchValue([projectDetails?.intDeploymentDetails?.lastDeployedBranch]);
     version?.length && setDeployEnvironment(buildEnvironment);
+    const isWorkspaceMigratedToGHE = props.codeSpaceData?.isWorkspaceMigratedToGHE;
+    const repoUrl = buildGitRepoUrl(projectDetails?.gitRepoName, isWorkspaceMigratedToGHE);
     if (!version?.length) {
       ProgressIndicator.show();
-      const isWorkspaceMigratedToGHE = props.codeSpaceData?.isWorkspaceMigratedToGHE;
-      const repoUrl = buildGitRepoUrl(projectDetails?.gitRepoName, isWorkspaceMigratedToGHE);
-      CodeSpaceApiClient.getCodeSpacesGitBranchList(repoUrl)
-        .then((res) => {
+    }
+    CodeSpaceApiClient.getCodeSpacesGitBranchList(repoUrl)
+      .then((res) => {
+        if (!version?.length) {
           ProgressIndicator.hide();
           props.setShowCodeDeployModal(true);
-          let branches = res?.data;
-          branches.forEach((element) => {
-            element.id = element.name;
-          });
-          setBranches(branches);
-          SelectBox.defaultSetup();
-        })
-        .catch((err) => {
+        }
+        let branchList = res?.data;
+        branchList.forEach((element) => {
+          element.id = element.name;
+        });
+        setBranches(branchList);
+        SelectBox.defaultSetup();
+      })
+      .catch((err) => {
+        if (!version?.length) {
           ProgressIndicator.hide();
           Notification.show('Error in getting code space branch list - ' + err.message, 'alert');
-        });
-    }
+        }
+      });
     // setVault();
     return Tooltip.clear();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -183,15 +196,50 @@ const DeployModal = (props) => {
     proceedWithDeployment();
   };
 
+  const onUpdateAutoDeploySettings = () => {
+    if (autoDeployEnabled) {
+      const stagingMissing = stagingBranchValue.length === 0;
+      const prodMissing = prodBranchValue.length === 0;
+      setIsStagingBranchMissing(stagingMissing);
+      setIsProdBranchMissing(prodMissing);
+      if (stagingMissing || prodMissing) {
+        Notification.show('Please select both Staging and Prod branches for auto deployment.', 'alert');
+        return;
+      }
+      if (stagingBranchValue[0] === prodBranchValue[0]) {
+        Notification.show('Staging and Production branches must be different. Please select distinct branches.', 'alert');
+        return;
+      }
+    }
+    const webhookData = {
+      repoName: projectDetails?.gitRepoName,
+      intRepoName: stagingBranchValue[0] || '',
+      prodRepoName: prodBranchValue[0] || '',
+      webHookEnabled: autoDeployEnabled,
+    };
+    ProgressIndicator.show();
+    CodeSpaceApiClient.addWebhook(webhookData)
+      .then(() => {
+        ProgressIndicator.hide();
+        Notification.show('Auto deploy settings have been updated successfully.');
+        props.onAutoDeploySettingsUpdated?.();
+      })
+      .catch((err) => {
+        ProgressIndicator.hide();
+        Notification.show(
+          'Error in updating auto deploy settings. Please try again later.\n' +
+            (err?.response?.data?.errors?.[0]?.message || err.message),
+          'alert',
+        );
+      });
+  };
+
   return (
     <>
       <Modal
         title={`Deploy Code - ${props?.codeSpaceData?.projectDetails?.projectName || ''}`}
-        showAcceptButton={true}
-        acceptButtonTitle={'Deploy'}
-        cancelButtonTitle={'Cancel'}
-        onAccept={onAcceptCodeDeploy}
-        showCancelButton={true}
+        showAcceptButton={false}
+        showCancelButton={false}
         modalWidth="900px"
         buttonAlignment="center"
         show={true}
@@ -294,6 +342,90 @@ const DeployModal = (props) => {
                 </label>
               </div>
             )}
+            <div className={Styles.autoDeploySection}>
+              <div className={Styles.sectionTitle}>
+                Auto Deployment Settings
+                <span className={Styles.autoDeployInfo}>
+                  <i className="icon mbc-icon info"></i>
+                  <span className={Styles.autoDeployTooltip}>
+                    Auto deployment is triggered exclusively on <strong>Push</strong> and{' '}
+                    <strong>Pull Request merge</strong> events for the selected branch(es).
+                  </span>
+                </span>
+              </div>
+              <label className="checkbox">
+                <span className="wrapper">
+                  <input
+                    type="checkbox"
+                    className="ff-only"
+                    checked={autoDeployEnabled}
+                    onChange={(e) => setAutoDeployEnabled(e.target.checked)}
+                  />
+                </span>
+                <span className="label">Enable Auto Deployment</span>
+              </label>
+              {autoDeployEnabled && (
+                <div className={Styles.branchSelectors}>
+                  <div>
+                    <Tags
+                      title={'Staging Branch'}
+                      max={1}
+                      chips={stagingBranchValue}
+                      placeholder={'Type here...'}
+                      tags={branches}
+                      setTags={(val) => { setStagingBranchValue(val); setIsStagingBranchMissing(false); }}
+                      isMandatory={true}
+                      showMissingEntryError={isStagingBranchMissing}
+                      showAllTagsOnFocus={true}
+                      disableSelfTagAdd={true}
+                      suggestionPopupHeight={150}
+                    />
+                  </div>
+                  <div>
+                    <Tags
+                      title={'Production Branch'}
+                      max={1}
+                      chips={prodBranchValue}
+                      placeholder={'Type here...'}
+                      tags={branches}
+                      setTags={(val) => { setProdBranchValue(val); setIsProdBranchMissing(false); }}
+                      isMandatory={true}
+                      showMissingEntryError={isProdBranchMissing}
+                      showAllTagsOnFocus={true}
+                      disableSelfTagAdd={true}
+                      suggestionPopupHeight={150}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+            <div className={Styles.modalFooter}>
+              <div className={Styles.footerLeft}>
+                <button
+                  className="btn btn-tertiary"
+                  type="button"
+                  onClick={onUpdateAutoDeploySettings}
+                >
+                  Update Auto Deploy Settings
+                </button>
+              </div>
+              <div className={Styles.footerRight}>
+                <button
+                  className="btn btn-primary"
+                  type="button"
+                  onClick={() => props.setShowCodeDeployModal(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="btn btn-tertiary"
+                  type="button"
+                  onClick={onAcceptCodeDeploy}
+                >
+                  Deploy
+                </button>
+              </div>
+            </div>
           </div>
         }
         scrollableContent={false}
