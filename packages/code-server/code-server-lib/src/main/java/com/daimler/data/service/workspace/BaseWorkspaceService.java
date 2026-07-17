@@ -55,6 +55,7 @@ import java.util.regex.Matcher;
  import org.springframework.http.HttpStatus;
  import org.springframework.http.ResponseEntity;
  import org.springframework.stereotype.Service;
+ import org.springframework.transaction.annotation.Isolation;
  import org.springframework.transaction.annotation.Transactional;
  import org.springframework.util.ObjectUtils;
  
@@ -274,7 +275,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 	 }
   
 	 @Override
-	 @Transactional
+	 @Transactional(isolation = Isolation.SERIALIZABLE)
 	 public GenericMessage deleteById(String userId, String id) {
 		 // 1. undeploy if deployed and id is project owner id
 		 // 4. update all workspaces under this project
@@ -1102,7 +1103,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 	 }
 
 	 @Override
-	 @Transactional
+	 @Transactional(isolation = Isolation.SERIALIZABLE)
 	 public InitializeWorkspaceResponseVO createWorkspace(CodeServerWorkspaceVO vo, String pat) {
 		CreatedByVO currentUser = this.userStore.getVO();
 		InitializeWorkspaceResponseVO responseVO = new InitializeWorkspaceResponseVO();
@@ -2939,7 +2940,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 	 
   
 	 @Override
-	 @Transactional
+	 @Transactional(isolation = Isolation.SERIALIZABLE)
 	 public GenericMessage update(String userId, String wsId, String projectName, String existingStatus,
 			 String latestStatus, String targetEnv, String branch, String gitJobRunId,String version) {
 		 GenericMessage responseMessage = new GenericMessage();
