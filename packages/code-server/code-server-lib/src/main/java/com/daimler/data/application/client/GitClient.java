@@ -721,7 +721,15 @@ public class GitClient {
 		return null;
 	}
 
-	public GitHubWorkflowJobsResponseDto.Job getBuildDeployJob(String runId) {
+	private static final String BUILD_DEPLOY_JOB_NAME = "build or deploy workspace application";
+
+	/**
+	 * Fetches all jobs (including per-step details) for a workflow run.
+	 * The GitHub Jobs API returns a steps[] array per job, which enables both the
+	 * "build or deploy" status reconciliation (see {@link #pickBuildDeployJob})
+	 * and the per-job progress shown in the deployment status panel.
+	 */
+	public GitHubWorkflowJobsResponseDto getBuildDeployJob(String runId) {
 		String repoPath = applicationName + "/codespace-build-deploy-workflows";
 		String url = gheBaseUri + "/repos/" + repoPath + "/actions/runs/" + runId + "/jobs";
 
@@ -734,14 +742,7 @@ public class GitClient {
 			log.info("Calling GitHub Jobs API: {}", url);
 			ResponseEntity<GitHubWorkflowJobsResponseDto> response =
 					restTemplate.exchange(url, HttpMethod.GET, entity, GitHubWorkflowJobsResponseDto.class);
-			GitHubWorkflowJobsResponseDto body = response.getBody();
-			if (body != null && body.getJobs() != null) {
-				return body.getJobs().stream()
-						.filter(job -> job.getName() != null && job.getName().toLowerCase().contains("build or deploy workspace application"))
-						.findFirst()
-						.orElse(null);
-			}
-			return null;
+			return response.getBody();
 		} catch (HttpStatusCodeException ex) {
 			log.error("GitHub Jobs API error {} for runId {}", ex.getStatusCode(), runId);
 			return null;
@@ -751,6 +752,20 @@ public class GitClient {
 		}
 	}
 
+	/**
+	 * Extracts the single "build or deploy workspace application" job from a jobs
+	 * response (used for status reconciliation).
+	 */
+	public GitHubWorkflowJobsResponseDto.Job pickBuildDeployJob(GitHubWorkflowJobsResponseDto jobsResponse) {
+		if (jobsResponse == null || jobsResponse.getJobs() == null) {
+			return null;
+		}
+		return jobsResponse.getJobs().stream()
+				.filter(job -> job.getName() != null && job.getName().toLowerCase().contains(BUILD_DEPLOY_JOB_NAME))
+				.findFirst()
+				.orElse(null);
+	}
+	
 	public GitHubWorkflowRunDto getWorkflowRun(String runId) {
 		String repoPath = applicationName + "/codespace-build-deploy-workflows";
 		String url = gheBaseUri + "/repos/" + repoPath + "/actions/runs/" + runId;

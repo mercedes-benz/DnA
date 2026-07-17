@@ -1951,6 +1951,8 @@ definitions:
         $ref: "#/definitions/CodespaceSecurityConfigVO"
       dataGovernance:
          $ref: "#/definitions/CodeServerGovernanceVO"
+      workflowStatus:
+         $ref: "#/definitions/WorkflowStatusVO"
       required:
         -projectName
         -recipeDetails
@@ -2095,6 +2097,114 @@ definitions:
       version:
         type: string
         description: "version of the last build"
+  
+  WorkflowStatusVO:
+    type: object
+    description: "Transient (not persisted) snapshot of the GitHub Actions workflow run/jobs/steps for the deployment status panel. Populated only when triggered by user refresh."
+    properties:
+      overallStatus:
+        type: string
+      phase:
+        type: string
+      runStarted:
+        type: boolean
+      projectName:
+        type: string
+      environment:
+        type: string
+      workflowName:
+        type: string
+      runId:
+        type: string
+      runNumber:
+        type: string
+      branch:
+        type: string
+      commitSha:
+        type: string
+      triggeredBy:
+        type: string
+      repository:
+        type: string
+      startedAt:
+        type: string
+        format: date
+      updatedAt:
+        type: string
+        format: date
+      elapsedSeconds:
+        type: integer
+        format: int64
+      jobs:
+        type: array
+        items:
+          $ref: "#/definitions/WorkflowJobVO"
+      activity:
+        type: array
+        items:
+          $ref: "#/definitions/WorkflowActivityVO"
+      githubActionUrl:
+        type: string
+      stale:
+        type: boolean
+      lastError:
+        type: string
+      message:
+        type: string
+ 
+  WorkflowJobVO:
+    type: object
+    properties:
+      id:
+        type: integer
+        format: int64
+      name:
+        type: string
+      status:
+        type: string
+      conclusion:
+        type: string
+      completedSteps:
+        type: integer
+      totalSteps:
+        type: integer
+      progress:
+        type: integer
+      currentStep:
+        type: string
+      durationSeconds:
+        type: integer
+        format: int64
+      htmlUrl:
+        type: string
+      steps:
+        type: array
+        items:
+          $ref: "#/definitions/WorkflowStepVO"
+ 
+  WorkflowStepVO:
+    type: object
+    properties:
+      name:
+        type: string
+      status:
+        type: string
+      conclusion:
+        type: string
+      number:
+        type: integer
+      durationSeconds:
+        type: integer
+        format: int64
+ 
+  WorkflowActivityVO:
+    type: object
+    properties:
+      ts:
+        type: string
+        format: date
+      message:
+        type: string
          
   CodeServerRecipeDetailsVO:
     type: object
