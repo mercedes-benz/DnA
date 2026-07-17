@@ -48,9 +48,6 @@ import java.util.regex.Matcher;
  import java.util.stream.Collectors;
  import java.util.Collections;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-
  import org.json.JSONObject;
  import org.springframework.beans.BeanUtils;
  import org.springframework.beans.factory.annotation.Autowired;
@@ -58,9 +55,7 @@ import javax.persistence.PersistenceContext;
  import org.springframework.http.HttpStatus;
  import org.springframework.http.ResponseEntity;
  import org.springframework.stereotype.Service;
- import org.springframework.transaction.PlatformTransactionManager;
  import org.springframework.transaction.annotation.Transactional;
- import org.springframework.transaction.support.TransactionTemplate;
  import org.springframework.util.ObjectUtils;
  
  import com.daimler.data.application.auth.UserStore;
@@ -218,12 +213,6 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 	 private WorkspaceCustomRepository workspaceCustomRepository;
 	 @Autowired
 	 private WorkspaceRepository jpaRepo;
-
-	 @Autowired
-	 private PlatformTransactionManager transactionManager;
-
-	 @PersistenceContext
-	 private EntityManager entityManager;
   
 	 @Autowired
 	 private CodeServerClient client;
@@ -3284,10 +3273,8 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 					buildDetails.setGitjobRunID(gitJobRunId);
 					buildDetails.setLastBuildBranch(branch);
 
-						persistBuildCompletion(projectName, targetEnv, buildDetails);
-						if (entityManager.contains(entity)) {
-							entityManager.refresh(entity);
-						}
+						workspaceCustomRepository.updateBuildDetails(projectName, targetEnv,
+						buildDetails);	
 				   
 				   Boolean keepBuildImage = false;
 				   
@@ -5441,15 +5428,6 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 		return responseMessage;
 	}
 
-
-	private void persistBuildCompletion(String projectName, String environment,
-			CodeServerBuildDetails buildDetails) {
-		TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
-		transactionTemplate.setPropagationBehavior(
-				org.springframework.transaction.TransactionDefinition.PROPAGATION_REQUIRES_NEW);
-		transactionTemplate.executeWithoutResult(transactionStatus ->
-				workspaceCustomRepository.updateBuildDetails(projectName, environment, buildDetails));
-	}
 
 	public GenericMessage getStatusByJobRunId(CodeServerWorkspaceNsql entity){
 		GenericMessage responseMessage = new GenericMessage();
