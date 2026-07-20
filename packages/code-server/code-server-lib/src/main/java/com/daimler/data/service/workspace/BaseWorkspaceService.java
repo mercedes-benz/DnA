@@ -1795,18 +1795,59 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 										 entity.getData().getProjectDetails().getProjectName(), buildDeployJob.getStatus(), buildDeployJob.getConclusion());
 							 }
 						 } else {
-							 log.info("getById - No gitJobRunId found for project={}, status stuck as {} for {} minutes",
-									 entity.getData().getProjectDetails().getProjectName(), currentStatus, minutesSinceRequest);
-						 }
-					 } else {
+							// Manual refresh: threshold already exceeded (we're inside minutesSinceRequest >= staleThresholdMinutes)
+    						// and no gitJobRunId was ever generated -> the workflow never started, fail the build.
+    						String projectName = entity.getData().getProjectDetails().getProjectName();
+    						String environment = entity.getData().getProjectDetails().getLastBuildOrDeployedEnv();
+    						String finalStatus = "BUILD_FAILED";
+
+    						log.warn("getById - No gitJobRunId for project={}, env={}, BUILD_REQUESTED for {} min (threshold={}min). "
+            					+ "Marking as BUILD_FAILED.", projectName, environment, minutesSinceRequest, staleThresholdMinutes);
+
+							try {
+								SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
+								Date now = isoFormat.parse(isoFormat.format(new Date()));
+
+								if (buildDetails != null) {
+									buildDetails.setLastBuildStatus(finalStatus);
+									buildDetails.setLastBuildOn(now);
+								}
+								entity.getData().getProjectDetails().setLastBuildOrDeployedStatus(finalStatus);
+								workspaceCustomRepository.update(entity);
+
+								// Keep build_deploy_nsql audit consistent: fail the latest build audit log for this env
+								CodeServerBuildDeployNsql buildDeployEntity = buildDeployCustomRepo.findByProjectName(projectName);
+								if (buildDeployEntity != null && buildDeployEntity.getData() != null) {
+									CodeServerBuildDeploy buildDeployData = buildDeployEntity.getData();
+									List<BuildAudit> logs = "int".equalsIgnoreCase(environment)
+											? buildDeployData.getIntBuildAuditLogs()
+											: buildDeployData.getProdBuildAuditLogs();
+									if (logs != null && !logs.isEmpty()) {
+										logs.get(logs.size() - 1).setBuildStatus(finalStatus);
+										logs.get(logs.size() - 1).setBuildOn(now);
+										buildDeployEntity.setData(buildDeployData);
+										buildDeployRepo.save(buildDeployEntity);
+										log.info("getById - Audit updated to BUILD_FAILED (no runId) for project={}, env={}", projectName, environment);
+									} else {
+										log.warn("getById - No build audit logs to update for project={}, env={}", projectName, environment);
+									}
+								}
+								log.info("getById - Auto-failed stuck build (no runId) for project={}, env={}, finalStatus={}",
+										projectName, environment, finalStatus);
+							} catch (Exception e) {
+								log.error("getById - Failed to auto-fail stuck build (no runId) for project={}, error={}",
+										projectName, e.getMessage(), e);
+							}
+						}
+					} else {
 						 log.info("getById - Stale threshold NOT exceeded for project={}, minutesSinceRequest={}, threshold={}min. Skipping GitHub call.",
 								 entity.getData().getProjectDetails().getProjectName(), minutesSinceRequest, staleThresholdMinutes);
 					 }
-				 }
-			 }
-		 }
+				}
+			}
+		}
 
-		 return workspaceAssembler.toVo(entity);
+		return workspaceAssembler.toVo(entity);
 	 }
 	 
 
@@ -5865,39 +5906,10 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 		}
 
 
-		/* BUILD_REQUESTED → apply stale threshold and call GitHub */
+		/* BUILD_REQUESTED → call GitHub only when a runId exists */
 		if ("BUILD_REQUESTED".equalsIgnoreCase(currentStatus)) {
 			if(dto.getGitjobRunId() == null || dto.getGitjobRunId().isBlank()) {
-				log.info("getGitRunIdStatus - GitJobRunId NOT generated yet for project={}, currentStatus={}, lastBuildOrDeployedOn={}, staleThreshold={}min",
-					projectName, currentStatus, dto.getLastBuildOrDeployedOn(), staleThresholdMinutes);
-				// Check if the build request has been waiting too long without generating a run ID
-				if (dto.getLastBuildOrDeployedOn() != null) {
-					long minutesSinceRequest = Duration.between(
-						dto.getLastBuildOrDeployedOn().toInstant(), Instant.now()
-					).toMinutes();
-
-					if (minutesSinceRequest >= staleThresholdMinutes) {
-						log.warn("getGitRunIdStatus - Build stale threshold exceeded: project={}, minutesSinceRequest={}, threshold={}. Marking as BUILD_FAILED.",
-							projectName, minutesSinceRequest, staleThresholdMinutes);
-
-						workspaceCustomRepository.updateGitRunIdStatus(
-							projectName, "BUILD_FAILED", dto.getEnvironment()
-						);
-						workspaceCustomRepository.updateBuildDeployAuditStatus(
-							projectName, "BUILD_FAILED", dto.getEnvironment(), null
-						);
-
-						statusVo.setStatus("BUILD_FAILED");
-						MessageDescription warning = new MessageDescription();
-						warning.setMessage(
-							"GitJobRunId was not generated within " + staleThresholdMinutes +
-							" minutes. Marked as BUILD_FAILED"
-						);
-						vo.setWarnings(List.of(warning));
-						return vo;
-					}
-				}
-
+				log.info("getGitRunIdStatus - GitJobRunId not generated yet for project={}, currentStatus={}. Build is queued.", projectName, currentStatus);
 				MessageDescription info = new MessageDescription();
 				info.setMessage("Workspace is queued for build, generating GitJobRunId. Please wait.");
 				vo.setWarnings(List.of(info));
