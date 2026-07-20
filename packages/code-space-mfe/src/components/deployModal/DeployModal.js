@@ -349,7 +349,12 @@ const DeployModal = (props) => {
                   <i className="icon mbc-icon info"></i>
                   <span className={Styles.autoDeployTooltip}>
                     Auto deployment is triggered exclusively on <strong>Push</strong> and{' '}
-                    <strong>Pull Request merge</strong> events for the selected branch(es).
+                    <strong>Pull Request merge</strong> events for selected branch linked to 
+                    staging or production environment.
+                    <br /><br />
+                    <strong>Note:</strong> It is strongly recommended to enable <strong>branch protection rules</strong>
+                      on the selected branch to prevent unintentional deployments. 
+                     Any commit or merge to the selected branch will trigger an automatic deployment.
                   </span>
                 </span>
               </div>
