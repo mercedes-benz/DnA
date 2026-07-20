@@ -802,10 +802,10 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 			existingFabricWorkspace.setRelatedSolutions(workspaceUpdateRequestVO.getRelatedSolutions());
 			existingFabricWorkspace.setLastModifiedOn(new Date());
 			try {
-				FabricWorkspaceVO updatedRecord = service.updateFabricProject(existingFabricWorkspace);
+				FabricWorkspaceVO updatedRecord = service.updateFabricProject(existingFabricWorkspace, errors);
 				responseVO.setData(updatedRecord);
 				responses.setSuccess("SUCCESS");
-				responses.setErrors(new ArrayList<>());
+				responses.setErrors(errors);
 				responses.setWarnings(new ArrayList<>());
 				responseVO.setResponses(responses);
 				log.info("Fabric workspace {} {}  updated successfully",id,existingFabricWorkspace.getName());
