@@ -71,7 +71,6 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
   const [crashLoopReason, setCrashLoopReason] = useState('');
   const [deployingThresholdExceeded, setDeployingThresholdExceeded] = useState(false);
   const [cancellingDeployment, setCancellingDeployment] = useState(false);
-  const [deployLogsCopied, setDeployLogsCopied] = useState(false);
   const podLogsSseRef = useRef(null);
   const deployStatusSseRef = useRef(null);
   const deployLogEditorRef = useRef(null);
@@ -443,17 +442,6 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
         setTimeout(() => setErrorCopied(false), 2000);
       }).catch(err => {
         console.error('Failed to copy error message:', err);
-      });
-    }
-  };
-
-  const handleCopyDeployLogs = () => {
-    if (deployLogText) {
-      navigator.clipboard.writeText(deployLogText).then(() => {
-        setDeployLogsCopied(true);
-        setTimeout(() => setDeployLogsCopied(false), 2000);
-      }).catch(err => {
-        console.error('Failed to copy deployment logs:', err);
       });
     }
   };
@@ -1220,14 +1208,6 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
           title={
             <div className={Styles.modalHeader}>
               <span>Deployment Logs</span>
-              <button
-                className={Styles.copyButton}
-                onClick={handleCopyDeployLogs}
-                disabled={!deployLogText}
-                tooltip-data="Copy logs to clipboard"
-              >
-                {deployLogsCopied ? 'Copied!' : 'Copy logs'}
-              </button>
             </div>
           }
           showAcceptButton={false}
