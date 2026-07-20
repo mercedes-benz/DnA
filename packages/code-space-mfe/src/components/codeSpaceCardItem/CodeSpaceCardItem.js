@@ -21,6 +21,7 @@ import { marked } from 'marked';
 import { Envs } from '../../Utility/envs';
 import Tooltip from '../../common/modules/uilab/js/src/tooltip';
 import ContextMenu from '../contextMenu/ContextMenu';
+import DeploymentStatusPanel from '../deploymentStatusPanel/DeploymentStatusPanel';
 import AceEditor from 'react-ace';
 import 'ace-builds/src-noconflict/mode-text';
 import 'ace-builds/src-noconflict/theme-solarized_dark';
@@ -34,8 +35,13 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
   const createInProgress = codeSpace.status === 'CREATE_REQUESTED';
   const creationFailed = codeSpace.status === 'CREATE_FAILED';
 
+  const parseWorkflowStatus = (cs) => cs?.projectDetails?.workflowStatus || null;
+
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  // Deployment-status-panel snapshot — populated only from the user-triggered
+  // Refresh response (getById). No polling/SSE.
+  const [workflowStatus, setWorkflowStatus] = useState(() => parseWorkflowStatus(codeSpace));
   const collaborator = codeSpace.projectDetails?.projectCollaborators?.find((collaborator) => {return collaborator?.id === props?.userInfo?.id });
   const isOwner = codeSpace.projectDetails?.projectOwner?.id === props.userInfo.id || collaborator?.isAdmin;
   const isApprover = codeSpace.projectDetails?.projectOwner?.id === props.userInfo.id || collaborator?.isApprover;
@@ -385,12 +391,15 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
 
   const handleRefresh = () => {
     setIsRefreshing(true);
+    setRefreshSignal((n) => n + 1);
     CodeSpaceApiClient.getWorkspaceById(codeSpace.id, true)
       .then((res) => {
         setIsRefreshing(false);
         if (res.data && props.onRefreshCard) {
           props.onRefreshCard(codeSpace.id, res.data);
         }
+        // Update the Info panel with the freshly reconciled workflow snapshot.
+        setWorkflowStatus(parseWorkflowStatus(res.data));
         Notification.show(`${codeSpace?.projectDetails?.projectName || 'Workspace'} status refreshed`);
       })
       .catch((err) => {
@@ -470,6 +479,26 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
     prodDeploymentDetails?.lastDeploymentStatus === 'APPROVAL_PENDING' ||
     projectDetails?.lastBuildOrDeployedStatus === 'APPROVAL_PENDING';
   const buildInProgress = projectDetails?.lastBuildOrDeployedStatus === 'BUILD_REQUESTED';
+  const statusPanelVisible =
+    buildInProgress ||
+    projectDetails?.lastBuildOrDeployedStatus === 'DEPLOY_REQUESTED' ||
+    projectDetails?.lastBuildOrDeployedStatus === 'DEPLOYING';
+ 
+  // First landing: if a build/deploy is in progress, load the deployment-status
+  // snapshot once (via the same user-refresh path that reconciles on the stale
+  // threshold). After this it only updates on manual Refresh — no polling/SSE.
+  useEffect(() => {
+    if (!statusPanelVisible || workflowStatus) return;
+    CodeSpaceApiClient.getWorkspaceById(codeSpace.id, true)
+      .then((res) => {
+        if (res.data) {
+          if (props.onRefreshCard) props.onRefreshCard(codeSpace.id, res.data);
+          setWorkflowStatus(parseWorkflowStatus(res.data));
+        }
+      })
+      .catch(() => {});
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const allowDelete = codeSpace?.projectDetails?.projectOwner?.id === props.userInfo.id ? !hasCollaborators : true;
   const isPublicRecipe = projectDetails?.recipeDetails?.recipeId?.startsWith('public');
   // const isAPIRecipe =
@@ -680,6 +709,13 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
                           </span>
                         </a>
                       )}
+                      {buildInProgress && (
+                        <DeploymentStatusPanel
+                          projectName={projectDetails?.projectName}
+                          environment={projectDetails?.lastBuildOrDeployedEnv}
+                          workflowStatus={workflowStatus}
+                        />
+                      )}
                       {(projectDetails?.lastBuildOrDeployedStatus === 'DEPLOY_REQUESTED' || 
                         projectDetails?.lastBuildOrDeployedStatus === 'DEPLOYING') && (
                         <a
@@ -707,6 +743,14 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
                             </span>
                           </span>
                         </a>
+                      )}
+                      {(projectDetails?.lastBuildOrDeployedStatus === 'DEPLOY_REQUESTED' ||
+                        projectDetails?.lastBuildOrDeployedStatus === 'DEPLOYING') && (
+                        <DeploymentStatusPanel
+                          projectName={projectDetails?.projectName}
+                          environment={projectDetails?.lastBuildOrDeployedEnv}
+                          workflowStatus={workflowStatus}
+                        />
                       )}
                       {projectDetails?.lastBuildOrDeployedStatus === 'BUILD_FAILED' && (
                         <span className={classNames(Styles.statusIndicator, Styles.deployFailed)}>
