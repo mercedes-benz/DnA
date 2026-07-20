@@ -480,7 +480,7 @@
     max-width: 100%;
     display: flex;
     flex-direction: column;
-    max-height: calc(80vh - 150px);
+    height: calc(80vh - 150px);
     overflow: hidden;
 
     .errorContainer {
@@ -497,7 +497,7 @@
       max-width: 100%;
       overflow: hidden;
       flex: 1;
-      min-height: 0;
+      min-height: 200px;
     }
 
     .ace_editor {
@@ -614,6 +614,22 @@
     span {
       flex: 1;
     }
+  }
+
+  .copyLogsIcon {
+    cursor: pointer;
+    color: #c0c8d0;
+    font-size: 18px;
+    margin: 0 8px 0 0;
+    transition: color 0.2s ease;
+
+    &:hover {
+      color: #00adef;
+    }
+  }
+
+  .copyLogsIconCopied {
+    color: #00adef;
   }
 
   .copyButton {

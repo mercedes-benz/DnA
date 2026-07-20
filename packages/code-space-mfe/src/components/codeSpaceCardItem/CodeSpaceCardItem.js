@@ -1220,14 +1220,11 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
           title={
             <div className={Styles.modalHeader}>
               <span>Deployment Logs</span>
-              <button
-                className={Styles.copyButton}
+              <i
+                className={classNames('icon mbc-icon copy', Styles.copyLogsIcon, deployLogsCopied ? Styles.copyLogsIconCopied : '')}
+                tooltip-data={deployLogsCopied ? 'Copied!' : 'Copy logs'}
                 onClick={handleCopyDeployLogs}
-                disabled={!deployLogText}
-                tooltip-data="Copy logs to clipboard"
-              >
-                {deployLogsCopied ? 'Copied!' : 'Copy logs'}
-              </button>
+              ></i>
             </div>
           }
           showAcceptButton={false}
