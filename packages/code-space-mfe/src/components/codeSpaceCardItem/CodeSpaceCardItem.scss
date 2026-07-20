@@ -616,6 +616,22 @@
     }
   }
 
+  .copyLogsIcon {
+    cursor: pointer;
+    color: #c0c8d0;
+    font-size: 18px;
+    margin: 0 8px 0 0;
+    transition: color 0.2s ease;
+
+    &:hover {
+      color: #00adef;
+    }
+  }
+
+  .copyLogsIconCopied {
+    color: #00adef;
+  }
+
   .copyButton {
     background-color: #00adef;
     color: #ffffff;
