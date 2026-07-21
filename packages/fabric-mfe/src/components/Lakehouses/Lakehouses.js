@@ -354,6 +354,15 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
       return;
     }
 
+    ProgressIndicator.show();
+    let pendingChecks = publishedLakehouses.length;
+    const settleCheck = () => {
+      pendingChecks -= 1;
+      if (pendingChecks === 0) {
+        ProgressIndicator.hide();
+      }
+    };
+
     publishedLakehouses.forEach((lakehouse) => {
       fabricApi.checkTableMismatch(workspace.id, lakehouse.id)
         .then((res) => {
@@ -370,9 +379,11 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
               return next;
             });
           }
+          settleCheck();
         })
         .catch((err) => {
           console.error('[CdcMismatch] Error checking mismatch for lakehouse:', lakehouse.id, err?.message);
+          settleCheck();
         });
     });
   }, [workspace, lakehouses]);
