@@ -1850,7 +1850,6 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
                 if (fabricTableNames.contains(tableName)) {
                     LakehouseTableDetailVO storedTable = storedTableMap.get(tableName);
                     String schemaName = fabricTableSchemaMap.getOrDefault(tableName, "dbo");
-                    int beforeSize = mismatches.size();
                     compareTableColumns(
                             workspaceId,
                             lakehouseId,
@@ -1858,21 +1857,6 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
                             tableName,
                             storedTable,
                             mismatches);
-                    if (mismatches.size() == beforeSize) {
-                        List<String> alternativeSchemas = new ArrayList<>();
-                        if (!"default".equals(schemaName)) alternativeSchemas.add("default");
-                        if (!"dbo".equals(schemaName)) alternativeSchemas.add("dbo");
-                        for (String altSchema : alternativeSchemas) {
-                            compareTableColumns(
-                                    workspaceId,
-                                    lakehouseId,
-                                    altSchema,
-                                    tableName,
-                                    storedTable,
-                                    mismatches);
-                            if (mismatches.size() > beforeSize) break;
-                        }
-                    }
                 }
             }
 
