@@ -962,9 +962,8 @@ public class FabricWorkspaceClient {
 		return workspaceDetailDto;
 	}
 	
-	public ErrorResponseDto assignCapacity(String workspaceId, boolean isPowerBI) {
+	public ErrorResponseDto assignCapacity(String workspaceId, String capacityId) {
 		ErrorResponseDto errorResponse = new ErrorResponseDto();
-		String capacityId = isPowerBI ? powerbiCapacityId : fabricCapacityId;
 		try {
 			String token = getToken();
 			if(!Objects.nonNull(token)) {
