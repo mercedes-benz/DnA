@@ -299,6 +299,13 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave, user}) => {
       ProgressIndicator.hide();
       history.push(`/workspace/${res.data.data.id}`);
       Notification.show('Fabric Workspace successfully created');
+      const errors = res?.data?.responses?.errors || [];
+      const warnings = res?.data?.responses?.warnings || [];
+      if (errors.length > 0) {
+        errors.forEach((err) => Notification.show(err?.message || 'An error occurred', 'alert'));
+      } else if (warnings.length > 0) {
+        warnings.forEach((warn) => Notification.show(warn?.message || 'A warning occurred', 'warning'));
+      }
     }).catch(error => {
       ProgressIndicator.hide();
       Notification.show(
@@ -332,9 +339,16 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave, user}) => {
       ...(values.leanIX || {})
     }
     ProgressIndicator.show();
-    fabricApi.updateFabricWorkspace(workspace.id, data).then(() => {
+    fabricApi.updateFabricWorkspace(workspace.id, data).then((res) => {
       ProgressIndicator.hide();
       Notification.show('Fabric workspace successfully updated');
+      const errors = res?.data?.responses?.errors || [];
+      const warnings = res?.data?.responses?.warnings || [];
+      if (errors.length > 0) {
+        errors.forEach((err) => Notification.show(err?.message || 'An error occurred', 'alert'));
+      } else if (warnings.length > 0) {
+        warnings.forEach((warn) => Notification.show(warn?.message || 'A warning occurred', 'warning'));
+      }
       onSave();
     }).catch(error => {
       ProgressIndicator.hide();
