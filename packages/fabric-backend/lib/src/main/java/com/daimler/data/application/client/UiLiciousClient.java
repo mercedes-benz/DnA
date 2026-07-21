@@ -221,6 +221,11 @@ public class UiLiciousClient {
 
         List<String> ddxGroupList = new ArrayList<>();
         ddxGroupList.add(ddxGroup);
+        List<Map<String,Object>> selectionList = new ArrayList<>();
+        Map<String,Object> selection = new HashMap<>();
+        selection.put("schema",schemaName);
+        selection.put("tables", objects);
+        selectionList.add(selection);
 
         Map<String, Object> dataMap = new HashMap<>();
         dataMap.put("email", email);
@@ -232,7 +237,7 @@ public class UiLiciousClient {
         dataMap.put("WorkspaceID_MirrorCreation", workspaceId);
         dataMap.put("WorkspaceName", workspaceName);
         dataMap.put("network_connectionName", networkConnectionName);
-        dataMap.put("tables", objects);
+        dataMap.put("selection", selectionList);
 
         String data;
         try {
@@ -578,12 +583,6 @@ public class UiLiciousClient {
         resultMap.put("createdAt", createdAt);
     }
 
-    // if(resultMap.containsKey("error")){
-    //     log.warn("Error found in steps description for testRunID {}: {}", testRunID, resultMap.get("error"));
-    //     return resultMap;
-    // }
-
-    
     List<UiLicioueMirrorCatalogStepsDto> groupsStatusStep = steps
             .stream()
             .filter(step -> step != null && step.getDescription() != null && step.getDescription().contains((ConstantsUtility.UILICIOUS_GROUP_STATUS_CONSTANT)) &&
@@ -622,10 +621,6 @@ public class UiLiciousClient {
         groupDetail.setUpdatedOn(new Date());
     });
     
-    // String groupMsg = responseGroupsStatusList.stream()
-    //     .map(groupData -> "Group: " + groupData.get(ConstantsUtility.UILICIOUS_GROUP_CONSTANT) + ", Status: " + groupData.get(ConstantsUtility.UILICIOUS_GROUP_STATUS_CONSTANT))
-    //     .collect(Collectors.joining("; "));
-
     if(!data.getFullSchema()){
 
         List<UiLicioueMirrorCatalogStepsDto> tableStatusStep = steps
@@ -656,11 +651,11 @@ public class UiLiciousClient {
         data.getObjects().forEach(tableDetails -> {
             String tableName = tableDetails.getObjectName();
             String tableStatus = responseTableStatusList.stream()
-                    .filter(tableData -> tableData.get(ConstantsUtility.UILICIOUS_TABLE_CONSTANT).equals(tableName))
+                    .filter(tableData -> tableName.equals(tableData.get(ConstantsUtility.UILICIOUS_NAME_CONSTANT)))
                     .map(tableData -> tableData.get(ConstantsUtility.UILICIOUS_GROUP_STATUS_CONSTANT))
                     .findFirst()
                     .orElse(ConstantsUtility.MIRRORED_CATALOG_FAILURE);
-            tableDetails.setObjectStatus(tableStatus);
+            tableDetails.setObjectStatus(ConstantsUtility.UILICIOUS_KEPT_CONSTANT.equalsIgnoreCase(tableStatus) ? ConstantsUtility.SUCCESS_STATE : tableStatus);
         });
     }else{
         data.setObjects(null);

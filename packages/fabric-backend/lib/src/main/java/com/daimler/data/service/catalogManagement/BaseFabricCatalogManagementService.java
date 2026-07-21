@@ -2302,7 +2302,8 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
             //grant permission to the network connection for the central account.
             boolean flag =fabricWorkspaceClient.grantPermissionToNetworkConnection(networkConnectionId);
             if (!flag) {
-                networkConnectionName = "ADA_ADLS_WorkspaceIdentity2";
+                log.error("Failed to grant permission to network connection with id: {}", networkConnectionId);
+                throw new RuntimeException("Failed to grant permission to network connection for storage account: " + request.getStorageAccountUrl());
             }
         }
 
