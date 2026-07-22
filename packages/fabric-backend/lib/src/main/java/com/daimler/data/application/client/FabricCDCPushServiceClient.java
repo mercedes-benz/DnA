@@ -112,6 +112,10 @@ public class FabricCDCPushServiceClient {
 			}
 			vo.setResponseCode(response.getStatusCode().toString());
 
+        } catch (HttpStatusCodeException e) {
+            log.error("HTTP error occurred while fetching lakehouse tables for workspaceId: {}, lakehouseId: {}, status: {}, response: {}",
+                    workspaceId, lakehouseId, e.getStatusCode(), e.getResponseBodyAsString());
+            vo.setResponseCode(String.valueOf(e.getStatusCode().value()));
         } catch (Exception e) {
             log.error("Exception occurred while fetching lakehouse tables: {}", e.getMessage());
 			vo.setResponseCode(String.valueOf(HttpStatus.SC_INTERNAL_SERVER_ERROR));
@@ -154,6 +158,10 @@ public class FabricCDCPushServiceClient {
 			}
 			vo.setResponseCode(response.getStatusCode().toString());
 
+		} catch (HttpStatusCodeException e) {
+			log.error("HTTP error occurred while fetching table schema for workspaceId: {}, lakehouseId: {}, tableName: {}, status: {}, response: {}",
+					workspaceId, lakehouseId, tableName, e.getStatusCode(), e.getResponseBodyAsString());
+			vo.setResponseCode(String.valueOf(e.getStatusCode().value()));
 		} catch (Exception e) {
 			log.error("Exception occurred while fetching table schema: {}", e.getMessage());
 			vo.setResponseCode(String.valueOf(HttpStatus.SC_INTERNAL_SERVER_ERROR));
