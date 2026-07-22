@@ -815,6 +815,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave, user}) => {
                         value="PowerBI"
                         name="subscription"
                         defaultChecked={subscription === 'PowerBI'}
+                        disabled={edit && !isFabricAdmin}
                         {...register('subscription', {
                           required: '*Missing entry',
                           onChange: (e) => { setSubscription(e.target.value) }
@@ -831,6 +832,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave, user}) => {
                         value="Fabric"
                         name="subscription"
                         defaultChecked={subscription === 'Fabric'}
+                        disabled={edit && !isFabricAdmin}
                         {...register('subscription', {
                           required: '*Missing entry',
                           onChange: (e) => { setSubscription(e.target.value) }
