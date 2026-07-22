@@ -3542,107 +3542,122 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 							 "updated deployment details successfully for projectName {} , branch {} , targetEnv {} and status {}",
 							 projectName, branch, targetEnv, latestStatus);
 				 }else if("BUILD_SUCCESS".equalsIgnoreCase(latestStatus) || "BUILD_FAILED".equalsIgnoreCase(latestStatus)){
-					// ---- Stale / late-workflow protection -------------------------------------
-					String currentBuildVersion = buildDetails != null ? buildDetails.getVersion() : null;
-					String currentBuildStatus  = buildDetails != null ? buildDetails.getLastBuildStatus() : null;
-					boolean versionMismatch = version != null && currentBuildVersion != null
-							&& !version.equalsIgnoreCase(currentBuildVersion);
-					boolean alreadyTerminal = isBuildTerminal(currentBuildStatus);
-					if (versionMismatch || alreadyTerminal) {
-						if ("BUILD_SUCCESS".equalsIgnoreCase(latestStatus)) {
-							log.warn("update - Ignoring late BUILD_SUCCESS (stale/terminal) project={}, env={}, incomingVersion={}, currentVersion={}, currentStatus={}, runId={}.",
-									projectName, targetEnv, version, currentBuildVersion, currentBuildStatus, gitJobRunId);
-							// Only clean up the artifact of a genuinely superseded/timed-out request,
-							// never a duplicate success of the current build.
-							if (versionMismatch || "BUILD_FAILED".equalsIgnoreCase(currentBuildStatus)) {
-								String deployedVersion = deploymentDetails != null ? deploymentDetails.getLastDeployedVersion() : null;
+						// Stale / late-workflow protection
+						String currentBuildVersion = buildDetails != null ? buildDetails.getVersion() : null;
+						String currentBuildStatus = buildDetails != null ? buildDetails.getLastBuildStatus() : null;
+						boolean versionMismatch = version != null && currentBuildVersion != null
+								&& !version.equalsIgnoreCase(currentBuildVersion);
+						boolean alreadyTerminal = isBuildTerminal(currentBuildStatus);
+						if (versionMismatch || alreadyTerminal) {
+							log.warn(
+									"update - Ignoring late {} (stale/terminal) project={}, env={}, incomingVersion={}, currentVersion={}, currentStatus={}, runId={}.",
+									latestStatus, projectName, targetEnv, version, currentBuildVersion,
+									currentBuildStatus, gitJobRunId);
+							// Clean up the orphaned Harbor artifact for the superseded/timed-out request on
+							// BOTH late success AND late failure — a late run may still have pushed an
+							// image.
+							// Guarded so we never delete the current build's own (successful/deployed)
+							// image.
+							boolean safeToDelete = versionMismatch
+									|| "BUILD_FAILED".equalsIgnoreCase(currentBuildStatus);
+							if (safeToDelete) {
+								String deployedVersion = deploymentDetails != null
+										? deploymentDetails.getLastDeployedVersion()
+										: null;
 								deleteStaleBuildImage(projectName, targetEnv, version, deployedVersion);
 							}
-						} else {
-							log.info("update - Ignoring late BUILD_FAILED (stale/terminal) project={}, env={}, incomingVersion={}, currentVersion={}, currentStatus={}, runId={}.",
-									projectName, targetEnv, version, currentBuildVersion, currentBuildStatus, gitJobRunId);
+							responseMessage.setSuccess("SUCCESS"); // ack the callback; DB intentionally unchanged
+							responseMessage.setWarnings(warnings);
+							responseMessage.setErrors(errors);
+							return responseMessage;
 						}
-						responseMessage.setSuccess("SUCCESS"); // ack the callback; DB intentionally unchanged
-						responseMessage.setWarnings(warnings);
-						responseMessage.setErrors(errors);
-						return responseMessage;
-					}
-					// ---- end protection -------------------------------------------------------
-					buildDetails.setLastBuildStatus(latestStatus);
-					buildDetails.setLastBuildOn(now);
-					buildDetails.setLastBuildBy(entity.getData().getWorkspaceOwner());
-					buildDetails.setGitjobRunID(gitJobRunId);
-					buildDetails.setLastBuildBranch(branch);
+
+						buildDetails.setLastBuildStatus(latestStatus);
+						buildDetails.setLastBuildOn(now);
+						buildDetails.setLastBuildBy(entity.getData().getWorkspaceOwner());
+						buildDetails.setGitjobRunID(gitJobRunId);
+						buildDetails.setLastBuildBranch(branch);
 
 						workspaceCustomRepository.updateBuildDetails(projectName, targetEnv,
-						buildDetails);	
-				   
-				   Boolean keepBuildImage = false;
-				   
-				   if(optionalBuildDeployentity != null){
-					   buildDeployentity = optionalBuildDeployentity;
-					   buildDeployData = buildDeployentity.getData();
-					   Boolean buildImageDeleted = false;
-					   if("int".equalsIgnoreCase(targetEnv)){							
-						   int lastIndex = buildDeployData.getIntBuildAuditLogs().size() - 1;
-						   buildDeployData.getIntBuildAuditLogs().get(lastIndex).setBuildOn(now);
-						   buildDeployData.getIntBuildAuditLogs().get(lastIndex).setBuildStatus(latestStatus);
-						   keepBuildImage = buildDeployData.getIntBuildAuditLogs().get(lastIndex).isKeepBuildImage();
-					   }else{
-						   int lastIndex = buildDeployData.getProdBuildAuditLogs().size() - 1;
-						   buildDeployData.getProdBuildAuditLogs().get(lastIndex).setBuildOn(now);
-						   buildDeployData.getProdBuildAuditLogs().get(lastIndex).setBuildStatus(latestStatus);
-						   keepBuildImage = buildDeployData.getProdBuildAuditLogs().get(lastIndex).isKeepBuildImage();
-					   }
-					   
-					   boolean isPrivateRecipeForDeletion = entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase().startsWith("private");
-					   
-					   if("BUILD_SUCCESS".equalsIgnoreCase(latestStatus) && buildDetails.getLastBuildType().equalsIgnoreCase("build") && !isPrivateRecipeForDeletion){
-					if(!keepBuildImage){
-							GenericMessage deleteApiResonse = client.deleteBuild(projectName, version);
-									if(deleteApiResonse.getSuccess().equalsIgnoreCase("SUCCESS")){
+								buildDetails);
+
+						Boolean keepBuildImage = false;
+
+						if (optionalBuildDeployentity != null) {
+							buildDeployentity = optionalBuildDeployentity;
+							buildDeployData = buildDeployentity.getData();
+							Boolean buildImageDeleted = false;
+							if ("int".equalsIgnoreCase(targetEnv)) {
+								int lastIndex = buildDeployData.getIntBuildAuditLogs().size() - 1;
+								buildDeployData.getIntBuildAuditLogs().get(lastIndex).setBuildOn(now);
+								buildDeployData.getIntBuildAuditLogs().get(lastIndex).setBuildStatus(latestStatus);
+								keepBuildImage = buildDeployData.getIntBuildAuditLogs().get(lastIndex)
+										.isKeepBuildImage();
+							} else {
+								int lastIndex = buildDeployData.getProdBuildAuditLogs().size() - 1;
+								buildDeployData.getProdBuildAuditLogs().get(lastIndex).setBuildOn(now);
+								buildDeployData.getProdBuildAuditLogs().get(lastIndex).setBuildStatus(latestStatus);
+								keepBuildImage = buildDeployData.getProdBuildAuditLogs().get(lastIndex)
+										.isKeepBuildImage();
+							}
+
+							boolean isPrivateRecipeForDeletion = entity.getData().getProjectDetails().getRecipeDetails()
+									.getRecipeId().toString().toLowerCase().startsWith("private");
+
+							if ("BUILD_SUCCESS".equalsIgnoreCase(latestStatus)
+									&& buildDetails.getLastBuildType().equalsIgnoreCase("build")
+									&& !isPrivateRecipeForDeletion) {
+								if (!keepBuildImage) {
+									GenericMessage deleteApiResonse = client.deleteBuild(projectName, version);
+									if (deleteApiResonse.getSuccess().equalsIgnoreCase("SUCCESS")) {
 										buildImageDeleted = true;
 									}
-					}
-					}
-					if(buildImageDeleted){
-						if("int".equalsIgnoreCase(targetEnv)){
-							int lastIndex = buildDeployData.getIntBuildAuditLogs().size() - 1;
-							buildDeployData.getIntBuildAuditLogs().get(lastIndex).setImageDeleted(true);
-						}else{
-							int lastIndex = buildDeployData.getProdBuildAuditLogs().size() - 1;
-							buildDeployData.getProdBuildAuditLogs().get(lastIndex).setImageDeleted(true);
-						}
-					}
+								}
+							}
+							if (buildImageDeleted) {
+								if ("int".equalsIgnoreCase(targetEnv)) {
+									int lastIndex = buildDeployData.getIntBuildAuditLogs().size() - 1;
+									buildDeployData.getIntBuildAuditLogs().get(lastIndex).setImageDeleted(true);
+								} else {
+									int lastIndex = buildDeployData.getProdBuildAuditLogs().size() - 1;
+									buildDeployData.getProdBuildAuditLogs().get(lastIndex).setImageDeleted(true);
+								}
+							}
 
-					   buildDeployentity.setData(buildDeployData);
-					   buildDeployRepo.save(buildDeployentity);
-				   }
-				   status = "SUCCESS";
-				   boolean isPrivateRecipe = false;
-				   if(entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toString().toLowerCase().startsWith("private")){
-					isPrivateRecipe = true;
-				   }
-					log.info(
-							"updated build details successfully for projectName {} , branch {} , targetEnv {} and status {}",
-							projectName, branch, targetEnv, latestStatus);
-							if("BUILD_SUCCESS".equalsIgnoreCase(latestStatus) && buildDetails.getLastBuildType().equalsIgnoreCase("buildAndDeploy")){
-								this.deployWorkspace(userId, entity.getId(), targetEnv, branch,
-								isPrivateRecipe,version,"buildAndDeploy", keepBuildImage);
-				   log.info("User {} deployed workspace {} project {}", userId, wsId,
-						   entity.getData().getProjectDetails().getRecipeDetails().getRecipeId());
-							   
-					}
-					if("BUILD_SUCCESS".equalsIgnoreCase(latestStatus) && buildDetails.getLastBuildType().equalsIgnoreCase("build") && isPrivateRecipe){
-						this.deployWorkspace(userId, entity.getId(), targetEnv, branch,
-						isPrivateRecipe,version,"build", keepBuildImage);
-						log.info("[Private Recipe] User {} auto-deploying workspace {} project {} after successful build", userId, wsId,
-							entity.getData().getProjectDetails().getRecipeDetails().getRecipeId());
-					}
-					// else{
-					// 	log.info("User {} deployed workspace failed because of build failure {} project {}", userId, wsId,
-					// 	   entity.getData().getProjectDetails().getRecipeDetails().getRecipeId());
-					// }
+							buildDeployentity.setData(buildDeployData);
+							buildDeployRepo.save(buildDeployentity);
+						}
+						status = "SUCCESS";
+						boolean isPrivateRecipe = false;
+						if (entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toString()
+								.toLowerCase().startsWith("private")) {
+							isPrivateRecipe = true;
+						}
+						log.info(
+								"updated build details successfully for projectName {} , branch {} , targetEnv {} and status {}",
+								projectName, branch, targetEnv, latestStatus);
+						if ("BUILD_SUCCESS".equalsIgnoreCase(latestStatus)
+								&& buildDetails.getLastBuildType().equalsIgnoreCase("buildAndDeploy")) {
+							this.deployWorkspace(userId, entity.getId(), targetEnv, branch,
+									isPrivateRecipe, version, "buildAndDeploy", keepBuildImage);
+							log.info("User {} deployed workspace {} project {}", userId, wsId,
+									entity.getData().getProjectDetails().getRecipeDetails().getRecipeId());
+
+						}
+						if ("BUILD_SUCCESS".equalsIgnoreCase(latestStatus)
+								&& buildDetails.getLastBuildType().equalsIgnoreCase("build") && isPrivateRecipe) {
+							this.deployWorkspace(userId, entity.getId(), targetEnv, branch,
+									isPrivateRecipe, version, "build", keepBuildImage);
+							log.info(
+									"[Private Recipe] User {} auto-deploying workspace {} project {} after successful build",
+									userId, wsId,
+									entity.getData().getProjectDetails().getRecipeDetails().getRecipeId());
+						}
+						// else{
+						// log.info("User {} deployed workspace failed because of build failure {}
+						// project {}", userId, wsId,
+						// entity.getData().getProjectDetails().getRecipeDetails().getRecipeId());
+						// }
 				} else {
 					 if (!"DEPLOYMENT_FAILED".equalsIgnoreCase(latestStatus) && !"FAILED".equalsIgnoreCase(latestStatus)) {
 						 deploymentDetails.setDeploymentUrl(deploymentUrl);
@@ -6122,7 +6137,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 			String staleVersion, String deployedVersion) {
 		try {
 			if (staleVersion == null || staleVersion.isBlank()) {
-				return;
+				return; // nothing to delete
 			}
 			if (deployedVersion != null && staleVersion.equalsIgnoreCase(deployedVersion)) {
 				log.warn("deleteStaleBuildImage - SKIP: version={} is the currently-deployed version for project={}",
@@ -6149,22 +6164,27 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 			if (target != null && (target.isKeepBuildImage() || target.isImageDeleted())) {
 				log.info("deleteStaleBuildImage - SKIP project={} version={} (keepBuildImage={}, imageDeleted={})",
 						projectName, staleVersion, target.isKeepBuildImage(), target.isImageDeleted());
-				return;
+				return; // idempotent: already deleted / retained
 			}
-			GenericMessage resp = client.deleteBuild(projectName, staleVersion);
+			GenericMessage resp = client.deleteBuild(projectName, staleVersion); // 404 -> SUCCESS, never throws
 			if (resp != null && "SUCCESS".equalsIgnoreCase(resp.getSuccess())) {
-				log.info("deleteStaleBuildImage - Deleted stale artifact {}:{} (env={})", projectName, staleVersion,
-						environment);
+				log.info("deleteStaleBuildImage - Deleted (or already-absent) stale artifact {}:{} (env={})",
+						projectName, staleVersion, environment);
 				if (target != null) {
 					target.setImageDeleted(true);
 					buildDeployEntity.setData(data);
 					buildDeployRepo.save(buildDeployEntity);
 				}
 			} else {
-				log.warn("deleteStaleBuildImage - FAILED to delete stale artifact {}:{}", projectName, staleVersion);
+				// Non-fatal: log and move on; the ignore/ack path still completes normally.
+				log.warn(
+						"deleteStaleBuildImage - Could not delete stale artifact {}:{} (registry returned non-success); continuing.",
+						projectName, staleVersion);
 			}
 		} catch (Exception e) {
-			log.warn("deleteStaleBuildImage - error deleting {}:{}: {}", projectName, staleVersion, e.getMessage());
+			// Absolutely never let artifact cleanup break the status-update flow.
+			log.warn("deleteStaleBuildImage - error deleting {}:{}: {} (ignored, flow continues)",
+					projectName, staleVersion, e.getMessage());
 		}
 	}
 
