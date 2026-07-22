@@ -256,6 +256,9 @@ dependencies {
     implementation 'io.github.openfeign:feign-core:13.6'
     implementation 'io.github.openfeign:feign-jackson:13.6'
     implementation 'io.github.openfeign:feign-okhttp:13.6'
+
+    implementation group: 'org.springframework.cloud', name: 'spring-cloud-stream-binder-kafka', version: '3.1.4'
+	implementation group: 'org.springframework.kafka', name: 'spring-kafka', version: '2.7.7' 
 }
 
 tasks.named('test') {

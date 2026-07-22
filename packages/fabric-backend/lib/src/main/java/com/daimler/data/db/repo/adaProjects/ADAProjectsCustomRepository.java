@@ -28,6 +28,7 @@
 package com.daimler.data.db.repo.adaProjects;
 
 import java.util.List;
+import java.util.Optional;
 
 import com.daimler.data.db.entities.ADAProjectsNsql;
 import com.daimler.data.db.repo.common.CommonDataRepository;
@@ -40,5 +41,7 @@ public interface ADAProjectsCustomRepository extends CommonDataRepository<ADAPro
 	List<ADAProjectsNsql> findAllByCreator (String creator, int offset, int limit);
 	
     List<ADAProjectsNsql> searchProjectsByName(String projectName);
+
+	Optional<ADAProjectsNsql> findByProjectId(String projectId);
 
 }

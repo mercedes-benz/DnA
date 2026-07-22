@@ -30,6 +30,7 @@ package com.daimler.data.db.repo.adaProjects;
 import java.math.BigInteger;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.Collections;
 
@@ -199,6 +200,30 @@ public class ADAProjectsCustomRepositoryImpl extends CommonDataRepositoryImpl<AD
 			log.error("Error fetching ADA projects by name '{}': {}", projectName, e.getMessage(), e);
 			return Collections.emptyList();
 		}
+	}
+
+	@Override
+	public Optional<ADAProjectsNsql> findByProjectId(String projectId) {
+		try {
+			CriteriaBuilder cb = em.getCriteriaBuilder();
+			CriteriaQuery<ADAProjectsNsql> cq = cb.createQuery(ADAProjectsNsql.class);
+			Root<ADAProjectsNsql> root = cq.from(ADAProjectsNsql.class);
+
+			Predicate predicate = cb.equal(
+				cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("projectID")),
+				projectId
+			);
+			cq.select(root).where(predicate);
+
+			TypedQuery<ADAProjectsNsql> query = em.createQuery(cq);
+			List<ADAProjectsNsql> results = query.getResultList();
+			if (results != null && !results.isEmpty()) {
+				return Optional.of(results.get(0));
+			}
+		} catch (Exception e) {
+			log.error("Error fetching ADA project by projectId '{}': {}", projectId, e.getMessage(), e);
+		}
+		return Optional.empty();
 	}
 
 }
