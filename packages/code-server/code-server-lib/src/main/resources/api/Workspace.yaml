@@ -2095,6 +2095,9 @@ definitions:
       version:
         type: string
         description: "version of the last build"
+      lastBuildFailureReason:
+        type: string
+        description: "Reason for last build failure (e.g. BUILD_TIMEOUT)"  
          
   CodeServerRecipeDetailsVO:
     type: object

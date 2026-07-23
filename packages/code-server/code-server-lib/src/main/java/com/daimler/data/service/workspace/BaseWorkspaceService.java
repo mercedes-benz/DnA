@@ -1670,28 +1670,29 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 						entity.getData().getProjectDetails().getProjectName(), currentStatus, isBuildRequested);
 
 				if (isBuildRequested) {
-					Date requestedOn = entity.getData().getProjectDetails().getLastBuildOrDeployedOn();
+					String projectName = entity.getData().getProjectDetails().getProjectName();
+					String environment = entity.getData().getProjectDetails().getLastBuildOrDeployedEnv();
+					CodeServerBuildDetails buildDetails = "int".equalsIgnoreCase(environment)
+							? entity.getData().getProjectDetails().getIntBuildDetails()
+							: entity.getData().getProjectDetails().getProdBuildDetails();
+					// measure from the env-specific build start (lastBuildOn), NOT the
+					// shared
+					// project-level lastBuildOrDeployedOn (which also reflects deploys / the other
+					// env).
+					Date requestedOn = (buildDetails != null && buildDetails.getLastBuildOn() != null)
+							? buildDetails.getLastBuildOn()
+							: entity.getData().getProjectDetails().getLastBuildOrDeployedOn();
 					if (requestedOn != null) {
 						long minutesSinceRequest = Duration.between(requestedOn.toInstant(), Instant.now()).toMinutes();
-						log.info("getById - project={}, status={}, minutesSinceRequest={}, staleThreshold={}min",
-								entity.getData().getProjectDetails().getProjectName(), currentStatus,
-								minutesSinceRequest, staleThresholdMinutes);
+						log.info(
+								"getById - project={}, status={}, env={}, minutesSinceRequest={}, staleThreshold={}min",
+								projectName, currentStatus, environment, minutesSinceRequest, staleThresholdMinutes);
 
 						if (minutesSinceRequest >= staleThresholdMinutes) {
 							log.info("getById - Stale threshold exceeded for project={}, proceeding to call GitHub API",
 									entity.getData().getProjectDetails().getProjectName());
 							// Determine if gitJobRunId exists for the build
-							String gitJobRunId = null;
-							CodeServerBuildDetails buildDetails = entity.getData().getProjectDetails()
-									.getIntBuildDetails();
-							if (!"int".equalsIgnoreCase(
-									entity.getData().getProjectDetails().getLastBuildOrDeployedEnv())) {
-								buildDetails = entity.getData().getProjectDetails().getProdBuildDetails();
-							}
-							if (buildDetails != null) {
-								gitJobRunId = buildDetails.getGitjobRunID();
-							}
-
+							String gitJobRunId = buildDetails != null ? buildDetails.getGitjobRunID() : null;
 							if (gitJobRunId != null && !gitJobRunId.isBlank()) {
 								log.info("getById - Fetching latest status from GitHub for project={}, runId={}",
 										entity.getData().getProjectDetails().getProjectName(), gitJobRunId);
@@ -1702,9 +1703,6 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 										&& buildDeployJob.getConclusion() != null) {
 									String finalStatus = resolveFinalStatus(currentStatus,
 											buildDeployJob.getConclusion());
-									String projectName = entity.getData().getProjectDetails().getProjectName();
-									String environment = entity.getData().getProjectDetails()
-											.getLastBuildOrDeployedEnv();
 
 									log.info(
 											"getById - Build/Deploy job completed for project={}, conclusion={}, resolvedStatus={}",
@@ -1843,75 +1841,42 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 											buildDeployJob.getStatus(), buildDeployJob.getConclusion());
 								}
 							} else {
-								// No runId was ever generated and the threshold has passed -> the workflow
-								// never started.
-								// Re-check under the current transaction to avoid racing a runId callback that
-								// just arrived.
-								String projectName = entity.getData().getProjectDetails().getProjectName();
-								String environment = entity.getData().getProjectDetails().getLastBuildOrDeployedEnv();
-								boolean stillNoRunId = buildDetails == null
-										|| buildDetails.getGitjobRunID() == null
-										|| buildDetails.getGitjobRunID().isBlank();
-								boolean stillRequested = "BUILD_REQUESTED".equalsIgnoreCase(
-										entity.getData().getProjectDetails().getLastBuildOrDeployedStatus());
-
-								if (!stillNoRunId || !stillRequested) {
-									log.info(
-											"getById - Skipping timeout-fail for project={}: runId arrived or status changed (status={}, runId={})",
-											projectName,
-											entity.getData().getProjectDetails().getLastBuildOrDeployedStatus(),
-											buildDetails != null ? buildDetails.getGitjobRunID() : null);
-								} else {
-									log.warn(
-											"getById - No gitJobRunId for project={}, env={}, BUILD_REQUESTED for {} min (threshold={}min). Marking BUILD_FAILED (timeout).",
-											projectName, environment, minutesSinceRequest, staleThresholdMinutes);
-									try {
-										SimpleDateFormat isoFormat = new SimpleDateFormat(
-												"yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
-										Date now = isoFormat.parse(isoFormat.format(new Date()));
-
+								// No runId generated within threshold -> time the build out.
+								log.warn("getById - No gitJobRunId within {} min for project={}, env={}. Marking BUILD_FAILED (timeout).",
+										staleThresholdMinutes, projectName, environment);
+								try {
+									SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
+									Date now = isoFormat.parse(isoFormat.format(new Date()));
+									entity.getData().getProjectDetails().setLastBuildOrDeployedStatus("BUILD_FAILED");
+									if (buildDetails != null) {
 										buildDetails.setLastBuildStatus("BUILD_FAILED");
-										buildDetails.setLastBuildOn(now);
 										buildDetails.setLastBuildFailureReason("BUILD_TIMEOUT");
-										entity.getData().getProjectDetails()
-												.setLastBuildOrDeployedStatus("BUILD_FAILED");
-										workspaceCustomRepository.update(entity);
-
-										// Keep build_deploy_nsql audit consistent: fail the LATEST build audit for this
-										// env
-										// (matched by index because there is no runId to match on).
-										CodeServerBuildDeployNsql buildDeployEntity = buildDeployCustomRepo
-												.findByProjectName(projectName);
-										if (buildDeployEntity != null && buildDeployEntity.getData() != null) {
-											CodeServerBuildDeploy bd = buildDeployEntity.getData();
-											List<BuildAudit> auditLogs = "int".equalsIgnoreCase(environment)
-													? bd.getIntBuildAuditLogs()
-													: bd.getProdBuildAuditLogs();
-											if (auditLogs != null && !auditLogs.isEmpty()) {
-												BuildAudit last = auditLogs.get(auditLogs.size() - 1);
-												last.setBuildStatus("BUILD_FAILED");
-												last.setBuildOn(now);
-												last.setFailureReason("BUILD_TIMEOUT");
-												buildDeployEntity.setData(bd);
-												buildDeployRepo.save(buildDeployEntity);
-											} else {
-												log.warn("getById - No build audit logs to fail for project={}, env={}",
-														projectName, environment);
-											}
-										}
-										log.info("getById - Timeout-failed stuck build project={}, env={}, version={}",
-												projectName, environment, buildDetails.getVersion());
-									} catch (Exception e) {
-										log.error("getById - Failed to timeout-fail build project={}: {}", projectName,
-												e.getMessage(), e);
+										buildDetails.setLastBuildOn(now);
 									}
+									workspaceCustomRepository.update(entity);
+									CodeServerBuildDeployNsql buildDeployEntity = buildDeployCustomRepo.findByProjectName(projectName);
+									if (buildDeployEntity != null) {
+										CodeServerBuildDeploy buildDeployData = buildDeployEntity.getData();
+										List<BuildAudit> auditLogs = "int".equalsIgnoreCase(environment)
+												? buildDeployData.getIntBuildAuditLogs()
+												: buildDeployData.getProdBuildAuditLogs();
+										if (auditLogs != null && !auditLogs.isEmpty()) {
+											BuildAudit last = auditLogs.get(auditLogs.size() - 1);
+											last.setBuildStatus("BUILD_FAILED");
+											last.setBuildOn(now);
+										}
+										buildDeployEntity.setData(buildDeployData);
+										buildDeployRepo.save(buildDeployEntity);
+									}
+									log.info("getById - Timeout auto-fail applied for project={}, env={}", projectName, environment);
+								} catch (Exception e) {
+									log.error("getById - Timeout auto-fail failed for project={}: {}", projectName, e.getMessage(), e);
 								}
 							}
 						} else {
 							log.info(
-									"getById - Stale threshold NOT exceeded for project={}, minutesSinceRequest={}, threshold={}min. Skipping GitHub call.",
-									entity.getData().getProjectDetails().getProjectName(), minutesSinceRequest,
-									staleThresholdMinutes);
+									"getById - Stale threshold NOT exceeded for project={}, minutesSinceRequest={}, threshold={}min. Skipping.",
+									projectName, minutesSinceRequest, staleThresholdMinutes);
 						}
 					}
 				}
