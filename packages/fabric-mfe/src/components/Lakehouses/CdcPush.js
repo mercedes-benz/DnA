@@ -192,9 +192,17 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
     fabricApi.getLakehouseTables(workspaceId, lakehouseId)
       .then(res => {
         const fetchedTables = res?.data?.data?.tables || [];
-        setTables(fetchedTables);
-        const hasSchemaName = fetchedTables.length > 0 && fetchedTables.some(t => t.schemaName && t.schemaName.trim() !== '');
-        setSchemaEnabled(fetchedTables.length === 0 || hasSchemaName);
+        const seenTableKeys = new Set();
+        const uniqueTables = fetchedTables.filter(table => {
+          const tableKey = `${(table.schemaName || '').trim()}::${table.tableName || ''}`;
+          if (seenTableKeys.has(tableKey)) return false;
+          seenTableKeys.add(tableKey);
+          return true;
+        });
+        setTables(uniqueTables);
+        const hasSchemaName = uniqueTables.length > 0
+          && uniqueTables.every(t => t.schemaName && t.schemaName.trim() !== '');
+        setSchemaEnabled(hasSchemaName);
         setSchemaCheckLoading(false);
         ProgressIndicator.hide();
       })
@@ -809,9 +817,10 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
         {tables.map((table, idx) => {
           const panelId = `table-${idx}`;
           const tableName = table.tableName;
+          const tableKey = `${(table.schemaName || '').trim()}::${tableName || ''}`;
 
           return (
-            <div key={tableName} className="expansion-panel">
+            <div key={tableKey} className="expansion-panel">
               <span className="animation-wrapper" />
               <input type="checkbox" className="ff-only" id={panelId} />
               <div className={Styles.tableRow}>
