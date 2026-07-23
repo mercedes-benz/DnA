@@ -204,8 +204,9 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
         });
         const uniqueTables = Array.from(tablesByName.values());
         setTables(uniqueTables);
-        const hasSchemaName = uniqueTables.length > 0
-          && uniqueTables.every(t => t.schemaName && t.schemaName.trim() !== '');
+        // Judge schema support from raw rows because schema-less lakehouses also expose a dbo SQL-endpoint copy.
+        const hasSchemaName = fetchedTables.length > 0
+          && fetchedTables.every(t => t.schemaName && t.schemaName.trim() !== '');
         setSchemaEnabled(hasSchemaName);
         setSchemaCheckLoading(false);
         ProgressIndicator.hide();
