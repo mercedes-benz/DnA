@@ -26,10 +26,8 @@ const dataQToolUrl = Envs.DATAQ_TOOL_URL;
 const datasphereUrl = Envs.DATASPHERE_TOOL_URL;
 const extolloUrl = Envs.EXTOLLO_TOOL_URL;
 const powerBIUrl = Envs.POWER_BI_TOOL_URL;
-const dataModelUrl = Envs.DATA_MODEL_URL;
 const ddxUrl = Envs.DDX_URL;
 const corporateDataCatalogUrl = Envs.CORPORATE_DATA_CATALOG_URL;
-const smartDataGovernanceUrl = Envs.SMART_DATA_GOVERNANCE_URL;
 const spireUrl = Envs.SPIRE_URL;
 const odinUrl = Envs.ODIN_URL; 
 const sassUrl = Envs.SASS_URL;
@@ -47,48 +45,7 @@ const bisoContactsLink = Envs.BISO_CONTACTS_URL;
 const clamavImagwUrl = Envs.CLAMAV_IMAGE_URL;
 // const formbricksSurveyUrl = Envs.FORMBRICKS_SURVEY_URL;
 const pgAdminUrl = Envs.PGADMIN_URL;
-
-export const DataLayerElements = [
-  {
-    name: 'Data Model',
-    description:
-      'The Data Model shows the most important Master data dimensions and how they relate to each other.',
-    tags: ['Self Service', 'FOSS'],
-    url: dataModelUrl,
-    isExternalLink: true,
-    isTextAlignLeft: false,
-    isDisabled: !dataModelUrl?.startsWith('http'),
-    isSmallCard: false,
-    isMediumCard: true,
-    svgIcon: 'dataproduct',
-  },
-  {
-    name: 'Corporate Data Catalogue',
-    description:
-      'Catalog of Mercedes-Benz data assets. If you never logged in the CDC before, a user will be generated for your this can take a while. CarLA systems can be found by searching for CarLA.',
-    tags: ['Self Service', 'FOSS'],
-    url: corporateDataCatalogUrl,
-    isExternalLink: true,
-    isTextAlignLeft: false,
-    isDisabled: !corporateDataCatalogUrl?.startsWith('http'),
-    isSmallCard: false,
-    isMediumCard: true,
-    svgIcon: 'dataproduct',
-  },
-  {
-    name: 'Smart Data Governance',
-    description:
-      'Information on the compliance with architecture guidelines and the data volume in the CarLA Core Datawarehouse.',
-    tags: ['Self Service', 'FOSS'],
-    url: smartDataGovernanceUrl,
-    isExternalLink: true,
-    isTextAlignLeft: false,
-    isDisabled: !smartDataGovernanceUrl?.startsWith('http'),
-    isSmallCard: false,
-    isMediumCard: true,
-    svgIcon: 'dataproduct',
-  },
-];
+const enableDbService = false;
 
 export const DataGovernanceElements = [
   {
@@ -215,6 +172,24 @@ export const ToolsLandingPageElements = [
     isMediumCard: true,
     isDetailedPage: true,
     svgIcon: 'fabric',
+    isDnAInternalTool: true,
+  },
+  {
+    id: 'dbservice',
+    name: 'DB Service',
+    description:
+      'DB Service provides Self Service PostgreSQL database creation and management using pgAdmin. DB can be connected to many tools using the connection details.',
+    tags: ['Data Engineering', 'Data Storage'],
+    url: '/dbservice',
+    isExternalLink: false,
+    isTextAlignLeft: true,
+    animation: true,
+    isDisabled: !enableDbService,
+    isMoreServicesCard:false,
+    isSmallCard: false,
+    isMediumCard: true,
+    isDetailedPage: false,
+    svgIcon: 'storage',
     isDnAInternalTool: true,
   },
   // {
@@ -698,14 +673,14 @@ export const TranparencyLandingPageElements = [
 
 export const DataLandingPageElements = [
   {
-    name: 'Data Products',
+    name: 'FC Data Products',
     description:
-      'Data is an excellent source to support all kinds of user groups. But where can you actually get valuable data in the company? Say hi to DDX! DDX offers a growing selection of data products, including direct request and access.',
-    tags: ['Self Service'],
-    url: ddxUrl,
-    isExternalLink: true,
+      'Data is one of the most valuable assets in our company, therefore we treat our data as a product! We offer you a growing selection of intuitive to use and well documented FC data products - check it out!',
+    tags: ['Self Service', 'FOSS'],
+    url: '/data/dataproducts',
+    isExternalLink: false,
     isTextAlignLeft: false,
-    isDisabled: !ddxUrl?.startsWith('http'),
+    isDisabled: false,
     isSmallCard: false,
     isMediumCard: false,
     svgIcon: 'dataproductoverview',
@@ -723,19 +698,32 @@ export const DataLandingPageElements = [
   //   isMediumCard: false,
   //   svgIcon: 'datamodel',
   // },
-  // {
-  //   name: 'Data Governance',
-  //   description:
-  //     'Understanding & fulfilling ever more complex Legal & Compliance requirements can be challenging. Data Governance helps you to navigate through these requirements and supports on you data journey.',
-  //   tags: ['Self Service', 'FOSS'],
-  //   url: '/data/datagovernance',
-  //   isExternalLink: false,
-  //   isTextAlignLeft: false,
-  //   isDisabled: false,
-  //   isSmallCard: false,
-  //   isMediumCard: false,
-  //   svgIcon: 'datagovernance',
-  // },
+  {
+    name: 'Data Governance',
+    description:
+      'Understanding & fulfilling ever more complex Legal & Compliance requirements can be challenging. Data Governance helps you to navigate through these requirements and supports on you data journey.',
+    tags: ['Self Service', 'FOSS'],
+    url: '/data/datagovernance',
+    isExternalLink: false,
+    isTextAlignLeft: false,
+    isDisabled: false,
+    isSmallCard: false,
+    isMediumCard: false,
+    svgIcon: 'datagovernance',
+  },
+  {
+    name: 'DDX Data Products',
+    description:
+      'Data is an excellent source to support all kinds of user groups. But where can you actually get valuable data in the company? Say hi to DDX! DDX offers a growing selection of data products, including direct request and access.',
+    tags: ['Self Service'],
+    url: ddxUrl,
+    isExternalLink: true,
+    isTextAlignLeft: false,
+    isDisabled: !ddxUrl?.startsWith('http'),
+    isSmallCard: false,
+    isMediumCard: false,
+    svgIcon: 'dataproductoverview',
+  },
   {
     name: 'Corporate Data Catalogue',
     description:

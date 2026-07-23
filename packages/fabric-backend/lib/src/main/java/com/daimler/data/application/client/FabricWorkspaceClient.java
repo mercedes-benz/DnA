@@ -51,6 +51,7 @@ import org.springframework.util.MultiValueMap;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
+import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.dto.fabric.AddDatasourceUserDto;
@@ -60,6 +61,7 @@ import com.daimler.data.dto.fabric.CreateDatasourceRequestDto;
 import com.daimler.data.dto.fabric.CreateLakehouseDto;
 import com.daimler.data.dto.fabric.CreateWorkspaceDto;
 import com.daimler.data.dto.fabric.DatasourceResponseDto;
+import com.daimler.data.dto.fabric.DdxOnboardingRequestDto;
 import com.daimler.data.dto.fabric.ErrorResponseDto;
 import com.daimler.data.dto.fabric.FabricGroupsCollectionDto;
 import com.daimler.data.dto.fabric.FabricOAuthResponse;
@@ -80,6 +82,11 @@ import com.daimler.data.dto.fabric.WorkspaceUpdateDto;
 import com.daimler.data.dto.fabric.WorkspacesCollectionDto;
 import com.daimler.data.util.ConstantsUtility;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.daimler.data.dto.fabric.FabricSqlEndpointResponseDto;
+import com.daimler.data.dto.fabric.DdxResponseDto;
+import com.daimler.data.dto.databricks.DatabricksSqlStatementRequestDto;
+import com.daimler.data.dto.databricks.DatabricksSqlStatementResponseDto;
+import com.daimler.data.application.auth.UserStore;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -127,7 +134,7 @@ public class FabricWorkspaceClient {
 	@Value("${fabricWorkspaces.fabricCapacityId}")
 	private String fabricCapacityId;
 	
-	@Value("${fabricWorkspaces.uri.login}")
+ 	@Value("${fabricWorkspaces.uri.login}")
 	private String loginUrl;
 	
 	@Value("${fabricWorkspaces.uri.workspacesBase}")
@@ -138,6 +145,9 @@ public class FabricWorkspaceClient {
 	
 	@Value("${fabricWorkspaces.uri.addUserUrl}")
 	private String addUserUrl;
+
+	@Value("${ddxIntegration.fabricDdxPush.baseUrl}")
+	private String ddxBaseUrl;
 		
     private static String WORKSPACED_IDENTIFIER = "id";
     private static String GATEWAY_IDENTIFIER = "id";
@@ -159,6 +169,19 @@ public class FabricWorkspaceClient {
 	@Value("${fabricWorkspaces.gateway.id}")
 	private String gatewayId;
 	
+	@Value("${ddxIntegration.client.id}")
+	private String databricksSpClientId;
+
+	@Value("${ddxIntegration.client.secret}")
+	private String databricksSpClientSecret;
+
+	@Value("${ddxIntegration.client.scope}")
+	private String databricksSpScope;
+
+	@Value("${ddxIntegration.client.host}")
+	private String databricksHost;
+
+
 	@Autowired
 	HttpServletRequest httpRequest;
 
@@ -167,6 +190,9 @@ public class FabricWorkspaceClient {
 	
 	@Autowired
 	private RestTemplate restTemplate;
+
+	@Autowired
+	private UserStore userStore;
 
 	public String getToken() {
 		MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
@@ -219,6 +245,55 @@ public class FabricWorkspaceClient {
 			return null;
 		}
 	}
+
+	public String getTokenForDataBricks() {
+		MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
+		String basicAuthenticationHeader = Base64.getEncoder()
+				.encodeToString(new StringBuffer(databricksSpClientId).append(":").append(databricksSpClientSecret).toString().getBytes());
+		map.add("grant_type", grantType);
+		map.add("scope", scope);
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+		headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
+		headers.set("Authorization", "Basic " + basicAuthenticationHeader);
+		HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(map, headers);
+		try {
+			ResponseEntity<String> response = proxyRestTemplate.postForEntity(loginUrl, request, String.class);
+			ObjectMapper objectMapper = new ObjectMapper();
+			FabricOAuthResponse introspectionResponse = objectMapper.readValue(response.getBody(),
+					FabricOAuthResponse.class);
+			log.debug("Introspection Response:" + introspectionResponse);
+			log.info("Successfully fetch oidc token post login for group search");
+			return introspectionResponse.getAccess_token();
+		} catch (Exception e) {
+			log.error("Failed to fetch OIDC token for group search with error {} ",e.getMessage());
+			return null;
+		}
+	}
+
+	public String getTokenForCatalog() {
+      MultiValueMap<String, String> map = new LinkedMultiValueMap();
+      String basicAuthenticationHeader = Base64.getEncoder().encodeToString((this.databricksSpClientId + ":" + this.databricksSpClientSecret).getBytes());
+      map.add("grant_type", this.grantType);
+      map.add("scope", this.databricksSpScope);
+      HttpHeaders headers = new HttpHeaders();
+      headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+      headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
+      headers.set("Authorization", "Basic " + basicAuthenticationHeader);
+      HttpEntity<MultiValueMap<String, String>> request = new HttpEntity(map, headers);
+
+      try {
+         ResponseEntity<String> response = this.proxyRestTemplate.postForEntity(this.loginUrl, request, String.class, new Object[0]);
+         ObjectMapper objectMapper = new ObjectMapper();
+         FabricOAuthResponse introspectionResponse = (FabricOAuthResponse)objectMapper.readValue((String)response.getBody(), FabricOAuthResponse.class);
+         log.debug("Introspection Response:" + introspectionResponse);
+         log.info("Successfully fetch oidc token post login for group search");
+         return introspectionResponse.getAccess_token();
+      } catch (Exception e) {
+         log.error("Failed to fetch OIDC token for group search with error {} ", e.getMessage());
+         return null;
+      }
+   }
 	
 	public MicrosoftGroupDetailDto searchGroup(String groupDisplayName) {
 		MicrosoftGroupDetailDto microsoftGroupDetailDto = new MicrosoftGroupDetailDto();
@@ -601,6 +676,13 @@ public class FabricWorkspaceClient {
 			log.error("Failed to create workspace with displayName {} with error {} ", createRequest.getDisplayName(), e.getMessage());
 		}
 		return workspaceDetailDto;
+	}
+
+	public WorkspaceDetailDto getWorkspaceDetailsByName(String workspaceName){
+		return this.getAllWorkspacesDetails().getValue().stream()
+				.filter(workspace -> workspace.getDisplayName().equalsIgnoreCase(workspaceName))
+				.findFirst()
+				.orElse(null);
 	}
 	
 	
@@ -1030,6 +1112,154 @@ public class FabricWorkspaceClient {
 			log.error("Failed to create folder  for diaplayName {} with {} exception ", folderName, e.getMessage());	
 		}
 		return  HttpStatus.INTERNAL_SERVER_ERROR;
+	}
+
+	public FabricSqlEndpointResponseDto getSqlEndpoint(String workspaceId, String lakehouseId) {
+		FabricSqlEndpointResponseDto responseDto = new FabricSqlEndpointResponseDto();
+		try {
+			// String token = getToken();
+			String token = getTokenForDataBricks();
+			if (!Objects.nonNull(token)) {
+				log.error("Failed to fetch token to invoke fabric Apis");
+				responseDto.setErrorCode("500");
+				responseDto.setMessage("Failed to login using service principal, please try later.");
+				return responseDto;
+			}
+
+			// token = JwtTokenUtil.extractAuthToken(token);
+
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Authorization", "Bearer " + token);
+			headers.setContentType(MediaType.APPLICATION_JSON);
+
+			HttpEntity requestEntity = new HttpEntity<>(headers);
+			String workspaceUrl = workspacesBaseUrl + "/" + workspaceId + "/lakehouses/" + lakehouseId;
+
+			ResponseEntity<FabricSqlEndpointResponseDto> response = proxyRestTemplate.exchange(
+					workspaceUrl,
+					HttpMethod.GET,
+					requestEntity,
+					FabricSqlEndpointResponseDto.class);
+
+			if (response != null && response.hasBody()) {
+				responseDto = response.getBody();
+			}
+		} catch (Exception e) {
+			responseDto.setErrorCode("500");
+			responseDto.setMessage("Failed to fetch SQL endpoint details with error: " + e.getMessage());
+			log.error("Failed to fetch SQL endpoint data for workspace: {} lakehouse: {} with exception: {}",
+					workspaceId, lakehouseId, e.getMessage());
+		}
+		return responseDto;
+	}
+
+	public DdxResponseDto ddxProductOnboarding(DdxOnboardingRequestDto request) {
+		DdxResponseDto res = new DdxResponseDto();
+		try {
+			// String token = getToken();
+			// if(!Objects.nonNull(token)) {
+			// 	log.error("Failed to fetch token to invoke fabric Apis");
+			// 	return res;
+			// }
+
+			String token = this.userStore.getUserInfo().getAuthToken();
+			log.info("Token fetched successfully for DDX onboarding, invoking API with token: {}", token);
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Authorization", "Bearer "+token);
+			headers.setContentType(MediaType.APPLICATION_JSON);
+			HttpEntity requestEntity = new HttpEntity<>( request, headers);
+			String url = ddxBaseUrl + "/v1/dataproducts";
+
+			ResponseEntity<DdxResponseDto> response = restTemplate.exchange(url , HttpMethod.POST,
+					requestEntity, DdxResponseDto.class);
+
+			if(response.getStatusCode().is2xxSuccessful()) {
+				res = response.getBody();
+				log.info("ddx res: {}",res);
+				log.info("ddx response: {}", response);
+				log.info("ddx response body: {}", response.getBody());
+				log.info("Fabric to DDX Onboarding Successful");
+				return res;
+			}
+			else{
+				res = response.getBody();
+				log.error("Fabric to DDX Onboarding Failed");
+				return res;
+			}
+		}catch(HttpClientErrorException e) {
+			log.error("Failed to call DDX product onboarding API with {} exception ", e.getMessage());
+			try {
+				String responseBody = e.getResponseBodyAsString();
+				ObjectMapper mapper = new ObjectMapper();
+				res = mapper.readValue(responseBody, DdxResponseDto.class);
+				res.setStatus("Failure");
+				return res;
+			} catch (Exception parseEx) {
+				log.error("Failed to parse DDX error response body", parseEx);
+				return DdxResponseDto.builder()
+					.status("Failure")
+					.statusCode(e.getRawStatusCode())
+					.message(e.getMessage())
+					.build();
+			}
+		}catch(Exception e) {
+			log.error("Failed to call DDX product onboarding API with {} exception ", e.getMessage());
+			return DdxResponseDto.builder()
+			.status("Failure")
+        	.statusCode(500)
+        	.message(e.getMessage())
+        	.build();
+		}
+
+
+	}
+
+	public DatabricksSqlStatementResponseDto catalogComputeProcess(String catalogName) {
+		try {
+			String token = getTokenForCatalog();
+			if (!Objects.nonNull(token)) {
+				log.error("Failed to fetch token for Databricks SQL statement execution");
+				throw new RuntimeException("Failed to obtain Databricks authentication token");
+			}
+
+			DatabricksSqlStatementRequestDto requestBody = new DatabricksSqlStatementRequestDto();
+			requestBody.setWarehouseId("44a03d9b0d6612b6");
+			requestBody.setCatalog(catalogName);
+			requestBody.setStatement("SHOW TABLES IN `" + catalogName + "`.dbo");
+			requestBody.setWaitTimeout("30s");
+
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Authorization", "Bearer " + token);
+			headers.setContentType(MediaType.APPLICATION_JSON);
+
+			HttpEntity<DatabricksSqlStatementRequestDto> requestEntity = new HttpEntity<>(requestBody, headers);
+			String url = databricksHost + "/api/2.0/sql/statements";
+
+			log.info("Executing SHOW TABLES IN catalog: {}", catalogName);
+			ResponseEntity<DatabricksSqlStatementResponseDto> response = proxyRestTemplate.exchange(
+					url, HttpMethod.POST, requestEntity, DatabricksSqlStatementResponseDto.class);
+
+			if (response != null && response.hasBody()) {
+				DatabricksSqlStatementResponseDto responseDto = response.getBody();
+				log.info("SQL statement execution completed with state: {}",
+						responseDto != null && responseDto.getStatus() != null ? responseDto.getStatus().getState() : "UNKNOWN");
+				return responseDto;
+			}
+
+			throw new RuntimeException("Empty response from Databricks SQL statement API");
+		} catch (HttpClientErrorException e) {
+			log.error("HTTP error during catalog compute process for catalog: {}, status: {}, response: {}",
+					catalogName, e.getStatusCode(), e.getResponseBodyAsString());
+			throw new RuntimeException("Databricks SQL statement API call failed with status " + e.getStatusCode() + ": " + e.getResponseBodyAsString(), e);
+		} catch (RuntimeException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("Failed to execute catalog compute process for catalog: {} with exception: {}", catalogName, e.getMessage());
+			throw new RuntimeException("Catalog compute process failed: " + e.getMessage(), e);
+		}
 	}
 	
 	public boolean checkGroupExists(String groupId) {

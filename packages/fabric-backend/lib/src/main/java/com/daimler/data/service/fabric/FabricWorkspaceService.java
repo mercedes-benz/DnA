@@ -48,7 +48,7 @@ public interface FabricWorkspaceService extends CommonService<FabricWorkspaceVO,
 	GroupDetailsVO callGroupAssign(GroupDetailsVO existingGroupDetailsVO, String workspaceId, String permissionName);
 
 	FabricWorkspaceStatusVO processWorkspaceUserManagement(FabricWorkspaceStatusVO currentStatus, String workspaceName,
-			String creatorId, String workspaceId, String customGroupName, boolean isDivisionAllowed, List<CustomGroupNameCollectionVO> customGroupNameCollection);
+			String creatorId, String workspaceId, String customGroupName, List<CustomGroupNameCollectionVO> customGroupNameCollection);
 
 	FabricWorkspacesCollectionVO getAll(int limit, int offset, String user, List<String> allEntitlementsList, Boolean isTechnicalUser);
 	
@@ -84,4 +84,8 @@ public interface FabricWorkspaceService extends CommonService<FabricWorkspaceVO,
 	GenericMessage transferOwnership(FabricWorkspaceVO existingFabricWorkspace, CreatedByVO currentOwner, CreatedByVO newOwner);
 
 	ADAProjectDetailsCollectionVO searchProjects(String projectName);
+
+	void populateLeanIXDetailsFromProject(FabricWorkspaceVO workspace);
+
+	FabricWorkspacesCollectionVO searchWorkspacesLov(int limit, int offset, String searchText);
 }

@@ -113,6 +113,59 @@ paths:
           description: "Method not allowed"
         500:
           description: "Internal error"
+
+  /lov/fabric-workspaces/search:
+    get:
+      tags:
+        - "lovs"
+      summary: "Search workspaces by name"
+      description: "Search and filter workspaces by name or other criteria. This endpoint is specifically designed for searching workspace records."
+      operationId: "searchWorkspacesLov"
+      parameters:            
+        - name: searchText
+          in: query
+          description: Text to search workspaces by name
+          required: true
+          type: string
+        - name: offset
+          in: query
+          description: page number from which listing of workspaces should start. Offset. Example 2
+          required: false
+          type: integer
+        - name: limit
+          in: query
+          description: page size to limit the number of workspaces, Example 15
+          required: false
+          type: integer
+        - name: sortBy
+          in: query
+          description: Sort workspaces by a given variable like name, createdOn
+          required: false
+          type: string
+          enum: [name, createdOn]
+        - name: sortOrder
+          in: query
+          description: Sort solutions based on the given order, example asc,desc
+          required: false
+          type: string
+          enum: [asc,desc]
+      responses:
+        200:
+          description: "Returns search results"
+          schema:
+            $ref: "#/definitions/FabricWorkspaceLovCollectionVO"
+        204:
+          description: "Search complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
           
   /fabric-workspaces:
     get:
@@ -852,6 +905,11 @@ definitions:
           format: date
       cdcPublishedLakeHouseDetails:
         $ref: "#/definitions/CdcPublishedLakeHouseDetailsVO"
+      ddxPublishedLakeHouseDetails:
+        type: array
+        items:
+          type: object
+        description: "List of enriched DDX product details keyed by lakehouseId from ddx_dataProducts_details_nsql table"
 
   FabricWorkspaceStatusVO:
     type: object
@@ -985,6 +1043,38 @@ definitions:
       subscription:
         enum: ["PowerBI", "Fabric"]
       
+  FabricWorkspaceLovVO:
+    description: "Slim workspace view for LOV search responses containing id, name, status (roles), createdBy and createdOn."
+    type: object
+    properties:
+      id:
+        type: string
+        description: "ID for the fabric workspace"
+      name:
+        type: string
+        description: "Name of the fabric workspace"
+        maxLength: 256
+      status:
+        $ref: "#/definitions/FabricWorkspaceStatusVO"
+      createdBy:
+        $ref: "#/definitions/CreatedByVO"
+      createdOn:
+        type: string
+        format: date-time
+        description: "Timestamp when the workspace was created"
+
+  FabricWorkspaceLovCollectionVO:
+    description: "Collection of slim fabric workspace records for LOV search."
+    type: object
+    properties:
+      totalCount:
+        type: integer
+        description: "Total Record Count"
+      records:
+        type: array
+        items:
+          $ref: "#/definitions/FabricWorkspaceLovVO"
+
   FabricWorkspacesCollectionVO:
     description: "Collection of fabric workspaces."
     type: object
@@ -1315,6 +1405,94 @@ definitions:
         type: array
         items:
           type: string
+
+  DdxPublishedLakeHouseDetailsVO:
+    type: object
+    properties:
+      workspaceName:
+        type: string
+      workspaceId:
+        type: string
+      lakehouseName:
+        type: string
+      lakeHouseId:
+        type: string
+      isLakeHousesPublishedToDdx:
+        type: boolean
+      productName:
+        type: string
+        description: "Name of the DDX data product"
+      productId:
+        type: string
+        description: "ID of the DDX data product"
+      createdBy:
+        $ref: "#/definitions/CreatedByVO"
+      createdOn:
+        type: string
+        format: date
+      modifiedOn:
+        type: string
+        format: date
+      unityDetails:
+        $ref: "#/definitions/DdxUnityDetailsVO"
+      fabric2fabricDetails:
+        type: array
+        items:
+          $ref: "#/definitions/Fabric2FabricDetailVO"
+
+  Fabric2FabricDetailVO:
+    type: object
+    properties:
+      isFabric2Fabric:
+        type: boolean
+      initiatedOn:
+        type: string
+        format: date
+      groupsNames:
+        type: array
+        items:
+          $ref: "#/definitions/GroupNameDetailVO"
+
+  GroupNameDetailVO:
+    type: object
+    properties:
+      testRunId:
+        type: string
+      groupNameList:
+        type: array
+        items:
+          $ref: "#/definitions/GroupNameListVO"
+      runStatus:
+        type: string
+
+  GroupNameListVO:
+    type: object
+    properties:
+      groupName:
+        type: string
+      status:
+        type: string
+      message:
+        type: string
+
+  Fabric2FabricDetailsVO:
+    type: object
+    properties:
+      groupNames:
+        type: array
+        items:
+          type: string
+        description: "Group names associated with the fabric-to-fabric connection"
+      initialisedOn:
+        type: string
+        format: date
+
+  DdxUnityDetailsVO:
+    type: object
+    properties:
+      catalogName:
+        type: string
+        description: "Unity catalog name"
 
   
 

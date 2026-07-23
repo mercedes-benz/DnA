@@ -1,19 +1,22 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import classNames from 'classnames';
 import Styles from './DdxPush.scss';
 import AddUser from 'dna-container/AddUser';
 import SelectBox from 'dna-container/SelectBox';
+import TypeAheadBox from 'dna-container/TypeAheadBox';
 import Tooltip from '../../common/modules/uilab/js/src/tooltip';
+import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 import Notification from '../../common/modules/uilab/js/src/notification';
-import { fabricApi } from '../../apis/fabric.api';import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
-import { DIVISIONS, BUSINESS_DOMAINS, CLOUD_PROVIDERS, DATA_HUBS,TECHNOLOGIES, PURPOSES, CRITERIA_TRANSFER_PRICING, QUALIFICATION_TRANSFER_PRICING} from '../../utilities/constants';
+import { fabricApi } from '../../apis/fabric.api';
+import { DIVISIONS, BUSINESS_DOMAINS, CLOUD_PROVIDERS, TECHNOLOGIES, PURPOSES, CRITERIA_TRANSFER_PRICING, QUALIFICATION_TRANSFER_PRICING, UPDATE_FREQUENCIES } from '../../utilities/constants';
+import { Envs } from '../../utilities/envs';
 
 const Step1_BasicIdentification = ({ formData, setFormData, errors, clearError }) => (
   <div className={Styles.stepForm}>
     <div className={Styles.col}>
       <div className={classNames('input-field-group include-error', errors.nameError ? 'error' : '')}>
         <label htmlFor="dataProductName" className="input-label">
-          Name of the Data Product <sup>*</sup>
+          Name of the Data Product <sup>*</sup> (First letter must be uppercase, only alphanumeric characters allowed)
         </label>
         <input
           type="text"
@@ -60,6 +63,26 @@ const Step2_OwnershipGovernance = ({
   workspaceDivision,
 }) => {
 
+  const [legalEntityOptions, setLegalEntityOptions] = useState([]);
+
+  const handleLegalEntitySearch = (searchTerm, showSpinner) => {
+    clearError('legalEntityError');
+    if (searchTerm.length > 3) {
+      showSpinner && showSpinner(true);
+      fabricApi.getLegalEntities(searchTerm)
+        .then((response) => {
+          showSpinner && showSpinner(false);
+          setLegalEntityOptions(response?.data || []); 
+        })
+        .catch((err) => {
+          showSpinner && showSpinner(false);
+          Notification.show(err?.response?.data?.errors?.[0]?.message || 'Something went wrong.', 'alert');
+        });
+    } else {
+      setLegalEntityOptions([]);
+    }
+  };
+
   useEffect(() => {
     if (workspaceOwner) {
       setFormData((prev) => {
@@ -85,7 +108,7 @@ const Step2_OwnershipGovernance = ({
   const isDataProvidersLimitReached = formData.dataProviders?.length >= 5;
 
   useEffect(() => {
-    SelectBox.defaultSetup();
+    // SelectBox.defaultSetup();
     setTimeout(() => {
       if (isBusinessDomainDisabled) {
         const select = document.getElementById('businessDomain');
@@ -146,19 +169,51 @@ const Step2_OwnershipGovernance = ({
     <div className={Styles.stepForm}>
       <div className={Styles.col}>
         <div className={classNames('input-field-group include-error', errors.informationOwnerError ? 'error' : '')}>
-          <label htmlFor="informationOwner" className="input-label">
-            Information Owner <sup>*</sup>
+          <label className="input-label">
+            Information Owner <sup>*</sup> (Kindly find more information
+            <a href={Envs.INFORMATION_OWNER_URL} target="_blank" rel="noopener noreferrer"> here</a>)
           </label>
-          <input
-            id="informationOwner"
-            className="input-field"
-            autoComplete="off"
-            value={formData.informationOwner || ''}
-            onChange={(e) => {
-              setFormData({ ...formData, informationOwner: e.target.value });
-              clearError('informationOwnerError');
-            }}
-          />
+          {!formData.informationOwner && (
+            <AddUser
+              getCollabarators={(member) => {
+                const memberData = {
+                  id: member?.shortId || member?.id,
+                  firstName: member?.firstName,
+                  lastName: member?.lastName,
+                  department: member?.department,
+                  email: member?.email,
+                };
+                setFormData((prev) => ({ ...prev, informationOwner: memberData }));
+                clearError('informationOwnerError');
+              }}
+              dagId=""
+              isRequired={false}
+              isUserprivilegeSearch={false}
+              title="Information Owner"
+            />
+          )}
+          {formData.informationOwner && (
+            <div className={Styles.dataProvidersList}>
+              <div className={Styles.colHeader}>
+                <div className={Styles.column1}>User ID</div>
+                <div className={Styles.column2}>Name</div>
+                <div className={Styles.column4}></div>
+              </div>
+              <div className={classNames('mbc-scroll', Styles.collaboratorContent)}>
+                <div className={Styles.userRow}>
+                  <div className={Styles.column1}>{formData.informationOwner.id}</div>
+                  <div className={Styles.column2}>{formData.informationOwner.firstName + ' ' + formData.informationOwner.lastName}</div>
+                  <div className={Styles.column4}>
+                    <span tooltip-data="Remove" className={Styles.deleteEntry} onClick={() => {
+                      setFormData((prev) => ({ ...prev, informationOwner: null }));
+                    }}>
+                      <i className="icon mbc-icon trash-outline" tooltip-data={'Delete'} />
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
           {errors.informationOwnerError && <span className="error-message">{errors.informationOwnerError}</span>}
         </div>
       </div>
@@ -197,7 +252,7 @@ const Step2_OwnershipGovernance = ({
           <div className="custom-select">
             <select
               id="businessDomain"
-              value={formData.businessDomain || ''}
+              defaultValue={formData.businessDomain || ''}
               onChange={(e) => {
                 setFormData((prev) => ({ ...prev, businessDomain: e?.target?.value }));
                 clearError('businessDomainError');
@@ -219,27 +274,38 @@ const Step2_OwnershipGovernance = ({
 
       <div className={Styles.col}>
         <div className={classNames('input-field-group include-error', errors.legalEntityError ? 'error' : '')}>
-          <label htmlFor="legalEntity" className="input-label">
-            Legal Entity <sup>*</sup>
-          </label>
-          <input
-            id="legalEntity"
-            className="input-field"
-            autoComplete="off"
-            value={formData.legalEntity || ''}
-            onChange={(e) => {
-              setFormData({ ...formData, legalEntity: e.target.value });
+          <TypeAheadBox
+            label={'Legal Entity (Which Legal Entity owns the data Product? Usually, this is the legal entity of the information Owner of the data product.)'}
+            placeholder={'Enter minimum 4 characters to search'}
+            defaultValue={formData.legalEntity?.legalName ? `${formData.legalEntity.legalName} (${formData.legalEntity.companyCode})` : ''}
+            list={legalEntityOptions}
+            maxOptions={1}
+            setSelected={(selected) => {
+              setFormData((prev) => ({
+                ...prev,
+                legalEntity: { legalName: selected.legalName, companyCode: selected.companyCode },
+              }));
               clearError('legalEntityError');
             }}
+            onInputChange={handleLegalEntitySearch}
+            required={true}
+            showError={errors.legalEntityError}
+            render={(item) => (
+              <div className={Styles.optionContainer}>
+                  <span className={Styles.optionText}>
+                    {`${item.legalName} (${item.companyCode})`}
+                  </span>
+              </div>
+            )}
           />
-          {errors.legalEntityError && <span className="error-message">{errors.legalEntityError}</span>}
         </div>
       </div>
 
       <div className={Styles.col}>
         <div className={classNames('input-field-group include-error', errors.dataProvidersError ? 'error' : '')}>
           <label className="input-label">
-            Data Providers <sup>*</sup>
+            Data Providers <sup>*</sup> &nbsp;
+            (Minimum of two Data Providers are required)
           </label>
 
           <AddUser
@@ -295,57 +361,71 @@ const Step2_OwnershipGovernance = ({
 
 const Step3_TechnicalMetadata = ({
   formData,
-  setFormData,
+  // setFormData,
   errors,
-  clearError,
+  // clearError,
 }) => {
 
   useEffect(() => {
-    SelectBox.defaultSetup();
+    // SelectBox.defaultSetup();
   }, []);
 
   return (
     <div className={Styles.stepForm}>
       <div className={Styles.col}>
-        <div className={classNames('input-field-group include-error', errors.cdcDatabaseLinkError ? 'error' : '')}>
-          <label htmlFor="cdcDatabaseLink" className="input-label">
-            CDC Database Link <sup>*</sup>
+        <div className={classNames('input-field-group include-error', errors.dataHubError ? 'error' : '')}>
+          <label htmlFor="dataHub" className="input-label">
+            Data Hub <sup>*</sup> &nbsp;
+            (Choose the name of the Data Hub where the data product is stored)
           </label>
           <input
-            id="cdcDatabaseLink"
+            id="dataHub"
             className="input-field"
-            autoComplete="off"
-            value={formData.cdcDatabaseLink || ''}
-            onChange={(e) => {
-              setFormData({ ...formData, cdcDatabaseLink: e?.target?.value });
-              clearError('cdcDatabaseLinkError');
-            }}
+            value="oneFabric"
+            disabled
+            readOnly
           />
-          {errors.cdcDatabaseLinkError && <span className="error-message">{errors.cdcDatabaseLinkError}</span>}
+          {errors.dataHubError && <span className="error-message">{errors.dataHubError}</span>}
         </div>
       </div>
 
       <div className={Styles.col}>
-        <div className={classNames('input-field-group include-error', errors.dataHubError ? 'error' : '')}>
-          <label htmlFor="dataHub" className="input-label">
-            Data Hub <sup>*</sup>
+        <div className={classNames('input-field-group include-error', errors.fulfillsDataCloudFrameworkError ? 'error' : '')}>
+          <label className="input-label">
+            Fulfills Data Cloud Framework <sup>*</sup> &nbsp;
+            (We highly recommend to conduct a Data@Cloud assessment of your data product as described <a href={Envs.DATA_AT_CLOUD_URL} target="_blank" rel="noopener noreferrer"> here</a>)
           </label>
-          <div className={classNames('custom-select')}>
-            <select
-              id="dataHub"
-              defaultValue={formData.dataHubName || ''}
-              onChange={(e) => {
-                setFormData({ ...formData, dataHubName: e?.target?.value });
-                clearError('dataHubError');
-              }}
-            >
-              <option value="">Choose</option>
-              {DATA_HUBS.map((d, i) => (
-                <option key={i} value={d}>{d}</option>
-              ))}
-            </select>
+          <div className={Styles.boolean}>
+            <label className="radio">
+              <span className="wrapper">
+                <input
+                  type="radio"
+                  className="ff-only"
+                  name="fulfillsDataCloudFramework"
+                  value="true"
+                  checked={true}
+                  disabled
+                  readOnly
+                />
+              </span>
+              <span className="label">Yes</span>
+            </label>
+            <label className="radio">
+              <span className="wrapper">
+                <input
+                  type="radio"
+                  className="ff-only"
+                  name="fulfillsDataCloudFramework"
+                  value="false"
+                  checked={false}
+                  disabled
+                  readOnly
+                />
+              </span>
+              <span className="label">No</span>
+            </label>
           </div>
-          {errors.dataHubError && <span className="error-message">{errors.dataHubError}</span>}
+          {errors.fulfillsDataCloudFrameworkError && <span className="error-message">{errors.fulfillsDataCloudFrameworkError}</span>}
         </div>
       </div>
 
@@ -383,15 +463,15 @@ const Step3_TechnicalMetadata = ({
             </label>
             <div className={Styles.boolean}>
               {TECHNOLOGIES.map((t) => (
-                <label key={t} className="radio">
+                <label key={t} className="checkbox">
                   <span className="wrapper">
                     <input
-                      type="radio"
+                      type="checkbox"
                       className="ff-only"
-                      name="technology"
                       value={t}
-                      checked={(formData.technology || 'UnityCatalog') === t}
+                      checked={true}
                       disabled
+                      readOnly
                     />
                   </span>
                   <span className="label">{t}</span>
@@ -411,32 +491,13 @@ const Step4_ComplianceUsage = ({
   setFormData,
   errors,
   clearError,
+  // securityLevel,
   purposes,
-  criteriaTransferPricing,
-  qualificationTransferPricing
+  updateFrequencies,
 }) => {
-  
-  const [securityLevelDropdown, setSecurityLevelDropdown] = useState([]);
 
   useEffect(() => {
-    ProgressIndicator.show();
-    fabricApi.getLovData()
-      .then((response) => {
-        ProgressIndicator.hide();
-        setSecurityLevelDropdown(response[0]?.data?.data || []);
-        SelectBox.defaultSetup();
-      })
-      .catch((err) => {
-        ProgressIndicator.hide();
-        if (err?.response?.data?.errors?.length > 0) {
-          err?.response?.data?.errors.forEach((err) => {
-            Notification.show(err?.message || 'Something went wrong.', 'alert');
-          });
-        } else {
-          Notification.show(err?.message || 'Something went wrong.', 'alert');
-        }
-      });
-    //eslint-disable-next-line react-hooks/exhaustive-deps
+    // SelectBox.defaultSetup();
   }, []);
 
   return (
@@ -451,18 +512,16 @@ const Step4_ComplianceUsage = ({
               id="securityLevel"
               defaultValue={formData.securityLevel || ''}
               onChange={(e) => {
-                setFormData({ ...formData, securityLevel: e?.target?.value });
-                clearError('securityLevelError');
+                if (e.target.value) {
+                  setFormData((prev) => ({ ...prev, securityLevel: e.target.value }));
+                  clearError('securityLevelError');
+                }
               }}
             >
               <option value="">Choose</option>
-              {securityLevelDropdown.map((item) => (
-                <option
-                  id={item.id}
-                  key={item.id}
-                  value={item.name}
-                >
-                  {item.name}
+              {Envs.SECURITY_LEVELS?.map((sl) => (
+                <option key={sl} value={sl}>
+                  {sl}
                 </option>
               ))}
             </select>
@@ -474,12 +533,14 @@ const Step4_ComplianceUsage = ({
       <div className={Styles.col}>
         <div className={classNames('input-field-group include-error', errors.purposesError ? 'error' : '')}>
           <label htmlFor="purposes" className="input-label">
-            Purposes <sup>*</sup>
+            Purposes <sup>*</sup> &nbsp;
+            (Please specify the allowed purposes for processing this data)
           </label>
           <div className={classNames('custom-select')}>
           <select
             id="purposes"
             multiple={true}
+            value={formData.purposes || []}
             onChange={(e) => {
               const values = Array.from(e?.target?.selectedOptions, opt => opt?.value);
               setFormData({ ...formData, purposes: values });
@@ -498,16 +559,9 @@ const Step4_ComplianceUsage = ({
       </div>
 
       <div className={Styles.col}>
-        <div className={classNames('input-field-group include-error', errors.priceError ? 'error' : '')}>
-          <label className="input-label">Price <sup>*</sup> 
-          &nbsp;                
-          <a
-            target="_blank"
-            rel="noopener noreferrer"
-            title="Is the provided data product publicly available and free of charge?"
-          >
-            <i className="icon mbc-icon help" />
-          </a>
+        <div className={classNames('input-field-group include-error', errors.personalDataContainedError ? 'error' : '')}>
+          <label className="input-label">
+            Personal Data Contained <sup>*</sup>
           </label>
           <div className={Styles.boolean}>
             <label className="radio">
@@ -515,12 +569,12 @@ const Step4_ComplianceUsage = ({
                 <input
                   type="radio"
                   className="ff-only"
-                  name="isPricing"
+                  name="personalDataContained"
                   value="true"
-                  defaultChecked={formData.price === true}
+                  defaultChecked={formData.personalDataContained === true}
                   onChange={() => {
-                    setFormData({ ...formData, price: true });
-                    clearError('priceError');
+                    setFormData({ ...formData, personalDataContained: true });
+                    clearError('personalDataContainedError');
                   }}
                 />
               </span>
@@ -531,77 +585,43 @@ const Step4_ComplianceUsage = ({
                 <input
                   type="radio"
                   className="ff-only"
-                  name="isPricing"
+                  name="personalDataContained"
                   value="false"
-                  defaultChecked={formData.price === false}
+                  defaultChecked={formData.personalDataContained === false}
                   onChange={() => {
-                    setFormData({ ...formData, price: false });
-                    clearError('priceError');
+                    setFormData({ ...formData, personalDataContained: false });
+                    clearError('personalDataContainedError');
                   }}
                 />
               </span>
               <span className="label">No</span>
             </label>
           </div>
-          {errors.priceError && <span className="error-message">{errors.priceError}</span>}
+          {errors.personalDataContainedError && <span className="error-message">{errors.personalDataContainedError}</span>}
         </div>
       </div>
 
       <div className={Styles.col}>
-        <div
-          className={classNames('input-field-group include-error', errors.criteriaTransferPricingError ? 'error' : '')}
-        >
-          <label htmlFor="criteriaTransferPricing" className="input-label">
-            Criteria Transfer Pricing <sup>*</sup>
+        <div className={classNames('input-field-group include-error', errors.updateFrequencyError ? 'error' : '')}>
+          <label htmlFor="updateFrequency" className="input-label">
+            Update Frequency <sup>*</sup> (Frequency by which data from source system will be updated.)
           </label>
           <div className={classNames('custom-select')}>
-          <select
-            id="criteriaTransferPricing"
-            multiple={true}
-            onChange={(e) => {
-              const values = Array.from(e?.target?.selectedOptions, opt => opt?.value);
-              setFormData({ ...formData, criteriaTransferPricing: values });
-              clearError('criteriaTransferPricingError');
-            }}
-          >
-            {criteriaTransferPricing.map((c, i) => (
-              <option key={i} value={c}>
-                {c}
-              </option>
-            ))}
-          </select>
+            <select
+              id="updateFrequency"
+              defaultValue={formData.frequency || ''}
+              onChange={(e) => {
+                setFormData({ ...formData, frequency: e?.target?.value });
+                clearError('updateFrequencyError');
+              }}
+            >
+              <option value="">Choose</option>
+              {updateFrequencies.map((f, i) => (
+                <option key={i} value={f}>{f}</option>
+              ))}
+            </select>
           </div>
-          {errors.criteriaTransferPricingError && <span className="error-message">{errors.criteriaTransferPricingError}</span>}
-        </div>
-      </div>
-
-      <div className={Styles.col}>
-        <div
-          className={classNames('input-field-group include-error', errors.qualificationTransferPricingError ? 'error' : '')}
-        >
-          <label htmlFor="qualificationTransferPricing" className="input-label">
-            Qualification Transfer Pricing <sup>*</sup>
-          </label>
-          <div className={classNames('custom-select')}>
-          <select
-            id="qualificationTransferPricing"
-            multiple={true}
-            onChange={(e) => {
-              const values = Array.from(e?.target?.selectedOptions, opt => opt?.value);
-              setFormData({ ...formData, qualificationTransferPricing: values });
-              clearError('qualificationTransferPricingError');
-            }}
-          >
-            {qualificationTransferPricing.map((q, i) => (
-              <option key={i} value={q}>
-                {q}
-              </option>
-            ))}
-          </select>
-          </div>
-          {errors.qualificationTransferPricingError && (
-            <span className="error-message">{errors.qualificationTransferPricingError}</span>
-          )}
+          {errors.updateFrequencyError && <span className="error-message">{errors.updateFrequencyError}</span>}
         </div>
       </div>
     </div>
@@ -609,14 +629,138 @@ const Step4_ComplianceUsage = ({
 };
 
 
-const ViewDdxTablesModalContent = ({ workspaceOwner, workspaceDivision }) => {
+const Step5_PersonalData = ({ formData, setFormData, errors, clearError, criteriaTransferPricing, qualificationTransferPricing }) => {
+
+  useEffect(() => {
+    // SelectBox.defaultSetup();
+  }, []);
+
+  return (
+  <div className={Styles.stepForm}>
+    <div className={Styles.col}>
+      <div className={classNames('input-field-group include-error', errors.priceError ? 'error' : '')}>
+        <label className="input-label">Free of Charge <sup>*</sup>  &nbsp;
+        (The data is available in the public space as well for consumers outside of the Mercedes-Benz environment and does not have a price tag.
+        For further informmation click <a href={Envs.DDX_PRICING_URL} target="_blank" rel="noopener noreferrer"> here</a>)
+        </label>
+        <div className={Styles.boolean}>
+          <label className="radio">
+            <span className="wrapper">
+              <input
+                type="radio"
+                className="ff-only"
+                name="isPricing"
+                value="true"
+                checked={true}
+                disabled
+                readOnly
+              />
+            </span>
+            <span className="label">Yes</span>
+          </label>
+          <label className="radio">
+            <span className="wrapper">
+              <input
+                type="radio"
+                className="ff-only"
+                name="isPricing"
+                value="false"
+                checked={false}
+                disabled
+                readOnly
+              />
+            </span>
+            <span className="label">No</span>
+          </label>
+        </div>
+        {errors.priceError && <span className="error-message">{errors.priceError}</span>}
+      </div>
+    </div>
+
+    <div className={Styles.col}>
+      <div className={classNames('input-field-group include-error', errors.criteriaTransferPricingError ? 'error' : '')}>
+        <label htmlFor="criteriaTransferPricing" className="input-label">
+          Criteria Transfer Pricing <sup>*</sup> &nbsp;
+          (Choose the criteria which are relevant for your data product to define if it is relevant for transfer pricing between legal entities)
+        </label>
+        <div className={classNames('custom-select')}>
+        <select
+          id="criteriaTransferPricing"
+          multiple={true}
+          value={formData.criteriaTransferPricing || []}
+          onChange={(e) => {
+            const values = Array.from(e?.target?.selectedOptions, opt => opt?.value);
+            setFormData({ ...formData, criteriaTransferPricing: values });
+            clearError('criteriaTransferPricingError');
+          }}
+        >
+          {criteriaTransferPricing.map((c, i) => (
+            <option key={i} value={c}>{c}</option>
+          ))}
+        </select>
+        </div>
+        {errors.criteriaTransferPricingError && <span className="error-message">{errors.criteriaTransferPricingError}</span>}
+      </div>
+    </div>
+
+    <div className={Styles.col}>
+      <div className={classNames('input-field-group include-error', errors.qualificationTransferPricingError ? 'error' : '')}>
+        <label htmlFor="qualificationTransferPricing" className="input-label">
+          Qualification Transfer Pricing <sup>*</sup>
+        </label>
+        <div className={classNames('custom-select')}>
+        <select
+          id="qualificationTransferPricing"
+          multiple={true}
+          value={formData.qualificationTransferPricing || []}
+          onChange={(e) => {
+            const values = Array.from(e?.target?.selectedOptions, opt => opt?.value);
+            setFormData({ ...formData, qualificationTransferPricing: values });
+            clearError('qualificationTransferPricingError');
+          }}
+        >
+          {qualificationTransferPricing.map((q, i) => (
+            <option key={i} value={q}>{q}</option>
+          ))}
+        </select>
+        </div>
+        {errors.qualificationTransferPricingError && (
+          <span className="error-message">{errors.qualificationTransferPricingError}</span>
+        )}
+      </div>
+    </div>
+  </div>
+  );
+};
+
+const ViewDdxTablesModalContent = ({ workspaceId, workspaceName, workspaceOwner, workspaceDivision, lakehouseId, lakehouseName, ddxPublishedLakeHouseDetails, onRefreshWorkspace }) => {
+
+  const isDdxAlreadyPushed = ddxPublishedLakeHouseDetails?.some(d => d.lakeHouseId === lakehouseId);
+
+  const existingProductId = ddxPublishedLakeHouseDetails
+    ?.find(d => d.lakeHouseId === lakehouseId)
+    ?.dataProducts?.slice()?.sort((a, b) => new Date(b.createdOn) - new Date(a.createdOn))?.[0]?.productId;
 
   useEffect(() => {
     Tooltip.defaultSetup();
-    SelectBox.defaultSetup();
   }, []);
 
-  const [currentStep, setCurrentStep] = useState('step1');
+  const [currentStep, setCurrentStep] = useState(isDdxAlreadyPushed ? 'step6' : 'step1');
+  const [hasSubmittedOnce, setHasSubmittedOnce] = useState(false);
+  const [submittedProductId, setSubmittedProductId] = useState(existingProductId || null);
+  const [submittedDofUrl, setSubmittedDofUrl] = useState('');
+  const submittedProductIdRef = useRef(existingProductId || null);
+
+  useEffect(() => {
+    if (existingProductId) {
+      submittedProductIdRef.current = existingProductId;
+      setSubmittedProductId(existingProductId);
+    }
+  }, [existingProductId]);
+
+  useEffect(() => {
+    SelectBox.defaultSetup();    
+  }, [currentStep]);
 
   const [formData, setFormData] = useState({
     dataProviders: workspaceOwner ? [{
@@ -627,8 +771,12 @@ const ViewDdxTablesModalContent = ({ workspaceOwner, workspaceDivision }) => {
       email: workspaceOwner.email,
       isOwner: true,
     }] : [],
-    technology: 'UnityCatalog',   
+    technology: ['UnityCatalog', 'Fabric'],   
     cloudProvider: 'Azure',
+    dataHubName: 'oneFabric',
+    securityLevel: '',
+    fulfillsDataCloudFramework: true,
+    price: true,
   });
 
   useEffect(() => {
@@ -662,7 +810,7 @@ const ViewDdxTablesModalContent = ({ workspaceOwner, workspaceDivision }) => {
     }
 
     if (currentStep === 'step2') {
-      if (!formData.informationOwner?.trim()) {
+      if (!formData.informationOwner?.id) {
         newErrors.informationOwnerError = '*Missing entry';
       }
       if (!formData.divisions) {
@@ -671,7 +819,7 @@ const ViewDdxTablesModalContent = ({ workspaceOwner, workspaceDivision }) => {
       if (!formData.businessDomain) {
         newErrors.businessDomainError = '*Missing entry';
       }
-      if (!formData.legalEntity?.trim()) {
+      if (!formData.legalEntity?.legalName) {
         newErrors.legalEntityError = '*Missing entry';
       }
       if (!formData.dataProviders || formData.dataProviders.length < 2) {
@@ -680,9 +828,6 @@ const ViewDdxTablesModalContent = ({ workspaceOwner, workspaceDivision }) => {
     }
 
     if (currentStep === 'step3') {
-      if (!formData.cdcDatabaseLink?.trim()) {
-        newErrors.cdcDatabaseLinkError = '*Missing entry';
-      }
       if (!formData.cloudProvider) {
         newErrors.cloudProviderError = '*Missing entry';
       }
@@ -691,6 +836,9 @@ const ViewDdxTablesModalContent = ({ workspaceOwner, workspaceDivision }) => {
       }
       if (!formData.technology) {
         newErrors.technologyError = '*Missing entry';
+      }
+      if (typeof formData.fulfillsDataCloudFramework === 'undefined') {
+        newErrors.fulfillsDataCloudFrameworkError = '*Missing entry';
       }
     }
 
@@ -701,6 +849,15 @@ const ViewDdxTablesModalContent = ({ workspaceOwner, workspaceDivision }) => {
       if (!formData.purposes?.length) {
         newErrors.purposesError = '*Missing entry';
       }
+      if (typeof formData.personalDataContained === 'undefined') {
+        newErrors.personalDataContainedError = '*Missing entry';
+      }
+      if (!formData.frequency) {
+        newErrors.updateFrequencyError = '*Missing entry';
+      }
+    }
+
+    if (currentStep === 'step5') {
       if (typeof formData.price === 'undefined') {
         newErrors.priceError = '*Missing entry';
       }
@@ -721,11 +878,13 @@ const ViewDdxTablesModalContent = ({ workspaceOwner, workspaceDivision }) => {
       if (currentStep === 'step1') setCurrentStep('step2');
       else if (currentStep === 'step2') setCurrentStep('step3');
       else if (currentStep === 'step3') setCurrentStep('step4');
+      else if (currentStep === 'step4') setCurrentStep('step5');
     }
   };
 
   const handlePrev = () => {
-    if (currentStep === 'step4') setCurrentStep('step3');
+    if (currentStep === 'step5') setCurrentStep('step4');
+    else if (currentStep === 'step4') setCurrentStep('step3');
     else if (currentStep === 'step3') setCurrentStep('step2');
     else if (currentStep === 'step2') setCurrentStep('step1');
   };
@@ -737,29 +896,92 @@ const ViewDdxTablesModalContent = ({ workspaceOwner, workspaceDivision }) => {
 
     const securityLevel = formData.securityLevel === 'Secret' ? 'Confidential' : formData.securityLevel;
 
+    const cdcBaseUrl = (Envs.CDC_SIGNIN_URL || '').replace(/\/$/, '');
+    const cdcDatabaseLink = `${cdcBaseUrl}/database/${workspaceName}.${lakehouseName}`;
+
     const payload = {
       dataProductName: formData.dataProductName || '',
       dataProductDescription: formData.dataProductDescription || '',
-      informationOwner: formData.informationOwner || '',
-      cdcDatabaseLink: formData.cdcDatabaseLink || '',
+      informationOwner: (formData.informationOwner?.id || '').toUpperCase(),
+      cdcDatabaseLink: cdcDatabaseLink,
       cdcDataProductLink: formData.cdcDataProductLink || '',
       securityLevel: securityLevel || '',
-      dataHubName: formData.dataHubName || '',
-      cloudProvider: formData.cloudProvider || '',
-      technology: formData.technology || '',
-      frequency: formData.frequency || '',
       purposes: formData.purposes || [],
-      dataProviders: formData.dataProviders || [],
-      divisions: formData.divisions || '',
+      dataProviders: (formData.dataProviders || []).map((u) => u.id),
+      divisions: (formData.divisions || '').replace(/-/g, ' ') || '',
+
       isTransferPricing: !!formData.isTransferPricing,
       criteriaTransferPricing: formData.criteriaTransferPricing || [],
       qualificationTransferPricing: formData.qualificationTransferPricing || [],
-      legalEntity: formData.legalEntity || '',
-      businessDomain: formData.businessDomain || ''
+      legalEntity: formData.legalEntity
+        ? { label: formData.legalEntity.legalName, value: formData.legalEntity.companyCode }
+        : {},
+      fulfillsDataCloudFramework: !!formData.fulfillsDataCloudFramework,
+      businessDomain: formData.businessDomain || '',
+      personalDataContained: !!formData.personalDataContained,
+      dataProductConnections: [
+        {
+          dataHubName: formData.dataHubName || '',
+          storingCountries: [],
+          cloudRegion: '',
+          formatType: '',
+          technology: 'UnityCatalog',
+          frequency: formData.frequency || '',
+          cloudProvider: formData.cloudProvider || '',
+          dataProductConnectionString: {
+            catalogName: '',
+            schemaName: '',
+            fullSchema: true,
+          },
+          dataSources: [],
+        },
+        {
+          dataHubName: formData.dataHubName || '',
+          storingCountries: [],
+          cloudRegion: '',
+          formatType: '',
+          technology: 'Fabric',
+          frequency: formData.frequency || '',
+          cloudProvider: formData.cloudProvider || '',
+          dataProductConnectionString: {
+            workspaceName: workspaceName || '',
+            lakehouseName: lakehouseName || '',
+            fullLakehouse: true,
+            workspaceId: workspaceId || '',
+            lakehouseId: lakehouseId || '',
+          },
+          dataSources: [],
+        },
+      ],
     };
+    //remove for testing
+    console.log('Submit payload:', JSON.stringify(payload, null, 2));
 
-    console.log('Payload ready for backend:', payload);
-    //API here 
+    ProgressIndicator.show();
+    fabricApi.publishDdxDataProduct(workspaceId, lakehouseId, payload)
+      .then((response) => {
+        ProgressIndicator.hide();
+        const responseData = response?.data?.data || {};
+        const dataProductId = responseData?.dataProductId;
+        const dofUrlFromResponse = responseData?.dofUrl;
+        // const baseUrl = (Envs.DDX_DOF_BASE_URL || '').replace(/\/$/, '');
+        // const dofUrl = `${baseUrl}/myDataProducts/onboardingForm/${dataProductId}`;
+        Notification.show('Data product onboarded successfully.', 'success');
+        setHasSubmittedOnce(true);
+        if (dofUrlFromResponse) {
+          setSubmittedDofUrl(dofUrlFromResponse);
+        }
+        if (dataProductId) {
+          submittedProductIdRef.current = dataProductId;
+          setSubmittedProductId(dataProductId);
+        }
+        setCurrentStep('step6');
+        onRefreshWorkspace && onRefreshWorkspace();
+      })
+      .catch((err) => {
+        ProgressIndicator.hide();
+        Notification.show(err?.response?.data?.responses?.errors?.[0]?.message || 'Failed to onboard data product.', 'alert');
+      });
   };
 
   return (
@@ -768,7 +990,7 @@ const ViewDdxTablesModalContent = ({ workspaceOwner, workspaceDivision }) => {
         <div
           className={classNames(
             Styles.step,
-            (currentStep === 'step1' || currentStep === 'step2' || currentStep === 'step3' || currentStep === 'step4') && Styles.complete
+            (currentStep === 'step1' || currentStep === 'step2' || currentStep === 'step3' || currentStep === 'step4' || currentStep === 'step5') && Styles.complete
           )}
         >
           <div className={classNames(Styles.stepIcon, currentStep === 'step1' && Styles.activeIcon)}>
@@ -777,25 +999,39 @@ const ViewDdxTablesModalContent = ({ workspaceOwner, workspaceDivision }) => {
           <div className={Styles.stepLabel}>Basic Identification</div>
         </div>
 
-        <div className={classNames(Styles.step, (currentStep === 'step2' || currentStep === 'step3' || currentStep === 'step4') && Styles.complete)}>
+        <div className={classNames(Styles.step, (currentStep === 'step2' || currentStep === 'step3' || currentStep === 'step4' || currentStep === 'step5') && Styles.complete)}>
           <div className={classNames(Styles.stepIcon, currentStep === 'step2' && Styles.activeIcon)}>
             <i className="icon mbc-icon tools-mini" />
           </div>
           <div className={Styles.stepLabel}>Ownership & Governance</div>
         </div>
 
-        <div className={classNames(Styles.step, (currentStep === 'step3' || currentStep === 'step4') && Styles.complete)}>
+        <div className={classNames(Styles.step, (currentStep === 'step3' || currentStep === 'step4' || currentStep === 'step5') && Styles.complete)}>
           <div className={classNames(Styles.stepIcon, currentStep === 'step3' && Styles.activeIcon)}>
             <i className="icon mbc-icon tools-mini" />
           </div>
           <div className={Styles.stepLabel}>Technical Metadata</div>
         </div>
 
-        <div className={classNames(Styles.step, currentStep === 'step4' && Styles.complete)}>
+        <div className={classNames(Styles.step, (currentStep === 'step4' || currentStep === 'step5') && Styles.complete)}>
           <div className={classNames(Styles.stepIcon, currentStep === 'step4' && Styles.activeIcon)}>
             <i className="icon mbc-icon tools-mini" />
           </div>
           <div className={Styles.stepLabel}>Compliance & Usage</div>
+        </div>
+
+        <div className={classNames(Styles.step, (currentStep === 'step5' || currentStep === 'step6') && Styles.complete)}>
+          <div className={classNames(Styles.stepIcon, currentStep === 'step5' && Styles.activeIcon)}>
+            <i className="icon mbc-icon tools-mini" />
+          </div>
+          <div className={Styles.stepLabel}>Personal Data</div>
+        </div>
+
+        <div className={classNames(Styles.step, currentStep === 'step6' && Styles.complete)}>
+          <div className={classNames(Styles.stepIcon, currentStep === 'step6' && Styles.activeIcon)}>
+            <i className="icon mbc-icon tools-mini" />
+          </div>
+          <div className={Styles.stepLabel}>Next Steps</div>
         </div>
       </div>
 
@@ -834,27 +1070,65 @@ const ViewDdxTablesModalContent = ({ workspaceOwner, workspaceDivision }) => {
           setFormData={setFormData}
           errors={errors}
           clearError={clearError}
+          securityLevel={Envs.SECURITY_LEVELS || []}
           purposes={PURPOSES || []}
+          updateFrequencies={UPDATE_FREQUENCIES || []}
+        />
+      )}
+
+      {currentStep === 'step5' && (
+        <Step5_PersonalData
+          formData={formData}
+          setFormData={setFormData}
+          errors={errors}
+          clearError={clearError}
           criteriaTransferPricing={CRITERIA_TRANSFER_PRICING || []}
           qualificationTransferPricing={QUALIFICATION_TRANSFER_PRICING || []}
         />
       )}
 
+      {currentStep === 'step6' && (() => {
+        const baseUrl = (Envs.DDX_DOF_BASE_URL || '').replace(/\/$/, '');
+        const resolvedProductId = submittedProductIdRef.current || submittedProductId || existingProductId;
+        const dofUrl = submittedDofUrl || (resolvedProductId ? `${baseUrl}/myDataProducts/onboardingForm/${resolvedProductId}` : '');
+        return (
+          <div className={Styles.stepForm}>
+            <div className={Styles.successMessage}>
+              <p>
+                The data product has been onboarded in the DDX portal and is currently saved in Draft status. Kindly click{' '}
+                {dofUrl ? (
+                  <a href={dofUrl} target="_blank" rel="noopener noreferrer">here</a>
+                ) : (
+                  <strong>here</strong>
+                )}{' '}
+                to review and complete the onboarding process by following the steps outlined below:
+              </p>
+              <ol>
+                <li>Navigate through each step in the DDX portal..</li>
+                <li>Upon reaching <strong>Step 7</strong>, click the <strong>Get Objects</strong> button and then proceed by clicking Next.</li>
+                <li>In <strong>Step 8</strong>, click the <strong>Get Objects</strong> button again.</li>
+                <li>In the final step, review and verify all the details, agree to the Terms of Use, and complete the onboarding process.</li>                
+              </ol>
+            </div>
+          </div>
+        );
+      })()}
+
       <div className={Styles.formFooter}>
-        {currentStep !== 'step1' && (
+        {currentStep !== 'step1' && currentStep !== 'step6' && (
           <button className="btn btn-primary" type="button" onClick={handlePrev}>
             Prev
           </button>
         )}
 
-        {currentStep !== 'step4' && (
+        {currentStep !== 'step5' && currentStep !== 'step6' && (
           <button className="btn btn-tertiary" type="button" onClick={handleNext}>
             Next
           </button>
         )}
 
-        {currentStep === 'step4' && (
-          <button className="btn btn-tertiary" type="button" onClick={handleSubmit}>
+        {currentStep === 'step5' && (
+          <button className={(hasSubmittedOnce || isDdxAlreadyPushed) ? 'btn btn-primary' : 'btn btn-tertiary'} type="button" disabled={hasSubmittedOnce || isDdxAlreadyPushed} onClick={handleSubmit} title={isDdxAlreadyPushed ? 'A DDX data product has already been published for this lakehouse' : ''}>
             Submit
           </button>
         )}
