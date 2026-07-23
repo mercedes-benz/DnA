@@ -638,34 +638,6 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
             <span>CDC Push requires Lakehouse Schemas to be enabled. Please recreate the lakehouse with the Lakehouse Schemas option checked.</span>
           </div>
         )}
-        
-      {localMismatches.length > 0 && (
-        <div className={Styles.schemaChangesPanel}>
-          <div className={Styles.schemaChangesPanelHeader}>
-            <i className="icon mbc-icon alert circle" />
-            <span>Schema Changes Detected</span>
-            <span className={Styles.schemaChangesBadgeCount}>{localMismatches.length} change{localMismatches.length !== 1 ? 's' : ''}</span>
-          </div>
-          <div className={Styles.schemaChangesList}>
-            {localMismatches.map((mismatch, idx) => {
-              const config = MISMATCH_TYPE_CONFIG[mismatch.mismatchType] || { label: mismatch.mismatchType?.replace(/_/g, ' '), colorClass: 'badgeModified' };
-              return (
-                <div key={idx} className={Styles.schemaChangeItem}>
-                  <div className={Styles.schemaChangeItemHeader}>
-                    <span className={Styles.schemaChangeTableName}>{mismatch.tableName}</span>
-                    <span className={classNames(Styles.schemaChangeBadge, Styles[config.colorClass])}>
-                      {config.label}
-                    </span>
-                  </div>
-                  {mismatch.details && (
-                    <p className={Styles.schemaChangeDetails}>{mismatch.details}</p>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
 
         <div className={Styles.flex}>
           <div className={Styles.col3}>
