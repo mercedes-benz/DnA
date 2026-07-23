@@ -192,16 +192,21 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
     fabricApi.getLakehouseTables(workspaceId, lakehouseId)
       .then(res => {
         const fetchedTables = res?.data?.data?.tables || [];
-        const seenTableKeys = new Set();
-        const uniqueTables = fetchedTables.filter(table => {
-          const tableKey = `${(table.schemaName || '').trim()}::${table.tableName || ''}`;
-          if (seenTableKeys.has(tableKey)) return false;
-          seenTableKeys.add(tableKey);
-          return true;
+        // Component state and payloads use tableName keys, while upstream may return schema variants.
+        const tablesByName = new Map();
+        fetchedTables.forEach(table => {
+          const existingTable = tablesByName.get(table.tableName);
+          const hasSchemaName = table.schemaName && table.schemaName.trim() !== '';
+          const existingHasSchemaName = existingTable?.schemaName && existingTable.schemaName.trim() !== '';
+          if (!existingTable || (!existingHasSchemaName && hasSchemaName)) {
+            tablesByName.set(table.tableName, table);
+          }
         });
+        const uniqueTables = Array.from(tablesByName.values());
         setTables(uniqueTables);
-        const hasSchemaName = uniqueTables.length > 0
-          && uniqueTables.every(t => t.schemaName && t.schemaName.trim() !== '');
+        // Judge schema support from raw rows because schema-less lakehouses also expose a dbo SQL-endpoint copy.
+        const hasSchemaName = fetchedTables.length > 0
+          && fetchedTables.every(t => t.schemaName && t.schemaName.trim() !== '');
         setSchemaEnabled(hasSchemaName);
         setSchemaCheckLoading(false);
         ProgressIndicator.hide();
@@ -817,10 +822,9 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
         {tables.map((table, idx) => {
           const panelId = `table-${idx}`;
           const tableName = table.tableName;
-          const tableKey = `${(table.schemaName || '').trim()}::${tableName || ''}`;
 
           return (
-            <div key={tableKey} className="expansion-panel">
+            <div key={tableName} className="expansion-panel">
               <span className="animation-wrapper" />
               <input type="checkbox" className="ff-only" id={panelId} />
               <div className={Styles.tableRow}>
