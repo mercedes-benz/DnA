@@ -687,7 +687,7 @@ const AllCodeSpaces = (props) => {
     //     </div>
     // );
 
-    useEffect(() => {
+    // useEffect(() => {
         // if (selectedCodeSpaceGroup) {
         //   const updatedGroup = codeSpaceGroups.find(
         //     (group) => group.id === selectedCodeSpaceGroup.id
@@ -696,9 +696,23 @@ const AllCodeSpaces = (props) => {
         //     setSelectedCodeSpaceGroup(updatedGroup);
         //   }
         // }
-        setSelectedCodeSpaceGroup(JSON.parse(sessionStorage.getItem(SESSION_STORAGE_KEYS.CODE_SPACE_SELECTED_GROUPS)));
+        // setSelectedCodeSpaceGroup(JSON.parse(sessionStorage.getItem(SESSION_STORAGE_KEYS.CODE_SPACE_SELECTED_GROUPS)));
+        
+        //   eslint-disable-next-line react-hooks/exhaustive-deps
+    //   }, [codeSpaceGroups]);
+
+    useEffect(() => {
+        setSelectedCodeSpaceGroup((prevGroup) => {
+            if (!prevGroup || !prevGroup.groupId) {
+                return prevGroup;
+            }
+            const updatedGroup = Array.isArray(codeSpaceGroups)
+                ? codeSpaceGroups.find((group) => group.groupId === prevGroup.groupId)
+                : undefined;
+            return updatedGroup || prevGroup;
+        });
         // eslint-disable-next-line react-hooks/exhaustive-deps
-      }, [codeSpaceGroups]);
+    }, [codeSpaceGroups]);
 
     const codespacesModalContent = <>
     <h2 className={classNames(Styles.modalTitle)}>{selectedCodeSpaceGroup?.name}</h2>
@@ -1191,7 +1205,7 @@ const AllCodeSpaces = (props) => {
                     //     onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'react'
                     // }
                     setShowCodeDeployModal={(isVisible) => setShowDeployCodeSpaceModal(isVisible)}
-                    setCodeDeploying={() => { getCodeSpacesData(); getCodeSpaceGroupsData();}}
+                    setCodeDeploying={() => { getCodeSpacesData(); }}
                     setIsApiCallTakeTime={setIsApiCallTakeTime}
                     startDeploymentStatusListener={startListening}
                     onDeploymentStatusUpdate={(data) => handleDeploymentStatusUpdate(onDeployCodeSpace?.id, data)}
@@ -1219,8 +1233,8 @@ const AllCodeSpaces = (props) => {
                     //     onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'react'
                     // }
                     setShowCodeDeployModal={(isVisible) => setShowDeployCodeSpaceModal(isVisible)}
-                    setCodeDeploying={() => { getCodeSpacesData(); getCodeSpaceGroupsData();}}
-                    setCodeBuilding={() => { getCodeSpacesData(); getCodeSpaceGroupsData();}}
+                    setCodeDeploying={() => { getCodeSpacesData(); }}
+                    setCodeBuilding={() => { getCodeSpacesData(); }}
                     setIsApiCallTakeTime={setIsApiCallTakeTime}
                     startDeploymentStatusListener={startListening}
                     onDeploymentStatusUpdate={(data) => handleDeploymentStatusUpdate(onDeployCodeSpace?.id, data)}
@@ -1233,8 +1247,7 @@ const AllCodeSpaces = (props) => {
                       show={showDeployApprovalModal}
                       setShowDeployApprovalModal={setShowDeployApprovalModal}
                       codeSpaceData = {onDeployCodeSpace}
-                      setCodeDeploying={() => {getCodeSpacesData(); getCodeSpaceGroupsData();}}
-                      setIsApiCallTakeTime={setIsApiCallTakeTime}
+                      setCodeDeploying={() => { getCodeSpacesData(); }}
                       startDeploymentStatusListener={startListening}
                       onDeploymentStatusUpdate={(data) => handleDeploymentStatusUpdate(onDeployCodeSpace?.id, data)}
                       onDeploymentComplete={(data) => handleDeploymentComplete(onDeployCodeSpace?.id, data)}
