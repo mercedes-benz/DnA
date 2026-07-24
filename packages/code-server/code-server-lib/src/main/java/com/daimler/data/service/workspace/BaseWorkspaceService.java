@@ -1641,11 +1641,14 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 	 @Transactional
 	 @Override
 	 public CodeServerWorkspaceVO getById(String userId, String id, boolean refreshTriggeredByUser) {
+		log.info("getById - ENTRY: userId={}, id={}, refreshTriggeredByUser={}", userId, id, refreshTriggeredByUser);
 			CodeServerWorkspaceNsql entity = new CodeServerWorkspaceNsql();
 			if (technicalId.equalsIgnoreCase(userId)) {
 				entity = workspaceCustomRepository.findByWorkspaceId(id);
+				log.info("getById - lookup by workspaceId (technical user) for id={}", id);
 			} else {
 				entity = workspaceCustomRepository.findById(userId, id);
+				log.info("getById - lookup by userId+id: userId={}, id={}", userId, id);
 			}
 			// Status reconciliation (ArgoCD, GitHub Actions, backfill) is handled
 			// by DeploymentStatusMonitorJob which runs every 10s. Keeping getById
@@ -1679,6 +1682,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 					// shared
 					// project-level lastBuildOrDeployedOn (which also reflects deploys / the other
 					// env).
+					log.info("getById - entering BUILD_REQUESTED reconciliation for project={}", projectName);
 					Date requestedOn = (buildDetails != null && buildDetails.getLastBuildOn() != null)
 							? buildDetails.getLastBuildOn()
 							: entity.getData().getProjectDetails().getLastBuildOrDeployedOn();
