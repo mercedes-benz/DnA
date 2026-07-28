@@ -27,11 +27,20 @@
 
 package com.daimler.data.controller.exceptions;
 
+import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceCreateRequestVO;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpInputMessage;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
+import org.springframework.http.converter.HttpMessageConverter;
+import org.springframework.http.converter.json.MappingJacksonInputMessage;
 import org.springframework.validation.FieldError;
 import org.springframework.validation.ObjectError;
 import org.springframework.web.HttpMediaTypeNotSupportedException;
@@ -40,14 +49,85 @@ import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.servlet.mvc.method.annotation.RequestBodyAdvice;
 import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
+import org.springframework.core.MethodParameter;
+import org.springframework.util.StreamUtils;
 
+import java.io.ByteArrayInputStream;
+import java.io.IOException;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
 
 @ControllerAdvice
 @RequestMapping(produces = MediaType.APPLICATION_JSON_VALUE)
-public class GenericControllerAdvice extends ResponseEntityExceptionHandler {
+public class GenericControllerAdvice extends ResponseEntityExceptionHandler implements RequestBodyAdvice {
+
+	private final ObjectMapper strictObjectMapper;
+
+	public GenericControllerAdvice(ObjectMapper objectMapper) {
+		this.strictObjectMapper = objectMapper.copy()
+				.enable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
+	}
+
+	@Override
+	public boolean supports(MethodParameter methodParameter, Type targetType,
+			Class<? extends HttpMessageConverter<?>> converterType) {
+		return FabricWorkspaceCreateRequestVO.class.equals(targetType);
+	}
+
+	@Override
+	public HttpInputMessage beforeBodyRead(HttpInputMessage inputMessage, MethodParameter parameter,
+			Type targetType, Class<? extends HttpMessageConverter<?>> converterType) throws IOException {
+		byte[] body = StreamUtils.copyToByteArray(inputMessage.getBody());
+		try {
+			strictObjectMapper.readValue(body, FabricWorkspaceCreateRequestVO.class);
+		} catch (UnrecognizedPropertyException exception) {
+			String parentPath = formatParentPath(exception);
+			String cleanMessage = "Unrecognized field '" + exception.getPropertyName()
+					+ "' \u2014 not allowed at " + parentPath + " of the request body";
+			throw new HttpMessageNotReadableException(cleanMessage, exception, inputMessage);
+		} catch (JsonProcessingException exception) {
+			// Let the regular message converter handle malformed or otherwise invalid JSON.
+		}
+
+		return new MappingJacksonInputMessage(new ByteArrayInputStream(body), inputMessage.getHeaders());
+	}
+
+	@Override
+	public Object afterBodyRead(Object body, HttpInputMessage inputMessage, MethodParameter parameter,
+			Type targetType, Class<? extends HttpMessageConverter<?>> converterType) {
+		return body;
+	}
+
+	@Override
+	public Object handleEmptyBody(Object body, HttpInputMessage inputMessage, MethodParameter parameter,
+			Type targetType, Class<? extends HttpMessageConverter<?>> converterType) {
+		return body;
+	}
+
+	private String formatParentPath(UnrecognizedPropertyException exception) {
+		List<JsonMappingException.Reference> path = exception.getPath();
+		if (path == null || path.isEmpty()) {
+			return "this level";
+		}
+
+		StringBuilder formattedPath = new StringBuilder("path '");
+		boolean firstElement = true;
+		for (JsonMappingException.Reference reference : path) {
+			if (reference.getFieldName() != null) {
+				if (!firstElement) {
+					formattedPath.append('.');
+				}
+				formattedPath.append(reference.getFieldName());
+			} else if (reference.getIndex() >= 0) {
+				formattedPath.append('[').append(reference.getIndex()).append(']');
+			}
+			firstElement = false;
+		}
+		return formattedPath.append("'").toString();
+	}
 
 	@ExceptionHandler(Throwable.class)
 	public ResponseEntity<GenericMessage> showErrMsg(final Throwable e) {
@@ -77,7 +157,7 @@ public class GenericControllerAdvice extends ResponseEntityExceptionHandler {
 	@Override
 	protected ResponseEntity<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException ex,
 			HttpHeaders headers, HttpStatus status, WebRequest request) {
-		if (ex instanceof UnknownRequestPropertyException) {
+		if (ex.getCause() instanceof UnrecognizedPropertyException) {
 			GenericMessage errorMessageDto = new GenericMessage();
 			errorMessageDto.addErrors(new MessageDescription(ex.getMessage()));
 			return new ResponseEntity(errorMessageDto, HttpStatus.BAD_REQUEST);
