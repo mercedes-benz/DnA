@@ -25,6 +25,7 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import com.daimler.data.db.json.DdxMirroredCatalogProduct;
+import com.daimler.data.dto.fabric.CreateMirrorCatalogDataDto;
 import com.daimler.data.dto.fabric.UiLicioueMirrorCatalogStepsDto;
 import com.daimler.data.dto.fabric.UiLicioueStepsDto;
 import com.daimler.data.dto.fabricCatalogManagement.GroupStatusResponseVO;
@@ -219,29 +220,26 @@ public class UiLiciousClient {
 
         log.info("Calling Uilicious for mirrored catalog: catalog={}, group={}, isNew={}", catalogName, ddxGroup, isNewCatalog);
 
-        List<String> ddxGroupList = new ArrayList<>();
-        ddxGroupList.add(ddxGroup);
-        List<Map<String,Object>> selectionList = new ArrayList<>();
-        Map<String,Object> selection = new HashMap<>();
-        selection.put("schema",schemaName);
-        selection.put("tables", objects);
-        selectionList.add(selection);
-
-        Map<String, Object> dataMap = new HashMap<>();
-        dataMap.put("email", email);
-        dataMap.put("password", password);
-        dataMap.put("dataProduct", dataProductName);
-        dataMap.put("catalogName", catalogName);
-        dataMap.put("Groups", ddxGroupList);
-        dataMap.put("connectionName", connectionName);
-        dataMap.put("WorkspaceID_MirrorCreation", workspaceId);
-        dataMap.put("WorkspaceName", workspaceName);
-        dataMap.put("network_connectionName", networkConnectionName);
-        dataMap.put("selection", selectionList);
+CreateMirrorCatalogDataDto mirrorData = CreateMirrorCatalogDataDto.builder()
+        .email(email)
+        .password(password)
+        .dataProduct(dataProductName)
+        .catalogName(catalogName)
+        .groups(new ArrayList<>(List.of(ddxGroup)))
+        .connectionName(connectionName)
+        .workspaceIdMirrorCreation(workspaceId)
+        .workspaceName(workspaceName)
+        .networkConnectionName(networkConnectionName)
+        .selection(new ArrayList<>(List.of(
+                CreateMirrorCatalogDataDto.Selection.builder()
+                        .schema(schemaName)
+                        .tables(objects)
+                        .build())))
+        .build();
 
         String data;
         try {
-            data = objectMapper.writeValueAsString(dataMap);
+            data = objectMapper.writeValueAsString(mirrorData);
         } catch (Exception e) {
             log.error("Error serializing mirrored catalog data to JSON: {}", e.getMessage());
             throw new RuntimeException("Failed to serialize mirrored catalog request", e);

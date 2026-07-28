@@ -1994,6 +1994,7 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
     @Override
     @Transactional
     public MirroredCatalogResponseVO createMirroredCatalog(CreateMirroredCatalogRequestVO request) {
+        log.info("inside createMirroredCatalog method");
         log.info("Creating mirrored catalog for dataProduct: {}", request.getDataProductName());
 
         String catalogName = request.getCatalogName();
@@ -2010,49 +2011,9 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
                     org.springframework.http.HttpStatus.BAD_REQUEST);
         }
 
-        Optional<DdxMirroredCatalogProductNsql> existingOpt = mirroredCatalogCustomRepo.findByCatalogName(dataProductName);
-
-        if (existingOpt.isPresent()) {
-            DdxMirroredCatalogProductNsql existingEntity = existingOpt.get();
-            DdxMirroredCatalogProduct existingData = existingEntity.getData();
-            List<DdxGroupDetail> existingGroups = existingData.getDdxGroupDetails();
-            if (existingGroups != null) {
-                boolean groupExists = existingGroups.stream()
-                        .anyMatch(g -> ddxGroup.equals(g.getGroupName()));
-                if (groupExists) {
-                    log.info("Group {} already exists for dataProduct {}", ddxGroup, dataProductName);
-                    throw new MirroredCatalogException(
-                            "Group " + ddxGroup + " already exists for dataProduct " + dataProductName,
-                            existingData.getDdxCorrelationId(),
-                            "ALREADY_EXISTS",
-                            org.springframework.http.HttpStatus.CONFLICT);
-                }
-            }
-
-            Map<String, String> uiliciousResponse = callUiliciousForMirroredCatalog(request, false);
-
-            DdxGroupDetail newGroupDetail = new DdxGroupDetail();
-            newGroupDetail.setGroupName(ddxGroup);
-            newGroupDetail.setGroupAddedStatus(ConstantsUtility.INPROGRESS_STATE);
-            newGroupDetail.setGrantPermissionStatus(ConstantsUtility.INPROGRESS_STATE);
-            newGroupDetail.setTestRunId(uiliciousResponse.get("testRunId"));
-            newGroupDetail.setMessage(ConstantsUtility.GROUP_ADDED_MESSAGE_IN_PROGRESS);
-            newGroupDetail.setAddedOn(new Date());
-            newGroupDetail.setUpdatedOn(new Date());
-
-            if (existingGroups == null) {
-                existingData.setDdxGroupDetails(new ArrayList<>());
-            }
-            existingData.getDdxGroupDetails().add(newGroupDetail);
-            existingEntity.setData(existingData);
-            mirroredCatalogRepo.save(existingEntity);
-
-            log.info("Added group {} to existing catalog {} with status {}", ddxGroup, catalogName, uiliciousResponse.get("groupAddedStatus"));
-
-            return buildMirroredCatalogResponse(existingData);
-        }
-
         Map<String, String> uiliciousResponse = callUiliciousForMirroredCatalog(request, true);
+
+        log.info("got the response from UiLicious for mirrored catalog creation");
 
         MirroredCatalogDetail mirrorCatalogDetails = new MirroredCatalogDetail();
         mirrorCatalogDetails.setMirroredCatalogId(uiliciousResponse.get("catalogId"));
@@ -2245,51 +2206,18 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
         return buildMirroredCatalogResponse(data);
     }
 
-    // Uncomment callUiliciousForMirroredCatalog and remove callUiliciousDummy when ready for production
-    private Map<String, String> callUiliciousDummy(CreateMirroredCatalogRequestVO request, boolean isNewCatalog) {
-        String catalogName = request.getCatalogName();
-        String ddxGroup = request.getDdxGroup();
-        log.info("Calling Uilicious DUMMY for catalog: {}, group: {}, isNewCatalog: {}", catalogName, ddxGroup, isNewCatalog);
-        Map<String, String> response = new HashMap<>();
-
-        try {
-            java.lang.Thread.sleep(5000); // Simulate some processing delay
-        } catch (InterruptedException e) {
-            java.lang.Thread.currentThread().interrupt();
-            log.error("Thread interrupted during dummy processing delay", e);
-        }
-
-        if (isNewCatalog) {
-            response.put("mirrorCatalogName", request.getDataProductName());
-            response.put("catalogId", UUID.randomUUID().toString());
-            response.put("mirroredCatalogUrl", "https://app.fabric.microsoft.com/groups/" + centralWorkspaceId + "/mirroredcatalogs/" + UUID.randomUUID().toString());
-            response.put("catalogStatus", ConstantsUtility.MIRRORED_CATALOG_SUCCESS);
-            response.put("groupAddedStatus", ConstantsUtility.MIRRORED_CATALOG_IN_PROGRESS);
-            response.put("grantPermissionStatus", ConstantsUtility.MIRRORED_CATALOG_IN_PROGRESS);
-            response.put("testRunId", "dummy-run-" + UUID.randomUUID().toString());
-            response.put("message", "Dummy: Catalog creation and group addition in progress");
-        } else {
-            response.put("groupAddedStatus", ConstantsUtility.MIRRORED_CATALOG_IN_PROGRESS);
-            response.put("grantPermissionStatus", ConstantsUtility.MIRRORED_CATALOG_IN_PROGRESS);
-            response.put("testRunId", "dummy-run-" + UUID.randomUUID().toString());
-            response.put("message", "Dummy: Group addition in progress");
-        }
-
-        return response;
-    }
-
     private Map<String, String> callUiliciousForMirroredCatalog(CreateMirroredCatalogRequestVO request, boolean isNewCatalog) {
         List<String> objects = null;
         if (!request.isFullSchema() && request.getObjects() != null) {
             objects = new ArrayList<>(request.getObjects().keySet());
         }
-        //need to add network connection name here.
         String networkConnectionName = null;
         String networkConnectionId = null;
         Optional<DdxMirroredCatalogProductNsql> existingOpt = mirroredCatalogCustomRepo.findByStorageAccountUrl(request.getStorageAccountUrl());
         if(existingOpt.isPresent()){
             log.info("Storage account URL {} already exists in the system, proceeding with existing connection", request.getStorageAccountUrl());
             networkConnectionName = existingOpt.get().getData().getNetworkConnectionName();
+            networkConnectionId = existingOpt.get().getData().getNetworkConnectionId();
         } else {
             log.info("Storage account URL {} does not exist in the system, proceeding to create a new connection", request.getStorageAccountUrl());
             //create new connection here and get the connection name and id.
@@ -2299,7 +2227,6 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
 
             log.info("Created network connection with name: {} and id: {}", networkConnectionName, networkConnectionId);
 
-            //grant permission to the network connection for the central account.
             boolean flag =fabricWorkspaceClient.grantPermissionToNetworkConnection(networkConnectionId);
             if (!flag) {
                 log.error("Failed to grant permission to network connection with id: {}", networkConnectionId);
@@ -2315,7 +2242,7 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
                 centralConnectionName,
                 centralWorkspaceId,
                 centralWorkspaceName,
-                networkConnectionName,//put the network connection name here when it's ready.
+                networkConnectionName,
                 objects,
                 isNewCatalog);
         
