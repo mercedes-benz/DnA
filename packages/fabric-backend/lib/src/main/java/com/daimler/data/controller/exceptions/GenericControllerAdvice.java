@@ -84,9 +84,8 @@ public class GenericControllerAdvice extends ResponseEntityExceptionHandler impl
 		try {
 			strictObjectMapper.readValue(body, FabricWorkspaceCreateRequestVO.class);
 		} catch (UnrecognizedPropertyException exception) {
-			String parentPath = formatParentPath(exception);
-			String cleanMessage = "Unrecognized field '" + exception.getPropertyName()
-					+ "' \u2014 not allowed at " + parentPath + " of the request body";
+			String cleanMessage = "Unrecognized field '" + exception.getPropertyName() + "' is not allowed at "
+					+ formatParentPath(exception) + " of the request body";
 			throw new HttpMessageNotReadableException(cleanMessage, exception, inputMessage);
 		} catch (JsonProcessingException exception) {
 			// Let the regular message converter handle malformed or otherwise invalid JSON.
@@ -109,22 +108,22 @@ public class GenericControllerAdvice extends ResponseEntityExceptionHandler impl
 
 	private String formatParentPath(UnrecognizedPropertyException exception) {
 		List<JsonMappingException.Reference> path = exception.getPath();
-		if (path == null || path.isEmpty()) {
-			return "this level";
+		if (path == null || path.size() <= 1) {
+			return "the top level";
 		}
 
-		StringBuilder formattedPath = new StringBuilder("path '");
+		StringBuilder formattedPath = new StringBuilder("'");
 		boolean firstElement = true;
-		for (JsonMappingException.Reference reference : path) {
+		for (JsonMappingException.Reference reference : path.subList(0, path.size() - 1)) {
 			if (reference.getFieldName() != null) {
 				if (!firstElement) {
 					formattedPath.append('.');
 				}
 				formattedPath.append(reference.getFieldName());
+				firstElement = false;
 			} else if (reference.getIndex() >= 0) {
 				formattedPath.append('[').append(reference.getIndex()).append(']');
 			}
-			firstElement = false;
 		}
 		return formattedPath.append("'").toString();
 	}
