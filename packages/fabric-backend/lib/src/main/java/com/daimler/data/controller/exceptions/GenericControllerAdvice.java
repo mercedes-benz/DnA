@@ -77,6 +77,11 @@ public class GenericControllerAdvice extends ResponseEntityExceptionHandler {
 	@Override
 	protected ResponseEntity<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException ex,
 			HttpHeaders headers, HttpStatus status, WebRequest request) {
+		if (ex instanceof UnknownRequestPropertyException) {
+			GenericMessage errorMessageDto = new GenericMessage();
+			errorMessageDto.addErrors(new MessageDescription(ex.getMessage()));
+			return new ResponseEntity(errorMessageDto, HttpStatus.BAD_REQUEST);
+		}
 		Throwable mostSpecificCause = ex.getMostSpecificCause();
 		GenericMessage errorMessageDto;
 		if (mostSpecificCause != null) {

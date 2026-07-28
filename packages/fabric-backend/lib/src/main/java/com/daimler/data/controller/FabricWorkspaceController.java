@@ -215,6 +215,7 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
         && !workspaceRequestVO.getCustomGroupNameCollection().isEmpty()) {
 
 		List<CustomGroupNameCollectionVO> validGroupNames = new ArrayList<>();
+		Set<String> validRoles = Set.of("Admin", "Member", "Viewer", "Contributor");
 
 		for (CustomGroupNameCollectionVO groupObj : workspaceRequestVO.getCustomGroupNameCollection()
 			.stream()
@@ -223,8 +224,20 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 			.collect(Collectors.toList())) {
 
 				String inputRole = groupObj.getRoleName();
+				if (inputRole == null || inputRole.trim().isEmpty()) {
+					GenericMessage failedResponse = new GenericMessage();
+					MessageDescription message = new MessageDescription();
+					message.setMessage("Invalid role name '" + inputRole + "' for group: " + groupObj.getGroupName() +
+							". Allowed values are: " + validRoles);
+					failedResponse.addErrors(message);
+					failedResponse.setSuccess(HttpStatus.BAD_REQUEST.name());
+
+					responseVO.setData(workspaceRequestVO);
+					responseVO.setResponses(failedResponse);
+					log.error("Invalid role name '{}' for group '{}'", inputRole, groupObj.getGroupName());
+					return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+				}
 				String normalizedRole = capitalizeFirstLetter(inputRole.trim().toLowerCase());
-				Set<String> validRoles = Set.of("Admin", "Member", "Viewer", "Contributor");
 				if (!validRoles.contains(normalizedRole)) {
 					GenericMessage failedResponse = new GenericMessage();
 					MessageDescription message = new MessageDescription();
