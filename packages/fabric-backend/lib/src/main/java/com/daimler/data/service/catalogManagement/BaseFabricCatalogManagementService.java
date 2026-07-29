@@ -2229,7 +2229,7 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
 
             boolean flag =fabricWorkspaceClient.grantPermissionToNetworkConnection(networkConnectionId);
             if (!flag) {
-                log.error("Failed to grant permission to network connection with id: {}", networkConnectionId);
+                log.error("Failed to grant permission to network connection with id: {} and storage account: {}", networkConnectionId,request.getStorageAccountUrl());
                 throw new RuntimeException("Failed to grant permission to network connection for storage account: " + request.getStorageAccountUrl());
             }
         }
