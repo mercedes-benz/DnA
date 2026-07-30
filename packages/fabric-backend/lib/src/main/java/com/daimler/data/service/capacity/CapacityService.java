@@ -45,5 +45,11 @@ public interface CapacityService extends CommonService<CapacityVO, CapacityNsql,
      * @return List<CapacityVO> List of CapacityVO objects containing the capacity details for all regions
      */
     List<CapacityVO> getAllCapacity();
-    
+
+    /**
+     * get all the regions for which capacity details can be configured. 
+     * this method will fetch the list of regions from the vault and return them as a list of strings.
+     * @return List<String> List of regions for which capacity details can be configured
+     */
+    List<String> getAllRegions();
 }

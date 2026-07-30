@@ -1,10 +1,15 @@
 package com.daimler.data.controller;
 
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import javax.validation.Valid;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -192,7 +197,8 @@ public class FabricWorkspaceAdminController implements FabricWorkspacesAdminApi
 			log.warn("Access denied for createOrUpdateCapacity - user does not have FabricAdmin role");
 			return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
 		}
-		if (capacityVO == null || capacityVO.getRegion() == null || capacityVO.getRegion().trim().isEmpty()) {
+		if (capacityVO == null || isEmptyOrNull(capacityVO.getRegion()) || isEmptyOrNull(capacityVO.getId()) || 
+		isEmptyOrNull(capacityVO.getName()) || isEmptyOrNull(capacityVO.getSku()) || isEmptyOrNull(capacityVO.getState())) {
 			log.error("createOrUpdateCapacity called with null/empty capacity or missing region");
 			return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
 		}
@@ -257,5 +263,48 @@ public class FabricWorkspaceAdminController implements FabricWorkspacesAdminApi
 			log.error("Exception occurred while deleting capacity for region {}: {}", region, e.getMessage());
 			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
+	}
+
+	@Override
+	@ApiOperation(value = "Get list of available regions.", nickname = "getRegionList", notes = "Fetches the list of available regions. This endpoint is available only for users who have the FabricAdmin role.", response = String.class, responseContainer = "List", tags={ "fabric-workspaces-admin", })
+	@ApiResponses(value = { 
+	    @ApiResponse(code = 200, message = "Returns list of available regions.", response = String.class, responseContainer = "List"),
+	    @ApiResponse(code = 400, message = "Bad request."),
+	    @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+	    @ApiResponse(code = 403, message = "User is not a Fabric Admin."),
+	    @ApiResponse(code = 405, message = "Method not allowed."),
+	    @ApiResponse(code = 500, message = "Internal server error.") })
+	@RequestMapping(
+	    value = "/fabric-workspaces/admin/regions",
+	    produces = { "application/json" },
+	    method = RequestMethod.GET)
+	public ResponseEntity<List<String>> getRegionList() {
+	    if (this.userStore.getUserInfo() == null || this.userStore.getVO() == null || this.userStore.getVO().getId() == null ||
+	                "".equalsIgnoreCase(this.userStore.getVO().getId().trim())) {
+	        log.warn("Unauthorized access attempt to getRegionList");
+	        return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
+	    }
+	    UserInfo currentUserInfo = this.userStore.getUserInfo();
+	    if (!currentUserInfo.hasFabricAdminAccess()) {
+	        log.warn("Access denied for getRegionList - user does not have FabricAdmin role");
+	        return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
+	    }
+	    try {
+	        log.info("Fetching region list");
+	        List<String> regions = capacityService.getAllRegions();
+	        if (regions == null || regions.isEmpty()) {
+	            log.info("No regions found");
+	            return new ResponseEntity<>(Collections.emptyList(), HttpStatus.NO_CONTENT);
+	        }
+	        log.info("Successfully fetched region list: {}", regions);
+	        return new ResponseEntity<>(regions, HttpStatus.OK);
+	    } catch (Exception e) {
+	        log.error("Exception occurred while fetching region list: {}", e.getMessage());
+	        return new ResponseEntity<>(Collections.emptyList(), HttpStatus.INTERNAL_SERVER_ERROR);
+	    }
+	}
+
+	private boolean isEmptyOrNull(String str) {
+		return str == null || str.trim().isEmpty();
 	}
 }

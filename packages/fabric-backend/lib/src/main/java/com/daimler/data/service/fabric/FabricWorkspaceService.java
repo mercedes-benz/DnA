@@ -7,6 +7,7 @@ import javax.validation.Valid;
 import org.springframework.http.ResponseEntity;
 
 import com.daimler.data.controller.exceptions.GenericMessage;
+import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.db.entities.FabricWorkspaceNsql;
 import com.daimler.data.dto.adaProjects.ADAProjectDetailsCollectionVO;
 import com.daimler.data.dto.fabric.CreateEntitlementRequestDto;
@@ -35,7 +36,7 @@ public interface FabricWorkspaceService extends CommonService<FabricWorkspaceVO,
 	
 	GenericMessage delete(String id, boolean skipDeleteFabricWorkspace);
 
-	FabricWorkspaceVO updateFabricProject(FabricWorkspaceVO existingFabricWorkspace);
+	FabricWorkspaceVO updateFabricProject(FabricWorkspaceVO existingFabricWorkspace, List<MessageDescription> errors);
 
 	CreateEntitlementRequestDto prepareEntitlementCreateRequestDto(String workspaceName,  String workspaceId, String permissionName);
 

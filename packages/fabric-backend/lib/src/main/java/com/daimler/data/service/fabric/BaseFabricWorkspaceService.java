@@ -614,28 +614,33 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 					data.setHasPii(vo.isHasPii());
 					
 					boolean isPowerBI = vo.getSubscription() != null && vo.getSubscription().name().equalsIgnoreCase("PowerBI");
-					ErrorResponseDto assignCapacityResponse = fabricWorkspaceClient.assignCapacity(createResponse.getId(), isPowerBI);
 					CapacityVO capacityVO = new CapacityVO();
-					if(assignCapacityResponse!=null && assignCapacityResponse.getErrorCode()!=null && "500".equalsIgnoreCase(assignCapacityResponse.getErrorCode())) {
-						capacityVO = null;
-						warnings.add(new MessageDescription("Failed to assign capacity, please reassign or update workspace to assign capacity automatically."));
-					}else {
-						if(isPowerBI) {
-							capacityVO.setId(powerbiCapacityId);
-							capacityVO.setName(powerbiCapacityName);
-							capacityVO.setRegion(capacityRegion);
-							capacityVO.setSku(capacitySku);
-							capacityVO.setState(capacityState);
-						} else {
-							capacityVO.setId(fabricCapacityId);
-							capacityVO.setName(fabricCapacityName);
-							capacityVO.setRegion(capacityRegion);
-							capacityVO.setSku(capacitySku);
-							capacityVO.setState(capacityState);
-						}
+					if(isPowerBI) {
+						capacityVO.setId(powerbiCapacityId);
+						capacityVO.setName(powerbiCapacityName);
+						capacityVO.setRegion(capacityRegion);
+						capacityVO.setSku(capacitySku);
+						capacityVO.setState(capacityState);
+					} else {
+						capacityVO.setId(fabricCapacityId);
+						capacityVO.setName(fabricCapacityName);
+						capacityVO.setRegion(capacityRegion);
+						capacityVO.setSku(capacitySku);
+						capacityVO.setState(capacityState);
 					}
 					updateTags(data);
 					data.setCapacity(capacityVO);
+					if(vo.getProjectId() != null && !vo.getProjectId().isEmpty()) {
+						updateFabricWorkspaceCapacity(data);
+					}
+
+					ErrorResponseDto assignCapacityResponse = fabricWorkspaceClient.assignCapacity(createResponse.getId(), data.getCapacity().getId());
+					if(assignCapacityResponse!=null && assignCapacityResponse.getErrorCode()!=null && 
+					("500".equalsIgnoreCase(assignCapacityResponse.getErrorCode()) || "Failed".equalsIgnoreCase(assignCapacityResponse.getErrorCode()))) {
+						data.setCapacity(null);
+						log.error("Failed to assign capacity, please reassign or update workspace to assign capacity automatically.");
+						errors.add(new MessageDescription("Failed to assign capacity, please contact the ADA team for the capacity assignment."));
+					}
 					
 					FabricWorkspaceStatusVO currentStatus = new FabricWorkspaceStatusVO();
 					currentStatus.setState(ConstantsUtility.INPROGRESS_STATE);
@@ -1736,7 +1741,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 
 	@Override
 	@Transactional
-	public FabricWorkspaceVO updateFabricProject(FabricWorkspaceVO existingFabricWorkspace) {
+	public FabricWorkspaceVO updateFabricProject(FabricWorkspaceVO existingFabricWorkspace, List<MessageDescription> errors) {
 		WorkspaceUpdateDto updateRequest = new WorkspaceUpdateDto();
 		try {
 			updateRequest.setDescription(existingFabricWorkspace.getDescription());
@@ -1744,6 +1749,14 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 			WorkspaceDetailDto updateResponse = fabricWorkspaceClient.updateWorkspace(existingFabricWorkspace.getId(), updateRequest);
 		}catch(Exception e) {
 			log.error("Failed to update project {} details in MicrosoftFabric, Will be updated in next action.", existingFabricWorkspace.getId());
+		}
+		updateFabricWorkspaceCapacity(existingFabricWorkspace);
+		ErrorResponseDto assignCapacityResponse = fabricWorkspaceClient.assignCapacity(existingFabricWorkspace.getId(), existingFabricWorkspace.getCapacity().getId());
+		if(assignCapacityResponse!=null && assignCapacityResponse.getErrorCode()!=null && 
+		("500".equalsIgnoreCase(assignCapacityResponse.getErrorCode()) || "Failed".equalsIgnoreCase(assignCapacityResponse.getErrorCode()))) {
+			existingFabricWorkspace.setCapacity(null);
+			log.error("Failed to assign capacity, please reassign or update workspace to assign capacity automatically.");
+			errors.add(new MessageDescription("Failed to assign capacity, please contact the ADA team for the capacity assignment."));
 		}
 		FabricWorkspaceNsql updatedEntity = assembler.toEntity(existingFabricWorkspace);
 		updateTags(existingFabricWorkspace);
@@ -2421,7 +2434,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		}
 		existingFabricWorkspace.getStatus().setRoles(updatedRoles);
 		try {
-			FabricWorkspaceVO updatedRecord = updateFabricProject(existingFabricWorkspace);
+			FabricWorkspaceVO updatedRecord = updateFabricProject(existingFabricWorkspace, errors);
 			log.info("Fabric workspace {} {}  updated successfully", existingFabricWorkspace.getId(),
 					existingFabricWorkspace.getName());
 		} catch (Exception e) {
@@ -2429,7 +2442,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 					existingFabricWorkspace.getName(), e.getMessage());
 		}
 		responses.setSuccess("SUCCESS");
-		responses.setErrors(new ArrayList<>());
+		responses.setErrors(errors);
 		responses.setWarnings(new ArrayList<>());
 		return responses;
 	}
@@ -2462,6 +2475,27 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 
 		collection.responses(message);
 		return collection;
+	}
+
+	private void updateFabricWorkspaceCapacity(FabricWorkspaceVO workspaceVO){
+		String projectId = workspaceVO.getProjectId();
+		CapacityVO capacityVO = new CapacityVO();
+		capacityVO.setId(fabricCapacityId);
+		capacityVO.setName(fabricCapacityName);
+		capacityVO.setRegion(capacityRegion);
+		capacityVO.setSku(capacitySku);
+		capacityVO.setState(capacityState);
+		if(projectId!=null && !"".equalsIgnoreCase(projectId)) {
+			ADAProjectsNsql projectEntity = adaProjectsRepo.findByProjectId(projectId);
+			if(projectEntity!=null && projectEntity.getData()!=null && projectEntity.getData().getCapacity()!=null) {
+				capacityVO.setId(projectEntity.getData().getCapacity().getId());
+				capacityVO.setName(projectEntity.getData().getCapacity().getName());
+				capacityVO.setRegion(projectEntity.getData().getCapacity().getRegion());
+				capacityVO.setSku(projectEntity.getData().getCapacity().getSku());
+				capacityVO.setState(projectEntity.getData().getCapacity().getState());
+			}
+		} 
+		workspaceVO.setCapacity(capacityVO);
 	}
 
 }

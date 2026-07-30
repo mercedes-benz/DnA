@@ -45,6 +45,8 @@ management:
       show-details: always      
 
 fabricWorkspaces:
+  administration:
+    regionList: ${FABRIC_ADMIN_REGION_LIST:XXXX}
   clientId: ${FABRIC_OAUTH_CLIENT_ID:XXXX}
   clientSecret: ${FABRIC_OAUTH_CLIENT_SECRET:XXXX}
   grantType: ${FABRIC_OAUTH_GRANT_TYPE:client_credentials}
