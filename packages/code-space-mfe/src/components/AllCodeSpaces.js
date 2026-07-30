@@ -1205,7 +1205,7 @@ const AllCodeSpaces = (props) => {
                     //     onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'react'
                     // }
                     setShowCodeDeployModal={(isVisible) => setShowDeployCodeSpaceModal(isVisible)}
-                    setCodeDeploying={() => { getCodeSpacesData(); }}
+                    setCodeDeploying={() => handleDeploymentStatusUpdate(onDeployCodeSpace?.id)}
                     setIsApiCallTakeTime={setIsApiCallTakeTime}
                     startDeploymentStatusListener={startListening}
                     onDeploymentStatusUpdate={(data) => handleDeploymentStatusUpdate(onDeployCodeSpace?.id, data)}
@@ -1233,8 +1233,8 @@ const AllCodeSpaces = (props) => {
                     //     onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'react'
                     // }
                     setShowCodeDeployModal={(isVisible) => setShowDeployCodeSpaceModal(isVisible)}
-                    setCodeDeploying={() => { getCodeSpacesData(); }}
-                    setCodeBuilding={() => { getCodeSpacesData(); }}
+                    setCodeDeploying={() => handleDeploymentStatusUpdate(onDeployCodeSpace?.id)}
+                    setCodeBuilding={() => handleDeploymentStatusUpdate(onDeployCodeSpace?.id)}
                     setIsApiCallTakeTime={setIsApiCallTakeTime}
                     startDeploymentStatusListener={startListening}
                     onDeploymentStatusUpdate={(data) => handleDeploymentStatusUpdate(onDeployCodeSpace?.id, data)}
@@ -1247,7 +1247,8 @@ const AllCodeSpaces = (props) => {
                       show={showDeployApprovalModal}
                       setShowDeployApprovalModal={setShowDeployApprovalModal}
                       codeSpaceData = {onDeployCodeSpace}
-                      setCodeDeploying={() => { getCodeSpacesData(); }}
+                      setCodeDeploying={() => handleDeploymentStatusUpdate(onDeployCodeSpace?.id)}
+                      setIsApiCallTakeTime={setIsApiCallTakeTime}
                       startDeploymentStatusListener={startListening}
                       onDeploymentStatusUpdate={(data) => handleDeploymentStatusUpdate(onDeployCodeSpace?.id, data)}
                       onDeploymentComplete={(data) => handleDeploymentComplete(onDeployCodeSpace?.id, data)}
