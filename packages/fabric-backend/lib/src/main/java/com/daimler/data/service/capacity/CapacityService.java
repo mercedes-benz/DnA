@@ -13,12 +13,14 @@ import com.daimler.data.service.common.CommonService;
 public interface CapacityService extends CommonService<CapacityVO, CapacityNsql, String> {
 
     /**
-     * Get capacity details by region.
+     * Fetch the capacity details from microsoft fabric by capacity id.
+     * this method will fetch the capacity details from the microsoft fabric for the given capacity id and
+     * return it as a CapacityVO object.
      * 
-     * @param region the region for which to retrieve capacity details
-     * @return CapacityVO containing the capacity details for the specified region or null if not found
+     * @param capacityId the capacity id for which to retrieve capacity details
+     * @return CapacityVO containing the capacity details for the specified capacity id or null if not found
      */
-    CapacityVO getCapacityByRegion(String region);
+    CapacityVO getCapacityById(String capacityId);
 
     /**
      * Create or update capacity details for a specific region. If capacity details for the region already exist, 

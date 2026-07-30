@@ -91,7 +91,7 @@ public class FabricWorkspaceAdminController implements FabricWorkspacesAdminApi
 		}
 
 	@Override
-	@ApiOperation(value = "Get capacity details by region.", nickname = "getCapacityByRegion", notes = "Fetches capacity record for the given region. This endpoint is available only for users who have the FabricAdmin role.", response = CapacityVO.class, tags={ "fabric-workspaces-admin", })
+	@ApiOperation(value = "Get capacity details by capacity id.", nickname = "getCapacityById", notes = "Fetches capacity record for the given capacity id. This endpoint is available only for users who have the FabricAdmin role.", response = CapacityVO.class, tags={ "fabric-workspaces-admin", })
     @ApiResponses(value = { 
         @ApiResponse(code = 200, message = "Returns capacity details for the given region.", response = CapacityVO.class),
         @ApiResponse(code = 204, message = "Fetch complete, no content found."),
@@ -100,36 +100,37 @@ public class FabricWorkspaceAdminController implements FabricWorkspacesAdminApi
         @ApiResponse(code = 403, message = "User is not a Fabric Admin."),
         @ApiResponse(code = 405, message = "Method not allowed."),
         @ApiResponse(code = 500, message = "Internal server error.") })
-    @RequestMapping(value = "/fabric-workspaces/admin/capacity/{region}",
+    @RequestMapping(value = "/fabric-workspaces/admin/capacity/{capacityId}",
         produces = { "application/json" }, 
         consumes = { "application/json" },
         method = RequestMethod.GET)
 	public ResponseEntity<CapacityVO> getCapacityByRegion(
-		@ApiParam(value = "Region identifier for the capacity (e.g. global, eu, us).", required = true) @PathVariable("region") String region) {
+		@ApiParam(value = "Capacity identifier.", required = true) @PathVariable("capacityId") String capacityId) {
 		if (this.userStore.getUserInfo() == null || this.userStore.getVO() == null || this.userStore.getVO().getId() == null ||
 					"".equalsIgnoreCase(this.userStore.getVO().getId().trim())) {
-			log.warn("Unauthorized access attempt to getCapacityByRegion for region: {}", region);
+			log.warn("Unauthorized access attempt to getCapacityByRegion for capacityId: {}", capacityId);
 			return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
 		}
 		UserInfo currentUserInfo = this.userStore.getUserInfo();
 		if (!currentUserInfo.hasFabricAdminAccess()) {
-			log.warn("Access denied for getCapacityByRegion - user does not have FabricAdmin role");
+			log.warn("Access denied for getCapacityByRegion - user does not have FabricAdmin role for capacityId: {}", capacityId);
 			return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
 		}
-		if (region == null || region.trim().isEmpty()) {
-			log.error("getCapacityByRegion called with null or empty region");
+		if (capacityId == null || capacityId.trim().isEmpty()) {
+			log.error("getCapacityByRegion called with null or empty capacityId");
 			return new ResponseEntity<>(null, HttpStatus.BAD_REQUEST);
 		}
 		try {
-			log.info("Fetching capacity for region: {}", region);
-			CapacityVO capacity = capacityService.getCapacityByRegion(region.trim());
+			log.info("Fetching capacity for capacityId: {}", capacityId);
+			CapacityVO capacity = capacityService.getCapacityById(capacityId.trim());
 			if (capacity == null) {
-				log.info("No capacity found for region: {}", region);
+				log.info("No capacity found for capacityId: {}", capacityId);
 				return new ResponseEntity<>(null, HttpStatus.NO_CONTENT);
 			}
+			log.info("Successfully fetched capacity for capacityId: {}", capacityId);
 			return new ResponseEntity<>(capacity, HttpStatus.OK);
 		} catch (Exception e) {
-			log.error("Exception occurred while fetching capacity for region {}: {}", region, e.getMessage());
+			log.error("Exception occurred while fetching capacity for capacityId {}: {}", capacityId, e.getMessage());
 			return new ResponseEntity<>(null, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
