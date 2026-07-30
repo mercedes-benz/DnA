@@ -84,6 +84,7 @@ import com.daimler.data.util.ConstantsUtility;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.daimler.data.dto.fabric.FabricSqlEndpointResponseDto;
 import com.daimler.data.dto.fabric.DdxResponseDto;
+import com.daimler.data.dto.adaProjects.CapacityVO;
 import com.daimler.data.dto.databricks.DatabricksSqlStatementRequestDto;
 import com.daimler.data.dto.databricks.DatabricksSqlStatementResponseDto;
 import com.daimler.data.application.auth.UserStore;
@@ -1357,6 +1358,31 @@ public class FabricWorkspaceClient {
 			responseDto.setMessage("Failed to assign role: " + e.getMessage());
 		}
 		return responseDto;
+	}
+
+	public CapacityVO getCapacityDetails(String capacityId) {
+		CapacityVO capacityVO = null;
+		try {
+			String token = getToken();
+			if(!Objects.nonNull(token)) {
+				log.error("Failed to fetch token to invoke fabric Apis");
+				return capacityVO;
+			}
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Authorization", "Bearer "+token);
+			headers.setContentType(MediaType.APPLICATION_JSON);
+			HttpEntity requestEntity = new HttpEntity<>(headers);
+			String capacityUrl = capacitiesBaseUrl + "/" + capacityId;
+			ResponseEntity<CapacityVO> response = proxyRestTemplate.exchange(capacityUrl , HttpMethod.GET,
+					requestEntity, CapacityVO.class);
+			if (response !=null && response.hasBody()) {
+				capacityVO = response.getBody();
+			}
+		}catch(Exception e) {
+			log.error("Failed to get capacity details for id {} with {} exception ", capacityId, e.getMessage());
+		}
+		return capacityVO;
 	}
 	
 	

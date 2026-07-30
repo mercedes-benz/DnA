@@ -149,6 +149,24 @@ public class BaseADAProjectsService extends BaseCommonService<ADAProjectDetailsV
 	public GenericMessage updateProject(String id, ADAProjectDetailsVO project) {
 		GenericMessage message = new GenericMessage();
 		try {
+			
+			ADAProjectsNsql existingEntity = customRepo.findByProjectId(project.getProjectID());
+			if(existingEntity == null) {
+				log.error("ADA Project with projectID {} not found in adaprojects table", project.getProjectID());
+				message.setErrors(List.of(new MessageDescription("ADA Project with projectID " + project.getProjectID() + 
+				" not found in adaprojects table")));
+				message.setSuccess("ERROR");
+				return message;
+			} else if (existingEntity.getData() != null && existingEntity.getData().getRegion() != null && 
+			!existingEntity.getData().getRegion().equalsIgnoreCase(project.getRegion())) {
+				log.error("Region mismatch for projectID {}. Existing region: {}, New region: {}", 
+				project.getProjectID(), existingEntity.getData().getRegion(), project.getRegion());
+				message.setErrors(List.of(new MessageDescription("Region mismatch for projectID " + 
+				project.getProjectID() + ". Existing region: " + existingEntity.getData().getRegion() + ", New region: " + project.getRegion())));
+				message.setSuccess("ERROR");
+				return message;
+			}
+
 			updateCapacityForFabricWorkspaces(project);
 			log.info("Successfully updated capacity for associated Fabric workspaces for project id {}", project.getProjectID());
 			ADAProjectsNsql entity = assembler.toEntity(project);

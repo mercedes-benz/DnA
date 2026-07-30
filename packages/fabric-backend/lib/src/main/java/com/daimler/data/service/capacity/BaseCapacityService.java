@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.daimler.data.application.client.FabricWorkspaceClient;
 import com.daimler.data.assembler.CapacityAssembler;
 import com.daimler.data.db.entities.CapacityNsql;
 import com.daimler.data.db.repo.capacity.CapacityRepository;
@@ -29,20 +30,23 @@ public class BaseCapacityService extends BaseCommonService<CapacityVO, CapacityN
 
     @Autowired 
     private CapacityAssembler capacityAssembler;
+
+    @Autowired
+    private FabricWorkspaceClient fabricWorkspaceClient;
     
 	@Value("${fabricWorkspaces.administration.regionList}")
 	private String regionListString;
 
     @Override
-    public CapacityVO getCapacityByRegion(String region) {
-        if(region == null || region.isEmpty()) {
-            throw new IllegalArgumentException("Region must not be null or empty");
+    public CapacityVO getCapacityById(String capacityId) {
+        if(capacityId == null || capacityId.isEmpty()) {
+            throw new IllegalArgumentException("Capacity ID must not be null or empty");
         }
-        CapacityNsql capacityNsql = capacityRepository.findById(region.trim().toLowerCase()).orElse(null);
-        if (capacityNsql == null) {
+        CapacityVO capacityVO = fabricWorkspaceClient.getCapacityDetails(capacityId.trim().toLowerCase());
+        if (capacityVO == null) {
             return null;
         }
-        return capacityAssembler.toVo(capacityNsql);
+        return capacityVO;
     }
 
     @Override
