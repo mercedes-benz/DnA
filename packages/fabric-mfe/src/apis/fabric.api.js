@@ -197,6 +197,10 @@ const deleteCapacity = (id) => {
   return server.delete(`fabric-workspaces/admin/capacity/${id}`, { data: {} });
 };
 
+const getCapacityById = (capacityId) => {
+  return server.get(`fabric-workspaces/admin/capacity/${capacityId}`, { data: {} });
+};
+
 export const fabricApi = {
   getFabricWorkspaces,
   getFabricWorkspacesForAdmin,
@@ -228,6 +232,7 @@ export const fabricApi = {
   publishDdxDataProduct,
   getRegions,
   getCapacities,
+  getCapacityById,
   updateCapacity,
   addCapacity,
   deleteCapacity
