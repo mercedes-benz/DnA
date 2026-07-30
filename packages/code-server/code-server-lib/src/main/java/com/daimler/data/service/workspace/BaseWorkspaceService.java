@@ -1852,6 +1852,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 									SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
 									Date now = isoFormat.parse(isoFormat.format(new Date()));
 									entity.getData().getProjectDetails().setLastBuildOrDeployedStatus("BUILD_FAILED");
+									entity.getData().getProjectDetails().setLastBuildOrDeployedOn(now);
 									if (buildDetails != null) {
 										buildDetails.setLastBuildStatus("BUILD_FAILED");
 										buildDetails.setLastBuildFailureReason("BUILD_TIMEOUT");
