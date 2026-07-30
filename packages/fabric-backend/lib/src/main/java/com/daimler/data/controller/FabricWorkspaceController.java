@@ -47,6 +47,8 @@ import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceCreateRequestVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceResponseVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceRoleRequestVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceUpdateRequestVO;
+import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceLovCollectionVO;
+import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceLovVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspacesCollectionVO;
 import com.daimler.data.dto.fabricWorkspace.KeyVaultCreateRequestVO;
@@ -1422,4 +1424,57 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 		}
 	}
 
+	@Override
+    @ApiOperation(value = "Search workspaces by name", nickname = "searchWorkspacesLov", notes = "Search and filter workspaces by name or other criteria. This endpoint is specifically designed for searching workspace records.", response = FabricWorkspacesCollectionVO.class, tags={ "lovs", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 200, message = "Returns search results", response = FabricWorkspacesCollectionVO.class),
+        @ApiResponse(code = 204, message = "Search complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/lov/fabric-workspaces/search",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.GET)
+    public ResponseEntity<FabricWorkspaceLovCollectionVO> searchWorkspacesLov(@NotNull @ApiParam(value = "Text to search workspaces by name", required = true) @Valid @RequestParam(value = "searchText", required = true) String searchText,@ApiParam(value = "page number from which listing of workspaces should start. Offset. Example 2") @Valid @RequestParam(value = "offset", required = false) Integer offset,@ApiParam(value = "page size to limit the number of workspaces, Example 15") @Valid @RequestParam(value = "limit", required = false) Integer limit,@ApiParam(value = "Sort workspaces by a given variable like name, createdOn", allowableValues = "name, createdOn") @Valid @RequestParam(value = "sortBy", required = false) String sortBy,@ApiParam(value = "Sort solutions based on the given order, example asc,desc", allowableValues = "asc, desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder) {
+		
+		FabricWorkspaceLovCollectionVO collection = new FabricWorkspaceLovCollectionVO();
+		int defaultLimit = 15;
+		if (offset == null || offset < 0)
+			offset = 0;
+		if (limit == null || limit < 0) {
+			limit = defaultLimit;
+		} else if (limit == 0) {
+			limit = Integer.MAX_VALUE; 
+		}
+
+		if (searchText == null || searchText.trim().isEmpty()) {
+			return new ResponseEntity<>(collection, HttpStatus.BAD_REQUEST);
+		}
+		FabricWorkspacesCollectionVO serviceResult = service.searchWorkspacesLov(limit, offset, searchText);
+		if (serviceResult.getRecords() != null) {
+			List<FabricWorkspaceLovVO> trimmed = serviceResult.getRecords().stream()
+				.map(ws -> {
+					FabricWorkspaceLovVO slim = new FabricWorkspaceLovVO();
+					slim.setId(ws.getId());
+					slim.setName(ws.getName());
+					slim.setStatus(ws.getStatus());
+					slim.setCreatedBy(ws.getCreatedBy());
+					slim.setCreatedOn(ws.getCreatedOn());
+					return slim;
+				})
+				.collect(Collectors.toList());
+			collection.setRecords(trimmed);
+			collection.setTotalCount(serviceResult.getTotalCount());
+		}
+		HttpStatus responseCode = collection.getRecords() != null && !collection.getRecords().isEmpty() 
+			? HttpStatus.OK 
+			: HttpStatus.NO_CONTENT;
+		
+		return new ResponseEntity<>(collection, responseCode);
+	}
+
+	
 }
