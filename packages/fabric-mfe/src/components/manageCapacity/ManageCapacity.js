@@ -21,6 +21,7 @@ const ManageCapacity = ({ onClose }) => {
   const [addErrors, setAddErrors] = useState({});
   const [addStatus, setAddStatus] = useState(null);
   const [addLoading, setAddLoading] = useState(false);
+  const [addFetching, setAddFetching] = useState(false);
   const [updateErrors, setUpdateErrors] = useState({});
   const [searchTerm, setSearchTerm] = useState('');
   const addFormRef = useRef(null);
@@ -101,9 +102,15 @@ const ManageCapacity = ({ onClose }) => {
     }));
   };
 
-  const handleUpdate = (rowId, capacityId) => {
+  const handleCapacityIdChange = (rowId, value) => {
+    handleEditChange(rowId, 'id', value);
+    setUpdateErrors((prev) => ({ ...prev, [rowId]: { ...prev[rowId], id: '' } }));
+  };
+
+  const handleUpdate = (rowId) => {
     const vals = editValues[rowId] || {};
     const errors = {};
+    if (!vals.id?.trim()) errors.id = '*Required';
     if (!vals.name?.trim()) errors.name = '*Required';
     if (!vals.sku?.trim()) errors.sku = '*Required';
     if (!vals.state?.trim()) errors.state = '*Required';
@@ -113,7 +120,7 @@ const ManageCapacity = ({ onClose }) => {
     }
     setUpdateErrors((prev) => { const u = { ...prev }; delete u[rowId]; return u; });
     fabricApi
-      .updateCapacity(capacityId, editValues[rowId])
+      .updateCapacity(vals.id, editValues[rowId])
       .then(() => {
         setExpandedId(undefined);
         setEditValues((prev) => { const u = { ...prev }; delete u[rowId]; return u; });
@@ -141,6 +148,40 @@ const ManageCapacity = ({ onClose }) => {
       .catch((e) => {
         setDeleteConfirmId(null);
         Notification.error(e?.response?.data?.errors?.[0]?.message || 'Delete failed.');
+      });
+  };
+
+  const handleFetchForNew = () => {
+    const trimmed = newCapacity.id?.trim();
+    if (!trimmed || trimmed.length < 25) {
+      setAddErrors((prev) => ({ ...prev, id: 'Please enter a valid Capacity ID (min 25 characters)' }));
+      return;
+    }
+    setAddFetching(true);
+    fabricApi
+      .getCapacityById(trimmed)
+      .then((res) => {
+        const data = res?.data;
+        if (data && (data.id || data.name)) {
+          setNewCapacity((prev) => ({
+            ...prev,
+            id: data.id || trimmed,
+            name: data.name || '',
+            sku: data.sku || '',
+            region: data.region || '',
+            state: data.state || '',
+          }));
+          setAddErrors({});
+          setTimeout(() => SelectBox.defaultSetup(), 50);
+        } else {
+          Notification.show('No capacity found with this ID.', 'alert');
+        }
+      })
+      .catch(() => {
+        Notification.show('No capacity found with this ID.', 'alert');
+      })
+      .finally(() => {
+        setAddFetching(false);
       });
   };
 
@@ -233,14 +274,17 @@ const ManageCapacity = ({ onClose }) => {
                 {expandedId === rowId && editValues[rowId] && (
                   <div className={Styles.capacityDetails}>
                     <div className={Styles.formRow}>
-                      <div className={classNames('input-field-group', Styles.formGroup)}>
-                        <label className="input-label">Region ID</label>
+                      <div className={classNames('input-field-group include-error', Styles.formGroup, updateErrors[rowId]?.id ? 'error' : '')}>
+                        <label className="input-label">Capacity ID <sup>*</sup></label>
                         <input
                           type="text"
-                          className={classNames('input-field', Styles.readOnlyInput)}
+                          className={classNames('input-field', !isEditing && Styles.readOnlyInput)}
                           value={editValues[rowId].id}
-                          readOnly
+                          readOnly={!isEditing}
+                          onChange={isEditing ? (e) => handleCapacityIdChange(rowId, e.target.value) : undefined}
+                          placeholder="Enter Capacity ID"
                         />
+                        <span className="error-message">{updateErrors[rowId]?.id}</span>
                       </div>
                       <div className={classNames('input-field-group include-error', Styles.formGroup, updateErrors[rowId]?.name ? 'error' : '')}>
                         <label className="input-label">Region Capacity Name <sup>*</sup></label>
@@ -275,6 +319,9 @@ const ManageCapacity = ({ onClose }) => {
                           <select value={editValues[rowId].region} disabled>
                             <option value="">Choose</option>
                             {regionOptions.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
+                            {editValues[rowId].region && !regionOptions.includes(editValues[rowId].region) && (
+                              <option key={editValues[rowId].region} value={editValues[rowId].region}>{editValues[rowId].region}</option>
+                            )}
                           </select>
                         </div>
                       </div>
@@ -383,6 +430,9 @@ const ManageCapacity = ({ onClose }) => {
                   >
                     <option value="">Choose</option>
                     {availableRegionsForAdd.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
+                    {newCapacity.region && !regionOptions.includes(newCapacity.region) && (
+                      <option key={newCapacity.region} value={newCapacity.region}>{newCapacity.region}</option>
+                    )}
                   </select>
                 </div>
                 <span className="error-message">{addErrors.region}</span>
@@ -403,6 +453,14 @@ const ManageCapacity = ({ onClose }) => {
               <div className={Styles.formGroup} />
             </div>
             <div className={Styles.actionRow}>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                disabled={addFetching}
+                onClick={handleFetchForNew}
+              >
+                {addFetching ? 'Fetching...' : 'Fetch Capacity'}
+              </button>
               <button
                 className="btn btn-tertiary"
                 disabled={addLoading}

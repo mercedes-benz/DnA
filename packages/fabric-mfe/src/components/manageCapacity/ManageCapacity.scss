@@ -213,6 +213,24 @@
   }
 }
 
+.capacityIdRow {
+  display: flex !important;
+  align-items: center;
+  gap: 8px;
+
+  .input-field {
+    flex: 1 1 auto !important;
+    width: auto !important;
+    min-width: 0 !important;
+  }
+
+  button {
+    flex: 0 0 auto;
+    white-space: nowrap;
+    height: 40px;
+  }
+}
+
 .readOnlyInput {
   cursor: default !important;
   background-color: #1e2329 !important;
