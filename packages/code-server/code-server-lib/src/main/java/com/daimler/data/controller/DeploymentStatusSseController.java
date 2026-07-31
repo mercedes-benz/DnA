@@ -632,6 +632,7 @@ public class DeploymentStatusSseController {
 
             deploymentDetails.setLastDeploymentStatus("DEPLOYMENT_FAILED");
             deploymentDetails.setLastDeploymentError(USER_CANCELLED_MARKER);
+            deploymentDetails.setLastDeployedOn(new java.util.Date());
             workspaceRepository.updateDeploymentDetails(projectName, environment, deploymentDetails, "DEPLOYMENT_FAILED");
 
             updateBuildDeployAuditToCancelled(projectName, environment);
