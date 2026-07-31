@@ -32,8 +32,9 @@ const getCodeSpaceStatus = (id) => {
     });
 };
 
-const getWorkspaceById = (id) => { 
-    return server.get(`workspaces/${id}`, {
+const getWorkspaceById = (id, refreshTriggeredByUser) => { 
+    const query = refreshTriggeredByUser ? '?refreshTriggeredByUser=true' : '';
+    return server.get(`workspaces/${id}${query}`, {
         data: {},
     });
 };

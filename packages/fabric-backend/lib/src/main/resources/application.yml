@@ -2,7 +2,7 @@ spring:
   mvc.pathmatch.matching-strategy: ant_path_matcher
   application:
     name: dna-fabric-workspace-service
-    version: 1.6.8
+    version: 1.7.0
   profile:
     active: production
 
@@ -152,6 +152,10 @@ cdcIntegration:
   fabricCdcPushService:
       baseUrl: ${FABRIC_CDC_PUSH_SERVICE_BASE_URL:XXXX}
       authToken: ${FABRIC_CDC_PUSH_SERVICE_AUTH_TOKEN:XXXX}
+
+dataProduct:
+  planningit:
+    baseUrl: ${DATA_PRODUCT_PLANNINGIT_BASE_URL:XXXX}
 
 ddxIntegration:
   fabricDdxPush:

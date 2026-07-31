@@ -399,7 +399,7 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
 
   const handleRefresh = () => {
     setIsRefreshing(true);
-    CodeSpaceApiClient.getWorkspaceById(codeSpace.id)
+    CodeSpaceApiClient.getWorkspaceById(codeSpace.id, true)
       .then((res) => {
         setIsRefreshing(false);
         if (res.data && props.onRefreshCard) {
