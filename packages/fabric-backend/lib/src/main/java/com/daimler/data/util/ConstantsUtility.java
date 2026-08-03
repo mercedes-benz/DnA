@@ -66,6 +66,9 @@ public class ConstantsUtility {
 	public static final String UILICIOUS_GROUP_CONSTANT = "group";
 	public static final String UILICIOUS_GROUP_STATUS_CONSTANT = "status";
 	public static final String UILICIOUS_TABLE_CONSTANT = "table";
+	public static final String UILICIOUS_NAME_CONSTANT = "name";
+	public static final String UILICIOUS_KEPT_CONSTANT = "KEPT";
+
 
 	// Groups constants
 	public static final String GROUPS_ADDED_CONSTANT = "ADDED";
@@ -81,7 +84,7 @@ public class ConstantsUtility {
 			GROUPS_ADDED_CONSTANT, "Group added successfully",
 			GROUPS_FAILED_CONSTANT, "Execution failed",
 			GROUPS_IN_PROGRESS_CONSTANT, "Still processing",
-			GROUPS_UNKNOWN_CONSTANT, "Unknown status",
+			GROUPS_UNKNOWN_CONSTANT, "Unknown, Group not found.",
 			GROUPS_NOT_FOUND_CONSTANT, "Group not found. Please check and reverify the group’s name and their spelling correctly"
 			);
 

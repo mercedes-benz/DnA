@@ -1,6 +1,7 @@
 package com.daimler.data.application.client;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Date;
@@ -24,9 +25,11 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.client.RestTemplate;
 
 import com.daimler.data.db.json.DdxMirroredCatalogProduct;
+import com.daimler.data.dto.fabric.CreateMirrorCatalogDataDto;
 import com.daimler.data.dto.fabric.UiLicioueMirrorCatalogStepsDto;
 import com.daimler.data.dto.fabric.UiLicioueStepsDto;
 import com.daimler.data.dto.fabricCatalogManagement.GroupStatusResponseVO;
+import com.daimler.data.service.catalogManagement.BaseFabricCatalogManagementService;
 import com.daimler.data.util.ConstantsUtility;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -183,7 +186,7 @@ public class UiLiciousClient {
             .toList();
         if(groupsStatusStep.isEmpty()){
             log.warn("No group status found in the API response for lakehouseId: {}", lakehouseId);
-            return new ArrayList<>();
+            return Collections.emptyList();
         }
         List<Map<String, String>> responseGroupsStatusList = new ArrayList<>();
         try {
@@ -217,24 +220,26 @@ public class UiLiciousClient {
 
         log.info("Calling Uilicious for mirrored catalog: catalog={}, group={}, isNew={}", catalogName, ddxGroup, isNewCatalog);
 
-        List<String> ddxGroupList = new ArrayList<>();
-        ddxGroupList.add(ddxGroup);
-
-        Map<String, Object> dataMap = new HashMap<>();
-        dataMap.put("email", email);
-        dataMap.put("password", password);
-        dataMap.put("dataProduct", dataProductName);
-        dataMap.put("catalogName", catalogName);
-        dataMap.put("Groups", ddxGroupList);
-        dataMap.put("connectionName", connectionName);
-        dataMap.put("WorkspaceID_MirrorCreation", workspaceId);
-        dataMap.put("WorkspaceName", workspaceName);
-        dataMap.put("network_connectionName", networkConnectionName);
-        dataMap.put("tables", objects);
+CreateMirrorCatalogDataDto mirrorData = CreateMirrorCatalogDataDto.builder()
+        .email(email)
+        .password(password)
+        .dataProduct(dataProductName)
+        .catalogName(catalogName)
+        .groups(new ArrayList<>(List.of(ddxGroup)))
+        .connectionName(connectionName)
+        .workspaceIdMirrorCreation(workspaceId)
+        .workspaceName(workspaceName)
+        .networkConnectionName(networkConnectionName)
+        .selection(new ArrayList<>(List.of(
+                CreateMirrorCatalogDataDto.Selection.builder()
+                        .schema(schemaName)
+                        .tables(objects)
+                        .build())))
+        .build();
 
         String data;
         try {
-            data = objectMapper.writeValueAsString(dataMap);
+            data = objectMapper.writeValueAsString(mirrorData);
         } catch (Exception e) {
             log.error("Error serializing mirrored catalog data to JSON: {}", e.getMessage());
             throw new RuntimeException("Failed to serialize mirrored catalog request", e);
@@ -295,10 +300,9 @@ public class UiLiciousClient {
         dataMap.put("LakehouseID", lakehouseId);
 
         String effectiveServicePrincipalName = (servicePrincipalName != null && !servicePrincipalName.trim().isEmpty())
-                ? servicePrincipalName
-                : this.defaultServicePrincipalName;
-        dataMap.put("servicePrincipalName", effectiveServicePrincipalName);
+                ? servicePrincipalName : this.defaultServicePrincipalName;
 
+        dataMap.put("Groups", Arrays.asList(effectiveServicePrincipalName));
         String data;
         try {
             data = objectMapper.writeValueAsString(dataMap);
@@ -577,12 +581,6 @@ public class UiLiciousClient {
         resultMap.put("createdAt", createdAt);
     }
 
-    // if(resultMap.containsKey("error")){
-    //     log.warn("Error found in steps description for testRunID {}: {}", testRunID, resultMap.get("error"));
-    //     return resultMap;
-    // }
-
-    
     List<UiLicioueMirrorCatalogStepsDto> groupsStatusStep = steps
             .stream()
             .filter(step -> step != null && step.getDescription() != null && step.getDescription().contains((ConstantsUtility.UILICIOUS_GROUP_STATUS_CONSTANT)) &&
@@ -621,10 +619,6 @@ public class UiLiciousClient {
         groupDetail.setUpdatedOn(new Date());
     });
     
-    // String groupMsg = responseGroupsStatusList.stream()
-    //     .map(groupData -> "Group: " + groupData.get(ConstantsUtility.UILICIOUS_GROUP_CONSTANT) + ", Status: " + groupData.get(ConstantsUtility.UILICIOUS_GROUP_STATUS_CONSTANT))
-    //     .collect(Collectors.joining("; "));
-
     if(!data.getFullSchema()){
 
         List<UiLicioueMirrorCatalogStepsDto> tableStatusStep = steps
@@ -655,11 +649,11 @@ public class UiLiciousClient {
         data.getObjects().forEach(tableDetails -> {
             String tableName = tableDetails.getObjectName();
             String tableStatus = responseTableStatusList.stream()
-                    .filter(tableData -> tableData.get(ConstantsUtility.UILICIOUS_TABLE_CONSTANT).equals(tableName))
+                    .filter(tableData -> tableName.equals(tableData.get(ConstantsUtility.UILICIOUS_NAME_CONSTANT)))
                     .map(tableData -> tableData.get(ConstantsUtility.UILICIOUS_GROUP_STATUS_CONSTANT))
                     .findFirst()
                     .orElse(ConstantsUtility.MIRRORED_CATALOG_FAILURE);
-            tableDetails.setObjectStatus(tableStatus);
+            tableDetails.setObjectStatus(ConstantsUtility.UILICIOUS_KEPT_CONSTANT.equalsIgnoreCase(tableStatus) ? ConstantsUtility.SUCCESS_STATE : tableStatus);
         });
     }else{
         data.setObjects(null);

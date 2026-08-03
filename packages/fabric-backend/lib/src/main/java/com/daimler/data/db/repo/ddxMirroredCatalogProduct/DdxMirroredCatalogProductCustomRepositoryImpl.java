@@ -79,7 +79,7 @@ public class DdxMirroredCatalogProductCustomRepositoryImpl
     @Override
     public Optional<DdxMirroredCatalogProductNsql> findByStorageAccountUrl(String storageAccountUrl) {
         String sql = "SELECT * FROM ddx_mirrored_catalog_product_nsql" +
-                     " WHERE data ->> 'storageAccountUrl' = :storageAccountUrl";
+                 " WHERE data ->> 'storageAccountUrl' = :storageAccountUrl LIMIT 1";
         try {
             DdxMirroredCatalogProductNsql result = (DdxMirroredCatalogProductNsql) em
                 .createNativeQuery(sql, DdxMirroredCatalogProductNsql.class)
