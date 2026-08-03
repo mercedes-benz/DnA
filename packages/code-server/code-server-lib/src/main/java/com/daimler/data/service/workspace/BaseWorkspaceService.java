@@ -1738,6 +1738,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 											resolvedBuildDetails.setLastBuildOn(now);
 											resolvedBuildDetails.setLastBuildBy(entity.getData().getWorkspaceOwner());
 											resolvedBuildDetails.setGitjobRunID(gitJobRunId);
+											resolvedBuildDetails.setLastBuildFailureReason(null);   // clear stale BUILD_TIMEOUT on a real GitHub result
 										} else if ("DEPLOYED".equalsIgnoreCase(finalStatus)
 												|| "DEPLOYMENT_FAILED".equalsIgnoreCase(finalStatus)) {
 											deploymentDetails.setLastDeploymentStatus(finalStatus);
@@ -1759,25 +1760,15 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 											CodeServerBuildDeploy buildDeployData = buildDeployEntity.getData();
 											if ("BUILD_SUCCESS".equalsIgnoreCase(finalStatus)
 													|| "BUILD_FAILED".equalsIgnoreCase(finalStatus)) {
-												if ("int".equalsIgnoreCase(environment)
-														&& buildDeployData.getIntBuildAuditLogs() != null
-														&& !buildDeployData.getIntBuildAuditLogs().isEmpty()) {
-													int lastIndex = buildDeployData.getIntBuildAuditLogs().size() - 1;
-													buildDeployData.getIntBuildAuditLogs().get(lastIndex)
-															.setBuildOn(now);
-													buildDeployData.getIntBuildAuditLogs().get(lastIndex)
-															.setBuildStatus(finalStatus);
-													keepBuildImage = buildDeployData.getIntBuildAuditLogs()
-															.get(lastIndex).isKeepBuildImage();
-												} else if (buildDeployData.getProdBuildAuditLogs() != null
-														&& !buildDeployData.getProdBuildAuditLogs().isEmpty()) {
-													int lastIndex = buildDeployData.getProdBuildAuditLogs().size() - 1;
-													buildDeployData.getProdBuildAuditLogs().get(lastIndex)
-															.setBuildOn(now);
-													buildDeployData.getProdBuildAuditLogs().get(lastIndex)
-															.setBuildStatus(finalStatus);
-													keepBuildImage = buildDeployData.getProdBuildAuditLogs()
-															.get(lastIndex).isKeepBuildImage();
+														List<BuildAudit> envLogs = "int".equalsIgnoreCase(environment)
+														? buildDeployData.getIntBuildAuditLogs()
+														: buildDeployData.getProdBuildAuditLogs();
+												BuildAudit auditEntry = findAuditByVersion(envLogs,
+														resolvedBuildDetails.getVersion());
+												if (auditEntry != null) {
+													auditEntry.setBuildOn(now);
+													auditEntry.setBuildStatus(finalStatus);
+													keepBuildImage = auditEntry.isKeepBuildImage();
 												}
 											} else if ("DEPLOYED".equalsIgnoreCase(finalStatus)
 													|| "DEPLOYMENT_FAILED".equalsIgnoreCase(finalStatus)) {
@@ -1865,10 +1856,12 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 										List<BuildAudit> auditLogs = "int".equalsIgnoreCase(environment)
 												? buildDeployData.getIntBuildAuditLogs()
 												: buildDeployData.getProdBuildAuditLogs();
-										if (auditLogs != null && !auditLogs.isEmpty()) {
-											BuildAudit last = auditLogs.get(auditLogs.size() - 1);
+										BuildAudit last = findAuditByVersion(auditLogs,
+												buildDetails != null ? buildDetails.getVersion() : null);
+										if (last != null) {
 											last.setBuildStatus("BUILD_FAILED");
 											last.setBuildOn(now);
+											last.setFailureReason("BUILD_TIMEOUT");
 										}
 										buildDeployEntity.setData(buildDeployData);
 										buildDeployRepo.save(buildDeployEntity);
@@ -3557,18 +3550,14 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 							buildDeployentity = optionalBuildDeployentity;
 							buildDeployData = buildDeployentity.getData();
 							Boolean buildImageDeleted = false;
-							if ("int".equalsIgnoreCase(targetEnv)) {
-								int lastIndex = buildDeployData.getIntBuildAuditLogs().size() - 1;
-								buildDeployData.getIntBuildAuditLogs().get(lastIndex).setBuildOn(now);
-								buildDeployData.getIntBuildAuditLogs().get(lastIndex).setBuildStatus(latestStatus);
-								keepBuildImage = buildDeployData.getIntBuildAuditLogs().get(lastIndex)
-										.isKeepBuildImage();
-							} else {
-								int lastIndex = buildDeployData.getProdBuildAuditLogs().size() - 1;
-								buildDeployData.getProdBuildAuditLogs().get(lastIndex).setBuildOn(now);
-								buildDeployData.getProdBuildAuditLogs().get(lastIndex).setBuildStatus(latestStatus);
-								keepBuildImage = buildDeployData.getProdBuildAuditLogs().get(lastIndex)
-										.isKeepBuildImage();
+							List<BuildAudit> envLogs = "int".equalsIgnoreCase(targetEnv)
+									? buildDeployData.getIntBuildAuditLogs()
+									: buildDeployData.getProdBuildAuditLogs();
+							BuildAudit auditEntry = findAuditByVersion(envLogs, version);
+							if (auditEntry != null) {
+								auditEntry.setBuildOn(now);
+								auditEntry.setBuildStatus(latestStatus);
+								keepBuildImage = auditEntry.isKeepBuildImage();
 							}
 
 							boolean isPrivateRecipeForDeletion = entity.getData().getProjectDetails().getRecipeDetails()
@@ -3584,14 +3573,8 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 									}
 								}
 							}
-							if (buildImageDeleted) {
-								if ("int".equalsIgnoreCase(targetEnv)) {
-									int lastIndex = buildDeployData.getIntBuildAuditLogs().size() - 1;
-									buildDeployData.getIntBuildAuditLogs().get(lastIndex).setImageDeleted(true);
-								} else {
-									int lastIndex = buildDeployData.getProdBuildAuditLogs().size() - 1;
-									buildDeployData.getProdBuildAuditLogs().get(lastIndex).setImageDeleted(true);
-								}
+							if (buildImageDeleted && auditEntry != null) {
+								auditEntry.setImageDeleted(true);
 							}
 
 							buildDeployentity.setData(buildDeployData);
@@ -5870,23 +5853,17 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 					   buildDeployentity = optionalBuildDeployentity;
 					   buildDeployData = buildDeployentity.getData();
 					   if(buildDeployData != null) {
-						   if("int".equalsIgnoreCase(data.getProjectDetails().getLastBuildOrDeployedEnv())){
-							   List<BuildAudit> intLogs = buildDeployData.getIntBuildAuditLogs();
-							   if(intLogs != null && !intLogs.isEmpty()) {
-								   int lastIndex = intLogs.size() - 1;
-								   intLogs.get(lastIndex).setGitjobRunID(requestVo.getGitJobRunId());
-							   } else {
-								   log.warn("No int build audit logs found for wsId={}, projectName={}", requestVo.getWsId(), requestVo.getProjectName());
-							   }
-						   }else{
-							   List<BuildAudit> prodLogs = buildDeployData.getProdBuildAuditLogs();
-							   if(prodLogs != null && !prodLogs.isEmpty()) {
-								   int lastIndex = prodLogs.size() - 1;
-								   prodLogs.get(lastIndex).setGitjobRunID(requestVo.getGitJobRunId());
-							   } else {
-								   log.warn("No prod build audit logs found for wsId={}, projectName={}", requestVo.getWsId(), requestVo.getProjectName());
-							   }
-						   }
+						   	List<BuildAudit> envLogs = "int"
+									.equalsIgnoreCase(data.getProjectDetails().getLastBuildOrDeployedEnv())
+											? buildDeployData.getIntBuildAuditLogs()
+											: buildDeployData.getProdBuildAuditLogs();
+							BuildAudit auditEntry = findAuditByVersion(envLogs, buildDetails.getVersion());
+							if (auditEntry != null) {
+								auditEntry.setGitjobRunID(requestVo.getGitJobRunId());
+							} else {
+								log.warn("No build audit entry (version={}) found for wsId={}, projectName={}",
+										buildDetails.getVersion(), requestVo.getWsId(), requestVo.getProjectName());
+							}
 						   buildDeployentity.setData(buildDeployData);
 						   buildDeployRepo.save(buildDeployentity);
 					   } else {
@@ -6156,6 +6133,20 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 			log.warn("deleteStaleBuildImage - error deleting {}:{}: {} (ignored, flow continues)",
 					projectName, staleVersion, e.getMessage());
 		}
+	}
+
+	private BuildAudit findAuditByVersion(List<BuildAudit> logs, String version) {
+		if (logs == null || logs.isEmpty()) {
+			return null;
+		}
+		if (version != null) {
+			for (int i = logs.size() - 1; i >= 0; i--) { // newest-first
+				if (version.equalsIgnoreCase(logs.get(i).getVersion())) {
+					return logs.get(i);
+				}
+			}
+		}
+		return logs.get(logs.size() - 1); // fallback: last
 	}
 
 	private boolean isRequestedStatus(String status) {
