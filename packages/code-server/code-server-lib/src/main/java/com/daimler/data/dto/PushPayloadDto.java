@@ -1,62 +1,69 @@
 package com.daimler.data.dto;
 
+import java.io.Serializable;
+import java.util.List;
+
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.io.Serializable;
-import java.util.List;
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class PushPayloadDto implements Serializable{
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
+public class PushPayloadDto implements Serializable {
 
-    @JsonProperty("ref")
-    private String ref;          
-
-    @JsonProperty("before")
+    private String ref;
     private String before;
-
-    @JsonProperty("after")
     private String after;
-
-    @JsonProperty("pusher")
     private Pusher pusher;
-
-    @JsonProperty("repository")
     private Repository repository;
-
-    @JsonProperty("commits")
     private List<Commit> commits;
 
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     @JsonIgnoreProperties(ignoreUnknown = true)
+    @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
     public static class Pusher {
-        @JsonProperty("name") public String name;
-        @JsonProperty("email") public String email;
+        private String name;
+        private String email;
     }
 
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     @JsonIgnoreProperties(ignoreUnknown = true)
+    @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
     public static class Repository {
-        @JsonProperty("full_name") public String fullName;
-        @JsonProperty("html_url") public String htmlUrl;
+        private String fullName;
+        private String htmlUrl;
     }
 
+
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     @JsonIgnoreProperties(ignoreUnknown = true)
+    @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
     public static class Commit {
-        @JsonProperty("id") public String id;
-        @JsonProperty("message") public String message;
-        @JsonProperty("author") public Author author;
+        private String id;
+        private String message;
+        private Author author;
     }
 
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     @JsonIgnoreProperties(ignoreUnknown = true)
+    @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
     public static class Author {
-        @JsonProperty("name") public String name;
-        @JsonProperty("email") public String email;
+        private String name;
+        private String email;
     }
-
 }

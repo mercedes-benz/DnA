@@ -3,7 +3,8 @@ package com.daimler.data.dto;
 import java.io.Serializable;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.databind.PropertyNamingStrategies;
+import com.fasterxml.jackson.databind.annotation.JsonNaming;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -13,44 +14,56 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class PullRequestPayloadDto implements Serializable{
+@JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
+public class PullRequestPayloadDto implements Serializable {
 
-    @JsonProperty("action")
-    private String action;      
-
-    @JsonProperty("number")
+    private String action;
     private int number;
 
-    @JsonProperty("pull_request")
     private PullRequest pullRequest;
-
-    @JsonProperty("repository")
     private Repository repository;
 
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     @JsonIgnoreProperties(ignoreUnknown = true)
+    @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
     public static class PullRequest {
-        @JsonProperty("title") public String title;
-        @JsonProperty("html_url") public String htmlUrl;
-        @JsonProperty("state") public String state;
-        @JsonProperty("merged") public boolean merged;
-        @JsonProperty("user") public User user;
-        @JsonProperty("head") public Branch head;
-        @JsonProperty("base") public Branch base;
+        private String title;
+
+        private String htmlUrl;
+        private String state;
+        private boolean merged;
+        private User user;
+        private Branch head;
+        private Branch base;
     }
 
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     @JsonIgnoreProperties(ignoreUnknown = true)
+    @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
     public static class User {
-        @JsonProperty("login") public String login;
+        private String login;
     }
 
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     @JsonIgnoreProperties(ignoreUnknown = true)
+    @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
     public static class Branch {
-        @JsonProperty("ref") public String ref;
-        @JsonProperty("sha") public String sha;
+        private String ref;
+        private String sha;
     }
 
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
     @JsonIgnoreProperties(ignoreUnknown = true)
+    @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
     public static class Repository {
-        @JsonProperty("full_name") public String fullName;
+        private String fullName;
     }
 }

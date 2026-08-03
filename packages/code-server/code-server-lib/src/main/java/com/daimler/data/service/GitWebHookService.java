@@ -277,17 +277,17 @@ public class GitWebHookService {
         String id = null;
 
         if (payload instanceof PushPayloadDto pushPayload) {
-            repoFullName = pushPayload.getRepository().fullName.split("/")[1];
-            gitUserName = pushPayload.getPusher().name;
+            repoFullName = pushPayload.getRepository().getFullName().split("/")[1];
+            gitUserName = pushPayload.getPusher().getName();
             branchName = pushPayload.getRef().replace("refs/heads/", "");
 
         } else if (payload instanceof PullRequestPayloadDto pullRequestPayload) {
-            repoFullName = pullRequestPayload.getRepository().fullName.split("/")[1];
-            gitUserName = pullRequestPayload.getPullRequest().user.login;
-            branchName = pullRequestPayload.getPullRequest().base.ref.replace("refs/heads/", "");
+            repoFullName = pullRequestPayload.getRepository().getFullName().split("/")[1];
+            gitUserName = pullRequestPayload.getPullRequest().getUser().getLogin();
+            branchName = pullRequestPayload.getPullRequest().getBase().getRef().replace("refs/heads/", "");
 
-            if (!pullRequestPayload.getPullRequest().merged) {
-                log.info("Pull request {} is not merged for workspace {}", pullRequestPayload.getPullRequest().head.ref,
+            if (!pullRequestPayload.getPullRequest().isMerged()) {
+                log.info("Pull request {} is not merged for workspace {}", pullRequestPayload.getPullRequest().getHead().getRef(),
                         id);
                 return;
             }
@@ -351,7 +351,7 @@ public class GitWebHookService {
         deployRequest.setVersion("");
         deployRequest.setKeepBuildImage(false);
 
-        workspaceService.preValidateDeployment(deployRequest, id, ownerId);
+        workspaceService.preValidateDeployment(deployRequest, id, ownerId, true);
     }
 
 }

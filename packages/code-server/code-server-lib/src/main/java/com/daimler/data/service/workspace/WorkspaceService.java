@@ -163,5 +163,5 @@ public interface WorkspaceService {
 	 * @param id
 	 * @return ResponseEntity containing a GenericMessage with the validation results
 	 */
-	ResponseEntity<GenericMessage> preValidateDeployment(ManageDeployRequestDto dto, String id, String userId);
+	ResponseEntity<GenericMessage> preValidateDeployment(ManageDeployRequestDto dto, String id, String userId, boolean isTriggeredByAutoDeploy);
 }
