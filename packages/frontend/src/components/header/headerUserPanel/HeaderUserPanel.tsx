@@ -6,7 +6,6 @@ import { IRole, IUserInfo } from 'globals/types';
 import { history } from './../../../router/History';
 import { Pkce } from './../../../services/Pkce';
 import Styles from './HeaderUserPanel.scss';
-import { Envs } from 'globals/Envs';
 
 const classNames = cn.bind(Styles);
 
@@ -102,7 +101,7 @@ export default function HeaderUserPanel(props: IHeaderUserPanelProps) {
           <span>{props.user.firstName + ' ' + props.user.lastName}</span>
           <label>{props.user.eMail}</label>{' '}
         </li>
-        {Envs.ENABLE_SOLUTIONS && <li onClick={navigateToMySolutions}>{getTranslatedLabel('MySolutions')}</li>}
+        <li onClick={navigateToMySolutions}>{getTranslatedLabel('MySolutions')}</li>
         <li onClick={navigateToMyBookmarks}>{getTranslatedLabel('MyBookmarks')}</li>
         {enableAdmin && <li onClick={navigateToAdministration}>{getTranslatedLabel('Administration')}</li>}
         <li onClick={navigateToSettings}>{getTranslatedLabel('Settings')}</li>
