@@ -307,6 +307,9 @@ const ManageCapacity = ({ onClose }) => {
                           >
                             <option value="">Choose</option>
                             {SKU_OPTIONS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
+                            {editValues[rowId].sku && !SKU_OPTIONS.includes(editValues[rowId].sku) && (
+                              <option key={editValues[rowId].sku} value={editValues[rowId].sku}>{editValues[rowId].sku}</option>
+                            )}
                           </select>
                         </div>
                         <span className="error-message">{updateErrors[rowId]?.sku}</span>
@@ -335,6 +338,9 @@ const ManageCapacity = ({ onClose }) => {
                           >
                             <option value="">Choose</option>
                             {STATE_OPTIONS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
+                            {editValues[rowId].state && !STATE_OPTIONS.includes(editValues[rowId].state) && (
+                              <option key={editValues[rowId].state} value={editValues[rowId].state}>{editValues[rowId].state}</option>
+                            )}
                           </select>
                         </div>
                         <span className="error-message">{updateErrors[rowId]?.state}</span>
