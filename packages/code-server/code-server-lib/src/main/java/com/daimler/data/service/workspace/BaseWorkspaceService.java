@@ -276,6 +276,20 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 	 public BaseWorkspaceService() {
 		 super();
 	 }
+
+	 private boolean isLastWorkspaceForProject(String projectName, String currentWorkspaceId) {
+		 List<String> workspaceIds = workspaceCustomRepository.getWorkspaceIdsByProjectName(projectName);
+		 if (workspaceIds == null || workspaceIds.isEmpty()) {
+			 return true;
+		 }
+		 for (String workspaceId : workspaceIds) {
+			 if (workspaceId != null
+					 && (currentWorkspaceId == null || !workspaceId.equalsIgnoreCase(currentWorkspaceId))) {
+				 return false;
+			 }
+		 }
+		 return true;
+	 }
   
 	 @Override
 	 @Transactional
@@ -412,7 +426,8 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 
 			 //update status as deleted in logs
 		 
-		 	if(buildDeployNsql != null){
+			if(buildDeployNsql != null && isLastWorkspaceForProject(
+					entity.getData().getProjectDetails().getProjectName(), entity.getData().getWorkspaceId())){
 				String projectName = entity.getData().getProjectDetails().getProjectName();
 				
 				if(buildDeployNsql.getData().getIntBuildAuditLogs() != null){
@@ -433,6 +448,9 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 
 				buildDeployNsql.getData().setStatus("DELETED");
 				buildDeployRepo.save(buildDeployNsql);
+			} else if (buildDeployNsql != null) {
+				log.info("Retaining build/deploy record because other workspaces still exist for project {}",
+						entity.getData().getProjectDetails().getProjectName());
 		 	}
 		 }
   
@@ -532,7 +550,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 
 			//update status as deleted in logs
 		 
-			if(buildDeployNsql != null){
+			if(buildDeployNsql != null && isLastWorkspaceForProject(projectName, entity.getData().getWorkspaceId())){
 				
 				buildDeployNsql.getData().getIntBuildAuditLogs().forEach( i ->{
 					if(!i.isImageDeleted()){
@@ -548,6 +566,9 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 
 				buildDeployNsql.getData().setStatus("DELETED");
 				buildDeployRepo.save(buildDeployNsql);
+			} else if (buildDeployNsql != null) {
+				log.info("Retaining build/deploy record because other workspaces still exist for project {}",
+						projectName);
 		 	}
 		 }
 
@@ -1520,6 +1541,8 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 					 UserInfo collabUser = workspaceAssembler.toUserInfo(collaborator);
 					 collabData.setWorkspaceOwner(collabUser);
 					 collabData.setWorkspaceUrl("");
+					 collabData.setIsWorkspaceMigratedToGHE(
+							 ownerEntity.getData().getIsWorkspaceMigratedToGHE());
 					 collabEntity.setId(null);
 					 collabEntity.setData(collabData);
 					 entities.add(collabEntity);
@@ -2891,6 +2914,16 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 				 String projectName = entity.getData().getProjectDetails().getProjectName();
   
 				 Boolean isWorkspaceMigratedToGHE = entity.getData().getIsWorkspaceMigratedToGHE();
+				 if (isWorkspaceMigratedToGHE == null) {
+					 CodeServerWorkspaceNsql ownerEntity = workspaceCustomRepository.findbyProjectName(projectOwnerId,
+							 projectName);
+					 if (ownerEntity != null && ownerEntity.getData() != null) {
+						 isWorkspaceMigratedToGHE = ownerEntity.getData().getIsWorkspaceMigratedToGHE();
+					 }
+				 }
+				 if (isWorkspaceMigratedToGHE == null) {
+					 isWorkspaceMigratedToGHE = Boolean.FALSE;
+				 }
 				 log.info("Adding collaborator to workspace - isWorkspaceMigratedToGHE: {}", isWorkspaceMigratedToGHE);
 
 				 UserInfo collaborator = new UserInfo();
@@ -3006,6 +3039,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 					 UserInfo collabUser = workspaceAssembler.toUserInfo(userRequestDto);
 					 collabData.setWorkspaceOwner(collabUser);
 					 collabData.setWorkspaceUrl("");
+					 collabData.setIsWorkspaceMigratedToGHE(isWorkspaceMigratedToGHE);
 					 collabEntity.setId(null);
 					 collabEntity.setData(collabData);
   
