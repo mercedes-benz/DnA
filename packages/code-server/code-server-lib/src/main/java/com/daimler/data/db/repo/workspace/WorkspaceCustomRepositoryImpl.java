@@ -176,6 +176,28 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 		else
 			return null;
 	}
+
+	@Override
+	public List<CodeServerWorkspaceNsql> findAllByRepoName(String repoName) {
+		CriteriaBuilder cb = em.getCriteriaBuilder();
+		CriteriaQuery<CodeServerWorkspaceNsql> cq = cb.createQuery(CodeServerWorkspaceNsql.class);
+		Root<CodeServerWorkspaceNsql> root = cq.from(entityClass);
+		CriteriaQuery<CodeServerWorkspaceNsql> byName = cq.select(root);
+		Predicate con1 = cb.equal(cb.lower(
+				cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("projectDetails"), cb.literal("gitRepoName"))),
+				repoName.toLowerCase());
+		Predicate con3 = cb.notEqual(cb.lower(
+				cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("status"))),
+				"DELETED".toLowerCase());
+		Predicate pMain = cb.and(con1, con3);
+		cq.where(pMain);
+		TypedQuery<CodeServerWorkspaceNsql> byNameQuery = em.createQuery(byName);
+		List<CodeServerWorkspaceNsql> entities = byNameQuery.getResultList();
+		if (entities != null && entities.size() > 0)
+			return entities;
+		else
+			return new ArrayList<>();
+	}
 	
 	
 	@Override

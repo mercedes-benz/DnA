@@ -109,4 +109,11 @@ public interface WorkspaceCustomRepository extends CommonDataRepository<CodeServ
     boolean updateGitRunIdStatus(String projectName, String status, String string);
 
 	boolean updateBuildDeployAuditStatus(String projectName, String status, String environment, String gitjobRunId);
+
+	/**
+	 * get the code space details by git repo name, this method will return the workspaceNsql object for the given git repo name 
+	 * @param repoName git repo name
+	 * @return workspace details for the given git repo name
+	 */
+	List<CodeServerWorkspaceNsql> findAllByRepoName(String repoName);
 }
