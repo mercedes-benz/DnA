@@ -308,7 +308,7 @@ export default class SolutionListRowItem extends React.Component<ISolutionListRo
                       <span onClick={this.addToBookmarks}>Add to My Bookmarks</span>
                     </li>
                   )}
-                  {this.props.canEdit && (
+                  {Envs.ENABLE_SOLUTIONS && this.props.canEdit && (
                     <li className="contextListItem">
                       <span onClick={this.onEditSolution}>Edit Solution</span>
                     </li>
