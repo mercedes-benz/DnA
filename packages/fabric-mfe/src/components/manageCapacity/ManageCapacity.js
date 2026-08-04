@@ -421,6 +421,9 @@ const ManageCapacity = ({ onClose }) => {
                   >
                     <option value="">Choose</option>
                     {SKU_OPTIONS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
+                    {newCapacity.sku && !SKU_OPTIONS.includes(newCapacity.sku) && (
+                      <option key={newCapacity.sku} value={newCapacity.sku}>{newCapacity.sku}</option>
+                    )}
                   </select>
                 </div>
                 <span className="error-message">{addErrors.sku}</span>
@@ -439,6 +442,9 @@ const ManageCapacity = ({ onClose }) => {
                     {newCapacity.region && !regionOptions.includes(newCapacity.region) && (
                       <option key={newCapacity.region} value={newCapacity.region}>{newCapacity.region}</option>
                     )}
+                    {newCapacity.region && regionOptions.includes(newCapacity.region) && !availableRegionsForAdd.includes(newCapacity.region) && (
+                      <option key={newCapacity.region} value={newCapacity.region}>{newCapacity.region}</option>
+                    )}
                   </select>
                 </div>
                 <span className="error-message">{addErrors.region}</span>
@@ -452,6 +458,9 @@ const ManageCapacity = ({ onClose }) => {
                   >
                     <option value="">Choose</option>
                     {STATE_OPTIONS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
+                    {newCapacity.state && !STATE_OPTIONS.includes(newCapacity.state) && (
+                      <option key={newCapacity.state} value={newCapacity.state}>{newCapacity.state}</option>
+                    )}
                   </select>
                 </div>
                 <span className="error-message">{addErrors.state}</span>
