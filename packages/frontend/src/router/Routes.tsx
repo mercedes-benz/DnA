@@ -476,23 +476,7 @@ const protectedRoutes = [
   },
 ];
 
-// Solution transparency moved to MASSP, these routes are only served when explicitly enabled.
-const solutionRoutePaths = [
-  '/portfolio',
-  '/summary/:id',
-  '/createnewsolution',
-  '/createnewgenaisolution',
-  '/editSolution/:id?/:editable?',
-  '/allsolutions',
-  '/viewsolutions/:kpi/:value?',
-  '/mysolutions',
-];
-
-const enabledProtectedRoutes = Envs.ENABLE_SOLUTIONS
-  ? protectedRoutes
-  : protectedRoutes.filter((route) => !solutionRoutePaths.includes(route.path));
-
-export const routes = [...publicRoutes, ...enabledProtectedRoutes];
+export const routes = [...publicRoutes, ...protectedRoutes];
 
 export class Routes extends React.Component<{}, {}> {
   public render() {
@@ -505,7 +489,7 @@ export class Routes extends React.Component<{}, {}> {
             {publicRoutes.map((route, index) => (
               <Route key={index} path={route.path} exact={route.exact} component={route.component} />
             ))}
-            {enabledProtectedRoutes.map((route, index) => (
+            {protectedRoutes.map((route, index) => (
               // @ts-ignore: No overload matches this call.-
               <ProtectedRoute
                 key={index}
