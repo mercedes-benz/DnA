@@ -1760,6 +1760,38 @@ paths:
         500:
           description: "Internal error"
 
+  /workspaces/addWebhook:
+    post:
+      tags:
+        - "code-server"
+      summary: "Add a webhook to a workspace."
+      description: "Add a webhook to a workspace for automated updates."
+      operationId: "addGitWebhook"
+      parameters:
+          - name: repoDetails
+            in: "body"
+            description: "Details of the repository for which the webhook is to be added"
+            required: true
+            schema:
+              $ref: "#/definitions/GitWebHookDto"
+      responses:
+        201:
+          description: "Returns message of success or failure"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        204:
+          description: "Fetch complete, no content found."
+        400:
+          description: "Bad request."
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
 definitions:
   CodeSpaceReadmeVo:
     type: object
@@ -1908,7 +1940,10 @@ definitions:
       order:
         type: integer
         default: 0
-        description: "order of user group"      
+        description: "order of user group"
+      autoDeploy:
+        type: boolean
+        description: "true if auto deploy enabled for the workspace"    
 
   CodeServerProjectDetailsVO:
     type: object
@@ -1951,6 +1986,12 @@ definitions:
         $ref: "#/definitions/CodespaceSecurityConfigVO"
       dataGovernance:
          $ref: "#/definitions/CodeServerGovernanceVO"
+      webHookId:
+        type: string
+      intAutoDeployBranchName:
+        type: string
+      prodAutoDeployBranchName:
+        type: string
       required:
         -projectName
         -recipeDetails
@@ -2714,6 +2755,147 @@ definitions:
     properties:
       status:
         type: string
-          
+
+  GitWebHookDto:
+    type: object
+    properties:
+      repoName:
+        type: string
+        description: "Git repository name"
+      intRepoName:
+        type: string
+        description: "Integration environment repository name"
+      prodRepoName:
+        type: string
+        description: "Production environment repository name"
+      webHookEnabled:
+        type: boolean
+        description: "Flag to enable or disable webhook"
+    required:
+      - repoName
+
+  PushPayloadDto:
+    type: object
+    properties:
+      ref:
+        type: string
+        description: "The full Git ref that was pushed (e.g. refs/heads/main)"
+      before:
+        type: string
+        description: "SHA of the most recent commit before the push"
+      after:
+        type: string
+        description: "SHA of the most recent commit after the push"
+      pusher:
+        $ref: "#/definitions/PushPayloadDto_Pusher"
+      repository:
+        $ref: "#/definitions/PushPayloadDto_Repository"
+      commits:
+        type: array
+        items:
+          $ref: "#/definitions/PushPayloadDto_Commit"
+
+  PushPayloadDto_Pusher:
+    type: object
+    properties:
+      name:
+        type: string
+        description: "Name of the pusher"
+      email:
+        type: string
+        description: "Email of the pusher"
+
+  PushPayloadDto_Repository:
+    type: object
+    properties:
+      full_name:
+        type: string
+        description: "Full name of the repository (owner/repo)"
+      html_url:
+        type: string
+        description: "HTML URL of the repository"
+
+  PushPayloadDto_Commit:
+    type: object
+    properties:
+      id:
+        type: string
+        description: "Commit SHA"
+      message:
+        type: string
+        description: "Commit message"
+      author:
+        $ref: "#/definitions/PushPayloadDto_Author"
+
+  PushPayloadDto_Author:
+    type: object
+    properties:
+      name:
+        type: string
+        description: "Author name"
+      email:
+        type: string
+        description: "Author email"
+
+  PullRequestPayloadDto:
+    type: object
+    properties:
+      action:
+        type: string
+        description: "Action that triggered the event (e.g. opened, closed, synchronize)"
+      number:
+        type: integer
+        description: "Pull request number"
+      pull_request:
+        $ref: "#/definitions/PullRequestPayloadDto_PullRequest"
+      repository:
+        $ref: "#/definitions/PullRequestPayloadDto_Repository"
+
+  PullRequestPayloadDto_PullRequest:
+    type: object
+    properties:
+      title:
+        type: string
+        description: "Title of the pull request"
+      html_url:
+        type: string
+        description: "HTML URL of the pull request"
+      state:
+        type: string
+        description: "State of the pull request (open/closed)"
+      merged:
+        type: boolean
+        description: "Whether the pull request has been merged"
+      user:
+        $ref: "#/definitions/PullRequestPayloadDto_User"
+      head:
+        $ref: "#/definitions/PullRequestPayloadDto_Branch"
+      base:
+        $ref: "#/definitions/PullRequestPayloadDto_Branch"
+
+  PullRequestPayloadDto_User:
+    type: object
+    properties:
+      login:
+        type: string
+        description: "GitHub username of the pull request author"
+
+  PullRequestPayloadDto_Branch:
+    type: object
+    properties:
+      ref:
+        type: string
+        description: "Branch name"
+      sha:
+        type: string
+        description: "Commit SHA of the branch tip"
+
+  PullRequestPayloadDto_Repository:
+    type: object
+    properties:
+      full_name:
+        type: string
+        description: "Full name of the repository (owner/repo)"
+
 
 

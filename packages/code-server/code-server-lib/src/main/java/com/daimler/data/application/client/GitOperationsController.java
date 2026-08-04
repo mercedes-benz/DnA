@@ -6,6 +6,8 @@ import javax.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
@@ -13,6 +15,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.daimler.data.dto.GitBranchesCollectionDto;
 import com.daimler.data.dto.workspace.CodeServerWorkspaceVO;
+import com.daimler.data.service.GitWebHookService;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -32,6 +35,9 @@ public class GitOperationsController {
 	
 	@Autowired
 	HttpServletRequest httpRequest;
+
+    @Autowired
+    private GitWebHookService gitWebHookService;
 	
 	@ApiOperation(value = "Get all branches for given git repo", nickname = "getGitBranches", notes = "Get all branches for given git repo", response = CodeServerWorkspaceVO.class, tags={ "code-server", })
     @ApiResponses(value = { 
@@ -54,5 +60,30 @@ public class GitOperationsController {
 		GitBranchesCollectionDto branchesCollection = gitClient.getBranchesFromRepo(null, repoDetail, isWorkspaceMigratedToGHE);
 		return new ResponseEntity<>(branchesCollection,HttpStatus.OK);
 	}
-	
+
+    @ApiOperation(value = "post endpoint to receive data from github hooked codespaces repos for auto deployment", nickname = "receiveWebhookData", notes = "Post endpoint to receive data from github hooked codespaces repos for auto deployment", response = String.class, tags={ "code-server", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 200, message = "Returns message of success or failure", response = String.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/workspaces/gitHook",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.POST)
+    public ResponseEntity<String> receiveWebhookData(
+        @RequestHeader("X-GitHub-Event") String eventType, @RequestHeader("X-GitHub-Delivery") String deliveryId,
+        @RequestHeader(value = "X-Hub-Signature-256", required = false) String signature, @RequestBody byte[] rawBody) {
+
+        try{
+            gitWebHookService.processGitHubHookEvent(signature, eventType, deliveryId, rawBody);
+            return ResponseEntity.ok("Accepted");
+        }catch(Exception e){
+            log.error("[{}] Failed to process GitHub hook event: {}", deliveryId, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to process event");
+        }
+    }    
 }

@@ -13,9 +13,11 @@ import org.springframework.web.client.RestTemplate;
 import com.daimler.data.util.CommonUtils;
 
 import java.util.Base64;
+import java.util.HashMap;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
 import org.json.JSONObject;
@@ -30,7 +32,9 @@ import com.daimler.data.dto.GitBranchesCollectionDto;
 import com.daimler.data.dto.GitHubWorkflowJobsResponseDto;
 import com.daimler.data.dto.GitHubWorkflowRunDto;
 import com.daimler.data.dto.GitLatestCommitIdDto;
+import com.daimler.data.dto.workspace.GitWebHookDto;
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.extern.slf4j.Slf4j;
@@ -83,6 +87,12 @@ public class GitClient {
 
 	@Value("${codeserver.git.deploy.appname}")
 	private String gitAppName;
+
+	@Value("${codeServer.git.webhook.secret}")
+	private String gitWebHookSecret;
+
+	@Value("${codeServer.git.webhook.url}")
+	private String gitWebHookUrl;
 
 	private static String HTTP_HEADER ="https://";
 
@@ -820,5 +830,76 @@ public class GitClient {
 		}
 	}
 
-	
+	public String addWebHookToRepo(String repoName, boolean isWorkspaceMigratedToGHE) {
+		try {
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/vnd.github+json");
+			headers.set("Content-Type", "application/json");
+			headers.set("Authorization", "Bearer " + personalAccessToken);
+			String url = null;
+			if(isWorkspaceMigratedToGHE) {
+				url = gheBaseUri+"/repos/DNA-CodeSpaces/" + repoName+ "/hooks";
+			} else {
+				url = gitBaseUri+"/repos/DNA-CodeSpaces/" + repoName+ "/hooks";
+			}
+
+			Map<String, Object> requestBody = new HashMap<>();
+			requestBody.put("name", "web");
+			requestBody.put("active", true);
+			requestBody.put("events", List.of("push", "pull_request"));
+
+			Map<String, String> config = new HashMap<>();
+			config.put("url", gitWebHookUrl);
+			config.put("content_type", "json");
+			config.put("secret", gitWebHookSecret);
+			config.put("insecure_ssl", "0");
+
+			requestBody.put("config", config);
+			
+			HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
+			ResponseEntity<JsonNode> response =
+					restTemplate.exchange(url, HttpMethod.POST, entity, JsonNode.class);
+			if (response != null && response.getStatusCode() != null && response.getStatusCode().is2xxSuccessful()) {
+				log.info("Successfully added webhook to git repo {} with response {}", repoName, response.getBody());
+				return response.getBody().get("id").asText();
+			}
+			log.error("Failed to add webhook to git repo {} with status {}", repoName, response != null ? response.getStatusCode() : "NULL");
+			return null;
+		} catch (Exception e) {
+			log.error("Error occured while adding webhook to git repo {} with exception {}", repoName, e.getMessage());
+			return null;
+		}
+	}
+
+	public boolean updateWebHookConfigurations(GitWebHookDto gitDetails, boolean isWorkspaceMigratedToGHE, String webHookId) {
+		try{
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/vnd.github+json");
+			headers.set("Content-Type", "application/json");
+			headers.set("Authorization", "Bearer " + personalAccessToken);
+			String url = null;
+			if(isWorkspaceMigratedToGHE) {
+				url = gheBaseUri+"/repos/DNA-CodeSpaces/" + gitDetails.getRepoName()+ "/hooks/" + webHookId;
+			} else {
+				url = gitBaseUri+"/repos/DNA-CodeSpaces/" + gitDetails.getRepoName()+ "/hooks/" + webHookId;
+			}
+
+			Map<String, Object> requestBody = new HashMap<>();
+			requestBody.put("active", gitDetails.isWebHookEnabled());
+
+			HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
+			ResponseEntity<JsonNode> response =
+					restTemplate.exchange(url, HttpMethod.PATCH, entity, JsonNode.class);
+			if (response != null && response.getStatusCode() != null && response.getStatusCode().is2xxSuccessful()) {
+				log.info("Successfully updated webhook configurations to git repo {} with response {}", gitDetails.getRepoName(), response.getBody());
+			} else {
+				log.error("Failed to update webhook configurations to git repo {} with status {}", gitDetails.getRepoName(), response != null ? response.getStatusCode() : "NULL");
+				throw new Exception("Failed to update webhook configurations");
+			}
+			
+		} catch (Exception e) {
+			log.error("Error occured while updating webhook configurations for git repo {} with exception {}", gitDetails.getRepoName(), e.getMessage());
+		}	
+		return true;
+	}
 }
