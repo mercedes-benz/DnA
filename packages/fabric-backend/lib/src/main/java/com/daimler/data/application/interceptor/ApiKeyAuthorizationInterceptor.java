@@ -31,6 +31,9 @@ public class ApiKeyAuthorizationInterceptor implements HandlerInterceptor {
     @Value("${fabricWorkspaces.ada.spire.apiKey}")
     private String spireApiKey;
 
+    @Value("${fabricWorkspaces.ada.adp.apiKey}")
+    private String adpApiKey;
+
     private Map<String, String> apiKeyCreatorMap;
 
     // Call this after @Value fields are injected
@@ -40,6 +43,7 @@ public class ApiKeyAuthorizationInterceptor implements HandlerInterceptor {
         apiKeyCreatorMap.put(adaApiKey, "ada");
         apiKeyCreatorMap.put(xtoApiKey, "xto");
         apiKeyCreatorMap.put(spireApiKey, "spire");
+        apiKeyCreatorMap.put(adpApiKey, "adp");
     }
 
     @Override
