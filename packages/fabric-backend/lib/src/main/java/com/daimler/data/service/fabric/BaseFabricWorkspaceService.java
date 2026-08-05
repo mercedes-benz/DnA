@@ -1676,8 +1676,12 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 					for(EntitlementDetailsVO entitlement : existingWorkspace.getStatus().getEntitlements()) {
 						if(entitlement!=null && ConstantsUtility.CREATED_STATE.equalsIgnoreCase(entitlement.getState())) {
 							GenericMessage deleteEntitlementResponse = identityClient.deleteEntitlement(entitlement.getEntitlementId());
-							errors.addAll(deleteEntitlementResponse.getErrors());
-							warnings.addAll(deleteEntitlementResponse.getWarnings());
+							if(deleteEntitlementResponse.getErrors()!=null) {
+								errors.addAll(deleteEntitlementResponse.getErrors());
+							}
+							if(deleteEntitlementResponse.getWarnings()!=null) {
+								warnings.addAll(deleteEntitlementResponse.getWarnings());
+							}
 						}
 					}
 				}
@@ -1685,8 +1689,12 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 					for(RoleDetailsVO role : existingWorkspace.getStatus().getRoles()) {
 						if(role!=null && ConstantsUtility.CREATED_STATE.equalsIgnoreCase(role.getState())) {
 							GenericMessage deleteRoleResponse = identityClient.deleteRole(role.getName());
-							errors.addAll(deleteRoleResponse.getErrors());
-							warnings.addAll(deleteRoleResponse.getWarnings());
+							if(deleteRoleResponse.getErrors()!=null) {
+								errors.addAll(deleteRoleResponse.getErrors());
+							}
+							if(deleteRoleResponse.getWarnings()!=null) {
+								warnings.addAll(deleteRoleResponse.getWarnings());
+							}
 						}
 					}
 				}
