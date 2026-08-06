@@ -115,6 +115,9 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.daimler.data.service.tag.TagService;
 import com.daimler.data.db.repo.adaProjects.ADAProjectsCustomRepository;
 import com.daimler.data.db.repo.adaProjects.ADAProjectsCustomRepositoryImpl;
+import com.daimler.data.application.client.PlanningITClient;
+import com.daimler.data.dto.planningit.PlanningITApiItemVO;
+import com.daimler.data.dto.fabricWorkspace.LeanIXDetailsVO;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -167,6 +170,9 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 
 	@Autowired
 	private ADAProjectsCustomRepository adaProjectsRepo;
+
+	@Autowired
+	private PlanningITClient planningITClient;
 
 
 	@Value("${fabricWorkspaces.powerbiCapacityId}")
@@ -526,6 +532,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		GenericMessage responseMessage = new GenericMessage();
 		List<MessageDescription> errors = new ArrayList<>();
 		List<MessageDescription> warnings = new ArrayList<>();
+		populateLeanIXDetailsFromProject(vo);
 		CreateWorkspaceDto createRequest = new CreateWorkspaceDto();
 		createRequest.setDescription(vo.getDescription());
 		createRequest.setDisplayName(vo.getName());
@@ -1740,6 +1747,51 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 	}
 
 	@Override
+	public void populateLeanIXDetailsFromProject(FabricWorkspaceVO workspace) {
+		String projectId = workspace.getProjectId();
+		if (projectId == null || projectId.isBlank()) {
+			return;
+		}
+		ADAProjectsNsql adaProject = adaProjectsRepo.findbyUniqueLiteral("projectID", projectId);
+		if (adaProject == null || adaProject.getData() == null) {
+			log.warn("ADA project not found for projectId {}, skipping leanIX population", projectId);
+			return;
+		}
+		ADAProjectDetails projectData = adaProject.getData();
+		if (projectData.getCostCenter() != null && !projectData.getCostCenter().isBlank()) {
+			workspace.setCostCenter(projectData.getCostCenter());
+		}
+		if (projectData.getInternalOrder() != null && !projectData.getInternalOrder().isBlank()) {
+			workspace.setInternalOrder(projectData.getInternalOrder());
+		}
+		String leanIXId = projectData.getLeanIX();
+		if (leanIXId == null || leanIXId.isBlank()) {
+			log.info("No leanIX value on project {}, skipping leanIX population", projectId);
+			return;
+		}
+		List<PlanningITApiItemVO> planningITItems = planningITClient.searchPlanningIT(leanIXId);
+		if (planningITItems != null && !planningITItems.isEmpty()) {
+			PlanningITApiItemVO matched = planningITItems.stream()
+					.filter(item -> leanIXId.equalsIgnoreCase(item.getId()))
+					.findFirst()
+					.orElse(planningITItems.get(0));
+			workspace.setAppId(matched.getId());
+			LeanIXDetailsVO details = new LeanIXDetailsVO();
+			details.setAppReferenceStr(matched.getAppReferenceStr());
+			details.setName(matched.getName());
+			details.setShortName(matched.getShortName());
+			details.setObjectState(matched.getObjectState());
+			details.setProviderOrgRefstr(matched.getProviderOrgRefstr());
+			details.setProviderOrgId(matched.getProviderOrgId());
+			details.setProviderOrgShortname(matched.getProviderOrgShortname());
+			details.setProviderOrgDeptid(matched.getProviderOrgDeptid());
+			workspace.setLeanIXDetails(details);
+		} else {
+			log.warn("No PlanningIT entry found for leanIX id {}", leanIXId);
+		}
+	}
+
+	@Override
 	@Transactional
 	public GenericMessage deleteLakehouse(String id, String lakehouseId) {
 		GenericMessage responseMessage = new GenericMessage();
@@ -2432,6 +2484,47 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 
 		collection.responses(message);
 		return collection;
+	}
+
+	@Override
+	public FabricWorkspacesCollectionVO searchWorkspacesLov(int limit, int offset, String searchText) {
+		FabricWorkspacesCollectionVO collectionVO = new FabricWorkspacesCollectionVO();
+		List<FabricWorkspaceVO> vos = new ArrayList<>();
+
+		if (searchText == null || searchText.trim().isEmpty()) {
+			collectionVO.setRecords(vos);
+			collectionVO.setTotalCount(0);
+			return collectionVO;
+		}
+
+		List<FabricWorkspaceNsql> allEntities = customRepo.getAllForAdmin(0, 0, searchText);
+		
+		if (allEntities != null && !allEntities.isEmpty()) {
+			for (FabricWorkspaceNsql entity : allEntities) {
+				if (entity != null && !ConstantsUtility.DELETED_STATE.equalsIgnoreCase(entity.getData().getStatus().getState())) {
+					FabricWorkspaceVO updatedVO = assembler.toVo(entity);
+					vos.add(updatedVO);
+				}
+			}
+		}
+
+		List<FabricWorkspaceVO> paginatedVOs = new ArrayList<>();
+		int totalCount = 0;
+		
+		if (vos != null && !vos.isEmpty()) {
+			totalCount = vos.size();
+			int startIndex = offset;
+			int endIndex = Math.min(offset + limit, totalCount);
+			
+			if (startIndex < totalCount) {
+				paginatedVOs = vos.subList(startIndex, endIndex);
+			}
+		}
+		
+		collectionVO.setRecords(paginatedVOs);
+		collectionVO.setTotalCount(totalCount);
+		
+		return collectionVO;
 	}
 
 }

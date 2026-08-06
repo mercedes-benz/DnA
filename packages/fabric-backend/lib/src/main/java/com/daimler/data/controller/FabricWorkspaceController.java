@@ -47,6 +47,8 @@ import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceCreateRequestVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceResponseVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceRoleRequestVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceUpdateRequestVO;
+import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceLovCollectionVO;
+import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceLovVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspacesCollectionVO;
 import com.daimler.data.dto.fabricWorkspace.KeyVaultCreateRequestVO;
@@ -801,6 +803,7 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 			existingFabricWorkspace.setRelatedReports(workspaceUpdateRequestVO.getRelatedReports());
 			existingFabricWorkspace.setRelatedSolutions(workspaceUpdateRequestVO.getRelatedSolutions());
 			existingFabricWorkspace.setLastModifiedOn(new Date());
+			service.populateLeanIXDetailsFromProject(existingFabricWorkspace);
 			try {
 				FabricWorkspaceVO updatedRecord = service.updateFabricProject(existingFabricWorkspace);
 				responseVO.setData(updatedRecord);
@@ -1241,184 +1244,56 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
     }
 
 	@Override
-	@ApiOperation(value = "Create Azure Key Vault with data governance", nickname = "createKeyVault", 
-		notes = "Creates an Azure Key Vault with data governance fields and role assignment for the creator.", 
-		response = KeyVaultResponseVO.class, tags={ "fabric-workspaces", })
-	@ApiResponses(value = { 
-		@ApiResponse(code = 201, message = "Returns Key Vault data with success or failure messages", response = KeyVaultResponseVO.class),
-		@ApiResponse(code = 400, message = "Bad request - validation failed."),
-		@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
-		@ApiResponse(code = 403, message = "Request is not authorized."),
-		@ApiResponse(code = 409, message = "Key Vault name already exists."),
-		@ApiResponse(code = 500, message = "Internal error") })
-	@RequestMapping(value = "/fabric-workspaces/keyVault",
-		produces = { "application/json" }, 
-		consumes = { "application/json" },
-		method = RequestMethod.POST)
-	public ResponseEntity<KeyVaultResponseVO> createKeyVault(
-			@ApiParam(value = "Request body for Key Vault creation with data governance fields", required=true) 
-			@Valid @RequestBody KeyVaultCreateRequestVO createRequestVO) {
-		KeyVaultResponseVO responseVO = new KeyVaultResponseVO();
-		GenericMessage errorMessage = new GenericMessage();
-		KeyVaultVO vo = createRequestVO.getData();
+    @ApiOperation(value = "Search workspaces by name", nickname = "searchWorkspacesLov", notes = "Search and filter workspaces by name or other criteria. This endpoint is specifically designed for searching workspace records.", response = FabricWorkspacesCollectionVO.class, tags={ "lovs", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 200, message = "Returns search results", response = FabricWorkspacesCollectionVO.class),
+        @ApiResponse(code = 204, message = "Search complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/lov/fabric-workspaces/search",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.GET)
+    public ResponseEntity<FabricWorkspaceLovCollectionVO> searchWorkspacesLov(@NotNull @ApiParam(value = "Text to search workspaces by name", required = true) @Valid @RequestParam(value = "searchText", required = true) String searchText,@ApiParam(value = "page number from which listing of workspaces should start. Offset. Example 2") @Valid @RequestParam(value = "offset", required = false) Integer offset,@ApiParam(value = "page size to limit the number of workspaces, Example 15") @Valid @RequestParam(value = "limit", required = false) Integer limit,@ApiParam(value = "Sort workspaces by a given variable like name, createdOn", allowableValues = "name, createdOn") @Valid @RequestParam(value = "sortBy", required = false) String sortBy,@ApiParam(value = "Sort solutions based on the given order, example asc,desc", allowableValues = "asc, desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder) {
 		
-		if (vo == null || vo.getKeyVaultName() == null) {
-			log.error("Key Vault mandatory fields cannot be null, please check and send valid input");
-			MessageDescription invalidMsg = new MessageDescription("Key Vault name cannot be null, please check and send valid input");
-			errorMessage.setSuccess(HttpStatus.BAD_REQUEST.name());
-			errorMessage.addErrors(invalidMsg);
-			responseVO.setData(vo);
-			responseVO.setResponses(errorMessage);
-			return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
-		} else {
-			if (vo.getDivision() == null || vo.getDataClassification() == null
-					|| vo.isHasPii() == null || vo.getDepartment() == null) {
-				log.error("Key Vault mandatory fields cannot be null, please check and send valid input.");
-				MessageDescription invalidMsg = new MessageDescription("Key Vault mandatory fields (division, dataClassification, hasPii, department) cannot be null, please check and send valid input.");
-				errorMessage.setSuccess(HttpStatus.BAD_REQUEST.name());
-				errorMessage.addErrors(invalidMsg);
-				responseVO.setData(vo);
-				responseVO.setResponses(errorMessage);
-				return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
-			}
-		}
-		
-		try {
-			log.info("Received request to create Key Vault: {}", vo.getKeyVaultName());
-			return keyVaultService.createKeyVault(vo);
-			
-		} catch (Exception e) {
-			log.error("Failed to create Key Vault with exception: {}", e.getMessage());
-			errorMessage.setSuccess("FAILED");
-			List<MessageDescription> errors = new ArrayList<>();
-			MessageDescription error = new MessageDescription("Failed to create Key Vault: " + e.getMessage());
-			errors.add(error);
-			errorMessage.setErrors(errors);
-			errorMessage.setWarnings(new ArrayList<>());
-			responseVO.setData(null);
-			responseVO.setResponses(errorMessage);
-			return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
-		}
-	}
-
-	@Override
-	@ApiOperation(value = "Update Azure Key Vault with data governance", nickname = "updateKeyVault", 
-		notes = "Updates an Azure Key Vault's data governance fields. Note: Key Vault name cannot be changed as Azure does not support renaming.", 
-		response = KeyVaultResponseVO.class, tags={ "fabric-workspaces", })
-	@ApiResponses(value = { 
-		@ApiResponse(code = 200, message = "Returns Key Vault data with success or failure messages", response = KeyVaultResponseVO.class),
-		@ApiResponse(code = 400, message = "Bad request - validation failed or name change attempted."),
-		@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
-		@ApiResponse(code = 403, message = "Request is not authorized."),
-		@ApiResponse(code = 404, message = "Key Vault not found."),
-		@ApiResponse(code = 500, message = "Internal error") })
-	@RequestMapping(value = "/fabric-workspaces/keyVault/{id}",
-		produces = { "application/json" }, 
-		consumes = { "application/json" },
-		method = RequestMethod.PUT)
-	public ResponseEntity<KeyVaultResponseVO> updateKeyVault(
-			@ApiParam(value = "Key Vault ID to be updated", required=true) 
-			@PathVariable("id") String id,
-			@ApiParam(value = "Request body for Key Vault update with data governance fields (name cannot be changed)", required=true) 
-			@Valid @RequestBody KeyVaultCreateRequestVO createRequestVO) {
-		
-		KeyVaultResponseVO responseVO = new KeyVaultResponseVO();
-		GenericMessage errorMessage = new GenericMessage();
-		KeyVaultVO vo = createRequestVO.getData();
-		vo.setId(id);
-		
-		if (vo == null || vo.getKeyVaultName() == null) {
-			log.error("Key Vault mandatory fields cannot be null");
-			MessageDescription invalidMsg = new MessageDescription("Key Vault name cannot be null");
-			errorMessage.setSuccess(HttpStatus.BAD_REQUEST.name());
-			errorMessage.addErrors(invalidMsg);
-			responseVO.setData(vo);
-			responseVO.setResponses(errorMessage);
-			return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
-		}
-		
-		if (vo.getDivision() == null || vo.getDataClassification() == null
-				|| vo.isHasPii() == null || vo.getDepartment() == null) {
-			log.error("Key Vault mandatory data governance fields cannot be null");
-			MessageDescription invalidMsg = new MessageDescription("Key Vault mandatory fields (division, dataClassification, hasPii, department) cannot be null");
-			errorMessage.setSuccess(HttpStatus.BAD_REQUEST.name());
-			errorMessage.addErrors(invalidMsg);
-			responseVO.setData(vo);
-			responseVO.setResponses(errorMessage);
-			return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
-		}
-		
-		try {
-			log.info("Received request to update Key Vault: {}", vo.getKeyVaultName());
-			return keyVaultService.updateKeyVault(vo);
-		} catch (Exception e) {
-			log.error("Failed to update Key Vault with exception: {}", e.getMessage());
-			errorMessage.setSuccess("FAILED");
-			List<MessageDescription> errors = new ArrayList<>();
-			MessageDescription error = new MessageDescription("Failed to update Key Vault: " + e.getMessage());
-			errors.add(error);
-			errorMessage.setErrors(errors);
-			errorMessage.setWarnings(new ArrayList<>());
-			responseVO.setData(null);
-			responseVO.setResponses(errorMessage);
-			return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
-		}
-	}
-
-	@Override
-	@ApiOperation(value = "Get all Azure Key Vaults created by the authenticated user", nickname = "getAllKeyVaults", notes = "Retrieves all Azure Key Vaults created by the current user from the database with pagination support.", response = KeyVaultCollectionVO.class, tags = { "fabric-workspaces", })
-	@ApiResponses(value = { 
-			@ApiResponse(code = 200, message = "Successfully retrieved Key Vaults", response = KeyVaultCollectionVO.class),
-			@ApiResponse(code = 204, message = "No Key Vaults found"),
-			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
-			@ApiResponse(code = 403, message = "Request is not authorized."),
-			@ApiResponse(code = 500, message = "Internal error", response = KeyVaultCollectionVO.class) })
-	@RequestMapping(value = "/fabric-workspaces/keyVault",
-		produces = { "application/json" },
-		method = RequestMethod.GET)
-	public ResponseEntity<KeyVaultCollectionVO> getAllKeyVaults(
-			@ApiParam(value = "Page number from which listing should start. Offset. Example: 0") @Valid @RequestParam(value = "offset", required = false) Integer offset,
-			@ApiParam(value = "Page size to limit the number of Key Vaults. Example: 15") @Valid @RequestParam(value = "limit", required = false) Integer limit) {
-
-		if (this.userStore.getUserInfo() == null || this.userStore.getVO() == null || 
-			this.userStore.getVO().getId() == null || "".equalsIgnoreCase(this.userStore.getVO().getId().trim())) {
-			log.error("Unable to get user information from UserStore");
-			return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
-		}
-
-		CreatedByVO requestUser = this.userStore.getVO();
-		String createdBy = requestUser.getId();
-
-		KeyVaultCollectionVO collection = new KeyVaultCollectionVO();
-		
+		FabricWorkspaceLovCollectionVO collection = new FabricWorkspaceLovCollectionVO();
 		int defaultLimit = 15;
-		if (offset == null || offset < 0) {
+		if (offset == null || offset < 0)
 			offset = 0;
-		}
 		if (limit == null || limit < 0) {
 			limit = defaultLimit;
+		} else if (limit == 0) {
+			limit = Integer.MAX_VALUE; 
 		}
 
-		try {
-			collection = keyVaultService.getAllKeyVaults(limit, offset, createdBy);
-			if (!collection.getRecords().isEmpty()) {
-				collection.setTotalCount(collection.getRecords().size());
-			}
-			HttpStatus responseCode = collection.getRecords() != null && !collection.getRecords().isEmpty() 
-					? HttpStatus.OK 
-					: HttpStatus.NO_CONTENT;
-			return new ResponseEntity<>(collection, responseCode);
-		} catch (Exception e) {
-			log.error("Failed to retrieve Key Vaults with exception: {}", e.getMessage());
-			GenericMessage errorMessage = new GenericMessage();
-			errorMessage.setSuccess("ERROR");
-			List<MessageDescription> errors = new ArrayList<>();
-			MessageDescription error = new MessageDescription("Failed to retrieve Key Vaults: " + e.getMessage());
-			errors.add(error);
-			errorMessage.setErrors(errors);
-			collection.responses(errorMessage);
-			return new ResponseEntity<>(collection, HttpStatus.INTERNAL_SERVER_ERROR);
+		if (searchText == null || searchText.trim().isEmpty()) {
+			return new ResponseEntity<>(collection, HttpStatus.BAD_REQUEST);
 		}
+		FabricWorkspacesCollectionVO serviceResult = service.searchWorkspacesLov(limit, offset, searchText);
+		if (serviceResult.getRecords() != null) {
+			List<FabricWorkspaceLovVO> trimmed = serviceResult.getRecords().stream()
+				.map(ws -> {
+					FabricWorkspaceLovVO slim = new FabricWorkspaceLovVO();
+					slim.setId(ws.getId());
+					slim.setName(ws.getName());
+					slim.setStatus(ws.getStatus());
+					slim.setCreatedBy(ws.getCreatedBy());
+					slim.setCreatedOn(ws.getCreatedOn());
+					return slim;
+				})
+				.collect(Collectors.toList());
+			collection.setRecords(trimmed);
+			collection.setTotalCount(serviceResult.getTotalCount());
+		}
+		HttpStatus responseCode = collection.getRecords() != null && !collection.getRecords().isEmpty() 
+			? HttpStatus.OK 
+			: HttpStatus.NO_CONTENT;
+		
+		return new ResponseEntity<>(collection, responseCode);
 	}
 
+	
 }

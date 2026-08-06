@@ -503,6 +503,51 @@ const restartDeployments = (id, env) => {
     return server.post(`/workspaces/${id}/restart?env=${env}`, {data: {},});
 };
 
+// Aggregated Build & Deploy workflow status for the Deployment Status Panel (Info icon)
+const getWorkflowStatus = (projectName) => {
+    return server.get(`workspace/workflow-status/${projectName}`, {
+        data: {},
+    });
+};
+ 
+const subscribeToWorkflowStatus = (projectName, onStatusUpdate, onComplete, onError) => {
+    const url = `${baseURL}/workspace/workflow-status/stream/${projectName}`;
+ 
+    const sse = new EventSourcePolyfill(url, {
+        withCredentials: true,
+        headers: {
+            Authorization: readJwt(),
+            Accept: 'text/event-stream',
+        },
+    });
+ 
+    sse.addEventListener('workflow-status', (event) => {
+        try {
+            onStatusUpdate && onStatusUpdate(JSON.parse(event.data));
+        } catch (error) {
+            console.error('Error parsing workflow-status event:', error);
+        }
+    });
+ 
+    sse.addEventListener('workflow-complete', (event) => {
+        try {
+            onComplete && onComplete(JSON.parse(event.data));
+        } catch (error) {
+            console.error('Error parsing workflow-complete event:', error);
+        } finally {
+            sse.close();
+        }
+    });
+ 
+    sse.onerror = (error) => {
+        console.error('Workflow-status SSE connection error:', error);
+        onError && onError(error);
+        sse.close();
+    };
+ 
+    return sse;
+};
+
 const migrateWorkplace = (id) => { 
     return server.post(`/workspaces/${id}/migrateworkspace`, {data: {},});
 };
@@ -558,6 +603,8 @@ export const CodeSpaceApiClient = {
     buildCodeSpace,
     deleteBuild,
     getBuildAndDeployLogs,
+    getWorkflowStatus,
+    subscribeToWorkflowStatus,
     buildVersionLov,
     rejectDeployApproval,
     updateDeployedAppConfig,

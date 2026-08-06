@@ -1,0 +1,315 @@
+$bg: #252a33;
+$bgAlt: #2c313c;
+$border: #3a414d;
+$accent: #00adef;
+$green: #0ae6ab;
+$red: #e84d47;
+$yellow: #f3e537;
+$muted: #99a5b3;
+$text: #c0c8d0;
+ 
+.infoWrapper {
+  display: inline-flex;
+  align-items: center;
+}
+ 
+.infoIcon {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  color: #ffd100; // MBRDI theme yellow
+  margin-left: 8px;
+  vertical-align: middle;
+ 
+  i {
+    font-size: 16px;
+  }
+ 
+  &:hover {
+    filter: brightness(1.15);
+  }
+}
+ 
+.infoDisabled {
+  color: $muted;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+ 
+/* ---------- Modal ---------- */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1300;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+ 
+.modal {
+  width: 900px;
+  max-width: 94vw;
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
+  background: $bg;
+  border: 1px solid $border;
+  border-radius: 8px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55);
+  color: $text;
+  font-size: 12px;
+  text-align: left;
+}
+ 
+.modalHeader {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 16px;
+  border-bottom: 1px solid $border;
+}
+ 
+.modalTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+ 
+.envTag {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: $accent;
+  border: 1px solid $accent;
+  border-radius: 10px;
+  padding: 1px 8px;
+}
+ 
+.headerActions {
+  margin-left: auto;
+  display: flex;
+  gap: 6px;
+}
+ 
+.iconBtn {
+  background: transparent;
+  border: none;
+  color: $muted;
+  cursor: pointer;
+  font-size: 14px;
+  padding: 2px 6px;
+  border-radius: 4px;
+ 
+  &:hover { color: #fff; background: rgba(255, 255, 255, 0.06); }
+  &:disabled { opacity: 0.5; cursor: default; }
+ 
+  i { font-size: 14px; }
+}
+ 
+.spinning i {
+  animation: spin 0.9s linear infinite;
+}
+ 
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+ 
+.errorBanner {
+  background: rgba(180, 83, 9, 0.2);
+  color: $yellow;
+  padding: 8px 16px;
+  font-size: 11px;
+}
+ 
+.modalBody {
+  padding: 14px 16px;
+  overflow-y: auto;
+}
+ 
+/* ---------- Two-column body ---------- */
+.bodyGrid {
+  display: flex;
+  gap: 20px;
+  align-items: stretch;
+}
+ 
+.leftCol {
+  flex: 0 0 44%;
+  min-width: 0;
+}
+ 
+.rightCol {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+}
+ 
+.logsSection {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  margin-bottom: 0;
+  border-left: 1px solid $border;
+  padding-left: 20px;
+}
+ 
+@media (max-width: 720px) {
+  .bodyGrid { flex-direction: column; }
+  .leftCol { flex: 1 1 auto; }
+  .logsSection { border-left: none; padding-left: 0; }
+}
+ 
+/* ---------- Sections ---------- */
+.section {
+  margin-bottom: 16px;
+}
+ 
+.sectionTitle {
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+ 
+.summaryRow {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 4px 0;
+  border-bottom: 1px dashed rgba(58, 65, 77, 0.5);
+}
+ 
+.summaryLabel {
+  color: $muted;
+}
+ 
+.summaryValue {
+  color: $text;
+  text-align: right;
+  word-break: break-word;
+}
+ 
+.inlineLink {
+  margin-left: 8px;
+  color: $accent;
+  text-decoration: none;
+ 
+  &:hover { text-decoration: underline; }
+}
+ 
+/* ---------- Steps ---------- */
+.stepList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+ 
+.stepRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0;
+}
+ 
+.stepDot {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1px solid $border;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: $muted;
+  flex-shrink: 0;
+ 
+  &.done { background: $green; color: #06301f; border-color: $green; }
+  &.active { background: $accent; color: #fff; border-color: $accent; }
+  &.failed { background: $red; color: #fff; border-color: $red; }
+  &.skipped { background: #5a6470; color: #fff; border-color: #5a6470; }
+}
+ 
+.stepName {
+  flex: 1;
+  color: $text;
+}
+ 
+.stepDur {
+  color: $muted;
+  font-size: 11px;
+}
+ 
+/* ---------- Logs ---------- */
+.logsHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+ 
+.copyBtn {
+  background: transparent;
+  border: 1px solid $accent;
+  color: $accent;
+  border-radius: 4px;
+  padding: 3px 10px;
+  font-size: 11px;
+  cursor: pointer;
+ 
+  &:hover { background: $accent; color: #fff; }
+}
+ 
+.logViewer {
+  margin: 0;
+  flex: 1 1 auto;
+  min-height: 320px;
+  max-height: 60vh;
+  overflow: auto;
+  background: #1c2029;
+  border: 1px solid $border;
+  border-radius: 5px;
+  padding: 10px 12px;
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  font-size: 11px;
+  line-height: 1.5;
+  color: #a8b3c0;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+ 
+/* ---------- States ---------- */
+.stateMsg {
+  color: $muted;
+  padding: 20px 0;
+  text-align: center;
+}
+ 
+.notStarted {
+  text-align: center;
+  padding: 24px 12px;
+  color: $muted;
+ 
+  i { font-size: 26px; color: $yellow; }
+ 
+  p {
+    margin: 10px 0 4px;
+    font-size: 13px;
+    font-weight: 600;
+    color: $text;
+  }
+ 
+  span { font-size: 11px; line-height: 1.5; }
+}
+ 
+.failedState {
+  i { color: $red; }
+ 
+  p { color: $red; }
+}
