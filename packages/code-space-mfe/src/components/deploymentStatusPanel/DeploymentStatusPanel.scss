@@ -9,30 +9,25 @@ $muted: #99a5b3;
 $text: #c0c8d0;
  
 .infoWrapper {
-  position: relative;
   display: inline-flex;
   align-items: center;
 }
  
 .infoIcon {
-  position: relative;
   display: inline-flex;
   align-items: center;
   cursor: pointer;
-  color: $accent;
-  margin-left: 6px;
+  color: #ffd100; // MBRDI theme yellow
+  margin-left: 8px;
+  vertical-align: middle;
  
   i {
-    font-size: 14px;
+    font-size: 16px;
   }
  
   &:hover {
-    filter: brightness(1.2);
+    filter: brightness(1.15);
   }
-}
- 
-.infoActive {
-  color: $yellow;
 }
  
 .infoDisabled {
@@ -41,108 +36,63 @@ $text: #c0c8d0;
   opacity: 0.6;
 }
  
-.liveDot {
-  position: absolute;
-  top: -2px;
-  right: -3px;
-  width: 6px;
-  height: 6px;
-  border-radius: 50%;
-  background: $yellow;
-  animation: pulse 1.4s infinite;
+/* ---------- Modal ---------- */
+.modalOverlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1300;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
  
-@keyframes pulse {
-  0% { opacity: 1; transform: scale(1); }
-  50% { opacity: 0.4; transform: scale(1.4); }
-  100% { opacity: 1; transform: scale(1); }
-}
- 
-.popover {
-  position: absolute;
-  top: 22px;
-  right: 0;
-  z-index: 1000;
-  width: 360px;
-  max-height: 60vh;
-  overflow-y: auto;
-  padding: 12px 14px;
+.modal {
+  width: 900px;
+  max-width: 94vw;
+  max-height: 88vh;
+  display: flex;
+  flex-direction: column;
   background: $bg;
   border: 1px solid $border;
-  border-radius: 6px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+  border-radius: 8px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.55);
   color: $text;
   font-size: 12px;
   text-align: left;
-  cursor: default;
 }
  
-.drawerOverlay {
-  position: fixed;
-  inset: 0;
-  z-index: 1200;
-  background: rgba(0, 0, 0, 0.4);
-  display: flex;
-  justify-content: flex-end;
-}
- 
-.drawer {
-  width: 440px;
-  max-width: 90vw;
-  height: 100%;
-  overflow-y: auto;
-  background: $bg;
-  border-left: 1px solid $border;
-  padding: 16px 18px;
-  color: $text;
-  font-size: 12px;
-  box-shadow: -8px 0 24px rgba(0, 0, 0, 0.5);
-}
- 
-.drawerTitle {
-  font-size: 14px;
-  font-weight: 600;
-  color: #fff;
-  margin-bottom: 10px;
-}
- 
-.drawerBody {
-  margin-top: 6px;
-}
- 
-.panelHeader {
+.modalHeader {
   display: flex;
   align-items: center;
   gap: 8px;
-  margin-bottom: 8px;
+  padding: 14px 16px;
+  border-bottom: 1px solid $border;
 }
  
-.chip {
-  display: inline-block;
-  padding: 2px 10px;
-  border-radius: 12px;
-  font-size: 11px;
+.modalTitle {
+  font-size: 14px;
   font-weight: 600;
   color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
  
-.chipLoading { background: #4a5160; }
-.chipQueued { background: $yellow; color: #2b2b2b; }
-.chipRunning { background: $accent; }
-.chipSuccess { background: $green; color: #06301f; }
-.chipFailed { background: $red; }
-.chipCancelled { background: #6b7280; }
-.chipTimeout { background: #b45309; }
- 
-.elapsed {
-  color: $muted;
-  font-size: 11px;
+.envTag {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  color: $accent;
+  border: 1px solid $accent;
+  border-radius: 10px;
+  padding: 1px 8px;
 }
  
 .headerActions {
   margin-left: auto;
   display: flex;
-  gap: 4px;
+  gap: 6px;
 }
  
 .iconBtn {
@@ -150,234 +100,216 @@ $text: #c0c8d0;
   border: none;
   color: $muted;
   cursor: pointer;
-  font-size: 13px;
-  padding: 2px 4px;
+  font-size: 14px;
+  padding: 2px 6px;
+  border-radius: 4px;
  
-  &:hover { color: #fff; }
+  &:hover { color: #fff; background: rgba(255, 255, 255, 0.06); }
+  &:disabled { opacity: 0.5; cursor: default; }
+ 
+  i { font-size: 14px; }
 }
  
-.meta {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 4px 12px;
-  color: $muted;
-  margin-bottom: 10px;
-  padding-bottom: 8px;
-  border-bottom: 1px solid $border;
- 
-  strong { color: $text; }
+.spinning i {
+  animation: spin 0.9s linear infinite;
 }
  
-.stateMsg,
-.queueMsg {
-  color: $muted;
-  padding: 8px 0;
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
 }
  
-.queueBox {
-  p { margin: 4px 0; }
-}
- 
-.queueTitle {
-  color: #fff;
-  font-weight: 600;
-}
- 
-.queueHint {
-  color: $muted;
-}
- 
-.staleBanner {
+.errorBanner {
   background: rgba(180, 83, 9, 0.2);
   color: $yellow;
-  padding: 6px 8px;
-  border-radius: 4px;
-  margin-bottom: 8px;
+  padding: 8px 16px;
+  font-size: 11px;
 }
  
-.stepper {
+.modalBody {
+  padding: 14px 16px;
+  overflow-y: auto;
+}
+ 
+/* ---------- Two-column body ---------- */
+.bodyGrid {
   display: flex;
-  list-style: none;
-  padding: 0;
-  margin: 0 0 12px;
-  gap: 4px;
+  gap: 20px;
+  align-items: stretch;
 }
  
-.step {
-  flex: 1;
+.leftCol {
+  flex: 0 0 44%;
+  min-width: 0;
+}
+ 
+.rightCol {
+  flex: 1 1 auto;
+  min-width: 0;
+  display: flex;
+}
+ 
+.logsSection {
   display: flex;
   flex-direction: column;
-  align-items: center;
-  gap: 4px;
-  font-size: 10px;
-  color: $muted;
-  text-align: center;
+  flex: 1 1 auto;
+  margin-bottom: 0;
+  border-left: 1px solid $border;
+  padding-left: 20px;
 }
  
-.dot {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  border: 1px solid $border;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 10px;
-  color: $muted;
- 
-  &.done { background: $green; color: #06301f; border-color: $green; }
-  &.active { background: $accent; color: #fff; border-color: $accent; }
-  &.failed { background: $red; color: #fff; border-color: $red; }
+@media (max-width: 720px) {
+  .bodyGrid { flex-direction: column; }
+  .leftCol { flex: 1 1 auto; }
+  .logsSection { border-left: none; padding-left: 0; }
 }
  
-.jobCard {
-  background: $bgAlt;
-  border: 1px solid $border;
-  border-radius: 5px;
-  padding: 8px 10px;
-  margin-bottom: 8px;
+/* ---------- Sections ---------- */
+.section {
+  margin-bottom: 16px;
 }
  
-.jobHeader {
+.sectionTitle {
+  margin: 0 0 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+ 
+.summaryRow {
   display: flex;
   justify-content: space-between;
-  gap: 8px;
-  margin-bottom: 6px;
+  gap: 12px;
+  padding: 4px 0;
+  border-bottom: 1px dashed rgba(58, 65, 77, 0.5);
 }
  
-.jobName {
-  font-weight: 600;
+.summaryLabel {
+  color: $muted;
+}
+ 
+.summaryValue {
   color: $text;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  text-align: right;
+  word-break: break-word;
 }
  
-.jobMeta {
-  color: $muted;
-  font-size: 11px;
-  white-space: nowrap;
+.inlineLink {
+  margin-left: 8px;
+  color: $accent;
+  text-decoration: none;
+ 
+  &:hover { text-decoration: underline; }
 }
  
-.jobMetaFailed {
-  color: $red;
-}
- 
-.progressTrack {
-  height: 6px;
-  background: #1c2029;
-  border-radius: 3px;
-  overflow: hidden;
-}
- 
-.progressFill {
-  height: 100%;
-  background: #3a414d;
-  transition: width 0.4s ease;
-}
- 
-.progressSuccess {
-  background: $green;
-}
- 
-.progressRunning {
-  background: $accent;
-}
- 
-.progressFailed {
-  background: $red;
-}
- 
-.jobSub {
-  margin-top: 4px;
-  color: $muted;
-  font-size: 11px;
-}
- 
+/* ---------- Steps ---------- */
 .stepList {
   list-style: none;
-  padding: 0 0 8px 6px;
-  margin: 0 0 8px;
-  border-left: 1px dashed $border;
+  padding: 0;
+  margin: 0;
 }
  
 .stepRow {
   display: flex;
   align-items: center;
-  gap: 6px;
-  padding: 2px 0;
+  gap: 10px;
+  padding: 6px 0;
+}
+ 
+.stepDot {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1px solid $border;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  color: $muted;
+  flex-shrink: 0;
+ 
+  &.done { background: $green; color: #06301f; border-color: $green; }
+  &.active { background: $accent; color: #fff; border-color: $accent; }
+  &.failed { background: $red; color: #fff; border-color: $red; }
+  &.skipped { background: #5a6470; color: #fff; border-color: #5a6470; }
 }
  
 .stepName {
   flex: 1;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  color: $text;
 }
  
 .stepDur {
   color: $muted;
-  font-size: 10px;
+  font-size: 11px;
 }
  
-.errorBox {
-  background: rgba(232, 77, 71, 0.12);
-  border: 1px solid rgba(232, 77, 71, 0.4);
-  color: #ff9d99;
-  padding: 8px;
-  border-radius: 4px;
-  margin: 8px 0;
-  white-space: pre-wrap;
-  word-break: break-word;
-}
- 
-.activity {
-  margin-top: 10px;
- 
-  h5 {
-    margin: 0 0 6px;
-    color: $text;
-    font-size: 12px;
-  }
- 
-  ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-  }
- 
-  li {
-    color: $muted;
-    padding: 2px 0;
-  }
-}
- 
-.activityTs {
-  color: #6b7686;
-  margin-right: 6px;
-}
- 
-.actions {
+/* ---------- Logs ---------- */
+.logsHeader {
   display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
-  margin-top: 12px;
-  padding-top: 10px;
-  border-top: 1px solid $border;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
 }
  
-.actionBtn {
+.copyBtn {
   background: transparent;
   border: 1px solid $accent;
   color: $accent;
   border-radius: 4px;
-  padding: 4px 10px;
+  padding: 3px 10px;
   font-size: 11px;
   cursor: pointer;
-  text-decoration: none;
  
-  &:hover {
-    background: $accent;
-    color: #fff;
+  &:hover { background: $accent; color: #fff; }
+}
+ 
+.logViewer {
+  margin: 0;
+  flex: 1 1 auto;
+  min-height: 320px;
+  max-height: 60vh;
+  overflow: auto;
+  background: #1c2029;
+  border: 1px solid $border;
+  border-radius: 5px;
+  padding: 10px 12px;
+  font-family: 'SFMono-Regular', Consolas, 'Liberation Mono', Menlo, monospace;
+  font-size: 11px;
+  line-height: 1.5;
+  color: #a8b3c0;
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+ 
+/* ---------- States ---------- */
+.stateMsg {
+  color: $muted;
+  padding: 20px 0;
+  text-align: center;
+}
+ 
+.notStarted {
+  text-align: center;
+  padding: 24px 12px;
+  color: $muted;
+ 
+  i { font-size: 26px; color: $yellow; }
+ 
+  p {
+    margin: 10px 0 4px;
+    font-size: 13px;
+    font-weight: 600;
+    color: $text;
   }
+ 
+  span { font-size: 11px; line-height: 1.5; }
+}
+ 
+.failedState {
+  i { color: $red; }
+ 
+  p { color: $red; }
 }

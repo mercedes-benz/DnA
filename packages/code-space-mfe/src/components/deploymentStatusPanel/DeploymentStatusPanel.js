@@ -1,11 +1,22 @@
 import classNames from 'classnames';
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState } from 'react';
 import Styles from './DeploymentStatusPanel.scss';
-import { buildGitJobLogViewAWSURL } from '../../Utility/utils';
+import { CodeSpaceApiClient } from '../../apis/codespace.api';
 // @ts-ignore
 import Notification from '../../common/modules/uilab/js/src/notification';
  
-const PIPELINE_PHASES = ['QUEUED', 'BUILDING', 'DEPLOYING', 'DONE'];
+// ---------------------------------------------------------------------------
+// Build Execution Summary modal.
+//
+// Design constraints (per requirement):
+//   - Info icon is ALWAYS visible on the card, regardless of build status.
+//   - NO polling / NO auto-refresh / NO background GitHub calls.
+//   - GitHub-backed data (workflowStatus) is fetched ONLY when the modal is
+//     opened and when the user clicks the in-modal Refresh button. Both go
+//     through the existing user-refresh path getWorkspaceById(id, true), which
+//     already reconciles status on the stale threshold and calls GitHub.
+//   - Logs are placeholder/dummy content for now (no log API wired yet).
+// ---------------------------------------------------------------------------
  
 const formatDuration = (seconds) => {
   if (seconds === null || seconds === undefined) return '—';
@@ -18,352 +29,308 @@ const formatDuration = (seconds) => {
 };
  
 const formatTs = (ts) => {
-  if (!ts) return '';
+  if (!ts) return '—';
   try {
     return new Date(ts).toLocaleString();
   } catch {
-    return '';
+    return '—';
   }
 };
  
-// Derive a UI state from the aggregated backend DTO.
-const deriveUiState = (status) => {
-  if (!status) return 'LOADING';
-  const overall = (status.overallStatus || '').toUpperCase();
-  const phase = (status.phase || '').toUpperCase();
+// Canonical "important" steps shown to the user. Noise (skipped/internal/setup
+// steps) is intentionally excluded — we only surface these four milestones and
+// map them from whatever GitHub job/step names are present.
+const IMPORTANT_STEPS = [
+  { label: 'Update Git Run ID', match: ['update git job run id', 'update git', 'git job run', 'run id'] },
+  // Build & Deploy is a single job in GitHub ("Build or Deploy workspace application").
+  { label: 'Build or Deploy workspace application', match: ['build or deploy'] },
+  { label: 'Update Status', match: ['update status'] },
+];
  
-  // Cancelled / timed_out are surfaced via job conclusions from GitHub.
-  const jobConclusions = (status.jobs || []).map((j) => (j.conclusion || '').toLowerCase());
-  if (jobConclusions.includes('cancelled')) return 'CANCELLED';
-  if (jobConclusions.includes('timed_out')) return 'TIMEOUT';
-  if (overall === 'BUILD_FAILED' && status.message && /not generated|within/i.test(status.message)) return 'TIMEOUT';
+// When several jobs/steps match a label, prefer the one that is furthest along
+// so a real success/failure wins over a skipped sibling (e.g. "Update Status
+// build_deploy" success vs "Update Status restart" skipped).
+const STATE_PRIORITY = { done: 5, failed: 4, active: 3, skipped: 2, pending: 1 };
  
-  if (phase === 'FAILED') return 'FAILED';
-  if (phase === 'DONE') return 'SUCCESS';
-  if (phase === 'QUEUED' || status.runStarted === false) return 'QUEUE';
-  if (phase === 'BUILDING' || phase === 'DEPLOYING' || phase === 'RUNNING') return 'RUNNING';
-  if (overall === 'NONE') return 'EMPTY';
-  return 'RUNNING';
+// Flatten jobs + their steps into a single searchable list of {name,status,conclusion,duration}.
+const flattenActivities = (status) => {
+  const items = [];
+  (status?.jobs || []).forEach((job) => {
+    items.push({
+      name: job.name || '',
+      status: job.status,
+      conclusion: job.conclusion,
+      durationSeconds: job.durationSeconds,
+    });
+    (job.steps || []).forEach((step) => {
+      items.push({
+        name: step.name || '',
+        status: step.status,
+        conclusion: step.conclusion,
+        durationSeconds: step.durationSeconds,
+      });
+    });
+  });
+  return items;
 };
  
-const CHIP = {
-  LOADING: { label: 'Loading…', cls: 'chipLoading' },
-  EMPTY: { label: 'No activity', cls: 'chipLoading' },
-  QUEUE: { label: 'Queued', cls: 'chipQueued' },
-  RUNNING: { label: 'Running', cls: 'chipRunning' },
-  SUCCESS: { label: 'Succeeded', cls: 'chipSuccess' },
-  FAILED: { label: 'Failed', cls: 'chipFailed' },
-  CANCELLED: { label: 'Cancelled', cls: 'chipCancelled' },
-  TIMEOUT: { label: 'Timed out', cls: 'chipTimeout' },
+const deriveStepState = (item) => {
+  if (!item) return 'pending';
+  const s = (item.status || '').toLowerCase();
+  const c = (item.conclusion || '').toLowerCase();
+  if (s === 'completed') {
+    if (['success', 'neutral'].includes(c)) return 'done';
+    if (c === 'skipped') return 'skipped';
+    if (['failure', 'cancelled', 'timed_out', 'action_required'].includes(c)) return 'failed';
+    return 'done';
+  }
+  if (s === 'in_progress') return 'active';
+  return 'pending';
+};
+ 
+// Build the fixed list of important steps with a resolved state from live data.
+const buildImportantSteps = (status) => {
+  const activities = flattenActivities(status);
+  return IMPORTANT_STEPS.map((def) => {
+    const matches = activities.filter((a) => {
+      const n = a.name.toLowerCase();
+      return def.match.some((m) => n.includes(m));
+    });
+    let best = null;
+    let bestScore = -1;
+    matches.forEach((a) => {
+      const st = deriveStepState(a);
+      const score = STATE_PRIORITY[st] || 0;
+      if (score > bestScore) {
+        bestScore = score;
+        best = { item: a, state: st };
+      }
+    });
+    return {
+      label: def.label,
+      state: best ? best.state : 'pending',
+      durationSeconds: best ? best.item.durationSeconds : null,
+    };
+  });
 };
  
 const StepIcon = ({ state }) => {
-  if (state === 'done') return <span className={classNames(Styles.dot, Styles.done)}>✓</span>;
-  if (state === 'active') return <span className={classNames(Styles.dot, Styles.active)}>▶</span>;
-  if (state === 'failed') return <span className={classNames(Styles.dot, Styles.failed)}>✕</span>;
-  return <span className={Styles.dot}>○</span>;
+  if (state === 'done') return <span className={classNames(Styles.stepDot, Styles.done)}>✓</span>;
+  if (state === 'active') return <span className={classNames(Styles.stepDot, Styles.active)}>▶</span>;
+  if (state === 'failed') return <span className={classNames(Styles.stepDot, Styles.failed)}>✕</span>;
+  if (state === 'skipped') return <span className={classNames(Styles.stepDot, Styles.skipped)}>–</span>;
+  return <span className={Styles.stepDot}>○</span>;
 };
  
-const PipelineStepper = ({ status, uiState }) => {
-  const currentPhase = (status?.phase || '').toUpperCase();
-  const currentIdx = PIPELINE_PHASES.indexOf(currentPhase === 'RUNNING' ? 'BUILDING' : currentPhase);
-  return (
-    <ul className={Styles.stepper}>
-      {PIPELINE_PHASES.map((p, idx) => {
-        let state = 'pending';
-        if (uiState === 'FAILED' && idx === currentIdx) state = 'failed';
-        else if (idx < currentIdx || uiState === 'SUCCESS') state = 'done';
-        else if (idx === currentIdx) state = 'active';
-        const label = p === 'DONE' ? 'Complete' : p.charAt(0) + p.slice(1).toLowerCase();
-        return (
-          <li key={p} className={Styles.step}>
-            <StepIcon state={state} />
-            <span>{label}</span>
-          </li>
-        );
-      })}
-    </ul>
-  );
+const deriveWorkflowStatusLabel = (status) => {
+  if (!status) return '—';
+  const jobs = status.jobs || [];
+  if (jobs.length === 0) return status.phase || status.overallStatus || '—';
+  const anyFailed = jobs.some((j) => (j.status || '').toLowerCase() === 'completed'
+    && ['failure', 'cancelled', 'timed_out', 'action_required'].includes((j.conclusion || '').toLowerCase()));
+  if (anyFailed) return 'completed / failed';
+  const anyRunning = jobs.some((j) => (j.status || '').toLowerCase() === 'in_progress');
+  if (anyRunning) return 'in progress';
+  const allDone = jobs.every((j) => (j.status || '').toLowerCase() === 'completed');
+  if (allDone) return 'completed / success';
+  return status.phase || 'queued';
 };
  
-const GREEN = '#0ae6ab';
-const RED = '#e84d47';
-const BLUE = '#00adef';
-const MUTED = '#5a6470';
- 
-const FAIL_LABELS = {
-  failure: 'Failed',
-  cancelled: 'Cancelled',
-  timed_out: 'Timed out',
-  action_required: 'Action required',
+// Placeholder log content until a real log source is wired in.
+const buildDummyLogs = (status, projectName) => {
+  const runId = status?.runId || 'N/A';
+  const lines = [
+    `[info] ---- Build Execution Log (preview) ----`,
+    `[info] project        : ${projectName || '-'}`,
+    `[info] workflow run id : ${runId}`,
+    `[info] workflow        : ${status?.workflowName || '-'}`,
+    `[info] branch          : ${status?.branch || '-'}`,
+    `[info] triggered by    : ${status?.triggeredBy || '-'}`,
+    `[info] ----------------------------------------`,
+    `[10:52:56] ▶ Update Git Run ID`,
+    `[10:52:58] ✔ Git run id updated (${runId})`,
+    `[10:52:59] ▶ Build or Deploy workspace application`,
+    `[10:53:48] ✔ Build/Deploy completed successfully`,
+    `[10:54:31] ▶ Update Status`,
+    `[10:54:32] ✔ Workspace status updated`,
+    ``,
+    `[note] These are placeholder logs. Live build logs will be wired in a later iteration.`,
+  ];
+  return lines.join('\n');
 };
  
-const JobCard = ({ job }) => {
-  const status = (job.status || '').toLowerCase();
-  const conclusion = (job.conclusion || '').toLowerCase();
-  const isCompleted = status === 'completed';
-  const isSuccess = isCompleted && ['success', 'neutral'].includes(conclusion);
-  const isSkipped = isCompleted && conclusion === 'skipped';
-  const isFailed = isCompleted && ['failure', 'cancelled', 'timed_out', 'action_required'].includes(conclusion);
-  const isRunning = status === 'in_progress';
- 
-  // Bar: green + full when passed, red + full when failed, blue (progress) while
-  // running, empty when not started yet. Colour is set inline so it can never be
-  // overridden by CSS-module class ordering.
-  let fillWidth = 0;
-  let fillColor = 'transparent';
-  if (isSuccess) {
-    fillWidth = 100;
-    fillColor = GREEN;
-  } else if (isFailed) {
-    fillWidth = 100;
-    fillColor = RED;
-  } else if (isRunning) {
-    fillWidth = job.progress || 0;
-    fillColor = BLUE;
-  }
- 
-  const TRACK_BG = '#1c2029';
- 
-  // Force colours with `!important` via refs so they can't be beaten by any
-  // (possibly stale/cached) stylesheet rule, and force an explicit height so the
-  // bar is visible even if the `.progressFill { height:100% }` rule didn't load.
-  const trackRef = useRef(null);
-  const fillRef = useRef(null);
-  useEffect(() => {
-    const track = trackRef.current;
-    if (track) {
-      // Fully colour the track for terminal states (guaranteed-visible 6px box);
-      // keep it dark while running (the fill shows blue progress) / not started.
-      const trackColor = isSuccess ? GREEN : isFailed ? RED : isSkipped ? MUTED : TRACK_BG;
-      track.style.setProperty('background', trackColor, 'important');
-      track.style.setProperty('background-color', trackColor, 'important');
-    }
-    const el = fillRef.current;
-    if (el) {
-      el.style.setProperty('height', '100%', 'important');
-      el.style.setProperty('min-height', '6px', 'important');
-      el.style.setProperty('width', `${fillWidth}%`, 'important');
-      el.style.setProperty('background', fillColor, 'important');
-      el.style.setProperty('background-color', fillColor, 'important');
-    }
-  }, [fillWidth, fillColor, isSuccess, isFailed, isSkipped]);
- 
-  // Only passed jobs display "completed". Failed jobs show their outcome; jobs
-  // that are still running / not started never show "completed".
-  let meta;
-  const dur = job.durationSeconds != null ? ` · ${formatDuration(job.durationSeconds)}` : '';
-  if (isSuccess) {
-    meta = `completed${dur}`;
-  } else if (isSkipped) {
-    meta = 'skipped';
-  } else if (isFailed) {
-    meta = `${FAIL_LABELS[conclusion] || 'Failed'}${dur}`;
-  } else if (isRunning) {
-    meta = `running${dur}`;
-  } else {
-    meta = 'waiting';
-  }
- 
-  return (
-    <div className={Styles.jobCard}>
-      <div className={Styles.jobHeader}>
-        <span className={Styles.jobName} title={job.name}>{job.name}</span>
-        <span className={classNames(Styles.jobMeta, isFailed && Styles.jobMetaFailed)}>{meta}</span>
-      </div>
-      <div ref={trackRef} className={Styles.progressTrack} style={{ minHeight: 6 }}>
-        <div ref={fillRef} className={Styles.progressFill} style={{ height: '100%', minHeight: 6, width: `${fillWidth}%`, background: fillColor }} />
-      </div>
-      {(job.totalSteps > 0 || (isRunning && job.currentStep)) && (
-        <div className={Styles.jobSub}>
-          {job.totalSteps > 0 ? `${job.completedSteps || 0}/${job.totalSteps} steps` : ''}
-          {isRunning && job.currentStep ? `${job.totalSteps > 0 ? ' · ' : ''}${job.currentStep}` : ''}
-        </div>
-      )}
-    </div>
-  );
-};
- 
-const StepList = ({ steps }) => (
-  <ul className={Styles.stepList}>
-    {(steps || []).map((s) => {
-      const c = (s.conclusion || '').toLowerCase();
-      const state = s.status === 'completed'
-        ? (c === 'success' || c === 'skipped' ? 'done' : 'failed')
-        : (s.status === 'in_progress' ? 'active' : 'pending');
-      return (
-        <li key={s.number} className={Styles.stepRow}>
-          <StepIcon state={state} />
-          <span className={Styles.stepName}>{s.name}</span>
-          <span className={Styles.stepDur}>{formatDuration(s.durationSeconds)}</span>
-        </li>
-      );
-    })}
-  </ul>
-);
- 
-const DeploymentStatusPanel = ({ projectName, disabled, workflowStatus }) => {
+const DeploymentStatusPanel = ({
+  codeSpaceId,
+  projectName,
+  environment,
+  workspaceStatus,
+  buildStatus,
+  initialStatus,
+  onData,
+  disabled,
+}) => {
   const [open, setOpen] = useState(false);
-  const [expanded, setExpanded] = useState(false);
-  const containerRef = useRef(null);
+  const [status, setStatus] = useState(initialStatus || null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [loadedOnce, setLoadedOnce] = useState(false);
  
-  // Presentational only — no fetch, no polling, no SSE. The workflow status is
-  // supplied by the parent from the workspace refresh response (getById on the
-  // user-triggered Refresh, which already reconciles status on the stale
-  // threshold). This panel just renders whatever data it is handed.
-  const status = workflowStatus || null;
+  // On-demand fetch — used on open and on manual Refresh only.
+  const load = () => {
+    if (!codeSpaceId) return;
+    setLoading(true);
+    setError(null);
+    CodeSpaceApiClient.getWorkspaceById(codeSpaceId, true)
+      .then((res) => {
+        setLoading(false);
+        setLoadedOnce(true);
+        if (res && res.data) {
+          setStatus(res.data.projectDetails?.workflowStatus || null);
+          if (onData) onData(res.data);
+        }
+      })
+      .catch(() => {
+        setLoading(false);
+        setLoadedOnce(true);
+        setError('Unable to fetch the latest build & deploy status. Showing last known data.');
+      });
+  };
  
-  // Close popover on outside click (drawer has its own overlay).
-  useEffect(() => {
-    if (!open || expanded) return undefined;
-    const onDocClick = (e) => {
-      if (containerRef.current && !containerRef.current.contains(e.target)) {
-        setOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', onDocClick);
-    return () => document.removeEventListener('mousedown', onDocClick);
-  }, [open, expanded]);
+  const openModal = (e) => {
+    if (e) {
+      e.preventDefault();
+      e.stopPropagation();
+    }
+    if (disabled) return;
+    setOpen(true);
+    // Fetch once when the modal opens (only GitHub call besides manual Refresh).
+    load();
+  };
  
-  const uiState = !status ? 'LOADING' : deriveUiState(status);
-  const inProgress = uiState === 'QUEUE' || uiState === 'RUNNING';
-  const chip = CHIP[uiState] || CHIP.LOADING;
-  const runId = status?.runId;
-  const logUrl = runId ? buildGitJobLogViewAWSURL(runId) : null;
+  const closeModal = () => setOpen(false);
  
-  const copySummary = () => {
-    if (!status) return;
-    const lines = [
-      `Deployment status: ${projectName}${status.environment ? ` (${status.environment})` : ''}`,
-      `Status: ${status.overallStatus || '-'} (${chip.label})`,
-      status.runId ? `Run: #${status.runNumber || status.runId}` : 'Run: not started yet',
-      status.branch ? `Branch: ${status.branch}` : null,
-      status.commitSha ? `Commit: ${status.commitSha}` : null,
-      status.triggeredBy ? `Triggered by: ${status.triggeredBy}` : null,
-      status.lastError ? `Error: ${status.lastError}` : null,
-    ].filter(Boolean);
-    navigator.clipboard.writeText(lines.join('\n')).then(() => {
-      Notification.show('Deployment status summary copied');
+  const runStarted = !!(status && status.runStarted && status.runId);
+  const isFailedStatus = ['BUILD_FAILED', 'DEPLOYMENT_FAILED', 'FAILED', 'RESTART_FAILED', 'APPROVAL_REJECTED']
+    .includes((buildStatus || '').toUpperCase());
+  const logs = buildDummyLogs(status, projectName);
+ 
+  const copyLogs = () => {
+    navigator.clipboard.writeText(logs).then(() => {
+      Notification.show('Build logs copied to clipboard');
     });
   };
  
+  const importantSteps = buildImportantSteps(status);
+ 
+  const summaryRow = (label, value) => (
+    <div className={Styles.summaryRow}>
+      <span className={Styles.summaryLabel}>{label}</span>
+      <span className={Styles.summaryValue}>{value}</span>
+    </div>
+  );
+ 
   const renderBody = () => {
-    if (uiState === 'LOADING') {
-      return <div className={Styles.stateMsg}>Loading deployment status…</div>;
+    if (loading && !loadedOnce) {
+      return <div className={Styles.stateMsg}>Loading build execution summary…</div>;
     }
-    if (uiState === 'EMPTY') {
-      return <div className={Styles.stateMsg}>No build or deploy activity yet for this workspace.</div>;
-    }
-    if (uiState === 'QUEUE') {
+    if (!runStarted) {
+      if (isFailedStatus) {
+        return (
+          <div className={classNames(Styles.notStarted, Styles.failedState)}>
+            <i className="icon mbc-icon alert circle" />
+            <p>Build failed.</p>
+            <span>
+              No GitHub run ID was recorded for this build. It most likely failed
+              because the workflow job was not picked up within the allotted time
+              (build timeout). Please retrigger the build or check the pipeline
+              configuration.
+            </span>
+          </div>
+        );
+      }
       return (
-        <div className={Styles.queueBox}>
-          <p className={Styles.queueTitle}>Build request received</p>
-          <p>Waiting for GitHub to start the workflow…</p>
-          <p className={Styles.queueHint}>Build is in queue. <strong>The build has not started yet.</strong></p>
-          <p className={Styles.queueHint}>Estimated next step: GitHub is provisioning a runner.</p>
-          {status?.message && <p className={Styles.queueMsg}>{status.message}</p>}
+        <div className={Styles.notStarted}>
+          <i className="icon mbc-icon alert circle" />
+          <p>Build workflow has not started yet.</p>
+          <span>GitHub workflow has not been picked up yet. Click Refresh once the build begins.</span>
         </div>
       );
     }
     return (
-      <>
-        <PipelineStepper status={status} uiState={uiState} />
-        {status?.stale && <div className={Styles.staleBanner}>Live GitHub status temporarily unavailable — showing last known state.</div>}
-        {(status?.jobs || []).map((job) => (
-          <React.Fragment key={job.id || job.name}>
-            <JobCard job={job} />
-            {expanded && <StepList steps={job.steps} />}
-          </React.Fragment>
-        ))}
-        {status?.lastError && (uiState === 'FAILED') && (
-          <div className={Styles.errorBox}>{status.lastError}</div>
-        )}
-        {expanded && status?.activity?.length > 0 && (
-          <div className={Styles.activity}>
-            <h5>Activity</h5>
-            <ul>
-              {status.activity.map((a, i) => (
-                <li key={i}><span className={Styles.activityTs}>{formatTs(a.ts)}</span> {a.message}</li>
+      <div className={Styles.bodyGrid}>
+        <div className={Styles.leftCol}>
+          <div className={Styles.section}>
+            <h5 className={Styles.sectionTitle}>Build Execution Summary</h5>
+            {summaryRow('Workspace status', workspaceStatus || '—')}
+            {summaryRow('Build status', buildStatus || status?.overallStatus || '—')}
+            {summaryRow('Build started', formatTs(status?.startedAt))}
+            {summaryRow('Last updated', formatTs(status?.updatedAt))}
+            {summaryRow('Run ID', status?.runId || '—')}
+            {summaryRow('Workflow status', deriveWorkflowStatusLabel(status))}
+          </div>
+ 
+          <div className={Styles.section}>
+            <h5 className={Styles.sectionTitle}>Workflow Steps</h5>
+            <ul className={Styles.stepList}>
+              {importantSteps.map((s) => (
+                <li key={s.label} className={Styles.stepRow}>
+                  <StepIcon state={s.state} />
+                  <span className={Styles.stepName}>{s.label}</span>
+                  <span className={Styles.stepDur}>
+                    {s.state === 'pending' ? '—' : formatDuration(s.durationSeconds)}
+                  </span>
+                </li>
               ))}
             </ul>
           </div>
-        )}
-      </>
+        </div>
+ 
+        <div className={Styles.rightCol}>
+          <div className={classNames(Styles.section, Styles.logsSection)}>
+            <div className={Styles.logsHeader}>
+              <h5 className={Styles.sectionTitle}>Build Logs</h5>
+              <button type="button" className={Styles.copyBtn} onClick={copyLogs}>Copy Logs</button>
+            </div>
+            <pre className={Styles.logViewer}>{logs}</pre>
+          </div>
+        </div>
+      </div>
     );
   };
  
-  const header = (
-    <div className={Styles.panelHeader}>
-      <span className={classNames(Styles.chip, Styles[chip.cls])}>{chip.label}</span>
-      {status?.elapsedSeconds != null && uiState !== 'QUEUE' && (
-        <span className={Styles.elapsed}>{formatDuration(status.elapsedSeconds)} elapsed</span>
-      )}
-      <span className={Styles.headerActions}>
-        {!expanded && (
-          <button type="button" className={Styles.iconBtn} title="Expand" onClick={() => setExpanded(true)}>⤢</button>
-        )}
-        <button type="button" className={Styles.iconBtn} title="Close" onClick={() => { setExpanded(false); setOpen(false); }}>✕</button>
-      </span>
-    </div>
-  );
- 
-  const meta = status?.runStarted && (
-    <div className={Styles.meta}>
-      {status.workflowName && <span>Workflow: <strong>{status.workflowName}</strong></span>}
-      {status.runNumber && <span>Run #{status.runNumber}</span>}
-      {status.branch && <span>branch: {status.branch}</span>}
-      {status.commitSha && <span title={status.commitSha}>commit: {String(status.commitSha).slice(0, 7)}</span>}
-      {status.triggeredBy && <span>by: {status.triggeredBy}</span>}
-      {status.repository && <span>repo: {status.repository}</span>}
-      {status.startedAt && <span>started: {formatTs(status.startedAt)}</span>}
-    </div>
-  );
- 
-  const actions = (
-    <div className={Styles.actions}>
-      {logUrl && (
-        <a href={logUrl} target="_blank" rel="noreferrer" className={Styles.actionBtn}>View Logs ↗</a>
-      )}
-      {status?.githubActionUrl && (
-        <a href={status.githubActionUrl} target="_blank" rel="noreferrer" className={Styles.actionBtn}>Open GitHub Action ↗</a>
-      )}
-      <button type="button" className={Styles.actionBtn} onClick={copySummary}>Copy summary</button>
-    </div>
-  );
- 
   return (
-    <span className={Styles.infoWrapper} ref={containerRef}>
+    <span className={Styles.infoWrapper}>
       <span
-        className={classNames(Styles.infoIcon, inProgress && Styles.infoActive, disabled && Styles.infoDisabled)}
-        tooltip-data="View deployment status"
-        onClick={(e) => {
-          e.preventDefault();
-          e.stopPropagation();
-          if (disabled) return;
-          setOpen((o) => !o);
-        }}
+        className={classNames(Styles.infoIcon, disabled && Styles.infoDisabled)}
+        tooltip-data="View build execution summary"
+        onClick={openModal}
       >
         <i className="icon mbc-icon info" />
-        {inProgress && <span className={Styles.liveDot} />}
       </span>
  
-      {open && !expanded && (
-        <div className={Styles.popover} onClick={(e) => e.stopPropagation()}>
-          {header}
-          {meta}
-          {renderBody()}
-          {actions}
-        </div>
-      )}
- 
-      {open && expanded && (
-        <div className={Styles.drawerOverlay} onClick={() => { setExpanded(false); setOpen(false); }}>
-          <div className={Styles.drawer} onClick={(e) => e.stopPropagation()}>
-            <div className={Styles.drawerTitle}>Deployment Status — {projectName}</div>
-            {header}
-            {meta}
-            <div className={Styles.drawerBody}>{renderBody()}</div>
-            {actions}
+      {open && (
+        <div className={Styles.modalOverlay}>
+          <div className={Styles.modal} onClick={(e) => e.stopPropagation()}>
+            <div className={Styles.modalHeader}>
+              <span className={Styles.modalTitle}>
+                {projectName}
+                {environment ? <span className={Styles.envTag}>{environment}</span> : null}
+              </span>
+              <span className={Styles.headerActions}>
+                <button
+                  type="button"
+                  className={classNames(Styles.iconBtn, loading && Styles.spinning)}
+                  title="Refresh"
+                  disabled={loading}
+                  onClick={load}
+                >
+                  <i className="icon mbc-icon refresh" />
+                </button>
+                <button type="button" className={Styles.iconBtn} title="Close" onClick={closeModal}>✕</button>
+              </span>
+            </div>
+            {error && <div className={Styles.errorBanner}>{error}</div>}
+            <div className={Styles.modalBody}>{renderBody()}</div>
           </div>
         </div>
       )}
