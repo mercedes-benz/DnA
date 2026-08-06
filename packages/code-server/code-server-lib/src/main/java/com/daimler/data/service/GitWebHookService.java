@@ -213,9 +213,11 @@ public class GitWebHookService {
     public ResponseEntity<GenericMessage> processGitHubHookEvent(String signature, String eventType, String deliveryId,
             byte[] rawBody) {
 
+        log.info("action=processGitHubHookEvent status=started deliveryId={} eventType={}", deliveryId, eventType);
+
         // 1. Verify signature
         if (!verify(signature, rawBody)) {
-            log.warn("[{}] Signature verification FAILED for event={}", deliveryId, eventType);
+            log.warn("action=processGitHubHookEvent status=signature_failed deliveryId={} eventType={}", deliveryId, eventType);
             GenericMessage responseMessage = new GenericMessage();
             responseMessage.setSuccess("FAILED");
             MessageDescription errorMsg = new MessageDescription("Invalid signature");
@@ -224,10 +226,11 @@ public class GitWebHookService {
             responseMessage.setErrors(errors);
             return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(responseMessage);
         }
+        log.debug("action=processGitHubHookEvent status=signature_verified deliveryId={} eventType={}", deliveryId, eventType);
 
         // 2. Replay protection — reject duplicate deliveries
         if (isDuplicate(deliveryId)) {
-            log.warn("[{}] Duplicate delivery rejected for event={}", deliveryId, eventType);
+            log.warn("action=processGitHubHookEvent status=duplicate_rejected deliveryId={} eventType={}", deliveryId, eventType);
             GenericMessage responseMessage = new GenericMessage();
             responseMessage.setSuccess("FAILED");
             MessageDescription errorMsg = new MessageDescription("Duplicate delivery");
@@ -236,35 +239,54 @@ public class GitWebHookService {
             responseMessage.setErrors(errors);
             return ResponseEntity.status(HttpStatus.OK).body(responseMessage);
         }
-        log.debug("[{}] Accepted event={}", deliveryId, eventType);
+        log.info("action=processGitHubHookEvent status=accepted deliveryId={} eventType={}", deliveryId, eventType);
 
         switch (eventType) {
             case "push":
                 try {
+                    log.info("action=processGitHubHookEvent status=parsing_push_payload deliveryId={}", deliveryId);
                     PushPayloadDto payload = objectMapper.readValue(rawBody, PushPayloadDto.class);
+                    log.info("action=processGitHubHookEvent status=dispatching_push deliveryId={} repo={} pusher={} ref={}",
+                            deliveryId,
+                            payload.getRepository() != null ? payload.getRepository().getFullName() : "unknown",
+                            payload.getPusher() != null ? payload.getPusher().getName() : "unknown",
+                            payload.getRef() != null ? payload.getRef() : "unknown");
                     processEvent(payload);
                 } catch (Exception e) {
-                    log.error("[{}] Failed to process push payload: {}", deliveryId, e.getMessage(), e);
+                    log.error("action=processGitHubHookEvent status=push_processing_error deliveryId={} error={}",
+                            deliveryId, e.getMessage(), e);
                     throw new RuntimeException("Failed to process push payload", e);
                 }
                 break;
             case "pull_request":
                 try {
+                    log.info("action=processGitHubHookEvent status=parsing_pr_payload deliveryId={}", deliveryId);
                     PullRequestPayloadDto payload = objectMapper.readValue(rawBody, PullRequestPayloadDto.class);
+                    log.info("action=processGitHubHookEvent status=dispatching_pull_request deliveryId={} repo={} user={} merged={} baseRef={}",
+                            deliveryId,
+                            payload.getRepository() != null ? payload.getRepository().getFullName() : "unknown",
+                            payload.getPullRequest() != null && payload.getPullRequest().getUser() != null ? payload.getPullRequest().getUser().getLogin() : "unknown",
+                            payload.getPullRequest() != null && payload.getPullRequest().isMerged(),
+                            payload.getPullRequest() != null && payload.getPullRequest().getBase() != null ? payload.getPullRequest().getBase().getRef() : "unknown");
                     processEvent(payload);
                 } catch (Exception e) {
-                    log.error("[{}] Failed to process pull_request payload: {}", deliveryId, e.getMessage(), e);
+                    log.error("action=processGitHubHookEvent status=pr_processing_error deliveryId={} error={}",
+                            deliveryId, e.getMessage(), e);
                     throw new RuntimeException("Failed to process pull_request payload", e);
                 }
                 break;
             default:
+                log.warn("action=processGitHubHookEvent status=unsupported_event deliveryId={} eventType={}", deliveryId, eventType);
                 throw new UnsupportedOperationException("Unsupported event type: " + eventType);
         }
+        log.info("action=processGitHubHookEvent status=completed deliveryId={} eventType={}", deliveryId, eventType);
         return null;
     }
 
     @Async
     private void processEvent(Object payload) {
+
+        log.info("action=processEvent status=started payloadType={}", payload.getClass().getSimpleName());
 
         List<CodeServerWorkspaceNsql> workspaceList = null;
         ManageDeployRequestDto deployRequest = null;
@@ -280,48 +302,60 @@ public class GitWebHookService {
             repoFullName = pushPayload.getRepository().getFullName().split("/")[1];
             gitUserName = pushPayload.getPusher().getName();
             branchName = pushPayload.getRef().replace("refs/heads/", "");
+            log.info("action=processEvent status=push_payload_extracted repo={} pusher={} branch={}",
+                    repoFullName, gitUserName, branchName);
 
         } else if (payload instanceof PullRequestPayloadDto pullRequestPayload) {
             repoFullName = pullRequestPayload.getRepository().getFullName().split("/")[1];
             gitUserName = pullRequestPayload.getPullRequest().getUser().getLogin();
             branchName = pullRequestPayload.getPullRequest().getBase().getRef().replace("refs/heads/", "");
+            log.info("action=processEvent status=pr_payload_extracted repo={} user={} branch={} merged={}",
+                    repoFullName, gitUserName, branchName, pullRequestPayload.getPullRequest().isMerged());
 
             if (!pullRequestPayload.getPullRequest().isMerged()) {
-                log.info("Pull request {} is not merged for workspace {}", pullRequestPayload.getPullRequest().getHead().getRef(),
-                        id);
+                String headRef = pullRequestPayload.getPullRequest().getHead() != null
+                        ? pullRequestPayload.getPullRequest().getHead().getRef() : "unknown";
+                log.info("action=processEvent status=pr_not_merged repo={} headRef={} skipping=true",
+                        repoFullName, headRef);
                 return;
             }
 
         } else {
-            log.warn("Received unsupported event payload type: {}", payload.getClass().getName());
+            log.warn("action=processEvent status=unsupported_payload_type payloadType={}", payload.getClass().getName());
             return;
         }
 
         workspaceList = workspaceCustomRepository.findAllByRepoName(repoFullName);
+        log.info("action=processEvent status=workspaces_fetched repo={} count={}", repoFullName,
+                workspaceList != null ? workspaceList.size() : 0);
+
         workspace = workspaceList.stream()
                 .filter(wSpace -> wSpace.getData().getWorkspaceOwner().getGitUserName()
                         .equalsIgnoreCase(gitUserName) && wSpace.getData().getStatus().equals("CREATED"))
                 .findFirst().orElse(null);
 
         if (workspace == null) {
-            log.info(
-                    "No workspace found associated with the PR merger for the repo: {} and user: {}, " +
-                            "the committer is not collaborator or creator of the workspace, proceeding for the deployment with workspace creator ID",
+            log.info("action=processEvent status=workspace_not_found_for_user repo={} gitUser={} fallback=project_owner",
                     repoFullName, gitUserName);
 
             ownerId = workspaceList.get(0).getData().getProjectDetails().getProjectOwner().getId();
             workspace = workspaceList.stream()
                     .filter(entity -> entity.getData().getWorkspaceOwner().getId().equals(ownerId))
                     .findFirst().orElse(null);
+            log.info("action=processEvent status=fallback_workspace_resolved repo={} ownerId={} found={}",
+                    repoFullName, ownerId, workspace != null);
         } else {
             ownerId = workspace.getData().getWorkspaceOwner().getId();
+            log.info("action=processEvent status=workspace_resolved repo={} workspaceId={} ownerId={}",
+                    repoFullName, workspace.getId(), ownerId);
         }
 
         id = workspace != null ? workspace.getId() : null;
 
         if (workspace == null || Boolean.FALSE.equals(workspace.getData().getAutoDeploy())) {
-            log.info(
-                    "no int or prod branch name found in the workspace, please update the branch names and try again");
+            log.info("action=processEvent status=auto_deploy_skipped workspaceId={} autoDeploy={} reason={}",
+                    id, workspace != null ? workspace.getData().getAutoDeploy() : null,
+                    workspace == null ? "workspace_not_found" : "auto_deploy_disabled");
             return;
         }
 
@@ -335,10 +369,15 @@ public class GitWebHookService {
                         .equals(branchName)) {
             targetEnv = "prod";
         } else {
-            log.info("Pull request event head ref {} does not match any auto-deploy branches for workspace {}",
-                    branchName, id);
+            log.info("action=processEvent status=branch_not_matched workspaceId={} branch={} intBranch={} prodBranch={}",
+                    id, branchName,
+                    workspace.getData().getProjectDetails().getIntAutoDeployBranchName(),
+                    workspace.getData().getProjectDetails().getProdAutoDeployBranchName());
             return;
         }
+
+        log.info("action=processEvent status=target_env_resolved workspaceId={} branch={} targetEnv={}",
+                id, branchName, targetEnv);
 
         deployRequest.setTargetEnvironment(TargetEnvironmentEnum.fromValue(targetEnv));
         switch (targetEnv) {
@@ -351,7 +390,10 @@ public class GitWebHookService {
         deployRequest.setVersion("");
         deployRequest.setKeepBuildImage(false);
 
+        log.info("action=processEvent status=triggering_deployment workspaceId={} ownerId={} repo={} targetEnv={} branch={}",
+                id, ownerId, repoFullName, targetEnv, deployRequest.getBranch());
         workspaceService.preValidateDeployment(deployRequest, id, ownerId, true);
+        log.info("action=processEvent status=deployment_triggered workspaceId={} targetEnv={}", id, targetEnv);
     }
 
 }
