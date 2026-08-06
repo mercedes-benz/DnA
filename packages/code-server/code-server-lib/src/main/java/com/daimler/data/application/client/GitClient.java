@@ -722,7 +722,7 @@ public class GitClient {
 	}
 
 	private static final String BUILD_DEPLOY_JOB_NAME = "build or deploy workspace application";
-
+ 
 	/**
 	 * Fetches all jobs (including per-step details) for a workflow run.
 	 * The GitHub Jobs API returns a steps[] array per job, which enables both the
