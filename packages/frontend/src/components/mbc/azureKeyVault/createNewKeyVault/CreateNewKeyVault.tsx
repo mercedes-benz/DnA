@@ -8,7 +8,7 @@ import ProgressIndicator from '../../../../assets/modules/uilab/js/src/progress-
 import { CodeSpaceApiClient } from '../../../../services/CodeSpaceApiClient';
 import { ApiClient } from '../../../../services/ApiClient';
 import TextBox from '../../shared/textBox/TextBox';
-import { IKeyVault } from 'globals/types';
+import { IKeyVault, IKeyVaultCollaborator, IKeyVaultPrincipal } from 'globals/types';
 
 interface Props {
   edit?: boolean;
@@ -43,6 +43,9 @@ const CreateNewWorkspace = ({ edit, project, setShowCreateModal, getKeyVaultList
   const [subDivisions, setSubDivisions] = useState([]);
   const [departments, setDepartments] = useState([]);
   const [dataClassificationDropdown, setDataClassificationDropdown] = useState([]);
+  const [collaborators, setCollaborators] = useState<IKeyVaultCollaborator[]>(project?.collaborators || []);
+  const [principalSearch, setPrincipalSearch] = useState('');
+  const [principalResults, setPrincipalResults] = useState<IKeyVaultPrincipal[]>([]);
 
   const requiredError = '*Missing entry';
   const keyVaultNameErrorText = '*Key Vault Name should start with kv-';
@@ -150,6 +153,35 @@ const CreateNewWorkspace = ({ edit, project, setShowCreateModal, getKeyVaultList
     }
   };
 
+  const searchPrincipals = () => {
+    if (!principalSearch.trim()) {
+      setPrincipalResults([]);
+      return;
+    }
+    ApiClient.searchKeyVaultPrincipals(principalSearch.trim())
+      .then((results: IKeyVaultPrincipal[]) => setPrincipalResults(results || []))
+      .catch(() => Notification.show('Unable to search Entra ID principals.', 'alert'));
+  };
+
+  const addCollaborator = (principal: IKeyVaultPrincipal) => {
+    if (collaborators.some((item) => item.identifier.toLowerCase() === principal.identifier.toLowerCase())) {
+      Notification.show('Collaborator already exists.', 'warning');
+      return;
+    }
+    setCollaborators([
+      ...collaborators,
+      {
+        identifier: principal.identifier,
+        displayName: principal.displayName || principal.mail || principal.identifier,
+        kind: principal.kind,
+        principalType: principal.principalType,
+        role: 'Crypto User',
+      },
+    ]);
+    setPrincipalResults([]);
+    setPrincipalSearch('');
+  };
+
   const createKeyVault = () => {
     let formValid = true;
     const keyVaultNameValidationError = getKeyVaultNameValidationError(keyVaultName);
@@ -185,6 +217,7 @@ const CreateNewWorkspace = ({ edit, project, setShowCreateModal, getKeyVaultList
           department: department[0],
           dataClassification: dataClassification,
           hasPii: hasPii,
+          collaborators: collaborators,
         },
       };
       ProgressIndicator.show();
@@ -428,6 +461,54 @@ const CreateNewWorkspace = ({ edit, project, setShowCreateModal, getKeyVaultList
                 <span className="label">No</span>
               </label>
             </div>
+          </div>
+        </div>
+        <div className="input-field-group">
+          <label className="input-label">Collaborators</label>
+          <div className={Styles.flexLayout}>
+            <input
+              className="input-field"
+              value={principalSearch}
+              placeholder="Search users, service principals, or managed identities"
+              onChange={(event) => setPrincipalSearch(event.currentTarget.value)}
+              onKeyDown={(event) => event.key === 'Enter' && searchPrincipals()}
+            />
+            <button className="btn btn-secondary" type="button" onClick={searchPrincipals}>
+              Search
+            </button>
+          </div>
+          {principalResults.length > 0 && (
+            <div className="chips">
+              {principalResults.map((principal) => (
+                <button
+                  className="btn btn-text"
+                  type="button"
+                  key={principal.id}
+                  onClick={() => addCollaborator(principal)}
+                >
+                  {principal.displayName || principal.mail || principal.identifier} ({principal.kind})
+                </button>
+              ))}
+            </div>
+          )}
+          <div className="chips">
+            {collaborators.map((collaborator) => (
+              <span className="chip" key={collaborator.identifier}>
+                {collaborator.displayName || collaborator.identifier} ({collaborator.kind})
+                <button
+                  className="btn btn-text"
+                  type="button"
+                  aria-label={`Remove ${collaborator.identifier}`}
+                  onClick={() =>
+                    setCollaborators(
+                      collaborators.filter((item) => item.identifier !== collaborator.identifier),
+                    )
+                  }
+                >
+                  ×
+                </button>
+              </span>
+            ))}
           </div>
         </div>
         <div className={Styles.newCodeSpaceBtn}>
