@@ -286,6 +286,9 @@ public class AzureManagementClient {
     }
 
     public List<AzurePrincipalDto> searchPrincipals(String searchTerm) {
+        if (searchTerm == null || searchTerm.isBlank() || searchTerm.trim().length() < 3) {
+            return List.of();
+        }
         try {
             String token = getTokenForGroupSearch();
             if (!Objects.nonNull(token)) {
@@ -302,26 +305,40 @@ public class AzureManagementClient {
             String servicePrincipalUrl = azureServicePrincipalSearchUrl
                     + "?$filter=startswith(displayName,'" + escapedTerm + "') or appId eq '" + escapedTerm + "'";
 
-            ResponseEntity<AzureUserSearchResponseDto> users = proxyRestTemplate.exchange(
-                    userUrl, HttpMethod.GET, requestEntity, AzureUserSearchResponseDto.class);
-            ResponseEntity<AzurePrincipalSearchResponseDto> servicePrincipals = proxyRestTemplate.exchange(
-                    servicePrincipalUrl, HttpMethod.GET, requestEntity, AzurePrincipalSearchResponseDto.class);
-
             List<AzurePrincipalDto> result = new java.util.ArrayList<>();
-            if (users.getBody() != null && users.getBody().getValue() != null) {
-                users.getBody().getValue().forEach(user -> result.add(new AzurePrincipalDto(
-                        user.getId(), user.getDisplayName(), user.getMail(), null, null,
-                        "User", "USER", user.getMail())));
+            try {
+                ResponseEntity<AzureUserSearchResponseDto> users = proxyRestTemplate.exchange(
+                        userUrl, HttpMethod.GET, requestEntity, AzureUserSearchResponseDto.class);
+                if (users.getBody() != null && users.getBody().getValue() != null) {
+                    users.getBody().getValue().forEach(user -> {
+                        String identifier = user.getMail();
+                        if (identifier != null && !identifier.isBlank()) {
+                            result.add(new AzurePrincipalDto(
+                                    user.getId(), user.getDisplayName(), user.getMail(), null, null,
+                                    "User", "USER", identifier));
+                        }
+                    });
+                }
+            } catch (Exception e) {
+                log.warn("Error searching Azure users: {}", e.getMessage());
             }
-            if (servicePrincipals.getBody() != null && servicePrincipals.getBody().getValue() != null) {
-                servicePrincipals.getBody().getValue().forEach(principal -> {
-                    principal.setPrincipalType("ServicePrincipal");
-                    principal.setKind("ManagedIdentity".equalsIgnoreCase(principal.getServicePrincipalType())
-                            ? "MI" : "SPN");
-                    principal.setIdentifier(principal.getAppId() != null
-                            ? principal.getAppId() : principal.getDisplayName());
-                    result.add(principal);
-                });
+            try {
+                ResponseEntity<AzurePrincipalSearchResponseDto> servicePrincipals = proxyRestTemplate.exchange(
+                        servicePrincipalUrl, HttpMethod.GET, requestEntity, AzurePrincipalSearchResponseDto.class);
+                if (servicePrincipals.getBody() != null && servicePrincipals.getBody().getValue() != null) {
+                    servicePrincipals.getBody().getValue().forEach(principal -> {
+                        principal.setPrincipalType("ServicePrincipal");
+                        principal.setKind("ManagedIdentity".equalsIgnoreCase(principal.getServicePrincipalType())
+                                ? "MI" : "SPN");
+                        principal.setIdentifier(principal.getAppId() != null
+                                ? principal.getAppId() : principal.getDisplayName());
+                        if (principal.getIdentifier() != null && !principal.getIdentifier().isBlank()) {
+                            result.add(principal);
+                        }
+                    });
+                }
+            } catch (Exception e) {
+                log.warn("Error searching Azure service principals: {}", e.getMessage());
             }
             return result;
         } catch (Exception e) {
@@ -445,6 +462,7 @@ public class AzureManagementClient {
     public RoleAssignmentResponseDto assignRoleToUser(String keyVaultName, String userPrincipalId,
             String roleType, String principalType) {
         RoleAssignmentResponseDto responseDto = new RoleAssignmentResponseDto();
+        String roleAssignmentId = null;
         try {
             String token = getTokenForAzureManagement();
             if(!Objects.nonNull(token)) {
@@ -479,8 +497,8 @@ public class AzureManagementClient {
             
             HttpEntity<RoleAssignmentRequestDto> requestEntity = new HttpEntity<>(requestDto, headers);
             
-            String roleAssignmentId = java.util.UUID.randomUUID().toString();
-            responseDto.setId(roleAssignmentId);
+            roleAssignmentId = java.util.UUID.randomUUID().toString();
+            responseDto.setRoleAssignmentId(roleAssignmentId);
 
             String url = azureRoleAssignmentUrl;
             url = url.replace("{subscriptionId}", azureSubscriptionId)
@@ -500,9 +518,7 @@ public class AzureManagementClient {
             if (responseDto == null) {
                 responseDto = new RoleAssignmentResponseDto();
             }
-            if (responseDto.getId() == null) {
-                responseDto.setId(roleAssignmentId);
-            }
+            responseDto.setRoleAssignmentId(roleAssignmentId);
             // log.info("Successfully assigned role to user for Key Vault: {}", keyVaultName);
             log.info("Successfully assigned role '{}' to user {} for Key Vault: {}", roleType, userPrincipalId, keyVaultName);
             return responseDto;
@@ -511,6 +527,7 @@ public class AzureManagementClient {
                 log.info("Role assignment already exists for user {} on Key Vault {}", userPrincipalId, keyVaultName);
                 responseDto.setErrorCode("409");
                 responseDto.setMessage("Role assignment already exists");
+                responseDto.setRoleAssignmentId(roleAssignmentId);
                 return responseDto;
             }
             log.error("Azure API error assigning role to user: {}", e.getMessage());

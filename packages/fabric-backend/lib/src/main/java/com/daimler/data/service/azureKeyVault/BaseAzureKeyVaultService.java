@@ -40,6 +40,9 @@ public class BaseAzureKeyVaultService extends BaseCommonService<KeyVaultVO, Azur
 
 	@Override
 	public List<AzurePrincipalDto> searchPrincipals(String search) {
+		if (search == null || search.isBlank() || search.trim().length() < 3) {
+			return List.of();
+		}
 		return azureManagementClient.searchPrincipals(search);
 	}
 
@@ -172,12 +175,21 @@ public class BaseAzureKeyVaultService extends BaseCommonService<KeyVaultVO, Azur
 
 			String userPrincipalId = azureManagementClient.getUserPrincipalId(userEmail);
 
-			RoleAssignmentResponseDto roleResponse = userPrincipalId == null ? null
-					: azureManagementClient.assignRoleToUser(keyVaultName, userPrincipalId, "officer");
-
 			if (userPrincipalId == null) {
-				warnings.add(new MessageDescription("Key Vault created but failed to find creator for role assignment."));
-			} else if (roleResponse != null && roleResponse.getErrorCode() != null
+				MessageDescription message = new MessageDescription("Key Vault created but failed to find user with email: "
+						+ userEmail + ". Role assignment failed.");
+				errors.add(message);
+				responseMessage.setErrors(errors);
+				responseMessage.setSuccess("FAILED");
+				responseData.setData(vo);
+				responseData.setResponses(responseMessage);
+				log.error("Key Vault {} created but user {} not found for role assignment", keyVaultName, userEmail);
+				return new ResponseEntity<>(responseData, HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+
+			RoleAssignmentResponseDto roleResponse = azureManagementClient.assignRoleToUser(keyVaultName,
+					userPrincipalId, "officer");
+			if (roleResponse != null && roleResponse.getErrorCode() != null
 					&& !"409".equals(roleResponse.getErrorCode())) {
 				MessageDescription message = new MessageDescription(
 						"Key Vault created but role assignment failed: " + roleResponse.getMessage());
@@ -245,6 +257,18 @@ public class BaseAzureKeyVaultService extends BaseCommonService<KeyVaultVO, Azur
 				responseData.setResponses(responseMessage);
 				log.error("Key Vault not found with id: {}", vo.getId());
 				return new ResponseEntity<>(responseData, HttpStatus.NOT_FOUND);
+			}
+
+			String currentUserId = currentUser == null ? null : currentUser.getId();
+			String ownerId = existingKeyVault.getCreatedBy() == null ? null : existingKeyVault.getCreatedBy().getId();
+			if (currentUserId == null || ownerId == null || !ownerId.equalsIgnoreCase(currentUserId)) {
+				MessageDescription message = new MessageDescription("Only the Key Vault owner can update collaborators.");
+				errors.add(message);
+				responseMessage.setErrors(errors);
+				responseMessage.setSuccess("FAILED");
+				responseData.setData(vo);
+				responseData.setResponses(responseMessage);
+				return new ResponseEntity<>(responseData, HttpStatus.FORBIDDEN);
 			}
 
 			String existingKeyVaultName = existingKeyVault.getKeyVaultName();
@@ -377,7 +401,7 @@ public class BaseAzureKeyVaultService extends BaseCommonService<KeyVaultVO, Azur
 		collaborator.setObjectId(principal.getId());
 		collaborator.setPrincipalType(principal.getPrincipalType());
 		collaborator.setRole("Crypto User");
-		collaborator.setRoleAssignmentId(response == null ? null : response.getId());
+		collaborator.setRoleAssignmentId(response == null ? null : response.getRoleAssignmentId());
 		if (response != null && response.getErrorCode() != null && !"409".equals(response.getErrorCode())) {
 			warnings.add(new MessageDescription("Failed to assign collaborator " + collaborator.getIdentifier()
 					+ ": " + response.getMessage()));
