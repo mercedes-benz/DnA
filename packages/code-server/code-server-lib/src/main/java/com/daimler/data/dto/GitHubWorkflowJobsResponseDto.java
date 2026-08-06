@@ -1,6 +1,7 @@
 package com.daimler.data.dto;
 
 import java.io.Serializable;
+import java.util.Date;
 import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
@@ -29,5 +30,33 @@ public class GitHubWorkflowJobsResponseDto implements Serializable {
         private String name;
         private String status;
         private String conclusion;
+
+        @JsonProperty("started_at")
+        private Date startedAt;
+ 
+        @JsonProperty("completed_at")
+        private Date completedAt;
+ 
+        @JsonProperty("html_url")
+        private String htmlUrl;
+ 
+        private List<Step> steps;
+    }
+ 
+    @Data
+    @NoArgsConstructor
+    @AllArgsConstructor
+    @JsonIgnoreProperties(ignoreUnknown = true)
+    public static class Step implements Serializable {
+        private String name;
+        private String status;
+        private String conclusion;
+        private int number;
+ 
+        @JsonProperty("started_at")
+        private Date startedAt;
+ 
+        @JsonProperty("completed_at")
+        private Date completedAt;
     }
 }

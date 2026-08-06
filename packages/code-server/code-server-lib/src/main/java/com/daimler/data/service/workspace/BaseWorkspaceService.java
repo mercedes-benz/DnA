@@ -223,6 +223,9 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
   
 	 @Autowired
 	 private GitClient gitClient;
+
+	 @Autowired
+	 private WorkflowStatusService workflowStatusService;
   
 	 @Autowired
 	 private AuthenticatorClient authenticatorClient;
@@ -1692,7 +1695,8 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 							 log.info("getById - Fetching latest status from GitHub for project={}, runId={}",
 									 entity.getData().getProjectDetails().getProjectName(), gitJobRunId);
 
-							 GitHubWorkflowJobsResponseDto.Job buildDeployJob = gitClient.getBuildDeployJob(gitJobRunId);
+							 GitHubWorkflowJobsResponseDto jobsResponse = gitClient.getBuildDeployJob(gitJobRunId);
+							 GitHubWorkflowJobsResponseDto.Job buildDeployJob = gitClient.pickBuildDeployJob(jobsResponse);
 							 if (buildDeployJob != null && "completed".equalsIgnoreCase(buildDeployJob.getStatus()) && buildDeployJob.getConclusion() != null) {
 								 String finalStatus = resolveFinalStatus(currentStatus, buildDeployJob.getConclusion());
 								 String projectName = entity.getData().getProjectDetails().getProjectName();
@@ -1806,7 +1810,24 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 			 }
 		 }
 
-		 return workspaceAssembler.toVo(entity);
+		 CodeServerWorkspaceVO responseVo = workspaceAssembler.toVo(entity);
+ 
+		 // Attach the deployment-status-panel snapshot only on user-triggered refresh
+		 // (no polling/SSE). The frontend also issues one such refresh on first
+		 // landing for in-progress builds. WorkflowStatusService calls GitHub only
+		 // when a run id exists, so idle/queued workspaces incur no extra GitHub calls.
+		 if (refreshTriggeredByUser && responseVo != null && responseVo.getProjectDetails() != null
+				 && responseVo.getProjectDetails().getProjectName() != null) {
+			 try {
+				 responseVo.getProjectDetails().setWorkflowStatus(
+						 workflowStatusService.getWorkflowStatus(responseVo.getProjectDetails().getProjectName()));
+			 } catch (Exception e) {
+				 log.warn("getById - could not attach workflow status for project={}: {}",
+						 responseVo.getProjectDetails().getProjectName(), e.getMessage());
+			 }
+		 }
+ 
+		 return responseVo;
 	 }
 	 
 
@@ -5906,7 +5927,8 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 			log.info("getGitRunIdStatus - GitJobRunId EXISTS for project={}, runId={}, currentStatus=BUILD_REQUESTED, environment={}",
 				projectName, dto.getGitjobRunId(), dto.getEnvironment());
 
-			GitHubWorkflowJobsResponseDto.Job buildDeployJob = gitClient.getBuildDeployJob(dto.getGitjobRunId());
+			GitHubWorkflowJobsResponseDto jobsResponse = gitClient.getBuildDeployJob(dto.getGitjobRunId());
+			GitHubWorkflowJobsResponseDto.Job buildDeployJob = gitClient.pickBuildDeployJob(jobsResponse);
 			if (buildDeployJob == null) {
 				log.warn("getGitRunIdStatus - Build job not found for project={}, runId={}. Marking as BUILD_FAILED.",
 					projectName, dto.getGitjobRunId());
