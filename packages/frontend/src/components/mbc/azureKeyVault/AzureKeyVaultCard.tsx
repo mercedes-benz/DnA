@@ -44,6 +44,10 @@ const AzureKeyVaultCard = ({ project, onEditWorkspace}: Props) => {
               <div>{project?.createdBy?.firstName + ' ' + project?.createdBy?.lastName}</div>
             </div>
             <div>
+              <div>Collaborators</div>
+              <div>{project?.collaborators?.map((item) => item.displayName || item.identifier).join(', ') || 'None'}</div>
+            </div>
+            <div>
               <div>Create On</div>
               <div>{regionalDateAndTimeConversion(project?.createdOn)}</div>
             </div>
@@ -66,4 +70,3 @@ const AzureKeyVaultCard = ({ project, onEditWorkspace}: Props) => {
 };
 
 export default AzureKeyVaultCard;
-

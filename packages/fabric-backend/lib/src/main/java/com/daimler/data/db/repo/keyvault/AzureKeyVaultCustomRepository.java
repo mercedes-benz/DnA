@@ -34,4 +34,7 @@ import com.daimler.data.db.repo.common.CommonDataRepository;
 public interface AzureKeyVaultCustomRepository extends CommonDataRepository<AzureKeyVaultNsql, String> {
 
     List<AzureKeyVaultNsql> findAllByCreator(String creatorId, int limit, int offset);
+
+    List<AzureKeyVaultNsql> findAllByCreatorOrCollaborator(String creatorId, String collaboratorIdentifier,
+            int limit, int offset);
 }

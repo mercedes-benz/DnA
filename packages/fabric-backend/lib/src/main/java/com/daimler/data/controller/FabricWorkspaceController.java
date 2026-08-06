@@ -55,6 +55,7 @@ import com.daimler.data.dto.fabricWorkspace.KeyVaultCreateRequestVO;
 import com.daimler.data.dto.fabricWorkspace.KeyVaultResponseVO;
 import com.daimler.data.dto.fabricWorkspace.KeyVaultVO;
 import com.daimler.data.dto.fabricWorkspace.KeyVaultCollectionVO;
+import com.daimler.data.dto.fabricWorkspace.AzurePrincipalVO;
 import com.daimler.data.dto.fabricWorkspace.LakehouseColumnCollectionResponseVO;
 import com.daimler.data.dto.fabricWorkspace.LakehouseTableCollectionResponseVO;
 import com.daimler.data.dto.fabricWorkspace.RolesVO;
@@ -1142,6 +1143,23 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 					e.getMessage());
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
+	}
+
+	@Override
+	public ResponseEntity<List<AzurePrincipalVO>> searchKeyVaultPrincipals(String search) {
+		List<AzurePrincipalVO> result = keyVaultService.searchPrincipals(search).stream().map(principal -> {
+			AzurePrincipalVO vo = new AzurePrincipalVO();
+			vo.setId(principal.getId());
+			vo.setDisplayName(principal.getDisplayName());
+			vo.setMail(principal.getMail());
+			vo.setAppId(principal.getAppId());
+			vo.setServicePrincipalType(principal.getServicePrincipalType());
+			vo.setPrincipalType(principal.getPrincipalType());
+			vo.setKind(principal.getKind());
+			vo.setIdentifier(principal.getIdentifier());
+			return vo;
+		}).collect(Collectors.toList());
+		return new ResponseEntity<>(result, HttpStatus.OK);
 	}
 
 	public static boolean isTechnicalUser(String id) {
