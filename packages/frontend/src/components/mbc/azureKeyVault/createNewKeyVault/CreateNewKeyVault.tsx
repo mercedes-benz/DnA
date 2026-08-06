@@ -154,7 +154,7 @@ const CreateNewWorkspace = ({ edit, project, setShowCreateModal, getKeyVaultList
   };
 
   const searchPrincipals = () => {
-    if (!principalSearch.trim()) {
+    if (principalSearch.trim().length < 3) {
       setPrincipalResults([]);
       return;
     }
@@ -164,15 +164,19 @@ const CreateNewWorkspace = ({ edit, project, setShowCreateModal, getKeyVaultList
   };
 
   const addCollaborator = (principal: IKeyVaultPrincipal) => {
-    if (collaborators.some((item) => item.identifier.toLowerCase() === principal.identifier.toLowerCase())) {
+    const identifier = principal.identifier || principal.mail || principal.appId || principal.displayName;
+    if (!identifier) {
+      return;
+    }
+    if (collaborators.some((item) => item.identifier?.toLowerCase() === identifier.toLowerCase())) {
       Notification.show('Collaborator already exists.', 'warning');
       return;
     }
     setCollaborators([
       ...collaborators,
       {
-        identifier: principal.identifier,
-        displayName: principal.displayName || principal.mail || principal.identifier,
+        identifier,
+        displayName: principal.displayName || principal.mail || principal.appId || identifier,
         kind: principal.kind,
         principalType: principal.principalType,
         role: 'Crypto User',

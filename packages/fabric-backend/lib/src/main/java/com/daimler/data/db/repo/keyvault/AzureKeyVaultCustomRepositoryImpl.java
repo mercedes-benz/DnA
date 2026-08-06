@@ -73,14 +73,18 @@ public class AzureKeyVaultCustomRepositoryImpl extends CommonDataRepositoryImpl<
         );
         Predicate accessPredicate = creatorPredicate;
         if (collaboratorIdentifier != null && !collaboratorIdentifier.isBlank()) {
-            String escaped = collaboratorIdentifier.replace("\\", "\\\\").replace("\"", "\\\"");
-            Expression<Boolean> collaboratorPath = cb.function(
-                "jsonb_path_exists",
-                Boolean.class,
+            String escaped = collaboratorIdentifier.toLowerCase()
+                .replace("\\", "\\\\")
+                .replace("%", "\\%")
+                .replace("_", "\\_");
+            Expression<String> collaboratorPath = cb.function(
+                "jsonb_extract_path_text",
+                String.class,
                 root.get("data"),
-                cb.literal("$.collaborators[*] ? (@.identifier == \"" + escaped + "\")")
+                cb.literal("collaborators")
             );
-            accessPredicate = cb.or(creatorPredicate, cb.isTrue(collaboratorPath));
+            accessPredicate = cb.or(creatorPredicate, cb.like(
+                cb.lower(collaboratorPath), "%\"" + escaped + "\"%", '\\'));
         }
         cq.where(accessPredicate);
         

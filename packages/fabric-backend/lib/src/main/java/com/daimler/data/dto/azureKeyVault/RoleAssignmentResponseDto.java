@@ -20,6 +20,7 @@ public class RoleAssignmentResponseDto implements Serializable {
 	private String name;
 	private String type;
 	private RoleAssignmentPropertiesDto properties;
+	private String roleAssignmentId;
 	private String errorCode;
 	private String message;
 }
