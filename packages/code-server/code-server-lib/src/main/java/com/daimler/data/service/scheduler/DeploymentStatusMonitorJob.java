@@ -1,6 +1,7 @@
 package com.daimler.data.service.scheduler;
 
 import com.daimler.data.application.client.CodeServerClient;
+import com.daimler.data.controller.DeploymentStatusSseController;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.db.entities.CodeServerBuildDeployNsql;
 import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
@@ -81,7 +82,8 @@ public class DeploymentStatusMonitorJob {
                 String topLevelEnv = workspace.getData().getProjectDetails().getLastBuildOrDeployedEnv();
 
                 CodeServerDeploymentDetails intDeployment = workspace.getData().getProjectDetails().getIntDeploymentDetails();
-                boolean intNeedsCheck = intDeployment != null && shouldCheckDeployment(intDeployment.getLastDeploymentStatus());
+                boolean intNeedsCheck = intDeployment != null && shouldCheckDeployment(intDeployment.getLastDeploymentStatus())
+                        && !isUserCancelled(intDeployment);
                 // Recovery for stuck restarts: top-level says RESTART_REQUESTED for this env but per-env field was never updated
                 if (!intNeedsCheck && intDeployment != null 
                         && "RESTART_REQUESTED".equalsIgnoreCase(topLevelStatus) 
@@ -109,7 +111,8 @@ public class DeploymentStatusMonitorJob {
                 }
 
                 CodeServerDeploymentDetails prodDeployment = workspace.getData().getProjectDetails().getProdDeploymentDetails();
-                boolean prodNeedsCheck = prodDeployment != null && shouldCheckDeployment(prodDeployment.getLastDeploymentStatus());
+                boolean prodNeedsCheck = prodDeployment != null && shouldCheckDeployment(prodDeployment.getLastDeploymentStatus())
+                        && !isUserCancelled(prodDeployment);
                 if (!prodNeedsCheck && prodDeployment != null 
                         && "RESTART_REQUESTED".equalsIgnoreCase(topLevelStatus) 
                         && "prod".equalsIgnoreCase(topLevelEnv)) {
@@ -164,10 +167,26 @@ public class DeploymentStatusMonitorJob {
                 || "RESTART_REQUESTED".equalsIgnoreCase(status);
     }
 
+    /**
+     * A deployment explicitly cancelled by the user is terminal and must never be reconciled back
+     * to DEPLOYED/DEPLOYING. The old ReplicaSet pods often keep running healthy on the previous
+     * image after a terminate, which would otherwise trip the "argo says DEPLOYED" reconciliation.
+     */
+    private boolean isUserCancelled(CodeServerDeploymentDetails deployment) {
+        return deployment != null
+                && "DEPLOYMENT_FAILED".equalsIgnoreCase(deployment.getLastDeploymentStatus())
+                && deployment.getLastDeploymentError() != null
+                && deployment.getLastDeploymentError().startsWith(DeploymentStatusSseController.USER_CANCELLED_MARKER);
+    }
+
     private boolean checkAndUpdateDeployment(String argoToken, CodeServerWorkspaceNsql workspace, 
                                             CodeServerDeploymentDetails deployment, 
                                             String projectName, String environment) {
         try {
+            if (isUserCancelled(deployment)) {
+                log.debug("Skipping reconciliation for {}-{}: deployment was cancelled by user (terminal)", projectName, environment);
+                return false;
+            }
             String appName = projectName.toLowerCase() + "-" + environment;
             String currentDbStatus = deployment.getLastDeploymentStatus();
             Map<String, String> argoResult = argoCdService.checkArgoAppDeploymentStatusWithError(argoToken, appName);
