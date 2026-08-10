@@ -868,9 +868,16 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
                             rel="noreferrer"
                             className={Styles.deployFailLink}
                             tooltip-data={
-                             `Build to ${projectDetails?.lastBuildOrDeployedEnv === 'int' ? 'staging' : 'production'} failed on ` +
-                              regionalDateAndTimeConversionSolution(projectDetails?.lastBuildOrDeployedOn)
-                            }
+                                  `Build to ${projectDetails?.lastBuildOrDeployedEnv === 'int' ? 'staging' : 'production'} failed on ` +
+                                  regionalDateAndTimeConversionSolution(projectDetails?.lastBuildOrDeployedOn) +
+                                  ((
+                                    (projectDetails?.lastBuildOrDeployedEnv === 'int'
+                                      ? projectDetails?.intBuildDetails
+                                      : projectDetails?.prodBuildDetails
+                                    )?.lastBuildFailureReason === 'BUILD_TIMEOUT')
+                                    ? ' - Failed due to build timeout'
+                                    : '')
+                              }
                           >
                            Failed
                           </a>
