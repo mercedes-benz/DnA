@@ -62,6 +62,12 @@ public interface FabricWorkspaceService extends CommonService<FabricWorkspaceVO,
 
 	FabricWorkspacesCollectionVO getAllLov(int limit, int offset);
 
+	void updateWorkspaceStatusAndDetails(String id, FabricWorkspaceStatusVO status, String name, String description);
+
+	void updateWorkspaceGroupsAndDetails(String id, List<GroupDetailsVO> groups, String name, String description);
+
+	void updateWorkspaceLakehouses(String id, List<FabricLakehouseVO> lakehouses);
+
 	GenericMessage deleteLakehouse(String id, String lakehouseId);
 
 	GenericMessage createLakehouse(String id, @Valid FabricLakehouseCreateRequestVO createRequestVO);
