@@ -224,7 +224,7 @@ public class BaseADAProjectsService extends BaseCommonService<ADAProjectDetailsV
 				adaProject.setCapacity(buildDefaultCapacityVO());
 				adaProject.setRegion(capacityRegion);
 			} else if (adaProject.getRegion() != null && adaProject.getCapacity() == null){
-				CapacityNsql capacityNsql = capacityRepo.findById(adaProject.getRegion().toLowerCase()).get();
+				CapacityNsql capacityNsql = capacityRepo.findById(adaProject.getRegion().toLowerCase()).orElse(null);
 				if(capacityNsql == null) {
 					log.warn("No capacity details found in DB for region {}. Using default capacity values for project id {}.", adaProject.getRegion(), adaProject.getProjectID());
 					adaProject.setCapacity(buildDefaultCapacityVO());
