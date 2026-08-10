@@ -14,6 +14,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RestController;
@@ -25,6 +26,7 @@ import com.daimler.data.dto.workspace.CodeServerWorkspaceVO;
 import com.daimler.data.dto.workspace.UserInfoVO;
 import com.daimler.data.dto.workspace.WorkspaceUpdateRequestVO;
 import com.daimler.data.dto.workspace.buildDeploy.GitJobRunIdRequestVO;
+import com.daimler.data.service.GitWebHookService;
 import com.daimler.data.service.workspace.WorkspaceService;
 import com.daimler.dna.notifications.common.producer.KafkaProducerService;
 
@@ -49,6 +51,9 @@ public class WorkspaceJobStatusUpdateController  {
 	
 	@Autowired
 	private KafkaProducerService kafkaProducer;
+
+	@Autowired
+    private GitWebHookService gitWebHookService;
 	
 	@Value("${codeServer.gitjob.pat}")
 	private String personalAccessToken;
@@ -306,5 +311,43 @@ public class WorkspaceJobStatusUpdateController  {
             return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
+
+	@ApiOperation(value = "post endpoint to receive data from github hooked codespaces repos for auto deployment", nickname = "receiveWebhookData", notes = "Post endpoint to receive data from github hooked codespaces repos for auto deployment", response = String.class, tags={ "code-server", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 200, message = "Returns message of success or failure", response = String.class),
+        @ApiResponse(code = 204, message = "Fetch complete, no content found."),
+        @ApiResponse(code = 400, message = "Bad request."),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/workspaces/gitHook",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.POST)
+    public ResponseEntity<String> receiveWebhookData(
+        @RequestHeader("X-GitHub-Event") String eventType, @RequestHeader("X-GitHub-Delivery") String deliveryId,
+        @RequestHeader(value = "X-Hub-Signature-256", required = false) String signature, @RequestBody byte[] rawBody) {
+
+        long startTime = System.currentTimeMillis();
+        log.info("action=receiveWebhookData status=received deliveryId={} eventType={} bodySize={}",
+                deliveryId, eventType, rawBody != null ? rawBody.length : 0);
+        try {
+            if (signature == null || signature.isBlank()) {
+                log.warn("action=receiveWebhookData status=rejected deliveryId={} reason=missing-signature", deliveryId);
+                return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing signature");
+            }
+            gitWebHookService.processGitHubHookEvent(signature, eventType, deliveryId, rawBody);
+            long duration = System.currentTimeMillis() - startTime;
+            log.info("action=receiveWebhookData status=success deliveryId={} eventType={} durationMs={}",
+                    deliveryId, eventType, duration);
+            return ResponseEntity.ok("Accepted");
+        } catch (Exception e) {
+            long duration = System.currentTimeMillis() - startTime;
+            log.error("action=receiveWebhookData status=error deliveryId={} eventType={} durationMs={} error={}",
+                    deliveryId, eventType, duration, e.getMessage(), e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to process event");
+        }
+    }   
 
 }
