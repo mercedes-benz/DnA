@@ -967,23 +967,25 @@ public class ArgoCdService {
         String desiredTag = getDesiredImageTag(rootNode);
         boolean expectedVersionKnown = expectedVersion != null && !expectedVersion.isEmpty();
         boolean desiredTagFloating = desiredTag != null && desiredTag.equals(getFloatingImageTag(appName));
-        boolean strongImageEvidence = expectedVersionKnown
-                && desiredTag != null
-                && desiredTag.equals(expectedVersion)
+        boolean imagesOnDesiredTag = isDesiredImageDeployed(rootNode, appName, null);
+        boolean staleSpec = expectedVersionKnown
                 && !desiredTagFloating
-                && isDesiredImageDeployed(rootNode, appName, expectedVersion);
-        if (strongImageEvidence) {
+                && !expectedVersion.equals(desiredTag);
+        if (staleSpec) {
+            log.info("Deployment readiness for {} rejected stale spec: desired tag={}, expected version={}",
+                    appName, desiredTag, expectedVersion);
+        } else if (expectedVersionKnown && !desiredTagFloating && imagesOnDesiredTag) {
             log.info("Deployment readiness for {} decided by strong image evidence", appName);
             return true;
         }
 
         boolean newSync = hasNewSyncEvidence(rootNode, appName, deployTriggerTime);
         boolean reconciled = hasReconciledAtEvidence(rootNode, appName, deployTriggerTime);
-        if (newSync) {
+        if (!staleSpec && imagesOnDesiredTag && newSync) {
             log.info("Deployment readiness for {} decided by weak + new sync evidence", appName);
             return true;
         }
-        if (reconciled) {
+        if (!staleSpec && imagesOnDesiredTag && reconciled) {
             log.info("Deployment readiness for {} decided by weak + reconciledAt evidence", appName);
             return true;
         }
