@@ -115,7 +115,6 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave, user}) => {
     }
   }, [selectedLeanIX, setValue]);
 
-
   useEffect(() => {
     ProgressIndicator.show();
     fabricApi.getAllSolutions()
@@ -817,7 +816,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave, user}) => {
                         defaultChecked={subscription === 'PowerBI'}
                         disabled={edit && !isFabricAdmin}
                         {...register('subscription', {
-                          required: '*Missing entry',
+                          required: !(edit && !isFabricAdmin) && '*Missing entry',
                           onChange: (e) => { setSubscription(e.target.value) }
                         })}
                       />
@@ -941,7 +940,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave, user}) => {
               className="btn btn-tertiary"
               type="button"
               onClick={handleSubmit((values) => {
-                edit ? handleEditWorkspace(values) : handleCreateWorkspace(values);
+                  edit ? handleEditWorkspace(values) : handleCreateWorkspace(values);
               })}
             >
               {edit ? 'Save Workspace' : 'Create Workspace'}
