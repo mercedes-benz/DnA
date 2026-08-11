@@ -11,11 +11,14 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.time.Instant;
+import java.time.DateTimeException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
@@ -71,6 +74,9 @@ public class ArgoCdService {
  
     @Value("${argocd.vaultMountPath}")
     private String vaultMountPath;
+
+    @Value("${deployment.deployedFallbackMinutes:15}")
+    private int deployedFallbackMinutes;
 
     @Value("${codeServer.git.ghe.pat}")
     private String ghePat;
@@ -727,6 +733,10 @@ public class ArgoCdService {
     }
     
     public String checkArgoAppDeploymentStatus(String token, String appName) {
+        return checkArgoAppDeploymentStatus(token, appName, null, null);
+    }
+
+    public String checkArgoAppDeploymentStatus(String token, String appName, String expectedVersion, Date deployTriggerTime) {
         try {
             ResponseEntity<String> argoResponse = getStatusOfArgoApp(token, appName);
             if (argoResponse == null || !argoResponse.getStatusCode().is2xxSuccessful()) {
@@ -783,11 +793,10 @@ public class ArgoCdService {
             }
 
             if ("Healthy".equalsIgnoreCase(healthStatus)) {
-                if (!isDesiredImageDeployed(rootNode, appName)) {
-                    log.info("Application {} is healthy but running stale image (new sync not started yet) - DEPLOYING", appName);
+                if (!isDeploymentReady(rootNode, appName, expectedVersion, deployTriggerTime)) {
                     return "DEPLOYING";
                 }
-                log.info("Application {} is healthy with correct image - DEPLOYED", appName);
+                log.info("Application {} is healthy with correct sync and image - DEPLOYED", appName);
                 return "DEPLOYED";
             }
 
@@ -799,6 +808,11 @@ public class ArgoCdService {
         }
     }
     public Map<String, String> checkArgoAppDeploymentStatusWithError(String token, String appName) {
+        return checkArgoAppDeploymentStatusWithError(token, appName, null, null);
+    }
+
+    public Map<String, String> checkArgoAppDeploymentStatusWithError(String token, String appName,
+                                                                      String expectedVersion, Date deployTriggerTime) {
         Map<String, String> result = new HashMap<>();
         result.put("status", "DEPLOY_REQUESTED");
         result.put("errorMessage", "");
@@ -857,8 +871,7 @@ public class ArgoCdService {
                 return result; 
             }
             if ("Healthy".equalsIgnoreCase(healthStatus)) {
-                if (!isDesiredImageDeployed(rootNode, appName)) {
-                    log.info("Application {} is healthy but running stale image (new sync not started yet) - DEPLOYING", appName);
+                if (!isDeploymentReady(rootNode, appName, expectedVersion, deployTriggerTime)) {
                     result.put("status", "DEPLOYING");
                     return result;
                 }
@@ -904,6 +917,83 @@ public class ArgoCdService {
         } catch (Exception e) {
             log.warn("Image validation failed for {} - allowing status through: {}", appName, e.getMessage());
             return true;
+        }
+    }
+
+    public boolean isDesiredImageDeployed(JsonNode rootNode, String appName, String expectedVersion) {
+        try {
+            String desiredTag = getDesiredImageTag(rootNode);
+            if (desiredTag == null || desiredTag.isEmpty()) {
+                log.info("Image validation for {}: desired image.tag is missing - matched=false", appName);
+                return false;
+            }
+            List<String> runningImages = getRunningImages(rootNode);
+            if (runningImages.isEmpty()) {
+                log.info("Image validation for {}: desired tag={}, running images=[], matched=false",
+                        appName, desiredTag);
+                return false;
+            }
+
+            boolean expectedVersionMatches = expectedVersion == null || expectedVersion.isEmpty()
+                    || desiredTag.equals(expectedVersion);
+            boolean matched = expectedVersionMatches && runningImages.stream()
+                    .allMatch(img -> {
+                        int separator = img.lastIndexOf(':');
+                        return separator >= 0 && desiredTag.equals(img.substring(separator + 1));
+                    });
+            log.info("Image validation for {}: desired tag={}, running images={}, matched={}",
+                    appName, desiredTag, runningImages, matched);
+            return matched;
+        } catch (Exception e) {
+            log.warn("Image validation failed for {} - treating as not deployed: {}", appName, e.getMessage());
+            return false;
+        }
+    }
+
+    public boolean isDeploymentReady(JsonNode rootNode, String appName, String expectedVersion, Date deployTriggerTime) {
+        if (deployTriggerTime == null) {
+            return isDesiredImageDeployed(rootNode, appName);
+        }
+        String healthStatus = rootNode.path("status").path("health").path("status").asText("");
+        String syncStatus = rootNode.path("status").path("sync").path("status").asText("");
+        String operationPhase = rootNode.path("status").path("operationState").path("phase").asText("");
+        if (!"Healthy".equalsIgnoreCase(healthStatus)
+                || !"Synced".equalsIgnoreCase(syncStatus)
+                || !"Succeeded".equalsIgnoreCase(operationPhase)) {
+            return false;
+        }
+
+        boolean newSync = hasNewSyncEvidence(rootNode, appName, deployTriggerTime);
+        boolean imageReady = isDesiredImageDeployed(rootNode, appName, expectedVersion);
+        if (newSync && imageReady) {
+            return true;
+        }
+
+        if (System.currentTimeMillis() - deployTriggerTime.getTime() >= deployedFallbackMinutes * 60_000L) {
+            log.info("ArgoCD app {} fallback deployment decision after {} minutes: health={}, sync={}, phase={}, newSync={}, imageReady={}",
+                    appName, deployedFallbackMinutes, healthStatus, syncStatus, operationPhase, newSync, imageReady);
+            return true;
+        }
+        return false;
+    }
+
+    private boolean hasNewSyncEvidence(JsonNode rootNode, String appName, Date deployTriggerTime) {
+        String startedAt = rootNode.path("status").path("operationState").path("startedAt").asText("");
+        if (startedAt.isEmpty()) {
+            log.info("New-sync validation for {}: operation startedAt is missing, trigger time={} - matched=false",
+                    appName, deployTriggerTime);
+            return false;
+        }
+        try {
+            Instant operationStart = Instant.parse(startedAt);
+            boolean matched = !operationStart.isBefore(deployTriggerTime.toInstant().minusSeconds(30));
+            log.info("New-sync validation for {}: operation startedAt={}, trigger time={}, matched={}",
+                    appName, startedAt, deployTriggerTime, matched);
+            return matched;
+        } catch (DateTimeException e) {
+            log.info("New-sync validation for {}: invalid operation startedAt={}, trigger time={} - matched=false",
+                    appName, startedAt, deployTriggerTime);
+            return false;
         }
     }
 
