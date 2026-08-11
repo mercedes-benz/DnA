@@ -115,12 +115,6 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave, user}) => {
     }
   }, [selectedLeanIX, setValue]);
 
-  // subscription radios are disabled for non-admins on edit, so keep the form state in sync
-  useEffect(() => {
-    setValue('subscription', subscription, { shouldValidate: false });
-  }, [subscription, setValue]);
-
-
   useEffect(() => {
     ProgressIndicator.show();
     fabricApi.getAllSolutions()
@@ -822,7 +816,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave, user}) => {
                         defaultChecked={subscription === 'PowerBI'}
                         disabled={edit && !isFabricAdmin}
                         {...register('subscription', {
-                          required: '*Missing entry',
+                          required: !(edit && !isFabricAdmin) && '*Missing entry',
                           onChange: (e) => { setSubscription(e.target.value) }
                         })}
                       />
@@ -945,14 +939,9 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave, user}) => {
             <button
               className="btn btn-tertiary"
               type="button"
-              onClick={handleSubmit(
-                (values) => {
+              onClick={handleSubmit((values) => {
                   edit ? handleEditWorkspace(values) : handleCreateWorkspace(values);
-                },
-                (formErrors) => {
-                  console.log('validation errors', formErrors);
-                },
-              )}
+              })}
             >
               {edit ? 'Save Workspace' : 'Create Workspace'}
             </button>
