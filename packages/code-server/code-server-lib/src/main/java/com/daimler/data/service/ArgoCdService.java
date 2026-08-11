@@ -1,13 +1,24 @@
 package com.daimler.data.service;
 
+import java.io.BufferedReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Consumer;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -923,6 +934,274 @@ public class ArgoCdService {
             }
         }
         return images;
+    }
+
+    /**
+     * Immutable holder describing a pod that is running the version currently
+     * being deployed (i.e. its container image matches the desired image tag).
+     */
+    public static class PodInfo {
+        private final String podName;
+        private final List<String> images;
+        private final int restartCount;
+        private final String statusReason;
+
+        public PodInfo(String podName, List<String> images, int restartCount, String statusReason) {
+            this.podName = podName;
+            this.images = images;
+            this.restartCount = restartCount;
+            this.statusReason = statusReason;
+        }
+
+        public String getPodName() { return podName; }
+        public List<String> getImages() { return images; }
+        public int getRestartCount() { return restartCount; }
+        public String getStatusReason() { return statusReason; }
+    }
+
+    private static final Set<String> CRASH_LOOP_REASONS = new HashSet<>(Arrays.asList(
+        "CrashLoopBackOff", "ImagePullBackOff", "ErrImagePull", "Error",
+        "RunContainerError", "CreateContainerConfigError"));
+
+    private static final int CRASH_LOOP_RESTART_THRESHOLD = 2;
+
+    /**
+     * Fetches the ArgoCD resource-tree for an application.
+     * {@code GET {argocdBaseUrl}/api/v1/applications/{appName}/resource-tree}
+     * Returns the parsed root node, or {@code null} when the app is missing or
+     * ArgoCD is not reachable (mirrors the 403/404/500 handling of
+     * {@link #getStatusOfArgoApp}).
+     */
+    public JsonNode getResourceTree(String token, String appName) {
+        try {
+            String url = getArgocdBaseUrl() + "/api/v1/applications/" + appName + "/resource-tree";
+            HttpHeaders headers = new HttpHeaders();
+            headers.setBearerAuth(token);
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<Object> entity = new HttpEntity<>(headers);
+            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
+            if (response != null && response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
+                return new ObjectMapper().readTree(response.getBody());
+            }
+            return null;
+        } catch (org.springframework.web.client.HttpClientErrorException.NotFound e) {
+            log.info("ArgoCD resource-tree not found for application: {}", appName);
+            return null;
+        } catch (org.springframework.web.client.HttpClientErrorException.Forbidden e) {
+            log.debug("Permission denied accessing ArgoCD resource-tree: {} (RBAC may still be propagating)", appName);
+            return null;
+        } catch (Exception e) {
+            log.error("Failed to get ArgoCD resource-tree for {}: {}", appName, e.getMessage());
+            return null;
+        }
+    }
+
+    /**
+     * Returns only the pods whose container image matches the desired image tag
+     * (i.e. the version currently being deployed), never the old/previous
+     * version's pods. When the desired tag cannot be determined, all pods are
+     * returned as a best-effort fallback.
+     */
+    public List<PodInfo> getNewVersionPods(String token, String appName) {
+        List<PodInfo> pods = new ArrayList<>();
+        try {
+            String desiredTag = null;
+            ResponseEntity<String> appResponse = getStatusOfArgoApp(token, appName);
+            if (appResponse != null && appResponse.getStatusCode().is2xxSuccessful() && appResponse.getBody() != null) {
+                JsonNode appNode = new ObjectMapper().readTree(appResponse.getBody());
+                desiredTag = getDesiredImageTag(appNode);
+            }
+
+            JsonNode tree = getResourceTree(token, appName);
+            if (tree == null) {
+                return pods;
+            }
+            JsonNode nodes = tree.path("nodes");
+            if (!nodes.isArray()) {
+                return pods;
+            }
+
+            for (JsonNode node : nodes) {
+                if (!"Pod".equals(node.path("kind").asText(""))) {
+                    continue;
+                }
+                List<String> images = new ArrayList<>();
+                JsonNode imagesNode = node.path("images");
+                if (imagesNode.isArray()) {
+                    for (JsonNode img : imagesNode) {
+                        images.add(img.asText(""));
+                    }
+                }
+
+                boolean isNewVersion;
+                if (desiredTag == null || desiredTag.isEmpty()) {
+                    // Cannot distinguish versions - include as best effort
+                    isNewVersion = true;
+                } else {
+                    final String tag = desiredTag;
+                    isNewVersion = images.stream().anyMatch(img -> img.contains(":" + tag));
+                }
+                if (!isNewVersion) {
+                    continue;
+                }
+
+                int restartCount = 0;
+                String statusReason = "";
+                JsonNode infoNode = node.path("info");
+                if (infoNode.isArray()) {
+                    for (JsonNode info : infoNode) {
+                        String name = info.path("name").asText("");
+                        String value = info.path("value").asText("");
+                        if ("Restart Count".equalsIgnoreCase(name)) {
+                            try {
+                                restartCount = Integer.parseInt(value.trim());
+                            } catch (NumberFormatException ignore) {
+                                // leave restartCount at 0
+                            }
+                        } else if ("Status Reason".equalsIgnoreCase(name)) {
+                            statusReason = value;
+                        }
+                    }
+                }
+                pods.add(new PodInfo(node.path("name").asText(""), images, restartCount, statusReason));
+            }
+            log.info("Resolved {} new-version pod(s) for {} (desiredTag={})", pods.size(), appName, desiredTag);
+        } catch (Exception e) {
+            log.warn("Failed to resolve new-version pods for {}: {}", appName, e.getMessage());
+        }
+        return pods;
+    }
+
+    /**
+     * Detects whether a pod running the version being deployed is crash-looping.
+     * Returns a map with keys {@code newPodCrashLooping} (Boolean) and
+     * {@code crashLoopReason} (String, human-readable, may be null). A pod is
+     * considered crash-looping only when it has a backoff/crash waiting-state
+     * reason OR its restart count is at/above {@value #CRASH_LOOP_RESTART_THRESHOLD};
+     * pods merely Pending/ContainerCreating with low restarts are not flagged.
+     */
+    public Map<String, Object> getNewPodCrashLoopStatus(String token, String appName) {
+        Map<String, Object> result = new HashMap<>();
+        result.put("newPodCrashLooping", false);
+        result.put("crashLoopReason", null);
+        try {
+            List<PodInfo> pods = getNewVersionPods(token, appName);
+            for (PodInfo pod : pods) {
+                String reason = pod.getStatusReason();
+                if (reason != null && CRASH_LOOP_REASONS.contains(reason)) {
+                    result.put("newPodCrashLooping", true);
+                    result.put("crashLoopReason", "New pod is in " + reason
+                        + (pod.getRestartCount() > 0 ? " (" + pod.getRestartCount() + " restarts)" : ""));
+                    return result;
+                }
+                if (pod.getRestartCount() >= CRASH_LOOP_RESTART_THRESHOLD) {
+                    result.put("newPodCrashLooping", true);
+                    result.put("crashLoopReason", "New pod is repeatedly restarting ("
+                        + pod.getRestartCount() + " restarts)");
+                    return result;
+                }
+            }
+        } catch (Exception e) {
+            log.warn("Failed to evaluate crash-loop status for {}: {}", appName, e.getMessage());
+        }
+        return result;
+    }
+
+    /**
+     * Streams container logs for a pod running the version being deployed via
+     * {@code GET {argocdBaseUrl}/api/v1/applications/{appName}/logs?podName=...&follow=true}.
+     * Each decoded log line is passed to {@code lineConsumer}. The stream stops
+     * when {@code active} becomes false, when the consumer throws, or when
+     * ArgoCD signals the final chunk.
+     */
+    public void streamPodLogs(String token, String appName, String podName, String environment,
+                              AtomicBoolean active, Consumer<HttpURLConnection> connectionRegistrar,
+                              Consumer<String> lineConsumer) throws IOException {
+        String namespace = getNamespaceForEnvironment(codeServerEnvRef, environment);
+        String urlStr = getArgocdBaseUrl() + "/api/v1/applications/" + appName + "/logs"
+            + "?podName=" + URLEncoder.encode(podName, StandardCharsets.UTF_8.name())
+            + "&namespace=" + URLEncoder.encode(namespace, StandardCharsets.UTF_8.name())
+            + "&follow=true&tailLines=500";
+
+        HttpURLConnection connection = (HttpURLConnection) new URL(urlStr).openConnection();
+        connection.setRequestMethod("GET");
+        connection.setRequestProperty("Authorization", "Bearer " + token);
+        connection.setRequestProperty("Accept", "application/json");
+        connection.setConnectTimeout(15000);
+        connection.setReadTimeout(0); // follow stream - no read timeout
+        if (connectionRegistrar != null) {
+            connectionRegistrar.accept(connection);
+        }
+
+        int responseCode = connection.getResponseCode();
+        if (responseCode != HttpURLConnection.HTTP_OK) {
+            connection.disconnect();
+            throw new IOException("ArgoCD logs request failed (HTTP " + responseCode + ") for pod " + podName);
+        }
+
+        ObjectMapper mapper = new ObjectMapper();
+        try (InputStream is = connection.getInputStream();
+             BufferedReader reader = new BufferedReader(new InputStreamReader(is, StandardCharsets.UTF_8))) {
+            String line;
+            while (active.get() && (line = reader.readLine()) != null) {
+                if (line.trim().isEmpty()) {
+                    continue;
+                }
+                try {
+                    JsonNode node = mapper.readTree(line);
+                    JsonNode resultNode = node.has("result") ? node.path("result") : node;
+                    if (resultNode.path("last").asBoolean(false)) {
+                        break;
+                    }
+                    String content = resultNode.path("content").asText("");
+                    if (!content.isEmpty()) {
+                        lineConsumer.accept(content);
+                    }
+                } catch (IOException parseEx) {
+                    // Not JSON - forward the raw line
+                    lineConsumer.accept(line);
+                }
+            }
+        } finally {
+            connection.disconnect();
+        }
+    }
+
+    /**
+     * Terminates the in-progress ArgoCD sync operation for an application via
+     * {@code DELETE {argocdBaseUrl}/api/v1/applications/{appName}/operation}.
+     * Returns "success", "not_found" or "failed".
+     */
+    public String terminateOperation(String token, String appName) {
+        try {
+            String url = getArgocdBaseUrl() + "/api/v1/applications/" + appName + "/operation";
+            HttpHeaders headers = new HttpHeaders();
+            headers.setBearerAuth(token);
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<Object> entity = new HttpEntity<>(headers);
+            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.DELETE, entity, String.class);
+            if (response != null && response.getStatusCode().is2xxSuccessful()) {
+                log.info("Terminated in-progress ArgoCD operation for application: {}", appName);
+                return "success";
+            }
+            log.warn("Failed to terminate ArgoCD operation for {}: status={}", appName,
+                response != null ? response.getStatusCode() : "null");
+            return "failed";
+        } catch (org.springframework.web.client.HttpClientErrorException.NotFound e) {
+            log.info("ArgoCD application not found while terminating operation: {}", appName);
+            return "not_found";
+        } catch (org.springframework.web.client.HttpClientErrorException e) {
+            // 400/404 with "Unable to terminate" means there is no running operation
+            log.warn("ArgoCD terminate operation HTTP error for {}: {} - {}", appName,
+                e.getStatusCode(), e.getResponseBodyAsString());
+            if (e.getStatusCode().value() == 404) {
+                return "not_found";
+            }
+            return "failed";
+        } catch (Exception e) {
+            log.error("Failed to terminate ArgoCD operation for {}: {}", appName, e.getMessage());
+            return "failed";
+        }
     }
 
     private String getNamespaceForEnvironment(String clusterEnv, String targetEnv) {
