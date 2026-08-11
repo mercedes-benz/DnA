@@ -845,7 +845,7 @@ public class GitClient {
 			GitHubWorkflowJobsResponseDto body = response.getBody();
 			if (body != null && body.getJobs() != null) {
 				GitHubWorkflowJobsResponseDto.Job job = body.getJobs().stream()
-						.filter(job -> job.getName() != null && job.getName().toLowerCase().contains("build or deploy workspace application"))
+						.filter(workflowJob -> workflowJob.getName() != null && workflowJob.getName().toLowerCase().contains("build or deploy workspace application"))
 						.findFirst()
 						.orElse(null);
 				String etag = response.getHeaders().getETag();
