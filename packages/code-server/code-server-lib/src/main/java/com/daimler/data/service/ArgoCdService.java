@@ -956,25 +956,50 @@ public class ArgoCdService {
         }
         String healthStatus = rootNode.path("status").path("health").path("status").asText("");
         String syncStatus = rootNode.path("status").path("sync").path("status").asText("");
-        String operationPhase = rootNode.path("status").path("operationState").path("phase").asText("");
+        JsonNode operationState = rootNode.path("status").path("operationState");
+        String operationPhase = operationState.path("phase").asText("");
         if (!"Healthy".equalsIgnoreCase(healthStatus)
                 || !"Synced".equalsIgnoreCase(syncStatus)
-                || !"Succeeded".equalsIgnoreCase(operationPhase)) {
+                || (operationState.isObject() && !"Succeeded".equalsIgnoreCase(operationPhase))) {
             return false;
         }
 
+        String desiredTag = getDesiredImageTag(rootNode);
+        boolean expectedVersionKnown = expectedVersion != null && !expectedVersion.isEmpty();
+        boolean desiredTagFloating = desiredTag != null && desiredTag.equals(getFloatingImageTag(appName));
+        boolean strongImageEvidence = expectedVersionKnown
+                && desiredTag != null
+                && desiredTag.equals(expectedVersion)
+                && !desiredTagFloating
+                && isDesiredImageDeployed(rootNode, appName, expectedVersion);
+        if (strongImageEvidence) {
+            log.info("Deployment readiness for {} decided by strong image evidence", appName);
+            return true;
+        }
+
         boolean newSync = hasNewSyncEvidence(rootNode, appName, deployTriggerTime);
-        boolean imageReady = isDesiredImageDeployed(rootNode, appName, expectedVersion);
-        if (newSync && imageReady) {
+        boolean reconciled = hasReconciledAtEvidence(rootNode, appName, deployTriggerTime);
+        if (newSync) {
+            log.info("Deployment readiness for {} decided by weak + new sync evidence", appName);
+            return true;
+        }
+        if (reconciled) {
+            log.info("Deployment readiness for {} decided by weak + reconciledAt evidence", appName);
             return true;
         }
 
         if (System.currentTimeMillis() - deployTriggerTime.getTime() >= deployedFallbackMinutes * 60_000L) {
-            log.info("ArgoCD app {} fallback deployment decision after {} minutes: health={}, sync={}, phase={}, newSync={}, imageReady={}",
-                    appName, deployedFallbackMinutes, healthStatus, syncStatus, operationPhase, newSync, imageReady);
+            log.info("Deployment readiness for {} decided by fallback after {} minutes: health={}, sync={}, phase={}, newSync={}, reconciledAt={}",
+                    appName, deployedFallbackMinutes, healthStatus, syncStatus, operationPhase, newSync, reconciled);
             return true;
         }
         return false;
+    }
+
+    private String getFloatingImageTag(String appName) {
+        int separator = appName.lastIndexOf('-');
+        String environment = separator >= 0 ? appName.substring(separator + 1) : appName;
+        return environment + "-latest";
     }
 
     private boolean hasNewSyncEvidence(JsonNode rootNode, String appName, Date deployTriggerTime) {
@@ -993,6 +1018,26 @@ public class ArgoCdService {
         } catch (DateTimeException e) {
             log.info("New-sync validation for {}: invalid operation startedAt={}, trigger time={} - matched=false",
                     appName, startedAt, deployTriggerTime);
+            return false;
+        }
+    }
+
+    private boolean hasReconciledAtEvidence(JsonNode rootNode, String appName, Date deployTriggerTime) {
+        String reconciledAt = rootNode.path("status").path("reconciledAt").asText("");
+        if (reconciledAt.isEmpty()) {
+            log.info("ReconciledAt validation for {}: reconciledAt is missing, trigger time={} - matched=false",
+                    appName, deployTriggerTime);
+            return false;
+        }
+        try {
+            Instant reconciledTime = Instant.parse(reconciledAt);
+            boolean matched = !reconciledTime.isBefore(deployTriggerTime.toInstant().minusSeconds(30));
+            log.info("ReconciledAt validation for {}: reconciledAt={}, trigger time={}, matched={}",
+                    appName, reconciledAt, deployTriggerTime, matched);
+            return matched;
+        } catch (DateTimeException e) {
+            log.info("ReconciledAt validation for {}: invalid reconciledAt={}, trigger time={} - matched=false",
+                    appName, reconciledAt, deployTriggerTime);
             return false;
         }
     }
