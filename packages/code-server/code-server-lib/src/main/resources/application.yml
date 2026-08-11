@@ -265,3 +265,4 @@ argocd:
 
 deployment:
   stuckThresholdMinutes: ${DEPLOYMENT_STUCK_THRESHOLD_MINUTES:15}
+  deployedFallbackMinutes: ${DEPLOYMENT_DEPLOYED_FALLBACK_MINUTES:15}
