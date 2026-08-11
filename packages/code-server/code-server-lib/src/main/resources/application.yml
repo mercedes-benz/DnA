@@ -2,7 +2,7 @@ spring:
   mvc.pathmatch.matching-strategy: ant_path_matcher
   application:
     name: dna-codeserver-service
-    version: 1.12.5
+    version: 1.12.6
   profile:
     active: production
 
@@ -226,7 +226,7 @@ kong:
    dnaAppId : ${DNA_APP_ID:XXXX}
    oidc:
      session-secret: ${KONG_OIDC_SESSION_SECRET:XXXX}
-     skip-already-auth-requests: ${KONG_OIDC_SKIP_ALREADY_AUTH_REQUESTS:yes}
+     skip-already-auth-requests: ${KONG_OIDC_SKIP_ALREADY_AUTH_REQUESTS:XXXX}
 
 alice:
   aliceBaseUrl: ${ALICE_SERVICE_BASE_URL:XXXX}
