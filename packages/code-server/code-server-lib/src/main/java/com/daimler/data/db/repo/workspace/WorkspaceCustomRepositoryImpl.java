@@ -992,14 +992,14 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 							THEN jsonb_extract_path_text(data,'projectDetails','prodBuildDetails','gitjobRunID')
 
 						WHEN jsonb_extract_path_text(data,'projectDetails','lastBuildOrDeployedStatus')
-							IN ('DEPLOY_REQUESTED','DEPLOYED','DEPLOY_FAILED')
-						AND jsonb_extract_path_text(data,'projectDetails','lastBuildOrDeployedEnv') = 'int'
-							THEN jsonb_extract_path_text(data,'projectDetails','intDeploymentDetails','gitjobRunID')
+						IN ('DEPLOY_REQUESTED','DEPLOYED','DEPLOYMENT_FAILED')
+					AND jsonb_extract_path_text(data,'projectDetails','lastBuildOrDeployedEnv') = 'int'
+						THEN jsonb_extract_path_text(data,'projectDetails','intDeploymentDetails','gitjobRunID')
 
-						WHEN jsonb_extract_path_text(data,'projectDetails','lastBuildOrDeployedStatus')
-							IN ('DEPLOY_REQUESTED','DEPLOYED','DEPLOY_FAILED')
-						AND jsonb_extract_path_text(data,'projectDetails','lastBuildOrDeployedEnv') = 'prod'
-							THEN jsonb_extract_path_text(data,'projectDetails','prodDeploymentDetails','gitjobRunID')
+					WHEN jsonb_extract_path_text(data,'projectDetails','lastBuildOrDeployedStatus')
+						IN ('DEPLOY_REQUESTED','DEPLOYED','DEPLOYMENT_FAILED')
+				AND jsonb_extract_path_text(data,'projectDetails','lastBuildOrDeployedEnv') = 'prod'
+						THEN jsonb_extract_path_text(data,'projectDetails','prodDeploymentDetails','gitjobRunID')
 
 						ELSE NULL
 					END AS gitJobRunId
@@ -1037,6 +1037,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 		}
 	}
 
+	@Transactional
 	@Override
 	public boolean updateGitRunIdStatus(String projectName, String status, String environment) {
 
@@ -1065,7 +1066,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 		} else if ("int".equalsIgnoreCase(environment) &&
 			("DEPLOY_REQUESTED".equalsIgnoreCase(status)
 				|| "DEPLOYED".equalsIgnoreCase(status)
-				|| "DEPLOY_FAILED".equalsIgnoreCase(status))) {
+				|| "DEPLOYMENT_FAILED".equalsIgnoreCase(status))) {
 
 			updateQuery =
 				"update workspace_nsql set data = jsonb_set(" +
@@ -1075,7 +1076,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 		} else if ("prod".equalsIgnoreCase(environment) &&
 			("DEPLOY_REQUESTED".equalsIgnoreCase(status)
 				|| "DEPLOYED".equalsIgnoreCase(status)
-				|| "DEPLOY_FAILED".equalsIgnoreCase(status))) {
+				|| "DEPLOYMENT_FAILED".equalsIgnoreCase(status))) {
 
 			updateQuery =
 				"update workspace_nsql set data = jsonb_set(" +
@@ -1116,6 +1117,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 		}
 	}
 
+	@Transactional
 	@Override
 	public boolean updateBuildDeployAuditStatus(String projectName,String status,String environment,String gitJobRunId) {
 
@@ -1159,7 +1161,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 		} else if ("int".equalsIgnoreCase(environment) &&
 			("DEPLOY_REQUESTED".equalsIgnoreCase(status)
 				|| "DEPLOYED".equalsIgnoreCase(status)
-				|| "DEPLOY_FAILED".equalsIgnoreCase(status))) {
+				|| "DEPLOYMENT_FAILED".equalsIgnoreCase(status))) {
 
 			updateQuery =
 				"update build_deploy_nsql set data = jsonb_set(data," +
@@ -1174,7 +1176,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 		} else if ("prod".equalsIgnoreCase(environment) &&
 			("DEPLOY_REQUESTED".equalsIgnoreCase(status)
 				|| "DEPLOYED".equalsIgnoreCase(status)
-				|| "DEPLOY_FAILED".equalsIgnoreCase(status))) {
+				|| "DEPLOYMENT_FAILED".equalsIgnoreCase(status))) {
 
 			updateQuery =
 				"update build_deploy_nsql set data = jsonb_set(data," +
@@ -1213,6 +1215,5 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 			return false;
 		}
 	}
-
 
 }
