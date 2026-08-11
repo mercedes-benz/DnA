@@ -434,7 +434,7 @@ const ManageCapacity = ({ onClose }) => {
             </div>
             <div className={Styles.formRow}>
               <div className={classNames('input-field-group include-error', Styles.formGroup, addErrors.id ? 'error' : '')}>
-                <label className="input-label">Region ID <sup>*</sup></label>
+                <label className="input-label">Capacity ID <sup>*</sup></label>
                 <input
                   type="text"
                   className="input-field"
