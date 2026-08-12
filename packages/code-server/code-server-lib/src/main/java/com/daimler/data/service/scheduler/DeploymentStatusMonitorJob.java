@@ -349,7 +349,8 @@ public class DeploymentStatusMonitorJob {
                     log.info("Updated audit log status to {} for deployment at {}", targetStatus, latestAudit.getTriggeredOn());
                 }
 
-                workspaceCustomRepository.updateDeploymentDetails(projectName, environment, deployment, targetStatus);
+                workspaceCustomRepository.updateReconciledDeploymentStatus(
+                        projectName, environment, deployment, targetStatus);
                 
                 // Also update deployment audit logs in the build deploy entity (used by frontend)
                 updateBuildDeployAuditLog(projectName, environment, targetStatus);

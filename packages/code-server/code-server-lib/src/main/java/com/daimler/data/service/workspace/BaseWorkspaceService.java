@@ -5908,12 +5908,10 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 				   response = "SUCCESS";
 				
 			}else if(currentStatus.equalsIgnoreCase("DEPLOY_REQUESTED") || currentStatus.equalsIgnoreCase("DEPLOYED") || currentStatus.equalsIgnoreCase("DEPLOYMENT_FAILED")){
-				 CodeServerDeploymentDetails deploymentDetails = entity.getData().getProjectDetails().getIntDeploymentDetails();
-					 if (!"int".equalsIgnoreCase(data.getProjectDetails().getLastBuildOrDeployedEnv())) {
-						 deploymentDetails = entity.getData().getProjectDetails().getProdDeploymentDetails();
-					 }
-				deploymentDetails.setGitjobRunID(requestVo.getGitJobRunId());
-				workspaceCustomRepository.updateDeploymentDetails(requestVo.getProjectName(), data.getProjectDetails().getLastBuildOrDeployedEnv(),deploymentDetails,data.getProjectDetails().getLastBuildOrDeployedStatus()); 				
+				workspaceCustomRepository.updateDeploymentGitJobRunId(
+						requestVo.getProjectName(),
+						data.getProjectDetails().getLastBuildOrDeployedEnv(),
+						requestVo.getGitJobRunId());
 				 //setting audit log details
 					 if(optionalBuildDeployentity != null){
 						 buildDeployentity = optionalBuildDeployentity;

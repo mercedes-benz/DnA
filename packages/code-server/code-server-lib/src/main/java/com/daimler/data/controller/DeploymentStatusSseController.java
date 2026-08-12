@@ -6,7 +6,6 @@ import com.daimler.data.db.json.CodeServerBuildDeploy;
 import com.daimler.data.db.json.CodeServerBuildDetails;
 import com.daimler.data.db.json.CodeServerDeploymentDetails;
 import com.daimler.data.db.json.DeploymentAudit;
-import com.daimler.data.db.json.UserInfo;
 import com.daimler.data.db.repo.workspace.WorkSpaceCodeServerBuildDeployRepository;
 import com.daimler.data.db.repo.workspace.WorkspaceCustomBuildDeployRepo;
 import com.daimler.data.db.repo.workspace.WorkspaceCustomRepository;
@@ -669,16 +668,13 @@ public class DeploymentStatusSseController {
             String terminateResult = argoCdService.terminateOperation(token, argoAppName);
             log.info("Cancel deployment for {}: ArgoCD terminate result={}", argoAppName, terminateResult);
 
-            // Ensure lastDeployedBy is populated (updateDeploymentDetails dereferences it).
-            if (deploymentDetails.getLastDeployedBy() == null) {
-                UserInfo owner = entity.getData().getProjectDetails().getProjectOwner();
-                deploymentDetails.setLastDeployedBy(owner != null ? owner : new UserInfo());
-            }
-
-            deploymentDetails.setLastDeploymentStatus("DEPLOYMENT_FAILED");
-            deploymentDetails.setLastDeploymentError(USER_CANCELLED_MARKER);
-            deploymentDetails.setLastDeployedOn(new java.util.Date());
-            workspaceRepository.updateDeploymentDetails(projectName, environment, deploymentDetails, "DEPLOYMENT_FAILED");
+            java.util.Date cancelledOn = new java.util.Date();
+            workspaceRepository.updateCancelledDeploymentStatus(
+                    projectName,
+                    environment,
+                    "DEPLOYMENT_FAILED",
+                    USER_CANCELLED_MARKER,
+                    cancelledOn);
 
             updateBuildDeployAuditToCancelled(projectName, environment);
 
