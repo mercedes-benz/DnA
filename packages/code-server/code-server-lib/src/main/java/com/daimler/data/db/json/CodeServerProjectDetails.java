@@ -32,6 +32,4 @@ public class CodeServerProjectDetails implements Serializable {
 	private Date lastBuildOrDeployedOn;
 	private String lastBuildOrDeployedStatus;
 	private String lastBuildOrDeployedEnv;
-	private Boolean resourceCapExemptInt;
-	private Boolean resourceCapExemptProd;
 }
