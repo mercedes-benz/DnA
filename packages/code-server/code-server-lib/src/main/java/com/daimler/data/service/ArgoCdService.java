@@ -299,8 +299,7 @@ public class ArgoCdService {
 
     @SuppressWarnings("unchecked")
     public String buildPayload(String appName, String projectName, String clusterEnv, String targetEnv, String gitRepoUrl, 
-                               String imageTag, boolean vaultInjectorEnable, Map<String, String> resources, String targetRevision,
-                               boolean resourceCapExempt) throws IOException {String imageTag, boolean vaultInjectorEnable, Map<String, String> resources, String targetRevision) throws IOException {
+                               String imageTag, boolean vaultInjectorEnable, Map<String, String> resources, String targetRevision) throws IOException {
         
         String namespace = getNamespaceForEnvironment(clusterEnv, targetEnv);
         String imageRepository = imageRegistry + "-" + projectName;
