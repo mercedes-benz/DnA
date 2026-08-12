@@ -339,8 +339,10 @@ public class ArgoCdService {
             String requestCpu = (cpu != null) ? cpu + "m" : defaultRequestCpu;
             boolean requestMemoryDefaulted = (memory == null);
             String requestMemory = requestMemoryDefaulted ? defaultRequestMemoryMi : memory;
-            String limitMemory = (limitsMemory != null) ? limitsMemory : defaultLimitMemoryMi;
-
+            boolean limitMemoryMirrored = (limitsMemory == null);
+            String limitMemory = limitMemoryMirrored
+                    ? raiseLimitToRequest(defaultLimitMemoryMi, requestMemory)
+                    : limitsMemory;
             if (requestMemoryDefaulted && parseMemoryMi(limitMemory) < parseMemoryMi(defaultRequestMemoryMi)) {
                 limitMemory = defaultRequestMemoryMi;
             }
@@ -352,7 +354,7 @@ public class ArgoCdService {
                 helmParameters.add(createHelmParam("resources.limits.cpu", "null"));
             }
             log.info("[Resources] Applying Helm params: requests.cpu={}, requests.memory={} (defaulted={}), limits.memory={} (source={}), limits.cpu={}",
-                requestCpu,
+                requestCpu,               
                 requestMemory + "Mi",
                 requestMemoryDefaulted,
                 limitMemory + "Mi",
@@ -603,6 +605,13 @@ public class ArgoCdService {
             log.warn("[Resources] Unable to parse memory Mi value: {}", memoryMi);
             return Double.MAX_VALUE;
         }
+    }
+
+    private String raiseLimitToRequest(String defaultLimit, String requestMemory) {
+        if (requestMemory == null) {
+            return defaultLimit;
+        }
+        return parseMemoryMi(requestMemory) > parseMemoryMi(defaultLimit) ? requestMemory : defaultLimit;
     }
     
     private String convertMemory(String memoryValue) {
