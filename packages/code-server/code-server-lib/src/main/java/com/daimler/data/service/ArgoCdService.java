@@ -78,6 +78,9 @@ public class ArgoCdService {
     @Value("${deployment.deployedFallbackMinutes:15}")
     private int deployedFallbackMinutes;
 
+    @Value("${deployment.degradedGraceSeconds:120}")
+    private int degradedGraceSeconds;
+
     @Value("${codeServer.git.ghe.pat}")
     private String ghePat;
 
@@ -746,6 +749,10 @@ public class ArgoCdService {
                     return "DEPLOYING";
                 }
                 if (statusCode == 404) {
+                    if (isWithinDeploymentGracePeriod(deployTriggerTime)) {
+                        log.info("ArgoCD app {} - not found within deployment grace period, treating as DEPLOYING", appName);
+                        return "DEPLOYING";
+                    }
                     log.warn("ArgoCD app {} - not found, marking as DEPLOYMENT_FAILED", appName);
                     return "DEPLOYMENT_FAILED";
                 }
@@ -759,25 +766,14 @@ public class ArgoCdService {
             String operationMessage = rootNode.path("status").path("operationState").path("message").asText("");
             log.info("ArgoCD app {} - Health: {}, LastSyncPhase: {}, Message: {}", appName, healthStatus, lastSyncPhase, operationMessage);
 
-            if (operationMessage != null && !operationMessage.isEmpty() &&
-                (operationMessage.toLowerCase().contains("failed") || operationMessage.toLowerCase().contains("error"))) {
-                log.info("Application {} has error message - DEPLOYMENT_FAILED", appName);
-                return "DEPLOYMENT_FAILED";
-            }
-
-            if ("Failed".equalsIgnoreCase(lastSyncPhase) || "Error".equalsIgnoreCase(lastSyncPhase)) {
-                log.info("Application {} sync failed (health={}, syncPhase={}) - DEPLOYMENT_FAILED", appName, healthStatus, lastSyncPhase);
+            String failureMessage = getConfirmedDeploymentFailure(rootNode, appName, deployTriggerTime);
+            if (failureMessage != null) {
                 return "DEPLOYMENT_FAILED";
             }
 
             if ("Degraded".equalsIgnoreCase(healthStatus)) {
-                // Degraded is only a definitive failure if the sync has already completed successfully.
-                // During active deployment, Degraded is often transient (image pull, readiness probe warmup).
-                if ("Succeeded".equalsIgnoreCase(lastSyncPhase)) {
-                    log.info("Application {} is degraded after sync succeeded - DEPLOYMENT_FAILED", appName);
-                    return "DEPLOYMENT_FAILED";
-                }
-                log.info("Application {} is degraded but sync not yet succeeded (syncPhase={}) - treating as DEPLOYING", appName, lastSyncPhase);
+                log.info("Application {} is degraded but not yet a confirmed failure (syncPhase={}) - treating as DEPLOYING",
+                        appName, lastSyncPhase);
                 return "DEPLOYING";
             }
 
@@ -826,6 +822,11 @@ public class ArgoCdService {
                     return result;
                 }
                 if (statusCode == 404) {
+                    if (isWithinDeploymentGracePeriod(deployTriggerTime)) {
+                        log.info("ArgoCD app {} - not found within deployment grace period, treating as DEPLOYING", appName);
+                        result.put("status", "DEPLOYING");
+                        return result;
+                    }
                     result.put("status", "DEPLOYMENT_FAILED");
                     result.put("errorMessage", "ArgoCD app " + appName + " - not found (HTTP 404)");
                     return result;
@@ -836,29 +837,14 @@ public class ArgoCdService {
             JsonNode rootNode = mapper.readTree(argoResponse.getBody());
             String healthStatus = rootNode.path("status").path("health").path("status").asText("");
             String lastSyncPhase = rootNode.path("status").path("operationState").path("phase").asText("");
-            String operationMessage = rootNode.path("status").path("operationState").path("message").asText("");
 
-            if (operationMessage != null && !operationMessage.isEmpty() &&
-                (operationMessage.toLowerCase().contains("failed") || operationMessage.toLowerCase().contains("error"))) {
+            String failureMessage = getConfirmedDeploymentFailure(rootNode, appName, deployTriggerTime);
+            if (failureMessage != null) {
                 result.put("status", "DEPLOYMENT_FAILED");
-                result.put("errorMessage", operationMessage);
-                return result;
-            }
-            if ("Failed".equalsIgnoreCase(lastSyncPhase) || "Error".equalsIgnoreCase(lastSyncPhase)) {
-                result.put("status", "DEPLOYMENT_FAILED");
-                result.put("errorMessage", operationMessage != null ? operationMessage : "Sync phase failed");
+                result.put("errorMessage", failureMessage);
                 return result;
             }
             if ("Degraded".equalsIgnoreCase(healthStatus)) {
-                // Degraded is only a definitive failure if the sync has already completed successfully.
-                // During active deployment, Degraded is often transient (image pull, readiness probe warmup).
-                if ("Succeeded".equalsIgnoreCase(lastSyncPhase)) {
-                    result.put("status", "DEPLOYMENT_FAILED");
-                    result.put("errorMessage", operationMessage != null && !operationMessage.isEmpty()
-                        ? operationMessage : "Application health is Degraded. Check pod logs for details.");
-                    return result;
-                }
-                // Sync hasn't completed — treat as still deploying
                 result.put("status", "DEPLOYING");
                 return result;
             }
@@ -882,6 +868,71 @@ public class ArgoCdService {
         } catch (Exception e) {
             log.error("Failed to check ArgoCD deployment status for {}", appName, e);
             return result;
+        }
+    }
+
+    /**
+     * Returns a failure message only when ArgoCD provides failure evidence that can
+     * be attributed to the current deployment, or null when the application is
+     * still deploying or has no confirmed failure.
+     */
+    public String getConfirmedDeploymentFailure(JsonNode rootNode, String appName, Date deployTriggerTime) {
+        JsonNode operationState = rootNode.path("status").path("operationState");
+        String healthStatus = rootNode.path("status").path("health").path("status").asText("");
+        String phase = operationState.path("phase").asText("");
+        String message = operationState.path("message").asText("");
+        String startedAt = operationState.path("startedAt").asText("");
+        String finishedAt = operationState.path("finishedAt").asText("");
+
+        Instant operationStart = parseInstant(startedAt);
+        boolean currentOperation = deployTriggerTime == null
+                || (operationStart != null
+                    && !operationStart.isBefore(deployTriggerTime.toInstant().minusSeconds(30)));
+
+        if (!currentOperation) {
+            return null;
+        }
+
+        if ("Failed".equalsIgnoreCase(phase) || "Error".equalsIgnoreCase(phase)) {
+            String failureMessage = message != null && !message.isEmpty() ? message : "Sync phase " + phase;
+            log.info("Confirmed ArgoCD deployment failure for {}: phase={}, health={}, startedAt={}, finishedAt={}, triggerTime={}",
+                    appName, phase, healthStatus, startedAt, finishedAt, deployTriggerTime);
+            return failureMessage;
+        }
+
+        if ("Degraded".equalsIgnoreCase(healthStatus) && "Succeeded".equalsIgnoreCase(phase)) {
+            Instant degradedSince = parseInstant(finishedAt);
+            if (degradedSince == null) {
+                degradedSince = operationStart;
+            }
+            if (degradedSince == null && deployTriggerTime != null) {
+                degradedSince = deployTriggerTime.toInstant();
+            }
+            if (degradedSince == null
+                    || !Instant.now().isBefore(degradedSince.plusSeconds(degradedGraceSeconds))) {
+                String failureMessage = message != null && !message.isEmpty()
+                        ? message : "Application health is Degraded. Check pod logs for details.";
+                log.info("Confirmed ArgoCD deployment failure for {}: phase={}, health={}, startedAt={}, finishedAt={}, triggerTime={}",
+                        appName, phase, healthStatus, startedAt, finishedAt, deployTriggerTime);
+                return failureMessage;
+            }
+        }
+        return null;
+    }
+
+    private boolean isWithinDeploymentGracePeriod(Date deployTriggerTime) {
+        return deployTriggerTime != null
+                && Instant.now().isBefore(deployTriggerTime.toInstant().plusSeconds(degradedGraceSeconds));
+    }
+
+    private Instant parseInstant(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        try {
+            return Instant.parse(value);
+        } catch (DateTimeException e) {
+            return null;
         }
     }
 

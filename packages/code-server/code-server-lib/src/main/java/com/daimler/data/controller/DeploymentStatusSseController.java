@@ -293,6 +293,7 @@ public class DeploymentStatusSseController {
             String argoHealthStatus = "UNAVAILABLE";
             String argoSyncStatus = "UNAVAILABLE";
             String argoLastSyncPhase = "";
+            String confirmedArgoFailure = null;
             boolean imageMatchesDesired = true;
             boolean deploymentEvidenceReady = true;
             String expectedVersion = latestAudit != null ? latestAudit.getVersion() : null;
@@ -315,6 +316,8 @@ public class DeploymentStatusSseController {
                     argoHealthStatus = rootNode.path("status").path("health").path("status").asText("");
                     argoSyncStatus = rootNode.path("status").path("sync").path("status").asText("");
                     argoLastSyncPhase = rootNode.path("status").path("operationState").path("phase").asText("");
+                    confirmedArgoFailure = argoCdService.getConfirmedDeploymentFailure(
+                            rootNode, argoAppName, deployTriggerTime);
                     
                     String argoOperationMessage = rootNode.path("status").path("operationState").path("message").asText("");
 
@@ -353,7 +356,7 @@ public class DeploymentStatusSseController {
 
             String argoOperationMsg = (String) data.get("argocdOperationMessage");
             String actualStatus = determineActualStatus(dbStatus, argoHealthStatus, argoSyncStatus, argoLastSyncPhase,
-                    argoOperationMsg, imageMatchesDesired, deploymentEvidenceReady, userCancelled);
+                    argoOperationMsg, confirmedArgoFailure, imageMatchesDesired, deploymentEvidenceReady, userCancelled);
             data.put("currentStatus", actualStatus);
 
             // While a deployment is in progress, surface crash-loop and stuck-threshold signals
@@ -416,7 +419,8 @@ public class DeploymentStatusSseController {
     }
     
     private String determineActualStatus(String dbStatus, String argoHealth, String syncStatus, String lastSyncPhase,
-                                         String operationMessage, boolean imageMatchesDesired,
+                                         String operationMessage, String confirmedFailureMessage,
+                                         boolean imageMatchesDesired,
                                          boolean deploymentEvidenceReady, boolean userCancelled) {
         // A user-cancelled deployment is terminal. Never recompute it to DEPLOYING/DEPLOYED even
         // if ArgoCD still reports the old ReplicaSet pods as Healthy on the previous image.
@@ -428,16 +432,7 @@ public class DeploymentStatusSseController {
             return dbStatus;
         }
         
-        if (operationMessage != null && !operationMessage.isEmpty() &&
-            (operationMessage.toLowerCase().contains("failed") || operationMessage.toLowerCase().contains("error"))) {
-            return "DEPLOYMENT_FAILED";
-        }
-        
-        if ("Failed".equalsIgnoreCase(lastSyncPhase) || "Error".equalsIgnoreCase(lastSyncPhase)) {
-            return "DEPLOYMENT_FAILED";
-        }
-        
-        if ("Degraded".equalsIgnoreCase(argoHealth)) {
+        if (confirmedFailureMessage != null) {
             return "DEPLOYMENT_FAILED";
         }
         
