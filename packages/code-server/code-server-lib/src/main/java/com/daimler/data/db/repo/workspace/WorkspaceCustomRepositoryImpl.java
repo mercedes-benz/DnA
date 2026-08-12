@@ -1397,12 +1397,13 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 		}
 
 		updateQuery +=
-			" where data->>'projectName' = '" + projectName + "'";
+			" where lower(data->>'projectName') = lower(:projectName)";
 
 		try {
 			log.info("Final audit update query = {}", updateQuery);
 
 			Query q = em.createNativeQuery(updateQuery);
+			q.setParameter("projectName", projectName);
 			int rows = q.executeUpdate();
 
 			if (rows == 0) {

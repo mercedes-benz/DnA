@@ -662,6 +662,7 @@ public class DeploymentStatusSseController {
                 result.put("message", "No deployment details found for environment: " + environment);
                 return ResponseEntity.status(404).body(result);
             }
+            String storedProjectName = entity.getData().getProjectDetails().getProjectName();
 
             String argoAppName = projectName + "-" + environment;
             String token = argoCdService.getArgoToken();
@@ -670,7 +671,7 @@ public class DeploymentStatusSseController {
 
             java.util.Date cancelledOn = new java.util.Date();
             workspaceRepository.updateCancelledDeploymentStatus(
-                    projectName,
+                    storedProjectName,
                     environment,
                     "DEPLOYMENT_FAILED",
                     USER_CANCELLED_MARKER,

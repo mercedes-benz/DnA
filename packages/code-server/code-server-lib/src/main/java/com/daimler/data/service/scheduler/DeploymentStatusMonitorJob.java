@@ -349,11 +349,16 @@ public class DeploymentStatusMonitorJob {
                     log.info("Updated audit log status to {} for deployment at {}", targetStatus, latestAudit.getTriggeredOn());
                 }
 
-                workspaceCustomRepository.updateReconciledDeploymentStatus(
+                GenericMessage workspaceUpdate = workspaceCustomRepository.updateReconciledDeploymentStatus(
                         projectName, environment, deployment, targetStatus);
                 
                 // Also update deployment audit logs in the build deploy entity (used by frontend)
                 updateBuildDeployAuditLog(projectName, environment, targetStatus);
+                if (workspaceUpdate == null || !"SUCCESS".equalsIgnoreCase(workspaceUpdate.getSuccess())) {
+                    log.error("Workspace deployment status write failed for project={} environment={} status={}; skipping notification",
+                            projectName, environment, targetStatus);
+                    return false;
+                }
 
                 // Clean up non-retained build images after successful deployment
                 if ("DEPLOYED".equals(targetStatus)) {
