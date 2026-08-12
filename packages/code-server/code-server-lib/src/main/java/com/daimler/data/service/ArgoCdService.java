@@ -22,6 +22,7 @@ import java.time.DateTimeException;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -987,13 +988,28 @@ public class ArgoCdService {
 
             boolean expectedVersionMatches = expectedVersion == null || expectedVersion.isEmpty()
                     || desiredTag.equals(expectedVersion);
-            boolean matched = expectedVersionMatches && runningImages.stream()
-                    .allMatch(img -> {
-                        int separator = img.lastIndexOf(':');
-                        return separator >= 0 && desiredTag.equals(img.substring(separator + 1));
-                    });
-            log.info("Image validation for {}: desired tag={}, running images={}, matched={}",
-                    appName, desiredTag, runningImages, matched);
+            String desiredRepository = getDesiredImageRepository(rootNode);
+            List<String> applicationImages = desiredRepository == null
+                    ? new ArrayList<>()
+                    : runningImages.stream()
+                            .filter(image -> repositoriesMatch(image, desiredRepository))
+                            .collect(Collectors.toList());
+            boolean matched;
+            String matchingMode;
+            if (desiredRepository != null) {
+                matchingMode = "repository-scoped";
+                matched = expectedVersionMatches
+                        && !applicationImages.isEmpty()
+                        && applicationImages.stream()
+                                .allMatch(image -> hasExactImageTag(image, desiredTag));
+            } else {
+                matchingMode = "tag-fallback";
+                matched = expectedVersionMatches
+                        && runningImages.stream()
+                                .anyMatch(image -> hasExactImageTag(image, desiredTag));
+            }
+            log.info("Image validation for {}: desired tag={}, running images={}, application images={}, mode={}, matched={}",
+                    appName, desiredTag, runningImages, applicationImages, matchingMode, matched);
             return matched;
         } catch (Exception e) {
             log.warn("Image validation failed for {} - treating as not deployed: {}", appName, e.getMessage());
@@ -1108,6 +1124,58 @@ public class ArgoCdService {
             }
         }
         return null;
+    }
+
+    /**
+     * Extracts the desired image.repository from the ArgoCD app spec's Helm parameters.
+     */
+    private String getDesiredImageRepository(JsonNode rootNode) {
+        JsonNode parameters = rootNode.path("spec").path("source").path("helm").path("parameters");
+        if (parameters.isArray()) {
+            for (JsonNode param : parameters) {
+                if ("image.repository".equals(param.path("name").asText(""))) {
+                    String repository = param.path("value").asText("");
+                    return repository.isBlank() ? null : repository;
+                }
+            }
+        }
+        return null;
+    }
+
+    private boolean repositoriesMatch(String image, String desiredRepository) {
+        String runningRepository = getImageRepository(image);
+        if (runningRepository == null || desiredRepository == null) {
+            return false;
+        }
+        String running = stripTrailingSlash(runningRepository);
+        String desired = stripTrailingSlash(desiredRepository);
+        return running.equals(desired)
+                || running.endsWith("/" + desired)
+                || desired.endsWith("/" + running);
+    }
+
+    private String getImageRepository(String image) {
+        if (image == null || image.isBlank()) {
+            return null;
+        }
+        int separator = image.lastIndexOf(':');
+        return separator >= 0 ? image.substring(0, separator) : image;
+    }
+
+    private boolean hasExactImageTag(String image, String desiredTag) {
+        if (image == null || desiredTag == null || desiredTag.isEmpty()) {
+            return false;
+        }
+        int separator = image.lastIndexOf(':');
+        return separator >= 0 && desiredTag.equals(image.substring(separator + 1));
+    }
+
+    private String stripTrailingSlash(String value) {
+        String result = value;
+        while (result.endsWith("/")) {
+            result = result.substring(0, result.length() - 1);
+        }
+        return result;
     }
 
     /**
