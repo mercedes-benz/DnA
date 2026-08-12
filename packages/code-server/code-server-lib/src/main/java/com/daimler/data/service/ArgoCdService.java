@@ -1159,7 +1159,8 @@ public class ArgoCdService {
             return null;
         }
         int separator = image.lastIndexOf(':');
-        return separator >= 0 ? image.substring(0, separator) : image;
+        return separator >= 0 && image.indexOf('/', separator) < 0
+                ? image.substring(0, separator) : image;
     }
 
     private boolean hasExactImageTag(String image, String desiredTag) {
@@ -1167,7 +1168,9 @@ public class ArgoCdService {
             return false;
         }
         int separator = image.lastIndexOf(':');
-        return separator >= 0 && desiredTag.equals(image.substring(separator + 1));
+        return separator >= 0
+                && image.indexOf('/', separator) < 0
+                && desiredTag.equals(image.substring(separator + 1));
     }
 
     private String stripTrailingSlash(String value) {
