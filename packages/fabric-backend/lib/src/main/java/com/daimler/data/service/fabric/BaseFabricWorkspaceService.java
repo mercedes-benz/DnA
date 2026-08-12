@@ -10,6 +10,7 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
@@ -42,6 +43,8 @@ import com.daimler.data.db.entities.FabricWorkspaceNsql;
 import com.daimler.data.db.json.ADAProjectDetails;
 import com.daimler.data.db.json.DdxDataProductsDetail;
 import com.daimler.data.db.json.DdxProduct;
+import com.daimler.data.db.json.GroupDetails;
+import com.daimler.data.db.json.Lakehouse;
 import com.daimler.data.db.json.AuthoriserRoleDeatils;
 import com.daimler.data.db.json.FabricWorkspaceStatus;
 import com.daimler.data.db.json.UserDetails;
@@ -490,7 +493,14 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 			return;
 		}
 		FabricWorkspaceNsql entity = entityOptional.get();
-		entity.getData().setStatus(assembler.toWorkspaceStatus(status));
+		FabricWorkspaceStatus updatedStatus = assembler.toWorkspaceStatus(status);
+		if(Objects.equals(entity.getData().getStatus(), updatedStatus)
+				&& Objects.equals(entity.getData().getName(), name)
+				&& Objects.equals(entity.getData().getDescription(), description)) {
+			log.debug("No workspace status or details change detected for {}", id);
+			return;
+		}
+		entity.getData().setStatus(updatedStatus);
 		entity.getData().setName(name);
 		entity.getData().setDescription(description);
 		jpaRepo.save(entity);
@@ -505,10 +515,21 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 			return;
 		}
 		FabricWorkspaceNsql entity = entityOptional.get();
+		List<GroupDetails> updatedGroups = assembler.toGroupDetails(groups);
+		List<GroupDetails> currentGroups =
+				entity.getData().getStatus() != null
+						? entity.getData().getStatus().getMicrosoftGroups()
+						: null;
+		if(Objects.equals(currentGroups, updatedGroups)
+				&& Objects.equals(entity.getData().getName(), name)
+				&& Objects.equals(entity.getData().getDescription(), description)) {
+			log.debug("No workspace groups or details change detected for {}", id);
+			return;
+		}
 		if(entity.getData().getStatus() == null) {
 			entity.getData().setStatus(new FabricWorkspaceStatus());
 		}
-		entity.getData().getStatus().setMicrosoftGroups(assembler.toGroupDetails(groups));
+		entity.getData().getStatus().setMicrosoftGroups(updatedGroups);
 		entity.getData().setName(name);
 		entity.getData().setDescription(description);
 		jpaRepo.save(entity);
@@ -523,7 +544,13 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 			return;
 		}
 		FabricWorkspaceNsql entity = entityOptional.get();
-		entity.getData().setLakehouses(assembler.toLakehouses(lakehouses));
+		List<Lakehouse> updatedLakehouses =
+				assembler.toLakehouses(lakehouses);
+		if(Objects.equals(entity.getData().getLakehouses(), updatedLakehouses)) {
+			log.debug("No workspace lakehouse change detected for {}", id);
+			return;
+		}
+		entity.getData().setLakehouses(updatedLakehouses);
 		jpaRepo.save(entity);
 	}
 
