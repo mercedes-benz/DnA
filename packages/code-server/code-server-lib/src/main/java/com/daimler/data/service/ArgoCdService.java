@@ -22,7 +22,6 @@ import org.springframework.util.StreamUtils;
 import org.springframework.web.client.RestTemplate;
 import org.yaml.snakeyaml.Yaml;
 
-import com.daimler.data.db.repo.workspace.WorkspaceCustomRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -77,21 +76,8 @@ public class ArgoCdService {
     @Value("${argocd.resources.defaults.limits.memory.mi}")
     private String defaultLimitMemoryMi;
 
-    @Value("${argocd.resources.caps.requests.cpu.milli}")
-    private String capRequestCpuMilli;
- 
-    @Value("${argocd.resources.caps.requests.memory.mi}")
-    private String capRequestMemoryMi;
- 
-    @Value("${argocd.resources.caps.limits.memory.mi}")
-    private String capLimitMemoryMi;
-
-
     @Autowired
     private RestTemplate restTemplate;
-
-    @Autowired
-    private WorkspaceCustomRepository workspaceCustomRepository;
 
     private volatile String cachedArgoToken;
     private volatile long cachedArgoTokenExpiresAt;
@@ -189,10 +175,9 @@ public class ArgoCdService {
             headers.setContentType(MediaType.APPLICATION_JSON);
         
             Map<String, String> resources = calculateResources(gitRepoUrl, branch);
-            boolean resourceCapExempt = isResourceCapExempt(projectName, environment);
             String targetRevision = (branch != null && !branch.isEmpty()) ? branch : "main";
             
-            String payload = this.buildPayload(appName, projectName, codeServerEnvRef, environment, gitRepoUrl, imageTag, vaultInjectorEnable, resources, targetRevision, resourceCapExempt);
+            String payload = this.buildPayload(appName, projectName, codeServerEnvRef, environment, gitRepoUrl, imageTag, vaultInjectorEnable, resources, targetRevision);
             HttpEntity<String> entity = new HttpEntity<>(payload, headers);
         
             ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
@@ -315,7 +300,7 @@ public class ArgoCdService {
     @SuppressWarnings("unchecked")
     public String buildPayload(String appName, String projectName, String clusterEnv, String targetEnv, String gitRepoUrl, 
                                String imageTag, boolean vaultInjectorEnable, Map<String, String> resources, String targetRevision,
-                               boolean resourceCapExempt) throws IOException {
+                               boolean resourceCapExempt) throws IOException {String imageTag, boolean vaultInjectorEnable, Map<String, String> resources, String targetRevision) throws IOException {
         
         String namespace = getNamespaceForEnvironment(clusterEnv, targetEnv);
         String imageRepository = imageRegistry + "-" + projectName;
@@ -352,7 +337,7 @@ public class ArgoCdService {
             boolean hasLimitsCpu = "true".equals(resources.get("hasLimitsCpu"));
 
             // Missing keys inside a non-empty resources block should still use case-1 defaults.
-            String requestCpuMilli = (cpu != null) ? cpu : convertCpu(defaultRequestCpu);
+            String requestCpu = (cpu != null) ? cpu + "m" : defaultRequestCpu;
             boolean requestMemoryDefaulted = (memory == null);
             String requestMemory = requestMemoryDefaulted ? defaultRequestMemoryMi : memory;
             boolean limitMemoryMirrored = (limitsMemory == null);
@@ -362,18 +347,6 @@ public class ArgoCdService {
             if (requestMemoryDefaulted && parseMemoryMi(limitMemory) < parseMemoryMi(defaultRequestMemoryMi)) {
                 limitMemory = defaultRequestMemoryMi;
             }
-            if (resourceCapExempt) {
-                log.info("[Resources] Project {} is exempt from resource caps in env {}, keeping configured values",
-                    projectName, targetEnv);
-            } else {
-                requestCpuMilli = clampToCap(requestCpuMilli, capRequestCpuMilli, "requests.cpu");
-                requestMemory = clampToCap(requestMemory, capRequestMemoryMi, "requests.memory");
-                limitMemory = clampToCap(limitMemory, capLimitMemoryMi, "limits.memory");
-            }
-            if (limitMemoryMirrored) {
-                limitMemory = requestMemory;
-            }
-            String requestCpu = requestCpuMilli + "m";
 
             helmParameters.add(createHelmParam("resources.requests.cpu", requestCpu));
             helmParameters.add(createHelmParam("resources.requests.memory", requestMemory + "Mi"));
@@ -381,14 +354,13 @@ public class ArgoCdService {
             if (hasLimitsCpu) {
                 helmParameters.add(createHelmParam("resources.limits.cpu", "null"));
             }
-            log.info("[Resources] Applying Helm params: requests.cpu={}, requests.memory={} (defaulted={}), limits.memory={} (source={}), limits.cpu={}, capExempt={}",
-                requestCpu,                
+            log.info("[Resources] Applying Helm params: requests.cpu={}, requests.memory={} (defaulted={}), limits.memory={} (source={}), limits.cpu={}",
+                requestCpu,               
                 requestMemory + "Mi",
                 requestMemoryDefaulted,
                 limitMemory + "Mi",
                 limitsMemory != null ? "values.yaml" : "default",
-                hasLimitsCpu ? "null" : "not set",
-                resourceCapExempt);
+                hasLimitsCpu ? "null" : "not set");
 
         } else {
             log.info("[Resources] No resource overrides, using chart defaults");
