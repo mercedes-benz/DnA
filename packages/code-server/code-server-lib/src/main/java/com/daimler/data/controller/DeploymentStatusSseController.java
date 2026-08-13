@@ -537,8 +537,14 @@ public class DeploymentStatusSseController {
 
                 // Wait briefly for the new-version pod(s) to appear (image pull / scheduling).
                 List<ArgoCdService.PodInfo> pods = new ArrayList<>();
+                boolean fallbackSelection = false;
+                boolean resourceTreeAvailable = false;
                 for (int attempt = 0; attempt < 10 && active.get(); attempt++) {
-                    pods = argoCdService.getNewVersionPods(token, appName);
+                    ArgoCdService.PodSelectionResult selection =
+                            argoCdService.getNewVersionPodSelection(token, appName);
+                    pods = selection.getPods();
+                    fallbackSelection = selection.isFallbackSelection();
+                    resourceTreeAvailable = selection.isResourceTreeAvailable();
                     if (!pods.isEmpty()) {
                         break;
                     }
@@ -548,7 +554,9 @@ public class DeploymentStatusSseController {
                 if (pods.isEmpty()) {
                     synchronized (sendLock) {
                         Map<String, Object> err = new HashMap<>();
-                        err.put("message", "No pods found for the version being deployed yet");
+                        err.put("message", resourceTreeAvailable
+                                ? "No managed pods found for the version being deployed yet"
+                                : "Could not read the ArgoCD resource tree");
                         err.put("projectName", projectName);
                         err.put("environment", environment);
                         emitter.send(SseEmitter.event().name("pod-logs-error")
@@ -567,6 +575,7 @@ public class DeploymentStatusSseController {
                     podInfo.put("pods", podNames);
                     podInfo.put("projectName", projectName);
                     podInfo.put("environment", environment);
+                    podInfo.put("podsSelectedByFallback", fallbackSelection);
                     emitter.send(SseEmitter.event().name("pod-info")
                             .data(objectMapper.writeValueAsString(podInfo)));
                 }

@@ -1204,18 +1204,47 @@ public class ArgoCdService {
         private final List<String> images;
         private final int restartCount;
         private final String statusReason;
+        private final boolean selectedByFallback;
 
         public PodInfo(String podName, List<String> images, int restartCount, String statusReason) {
+            this(podName, images, restartCount, statusReason, false);
+        }
+
+        public PodInfo(String podName, List<String> images, int restartCount, String statusReason,
+                       boolean selectedByFallback) {
             this.podName = podName;
             this.images = images;
             this.restartCount = restartCount;
             this.statusReason = statusReason;
+            this.selectedByFallback = selectedByFallback;
         }
 
         public String getPodName() { return podName; }
         public List<String> getImages() { return images; }
         public int getRestartCount() { return restartCount; }
         public String getStatusReason() { return statusReason; }
+        public boolean isSelectedByFallback() { return selectedByFallback; }
+    }
+
+    /**
+     * Carries pod selection metadata needed to explain fallback and tree failures
+     * to the deployment-status SSE stream without changing the legacy list API.
+     */
+    public static class PodSelectionResult {
+        private final List<PodInfo> pods;
+        private final boolean fallbackSelection;
+        private final boolean resourceTreeAvailable;
+
+        public PodSelectionResult(List<PodInfo> pods, boolean fallbackSelection,
+                                  boolean resourceTreeAvailable) {
+            this.pods = pods;
+            this.fallbackSelection = fallbackSelection;
+            this.resourceTreeAvailable = resourceTreeAvailable;
+        }
+
+        public List<PodInfo> getPods() { return pods; }
+        public boolean isFallbackSelection() { return fallbackSelection; }
+        public boolean isResourceTreeAvailable() { return resourceTreeAvailable; }
     }
 
     private static final Set<String> CRASH_LOOP_REASONS = new HashSet<>(Arrays.asList(
@@ -1228,8 +1257,7 @@ public class ArgoCdService {
      * Fetches the ArgoCD resource-tree for an application.
      * {@code GET {argocdBaseUrl}/api/v1/applications/{appName}/resource-tree}
      * Returns the parsed root node, or {@code null} when the app is missing or
-     * ArgoCD is not reachable (mirrors the 403/404/500 handling of
-     * {@link #getStatusOfArgoApp}).
+     * ArgoCD is not reachable.
      */
     public JsonNode getResourceTree(String token, String appName) {
         try {
@@ -1242,17 +1270,33 @@ public class ArgoCdService {
             if (response != null && response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
                 return new ObjectMapper().readTree(response.getBody());
             }
+            log.warn("ArgoCD resource-tree request failed for {}: HTTP {}, response={}",
+                    appName,
+                    response != null ? response.getStatusCode().value() : "no response",
+                    summarizeResponse(response != null ? response.getBody() : null));
             return null;
-        } catch (org.springframework.web.client.HttpClientErrorException.NotFound e) {
-            log.info("ArgoCD resource-tree not found for application: {}", appName);
-            return null;
-        } catch (org.springframework.web.client.HttpClientErrorException.Forbidden e) {
-            log.debug("Permission denied accessing ArgoCD resource-tree: {} (RBAC may still be propagating)", appName);
+        } catch (org.springframework.web.client.HttpStatusCodeException e) {
+            String summary = summarizeResponse(e.getResponseBodyAsString());
+            if (e.getStatusCode().value() == 403) {
+                log.warn("Permission denied accessing ArgoCD resource-tree for {}: HTTP 403, response={}",
+                        appName, summary);
+            } else {
+                log.warn("ArgoCD resource-tree request failed for {}: HTTP {}, response={}",
+                        appName, e.getStatusCode().value(), summary);
+            }
             return null;
         } catch (Exception e) {
-            log.error("Failed to get ArgoCD resource-tree for {}: {}", appName, e.getMessage());
+            log.error("Failed to get ArgoCD resource-tree for {}: {}", appName, summarizeResponse(e.getMessage()));
             return null;
         }
+    }
+
+    private String summarizeResponse(String response) {
+        if (response == null || response.isBlank()) {
+            return "<empty>";
+        }
+        String summary = response.replaceAll("\\s+", " ").trim();
+        return summary.length() > 240 ? summary.substring(0, 240) + "..." : summary;
     }
 
     /**
@@ -1262,7 +1306,13 @@ public class ArgoCdService {
      * returned as a best-effort fallback.
      */
     public List<PodInfo> getNewVersionPods(String token, String appName) {
-        List<PodInfo> pods = new ArrayList<>();
+        return getNewVersionPodSelection(token, appName).getPods();
+    }
+
+    // Keep selection metadata with the pods so the SSE layer can distinguish
+    // a precise version match from the compatibility fallback.
+    public PodSelectionResult getNewVersionPodSelection(String token, String appName) {
+        List<PodInfo> emptyPods = new ArrayList<>();
         try {
             String desiredTag = null;
             ResponseEntity<String> appResponse = getStatusOfArgoApp(token, appName);
@@ -1273,35 +1323,31 @@ public class ArgoCdService {
 
             JsonNode tree = getResourceTree(token, appName);
             if (tree == null) {
-                return pods;
+                return new PodSelectionResult(emptyPods, false, false);
             }
             JsonNode nodes = tree.path("nodes");
             if (!nodes.isArray()) {
-                return pods;
+                log.info("ArgoCD pod selection for {}: nodes=0, pods=0, desiredTag={}, rejectedByTag=0, details=<nodes not array>",
+                        appName, desiredTag);
+                return new PodSelectionResult(emptyPods, false, true);
             }
 
+            List<PodInfo> allPods = new ArrayList<>();
+            List<PodInfo> matchingPods = new ArrayList<>();
+            List<String> podDetails = new ArrayList<>();
+            int podNodeCount = 0;
+            int rejectedByTag = 0;
             for (JsonNode node : nodes) {
                 if (!"Pod".equals(node.path("kind").asText(""))) {
                     continue;
                 }
+                podNodeCount++;
                 List<String> images = new ArrayList<>();
                 JsonNode imagesNode = node.path("images");
                 if (imagesNode.isArray()) {
                     for (JsonNode img : imagesNode) {
                         images.add(img.asText(""));
                     }
-                }
-
-                boolean isNewVersion;
-                if (desiredTag == null || desiredTag.isEmpty()) {
-                    // Cannot distinguish versions - include as best effort
-                    isNewVersion = true;
-                } else {
-                    final String tag = desiredTag;
-                    isNewVersion = images.stream().anyMatch(img -> img.contains(":" + tag));
-                }
-                if (!isNewVersion) {
-                    continue;
                 }
 
                 int restartCount = 0;
@@ -1322,13 +1368,42 @@ public class ArgoCdService {
                         }
                     }
                 }
-                pods.add(new PodInfo(node.path("name").asText(""), images, restartCount, statusReason));
+                String podName = node.path("name").asText("");
+                if (podDetails.size() < 20) {
+                    podDetails.add(podName + "=" + images);
+                }
+                PodInfo pod = new PodInfo(podName, images, restartCount, statusReason);
+                allPods.add(pod);
+                final String tag = desiredTag;
+                boolean isNewVersion = desiredTag == null || desiredTag.isEmpty()
+                        || images.stream().anyMatch(img -> img.contains(":" + tag));
+                if (isNewVersion) {
+                    matchingPods.add(pod);
+                } else {
+                    rejectedByTag++;
+                }
             }
-            log.info("Resolved {} new-version pod(s) for {} (desiredTag={})", pods.size(), appName, desiredTag);
+            boolean fallbackSelection = desiredTag != null && !desiredTag.isEmpty()
+                    && podNodeCount > 0 && matchingPods.isEmpty();
+            List<PodInfo> selectedPods = matchingPods;
+            if (fallbackSelection) {
+                selectedPods = allPods.stream()
+                        .map(pod -> new PodInfo(pod.getPodName(), pod.getImages(),
+                                pod.getRestartCount(), pod.getStatusReason(), true))
+                        .collect(Collectors.toList());
+                log.warn("ArgoCD pod selection for {} fell back to all {} Pod node(s): desiredTag={} matched zero; rejectedByTag={}",
+                        appName, podNodeCount, desiredTag, rejectedByTag);
+            }
+            String detailSuffix = podNodeCount > podDetails.size() ? "; ... "
+                    + (podNodeCount - podDetails.size()) + " more Pod node(s)" : "";
+            log.info("ArgoCD pod selection for {}: nodes={}, pods={}, desiredTag={}, rejectedByTag={}, details={}{}",
+                    appName, nodes.size(), podNodeCount, desiredTag, rejectedByTag,
+                    String.join("; ", podDetails), detailSuffix);
+            return new PodSelectionResult(selectedPods, fallbackSelection, true);
         } catch (Exception e) {
             log.warn("Failed to resolve new-version pods for {}: {}", appName, e.getMessage());
+            return new PodSelectionResult(emptyPods, false, false);
         }
-        return pods;
     }
 
     /**
