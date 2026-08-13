@@ -303,9 +303,9 @@ public class DeploymentStatusSseController {
                 expectedVersion = buildDetails != null ? buildDetails.getVersion() : null;
             }
             Date deployTriggerTime = latestAudit != null ? latestAudit.getTriggeredOn() : null;
-            String argoAppName = projectName.toLowerCase() + "-" + environment;
             
             try {
+                String argoAppName = projectName + "-" + environment;
                 String token = argoCdService.getArgoToken();
                 ResponseEntity<String> argoResponse = argoCdService.getStatusOfArgoApp(token, argoAppName);
                 
@@ -362,12 +362,9 @@ public class DeploymentStatusSseController {
             // so the UI can decide whether to enable the "Cancel Deployment" action.
             data.put("newPodCrashLooping", false);
             data.put("deployingThresholdExceeded", false);
-            boolean deploymentInProgress = "DEPLOYING".equals(actualStatus)
-                    || "DEPLOY_REQUESTED".equals(actualStatus)
-                    || "DEPLOYING".equals(dbStatus)
-                    || "DEPLOY_REQUESTED".equals(dbStatus);
-            if (deploymentInProgress) {
+            if ("DEPLOYING".equals(actualStatus) || "DEPLOY_REQUESTED".equals(actualStatus)) {
                 try {
+                    String argoAppName = projectName + "-" + environment;
                     String token = argoCdService.getArgoToken();
                     Map<String, Object> crashStatus = argoCdService.getNewPodCrashLoopStatus(token, argoAppName);
                     data.put("newPodCrashLooping", crashStatus.get("newPodCrashLooping"));
@@ -478,7 +475,7 @@ public class DeploymentStatusSseController {
             }
 
             // Fallback: fetch from ArgoCD
-            String argoAppName = projectName.toLowerCase() + "-" + environment;
+            String argoAppName = projectName + "-" + environment;
             String token = argoCdService.getArgoToken();
             ResponseEntity<String> argoResponse = argoCdService.getStatusOfArgoApp(token, argoAppName);
             if (argoResponse != null && argoResponse.getStatusCode().is2xxSuccessful()) {
@@ -512,7 +509,7 @@ public class DeploymentStatusSseController {
 
         log.info("Starting pod-logs SSE stream for project: {}, environment: {}", projectName, environment);
         SseEmitter emitter = new SseEmitter(Long.MAX_VALUE);
-        String appName = projectName.toLowerCase() + "-" + environment;
+        String appName = projectName + "-" + environment;
 
         final AtomicBoolean active = new AtomicBoolean(true);
         final List<HttpURLConnection> openConnections = Collections.synchronizedList(new ArrayList<>());
@@ -667,7 +664,7 @@ public class DeploymentStatusSseController {
             }
             String storedProjectName = entity.getData().getProjectDetails().getProjectName();
 
-            String argoAppName = projectName.toLowerCase() + "-" + environment;
+            String argoAppName = projectName + "-" + environment;
             String token = argoCdService.getArgoToken();
             String terminateResult = argoCdService.terminateOperation(token, argoAppName);
             log.info("Cancel deployment for {}: ArgoCD terminate result={}", argoAppName, terminateResult);
