@@ -1753,6 +1753,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 
 										// Update workspace entity status
 										entity.getData().getProjectDetails().setLastBuildOrDeployedStatus(finalStatus);
+										entity.getData().getProjectDetails().setLastBuildOrDeployedOn(now);
 
 										Boolean keepBuildImage = false;
 
@@ -1763,6 +1764,8 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 											resolvedBuildDetails.setLastBuildBy(entity.getData().getWorkspaceOwner());
 											resolvedBuildDetails.setGitjobRunID(gitJobRunId);
 											resolvedBuildDetails.setLastBuildFailureReason(null);   // clear stale BUILD_TIMEOUT on a real GitHub result
+											workspaceCustomRepository.updateBuildDetails(projectName, environment,
+													resolvedBuildDetails);
 										} else if ("DEPLOYED".equalsIgnoreCase(finalStatus)
 												|| "DEPLOYMENT_FAILED".equalsIgnoreCase(finalStatus)) {
 											deploymentDetails.setLastDeploymentStatus(finalStatus);
@@ -1772,10 +1775,9 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 												deploymentDetails
 														.setLastDeployedBy(entity.getData().getWorkspaceOwner());
 											}
+											workspaceCustomRepository.updateDeploymentDetails(projectName, environment,
+													deploymentDetails, finalStatus);
 										}
-
-										// Save workspace entity
-										workspaceCustomRepository.update(entity);
 
 										// Update build/deploy audit logs
 										CodeServerBuildDeployNsql buildDeployEntity = buildDeployCustomRepo
@@ -1792,6 +1794,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 												if (auditEntry != null) {
 													auditEntry.setBuildOn(now);
 													auditEntry.setBuildStatus(finalStatus);
+													auditEntry.setFailureReason(null);
 													keepBuildImage = auditEntry.isKeepBuildImage();
 												}
 											} else if ("DEPLOYED".equalsIgnoreCase(finalStatus)
@@ -1873,7 +1876,10 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 										buildDetails.setLastBuildFailureReason("BUILD_TIMEOUT");
 										buildDetails.setLastBuildOn(now);
 									}
-									workspaceCustomRepository.update(entity);
+									if (buildDetails != null) {
+										workspaceCustomRepository.updateBuildDetails(projectName, environment,
+												buildDetails);
+									}
 									CodeServerBuildDeployNsql buildDeployEntity = buildDeployCustomRepo.findByProjectName(projectName);
 									if (buildDeployEntity != null) {
 										CodeServerBuildDeploy buildDeployData = buildDeployEntity.getData();
@@ -3575,6 +3581,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 						buildDetails.setLastBuildBy(entity.getData().getWorkspaceOwner());
 						buildDetails.setGitjobRunID(gitJobRunId);
 						buildDetails.setLastBuildBranch(branch);
+						buildDetails.setLastBuildFailureReason(null);
 
 						workspaceCustomRepository.updateBuildDetails(projectName, targetEnv,
 								buildDetails);
@@ -3592,6 +3599,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 							if (auditEntry != null) {
 								auditEntry.setBuildOn(now);
 								auditEntry.setBuildStatus(latestStatus);
+								auditEntry.setFailureReason(null);
 								keepBuildImage = auditEntry.isKeepBuildImage();
 							}
 
@@ -5280,6 +5288,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 					buildDetails.setLastBuildBy(entity.getData().getWorkspaceOwner());
 					buildDetails.setLastBuildOn(now);
 					buildDetails.setLastBuildStatus("BUILD_REQUESTED");
+					buildDetails.setLastBuildFailureReason(null);
 					buildDetails.setVersion(appVersion);
 					buildDetails.setLastBuildType(lastBuildType);
 					buildDetails.setGitjobRunID("");
@@ -5327,6 +5336,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 						auditLog.setTriggeredBy(triggeredByUser);
 					 auditLog.setBranch(branch);
 					 auditLog.setBuildStatus("BUILD_REQUESTED");
+					 auditLog.setFailureReason(null);
 					 auditLog.setComments(buildRequestDto.getComments());
 					 auditLog.setVersion(appVersion);
 					 auditLog.setKeepBuildImage(buildRequestDto.isKeepBuildImage() != null && buildRequestDto.isKeepBuildImage());
@@ -5849,6 +5859,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 		try {
 			CodeServerWorkspaceNsql entity = workspaceCustomRepository.findByWorkspaceId(requestVo.getWsId());
 			CodeServerWorkspace data = entity.getData();
+			String projectName = data.getProjectDetails().getProjectName();
 			String currentStatus = data.getProjectDetails().getLastBuildOrDeployedStatus();
 			String currentEnv = data.getProjectDetails().getLastBuildOrDeployedEnv();
 			
@@ -5861,7 +5872,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 				return response;
 			}
 			
-			CodeServerBuildDeployNsql optionalBuildDeployentity =  buildDeployCustomRepo.findByProjectName(requestVo.getProjectName());	
+			CodeServerBuildDeployNsql optionalBuildDeployentity =  buildDeployCustomRepo.findByProjectName(projectName);
 			CodeServerBuildDeployNsql buildDeployentity = null;
 			CodeServerBuildDeploy buildDeployData = null;
 			log.info("updateGitJobRunId called for wsId={}, projectName={}, currentStatus={}, currentEnv={}, runId={}",
@@ -5883,7 +5894,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 						 buildDetails = entity.getData().getProjectDetails().getProdBuildDetails();
 					 }
 				buildDetails.setGitjobRunID(requestVo.getGitJobRunId());
-				workspaceCustomRepository.updateBuildDetails(requestVo.getProjectName(),data.getProjectDetails().getLastBuildOrDeployedEnv(),buildDetails);	 
+				workspaceCustomRepository.updateBuildDetails(projectName,data.getProjectDetails().getLastBuildOrDeployedEnv(),buildDetails);
 				if(optionalBuildDeployentity != null){
 					   buildDeployentity = optionalBuildDeployentity;
 					   buildDeployData = buildDeployentity.getData();
@@ -5907,11 +5918,13 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 				   }
 				   response = "SUCCESS";
 				
-				}else if(currentStatus.equalsIgnoreCase("DEPLOY_REQUESTED") || currentStatus.equalsIgnoreCase("DEPLOYED") || currentStatus.equalsIgnoreCase("DEPLOYMENT_FAILED")){
-				workspaceCustomRepository.updateDeploymentGitJobRunId(
-						data.getProjectDetails().getProjectName(),
-						data.getProjectDetails().getLastBuildOrDeployedEnv(),
-						requestVo.getGitJobRunId());
+			}else if(currentStatus.equalsIgnoreCase("DEPLOY_REQUESTED") || currentStatus.equalsIgnoreCase("DEPLOYED") || currentStatus.equalsIgnoreCase("DEPLOYMENT_FAILED")){
+				 CodeServerDeploymentDetails deploymentDetails = entity.getData().getProjectDetails().getIntDeploymentDetails();
+					 if (!"int".equalsIgnoreCase(data.getProjectDetails().getLastBuildOrDeployedEnv())) {
+						 deploymentDetails = entity.getData().getProjectDetails().getProdDeploymentDetails();
+					 }
+				deploymentDetails.setGitjobRunID(requestVo.getGitJobRunId());
+				workspaceCustomRepository.updateDeploymentDetails(projectName, data.getProjectDetails().getLastBuildOrDeployedEnv(),deploymentDetails,data.getProjectDetails().getLastBuildOrDeployedStatus());
 				 //setting audit log details
 					 if(optionalBuildDeployentity != null){
 						 buildDeployentity = optionalBuildDeployentity;
