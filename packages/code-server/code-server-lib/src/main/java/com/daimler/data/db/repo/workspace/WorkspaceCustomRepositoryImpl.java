@@ -488,6 +488,209 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 		return updateResponse;
 	}
 
+	@Transactional
+	@Override
+	public GenericMessage updateReconciledDeploymentStatus(String projectName, String environment,
+			CodeServerDeploymentDetails deploymentDetails, String lastBuildOrDeployStatus) {
+		DeploymentStatusFields fields = DeploymentStatusFields.reconciled(
+				deploymentDetails, lastBuildOrDeployStatus, environment);
+		return updateDeploymentStatusFields(projectName, environment, fields);
+	}
+
+	@Transactional
+	@Override
+	public GenericMessage updateDeploymentGitJobRunId(String projectName, String environment, String gitjobRunID) {
+		DeploymentStatusFields fields = new DeploymentStatusFields();
+		fields.gitjobRunID = gitjobRunID;
+		return updateDeploymentStatusFields(projectName, environment, fields);
+	}
+
+	@Transactional
+	@Override
+	public GenericMessage updateCancelledDeploymentStatus(String projectName, String environment,
+			String lastDeploymentStatus, String lastDeploymentError, Date lastDeployedOn) {
+		DeploymentStatusFields fields = new DeploymentStatusFields();
+		fields.lastDeploymentStatus = lastDeploymentStatus;
+		fields.lastDeploymentError = lastDeploymentError;
+		fields.errorUpdate = ErrorUpdate.SET;
+		fields.lastDeployedOn = lastDeployedOn;
+		fields.lastBuildOrDeployedStatus = lastDeploymentStatus;
+		fields.lastBuildOrDeployedEnv = environment;
+		fields.lastBuildOrDeployedOn = lastDeployedOn;
+		return updateDeploymentStatusFields(projectName, environment, fields);
+	}
+
+	private GenericMessage updateDeploymentStatusFields(String projectName, String environment,
+			DeploymentStatusFields fields) {
+		GenericMessage updateResponse = new GenericMessage();
+		updateResponse.setSuccess("FAILED");
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+		String environmentJsonbName = "int".equalsIgnoreCase(environment)
+				? "intDeploymentDetails" : "prodDeploymentDetails";
+		String updateExpression = "data";
+		String deployedByJson = null;
+
+		try {
+			if (fields.lastDeployedBy != null) {
+				deployedByJson = new ObjectMapper().writeValueAsString(fields.lastDeployedBy);
+			}
+
+			if (fields.lastDeploymentStatus != null) {
+				updateExpression = jsonbSet(updateExpression,
+						"{projectDetails," + environmentJsonbName + ",lastDeploymentStatus}",
+						"to_jsonb(CAST(:lastDeploymentStatus AS text))");
+			}
+			if (fields.errorUpdate == ErrorUpdate.SET) {
+				updateExpression = jsonbSet(updateExpression,
+						"{projectDetails," + environmentJsonbName + ",lastDeploymentError}",
+						"to_jsonb(CAST(:lastDeploymentError AS text))");
+			} else if (fields.errorUpdate == ErrorUpdate.CLEAR) {
+				updateExpression = jsonbSet(updateExpression,
+						"{projectDetails," + environmentJsonbName + ",lastDeploymentError}",
+						"CAST('null' AS jsonb)");
+			}
+			if (fields.lastDeployedVersion != null) {
+				updateExpression = jsonbSet(updateExpression,
+						"{projectDetails," + environmentJsonbName + ",lastDeployedVersion}",
+						"to_jsonb(CAST(:lastDeployedVersion AS text))");
+			}
+			if (fields.lastDeployedBranch != null) {
+				updateExpression = jsonbSet(updateExpression,
+						"{projectDetails," + environmentJsonbName + ",lastDeployedBranch}",
+						"to_jsonb(CAST(:lastDeployedBranch AS text))");
+			}
+			if (fields.lastDeployedOn != null) {
+				updateExpression = jsonbSet(updateExpression,
+						"{projectDetails," + environmentJsonbName + ",lastDeployedOn}",
+						"to_jsonb(CAST(:lastDeployedOn AS bigint))");
+			}
+			if (deployedByJson != null) {
+				updateExpression = jsonbSet(updateExpression,
+						"{projectDetails," + environmentJsonbName + ",lastDeployedBy}",
+						"CAST(:lastDeployedBy AS jsonb)");
+			}
+			if (fields.gitjobRunID != null) {
+				updateExpression = jsonbSet(updateExpression,
+						"{projectDetails," + environmentJsonbName + ",gitjobRunID}",
+						"to_jsonb(CAST(:gitjobRunID AS text))");
+			}
+			if (fields.lastBuildOrDeployedStatus != null) {
+				updateExpression = jsonbSet(updateExpression,
+						"{projectDetails,lastBuildOrDeployedStatus}",
+						"to_jsonb(CAST(:lastBuildOrDeployedStatus AS text))");
+			}
+			if (fields.lastBuildOrDeployedEnv != null) {
+				updateExpression = jsonbSet(updateExpression,
+						"{projectDetails,lastBuildOrDeployedEnv}",
+						"to_jsonb(CAST(:lastBuildOrDeployedEnv AS text))");
+			}
+			if (fields.lastBuildOrDeployedOn != null) {
+				updateExpression = jsonbSet(updateExpression,
+						"{projectDetails,lastBuildOrDeployedOn}",
+						"to_jsonb(CAST(:lastBuildOrDeployedOn AS bigint))");
+			}
+
+			String updateQuery = "UPDATE workspace_nsql SET data = " + updateExpression
+					+ " WHERE data->'projectDetails'->>'projectName' = :projectName";
+			log.debug("Field-level deployment status update SQL for project {}: {}", projectName, updateQuery);
+			Query query = em.createNativeQuery(updateQuery);
+			query.setParameter("projectName", projectName);
+			if (fields.lastDeploymentStatus != null) {
+				query.setParameter("lastDeploymentStatus", fields.lastDeploymentStatus);
+			}
+			if (fields.errorUpdate == ErrorUpdate.SET) {
+				query.setParameter("lastDeploymentError", fields.lastDeploymentError);
+			}
+			if (fields.lastDeployedVersion != null) {
+				query.setParameter("lastDeployedVersion", fields.lastDeployedVersion);
+			}
+			if (fields.lastDeployedBranch != null) {
+				query.setParameter("lastDeployedBranch", fields.lastDeployedBranch);
+			}
+			if (fields.lastDeployedOn != null) {
+				query.setParameter("lastDeployedOn", fields.lastDeployedOn.getTime());
+			}
+			if (deployedByJson != null) {
+				query.setParameter("lastDeployedBy", deployedByJson);
+			}
+			if (fields.gitjobRunID != null) {
+				query.setParameter("gitjobRunID", fields.gitjobRunID);
+			}
+			if (fields.lastBuildOrDeployedStatus != null) {
+				query.setParameter("lastBuildOrDeployedStatus", fields.lastBuildOrDeployedStatus);
+			}
+			if (fields.lastBuildOrDeployedEnv != null) {
+				query.setParameter("lastBuildOrDeployedEnv", fields.lastBuildOrDeployedEnv);
+			}
+			if (fields.lastBuildOrDeployedOn != null) {
+				query.setParameter("lastBuildOrDeployedOn", fields.lastBuildOrDeployedOn.getTime());
+			}
+
+			int rows = query.executeUpdate();
+			if (rows == 0) {
+				log.warn("No rows updated for project {}", projectName);
+				return updateResponse;
+			}
+			updateResponse.setSuccess("SUCCESS");
+			updateResponse.setErrors(errors);
+			updateResponse.setWarnings(warnings);
+			log.info("Field-level deployment status updated successfully for project {}", projectName);
+		} catch (JsonProcessingException e) {
+			errors.add(new MessageDescription("Failed while serializing deployed-by details."));
+			log.error("Failed to serialize deployed-by details for project {}", projectName, e);
+			updateResponse.setErrors(errors);
+			updateResponse.setWarnings(warnings);
+		} catch (Exception e) {
+			errors.add(new MessageDescription("Failed while updating deployment status fields."));
+			log.error("Failed to update deployment status fields for project {} and environment {}",
+					projectName, environment, e);
+			updateResponse.setErrors(errors);
+			updateResponse.setWarnings(warnings);
+		}
+		return updateResponse;
+	}
+
+	private enum ErrorUpdate {
+		NONE, SET, CLEAR
+	}
+
+	private static class DeploymentStatusFields {
+		private String lastDeploymentStatus;
+		private String lastDeploymentError;
+		private ErrorUpdate errorUpdate = ErrorUpdate.NONE;
+		private String lastDeployedVersion;
+		private String lastDeployedBranch;
+		private Date lastDeployedOn;
+		private UserInfo lastDeployedBy;
+		private String gitjobRunID;
+		private String lastBuildOrDeployedStatus;
+		private String lastBuildOrDeployedEnv;
+		private Date lastBuildOrDeployedOn;
+
+		private static DeploymentStatusFields reconciled(CodeServerDeploymentDetails deploymentDetails,
+				String lastBuildOrDeployStatus, String environment) {
+			DeploymentStatusFields fields = new DeploymentStatusFields();
+			fields.lastDeploymentStatus = deploymentDetails.getLastDeploymentStatus();
+			fields.lastDeploymentError = deploymentDetails.getLastDeploymentError();
+			fields.errorUpdate = deploymentDetails.getLastDeploymentError() == null
+					? ErrorUpdate.CLEAR : ErrorUpdate.SET;
+			fields.lastDeployedVersion = deploymentDetails.getLastDeployedVersion();
+			fields.lastDeployedBranch = deploymentDetails.getLastDeployedBranch();
+			fields.lastDeployedOn = deploymentDetails.getLastDeployedOn();
+			fields.lastDeployedBy = deploymentDetails.getLastDeployedBy();
+			fields.gitjobRunID = deploymentDetails.getGitjobRunID();
+			fields.lastBuildOrDeployedStatus = lastBuildOrDeployStatus;
+			fields.lastBuildOrDeployedEnv = environment;
+			fields.lastBuildOrDeployedOn = deploymentDetails.getLastDeployedOn();
+			return fields;
+		}
+	}
+
+	private String jsonbSet(String expression, String path, String valueExpression) {
+		return "jsonb_set(" + expression + ", '" + path + "', " + valueExpression + ", true)";
+	}
+
 	@Override
 	public GenericMessage updateDeployedAppConfig(String projectName, String environment, boolean secureWithIAMRequired,
 			String oneApiVersionShortName,
@@ -1071,7 +1274,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 			updateQuery =
 				"update workspace_nsql set data = jsonb_set(" +
 				"jsonb_set(data, '{projectDetails,lastBuildOrDeployedStatus}', '" + addQuotes(status) + "', true)," +
-				"'{projectDetails,intDeploymentDetails,deploymentStatus}', '" + addQuotes(status) + "', true)";
+				"'{projectDetails,intDeploymentDetails,lastDeploymentStatus}', '" + addQuotes(status) + "', true)";
 
 		} else if ("prod".equalsIgnoreCase(environment) &&
 			("DEPLOY_REQUESTED".equalsIgnoreCase(status)
@@ -1081,7 +1284,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 			updateQuery =
 				"update workspace_nsql set data = jsonb_set(" +
 				"jsonb_set(data, '{projectDetails,lastBuildOrDeployedStatus}', '" + addQuotes(status) + "', true)," +
-				"'{projectDetails,prodDeploymentDetails,deploymentStatus}', '" + addQuotes(status) + "', true)";
+				"'{projectDetails,prodDeploymentDetails,lastDeploymentStatus}', '" + addQuotes(status) + "', true)";
 
 		} else {
 			log.warn(
@@ -1194,12 +1397,13 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 		}
 
 		updateQuery +=
-			" where data->>'projectName' = '" + projectName + "'";
+			" where lower(data->>'projectName') = lower(:projectName)";
 
 		try {
 			log.info("Final audit update query = {}", updateQuery);
 
 			Query q = em.createNativeQuery(updateQuery);
+			q.setParameter("projectName", projectName);
 			int rows = q.executeUpdate();
 
 			if (rows == 0) {

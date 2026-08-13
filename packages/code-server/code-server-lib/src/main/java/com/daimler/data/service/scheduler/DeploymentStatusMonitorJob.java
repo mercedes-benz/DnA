@@ -7,6 +7,7 @@ import com.daimler.data.db.entities.CodeServerBuildDeployNsql;
 import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
 import com.daimler.data.db.json.BuildAudit;
 import com.daimler.data.db.json.CodeServerBuildDeploy;
+import com.daimler.data.db.json.CodeServerBuildDetails;
 import com.daimler.data.db.json.CodeServerDeploymentDetails;
 import com.daimler.data.db.json.DeploymentAudit;
 import com.daimler.data.db.json.UserInfo;
@@ -189,7 +190,43 @@ public class DeploymentStatusMonitorJob {
             }
             String appName = projectName.toLowerCase() + "-" + environment;
             String currentDbStatus = deployment.getLastDeploymentStatus();
-            Map<String, String> argoResult = argoCdService.checkArgoAppDeploymentStatusWithError(argoToken, appName);
+            DeploymentAudit latestAudit = null;
+            CodeServerBuildDeployNsql buildDeployEntity = buildDeployCustomRepo.findByProjectName(projectName);
+            if (buildDeployEntity != null) {
+                List<DeploymentAudit> buildDeployAuditLogs = "int".equalsIgnoreCase(environment)
+                        ? buildDeployEntity.getData().getIntDeploymentAuditLogs()
+                        : buildDeployEntity.getData().getProdDeploymentAuditLogs();
+                if (buildDeployAuditLogs != null && !buildDeployAuditLogs.isEmpty()) {
+                    latestAudit = buildDeployAuditLogs.stream()
+                        .filter(audit -> audit.getTriggeredOn() != null)
+                        .sorted((a1, a2) -> a2.getTriggeredOn().compareTo(a1.getTriggeredOn()))
+                        .findFirst()
+                        .orElse(null);
+                }
+            }
+            if (latestAudit == null && deployment.getDeploymentAuditLogs() != null && !deployment.getDeploymentAuditLogs().isEmpty()) {
+                latestAudit = deployment.getDeploymentAuditLogs().stream()
+                    .filter(audit -> audit.getTriggeredOn() != null)
+                    .sorted((a1, a2) -> a2.getTriggeredOn().compareTo(a1.getTriggeredOn()))
+                    .findFirst()
+                    .orElse(null);
+            }
+
+            String expectedVersion = latestAudit != null ? latestAudit.getVersion() : null;
+            if (expectedVersion == null || expectedVersion.isEmpty()) {
+                CodeServerBuildDetails buildDetails = "int".equalsIgnoreCase(environment)
+                        ? workspace.getData().getProjectDetails().getIntBuildDetails()
+                        : workspace.getData().getProjectDetails().getProdBuildDetails();
+                expectedVersion = buildDetails != null ? buildDetails.getVersion() : null;
+            }
+            Date deployTriggerTime = latestAudit != null ? latestAudit.getTriggeredOn() : null;
+            Map<String, String> argoResult;
+            if ("DEPLOY_REQUESTED".equalsIgnoreCase(currentDbStatus)) {
+                argoResult = argoCdService.checkArgoAppDeploymentStatusWithError(
+                        argoToken, appName, expectedVersion, deployTriggerTime);
+            } else {
+                argoResult = argoCdService.checkArgoAppDeploymentStatusWithError(argoToken, appName);
+            }
             String argoStatus = argoResult.get("status");
             String argoErrorMessage = argoResult.get("errorMessage");
 
@@ -228,31 +265,6 @@ public class DeploymentStatusMonitorJob {
                     deployment.setLastDeploymentError(argoErrorMessage);
                 } else {
                     deployment.setLastDeploymentError(null);
-                }
-                
-                // Source latestAudit from the build_deploy_nsql entity (the authoritative audit history)
-                // rather than deployment.getDeploymentAuditLogs() which is typically null in workspace_nsql.
-                DeploymentAudit latestAudit = null;
-                CodeServerBuildDeployNsql buildDeployEntity = buildDeployCustomRepo.findByProjectName(projectName);
-                if (buildDeployEntity != null) {
-                    List<DeploymentAudit> buildDeployAuditLogs = "int".equalsIgnoreCase(environment)
-                            ? buildDeployEntity.getData().getIntDeploymentAuditLogs()
-                            : buildDeployEntity.getData().getProdDeploymentAuditLogs();
-                    if (buildDeployAuditLogs != null && !buildDeployAuditLogs.isEmpty()) {
-                        latestAudit = buildDeployAuditLogs.stream()
-                            .filter(audit -> audit.getTriggeredOn() != null)
-                            .sorted((a1, a2) -> a2.getTriggeredOn().compareTo(a1.getTriggeredOn()))
-                            .findFirst()
-                            .orElse(null);
-                    }
-                }
-                // Fallback to the embedded deployment audit logs if build_deploy_nsql had nothing
-                if (latestAudit == null && deployment.getDeploymentAuditLogs() != null && !deployment.getDeploymentAuditLogs().isEmpty()) {
-                    latestAudit = deployment.getDeploymentAuditLogs().stream()
-                        .filter(audit -> audit.getTriggeredOn() != null)
-                        .sorted((a1, a2) -> a2.getTriggeredOn().compareTo(a1.getTriggeredOn()))
-                        .findFirst()
-                        .orElse(null);
                 }
                 
                 // Set lastDeployedBy to the user who triggered the deployment
@@ -337,10 +349,16 @@ public class DeploymentStatusMonitorJob {
                     log.info("Updated audit log status to {} for deployment at {}", targetStatus, latestAudit.getTriggeredOn());
                 }
 
-                workspaceCustomRepository.updateDeploymentDetails(projectName, environment, deployment, targetStatus);
+                GenericMessage workspaceUpdate = workspaceCustomRepository.updateReconciledDeploymentStatus(
+                        projectName, environment, deployment, targetStatus);
                 
                 // Also update deployment audit logs in the build deploy entity (used by frontend)
                 updateBuildDeployAuditLog(projectName, environment, targetStatus);
+                if (workspaceUpdate == null || !"SUCCESS".equalsIgnoreCase(workspaceUpdate.getSuccess())) {
+                    log.error("Workspace deployment status write failed for project={} environment={} status={}; skipping notification",
+                            projectName, environment, targetStatus);
+                    return false;
+                }
 
                 // Clean up non-retained build images after successful deployment
                 if ("DEPLOYED".equals(targetStatus)) {

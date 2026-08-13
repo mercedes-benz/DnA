@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.util.MultiValueMap;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.web.client.RestTemplate;
 import com.daimler.data.util.CommonUtils;
 
@@ -16,7 +17,9 @@ import java.util.Base64;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.json.JSONObject;
 
@@ -38,6 +41,22 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 @Slf4j
 public class GitClient {
+
+	private static final class EtagEntry<T> {
+		final String etag;
+		final T value;
+
+		EtagEntry(String etag, T value) {
+			this.etag = etag;
+			this.value = value;
+		}
+	}
+
+	// These ETag stores are per-replica in-memory state; conditional 304 requests avoid consuming the shared PAT budget.
+	private final Map<String, EtagEntry<GitBranchesCollectionDto>> branchesPageEtagStore = new ConcurrentHashMap<>();
+	private final Map<String, GitBranchesCollectionDto> branchesLastValueStore = new ConcurrentHashMap<>();
+	private final Map<String, EtagEntry<GitLatestCommitIdDto>> commitEtagStore = new ConcurrentHashMap<>();
+	private final Map<String, EtagEntry<GitHubWorkflowJobsResponseDto.Job>> jobEtagStore = new ConcurrentHashMap<>();
 
 	@Value("${codeServer.git.baseuri}")
 	private String gitBaseUri;
@@ -447,8 +466,11 @@ public class GitClient {
 		return HttpStatus.INTERNAL_SERVER_ERROR;
 	}
 	
+	@Cacheable(value = "git-branches", key = "#repo + '-' + #isWorkspaceMigratedToGHE",
+			unless = "#result == null || #result.isEmpty()")
 	public GitBranchesCollectionDto getBranchesFromRepo(String username, String repo, Boolean isWorkspaceMigratedToGHE) {
     GitBranchesCollectionDto allBranches = new GitBranchesCollectionDto();
+	String repoKey = null;
     try {
         String repoName = null;
         String gitOrg = null;
@@ -483,6 +505,7 @@ public class GitClient {
             repoName = repo;
         }
         String orgName = Objects.nonNull(gitOrg) ? gitOrg : gitOrgName;
+        repoKey = orgName + "/" + repoName;
         String baseApiUrl = isWorkspaceMigratedToGHE ? gheBaseUri : gitBaseUri;
 
         while (true) {
@@ -498,14 +521,55 @@ public class GitClient {
 
             log.info("Fetching branches from URL: {}", url);
 
-            HttpEntity<String> entity = new HttpEntity<>(headers);
-            ResponseEntity<GitBranchesCollectionDto> response =
-                    restTemplate.exchange(url, HttpMethod.GET, entity, GitBranchesCollectionDto.class);
+            String pageKey = repoKey + "#p" + page;
+            HttpHeaders requestHeaders = new HttpHeaders();
+            requestHeaders.putAll(headers);
+            EtagEntry<GitBranchesCollectionDto> cachedPage = branchesPageEtagStore.get(pageKey);
+            if (cachedPage != null && cachedPage.etag != null) {
+	requestHeaders.setIfNoneMatch(cachedPage.etag);
+            }
+
+            HttpEntity<String> entity = new HttpEntity<>(requestHeaders);
+            ResponseEntity<GitBranchesCollectionDto> response;
+            try {
+	response = restTemplate.exchange(url, HttpMethod.GET, entity, GitBranchesCollectionDto.class);
+            } catch (HttpClientErrorException e) {
+	if (e.getStatusCode() == HttpStatus.NOT_MODIFIED) {
+		if (cachedPage == null) {
+			break;
+		}
+		allBranches.addAll(cachedPage.value);
+		if (cachedPage.value.size() < pageSize) {
+			break;
+		}
+		page++;
+		continue;
+	}
+	throw e;
+            }
+
+            if (response != null && response.getStatusCode() == HttpStatus.NOT_MODIFIED) {
+	if (cachedPage == null) {
+		break;
+	}
+	allBranches.addAll(cachedPage.value);
+	if (cachedPage.value.size() < pageSize) {
+		break;
+	}
+	page++;
+	continue;
+            }
 
             if (response != null && response.getStatusCode().is2xxSuccessful()
                     && response.getBody() != null) {
 
                 GitBranchesCollectionDto branches = response.getBody();
+                GitBranchesCollectionDto bodyCopy = new GitBranchesCollectionDto();
+                bodyCopy.addAll(branches);
+                String etag = response.getHeaders().getETag();
+                if (etag != null) {
+	branchesPageEtagStore.put(pageKey, new EtagEntry<>(etag, bodyCopy));
+                }
                 allBranches.addAll(branches);
 
                 if (branches.size() < pageSize) break;
@@ -514,7 +578,24 @@ public class GitClient {
                 break;
             }
         }
+        if (!allBranches.isEmpty()) {
+	branchesLastValueStore.put(repoKey, allBranches);
+        }
         log.info("Fetched {} branches from repo {}", allBranches.size(), repoName);
+    } catch (HttpClientErrorException e) {
+	if (e.getStatusCode() == HttpStatus.FORBIDDEN) {
+		String remaining = e.getResponseHeaders() == null ? null
+				: e.getResponseHeaders().getFirst("X-RateLimit-Remaining");
+		String reset = e.getResponseHeaders() == null ? null
+				: e.getResponseHeaders().getFirst("X-RateLimit-Reset");
+		log.warn("GitHub branch request rate limited for repo {}: remaining={}, reset={}",
+				repo, remaining, reset);
+		GitBranchesCollectionDto lastValue = repoKey == null ? null : branchesLastValueStore.get(repoKey);
+		if (lastValue != null) {
+			return lastValue;
+		}
+	}
+        log.error("Error occurred while fetching branches from git repo {}: {}", repo, e.getMessage(), e);
     } catch (Exception e) {
         log.error("Error occurred while fetching branches from git repo {}: {}", repo, e.getMessage(), e);
     }
@@ -595,6 +676,7 @@ public class GitClient {
 	
 	public GitLatestCommitIdDto getLatestCommitId( String orgName, String branch, String repoName, Boolean isWorkspaceMigratedToGHE) {
 		GitLatestCommitIdDto commitId = null;
+		String commitKey = orgName + "/" + repoName + "@" + branch;
 		try {
 			String baseUri = Boolean.TRUE.equals(isWorkspaceMigratedToGHE) ? gheBaseUri : gitBaseUri;
 			String pat = Boolean.TRUE.equals(isWorkspaceMigratedToGHE) ? ghePat : personalAccessToken;
@@ -606,15 +688,34 @@ public class GitClient {
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");
 			headers.set("Authorization", "token "+ pat);
+			EtagEntry<GitLatestCommitIdDto> cachedCommit = commitEtagStore.get(commitKey);
+			if (cachedCommit != null && cachedCommit.etag != null) {
+				headers.setIfNoneMatch(cachedCommit.etag);
+			}
 			String url = baseUri+"/repos/" + orgName + "/"+ repoName+ "/commits?sha="+branch+"&per_page=1";
 			HttpEntity entity = new HttpEntity<>(headers);
-			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
+			ResponseEntity<String> response;
+			try {
+				response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
+			} catch (HttpClientErrorException e) {
+				if (e.getStatusCode() == HttpStatus.NOT_MODIFIED) {
+					return cachedCommit == null ? null : cachedCommit.value;
+				}
+				throw e;
+			}
+			if (response != null && response.getStatusCode() == HttpStatus.NOT_MODIFIED) {
+				return cachedCommit == null ? null : cachedCommit.value;
+			}
 			ObjectMapper objectMapper = new ObjectMapper();
 			objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 			GitLatestCommitIdDto[] commits = objectMapper.readValue(response.getBody(), GitLatestCommitIdDto[].class);
 				if (commits.length > 0) {
 					 commitId = commits[0];
 				}
+			String etag = response.getHeaders().getETag();
+			if (etag != null) {
+				commitEtagStore.put(commitKey, new EtagEntry<>(etag, commitId));
+			}
 			log.info("completed fetching latest commit id from git repo {} and branch {} ",repoName, branch);
 			return commitId;
 		} catch (Exception e) {
@@ -728,21 +829,40 @@ public class GitClient {
 		HttpHeaders headers = new HttpHeaders();
 		headers.set("Accept", "application/vnd.github+json");
 		headers.set("Authorization", "Bearer " + ghePat);
+		EtagEntry<GitHubWorkflowJobsResponseDto.Job> cachedJob = jobEtagStore.get(runId);
+		if (cachedJob != null && cachedJob.etag != null) {
+			headers.setIfNoneMatch(cachedJob.etag);
+		}
 
 		HttpEntity<Void> entity = new HttpEntity<>(headers);
 		try {
 			log.info("Calling GitHub Jobs API: {}", url);
 			ResponseEntity<GitHubWorkflowJobsResponseDto> response =
 					restTemplate.exchange(url, HttpMethod.GET, entity, GitHubWorkflowJobsResponseDto.class);
+			if (response != null && response.getStatusCode() == HttpStatus.NOT_MODIFIED) {
+				return cachedJob == null ? null : cachedJob.value;
+			}
 			GitHubWorkflowJobsResponseDto body = response.getBody();
 			if (body != null && body.getJobs() != null) {
-				return body.getJobs().stream()
-						.filter(job -> job.getName() != null && job.getName().toLowerCase().contains("build or deploy workspace application"))
+				GitHubWorkflowJobsResponseDto.Job job = body.getJobs().stream()
+						.filter(workflowJob -> workflowJob.getName() != null && workflowJob.getName().toLowerCase().contains("build or deploy workspace application"))
 						.findFirst()
 						.orElse(null);
+				String etag = response.getHeaders().getETag();
+				if (etag != null) {
+					jobEtagStore.put(runId, new EtagEntry<>(etag, job));
+				}
+				return job;
+			}
+			String etag = response.getHeaders().getETag();
+			if (etag != null) {
+				jobEtagStore.put(runId, new EtagEntry<>(etag, null));
 			}
 			return null;
 		} catch (HttpStatusCodeException ex) {
+			if (ex.getStatusCode() == HttpStatus.NOT_MODIFIED) {
+				return cachedJob == null ? null : cachedJob.value;
+			}
 			log.error("GitHub Jobs API error {} for runId {}", ex.getStatusCode(), runId);
 			return null;
 		} catch (Exception ex) {
