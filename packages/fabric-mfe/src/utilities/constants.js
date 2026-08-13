@@ -142,3 +142,7 @@ export const TEAMS_PROFILE_LINK_URL_PREFIX = 'https://your-team-profile-url-pref
     CODESPACEADMIN : '7',
     FABRICADMIN : '8',
   };
+  
+export const SKU_OPTIONS = ['F2', 'F4', 'F8', 'F16', 'F32', 'F64', 'F128', 'F256', 'F512', 'F1024', 'F2048'];
+
+export const STATE_OPTIONS = ['Active', 'Paused', 'Provisioning'];
