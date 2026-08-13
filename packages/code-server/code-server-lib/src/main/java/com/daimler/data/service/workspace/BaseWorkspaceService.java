@@ -740,19 +740,13 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 				String gitValidationUrl = (repoDetails != null && repoDetails.contains("ghe.com")) 
 					? gheBaseUri 
 					: gitBaseUri;
-				HttpStatus validateUserPatstatus = gitClient.validateGitPat(collabPid, pat, gitValidationUrl);
-				if (!validateUserPatstatus.is2xxSuccessful()) {
-					MessageDescription errMsg;
-					if (validateUserPatstatus == HttpStatus.FORBIDDEN) {
-						errMsg = new MessageDescription(
-								"PAT is valid but SSO is not configured for " + orgName + ". Please authorize SSO for your Personal Access Token.");
-					} else {
-						errMsg = new MessageDescription(
-								"Invalid Git Personal Access Token provided. Please verify and retry.");
-					}
-					errors.add(errMsg);
-					responseVO.setErrors(errors);
-					return responseVO;
+					GitClient.GitPatValidationResult validation =
+							gitClient.validateGitPat(collabPid, pat, gitValidationUrl);
+					if (!validation.isSuccessful()) {
+						MessageDescription errMsg = getGitPatValidationError(validation, orgName);
+						errors.add(errMsg);
+						responseVO.setErrors(errors);
+						return responseVO;
 				}
 			}
 			else {
@@ -965,19 +959,13 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 				 String gitValidationUrl = (repoDetails != null && repoDetails.contains("ghe.com")) 
 						 ? gheBaseUri 
 						 : gitBaseUri;
-				 HttpStatus validateUserPatstatus = gitClient.validateGitPat(entity.getData().getGitUserName(), pat, gitValidationUrl);
-				 if (!validateUserPatstatus.is2xxSuccessful()) {
-					 MessageDescription errMsg;
-					 if (validateUserPatstatus == HttpStatus.FORBIDDEN) {
-						errMsg = new MessageDescription(
-								"PAT is valid but SSO is not configured for " + orgName + ". Please authorize SSO for your Personal Access Token.");
-					 } else {
-						errMsg = new MessageDescription(
-								"Invalid Git Personal Access Token provided. Please verify and retry.");
-					 }
-					 errors.add(errMsg);
-					 responseVO.setErrors(errors);
-					 return responseVO;
+					 GitClient.GitPatValidationResult validation =
+							 gitClient.validateGitPat(entity.getData().getGitUserName(), pat, gitValidationUrl);
+					 if (!validation.isSuccessful()) {
+						 MessageDescription errMsg = getGitPatValidationError(validation, orgName);
+						 errors.add(errMsg);
+						 responseVO.setErrors(errors);
+						 return responseVO;
 				 }
 			 }
 			 else {
@@ -1162,19 +1150,13 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 					 String gitValidationUrl = isWorkspaceMigratedToGHE
 							 ? gheBaseUri 
 							 : gitBaseUri;
-					 HttpStatus validateUserPatstatus = gitClient.validateGitPat(owner.getGitUserName(), pat, gitValidationUrl);
-					 if (!validateUserPatstatus.is2xxSuccessful()) {
-						 MessageDescription errMsg;
-						 if (validateUserPatstatus == HttpStatus.FORBIDDEN) {
-							errMsg = new MessageDescription(
-									"PAT is valid but SSO is not configured for " + orgName + ". Please authorize SSO for your Personal Access Token.");
-						 } else {
-							errMsg = new MessageDescription(
-									"Invalid GitHub Personal Access Token provided. Please verify and retry.");
-						 }
-						 errors.add(errMsg);
-						 responseVO.setErrors(errors);
-						 return responseVO;
+						 GitClient.GitPatValidationResult validation =
+								 gitClient.validateGitPat(owner.getGitUserName(), pat, gitValidationUrl);
+						 if (!validation.isSuccessful()) {
+							 MessageDescription errMsg = getGitPatValidationError(validation, orgName);
+							 errors.add(errMsg);
+							 responseVO.setErrors(errors);
+							 return responseVO;
 					 }
 				 }
  
@@ -6376,4 +6358,33 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
         }
         return responseMessage;
     }
+
+	/**
+	 * Keep all workspace entry points aligned so missing credentials, rejected credentials,
+	 * SSO authorization, and ordinary permission failures remain distinguishable to users.
+	 */
+	private MessageDescription getGitPatValidationError(
+			GitClient.GitPatValidationResult validation, String orgName) {
+		if (validation.isMissingToken()) {
+			return new MessageDescription(
+					"Git Personal Access Token is missing. Please provide a token and retry.");
+		}
+		if (validation.getStatus() == HttpStatus.UNAUTHORIZED) {
+			return new MessageDescription(
+					"Git Personal Access Token was rejected by the Git server. "
+							+ "Please verify it is valid for the selected host and retry.");
+		}
+		if (validation.getSsoAuthorizationUrl() != null) {
+			return new MessageDescription(
+					"Personal Access Token requires SSO authorization for " + orgName
+							+ ". Authorize it here: " + validation.getSsoAuthorizationUrl());
+		}
+		if (validation.getStatus() == HttpStatus.FORBIDDEN) {
+			return new MessageDescription(
+					"Git Personal Access Token lacks permission to access " + orgName
+							+ ". Please verify its organization permissions and retry.");
+		}
+		return new MessageDescription(
+				"Git Personal Access Token validation failed. Please verify the token and retry.");
+	}
  }
