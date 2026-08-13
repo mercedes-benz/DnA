@@ -362,11 +362,7 @@ public class DeploymentStatusSseController {
             // so the UI can decide whether to enable the "Cancel Deployment" action.
             data.put("newPodCrashLooping", false);
             data.put("deployingThresholdExceeded", false);
-            boolean deploymentInProgress = "DEPLOYING".equals(actualStatus)
-                    || "DEPLOY_REQUESTED".equals(actualStatus)
-                    || "DEPLOYING".equals(dbStatus)
-                    || "DEPLOY_REQUESTED".equals(dbStatus);
-            if (deploymentInProgress) {
+            if ("DEPLOYING".equals(actualStatus) || "DEPLOY_REQUESTED".equals(actualStatus)) {
                 try {
                     String argoAppName = projectName + "-" + environment;
                     String token = argoCdService.getArgoToken();
