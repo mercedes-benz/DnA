@@ -6359,6 +6359,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 	 */
 	private boolean resolveWorkspaceMigratedToGHE(CodeServerWorkspaceVO vo, String repoDetails) {
 		Boolean persistedFlag = null;
+		String persistedFlagSource = "workspace";
 		if (vo != null && vo.getWorkspaceId() != null) {
 			CodeServerWorkspaceNsql persistedWorkspace =
 					workspaceCustomRepository.findByWorkspaceId(vo.getWorkspaceId());
@@ -6366,12 +6367,25 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 				persistedFlag = persistedWorkspace.getData().getIsWorkspaceMigratedToGHE();
 			}
 		}
+		if (persistedFlag == null && vo != null && vo.getProjectDetails() != null
+				&& vo.getProjectDetails().getProjectOwner() != null
+				&& vo.getProjectDetails().getProjectName() != null) {
+			CodeServerWorkspaceNsql ownerWorkspace = workspaceCustomRepository.findbyProjectName(
+					vo.getProjectDetails().getProjectOwner().getId(),
+					vo.getProjectDetails().getProjectName());
+			if (ownerWorkspace != null && ownerWorkspace.getData() != null) {
+				persistedFlag = ownerWorkspace.getData().getIsWorkspaceMigratedToGHE();
+				if (persistedFlag != null) {
+					persistedFlagSource = "owner";
+				}
+			}
+		}
 		boolean urlDerivedFlag = repoDetails != null && repoDetails.contains("ghe.com");
 		if (persistedFlag != null) {
 			if (persistedFlag != urlDerivedFlag) {
 				log.warn("Workspace host signals disagree: persistedMigratedToGHE={}, "
-						+ "urlDerivedMigratedToGHE={}, selectedHost={}",
-						persistedFlag, urlDerivedFlag, persistedFlag ? "GHE" : "git.i");
+						+ "urlDerivedMigratedToGHE={}, selectedHost={}, source={}",
+						persistedFlag, urlDerivedFlag, persistedFlag ? "GHE" : "git.i", persistedFlagSource);
 			}
 			return persistedFlag;
 		}
