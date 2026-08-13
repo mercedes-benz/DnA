@@ -1419,16 +1419,23 @@ public class ArgoCdService {
         result.put("newPodCrashLooping", false);
         result.put("crashLoopReason", null);
         try {
-            List<PodInfo> pods = getNewVersionPods(token, appName);
-            for (PodInfo pod : pods) {
+            PodSelectionResult selection = getNewVersionPodSelection(token, appName);
+            for (PodInfo pod : selection.getPods()) {
                 String reason = pod.getStatusReason();
                 if (reason != null && CRASH_LOOP_REASONS.contains(reason)) {
                     result.put("newPodCrashLooping", true);
-                    result.put("crashLoopReason", "New pod is in " + reason
+                    String podLabel = pod.isSelectedByFallback()
+                            ? "Fallback-selected pod is in " : "New pod is in ";
+                    result.put("crashLoopReason", podLabel + reason
                         + (pod.getRestartCount() > 0 ? " (" + pod.getRestartCount() + " restarts)" : ""));
+                    if (pod.isSelectedByFallback()) {
+                        log.warn("Crash-loop verdict for {} came from fallback-selected pod {}: reason={}",
+                                appName, pod.getPodName(), reason);
+                    }
                     return result;
                 }
-                if (pod.getRestartCount() >= CRASH_LOOP_RESTART_THRESHOLD) {
+                if (!pod.isSelectedByFallback()
+                        && pod.getRestartCount() >= CRASH_LOOP_RESTART_THRESHOLD) {
                     result.put("newPodCrashLooping", true);
                     result.put("crashLoopReason", "New pod is repeatedly restarting ("
                         + pod.getRestartCount() + " restarts)");
