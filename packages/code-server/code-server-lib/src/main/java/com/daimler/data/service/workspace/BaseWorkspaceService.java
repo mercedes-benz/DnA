@@ -697,11 +697,8 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 				repoName = vo.getProjectDetails().getRecipeDetails().getRepodetails();
 			}
 			String pathCheckout = "";
-			boolean isWorkspaceMigratedToGHE = false;
 			String repoDetails = vo.getProjectDetails().getRecipeDetails().getRepodetails();
-			if (repoDetails != null && repoDetails.contains("ghe.com")) {
-				isWorkspaceMigratedToGHE = true;
-			}
+			boolean isWorkspaceMigratedToGHE = resolveWorkspaceMigratedToGHE(vo, repoDetails);
 			if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")
 					&& !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
 							.startsWith("private")
@@ -737,7 +734,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 		   }
 		   if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().equalsIgnoreCase("default") && 
 				!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")) {
-				String gitValidationUrl = (repoDetails != null && repoDetails.contains("ghe.com")) 
+				String gitValidationUrl = isWorkspaceMigratedToGHE
 					? gheBaseUri 
 					: gitBaseUri;
 				GitClient.GitPatValidationResult validation =
@@ -761,7 +758,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 				}
 			}
 			if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private")) {
-				if (repoDetails == null || !repoDetails.contains("ghe.com")) {
+				if (!isWorkspaceMigratedToGHE) {
 					HttpStatus addAdminAccessToGitUser = gitClient.addAdminAccessToRepo(entity.getData().getWorkspaceOwner().getGitUserName(),
 							repoName);
 					if (!addAdminAccessToGitUser.is2xxSuccessful()) {
@@ -916,11 +913,8 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 				 repoName = vo.getProjectDetails().getRecipeDetails().getRepodetails();
 			 }
 			 String pathCheckout = "";
-			 boolean isWorkspaceMigratedToGHE = false;
 			 String repoDetails = vo.getProjectDetails().getRecipeDetails().getRepodetails();
-			 if (repoDetails != null && repoDetails.contains("ghe.com")) {
-				 isWorkspaceMigratedToGHE = true;
-			 }
+			 boolean isWorkspaceMigratedToGHE = resolveWorkspaceMigratedToGHE(vo, repoDetails);
 			 if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")
 					 && !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
 							 .startsWith("private")
@@ -956,7 +950,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 			}
 			if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().equalsIgnoreCase("default") && 
 				 !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")) {
-				 String gitValidationUrl = (repoDetails != null && repoDetails.contains("ghe.com")) 
+				 String gitValidationUrl = isWorkspaceMigratedToGHE
 						 ? gheBaseUri 
 						 : gitBaseUri;
 					GitClient.GitPatValidationResult validation =
@@ -980,7 +974,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 				 }
 			 }
 			 if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private")) {
-				 if (repoDetails == null || !repoDetails.contains("ghe.com")) {
+				 if (!isWorkspaceMigratedToGHE) {
 					 HttpStatus addAdminAccessToGitUser = gitClient.addAdminAccessToRepo(entity.getData().getWorkspaceOwner().getGitUserName(),
 							 repoName);
 					 if (!addAdminAccessToGitUser.is2xxSuccessful()) {
@@ -6358,6 +6352,31 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
         }
         return responseMessage;
     }
+
+	/**
+	 * Existing workspaces retain an authoritative migration flag; only legacy records
+	 * without that flag should derive the host from their repository URL.
+	 */
+	private boolean resolveWorkspaceMigratedToGHE(CodeServerWorkspaceVO vo, String repoDetails) {
+		Boolean persistedFlag = null;
+		if (vo != null && vo.getWorkspaceId() != null) {
+			CodeServerWorkspaceNsql persistedWorkspace =
+					workspaceCustomRepository.findByWorkspaceId(vo.getWorkspaceId());
+			if (persistedWorkspace != null && persistedWorkspace.getData() != null) {
+				persistedFlag = persistedWorkspace.getData().getIsWorkspaceMigratedToGHE();
+			}
+		}
+		boolean urlDerivedFlag = repoDetails != null && repoDetails.contains("ghe.com");
+		if (persistedFlag != null) {
+			if (persistedFlag != urlDerivedFlag) {
+				log.warn("Workspace host signals disagree: persistedMigratedToGHE={}, "
+						+ "urlDerivedMigratedToGHE={}, selectedHost={}",
+						persistedFlag, urlDerivedFlag, persistedFlag ? "GHE" : "git.i");
+			}
+			return persistedFlag;
+		}
+		return urlDerivedFlag;
+	}
 
 	/**
 	 * Keep all workspace entry points aligned so missing credentials, rejected credentials,
