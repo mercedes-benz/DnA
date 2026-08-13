@@ -740,13 +740,13 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 				String gitValidationUrl = (repoDetails != null && repoDetails.contains("ghe.com")) 
 					? gheBaseUri 
 					: gitBaseUri;
-					GitClient.GitPatValidationResult validation =
-							gitClient.validateGitPat(collabPid, pat, gitValidationUrl);
-					if (!validation.isSuccessful()) {
-						MessageDescription errMsg = getGitPatValidationError(validation, orgName);
-						errors.add(errMsg);
-						responseVO.setErrors(errors);
-						return responseVO;
+				GitClient.GitPatValidationResult validation =
+						gitClient.validateGitPat(collabPid, pat, gitValidationUrl);
+				if (!validation.isSuccessful()) {
+					MessageDescription errMsg = getGitPatValidationError(validation, orgName);
+					errors.add(errMsg);
+					responseVO.setErrors(errors);
+					return responseVO;
 				}
 			}
 			else {
@@ -959,13 +959,13 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 				 String gitValidationUrl = (repoDetails != null && repoDetails.contains("ghe.com")) 
 						 ? gheBaseUri 
 						 : gitBaseUri;
-					 GitClient.GitPatValidationResult validation =
-							 gitClient.validateGitPat(entity.getData().getGitUserName(), pat, gitValidationUrl);
-					 if (!validation.isSuccessful()) {
-						 MessageDescription errMsg = getGitPatValidationError(validation, orgName);
-						 errors.add(errMsg);
-						 responseVO.setErrors(errors);
-						 return responseVO;
+					GitClient.GitPatValidationResult validation =
+							gitClient.validateGitPat(entity.getData().getGitUserName(), pat, gitValidationUrl);
+					if (!validation.isSuccessful()) {
+						MessageDescription errMsg = getGitPatValidationError(validation, orgName);
+						errors.add(errMsg);
+						responseVO.setErrors(errors);
+						return responseVO;
 				 }
 			 }
 			 else {
@@ -1150,13 +1150,13 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 					 String gitValidationUrl = isWorkspaceMigratedToGHE
 							 ? gheBaseUri 
 							 : gitBaseUri;
-						 GitClient.GitPatValidationResult validation =
-								 gitClient.validateGitPat(owner.getGitUserName(), pat, gitValidationUrl);
-						 if (!validation.isSuccessful()) {
-							 MessageDescription errMsg = getGitPatValidationError(validation, orgName);
-							 errors.add(errMsg);
-							 responseVO.setErrors(errors);
-							 return responseVO;
+						GitClient.GitPatValidationResult validation =
+								gitClient.validateGitPat(owner.getGitUserName(), pat, gitValidationUrl);
+						if (!validation.isSuccessful()) {
+							MessageDescription errMsg = getGitPatValidationError(validation, orgName);
+							errors.add(errMsg);
+							responseVO.setErrors(errors);
+							return responseVO;
 					 }
 				 }
  

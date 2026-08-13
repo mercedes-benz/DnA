@@ -632,106 +632,106 @@ public class GitClient {
 }
 
 	
-		public GitPatValidationResult validateGitPat(String username, String pat, String gitBaseUrl) {
-			String dnaOrgMembersUrl = null;
-			String selectedHost = extractHost(gitBaseUrl);
-			boolean surroundingWhitespace = pat != null && !pat.equals(pat.trim());
-			int rawPatLength = pat == null ? 0 : pat.length();
-			String normalizedPat = pat == null ? null : pat.trim();
-			if (normalizedPat == null || normalizedPat.isEmpty()) {
-				log.warn("Git PAT validation skipped because the credential is blank: user={}, host={}, "
-						+ "rawLength={}, surroundingWhitespace={}",
-						username, selectedHost, rawPatLength, surroundingWhitespace);
-				return new GitPatValidationResult(HttpStatus.BAD_REQUEST, true, null);
+	public GitPatValidationResult validateGitPat(String username, String pat, String gitBaseUrl) {
+		String dnaOrgMembersUrl = null;
+		String selectedHost = extractHost(gitBaseUrl);
+		boolean surroundingWhitespace = pat != null && !pat.equals(pat.trim());
+		int rawPatLength = pat == null ? 0 : pat.length();
+		String normalizedPat = pat == null ? null : pat.trim();
+		if (normalizedPat == null || normalizedPat.isEmpty()) {
+			log.warn("Git PAT validation skipped because the credential is blank: user={}, host={}, "
+					+ "rawLength={}, surroundingWhitespace={}",
+					username, selectedHost, rawPatLength, surroundingWhitespace);
+			return new GitPatValidationResult(HttpStatus.BAD_REQUEST, true, null);
+		}
+		try {
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Content-Type", "application/json");
+			headers.set("Authorization", "token " + normalizedPat);
+			String baseUrl = gitBaseUrl;
+			if (!baseUrl.endsWith("/")) {
+				baseUrl += "/";
 			}
-			try {
-				HttpHeaders headers = new HttpHeaders();
-				headers.set("Accept", "application/json");
-				headers.set("Content-Type", "application/json");
-				headers.set("Authorization", "token " + normalizedPat);
-				String baseUrl = gitBaseUrl;
-				if (!baseUrl.endsWith("/")) {
-					baseUrl += "/";
-				}
 
-				dnaOrgMembersUrl = baseUrl + "orgs/" + gitOrgName + "/members";
-				log.info("Validating PAT and SSO for user {} against org {} URL: {}", username, gitOrgName,
-						dnaOrgMembersUrl);
-				HttpEntity entity = new HttpEntity<>(headers);
-				ResponseEntity<String> response = restTemplate.exchange(dnaOrgMembersUrl, HttpMethod.GET, entity,
-						String.class);
+			dnaOrgMembersUrl = baseUrl + "orgs/" + gitOrgName + "/members";
+			log.info("Validating PAT and SSO for user {} against org {} URL: {}", username, gitOrgName,
+					dnaOrgMembersUrl);
+			HttpEntity entity = new HttpEntity<>(headers);
+			ResponseEntity<String> response = restTemplate.exchange(dnaOrgMembersUrl, HttpMethod.GET, entity,
+					String.class);
 
-				if (response != null && response.getStatusCode() != null) {
-					if (response.getStatusCode().is2xxSuccessful()) {
-						log.info("PAT is valid and SSO is configured for user {} ({} org)", username, gitOrgName);
-						return new GitPatValidationResult(response.getStatusCode(), false, null);
-					}
-					return logValidationFailure(username, selectedHost, rawPatLength,
-							surroundingWhitespace, response.getStatusCode(), response.getBody(),
-							response.getHeaders());
+			if (response != null && response.getStatusCode() != null) {
+				if (response.getStatusCode().is2xxSuccessful()) {
+					log.info("PAT is valid and SSO is configured for user {} ({} org)", username, gitOrgName);
+					return new GitPatValidationResult(response.getStatusCode(), false, null);
 				}
-			} catch (HttpStatusCodeException e) {
 				return logValidationFailure(username, selectedHost, rawPatLength,
-						surroundingWhitespace, e.getStatusCode(), e.getResponseBodyAsString(),
-						e.getResponseHeaders());
-			} catch (Exception e) {
-				log.error("Error occurred while validating user {} PAT/SSO against host {} with "
-						+ "rawLength={}, surroundingWhitespace={}, exception {}",
-						username, selectedHost, rawPatLength, surroundingWhitespace, e.getMessage(), e);
+						surroundingWhitespace, response.getStatusCode(), response.getBody(),
+						response.getHeaders());
 			}
-			return new GitPatValidationResult(HttpStatus.INTERNAL_SERVER_ERROR, false, null);
+		} catch (HttpStatusCodeException e) {
+			return logValidationFailure(username, selectedHost, rawPatLength,
+					surroundingWhitespace, e.getStatusCode(), e.getResponseBodyAsString(),
+					e.getResponseHeaders());
+		} catch (Exception e) {
+			log.error("Error occurred while validating user {} PAT/SSO against host {} with "
+					+ "rawLength={}, surroundingWhitespace={}, exception {}",
+					username, selectedHost, rawPatLength, surroundingWhitespace, e.getMessage(), e);
 		}
+		return new GitPatValidationResult(HttpStatus.INTERNAL_SERVER_ERROR, false, null);
+	}
 
-		private GitPatValidationResult logValidationFailure(String username, String selectedHost,
-				int rawPatLength, boolean surroundingWhitespace, HttpStatus status, String responseBody,
-				HttpHeaders responseHeaders) {
-			String ssoHeader = responseHeaders == null ? null : responseHeaders.getFirst("X-GitHub-SSO");
-			String ssoAuthorizationUrl = extractSsoAuthorizationUrl(ssoHeader);
-			log.error("Git PAT validation failed: user={}, host={}, status={}, rawLength={}, "
-					+ "surroundingWhitespace={}, responseBody={}, X-GitHub-SSO={}, "
-					+ "X-OAuth-Scopes={}, X-Accepted-OAuth-Scopes={}",
-					username, selectedHost, status, rawPatLength, surroundingWhitespace,
-					boundedSummary(responseBody), boundedSummary(ssoHeader),
-					headerValue(responseHeaders, "X-OAuth-Scopes"),
-					headerValue(responseHeaders, "X-Accepted-OAuth-Scopes"));
-			return new GitPatValidationResult(status, false, ssoAuthorizationUrl);
-		}
+	private GitPatValidationResult logValidationFailure(String username, String selectedHost,
+			int rawPatLength, boolean surroundingWhitespace, HttpStatus status, String responseBody,
+			HttpHeaders responseHeaders) {
+		String ssoHeader = responseHeaders == null ? null : responseHeaders.getFirst("X-GitHub-SSO");
+		String ssoAuthorizationUrl = extractSsoAuthorizationUrl(ssoHeader);
+		log.error("Git PAT validation failed: user={}, host={}, status={}, rawLength={}, "
+				+ "surroundingWhitespace={}, responseBody={}, X-GitHub-SSO={}, "
+				+ "X-OAuth-Scopes={}, X-Accepted-OAuth-Scopes={}",
+				username, selectedHost, status, rawPatLength, surroundingWhitespace,
+				boundedSummary(responseBody), boundedSummary(ssoHeader),
+				headerValue(responseHeaders, "X-OAuth-Scopes"),
+				headerValue(responseHeaders, "X-Accepted-OAuth-Scopes"));
+		return new GitPatValidationResult(status, false, ssoAuthorizationUrl);
+	}
 
-		private String headerValue(HttpHeaders headers, String name) {
-			return headers == null ? null : boundedSummary(headers.getFirst(name));
-		}
+	private String headerValue(HttpHeaders headers, String name) {
+		return headers == null ? null : boundedSummary(headers.getFirst(name));
+	}
 
-		private String boundedSummary(String value) {
-			if (value == null) {
-				return null;
-			}
-			String normalized = value.replaceAll("\\s+", " ").trim();
-			return normalized.length() > 512 ? normalized.substring(0, 512) + "..." : normalized;
-		}
-
-		private String extractSsoAuthorizationUrl(String ssoHeader) {
-			if (ssoHeader == null) {
-				return null;
-			}
-			for (String part : ssoHeader.split(";")) {
-				String candidate = part.trim();
-				if (candidate.startsWith("url=")) {
-					String url = candidate.substring("url=".length()).trim();
-					return url.startsWith("https://") || url.startsWith("http://")
-							? boundedSummary(url)
-							: null;
-				}
-			}
+	private String boundedSummary(String value) {
+		if (value == null) {
 			return null;
 		}
+		String normalized = value.replaceAll("\\s+", " ").trim();
+		return normalized.length() > 512 ? normalized.substring(0, 512) + "..." : normalized;
+	}
 
-		private String extractHost(String baseUrl) {
-			try {
-				return URI.create(baseUrl).getHost();
-			} catch (Exception e) {
-				return "<unparseable>";
+	private String extractSsoAuthorizationUrl(String ssoHeader) {
+		if (ssoHeader == null) {
+			return null;
+		}
+		for (String part : ssoHeader.split(";")) {
+			String candidate = part.trim();
+			if (candidate.startsWith("url=")) {
+				String url = candidate.substring("url=".length()).trim();
+				return url.startsWith("https://") || url.startsWith("http://")
+						? boundedSummary(url)
+						: null;
 			}
 		}
+		return null;
+	}
+
+	private String extractHost(String baseUrl) {
+		try {
+			return URI.create(baseUrl).getHost();
+		} catch (Exception e) {
+			return "<unparseable>";
+		}
+	}
 
 	public HttpStatus validatePublicGitPat(String gitUserName, String pat, String publicGitUrl) {
 		try {
