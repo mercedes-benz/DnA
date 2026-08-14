@@ -9,6 +9,7 @@ import com.daimler.data.db.json.DeploymentAudit;
 import com.daimler.data.db.repo.workspace.WorkSpaceCodeServerBuildDeployRepository;
 import com.daimler.data.db.repo.workspace.WorkspaceCustomBuildDeployRepo;
 import com.daimler.data.db.repo.workspace.WorkspaceCustomRepository;
+import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.service.ArgoCdService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -683,17 +684,25 @@ public class DeploymentStatusSseController {
             log.info("Cancel deployment for {}: ArgoCD terminate result={}", argoAppName, terminateResult);
 
             java.util.Date cancelledOn = new java.util.Date();
-            workspaceRepository.updateCancelledDeploymentStatus(
+            GenericMessage workspaceUpdate = workspaceRepository.updateCancelledDeploymentStatus(
                     storedProjectName,
                     environment,
                     "DEPLOYMENT_FAILED",
                     USER_CANCELLED_MARKER,
                     cancelledOn);
+            result.put("argoTerminateResult", terminateResult);
+            result.put("workspaceUpdateStatus",
+                    workspaceUpdate == null ? "FAILED" : workspaceUpdate.getSuccess());
+            if (workspaceUpdate == null || !"SUCCESS".equalsIgnoreCase(workspaceUpdate.getSuccess())) {
+                result.put("status", "FAILED");
+                result.put("message", "Failed to persist deployment cancellation");
+                return ResponseEntity.status(500).body(result);
+            }
 
             updateBuildDeployAuditToCancelled(projectName, environment);
 
             result.put("status", "SUCCESS");
-            result.put("message", "Deployment cancelled");
+            result.put("message", "Deployment cancelled; ArgoCD terminate result: " + terminateResult);
             return ResponseEntity.ok(result);
         } catch (Exception e) {
             log.error("Failed to cancel deployment for {}/{}: {}", projectName, environment, e.getMessage(), e);
