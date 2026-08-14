@@ -37,6 +37,7 @@ import org.springframework.util.StreamUtils;
 import org.springframework.web.client.RestTemplate;
 import org.yaml.snakeyaml.Yaml;
 
+import com.daimler.data.db.repo.workspace.WorkspaceCustomRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -88,8 +89,29 @@ public class ArgoCdService {
     @Value("${codeServer.git.pat}")
     private String gitPat;
 
+    @Value("${argocd.resources.caps.requests.cpu.milli}")
+    private String capRequestCpuMilli;
+ 
+    @Value("${argocd.resources.caps.requests.memory.mi}")
+    private String capRequestMemoryMi;
+ 
+    @Value("${argocd.resources.caps.limits.memory.mi}")
+    private String capLimitMemoryMi;
+
+    @Value("${argocd.resources.defaults.requests.cpu}")
+    private String defaultRequestCpu;
+
+    @Value("${argocd.resources.defaults.requests.memory.mi}")
+    private String defaultRequestMemoryMi;
+
+    @Value("${argocd.resources.defaults.limits.memory.mi}")
+    private String defaultLimitMemoryMi;
+
     @Autowired
     private RestTemplate restTemplate;
+
+    @Autowired
+    private WorkspaceCustomRepository workspaceCustomRepository;
 
     private volatile String cachedArgoToken;
     private volatile long cachedArgoTokenExpiresAt;
@@ -187,9 +209,10 @@ public class ArgoCdService {
             headers.setContentType(MediaType.APPLICATION_JSON);
         
             Map<String, String> resources = calculateResources(gitRepoUrl, branch);
+            boolean resourceCapExempt = isResourceCapExempt(projectName, environment);
             String targetRevision = (branch != null && !branch.isEmpty()) ? branch : "main";
             
-            String payload = this.buildPayload(appName, projectName, codeServerEnvRef, environment, gitRepoUrl, imageTag, vaultInjectorEnable, resources, targetRevision);
+            String payload = this.buildPayload(appName, projectName, codeServerEnvRef, environment, gitRepoUrl, imageTag, vaultInjectorEnable, resources, targetRevision, resourceCapExempt);            
             HttpEntity<String> entity = new HttpEntity<>(payload, headers);
         
             ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
@@ -311,8 +334,8 @@ public class ArgoCdService {
 
     @SuppressWarnings("unchecked")
     public String buildPayload(String appName, String projectName, String clusterEnv, String targetEnv, String gitRepoUrl, 
-                               String imageTag, boolean vaultInjectorEnable, Map<String, String> resources, String targetRevision) throws IOException {
-        
+                               String imageTag, boolean vaultInjectorEnable, Map<String, String> resources, String targetRevision,
+                               boolean resourceCapExempt) throws IOException {
         String namespace = getNamespaceForEnvironment(clusterEnv, targetEnv);
         String imageRepository = imageRegistry + "-" + projectName;
         
@@ -337,43 +360,54 @@ public class ArgoCdService {
         helmParameters.add(createHelmParamForceString("podAnnotations.prometheus\\.io/scrape", "true"));
         
         if (resources != null && resources.isEmpty()) {
-            helmParameters.add(createHelmParam("resources.requests.cpu", "200m"));
-            helmParameters.add(createHelmParam("resources.requests.memory", "256Mi"));
-            helmParameters.add(createHelmParam("resources.limits.memory", "1Gi"));
+            helmParameters.add(createHelmParam("resources.requests.cpu", defaultRequestCpu));
+            helmParameters.add(createHelmParam("resources.requests.memory", defaultRequestMemoryMi + "Mi"));
+            helmParameters.add(createHelmParam("resources.limits.memory", defaultLimitMemoryMi + "Mi"));
             log.info("[Resources] Empty resources in values.yaml, sending defaults");
         } else if (resources != null && !resources.isEmpty()) {
             String cpu = resources.get("cpu");
             String memory = resources.get("memory");
+            String limitsMemory = resources.get("limitsMemory");
             boolean hasLimitsCpu = "true".equals(resources.get("hasLimitsCpu"));
 
-            if (!hasLimitsCpu) {
-                // Case 2: No limits.cpu — limits.memory = requests.memory
-                if (cpu != null) {
-                    helmParameters.add(createHelmParam("resources.requests.cpu", cpu + "m"));
-                }
-                if (memory != null) {
-                    helmParameters.add(createHelmParam("resources.requests.memory", memory + "Mi"));
-                    helmParameters.add(createHelmParam("resources.limits.memory", memory + "Mi"));
-                }
-                log.info("[Resources] Case 2: No limits.cpu in values.yaml - requests.cpu={}, requests.memory={}, limits.memory={} (same as requests)",
-                    cpu != null ? cpu + "m" : "not set",
-                    memory != null ? memory + "Mi" : "not set",
-                    memory != null ? memory + "Mi" : "not set");
-
-            } else {
-                if (cpu != null) {
-                    helmParameters.add(createHelmParam("resources.requests.cpu", cpu + "m"));
-                }
-                if (memory != null) {
-                    helmParameters.add(createHelmParam("resources.requests.memory", memory + "Mi"));
-                    helmParameters.add(createHelmParam("resources.limits.memory", memory + "Mi"));
-                }
-                helmParameters.add(createHelmParam("resources.limits.cpu", "null"));
-                log.info("[Resources] Case 3: limits.cpu exists in values.yaml - requests.cpu={}, requests.memory={}, limits.memory={} (same as requests), limits.cpu=null",
-                    cpu != null ? cpu + "m" : "not set",
-                    memory != null ? memory + "Mi" : "not set",
-                    memory != null ? memory + "Mi" : "not set");
+            // Missing keys inside a non-empty resources block should still use case-1 defaults.
+            String requestCpuMilli = (cpu != null) ? cpu : convertCpu(defaultRequestCpu);
+            boolean requestMemoryDefaulted = (memory == null);
+            String requestMemory = requestMemoryDefaulted ? defaultRequestMemoryMi : memory;
+            boolean limitMemoryMirrored = (limitsMemory == null);
+            String limitMemory = limitMemoryMirrored
+                    ? raiseLimitToRequest(defaultLimitMemoryMi, requestMemory)
+                    : limitsMemory;
+            if (requestMemoryDefaulted && parseMemoryMi(limitMemory) < parseMemoryMi(defaultRequestMemoryMi)) {
+                limitMemory = defaultRequestMemoryMi;
             }
+            if (resourceCapExempt) {
+                log.info("[Resources] Project {} is exempt from resource caps in env {}, keeping configured values",
+                    projectName, targetEnv);
+            } else {
+                requestCpuMilli = clampToCap(requestCpuMilli, capRequestCpuMilli, "requests.cpu");
+                requestMemory = clampToCap(requestMemory, capRequestMemoryMi, "requests.memory");
+                limitMemory = clampToCap(limitMemory, capLimitMemoryMi, "limits.memory");
+            }
+            // Recomputed after clamping so a capped request cannot leave the pair mismatched.
+            if (limitMemoryMirrored) {
+                limitMemory = raiseLimitToRequest(defaultLimitMemoryMi, requestMemory);
+            }
+            String requestCpu = requestCpuMilli + "m";
+            helmParameters.add(createHelmParam("resources.requests.cpu", requestCpu));
+            helmParameters.add(createHelmParam("resources.requests.memory", requestMemory + "Mi"));
+            helmParameters.add(createHelmParam("resources.limits.memory", limitMemory + "Mi"));
+            if (hasLimitsCpu) {
+                helmParameters.add(createHelmParam("resources.limits.cpu", "null"));
+            }
+            log.info("[Resources] Applying Helm params: requests.cpu={}, requests.memory={} (defaulted={}), limits.memory={} (source={}), limits.cpu={}, capExempt={}",
+                requestCpu,
+                requestMemory + "Mi",
+                requestMemoryDefaulted,
+                limitMemory + "Mi",
+                limitMemoryMirrored ? "default/raised to requests.memory" : "values.yaml",
+                hasLimitsCpu ? "null" : "not set",
+                resourceCapExempt);
 
         } else {
             log.info("[Resources] No resource overrides, using chart defaults");
@@ -609,6 +643,43 @@ public class ArgoCdService {
         } catch (NumberFormatException e) {
             log.warn("Invalid CPU value (must be 'm' or cores): {}", cpuValue);
             return null;
+        }
+    }
+    
+    private double parseMemoryMi(String memoryMi) {
+        try {
+            return Double.parseDouble(memoryMi.trim());
+        } catch (NumberFormatException e) {
+            log.warn("[Resources] Unable to parse memory Mi value: {}", memoryMi);
+            return Double.MAX_VALUE;
+        }
+    }
+
+    private String raiseLimitToRequest(String defaultLimit, String requestMemory) {
+        if (requestMemory == null) {
+            return defaultLimit;
+        }
+        return parseMemoryMi(requestMemory) > parseMemoryMi(defaultLimit) ? requestMemory : defaultLimit;
+    }
+
+    private String clampToCap(String value, String cap, String label) {
+        if (value == null || cap == null) {
+            return value;
+        }
+        if (parseMemoryMi(value) > parseMemoryMi(cap)) {
+            log.info("[Resources] {}={} exceeds cap {}, clamping to cap", label, value, cap);
+            return cap.trim();
+        }
+        return value;
+    }
+ 
+    private boolean isResourceCapExempt(String projectName, String environment) {
+        try {
+            return workspaceCustomRepository.isResourceCapExempt(projectName, environment);
+        } catch (Exception e) {
+            log.error("[Resources] Failed to read resource cap exemption for project {} in env {}, applying caps: {}",
+                projectName, environment, e.getMessage());
+            return false;
         }
     }
     
