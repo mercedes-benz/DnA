@@ -267,3 +267,12 @@ deployment:
   stuckThresholdMinutes: ${DEPLOYMENT_STUCK_THRESHOLD_MINUTES:15}
   deployedFallbackMinutes: ${DEPLOYMENT_DEPLOYED_FALLBACK_MINUTES:15}
   degradedGraceSeconds: ${DEPLOYMENT_DEGRADED_GRACE_SECONDS:120}
+  resources:
+    defaults:
+      requests:
+        cpu: ${ARGOCD_RESOURCES_DEFAULTS_REQUESTS_CPU:XXXX}
+        memory:
+          mi: ${ARGOCD_RESOURCES_DEFAULTS_REQUESTS_MEMORY_MI:XXXX}
+      limits:
+        memory:
+          mi: ${ARGOCD_RESOURCES_DEFAULTS_LIMITS_MEMORY_MI:XXXX}
