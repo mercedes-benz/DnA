@@ -647,11 +647,9 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 			updateResponse.setErrors(errors);
 			updateResponse.setWarnings(warnings);
 		} catch (Exception e) {
-			errors.add(new MessageDescription("Failed while updating deployment status fields."));
 			log.error("Failed to update deployment status fields for project {} and environment {}",
 					projectName, environment, e);
-			updateResponse.setErrors(errors);
-			updateResponse.setWarnings(warnings);
+			throw new IllegalStateException(e.getMessage(), e);
 		}
 		return updateResponse;
 	}
