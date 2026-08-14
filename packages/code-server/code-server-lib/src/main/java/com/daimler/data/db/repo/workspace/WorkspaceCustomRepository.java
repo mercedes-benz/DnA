@@ -118,5 +118,6 @@ public interface WorkspaceCustomRepository extends CommonDataRepository<CodeServ
 
 	boolean updateBuildDeployAuditStatus(String projectName, String status, String environment, String gitjobRunId);
 
+	boolean isResourceCapExempt(String projectName, String environment);
 
 }

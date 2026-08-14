@@ -1420,4 +1420,30 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 		}
 	}
 
+	@Override
+	public boolean isResourceCapExempt(String projectName, String environment) {
+		if (projectName == null || projectName.isEmpty()) {
+			return false;
+		}
+		String flagName = "prod".equalsIgnoreCase(environment) ? "resourceCapExemptProd" : "resourceCapExemptInt";
+		CriteriaBuilder cb = em.getCriteriaBuilder();
+		CriteriaQuery<Long> cq = cb.createQuery(Long.class);
+		Root<CodeServerWorkspaceNsql> root = cq.from(entityClass);
+		CriteriaQuery<Long> exemptCount = cq.select(cb.count(root));
+		Predicate con1 = cb.equal(cb.lower(
+				cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("projectDetails"), cb.literal("projectName"))),
+				projectName.toLowerCase());
+		Predicate con2 = cb.notEqual(cb.lower(
+				cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("status"))),
+				"DELETED".toLowerCase());
+		Predicate con3 = cb.equal(cb.lower(
+				cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("projectDetails"), cb.literal(flagName))),
+				"true");
+		cq.where(cb.and(con1, con2, con3));
+		Long count = em.createQuery(exemptCount).getSingleResult();
+		boolean exempt = count != null && count > 0;
+		log.info("[Resources] Resource cap exemption for project {} in env {} ({}): {}", projectName, environment, flagName, exempt);
+		return exempt;
+	}
+
 }
