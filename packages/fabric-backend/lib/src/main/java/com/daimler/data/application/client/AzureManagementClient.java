@@ -329,6 +329,7 @@ public class AzureManagementClient {
 			properties.setEnabledForDiskEncryption(true);
 			properties.setEnabledForTemplateDeployment(true);
 			properties.setEnablePurgeProtection(true);
+            properties.setEnableSoftDelete(true); 
 			properties.setPublicNetworkAccess(keyVaultPublicNetworkAccess);
 			
 			createRequest.setProperties(properties);

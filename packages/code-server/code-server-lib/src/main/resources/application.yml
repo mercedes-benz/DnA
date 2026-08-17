@@ -2,7 +2,7 @@ spring:
   mvc.pathmatch.matching-strategy: ant_path_matcher
   application:
     name: dna-codeserver-service
-    version: 1.11.1
+    version: 1.12.8
   profile:
     active: production
 
@@ -67,6 +67,12 @@ management:
     
 dna:
   uri: ${DNA_URI:XXXXXX}
+
+git:
+  cache:
+    branches:
+      ttlSeconds: ${GIT_CACHE_BRANCHES_TTL_SECONDS:30}
+      maxSize: ${GIT_CACHE_BRANCHES_MAX_SIZE:500}
 
 codeserver:
   userauth: ${CODESERVER_USERAUTH:XXXX}
@@ -239,6 +245,8 @@ opentelemetry:
 
 workspace:
   migrate: ${MIGRATE_WORKSPACE:YOUR_MIGRATE_BOOLEAN}    
+  git-job:
+    stale-threshold-minutes: ${GIT_JOB_STALE_THRESHOLD_MINUTES:XXXX}
   callKongApisFromBackend: ${CALL_KONG_APIS_FROM_BACKEND:XXXX}
   logs:
       migrate: ${WORKSPACE_LOGS_MIGRATE:YOUR_MIGRATE_BOOLEAN}
@@ -254,3 +262,8 @@ argocd:
   namespacePrefix: ${ARGOCD_NAMESPACE_PREFIX:XXXX}
   vaultAuthPath: ${ARGOCD_VAULT_AUTH_PATH:XXXX}
   vaultMountPath: ${ARGOCD_VAULT_MOUNT_PATH_SUFFIX:XXXX}
+
+deployment:
+  stuckThresholdMinutes: ${DEPLOYMENT_STUCK_THRESHOLD_MINUTES:15}
+  deployedFallbackMinutes: ${DEPLOYMENT_DEPLOYED_FALLBACK_MINUTES:15}
+  degradedGraceSeconds: ${DEPLOYMENT_DEGRADED_GRACE_SECONDS:120}

@@ -1,8 +1,13 @@
 package com.daimler.data.service.scheduler;
 
+import com.daimler.data.application.client.CodeServerClient;
+import com.daimler.data.controller.DeploymentStatusSseController;
+import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.db.entities.CodeServerBuildDeployNsql;
 import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
+import com.daimler.data.db.json.BuildAudit;
 import com.daimler.data.db.json.CodeServerBuildDeploy;
+import com.daimler.data.db.json.CodeServerBuildDetails;
 import com.daimler.data.db.json.CodeServerDeploymentDetails;
 import com.daimler.data.db.json.DeploymentAudit;
 import com.daimler.data.db.json.UserInfo;
@@ -13,6 +18,7 @@ import com.daimler.data.service.ArgoCdService;
 import com.daimler.dna.notifications.common.producer.KafkaProducerService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
@@ -41,8 +47,12 @@ public class DeploymentStatusMonitorJob {
     @Autowired
     private KafkaProducerService kafkaProducer;
 
+    @Autowired
+    private CodeServerClient codeServerClient;
+
 
     @Scheduled(fixedDelay = 10000, initialDelay = 5000)
+    @SchedulerLock(name = "deploymentStatusMonitorJob", lockAtMostFor = "2m", lockAtLeastFor = "5s")
     public void monitorDeploymentStatus() {
         try {
             log.debug("Starting deployment status monitoring job");
@@ -73,7 +83,8 @@ public class DeploymentStatusMonitorJob {
                 String topLevelEnv = workspace.getData().getProjectDetails().getLastBuildOrDeployedEnv();
 
                 CodeServerDeploymentDetails intDeployment = workspace.getData().getProjectDetails().getIntDeploymentDetails();
-                boolean intNeedsCheck = intDeployment != null && shouldCheckDeployment(intDeployment.getLastDeploymentStatus());
+                boolean intNeedsCheck = intDeployment != null && shouldCheckDeployment(intDeployment.getLastDeploymentStatus())
+                        && !isUserCancelled(intDeployment);
                 // Recovery for stuck restarts: top-level says RESTART_REQUESTED for this env but per-env field was never updated
                 if (!intNeedsCheck && intDeployment != null 
                         && "RESTART_REQUESTED".equalsIgnoreCase(topLevelStatus) 
@@ -82,6 +93,12 @@ public class DeploymentStatusMonitorJob {
                             projectName, intDeployment.getLastDeploymentStatus());
                     intDeployment.setLastDeploymentStatus("RESTART_REQUESTED");
                     intNeedsCheck = true;
+                }
+                if (intNeedsCheck && !hasDeploymentHistory(projectName, "int")) {
+                    log.info("Clearing stale status for {}-int: no deployment audit logs exist", projectName);
+                    intDeployment.setLastDeploymentStatus(null);
+                    workspaceCustomRepository.updateDeploymentDetails(projectName, "int", intDeployment, null);
+                    intNeedsCheck = false;
                 }
                 if (intNeedsCheck) {
                     checkedCount++;
@@ -95,7 +112,8 @@ public class DeploymentStatusMonitorJob {
                 }
 
                 CodeServerDeploymentDetails prodDeployment = workspace.getData().getProjectDetails().getProdDeploymentDetails();
-                boolean prodNeedsCheck = prodDeployment != null && shouldCheckDeployment(prodDeployment.getLastDeploymentStatus());
+                boolean prodNeedsCheck = prodDeployment != null && shouldCheckDeployment(prodDeployment.getLastDeploymentStatus())
+                        && !isUserCancelled(prodDeployment);
                 if (!prodNeedsCheck && prodDeployment != null 
                         && "RESTART_REQUESTED".equalsIgnoreCase(topLevelStatus) 
                         && "prod".equalsIgnoreCase(topLevelEnv)) {
@@ -103,6 +121,12 @@ public class DeploymentStatusMonitorJob {
                             projectName, prodDeployment.getLastDeploymentStatus());
                     prodDeployment.setLastDeploymentStatus("RESTART_REQUESTED");
                     prodNeedsCheck = true;
+                }
+                if (prodNeedsCheck && !hasDeploymentHistory(projectName, "prod")) {
+                    log.info("Clearing stale status for {}-prod: no deployment audit logs exist", projectName);
+                    prodDeployment.setLastDeploymentStatus(null);
+                    workspaceCustomRepository.updateDeploymentDetails(projectName, "prod", prodDeployment, null);
+                    prodNeedsCheck = false;
                 }
                 if (prodNeedsCheck) {
                     checkedCount++;
@@ -122,19 +146,87 @@ public class DeploymentStatusMonitorJob {
         }
     }
 
+    private boolean hasDeploymentHistory(String projectName, String environment) {
+        try {
+            CodeServerBuildDeployNsql buildDeployEntity = buildDeployCustomRepo.findByProjectName(projectName);
+            if (buildDeployEntity == null) {
+                return false;
+            }
+            List<DeploymentAudit> auditLogs = "int".equalsIgnoreCase(environment)
+                    ? buildDeployEntity.getData().getIntDeploymentAuditLogs()
+                    : buildDeployEntity.getData().getProdDeploymentAuditLogs();
+            return auditLogs != null && !auditLogs.isEmpty();
+        } catch (Exception e) {
+            log.warn("Failed to check deployment history for {}-{}: {}", projectName, environment, e.getMessage());
+            return true;
+        }
+    }
+
     private boolean shouldCheckDeployment(String status) {
         if (status == null) return false;
         return "DEPLOY_REQUESTED".equalsIgnoreCase(status) || "DEPLOYMENT_FAILED".equalsIgnoreCase(status)
                 || "RESTART_REQUESTED".equalsIgnoreCase(status);
     }
 
+    /**
+     * A deployment explicitly cancelled by the user is terminal and must never be reconciled back
+     * to DEPLOYED/DEPLOYING. The old ReplicaSet pods often keep running healthy on the previous
+     * image after a terminate, which would otherwise trip the "argo says DEPLOYED" reconciliation.
+     */
+    private boolean isUserCancelled(CodeServerDeploymentDetails deployment) {
+        return deployment != null
+                && "DEPLOYMENT_FAILED".equalsIgnoreCase(deployment.getLastDeploymentStatus())
+                && deployment.getLastDeploymentError() != null
+                && deployment.getLastDeploymentError().startsWith(DeploymentStatusSseController.USER_CANCELLED_MARKER);
+    }
+
     private boolean checkAndUpdateDeployment(String argoToken, CodeServerWorkspaceNsql workspace, 
                                             CodeServerDeploymentDetails deployment, 
                                             String projectName, String environment) {
         try {
+            if (isUserCancelled(deployment)) {
+                log.debug("Skipping reconciliation for {}-{}: deployment was cancelled by user (terminal)", projectName, environment);
+                return false;
+            }
             String appName = projectName.toLowerCase() + "-" + environment;
             String currentDbStatus = deployment.getLastDeploymentStatus();
-            Map<String, String> argoResult = argoCdService.checkArgoAppDeploymentStatusWithError(argoToken, appName);
+            DeploymentAudit latestAudit = null;
+            CodeServerBuildDeployNsql buildDeployEntity = buildDeployCustomRepo.findByProjectName(projectName);
+            if (buildDeployEntity != null) {
+                List<DeploymentAudit> buildDeployAuditLogs = "int".equalsIgnoreCase(environment)
+                        ? buildDeployEntity.getData().getIntDeploymentAuditLogs()
+                        : buildDeployEntity.getData().getProdDeploymentAuditLogs();
+                if (buildDeployAuditLogs != null && !buildDeployAuditLogs.isEmpty()) {
+                    latestAudit = buildDeployAuditLogs.stream()
+                        .filter(audit -> audit.getTriggeredOn() != null)
+                        .sorted((a1, a2) -> a2.getTriggeredOn().compareTo(a1.getTriggeredOn()))
+                        .findFirst()
+                        .orElse(null);
+                }
+            }
+            if (latestAudit == null && deployment.getDeploymentAuditLogs() != null && !deployment.getDeploymentAuditLogs().isEmpty()) {
+                latestAudit = deployment.getDeploymentAuditLogs().stream()
+                    .filter(audit -> audit.getTriggeredOn() != null)
+                    .sorted((a1, a2) -> a2.getTriggeredOn().compareTo(a1.getTriggeredOn()))
+                    .findFirst()
+                    .orElse(null);
+            }
+
+            String expectedVersion = latestAudit != null ? latestAudit.getVersion() : null;
+            if (expectedVersion == null || expectedVersion.isEmpty()) {
+                CodeServerBuildDetails buildDetails = "int".equalsIgnoreCase(environment)
+                        ? workspace.getData().getProjectDetails().getIntBuildDetails()
+                        : workspace.getData().getProjectDetails().getProdBuildDetails();
+                expectedVersion = buildDetails != null ? buildDetails.getVersion() : null;
+            }
+            Date deployTriggerTime = latestAudit != null ? latestAudit.getTriggeredOn() : null;
+            Map<String, String> argoResult;
+            if ("DEPLOY_REQUESTED".equalsIgnoreCase(currentDbStatus)) {
+                argoResult = argoCdService.checkArgoAppDeploymentStatusWithError(
+                        argoToken, appName, expectedVersion, deployTriggerTime);
+            } else {
+                argoResult = argoCdService.checkArgoAppDeploymentStatusWithError(argoToken, appName);
+            }
             String argoStatus = argoResult.get("status");
             String argoErrorMessage = argoResult.get("errorMessage");
 
@@ -173,15 +265,6 @@ public class DeploymentStatusMonitorJob {
                     deployment.setLastDeploymentError(argoErrorMessage);
                 } else {
                     deployment.setLastDeploymentError(null);
-                }
-                
-                DeploymentAudit latestAudit = null;
-                if (deployment.getDeploymentAuditLogs() != null && !deployment.getDeploymentAuditLogs().isEmpty()) {
-                    latestAudit = deployment.getDeploymentAuditLogs().stream()
-                        .filter(audit -> audit.getTriggeredOn() != null)
-                        .sorted((a1, a2) -> a2.getTriggeredOn().compareTo(a1.getTriggeredOn()))
-                        .findFirst()
-                        .orElse(null);
                 }
                 
                 // Set lastDeployedBy to the user who triggered the deployment
@@ -266,10 +349,22 @@ public class DeploymentStatusMonitorJob {
                     log.info("Updated audit log status to {} for deployment at {}", targetStatus, latestAudit.getTriggeredOn());
                 }
 
-                workspaceCustomRepository.updateDeploymentDetails(projectName, environment, deployment, targetStatus);
+                GenericMessage workspaceUpdate = workspaceCustomRepository.updateReconciledDeploymentStatus(
+                        projectName, environment, deployment, targetStatus);
                 
                 // Also update deployment audit logs in the build deploy entity (used by frontend)
                 updateBuildDeployAuditLog(projectName, environment, targetStatus);
+                if (workspaceUpdate == null || !"SUCCESS".equalsIgnoreCase(workspaceUpdate.getSuccess())) {
+                    log.error("Workspace deployment status write failed for project={} environment={} status={}; skipping notification",
+                            projectName, environment, targetStatus);
+                    return false;
+                }
+
+                // Clean up non-retained build images after successful deployment
+                if ("DEPLOYED".equals(targetStatus)) {
+                    String deployedVersion = deployment.getLastDeployedVersion();
+                    cleanupNonRetainedBuildImages(projectName, environment, deployedVersion);
+                }
 
                 // Send deployment notification
                 sendDeploymentNotification(workspace, deployment, projectName, environment, targetStatus);
@@ -311,7 +406,8 @@ public class DeploymentStatusMonitorJob {
                         || "RESTARTED".equalsIgnoreCase(auditStatus) || "RESTART_FAILED".equalsIgnoreCase(auditStatus)) {
                     foundTerminalAfter = true;
                 }
-                if ("DEPLOY_REQUESTED".equalsIgnoreCase(auditStatus) || "RESTART_REQUESTED".equalsIgnoreCase(auditStatus)) {
+                if ("DEPLOY_REQUESTED".equalsIgnoreCase(auditStatus) || "RESTART_REQUESTED".equalsIgnoreCase(auditStatus)
+                        || "DEPLOYING".equalsIgnoreCase(auditStatus)) {
                     if (foundTerminalAfter) {
                         audit.setDeploymentStatus("DEPLOYMENT_FAILED");
                         log.info("Marked superseded audit log entry as DEPLOYMENT_FAILED for {}-{} at index {}", projectName, environment, i);
@@ -332,6 +428,51 @@ public class DeploymentStatusMonitorJob {
             }
         } catch (Exception e) {
             log.warn("Failed to update build deploy audit log for {}-{}: {}", projectName, environment, e.getMessage());
+        }
+    }
+
+    private void cleanupNonRetainedBuildImages(String projectName, String environment, String deployedVersion) {
+        try {
+            CodeServerBuildDeployNsql buildDeployEntity = buildDeployCustomRepo.findByProjectName(projectName);
+            if (buildDeployEntity == null || buildDeployEntity.getData() == null) {
+                return;
+            }
+            CodeServerBuildDeploy data = buildDeployEntity.getData();
+            List<BuildAudit> buildAuditLogs = "int".equalsIgnoreCase(environment)
+                    ? data.getIntBuildAuditLogs()
+                    : data.getProdBuildAuditLogs();
+            if (buildAuditLogs == null || buildAuditLogs.isEmpty()) {
+                return;
+            }
+            boolean anyDeleted = false;
+            for (BuildAudit build : buildAuditLogs) {
+                if (build.getVersion() == null) {
+                    continue;
+                }
+                if (deployedVersion != null && build.getVersion().equalsIgnoreCase(deployedVersion)) {
+                    continue;
+                }
+                if (build.isKeepBuildImage() || build.isImageDeleted()) {
+                    continue;
+                }
+                if (!"BUILD_SUCCESS".equalsIgnoreCase(build.getBuildStatus())) {
+                    continue;
+                }
+                GenericMessage deleteResponse = codeServerClient.deleteBuild(projectName, build.getVersion());
+                if ("SUCCESS".equalsIgnoreCase(deleteResponse.getSuccess())) {
+                    build.setImageDeleted(true);
+                    anyDeleted = true;
+                    log.info("Cleaned up non-retained build image {}-{} version {}", projectName, environment, build.getVersion());
+                } else {
+                    log.warn("Failed to delete build image {}-{} version {} from registry", projectName, environment, build.getVersion());
+                }
+            }
+            if (anyDeleted) {
+                buildDeployEntity.setData(data);
+                buildDeployRepo.save(buildDeployEntity);
+            }
+        } catch (Exception e) {
+            log.warn("Failed to clean up build images for {}-{}: {}", projectName, environment, e.getMessage());
         }
     }
 
@@ -405,18 +546,27 @@ public class DeploymentStatusMonitorJob {
 
             List<String> teamMembers = new ArrayList<>();
             List<String> teamMembersEmails = new ArrayList<>();
-            // Notify the project owner
-            if (projectOwner != null) {
-                if (projectOwner.getId() != null) {
-                    teamMembers.add(projectOwner.getId());
-                }
+            // Collect all recipients: owner, collaborators, deployer — deduplicated by userId
+            java.util.Set<String> addedUserIds = new java.util.HashSet<>();
+
+            if (projectOwner != null && projectOwner.getId() != null && addedUserIds.add(projectOwner.getId())) {
+                teamMembers.add(projectOwner.getId());
                 if (projectOwner.getEmail() != null) {
                     teamMembersEmails.add(projectOwner.getEmail());
                 }
             }
-            // Also notify the deployer if different from project owner
-            if (deployedBy != null && deployedBy.getId() != null
-                    && (projectOwner == null || !deployedBy.getId().equalsIgnoreCase(projectOwner.getId()))) {
+            List<UserInfo> collaborators = workspace.getData().getProjectDetails().getProjectCollaborators();
+            if (collaborators != null) {
+                for (UserInfo collaborator : collaborators) {
+                    if (collaborator.getId() != null && addedUserIds.add(collaborator.getId())) {
+                        teamMembers.add(collaborator.getId());
+                        if (collaborator.getEmail() != null) {
+                            teamMembersEmails.add(collaborator.getEmail());
+                        }
+                    }
+                }
+            }
+            if (deployedBy != null && deployedBy.getId() != null && addedUserIds.add(deployedBy.getId())) {
                 teamMembers.add(deployedBy.getId());
                 if (deployedBy.getEmail() != null) {
                     teamMembersEmails.add(deployedBy.getEmail());

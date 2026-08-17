@@ -132,7 +132,10 @@ const DeployModal = (props) => {
         if (res.data.success === 'SUCCESS') {
           props.setCodeDeploying(true);
           
-          if (props.startDeploymentStatusListener) {
+          // Only start SSE for direct deploys (pre-built version).
+          // For build-first flow (no version), the card auto-poll handles status updates
+          // until DEPLOY_REQUESTED is reached.
+          if (props.startDeploymentStatusListener && version?.length) {
             props.startDeploymentStatusListener(
               projectDetails.projectName,
               deployRequest.targetEnvironment,
