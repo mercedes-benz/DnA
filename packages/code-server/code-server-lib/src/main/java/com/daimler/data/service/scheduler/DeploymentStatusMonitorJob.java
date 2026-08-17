@@ -194,6 +194,7 @@ public class DeploymentStatusMonitorJob {
     private void repairMissingFailureFields(CodeServerWorkspaceNsql workspace,
             CodeServerDeploymentDetails deployment, String projectName, String environment) {
         if (deployment == null || !"DEPLOYMENT_FAILED".equalsIgnoreCase(deployment.getLastDeploymentStatus())
+                || isUserCancelled(deployment)
                 || (deployment.getLastDeployedBy() != null && deployment.getLastDeployedOn() != null)) {
             return;
         }
@@ -204,7 +205,12 @@ public class DeploymentStatusMonitorJob {
                 deployment.setLastDeployedBy(deployedByUser);
             }
             if (deployment.getLastDeployedOn() == null) {
-                deployment.setLastDeployedOn(new Date());
+                Date repairedOn = latestAudit != null && latestAudit.getTriggeredOn() != null
+                        ? latestAudit.getTriggeredOn() : new Date();
+                deployment.setLastDeployedOn(repairedOn);
+                log.info("Repairing lastDeployedOn for {}-{} using {} timestamp",
+                        projectName, environment,
+                        latestAudit != null && latestAudit.getTriggeredOn() != null ? "audit" : "current time");
             }
             GenericMessage update = workspaceCustomRepository.updateReconciledDeploymentStatus(
                     projectName, environment, deployment, "DEPLOYMENT_FAILED");

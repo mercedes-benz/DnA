@@ -932,10 +932,6 @@ public class ArgoCdService {
      * be attributed to the current deployment, or null when the application is
      * still deploying or has no confirmed failure.
      */
-    public String getConfirmedDeploymentFailure(JsonNode rootNode, String appName, Date deployTriggerTime) {
-        return getConfirmedDeploymentFailure(null, rootNode, appName, deployTriggerTime);
-    }
-
     public String getConfirmedDeploymentFailure(String token, JsonNode rootNode, String appName,
             Date deployTriggerTime) {
         JsonNode operationState = rootNode.path("status").path("operationState");
