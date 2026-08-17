@@ -697,11 +697,8 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 				repoName = vo.getProjectDetails().getRecipeDetails().getRepodetails();
 			}
 			String pathCheckout = "";
-			boolean isWorkspaceMigratedToGHE = false;
 			String repoDetails = vo.getProjectDetails().getRecipeDetails().getRepodetails();
-			if (repoDetails != null && repoDetails.contains("ghe.com")) {
-				isWorkspaceMigratedToGHE = true;
-			}
+			boolean isWorkspaceMigratedToGHE = resolveWorkspaceMigratedToGHE(vo, repoDetails);
 			if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")
 					&& !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
 							.startsWith("private")
@@ -737,19 +734,13 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 		   }
 		   if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().equalsIgnoreCase("default") && 
 				!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")) {
-				String gitValidationUrl = (repoDetails != null && repoDetails.contains("ghe.com")) 
+				String gitValidationUrl = isWorkspaceMigratedToGHE
 					? gheBaseUri 
 					: gitBaseUri;
-				HttpStatus validateUserPatstatus = gitClient.validateGitPat(collabPid, pat, gitValidationUrl);
-				if (!validateUserPatstatus.is2xxSuccessful()) {
-					MessageDescription errMsg;
-					if (validateUserPatstatus == HttpStatus.FORBIDDEN) {
-						errMsg = new MessageDescription(
-								"PAT is valid but SSO is not configured for " + orgName + ". Please authorize SSO for your Personal Access Token.");
-					} else {
-						errMsg = new MessageDescription(
-								"Invalid Git Personal Access Token provided. Please verify and retry.");
-					}
+				GitClient.GitPatValidationResult validation =
+						gitClient.validateGitPat(collabPid, pat, gitValidationUrl);
+				if (!validation.isSuccessful()) {
+					MessageDescription errMsg = getGitPatValidationError(validation, orgName);
 					errors.add(errMsg);
 					responseVO.setErrors(errors);
 					return responseVO;
@@ -767,7 +758,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 				}
 			}
 			if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private")) {
-				if (repoDetails == null || !repoDetails.contains("ghe.com")) {
+				if (!isWorkspaceMigratedToGHE) {
 					HttpStatus addAdminAccessToGitUser = gitClient.addAdminAccessToRepo(entity.getData().getWorkspaceOwner().getGitUserName(),
 							repoName);
 					if (!addAdminAccessToGitUser.is2xxSuccessful()) {
@@ -922,11 +913,8 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 				 repoName = vo.getProjectDetails().getRecipeDetails().getRepodetails();
 			 }
 			 String pathCheckout = "";
-			 boolean isWorkspaceMigratedToGHE = false;
 			 String repoDetails = vo.getProjectDetails().getRecipeDetails().getRepodetails();
-			 if (repoDetails != null && repoDetails.contains("ghe.com")) {
-				 isWorkspaceMigratedToGHE = true;
-			 }
+			 boolean isWorkspaceMigratedToGHE = resolveWorkspaceMigratedToGHE(vo, repoDetails);
 			 if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")
 					 && !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
 							 .startsWith("private")
@@ -962,22 +950,16 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 			}
 			if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().equalsIgnoreCase("default") && 
 				 !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")) {
-				 String gitValidationUrl = (repoDetails != null && repoDetails.contains("ghe.com")) 
+				 String gitValidationUrl = isWorkspaceMigratedToGHE
 						 ? gheBaseUri 
 						 : gitBaseUri;
-				 HttpStatus validateUserPatstatus = gitClient.validateGitPat(entity.getData().getGitUserName(), pat, gitValidationUrl);
-				 if (!validateUserPatstatus.is2xxSuccessful()) {
-					 MessageDescription errMsg;
-					 if (validateUserPatstatus == HttpStatus.FORBIDDEN) {
-						errMsg = new MessageDescription(
-								"PAT is valid but SSO is not configured for " + orgName + ". Please authorize SSO for your Personal Access Token.");
-					 } else {
-						errMsg = new MessageDescription(
-								"Invalid Git Personal Access Token provided. Please verify and retry.");
-					 }
-					 errors.add(errMsg);
-					 responseVO.setErrors(errors);
-					 return responseVO;
+					GitClient.GitPatValidationResult validation =
+							gitClient.validateGitPat(entity.getData().getGitUserName(), pat, gitValidationUrl);
+					if (!validation.isSuccessful()) {
+						MessageDescription errMsg = getGitPatValidationError(validation, orgName);
+						errors.add(errMsg);
+						responseVO.setErrors(errors);
+						return responseVO;
 				 }
 			 }
 			 else {
@@ -992,7 +974,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 				 }
 			 }
 			 if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private")) {
-				 if (repoDetails == null || !repoDetails.contains("ghe.com")) {
+				 if (!isWorkspaceMigratedToGHE) {
 					 HttpStatus addAdminAccessToGitUser = gitClient.addAdminAccessToRepo(entity.getData().getWorkspaceOwner().getGitUserName(),
 							 repoName);
 					 if (!addAdminAccessToGitUser.is2xxSuccessful()) {
@@ -1162,19 +1144,13 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 					 String gitValidationUrl = isWorkspaceMigratedToGHE
 							 ? gheBaseUri 
 							 : gitBaseUri;
-					 HttpStatus validateUserPatstatus = gitClient.validateGitPat(owner.getGitUserName(), pat, gitValidationUrl);
-					 if (!validateUserPatstatus.is2xxSuccessful()) {
-						 MessageDescription errMsg;
-						 if (validateUserPatstatus == HttpStatus.FORBIDDEN) {
-							errMsg = new MessageDescription(
-									"PAT is valid but SSO is not configured for " + orgName + ". Please authorize SSO for your Personal Access Token.");
-						 } else {
-							errMsg = new MessageDescription(
-									"Invalid GitHub Personal Access Token provided. Please verify and retry.");
-						 }
-						 errors.add(errMsg);
-						 responseVO.setErrors(errors);
-						 return responseVO;
+						GitClient.GitPatValidationResult validation =
+								gitClient.validateGitPat(owner.getGitUserName(), pat, gitValidationUrl);
+						if (!validation.isSuccessful()) {
+							MessageDescription errMsg = getGitPatValidationError(validation, orgName);
+							errors.add(errMsg);
+							responseVO.setErrors(errors);
+							return responseVO;
 					 }
 				 }
  
@@ -6376,4 +6352,72 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
         }
         return responseMessage;
     }
+
+	/**
+	 * Existing workspaces retain an authoritative migration flag; only legacy records
+	 * without that flag should derive the host from their repository URL.
+	 */
+	private boolean resolveWorkspaceMigratedToGHE(CodeServerWorkspaceVO vo, String repoDetails) {
+		Boolean persistedFlag = null;
+		String persistedFlagSource = "workspace";
+		if (vo != null && vo.getWorkspaceId() != null) {
+			CodeServerWorkspaceNsql persistedWorkspace =
+					workspaceCustomRepository.findByWorkspaceId(vo.getWorkspaceId());
+			if (persistedWorkspace != null && persistedWorkspace.getData() != null) {
+				persistedFlag = persistedWorkspace.getData().getIsWorkspaceMigratedToGHE();
+			}
+		}
+		if (persistedFlag == null && vo != null && vo.getProjectDetails() != null
+				&& vo.getProjectDetails().getProjectOwner() != null
+				&& vo.getProjectDetails().getProjectName() != null) {
+			CodeServerWorkspaceNsql ownerWorkspace = workspaceCustomRepository.findbyProjectName(
+					vo.getProjectDetails().getProjectOwner().getId(),
+					vo.getProjectDetails().getProjectName());
+			if (ownerWorkspace != null && ownerWorkspace.getData() != null) {
+				persistedFlag = ownerWorkspace.getData().getIsWorkspaceMigratedToGHE();
+				if (persistedFlag != null) {
+					persistedFlagSource = "owner";
+				}
+			}
+		}
+		boolean urlDerivedFlag = repoDetails != null && repoDetails.contains("ghe.com");
+		if (persistedFlag != null) {
+			if (persistedFlag != urlDerivedFlag) {
+				log.warn("Workspace host signals disagree: persistedMigratedToGHE={}, "
+						+ "urlDerivedMigratedToGHE={}, selectedHost={}, source={}",
+						persistedFlag, urlDerivedFlag, persistedFlag ? "GHE" : "git.i", persistedFlagSource);
+			}
+			return persistedFlag;
+		}
+		return urlDerivedFlag;
+	}
+
+	/**
+	 * Keep all workspace entry points aligned so missing credentials, rejected credentials,
+	 * SSO authorization, and ordinary permission failures remain distinguishable to users.
+	 */
+	private MessageDescription getGitPatValidationError(
+			GitClient.GitPatValidationResult validation, String orgName) {
+		if (validation.isMissingToken()) {
+			return new MessageDescription(
+					"Git Personal Access Token is missing. Please provide a token and retry.");
+		}
+		if (validation.getStatus() == HttpStatus.UNAUTHORIZED) {
+			return new MessageDescription(
+					"Git Personal Access Token was rejected by the Git server. "
+							+ "Please verify it is valid for the selected host and retry.");
+		}
+		if (validation.getSsoAuthorizationUrl() != null) {
+			return new MessageDescription(
+					"Personal Access Token requires SSO authorization for " + orgName
+							+ ". Authorize it here: " + validation.getSsoAuthorizationUrl());
+		}
+		if (validation.getStatus() == HttpStatus.FORBIDDEN) {
+			return new MessageDescription(
+					"Git Personal Access Token lacks permission to access " + orgName
+							+ ". Please verify its organization permissions and retry.");
+		}
+		return new MessageDescription(
+				"Git Personal Access Token validation failed. Please verify the token and retry.");
+	}
  }

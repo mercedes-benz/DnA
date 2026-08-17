@@ -10,6 +10,7 @@ import com.daimler.data.db.json.DeploymentAudit;
 import com.daimler.data.db.repo.workspace.WorkSpaceCodeServerBuildDeployRepository;
 import com.daimler.data.db.repo.workspace.WorkspaceCustomBuildDeployRepo;
 import com.daimler.data.db.repo.workspace.WorkspaceCustomRepository;
+import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.service.ArgoCdService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -315,7 +316,7 @@ public class DeploymentStatusSseController {
             Date deployTriggerTime = latestAudit != null ? latestAudit.getTriggeredOn() : null;
             
             try {
-                String argoAppName = projectName + "-" + environment;
+                String argoAppName = projectName.toLowerCase() + "-" + environment;
                 String token = argoCdService.getArgoToken();
                 ResponseEntity<String> argoResponse = argoCdService.getStatusOfArgoApp(token, argoAppName);
                 
@@ -373,9 +374,13 @@ public class DeploymentStatusSseController {
             // so the UI can decide whether to enable the "Cancel Deployment" action.
             data.put("newPodCrashLooping", false);
             data.put("deployingThresholdExceeded", false);
-            if ("DEPLOYING".equals(actualStatus) || "DEPLOY_REQUESTED".equals(actualStatus)) {
+            boolean deploymentInProgress = "DEPLOYING".equals(actualStatus)
+                    || "DEPLOY_REQUESTED".equals(actualStatus)
+                    || "DEPLOYING".equals(dbStatus)
+                    || "DEPLOY_REQUESTED".equals(dbStatus);
+            if (deploymentInProgress) {
                 try {
-                    String argoAppName = projectName + "-" + environment;
+                    String argoAppName = projectName.toLowerCase() + "-" + environment;
                     String token = argoCdService.getArgoToken();
                     Map<String, Object> crashStatus = argoCdService.getNewPodCrashLoopStatus(token, argoAppName,
                             argoApplicationNode);
@@ -545,7 +550,7 @@ public class DeploymentStatusSseController {
             }
 
             // Fallback: fetch from ArgoCD
-            String argoAppName = projectName + "-" + environment;
+            String argoAppName = projectName.toLowerCase() + "-" + environment;
             String token = argoCdService.getArgoToken();
             ResponseEntity<String> argoResponse = argoCdService.getStatusOfArgoApp(token, argoAppName);
             if (argoResponse != null && argoResponse.getStatusCode().is2xxSuccessful()) {
@@ -579,7 +584,7 @@ public class DeploymentStatusSseController {
 
         log.info("Starting pod-logs SSE stream for project: {}, environment: {}", projectName, environment);
         SseEmitter emitter = new SseEmitter(Long.MAX_VALUE);
-        String appName = projectName + "-" + environment;
+        String appName = projectName.toLowerCase() + "-" + environment;
 
         final AtomicBoolean active = new AtomicBoolean(true);
         final List<HttpURLConnection> openConnections = Collections.synchronizedList(new ArrayList<>());
@@ -603,8 +608,14 @@ public class DeploymentStatusSseController {
 
                 // Wait briefly for the new-version pod(s) to appear (image pull / scheduling).
                 List<ArgoCdService.PodInfo> pods = new ArrayList<>();
+                boolean fallbackSelection = false;
+                boolean resourceTreeAvailable = false;
                 for (int attempt = 0; attempt < 10 && active.get(); attempt++) {
-                    pods = argoCdService.getNewVersionPods(token, appName);
+                    ArgoCdService.PodSelectionResult selection =
+                            argoCdService.getNewVersionPodSelection(token, appName);
+                    pods = selection.getPods();
+                    fallbackSelection = selection.isFallbackSelection();
+                    resourceTreeAvailable = selection.isResourceTreeAvailable();
                     if (!pods.isEmpty()) {
                         break;
                     }
@@ -614,7 +625,9 @@ public class DeploymentStatusSseController {
                 if (pods.isEmpty()) {
                     synchronized (sendLock) {
                         Map<String, Object> err = new HashMap<>();
-                        err.put("message", "No pods found for the version being deployed yet");
+                        err.put("message", resourceTreeAvailable
+                                ? "No managed pods found for the version being deployed yet"
+                                : "Could not read the ArgoCD resource tree");
                         err.put("projectName", projectName);
                         err.put("environment", environment);
                         emitter.send(SseEmitter.event().name("pod-logs-error")
@@ -633,6 +646,7 @@ public class DeploymentStatusSseController {
                     podInfo.put("pods", podNames);
                     podInfo.put("projectName", projectName);
                     podInfo.put("environment", environment);
+                    podInfo.put("podsSelectedByFallback", fallbackSelection);
                     emitter.send(SseEmitter.event().name("pod-info")
                             .data(objectMapper.writeValueAsString(podInfo)));
                 }
@@ -734,23 +748,31 @@ public class DeploymentStatusSseController {
             }
             String storedProjectName = entity.getData().getProjectDetails().getProjectName();
 
-            String argoAppName = projectName + "-" + environment;
+            String argoAppName = projectName.toLowerCase() + "-" + environment;
             String token = argoCdService.getArgoToken();
             String terminateResult = argoCdService.terminateOperation(token, argoAppName);
             log.info("Cancel deployment for {}: ArgoCD terminate result={}", argoAppName, terminateResult);
 
             java.util.Date cancelledOn = new java.util.Date();
-            workspaceRepository.updateCancelledDeploymentStatus(
+            GenericMessage workspaceUpdate = workspaceRepository.updateCancelledDeploymentStatus(
                     storedProjectName,
                     environment,
                     "DEPLOYMENT_FAILED",
                     USER_CANCELLED_MARKER,
                     cancelledOn);
+            result.put("argoTerminateResult", terminateResult);
+            result.put("workspaceUpdateStatus",
+                    workspaceUpdate == null ? "FAILED" : workspaceUpdate.getSuccess());
+            if (workspaceUpdate == null || !"SUCCESS".equalsIgnoreCase(workspaceUpdate.getSuccess())) {
+                result.put("status", "FAILED");
+                result.put("message", "Failed to persist deployment cancellation");
+                return ResponseEntity.status(500).body(result);
+            }
 
             updateBuildDeployAuditToCancelled(projectName, environment);
 
             result.put("status", "SUCCESS");
-            result.put("message", "Deployment cancelled");
+            result.put("message", "Deployment cancelled; ArgoCD terminate result: " + terminateResult);
             return ResponseEntity.ok(result);
         } catch (Exception e) {
             log.error("Failed to cancel deployment for {}/{}: {}", projectName, environment, e.getMessage(), e);
