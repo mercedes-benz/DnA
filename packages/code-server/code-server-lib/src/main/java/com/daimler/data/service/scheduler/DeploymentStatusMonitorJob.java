@@ -442,6 +442,11 @@ public class DeploymentStatusMonitorJob {
                     return false;
                 }
 
+                if ("DEPLOYED".equals(targetStatus)) {
+                    logDeploymentCompletion(projectName, environment, deployment.getLastDeployedVersion(),
+                            latestAudit != null ? latestAudit.getTriggeredOn() : null, buildDeployEntity, new Date());
+                }
+
                 // Clean up non-retained build images after successful deployment
                 if ("DEPLOYED".equals(targetStatus)) {
                     String deployedVersion = deployment.getLastDeployedVersion();
@@ -457,6 +462,54 @@ public class DeploymentStatusMonitorJob {
             log.warn("Failed to check ArgoCD status for {}-{}: {}", projectName, environment, e.getMessage());
         }
         return false;
+    }
+
+    private void logDeploymentCompletion(String projectName, String environment, String version,
+            Date deployTriggerTime, CodeServerBuildDeployNsql buildDeployEntity, Date completionTime) {
+        String durationPart = "";
+        if (deployTriggerTime != null && !deployTriggerTime.after(completionTime)) {
+            long elapsedSeconds = (completionTime.getTime() - deployTriggerTime.getTime()) / 1000L;
+            durationPart = String.format(" duration=%ds (%02d:%02d)", elapsedSeconds,
+                    elapsedSeconds / 60, elapsedSeconds % 60);
+        }
+
+        String buildPart = "";
+        BuildAudit buildAudit = findBuildAudit(buildDeployEntity, environment, version);
+        if (buildAudit != null && buildAudit.getTriggeredOn() != null) {
+            buildPart = " buildTriggeredAt=" + buildAudit.getTriggeredOn();
+            if (buildAudit.getBuildOn() != null && !buildAudit.getBuildOn().before(buildAudit.getTriggeredOn())) {
+                long buildSeconds = (buildAudit.getBuildOn().getTime() - buildAudit.getTriggeredOn().getTime()) / 1000L;
+                buildPart += String.format(" buildDuration=%ds (%02d:%02d)", buildSeconds,
+                        buildSeconds / 60, buildSeconds % 60);
+            }
+        }
+
+        log.info("Deployment completed: project={} environment={} version={} deployTriggeredAt={} completedAt={}{}{}",
+                projectName, environment, version, deployTriggerTime, completionTime, durationPart, buildPart);
+    }
+
+    private BuildAudit findBuildAudit(CodeServerBuildDeployNsql buildDeployEntity, String environment,
+            String version) {
+        if (buildDeployEntity == null || buildDeployEntity.getData() == null || version == null) {
+            return null;
+        }
+        List<BuildAudit> buildAudits = "int".equalsIgnoreCase(environment)
+                ? buildDeployEntity.getData().getIntBuildAuditLogs()
+                : buildDeployEntity.getData().getProdBuildAuditLogs();
+        if (buildAudits == null) {
+            return null;
+        }
+        return buildAudits.stream()
+                .filter(audit -> audit.getVersion() != null && version.equalsIgnoreCase(audit.getVersion()))
+                .max((a1, a2) -> {
+                    Date first = a1.getTriggeredOn();
+                    Date second = a2.getTriggeredOn();
+                    if (first == null && second == null) return 0;
+                    if (first == null) return -1;
+                    if (second == null) return 1;
+                    return first.compareTo(second);
+                })
+                .orElse(null);
     }
 
     private void fixStaleBuildDeployAuditLog(String projectName, String environment) {
