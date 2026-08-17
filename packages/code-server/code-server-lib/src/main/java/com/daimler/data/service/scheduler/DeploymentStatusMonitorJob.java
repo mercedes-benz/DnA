@@ -443,13 +443,10 @@ public class DeploymentStatusMonitorJob {
                 }
 
                 if ("DEPLOYED".equals(targetStatus)) {
-                    logDeploymentCompletion(projectName, environment, deployment.getLastDeployedVersion(),
-                            latestAudit != null ? latestAudit.getTriggeredOn() : null, buildDeployEntity, new Date());
-                }
-
-                // Clean up non-retained build images after successful deployment
-                if ("DEPLOYED".equals(targetStatus)) {
                     String deployedVersion = deployment.getLastDeployedVersion();
+                    logDeploymentCompletion(projectName, environment, deployedVersion,
+                            latestAudit != null ? latestAudit.getTriggeredOn() : null, buildDeployEntity, new Date());
+                    // Clean up non-retained build images after successful deployment
                     cleanupNonRetainedBuildImages(projectName, environment, deployedVersion);
                 }
 
