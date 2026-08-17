@@ -18,6 +18,7 @@ import com.daimler.data.service.ArgoCdService;
 import com.daimler.dna.notifications.common.producer.KafkaProducerService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -50,6 +51,8 @@ public class DeploymentStatusMonitorJob {
     @Autowired
     private CodeServerClient codeServerClient;
 
+    @Value("${deployment.failedRecheckMinutes:30}")
+    private int failedRecheckMinutes;
 
     @Scheduled(fixedDelay = 10000, initialDelay = 5000)
     @SchedulerLock(name = "deploymentStatusMonitorJob", lockAtMostFor = "2m", lockAtLeastFor = "5s")
@@ -63,7 +66,7 @@ public class DeploymentStatusMonitorJob {
                 return;
             }
 
-            List<CodeServerWorkspaceNsql> workspaces = workspaceCustomRepository.findAll();
+            List<CodeServerWorkspaceNsql> workspaces = workspaceCustomRepository.findDeploymentReconciliationWorkspaces();
             int checkedCount = 0;
             int updatedCount = 0;
 
@@ -83,7 +86,7 @@ public class DeploymentStatusMonitorJob {
                 String topLevelEnv = workspace.getData().getProjectDetails().getLastBuildOrDeployedEnv();
 
                 CodeServerDeploymentDetails intDeployment = workspace.getData().getProjectDetails().getIntDeploymentDetails();
-                boolean intNeedsCheck = intDeployment != null && shouldCheckDeployment(intDeployment.getLastDeploymentStatus())
+                boolean intNeedsCheck = intDeployment != null && shouldCheckDeployment(intDeployment)
                         && !isUserCancelled(intDeployment);
                 // Recovery for stuck restarts: top-level says RESTART_REQUESTED for this env but per-env field was never updated
                 if (!intNeedsCheck && intDeployment != null 
@@ -105,14 +108,9 @@ public class DeploymentStatusMonitorJob {
                     if (checkAndUpdateDeployment(argoToken, workspace, intDeployment, projectName, "int")) {
                         updatedCount++;
                     }
-                } else if (intDeployment != null && "DEPLOYED".equalsIgnoreCase(intDeployment.getLastDeploymentStatus())) {
-                    // Fix stale build deploy entities for workspaces that were already updated
-                    // before the build deploy audit log fix was deployed
-                    fixStaleBuildDeployAuditLog(projectName, "int");
                 }
-
                 CodeServerDeploymentDetails prodDeployment = workspace.getData().getProjectDetails().getProdDeploymentDetails();
-                boolean prodNeedsCheck = prodDeployment != null && shouldCheckDeployment(prodDeployment.getLastDeploymentStatus())
+                boolean prodNeedsCheck = prodDeployment != null && shouldCheckDeployment(prodDeployment)
                         && !isUserCancelled(prodDeployment);
                 if (!prodNeedsCheck && prodDeployment != null 
                         && "RESTART_REQUESTED".equalsIgnoreCase(topLevelStatus) 
@@ -133,8 +131,6 @@ public class DeploymentStatusMonitorJob {
                     if (checkAndUpdateDeployment(argoToken, workspace, prodDeployment, projectName, "prod")) {
                         updatedCount++;
                     }
-                } else if (prodDeployment != null && "DEPLOYED".equalsIgnoreCase(prodDeployment.getLastDeploymentStatus())) {
-                    fixStaleBuildDeployAuditLog(projectName, "prod");
                 }
             }
 
@@ -162,8 +158,45 @@ public class DeploymentStatusMonitorJob {
         }
     }
 
-    private boolean shouldCheckDeployment(String status) {
-        if (status == null) return false;
+    @Scheduled(fixedDelayString = "#{${deployment.auditLogBackfillMinutes:10} * 60000}",
+            initialDelayString = "#{${deployment.auditLogBackfillMinutes:10} * 60000}")
+    @SchedulerLock(name = "deploymentAuditLogBackfillJob", lockAtMostFor = "15m", lockAtLeastFor = "5s")
+    public void backfillStaleBuildDeployAuditLogs() {
+        try {
+            for (CodeServerWorkspaceNsql workspace : workspaceCustomRepository.findAll()) {
+                if (workspace.getData() == null || workspace.getData().getProjectDetails() == null) {
+                    continue;
+                }
+                String projectName = workspace.getData().getProjectDetails().getProjectName();
+                if (projectName == null) {
+                    continue;
+                }
+                CodeServerDeploymentDetails intDeployment = workspace.getData().getProjectDetails().getIntDeploymentDetails();
+                if (intDeployment != null && "DEPLOYED".equalsIgnoreCase(intDeployment.getLastDeploymentStatus())) {
+                    fixStaleBuildDeployAuditLog(projectName, "int");
+                }
+                CodeServerDeploymentDetails prodDeployment = workspace.getData().getProjectDetails().getProdDeploymentDetails();
+                if (prodDeployment != null && "DEPLOYED".equalsIgnoreCase(prodDeployment.getLastDeploymentStatus())) {
+                    fixStaleBuildDeployAuditLog(projectName, "prod");
+                }
+            }
+        } catch (Exception e) {
+            log.error("Error in stale build deploy audit log backfill", e);
+        }
+    }
+
+    private boolean shouldCheckDeployment(CodeServerDeploymentDetails deployment) {
+        if (deployment == null || deployment.getLastDeploymentStatus() == null) {
+            return false;
+        }
+        String status = deployment.getLastDeploymentStatus();
+        if ("DEPLOYMENT_FAILED".equalsIgnoreCase(status)) {
+            Date lastDeployedOn = deployment.getLastDeployedOn();
+            if (lastDeployedOn != null
+                    && System.currentTimeMillis() - lastDeployedOn.getTime() > failedRecheckMinutes * 60_000L) {
+                return false;
+            }
+        }
         return "DEPLOY_REQUESTED".equalsIgnoreCase(status) || "DEPLOYMENT_FAILED".equalsIgnoreCase(status)
                 || "RESTART_REQUESTED".equalsIgnoreCase(status);
     }

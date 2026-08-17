@@ -1318,7 +1318,6 @@ public class ArgoCdService {
      * returned as a best-effort fallback.
      */
     public List<PodInfo> getNewVersionPods(String token, String appName) {
-        List<PodInfo> pods = new ArrayList<>();
         try {
             String desiredTag = null;
             ResponseEntity<String> appResponse = getStatusOfArgoApp(token, appName);
@@ -1326,6 +1325,21 @@ public class ArgoCdService {
                 JsonNode appNode = new ObjectMapper().readTree(appResponse.getBody());
                 desiredTag = getDesiredImageTag(appNode);
             }
+            return getNewVersionPodsWithDesiredTag(token, appName, desiredTag);
+        } catch (Exception e) {
+            log.warn("Failed to resolve new-version pods for {}: {}", appName, e.getMessage());
+            return new ArrayList<>();
+        }
+    }
+
+    public List<PodInfo> getNewVersionPods(String token, String appName, JsonNode appNode) {
+        String desiredTag = appNode != null ? getDesiredImageTag(appNode) : null;
+        return getNewVersionPodsWithDesiredTag(token, appName, desiredTag);
+    }
+
+    private List<PodInfo> getNewVersionPodsWithDesiredTag(String token, String appName, String desiredTag) {
+        List<PodInfo> pods = new ArrayList<>();
+        try {
 
             JsonNode tree = getResourceTree(token, appName);
             if (tree == null) {
@@ -1401,6 +1415,29 @@ public class ArgoCdService {
         result.put("crashLoopReason", null);
         try {
             List<PodInfo> pods = getNewVersionPods(token, appName);
+            return evaluateCrashLoopStatus(appName, pods, result);
+        } catch (Exception e) {
+            log.warn("Failed to evaluate crash-loop status for {}: {}", appName, e.getMessage());
+            return result;
+        }
+    }
+
+    public Map<String, Object> getNewPodCrashLoopStatus(String token, String appName, JsonNode appNode) {
+        Map<String, Object> result = new HashMap<>();
+        result.put("newPodCrashLooping", false);
+        result.put("crashLoopReason", null);
+        try {
+            List<PodInfo> pods = getNewVersionPods(token, appName, appNode);
+            return evaluateCrashLoopStatus(appName, pods, result);
+        } catch (Exception e) {
+            log.warn("Failed to evaluate crash-loop status for {}: {}", appName, e.getMessage());
+        }
+        return result;
+    }
+
+    private Map<String, Object> evaluateCrashLoopStatus(String appName, List<PodInfo> pods,
+            Map<String, Object> result) {
+        try {
             for (PodInfo pod : pods) {
                 String reason = pod.getStatusReason();
                 if (reason != null && CRASH_LOOP_REASONS.contains(reason)) {

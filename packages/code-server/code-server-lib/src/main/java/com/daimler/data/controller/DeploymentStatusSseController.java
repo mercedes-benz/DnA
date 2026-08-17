@@ -48,6 +48,9 @@ public class DeploymentStatusSseController {
     @Value("${deployment.stuckThresholdMinutes:15}")
     private int stuckThresholdMinutes;
 
+    @Value("${deployment.ssePollSeconds:10}")
+    private int ssePollSeconds;
+
     /** Marker persisted in lastDeploymentError so reconcilers can recognise a user-cancelled deployment. */
     public static final String USER_CANCELLED_MARKER = "Deployment cancelled by user";
 
@@ -66,14 +69,15 @@ public class DeploymentStatusSseController {
         executor.execute(() -> {
             int errorCount = 0;
             int maxErrors = 5;
-            int maxIterations = 600;
+            int pollIntervalSeconds = Math.max(1, ssePollSeconds);
+            int maxIterations = Math.max(1, (30 * 60) / pollIntervalSeconds);
             int iteration = 0;
             boolean seenInProgress = false;
             // Minimum iterations before accepting terminal status from ArgoCD.
             // This prevents false "DEPLOYED" when re-deploying an already-deployed app,
             // because ArgoCD still shows the old deployment as Healthy+Succeeded
             // before the new sync starts.
-            int minIterationsBeforeTerminal = 5; // ~15 seconds at 3s interval
+            int minIterationsBeforeTerminal = Math.max(1, (int) Math.ceil(15.0 / pollIntervalSeconds));
             
             try {
                 while (iteration < maxIterations) {
@@ -134,7 +138,7 @@ public class DeploymentStatusSseController {
                             errorCount = 0;
                         }
 
-                        Thread.sleep(3000);
+                        Thread.sleep(pollIntervalSeconds * 1000L);
 
                     } catch (IOException e) {
                         log.warn("Client disconnected from SSE stream at iteration {}", iteration);
@@ -295,6 +299,7 @@ public class DeploymentStatusSseController {
             String confirmedArgoFailure = null;
             boolean imageMatchesDesired = true;
             boolean deploymentEvidenceReady = true;
+            JsonNode argoApplicationNode = null;
             String expectedVersion = latestAudit != null ? latestAudit.getVersion() : null;
             if (expectedVersion == null || expectedVersion.isEmpty()) {
                 CodeServerBuildDetails buildDetails = "int".equalsIgnoreCase(environment)
@@ -312,6 +317,7 @@ public class DeploymentStatusSseController {
                 if (argoResponse != null && argoResponse.getStatusCode().is2xxSuccessful()) {
                     ObjectMapper mapper = new ObjectMapper();
                     JsonNode rootNode = mapper.readTree(argoResponse.getBody());
+                    argoApplicationNode = rootNode;
                     argoHealthStatus = rootNode.path("status").path("health").path("status").asText("");
                     argoSyncStatus = rootNode.path("status").path("sync").path("status").asText("");
                     argoLastSyncPhase = rootNode.path("status").path("operationState").path("phase").asText("");
@@ -366,7 +372,8 @@ public class DeploymentStatusSseController {
                 try {
                     String argoAppName = projectName + "-" + environment;
                     String token = argoCdService.getArgoToken();
-                    Map<String, Object> crashStatus = argoCdService.getNewPodCrashLoopStatus(token, argoAppName);
+                    Map<String, Object> crashStatus = argoCdService.getNewPodCrashLoopStatus(token, argoAppName,
+                            argoApplicationNode);
                     data.put("newPodCrashLooping", crashStatus.get("newPodCrashLooping"));
                     if (crashStatus.get("crashLoopReason") != null) {
                         data.put("crashLoopReason", crashStatus.get("crashLoopReason"));

@@ -81,7 +81,28 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 		TypedQuery<CodeServerWorkspaceNsql> getAllQuery = em.createQuery(getAll);
 		return getAllQuery.getResultList();		
 	} 
-			
+
+	@Override
+	public List<CodeServerWorkspaceNsql> findDeploymentReconciliationWorkspaces() {
+		String query = """
+				SELECT *
+				FROM workspace_nsql
+				WHERE lower(jsonb_extract_path_text(data, 'status')) <> 'deleted'
+				  AND (
+					jsonb_extract_path_text(data, 'projectDetails', 'intDeploymentDetails', 'lastDeploymentStatus')
+						IN (:deployRequested, :deploymentFailed, :restartRequested)
+					OR jsonb_extract_path_text(data, 'projectDetails', 'prodDeploymentDetails', 'lastDeploymentStatus')
+						IN (:deployRequested, :deploymentFailed, :restartRequested)
+					OR jsonb_extract_path_text(data, 'projectDetails', 'lastBuildOrDeployedStatus') = :restartRequested
+				  )
+				""";
+		Query reconciliationQuery = em.createNativeQuery(query, CodeServerWorkspaceNsql.class);
+		reconciliationQuery.setParameter("deployRequested", "DEPLOY_REQUESTED");
+		reconciliationQuery.setParameter("deploymentFailed", "DEPLOYMENT_FAILED");
+		reconciliationQuery.setParameter("restartRequested", "RESTART_REQUESTED");
+		return reconciliationQuery.getResultList();
+	}
+
 	@Override
 	public List<CodeServerWorkspaceNsql> findAll(String userId, int limit, int offset) {
 		CriteriaBuilder cb = em.getCriteriaBuilder();
