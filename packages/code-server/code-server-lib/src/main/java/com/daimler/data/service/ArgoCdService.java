@@ -1382,6 +1382,8 @@ public class ArgoCdService {
         return getNewVersionPodSelection(token, appName).getPods();
     }
 
+    // Keep selection metadata with the pods so the SSE layer can distinguish
+    // a precise version match from the compatibility fallback.
     public PodSelectionResult getNewVersionPodSelection(String token, String appName) {
         List<PodInfo> emptyPods = new ArrayList<>();
         try {
