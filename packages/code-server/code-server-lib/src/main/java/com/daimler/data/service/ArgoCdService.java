@@ -23,6 +23,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import java.time.Duration;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -34,6 +35,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StreamUtils;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 import org.yaml.snakeyaml.Yaml;
 
@@ -196,6 +198,8 @@ public class ArgoCdService {
         
             if (response != null && response.getStatusCode().is2xxSuccessful()) {
                 log.info("ArgoCD application created/updated successfully: {}", appName);
+                refreshArgoApp(token, appName);
+                triggerArgoSync(token, appName);
                 return "success";
             } else {
                 String errorBody = response != null ? response.getBody() : "no response";
@@ -213,6 +217,57 @@ public class ArgoCdService {
         } catch (Exception e) {
             log.error("ArgoCD deployment exception for {}-{}: {}", projectName, environment, e.getMessage());
             throw e;
+        }
+    }
+
+    private void refreshArgoApp(String token, String appName) {
+        String url = argocdCreateUrl + "/" + appName + "?refresh=hard";
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setBearerAuth(token);
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<Void> entity = new HttpEntity<>(headers);
+            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
+            if (response != null && response.getStatusCode().is2xxSuccessful()) {
+                log.info("ArgoCD hard refresh requested successfully for {}", appName);
+            } else {
+                log.warn("ArgoCD hard refresh failed for {}: status={} body={}", appName,
+                        response != null ? response.getStatusCode() : "null",
+                        response != null ? response.getBody() : "no response");
+            }
+        } catch (HttpStatusCodeException e) {
+            log.warn("ArgoCD hard refresh failed for {}: status={} body={}", appName,
+                    e.getStatusCode(), e.getResponseBodyAsString());
+        } catch (Exception e) {
+            log.warn("ArgoCD hard refresh failed for {}: connection/error={}", appName, e.getMessage());
+        }
+    }
+
+    private String triggerArgoSync(String token, String appName) {
+        String url = argocdCreateUrl + "/" + appName + "/sync";
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setBearerAuth(token);
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            Map<String, Boolean> syncPayload = new HashMap<>();
+            syncPayload.put("prune", false);
+            HttpEntity<Map<String, Boolean>> entity = new HttpEntity<>(syncPayload, headers);
+            ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
+            if (response != null && response.getStatusCode().is2xxSuccessful()) {
+                log.info("ArgoCD sync requested successfully for {}", appName);
+                return "success";
+            }
+            log.warn("ArgoCD sync request failed for {}: status={} body={}", appName,
+                    response != null ? response.getStatusCode() : "null",
+                    response != null ? response.getBody() : "no response");
+            return "failed";
+        } catch (HttpStatusCodeException e) {
+            log.warn("ArgoCD sync request failed for {}: status={} body={}", appName,
+                    e.getStatusCode(), e.getResponseBodyAsString());
+            return e.getStatusCode().value() == 404 ? "not_found" : "failed";
+        } catch (Exception e) {
+            log.warn("ArgoCD sync request failed for {}: connection/error={}", appName, e.getMessage());
+            return "failed";
         }
     }
 
@@ -1080,9 +1135,10 @@ public class ArgoCdService {
         }
         try {
             Instant operationStart = Instant.parse(startedAt);
+            long queueGapSeconds = Duration.between(deployTriggerTime.toInstant(), operationStart).getSeconds();
             boolean matched = !operationStart.isBefore(deployTriggerTime.toInstant().minusSeconds(30));
-            log.info("New-sync validation for {}: operation startedAt={}, trigger time={}, matched={}",
-                    appName, startedAt, deployTriggerTime, matched);
+            log.info("New-sync validation for {}: operation startedAt={}, trigger time={}, queue gap={}s, matched={}",
+                    appName, startedAt, deployTriggerTime, queueGapSeconds, matched);
             return matched;
         } catch (DateTimeException e) {
             log.info("New-sync validation for {}: invalid operation startedAt={}, trigger time={} - matched=false",
