@@ -90,10 +90,26 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 				WHERE lower(jsonb_extract_path_text(data, 'status')) <> 'deleted'
 				  AND (
 					jsonb_extract_path_text(data, 'projectDetails', 'intDeploymentDetails', 'lastDeploymentStatus')
-						IN (:deployRequested, :deploymentFailed, :restartRequested)
+						IN (:deployRequested, :restartRequested)
 					OR jsonb_extract_path_text(data, 'projectDetails', 'prodDeploymentDetails', 'lastDeploymentStatus')
-						IN (:deployRequested, :deploymentFailed, :restartRequested)
+						IN (:deployRequested, :restartRequested)
 					OR jsonb_extract_path_text(data, 'projectDetails', 'lastBuildOrDeployedStatus') = :restartRequested
+					OR (
+						jsonb_extract_path_text(data, 'projectDetails', 'intDeploymentDetails', 'lastDeploymentStatus')
+							= :deploymentFailed
+						AND (
+							jsonb_extract_path_text(data, 'projectDetails', 'intDeploymentDetails', 'lastDeployedBy') IS NULL
+							OR jsonb_extract_path_text(data, 'projectDetails', 'intDeploymentDetails', 'lastDeployedOn') IS NULL
+						)
+					)
+					OR (
+						jsonb_extract_path_text(data, 'projectDetails', 'prodDeploymentDetails', 'lastDeploymentStatus')
+							= :deploymentFailed
+						AND (
+							jsonb_extract_path_text(data, 'projectDetails', 'prodDeploymentDetails', 'lastDeployedBy') IS NULL
+							OR jsonb_extract_path_text(data, 'projectDetails', 'prodDeploymentDetails', 'lastDeployedOn') IS NULL
+						)
+					)
 				  )
 				""";
 		Query reconciliationQuery = em.createNativeQuery(query, CodeServerWorkspaceNsql.class);

@@ -322,7 +322,7 @@ public class DeploymentStatusSseController {
                     argoSyncStatus = rootNode.path("status").path("sync").path("status").asText("");
                     argoLastSyncPhase = rootNode.path("status").path("operationState").path("phase").asText("");
                     confirmedArgoFailure = argoCdService.getConfirmedDeploymentFailure(
-                            rootNode, argoAppName, deployTriggerTime);
+                            token, rootNode, argoAppName, deployTriggerTime);
                     
                     String argoOperationMessage = rootNode.path("status").path("operationState").path("message").asText("");
 

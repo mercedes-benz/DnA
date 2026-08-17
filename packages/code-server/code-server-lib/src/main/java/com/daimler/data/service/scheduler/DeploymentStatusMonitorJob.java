@@ -18,7 +18,6 @@ import com.daimler.data.service.ArgoCdService;
 import com.daimler.dna.notifications.common.producer.KafkaProducerService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -50,9 +49,6 @@ public class DeploymentStatusMonitorJob {
 
     @Autowired
     private CodeServerClient codeServerClient;
-
-    @Value("${deployment.failedRecheckMinutes:30}")
-    private int failedRecheckMinutes;
 
     @Scheduled(fixedDelay = 10000, initialDelay = 5000)
     @SchedulerLock(name = "deploymentStatusMonitorJob", lockAtMostFor = "2m", lockAtLeastFor = "5s")
@@ -86,6 +82,7 @@ public class DeploymentStatusMonitorJob {
                 String topLevelEnv = workspace.getData().getProjectDetails().getLastBuildOrDeployedEnv();
 
                 CodeServerDeploymentDetails intDeployment = workspace.getData().getProjectDetails().getIntDeploymentDetails();
+                repairMissingFailureFields(workspace, intDeployment, projectName, "int");
                 boolean intNeedsCheck = intDeployment != null && shouldCheckDeployment(intDeployment)
                         && !isUserCancelled(intDeployment);
                 // Recovery for stuck restarts: top-level says RESTART_REQUESTED for this env but per-env field was never updated
@@ -110,6 +107,7 @@ public class DeploymentStatusMonitorJob {
                     }
                 }
                 CodeServerDeploymentDetails prodDeployment = workspace.getData().getProjectDetails().getProdDeploymentDetails();
+                repairMissingFailureFields(workspace, prodDeployment, projectName, "prod");
                 boolean prodNeedsCheck = prodDeployment != null && shouldCheckDeployment(prodDeployment)
                         && !isUserCancelled(prodDeployment);
                 if (!prodNeedsCheck && prodDeployment != null 
@@ -190,15 +188,60 @@ public class DeploymentStatusMonitorJob {
             return false;
         }
         String status = deployment.getLastDeploymentStatus();
-        if ("DEPLOYMENT_FAILED".equalsIgnoreCase(status)) {
-            Date lastDeployedOn = deployment.getLastDeployedOn();
-            if (lastDeployedOn != null
-                    && System.currentTimeMillis() - lastDeployedOn.getTime() > failedRecheckMinutes * 60_000L) {
-                return false;
+        return "DEPLOY_REQUESTED".equalsIgnoreCase(status) || "RESTART_REQUESTED".equalsIgnoreCase(status);
+    }
+
+    private void repairMissingFailureFields(CodeServerWorkspaceNsql workspace,
+            CodeServerDeploymentDetails deployment, String projectName, String environment) {
+        if (deployment == null || !"DEPLOYMENT_FAILED".equalsIgnoreCase(deployment.getLastDeploymentStatus())
+                || (deployment.getLastDeployedBy() != null && deployment.getLastDeployedOn() != null)) {
+            return;
+        }
+        try {
+            DeploymentAudit latestAudit = findLatestDeploymentAudit(projectName, environment, deployment);
+            UserInfo deployedByUser = resolveTriggeredByUser(workspace, latestAudit);
+            if (deployment.getLastDeployedBy() == null && deployedByUser != null) {
+                deployment.setLastDeployedBy(deployedByUser);
+            }
+            if (deployment.getLastDeployedOn() == null) {
+                deployment.setLastDeployedOn(new Date());
+            }
+            GenericMessage update = workspaceCustomRepository.updateReconciledDeploymentStatus(
+                    projectName, environment, deployment, "DEPLOYMENT_FAILED");
+            if (update != null && "SUCCESS".equalsIgnoreCase(update.getSuccess())) {
+                log.info("Repaired missing failure fields for {}-{}", projectName, environment);
+            } else {
+                log.warn("Failed to repair missing failure fields for {}-{}", projectName, environment);
+            }
+        } catch (Exception e) {
+            log.warn("Failed to repair missing failure fields for {}-{}: {}", projectName, environment, e.getMessage());
+        }
+    }
+
+    private DeploymentAudit findLatestDeploymentAudit(String projectName, String environment,
+            CodeServerDeploymentDetails deployment) {
+        CodeServerBuildDeployNsql buildDeployEntity = buildDeployCustomRepo.findByProjectName(projectName);
+        if (buildDeployEntity != null && buildDeployEntity.getData() != null) {
+            List<DeploymentAudit> auditLogs = "int".equalsIgnoreCase(environment)
+                    ? buildDeployEntity.getData().getIntDeploymentAuditLogs()
+                    : buildDeployEntity.getData().getProdDeploymentAuditLogs();
+            if (auditLogs != null && !auditLogs.isEmpty()) {
+                DeploymentAudit latest = auditLogs.stream()
+                        .filter(audit -> audit.getTriggeredOn() != null)
+                        .max((a1, a2) -> a1.getTriggeredOn().compareTo(a2.getTriggeredOn()))
+                        .orElse(null);
+                if (latest != null) {
+                    return latest;
+                }
             }
         }
-        return "DEPLOY_REQUESTED".equalsIgnoreCase(status) || "DEPLOYMENT_FAILED".equalsIgnoreCase(status)
-                || "RESTART_REQUESTED".equalsIgnoreCase(status);
+        if (deployment.getDeploymentAuditLogs() == null) {
+            return null;
+        }
+        return deployment.getDeploymentAuditLogs().stream()
+                .filter(audit -> audit.getTriggeredOn() != null)
+                .max((a1, a2) -> a1.getTriggeredOn().compareTo(a2.getTriggeredOn()))
+                .orElse(null);
     }
 
     /**

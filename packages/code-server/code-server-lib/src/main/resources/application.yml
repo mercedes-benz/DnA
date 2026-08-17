@@ -2,7 +2,7 @@ spring:
   mvc.pathmatch.matching-strategy: ant_path_matcher
   application:
     name: dna-codeserver-service
-    version: 1.12.9
+    version: 1.12.10
   profile:
     active: production
 
@@ -266,7 +266,6 @@ argocd:
 deployment:
   stuckThresholdMinutes: ${DEPLOYMENT_STUCK_THRESHOLD_MINUTES:15}
   deployedFallbackMinutes: ${DEPLOYMENT_DEPLOYED_FALLBACK_MINUTES:15}
-  degradedGraceSeconds: ${DEPLOYMENT_DEGRADED_GRACE_SECONDS:120}
-  failedRecheckMinutes: ${DEPLOYMENT_FAILED_RECHECK_MINUTES:30}
+  degradedGraceSeconds: ${DEPLOYMENT_DEGRADED_GRACE_SECONDS:300}
   auditLogBackfillMinutes: ${DEPLOYMENT_AUDIT_LOG_BACKFILL_MINUTES:10}
   ssePollSeconds: ${DEPLOYMENT_SSE_POLL_SECONDS:10}

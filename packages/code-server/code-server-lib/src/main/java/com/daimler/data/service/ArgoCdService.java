@@ -822,7 +822,7 @@ public class ArgoCdService {
             String operationMessage = rootNode.path("status").path("operationState").path("message").asText("");
             log.info("ArgoCD app {} - Health: {}, LastSyncPhase: {}, Message: {}", appName, healthStatus, lastSyncPhase, operationMessage);
 
-            String failureMessage = getConfirmedDeploymentFailure(rootNode, appName, deployTriggerTime);
+            String failureMessage = getConfirmedDeploymentFailure(token, rootNode, appName, deployTriggerTime);
             if (failureMessage != null) {
                 return "DEPLOYMENT_FAILED";
             }
@@ -894,7 +894,7 @@ public class ArgoCdService {
             String healthStatus = rootNode.path("status").path("health").path("status").asText("");
             String lastSyncPhase = rootNode.path("status").path("operationState").path("phase").asText("");
 
-            String failureMessage = getConfirmedDeploymentFailure(rootNode, appName, deployTriggerTime);
+            String failureMessage = getConfirmedDeploymentFailure(token, rootNode, appName, deployTriggerTime);
             if (failureMessage != null) {
                 result.put("status", "DEPLOYMENT_FAILED");
                 result.put("errorMessage", failureMessage);
@@ -933,6 +933,11 @@ public class ArgoCdService {
      * still deploying or has no confirmed failure.
      */
     public String getConfirmedDeploymentFailure(JsonNode rootNode, String appName, Date deployTriggerTime) {
+        return getConfirmedDeploymentFailure(null, rootNode, appName, deployTriggerTime);
+    }
+
+    public String getConfirmedDeploymentFailure(String token, JsonNode rootNode, String appName,
+            Date deployTriggerTime) {
         JsonNode operationState = rootNode.path("status").path("operationState");
         String healthStatus = rootNode.path("status").path("health").path("status").asText("");
         String phase = operationState.path("phase").asText("");
@@ -966,10 +971,22 @@ public class ArgoCdService {
             }
             if (degradedSince == null
                     || !Instant.now().isBefore(degradedSince.plusSeconds(degradedGraceSeconds))) {
+                String desiredTag = getDesiredImageTag(rootNode);
+                if (desiredTag == null || desiredTag.isEmpty()) {
+                    log.warn("Degraded ArgoCD deployment {} lacks a desired image tag; failure is not proven", appName);
+                    return null;
+                }
+                Map<String, Object> crashLoopStatus = getNewPodCrashLoopStatus(token, appName, rootNode);
+                if (!Boolean.TRUE.equals(crashLoopStatus.get("newPodCrashLooping"))) {
+                    log.warn("Degraded ArgoCD deployment {} has no strong crash evidence from a new-version pod; failure is not proven",
+                            appName);
+                    return null;
+                }
                 String failureMessage = message != null && !message.isEmpty()
                         ? message : "Application health is Degraded. Check pod logs for details.";
-                log.info("Confirmed ArgoCD deployment failure for {}: phase={}, health={}, startedAt={}, finishedAt={}, triggerTime={}",
-                        appName, phase, healthStatus, startedAt, finishedAt, deployTriggerTime);
+                log.info("Confirmed ArgoCD deployment failure for {}: phase={}, health={}, startedAt={}, finishedAt={}, triggerTime={}, crashReason={}",
+                        appName, phase, healthStatus, startedAt, finishedAt, deployTriggerTime,
+                        crashLoopStatus.get("crashLoopReason"));
                 return failureMessage;
             }
         }
