@@ -6,6 +6,7 @@ import java.util.Calendar;
 import java.util.Date;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 import javax.annotation.PostConstruct;
 
@@ -159,7 +160,9 @@ public class WorkspaceBackgroundJobsService {
 							FabricWorkspaceStatusVO currentStatus = workspaceVO.getStatus();
 							FabricWorkspaceStatusVO updatedStatus = new FabricWorkspaceStatusVO();
 							try {
+								log.info("During scheduled job, processing INPROGRESS workspace {}: {}", workspaceVO.getId(), workspaceVO.getName());
 								updatedStatus = fabricService.processWorkspaceUserManagement(currentStatus,updatedName, workspaceVO.getCreatedBy().getId(), workspaceVO.getId(),workspaceVO.getCustomGroupName(), workspaceVO.getCustomGroupNameCollection());
+								log.info("During scheduled job, processed INPROGRESS workspace {}: state={}, {}", workspaceVO.getId(), updatedStatus != null ? updatedStatus.getState() : null, formatStatusDetails(updatedStatus));
 								try {
 									fabricService.updateWorkspaceStatusAndDetails(workspaceVO.getId(), updatedStatus, updatedName, updatedDescription);
 								}catch(Exception saveException) {
@@ -172,6 +175,7 @@ public class WorkspaceBackgroundJobsService {
 						}
 						if(workspaceVO!=null && workspaceVO.getStatus()!=null && ConstantsUtility.COMPLETED_STATE.equalsIgnoreCase(workspaceVO.getStatus().getState())){
 							List<GroupDetailsVO> updatedGroupDetails = fabricService.autoProcessGroupsUsers(workspaceVO.getStatus().getMicrosoftGroups(), updatedName, workspaceVO.getCreatedBy().getId(), workspaceVO.getId(), workspaceVO.getCustomGroupName(), workspaceVO.getCustomGroupNameCollection());
+							log.info("During scheduled job, processed COMPLETED workspace {}: groups={}", workspaceVO.getId(), formatGroups(updatedGroupDetails));
 							try {
 								fabricService.updateWorkspaceGroupsAndDetails(workspaceVO.getId(), updatedGroupDetails, updatedName, updatedDescription);
 							}catch(Exception saveException) {
@@ -186,6 +190,31 @@ public class WorkspaceBackgroundJobsService {
 			e.printStackTrace();
 			log.error("During scheduled job, failed to process workspaces user management with exception {}", e.getMessage());
 		}
+	}
+
+	private String formatStatusDetails(FabricWorkspaceStatusVO status) {
+		String roles = status != null && status.getRoles() != null
+				? status.getRoles().stream()
+						.map(role -> role != null ? role.getName() + "=" + role.getState() : "null")
+						.collect(Collectors.joining(", "))
+				: "";
+		String entitlements = status != null && status.getEntitlements() != null
+				? status.getEntitlements().stream()
+						.map(entitlement -> entitlement != null
+								? entitlement.getDisplayName() + "=" + entitlement.getState()
+								: "null")
+						.collect(Collectors.joining(", "))
+				: "";
+		return "roles=[" + roles + "], entitlements=[" + entitlements + "]";
+	}
+
+	private String formatGroups(List<GroupDetailsVO> groups) {
+		if(groups == null) {
+			return "";
+		}
+		return groups.stream()
+				.map(group -> group != null ? group.getGroupName() + "=" + group.getState() : "null")
+				.collect(Collectors.joining(", "));
 	}
 	
 }

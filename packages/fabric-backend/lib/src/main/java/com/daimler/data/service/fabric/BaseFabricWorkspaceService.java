@@ -497,13 +497,17 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		if(Objects.equals(entity.getData().getStatus(), updatedStatus)
 				&& Objects.equals(entity.getData().getName(), name)
 				&& Objects.equals(entity.getData().getDescription(), description)) {
-			log.debug("No workspace status or details change detected for {}", id);
+			log.info("No workspace status or details change detected for {}", id);
 			return;
 		}
 		entity.getData().setStatus(updatedStatus);
 		entity.getData().setName(name);
 		entity.getData().setDescription(description);
 		jpaRepo.save(entity);
+		log.info("Persisted workspace status and details for {}: state={}, roles={}, entitlements={}",
+				id, updatedStatus.getState(),
+				updatedStatus.getRoles() != null ? updatedStatus.getRoles().size() : 0,
+				updatedStatus.getEntitlements() != null ? updatedStatus.getEntitlements().size() : 0);
 	}
 
 	@Override
@@ -523,7 +527,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		if(Objects.equals(currentGroups, updatedGroups)
 				&& Objects.equals(entity.getData().getName(), name)
 				&& Objects.equals(entity.getData().getDescription(), description)) {
-			log.debug("No workspace groups or details change detected for {}", id);
+			log.info("No workspace groups or details change detected for {}", id);
 			return;
 		}
 		if(entity.getData().getStatus() == null) {
@@ -533,6 +537,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		entity.getData().setName(name);
 		entity.getData().setDescription(description);
 		jpaRepo.save(entity);
+		log.info("Persisted workspace groups for {}: count={}", id, updatedGroups.size());
 	}
 
 	@Override
@@ -547,11 +552,12 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		List<Lakehouse> updatedLakehouses =
 				assembler.toLakehouses(lakehouses);
 		if(Objects.equals(entity.getData().getLakehouses(), updatedLakehouses)) {
-			log.debug("No workspace lakehouse change detected for {}", id);
+			log.info("No workspace lakehouse change detected for {}", id);
 			return;
 		}
 		entity.getData().setLakehouses(updatedLakehouses);
 		jpaRepo.save(entity);
+		log.info("Persisted workspace lakehouses for {}: count={}", id, updatedLakehouses.size());
 	}
 
 	/**
