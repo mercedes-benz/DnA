@@ -10,14 +10,13 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
 import javax.persistence.PersistenceException;
 import javax.persistence.Query;
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,7 +43,10 @@ import com.daimler.data.db.entities.FabricWorkspaceNsql;
 import com.daimler.data.db.json.ADAProjectDetails;
 import com.daimler.data.db.json.DdxDataProductsDetail;
 import com.daimler.data.db.json.DdxProduct;
+import com.daimler.data.db.json.GroupDetails;
+import com.daimler.data.db.json.Lakehouse;
 import com.daimler.data.db.json.AuthoriserRoleDeatils;
+import com.daimler.data.db.json.FabricWorkspaceStatus;
 import com.daimler.data.db.json.UserDetails;
 import com.daimler.data.db.repo.ddxDataProductsDetails.DdxDataProductsDetailsRepository;
 import com.daimler.data.db.repo.fabric.FabricWorkspaceCustomRepository;
@@ -470,10 +472,9 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 					List<FabricLakehouseVO> lakehouseVOs = new ArrayList<>();
 					lakehouseVOs = value.stream().map(n -> assembler.toLakehouseVOFromDto(n)).collect(Collectors.toList());
 					voFromDb.setLakehouses(lakehouseVOs);
+					updateWorkspaceLakehouses(id, lakehouseVOs);
 				}
-				FabricWorkspaceNsql updatedEntity = assembler.toEntity(voFromDb);
 				log.info("Successfully updated latest displayName and description from Fabric to Database for project id {}", id);
-				jpaRepo.save(updatedEntity);
 			}catch(Exception e) {
 				log.error("Failed to update latest displayName and description from Fabric to Database for project id {}, with error {} . Will be updated in next fetch", id, e.getMessage());
 			}
@@ -481,6 +482,82 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		// Enrich ddxPublishedLakeHouseDetails with full product data from ddx_dataProducts_details_nsql
 		enrichDdxPublishedLakeHouseDetails(voFromDb);
 		return voFromDb;
+	}
+
+	@Override
+	@Transactional
+	public void updateWorkspaceStatusAndDetails(String id, FabricWorkspaceStatusVO status, String name, String description) {
+		Optional<FabricWorkspaceNsql> entityOptional = jpaRepo.findById(id);
+		if(!entityOptional.isPresent() || entityOptional.get().getData() == null) {
+			log.warn("Workspace {} not found while updating status and details", id);
+			return;
+		}
+		FabricWorkspaceNsql entity = entityOptional.get();
+		FabricWorkspaceStatus updatedStatus = assembler.toWorkspaceStatus(status);
+		if(Objects.equals(entity.getData().getStatus(), updatedStatus)
+				&& Objects.equals(entity.getData().getName(), name)
+				&& Objects.equals(entity.getData().getDescription(), description)) {
+			log.info("No workspace status or details change detected for {}", id);
+			return;
+		}
+		entity.getData().setStatus(updatedStatus);
+		entity.getData().setName(name);
+		entity.getData().setDescription(description);
+		jpaRepo.save(entity);
+		log.info("Persisted workspace status and details for {}: state={}, roles={}, entitlements={}",
+				id, updatedStatus.getState(),
+				updatedStatus.getRoles() != null ? updatedStatus.getRoles().size() : 0,
+				updatedStatus.getEntitlements() != null ? updatedStatus.getEntitlements().size() : 0);
+	}
+
+	@Override
+	@Transactional
+	public void updateWorkspaceGroupsAndDetails(String id, List<GroupDetailsVO> groups, String name, String description) {
+		Optional<FabricWorkspaceNsql> entityOptional = jpaRepo.findById(id);
+		if(!entityOptional.isPresent() || entityOptional.get().getData() == null) {
+			log.warn("Workspace {} not found while updating groups and details", id);
+			return;
+		}
+		FabricWorkspaceNsql entity = entityOptional.get();
+		List<GroupDetails> updatedGroups = assembler.toGroupDetails(groups);
+		List<GroupDetails> currentGroups =
+				entity.getData().getStatus() != null
+						? entity.getData().getStatus().getMicrosoftGroups()
+						: null;
+		if(Objects.equals(currentGroups, updatedGroups)
+				&& Objects.equals(entity.getData().getName(), name)
+				&& Objects.equals(entity.getData().getDescription(), description)) {
+			log.info("No workspace groups or details change detected for {}", id);
+			return;
+		}
+		if(entity.getData().getStatus() == null) {
+			entity.getData().setStatus(new FabricWorkspaceStatus());
+		}
+		entity.getData().getStatus().setMicrosoftGroups(updatedGroups);
+		entity.getData().setName(name);
+		entity.getData().setDescription(description);
+		jpaRepo.save(entity);
+		log.info("Persisted workspace groups for {}: count={}", id, updatedGroups.size());
+	}
+
+	@Override
+	@Transactional
+	public void updateWorkspaceLakehouses(String id, List<FabricLakehouseVO> lakehouses) {
+		Optional<FabricWorkspaceNsql> entityOptional = jpaRepo.findById(id);
+		if(!entityOptional.isPresent() || entityOptional.get().getData() == null) {
+			log.warn("Workspace {} not found while updating lakehouses", id);
+			return;
+		}
+		FabricWorkspaceNsql entity = entityOptional.get();
+		List<Lakehouse> updatedLakehouses =
+				assembler.toLakehouses(lakehouses);
+		if(Objects.equals(entity.getData().getLakehouses(), updatedLakehouses)) {
+			log.info("No workspace lakehouse change detected for {}", id);
+			return;
+		}
+		entity.getData().setLakehouses(updatedLakehouses);
+		jpaRepo.save(entity);
+		log.info("Persisted workspace lakehouses for {}: count={}", id, updatedLakehouses.size());
 	}
 
 	/**
