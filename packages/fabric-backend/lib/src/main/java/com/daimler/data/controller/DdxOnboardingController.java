@@ -22,6 +22,7 @@ import com.daimler.data.dto.fabric.DdxResponseDto;
 import com.daimler.data.dto.fabricWorkspace.CreatedByVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceVO;
 import com.daimler.data.service.fabric.FabricWorkspaceService;
+import com.daimler.data.util.FabricWorkspaceUtility;
 import com.daimler.data.service.fabric.DdxOnboardingService;
 
 import io.swagger.annotations.Api;
@@ -45,6 +46,9 @@ public class DdxOnboardingController {
 
 	@Autowired
 	private DdxOnboardingService ddxOnboardingService;
+
+	@Autowired 
+    private FabricWorkspaceUtility utility;
 
 	@ApiOperation(value = "Publish a new catalog for DDX onboarding.", nickname = "publishCatalogRequest", 
 		notes = "This endpoint will be used to onboard data from fabric to databricks.", 
@@ -91,7 +95,7 @@ public class DdxOnboardingController {
 			String creatorId = existingFabricWorkspace.getCreatedBy().getId();
 
 			if (!requestUserId.equalsIgnoreCase(creatorId)
-					&& !userStore.getUserInfo().hasProjectAdminAccess(workspaceId)) {
+					&& !utility.hasProjectAdminAccess(requestUserId, workspaceId)) {
 				log.error(
 					"User {} is not authorized to publish catalog for workspace {}",
 					requestUserId, workspaceId);

@@ -45,6 +45,7 @@ import { getDataForCSV } from '../../../services/SolutionsCSV';
 import SolutionsFilter from '../filters/SolutionsFilter';
 import filterStyle from '../filters/Filter.scss';
 import { getTranslatedLabel } from 'globals/i18n/TranslationsProvider';
+import { Envs } from 'globals/Envs';
 // import {getDropDownData} from '../../../services/FetchMasterData';
 
 import LandingSummary from 'components/mbc/shared/landingSummary/LandingSummary';
@@ -483,7 +484,7 @@ export default class AllSolutions extends React.Component<
                 <div className={Styles.allsolutioncontent}>
                   {this.state.cardViewMode && (
                     <div className={classNames('cardSolutions', Styles.allsolutionCardviewContent)}>
-                      {this.state.solutions.length > 0 ? (
+                      {Envs.ENABLE_SOLUTIONS && this.state.solutions.length > 0 ? (
                         <div
                           className={Styles.cardViewContainer}
                           onClick={() =>
@@ -617,20 +618,22 @@ export default class AllSolutions extends React.Component<
                             </th>
                             <th className="actionColumn">&nbsp;</th>
                           </tr>
-                          <tr>
-                            <th
-                              colSpan={8}
-                              className={classNames(Styles.listViewContainer)}
-                              onClick={() =>
-                                isGenAITagOnPath
-                                  ? history.push('/createnewgenaisolution')
-                                  : history.push('/createnewsolution')
-                              }
-                            >
-                              <div className={Styles.addicon}> &nbsp; </div>
-                              <label className={Styles.addlabel}>Create new solution</label>
-                            </th>
-                          </tr>
+                          {Envs.ENABLE_SOLUTIONS && (
+                            <tr>
+                              <th
+                                colSpan={8}
+                                className={classNames(Styles.listViewContainer)}
+                                onClick={() =>
+                                  isGenAITagOnPath
+                                    ? history.push('/createnewgenaisolution')
+                                    : history.push('/createnewsolution')
+                                }
+                              >
+                                <div className={Styles.addicon}> &nbsp; </div>
+                                <label className={Styles.addlabel}>Create new solution</label>
+                              </th>
+                            </tr>
+                          )}
                         </thead>
                         <tbody>{solutionData}</tbody>
                       </table>
@@ -650,21 +653,25 @@ export default class AllSolutions extends React.Component<
                   )}
                   {this.state.solutions.length === 0 ? (
                     <div className={Styles.solutionIsEmpty}>
-                      <p>
-                        There is no solution available, please create solution&nbsp;
-                        <a
-                          target="_blank"
-                          className={Styles.linkStyle}
-                          onClick={() =>
-                            isGenAITagOnPath
-                              ? history.push('/createnewgenaisolution')
-                              : history.push('/createnewsolution')
-                          }
-                          rel="noreferrer"
-                        >
-                          here.
-                        </a>
-                      </p>
+                      {Envs.ENABLE_SOLUTIONS ? (
+                        <p>
+                          There is no solution available, please create solution&nbsp;
+                          <a
+                            target="_blank"
+                            className={Styles.linkStyle}
+                            onClick={() =>
+                              isGenAITagOnPath
+                                ? history.push('/createnewgenaisolution')
+                                : history.push('/createnewsolution')
+                            }
+                            rel="noreferrer"
+                          >
+                            here.
+                          </a>
+                        </p>
+                      ) : (
+                        <p>There is no solution available.</p>
+                      )}
                     </div>
                   ) : (
                     ''
