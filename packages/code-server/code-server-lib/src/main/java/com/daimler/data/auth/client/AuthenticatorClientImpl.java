@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import java.nio.charset.StandardCharsets;
 
@@ -233,6 +234,8 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 
 	@Value("${kong.oidc.skip-already-auth-requests}")
 	private String oidcSkipAlreadyAuthRequests;
+
+	private final AtomicBoolean oidcSessionSecretWarningLogged = new AtomicBoolean(false);
 
 
 	@Autowired
@@ -509,10 +512,26 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 			// }
 			// else {
 				currentPath = "/" + serviceName.toLowerCase() + "/" + env + "/";
-				if(env.equalsIgnoreCase("int"))
-					paths.add("/" + serviceName.toLowerCase() + "/" + "int/");
-				if(env.equalsIgnoreCase("prod"))
-					paths.add("/" + serviceName.toLowerCase() + "/" + "prod/");
+				if(env.equalsIgnoreCase("int")) {
+					String prodUrl = prodDeploymentDetails != null
+							? prodDeploymentDetails.getDeploymentUrl()
+							: null;
+					if (prodUrl != null && prodUrl.contains("/api")) {
+						paths.add("/" + serviceName.toLowerCase() + "/int/api");
+					} else {
+						paths.add("/" + serviceName.toLowerCase() + "/int/");
+					}
+				}
+				if(env.equalsIgnoreCase("prod")){
+					String intUrl = intDeploymentDetails != null
+							? intDeploymentDetails.getDeploymentUrl()
+							: null;
+					if (intUrl != null && intUrl.contains("/api")) {
+						paths.add("/" + serviceName.toLowerCase() + "/prod/api");
+					} else {
+						paths.add("/" + serviceName.toLowerCase() + "/prod/");
+					}
+				}
 			// }
 			// if(Objects.nonNull(intSecureIAM) && intSecureIAM) {
 			// 	paths.add("/" + serviceName + "/" + "int" + "/api");
@@ -563,6 +582,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		attachPluginConfigVO.setScope(scope);
 		attachPluginConfigVO.setSsl_verify(sslVerify);
 		attachPluginConfigVO.setToken_endpoint_auth_method(tokenEndpointAuthMethod);
+		attachPluginConfigVO.setSession_secret(getConfiguredOidcSessionSecret());
 		attachPluginConfigVO.setRecovery_page_path(recovery_page_path);
 		attachPluginVO.setConfig(attachPluginConfigVO);
 		attachPluginRequestVO.setData(attachPluginVO);
@@ -678,6 +698,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 
 					//attaching cors plugin to deployments
 					LOGGER.info("kongApiForDeploymentURL is true, calling CORS plugin " );
+					LOGGER.info("cors plugin request vo is {}",attachCorsPluginRequestVO);
 					attachCorsPluginResponse = attachPluginToService(attachCorsPluginRequestVO,serviceName.toLowerCase()+"-"+env,cloudServiceProvider);
 					LOGGER.info("kong attach CORS plugin to service status is: {} and errors if any: {}, warnings if any:", attachCorsPluginResponse.getSuccess(),
 					attachCorsPluginResponse.getErrors(), attachCorsPluginResponse.getWarnings());
@@ -969,7 +990,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 										attachOIDCPluginConfigVO.setIntrospection_endpoint(prodIntrospectionEndpoint);
 										attachOIDCPluginConfigVO.setRedirect_after_logout_uri(prodRedirectAfterLogoutUri);
 									}
-									attachOIDCPluginConfigVO.setSession_secret(oidcSessionSecret);
+									attachOIDCPluginConfigVO.setSession_secret(getConfiguredOidcSessionSecret());
 									attachOIDCPluginConfigVO.setBearer_only("no");
 									attachOIDCPluginConfigVO.setClient_id(clientID);
 									attachOIDCPluginConfigVO.setClient_secret(clientSecret);
@@ -1913,7 +1934,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 			attachOIDCPluginConfigVO.setIntrospection_endpoint(prodIntrospectionEndpoint);
 			attachOIDCPluginConfigVO.setRedirect_after_logout_uri(prodRedirectAfterLogoutUri);
 		}
-		attachOIDCPluginConfigVO.setSession_secret(oidcSessionSecret);
+		attachOIDCPluginConfigVO.setSession_secret(getConfiguredOidcSessionSecret());
 		attachOIDCPluginConfigVO.setSkip_already_auth_requests(oidcSkipAlreadyAuthRequests);
 		attachOIDCPluginConfigVO.setBearer_only(authoriserBearerOnly);
 		attachOIDCPluginConfigVO.setClient_id(clientID);
@@ -1943,6 +1964,17 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		attachOIDCPluginRequestVO.setData(attachOIDCPluginVO);
 		attachPluginResponse = attachPluginToService(attachOIDCPluginRequestVO,serviceName.toLowerCase()+"-"+env,cloudServiceProvider);
 		LOGGER.info("calling kong to attach oidc plugin with status {}",attachPluginResponse.getSuccess());
+	}
+
+	private String getConfiguredOidcSessionSecret() {
+		if (oidcSessionSecret != null && !oidcSessionSecret.isBlank()
+				&& !"XXXX".equals(oidcSessionSecret.trim())) {
+			return oidcSessionSecret;
+		}
+		if (oidcSessionSecretWarningLogged.compareAndSet(false, true)) {
+			LOGGER.warn("OIDC session secret is not configured; Kong will fall back to a per-node random secret");
+		}
+		return null;
 	}
 
 	private String resolveOidcRecoveryPagePath(String fallbackPath) {
