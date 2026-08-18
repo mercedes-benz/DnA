@@ -32,8 +32,9 @@ const getCodeSpaceStatus = (id) => {
     });
 };
 
-const getWorkspaceById = (id) => { 
-    return server.get(`workspaces/${id}`, {
+const getWorkspaceById = (id, refreshTriggeredByUser) => { 
+    const query = refreshTriggeredByUser ? '?refreshTriggeredByUser=true' : '';
+    return server.get(`workspaces/${id}${query}`, {
         data: {},
     });
 };
@@ -498,6 +499,12 @@ const subscribeToPodLogs = (projectName, environment, onPodInfo, onPodLogs, onCo
     return sse;
 };
 
+const cancelDeployment = (projectName, environment) => {
+    return server.delete(`workspace/deployment/cancel/${projectName}/${environment}`, {
+        data: {},
+    });
+};
+
 const restartDeployments = (id, env) => {
     return server.post(`/workspaces/${id}/restart?env=${env}`, {data: {},});
 };
@@ -610,6 +617,7 @@ export const CodeSpaceApiClient = {
     subscribeToDeploymentStatus,
     getSyncError,
     subscribeToPodLogs,
+    cancelDeployment,
     restartDeployments,
     migrateWorkplace,
     getCodeSpaceGroups,

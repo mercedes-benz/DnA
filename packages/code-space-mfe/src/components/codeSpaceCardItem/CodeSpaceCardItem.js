@@ -63,6 +63,20 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
   const contextMenuRef = useRef(null);
   const statusPollRef = useRef(null);
 
+  // Deploy-logs modal state
+  const [showDeployLogsModal, setShowDeployLogsModal] = useState(false);
+  const [deployLogText, setDeployLogText] = useState('');
+  const [deployLogsHaveErrors, setDeployLogsHaveErrors] = useState(false);
+  const [newPodCrashLooping, setNewPodCrashLooping] = useState(false);
+  const [crashLoopReason, setCrashLoopReason] = useState('');
+  const [deployingThresholdExceeded, setDeployingThresholdExceeded] = useState(false);
+  const [cancellingDeployment, setCancellingDeployment] = useState(false);
+  const [deployLogsCopied, setDeployLogsCopied] = useState(false);
+  const podLogsSseRef = useRef(null);
+  const deployStatusSseRef = useRef(null);
+  const deployLogEditorRef = useRef(null);
+  const ERROR_LOG_PATTERN = /\b(error|exception|failed|panic|fatal)\b/i;
+
   // Auto-poll when any in-progress status is detected (deploy, restart, build)
   useEffect(() => {
     const topStatus = codeSpace?.projectDetails?.lastBuildOrDeployedStatus;
@@ -385,7 +399,7 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
 
   const handleRefresh = () => {
     setIsRefreshing(true);
-    CodeSpaceApiClient.getWorkspaceById(codeSpace.id)
+    CodeSpaceApiClient.getWorkspaceById(codeSpace.id, true)
       .then((res) => {
         setIsRefreshing(false);
         if (res.data && props.onRefreshCard) {
@@ -433,6 +447,17 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
     }
   };
 
+  const handleCopyDeployLogs = () => {
+    if (deployLogText) {
+      navigator.clipboard.writeText(deployLogText).then(() => {
+        setDeployLogsCopied(true);
+        setTimeout(() => setDeployLogsCopied(false), 2000);
+      }).catch(err => {
+        console.error('Failed to copy deployment logs:', err);
+      });
+    }
+  };
+
   const onSyncErrorInfoClick = (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -458,6 +483,123 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
         });
     }
   };
+
+  const stopDeployLogsStreams = () => {
+    if (podLogsSseRef.current) {
+      try { podLogsSseRef.current.close(); } catch (e) { /* noop */ }
+      podLogsSseRef.current = null;
+    }
+    if (deployStatusSseRef.current) {
+      try { deployStatusSseRef.current.close(); } catch (e) { /* noop */ }
+      deployStatusSseRef.current = null;
+    }
+  };
+
+  const closeDeployLogsModal = () => {
+    stopDeployLogsStreams();
+    setShowDeployLogsModal(false);
+    setDeployLogText('');
+    setDeployLogsHaveErrors(false);
+    setNewPodCrashLooping(false);
+    setCrashLoopReason('');
+    setDeployingThresholdExceeded(false);
+  };
+
+  const onDeployLogsInfoClick = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    const projectName = codeSpace?.projectDetails?.projectName;
+    const env = codeSpace?.projectDetails?.lastBuildOrDeployedEnv || 'int';
+    if (!projectName) {
+      return;
+    }
+
+    // Reset state and open modal
+    stopDeployLogsStreams();
+    setDeployLogText('');
+    setDeployLogsHaveErrors(false);
+    setNewPodCrashLooping(false);
+    setCrashLoopReason('');
+    setDeployingThresholdExceeded(false);
+    setShowDeployLogsModal(true);
+
+    // Stream real-time pod logs (only from the deploying-version pods)
+    podLogsSseRef.current = CodeSpaceApiClient.subscribeToPodLogs(
+      projectName,
+      env,
+      (podInfo) => {
+        const pods = podInfo?.pods || [];
+        if (pods.length) {
+          setDeployLogText((prev) => prev + `--- Streaming logs from: ${pods.join(', ')} ---\n`);
+        }
+      },
+      (logData) => {
+        const content = logData?.content || '';
+        const podName = logData?.podName || '';
+        if (content && ERROR_LOG_PATTERN.test(content)) {
+          setDeployLogsHaveErrors(true);
+        }
+        setDeployLogText((prev) => prev + (podName ? `[${podName}] ` : '') + content + '\n');
+      },
+      () => {
+        setDeployLogText((prev) => prev + `--- Log stream ended ---\n`);
+      },
+      (err) => {
+        setDeployLogText((prev) => prev + `--- Log stream error: ${err?.message || 'connection lost'} ---\n`);
+      }
+    );
+
+    // Stream deployment status for crash-loop / threshold signals
+    deployStatusSseRef.current = CodeSpaceApiClient.subscribeToDeploymentStatus(
+      projectName,
+      env,
+      (data) => {
+        setNewPodCrashLooping(!!data?.newPodCrashLooping);
+        setCrashLoopReason(data?.crashLoopReason || '');
+        setDeployingThresholdExceeded(!!data?.deployingThresholdExceeded);
+      },
+      () => { /* deployment-complete: keep modal open so user can read final logs */ },
+      () => { /* status stream error: ignore, logs stream is primary */ }
+    );
+  };
+
+  const onCancelDeployment = () => {
+    const projectName = codeSpace?.projectDetails?.projectName;
+    const env = codeSpace?.projectDetails?.lastBuildOrDeployedEnv || 'int';
+    if (!projectName) {
+      return;
+    }
+    setCancellingDeployment(true);
+    CodeSpaceApiClient.cancelDeployment(projectName, env)
+      .then(() => {
+        setCancellingDeployment(false);
+        Notification.show('Deployment cancelled');
+        closeDeployLogsModal();
+        handleRefresh();
+      })
+      .catch((err) => {
+        setCancellingDeployment(false);
+        Notification.show('Failed to cancel deployment: ' + (err?.response?.data?.message || err.message), 'alert');
+      });
+  };
+
+  // Ensure both SSE connections are closed when the component unmounts
+  useEffect(() => {
+    return () => {
+      stopDeployLogsStreams();
+    };
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Auto-scroll the log viewer to the bottom as new lines arrive
+  useEffect(() => {
+    if (showDeployLogsModal && deployLogEditorRef.current?.editor) {
+      const editor = deployLogEditorRef.current.editor;
+      editor.gotoLine(editor.session.getLength());
+    }
+  }, [deployLogText, showDeployLogsModal]);
+
+  const cancelDeploymentEnabled = deployLogsHaveErrors || newPodCrashLooping;
 
   const projectDetails = codeSpace?.projectDetails;
   const intDeploymentDetails = projectDetails?.intDeploymentDetails;
@@ -705,6 +847,13 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
                             >
                               <i className="icon mbc-icon refresh"></i>
                             </span>
+                            <span
+                              className={classNames(Styles.syncErrorInfoIcon, Styles.deployLogsInfoIcon)}
+                              onClick={onDeployLogsInfoClick}
+                              tooltip-data="View live deployment logs"
+                            >
+                              <i className="icon mbc-icon info"></i>
+                            </span>
                           </span>
                         </a>
                       )}
@@ -719,9 +868,16 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
                             rel="noreferrer"
                             className={Styles.deployFailLink}
                             tooltip-data={
-                             `Build to ${projectDetails?.lastBuildOrDeployedEnv === 'int' ? 'staging' : 'production'} failed on ` +
-                              regionalDateAndTimeConversionSolution(projectDetails?.lastBuildOrDeployedOn)
-                            }
+                                  `Build to ${projectDetails?.lastBuildOrDeployedEnv === 'int' ? 'staging' : 'production'} failed on ` +
+                                  regionalDateAndTimeConversionSolution(projectDetails?.lastBuildOrDeployedOn) +
+                                  ((
+                                    (projectDetails?.lastBuildOrDeployedEnv === 'int'
+                                      ? projectDetails?.intBuildDetails
+                                      : projectDetails?.prodBuildDetails
+                                    )?.lastBuildFailureReason === 'BUILD_TIMEOUT')
+                                    ? ' - Failed due to build timeout'
+                                    : '')
+                              }
                           >
                            Failed
                           </a>
@@ -1059,6 +1215,93 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
             setShowSyncErrorModal(false);
             setSyncErrorMessage('');
           }}
+          modalStyle={{
+            width: '70%',
+            maxWidth: '1200px',
+            maxHeight: '80%',
+          }}
+        />
+      )}
+      {showDeployLogsModal && (
+        <Modal
+          title={
+            <div className={Styles.modalHeader}>
+              <span>Deployment Logs</span>
+              <i
+                className={classNames('icon mbc-icon copy', Styles.copyLogsIcon, deployLogsCopied ? Styles.copyLogsIconCopied : '')}
+                tooltip-data={deployLogsCopied ? 'Copied!' : 'Copy logs'}
+                onClick={handleCopyDeployLogs}
+              ></i>
+            </div>
+          }
+          showAcceptButton={false}
+          showCancelButton={false}
+          show={showDeployLogsModal}
+          content={
+            <div className={Styles.deployLogsModalContent}>
+              {(cancelDeploymentEnabled || deployingThresholdExceeded) && (
+                <div
+                  className={classNames(
+                    Styles.reasonBanner,
+                    cancelDeploymentEnabled ? Styles.reasonBannerError : Styles.reasonBannerInfo
+                  )}
+                >
+                  <i className={classNames('icon mbc-icon', cancelDeploymentEnabled ? 'alert circle' : 'info')}></i>
+                  <span>
+                    {crashLoopReason && <>{crashLoopReason}. </>}
+                    {deployLogsHaveErrors && <>Errors detected in logs. </>}
+                    {!cancelDeploymentEnabled && deployingThresholdExceeded && (
+                      <>Deployment is taking longer than expected but no errors or crashes were detected yet — still deploying.</>
+                    )}
+                  </span>
+                </div>
+              )}
+              <div className={Styles.errorContainer}>
+                <div className={Styles.editorWrapper}>
+                  <AceEditor
+                    ref={deployLogEditorRef}
+                    width="100%"
+                    height="100%"
+                    mode="text"
+                    theme="solarized_dark"
+                    name="deployLogViewer"
+                    fontSize={13}
+                    showPrintMargin={false}
+                    showGutter={true}
+                    highlightActiveLine={false}
+                    value={deployLogText || 'Waiting for logs from the deploying pods...'}
+                    readOnly={true}
+                    setOptions={{
+                      enableBasicAutocompletion: false,
+                      enableLiveAutocompletion: false,
+                      enableSnippets: false,
+                      showLineNumbers: true,
+                      tabSize: 2,
+                      useWorker: false,
+                      wrap: true,
+                    }}
+                    editorProps={{ $blockScrolling: true }}
+                  />
+                </div>
+                <div className={Styles.deployLogsActions}>
+                  <button
+                    className={Styles.cancelDeploymentButton}
+                    onClick={onCancelDeployment}
+                    disabled={!cancelDeploymentEnabled || cancellingDeployment}
+                    tooltip-data={
+                      cancelDeploymentEnabled
+                        ? 'Cancel this deployment'
+                        : 'Cancellation is available only when error logs or a crash-loop are detected'
+                    }
+                  >
+                    {cancellingDeployment ? 'Cancelling...' : 'Cancel Deployment'}
+                  </button>
+                </div>
+              </div>
+            </div>
+          }
+          scrollableContent={false}
+          onCancel={closeDeployLogsModal}
           modalStyle={{
             width: '70%',
             maxWidth: '1200px',

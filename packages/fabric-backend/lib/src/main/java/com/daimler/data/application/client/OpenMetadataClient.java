@@ -537,7 +537,7 @@ public class OpenMetadataClient {
             return column;
         } catch (IllegalArgumentException e) {
             throw new OpenMetadataClientException(
-                "Invalid column definition - " + e.getMessage(), e);
+                "Invalid column definition for column '" + name + "' - " + e.getMessage(), e);
         }
     }
 
@@ -565,9 +565,59 @@ public class OpenMetadataClient {
             column.setDataType(Column.DataTypeEnum.STRUCT);
             column.setDataTypeDisplay(dataTypeStr);
 
+        } else if (upper.startsWith("DECIMAL(") || upper.startsWith("NUMERIC(")) {
+            String prefix = upper.startsWith("DECIMAL(") ? "DECIMAL(" : "NUMERIC(";
+            String inner = extractInner(upper, prefix);
+            String[] parts = inner.split(",");
+            column.setDataType(upper.startsWith("DECIMAL(") ? Column.DataTypeEnum.DECIMAL : Column.DataTypeEnum.NUMERIC);
+            try {
+                column.setPrecision(Integer.parseInt(parts[0].trim()));
+                if (parts.length > 1) {
+                    column.setScale(Integer.parseInt(parts[1].trim()));
+                }
+            } catch (NumberFormatException e) {
+                // precision/scale not parseable — still set type
+            }
+            column.setDataTypeDisplay(dataTypeStr);
+        } else if (upper.matches("(N?VARCHAR|N?CHAR|BINARY|VARBINARY)\\(.*\\)")) {
+            String baseType = upper.replaceAll("\\(.*\\)", "");
+            String lenStr = upper.replaceAll(".*\\((.*)\\)", "$1");
+            column.setDataType(Column.DataTypeEnum.fromValue(baseType));
+            if (!lenStr.equalsIgnoreCase("MAX")) {
+                try {
+                    column.setDataLength(Integer.parseInt(lenStr));
+                } catch (NumberFormatException e) {
+                    // non-numeric length — skip
+                }
+            }
+            column.setDataTypeDisplay(dataTypeStr);
+
         } else {
-            Column.DataTypeEnum dataType = Column.DataTypeEnum.fromValue(upper);
+            // Fabric-specific type aliases → OpenMetadata enum mapping
+            String mapped = mapFabricTypeAlias(upper);
+            Column.DataTypeEnum dataType = Column.DataTypeEnum.fromValue(mapped);
             column.setDataType(dataType);
+            if (!mapped.equals(upper)) {
+                column.setDataTypeDisplay(dataTypeStr);
+            }
+        }
+    }
+
+    private String mapFabricTypeAlias(String upper) {
+        switch (upper) {
+            case "UNIQUEIDENTIFIER": return "UUID";
+            case "TIMESTAMP_NTZ":   return "TIMESTAMP";
+            case "MONEY":
+            case "SMALLMONEY":      return "DECIMAL";
+            case "REAL":            return "FLOAT";
+            case "DATETIME2":
+            case "SMALLDATETIME":   return "DATETIME";
+            case "DATETIMEOFFSET":  return "TIMESTAMPZ";
+            case "IMAGE":           return "BLOB";
+            case "NTEXT":           return "TEXT";
+            case "DECIMAL":
+            case "NUMERIC":         return upper; // bare (no precision) — pass through
+            default:                return upper;
         }
     }
 

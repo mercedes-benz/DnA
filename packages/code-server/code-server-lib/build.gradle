@@ -183,6 +183,8 @@ dependencies {
     implementation group: 'cglib', name: 'cglib-nodep', version: '3.3.0'
     
     implementation('org.springframework.boot:spring-boot-starter-web')
+    implementation 'org.springframework.boot:spring-boot-starter-cache'
+    implementation 'com.github.ben-manes.caffeine:caffeine'
 
 	implementation('org.apache.tomcat.embed:tomcat-embed-jasper:10.0.5')
 

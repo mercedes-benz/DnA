@@ -340,10 +340,12 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
                 "Catalog metadata not found for service: " + existingFabricWorkspace.getName() + ". " + e.getMessage()));
         } catch (OpenMetadataClientException | EntityAlreadyExistsException e) {
             log.error("Failed to update catalog metadata for service: {}", existingFabricWorkspace.getName(), e);
-            response.setResponses(createErrorResponse(FAILED_STATUS, e.getMessage()));
+            String errorMessage = extractErrorMessage(e.getMessage());
+            response.setResponses(createErrorResponse(FAILED_STATUS, errorMessage));
         } catch (Exception e) {
             log.error("Unexpected error updating catalog metadata for service: {}", existingFabricWorkspace.getName(), e);
-            response.setResponses(createErrorResponse(FAILED_STATUS, "Unexpected error: " + e.getMessage()));
+            String errorMessage = extractErrorMessage(e.getMessage());
+            response.setResponses(createErrorResponse(FAILED_STATUS, "Unexpected error: " + extractErrorMessage(e.getMessage())));
         }
         
         return response;
@@ -1402,6 +1404,30 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
         } catch (Exception e) {
             throw new OpenMetadataClientException("Failed to update table: " + tableMetadata.getTableName(), e);
         }
+    }
+
+    private String extractErrorMessage(String exceptionMessage) {
+        if (exceptionMessage == null) {
+            return "An unknown error occurred";
+        }
+
+        int jsonStart = exceptionMessage.indexOf("[{");
+        if (jsonStart != -1) {
+            int jsonEnd = exceptionMessage.indexOf("}]", jsonStart);
+            if (jsonEnd != -1) {
+                String jsonPart = exceptionMessage.substring(jsonStart, jsonEnd + 2);
+
+                int messageStart = jsonPart.indexOf("\"message\":\"");
+                if (messageStart != -1) {
+                    messageStart += 11; 
+                    int messageEnd = jsonPart.indexOf("\"", messageStart);
+                    if (messageEnd != -1) {
+                        return jsonPart.substring(messageStart, messageEnd);
+                    }
+                }
+            }
+        }
+        return exceptionMessage;
     }
 
     private GenericMessage createErrorResponse(String status, String message) {
