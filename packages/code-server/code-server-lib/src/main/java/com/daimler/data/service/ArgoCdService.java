@@ -201,12 +201,8 @@ public class ArgoCdService {
         
             if (response != null && response.getStatusCode().is2xxSuccessful()) {
                 log.info("ArgoCD application created/updated successfully: {}", appName);
-                log.info("ArgoCD deployment trigger mode for {}: hardRefreshEnabled={}, sync=unconditional",
-                        appName, hardRefreshEnabled);
                 if (hardRefreshEnabled) {
                     refreshArgoApp(token, appName);
-                } else {
-                    log.info("ArgoCD hard refresh disabled for {}; proceeding with sync only", appName);
                 }
                 String syncOutcome = triggerArgoSync(token, appName);
                 log.info("ArgoCD deployment trigger completed for {}: mode={}, syncOutcome={}",
