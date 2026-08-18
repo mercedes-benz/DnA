@@ -61,6 +61,14 @@ public interface WorkspaceCustomRepository extends CommonDataRepository<CodeServ
 	GenericMessage updateDeploymentDetails(String projectName, String environment,
 			CodeServerDeploymentDetails deploymentDetails,String lastBuildOrDeployStatus);
 
+	GenericMessage updateReconciledDeploymentStatus(String projectName, String environment,
+			CodeServerDeploymentDetails deploymentDetails, String lastBuildOrDeployStatus);
+
+	GenericMessage updateDeploymentGitJobRunId(String projectName, String environment, String gitjobRunID);
+
+	GenericMessage updateCancelledDeploymentStatus(String projectName, String environment,
+			String lastDeploymentStatus, String lastDeploymentError, Date lastDeployedOn);
+
 	GenericMessage updateDeployedAppConfig(String projectName, String environment, boolean secureWithIAMRequired,
 			String oneApiVersionShortName, boolean isSecuredWithCookie, String deploymentType, String clientID,
 			String redirectUri, String ignorePaths, String scope, String ssoType, boolean secureWithDnaRequired,
@@ -109,4 +117,6 @@ public interface WorkspaceCustomRepository extends CommonDataRepository<CodeServ
     boolean updateGitRunIdStatus(String projectName, String status, String string);
 
 	boolean updateBuildDeployAuditStatus(String projectName, String status, String environment, String gitjobRunId);
+
+
 }

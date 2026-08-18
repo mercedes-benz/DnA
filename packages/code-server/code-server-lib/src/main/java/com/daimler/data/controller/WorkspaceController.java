@@ -1795,11 +1795,15 @@ import org.springframework.beans.factory.annotation.Value;
 	 @RequestMapping(value = "/workspaces/{id}", produces = { "application/json" }, consumes = {
 			 "application/json" }, method = RequestMethod.GET)
 	 public ResponseEntity<CodeServerWorkspaceVO> getById(
-			 @ApiParam(value = "Workspace ID to be fetched", required = true) @PathVariable("id") String id) {
- 
+			 @ApiParam(value = "Workspace ID to be fetched", required = true) @PathVariable("id") String id,
+			 @ApiParam(value = "Set to true when user manually triggers refresh. Auto-poll should pass false or omit.", defaultValue = "false")
+			 @Valid @RequestParam(value = "refreshTriggeredByUser", required = false, defaultValue = "false") Boolean refreshTriggeredByUser) {
+
 		 CreatedByVO currentUser = this.userStore.getVO();
 		 String userId = currentUser != null ? currentUser.getId() : "";
-		 CodeServerWorkspaceVO vo = service.getById(userId, id);
+		 boolean refresh = Boolean.TRUE.equals(refreshTriggeredByUser);
+		 log.info("getById - workspaceId={}, userId={}, refreshTriggeredByUser={}", id, userId, refresh);
+		 CodeServerWorkspaceVO vo = service.getById(userId, id, refresh);
 		 if (vo != null && vo.getWorkspaceId() != null) {
 			 if (!(vo.getWorkspaceOwner() != null && vo.getWorkspaceOwner().getId().equalsIgnoreCase(userId))) {
 				 MessageDescription notAuthorizedMsg = new MessageDescription();

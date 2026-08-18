@@ -200,6 +200,12 @@ paths:
           description: "Workspace ID to be fetched"
           required: true
           type: "string"
+        - name: "refreshTriggeredByUser"
+          in: "query"
+          description: "Set to true when user manually triggers refresh. Auto-poll should pass false or omit."
+          required: false
+          type: "boolean"
+          default: false
       responses:
         200:
           description: "Returns message of success or failure"
@@ -2089,6 +2095,9 @@ definitions:
       version:
         type: string
         description: "version of the last build"
+      lastBuildFailureReason:
+        type: string
+        description: "Reason for last build failure (e.g. BUILD_TIMEOUT)"  
          
   CodeServerRecipeDetailsVO:
     type: object
