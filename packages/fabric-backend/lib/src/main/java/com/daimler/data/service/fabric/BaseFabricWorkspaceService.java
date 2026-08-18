@@ -29,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.application.client.AuthoriserClient;
+import com.daimler.data.application.client.AzureManagementClient;
 import com.daimler.data.application.client.FabricWorkspaceClient;
 import com.daimler.data.application.client.RSAEncryptionUtil;
 import com.daimler.data.assembler.ADAProjectsAssembler;
@@ -61,6 +62,7 @@ import com.daimler.data.dto.fabric.CreateEntitlementRequestDto;
 import com.daimler.data.dto.fabric.CreateLakehouseDto;
 import com.daimler.data.dto.fabric.CreateRoleRequestDto;
 import com.daimler.data.dto.fabric.CreateRoleResponseDto;
+import com.daimler.data.dto.fabric.CreateCmkKeyResponseDto;
 import com.daimler.data.dto.fabric.CreateWorkspaceDto;
 import com.daimler.data.dto.fabric.CredentialDetailsDto;
 import com.daimler.data.dto.fabric.DatasourceResponseDto;
@@ -86,6 +88,7 @@ import com.daimler.data.dto.fabric.WorkspaceUpdateDto;
 import com.daimler.data.dto.fabricWorkspace.AuthoriserRoleDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.MembersVO;
 import com.daimler.data.dto.fabricWorkspace.CapacityVO;
+import com.daimler.data.dto.fabricWorkspace.CmkKeyDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.CreateRoleRequestVO;
 import com.daimler.data.dto.fabricWorkspace.CreatedByVO;
 import com.daimler.data.dto.fabricWorkspace.CustomGroupNameCollectionVO;
@@ -128,6 +131,9 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 
 	@Autowired
 	private FabricWorkspaceClient fabricWorkspaceClient;
+	
+	@Autowired
+	private AzureManagementClient azureManagementClient;
 	
 	@Autowired
 	private FabricWorkspaceCustomRepository customRepo;
@@ -639,7 +645,44 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 
 					data.setStatus(currentStatus);
 					//data.setStatus(this.processWorkspaceUserManagement(currentStatus, vo.getName(), creatorId,createResponse.getId(), vo.getCustomGroupName()));
+					if(!isPowerBI) {
+							data.setCmkDetails(new CmkKeyDetailsVO().cmkKey(null).cmkKeyCreated(false).cmkKeyAssign(false));
+							CreateCmkKeyResponseDto cmkKeyResponse = azureManagementClient.createWorkSpaceCmkKey(createResponse.getId());
 
+							if(cmkKeyResponse != null && cmkKeyResponse.getKeyId() != null) {
+								String cmkKeyId = cmkKeyResponse.getKeyId();
+								boolean cmkKeyCreated = cmkKeyResponse.getCmkFlag();
+								boolean cmkKeyAssinged = false;
+								log.info("cmkKeyCreated :"+cmkKeyCreated+" cmkKeyAssinged :" +cmkKeyAssinged);
+
+								if(cmkKeyCreated) {
+									cmkKeyAssinged = azureManagementClient.assignCmkKeyToWorkspace(createResponse.getId(), cmkKeyId);
+									if(cmkKeyAssinged) {
+										log.info("Successfully assigned CMK key for workspace {} ", createResponse.getId());
+									} else {
+										log.error("Failed to assign CMK key for workspace {} ", createResponse.getId());
+									}
+								} else {
+									log.error("Failed to create CMK key for workspace {} ", createResponse.getId());
+								}
+
+								log.info("cmkKeyCreated :"+cmkKeyCreated+" cmkKeyAssinged :" +cmkKeyAssinged);
+								data.setCmkDetails(
+									new CmkKeyDetailsVO()
+										.cmkKey(cmkKeyId)
+										.cmkKeyCreated(cmkKeyCreated)
+										.cmkKeyAssign(cmkKeyAssinged)
+								);
+								log.info("cmk key details :" + data.getCmkDetails().toString());
+
+							} else {
+								log.error("Failed to create CMK key for workspace {} ", createResponse.getId());
+								MessageDescription message = new MessageDescription();
+								message.setMessage("Failed to create CMK key for created workspace " + vo.getName() + ". Please contact Admin.");
+								warnings.add(message);
+							}
+							
+					}
 					FabricWorkspaceVO savedRecord = null;
 					try{
 						savedRecord = super.create(data);  

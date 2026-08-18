@@ -121,6 +121,11 @@ fabricWorkspaces:
         cryptoOfficer: ${KEYVAULT_CRYPTO_OFFICER_ROLE:XXXX}
         cryptoUser: ${KEYVAULT_CRYPTO_USER_ROLE:XXXX}
         keyVaultAdminRole: ${KEYVAULT_ADMIN_ROLE:XXXX}
+    cmk:
+      createUrl: ${AZURE_CREATE_CMK_URL:XXXX}
+      assignUrl: ${AZURE_ASSIGN_CMK_URL:XXXX}
+      createScope: ${CMK_CREATE_SCOPE:XXXX}
+      assignScope: ${CMK_ASSIGN_SCOPE:XXXX}
 
 genesis:
   apiKey: ${GENESIS_API_KEY:XXXX}
