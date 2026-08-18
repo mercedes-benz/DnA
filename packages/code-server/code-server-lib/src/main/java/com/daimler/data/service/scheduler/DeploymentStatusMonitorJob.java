@@ -200,6 +200,9 @@ public class DeploymentStatusMonitorJob {
                     projectName, environment);
             return false;
         }
+        long cooldownMillis = onDemandRefreshCooldownSeconds * 1000L;
+        onDemandReconciliationTimes.entrySet().removeIf(entry ->
+                now - entry.getValue() >= cooldownMillis);
         onDemandReconciliationTimes.put(cooldownKey, now);
         return checkAndUpdateDeployment(argoToken, workspace, deployment, projectName, environment);
     }

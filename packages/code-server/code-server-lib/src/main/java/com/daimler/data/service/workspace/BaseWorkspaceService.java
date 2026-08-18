@@ -48,10 +48,7 @@ import java.util.regex.Matcher;
  import java.util.stream.Collectors;
  import java.util.Collections;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-
- import org.json.JSONObject;
+import org.json.JSONObject;
  import org.springframework.beans.BeanUtils;
  import org.springframework.beans.factory.annotation.Autowired;
  import org.springframework.beans.factory.annotation.Value;
@@ -273,9 +270,6 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 
 	 @Autowired
 	 private DeploymentStatusMonitorJob deploymentStatusMonitorJob;
-
-	 @PersistenceContext
-	 private EntityManager entityManager;
 
 	 @Value("${codeServer.build.retainedlimit}")
      private String retainedBuildLimitValue;
@@ -1903,7 +1897,14 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 				deploymentReconciled |= deploymentStatusMonitorJob
 						.reconcileDeploymentOnDemand(entity, "prod");
 				if (deploymentReconciled) {
-					entityManager.refresh(entity);
+					CodeServerWorkspaceNsql refreshedEntity = technicalId.equalsIgnoreCase(userId)
+							? workspaceCustomRepository.findByWorkspaceId(id)
+							: workspaceCustomRepository.findById(userId, id);
+					if (refreshedEntity != null) {
+						entity = refreshedEntity;
+					} else {
+						log.warn("getById - Re-read after deployment reconciliation returned no row for id={}", id);
+					}
 				}
 			}
 
