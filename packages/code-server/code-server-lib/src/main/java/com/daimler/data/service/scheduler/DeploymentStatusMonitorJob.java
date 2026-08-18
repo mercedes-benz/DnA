@@ -18,6 +18,7 @@ import com.daimler.data.service.ArgoCdService;
 import com.daimler.dna.notifications.common.producer.KafkaProducerService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -26,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 
 @Component
@@ -49,6 +51,11 @@ public class DeploymentStatusMonitorJob {
 
     @Autowired
     private CodeServerClient codeServerClient;
+
+    @Value("${deployment.onDemandRefreshCooldownSeconds:5}")
+    private long onDemandRefreshCooldownSeconds;
+
+    private final Map<String, Long> onDemandReconciliationTimes = new ConcurrentHashMap<>();
 
     @Scheduled(fixedDelay = 10000, initialDelay = 5000)
     @SchedulerLock(name = "deploymentStatusMonitorJob", lockAtMostFor = "2m", lockAtLeastFor = "5s")
@@ -138,6 +145,63 @@ public class DeploymentStatusMonitorJob {
         } catch (Exception e) {
             log.error("Error in deployment status monitoring job", e);
         }
+    }
+
+    public boolean reconcileDeploymentOnDemand(CodeServerWorkspaceNsql workspace, String environment) {
+        if (workspace == null || workspace.getData() == null
+                || workspace.getData().getProjectDetails() == null
+                || (!"int".equalsIgnoreCase(environment) && !"prod".equalsIgnoreCase(environment))) {
+            return false;
+        }
+
+        String projectName = workspace.getData().getProjectDetails().getProjectName();
+        CodeServerDeploymentDetails deployment = "int".equalsIgnoreCase(environment)
+                ? workspace.getData().getProjectDetails().getIntDeploymentDetails()
+                : workspace.getData().getProjectDetails().getProdDeploymentDetails();
+        if (projectName == null || deployment == null || isUserCancelled(deployment)) {
+            return false;
+        }
+
+        boolean needsCheck = shouldCheckDeployment(deployment);
+        if (!needsCheck
+                && "RESTART_REQUESTED".equalsIgnoreCase(
+                        workspace.getData().getProjectDetails().getLastBuildOrDeployedStatus())
+                && environment.equalsIgnoreCase(
+                        workspace.getData().getProjectDetails().getLastBuildOrDeployedEnv())) {
+            deployment.setLastDeploymentStatus("RESTART_REQUESTED");
+            needsCheck = true;
+        }
+        if (!needsCheck || isUserCancelled(deployment) || !hasDeploymentHistory(projectName, environment)) {
+            return false;
+        }
+
+        String workspaceKey = workspace.getData().getWorkspaceId() != null
+                ? workspace.getData().getWorkspaceId() : projectName;
+        String cooldownKey = workspaceKey + ":" + environment.toLowerCase();
+        long now = System.currentTimeMillis();
+        Long previousRun = onDemandReconciliationTimes.get(cooldownKey);
+        if (previousRun != null
+                && now - previousRun < onDemandRefreshCooldownSeconds * 1000L) {
+            log.info("Skipping on-demand deployment reconciliation for {}-{}: cooldown active",
+                    projectName, environment);
+            return false;
+        }
+
+        String argoToken;
+        try {
+            argoToken = argoCdService.getArgoToken();
+        } catch (Exception e) {
+            log.warn("Unable to get ArgoCD token for on-demand deployment reconciliation of {}-{}: {}",
+                    projectName, environment, e.getMessage());
+            return false;
+        }
+        if (argoToken == null) {
+            log.warn("Unable to get ArgoCD token for on-demand deployment reconciliation of {}-{}",
+                    projectName, environment);
+            return false;
+        }
+        onDemandReconciliationTimes.put(cooldownKey, now);
+        return checkAndUpdateDeployment(argoToken, workspace, deployment, projectName, environment);
     }
 
     private boolean hasDeploymentHistory(String projectName, String environment) {

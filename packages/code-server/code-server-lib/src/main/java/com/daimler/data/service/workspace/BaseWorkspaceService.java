@@ -48,6 +48,9 @@ import java.util.regex.Matcher;
  import java.util.stream.Collectors;
  import java.util.Collections;
 
+import javax.persistence.EntityManager;
+import javax.persistence.PersistenceContext;
+
  import org.json.JSONObject;
  import org.springframework.beans.BeanUtils;
  import org.springframework.beans.factory.annotation.Autowired;
@@ -68,6 +71,7 @@ import java.util.regex.Matcher;
  import com.daimler.data.auth.client.AuthenticatorClient;
  import com.daimler.data.auth.client.DnaAuthClient;
  import com.daimler.data.service.ArgoCdService;
+import com.daimler.data.service.scheduler.DeploymentStatusMonitorJob;
  import com.daimler.data.controller.exceptions.GenericMessage;
  import com.daimler.data.controller.exceptions.MessageDescription;
  import com.daimler.data.db.entities.CodeServerBuildDeployNsql;
@@ -266,6 +270,12 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 
 	 @Autowired
 	 private ArgoCdService argoCdService;
+
+	 @Autowired
+	 private DeploymentStatusMonitorJob deploymentStatusMonitorJob;
+
+	 @PersistenceContext
+	 private EntityManager entityManager;
 
 	 @Value("${codeServer.build.retainedlimit}")
      private String retainedBuildLimitValue;
@@ -1883,6 +1893,17 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 									projectName, minutesSinceRequest, staleThresholdMinutes);
 						}
 					}
+				}
+			}
+
+			if (refreshTriggeredByUser && entity != null && entity.getData() != null
+					&& entity.getData().getProjectDetails() != null) {
+				boolean deploymentReconciled = deploymentStatusMonitorJob
+						.reconcileDeploymentOnDemand(entity, "int");
+				deploymentReconciled |= deploymentStatusMonitorJob
+						.reconcileDeploymentOnDemand(entity, "prod");
+				if (deploymentReconciled) {
+					entityManager.refresh(entity);
 				}
 			}
 
