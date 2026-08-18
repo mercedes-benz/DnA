@@ -57,7 +57,8 @@ public class DeploymentStatusMonitorJob {
 
     private final Map<String, Long> onDemandReconciliationTimes = new ConcurrentHashMap<>();
 
-    @Scheduled(fixedDelay = 10000, initialDelay = 5000)
+    @Scheduled(fixedDelayString = "#{${deployment.statusMonitorSeconds:20} * 1000}",
+            initialDelay = 5000)
     @SchedulerLock(name = "deploymentStatusMonitorJob", lockAtMostFor = "2m", lockAtLeastFor = "5s")
     public void monitorDeploymentStatus() {
         try {

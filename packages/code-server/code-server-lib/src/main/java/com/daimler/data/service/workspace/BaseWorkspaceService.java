@@ -1655,7 +1655,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 				log.info("getById - lookup by userId+id: userId={}, id={}", userId, id);
 			}
 			// Status reconciliation (ArgoCD, GitHub Actions, backfill) is handled
-			// by DeploymentStatusMonitorJob which runs every 10s. Keeping getById
+			// by DeploymentStatusMonitorJob which runs every 20s. Keeping getById
 			// as a pure DB read avoids slow synchronous HTTP calls to ArgoCD/GitHub
 			// on every card refresh.
 
@@ -1665,7 +1665,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 			// ArgoCD.
 			// This reconciliation only runs when explicitly triggered by user refresh
 			// (refreshTriggeredByUser=true).
-			// Auto-poll requests (every 10s) skip this entirely and return DB state only.
+			// Auto-poll requests (every 20s) skip this entirely and return DB state only.
 			if (refreshTriggeredByUser && entity != null && entity.getData() != null
 					&& entity.getData().getProjectDetails() != null
 					&& entity.getData().getProjectDetails().getLastBuildOrDeployedStatus() != null) {
