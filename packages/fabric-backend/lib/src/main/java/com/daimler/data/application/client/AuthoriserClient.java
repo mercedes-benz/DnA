@@ -265,6 +265,7 @@ public class AuthoriserClient {
 				MessageDescription error = new MessageDescription("Entitlement deletion failed: Not Found (404). so considered as deleted.");
 				errors.add(error);
 				response.setErrors(errors);
+				response.setWarnings(warnings);
 			 
 			} else {
 				log.error("Entitlement with displayName {} deletion failed with status code {} ", 
@@ -273,6 +274,7 @@ public class AuthoriserClient {
 				MessageDescription error = new MessageDescription("Entitlement deletion failed with status code "+e.getStatusCode());
 				errors.add(error);
 				response.setErrors(errors);
+				response.setWarnings(warnings);
 			}
 			
 		} catch(Exception e) {
@@ -282,6 +284,7 @@ public class AuthoriserClient {
 			MessageDescription error = new MessageDescription("Entitlement deletion failed due to unexpected error.");
 			errors.add(error);
 			response.setErrors(errors);
+			response.setWarnings(warnings);
 		}
 		return response;
     }
@@ -326,6 +329,7 @@ public class AuthoriserClient {
                 MessageDescription error = new MessageDescription("Role deletion failed: Not Found (404). so considered as deleted.");
                 errors.add(error);
                 response.setErrors(errors);
+                response.setWarnings(warnings);
              
             } else if (HttpStatus.FORBIDDEN.equals(e.getStatusCode())) {
 
@@ -334,6 +338,7 @@ public class AuthoriserClient {
 				MessageDescription error = new MessageDescription("Role deletion failed: Forbidden (403).");
 				errors.add(error);
 				response.setErrors(errors);
+				response.setWarnings(warnings);
 
 			} else {
                 log.error("Role with displayName {} deletion failed with status code {} ", 
@@ -342,6 +347,7 @@ public class AuthoriserClient {
                 MessageDescription error = new MessageDescription("Role deletion failed with status code "+e.getStatusCode());
                 errors.add(error);
                 response.setErrors(errors);
+                response.setWarnings(warnings);
             }
             
         } catch(Exception e) {
@@ -351,6 +357,7 @@ public class AuthoriserClient {
             MessageDescription error = new MessageDescription("Role deletion failed due to unexpected error.");
             errors.add(error);
             response.setErrors(errors);
+            response.setWarnings(warnings);
         }
 		return response;
     }
