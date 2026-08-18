@@ -66,6 +66,9 @@ public class ArgoCdService {
     @Value("${argocd.vaultKvPath}")
     private String vaultKvPath;
 
+    @Value("${deployment.hardRefreshEnabled:false}")
+    private boolean hardRefreshEnabled;
+
     @Value("${codeServer.env.ref}")
     private String codeServerEnvRef;
 
@@ -198,8 +201,16 @@ public class ArgoCdService {
         
             if (response != null && response.getStatusCode().is2xxSuccessful()) {
                 log.info("ArgoCD application created/updated successfully: {}", appName);
-                refreshArgoApp(token, appName);
-                triggerArgoSync(token, appName);
+                log.info("ArgoCD deployment trigger mode for {}: hardRefreshEnabled={}, sync=unconditional",
+                        appName, hardRefreshEnabled);
+                if (hardRefreshEnabled) {
+                    refreshArgoApp(token, appName);
+                } else {
+                    log.info("ArgoCD hard refresh disabled for {}; proceeding with sync only", appName);
+                }
+                String syncOutcome = triggerArgoSync(token, appName);
+                log.info("ArgoCD deployment trigger completed for {}: mode={}, syncOutcome={}",
+                        appName, hardRefreshEnabled ? "hard-refresh-and-sync" : "sync-only", syncOutcome);
                 return "success";
             } else {
                 String errorBody = response != null ? response.getBody() : "no response";

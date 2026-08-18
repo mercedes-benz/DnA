@@ -2,7 +2,7 @@ spring:
   mvc.pathmatch.matching-strategy: ant_path_matcher
   application:
     name: dna-codeserver-service
-    version: 1.12.17
+    version: 1.12.18
   profile:
     active: production
 
@@ -271,3 +271,4 @@ deployment:
   ssePollSeconds: ${DEPLOYMENT_SSE_POLL_SECONDS:10}
   onDemandRefreshCooldownSeconds: ${DEPLOYMENT_ON_DEMAND_REFRESH_COOLDOWN_SECONDS:5}
   statusMonitorSeconds: ${DEPLOYMENT_STATUS_MONITOR_SECONDS:20}
+  hardRefreshEnabled: ${DEPLOYMENT_HARD_REFRESH_ENABLED:false}
