@@ -36,6 +36,7 @@ public class ConstantsUtility {
 	public static final String ASSIGNED_STATE = "ASSIGNED";
 	public static final String FAILED_STATE = "FAILED";
 	
+	public static final String SUCCESS_STATE = "SUCCESS";
 	public static final String COMPLETED_STATE = "COMPLETED";
 	public static final String DELETED_STATE = "DELETED";
 	public static final String INPROGRESS_STATE = "IN_PROGRESS";
@@ -64,6 +65,10 @@ public class ConstantsUtility {
 	// UI Licious related constants
 	public static final String UILICIOUS_GROUP_CONSTANT = "group";
 	public static final String UILICIOUS_GROUP_STATUS_CONSTANT = "status";
+	public static final String UILICIOUS_TABLE_CONSTANT = "table";
+	public static final String UILICIOUS_NAME_CONSTANT = "name";
+	public static final String UILICIOUS_KEPT_CONSTANT = "KEPT";
+
 
 	// Groups constants
 	public static final String GROUPS_ADDED_CONSTANT = "ADDED";
@@ -73,6 +78,7 @@ public class ConstantsUtility {
 	public static final String GROUPS_NOT_FOUND_CONSTANT = "NOT_FOUND";
 
 	public static final String GROUPS_COMPLETED_CONSTANT = "COMPLETED";
+	public static final String GROUP_ADDED_MESSAGE_IN_PROGRESS = "Adding group is in process.";
 	
 	public static final Map<String, String> GROUPES_ERROR_MESSAGES_CONSTANT_MAP = Map.of(
 			GROUPS_ADDED_CONSTANT, "Group added successfully",
@@ -82,5 +88,19 @@ public class ConstantsUtility {
 			GROUPS_NOT_FOUND_CONSTANT, "Group not found. Please check and reverify the group’s name and their spelling correctly"
 			);
 
+
+	// Mirrored Catalog error codes
+	public static final String ERROR_INVALID_REQUEST = "INVALID_REQUEST";
+	public static final String ERROR_STORAGE_ACCESS_DENIED = "STORAGE_ACCESS_DENIED";
+	public static final String ERROR_DATABRICKS_NOT_FOUND = "DATABRICKS_DATAPRODUCT_NOT_FOUND";
+	public static final String ERROR_DDX_GROUP_NOT_FOUND = "DDX_GROUP_NOT_FOUND";
+	public static final String ERROR_INTERNAL = "INTERNAL_ERROR";
+
+	// Mirrored Catalog status constants
+	public static final String MIRRORED_CATALOG_SUCCESS = "SUCCESS";
+	public static final String MIRRORED_CATALOG_FAILURE = "FAILURE";
+	public static final String MIRRORED_CATALOG_ALREADY_EXISTS = "ALREADY_EXISTS";
+	public static final String MIRRORED_CATALOG_IN_PROGRESS = "IN_PROGRESS";
+	public static final String MIRRORED_CATALOG_MESSAGE_IN_PROGRESS = "Mirrored catalog request triggered";
 
 }
