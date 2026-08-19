@@ -81,7 +81,44 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 		TypedQuery<CodeServerWorkspaceNsql> getAllQuery = em.createQuery(getAll);
 		return getAllQuery.getResultList();		
 	} 
-			
+
+	@Override
+	public List<CodeServerWorkspaceNsql> findDeploymentReconciliationWorkspaces() {
+		String query = """
+				SELECT *
+				FROM workspace_nsql
+				WHERE lower(jsonb_extract_path_text(data, 'status')) <> 'deleted'
+				  AND (
+					jsonb_extract_path_text(data, 'projectDetails', 'intDeploymentDetails', 'lastDeploymentStatus')
+						IN (:deployRequested, :restartRequested)
+					OR jsonb_extract_path_text(data, 'projectDetails', 'prodDeploymentDetails', 'lastDeploymentStatus')
+						IN (:deployRequested, :restartRequested)
+					OR jsonb_extract_path_text(data, 'projectDetails', 'lastBuildOrDeployedStatus') = :restartRequested
+					OR (
+						jsonb_extract_path_text(data, 'projectDetails', 'intDeploymentDetails', 'lastDeploymentStatus')
+							= :deploymentFailed
+						AND (
+							jsonb_extract_path_text(data, 'projectDetails', 'intDeploymentDetails', 'lastDeployedBy') IS NULL
+							OR jsonb_extract_path_text(data, 'projectDetails', 'intDeploymentDetails', 'lastDeployedOn') IS NULL
+						)
+					)
+					OR (
+						jsonb_extract_path_text(data, 'projectDetails', 'prodDeploymentDetails', 'lastDeploymentStatus')
+							= :deploymentFailed
+						AND (
+							jsonb_extract_path_text(data, 'projectDetails', 'prodDeploymentDetails', 'lastDeployedBy') IS NULL
+							OR jsonb_extract_path_text(data, 'projectDetails', 'prodDeploymentDetails', 'lastDeployedOn') IS NULL
+						)
+					)
+				  )
+				""";
+		Query reconciliationQuery = em.createNativeQuery(query, CodeServerWorkspaceNsql.class);
+		reconciliationQuery.setParameter("deployRequested", "DEPLOY_REQUESTED");
+		reconciliationQuery.setParameter("deploymentFailed", "DEPLOYMENT_FAILED");
+		reconciliationQuery.setParameter("restartRequested", "RESTART_REQUESTED");
+		return reconciliationQuery.getResultList();
+	}
+
 	@Override
 	public List<CodeServerWorkspaceNsql> findAll(String userId, int limit, int offset) {
 		CriteriaBuilder cb = em.getCriteriaBuilder();
