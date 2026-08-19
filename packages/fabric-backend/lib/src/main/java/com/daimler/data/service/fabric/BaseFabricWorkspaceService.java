@@ -657,8 +657,24 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 					GenericMessage addUserResponse = fabricWorkspaceClient.addUser(createResponse.getId(), vo.getCreatedBy().getEmail());
 					if(addUserResponse == null || !"SUCCESS".equalsIgnoreCase(addUserResponse.getSuccess())) {
 						log.error("Failed to add user {} to workspace {}", vo.getCreatedBy().getEmail(), createResponse.getId());
+						boolean workspaceDeleted = false;
+						try {
+							ErrorResponseDto deleteResponse = fabricWorkspaceClient.deleteWorkspace(createResponse.getId());
+							workspaceDeleted = deleteResponse == null || deleteResponse.getMessage() == null;
+							if(workspaceDeleted) {
+								log.info("Successfully rolled back fabric workspace project {} with id {}", vo.getName(), createResponse.getId());
+							}else {
+								log.error("Failed to roll back fabric workspace project {} with id {}: {}", vo.getName(), createResponse.getId(), deleteResponse.getMessage());
+							}
+						}catch(Exception e) {
+							log.error("Failed to roll back fabric workspace project {} with id {}", vo.getName(), createResponse.getId(), e);
+						}
 						MessageDescription message = new MessageDescription();
-						message.setMessage("Failed to add user to created workspace " + vo.getName() + " with id" + createResponse.getId() + ". Please contact Admin.");
+						if(workspaceDeleted) {
+							message.setMessage("Workspace " + vo.getName() + " was not created because the owner could not be added. The name is free to retry.");
+						}else {
+							message.setMessage("Failed to add user to workspace " + vo.getName() + ". A leftover workspace may exist. Please contact Admin.");
+						}
 						errors.add(message);
 						responseMessage.setErrors(errors);
 						responseMessage.setSuccess("FAILED");
