@@ -107,7 +107,6 @@ public class DeploymentStatusMonitorJob {
         List<CodeServerWorkspaceNsql> repairCandidates = new ArrayList<>();
 
         for (CodeServerWorkspaceNsql workspace : projectWorkspaces) {
-            String projectName = workspace.getData().getProjectDetails().getProjectName();
             CodeServerDeploymentDetails deployment = "int".equalsIgnoreCase(environment)
                     ? workspace.getData().getProjectDetails().getIntDeploymentDetails()
                     : workspace.getData().getProjectDetails().getProdDeploymentDetails();
