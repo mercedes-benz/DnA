@@ -180,7 +180,7 @@ const SolutionCardItem = (props: ISolutionCardItemProps) => {
                   <span onClick={addToBookmarks}>Add to My Bookmarks</span>
                 </li>
               )}
-              {props.canEdit && (
+              {Envs.ENABLE_SOLUTIONS && props.canEdit && (
                 <li className="contextListItem">
                   <span onClick={onEditSolution}>Edit Solution</span>
                 </li>

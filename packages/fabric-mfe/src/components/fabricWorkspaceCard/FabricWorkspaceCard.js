@@ -13,7 +13,7 @@ import { fabricApi } from '../../apis/fabric.api';
 import AddUser from 'dna-container/AddUser';
 import { USER_ROLE } from '../../utilities/constants';
 
-const FabricWorkspaceCard = ({user, workspace, onSelectWorkspace, onEditWorkspace, onDeleteWorkspace}) => {
+const FabricWorkspaceCard = ({user, workspace, onSelectWorkspace, onEditWorkspace, onDeleteWorkspace, isAdminView = false}) => {
   const history = useHistory();
   const [newOwnerDetails, setNewOwnerDetails] = useState(null);
   const [showTransferOwnershipModal, setShowTransferOwnershipModal] = useState(false);
@@ -164,7 +164,7 @@ const FabricWorkspaceCard = ({user, workspace, onSelectWorkspace, onEditWorkspac
           <div>
             <div>Workspace Link</div>
             <div>
-              {isFabricAdmin && workspace?.createdBy?.id !== user?.id ? (
+              {isAdminView && isFabricAdmin && workspace?.createdBy?.id !== user?.id ? (
                 <span className={Styles.disabledLink} title="Admins can only access their own workspaces">
                   Access Workspace
                   <i className={classNames('icon mbc-icon new-tab')} />
@@ -227,9 +227,9 @@ const FabricWorkspaceCard = ({user, workspace, onSelectWorkspace, onEditWorkspac
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                Consumption
+                Billing
                 <i className={classNames('icon mbc-icon new-tab')} />|&nbsp;&nbsp;
-              </a> 
+              </a>
               {(isAdmin || isOwner) && (
                 <a
                   href={`${Envs.FABRIC_ACTIVITY_REPORT_URL}'${encodeURIComponent(workspace?.name)}'`}
