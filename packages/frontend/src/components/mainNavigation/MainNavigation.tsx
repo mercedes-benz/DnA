@@ -18,6 +18,26 @@ export interface IMainNavigationProps {
 
 const UserAndAdminRole = [USER_ROLE.USER, USER_ROLE.EXTENDED, USER_ROLE.ADMIN];
 
+// Solution transparency moved to MASSP, the entries are only offered when explicitly enabled.
+const solutionsNavItems = Envs.ENABLE_SOLUTIONS
+  ? [
+      {
+        allowedRoles: UserAndAdminRole,
+        id: 1,
+        route: `/portfolio`,
+        title: 'Portfolio',
+        enabled: true,
+      },
+      {
+        allowedRoles: UserAndAdminRole,
+        id: 2,
+        route: `/allsolutions`,
+        title: 'Solutions',
+        enabled: true,
+      },
+    ]
+  : [];
+
 const MainNavigation: React.FC<IMainNavigationProps> = (props) => {
   let isTouch = false;
   let mainNavContainer: HTMLDivElement;
@@ -102,20 +122,7 @@ const MainNavigation: React.FC<IMainNavigationProps> = (props) => {
           title: 'Overview',
           enabled: true,
         },
-        {
-          allowedRoles: UserAndAdminRole,
-          id: 1,
-          route: `/portfolio`,
-          title: 'Portfolio',
-          enabled: true,
-        },
-        {
-          allowedRoles: UserAndAdminRole,
-          id: 2,
-          route: `/allsolutions`,
-          title: 'Solutions',
-          enabled: true,
-        },
+        ...solutionsNavItems,
         // {
         //   allowedRoles: UserAndAdminRole,
         //   id: 3,
