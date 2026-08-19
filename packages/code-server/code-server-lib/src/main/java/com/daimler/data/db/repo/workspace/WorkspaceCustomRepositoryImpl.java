@@ -24,6 +24,7 @@
  * 
  * LICENSE END 
  */
+
 package com.daimler.data.db.repo.workspace;
 
 import java.math.BigInteger;
@@ -1475,3 +1476,4 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 	}
 
 }
+

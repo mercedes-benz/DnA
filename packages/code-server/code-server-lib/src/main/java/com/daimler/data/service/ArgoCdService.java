@@ -437,7 +437,7 @@ public class ArgoCdService {
                 helmParameters.add(createHelmParam("resources.limits.cpu", "null"));
             }
             log.info("[Resources] Applying Helm params: requests.cpu={}, requests.memory={} (defaulted={}), limits.memory={} (source={}), limits.cpu={}",
-                requestCpu,
+                requestCpu,               
                 requestMemory + "Mi",
                 requestMemoryDefaulted,
                 limitMemory + "Mi",
@@ -501,7 +501,7 @@ public class ArgoCdService {
         log.info("Built Helm-based ArgoCD payload for app: {}", appName);
         return finalJson;
     }
-
+    
     private Map<String, Object> createHelmParam(String name, String value) {
         Map<String, Object> param = new HashMap<>();
         param.put("name", name);
