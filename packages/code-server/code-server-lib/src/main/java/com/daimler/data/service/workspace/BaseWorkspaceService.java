@@ -30,6 +30,8 @@
  import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
  import java.util.Arrays;
  import java.util.Date;
@@ -1720,6 +1722,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 										SimpleDateFormat isoFormat = new SimpleDateFormat(
 												"yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
 										Date now = isoFormat.parse(isoFormat.format(new Date()));
+										Date completionTime = resolveWorkflowCompletionTime(buildDeployJob, now);
 
 										CodeServerBuildDetails resolvedBuildDetails = "int"
 												.equalsIgnoreCase(environment)
@@ -1733,14 +1736,14 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 
 										// Update workspace entity status
 										entity.getData().getProjectDetails().setLastBuildOrDeployedStatus(finalStatus);
-										entity.getData().getProjectDetails().setLastBuildOrDeployedOn(now);
+										entity.getData().getProjectDetails().setLastBuildOrDeployedOn(completionTime);
 
 										Boolean keepBuildImage = false;
 
 										if ("BUILD_SUCCESS".equalsIgnoreCase(finalStatus)
 												|| "BUILD_FAILED".equalsIgnoreCase(finalStatus)) {
 											resolvedBuildDetails.setLastBuildStatus(finalStatus);
-											resolvedBuildDetails.setLastBuildOn(now);
+											resolvedBuildDetails.setLastBuildOn(completionTime);
 											resolvedBuildDetails.setLastBuildBy(entity.getData().getWorkspaceOwner());
 											resolvedBuildDetails.setGitjobRunID(gitJobRunId);
 											resolvedBuildDetails.setLastBuildFailureReason(null);   // clear stale BUILD_TIMEOUT on a real GitHub result
@@ -1751,7 +1754,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 											deploymentDetails.setLastDeploymentStatus(finalStatus);
 											deploymentDetails.setGitjobRunID(gitJobRunId);
 											if ("DEPLOYED".equalsIgnoreCase(finalStatus)) {
-												deploymentDetails.setLastDeployedOn(now);
+												deploymentDetails.setLastDeployedOn(completionTime);
 												deploymentDetails
 														.setLastDeployedBy(entity.getData().getWorkspaceOwner());
 											}
@@ -1772,7 +1775,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 												BuildAudit auditEntry = findAuditByVersion(envLogs,
 														resolvedBuildDetails.getVersion());
 												if (auditEntry != null) {
-													auditEntry.setBuildOn(now);
+													auditEntry.setBuildOn(completionTime);
 													auditEntry.setBuildStatus(finalStatus);
 													auditEntry.setFailureReason(null);
 													keepBuildImage = auditEntry.isKeepBuildImage();
@@ -1788,7 +1791,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 															.setDeploymentStatus(finalStatus);
 													if ("DEPLOYED".equalsIgnoreCase(finalStatus)) {
 														buildDeployData.getIntDeploymentAuditLogs().get(lastIndex)
-																.setDeployedOn(now);
+																.setDeployedOn(completionTime);
 													}
 												} else if (buildDeployData.getProdDeploymentAuditLogs() != null
 														&& !buildDeployData.getProdDeploymentAuditLogs().isEmpty()) {
@@ -1798,7 +1801,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 															.setDeploymentStatus(finalStatus);
 													if ("DEPLOYED".equalsIgnoreCase(finalStatus)) {
 														buildDeployData.getProdDeploymentAuditLogs().get(lastIndex)
-																.setDeployedOn(now);
+																.setDeployedOn(completionTime);
 													}
 												}
 											}
@@ -6198,6 +6201,28 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 			"DEPLOY_REQUESTED",
 			"BUILD_REQUESTED"
 		).contains(status != null ? status.toUpperCase() : "");
+	}
+
+	private Date resolveWorkflowCompletionTime(GitHubWorkflowJobsResponseDto.Job job, Date now) {
+		String completedAt = job != null ? job.getCompletedAt() : null;
+		if (completedAt == null || completedAt.isBlank()) {
+			log.debug("GitHub workflow completion timestamp is missing; using refresh time");
+			return now;
+		}
+		try {
+			Date parsedCompletionTime = Date.from(
+					DateTimeFormatter.ISO_DATE_TIME.parse(completedAt, Instant::from));
+			if (parsedCompletionTime.after(now)) {
+				log.warn("GitHub workflow completion timestamp {} is in the future; using refresh time",
+						completedAt);
+				return now;
+			}
+			return parsedCompletionTime;
+		} catch (DateTimeParseException e) {
+			log.warn("Unable to parse GitHub workflow completion timestamp {}; using refresh time",
+					completedAt);
+			return now;
+		}
 	}
 
 	private String resolveFinalStatus(String requestedStatus, String conclusion) {
