@@ -864,6 +864,13 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
                             >
                               <i className="icon mbc-icon refresh"></i>
                             </span>
+                            <span
+                              className={classNames(Styles.syncErrorInfoIcon, Styles.deployLogsInfoIcon)}
+                              onClick={onDeployLogsInfoClick}
+                              tooltip-data="View live deployment logs"
+                            >
+                              <i className="icon mbc-icon info"></i>
+                            </span>
                           </span>
                         </span>
                       )}
