@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import classNames from 'classnames';
 import Styles from './DdxPush.scss';
 import AddUser from 'dna-container/AddUser';
@@ -8,7 +8,7 @@ import Tooltip from '../../common/modules/uilab/js/src/tooltip';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 import Notification from '../../common/modules/uilab/js/src/notification';
 import { fabricApi } from '../../apis/fabric.api';
-import { DIVISIONS, BUSINESS_DOMAINS, CLOUD_PROVIDERS, TECHNOLOGIES, PURPOSES, CRITERIA_TRANSFER_PRICING, QUALIFICATION_TRANSFER_PRICING, SECURITY_LEVELS, UPDATE_FREQUENCIES } from '../../utilities/constants';
+import { DIVISIONS, BUSINESS_DOMAINS, CLOUD_PROVIDERS, TECHNOLOGIES, PURPOSES, CRITERIA_TRANSFER_PRICING, QUALIFICATION_TRANSFER_PRICING, UPDATE_FREQUENCIES } from '../../utilities/constants';
 import { Envs } from '../../utilities/envs';
 
 const Step1_BasicIdentification = ({ formData, setFormData, errors, clearError }) => (
@@ -16,7 +16,7 @@ const Step1_BasicIdentification = ({ formData, setFormData, errors, clearError }
     <div className={Styles.col}>
       <div className={classNames('input-field-group include-error', errors.nameError ? 'error' : '')}>
         <label htmlFor="dataProductName" className="input-label">
-          Name of the Data Product <sup>*</sup>
+          Name of the Data Product <sup>*</sup> (First letter must be uppercase, only alphanumeric characters allowed)
         </label>
         <input
           type="text"
@@ -169,20 +169,51 @@ const Step2_OwnershipGovernance = ({
     <div className={Styles.stepForm}>
       <div className={Styles.col}>
         <div className={classNames('input-field-group include-error', errors.informationOwnerError ? 'error' : '')}>
-          <label htmlFor="informationOwner" className="input-label">
-            Information Owner <sup>*</sup> (Please provide ShortID. Kindly find more information
+          <label className="input-label">
+            Information Owner <sup>*</sup> (Kindly find more information
             <a href={Envs.INFORMATION_OWNER_URL} target="_blank" rel="noopener noreferrer"> here</a>)
           </label>
-          <input
-            id="informationOwner"
-            className="input-field"
-            autoComplete="off"
-            value={formData.informationOwner || ''}
-            onChange={(e) => {
-              setFormData({ ...formData, informationOwner: e.target.value.toUpperCase() });
-              clearError('informationOwnerError');
-            }}
-          />
+          {!formData.informationOwner && (
+            <AddUser
+              getCollabarators={(member) => {
+                const memberData = {
+                  id: member?.shortId || member?.id,
+                  firstName: member?.firstName,
+                  lastName: member?.lastName,
+                  department: member?.department,
+                  email: member?.email,
+                };
+                setFormData((prev) => ({ ...prev, informationOwner: memberData }));
+                clearError('informationOwnerError');
+              }}
+              dagId=""
+              isRequired={false}
+              isUserprivilegeSearch={false}
+              title="Information Owner"
+            />
+          )}
+          {formData.informationOwner && (
+            <div className={Styles.dataProvidersList}>
+              <div className={Styles.colHeader}>
+                <div className={Styles.column1}>User ID</div>
+                <div className={Styles.column2}>Name</div>
+                <div className={Styles.column4}></div>
+              </div>
+              <div className={classNames('mbc-scroll', Styles.collaboratorContent)}>
+                <div className={Styles.userRow}>
+                  <div className={Styles.column1}>{formData.informationOwner.id}</div>
+                  <div className={Styles.column2}>{formData.informationOwner.firstName + ' ' + formData.informationOwner.lastName}</div>
+                  <div className={Styles.column4}>
+                    <span tooltip-data="Remove" className={Styles.deleteEntry} onClick={() => {
+                      setFormData((prev) => ({ ...prev, informationOwner: null }));
+                    }}>
+                      <i className="icon mbc-icon trash-outline" tooltip-data={'Delete'} />
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
           {errors.informationOwnerError && <span className="error-message">{errors.informationOwnerError}</span>}
         </div>
       </div>
@@ -479,11 +510,17 @@ const Step4_ComplianceUsage = ({
           <div className={classNames('custom-select')}>
             <select
               id="securityLevel"
-              value="Public"
-              onChange={() => {}}
+              defaultValue={formData.securityLevel || ''}
+              onChange={(e) => {
+                if (e.target.value) {
+                  setFormData((prev) => ({ ...prev, securityLevel: e.target.value }));
+                  clearError('securityLevelError');
+                }
+              }}
             >
-              {SECURITY_LEVELS.map((sl) => (
-                <option key={sl} value={sl} disabled={sl !== 'Public'}>
+              <option value="">Choose</option>
+              {Envs.SECURITY_LEVELS?.map((sl) => (
+                <option key={sl} value={sl}>
                   {sl}
                 </option>
               ))}
@@ -700,12 +737,26 @@ const ViewDdxTablesModalContent = ({ workspaceId, workspaceName, workspaceOwner,
 
   const isDdxAlreadyPushed = ddxPublishedLakeHouseDetails?.some(d => d.lakeHouseId === lakehouseId);
 
+  const existingProductId = ddxPublishedLakeHouseDetails
+    ?.find(d => d.lakeHouseId === lakehouseId)
+    ?.dataProducts?.slice()?.sort((a, b) => new Date(b.createdOn) - new Date(a.createdOn))?.[0]?.productId;
+
   useEffect(() => {
     Tooltip.defaultSetup();
   }, []);
 
-  const [currentStep, setCurrentStep] = useState('step1');
+  const [currentStep, setCurrentStep] = useState(isDdxAlreadyPushed ? 'step6' : 'step1');
   const [hasSubmittedOnce, setHasSubmittedOnce] = useState(false);
+  const [submittedProductId, setSubmittedProductId] = useState(existingProductId || null);
+  const [submittedDofUrl, setSubmittedDofUrl] = useState('');
+  const submittedProductIdRef = useRef(existingProductId || null);
+
+  useEffect(() => {
+    if (existingProductId) {
+      submittedProductIdRef.current = existingProductId;
+      setSubmittedProductId(existingProductId);
+    }
+  }, [existingProductId]);
 
   useEffect(() => {
     SelectBox.defaultSetup();    
@@ -723,7 +774,7 @@ const ViewDdxTablesModalContent = ({ workspaceId, workspaceName, workspaceOwner,
     technology: ['UnityCatalog', 'Fabric'],   
     cloudProvider: 'Azure',
     dataHubName: 'oneFabric',
-    securityLevel: 'Public',
+    securityLevel: '',
     fulfillsDataCloudFramework: true,
     price: true,
   });
@@ -759,7 +810,7 @@ const ViewDdxTablesModalContent = ({ workspaceId, workspaceName, workspaceOwner,
     }
 
     if (currentStep === 'step2') {
-      if (!formData.informationOwner?.trim()) {
+      if (!formData.informationOwner?.id) {
         newErrors.informationOwnerError = '*Missing entry';
       }
       if (!formData.divisions) {
@@ -845,11 +896,14 @@ const ViewDdxTablesModalContent = ({ workspaceId, workspaceName, workspaceOwner,
 
     const securityLevel = formData.securityLevel === 'Secret' ? 'Confidential' : formData.securityLevel;
 
+    const cdcBaseUrl = (Envs.CDC_SIGNIN_URL || '').replace(/\/$/, '');
+    const cdcDatabaseLink = `${cdcBaseUrl}/database/${workspaceName}.${lakehouseName}`;
+
     const payload = {
       dataProductName: formData.dataProductName || '',
       dataProductDescription: formData.dataProductDescription || '',
-      informationOwner: formData.informationOwner || '',
-      cdcDatabaseLink: formData.cdcDatabaseLink || '',
+      informationOwner: (formData.informationOwner?.id || '').toUpperCase(),
+      cdcDatabaseLink: cdcDatabaseLink,
       cdcDataProductLink: formData.cdcDataProductLink || '',
       securityLevel: securityLevel || '',
       purposes: formData.purposes || [],
@@ -907,19 +961,26 @@ const ViewDdxTablesModalContent = ({ workspaceId, workspaceName, workspaceOwner,
     fabricApi.publishDdxDataProduct(workspaceId, lakehouseId, payload)
       .then((response) => {
         ProgressIndicator.hide();
-        const dataProductId = response?.data?.dataProductId;
-        const baseUrl = (Envs.DDX_DOF_BASE_URL || '').replace(/\/$/, '');
-        const dofUrl = `${baseUrl}/myDataProducts/onboardingForm/${dataProductId}`;
+        const responseData = response?.data?.data || {};
+        const dataProductId = responseData?.dataProductId;
+        const dofUrlFromResponse = responseData?.dofUrl;
+        // const baseUrl = (Envs.DDX_DOF_BASE_URL || '').replace(/\/$/, '');
+        // const dofUrl = `${baseUrl}/myDataProducts/onboardingForm/${dataProductId}`;
         Notification.show('Data product onboarded successfully.', 'success');
         setHasSubmittedOnce(true);
-        if (dataProductId) {
-          window.open(dofUrl, '_blank', 'noopener,noreferrer');
+        if (dofUrlFromResponse) {
+          setSubmittedDofUrl(dofUrlFromResponse);
         }
+        if (dataProductId) {
+          submittedProductIdRef.current = dataProductId;
+          setSubmittedProductId(dataProductId);
+        }
+        setCurrentStep('step6');
         onRefreshWorkspace && onRefreshWorkspace();
       })
       .catch((err) => {
         ProgressIndicator.hide();
-        Notification.show(err?.response?.data?.errors?.[0]?.message || 'Failed to onboard data product.', 'alert');
+        Notification.show(err?.response?.data?.responses?.errors?.[0]?.message || 'Failed to onboard data product.', 'alert');
       });
   };
 
@@ -959,11 +1020,18 @@ const ViewDdxTablesModalContent = ({ workspaceId, workspaceName, workspaceOwner,
           <div className={Styles.stepLabel}>Compliance & Usage</div>
         </div>
 
-        <div className={classNames(Styles.step, currentStep === 'step5' && Styles.complete)}>
+        <div className={classNames(Styles.step, (currentStep === 'step5' || currentStep === 'step6') && Styles.complete)}>
           <div className={classNames(Styles.stepIcon, currentStep === 'step5' && Styles.activeIcon)}>
             <i className="icon mbc-icon tools-mini" />
           </div>
           <div className={Styles.stepLabel}>Personal Data</div>
+        </div>
+
+        <div className={classNames(Styles.step, currentStep === 'step6' && Styles.complete)}>
+          <div className={classNames(Styles.stepIcon, currentStep === 'step6' && Styles.activeIcon)}>
+            <i className="icon mbc-icon tools-mini" />
+          </div>
+          <div className={Styles.stepLabel}>Next Steps</div>
         </div>
       </div>
 
@@ -1002,7 +1070,7 @@ const ViewDdxTablesModalContent = ({ workspaceId, workspaceName, workspaceOwner,
           setFormData={setFormData}
           errors={errors}
           clearError={clearError}
-          securityLevel={SECURITY_LEVELS || []}
+          securityLevel={Envs.SECURITY_LEVELS || []}
           purposes={PURPOSES || []}
           updateFrequencies={UPDATE_FREQUENCIES || []}
         />
@@ -1019,14 +1087,41 @@ const ViewDdxTablesModalContent = ({ workspaceId, workspaceName, workspaceOwner,
         />
       )}
 
+      {currentStep === 'step6' && (() => {
+        const baseUrl = (Envs.DDX_DOF_BASE_URL || '').replace(/\/$/, '');
+        const resolvedProductId = submittedProductIdRef.current || submittedProductId || existingProductId;
+        const dofUrl = submittedDofUrl || (resolvedProductId ? `${baseUrl}/myDataProducts/onboardingForm/${resolvedProductId}` : '');
+        return (
+          <div className={Styles.stepForm}>
+            <div className={Styles.successMessage}>
+              <p>
+                The data product has been onboarded in the DDX portal and is currently saved in Draft status. Kindly click{' '}
+                {dofUrl ? (
+                  <a href={dofUrl} target="_blank" rel="noopener noreferrer">here</a>
+                ) : (
+                  <strong>here</strong>
+                )}{' '}
+                to review and complete the onboarding process by following the steps outlined below:
+              </p>
+              <ol>
+                <li>Navigate through each step in the DDX portal..</li>
+                <li>Upon reaching <strong>Step 7</strong>, click the <strong>Get Objects</strong> button and then proceed by clicking Next.</li>
+                <li>In <strong>Step 8</strong>, click the <strong>Get Objects</strong> button again.</li>
+                <li>In the final step, review and verify all the details, agree to the Terms of Use, and complete the onboarding process.</li>                
+              </ol>
+            </div>
+          </div>
+        );
+      })()}
+
       <div className={Styles.formFooter}>
-        {currentStep !== 'step1' && (
+        {currentStep !== 'step1' && currentStep !== 'step6' && (
           <button className="btn btn-primary" type="button" onClick={handlePrev}>
             Prev
           </button>
         )}
 
-        {currentStep !== 'step5' && (
+        {currentStep !== 'step5' && currentStep !== 'step6' && (
           <button className="btn btn-tertiary" type="button" onClick={handleNext}>
             Next
           </button>

@@ -2,12 +2,13 @@ spring:
   mvc.pathmatch.matching-strategy: ant_path_matcher
   application:
     name: dna-fabric-workspace-service
-    version: 1.5.9
+    version: 1.6.9
   profile:
     active: production
 
   flyway:
     enabled: ${FLYWAY_ENABLED:false}
+   
     baseline-on-migrate: ${FLYWAY_BASELINE_ON_MIGRATE:false}
     baselineVersion: ${FLYWAY_BASELINEVERSION:0}
     schemas: ${FLYWAY_SCHEMA:public}   
@@ -96,6 +97,7 @@ fabricWorkspaces:
   ada:
     apiKey: ${ADA_API_KEY:XXXX}
     extollo.apiKey: ${EXTOLLO_API_KEY:XXXX}
+    spire.apiKey: ${SPIRE_API_KEY:XXXX}
   azure:
     subscriptionId: ${AZURE_SUBSCRIPTION_ID:XXXX}
     resourceGroup: ${AZURE_RESOURCE_GROUP:XXXX}
@@ -150,6 +152,10 @@ cdcIntegration:
   fabricCdcPushService:
       baseUrl: ${FABRIC_CDC_PUSH_SERVICE_BASE_URL:XXXX}
       authToken: ${FABRIC_CDC_PUSH_SERVICE_AUTH_TOKEN:XXXX}
+
+dataProduct:
+  planningit:
+    baseUrl: ${DATA_PRODUCT_PLANNINGIT_BASE_URL:XXXX}
 
 ddxIntegration:
   fabricDdxPush:

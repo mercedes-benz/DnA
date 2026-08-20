@@ -12,6 +12,7 @@ import Modal from 'dna-container/Modal';
 import { trackEvent, regionalDateAndTimeConversionSolution, buildGitRepoUrl } from '../../Utility/utils';
 import Tags from 'dna-container/Tags';
 import Tooltip from '../../common/modules/uilab/js/src/tooltip';
+import IntMigrationModal, { needsIntMigration } from '../intMigrationModal/IntMigrationModal';
 
 const DeployModal = (props) => {
   const [branches, setBranches] = useState([]);
@@ -21,6 +22,16 @@ const DeployModal = (props) => {
   const [acceptContinueCodingOnDeployment, setAcceptContinueCodingOnDeployment] = useState(true);
   const projectDetails = props.codeSpaceData?.projectDetails;
   const [retainBuildImage, setRetainBuildImage] = useState(false);
+  const [showIntMigrationModal, setShowIntMigrationModal] = useState(false);
+  const [autoDeployEnabled, setAutoDeployEnabled] = useState(props.codeSpaceData?.autoDeploy || false);
+  const [isStagingBranchMissing, setIsStagingBranchMissing] = useState(false);
+  const [isProdBranchMissing, setIsProdBranchMissing] = useState(false);
+  const [stagingBranchValue, setStagingBranchValue] = useState(
+    projectDetails?.intAutoDeployBranchName ? [projectDetails.intAutoDeployBranchName] : []
+  );
+  const [prodBranchValue, setProdBranchValue] = useState(
+    projectDetails?.prodAutoDeployBranchName ? [projectDetails.prodAutoDeployBranchName] : []
+  );
 
   //details from build
   const version = props?.buildDetails?.version || '';
@@ -35,23 +46,29 @@ const DeployModal = (props) => {
     projectDetails?.intDeploymentDetails?.lastDeployedBranch?.length &&
       setBranchValue([projectDetails?.intDeploymentDetails?.lastDeployedBranch]);
     version?.length && setDeployEnvironment(buildEnvironment);
-    ProgressIndicator.show();
     const isWorkspaceMigratedToGHE = props.codeSpaceData?.isWorkspaceMigratedToGHE;
     const repoUrl = buildGitRepoUrl(projectDetails?.gitRepoName, isWorkspaceMigratedToGHE);
+    if (!version?.length) {
+      ProgressIndicator.show();
+    }
     CodeSpaceApiClient.getCodeSpacesGitBranchList(repoUrl)
       .then((res) => {
-        ProgressIndicator.hide();
-        props.setShowCodeDeployModal(true);
-        let branches = res?.data;
-        branches.forEach((element) => {
+        if (!version?.length) {
+          ProgressIndicator.hide();
+          props.setShowCodeDeployModal(true);
+        }
+        let branchList = res?.data;
+        branchList.forEach((element) => {
           element.id = element.name;
         });
-        setBranches(branches);
+        setBranches(branchList);
         SelectBox.defaultSetup();
       })
       .catch((err) => {
-        ProgressIndicator.hide();
-        Notification.show('Error in getting code space branch list - ' + err.message, 'alert');
+        if (!version?.length) {
+          ProgressIndicator.hide();
+          Notification.show('Error in getting code space branch list - ' + err.message, 'alert');
+        }
       });
     // setVault();
     return Tooltip.clear();
@@ -66,6 +83,7 @@ const DeployModal = (props) => {
         setBranchValue([projectDetails?.prodDeploymentDetails?.lastDeployedBranch]);
     }
   }, [deployEnvironment]); // eslint-disable-line react-hooks/exhaustive-deps
+
 
   const onBranchChange = (selectedTags) => {
     setBranchValue(selectedTags);
@@ -87,72 +105,141 @@ const DeployModal = (props) => {
       formValid = false;
       setIsBranchValueMissing(true);
     }
-    const found = branches.some(branch => 
-     Object.values(branch).includes(branchValue[0])
-    );
-    if (!found) {
-      formValid = false;
-      Notification.show('Branch doesnot exist.','alert',);
+    if (!version?.length) {
+      const found = branches.some(branch => 
+       Object.values(branch).includes(branchValue[0])
+      );
+      if (!found) {
+        formValid = false;
+        Notification.show('Branch doesnot exist.','alert',);
+      }
     }
     if (formValid) {
-      const deployRequest = {
-        targetEnvironment: version?.length
-          ? buildEnvironment === 'staging'
-            ? 'int'
-            : 'prod'
-          : deployEnvironment === 'staging'
+      const targetEnv = version?.length ? buildEnvironment : deployEnvironment;
+      
+      if (targetEnv === 'staging' && needsIntMigration(props.codeSpaceData) && !props.skipIntMigrationCheck) {
+        setShowIntMigrationModal(true);
+        return;
+      }
+      proceedWithDeployment();
+    }
+  };
+
+  const proceedWithDeployment = () => {
+    const deployRequest = {
+      targetEnvironment: version?.length
+        ? buildEnvironment === 'staging'
           ? 'int'
-          : 'prod', // int or prod
-        branch: version?.length ? buildBranch : branchValue[0],
-        version: version || '',
-        keepBuildImage: retainBuildImage,
-      };
-      ProgressIndicator.show();
-      CodeSpaceApiClient.deployCodeSpace(props.codeSpaceData.id, deployRequest)
-        .then((res) => {
-          trackEvent('DnA Code Space', 'Deploy', 'Deploy code space');
-          if (res.data.success === 'SUCCESS') {
-            // setCreatedCodeSpaceName(res.data.name);
-            props.setCodeDeploying(true);
-            if (acceptContinueCodingOnDeployment) {
-              ProgressIndicator.hide();
-              Notification.show(
-                `Code space '${projectDetails.projectName}' deployment successfully started. Please check the status later.`,
-              );
-              props.setShowCodeDeployModal(false);
-            } else {
-              props.setIsApiCallTakeTime(true);
-            }
-            props.startDeployLivelinessCheck &&
-              props.startDeployLivelinessCheck(props.codeSpaceData.workspaceId, deployEnvironment);
-          } else {
-            props.setIsApiCallTakeTime(false);
-            ProgressIndicator.hide();
-            Notification.show(
-              'Error in deploying code space. Please try again later.\n' + res.data.errors[0].message,
-              'alert',
+          : 'prod'
+        : deployEnvironment === 'staging'
+        ? 'int'
+        : 'prod', // int or prod
+      branch: version?.length ? buildBranch : branchValue[0],
+      version: version || '',
+      keepBuildImage: retainBuildImage,
+    };
+    ProgressIndicator.show();
+    CodeSpaceApiClient.deployCodeSpace(props.codeSpaceData.id, deployRequest)
+      .then((res) => {
+        trackEvent('DnA Code Space', 'Deploy', 'Deploy code space');
+        if (res.data.success === 'SUCCESS') {
+          props.setCodeDeploying(true);
+          
+          // Only start SSE for direct deploys (pre-built version).
+          // For build-first flow (no version), the card auto-poll handles status updates
+          // until DEPLOY_REQUESTED is reached.
+          if (props.startDeploymentStatusListener && version?.length) {
+            props.startDeploymentStatusListener(
+              projectDetails.projectName,
+              deployRequest.targetEnvironment,
+              props.onDeploymentStatusUpdate,
+              props.onDeploymentComplete,
+              props.onDeploymentSSEError
             );
           }
-        })
-        .catch((err) => {
+          
+          if (acceptContinueCodingOnDeployment) {
+            ProgressIndicator.hide();
+            Notification.show(
+              `Code space '${projectDetails.projectName}' deployment successfully started. Please check the status later.`,
+            );
+            props.setShowCodeDeployModal(false);
+          } else {
+            props.setIsApiCallTakeTime(true);
+          }
+          props.startDeployLivelinessCheck &&
+            props.startDeployLivelinessCheck(props.codeSpaceData.workspaceId, deployEnvironment);
+        } else {
+          props.setIsApiCallTakeTime(false);
           ProgressIndicator.hide();
           Notification.show(
-            'Error in deploying code space. Please try again later.\n' + err?.response?.data?.errors[0]?.message,
+            'Error in deploying code space. Please try again later.\n' + res.data.errors[0].message,
             'alert',
           );
-        });
+        }
+      })
+      .catch((err) => {
+        ProgressIndicator.hide();
+        Notification.show(
+          'Error in deploying code space. Please try again later.\n' + err?.response?.data?.errors[0]?.message,
+          'alert',
+        );
+      });
+  };
+
+  const handleIntMigrationDismiss = () => {
+    setShowIntMigrationModal(false);
+    const projectName = props.codeSpaceData?.projectDetails?.projectName;
+    if (projectName) {
+      localStorage.setItem('intMigrationDismissed_' + projectName, 'true');
     }
+    proceedWithDeployment();
+  };
+
+  const onUpdateAutoDeploySettings = () => {
+    if (autoDeployEnabled) {
+      const stagingMissing = stagingBranchValue.length === 0;
+      const prodMissing = prodBranchValue.length === 0;
+      setIsStagingBranchMissing(stagingMissing);
+      setIsProdBranchMissing(prodMissing);
+      if (stagingMissing || prodMissing) {
+        Notification.show('Please select both Staging and Prod branches for auto deployment.', 'alert');
+        return;
+      }
+      if (stagingBranchValue[0] === prodBranchValue[0]) {
+        Notification.show('Staging and Production branches must be different. Please select distinct branches.', 'alert');
+        return;
+      }
+    }
+    const webhookData = {
+      repoName: projectDetails?.gitRepoName,
+      intRepoName: stagingBranchValue[0] || '',
+      prodRepoName: prodBranchValue[0] || '',
+      webHookEnabled: autoDeployEnabled,
+    };
+    ProgressIndicator.show();
+    CodeSpaceApiClient.addWebhook(webhookData)
+      .then(() => {
+        ProgressIndicator.hide();
+        Notification.show('Auto deploy settings have been updated successfully.');
+        props.onAutoDeploySettingsUpdated?.();
+      })
+      .catch((err) => {
+        ProgressIndicator.hide();
+        Notification.show(
+          'Error in updating auto deploy settings. Please try again later.\n' +
+            (err?.response?.data?.errors?.[0]?.message || err.message),
+          'alert',
+        );
+      });
   };
 
   return (
     <>
       <Modal
         title={`Deploy Code - ${props?.codeSpaceData?.projectDetails?.projectName || ''}`}
-        showAcceptButton={true}
-        acceptButtonTitle={'Deploy'}
-        cancelButtonTitle={'Cancel'}
-        onAccept={onAcceptCodeDeploy}
-        showCancelButton={true}
+        showAcceptButton={false}
+        showCancelButton={false}
         modalWidth="900px"
         buttonAlignment="center"
         show={true}
@@ -255,12 +342,108 @@ const DeployModal = (props) => {
                 </label>
               </div>
             )}
+            <div className={Styles.autoDeploySection}>
+              <div className={Styles.sectionTitle}>
+                Auto Deployment Settings
+                <span className={Styles.autoDeployInfo}>
+                  <i className="icon mbc-icon info"></i>
+                  <span className={Styles.autoDeployTooltip}>
+                    Auto deployment is triggered exclusively on <strong>Push</strong> and{' '}
+                    <strong>Pull Request merge</strong> events for selected branch linked to 
+                    staging or production environment.
+                    <br /><br />
+                    <strong>Note:</strong> It is strongly recommended to enable <strong>branch protection rules</strong>
+                      on the selected branch to prevent unintentional deployments. 
+                     Any commit or merge to the selected branch will trigger an automatic deployment.
+                  </span>
+                </span>
+              </div>
+              <label className="checkbox">
+                <span className="wrapper">
+                  <input
+                    type="checkbox"
+                    className="ff-only"
+                    checked={autoDeployEnabled}
+                    onChange={(e) => setAutoDeployEnabled(e.target.checked)}
+                  />
+                </span>
+                <span className="label">Enable Auto Deployment</span>
+              </label>
+              {autoDeployEnabled && (
+                <div className={Styles.branchSelectors}>
+                  <div>
+                    <Tags
+                      title={'Staging Branch'}
+                      max={1}
+                      chips={stagingBranchValue}
+                      placeholder={'Type here...'}
+                      tags={branches}
+                      setTags={(val) => { setStagingBranchValue(val); setIsStagingBranchMissing(false); }}
+                      isMandatory={true}
+                      showMissingEntryError={isStagingBranchMissing}
+                      showAllTagsOnFocus={true}
+                      disableSelfTagAdd={true}
+                      suggestionPopupHeight={150}
+                    />
+                  </div>
+                  <div>
+                    <Tags
+                      title={'Production Branch'}
+                      max={1}
+                      chips={prodBranchValue}
+                      placeholder={'Type here...'}
+                      tags={branches}
+                      setTags={(val) => { setProdBranchValue(val); setIsProdBranchMissing(false); }}
+                      isMandatory={true}
+                      showMissingEntryError={isProdBranchMissing}
+                      showAllTagsOnFocus={true}
+                      disableSelfTagAdd={true}
+                      suggestionPopupHeight={150}
+                    />
+                  </div>
+                </div>
+              )}
+            </div>
+            <div className={Styles.modalFooter}>
+              <div className={Styles.footerLeft}>
+                <button
+                  className="btn btn-tertiary"
+                  type="button"
+                  onClick={onUpdateAutoDeploySettings}
+                >
+                  Update Auto Deploy Settings
+                </button>
+              </div>
+              <div className={Styles.footerRight}>
+                <button
+                  className="btn btn-primary"
+                  type="button"
+                  onClick={() => props.setShowCodeDeployModal(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="btn btn-tertiary"
+                  type="button"
+                  onClick={onAcceptCodeDeploy}
+                >
+                  Deploy
+                </button>
+              </div>
+            </div>
           </div>
         }
         scrollableContent={false}
         scrollableBox={true}
         onCancel={() => props.setShowCodeDeployModal(false)}
       />
+      {showIntMigrationModal && (
+        <IntMigrationModal
+          show={showIntMigrationModal}
+          codeSpaceData={props.codeSpaceData}
+          onDismiss={handleIntMigrationDismiss}
+        />
+      )}
     </>
   );
 };

@@ -29,6 +29,7 @@ import com.daimler.data.controller.exceptions.MessageDescription;
 import org.springframework.web.client.HttpStatusCodeException;
 
 import com.daimler.data.dto.GitBranchesCollectionDto;
+import com.daimler.data.dto.GitHubWorkflowJobsResponseDto;
 import com.daimler.data.dto.GitHubWorkflowRunDto;
 import com.daimler.data.dto.GitLatestCommitIdDto;
 import com.daimler.data.dto.workspace.GitWebHookDto;
@@ -306,15 +307,25 @@ public class GitClient {
 
 	public HttpStatus validateGitUserWithPid(String gitBaseUrl, String repoName, String applicationName, String pid, String pat) {
     try {
-        if (!gitBaseUrl.endsWith("/")) {
-            gitBaseUrl += "/";
-        }
+        gitBaseUrl = gitBaseUrl.trim();
+		if (!gitBaseUrl.endsWith("/")) {
+			gitBaseUrl += "/";
+		}
 
         HttpHeaders headers = new HttpHeaders();
         headers.set("Accept", "application/vnd.github+json");
         headers.set("Content-Type", "application/json");
         headers.set("Authorization", "Bearer " + pat);
 
+		String addUrl = gitBaseUrl + "api/v3/repos/" + applicationName + "/" + repoName + "/collaborators/" + pid;
+		try {
+			HttpEntity<String> addEntity = new HttpEntity<>("{\"permission\":\"admin\"}", headers);
+			restTemplate.exchange(addUrl, HttpMethod.PUT, addEntity, String.class);
+			log.info("PID {} added as collaborator to {}/{}", pid, applicationName, repoName);
+		} catch (Exception ex) {
+			log.warn("Could not add PID {} to {}/{}: {}", pid, applicationName, repoName, ex.getMessage());
+		}
+		
         String url = gitBaseUrl
                 + "api/v3/repos/"
                 + applicationName + "/"
@@ -720,15 +731,47 @@ public class GitClient {
 		return null;
 	}
 
-	public GitHubWorkflowRunDto getWorkflowRun(String runId) {
+	public GitHubWorkflowJobsResponseDto.Job getBuildDeployJob(String runId) {
+		String repoPath = applicationName + "/codespace-build-deploy-workflows";
+		String url = gheBaseUri + "/repos/" + repoPath + "/actions/runs/" + runId + "/jobs";
 
-			HttpHeaders headers = new HttpHeaders();
-			headers.set("Accept", "application/vnd.github+json");
-			headers.set("Authorization", "Bearer " + personalAccessToken);
-			String url = gitBaseUri + "/repos/" + applicationName + "/" + gitAppName + "/actions/runs/" + runId;
+		HttpHeaders headers = new HttpHeaders();
+		headers.set("Accept", "application/vnd.github+json");
+		headers.set("Authorization", "Bearer " + ghePat);
 
-			HttpEntity<Void> entity = new HttpEntity<>(headers);
+		HttpEntity<Void> entity = new HttpEntity<>(headers);
 		try {
+			log.info("Calling GitHub Jobs API: {}", url);
+			ResponseEntity<GitHubWorkflowJobsResponseDto> response =
+					restTemplate.exchange(url, HttpMethod.GET, entity, GitHubWorkflowJobsResponseDto.class);
+			GitHubWorkflowJobsResponseDto body = response.getBody();
+			if (body != null && body.getJobs() != null) {
+				return body.getJobs().stream()
+						.filter(job -> job.getName() != null && job.getName().toLowerCase().contains("build or deploy workspace application"))
+						.findFirst()
+						.orElse(null);
+			}
+			return null;
+		} catch (HttpStatusCodeException ex) {
+			log.error("GitHub Jobs API error {} for runId {}", ex.getStatusCode(), runId);
+			return null;
+		} catch (Exception ex) {
+			log.error("Unexpected error while calling GitHub Jobs API", ex);
+			return null;
+		}
+	}
+
+	public GitHubWorkflowRunDto getWorkflowRun(String runId) {
+		String repoPath = applicationName + "/codespace-build-deploy-workflows";
+		String url = gheBaseUri + "/repos/" + repoPath + "/actions/runs/" + runId;
+
+		HttpHeaders headers = new HttpHeaders();
+		headers.set("Accept", "application/vnd.github+json");
+		headers.set("Authorization", "Bearer " + ghePat);
+
+		HttpEntity<Void> entity = new HttpEntity<>(headers);
+		try {
+			log.info("Calling GitHub API: {}", url);
 			ResponseEntity<GitHubWorkflowRunDto> response =
 					restTemplate.exchange(url, HttpMethod.GET, entity, GitHubWorkflowRunDto.class);
 			return response.getBody();

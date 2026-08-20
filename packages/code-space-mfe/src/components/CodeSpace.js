@@ -28,6 +28,7 @@ import { IconGear } from 'dna-container/IconGear';
 import VaultManagement from './vaultManagement/VaultManagement';
 import DeployAuditLogsModal from './deployAuditLogsModal/DeployAuditLogsModal';
 import DeployModal from './deployModal/DeployModal';
+import IntMigrationModal, { needsIntMigration } from './intMigrationModal/IntMigrationModal';
 import { setRippleAnimation } from '../common/modules/uilab/js/src/util';
 import ConfirmModal from 'dna-container/ConfirmModal';
 import BuildModal from './buildModal/buildModal';
@@ -136,6 +137,7 @@ const CodeSpace = (props) => {
   const [isApiCallTakeTime, setIsApiCallTakeTime] = useState(false);
   const [showCodeDeployModal, setShowCodeDeployModal] = useState(false);
   const [showManageBuildModal, setShowManageBuildModal] = useState(false);
+  const [showIntMigrationModal, setShowIntMigrationModal] = useState(false);
   const [codeDeploying, setCodeDeploying] = useState(false);
   const [codeDeployed, setCodeDeployed] = useState(false);
   const [codeDeployedUrl, setCodeDeployedUrl] = useState();
@@ -162,6 +164,7 @@ const CodeSpace = (props) => {
   const [showProdActions, setShowProdActions] = useState(false);
   const [showRestartModal, setShowRestartModal] = useState(false);
   const [env, setEnv] = useState("");
+
 
   const livelinessIntervalRef = React.useRef();
   const stagingWrapperRef = useRef(null);
@@ -200,8 +203,9 @@ const CodeSpace = (props) => {
   
     const resources = codeSpaceData?.projectDetails?.recipeDetails?.resource?.split(',');
     const resourceUsageUrl = Envs.MONITORING_DASHBOARD_BASE_URL + `codespace-cpu-and-memory-usage?orgId=1&from=now-1h&to=now&var-namespace=${Envs.CODESERVER_NAMESPACE}&var-pod=${codeSpaceData?.workspaceId}&var-container=notebook`;
-  const intAppResourceUsageUrl = Envs.MONITORING_DASHBOARD_APP_BASE_URL + `codespace-app-cpu-and-memory-usage?orgId=1&var-namespace=${Envs.CODESERVER_APP_NAMESPACE}&var-app=${codeSpaceData?.projectDetails?.projectName}-int&var-container=`;
-  const prodAppResourceUsageUrl = Envs.MONITORING_DASHBOARD_APP_BASE_URL + `codespace-app-cpu-and-memory-usage?orgId=1&var-namespace=${Envs.CODESERVER_APP_NAMESPACE}&var-app=${codeSpaceData?.projectDetails?.projectName}-prod&var-container=`;
+    const intDeploymentMigrated = !needsIntMigration(codeSpaceData);
+    const intAppResourceUsageUrl = Envs.MONITORING_DASHBOARD_APP_BASE_URL + `codespace-app-cpu-and-memory-usage?orgId=1&var-namespace=${Envs.CODESERVER_APP_NAMESPACE}${intDeploymentMigrated ? '-int' : ''}&var-app=${codeSpaceData?.projectDetails?.projectName}-int&var-container=`;
+    const prodAppResourceUsageUrl = Envs.MONITORING_DASHBOARD_APP_BASE_URL + `codespace-app-cpu-and-memory-usage?orgId=1&var-namespace=${Envs.CODESERVER_APP_NAMESPACE}&var-app=${codeSpaceData?.projectDetails?.projectName}-prod&var-container=`;
 
     const intSecuredWithOneApi = codeSpaceData?.projectDetails?.intDeploymentDetails?.oneApiVersionShortName?.length || false;
     const prodSecuredWithOneApi = codeSpaceData?.projectDetails?.prodDeploymentDetails?.oneApiVersionShortName?.length || false;
@@ -365,17 +369,23 @@ const CodeSpace = (props) => {
         const prodDeployedUrl = prodDeploymentDetails?.deploymentUrl;
         const intDeployed =
           intDeploymentDetails.lastDeploymentStatus === 'DEPLOYED' ||
-          (intDeployedUrl !== null && intDeployedUrl !== 'null');
-        const intDeployFailed = intDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
+          intDeploymentDetails.lastDeploymentStatus === 'RESTARTED' ||
+          (intDeployedUrl != null && intDeployedUrl !== 'null' && intDeployedUrl !== '');
+        const intDeployFailed = intDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED' ||
+          intDeploymentDetails.lastDeploymentStatus === 'FAILED';
         const prodDeployed =
           prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYED' ||
-          (prodDeployedUrl !== null && prodDeployedUrl !== 'null');
-        const prodDeployFailed = prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED';
+          prodDeploymentDetails.lastDeploymentStatus === 'RESTARTED' ||
+          (prodDeployedUrl != null && prodDeployedUrl !== 'null' && prodDeployedUrl !== '');
+        const prodDeployFailed = prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYMENT_FAILED' ||
+          prodDeploymentDetails.lastDeploymentStatus === 'FAILED';
         const deployingInProgress =
           intDeploymentDetails.lastDeploymentStatus === 'DEPLOY_REQUESTED' ||
+          intDeploymentDetails.lastDeploymentStatus === 'DEPLOYING' ||
           prodDeploymentDetails?.lastDeploymentStatus === 'APPROVAL_PENDING' ||
           projectDetails?.lastBuildOrDeployedStatus === 'APPROVAL_PENDING' ||
-          prodDeploymentDetails.lastDeploymentStatus === 'DEPLOY_REQUESTED';
+          prodDeploymentDetails.lastDeploymentStatus === 'DEPLOY_REQUESTED' ||
+          prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYING';
         // const deployed =
         //   intDeploymentDetails.lastDeploymentStatus === 'DEPLOYED' ||
         //   prodDeploymentDetails.lastDeploymentStatus === 'DEPLOYED' ||
@@ -403,7 +413,8 @@ const CodeSpace = (props) => {
         Tabs.defaultSetup();
         if (deployingInProgress) {
           const deployingEnv =
-            intDeploymentDetails.lastDeploymentStatus === 'DEPLOY_REQUESTED' ? 'staging' : 'production';
+            intDeploymentDetails.lastDeploymentStatus === 'DEPLOY_REQUESTED' ||
+            intDeploymentDetails.lastDeploymentStatus === 'DEPLOYING' ? 'staging' : 'production';
           // setDeployEnvironment(deployingEnv);
           setCodeDeploying(true);
           enableDeployLivelinessCheck(res.data.workspaceId, deployingEnv);
@@ -453,9 +464,33 @@ const CodeSpace = (props) => {
   };
 
   const onShowCodeDeployModal = () => {
-    setShowCodeDeployModal(true);
+    if (needsIntMigration(codeSpaceData)) {
+      setShowIntMigrationModal(true);
+    } else {
+      setShowCodeDeployModal(true);
+    }
   };
 
+  const refreshCodeSpaceData = () => {
+    CodeSpaceApiClient.getCodeSpaceStatus(id)
+      .then((res) => {
+        setCodeSpaceData({
+          ...res.data,
+          running: !!res.data.intiatedOn,
+        });
+      })
+      .catch(() => {});
+  };
+
+  const handleIntMigrationOk = () => {
+    const projectName = codeSpaceData?.projectDetails?.projectName;
+    if (projectName) {
+      localStorage.setItem('intMigrationDismissed_' + projectName, 'true');
+    }
+    setShowIntMigrationModal(false);
+    setShowCodeDeployModal(true);
+  };
+  
   const enableDeployLivelinessCheck = (id, deployEnvironmentValue) => {
     clearInterval(livelinessInterval);
     const intervalId = window.setInterval(() => {
@@ -466,7 +501,7 @@ const CodeSpace = (props) => {
             const prodDeploymentDetails = res.data.projectDetails?.prodDeploymentDetails;
 
             const deployStatus = deployEnvironmentValue === 'staging' ? intDeploymentDetails?.lastDeploymentStatus : prodDeploymentDetails?.lastDeploymentStatus;
-            if (deployStatus === 'DEPLOYED') {
+            if (deployStatus === 'DEPLOYED' || deployStatus === 'RESTARTED') {
               setIsApiCallTakeTime(false);
               ProgressIndicator.hide();
               clearInterval(livelinessIntervalRef.current);
@@ -527,11 +562,16 @@ const CodeSpace = (props) => {
   const projectDetails = codeSpaceData?.projectDetails;
   // const disableDeployment = projectDetails?.recipeDetails?.recipeId.startsWith('public') || DEPLOYMENT_DISABLED_RECIPE_IDS.includes(projectDetails?.recipeDetails?.recipeId);
   const disableDeployment = !projectDetails?.recipeDetails?.isDeployEnabled;
-  const deployingInProgress =
+  const intDeployingInProgress =
     projectDetails?.intDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED' ||
+    projectDetails?.intDeploymentDetails?.lastDeploymentStatus === 'DEPLOYING';
+  const prodDeployingInProgress =
+    projectDetails?.prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED' ||
+    projectDetails?.prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOYING';
+  const deployingInProgress =
+    intDeployingInProgress || prodDeployingInProgress ||
     projectDetails?.prodDeploymentDetails?.lastDeploymentStatus === 'APPROVAL_PENDING' ||
-    projectDetails?.lastBuildOrDeployedStatus === 'APPROVAL_PENDING' ||
-    projectDetails?.prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED';
+    projectDetails?.lastBuildOrDeployedStatus === 'APPROVAL_PENDING';
   const securedWithIAMContent = (
     <svg
       xmlns="http://www.w3.org/2000/svg"
@@ -801,7 +841,7 @@ const CodeSpace = (props) => {
                             >
                               <div>
                                 <strong>Staging:</strong>{' '}
-                                {intDeploymentDetails?.lastDeployedBranch ? 'Deployed' : 'No Deployment'}
+                                {intDeployingInProgress ? 'Deploying...' : codeDeployed ? 'Deployed' : 'No Deployment'}
                                 <span
                                   className={classNames(Styles.metricsTrigger, 'hide')}
                                   onClick={handleOpenDoraMetrics}
@@ -934,7 +974,7 @@ const CodeSpace = (props) => {
                             >
                               <div>
                                 <strong>Production:</strong>{' '}
-                                {prodDeploymentDetails?.lastDeployedBranch ? 'Deployed' : 'No Deployment'}
+                                {prodDeployingInProgress ? 'Deploying...' : prodCodeDeployed ? 'Deployed' : 'No Deployment'}
                                 <span
                                   className={classNames(Styles.metricsTrigger, 'hide')}
                                   onClick={handleOpenDoraMetrics}
@@ -1218,6 +1258,7 @@ const CodeSpace = (props) => {
           startDeployLivelinessCheck={enableDeployLivelinessCheck}
           setCodeDeploying={setCodeDeploying}
           setIsApiCallTakeTime={setIsApiCallTakeTime}
+          onAutoDeploySettingsUpdated={refreshCodeSpaceData}
         />
       )}
 
@@ -1250,6 +1291,14 @@ const CodeSpace = (props) => {
             onRestart(env);
             setShowRestartModal(false);
           }}
+        />
+      )}
+
+      {showIntMigrationModal && (
+        <IntMigrationModal
+          show={showIntMigrationModal}
+          codeSpaceData={codeSpaceData}
+          onDismiss={handleIntMigrationOk}
         />
       )}
 
