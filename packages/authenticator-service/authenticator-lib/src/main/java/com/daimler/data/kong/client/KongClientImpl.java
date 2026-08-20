@@ -235,13 +235,13 @@ public class KongClientImpl implements KongClient {
 		MessageDescription messageDescription = new MessageDescription();
 		List<MessageDescription> errors = new ArrayList<>();
 		List<MessageDescription> warnings = new ArrayList<>();
-		try {
-			AttachPluginConfigVO attachPluginConfigVO = attachPluginVO.getConfig();
-			String kongUri = kongBaseUri + "/services/" + serviceName + "/plugins";
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");
 			AttachPluginWrapperDto requestWrapper = new AttachPluginWrapperDto();			
+		try {
+			AttachPluginConfigVO attachPluginConfigVO = attachPluginVO.getConfig();
+			String kongUri = kongBaseUri + "/services/" + serviceName + "/plugins";
 			AttachPluginConfigRequestDto attachPluginConfigRequestDto = new AttachPluginConfigRequestDto();	
 			ResponseEntity<String> response = null;
 			if(attachPluginVO.getName().name().toLowerCase().equalsIgnoreCase("oidc")) {
