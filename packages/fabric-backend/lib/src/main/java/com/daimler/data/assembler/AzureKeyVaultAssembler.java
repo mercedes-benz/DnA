@@ -1,6 +1,7 @@
 package com.daimler.data.assembler;
 
 import java.util.Date;
+import java.util.stream.Collectors;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.stereotype.Component;
@@ -37,7 +38,7 @@ public class AzureKeyVaultAssembler implements GenericAssembler<KeyVaultVO, Azur
 						KeyVaultCollaboratorVO collaboratorVO = new KeyVaultCollaboratorVO();
 						BeanUtils.copyProperties(collaborator, collaboratorVO);
 						return collaboratorVO;
-					}).collect(java.util.stream.Collectors.toList()));
+					}).collect(Collectors.toList()));
 				}
 			}
 		}
@@ -65,7 +66,7 @@ public class AzureKeyVaultAssembler implements GenericAssembler<KeyVaultVO, Azur
 					AzureKeyVaultCollaborator collaboratorData = new AzureKeyVaultCollaborator();
 					BeanUtils.copyProperties(collaborator, collaboratorData);
 					return collaboratorData;
-				}).collect(java.util.stream.Collectors.toList()));
+				}).collect(Collectors.toList()));
 			}
 			
 			if (vo.getCreatedOn() == null) {

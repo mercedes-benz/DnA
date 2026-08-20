@@ -26,10 +26,12 @@
  */
 package com.daimler.data.application.client;
 
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
 import java.util.Objects;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -301,11 +303,13 @@ public class AzureManagementClient {
             headers.setContentType(MediaType.APPLICATION_JSON);
             HttpEntity<String> requestEntity = new HttpEntity<>(headers);
             String escapedTerm = searchTerm == null ? "" : searchTerm.replace("'", "''");
+            // Graph exposes users and service principals through separate collections, so query both.
             String userUrl = azureUserSearchUrl + "?$filter=startswith(mail,'" + escapedTerm + "')";
             String servicePrincipalUrl = azureServicePrincipalSearchUrl
                     + "?$filter=startswith(displayName,'" + escapedTerm + "') or appId eq '" + escapedTerm + "'";
 
-            List<AzurePrincipalDto> result = new java.util.ArrayList<>();
+            List<AzurePrincipalDto> result = new ArrayList<>();
+            // Isolate each lookup so one unavailable Graph endpoint does not hide results from the other.
             try {
                 ResponseEntity<AzureUserSearchResponseDto> users = proxyRestTemplate.exchange(
                         userUrl, HttpMethod.GET, requestEntity, AzureUserSearchResponseDto.class);
@@ -497,7 +501,7 @@ public class AzureManagementClient {
             
             HttpEntity<RoleAssignmentRequestDto> requestEntity = new HttpEntity<>(requestDto, headers);
             
-            roleAssignmentId = java.util.UUID.randomUUID().toString();
+            roleAssignmentId = UUID.randomUUID().toString();
             responseDto.setRoleAssignmentId(roleAssignmentId);
 
             String url = azureRoleAssignmentUrl;
@@ -555,6 +559,7 @@ public class AzureManagementClient {
             headers.set("Accept", "application/json");
             headers.set("Authorization", "Bearer " + token);
             HttpEntity<String> requestEntity = new HttpEntity<>(headers);
+            // Azure deletes the assignment resource, so use the persisted assignment ID rather than a principal ID.
             String url = azureRoleAssignmentUrl.replace("{subscriptionId}", azureSubscriptionId)
                     .replace("{resourceGroupName}", azureResourceGroup)
                     .replace("{keyVaultName}", keyVaultName)

@@ -2,7 +2,10 @@ package com.daimler.data.service.azureKeyVault;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -38,14 +41,6 @@ import lombok.extern.slf4j.Slf4j;
 public class BaseAzureKeyVaultService extends BaseCommonService<KeyVaultVO, AzureKeyVaultNsql, String>
 		implements AzureKeyVaultService {
 
-	@Override
-	public List<AzurePrincipalDto> searchPrincipals(String search) {
-		if (search == null || search.isBlank() || search.trim().length() < 3) {
-			return List.of();
-		}
-		return azureManagementClient.searchPrincipals(search);
-	}
-
 	@Autowired
 	private AzureManagementClient azureManagementClient;
 
@@ -60,6 +55,14 @@ public class BaseAzureKeyVaultService extends BaseCommonService<KeyVaultVO, Azur
 
 	@Autowired
 	private UserStore userStore;
+
+	@Override
+	public List<AzurePrincipalDto> searchPrincipals(String search) {
+		if (search == null || search.isBlank() || search.trim().length() < 3) {
+			return List.of();
+		}
+		return azureManagementClient.searchPrincipals(search);
+	}
 
 	@Override
 	public KeyVaultCollectionVO getAllKeyVaults(int limit, int offset, String createdBy) {
@@ -338,7 +341,7 @@ public class BaseAzureKeyVaultService extends BaseCommonService<KeyVaultVO, Azur
 		if (vo.getCollaborators() == null) {
 			return;
 		}
-		java.util.Set<String> identifiers = new java.util.HashSet<>();
+		Set<String> identifiers = new HashSet<>();
 		for (KeyVaultCollaboratorVO collaborator : vo.getCollaborators()) {
 			if (collaborator == null || collaborator.getIdentifier() == null
 					|| !identifiers.add(collaborator.getIdentifier().toLowerCase())) {
@@ -354,7 +357,8 @@ public class BaseAzureKeyVaultService extends BaseCommonService<KeyVaultVO, Azur
 				? new ArrayList<>() : existing.getCollaborators();
 		List<KeyVaultCollaboratorVO> updatedCollaborators = updated.getCollaborators() == null
 				? new ArrayList<>() : updated.getCollaborators();
-		java.util.Map<String, KeyVaultCollaboratorVO> existingByIdentifier = existingCollaborators.stream()
+		// Compare identifiers to preserve existing assignments while provisioning only additions and removals.
+		Map<String, KeyVaultCollaboratorVO> existingByIdentifier = existingCollaborators.stream()
 				.filter(c -> c.getIdentifier() != null)
 				.collect(Collectors.toMap(c -> c.getIdentifier().toLowerCase(), c -> c, (left, right) -> left));
 		for (KeyVaultCollaboratorVO collaborator : updatedCollaborators) {
@@ -372,7 +376,7 @@ public class BaseAzureKeyVaultService extends BaseCommonService<KeyVaultVO, Azur
 				provisionCollaborator(keyVaultName, collaborator, warnings);
 			}
 		}
-		java.util.Set<String> retained = updatedCollaborators.stream()
+		Set<String> retained = updatedCollaborators.stream()
 				.filter(c -> c.getIdentifier() != null)
 				.map(c -> c.getIdentifier().toLowerCase()).collect(Collectors.toSet());
 		for (KeyVaultCollaboratorVO old : existingCollaborators) {
@@ -381,6 +385,7 @@ public class BaseAzureKeyVaultService extends BaseCommonService<KeyVaultVO, Azur
 				RoleAssignmentResponseDto response = azureManagementClient.removeRoleAssignment(
 						keyVaultName, old.getRoleAssignmentId());
 				if (response.getErrorCode() != null && !"404".equals(response.getErrorCode())) {
+					// Keep partial Azure failures as warnings so collaborator issues do not abort the vault update.
 					warnings.add(new MessageDescription("Failed to remove collaborator " + old.getIdentifier()
 							+ ": " + response.getMessage()));
 				}

@@ -83,8 +83,9 @@ public class AzureKeyVaultCustomRepositoryImpl extends CommonDataRepositoryImpl<
                 root.get("data"),
                 cb.literal("collaborators")
             );
+            // Match the identifier field only; searching all collaborator JSON fields would create false positives.
             accessPredicate = cb.or(creatorPredicate, cb.like(
-                cb.lower(collaboratorPath), "%\"" + escaped + "\"%", '\\'));
+                cb.lower(collaboratorPath), "%\"identifier\":\"" + escaped + "\"%", '\\'));
         }
         cq.where(accessPredicate);
         
