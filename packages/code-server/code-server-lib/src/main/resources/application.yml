@@ -2,7 +2,7 @@ spring:
   mvc.pathmatch.matching-strategy: ant_path_matcher
   application:
     name: dna-codeserver-service
-    version: 1.12.6
+    version: 1.12.19
   profile:
     active: production
 
@@ -67,6 +67,12 @@ management:
     
 dna:
   uri: ${DNA_URI:XXXXXX}
+
+git:
+  cache:
+    branches:
+      ttlSeconds: ${GIT_CACHE_BRANCHES_TTL_SECONDS:30}
+      maxSize: ${GIT_CACHE_BRANCHES_MAX_SIZE:500}
 
 codeserver:
   userauth: ${CODESERVER_USERAUTH:XXXX}
@@ -260,6 +266,23 @@ argocd:
   namespacePrefix: ${ARGOCD_NAMESPACE_PREFIX:XXXX}
   vaultAuthPath: ${ARGOCD_VAULT_AUTH_PATH:XXXX}
   vaultMountPath: ${ARGOCD_VAULT_MOUNT_PATH_SUFFIX:XXXX}
+  resources:
+    defaults:
+      requests:
+        cpu: ${ARGOCD_RESOURCES_DEFAULTS_REQUESTS_CPU:XXXX}
+        memory:
+          mi: ${ARGOCD_RESOURCES_DEFAULTS_REQUESTS_MEMORY_MI:XXXX}
+      limits:
+        memory:
+          mi: ${ARGOCD_RESOURCES_DEFAULTS_LIMITS_MEMORY_MI:XXXX}
+
 
 deployment:
   stuckThresholdMinutes: ${DEPLOYMENT_STUCK_THRESHOLD_MINUTES:15}
+  deployedFallbackMinutes: ${DEPLOYMENT_DEPLOYED_FALLBACK_MINUTES:15}
+  degradedGraceSeconds: ${DEPLOYMENT_DEGRADED_GRACE_SECONDS:300}
+  auditLogBackfillMinutes: ${DEPLOYMENT_AUDIT_LOG_BACKFILL_MINUTES:10}
+  ssePollSeconds: ${DEPLOYMENT_SSE_POLL_SECONDS:10}
+  onDemandRefreshCooldownSeconds: ${DEPLOYMENT_ON_DEMAND_REFRESH_COOLDOWN_SECONDS:5}
+  statusMonitorSeconds: ${DEPLOYMENT_STATUS_MONITOR_SECONDS:20}
+  hardRefreshEnabled: ${DEPLOYMENT_HARD_REFRESH_ENABLED:false}

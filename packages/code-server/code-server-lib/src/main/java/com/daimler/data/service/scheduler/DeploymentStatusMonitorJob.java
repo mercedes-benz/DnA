@@ -7,6 +7,7 @@ import com.daimler.data.db.entities.CodeServerBuildDeployNsql;
 import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
 import com.daimler.data.db.json.BuildAudit;
 import com.daimler.data.db.json.CodeServerBuildDeploy;
+import com.daimler.data.db.json.CodeServerBuildDetails;
 import com.daimler.data.db.json.CodeServerDeploymentDetails;
 import com.daimler.data.db.json.DeploymentAudit;
 import com.daimler.data.db.json.UserInfo;
@@ -17,6 +18,7 @@ import com.daimler.data.service.ArgoCdService;
 import com.daimler.dna.notifications.common.producer.KafkaProducerService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import net.javacrumbs.shedlock.spring.annotation.SchedulerLock;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
@@ -25,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 
 @Component
@@ -49,8 +52,13 @@ public class DeploymentStatusMonitorJob {
     @Autowired
     private CodeServerClient codeServerClient;
 
+    @Value("${deployment.onDemandRefreshCooldownSeconds:5}")
+    private long onDemandRefreshCooldownSeconds;
 
-    @Scheduled(fixedDelay = 10000, initialDelay = 5000)
+    private final Map<String, Long> onDemandReconciliationTimes = new ConcurrentHashMap<>();
+
+    @Scheduled(fixedDelayString = "#{${deployment.statusMonitorSeconds:20} * 1000}",
+            initialDelay = 5000)
     @SchedulerLock(name = "deploymentStatusMonitorJob", lockAtMostFor = "2m", lockAtLeastFor = "5s")
     public void monitorDeploymentStatus() {
         try {
@@ -62,7 +70,7 @@ public class DeploymentStatusMonitorJob {
                 return;
             }
 
-            List<CodeServerWorkspaceNsql> workspaces = workspaceCustomRepository.findAll();
+            List<CodeServerWorkspaceNsql> workspaces = workspaceCustomRepository.findDeploymentReconciliationWorkspaces();
             int checkedCount = 0;
             int updatedCount = 0;
 
@@ -82,7 +90,8 @@ public class DeploymentStatusMonitorJob {
                 String topLevelEnv = workspace.getData().getProjectDetails().getLastBuildOrDeployedEnv();
 
                 CodeServerDeploymentDetails intDeployment = workspace.getData().getProjectDetails().getIntDeploymentDetails();
-                boolean intNeedsCheck = intDeployment != null && shouldCheckDeployment(intDeployment.getLastDeploymentStatus())
+                repairMissingFailureFields(workspace, intDeployment, projectName, "int");
+                boolean intNeedsCheck = intDeployment != null && shouldCheckDeployment(intDeployment)
                         && !isUserCancelled(intDeployment);
                 // Recovery for stuck restarts: top-level says RESTART_REQUESTED for this env but per-env field was never updated
                 if (!intNeedsCheck && intDeployment != null 
@@ -104,14 +113,10 @@ public class DeploymentStatusMonitorJob {
                     if (checkAndUpdateDeployment(argoToken, workspace, intDeployment, projectName, "int")) {
                         updatedCount++;
                     }
-                } else if (intDeployment != null && "DEPLOYED".equalsIgnoreCase(intDeployment.getLastDeploymentStatus())) {
-                    // Fix stale build deploy entities for workspaces that were already updated
-                    // before the build deploy audit log fix was deployed
-                    fixStaleBuildDeployAuditLog(projectName, "int");
                 }
-
                 CodeServerDeploymentDetails prodDeployment = workspace.getData().getProjectDetails().getProdDeploymentDetails();
-                boolean prodNeedsCheck = prodDeployment != null && shouldCheckDeployment(prodDeployment.getLastDeploymentStatus())
+                repairMissingFailureFields(workspace, prodDeployment, projectName, "prod");
+                boolean prodNeedsCheck = prodDeployment != null && shouldCheckDeployment(prodDeployment)
                         && !isUserCancelled(prodDeployment);
                 if (!prodNeedsCheck && prodDeployment != null 
                         && "RESTART_REQUESTED".equalsIgnoreCase(topLevelStatus) 
@@ -132,8 +137,6 @@ public class DeploymentStatusMonitorJob {
                     if (checkAndUpdateDeployment(argoToken, workspace, prodDeployment, projectName, "prod")) {
                         updatedCount++;
                     }
-                } else if (prodDeployment != null && "DEPLOYED".equalsIgnoreCase(prodDeployment.getLastDeploymentStatus())) {
-                    fixStaleBuildDeployAuditLog(projectName, "prod");
                 }
             }
 
@@ -143,6 +146,66 @@ public class DeploymentStatusMonitorJob {
         } catch (Exception e) {
             log.error("Error in deployment status monitoring job", e);
         }
+    }
+
+    public boolean reconcileDeploymentOnDemand(CodeServerWorkspaceNsql workspace, String environment) {
+        if (workspace == null || workspace.getData() == null
+                || workspace.getData().getProjectDetails() == null
+                || (!"int".equalsIgnoreCase(environment) && !"prod".equalsIgnoreCase(environment))) {
+            return false;
+        }
+
+        String projectName = workspace.getData().getProjectDetails().getProjectName();
+        CodeServerDeploymentDetails deployment = "int".equalsIgnoreCase(environment)
+                ? workspace.getData().getProjectDetails().getIntDeploymentDetails()
+                : workspace.getData().getProjectDetails().getProdDeploymentDetails();
+        if (projectName == null || deployment == null || isUserCancelled(deployment)) {
+            return false;
+        }
+
+        boolean needsCheck = shouldCheckDeployment(deployment);
+        if (!needsCheck
+                && "RESTART_REQUESTED".equalsIgnoreCase(
+                        workspace.getData().getProjectDetails().getLastBuildOrDeployedStatus())
+                && environment.equalsIgnoreCase(
+                        workspace.getData().getProjectDetails().getLastBuildOrDeployedEnv())) {
+            deployment.setLastDeploymentStatus("RESTART_REQUESTED");
+            needsCheck = true;
+        }
+        if (!needsCheck || isUserCancelled(deployment) || !hasDeploymentHistory(projectName, environment)) {
+            return false;
+        }
+
+        String workspaceKey = workspace.getData().getWorkspaceId() != null
+                ? workspace.getData().getWorkspaceId() : projectName;
+        String cooldownKey = workspaceKey + ":" + environment.toLowerCase();
+        long now = System.currentTimeMillis();
+        Long previousRun = onDemandReconciliationTimes.get(cooldownKey);
+        if (previousRun != null
+                && now - previousRun < onDemandRefreshCooldownSeconds * 1000L) {
+            log.info("Skipping on-demand deployment reconciliation for {}-{}: cooldown active",
+                    projectName, environment);
+            return false;
+        }
+
+        String argoToken;
+        try {
+            argoToken = argoCdService.getArgoToken();
+        } catch (Exception e) {
+            log.warn("Unable to get ArgoCD token for on-demand deployment reconciliation of {}-{}: {}",
+                    projectName, environment, e.getMessage());
+            return false;
+        }
+        if (argoToken == null) {
+            log.warn("Unable to get ArgoCD token for on-demand deployment reconciliation of {}-{}",
+                    projectName, environment);
+            return false;
+        }
+        long cooldownMillis = onDemandRefreshCooldownSeconds * 1000L;
+        onDemandReconciliationTimes.entrySet().removeIf(entry ->
+                now - entry.getValue() >= cooldownMillis);
+        onDemandReconciliationTimes.put(cooldownKey, now);
+        return checkAndUpdateDeployment(argoToken, workspace, deployment, projectName, environment);
     }
 
     private boolean hasDeploymentHistory(String projectName, String environment) {
@@ -161,10 +224,98 @@ public class DeploymentStatusMonitorJob {
         }
     }
 
-    private boolean shouldCheckDeployment(String status) {
-        if (status == null) return false;
-        return "DEPLOY_REQUESTED".equalsIgnoreCase(status) || "DEPLOYMENT_FAILED".equalsIgnoreCase(status)
-                || "RESTART_REQUESTED".equalsIgnoreCase(status);
+    @Scheduled(fixedDelayString = "#{${deployment.auditLogBackfillMinutes:10} * 60000}",
+            initialDelayString = "#{${deployment.auditLogBackfillMinutes:10} * 60000}")
+    @SchedulerLock(name = "deploymentAuditLogBackfillJob", lockAtMostFor = "15m", lockAtLeastFor = "5s")
+    public void backfillStaleBuildDeployAuditLogs() {
+        try {
+            for (CodeServerWorkspaceNsql workspace : workspaceCustomRepository.findAll()) {
+                if (workspace.getData() == null || workspace.getData().getProjectDetails() == null) {
+                    continue;
+                }
+                String projectName = workspace.getData().getProjectDetails().getProjectName();
+                if (projectName == null) {
+                    continue;
+                }
+                CodeServerDeploymentDetails intDeployment = workspace.getData().getProjectDetails().getIntDeploymentDetails();
+                if (intDeployment != null && "DEPLOYED".equalsIgnoreCase(intDeployment.getLastDeploymentStatus())) {
+                    fixStaleBuildDeployAuditLog(projectName, "int");
+                }
+                CodeServerDeploymentDetails prodDeployment = workspace.getData().getProjectDetails().getProdDeploymentDetails();
+                if (prodDeployment != null && "DEPLOYED".equalsIgnoreCase(prodDeployment.getLastDeploymentStatus())) {
+                    fixStaleBuildDeployAuditLog(projectName, "prod");
+                }
+            }
+        } catch (Exception e) {
+            log.error("Error in stale build deploy audit log backfill", e);
+        }
+    }
+
+    private boolean shouldCheckDeployment(CodeServerDeploymentDetails deployment) {
+        if (deployment == null || deployment.getLastDeploymentStatus() == null) {
+            return false;
+        }
+        String status = deployment.getLastDeploymentStatus();
+        return "DEPLOY_REQUESTED".equalsIgnoreCase(status) || "RESTART_REQUESTED".equalsIgnoreCase(status);
+    }
+
+    private void repairMissingFailureFields(CodeServerWorkspaceNsql workspace,
+            CodeServerDeploymentDetails deployment, String projectName, String environment) {
+        if (deployment == null || !"DEPLOYMENT_FAILED".equalsIgnoreCase(deployment.getLastDeploymentStatus())
+                || isUserCancelled(deployment)
+                || (deployment.getLastDeployedBy() != null && deployment.getLastDeployedOn() != null)) {
+            return;
+        }
+        try {
+            DeploymentAudit latestAudit = findLatestDeploymentAudit(projectName, environment, deployment);
+            UserInfo deployedByUser = resolveTriggeredByUser(workspace, latestAudit);
+            if (deployment.getLastDeployedBy() == null && deployedByUser != null) {
+                deployment.setLastDeployedBy(deployedByUser);
+            }
+            if (deployment.getLastDeployedOn() == null) {
+                Date repairedOn = latestAudit != null && latestAudit.getTriggeredOn() != null
+                        ? latestAudit.getTriggeredOn() : new Date();
+                deployment.setLastDeployedOn(repairedOn);
+                log.info("Repairing lastDeployedOn for {}-{} using {} timestamp",
+                        projectName, environment,
+                        latestAudit != null && latestAudit.getTriggeredOn() != null ? "audit" : "current time");
+            }
+            GenericMessage update = workspaceCustomRepository.updateReconciledDeploymentStatus(
+                    projectName, environment, deployment, "DEPLOYMENT_FAILED");
+            if (update != null && "SUCCESS".equalsIgnoreCase(update.getSuccess())) {
+                log.info("Repaired missing failure fields for {}-{}", projectName, environment);
+            } else {
+                log.warn("Failed to repair missing failure fields for {}-{}", projectName, environment);
+            }
+        } catch (Exception e) {
+            log.warn("Failed to repair missing failure fields for {}-{}: {}", projectName, environment, e.getMessage());
+        }
+    }
+
+    private DeploymentAudit findLatestDeploymentAudit(String projectName, String environment,
+            CodeServerDeploymentDetails deployment) {
+        CodeServerBuildDeployNsql buildDeployEntity = buildDeployCustomRepo.findByProjectName(projectName);
+        if (buildDeployEntity != null && buildDeployEntity.getData() != null) {
+            List<DeploymentAudit> auditLogs = "int".equalsIgnoreCase(environment)
+                    ? buildDeployEntity.getData().getIntDeploymentAuditLogs()
+                    : buildDeployEntity.getData().getProdDeploymentAuditLogs();
+            if (auditLogs != null && !auditLogs.isEmpty()) {
+                DeploymentAudit latest = auditLogs.stream()
+                        .filter(audit -> audit.getTriggeredOn() != null)
+                        .max((a1, a2) -> a1.getTriggeredOn().compareTo(a2.getTriggeredOn()))
+                        .orElse(null);
+                if (latest != null) {
+                    return latest;
+                }
+            }
+        }
+        if (deployment.getDeploymentAuditLogs() == null) {
+            return null;
+        }
+        return deployment.getDeploymentAuditLogs().stream()
+                .filter(audit -> audit.getTriggeredOn() != null)
+                .max((a1, a2) -> a1.getTriggeredOn().compareTo(a2.getTriggeredOn()))
+                .orElse(null);
     }
 
     /**
@@ -189,7 +340,43 @@ public class DeploymentStatusMonitorJob {
             }
             String appName = projectName.toLowerCase() + "-" + environment;
             String currentDbStatus = deployment.getLastDeploymentStatus();
-            Map<String, String> argoResult = argoCdService.checkArgoAppDeploymentStatusWithError(argoToken, appName);
+            DeploymentAudit latestAudit = null;
+            CodeServerBuildDeployNsql buildDeployEntity = buildDeployCustomRepo.findByProjectName(projectName);
+            if (buildDeployEntity != null) {
+                List<DeploymentAudit> buildDeployAuditLogs = "int".equalsIgnoreCase(environment)
+                        ? buildDeployEntity.getData().getIntDeploymentAuditLogs()
+                        : buildDeployEntity.getData().getProdDeploymentAuditLogs();
+                if (buildDeployAuditLogs != null && !buildDeployAuditLogs.isEmpty()) {
+                    latestAudit = buildDeployAuditLogs.stream()
+                        .filter(audit -> audit.getTriggeredOn() != null)
+                        .sorted((a1, a2) -> a2.getTriggeredOn().compareTo(a1.getTriggeredOn()))
+                        .findFirst()
+                        .orElse(null);
+                }
+            }
+            if (latestAudit == null && deployment.getDeploymentAuditLogs() != null && !deployment.getDeploymentAuditLogs().isEmpty()) {
+                latestAudit = deployment.getDeploymentAuditLogs().stream()
+                    .filter(audit -> audit.getTriggeredOn() != null)
+                    .sorted((a1, a2) -> a2.getTriggeredOn().compareTo(a1.getTriggeredOn()))
+                    .findFirst()
+                    .orElse(null);
+            }
+
+            String expectedVersion = latestAudit != null ? latestAudit.getVersion() : null;
+            if (expectedVersion == null || expectedVersion.isEmpty()) {
+                CodeServerBuildDetails buildDetails = "int".equalsIgnoreCase(environment)
+                        ? workspace.getData().getProjectDetails().getIntBuildDetails()
+                        : workspace.getData().getProjectDetails().getProdBuildDetails();
+                expectedVersion = buildDetails != null ? buildDetails.getVersion() : null;
+            }
+            Date deployTriggerTime = latestAudit != null ? latestAudit.getTriggeredOn() : null;
+            Map<String, String> argoResult;
+            if ("DEPLOY_REQUESTED".equalsIgnoreCase(currentDbStatus)) {
+                argoResult = argoCdService.checkArgoAppDeploymentStatusWithError(
+                        argoToken, appName, expectedVersion, deployTriggerTime);
+            } else {
+                argoResult = argoCdService.checkArgoAppDeploymentStatusWithError(argoToken, appName);
+            }
             String argoStatus = argoResult.get("status");
             String argoErrorMessage = argoResult.get("errorMessage");
 
@@ -228,31 +415,6 @@ public class DeploymentStatusMonitorJob {
                     deployment.setLastDeploymentError(argoErrorMessage);
                 } else {
                     deployment.setLastDeploymentError(null);
-                }
-                
-                // Source latestAudit from the build_deploy_nsql entity (the authoritative audit history)
-                // rather than deployment.getDeploymentAuditLogs() which is typically null in workspace_nsql.
-                DeploymentAudit latestAudit = null;
-                CodeServerBuildDeployNsql buildDeployEntity = buildDeployCustomRepo.findByProjectName(projectName);
-                if (buildDeployEntity != null) {
-                    List<DeploymentAudit> buildDeployAuditLogs = "int".equalsIgnoreCase(environment)
-                            ? buildDeployEntity.getData().getIntDeploymentAuditLogs()
-                            : buildDeployEntity.getData().getProdDeploymentAuditLogs();
-                    if (buildDeployAuditLogs != null && !buildDeployAuditLogs.isEmpty()) {
-                        latestAudit = buildDeployAuditLogs.stream()
-                            .filter(audit -> audit.getTriggeredOn() != null)
-                            .sorted((a1, a2) -> a2.getTriggeredOn().compareTo(a1.getTriggeredOn()))
-                            .findFirst()
-                            .orElse(null);
-                    }
-                }
-                // Fallback to the embedded deployment audit logs if build_deploy_nsql had nothing
-                if (latestAudit == null && deployment.getDeploymentAuditLogs() != null && !deployment.getDeploymentAuditLogs().isEmpty()) {
-                    latestAudit = deployment.getDeploymentAuditLogs().stream()
-                        .filter(audit -> audit.getTriggeredOn() != null)
-                        .sorted((a1, a2) -> a2.getTriggeredOn().compareTo(a1.getTriggeredOn()))
-                        .findFirst()
-                        .orElse(null);
                 }
                 
                 // Set lastDeployedBy to the user who triggered the deployment
@@ -337,14 +499,22 @@ public class DeploymentStatusMonitorJob {
                     log.info("Updated audit log status to {} for deployment at {}", targetStatus, latestAudit.getTriggeredOn());
                 }
 
-                workspaceCustomRepository.updateDeploymentDetails(projectName, environment, deployment, targetStatus);
+                GenericMessage workspaceUpdate = workspaceCustomRepository.updateReconciledDeploymentStatus(
+                        projectName, environment, deployment, targetStatus);
                 
                 // Also update deployment audit logs in the build deploy entity (used by frontend)
                 updateBuildDeployAuditLog(projectName, environment, targetStatus);
+                if (workspaceUpdate == null || !"SUCCESS".equalsIgnoreCase(workspaceUpdate.getSuccess())) {
+                    log.error("Workspace deployment status write failed for project={} environment={} status={}; skipping notification",
+                            projectName, environment, targetStatus);
+                    return false;
+                }
 
-                // Clean up non-retained build images after successful deployment
                 if ("DEPLOYED".equals(targetStatus)) {
                     String deployedVersion = deployment.getLastDeployedVersion();
+                    logDeploymentCompletion(projectName, environment, deployedVersion,
+                            latestAudit != null ? latestAudit.getTriggeredOn() : null, buildDeployEntity, new Date());
+                    // Clean up non-retained build images after successful deployment
                     cleanupNonRetainedBuildImages(projectName, environment, deployedVersion);
                 }
 
@@ -357,6 +527,54 @@ public class DeploymentStatusMonitorJob {
             log.warn("Failed to check ArgoCD status for {}-{}: {}", projectName, environment, e.getMessage());
         }
         return false;
+    }
+
+    private void logDeploymentCompletion(String projectName, String environment, String version,
+            Date deployTriggerTime, CodeServerBuildDeployNsql buildDeployEntity, Date completionTime) {
+        String durationPart = "";
+        if (deployTriggerTime != null && !deployTriggerTime.after(completionTime)) {
+            long elapsedSeconds = (completionTime.getTime() - deployTriggerTime.getTime()) / 1000L;
+            durationPart = String.format(" duration=%ds (%02d:%02d)", elapsedSeconds,
+                    elapsedSeconds / 60, elapsedSeconds % 60);
+        }
+
+        String buildPart = "";
+        BuildAudit buildAudit = findBuildAudit(buildDeployEntity, environment, version);
+        if (buildAudit != null && buildAudit.getTriggeredOn() != null) {
+            buildPart = " buildTriggeredAt=" + buildAudit.getTriggeredOn();
+            if (buildAudit.getBuildOn() != null && !buildAudit.getBuildOn().before(buildAudit.getTriggeredOn())) {
+                long buildSeconds = (buildAudit.getBuildOn().getTime() - buildAudit.getTriggeredOn().getTime()) / 1000L;
+                buildPart += String.format(" buildDuration=%ds (%02d:%02d)", buildSeconds,
+                        buildSeconds / 60, buildSeconds % 60);
+            }
+        }
+
+        log.info("Deployment completed: project={} environment={} version={} deployTriggeredAt={} completedAt={}{}{}",
+                projectName, environment, version, deployTriggerTime, completionTime, durationPart, buildPart);
+    }
+
+    private BuildAudit findBuildAudit(CodeServerBuildDeployNsql buildDeployEntity, String environment,
+            String version) {
+        if (buildDeployEntity == null || buildDeployEntity.getData() == null || version == null) {
+            return null;
+        }
+        List<BuildAudit> buildAudits = "int".equalsIgnoreCase(environment)
+                ? buildDeployEntity.getData().getIntBuildAuditLogs()
+                : buildDeployEntity.getData().getProdBuildAuditLogs();
+        if (buildAudits == null) {
+            return null;
+        }
+        return buildAudits.stream()
+                .filter(audit -> audit.getVersion() != null && version.equalsIgnoreCase(audit.getVersion()))
+                .max((a1, a2) -> {
+                    Date first = a1.getTriggeredOn();
+                    Date second = a2.getTriggeredOn();
+                    if (first == null && second == null) return 0;
+                    if (first == null) return -1;
+                    if (second == null) return 1;
+                    return first.compareTo(second);
+                })
+                .orElse(null);
     }
 
     private void fixStaleBuildDeployAuditLog(String projectName, String environment) {

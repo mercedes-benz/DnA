@@ -3,12 +3,14 @@ package com.daimler.data.controller;
 import com.daimler.data.db.entities.CodeServerBuildDeployNsql;
 import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
 import com.daimler.data.db.json.CodeServerBuildDeploy;
+import com.daimler.data.db.json.CodeServerBuildDetails;
 import com.daimler.data.db.json.CodeServerDeploymentDetails;
+import com.daimler.data.db.json.BuildAudit;
 import com.daimler.data.db.json.DeploymentAudit;
-import com.daimler.data.db.json.UserInfo;
 import com.daimler.data.db.repo.workspace.WorkSpaceCodeServerBuildDeployRepository;
 import com.daimler.data.db.repo.workspace.WorkspaceCustomBuildDeployRepo;
 import com.daimler.data.db.repo.workspace.WorkspaceCustomRepository;
+import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.service.ArgoCdService;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -23,6 +25,7 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import java.io.IOException;
 import java.net.HttpURLConnection;
 import java.util.*;
+import java.util.Comparator;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -47,6 +50,9 @@ public class DeploymentStatusSseController {
     @Value("${deployment.stuckThresholdMinutes:15}")
     private int stuckThresholdMinutes;
 
+    @Value("${deployment.ssePollSeconds:10}")
+    private int ssePollSeconds;
+
     /** Marker persisted in lastDeploymentError so reconcilers can recognise a user-cancelled deployment. */
     public static final String USER_CANCELLED_MARKER = "Deployment cancelled by user";
 
@@ -65,14 +71,15 @@ public class DeploymentStatusSseController {
         executor.execute(() -> {
             int errorCount = 0;
             int maxErrors = 5;
-            int maxIterations = 600;
+            int pollIntervalSeconds = Math.max(1, ssePollSeconds);
+            int maxIterations = Math.max(1, (30 * 60) / pollIntervalSeconds);
             int iteration = 0;
             boolean seenInProgress = false;
             // Minimum iterations before accepting terminal status from ArgoCD.
             // This prevents false "DEPLOYED" when re-deploying an already-deployed app,
             // because ArgoCD still shows the old deployment as Healthy+Succeeded
             // before the new sync starts.
-            int minIterationsBeforeTerminal = 5; // ~15 seconds at 3s interval
+            int minIterationsBeforeTerminal = Math.max(1, (int) Math.ceil(15.0 / pollIntervalSeconds));
             
             try {
                 while (iteration < maxIterations) {
@@ -87,7 +94,8 @@ public class DeploymentStatusSseController {
                         String status = (String) statusData.get("currentStatus");
                         log.debug("SSE iteration {}: status={} seenInProgress={} for {}/{}", iteration, status, seenInProgress, projectName, environment);
                         
-                        if ("DEPLOY_REQUESTED".equals(status) || "BUILDING".equals(status)) {
+                        if ("DEPLOY_REQUESTED".equals(status) || "DEPLOYING".equals(status)
+                                || "BUILDING".equals(status)) {
                             seenInProgress = true;
                         }
                         
@@ -109,6 +117,9 @@ public class DeploymentStatusSseController {
                             // or enough time has passed to rule out stale ArgoCD state.
                             // A user-cancelled deployment is always terminal, even on the very first iteration.
                             if (userCancelled || seenInProgress || iteration >= minIterationsBeforeTerminal || argoConfirmedFailed) {
+                                if ("DEPLOYED".equals(status) && seenInProgress) {
+                                    logDeploymentCompletion(projectName, environment, statusData);
+                                }
                                 log.info("Deployment finished with status: {} after {} iterations (seenInProgress={})", status, iteration, seenInProgress);
                                 emitter.send(SseEmitter.event()
                                         .name("deployment-complete")
@@ -133,7 +144,7 @@ public class DeploymentStatusSseController {
                             errorCount = 0;
                         }
 
-                        Thread.sleep(3000);
+                        Thread.sleep(pollIntervalSeconds * 1000L);
 
                     } catch (IOException e) {
                         log.warn("Client disconnected from SSE stream at iteration {}", iteration);
@@ -256,8 +267,9 @@ public class DeploymentStatusSseController {
                 // deploymentDetails is null, set auditLogs to null
                 auditLogs = null;
             }
+            DeploymentAudit latestAudit = null;
             if (auditLogs != null && !auditLogs.isEmpty()) {
-                DeploymentAudit latestAudit = auditLogs.stream()
+                latestAudit = auditLogs.stream()
                     .filter(audit -> audit.getTriggeredOn() != null)
                     .sorted((a1, a2) -> a2.getTriggeredOn().compareTo(a1.getTriggeredOn()))
                     .findFirst()
@@ -267,23 +279,56 @@ public class DeploymentStatusSseController {
                 data.put("triggeredBy", latestAudit.getTriggeredBy());
                 data.put("triggeredOn", latestAudit.getTriggeredOn());
             }
+            if (latestAudit == null) {
+                CodeServerBuildDeployNsql buildDeployEntity = buildDeployCustomRepo.findByProjectName(projectName);
+                if (buildDeployEntity != null && buildDeployEntity.getData() != null) {
+                    List<DeploymentAudit> buildDeployAuditLogs = "int".equalsIgnoreCase(environment)
+                            ? buildDeployEntity.getData().getIntDeploymentAuditLogs()
+                            : buildDeployEntity.getData().getProdDeploymentAuditLogs();
+                    if (buildDeployAuditLogs != null && !buildDeployAuditLogs.isEmpty()) {
+                        latestAudit = buildDeployAuditLogs.stream()
+                                .filter(audit -> audit.getTriggeredOn() != null)
+                                .max(Comparator.comparing(DeploymentAudit::getTriggeredOn))
+                                .orElse(null);
+                        if (latestAudit != null) {
+                            data.put("commitId", latestAudit.getCommitId());
+                            data.put("triggeredBy", latestAudit.getTriggeredBy());
+                            data.put("triggeredOn", latestAudit.getTriggeredOn());
+                        }
+                    }
+                }
+            }
 
             String argoHealthStatus = "UNAVAILABLE";
             String argoSyncStatus = "UNAVAILABLE";
             String argoLastSyncPhase = "";
+            String confirmedArgoFailure = null;
             boolean imageMatchesDesired = true;
+            boolean deploymentEvidenceReady = true;
+            JsonNode argoApplicationNode = null;
+            String expectedVersion = latestAudit != null ? latestAudit.getVersion() : null;
+            if (expectedVersion == null || expectedVersion.isEmpty()) {
+                CodeServerBuildDetails buildDetails = "int".equalsIgnoreCase(environment)
+                        ? entity.getData().getProjectDetails().getIntBuildDetails()
+                        : entity.getData().getProjectDetails().getProdBuildDetails();
+                expectedVersion = buildDetails != null ? buildDetails.getVersion() : null;
+            }
+            Date deployTriggerTime = latestAudit != null ? latestAudit.getTriggeredOn() : null;
             
             try {
-                String argoAppName = projectName + "-" + environment;
+                String argoAppName = projectName.toLowerCase() + "-" + environment;
                 String token = argoCdService.getArgoToken();
                 ResponseEntity<String> argoResponse = argoCdService.getStatusOfArgoApp(token, argoAppName);
                 
                 if (argoResponse != null && argoResponse.getStatusCode().is2xxSuccessful()) {
                     ObjectMapper mapper = new ObjectMapper();
                     JsonNode rootNode = mapper.readTree(argoResponse.getBody());
+                    argoApplicationNode = rootNode;
                     argoHealthStatus = rootNode.path("status").path("health").path("status").asText("");
                     argoSyncStatus = rootNode.path("status").path("sync").path("status").asText("");
                     argoLastSyncPhase = rootNode.path("status").path("operationState").path("phase").asText("");
+                    confirmedArgoFailure = argoCdService.getConfirmedDeploymentFailure(
+                            token, rootNode, argoAppName, deployTriggerTime);
                     
                     String argoOperationMessage = rootNode.path("status").path("operationState").path("message").asText("");
 
@@ -295,7 +340,16 @@ public class DeploymentStatusSseController {
                         data.put("argocdOperationMessage", argoOperationMessage);
                     }
 
-                    imageMatchesDesired = argoCdService.isDesiredImageDeployed(rootNode, argoAppName);
+                    if ("DEPLOY_REQUESTED".equalsIgnoreCase(dbStatus) && deployTriggerTime != null) {
+                        imageMatchesDesired = argoCdService.isDesiredImageDeployed(rootNode, argoAppName, expectedVersion);
+                        deploymentEvidenceReady = argoCdService.isDeploymentReady(
+                                rootNode, argoAppName, expectedVersion, deployTriggerTime);
+                    } else {
+                        imageMatchesDesired = argoCdService.isDesiredImageDeployed(rootNode, argoAppName);
+                        if ("DEPLOY_REQUESTED".equalsIgnoreCase(dbStatus)) {
+                            deploymentEvidenceReady = imageMatchesDesired;
+                        }
+                    }
                 }
             } catch (Exception e) {
                 log.debug("Could not fetch ArgoCD status: {}", e.getMessage());
@@ -312,18 +366,24 @@ public class DeploymentStatusSseController {
             data.put("userCancelled", userCancelled);
 
             String argoOperationMsg = (String) data.get("argocdOperationMessage");
-            String actualStatus = determineActualStatus(dbStatus, argoHealthStatus, argoSyncStatus, argoLastSyncPhase, argoOperationMsg, imageMatchesDesired, userCancelled);
+            String actualStatus = determineActualStatus(dbStatus, argoHealthStatus, argoSyncStatus, argoLastSyncPhase,
+                    argoOperationMsg, confirmedArgoFailure, imageMatchesDesired, deploymentEvidenceReady, userCancelled);
             data.put("currentStatus", actualStatus);
 
             // While a deployment is in progress, surface crash-loop and stuck-threshold signals
             // so the UI can decide whether to enable the "Cancel Deployment" action.
             data.put("newPodCrashLooping", false);
             data.put("deployingThresholdExceeded", false);
-            if ("DEPLOYING".equals(actualStatus) || "DEPLOY_REQUESTED".equals(actualStatus)) {
+            boolean deploymentInProgress = "DEPLOYING".equals(actualStatus)
+                    || "DEPLOY_REQUESTED".equals(actualStatus)
+                    || "DEPLOYING".equals(dbStatus)
+                    || "DEPLOY_REQUESTED".equals(dbStatus);
+            if (deploymentInProgress) {
                 try {
-                    String argoAppName = projectName + "-" + environment;
+                    String argoAppName = projectName.toLowerCase() + "-" + environment;
                     String token = argoCdService.getArgoToken();
-                    Map<String, Object> crashStatus = argoCdService.getNewPodCrashLoopStatus(token, argoAppName);
+                    Map<String, Object> crashStatus = argoCdService.getNewPodCrashLoopStatus(token, argoAppName,
+                            argoApplicationNode);
                     data.put("newPodCrashLooping", crashStatus.get("newPodCrashLooping"));
                     if (crashStatus.get("crashLoopReason") != null) {
                         data.put("crashLoopReason", crashStatus.get("crashLoopReason"));
@@ -373,8 +433,69 @@ public class DeploymentStatusSseController {
 
         return data;
     }
+
+    private void logDeploymentCompletion(String projectName, String environment, Map<String, Object> statusData) {
+        String version = statusData.get("version") != null ? String.valueOf(statusData.get("version")) : null;
+        Date deployTriggerTime = statusData.get("triggeredOn") instanceof Date
+                ? (Date) statusData.get("triggeredOn") : null;
+        Date completionTime = statusData.get("deployedOn") instanceof Date
+                ? (Date) statusData.get("deployedOn") : new Date();
+
+        String durationPart = "";
+        if (deployTriggerTime != null && !deployTriggerTime.after(completionTime)) {
+            long elapsedSeconds = (completionTime.getTime() - deployTriggerTime.getTime()) / 1000L;
+            durationPart = String.format(" duration=%ds (%02d:%02d)", elapsedSeconds,
+                    elapsedSeconds / 60, elapsedSeconds % 60);
+        }
+
+        String buildPart = "";
+        try {
+            CodeServerBuildDeployNsql buildDeployEntity = buildDeployCustomRepo.findByProjectName(projectName);
+            BuildAudit buildAudit = findBuildAudit(buildDeployEntity, environment, version);
+            if (buildAudit != null && buildAudit.getTriggeredOn() != null) {
+                buildPart = " buildTriggeredAt=" + buildAudit.getTriggeredOn();
+                if (buildAudit.getBuildOn() != null && !buildAudit.getBuildOn().before(buildAudit.getTriggeredOn())) {
+                    long buildSeconds = (buildAudit.getBuildOn().getTime() - buildAudit.getTriggeredOn().getTime()) / 1000L;
+                    buildPart += String.format(" buildDuration=%ds (%02d:%02d)", buildSeconds,
+                            buildSeconds / 60, buildSeconds % 60);
+                }
+            }
+        } catch (Exception e) {
+            log.debug("Could not obtain build timing for {}/{}: {}", projectName, environment, e.getMessage());
+        }
+
+        log.info("Deployment completed: project={} environment={} version={} deployTriggeredAt={} completedAt={}{}{}",
+                projectName, environment, version, deployTriggerTime, completionTime, durationPart, buildPart);
+    }
+
+    private BuildAudit findBuildAudit(CodeServerBuildDeployNsql buildDeployEntity, String environment,
+            String version) {
+        if (buildDeployEntity == null || buildDeployEntity.getData() == null || version == null) {
+            return null;
+        }
+        List<BuildAudit> buildAudits = "int".equalsIgnoreCase(environment)
+                ? buildDeployEntity.getData().getIntBuildAuditLogs()
+                : buildDeployEntity.getData().getProdBuildAuditLogs();
+        if (buildAudits == null) {
+            return null;
+        }
+        return buildAudits.stream()
+                .filter(audit -> audit.getVersion() != null && version.equalsIgnoreCase(audit.getVersion()))
+                .max((a1, a2) -> {
+                    Date first = a1.getTriggeredOn();
+                    Date second = a2.getTriggeredOn();
+                    if (first == null && second == null) return 0;
+                    if (first == null) return -1;
+                    if (second == null) return 1;
+                    return first.compareTo(second);
+                })
+                .orElse(null);
+    }
     
-    private String determineActualStatus(String dbStatus, String argoHealth, String syncStatus, String lastSyncPhase, String operationMessage, boolean imageMatchesDesired, boolean userCancelled) {
+    private String determineActualStatus(String dbStatus, String argoHealth, String syncStatus, String lastSyncPhase,
+                                         String operationMessage, String confirmedFailureMessage,
+                                         boolean imageMatchesDesired,
+                                         boolean deploymentEvidenceReady, boolean userCancelled) {
         // A user-cancelled deployment is terminal. Never recompute it to DEPLOYING/DEPLOYED even
         // if ArgoCD still reports the old ReplicaSet pods as Healthy on the previous image.
         if (userCancelled) {
@@ -385,21 +506,19 @@ public class DeploymentStatusSseController {
             return dbStatus;
         }
         
-        if (operationMessage != null && !operationMessage.isEmpty() &&
-            (operationMessage.toLowerCase().contains("failed") || operationMessage.toLowerCase().contains("error"))) {
-            return "DEPLOYMENT_FAILED";
-        }
-        
-        if ("Failed".equalsIgnoreCase(lastSyncPhase) || "Error".equalsIgnoreCase(lastSyncPhase)) {
-            return "DEPLOYMENT_FAILED";
-        }
-        
-        if ("Degraded".equalsIgnoreCase(argoHealth)) {
+        if (confirmedFailureMessage != null) {
             return "DEPLOYMENT_FAILED";
         }
         
         if ("Healthy".equalsIgnoreCase(argoHealth)) {
-            if ("DEPLOY_REQUESTED".equalsIgnoreCase(dbStatus) || "BUILDING".equalsIgnoreCase(dbStatus)) {
+            if ("DEPLOY_REQUESTED".equalsIgnoreCase(dbStatus)) {
+                if (!deploymentEvidenceReady) {
+                    log.info("ArgoCD is Healthy but new sync/image evidence is incomplete - treating as DEPLOYING");
+                    return "DEPLOYING";
+                }
+                return "DEPLOYED";
+            }
+            if ("BUILDING".equalsIgnoreCase(dbStatus)) {
                 return dbStatus;
             }
             if (!imageMatchesDesired) {
@@ -431,7 +550,7 @@ public class DeploymentStatusSseController {
             }
 
             // Fallback: fetch from ArgoCD
-            String argoAppName = projectName + "-" + environment;
+            String argoAppName = projectName.toLowerCase() + "-" + environment;
             String token = argoCdService.getArgoToken();
             ResponseEntity<String> argoResponse = argoCdService.getStatusOfArgoApp(token, argoAppName);
             if (argoResponse != null && argoResponse.getStatusCode().is2xxSuccessful()) {
@@ -465,7 +584,7 @@ public class DeploymentStatusSseController {
 
         log.info("Starting pod-logs SSE stream for project: {}, environment: {}", projectName, environment);
         SseEmitter emitter = new SseEmitter(Long.MAX_VALUE);
-        String appName = projectName + "-" + environment;
+        String appName = projectName.toLowerCase() + "-" + environment;
 
         final AtomicBoolean active = new AtomicBoolean(true);
         final List<HttpURLConnection> openConnections = Collections.synchronizedList(new ArrayList<>());
@@ -489,8 +608,14 @@ public class DeploymentStatusSseController {
 
                 // Wait briefly for the new-version pod(s) to appear (image pull / scheduling).
                 List<ArgoCdService.PodInfo> pods = new ArrayList<>();
+                boolean fallbackSelection = false;
+                boolean resourceTreeAvailable = false;
                 for (int attempt = 0; attempt < 10 && active.get(); attempt++) {
-                    pods = argoCdService.getNewVersionPods(token, appName);
+                    ArgoCdService.PodSelectionResult selection =
+                            argoCdService.getNewVersionPodSelection(token, appName);
+                    pods = selection.getPods();
+                    fallbackSelection = selection.isFallbackSelection();
+                    resourceTreeAvailable = selection.isResourceTreeAvailable();
                     if (!pods.isEmpty()) {
                         break;
                     }
@@ -500,7 +625,9 @@ public class DeploymentStatusSseController {
                 if (pods.isEmpty()) {
                     synchronized (sendLock) {
                         Map<String, Object> err = new HashMap<>();
-                        err.put("message", "No pods found for the version being deployed yet");
+                        err.put("message", resourceTreeAvailable
+                                ? "No managed pods found for the version being deployed yet"
+                                : "Could not read the ArgoCD resource tree");
                         err.put("projectName", projectName);
                         err.put("environment", environment);
                         emitter.send(SseEmitter.event().name("pod-logs-error")
@@ -519,6 +646,7 @@ public class DeploymentStatusSseController {
                     podInfo.put("pods", podNames);
                     podInfo.put("projectName", projectName);
                     podInfo.put("environment", environment);
+                    podInfo.put("podsSelectedByFallback", fallbackSelection);
                     emitter.send(SseEmitter.event().name("pod-info")
                             .data(objectMapper.writeValueAsString(podInfo)));
                 }
@@ -618,27 +746,33 @@ public class DeploymentStatusSseController {
                 result.put("message", "No deployment details found for environment: " + environment);
                 return ResponseEntity.status(404).body(result);
             }
+            String storedProjectName = entity.getData().getProjectDetails().getProjectName();
 
-            String argoAppName = projectName + "-" + environment;
+            String argoAppName = projectName.toLowerCase() + "-" + environment;
             String token = argoCdService.getArgoToken();
             String terminateResult = argoCdService.terminateOperation(token, argoAppName);
             log.info("Cancel deployment for {}: ArgoCD terminate result={}", argoAppName, terminateResult);
 
-            // Ensure lastDeployedBy is populated (updateDeploymentDetails dereferences it).
-            if (deploymentDetails.getLastDeployedBy() == null) {
-                UserInfo owner = entity.getData().getProjectDetails().getProjectOwner();
-                deploymentDetails.setLastDeployedBy(owner != null ? owner : new UserInfo());
+            java.util.Date cancelledOn = new java.util.Date();
+            GenericMessage workspaceUpdate = workspaceRepository.updateCancelledDeploymentStatus(
+                    storedProjectName,
+                    environment,
+                    "DEPLOYMENT_FAILED",
+                    USER_CANCELLED_MARKER,
+                    cancelledOn);
+            result.put("argoTerminateResult", terminateResult);
+            result.put("workspaceUpdateStatus",
+                    workspaceUpdate == null ? "FAILED" : workspaceUpdate.getSuccess());
+            if (workspaceUpdate == null || !"SUCCESS".equalsIgnoreCase(workspaceUpdate.getSuccess())) {
+                result.put("status", "FAILED");
+                result.put("message", "Failed to persist deployment cancellation");
+                return ResponseEntity.status(500).body(result);
             }
-
-            deploymentDetails.setLastDeploymentStatus("DEPLOYMENT_FAILED");
-            deploymentDetails.setLastDeploymentError(USER_CANCELLED_MARKER);
-            deploymentDetails.setLastDeployedOn(new java.util.Date());
-            workspaceRepository.updateDeploymentDetails(projectName, environment, deploymentDetails, "DEPLOYMENT_FAILED");
 
             updateBuildDeployAuditToCancelled(projectName, environment);
 
             result.put("status", "SUCCESS");
-            result.put("message", "Deployment cancelled");
+            result.put("message", "Deployment cancelled; ArgoCD terminate result: " + terminateResult);
             return ResponseEntity.ok(result);
         } catch (Exception e) {
             log.error("Failed to cancel deployment for {}/{}: {}", projectName, environment, e.getMessage(), e);

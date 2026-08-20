@@ -48,7 +48,7 @@ import java.util.regex.Matcher;
  import java.util.stream.Collectors;
  import java.util.Collections;
 
- import org.json.JSONObject;
+import org.json.JSONObject;
  import org.springframework.beans.BeanUtils;
  import org.springframework.beans.factory.annotation.Autowired;
  import org.springframework.beans.factory.annotation.Value;
@@ -68,6 +68,7 @@ import java.util.regex.Matcher;
  import com.daimler.data.auth.client.AuthenticatorClient;
  import com.daimler.data.auth.client.DnaAuthClient;
  import com.daimler.data.service.ArgoCdService;
+import com.daimler.data.service.scheduler.DeploymentStatusMonitorJob;
  import com.daimler.data.controller.exceptions.GenericMessage;
  import com.daimler.data.controller.exceptions.MessageDescription;
  import com.daimler.data.db.entities.CodeServerBuildDeployNsql;
@@ -266,6 +267,9 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 
 	 @Autowired
 	 private ArgoCdService argoCdService;
+
+	 @Autowired
+	 private DeploymentStatusMonitorJob deploymentStatusMonitorJob;
 
 	 @Value("${codeServer.build.retainedlimit}")
      private String retainedBuildLimitValue;
@@ -697,11 +701,8 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 				repoName = vo.getProjectDetails().getRecipeDetails().getRepodetails();
 			}
 			String pathCheckout = "";
-			boolean isWorkspaceMigratedToGHE = false;
 			String repoDetails = vo.getProjectDetails().getRecipeDetails().getRepodetails();
-			if (repoDetails != null && repoDetails.contains("ghe.com")) {
-				isWorkspaceMigratedToGHE = true;
-			}
+			boolean isWorkspaceMigratedToGHE = resolveWorkspaceMigratedToGHE(vo, repoDetails);
 			if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")
 					&& !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
 							.startsWith("private")
@@ -737,19 +738,13 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 		   }
 		   if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().equalsIgnoreCase("default") && 
 				!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")) {
-				String gitValidationUrl = (repoDetails != null && repoDetails.contains("ghe.com")) 
+				String gitValidationUrl = isWorkspaceMigratedToGHE
 					? gheBaseUri 
 					: gitBaseUri;
-				HttpStatus validateUserPatstatus = gitClient.validateGitPat(collabPid, pat, gitValidationUrl);
-				if (!validateUserPatstatus.is2xxSuccessful()) {
-					MessageDescription errMsg;
-					if (validateUserPatstatus == HttpStatus.FORBIDDEN) {
-						errMsg = new MessageDescription(
-								"PAT is valid but SSO is not configured for " + orgName + ". Please authorize SSO for your Personal Access Token.");
-					} else {
-						errMsg = new MessageDescription(
-								"Invalid Git Personal Access Token provided. Please verify and retry.");
-					}
+				GitClient.GitPatValidationResult validation =
+						gitClient.validateGitPat(collabPid, pat, gitValidationUrl);
+				if (!validation.isSuccessful()) {
+					MessageDescription errMsg = getGitPatValidationError(validation, orgName);
 					errors.add(errMsg);
 					responseVO.setErrors(errors);
 					return responseVO;
@@ -767,7 +762,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 				}
 			}
 			if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private")) {
-				if (repoDetails == null || !repoDetails.contains("ghe.com")) {
+				if (!isWorkspaceMigratedToGHE) {
 					HttpStatus addAdminAccessToGitUser = gitClient.addAdminAccessToRepo(entity.getData().getWorkspaceOwner().getGitUserName(),
 							repoName);
 					if (!addAdminAccessToGitUser.is2xxSuccessful()) {
@@ -922,11 +917,8 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 				 repoName = vo.getProjectDetails().getRecipeDetails().getRepodetails();
 			 }
 			 String pathCheckout = "";
-			 boolean isWorkspaceMigratedToGHE = false;
 			 String repoDetails = vo.getProjectDetails().getRecipeDetails().getRepodetails();
-			 if (repoDetails != null && repoDetails.contains("ghe.com")) {
-				 isWorkspaceMigratedToGHE = true;
-			 }
+			 boolean isWorkspaceMigratedToGHE = resolveWorkspaceMigratedToGHE(vo, repoDetails);
 			 if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")
 					 && !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase()
 							 .startsWith("private")
@@ -962,22 +954,16 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 			}
 			if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().equalsIgnoreCase("default") && 
 				 !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("public")) {
-				 String gitValidationUrl = (repoDetails != null && repoDetails.contains("ghe.com")) 
+				 String gitValidationUrl = isWorkspaceMigratedToGHE
 						 ? gheBaseUri 
 						 : gitBaseUri;
-				 HttpStatus validateUserPatstatus = gitClient.validateGitPat(entity.getData().getGitUserName(), pat, gitValidationUrl);
-				 if (!validateUserPatstatus.is2xxSuccessful()) {
-					 MessageDescription errMsg;
-					 if (validateUserPatstatus == HttpStatus.FORBIDDEN) {
-						errMsg = new MessageDescription(
-								"PAT is valid but SSO is not configured for " + orgName + ". Please authorize SSO for your Personal Access Token.");
-					 } else {
-						errMsg = new MessageDescription(
-								"Invalid Git Personal Access Token provided. Please verify and retry.");
-					 }
-					 errors.add(errMsg);
-					 responseVO.setErrors(errors);
-					 return responseVO;
+					GitClient.GitPatValidationResult validation =
+							gitClient.validateGitPat(entity.getData().getGitUserName(), pat, gitValidationUrl);
+					if (!validation.isSuccessful()) {
+						MessageDescription errMsg = getGitPatValidationError(validation, orgName);
+						errors.add(errMsg);
+						responseVO.setErrors(errors);
+						return responseVO;
 				 }
 			 }
 			 else {
@@ -992,7 +978,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 				 }
 			 }
 			 if (!vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private")) {
-				 if (repoDetails == null || !repoDetails.contains("ghe.com")) {
+				 if (!isWorkspaceMigratedToGHE) {
 					 HttpStatus addAdminAccessToGitUser = gitClient.addAdminAccessToRepo(entity.getData().getWorkspaceOwner().getGitUserName(),
 							 repoName);
 					 if (!addAdminAccessToGitUser.is2xxSuccessful()) {
@@ -1162,19 +1148,13 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 					 String gitValidationUrl = isWorkspaceMigratedToGHE
 							 ? gheBaseUri 
 							 : gitBaseUri;
-					 HttpStatus validateUserPatstatus = gitClient.validateGitPat(owner.getGitUserName(), pat, gitValidationUrl);
-					 if (!validateUserPatstatus.is2xxSuccessful()) {
-						 MessageDescription errMsg;
-						 if (validateUserPatstatus == HttpStatus.FORBIDDEN) {
-							errMsg = new MessageDescription(
-									"PAT is valid but SSO is not configured for " + orgName + ". Please authorize SSO for your Personal Access Token.");
-						 } else {
-							errMsg = new MessageDescription(
-									"Invalid GitHub Personal Access Token provided. Please verify and retry.");
-						 }
-						 errors.add(errMsg);
-						 responseVO.setErrors(errors);
-						 return responseVO;
+						GitClient.GitPatValidationResult validation =
+								gitClient.validateGitPat(owner.getGitUserName(), pat, gitValidationUrl);
+						if (!validation.isSuccessful()) {
+							MessageDescription errMsg = getGitPatValidationError(validation, orgName);
+							errors.add(errMsg);
+							responseVO.setErrors(errors);
+							return responseVO;
 					 }
 				 }
  
@@ -1675,7 +1655,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 				log.info("getById - lookup by userId+id: userId={}, id={}", userId, id);
 			}
 			// Status reconciliation (ArgoCD, GitHub Actions, backfill) is handled
-			// by DeploymentStatusMonitorJob which runs every 10s. Keeping getById
+			// by DeploymentStatusMonitorJob which runs every 20s. Keeping getById
 			// as a pure DB read avoids slow synchronous HTTP calls to ArgoCD/GitHub
 			// on every card refresh.
 
@@ -1685,7 +1665,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 			// ArgoCD.
 			// This reconciliation only runs when explicitly triggered by user refresh
 			// (refreshTriggeredByUser=true).
-			// Auto-poll requests (every 10s) skip this entirely and return DB state only.
+			// Auto-poll requests (every 20s) skip this entirely and return DB state only.
 			if (refreshTriggeredByUser && entity != null && entity.getData() != null
 					&& entity.getData().getProjectDetails() != null
 					&& entity.getData().getProjectDetails().getLastBuildOrDeployedStatus() != null) {
@@ -1753,6 +1733,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 
 										// Update workspace entity status
 										entity.getData().getProjectDetails().setLastBuildOrDeployedStatus(finalStatus);
+										entity.getData().getProjectDetails().setLastBuildOrDeployedOn(now);
 
 										Boolean keepBuildImage = false;
 
@@ -1763,6 +1744,8 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 											resolvedBuildDetails.setLastBuildBy(entity.getData().getWorkspaceOwner());
 											resolvedBuildDetails.setGitjobRunID(gitJobRunId);
 											resolvedBuildDetails.setLastBuildFailureReason(null);   // clear stale BUILD_TIMEOUT on a real GitHub result
+											workspaceCustomRepository.updateBuildDetails(projectName, environment,
+													resolvedBuildDetails);
 										} else if ("DEPLOYED".equalsIgnoreCase(finalStatus)
 												|| "DEPLOYMENT_FAILED".equalsIgnoreCase(finalStatus)) {
 											deploymentDetails.setLastDeploymentStatus(finalStatus);
@@ -1772,10 +1755,9 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 												deploymentDetails
 														.setLastDeployedBy(entity.getData().getWorkspaceOwner());
 											}
+											workspaceCustomRepository.updateDeploymentDetails(projectName, environment,
+													deploymentDetails, finalStatus);
 										}
-
-										// Save workspace entity
-										workspaceCustomRepository.update(entity);
 
 										// Update build/deploy audit logs
 										CodeServerBuildDeployNsql buildDeployEntity = buildDeployCustomRepo
@@ -1792,6 +1774,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 												if (auditEntry != null) {
 													auditEntry.setBuildOn(now);
 													auditEntry.setBuildStatus(finalStatus);
+													auditEntry.setFailureReason(null);
 													keepBuildImage = auditEntry.isKeepBuildImage();
 												}
 											} else if ("DEPLOYED".equalsIgnoreCase(finalStatus)
@@ -1873,7 +1856,10 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 										buildDetails.setLastBuildFailureReason("BUILD_TIMEOUT");
 										buildDetails.setLastBuildOn(now);
 									}
-									workspaceCustomRepository.update(entity);
+									if (buildDetails != null) {
+										workspaceCustomRepository.updateBuildDetails(projectName, environment,
+												buildDetails);
+									}
 									CodeServerBuildDeployNsql buildDeployEntity = buildDeployCustomRepo.findByProjectName(projectName);
 									if (buildDeployEntity != null) {
 										CodeServerBuildDeploy buildDeployData = buildDeployEntity.getData();
@@ -1900,6 +1886,24 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 									"getById - Stale threshold NOT exceeded for project={}, minutesSinceRequest={}, threshold={}min. Skipping.",
 									projectName, minutesSinceRequest, staleThresholdMinutes);
 						}
+					}
+				}
+			}
+
+			if (refreshTriggeredByUser && entity != null && entity.getData() != null
+					&& entity.getData().getProjectDetails() != null) {
+				boolean deploymentReconciled = deploymentStatusMonitorJob
+						.reconcileDeploymentOnDemand(entity, "int");
+				deploymentReconciled |= deploymentStatusMonitorJob
+						.reconcileDeploymentOnDemand(entity, "prod");
+				if (deploymentReconciled) {
+					CodeServerWorkspaceNsql refreshedEntity = technicalId.equalsIgnoreCase(userId)
+							? workspaceCustomRepository.findByWorkspaceId(id)
+							: workspaceCustomRepository.findById(userId, id);
+					if (refreshedEntity != null) {
+						entity = refreshedEntity;
+					} else {
+						log.warn("getById - Re-read after deployment reconciliation returned no row for id={}", id);
 					}
 				}
 			}
@@ -3575,6 +3579,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 						buildDetails.setLastBuildBy(entity.getData().getWorkspaceOwner());
 						buildDetails.setGitjobRunID(gitJobRunId);
 						buildDetails.setLastBuildBranch(branch);
+						buildDetails.setLastBuildFailureReason(null);
 
 						workspaceCustomRepository.updateBuildDetails(projectName, targetEnv,
 								buildDetails);
@@ -3592,6 +3597,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 							if (auditEntry != null) {
 								auditEntry.setBuildOn(now);
 								auditEntry.setBuildStatus(latestStatus);
+								auditEntry.setFailureReason(null);
 								keepBuildImage = auditEntry.isKeepBuildImage();
 							}
 
@@ -5280,6 +5286,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 					buildDetails.setLastBuildBy(entity.getData().getWorkspaceOwner());
 					buildDetails.setLastBuildOn(now);
 					buildDetails.setLastBuildStatus("BUILD_REQUESTED");
+					buildDetails.setLastBuildFailureReason(null);
 					buildDetails.setVersion(appVersion);
 					buildDetails.setLastBuildType(lastBuildType);
 					buildDetails.setGitjobRunID("");
@@ -5327,6 +5334,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 						auditLog.setTriggeredBy(triggeredByUser);
 					 auditLog.setBranch(branch);
 					 auditLog.setBuildStatus("BUILD_REQUESTED");
+					 auditLog.setFailureReason(null);
 					 auditLog.setComments(buildRequestDto.getComments());
 					 auditLog.setVersion(appVersion);
 					 auditLog.setKeepBuildImage(buildRequestDto.isKeepBuildImage() != null && buildRequestDto.isKeepBuildImage());
@@ -5849,6 +5857,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 		try {
 			CodeServerWorkspaceNsql entity = workspaceCustomRepository.findByWorkspaceId(requestVo.getWsId());
 			CodeServerWorkspace data = entity.getData();
+			String projectName = data.getProjectDetails().getProjectName();
 			String currentStatus = data.getProjectDetails().getLastBuildOrDeployedStatus();
 			String currentEnv = data.getProjectDetails().getLastBuildOrDeployedEnv();
 			
@@ -5861,7 +5870,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 				return response;
 			}
 			
-			CodeServerBuildDeployNsql optionalBuildDeployentity =  buildDeployCustomRepo.findByProjectName(requestVo.getProjectName());	
+			CodeServerBuildDeployNsql optionalBuildDeployentity =  buildDeployCustomRepo.findByProjectName(projectName);
 			CodeServerBuildDeployNsql buildDeployentity = null;
 			CodeServerBuildDeploy buildDeployData = null;
 			log.info("updateGitJobRunId called for wsId={}, projectName={}, currentStatus={}, currentEnv={}, runId={}",
@@ -5883,7 +5892,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 						 buildDetails = entity.getData().getProjectDetails().getProdBuildDetails();
 					 }
 				buildDetails.setGitjobRunID(requestVo.getGitJobRunId());
-				workspaceCustomRepository.updateBuildDetails(requestVo.getProjectName(),data.getProjectDetails().getLastBuildOrDeployedEnv(),buildDetails);	 
+				workspaceCustomRepository.updateBuildDetails(projectName,data.getProjectDetails().getLastBuildOrDeployedEnv(),buildDetails);
 				if(optionalBuildDeployentity != null){
 					   buildDeployentity = optionalBuildDeployentity;
 					   buildDeployData = buildDeployentity.getData();
@@ -5913,7 +5922,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 						 deploymentDetails = entity.getData().getProjectDetails().getProdDeploymentDetails();
 					 }
 				deploymentDetails.setGitjobRunID(requestVo.getGitJobRunId());
-				workspaceCustomRepository.updateDeploymentDetails(requestVo.getProjectName(), data.getProjectDetails().getLastBuildOrDeployedEnv(),deploymentDetails,data.getProjectDetails().getLastBuildOrDeployedStatus()); 				
+				workspaceCustomRepository.updateDeploymentDetails(projectName, data.getProjectDetails().getLastBuildOrDeployedEnv(),deploymentDetails,data.getProjectDetails().getLastBuildOrDeployedStatus());
 				 //setting audit log details
 					 if(optionalBuildDeployentity != null){
 						 buildDeployentity = optionalBuildDeployentity;
@@ -6365,4 +6374,72 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
         }
         return responseMessage;
     }
+
+	/**
+	 * Existing workspaces retain an authoritative migration flag; only legacy records
+	 * without that flag should derive the host from their repository URL.
+	 */
+	private boolean resolveWorkspaceMigratedToGHE(CodeServerWorkspaceVO vo, String repoDetails) {
+		Boolean persistedFlag = null;
+		String persistedFlagSource = "workspace";
+		if (vo != null && vo.getWorkspaceId() != null) {
+			CodeServerWorkspaceNsql persistedWorkspace =
+					workspaceCustomRepository.findByWorkspaceId(vo.getWorkspaceId());
+			if (persistedWorkspace != null && persistedWorkspace.getData() != null) {
+				persistedFlag = persistedWorkspace.getData().getIsWorkspaceMigratedToGHE();
+			}
+		}
+		if (persistedFlag == null && vo != null && vo.getProjectDetails() != null
+				&& vo.getProjectDetails().getProjectOwner() != null
+				&& vo.getProjectDetails().getProjectName() != null) {
+			CodeServerWorkspaceNsql ownerWorkspace = workspaceCustomRepository.findbyProjectName(
+					vo.getProjectDetails().getProjectOwner().getId(),
+					vo.getProjectDetails().getProjectName());
+			if (ownerWorkspace != null && ownerWorkspace.getData() != null) {
+				persistedFlag = ownerWorkspace.getData().getIsWorkspaceMigratedToGHE();
+				if (persistedFlag != null) {
+					persistedFlagSource = "owner";
+				}
+			}
+		}
+		boolean urlDerivedFlag = repoDetails != null && repoDetails.contains("ghe.com");
+		if (persistedFlag != null) {
+			if (persistedFlag != urlDerivedFlag) {
+				log.warn("Workspace host signals disagree: persistedMigratedToGHE={}, "
+						+ "urlDerivedMigratedToGHE={}, selectedHost={}, source={}",
+						persistedFlag, urlDerivedFlag, persistedFlag ? "GHE" : "git.i", persistedFlagSource);
+			}
+			return persistedFlag;
+		}
+		return urlDerivedFlag;
+	}
+
+	/**
+	 * Keep all workspace entry points aligned so missing credentials, rejected credentials,
+	 * SSO authorization, and ordinary permission failures remain distinguishable to users.
+	 */
+	private MessageDescription getGitPatValidationError(
+			GitClient.GitPatValidationResult validation, String orgName) {
+		if (validation.isMissingToken()) {
+			return new MessageDescription(
+					"Git Personal Access Token is missing. Please provide a token and retry.");
+		}
+		if (validation.getStatus() == HttpStatus.UNAUTHORIZED) {
+			return new MessageDescription(
+					"Git Personal Access Token was rejected by the Git server. "
+							+ "Please verify it is valid for the selected host and retry.");
+		}
+		if (validation.getSsoAuthorizationUrl() != null) {
+			return new MessageDescription(
+					"Personal Access Token requires SSO authorization for " + orgName
+							+ ". Authorize it here: " + validation.getSsoAuthorizationUrl());
+		}
+		if (validation.getStatus() == HttpStatus.FORBIDDEN) {
+			return new MessageDescription(
+					"Git Personal Access Token lacks permission to access " + orgName
+							+ ". Please verify its organization permissions and retry.");
+		}
+		return new MessageDescription(
+				"Git Personal Access Token validation failed. Please verify the token and retry.");
+	}
  }
