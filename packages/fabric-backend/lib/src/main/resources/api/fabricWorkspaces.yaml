@@ -669,6 +669,27 @@ paths:
         500:
           description: "Internal error"
 
+  /fabric-workspaces/keyVault/principals:
+    get:
+      tags:
+        - "fabric-workspaces"
+      summary: "Search Entra ID principals for Key Vault collaborators"
+      operationId: "searchKeyVaultPrincipals"
+      parameters:
+        - name: search
+          in: query
+          required: true
+          type: string
+      responses:
+        200:
+          description: "Matching users and service principals"
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/AzurePrincipalVO"
+        500:
+          description: "Internal error"
+
   /fabric-workspaces/keyVault:
     post:
       tags:
@@ -1625,6 +1646,48 @@ definitions:
         type: string
         format: date
         description: "Creation timestamp"
+      collaborators:
+        type: array
+        items:
+          $ref: "#/definitions/KeyVaultCollaboratorVO"
+
+  KeyVaultCollaboratorVO:
+    type: object
+    properties:
+      identifier:
+        type: string
+      objectId:
+        type: string
+      principalType:
+        type: string
+      kind:
+        type: string
+      displayName:
+        type: string
+      role:
+        type: string
+      roleAssignmentId:
+        type: string
+
+  AzurePrincipalVO:
+    type: object
+    properties:
+      id:
+        type: string
+      displayName:
+        type: string
+      mail:
+        type: string
+      appId:
+        type: string
+      servicePrincipalType:
+        type: string
+      principalType:
+        type: string
+      kind:
+        type: string
+      identifier:
+        type: string
 
   KeyVaultCollectionVO:
     description: "Collection of Azure Key Vaults with pagination info"

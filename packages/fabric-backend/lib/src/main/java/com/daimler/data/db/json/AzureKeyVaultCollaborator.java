@@ -1,4 +1,4 @@
-package com.daimler.data.dto.azureKeyVault;
+package com.daimler.data.db.json;
 
 import java.io.Serializable;
 
@@ -12,15 +12,15 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class RoleAssignmentResponseDto implements Serializable {
+public class AzureKeyVaultCollaborator implements Serializable {
 
 	private static final long serialVersionUID = 1L;
-	
-	private String id;
-	private String name;
-	private String type;
-	private RoleAssignmentPropertiesDto properties;
+
+	private String identifier;
+	private String objectId;
+	private String principalType;
+	private String kind;
+	private String displayName;
+	private String role;
 	private String roleAssignmentId;
-	private String errorCode;
-	private String message;
 }

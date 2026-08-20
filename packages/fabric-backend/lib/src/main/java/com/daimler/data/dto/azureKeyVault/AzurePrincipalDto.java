@@ -12,15 +12,16 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class RoleAssignmentResponseDto implements Serializable {
+public class AzurePrincipalDto implements Serializable {
 
 	private static final long serialVersionUID = 1L;
-	
+
 	private String id;
-	private String name;
-	private String type;
-	private RoleAssignmentPropertiesDto properties;
-	private String roleAssignmentId;
-	private String errorCode;
-	private String message;
+	private String displayName;
+	private String mail;
+	private String appId;
+	private String servicePrincipalType;
+	private String principalType;
+	private String kind;
+	private String identifier;
 }

@@ -49,7 +49,12 @@ public class AzureKeyVaultCustomRepositoryImpl extends CommonDataRepositoryImpl<
 
     @Override
     public List<AzureKeyVaultNsql> findAllByCreator(String creatorId, int limit, int offset) {
-        
+        return findAllByCreatorOrCollaborator(creatorId, null, limit, offset);
+    }
+
+    @Override
+    public List<AzureKeyVaultNsql> findAllByCreatorOrCollaborator(String creatorId, String collaboratorIdentifier,
+            int limit, int offset) {
         CriteriaBuilder cb = em.getCriteriaBuilder();
         CriteriaQuery<AzureKeyVaultNsql> cq = cb.createQuery(AzureKeyVaultNsql.class);
         Root<AzureKeyVaultNsql> root = cq.from(AzureKeyVaultNsql.class);
@@ -66,8 +71,23 @@ public class AzureKeyVaultCustomRepositoryImpl extends CommonDataRepositoryImpl<
             cb.lower(createdByIdPath),
             cb.lower(cb.literal(creatorId))
         );
-        
-        cq.where(creatorPredicate);
+        Predicate accessPredicate = creatorPredicate;
+        if (collaboratorIdentifier != null && !collaboratorIdentifier.isBlank()) {
+            String escaped = collaboratorIdentifier.toLowerCase()
+                .replace("\\", "\\\\")
+                .replace("%", "\\%")
+                .replace("_", "\\_");
+            Expression<String> collaboratorPath = cb.function(
+                "jsonb_extract_path_text",
+                String.class,
+                root.get("data"),
+                cb.literal("collaborators")
+            );
+            // Match the identifier field only; searching all collaborator JSON fields would create false positives.
+            accessPredicate = cb.or(creatorPredicate, cb.like(
+                cb.lower(collaboratorPath), "%\"identifier\":\"" + escaped + "\"%", '\\'));
+        }
+        cq.where(accessPredicate);
         
         Expression<String> createdOnPath = cb.function(
             "jsonb_extract_path_text",

@@ -2,16 +2,16 @@ package com.daimler.data.service.azureKeyVault;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.List;
-import java.util.UUID;
+import java.util.Map;
+import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
 import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.application.client.AzureManagementClient;
@@ -25,9 +25,11 @@ import com.daimler.data.db.repo.keyvault.AzureKeyVaultRepository;
 import com.daimler.data.dto.azureKeyVault.KeyVaultNameAvailabilityResponseDto;
 import com.daimler.data.dto.azureKeyVault.KeyVaultResponseDto;
 import com.daimler.data.dto.azureKeyVault.RoleAssignmentResponseDto;
+import com.daimler.data.dto.azureKeyVault.AzurePrincipalDto;
 import com.daimler.data.dto.fabricWorkspace.CreatedByVO;
 import com.daimler.data.dto.fabricWorkspace.KeyVaultResponseVO;
 import com.daimler.data.dto.fabricWorkspace.KeyVaultVO;
+import com.daimler.data.dto.fabricWorkspace.KeyVaultCollaboratorVO;
 import com.daimler.data.dto.fabricWorkspace.KeyVaultCollectionVO;
 import com.daimler.data.service.common.BaseCommonService;
 import com.daimler.data.util.ConstantsUtility;
@@ -55,6 +57,14 @@ public class BaseAzureKeyVaultService extends BaseCommonService<KeyVaultVO, Azur
 	private UserStore userStore;
 
 	@Override
+	public List<AzurePrincipalDto> searchPrincipals(String search) {
+		if (search == null || search.isBlank() || search.trim().length() < 3) {
+			return List.of();
+		}
+		return azureManagementClient.searchPrincipals(search);
+	}
+
+	@Override
 	public KeyVaultCollectionVO getAllKeyVaults(int limit, int offset, String createdBy) {
 		KeyVaultCollectionVO collection = new KeyVaultCollectionVO();
 		GenericMessage message = new GenericMessage();
@@ -65,7 +75,13 @@ public class BaseAzureKeyVaultService extends BaseCommonService<KeyVaultVO, Azur
 			List<AzureKeyVaultNsql> keyVaults;
 			
 			if (createdBy != null && !createdBy.isBlank()) {
-				keyVaults = customRepo.findAllByCreator(createdBy, limit, offset);
+				String collaboratorIdentifier = null;
+				try {
+					collaboratorIdentifier = userStore.getVO().getEmail();
+				} catch (Exception ignored) {
+					log.warn("Unable to resolve current user's email for collaborator lookup");
+				}
+				keyVaults = customRepo.findAllByCreatorOrCollaborator(createdBy, collaboratorIdentifier, limit, offset);
 			} else {
 				log.warn("Attempt to fetch Key Vaults with no createdBy user ID.");
 				keyVaults = new ArrayList<>();
@@ -176,7 +192,6 @@ public class BaseAzureKeyVaultService extends BaseCommonService<KeyVaultVO, Azur
 
 			RoleAssignmentResponseDto roleResponse = azureManagementClient.assignRoleToUser(keyVaultName,
 					userPrincipalId, "officer");
-
 			if (roleResponse != null && roleResponse.getErrorCode() != null
 					&& !"409".equals(roleResponse.getErrorCode())) {
 				MessageDescription message = new MessageDescription(
@@ -184,6 +199,7 @@ public class BaseAzureKeyVaultService extends BaseCommonService<KeyVaultVO, Azur
 				warnings.add(message);
 				log.warn("Key Vault {} created but role assignment failed", keyVaultName);
 			}
+			provisionAddedCollaborators(keyVaultName, vo, warnings);
 			vo.setLocation(keyVaultResponse.getLocation());
 			vo.setCreatedOn(new Date());
 			vo.setCreatedBy(currentUser);
@@ -246,6 +262,18 @@ public class BaseAzureKeyVaultService extends BaseCommonService<KeyVaultVO, Azur
 				return new ResponseEntity<>(responseData, HttpStatus.NOT_FOUND);
 			}
 
+			String currentUserId = currentUser == null ? null : currentUser.getId();
+			String ownerId = existingKeyVault.getCreatedBy() == null ? null : existingKeyVault.getCreatedBy().getId();
+			if (currentUserId == null || ownerId == null || !ownerId.equalsIgnoreCase(currentUserId)) {
+				MessageDescription message = new MessageDescription("Only the Key Vault owner can update collaborators.");
+				errors.add(message);
+				responseMessage.setErrors(errors);
+				responseMessage.setSuccess("FAILED");
+				responseData.setData(vo);
+				responseData.setResponses(responseMessage);
+				return new ResponseEntity<>(responseData, HttpStatus.FORBIDDEN);
+			}
+
 			String existingKeyVaultName = existingKeyVault.getKeyVaultName();
 			boolean nameChanged = !existingKeyVaultName.equals(keyVaultName);
 
@@ -266,6 +294,8 @@ public class BaseAzureKeyVaultService extends BaseCommonService<KeyVaultVO, Azur
         	vo.setLocation(existingKeyVault.getLocation());
 			vo.setCreatedBy(existingKeyVault.getCreatedBy()); 
 			vo.setCreatedOn(existingKeyVault.getCreatedOn()); 
+
+			provisionUpdatedCollaborators(keyVaultName, existingKeyVault, vo, warnings);
 
 			KeyVaultVO updatedRecord = null;
 			try {
@@ -304,6 +334,82 @@ public class BaseAzureKeyVaultService extends BaseCommonService<KeyVaultVO, Azur
 			responseData.setData(vo);
 			responseData.setResponses(responseMessage);
 			return new ResponseEntity<>(responseData, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	private void provisionAddedCollaborators(String keyVaultName, KeyVaultVO vo, List<MessageDescription> warnings) {
+		if (vo.getCollaborators() == null) {
+			return;
+		}
+		Set<String> identifiers = new HashSet<>();
+		for (KeyVaultCollaboratorVO collaborator : vo.getCollaborators()) {
+			if (collaborator == null || collaborator.getIdentifier() == null
+					|| !identifiers.add(collaborator.getIdentifier().toLowerCase())) {
+				continue;
+			}
+			provisionCollaborator(keyVaultName, collaborator, warnings);
+		}
+	}
+
+	private void provisionUpdatedCollaborators(String keyVaultName, KeyVaultVO existing, KeyVaultVO updated,
+			List<MessageDescription> warnings) {
+		List<KeyVaultCollaboratorVO> existingCollaborators = existing.getCollaborators() == null
+				? new ArrayList<>() : existing.getCollaborators();
+		List<KeyVaultCollaboratorVO> updatedCollaborators = updated.getCollaborators() == null
+				? new ArrayList<>() : updated.getCollaborators();
+		// Compare identifiers to preserve existing assignments while provisioning only additions and removals.
+		Map<String, KeyVaultCollaboratorVO> existingByIdentifier = existingCollaborators.stream()
+				.filter(c -> c.getIdentifier() != null)
+				.collect(Collectors.toMap(c -> c.getIdentifier().toLowerCase(), c -> c, (left, right) -> left));
+		for (KeyVaultCollaboratorVO collaborator : updatedCollaborators) {
+			if (collaborator == null || collaborator.getIdentifier() == null) {
+				continue;
+			}
+			KeyVaultCollaboratorVO old = existingByIdentifier.get(collaborator.getIdentifier().toLowerCase());
+			if (old != null && collaborator.getRoleAssignmentId() == null) {
+				collaborator.setObjectId(old.getObjectId());
+				collaborator.setPrincipalType(old.getPrincipalType());
+				collaborator.setRole(old.getRole());
+				collaborator.setRoleAssignmentId(old.getRoleAssignmentId());
+			}
+			if (old == null || old.getRoleAssignmentId() == null) {
+				provisionCollaborator(keyVaultName, collaborator, warnings);
+			}
+		}
+		Set<String> retained = updatedCollaborators.stream()
+				.filter(c -> c.getIdentifier() != null)
+				.map(c -> c.getIdentifier().toLowerCase()).collect(Collectors.toSet());
+		for (KeyVaultCollaboratorVO old : existingCollaborators) {
+			if (old.getIdentifier() != null && !retained.contains(old.getIdentifier().toLowerCase())
+					&& old.getRoleAssignmentId() != null) {
+				RoleAssignmentResponseDto response = azureManagementClient.removeRoleAssignment(
+						keyVaultName, old.getRoleAssignmentId());
+				if (response.getErrorCode() != null && !"404".equals(response.getErrorCode())) {
+					// Keep partial Azure failures as warnings so collaborator issues do not abort the vault update.
+					warnings.add(new MessageDescription("Failed to remove collaborator " + old.getIdentifier()
+							+ ": " + response.getMessage()));
+				}
+			}
+		}
+	}
+
+	private void provisionCollaborator(String keyVaultName, KeyVaultCollaboratorVO collaborator,
+			List<MessageDescription> warnings) {
+		String kind = collaborator.getKind() == null ? "USER" : collaborator.getKind();
+		AzurePrincipalDto principal = azureManagementClient.resolvePrincipal(collaborator.getIdentifier(), kind);
+		if (principal == null || principal.getId() == null) {
+			warnings.add(new MessageDescription("Collaborator could not be resolved: " + collaborator.getIdentifier()));
+			return;
+		}
+		RoleAssignmentResponseDto response = azureManagementClient.assignRoleToUser(keyVaultName, principal.getId(),
+				"user", principal.getPrincipalType());
+		collaborator.setObjectId(principal.getId());
+		collaborator.setPrincipalType(principal.getPrincipalType());
+		collaborator.setRole("Crypto User");
+		collaborator.setRoleAssignmentId(response == null ? null : response.getRoleAssignmentId());
+		if (response != null && response.getErrorCode() != null && !"409".equals(response.getErrorCode())) {
+			warnings.add(new MessageDescription("Failed to assign collaborator " + collaborator.getIdentifier()
+					+ ": " + response.getMessage()));
 		}
 	}
 }
