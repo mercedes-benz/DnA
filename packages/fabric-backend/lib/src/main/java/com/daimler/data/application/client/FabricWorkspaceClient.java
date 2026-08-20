@@ -184,7 +184,7 @@ public class FabricWorkspaceClient {
 	@Value("${fabricWorkspaces.uri.fabricBaseUrl}")
 	private String fabricBaseUrl;
 
-	@Value("${fabricWorkspaces.servicePrincipleObjectId}")
+	@Value("${uilicious.identifier}")
 	private String servicePrincipleObjectId;
 	
 	@Value("${fabricWorkspaces.gateway.id}")
