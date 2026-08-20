@@ -924,22 +924,38 @@ public class ArgoCdService {
             String healthStatus = rootNode.path("status").path("health").path("status").asText("");
             String lastSyncPhase = rootNode.path("status").path("operationState").path("phase").asText("");
 
-            String failureMessage = getConfirmedDeploymentFailure(token, rootNode, appName, deployTriggerTime);
+            Map<String, Object> crashLoopStatus = null;
+            String failureMessage;
+            boolean operationFailed = "Failed".equalsIgnoreCase(lastSyncPhase)
+                    || "Error".equalsIgnoreCase(lastSyncPhase);
+            if ("Degraded".equalsIgnoreCase(healthStatus) && !operationFailed) {
+                crashLoopStatus = getNewPodCrashLoopStatus(token, appName, rootNode);
+                failureMessage = getConfirmedDeploymentFailure(
+                        token, rootNode, appName, deployTriggerTime, crashLoopStatus);
+            } else {
+                failureMessage = getConfirmedDeploymentFailure(token, rootNode, appName, deployTriggerTime);
+            }
             if (failureMessage != null) {
                 result.put("status", "DEPLOYMENT_FAILED");
                 result.put("errorMessage", failureMessage);
                 return result;
             }
             if ("Degraded".equalsIgnoreCase(healthStatus)) {
+                if (crashLoopStatus == null) {
+                    crashLoopStatus = getNewPodCrashLoopStatus(token, appName, rootNode);
+                }
+                addCrashLoopEvidence(result, crashLoopStatus);
                 result.put("status", "DEPLOYING");
                 return result;
             }
             if ("Running".equalsIgnoreCase(lastSyncPhase)) {
+                addCrashLoopEvidence(result, getNewPodCrashLoopStatus(token, appName, rootNode));
                 return result; 
             }
  
             String syncStatus = rootNode.path("status").path("sync").path("status").asText("");
             if ("OutOfSync".equalsIgnoreCase(syncStatus)) {
+                addCrashLoopEvidence(result, getNewPodCrashLoopStatus(token, appName, rootNode));
                 return result; 
             }
             if ("Healthy".equalsIgnoreCase(healthStatus)) {
@@ -950,6 +966,7 @@ public class ArgoCdService {
                 result.put("status", "DEPLOYED");
                 return result;
             }
+            addCrashLoopEvidence(result, getNewPodCrashLoopStatus(token, appName, rootNode));
             return result;
         } catch (Exception e) {
             log.error("Failed to check ArgoCD deployment status for {}", appName, e);
@@ -964,6 +981,11 @@ public class ArgoCdService {
      */
     public String getConfirmedDeploymentFailure(String token, JsonNode rootNode, String appName,
             Date deployTriggerTime) {
+        return getConfirmedDeploymentFailure(token, rootNode, appName, deployTriggerTime, null);
+    }
+
+    private String getConfirmedDeploymentFailure(String token, JsonNode rootNode, String appName,
+            Date deployTriggerTime, Map<String, Object> computedCrashLoopStatus) {
         JsonNode operationState = rootNode.path("status").path("operationState");
         String healthStatus = rootNode.path("status").path("health").path("status").asText("");
         String phase = operationState.path("phase").asText("");
@@ -1002,7 +1024,9 @@ public class ArgoCdService {
                     log.warn("Degraded ArgoCD deployment {} lacks a desired image tag; failure is not proven", appName);
                     return null;
                 }
-                Map<String, Object> crashLoopStatus = getNewPodCrashLoopStatus(token, appName, rootNode);
+                Map<String, Object> crashLoopStatus = computedCrashLoopStatus != null
+                        ? computedCrashLoopStatus
+                        : getNewPodCrashLoopStatus(token, appName, rootNode);
                 if (!Boolean.TRUE.equals(crashLoopStatus.get("newPodCrashLooping"))
                         || Boolean.TRUE.equals(crashLoopStatus.get("fallbackSelected"))
                         || !Boolean.TRUE.equals(crashLoopStatus.get("strongCrashReason"))) {
@@ -1021,6 +1045,16 @@ public class ArgoCdService {
             }
         }
         return null;
+    }
+
+    private void addCrashLoopEvidence(Map<String, String> result, Map<String, Object> crashLoopStatus) {
+        if (crashLoopStatus == null) {
+            return;
+        }
+        result.put("newPodCrashLooping",
+                String.valueOf(Boolean.TRUE.equals(crashLoopStatus.get("newPodCrashLooping"))));
+        Object reason = crashLoopStatus.get("crashLoopReason");
+        result.put("crashLoopReason", reason == null ? "" : String.valueOf(reason));
     }
 
     private boolean isWithinDeploymentGracePeriod(Date deployTriggerTime) {
