@@ -500,11 +500,8 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
     setShowDeployLogsModal(false);
     setDeployLogText('');
     setDeployLogsHaveErrors(false);
-    const deploymentDetails = env === 'int'
-      ? codeSpace?.projectDetails?.intDeploymentDetails
-      : codeSpace?.projectDetails?.prodDeploymentDetails;
-    setNewPodCrashLooping(!!deploymentDetails?.newPodCrashLooping);
-    setCrashLoopReason(deploymentDetails?.crashLoopReason || '');
+    setNewPodCrashLooping(false);
+    setCrashLoopReason('');
     setDeployingThresholdExceeded(false);
   };
 
@@ -522,8 +519,11 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
     stopDeployLogsStreams();
     setDeployLogText('');
     setDeployLogsHaveErrors(false);
-    setNewPodCrashLooping(false);
-    setCrashLoopReason('');
+    const deploymentDetails = env === 'int'
+      ? codeSpace?.projectDetails?.intDeploymentDetails
+      : codeSpace?.projectDetails?.prodDeploymentDetails;
+    setNewPodCrashLooping(!!deploymentDetails?.newPodCrashLooping);
+    setCrashLoopReason(deploymentDetails?.crashLoopReason || '');
     setDeployingThresholdExceeded(false);
     setShowDeployLogsModal(true);
 
@@ -851,6 +851,7 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
                               Styles.statusIndicator,
                               Styles.deploying,
                               Styles.statusWithRefresh,
+                              Styles.deployStatusClickable,
                               persistedCrashLooping ? Styles.deployCrashLooping : ''
                             )}
                             onClick={onDeployLogsInfoClick}

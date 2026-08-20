@@ -186,6 +186,10 @@
         animation: deployCrashLoopIndicator 1.2s ease-in-out infinite;
       }
 
+      &.deployStatusClickable {
+        cursor: pointer;
+      }
+
       &.deployFailed {
         border: 1px solid #e84d47;
         color: #e84d47;

@@ -596,7 +596,7 @@ public class DeploymentStatusMonitorJob {
                     } else if (wasCrashLooping && !argoCrashLooping) {
                         log.info("Crash-loop cleared for project={} environment={}", projectName, environment);
                     }
-                    return true;
+                    return false;
                 }
             }
         } catch (Exception e) {

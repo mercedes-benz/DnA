@@ -960,6 +960,8 @@ public class ArgoCdService {
             }
             if ("Healthy".equalsIgnoreCase(healthStatus)) {
                 if (!isDeploymentReady(rootNode, appName, expectedVersion, deployTriggerTime)) {
+                    result.put("newPodCrashLooping", "false");
+                    result.put("crashLoopReason", "");
                     result.put("status", "DEPLOYING");
                     return result;
                 }
