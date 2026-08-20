@@ -2,7 +2,7 @@ spring:
   mvc.pathmatch.matching-strategy: ant_path_matcher
   application:
     name: dna-codeserver-service
-    version: 1.12.19
+    version: 1.13.0
   profile:
     active: production
 
@@ -186,6 +186,7 @@ kong:
    logoutPath: ${LOGOUT_PATH:XXXX}
    realm: ${REALM:XXXX}
    redirectAfterLogoutUri: ${REDIRECT_AFTER_LOGOUT_URI:XXXX}
+   oidcRecoveryPagePath: ${OIDC_RECOVERY_PAGE_PATH:XXXX}
    redirectUriPath: ${REDIRECT_URI_PATH:XXXX}
    revokeTokensOnLogout: ${REVOKE_TOKENS_ON_LOGOUT:XXXX}
    responseType: ${RESPONSE_TYPE:XXXX}
@@ -229,6 +230,9 @@ kong:
    accessTokenAsBearer :  ${ACCESS_TOKEN_AS_BEARER:XXXX}
    dnaClientSecret : ${DNA_CLIENT_SECRET:XXXX}
    dnaAppId : ${DNA_APP_ID:XXXX}
+   oidc:
+     session-secret: ${KONG_OIDC_SESSION_SECRET:XXXX}
+     skip-already-auth-requests: ${KONG_OIDC_SKIP_ALREADY_AUTH_REQUESTS:XXXX}
 
 alice:
   aliceBaseUrl: ${ALICE_SERVICE_BASE_URL:XXXX}

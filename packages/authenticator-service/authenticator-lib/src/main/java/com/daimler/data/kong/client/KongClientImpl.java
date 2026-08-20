@@ -246,6 +246,8 @@ public class KongClientImpl implements KongClient {
 			ResponseEntity<String> response = null;
 			if(attachPluginVO.getName().name().toLowerCase().equalsIgnoreCase("oidc")) {
 				requestWrapper.setName(attachPluginVO.getName().name().toLowerCase());
+				attachPluginConfigRequestDto.setSession_secret(attachPluginConfigVO.getSessionSecret());
+				attachPluginConfigRequestDto.setSkip_already_auth_requests(attachPluginConfigVO.getSkipAlreadyAuthRequests());
 				attachPluginConfigRequestDto.setBearer_only(attachPluginConfigVO.getBearerOnly());
 				attachPluginConfigRequestDto.setClient_id(attachPluginConfigVO.getClientId());
 				attachPluginConfigRequestDto.setClient_secret(attachPluginConfigVO.getClientSecret());
@@ -312,13 +314,23 @@ public class KongClientImpl implements KongClient {
 			}
 		} catch (HttpClientErrorException ex) {
 			if (ex.getRawStatusCode() == HttpStatus.CONFLICT.value()) {
-				LOGGER.info("OIDC plugin: {} already attached to service: {}",attachPluginVO.getName(), serviceName);
+				if ("oidc".equalsIgnoreCase(attachPluginVO.getName().name())) {
+					if (updateExistingOidcPlugin(serviceName, requestWrapper, headers)) {
+						message.setSuccess("Success");
+						message.setErrors(errors);
+						message.setWarnings(warnings);
+						return message;
+					}
+					messageDescription.setMessage("OIDC plugin already attached to service and could not be updated");
+				} else {
+					messageDescription.setMessage("Plugin already attached to service");
+				}
+				LOGGER.info("Plugin: {} already attached to service: {}",attachPluginVO.getName(), serviceName);
 				message.setSuccess("Failure");
-				messageDescription.setMessage("Plugin already attached to service");
 				errors.add(messageDescription);
 				message.setErrors(errors);
 				return message;
-			}	
+			}
 			LOGGER.error("Error occured while attaching plugin: {} to service: {}",attachPluginVO.getName(), ex.getMessage());
 			message.setSuccess("Failure");
 			messageDescription.setMessage(ex.getMessage());
@@ -334,6 +346,59 @@ public class KongClientImpl implements KongClient {
 			return message;
 		}
 		return message;
+	}
+
+	/**
+	 * Kong rejects a second OIDC plugin on the same service with a 409, so an
+	 * already secured service is updated in place: the existing plugin instance is
+	 * looked up by name and its config is replaced with the current one, otherwise
+	 * changed values like the session secret would never reach Kong.
+	 */
+	private boolean updateExistingOidcPlugin(String serviceName, AttachPluginWrapperDto requestWrapper,
+			HttpHeaders headers) {
+		try {
+			String pluginsUri = kongBaseUri + "/services/" + serviceName + "/plugins";
+			HttpEntity<Void> getRequest = new HttpEntity<>(headers);
+			ResponseEntity<String> pluginsResponse = restTemplate.exchange(pluginsUri, HttpMethod.GET, getRequest,
+					String.class);
+			if (pluginsResponse == null || !pluginsResponse.getStatusCode().is2xxSuccessful()
+					|| pluginsResponse.getBody() == null) {
+				LOGGER.error("Failed to look up the existing OIDC plugin for service: {}", serviceName);
+				return false;
+			}
+
+			JsonNode data = new ObjectMapper().readTree(pluginsResponse.getBody()).get("data");
+			if (data == null || !data.isArray()) {
+				LOGGER.error("Failed to look up the existing OIDC plugin for service: {}", serviceName);
+				return false;
+			}
+
+			String pluginId = null;
+			for (JsonNode plugin : data) {
+				if ("oidc".equalsIgnoreCase(plugin.path("name").asText())) {
+					pluginId = plugin.path("id").asText();
+					break;
+				}
+			}
+			if (pluginId == null || pluginId.isBlank()) {
+				LOGGER.error("Existing OIDC plugin was not found for service: {}", serviceName);
+				return false;
+			}
+
+			String pluginUri = kongBaseUri + "/plugins/" + pluginId;
+			HttpEntity<AttachPluginWrapperDto> updateRequest = new HttpEntity<>(requestWrapper, headers);
+			ResponseEntity<String> updateResponse = restTemplate.exchange(pluginUri, HttpMethod.PATCH, updateRequest,
+					String.class);
+			if (updateResponse != null && updateResponse.getStatusCode().is2xxSuccessful()) {
+				LOGGER.info("Existing OIDC plugin updated successfully for service: {}", serviceName);
+				return true;
+			}
+			LOGGER.error("Failed to update the existing OIDC plugin for service: {}", serviceName);
+		} catch (Exception e) {
+			LOGGER.error("Failed to update the existing OIDC plugin for service: {} with error message {}", serviceName,
+					e.getMessage());
+		}
+		return false;
 	}
 
 	@Override
