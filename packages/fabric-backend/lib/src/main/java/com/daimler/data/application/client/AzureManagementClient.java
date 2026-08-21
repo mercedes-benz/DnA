@@ -46,17 +46,19 @@ import org.springframework.web.client.RestTemplate;
 
 import com.daimler.data.dto.azureKeyVault.AzureUserDto;
 import com.daimler.data.dto.azureKeyVault.AzureUserSearchResponseDto;
-import com.daimler.data.dto.azureKeyVault.KeyVaultAccessPolicyDto;
 import com.daimler.data.dto.azureKeyVault.KeyVaultCreateRequestDto;
 import com.daimler.data.dto.azureKeyVault.KeyVaultNameAvailabilityRequestDto;
 import com.daimler.data.dto.azureKeyVault.KeyVaultNameAvailabilityResponseDto;
-import com.daimler.data.dto.azureKeyVault.KeyVaultPermissionsDto;
 import com.daimler.data.dto.azureKeyVault.KeyVaultPropertiesDto;
 import com.daimler.data.dto.azureKeyVault.KeyVaultResponseDto;
 import com.daimler.data.dto.azureKeyVault.KeyVaultSkuDto;
 import com.daimler.data.dto.azureKeyVault.RoleAssignmentPropertiesDto;
 import com.daimler.data.dto.azureKeyVault.RoleAssignmentRequestDto;
 import com.daimler.data.dto.azureKeyVault.RoleAssignmentResponseDto;
+import com.daimler.data.dto.fabric.AssignCmkKeyRequestDto;
+import com.daimler.data.dto.fabric.CmkKeyResponseDto;
+import com.daimler.data.dto.fabric.CreateCmkKeyRequestDto;
+import com.daimler.data.dto.fabric.CreateCmkKeyResponseDto;
 import com.daimler.data.dto.fabric.FabricOAuthResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -86,6 +88,18 @@ public class AzureManagementClient {
     
     @Value("${fabricWorkspaces.tokenTypeHint}")
     private String tokenTypeHint;
+
+    @Value("${fabricWorkspaces.clientId}")
+	private String clientId;
+	
+	@Value("${fabricWorkspaces.clientSecret}")
+	private String clientSecret;
+
+    @Value("${fabricWorkspaces.azure.cmk.createScope}")
+	private String createScope;
+
+    @Value("${fabricWorkspaces.azure.cmk.assignScope}")
+	private String assignScope;
     
     @Value("${fabricWorkspaces.grantType}")
     private String grantType;
@@ -144,6 +158,12 @@ public class AzureManagementClient {
     @Value("${fabricWorkspaces.azure.keyvault.roles.keyVaultAdminRole}")
     private String keyVaultAdminRole;
 
+    @Value("${fabricWorkspaces.azure.cmk.createUrl}")
+    private String createCmkUrl;
+
+    @Value("${fabricWorkspaces.azure.cmk.assignUrl}")
+    private String assignCmkUrl;
+
     @Autowired
     private RestTemplate proxyRestTemplate;
 
@@ -171,6 +191,31 @@ public class AzureManagementClient {
             return null;
         }
     }
+
+    public String getCreateToken(boolean isCreateScope) {
+		MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
+		String basicAuthenticationHeader = Base64.getEncoder()
+				.encodeToString(new StringBuffer(clientId).append(":").append(clientSecret).toString().getBytes());
+		map.add("token", accessToken);
+		map.add("token_type_hint", tokenTypeHint);
+		map.add("grant_type", grantType);
+		map.add("scope", isCreateScope? createScope : assignScope);
+		HttpHeaders headers = new HttpHeaders();
+		headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
+		headers.setAccept(Arrays.asList(MediaType.APPLICATION_JSON));
+		headers.set("Authorization", "Basic " + basicAuthenticationHeader);
+		HttpEntity<MultiValueMap<String, String>> request = new HttpEntity<>(map, headers);
+		try {
+			ResponseEntity<FabricOAuthResponse> response = proxyRestTemplate.postForEntity(loginUrl, request, FabricOAuthResponse.class);
+			FabricOAuthResponse introspectionResponse = response.getBody();
+			log.debug("Introspection Response:" + introspectionResponse);
+			//log.info("Successfully fetch oidc token post login for powerbi");
+			return introspectionResponse.getAccess_token();
+		} catch (Exception e) {
+			log.error("Failed to fetch OIDC token with error {} ",e.getMessage());
+			return null;
+		}
+	}
     
     public String getTokenForAzureManagement() {
         MultiValueMap<String, String> map = new LinkedMultiValueMap<>();
@@ -445,6 +490,95 @@ public class AzureManagementClient {
             responseDto.setErrorCode("INTERNAL_ERROR");
             responseDto.setMessage("Failed to assign role: " + e.getMessage());
             return responseDto;
+        }
+    }
+
+    public CreateCmkKeyResponseDto createWorkSpaceCmkKey(String workspaceId){
+    
+        CreateCmkKeyResponseDto responseDto = new CreateCmkKeyResponseDto();
+
+        try {
+            String token = getCreateToken(true);
+            if(!Objects.nonNull(token)) {
+                log.error("Failed to fetch token to invoke Azure Management APIs");
+                responseDto.setCmkFlag(false);
+                responseDto.setMessage("Failed to obtain token using service principal, please try later.");
+                return responseDto;
+            }
+
+            CreateCmkKeyRequestDto requestBody = new CreateCmkKeyRequestDto(
+                "RSA",
+                3072,
+                Arrays.asList("encrypt", "decrypt", "sign", "verify", "wrapKey", "unwrapKey")
+            );
+                        
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("Authorization", "Bearer " + token);
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            
+            HttpEntity<CreateCmkKeyRequestDto> requestEntity = new HttpEntity<>(requestBody, headers);
+
+            String url = createCmkUrl;
+            url = url.replace("{workspaceId}", workspaceId);
+            ResponseEntity<CmkKeyResponseDto> response = proxyRestTemplate.exchange(
+                    url, HttpMethod.POST, requestEntity, CmkKeyResponseDto.class);
+            
+            CmkKeyResponseDto cmkKeyResponse = response.getBody();
+            log.info("Successfully created CMK key for workspace : {}", workspaceId);
+            responseDto.setCmkFlag(true);
+            responseDto.setMessage("Successfully created CMK key for workspace.");
+            responseDto.setKeyId(cmkKeyResponse.getKey().getKid());
+            return responseDto;
+        } catch (HttpClientErrorException e) {
+            log.error("CMK key creation failed for workspace {}: {}", workspaceId, e.getMessage());
+            responseDto.setCmkFlag(false);
+            responseDto.setMessage(e.getMessage());
+            return responseDto;
+        } catch (Exception e) {
+            log.error("CMK key creation failed for workspace {}: {}", workspaceId, e.getMessage());
+            responseDto.setCmkFlag(false);
+            responseDto.setMessage(e.getMessage());
+            return responseDto;
+        }
+    }
+
+    public boolean assignCmkKeyToWorkspace(String workspaceId,String kid){
+
+        boolean cmkAssignFlag = false;
+        try {
+            String token = getCreateToken(false);
+            if(!Objects.nonNull(token)) {
+                log.error("Failed to fetch token to invoke Azure Management APIs");
+                return cmkAssignFlag;
+            }
+
+            AssignCmkKeyRequestDto requestBody = new AssignCmkKeyRequestDto(kid);
+                        
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("Authorization", "Bearer " + token);
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            
+            HttpEntity<AssignCmkKeyRequestDto> requestEntity = new HttpEntity<>(requestBody, headers);
+
+            String url = assignCmkUrl;
+            url = url.replace("{workspaceId}", workspaceId);
+            ResponseEntity<Void> response = proxyRestTemplate.exchange(
+                    url, HttpMethod.POST, requestEntity, Void.class);
+            
+            
+            if(response.getStatusCode().is2xxSuccessful()) {
+                cmkAssignFlag = true;
+                log.info("Successfully assigned CMK key to workspace : {}", workspaceId);
+            } else {
+                log.error("Failed to assign CMK key to workspace {}: HTTP status {}", workspaceId, response.getStatusCode());
+            }
+            return cmkAssignFlag;
+        } catch (HttpClientErrorException e) {
+            log.error("CMK key assignment failed for workspace {}: {}", workspaceId, e.getMessage());
+            return cmkAssignFlag;
+        } catch (Exception e) {
+            log.error("CMK key assignment failed for workspace {}: {}", workspaceId, e.getMessage());
+            return cmkAssignFlag;
         }
     }
 }
