@@ -29,6 +29,7 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 
@@ -148,7 +149,10 @@ public class DeploymentStatusMonitorJob {
                 log.info("Clearing stale status for {}-{}: no deployment audit logs exist",
                         projectName, environment);
                 deployment.setLastDeploymentStatus(null);
+                deployment.setNewPodCrashLooping(false);
+                deployment.setCrashLoopReason(null);
                 workspaceCustomRepository.updateDeploymentDetails(projectName, environment, deployment, null);
+                workspaceCustomRepository.updateDeploymentCrashLoopStatus(projectName, environment, false, null);
                 return;
             }
             counts.checkedCount++;
@@ -161,6 +165,8 @@ public class DeploymentStatusMonitorJob {
             CodeServerDeploymentDetails deployment = "int".equalsIgnoreCase(environment)
                     ? representative.getData().getProjectDetails().getIntDeploymentDetails()
                     : representative.getData().getProjectDetails().getProdDeploymentDetails();
+            deployment.setNewPodCrashLooping(false);
+            deployment.setCrashLoopReason(null);
             repairMissingFailureFields(representative, deployment, projectName, environment);
         }
     }
@@ -421,6 +427,9 @@ public class DeploymentStatusMonitorJob {
             }
             String argoStatus = argoResult.get("status");
             String argoErrorMessage = argoResult.get("errorMessage");
+            boolean hasCrashLoopEvidence = argoResult.containsKey("newPodCrashLooping");
+            boolean argoCrashLooping = Boolean.parseBoolean(argoResult.get("newPodCrashLooping"));
+            String argoCrashLoopReason = argoResult.get("crashLoopReason");
 
             
             boolean needsUpdate = false;
@@ -453,6 +462,8 @@ public class DeploymentStatusMonitorJob {
                 log.info("Reconciling deployment status for {} from {} to {}", appName, currentDbStatus, targetStatus);
                 
                 deployment.setLastDeploymentStatus(targetStatus);
+                deployment.setNewPodCrashLooping(false);
+                deployment.setCrashLoopReason(null);
                 if ("DEPLOYMENT_FAILED".equals(targetStatus) || "RESTART_FAILED".equals(targetStatus)) {
                     deployment.setLastDeploymentError(argoErrorMessage);
                 } else {
@@ -564,6 +575,29 @@ public class DeploymentStatusMonitorJob {
                 sendDeploymentNotification(workspace, deployment, projectName, environment, targetStatus);
                 
                 return true;
+            }
+            boolean inProgress = "DEPLOY_REQUESTED".equalsIgnoreCase(currentDbStatus)
+                    || "DEPLOYING".equalsIgnoreCase(currentDbStatus)
+                    || "RESTART_REQUESTED".equalsIgnoreCase(currentDbStatus);
+            boolean crashLoopChanged = !Objects.equals(
+                    Boolean.TRUE.equals(deployment.getNewPodCrashLooping()), argoCrashLooping)
+                    || !Objects.equals(deployment.getCrashLoopReason(),
+                            argoCrashLooping ? argoCrashLoopReason : null);
+            if (inProgress && hasCrashLoopEvidence && crashLoopChanged) {
+                GenericMessage crashLoopUpdate = workspaceCustomRepository.updateDeploymentCrashLoopStatus(
+                        projectName, environment, argoCrashLooping, argoCrashLoopReason);
+                if (crashLoopUpdate != null && "SUCCESS".equalsIgnoreCase(crashLoopUpdate.getSuccess())) {
+                    boolean wasCrashLooping = Boolean.TRUE.equals(deployment.getNewPodCrashLooping());
+                    deployment.setNewPodCrashLooping(argoCrashLooping);
+                    deployment.setCrashLoopReason(argoCrashLooping ? argoCrashLoopReason : null);
+                    if (!wasCrashLooping && argoCrashLooping) {
+                        log.info("Crash-loop detected for project={} environment={} reason={}",
+                                projectName, environment, argoCrashLoopReason);
+                    } else if (wasCrashLooping && !argoCrashLooping) {
+                        log.info("Crash-loop cleared for project={} environment={}", projectName, environment);
+                    }
+                    return false;
+                }
             }
         } catch (Exception e) {
             log.warn("Failed to check ArgoCD status for {}-{}: {}", projectName, environment, e.getMessage());
