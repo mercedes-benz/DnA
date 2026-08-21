@@ -48,7 +48,7 @@ import java.util.regex.Matcher;
  import java.util.stream.Collectors;
  import java.util.Collections;
 
- import org.json.JSONObject;
+import org.json.JSONObject;
  import org.springframework.beans.BeanUtils;
  import org.springframework.beans.factory.annotation.Autowired;
  import org.springframework.beans.factory.annotation.Value;
@@ -68,6 +68,7 @@ import java.util.regex.Matcher;
  import com.daimler.data.auth.client.AuthenticatorClient;
  import com.daimler.data.auth.client.DnaAuthClient;
  import com.daimler.data.service.ArgoCdService;
+import com.daimler.data.service.scheduler.DeploymentStatusMonitorJob;
  import com.daimler.data.controller.exceptions.GenericMessage;
  import com.daimler.data.controller.exceptions.MessageDescription;
  import com.daimler.data.db.entities.CodeServerBuildDeployNsql;
@@ -266,6 +267,9 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 
 	 @Autowired
 	 private ArgoCdService argoCdService;
+
+	 @Autowired
+	 private DeploymentStatusMonitorJob deploymentStatusMonitorJob;
 
 	 @Value("${codeServer.build.retainedlimit}")
      private String retainedBuildLimitValue;
@@ -1651,7 +1655,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 				log.info("getById - lookup by userId+id: userId={}, id={}", userId, id);
 			}
 			// Status reconciliation (ArgoCD, GitHub Actions, backfill) is handled
-			// by DeploymentStatusMonitorJob which runs every 10s. Keeping getById
+			// by DeploymentStatusMonitorJob which runs every 20s. Keeping getById
 			// as a pure DB read avoids slow synchronous HTTP calls to ArgoCD/GitHub
 			// on every card refresh.
 
@@ -1661,7 +1665,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 			// ArgoCD.
 			// This reconciliation only runs when explicitly triggered by user refresh
 			// (refreshTriggeredByUser=true).
-			// Auto-poll requests (every 10s) skip this entirely and return DB state only.
+			// Auto-poll requests (every 20s) skip this entirely and return DB state only.
 			if (refreshTriggeredByUser && entity != null && entity.getData() != null
 					&& entity.getData().getProjectDetails() != null
 					&& entity.getData().getProjectDetails().getLastBuildOrDeployedStatus() != null) {
@@ -1882,6 +1886,24 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 									"getById - Stale threshold NOT exceeded for project={}, minutesSinceRequest={}, threshold={}min. Skipping.",
 									projectName, minutesSinceRequest, staleThresholdMinutes);
 						}
+					}
+				}
+			}
+
+			if (refreshTriggeredByUser && entity != null && entity.getData() != null
+					&& entity.getData().getProjectDetails() != null) {
+				boolean deploymentReconciled = deploymentStatusMonitorJob
+						.reconcileDeploymentOnDemand(entity, "int");
+				deploymentReconciled |= deploymentStatusMonitorJob
+						.reconcileDeploymentOnDemand(entity, "prod");
+				if (deploymentReconciled) {
+					CodeServerWorkspaceNsql refreshedEntity = technicalId.equalsIgnoreCase(userId)
+							? workspaceCustomRepository.findByWorkspaceId(id)
+							: workspaceCustomRepository.findById(userId, id);
+					if (refreshedEntity != null) {
+						entity = refreshedEntity;
+					} else {
+						log.warn("getById - Re-read after deployment reconciliation returned no row for id={}", id);
 					}
 				}
 			}
