@@ -131,6 +131,13 @@ public class BaseADAProjectsService extends BaseCommonService<ADAProjectDetailsV
 		GenericMessage message = new GenericMessage();
 		try {
 			log.info("Creating new ADA Project with projectID {}", project.getProjectID());
+			if(project.getRegion() != null && project.getCapacity() != null && !project.getRegion().equalsIgnoreCase(project.getCapacity().getRegion())){
+				log.error("Project region {} is should be same to the capacity region {}", project.getRegion(), project.getCapacity().getRegion());
+				message.setErrors(List.of(new MessageDescription("Region mismatch for projectID " + 
+				project.getProjectID() + ". with project capacity region: " + project.getCapacity().getRegion() +" and project region :" + project.getRegion())));
+				message.setSuccess("ERROR");
+				return message;
+			}
 			updateCapacityForFabricWorkspaces(project);
 			log.info("Successfully updated capacity for associated Fabric workspaces for project id {}", project.getProjectID());
 			ADAProjectsNsql entity = assembler.toEntity(project);
@@ -157,12 +164,20 @@ public class BaseADAProjectsService extends BaseCommonService<ADAProjectDetailsV
 				" not found in adaprojects table")));
 				message.setSuccess("ERROR");
 				return message;
-			} else if (existingEntity.getData() != null && existingEntity.getData().getRegion() != null && 
+			} 
+			if (existingEntity.getData() != null && existingEntity.getData().getRegion() != null && 
 			!existingEntity.getData().getRegion().equalsIgnoreCase(project.getRegion())) {
 				log.error("Region mismatch for projectID {}. Existing region: {}, New region: {}", 
 				project.getProjectID(), existingEntity.getData().getRegion(), project.getRegion());
 				message.setErrors(List.of(new MessageDescription("Region mismatch for projectID " + 
 				project.getProjectID() + ". Existing region: " + existingEntity.getData().getRegion() + ", New region: " + project.getRegion())));
+				message.setSuccess("ERROR");
+				return message;
+			}
+			if(project.getRegion() != null && project.getCapacity() != null && !project.getRegion().equalsIgnoreCase(project.getCapacity().getRegion())){
+				log.error("Project region {} is should be same to the capacity region {}", project.getRegion(), project.getCapacity().getRegion());
+				message.setErrors(List.of(new MessageDescription("Region mismatch for projectID " + 
+				project.getProjectID() + ". with project capacity region: " + project.getCapacity().getRegion() +" and project region :" + project.getRegion())));
 				message.setSuccess("ERROR");
 				return message;
 			}
@@ -224,7 +239,7 @@ public class BaseADAProjectsService extends BaseCommonService<ADAProjectDetailsV
 				adaProject.setCapacity(buildDefaultCapacityVO());
 				adaProject.setRegion(capacityRegion);
 			} else if (adaProject.getRegion() != null && adaProject.getCapacity() == null){
-				CapacityNsql capacityNsql = capacityRepo.findById(adaProject.getRegion().toLowerCase()).get();
+				CapacityNsql capacityNsql = capacityRepo.findById(adaProject.getRegion().toLowerCase()).orElse(null);
 				if(capacityNsql == null) {
 					log.warn("No capacity details found in DB for region {}. Using default capacity values for project id {}.", adaProject.getRegion(), adaProject.getProjectID());
 					adaProject.setCapacity(buildDefaultCapacityVO());

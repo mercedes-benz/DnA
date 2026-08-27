@@ -98,6 +98,7 @@ import com.daimler.data.dto.fabricWorkspace.FabricShortcutsCollectionVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceResponseVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceRoleRequestVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceStatusVO;
+import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceUpdateRequestVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceVO;
 import com.daimler.data.dto.tag.TagVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspacesCollectionVO;
@@ -1750,6 +1751,30 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		}catch(Exception e) {
 			log.error("Failed to update project {} details in MicrosoftFabric, Will be updated in next action.", existingFabricWorkspace.getId());
 		}
+		String currentWorkspaceRegion = null;
+		String newWorkspaceRegion = null;
+
+		FabricWorkspaceVO dbWorkspaceEntity = getById(existingFabricWorkspace.getId());
+		if(dbWorkspaceEntity.getProjectId() != null && !dbWorkspaceEntity.getProjectId().isEmpty()) {
+			ADAProjectsNsql projectEntity = adaProjectsRepo.findByProjectId(dbWorkspaceEntity.getProjectId());
+			if(projectEntity != null && projectEntity.getData().getRegion() != null){
+				currentWorkspaceRegion = projectEntity.getData().getRegion();
+			}
+		}
+
+		if(existingFabricWorkspace.getProjectId() != null && !existingFabricWorkspace.getProjectId().isEmpty()) {
+			ADAProjectsNsql projectEntity = adaProjectsRepo.findByProjectId(existingFabricWorkspace.getProjectId());
+			if(projectEntity != null && projectEntity.getData().getRegion() != null){
+				newWorkspaceRegion = projectEntity.getData().getRegion();
+			}
+		}
+
+		if(currentWorkspaceRegion != null && newWorkspaceRegion != null && !currentWorkspaceRegion.equalsIgnoreCase(newWorkspaceRegion)) {
+			log.info("User is trying to migrate the workspace {} from region {} to region {}, which is not allowed. Reverting the projectId to the previous value.", existingFabricWorkspace.getId(), currentWorkspaceRegion, newWorkspaceRegion);
+			errors.add(new MessageDescription("User is trying to migrate the workspace " + existingFabricWorkspace.getId() + " from region " + currentWorkspaceRegion + " to region " + newWorkspaceRegion + ", which is not allowed. Reverting the projectId to the previous value."));
+			throw new IllegalArgumentException("User is trying to migrate the workspace " + existingFabricWorkspace.getId() + " from region " + currentWorkspaceRegion + " to region " + newWorkspaceRegion + ", which is not allowed. Reverting the projectId to the previous value.");
+		}
+
 		updateFabricWorkspaceCapacity(existingFabricWorkspace);
 		ErrorResponseDto assignCapacityResponse = fabricWorkspaceClient.assignCapacity(existingFabricWorkspace.getId(), existingFabricWorkspace.getCapacity().getId());
 		if(assignCapacityResponse!=null && assignCapacityResponse.getErrorCode()!=null && 
