@@ -9,19 +9,21 @@ import RecipesTab from '../recipesTab/RecipesTab';
 import { USER_ROLE } from '../../Utility/constants';
 import SoftwareTab from '../softwareTab/SoftwareTab';
 import AdditionalServicesTab from '../additionalServicesTab/AdditionalServicesTab';
+import ExceptionListTab from './ExceptionListTab';
 
 const tabs = {
   recipesTab: {},
   softwareTab: {},
   additionalServicesTab: {},
+  exceptionListTab: {},
 };
 
 const CodeSpaceAdministration = ({ user }) => {
   const history = useHistory();
   const { tabName } = useParams();
 
-  const isAdmin = user.roles.find((role) => role.id === USER_ROLE.ADMIN) !== undefined ||
-                  user.roles.find((role) => role.id === USER_ROLE.CODESPACEADMIN) !== undefined;
+  const isCodeSpaceAdmin = user.roles.find((role) => role.id === USER_ROLE.CODESPACEADMIN) !== undefined;
+  const isAdmin = user.roles.find((role) => role.id === USER_ROLE.ADMIN) !== undefined || isCodeSpaceAdmin;
 
   const [currentTab, setCurrentTab] = useState(tabName !== undefined ? tabName : 'recipesTab');
   const elementRef = useRef(Object.keys(tabs)?.map(() => createRef()));
@@ -79,6 +81,20 @@ const CodeSpaceAdministration = ({ user }) => {
                     Additional Services
                   </a>
                 </li>
+                {isCodeSpaceAdmin && (
+                  <li className={classNames('tab', tabName !== undefined && tabName === 'exceptionListTab' && 'active')}>
+                    <a
+                      href="#tab-content-4"
+                      id="exceptionListTab"
+                      ref={(ref) => {
+                        if (elementRef.current) elementRef.current[3] = ref;
+                      }}
+                      onClick={setTab}
+                    >
+                      Exception List
+                    </a>
+                  </li>
+                )}
               </ul>
             </nav>
           </div>
@@ -98,6 +114,13 @@ const CodeSpaceAdministration = ({ user }) => {
                 <AdditionalServicesTab />
               ) : null}
             </div>
+            {isCodeSpaceAdmin && (
+              <div id="tab-content-4" className="tab-content">
+                {currentTab === 'exceptionListTab' ? (
+                  <ExceptionListTab />
+                ) : null}
+              </div>
+            )}
           </div>
         </div>
       </div>
