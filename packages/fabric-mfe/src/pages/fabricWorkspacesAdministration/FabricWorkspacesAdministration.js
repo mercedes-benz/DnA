@@ -34,6 +34,7 @@ const FabricWorkspacesAdministration = ({ user }) => {
   const [editWorkspace, setEditWorkspace]  = useState(false);
   const [showStatusModal, setShowStatusModal] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const searchInputRef = React.useRef(null);
 
   const [totalNumberOfPages, setTotalNumberOfPages] = useState(1);
   const [currentPageNumber, setCurrentPageNumber] = useState(1);
@@ -144,12 +145,13 @@ const getWorkspaces = (query = '') => {
       const trimmedValue = value.trim();
       setSearchTerm(trimmedValue);
       if (trimmedValue.length > 0) {
-        getWorkspaces(trimmedValue); 
+        getWorkspaces(trimmedValue);
       } else {
-        getWorkspaces(); 
+        getWorkspaces();
       }
     }, 500),
-    [getWorkspaces]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    []
   );
 
   useEffect(() => {
@@ -165,7 +167,7 @@ const getWorkspaces = (query = '') => {
           <div className={classNames(Styles.listHeader)}>
             <span className={Styles.dividerLine}> &nbsp; </span>
             <div>
-              <button className={classNames('btn btn-primary', Styles.refreshBtn)} tooltip-data="Refresh" onClick={() => getWorkspaces('')}>
+              <button className={classNames('btn btn-primary', Styles.refreshBtn)} tooltip-data="Refresh" onClick={() => { setSearchTerm(''); if (searchInputRef.current) searchInputRef.current.value = ''; getWorkspaces(''); }}>
                 <i className="icon mbc-icon refresh"></i>
               </button>
             </div>
@@ -205,6 +207,7 @@ const getWorkspaces = (query = '') => {
                 placeholder="Search workspaces..."
                 maxLength={100}
                 autoComplete="off"
+                ref={searchInputRef}
                 onChange={(e) => handleSearchInput(e.target.value)}
               />
             </div>
@@ -226,6 +229,7 @@ const getWorkspaces = (query = '') => {
                     key={workspace.id}
                     user={user}
                     workspace={workspace}
+                    isAdminView
                     onSelectWorkspace={(workspace) => { setSelectedWorkspace(workspace); setShowStatusModal(true); }}
                     onEditWorkspace={(workspace) => { setSelectedWorkspace(workspace); setEditWorkspace(true); }}
                     onDeleteWorkspace={(workspace) => { setSelectedWorkspace(workspace); setDeleteModal(true); }}
