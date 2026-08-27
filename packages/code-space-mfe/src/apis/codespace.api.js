@@ -344,6 +344,19 @@ const acceptSecurityConfigRequest = (id) => { //not used
     });
 };
 
+const getResourceCapExemptions = (offset, limit, projectName) => {
+    const query = `?offset=${offset}&limit=${limit}` + (projectName ? `&projectName=${encodeURIComponent(projectName)}` : '');
+    return server.get(`/workspaces/resourceexemptions${query}`, {
+        data: {},
+    });
+};
+
+const updateResourceCapExemption = (projectName, env, exempt) => {
+    return server.put(`/workspaces/${encodeURIComponent(projectName)}/resourceexemptions?env=${env}&exempt=${exempt}`, {
+        data: {},
+    });
+};
+
 const publishSecurityConfigRequest = (id) => { //not used
     return server.post(`/workspaces/${id}/config/publish`, {
         data: {},
@@ -625,5 +638,7 @@ export const CodeSpaceApiClient = {
     createCodeSpaceGroup,
     editCodeSpaceGroup,
     deleteCodeSpaceGroup,
-    getExistingRoles
+    getExistingRoles,
+    getResourceCapExemptions,
+    updateResourceCapExemption,
 };
