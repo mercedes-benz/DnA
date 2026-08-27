@@ -57,6 +57,7 @@
  import com.daimler.data.db.json.CodespaceSecurityRole;
  import com.daimler.data.db.json.CodespaceSecurityUserRoleMap;
  import com.daimler.data.db.json.UserInfo;
+ import com.daimler.data.dto.CodespaceResourceExemptionDto;
  import com.daimler.data.dto.CodespaceSecurityConfigDto;
  import com.daimler.data.dto.workspace.CodeServerDeploymentDetailsVO;
  import com.daimler.data.dto.workspace.CodeServerBuildDetailsVO;
@@ -79,6 +80,7 @@
  import com.daimler.data.dto.workspace.CodespaceSecurityEntitlementVO;
  import com.daimler.data.dto.workspace.CodespaceSecurityApiListVO;
  import com.daimler.data.dto.workspace.admin.CodespacePublishedSecurityConfigVO;
+ import com.daimler.data.dto.workspace.admin.CodespaceResourceExemptionVO;
  import com.daimler.data.dto.workspace.admin.CodespaceSecurityConfigDetailsVO;
  import com.daimler.data.dto.workspace.CodespaceSecurityRoleVO;
  import com.daimler.data.dto.workspace.CodespaceSecurityUserRoleMapResponseVO;
@@ -1178,6 +1180,18 @@ import com.daimler.data.dto.workspace.DeploymentAuditVO;
 			 }
 		 } catch (Exception e) {
 			 log.error("Failed in assembler", e.getMessage());
+		 }
+		 return vo;
+	 }
+	 
+	  public CodespaceResourceExemptionVO dtoToVo(CodespaceResourceExemptionDto dto) {
+		 CodespaceResourceExemptionVO vo = new CodespaceResourceExemptionVO();
+		 if (dto != null) {
+			 vo.setProjectName(dto.getProjectName());
+			 vo.setProjectOwner(toUserInfoVO(dto.getProjectOwner()));
+			 vo.setWorkspaceCount(dto.getWorkspaceCount());
+			 vo.setExemptInt(Boolean.TRUE.equals(dto.getExemptInt()));
+			 vo.setExemptProd(Boolean.TRUE.equals(dto.getExemptProd()));
 		 }
 		 return vo;
 	 }
