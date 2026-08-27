@@ -24,6 +24,9 @@ const ManageCapacity = ({ onClose }) => {
   const [addFetching, setAddFetching] = useState(false);
   const [updateErrors, setUpdateErrors] = useState({});
   const [searchTerm, setSearchTerm] = useState('');
+  const [fetchedNewCapacity, setFetchedNewCapacity] = useState({});
+  const [showRegionExistsConfirm, setShowRegionExistsConfirm] = useState(false);
+  const [originalEditValues, setOriginalEditValues] = useState({});
   const addFormRef = useRef(null);
   const scrollPanelRef = useRef(null);
 
@@ -47,6 +50,7 @@ const ManageCapacity = ({ onClose }) => {
       .then((res) => {
         setCapacities(res?.data || []);
         ProgressIndicator.hide();
+        setTimeout(() => SelectBox.defaultSetup(), 100);
       })
       .catch((e) => {
         ProgressIndicator.hide();
@@ -75,6 +79,12 @@ const ManageCapacity = ({ onClose }) => {
     }
   }, [expandedId]);
 
+  useEffect(() => {
+    if (showAddForm && (newCapacity.sku || newCapacity.region || newCapacity.state)) {
+      setTimeout(() => SelectBox.defaultSetup(), 50);
+    }
+  }, [newCapacity.sku, newCapacity.region, newCapacity.state]);
+
   const handleSelect = (capacity, rowId) => {
     if (expandedId === rowId) {
       setExpandedId(undefined);
@@ -92,6 +102,7 @@ const ManageCapacity = ({ onClose }) => {
         state: capacity.state || '',
       };
       setEditValues((prev) => ({ ...prev, [rowId]: initial }));
+      setOriginalEditValues((prev) => ({ ...prev, [rowId]: initial }));
     }
   };
 
@@ -124,6 +135,7 @@ const ManageCapacity = ({ onClose }) => {
       .then(() => {
         setExpandedId(undefined);
         setEditValues((prev) => { const u = { ...prev }; delete u[rowId]; return u; });
+        setOriginalEditValues((prev) => { const u = { ...prev }; delete u[rowId]; return u; });
         setEditingRows((prev) => { const u = { ...prev }; delete u[rowId]; return u; });
         setUpdateErrors((prev) => { const u = { ...prev }; delete u[rowId]; return u; });
         Notification.show('Capacity updated successfully!');
@@ -153,8 +165,8 @@ const ManageCapacity = ({ onClose }) => {
 
   const handleFetchForNew = () => {
     const trimmed = newCapacity.id?.trim();
-    if (!trimmed || trimmed.length < 25) {
-      setAddErrors((prev) => ({ ...prev, id: 'Please enter a valid Capacity ID (min 25 characters)' }));
+    if (!trimmed) {
+      setAddErrors((prev) => ({ ...prev, id: '*Required' }));
       return;
     }
     setAddFetching(true);
@@ -171,6 +183,7 @@ const ManageCapacity = ({ onClose }) => {
             region: data.region || '',
             state: data.state || '',
           }));
+          setFetchedNewCapacity(data);
           setAddErrors({});
           setTimeout(() => SelectBox.defaultSetup(), 50);
         } else {
@@ -196,6 +209,12 @@ const ManageCapacity = ({ onClose }) => {
       setAddErrors(errors);
       return;
     }
+    // Check if fetched region already exists in capacities
+    if (!showRegionExistsConfirm && coveredRegions.has(newCapacity.region)) {
+      setShowRegionExistsConfirm(true);
+      return;
+    }
+    setShowRegionExistsConfirm(false);
     setAddErrors({});
     setAddLoading(true);
     fabricApi
@@ -205,8 +224,16 @@ const ManageCapacity = ({ onClose }) => {
         setShowAddForm(false);
         setNewCapacity({ id: '', name: '', sku: '', region: '', state: 'Active' });
         setAddErrors({});
+        setFetchedNewCapacity({});
+        setShowRegionExistsConfirm(false);
+        setExpandedId(undefined);
+        setEditingRows({});
+        setEditValues({});
+        setOriginalEditValues({});
+        setUpdateErrors({});
         Notification.show('Capacity added successfully!');
         fetchCapacities();
+        setTimeout(() => SelectBox.defaultSetup(), 100);
         setTimeout(() => setAddStatus(null), 3000);
       })
       .catch((e) => {
@@ -307,8 +334,8 @@ const ManageCapacity = ({ onClose }) => {
                           >
                             <option value="">Choose</option>
                             {SKU_OPTIONS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
-                            {editValues[rowId].sku && !SKU_OPTIONS.includes(editValues[rowId].sku) && (
-                              <option key={editValues[rowId].sku} value={editValues[rowId].sku}>{editValues[rowId].sku}</option>
+                            {originalEditValues[rowId]?.sku && !SKU_OPTIONS.includes(originalEditValues[rowId].sku) && (
+                              <option key={originalEditValues[rowId].sku} value={originalEditValues[rowId].sku}>{originalEditValues[rowId].sku}</option>
                             )}
                           </select>
                         </div>
@@ -338,8 +365,8 @@ const ManageCapacity = ({ onClose }) => {
                           >
                             <option value="">Choose</option>
                             {STATE_OPTIONS.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
-                            {editValues[rowId].state && !STATE_OPTIONS.includes(editValues[rowId].state) && (
-                              <option key={editValues[rowId].state} value={editValues[rowId].state}>{editValues[rowId].state}</option>
+                            {originalEditValues[rowId]?.state && !STATE_OPTIONS.includes(originalEditValues[rowId].state) && (
+                              <option key={originalEditValues[rowId].state} value={originalEditValues[rowId].state}>{originalEditValues[rowId].state}</option>
                             )}
                           </select>
                         </div>
@@ -351,14 +378,30 @@ const ManageCapacity = ({ onClose }) => {
                       {!isEditing ? (
                         <button
                           className="btn btn-secondary"
-                          onClick={() => setEditingRows((prev) => ({ ...prev, [rowId]: true }))}
+                          onClick={() => {
+                            setEditingRows((prev) => ({ ...prev, [rowId]: true }));
+                            setTimeout(() => SelectBox.defaultSetup(), 50);
+                          }}
                         >
                           Edit
                         </button>
                       ) : (
-                        <button className="btn btn-primary" onClick={() => handleUpdate(rowId, capacity.id)}>
-                          Update
-                        </button>
+                        <>
+                          <button className="btn btn-primary" onClick={() => handleUpdate(rowId, capacity.id)}>
+                            Update
+                          </button>
+                          <button
+                            className="btn btn-secondary"
+                            onClick={() => {
+                              setEditingRows((prev) => ({ ...prev, [rowId]: false }));
+                              setEditValues((prev) => ({ ...prev, [rowId]: originalEditValues[rowId] }));
+                              setUpdateErrors((prev) => { const u = { ...prev }; delete u[rowId]; return u; });
+                              setTimeout(() => SelectBox.defaultSetup(), 50);
+                            }}
+                          >
+                            Cancel
+                          </button>
+                        </>
                       )}
                       {deleteConfirmId === rowId ? (
                         <>
@@ -384,14 +427,14 @@ const ManageCapacity = ({ onClose }) => {
               <h5 className={Styles.addFormTitle}>New Capacity</h5>
               <button
                 className={classNames('btn', Styles.addFormClose)}
-                onClick={() => { setShowAddForm(false); setNewCapacity({ id: '', name: '', sku: '', region: '', state: '' }); setAddErrors({}); setAddStatus(null); }}
+                onClick={() => { setShowAddForm(false); setNewCapacity({ id: '', name: '', sku: '', region: '', state: '' }); setAddErrors({}); setAddStatus(null); setFetchedNewCapacity({}); setShowRegionExistsConfirm(false); }}
               >
                 <i className="icon mbc-icon close thin" />
               </button>
             </div>
             <div className={Styles.formRow}>
               <div className={classNames('input-field-group include-error', Styles.formGroup, addErrors.id ? 'error' : '')}>
-                <label className="input-label">Region ID <sup>*</sup></label>
+                <label className="input-label">Capacity ID <sup>*</sup></label>
                 <input
                   type="text"
                   className="input-field"
@@ -424,6 +467,9 @@ const ManageCapacity = ({ onClose }) => {
                     {newCapacity.sku && !SKU_OPTIONS.includes(newCapacity.sku) && (
                       <option key={newCapacity.sku} value={newCapacity.sku}>{newCapacity.sku}</option>
                     )}
+                    {fetchedNewCapacity.sku && SKU_OPTIONS.includes(fetchedNewCapacity.sku) && newCapacity.sku !== fetchedNewCapacity.sku && (
+                      <option key={`fetched-${fetchedNewCapacity.sku}`} value={fetchedNewCapacity.sku}>{fetchedNewCapacity.sku}</option>
+                    )}
                   </select>
                 </div>
                 <span className="error-message">{addErrors.sku}</span>
@@ -439,11 +485,8 @@ const ManageCapacity = ({ onClose }) => {
                   >
                     <option value="">Choose</option>
                     {availableRegionsForAdd.map((opt) => <option key={opt} value={opt}>{opt}</option>)}
-                    {newCapacity.region && !regionOptions.includes(newCapacity.region) && (
-                      <option key={newCapacity.region} value={newCapacity.region}>{newCapacity.region}</option>
-                    )}
-                    {newCapacity.region && regionOptions.includes(newCapacity.region) && !availableRegionsForAdd.includes(newCapacity.region) && (
-                      <option key={newCapacity.region} value={newCapacity.region}>{newCapacity.region}</option>
+                    {fetchedNewCapacity.region && !availableRegionsForAdd.includes(fetchedNewCapacity.region) && (
+                      <option key={`fetched-${fetchedNewCapacity.region}`} value={fetchedNewCapacity.region}>{fetchedNewCapacity.region}</option>
                     )}
                   </select>
                 </div>
@@ -461,6 +504,9 @@ const ManageCapacity = ({ onClose }) => {
                     {newCapacity.state && !STATE_OPTIONS.includes(newCapacity.state) && (
                       <option key={newCapacity.state} value={newCapacity.state}>{newCapacity.state}</option>
                     )}
+                    {fetchedNewCapacity.state && STATE_OPTIONS.includes(fetchedNewCapacity.state) && newCapacity.state !== fetchedNewCapacity.state && (
+                      <option key={`fetched-${fetchedNewCapacity.state}`} value={fetchedNewCapacity.state}>{fetchedNewCapacity.state}</option>
+                    )}
                   </select>
                 </div>
                 <span className="error-message">{addErrors.state}</span>
@@ -468,21 +514,31 @@ const ManageCapacity = ({ onClose }) => {
               <div className={Styles.formGroup} />
             </div>
             <div className={Styles.actionRow}>
-              <button
-                type="button"
-                className="btn btn-secondary"
-                disabled={addFetching}
-                onClick={handleFetchForNew}
-              >
-                {addFetching ? 'Fetching...' : 'Fetch Capacity'}
-              </button>
-              <button
-                className="btn btn-tertiary"
-                disabled={addLoading}
-                onClick={handleAdd}
-              >
-                Add
-              </button>
+              {showRegionExistsConfirm ? (
+                <>
+                  <span className={Styles.deleteConfirmText}>Region &quot;{newCapacity.region}&quot; already exists. Do you want to update it?</span>
+                  <button type="button" className={classNames('btn btn-primary', Styles.deleteBtnConfirm)} onClick={() => handleAdd()}>Yes, Update</button>
+                  <button type="button" className="btn btn-secondary" onClick={() => setShowRegionExistsConfirm(false)}>Cancel</button>
+                </>
+              ) : (
+                <>
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    disabled={addFetching}
+                    onClick={handleFetchForNew}
+                  >
+                    {addFetching ? 'Fetching...' : 'Fetch Capacity'}
+                  </button>
+                  <button
+                    className="btn btn-tertiary"
+                    disabled={addLoading}
+                    onClick={handleAdd}
+                  >
+                    Add
+                  </button>
+                </>
+              )}
               {addStatus?.type === 'error' && (
                 <span className={classNames(Styles.inlineMsg, Styles.error)}>
                   {addStatus.text}
