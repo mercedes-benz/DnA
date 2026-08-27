@@ -15,12 +15,15 @@ import Tooltip from '../../common/modules/uilab/js/src/tooltip';
 import IntMigrationModal, { needsIntMigration } from '../intMigrationModal/IntMigrationModal';
 
 const DeployModal = (props) => {
+  const projectDetails = props.codeSpaceData?.projectDetails;
+  const currentUserId = props.userInfo?.id;
+  const isOwner = projectDetails?.projectOwner?.id?.toLowerCase() === currentUserId?.toLowerCase();
+
   const [branches, setBranches] = useState([]);
   const [branchValue, setBranchValue] = useState(['main']);
   const [isBranchValueMissing, setIsBranchValueMissing] = useState(false);
   const [deployEnvironment, setDeployEnvironment] = useState('staging');
   const [acceptContinueCodingOnDeployment, setAcceptContinueCodingOnDeployment] = useState(true);
-  const projectDetails = props.codeSpaceData?.projectDetails;
   const [retainBuildImage, setRetainBuildImage] = useState(false);
   const [showIntMigrationModal, setShowIntMigrationModal] = useState(false);
   const [autoDeployEnabled, setAutoDeployEnabled] = useState(props.codeSpaceData?.autoDeploy || false);
@@ -345,6 +348,7 @@ const DeployModal = (props) => {
             <div className={Styles.autoDeploySection}>
               <div className={Styles.sectionTitle}>
                 Auto Deployment Settings
+                {!isOwner && <span className={Styles.nonOwnerNote}>(Read only)</span>}
                 <span className={Styles.autoDeployInfo}>
                   <i className="icon mbc-icon info"></i>
                   <span className={Styles.autoDeployTooltip}>
@@ -365,12 +369,13 @@ const DeployModal = (props) => {
                     className="ff-only"
                     checked={autoDeployEnabled}
                     onChange={(e) => setAutoDeployEnabled(e.target.checked)}
+                    disabled={!isOwner}
                   />
                 </span>
                 <span className="label">Enable Auto Deployment</span>
               </label>
               {autoDeployEnabled && (
-                <div className={Styles.branchSelectors}>
+                <div className={`${Styles.branchSelectors}${!isOwner ? ` ${Styles.disabledSection}` : ''}`}>
                   <div>
                     <Tags
                       title={'Staging Branch'}
@@ -410,6 +415,7 @@ const DeployModal = (props) => {
                   className="btn btn-tertiary"
                   type="button"
                   onClick={onUpdateAutoDeploySettings}
+                  disabled={!isOwner}
                 >
                   Update Auto Deploy Settings
                 </button>

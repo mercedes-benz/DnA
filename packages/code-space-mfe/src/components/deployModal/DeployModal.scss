@@ -37,6 +37,13 @@
       font-size: 14px;
       font-weight: 600;
       margin-bottom: 12px;
+
+      .nonOwnerNote {
+        font-size: 12px;
+        font-weight: 400;
+        color: #8a9aa9;
+        margin-left: 6px;
+      }
     }
 
     .autoDeployInfo {
@@ -92,6 +99,12 @@
 
       > div {
         width: calc(50% - 7px);
+      }
+
+      &.disabledSection {
+        pointer-events: none;
+        opacity: 0.5;
+        cursor: not-allowed;
       }
     }
 
