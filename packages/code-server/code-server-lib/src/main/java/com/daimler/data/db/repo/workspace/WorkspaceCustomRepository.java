@@ -71,6 +71,9 @@ public interface WorkspaceCustomRepository extends CommonDataRepository<CodeServ
 	GenericMessage updateCancelledDeploymentStatus(String projectName, String environment,
 			String lastDeploymentStatus, String lastDeploymentError, Date lastDeployedOn);
 
+	GenericMessage updateDeploymentCrashLoopStatus(String projectName, String environment,
+			Boolean newPodCrashLooping, String crashLoopReason);
+
 	GenericMessage updateDeployedAppConfig(String projectName, String environment, boolean secureWithIAMRequired,
 			String oneApiVersionShortName, boolean isSecuredWithCookie, String deploymentType, String clientID,
 			String redirectUri, String ignorePaths, String scope, String ssoType, boolean secureWithDnaRequired,

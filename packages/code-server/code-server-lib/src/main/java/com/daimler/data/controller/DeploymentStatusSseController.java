@@ -455,6 +455,7 @@ public class DeploymentStatusSseController {
             if (buildAudit != null && buildAudit.getTriggeredOn() != null) {
                 buildPart = " buildTriggeredAt=" + buildAudit.getTriggeredOn();
                 if (buildAudit.getBuildOn() != null && !buildAudit.getBuildOn().before(buildAudit.getTriggeredOn())) {
+                    buildPart += " buildCompletedAt=" + buildAudit.getBuildOn();
                     long buildSeconds = (buildAudit.getBuildOn().getTime() - buildAudit.getTriggeredOn().getTime()) / 1000L;
                     buildPart += String.format(" buildDuration=%ds (%02d:%02d)", buildSeconds,
                             buildSeconds / 60, buildSeconds % 60);
