@@ -66,17 +66,25 @@ export const trackEvent = (category, action, name, value = false) => { //value o
 
 export const buildGitJobLogViewURL = (gitJobRunId) => {
     try {
-      return Envs.CODESPACE_OPENSEARCH_BUILD_LOGS_URL.replaceAll('$INSTANCE_ID$', gitJobRunId);
+      const baseUrl = (Envs.CODESPACE_GHE_BUILD_DEPLOY_WORKFLOW_URL || '').replace(/\/+$/, '');
+      if (!baseUrl) {
+        return "Error in building git job log view Url. Please check the git job run id.";
+      }
+      return gitJobRunId ? `${baseUrl}/actions/runs/${gitJobRunId}` : `${baseUrl}/actions`;
     } catch {
-      return "Error in building git job log view Url. Please check the git job run id."
+      return "Error in building git job log view Url. Please check the git job run id.";
     }
 };
 
 export const buildGitJobLogViewAWSURL = (gitJobRunId) => {
   try {
-    return Envs.CODESPACE_AWS_OPENSEARCH_BUILD_LOGS_URL.replaceAll('$INSTANCE_ID$', gitJobRunId);
+    const baseUrl = (Envs.CODESPACE_GHE_BUILD_DEPLOY_WORKFLOW_URL || '').replace(/\/+$/, '');
+    if (!baseUrl) {
+      return "Error in building git job log view Url. Please check the git job run id.";
+    }
+    return gitJobRunId ? `${baseUrl}/actions/runs/${gitJobRunId}` : `${baseUrl}/actions`;
   } catch {
-    return "Error in building git job log view Url. Please check the git job run id."
+    return "Error in building git job log view Url. Please check the git job run id.";
   }
 };
 
