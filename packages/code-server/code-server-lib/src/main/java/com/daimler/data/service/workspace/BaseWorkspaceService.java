@@ -870,11 +870,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 			// entity.getData().setStatus(ConstantsUtility.CREATEREQUESTEDSTATE);
 			entity.getData().setStatus(ConstantsUtility.CREATEDSTATE);//added
 			
-			if (repoDetails != null && repoDetails.contains("ghe.com")) {
-				entity.getData().setIsWorkspaceMigratedToGHE(true);
-			} else {
-				entity.getData().setIsWorkspaceMigratedToGHE(false);
-			}
+			entity.getData().setIsWorkspaceMigratedToGHE(isWorkspaceMigratedToGHE);
 			
 			String recipeId = vo.getProjectDetails().getRecipeDetails().getRecipeId().toString();
 			String workspaceUrl = this.getWorkspaceUrl(recipeId,ownerwsid,workspaceOwner.getId(),vo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().toString());
@@ -1090,11 +1086,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 			 // entity.getData().setStatus(ConstantsUtility.CREATEREQUESTEDSTATE);
 			 entity.getData().setStatus(ConstantsUtility.CREATEDSTATE);//added
 			 
-			 if (repoDetails != null && repoDetails.contains("ghe.com")) {
-				 entity.getData().setIsWorkspaceMigratedToGHE(true);
-			 } else {
-				 entity.getData().setIsWorkspaceMigratedToGHE(false);
-			 }
+			 entity.getData().setIsWorkspaceMigratedToGHE(isWorkspaceMigratedToGHE);
 			 
 			 String recipeId = vo.getProjectDetails().getRecipeDetails().getRecipeId().toString();
 			 String workspaceUrl = this.getWorkspaceUrl(recipeId,ownerwsid,workspaceOwner.getId(),ConstantsUtility.DHC_CAAS_AWS);
@@ -1134,7 +1126,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 			 Map<String,Boolean> gitUsers = new HashMap<>();
 			 UserInfoVO owner = vo.getProjectDetails().getProjectOwner();
 		 	 String repoDetails = vo.getProjectDetails().getRecipeDetails().getRepodetails();
-			 boolean isWorkspaceMigratedToGHE = (repoDetails != null && repoDetails.contains("ghe.com"));
+			 boolean isWorkspaceMigratedToGHE = resolveWorkspaceMigratedToGHE(vo, repoDetails);
 			 log.info("Creating workspace with repo: {} - isWorkspaceMigratedToGHE: {} (will use {} server)", 
 			 		repoDetails, isWorkspaceMigratedToGHE, isWorkspaceMigratedToGHE ? "GHE" : "git.i");
 			 String repoName = vo.getProjectDetails().getGitRepoName();
@@ -1442,12 +1434,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 			 //  ownerEntity.getData().setStatus(ConstantsUtility.CREATEREQUESTEDSTATE);
 			 ownerEntity.getData().setStatus(ConstantsUtility.CREATEDSTATE);//added
 			 
-			 String repoDetailsCreate = vo.getProjectDetails().getRecipeDetails().getRepodetails(); 
-			 if (repoDetailsCreate != null && repoDetailsCreate.contains("ghe.com")) { 
-				 ownerEntity.getData().setIsWorkspaceMigratedToGHE(true); 
-			 } else {
-				 ownerEntity.getData().setIsWorkspaceMigratedToGHE(false);
-			 }
+			 ownerEntity.getData().setIsWorkspaceMigratedToGHE(isWorkspaceMigratedToGHE);
 			 
 			 String recipeId = vo.getProjectDetails().getRecipeDetails().getRecipeId().toString();
 			 String workspaceUrl = this.getWorkspaceUrl(recipeId,ownerwsid,projectOwnerId, vo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().toString());
@@ -1526,8 +1513,6 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 					 UserInfo collabUser = workspaceAssembler.toUserInfo(collaborator);
 					 collabData.setWorkspaceOwner(collabUser);
 					 collabData.setWorkspaceUrl("");
-					 collabData.setIsWorkspaceMigratedToGHE(
-							 ownerEntity.getData().getIsWorkspaceMigratedToGHE());
 					 collabEntity.setId(null);
 					 collabEntity.setData(collabData);
 					 entities.add(collabEntity);
