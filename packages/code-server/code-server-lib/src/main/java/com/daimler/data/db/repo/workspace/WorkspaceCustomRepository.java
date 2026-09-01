@@ -50,6 +50,8 @@ public interface WorkspaceCustomRepository extends CommonDataRepository<CodeServ
 
 	List<CodeServerWorkspaceNsql>  findAll();
 
+	List<CodeServerWorkspaceNsql> findDeploymentReconciliationWorkspaces();
+
 	Integer getCount(String userId);
 
 	CodeServerWorkspaceNsql findbyUniqueLiteral(String userId, String uniqueLiteral, String value);
@@ -60,6 +62,17 @@ public interface WorkspaceCustomRepository extends CommonDataRepository<CodeServ
 
 	GenericMessage updateDeploymentDetails(String projectName, String environment,
 			CodeServerDeploymentDetails deploymentDetails,String lastBuildOrDeployStatus);
+
+	GenericMessage updateReconciledDeploymentStatus(String projectName, String environment,
+			CodeServerDeploymentDetails deploymentDetails, String lastBuildOrDeployStatus);
+
+	GenericMessage updateDeploymentGitJobRunId(String projectName, String environment, String gitjobRunID);
+
+	GenericMessage updateCancelledDeploymentStatus(String projectName, String environment,
+			String lastDeploymentStatus, String lastDeploymentError, Date lastDeployedOn);
+
+	GenericMessage updateDeploymentCrashLoopStatus(String projectName, String environment,
+			Boolean newPodCrashLooping, String crashLoopReason);
 
 	GenericMessage updateDeployedAppConfig(String projectName, String environment, boolean secureWithIAMRequired,
 			String oneApiVersionShortName, boolean isSecuredWithCookie, String deploymentType, String clientID,
@@ -109,4 +122,6 @@ public interface WorkspaceCustomRepository extends CommonDataRepository<CodeServ
     boolean updateGitRunIdStatus(String projectName, String status, String string);
 
 	boolean updateBuildDeployAuditStatus(String projectName, String status, String environment, String gitjobRunId);
+
+
 }

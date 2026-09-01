@@ -2,7 +2,7 @@ spring:
   mvc.pathmatch.matching-strategy: ant_path_matcher
   application:
     name: dna-codeserver-service
-    version: 1.9.10
+    version: 1.13.2
   profile:
     active: production
 
@@ -67,6 +67,12 @@ management:
     
 dna:
   uri: ${DNA_URI:XXXXXX}
+
+git:
+  cache:
+    branches:
+      ttlSeconds: ${GIT_CACHE_BRANCHES_TTL_SECONDS:30}
+      maxSize: ${GIT_CACHE_BRANCHES_MAX_SIZE:500}
 
 codeserver:
   userauth: ${CODESERVER_USERAUTH:XXXX}
@@ -180,6 +186,7 @@ kong:
    logoutPath: ${LOGOUT_PATH:XXXX}
    realm: ${REALM:XXXX}
    redirectAfterLogoutUri: ${REDIRECT_AFTER_LOGOUT_URI:XXXX}
+   oidcRecoveryPagePath: ${OIDC_RECOVERY_PAGE_PATH:XXXX}
    redirectUriPath: ${REDIRECT_URI_PATH:XXXX}
    revokeTokensOnLogout: ${REVOKE_TOKENS_ON_LOGOUT:XXXX}
    responseType: ${RESPONSE_TYPE:XXXX}
@@ -223,6 +230,9 @@ kong:
    accessTokenAsBearer :  ${ACCESS_TOKEN_AS_BEARER:XXXX}
    dnaClientSecret : ${DNA_CLIENT_SECRET:XXXX}
    dnaAppId : ${DNA_APP_ID:XXXX}
+   oidc:
+     session-secret: ${KONG_OIDC_SESSION_SECRET:XXXX}
+     skip-already-auth-requests: ${KONG_OIDC_SKIP_ALREADY_AUTH_REQUESTS:XXXX}
 
 alice:
   aliceBaseUrl: ${ALICE_SERVICE_BASE_URL:XXXX}
@@ -239,6 +249,40 @@ opentelemetry:
 
 workspace:
   migrate: ${MIGRATE_WORKSPACE:YOUR_MIGRATE_BOOLEAN}    
+  git-job:
+    stale-threshold-minutes: ${GIT_JOB_STALE_THRESHOLD_MINUTES:XXXX}
   callKongApisFromBackend: ${CALL_KONG_APIS_FROM_BACKEND:XXXX}
   logs:
       migrate: ${WORKSPACE_LOGS_MIGRATE:YOUR_MIGRATE_BOOLEAN}
+
+argocd:
+  argocdTokenUrl: ${ARGOCD_TOKEN_URL:XXXX}
+  argocdCreateUrl: ${ARGOCD_CREATE_URL:XXXX}
+  createProjectName: ${ARGOCD_PROJECT_NAME:XXXX}
+  tokenUserName: ${ARGOCD_USERNAME:XXXX}
+  tokenPassword: ${ARGOCD_PASSWORD:XXXX}
+  imageRegistry: ${ARGOCD_IMAGE_REGISTRY:XXXX}
+  vaultKvPath: ${ARGOCD_VAULT_KV_PATH:XXXX}
+  namespacePrefix: ${ARGOCD_NAMESPACE_PREFIX:XXXX}
+  vaultAuthPath: ${ARGOCD_VAULT_AUTH_PATH:XXXX}
+  vaultMountPath: ${ARGOCD_VAULT_MOUNT_PATH_SUFFIX:XXXX}
+  resources:
+    defaults:
+      requests:
+        cpu: ${ARGOCD_RESOURCES_DEFAULTS_REQUESTS_CPU:XXXX}
+        memory:
+          mi: ${ARGOCD_RESOURCES_DEFAULTS_REQUESTS_MEMORY_MI:XXXX}
+      limits:
+        memory:
+          mi: ${ARGOCD_RESOURCES_DEFAULTS_LIMITS_MEMORY_MI:XXXX}
+
+
+deployment:
+  stuckThresholdMinutes: ${DEPLOYMENT_STUCK_THRESHOLD_MINUTES:15}
+  deployedFallbackMinutes: ${DEPLOYMENT_DEPLOYED_FALLBACK_MINUTES:15}
+  degradedGraceSeconds: ${DEPLOYMENT_DEGRADED_GRACE_SECONDS:300}
+  auditLogBackfillMinutes: ${DEPLOYMENT_AUDIT_LOG_BACKFILL_MINUTES:10}
+  ssePollSeconds: ${DEPLOYMENT_SSE_POLL_SECONDS:10}
+  onDemandRefreshCooldownSeconds: ${DEPLOYMENT_ON_DEMAND_REFRESH_COOLDOWN_SECONDS:5}
+  statusMonitorSeconds: ${DEPLOYMENT_STATUS_MONITOR_SECONDS:20}
+  hardRefreshEnabled: ${DEPLOYMENT_HARD_REFRESH_ENABLED:false}

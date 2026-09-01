@@ -29,6 +29,7 @@ import AddCodespaceGroupModal from './addCodespaceGroupModal/AddCodespaceGroupMo
 import CodeSpaceGroupCard from './codeSpaceGroupCard/CodeSpaceGroupCard';
 import Spinner from './spinner/Spinner';
 import { SESSION_STORAGE_KEYS } from '../Utility/constants';
+import { useDeploymentStatus } from '../hooks/useDeploymentStatus';
 
 // export interface IAllCodeSpacesProps {
 //   user: IUserInfo;
@@ -70,6 +71,45 @@ const AllCodeSpaces = (props) => {
     // const [pendingStartCodeSpace, setPendingStartCodeSpace] = useState(null);
     // const [pendingStartParams, setPendingStartParams] = useState(null);
     const [groupLoading, setGroupLoading] = useState(true);
+
+    const { startListening } = useDeploymentStatus();
+
+    const handleDeploymentStatusUpdate = (codeSpaceId, statusData) => {
+        console.log('Deployment status update for', codeSpaceId, statusData);
+        
+        CodeSpaceApiClient.getWorkspaceById(codeSpaceId)
+            .then((res) => {
+                if (res.data) {
+                    onRefreshSingleCodeSpace(codeSpaceId, res.data);
+                }
+            })
+            .catch((err) => {
+                console.error('Error refreshing codespace:', err);
+            });
+    };
+
+    const handleDeploymentComplete = (codeSpaceId, statusData) => {
+        console.log('Deployment complete for', codeSpaceId, statusData);
+        
+        if (statusData.currentStatus === 'DEPLOYED') {
+            Notification.show(`Deployment completed successfully for ${statusData.projectName}`);
+        }
+        
+        CodeSpaceApiClient.getWorkspaceById(codeSpaceId)
+            .then((res) => {
+                if (res.data) {
+                    onRefreshSingleCodeSpace(codeSpaceId, res.data);
+                }
+            })
+            .catch((err) => {
+                console.error('Error refreshing codespace:', err);
+            });
+    };
+
+    const handleDeploymentSSEError = (codeSpaceId, error) => {
+        console.error('SSE connection error for', codeSpaceId, error);
+        Notification.show('Real-time deployment updates disconnected. Please refresh manually.', 'alert');
+    };
 
     const getCodeSpacesData = () => {
         setLoading(true);
@@ -647,7 +687,7 @@ const AllCodeSpaces = (props) => {
     //     </div>
     // );
 
-    useEffect(() => {
+    // useEffect(() => {
         // if (selectedCodeSpaceGroup) {
         //   const updatedGroup = codeSpaceGroups.find(
         //     (group) => group.id === selectedCodeSpaceGroup.id
@@ -656,9 +696,23 @@ const AllCodeSpaces = (props) => {
         //     setSelectedCodeSpaceGroup(updatedGroup);
         //   }
         // }
-        setSelectedCodeSpaceGroup(JSON.parse(sessionStorage.getItem(SESSION_STORAGE_KEYS.CODE_SPACE_SELECTED_GROUPS)));
+        // setSelectedCodeSpaceGroup(JSON.parse(sessionStorage.getItem(SESSION_STORAGE_KEYS.CODE_SPACE_SELECTED_GROUPS)));
+        
+        //   eslint-disable-next-line react-hooks/exhaustive-deps
+    //   }, [codeSpaceGroups]);
+
+    useEffect(() => {
+        setSelectedCodeSpaceGroup((prevGroup) => {
+            if (!prevGroup || !prevGroup.groupId) {
+                return prevGroup;
+            }
+            const updatedGroup = Array.isArray(codeSpaceGroups)
+                ? codeSpaceGroups.find((group) => group.groupId === prevGroup.groupId)
+                : undefined;
+            return updatedGroup || prevGroup;
+        });
         // eslint-disable-next-line react-hooks/exhaustive-deps
-      }, [codeSpaceGroups]);
+    }, [codeSpaceGroups]);
 
     const codespacesModalContent = <>
     <h2 className={classNames(Styles.modalTitle)}>{selectedCodeSpaceGroup?.name}</h2>
@@ -1151,8 +1205,12 @@ const AllCodeSpaces = (props) => {
                     //     onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'react'
                     // }
                     setShowCodeDeployModal={(isVisible) => setShowDeployCodeSpaceModal(isVisible)}
-                    setCodeDeploying={() => { getCodeSpacesData(); getCodeSpaceGroupsData();}}
+                    setCodeDeploying={() => handleDeploymentStatusUpdate(onDeployCodeSpace?.id)}
                     setIsApiCallTakeTime={setIsApiCallTakeTime}
+                    startDeploymentStatusListener={startListening}
+                    onDeploymentStatusUpdate={(data) => handleDeploymentStatusUpdate(onDeployCodeSpace?.id, data)}
+                    onDeploymentComplete={(data) => handleDeploymentComplete(onDeployCodeSpace?.id, data)}
+                    onDeploymentSSEError={(error) => handleDeploymentSSEError(onDeployCodeSpace?.id, error)}
                 />
             )}
             {showBuildCodeSpaceModal && (
@@ -1175,9 +1233,13 @@ const AllCodeSpaces = (props) => {
                     //     onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'react'
                     // }
                     setShowCodeDeployModal={(isVisible) => setShowDeployCodeSpaceModal(isVisible)}
-                    setCodeDeploying={() => { getCodeSpacesData(); getCodeSpaceGroupsData();}}
-                    setCodeBuilding={() => { getCodeSpacesData(); getCodeSpaceGroupsData();}}
+                    setCodeDeploying={() => handleDeploymentStatusUpdate(onDeployCodeSpace?.id)}
+                    setCodeBuilding={() => handleDeploymentStatusUpdate(onDeployCodeSpace?.id)}
                     setIsApiCallTakeTime={setIsApiCallTakeTime}
+                    startDeploymentStatusListener={startListening}
+                    onDeploymentStatusUpdate={(data) => handleDeploymentStatusUpdate(onDeployCodeSpace?.id, data)}
+                    onDeploymentComplete={(data) => handleDeploymentComplete(onDeployCodeSpace?.id, data)}
+                    onDeploymentSSEError={(error) => handleDeploymentSSEError(onDeployCodeSpace?.id, error)}
                 />
             )}
             {showDeployApprovalModal && (
@@ -1185,8 +1247,12 @@ const AllCodeSpaces = (props) => {
                       show={showDeployApprovalModal}
                       setShowDeployApprovalModal={setShowDeployApprovalModal}
                       codeSpaceData = {onDeployCodeSpace}
-                      setCodeDeploying={() => {getCodeSpacesData(); getCodeSpaceGroupsData();}}
+                      setCodeDeploying={() => handleDeploymentStatusUpdate(onDeployCodeSpace?.id)}
                       setIsApiCallTakeTime={setIsApiCallTakeTime}
+                      startDeploymentStatusListener={startListening}
+                      onDeploymentStatusUpdate={(data) => handleDeploymentStatusUpdate(onDeployCodeSpace?.id, data)}
+                      onDeploymentComplete={(data) => handleDeploymentComplete(onDeployCodeSpace?.id, data)}
+                      onDeploymentSSEError={(error) => handleDeploymentSSEError(onDeployCodeSpace?.id, error)}
                     />
             )}
             {isApiCallTakeTime && (

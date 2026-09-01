@@ -6,6 +6,7 @@ import java.util.Collections;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotNull;
+import javax.ws.rs.ForbiddenException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -27,6 +28,7 @@ import com.daimler.data.controller.exceptions.DDXGroupsResponseMessage;
 import com.daimler.data.controller.exceptions.EntityNotFoundException;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
+import com.daimler.data.controller.exceptions.MirroredCatalogException;
 import com.daimler.data.db.entities.FabricCatalogMetadataNsql;
 import com.daimler.data.db.json.catalogManangement.FabricCatalogMetadata;
 import com.daimler.data.db.json.catalogManangement.FabricCatalogMetadataDetails;
@@ -35,9 +37,16 @@ import com.daimler.data.dto.fabricCatalogManagement.FabricCatalogMetadataVO;
 import com.daimler.data.dto.fabricCatalogManagement.LakehouseObjectsResponseVO;
 import com.daimler.data.dto.fabricCatalogManagement.PublishCatalogResponseVO;
 import com.daimler.data.dto.fabricCatalogManagement.PublishCatalogRequestVO;
+import com.daimler.data.dto.fabricCatalogManagement.TableMismatchResponseVO;
 import com.daimler.data.dto.fabricCatalogManagement.LegalEntitiesResponseVO;
 import com.daimler.data.dto.fabricCatalogManagement.UpdateDDXGroupsRequestVO;
 import com.daimler.data.dto.fabricCatalogManagement.GroupStatusResponseVO;
+import com.daimler.data.dto.fabricCatalogManagement.CreateMirroredCatalogRequestVO;
+import com.daimler.data.dto.fabricCatalogManagement.MirroredCatalogResponseVO;
+import com.daimler.data.dto.fabricCatalogManagement.MirroredCatalogErrorResponseVO;
+import com.daimler.data.dto.fabricCatalogManagement.MirroredCatalogStatusRequestVO;
+import com.daimler.data.dto.fabricCatalogManagement.UpdateMirroredCatalogStatusRequestVO;
+import com.daimler.data.dto.fabricCatalogManagement.GroupResponseVO;
 import com.daimler.data.dto.fabricWorkspace.CreatedByVO;
 import com.daimler.data.dto.fabricWorkspace.FabricLakehouseVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceVO;
@@ -46,6 +55,7 @@ import com.daimler.data.service.catalogManagement.FabricCatalogManagementService
 import com.daimler.data.service.fabric.FabricWorkspaceService;
 import com.daimler.data.util.ConstantsUtility;
 import com.daimler.data.util.FabricWorkspaceUtility;
+import com.daimler.data.util.Validator;
 
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
@@ -106,10 +116,19 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
         }
 
-        FabricCatalogMetadataNsql existingCatalog = catalogCustomRepo.findByServiceName(existingFabricWorkspace.getName()).orElse(null);
-        if(existingCatalog != null && existingCatalog.getData() != null && existingCatalog.getData().getMetadata().getServiceName() !=null){
-             log.error("Catalog already exists for name {}", existingCatalog.getData().getMetadata().getServiceName());
-            return new ResponseEntity<>(null, HttpStatus.CONFLICT);
+        boolean hasExistingPublish = false;
+        if (existingFabricWorkspace.getCdcPublishedLakeHouseDetails() != null) {
+            hasExistingPublish = Boolean.TRUE.equals(
+                    existingFabricWorkspace.getCdcPublishedLakeHouseDetails().isIsLakeHousesPublishedToCdc());
+            log.info("Workspace has existing published lakehouse details: {}", hasExistingPublish);
+        }
+        
+        if (!hasExistingPublish) {
+            FabricCatalogMetadataNsql existingCatalog = catalogCustomRepo.findByServiceName(existingFabricWorkspace.getName()).orElse(null);
+            if(existingCatalog != null && existingCatalog.getData() != null){
+                 log.error("Catalog already exists for workspace name {}", existingFabricWorkspace.getName());
+                return new ResponseEntity<>(null, HttpStatus.CONFLICT);
+            }
         }
         CreatedByVO requestUser = this.userStore.getVO();
         String creatorId = existingFabricWorkspace.getCreatedBy().getId();
@@ -125,7 +144,7 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
         try {
 
             openMetadataClient.getUserByFqn(requestUser.getId());
-            responseVO = service.publishCatalogMetaData(publishCatalogRequest, existingFabricWorkspace);
+            responseVO = service.publishCatalogMetaData(publishCatalogRequest, existingFabricWorkspace, hasExistingPublish);
             GenericMessage responseMessage = responseVO.getResponses();
             if (("SUCCESS").equalsIgnoreCase(responseMessage.getSuccess())) {
                 return new ResponseEntity<>(responseVO, HttpStatus.OK);
@@ -150,13 +169,13 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
             GenericMessage failedResponse = new GenericMessage();
 			List<MessageDescription> messages = new ArrayList<>();
 			MessageDescription message = new MessageDescription();
-			message.setMessage("Failed to publish fabric workspace catalog due to internal error");
+            message.setMessage("Failed to publish fabric workspace catalog due to internal error: " + e.getMessage());
 			messages.add(message);
 			failedResponse.addErrors(message);
 			failedResponse.setSuccess("FAILED");
             responseVO.setData(null);
 			responseVO.setResponses(failedResponse);
-			log.error("Exception occurred:{} while publishing fabric workspace catalog...", e.getMessage());
+            log.error("Exception occurred while publishing fabric workspace catalog", e);
 			return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
         }
     }
@@ -200,7 +219,7 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
                 return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
             }
 
-            catalogMetadata = service.getCatalogMetadata(serviceName);
+            catalogMetadata = service.getCatalogMetadata(serviceName, existingFabricWorkspace);
             if (catalogMetadata != null) {
                 return new ResponseEntity<>(catalogMetadata, HttpStatus.OK);
             } else {
@@ -581,6 +600,74 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
     }
 
     @Override
+    @ApiOperation(value = "Check table mismatch between Fabric and CDC.", nickname = "checkTableMismatch", notes = "Compares current Fabric lakehouse tables with published CDC metadata to detect mismatches.", response = TableMismatchResponseVO.class, tags={ "fabric-catalog-management", })
+    @ApiResponses(value = { 
+        @ApiResponse(code = 200, message = "Returns mismatch detection results", response = TableMismatchResponseVO.class),
+        @ApiResponse(code = 400, message = "Bad Request", response = GenericMessage.class),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 404, message = "Catalog metadata not found."),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/catalog/{workspaceId}/check-mismatch",
+        produces = { "application/json" }, 
+        consumes = { "application/json" },
+        method = RequestMethod.GET)
+    public ResponseEntity<TableMismatchResponseVO> checkTableMismatch(
+            @ApiParam(value = "The ID of the workspace.", required = true) @PathVariable("workspaceId") String workspaceId,
+            @NotNull @ApiParam(value = "The ID of the lakehouse.", required = true) @Valid @RequestParam(value = "lakehouseId", required = true) String lakehouseId) {
+
+        TableMismatchResponseVO responseVO = new TableMismatchResponseVO();
+
+        try {
+            FabricWorkspaceVO existingFabricWorkspace = fabricWorkspaceService.getById(workspaceId);
+
+            if (existingFabricWorkspace == null
+                    || !workspaceId.equalsIgnoreCase(existingFabricWorkspace.getId())) {
+                log.error("No Fabric Workspace found with id {}", workspaceId);
+                return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+            }
+
+            CreatedByVO requestUser = this.userStore.getVO();
+            String creatorId = existingFabricWorkspace.getCreatedBy().getId();
+
+            if (!requestUser.getId().equalsIgnoreCase(creatorId)
+                    && !utility.hasProjectAdminAccess(requestUser.getId(), workspaceId)) {
+                log.error("User {} not authorized to check mismatch for workspace {}",
+                        requestUser.getId(), workspaceId);
+                return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
+            }
+
+            responseVO = service.checkTableMismatch(workspaceId, lakehouseId, existingFabricWorkspace.getName());
+
+            GenericMessage responseMessage = responseVO.getResponses();
+            if (responseMessage != null && "SUCCESS".equalsIgnoreCase(responseMessage.getSuccess())) {
+                return new ResponseEntity<>(responseVO, HttpStatus.OK);
+            } else {
+                return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
+            }
+        } catch (EntityNotFoundException e) {
+            log.error("Catalog metadata not found for workspace {}: {}", workspaceId, e.getMessage());
+            GenericMessage failedResponse = new GenericMessage();
+            MessageDescription message = new MessageDescription();
+            message.setMessage("Catalog metadata not found. Lakehouse may not have been published to CDC yet.");
+            failedResponse.addErrors(message);
+            failedResponse.setSuccess("NOT_FOUND");
+            responseVO.setResponses(failedResponse);
+            return new ResponseEntity<>(responseVO, HttpStatus.NOT_FOUND);
+        } catch (Exception e) {
+            log.error("Exception occurred while checking table mismatch: {}", e.getMessage());
+            GenericMessage failedResponse = new GenericMessage();
+            MessageDescription message = new MessageDescription();
+            message.setMessage("Failed to check table mismatch: " + e.getMessage());
+            failedResponse.addErrors(message);
+            failedResponse.setSuccess("FAILED");
+            responseVO.setResponses(failedResponse);
+            return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @Override
     @ApiOperation(value = "get the groups status which are request to add to the lakehouse.", nickname = "getGroupsAssignmentStatus", notes = "This endpoint will return the status of groups requested to be added to a lakehouse.", response = List.class, tags={ "fabric-catalog-management", })
     @ApiResponses(value = { 
         @ApiResponse(code = 200, message = "Returns list of group name and their status", response = List.class),
@@ -641,6 +728,173 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
         return new ResponseEntity<>(groupStatusList, HttpStatus.OK);
     }
 
+    @Override
+    @ApiOperation(value = "Create Databricks Mirrored Catalog in Fabric central workspace.", nickname = "createMirroredCatalog", notes = "This endpoint will provision a Databricks Mirrored Catalog hosted in a Fabric central workspace, backed by an ADLS Gen2 storage account, and grant permissions to create Fabric shortcuts to a DDX group.", response = MirroredCatalogResponseVO.class, tags={ "fabric-catalog-management", })
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "Returns mirrored catalog creation response", response = MirroredCatalogResponseVO.class),
+        @ApiResponse(code = 400, message = "Bad Request", response = MirroredCatalogErrorResponseVO.class),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Storage access denied", response = MirroredCatalogErrorResponseVO.class),
+        @ApiResponse(code = 404, message = "Databricks data product or DDX group not found", response = MirroredCatalogErrorResponseVO.class),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error", response = MirroredCatalogErrorResponseVO.class) })
+    @RequestMapping(value = "/catalog/databricks/mirrored-catalog",
+        produces = { "application/json" },
+        consumes = { "application/json" },
+        method = RequestMethod.POST)
+    public ResponseEntity createMirroredCatalog(
+            @ApiParam(value = "The mirrored catalog creation request.", required = true) @Valid @RequestBody CreateMirroredCatalogRequestVO createMirroredCatalogRequest) {
+        try {
+            String missingField = Validator.getMissingField(createMirroredCatalogRequest);  
+  
+            if (missingField != null) {  
+                log.error("Missing required field in createMirroredCatalog request: {}", missingField);  
+                MirroredCatalogErrorResponseVO errorResponse = new MirroredCatalogErrorResponseVO();
+                errorResponse.setDdxCorrelationId(createMirroredCatalogRequest.getDdxCorrelationId());
+                errorResponse.setStatus("error");
+                errorResponse.setErrorCode(MirroredCatalogErrorResponseVO.ErrorCodeEnum.INVALID_REQUEST);
+                errorResponse.setMessage("Missing required fields in request: "+ missingField );
+                return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+            }
+            if (!createMirroredCatalogRequest.isFullSchema()
+                    && (createMirroredCatalogRequest.getObjects() == null || createMirroredCatalogRequest.getObjects().isEmpty())) {
+                log.error("Objects map is required when fullSchema is false");
+                MirroredCatalogErrorResponseVO errorResponse = new MirroredCatalogErrorResponseVO();
+                errorResponse.setDdxCorrelationId(createMirroredCatalogRequest.getDdxCorrelationId());
+                errorResponse.setStatus("error");
+                errorResponse.setErrorCode(MirroredCatalogErrorResponseVO.ErrorCodeEnum.INVALID_REQUEST);
+                errorResponse.setMessage("Objects map is required when fullSchema is false");
+                return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+            }
+
+            MirroredCatalogResponseVO response = service.createMirroredCatalog(createMirroredCatalogRequest);
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (ForbiddenException e) {
+            log.error("Error creating mirrored catalog: {}", e.getMessage(), e);
+            MirroredCatalogErrorResponseVO errorResponse = new MirroredCatalogErrorResponseVO();
+            errorResponse.setDdxCorrelationId(createMirroredCatalogRequest.getDdxCorrelationId());
+            errorResponse.setStatus("error");
+            errorResponse.setErrorCode(MirroredCatalogErrorResponseVO.ErrorCodeEnum.STORAGE_ACCESS_DENIED);
+            errorResponse.setMessage(e.getMessage());
+            return new ResponseEntity<>(errorResponse, HttpStatus.FORBIDDEN);
+        } catch (Exception e) {
+            log.error("Error creating mirrored catalog: {}", e.getMessage(), e);
+            MirroredCatalogErrorResponseVO errorResponse = new MirroredCatalogErrorResponseVO();
+            errorResponse.setDdxCorrelationId(createMirroredCatalogRequest.getDdxCorrelationId());
+            errorResponse.setStatus("error");
+            errorResponse.setErrorCode(MirroredCatalogErrorResponseVO.ErrorCodeEnum.INTERNAL_ERROR);
+            errorResponse.setMessage(e.getMessage());
+            return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @Override
+    @ApiOperation(value = "Get Databricks Mirrored Catalog status.", nickname = "getMirroredCatalogStatus", notes = "This endpoint will query the status of mirrored catalog creation and group permission assignment, update the DB, and return the current status.", response = MirroredCatalogResponseVO.class, tags={ "fabric-catalog-management", })
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "Returns mirrored catalog status response", response = MirroredCatalogResponseVO.class),
+        @ApiResponse(code = 400, message = "Bad Request", response = MirroredCatalogErrorResponseVO.class),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 404, message = "Mirrored catalog record not found", response = MirroredCatalogErrorResponseVO.class),
+        @ApiResponse(code = 405, message = "Method not allowed"),
+        @ApiResponse(code = 500, message = "Internal error", response = MirroredCatalogErrorResponseVO.class) })
+    @RequestMapping(value = "/catalog/databricks/mirrored-catalog/status/{dataProductName}",
+        produces = { "application/json" },
+        method = RequestMethod.GET)
+    public ResponseEntity getMirroredCatalogStatus(
+            @ApiParam(value = "The name of the data product.", required = true) @PathVariable("dataProductName") String dataProductName) {
+        try {
+            if (dataProductName == null || dataProductName.isBlank()) {
+                log.error("Missing required dataProductName in getMirroredCatalogStatus request");
+                MirroredCatalogErrorResponseVO errorResponse = new MirroredCatalogErrorResponseVO();
+                errorResponse.setStatus("error");
+                errorResponse.setErrorCode(MirroredCatalogErrorResponseVO.ErrorCodeEnum.INVALID_REQUEST);
+                errorResponse.setMessage("Missing required field: dataProductName");
+                return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+            }
+
+            MirroredCatalogResponseVO response = service.getMirroredCatalogStatus(dataProductName);
+            if (response == null) {
+                MirroredCatalogErrorResponseVO errorResponse = new MirroredCatalogErrorResponseVO();
+                errorResponse.setStatus("error");
+                errorResponse.setErrorCode(MirroredCatalogErrorResponseVO.ErrorCodeEnum.DATABRICKS_DATAPRODUCT_NOT_FOUND);
+                errorResponse.setMessage("No mirrored catalog record found for Data Product: " + dataProductName);
+                return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+            }
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        }catch (EntityNotFoundException e) {
+            log.error("Error getting mirrored catalog status: {}", e.getMessage(), e);
+            MirroredCatalogErrorResponseVO errorResponse = new MirroredCatalogErrorResponseVO();
+            errorResponse.setStatus("error");
+            errorResponse.setErrorCode(MirroredCatalogErrorResponseVO.ErrorCodeEnum.NOT_FOUND);
+            errorResponse.setMessage( e.getMessage());
+            return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+        }
+         catch (Exception e) {
+            log.error("Error getting mirrored catalog status: {}", e.getMessage(), e);
+            MirroredCatalogErrorResponseVO errorResponse = new MirroredCatalogErrorResponseVO();
+            if(e.getMessage().contains("in progress")){
+                errorResponse.setStatus("IN_PROGRESS");
+                errorResponse.setErrorCode(MirroredCatalogErrorResponseVO.ErrorCodeEnum.IN_PROGRESS);
+                errorResponse.setMessage( e.getMessage());
+                return new ResponseEntity<>(errorResponse, HttpStatus.OK);
+            }
+            errorResponse.setStatus("error");
+            errorResponse.setErrorCode(MirroredCatalogErrorResponseVO.ErrorCodeEnum.INTERNAL_ERROR);
+            errorResponse.setMessage( e.getMessage());
+            return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
+
+    @Override
+    @ApiOperation(value = "Update Databricks Mirrored Catalog status (Uilicious callback).", nickname = "updateMirroredCatalogStatus", notes = "This endpoint is called by Uilicious to update the status of mirrored catalog creation and group permission assignment.", response = MirroredCatalogResponseVO.class, tags={ "fabric-catalog-management", })
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "Returns updated mirrored catalog status", response = MirroredCatalogResponseVO.class),
+        @ApiResponse(code = 400, message = "Bad Request", response = MirroredCatalogErrorResponseVO.class),
+        @ApiResponse(code = 404, message = "Mirrored catalog record not found", response = MirroredCatalogErrorResponseVO.class),
+        @ApiResponse(code = 500, message = "Internal error", response = MirroredCatalogErrorResponseVO.class) })
+    @RequestMapping(value = "/catalog/databricks/mirrored-catalog/update-status",
+        produces = { "application/json" },
+        consumes = { "application/json" },
+        method = RequestMethod.PUT)
+    public ResponseEntity updateMirroredCatalogStatus(
+            @ApiParam(value = "The status update request from Uilicious.", required = true) @Valid @RequestBody UpdateMirroredCatalogStatusRequestVO updateRequest) {
+        try {
+            if (updateRequest.getMirroredCatalogId() == null || updateRequest.getMirroredCatalogId().isBlank()) {
+                log.error("Missing required mirroredCatalogId in updateMirroredCatalogStatus request");
+                MirroredCatalogErrorResponseVO errorResponse = new MirroredCatalogErrorResponseVO();
+                errorResponse.setStatus("error");
+                errorResponse.setErrorCode(MirroredCatalogErrorResponseVO.ErrorCodeEnum.INVALID_REQUEST);
+                errorResponse.setMessage("Missing required field: mirroredCatalogId");
+                return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+            }
+
+            if (updateRequest.getDdxGroupDetails() == null || updateRequest.getDdxGroupDetails().isEmpty()) {
+                log.error("Missing required ddxGroupDetails in updateMirroredCatalogStatus request");
+                MirroredCatalogErrorResponseVO errorResponse = new MirroredCatalogErrorResponseVO();
+                errorResponse.setStatus("error");
+                errorResponse.setErrorCode(MirroredCatalogErrorResponseVO.ErrorCodeEnum.INVALID_REQUEST);
+                errorResponse.setMessage("Missing required field: ddxGroupDetails");
+                return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+            }
+
+            MirroredCatalogResponseVO response = service.updateMirroredCatalogStatus(updateRequest);
+            if (response == null) {
+                MirroredCatalogErrorResponseVO errorResponse = new MirroredCatalogErrorResponseVO();
+                errorResponse.setStatus("error");
+                errorResponse.setErrorCode(MirroredCatalogErrorResponseVO.ErrorCodeEnum.DATABRICKS_DATAPRODUCT_NOT_FOUND);
+                errorResponse.setMessage("No mirrored catalog record found for mirroredCatalogId: " + updateRequest.getMirroredCatalogId());
+                return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
+            }
+            return new ResponseEntity<>(response, HttpStatus.OK);
+        } catch (Exception e) {
+            log.error("Error updating mirrored catalog status: {}", e.getMessage(), e);
+            MirroredCatalogErrorResponseVO errorResponse = new MirroredCatalogErrorResponseVO();
+            errorResponse.setStatus("error");
+            errorResponse.setErrorCode(MirroredCatalogErrorResponseVO.ErrorCodeEnum.INTERNAL_ERROR);
+            errorResponse.setMessage("Internal error: " + e.getMessage());
+            return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+        }
+    }
 
 }
 

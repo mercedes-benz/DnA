@@ -9,6 +9,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.util.MultiValueMap;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.web.client.RestTemplate;
 import com.daimler.data.util.CommonUtils;
 
@@ -16,7 +17,9 @@ import java.util.Base64;
 import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ConcurrentHashMap;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -27,7 +30,9 @@ import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import org.springframework.web.client.HttpStatusCodeException;
 
+import java.net.URI;
 import com.daimler.data.dto.GitBranchesCollectionDto;
+import com.daimler.data.dto.GitHubWorkflowJobsResponseDto;
 import com.daimler.data.dto.GitHubWorkflowRunDto;
 import com.daimler.data.dto.GitLatestCommitIdDto;
 import com.fasterxml.jackson.databind.DeserializationFeature;
@@ -38,6 +43,50 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 @Slf4j
 public class GitClient {
+
+	private static final class EtagEntry<T> {
+		final String etag;
+		final T value;
+
+		EtagEntry(String etag, T value) {
+			this.etag = etag;
+			this.value = value;
+		}
+	}
+
+	// These ETag stores are per-replica in-memory state; conditional 304 requests avoid consuming the shared PAT budget.
+	private final Map<String, EtagEntry<GitBranchesCollectionDto>> branchesPageEtagStore = new ConcurrentHashMap<>();
+	private final Map<String, GitBranchesCollectionDto> branchesLastValueStore = new ConcurrentHashMap<>();
+	private final Map<String, EtagEntry<GitLatestCommitIdDto>> commitEtagStore = new ConcurrentHashMap<>();
+	private final Map<String, EtagEntry<GitHubWorkflowJobsResponseDto.Job>> jobEtagStore = new ConcurrentHashMap<>();
+
+	public static final class GitPatValidationResult {
+		private final HttpStatus status;
+		private final boolean missingToken;
+		private final String ssoAuthorizationUrl;
+
+		public GitPatValidationResult(HttpStatus status, boolean missingToken, String ssoAuthorizationUrl) {
+			this.status = status;
+			this.missingToken = missingToken;
+			this.ssoAuthorizationUrl = ssoAuthorizationUrl;
+		}
+
+		public HttpStatus getStatus() {
+			return status;
+		}
+
+		public boolean isSuccessful() {
+			return status != null && status.is2xxSuccessful();
+		}
+
+		public boolean isMissingToken() {
+			return missingToken;
+		}
+
+		public String getSsoAuthorizationUrl() {
+			return ssoAuthorizationUrl;
+		}
+	}
 
 	@Value("${codeServer.git.baseuri}")
 	private String gitBaseUri;
@@ -319,6 +368,7 @@ public class GitClient {
 
 	public HttpStatus validateGitUserWithPid(String gitBaseUrl, String repoName, String applicationName, String pid, String pat) {
 		try {
+			gitBaseUrl = gitBaseUrl.trim();
 			if (!gitBaseUrl.endsWith("/")) {
 				gitBaseUrl += "/";
 			}
@@ -327,6 +377,15 @@ public class GitClient {
 			headers.set("Accept", "application/vnd.github+json");
 			headers.set("Content-Type", "application/json");
 			headers.set("Authorization", "Bearer " + pat);
+
+			String addUrl = gitBaseUrl + "api/v3/repos/" + applicationName + "/" + repoName + "/collaborators/" + pid;
+			try {
+				HttpEntity<String> addEntity = new HttpEntity<>("{\"permission\":\"admin\"}", headers);
+				restTemplate.exchange(addUrl, HttpMethod.PUT, addEntity, String.class);
+				log.info("PID {} added as collaborator to {}/{}", pid, applicationName, repoName);
+			} catch (Exception ex) {
+				log.warn("Could not add PID {} to {}/{}: {}", pid, applicationName, repoName, ex.getMessage());
+			}
 
 			// Use affiliation=direct to only get explicitly added collaborators
 			String url = gitBaseUrl
@@ -461,8 +520,11 @@ public class GitClient {
 		return HttpStatus.INTERNAL_SERVER_ERROR;
 	}
 	
+	@Cacheable(value = "git-branches", key = "#repo + '-' + #isWorkspaceMigratedToGHE",
+			unless = "#result == null || #result.isEmpty()")
 	public GitBranchesCollectionDto getBranchesFromRepo(String username, String repo, Boolean isWorkspaceMigratedToGHE) {
     GitBranchesCollectionDto allBranches = new GitBranchesCollectionDto();
+	String repoKey = null;
     try {
         String repoName = null;
         String gitOrg = null;
@@ -497,6 +559,7 @@ public class GitClient {
             repoName = repo;
         }
         String orgName = Objects.nonNull(gitOrg) ? gitOrg : gitOrgName;
+        repoKey = orgName + "/" + repoName;
         String baseApiUrl = isWorkspaceMigratedToGHE ? gheBaseUri : gitBaseUri;
 
         while (true) {
@@ -512,14 +575,55 @@ public class GitClient {
 
             log.info("Fetching branches from URL: {}", url);
 
-            HttpEntity<String> entity = new HttpEntity<>(headers);
-            ResponseEntity<GitBranchesCollectionDto> response =
-                    restTemplate.exchange(url, HttpMethod.GET, entity, GitBranchesCollectionDto.class);
+            String pageKey = repoKey + "#p" + page;
+            HttpHeaders requestHeaders = new HttpHeaders();
+            requestHeaders.putAll(headers);
+            EtagEntry<GitBranchesCollectionDto> cachedPage = branchesPageEtagStore.get(pageKey);
+            if (cachedPage != null && cachedPage.etag != null) {
+	requestHeaders.setIfNoneMatch(cachedPage.etag);
+            }
+
+            HttpEntity<String> entity = new HttpEntity<>(requestHeaders);
+            ResponseEntity<GitBranchesCollectionDto> response;
+            try {
+	response = restTemplate.exchange(url, HttpMethod.GET, entity, GitBranchesCollectionDto.class);
+            } catch (HttpClientErrorException e) {
+	if (e.getStatusCode() == HttpStatus.NOT_MODIFIED) {
+		if (cachedPage == null) {
+			break;
+		}
+		allBranches.addAll(cachedPage.value);
+		if (cachedPage.value.size() < pageSize) {
+			break;
+		}
+		page++;
+		continue;
+	}
+	throw e;
+            }
+
+            if (response != null && response.getStatusCode() == HttpStatus.NOT_MODIFIED) {
+	if (cachedPage == null) {
+		break;
+	}
+	allBranches.addAll(cachedPage.value);
+	if (cachedPage.value.size() < pageSize) {
+		break;
+	}
+	page++;
+	continue;
+            }
 
             if (response != null && response.getStatusCode().is2xxSuccessful()
                     && response.getBody() != null) {
 
                 GitBranchesCollectionDto branches = response.getBody();
+                GitBranchesCollectionDto bodyCopy = new GitBranchesCollectionDto();
+                bodyCopy.addAll(branches);
+                String etag = response.getHeaders().getETag();
+                if (etag != null) {
+	branchesPageEtagStore.put(pageKey, new EtagEntry<>(etag, bodyCopy));
+                }
                 allBranches.addAll(branches);
 
                 if (branches.size() < pageSize) break;
@@ -528,7 +632,24 @@ public class GitClient {
                 break;
             }
         }
+        if (!allBranches.isEmpty()) {
+	branchesLastValueStore.put(repoKey, allBranches);
+        }
         log.info("Fetched {} branches from repo {}", allBranches.size(), repoName);
+    } catch (HttpClientErrorException e) {
+	if (e.getStatusCode() == HttpStatus.FORBIDDEN) {
+		String remaining = e.getResponseHeaders() == null ? null
+				: e.getResponseHeaders().getFirst("X-RateLimit-Remaining");
+		String reset = e.getResponseHeaders() == null ? null
+				: e.getResponseHeaders().getFirst("X-RateLimit-Reset");
+		log.warn("GitHub branch request rate limited for repo {}: remaining={}, reset={}",
+				repo, remaining, reset);
+		GitBranchesCollectionDto lastValue = repoKey == null ? null : branchesLastValueStore.get(repoKey);
+		if (lastValue != null) {
+			return lastValue;
+		}
+	}
+        log.error("Error occurred while fetching branches from git repo {}: {}", repo, e.getMessage(), e);
     } catch (Exception e) {
         log.error("Error occurred while fetching branches from git repo {}: {}", repo, e.getMessage(), e);
     }
@@ -536,13 +657,23 @@ public class GitClient {
 }
 
 	
-	public HttpStatus validateGitPat(String username, String pat, String gitBaseUrl) {
+	public GitPatValidationResult validateGitPat(String username, String pat, String gitBaseUrl) {
 		String dnaOrgMembersUrl = null;
+		String selectedHost = extractHost(gitBaseUrl);
+		boolean surroundingWhitespace = pat != null && !pat.equals(pat.trim());
+		int rawPatLength = pat == null ? 0 : pat.length();
+		String normalizedPat = pat == null ? null : pat.trim();
+		if (normalizedPat == null || normalizedPat.isEmpty()) {
+			log.warn("Git PAT validation skipped because the credential is blank: user={}, host={}, "
+					+ "rawLength={}, surroundingWhitespace={}",
+					username, selectedHost, rawPatLength, surroundingWhitespace);
+			return new GitPatValidationResult(HttpStatus.BAD_REQUEST, true, null);
+		}
 		try {
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");
-			headers.set("Authorization", "token "+ pat);
+			headers.set("Authorization", "token " + normalizedPat);
 			String baseUrl = gitBaseUrl;
 			if (!baseUrl.endsWith("/")) {
 				baseUrl += "/";
@@ -558,25 +689,73 @@ public class GitClient {
 			if (response != null && response.getStatusCode() != null) {
 				if (response.getStatusCode().is2xxSuccessful()) {
 					log.info("PAT is valid and SSO is configured for user {} ({} org)", username, gitOrgName);
-					return HttpStatus.OK;
-				} else if (response.getStatusCode() == HttpStatus.FORBIDDEN) {
-					log.warn("PAT is valid but SSO is NOT configured for user {} ({} org)", username, gitOrgName);
-					return HttpStatus.FORBIDDEN;
-				} else {
-					log.warn("Unexpected status while validating PAT/SSO for user {}: {}", username,
-							response.getStatusCode());
-					return response.getStatusCode();
+					return new GitPatValidationResult(response.getStatusCode(), false, null);
 				}
+				return logValidationFailure(username, selectedHost, rawPatLength,
+						surroundingWhitespace, response.getStatusCode(), response.getBody(),
+						response.getHeaders());
 			}
-		} catch (HttpClientErrorException e) {
-			log.error("HTTP error while validating user {} PAT/SSO: status={}",
-					username, e.getStatusCode());
-			return e.getStatusCode();
+		} catch (HttpStatusCodeException e) {
+			return logValidationFailure(username, selectedHost, rawPatLength,
+					surroundingWhitespace, e.getStatusCode(), e.getResponseBodyAsString(),
+					e.getResponseHeaders());
 		} catch (Exception e) {
-			log.error("Error occurred while validating user {} PAT/SSO against URL {} with exception {}",
-					username, dnaOrgMembersUrl, e.getMessage(), e);
+			log.error("Error occurred while validating user {} PAT/SSO against host {} with "
+					+ "rawLength={}, surroundingWhitespace={}, exception {}",
+					username, selectedHost, rawPatLength, surroundingWhitespace, e.getMessage(), e);
 		}
-		return HttpStatus.INTERNAL_SERVER_ERROR;
+		return new GitPatValidationResult(HttpStatus.INTERNAL_SERVER_ERROR, false, null);
+	}
+
+	private GitPatValidationResult logValidationFailure(String username, String selectedHost,
+			int rawPatLength, boolean surroundingWhitespace, HttpStatus status, String responseBody,
+			HttpHeaders responseHeaders) {
+		String ssoHeader = responseHeaders == null ? null : responseHeaders.getFirst("X-GitHub-SSO");
+		String ssoAuthorizationUrl = extractSsoAuthorizationUrl(ssoHeader);
+		log.error("Git PAT validation failed: user={}, host={}, status={}, rawLength={}, "
+				+ "surroundingWhitespace={}, responseBody={}, X-GitHub-SSO={}, "
+				+ "X-OAuth-Scopes={}, X-Accepted-OAuth-Scopes={}",
+				username, selectedHost, status, rawPatLength, surroundingWhitespace,
+				boundedSummary(responseBody), boundedSummary(ssoHeader),
+				headerValue(responseHeaders, "X-OAuth-Scopes"),
+				headerValue(responseHeaders, "X-Accepted-OAuth-Scopes"));
+		return new GitPatValidationResult(status, false, ssoAuthorizationUrl);
+	}
+
+	private String headerValue(HttpHeaders headers, String name) {
+		return headers == null ? null : boundedSummary(headers.getFirst(name));
+	}
+
+	private String boundedSummary(String value) {
+		if (value == null) {
+			return null;
+		}
+		String normalized = value.replaceAll("\\s+", " ").trim();
+		return normalized.length() > 512 ? normalized.substring(0, 512) + "..." : normalized;
+	}
+
+	private String extractSsoAuthorizationUrl(String ssoHeader) {
+		if (ssoHeader == null) {
+			return null;
+		}
+		for (String part : ssoHeader.split(";")) {
+			String candidate = part.trim();
+			if (candidate.startsWith("url=")) {
+				String url = candidate.substring("url=".length()).trim();
+				return url.startsWith("https://") || url.startsWith("http://")
+						? boundedSummary(url)
+						: null;
+			}
+		}
+		return null;
+	}
+
+	private String extractHost(String baseUrl) {
+		try {
+			return URI.create(baseUrl).getHost();
+		} catch (Exception e) {
+			return "<unparseable>";
+		}
 	}
 
 	public HttpStatus validatePublicGitPat(String gitUserName, String pat, String publicGitUrl) {
@@ -609,6 +788,7 @@ public class GitClient {
 	
 	public GitLatestCommitIdDto getLatestCommitId( String orgName, String branch, String repoName, Boolean isWorkspaceMigratedToGHE) {
 		GitLatestCommitIdDto commitId = null;
+		String commitKey = orgName + "/" + repoName + "@" + branch;
 		try {
 			String baseUri = Boolean.TRUE.equals(isWorkspaceMigratedToGHE) ? gheBaseUri : gitBaseUri;
 			String pat = Boolean.TRUE.equals(isWorkspaceMigratedToGHE) ? ghePat : personalAccessToken;
@@ -620,15 +800,34 @@ public class GitClient {
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");
 			headers.set("Authorization", "token "+ pat);
+			EtagEntry<GitLatestCommitIdDto> cachedCommit = commitEtagStore.get(commitKey);
+			if (cachedCommit != null && cachedCommit.etag != null) {
+				headers.setIfNoneMatch(cachedCommit.etag);
+			}
 			String url = baseUri+"/repos/" + orgName + "/"+ repoName+ "/commits?sha="+branch+"&per_page=1";
 			HttpEntity entity = new HttpEntity<>(headers);
-			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
+			ResponseEntity<String> response;
+			try {
+				response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
+			} catch (HttpClientErrorException e) {
+				if (e.getStatusCode() == HttpStatus.NOT_MODIFIED) {
+					return cachedCommit == null ? null : cachedCommit.value;
+				}
+				throw e;
+			}
+			if (response != null && response.getStatusCode() == HttpStatus.NOT_MODIFIED) {
+				return cachedCommit == null ? null : cachedCommit.value;
+			}
 			ObjectMapper objectMapper = new ObjectMapper();
 			objectMapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
 			GitLatestCommitIdDto[] commits = objectMapper.readValue(response.getBody(), GitLatestCommitIdDto[].class);
 				if (commits.length > 0) {
 					 commitId = commits[0];
 				}
+			String etag = response.getHeaders().getETag();
+			if (etag != null) {
+				commitEtagStore.put(commitKey, new EtagEntry<>(etag, commitId));
+			}
 			log.info("completed fetching latest commit id from git repo {} and branch {} ",repoName, branch);
 			return commitId;
 		} catch (Exception e) {
@@ -735,15 +934,66 @@ public class GitClient {
 		return null;
 	}
 
-	public GitHubWorkflowRunDto getWorkflowRun(String runId) {
+	public GitHubWorkflowJobsResponseDto.Job getBuildDeployJob(String runId) {
+		String repoPath = applicationName + "/codespace-build-deploy-workflows";
+		String url = gheBaseUri + "/repos/" + repoPath + "/actions/runs/" + runId + "/jobs";
 
-			HttpHeaders headers = new HttpHeaders();
-			headers.set("Accept", "application/vnd.github+json");
-			headers.set("Authorization", "Bearer " + personalAccessToken);
-			String url = gitBaseUri + "/repos/" + applicationName + "/" + gitAppName + "/actions/runs/" + runId;
+		HttpHeaders headers = new HttpHeaders();
+		headers.set("Accept", "application/vnd.github+json");
+		headers.set("Authorization", "Bearer " + ghePat);
+		EtagEntry<GitHubWorkflowJobsResponseDto.Job> cachedJob = jobEtagStore.get(runId);
+		if (cachedJob != null && cachedJob.etag != null) {
+			headers.setIfNoneMatch(cachedJob.etag);
+		}
 
-			HttpEntity<Void> entity = new HttpEntity<>(headers);
+		HttpEntity<Void> entity = new HttpEntity<>(headers);
 		try {
+			log.info("Calling GitHub Jobs API: {}", url);
+			ResponseEntity<GitHubWorkflowJobsResponseDto> response =
+					restTemplate.exchange(url, HttpMethod.GET, entity, GitHubWorkflowJobsResponseDto.class);
+			if (response != null && response.getStatusCode() == HttpStatus.NOT_MODIFIED) {
+				return cachedJob == null ? null : cachedJob.value;
+			}
+			GitHubWorkflowJobsResponseDto body = response.getBody();
+			if (body != null && body.getJobs() != null) {
+				GitHubWorkflowJobsResponseDto.Job job = body.getJobs().stream()
+						.filter(workflowJob -> workflowJob.getName() != null && workflowJob.getName().toLowerCase().contains("build or deploy workspace application"))
+						.findFirst()
+						.orElse(null);
+				String etag = response.getHeaders().getETag();
+				if (etag != null) {
+					jobEtagStore.put(runId, new EtagEntry<>(etag, job));
+				}
+				return job;
+			}
+			String etag = response.getHeaders().getETag();
+			if (etag != null) {
+				jobEtagStore.put(runId, new EtagEntry<>(etag, null));
+			}
+			return null;
+		} catch (HttpStatusCodeException ex) {
+			if (ex.getStatusCode() == HttpStatus.NOT_MODIFIED) {
+				return cachedJob == null ? null : cachedJob.value;
+			}
+			log.error("GitHub Jobs API error {} for runId {}", ex.getStatusCode(), runId);
+			return null;
+		} catch (Exception ex) {
+			log.error("Unexpected error while calling GitHub Jobs API", ex);
+			return null;
+		}
+	}
+
+	public GitHubWorkflowRunDto getWorkflowRun(String runId) {
+		String repoPath = applicationName + "/codespace-build-deploy-workflows";
+		String url = gheBaseUri + "/repos/" + repoPath + "/actions/runs/" + runId;
+
+		HttpHeaders headers = new HttpHeaders();
+		headers.set("Accept", "application/vnd.github+json");
+		headers.set("Authorization", "Bearer " + ghePat);
+
+		HttpEntity<Void> entity = new HttpEntity<>(headers);
+		try {
+			log.info("Calling GitHub API: {}", url);
 			ResponseEntity<GitHubWorkflowRunDto> response =
 					restTemplate.exchange(url, HttpMethod.GET, entity, GitHubWorkflowRunDto.class);
 			return response.getBody();

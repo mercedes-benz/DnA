@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import java.util.Map;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import java.nio.charset.StandardCharsets;
 
@@ -22,6 +23,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestTemplate;
 
@@ -97,6 +99,9 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 	
 	@Value("${kong.redirectAfterLogoutUri}")
 	private String redirectAfterLogoutUri;
+
+	@Value("${kong.oidcRecoveryPagePath:}")
+	private String oidcRecoveryPagePath;
 	
 	@Value("${kong.redirectUriPath}")
 	private String redirectUriPath;
@@ -223,6 +228,14 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 
 	@Value("${kong.accessTokenHeaderName}")
 	private String accessTokenHeaderName;
+
+	@Value("${kong.oidc.session-secret}")
+	private String oidcSessionSecret;
+
+	@Value("${kong.oidc.skip-already-auth-requests}")
+	private String oidcSkipAlreadyAuthRequests;
+
+	private final AtomicBoolean oidcSessionSecretWarningLogged = new AtomicBoolean(false);
 
 
 	@Autowired
@@ -460,15 +473,16 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		// request for kong create service	
 		CreateServiceRequestVO createServiceRequestVO = new CreateServiceRequestVO();
 		CreateServiceVO createServiceVO = new CreateServiceVO();
-		if(kongApiForDeploymentURL) {	
-			url = "http://" + serviceName.toLowerCase() + "-" + env;		
+			if(kongApiForDeploymentURL) {	
+			url = "http://" + serviceName.toLowerCase() + "-" + env;
+			String nsSuffix = "int".equalsIgnoreCase(env) ? "-int" : "";
 			if(cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS_AWS)){
 				if("dev".equalsIgnoreCase(codeServerEnvRef))
-					url = url + ".dev-dna-cs-apps:80";
+					url = url + ".dev-dna-cs-apps" + nsSuffix + ":80";
 				else if("staging".equalsIgnoreCase(codeServerEnvRef))
-					url = url + ".test-dna-cs-apps:80";
+					url = url + ".test-dna-cs-apps" + nsSuffix + ":80";
 				else
-					url = url + ".prod-dna-cs-apps:80";
+					url = url + ".prod-dna-cs-apps" + nsSuffix + ":80";
 			}else{	    		    
 				url = url +  ".codespaces-apps:80";
 			}
@@ -498,10 +512,26 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 			// }
 			// else {
 				currentPath = "/" + serviceName.toLowerCase() + "/" + env + "/";
-				if(env.equalsIgnoreCase("int"))
-					paths.add("/" + serviceName.toLowerCase() + "/" + "int/");
-				if(env.equalsIgnoreCase("prod"))
-					paths.add("/" + serviceName.toLowerCase() + "/" + "prod/");
+				if(env.equalsIgnoreCase("int")) {
+					String prodUrl = prodDeploymentDetails != null
+							? prodDeploymentDetails.getDeploymentUrl()
+							: null;
+					if (prodUrl != null && prodUrl.contains("/api")) {
+						paths.add("/" + serviceName.toLowerCase() + "/int/api");
+					} else {
+						paths.add("/" + serviceName.toLowerCase() + "/int/");
+					}
+				}
+				if(env.equalsIgnoreCase("prod")){
+					String intUrl = intDeploymentDetails != null
+							? intDeploymentDetails.getDeploymentUrl()
+							: null;
+					if (intUrl != null && intUrl.contains("/api")) {
+						paths.add("/" + serviceName.toLowerCase() + "/prod/api");
+					} else {
+						paths.add("/" + serviceName.toLowerCase() + "/prod/");
+					}
+				}
 			// }
 			// if(Objects.nonNull(intSecureIAM) && intSecureIAM) {
 			// 	paths.add("/" + serviceName + "/" + "int" + "/api");
@@ -535,6 +565,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 
 		String recovery_page_path = "https://" + (cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS_AWS)?codeServerEnvUrlAWS:codeServerEnvUrl) + "/" + serviceName.toLowerCase() + "/";	
 		String redirectUri = "/" + serviceName.toLowerCase();
+		recovery_page_path = resolveOidcRecoveryPagePath(recovery_page_path);
 
 		attachPluginConfigVO.setBearer_only(bearerOnly);
 		attachPluginConfigVO.setClient_id(clientId);
@@ -551,6 +582,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		attachPluginConfigVO.setScope(scope);
 		attachPluginConfigVO.setSsl_verify(sslVerify);
 		attachPluginConfigVO.setToken_endpoint_auth_method(tokenEndpointAuthMethod);
+		attachPluginConfigVO.setSession_secret(getConfiguredOidcSessionSecret());
 		attachPluginConfigVO.setRecovery_page_path(recovery_page_path);
 		attachPluginVO.setConfig(attachPluginConfigVO);
 		attachPluginRequestVO.setData(attachPluginVO);
@@ -666,6 +698,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 
 					//attaching cors plugin to deployments
 					LOGGER.info("kongApiForDeploymentURL is true, calling CORS plugin " );
+					LOGGER.info("cors plugin request vo is {}",attachCorsPluginRequestVO);
 					attachCorsPluginResponse = attachPluginToService(attachCorsPluginRequestVO,serviceName.toLowerCase()+"-"+env,cloudServiceProvider);
 					LOGGER.info("kong attach CORS plugin to service status is: {} and errors if any: {}, warnings if any:", attachCorsPluginResponse.getSuccess(),
 					attachCorsPluginResponse.getErrors(), attachCorsPluginResponse.getWarnings());
@@ -940,6 +973,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 									attachOIDCPluginVO.setName(OIDC_PLUGIN);
 
 									String authRecovery_page_path = "https://" + codeServerEnvUrl + "/" + serviceName.toLowerCase() + "/"+env+"/";	
+									authRecovery_page_path = resolveOidcRecoveryPagePath(authRecovery_page_path);
 									//String authRedirectUri = "/" + serviceName.toLowerCase()+"/"+env+"/api";
 
 									if("SSO_INT".equalsIgnoreCase(ssoType)){
@@ -956,6 +990,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 										attachOIDCPluginConfigVO.setIntrospection_endpoint(prodIntrospectionEndpoint);
 										attachOIDCPluginConfigVO.setRedirect_after_logout_uri(prodRedirectAfterLogoutUri);
 									}
+									attachOIDCPluginConfigVO.setSession_secret(getConfiguredOidcSessionSecret());
 									attachOIDCPluginConfigVO.setBearer_only("no");
 									attachOIDCPluginConfigVO.setClient_id(clientID);
 									attachOIDCPluginConfigVO.setClient_secret(clientSecret);
@@ -1883,6 +1918,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 
 		String authRecovery_page_path = "https://" + (cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS_AWS)?codeServerEnvUrlAWS:codeServerEnvUrl) + "/" + serviceName.toLowerCase() + "/"+env+"/api";	
 		String authRedirectUri = "/" + serviceName.toLowerCase()+"/"+env+"/api";
+		authRecovery_page_path = resolveOidcRecoveryPagePath(authRecovery_page_path);
 
 		if("SSO_INT".equalsIgnoreCase(ssoType)){
 			attachOIDCPluginConfigVO.setDiscovery(authDiscovery);
@@ -1898,6 +1934,8 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 			attachOIDCPluginConfigVO.setIntrospection_endpoint(prodIntrospectionEndpoint);
 			attachOIDCPluginConfigVO.setRedirect_after_logout_uri(prodRedirectAfterLogoutUri);
 		}
+		attachOIDCPluginConfigVO.setSession_secret(getConfiguredOidcSessionSecret());
+		attachOIDCPluginConfigVO.setSkip_already_auth_requests(oidcSkipAlreadyAuthRequests);
 		attachOIDCPluginConfigVO.setBearer_only(authoriserBearerOnly);
 		attachOIDCPluginConfigVO.setClient_id(clientID);
 		attachOIDCPluginConfigVO.setClient_secret(clientSecret);
@@ -1926,6 +1964,21 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		attachOIDCPluginRequestVO.setData(attachOIDCPluginVO);
 		attachPluginResponse = attachPluginToService(attachOIDCPluginRequestVO,serviceName.toLowerCase()+"-"+env,cloudServiceProvider);
 		LOGGER.info("calling kong to attach oidc plugin with status {}",attachPluginResponse.getSuccess());
+	}
+
+	private String getConfiguredOidcSessionSecret() {
+		if (oidcSessionSecret != null && !oidcSessionSecret.isBlank()
+				&& !"XXXX".equals(oidcSessionSecret.trim())) {
+			return oidcSessionSecret;
+		}
+		if (oidcSessionSecretWarningLogged.compareAndSet(false, true)) {
+			LOGGER.warn("OIDC session secret is not configured; Kong will fall back to a per-node random secret");
+		}
+		return null;
+	}
+
+	private String resolveOidcRecoveryPagePath(String fallbackPath) {
+		return StringUtils.hasText(oidcRecoveryPagePath) ? oidcRecoveryPagePath : fallbackPath;
 	}
 
 	@Override

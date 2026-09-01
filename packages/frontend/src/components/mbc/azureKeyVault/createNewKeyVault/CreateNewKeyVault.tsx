@@ -46,6 +46,34 @@ const CreateNewWorkspace = ({ edit, project, setShowCreateModal, getKeyVaultList
 
   const requiredError = '*Missing entry';
   const keyVaultNameErrorText = '*Key Vault Name should start with kv-';
+  const keyVaultNameCriteriaErrorText =
+    "*Key Vault Name must be 3-24 characters, start with a letter, end with a letter or digit, and not contain '_' or consecutive '-'";
+
+  const getKeyVaultNameValidationError = (value: string) => {
+    if (!value.length) {
+      return requiredError;
+    }
+
+    if (!value.startsWith('kv-')) {
+      return keyVaultNameErrorText;
+    }
+
+    const validFormat = /^[A-Za-z][A-Za-z0-9-]{1,22}[A-Za-z0-9]$/.test(value);
+    if (!validFormat || value.includes('--')) {
+      return keyVaultNameCriteriaErrorText;
+    }
+
+    return '';
+  };
+
+  const getDisplayErrorMessage = (message?: string) => {
+    if (!message) {
+      return 'Something went wrong.';
+    }
+
+    const cleanedMessage = message.replace(/\s*Follow this link for more information:[\s\S]*$/i, '').trim();
+    return cleanedMessage || message;
+  };
 
   useEffect(() => {
     SelectBox.defaultSetup();
@@ -89,9 +117,7 @@ const CreateNewWorkspace = ({ edit, project, setShowCreateModal, getKeyVaultList
   const onKeyVaultNameChange = (e: any) => {
     const currentValue = e.currentTarget.value;
     setKeyVaultName(currentValue);
-    setKeyVaultNameError(
-      currentValue.length !== 0 ? (currentValue.startsWith('kv-') ? '' : keyVaultNameErrorText) : requiredError,
-    );
+    setKeyVaultNameError(getKeyVaultNameValidationError(currentValue));
   };
 
   const onClassificationChange = (e: any) => {
@@ -126,12 +152,9 @@ const CreateNewWorkspace = ({ edit, project, setShowCreateModal, getKeyVaultList
 
   const createKeyVault = () => {
     let formValid = true;
-    if (!keyVaultName.length) {
-      setKeyVaultNameError(requiredError);
-      formValid = false;
-    }
-    if (keyVaultName.length && !keyVaultName.startsWith('kv-')) {
-      setKeyVaultNameError(keyVaultNameErrorText);
+    const keyVaultNameValidationError = getKeyVaultNameValidationError(keyVaultName);
+    if (keyVaultNameValidationError.length) {
+      setKeyVaultNameError(keyVaultNameValidationError);
       formValid = false;
     }
     if (!description.length) {
@@ -167,27 +190,37 @@ const CreateNewWorkspace = ({ edit, project, setShowCreateModal, getKeyVaultList
       ProgressIndicator.show();
       if (edit) {
         ApiClient.updateKeyVault(project?.id, formData)
-          .then(() => {
+          .then((res: any) => {
             ProgressIndicator.hide();
+            const errors = res?.responses?.errors;
+            if (errors?.length) {
+              Notification.show(getDisplayErrorMessage(errors[0]?.message), 'alert');
+              return;
+            }
             Notification.show('Key Vault updated successfully.');
             setShowCreateModal();
             getKeyVaultList();
           })
           .catch((err: any) => {
             ProgressIndicator.hide();
-            Notification.show(err?.message || 'Something went wrong.', 'alert');
+            Notification.show(getDisplayErrorMessage(err?.message), 'alert');
           });
       } else {
         ApiClient.createKeyVault(formData)
-          .then(() => {
+          .then((res: any) => {
             ProgressIndicator.hide();
+            const errors = res?.responses?.errors;
+            if (errors?.length) {
+              Notification.show(getDisplayErrorMessage(errors[0]?.message), 'alert');
+              return;
+            }
             Notification.show('Key Vault created successfully.');
             setShowCreateModal();
             getKeyVaultList();
           })
           .catch((err: any) => {
             ProgressIndicator.hide();
-            Notification.show(err?.message || 'Something went wrong.', 'alert');
+            Notification.show(getDisplayErrorMessage(err?.message), 'alert');
           });
       }
     }
@@ -229,7 +262,7 @@ const CreateNewWorkspace = ({ edit, project, setShowCreateModal, getKeyVaultList
                 value={keyVaultName}
                 errorText={keyVaultNameError}
                 required={true}
-                maxLength={50}
+                maxLength={24}
                 onChange={onKeyVaultNameChange}
               />
             </div>

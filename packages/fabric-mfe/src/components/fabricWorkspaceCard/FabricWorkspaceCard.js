@@ -13,7 +13,7 @@ import { fabricApi } from '../../apis/fabric.api';
 import AddUser from 'dna-container/AddUser';
 import { USER_ROLE } from '../../utilities/constants';
 
-const FabricWorkspaceCard = ({user, workspace, onSelectWorkspace, onEditWorkspace, onDeleteWorkspace}) => {
+const FabricWorkspaceCard = ({user, workspace, onSelectWorkspace, onEditWorkspace, onDeleteWorkspace, isAdminView = false}) => {
   const history = useHistory();
   const [newOwnerDetails, setNewOwnerDetails] = useState(null);
   const [showTransferOwnershipModal, setShowTransferOwnershipModal] = useState(false);
@@ -97,6 +97,21 @@ const FabricWorkspaceCard = ({user, workspace, onSelectWorkspace, onEditWorkspac
     setNewOwnerDetails(collaborationData);
   };
 
+  const securedWithIAMContent = (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      stroke="#00adef"
+      fill="#00adef"
+      strokeWidth="0"
+      viewBox="0 0 30 30"
+      width="15px"
+      height="15px"
+    >
+      {' '}
+      <path d="M 15 2 C 11.145666 2 8 5.1456661 8 9 L 8 11 L 6 11 C 4.895 11 4 11.895 4 13 L 4 25 C 4 26.105 4.895 27 6 27 L 24 27 C 25.105 27 26 26.105 26 25 L 26 13 C 26 11.895 25.105 11 24 11 L 22 11 L 22 9 C 22 5.2715823 19.036581 2.2685653 15.355469 2.0722656 A 1.0001 1.0001 0 0 0 15 2 z M 15 4 C 17.773666 4 20 6.2263339 20 9 L 20 11 L 10 11 L 10 9 C 10 6.2263339 12.226334 4 15 4 z" />
+    </svg>
+  );
+
   const transferOwnershipModalContent = (
     <div className={classNames('input-field-group include-error')}>
       <label htmlFor="userId" className="input-label">
@@ -164,7 +179,7 @@ const FabricWorkspaceCard = ({user, workspace, onSelectWorkspace, onEditWorkspac
           <div>
             <div>Workspace Link</div>
             <div>
-              {isFabricAdmin && workspace?.createdBy?.id !== user?.id ? (
+              {isAdminView && isFabricAdmin && workspace?.createdBy?.id !== user?.id ? (
                 <span className={Styles.disabledLink} title="Admins can only access their own workspaces">
                   Access Workspace
                   <i className={classNames('icon mbc-icon new-tab')} />
@@ -175,7 +190,7 @@ const FabricWorkspaceCard = ({user, workspace, onSelectWorkspace, onEditWorkspac
                   target="_blank"
                   rel="noopener noreferrer"
                 >
-                  Access Workspace
+                  {workspace?.cmkDetails?.cmkKeyAssign && <span style={{ display: 'inline-block', verticalAlign: 'text-bottom', marginRight: '4px' }}>{securedWithIAMContent}</span>}Access Workspace
                   <i className={classNames('icon mbc-icon new-tab')} />
                 </a>
               )}
@@ -221,15 +236,14 @@ const FabricWorkspaceCard = ({user, workspace, onSelectWorkspace, onEditWorkspac
             <div>{workspace?.dataClassification || 'N/A'}</div>
           </div>
           <div>
-            <div>Report</div>
-            <div>
+            <div className="report-links">
               <a
                 href={`${Envs.FABRIC_REPORT_URL}%27${encodeURIComponent(workspace?.name)}%27`}
                 target="_blank"
                 rel="noopener noreferrer"
               >
-                Consumption
-                <i className={classNames('icon mbc-icon new-tab')} />
+                Billing
+                <i className={classNames('icon mbc-icon new-tab')} />|&nbsp;&nbsp;
               </a>
               {(isAdmin || isOwner) && (
                 <a
@@ -238,9 +252,17 @@ const FabricWorkspaceCard = ({user, workspace, onSelectWorkspace, onEditWorkspac
                   rel="noopener noreferrer"
                 >
                   Activity
-                  <i className={classNames('icon mbc-icon new-tab')} />
-                </a>
+                  <i className={classNames('icon mbc-icon new-tab')} />|&nbsp;&nbsp;
+                </a> 
               )}
+                <a
+                  href={`${Envs.TICKET_SUPPORT_URL}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                >
+                  Support
+                  <i className={classNames('icon mbc-icon new-tab')} />
+                </a>          
             </div>
           </div>
         </div>

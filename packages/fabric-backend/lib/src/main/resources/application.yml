@@ -2,12 +2,13 @@ spring:
   mvc.pathmatch.matching-strategy: ant_path_matcher
   application:
     name: dna-fabric-workspace-service
-    version: 1.6.6
+    version: 1.7.5
   profile:
     active: production
 
   flyway:
     enabled: ${FLYWAY_ENABLED:false}
+   
     baseline-on-migrate: ${FLYWAY_BASELINE_ON_MIGRATE:false}
     baselineVersion: ${FLYWAY_BASELINEVERSION:0}
     schemas: ${FLYWAY_SCHEMA:public}   
@@ -70,6 +71,7 @@ fabricWorkspaces:
   gateway.encryption.publickey.exponent: ${FABRIC_ENCRYPTION_PUBLICKEY_EXPONENT:XXXX}
   allowed.divisions.fabric.enabled: ${FABRIC_ENABLED_ENTITLEMENT:XXXX}
   userRemoval.ignorePatterns: ${FABRIC_USERREMOVAL_IGNORE_PATTERNS:XXXX}
+  servicePrincipleObjectId: ${FABRIC_SERVICE_PRINCIPLE_OBJECT_ID:XXXX}
   datasource:
     credentialType: ${FABRIC_DS_CREDENTIALTYPE:Basic}
     encryptedConnection: ${FABRIC_DS_ENCRYPTEDCONN:Any}
@@ -91,12 +93,14 @@ fabricWorkspaces:
     datasourceUrl: ${FABRIC_CREATEDATASOURCE_URL:https://api.powerbi.com/v1.0/myorg/gateways/id/datasources}
     datasourceUserUrl: ${FABRIC_DATASOURCE_ADDUSER_URL:https://api.powerbi.com/v1.0/myorg/gateways/id/datasources/connectionid/users}
     shortcutUrl: ${FABRIC_SHORTCUT_URL:https://api.fabric.microsoft.com/v1/workspaces/id/items/lakehouseid/shortcuts}
+    fabricBaseUrl: ${FABRIC_BASE_URL:https://api.fabric.microsoft.com/v1}
   technicalUser:
     id: ${AUTHORISER_TECH_USER_ID:XXXX}
   ada:
     apiKey: ${ADA_API_KEY:XXXX}
     extollo.apiKey: ${EXTOLLO_API_KEY:XXXX}
     spire.apiKey: ${SPIRE_API_KEY:XXXX}
+    adp.apiKey: ${ADP_API_KEY:XXXX}
   azure:
     subscriptionId: ${AZURE_SUBSCRIPTION_ID:XXXX}
     resourceGroup: ${AZURE_RESOURCE_GROUP:XXXX}
@@ -118,6 +122,11 @@ fabricWorkspaces:
         cryptoOfficer: ${KEYVAULT_CRYPTO_OFFICER_ROLE:XXXX}
         cryptoUser: ${KEYVAULT_CRYPTO_USER_ROLE:XXXX}
         keyVaultAdminRole: ${KEYVAULT_ADMIN_ROLE:XXXX}
+    cmk:
+      createUrl: ${AZURE_CREATE_CMK_URL:XXXX}
+      assignUrl: ${AZURE_ASSIGN_CMK_URL:XXXX}
+      createScope: ${CMK_CREATE_SCOPE:XXXX}
+      assignScope: ${CMK_ASSIGN_SCOPE:XXXX}
 
 genesis:
   apiKey: ${GENESIS_API_KEY:XXXX}
@@ -152,6 +161,10 @@ cdcIntegration:
       baseUrl: ${FABRIC_CDC_PUSH_SERVICE_BASE_URL:XXXX}
       authToken: ${FABRIC_CDC_PUSH_SERVICE_AUTH_TOKEN:XXXX}
 
+dataProduct:
+  planningit:
+    baseUrl: ${DATA_PRODUCT_PLANNINGIT_BASE_URL:XXXX}
+
 ddxIntegration:
   fabricDdxPush:
     baseUrl: ${FABRIC_DDX_PUSH_SERVICE_BASE_URL:XXXX}
@@ -171,12 +184,20 @@ uilicious:
   width: ${UILICIOUS_WIDTH:1280}
   height: ${UILICIOUS_HEIGHT:800}
   filePath: ${UILICIOUS_FILE_PATH:XXXX}
+  filePathMirrorCatalog: ${UILICIOUS_MIRROR_CATALOG_FILE_PATH:XXXX}
   projectID: ${UILICIOUS_PROJECT_ID:XXXX}
   baseURL: ${UILICIOUS_BASE_URL:XXXX}
   contentType: ${UILICIOUS_CONTENT_TYPE:XXXX}
   userAgent: ${UILICIOUS_USER_AGENT:XXXX}
   servicePrincipalName: ${UILICIOUS_SERVICE_PRINCIPAL_NAME:XXXX}
   identifier: ${UILICIOUS_PID_USER_IDENTIFIER:XXXX}
+
+mirroredCatalog:
+  central:
+    workspaceId: ${MIRRORED_CATALOG_CENTRAL_WORKSPACE_ID:XXXX}
+    workspaceName: ${MIRRORED_CATALOG_CENTRAL_WORKSPACE_NAME:XXXX}
+    connectionName: ${MIRRORED_CATALOG_CENTRAL_CONNECTION_NAME:XXXX}
+    supportedRegion: ${MIRRORED_CATALOG_SUPPORTED_REGION:XXXX}
 
 databricksIntegration:
   url:

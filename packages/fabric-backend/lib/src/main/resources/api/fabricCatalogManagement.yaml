@@ -218,6 +218,44 @@ paths:
         500:
           description: "Internal error"
 
+  /catalog/{workspaceId}/check-mismatch:
+    get:
+      tags:
+        - "fabric-catalog-management"
+      summary: "Check table mismatch between Fabric and CDC."
+      description: "Compares current Fabric lakehouse tables with published CDC metadata to detect mismatches."
+      operationId: "checkTableMismatch"
+      parameters:
+        - name: "workspaceId"
+          in: "path"
+          description: "The ID of the workspace."
+          required: true
+          type: "string"
+        - name: "lakehouseId"
+          in: "query"
+          description: "The ID of the lakehouse."
+          required: true
+          type: "string"
+      responses:
+        200:
+          description: "Returns mismatch detection results"
+          schema:
+            $ref: "#/definitions/TableMismatchResponseVO"
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/GenericMessage"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        404:
+          description: "Catalog metadata not found."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+
   /catalog/ddx/fabric-lakehouses/objects:
     get:
       tags:
@@ -312,6 +350,117 @@ paths:
         500:
           description: "Internal error"
 
+  /catalog/databricks/mirrored-catalog:
+    post:
+      tags:
+        - "fabric-catalog-management"
+      summary: "Create Databricks Mirrored Catalog in Fabric central workspace."
+      description: "This endpoint will provision a Databricks Mirrored Catalog hosted in a Fabric central workspace, backed by an ADLS Gen2 storage account, and grant permissions to create Fabric shortcuts to a DDX group."
+      operationId: "createMirroredCatalog"
+      parameters:
+        - name: createMirroredCatalogRequest
+          in: body
+          description: "The mirrored catalog creation request."
+          required: true
+          schema:
+            $ref: "#/definitions/CreateMirroredCatalogRequestVO"
+      responses:
+        200:
+          description: "Returns mirrored catalog creation response"
+          schema:
+            $ref: "#/definitions/MirroredCatalogResponseVO"
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/MirroredCatalogErrorResponseVO"
+        403:
+          description: "Storage access denied"
+          schema:
+            $ref: "#/definitions/MirroredCatalogErrorResponseVO"
+        404:
+          description: "Databricks data product or DDX group not found"
+          schema:
+            $ref: "#/definitions/MirroredCatalogErrorResponseVO"
+        401:
+          description: "Request does not have sufficient credentials."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+          schema:
+            $ref: "#/definitions/MirroredCatalogErrorResponseVO"
+
+  /catalog/databricks/mirrored-catalog/status/{dataProductName}:
+    get:
+      tags:
+        - "fabric-catalog-management"
+      summary: "Get Databricks Mirrored Catalog status."
+      description: "This endpoint will query the status of mirrored catalog creation and group permission assignment, update the DB, and return the current status."
+      operationId: "getMirroredCatalogStatus"
+      parameters:
+        - name: dataProductName
+          in: path
+          description: "The ID of the mirrored catalog."
+          required: true
+          type: string
+      responses:
+        200:
+          description: "Returns mirrored catalog status response"
+          schema:
+            $ref: "#/definitions/MirroredCatalogResponseVO"
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/MirroredCatalogErrorResponseVO"
+        404:
+          description: "Mirrored catalog record not found"
+          schema:
+            $ref: "#/definitions/MirroredCatalogErrorResponseVO"
+        401:
+          description: "Request does not have sufficient credentials."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+          schema:
+            $ref: "#/definitions/MirroredCatalogErrorResponseVO"
+
+  /catalog/databricks/mirrored-catalog/update-status:
+    put:
+      tags:
+        - "fabric-catalog-management"
+      summary: "Update Databricks Mirrored Catalog status (Uilicious callback)."
+      description: "This endpoint is called by Uilicious to update the status of mirrored catalog creation and group permission assignment."
+      operationId: "updateMirroredCatalogStatus"
+      parameters:
+        - name: updateMirroredCatalogStatusRequest
+          in: body
+          description: "The status update payload from Uilicious."
+          required: true
+          schema:
+            $ref: "#/definitions/UpdateMirroredCatalogStatusRequestVO"
+      responses:
+        200:
+          description: "Returns updated mirrored catalog status"
+          schema:
+            $ref: "#/definitions/MirroredCatalogResponseVO"
+        400:
+          description: "Bad Request"
+          schema:
+            $ref: "#/definitions/MirroredCatalogErrorResponseVO"
+        404:
+          description: "Mirrored catalog record not found"
+          schema:
+            $ref: "#/definitions/MirroredCatalogErrorResponseVO"
+        401:
+          description: "Request does not have sufficient credentials."
+        405:
+          description: "Method not allowed"
+        500:
+          description: "Internal error"
+          schema:
+            $ref: "#/definitions/MirroredCatalogErrorResponseVO"
+
 definitions:
 
   PublishCatalogRequestVO:
@@ -399,6 +548,10 @@ definitions:
         type: string
       tableId:
         type: string
+      enabled:
+        type: boolean
+        description: "Indicates if the table is enabled (true) or disabled (false)"
+        default: true
       columns:
         type: array
         items:
@@ -418,6 +571,10 @@ definitions:
         type: string
       colConstraint:
         type: string
+      enabled:
+        type: boolean
+        description: "Indicates if the column is enabled (true) or disabled (false)"
+        default: true
 
   PublishCatalogResponseVO:
     type: object
@@ -435,7 +592,7 @@ definitions:
       # - dataOrigin
       - leanIXId
       - isDocumentationUpdated
-      # - isDataLakeAvailability
+      - dataLakeName
       # - isDataAsset
       - dataConfidentiality
       - tier
@@ -457,9 +614,10 @@ definitions:
       isDocumentationUpdated:
         type: string
         enum: ["Yes","No"]
-      # isDataLakeAvailability:
-      #   type: string
-      #   enum: ["Yes","No"]
+      dataLakeName:
+        type: string
+        minLength: 1
+        description: "Data lake name (e.g., 'OneFabric'). Must be sent as a plain string, not an array."
 #      isDataAsset:
 #        type: string
 #        enum: ["Yes","No"]
@@ -477,12 +635,96 @@ definitions:
         type: string
       metadata:
         $ref: "#/definitions/FabricCatalogMetadataVO"
-      owners:
-        type: array
-        items:
-          $ref: "#/definitions/CreatedByVO"
       mandatoryFields:
         $ref: "#/definitions/MandatoryFieldsVO"
+      publishedCDCCatalogs:
+        type: array
+        description: "List of CDC catalog details published from this workspace"
+        items:
+          $ref: "#/definitions/CdcTableDetailVO"
+      publishedLakehouseTables:
+        type: array
+        description: "List of table names available in the lakehouse"
+        items:
+          type: string
+      publishedLakehouseTableDetails:
+        type: array
+        description: "Detailed information about lakehouse tables including enabled status"
+        items:
+          $ref: "#/definitions/LakehouseTableDetailVO"
+
+  CdcTableDetailVO:
+    type: object
+    description: "Detailed information about a CDC table product"
+    properties:
+      workspaceName:
+        type: string
+      workspaceId:
+        type: string
+      lakehouseName:
+        type: string
+      lakeHouseId:
+        type: string
+      isLakeHousesPublishedToCdc:
+        type: boolean
+      mandatoryFields:
+        $ref: "#/definitions/MandatoryFieldsVO"
+      publishedLakehouseTables:
+        type: array
+        description: "List of table names available in this lakehouse"
+        items:
+          type: string
+      publishedLakehouseTableDetails:
+        type: array
+        description: "Detailed information about tables and columns for this lakehouse"
+        items:
+          $ref: "#/definitions/LakehouseTableDetailVO"
+      productName:
+        type: string
+        description: "Name of the CDC data product"
+      productId:
+        type: string
+        description: "ID of the CDC data product"
+      createdBy:
+        $ref: "#/definitions/CreatedByVO"
+      createdOn:
+        type: string
+        format: date
+      modifiedOn:
+        type: string
+        format: date
+
+  LakehouseTableDetailVO:
+    type: object
+    description: "Detailed information about a lakehouse table"
+    properties:
+      tableName:
+        type: string
+        description: "Name of the table"
+      enabled:
+        type: boolean
+        description: "Whether the table is enabled (true) or disabled (false)"
+        default: false
+      columns:
+        type: array
+        description: "List of columns in the table"
+        items:
+          $ref: "#/definitions/LakehouseColumnDetailVO"
+
+  LakehouseColumnDetailVO:
+    type: object
+    description: "Detailed information about a column in a lakehouse table"
+    properties:
+      columnName:
+        type: string
+        description: "Name of the column"
+      colType:
+        type: string
+        description: "Data type of the column"
+      enabled:
+        type: boolean
+        description: "Whether the column is enabled (true) or disabled (false)"
+        default: false
 
   updateDDXGroupsRequestVO:
     type: object
@@ -541,6 +783,46 @@ definitions:
       columnMaskingRule:
         type: string
 
+  TableMismatchResponseVO:
+    type: object
+    properties:
+      hasMismatch:
+        type: boolean
+        description: "Whether any mismatch was detected"
+      mismatches:
+        type: array
+        items:
+          $ref: "#/definitions/TableMismatchDetailVO"
+      responses:
+        $ref: "#/definitions/GenericMessage"
+
+  TableMismatchDetailVO:
+    type: object
+    properties:
+      tableName:
+        type: string
+        description: "Name of the table"
+      lakeHouseId:
+        type: string
+        description: "ID of the lakehouse"
+      mismatchType:
+        type: string
+        description: "Type of mismatch detected"
+        enum:
+          - NEW_TABLE
+          - DELETED_TABLE
+          - COLUMNS_ADDED
+          - COLUMNS_REMOVED
+          - COLUMN_TYPE_CHANGED
+      details:
+        type: string
+        description: "Details about the mismatch"
+      affectedColumns:
+        type: array
+        items:
+          type: string
+        description: "List of affected column names"
+
   GroupStatusResponseVO:
     type: object
     properties:
@@ -559,3 +841,192 @@ definitions:
         type: string
       companyCode:
         type: string
+
+  CreateMirroredCatalogRequestVO:
+    type: object
+    properties:
+      dataProductName:
+        type: string
+        description: "Name of the data product"
+      catalogName:
+        type: string
+        description: "Name of the Databricks catalog"
+      schemaName:
+        type: string
+        description: "Name of the schema within the catalog"
+      region:
+        type: string
+        description: "Region for the mirrored catalog"
+      fullSchema:
+        type: boolean
+        description: "If true, mirror the full schema. If false, objects map is required."
+      objects:
+        type: object
+        additionalProperties:
+          type: string
+        description: "Map of object names to their types (table or view). Required when fullSchema is false."
+          # enum:
+          #   - table
+          #   - view
+      storageAccountUrl:
+        type: string
+        description: "ADLS Gen2 storage account URL"
+      ddxGroup:
+        type: string
+        description: "DDX group name for permission assignment"
+      ddxCorrelationId:
+        type: string
+        description: "Correlation ID for request tracking"
+
+  MirroredCatalogResponseVO:
+    type: object
+    properties:
+      ddxCorrelationId:
+        type: string
+        description: "Correlation ID for request tracking"
+      databricksMirroredCatalog:
+        $ref: "#/definitions/MirroredCatalogDataVO"
+      grantPermissions:
+        $ref: "#/definitions/GrantPermissionsVO"
+
+  MirroredCatalogDataVO:
+    type: object
+    properties:
+      mirroredCatalogId:
+        type: string
+        description: "Fabric object ID of the mirrored catalog"
+      mirroredCatalogUrl:
+        type: string
+        description: "Fabric object URL of the mirrored catalog"
+      catalog:
+        type: string
+        description: "Databricks catalog name"
+      schema:
+        type: string
+        description: "Databricks schema name"
+      objects:
+        type: array
+        items:
+          type: object
+          properties:
+            tableName:
+              type: string
+            status:
+              type: string
+        description: "Status of the mirrored object "
+      storageAccountUrl:
+        type: string
+        description: "ADLS Gen2 storage account URL"
+      status:
+        type: string
+        description: "Status of the mirrored catalog creation"
+        enum:
+          - SUCCESS
+          - FAILURE
+          - ALREADY_EXISTS
+          - IN_PROGRESS
+
+  GrantPermissionsVO:
+    type: array
+    items:
+      type: string
+      description: "DDX group name"
+
+  MirroredCatalogErrorResponseVO:
+    type: object
+    properties:
+      ddxCorrelationId:
+        type: string
+        description: "Correlation ID for request tracking"
+      status:
+        type: string
+        description: "Always 'error' for error responses"
+      errorCode:
+        type: string
+        description: "Error code identifying the type of error"
+        enum:
+          - INVALID_REQUEST
+          - STORAGE_ACCESS_DENIED
+          - DATABRICKS_DATAPRODUCT_NOT_FOUND
+          - DDX_GROUP_NOT_FOUND
+          - ALREADY_EXISTS
+          - INTERNAL_ERROR
+          - NOT_FOUND
+          - IN_PROGRESS
+      message:
+        type: string
+        description: "Human-readable error message"
+
+  MirroredCatalogStatusRequestVO:
+    type: object
+    required:
+      - mirroredCatalogId
+    properties:
+      mirroredCatalogId:
+        type: string
+        description: "Mirrored catalog ID to look up the status"
+
+  UpdateMirroredCatalogStatusRequestVO:
+    type: object
+    required:
+      - mirroredCatalogId
+      - ddxGroupDetails
+    properties:
+      mirroredCatalogId:
+        type: string
+        description: "Fabric catalog ID"
+      mirroredCatalogUrl:
+        type: string
+        description: "Fabric object URL of the mirrored catalog"
+      mirrorCatalogName:
+        type: string
+        description: "Mirror catalog name"
+      catalogStatus:
+        type: string
+        description: "Status of catalog creation"
+      catalogMessage:
+        type: string
+        description: "Message for catalog creation"
+      ddxGroupDetails:
+        type: array
+        items:
+          $ref: "#/definitions/DdxGroupDetailVO"
+
+  DdxGroupDetailVO:
+    type: object
+    properties:
+      groupName:
+        type: string
+        description: "DDX group name"
+      groupAddedStatus:
+        type: string
+        description: "Status of group addition"
+      grantPermissionStatus:
+        type: string
+        description: "Status of permission grant"
+      message:
+        type: string
+        description: "Message for this group operation"
+
+  GroupResponseVO:
+    type: object
+    properties:
+      ddxCorrelationId:
+        type: string
+        description: "Correlation ID for request tracking"
+      databricksMirroredCatalog:
+        $ref: "#/definitions/MirroredCatalogDataVO"
+      grantPermissions:
+        type: array
+        items:
+          $ref: "#/definitions/GrantPermissionItemVO"
+
+  GrantPermissionItemVO:
+    type: object
+    properties:
+      groupName:
+        type: string
+        description: "DDX group name"
+      status:
+        type: string
+        description: "Grant permission status"
