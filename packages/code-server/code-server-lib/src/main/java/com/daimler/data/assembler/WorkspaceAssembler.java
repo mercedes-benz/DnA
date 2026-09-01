@@ -895,13 +895,9 @@ import com.daimler.data.dto.workspace.DeploymentAuditVO;
 			 BeanUtils.copyProperties(vo, data);
 			 if(vo.isIsWorkspaceMigrated()!=null){
 				data.setIsWorkspaceMigrated(vo.isIsWorkspaceMigrated());
-			 }else{
-				data.setIsWorkspaceMigratedToGHE(false);
 			 }
 			if(vo.isIsWorkspaceMigratedToGHE()!=null){
 				data.setIsWorkspaceMigratedToGHE(vo.isIsWorkspaceMigratedToGHE());
-			}else{
-				data.setIsWorkspaceMigratedToGHE(false);
 			}
 			 if(vo.isActiveInGroup() !=null){
 				data.setActiveInGroup(vo.isActiveInGroup());
