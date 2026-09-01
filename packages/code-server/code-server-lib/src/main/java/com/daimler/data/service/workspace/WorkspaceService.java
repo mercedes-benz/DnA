@@ -66,6 +66,10 @@ public interface WorkspaceService {
 
 	GenericMessage update(String userId, String name, String projectName, String existingStatus, String latestStatus, String targetEnv, String branch, String gitJobRunId,String version);
 
+	GenericMessage updateStatus(String userId, String wsId, String projectName, String existingStatus,
+			String latestStatus, String targetEnv, String branch, String gitJobRunId, String version,
+			BaseWorkspaceService.PendingDeployment pendingDeployment);
+
 	GenericMessage approveRequestWorkspace(String userId, String id, String environment, String branch, boolean isprivateRecipe, String version);
 
 	GenericMessage deployWorkspace(String userId, String id, String environment, String branch, boolean isprivateRecipe, String version, String deployType, Boolean keepImage);

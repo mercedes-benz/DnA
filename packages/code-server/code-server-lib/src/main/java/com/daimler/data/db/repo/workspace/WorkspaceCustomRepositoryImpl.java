@@ -420,112 +420,117 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 		updateResponse.setSuccess("FAILED");
 		List<MessageDescription> errors = new ArrayList<>();
 		List<MessageDescription> warnings = new ArrayList<>();
-		Date deployedOn = deploymentDetails.getLastDeployedOn();
-		String longdate = null;
-		String  envString = "intDeploymentDetails";
-		if(deployedOn!=null)
-			longdate = String.valueOf(deployedOn.getTime()) ;
-		else {
-			// Preserve existing lastDeployedOn from DB when caller doesn't set it.
-			// This prevents race conditions where concurrent callers overwrite
-			// a previously-stored timestamp with null during full-object replacement.
-			try {
-				String readEnv = "int".equalsIgnoreCase(environment) ? "intDeploymentDetails" : "prodDeploymentDetails";
-				Query readQuery = em.createNativeQuery(
-					"SELECT data->'projectDetails'->'" + readEnv + "'->>'lastDeployedOn' FROM workspace_nsql WHERE lower(data->'projectDetails'->>'projectName') = lower(:projectName)");
-				readQuery.setParameter("projectName", projectName);
-				Object existingValue = readQuery.getSingleResult();
-				if (existingValue != null && !existingValue.toString().isEmpty() && !"null".equals(existingValue.toString())) {
-					longdate = existingValue.toString();
-					log.debug("{} - preserving existing lastDeployedOn={} from DB", projectName, longdate);
-				}
-			} catch (Exception e) {
-				log.warn("{} - could not read existing lastDeployedOn: {}", projectName, e.getMessage());
-			}
-		}
-			if(!"int".equalsIgnoreCase(environment)){
-				envString = "prodDeploymentDetails";
-			}
-			String selectedAliceRolesJson = (deploymentDetails.getSelectedAliceRoles() != null ? deploymentDetails.getSelectedAliceRoles().stream()
-				.map(role -> "\"" + role + "\"")
-				.collect(Collectors.joining(",", "[", "]"))
-				: "[]");
-			String updateQuery = "update workspace_nsql " +
-				"set data = jsonb_set(jsonb_set(jsonb_set(jsonb_set(data,'{projectDetails," + envString + "}', " +
-				"'{\"deploymentUrl\": " + addQuotes(deploymentDetails.getDeploymentUrl()) + "," +
-				" \"lastDeployedBy\": {\"id\": " + addQuotes(deploymentDetails.getLastDeployedBy().getId()) + "," +
-				" \"email\": " + addQuotes(deploymentDetails.getLastDeployedBy().getEmail()) + "," +
-				" \"lastName\": " + addQuotes(deploymentDetails.getLastDeployedBy().getLastName()) + "," +
-				" \"firstName\": " + addQuotes(deploymentDetails.getLastDeployedBy().getFirstName()) + "," +
-				" \"department\": " + addQuotes(deploymentDetails.getLastDeployedBy().getDepartment()) + "," +
-				" \"gitUserName\": " + addQuotes(deploymentDetails.getLastDeployedBy().getGitUserName()) + "," +
-				" \"mobileNumber\": " + addQuotes(deploymentDetails.getLastDeployedBy().getMobileNumber()) + "}," +
-				" \"lastDeployedOn\":" + longdate + "," +
-				" \"secureWithIAMRequired\": " + deploymentDetails.getSecureWithIAMRequired() + "," +
-				// " \"technicalUserDetailsForIAMLogin\": " + addQuotes(deploymentDetails.getTechnicalUserDetailsForIAMLogin()) + "," +
-				" \"lastDeployedBranch\": " + addQuotes(deploymentDetails.getLastDeployedBranch()) + "," +
-				" \"gitjobRunID\": " + addQuotes(deploymentDetails.getGitjobRunID()) + "," +
-				" \"oneApiVersionShortName\": " + addQuotes(deploymentDetails.getOneApiVersionShortName()) + "," +
-				" \"isSecuredWithCookie\": " + deploymentDetails.getIsSecuredWithCookie() + "," +
-				" \"deploymentType\": " + (deploymentDetails.getDeploymentType() != null ? addQuotes(String.valueOf(deploymentDetails.getDeploymentType())) : "null") + "," +
-				" \"clientId\": " + addQuotes(deploymentDetails.getClientId()) + "," +
-				" \"redirectUri\": " + addQuotes(deploymentDetails.getRedirectUri()) + "," +
-				" \"ignorePaths\": " + addQuotes(deploymentDetails.getIgnorePaths()) + "," +
-				" \"scope\": " + addQuotes(deploymentDetails.getScope()) + "," +
-				" \"ssoType\": " + (deploymentDetails.getSsoType() != null ? addQuotes(String.valueOf(deploymentDetails.getSsoType())) : "null") + "," +
-				" \"secureWithDnaRequired\": " + deploymentDetails.getSecureWithDnaRequired() + "," +
-				" \"aliceRoleEnabled\": " + deploymentDetails.getAliceRoleEnabled() + "," +
-				" \"entitlementPrefixEnabled\": " + deploymentDetails.getEntitlementPrefixEnabled() + "," +
-				" \"selectedAliceRoles\": " + selectedAliceRolesJson + "," +				
-				" \"lastDeployedVersion\": " + addQuotes(deploymentDetails.getLastDeployedVersion()) + "," +
-				// " \"lastDeploymentStatus\": " + addQuotes(deploymentDetails.getLastDeploymentStatus()) +"}'),\r\n" + 
-				" \"lastDeploymentStatus\": " + addQuotes(deploymentDetails.getLastDeploymentStatus()) + "," +
-				" \"lastDeploymentError\": " + addQuotes(deploymentDetails.getLastDeploymentError()) +"}'),\r\n" + 
-				"'{projectDetails,lastBuildOrDeployedOn}', '" + longdate + "'),\r\n" +
-				"'{projectDetails,lastBuildOrDeployedEnv}', '" + addQuotes(environment) + "'),\r\n" +
-				"'{projectDetails,lastBuildOrDeployedStatus}', '" + addQuotes(lastBuildOrDeployStatus) + "')\r\n"  ;
-
-			// List<DeploymentAudit> deploymentAuditLogs = deploymentDetails.getDeploymentAuditLogs();
-			// updateQuery += ", \"deploymentAuditLogs\" : ";
-			// if (deploymentAuditLogs != null && !deploymentAuditLogs.isEmpty()) {
-			// 	// Iterate over each DeploymentAudit object and add it to the JSON array
-			// 	updateQuery += "[";
-			// 	for (int i = 0; i < deploymentAuditLogs.size(); i++) {
-			// 		DeploymentAudit auditLog = deploymentAuditLogs.get(i);
-			// 		updateQuery += "{" +
-			// 			" \"triggeredBy\": " + addQuotes(auditLog.getTriggeredBy()) + "," +
-			// 			" \"triggeredOn\": " + addQuotes(String.valueOf(auditLog.getTriggeredOn().getTime())) + "," +
-			// 			" \"deploymentStatus\": " + addQuotes(auditLog.getDeploymentStatus()) + "," +
-			// 			" \"deployedOn\": " + (auditLog.getDeployedOn() != null ? addQuotes(String.valueOf(auditLog.getDeployedOn().getTime())) : "null") + "," +
-			// 			" \"commitId\": " + (auditLog.getCommitId() != null ? addQuotes(String.valueOf(auditLog.getCommitId())) : "null") + "," +
-			// 			" \"approvedBy\": " + (auditLog.getApprovedBy() != null ? addQuotes(String.valueOf(auditLog.getApprovedBy())) : "null") + "," +
-			// 			" \"branch\": " + addQuotes(auditLog.getBranch()) + "}";
-			// 		if(i+1 < deploymentAuditLogs.size()) {
-			// 			updateQuery += ",";
-			// 		}
-			// 	}
-			// 	updateQuery += "]";
-			// }else {
-			// 	updateQuery +=  " []";
-			// }
-			// updateQuery += "}')\r\n";
-			updateQuery += "where lower(data->'projectDetails'->>'projectName') = lower(:projectName)";
-
 		try {
-			Query q = em.createNativeQuery(updateQuery);
-			q.setParameter("projectName", projectName);
-			log.info("{} - execute update",projectName);
-			q.executeUpdate();
-			Date now = new Date();
-			log.info("{} - execute update completed at time {}",projectName, now);
-			updateResponse.setSuccess("SUCCESS");
-			updateResponse.setErrors(new ArrayList<>());
-			updateResponse.setWarnings(new ArrayList<>());
-			log.info("{} - deployment details updated successfully for project ", projectName);
+			Date deployedOn = deploymentDetails.getLastDeployedOn();
+			String longdate = null;
+			String  envString = "intDeploymentDetails";
+			if(deployedOn!=null)
+				longdate = String.valueOf(deployedOn.getTime()) ;
+			else {
+				// Preserve existing lastDeployedOn from DB when caller doesn't set it.
+				// This prevents race conditions where concurrent callers overwrite
+				// a previously-stored timestamp with null during full-object replacement.
+				try {
+					String readEnv = "int".equalsIgnoreCase(environment) ? "intDeploymentDetails" : "prodDeploymentDetails";
+					Query readQuery = em.createNativeQuery(
+						"SELECT data->'projectDetails'->'" + readEnv + "'->>'lastDeployedOn' FROM workspace_nsql WHERE lower(data->'projectDetails'->>'projectName') = lower(:projectName)");
+					readQuery.setParameter("projectName", projectName);
+					Object existingValue = readQuery.getSingleResult();
+					if (existingValue != null && !existingValue.toString().isEmpty() && !"null".equals(existingValue.toString())) {
+						longdate = existingValue.toString();
+						log.debug("{} - preserving existing lastDeployedOn={} from DB", projectName, longdate);
+					}
+				} catch (Exception e) {
+					log.warn("{} - could not read existing lastDeployedOn: {}", projectName, e.getMessage());
+				}
+			}
+				if(!"int".equalsIgnoreCase(environment)){
+					envString = "prodDeploymentDetails";
+				}
+				String selectedAliceRolesJson = (deploymentDetails.getSelectedAliceRoles() != null ? deploymentDetails.getSelectedAliceRoles().stream()
+					.map(role -> "\"" + role + "\"")
+					.collect(Collectors.joining(",", "[", "]"))
+					: "[]");
+				UserInfo lastDeployedBy = deploymentDetails.getLastDeployedBy();
+				String lastDeployedByJson = lastDeployedBy == null ? "null"
+						: "{\"id\": " + addQuotes(lastDeployedBy.getId()) + ","
+						+ " \"email\": " + addQuotes(lastDeployedBy.getEmail()) + ","
+						+ " \"lastName\": " + addQuotes(lastDeployedBy.getLastName()) + ","
+						+ " \"firstName\": " + addQuotes(lastDeployedBy.getFirstName()) + ","
+						+ " \"department\": " + addQuotes(lastDeployedBy.getDepartment()) + ","
+						+ " \"gitUserName\": " + addQuotes(lastDeployedBy.getGitUserName()) + ","
+						+ " \"mobileNumber\": " + addQuotes(lastDeployedBy.getMobileNumber()) + "}";
+				String updateQuery = "update workspace_nsql " +
+					"set data = jsonb_set(jsonb_set(jsonb_set(jsonb_set(data,'{projectDetails," + envString + "}', " +
+					"'{\"deploymentUrl\": " + addQuotes(deploymentDetails.getDeploymentUrl()) + "," +
+					" \"lastDeployedBy\": " + lastDeployedByJson + "," +
+					" \"lastDeployedOn\":" + longdate + "," +
+					" \"secureWithIAMRequired\": " + deploymentDetails.getSecureWithIAMRequired() + "," +
+					// " \"technicalUserDetailsForIAMLogin\": " + addQuotes(deploymentDetails.getTechnicalUserDetailsForIAMLogin()) + "," +
+					" \"lastDeployedBranch\": " + addQuotes(deploymentDetails.getLastDeployedBranch()) + "," +
+					" \"gitjobRunID\": " + addQuotes(deploymentDetails.getGitjobRunID()) + "," +
+					" \"oneApiVersionShortName\": " + addQuotes(deploymentDetails.getOneApiVersionShortName()) + "," +
+					" \"isSecuredWithCookie\": " + deploymentDetails.getIsSecuredWithCookie() + "," +
+					" \"deploymentType\": " + (deploymentDetails.getDeploymentType() != null ? addQuotes(String.valueOf(deploymentDetails.getDeploymentType())) : "null") + "," +
+					" \"clientId\": " + addQuotes(deploymentDetails.getClientId()) + "," +
+					" \"redirectUri\": " + addQuotes(deploymentDetails.getRedirectUri()) + "," +
+					" \"ignorePaths\": " + addQuotes(deploymentDetails.getIgnorePaths()) + "," +
+					" \"scope\": " + addQuotes(deploymentDetails.getScope()) + "," +
+					" \"ssoType\": " + (deploymentDetails.getSsoType() != null ? addQuotes(String.valueOf(deploymentDetails.getSsoType())) : "null") + "," +
+					" \"secureWithDnaRequired\": " + deploymentDetails.getSecureWithDnaRequired() + "," +
+					" \"aliceRoleEnabled\": " + deploymentDetails.getAliceRoleEnabled() + "," +
+					" \"entitlementPrefixEnabled\": " + deploymentDetails.getEntitlementPrefixEnabled() + "," +
+					" \"selectedAliceRoles\": " + selectedAliceRolesJson + "," +
+					" \"lastDeployedVersion\": " + addQuotes(deploymentDetails.getLastDeployedVersion()) + "," +
+					// " \"lastDeploymentStatus\": " + addQuotes(deploymentDetails.getLastDeploymentStatus()) +"}'),\r\n" +
+					" \"lastDeploymentStatus\": " + addQuotes(deploymentDetails.getLastDeploymentStatus()) + "," +
+					" \"lastDeploymentError\": " + addQuotes(deploymentDetails.getLastDeploymentError()) +"}'),\r\n" +
+					"'{projectDetails,lastBuildOrDeployedOn}', '" + longdate + "'),\r\n" +
+					"'{projectDetails,lastBuildOrDeployedEnv}', '" + addQuotes(environment) + "'),\r\n" +
+					"'{projectDetails,lastBuildOrDeployedStatus}', '" + addQuotes(lastBuildOrDeployStatus) + "')\r\n"  ;
+
+				// List<DeploymentAudit> deploymentAuditLogs = deploymentDetails.getDeploymentAuditLogs();
+				// updateQuery += ", \"deploymentAuditLogs\" : ";
+				// if (deploymentAuditLogs != null && !deploymentAuditLogs.isEmpty()) {
+				// 	// Iterate over each DeploymentAudit object and add it to the JSON array
+				// 	updateQuery += "[";
+				// 	for (int i = 0; i < deploymentAuditLogs.size(); i++) {
+				// 		DeploymentAudit auditLog = deploymentAuditLogs.get(i);
+				// 		updateQuery += "{" +
+				// 			" \"triggeredBy\": " + addQuotes(auditLog.getTriggeredBy()) + "," +
+				// 			" \"triggeredOn\": " + addQuotes(String.valueOf(auditLog.getTriggeredOn().getTime())) + "," +
+				// 			" \"deploymentStatus\": " + addQuotes(auditLog.getDeploymentStatus()) + "," +
+				// 			" \"deployedOn\": " + (auditLog.getDeployedOn() != null ? addQuotes(String.valueOf(auditLog.getDeployedOn().getTime())) : "null") + "," +
+				// 			" \"commitId\": " + (auditLog.getCommitId() != null ? addQuotes(String.valueOf(auditLog.getCommitId())) : "null") + "," +
+				// 			" \"approvedBy\": " + (auditLog.getApprovedBy() != null ? addQuotes(String.valueOf(auditLog.getApprovedBy())) : "null") + "," +
+				// 			" \"branch\": " + addQuotes(auditLog.getBranch()) + "}";
+				// 		if(i+1 < deploymentAuditLogs.size()) {
+				// 			updateQuery += ",";
+				// 		}
+				// 	}
+				// 	updateQuery += "]";
+				// }else {
+				// 	updateQuery +=  " []";
+				// }
+				// updateQuery += "}')\r\n";
+				updateQuery += "where lower(data->'projectDetails'->>'projectName') = lower(:projectName)";
+
+				Query q = em.createNativeQuery(updateQuery);
+				q.setParameter("projectName", projectName);
+				log.info("{} - execute update",projectName);
+				q.executeUpdate();
+				Date now = new Date();
+				log.info("{} - execute update completed at time {}",projectName, now);
+				updateResponse.setSuccess("SUCCESS");
+				updateResponse.setErrors(new ArrayList<>());
+				updateResponse.setWarnings(new ArrayList<>());
+				log.info("{} - deployment details updated successfully for project ", projectName);
 		}catch(Exception e) {
 			MessageDescription errMsg = new MessageDescription("Failed while updating deployment details.");
 			errors.add(errMsg);
-			log.error("failed to update deployment details for project {} and environment {} , branch {} ", projectName,environment,deploymentDetails.getLastDeployedBranch());
+			log.error("failed to update deployment details for project {} and environment {} , branch {} ",
+					projectName, environment,
+					deploymentDetails != null ? deploymentDetails.getLastDeployedBranch() : null, e);
 		}
 		return updateResponse;
 	}
@@ -931,7 +936,8 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 		}catch(Exception e) {
 			MessageDescription errMsg = new MessageDescription("Failed while updating build details.");
 			errors.add(errMsg);
-			log.error("failed to update build details for project {} and environment {} , branch {} exception {} ", projectName,environment,buildDetails.getLastBuildBranch(),e.getMessage());
+			log.error("failed to update build details for project {} and environment {} , branch {} ", projectName,
+					environment, buildDetails.getLastBuildBranch(), e);
 		}
 		return updateResponse;
 	}
