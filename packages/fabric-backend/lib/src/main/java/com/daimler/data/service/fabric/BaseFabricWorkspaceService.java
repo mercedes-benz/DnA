@@ -632,7 +632,8 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 					responseData.setResponses(responseMessage);
 					log.error("Error occurred:{} while creating fabric workspace project {} ", createResponse.getErrorCode(), vo.getName());
 					if("409".equalsIgnoreCase(createResponse.getErrorCode())) {
-						if(vo.getInitiatedBy() == null || (vo.getInitiatedBy() != null && !FabricWorkspaceController.isTechnicalUser(vo.getInitiatedBy()))) {
+						FabricWorkspaceVO dnaDBWorkspace = this.getByUniqueliteral("name", vo.getName());
+						if(vo.getInitiatedBy() == null || (vo.getInitiatedBy() != null && !FabricWorkspaceController.isTechnicalUser(vo.getInitiatedBy())) || dnaDBWorkspace != null) {
 							message.setMessage("Failed to create workspace. A workspace with the same name already exists. Please choose a different name.");
 							return new ResponseEntity<>(responseData, HttpStatus.CONFLICT);
 						}

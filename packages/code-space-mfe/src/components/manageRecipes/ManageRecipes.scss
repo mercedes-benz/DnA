@@ -1,9 +1,11 @@
 .mainPanel {
-  padding: 72px 75px 30px 75px;
+  // padding: 72px 75px 30px 75px !important;
 
   .wrapper {
     width: 100%;
     position: relative;
+    padding-left: 72px;
+    padding-right: 75px;
   }
 
   >div {
