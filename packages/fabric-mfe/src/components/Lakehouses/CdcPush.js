@@ -112,6 +112,24 @@ const MISMATCH_TYPE_CONFIG = {
   COLUMN_TYPE_CHANGED: { label: 'Datatype Changed', colorClass: 'badgeModified' },
 };
 
+const isLakehouseAlreadyPublished = (publishedDetails, lakehouseId, lakehouseName) => {
+  if (!publishedDetails) return false;
+
+  const publishedNames = publishedDetails.publishedLakeHouseNames || [];
+  const publishedIds = publishedDetails.publishedLakeHouseIds || [];
+  const publishedEntries = publishedDetails.publishedLakeHouseDetails || [];
+
+  return (
+    publishedNames.includes(lakehouseName) ||
+    publishedNames.includes(lakehouseId) ||
+    publishedIds.includes(lakehouseId) ||
+    publishedEntries.some((entry) =>
+      entry?.lakeHouseId === lakehouseId ||
+      entry?.lakeHouseName === lakehouseName
+    )
+  );
+};
+
 const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRefreshWorkspace, mismatches: mismatchesProp = [] }) => {
   const [tables, setTables] = useState([]);
   const [columnsByTable, setColumnsByTable] = useState({});
@@ -214,8 +232,12 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
         setWorkspaceMetadata(data);
         setWorkspaceCreator(data?.createdBy);
 
-        const isPublished = data?.cdcPublishedLakeHouseDetails?.publishedLakeHouseNames?.includes(lakehouseId);
-        console.log('[CdcPush] isPublished:', isPublished, 'lakehouseId:', lakehouseId, 'publishedNames:', data?.cdcPublishedLakeHouseDetails?.publishedLakeHouseNames);
+        const isPublished = isLakehouseAlreadyPublished(
+          data?.cdcPublishedLakeHouseDetails,
+          lakehouseId,
+          lakehouseName
+        );
+        console.log('[CdcPush] isPublished:', isPublished, 'lakehouseId:', lakehouseId, 'lakehouseName:', lakehouseName, 'publishedNames:', data?.cdcPublishedLakeHouseDetails?.publishedLakeHouseNames);
 
         if (isPublished) {
           setHasPushedOnce(true);
@@ -304,7 +326,7 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
           'alert'
         );
       });
-  }, [workspaceId, lakehouseId, setValue]);
+  }, [workspaceId, lakehouseName, lakehouseId, setValue]);
 
   // Auto-select previously published tables once both tables list and publish history are loaded
   useEffect(() => {
@@ -577,7 +599,11 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
   ]);
 
   const onPush = handleSubmit(handlePush);
-  const isLakehousePublished = workspaceMetadata?.cdcPublishedLakeHouseDetails?.publishedLakeHouseNames?.includes(lakehouseId) || false;
+  const isLakehousePublished = isLakehouseAlreadyPublished(
+    workspaceMetadata?.cdcPublishedLakeHouseDetails,
+    lakehouseId,
+    lakehouseName
+  );
 
   const isPushDisabled =
   !workspaceMetadata || 

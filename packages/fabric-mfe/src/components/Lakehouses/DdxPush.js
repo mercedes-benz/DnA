@@ -25,8 +25,17 @@ const Step1_BasicIdentification = ({ formData, setFormData, errors, clearError }
           autoComplete="off"
           value={formData.dataProductName || ''}
           onChange={(e) => {
-            setFormData({ ...formData, dataProductName: e?.target?.value });
-            clearError('nameError');
+            const val = e?.target?.value;
+            setFormData({ ...formData, dataProductName: val });
+            if (val && !/^[A-Z][a-zA-Z0-9]*$/.test(val.trim())) {
+              if (!/^[A-Z]/.test(val.trim())) {
+                clearError('nameError', 'First letter must be uppercase, only alphanumeric characters allowed');
+              } else {
+                clearError('nameError', 'Only alphanumeric characters allowed');
+              }
+            } else {
+              clearError('nameError');
+            }
           }}
         />
         {errors.nameError && <span className="error-message">{errors.nameError}</span>}
@@ -496,8 +505,15 @@ const Step4_ComplianceUsage = ({
   updateFrequencies,
 }) => {
 
+  const selectBoxInitialized = useRef(false);
+
   useEffect(() => {
-    // SelectBox.defaultSetup();
+    if (!selectBoxInitialized.current) {
+      setTimeout(() => {
+        SelectBox.defaultSetup();
+        selectBoxInitialized.current = true;
+      }, 0);
+    }
   }, []);
 
   return (
@@ -548,7 +564,7 @@ const Step4_ComplianceUsage = ({
             ))}
           </select>
           </div>
-          {errors.purposesError && <span className="error-message">{errors.purposesError}</span>}
+          <span className="error-message" style={{ display: errors.purposesError ? 'block' : 'none' }}>{errors.purposesError || '\u00A0'}</span>
         </div>
       </div>
 
@@ -615,7 +631,7 @@ const Step4_ComplianceUsage = ({
               ))}
             </select>
           </div>
-          {errors.updateFrequencyError && <span className="error-message">{errors.updateFrequencyError}</span>}
+          <span className="error-message" style={{ display: errors.updateFrequencyError ? 'block' : 'none' }}>{errors.updateFrequencyError || '\u00A0'}</span>
         </div>
       </div>
     </div>
@@ -625,8 +641,15 @@ const Step4_ComplianceUsage = ({
 
 const Step5_PersonalData = ({ formData, setFormData, errors, clearError, criteriaTransferPricing, qualificationTransferPricing }) => {
 
+  const selectBoxInitialized = useRef(false);
+
   useEffect(() => {
-    // SelectBox.defaultSetup();
+    if (!selectBoxInitialized.current) {
+      setTimeout(() => {
+        SelectBox.defaultSetup();
+        selectBoxInitialized.current = true;
+      }, 0);
+    }
   }, []);
 
   return (
@@ -693,7 +716,7 @@ const Step5_PersonalData = ({ formData, setFormData, errors, clearError, criteri
           ))}
         </select>
         </div>
-        {errors.criteriaTransferPricingError && <span className="error-message">{errors.criteriaTransferPricingError}</span>}
+        <span className="error-message" style={{ display: errors.criteriaTransferPricingError ? 'block' : 'none' }}>{errors.criteriaTransferPricingError || '\u00A0'}</span>
       </div>
     </div>
 
@@ -718,9 +741,7 @@ const Step5_PersonalData = ({ formData, setFormData, errors, clearError, criteri
           ))}
         </select>
         </div>
-        {errors.qualificationTransferPricingError && (
-          <span className="error-message">{errors.qualificationTransferPricingError}</span>
-        )}
+        <span className="error-message" style={{ display: errors.qualificationTransferPricingError ? 'block' : 'none' }}>{errors.qualificationTransferPricingError || '\u00A0'}</span>
       </div>
     </div>
   </div>
@@ -784,8 +805,8 @@ const ViewDdxTablesModalContent = ({ workspaceId, workspaceName, workspaceOwner,
 
   const [errors, setErrors] = useState({});
 
-  const clearError = (field) => {
-    setErrors(prev => ({ ...prev, [field]: '' }));
+  const clearError = (field, message) => {
+    setErrors(prev => ({ ...prev, [field]: message || '' }));
   };
 
   const validateCurrentStep = () => {
@@ -794,8 +815,12 @@ const ViewDdxTablesModalContent = ({ workspaceId, workspaceName, workspaceOwner,
     if (currentStep === 'step1') {
       if (!formData.dataProductName?.trim()) {
         newErrors.nameError = '*Missing entry';
-      } else if (!/^[A-Z]/.test(formData.dataProductName.trim())) {
-        newErrors.nameError = 'First letter must be capital';
+      } else if (!/^[A-Z][a-zA-Z0-9]*$/.test(formData.dataProductName.trim())) {
+        if (!/^[A-Z]/.test(formData.dataProductName.trim())) {
+          newErrors.nameError = 'First letter must be uppercase, only alphanumeric characters allowed';
+        } else {
+          newErrors.nameError = 'Only alphanumeric characters allowed';
+        }
       }
 
       if (!formData.dataProductDescription || formData.dataProductDescription.trim().length < 50) {
