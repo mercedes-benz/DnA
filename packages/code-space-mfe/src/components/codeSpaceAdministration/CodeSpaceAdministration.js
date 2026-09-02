@@ -45,7 +45,7 @@ const CodeSpaceAdministration = ({ user }) => {
   };
 
   return (
-    <>
+    <div>
       <div className={classNames(Styles.mainPanel)}>
         <Caption title="Administration" onBackClick={() => history.push('/manageRecipes')} />
         <div id="recipe-administration-tabs" className="tabs-panel">
@@ -125,7 +125,7 @@ const CodeSpaceAdministration = ({ user }) => {
         </div>
       </div>
       <div className={Styles.mandatoryInfo}>* mandatory fields</div>
-    </>
+    </div>
   );
 };
 export default CodeSpaceAdministration;

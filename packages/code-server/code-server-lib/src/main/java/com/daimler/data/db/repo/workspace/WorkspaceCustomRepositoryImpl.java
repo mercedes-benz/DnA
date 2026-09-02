@@ -82,7 +82,44 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 		TypedQuery<CodeServerWorkspaceNsql> getAllQuery = em.createQuery(getAll);
 		return getAllQuery.getResultList();		
 	} 
-			
+
+	@Override
+	public List<CodeServerWorkspaceNsql> findDeploymentReconciliationWorkspaces() {
+		String query = """
+				SELECT *
+				FROM workspace_nsql
+				WHERE lower(jsonb_extract_path_text(data, 'status')) <> 'deleted'
+				  AND (
+					jsonb_extract_path_text(data, 'projectDetails', 'intDeploymentDetails', 'lastDeploymentStatus')
+						IN (:deployRequested, :restartRequested)
+					OR jsonb_extract_path_text(data, 'projectDetails', 'prodDeploymentDetails', 'lastDeploymentStatus')
+						IN (:deployRequested, :restartRequested)
+					OR jsonb_extract_path_text(data, 'projectDetails', 'lastBuildOrDeployedStatus') = :restartRequested
+					OR (
+						jsonb_extract_path_text(data, 'projectDetails', 'intDeploymentDetails', 'lastDeploymentStatus')
+							= :deploymentFailed
+						AND (
+							jsonb_extract_path_text(data, 'projectDetails', 'intDeploymentDetails', 'lastDeployedBy') IS NULL
+							OR jsonb_extract_path_text(data, 'projectDetails', 'intDeploymentDetails', 'lastDeployedOn') IS NULL
+						)
+					)
+					OR (
+						jsonb_extract_path_text(data, 'projectDetails', 'prodDeploymentDetails', 'lastDeploymentStatus')
+							= :deploymentFailed
+						AND (
+							jsonb_extract_path_text(data, 'projectDetails', 'prodDeploymentDetails', 'lastDeployedBy') IS NULL
+							OR jsonb_extract_path_text(data, 'projectDetails', 'prodDeploymentDetails', 'lastDeployedOn') IS NULL
+						)
+					)
+				  )
+				""";
+		Query reconciliationQuery = em.createNativeQuery(query, CodeServerWorkspaceNsql.class);
+		reconciliationQuery.setParameter("deployRequested", "DEPLOY_REQUESTED");
+		reconciliationQuery.setParameter("deploymentFailed", "DEPLOYMENT_FAILED");
+		reconciliationQuery.setParameter("restartRequested", "RESTART_REQUESTED");
+		return reconciliationQuery.getResultList();
+	}
+
 	@Override
 	public List<CodeServerWorkspaceNsql> findAll(String userId, int limit, int offset) {
 		CriteriaBuilder cb = em.getCriteriaBuilder();
@@ -236,10 +273,11 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 		String getQuery = "select jsonb_extract_path_text(data,'workspaceId') as wsid,"
 				+ "jsonb_extract_path_text(data,'workspaceOwner','id') as userid from workspace_nsql "
 				+ "where lower(jsonb_extract_path_text(data,'projectDetails','projectName'))"
-				+ "= '" + projectName.toLowerCase() + "' and lower(jsonb_extract_path_text(data,'status')) <> 'deleted'"
+				+ "= lower(:projectName) and lower(jsonb_extract_path_text(data,'status')) <> 'deleted'"
 				+ "and lower(jsonb_extract_path_text(data,'projectDetails','projectOwner','id'))" + "= '" + projectOwnerId.toLowerCase() + "' ";
 		try {
 			Query q = em.createNativeQuery(getQuery);
+			q.setParameter("projectName", projectName);
 			records = q.getResultList();
 			if(records!=null && !records.isEmpty()) {
 				log.info("Found {} workspaces in project {} which are not in deleted state", records.size(), projectName);
@@ -255,10 +293,11 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 		String id = "";
 		String getQuery = "select id "
 				+ " from workspace_nsql "
-				+ " where lower(jsonb_extract_path_text(data,'projectDetails','projectName'))" + "= '" + projectName.toLowerCase() + "' and lower(jsonb_extract_path_text(data,'workspaceOwner','id')) = '" + userId.toLowerCase() + "'"
+				+ " where lower(jsonb_extract_path_text(data,'projectDetails','projectName'))" + "= lower(:projectName) and lower(jsonb_extract_path_text(data,'workspaceOwner','id')) = '" + userId.toLowerCase() + "'"
 				+ " and lower(jsonb_extract_path_text(data,'status')) <> 'deleted'";
 		try {
 			Query q = em.createNativeQuery(getQuery);
+			q.setParameter("projectName", projectName);
 			id = (String) q.getSingleResult();
 			if (id != null && !id.isEmpty()) {
 				log.info("Found {} workspaces in project {} which are not in deleted state", id, projectName);
@@ -307,9 +346,10 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 				+ " \"department\": " + addQuotes(updatedProjectOwnerDetails.getDepartment()) + ","
 				+ " \"gitUserName\": " + addQuotes(updatedProjectOwnerDetails.getGitUserName()) + ","
 				+ " \"mobileNumber\": " + addQuotes(updatedProjectOwnerDetails.getMobileNumber()) + "}' )\n" + "\\:" + "\\:" + "jsonb \n"
-				+ "where data->'projectDetails'->>'projectName' = '" + projectName + "'" + " and lower(jsonb_extract_path_text(data,'status')) <> 'deleted'";
+				+ "where lower(data->'projectDetails'->>'projectName') = lower(:projectName)" + " and lower(jsonb_extract_path_text(data,'status')) <> 'deleted'";
 		try {
 			Query q = em.createNativeQuery(updateQuery);
+			q.setParameter("projectName", projectName);
 			q.executeUpdate();
 			updateResponse.setSuccess("SUCCESS");
 			updateResponse.setErrors(new ArrayList<>());
@@ -340,7 +380,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 						+ "else (select jsonb_agg(x) from jsonb_array_elements(data->'projectDetails'->'projectCollaborators')"
 						+ " x where x->>'id' != " + "'" + updatedcollaborators.getId() + "'" + ") "
 						+ "end )"
-						+ "where data->'projectDetails'->>'projectName' = '" + projectName + "'" + " and lower(jsonb_extract_path_text(data,'status')) <> 'deleted'";
+						+ "where lower(data->'projectDetails'->>'projectName') = lower(:projectName)" + " and lower(jsonb_extract_path_text(data,'status')) <> 'deleted'";
 			} else {
 				updateQuery = "update workspace_nsql\r\n"
 						+ "set data = jsonb_set(data,'{projectDetails, projectCollaborators}', \r\n"
@@ -354,10 +394,11 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 						+ " \"isAdmin\": " + updatedcollaborators.getIsAdmin()+ ","
 						+ " \"isApprover\": " + updatedcollaborators.getIsApprover()+ ","
 						+ " \"mobileNumber\": " + addQuotes(updatedcollaborators.getMobileNumber()) + "}' )\n"
-						+ "where data->'projectDetails'->>'projectName' = '" + projectName + "'" + " and lower(jsonb_extract_path_text(data,'status')) <> 'deleted'";
+						+ "where lower(data->'projectDetails'->>'projectName') = lower(:projectName)" + " and lower(jsonb_extract_path_text(data,'status')) <> 'deleted'";
 			}
 			try {
 				Query q = em.createNativeQuery(updateQuery);
+				q.setParameter("projectName", projectName);
 				q.executeUpdate();
 				updateResponse.setSuccess("SUCCESS");
 				updateResponse.setErrors(new ArrayList<>());
@@ -392,7 +433,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 			try {
 				String readEnv = "int".equalsIgnoreCase(environment) ? "intDeploymentDetails" : "prodDeploymentDetails";
 				Query readQuery = em.createNativeQuery(
-					"SELECT data->'projectDetails'->'" + readEnv + "'->>'lastDeployedOn' FROM workspace_nsql WHERE data->'projectDetails'->>'projectName' = :projectName");
+					"SELECT data->'projectDetails'->'" + readEnv + "'->>'lastDeployedOn' FROM workspace_nsql WHERE lower(data->'projectDetails'->>'projectName') = lower(:projectName)");
 				readQuery.setParameter("projectName", projectName);
 				Object existingValue = readQuery.getSingleResult();
 				if (existingValue != null && !existingValue.toString().isEmpty() && !"null".equals(existingValue.toString())) {
@@ -469,10 +510,11 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 			// 	updateQuery +=  " []";
 			// }
 			// updateQuery += "}')\r\n";
-			updateQuery += "where data->'projectDetails'->>'projectName' = '" + projectName + "'";
+			updateQuery += "where lower(data->'projectDetails'->>'projectName') = lower(:projectName)";
 
 		try {
 			Query q = em.createNativeQuery(updateQuery);
+			q.setParameter("projectName", projectName);
 			log.info("{} - execute update",projectName);
 			q.executeUpdate();
 			Date now = new Date();
@@ -643,11 +685,9 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 			updateResponse.setErrors(errors);
 			updateResponse.setWarnings(warnings);
 		} catch (Exception e) {
-			errors.add(new MessageDescription("Failed while updating deployment status fields."));
 			log.error("Failed to update deployment status fields for project {} and environment {}",
 					projectName, environment, e);
-			updateResponse.setErrors(errors);
-			updateResponse.setWarnings(warnings);
+			throw new IllegalStateException(e.getMessage(), e);
 		}
 		return updateResponse;
 	}
@@ -731,10 +771,11 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 				"'{projectDetails," + addQuotes(environment) + ",selectedAliceRoles}', '" + selectedAliceRolesJson
 				+ "')";
 
-		updateQuery += " where data->'projectDetails'->>'projectName' = '" + projectName + "'";
+		updateQuery += " where lower(data->'projectDetails'->>'projectName') = lower(:projectName)";
 
 		try {
 			Query q = em.createNativeQuery(updateQuery);
+			q.setParameter("projectName", projectName);
 			q.executeUpdate();
 			updateResponse.setSuccess("SUCCESS");
 			updateResponse.setErrors(new ArrayList<>());
@@ -766,12 +807,13 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 				"'{projectDetails,lastBuildOrDeployedEnv}', '" + addQuotes(environment) + "'),\r\n" +
 				"'{projectDetails,lastBuildOrDeployedStatus}', '" + addQuotes(status) + "')\r\n"  ;
 
-			updateQuery += "where data->'projectDetails'->>'projectName' = '" + projectName + "'";
+			updateQuery += "where lower(data->'projectDetails'->>'projectName') = lower(:projectName)";
 
 			log.info("updateQuery {}",updateQuery);
 
 		try {
 			Query q = em.createNativeQuery(updateQuery);
+			q.setParameter("projectName", projectName);
 			q.executeUpdate();
 			updateResponse.setSuccess("SUCCESS");
 			updateResponse.setErrors(new ArrayList<>());
@@ -801,31 +843,36 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 			if(!"int".equalsIgnoreCase(environment)){
 				envString = "prodBuildDetails";
 			}
+			UserInfo lastBuildBy = buildDetails.getLastBuildBy();
+			String lastBuildByJson = lastBuildBy == null ? "null"
+					: "{\"id\": " + addQuotes(lastBuildBy.getId()) + ","
+					+ " \"email\": " + addQuotes(lastBuildBy.getEmail()) + ","
+					+ " \"lastName\": " + addQuotes(lastBuildBy.getLastName()) + ","
+					+ " \"firstName\": " + addQuotes(lastBuildBy.getFirstName()) + ","
+					+ " \"department\": " + addQuotes(lastBuildBy.getDepartment()) + ","
+					+ " \"gitUserName\": " + addQuotes(lastBuildBy.getGitUserName()) + ","
+					+ " \"mobileNumber\": " + addQuotes(lastBuildBy.getMobileNumber()) + "}";
 			String updateQuery = "update workspace_nsql " +
 				"set data =   jsonb_set(jsonb_set(jsonb_set(jsonb_set(data,'{projectDetails," + envString + "}', " +
 				"'{\"version\": " + addQuotes(buildDetails.getVersion()) + "," +
-				" \"lastBuildBy\": {\"id\": " + addQuotes(buildDetails.getLastBuildBy().getId()) + "," +
-				" \"email\": " + addQuotes(buildDetails.getLastBuildBy().getEmail()) + "," +
-				" \"lastName\": " + addQuotes(buildDetails.getLastBuildBy().getLastName()) + "," +
-				" \"firstName\": " + addQuotes(buildDetails.getLastBuildBy().getFirstName()) + "," +
-				" \"department\": " + addQuotes(buildDetails.getLastBuildBy().getDepartment()) + "," +
-				" \"gitUserName\": " + addQuotes(buildDetails.getLastBuildBy().getGitUserName()) + "," +
-				" \"mobileNumber\": " + addQuotes(buildDetails.getLastBuildBy().getMobileNumber()) + "}," +
+				" \"lastBuildBy\": " + lastBuildByJson + "," +
 				" \"lastBuildOn\":" + longdate + "," +
 				" \"lastBuildType\": " + addQuotes(buildDetails.getLastBuildType()) + "," +
 				" \"lastBuildBranch\": " + addQuotes(buildDetails.getLastBuildBranch()) + "," +
 				" \"gitjobRunID\": " + addQuotes(buildDetails.getGitjobRunID()) + "," +
+				" \"lastBuildFailureReason\": " + addQuotes(buildDetails.getLastBuildFailureReason()) + "," +
 				" \"lastBuildStatus\": " + addQuotes(buildDetails.getLastBuildStatus()) +"}'),\r\n" + 
 				"'{projectDetails,lastBuildOrDeployedOn}', '" + longdate + "'),\r\n" +
 				"'{projectDetails,lastBuildOrDeployedEnv}', '" + addQuotes(environment) + "'),\r\n" +
 				"'{projectDetails,lastBuildOrDeployedStatus}', '" + addQuotes(buildDetails.getLastBuildStatus()) + "')\r\n"  ;
 
-			updateQuery += "where data->'projectDetails'->>'projectName' = '" + projectName + "'";
+			updateQuery += "where lower(data->'projectDetails'->>'projectName') = lower(:projectName)";
 
 			log.info("updateQuery {}",updateQuery);
 
 		try {
 			Query q = em.createNativeQuery(updateQuery);
+			q.setParameter("projectName", projectName);
 			q.executeUpdate();
 			updateResponse.setSuccess("SUCCESS");
 			updateResponse.setErrors(new ArrayList<>());
@@ -855,9 +902,10 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 	public void updateDeletedStatusForProject(String projectName) {
 		String updateQuery = "UPDATE workspace_nsql SET data = jsonb_set(data, '{status}', '\"DELETED\"') "
 				+ " where lower(jsonb_extract_path_text(data,'projectDetails','projectName')) "
-				+ "= '" + projectName.toLowerCase() + "' and lower(jsonb_extract_path_text(data,'status')) <> 'deleted'";
+				+ "= lower(:projectName) and lower(jsonb_extract_path_text(data,'status')) <> 'deleted'";
 		try {
 			Query q = em.createNativeQuery(updateQuery);
+			q.setParameter("projectName", projectName);
 			q.executeUpdate();
 			log.info("updated all workspaces under project {} to DELETED state", projectName);
 		}catch(Exception e) {
@@ -962,7 +1010,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 					"cast(jsonb_extract_path_text(data,'projectDetails','projectName') as text) as PROJECT_NAME, cast(id as text) as COLUMN_ID,  " +
                   "cast(jsonb_extract_path_text(data,'projectDetails','projectOwner') as text) as PROJECT_OWNER, " +
                   "cast(jsonb_extract_path_text(data,'projectDetails','securityConfig') as text) as SECURITY_CONFIG " +
-                  "FROM workspace_nsql WHERE lower(jsonb_extract_path_text(data,'projectDetails','projectName'))="+" '"+projectName +"'"+" AND lower(jsonb_extract_path_text(data,'status')) in('created') ";
+                  "FROM workspace_nsql WHERE lower(jsonb_extract_path_text(data,'projectDetails','projectName'))=lower(:projectName) AND lower(jsonb_extract_path_text(data,'status')) in('created') ";
 				  }
 		if (limit > 0)
 			  getQuery = getQuery + " limit " + limit;
@@ -970,6 +1018,9 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 			  getQuery = getQuery + " offset " + offset;
 		try {
 			Query q = em.createNativeQuery(getQuery);
+			if (projectName != null && !projectName.isEmpty()) {
+				q.setParameter("projectName", projectName);
+			}
 			results = q.getResultList();
 
 			ObjectMapper mapper = new ObjectMapper();
@@ -1014,9 +1065,10 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 				+ "set data = jsonb_set(data, '{projectDetails,securityConfig}', \r\n"
 				+ " '{\"status\": " + addQuotes(status)
 				+ "}' )\n" + "\\:" + "\\:" + "jsonb \n"
-				+ "where data->'projectDetails'->>'projectName' = '" + projectName + "'" + " and lower(jsonb_extract_path_text(data,'status')) <> 'deleted'";
+				+ "where lower(data->'projectDetails'->>'projectName') = lower(:projectName)" + " and lower(jsonb_extract_path_text(data,'status')) <> 'deleted'";
 		try {
 			Query q = em.createNativeQuery(updateQuery);
+			q.setParameter("projectName", projectName);
 			q.executeUpdate();
 			updateResponse.setSuccess("SUCCESS");
 			updateResponse.setErrors(new ArrayList<>());
@@ -1038,10 +1090,11 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 		String getQuery = "select jsonb_extract_path_text(data,'workspaceId') as workspaceId "
 				+ "from workspace_nsql "
 				+ "where lower(jsonb_extract_path_text(data,'projectDetails','projectName'))"
-				+ "in('" + projectName.toLowerCase() + "') and lower(jsonb_extract_path_text(data,'status')) <> 'deleted'";
+				+ "= lower(:projectName) and lower(jsonb_extract_path_text(data,'status')) <> 'deleted'";
 		
 		try {
 			Query q = em.createNativeQuery(getQuery);
+			q.setParameter("projectName", projectName);
 			workspaceIds = q.getResultList();
 			if (workspaceIds != null && !workspaceIds.isEmpty()) {
 				log.info("Found {} workspaces with project name {} which are not in deleted state", workspaceIds.size(), projectName);
@@ -1145,10 +1198,11 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 				+ " \"subDivision\": " + addQuotes(newGovFeilds.getSubDivision()) + ","
 				+ " \"typeOfProject\": " + addQuotes(newGovFeilds.getTypeOfProject()) + ","
 				+ " \"classificationType\": " + addQuotes(newGovFeilds.getClassificationType()) + "}')\n"
-				+ "where data->'projectDetails'->>'projectName' = '" + projectName + "'";
+				+ "where lower(data->'projectDetails'->>'projectName') = lower(:projectName)";
 
 		try {
 			Query q = em.createNativeQuery(updateQuery);
+			q.setParameter("projectName", projectName);
 			q.executeUpdate();
 			updateResponse.setSuccess("SUCCESS");
 			updateResponse.setErrors(new ArrayList<>());
@@ -1209,7 +1263,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 					END AS gitJobRunId
 
 				FROM public.workspace_nsql
-				WHERE jsonb_extract_path_text(data,'projectDetails','projectName') = CAST(? AS text)
+				WHERE lower(jsonb_extract_path_text(data,'projectDetails','projectName')) = lower(CAST(? AS text))
 			""";
 
 		try
@@ -1299,12 +1353,13 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 		}
 
 		updateQuery +=
-			" where data->'projectDetails'->>'projectName' = '" + projectName + "'";
+			" where lower(data->'projectDetails'->>'projectName') = lower(:projectName)";
 
 		try {
 			log.info("Final update query = {}", updateQuery);
 
 			Query q = em.createNativeQuery(updateQuery);
+			q.setParameter("projectName", projectName);
 			int rows = q.executeUpdate();
 
 			if (rows == 0) {
@@ -1565,3 +1620,4 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 	}
 
 }
+
