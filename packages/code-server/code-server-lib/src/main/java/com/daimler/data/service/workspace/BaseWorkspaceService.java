@@ -106,6 +106,7 @@ import com.daimler.data.dto.WorkbenchManageDto;
  import com.daimler.data.dto.WorkbenchManageInputDto;
  import com.daimler.data.dto.solution.ChangeLogVO;
  import com.daimler.data.dto.userinfo.UsersCollection;
+ import com.daimler.data.dto.CodespaceResourceExemptionDto;
  import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.CloudServiceProviderEnum;
  import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.RecipeIdEnum;
  import com.daimler.data.dto.workspace.CodeServerUserGroupByIdVO;
@@ -131,6 +132,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
  import com.daimler.data.util.CommonUtils;
  import com.daimler.data.util.ConstantsUtility;
  import com.daimler.dna.notifications.common.producer.KafkaProducerService;
+ import com.daimler.data.dto.workspace.admin.CodespaceResourceExemptionVO;
  import com.fasterxml.jackson.databind.JsonNode;
  import com.fasterxml.jackson.databind.ObjectMapper;
  import com.daimler.data.db.json.DeploymentAudit;
@@ -3939,6 +3941,26 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 		 }else{
 			 return new ArrayList<>();
 		 }
+	 }
+
+	 
+	 @Override
+	 public List<CodespaceResourceExemptionVO> getAllResourceCapExemptions(Integer offset, Integer limit, String projectName) {
+		 List<CodespaceResourceExemptionDto> dtos = workspaceCustomRepository.getAllResourceCapExemptions(offset, limit, projectName);
+		 if (dtos == null) {
+			 return new ArrayList<>();
+		 }
+		 return dtos.stream().map(n -> workspaceAssembler.dtoToVo(n)).collect(Collectors.toList());
+	 }
+
+	 @Override
+	 public Integer getResourceCapExemptionsCount(String projectName) {
+		 return workspaceCustomRepository.getResourceCapExemptionsCount(projectName);
+	 }
+
+	 @Override
+	 public GenericMessage updateResourceCapExemption(String projectName, String environment, boolean exempt) {
+		 return workspaceCustomRepository.updateResourceCapExemption(projectName, environment, exempt);
 	 }
   
 	 // public void notifyAllCodespaceAdminUsers(String eventType, String resourceId, String message, String triggeringUser,

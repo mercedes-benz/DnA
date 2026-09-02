@@ -37,6 +37,7 @@ import com.daimler.data.db.json.CodeServerDeploymentDetails;
 import com.daimler.data.db.json.CodeServerLeanGovernanceFeilds;
 import com.daimler.data.db.json.UserInfo;
 import com.daimler.data.db.repo.common.CommonDataRepository;
+import com.daimler.data.dto.CodespaceResourceExemptionDto;
 import com.daimler.data.dto.CodespaceSecurityConfigCollectionDto;
 import com.daimler.data.dto.CodespaceSecurityConfigDto;
 import com.daimler.data.dto.GitRunIdDetailsDto;
@@ -121,5 +122,11 @@ public interface WorkspaceCustomRepository extends CommonDataRepository<CodeServ
 	boolean updateBuildDeployAuditStatus(String projectName, String status, String environment, String gitjobRunId);
 
 	boolean isResourceCapExempt(String projectName, String environment);
+
+	List<CodespaceResourceExemptionDto> getAllResourceCapExemptions(Integer offset, Integer limit, String projectName);
+
+	Integer getResourceCapExemptionsCount(String projectName);
+
+	GenericMessage updateResourceCapExemption(String projectName, String environment, boolean exempt);
 
 }
