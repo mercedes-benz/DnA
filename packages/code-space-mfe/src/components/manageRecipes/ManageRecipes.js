@@ -195,7 +195,7 @@ const ManageRecipes = ({ user }) => {
   }
 
   return (
-    <>
+    <div>
       <div className={Styles.mainPanel}>
         <div className={Styles.wrapper}>
           <Caption title="Manage Recipes" onBackClick={() => history.push('/')}>
@@ -424,7 +424,7 @@ const ManageRecipes = ({ user }) => {
           } 
         />
       }
-    </>
+    </div>
   );
 };
 export default ManageRecipes;
