@@ -260,7 +260,7 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
         console.log('[CdcPush] isPublished:', isPublished, 'lakehouseId:', lakehouseId, 'lakehouseName:', lakehouseName, 'publishedNames:', data?.cdcPublishedLakeHouseDetails?.publishedLakeHouseNames);
 
         if (isPublished) {
-          setHasPushedOnce(true);
+          setIsAlreadyPublished(true);
         }
 
         if (isPublished && data?.name) {
@@ -619,11 +619,6 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
   ]);
 
   const onPush = handleSubmit(handlePush);
-  const isLakehousePublished = isLakehouseAlreadyPublished(
-    workspaceMetadata?.cdcPublishedLakeHouseDetails,
-    lakehouseId,
-    lakehouseName
-  );
 
   const isPushDisabled =
   !workspaceMetadata || 
