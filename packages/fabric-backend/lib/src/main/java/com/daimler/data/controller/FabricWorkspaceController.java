@@ -1169,10 +1169,10 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
     public ResponseEntity<LakehouseTableCollectionResponseVO> getLakehouseTables(@NotNull @ApiParam(value = "", required = true) @Valid @RequestParam(value = "workspaceId", required = true) String workspaceId,@NotNull @ApiParam(value = "", required = true) @Valid @RequestParam(value = "lakehouseId", required = true) String lakehouseId){
 		try{
 			LakehouseTableCollectionResponseVO response = fabricCDCPushServiceClient.getLakehouseTables(workspaceId, lakehouseId);
-			if (response != null && response.getData()!=null && response.getResponseCode().equalsIgnoreCase(HttpStatus.OK.toString())) {
+			if (response != null && response.getData()!=null && HttpStatus.OK.toString().equalsIgnoreCase(response.getResponseCode())) {
 				return new ResponseEntity<>(response, HttpStatus.OK);
 			} else {
-				return new ResponseEntity<>(response, response.getResponseCode() != null ? HttpStatus.valueOf(response.getResponseCode()) : HttpStatus.NO_CONTENT);
+				return new ResponseEntity<>(response, resolveHttpStatus(response != null ? response.getResponseCode() : null));
 			}
 		} catch (Exception e) {
 			log.error("Failed to retrieve lakehouse tables for workspaceId {} and lakehouseId {} with exception: {}", workspaceId, lakehouseId, e.getMessage());
@@ -1198,16 +1198,27 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
     public ResponseEntity<LakehouseColumnCollectionResponseVO> getTableSchema(@NotNull @ApiParam(value = "", required = true) @Valid @RequestParam(value = "workspaceId", required = true) String workspaceId,@NotNull @ApiParam(value = "", required = true) @Valid @RequestParam(value = "lakehouseId", required = true) String lakehouseId,@NotNull @ApiParam(value = "", required = true) @Valid @RequestParam(value = "tableName", required = true) String tableName,@ApiParam(value = "") @Valid @RequestParam(value = "schemaName", required = false) String schemaName){
 		try{
 			LakehouseColumnCollectionResponseVO response = fabricCDCPushServiceClient.getTableSchema(workspaceId, lakehouseId, schemaName, tableName);
-			if (response != null && response.getData()!=null && response.getResponseCode().equalsIgnoreCase(HttpStatus.OK.toString())) {
+			if (response != null && response.getData()!=null && HttpStatus.OK.toString().equalsIgnoreCase(response.getResponseCode())) {
 				return new ResponseEntity<>(response, HttpStatus.OK);
 			} else {
-				return new ResponseEntity<>(response, response.getResponseCode() != null ? HttpStatus.valueOf(response.getResponseCode()) : HttpStatus.NO_CONTENT);
+				return new ResponseEntity<>(response, resolveHttpStatus(response != null ? response.getResponseCode() : null));
 			}
 		} catch (Exception e) {
 			log.error("Failed to retrieve table schema for workspaceId {} and lakehouseId {} with exception: {}", workspaceId, lakehouseId, e.getMessage());
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
     }
+	private HttpStatus resolveHttpStatus(String responseCode) {
+		if (responseCode == null || responseCode.trim().isEmpty()) {
+			return HttpStatus.NO_CONTENT;
+		}
+		try {
+			int statusCode = Integer.parseInt(responseCode.trim().split("\\s+")[0]);
+			return HttpStatus.valueOf(statusCode);
+		} catch (IllegalArgumentException e) {
+			return HttpStatus.NO_CONTENT;
+		}
+	}
 	private String capitalizeFirstLetter(String str) {
 		if (str == null || str.isEmpty()) {
 			return str;

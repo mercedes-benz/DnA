@@ -26,6 +26,7 @@ public class FabricCatalogMetadataDetails implements Serializable {
     private MandatoryFields mandatoryFields;
     private List<String> publishedLakehouseTables;
     private List<LakehouseTableDetail> publishedLakehouseTableDetails;
+    @JsonAlias("publishedCdcTables")
     @JsonProperty("publishedCDCCatalogs")
     @JsonDeserialize(using = CdcTableDetailListDeserializer.class)
     private List<CdcTableDetail> publishedCDCCatalogs;

@@ -377,3 +377,21 @@
 .schemaChangeColumnsLabel {
   font-weight: bold;
 }
+
+.schemaWarningBanner {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  background-color: #fff3cd;
+  color: #856404;
+  border: 1px solid #ffc107;
+  border-radius: 4px;
+  font-size: 14px;
+
+  i {
+    font-size: 18px;
+    color: #e0a800;
+  }
+}

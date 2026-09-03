@@ -143,7 +143,9 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
   const [workspaceCreator, setWorkspaceCreator] = useState(null);
   const [description, setDescription] = useState(null);
   const [showCdcLogin, setShowCdcLogin] = useState(false);
-  const [hasPushedOnce, setHasPushedOnce] = useState(false);
+  const [isAlreadyPublished, setIsAlreadyPublished] = useState(false);
+  const [schemaEnabled, setSchemaEnabled] = useState(true);
+  const [schemaCheckLoading, setSchemaCheckLoading] = useState(true);
   const [localMismatches, setLocalMismatches] = useState(mismatchesProp);
   const [previouslyPublishedTables, setPreviouslyPublishedTables] = useState([]);
   const previouslyEnabledColumnsRef = useRef({});
@@ -208,10 +210,28 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
     ProgressIndicator.show();
     fabricApi.getLakehouseTables(workspaceId, lakehouseId)
       .then(res => {
-        setTables(res?.data?.data?.tables || []);
+        const fetchedTables = res?.data?.data?.tables || [];
+        // Component state and payloads use tableName keys, while upstream may return schema variants.
+        const tablesByName = new Map();
+        fetchedTables.forEach(table => {
+          const existingTable = tablesByName.get(table.tableName);
+          const hasSchemaName = table.schemaName && table.schemaName.trim() !== '';
+          const existingHasSchemaName = existingTable?.schemaName && existingTable.schemaName.trim() !== '';
+          if (!existingTable || (!existingHasSchemaName && hasSchemaName)) {
+            tablesByName.set(table.tableName, table);
+          }
+        });
+        const uniqueTables = Array.from(tablesByName.values());
+        setTables(uniqueTables);
+        // Judge schema support from raw rows because schema-less lakehouses also expose a dbo SQL-endpoint copy.
+        const hasSchemaName = fetchedTables.length > 0
+          && fetchedTables.every(t => t.schemaName && t.schemaName.trim() !== '');
+        setSchemaEnabled(hasSchemaName);
+        setSchemaCheckLoading(false);
         ProgressIndicator.hide();
       })
       .catch((e) => {
+        setSchemaCheckLoading(false);
         ProgressIndicator.hide();
         if (e?.response?.status === 403) {
           Notification.show('Unauthorized to view this page or not found', 'alert');
@@ -530,7 +550,10 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
     });
 
     ProgressIndicator.show();
-    fabricApi.pushSelectedTables(workspaceId, payload)
+    const pushApi = isAlreadyPublished
+      ? fabricApi.updatePublishedTables(workspaceId, payload)
+      : fabricApi.pushSelectedTables(workspaceId, payload);
+    pushApi
       .then(() => {
         const publishedSnapshot = {
           workspaceId,
@@ -555,8 +578,6 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
         ProgressIndicator.hide();
         Notification.show("Push to CDC successful!", "success");
 
-        setHasPushedOnce(true);
-
         if (onRefreshWorkspace) {
           onRefreshWorkspace();
         }
@@ -578,8 +599,6 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
         Notification.show(backendMessage, 'alert');
       });
 
-    // console.log("CDC Payload to be sent:");
-    // console.log(JSON.stringify(payload, null, 2));
 
   }, [
     workspaceId,
@@ -596,6 +615,7 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
     description,
     workspaceCreator,
     onRefreshWorkspace,
+    isAlreadyPublished,
   ]);
 
   const onPush = handleSubmit(handlePush);
@@ -607,10 +627,10 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
 
   const isPushDisabled =
   !workspaceMetadata || 
+  !schemaEnabled ||
+  schemaCheckLoading ||
   Object.keys(selectedTables).length === 0 ||
-  Object.keys(selectedColumns).length === 0 ||
-  hasPushedOnce ||
-  isLakehousePublished;
+  Object.keys(selectedColumns).length === 0;
 
     return (
     <div className={Styles.modalFAQContentWrapper}>
@@ -641,6 +661,13 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
           </div>
         </div>
       )}
+
+        {!schemaCheckLoading && !schemaEnabled && (
+          <div className={Styles.schemaWarningBanner}>
+            <i className="icon mbc-icon alert circle"></i>
+            <span>CDC Push requires Lakehouse Schemas to be enabled. Please recreate the lakehouse with the Lakehouse Schemas option checked.</span>
+          </div>
+        )}
 
         <div className={Styles.flex}>
           <div className={Styles.col3}>
@@ -828,9 +855,9 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
                           const cols = res.data.data.columns || [];
                           setColumnsByTable(prev => ({ ...prev, [tableName]: cols }));
                           if (selectedTables[tableName]) {
-                            const storedCols = previouslyEnabledColumnsRef.current[tableName] || [];
+                            const storedCols = previouslyEnabledColumnsRef.current[tableName];
                             const colSelections = cols.reduce((acc, col) => {
-                              acc[col.columnName] = storedCols.length > 0
+                              acc[col.columnName] = storedCols !== undefined
                                 ? storedCols.includes(col.columnName)
                                 : true;
                               return acc;
@@ -903,7 +930,7 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
       </div>
 
       <div className={Styles.pushButtonContainer}>
-        <button className={isPushDisabled ? classNames("btn btn-tertiary") : classNames("btn btn-primary")} type="button" disabled={isPushDisabled} onClick={onPush}>
+        <button className={isPushDisabled ? classNames("btn btn-primary") : classNames("btn btn-tertiary")} type="button" disabled={isPushDisabled} onClick={onPush}>
           Push
         </button>
       </div>
