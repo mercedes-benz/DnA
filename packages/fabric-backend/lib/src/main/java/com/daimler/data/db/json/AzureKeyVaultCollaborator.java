@@ -17,6 +17,9 @@ public class AzureKeyVaultCollaborator implements Serializable {
 	private static final long serialVersionUID = 1L;
 
 	private String identifier;
+	private String shortId;
+	private String firstName;
+	private String lastName;
 	private String objectId;
 	private String principalType;
 	private String kind;
