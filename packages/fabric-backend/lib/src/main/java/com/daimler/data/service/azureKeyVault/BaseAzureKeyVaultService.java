@@ -57,14 +57,6 @@ public class BaseAzureKeyVaultService extends BaseCommonService<KeyVaultVO, Azur
 	private UserStore userStore;
 
 	@Override
-	public List<AzurePrincipalDto> searchPrincipals(String search) {
-		if (search == null || search.isBlank() || search.trim().length() < 3) {
-			return List.of();
-		}
-		return azureManagementClient.searchPrincipals(search);
-	}
-
-	@Override
 	public KeyVaultCollectionVO getAllKeyVaults(int limit, int offset, String createdBy) {
 		KeyVaultCollectionVO collection = new KeyVaultCollectionVO();
 		GenericMessage message = new GenericMessage();
