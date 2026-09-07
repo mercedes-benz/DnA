@@ -46,7 +46,8 @@ const CodeSpaceAdministration = ({ user }) => {
 
   return (
     <div>
-      <div className={classNames(Styles.mainPanel)}>
+      <div className={classNames(Styles.mainPanel)}
+        style={{ padding: "72px 75px 30px 75px" }}>
         <Caption title="Administration" onBackClick={() => history.push('/manageRecipes')} />
         <div id="recipe-administration-tabs" className="tabs-panel">
           <div className="tabs-wrapper">

@@ -196,7 +196,8 @@ const ManageRecipes = ({ user }) => {
 
   return (
     <div>
-      <div className={Styles.mainPanel}>
+      <div className={Styles.mainPanel}
+        style={{ padding: "72px 75px 30px 75px" }}>
         <div className={Styles.wrapper}>
           <Caption title="Manage Recipes" onBackClick={() => history.push('/')}>
             <div className={classNames(Styles.listHeader)}>
