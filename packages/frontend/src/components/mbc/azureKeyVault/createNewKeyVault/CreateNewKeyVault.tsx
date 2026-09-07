@@ -8,7 +8,8 @@ import ProgressIndicator from '../../../../assets/modules/uilab/js/src/progress-
 import { CodeSpaceApiClient } from '../../../../services/CodeSpaceApiClient';
 import { ApiClient } from '../../../../services/ApiClient';
 import TextBox from '../../shared/textBox/TextBox';
-import { IKeyVault, IKeyVaultCollaborator, IKeyVaultPrincipal } from 'globals/types';
+import AddUser from '../../addUser/AddUser';
+import { IKeyVault, IKeyVaultCollaborator } from 'globals/types';
 
 interface Props {
   edit?: boolean;
@@ -44,8 +45,6 @@ const CreateNewWorkspace = ({ edit, project, setShowCreateModal, getKeyVaultList
   const [departments, setDepartments] = useState([]);
   const [dataClassificationDropdown, setDataClassificationDropdown] = useState([]);
   const [collaborators, setCollaborators] = useState<IKeyVaultCollaborator[]>(project?.collaborators || []);
-  const [principalSearch, setPrincipalSearch] = useState('');
-  const [principalResults, setPrincipalResults] = useState<IKeyVaultPrincipal[]>([]);
 
   const requiredError = '*Missing entry';
   const keyVaultNameErrorText = '*Key Vault Name should start with kv-';
@@ -153,37 +152,27 @@ const CreateNewWorkspace = ({ edit, project, setShowCreateModal, getKeyVaultList
     }
   };
 
-  const searchPrincipals = () => {
-    if (principalSearch.trim().length < 3) {
-      setPrincipalResults([]);
+  const addCollaborator = (member: any) => {
+    const collaborator: IKeyVaultCollaborator = {
+      id: member?.shortId,
+      firstName: member?.firstName,
+      lastName: member?.lastName,
+      email: member?.email,
+    };
+    if (!collaborator.id) {
       return;
     }
-    ApiClient.searchKeyVaultPrincipals(principalSearch.trim())
-      .then((results: IKeyVaultPrincipal[]) => setPrincipalResults(results || []))
-      .catch(() => Notification.show('Unable to search Entra ID principals.', 'alert'));
-  };
-
-  const addCollaborator = (principal: IKeyVaultPrincipal) => {
-    const identifier = principal.identifier || principal.mail || principal.appId || principal.displayName;
-    if (!identifier) {
-      return;
-    }
-    if (collaborators.some((item) => item.identifier?.toLowerCase() === identifier.toLowerCase())) {
+    if (collaborators.some((item) => item.id?.toLowerCase() === collaborator.id.toLowerCase())) {
       Notification.show('Collaborator already exists.', 'warning');
       return;
     }
-    setCollaborators([
-      ...collaborators,
-      {
-        identifier,
-        displayName: principal.displayName || principal.mail || principal.appId || identifier,
-        kind: principal.kind,
-        principalType: principal.principalType,
-        role: 'Crypto User',
-      },
-    ]);
-    setPrincipalResults([]);
-    setPrincipalSearch('');
+    setCollaborators([...collaborators, collaborator]);
+  };
+
+  const onCollaboratorDelete = (userId: string) => {
+    return () => {
+      setCollaborators(collaborators.filter((collaborator) => collaborator.id !== userId));
+    };
   };
 
   const createKeyVault = () => {
@@ -469,50 +458,45 @@ const CreateNewWorkspace = ({ edit, project, setShowCreateModal, getKeyVaultList
         </div>
         <div className="input-field-group">
           <label className="input-label">Collaborators</label>
-          <div className={Styles.flexLayout}>
-            <input
-              className="input-field"
-              value={principalSearch}
-              placeholder="Search users, service principals, or managed identities"
-              onChange={(event) => setPrincipalSearch(event.currentTarget.value)}
-              onKeyDown={(event) => event.key === 'Enter' && searchPrincipals()}
-            />
-            <button className="btn btn-secondary" type="button" onClick={searchPrincipals}>
-              Search
-            </button>
-          </div>
-          {principalResults.length > 0 && (
-            <div className="chips">
-              {principalResults.map((principal) => (
-                <button
-                  className="btn btn-text"
-                  type="button"
-                  key={principal.id}
-                  onClick={() => addCollaborator(principal)}
-                >
-                  {principal.displayName || principal.mail || principal.identifier} ({principal.kind})
-                </button>
-              ))}
+          <AddUser
+            dagId=""
+            getCollabarators={addCollaborator}
+            isRequired={false}
+            isUserprivilegeSearch={false}
+            title={'Collaborator'}
+          />
+          {collaborators.length === 0 && (
+            <div className={Styles.noCollaborators}>
+              <p>No collaborators selected</p>
             </div>
           )}
-          <div className="chips">
-            {collaborators.map((collaborator) => (
-              <span className="chip" key={collaborator.identifier}>
-                {collaborator.displayName || collaborator.identifier} ({collaborator.kind})
-                <button
-                  className="btn btn-text"
-                  type="button"
-                  aria-label={`Remove ${collaborator.identifier}`}
-                  onClick={() =>
-                    setCollaborators(
-                      collaborators.filter((item) => item.identifier !== collaborator.identifier),
-                    )
-                  }
-                >
-                  ×
-                </button>
-              </span>
-            ))}
+          <div>
+            {collaborators.length > 0 && (
+              <>
+                <div className={Styles.colHeader}>
+                  <div className={Styles.column1}>User ID</div>
+                  <div className={Styles.column2}>Name</div>
+                  <div className={Styles.column4}></div>
+                </div>
+                <div>
+                  {collaborators.map((collaborator) => (
+                    <div key={collaborator.id} className={Styles.userRow}>
+                      <div className={Styles.column1}>
+                        <p>{collaborator.id}</p>
+                      </div>
+                      <div className={Styles.column2}>
+                        <p>{collaborator.firstName + ' ' + collaborator.lastName}</p>
+                      </div>
+                      <div className={Styles.column4}>
+                        <div className={Styles.deleteEntry} onClick={onCollaboratorDelete(collaborator.id)}>
+                          <i className="icon mbc-icon trash-outline" tooltip-data={'Delete'} />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
         </div>
         <div className={Styles.newCodeSpaceBtn}>

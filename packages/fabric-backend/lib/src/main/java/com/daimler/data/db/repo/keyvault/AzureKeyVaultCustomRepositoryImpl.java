@@ -53,7 +53,7 @@ public class AzureKeyVaultCustomRepositoryImpl extends CommonDataRepositoryImpl<
     }
 
     @Override
-    public List<AzureKeyVaultNsql> findAllByCreatorOrCollaborator(String creatorId, String collaboratorIdentifier,
+    public List<AzureKeyVaultNsql> findAllByCreatorOrCollaborator(String creatorId, String collaboratorUserId,
             int limit, int offset) {
         CriteriaBuilder cb = em.getCriteriaBuilder();
         CriteriaQuery<AzureKeyVaultNsql> cq = cb.createQuery(AzureKeyVaultNsql.class);
@@ -72,8 +72,8 @@ public class AzureKeyVaultCustomRepositoryImpl extends CommonDataRepositoryImpl<
             cb.lower(cb.literal(creatorId))
         );
         Predicate accessPredicate = creatorPredicate;
-        if (collaboratorIdentifier != null && !collaboratorIdentifier.isBlank()) {
-            String escaped = collaboratorIdentifier.toLowerCase()
+        if (collaboratorUserId != null && !collaboratorUserId.isBlank()) {
+            String escaped = collaboratorUserId.toLowerCase()
                 .replace("\\", "\\\\")
                 .replace("%", "\\%")
                 .replace("_", "\\_");
@@ -83,9 +83,9 @@ public class AzureKeyVaultCustomRepositoryImpl extends CommonDataRepositoryImpl<
                 root.get("data"),
                 cb.literal("collaborators")
             );
-            // Match the identifier field only; searching all collaborator JSON fields would create false positives.
+            // Match the id field only; searching all collaborator JSON fields would create false positives.
             accessPredicate = cb.or(creatorPredicate, cb.like(
-                cb.lower(collaboratorPath), "%\"identifier\":\"" + escaped + "\"%", '\\'));
+                cb.lower(collaboratorPath), "%\"id\":\"" + escaped + "\"%", '\\'));
         }
         cq.where(accessPredicate);
         

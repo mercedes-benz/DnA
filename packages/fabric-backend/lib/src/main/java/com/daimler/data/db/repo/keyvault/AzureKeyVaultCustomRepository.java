@@ -35,6 +35,6 @@ public interface AzureKeyVaultCustomRepository extends CommonDataRepository<Azur
 
     List<AzureKeyVaultNsql> findAllByCreator(String creatorId, int limit, int offset);
 
-    List<AzureKeyVaultNsql> findAllByCreatorOrCollaborator(String creatorId, String collaboratorIdentifier,
+    List<AzureKeyVaultNsql> findAllByCreatorOrCollaborator(String creatorId, String collaboratorUserId,
             int limit, int offset);
 }

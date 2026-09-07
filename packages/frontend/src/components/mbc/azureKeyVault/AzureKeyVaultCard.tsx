@@ -45,7 +45,11 @@ const AzureKeyVaultCard = ({ project, onEditWorkspace}: Props) => {
             </div>
             <div>
               <div>Collaborators</div>
-              <div>{project?.collaborators?.map((item) => item.displayName || item.identifier).join(', ') || 'None'}</div>
+              <div>
+                {project?.collaborators
+                  ?.map((item) => `${item.firstName || ''} ${item.lastName || ''}`.trim() || item.id)
+                  .join(', ') || 'None'}
+              </div>
             </div>
             <div>
               <div>Create On</div>

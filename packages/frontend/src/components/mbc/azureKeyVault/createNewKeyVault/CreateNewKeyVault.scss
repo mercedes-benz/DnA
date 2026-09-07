@@ -152,6 +152,68 @@
   padding: 6px 10px 6px 10px;
 }
 
+.colHeader {
+  color: #99a5b3;
+  font-size: var(--font-size-smallest);
+  font-family: var(--font-family-medium);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #383f49;
+  padding-bottom: 10px;
+  width: 100%;
+
+  div {
+    flex: 1;
+  }
+}
+
+.userRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  color: #99a5b3;
+  font-size: var(--font-size-smallest);
+  padding: 5px 0;
+  word-break: break-word;
+
+  p {
+    margin-bottom: 0;
+  }
+}
+
+.column1 {
+  width: 40%;
+  max-width: 40%;
+  min-width: 40%;
+  word-break: break-all;
+}
+
+.column2 {
+  width: 55%;
+  max-width: 55%;
+  min-width: 55%;
+  word-break: break-all;
+}
+
+.column4 {
+  width: 5%;
+  max-width: 5%;
+  min-width: 5%;
+  word-break: break-all;
+}
+
+.deleteEntry {
+  float: right;
+  cursor: pointer;
+}
+
+.noCollaborators {
+  text-align: center;
+  padding: 20px;
+}
+
 .progressIndicator{
   >div{
     width: 40px;

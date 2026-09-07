@@ -1583,24 +1583,14 @@ export interface IKeyVaultCreatedBy {
 }
 
 export interface IKeyVaultCollaborator {
-  identifier: string;
+  id: string;
+  firstName?: string;
+  lastName?: string;
+  email?: string;
   objectId?: string;
   principalType?: string;
-  kind: 'USER' | 'SPN' | 'MI';
-  displayName?: string;
   role?: string;
   roleAssignmentId?: string;
-}
-
-export interface IKeyVaultPrincipal {
-  id: string;
-  displayName?: string;
-  mail?: string;
-  appId?: string;
-  servicePrincipalType?: string;
-  principalType: string;
-  kind: 'USER' | 'SPN' | 'MI';
-  identifier: string;
 }
 
 export interface IKeyVault {
