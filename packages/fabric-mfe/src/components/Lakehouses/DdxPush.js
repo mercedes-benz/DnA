@@ -1107,7 +1107,8 @@ const ViewDdxTablesModalContent = ({ workspaceId, workspaceName, workspaceOwner,
                 <li>Navigate through each step in the DDX portal..</li>
                 <li>Upon reaching <strong>Step 7</strong>, click the <strong>Get Objects</strong> button and then proceed by clicking Next.</li>
                 <li>In <strong>Step 8</strong>, click the <strong>Get Objects</strong> button again.</li>
-                <li>In the final step, review and verify all the details, agree to the Terms of Use, and complete the onboarding process.</li>                
+                <li>In the final step, review and verify all the details, agree to the Terms of Use, and complete the onboarding process.</li>
+                <li>After completing the onboarding process, if you need any help with the approval of your data product kindly reach out to  <a href={`mailto:${Envs.DDX_DP_APPROVAL_MAIL}`} target="_blank" rel="noreferrer">{Envs.DDX_DP_APPROVAL_MAIL}</a></li>
               </ol>
             </div>
           </div>
