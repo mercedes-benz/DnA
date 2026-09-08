@@ -2,7 +2,7 @@ package com.daimler.data.service.fabric;
 
 import java.util.List;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 
 import org.springframework.http.ResponseEntity;
 

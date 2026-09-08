@@ -3,9 +3,9 @@ package com.daimler.data.controller;
 import java.util.List;
 import java.util.Comparator;
 
-import javax.persistence.EntityNotFoundException;
-import javax.validation.OverridesAttribute;
-import javax.validation.Valid;
+import jakarta.persistence.EntityNotFoundException;
+import jakarta.validation.OverridesAttribute;
+import jakarta.validation.Valid;
 
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,7 +21,6 @@ import org.springframework.web.bind.annotation.RestController;
 import com.daimler.data.api.tag.TagsApi;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.dto.fabricWorkspace.CreatedByVO;
-import com.daimler.data.dto.tag.TagCollection;
 import com.daimler.data.dto.tag.TagRequestVO;
 import com.daimler.data.dto.tag.TagVO;
 import com.daimler.data.dto.userinfo.UserInfoVO;
@@ -140,17 +139,16 @@ public class TagController implements TagsApi{
 	}
 
 	@Override
-	@ApiOperation(value = "Get all available tags.", nickname = "getAll", notes = "Get all tags. This endpoints will be used to Get all valid available tag maintenance records.", response = TagCollection.class, tags = {
+	@ApiOperation(value = "Get all available tags.", nickname = "getAll", notes = "Get all tags. This endpoints will be used to Get all valid available tag maintenance records.", response = TagVO.class, tags = {
 			"tags", })
 	@ApiResponses(value = {
-			@ApiResponse(code = 201, message = "Successfully completed fetching all tags", response = TagCollection.class),
+			@ApiResponse(code = 201, message = "Successfully completed fetching all tags", response = TagVO.class),
 			@ApiResponse(code = 204, message = "Fetch complete, no content found"),
 			@ApiResponse(code = 500, message = "Internal error") })
 	@RequestMapping(value = "/tags", produces = { "application/json" }, method = RequestMethod.GET)
-	public ResponseEntity<TagCollection> getAll(
+	public ResponseEntity<List<TagVO>> getAll(
 			@ApiParam(value = "Sort tags based on the given order, example asc,desc", allowableValues = "asc, desc") @Valid @RequestParam(value = "sortOrder", required = false) String sortOrder) {
 		final List<TagVO> tags = tagService.getAll();		
-		TagCollection tagCollection = new TagCollection();
 		if (tags != null && tags.size() > 0) {
 			if( sortOrder == null || sortOrder.equalsIgnoreCase("asc")) {
 				tags.sort(Comparator.comparing(TagVO :: getName, String.CASE_INSENSITIVE_ORDER));
@@ -158,12 +156,11 @@ public class TagController implements TagsApi{
 			if(sortOrder != null && sortOrder.equalsIgnoreCase("desc")) {
 				tags.sort(Comparator.comparing(TagVO :: getName, String.CASE_INSENSITIVE_ORDER).reversed());
 			}
-			tagCollection.addAll(tags);
 			log.debug("Returning available tags");
-			return new ResponseEntity<>(tagCollection, HttpStatus.OK);
+			return new ResponseEntity<>(tags, HttpStatus.OK);
 		} else {
 			log.debug("No tags available, returning empty");
-			return new ResponseEntity<>(tagCollection, HttpStatus.NO_CONTENT);
+			return new ResponseEntity<>(tags, HttpStatus.NO_CONTENT);
 		}
 
 	}

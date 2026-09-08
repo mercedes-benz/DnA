@@ -36,8 +36,8 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.ws.rs.ForbiddenException;
+import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.web.server.ResponseStatusException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -1128,7 +1128,7 @@ public class FabricWorkspaceClient {
 			String workspaceUrl = workspacesBaseUrl + "/" + workspaceId +"/folders";
 			ResponseEntity<String> response = proxyRestTemplate.exchange(workspaceUrl , HttpMethod.POST,
 					requestEntity, String.class);
-			return response.getStatusCode();
+			return HttpStatus.valueOf(response.getStatusCode().value());
 		}catch(Exception e) {
 			log.error("Failed to create folder  for diaplayName {} with {} exception ", folderName, e.getMessage());	
 		}
@@ -1484,7 +1484,8 @@ public class FabricWorkspaceClient {
 				String errorMsg = "Failed to grant permission for connection " + connectionId +
 						" with status: " + (response != null ? response.getStatusCode() : "No Response");
 				log.error(errorMsg);
-				throw new ForbiddenException("Failed to grant permission to network connection: " + errorMsg);
+				throw new ResponseStatusException(HttpStatus.FORBIDDEN,
+						"Failed to grant permission to network connection: " + errorMsg);
 			}
 			
 			log.info("Permission granted for connection {} ", connectionId);

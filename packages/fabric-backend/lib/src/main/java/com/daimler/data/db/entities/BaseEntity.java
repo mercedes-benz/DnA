@@ -27,27 +27,24 @@
 
 package com.daimler.data.db.entities;
 
-import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
+import io.hypersistence.utils.hibernate.type.json.JsonBinaryType;
 import org.hibernate.annotations.Type;
-import org.hibernate.annotations.TypeDef;
-import org.hibernate.annotations.TypeDefs;
 
-import javax.persistence.Column;
-import javax.persistence.Id;
-import javax.persistence.MappedSuperclass;
-import javax.persistence.PrePersist;
+import jakarta.persistence.Column;
+import jakarta.persistence.Id;
+import jakarta.persistence.MappedSuperclass;
+import jakarta.persistence.PrePersist;
 import java.util.Objects;
 import java.util.UUID;
 
 @MappedSuperclass
-@TypeDefs({ @TypeDef(name = "jsonb", typeClass = JsonBinaryType.class) })
 public class BaseEntity<T> {
 
 	@Id
 	@Column(name = "id", updatable = false, nullable = false)
 	private String id;
 
-	@Type(type = "jsonb")
+	@Type(JsonBinaryType.class)
 	@Column(columnDefinition = "jsonb")
 	private T data;
 

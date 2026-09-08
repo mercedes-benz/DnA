@@ -1,6 +1,17 @@
 {
-    "library": "spring-mvc",
+    "library": "spring-boot",
     "dateLibrary": "legacy",
+    "interfaceOnly": true,
+    "skipDefaultInterface": true,
+    "booleanGetterPrefix": "is",
+    "inlineSchemaNameMappings": {
+        "ADAProjectDetailsVO_services_inner": "ADAProjectDetailsVOServices",
+        "ADAProjectDetailsVO_stakeholders_inner": "ADAProjectDetailsVOStakeholders",
+        "ADAProjectDetailsVO_tags_inner": "ADAProjectDetailsVOTags"
+    },
+    "useSpringBoot3": true,
+    "useJakartaEe": true,
+    "openApiNullable": false,
     "hideGenerationTimestamp": true,
     "useTags": true,
     "modelPackage": "com.daimler.data.dto.adaProjects",

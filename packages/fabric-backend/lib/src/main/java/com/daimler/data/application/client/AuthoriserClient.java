@@ -33,9 +33,9 @@ import java.util.Base64;
 import java.util.List;
 import java.util.Objects;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.persistence.PersistenceException;
-import javax.transaction.Transactional;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.persistence.PersistenceException;
+import jakarta.transaction.Transactional;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -441,7 +441,7 @@ public class AuthoriserClient {
 				if(response.getStatusCode().is2xxSuccessful()){
 					log.info("Entitlement :{} Assigned to Role {} Successfully",entitlementId,roleId);
 				}
-				return response.getStatusCode();
+				return HttpStatus.valueOf(response.getStatusCode().value());
 			}
 		}catch(HttpClientErrorException.Conflict e) {
 			log.error("Failed to Assign Entitlement to Role with conflict error {} ", e.getMessage());
@@ -474,7 +474,7 @@ public class AuthoriserClient {
 				if(response.getStatusCode().is2xxSuccessful()){
 					log.info("Entitlement :{} removed from Role {} Successfully",entitlementId,roleId);
 				}
-				return response.getStatusCode();
+				return HttpStatus.valueOf(response.getStatusCode().value());
 			}
 		}catch(HttpClientErrorException.Conflict e) {
 			log.error("Failed to remove Entitlement from Role with conflict error {} ", e.getMessage());
@@ -538,7 +538,7 @@ public class AuthoriserClient {
 				if(response.getStatusCode().is2xxSuccessful()){
 					log.info("Role Owner Privilege Assigned to User {} Successfully",userId);
 				}
-				return response.getStatusCode();
+				return HttpStatus.valueOf(response.getStatusCode().value());
 			}
 		}catch(Exception e) {
 			log.error("Failed to Assign Role Owner Privilege to user :{} with error {} ",userId ,e.getMessage());
@@ -572,7 +572,7 @@ public class AuthoriserClient {
 				if(response.getStatusCode().is2xxSuccessful()){
 					log.info("Global Role Assigner Privilege Assigned to User {} Successfully",userId);
 				}
-				return response.getStatusCode();
+				return HttpStatus.valueOf(response.getStatusCode().value());
 			}
 		}catch(Exception e) {
 			log.error("Failed to Assign Global Role Assigner Privilege to user :{} with error {} ",userId ,e.getMessage());
@@ -607,7 +607,7 @@ public class AuthoriserClient {
 				if(response.getStatusCode().is2xxSuccessful()){
 					log.info("Role Approver Privilage Assigned to User {} Successfully",userId);
 				}
-				return response.getStatusCode();
+				return HttpStatus.valueOf(response.getStatusCode().value());
 			}
 		}catch(Exception e) {
 			log.error("Failed to Assign Role Approver Privileges to user :{} with error {} ",userId ,e.getMessage());
@@ -642,7 +642,7 @@ public class AuthoriserClient {
 				if(response.getStatusCode().is2xxSuccessful()){
 					log.info("Role Owner Privilege Removed for User {} Successfully",userId);
 				}
-				return response.getStatusCode();
+				return HttpStatus.valueOf(response.getStatusCode().value());
 			}
 		}catch(Exception e) {
 			log.error("Failed to Remove Role Owner Privilege to user :{} with error {} ",userId ,e.getMessage());
@@ -676,7 +676,7 @@ public class AuthoriserClient {
 				if(response.getStatusCode().is2xxSuccessful()){
 					log.info("Global Role Assigner Privilege Removed for User {} Successfully",userId);
 				}
-				return response.getStatusCode();
+				return HttpStatus.valueOf(response.getStatusCode().value());
 			}
 		}catch(Exception e) {
 			log.error("Failed to Remove Global Role Assigner Privilege to user :{} with error {} ",userId ,e.getMessage());
@@ -711,7 +711,7 @@ public class AuthoriserClient {
 				if(response.getStatusCode().is2xxSuccessful()){
 					log.info("Role Approver Privilage Removed to User {} Successfully",userId);
 				}
-				return response.getStatusCode();
+				return HttpStatus.valueOf(response.getStatusCode().value());
 			}
 		}catch(Exception e) {
 			log.error("Failed to Remove Role Approver Privileges to user :{} with error {} ",userId ,e.getMessage());
@@ -740,7 +740,7 @@ public class AuthoriserClient {
 				if(response.getStatusCode().is2xxSuccessful()){
 					log.info("Successfully requested role {} for user {}",roleId,userId);
 				}
-				return response.getStatusCode();
+				return HttpStatus.valueOf(response.getStatusCode().value());
 			}
 		}catch(Exception e) {
 			log.error("Failed to request role {} to user :{} with error {} ",roleId,userId ,e.getMessage());
@@ -944,4 +944,3 @@ public class AuthoriserClient {
         
     }
 }
-
