@@ -67,7 +67,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import javax.swing.GroupLayout.Group;
 
 @Service
 @Slf4j
@@ -2342,9 +2341,9 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
 
         if (data.getDdxGroupDetails() != null && !data.getDdxGroupDetails().isEmpty()) {
             // DdxGroupDetail firstGroup = data.getDdxGroupDetails().get(0);
-            List<String> groupNameList = data.getDdxGroupDetails().stream().map(DdxGroupDetail::getGroupName).collect(Collectors.toList());
-            GrantPermissionsVO grantPermissions = new GrantPermissionsVO();
-            grantPermissions.addAll(groupNameList);
+            List<String> grantPermissions = data.getDdxGroupDetails().stream()
+                    .map(DdxGroupDetail::getGroupName)
+                    .collect(Collectors.toList());
             response.setGrantPermissions(grantPermissions);
         }
 

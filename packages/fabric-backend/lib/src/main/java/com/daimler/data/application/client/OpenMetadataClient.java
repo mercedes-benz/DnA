@@ -54,7 +54,7 @@ public class OpenMetadataClient {
     public DatabaseService getDatabaseService(String name) {
         try {
             return apiClient.buildClient(DatabaseServicesApi.class)
-                    .getDatabaseServiceByFQN(name, null, null);
+                    .getDatabaseServiceByFQN(name, null, null, null);
         }catch (Exception e) {
             throw new EntityNotFoundException("DatabaseService", name);
         }
@@ -64,7 +64,7 @@ public class OpenMetadataClient {
         try {
             String fqn = serviceName + "." + dbName;
             return apiClient.buildClient(DatabasesApi.class)
-                    .getDatabaseByFQN(fqn, null, null);
+                    .getDatabaseByFQN(fqn, null, null, null);
         } catch (Exception e) {
             throw new EntityNotFoundException("Database", serviceName + "." + dbName);
         }
@@ -74,7 +74,7 @@ public class OpenMetadataClient {
         try {
             String fqn = dbFQN + "." + schemaName;
             return apiClient.buildClient(DatabaseSchemasApi.class)
-                    .getDBSchemaByFQN(fqn, null, null);
+                    .getDBSchemaByFQN(fqn, null, null, null);
         } catch (Exception e) {
             throw new EntityNotFoundException("Schema", dbFQN + "." + schemaName);
         }
@@ -84,7 +84,7 @@ public class OpenMetadataClient {
         try {
             String fqn = schemaFQN + "." + tableName;
             return apiClient.buildClient(TablesApi.class)
-                    .getTableByFQN(fqn, null, null);
+                    .getTableByFQN(fqn, null, null, null);
         } catch (Exception e) {
             throw new EntityNotFoundException("Table", schemaFQN + "." + tableName);
         }
@@ -94,7 +94,7 @@ public class OpenMetadataClient {
     public DatabaseSchema getSchemaById(String schemaId) {
         try {
             return apiClient.buildClient(DatabaseSchemasApi.class)
-                .getDBSchemaByID(UUID.fromString(schemaId), "database", null);
+                .getDBSchemaByID(UUID.fromString(schemaId), "database", null, null);
         } catch (Exception e) {
             throw new EntityNotFoundException("Schema", schemaId);
         }
@@ -103,7 +103,7 @@ public class OpenMetadataClient {
     public Database getDatabaseById(String databaseId) {
         try {
             return apiClient.buildClient(DatabasesApi.class)
-                .getDatabaseByID(UUID.fromString(databaseId), "service", null);
+                .getDatabaseByID(UUID.fromString(databaseId), "service", null, null);
         } catch (Exception e) {
             throw new EntityNotFoundException("Database", databaseId);
         }
@@ -444,7 +444,7 @@ public class OpenMetadataClient {
     private Table getTableById(String tableId) {
         try {
             return apiClient.buildClient(TablesApi.class)
-                .getTableByID(UUID.fromString(tableId), null, "non-deleted");
+                .getTableByID(UUID.fromString(tableId), null, "non-deleted", null);
         } catch (Exception e) {
             throw new EntityNotFoundException("Table", tableId);
         }

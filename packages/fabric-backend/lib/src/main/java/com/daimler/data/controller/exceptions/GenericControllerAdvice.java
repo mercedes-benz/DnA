@@ -29,6 +29,7 @@ package com.daimler.data.controller.exceptions;
 
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -63,7 +64,7 @@ public class GenericControllerAdvice extends ResponseEntityExceptionHandler {
 
 	@Override
 	protected ResponseEntity<Object> handleHttpMediaTypeNotSupported(HttpMediaTypeNotSupportedException ex,
-			HttpHeaders headers, HttpStatus status, WebRequest request) {
+			HttpHeaders headers, HttpStatusCode status, WebRequest request) {
 		String unsupported = "Unsupported content type: " + ex.getContentType();
 		String supported = "Supported content types: " + MediaType.toString(ex.getSupportedMediaTypes());
 		MessageDescription unsupportedMsgDesc = new MessageDescription(unsupported);
@@ -76,7 +77,7 @@ public class GenericControllerAdvice extends ResponseEntityExceptionHandler {
 
 	@Override
 	protected ResponseEntity<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException ex,
-			HttpHeaders headers, HttpStatus status, WebRequest request) {
+			HttpHeaders headers, HttpStatusCode status, WebRequest request) {
 		Throwable mostSpecificCause = ex.getMostSpecificCause();
 		GenericMessage errorMessageDto;
 		if (mostSpecificCause != null) {
@@ -96,7 +97,7 @@ public class GenericControllerAdvice extends ResponseEntityExceptionHandler {
 
 	@Override
 	protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex,
-			HttpHeaders headers, HttpStatus status, WebRequest request) {
+			HttpHeaders headers, HttpStatusCode status, WebRequest request) {
 		List<FieldError> fieldErrors = ex.getBindingResult().getFieldErrors();
 		List<ObjectError> globalErrors = ex.getBindingResult().getGlobalErrors();
 		List<MessageDescription> errors = new ArrayList<>();

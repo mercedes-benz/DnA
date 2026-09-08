@@ -1,6 +1,15 @@
 {
-    "library": "spring-mvc",
+    "library": "spring-boot",
     "dateLibrary": "legacy",
+    "interfaceOnly": true,
+    "skipDefaultInterface": true,
+    "booleanGetterPrefix": "is",
+    "inlineSchemaNameMappings": {
+        "MirroredCatalogDataVO_objects_inner": "MirroredCatalogDataVOObjects"
+    },
+    "useSpringBoot3": true,
+    "useJakartaEe": true,
+    "openApiNullable": false,
     "hideGenerationTimestamp": true,
     "useTags": true,
     "modelPackage": "com.daimler.data.dto.fabricCatalogManagement",
