@@ -88,6 +88,7 @@ public class FabricCatalogMetadataAssembler implements GenericAssembler<FabricCa
             vo.setWorkspaceName(detail.getWorkspaceName());
             vo.setWorkspaceId(detail.getWorkspaceId());
             vo.setLakehouseName(detail.getLakehouseName());
+            vo.setCatalogName(detail.getCatalogName());
             vo.setLakeHouseId(detail.getLakeHouseId());
             vo.setIsLakeHousesPublishedToCdc(detail.getIsLakeHousesPublishedToCdc());
             vo.setMandatoryFields(toMandatoryFieldsVO(
@@ -114,6 +115,7 @@ public class FabricCatalogMetadataAssembler implements GenericAssembler<FabricCa
             detail.setWorkspaceName(vo.getWorkspaceName());
             detail.setWorkspaceId(vo.getWorkspaceId());
             detail.setLakehouseName(vo.getLakehouseName());
+            detail.setCatalogName(vo.getCatalogName());
             detail.setLakeHouseId(vo.getLakeHouseId());
             detail.setIsLakeHousesPublishedToCdc(vo.isIsLakeHousesPublishedToCdc());
             detail.setMandatoryFields(toMandatoryFields(vo.getMandatoryFields()));

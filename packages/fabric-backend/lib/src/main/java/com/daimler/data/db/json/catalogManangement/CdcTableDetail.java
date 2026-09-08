@@ -23,6 +23,7 @@ public class CdcTableDetail implements Serializable {
     private String workspaceName;
     private String workspaceId;
     private String lakehouseName;
+    private String catalogName;
     private String lakeHouseId;
     private Boolean isLakeHousesPublishedToCdc;
     private FabricCatalogMetadata metadata;

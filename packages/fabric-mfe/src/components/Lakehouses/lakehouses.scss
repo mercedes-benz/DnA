@@ -359,6 +359,38 @@
   color: #0AE6AB;
 }
 
+.catalogsModalContent {
+  color: #d1d5db;
+
+  .catalogList {
+    margin-bottom: 20px;
+  }
+
+  .catalogRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 0;
+    border-bottom: 1px solid #383f49;
+
+    a {
+      color: #00adef;
+      margin-left: 16px;
+    }
+  }
+
+  .catalogUpdateButton {
+    background: none;
+    border: none;
+    color: #c0c8d0;
+    cursor: pointer;
+
+    &:hover {
+      color: #00adef;
+    }
+  }
+}
+
 .disabledBtn {
   opacity: 0.5;
   pointer-events: none;

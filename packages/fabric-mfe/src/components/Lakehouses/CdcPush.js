@@ -20,6 +20,7 @@ export const buildCdcPayload = ({
   workspaceMetadata,
   lakehouseId,
   lakehouseName, 
+  catalogName,
   selectedColumns,
   selectedTables,
   columnsByTable,
@@ -30,7 +31,7 @@ export const buildCdcPayload = ({
   description,
   workspaceCreator
 }) => {
-  const dbName = lakehouseName;
+  const dbName = catalogName && catalogName.trim() ? catalogName.trim() : lakehouseName;
 
   const schemaMap = {};
 
@@ -112,7 +113,7 @@ const MISMATCH_TYPE_CONFIG = {
   COLUMN_TYPE_CHANGED: { label: 'Datatype Changed', colorClass: 'badgeModified' },
 };
 
-const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRefreshWorkspace, mismatches: mismatchesProp = [] }) => {
+const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, catalogName, onRefreshWorkspace, mismatches: mismatchesProp = [] }) => {
   const [tables, setTables] = useState([]);
   const [columnsByTable, setColumnsByTable] = useState({});
   const [selectedTables, setSelectedTables] = useState({});
@@ -128,8 +129,13 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
   const [hasPushedOnce, setHasPushedOnce] = useState(false);
   const [localMismatches, setLocalMismatches] = useState(mismatchesProp);
   const [previouslyPublishedTables, setPreviouslyPublishedTables] = useState([]);
+  const [catalogSuffix, setCatalogSuffix] = useState('');
+  const [catalogNameError, setCatalogNameError] = useState('');
+  const [existingCatalogNames, setExistingCatalogNames] = useState([]);
   const previouslyEnabledColumnsRef = useRef({});
   const isAutoPopulatingRef = useRef(false);
+  const isUpdateMode = Boolean(catalogName);
+  const fullCatalogName = isUpdateMode ? catalogName : `${lakehouseName}_${catalogSuffix.trim()}`;
 
   const methods = useForm();
   const { 
@@ -217,10 +223,6 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
         const isPublished = data?.cdcPublishedLakeHouseDetails?.publishedLakeHouseNames?.includes(lakehouseId);
         console.log('[CdcPush] isPublished:', isPublished, 'lakehouseId:', lakehouseId, 'publishedNames:', data?.cdcPublishedLakeHouseDetails?.publishedLakeHouseNames);
 
-        if (isPublished) {
-          setHasPushedOnce(true);
-        }
-
         if (isPublished && data?.name) {
           console.log('[CdcPush] Fetching catalog metadata for serviceName:', data.name);
           fabricApi.getCatalogMetadata(workspaceId, data.name)
@@ -228,7 +230,15 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
               console.log('[CdcPush] getCatalogMetadata response:', JSON.stringify(metaRes?.data).substring(0, 500));
               const cdcCatalogs = metaRes?.data?.data?.publishedCDCCatalogs || [];
               console.log('[CdcPush] cdcCatalogs count:', cdcCatalogs.length, 'looking for lakeHouseId:', lakehouseId);
-              const lakehouseEntry = cdcCatalogs.find(c => c.lakeHouseId === lakehouseId);
+              const lakehouseEntries = cdcCatalogs.filter(c => c.lakeHouseId === lakehouseId);
+              setExistingCatalogNames(lakehouseEntries.map(c => c.catalogName || c.lakehouseName));
+              const lakehouseEntry = isUpdateMode
+                ? lakehouseEntries.find(c => (c.catalogName || c.lakehouseName) === catalogName)
+                : [...lakehouseEntries].sort((a, b) => {
+                  const aDate = new Date(a.modifiedOn || a.createdOn || 0).getTime();
+                  const bDate = new Date(b.modifiedOn || b.createdOn || 0).getTime();
+                  return aDate - bDate;
+                }).pop() || lakehouseEntries[lakehouseEntries.length - 1];
               if (!lakehouseEntry) {
                 console.warn('[CdcPush] No matching lakehouse entry found. Available lakeHouseIds:', cdcCatalogs.map(c => c.lakeHouseId));
                 return;
@@ -263,14 +273,17 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
               }
 
               const databases = metaRes?.data?.data?.metadata?.databases || [];
-              const db = databases.find(d => d.dbName === lakehouseName) || databases.find(d => d.dbId === lakehouseId) || databases[0];
-              if (db?.description) {
+              const db = databases.find(d => d.dbName === fullCatalogName)
+                || databases.find(d => d.dbName === lakehouseName)
+                || databases.find(d => d.dbId === lakehouseId)
+                || databases[0];
+              if (isUpdateMode && db?.description) {
                 console.log('[CdcPush] Setting description:', db.description);
                 setDescription(db.description);
                 setValue('description', db.description, { shouldValidate: true, shouldDirty: true });
               }
 
-              const tableDetails = lakehouseEntry.publishedLakehouseTableDetails || [];
+              const tableDetails = isUpdateMode ? (lakehouseEntry.publishedLakehouseTableDetails || []) : [];
               console.log('[CdcPush] Raw publishedLakehouseTableDetails:', JSON.stringify(tableDetails.map(t => ({ name: t.tableName, enabled: t.enabled, cols: (t.columns || []).length }))));
               const enabledTableNames = tableDetails
                 .filter(t => t.enabled === true)
@@ -285,10 +298,10 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
                     .map(c => c.columnName);
                 }
               });
-              previouslyEnabledColumnsRef.current = enabledColsByTable;
+              previouslyEnabledColumnsRef.current = isUpdateMode ? enabledColsByTable : {};
               console.log('[CdcPush] Enabled columns by table:', JSON.stringify(enabledColsByTable));
 
-              if (enabledTableNames.length > 0) {
+              if (isUpdateMode && enabledTableNames.length > 0) {
                 setPreviouslyPublishedTables(enabledTableNames);
               }
               setTimeout(() => { isAutoPopulatingRef.current = false; }, 200);
@@ -304,7 +317,7 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
           'alert'
         );
       });
-  }, [workspaceId, lakehouseId, setValue]);
+  }, [workspaceId, lakehouseId, lakehouseName, catalogName, fullCatalogName, isUpdateMode, setValue]);
 
   // Auto-select previously published tables once both tables list and publish history are loaded
   useEffect(() => {
@@ -477,6 +490,21 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
     let hasError = false;
     setDivisionError('');
     setDataTierError('');
+    setCatalogNameError('');
+
+    if (!isUpdateMode) {
+      const suffix = catalogSuffix.trim();
+      if (!suffix) {
+        setCatalogNameError("*Missing entry");
+        hasError = true;
+      } else if (!/^[A-Za-z0-9][A-Za-z0-9_-]{0,49}$/.test(suffix)) {
+        setCatalogNameError("Only letters, numbers, hyphen and underscore are allowed (max 50 characters).");
+        hasError = true;
+      } else if (existingCatalogNames.some(n => n.toLowerCase() === fullCatalogName.toLowerCase())) {
+        setCatalogNameError("A catalog with this name already exists for this lakehouse. Please choose a different name.");
+        hasError = true;
+      }
+    }
 
     if (division === "0" || !division || (Array.isArray(division) && division.length === 0)) {
       setDivisionError("*Missing entry");
@@ -496,6 +524,7 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
       workspaceMetadata,
       lakehouseId,
       lakehouseName,
+      catalogName: fullCatalogName,
       selectedTables,
       selectedColumns,
       columnsByTable,
@@ -566,6 +595,10 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
     dataTier,
     lakehouseId,
     lakehouseName,
+    catalogSuffix,
+    fullCatalogName,
+    existingCatalogNames,
+    isUpdateMode,
     columnsByTable,
     tables,
     selectedTables,
@@ -577,14 +610,11 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
   ]);
 
   const onPush = handleSubmit(handlePush);
-  const isLakehousePublished = workspaceMetadata?.cdcPublishedLakeHouseDetails?.publishedLakeHouseNames?.includes(lakehouseId) || false;
-
   const isPushDisabled =
   !workspaceMetadata || 
   Object.keys(selectedTables).length === 0 ||
   Object.keys(selectedColumns).length === 0 ||
-  hasPushedOnce ||
-  isLakehousePublished;
+  hasPushedOnce;
 
     return (
     <div className={Styles.modalFAQContentWrapper}>
@@ -615,6 +645,32 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
           </div>
         </div>
       )}
+
+        <div className={Styles.catalogNameRow}>
+          <div className={classNames('input-field-group include-error', catalogNameError.length ? 'error' : '')}>
+            <label className={classNames(Styles.inputLabel, 'input-label')}>
+              Catalog Name <sup>*</sup>
+            </label>
+            {isUpdateMode ? (
+              <input className="input-field" value={fullCatalogName} disabled />
+            ) : (
+              <div className={Styles.catalogNameInput}>
+                <span>{lakehouseName}_</span>
+                <input
+                  className="input-field"
+                  value={catalogSuffix}
+                  onChange={(e) => {
+                    setCatalogSuffix(e.target.value);
+                    if (catalogNameError) setCatalogNameError('');
+                  }}
+                />
+              </div>
+            )}
+            <span className={classNames('error-message', catalogNameError.length ? '' : 'hide')}>
+              {catalogNameError}
+            </span>
+          </div>
+        </div>
 
         <div className={Styles.flex}>
           <div className={Styles.col3}>

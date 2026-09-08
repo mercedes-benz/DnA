@@ -229,7 +229,18 @@ public class OpenMetadataClient {
     public Database addDatabaseForLakehouse(String serviceFQN, String workspaceName, 
             FabricLakehouseVO lakehouse, MandatoryFieldsVO fields, 
             List<EntityReference> owners, String description) {
-        String dbName = lakehouse.getName();
+        return addDatabaseForLakehouse(serviceFQN, workspaceName, lakehouse, lakehouse.getName(),
+                fields, owners, description);
+    }
+
+    public Database addDatabaseForLakehouse(String serviceFQN, String workspaceName,
+            FabricLakehouseVO lakehouse, String dbName, MandatoryFieldsVO fields,
+            List<EntityReference> owners, String description) {
+        if (dbName == null || dbName.trim().isEmpty()) {
+            dbName = lakehouse.getName();
+        } else {
+            dbName = dbName.trim();
+        }
         log.info("Adding database {} for lakehouse {} to service {}", dbName, lakehouse.getId(), serviceFQN);
         
         return addDatabase(dbName, serviceFQN, fields, owners, description);

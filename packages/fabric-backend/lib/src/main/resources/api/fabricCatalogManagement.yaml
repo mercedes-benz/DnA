@@ -663,6 +663,8 @@ definitions:
         type: string
       lakehouseName:
         type: string
+      catalogName:
+        type: string
       lakeHouseId:
         type: string
       isLakeHousesPublishedToCdc:
