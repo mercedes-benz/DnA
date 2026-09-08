@@ -81,7 +81,44 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 		TypedQuery<CodeServerWorkspaceNsql> getAllQuery = em.createQuery(getAll);
 		return getAllQuery.getResultList();		
 	} 
-			
+
+	@Override
+	public List<CodeServerWorkspaceNsql> findDeploymentReconciliationWorkspaces() {
+		String query = """
+				SELECT *
+				FROM workspace_nsql
+				WHERE lower(jsonb_extract_path_text(data, 'status')) <> 'deleted'
+				  AND (
+					jsonb_extract_path_text(data, 'projectDetails', 'intDeploymentDetails', 'lastDeploymentStatus')
+						IN (:deployRequested, :restartRequested)
+					OR jsonb_extract_path_text(data, 'projectDetails', 'prodDeploymentDetails', 'lastDeploymentStatus')
+						IN (:deployRequested, :restartRequested)
+					OR jsonb_extract_path_text(data, 'projectDetails', 'lastBuildOrDeployedStatus') = :restartRequested
+					OR (
+						jsonb_extract_path_text(data, 'projectDetails', 'intDeploymentDetails', 'lastDeploymentStatus')
+							= :deploymentFailed
+						AND (
+							jsonb_extract_path_text(data, 'projectDetails', 'intDeploymentDetails', 'lastDeployedBy') IS NULL
+							OR jsonb_extract_path_text(data, 'projectDetails', 'intDeploymentDetails', 'lastDeployedOn') IS NULL
+						)
+					)
+					OR (
+						jsonb_extract_path_text(data, 'projectDetails', 'prodDeploymentDetails', 'lastDeploymentStatus')
+							= :deploymentFailed
+						AND (
+							jsonb_extract_path_text(data, 'projectDetails', 'prodDeploymentDetails', 'lastDeployedBy') IS NULL
+							OR jsonb_extract_path_text(data, 'projectDetails', 'prodDeploymentDetails', 'lastDeployedOn') IS NULL
+						)
+					)
+				  )
+				""";
+		Query reconciliationQuery = em.createNativeQuery(query, CodeServerWorkspaceNsql.class);
+		reconciliationQuery.setParameter("deployRequested", "DEPLOY_REQUESTED");
+		reconciliationQuery.setParameter("deploymentFailed", "DEPLOYMENT_FAILED");
+		reconciliationQuery.setParameter("restartRequested", "RESTART_REQUESTED");
+		return reconciliationQuery.getResultList();
+	}
+
 	@Override
 	public List<CodeServerWorkspaceNsql> findAll(String userId, int limit, int offset) {
 		CriteriaBuilder cb = em.getCriteriaBuilder();
@@ -522,6 +559,22 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 		fields.lastBuildOrDeployedStatus = lastDeploymentStatus;
 		fields.lastBuildOrDeployedEnv = environment;
 		fields.lastBuildOrDeployedOn = lastDeployedOn;
+		fields.crashLoopUpdate = CrashLoopUpdate.CLEAR;
+		return updateDeploymentStatusFields(projectName, environment, fields);
+	}
+
+	@Transactional
+	@Override
+	public GenericMessage updateDeploymentCrashLoopStatus(String projectName, String environment,
+			Boolean newPodCrashLooping, String crashLoopReason) {
+		DeploymentStatusFields fields = new DeploymentStatusFields();
+		if (Boolean.TRUE.equals(newPodCrashLooping)) {
+			fields.crashLooping = true;
+			fields.crashLoopReason = crashLoopReason;
+			fields.crashLoopUpdate = CrashLoopUpdate.SET;
+		} else {
+			fields.crashLoopUpdate = CrashLoopUpdate.CLEAR;
+		}
 		return updateDeploymentStatusFields(projectName, environment, fields);
 	}
 
@@ -553,6 +606,27 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 			} else if (fields.errorUpdate == ErrorUpdate.CLEAR) {
 				updateExpression = jsonbSet(updateExpression,
 						"{projectDetails," + environmentJsonbName + ",lastDeploymentError}",
+						"CAST('null' AS jsonb)");
+			}
+			if (fields.crashLoopUpdate == CrashLoopUpdate.SET) {
+				updateExpression = jsonbSet(updateExpression,
+						"{projectDetails," + environmentJsonbName + ",newPodCrashLooping}",
+						"to_jsonb(CAST(:newPodCrashLooping AS boolean))");
+				if (fields.crashLoopReason != null) {
+					updateExpression = jsonbSet(updateExpression,
+							"{projectDetails," + environmentJsonbName + ",crashLoopReason}",
+							"to_jsonb(CAST(:crashLoopReason AS text))");
+				} else {
+					updateExpression = jsonbSet(updateExpression,
+							"{projectDetails," + environmentJsonbName + ",crashLoopReason}",
+							"CAST('null' AS jsonb)");
+				}
+			} else if (fields.crashLoopUpdate == CrashLoopUpdate.CLEAR) {
+				updateExpression = jsonbSet(updateExpression,
+						"{projectDetails," + environmentJsonbName + ",newPodCrashLooping}",
+						"to_jsonb(false)");
+				updateExpression = jsonbSet(updateExpression,
+						"{projectDetails," + environmentJsonbName + ",crashLoopReason}",
 						"CAST('null' AS jsonb)");
 			}
 			if (fields.lastDeployedVersion != null) {
@@ -607,6 +681,12 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 			if (fields.errorUpdate == ErrorUpdate.SET) {
 				query.setParameter("lastDeploymentError", fields.lastDeploymentError);
 			}
+			if (fields.crashLoopUpdate == CrashLoopUpdate.SET) {
+				query.setParameter("newPodCrashLooping", fields.crashLooping);
+				if (fields.crashLoopReason != null) {
+					query.setParameter("crashLoopReason", fields.crashLoopReason);
+				}
+			}
 			if (fields.lastDeployedVersion != null) {
 				query.setParameter("lastDeployedVersion", fields.lastDeployedVersion);
 			}
@@ -658,10 +738,17 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 		NONE, SET, CLEAR
 	}
 
+	private enum CrashLoopUpdate {
+		NONE, SET, CLEAR
+	}
+
 	private static class DeploymentStatusFields {
 		private String lastDeploymentStatus;
 		private String lastDeploymentError;
 		private ErrorUpdate errorUpdate = ErrorUpdate.NONE;
+		private Boolean crashLooping;
+		private String crashLoopReason;
+		private CrashLoopUpdate crashLoopUpdate = CrashLoopUpdate.NONE;
 		private String lastDeployedVersion;
 		private String lastDeployedBranch;
 		private Date lastDeployedOn;
@@ -678,6 +765,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 			fields.lastDeploymentError = deploymentDetails.getLastDeploymentError();
 			fields.errorUpdate = deploymentDetails.getLastDeploymentError() == null
 					? ErrorUpdate.CLEAR : ErrorUpdate.SET;
+			fields.crashLoopUpdate = CrashLoopUpdate.CLEAR;
 			fields.lastDeployedVersion = deploymentDetails.getLastDeployedVersion();
 			fields.lastDeployedBranch = deploymentDetails.getLastDeployedBranch();
 			fields.lastDeployedOn = deploymentDetails.getLastDeployedOn();
@@ -1439,3 +1527,4 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 	}
 
 }
+

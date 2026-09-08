@@ -519,8 +519,11 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
     stopDeployLogsStreams();
     setDeployLogText('');
     setDeployLogsHaveErrors(false);
-    setNewPodCrashLooping(false);
-    setCrashLoopReason('');
+    const deploymentDetails = env === 'int'
+      ? codeSpace?.projectDetails?.intDeploymentDetails
+      : codeSpace?.projectDetails?.prodDeploymentDetails;
+    setNewPodCrashLooping(!!deploymentDetails?.newPodCrashLooping);
+    setCrashLoopReason(deploymentDetails?.crashLoopReason || '');
     setDeployingThresholdExceeded(false);
     setShowDeployLogsModal(true);
 
@@ -604,6 +607,15 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
   const projectDetails = codeSpace?.projectDetails;
   const intDeploymentDetails = projectDetails?.intDeploymentDetails;
   const prodDeploymentDetails = projectDetails?.prodDeploymentDetails;
+  const deployingEnvironment = projectDetails?.lastBuildOrDeployedEnv;
+  const activeDeploymentDetails = deployingEnvironment === 'int'
+    ? intDeploymentDetails
+    : prodDeploymentDetails;
+  const persistedCrashLooping = !!activeDeploymentDetails?.newPodCrashLooping;
+  const persistedCrashLoopReason = activeDeploymentDetails?.crashLoopReason || '';
+  const deploymentWorkflowUrl = activeDeploymentDetails?.gitjobRunID
+    ? buildGitJobLogViewAWSURL(activeDeploymentDetails.gitjobRunID)
+    : null;
   const deployingInProgress =
     intDeploymentDetails?.lastDeploymentStatus === 'DEPLOY_REQUESTED' ||
     intDeploymentDetails?.lastDeploymentStatus === 'DEPLOYING' ||
@@ -824,21 +836,26 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
                       )}
                       {(projectDetails?.lastBuildOrDeployedStatus === 'DEPLOY_REQUESTED' || 
                         projectDetails?.lastBuildOrDeployedStatus === 'DEPLOYING') && (
-                        <a
-                          href={(projectDetails?.lastBuildOrDeployedEnv === 'int')
-                            ? buildGitJobLogViewAWSURL(projectDetails?.intDeploymentDetails?.gitjobRunID)
-                            : buildGitJobLogViewAWSURL(projectDetails?.prodDeploymentDetails?.gitjobRunID)
-                          }
-                          target="_blank"
-                          rel="noreferrer"
+                        <span
                           className={Styles.deployingLink}
                           tooltip-data={
-                            projectDetails?.lastBuildOrDeployedEnv === 'int'
-                              ? 'Deploying to Staging'
-                              : 'Deploying to Production'
+                            persistedCrashLooping && persistedCrashLoopReason
+                              ? persistedCrashLoopReason
+                              : projectDetails?.lastBuildOrDeployedEnv === 'int'
+                                ? 'Deploying to Staging'
+                                : 'Deploying to Production'
                           }
                         >
-                          <span className={classNames(Styles.statusIndicator, Styles.deploying, Styles.statusWithRefresh)}>
+                          <span
+                            className={classNames(
+                              Styles.statusIndicator,
+                              Styles.deploying,
+                              Styles.statusWithRefresh,
+                              Styles.deployStatusClickable,
+                              persistedCrashLooping ? Styles.deployCrashLooping : ''
+                            )}
+                            onClick={onDeployLogsInfoClick}
+                          >
                             Deploying...
                             <span 
                               className={Styles.refreshIcon} 
@@ -855,7 +872,7 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
                               <i className="icon mbc-icon info"></i>
                             </span>
                           </span>
-                        </a>
+                        </span>
                       )}
                       {projectDetails?.lastBuildOrDeployedStatus === 'BUILD_FAILED' && (
                         <span className={classNames(Styles.statusIndicator, Styles.deployFailed)}>
@@ -1227,6 +1244,16 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
           title={
             <div className={Styles.modalHeader}>
               <span>Deployment Logs</span>
+              {deploymentWorkflowUrl && (
+                <a
+                  href={deploymentWorkflowUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  className={Styles.workflowLogsLink}
+                >
+                  View workflow logs
+                </a>
+              )}
               <i
                 className={classNames('icon mbc-icon copy', Styles.copyLogsIcon, deployLogsCopied ? Styles.copyLogsIconCopied : '')}
                 tooltip-data={deployLogsCopied ? 'Copied!' : 'Copy logs'}

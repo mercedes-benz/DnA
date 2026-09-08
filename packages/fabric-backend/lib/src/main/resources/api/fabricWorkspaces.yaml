@@ -792,6 +792,18 @@ definitions:
         type: string
       state:
         type: string
+  CmkKeyDetailsVO:
+    type: object
+    properties:
+      cmkKey:
+        type: string
+        description: "Key Identifier for the CMK"
+      cmkKeyCreated:
+        type: boolean
+        description: "Indicates if the CMK is created"
+      cmkKeyAssign:
+        type: boolean
+        description: "Indicates if the CMK is assigned to the workspace"
   
   CapacityCollectionVO:
     type: object
@@ -859,6 +871,8 @@ definitions:
          $ref: "#/definitions/ProjectReferenceDetailsVO"
       capacity:
         $ref: "#/definitions/CapacityVO"
+      cmkDetails:
+        $ref: "#/definitions/CmkKeyDetailsVO"
       createdBy:
         $ref: "#/definitions/CreatedByVO"
       createdOn:

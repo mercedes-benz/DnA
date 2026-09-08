@@ -290,6 +290,8 @@ import com.daimler.data.dto.workspace.DeploymentAuditVO;
 		 CodeServerDeploymentDetails deploymentDetails = new CodeServerDeploymentDetails();
 		 if (vo != null) {
 			 BeanUtils.copyProperties(vo, deploymentDetails);
+			 deploymentDetails.setNewPodCrashLooping(vo.isNewPodCrashLooping());
+			 deploymentDetails.setCrashLoopReason(vo.getCrashLoopReason());
 			 if(vo.isSecureWithIAMRequired()!=null)
 			 {
 				deploymentDetails.setSecureWithIAMRequired(vo.isSecureWithIAMRequired());
@@ -394,6 +396,8 @@ import com.daimler.data.dto.workspace.DeploymentAuditVO;
 		 SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
 		 if (deploymentDetails != null) {
 			 BeanUtils.copyProperties(deploymentDetails, deploymentDetailsVO);
+			 deploymentDetailsVO.setNewPodCrashLooping(deploymentDetails.getNewPodCrashLooping());
+			 deploymentDetailsVO.setCrashLoopReason(deploymentDetails.getCrashLoopReason());
 			 deploymentDetailsVO.setLastDeployedBy(toUserInfoVO(deploymentDetails.getLastDeployedBy()));
 			 if (Objects.isNull(deploymentDetails.getSecureWithIAMRequired())) {
 				 deploymentDetailsVO.setSecureWithIAMRequired(false);

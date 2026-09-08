@@ -30,6 +30,8 @@
  import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.time.Instant;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
  import java.util.Arrays;
  import java.util.Date;
@@ -48,7 +50,7 @@ import java.util.regex.Matcher;
  import java.util.stream.Collectors;
  import java.util.Collections;
 
- import org.json.JSONObject;
+import org.json.JSONObject;
  import org.springframework.beans.BeanUtils;
  import org.springframework.beans.factory.annotation.Autowired;
  import org.springframework.beans.factory.annotation.Value;
@@ -68,6 +70,7 @@ import java.util.regex.Matcher;
  import com.daimler.data.auth.client.AuthenticatorClient;
  import com.daimler.data.auth.client.DnaAuthClient;
  import com.daimler.data.service.ArgoCdService;
+import com.daimler.data.service.scheduler.DeploymentStatusMonitorJob;
  import com.daimler.data.controller.exceptions.GenericMessage;
  import com.daimler.data.controller.exceptions.MessageDescription;
  import com.daimler.data.db.entities.CodeServerBuildDeployNsql;
@@ -266,6 +269,9 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 
 	 @Autowired
 	 private ArgoCdService argoCdService;
+
+	 @Autowired
+	 private DeploymentStatusMonitorJob deploymentStatusMonitorJob;
 
 	 @Value("${codeServer.build.retainedlimit}")
      private String retainedBuildLimitValue;
@@ -1651,7 +1657,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 				log.info("getById - lookup by userId+id: userId={}, id={}", userId, id);
 			}
 			// Status reconciliation (ArgoCD, GitHub Actions, backfill) is handled
-			// by DeploymentStatusMonitorJob which runs every 10s. Keeping getById
+			// by DeploymentStatusMonitorJob which runs every 20s. Keeping getById
 			// as a pure DB read avoids slow synchronous HTTP calls to ArgoCD/GitHub
 			// on every card refresh.
 
@@ -1661,7 +1667,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 			// ArgoCD.
 			// This reconciliation only runs when explicitly triggered by user refresh
 			// (refreshTriggeredByUser=true).
-			// Auto-poll requests (every 10s) skip this entirely and return DB state only.
+			// Auto-poll requests (every 20s) skip this entirely and return DB state only.
 			if (refreshTriggeredByUser && entity != null && entity.getData() != null
 					&& entity.getData().getProjectDetails() != null
 					&& entity.getData().getProjectDetails().getLastBuildOrDeployedStatus() != null) {
@@ -1716,6 +1722,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 										SimpleDateFormat isoFormat = new SimpleDateFormat(
 												"yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
 										Date now = isoFormat.parse(isoFormat.format(new Date()));
+										Date completionTime = resolveWorkflowCompletionTime(buildDeployJob, now);
 
 										CodeServerBuildDetails resolvedBuildDetails = "int"
 												.equalsIgnoreCase(environment)
@@ -1729,14 +1736,14 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 
 										// Update workspace entity status
 										entity.getData().getProjectDetails().setLastBuildOrDeployedStatus(finalStatus);
-										entity.getData().getProjectDetails().setLastBuildOrDeployedOn(now);
+										entity.getData().getProjectDetails().setLastBuildOrDeployedOn(completionTime);
 
 										Boolean keepBuildImage = false;
 
 										if ("BUILD_SUCCESS".equalsIgnoreCase(finalStatus)
 												|| "BUILD_FAILED".equalsIgnoreCase(finalStatus)) {
 											resolvedBuildDetails.setLastBuildStatus(finalStatus);
-											resolvedBuildDetails.setLastBuildOn(now);
+											resolvedBuildDetails.setLastBuildOn(completionTime);
 											resolvedBuildDetails.setLastBuildBy(entity.getData().getWorkspaceOwner());
 											resolvedBuildDetails.setGitjobRunID(gitJobRunId);
 											resolvedBuildDetails.setLastBuildFailureReason(null);   // clear stale BUILD_TIMEOUT on a real GitHub result
@@ -1747,7 +1754,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 											deploymentDetails.setLastDeploymentStatus(finalStatus);
 											deploymentDetails.setGitjobRunID(gitJobRunId);
 											if ("DEPLOYED".equalsIgnoreCase(finalStatus)) {
-												deploymentDetails.setLastDeployedOn(now);
+												deploymentDetails.setLastDeployedOn(completionTime);
 												deploymentDetails
 														.setLastDeployedBy(entity.getData().getWorkspaceOwner());
 											}
@@ -1768,7 +1775,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 												BuildAudit auditEntry = findAuditByVersion(envLogs,
 														resolvedBuildDetails.getVersion());
 												if (auditEntry != null) {
-													auditEntry.setBuildOn(now);
+													auditEntry.setBuildOn(completionTime);
 													auditEntry.setBuildStatus(finalStatus);
 													auditEntry.setFailureReason(null);
 													keepBuildImage = auditEntry.isKeepBuildImage();
@@ -1784,7 +1791,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 															.setDeploymentStatus(finalStatus);
 													if ("DEPLOYED".equalsIgnoreCase(finalStatus)) {
 														buildDeployData.getIntDeploymentAuditLogs().get(lastIndex)
-																.setDeployedOn(now);
+																.setDeployedOn(completionTime);
 													}
 												} else if (buildDeployData.getProdDeploymentAuditLogs() != null
 														&& !buildDeployData.getProdDeploymentAuditLogs().isEmpty()) {
@@ -1794,7 +1801,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 															.setDeploymentStatus(finalStatus);
 													if ("DEPLOYED".equalsIgnoreCase(finalStatus)) {
 														buildDeployData.getProdDeploymentAuditLogs().get(lastIndex)
-																.setDeployedOn(now);
+																.setDeployedOn(completionTime);
 													}
 												}
 											}
@@ -1882,6 +1889,24 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 									"getById - Stale threshold NOT exceeded for project={}, minutesSinceRequest={}, threshold={}min. Skipping.",
 									projectName, minutesSinceRequest, staleThresholdMinutes);
 						}
+					}
+				}
+			}
+
+			if (refreshTriggeredByUser && entity != null && entity.getData() != null
+					&& entity.getData().getProjectDetails() != null) {
+				boolean deploymentReconciled = deploymentStatusMonitorJob
+						.reconcileDeploymentOnDemand(entity, "int");
+				deploymentReconciled |= deploymentStatusMonitorJob
+						.reconcileDeploymentOnDemand(entity, "prod");
+				if (deploymentReconciled) {
+					CodeServerWorkspaceNsql refreshedEntity = technicalId.equalsIgnoreCase(userId)
+							? workspaceCustomRepository.findByWorkspaceId(id)
+							: workspaceCustomRepository.findById(userId, id);
+					if (refreshedEntity != null) {
+						entity = refreshedEntity;
+					} else {
+						log.warn("getById - Re-read after deployment reconciliation returned no row for id={}", id);
 					}
 				}
 			}
@@ -6176,6 +6201,28 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 			"DEPLOY_REQUESTED",
 			"BUILD_REQUESTED"
 		).contains(status != null ? status.toUpperCase() : "");
+	}
+
+	private Date resolveWorkflowCompletionTime(GitHubWorkflowJobsResponseDto.Job job, Date now) {
+		String completedAt = job != null ? job.getCompletedAt() : null;
+		if (completedAt == null || completedAt.isBlank()) {
+			log.debug("GitHub workflow completion timestamp is missing; using refresh time");
+			return now;
+		}
+		try {
+			Date parsedCompletionTime = Date.from(
+					DateTimeFormatter.ISO_DATE_TIME.parse(completedAt, Instant::from));
+			if (parsedCompletionTime.after(now)) {
+				log.warn("GitHub workflow completion timestamp {} is in the future; using refresh time",
+						completedAt);
+				return now;
+			}
+			return parsedCompletionTime;
+		} catch (DateTimeParseException e) {
+			log.warn("Unable to parse GitHub workflow completion timestamp {}; using refresh time",
+					completedAt);
+			return now;
+		}
 	}
 
 	private String resolveFinalStatus(String requestedStatus, String conclusion) {

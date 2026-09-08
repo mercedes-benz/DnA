@@ -23,6 +23,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import java.time.Duration;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -34,6 +35,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StreamUtils;
+import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 import org.yaml.snakeyaml.Yaml;
 
@@ -64,6 +66,9 @@ public class ArgoCdService {
     @Value("${argocd.vaultKvPath}")
     private String vaultKvPath;
 
+    @Value("${deployment.hardRefreshEnabled:false}")
+    private boolean hardRefreshEnabled;
+
     @Value("${codeServer.env.ref}")
     private String codeServerEnvRef;
 
@@ -87,6 +92,15 @@ public class ArgoCdService {
 
     @Value("${codeServer.git.pat}")
     private String gitPat;
+
+    @Value("${argocd.resources.defaults.requests.cpu}")
+    private String defaultRequestCpu;
+
+    @Value("${argocd.resources.defaults.requests.memory.mi}")
+    private String defaultRequestMemoryMi;
+
+    @Value("${argocd.resources.defaults.limits.memory.mi}")
+    private String defaultLimitMemoryMi;
 
     @Autowired
     private RestTemplate restTemplate;
@@ -196,6 +210,12 @@ public class ArgoCdService {
         
             if (response != null && response.getStatusCode().is2xxSuccessful()) {
                 log.info("ArgoCD application created/updated successfully: {}", appName);
+                if (hardRefreshEnabled) {
+                    refreshArgoApp(token, appName);
+                }
+                String syncOutcome = triggerArgoSync(token, appName);
+                log.info("ArgoCD deployment trigger completed for {}: mode={}, syncOutcome={}",
+                        appName, hardRefreshEnabled ? "hard-refresh-and-sync" : "sync-only", syncOutcome);
                 return "success";
             } else {
                 String errorBody = response != null ? response.getBody() : "no response";
@@ -213,6 +233,57 @@ public class ArgoCdService {
         } catch (Exception e) {
             log.error("ArgoCD deployment exception for {}-{}: {}", projectName, environment, e.getMessage());
             throw e;
+        }
+    }
+
+    private void refreshArgoApp(String token, String appName) {
+        String url = argocdCreateUrl + "/" + appName + "?refresh=hard";
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setBearerAuth(token);
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            HttpEntity<Void> entity = new HttpEntity<>(headers);
+            ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
+            if (response != null && response.getStatusCode().is2xxSuccessful()) {
+                log.info("ArgoCD hard refresh requested successfully for {}", appName);
+            } else {
+                log.warn("ArgoCD hard refresh failed for {}: status={} body={}", appName,
+                        response != null ? response.getStatusCode() : "null",
+                        response != null ? response.getBody() : "no response");
+            }
+        } catch (HttpStatusCodeException e) {
+            log.warn("ArgoCD hard refresh failed for {}: status={} body={}", appName,
+                    e.getStatusCode(), e.getResponseBodyAsString());
+        } catch (Exception e) {
+            log.warn("ArgoCD hard refresh failed for {}: connection/error={}", appName, e.getMessage());
+        }
+    }
+
+    private String triggerArgoSync(String token, String appName) {
+        String url = argocdCreateUrl + "/" + appName + "/sync";
+        try {
+            HttpHeaders headers = new HttpHeaders();
+            headers.setBearerAuth(token);
+            headers.setContentType(MediaType.APPLICATION_JSON);
+            Map<String, Boolean> syncPayload = new HashMap<>();
+            syncPayload.put("prune", false);
+            HttpEntity<Map<String, Boolean>> entity = new HttpEntity<>(syncPayload, headers);
+            ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
+            if (response != null && response.getStatusCode().is2xxSuccessful()) {
+                log.info("ArgoCD sync requested successfully for {}", appName);
+                return "success";
+            }
+            log.warn("ArgoCD sync request failed for {}: status={} body={}", appName,
+                    response != null ? response.getStatusCode() : "null",
+                    response != null ? response.getBody() : "no response");
+            return "failed";
+        } catch (HttpStatusCodeException e) {
+            log.warn("ArgoCD sync request failed for {}: status={} body={}", appName,
+                    e.getStatusCode(), e.getResponseBodyAsString());
+            return e.getStatusCode().value() == 404 ? "not_found" : "failed";
+        } catch (Exception e) {
+            log.warn("ArgoCD sync request failed for {}: connection/error={}", appName, e.getMessage());
+            return "failed";
         }
     }
 
@@ -337,43 +408,41 @@ public class ArgoCdService {
         helmParameters.add(createHelmParamForceString("podAnnotations.prometheus\\.io/scrape", "true"));
         
         if (resources != null && resources.isEmpty()) {
-            helmParameters.add(createHelmParam("resources.requests.cpu", "200m"));
-            helmParameters.add(createHelmParam("resources.requests.memory", "256Mi"));
-            helmParameters.add(createHelmParam("resources.limits.memory", "1Gi"));
+            helmParameters.add(createHelmParam("resources.requests.cpu", defaultRequestCpu));
+            helmParameters.add(createHelmParam("resources.requests.memory", defaultRequestMemoryMi + "Mi"));
+            helmParameters.add(createHelmParam("resources.limits.memory", defaultLimitMemoryMi + "Mi"));
             log.info("[Resources] Empty resources in values.yaml, sending defaults");
         } else if (resources != null && !resources.isEmpty()) {
             String cpu = resources.get("cpu");
             String memory = resources.get("memory");
+            String limitsMemory = resources.get("limitsMemory");
             boolean hasLimitsCpu = "true".equals(resources.get("hasLimitsCpu"));
 
-            if (!hasLimitsCpu) {
-                // Case 2: No limits.cpu — limits.memory = requests.memory
-                if (cpu != null) {
-                    helmParameters.add(createHelmParam("resources.requests.cpu", cpu + "m"));
-                }
-                if (memory != null) {
-                    helmParameters.add(createHelmParam("resources.requests.memory", memory + "Mi"));
-                    helmParameters.add(createHelmParam("resources.limits.memory", memory + "Mi"));
-                }
-                log.info("[Resources] Case 2: No limits.cpu in values.yaml - requests.cpu={}, requests.memory={}, limits.memory={} (same as requests)",
-                    cpu != null ? cpu + "m" : "not set",
-                    memory != null ? memory + "Mi" : "not set",
-                    memory != null ? memory + "Mi" : "not set");
-
-            } else {
-                if (cpu != null) {
-                    helmParameters.add(createHelmParam("resources.requests.cpu", cpu + "m"));
-                }
-                if (memory != null) {
-                    helmParameters.add(createHelmParam("resources.requests.memory", memory + "Mi"));
-                    helmParameters.add(createHelmParam("resources.limits.memory", memory + "Mi"));
-                }
-                helmParameters.add(createHelmParam("resources.limits.cpu", "null"));
-                log.info("[Resources] Case 3: limits.cpu exists in values.yaml - requests.cpu={}, requests.memory={}, limits.memory={} (same as requests), limits.cpu=null",
-                    cpu != null ? cpu + "m" : "not set",
-                    memory != null ? memory + "Mi" : "not set",
-                    memory != null ? memory + "Mi" : "not set");
+            // Missing keys inside a non-empty resources block should still use case-1 defaults.
+            String requestCpu = (cpu != null) ? cpu + "m" : defaultRequestCpu;
+            boolean requestMemoryDefaulted = (memory == null);
+            String requestMemory = requestMemoryDefaulted ? defaultRequestMemoryMi : memory;
+            boolean limitMemoryMirrored = (limitsMemory == null);
+            String limitMemory = limitMemoryMirrored
+                    ? raiseLimitToRequest(defaultLimitMemoryMi, requestMemory)
+                    : limitsMemory;
+            if (requestMemoryDefaulted && parseMemoryMi(limitMemory) < parseMemoryMi(defaultRequestMemoryMi)) {
+                limitMemory = defaultRequestMemoryMi;
             }
+
+            helmParameters.add(createHelmParam("resources.requests.cpu", requestCpu));
+            helmParameters.add(createHelmParam("resources.requests.memory", requestMemory + "Mi"));
+            helmParameters.add(createHelmParam("resources.limits.memory", limitMemory + "Mi"));
+            if (hasLimitsCpu) {
+                helmParameters.add(createHelmParam("resources.limits.cpu", "null"));
+            }
+            log.info("[Resources] Applying Helm params: requests.cpu={}, requests.memory={} (defaulted={}), limits.memory={} (source={}), limits.cpu={}",
+                requestCpu,               
+                requestMemory + "Mi",
+                requestMemoryDefaulted,
+                limitMemory + "Mi",
+                limitsMemory != null ? "values.yaml" : "default",
+                hasLimitsCpu ? "null" : "not set");
 
         } else {
             log.info("[Resources] No resource overrides, using chart defaults");
@@ -612,6 +681,22 @@ public class ArgoCdService {
         }
     }
     
+    private double parseMemoryMi(String memoryMi) {
+        try {
+            return Double.parseDouble(memoryMi.trim());
+        } catch (NumberFormatException e) {
+            log.warn("[Resources] Unable to parse memory Mi value: {}", memoryMi);
+            return Double.MAX_VALUE;
+        }
+    }
+
+    private String raiseLimitToRequest(String defaultLimit, String requestMemory) {
+        if (requestMemory == null) {
+            return defaultLimit;
+        }
+        return parseMemoryMi(requestMemory) > parseMemoryMi(defaultLimit) ? requestMemory : defaultLimit;
+    }
+    
     private String convertMemory(String memoryValue) {
         memoryValue = memoryValue.trim();
         
@@ -767,7 +852,7 @@ public class ArgoCdService {
             String operationMessage = rootNode.path("status").path("operationState").path("message").asText("");
             log.info("ArgoCD app {} - Health: {}, LastSyncPhase: {}, Message: {}", appName, healthStatus, lastSyncPhase, operationMessage);
 
-            String failureMessage = getConfirmedDeploymentFailure(rootNode, appName, deployTriggerTime);
+            String failureMessage = getConfirmedDeploymentFailure(token, rootNode, appName, deployTriggerTime);
             if (failureMessage != null) {
                 return "DEPLOYMENT_FAILED";
             }
@@ -839,32 +924,51 @@ public class ArgoCdService {
             String healthStatus = rootNode.path("status").path("health").path("status").asText("");
             String lastSyncPhase = rootNode.path("status").path("operationState").path("phase").asText("");
 
-            String failureMessage = getConfirmedDeploymentFailure(rootNode, appName, deployTriggerTime);
+            Map<String, Object> crashLoopStatus = null;
+            String failureMessage;
+            boolean operationFailed = "Failed".equalsIgnoreCase(lastSyncPhase)
+                    || "Error".equalsIgnoreCase(lastSyncPhase);
+            if ("Degraded".equalsIgnoreCase(healthStatus) && !operationFailed) {
+                crashLoopStatus = getNewPodCrashLoopStatus(token, appName, rootNode);
+                failureMessage = getConfirmedDeploymentFailure(
+                        token, rootNode, appName, deployTriggerTime, crashLoopStatus);
+            } else {
+                failureMessage = getConfirmedDeploymentFailure(token, rootNode, appName, deployTriggerTime);
+            }
             if (failureMessage != null) {
                 result.put("status", "DEPLOYMENT_FAILED");
                 result.put("errorMessage", failureMessage);
                 return result;
             }
             if ("Degraded".equalsIgnoreCase(healthStatus)) {
+                if (crashLoopStatus == null) {
+                    crashLoopStatus = getNewPodCrashLoopStatus(token, appName, rootNode);
+                }
+                addCrashLoopEvidence(result, crashLoopStatus);
                 result.put("status", "DEPLOYING");
                 return result;
             }
             if ("Running".equalsIgnoreCase(lastSyncPhase)) {
+                addCrashLoopEvidence(result, getNewPodCrashLoopStatus(token, appName, rootNode));
                 return result; 
             }
  
             String syncStatus = rootNode.path("status").path("sync").path("status").asText("");
             if ("OutOfSync".equalsIgnoreCase(syncStatus)) {
+                addCrashLoopEvidence(result, getNewPodCrashLoopStatus(token, appName, rootNode));
                 return result; 
             }
             if ("Healthy".equalsIgnoreCase(healthStatus)) {
                 if (!isDeploymentReady(rootNode, appName, expectedVersion, deployTriggerTime)) {
+                    result.put("newPodCrashLooping", "false");
+                    result.put("crashLoopReason", "");
                     result.put("status", "DEPLOYING");
                     return result;
                 }
                 result.put("status", "DEPLOYED");
                 return result;
             }
+            addCrashLoopEvidence(result, getNewPodCrashLoopStatus(token, appName, rootNode));
             return result;
         } catch (Exception e) {
             log.error("Failed to check ArgoCD deployment status for {}", appName, e);
@@ -877,7 +981,13 @@ public class ArgoCdService {
      * be attributed to the current deployment, or null when the application is
      * still deploying or has no confirmed failure.
      */
-    public String getConfirmedDeploymentFailure(JsonNode rootNode, String appName, Date deployTriggerTime) {
+    public String getConfirmedDeploymentFailure(String token, JsonNode rootNode, String appName,
+            Date deployTriggerTime) {
+        return getConfirmedDeploymentFailure(token, rootNode, appName, deployTriggerTime, null);
+    }
+
+    private String getConfirmedDeploymentFailure(String token, JsonNode rootNode, String appName,
+            Date deployTriggerTime, Map<String, Object> computedCrashLoopStatus) {
         JsonNode operationState = rootNode.path("status").path("operationState");
         String healthStatus = rootNode.path("status").path("health").path("status").asText("");
         String phase = operationState.path("phase").asText("");
@@ -911,14 +1021,42 @@ public class ArgoCdService {
             }
             if (degradedSince == null
                     || !Instant.now().isBefore(degradedSince.plusSeconds(degradedGraceSeconds))) {
+                String desiredTag = getDesiredImageTag(rootNode);
+                if (desiredTag == null || desiredTag.isEmpty()) {
+                    log.warn("Degraded ArgoCD deployment {} lacks a desired image tag; failure is not proven", appName);
+                    return null;
+                }
+                Map<String, Object> crashLoopStatus = computedCrashLoopStatus != null
+                        ? computedCrashLoopStatus
+                        : getNewPodCrashLoopStatus(token, appName, rootNode);
+                if (!Boolean.TRUE.equals(crashLoopStatus.get("newPodCrashLooping"))
+                        || Boolean.TRUE.equals(crashLoopStatus.get("fallbackSelected"))
+                        || !Boolean.TRUE.equals(crashLoopStatus.get("strongCrashReason"))) {
+                    log.warn("Degraded ArgoCD deployment {} has no precisely version-matched strong crash evidence; "
+                            + "failure is not proven (fallbackSelected={}, strongCrashReason={})",
+                            appName, crashLoopStatus.get("fallbackSelected"),
+                            crashLoopStatus.get("strongCrashReason"));
+                    return null;
+                }
                 String failureMessage = message != null && !message.isEmpty()
                         ? message : "Application health is Degraded. Check pod logs for details.";
-                log.info("Confirmed ArgoCD deployment failure for {}: phase={}, health={}, startedAt={}, finishedAt={}, triggerTime={}",
-                        appName, phase, healthStatus, startedAt, finishedAt, deployTriggerTime);
+                log.info("Confirmed ArgoCD deployment failure for {}: phase={}, health={}, startedAt={}, finishedAt={}, triggerTime={}, crashReason={}",
+                        appName, phase, healthStatus, startedAt, finishedAt, deployTriggerTime,
+                        crashLoopStatus.get("crashLoopReason"));
                 return failureMessage;
             }
         }
         return null;
+    }
+
+    private void addCrashLoopEvidence(Map<String, String> result, Map<String, Object> crashLoopStatus) {
+        if (crashLoopStatus == null) {
+            return;
+        }
+        result.put("newPodCrashLooping",
+                String.valueOf(Boolean.TRUE.equals(crashLoopStatus.get("newPodCrashLooping"))));
+        Object reason = crashLoopStatus.get("crashLoopReason");
+        result.put("crashLoopReason", reason == null ? "" : String.valueOf(reason));
     }
 
     private boolean isWithinDeploymentGracePeriod(Date deployTriggerTime) {
@@ -1080,9 +1218,10 @@ public class ArgoCdService {
         }
         try {
             Instant operationStart = Instant.parse(startedAt);
+            long queueGapSeconds = Duration.between(deployTriggerTime.toInstant(), operationStart).getSeconds();
             boolean matched = !operationStart.isBefore(deployTriggerTime.toInstant().minusSeconds(30));
-            log.info("New-sync validation for {}: operation startedAt={}, trigger time={}, matched={}",
-                    appName, startedAt, deployTriggerTime, matched);
+            log.info("New-sync validation for {}: operation startedAt={}, trigger time={}, queue gap={}s, matched={}",
+                    appName, startedAt, deployTriggerTime, queueGapSeconds, matched);
             return matched;
         } catch (DateTimeException e) {
             log.info("New-sync validation for {}: invalid operation startedAt={}, trigger time={} - matched=false",
@@ -1320,16 +1459,36 @@ public class ArgoCdService {
                 JsonNode appNode = new ObjectMapper().readTree(appResponse.getBody());
                 desiredTag = getDesiredImageTag(appNode);
             }
+            return getNewVersionPodSelectionWithDesiredTag(token, appName, desiredTag);
+        } catch (Exception e) {
+            log.warn("Failed to resolve new-version pods for {}: {}", appName, e.getMessage());
+            return new PodSelectionResult(emptyPods, false, false);
+        }
+    }
+
+    public List<PodInfo> getNewVersionPods(String token, String appName, JsonNode appNode) {
+        return getNewVersionPodSelection(token, appName, appNode).getPods();
+    }
+
+    public PodSelectionResult getNewVersionPodSelection(String token, String appName, JsonNode appNode) {
+        String desiredTag = appNode != null ? getDesiredImageTag(appNode) : null;
+        return getNewVersionPodSelectionWithDesiredTag(token, appName, desiredTag);
+    }
+
+    private PodSelectionResult getNewVersionPodSelectionWithDesiredTag(String token, String appName,
+            String desiredTag) {
+        List<PodInfo> pods = new ArrayList<>();
+        try {
 
             JsonNode tree = getResourceTree(token, appName);
             if (tree == null) {
-                return new PodSelectionResult(emptyPods, false, false);
+                return new PodSelectionResult(pods, false, false);
             }
             JsonNode nodes = tree.path("nodes");
             if (!nodes.isArray()) {
                 log.info("ArgoCD pod selection for {}: nodes=0, pods=0, desiredTag={}, rejectedByTag=0, details=<nodes not array>",
                         appName, desiredTag);
-                return new PodSelectionResult(emptyPods, false, true);
+                return new PodSelectionResult(pods, false, true);
             }
 
             List<PodInfo> allPods = new ArrayList<>();
@@ -1402,7 +1561,7 @@ public class ArgoCdService {
             return new PodSelectionResult(selectedPods, fallbackSelection, true);
         } catch (Exception e) {
             log.warn("Failed to resolve new-version pods for {}: {}", appName, e.getMessage());
-            return new PodSelectionResult(emptyPods, false, false);
+            return new PodSelectionResult(pods, false, false);
         }
     }
 
@@ -1418,9 +1577,36 @@ public class ArgoCdService {
         Map<String, Object> result = new HashMap<>();
         result.put("newPodCrashLooping", false);
         result.put("crashLoopReason", null);
+        result.put("fallbackSelected", false);
+        result.put("strongCrashReason", false);
         try {
             PodSelectionResult selection = getNewVersionPodSelection(token, appName);
-            for (PodInfo pod : selection.getPods()) {
+            return evaluateCrashLoopStatus(appName, selection.getPods(), result);
+        } catch (Exception e) {
+            log.warn("Failed to evaluate crash-loop status for {}: {}", appName, e.getMessage());
+            return result;
+        }
+    }
+
+    public Map<String, Object> getNewPodCrashLoopStatus(String token, String appName, JsonNode appNode) {
+        Map<String, Object> result = new HashMap<>();
+        result.put("newPodCrashLooping", false);
+        result.put("crashLoopReason", null);
+        result.put("fallbackSelected", false);
+        result.put("strongCrashReason", false);
+        try {
+            PodSelectionResult selection = getNewVersionPodSelection(token, appName, appNode);
+            return evaluateCrashLoopStatus(appName, selection.getPods(), result);
+        } catch (Exception e) {
+            log.warn("Failed to evaluate crash-loop status for {}: {}", appName, e.getMessage());
+        }
+        return result;
+    }
+
+    private Map<String, Object> evaluateCrashLoopStatus(String appName, List<PodInfo> pods,
+            Map<String, Object> result) {
+        try {
+            for (PodInfo pod : pods) {
                 String reason = pod.getStatusReason();
                 if (reason != null && CRASH_LOOP_REASONS.contains(reason)) {
                     result.put("newPodCrashLooping", true);
@@ -1428,6 +1614,8 @@ public class ArgoCdService {
                             ? "Fallback-selected pod is in " : "New pod is in ";
                     result.put("crashLoopReason", podLabel + reason
                         + (pod.getRestartCount() > 0 ? " (" + pod.getRestartCount() + " restarts)" : ""));
+                    result.put("fallbackSelected", pod.isSelectedByFallback());
+                    result.put("strongCrashReason", true);
                     if (pod.isSelectedByFallback()) {
                         log.warn("Crash-loop verdict for {} came from fallback-selected pod {}: reason={}",
                                 appName, pod.getPodName(), reason);

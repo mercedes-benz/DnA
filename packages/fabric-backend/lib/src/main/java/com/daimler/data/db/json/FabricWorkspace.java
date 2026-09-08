@@ -6,6 +6,7 @@ import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.daimler.data.db.json.catalogManangement.FabricCatalogMetadata;
+import com.daimler.data.db.json.CmkKeyDetails;
 
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -36,6 +37,7 @@ public class FabricWorkspace implements Serializable{
 	private String internalOrder;
 	private String capacityAssignmentProgress;
 	private Capacity capacity;
+	private CmkKeyDetails cmkDetails;
 	private UserDetails createdBy;
 	private Date createdOn;
 	private Date deletedOn;

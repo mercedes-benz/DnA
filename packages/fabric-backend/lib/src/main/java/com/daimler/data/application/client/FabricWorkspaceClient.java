@@ -27,6 +27,7 @@
 
 package com.daimler.data.application.client;
 
+import java.net.http.HttpClient;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
@@ -36,6 +37,7 @@ import java.util.List;
 import java.util.Objects;
 
 import javax.servlet.http.HttpServletRequest;
+import javax.ws.rs.ForbiddenException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -57,9 +59,11 @@ import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.dto.fabric.AddDatasourceUserDto;
 import com.daimler.data.dto.fabric.AddGroupDto;
 import com.daimler.data.dto.fabric.AddUserDto;
+import com.daimler.data.dto.fabric.ConnectionDetailsDto;
 import com.daimler.data.dto.fabric.CreateDatasourceRequestDto;
 import com.daimler.data.dto.fabric.CreateLakehouseDto;
 import com.daimler.data.dto.fabric.CreateWorkspaceDto;
+import com.daimler.data.dto.fabric.CredentialsDto;
 import com.daimler.data.dto.fabric.DatasourceResponseDto;
 import com.daimler.data.dto.fabric.DdxOnboardingRequestDto;
 import com.daimler.data.dto.fabric.ErrorResponseDto;
@@ -74,6 +78,10 @@ import com.daimler.data.dto.fabric.MicrosoftGroupDetailCollectionDto;
 import com.daimler.data.dto.fabric.MicrosoftGroupDetailDto;
 import com.daimler.data.dto.fabric.MicrosoftGroupMemberCollectionDto;
 import com.daimler.data.dto.fabric.MicrosoftGroupMembersDto;
+import com.daimler.data.dto.fabric.NetworkConnectionDto;
+import com.daimler.data.dto.fabric.NetworkConnectionResponseDto;
+import com.daimler.data.dto.fabric.NetworkCredentialDetailsDto;
+import com.daimler.data.dto.fabric.ParameterDto;
 import com.daimler.data.dto.fabric.PrincipalDto;
 import com.daimler.data.dto.fabric.RoleAssignmentRequestDto;
 import com.daimler.data.dto.fabric.RoleAssignmentResponseDto;
@@ -81,6 +89,9 @@ import com.daimler.data.dto.fabric.WorkspaceDetailDto;
 import com.daimler.data.dto.fabric.WorkspaceUpdateDto;
 import com.daimler.data.dto.fabric.WorkspacesCollectionDto;
 import com.daimler.data.util.ConstantsUtility;
+import com.databricks.sdk.service.provisioning.Credential;
+import com.databricks.sdk.service.provisioning.Network;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.daimler.data.dto.fabric.FabricSqlEndpointResponseDto;
 import com.daimler.data.dto.fabric.DdxResponseDto;
@@ -89,6 +100,10 @@ import com.daimler.data.dto.databricks.DatabricksSqlStatementResponseDto;
 import com.daimler.data.application.auth.UserStore;
 
 import lombok.extern.slf4j.Slf4j;
+import java.util.regex.Matcher;  
+import java.util.regex.Pattern;  
+import java.util.stream.Stream;  
+import java.util.stream.Collectors;  
 
 @Component
 @Slf4j
@@ -165,6 +180,12 @@ public class FabricWorkspaceClient {
 	
 	@Value("${fabricWorkspaces.uri.shortcutUrl}")
 	private String shortcutUrl;
+
+	@Value("${fabricWorkspaces.uri.fabricBaseUrl}")
+	private String fabricBaseUrl;
+
+	@Value("${uilicious.identifier}")
+	private String servicePrincipleObjectId;
 	
 	@Value("${fabricWorkspaces.gateway.id}")
 	private String gatewayId;
@@ -1358,6 +1379,129 @@ public class FabricWorkspaceClient {
 			responseDto.setMessage("Failed to assign role: " + e.getMessage());
 		}
 		return responseDto;
+	}
+
+	public NetworkConnectionResponseDto createNetworkConnectionName(String storageAccountUrl) {
+		Matcher m = Pattern
+			.compile("^(https?://([^.]+)\\.dfs\\.core\\.windows\\.net)/(.+)$")
+			.matcher(storageAccountUrl.trim());
+
+		if (!m.matches()) {
+			throw new RuntimeException("Invalid storage account URL format: " + storageAccountUrl);
+		}
+
+		String serverValue = m.group(1);
+		String pathValue = m.group(3);
+		String connectionName = Stream.of("ADA_Central", m.group(2), m.group(3))
+				.collect(Collectors.joining("_"));
+
+		log.info("Creating network connection - server: {}, path: {}, connectionName: {}", serverValue, pathValue, connectionName);
+
+		String token = getToken();
+		if (!Objects.nonNull(token)) {
+			throw new RuntimeException("Failed to obtain authentication token for creating network connection");
+		}
+
+		try {
+			NetworkConnectionDto networkConnectionDto = new NetworkConnectionDto(
+				"ShareableCloud",
+				connectionName,
+				new ConnectionDetailsDto("AzureDataLakeStorage", "AzureDataLakeStorage", List.of(
+					new ParameterDto("server", serverValue, "Text"),
+					new ParameterDto("path", pathValue, "Text")
+				)),
+				"Organizational",
+				new NetworkCredentialDetailsDto("None", "NotEncrypted", false, new CredentialsDto("WorkspaceIdentity"))
+			);
+
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Authorization", "Bearer " + token);
+			headers.setContentType(MediaType.APPLICATION_JSON);
+
+			HttpEntity<NetworkConnectionDto> requestEntity = new HttpEntity<>(networkConnectionDto, headers);
+			String connectionUrl = fabricBaseUrl + "/connections";
+
+			ResponseEntity<NetworkConnectionResponseDto> response = proxyRestTemplate.exchange(
+					connectionUrl, HttpMethod.POST, requestEntity, NetworkConnectionResponseDto.class);
+
+			if (response == null || !response.hasBody() || !response.getStatusCode().is2xxSuccessful()) {
+				throw new RuntimeException("Failed to create network connection for " + connectionName +
+						" with status: " + (response != null ? response.getStatusCode() : "No Response"));
+			}
+
+			NetworkConnectionResponseDto responseDto = response.getBody();
+			log.info("Network connection created: {}", responseDto != null ? responseDto.getDisplayName() : "UNKNOWN");
+			return responseDto;
+
+		} catch (HttpClientErrorException.Conflict e) {
+			log.error("Network connection {} already exists: {}", connectionName, e.getMessage());
+			throw new RuntimeException("Network connection already exists: " + connectionName, e);
+		} catch (HttpClientErrorException e) {
+			log.error("HTTP error creating connection {}: status={}, body={}", connectionName, e.getStatusCode(), e.getResponseBodyAsString());
+			throw new RuntimeException("Failed to create network connection: " + e.getResponseBodyAsString(), e);
+		} catch (RuntimeException e) {
+			throw e;
+		} catch (Exception e) {
+			log.error("Failed to create connection {} with exception: {}", connectionName, e.getMessage());
+			throw new RuntimeException("Failed to create network connection: " + e.getMessage(), e);
+		}
+	}
+
+	public boolean grantPermissionToNetworkConnection(String connectionId) {
+		try {
+			String token = getToken();
+			if(!Objects.nonNull(token)) {
+				log.error("Failed to fetch token to invoke fabric Apis");
+				throw new RuntimeException("Failed to obtain authentication token for granting permission to network connection");
+			}
+
+			Map<String, Object> requestBody = new HashMap<>();
+			requestBody.put("principal", new HashMap<String, String>() {{
+				put("id",servicePrincipleObjectId);
+				put("type", "User");
+			}});
+			requestBody.put("role", "User");
+
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Authorization", "Bearer "+token);
+			headers.setContentType(MediaType.APPLICATION_JSON);
+
+			HttpEntity requestEntity = new HttpEntity<>(requestBody, headers);
+			String permissionUrl = fabricBaseUrl + "/connections/"+ connectionId +"/roleAssignments";
+
+			log.info("Granting permission for connection {} ", connectionId );
+			ResponseEntity<JsonNode> response = proxyRestTemplate.exchange(
+					permissionUrl, HttpMethod.POST, requestEntity, JsonNode.class);
+
+			if (response == null) {
+				String errorMsg = "Failed to grant permission for connection " + connectionId +
+						" with status: " + (response != null ? response.getStatusCode() : "No Response");
+				log.error(errorMsg);
+				return true;
+			}
+
+			if (response != null && response.getStatusCode().equals(HttpStatus.FORBIDDEN)) {
+				String errorMsg = "Failed to grant permission for connection " + connectionId +
+						" with status: " + (response != null ? response.getStatusCode() : "No Response");
+				log.error(errorMsg);
+				throw new ForbiddenException("Failed to grant permission to network connection: " + errorMsg);
+			}
+			
+			log.info("Permission granted for connection {} ", connectionId);
+			return true;
+
+		}catch (HttpClientErrorException.Conflict e) {
+			log.info("Permission already exists for connection {}", connectionId);
+			return true;
+		}
+		catch(HttpClientErrorException.Forbidden e) {
+			log.error("HTTP error granting permission for connection {}: status={}, body={}", connectionId, e.getStatusCode(), e.getResponseBodyAsString());
+			throw new RuntimeException("Failed to grant permission to network connection: " + e.getResponseBodyAsString(), e);
+		}
+		catch(Exception e) {
+			log.error("Failed to grant permission for connection {} with exception: {}", connectionId, e.getMessage());	
+			throw new RuntimeException("Failed to grant permission to network connection: " + e.getMessage());
+		}
 	}
 	
 	
