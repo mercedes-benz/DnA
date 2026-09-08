@@ -232,6 +232,7 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, catal
               console.log('[CdcPush] cdcCatalogs count:', cdcCatalogs.length, 'looking for lakeHouseId:', lakehouseId);
               const lakehouseEntries = cdcCatalogs.filter(c => c.lakeHouseId === lakehouseId);
               setExistingCatalogNames(lakehouseEntries.map(c => c.catalogName || c.lakehouseName));
+              // Select the target catalog for updates or mandatory defaults for new catalogs.
               const lakehouseEntry = isUpdateMode
                 ? lakehouseEntries.find(c => (c.catalogName || c.lakehouseName) === catalogName)
                 : [...lakehouseEntries].sort((a, b) => {
@@ -273,7 +274,7 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, catal
               }
 
               const databases = metaRes?.data?.data?.metadata?.databases || [];
-              const db = databases.find(d => d.dbName === fullCatalogName)
+              const db = databases.find(d => d.dbName === catalogName)
                 || databases.find(d => d.dbName === lakehouseName)
                 || databases.find(d => d.dbId === lakehouseId)
                 || databases[0];
@@ -317,7 +318,7 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, catal
           'alert'
         );
       });
-  }, [workspaceId, lakehouseId, lakehouseName, catalogName, fullCatalogName, isUpdateMode, setValue]);
+  }, [workspaceId, lakehouseId, lakehouseName, catalogName, isUpdateMode, setValue]);
 
   // Auto-select previously published tables once both tables list and publish history are loaded
   useEffect(() => {

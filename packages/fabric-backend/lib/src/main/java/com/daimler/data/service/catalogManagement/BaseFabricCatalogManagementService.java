@@ -1841,15 +1841,16 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
                     .filter(detail -> lakehouseId.equals(detail.getLakeHouseId()))
                     .collect(Collectors.toList());
             Map<String, LakehouseTableDetailVO> storedTableMap = new LinkedHashMap<>();
+            // Union catalog snapshots so mismatch checks cover every published catalog.
             for (CdcTableDetailVO storedLakehouseDetail : storedLakehouseDetails) {
-                if (storedLakehouseDetail.getPublishedLakehouseTableDetails() != null) {
+                if (storedLakehouseDetail.getPublishedLakehouseTableDetails() != null
+                        && !storedLakehouseDetail.getPublishedLakehouseTableDetails().isEmpty()) {
                     for (LakehouseTableDetailVO storedTable : storedLakehouseDetail.getPublishedLakehouseTableDetails()) {
                         if (storedTable != null && storedTable.getTableName() != null) {
                             storedTableMap.putIfAbsent(storedTable.getTableName(), storedTable);
                         }
                     }
-                }
-                if (storedLakehouseDetail.getPublishedLakehouseTables() != null) {
+                } else if (storedLakehouseDetail.getPublishedLakehouseTables() != null) {
                     for (String tableName : storedLakehouseDetail.getPublishedLakehouseTables()) {
                         if (tableName != null) {
                             LakehouseTableDetailVO storedTable = new LakehouseTableDetailVO();

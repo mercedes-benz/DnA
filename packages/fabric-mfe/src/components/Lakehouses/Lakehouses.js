@@ -917,6 +917,7 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
           onCancel={() => { setSelectedLakehouse(); setSelectedCatalogName(undefined); setShowViewTablesModal(false) }}
         />
       }
+      {/* Show published catalog links and actions for the selected lakehouse. */}
       {showCatalogsModal &&
         <InfoModal
           title={`Published CDC Catalogs - ${selectedLakehouse?.name}`}
