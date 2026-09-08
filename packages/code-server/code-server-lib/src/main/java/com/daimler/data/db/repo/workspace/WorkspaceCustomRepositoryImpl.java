@@ -53,6 +53,7 @@ import com.daimler.data.db.json.CodespaceSecurityConfig;
 import com.daimler.data.db.json.DeploymentAudit;
 import com.daimler.data.db.json.UserInfo;
 import com.daimler.data.db.repo.common.CommonDataRepositoryImpl;
+import com.daimler.data.dto.CodespaceResourceExemptionDto;
 import com.daimler.data.dto.CodespaceSecurityConfigDto;
 import com.daimler.data.dto.GitRunIdDetailsDto;
 import com.daimler.data.dto.workspace.CodeServerWorkspaceValidateVO;
@@ -1524,6 +1525,149 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 			log.error("Failed while updating the Build Deploy Audit Status", e);
 			return false;
 		}
+	}
+
+	@Override
+	public boolean isResourceCapExempt(String projectName, String environment) {
+		if (projectName == null || projectName.isEmpty()) {
+			return false;
+		}
+		String flagName = "prod".equalsIgnoreCase(environment) ? "resourceCapExemptProd" : "resourceCapExemptInt";
+		CriteriaBuilder cb = em.getCriteriaBuilder();
+		CriteriaQuery<Long> cq = cb.createQuery(Long.class);
+		Root<CodeServerWorkspaceNsql> root = cq.from(entityClass);
+		CriteriaQuery<Long> exemptCount = cq.select(cb.count(root));
+		Predicate con1 = cb.equal(cb.lower(
+				cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("projectDetails"), cb.literal("projectName"))),
+				projectName.toLowerCase());
+		Predicate con2 = cb.notEqual(cb.lower(
+				cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("status"))),
+				"DELETED".toLowerCase());
+		Predicate con3 = cb.equal(cb.lower(
+				cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("projectDetails"), cb.literal(flagName))),
+				"true");
+		cq.where(cb.and(con1, con2, con3));
+		Long count = em.createQuery(exemptCount).getSingleResult();
+		boolean exempt = count != null && count > 0;
+		log.info("[Resources] Resource cap exemption for project {} in env {} ({}): {}", projectName, environment, flagName, exempt);
+		return exempt;
+	}
+
+	@Override
+	public List<CodespaceResourceExemptionDto> getAllResourceCapExemptions(Integer offset, Integer limit,
+			String projectName) {
+		List<CodespaceResourceExemptionDto> data = new ArrayList<>();
+		boolean filterByProject = projectName != null && !projectName.trim().isEmpty();
+		StringBuilder getQuery = new StringBuilder(
+				"select project_name, project_owner, workspace_count, exempt_int, exempt_prod from ( "
+						+ "select jsonb_extract_path_text(data,'projectDetails','projectName') as project_name, "
+						+ "max(jsonb_extract_path_text(data,'projectDetails','projectOwner')) as project_owner, "
+						+ "count(*) as workspace_count, "
+						+ "bool_or(lower(coalesce(jsonb_extract_path_text(data,'projectDetails','resourceCapExemptInt'),'false')) = 'true') as exempt_int, "
+						+ "bool_or(lower(coalesce(jsonb_extract_path_text(data,'projectDetails','resourceCapExemptProd'),'false')) = 'true') as exempt_prod "
+						+ "from workspace_nsql "
+						+ "where lower(jsonb_extract_path_text(data,'status')) <> 'deleted' ");
+		if (filterByProject) {
+			getQuery.append("and lower(jsonb_extract_path_text(data,'projectDetails','projectName')) like :projectName ");
+		}
+		getQuery.append("group by project_name ) projects order by (exempt_int or exempt_prod) desc, project_name");
+
+		try {
+			Query q = em.createNativeQuery(getQuery.toString());
+			if (filterByProject) {
+				q.setParameter("projectName", "%" + projectName.trim().toLowerCase() + "%");
+			}
+			if (offset != null && offset >= 0) {
+				q.setFirstResult(offset);
+			}
+			if (limit != null && limit > 0) {
+				q.setMaxResults(limit);
+			}
+
+			List<Object[]> results = q.getResultList();
+			ObjectMapper mapper = new ObjectMapper();
+			for (Object[] rowData : results) {
+				if (rowData == null) {
+					continue;
+				}
+				CodespaceResourceExemptionDto rowDetails = new CodespaceResourceExemptionDto();
+				rowDetails.setProjectName((String) rowData[0]);
+				if (rowData[1] != null) {
+					try {
+						rowDetails.setProjectOwner(mapper.readValue(rowData[1].toString(), UserInfo.class));
+					} catch (Exception e) {
+						log.error("Failed to map project owner of project {}", rowData[0]);
+					}
+				}
+				rowDetails.setWorkspaceCount(rowData[2] != null ? ((Number) rowData[2]).intValue() : 0);
+				rowDetails.setExemptInt(Boolean.TRUE.equals(rowData[3]));
+				rowDetails.setExemptProd(Boolean.TRUE.equals(rowData[4]));
+				data.add(rowDetails);
+			}
+			log.info("Found {} codespace projects for the resource cap exemption listing", data.size());
+		} catch (Exception e) {
+			log.error("Failed to query the resource cap exemption listing with exception {}", e.getMessage());
+		}
+		return data;
+	}
+
+	@Override
+	public Integer getResourceCapExemptionsCount(String projectName) {
+		boolean filterByProject = projectName != null && !projectName.trim().isEmpty();
+		StringBuilder countQuery = new StringBuilder(
+				"select count(distinct jsonb_extract_path_text(data,'projectDetails','projectName')) "
+						+ "from workspace_nsql "
+						+ "where lower(jsonb_extract_path_text(data,'status')) <> 'deleted' ");
+		if (filterByProject) {
+			countQuery.append("and lower(jsonb_extract_path_text(data,'projectDetails','projectName')) like :projectName");
+		}
+		try {
+			Query q = em.createNativeQuery(countQuery.toString());
+			if (filterByProject) {
+				q.setParameter("projectName", "%" + projectName.trim().toLowerCase() + "%");
+			}
+			Object count = q.getSingleResult();
+			return count != null ? ((Number) count).intValue() : 0;
+		} catch (Exception e) {
+			log.error("Failed to count codespace projects with exception {}", e.getMessage());
+			return 0;
+		}
+	}
+
+	@Override
+	@Transactional
+	public GenericMessage updateResourceCapExemption(String projectName, String environment, boolean exempt) {
+		GenericMessage updateResponse = new GenericMessage();
+		updateResponse.setSuccess("FAILED");
+		updateResponse.setWarnings(new ArrayList<>());
+		List<MessageDescription> errors = new ArrayList<>();
+		updateResponse.setErrors(errors);
+
+		if (projectName == null || projectName.trim().isEmpty()) {
+			errors.add(new MessageDescription("Project name is mandatory."));
+			return updateResponse;
+		}
+		String flagName = "prod".equalsIgnoreCase(environment) ? "resourceCapExemptProd" : "resourceCapExemptInt";
+		String updateQuery = "update workspace_nsql set data = jsonb_set(data, '{projectDetails," + flagName + "}', "
+				+ "to_jsonb(" + (exempt ? "true" : "false") + "), true) "
+				+ "where lower(jsonb_extract_path_text(data,'projectDetails','projectName')) = :projectName "
+				+ "and lower(jsonb_extract_path_text(data,'status')) <> 'deleted'";
+		try {
+			Query q = em.createNativeQuery(updateQuery);
+			q.setParameter("projectName", projectName.trim().toLowerCase());
+			int updatedRows = q.executeUpdate();
+			if (updatedRows < 1) {
+				errors.add(new MessageDescription("No workspaces found for project " + projectName + "."));
+				log.warn("No workspaces updated while setting {} to {} for project {}", flagName, exempt, projectName);
+				return updateResponse;
+			}
+			updateResponse.setSuccess("SUCCESS");
+			log.info("Set {} to {} on {} workspaces of project {}", flagName, exempt, updatedRows, projectName);
+		} catch (Exception e) {
+			errors.add(new MessageDescription("Failed while updating the resource cap exemption."));
+			log.error("Failed while updating {} for project {} with exception", flagName, projectName, e);
+		}
+		return updateResponse;
 	}
 
 }

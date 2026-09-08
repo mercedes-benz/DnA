@@ -38,7 +38,7 @@ import com.daimler.data.dto.workspace.*;
 import com.daimler.data.dto.workspace.admin.CodespaceSecurityConfigDetailsVO;
 import com.daimler.data.dto.workspace.buildDeploy.*;
 import com.daimler.data.dto.workspace.WorkspacePluginStatusVO;
-
+import com.daimler.data.dto.workspace.admin.CodespaceResourceExemptionVO;
 
 public interface WorkspaceService {
 
@@ -97,6 +97,12 @@ public interface WorkspaceService {
 	GenericMessage makeApprover(CodeServerWorkspaceVO vo);
 
     List<CodespaceSecurityConfigDetailsVO> getAllSecurityConfigs(Integer offset, Integer limit, String projectName);
+
+	List<CodespaceResourceExemptionVO> getAllResourceCapExemptions(Integer offset, Integer limit, String projectName);
+
+	Integer getResourceCapExemptionsCount(String projectName);
+
+	GenericMessage updateResourceCapExemption(String projectName, String environment, boolean exempt);
 
 	//GenericMessage updateSecurityConfigStatus(String projectName, String Status, String user, CodeServerWorkspaceVO vo);
 
