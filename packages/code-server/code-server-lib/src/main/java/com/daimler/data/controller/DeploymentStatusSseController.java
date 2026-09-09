@@ -5,7 +5,6 @@ import com.daimler.data.db.entities.CodeServerWorkspaceNsql;
 import com.daimler.data.db.json.CodeServerBuildDeploy;
 import com.daimler.data.db.json.CodeServerBuildDetails;
 import com.daimler.data.db.json.CodeServerDeploymentDetails;
-import com.daimler.data.db.json.BuildAudit;
 import com.daimler.data.db.json.DeploymentAudit;
 import com.daimler.data.db.repo.workspace.WorkSpaceCodeServerBuildDeployRepository;
 import com.daimler.data.db.repo.workspace.WorkspaceCustomBuildDeployRepo;
@@ -117,9 +116,6 @@ public class DeploymentStatusSseController {
                             // or enough time has passed to rule out stale ArgoCD state.
                             // A user-cancelled deployment is always terminal, even on the very first iteration.
                             if (userCancelled || seenInProgress || iteration >= minIterationsBeforeTerminal || argoConfirmedFailed) {
-                                if ("DEPLOYED".equals(status) && seenInProgress) {
-                                    logDeploymentCompletion(projectName, environment, statusData);
-                                }
                                 log.info("Deployment finished with status: {} after {} iterations (seenInProgress={})", status, iteration, seenInProgress);
                                 emitter.send(SseEmitter.event()
                                         .name("deployment-complete")
@@ -434,65 +430,6 @@ public class DeploymentStatusSseController {
         return data;
     }
 
-    private void logDeploymentCompletion(String projectName, String environment, Map<String, Object> statusData) {
-        String version = statusData.get("version") != null ? String.valueOf(statusData.get("version")) : null;
-        Date deployTriggerTime = statusData.get("triggeredOn") instanceof Date
-                ? (Date) statusData.get("triggeredOn") : null;
-        Date completionTime = statusData.get("deployedOn") instanceof Date
-                ? (Date) statusData.get("deployedOn") : new Date();
-
-        String durationPart = "";
-        if (deployTriggerTime != null && !deployTriggerTime.after(completionTime)) {
-            long elapsedSeconds = (completionTime.getTime() - deployTriggerTime.getTime()) / 1000L;
-            durationPart = String.format(" duration=%ds (%02d:%02d)", elapsedSeconds,
-                    elapsedSeconds / 60, elapsedSeconds % 60);
-        }
-
-        String buildPart = "";
-        try {
-            CodeServerBuildDeployNsql buildDeployEntity = buildDeployCustomRepo.findByProjectName(projectName);
-            BuildAudit buildAudit = findBuildAudit(buildDeployEntity, environment, version);
-            if (buildAudit != null && buildAudit.getTriggeredOn() != null) {
-                buildPart = " buildTriggeredAt=" + buildAudit.getTriggeredOn();
-                if (buildAudit.getBuildOn() != null && !buildAudit.getBuildOn().before(buildAudit.getTriggeredOn())) {
-                    buildPart += " buildCompletedAt=" + buildAudit.getBuildOn();
-                    long buildSeconds = (buildAudit.getBuildOn().getTime() - buildAudit.getTriggeredOn().getTime()) / 1000L;
-                    buildPart += String.format(" buildDuration=%ds (%02d:%02d)", buildSeconds,
-                            buildSeconds / 60, buildSeconds % 60);
-                }
-            }
-        } catch (Exception e) {
-            log.debug("Could not obtain build timing for {}/{}: {}", projectName, environment, e.getMessage());
-        }
-
-        log.info("Deployment completed: project={} environment={} version={} deployTriggeredAt={} completedAt={}{}{}",
-                projectName, environment, version, deployTriggerTime, completionTime, durationPart, buildPart);
-    }
-
-    private BuildAudit findBuildAudit(CodeServerBuildDeployNsql buildDeployEntity, String environment,
-            String version) {
-        if (buildDeployEntity == null || buildDeployEntity.getData() == null || version == null) {
-            return null;
-        }
-        List<BuildAudit> buildAudits = "int".equalsIgnoreCase(environment)
-                ? buildDeployEntity.getData().getIntBuildAuditLogs()
-                : buildDeployEntity.getData().getProdBuildAuditLogs();
-        if (buildAudits == null) {
-            return null;
-        }
-        return buildAudits.stream()
-                .filter(audit -> audit.getVersion() != null && version.equalsIgnoreCase(audit.getVersion()))
-                .max((a1, a2) -> {
-                    Date first = a1.getTriggeredOn();
-                    Date second = a2.getTriggeredOn();
-                    if (first == null && second == null) return 0;
-                    if (first == null) return -1;
-                    if (second == null) return 1;
-                    return first.compareTo(second);
-                })
-                .orElse(null);
-    }
-    
     private String determineActualStatus(String dbStatus, String argoHealth, String syncStatus, String lastSyncPhase,
                                          String operationMessage, String confirmedFailureMessage,
                                          boolean imageMatchesDesired,
