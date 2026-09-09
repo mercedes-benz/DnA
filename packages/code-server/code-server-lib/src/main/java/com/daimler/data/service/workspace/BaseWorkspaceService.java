@@ -2473,12 +2473,18 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 			lastBuildOrDeployStatus = "DEPLOY_REQUESTED";
 			deploymentDetails.setLastDeploymentStatus("DEPLOY_REQUESTED");
 			deploymentDetails.setLastDeploymentError(null);
+			deploymentDetails.setLastDeployedVersion(version);
+			deploymentDetails.setLastDeployedBranch(branch);
+			deploymentDetails.setLastDeployedOn(now);
 			workspaceCustomRepository.updateDeploymentDetails(projectName, environment, deploymentDetails,
 					"DEPLOY_REQUESTED");
 				status = "SUCCESS";
 			} else {
 				status = "FAILED";
 				deploymentDetails.setLastDeploymentStatus("DEPLOYMENT_FAILED");
+				deploymentDetails.setLastDeployedVersion(version);
+				deploymentDetails.setLastDeployedBranch(branch);
+				deploymentDetails.setLastDeployedOn(now);
 					 workspaceCustomRepository.updateDeploymentDetails(projectName, environment, deploymentDetails, "DEPLOYMENT_FAILED");
 					 try {
 						 CodeServerBuildDeployNsql auditEntity = buildDeployCustomRepo.findByProjectName(projectName);
