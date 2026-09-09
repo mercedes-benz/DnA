@@ -77,14 +77,14 @@ public class AzureKeyVaultCustomRepositoryImpl extends CommonDataRepositoryImpl<
     }
 
     private String accessCondition(String collaboratorIdentifier) {
-        String condition = "lower(jsonb_extract_path_text(data, 'createdBy', 'id')) = lower(:creatorId)";
+        String condition = "(lower(jsonb_extract_path_text(data, 'createdBy', 'id')) = lower(:creatorId)";
         if (hasCollaborator(collaboratorIdentifier)) {
             condition += " or exists (select 1 from jsonb_array_elements("
                     + "case when jsonb_typeof(data -> 'collaborators') = 'array' "
-                    + "then data -> 'collaborators' else '[]'::jsonb end) collaborator"
+                    + "then data -> 'collaborators' else cast('[]' as jsonb) end) collaborator"
                     + " where lower(collaborator ->> 'identifier') = lower(:collaboratorIdentifier))";
         }
-        return condition;
+        return condition + ")";
     }
 
     private void bindAccessParameters(Query query, String creatorId, String collaboratorIdentifier) {
