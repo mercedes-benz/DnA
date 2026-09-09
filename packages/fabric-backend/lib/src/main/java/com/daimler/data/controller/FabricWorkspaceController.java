@@ -1404,9 +1404,6 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 
 		try {
 			collection = keyVaultService.getAllKeyVaults(limit, offset, createdBy);
-			if (!collection.getRecords().isEmpty()) {
-				collection.setTotalCount(collection.getRecords().size());
-			}
 			HttpStatus responseCode = collection.getRecords() != null && !collection.getRecords().isEmpty() 
 					? HttpStatus.OK 
 					: HttpStatus.NO_CONTENT;

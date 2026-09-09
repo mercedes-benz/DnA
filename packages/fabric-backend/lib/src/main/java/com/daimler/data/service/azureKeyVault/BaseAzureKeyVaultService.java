@@ -65,7 +65,8 @@ public class BaseAzureKeyVaultService extends BaseCommonService<KeyVaultVO, Azur
 
 		try {
 			List<AzureKeyVaultNsql> keyVaults;
-			
+			long totalCount;
+
 			if (createdBy != null && !createdBy.isBlank()) {
 				String collaboratorIdentifier = null;
 				try {
@@ -74,9 +75,11 @@ public class BaseAzureKeyVaultService extends BaseCommonService<KeyVaultVO, Azur
 					log.warn("Unable to resolve current user's email for collaborator lookup");
 				}
 				keyVaults = customRepo.findAllByCreatorOrCollaborator(createdBy, collaboratorIdentifier, limit, offset);
+				totalCount = customRepo.countByCreatorOrCollaborator(createdBy, collaboratorIdentifier);
 			} else {
 				log.warn("Attempt to fetch Key Vaults with no createdBy user ID.");
 				keyVaults = new ArrayList<>();
+				totalCount = 0L;
 			}
 
 			List<KeyVaultVO> keyVaultVOs = keyVaults.stream()
@@ -84,7 +87,7 @@ public class BaseAzureKeyVaultService extends BaseCommonService<KeyVaultVO, Azur
 					.collect(Collectors.toList());
 			
 			collection.setRecords(keyVaultVOs);
-			collection.setTotalCount(keyVaultVOs.size());
+			collection.setTotalCount((int) totalCount);
 			message.setSuccess("SUCCESS");
 
 		} catch (Exception e) {
