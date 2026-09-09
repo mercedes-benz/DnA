@@ -737,6 +737,33 @@ paths:
           schema:
             $ref: "#/definitions/KeyVaultCollectionVO"
 
+  /fabric-workspaces/keyVault/principals:
+    get:
+      tags:
+        - "fabric-workspaces"
+      summary: "Search Entra ID principals for Key Vault collaborators"
+      description: "Searches Entra ID (Microsoft Graph) and returns users, service principals and managed identities matching the search term."
+      operationId: "searchKeyVaultPrincipals"
+      parameters:
+        - name: search
+          in: query
+          description: "Search term, at least three characters"
+          required: true
+          type: string
+      responses:
+        200:
+          description: "Matching Entra ID principals"
+          schema:
+            type: array
+            items:
+              $ref: "#/definitions/AzurePrincipalVO"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        500:
+          description: "Internal error"
+
   /fabric-workspaces/keyVault/{id}:
     put:
       tags:
@@ -1625,6 +1652,70 @@ definitions:
         type: string
         format: date
         description: "Creation timestamp"
+      collaborators:
+        type: array
+        items:
+          $ref: "#/definitions/KeyVaultCollaboratorVO"
+
+  KeyVaultCollaboratorVO:
+    type: object
+    properties:
+      identifier:
+        type: string
+      shortId:
+        type: string
+      firstName:
+        type: string
+      lastName:
+        type: string
+      objectId:
+        type: string
+      principalType:
+        type: string
+      kind:
+        type: string
+      displayName:
+        type: string
+      role:
+        type: string
+      accessLevel:
+        type: string
+        description: "Access level granted to the collaborator. Reading or Contributing."
+      roles:
+        type: array
+        description: "Azure Key Vault roles granted for the selected access level"
+        items:
+          type: string
+      roleAssignmentId:
+        type: string
+      roleAssignmentIds:
+        type: array
+        description: "Identifiers of the Azure role assignments created for this collaborator"
+        items:
+          type: string
+
+
+  AzurePrincipalVO:
+    type: object
+    description: "Entra ID principal - user, service principal or managed identity"
+    properties:
+      id:
+        type: string
+      displayName:
+        type: string
+      mail:
+        type: string
+      appId:
+        type: string
+      servicePrincipalType:
+        type: string
+      principalType:
+        type: string
+      kind:
+        type: string
+        description: "USER, SPN or MI"
+      identifier:
+        type: string
 
   KeyVaultCollectionVO:
     description: "Collection of Azure Key Vaults with pagination info"

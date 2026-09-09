@@ -55,6 +55,7 @@ import com.daimler.data.dto.fabricWorkspace.KeyVaultCreateRequestVO;
 import com.daimler.data.dto.fabricWorkspace.KeyVaultResponseVO;
 import com.daimler.data.dto.fabricWorkspace.KeyVaultVO;
 import com.daimler.data.dto.fabricWorkspace.KeyVaultCollectionVO;
+import com.daimler.data.dto.fabricWorkspace.AzurePrincipalVO;
 import com.daimler.data.dto.fabricWorkspace.LakehouseColumnCollectionResponseVO;
 import com.daimler.data.dto.fabricWorkspace.LakehouseTableCollectionResponseVO;
 import com.daimler.data.dto.fabricWorkspace.RolesVO;
@@ -1144,6 +1145,26 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 		}
 	}
 
+	@Override
+	public ResponseEntity<List<AzurePrincipalVO>> searchKeyVaultPrincipals(String search) {
+		if (search == null || search.isBlank() || search.trim().length() < 3) {
+			return new ResponseEntity<>(new ArrayList<>(), HttpStatus.OK);
+		}
+		List<AzurePrincipalVO> result = keyVaultService.searchPrincipals(search.trim()).stream().map(principal -> {
+			AzurePrincipalVO vo = new AzurePrincipalVO();
+			vo.setId(principal.getId());
+			vo.setDisplayName(principal.getDisplayName());
+			vo.setMail(principal.getMail());
+			vo.setAppId(principal.getAppId());
+			vo.setServicePrincipalType(principal.getServicePrincipalType());
+			vo.setPrincipalType(principal.getPrincipalType());
+			vo.setKind(principal.getKind());
+			vo.setIdentifier(principal.getIdentifier());
+			return vo;
+		}).collect(Collectors.toList());
+		return new ResponseEntity<>(result, HttpStatus.OK);
+	}
+
 	public static boolean isTechnicalUser(String id) {
         if (id.length() == 7 && id.startsWith("TE")) {
             String numericPart = id.substring(2);
@@ -1404,9 +1425,6 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 
 		try {
 			collection = keyVaultService.getAllKeyVaults(limit, offset, createdBy);
-			if (!collection.getRecords().isEmpty()) {
-				collection.setTotalCount(collection.getRecords().size());
-			}
 			HttpStatus responseCode = collection.getRecords() != null && !collection.getRecords().isEmpty() 
 					? HttpStatus.OK 
 					: HttpStatus.NO_CONTENT;

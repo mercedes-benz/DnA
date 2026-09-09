@@ -556,8 +556,12 @@ export class ApiClient {
     return this.fabricGet(`fabric-workspaces/${roleName}/entraGroupMembers`);
   }
 
-  public static getKeyVaults() {
-    return this.fabricGet(`fabric-workspaces/keyVault`);
+  public static getKeyVaults(offset?: number, limit?: number) {
+    return this.fabricGet(`fabric-workspaces/keyVault?offset=${offset || 0}&limit=${limit || 15}`);
+  }
+
+  public static searchKeyVaultPrincipals(search: string) {
+    return this.fabricGet(`fabric-workspaces/keyVault/principals?search=${encodeURIComponent(search)}`);
   }
 
   public static createKeyVault(data: any) {

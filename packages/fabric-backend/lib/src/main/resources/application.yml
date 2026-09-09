@@ -116,10 +116,15 @@ fabricWorkspaces:
       checkNameUrl: ${AZURE_KEYVAULT_CHECK_NAME_URL:XXXX}
       roleAssignmentUrl: ${AZURE_ROLE_ASSIGNMENT_URL:XXXX}
       userSearchUrl: ${AZURE_USER_SEARCH_URL:XXXX}
+      servicePrincipalSearchUrl: ${AZURE_SP_SEARCH_URL:XXXX}
       roles:
         cryptoOfficer: ${KEYVAULT_CRYPTO_OFFICER_ROLE:XXXX}
         cryptoUser: ${KEYVAULT_CRYPTO_USER_ROLE:XXXX}
         keyVaultAdminRole: ${KEYVAULT_ADMIN_ROLE:XXXX}
+        certificatesUser: ${KEYVAULT_CERTIFICATES_USER_ROLE:XXXX}
+        secretsUser: ${KEYVAULT_SECRETS_USER_ROLE:XXXX}
+        certificatesOfficer: ${KEYVAULT_CERTIFICATES_OFFICER_ROLE:XXXX}
+        secretsOfficer: ${KEYVAULT_SECRETS_OFFICER_ROLE:XXXX}
 
 genesis:
   apiKey: ${GENESIS_API_KEY:XXXX}
