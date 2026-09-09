@@ -8,8 +8,9 @@ import ProgressIndicator from '../../../../assets/modules/uilab/js/src/progress-
 import { CodeSpaceApiClient } from '../../../../services/CodeSpaceApiClient';
 import { ApiClient } from '../../../../services/ApiClient';
 import TextBox from '../../shared/textBox/TextBox';
-import AddUser from '../../addUser/AddUser';
-import { IKeyVault, IKeyVaultCollaborator, IUserDetails } from 'globals/types';
+import { IKeyVault, IKeyVaultAccessLevel, IKeyVaultCollaborator, IKeyVaultPrincipal } from 'globals/types';
+
+const ACCESS_LEVELS: IKeyVaultAccessLevel[] = ['Reading', 'Contributing'];
 
 interface Props {
   edit?: boolean;
@@ -45,6 +46,10 @@ const CreateNewWorkspace = ({ edit, project, setShowCreateModal, getKeyVaultList
   const [departments, setDepartments] = useState([]);
   const [dataClassificationDropdown, setDataClassificationDropdown] = useState([]);
   const [collaborators, setCollaborators] = useState<IKeyVaultCollaborator[]>(project?.collaborators || []);
+  const [principalSearch, setPrincipalSearch] = useState('');
+  const [principalResults, setPrincipalResults] = useState<IKeyVaultPrincipal[]>([]);
+  const [searching, setSearching] = useState(false);
+  const [accessLevel, setAccessLevel] = useState<IKeyVaultAccessLevel>('Reading');
 
   const requiredError = '*Missing entry';
   const keyVaultNameErrorText = '*Key Vault Name should start with kv-';
@@ -116,6 +121,10 @@ const CreateNewWorkspace = ({ edit, project, setShowCreateModal, getKeyVaultList
     }
   }, [division]);
 
+  useEffect(() => {
+    SelectBox.defaultSetup();
+  }, [collaborators]);
+
   const onKeyVaultNameChange = (e: any) => {
     const currentValue = e.currentTarget.value;
     setKeyVaultName(currentValue);
@@ -152,35 +161,57 @@ const CreateNewWorkspace = ({ edit, project, setShowCreateModal, getKeyVaultList
     }
   };
 
-  const getCollabarators = (collaborator: IUserDetails) => {
-    const identifier = collaborator?.email;
+  const searchPrincipals = () => {
+    const term = principalSearch.trim();
+    if (term.length < 3) {
+      setPrincipalResults([]);
+      Notification.show('Please enter at least 3 characters to search.', 'warning');
+      return;
+    }
+    setSearching(true);
+    ApiClient.searchKeyVaultPrincipals(term)
+      .then((results: IKeyVaultPrincipal[]) => {
+        setSearching(false);
+        setPrincipalResults(results || []);
+        if (!results?.length) {
+          Notification.show('No users, service principals or managed identities found.', 'warning');
+        }
+      })
+      .catch(() => {
+        setSearching(false);
+        Notification.show('Unable to search Entra ID principals.', 'alert');
+      });
+  };
+
+  const addCollaborator = (principal: IKeyVaultPrincipal) => {
+    const identifier = principal.identifier || principal.mail || principal.appId || principal.displayName;
     if (!identifier) {
-      Notification.show('Selected user has no email address and cannot be added as collaborator.', 'warning');
+      Notification.show('Selected principal has no identifier and cannot be added as collaborator.', 'warning');
       return;
     }
     if (collaborators.some((item) => item.identifier?.toLowerCase() === identifier.toLowerCase())) {
       Notification.show('Collaborator Already Exist.', 'warning');
       return;
     }
-    if (project?.createdBy?.id && project?.createdBy?.id === collaborator.shortId) {
-      Notification.show(
-        `${collaborator.firstName} ${collaborator.lastName} is a creator. Creator can't be added as collaborator.`,
-        'warning',
-      );
-      return;
-    }
     setCollaborators([
       ...collaborators,
       {
         identifier,
-        shortId: collaborator.shortId,
-        firstName: collaborator.firstName,
-        lastName: collaborator.lastName,
-        displayName: [collaborator.firstName, collaborator.lastName].filter(Boolean).join(' ') || identifier,
-        kind: 'USER',
-        role: 'Crypto User',
+        objectId: principal.id,
+        displayName: principal.displayName || identifier,
+        kind: principal.kind,
+        principalType: principal.principalType,
+        accessLevel,
       },
     ]);
+    setPrincipalResults([]);
+    setPrincipalSearch('');
+  };
+
+  const onAccessLevelChange = (identifier: string, level: IKeyVaultAccessLevel) => {
+    setCollaborators(
+      collaborators.map((item) => (item.identifier === identifier ? { ...item, accessLevel: level } : item)),
+    );
   };
 
   const onCollaboratorDelete = (identifier: string) => {
@@ -475,25 +506,96 @@ const CreateNewWorkspace = ({ edit, project, setShowCreateModal, getKeyVaultList
           <div className={Styles.collaboratorSection}>
             <div className={Styles.collaboratorSectionList}>
               <div className={Styles.collaboratorSectionListAdd}>
-                <AddUser getCollabarators={getCollabarators} dagId={''} isRequired={false} isUserprivilegeSearch={false} />
+                <div className={Styles.principalSearch}>
+                  <div className={classNames('input-field-group')}>
+                    <label className="input-label">Search Entra ID</label>
+                    <input
+                      type="text"
+                      className="input-field"
+                      value={principalSearch}
+                      placeholder="Search users, service principals or managed identities"
+                      onChange={(event) => setPrincipalSearch(event.currentTarget.value)}
+                      onKeyDown={(event) => {
+                        if (event.key === 'Enter') {
+                          searchPrincipals();
+                        }
+                      }}
+                    />
+                  </div>
+                  <div className={classNames('input-field-group')}>
+                    <label className="input-label">Access</label>
+                    <div className={classNames('custom-select')}>
+                      <select
+                        id="accessLevelField"
+                        value={accessLevel}
+                        onChange={(event) => setAccessLevel(event.currentTarget.value as IKeyVaultAccessLevel)}
+                      >
+                        {ACCESS_LEVELS.map((level) => (
+                          <option key={level} value={level}>
+                            {level}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                  <button className="btn btn-primary" type="button" onClick={searchPrincipals} disabled={searching}>
+                    Search
+                  </button>
+                </div>
+                {principalResults.length > 0 && (
+                  <div className={classNames('mbc-scroll', Styles.principalResults)}>
+                    {principalResults.map((principal) => (
+                      <button
+                        className={Styles.principalResult}
+                        type="button"
+                        key={principal.id}
+                        onClick={() => addCollaborator(principal)}
+                      >
+                        <span>{principal.displayName || principal.identifier}</span>
+                        <span>{principal.identifier}</span>
+                        <span>{principal.kind}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
               <div className={Styles.collaboratorList}>
                 {collaborators?.length > 0 ? (
                   <>
                     <div className={Styles.collaboratorTitle}>
-                      <div className={Styles.collaboratorTitleCol}>User ID</div>
+                      <div className={Styles.collaboratorTitleCol}>Identifier</div>
                       <div className={Styles.collaboratorTitleCol}>Name</div>
-                      <div className={Styles.collaboratorTitleCol}>Permission</div>
+                      <div className={Styles.collaboratorTitleCol}>Type</div>
+                      <div className={Styles.collaboratorTitleCol}>Access</div>
                       <div className={Styles.collaboratorTitleCol}></div>
                     </div>
                     <div className={classNames('mbc-scroll', Styles.collaboratorContent)}>
                       {collaborators.map((collaborator) => (
                         <div key={collaborator.identifier} className={Styles.collaboratorContentRow}>
-                          <div className={Styles.collaboratorTitleCol}>{collaborator.shortId}</div>
+                          <div className={Styles.collaboratorTitleCol}>{collaborator.identifier}</div>
                           <div className={Styles.collaboratorTitleCol}>
                             {collaborator.displayName || collaborator.identifier}
                           </div>
-                          <div className={Styles.collaboratorTitleCol}>{collaborator.role || 'Crypto User'}</div>
+                          <div className={Styles.collaboratorTitleCol}>{collaborator.kind}</div>
+                          <div className={Styles.collaboratorTitleCol}>
+                            <div className={classNames('custom-select', Styles.collaboratorAccessSelect)}>
+                              <select
+                                value={collaborator.accessLevel || 'Reading'}
+                                onChange={(event) =>
+                                  onAccessLevelChange(
+                                    collaborator.identifier,
+                                    event.currentTarget.value as IKeyVaultAccessLevel,
+                                  )
+                                }
+                              >
+                                {ACCESS_LEVELS.map((level) => (
+                                  <option key={level} value={level}>
+                                    {level}
+                                  </option>
+                                ))}
+                              </select>
+                            </div>
+                          </div>
                           <div className={Styles.collaboratorTitleCol}>
                             <button
                               className={classNames('btn btn-primary', Styles.deleteBtn)}

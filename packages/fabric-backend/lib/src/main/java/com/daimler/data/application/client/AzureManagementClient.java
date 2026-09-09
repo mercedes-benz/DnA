@@ -29,7 +29,9 @@ package com.daimler.data.application.client;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.UUID;
 
@@ -69,6 +71,9 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 @Slf4j
 public class AzureManagementClient {
+
+    public static final String ACCESS_LEVEL_READING = "Reading";
+    public static final String ACCESS_LEVEL_CONTRIBUTING = "Contributing";
 
     @Value("${fabricWorkspaces.group.clientId}")
     private String groupSearchclientId;
@@ -150,6 +155,18 @@ public class AzureManagementClient {
 
     @Value("${fabricWorkspaces.azure.keyvault.roles.keyVaultAdminRole}")
     private String keyVaultAdminRole;
+
+    @Value("${fabricWorkspaces.azure.keyvault.roles.certificatesUser}")
+    private String keyVaultCertificatesUserRole;
+
+    @Value("${fabricWorkspaces.azure.keyvault.roles.secretsUser}")
+    private String keyVaultSecretsUserRole;
+
+    @Value("${fabricWorkspaces.azure.keyvault.roles.certificatesOfficer}")
+    private String keyVaultCertificatesOfficerRole;
+
+    @Value("${fabricWorkspaces.azure.keyvault.roles.secretsOfficer}")
+    private String keyVaultSecretsOfficerRole;
 
     @Autowired
     private RestTemplate proxyRestTemplate;
@@ -303,8 +320,11 @@ public class AzureManagementClient {
             headers.setContentType(MediaType.APPLICATION_JSON);
             HttpEntity<String> requestEntity = new HttpEntity<>(headers);
             String escapedTerm = searchTerm == null ? "" : searchTerm.replace("'", "''");
-            // Graph exposes users and service principals through separate collections, so query both.
-            String userUrl = azureUserSearchUrl + "?$filter=startswith(mail,'" + escapedTerm + "')";
+            // Graph exposes users and service principals (which cover managed identities) through separate
+            // collections, so query both and return them as one result set.
+            String userUrl = azureUserSearchUrl + "?$filter=startswith(mail,'" + escapedTerm
+                    + "') or startswith(displayName,'" + escapedTerm
+                    + "') or startswith(userPrincipalName,'" + escapedTerm + "')";
             String servicePrincipalUrl = azureServicePrincipalSearchUrl
                     + "?$filter=startswith(displayName,'" + escapedTerm + "') or appId eq '" + escapedTerm + "'";
 
@@ -315,7 +335,8 @@ public class AzureManagementClient {
                         userUrl, HttpMethod.GET, requestEntity, AzureUserSearchResponseDto.class);
                 if (users.getBody() != null && users.getBody().getValue() != null) {
                     users.getBody().getValue().forEach(user -> {
-                        String identifier = user.getMail();
+                        String identifier = user.getMail() != null && !user.getMail().isBlank()
+                                ? user.getMail() : user.getUserPrincipalName();
                         if (identifier != null && !identifier.isBlank()) {
                             result.add(new AzurePrincipalDto(
                                     user.getId(), user.getDisplayName(), user.getMail(), null, null,
@@ -465,7 +486,44 @@ public class AzureManagementClient {
 
     public RoleAssignmentResponseDto assignRoleToUser(String keyVaultName, String userPrincipalId,
             String roleType, String principalType) {
+        String roleDefinitionId = "user".equalsIgnoreCase(roleType) ? keyVaultCryptoUserRole : keyVaultAdminRole;
+        return assignRoleDefinition(keyVaultName, userPrincipalId, principalType, roleDefinitionId, roleType);
+    }
+
+    /**
+     * Role definitions granted for each collaborator access level. The definition ids themselves come from
+     * deployment configuration, only the Azure role names are known to the application.
+     */
+    public Map<String, String> rolesForAccessLevel(String accessLevel) {
+        Map<String, String> roles = new LinkedHashMap<>();
+        if (ACCESS_LEVEL_CONTRIBUTING.equalsIgnoreCase(accessLevel)) {
+            roles.put("Key Vault Certificates Officer", keyVaultCertificatesOfficerRole);
+            roles.put("Key Vault Crypto Officer", keyVaultCryptoOfficerRole);
+            roles.put("Key Vault Secrets Officer", keyVaultSecretsOfficerRole);
+        } else {
+            roles.put("Key Vault Certificates User", keyVaultCertificatesUserRole);
+            roles.put("Key Vault Crypto User", keyVaultCryptoUserRole);
+            roles.put("Key Vault Secrets User", keyVaultSecretsUserRole);
+        }
+        return roles;
+    }
+
+    public List<RoleAssignmentResponseDto> assignAccessLevelRoles(String keyVaultName, String principalId,
+            String principalType, String accessLevel) {
+        List<RoleAssignmentResponseDto> responses = new ArrayList<>();
+        rolesForAccessLevel(accessLevel).forEach((roleName, roleDefinitionId) -> {
+            RoleAssignmentResponseDto response = assignRoleDefinition(keyVaultName, principalId, principalType,
+                    roleDefinitionId, roleName);
+            response.setRoleName(roleName);
+            responses.add(response);
+        });
+        return responses;
+    }
+
+    private RoleAssignmentResponseDto assignRoleDefinition(String keyVaultName, String userPrincipalId,
+            String principalType, String roleDefinitionId, String roleName) {
         RoleAssignmentResponseDto responseDto = new RoleAssignmentResponseDto();
+        responseDto.setRoleName(roleName);
         String roleAssignmentId = null;
         try {
             String token = getTokenForAzureManagement();
@@ -476,16 +534,15 @@ public class AzureManagementClient {
                 return responseDto;
             }
 
-            String roleDefinitionId = keyVaultAdminRole;
-            if ("user".equalsIgnoreCase(roleType)) {
-                roleDefinitionId = keyVaultCryptoUserRole;
+            if (roleDefinitionId == null || roleDefinitionId.isBlank()) {
+                log.error("No role definition configured for role {}", roleName);
+                responseDto.setErrorCode("CONFIG_ERROR");
+                responseDto.setMessage("No role definition configured for role " + roleName);
+                return responseDto;
             }
-            
+
             String fullRoleDefinitionId = "/subscriptions/" + azureSubscriptionId + roleDefinitionId;
 
-            log.info("Role assignment details - Type: {}, Definition ID: {}, Full Role Definition: {}", 
-                roleType, roleDefinitionId, fullRoleDefinitionId);
-            
             RoleAssignmentPropertiesDto properties = new RoleAssignmentPropertiesDto();
             properties.setRoleDefinitionId(fullRoleDefinitionId);
             properties.setPrincipalId(userPrincipalId);
@@ -510,10 +567,8 @@ public class AzureManagementClient {
                     .replace("{keyVaultName}", keyVaultName)
                     .replace("{roleAssignmentId}", roleAssignmentId);
             
-            // log.info("Assigning role {} to user {} for Key Vault {}", roleType, userPrincipalId, keyVaultName);
-            log.info("Assigning role '{}' to user {} for Key Vault '{}'. Role Assignment ID: {}", 
-                roleType, userPrincipalId, keyVaultName, roleAssignmentId);
-            log.info("Role assignment URL: {}", url);
+            log.info("Assigning role '{}' to principal {} for Key Vault '{}'. Role Assignment ID: {}",
+                roleName, userPrincipalId, keyVaultName, roleAssignmentId);
 
             ResponseEntity<RoleAssignmentResponseDto> response = proxyRestTemplate.exchange(
                     url, HttpMethod.PUT, requestEntity, RoleAssignmentResponseDto.class);
@@ -523,12 +578,12 @@ public class AzureManagementClient {
                 responseDto = new RoleAssignmentResponseDto();
             }
             responseDto.setRoleAssignmentId(roleAssignmentId);
-            // log.info("Successfully assigned role to user for Key Vault: {}", keyVaultName);
-            log.info("Successfully assigned role '{}' to user {} for Key Vault: {}", roleType, userPrincipalId, keyVaultName);
+            responseDto.setRoleName(roleName);
+            log.info("Successfully assigned role '{}' to principal {} for Key Vault: {}", roleName, userPrincipalId, keyVaultName);
             return responseDto;
         } catch (HttpClientErrorException e) {
             if (e.getStatusCode().value() == 409) {
-                log.info("Role assignment already exists for user {} on Key Vault {}", userPrincipalId, keyVaultName);
+                log.info("Role assignment already exists for principal {} on Key Vault {}", userPrincipalId, keyVaultName);
                 responseDto.setErrorCode("409");
                 responseDto.setMessage("Role assignment already exists");
                 responseDto.setRoleAssignmentId(roleAssignmentId);

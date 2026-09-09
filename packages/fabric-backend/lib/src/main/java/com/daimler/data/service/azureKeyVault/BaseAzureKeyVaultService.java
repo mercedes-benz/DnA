@@ -113,6 +113,11 @@ public class BaseAzureKeyVaultService extends BaseCommonService<KeyVaultVO, Azur
 	}
 
 	@Override
+	public List<AzurePrincipalDto> searchPrincipals(String search) {
+		return azureManagementClient.searchPrincipals(search);
+	}
+
+	@Override
 	public ResponseEntity<KeyVaultResponseVO> createKeyVault(KeyVaultVO vo) {
 		KeyVaultResponseVO responseData = new KeyVaultResponseVO();
 		GenericMessage responseMessage = new GenericMessage();
@@ -364,13 +369,29 @@ public class BaseAzureKeyVaultService extends BaseCommonService<KeyVaultVO, Azur
 				continue;
 			}
 			KeyVaultCollaboratorVO old = existingByIdentifier.get(collaborator.getIdentifier().toLowerCase());
-			if (old != null && collaborator.getRoleAssignmentId() == null) {
-				collaborator.setObjectId(old.getObjectId());
-				collaborator.setPrincipalType(old.getPrincipalType());
-				collaborator.setRole(old.getRole());
-				collaborator.setRoleAssignmentId(old.getRoleAssignmentId());
+			if (old == null) {
+				provisionCollaborator(keyVaultName, collaborator, warnings);
+				continue;
 			}
-			if (old == null || old.getRoleAssignmentId() == null) {
+			boolean accessLevelChanged = !normalizeAccessLevel(old.getAccessLevel())
+					.equals(normalizeAccessLevel(collaborator.getAccessLevel()));
+			// Collaborators stored before access levels existed hold a single role, so grant them the full set.
+			boolean legacyAssignment = old.getAccessLevel() == null || old.getRoles() == null
+					|| old.getRoles().isEmpty();
+			if (accessLevelChanged || legacyAssignment) {
+				// Reading and Contributing map to disjoint role sets, so drop the obsolete assignments first.
+				removeCollaboratorAssignments(keyVaultName, old, warnings);
+				provisionCollaborator(keyVaultName, collaborator, warnings);
+				continue;
+			}
+			collaborator.setObjectId(old.getObjectId());
+			collaborator.setPrincipalType(old.getPrincipalType());
+			collaborator.setRole(old.getRole());
+			collaborator.setAccessLevel(old.getAccessLevel());
+			collaborator.setRoles(old.getRoles());
+			collaborator.setRoleAssignmentId(old.getRoleAssignmentId());
+			collaborator.setRoleAssignmentIds(old.getRoleAssignmentIds());
+			if (assignmentIdsOf(old).isEmpty()) {
 				provisionCollaborator(keyVaultName, collaborator, warnings);
 			}
 		}
@@ -378,15 +399,8 @@ public class BaseAzureKeyVaultService extends BaseCommonService<KeyVaultVO, Azur
 				.filter(c -> c.getIdentifier() != null)
 				.map(c -> c.getIdentifier().toLowerCase()).collect(Collectors.toSet());
 		for (KeyVaultCollaboratorVO old : existingCollaborators) {
-			if (old.getIdentifier() != null && !retained.contains(old.getIdentifier().toLowerCase())
-					&& old.getRoleAssignmentId() != null) {
-				RoleAssignmentResponseDto response = azureManagementClient.removeRoleAssignment(
-						keyVaultName, old.getRoleAssignmentId());
-				if (response.getErrorCode() != null && !"404".equals(response.getErrorCode())) {
-					// Keep partial Azure failures as warnings so collaborator issues do not abort the vault update.
-					warnings.add(new MessageDescription("Failed to remove collaborator " + old.getIdentifier()
-							+ ": " + response.getMessage()));
-				}
+			if (old.getIdentifier() != null && !retained.contains(old.getIdentifier().toLowerCase())) {
+				removeCollaboratorAssignments(keyVaultName, old, warnings);
 			}
 		}
 	}
@@ -399,15 +413,62 @@ public class BaseAzureKeyVaultService extends BaseCommonService<KeyVaultVO, Azur
 			warnings.add(new MessageDescription("Collaborator could not be resolved: " + collaborator.getIdentifier()));
 			return;
 		}
-		RoleAssignmentResponseDto response = azureManagementClient.assignRoleToUser(keyVaultName, principal.getId(),
-				"user", principal.getPrincipalType());
+		String accessLevel = normalizeAccessLevel(collaborator.getAccessLevel());
+		List<RoleAssignmentResponseDto> responses = azureManagementClient.assignAccessLevelRoles(keyVaultName,
+				principal.getId(), principal.getPrincipalType(), accessLevel);
+		List<String> grantedRoles = new ArrayList<>();
+		List<String> assignmentIds = new ArrayList<>();
+		for (RoleAssignmentResponseDto response : responses) {
+			if (response.getErrorCode() == null || "409".equals(response.getErrorCode())) {
+				grantedRoles.add(response.getRoleName());
+				if (response.getRoleAssignmentId() != null) {
+					assignmentIds.add(response.getRoleAssignmentId());
+				}
+			} else {
+				warnings.add(new MessageDescription("Failed to assign role " + response.getRoleName()
+						+ " to collaborator " + collaborator.getIdentifier() + ": " + response.getMessage()));
+			}
+		}
 		collaborator.setObjectId(principal.getId());
 		collaborator.setPrincipalType(principal.getPrincipalType());
-		collaborator.setRole("Crypto User");
-		collaborator.setRoleAssignmentId(response == null ? null : response.getRoleAssignmentId());
-		if (response != null && response.getErrorCode() != null && !"409".equals(response.getErrorCode())) {
-			warnings.add(new MessageDescription("Failed to assign collaborator " + collaborator.getIdentifier()
-					+ ": " + response.getMessage()));
+		collaborator.setAccessLevel(accessLevel);
+		collaborator.setRole(accessLevel);
+		collaborator.setRoles(grantedRoles);
+		collaborator.setRoleAssignmentIds(assignmentIds);
+		collaborator.setRoleAssignmentId(assignmentIds.isEmpty() ? null : assignmentIds.get(0));
+	}
+
+	private String normalizeAccessLevel(String accessLevel) {
+		return AzureManagementClient.ACCESS_LEVEL_CONTRIBUTING.equalsIgnoreCase(accessLevel)
+				? AzureManagementClient.ACCESS_LEVEL_CONTRIBUTING : AzureManagementClient.ACCESS_LEVEL_READING;
+	}
+
+	/**
+	 * Collaborators provisioned before access levels existed hold a single assignment id, newer ones hold one per
+	 * granted role.
+	 */
+	private List<String> assignmentIdsOf(KeyVaultCollaboratorVO collaborator) {
+		List<String> assignmentIds = new ArrayList<>();
+		if (collaborator.getRoleAssignmentIds() != null) {
+			collaborator.getRoleAssignmentIds().stream().filter(id -> id != null && !id.isBlank())
+					.forEach(assignmentIds::add);
+		}
+		if (collaborator.getRoleAssignmentId() != null && !collaborator.getRoleAssignmentId().isBlank()
+				&& !assignmentIds.contains(collaborator.getRoleAssignmentId())) {
+			assignmentIds.add(collaborator.getRoleAssignmentId());
+		}
+		return assignmentIds;
+	}
+
+	private void removeCollaboratorAssignments(String keyVaultName, KeyVaultCollaboratorVO collaborator,
+			List<MessageDescription> warnings) {
+		for (String assignmentId : assignmentIdsOf(collaborator)) {
+			RoleAssignmentResponseDto response = azureManagementClient.removeRoleAssignment(keyVaultName, assignmentId);
+			if (response.getErrorCode() != null && !"404".equals(response.getErrorCode())) {
+				// Keep partial Azure failures as warnings so collaborator issues do not abort the vault update.
+				warnings.add(new MessageDescription("Failed to remove collaborator " + collaborator.getIdentifier()
+						+ ": " + response.getMessage()));
+			}
 		}
 	}
 }

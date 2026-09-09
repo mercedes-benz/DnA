@@ -108,6 +108,43 @@
         .collaboratorSectionListAdd {
           margin: 13px auto;
           width: 90%;
+          .principalSearch {
+            display: flex;
+            align-items: flex-end;
+            gap: 12px;
+            > div:first-child {
+              flex: 1;
+            }
+            > div {
+              margin: 0;
+            }
+          }
+          .principalResults {
+            display: flex;
+            flex-direction: column;
+            max-height: 150px;
+            margin-top: 10px;
+            border: 1px solid #383f49;
+            .principalResult {
+              display: flex;
+              justify-content: space-between;
+              gap: 10px;
+              width: 100%;
+              padding: 8px 10px;
+              background: transparent;
+              border: 0;
+              border-bottom: 1px solid #383f49;
+              color: inherit;
+              text-align: left;
+              cursor: pointer;
+              &:last-child {
+                border-bottom: 0;
+              }
+              &:hover {
+                background: #2b3138;
+              }
+            }
+          }
         }
         .collaboratorList {
           width: 90%;
@@ -140,8 +177,10 @@
           }
           .collaboratorTitleCol {
             flex: 1;
-            &:first-child {
-              max-width: 80px;
+            padding-right: 8px;
+            word-break: break-all;
+            .collaboratorAccessSelect {
+              min-width: 120px;
             }
             &:last-child {
               max-width: 40px;

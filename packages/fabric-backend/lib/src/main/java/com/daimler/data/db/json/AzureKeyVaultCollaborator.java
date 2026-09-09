@@ -1,6 +1,7 @@
 package com.daimler.data.db.json;
 
 import java.io.Serializable;
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
@@ -25,5 +26,8 @@ public class AzureKeyVaultCollaborator implements Serializable {
 	private String kind;
 	private String displayName;
 	private String role;
+	private String accessLevel;
+	private List<String> roles;
 	private String roleAssignmentId;
+	private List<String> roleAssignmentIds;
 }
