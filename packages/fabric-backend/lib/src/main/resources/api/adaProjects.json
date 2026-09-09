@@ -9,6 +9,14 @@
         "ADAProjectDetailsVO_stakeholders_inner": "ADAProjectDetailsVOStakeholders",
         "ADAProjectDetailsVO_tags_inner": "ADAProjectDetailsVOTags"
     },
+    "enumNameMappings": {
+        "PowerBI": "POWERBI",
+        "Daimler Buses": "DAIMLERBUSES",
+        "Daimler Trucks": "DAIMLERTRUCKS",
+        "Mercedes-Benz Cars": "MERCEDES_BENZCARS",
+        "Mercedes-Benz Mobility": "MERCEDES_BENZMOBILITY",
+        "Mercedes-Benz Vans": "MERCEDES_BENZVANS"
+    },
     "useSpringBoot3": true,
     "useJakartaEe": true,
     "openApiNullable": false,
