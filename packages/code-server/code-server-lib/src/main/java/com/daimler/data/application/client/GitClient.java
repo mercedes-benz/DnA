@@ -43,6 +43,8 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class GitClient {
 
+	public enum RepoAdminCheckStatus { ADMIN, NOT_ADMIN, CHECK_FAILED }
+
 	private static final class EtagEntry<T> {
 		final String etag;
 		final T value;
@@ -840,41 +842,66 @@ public class GitClient {
 		return HttpStatus.INTERNAL_SERVER_ERROR;
 		
 	}
-	public Boolean isUserAdmin( String orgName,String username, String repoName) {
-		return isUserAdmin(orgName, username, repoName, gitBaseUri, personalAccessToken);
+
+	public RepoAdminCheckStatus getUserRepoAdminStatus(String orgName, String username, String repoName) {
+		return getUserRepoAdminStatus(orgName, username, repoName, gitBaseUri, personalAccessToken);
 	}
-	
-	public Boolean isUserAdmin( String orgName,String username, String repoName, String baseUri, String pat) {
-		Boolean isAdmin = false;
+
+	public RepoAdminCheckStatus getUserRepoAdminStatus(String orgName, String username, String repoName, String baseUri, String pat) {
 		try {
-			log.info("Checking if user is admin: user={}, org={}, repo={}, baseUri={}", 
-					username, orgName, repoName, baseUri);
-			
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");
-			headers.set("Authorization", "token "+ pat);
-			String url = baseUri+"/repos/" + orgName + "/"+ repoName+ "/collaborators/" + username+"/permission";
+			headers.set("Authorization", "token " + pat);
+			String url = baseUri + "/repos/" + orgName + "/" + repoName + "/collaborators/" + username + "/permission";
 			HttpEntity entity = new HttpEntity<>(headers);
 			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
-			if (response != null && response.getStatusCode()!=null) {
-				if(response.getStatusCode().is2xxSuccessful()){
-					String responseBody = response.getBody();
-					JSONObject jsonResponse = new JSONObject(responseBody);
-					if(jsonResponse !=null && jsonResponse.has("permission")) {
-						log.info("completed checking user {} as admin for git repo {} at {}.", username, repoName, baseUri);
-						String permission = jsonResponse.get("permission").toString();
-						if("admin".equalsIgnoreCase(permission)){
-							isAdmin = true;
-						}
-					}
+			if (response != null && response.getStatusCode() != null && response.getStatusCode().is2xxSuccessful()) {
+				JSONObject jsonResponse = new JSONObject(response.getBody());
+				if (!jsonResponse.has("permission")) {
+					log.error("Git permission response has no 'permission' field for user {} on repo {}/{}", username, orgName, repoName);
+					return RepoAdminCheckStatus.CHECK_FAILED;
 				}
+
+				String permission = jsonResponse.optString("permission", null);
+				String roleName = jsonResponse.optString("role_name", null);
+				JSONObject permissions = jsonResponse.optJSONObject("permissions");
+				boolean isAdmin = "admin".equalsIgnoreCase(permission)
+						|| "admin".equalsIgnoreCase(roleName)
+						|| (permissions != null && permissions.optBoolean("admin", false));
+				log.info("Resolved permission for user {} on repo {}/{} using {}: permission={}, role_name={}",
+						username, orgName, repoName, baseUri, permission, roleName);
+				return isAdmin ? RepoAdminCheckStatus.ADMIN : RepoAdminCheckStatus.NOT_ADMIN;
 			}
+			log.error("Git permission check returned non-success status {} for user {} on repo {}/{}",
+					response == null ? null : response.getStatusCode(), username, orgName, repoName);
+			return RepoAdminCheckStatus.CHECK_FAILED;
+		} catch (HttpClientErrorException e) {
+			if (e.getStatusCode() == HttpStatus.NOT_FOUND) {
+				log.warn("user {} has no access to repo {}/{}", username, orgName, repoName);
+				return RepoAdminCheckStatus.NOT_ADMIN;
+			}
+			log.error("Git permission check failed with status {} for user {} on repo {}/{}",
+					e.getStatusCode(), username, orgName, repoName, e);
+			return RepoAdminCheckStatus.CHECK_FAILED;
 		} catch (Exception e) {
-			log.error("Error occured while checking admin {} for git repo {} at {} with exception {}", username, repoName, baseUri, e.getMessage());
+			log.error("Unexpected error checking admin permission for user {} on repo {}/{}",
+					username, orgName, repoName, e);
+			return RepoAdminCheckStatus.CHECK_FAILED;
 		}
-		return isAdmin;
-		
+	}
+
+	public boolean isCodeServerOrg(String orgName, boolean isGheHostedRepo) {
+		String configuredOrg = isGheHostedRepo ? gitOrgName : codeServerGitOrgName;
+		return orgName != null && orgName.equalsIgnoreCase(configuredOrg);
+	}
+
+	public Boolean isUserAdmin( String orgName,String username, String repoName) {
+		return RepoAdminCheckStatus.ADMIN == getUserRepoAdminStatus(orgName, username, repoName);
+	}
+
+	public Boolean isUserAdmin( String orgName,String username, String repoName, String baseUri, String pat) {
+		return RepoAdminCheckStatus.ADMIN == getUserRepoAdminStatus(orgName, username, repoName, baseUri, pat);
 	}
 
 	public JSONObject getFileContent(String repoName, String repoOwner, String gitUrl, String folderPath, String fileName, String branch) throws Exception {
