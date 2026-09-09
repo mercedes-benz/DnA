@@ -12,10 +12,14 @@ import { ApiClient } from '../../../../src/services/ApiClient';
 import CreateNewKeyVault from './createNewKeyVault/CreateNewKeyVault';
 import Modal from '../../formElements/modal/Modal';
 import { useHistory } from 'react-router-dom';
-import { IKeyVault } from 'globals/types';
+import { IKeyVault, IUserInfo } from 'globals/types';
 import AzureKeyVaultCard from './AzureKeyVaultCard';
 
-const AzureKeyVault = () => {
+interface Props {
+  user: IUserInfo;
+}
+
+const AzureKeyVault = ({ user }: Props) => {
   const [keyVaultList, setKeyVaultList] = useState([]);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
@@ -42,6 +46,9 @@ const AzureKeyVault = () => {
         ProgressIndicator.hide();
       });
   };
+
+  const isCreator = (keyVault: IKeyVault) =>
+    !!user?.id && keyVault?.createdBy?.id?.toLowerCase() === user.id.toLowerCase();
 
   const onEditWorkspace = (keyVault : IKeyVault) => {
     setSelectedKeyVault(keyVault);
@@ -87,6 +94,7 @@ const AzureKeyVault = () => {
                   <AzureKeyVaultCard
                     key={index}
                     project={project}
+                    canEdit={isCreator(project)}
                     onEditWorkspace={() => onEditWorkspace(project)}
                   />
                 );

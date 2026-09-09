@@ -10,10 +10,11 @@ import { IKeyVault } from 'globals/types';
 
 interface Props {
   project: IKeyVault;
+  canEdit: boolean;
   onEditWorkspace: (project: IKeyVault) => void;
 }
 
-const AzureKeyVaultCard = ({ project, onEditWorkspace}: Props) => {
+const AzureKeyVaultCard = ({ project, canEdit, onEditWorkspace}: Props) => {
 
   useEffect(() => {
     SelectBox.defaultSetup();
@@ -56,7 +57,12 @@ const AzureKeyVaultCard = ({ project, onEditWorkspace}: Props) => {
         <div className={Styles.cardFooter}>
           <div>&nbsp;</div>
           <div className={Styles.btnGrp}>
-            <button className="btn btn-primary" onClick={() => onEditWorkspace(project)}>
+            <button
+              className="btn btn-primary"
+              disabled={!canEdit}
+              onClick={() => onEditWorkspace(project)}
+              tooltip-data={canEdit ? 'Edit' : 'Only the creator can edit this Key Vault'}
+            >
               <i className="icon mbc-icon edit"></i>
             </button>
             {/* <button className="btn btn-primary" onClick={() => {}} disabled={true}>
