@@ -76,6 +76,9 @@ public class BaseAzureKeyVaultService extends BaseCommonService<KeyVaultVO, Azur
 				}
 				keyVaults = customRepo.findAllByCreatorOrCollaborator(createdBy, collaboratorIdentifier, limit, offset);
 				totalCount = customRepo.countByCreatorOrCollaborator(createdBy, collaboratorIdentifier);
+				log.info("Fetched {} of {} Key Vaults for user {} with collaborator lookup {}", keyVaults.size(),
+						totalCount, createdBy,
+						collaboratorIdentifier != null && !collaboratorIdentifier.isBlank() ? "enabled" : "disabled");
 			} else {
 				log.warn("Attempt to fetch Key Vaults with no createdBy user ID.");
 				keyVaults = new ArrayList<>();
