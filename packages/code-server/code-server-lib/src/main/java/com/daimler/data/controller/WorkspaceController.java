@@ -2929,25 +2929,52 @@ import org.springframework.beans.factory.annotation.Value;
 			}
 			if(isCollabIdPartOfProject){
 				if(isAdmin && vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private")){
-					List<String> repoDetails = CommonUtils.getRepoNameFromGitUrl(vo.getProjectDetails().getRecipeDetails().getRepodetails());
+					String repoUrl = vo.getProjectDetails().getRecipeDetails().getRepodetails();
+					List<String> repoDetails = CommonUtils.getRepoNameFromGitUrl(repoUrl);
 					String orgName = repoDetails.get(0);
 					String repoName = repoDetails.get(1);
-					String gitHubUrl = gitOrgUri + orgName;
-					Boolean isUserAdmin;
-					if(!vo.getProjectDetails().getRecipeDetails().getRepodetails().contains(gitHubUrl)){
-						isUserAdmin = gitClient.isUserAdmin(orgName, collabUserId, repoName, gheBaseUri, ghePat);
+					boolean isGheHostedRepo = !repoUrl.contains(gitOrgUri + orgName);
+					if (gitClient.isCodeServerOrg(orgName, isGheHostedRepo)) {
+						// In-organisation repos can be granted admin access; external repos are validate-only.
+						HttpStatus grantAdminStatus = gitClient.addAdminAccessToRepo(collabUserId, repoName, isGheHostedRepo);
+						if (!grantAdminStatus.is2xxSuccessful()) {
+							log.error("Failed while granting admin permission to user {} on repo {}/{}, status {}",
+									collabUserId, orgName, repoName, grantAdminStatus);
+							warnings.add(new MessageDescription("Failed while granting admin permission to " + collabUserId
+									+ " on repository " + orgName + "/" + repoName + ". Please grant it manually."));
+							responseMessage.setWarnings(warnings);
+						}
 					} else {
-						isUserAdmin = gitClient.isUserAdmin(orgName, collabUserId, repoName);
-					}
-					if(!isUserAdmin){
-						log.error("collab user is not an admin for the private repo, cannot make user as admin");
-						GenericMessage emptyResponse = new GenericMessage();
-						List<MessageDescription> errors = new ArrayList<>();
-						msg.setMessage("Invalid User, Please make sure that collab user should be an admin of the repo. Bad request");
-						errors.add(msg);
-						emptyResponse.setErrors(errors);
-						emptyResponse.setSuccess("FAILED");
-						return new ResponseEntity<>(emptyResponse, HttpStatus.BAD_REQUEST);
+						GitClient.RepoAdminCheckStatus adminCheckStatus = isGheHostedRepo
+								? gitClient.getUserRepoAdminStatus(orgName, collabUserId, repoName, gheBaseUri, ghePat)
+								: gitClient.getUserRepoAdminStatus(orgName, collabUserId, repoName);
+						// A failed permission check must not be treated as proof that the user is not an admin.
+						if (GitClient.RepoAdminCheckStatus.CHECK_FAILED == adminCheckStatus) {
+							log.error("Could not verify admin permission of user {} on external repo {}/{}",
+									collabUserId, orgName, repoName);
+							GenericMessage emptyResponse = new GenericMessage();
+							List<MessageDescription> errors = new ArrayList<>();
+							msg.setMessage("Unable to verify admin permission of " + collabUserId + " on repository "
+									+ orgName + "/" + repoName
+									+ " because the Git permission API call failed. Please try again later.");
+							errors.add(msg);
+							emptyResponse.setErrors(errors);
+							emptyResponse.setSuccess("FAILED");
+							return new ResponseEntity<>(emptyResponse, HttpStatus.INTERNAL_SERVER_ERROR);
+						}
+						if (GitClient.RepoAdminCheckStatus.NOT_ADMIN == adminCheckStatus) {
+							log.error("collab user {} is not an admin of the external private repo {}/{}, cannot make user as admin",
+									collabUserId, orgName, repoName);
+							GenericMessage emptyResponse = new GenericMessage();
+							List<MessageDescription> errors = new ArrayList<>();
+							msg.setMessage("Invalid User, " + collabUserId + " must be an admin of the external repository "
+									+ orgName + "/" + repoName
+									+ ". DnA cannot grant access on repositories outside the codespace organisation. Bad request");
+							errors.add(msg);
+							emptyResponse.setErrors(errors);
+							emptyResponse.setSuccess("FAILED");
+							return new ResponseEntity<>(emptyResponse, HttpStatus.BAD_REQUEST);
+						}
 					}
 				}
 				if(isAdmin && !vo.getProjectDetails().getRecipeDetails().getRecipeId().name().toLowerCase().startsWith("private")){
