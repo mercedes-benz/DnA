@@ -769,6 +769,15 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 			if(isTechnicalUserInitiator) {
 				log.info("Technical user {} authorized to update workspace {} {} as initiator", requestUser.getId(), id, existingFabricWorkspace.getName());
 			}
+			if(isTechnicalUserInitiator && (workspaceUpdateRequestVO.getProjectId() == null || workspaceUpdateRequestVO.getProjectId().isBlank())) {
+				log.warn("Technical user {} attempted to update workspace {} {} without projectId", requestUser.getId(), id, existingFabricWorkspace.getName());
+				errors.add(new MessageDescription("projectId is mandatory when updating a workspace as a technical user."));
+				responseVO.setData(null);
+				responses.setErrors(errors);
+				responses.setSuccess("FAILED");
+				responseVO.setResponses(responses);
+				return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+			}
 			
 			if(workspaceUpdateRequestVO.getArcherId()!=null)
 				existingFabricWorkspace.setArcherId(workspaceUpdateRequestVO.getArcherId());
