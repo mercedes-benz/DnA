@@ -694,19 +694,24 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 			filteredEntitlements = allEntitlementsList.stream().filter(n-> n.contains( applicationId + "." + subgroupPrefix ) && n.contains(id)).collect(Collectors.toList());
 		}
 		String creatorId = existingFabricWorkspace.getCreatedBy().getId();
+		String initiatedBy = Optional.ofNullable(existingFabricWorkspace.getInitiatedBy()).orElse("");
 		boolean isCreator = requestUser.getId().equalsIgnoreCase(creatorId);
 		boolean isEntitled = filteredEntitlements != null && !filteredEntitlements.isEmpty();
 		boolean isFabricAdmin = currentUserInfo.hasFabricAdminAccess();
-		if (!isCreator && !isEntitled && !isFabricAdmin) {
+		boolean isTechnicalUserInitiator = requestUser.getId() != null
+				&& FabricWorkspaceController.isTechnicalUser(requestUser.getId())
+				&& requestUser.getId().equalsIgnoreCase(initiatedBy);
+		if (!isCreator && !isEntitled && !isFabricAdmin && !isTechnicalUserInitiator) {
 				log.warn("Fabric workspace {} {} does not belong to User {} , Not authorized to use others project",id,existingFabricWorkspace.getName(),requestUser.getId()	);
 				return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
 		}else {
 				String userRole = "";
-				if(!requestUser.getId().equalsIgnoreCase(creatorId)){
-					
-					userRole = utility.getUserRole(filteredEntitlements);
-				}else{
+				if(requestUser.getId().equalsIgnoreCase(creatorId)){
 					userRole = ConstantsUtility.PERMISSION_OWNER;
+				}else if(isTechnicalUserInitiator && (filteredEntitlements == null || filteredEntitlements.isEmpty())){
+					userRole = ConstantsUtility.PERMISSION_ADMIN;
+				}else{
+					userRole = utility.getUserRole(filteredEntitlements);
 				}
 				existingFabricWorkspace.setUserRole(userRole);
 				return new ResponseEntity<>(existingFabricWorkspace, HttpStatus.OK);
