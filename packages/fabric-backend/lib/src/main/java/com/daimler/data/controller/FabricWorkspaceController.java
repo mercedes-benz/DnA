@@ -746,9 +746,13 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 		
 		CreatedByVO requestUser = this.userStore.getVO();
 		String creatorId = existingFabricWorkspace.getCreatedBy().getId();
+		String initiatedBy = Optional.ofNullable(existingFabricWorkspace.getInitiatedBy()).orElse("");
 		UserInfo currentUserInfo = this.userStore.getUserInfo();
 		boolean isFabricAdmin = currentUserInfo.hasFabricAdminAccess();
-		if(!requestUser.getId().equalsIgnoreCase(creatorId) && !isFabricAdmin) {
+		boolean isTechnicalUserInitiator = requestUser.getId() != null
+				&& FabricWorkspaceController.isTechnicalUser(requestUser.getId())
+				&& requestUser.getId().equalsIgnoreCase(initiatedBy);
+		if(!requestUser.getId().equalsIgnoreCase(creatorId) && !isFabricAdmin && !isTechnicalUserInitiator) {
 				log.warn("Fabric workspace doesnt belong to User, Not authorized to update",id,existingFabricWorkspace.getName());
 				errors.add(new MessageDescription("User is not the owner of the workspace. Not authorized to update."));
 				responseVO.setData(null);
@@ -757,6 +761,9 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 				responseVO.setResponses(responses);
 				return new ResponseEntity<>(responseVO, HttpStatus.FORBIDDEN);
 		}else {
+			if(isTechnicalUserInitiator) {
+				log.info("Technical user {} authorized to update workspace {} {} as initiator", requestUser.getId(), id, existingFabricWorkspace.getName());
+			}
 			
 			if(workspaceUpdateRequestVO.getArcherId()!=null)
 				existingFabricWorkspace.setArcherId(workspaceUpdateRequestVO.getArcherId());
