@@ -868,7 +868,7 @@ const CodeSpace = (props) => {
                                   </span>
                                 </li>
                               )}
-                              {intDeploymentDetails?.gitjobRunID && (
+                              {intDeploymentDetails?.lastDeploymentStatus && (
                                 <li>
                                   <a
                                     target="_blank"
@@ -1001,7 +1001,7 @@ const CodeSpace = (props) => {
                                   </span>
                                 </li>
                               )}
-                              {prodDeploymentDetails?.gitjobRunID && (
+                              {prodDeploymentDetails?.lastDeploymentStatus && (
                                 <li>
                                   <a
                                     target="_blank"
