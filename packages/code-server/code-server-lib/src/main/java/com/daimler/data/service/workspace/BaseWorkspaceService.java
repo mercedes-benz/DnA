@@ -53,6 +53,7 @@ import java.util.regex.Matcher;
 import org.json.JSONObject;
  import org.springframework.beans.BeanUtils;
  import org.springframework.beans.factory.annotation.Autowired;
+ import org.springframework.context.annotation.Lazy;
  import org.springframework.beans.factory.annotation.Value;
  import org.springframework.http.HttpStatus;
  import org.springframework.http.ResponseEntity;
@@ -108,6 +109,7 @@ import com.daimler.data.dto.WorkbenchManageDto;
  import com.daimler.data.dto.WorkbenchManageInputDto;
  import com.daimler.data.dto.solution.ChangeLogVO;
  import com.daimler.data.dto.userinfo.UsersCollection;
+ import com.daimler.data.dto.CodespaceResourceExemptionDto;
  import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.CloudServiceProviderEnum;
  import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.RecipeIdEnum;
  import com.daimler.data.dto.workspace.CodeServerUserGroupByIdVO;
@@ -133,6 +135,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
  import com.daimler.data.util.CommonUtils;
  import com.daimler.data.util.ConstantsUtility;
  import com.daimler.dna.notifications.common.producer.KafkaProducerService;
+ import com.daimler.data.dto.workspace.admin.CodespaceResourceExemptionVO;
  import com.fasterxml.jackson.databind.JsonNode;
  import com.fasterxml.jackson.databind.ObjectMapper;
  import com.daimler.data.db.json.DeploymentAudit;
@@ -142,6 +145,18 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
  @Slf4j
  @SuppressWarnings(value = "unused")
  public class BaseWorkspaceService implements WorkspaceService {
+
+	public static class PendingDeployment {
+		private boolean required;
+		private String userId;
+		private String workspaceId;
+		private String environment;
+		private String branch;
+		private String version;
+		private String deployType;
+		private boolean isPrivateRecipe;
+		private Boolean keepImage;
+	}
  
 	 @Value("${codeServer.env.ref}")
 	 private String codeServerEnvRef;
@@ -217,6 +232,9 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
  
 	 @Autowired
 	 private WorkspaceAssembler workspaceAssembler;
+	 @Autowired
+	 @Lazy
+	 private WorkspaceService self;
 	 @Autowired
 	 private WorkspaceCustomRepository workspaceCustomRepository;
 	 @Autowired
@@ -2086,7 +2104,6 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
      }
  
       @Override
-	 @Transactional
 	 	public GenericMessage deployWorkspace(String userId, String id, String environment, String branch,
 				 boolean isprivateRecipe,String version,String deployType, Boolean keepImage) {
 		 GenericMessage responseMessage = new GenericMessage();
@@ -2471,12 +2488,18 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 			lastBuildOrDeployStatus = "DEPLOY_REQUESTED";
 			deploymentDetails.setLastDeploymentStatus("DEPLOY_REQUESTED");
 			deploymentDetails.setLastDeploymentError(null);
+			deploymentDetails.setLastDeployedVersion(version);
+			deploymentDetails.setLastDeployedBranch(branch);
+			deploymentDetails.setLastDeployedOn(now);
 			workspaceCustomRepository.updateDeploymentDetails(projectName, environment, deploymentDetails,
 					"DEPLOY_REQUESTED");
 				status = "SUCCESS";
 			} else {
 				status = "FAILED";
 				deploymentDetails.setLastDeploymentStatus("DEPLOYMENT_FAILED");
+				deploymentDetails.setLastDeployedVersion(version);
+				deploymentDetails.setLastDeployedBranch(branch);
+				deploymentDetails.setLastDeployedOn(now);
 					 workspaceCustomRepository.updateDeploymentDetails(projectName, environment, deploymentDetails, "DEPLOYMENT_FAILED");
 					 try {
 						 CodeServerBuildDeployNsql auditEntity = buildDeployCustomRepo.findByProjectName(projectName);
@@ -2509,7 +2532,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 			 workspaceCustomRepository.updateDeploymentDetails(projectName, environment,deploymentDetails,lastBuildOrDeployStatus);
 			 }
 		 } catch (Exception e) {
-			log.error("Failed while deploying codeserver workspace project with exception : {} ", e.getMessage());
+			log.error("Failed while deploying codeserver workspace project with exception : {} ", e.getMessage(), e);
 			 MessageDescription error = new MessageDescription();
 			 error.setMessage("Failed while deploying codeserver workspace project with exception " + e.getMessage());
 			 errors.add(error);
@@ -3219,11 +3242,41 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 	 
   
 	 @Override
-	 @Transactional(isolation = Isolation.SERIALIZABLE)
 	 public GenericMessage update(String userId, String wsId, String projectName, String existingStatus,
 			 String latestStatus, String targetEnv, String branch, String gitJobRunId,String version) {
+		 PendingDeployment pendingDeployment = new PendingDeployment();
+		 GenericMessage response = self.updateStatus(userId, wsId, projectName, existingStatus,
+				 latestStatus, targetEnv, branch, gitJobRunId, version, pendingDeployment);
+		 if (pendingDeployment.required) {
+			 try {
+				 self.deployWorkspace(pendingDeployment.userId, pendingDeployment.workspaceId,
+						 pendingDeployment.environment, pendingDeployment.branch,
+						 pendingDeployment.isPrivateRecipe, pendingDeployment.version,
+						 pendingDeployment.deployType, pendingDeployment.keepImage);
+			 } catch (Exception e) {
+				 log.error("caught exception while deploying workspace {} project {} after build success",
+						 pendingDeployment.workspaceId, projectName, e);
+				 MessageDescription error = new MessageDescription();
+				 error.setMessage("Failed while deploying codeserver workspace project with exception "
+						 + e.getMessage());
+				 List<MessageDescription> responseErrors = response.getErrors() != null ? response.getErrors()
+						 : new ArrayList<>();
+				 responseErrors.add(error);
+				 response.setErrors(responseErrors);
+				 response.setSuccess("FAILED");
+			 }
+		 }
+		 return response;
+	 }
+
+	 @Override
+	 @Transactional
+	 public GenericMessage updateStatus(String userId, String wsId, String projectName, String existingStatus,
+			 String latestStatus, String targetEnv, String branch, String gitJobRunId, String version,
+			 PendingDeployment pendingDeployment) {
 		 GenericMessage responseMessage = new GenericMessage();
 		 String status = "FAILED";
+		 boolean statusUpdateFailed = false;
 		 List<MessageDescription> warnings = new ArrayList<>();
 		 List<MessageDescription> errors = new ArrayList<>();
 		 String cloudServiceProvider = null;
@@ -3460,8 +3513,23 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 					 deploymentDetails.setLastDeploymentStatus(latestStatus);
 					 deploymentDetails.setGitjobRunID(gitJobRunId);	
 					 deploymentDetails.setLastDeployedVersion(version);	
-						 workspaceCustomRepository.updateDeploymentDetails(projectName, targetEnv,
-							 deploymentDetails,latestStatus);	 
+							 GenericMessage deploymentDetailsResponse = null;
+							 try {
+								 deploymentDetailsResponse = workspaceCustomRepository.updateDeploymentDetails(projectName,
+										 targetEnv, deploymentDetails, latestStatus);
+							 } catch (Exception dbEx) {
+								 log.error("Failed to update deployment status for project {}, environment {}, status {}",
+										 projectName, targetEnv, latestStatus, dbEx);
+							 }
+							 if (deploymentDetailsResponse == null
+									 || !"SUCCESS".equalsIgnoreCase(deploymentDetailsResponse.getSuccess())) {
+								 log.error("Failed to update deployment status for project {}, environment {}, status {}",
+										 projectName, targetEnv, latestStatus);
+								 statusUpdateFailed = true;
+								 errors.add(new MessageDescription(
+										 "Failed to update deployment status for project " + projectName
+												 + ", environment " + targetEnv + ", status " + latestStatus + "."));
+							 }
 						 
 						 //setting audit log details
 					 if(optionalBuildDeployentity != null){
@@ -3505,7 +3573,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 						 buildDeployentity.setData(buildDeployData);
 						 buildDeployRepo.save(buildDeployentity);
 					 }
-					 status = "SUCCESS";
+					 status = statusUpdateFailed ? "FAILED" : "SUCCESS";
 					 log.info(
 							 "updated deployment details successfully for projectName {} , branch {} , targetEnv {} and status {}",
 							 projectName, branch, targetEnv, latestStatus);
@@ -3526,8 +3594,23 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 					 deploymentDetails.setLastDeploymentStatus(latestStatus);
 					}
 					 
-						 workspaceCustomRepository.updateDeploymentDetails(projectName, targetEnv,
-						 deploymentDetails,latestStatus);
+							 GenericMessage deploymentDetailsResponse = null;
+							 try {
+								 deploymentDetailsResponse = workspaceCustomRepository.updateDeploymentDetails(projectName,
+										 targetEnv, deploymentDetails, latestStatus);
+							 } catch (Exception dbEx) {
+								 log.error("Failed to update deployment status for project {}, environment {}, status {}",
+										 projectName, targetEnv, latestStatus, dbEx);
+							 }
+							 if (deploymentDetailsResponse == null
+									 || !"SUCCESS".equalsIgnoreCase(deploymentDetailsResponse.getSuccess())) {
+								 log.error("Failed to update deployment status for project {}, environment {}, status {}",
+										 projectName, targetEnv, latestStatus);
+								 statusUpdateFailed = true;
+								 errors.add(new MessageDescription(
+										 "Failed to update deployment status for project " + projectName
+												 + ", environment " + targetEnv + ", status " + latestStatus + "."));
+							 }
 					 if(optionalBuildDeployentity != null){
 						 buildDeployentity = optionalBuildDeployentity;
 						 buildDeployData = buildDeployentity.getData();
@@ -3542,7 +3625,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 						 buildDeployentity.setData(buildDeployData);
 						 buildDeployRepo.save(buildDeployentity);
 					 }
-					 status = "SUCCESS";
+					 status = statusUpdateFailed ? "FAILED" : "SUCCESS";
 					 log.info(
 							 "updated deployment details successfully for projectName {} , branch {} , targetEnv {} and status {}",
 							 projectName, branch, targetEnv, latestStatus);
@@ -3584,8 +3667,23 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 						buildDetails.setLastBuildBranch(branch);
 						buildDetails.setLastBuildFailureReason(null);
 
-						workspaceCustomRepository.updateBuildDetails(projectName, targetEnv,
-								buildDetails);
+							GenericMessage buildDetailsResponse = null;
+							try {
+								buildDetailsResponse = workspaceCustomRepository.updateBuildDetails(projectName,
+										targetEnv, buildDetails);
+							} catch (Exception dbEx) {
+								log.error("Failed to update build status for project {}, environment {}, status {}",
+										projectName, targetEnv, latestStatus, dbEx);
+							}
+							if (buildDetailsResponse == null
+									|| !"SUCCESS".equalsIgnoreCase(buildDetailsResponse.getSuccess())) {
+								log.error("Failed to update build status for project {}, environment {}, status {}",
+										projectName, targetEnv, latestStatus);
+								statusUpdateFailed = true;
+								errors.add(new MessageDescription(
+										"Failed to update build status for project " + projectName
+												+ ", environment " + targetEnv + ", status " + latestStatus + "."));
+							}
 
 						Boolean keepBuildImage = false;
 
@@ -3624,7 +3722,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 							buildDeployentity.setData(buildDeployData);
 							buildDeployRepo.save(buildDeployentity);
 						}
-						status = "SUCCESS";
+						status = statusUpdateFailed ? "FAILED" : "SUCCESS";
 						boolean isPrivateRecipe = false;
 						if (entity.getData().getProjectDetails().getRecipeDetails().getRecipeId().toString()
 								.toLowerCase().startsWith("private")) {
@@ -3635,16 +3733,30 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 								projectName, branch, targetEnv, latestStatus);
 						if ("BUILD_SUCCESS".equalsIgnoreCase(latestStatus)
 								&& buildDetails.getLastBuildType().equalsIgnoreCase("buildAndDeploy")) {
-							this.deployWorkspace(userId, entity.getId(), targetEnv, branch,
-									isPrivateRecipe, version, "buildAndDeploy", keepBuildImage);
+							pendingDeployment.required = true;
+							pendingDeployment.userId = userId;
+							pendingDeployment.workspaceId = entity.getId();
+							pendingDeployment.environment = targetEnv;
+							pendingDeployment.branch = branch;
+							pendingDeployment.isPrivateRecipe = isPrivateRecipe;
+							pendingDeployment.version = version;
+							pendingDeployment.deployType = "buildAndDeploy";
+							pendingDeployment.keepImage = keepBuildImage;
 							log.info("User {} deployed workspace {} project {}", userId, wsId,
 									entity.getData().getProjectDetails().getRecipeDetails().getRecipeId());
 
 						}
 						if ("BUILD_SUCCESS".equalsIgnoreCase(latestStatus)
 								&& buildDetails.getLastBuildType().equalsIgnoreCase("build") && isPrivateRecipe) {
-							this.deployWorkspace(userId, entity.getId(), targetEnv, branch,
-									isPrivateRecipe, version, "build", keepBuildImage);
+							pendingDeployment.required = true;
+							pendingDeployment.userId = userId;
+							pendingDeployment.workspaceId = entity.getId();
+							pendingDeployment.environment = targetEnv;
+							pendingDeployment.branch = branch;
+							pendingDeployment.isPrivateRecipe = isPrivateRecipe;
+							pendingDeployment.version = version;
+							pendingDeployment.deployType = "build";
+							pendingDeployment.keepImage = keepBuildImage;
 							log.info(
 									"[Private Recipe] User {} auto-deploying workspace {} project {} after successful build",
 									userId, wsId,
@@ -3662,8 +3774,23 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 					 deploymentDetails.setLastDeploymentStatus(latestStatus);
 					 deploymentDetails.setGitjobRunID(gitJobRunId);
 					
-						 workspaceCustomRepository.updateDeploymentDetails(projectName, targetEnv,
-						 deploymentDetails,latestStatus);
+								 GenericMessage deploymentDetailsResponse = null;
+								 try {
+									 deploymentDetailsResponse = workspaceCustomRepository.updateDeploymentDetails(projectName,
+											 targetEnv, deploymentDetails, latestStatus);
+								 } catch (Exception dbEx) {
+									 log.error("Failed to update deployment status for project {}, environment {}, status {}",
+											 projectName, targetEnv, latestStatus, dbEx);
+								 }
+							 if (deploymentDetailsResponse == null
+									 || !"SUCCESS".equalsIgnoreCase(deploymentDetailsResponse.getSuccess())) {
+								 log.error("Failed to update deployment status for project {}, environment {}, status {}",
+										 projectName, targetEnv, latestStatus);
+								 statusUpdateFailed = true;
+								 errors.add(new MessageDescription(
+										 "Failed to update deployment status for project " + projectName
+												 + ", environment " + targetEnv + ", status " + latestStatus + "."));
+							 }
 					 if(optionalBuildDeployentity != null){
 						 buildDeployentity = optionalBuildDeployentity;
 						 buildDeployData = buildDeployentity.getData();
@@ -3677,7 +3804,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 						 }
 						 buildDeployentity.setData(buildDeployData);
 						 buildDeployRepo.save(buildDeployentity);
-						 status = "SUCCESS";
+						 status = statusUpdateFailed ? "FAILED" : "SUCCESS";
 					 }
 					 log.info(
 							 "updated deployment details successfully for projectName {} , branch {} , targetEnv {} and status {}",
@@ -3691,7 +3818,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 				 return responseMessage;
 			 }
 		 } catch (Exception e) {
-			 log.error("caught exception while updating status {}", e.getMessage());
+			 log.error("caught exception while updating status {}", e.getMessage(), e);
 			 MessageDescription error = new MessageDescription();
 			 error.setMessage(
 					 "Failed while deploying codeserver workspace project, couldnt fetch project owner details");
@@ -3942,6 +4069,26 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 		 }else{
 			 return new ArrayList<>();
 		 }
+	 }
+
+	 
+	 @Override
+	 public List<CodespaceResourceExemptionVO> getAllResourceCapExemptions(Integer offset, Integer limit, String projectName) {
+		 List<CodespaceResourceExemptionDto> dtos = workspaceCustomRepository.getAllResourceCapExemptions(offset, limit, projectName);
+		 if (dtos == null) {
+			 return new ArrayList<>();
+		 }
+		 return dtos.stream().map(n -> workspaceAssembler.dtoToVo(n)).collect(Collectors.toList());
+	 }
+
+	 @Override
+	 public Integer getResourceCapExemptionsCount(String projectName) {
+		 return workspaceCustomRepository.getResourceCapExemptionsCount(projectName);
+	 }
+
+	 @Override
+	 public GenericMessage updateResourceCapExemption(String projectName, String environment, boolean exempt) {
+		 return workspaceCustomRepository.updateResourceCapExemption(projectName, environment, exempt);
 	 }
   
 	 // public void notifyAllCodespaceAdminUsers(String eventType, String resourceId, String message, String triggeringUser,

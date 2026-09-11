@@ -120,6 +120,8 @@ import com.daimler.data.dto.workspace.WorkspacePluginStatusVO;
 import com.daimler.data.dto.workspace.admin.CodespaceSecurityConfigCollectionVO;
 import com.daimler.data.dto.workspace.admin.CodespaceSecurityConfigDetailsVO;
 import com.daimler.data.service.workspace.WorkspaceService;
+import com.daimler.data.dto.workspace.admin.CodespaceResourceExemptionCollectionVO;
+import com.daimler.data.dto.workspace.admin.CodespaceResourceExemptionVO;
 import com.daimler.data.service.ArgoCdService;
 import com.daimler.data.util.CommonUtils;
 import com.daimler.data.util.ConstantsUtility;
@@ -2251,6 +2253,90 @@ import org.springframework.beans.factory.annotation.Value;
 	// 	 return new ResponseEntity<>(responseMessage, HttpStatus.FORBIDDEN);
  
 	//  }
+
+	@Override
+	@ApiOperation(value = "Get all codespace projects with their resource cap exemption state.", nickname = "getResourceCapExemptions", notes = "Get all codespace projects along with the environment specific resource cap exemption flags. Restricted to codespace admins.", response = CodespaceResourceExemptionCollectionVO.class, tags = {
+			"code-server-admin", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "Returns the projects with their exemption state", response = CodespaceResourceExemptionCollectionVO.class),
+			@ApiResponse(code = 204, message = "Fetch complete, no content found."),
+			@ApiResponse(code = 400, message = "Bad request."),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/workspaces/resourceexemptions", produces = {
+			"application/json" }, method = RequestMethod.GET)
+	public ResponseEntity<CodespaceResourceExemptionCollectionVO> getResourceCapExemptions(
+			@ApiParam(value = "page number from which listing of projects should start. Offset. Example 2") @Valid @RequestParam(value = "offset", required = false) Integer offset,
+			@ApiParam(value = "page size to limit the number of projects, Example 15") @Valid @RequestParam(value = "limit", required = false) Integer limit,
+			@ApiParam(value = "project name to filter the listing.") @Valid @RequestParam(value = "projectName", required = false) String projectName) {
+		CodespaceResourceExemptionCollectionVO collectionVO = new CodespaceResourceExemptionCollectionVO();
+		if (!userStore.getUserInfo().hasCodespaceAdminAccess()) {
+			log.info("Not authorized to view the resource cap exemptions. User does not have privileges.");
+			return new ResponseEntity<>(collectionVO, HttpStatus.FORBIDDEN);
+		}
+		int defaultLimit = 15;
+		if (offset == null || offset < 0)
+			offset = 0;
+		if (limit == null || limit < 0)
+			limit = defaultLimit;
+		if (projectName == null || "".equalsIgnoreCase(projectName))
+			projectName = null;
+		List<CodespaceResourceExemptionVO> exemptions = service.getAllResourceCapExemptions(offset, limit, projectName);
+		if (exemptions == null || exemptions.isEmpty()) {
+			return new ResponseEntity<>(collectionVO, HttpStatus.NO_CONTENT);
+		}
+		collectionVO.setData(exemptions);
+		collectionVO.setTotalCount(service.getResourceCapExemptionsCount(projectName));
+		return new ResponseEntity<>(collectionVO, HttpStatus.OK);
+	}
+
+	@Override
+	@ApiOperation(value = "Update the resource cap exemption of a project for an environment.", nickname = "updateResourceCapExemption", notes = "Marks or unmarks a codespace project as exempt from the ArgoCD resource caps for the given environment. Applies to every workspace of the project. Restricted to codespace admins.", response = GenericMessage.class, tags = {
+			"code-server-admin", })
+	@ApiResponses(value = {
+			@ApiResponse(code = 200, message = "Returns message of success or failure", response = GenericMessage.class),
+			@ApiResponse(code = 400, message = "Bad request."),
+			@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			@ApiResponse(code = 403, message = "Request is not authorized."),
+			@ApiResponse(code = 404, message = "Project not found."),
+			@ApiResponse(code = 405, message = "Method not allowed"),
+			@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/workspaces/{projectName}/resourceexemptions", produces = {
+			"application/json" }, method = RequestMethod.PUT)
+	public ResponseEntity<GenericMessage> updateResourceCapExemption(
+			@ApiParam(value = "Name of the codespace project", required = true) @PathVariable("projectName") String projectName,
+			@ApiParam(value = "environment for which the exemption should be updated", required = true, allowableValues = "int, prod") @NotNull @Valid @RequestParam(value = "env", required = true) String env,
+			@ApiParam(value = "true to exempt the project from the resource caps, false to apply the caps again", required = true) @NotNull @Valid @RequestParam(value = "exempt", required = true) Boolean exempt) {
+		GenericMessage responseMessage = new GenericMessage();
+		if (!userStore.getUserInfo().hasCodespaceAdminAccess()) {
+			log.info("Not authorized to update the resource cap exemptions. User does not have privileges.");
+			responseMessage.setSuccess("FAILED");
+			responseMessage.addErrors(new MessageDescription("Not authorized to update resource cap exemptions."));
+			return new ResponseEntity<>(responseMessage, HttpStatus.FORBIDDEN);
+		}
+		if (projectName == null || projectName.trim().isEmpty() || env == null
+				|| !("int".equalsIgnoreCase(env) || "prod".equalsIgnoreCase(env)) || exempt == null) {
+			responseMessage.setSuccess("FAILED");
+			responseMessage.addErrors(new MessageDescription("Invalid project name or environment."));
+			return new ResponseEntity<>(responseMessage, HttpStatus.BAD_REQUEST);
+		}
+		try {
+			responseMessage = service.updateResourceCapExemption(projectName, env, exempt);
+		} catch (Exception e) {
+			log.error("Failed while updating the resource cap exemption of project {} for env {} with exception",
+					projectName, env, e);
+			responseMessage = new GenericMessage();
+			responseMessage.setSuccess("FAILED");
+			responseMessage.addErrors(new MessageDescription("Failed while updating the resource cap exemption."));
+			return new ResponseEntity<>(responseMessage, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+		if (responseMessage != null && "SUCCESS".equalsIgnoreCase(responseMessage.getSuccess())) {
+			return new ResponseEntity<>(responseMessage, HttpStatus.OK);
+		}
+		return new ResponseEntity<>(responseMessage, HttpStatus.INTERNAL_SERVER_ERROR);
+	}
 
 	 @Override
 	 @ApiOperation(value = "Marking status after Publishing the changes added in access management system", nickname = "publishSecurityConfig", notes = "Marking status after Publishing the changes added in access management system", response = GenericMessage.class, tags={ "code-server-admin", })
