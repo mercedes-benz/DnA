@@ -70,6 +70,7 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
   const [newPodCrashLooping, setNewPodCrashLooping] = useState(false);
   const [crashLoopReason, setCrashLoopReason] = useState('');
   const [deployingThresholdExceeded, setDeployingThresholdExceeded] = useState(false);
+  const [deploymentDegraded, setDeploymentDegraded] = useState(false);
   const [cancellingDeployment, setCancellingDeployment] = useState(false);
   const [deployLogsCopied, setDeployLogsCopied] = useState(false);
   const podLogsSseRef = useRef(null);
@@ -503,6 +504,7 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
     setNewPodCrashLooping(false);
     setCrashLoopReason('');
     setDeployingThresholdExceeded(false);
+    setDeploymentDegraded(false);
   };
 
   const onDeployLogsInfoClick = (e) => {
@@ -525,6 +527,7 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
     setNewPodCrashLooping(!!deploymentDetails?.newPodCrashLooping);
     setCrashLoopReason(deploymentDetails?.crashLoopReason || '');
     setDeployingThresholdExceeded(false);
+    setDeploymentDegraded(false);
     setShowDeployLogsModal(true);
 
     // Stream real-time pod logs (only from the deploying-version pods)
@@ -561,6 +564,7 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
         setNewPodCrashLooping(!!data?.newPodCrashLooping);
         setCrashLoopReason(data?.crashLoopReason || '');
         setDeployingThresholdExceeded(!!data?.deployingThresholdExceeded);
+        setDeploymentDegraded(String(data?.argocdHealthStatus || '').toLowerCase() === 'degraded');
       },
       () => { /* deployment-complete: keep modal open so user can read final logs */ },
       () => { /* status stream error: ignore, logs stream is primary */ }
@@ -602,7 +606,8 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
     }
   }, [deployLogText, showDeployLogsModal]);
 
-  const cancelDeploymentEnabled = deployLogsHaveErrors || newPodCrashLooping;
+  const cancelBlockingSignal = deployLogsHaveErrors || newPodCrashLooping || deploymentDegraded;
+  const cancelDeploymentEnabled = cancelBlockingSignal || deployingThresholdExceeded;
 
   const projectDetails = codeSpace?.projectDetails;
   const intDeploymentDetails = projectDetails?.intDeploymentDetails;
@@ -1266,18 +1271,21 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
           show={showDeployLogsModal}
           content={
             <div className={Styles.deployLogsModalContent}>
-              {(cancelDeploymentEnabled || deployingThresholdExceeded) && (
+              {cancelDeploymentEnabled && (
                 <div
                   className={classNames(
                     Styles.reasonBanner,
-                    cancelDeploymentEnabled ? Styles.reasonBannerError : Styles.reasonBannerInfo
+                    cancelBlockingSignal ? Styles.reasonBannerError : Styles.reasonBannerInfo
                   )}
                 >
-                  <i className={classNames('icon mbc-icon', cancelDeploymentEnabled ? 'alert circle' : 'info')}></i>
+                  <i className={classNames('icon mbc-icon', cancelBlockingSignal ? 'alert circle' : 'info')}></i>
                   <span>
                     {crashLoopReason && <>{crashLoopReason}. </>}
                     {deployLogsHaveErrors && <>Errors detected in logs. </>}
-                    {!cancelDeploymentEnabled && deployingThresholdExceeded && (
+                    {deploymentDegraded && (
+                      <>ArgoCD reports the application as Degraded — the new version is not becoming healthy. </>
+                    )}
+                    {!cancelBlockingSignal && deployingThresholdExceeded && (
                       <>Deployment is taking longer than expected but no errors or crashes were detected yet — still deploying.</>
                     )}
                   </span>
@@ -1318,7 +1326,7 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
                     tooltip-data={
                       cancelDeploymentEnabled
                         ? 'Cancel this deployment'
-                        : 'Cancellation is available only when error logs or a crash-loop are detected'
+                        : 'Cancellation is available once errors, a crash-loop or a degraded application state are detected'
                     }
                   >
                     {cancellingDeployment ? 'Cancelling...' : 'Cancel Deployment'}

@@ -253,7 +253,6 @@ public class DeploymentStatusSseController {
             
             // Only populate deployment details if the object exists
             if (deploymentDetails != null) {
-                data.put("version", deploymentDetails.getLastDeployedVersion());
                 data.put("branch", deploymentDetails.getLastDeployedBranch());
                 data.put("deployedOn", deploymentDetails.getLastDeployedOn());
                 data.put("deployedBy", deploymentDetails.getLastDeployedBy());
@@ -310,6 +309,14 @@ public class DeploymentStatusSseController {
                 expectedVersion = buildDetails != null ? buildDetails.getVersion() : null;
             }
             Date deployTriggerTime = latestAudit != null ? latestAudit.getTriggeredOn() : null;
+            if (deploymentDetails != null) {
+                String reportedVersion = deploymentDetails.getLastDeployedVersion();
+                boolean deploymentInFlight = "DEPLOY_REQUESTED".equalsIgnoreCase(dbStatus) || "DEPLOYING".equalsIgnoreCase(dbStatus);
+                if (deploymentInFlight && expectedVersion != null && !expectedVersion.isEmpty()) {
+                    reportedVersion = expectedVersion;
+                }
+                data.put("version", reportedVersion);
+            }
             
             try {
                 String argoAppName = projectName.toLowerCase() + "-" + environment;
