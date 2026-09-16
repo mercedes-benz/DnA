@@ -53,7 +53,7 @@ import com.daimler.data.application.filter.JWTAuthenticationFilter;
 import com.daimler.data.application.interceptor.ApiKeyAuthorizationInterceptor;
 
 import org.springframework.web.util.UrlPathHelper;
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
  
 import java.io.IOException;
 import java.net.InetSocketAddress;

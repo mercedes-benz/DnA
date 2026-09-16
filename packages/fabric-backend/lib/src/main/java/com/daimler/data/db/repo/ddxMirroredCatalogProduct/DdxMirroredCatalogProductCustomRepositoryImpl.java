@@ -4,7 +4,7 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import javax.persistence.NoResultException;
+import jakarta.persistence.NoResultException;
 
 import org.springframework.stereotype.Repository;
 

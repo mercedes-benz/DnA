@@ -1,8 +1,8 @@
 package com.daimler.data.controller;
 
-import javax.servlet.ServletRequest;
-import javax.servlet.http.HttpServletRequest;
-import javax.validation.Valid;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 
 import org.hibernate.mapping.Array;
 import org.springframework.beans.factory.annotation.Autowired;
