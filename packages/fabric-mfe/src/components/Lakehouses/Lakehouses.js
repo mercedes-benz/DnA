@@ -391,10 +391,24 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
       return;
     }
 
+    // Lakehouses published before multi-catalog support have no catalog metadata; their catalog is the lakehouse itself.
+    const withLegacyCatalogs = (byLakehouse) => {
+      publishedLakehouseIds.forEach((lakehouseId) => {
+        if (byLakehouse[lakehouseId]?.length) {
+          return;
+        }
+        const publishedLakehouse = lakehouses?.find((lh) => lh.id === lakehouseId);
+        if (publishedLakehouse?.name) {
+          byLakehouse[lakehouseId] = [{ catalogName: publishedLakehouse.name }];
+        }
+      });
+      return byLakehouse;
+    };
+
     fabricApi.getCatalogMetadata(workspace.id, workspace.name)
       .then((res) => {
         const catalogs = res?.data?.data?.publishedCDCCatalogs || [];
-        setCatalogsByLakehouse(catalogs.reduce((byLakehouse, catalog) => {
+        setCatalogsByLakehouse(withLegacyCatalogs(catalogs.reduce((byLakehouse, catalog) => {
           if (!byLakehouse[catalog.lakeHouseId]) {
             byLakehouse[catalog.lakeHouseId] = [];
           }
@@ -404,10 +418,10 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
             createdOn: catalog.createdOn,
           });
           return byLakehouse;
-        }, {}));
+        }, {})));
       })
-      .catch(() => {});
-  }, [workspace]);
+      .catch(() => setCatalogsByLakehouse(withLegacyCatalogs({})));
+  }, [workspace, lakehouses]);
 
   useEffect(() => {
     loadCdcCatalogs();
@@ -926,16 +940,6 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
                     <div className={Styles.catalogRow} key={catalog.catalogName}>
                       <span>{catalog.catalogName}</span>
                       <div>
-                        <button
-                          className={Styles.catalogUpdateButton}
-                          onClick={() => {
-                            setShowCatalogsModal(false);
-                            setSelectedCatalogName(catalog.catalogName);
-                            setShowViewTablesModal(true);
-                          }}
-                        >
-                          Update
-                        </button>
                         <a
                           href={`${Envs.CDC_URL}/${workspace?.name}.${catalog.catalogName}`}
                           target="_blank"
