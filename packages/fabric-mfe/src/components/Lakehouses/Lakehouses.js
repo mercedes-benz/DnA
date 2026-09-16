@@ -797,15 +797,6 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
                           </span>
                         </span>
                       )}
-                      <div className={Styles.cdcNewTab}>
-                        <a
-                          href={`${Envs.CDC_URL}/${workspace?.name}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          <i className="icon mbc-icon new-tab" />
-                        </a>
-                      </div>
                     </>
                   )}
                   {workspace?.ddxPublishedLakeHouseDetails?.some(d => d.lakeHouseId === lakehouse.id) && (
