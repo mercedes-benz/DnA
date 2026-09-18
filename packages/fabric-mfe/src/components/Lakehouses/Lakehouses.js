@@ -795,43 +795,18 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
                           tooltip-data={`Schema changes detected: ${cdcMismatchMap[lakehouse.id].length} change(s) require attention.`}
                         >
                           <i className="icon mbc-icon alert circle" />
-                          <span>CDC</span>
                         </span>
-                      ) : (
-                        <span className={Styles.statusIndicator}>
-                          <span
-                            className={Styles.deployedTag}
-                            tooltip-data="View published CDC catalogs."
-                            onClick={() => {
-                              setSelectedLakehouse(lakehouse);
-                              setShowCatalogsModal(true);
-                            }}
-                          >
-                            CDC
-                          </span>
-                        </span>
-                      )}
-                    </>
-                  )}
-                  {workspace?.ddxPublishedLakeHouseDetails?.some(d => d.lakeHouseId === lakehouse.id) && (
-                    <>
-                      <span className={Styles.statusIndicator}>
-                        <span
-                          className={Styles.deployedTag}
-                          tooltip-data="Lakehouse successfully deployed to DDX."
-                        >
-                          DDX
-                        </span>
-                      </span>
-                      <div className={Styles.cdcNewTab}>
-                        <a
-                          href={`${(Envs.DDX_DOF_BASE_URL || '').replace(/\/$/, '')}/myDataProducts/onboardingForm/${workspace?.ddxPublishedLakeHouseDetails?.find(d => d.lakeHouseId === lakehouse.id)?.dataProducts?.slice()?.sort((a, b) => new Date(b.createdOn) - new Date(a.createdOn))?.[0]?.productId}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          <i className="icon mbc-icon new-tab" />
-                        </a>
-                      </div>
+                      ) : null}
+                      <button
+                        className={classNames('btn btn-primary', Styles.outlineBtn, Styles.dataProductsBtn)}
+                        tooltip-data="View published CDC catalogs and their DDX data products."
+                        onClick={() => {
+                          setSelectedLakehouse(lakehouse);
+                          setShowCatalogsModal(true);
+                        }}
+                      >
+                        <span>DataProducts ({catalogsByLakehouse[lakehouse.id]?.length || 0})</span>
+                      </button>
                     </>
                   )}
                 </div>
@@ -972,14 +947,16 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
                         </span>
                         <div className={Styles.ddxProductCell}>
                           {matchingProduct ? (
-                            <a
-                              href={`${(Envs.DDX_DOF_BASE_URL || '').replace(/\/$/, '')}/myDataProducts/onboardingForm/${matchingProduct.productId}`}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                            >
+                            <span>
                               {matchingProduct.productName || matchingProduct.productId}
-                              <i className="icon mbc-icon new-tab" />
-                            </a>
+                              <a
+                                href={`${(Envs.DDX_DOF_BASE_URL || '').replace(/\/$/, '')}/myDataProducts/onboardingForm/${matchingProduct.productId}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                <i className="icon mbc-icon new-tab" />
+                              </a>
+                            </span>
                           ) : (
                             <button
                               className="btn btn-primary"
