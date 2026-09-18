@@ -370,17 +370,26 @@
     margin-bottom: 20px;
   }
 
+  .catalogHeader {
+    font-weight: bold;
+  }
+
   .catalogRow {
-    display: flex;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
     align-items: center;
-    justify-content: space-between;
     padding: 12px 0;
     border-bottom: 1px solid #383f49;
+    color: #c0c8d0;
 
     a {
       color: #00adef;
       margin-left: 16px;
     }
+  }
+
+  .ddxProductCell a {
+    margin-left: 0;
   }
 }
 

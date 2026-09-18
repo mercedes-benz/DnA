@@ -1439,6 +1439,9 @@ definitions:
       productId:
         type: string
         description: "ID of the DDX data product"
+      cdcCatalogName:
+        type: string
+        description: "Name of the CDC catalog this data product was published from"
       createdBy:
         $ref: "#/definitions/CreatedByVO"
       createdOn:

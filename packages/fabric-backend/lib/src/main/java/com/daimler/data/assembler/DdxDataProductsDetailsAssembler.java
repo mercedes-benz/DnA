@@ -37,6 +37,7 @@ public class DdxDataProductsDetailsAssembler {
         vo.setIsLakeHousesPublishedToDdx(product.getIsLakeHousesPublishedToDdx());
         vo.setProductName(product.getProductName());
         vo.setProductId(product.getProductId());
+        vo.setCdcCatalogName(product.getCdcCatalogName());
         vo.setCreatedOn(product.getCreatedOn());
         vo.setModifiedOn(product.getModifiedOn());
 
@@ -73,6 +74,7 @@ public class DdxDataProductsDetailsAssembler {
         product.setIsLakeHousesPublishedToDdx(vo.isIsLakeHousesPublishedToDdx());
         product.setProductName(vo.getProductName());
         product.setProductId(vo.getProductId());
+        product.setCdcCatalogName(vo.getCdcCatalogName());
         product.setCreatedOn(vo.getCreatedOn());
         product.setModifiedOn(vo.getModifiedOn());
 

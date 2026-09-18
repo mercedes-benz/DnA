@@ -936,20 +936,66 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
             <div className={Styles.catalogsModalContent}>
               {(catalogsByLakehouse[selectedLakehouse?.id] || []).length > 0 ? (
                 <div className={Styles.catalogList}>
-                  {catalogsByLakehouse[selectedLakehouse?.id].map((catalog) => (
-                    <div className={Styles.catalogRow} key={catalog.catalogName}>
-                      <span>{catalog.catalogName}</span>
-                      <div>
-                        <a
-                          href={`${Envs.CDC_URL}/${workspace?.name}.${catalog.catalogName}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          <i className="icon mbc-icon new-tab" />
-                        </a>
+                  <div className={classNames(Styles.catalogRow, Styles.catalogHeader)}>
+                    <span>CDC Catalog</span>
+                    <span>DDX Dataproduct</span>
+                  </div>
+                  {catalogsByLakehouse[selectedLakehouse?.id].map((catalog) => {
+                    const matchingProduct = (
+                      workspace?.ddxPublishedLakeHouseDetails?.find(
+                        (d) => d.lakeHouseId === selectedLakehouse?.id,
+                      )?.dataProducts || []
+                    )
+                      .filter(
+                        (product) =>
+                          product.cdcCatalogName === catalog.catalogName ||
+                          (!product.cdcCatalogName &&
+                            catalog.catalogName === selectedLakehouse?.name),
+                      )
+                      .sort(
+                        (a, b) => new Date(b.createdOn) - new Date(a.createdOn),
+                      )[0];
+                    return (
+                      <div
+                        className={Styles.catalogRow}
+                        key={catalog.catalogName}
+                      >
+                        <span>
+                          {catalog.catalogName}
+                          <a
+                            href={`${Envs.CDC_URL}/${workspace?.name}.${catalog.catalogName}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            <i className="icon mbc-icon new-tab" />
+                          </a>
+                        </span>
+                        <div className={Styles.ddxProductCell}>
+                          {matchingProduct ? (
+                            <a
+                              href={`${(Envs.DDX_DOF_BASE_URL || '').replace(/\/$/, '')}/myDataProducts/onboardingForm/${matchingProduct.productId}`}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              {matchingProduct.productName || matchingProduct.productId}
+                              <i className="icon mbc-icon new-tab" />
+                            </a>
+                          ) : (
+                            <button
+                              className="btn btn-primary"
+                              onClick={() => {
+                                setShowCatalogsModal(false);
+                                setSelectedCatalogName(catalog.catalogName);
+                                setShowDdxViewTablesModal(true);
+                              }}
+                            >
+                              Push to Ddx
+                            </button>
+                          )}
+                        </div>
                       </div>
-                    </div>
-                  ))}
+                    );
+                  })}
                 </div>
               ) : (
                 <p>No published catalogs found.</p>
@@ -1004,10 +1050,11 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
               workspaceDivision={workspace?.division} 
               lakehouseId={selectedLakehouse?.id} 
               lakehouseName={selectedLakehouse?.name} 
+              cdcCatalogName={selectedCatalogName}
               ddxPublishedLakeHouseDetails={workspace?.ddxPublishedLakeHouseDetails}
               onRefreshWorkspace={onRefreshWorkspace} />}
           scrollableContent={true}
-          onCancel={() => { setSelectedLakehouse(); setShowDdxViewTablesModal(false) }}
+          onCancel={() => { setSelectedLakehouse(); setSelectedCatalogName(undefined); setShowDdxViewTablesModal(false) }}
         />
       }
       { showDeleteModal &&
