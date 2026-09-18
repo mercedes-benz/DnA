@@ -2191,6 +2191,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 						 deploymentDetails = entity.getData().getProjectDetails().getProdDeploymentDetails();
 					 }
 			 String lastBuildOrDeployStatus = "";
+			 String kongSetupError = null;
 			 boolean isApiRecipe = deploymentDetails.getDeploymentType() == ConstantsUtility.UI ? false : true;
 			 boolean secureWithIAMRequired = (deploymentDetails.getSecureWithIAMRequired() != null) ? deploymentDetails.getSecureWithIAMRequired() : false;
 			 boolean secureWithDnaRequired = (deploymentDetails.getSecureWithDnaRequired() != null) ? deploymentDetails.getSecureWithDnaRequired() : false;
@@ -2457,8 +2458,18 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 					 auditLogEntity.setData(buildDeployLogs);
 					 buildDeployRepo.save(auditLogEntity);
 
-				 if(deployType.equalsIgnoreCase("deploy") && (deploymentDetails.getDeploymentUrl() == null || deploymentDetails.getDeploymentUrl().isEmpty())){
-					 authenticatorClient.callingKongApis(workspaceId, projectName, environment, isApiRecipe, deploymentDetails.getClientId(), "", deploymentDetails.getRedirectUri(), deploymentDetails.getIgnorePaths(), deploymentDetails.getScope(), deploymentDetails.getOneApiVersionShortName(), isSecuredWithCookie, secureWithIAMRequired, deploymentDetails.getSsoType(), secureWithDnaRequired, false, false, deploymentDetails.getSelectedAliceRoles(), cloudServiceProvider);
+				 String kongServiceName = projectName.toLowerCase() + "-" + environment.toLowerCase();
+				 if (!authenticatorClient.isKongServiceAndRouteAvailable(kongServiceName, cloudServiceProvider)) {
+					 log.info("Kong service/route {} missing, creating it for deployment of project {}", kongServiceName, projectName);
+					 GenericMessage kongResponse = authenticatorClient.callingKongApis(workspaceId, projectName, environment, isApiRecipe, deploymentDetails.getClientId(), "", deploymentDetails.getRedirectUri(), deploymentDetails.getIgnorePaths(), deploymentDetails.getScope(), deploymentDetails.getOneApiVersionShortName(), isSecuredWithCookie, secureWithIAMRequired, deploymentDetails.getSsoType(), secureWithDnaRequired, false, false, deploymentDetails.getSelectedAliceRoles(), cloudServiceProvider);
+					 if (kongResponse == null || !"SUCCESS".equalsIgnoreCase(kongResponse.getSuccess())) {
+						 kongSetupError = "Deployment triggered, but API gateway setup for " + kongServiceName
+								 + " could not be completed. The deployment URL may not be reachable until this is retried.";
+						 log.error("Kong setup failed for {} : {}", kongServiceName, kongResponse != null ? kongResponse.getErrors() : "no response");
+						 MessageDescription kongWarning = new MessageDescription();
+						 kongWarning.setMessage(kongSetupError);
+						 warnings.add(kongWarning);
+					 }
 				 }
 				
 				String appName = projectName.toLowerCase() + "-" + environment;
@@ -2488,6 +2499,9 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 			lastBuildOrDeployStatus = "DEPLOY_REQUESTED";
 			deploymentDetails.setLastDeploymentStatus("DEPLOY_REQUESTED");
 			deploymentDetails.setLastDeploymentError(null);
+			if (kongSetupError != null) {
+				deploymentDetails.setLastDeploymentError(kongSetupError);
+			}
 			deploymentDetails.setLastDeployedVersion(version);
 			deploymentDetails.setLastDeployedBranch(branch);
 			deploymentDetails.setLastDeployedOn(now);

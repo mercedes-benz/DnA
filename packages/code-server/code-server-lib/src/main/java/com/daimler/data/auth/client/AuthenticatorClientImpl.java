@@ -420,7 +420,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		return response;
 	}
 	
-	public void callingKongApis(String wsid,String serviceName, String env, boolean apiRecipe, String clientID, String clientSecret, String redirectUriFromUser, String ignorePaths, String scope, String oneApiVersionShortName, boolean isSecuredWithCookie, boolean secureWithIAM, String ssoType, boolean secureWithDna, boolean isAliceRoleEnabled, boolean isEntitlementPrefixEnabled, List<String> selectedAliceRoles, String cloudServiceProvider) {
+	public GenericMessage callingKongApis(String wsid,String serviceName, String env, boolean apiRecipe, String clientID, String clientSecret, String redirectUriFromUser, String ignorePaths, String scope, String oneApiVersionShortName, boolean isSecuredWithCookie, boolean secureWithIAM, String ssoType, boolean secureWithDna, boolean isAliceRoleEnabled, boolean isEntitlementPrefixEnabled, List<String> selectedAliceRoles, String cloudServiceProvider) {
 		boolean kongApiForDeploymentURL = !wsid.equalsIgnoreCase(serviceName) && Objects.nonNull(env);
 		CodeServerWorkspaceNsql workspaceNsql = customRepository.findByWorkspaceId(wsid);
 		CodeServerDeploymentDetails intDeploymentDetails = workspaceNsql.getData().getProjectDetails().getIntDeploymentDetails();
@@ -646,6 +646,8 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		GenericMessage attachApiAuthoriserPluginResponse = new GenericMessage();
 		GenericMessage changePluginStatusResponse = new GenericMessage();
 		GenericMessage attachRequestTransformerPluginResponse = new GenericMessage();
+		GenericMessage kongResponse = new GenericMessage();
+		kongResponse.setSuccess("FAILED");
 
 		try {	
 			boolean isServiceAlreadyCreated = false;
@@ -675,13 +677,16 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 				}
 				else {
 					LOGGER.info("Failed while calling kong create service API with errors " + createServiceResponse.getErrors());
-					return;
+					kongResponse.setErrors(createServiceResponse != null && createServiceResponse.getErrors() != null
+							? new ArrayList<>(createServiceResponse.getErrors()) : new ArrayList<>());
+					return kongResponse;
 				}
 			}else{
 				LOGGER.info("Route name {} already exist. ",env!=null ? serviceName.toLowerCase()+"-"+env:serviceName);
 				isRouteAlreadyCreated = true;
 			}
 			if(("success".equalsIgnoreCase(createServiceResponse.getSuccess())  || isServiceAlreadyCreated )&& ("success".equalsIgnoreCase(createRouteResponse.getSuccess()) || isRouteAlreadyCreated)) {
+				kongResponse.setSuccess("SUCCESS");
 				if(!kongApiForDeploymentURL) {
 					LOGGER.info("kongApiForDeploymentURL is false, calling oidc and appauthoriser plugin " );
 					attachPluginResponse = attachPluginToService(attachPluginRequestVO,serviceName,cloudServiceProvider);
@@ -1153,11 +1158,31 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 			}
 			else {
 				LOGGER.info("Failed while calling kong create route API with errors " + createRouteResponse.getErrors());
-				return;
+				List<MessageDescription> kongErrors = new ArrayList<>();
+				if (createServiceResponse != null && createServiceResponse.getErrors() != null) {
+					kongErrors.addAll(createServiceResponse.getErrors());
+				}
+				if (createRouteResponse != null && createRouteResponse.getErrors() != null) {
+					kongErrors.addAll(createRouteResponse.getErrors());
+				}
+				kongResponse.setErrors(kongErrors);
+				return kongResponse;
 			}
 		}
 		catch(Exception e) {
 			LOGGER.error(e.getMessage());
+			MessageDescription error = new MessageDescription();
+			error.setMessage("Exception while calling Kong APIs: " + e.getMessage());
+			List<MessageDescription> kongErrors = new ArrayList<>();
+			if (createServiceResponse != null && createServiceResponse.getErrors() != null) {
+				kongErrors.addAll(createServiceResponse.getErrors());
+			}
+			if (createRouteResponse != null && createRouteResponse.getErrors() != null) {
+				kongErrors.addAll(createRouteResponse.getErrors());
+			}
+			kongErrors.add(error);
+			kongResponse.setErrors(kongErrors);
+			return kongResponse;
 		}
 		
 		if (!kongApiForDeploymentURL && "success".equalsIgnoreCase(createServiceResponse.getSuccess())
@@ -1186,6 +1211,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 			// 		attachJwtPluginResponse.getErrors(), attachJwtPluginResponse.getWarnings());
 		}
 
+		return kongResponse;
 	}
 
 	@Override
@@ -1631,6 +1657,35 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
     return routeResponseVO;
 }
   
+	@Override
+	public boolean isKongServiceAndRouteAvailable(String serviceName, String cloudServiceProvider) {
+		try {
+			String kongUri = (cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS_AWS)
+					? authenticatorBaseUriAWS : authenticatorBaseUri) + CREATE_SERVICE + "/" + serviceName;
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Content-Type", "application/json");
+			if (cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS_AWS) && apiKey.equals("NA")) {
+				if (awsApiKey != null) {
+					headers.set("apikey", awsApiKey);
+				}
+			} else {
+				headers.set("apikey", apiKey);
+			}
+			HttpEntity<?> entity = new HttpEntity<>(headers);
+			ResponseEntity<String> response = restTemplate.exchange(kongUri, HttpMethod.GET, entity, String.class);
+			if (response != null && response.getStatusCode() != null && response.getStatusCode().is2xxSuccessful()) {
+				RouteResponseVO routeResponse = getRouteByName(serviceName, serviceName, cloudServiceProvider);
+				return routeResponse != null && routeResponse.getId() != null;
+			}
+		} catch (HttpClientErrorException ex) {
+			LOGGER.error("Error while checking Kong service details {} error: {}", serviceName, ex.getMessage());
+		} catch (Exception e) {
+			LOGGER.error("Exception occurred while checking Kong service details: {} details {}.", serviceName, e.getMessage());
+		}
+		return false;
+	}
+
 	public GenericMessage attachFunctionPluginToService(AttachFunctionPluginRequestVO attachFunctionPluginRequestVO, String serviceName){
 
 		GenericMessage response = new GenericMessage();
