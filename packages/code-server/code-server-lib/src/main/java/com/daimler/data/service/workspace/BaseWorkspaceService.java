@@ -2498,10 +2498,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 			String finalDeployStatus = "DEPLOY_REQUESTED";
 			lastBuildOrDeployStatus = "DEPLOY_REQUESTED";
 			deploymentDetails.setLastDeploymentStatus("DEPLOY_REQUESTED");
-			deploymentDetails.setLastDeploymentError(null);
-			if (kongSetupError != null) {
-				deploymentDetails.setLastDeploymentError(kongSetupError);
-			}
+			deploymentDetails.setLastDeploymentError(kongSetupError);
 			deploymentDetails.setLastDeployedVersion(version);
 			deploymentDetails.setLastDeployedBranch(branch);
 			deploymentDetails.setLastDeployedOn(now);
