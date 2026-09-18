@@ -797,16 +797,16 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
                           <i className="icon mbc-icon alert circle" />
                         </span>
                       ) : null}
-                      <button
-                        className={classNames('btn btn-primary', Styles.outlineBtn, Styles.dataProductsBtn)}
+                      <span
+                        className={classNames(Styles.statusIndicator, Styles.dataProductsTag)}
                         tooltip-data="View published CDC catalogs and their DDX data products."
                         onClick={() => {
                           setSelectedLakehouse(lakehouse);
                           setShowCatalogsModal(true);
                         }}
                       >
-                        <span>DataProducts ({catalogsByLakehouse[lakehouse.id]?.length || 0})</span>
-                      </button>
+                        DataProducts ({catalogsByLakehouse[lakehouse.id]?.length || 0})
+                      </span>
                     </>
                   )}
                 </div>

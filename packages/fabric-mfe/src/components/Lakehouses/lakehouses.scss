@@ -90,11 +90,6 @@
       margin-right: 3px;
     }
 
-    .dataProductsBtn {
-      margin: 0;
-      white-space: nowrap;
-    }
-
     .contextMenu {
       position: relative;
       &.open .contextMenuTrigger {
@@ -353,6 +348,13 @@
   &:hover {
     background-color: rgba(255, 193, 7, 0.1);
   }
+}
+
+.dataProductsTag {
+  border-color: #00adef;
+  color: #00adef;
+  white-space: nowrap;
+  cursor: pointer;
 }
 
 .deployedLink{
