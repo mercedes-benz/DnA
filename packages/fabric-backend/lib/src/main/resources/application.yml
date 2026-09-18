@@ -207,6 +207,10 @@ databricksIntegration:
 server:
   port: 9292
 
+springdoc:
+  api-docs:
+    path: ${SWAGGER_API_DOCS_PATH:/swagger-ui/api-docs}
+
 #Cors Filter origin Domains  
 allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:http://*}
 swagger.headers.authorization.token: ${SWAGGER_HEADER_AUTH:XXXXXX}
