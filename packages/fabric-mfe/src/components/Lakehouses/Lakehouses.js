@@ -322,6 +322,9 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
   const [showNonProdProjectModal, setShowNonProdProjectModal] = useState(false);
   const [showMismatchModal, setShowMismatchModal] = useState(false);
   const [mismatchData, setMismatchData] = useState(null);
+  const [showCatalogsModal, setShowCatalogsModal] = useState(false);
+  const [catalogsByLakehouse, setCatalogsByLakehouse] = useState({});
+  const [selectedCatalogName, setSelectedCatalogName] = useState();
   const [showDdxViewTables, setShowDdxViewTablesModal] = useState(false);
   const [contextMenus, setContextMenus] = useState({});
   const [showLocationsContextMenu, setShowLocationsContextMenu] = useState(false);
@@ -381,6 +384,49 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
     checkCdcMismatches();
   }, [checkCdcMismatches]);
 
+  const loadCdcCatalogs = useCallback(() => {
+    const publishedLakehouseIds = workspace?.cdcPublishedLakeHouseDetails?.publishedLakeHouseNames || [];
+    if (!workspace?.id || !workspace?.name || !publishedLakehouseIds.length) {
+      setCatalogsByLakehouse({});
+      return;
+    }
+
+    // Lakehouses published before multi-catalog support have no catalog metadata; their catalog is the lakehouse itself.
+    const withLegacyCatalogs = (byLakehouse) => {
+      publishedLakehouseIds.forEach((lakehouseId) => {
+        if (byLakehouse[lakehouseId]?.length) {
+          return;
+        }
+        const publishedLakehouse = lakehouses?.find((lh) => lh.id === lakehouseId);
+        if (publishedLakehouse?.name) {
+          byLakehouse[lakehouseId] = [{ catalogName: publishedLakehouse.name }];
+        }
+      });
+      return byLakehouse;
+    };
+
+    fabricApi.getCatalogMetadata(workspace.id, workspace.name)
+      .then((res) => {
+        const catalogs = res?.data?.data?.publishedCDCCatalogs || [];
+        setCatalogsByLakehouse(withLegacyCatalogs(catalogs.reduce((byLakehouse, catalog) => {
+          if (!byLakehouse[catalog.lakeHouseId]) {
+            byLakehouse[catalog.lakeHouseId] = [];
+          }
+          byLakehouse[catalog.lakeHouseId].push({
+            catalogName: catalog.catalogName || catalog.lakehouseName,
+            modifiedOn: catalog.modifiedOn,
+            createdOn: catalog.createdOn,
+          });
+          return byLakehouse;
+        }, {})));
+      })
+      .catch(() => setCatalogsByLakehouse(withLegacyCatalogs({})));
+  }, [workspace, lakehouses]);
+
+  useEffect(() => {
+    loadCdcCatalogs();
+  }, [loadCdcCatalogs]);
+
   useEffect(() => {
     Tooltip.defaultSetup();
   }, [cdcMismatchMap]);
@@ -389,16 +435,15 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
   const handlePushToCdc = (lakehouse) => {
     console.log('[PushToCdc] Button clicked for:', lakehouse.name);
     setSelectedLakehouse(lakehouse);
+    setSelectedCatalogName(undefined);
 
     if (workspace?.typeOfProject?.toLowerCase() !== "production") {
       setShowNonProdProjectModal(true);
       return;
     }
 
-    const isAlreadyPublished = workspace?.cdcPublishedLakeHouseDetails?.publishedLakeHouseNames?.includes(lakehouse.id);
-    console.log('[PushToCdc] isAlreadyPublished:', isAlreadyPublished);
-
-    if (!isAlreadyPublished) {
+    const isPublished = workspace?.cdcPublishedLakeHouseDetails?.publishedLakeHouseNames?.includes(lakehouse.id);
+    if (!isPublished) {
       setShowViewTablesModal(true);
       return;
     }
@@ -725,7 +770,7 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
                           }}
                         >
                           <i className="icon mbc-icon dublicate" />
-                          <span>Push to DDX</span>
+                          <span>Onboard to DDX</span>
                         </button>
                       </li>
                     </ul>
@@ -750,48 +795,18 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
                           tooltip-data={`Schema changes detected: ${cdcMismatchMap[lakehouse.id].length} change(s) require attention.`}
                         >
                           <i className="icon mbc-icon alert circle" />
-                          <span>CDC</span>
                         </span>
-                      ) : (
-                        <span className={Styles.statusIndicator}>
-                          <span
-                            className={Styles.deployedTag}
-                            tooltip-data="Lakehouse successfully deployed to CDC."
-                          >
-                            CDC
-                          </span>
-                        </span>
-                      )}
-                      <div className={Styles.cdcNewTab}>
-                        <a
-                          href={`${Envs.CDC_URL}/${workspace?.name}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          <i className="icon mbc-icon new-tab" />
-                        </a>
-                      </div>
-                    </>
-                  )}
-                  {workspace?.ddxPublishedLakeHouseDetails?.some(d => d.lakeHouseId === lakehouse.id) && (
-                    <>
-                      <span className={Styles.statusIndicator}>
-                        <span
-                          className={Styles.deployedTag}
-                          tooltip-data="Lakehouse successfully deployed to DDX."
-                        >
-                          DDX
-                        </span>
+                      ) : null}
+                      <span
+                        className={classNames(Styles.statusIndicator, Styles.dataProductsTag)}
+                        tooltip-data="View published CDC catalogs and their DDX data products."
+                        onClick={() => {
+                          setSelectedLakehouse(lakehouse);
+                          setShowCatalogsModal(true);
+                        }}
+                      >
+                        Data Products ({catalogsByLakehouse[lakehouse.id]?.length || 0})
                       </span>
-                      <div className={Styles.cdcNewTab}>
-                        <a
-                          href={`${(Envs.DDX_DOF_BASE_URL || '').replace(/\/$/, '')}/myDataProducts/onboardingForm/${workspace?.ddxPublishedLakeHouseDetails?.find(d => d.lakeHouseId === lakehouse.id)?.dataProducts?.slice()?.sort((a, b) => new Date(b.createdOn) - new Date(a.createdOn))?.[0]?.productId}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                        >
-                          <i className="icon mbc-icon new-tab" />
-                        </a>
-                      </div>
                     </>
                   )}
                 </div>
@@ -877,9 +892,107 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
           modalWidth={'90%'}
           buttonAlignment="right"
           show={showViewTables}
-        content={<ViewTablesModalContent workspaceId={workspace?.id} lakehouseId={selectedLakehouse?.id} lakehouseName={selectedLakehouse?.name} onRefreshWorkspace={onRefreshWorkspace} mismatches={cdcMismatchMap[selectedLakehouse?.id] || []} />}
+          content={<ViewTablesModalContent workspaceId={workspace?.id} lakehouseId={selectedLakehouse?.id} lakehouseName={selectedLakehouse?.name} catalogName={selectedCatalogName} onRefreshWorkspace={onRefreshWorkspace} mismatches={cdcMismatchMap[selectedLakehouse?.id] || []} />}
           scrollableContent={true}
-          onCancel={() => { setSelectedLakehouse(); setShowViewTablesModal(false) }}
+          onCancel={() => { setSelectedLakehouse(); setSelectedCatalogName(undefined); setShowViewTablesModal(false) }}
+        />
+      }
+      {/* Show published catalog links and actions for the selected lakehouse. */}
+      {showCatalogsModal &&
+        <InfoModal
+          title={`Published CDC Catalogs - ${selectedLakehouse?.name}`}
+          showAcceptButton={false}
+          showCancelButton={true}
+          cancelButtonTitle="Close"
+          buttonAlignment="right"
+          modalWidth="60%"
+          show={showCatalogsModal}
+          content={
+            <div className={Styles.catalogsModalContent}>
+              {(catalogsByLakehouse[selectedLakehouse?.id] || []).length > 0 ? (
+                <div className={Styles.catalogList}>
+                  <div className={classNames(Styles.catalogRow, Styles.catalogHeader)}>
+                    <span>CDC Catalog</span>
+                    <span>DDX Dataproduct</span>
+                  </div>
+                  {catalogsByLakehouse[selectedLakehouse?.id].map((catalog) => {
+                    const matchingProduct = (
+                      workspace?.ddxPublishedLakeHouseDetails?.find(
+                        (d) => d.lakeHouseId === selectedLakehouse?.id,
+                      )?.dataProducts || []
+                    )
+                      .filter(
+                        (product) =>
+                          product.cdcCatalogName === catalog.catalogName ||
+                          (!product.cdcCatalogName &&
+                            catalog.catalogName === selectedLakehouse?.name),
+                      )
+                      .sort(
+                        (a, b) => new Date(b.createdOn) - new Date(a.createdOn),
+                      )[0];
+                    return (
+                      <div
+                        className={Styles.catalogRow}
+                        key={catalog.catalogName}
+                      >
+                        <span>
+                          {catalog.catalogName}
+                          <a
+                            href={`${Envs.CDC_URL}/${workspace?.name}.${catalog.catalogName}`}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            <i className="icon mbc-icon new-tab" />
+                          </a>
+                        </span>
+                        <div className={Styles.ddxProductCell}>
+                          {matchingProduct ? (
+                            <span>
+                              {matchingProduct.productName || matchingProduct.productId}
+                              <a
+                                href={`${(Envs.DDX_DOF_BASE_URL || '').replace(/\/$/, '')}/myDataProducts/onboardingForm/${matchingProduct.productId}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                              >
+                                <i className="icon mbc-icon new-tab" />
+                              </a>
+                            </span>
+                          ) : (
+                            <button
+                              className="btn btn-primary"
+                              onClick={() => {
+                                setShowCatalogsModal(false);
+                                setSelectedCatalogName(catalog.catalogName);
+                                setShowDdxViewTablesModal(true);
+                              }}
+                            >
+                              Onboard to DDX
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              ) : (
+                <p>No published catalogs found.</p>
+              )}
+              <button
+                className="btn btn-primary"
+                onClick={() => {
+                  setShowCatalogsModal(false);
+                  setSelectedCatalogName(undefined);
+                  setShowViewTablesModal(true);
+                }}
+              >
+                Push New Catalog
+              </button>
+            </div>
+          }
+          onCancel={() => {
+            setShowCatalogsModal(false);
+            setSelectedLakehouse();
+          }}
         />
       }
       {showNonProdProjectModal &&
@@ -914,10 +1027,11 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
               workspaceDivision={workspace?.division} 
               lakehouseId={selectedLakehouse?.id} 
               lakehouseName={selectedLakehouse?.name} 
+              cdcCatalogName={selectedCatalogName}
               ddxPublishedLakeHouseDetails={workspace?.ddxPublishedLakeHouseDetails}
               onRefreshWorkspace={onRefreshWorkspace} />}
           scrollableContent={true}
-          onCancel={() => { setSelectedLakehouse(); setShowDdxViewTablesModal(false) }}
+          onCancel={() => { setSelectedLakehouse(); setSelectedCatalogName(undefined); setShowDdxViewTablesModal(false) }}
         />
       }
       { showDeleteModal &&

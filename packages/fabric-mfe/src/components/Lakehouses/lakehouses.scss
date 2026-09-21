@@ -77,21 +77,17 @@
     .buttonContainer {
       margin-top: auto; /* Push the button container to the bottom */
       display: flex;
-      justify-content: flex-end;
+      justify-content: space-between;
+      align-items: center;
       margin-right: 3px;
-      gap: 80px;
+      gap: 10px;
     }
     .cdcContainer {
       margin-top: auto; 
       display: flex;
+      align-items: center;
       justify-content: flex-start;
       margin-right: 3px;
-    }
-    .viewInCdcIcon{
-      color: #00adef;
-    }
-    .cdcNewTab{
-      cursor: pointer;
     }
 
     .contextMenu {
@@ -354,9 +350,42 @@
   }
 }
 
+.dataProductsTag {
+  border-color: #00adef;
+  color: #00adef;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
 .deployedLink{
   text-decoration: none;
   color: #0AE6AB;
+}
+
+.catalogsModalContent {
+  color: #d1d5db;
+
+  .catalogList {
+    margin-bottom: 20px;
+  }
+
+  .catalogHeader {
+    font-weight: bold;
+  }
+
+  .catalogRow {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    align-items: center;
+    padding: 12px 0;
+    border-bottom: 1px solid #383f49;
+    color: #c0c8d0;
+
+    a {
+      color: #00adef;
+      margin-left: 16px;
+    }
+  }
 }
 
 .disabledBtn {
