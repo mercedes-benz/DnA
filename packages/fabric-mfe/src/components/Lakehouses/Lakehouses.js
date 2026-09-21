@@ -770,7 +770,7 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
                           }}
                         >
                           <i className="icon mbc-icon dublicate" />
-                          <span>Push to DDX</span>
+                          <span>Onboard to DDX</span>
                         </button>
                       </li>
                     </ul>
@@ -805,7 +805,7 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
                           setShowCatalogsModal(true);
                         }}
                       >
-                        DataProducts ({catalogsByLakehouse[lakehouse.id]?.length || 0})
+                        Data Products ({catalogsByLakehouse[lakehouse.id]?.length || 0})
                       </span>
                     </>
                   )}
@@ -966,7 +966,7 @@ function Lakehouses({ user, workspace, lakehouses, onDeleteLakehouse, onRefreshW
                                 setShowDdxViewTablesModal(true);
                               }}
                             >
-                              Push to Ddx
+                              Onboard to DDX
                             </button>
                           )}
                         </div>
