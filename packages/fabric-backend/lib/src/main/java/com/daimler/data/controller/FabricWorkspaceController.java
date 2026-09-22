@@ -1146,11 +1146,11 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 	}
 
 	@Override
-	public ResponseEntity<List<AzurePrincipalVO>> searchKeyVaultPrincipals(String search) {
+	public ResponseEntity<List<AzurePrincipalVO>> searchKeyVaultPrincipals(String search, String type) {
 		if (search == null || search.isBlank() || search.trim().length() < 3) {
 			return new ResponseEntity<>(new ArrayList<>(), HttpStatus.OK);
 		}
-		List<AzurePrincipalVO> result = keyVaultService.searchPrincipals(search.trim()).stream().map(principal -> {
+		List<AzurePrincipalVO> result = keyVaultService.searchPrincipals(search.trim(), type).stream().map(principal -> {
 			AzurePrincipalVO vo = new AzurePrincipalVO();
 			vo.setId(principal.getId());
 			vo.setDisplayName(principal.getDisplayName());

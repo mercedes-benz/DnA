@@ -26,6 +26,9 @@
  */
 package com.daimler.data.application.client;
 
+import java.net.URI;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
@@ -74,6 +77,14 @@ public class AzureManagementClient {
 
     public static final String ACCESS_LEVEL_READING = "Reading";
     public static final String ACCESS_LEVEL_CONTRIBUTING = "Contributing";
+
+    public static final String PRINCIPAL_KIND_USER = "USER";
+    public static final String PRINCIPAL_KIND_SPN = "SPN";
+    public static final String PRINCIPAL_KIND_MI = "MI";
+
+    private static final String SERVICE_PRINCIPAL_TYPE_APPLICATION = "Application";
+    private static final String SERVICE_PRINCIPAL_TYPE_MANAGED_IDENTITY = "ManagedIdentity";
+    private static final int MIN_SEARCH_TERM_LENGTH = 3;
 
     @Value("${fabricWorkspaces.group.clientId}")
     private String groupSearchclientId;
@@ -304,87 +315,129 @@ public class AzureManagementClient {
         }
     }
 
-    public List<AzurePrincipalDto> searchPrincipals(String searchTerm) {
-        if (searchTerm == null || searchTerm.isBlank() || searchTerm.trim().length() < 3) {
+    public String normalizePrincipalKind(String kind) {
+        if (PRINCIPAL_KIND_SPN.equalsIgnoreCase(kind)) {
+            return PRINCIPAL_KIND_SPN;
+        }
+        if (PRINCIPAL_KIND_MI.equalsIgnoreCase(kind)) {
+            return PRINCIPAL_KIND_MI;
+        }
+        return PRINCIPAL_KIND_USER;
+    }
+
+    public List<AzurePrincipalDto> searchPrincipals(String searchTerm, String kind) {
+        if (searchTerm == null || searchTerm.trim().length() < MIN_SEARCH_TERM_LENGTH) {
             return List.of();
         }
+        String term = searchTerm.trim();
+        String principalKind = normalizePrincipalKind(kind);
+        if (PRINCIPAL_KIND_USER.equals(principalKind)) {
+            return searchUsers(term);
+        }
+        String servicePrincipalType = PRINCIPAL_KIND_MI.equals(principalKind)
+                ? SERVICE_PRINCIPAL_TYPE_MANAGED_IDENTITY : SERVICE_PRINCIPAL_TYPE_APPLICATION;
+        String filter = "servicePrincipalType eq '" + servicePrincipalType + "' and startswith(displayName,'"
+                + escapeODataLiteral(term) + "')";
+        return searchServicePrincipals(filter, principalKind);
+    }
+
+    public AzurePrincipalDto resolvePrincipal(String identifier, String kind) {
+        if (identifier == null || identifier.isBlank()) {
+            return null;
+        }
+        String principalKind = normalizePrincipalKind(kind);
+        if (PRINCIPAL_KIND_USER.equals(principalKind)) {
+            String objectId = getUserPrincipalId(identifier);
+            return objectId == null ? null : new AzurePrincipalDto(
+                    objectId, identifier, identifier, null, null, "User", PRINCIPAL_KIND_USER, identifier);
+        }
+        String servicePrincipalType = PRINCIPAL_KIND_MI.equals(principalKind)
+                ? SERVICE_PRINCIPAL_TYPE_MANAGED_IDENTITY : SERVICE_PRINCIPAL_TYPE_APPLICATION;
+        String escaped = escapeODataLiteral(identifier);
+        String filter = "servicePrincipalType eq '" + servicePrincipalType + "' and (appId eq '" + escaped
+                + "' or displayName eq '" + escaped + "')";
+        return searchServicePrincipals(filter, principalKind).stream().findFirst().orElse(null);
+    }
+
+    private List<AzurePrincipalDto> searchUsers(String term) {
+        // Graph supports substring matching on displayName only through $search, which requires advanced queries.
+        String query = "?$search=" + encodeQueryValue("\"displayName:" + term.replace("\"", "") + "\"")
+                + "&$select=id,displayName,mail,userPrincipalName";
+        HttpHeaders headers = graphHeaders();
+        if (headers == null) {
+            return List.of();
+        }
+        headers.set("ConsistencyLevel", "eventual");
         try {
-            String token = getTokenForGroupSearch();
-            if (!Objects.nonNull(token)) {
-                return List.of();
-            }
-
-            HttpHeaders headers = new HttpHeaders();
-            headers.set("Accept", "application/json");
-            headers.set("Authorization", "Bearer " + token);
-            headers.setContentType(MediaType.APPLICATION_JSON);
-            HttpEntity<String> requestEntity = new HttpEntity<>(headers);
-            String escapedTerm = searchTerm == null ? "" : searchTerm.replace("'", "''");
-            // Graph exposes users and service principals (which cover managed identities) through separate
-            // collections, so query both and return them as one result set.
-            String userUrl = azureUserSearchUrl + "?$filter=startswith(mail,'" + escapedTerm
-                    + "') or startswith(displayName,'" + escapedTerm
-                    + "') or startswith(userPrincipalName,'" + escapedTerm + "')";
-            String servicePrincipalUrl = azureServicePrincipalSearchUrl
-                    + "?$filter=startswith(displayName,'" + escapedTerm + "') or appId eq '" + escapedTerm + "'";
-
+            ResponseEntity<AzureUserSearchResponseDto> response = proxyRestTemplate.exchange(
+                    URI.create(azureUserSearchUrl + query), HttpMethod.GET, new HttpEntity<>(headers),
+                    AzureUserSearchResponseDto.class);
             List<AzurePrincipalDto> result = new ArrayList<>();
-            // Isolate each lookup so one unavailable Graph endpoint does not hide results from the other.
-            try {
-                ResponseEntity<AzureUserSearchResponseDto> users = proxyRestTemplate.exchange(
-                        userUrl, HttpMethod.GET, requestEntity, AzureUserSearchResponseDto.class);
-                if (users.getBody() != null && users.getBody().getValue() != null) {
-                    users.getBody().getValue().forEach(user -> {
-                        String identifier = user.getMail() != null && !user.getMail().isBlank()
-                                ? user.getMail() : user.getUserPrincipalName();
-                        if (identifier != null && !identifier.isBlank()) {
-                            result.add(new AzurePrincipalDto(
-                                    user.getId(), user.getDisplayName(), user.getMail(), null, null,
-                                    "User", "USER", identifier));
-                        }
-                    });
+            if (response.getBody() != null && response.getBody().getValue() != null) {
+                for (AzureUserDto user : response.getBody().getValue()) {
+                    String identifier = user.getMail() != null && !user.getMail().isBlank()
+                            ? user.getMail() : user.getUserPrincipalName();
+                    if (identifier != null && !identifier.isBlank()) {
+                        result.add(new AzurePrincipalDto(user.getId(), user.getDisplayName(), user.getMail(),
+                                null, null, "User", PRINCIPAL_KIND_USER, identifier));
+                    }
                 }
-            } catch (Exception e) {
-                log.warn("Error searching Azure users: {}", e.getMessage());
-            }
-            try {
-                ResponseEntity<AzurePrincipalSearchResponseDto> servicePrincipals = proxyRestTemplate.exchange(
-                        servicePrincipalUrl, HttpMethod.GET, requestEntity, AzurePrincipalSearchResponseDto.class);
-                if (servicePrincipals.getBody() != null && servicePrincipals.getBody().getValue() != null) {
-                    servicePrincipals.getBody().getValue().forEach(principal -> {
-                        principal.setPrincipalType("ServicePrincipal");
-                        principal.setKind("ManagedIdentity".equalsIgnoreCase(principal.getServicePrincipalType())
-                                ? "MI" : "SPN");
-                        principal.setIdentifier(principal.getAppId() != null
-                                ? principal.getAppId() : principal.getDisplayName());
-                        if (principal.getIdentifier() != null && !principal.getIdentifier().isBlank()) {
-                            result.add(principal);
-                        }
-                    });
-                }
-            } catch (Exception e) {
-                log.warn("Error searching Azure service principals: {}", e.getMessage());
             }
             return result;
         } catch (Exception e) {
-            log.error("Error searching Azure principals: {}", e.getMessage());
+            log.warn("Error searching Azure users: {}", e.getMessage());
             return List.of();
         }
     }
 
-    public AzurePrincipalDto resolvePrincipal(String identifier, String kind) {
-        if ("USER".equalsIgnoreCase(kind)) {
-            String objectId = getUserPrincipalId(identifier);
-            return objectId == null ? null : new AzurePrincipalDto(
-                    objectId, identifier, identifier, null, null, "User", "USER", identifier);
+    private List<AzurePrincipalDto> searchServicePrincipals(String filter, String principalKind) {
+        HttpHeaders headers = graphHeaders();
+        if (headers == null) {
+            return List.of();
         }
-        List<AzurePrincipalDto> principals = searchPrincipals(identifier);
-        return principals.stream()
-                .filter(principal -> identifier.equalsIgnoreCase(principal.getIdentifier())
-                        || identifier.equalsIgnoreCase(principal.getDisplayName())
-                        || identifier.equalsIgnoreCase(principal.getAppId()))
-                .findFirst()
-                .orElse(null);
+        String query = "?$filter=" + encodeQueryValue(filter) + "&$select=id,displayName,appId,servicePrincipalType";
+        try {
+            ResponseEntity<AzurePrincipalSearchResponseDto> response = proxyRestTemplate.exchange(
+                    URI.create(azureServicePrincipalSearchUrl + query), HttpMethod.GET, new HttpEntity<>(headers),
+                    AzurePrincipalSearchResponseDto.class);
+            List<AzurePrincipalDto> result = new ArrayList<>();
+            if (response.getBody() != null && response.getBody().getValue() != null) {
+                for (AzurePrincipalDto principal : response.getBody().getValue()) {
+                    principal.setPrincipalType("ServicePrincipal");
+                    principal.setKind(principalKind);
+                    principal.setIdentifier(principal.getAppId() != null && !principal.getAppId().isBlank()
+                            ? principal.getAppId() : principal.getDisplayName());
+                    if (principal.getIdentifier() != null && !principal.getIdentifier().isBlank()) {
+                        result.add(principal);
+                    }
+                }
+            }
+            return result;
+        } catch (Exception e) {
+            log.warn("Error searching Azure service principals of type {}: {}", principalKind, e.getMessage());
+            return List.of();
+        }
+    }
+
+    private HttpHeaders graphHeaders() {
+        String token = getTokenForGroupSearch();
+        if (!Objects.nonNull(token)) {
+            log.error("Failed to fetch token to invoke Microsoft Graph API");
+            return null;
+        }
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Accept", "application/json");
+        headers.set("Authorization", "Bearer " + token);
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        return headers;
+    }
+
+    private String escapeODataLiteral(String value) {
+        return value == null ? "" : value.replace("'", "''");
+    }
+
+    private String encodeQueryValue(String value) {
+        return URLEncoder.encode(value, StandardCharsets.UTF_8).replace("+", "%20");
     }
     
 	public KeyVaultResponseDto createOrUpdateKeyVault(String keyVaultName) {

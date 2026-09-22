@@ -113,8 +113,8 @@ public class BaseAzureKeyVaultService extends BaseCommonService<KeyVaultVO, Azur
 	}
 
 	@Override
-	public List<AzurePrincipalDto> searchPrincipals(String search) {
-		return azureManagementClient.searchPrincipals(search);
+	public List<AzurePrincipalDto> searchPrincipals(String search, String type) {
+		return azureManagementClient.searchPrincipals(search, type);
 	}
 
 	@Override
@@ -385,6 +385,8 @@ public class BaseAzureKeyVaultService extends BaseCommonService<KeyVaultVO, Azur
 				continue;
 			}
 			collaborator.setObjectId(old.getObjectId());
+			collaborator.setKind(azureManagementClient.normalizePrincipalKind(
+					collaborator.getKind() == null ? old.getKind() : collaborator.getKind()));
 			collaborator.setPrincipalType(old.getPrincipalType());
 			collaborator.setRole(old.getRole());
 			collaborator.setAccessLevel(old.getAccessLevel());
@@ -407,7 +409,7 @@ public class BaseAzureKeyVaultService extends BaseCommonService<KeyVaultVO, Azur
 
 	private void provisionCollaborator(String keyVaultName, KeyVaultCollaboratorVO collaborator,
 			List<MessageDescription> warnings) {
-		String kind = collaborator.getKind() == null ? "USER" : collaborator.getKind();
+		String kind = azureManagementClient.normalizePrincipalKind(collaborator.getKind());
 		AzurePrincipalDto principal = azureManagementClient.resolvePrincipal(collaborator.getIdentifier(), kind);
 		if (principal == null || principal.getId() == null) {
 			warnings.add(new MessageDescription("Collaborator could not be resolved: " + collaborator.getIdentifier()));
@@ -430,6 +432,7 @@ public class BaseAzureKeyVaultService extends BaseCommonService<KeyVaultVO, Azur
 			}
 		}
 		collaborator.setObjectId(principal.getId());
+		collaborator.setKind(kind);
 		collaborator.setPrincipalType(principal.getPrincipalType());
 		collaborator.setAccessLevel(accessLevel);
 		collaborator.setRole(accessLevel);

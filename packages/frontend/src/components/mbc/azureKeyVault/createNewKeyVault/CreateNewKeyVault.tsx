@@ -8,9 +8,21 @@ import ProgressIndicator from '../../../../assets/modules/uilab/js/src/progress-
 import { CodeSpaceApiClient } from '../../../../services/CodeSpaceApiClient';
 import { ApiClient } from '../../../../services/ApiClient';
 import TextBox from '../../shared/textBox/TextBox';
-import { IKeyVault, IKeyVaultAccessLevel, IKeyVaultCollaborator, IKeyVaultPrincipal } from 'globals/types';
+import {
+  IKeyVault,
+  IKeyVaultAccessLevel,
+  IKeyVaultCollaborator,
+  IKeyVaultPrincipal,
+  IKeyVaultPrincipalKind,
+} from 'globals/types';
 
 const ACCESS_LEVELS: IKeyVaultAccessLevel[] = ['Reading', 'Contributing'];
+
+const PRINCIPAL_TYPES: { value: IKeyVaultPrincipalKind; label: string }[] = [
+  { value: 'USER', label: 'User' },
+  { value: 'SPN', label: 'Service Principal - Application' },
+  { value: 'MI', label: 'Service Principal - Managed Identity' },
+];
 
 interface Props {
   edit?: boolean;
@@ -50,6 +62,7 @@ const CreateNewWorkspace = ({ edit, project, setShowCreateModal, getKeyVaultList
   const [principalResults, setPrincipalResults] = useState<IKeyVaultPrincipal[]>([]);
   const [searching, setSearching] = useState(false);
   const [accessLevel, setAccessLevel] = useState<IKeyVaultAccessLevel>('Reading');
+  const [principalType, setPrincipalType] = useState<IKeyVaultPrincipalKind>('USER');
 
   const requiredError = '*Missing entry';
   const keyVaultNameErrorText = '*Key Vault Name should start with kv-';
@@ -169,12 +182,12 @@ const CreateNewWorkspace = ({ edit, project, setShowCreateModal, getKeyVaultList
       return;
     }
     setSearching(true);
-    ApiClient.searchKeyVaultPrincipals(term)
+    ApiClient.searchKeyVaultPrincipals(term, principalType)
       .then((results: IKeyVaultPrincipal[]) => {
         setSearching(false);
         setPrincipalResults(results || []);
         if (!results?.length) {
-          Notification.show('No users, service principals or managed identities found.', 'warning');
+          Notification.show('No matching entries found in Entra ID.', 'warning');
         }
       })
       .catch(() => {
@@ -199,7 +212,7 @@ const CreateNewWorkspace = ({ edit, project, setShowCreateModal, getKeyVaultList
         identifier,
         objectId: principal.id,
         displayName: principal.displayName || identifier,
-        kind: principal.kind,
+        kind: principal.kind || principalType,
         principalType: principal.principalType,
         accessLevel,
       },
@@ -508,12 +521,31 @@ const CreateNewWorkspace = ({ edit, project, setShowCreateModal, getKeyVaultList
               <div className={Styles.collaboratorSectionListAdd}>
                 <div className={Styles.principalSearch}>
                   <div className={classNames('input-field-group')}>
+                    <label className="input-label">Type</label>
+                    <div className={classNames('custom-select')}>
+                      <select
+                        id="principalTypeField"
+                        value={principalType}
+                        onChange={(event) => {
+                          setPrincipalType(event.currentTarget.value as IKeyVaultPrincipalKind);
+                          setPrincipalResults([]);
+                        }}
+                      >
+                        {PRINCIPAL_TYPES.map((type) => (
+                          <option key={type.value} value={type.value}>
+                            {type.label}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                  </div>
+                  <div className={classNames('input-field-group')}>
                     <label className="input-label">Search Entra ID</label>
                     <input
                       type="text"
                       className="input-field"
                       value={principalSearch}
-                      placeholder="Search users, service principals or managed identities"
+                      placeholder="Search by display name"
                       onChange={(event) => setPrincipalSearch(event.currentTarget.value)}
                       onKeyDown={(event) => {
                         if (event.key === 'Enter') {

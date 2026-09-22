@@ -742,7 +742,7 @@ paths:
       tags:
         - "fabric-workspaces"
       summary: "Search Entra ID principals for Key Vault collaborators"
-      description: "Searches Entra ID (Microsoft Graph) and returns users, service principals and managed identities matching the search term."
+      description: "Searches Entra ID (Microsoft Graph) for the requested principal type and returns users, service principal applications or managed identities matching the search term."
       operationId: "searchKeyVaultPrincipals"
       parameters:
         - name: search
@@ -750,6 +750,15 @@ paths:
           description: "Search term, at least three characters"
           required: true
           type: string
+        - name: type
+          in: query
+          description: "Principal type to search for. Defaults to USER."
+          required: false
+          type: string
+          enum:
+            - USER
+            - SPN
+            - MI
       responses:
         200:
           description: "Matching Entra ID principals"

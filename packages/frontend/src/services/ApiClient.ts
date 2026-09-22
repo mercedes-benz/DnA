@@ -560,8 +560,10 @@ export class ApiClient {
     return this.fabricGet(`fabric-workspaces/keyVault?offset=${offset || 0}&limit=${limit || 15}`);
   }
 
-  public static searchKeyVaultPrincipals(search: string) {
-    return this.fabricGet(`fabric-workspaces/keyVault/principals?search=${encodeURIComponent(search)}`);
+  public static searchKeyVaultPrincipals(search: string, type: string) {
+    return this.fabricGet(
+      `fabric-workspaces/keyVault/principals?search=${encodeURIComponent(search)}&type=${encodeURIComponent(type)}`,
+    );
   }
 
   public static createKeyVault(data: any) {

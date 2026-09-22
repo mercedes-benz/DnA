@@ -18,5 +18,5 @@ public interface AzureKeyVaultService extends CommonService<KeyVaultVO, AzureKey
 	
 	KeyVaultCollectionVO getAllKeyVaults(int limit, int offset, String createdBy);
 
-	List<AzurePrincipalDto> searchPrincipals(String search);
+	List<AzurePrincipalDto> searchPrincipals(String search, String type);
 }

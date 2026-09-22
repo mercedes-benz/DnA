@@ -113,6 +113,9 @@
             align-items: flex-end;
             gap: 12px;
             > div:first-child {
+              min-width: 210px;
+            }
+            > div:nth-child(2) {
               flex: 1;
             }
             > div {
