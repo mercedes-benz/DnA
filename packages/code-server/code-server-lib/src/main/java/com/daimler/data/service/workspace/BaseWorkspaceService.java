@@ -2417,10 +2417,10 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 							
 						}
 						if(commitId == null){
-						MessageDescription warning = new MessageDescription();
-						warning.setMessage("Error while adding commit id to deployment audit log");
-					}else{
-						auditLog.setCommitId(commitId.getSha());
+							log.warn("Error while adding commit id to deployment audit log for project {} and branch {}", projectName, branch);
+						}else{
+							auditLog.setCommitId(commitId.getSha());
+						}
 						auditLog.setDeploymentStatus("DEPLOY_REQUESTED");
 						auditLog.setVersion(version);
 						if("APPROVAL_PENDING".equalsIgnoreCase(deploymentDetails.getLastDeploymentStatus())){
@@ -2433,7 +2433,6 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 						}else{
 							auditLogs.add(auditLog);
 						}
-					}
 
 					 CodeServerBuildDeploy buildDeployLogs = null;
 					 CodeServerBuildDeployNsql auditLogEntity = null;
@@ -3567,8 +3566,17 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 					// String lastDeployedVersion = (sortedList.size() > 0 && sortedList.size() != 1) ? sortedList.get(sortedList.size() - 1).getVersion():null;
 					
 					// if(lastDeployedVersion != null &&  buildAuditLogs.stream().anyMatch( i -> (i.getVersion().equalsIgnoreCase(lastDeployedVersion) && !i.isImageDeleted()))){
+							String newestSuccessfulVersion = null;
+							for (BuildAudit build : buildAuditLogs) {
+								if (build.getVersion() != null && "BUILD_SUCCESS".equalsIgnoreCase(build.getBuildStatus())) {
+									newestSuccessfulVersion = build.getVersion();
+								}
+							}
+							final String newestSuccessfulBuildVersion = newestSuccessfulVersion;
 							buildAuditLogs.stream().forEach(i ->{
-								if(!i.getVersion().equalsIgnoreCase(version) && !i.isKeepBuildImage() && !i.isImageDeleted()){
+								if(i.getVersion() != null && !i.getVersion().equalsIgnoreCase(version)
+										&& !i.getVersion().equalsIgnoreCase(newestSuccessfulBuildVersion)
+										&& !i.isKeepBuildImage() && !i.isImageDeleted()){
 									GenericMessage deleteApiResonse = client.deleteBuild(projectName, i.getVersion());
 									if(deleteApiResonse.getSuccess().equalsIgnoreCase("SUCCESS")){
 										i.setImageDeleted(true);

@@ -30,6 +30,8 @@ import com.daimler.data.controller.exceptions.MessageDescription;
 import org.springframework.web.client.HttpStatusCodeException;
 
 import java.net.URI;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import com.daimler.data.dto.GitBranchesCollectionDto;
 import com.daimler.data.dto.GitHubWorkflowJobsResponseDto;
 import com.daimler.data.dto.GitHubWorkflowRunDto;
@@ -779,11 +781,13 @@ public class GitClient {
 			if (cachedCommit != null && cachedCommit.etag != null) {
 				headers.setIfNoneMatch(cachedCommit.etag);
 			}
-			String url = baseUri+"/repos/" + orgName + "/"+ repoName+ "/commits?sha="+branch+"&per_page=1";
+			String encodedBranch = URLEncoder.encode(branch, StandardCharsets.UTF_8.toString());
+			String url = baseUri+"/repos/" + orgName + "/"+ repoName+ "/commits?sha="+encodedBranch+"&per_page=1";
+			java.net.URI uri = java.net.URI.create(url);
 			HttpEntity entity = new HttpEntity<>(headers);
 			ResponseEntity<String> response;
 			try {
-				response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
+				response = restTemplate.exchange(uri, HttpMethod.GET, entity, String.class);
 			} catch (HttpClientErrorException e) {
 				if (e.getStatusCode() == HttpStatus.NOT_MODIFIED) {
 					return cachedCommit == null ? null : cachedCommit.value;
@@ -800,7 +804,7 @@ public class GitClient {
 					 commitId = commits[0];
 				}
 			String etag = response.getHeaders().getETag();
-			if (etag != null) {
+			if (etag != null && commitId != null) {
 				commitEtagStore.put(commitKey, new EtagEntry<>(etag, commitId));
 			}
 			log.info("completed fetching latest commit id from git repo {} and branch {} ",repoName, branch);
