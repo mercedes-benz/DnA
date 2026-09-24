@@ -2243,6 +2243,11 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 				if(responseMessage.getSuccess().equalsIgnoreCase("SUCCESS")){
 					if(deploymentDetails.getDeploymentUrl() == null || deploymentDetails.getDeploymentUrl().isEmpty()){
 						authenticatorClient.callingKongApis(workspaceId, projectName, environment, isApiRecipe, deploymentDetails.getClientId(), "", deploymentDetails.getRedirectUri(), deploymentDetails.getIgnorePaths(), deploymentDetails.getScope(), deploymentDetails.getOneApiVersionShortName(), isSecuredWithCookie, secureWithIAMRequired, deploymentDetails.getSsoType(), secureWithDnaRequired, false, false, deploymentDetails.getSelectedAliceRoles(), cloudServiceProvider);
+						try {
+							createOpenTelemetryPlugin(workspaceId, environment, projectName.toLowerCase() + "-" + environment.toLowerCase());
+						} catch (Exception otelEx) {
+							log.warn("Failed to create OpenTelemetry plugin for workspace {} in {} environment: {}", workspaceId, environment, otelEx.getMessage());
+						}
 					}
 					status = "SUCCESS";
 					lastBuildOrDeployStatus = "BUILD_REQUESTED";
