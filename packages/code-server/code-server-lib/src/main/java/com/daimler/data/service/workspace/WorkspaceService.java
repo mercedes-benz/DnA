@@ -161,5 +161,6 @@ public interface WorkspaceService {
 
     GenericMessage cancelWorkspaceRun(String projectName);
 
-	GenericMessage createOpenTelemetryPlugin(String workspaceId, String environment, String serviceName);
+	GenericMessage createOpenTelemetryPlugin(String workspaceId, String environment, String serviceName,
+			String cloudServiceProvider);
 }
