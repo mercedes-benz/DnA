@@ -117,6 +117,7 @@ fabricWorkspaces:
       roleAssignmentUrl: ${AZURE_ROLE_ASSIGNMENT_URL:XXXX}
       userSearchUrl: ${AZURE_USER_SEARCH_URL:XXXX}
       servicePrincipalSearchUrl: ${AZURE_SP_SEARCH_URL:XXXX}
+      groupSearchUrl: ${AZURE_GROUP_SEARCH_URL:XXXX}
       roles:
         cryptoOfficer: ${KEYVAULT_CRYPTO_OFFICER_ROLE:XXXX}
         cryptoUser: ${KEYVAULT_CRYPTO_USER_ROLE:XXXX}

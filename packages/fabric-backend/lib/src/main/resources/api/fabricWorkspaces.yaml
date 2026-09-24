@@ -759,6 +759,7 @@ paths:
             - USER
             - SPN
             - MI
+            - GROUP
       responses:
         200:
           description: "Matching Entra ID principals"

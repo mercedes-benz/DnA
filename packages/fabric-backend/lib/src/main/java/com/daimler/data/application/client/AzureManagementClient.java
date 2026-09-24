@@ -81,10 +81,13 @@ public class AzureManagementClient {
     public static final String PRINCIPAL_KIND_USER = "USER";
     public static final String PRINCIPAL_KIND_SPN = "SPN";
     public static final String PRINCIPAL_KIND_MI = "MI";
+    public static final String PRINCIPAL_KIND_GROUP = "GROUP";
 
     private static final String SERVICE_PRINCIPAL_TYPE_APPLICATION = "Application";
     private static final String SERVICE_PRINCIPAL_TYPE_MANAGED_IDENTITY = "ManagedIdentity";
     private static final int MIN_SEARCH_TERM_LENGTH = 3;
+    private static final java.util.regex.Pattern GUID_PATTERN = java.util.regex.Pattern
+            .compile("[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}");
 
     @Value("${fabricWorkspaces.group.clientId}")
     private String groupSearchclientId;
@@ -154,6 +157,9 @@ public class AzureManagementClient {
 
     @Value("${fabricWorkspaces.azure.keyvault.servicePrincipalSearchUrl}")
     private String azureServicePrincipalSearchUrl;
+
+    @Value("${fabricWorkspaces.azure.keyvault.groupSearchUrl}")
+    private String azureGroupSearchUrl;
 
     @Value("${fabricWorkspaces.azure.keyvault.roleAssignmentUrl}")
     private String azureRoleAssignmentUrl;
@@ -322,6 +328,9 @@ public class AzureManagementClient {
         if (PRINCIPAL_KIND_MI.equalsIgnoreCase(kind)) {
             return PRINCIPAL_KIND_MI;
         }
+        if (PRINCIPAL_KIND_GROUP.equalsIgnoreCase(kind)) {
+            return PRINCIPAL_KIND_GROUP;
+        }
         return PRINCIPAL_KIND_USER;
     }
 
@@ -333,6 +342,9 @@ public class AzureManagementClient {
         String principalKind = normalizePrincipalKind(kind);
         if (PRINCIPAL_KIND_USER.equals(principalKind)) {
             return searchUsers(term);
+        }
+        if (PRINCIPAL_KIND_GROUP.equals(principalKind)) {
+            return searchGroups("startswith(displayName,'" + escapeODataLiteral(term) + "')");
         }
         String servicePrincipalType = PRINCIPAL_KIND_MI.equals(principalKind)
                 ? SERVICE_PRINCIPAL_TYPE_MANAGED_IDENTITY : SERVICE_PRINCIPAL_TYPE_APPLICATION;
@@ -350,6 +362,13 @@ public class AzureManagementClient {
             String objectId = getUserPrincipalId(identifier);
             return objectId == null ? null : new AzurePrincipalDto(
                     objectId, identifier, identifier, null, null, "User", PRINCIPAL_KIND_USER, identifier);
+        }
+        if (PRINCIPAL_KIND_GROUP.equals(principalKind)) {
+            String escapedGroup = escapeODataLiteral(identifier);
+            String groupFilter = GUID_PATTERN.matcher(identifier).matches()
+                    ? "id eq '" + escapedGroup + "'"
+                    : "mail eq '" + escapedGroup + "' or displayName eq '" + escapedGroup + "'";
+            return searchGroups(groupFilter).stream().findFirst().orElse(null);
         }
         String servicePrincipalType = PRINCIPAL_KIND_MI.equals(principalKind)
                 ? SERVICE_PRINCIPAL_TYPE_MANAGED_IDENTITY : SERVICE_PRINCIPAL_TYPE_APPLICATION;
@@ -386,6 +405,35 @@ public class AzureManagementClient {
             return result;
         } catch (Exception e) {
             log.warn("Error searching Azure users: {}", e.getMessage());
+            return List.of();
+        }
+    }
+
+    private List<AzurePrincipalDto> searchGroups(String filter) {
+        HttpHeaders headers = graphHeaders();
+        if (headers == null) {
+            return List.of();
+        }
+        String query = "?$filter=" + encodeQueryValue(filter) + "&$select=id,displayName,mail";
+        try {
+            ResponseEntity<AzureUserSearchResponseDto> response = proxyRestTemplate.exchange(
+                    URI.create(azureGroupSearchUrl + query), HttpMethod.GET, new HttpEntity<>(headers),
+                    AzureUserSearchResponseDto.class);
+            List<AzurePrincipalDto> result = new ArrayList<>();
+            if (response.getBody() != null && response.getBody().getValue() != null) {
+                for (AzureUserDto group : response.getBody().getValue()) {
+                    // Groups may have no mail address, so the display name is the fallback identifier.
+                    String identifier = group.getMail() != null && !group.getMail().isBlank()
+                            ? group.getMail() : group.getDisplayName();
+                    if (identifier != null && !identifier.isBlank()) {
+                        result.add(new AzurePrincipalDto(group.getId(), group.getDisplayName(), group.getMail(),
+                                null, null, "Group", PRINCIPAL_KIND_GROUP, identifier));
+                    }
+                }
+            }
+            return result;
+        } catch (Exception e) {
+            log.warn("Error searching Entra ID groups: {}", e.getMessage());
             return List.of();
         }
     }

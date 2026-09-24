@@ -112,41 +112,20 @@
             display: flex;
             align-items: flex-end;
             gap: 12px;
-            > div:first-child {
-              min-width: 210px;
-            }
-            > div:nth-child(2) {
-              flex: 1;
-            }
             > div {
+              flex: 1;
+              min-width: 210px;
               margin: 0;
             }
           }
-          .principalResults {
+          .principalTypeAhead {
+            margin-top: 8px;
+          }
+          .principalSuggestion {
             display: flex;
-            flex-direction: column;
-            max-height: 150px;
-            margin-top: 10px;
-            border: 1px solid #383f49;
-            .principalResult {
-              display: flex;
-              justify-content: space-between;
-              gap: 10px;
-              width: 100%;
-              padding: 8px 10px;
-              background: transparent;
-              border: 0;
-              border-bottom: 1px solid #383f49;
-              color: inherit;
-              text-align: left;
-              cursor: pointer;
-              &:last-child {
-                border-bottom: 0;
-              }
-              &:hover {
-                background: #2b3138;
-              }
-            }
+            justify-content: space-between;
+            gap: 10px;
+            width: 100%;
           }
         }
         .collaboratorList {

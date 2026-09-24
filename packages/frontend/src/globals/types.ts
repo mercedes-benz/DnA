@@ -1582,7 +1582,7 @@ export interface IKeyVaultCreatedBy {
   mobileNumber?: string;
 }
 
-export type IKeyVaultPrincipalKind = 'USER' | 'SPN' | 'MI';
+export type IKeyVaultPrincipalKind = 'USER' | 'SPN' | 'MI' | 'GROUP';
 
 export type IKeyVaultAccessLevel = 'Reading' | 'Contributing';
 
