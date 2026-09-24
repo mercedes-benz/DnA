@@ -2463,9 +2463,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 					 GenericMessage pluginResponse = authenticatorClient.ensureDeploymentPlugins(kongServiceName,
 							 deploymentDetails.getOneApiVersionShortName(), cloudServiceProvider);
 					 if (pluginResponse == null || !"SUCCESS".equalsIgnoreCase(pluginResponse.getSuccess())) {
-						 failedPlugins.add("cors/request-transformer");
-						 log.error("Kong plugin reconcile failed for {}: {}", kongServiceName,
-								 pluginResponse != null ? pluginResponse.getErrors() : "no response");
+						 failedPlugins.add("cors, request-transformer");
 					 }
 					 WorkspacePluginStatusVO openTelemetryStatus = authenticatorClient.getPluginStatus(kongServiceName,
 							 "opentelemetry", cloudServiceProvider);
