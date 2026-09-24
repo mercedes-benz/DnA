@@ -2445,8 +2445,22 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 					 buildDeployRepo.save(auditLogEntity);
 
 				 String kongServiceName = projectName.toLowerCase() + "-" + environment.toLowerCase();
-				 if (!authenticatorClient.isKongServiceAndRouteAvailable(kongServiceName, cloudServiceProvider)) {
-					 log.info("Kong service/route {} missing, creating it for deployment of project {}", kongServiceName, projectName);
+				 String oneApiVersionShortName = deploymentDetails.getOneApiVersionShortName();
+				 boolean requestTransformerExpected = !(isApiRecipe && !secureWithIAMRequired && !secureWithDnaRequired
+						 && (oneApiVersionShortName == null || oneApiVersionShortName.isBlank()));
+				 boolean kongSetupRequired;
+				 try {
+					 kongSetupRequired = !authenticatorClient.isKongServiceAndRouteAvailable(kongServiceName,
+							 cloudServiceProvider)
+							 || authenticatorClient.isDeploymentPluginMissing(kongServiceName,
+									 requestTransformerExpected, cloudServiceProvider);
+				 } catch (Exception e) {
+					 log.error("Failed while checking Kong setup for {} : {}", kongServiceName, e.getMessage());
+					 kongSetupRequired = true;
+				 }
+				 if (kongSetupRequired) {
+					 log.info("Kong setup required for {} (service/route or expected plugins missing), running Kong setup for project {}",
+							 kongServiceName, projectName);
 					 GenericMessage kongResponse = authenticatorClient.callingKongApis(workspaceId, projectName, environment, isApiRecipe, deploymentDetails.getClientId(), "", deploymentDetails.getRedirectUri(), deploymentDetails.getIgnorePaths(), deploymentDetails.getScope(), deploymentDetails.getOneApiVersionShortName(), isSecuredWithCookie, secureWithIAMRequired, deploymentDetails.getSsoType(), secureWithDnaRequired, false, false, deploymentDetails.getSelectedAliceRoles(), cloudServiceProvider);
 					 if (kongResponse == null || !"SUCCESS".equalsIgnoreCase(kongResponse.getSuccess())) {
 						 kongSetupError = "Deployment triggered, but API gateway setup for " + kongServiceName
@@ -2459,14 +2473,6 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 				 }
 
 				 try {
-					 List<String> failedPlugins = new ArrayList<>();
-					 GenericMessage pluginResponse = authenticatorClient.ensureDeploymentPlugins(kongServiceName,
-							 deploymentDetails.getOneApiVersionShortName(), cloudServiceProvider);
-					 if (pluginResponse == null || !"SUCCESS".equalsIgnoreCase(pluginResponse.getSuccess())) {
-						 failedPlugins.add("cors/request-transformer");
-						 log.error("Kong plugin reconcile failed for {}: {}", kongServiceName,
-								 pluginResponse != null ? pluginResponse.getErrors() : "no response");
-					 }
 					 WorkspacePluginStatusVO openTelemetryStatus = authenticatorClient.getPluginStatus(kongServiceName,
 							 "opentelemetry", cloudServiceProvider);
 					 if (openTelemetryStatus == null || openTelemetryStatus.isEnabled() == null) {
@@ -2474,27 +2480,23 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 								 kongServiceName, cloudServiceProvider);
 						 if (openTelemetryResponse == null
 								 || !"SUCCESS".equalsIgnoreCase(openTelemetryResponse.getSuccess())) {
-							 failedPlugins.add("opentelemetry");
+							 String pluginError = "Deployment triggered, but API gateway plugin (opentelemetry) for "
+									 + kongServiceName + " could not be configured.";
+							 kongSetupError = kongSetupError == null ? pluginError : kongSetupError + "; " + pluginError;
+							 MessageDescription pluginWarning = new MessageDescription();
+							 pluginWarning.setMessage(pluginError);
+							 warnings.add(pluginWarning);
+							 log.error(pluginError);
 						 }
 					 }
-					 if (!failedPlugins.isEmpty()) {
-						 String pluginError = "Deployment triggered, but API gateway plugins ("
-								 + String.join(", ", failedPlugins) + ") for " + kongServiceName
-								 + " could not be configured.";
-						 kongSetupError = kongSetupError == null ? pluginError : kongSetupError + "; " + pluginError;
-						 MessageDescription pluginWarning = new MessageDescription();
-						 pluginWarning.setMessage(pluginError);
-						 warnings.add(pluginWarning);
-						 log.error(pluginError);
-					 }
 				 } catch (Exception e) {
-					 String pluginError = "Deployment triggered, but API gateway plugins (cors, request-transformer, opentelemetry) for "
+					 String pluginError = "Deployment triggered, but API gateway plugin (opentelemetry) for "
 							 + kongServiceName + " could not be configured.";
 					 kongSetupError = kongSetupError == null ? pluginError : kongSetupError + "; " + pluginError;
 					 MessageDescription pluginWarning = new MessageDescription();
 					 pluginWarning.setMessage(pluginError);
 					 warnings.add(pluginWarning);
-					 log.error("Kong plugin setup failed for {}: {}", kongServiceName, e.getMessage());
+					 log.error("Kong OpenTelemetry plugin setup failed for {}: {}", kongServiceName, e.getMessage());
 				 }
 				
 				String appName = projectName.toLowerCase() + "-" + environment;

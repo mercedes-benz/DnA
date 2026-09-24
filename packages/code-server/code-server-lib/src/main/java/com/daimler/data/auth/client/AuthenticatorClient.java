@@ -37,5 +37,6 @@ public interface AuthenticatorClient {
 
 	public GenericMessage createOpenTelemetryPlugin(String kongServiceName, Map<String, Object> pluginConfig, String cloudServiceProvider);
 
-	public GenericMessage ensureDeploymentPlugins(String serviceName, String oneApiVersionShortName, String cloudServiceProvider);
+	public boolean isDeploymentPluginMissing(String serviceName, boolean requestTransformerExpected,
+			String cloudServiceProvider);
 }
