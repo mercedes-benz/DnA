@@ -888,11 +888,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 			// entity.getData().setStatus(ConstantsUtility.CREATEREQUESTEDSTATE);
 			entity.getData().setStatus(ConstantsUtility.CREATEDSTATE);//added
 			
-			if (repoDetails != null && repoDetails.contains("ghe.com")) {
-				entity.getData().setIsWorkspaceMigratedToGHE(true);
-			} else {
-				entity.getData().setIsWorkspaceMigratedToGHE(false);
-			}
+			entity.getData().setIsWorkspaceMigratedToGHE(isWorkspaceMigratedToGHE);
 			
 			String recipeId = vo.getProjectDetails().getRecipeDetails().getRecipeId().toString();
 			String workspaceUrl = this.getWorkspaceUrl(recipeId,ownerwsid,workspaceOwner.getId(),vo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().toString());
@@ -1108,11 +1104,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 			 // entity.getData().setStatus(ConstantsUtility.CREATEREQUESTEDSTATE);
 			 entity.getData().setStatus(ConstantsUtility.CREATEDSTATE);//added
 			 
-			 if (repoDetails != null && repoDetails.contains("ghe.com")) {
-				 entity.getData().setIsWorkspaceMigratedToGHE(true);
-			 } else {
-				 entity.getData().setIsWorkspaceMigratedToGHE(false);
-			 }
+			 entity.getData().setIsWorkspaceMigratedToGHE(isWorkspaceMigratedToGHE);
 			 
 			 String recipeId = vo.getProjectDetails().getRecipeDetails().getRecipeId().toString();
 			 String workspaceUrl = this.getWorkspaceUrl(recipeId,ownerwsid,workspaceOwner.getId(),ConstantsUtility.DHC_CAAS_AWS);
@@ -1152,7 +1144,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 			 Map<String,Boolean> gitUsers = new HashMap<>();
 			 UserInfoVO owner = vo.getProjectDetails().getProjectOwner();
 		 	 String repoDetails = vo.getProjectDetails().getRecipeDetails().getRepodetails();
-			 boolean isWorkspaceMigratedToGHE = (repoDetails != null && repoDetails.contains("ghe.com"));
+			 boolean isWorkspaceMigratedToGHE = resolveWorkspaceMigratedToGHE(vo, repoDetails);
 			 log.info("Creating workspace with repo: {} - isWorkspaceMigratedToGHE: {} (will use {} server)", 
 			 		repoDetails, isWorkspaceMigratedToGHE, isWorkspaceMigratedToGHE ? "GHE" : "git.i");
 			 String repoName = vo.getProjectDetails().getGitRepoName();
@@ -1460,12 +1452,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 			 //  ownerEntity.getData().setStatus(ConstantsUtility.CREATEREQUESTEDSTATE);
 			 ownerEntity.getData().setStatus(ConstantsUtility.CREATEDSTATE);//added
 			 
-			 String repoDetailsCreate = vo.getProjectDetails().getRecipeDetails().getRepodetails(); 
-			 if (repoDetailsCreate != null && repoDetailsCreate.contains("ghe.com")) { 
-				 ownerEntity.getData().setIsWorkspaceMigratedToGHE(true); 
-			 } else {
-				 ownerEntity.getData().setIsWorkspaceMigratedToGHE(false);
-			 }
+			 ownerEntity.getData().setIsWorkspaceMigratedToGHE(isWorkspaceMigratedToGHE);
 			 
 			 String recipeId = vo.getProjectDetails().getRecipeDetails().getRecipeId().toString();
 			 String workspaceUrl = this.getWorkspaceUrl(recipeId,ownerwsid,projectOwnerId, vo.getProjectDetails().getRecipeDetails().getCloudServiceProvider().toString());
@@ -1536,14 +1523,14 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 					 collabData.setProjectDetails(ownerEntity.getData().getProjectDetails());
 					 collabData.setStatus(ConstantsUtility.COLLABREQUESTEDSTATE);
 					 collabData.setActiveInGroup(Boolean.FALSE);
+					 collabData.setIsWorkspaceMigratedToGHE(ownerEntity.getData().getIsWorkspaceMigratedToGHE());
+					 collabData.setIsWorkspaceMigrated(ownerEntity.getData().getIsWorkspaceMigrated());
 					 Long collabWsSeqId = jpaRepo.getNextWorkspaceSeqId();
 					 String collabWsId = ConstantsUtility.WORKSPACEPREFIX + String.valueOf(collabWsSeqId);
 					 collabData.setWorkspaceId(collabWsId);
 					 UserInfo collabUser = workspaceAssembler.toUserInfo(collaborator);
 					 collabData.setWorkspaceOwner(collabUser);
 					 collabData.setWorkspaceUrl("");
-					 collabData.setIsWorkspaceMigratedToGHE(
-							 ownerEntity.getData().getIsWorkspaceMigratedToGHE());
 					 collabEntity.setId(null);
 					 collabEntity.setData(collabData);
 					 entities.add(collabEntity);
@@ -2191,6 +2178,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 						 deploymentDetails = entity.getData().getProjectDetails().getProdDeploymentDetails();
 					 }
 			 String lastBuildOrDeployStatus = "";
+			 String kongSetupError = null;
 			 boolean isApiRecipe = deploymentDetails.getDeploymentType() == ConstantsUtility.UI ? false : true;
 			 boolean secureWithIAMRequired = (deploymentDetails.getSecureWithIAMRequired() != null) ? deploymentDetails.getSecureWithIAMRequired() : false;
 			 boolean secureWithDnaRequired = (deploymentDetails.getSecureWithDnaRequired() != null) ? deploymentDetails.getSecureWithDnaRequired() : false;
@@ -2255,6 +2243,11 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 				if(responseMessage.getSuccess().equalsIgnoreCase("SUCCESS")){
 					if(deploymentDetails.getDeploymentUrl() == null || deploymentDetails.getDeploymentUrl().isEmpty()){
 						authenticatorClient.callingKongApis(workspaceId, projectName, environment, isApiRecipe, deploymentDetails.getClientId(), "", deploymentDetails.getRedirectUri(), deploymentDetails.getIgnorePaths(), deploymentDetails.getScope(), deploymentDetails.getOneApiVersionShortName(), isSecuredWithCookie, secureWithIAMRequired, deploymentDetails.getSsoType(), secureWithDnaRequired, false, false, deploymentDetails.getSelectedAliceRoles(), cloudServiceProvider);
+						try {
+							createOpenTelemetryPlugin(workspaceId, environment, projectName.toLowerCase() + "-" + environment.toLowerCase());
+						} catch (Exception otelEx) {
+							log.warn("Failed to create OpenTelemetry plugin for workspace {} in {} environment: {}", workspaceId, environment, otelEx.getMessage());
+						}
 					}
 					status = "SUCCESS";
 					lastBuildOrDeployStatus = "BUILD_REQUESTED";
@@ -2416,10 +2409,10 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 							
 						}
 						if(commitId == null){
-						MessageDescription warning = new MessageDescription();
-						warning.setMessage("Error while adding commit id to deployment audit log");
-					}else{
-						auditLog.setCommitId(commitId.getSha());
+							log.warn("Error while adding commit id to deployment audit log for project {} and branch {}", projectName, branch);
+						}else{
+							auditLog.setCommitId(commitId.getSha());
+						}
 						auditLog.setDeploymentStatus("DEPLOY_REQUESTED");
 						auditLog.setVersion(version);
 						if("APPROVAL_PENDING".equalsIgnoreCase(deploymentDetails.getLastDeploymentStatus())){
@@ -2432,7 +2425,6 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 						}else{
 							auditLogs.add(auditLog);
 						}
-					}
 
 					 CodeServerBuildDeploy buildDeployLogs = null;
 					 CodeServerBuildDeployNsql auditLogEntity = null;
@@ -2457,8 +2449,31 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 					 auditLogEntity.setData(buildDeployLogs);
 					 buildDeployRepo.save(auditLogEntity);
 
+				 // String kongServiceName = projectName.toLowerCase() + "-" + environment.toLowerCase();
+				 // if (!authenticatorClient.isKongServiceAndRouteAvailable(kongServiceName, cloudServiceProvider)) {
+				 //	 log.info("Kong service/route {} missing, creating it for deployment of project {}", kongServiceName, projectName);
+				 //	 GenericMessage kongResponse = authenticatorClient.callingKongApis(workspaceId, projectName, environment, isApiRecipe, deploymentDetails.getClientId(), "", deploymentDetails.getRedirectUri(), deploymentDetails.getIgnorePaths(), deploymentDetails.getScope(), deploymentDetails.getOneApiVersionShortName(), isSecuredWithCookie, secureWithIAMRequired, deploymentDetails.getSsoType(), secureWithDnaRequired, false, false, deploymentDetails.getSelectedAliceRoles(), cloudServiceProvider);
+				 //	 if (kongResponse == null || !"SUCCESS".equalsIgnoreCase(kongResponse.getSuccess())) {
+				 //		 kongSetupError = "Deployment triggered, but API gateway setup for " + kongServiceName
+				 //				 + " could not be completed. The deployment URL may not be reachable until this is retried.";
+				 //		 log.error("Kong setup failed for {} : {}", kongServiceName, kongResponse != null ? kongResponse.getErrors() : "no response");
+				 //		 MessageDescription kongWarning = new MessageDescription();
+				 //		 kongWarning.setMessage(kongSetupError);
+				 //		 warnings.add(kongWarning);
+				 //	 }
+				 //	 try {
+				 //		 createOpenTelemetryPlugin(workspaceId, environment, kongServiceName);
+				 //	 } catch (Exception otelEx) {
+				 //		 log.warn("Failed to create OpenTelemetry plugin for workspace {} in {} environment: {}", workspaceId, environment, otelEx.getMessage());
+				 //	 }
+				 // }
 				 if(deployType.equalsIgnoreCase("deploy") && (deploymentDetails.getDeploymentUrl() == null || deploymentDetails.getDeploymentUrl().isEmpty())){
 					 authenticatorClient.callingKongApis(workspaceId, projectName, environment, isApiRecipe, deploymentDetails.getClientId(), "", deploymentDetails.getRedirectUri(), deploymentDetails.getIgnorePaths(), deploymentDetails.getScope(), deploymentDetails.getOneApiVersionShortName(), isSecuredWithCookie, secureWithIAMRequired, deploymentDetails.getSsoType(), secureWithDnaRequired, false, false, deploymentDetails.getSelectedAliceRoles(), cloudServiceProvider);
+					 try {
+						 createOpenTelemetryPlugin(workspaceId, environment, projectName.toLowerCase() + "-" + environment.toLowerCase());
+					 } catch (Exception otelEx) {
+						 log.warn("Failed to create OpenTelemetry plugin for workspace {} in {} environment: {}", workspaceId, environment, otelEx.getMessage());
+					 }
 				 }
 				
 				String appName = projectName.toLowerCase() + "-" + environment;
@@ -2487,7 +2502,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 			String finalDeployStatus = "DEPLOY_REQUESTED";
 			lastBuildOrDeployStatus = "DEPLOY_REQUESTED";
 			deploymentDetails.setLastDeploymentStatus("DEPLOY_REQUESTED");
-			deploymentDetails.setLastDeploymentError(null);
+			deploymentDetails.setLastDeploymentError(kongSetupError);
 			deploymentDetails.setLastDeployedVersion(version);
 			deploymentDetails.setLastDeployedBranch(branch);
 			deploymentDetails.setLastDeployedOn(now);
@@ -3064,6 +3079,8 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 					 collabData.setProjectDetails(entity.getData().getProjectDetails());
 					 collabData.setStatus(ConstantsUtility.COLLABREQUESTEDSTATE);
 					 collabData.setActiveInGroup(Boolean.FALSE);
+					 collabData.setIsWorkspaceMigratedToGHE(entity.getData().getIsWorkspaceMigratedToGHE());
+					 collabData.setIsWorkspaceMigrated(entity.getData().getIsWorkspaceMigrated());
 					 Long collabWsSeqId = jpaRepo.getNextWorkspaceSeqId();
 					 String collabWsId = ConstantsUtility.WORKSPACEPREFIX + String.valueOf(collabWsSeqId);
 					 collabData.setWorkspaceId(collabWsId);
@@ -3556,8 +3573,17 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 					// String lastDeployedVersion = (sortedList.size() > 0 && sortedList.size() != 1) ? sortedList.get(sortedList.size() - 1).getVersion():null;
 					
 					// if(lastDeployedVersion != null &&  buildAuditLogs.stream().anyMatch( i -> (i.getVersion().equalsIgnoreCase(lastDeployedVersion) && !i.isImageDeleted()))){
+							String newestSuccessfulVersion = null;
+							for (BuildAudit build : buildAuditLogs) {
+								if (build.getVersion() != null && "BUILD_SUCCESS".equalsIgnoreCase(build.getBuildStatus())) {
+									newestSuccessfulVersion = build.getVersion();
+								}
+							}
+							final String newestSuccessfulBuildVersion = newestSuccessfulVersion;
 							buildAuditLogs.stream().forEach(i ->{
-								if(!i.getVersion().equalsIgnoreCase(version) && !i.isKeepBuildImage() && !i.isImageDeleted()){
+								if(i.getVersion() != null && !i.getVersion().equalsIgnoreCase(version)
+										&& !i.getVersion().equalsIgnoreCase(newestSuccessfulBuildVersion)
+										&& !i.isKeepBuildImage() && !i.isImageDeleted()){
 									GenericMessage deleteApiResonse = client.deleteBuild(projectName, i.getVersion());
 									if(deleteApiResonse.getSuccess().equalsIgnoreCase("SUCCESS")){
 										i.setImageDeleted(true);
