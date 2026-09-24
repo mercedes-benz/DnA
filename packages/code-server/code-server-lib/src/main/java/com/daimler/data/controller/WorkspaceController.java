@@ -1300,6 +1300,18 @@ import org.springframework.beans.factory.annotation.Value;
 				   responseMsg = service.deployWorkspace(userId, id, environment, branch,
 							 isPrivateRecipe,deployRequestDto.getVersion(),"deploy",keepImage);
 
+					// Create OpenTelemetry plugin once deployment is triggered (route exists at this point)
+                    try {
+                        String serviceName = vo.getProjectDetails().getProjectName() + "-" + environment;
+                        service.createOpenTelemetryPlugin(id, environment, serviceName);
+                        log.info("OpenTelemetry plugin created for workspace {} in {} environment",
+                            vo.getWorkspaceId(), environment);
+                    } catch (Exception e) {
+                        log.warn("Failed to create OpenTelemetry plugin for workspace {} in {} environment: {}",
+                            vo.getWorkspaceId(), environment, e.getMessage());
+                        // Don't fail the deployment if plugin creation fails
+                    }
+
 					if ("FAILED".equalsIgnoreCase(responseMsg.getSuccess())) {
 						return new ResponseEntity<>(responseMsg, HttpStatus.BAD_REQUEST);
 					}

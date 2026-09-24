@@ -31,11 +31,9 @@ public interface AuthenticatorClient {
 
 	public WorkspacePluginStatusVO getPluginStatus(String serviceName, String pluginName, String cloudServiceProvider);
  
-	public GenericMessage attachRequestTransformerPluginToService(AttachRequestTransformerPluginRequestVO attachRequestTransformerPluginRequestVO, String serviceName, String cloudServiceProvider);
+	public GenericMessage attachRequestTransformerPluginToService(AttachRequestTransformerPluginRequestVO attachRequestTransformerPluginRequestVO, String serviceName);
  
 	public GenericMessage attachOneApiPluginToService(AttachOneApiPluginRequestVO attachOneApiPluginRequestVO, String serviceName);
 
-	public GenericMessage createOpenTelemetryPlugin(String kongServiceName, Map<String, Object> pluginConfig, String cloudServiceProvider);
-
-	public GenericMessage ensureDeploymentPlugins(String serviceName, String oneApiVersionShortName, String cloudServiceProvider);
+	public GenericMessage createOpenTelemetryPlugin(String kongServiceName, Map<String, Object> pluginConfig);
 }
