@@ -2456,12 +2456,11 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 						 kongWarning.setMessage(kongSetupError);
 						 warnings.add(kongWarning);
 					 }
-				 }
-
-				 try {
-					 createOpenTelemetryPlugin(workspaceId, environment, kongServiceName);
-				 } catch (Exception otelEx) {
-					 log.warn("Failed to create OpenTelemetry plugin for workspace {} in {} environment: {}", workspaceId, environment, otelEx.getMessage());
+					 try {
+						 createOpenTelemetryPlugin(workspaceId, environment, kongServiceName);
+					 } catch (Exception otelEx) {
+						 log.warn("Failed to create OpenTelemetry plugin for workspace {} in {} environment: {}", workspaceId, environment, otelEx.getMessage());
+					 }
 				 }
 				
 				String appName = projectName.toLowerCase() + "-" + environment;
