@@ -174,7 +174,7 @@ public class WorkspaceBackgroundJobsService {
 							}
 						}
 						if(workspaceVO!=null && workspaceVO.getStatus()!=null && ConstantsUtility.COMPLETED_STATE.equalsIgnoreCase(workspaceVO.getStatus().getState())){
-							List<GroupDetailsVO> updatedGroupDetails = fabricService.autoProcessGroupsUsers(workspaceVO.getStatus().getMicrosoftGroups(), updatedName, workspaceVO.getCreatedBy().getId(), workspaceVO.getId(), workspaceVO.getCustomGroupName(), workspaceVO.getCustomGroupNameCollection());
+						List<GroupDetailsVO> updatedGroupDetails = fabricService.autoProcessGroupsUsers(workspaceVO.getStatus().getMicrosoftGroups(), updatedName, workspaceVO.getCreatedBy().getId(), workspaceVO.getId(), workspaceVO.getCustomGroupName(), workspaceVO.getCustomGroupNameCollection(), workspaceVO.getDivision());
 							log.info("During scheduled job, processed COMPLETED workspace {}: groups={}", workspaceVO.getId(), formatGroups(updatedGroupDetails));
 							try {
 								fabricService.updateWorkspaceGroupsAndDetails(workspaceVO.getId(), updatedGroupDetails, updatedName, updatedDescription);

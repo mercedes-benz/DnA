@@ -694,19 +694,24 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 			filteredEntitlements = allEntitlementsList.stream().filter(n-> n.contains( applicationId + "." + subgroupPrefix ) && n.contains(id)).collect(Collectors.toList());
 		}
 		String creatorId = existingFabricWorkspace.getCreatedBy().getId();
+		String initiatedBy = Optional.ofNullable(existingFabricWorkspace.getInitiatedBy()).orElse("");
 		boolean isCreator = requestUser.getId().equalsIgnoreCase(creatorId);
 		boolean isEntitled = filteredEntitlements != null && !filteredEntitlements.isEmpty();
 		boolean isFabricAdmin = currentUserInfo.hasFabricAdminAccess();
-		if (!isCreator && !isEntitled && !isFabricAdmin) {
+		boolean isTechnicalUserInitiator = requestUser.getId() != null
+				&& FabricWorkspaceController.isTechnicalUser(requestUser.getId())
+				&& requestUser.getId().equalsIgnoreCase(initiatedBy);
+		if (!isCreator && !isEntitled && !isFabricAdmin && !isTechnicalUserInitiator) {
 				log.warn("Fabric workspace {} {} does not belong to User {} , Not authorized to use others project",id,existingFabricWorkspace.getName(),requestUser.getId()	);
 				return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
 		}else {
 				String userRole = "";
-				if(!requestUser.getId().equalsIgnoreCase(creatorId)){
-					
-					userRole = utility.getUserRole(filteredEntitlements);
-				}else{
+				if(requestUser.getId().equalsIgnoreCase(creatorId)){
 					userRole = ConstantsUtility.PERMISSION_OWNER;
+				}else if(isTechnicalUserInitiator && (filteredEntitlements == null || filteredEntitlements.isEmpty())){
+					userRole = ConstantsUtility.PERMISSION_ADMIN;
+				}else{
+					userRole = utility.getUserRole(filteredEntitlements);
 				}
 				existingFabricWorkspace.setUserRole(userRole);
 				return new ResponseEntity<>(existingFabricWorkspace, HttpStatus.OK);
@@ -746,9 +751,13 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 		
 		CreatedByVO requestUser = this.userStore.getVO();
 		String creatorId = existingFabricWorkspace.getCreatedBy().getId();
+		String initiatedBy = Optional.ofNullable(existingFabricWorkspace.getInitiatedBy()).orElse("");
 		UserInfo currentUserInfo = this.userStore.getUserInfo();
 		boolean isFabricAdmin = currentUserInfo.hasFabricAdminAccess();
-		if(!requestUser.getId().equalsIgnoreCase(creatorId) && !isFabricAdmin) {
+		boolean isTechnicalUserInitiator = requestUser.getId() != null
+				&& FabricWorkspaceController.isTechnicalUser(requestUser.getId())
+				&& requestUser.getId().equalsIgnoreCase(initiatedBy);
+		if(!requestUser.getId().equalsIgnoreCase(creatorId) && !isFabricAdmin && !isTechnicalUserInitiator) {
 				log.warn("Fabric workspace doesnt belong to User, Not authorized to update",id,existingFabricWorkspace.getName());
 				errors.add(new MessageDescription("User is not the owner of the workspace. Not authorized to update."));
 				responseVO.setData(null);
@@ -757,6 +766,18 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 				responseVO.setResponses(responses);
 				return new ResponseEntity<>(responseVO, HttpStatus.FORBIDDEN);
 		}else {
+			if(isTechnicalUserInitiator) {
+				log.info("Technical user {} authorized to update workspace {} {} as initiator", requestUser.getId(), id, existingFabricWorkspace.getName());
+			}
+			if(isTechnicalUserInitiator && (workspaceUpdateRequestVO.getProjectId() == null || workspaceUpdateRequestVO.getProjectId().isBlank())) {
+				log.warn("Technical user {} attempted to update workspace {} {} without projectId", requestUser.getId(), id, existingFabricWorkspace.getName());
+				errors.add(new MessageDescription("projectId is mandatory when updating a workspace as a technical user."));
+				responseVO.setData(null);
+				responses.setErrors(errors);
+				responses.setSuccess("FAILED");
+				responseVO.setResponses(responses);
+				return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+			}
 			
 			if(workspaceUpdateRequestVO.getArcherId()!=null)
 				existingFabricWorkspace.setArcherId(workspaceUpdateRequestVO.getArcherId());

@@ -58,7 +58,7 @@ public interface FabricWorkspaceService extends CommonService<FabricWorkspaceVO,
 			String creatorId, String workspaceId);
 
 	List<GroupDetailsVO> autoProcessGroupsUsers(List<GroupDetailsVO> existingGroupsDetails, String workspaceName,
-			String creatorId, String workspaceId, String customGroupName, List<CustomGroupNameCollectionVO> customGroupNameCollection);
+			String creatorId, String workspaceId, String customGroupName, List<CustomGroupNameCollectionVO> customGroupNameCollection, String division);
 
 	FabricWorkspacesCollectionVO getAllLov(int limit, int offset);
 
