@@ -714,7 +714,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 					deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
 
 					//attaching request transformer plugin 
-					attachRequestTransformerPluginResponse = attachRequestTransformerPluginToService(attachRequestTransformerPluginRequestVO,serviceName.toLowerCase()+"-"+env, cloudServiceProvider);
+					attachRequestTransformerPluginResponse = attachRequestTransformerPluginToService(attachRequestTransformerPluginRequestVO,serviceName.toLowerCase()+"-"+env);
 					LOGGER.info("calling kong to attach request transformer  plugin to service status is: {} and errors if any: {}, warnings if any:", attachRequestTransformerPluginResponse.getSuccess(),
 					attachRequestTransformerPluginResponse.getErrors(), attachRequestTransformerPluginResponse.getWarnings());
 
@@ -913,7 +913,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 									deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
 
 									//attaching request transformer plugin 
-									attachRequestTransformerPluginResponse = attachRequestTransformerPluginToService(attachRequestTransformerPluginRequestVO,serviceName.toLowerCase()+"-"+env, cloudServiceProvider);
+									attachRequestTransformerPluginResponse = attachRequestTransformerPluginToService(attachRequestTransformerPluginRequestVO,serviceName.toLowerCase()+"-"+env);
 									LOGGER.info("calling kong to attach request transformer  plugin to service status is: {} and errors if any: {}, warnings if any:", attachRequestTransformerPluginResponse.getSuccess(),
 									attachRequestTransformerPluginResponse.getErrors(), attachRequestTransformerPluginResponse.getWarnings());
 
@@ -1821,99 +1821,8 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		return pluginStatusVO;
 	}
 
-	private boolean isPluginAttached(String serviceName, String pluginName, String cloudServiceProvider) {
-		try {
-			WorkspacePluginStatusVO pluginStatusVO = getPluginStatus(serviceName, pluginName, cloudServiceProvider);
-			return pluginStatusVO != null && pluginStatusVO.isEnabled() != null;
-		} catch (Exception e) {
-			LOGGER.error("Failed while checking {} plugin status for service {}: {}", pluginName, serviceName, e.getMessage());
-			return false;
-		}
-	}
-
-	private boolean isPluginAttachSuccessful(GenericMessage response) {
-		if (response != null && "SUCCESS".equalsIgnoreCase(response.getSuccess())) {
-			return true;
-		}
-		if (response != null && response.getErrors() != null) {
-			for (MessageDescription error : response.getErrors()) {
-				if (error != null && error.getMessage() != null
-						&& error.getMessage().toLowerCase().contains("already")) {
-					return true;
-				}
-			}
-		}
-		return false;
-	}
-
-	private void addPluginEnsureError(List<MessageDescription> errors, String pluginName, String serviceName,
-			GenericMessage response) {
-		MessageDescription error = new MessageDescription();
-		error.setMessage("Failed to ensure Kong plugin " + pluginName + " for service " + serviceName
-				+ (response != null && response.getErrors() != null ? ": " + response.getErrors() : ""));
-		errors.add(error);
-	}
-
 	@Override
-	public GenericMessage ensureDeploymentPlugins(String serviceName, String oneApiVersionShortName,
-			String cloudServiceProvider) {
-		GenericMessage response = new GenericMessage();
-		List<MessageDescription> errors = new ArrayList<>();
-		try {
-			if (!isPluginAttached(serviceName, CORS_PLUGIN, cloudServiceProvider)) {
-				AttachPluginVO attachCorsPluginVO = new AttachPluginVO();
-				AttachPluginRequestVO attachCorsPluginRequestVO = new AttachPluginRequestVO();
-				attachCorsPluginVO.setName(CORS_PLUGIN);
-				attachCorsPluginVO.setOneApiVersionShortName(oneApiVersionShortName);
-				attachCorsPluginRequestVO.setData(attachCorsPluginVO);
-				GenericMessage attachResponse = attachPluginToService(attachCorsPluginRequestVO, serviceName,
-						cloudServiceProvider);
-				if (!isPluginAttachSuccessful(attachResponse)) {
-					addPluginEnsureError(errors, CORS_PLUGIN, serviceName, attachResponse);
-				}
-			}
-		} catch (Exception e) {
-			LOGGER.error("Failed while ensuring {} plugin for service {}: {}", CORS_PLUGIN, serviceName, e.getMessage());
-			addPluginEnsureError(errors, CORS_PLUGIN, serviceName, null);
-		}
-
-		try {
-			if (!isPluginAttached(serviceName, REQUEST_TRANSFORMER_PLUGIN, cloudServiceProvider)) {
-				AttachRequestTransformerPluginRequestVO attachRequestTransformerPluginRequestVO =
-						new AttachRequestTransformerPluginRequestVO();
-				AttachRequestTransformerPluginConfigVO attachRequestTransformerPluginConfigVO =
-						new AttachRequestTransformerPluginConfigVO();
-				AttachRequestTransformerPluginVO attachRequestTransformerPluginVO =
-						new AttachRequestTransformerPluginVO();
-				RequestTransformerPluginRemoveConfigVO requestTransformerPluginRemoveConfigVO =
-						new RequestTransformerPluginRemoveConfigVO();
-				List<String> removeHeadersList = Arrays.asList(removeHeaders.split("\\s*,\\s*"));
-				requestTransformerPluginRemoveConfigVO.setHeaders(removeHeadersList);
-				attachRequestTransformerPluginConfigVO.setRemove(requestTransformerPluginRemoveConfigVO);
-				attachRequestTransformerPluginVO.setConfig(attachRequestTransformerPluginConfigVO);
-				attachRequestTransformerPluginVO.setName(REQUEST_TRANSFORMER_PLUGIN);
-				attachRequestTransformerPluginRequestVO.setData(attachRequestTransformerPluginVO);
-				GenericMessage attachResponse = attachRequestTransformerPluginToService(
-						attachRequestTransformerPluginRequestVO, serviceName, cloudServiceProvider);
-				if (!isPluginAttachSuccessful(attachResponse)) {
-					addPluginEnsureError(errors, REQUEST_TRANSFORMER_PLUGIN, serviceName, attachResponse);
-				}
-			}
-		} catch (Exception e) {
-			LOGGER.error("Failed while ensuring {} plugin for service {}: {}", REQUEST_TRANSFORMER_PLUGIN, serviceName,
-					e.getMessage());
-			addPluginEnsureError(errors, REQUEST_TRANSFORMER_PLUGIN, serviceName, null);
-		}
-
-		response.setSuccess(errors.isEmpty() ? "SUCCESS" : "FAILED");
-		response.setErrors(errors);
-		return response;
-	}
-
-	@Override
-	public GenericMessage attachRequestTransformerPluginToService(
-			AttachRequestTransformerPluginRequestVO attachRequestTransformerPluginRequestVO, String serviceName,
-			String cloudServiceProvider){
+	public GenericMessage attachRequestTransformerPluginToService(AttachRequestTransformerPluginRequestVO attachRequestTransformerPluginRequestVO, String serviceName){
 
 		GenericMessage response = new GenericMessage();
 		String status = "FAILED";
@@ -1926,16 +1835,8 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");	
-			if(cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS_AWS) && apiKey.equals("NA")){
-				if(awsApiKey!=null){
-					headers.set("apikey", awsApiKey);
-				}
-			}else{
-				headers.set("apikey", apiKey);
-			}
-			String attachPluginUri = (cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS_AWS)
-					? authenticatorBaseUriAWS : authenticatorBaseUri) + CREATE_SERVICE + "/" + serviceName
-					+ ATTACH_REQUEST_TRANSFORMER_PLUGIN_TO_SERVICE;
+			headers.set("apikey", awsApiKey);
+			String attachPluginUri = authenticatorBaseUri + CREATE_SERVICE + "/" + serviceName + ATTACH_REQUEST_TRANSFORMER_PLUGIN_TO_SERVICE;
 
 			HttpEntity<AttachRequestTransformerPluginRequestVO> entity = new HttpEntity<AttachRequestTransformerPluginRequestVO>(attachRequestTransformerPluginRequestVO,headers);			
 			ResponseEntity<String> attachPluginResponse = restTemplate.exchange(attachPluginUri, HttpMethod.POST, entity, String.class);
@@ -2136,8 +2037,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 	}
 
 	@Override
-	public GenericMessage createOpenTelemetryPlugin(String kongServiceName, Map<String, Object> pluginConfig,
-			String cloudServiceProvider) {
+	public GenericMessage createOpenTelemetryPlugin(String kongServiceName, Map<String, Object> pluginConfig) {
 		GenericMessage response = new GenericMessage();
 		String status = "FAILED";
 		List<MessageDescription> warnings = new ArrayList<>();
@@ -2155,17 +2055,9 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");
-			if(cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS_AWS) && apiKey.equals("NA")){
-				if(awsApiKey!=null){
-					headers.set("apikey", awsApiKey);
-				}
-			}else{
-				headers.set("apikey", apiKey);
-			}
+			headers.set("apikey", apiKey);
 
-			String attachPluginUri = (cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS_AWS)
-					? authenticatorBaseUriAWS : authenticatorBaseUri) + CREATE_SERVICE + "/" + kongServiceName
-					+ ATTACH_OPENTELEMETRY_PLUGIN_TO_SERVICE;
+			String attachPluginUri = authenticatorBaseUri + CREATE_SERVICE + "/" + kongServiceName + ATTACH_OPENTELEMETRY_PLUGIN_TO_SERVICE;
 			HttpEntity<String> entity = new HttpEntity<>(pluginConfigJson, headers);
 
 			LOGGER.info("Calling Kong Admin API: POST {}", attachPluginUri);
