@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import classNames from 'classnames';
 import Styles from './CreateNewKeyVault.scss';
 import SelectBox from 'components/formElements/SelectBox/SelectBox';
@@ -8,7 +8,7 @@ import ProgressIndicator from '../../../../assets/modules/uilab/js/src/progress-
 import { CodeSpaceApiClient } from '../../../../services/CodeSpaceApiClient';
 import { ApiClient } from '../../../../services/ApiClient';
 import TextBox from '../../shared/textBox/TextBox';
-import TypeAheadBox from '../../shared/typeAheadBox/TypeAheadBox';
+import EntraIdSearch from '../entraIdSearch/EntraIdSearch';
 import {
   IKeyVault,
   IKeyVaultAccessLevel,
@@ -25,9 +25,6 @@ const PRINCIPAL_TYPES: { value: IKeyVaultPrincipalKind; label: string }[] = [
   { value: 'MI', label: 'Service Principal - Managed Identity' },
   { value: 'GROUP', label: 'Group' },
 ];
-
-const SEARCH_DEBOUNCE_MS = 500;
-const MIN_SEARCH_LENGTH = 3;
 
 interface Props {
   edit?: boolean;
@@ -63,10 +60,8 @@ const CreateNewWorkspace = ({ edit, project, setShowCreateModal, getKeyVaultList
   const [departments, setDepartments] = useState([]);
   const [dataClassificationDropdown, setDataClassificationDropdown] = useState([]);
   const [collaborators, setCollaborators] = useState<IKeyVaultCollaborator[]>(project?.collaborators || []);
-  const [principalResults, setPrincipalResults] = useState<IKeyVaultPrincipal[]>([]);
   const [accessLevel, setAccessLevel] = useState<IKeyVaultAccessLevel>('Reading');
   const [principalType, setPrincipalType] = useState<IKeyVaultPrincipalKind>('USER');
-  const searchTimer = useRef<ReturnType<typeof setTimeout>>();
 
   const requiredError = '*Missing entry';
   const keyVaultNameErrorText = '*Key Vault Name should start with kv-';
@@ -171,7 +166,6 @@ const CreateNewWorkspace = ({ edit, project, setShowCreateModal, getKeyVaultList
 
   const onPrincipalTypeChange = (e: any) => {
     setPrincipalType(e.currentTarget.value as IKeyVaultPrincipalKind);
-    setPrincipalResults([]);
   };
 
   const onAccessLevelSelectChange = (e: any) => {
@@ -185,30 +179,6 @@ const CreateNewWorkspace = ({ edit, project, setShowCreateModal, getKeyVaultList
     } else {
       setHasPii(false);
     }
-  };
-
-  // Debounced so every keystroke in the typeahead does not trigger a Graph call.
-  const onPrincipalSearch = (value: string, showSpinner: (val: boolean) => void) => {
-    clearTimeout(searchTimer.current);
-    const term = (value || '').trim();
-    if (term.length < MIN_SEARCH_LENGTH) {
-      setPrincipalResults([]);
-      showSpinner(false);
-      return;
-    }
-    showSpinner(true);
-    searchTimer.current = setTimeout(() => {
-      ApiClient.searchKeyVaultPrincipals(term, principalType)
-        .then((results: IKeyVaultPrincipal[]) => {
-          showSpinner(false);
-          setPrincipalResults(results || []);
-        })
-        .catch(() => {
-          showSpinner(false);
-          setPrincipalResults([]);
-          Notification.show('Unable to search Entra ID.', 'alert');
-        });
-    }, SEARCH_DEBOUNCE_MS);
   };
 
   const addCollaborator = (principal: IKeyVaultPrincipal) => {
@@ -235,7 +205,6 @@ const CreateNewWorkspace = ({ edit, project, setShowCreateModal, getKeyVaultList
         accessLevel,
       },
     ]);
-    setPrincipalResults([]);
   };
 
   const onAccessLevelChange = (identifier: string, level: IKeyVaultAccessLevel) => {
@@ -575,25 +544,10 @@ const CreateNewWorkspace = ({ edit, project, setShowCreateModal, getKeyVaultList
                   </div>
                 </div>
                 <div className={Styles.principalTypeAhead}>
-                  <TypeAheadBox
-                    label="Search Entra ID"
-                    placeholder="Type at least 3 characters of the display name"
-                    controlId="entraIdPrincipalSearch"
-                    defaultValue=""
-                    list={principalResults.map((principal) => ({
-                      ...principal,
-                      name: principal.displayName || principal.identifier || '',
-                    }))}
-                    onInputChange={onPrincipalSearch}
-                    setSelected={(principal: IKeyVaultPrincipal) => addCollaborator(principal)}
-                    render={(principal: IKeyVaultPrincipal) => (
-                      <div className={Styles.principalSuggestion}>
-                        <span>{principal.displayName || principal.identifier}</span>
-                        <span>{principal.identifier}</span>
-                      </div>
-                    )}
-                    required={false}
-                    showError={false}
+                  <EntraIdSearch
+                    label="Find Entra ID Principal"
+                    principalType={principalType}
+                    onAddPrincipal={addCollaborator}
                   />
                 </div>
               </div>
