@@ -130,6 +130,37 @@ export const QUALIFICATION_TRANSFER_PRICING = [
   'Procurement data',
 ];
 
+export const DIVISION_BUSINESS_DOMAIN_MAP = {  
+  'MBC': [  
+    'Production & Operation',  
+    'Sales & Customer',  
+    'Research & Development',  
+    'Aftersales',  
+  ],  
+  'VAN': [  
+    'Marketing & Sales',  
+    'Aftersales',  
+    'Research & Development',  
+    'Production & Operation',  
+  ],  
+  'MBFS': [  
+    'Credit Risk',  
+    'German Market',  
+    'OPS',  
+    'FC & Enterprise',  
+    'Insurance',  
+    'Others',  
+  ],  
+  'Group Functions': [  
+    'Human Resources',  
+    'Finance & Controlling',  
+    'Procurement IPS',  
+    'Procurement MP',  
+    'Integrity & Legal',  
+    'Information Technology',  
+  ],  
+};  
+
 export const TEAMS_PROFILE_LINK_URL_PREFIX = 'https://your-team-profile-url-prefix/';
   export const USER_ROLE = { 
     GUEST : '0',
