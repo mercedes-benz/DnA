@@ -1821,6 +1821,11 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		return pluginStatusVO;
 	}
 
+	private boolean isAwsProvider(String cloudServiceProvider) {
+		return cloudServiceProvider != null
+				&& cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS_AWS);
+	}
+
 	private boolean isPluginAttached(String serviceName, String pluginName, String cloudServiceProvider) {
 		try {
 			WorkspacePluginStatusVO pluginStatusVO = getPluginStatus(serviceName, pluginName, cloudServiceProvider);
@@ -1926,14 +1931,14 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");	
-			if(cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS_AWS) && apiKey.equals("NA")){
+			if(isAwsProvider(cloudServiceProvider) && "NA".equals(apiKey)){
 				if(awsApiKey!=null){
 					headers.set("apikey", awsApiKey);
 				}
 			}else{
 				headers.set("apikey", apiKey);
 			}
-			String attachPluginUri = (cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS_AWS)
+			String attachPluginUri = (isAwsProvider(cloudServiceProvider)
 					? authenticatorBaseUriAWS : authenticatorBaseUri) + CREATE_SERVICE + "/" + serviceName
 					+ ATTACH_REQUEST_TRANSFORMER_PLUGIN_TO_SERVICE;
 
@@ -2155,7 +2160,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");
-			if(cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS_AWS) && apiKey.equals("NA")){
+			if(isAwsProvider(cloudServiceProvider) && "NA".equals(apiKey)){
 				if(awsApiKey!=null){
 					headers.set("apikey", awsApiKey);
 				}
@@ -2163,7 +2168,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 				headers.set("apikey", apiKey);
 			}
 
-			String attachPluginUri = (cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS_AWS)
+			String attachPluginUri = (isAwsProvider(cloudServiceProvider)
 					? authenticatorBaseUriAWS : authenticatorBaseUri) + CREATE_SERVICE + "/" + kongServiceName
 					+ ATTACH_OPENTELEMETRY_PLUGIN_TO_SERVICE;
 			HttpEntity<String> entity = new HttpEntity<>(pluginConfigJson, headers);
