@@ -1836,19 +1836,83 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		}
 	}
 
-	@Override
-	public boolean isDeploymentPluginMissing(String serviceName, boolean requestTransformerExpected,
-			String cloudServiceProvider) {
-		if (!isPluginAttached(serviceName, CORS_PLUGIN, cloudServiceProvider)) {
-			LOGGER.info("cors plugin missing for service {}", serviceName);
+	private boolean isPluginAttachSuccessful(GenericMessage response) {
+		if (response != null && "SUCCESS".equalsIgnoreCase(response.getSuccess())) {
 			return true;
 		}
-		if (requestTransformerExpected && !isPluginAttached(serviceName, REQUEST_TRANSFORMER_PLUGIN,
-				cloudServiceProvider)) {
-			LOGGER.info("request-transformer plugin missing for service {}", serviceName);
-			return true;
+		if (response != null && response.getErrors() != null) {
+			for (MessageDescription error : response.getErrors()) {
+				if (error != null && error.getMessage() != null
+						&& error.getMessage().toLowerCase().contains("already")) {
+					return true;
+				}
+			}
 		}
 		return false;
+	}
+
+	private void addPluginEnsureError(List<MessageDescription> errors, String pluginName, String serviceName,
+			GenericMessage response) {
+		MessageDescription error = new MessageDescription();
+		error.setMessage("Failed to ensure Kong plugin " + pluginName + " for service " + serviceName
+				+ (response != null && response.getErrors() != null ? ": " + response.getErrors() : ""));
+		errors.add(error);
+	}
+
+	@Override
+	public GenericMessage ensureDeploymentPlugins(String serviceName, String oneApiVersionShortName,
+			String cloudServiceProvider) {
+		GenericMessage response = new GenericMessage();
+		List<MessageDescription> errors = new ArrayList<>();
+		try {
+			if (!isPluginAttached(serviceName, CORS_PLUGIN, cloudServiceProvider)) {
+				AttachPluginVO attachCorsPluginVO = new AttachPluginVO();
+				AttachPluginRequestVO attachCorsPluginRequestVO = new AttachPluginRequestVO();
+				attachCorsPluginVO.setName(CORS_PLUGIN);
+				attachCorsPluginVO.setOneApiVersionShortName(oneApiVersionShortName);
+				attachCorsPluginRequestVO.setData(attachCorsPluginVO);
+				GenericMessage attachResponse = attachPluginToService(attachCorsPluginRequestVO, serviceName,
+						cloudServiceProvider);
+				if (!isPluginAttachSuccessful(attachResponse)) {
+					addPluginEnsureError(errors, CORS_PLUGIN, serviceName, attachResponse);
+				}
+			}
+		} catch (Exception e) {
+			LOGGER.error("Failed while ensuring {} plugin for service {}: {}", CORS_PLUGIN, serviceName, e.getMessage());
+			addPluginEnsureError(errors, CORS_PLUGIN, serviceName, null);
+		}
+
+		try {
+			if (!isPluginAttached(serviceName, REQUEST_TRANSFORMER_PLUGIN, cloudServiceProvider)) {
+				AttachRequestTransformerPluginRequestVO attachRequestTransformerPluginRequestVO =
+						new AttachRequestTransformerPluginRequestVO();
+				AttachRequestTransformerPluginConfigVO attachRequestTransformerPluginConfigVO =
+						new AttachRequestTransformerPluginConfigVO();
+				AttachRequestTransformerPluginVO attachRequestTransformerPluginVO =
+						new AttachRequestTransformerPluginVO();
+				RequestTransformerPluginRemoveConfigVO requestTransformerPluginRemoveConfigVO =
+						new RequestTransformerPluginRemoveConfigVO();
+				List<String> removeHeadersList = Arrays.asList(removeHeaders.split("\\s*,\\s*"));
+				requestTransformerPluginRemoveConfigVO.setHeaders(removeHeadersList);
+				attachRequestTransformerPluginConfigVO.setRemove(requestTransformerPluginRemoveConfigVO);
+				attachRequestTransformerPluginVO.setConfig(attachRequestTransformerPluginConfigVO);
+				attachRequestTransformerPluginVO.setName(REQUEST_TRANSFORMER_PLUGIN);
+				attachRequestTransformerPluginRequestVO.setData(attachRequestTransformerPluginVO);
+				GenericMessage attachResponse = attachRequestTransformerPluginToService(
+						attachRequestTransformerPluginRequestVO, serviceName, cloudServiceProvider);
+				if (!isPluginAttachSuccessful(attachResponse)) {
+					addPluginEnsureError(errors, REQUEST_TRANSFORMER_PLUGIN, serviceName, attachResponse);
+				}
+			}
+		} catch (Exception e) {
+			LOGGER.error("Failed while ensuring {} plugin for service {}: {}", REQUEST_TRANSFORMER_PLUGIN, serviceName,
+					e.getMessage());
+			addPluginEnsureError(errors, REQUEST_TRANSFORMER_PLUGIN, serviceName, null);
+		}
+
+		response.setSuccess(errors.isEmpty() ? "SUCCESS" : "FAILED");
+		response.setErrors(errors);
+		return response;
 	}
 
 	@Override
