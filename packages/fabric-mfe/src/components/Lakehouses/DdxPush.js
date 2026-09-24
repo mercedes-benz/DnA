@@ -916,7 +916,7 @@ const ViewDdxTablesModalContent = ({ workspaceId, workspaceName, workspaceOwner,
       securityLevel: securityLevel || '',
       purposes: formData.purposes || [],
       dataProviders: (formData.dataProviders || []).map((u) => u.id),
-      divisions: (formData.divisions || '').replace(/-/g, ' ') || '',
+      division: (formData.divisions || '').replace(/-/g, ' ') || '',
 
       isTransferPricing: !!formData.isTransferPricing,
       criteriaTransferPricing: formData.criteriaTransferPricing || [],
