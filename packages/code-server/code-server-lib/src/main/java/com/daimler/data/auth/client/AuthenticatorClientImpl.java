@@ -1660,29 +1660,20 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 	@Override
 	public boolean isKongServiceAndRouteAvailable(String serviceName, String cloudServiceProvider) {
 		try {
-			String kongUri = (cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS_AWS)
-					? authenticatorBaseUriAWS : authenticatorBaseUri) + CREATE_SERVICE + "/" + serviceName;
-			HttpHeaders headers = new HttpHeaders();
-			headers.set("Accept", "application/json");
-			headers.set("Content-Type", "application/json");
-			if (cloudServiceProvider.equalsIgnoreCase(ConstantsUtility.DHC_CAAS_AWS) && apiKey.equals("NA")) {
-				if (awsApiKey != null) {
-					headers.set("apikey", awsApiKey);
-				}
-			} else {
-				headers.set("apikey", apiKey);
+			RouteResponseVO routeResponse = getRouteByName(serviceName, serviceName, cloudServiceProvider);
+			if (routeResponse != null && routeResponse.getId() != null) {
+				return true;
 			}
-			HttpEntity<?> entity = new HttpEntity<>(headers);
-			ResponseEntity<String> response = restTemplate.exchange(kongUri, HttpMethod.GET, entity, String.class);
-			if (response != null && response.getStatusCode() != null && response.getStatusCode().is2xxSuccessful()) {
-				RouteResponseVO routeResponse = getRouteByName(serviceName, serviceName, cloudServiceProvider);
-				return routeResponse != null && routeResponse.getId() != null;
+			WorkspacePluginStatusVO corsStatus = getPluginStatus(serviceName, CORS_PLUGIN, cloudServiceProvider);
+			if (corsStatus != null && corsStatus.isEnabled() != null) {
+				LOGGER.info("Kong route for service {} not readable, but plugins are present, treating service as available", serviceName);
+				return true;
 			}
-		} catch (HttpClientErrorException ex) {
-			LOGGER.error("Error while checking Kong service details {} error: {}", serviceName, ex.getMessage());
 		} catch (Exception e) {
-			LOGGER.error("Exception occurred while checking Kong service details: {} details {}.", serviceName, e.getMessage());
+			LOGGER.error("Exception occurred while checking Kong service details: {} details {}. Skipping Kong setup.", serviceName, e.getMessage());
+			return true;
 		}
+		LOGGER.info("Kong service/route {} not found", serviceName);
 		return false;
 	}
 
