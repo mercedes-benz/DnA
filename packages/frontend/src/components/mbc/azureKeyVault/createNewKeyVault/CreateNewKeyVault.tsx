@@ -140,7 +140,7 @@ const CreateNewWorkspace = ({ edit, project, setShowCreateModal, getKeyVaultList
 
   useEffect(() => {
     SelectBox.defaultSetup();
-  }, [collaborators]);
+  }, [collaborators, principalType, accessLevel]);
 
   const onKeyVaultNameChange = (e: any) => {
     const currentValue = e.currentTarget.value;
@@ -167,6 +167,15 @@ const CreateNewWorkspace = ({ edit, project, setShowCreateModal, getKeyVaultList
   const onSubDivisionChange = (e: any) => {
     const selectedOption = e.currentTarget.value;
     setSubDivision(selectedOption);
+  };
+
+  const onPrincipalTypeChange = (e: any) => {
+    setPrincipalType(e.currentTarget.value as IKeyVaultPrincipalKind);
+    setPrincipalResults([]);
+  };
+
+  const onAccessLevelSelectChange = (e: any) => {
+    setAccessLevel(e.currentTarget.value as IKeyVaultAccessLevel);
   };
 
   const onPIIChange = (e: any) => {
@@ -527,36 +536,37 @@ const CreateNewWorkspace = ({ edit, project, setShowCreateModal, getKeyVaultList
           <div className={Styles.collaboratorSection}>
             <div className={Styles.collaboratorSectionList}>
               <div className={Styles.collaboratorSectionListAdd}>
-                <div className={Styles.principalSearch}>
-                  <div className={classNames('input-field-group')}>
-                    <label className="input-label">Type</label>
+                <div className={Styles.flexLayout}>
+                  <div className={classNames('input-field-group include-error')}>
+                    <label className={classNames(Styles.inputLabel, 'input-label')}>Type</label>
                     <div className={classNames('custom-select')}>
                       <select
                         id="principalTypeField"
+                        defaultValue={principalType}
                         value={principalType}
-                        onChange={(event) => {
-                          setPrincipalType(event.currentTarget.value as IKeyVaultPrincipalKind);
-                          setPrincipalResults([]);
-                        }}
+                        required={false}
+                        onChange={onPrincipalTypeChange}
                       >
                         {PRINCIPAL_TYPES.map((type) => (
-                          <option key={type.value} value={type.value}>
+                          <option id={'principalType' + type.value} key={type.value} value={type.value}>
                             {type.label}
                           </option>
                         ))}
                       </select>
                     </div>
                   </div>
-                  <div className={classNames('input-field-group')}>
-                    <label className="input-label">Access</label>
+                  <div className={classNames('input-field-group include-error')}>
+                    <label className={classNames(Styles.inputLabel, 'input-label')}>Access</label>
                     <div className={classNames('custom-select')}>
                       <select
                         id="accessLevelField"
+                        defaultValue={accessLevel}
                         value={accessLevel}
-                        onChange={(event) => setAccessLevel(event.currentTarget.value as IKeyVaultAccessLevel)}
+                        required={false}
+                        onChange={onAccessLevelSelectChange}
                       >
                         {ACCESS_LEVELS.map((level) => (
-                          <option key={level} value={level}>
+                          <option id={'accessLevel' + level} key={level} value={level}>
                             {level}
                           </option>
                         ))}
@@ -608,6 +618,8 @@ const CreateNewWorkspace = ({ edit, project, setShowCreateModal, getKeyVaultList
                           <div className={Styles.collaboratorTitleCol}>
                             <div className={classNames('custom-select', Styles.collaboratorAccessSelect)}>
                               <select
+                                id={'collaboratorAccess' + collaborator.identifier}
+                                defaultValue={collaborator.accessLevel || 'Reading'}
                                 value={collaborator.accessLevel || 'Reading'}
                                 onChange={(event) =>
                                   onAccessLevelChange(

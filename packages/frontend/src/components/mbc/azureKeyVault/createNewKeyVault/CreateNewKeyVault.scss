@@ -108,16 +108,6 @@
         .collaboratorSectionListAdd {
           margin: 13px auto;
           width: 90%;
-          .principalSearch {
-            display: flex;
-            align-items: flex-end;
-            gap: 12px;
-            > div {
-              flex: 1;
-              min-width: 210px;
-              margin: 0;
-            }
-          }
           .principalTypeAhead {
             margin-top: 8px;
           }
