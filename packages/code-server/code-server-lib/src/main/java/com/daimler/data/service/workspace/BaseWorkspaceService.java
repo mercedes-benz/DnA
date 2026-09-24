@@ -2457,6 +2457,43 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 						 warnings.add(kongWarning);
 					 }
 				 }
+
+				 try {
+					 List<String> failedPlugins = new ArrayList<>();
+					 GenericMessage pluginResponse = authenticatorClient.ensureDeploymentPlugins(kongServiceName,
+							 deploymentDetails.getOneApiVersionShortName(), cloudServiceProvider);
+					 if (pluginResponse == null || !"SUCCESS".equalsIgnoreCase(pluginResponse.getSuccess())) {
+						 failedPlugins.add("cors, request-transformer");
+					 }
+					 WorkspacePluginStatusVO openTelemetryStatus = authenticatorClient.getPluginStatus(kongServiceName,
+							 "opentelemetry", cloudServiceProvider);
+					 if (openTelemetryStatus == null || openTelemetryStatus.isEnabled() == null) {
+						 GenericMessage openTelemetryResponse = createOpenTelemetryPlugin(workspaceId, environment,
+								 kongServiceName, cloudServiceProvider);
+						 if (openTelemetryResponse == null
+								 || !"SUCCESS".equalsIgnoreCase(openTelemetryResponse.getSuccess())) {
+							 failedPlugins.add("opentelemetry");
+						 }
+					 }
+					 if (!failedPlugins.isEmpty()) {
+						 String pluginError = "Deployment triggered, but API gateway plugins ("
+								 + String.join(", ", failedPlugins) + ") for " + kongServiceName
+								 + " could not be configured.";
+						 kongSetupError = kongSetupError == null ? pluginError : kongSetupError + "; " + pluginError;
+						 MessageDescription pluginWarning = new MessageDescription();
+						 pluginWarning.setMessage(pluginError);
+						 warnings.add(pluginWarning);
+						 log.error(pluginError);
+					 }
+				 } catch (Exception e) {
+					 String pluginError = "Deployment triggered, but API gateway plugins (cors, request-transformer, opentelemetry) for "
+							 + kongServiceName + " could not be configured.";
+					 kongSetupError = kongSetupError == null ? pluginError : kongSetupError + "; " + pluginError;
+					 MessageDescription pluginWarning = new MessageDescription();
+					 pluginWarning.setMessage(pluginError);
+					 warnings.add(pluginWarning);
+					 log.error("Kong plugin setup failed for {}: {}", kongServiceName, e.getMessage());
+				 }
 				
 				String appName = projectName.toLowerCase() + "-" + environment;
 				
@@ -6485,7 +6522,8 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 	}
 
 	@Override
-    public GenericMessage createOpenTelemetryPlugin(String workspaceId, String environment, String serviceName) {
+    public GenericMessage createOpenTelemetryPlugin(String workspaceId, String environment, String serviceName,
+            String cloudServiceProvider) {
         GenericMessage responseMessage = new GenericMessage();
         List<MessageDescription> errors = new ArrayList<>();
         try {
@@ -6532,7 +6570,8 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 
             // Call the AuthenticatorClient to create the plugin on the Kong service
             String kongServiceName = serviceName.toLowerCase();
-            GenericMessage result = authenticatorClient.createOpenTelemetryPlugin(kongServiceName, pluginConfig);
+            GenericMessage result = authenticatorClient.createOpenTelemetryPlugin(kongServiceName, pluginConfig,
+                    cloudServiceProvider);
 
             if (result != null && "SUCCESS".equalsIgnoreCase(result.getSuccess())) {
                 responseMessage.setSuccess("SUCCESS");
