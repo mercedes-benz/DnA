@@ -133,9 +133,12 @@ const CreateNewWorkspace = ({ edit, project, setShowCreateModal, getKeyVaultList
     }
   }, [division]);
 
+  // Re-initialise only when a collaborator row (and with it a new select) is added or removed.
+  // The `true` flag suppresses the synthetic change events, which would otherwise re-enter the
+  // collaborator onChange handlers and loop through this effect again.
   useEffect(() => {
-    SelectBox.defaultSetup();
-  }, [collaborators, principalType, accessLevel]);
+    SelectBox.defaultSetup(true);
+  }, [collaborators.length]);
 
   const onKeyVaultNameChange = (e: any) => {
     const currentValue = e.currentTarget.value;
@@ -208,6 +211,10 @@ const CreateNewWorkspace = ({ edit, project, setShowCreateModal, getKeyVaultList
   };
 
   const onAccessLevelChange = (identifier: string, level: IKeyVaultAccessLevel) => {
+    const current = collaborators.find((item) => item.identifier === identifier);
+    if (!current || current.accessLevel === level) {
+      return;
+    }
     setCollaborators(
       collaborators.map((item) => (item.identifier === identifier ? { ...item, accessLevel: level } : item)),
     );
