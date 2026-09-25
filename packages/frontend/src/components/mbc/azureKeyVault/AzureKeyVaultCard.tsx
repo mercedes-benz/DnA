@@ -48,6 +48,17 @@ const AzureKeyVaultCard = ({ project, canEdit, onEditWorkspace}: Props) => {
               <div>Create On</div>
               <div>{regionalDateAndTimeConversion(project?.createdOn)}</div>
             </div>
+            {project?.updatedOn && (
+              <div>
+                <div>Updated On</div>
+                <div>
+                  {regionalDateAndTimeConversion(project?.updatedOn)}
+                  {project?.updatedBy?.firstName
+                    ? ' by ' + project?.updatedBy?.firstName + ' ' + (project?.updatedBy?.lastName || '')
+                    : ''}
+                </div>
+              </div>
+            )}
           </div>
         </div>
         <div className={Styles.cardFooter}>

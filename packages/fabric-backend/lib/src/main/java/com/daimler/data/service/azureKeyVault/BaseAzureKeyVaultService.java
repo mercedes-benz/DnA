@@ -95,7 +95,7 @@ public class BaseAzureKeyVaultService extends BaseCommonService<KeyVaultVO, Azur
 
 		} catch (Exception e) {
 			log.error("Error fetching Azure Key Vaults", e);
-			errors = List.of(new MessageDescription("Failed to fetch Key Vaults with error: " + e.getMessage()));
+			errors = List.of(new MessageDescription("Failed to fetch Key Vaults. Please try again later."));
 			message.setErrors(errors);
 			message.setSuccess("ERROR");
 			collection.responses(message);
@@ -212,9 +212,9 @@ public class BaseAzureKeyVaultService extends BaseCommonService<KeyVaultVO, Azur
 				savedRecord = super.create(vo); 
 				log.info("Key Vault {} with id {} saved to database successfully", keyVaultName, savedRecord.getId());
 			} catch (Exception e) {
-				log.error("Failed to save Key Vault record to database: {}", e.getMessage());
+				log.error("Failed to save Key Vault record to database: {}", e.getMessage(), e);
 				MessageDescription message = new MessageDescription(
-						"Key Vault created in Azure but failed to save to database: " + e.getMessage());
+						"Key Vault was created in Azure but could not be saved. Please contact support.");
 				warnings.add(message);
 			}
 
@@ -230,7 +230,7 @@ public class BaseAzureKeyVaultService extends BaseCommonService<KeyVaultVO, Azur
 		} catch (Exception e) {
 			log.error("Failed to create Azure Key Vault with exception: {}", e.getMessage(), e);
 			MessageDescription errorMessage = new MessageDescription(
-					"Failed to create Azure Key Vault with exception: " + e.getMessage());
+					"Failed to create the Key Vault due to an unexpected error. Please try again later.");
 			errors.add(errorMessage);
 			responseMessage.setSuccess("FAILED");
 			responseMessage.setErrors(errors);
@@ -297,6 +297,8 @@ public class BaseAzureKeyVaultService extends BaseCommonService<KeyVaultVO, Azur
         	vo.setLocation(existingKeyVault.getLocation());
 			vo.setCreatedBy(existingKeyVault.getCreatedBy()); 
 			vo.setCreatedOn(existingKeyVault.getCreatedOn()); 
+			vo.setUpdatedBy(currentUser);
+			vo.setUpdatedOn(new Date());
 
 			provisionUpdatedCollaborators(keyVaultName, existingKeyVault, vo, warnings);
 
@@ -307,9 +309,9 @@ public class BaseAzureKeyVaultService extends BaseCommonService<KeyVaultVO, Azur
 				updatedRecord = vo;
 				log.info("Key Vault {} with id {} updated successfully in database", keyVaultName, updatedRecord.getId());
 			} catch (Exception e) {
-				log.error("Failed to update Key Vault record in database: {}", e.getMessage());
+				log.error("Failed to update Key Vault record in database: {}", e.getMessage(), e);
 				MessageDescription message = new MessageDescription(
-						"Key Vault data governance fields failed to update in database: " + e.getMessage());
+						"Key Vault details could not be saved. Please try again later.");
 				errors.add(message);
 				responseMessage.setErrors(errors);
 				responseMessage.setSuccess("FAILED");
@@ -329,7 +331,7 @@ public class BaseAzureKeyVaultService extends BaseCommonService<KeyVaultVO, Azur
 		} catch (Exception e) {
 			log.error("Failed to update Azure Key Vault with exception: {}", e.getMessage(), e);
 			MessageDescription errorMessage = new MessageDescription(
-					"Failed to update Azure Key Vault with exception: " + e.getMessage());
+					"Failed to update the Key Vault due to an unexpected error. Please try again later.");
 			errors.add(errorMessage);
 			responseMessage.setSuccess("FAILED");
 			responseMessage.setErrors(errors);
