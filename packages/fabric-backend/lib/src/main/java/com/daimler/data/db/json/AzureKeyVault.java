@@ -31,5 +31,7 @@ public class AzureKeyVault implements Serializable {
 	
 	private UserDetails createdBy;
 	private Date createdOn;
+	private UserDetails updatedBy;
+	private Date updatedOn;
 	private List<AzureKeyVaultCollaborator> collaborators;
 }

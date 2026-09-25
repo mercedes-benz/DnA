@@ -200,8 +200,9 @@ export class ApiClient {
             window.location.href = sessionExpiredUrl;
           }
 
-          if (result && result.errors) {
-            result.errors.forEach((error: IError) => {
+          const responseErrors = result?.errors || result?.responses?.errors;
+          if (responseErrors?.length) {
+            responseErrors.forEach((error: IError) => {
               message += error.message + ' ';
             });
           } else if (response.status === 409) {

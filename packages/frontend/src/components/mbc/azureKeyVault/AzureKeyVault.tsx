@@ -65,14 +65,21 @@ const AzureKeyVault = ({ user }: Props) => {
     Tooltip.defaultSetup();
     ApiClient.getKeyVaults(currentPageOffset, maxItemsPerPage)
       .then((response) => {
+        const errors = response?.responses?.errors;
+        if (errors?.length) {
+          ProgressIndicator.hide();
+          Notification.show(errors[0]?.message || 'Failed to fetch Key Vaults.', 'alert');
+          return;
+        }
         setKeyVaultList(response?.records || []);
         const totalPages = Math.ceil((response?.totalCount || 0) / maxItemsPerPage) || 1;
         setTotalNumberOfPages(totalPages);
         setCurrentPageNumber(currentPageNumber > totalPages ? 1 : currentPageNumber);
         ProgressIndicator.hide();
       })
-      .catch((err) => {
+      .catch((err: any) => {
         ProgressIndicator.hide();
+        Notification.show(err?.message || 'Failed to fetch Key Vaults.', 'alert');
       });
   };
 

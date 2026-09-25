@@ -94,6 +94,12 @@ const CreateNewWorkspace = ({ edit, project, setShowCreateModal, getKeyVaultList
     return cleanedMessage || message;
   };
 
+  const showResponseWarnings = (warnings?: { message?: string }[]) => {
+    if (warnings?.length) {
+      Notification.show(warnings.map((warning) => getDisplayErrorMessage(warning?.message)).join(' '), 'warning');
+    }
+  };
+
   useEffect(() => {
     SelectBox.defaultSetup();
     ProgressIndicator.show();
@@ -272,6 +278,7 @@ const CreateNewWorkspace = ({ edit, project, setShowCreateModal, getKeyVaultList
               Notification.show(getDisplayErrorMessage(errors[0]?.message), 'alert');
               return;
             }
+            showResponseWarnings(res?.responses?.warnings);
             Notification.show('Key Vault updated successfully.');
             setShowCreateModal();
             getKeyVaultList();
@@ -289,6 +296,7 @@ const CreateNewWorkspace = ({ edit, project, setShowCreateModal, getKeyVaultList
               Notification.show(getDisplayErrorMessage(errors[0]?.message), 'alert');
               return;
             }
+            showResponseWarnings(res?.responses?.warnings);
             Notification.show('Key Vault created successfully.');
             setShowCreateModal();
             getKeyVaultList();
