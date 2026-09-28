@@ -27,6 +27,10 @@ const getSelectionParent = (inputElem) => {
 };
 
 const setRippleAnimation = (elem, center = true, rbgaColor) => {
+  if (!elem || typeof elem.addEventListener !== 'function' || typeof elem.querySelector !== 'function') {
+    return;
+  }
+
   let mouseInPressedState = false;
 
   elem.addEventListener('mousedown', (e) => {

@@ -1606,7 +1606,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 
 	 
 	@Override 
-	public List<GroupDetailsVO> autoProcessGroupsUsers(List<GroupDetailsVO> existingGroupsDetails, String workspaceName, String creatorId, String workspaceId, String customGroupName, List<CustomGroupNameCollectionVO> customGroupNameCollection) {
+	public List<GroupDetailsVO> autoProcessGroupsUsers(List<GroupDetailsVO> existingGroupsDetails, String workspaceName, String creatorId, String workspaceId, String customGroupName, List<CustomGroupNameCollectionVO> customGroupNameCollection, String division) {
 		List<GroupDetailsVO>  updatedGroups = new ArrayList<>();
 		boolean isAdminGroupAvailable = false;
 		GroupDetailsVO adminGroupVO = new GroupDetailsVO();
@@ -1730,7 +1730,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 				log.info("Total missingGroupVO to be auto Processed are", missingCustomGroupVOList);	
 			}
 		}										
-		if(!isDefaultGroupAvailable) {
+		if(!isDefaultGroupAvailable && division != null && "fc".equalsIgnoreCase(division)) {
 			AddGroupDto addGroupDto = new AddGroupDto();
 			addGroupDto.setDisplayName(onboardGroupDisplayName);
 			addGroupDto.setIdentifier(onboardGroupIdenitifier);
