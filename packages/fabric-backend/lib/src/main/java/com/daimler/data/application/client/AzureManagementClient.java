@@ -26,10 +26,17 @@
  */
 package com.daimler.data.application.client;
 
+import java.net.URI;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Base64;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.UUID;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -46,6 +53,8 @@ import org.springframework.web.client.RestTemplate;
 
 import com.daimler.data.dto.azureKeyVault.AzureUserDto;
 import com.daimler.data.dto.azureKeyVault.AzureUserSearchResponseDto;
+import com.daimler.data.dto.azureKeyVault.AzurePrincipalDto;
+import com.daimler.data.dto.azureKeyVault.AzurePrincipalSearchResponseDto;
 import com.daimler.data.dto.azureKeyVault.KeyVaultAccessPolicyDto;
 import com.daimler.data.dto.azureKeyVault.KeyVaultCreateRequestDto;
 import com.daimler.data.dto.azureKeyVault.KeyVaultNameAvailabilityRequestDto;
@@ -65,6 +74,20 @@ import lombok.extern.slf4j.Slf4j;
 @Component
 @Slf4j
 public class AzureManagementClient {
+
+    public static final String ACCESS_LEVEL_READING = "Reading";
+    public static final String ACCESS_LEVEL_CONTRIBUTING = "Contributing";
+
+    public static final String PRINCIPAL_KIND_USER = "USER";
+    public static final String PRINCIPAL_KIND_SPN = "SPN";
+    public static final String PRINCIPAL_KIND_MI = "MI";
+    public static final String PRINCIPAL_KIND_GROUP = "GROUP";
+
+    private static final String SERVICE_PRINCIPAL_TYPE_APPLICATION = "Application";
+    private static final String SERVICE_PRINCIPAL_TYPE_MANAGED_IDENTITY = "ManagedIdentity";
+    private static final int MIN_SEARCH_TERM_LENGTH = 3;
+    private static final java.util.regex.Pattern GUID_PATTERN = java.util.regex.Pattern
+            .compile("[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}");
 
     @Value("${fabricWorkspaces.group.clientId}")
     private String groupSearchclientId;
@@ -132,6 +155,12 @@ public class AzureManagementClient {
     @Value("${fabricWorkspaces.azure.keyvault.userSearchUrl}")
     private String azureUserSearchUrl;
 
+    @Value("${fabricWorkspaces.azure.keyvault.servicePrincipalSearchUrl}")
+    private String azureServicePrincipalSearchUrl;
+
+    @Value("${fabricWorkspaces.azure.keyvault.groupSearchUrl}")
+    private String azureGroupSearchUrl;
+
     @Value("${fabricWorkspaces.azure.keyvault.roleAssignmentUrl}")
     private String azureRoleAssignmentUrl;
 
@@ -143,6 +172,18 @@ public class AzureManagementClient {
 
     @Value("${fabricWorkspaces.azure.keyvault.roles.keyVaultAdminRole}")
     private String keyVaultAdminRole;
+
+    @Value("${fabricWorkspaces.azure.keyvault.roles.certificatesUser}")
+    private String keyVaultCertificatesUserRole;
+
+    @Value("${fabricWorkspaces.azure.keyvault.roles.secretsUser}")
+    private String keyVaultSecretsUserRole;
+
+    @Value("${fabricWorkspaces.azure.keyvault.roles.certificatesOfficer}")
+    private String keyVaultCertificatesOfficerRole;
+
+    @Value("${fabricWorkspaces.azure.keyvault.roles.secretsOfficer}")
+    private String keyVaultSecretsOfficerRole;
 
     @Autowired
     private RestTemplate proxyRestTemplate;
@@ -258,8 +299,8 @@ public class AzureManagementClient {
             
             HttpEntity<String> requestEntity = new HttpEntity<>(headers);
             
-            String url = azureUserSearchUrl + "?$filter=mail eq '" + userEmail + "'";
-            log.info("User search URL: {}", url);
+            String escapedEmail = userEmail == null ? "" : userEmail.replace("'", "''");
+            String url = azureUserSearchUrl + "?$filter=mail eq '" + escapedEmail + "'";
             
             log.info("Searching for user with email: {}", userEmail);
             ResponseEntity<AzureUserSearchResponseDto> response = proxyRestTemplate.exchange(
@@ -278,6 +319,173 @@ public class AzureManagementClient {
             log.error("Error searching for user {}: {}", userEmail, e.getMessage());
             return null;
         }
+    }
+
+    public String normalizePrincipalKind(String kind) {
+        if (PRINCIPAL_KIND_SPN.equalsIgnoreCase(kind)) {
+            return PRINCIPAL_KIND_SPN;
+        }
+        if (PRINCIPAL_KIND_MI.equalsIgnoreCase(kind)) {
+            return PRINCIPAL_KIND_MI;
+        }
+        if (PRINCIPAL_KIND_GROUP.equalsIgnoreCase(kind)) {
+            return PRINCIPAL_KIND_GROUP;
+        }
+        return PRINCIPAL_KIND_USER;
+    }
+
+    public List<AzurePrincipalDto> searchPrincipals(String searchTerm, String kind) {
+        if (searchTerm == null || searchTerm.trim().length() < MIN_SEARCH_TERM_LENGTH) {
+            return List.of();
+        }
+        String term = searchTerm.trim();
+        String principalKind = normalizePrincipalKind(kind);
+        if (PRINCIPAL_KIND_USER.equals(principalKind)) {
+            return searchUsers(term);
+        }
+        if (PRINCIPAL_KIND_GROUP.equals(principalKind)) {
+            return searchGroups("startswith(displayName,'" + escapeODataLiteral(term) + "')");
+        }
+        String servicePrincipalType = PRINCIPAL_KIND_MI.equals(principalKind)
+                ? SERVICE_PRINCIPAL_TYPE_MANAGED_IDENTITY : SERVICE_PRINCIPAL_TYPE_APPLICATION;
+        String filter = "servicePrincipalType eq '" + servicePrincipalType + "' and startswith(displayName,'"
+                + escapeODataLiteral(term) + "')";
+        return searchServicePrincipals(filter, principalKind);
+    }
+
+    public AzurePrincipalDto resolvePrincipal(String identifier, String kind) {
+        if (identifier == null || identifier.isBlank()) {
+            return null;
+        }
+        String principalKind = normalizePrincipalKind(kind);
+        if (PRINCIPAL_KIND_USER.equals(principalKind)) {
+            String objectId = getUserPrincipalId(identifier);
+            return objectId == null ? null : new AzurePrincipalDto(
+                    objectId, identifier, identifier, null, null, "User", PRINCIPAL_KIND_USER, identifier);
+        }
+        if (PRINCIPAL_KIND_GROUP.equals(principalKind)) {
+            String escapedGroup = escapeODataLiteral(identifier);
+            String groupFilter = GUID_PATTERN.matcher(identifier).matches()
+                    ? "id eq '" + escapedGroup + "'"
+                    : "mail eq '" + escapedGroup + "' or displayName eq '" + escapedGroup + "'";
+            return searchGroups(groupFilter).stream().findFirst().orElse(null);
+        }
+        String servicePrincipalType = PRINCIPAL_KIND_MI.equals(principalKind)
+                ? SERVICE_PRINCIPAL_TYPE_MANAGED_IDENTITY : SERVICE_PRINCIPAL_TYPE_APPLICATION;
+        String escaped = escapeODataLiteral(identifier);
+        String filter = "servicePrincipalType eq '" + servicePrincipalType + "' and (appId eq '" + escaped
+                + "' or displayName eq '" + escaped + "')";
+        return searchServicePrincipals(filter, principalKind).stream().findFirst().orElse(null);
+    }
+
+    private List<AzurePrincipalDto> searchUsers(String term) {
+        // Graph supports substring matching on displayName only through $search, which requires advanced queries.
+        String query = "?$search=" + encodeQueryValue("\"displayName:" + term.replace("\"", "") + "\"")
+                + "&$select=id,displayName,mail,userPrincipalName";
+        HttpHeaders headers = graphHeaders();
+        if (headers == null) {
+            return List.of();
+        }
+        headers.set("ConsistencyLevel", "eventual");
+        try {
+            ResponseEntity<AzureUserSearchResponseDto> response = proxyRestTemplate.exchange(
+                    URI.create(azureUserSearchUrl + query), HttpMethod.GET, new HttpEntity<>(headers),
+                    AzureUserSearchResponseDto.class);
+            List<AzurePrincipalDto> result = new ArrayList<>();
+            if (response.getBody() != null && response.getBody().getValue() != null) {
+                for (AzureUserDto user : response.getBody().getValue()) {
+                    String identifier = user.getMail() != null && !user.getMail().isBlank()
+                            ? user.getMail() : user.getUserPrincipalName();
+                    if (identifier != null && !identifier.isBlank()) {
+                        result.add(new AzurePrincipalDto(user.getId(), user.getDisplayName(), user.getMail(),
+                                null, null, "User", PRINCIPAL_KIND_USER, identifier));
+                    }
+                }
+            }
+            return result;
+        } catch (Exception e) {
+            log.warn("Error searching Azure users: {}", e.getMessage());
+            return List.of();
+        }
+    }
+
+    private List<AzurePrincipalDto> searchGroups(String filter) {
+        HttpHeaders headers = graphHeaders();
+        if (headers == null) {
+            return List.of();
+        }
+        String query = "?$filter=" + encodeQueryValue(filter) + "&$select=id,displayName,mail";
+        try {
+            ResponseEntity<AzureUserSearchResponseDto> response = proxyRestTemplate.exchange(
+                    URI.create(azureGroupSearchUrl + query), HttpMethod.GET, new HttpEntity<>(headers),
+                    AzureUserSearchResponseDto.class);
+            List<AzurePrincipalDto> result = new ArrayList<>();
+            if (response.getBody() != null && response.getBody().getValue() != null) {
+                for (AzureUserDto group : response.getBody().getValue()) {
+                    // Groups may have no mail address, so the display name is the fallback identifier.
+                    String identifier = group.getMail() != null && !group.getMail().isBlank()
+                            ? group.getMail() : group.getDisplayName();
+                    if (identifier != null && !identifier.isBlank()) {
+                        result.add(new AzurePrincipalDto(group.getId(), group.getDisplayName(), group.getMail(),
+                                null, null, "Group", PRINCIPAL_KIND_GROUP, identifier));
+                    }
+                }
+            }
+            return result;
+        } catch (Exception e) {
+            log.warn("Error searching Entra ID groups: {}", e.getMessage());
+            return List.of();
+        }
+    }
+
+    private List<AzurePrincipalDto> searchServicePrincipals(String filter, String principalKind) {
+        HttpHeaders headers = graphHeaders();
+        if (headers == null) {
+            return List.of();
+        }
+        String query = "?$filter=" + encodeQueryValue(filter) + "&$select=id,displayName,appId,servicePrincipalType";
+        try {
+            ResponseEntity<AzurePrincipalSearchResponseDto> response = proxyRestTemplate.exchange(
+                    URI.create(azureServicePrincipalSearchUrl + query), HttpMethod.GET, new HttpEntity<>(headers),
+                    AzurePrincipalSearchResponseDto.class);
+            List<AzurePrincipalDto> result = new ArrayList<>();
+            if (response.getBody() != null && response.getBody().getValue() != null) {
+                for (AzurePrincipalDto principal : response.getBody().getValue()) {
+                    principal.setPrincipalType("ServicePrincipal");
+                    principal.setKind(principalKind);
+                    principal.setIdentifier(principal.getAppId() != null && !principal.getAppId().isBlank()
+                            ? principal.getAppId() : principal.getDisplayName());
+                    if (principal.getIdentifier() != null && !principal.getIdentifier().isBlank()) {
+                        result.add(principal);
+                    }
+                }
+            }
+            return result;
+        } catch (Exception e) {
+            log.warn("Error searching Azure service principals of type {}: {}", principalKind, e.getMessage());
+            return List.of();
+        }
+    }
+
+    private HttpHeaders graphHeaders() {
+        String token = getTokenForGroupSearch();
+        if (!Objects.nonNull(token)) {
+            log.error("Failed to fetch token to invoke Microsoft Graph API");
+            return null;
+        }
+        HttpHeaders headers = new HttpHeaders();
+        headers.set("Accept", "application/json");
+        headers.set("Authorization", "Bearer " + token);
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        return headers;
+    }
+
+    private String escapeODataLiteral(String value) {
+        return value == null ? "" : value.replace("'", "''");
+    }
+
+    private String encodeQueryValue(String value) {
+        return URLEncoder.encode(value, StandardCharsets.UTF_8).replace("+", "%20");
     }
     
 	public KeyVaultResponseDto createOrUpdateKeyVault(String keyVaultName) {
@@ -374,7 +582,50 @@ public class AzureManagementClient {
 	}
     
     public RoleAssignmentResponseDto assignRoleToUser(String keyVaultName, String userPrincipalId, String roleType) {
+        return assignRoleToUser(keyVaultName, userPrincipalId, roleType, "User");
+    }
+
+    public RoleAssignmentResponseDto assignRoleToUser(String keyVaultName, String userPrincipalId,
+            String roleType, String principalType) {
+        String roleDefinitionId = "user".equalsIgnoreCase(roleType) ? keyVaultCryptoUserRole : keyVaultAdminRole;
+        return assignRoleDefinition(keyVaultName, userPrincipalId, principalType, roleDefinitionId, roleType);
+    }
+
+    /**
+     * Role definitions granted for each collaborator access level. The definition ids themselves come from
+     * deployment configuration, only the Azure role names are known to the application.
+     */
+    public Map<String, String> rolesForAccessLevel(String accessLevel) {
+        Map<String, String> roles = new LinkedHashMap<>();
+        if (ACCESS_LEVEL_CONTRIBUTING.equalsIgnoreCase(accessLevel)) {
+            roles.put("Key Vault Certificates Officer", keyVaultCertificatesOfficerRole);
+            roles.put("Key Vault Crypto Officer", keyVaultCryptoOfficerRole);
+            roles.put("Key Vault Secrets Officer", keyVaultSecretsOfficerRole);
+        } else {
+            roles.put("Key Vault Certificates User", keyVaultCertificatesUserRole);
+            roles.put("Key Vault Crypto User", keyVaultCryptoUserRole);
+            roles.put("Key Vault Secrets User", keyVaultSecretsUserRole);
+        }
+        return roles;
+    }
+
+    public List<RoleAssignmentResponseDto> assignAccessLevelRoles(String keyVaultName, String principalId,
+            String principalType, String accessLevel) {
+        List<RoleAssignmentResponseDto> responses = new ArrayList<>();
+        rolesForAccessLevel(accessLevel).forEach((roleName, roleDefinitionId) -> {
+            RoleAssignmentResponseDto response = assignRoleDefinition(keyVaultName, principalId, principalType,
+                    roleDefinitionId, roleName);
+            response.setRoleName(roleName);
+            responses.add(response);
+        });
+        return responses;
+    }
+
+    private RoleAssignmentResponseDto assignRoleDefinition(String keyVaultName, String userPrincipalId,
+            String principalType, String roleDefinitionId, String roleName) {
         RoleAssignmentResponseDto responseDto = new RoleAssignmentResponseDto();
+        responseDto.setRoleName(roleName);
+        String roleAssignmentId = null;
         try {
             String token = getTokenForAzureManagement();
             if(!Objects.nonNull(token)) {
@@ -384,20 +635,19 @@ public class AzureManagementClient {
                 return responseDto;
             }
 
-            String roleDefinitionId = keyVaultAdminRole;
-            if ("user".equalsIgnoreCase(roleType)) {
-                roleDefinitionId = keyVaultCryptoUserRole;
+            if (roleDefinitionId == null || roleDefinitionId.isBlank()) {
+                log.error("No role definition configured for role {}", roleName);
+                responseDto.setErrorCode("CONFIG_ERROR");
+                responseDto.setMessage("No role definition configured for role " + roleName);
+                return responseDto;
             }
-            
+
             String fullRoleDefinitionId = "/subscriptions/" + azureSubscriptionId + roleDefinitionId;
 
-            log.info("Role assignment details - Type: {}, Definition ID: {}, Full Role Definition: {}", 
-                roleType, roleDefinitionId, fullRoleDefinitionId);
-            
             RoleAssignmentPropertiesDto properties = new RoleAssignmentPropertiesDto();
             properties.setRoleDefinitionId(fullRoleDefinitionId);
             properties.setPrincipalId(userPrincipalId);
-            properties.setPrincipalType("User");
+            properties.setPrincipalType(principalType);
             
             RoleAssignmentRequestDto requestDto = new RoleAssignmentRequestDto();
             requestDto.setProperties(properties);
@@ -409,7 +659,8 @@ public class AzureManagementClient {
             
             HttpEntity<RoleAssignmentRequestDto> requestEntity = new HttpEntity<>(requestDto, headers);
             
-            String roleAssignmentId = java.util.UUID.randomUUID().toString();
+            roleAssignmentId = UUID.randomUUID().toString();
+            responseDto.setRoleAssignmentId(roleAssignmentId);
 
             String url = azureRoleAssignmentUrl;
             url = url.replace("{subscriptionId}", azureSubscriptionId)
@@ -417,23 +668,26 @@ public class AzureManagementClient {
                     .replace("{keyVaultName}", keyVaultName)
                     .replace("{roleAssignmentId}", roleAssignmentId);
             
-            // log.info("Assigning role {} to user {} for Key Vault {}", roleType, userPrincipalId, keyVaultName);
-            log.info("Assigning role '{}' to user {} for Key Vault '{}'. Role Assignment ID: {}", 
-                roleType, userPrincipalId, keyVaultName, roleAssignmentId);
-            log.info("Role assignment URL: {}", url);
+            log.info("Assigning role '{}' to principal {} for Key Vault '{}'. Role Assignment ID: {}",
+                roleName, userPrincipalId, keyVaultName, roleAssignmentId);
 
             ResponseEntity<RoleAssignmentResponseDto> response = proxyRestTemplate.exchange(
                     url, HttpMethod.PUT, requestEntity, RoleAssignmentResponseDto.class);
             
             responseDto = response.getBody();
-            // log.info("Successfully assigned role to user for Key Vault: {}", keyVaultName);
-            log.info("Successfully assigned role '{}' to user {} for Key Vault: {}", roleType, userPrincipalId, keyVaultName);
+            if (responseDto == null) {
+                responseDto = new RoleAssignmentResponseDto();
+            }
+            responseDto.setRoleAssignmentId(roleAssignmentId);
+            responseDto.setRoleName(roleName);
+            log.info("Successfully assigned role '{}' to principal {} for Key Vault: {}", roleName, userPrincipalId, keyVaultName);
             return responseDto;
         } catch (HttpClientErrorException e) {
             if (e.getStatusCode().value() == 409) {
-                log.info("Role assignment already exists for user {} on Key Vault {}", userPrincipalId, keyVaultName);
+                log.info("Role assignment already exists for principal {} on Key Vault {}", userPrincipalId, keyVaultName);
                 responseDto.setErrorCode("409");
                 responseDto.setMessage("Role assignment already exists");
+                responseDto.setRoleAssignmentId(roleAssignmentId);
                 return responseDto;
             }
             log.error("Azure API error assigning role to user: {}", e.getMessage());
@@ -444,6 +698,42 @@ public class AzureManagementClient {
             log.error("Error assigning role to user: {}", e.getMessage());
             responseDto.setErrorCode("INTERNAL_ERROR");
             responseDto.setMessage("Failed to assign role: " + e.getMessage());
+            return responseDto;
+        }
+    }
+
+    public RoleAssignmentResponseDto removeRoleAssignment(String keyVaultName, String roleAssignmentId) {
+        RoleAssignmentResponseDto responseDto = new RoleAssignmentResponseDto();
+        try {
+            String token = getTokenForAzureManagement();
+            if (!Objects.nonNull(token)) {
+                responseDto.setErrorCode("AUTH_ERROR");
+                responseDto.setMessage("Failed to login using service principal, please try later.");
+                return responseDto;
+            }
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("Accept", "application/json");
+            headers.set("Authorization", "Bearer " + token);
+            HttpEntity<String> requestEntity = new HttpEntity<>(headers);
+            // Azure deletes the assignment resource, so use the persisted assignment ID rather than a principal ID.
+            String url = azureRoleAssignmentUrl.replace("{subscriptionId}", azureSubscriptionId)
+                    .replace("{resourceGroupName}", azureResourceGroup)
+                    .replace("{keyVaultName}", keyVaultName)
+                    .replace("{roleAssignmentId}", roleAssignmentId);
+            proxyRestTemplate.exchange(url, HttpMethod.DELETE, requestEntity, Void.class);
+            return responseDto;
+        } catch (HttpClientErrorException e) {
+            if (e.getStatusCode().value() == 404) {
+                responseDto.setErrorCode("404");
+                responseDto.setMessage("Role assignment not found");
+                return responseDto;
+            }
+            responseDto.setErrorCode(String.valueOf(e.getStatusCode().value()));
+            responseDto.setMessage("Failed to remove role assignment: " + e.getMessage());
+            return responseDto;
+        } catch (Exception e) {
+            responseDto.setErrorCode("INTERNAL_ERROR");
+            responseDto.setMessage("Failed to remove role assignment: " + e.getMessage());
             return responseDto;
         }
     }

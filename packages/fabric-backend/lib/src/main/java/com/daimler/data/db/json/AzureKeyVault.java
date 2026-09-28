@@ -2,6 +2,7 @@ package com.daimler.data.db.json;
 
 import java.io.Serializable;
 import java.util.Date;
+import java.util.List;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 
@@ -30,4 +31,7 @@ public class AzureKeyVault implements Serializable {
 	
 	private UserDetails createdBy;
 	private Date createdOn;
+	private UserDetails updatedBy;
+	private Date updatedOn;
+	private List<AzureKeyVaultCollaborator> collaborators;
 }

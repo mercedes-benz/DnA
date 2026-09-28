@@ -28,12 +28,7 @@ package com.daimler.data.db.repo.keyvault;
 
 import java.util.List;
 
-import javax.persistence.TypedQuery;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Expression;
-import javax.persistence.criteria.Predicate;
-import javax.persistence.criteria.Root;
+import javax.persistence.Query;
 
 import org.springframework.stereotype.Repository;
 
@@ -49,36 +44,19 @@ public class AzureKeyVaultCustomRepositoryImpl extends CommonDataRepositoryImpl<
 
     @Override
     public List<AzureKeyVaultNsql> findAllByCreator(String creatorId, int limit, int offset) {
-        
-        CriteriaBuilder cb = em.getCriteriaBuilder();
-        CriteriaQuery<AzureKeyVaultNsql> cq = cb.createQuery(AzureKeyVaultNsql.class);
-        Root<AzureKeyVaultNsql> root = cq.from(AzureKeyVaultNsql.class);
+        return findAllByCreatorOrCollaborator(creatorId, null, limit, offset);
+    }
 
-        Expression<String> createdByIdPath = cb.function(
-            "jsonb_extract_path_text",
-            String.class,
-            root.get("data"),
-            cb.literal("createdBy"),
-            cb.literal("id")
-        );
+    @Override
+    @SuppressWarnings("unchecked")
+    public List<AzureKeyVaultNsql> findAllByCreatorOrCollaborator(String creatorId, String collaboratorIdentifier,
+            int limit, int offset) {
+        String sql = "select id, data from azure_key_vault_nsql where "
+                + accessCondition(collaboratorIdentifier)
+                + " order by jsonb_extract_path_text(data, 'createdOn') desc";
 
-        Predicate creatorPredicate = cb.equal(
-            cb.lower(createdByIdPath),
-            cb.lower(cb.literal(creatorId))
-        );
-        
-        cq.where(creatorPredicate);
-        
-        Expression<String> createdOnPath = cb.function(
-            "jsonb_extract_path_text",
-            String.class,
-            root.get("data"),
-            cb.literal("createdOn")
-        );
-        cq.orderBy(cb.desc(createdOnPath));
-        
-        TypedQuery<AzureKeyVaultNsql> query = em.createQuery(cq);
-        
+        Query query = em.createNativeQuery(sql, AzureKeyVaultNsql.class);
+        bindAccessParameters(query, creatorId, collaboratorIdentifier);
         if (offset >= 0) {
             query.setFirstResult(offset);
         }
@@ -87,5 +65,36 @@ public class AzureKeyVaultCustomRepositoryImpl extends CommonDataRepositoryImpl<
         }
 
         return query.getResultList();
+    }
+
+    @Override
+    public long countByCreatorOrCollaborator(String creatorId, String collaboratorIdentifier) {
+        String sql = "select count(*) from azure_key_vault_nsql where " + accessCondition(collaboratorIdentifier);
+        Query query = em.createNativeQuery(sql);
+        bindAccessParameters(query, creatorId, collaboratorIdentifier);
+        Object count = query.getSingleResult();
+        return count == null ? 0L : ((Number) count).longValue();
+    }
+
+    private String accessCondition(String collaboratorIdentifier) {
+        String condition = "(lower(jsonb_extract_path_text(data, 'createdBy', 'id')) = lower(:creatorId)";
+        if (hasCollaborator(collaboratorIdentifier)) {
+            condition += " or exists (select 1 from jsonb_array_elements("
+                    + "case when jsonb_typeof(data -> 'collaborators') = 'array' "
+                    + "then data -> 'collaborators' else cast('[]' as jsonb) end) collaborator"
+                    + " where lower(collaborator ->> 'identifier') = lower(:collaboratorIdentifier))";
+        }
+        return condition + ")";
+    }
+
+    private void bindAccessParameters(Query query, String creatorId, String collaboratorIdentifier) {
+        query.setParameter("creatorId", creatorId);
+        if (hasCollaborator(collaboratorIdentifier)) {
+            query.setParameter("collaboratorIdentifier", collaboratorIdentifier);
+        }
+    }
+
+    private boolean hasCollaborator(String collaboratorIdentifier) {
+        return collaboratorIdentifier != null && !collaboratorIdentifier.isBlank();
     }
 }

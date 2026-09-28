@@ -1582,6 +1582,37 @@ export interface IKeyVaultCreatedBy {
   mobileNumber?: string;
 }
 
+export type IKeyVaultPrincipalKind = 'USER' | 'SPN' | 'MI' | 'GROUP';
+
+export type IKeyVaultAccessLevel = 'Reading' | 'Contributing';
+
+export interface IKeyVaultPrincipal {
+  id?: string;
+  displayName?: string;
+  mail?: string;
+  appId?: string;
+  servicePrincipalType?: string;
+  principalType?: string;
+  kind: IKeyVaultPrincipalKind;
+  identifier?: string;
+}
+
+export interface IKeyVaultCollaborator {
+  identifier: string;
+  shortId?: string;
+  firstName?: string;
+  lastName?: string;
+  objectId?: string;
+  principalType?: string;
+  kind: IKeyVaultPrincipalKind;
+  displayName?: string;
+  role?: string;
+  accessLevel?: IKeyVaultAccessLevel;
+  roles?: string[];
+  roleAssignmentId?: string;
+  roleAssignmentIds?: string[];
+}
+
 export interface IKeyVault {
   id?: string;
   keyVaultName?: string;
@@ -1596,4 +1627,7 @@ export interface IKeyVault {
   location?: string;
   createdBy?: IKeyVaultCreatedBy;
   createdOn?: string;
+  updatedBy?: IKeyVaultCreatedBy;
+  updatedOn?: string;
+  collaborators?: IKeyVaultCollaborator[];
 }
