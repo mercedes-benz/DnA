@@ -787,18 +787,12 @@ public class GitClient {
 		}
 	}
 
-	public String addWebHookToRepo(String repoName, boolean isWorkspaceMigratedToGHE) {
+	public String addWebHookToRepo(String repoName, String gitWebHookConfigURL) {
 		try {
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/vnd.github+json");
 			headers.set("Content-Type", "application/json");
 			headers.set("Authorization", "Bearer " + personalAccessToken);
-			String url = null;
-			if(isWorkspaceMigratedToGHE) {
-				url = gheBaseUri+"/repos/DNA-CodeSpaces/" + repoName+ "/hooks";
-			} else {
-				url = gitBaseUri+"/repos/DNA-CodeSpaces/" + repoName+ "/hooks";
-			}
 
 			Map<String, Object> requestBody = new HashMap<>();
 			requestBody.put("name", "web");
@@ -815,7 +809,7 @@ public class GitClient {
 			
 			HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
 			ResponseEntity<JsonNode> response =
-					restTemplate.exchange(url, HttpMethod.POST, entity, JsonNode.class);
+					restTemplate.exchange(gitWebHookConfigURL, HttpMethod.POST, entity, JsonNode.class);
 			if (response != null && response.getStatusCode() != null && response.getStatusCode().is2xxSuccessful()) {
 				log.info("Successfully added webhook to git repo {} with response {}", repoName, response.getBody());
 				return response.getBody().get("id").asText();
@@ -828,25 +822,19 @@ public class GitClient {
 		}
 	}
 
-	public boolean updateWebHookConfigurations(GitWebHookDto gitDetails, boolean isWorkspaceMigratedToGHE, String webHookId) {
+	public boolean updateWebHookConfigurations(GitWebHookDto gitDetails, String gitWebHookConfigURL, String webHookId) {
 		try{
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/vnd.github+json");
 			headers.set("Content-Type", "application/json");
 			headers.set("Authorization", "Bearer " + personalAccessToken);
-			String url = null;
-			if(isWorkspaceMigratedToGHE) {
-				url = gheBaseUri+"/repos/DNA-CodeSpaces/" + gitDetails.getRepoName()+ "/hooks/" + webHookId;
-			} else {
-				url = gitBaseUri+"/repos/DNA-CodeSpaces/" + gitDetails.getRepoName()+ "/hooks/" + webHookId;
-			}
 
 			Map<String, Object> requestBody = new HashMap<>();
 			requestBody.put("active", gitDetails.isWebHookEnabled());
 
 			HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
 			ResponseEntity<JsonNode> response =
-					restTemplate.exchange(url, HttpMethod.PATCH, entity, JsonNode.class);
+					restTemplate.exchange(gitWebHookConfigURL, HttpMethod.PATCH, entity, JsonNode.class);
 			if (response != null && response.getStatusCode() != null && response.getStatusCode().is2xxSuccessful()) {
 				log.info("Successfully updated webhook configurations to git repo {} with response {}", gitDetails.getRepoName(), response.getBody());
 			} else {

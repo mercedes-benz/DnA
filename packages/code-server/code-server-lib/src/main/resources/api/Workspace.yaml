@@ -2753,6 +2753,9 @@ definitions:
   GitWebHookDto:
     type: object
     properties:
+      projectName:
+        type: string
+        description: "Codespace name"
       repoName:
         type: string
         description: "Git repository name"
