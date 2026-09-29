@@ -130,36 +130,36 @@ export const QUALIFICATION_TRANSFER_PRICING = [
   'Procurement data',
 ];
 
-export const DIVISION_BUSINESS_DOMAIN_MAP = {  
-  'MBC': [  
-    'Production & Operation',  
-    'Sales & Customer',  
-    'Research & Development',  
-    'Aftersales',  
-  ],  
-  'VAN': [  
-    'Marketing & Sales',  
-    'Aftersales',  
-    'Research & Development',  
-    'Production & Operation',  
-  ],  
-  'MBFS': [  
-    'Credit Risk',  
-    'German Market',  
-    'OPS',  
-    'FC & Enterprise',  
-    'Insurance',  
-    'Others',  
-  ],  
-  'Group Functions': [  
-    'Human Resources',  
-    'Finance & Controlling',  
-    'Procurement IPS',  
-    'Procurement MP',  
-    'Integrity & Legal',  
-    'Information Technology',  
-  ],  
-};  
+export const DIVISION_BUSINESS_DOMAIN_MAP = {
+  'MBC': [
+    'MBC-Business Domain 1',
+    'MBC-Business Domain 2',
+    'MBC-Business Domain 3',
+    'MBC-Business Domain 4',
+  ],
+  'VAN': [
+    'VAN-Business Domain 1',
+    'VAN-Business Domain 2',
+    'VAN-Business Domain 3',
+    'VAN-Business Domain 4',
+  ],
+  'MBFS': [
+    'MBFS-Business Domain 1',
+    'MBFS-Business Domain 2',
+    'MBFS-Business Domain 3',
+    'MBFS-Business Domain 4',
+    'MBFS-Business Domain 5',
+    'MBFS-Business Domain 6',
+  ],
+  'Group Functions': [
+    'GF-Business Domain 1',
+    'GF-Business Domain 2',
+    'GF-Business Domain 3',
+    'GF-Business Domain 4',
+    'GF-Business Domain 5',
+    'GF-Business Domain 6',
+  ],
+};
 
 export const TEAMS_PROFILE_LINK_URL_PREFIX = 'https://your-team-profile-url-prefix/';
   export const USER_ROLE = { 
