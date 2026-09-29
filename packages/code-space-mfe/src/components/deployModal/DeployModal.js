@@ -18,6 +18,8 @@ const DeployModal = (props) => {
   const projectDetails = props.codeSpaceData?.projectDetails;
   const currentUserId = props.userInfo?.id;
   const isOwner = projectDetails?.projectOwner?.id?.toLowerCase() === currentUserId?.toLowerCase();
+  const isGheRepo = projectDetails?.gitRepoName?.startsWith('https://mercedes-benz.ghe.com/') ?? true;
+  const canManageAutoDeploy = isOwner && !isGheRepo;
 
   const [branches, setBranches] = useState([]);
   const [branchValue, setBranchValue] = useState(['main']);
@@ -200,6 +202,9 @@ const DeployModal = (props) => {
   };
 
   const onUpdateAutoDeploySettings = () => {
+    if (!canManageAutoDeploy) {
+      return;
+    }
     if (autoDeployEnabled) {
       const stagingMissing = stagingBranchValue.length === 0;
       const prodMissing = prodBranchValue.length === 0;
@@ -215,6 +220,7 @@ const DeployModal = (props) => {
       }
     }
     const webhookData = {
+      projectName: projectDetails?.projectName,
       repoName: projectDetails?.gitRepoName,
       intRepoName: stagingBranchValue[0] || '',
       prodRepoName: prodBranchValue[0] || '',
@@ -229,9 +235,13 @@ const DeployModal = (props) => {
       })
       .catch((err) => {
         ProgressIndicator.hide();
+        const errors = err?.response?.data?.errors;
+        const errorMessage =
+          errors && errors.length
+            ? errors.map((error) => error?.message).filter(Boolean).join('\n')
+            : err.message;
         Notification.show(
-          'Error in updating auto deploy settings. Please try again later.\n' +
-            (err?.response?.data?.errors?.[0]?.message || err.message),
+          'Error in updating auto deploy settings. Please try again later.\n' + errorMessage,
           'alert',
         );
       });
@@ -348,7 +358,7 @@ const DeployModal = (props) => {
             <div className={Styles.autoDeploySection}>
               <div className={Styles.sectionTitle}>
                 Auto Deployment Settings
-                {!isOwner && <span className={Styles.nonOwnerNote}>(Read only)</span>}
+                {!canManageAutoDeploy && <span className={Styles.nonOwnerNote}>(Read only)</span>}
                 <span className={Styles.autoDeployInfo}>
                   <i className="icon mbc-icon info"></i>
                   <span className={Styles.autoDeployTooltip}>
@@ -356,9 +366,11 @@ const DeployModal = (props) => {
                     <strong>Pull Request merge</strong> events for selected branch linked to 
                     staging or production environment.
                     <br /><br />
-                    <strong>Note:</strong> It is strongly recommended to enable <strong>branch protection rules</strong>
+                    <strong>Note:</strong> It is strongly recommended to enable <strong>branch protection rules </strong>
                       on the selected branch to prevent unintentional deployments. 
                      Any commit or merge to the selected branch will trigger an automatic deployment.
+                    <br /><br />
+                    For repositories hosted outside the ghe GitHub enterprise this feature is not available.
                   </span>
                 </span>
               </div>
@@ -369,13 +381,13 @@ const DeployModal = (props) => {
                     className="ff-only"
                     checked={autoDeployEnabled}
                     onChange={(e) => setAutoDeployEnabled(e.target.checked)}
-                    disabled={!isOwner}
+                    disabled={!canManageAutoDeploy}
                   />
                 </span>
                 <span className="label">Enable Auto Deployment</span>
               </label>
               {autoDeployEnabled && (
-                <div className={`${Styles.branchSelectors}${!isOwner ? ` ${Styles.disabledSection}` : ''}`}>
+                <div className={`${Styles.branchSelectors}${!canManageAutoDeploy ? ` ${Styles.disabledSection}` : ''}`}>
                   <div>
                     <Tags
                       title={'Staging Branch'}
@@ -415,7 +427,7 @@ const DeployModal = (props) => {
                   className="btn btn-tertiary"
                   type="button"
                   onClick={onUpdateAutoDeploySettings}
-                  disabled={!isOwner}
+                  disabled={!canManageAutoDeploy}
                 >
                   Update Auto Deploy Settings
                 </button>
