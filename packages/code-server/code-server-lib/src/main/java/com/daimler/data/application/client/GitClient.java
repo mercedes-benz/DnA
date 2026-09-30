@@ -317,6 +317,39 @@ public class GitClient {
 	}
 
 
+	public HttpStatus addUserToRepo(String username, String repoName, String orgName, boolean isGheHostedRepo) {
+		String baseUri = isGheHostedRepo ? gheBaseUri : gitBaseUri;
+		String pat = isGheHostedRepo ? ghePat : personalAccessToken;
+		return addUserToRepo(username, repoName, orgName, baseUri, pat);
+	}
+
+	public HttpStatus addUserToRepo(String username, String repoName, String orgName, String baseUri, String pat) {
+		try {
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Content-Type", "application/json");
+			headers.set("Authorization", "token " + pat);
+			String url = baseUri + "/repos/" + orgName + "/" + repoName + "/collaborators/" + username;
+			String requestJsonString = "{\"permission\":\"push\"}";
+			HttpEntity<String> entity = new HttpEntity<String>(requestJsonString, headers);
+			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.PUT, entity, String.class);
+			if (response != null && response.getStatusCode() != null) {
+				log.info("completed adding user {} as collaborator to git repo {}/{} with status {}", username, orgName, repoName, response.getStatusCode());
+				return response.getStatusCode();
+			}
+		} catch (HttpClientErrorException e) {
+			if (e.getStatusCode().value() == 422) {
+				log.error("Caught 422 Unprocessable Entity error while adding {} as collaborator to git repo {}/{}", username, orgName, repoName);
+				return HttpStatus.UNPROCESSABLE_ENTITY;
+			} else {
+				log.error("Caught HTTP client error while adding {} as collaborator to git repo {}/{}: {}", username, orgName, repoName, e.getStatusCode());
+			}
+		} catch (Exception e) {
+			log.error("Error occured while adding collaborator {} to git repo {}/{} with exception {}", username, orgName, repoName, e.getMessage());
+		}
+		return HttpStatus.INTERNAL_SERVER_ERROR;
+	}
+
 	public HttpStatus validateGitUser(String gitBaseUrl,String repoName, String applicationName) {
 		try {
 			if (!gitBaseUrl.endsWith("/")) {
