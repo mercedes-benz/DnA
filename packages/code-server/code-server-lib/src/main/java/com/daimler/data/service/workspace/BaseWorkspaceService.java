@@ -1502,13 +1502,17 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 						Boolean isGHE = vo.getProjectDetails().getRecipeDetails().getRepodetails().contains("ghe.com");
 						status = gitClient.isUserCollaborator(orgName, collaborator.getId(), repoName, isGHE);
 						if(!status.is2xxSuccessful()) {
-							log.info("Collaborator {} Addition failed for recipe {}  ",collaborator.getId(),vo.getProjectDetails().getRecipeDetails().getRecipeId());
-							errors.add(new MessageDescription("Cannot add User "+collaborator.getId()+" as collaborator because the user is  not a collaborator to the private repo "+repoName+" add the user to the repo and try again"));
-							responseVO.setErrors(errors);
-							responseVO.setWarnings(new ArrayList<>());
-							responseVO.setSuccess("FAILED");
-							responseVO.setData(null);
-							return responseVO;
+							HttpStatus addStatus = gitClient.addUserToRepo(collaborator.getId(), repoName, orgName, Boolean.TRUE.equals(isGHE));
+							if(!addStatus.is2xxSuccessful()) {
+								log.info("Collaborator {} Addition failed for recipe {} with status {}", collaborator.getId(), vo.getProjectDetails().getRecipeDetails().getRecipeId(), addStatus);
+								errors.add(new MessageDescription("Cannot add User "+collaborator.getId()+" as collaborator to the private repo "+repoName+", please add the user to the repo and try again"));
+								responseVO.setErrors(errors);
+								responseVO.setWarnings(new ArrayList<>());
+								responseVO.setSuccess("FAILED");
+								responseVO.setData(null);
+								return responseVO;
+							}
+							log.info("Added user {} as collaborator to private repo {}/{} with status {}", collaborator.getId(), orgName, repoName, addStatus);
 						}
 					}
 					ownerCollab.add(workspaceAssembler.toUserInfo(collaborator));
@@ -2449,28 +2453,12 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 					 auditLogEntity.setData(buildDeployLogs);
 					 buildDeployRepo.save(auditLogEntity);
 
-				 // String kongServiceName = projectName.toLowerCase() + "-" + environment.toLowerCase();
-				 // if (!authenticatorClient.isKongServiceAndRouteAvailable(kongServiceName, cloudServiceProvider)) {
-				 //	 log.info("Kong service/route {} missing, creating it for deployment of project {}", kongServiceName, projectName);
-				 //	 GenericMessage kongResponse = authenticatorClient.callingKongApis(workspaceId, projectName, environment, isApiRecipe, deploymentDetails.getClientId(), "", deploymentDetails.getRedirectUri(), deploymentDetails.getIgnorePaths(), deploymentDetails.getScope(), deploymentDetails.getOneApiVersionShortName(), isSecuredWithCookie, secureWithIAMRequired, deploymentDetails.getSsoType(), secureWithDnaRequired, false, false, deploymentDetails.getSelectedAliceRoles(), cloudServiceProvider);
-				 //	 if (kongResponse == null || !"SUCCESS".equalsIgnoreCase(kongResponse.getSuccess())) {
-				 //		 kongSetupError = "Deployment triggered, but API gateway setup for " + kongServiceName
-				 //				 + " could not be completed. The deployment URL may not be reachable until this is retried.";
-				 //		 log.error("Kong setup failed for {} : {}", kongServiceName, kongResponse != null ? kongResponse.getErrors() : "no response");
-				 //		 MessageDescription kongWarning = new MessageDescription();
-				 //		 kongWarning.setMessage(kongSetupError);
-				 //		 warnings.add(kongWarning);
-				 //	 }
-				 //	 try {
-				 //		 createOpenTelemetryPlugin(workspaceId, environment, kongServiceName);
-				 //	 } catch (Exception otelEx) {
-				 //		 log.warn("Failed to create OpenTelemetry plugin for workspace {} in {} environment: {}", workspaceId, environment, otelEx.getMessage());
-				 //	 }
-				 // }
-				 if(deployType.equalsIgnoreCase("deploy") && (deploymentDetails.getDeploymentUrl() == null || deploymentDetails.getDeploymentUrl().isEmpty())){
+				 String kongServiceName = projectName.toLowerCase() + "-" + environment.toLowerCase();
+				 if (!authenticatorClient.isKongServiceAndRouteAvailable(kongServiceName, cloudServiceProvider)) {
+					 log.info("Kong service/route {} missing, creating it for deployment of project {}", kongServiceName, projectName);
 					 authenticatorClient.callingKongApis(workspaceId, projectName, environment, isApiRecipe, deploymentDetails.getClientId(), "", deploymentDetails.getRedirectUri(), deploymentDetails.getIgnorePaths(), deploymentDetails.getScope(), deploymentDetails.getOneApiVersionShortName(), isSecuredWithCookie, secureWithIAMRequired, deploymentDetails.getSsoType(), secureWithDnaRequired, false, false, deploymentDetails.getSelectedAliceRoles(), cloudServiceProvider);
 					 try {
-						 createOpenTelemetryPlugin(workspaceId, environment, projectName.toLowerCase() + "-" + environment.toLowerCase());
+						 createOpenTelemetryPlugin(workspaceId, environment, kongServiceName);
 					 } catch (Exception otelEx) {
 						 log.warn("Failed to create OpenTelemetry plugin for workspace {} in {} environment: {}", workspaceId, environment, otelEx.getMessage());
 					 }
@@ -3020,17 +3008,19 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 					Boolean isGHE = gitUrl.contains("ghe.com");
 					status = gitClient.isUserCollaborator(repoOwner, gitUser, repoName, isGHE);
 					if(!status.is2xxSuccessful()) {
-						log.info(
-								"Cannot add User {} as collaborator because the user is  not a collaborator to the private repo {}",
-								userRequestDto.getGitUserName(), repoName);
-						MessageDescription msg = new MessageDescription("Cannot add User "
-								+ userRequestDto.getGitUserName()
-								+ " as collaborator because the user is  not a collaborator to the private repo "
-								+ repoName + " add the user to the repo and try again");
-						errors.add(msg);
-						responseMessage.setSuccess("FAILED");
-						responseMessage.setErrors(errors);
-						return responseMessage;
+						HttpStatus addStatus = gitClient.addUserToRepo(gitUser, repoName, repoOwner, Boolean.TRUE.equals(isGHE));
+						if(!addStatus.is2xxSuccessful()) {
+							log.info("Cannot add User {} as collaborator to the private repo {} with status {}", gitUser, repoName, addStatus);
+							MessageDescription msg = new MessageDescription("Cannot add User "
+									+ gitUser
+									+ " as collaborator to the private repo "
+									+ repoName + ", please add the user to the repo and try again");
+							errors.add(msg);
+							responseMessage.setSuccess("FAILED");
+							responseMessage.setErrors(errors);
+							return responseMessage;
+						}
+						log.info("Added user {} as collaborator to private repo {}/{} with status {}", gitUser, repoOwner, repoName, addStatus);
 					}
 				}
 			}
