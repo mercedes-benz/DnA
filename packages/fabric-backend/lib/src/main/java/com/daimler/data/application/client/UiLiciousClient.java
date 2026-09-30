@@ -1,6 +1,7 @@
 package com.daimler.data.application.client;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashMap;
@@ -20,6 +21,7 @@ import org.springframework.web.client.RestTemplate;
 
 import com.daimler.data.dto.fabric.UiLicioueStepsDto;
 import com.daimler.data.dto.fabricCatalogManagement.GroupStatusResponseVO;
+import com.daimler.data.service.catalogManagement.BaseFabricCatalogManagementService;
 import com.daimler.data.util.ConstantsUtility;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.JsonNode;
@@ -173,7 +175,7 @@ public class UiLiciousClient {
             .toList();
         if(groupsStatusStep.isEmpty()){
             log.warn("No group status found in the API response for lakehouseId: {}", lakehouseId);
-            return new ArrayList<>();
+            return Collections.emptyList();
         }
         List<Map<String, String>> responseGroupsStatusList = new ArrayList<>();
         try {
@@ -212,10 +214,9 @@ public class UiLiciousClient {
         dataMap.put("LakehouseID", lakehouseId);
 
         String effectiveServicePrincipalName = (servicePrincipalName != null && !servicePrincipalName.trim().isEmpty())
-                ? servicePrincipalName
-                : this.defaultServicePrincipalName;
-        dataMap.put("servicePrincipalName", effectiveServicePrincipalName);
+                ? servicePrincipalName : this.defaultServicePrincipalName;
 
+        dataMap.put("Groups", Arrays.asList(effectiveServicePrincipalName));
         String data;
         try {
             data = objectMapper.writeValueAsString(dataMap);

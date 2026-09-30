@@ -38,7 +38,6 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import org.springframework.context.annotation.Scope;
-import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
@@ -49,7 +48,6 @@ import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.application.filter.JWTAuthenticationFilter;
 
 @Configuration
-@EnableScheduling
 public class WebConfig implements WebMvcConfigurer {
 
 	@Value("${allowedCorsOriginPatternUrl}")

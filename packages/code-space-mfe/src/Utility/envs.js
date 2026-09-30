@@ -57,4 +57,5 @@ const getInjectedEnv = (key) => {
     DNA_APP_ID: getInjectedEnv('DNA_APP_ID') || process.env.DNA_APP_ID,
     DNA_ENTITLEMENT_PREFIX: getInjectedEnv('DNA_ENTITLEMENT_PREFIX') || process.env.DNA_ENTITLEMENT_PREFIX,
     FABRIC_API_BASEURL: getInjectedEnv('FABRIC_API_BASEURL') || process.env.FABRIC_API_BASEURL,
+    CODESPACE_INT_MIGRATION_CUTOFF: getInjectedEnv('CODESPACE_INT_MIGRATION_CUTOFF') || process.env.CODESPACE_INT_MIGRATION_CUTOFF,
   };

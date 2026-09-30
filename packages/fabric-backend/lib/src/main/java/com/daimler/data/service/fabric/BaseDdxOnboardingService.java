@@ -136,7 +136,7 @@ public class BaseDdxOnboardingService implements DdxOnboardingService {
 
             // --- Fabric Lakehouse & Connection Details ---
             String connectionName = "oneFabric_" + lakehouseId;
-            String catalogName = "westeurope_" + lakehouseId;
+            String catalogName = "westeurope_onefabric_" + lakehouseId;
             // String catalogName = "westeurope_fcos_dna_testddxlakehouseschema_catalog";
 
             // 1. Fetch SQL Endpoint Details
@@ -292,7 +292,8 @@ public class BaseDdxOnboardingService implements DdxOnboardingService {
             }
 
             log.info("Catalog compute process completed successfully for catalog: {}. Schemas found: {}",
-                catalogName, computeResponse.getResult() != null ? computeResponse.getResult().getRowCount() : 0);
+                catalogName, computeResponse.getResult() != null && computeResponse.getResult().getRowCount() != null
+                ? computeResponse.getResult().getRowCount() : 0);
 
             log.info("🎉 --- Databricks Fabric Setup Completed Successfully ---");
             log.info("DDX Onboarding Request=========={}===========", publishDdxRequest);

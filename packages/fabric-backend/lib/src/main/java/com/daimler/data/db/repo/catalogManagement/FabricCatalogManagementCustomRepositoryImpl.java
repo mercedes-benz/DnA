@@ -29,13 +29,8 @@ package com.daimler.data.db.repo.catalogManagement;
 
 
 
+import java.util.List;
 import java.util.Optional;
-
-import javax.persistence.NoResultException;
-import javax.persistence.criteria.CriteriaBuilder;
-import javax.persistence.criteria.CriteriaQuery;
-import javax.persistence.criteria.Expression;
-import javax.persistence.criteria.Root;
 
 import org.springframework.stereotype.Repository;
 
@@ -55,24 +50,33 @@ public class FabricCatalogManagementCustomRepositoryImpl extends CommonDataRepos
                      "WHERE jsonb_extract_path_text(data,'metadata', 'serviceName') = :serviceName";
 
         try {
-            FabricCatalogMetadataNsql result = (FabricCatalogMetadataNsql) em
+            List<FabricCatalogMetadataNsql> results = em
                 .createNativeQuery(sql, FabricCatalogMetadataNsql.class)
                 .setParameter("serviceName", serviceName)
-                .getSingleResult();
+                .getResultList();
 
-            if (result != null) {
-                return Optional.of(result);
-            } else {
-                return Optional.empty();
-            }
+            return results.stream().findFirst();
 
         } catch (Exception e) {
-            if (e instanceof NoResultException) {
-                log.debug("No result found for serviceName: {}", serviceName);
-            } else {
-                log.error("Error occurred while fetching FabricCatalogMetadataNsql by serviceName: {}", serviceName, e);
-            }
+            log.error("Error occurred while fetching FabricCatalogMetadataNsql by serviceName: {}", serviceName, e);
             return Optional.empty();
+        }
+    }
+
+    @Override
+    public List<FabricCatalogMetadataNsql> findAllByServiceName(String serviceName) {
+        String sql = "SELECT * FROM fabric_catalog_metadata_nsql " +
+                     "WHERE jsonb_extract_path_text(data,'metadata', 'serviceName') = :serviceName";
+
+        try {
+            return em
+                .createNativeQuery(sql, FabricCatalogMetadataNsql.class)
+                .setParameter("serviceName", serviceName)
+                .getResultList();
+
+        } catch (Exception e) {
+            log.error("Error occurred while fetching all FabricCatalogMetadataNsql by serviceName: {}", serviceName, e);
+            return new java.util.ArrayList<>();
         }
     }
 

@@ -1,0 +1,82 @@
+{
+  "apiVersion": "argoproj.io/v1alpha1",
+  "kind": "Application",
+  "metadata": {
+    "name": "{appName}",
+    "namespace": "argocd",
+    "labels": {
+      "env": "{env}",
+      "project": "cs-apps"
+    }
+  },
+  "spec": {
+    "project": "cs-apps",
+    "source": {
+      "repoURL": "{repoURL}",
+      "path": "deploy/helm",
+      "targetRevision": "main",
+      "helm": {
+        "parameters": [
+          {
+            "name": "namespace",
+            "value": "{namespace}"
+          },
+          {
+            "name": "fullnameOverride",
+            "value": "{appName}"
+          },
+          {
+            "name": "image.repository",
+            "value": "{imageRepository}"
+          },
+          {
+            "name": "image.tag",
+            "value": "{imageTag}"
+          },
+          {
+            "name": "imagePullSecrets[0].name",
+            "value": "imagepullsecret"
+          },
+          {
+            "name": "vaultInjector.enable",
+            "value": "{vaultInjectorEnable}"
+          },
+          {
+            "name": "vaultInjector.path",
+            "value": "{vaultInjectorPath}"
+          },
+          {
+            "name": "vaultInjector.root_path",
+            "value": "{vaultInjectorRootPath}"
+          },
+          {
+            "name": "vaultInjector.root_path_non_api",
+            "value": "{vaultInjectorRootPathNonApi}"
+          },
+          {
+            "name": "vaultInjector.authpath",
+            "value": "{vaultInjectorAuthPath}"
+          },
+          {
+            "name": "vaultInjector.namespace",
+            "value": "/"
+          }
+        ]
+      }
+    },
+    "destination": {
+      "server": "https://kubernetes.default.svc",
+      "namespace": "{namespace}"
+    },
+    "syncPolicy": {
+      "automated": {
+        "prune": true,
+        "selfHeal": true
+      },
+      "syncOptions": [
+        "ApplyOutOfSyncOnly=true",
+        "CreateNamespace=true"
+      ]
+    }
+  }
+}

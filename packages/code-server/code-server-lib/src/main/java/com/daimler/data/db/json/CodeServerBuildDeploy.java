@@ -43,10 +43,10 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
  public class CodeServerBuildDeploy implements Serializable{
  
      private static final long serialVersionUID = -1767843944100072529L;
-     private List<BuildAudit> intBuildAuditLogs;
-     private List<BuildAudit> prodBuildAuditLogs;
-     private List<DeploymentAudit> intDeploymentAuditLogs;
-     private List<DeploymentAudit> prodDeploymentAuditLogs;
+     private List<BuildAudit> intBuildAuditLogs = new ArrayList<>();
+     private List<BuildAudit> prodBuildAuditLogs = new ArrayList<>();
+     private List<DeploymentAudit> intDeploymentAuditLogs = new ArrayList<>();
+     private List<DeploymentAudit> prodDeploymentAuditLogs = new ArrayList<>();
      private String status;
      private String projectName;
  }

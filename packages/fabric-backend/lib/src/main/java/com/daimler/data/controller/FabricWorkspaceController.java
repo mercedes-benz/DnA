@@ -264,7 +264,7 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 		CreatedByVO requestUser = this.userStore.getVO();
 		List<MessageDescription> errors = new ArrayList<>();
 
-		if(!isTechnicalUser(requestUser.getId())){
+		if(!FabricWorkspaceController.isTechnicalUser(requestUser.getId())){
 			workspaceRequestVO.setCreatedBy(requestUser);
 			workspaceRequestVO.setInitiatedBy(null);
 		}else{
@@ -658,7 +658,7 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 		UserInfo currentUserInfo = this.userStore.getUserInfo();
 		allEntitlementsList =  identityClient.getAllUserEntitlements(currentUserInfo.getId());
 		user = requestUser.getId();
-		collection = service.getAll(limit, offset, user, allEntitlementsList, isTechnicalUser(user));
+		collection = service.getAll(limit, offset, user, allEntitlementsList, FabricWorkspaceController.isTechnicalUser(user));
 		HttpStatus responseCode = collection.getRecords()!=null && !collection.getRecords().isEmpty() ? HttpStatus.OK : HttpStatus.NO_CONTENT;
 		return new ResponseEntity<>(collection, responseCode);
     }
@@ -801,6 +801,7 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 			existingFabricWorkspace.setRelatedReports(workspaceUpdateRequestVO.getRelatedReports());
 			existingFabricWorkspace.setRelatedSolutions(workspaceUpdateRequestVO.getRelatedSolutions());
 			existingFabricWorkspace.setLastModifiedOn(new Date());
+			service.populateLeanIXDetailsFromProject(existingFabricWorkspace);
 			try {
 				FabricWorkspaceVO updatedRecord = service.updateFabricProject(existingFabricWorkspace);
 				responseVO.setData(updatedRecord);
@@ -1141,7 +1142,7 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 		}
 	}
 
-	public  boolean isTechnicalUser(String id) {
+	public static boolean isTechnicalUser(String id) {
         if (id.length() == 7 && id.startsWith("TE")) {
             String numericPart = id.substring(2);
             if (numericPart.matches("\\d{5}")) {

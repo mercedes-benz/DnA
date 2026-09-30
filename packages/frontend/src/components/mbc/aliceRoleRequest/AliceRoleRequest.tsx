@@ -19,8 +19,11 @@ const AliceRoleRequest = () => {
   const goback = () => {
     history.goBack();
   };
-  const [roleName, setRoleName] = useState('');
+  const appIdPrefix = Envs.ALICE_APP_ID + '_';
+  const [roleName, setRoleName] = useState(Envs.ALICE_APP_ID + '_');
   const [roleNameError, setRoleNameError] = useState('');
+  const [roleDisplayName, setRoleDisplayName] = useState('');
+  const [roleDisplayNameError, setRoleDisplayNameError] = useState('');
   const [rolesCreated, setRolesCreated] = useState<{ static: string[]; dynamic: string[];}>({ static: [], dynamic: [] });
   // const [isDynamicRole, setIsDynamicRole] = useState(false);
   const isDynamicRole = false;
@@ -29,23 +32,98 @@ const AliceRoleRequest = () => {
   const [entraGroupMembers, setEntraGroupMembers] = useState<any[]>([]);
  
   const onRoleNameChange = (e: React.FormEvent<HTMLInputElement>) => {
-    const roleNameVal = e.currentTarget.value;
+    let roleNameVal = e.currentTarget.value;
+    if (!roleNameVal.startsWith(appIdPrefix) && roleNameVal.length < appIdPrefix.length) {
+      roleNameVal = appIdPrefix;
+    }
     setRoleName(roleNameVal);
+    validateRoleInput(roleNameVal);
+    const suffix = roleNameVal.startsWith(appIdPrefix) ? roleNameVal.substring(appIdPrefix.length) : '';
+    if (suffix.length > 0) {
+      const autoDisplayName = (Envs.ALICE_APP_ID + ' ' + formatRoleName(suffix)).replace(/_/g, ' ');
+      setRoleDisplayName(autoDisplayName);
+      validateRoleDisplayName(autoDisplayName);
+    } else {
+      setRoleDisplayName('');
+      setRoleDisplayNameError('');
+    }
+  };
+
+  const onRoleDisplayNameChange = (e: React.FormEvent<HTMLInputElement>) => {
+    const val = e.currentTarget.value;
+    setRoleDisplayName(val);
+    validateRoleDisplayName(val);
+  };
+
+  const validateRoleInput = (value: string) => {
+    const specialCharPattern = /[^A-Za-z0-9_-]/;
+    if (value.length === 0) {
+      setRoleNameError('');
+      return;
+    }
+    if (!value.startsWith(appIdPrefix)) {
+      setRoleNameError('Role ID must start with ' + appIdPrefix);
+      return;
+    }
+    if (value.includes(' ')) {
+      setRoleNameError('Role ID cannot contain spaces');
+      return;
+    }
+    if (specialCharPattern.test(value)) {
+      setRoleNameError('Role ID can only contain letters, numbers, hyphens (-) and underscores (_)');
+      return;
+    }
     setRoleNameError('');
+  };
+
+  const validateRoleDisplayName = (value: string) => {
+    if (value.length === 0) {
+      setRoleDisplayNameError('');
+      return;
+    }
+    const invalidPattern = /[^A-Za-z0-9\s-]/;
+    if (invalidPattern.test(value)) {
+      setRoleDisplayNameError('Role Name can only contain letters, numbers, spaces and hyphens (-)');
+      return;
+    }
+    const letters = value.replace(/[^A-Za-z]/g, '');
+    if (letters.length > 0 && letters === letters.toUpperCase()) {
+      setRoleDisplayNameError('Role Name must not contain only capital letters');
+      return;
+    }
+    setRoleDisplayNameError('');
   };
  
   const validateRole = () => {
-    const specialCharPattern = /[^A-Za-z0-9\-_./]/;
-    if (roleName.trim() === "") {
+    const specialCharPattern = /[^A-Za-z0-9_-]/;
+    if (roleName.trim() === "" || roleName.trim() === appIdPrefix) {
       setRoleNameError('Role ID cannot be empty');
-      return false
+      return false;
+    }
+    if (!roleName.startsWith(appIdPrefix)) {
+      setRoleNameError('Role ID must start with ' + appIdPrefix);
+      return false;
     }
     if (roleName.includes(" ")) {
       setRoleNameError('Role ID cannot contain spaces');
       return false;
     }
     if (specialCharPattern.test(roleName)) {
-      setRoleNameError('Role ID can only contain letters, numbers, and the following characters: . _ -');
+      setRoleNameError('Role ID can only contain letters, numbers, hyphens (-) and underscores (_)');
+      return false;
+    }
+    if (roleDisplayName.trim() === "") {
+      setRoleDisplayNameError('Role Name cannot be empty');
+      return false;
+    }
+    const invalidNamePattern = /[^A-Za-z0-9\s-]/;
+    if (invalidNamePattern.test(roleDisplayName)) {
+      setRoleDisplayNameError('Role Name can only contain letters, numbers, spaces and hyphens (-)');
+      return false;
+    }
+    const nameLetters = roleDisplayName.replace(/[^A-Za-z]/g, '');
+    if (nameLetters.length > 0 && nameLetters === nameLetters.toUpperCase()) {
+      setRoleDisplayNameError('Role Name must not contain only capital letters');
       return false;
     }
     return true;
@@ -64,6 +142,14 @@ const AliceRoleRequest = () => {
   }
   return name;
 };
+
+  const sanitizeRoleId = (rawId: string): string => {
+    if (!rawId) return rawId;
+    const uppercased = rawId.toUpperCase();
+    let sanitized = uppercased.replace(/[^A-Z0-9_-]/g, '').replace(/^[^A-Z0-9]+/, '');
+    if (sanitized.length > 201) sanitized = sanitized.substring(0, 201);
+    return sanitized;
+  };
  
   useEffect(() => {
     fetchRole();
@@ -71,7 +157,7 @@ const AliceRoleRequest = () => {
  
   const createRole = () => {
     if (validateRole()) {
-      const value = Envs.ALICE_APP_ID + "_" + formatRoleName(roleName);
+      const value = roleName;
       const data = {
         "data": {
           "roleName": value,
@@ -87,8 +173,10 @@ const AliceRoleRequest = () => {
             const updatedStatic = isDynamicRole ? rolesCreated.static : [...rolesCreated.static, value];
             const updatedDynamic = isDynamicRole ? [...rolesCreated.dynamic, value] : rolesCreated.dynamic;
             setRolesCreated({ static: updatedStatic, dynamic: updatedDynamic });
-            setRoleName('');
+            setRoleName(appIdPrefix);
             setRoleNameError('');
+            setRoleDisplayName('');
+            setRoleDisplayNameError('');
             Notification.show('Role created successfully')
           } else {
             if (res?.errors[0]?.message?.length > 0) {
@@ -239,17 +327,18 @@ const AliceRoleRequest = () => {
                   </div> */}
                 </div>
 
-                <div className={classNames(Styles.roleName, Styles.disabledSection)}>
+                <div className={classNames(Styles.roleName)}>
                   <TextBox
                     type="text"
                     controlId={'roleNameDisplay'}
                     labelId={'roleNameDisplayLabel'}
-                    label={'Role to be created'}
+                    label={'Role Name'}
                     placeholder={'Type here'}
-                    value={roleName?.length > 0 ? (Envs.ALICE_APP_ID + ' ' + formatRoleName(roleName)).replace(/_/g, ' ') : ''}
-                    required={false}
-                    maxLength={50}
-                    onChange={onRoleNameChange}
+                    value={roleDisplayName}
+                    errorText={roleDisplayNameError}
+                    required={true}
+                    maxLength={100}
+                    onChange={onRoleDisplayNameChange}
                   />
                 </div>
 
@@ -260,7 +349,7 @@ const AliceRoleRequest = () => {
                     labelId={'entitlementDisplayLabel'}
                     label={'Entitlement to be created'}
                     placeholder={'Type here'}
-                    value={roleName?.length > 0 ? Envs.ALICE_APP_ID + '.' + Envs.ALICE_APP_ID + '_' + roleName : ''}
+                    value={roleName?.length > appIdPrefix.length ? Envs.ALICE_APP_ID + '.' + sanitizeRoleId(roleName) : ''}
                     required={false}
                     maxLength={100}
                     onChange={onRoleNameChange}
