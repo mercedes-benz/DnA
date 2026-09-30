@@ -18,8 +18,8 @@ const DeployModal = (props) => {
   const projectDetails = props.codeSpaceData?.projectDetails;
   const currentUserId = props.userInfo?.id;
   const isOwner = projectDetails?.projectOwner?.id?.toLowerCase() === currentUserId?.toLowerCase();
-  const isGheRepo = projectDetails?.gitRepoName?.startsWith('https://mercedes-benz.ghe.com/') ?? true;
-  const canManageAutoDeploy = isOwner && !isGheRepo;
+  const isGitRepo = projectDetails?.gitRepoName?.startsWith('https://github.com/') ?? true;
+  const canManageAutoDeploy = isOwner && !isGitRepo;
 
   const [branches, setBranches] = useState([]);
   const [branchValue, setBranchValue] = useState(['main']);
