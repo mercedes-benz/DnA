@@ -15,7 +15,7 @@ import lombok.NoArgsConstructor;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class FabricCatalogMetadata implements Serializable{
     private static final long serialVersionUID = 1L;
-
+    private FabricCatalogMetadata metadata;
     private String serviceName;
     private List<Databases> databases;
 }

@@ -452,3 +452,93 @@
       margin: 0;
     }
   }
+
+  .syncErrorInfoIcon {
+    cursor: pointer;
+    color: #e84d47;
+    margin-left: 4px;
+    vertical-align: middle;
+
+    &:hover {
+      opacity: 0.7;
+    }
+
+    i {
+      font-size: inherit;
+      margin: 0;
+    }
+  }
+
+  .syncErrorModalContent {
+    margin-top: 0;
+    text-align: left;
+    padding: 0;
+    max-width: 100%;
+    overflow: hidden;
+
+    p {
+      padding: 20px;
+      color: #99a5b3;
+      font-size: var(--font-size-default);
+    }
+
+    .errorContainer {
+      display: flex;
+      flex-direction: column;
+      max-width: 100%;
+      overflow: hidden;
+    }
+
+    // ACE Editor wrapper to control sizing
+    .editorWrapper {
+      width: 100%;
+      max-width: 100%;
+      overflow: hidden;
+      flex: 1;
+    }
+
+    // ACE Editor container styling
+    .ace_editor {
+      border: 1px solid #383f49;
+      border-radius: 4px;
+    }
+  }
+
+  .modalHeader {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    gap: 16px;
+
+    span {
+      flex: 1;
+    }
+  }
+
+  .copyButton {
+    background-color: #00adef;
+    color: #ffffff;
+    border: none;
+    padding: 6px 16px;
+    border-radius: 4px;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    white-space: nowrap;
+
+    &:hover:not(:disabled) {
+      background-color: #0096d6;
+    }
+
+    &:active:not(:disabled) {
+      background-color: #007ab8;
+    }
+
+    &:disabled {
+      background-color: #555;
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+  }

@@ -9,9 +9,11 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 
+import javax.annotation.PostConstruct;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.lang.reflect.Method;
+import java.util.Map;
 
 @Slf4j
 @Component
@@ -25,6 +27,20 @@ public class ApiKeyAuthorizationInterceptor implements HandlerInterceptor {
     private String adaApiKey;
     @Value("${fabricWorkspaces.ada.extollo.apiKey}")
     private String xtoApiKey;
+
+    @Value("${fabricWorkspaces.ada.spire.apiKey}")
+    private String spireApiKey;
+
+    private Map<String, String> apiKeyCreatorMap;
+
+    // Call this after @Value fields are injected
+    @PostConstruct
+    private void initApiKeyMap() {
+        this.apiKeyCreatorMap = new java.util.HashMap<>();
+        apiKeyCreatorMap.put(adaApiKey, "ada");
+        apiKeyCreatorMap.put(xtoApiKey, "xto");
+        apiKeyCreatorMap.put(spireApiKey, "spire");
+    }
 
     @Override
     public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler) throws Exception {
@@ -95,15 +111,8 @@ public class ApiKeyAuthorizationInterceptor implements HandlerInterceptor {
     //     }
     // }
     private String getCreatorFromToken(String accessToken) {
-
         try {
-            if (accessToken.equals(adaApiKey)) {
-                return "ada"; // Default/Primary Key
-            } else if (accessToken.equals(xtoApiKey)) {
-                return "xto"; // Secondary Key
-            } else {
-                return null; // Token is not valid for any known key
-            }
+            return apiKeyCreatorMap.get(accessToken); // returns null if not found
         } catch (Exception e) {
             log.error("Token validation failed: {}", e.getMessage());
             return null;

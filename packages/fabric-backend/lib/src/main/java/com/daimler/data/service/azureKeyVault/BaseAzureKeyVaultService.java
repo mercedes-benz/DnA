@@ -113,17 +113,35 @@ public class BaseAzureKeyVaultService extends BaseCommonService<KeyVaultVO, Azur
 			KeyVaultNameAvailabilityResponseDto availabilityResponse = azureManagementClient.checkKeyVaultNameAvailability(keyVaultName);
 
 			if (availabilityResponse == null || !availabilityResponse.getNameAvailable()) {
-				MessageDescription message = new MessageDescription("Key Vault name " + keyVaultName + " "
-						+ (availabilityResponse != null && availabilityResponse.getReason() != null
-								? availabilityResponse.getReason()
-								: "already exists"));
+				String errorDetail;
+				HttpStatus httpStatus;
+				if (availabilityResponse == null) {
+					errorDetail = "Name availability check returned no response. Please try again later.";
+					httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+				} else if ("Invalid".equalsIgnoreCase(availabilityResponse.getReason())) {
+					errorDetail = availabilityResponse.getMessage() != null
+							? availabilityResponse.getMessage()
+							: "Key Vault name '" + keyVaultName + "' is invalid. A vault's name must be between 3-24 alphanumeric characters, begin with a letter, end with a letter or digit, and not contain consecutive hyphens.";
+					httpStatus = HttpStatus.BAD_REQUEST;
+				} else if ("AlreadyExists".equalsIgnoreCase(availabilityResponse.getReason())) {
+					errorDetail = availabilityResponse.getMessage() != null
+							? availabilityResponse.getMessage()
+							: "Key Vault name '" + keyVaultName + "' is already taken. Please choose a different name.";
+					httpStatus = HttpStatus.CONFLICT;
+				} else {
+					errorDetail = availabilityResponse.getMessage() != null
+							? availabilityResponse.getMessage()
+							: "Key Vault name '" + keyVaultName + "' is not available.";
+					httpStatus = HttpStatus.INTERNAL_SERVER_ERROR;
+				}
+				MessageDescription message = new MessageDescription(errorDetail);
 				errors.add(message);
 				responseMessage.setErrors(errors);
 				responseMessage.setSuccess("FAILED");
 				responseData.setData(vo);
 				responseData.setResponses(responseMessage);
-				log.error("Key Vault name {} already exists", keyVaultName);
-				return new ResponseEntity<>(responseData, HttpStatus.CONFLICT);
+				log.error("Key Vault name {} not available (reason: {}): {}", keyVaultName, availabilityResponse != null ? availabilityResponse.getReason() : "null", errorDetail);
+				return new ResponseEntity<>(responseData, httpStatus);
 			}
 
 			log.info("Key Vault name {} is available", keyVaultName);

@@ -13,6 +13,7 @@ import python from '../../assets/icons/python.svg?raw';
 import rabbitmq from '../../assets/icons/rabbitmq.svg?raw';
 import { buildGitJobLogViewAWSURL, buildGitUrl, buildLogViewAWSURL } from '../../Utility/utils';
 import { Envs } from '../../Utility/envs';
+import { needsIntMigration } from '../intMigrationModal/IntMigrationModal';
 
 function escapeHTML(str) {
   if(str) {
@@ -150,7 +151,8 @@ export const blueprintTemplate = (codespace) => {
     return `${collaborator?.firstName} ${collaborator?.lastName} (${collaborator?.id})`;
   });
 
-  const intAppResourceUsageUrl = Envs.MONITORING_DASHBOARD_APP_BASE_URL + `codespace-app-cpu-and-memory-usage?orgId=1&var-namespace=${Envs.CODESERVER_APP_NAMESPACE}&var-app=${codespace?.projectDetails?.projectName}-int&var-container=`;
+  const intDeploymentMigrated = !needsIntMigration(codespace);
+  const intAppResourceUsageUrl = Envs.MONITORING_DASHBOARD_APP_BASE_URL + `codespace-app-cpu-and-memory-usage?orgId=1&var-namespace=${Envs.CODESERVER_APP_NAMESPACE}${intDeploymentMigrated ? '-int' : ''}&var-app=${codespace?.projectDetails?.projectName}-int&var-container=`;
   const prodAppResourceUsageUrl = Envs.MONITORING_DASHBOARD_APP_BASE_URL + `codespace-app-cpu-and-memory-usage?orgId=1&var-namespace=${Envs.CODESERVER_APP_NAMESPACE}&var-app=${codespace?.projectDetails?.projectName}-prod&var-container=`;
 
   const template = `
@@ -241,7 +243,7 @@ export const blueprintTemplate = (codespace) => {
         <mxCell id="yNrRxmF-IllQESKTyaMv-1" value="Deployments" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=0;fontSize=13;fontFamily=Verdana;" vertex="1" parent="1">
           <mxGeometry x="384" y="461" width="156" height="30" as="geometry" />
         </mxCell>
-        <mxCell id="ujUrj7wP6LcdkLsmr5C5-14" value="Staging - ${intDeploymentDetails?.lastDeployedBranch ? 'Deployed' : 'No Deployment'}" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=0;fontSize=12;fontFamily=Verdana;" parent="1" vertex="1">
+        <mxCell id="ujUrj7wP6LcdkLsmr5C5-14" value="Staging - ${intDeploymentDetails?.lastDeploymentStatus === 'DEPLOYED' || intDeploymentDetails?.lastDeploymentStatus === 'RESTARTED' || (intDeploymentDetails?.deploymentUrl != null && intDeploymentDetails?.deploymentUrl !== 'null' && intDeploymentDetails?.deploymentUrl !== '') ? 'Deployed' : 'No Deployment'}" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=0;fontSize=12;fontFamily=Verdana;" parent="1" vertex="1">
           <mxGeometry x="368" y="504" width="140" height="30" as="geometry" />
         </mxCell>
         <mxCell id="ujUrj7wP6LcdkLsmr5C5-30" value="" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/azure2/other/Azure_Deployment_Environments.svg;" parent="1" vertex="1">
@@ -254,7 +256,7 @@ export const blueprintTemplate = (codespace) => {
         <mxCell id="ujUrj7wP6LcdkLsmr5C5-36" value="" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/azure2/general/Branch.svg;" parent="1" vertex="1">
           <mxGeometry x="379" y="547.5" width="22" height="22" as="geometry" />
         </mxCell>
-        <mxCell id="ujUrj7wP6LcdkLsmr5C5-13" value="&lt;span style=&quot;&quot;&gt;Deployed: [Branch - ${intDeploymentDetails?.lastDeployedBranch ? intDeploymentDetails?.lastDeployedBranch : 'No Deployment'}]&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=none;fontFamily=Verdana;fontStyle=0;align=left;spacingTop=0;spacingLeft=0;strokeWidth=0;spacing=0;" parent="1" vertex="1">
+        <mxCell id="ujUrj7wP6LcdkLsmr5C5-13" value="&lt;span style=&quot;&quot;&gt;Deployed: [Branch - ${intDeploymentDetails?.lastDeployedBranch ? intDeploymentDetails?.lastDeployedBranch : (intDeploymentDetails?.deploymentUrl ? 'N/A' : 'No Deployment')}]&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=none;fontFamily=Verdana;fontStyle=0;align=left;spacingTop=0;spacingLeft=0;strokeWidth=0;spacing=0;" parent="1" vertex="1">
           <mxGeometry x="407.61" y="550" width="270" height="17" as="geometry" />
         </mxCell>
 
@@ -288,14 +290,14 @@ export const blueprintTemplate = (codespace) => {
         ${{ /* Staging section end */ }}
 
         ${{ /* Production section start */ }}
-        <mxCell id="yNrRxmF-IllQESKTyaMv-7" value="Production - ${prodDeploymentDetails?.lastDeployedBranch ? 'Deployed' : 'No Deployment'}" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=0;fontSize=12;fontFamily=Verdana;" vertex="1" parent="1">
+        <mxCell id="yNrRxmF-IllQESKTyaMv-7" value="Production - ${prodDeploymentDetails?.lastDeploymentStatus === 'DEPLOYED' || prodDeploymentDetails?.lastDeploymentStatus === 'RESTARTED' || (prodDeploymentDetails?.deploymentUrl != null && prodDeploymentDetails?.deploymentUrl !== 'null' && prodDeploymentDetails?.deploymentUrl !== '') ? 'Deployed' : 'No Deployment'}" style="text;html=1;align=left;verticalAlign=middle;whiteSpace=wrap;rounded=0;fontStyle=0;fontSize=12;fontFamily=Verdana;" vertex="1" parent="1">
           <mxGeometry x="868" y="504" width="140" height="30" as="geometry" />
         </mxCell>
         
         <mxCell id="yNrRxmF-IllQESKTyaMv-8" value="" style="image;aspect=fixed;html=1;points=[];align=center;fontSize=12;image=img/lib/azure2/general/Branch.svg;" vertex="1" parent="1">
           <mxGeometry x="879" y="547.5" width="22" height="22" as="geometry" />
         </mxCell>
-        <mxCell id="yNrRxmF-IllQESKTyaMv-6" value="&lt;span style=&quot;&quot;&gt;Deployed: [Branch - ${prodDeploymentDetails?.lastDeployedBranch ? prodDeploymentDetails?.lastDeployedBranch : 'No Deployment'}]&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=none;fontFamily=Verdana;fontStyle=0;align=left;spacingTop=0;spacingLeft=0;strokeWidth=0;spacing=0;" vertex="1" parent="1">
+        <mxCell id="yNrRxmF-IllQESKTyaMv-6" value="&lt;span style=&quot;&quot;&gt;Deployed: [Branch - ${prodDeploymentDetails?.lastDeployedBranch ? prodDeploymentDetails?.lastDeployedBranch : (prodDeploymentDetails?.deploymentUrl ? 'N/A' : 'No Deployment')}]&lt;/span&gt;" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;strokeColor=none;fontFamily=Verdana;fontStyle=0;align=left;spacingTop=0;spacingLeft=0;strokeWidth=0;spacing=0;" vertex="1" parent="1">
           <mxGeometry x="907.61" y="550" width="270" height="17" as="geometry" />
         </mxCell>
         

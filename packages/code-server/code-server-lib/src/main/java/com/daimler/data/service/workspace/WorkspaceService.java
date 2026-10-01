@@ -47,6 +47,8 @@ public interface WorkspaceService {
 	GenericMessage deleteById(String userId,String id);
 
 	CodeServerWorkspaceVO getById(String userId, String id);
+
+	CodeServerWorkspaceVO getById(String userId, String id, boolean refreshTriggeredByUser);
 	
 	List<CodeServerWorkspaceVO> getAll(String userId,int offset,int limit);
 	

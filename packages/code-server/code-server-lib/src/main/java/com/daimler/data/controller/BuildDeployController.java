@@ -396,8 +396,11 @@ public class BuildDeployController implements CodeServerBuildDeployServiceApi {
           GenericMessage response = new GenericMessage();
           response.setSuccess("FAILED");
         try {
-            CodeServerBuildDeployNsql optionalBuildDeployentity =  buildDeployCustomRepo.findByProjectName(projectName);	
-					if(optionalBuildDeployentity != null ){
+            // CodeServerBuildDeployNsql optionalBuildDeployentity =
+            // buildDeployCustomRepo.findByProjectName(projectName);
+            CodeServerBuildDeployNsql optionalBuildDeployentity = buildDeployCustomRepo
+                    .findByProjectNameIncludingDeleted(projectName);
+    		if(optionalBuildDeployentity != null ){
                          List<BuildAudit> builds = new ArrayList<>();
                          List<DeploymentAudit> deploymentAuditLogs = new ArrayList<>();
                          String env = "int";

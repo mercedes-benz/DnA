@@ -253,14 +253,14 @@ export const ConnectionModal = (props) => {
     <>
       <label>Step 1 - Get Access token from OpenID Connect (OIDC).</label>
       <ul>
-        <li>Get access token from OIDC API - Use client creadential grant type or any other method.</li>
+        <li>Get access token from OIDC API - Use client credential grant type or any other method.</li>
       </ul>
       <label>Step 2 - Generate JWT token.</label>
       <ul>
         <li>Request to <b>GET</b> API URL - <b>{Envs.API_BASEURL}/login</b></li>
-        <li>Value in Header: <b>Authorization</b> - Access token recived from Step 1</li>
+        <li>Value in Header: <b>Authorization</b> - Access token received from Step 1</li>
         <li>Value in Header: <b>Content-Type</b> - application/json</li>
-        <li>On Succesful response you will receive a JWT token as JSON data.</li>
+        <li>On Successful response you will receive a JWT token as JSON data.</li>
       </ul>
       <label>Step 3 - Access Storage API&apos;s to manage your bucket contents.</label>
       <ul>
@@ -304,14 +304,15 @@ export const ConnectionModal = (props) => {
 
   const connectToJupyter = (
     <>
-      <code>
-        {`from minio import Minio
-          import pandas as pd
-          MINIO_BUCKET = "${bucketInfo.bucketName}"
-          minio_client = Minio('${bucketInfo.accessInfo.hostName}', access_key='${bucketInfo.accessInfo.accesskey}', secret_key='YOUR_BUCKET_SECRET_KEY', secure=True)
-          y_file_obj = minio_client.get_object(MINIO_BUCKET, <<filepath>>)
-          y = pd.read_csv(y_file_obj)`}
-      </code>
+      <span className={Styles.pythonTemplateLabel}>Python Template</span>
+      <p className={Styles.stepLabel}><strong>Step 1:</strong> Import required libraries</p>
+      <code>{`from minio import Minio\nimport pandas as pd\nimport urllib3`}</code>
+      <p className={Styles.stepLabel}><strong>Step 2:</strong> Set your bucket name</p>
+      <code>{`MINIO_BUCKET = "${bucketInfo.bucketName}"`}</code>
+      <p className={Styles.stepLabel}><strong>Step 3:</strong> Configure MinIO client with SSL certificate</p>
+      <code>{`# Use the G3-Root CA certificate for SSL verification.\n# Download official certs: https://social.cloud.corpintra.net/groups/daimler-pki/blog/2018/02/05/ca-certificate-overview\nminio_client = Minio('${Envs.MINIO_EXTERNAL_ENDPOINT}',\n    access_key='${bucketInfo.accessInfo.accesskey}',\n    secret_key='YOUR_BUCKET_SECRET_KEY',\n    secure=True,\n    http_client=urllib3.PoolManager(cert_reqs='CERT_REQUIRED', ca_certs='/path/to/G3-Root.crt'))`}</code>
+      <p className={Styles.stepLabel}><strong>Step 4:</strong> Read data from the bucket</p>
+      <code>{`y_file_obj = minio_client.get_object(MINIO_BUCKET, <<filepath>>)\ny = pd.read_csv(y_file_obj)`}</code>
       <div className={Styles.dataikuConnectionBtn}>
         {' '}
         <button
@@ -445,7 +446,7 @@ export const ConnectionModal = (props) => {
                 </li>
                 <li className={'tab'}>
                   <a href="#tab-content-2" id="jupyterNotebook">
-                    <strong>How to Connect from DNA Jupyter NoteBook</strong>
+                    <strong>How to Connect from DnA Code Spaces Apps</strong>
                   </a>
                 </li>
                 <li className={`tab ${!isDataikuEnabled ? 'disable' : ''}`}>

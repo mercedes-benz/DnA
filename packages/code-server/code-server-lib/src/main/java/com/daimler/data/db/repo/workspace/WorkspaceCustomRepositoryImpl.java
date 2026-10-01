@@ -463,6 +463,24 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 		String  envString = "intDeploymentDetails";
 		if(deployedOn!=null)
 			longdate = String.valueOf(deployedOn.getTime()) ;
+		else {
+			// Preserve existing lastDeployedOn from DB when caller doesn't set it.
+			// This prevents race conditions where concurrent callers overwrite
+			// a previously-stored timestamp with null during full-object replacement.
+			try {
+				String readEnv = "int".equalsIgnoreCase(environment) ? "intDeploymentDetails" : "prodDeploymentDetails";
+				Query readQuery = em.createNativeQuery(
+					"SELECT data->'projectDetails'->'" + readEnv + "'->>'lastDeployedOn' FROM workspace_nsql WHERE data->'projectDetails'->>'projectName' = :projectName");
+				readQuery.setParameter("projectName", projectName);
+				Object existingValue = readQuery.getSingleResult();
+				if (existingValue != null && !existingValue.toString().isEmpty() && !"null".equals(existingValue.toString())) {
+					longdate = existingValue.toString();
+					log.debug("{} - preserving existing lastDeployedOn={} from DB", projectName, longdate);
+				}
+			} catch (Exception e) {
+				log.warn("{} - could not read existing lastDeployedOn: {}", projectName, e.getMessage());
+			}
+		}
 			if(!"int".equalsIgnoreCase(environment)){
 				envString = "prodDeploymentDetails";
 			}
@@ -498,7 +516,9 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 				" \"entitlementPrefixEnabled\": " + deploymentDetails.getEntitlementPrefixEnabled() + "," +
 				" \"selectedAliceRoles\": " + selectedAliceRolesJson + "," +				
 				" \"lastDeployedVersion\": " + addQuotes(deploymentDetails.getLastDeployedVersion()) + "," +
-				" \"lastDeploymentStatus\": " + addQuotes(deploymentDetails.getLastDeploymentStatus()) +"}'),\r\n" + 
+				// " \"lastDeploymentStatus\": " + addQuotes(deploymentDetails.getLastDeploymentStatus()) +"}'),\r\n" + 
+				" \"lastDeploymentStatus\": " + addQuotes(deploymentDetails.getLastDeploymentStatus()) + "," +
+				" \"lastDeploymentError\": " + addQuotes(deploymentDetails.getLastDeploymentError()) +"}'),\r\n" + 
 				"'{projectDetails,lastBuildOrDeployedOn}', '" + longdate + "'),\r\n" +
 				"'{projectDetails,lastBuildOrDeployedEnv}', '" + addQuotes(environment) + "'),\r\n" +
 				"'{projectDetails,lastBuildOrDeployedStatus}', '" + addQuotes(lastBuildOrDeployStatus) + "')\r\n"  ;
@@ -1051,14 +1071,14 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 							THEN jsonb_extract_path_text(data,'projectDetails','prodBuildDetails','gitjobRunID')
 
 						WHEN jsonb_extract_path_text(data,'projectDetails','lastBuildOrDeployedStatus')
-							IN ('DEPLOY_REQUESTED','DEPLOYED','DEPLOY_FAILED')
-						AND jsonb_extract_path_text(data,'projectDetails','lastBuildOrDeployedEnv') = 'int'
-							THEN jsonb_extract_path_text(data,'projectDetails','intDeploymentDetails','gitjobRunID')
+						IN ('DEPLOY_REQUESTED','DEPLOYED','DEPLOYMENT_FAILED')
+					AND jsonb_extract_path_text(data,'projectDetails','lastBuildOrDeployedEnv') = 'int'
+						THEN jsonb_extract_path_text(data,'projectDetails','intDeploymentDetails','gitjobRunID')
 
-						WHEN jsonb_extract_path_text(data,'projectDetails','lastBuildOrDeployedStatus')
-							IN ('DEPLOY_REQUESTED','DEPLOYED','DEPLOY_FAILED')
-						AND jsonb_extract_path_text(data,'projectDetails','lastBuildOrDeployedEnv') = 'prod'
-							THEN jsonb_extract_path_text(data,'projectDetails','prodDeploymentDetails','gitjobRunID')
+					WHEN jsonb_extract_path_text(data,'projectDetails','lastBuildOrDeployedStatus')
+						IN ('DEPLOY_REQUESTED','DEPLOYED','DEPLOYMENT_FAILED')
+				AND jsonb_extract_path_text(data,'projectDetails','lastBuildOrDeployedEnv') = 'prod'
+						THEN jsonb_extract_path_text(data,'projectDetails','prodDeploymentDetails','gitjobRunID')
 
 						ELSE NULL
 					END AS gitJobRunId
@@ -1096,6 +1116,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 		}
 	}
 
+	@Transactional
 	@Override
 	public boolean updateGitRunIdStatus(String projectName, String status, String environment) {
 
@@ -1124,7 +1145,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 		} else if ("int".equalsIgnoreCase(environment) &&
 			("DEPLOY_REQUESTED".equalsIgnoreCase(status)
 				|| "DEPLOYED".equalsIgnoreCase(status)
-				|| "DEPLOY_FAILED".equalsIgnoreCase(status))) {
+				|| "DEPLOYMENT_FAILED".equalsIgnoreCase(status))) {
 
 			updateQuery =
 				"update workspace_nsql set data = jsonb_set(" +
@@ -1134,7 +1155,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 		} else if ("prod".equalsIgnoreCase(environment) &&
 			("DEPLOY_REQUESTED".equalsIgnoreCase(status)
 				|| "DEPLOYED".equalsIgnoreCase(status)
-				|| "DEPLOY_FAILED".equalsIgnoreCase(status))) {
+				|| "DEPLOYMENT_FAILED".equalsIgnoreCase(status))) {
 
 			updateQuery =
 				"update workspace_nsql set data = jsonb_set(" +
@@ -1175,6 +1196,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 		}
 	}
 
+	@Transactional
 	@Override
 	public boolean updateBuildDeployAuditStatus(String projectName,String status,String environment,String gitJobRunId) {
 
@@ -1218,7 +1240,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 		} else if ("int".equalsIgnoreCase(environment) &&
 			("DEPLOY_REQUESTED".equalsIgnoreCase(status)
 				|| "DEPLOYED".equalsIgnoreCase(status)
-				|| "DEPLOY_FAILED".equalsIgnoreCase(status))) {
+				|| "DEPLOYMENT_FAILED".equalsIgnoreCase(status))) {
 
 			updateQuery =
 				"update build_deploy_nsql set data = jsonb_set(data," +
@@ -1233,7 +1255,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 		} else if ("prod".equalsIgnoreCase(environment) &&
 			("DEPLOY_REQUESTED".equalsIgnoreCase(status)
 				|| "DEPLOYED".equalsIgnoreCase(status)
-				|| "DEPLOY_FAILED".equalsIgnoreCase(status))) {
+				|| "DEPLOYMENT_FAILED".equalsIgnoreCase(status))) {
 
 			updateQuery =
 				"update build_deploy_nsql set data = jsonb_set(data," +

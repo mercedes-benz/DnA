@@ -1,5 +1,5 @@
 import classNames from 'classnames';
-import React, { useState, useEffect, useCallback} from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Styles from './CdcPush.scss';
 import SelectBox from 'dna-container/SelectBox';
 import Tooltip from '../../common/modules/uilab/js/src/tooltip';
@@ -10,6 +10,10 @@ import { fabricApi } from '../../apis/fabric.api';
 import ExpansionPanel from '../../common/modules/uilab/js/src/expansion-panel';
 import { useForm } from 'react-hook-form';
 import { Envs } from '../../utilities/envs';
+
+const TIER_REVERSE_MAP = Object.fromEntries(
+  Object.entries(DATA_TIER_MAP).map(([label, num]) => [num, label])
+);
 
 export const buildCdcPayload = ({
   workspaceId,
@@ -93,14 +97,22 @@ export const buildCdcPayload = ({
       tier: dataTier || "",
       leanIXId: workspaceMetadata?.appId || "",
       isDocumentationUpdated: isDocumentationUpdated ? "Yes" : "No",
+      dataLakeName: "OneFabric",
       dataConfidentiality: workspaceMetadata?.dataClassification.toLowerCase() || ""
     },
     owners: [workspaceCreator]
   };
 };
 
+const MISMATCH_TYPE_CONFIG = {
+  NEW_TABLE: { label: 'New Table', colorClass: 'badgeNew' },
+  DELETED_TABLE: { label: 'Deleted Table', colorClass: 'badgeDeleted' },
+  COLUMNS_ADDED: { label: 'New Column', colorClass: 'badgeNew' },
+  COLUMNS_REMOVED: { label: 'Deleted Column', colorClass: 'badgeDeleted' },
+  COLUMN_TYPE_CHANGED: { label: 'Datatype Changed', colorClass: 'badgeModified' },
+};
 
-const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRefreshWorkspace }) => {
+const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRefreshWorkspace, mismatches: mismatchesProp = [] }) => {
   const [tables, setTables] = useState([]);
   const [columnsByTable, setColumnsByTable] = useState({});
   const [selectedTables, setSelectedTables] = useState({});
@@ -114,7 +126,10 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
   const [description, setDescription] = useState(null);
   const [showCdcLogin, setShowCdcLogin] = useState(false);
   const [hasPushedOnce, setHasPushedOnce] = useState(false);
-
+  const [localMismatches, setLocalMismatches] = useState(mismatchesProp);
+  const [previouslyPublishedTables, setPreviouslyPublishedTables] = useState([]);
+  const previouslyEnabledColumnsRef = useRef({});
+  const isAutoPopulatingRef = useRef(false);
 
   const methods = useForm();
   const { 
@@ -128,9 +143,48 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
   const [divisionError, setDivisionError] = useState('');
 
   useEffect(() => {
-    // setDivisions(DIVISIONS);
     SelectBox.defaultSetup();
   }, []);
+
+  useEffect(() => {
+    if (!isAutoPopulatingRef.current) return;
+    const tierEl = document.getElementById('dataTierField');
+    if (tierEl && dataTier !== '0') {
+      tierEl.value = dataTier;
+      SelectBox.defaultSetup(true);
+    }
+  }, [dataTier]);
+
+  useEffect(() => {
+    if (!isAutoPopulatingRef.current) return;
+    if (Array.isArray(division) && division.length > 0) {
+      const divEl = document.getElementById('divisionField');
+      if (divEl) {
+        Array.from(divEl.options).forEach(opt => {
+          opt.selected = division.includes(opt.value);
+        });
+        setTimeout(() => {
+          SelectBox.defaultSetup(true);
+        }, 0);
+      }
+    }
+  }, [division]);
+
+  useEffect(() => {
+    if (mismatchesProp.length > 0) {
+      setLocalMismatches(mismatchesProp);
+      return;
+    }
+    if (!workspaceId || !lakehouseId) return;
+    fabricApi.checkTableMismatch(workspaceId, lakehouseId)
+      .then((res) => {
+        const data = res?.data;
+        if (data?.hasMismatch && data.mismatches?.length > 0) {
+          setLocalMismatches(data.mismatches);
+        }
+      })
+      .catch(() => {});
+  }, [workspaceId, lakehouseId, mismatchesProp]);
 
   useEffect(() => {
     ProgressIndicator.show();
@@ -159,6 +213,90 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
         const data = res?.data; 
         setWorkspaceMetadata(data);
         setWorkspaceCreator(data?.createdBy);
+
+        const isPublished = data?.cdcPublishedLakeHouseDetails?.publishedLakeHouseNames?.includes(lakehouseId);
+        console.log('[CdcPush] isPublished:', isPublished, 'lakehouseId:', lakehouseId, 'publishedNames:', data?.cdcPublishedLakeHouseDetails?.publishedLakeHouseNames);
+
+        if (isPublished) {
+          setHasPushedOnce(true);
+        }
+
+        if (isPublished && data?.name) {
+          console.log('[CdcPush] Fetching catalog metadata for serviceName:', data.name);
+          fabricApi.getCatalogMetadata(workspaceId, data.name)
+            .then((metaRes) => {
+              console.log('[CdcPush] getCatalogMetadata response:', JSON.stringify(metaRes?.data).substring(0, 500));
+              const cdcCatalogs = metaRes?.data?.data?.publishedCDCCatalogs || [];
+              console.log('[CdcPush] cdcCatalogs count:', cdcCatalogs.length, 'looking for lakeHouseId:', lakehouseId);
+              const lakehouseEntry = cdcCatalogs.find(c => c.lakeHouseId === lakehouseId);
+              if (!lakehouseEntry) {
+                console.warn('[CdcPush] No matching lakehouse entry found. Available lakeHouseIds:', cdcCatalogs.map(c => c.lakeHouseId));
+                return;
+              }
+
+              console.log('[CdcPush] Found lakehouse entry, mandatoryFields:', JSON.stringify(lakehouseEntry.mandatoryFields));
+              isAutoPopulatingRef.current = true;
+              const mf = lakehouseEntry.mandatoryFields;
+              if (mf) {
+                if (mf.tier) {
+                  const tierLabel = TIER_REVERSE_MAP[mf.tier];
+                  console.log('[CdcPush] Setting tier:', mf.tier, '->', tierLabel);
+                  if (tierLabel) setDataTier(tierLabel);
+                }
+                if (mf.divisions?.length) {
+                  console.log('[CdcPush] Raw divisions from API:', mf.divisions);
+                  // Normalize enum names (e.g. MERCEDES_BENZ_CARS) to display names
+                  const normalized = mf.divisions.map(d => {
+                    if (DIVISIONS.includes(d)) return d;
+                    const match = DIVISIONS.find(name =>
+                      name.toUpperCase().replace(/[^A-Z0-9]/g, '_') === d
+                    );
+                    return match || d;
+                  });
+                  console.log('[CdcPush] Normalized divisions:', normalized);
+                  setDivision(normalized);
+                }
+                if (mf.isDocumentationUpdated) {
+                  console.log('[CdcPush] Setting isDocumentationUpdated:', mf.isDocumentationUpdated);
+                  setIsDocumentationUpdated(mf.isDocumentationUpdated === 'Yes');
+                }
+              }
+
+              const databases = metaRes?.data?.data?.metadata?.databases || [];
+              const db = databases.find(d => d.dbName === lakehouseName) || databases.find(d => d.dbId === lakehouseId) || databases[0];
+              if (db?.description) {
+                console.log('[CdcPush] Setting description:', db.description);
+                setDescription(db.description);
+                setValue('description', db.description, { shouldValidate: true, shouldDirty: true });
+              }
+
+              const tableDetails = lakehouseEntry.publishedLakehouseTableDetails || [];
+              console.log('[CdcPush] Raw publishedLakehouseTableDetails:', JSON.stringify(tableDetails.map(t => ({ name: t.tableName, enabled: t.enabled, cols: (t.columns || []).length }))));
+              const enabledTableNames = tableDetails
+                .filter(t => t.enabled === true)
+                .map(t => t.tableName);
+              console.log('[CdcPush] Enabled tables to pre-select:', enabledTableNames, 'from', tableDetails.length, 'total');
+
+              const enabledColsByTable = {};
+              tableDetails.filter(t => t.enabled === true).forEach(t => {
+                if (t.columns && t.columns.length > 0) {
+                  enabledColsByTable[t.tableName] = t.columns
+                    .filter(c => c.enabled === true)
+                    .map(c => c.columnName);
+                }
+              });
+              previouslyEnabledColumnsRef.current = enabledColsByTable;
+              console.log('[CdcPush] Enabled columns by table:', JSON.stringify(enabledColsByTable));
+
+              if (enabledTableNames.length > 0) {
+                setPreviouslyPublishedTables(enabledTableNames);
+              }
+              setTimeout(() => { isAutoPopulatingRef.current = false; }, 200);
+            })
+            .catch((err) => {
+              console.error('[CdcPush] Failed to fetch catalog metadata for auto-populate:', err?.response?.status, err?.message);
+            });
+        }
       })
       .catch((e) => {
         Notification.show(
@@ -166,7 +304,54 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
           'alert'
         );
       });
-  }, [workspaceId]);
+  }, [workspaceId, lakehouseId, setValue]);
+
+  // Auto-select previously published tables once both tables list and publish history are loaded
+  useEffect(() => {
+    if (previouslyPublishedTables.length > 0 && tables.length > 0) {
+      const autoSelectedTables = {};
+      tables.forEach((t) => {
+        if (previouslyPublishedTables.includes(t.tableName)) {
+          autoSelectedTables[t.tableName] = true;
+        }
+      });
+      if (Object.keys(autoSelectedTables).length > 0) {
+        setSelectedTables(autoSelectedTables);
+        setSelectAll(Object.keys(autoSelectedTables).length === tables.length);
+
+        // Fetch columns for each pre-selected table and restore column selections
+        Object.keys(autoSelectedTables).forEach((tableName) => {
+          const tableObj = tables.find(t => t.tableName === tableName);
+          const schemaName = tableObj?.schemaName || 'dbo';
+          if (!columnsByTable[tableName]) {
+            fabricApi.getTableSchema(workspaceId, lakehouseId, tableName, schemaName)
+              .then((res) => {
+                const fetchedColumns = res?.data?.data?.columns || [];
+                setColumnsByTable(prev => ({ ...prev, [tableName]: fetchedColumns }));
+                // Restore column selections from stored enabled flags
+                const storedCols = previouslyEnabledColumnsRef.current[tableName] || [];
+                const colSelections = fetchedColumns.reduce((acc, col) => {
+                  acc[col.columnName] = storedCols.length > 0
+                    ? storedCols.includes(col.columnName)
+                    : true;
+                  return acc;
+                }, {});
+                setSelectedColumns(prev => ({ ...prev, [tableName]: colSelections }));
+                 const allColsSelected = fetchedColumns.every(col => colSelections[col.columnName]);
+                setSelectedTables(prev => ({ ...prev, [tableName]: allColsSelected }));
+                setSelectedTables(prev => {
+                  const allTablesFullySelected = tables.every(t => prev[t.tableName]);
+                  setSelectAll(allTablesFullySelected);
+                  return prev;
+                });
+              })
+              .catch(() => {});
+          }
+        });
+      }
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [previouslyPublishedTables, tables, workspaceId, lakehouseId]);
 
   useEffect(() => {
     ExpansionPanel.defaultSetup();
@@ -282,7 +467,7 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
   };
 
 
-  const handlePush = useCallback(() => {
+  const handlePush = useCallback(async () => {
     const leanIXId = workspaceMetadata?.appId;
     if (!leanIXId) {
       Notification.show("Cannot push to CDC. LeanIX ID is missing.", 'alert');
@@ -290,8 +475,10 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
     }
 
     let hasError = false;
+    setDivisionError('');
+    setDataTierError('');
 
-    if (division === "0" || !division) {
+    if (division === "0" || !division || (Array.isArray(division) && division.length === 0)) {
       setDivisionError("*Missing entry");
       hasError = true;
     }
@@ -323,6 +510,26 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
     ProgressIndicator.show();
     fabricApi.pushSelectedTables(workspaceId, payload)
       .then(() => {
+        const publishedSnapshot = {
+          workspaceId,
+          lakehouseId,
+          lakehouseName,
+          publishedAt: new Date().toISOString(),
+          tables: tables.filter(t => selectedTables[t.tableName]).map(table => ({
+            tableName: table.tableName,
+            schemaName: table.schemaName,
+            columns: columnsByTable[table.tableName]?.map(col => ({
+              columnName: col.columnName,
+              colType: col.colType
+            })) || []
+          }))
+        };
+
+        fabricApi.saveLakehouseSnapshot(workspaceId, lakehouseId, publishedSnapshot)
+          .catch(err => {
+            console.error('Failed to save snapshot:', err);
+          });
+
         ProgressIndicator.hide();
         Notification.show("Push to CDC successful!", "success");
 
@@ -370,18 +577,44 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
   ]);
 
   const onPush = handleSubmit(handlePush);
-
-  const isCdcPublished = !!workspaceMetadata?.cdcPublishedLakeHouseDetails?.isLakeHousesPublishedToCdc;
+  const isLakehousePublished = workspaceMetadata?.cdcPublishedLakeHouseDetails?.publishedLakeHouseNames?.includes(lakehouseId) || false;
 
   const isPushDisabled =
   !workspaceMetadata || 
   Object.keys(selectedTables).length === 0 ||
   Object.keys(selectedColumns).length === 0 ||
   hasPushedOnce ||
-  isCdcPublished;
+  isLakehousePublished;
 
     return (
     <div className={Styles.modalFAQContentWrapper}>
+      {localMismatches.length > 0 && (
+        <div className={Styles.schemaChangesPanel}>
+          <div className={Styles.schemaChangesPanelHeader}>
+            <i className="icon mbc-icon alert circle" />
+            <span>Schema Changes Detected</span>
+            <span className={Styles.schemaChangesBadgeCount}>{localMismatches.length} change{localMismatches.length !== 1 ? 's' : ''}</span>
+          </div>
+          <div className={Styles.schemaChangesList}>
+            {localMismatches.map((mismatch, idx) => {
+              const config = MISMATCH_TYPE_CONFIG[mismatch.mismatchType] || { label: mismatch.mismatchType?.replace(/_/g, ' '), colorClass: 'badgeModified' };
+              return (
+                <div key={idx} className={Styles.schemaChangeItem}>
+                  <div className={Styles.schemaChangeItemHeader}>
+                    <span className={Styles.schemaChangeTableName}>{mismatch.tableName}</span>
+                    <span className={classNames(Styles.schemaChangeBadge, Styles[config.colorClass])}>
+                      {config.label}
+                    </span>
+                  </div>
+                  {mismatch.details && (
+                    <p className={Styles.schemaChangeDetails}>{mismatch.details}</p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
         <div className={Styles.flex}>
           <div className={Styles.col3}>
@@ -569,8 +802,11 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
                           const cols = res.data.data.columns || [];
                           setColumnsByTable(prev => ({ ...prev, [tableName]: cols }));
                           if (selectedTables[tableName]) {
+                            const storedCols = previouslyEnabledColumnsRef.current[tableName] || [];
                             const colSelections = cols.reduce((acc, col) => {
-                              acc[col.columnName] = true;
+                              acc[col.columnName] = storedCols.length > 0
+                                ? storedCols.includes(col.columnName)
+                                : true;
                               return acc;
                             }, {});
                             setSelectedColumns(prev => ({ ...prev, [tableName]: colSelections }));
@@ -641,7 +877,7 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
       </div>
 
       <div className={Styles.pushButtonContainer}>
-        <button className={isPushDisabled ? classNames("btn btn-primary") : classNames("btn btn-tertiary")} type="button" disabled={isPushDisabled} onClick={onPush}>
+        <button className={isPushDisabled ? classNames("btn btn-tertiary") : classNames("btn btn-primary")} type="button" disabled={isPushDisabled} onClick={onPush}>
           Push
         </button>
       </div>
@@ -668,4 +904,3 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
   );
 }
 export default ViewTablesModalContent;
-
