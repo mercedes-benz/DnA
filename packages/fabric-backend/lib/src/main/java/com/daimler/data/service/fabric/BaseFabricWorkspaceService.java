@@ -619,6 +619,8 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		CreateWorkspaceDto createRequest = new CreateWorkspaceDto();
 		createRequest.setDescription(vo.getDescription());
 		createRequest.setDisplayName(vo.getName());
+		CapacityVO capacityVO = new CapacityVO();
+
 		try {
 			WorkspaceDetailDto createResponse = fabricWorkspaceClient.createWorkspace(createRequest);
 			if(createResponse!=null ) {
@@ -646,6 +648,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 							createResponse.setType(existingWorkspaceDto.getType());
 							createResponse.setMessage(null);
 							createResponse.setErrorCode(null);
+							capacityVO.setId(existingWorkspaceDto.getCapacityId());
 						}
 					}else if("429".equalsIgnoreCase(createResponse.getErrorCode())){
 						return new ResponseEntity<>(responseData, HttpStatus.TOO_MANY_REQUESTS);
@@ -708,31 +711,42 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 					BeanUtils.copyProperties(vo, data);
 					data.setId(createResponse.getId());
 					data.setHasPii(vo.isHasPii());
-					
 					boolean isPowerBI = vo.getSubscription() != null && vo.getSubscription().name().equalsIgnoreCase("PowerBI");
-					ErrorResponseDto assignCapacityResponse = fabricWorkspaceClient.assignCapacity(createResponse.getId(), isPowerBI);
-					CapacityVO capacityVO = new CapacityVO();
-					if(assignCapacityResponse!=null && assignCapacityResponse.getErrorCode()!=null && "500".equalsIgnoreCase(assignCapacityResponse.getErrorCode())) {
-						capacityVO = null;
-						warnings.add(new MessageDescription("Failed to assign capacity, please reassign or update workspace to assign capacity automatically."));
-					}else {
-						if(isPowerBI) {
-							capacityVO.setId(powerbiCapacityId);
-							capacityVO.setName(powerbiCapacityName);
-							capacityVO.setRegion(capacityRegion);
-							capacityVO.setSku(capacitySku);
-							capacityVO.setState(capacityState);
-						} else {
-							capacityVO.setId(fabricCapacityId);
-							capacityVO.setName(fabricCapacityName);
-							capacityVO.setRegion(capacityRegion);
-							capacityVO.setSku(capacitySku);
-							capacityVO.setState(capacityState);
+					
+					if(vo.getInitiatedBy() == null || (vo.getInitiatedBy() != null && !FabricWorkspaceController.isTechnicalUser(vo.getInitiatedBy()))){
+						ErrorResponseDto assignCapacityResponse = fabricWorkspaceClient.assignCapacity(createResponse.getId(), isPowerBI);
+						if(assignCapacityResponse!=null && assignCapacityResponse.getErrorCode()!=null && "500".equalsIgnoreCase(assignCapacityResponse.getErrorCode())) {
+							capacityVO = null;
+							warnings.add(new MessageDescription("Failed to assign capacity, please reassign or update workspace to assign capacity automatically."));
+						}else {
+							if(isPowerBI) {
+								capacityVO.setId(powerbiCapacityId);
+								capacityVO.setName(powerbiCapacityName);
+								capacityVO.setRegion(capacityRegion);
+								capacityVO.setSku(capacitySku);
+								capacityVO.setState(capacityState);
+							} else {
+								capacityVO.setId(fabricCapacityId);
+								capacityVO.setName(fabricCapacityName);
+								capacityVO.setRegion(capacityRegion);
+								capacityVO.setSku(capacitySku);
+								capacityVO.setState(capacityState);
+							}
+						}
+					} else {
+						if(capacityVO.getId() != null){
+							CapacityVO workspaceAssignedCapacity = fabricWorkspaceClient.getCapacityDetails(capacityVO.getId());
+							if(workspaceAssignedCapacity != null){
+								capacityVO.setName(workspaceAssignedCapacity.getName());
+								capacityVO.setRegion(workspaceAssignedCapacity.getRegion());
+								capacityVO.setSku(workspaceAssignedCapacity.getSku());
+								capacityVO.setState(workspaceAssignedCapacity.getState());
+							}
 						}
 					}
-					updateTags(data);
-					data.setCapacity(capacityVO);
 					
+					data.setCapacity(capacityVO);
+					updateTags(data);
 					FabricWorkspaceStatusVO currentStatus = new FabricWorkspaceStatusVO();
 					currentStatus.setState(ConstantsUtility.INPROGRESS_STATE);
 					String creatorId = vo.getCreatedBy().getId();
