@@ -207,6 +207,7 @@ databricksIntegration:
 server:
   port: 9292
 
+
 #Cors Filter origin Domains  
 allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:http://*}
 swagger.headers.authorization.token: ${SWAGGER_HEADER_AUTH:XXXXXX}
