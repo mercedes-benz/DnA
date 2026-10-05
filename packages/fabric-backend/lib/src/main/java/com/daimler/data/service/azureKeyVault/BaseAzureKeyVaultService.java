@@ -342,6 +342,84 @@ public class BaseAzureKeyVaultService extends BaseCommonService<KeyVaultVO, Azur
 		}
 	}
 
+	@Override
+	public ResponseEntity<KeyVaultResponseVO> deleteKeyVault(String id) {
+		KeyVaultResponseVO responseData = new KeyVaultResponseVO();
+		GenericMessage responseMessage = new GenericMessage();
+		List<MessageDescription> errors = new ArrayList<>();
+
+		try {
+			CreatedByVO currentUser = userStore.getVO();
+			KeyVaultVO existingKeyVault = super.getById(id);
+
+			if (existingKeyVault == null || existingKeyVault.getDeletedOn() != null) {
+				errors.add(new MessageDescription("Key Vault not found."));
+				responseMessage.setErrors(errors);
+				responseMessage.setSuccess("FAILED");
+				responseData.setResponses(responseMessage);
+				log.error("Key Vault not found with id: {}", id);
+				return new ResponseEntity<>(responseData, HttpStatus.NOT_FOUND);
+			}
+
+			String currentUserId = currentUser == null ? null : currentUser.getId();
+			String ownerId = existingKeyVault.getCreatedBy() == null ? null : existingKeyVault.getCreatedBy().getId();
+			if (currentUserId == null || ownerId == null || !ownerId.equalsIgnoreCase(currentUserId)) {
+				errors.add(new MessageDescription("Only the Key Vault owner can delete this Key Vault."));
+				responseMessage.setErrors(errors);
+				responseMessage.setSuccess("FAILED");
+				responseData.setData(existingKeyVault);
+				responseData.setResponses(responseMessage);
+				log.warn("User {} attempted to delete Key Vault {} owned by {}", currentUserId, id, ownerId);
+				return new ResponseEntity<>(responseData, HttpStatus.FORBIDDEN);
+			}
+
+			String keyVaultName = existingKeyVault.getKeyVaultName();
+			KeyVaultResponseDto azureResponse = azureManagementClient.deleteKeyVault(keyVaultName);
+			// A vault already missing in Azure must still be removed from the listings.
+			if (azureResponse.getErrorCode() != null && !"404".equals(azureResponse.getErrorCode())) {
+				errors.add(new MessageDescription("Failed to delete the Key Vault in Azure. Please try again later."));
+				responseMessage.setErrors(errors);
+				responseMessage.setSuccess("FAILED");
+				responseData.setData(existingKeyVault);
+				responseData.setResponses(responseMessage);
+				log.error("Azure deletion failed for Key Vault {} with code {}", keyVaultName,
+						azureResponse.getErrorCode());
+				return new ResponseEntity<>(responseData, HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+
+			existingKeyVault.setDeletedBy(currentUser);
+			existingKeyVault.setDeletedOn(new Date());
+			try {
+				jpaRepo.save(assembler.toEntity(existingKeyVault));
+			} catch (Exception e) {
+				log.error("Failed to record deletion of Key Vault {}: {}", keyVaultName, e.getMessage(), e);
+				errors.add(new MessageDescription(
+						"The Key Vault was deleted in Azure but the deletion could not be recorded. Please try again later."));
+				responseMessage.setErrors(errors);
+				responseMessage.setSuccess("FAILED");
+				responseData.setData(existingKeyVault);
+				responseData.setResponses(responseMessage);
+				return new ResponseEntity<>(responseData, HttpStatus.INTERNAL_SERVER_ERROR);
+			}
+
+			responseMessage.setSuccess("SUCCESS");
+			responseMessage.setErrors(errors);
+			responseData.setData(existingKeyVault);
+			responseData.setResponses(responseMessage);
+			log.info("Successfully deleted Azure Key Vault {} with id {}", keyVaultName, id);
+			return new ResponseEntity<>(responseData, HttpStatus.OK);
+
+		} catch (Exception e) {
+			log.error("Failed to delete Azure Key Vault {} with exception: {}", id, e.getMessage(), e);
+			errors.add(new MessageDescription(
+					"Failed to delete the Key Vault due to an unexpected error. Please try again later."));
+			responseMessage.setSuccess("FAILED");
+			responseMessage.setErrors(errors);
+			responseData.setResponses(responseMessage);
+			return new ResponseEntity<>(responseData, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
 	private void provisionAddedCollaborators(String keyVaultName, KeyVaultVO vo, List<MessageDescription> warnings) {
 		if (vo.getCollaborators() == null) {
 			return;

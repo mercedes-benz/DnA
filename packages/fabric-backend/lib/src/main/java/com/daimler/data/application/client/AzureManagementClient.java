@@ -702,6 +702,52 @@ public class AzureManagementClient {
         }
     }
 
+    /**
+     * Deletes the vault resource from Azure. Soft delete is enabled on creation, so Azure keeps the name
+     * reserved for the retention period and the vault moves to the deleted vaults list.
+     */
+    public KeyVaultResponseDto deleteKeyVault(String keyVaultName) {
+        KeyVaultResponseDto responseDto = new KeyVaultResponseDto();
+        try {
+            String token = getTokenForAzureManagement();
+            if (!Objects.nonNull(token)) {
+                log.error("Failed to fetch token to invoke Azure Management APIs");
+                responseDto.setErrorCode("AUTH_ERROR");
+                responseDto.setMessage("Failed to login using service principal, please try later.");
+                return responseDto;
+            }
+
+            HttpHeaders headers = new HttpHeaders();
+            headers.set("Accept", "application/json");
+            headers.set("Authorization", "Bearer " + token);
+            HttpEntity<String> requestEntity = new HttpEntity<>(headers);
+
+            String url = azureKeyVaultCreateUrl.replace("{subscriptionId}", azureSubscriptionId)
+                    .replace("{resourceGroupName}", azureResourceGroup)
+                    .replace("{keyVaultName}", keyVaultName);
+
+            log.info("Deleting Key Vault: {}", keyVaultName);
+            proxyRestTemplate.exchange(url, HttpMethod.DELETE, requestEntity, Void.class);
+            log.info("Successfully deleted Key Vault: {}", keyVaultName);
+            return responseDto;
+        } catch (HttpClientErrorException.NotFound e) {
+            log.warn("Key Vault {} not found in Azure while deleting", keyVaultName);
+            responseDto.setErrorCode("404");
+            responseDto.setMessage("Key Vault not found in Azure");
+            return responseDto;
+        } catch (HttpClientErrorException e) {
+            log.error("Azure API error deleting Key Vault {}: {}", keyVaultName, e.getMessage());
+            responseDto.setErrorCode(String.valueOf(e.getStatusCode().value()));
+            responseDto.setMessage("Failed to delete Key Vault in Azure.");
+            return responseDto;
+        } catch (Exception e) {
+            log.error("Error deleting Key Vault {}: {}", keyVaultName, e.getMessage(), e);
+            responseDto.setErrorCode("INTERNAL_ERROR");
+            responseDto.setMessage("Failed to delete Key Vault in Azure.");
+            return responseDto;
+        }
+    }
+
     public RoleAssignmentResponseDto removeRoleAssignment(String keyVaultName, String roleAssignmentId) {
         RoleAssignmentResponseDto responseDto = new RoleAssignmentResponseDto();
         try {

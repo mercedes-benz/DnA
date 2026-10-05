@@ -39,6 +39,12 @@ public class AzureKeyVaultAssembler implements GenericAssembler<KeyVaultVO, Azur
 					BeanUtils.copyProperties(updater, updatedByVO);
 					vo.setUpdatedBy(updatedByVO);
 				}
+				UserDetails remover = data.getDeletedBy();
+				if (remover != null) {
+					CreatedByVO deletedByVO = new CreatedByVO();
+					BeanUtils.copyProperties(remover, deletedByVO);
+					vo.setDeletedBy(deletedByVO);
+				}
 				if (data.getCollaborators() != null) {
 					vo.setCollaborators(data.getCollaborators().stream().map(collaborator -> {
 						KeyVaultCollaboratorVO collaboratorVO = new KeyVaultCollaboratorVO();
@@ -72,6 +78,12 @@ public class AzureKeyVaultAssembler implements GenericAssembler<KeyVaultVO, Azur
 				UserDetails updater = new UserDetails();
 				BeanUtils.copyProperties(updatedByVO, updater);
 				data.setUpdatedBy(updater);
+			}
+			CreatedByVO deletedByVO = vo.getDeletedBy();
+			if (deletedByVO != null) {
+				UserDetails remover = new UserDetails();
+				BeanUtils.copyProperties(deletedByVO, remover);
+				data.setDeletedBy(remover);
 			}
 			if (vo.getCollaborators() != null) {
 				data.setCollaborators(vo.getCollaborators().stream().map(collaborator -> {

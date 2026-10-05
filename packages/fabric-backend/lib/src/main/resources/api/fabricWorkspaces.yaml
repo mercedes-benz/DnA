@@ -812,6 +812,37 @@ paths:
           description: "Internal error"
           schema:
             $ref: "#/definitions/KeyVaultResponseVO"
+    delete:
+      tags:
+        - "fabric-workspaces"
+      summary: "Delete Azure Key Vault"
+      description: "Deletes the Azure Key Vault resource and records the deletion details. Only the creator of the Key Vault can delete it."
+      operationId: "deleteKeyVault"
+      parameters:
+        - name: "id"
+          in: "path"
+          description: "Key Vault ID to be deleted"
+          required: true
+          type: "string"
+      responses:
+        200:
+          description: "Returns the deleted Key Vault data with success or failure messages"
+          schema:
+            $ref: "#/definitions/KeyVaultResponseVO"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+          schema:
+            $ref: "#/definitions/KeyVaultResponseVO"
+        404:
+          description: "Key Vault not found."
+          schema:
+            $ref: "#/definitions/KeyVaultResponseVO"
+        500:
+          description: "Internal error"
+          schema:
+            $ref: "#/definitions/KeyVaultResponseVO"
 
 definitions:
   CapacityVO:
@@ -1668,6 +1699,12 @@ definitions:
         type: string
         format: date
         description: "Last update timestamp"
+      deletedBy:
+        $ref: "#/definitions/CreatedByVO"
+      deletedOn:
+        type: string
+        format: date
+        description: "Deletion timestamp"
       collaborators:
         type: array
         items:

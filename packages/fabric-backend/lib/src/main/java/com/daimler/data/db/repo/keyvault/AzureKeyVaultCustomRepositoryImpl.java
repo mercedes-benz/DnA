@@ -84,7 +84,8 @@ public class AzureKeyVaultCustomRepositoryImpl extends CommonDataRepositoryImpl<
                     + "then data -> 'collaborators' else cast('[]' as jsonb) end) collaborator"
                     + " where lower(collaborator ->> 'identifier') = lower(:collaboratorIdentifier))";
         }
-        return condition + ")";
+        // Deleted vaults are kept for the audit trail but must not show up in the listings.
+        return condition + ") and jsonb_extract_path_text(data, 'deletedOn') is null";
     }
 
     private void bindAccessParameters(Query query, String creatorId, String collaboratorIdentifier) {

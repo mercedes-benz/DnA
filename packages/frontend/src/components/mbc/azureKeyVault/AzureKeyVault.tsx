@@ -16,6 +16,7 @@ import { IKeyVault, IUserInfo } from 'globals/types';
 import { SESSION_STORAGE_KEYS } from 'globals/constants';
 import AzureKeyVaultCard from './AzureKeyVaultCard';
 import Pagination from '../pagination/Pagination';
+import ConfirmModal from 'components/formElements/modal/confirmModal/ConfirmModal';
 
 interface Props {
   user: IUserInfo;
@@ -26,6 +27,7 @@ const AzureKeyVault = ({ user }: Props) => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [isEditMode, setIsEditMode] = useState(false);
   const [selectedKeyVault, setSelectedKeyVault] = useState<IKeyVault | null>(null);
+  const [keyVaultToDelete, setKeyVaultToDelete] = useState<IKeyVault | null>(null);
 
   const [totalNumberOfPages, setTotalNumberOfPages] = useState(1);
   const [currentPageNumber, setCurrentPageNumber] = useState(1);
@@ -92,6 +94,30 @@ const AzureKeyVault = ({ user }: Props) => {
     setShowCreateModal(true);
   }
 
+  const onDeleteKeyVault = () => {
+    const keyVault = keyVaultToDelete;
+    setKeyVaultToDelete(null);
+    if (!keyVault?.id) {
+      return;
+    }
+    ProgressIndicator.show();
+    ApiClient.deleteKeyVault(keyVault.id)
+      .then((response) => {
+        ProgressIndicator.hide();
+        const errors = response?.responses?.errors;
+        if (errors?.length) {
+          Notification.show(errors[0]?.message || 'Failed to delete the Key Vault.', 'alert');
+          return;
+        }
+        Notification.show(`Key Vault ${keyVault.keyVaultName} deleted successfully.`);
+        getKeyVaultList();
+      })
+      .catch((err: any) => {
+        ProgressIndicator.hide();
+        Notification.show(err?.message || 'Failed to delete the Key Vault.', 'alert');
+      });
+  };
+
   return (
     <React.Fragment>
       <div className={classNames(Styles.mainPanel)}>
@@ -132,6 +158,7 @@ const AzureKeyVault = ({ user }: Props) => {
                     project={project}
                     canEdit={isCreator(project)}
                     onEditWorkspace={() => onEditWorkspace(project)}
+                    onDeleteWorkspace={() => setKeyVaultToDelete(project)}
                   />
                 );
               })}
@@ -170,6 +197,22 @@ const AzureKeyVault = ({ user }: Props) => {
           onCancel={() => { setShowCreateModal(false); getKeyVaultList(); }}
         />
       )}
+      <ConfirmModal
+        title=""
+        acceptButtonTitle="Delete"
+        cancelButtonTitle="Cancel"
+        showAcceptButton={true}
+        showCancelButton={true}
+        show={!!keyVaultToDelete}
+        content={
+          <div>
+            <h3>Are you sure you want to delete {keyVaultToDelete?.keyVaultName}?</h3>
+            <p>The Key Vault and all its secrets, keys and certificates will be deleted in Azure.</p>
+          </div>
+        }
+        onCancel={() => setKeyVaultToDelete(null)}
+        onAccept={onDeleteKeyVault}
+      />
     </React.Fragment>
   );
 };
