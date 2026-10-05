@@ -46,10 +46,6 @@ const AzureKeyVaultCard = ({ project, canEdit, onEditWorkspace, onDeleteWorkspac
               <div>{project?.createdBy?.firstName + ' ' + project?.createdBy?.lastName}</div>
             </div>
             <div>
-              <div>Collaborators</div>
-              <div>{project?.collaborators?.map((item) => item.displayName || item.identifier).join(', ') || 'None'}</div>
-            </div>
-            <div>
               <div>Create On</div>
               <div>{regionalDateAndTimeConversion(project?.createdOn)}</div>
             </div>
