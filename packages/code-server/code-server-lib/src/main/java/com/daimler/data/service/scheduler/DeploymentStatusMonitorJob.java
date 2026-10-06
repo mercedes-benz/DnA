@@ -721,12 +721,21 @@ public class DeploymentStatusMonitorJob {
             if (buildAuditLogs == null || buildAuditLogs.isEmpty()) {
                 return;
             }
+            String newestSuccessfulVersion = null;
+            for (BuildAudit build : buildAuditLogs) {
+                if (build.getVersion() != null && "BUILD_SUCCESS".equalsIgnoreCase(build.getBuildStatus())) {
+                    newestSuccessfulVersion = build.getVersion();
+                }
+            }
             boolean anyDeleted = false;
             for (BuildAudit build : buildAuditLogs) {
                 if (build.getVersion() == null) {
                     continue;
                 }
                 if (deployedVersion != null && build.getVersion().equalsIgnoreCase(deployedVersion)) {
+                    continue;
+                }
+                if (newestSuccessfulVersion != null && build.getVersion().equalsIgnoreCase(newestSuccessfulVersion)) {
                     continue;
                 }
                 if (build.isKeepBuildImage() || build.isImageDeleted()) {

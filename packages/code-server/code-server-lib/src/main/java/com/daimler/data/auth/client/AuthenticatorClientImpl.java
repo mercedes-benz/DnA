@@ -420,7 +420,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		return response;
 	}
 	
-	public void callingKongApis(String wsid,String serviceName, String env, boolean apiRecipe, String clientID, String clientSecret, String redirectUriFromUser, String ignorePaths, String scope, String oneApiVersionShortName, boolean isSecuredWithCookie, boolean secureWithIAM, String ssoType, boolean secureWithDna, boolean isAliceRoleEnabled, boolean isEntitlementPrefixEnabled, List<String> selectedAliceRoles, String cloudServiceProvider) {
+	public GenericMessage callingKongApis(String wsid,String serviceName, String env, boolean apiRecipe, String clientID, String clientSecret, String redirectUriFromUser, String ignorePaths, String scope, String oneApiVersionShortName, boolean isSecuredWithCookie, boolean secureWithIAM, String ssoType, boolean secureWithDna, boolean isAliceRoleEnabled, boolean isEntitlementPrefixEnabled, List<String> selectedAliceRoles, String cloudServiceProvider) {
 		boolean kongApiForDeploymentURL = !wsid.equalsIgnoreCase(serviceName) && Objects.nonNull(env);
 		CodeServerWorkspaceNsql workspaceNsql = customRepository.findByWorkspaceId(wsid);
 		CodeServerDeploymentDetails intDeploymentDetails = workspaceNsql.getData().getProjectDetails().getIntDeploymentDetails();
@@ -646,6 +646,8 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		GenericMessage attachApiAuthoriserPluginResponse = new GenericMessage();
 		GenericMessage changePluginStatusResponse = new GenericMessage();
 		GenericMessage attachRequestTransformerPluginResponse = new GenericMessage();
+		GenericMessage kongResponse = new GenericMessage();
+		kongResponse.setSuccess("FAILED");
 
 		try {	
 			boolean isServiceAlreadyCreated = false;
@@ -675,13 +677,16 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 				}
 				else {
 					LOGGER.info("Failed while calling kong create service API with errors " + createServiceResponse.getErrors());
-					return;
+					kongResponse.setErrors(createServiceResponse != null && createServiceResponse.getErrors() != null
+							? new ArrayList<>(createServiceResponse.getErrors()) : new ArrayList<>());
+					return kongResponse;
 				}
 			}else{
 				LOGGER.info("Route name {} already exist. ",env!=null ? serviceName.toLowerCase()+"-"+env:serviceName);
 				isRouteAlreadyCreated = true;
 			}
 			if(("success".equalsIgnoreCase(createServiceResponse.getSuccess())  || isServiceAlreadyCreated )&& ("success".equalsIgnoreCase(createRouteResponse.getSuccess()) || isRouteAlreadyCreated)) {
+				kongResponse.setSuccess("SUCCESS");
 				if(!kongApiForDeploymentURL) {
 					LOGGER.info("kongApiForDeploymentURL is false, calling oidc and appauthoriser plugin " );
 					attachPluginResponse = attachPluginToService(attachPluginRequestVO,serviceName,cloudServiceProvider);
@@ -1153,11 +1158,31 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 			}
 			else {
 				LOGGER.info("Failed while calling kong create route API with errors " + createRouteResponse.getErrors());
-				return;
+				List<MessageDescription> kongErrors = new ArrayList<>();
+				if (createServiceResponse != null && createServiceResponse.getErrors() != null) {
+					kongErrors.addAll(createServiceResponse.getErrors());
+				}
+				if (createRouteResponse != null && createRouteResponse.getErrors() != null) {
+					kongErrors.addAll(createRouteResponse.getErrors());
+				}
+				kongResponse.setErrors(kongErrors);
+				return kongResponse;
 			}
 		}
 		catch(Exception e) {
 			LOGGER.error(e.getMessage());
+			MessageDescription error = new MessageDescription();
+			error.setMessage("Exception while calling Kong APIs: " + e.getMessage());
+			List<MessageDescription> kongErrors = new ArrayList<>();
+			if (createServiceResponse != null && createServiceResponse.getErrors() != null) {
+				kongErrors.addAll(createServiceResponse.getErrors());
+			}
+			if (createRouteResponse != null && createRouteResponse.getErrors() != null) {
+				kongErrors.addAll(createRouteResponse.getErrors());
+			}
+			kongErrors.add(error);
+			kongResponse.setErrors(kongErrors);
+			return kongResponse;
 		}
 		
 		if (!kongApiForDeploymentURL && "success".equalsIgnoreCase(createServiceResponse.getSuccess())
@@ -1186,6 +1211,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 			// 		attachJwtPluginResponse.getErrors(), attachJwtPluginResponse.getWarnings());
 		}
 
+		return kongResponse;
 	}
 
 	@Override
@@ -1631,6 +1657,26 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
     return routeResponseVO;
 }
   
+	@Override
+	public boolean isKongServiceAndRouteAvailable(String serviceName, String cloudServiceProvider) {
+		try {
+			RouteResponseVO routeResponse = getRouteByName(serviceName, serviceName, cloudServiceProvider);
+			if (routeResponse != null && routeResponse.getId() != null) {
+				return true;
+			}
+			WorkspacePluginStatusVO corsStatus = getPluginStatus(serviceName, CORS_PLUGIN, cloudServiceProvider);
+			if (corsStatus != null && corsStatus.isEnabled() != null) {
+				LOGGER.info("Kong route for service {} not readable, but plugins are present, treating service as available", serviceName);
+				return true;
+			}
+		} catch (Exception e) {
+			LOGGER.error("Exception occurred while checking Kong service details: {} details {}. Skipping Kong setup.", serviceName, e.getMessage());
+			return true;
+		}
+		LOGGER.info("Kong service/route {} not found", serviceName);
+		return false;
+	}
+
 	public GenericMessage attachFunctionPluginToService(AttachFunctionPluginRequestVO attachFunctionPluginRequestVO, String serviceName){
 
 		GenericMessage response = new GenericMessage();
