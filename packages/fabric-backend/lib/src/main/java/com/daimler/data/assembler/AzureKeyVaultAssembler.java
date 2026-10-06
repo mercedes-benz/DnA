@@ -33,18 +33,6 @@ public class AzureKeyVaultAssembler implements GenericAssembler<KeyVaultVO, Azur
 					BeanUtils.copyProperties(creator, createdByVO);
 				}
 				vo.setCreatedBy(createdByVO);
-				UserDetails updater = data.getUpdatedBy();
-				if (updater != null) {
-					CreatedByVO updatedByVO = new CreatedByVO();
-					BeanUtils.copyProperties(updater, updatedByVO);
-					vo.setUpdatedBy(updatedByVO);
-				}
-				UserDetails remover = data.getDeletedBy();
-				if (remover != null) {
-					CreatedByVO deletedByVO = new CreatedByVO();
-					BeanUtils.copyProperties(remover, deletedByVO);
-					vo.setDeletedBy(deletedByVO);
-				}
 				if (data.getCollaborators() != null) {
 					vo.setCollaborators(data.getCollaborators().stream().map(collaborator -> {
 						KeyVaultCollaboratorVO collaboratorVO = new KeyVaultCollaboratorVO();
@@ -73,18 +61,6 @@ public class AzureKeyVaultAssembler implements GenericAssembler<KeyVaultVO, Azur
 				BeanUtils.copyProperties(createdByVO, creator);
 			}
 			data.setCreatedBy(creator);
-			CreatedByVO updatedByVO = vo.getUpdatedBy();
-			if (updatedByVO != null) {
-				UserDetails updater = new UserDetails();
-				BeanUtils.copyProperties(updatedByVO, updater);
-				data.setUpdatedBy(updater);
-			}
-			CreatedByVO deletedByVO = vo.getDeletedBy();
-			if (deletedByVO != null) {
-				UserDetails remover = new UserDetails();
-				BeanUtils.copyProperties(deletedByVO, remover);
-				data.setDeletedBy(remover);
-			}
 			if (vo.getCollaborators() != null) {
 				data.setCollaborators(vo.getCollaborators().stream().map(collaborator -> {
 					AzureKeyVaultCollaborator collaboratorData = new AzureKeyVaultCollaborator();

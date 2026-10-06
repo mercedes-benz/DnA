@@ -1693,14 +1693,10 @@ definitions:
         type: string
         format: date
         description: "Creation timestamp"
-      updatedBy:
-        $ref: "#/definitions/CreatedByVO"
       updatedOn:
         type: string
         format: date
         description: "Last update timestamp"
-      deletedBy:
-        $ref: "#/definitions/CreatedByVO"
       deletedOn:
         type: string
         format: date

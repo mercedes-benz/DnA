@@ -379,8 +379,11 @@ public class AzureManagementClient {
     }
 
     private List<AzurePrincipalDto> searchUsers(String term) {
-        // Graph supports substring matching on displayName only through $search, which requires advanced queries.
-        String query = "?$search=" + encodeQueryValue("\"displayName:" + term.replace("\"", "") + "\"")
+        // Graph supports substring matching on these fields only through $search, which requires advanced queries.
+        String sanitizedTerm = term.replace("\"", "");
+        String searchExpression = "\"displayName:" + sanitizedTerm + "\" OR \"mail:" + sanitizedTerm
+                + "\" OR \"userPrincipalName:" + sanitizedTerm + "\"";
+        String query = "?$search=" + encodeQueryValue(searchExpression)
                 + "&$select=id,displayName,mail,userPrincipalName";
         HttpHeaders headers = graphHeaders();
         if (headers == null) {

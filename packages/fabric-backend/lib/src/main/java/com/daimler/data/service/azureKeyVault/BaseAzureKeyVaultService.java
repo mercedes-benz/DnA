@@ -297,7 +297,6 @@ public class BaseAzureKeyVaultService extends BaseCommonService<KeyVaultVO, Azur
         	vo.setLocation(existingKeyVault.getLocation());
 			vo.setCreatedBy(existingKeyVault.getCreatedBy()); 
 			vo.setCreatedOn(existingKeyVault.getCreatedOn()); 
-			vo.setUpdatedBy(currentUser);
 			vo.setUpdatedOn(new Date());
 
 			provisionUpdatedCollaborators(keyVaultName, existingKeyVault, vo, warnings);
@@ -387,7 +386,6 @@ public class BaseAzureKeyVaultService extends BaseCommonService<KeyVaultVO, Azur
 				return new ResponseEntity<>(responseData, HttpStatus.INTERNAL_SERVER_ERROR);
 			}
 
-			existingKeyVault.setDeletedBy(currentUser);
 			existingKeyVault.setDeletedOn(new Date());
 			try {
 				jpaRepo.save(assembler.toEntity(existingKeyVault));

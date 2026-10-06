@@ -1627,9 +1627,7 @@ export interface IKeyVault {
   location?: string;
   createdBy?: IKeyVaultCreatedBy;
   createdOn?: string;
-  updatedBy?: IKeyVaultCreatedBy;
   updatedOn?: string;
-  deletedBy?: IKeyVaultCreatedBy;
   deletedOn?: string;
   collaborators?: IKeyVaultCollaborator[];
 }
