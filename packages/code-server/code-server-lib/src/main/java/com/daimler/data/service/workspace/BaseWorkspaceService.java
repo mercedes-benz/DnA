@@ -3746,22 +3746,6 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 									entity.getData().getProjectDetails().getRecipeDetails().getRecipeId());
 
 						}
-						if ("BUILD_SUCCESS".equalsIgnoreCase(latestStatus)
-								&& buildDetails.getLastBuildType().equalsIgnoreCase("build") && isPrivateRecipe) {
-							pendingDeployment.required = true;
-							pendingDeployment.userId = userId;
-							pendingDeployment.workspaceId = entity.getId();
-							pendingDeployment.environment = targetEnv;
-							pendingDeployment.branch = branch;
-							pendingDeployment.isPrivateRecipe = isPrivateRecipe;
-							pendingDeployment.version = version;
-							pendingDeployment.deployType = "build";
-							pendingDeployment.keepImage = keepBuildImage;
-							log.info(
-									"[Private Recipe] User {} auto-deploying workspace {} project {} after successful build",
-									userId, wsId,
-									entity.getData().getProjectDetails().getRecipeDetails().getRecipeId());
-						}
 						// else{
 						// log.info("User {} deployed workspace failed because of build failure {}
 						// project {}", userId, wsId,
