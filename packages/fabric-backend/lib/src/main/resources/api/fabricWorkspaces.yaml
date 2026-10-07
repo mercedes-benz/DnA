@@ -1711,32 +1711,18 @@ definitions:
     properties:
       identifier:
         type: string
-      shortId:
-        type: string
-      firstName:
-        type: string
-      lastName:
-        type: string
       objectId:
-        type: string
-      principalType:
         type: string
       kind:
         type: string
       displayName:
         type: string
-      role:
-        type: string
       accessLevel:
         type: string
         description: "Access level granted to the collaborator. Reading or Contributing."
-      roles:
-        type: array
-        description: "Azure Key Vault roles granted for the selected access level"
-        items:
-          type: string
       roleAssignmentId:
         type: string
+        description: "Assignment identifier kept for collaborators provisioned before access levels existed"
       roleAssignmentIds:
         type: array
         description: "Identifiers of the Azure role assignments created for this collaborator"

@@ -454,8 +454,7 @@ public class BaseAzureKeyVaultService extends BaseCommonService<KeyVaultVO, Azur
 			boolean accessLevelChanged = !normalizeAccessLevel(old.getAccessLevel())
 					.equals(normalizeAccessLevel(collaborator.getAccessLevel()));
 			// Collaborators stored before access levels existed hold a single role, so grant them the full set.
-			boolean legacyAssignment = old.getAccessLevel() == null || old.getRoles() == null
-					|| old.getRoles().isEmpty();
+			boolean legacyAssignment = old.getAccessLevel() == null || assignmentIdsOf(old).isEmpty();
 			if (accessLevelChanged || legacyAssignment) {
 				// Reading and Contributing map to disjoint role sets, so drop the obsolete assignments first.
 				removeCollaboratorAssignments(keyVaultName, old, warnings);
@@ -465,15 +464,8 @@ public class BaseAzureKeyVaultService extends BaseCommonService<KeyVaultVO, Azur
 			collaborator.setObjectId(old.getObjectId());
 			collaborator.setKind(azureManagementClient.normalizePrincipalKind(
 					collaborator.getKind() == null ? old.getKind() : collaborator.getKind()));
-			collaborator.setPrincipalType(old.getPrincipalType());
-			collaborator.setRole(old.getRole());
 			collaborator.setAccessLevel(old.getAccessLevel());
-			collaborator.setRoles(old.getRoles());
-			collaborator.setRoleAssignmentId(old.getRoleAssignmentId());
-			collaborator.setRoleAssignmentIds(old.getRoleAssignmentIds());
-			if (assignmentIdsOf(old).isEmpty()) {
-				provisionCollaborator(keyVaultName, collaborator, warnings);
-			}
+			collaborator.setRoleAssignmentIds(assignmentIdsOf(old));
 		}
 		Set<String> retained = updatedCollaborators.stream()
 				.filter(c -> c.getIdentifier() != null)
@@ -496,11 +488,9 @@ public class BaseAzureKeyVaultService extends BaseCommonService<KeyVaultVO, Azur
 		String accessLevel = normalizeAccessLevel(collaborator.getAccessLevel());
 		List<RoleAssignmentResponseDto> responses = azureManagementClient.assignAccessLevelRoles(keyVaultName,
 				principal.getId(), principal.getPrincipalType(), accessLevel);
-		List<String> grantedRoles = new ArrayList<>();
 		List<String> assignmentIds = new ArrayList<>();
 		for (RoleAssignmentResponseDto response : responses) {
 			if (response.getErrorCode() == null || "409".equals(response.getErrorCode())) {
-				grantedRoles.add(response.getRoleName());
 				if (response.getRoleAssignmentId() != null) {
 					assignmentIds.add(response.getRoleAssignmentId());
 				}
@@ -511,12 +501,9 @@ public class BaseAzureKeyVaultService extends BaseCommonService<KeyVaultVO, Azur
 		}
 		collaborator.setObjectId(principal.getId());
 		collaborator.setKind(kind);
-		collaborator.setPrincipalType(principal.getPrincipalType());
 		collaborator.setAccessLevel(accessLevel);
-		collaborator.setRole(accessLevel);
-		collaborator.setRoles(grantedRoles);
 		collaborator.setRoleAssignmentIds(assignmentIds);
-		collaborator.setRoleAssignmentId(assignmentIds.isEmpty() ? null : assignmentIds.get(0));
+		collaborator.setRoleAssignmentId(null);
 	}
 
 	private String normalizeAccessLevel(String accessLevel) {

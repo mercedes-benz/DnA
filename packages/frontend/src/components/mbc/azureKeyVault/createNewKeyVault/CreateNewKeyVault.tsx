@@ -210,7 +210,6 @@ const CreateNewWorkspace = ({ edit, project, setShowCreateModal, getKeyVaultList
         objectId: principal.id,
         displayName: principal.displayName || identifier,
         kind: principal.kind || principalType,
-        principalType: principal.principalType,
         accessLevel,
       },
     ]);
