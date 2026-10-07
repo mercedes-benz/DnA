@@ -123,4 +123,11 @@ public interface WorkspaceCustomRepository extends CommonDataRepository<CodeServ
 	 * @return list of workspace details 
 	 */
 	List<CodeServerWorkspaceNsql> findAllByWebhookId(String webhookId);
+
+	/**
+	 * get all the workspace by the unique lateral 
+	 * @param uniqueLiteral string unique Literal i.e. will be the JSON key or column 
+	 * @param value the value based on which it will compare i.e. WHERE uniqueLiteral = value
+	 */
+	List<CodeServerWorkspaceNsql> findAllbyProjectName(String projectName);
 }
