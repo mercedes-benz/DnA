@@ -56,6 +56,8 @@ public class BaseAzureKeyVaultService extends BaseCommonService<KeyVaultVO, Azur
 	@Autowired
 	private UserStore userStore;
 
+	private static final String CREATOR_AS_COLLABORATOR_ERROR = "Creator cannot be added as a collaborator.";
+
 	@Override
 	public KeyVaultCollectionVO getAllKeyVaults(int limit, int offset, String createdBy) {
 		KeyVaultCollectionVO collection = new KeyVaultCollectionVO();
@@ -128,6 +130,15 @@ public class BaseAzureKeyVaultService extends BaseCommonService<KeyVaultVO, Azur
 			String keyVaultName = vo.getKeyVaultName();
 			CreatedByVO currentUser = userStore.getVO();
         	String userEmail = currentUser.getEmail();
+
+			if (containsCreator(vo, currentUser)) {
+				errors.add(new MessageDescription(CREATOR_AS_COLLABORATOR_ERROR));
+				responseMessage.setErrors(errors);
+				responseMessage.setSuccess("FAILED");
+				responseData.setData(vo);
+				responseData.setResponses(responseMessage);
+				return new ResponseEntity<>(responseData, HttpStatus.BAD_REQUEST);
+			}
 
 			KeyVaultNameAvailabilityResponseDto availabilityResponse = azureManagementClient.checkKeyVaultNameAvailability(keyVaultName);
 
@@ -277,6 +288,15 @@ public class BaseAzureKeyVaultService extends BaseCommonService<KeyVaultVO, Azur
 				return new ResponseEntity<>(responseData, HttpStatus.FORBIDDEN);
 			}
 
+			if (containsCreator(vo, existingKeyVault.getCreatedBy())) {
+				errors.add(new MessageDescription(CREATOR_AS_COLLABORATOR_ERROR));
+				responseMessage.setErrors(errors);
+				responseMessage.setSuccess("FAILED");
+				responseData.setData(vo);
+				responseData.setResponses(responseMessage);
+				return new ResponseEntity<>(responseData, HttpStatus.BAD_REQUEST);
+			}
+
 			String existingKeyVaultName = existingKeyVault.getKeyVaultName();
 			boolean nameChanged = !existingKeyVaultName.equals(keyVaultName);
 
@@ -416,6 +436,21 @@ public class BaseAzureKeyVaultService extends BaseCommonService<KeyVaultVO, Azur
 			responseData.setResponses(responseMessage);
 			return new ResponseEntity<>(responseData, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
+	}
+
+	private boolean containsCreator(KeyVaultVO vo, CreatedByVO creator) {
+		if (vo.getCollaborators() == null || creator == null) {
+			return false;
+		}
+		Set<String> creatorIdentities = new HashSet<>();
+		if (creator.getEmail() != null) {
+			creatorIdentities.add(creator.getEmail().toLowerCase());
+		}
+		if (creator.getId() != null) {
+			creatorIdentities.add(creator.getId().toLowerCase());
+		}
+		return vo.getCollaborators().stream().filter(c -> c != null && c.getIdentifier() != null)
+				.anyMatch(c -> creatorIdentities.contains(c.getIdentifier().toLowerCase()));
 	}
 
 	private void provisionAddedCollaborators(String keyVaultName, KeyVaultVO vo, List<MessageDescription> warnings) {

@@ -189,6 +189,7 @@ const AzureKeyVault = ({ user }: Props) => {
             <CreateNewKeyVault
               edit={isEditMode}
               project={selectedKeyVault}
+              user={user}
               setShowCreateModal={() => setShowCreateModal(false)}
               getKeyVaultList={getKeyVaultList}
             />

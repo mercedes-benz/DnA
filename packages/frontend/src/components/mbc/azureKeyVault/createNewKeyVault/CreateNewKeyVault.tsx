@@ -15,6 +15,7 @@ import {
   IKeyVaultCollaborator,
   IKeyVaultPrincipal,
   IKeyVaultPrincipalKind,
+  IUserInfo,
 } from 'globals/types';
 
 const ACCESS_LEVELS: IKeyVaultAccessLevel[] = ['Reading', 'Contributing'];
@@ -29,11 +30,12 @@ const PRINCIPAL_TYPES: { value: IKeyVaultPrincipalKind; label: string }[] = [
 interface Props {
   edit?: boolean;
   project?: IKeyVault;
+  user?: IUserInfo;
   setShowCreateModal?: () => void;
   getKeyVaultList?: () => void;
 }
 
-const CreateNewWorkspace = ({ edit, project, setShowCreateModal, getKeyVaultList }: Props) => {
+const CreateNewWorkspace = ({ edit, project, user, setShowCreateModal, getKeyVaultList }: Props) => {
   const [keyVaultName, setKeyVaultName] = useState(edit ? project?.keyVaultName || '' : '');
   const [keyVaultNameError, setKeyVaultNameError] = useState('');
 
@@ -190,6 +192,13 @@ const CreateNewWorkspace = ({ edit, project, setShowCreateModal, getKeyVaultList
     }
   };
 
+  const creatorIdentities = [
+    edit ? project?.createdBy?.email : user?.email || user?.eMail,
+    edit ? project?.createdBy?.id : user?.id,
+  ]
+    .filter((value) => !!value)
+    .map((value) => value.toLowerCase());
+
   const addCollaborator = (principal: IKeyVaultPrincipal) => {
     if (!principal) {
       return;
@@ -197,6 +206,10 @@ const CreateNewWorkspace = ({ edit, project, setShowCreateModal, getKeyVaultList
     const identifier = principal.identifier || principal.mail || principal.appId || principal.displayName;
     if (!identifier) {
       Notification.show('Selected principal has no identifier and cannot be added as collaborator.', 'warning');
+      return;
+    }
+    if (creatorIdentities.includes(identifier.toLowerCase())) {
+      Notification.show('Creator cannot be added as a collaborator.', 'warning');
       return;
     }
     if (collaborators.some((item) => item.identifier?.toLowerCase() === identifier.toLowerCase())) {
