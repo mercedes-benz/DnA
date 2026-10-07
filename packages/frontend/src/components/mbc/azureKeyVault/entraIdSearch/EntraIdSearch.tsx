@@ -3,6 +3,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { debounce } from 'lodash';
 import { IKeyVaultPrincipal, IKeyVaultPrincipalKind } from 'globals/types';
 import { ApiClient } from '../../../../services/ApiClient';
+import Tooltip from '../../../../assets/modules/uilab/js/src/tooltip';
 import Styles from '../../teamSearch/TeamSearch.scss';
 
 const classNames = cn.bind(Styles);
@@ -64,6 +65,10 @@ const EntraIdSearch = (props: EntraIdSearchProps) => {
     }, SEARCH_DEBOUNCE_MS),
     [],
   );
+
+  useEffect(() => {
+    Tooltip.defaultSetup();
+  }, []);
 
   useEffect(() => {
     principalTypeRef.current = principalType;
@@ -150,6 +155,11 @@ const EntraIdSearch = (props: EntraIdSearchProps) => {
         <div className={'input-field-group'}>
           <label htmlFor="entraIdSearchField" className="input-label">
             {props.label}
+            &nbsp;
+            <i
+              className="icon mbc-icon info"
+              tooltip-data="Kindly provide full names of users as shortID doesn't work"
+            />
           </label>
           <div id="searchPanel" className={Styles.searchPanel}>
             <input
@@ -158,7 +168,11 @@ const EntraIdSearch = (props: EntraIdSearchProps) => {
               ref={searchInput}
               id="entraIdSearchField"
               value={searchTerm}
-              placeholder="Enter minimum 3 characters of the display name"
+              placeholder={
+                principalType === 'USER'
+                  ? 'Enter minimum 3 characters of the full name or mail id'
+                  : 'Enter minimum 3 characters of the display name'
+              }
               onChange={onSearchInputChange}
               onKeyDown={onSearchInputKeyDown}
               maxLength={200}

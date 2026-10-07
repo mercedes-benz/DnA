@@ -12,9 +12,10 @@ interface Props {
   project: IKeyVault;
   canEdit: boolean;
   onEditWorkspace: (project: IKeyVault) => void;
+  onDeleteWorkspace: (project: IKeyVault) => void;
 }
 
-const AzureKeyVaultCard = ({ project, canEdit, onEditWorkspace}: Props) => {
+const AzureKeyVaultCard = ({ project, canEdit, onEditWorkspace, onDeleteWorkspace}: Props) => {
 
   useEffect(() => {
     SelectBox.defaultSetup();
@@ -48,17 +49,6 @@ const AzureKeyVaultCard = ({ project, canEdit, onEditWorkspace}: Props) => {
               <div>Create On</div>
               <div>{regionalDateAndTimeConversion(project?.createdOn)}</div>
             </div>
-            {project?.updatedOn && (
-              <div>
-                <div>Updated On</div>
-                <div>
-                  {regionalDateAndTimeConversion(project?.updatedOn)}
-                  {project?.updatedBy?.firstName
-                    ? ' by ' + project?.updatedBy?.firstName + ' ' + (project?.updatedBy?.lastName || '')
-                    : ''}
-                </div>
-              </div>
-            )}
           </div>
         </div>
         <div className={Styles.cardFooter}>
@@ -72,9 +62,14 @@ const AzureKeyVaultCard = ({ project, canEdit, onEditWorkspace}: Props) => {
             >
               <i className="icon mbc-icon edit"></i>
             </button>
-            {/* <button className="btn btn-primary" onClick={() => {}} disabled={true}>
+            <button
+              className="btn btn-primary"
+              disabled={!canEdit}
+              onClick={() => onDeleteWorkspace(project)}
+              tooltip-data={canEdit ? 'Delete' : 'Only the creator can delete this Key Vault'}
+            >
               <i className="icon delete"></i>
-            </button> */}
+            </button>
           </div>
         </div>
       </div>

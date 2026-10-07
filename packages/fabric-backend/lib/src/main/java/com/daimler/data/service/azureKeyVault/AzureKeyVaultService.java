@@ -15,6 +15,8 @@ public interface AzureKeyVaultService extends CommonService<KeyVaultVO, AzureKey
 	ResponseEntity<KeyVaultResponseVO> createKeyVault(KeyVaultVO vo);
 
 	ResponseEntity<KeyVaultResponseVO> updateKeyVault(KeyVaultVO vo); 
+
+	ResponseEntity<KeyVaultResponseVO> deleteKeyVault(String id);
 	
 	KeyVaultCollectionVO getAllKeyVaults(int limit, int offset, String createdBy);
 

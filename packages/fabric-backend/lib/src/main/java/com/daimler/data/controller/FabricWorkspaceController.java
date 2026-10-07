@@ -1399,6 +1399,50 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 	}
 
 	@Override
+	@ApiOperation(value = "Delete Azure Key Vault", nickname = "deleteKeyVault",
+		notes = "Deletes the Azure Key Vault resource and records the deletion details. Only the creator can delete it.",
+		response = KeyVaultResponseVO.class, tags={ "fabric-workspaces", })
+	@ApiResponses(value = {
+		@ApiResponse(code = 200, message = "Returns the deleted Key Vault data with success or failure messages", response = KeyVaultResponseVO.class),
+		@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+		@ApiResponse(code = 403, message = "Request is not authorized."),
+		@ApiResponse(code = 404, message = "Key Vault not found."),
+		@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/fabric-workspaces/keyVault/{id}",
+		produces = { "application/json" },
+		method = RequestMethod.DELETE)
+	public ResponseEntity<KeyVaultResponseVO> deleteKeyVault(
+			@ApiParam(value = "Key Vault ID to be deleted", required=true)
+			@PathVariable("id") String id) {
+
+		KeyVaultResponseVO responseVO = new KeyVaultResponseVO();
+		GenericMessage errorMessage = new GenericMessage();
+
+		if (this.userStore.getUserInfo() == null || this.userStore.getVO() == null
+				|| this.userStore.getVO().getId() == null
+				|| "".equalsIgnoreCase(this.userStore.getVO().getId().trim())) {
+			log.error("Unable to get user information from UserStore");
+			errorMessage.setSuccess("FAILED");
+			errorMessage.addErrors(new MessageDescription("Unable to identify the requesting user."));
+			responseVO.setResponses(errorMessage);
+			return new ResponseEntity<>(responseVO, HttpStatus.FORBIDDEN);
+		}
+
+		try {
+			log.info("Received request to delete Key Vault with id: {}", id);
+			return keyVaultService.deleteKeyVault(id);
+		} catch (Exception e) {
+			log.error("Failed to delete Key Vault {} with exception: {}", id, e.getMessage(), e);
+			errorMessage.setSuccess("FAILED");
+			errorMessage.addErrors(new MessageDescription(
+					"Failed to delete the Key Vault due to an unexpected error. Please try again later."));
+			responseVO.setData(null);
+			responseVO.setResponses(errorMessage);
+			return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	@Override
 	@ApiOperation(value = "Get all Azure Key Vaults created by the authenticated user", nickname = "getAllKeyVaults", notes = "Retrieves all Azure Key Vaults created by the current user from the database with pagination support.", response = KeyVaultCollectionVO.class, tags = { "fabric-workspaces", })
 	@ApiResponses(value = { 
 			@ApiResponse(code = 200, message = "Successfully retrieved Key Vaults", response = KeyVaultCollectionVO.class),
