@@ -362,15 +362,17 @@ const DeployModal = (props) => {
                 <span className={Styles.autoDeployInfo}>
                   <i className="icon mbc-icon info"></i>
                   <span className={Styles.autoDeployTooltip}>
-                    Auto deployment is triggered exclusively on <strong>Push</strong> and{' '}
-                    <strong>Pull Request merge</strong> events for selected branch linked to 
+                    Auto deployment is triggered exclusively by <strong>Push</strong> and{' '}
+                    <strong>Pull Request merge</strong> events on the branch selected for the
                     staging or production environment.
                     <br /><br />
-                    <strong>Note:</strong> It is strongly recommended to enable <strong>branch protection rules </strong>
-                      on the selected branch to prevent unintentional deployments. 
-                     Any commit or merge to the selected branch will trigger an automatic deployment.
+                    This feature is not available for repositories hosted outside GitHub Enterprise (GHE).
                     <br /><br />
-                    For repositories hosted outside the ghe GitHub enterprise this feature is not available.
+                    <strong>Info:</strong> For private recipes linked to a single repository, auto deployment will
+                    also be enabled for the corresponding branches in other code spaces created from the same
+                    recipe. Since all such code spaces share the same repository, any commit or merge will trigger
+                    an automatic deployment for the specific code space that has auto deployment enabled for that
+                    branch. It is recommended to enable branch protection rules on the selected branches.
                   </span>
                 </span>
               </div>
@@ -418,6 +420,16 @@ const DeployModal = (props) => {
                       suggestionPopupHeight={150}
                     />
                   </div>
+                </div>
+              )}
+              {autoDeployEnabled && (
+                <div className={Styles.autoDeployNote}>
+                  <i className="icon mbc-icon alert circle"></i>
+                  <span>
+                    <strong>Note:</strong> It is strongly recommended to enable <strong>branch protection rules</strong> on the selected branch to prevent unintentional deployments.
+                    <br />
+                    Any commit or merge to the selected branch will trigger an automatic deployment.
+                  </span>
                 </div>
               )}
             </div>
