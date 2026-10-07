@@ -48,4 +48,5 @@ export const Envs = {
   DDX_DOF_BASE_URL: getInjectedEnv('DDX_DOF_BASE_URL') || process.env.DDX_DOF_BASE_URL,
   SECURITY_LEVELS: (getInjectedEnv('SECURITY_LEVELS') || process.env.SECURITY_LEVELS)?.split(',').map(s => s.trim()),
   TICKET_SUPPORT_URL: getInjectedEnv('TICKET_SUPPORT_URL') || process.env.TICKET_SUPPORT_URL,
+  DDX_DP_APPROVAL_MAIL: getInjectedEnv('DDX_DP_APPROVAL_MAIL') || process.env.DDX_DP_APPROVAL_MAIL,
 };

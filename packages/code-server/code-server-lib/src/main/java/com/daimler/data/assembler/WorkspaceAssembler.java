@@ -57,6 +57,7 @@
  import com.daimler.data.db.json.CodespaceSecurityRole;
  import com.daimler.data.db.json.CodespaceSecurityUserRoleMap;
  import com.daimler.data.db.json.UserInfo;
+ import com.daimler.data.dto.CodespaceResourceExemptionDto;
  import com.daimler.data.dto.CodespaceSecurityConfigDto;
  import com.daimler.data.dto.workspace.CodeServerDeploymentDetailsVO;
  import com.daimler.data.dto.workspace.CodeServerBuildDetailsVO;
@@ -79,6 +80,7 @@
  import com.daimler.data.dto.workspace.CodespaceSecurityEntitlementVO;
  import com.daimler.data.dto.workspace.CodespaceSecurityApiListVO;
  import com.daimler.data.dto.workspace.admin.CodespacePublishedSecurityConfigVO;
+ import com.daimler.data.dto.workspace.admin.CodespaceResourceExemptionVO;
  import com.daimler.data.dto.workspace.admin.CodespaceSecurityConfigDetailsVO;
  import com.daimler.data.dto.workspace.CodespaceSecurityRoleVO;
  import com.daimler.data.dto.workspace.CodespaceSecurityUserRoleMapResponseVO;
@@ -290,6 +292,8 @@ import com.daimler.data.dto.workspace.DeploymentAuditVO;
 		 CodeServerDeploymentDetails deploymentDetails = new CodeServerDeploymentDetails();
 		 if (vo != null) {
 			 BeanUtils.copyProperties(vo, deploymentDetails);
+			 deploymentDetails.setNewPodCrashLooping(vo.isNewPodCrashLooping());
+			 deploymentDetails.setCrashLoopReason(vo.getCrashLoopReason());
 			 if(vo.isSecureWithIAMRequired()!=null)
 			 {
 				deploymentDetails.setSecureWithIAMRequired(vo.isSecureWithIAMRequired());
@@ -394,6 +398,8 @@ import com.daimler.data.dto.workspace.DeploymentAuditVO;
 		 SimpleDateFormat isoFormat = new SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS+00:00");
 		 if (deploymentDetails != null) {
 			 BeanUtils.copyProperties(deploymentDetails, deploymentDetailsVO);
+			 deploymentDetailsVO.setNewPodCrashLooping(deploymentDetails.getNewPodCrashLooping());
+			 deploymentDetailsVO.setCrashLoopReason(deploymentDetails.getCrashLoopReason());
 			 deploymentDetailsVO.setLastDeployedBy(toUserInfoVO(deploymentDetails.getLastDeployedBy()));
 			 if (Objects.isNull(deploymentDetails.getSecureWithIAMRequired())) {
 				 deploymentDetailsVO.setSecureWithIAMRequired(false);
@@ -1178,6 +1184,18 @@ import com.daimler.data.dto.workspace.DeploymentAuditVO;
 			 }
 		 } catch (Exception e) {
 			 log.error("Failed in assembler", e.getMessage());
+		 }
+		 return vo;
+	 }
+	 
+	  public CodespaceResourceExemptionVO dtoToVo(CodespaceResourceExemptionDto dto) {
+		 CodespaceResourceExemptionVO vo = new CodespaceResourceExemptionVO();
+		 if (dto != null) {
+			 vo.setProjectName(dto.getProjectName());
+			 vo.setProjectOwner(toUserInfoVO(dto.getProjectOwner()));
+			 vo.setWorkspaceCount(dto.getWorkspaceCount());
+			 vo.setExemptInt(Boolean.TRUE.equals(dto.getExemptInt()));
+			 vo.setExemptProd(Boolean.TRUE.equals(dto.getExemptProd()));
 		 }
 		 return vo;
 	 }

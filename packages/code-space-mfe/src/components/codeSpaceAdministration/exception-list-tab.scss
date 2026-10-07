@@ -1,0 +1,43 @@
+.content {
+  background-color: #252a33;
+  padding: 25px 0;
+}
+.headerRow {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  margin-top: -35px;
+}
+.info {
+  color: #acb8c4;
+  font-size: var(--font-size-small);
+  max-width: 60%;
+  margin: 0;
+}
+.searchForm {
+  display: flex;
+  align-items: center;
+}
+.searchField {
+  margin: 0 10px 0 0;
+  min-width: 220px;
+}
+.countColumn {
+  text-align: center !important;
+}
+.checkColumn {
+  text-align: center !important;
+  label {
+    justify-content: center;
+  }
+  input[type='checkbox'] {
+    -webkit-appearance: none;
+    appearance: none;
+  }
+}
+.csempty {
+  min-height: 300px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}

@@ -1,0 +1,26 @@
+package com.daimler.data.db.json;
+
+import java.io.Serializable;
+import java.util.Date;
+
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
+
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
+public class DdxGroupDetail implements Serializable {
+    private static final long serialVersionUID = 1L;
+
+    private String groupName;
+    private String groupAddedStatus;
+    private String grantPermissionStatus;
+    private String testRunId;
+    private String message;
+    private Date addedOn;
+    private Date updatedOn;
+}

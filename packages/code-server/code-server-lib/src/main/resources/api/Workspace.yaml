@@ -2038,6 +2038,12 @@ definitions:
       lastDeploymentStatus:
         type: string
         description: Status of last deployement
+      newPodCrashLooping:
+        type: boolean
+        description: Whether the deployment's new pod is crash-looping
+      crashLoopReason:
+        type: string
+        description: Human-readable crash-loop reason
       gitjobRunID:
         type: string
         description: "git job run Id of project deployed"

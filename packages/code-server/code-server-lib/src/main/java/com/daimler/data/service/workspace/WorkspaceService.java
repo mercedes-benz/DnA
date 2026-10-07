@@ -38,7 +38,7 @@ import com.daimler.data.dto.workspace.*;
 import com.daimler.data.dto.workspace.admin.CodespaceSecurityConfigDetailsVO;
 import com.daimler.data.dto.workspace.buildDeploy.*;
 import com.daimler.data.dto.workspace.WorkspacePluginStatusVO;
-
+import com.daimler.data.dto.workspace.admin.CodespaceResourceExemptionVO;
 
 public interface WorkspaceService {
 
@@ -65,6 +65,10 @@ public interface WorkspaceService {
 	CodeServerWorkspaceVO getByProjectName(String userId, String projectName);
 
 	GenericMessage update(String userId, String name, String projectName, String existingStatus, String latestStatus, String targetEnv, String branch, String gitJobRunId,String version);
+
+	GenericMessage updateStatus(String userId, String wsId, String projectName, String existingStatus,
+			String latestStatus, String targetEnv, String branch, String gitJobRunId, String version,
+			BaseWorkspaceService.PendingDeployment pendingDeployment);
 
 	GenericMessage approveRequestWorkspace(String userId, String id, String environment, String branch, boolean isprivateRecipe, String version);
 
@@ -97,6 +101,12 @@ public interface WorkspaceService {
 	GenericMessage makeApprover(CodeServerWorkspaceVO vo);
 
     List<CodespaceSecurityConfigDetailsVO> getAllSecurityConfigs(Integer offset, Integer limit, String projectName);
+
+	List<CodespaceResourceExemptionVO> getAllResourceCapExemptions(Integer offset, Integer limit, String projectName);
+
+	Integer getResourceCapExemptionsCount(String projectName);
+
+	GenericMessage updateResourceCapExemption(String projectName, String environment, boolean exempt);
 
 	//GenericMessage updateSecurityConfigStatus(String projectName, String Status, String user, CodeServerWorkspaceVO vo);
 

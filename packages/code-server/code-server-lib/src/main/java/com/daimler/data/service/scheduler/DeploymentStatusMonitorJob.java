@@ -25,8 +25,11 @@ import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
+import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 
 
@@ -71,81 +74,126 @@ public class DeploymentStatusMonitorJob {
             }
 
             List<CodeServerWorkspaceNsql> workspaces = workspaceCustomRepository.findDeploymentReconciliationWorkspaces();
-            int checkedCount = 0;
-            int updatedCount = 0;
-
+            Map<String, List<CodeServerWorkspaceNsql>> workspacesByProject = new LinkedHashMap<>();
             for (CodeServerWorkspaceNsql workspace : workspaces) {
                 if (workspace.getData() == null || workspace.getData().getProjectDetails() == null) {
                     continue;
                 }
-
                 String projectName = workspace.getData().getProjectDetails().getProjectName();
                 if (projectName == null) {
                     continue;
                 }
-
-                // Recovery: if top-level lastBuildOrDeployedStatus is RESTART_REQUESTED but
-                // per-environment lastDeploymentStatus was never updated, force-check it.
-                String topLevelStatus = workspace.getData().getProjectDetails().getLastBuildOrDeployedStatus();
-                String topLevelEnv = workspace.getData().getProjectDetails().getLastBuildOrDeployedEnv();
-
-                CodeServerDeploymentDetails intDeployment = workspace.getData().getProjectDetails().getIntDeploymentDetails();
-                repairMissingFailureFields(workspace, intDeployment, projectName, "int");
-                boolean intNeedsCheck = intDeployment != null && shouldCheckDeployment(intDeployment)
-                        && !isUserCancelled(intDeployment);
-                // Recovery for stuck restarts: top-level says RESTART_REQUESTED for this env but per-env field was never updated
-                if (!intNeedsCheck && intDeployment != null 
-                        && "RESTART_REQUESTED".equalsIgnoreCase(topLevelStatus) 
-                        && "int".equalsIgnoreCase(topLevelEnv)) {
-                    log.info("Recovery: workspace {} has top-level RESTART_REQUESTED for int but per-env status is {}",
-                            projectName, intDeployment.getLastDeploymentStatus());
-                    intDeployment.setLastDeploymentStatus("RESTART_REQUESTED");
-                    intNeedsCheck = true;
-                }
-                if (intNeedsCheck && !hasDeploymentHistory(projectName, "int")) {
-                    log.info("Clearing stale status for {}-int: no deployment audit logs exist", projectName);
-                    intDeployment.setLastDeploymentStatus(null);
-                    workspaceCustomRepository.updateDeploymentDetails(projectName, "int", intDeployment, null);
-                    intNeedsCheck = false;
-                }
-                if (intNeedsCheck) {
-                    checkedCount++;
-                    if (checkAndUpdateDeployment(argoToken, workspace, intDeployment, projectName, "int")) {
-                        updatedCount++;
-                    }
-                }
-                CodeServerDeploymentDetails prodDeployment = workspace.getData().getProjectDetails().getProdDeploymentDetails();
-                repairMissingFailureFields(workspace, prodDeployment, projectName, "prod");
-                boolean prodNeedsCheck = prodDeployment != null && shouldCheckDeployment(prodDeployment)
-                        && !isUserCancelled(prodDeployment);
-                if (!prodNeedsCheck && prodDeployment != null 
-                        && "RESTART_REQUESTED".equalsIgnoreCase(topLevelStatus) 
-                        && "prod".equalsIgnoreCase(topLevelEnv)) {
-                    log.info("Recovery: workspace {} has top-level RESTART_REQUESTED for prod but per-env status is {}",
-                            projectName, prodDeployment.getLastDeploymentStatus());
-                    prodDeployment.setLastDeploymentStatus("RESTART_REQUESTED");
-                    prodNeedsCheck = true;
-                }
-                if (prodNeedsCheck && !hasDeploymentHistory(projectName, "prod")) {
-                    log.info("Clearing stale status for {}-prod: no deployment audit logs exist", projectName);
-                    prodDeployment.setLastDeploymentStatus(null);
-                    workspaceCustomRepository.updateDeploymentDetails(projectName, "prod", prodDeployment, null);
-                    prodNeedsCheck = false;
-                }
-                if (prodNeedsCheck) {
-                    checkedCount++;
-                    if (checkAndUpdateDeployment(argoToken, workspace, prodDeployment, projectName, "prod")) {
-                        updatedCount++;
-                    }
-                }
+                workspacesByProject.computeIfAbsent(projectName.toLowerCase(Locale.ROOT),
+                        key -> new ArrayList<>()).add(workspace);
             }
 
-            if (checkedCount > 0) {
-                log.info("Deployment status monitoring completed - Checked: {}, Updated: {}", checkedCount, updatedCount);
+            MonitorCounts counts = new MonitorCounts();
+            for (List<CodeServerWorkspaceNsql> projectWorkspaces : workspacesByProject.values()) {
+                reconcileProjectEnvironment(argoToken, projectWorkspaces, "int", counts);
+                reconcileProjectEnvironment(argoToken, projectWorkspaces, "prod", counts);
+            }
+
+            if (counts.checkedCount > 0) {
+                log.info("Deployment status monitoring completed - Checked: {}, Updated: {}",
+                        counts.checkedCount, counts.updatedCount);
             }
         } catch (Exception e) {
             log.error("Error in deployment status monitoring job", e);
         }
+    }
+
+    private void reconcileProjectEnvironment(String argoToken, List<CodeServerWorkspaceNsql> projectWorkspaces,
+            String environment, MonitorCounts counts) {
+        List<CodeServerWorkspaceNsql> checkCandidates = new ArrayList<>();
+        List<CodeServerWorkspaceNsql> repairCandidates = new ArrayList<>();
+
+        for (CodeServerWorkspaceNsql workspace : projectWorkspaces) {
+            CodeServerDeploymentDetails deployment = "int".equalsIgnoreCase(environment)
+                    ? workspace.getData().getProjectDetails().getIntDeploymentDetails()
+                    : workspace.getData().getProjectDetails().getProdDeploymentDetails();
+            if (needsFailureFieldRepair(deployment)) {
+                repairCandidates.add(workspace);
+            }
+
+            boolean needsCheck = deployment != null && shouldCheckDeployment(deployment)
+                    && !isUserCancelled(deployment);
+            String topLevelStatus = workspace.getData().getProjectDetails().getLastBuildOrDeployedStatus();
+            String topLevelEnv = workspace.getData().getProjectDetails().getLastBuildOrDeployedEnv();
+            if (!needsCheck && deployment != null
+                    && "RESTART_REQUESTED".equalsIgnoreCase(topLevelStatus)
+                    && environment.equalsIgnoreCase(topLevelEnv)
+                    && !isUserCancelled(deployment)) {
+                needsCheck = true;
+            }
+            if (needsCheck) {
+                checkCandidates.add(workspace);
+            }
+        }
+
+        if (!checkCandidates.isEmpty()) {
+            CodeServerWorkspaceNsql representative = chooseRepresentative(checkCandidates);
+            String projectName = representative.getData().getProjectDetails().getProjectName();
+            CodeServerDeploymentDetails deployment = "int".equalsIgnoreCase(environment)
+                    ? representative.getData().getProjectDetails().getIntDeploymentDetails()
+                    : representative.getData().getProjectDetails().getProdDeploymentDetails();
+            String topLevelStatus = representative.getData().getProjectDetails().getLastBuildOrDeployedStatus();
+            String topLevelEnv = representative.getData().getProjectDetails().getLastBuildOrDeployedEnv();
+            if (!shouldCheckDeployment(deployment)
+                    && "RESTART_REQUESTED".equalsIgnoreCase(topLevelStatus)
+                    && environment.equalsIgnoreCase(topLevelEnv)) {
+                log.info("Recovery: workspace {} has top-level RESTART_REQUESTED for {} but per-env status is {}",
+                        projectName, environment, deployment.getLastDeploymentStatus());
+                deployment.setLastDeploymentStatus("RESTART_REQUESTED");
+            }
+            if (!hasDeploymentHistory(projectName, environment)) {
+                log.info("Clearing stale status for {}-{}: no deployment audit logs exist",
+                        projectName, environment);
+                deployment.setLastDeploymentStatus(null);
+                deployment.setNewPodCrashLooping(false);
+                deployment.setCrashLoopReason(null);
+                workspaceCustomRepository.updateDeploymentDetails(projectName, environment, deployment, null);
+                workspaceCustomRepository.updateDeploymentCrashLoopStatus(projectName, environment, false, null);
+                return;
+            }
+            counts.checkedCount++;
+            if (checkAndUpdateDeployment(argoToken, representative, deployment, projectName, environment)) {
+                counts.updatedCount++;
+            }
+        } else if (!repairCandidates.isEmpty()) {
+            CodeServerWorkspaceNsql representative = chooseRepresentative(repairCandidates);
+            String projectName = representative.getData().getProjectDetails().getProjectName();
+            CodeServerDeploymentDetails deployment = "int".equalsIgnoreCase(environment)
+                    ? representative.getData().getProjectDetails().getIntDeploymentDetails()
+                    : representative.getData().getProjectDetails().getProdDeploymentDetails();
+            deployment.setNewPodCrashLooping(false);
+            deployment.setCrashLoopReason(null);
+            repairMissingFailureFields(representative, deployment, projectName, environment);
+        }
+    }
+
+    private boolean needsFailureFieldRepair(CodeServerDeploymentDetails deployment) {
+        return deployment != null
+                && "DEPLOYMENT_FAILED".equalsIgnoreCase(deployment.getLastDeploymentStatus())
+                && !isUserCancelled(deployment)
+                && (deployment.getLastDeployedBy() == null || deployment.getLastDeployedOn() == null);
+    }
+
+    private CodeServerWorkspaceNsql chooseRepresentative(List<CodeServerWorkspaceNsql> candidates) {
+        for (CodeServerWorkspaceNsql candidate : candidates) {
+            UserInfo workspaceOwner = candidate.getData().getWorkspaceOwner();
+            UserInfo projectOwner = candidate.getData().getProjectDetails().getProjectOwner();
+            if (workspaceOwner != null && projectOwner != null
+                    && workspaceOwner.getId() != null && projectOwner.getId() != null
+                    && workspaceOwner.getId().equalsIgnoreCase(projectOwner.getId())) {
+                return candidate;
+            }
+        }
+        return candidates.get(0);
+    }
+
+    private static class MonitorCounts {
+        private int checkedCount;
+        private int updatedCount;
     }
 
     public boolean reconcileDeploymentOnDemand(CodeServerWorkspaceNsql workspace, String environment) {
@@ -379,6 +427,9 @@ public class DeploymentStatusMonitorJob {
             }
             String argoStatus = argoResult.get("status");
             String argoErrorMessage = argoResult.get("errorMessage");
+            boolean hasCrashLoopEvidence = argoResult.containsKey("newPodCrashLooping");
+            boolean argoCrashLooping = Boolean.parseBoolean(argoResult.get("newPodCrashLooping"));
+            String argoCrashLoopReason = argoResult.get("crashLoopReason");
 
             
             boolean needsUpdate = false;
@@ -411,6 +462,8 @@ public class DeploymentStatusMonitorJob {
                 log.info("Reconciling deployment status for {} from {} to {}", appName, currentDbStatus, targetStatus);
                 
                 deployment.setLastDeploymentStatus(targetStatus);
+                deployment.setNewPodCrashLooping(false);
+                deployment.setCrashLoopReason(null);
                 if ("DEPLOYMENT_FAILED".equals(targetStatus) || "RESTART_FAILED".equals(targetStatus)) {
                     deployment.setLastDeploymentError(argoErrorMessage);
                 } else {
@@ -523,6 +576,29 @@ public class DeploymentStatusMonitorJob {
                 
                 return true;
             }
+            boolean inProgress = "DEPLOY_REQUESTED".equalsIgnoreCase(currentDbStatus)
+                    || "DEPLOYING".equalsIgnoreCase(currentDbStatus)
+                    || "RESTART_REQUESTED".equalsIgnoreCase(currentDbStatus);
+            boolean crashLoopChanged = !Objects.equals(
+                    Boolean.TRUE.equals(deployment.getNewPodCrashLooping()), argoCrashLooping)
+                    || !Objects.equals(deployment.getCrashLoopReason(),
+                            argoCrashLooping ? argoCrashLoopReason : null);
+            if (inProgress && hasCrashLoopEvidence && crashLoopChanged) {
+                GenericMessage crashLoopUpdate = workspaceCustomRepository.updateDeploymentCrashLoopStatus(
+                        projectName, environment, argoCrashLooping, argoCrashLoopReason);
+                if (crashLoopUpdate != null && "SUCCESS".equalsIgnoreCase(crashLoopUpdate.getSuccess())) {
+                    boolean wasCrashLooping = Boolean.TRUE.equals(deployment.getNewPodCrashLooping());
+                    deployment.setNewPodCrashLooping(argoCrashLooping);
+                    deployment.setCrashLoopReason(argoCrashLooping ? argoCrashLoopReason : null);
+                    if (!wasCrashLooping && argoCrashLooping) {
+                        log.info("Crash-loop detected for project={} environment={} reason={}",
+                                projectName, environment, argoCrashLoopReason);
+                    } else if (wasCrashLooping && !argoCrashLooping) {
+                        log.info("Crash-loop cleared for project={} environment={}", projectName, environment);
+                    }
+                    return false;
+                }
+            }
         } catch (Exception e) {
             log.warn("Failed to check ArgoCD status for {}-{}: {}", projectName, environment, e.getMessage());
         }
@@ -543,6 +619,7 @@ public class DeploymentStatusMonitorJob {
         if (buildAudit != null && buildAudit.getTriggeredOn() != null) {
             buildPart = " buildTriggeredAt=" + buildAudit.getTriggeredOn();
             if (buildAudit.getBuildOn() != null && !buildAudit.getBuildOn().before(buildAudit.getTriggeredOn())) {
+                buildPart += " buildCompletedAt=" + buildAudit.getBuildOn();
                 long buildSeconds = (buildAudit.getBuildOn().getTime() - buildAudit.getTriggeredOn().getTime()) / 1000L;
                 buildPart += String.format(" buildDuration=%ds (%02d:%02d)", buildSeconds,
                         buildSeconds / 60, buildSeconds % 60);
