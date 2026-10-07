@@ -1599,16 +1599,10 @@ export interface IKeyVaultPrincipal {
 
 export interface IKeyVaultCollaborator {
   identifier: string;
-  shortId?: string;
-  firstName?: string;
-  lastName?: string;
   objectId?: string;
-  principalType?: string;
   kind: IKeyVaultPrincipalKind;
   displayName?: string;
-  role?: string;
   accessLevel?: IKeyVaultAccessLevel;
-  roles?: string[];
   roleAssignmentId?: string;
   roleAssignmentIds?: string[];
 }

@@ -382,7 +382,7 @@ public class AzureManagementClient {
         // Graph supports substring matching on these fields only through $search, which requires advanced queries.
         String sanitizedTerm = term.replace("\"", "");
         String searchExpression = "\"displayName:" + sanitizedTerm + "\" OR \"mail:" + sanitizedTerm
-                + "\" OR \"userPrincipalName:" + sanitizedTerm + "\"";
+                + "\" OR \"userPrincipalName:" + sanitizedTerm + "\" OR \"mailNickname:" + sanitizedTerm + "\"";
         String query = "?$search=" + encodeQueryValue(searchExpression)
                 + "&$select=id,displayName,mail,userPrincipalName";
         HttpHeaders headers = graphHeaders();

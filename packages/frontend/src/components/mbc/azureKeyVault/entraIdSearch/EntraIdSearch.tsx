@@ -170,7 +170,7 @@ const EntraIdSearch = (props: EntraIdSearchProps) => {
               value={searchTerm}
               placeholder={
                 principalType === 'USER'
-                  ? 'Enter minimum 3 characters of the full name or mail id'
+                  ? 'Enter minimum 3 characters of full name, mail ID or shortID'
                   : 'Enter minimum 3 characters of the display name'
               }
               onChange={onSearchInputChange}
