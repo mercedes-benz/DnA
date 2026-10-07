@@ -28,6 +28,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.application.client.AuthoriserClient;
+import com.daimler.data.application.client.AzureManagementClient;
 import com.daimler.data.application.client.FabricWorkspaceClient;
 import com.daimler.data.application.client.RSAEncryptionUtil;
 import com.daimler.data.assembler.ADAProjectsAssembler;
@@ -63,6 +64,7 @@ import com.daimler.data.dto.fabric.CreateEntitlementRequestDto;
 import com.daimler.data.dto.fabric.CreateLakehouseDto;
 import com.daimler.data.dto.fabric.CreateRoleRequestDto;
 import com.daimler.data.dto.fabric.CreateRoleResponseDto;
+import com.daimler.data.dto.fabric.CreateCmkKeyResponseDto;
 import com.daimler.data.dto.fabric.CreateWorkspaceDto;
 import com.daimler.data.dto.fabric.CredentialDetailsDto;
 import com.daimler.data.dto.fabric.DatasourceResponseDto;
@@ -88,6 +90,7 @@ import com.daimler.data.dto.fabric.WorkspaceUpdateDto;
 import com.daimler.data.dto.fabricWorkspace.AuthoriserRoleDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.MembersVO;
 import com.daimler.data.dto.fabricWorkspace.CapacityVO;
+import com.daimler.data.dto.fabricWorkspace.CmkKeyDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.CreateRoleRequestVO;
 import com.daimler.data.dto.fabricWorkspace.CreatedByVO;
 import com.daimler.data.dto.fabricWorkspace.CustomGroupNameCollectionVO;
@@ -130,6 +133,9 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 
 	@Autowired
 	private FabricWorkspaceClient fabricWorkspaceClient;
+	
+	@Autowired
+	private AzureManagementClient azureManagementClient;
 	
 	@Autowired
 	private FabricWorkspaceCustomRepository customRepo;
@@ -613,6 +619,8 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		CreateWorkspaceDto createRequest = new CreateWorkspaceDto();
 		createRequest.setDescription(vo.getDescription());
 		createRequest.setDisplayName(vo.getName());
+		CapacityVO capacityVO = new CapacityVO();
+
 		try {
 			WorkspaceDetailDto createResponse = fabricWorkspaceClient.createWorkspace(createRequest);
 			if(createResponse!=null ) {
@@ -626,7 +634,8 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 					responseData.setResponses(responseMessage);
 					log.error("Error occurred:{} while creating fabric workspace project {} ", createResponse.getErrorCode(), vo.getName());
 					if("409".equalsIgnoreCase(createResponse.getErrorCode())) {
-						if(vo.getInitiatedBy() == null || (vo.getInitiatedBy() != null && !FabricWorkspaceController.isTechnicalUser(vo.getInitiatedBy()))) {
+						FabricWorkspaceVO dnaDBWorkspace = this.getByUniqueliteral("name", vo.getName());
+						if(vo.getInitiatedBy() == null || (vo.getInitiatedBy() != null && !FabricWorkspaceController.isTechnicalUser(vo.getInitiatedBy())) || dnaDBWorkspace != null) {
 							message.setMessage("Failed to create workspace. A workspace with the same name already exists. Please choose a different name.");
 							return new ResponseEntity<>(responseData, HttpStatus.CONFLICT);
 						}
@@ -639,6 +648,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 							createResponse.setType(existingWorkspaceDto.getType());
 							createResponse.setMessage(null);
 							createResponse.setErrorCode(null);
+							capacityVO.setId(existingWorkspaceDto.getCapacityId());
 						}
 					}else if("429".equalsIgnoreCase(createResponse.getErrorCode())){
 						return new ResponseEntity<>(responseData, HttpStatus.TOO_MANY_REQUESTS);
@@ -651,8 +661,24 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 					GenericMessage addUserResponse = fabricWorkspaceClient.addUser(createResponse.getId(), vo.getCreatedBy().getEmail());
 					if(addUserResponse == null || !"SUCCESS".equalsIgnoreCase(addUserResponse.getSuccess())) {
 						log.error("Failed to add user {} to workspace {}", vo.getCreatedBy().getEmail(), createResponse.getId());
+						boolean workspaceDeleted = false;
+						try {
+							ErrorResponseDto deleteResponse = fabricWorkspaceClient.deleteWorkspace(createResponse.getId());
+							workspaceDeleted = deleteResponse == null || deleteResponse.getMessage() == null;
+							if(workspaceDeleted) {
+								log.info("Successfully rolled back fabric workspace project {} with id {}", vo.getName(), createResponse.getId());
+							}else {
+								log.error("Failed to roll back fabric workspace project {} with id {}: {}", vo.getName(), createResponse.getId(), deleteResponse.getMessage());
+							}
+						}catch(Exception e) {
+							log.error("Failed to roll back fabric workspace project {} with id {}", vo.getName(), createResponse.getId(), e);
+						}
 						MessageDescription message = new MessageDescription();
-						message.setMessage("Failed to add user to created workspace " + vo.getName() + " with id" + createResponse.getId() + ". Please contact Admin.");
+						if(workspaceDeleted) {
+							message.setMessage("Workspace " + vo.getName() + " was not created because the owner could not be added. The name is free to retry.");
+						}else {
+							message.setMessage("Failed to add user to workspace " + vo.getName() + ". A leftover workspace may exist. Please contact Admin.");
+						}
 						errors.add(message);
 						responseMessage.setErrors(errors);
 						responseMessage.setSuccess("FAILED");
@@ -685,38 +711,86 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 					BeanUtils.copyProperties(vo, data);
 					data.setId(createResponse.getId());
 					data.setHasPii(vo.isHasPii());
-					
 					boolean isPowerBI = vo.getSubscription() != null && vo.getSubscription().name().equalsIgnoreCase("PowerBI");
-					ErrorResponseDto assignCapacityResponse = fabricWorkspaceClient.assignCapacity(createResponse.getId(), isPowerBI);
-					CapacityVO capacityVO = new CapacityVO();
-					if(assignCapacityResponse!=null && assignCapacityResponse.getErrorCode()!=null && "500".equalsIgnoreCase(assignCapacityResponse.getErrorCode())) {
-						capacityVO = null;
-						warnings.add(new MessageDescription("Failed to assign capacity, please reassign or update workspace to assign capacity automatically."));
-					}else {
-						if(isPowerBI) {
-							capacityVO.setId(powerbiCapacityId);
-							capacityVO.setName(powerbiCapacityName);
-							capacityVO.setRegion(capacityRegion);
-							capacityVO.setSku(capacitySku);
-							capacityVO.setState(capacityState);
-						} else {
-							capacityVO.setId(fabricCapacityId);
-							capacityVO.setName(fabricCapacityName);
-							capacityVO.setRegion(capacityRegion);
-							capacityVO.setSku(capacitySku);
-							capacityVO.setState(capacityState);
+					
+					if(vo.getInitiatedBy() == null || (vo.getInitiatedBy() != null && !FabricWorkspaceController.isTechnicalUser(vo.getInitiatedBy()))){
+						ErrorResponseDto assignCapacityResponse = fabricWorkspaceClient.assignCapacity(createResponse.getId(), isPowerBI);
+						if(assignCapacityResponse!=null && assignCapacityResponse.getErrorCode()!=null && "500".equalsIgnoreCase(assignCapacityResponse.getErrorCode())) {
+							capacityVO = null;
+							warnings.add(new MessageDescription("Failed to assign capacity, please reassign or update workspace to assign capacity automatically."));
+						}else {
+							if(isPowerBI) {
+								capacityVO.setId(powerbiCapacityId);
+								capacityVO.setName(powerbiCapacityName);
+								capacityVO.setRegion(capacityRegion);
+								capacityVO.setSku(capacitySku);
+								capacityVO.setState(capacityState);
+							} else {
+								capacityVO.setId(fabricCapacityId);
+								capacityVO.setName(fabricCapacityName);
+								capacityVO.setRegion(capacityRegion);
+								capacityVO.setSku(capacitySku);
+								capacityVO.setState(capacityState);
+							}
+						}
+					} else {
+						if(capacityVO.getId() != null){
+							CapacityVO workspaceAssignedCapacity = fabricWorkspaceClient.getCapacityDetails(capacityVO.getId());
+							if(workspaceAssignedCapacity != null){
+								capacityVO.setName(workspaceAssignedCapacity.getName());
+								capacityVO.setRegion(workspaceAssignedCapacity.getRegion());
+								capacityVO.setSku(workspaceAssignedCapacity.getSku());
+								capacityVO.setState(workspaceAssignedCapacity.getState());
+							}
 						}
 					}
-					updateTags(data);
-					data.setCapacity(capacityVO);
 					
+					data.setCapacity(capacityVO);
+					updateTags(data);
 					FabricWorkspaceStatusVO currentStatus = new FabricWorkspaceStatusVO();
 					currentStatus.setState(ConstantsUtility.INPROGRESS_STATE);
 					String creatorId = vo.getCreatedBy().getId();
 
 					data.setStatus(currentStatus);
 					//data.setStatus(this.processWorkspaceUserManagement(currentStatus, vo.getName(), creatorId,createResponse.getId(), vo.getCustomGroupName()));
+					if(!isPowerBI) {
+							data.setCmkDetails(new CmkKeyDetailsVO().cmkKey(null).cmkKeyCreated(false).cmkKeyAssign(false));
+							CreateCmkKeyResponseDto cmkKeyResponse = azureManagementClient.createWorkSpaceCmkKey(createResponse.getId());
 
+							if(cmkKeyResponse != null && cmkKeyResponse.getKeyId() != null) {
+								String cmkKeyId = cmkKeyResponse.getKeyId();
+								boolean cmkKeyCreated = cmkKeyResponse.getCmkFlag();
+								boolean cmkKeyAssinged = false;
+								log.info("cmkKeyCreated :"+cmkKeyCreated+" cmkKeyAssinged :" +cmkKeyAssinged);
+
+								if(cmkKeyCreated) {
+									cmkKeyAssinged = azureManagementClient.assignCmkKeyToWorkspace(createResponse.getId(), cmkKeyId);
+									if(cmkKeyAssinged) {
+										log.info("Successfully assigned CMK key for workspace {} ", createResponse.getId());
+									} else {
+										log.error("Failed to assign CMK key for workspace {} ", createResponse.getId());
+									}
+								} else {
+									log.error("Failed to create CMK key for workspace {} ", createResponse.getId());
+								}
+
+								log.info("cmkKeyCreated :"+cmkKeyCreated+" cmkKeyAssinged :" +cmkKeyAssinged);
+								data.setCmkDetails(
+									new CmkKeyDetailsVO()
+										.cmkKey(cmkKeyId)
+										.cmkKeyCreated(cmkKeyCreated)
+										.cmkKeyAssign(cmkKeyAssinged)
+								);
+								log.info("cmk key details :" + data.getCmkDetails().toString());
+
+							} else {
+								log.error("Failed to create CMK key for workspace {} ", createResponse.getId());
+								MessageDescription message = new MessageDescription();
+								message.setMessage("Failed to create CMK key for created workspace " + vo.getName() + ". Please contact Admin.");
+								warnings.add(message);
+							}
+							
+					}
 					FabricWorkspaceVO savedRecord = null;
 					try{
 						savedRecord = super.create(data);  
@@ -1532,7 +1606,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 
 	 
 	@Override 
-	public List<GroupDetailsVO> autoProcessGroupsUsers(List<GroupDetailsVO> existingGroupsDetails, String workspaceName, String creatorId, String workspaceId, String customGroupName, List<CustomGroupNameCollectionVO> customGroupNameCollection) {
+	public List<GroupDetailsVO> autoProcessGroupsUsers(List<GroupDetailsVO> existingGroupsDetails, String workspaceName, String creatorId, String workspaceId, String customGroupName, List<CustomGroupNameCollectionVO> customGroupNameCollection, String division) {
 		List<GroupDetailsVO>  updatedGroups = new ArrayList<>();
 		boolean isAdminGroupAvailable = false;
 		GroupDetailsVO adminGroupVO = new GroupDetailsVO();
@@ -1656,7 +1730,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 				log.info("Total missingGroupVO to be auto Processed are", missingCustomGroupVOList);	
 			}
 		}										
-		if(!isDefaultGroupAvailable) {
+		if(!isDefaultGroupAvailable && division != null && "fc".equalsIgnoreCase(division)) {
 			AddGroupDto addGroupDto = new AddGroupDto();
 			addGroupDto.setDisplayName(onboardGroupDisplayName);
 			addGroupDto.setIdentifier(onboardGroupIdenitifier);

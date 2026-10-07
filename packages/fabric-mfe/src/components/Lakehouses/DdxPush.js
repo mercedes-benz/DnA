@@ -8,7 +8,7 @@ import Tooltip from '../../common/modules/uilab/js/src/tooltip';
 import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indicator';
 import Notification from '../../common/modules/uilab/js/src/notification';
 import { fabricApi } from '../../apis/fabric.api';
-import { DIVISIONS, BUSINESS_DOMAINS, CLOUD_PROVIDERS, TECHNOLOGIES, PURPOSES, CRITERIA_TRANSFER_PRICING, QUALIFICATION_TRANSFER_PRICING, UPDATE_FREQUENCIES } from '../../utilities/constants';
+import { BUSINESS_DOMAINS, DIVISION_BUSINESS_DOMAIN_MAP, CLOUD_PROVIDERS, TECHNOLOGIES, PURPOSES, CRITERIA_TRANSFER_PRICING, QUALIFICATION_TRANSFER_PRICING, UPDATE_FREQUENCIES } from '../../utilities/constants';
 import { Envs } from '../../utilities/envs';
 
 const Step1_BasicIdentification = ({ formData, setFormData, errors, clearError }) => (
@@ -106,6 +106,13 @@ const Step2_OwnershipGovernance = ({
 
   const isBusinessDomainDisabled = workspaceDivision && BUSINESS_DOMAINS.includes(workspaceDivision);
   const isDataProvidersLimitReached = formData.dataProviders?.length >= 5;
+  const businessDomainOptions = DIVISION_BUSINESS_DOMAIN_MAP[formData.divisions] || [];
+
+  useEffect(() => {
+    setTimeout(() => {
+      SelectBox.defaultSetup();
+    }, 0);
+  }, [formData.divisions]);
 
   useEffect(() => {
     // SelectBox.defaultSetup();
@@ -228,12 +235,12 @@ const Step2_OwnershipGovernance = ({
               id="divisionField"
               defaultValue={formData.divisions || ''}
               onChange={(e) => {
-                setFormData((prev) => ({ ...prev, divisions: e.target.value }));
+                setFormData((prev) => ({ ...prev, divisions: e.target.value, businessDomain: '' }));
                 clearError('divisionError');
               }}
             >
               <option value="">Choose</option>
-              {DIVISIONS.map((name, index) => (
+              {Object.keys(DIVISION_BUSINESS_DOMAIN_MAP).map((name, index) => (
                 <option key={index} value={name}>
                   {name}
                 </option>
@@ -251,6 +258,7 @@ const Step2_OwnershipGovernance = ({
           </label>
           <div className="custom-select">
             <select
+              key={formData.divisions || 'no-division'}
               id="businessDomain"
               defaultValue={formData.businessDomain || ''}
               onChange={(e) => {
@@ -258,10 +266,10 @@ const Step2_OwnershipGovernance = ({
                 clearError('businessDomainError');
               }}
               onFocus={isBusinessDomainDisabled ? (e) => e.target.blur() : undefined}
-              disabled={isBusinessDomainDisabled}
+              disabled={isBusinessDomainDisabled || !formData.divisions}
             >
               <option value="">Choose</option>
-              {BUSINESS_DOMAINS.map((bd, idx) => (
+              {businessDomainOptions.map((bd, idx) => (
                 <option key={idx} value={bd}>
                   {bd}
                 </option>
@@ -908,7 +916,7 @@ const ViewDdxTablesModalContent = ({ workspaceId, workspaceName, workspaceOwner,
       securityLevel: securityLevel || '',
       purposes: formData.purposes || [],
       dataProviders: (formData.dataProviders || []).map((u) => u.id),
-      divisions: (formData.divisions || '').replace(/-/g, ' ') || '',
+      division: (formData.divisions || '').replace(/-/g, ' ') || '',
 
       isTransferPricing: !!formData.isTransferPricing,
       criteriaTransferPricing: formData.criteriaTransferPricing || [],
@@ -1107,7 +1115,8 @@ const ViewDdxTablesModalContent = ({ workspaceId, workspaceName, workspaceOwner,
                 <li>Navigate through each step in the DDX portal..</li>
                 <li>Upon reaching <strong>Step 7</strong>, click the <strong>Get Objects</strong> button and then proceed by clicking Next.</li>
                 <li>In <strong>Step 8</strong>, click the <strong>Get Objects</strong> button again.</li>
-                <li>In the final step, review and verify all the details, agree to the Terms of Use, and complete the onboarding process.</li>                
+                <li>In the final step, review and verify all the details, agree to the Terms of Use, and complete the onboarding process.</li>
+                <li>After completing the onboarding process, if you need any help with the approval of your data product kindly reach out to  <a href={`mailto:${Envs.DDX_DP_APPROVAL_MAIL}`} target="_blank" rel="noreferrer">{Envs.DDX_DP_APPROVAL_MAIL}</a></li>
               </ol>
             </div>
           </div>

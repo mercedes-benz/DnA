@@ -38,5 +38,7 @@ public class CodeServerDeploymentDetails implements Serializable {
 	private List<String> selectedAliceRoles;
 	private List<DeploymentAudit> deploymentAuditLogs;
 	private String lastDeploymentError;
+	private Boolean newPodCrashLooping;
+	private String crashLoopReason;
 	
 }

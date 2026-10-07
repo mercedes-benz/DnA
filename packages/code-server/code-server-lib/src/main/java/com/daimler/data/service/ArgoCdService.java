@@ -39,6 +39,7 @@ import org.springframework.web.client.HttpStatusCodeException;
 import org.springframework.web.client.RestTemplate;
 import org.yaml.snakeyaml.Yaml;
 
+import com.daimler.data.db.repo.workspace.WorkspaceCustomRepository;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -93,6 +94,15 @@ public class ArgoCdService {
     @Value("${codeServer.git.pat}")
     private String gitPat;
 
+    @Value("${argocd.resources.caps.requests.cpu.milli}")
+    private String capRequestCpuMilli;
+ 
+    @Value("${argocd.resources.caps.requests.memory.mi}")
+    private String capRequestMemoryMi;
+ 
+    @Value("${argocd.resources.caps.limits.memory.mi}")
+    private String capLimitMemoryMi;
+
     @Value("${argocd.resources.defaults.requests.cpu}")
     private String defaultRequestCpu;
 
@@ -104,6 +114,9 @@ public class ArgoCdService {
 
     @Autowired
     private RestTemplate restTemplate;
+
+    @Autowired
+    private WorkspaceCustomRepository workspaceCustomRepository;
 
     private volatile String cachedArgoToken;
     private volatile long cachedArgoTokenExpiresAt;
@@ -201,9 +214,10 @@ public class ArgoCdService {
             headers.setContentType(MediaType.APPLICATION_JSON);
         
             Map<String, String> resources = calculateResources(gitRepoUrl, branch);
+            boolean resourceCapExempt = isResourceCapExempt(projectName, environment);
             String targetRevision = (branch != null && !branch.isEmpty()) ? branch : "main";
             
-            String payload = this.buildPayload(appName, projectName, codeServerEnvRef, environment, gitRepoUrl, imageTag, vaultInjectorEnable, resources, targetRevision);
+            String payload = this.buildPayload(appName, projectName, codeServerEnvRef, environment, gitRepoUrl, imageTag, vaultInjectorEnable, resources, targetRevision, resourceCapExempt);            
             HttpEntity<String> entity = new HttpEntity<>(payload, headers);
         
             ResponseEntity<String> response = restTemplate.postForEntity(url, entity, String.class);
@@ -382,8 +396,8 @@ public class ArgoCdService {
 
     @SuppressWarnings("unchecked")
     public String buildPayload(String appName, String projectName, String clusterEnv, String targetEnv, String gitRepoUrl, 
-                               String imageTag, boolean vaultInjectorEnable, Map<String, String> resources, String targetRevision) throws IOException {
-        
+                               String imageTag, boolean vaultInjectorEnable, Map<String, String> resources, String targetRevision,
+                               boolean resourceCapExempt) throws IOException {
         String namespace = getNamespaceForEnvironment(clusterEnv, targetEnv);
         String imageRepository = imageRegistry + "-" + projectName;
         
@@ -419,7 +433,7 @@ public class ArgoCdService {
             boolean hasLimitsCpu = "true".equals(resources.get("hasLimitsCpu"));
 
             // Missing keys inside a non-empty resources block should still use case-1 defaults.
-            String requestCpu = (cpu != null) ? cpu + "m" : defaultRequestCpu;
+            String requestCpuMilli = (cpu != null) ? cpu : convertCpu(defaultRequestCpu);
             boolean requestMemoryDefaulted = (memory == null);
             String requestMemory = requestMemoryDefaulted ? defaultRequestMemoryMi : memory;
             boolean limitMemoryMirrored = (limitsMemory == null);
@@ -429,20 +443,33 @@ public class ArgoCdService {
             if (requestMemoryDefaulted && parseMemoryMi(limitMemory) < parseMemoryMi(defaultRequestMemoryMi)) {
                 limitMemory = defaultRequestMemoryMi;
             }
-
+            if (resourceCapExempt) {
+                log.info("[Resources] Project {} is exempt from resource caps in env {}, keeping configured values",
+                    projectName, targetEnv);
+            } else {
+                requestCpuMilli = clampToCap(requestCpuMilli, capRequestCpuMilli, "requests.cpu");
+                requestMemory = clampToCap(requestMemory, capRequestMemoryMi, "requests.memory");
+                limitMemory = clampToCap(limitMemory, capLimitMemoryMi, "limits.memory");
+            }
+            // Recomputed after clamping so a capped request cannot leave the pair mismatched.
+            if (limitMemoryMirrored) {
+                limitMemory = raiseLimitToRequest(defaultLimitMemoryMi, requestMemory);
+            }
+            String requestCpu = requestCpuMilli + "m";
             helmParameters.add(createHelmParam("resources.requests.cpu", requestCpu));
             helmParameters.add(createHelmParam("resources.requests.memory", requestMemory + "Mi"));
             helmParameters.add(createHelmParam("resources.limits.memory", limitMemory + "Mi"));
             if (hasLimitsCpu) {
                 helmParameters.add(createHelmParam("resources.limits.cpu", "null"));
             }
-            log.info("[Resources] Applying Helm params: requests.cpu={}, requests.memory={} (defaulted={}), limits.memory={} (source={}), limits.cpu={}",
-                requestCpu,               
+            log.info("[Resources] Applying Helm params: requests.cpu={}, requests.memory={} (defaulted={}), limits.memory={} (source={}), limits.cpu={}, capExempt={}",
+                requestCpu,
                 requestMemory + "Mi",
                 requestMemoryDefaulted,
                 limitMemory + "Mi",
-                limitsMemory != null ? "values.yaml" : "default",
-                hasLimitsCpu ? "null" : "not set");
+                limitMemoryMirrored ? "default/raised to requests.memory" : "values.yaml",
+                hasLimitsCpu ? "null" : "not set",
+                resourceCapExempt);
 
         } else {
             log.info("[Resources] No resource overrides, using chart defaults");
@@ -696,6 +723,27 @@ public class ArgoCdService {
         }
         return parseMemoryMi(requestMemory) > parseMemoryMi(defaultLimit) ? requestMemory : defaultLimit;
     }
+
+    private String clampToCap(String value, String cap, String label) {
+        if (value == null || cap == null) {
+            return value;
+        }
+        if (parseMemoryMi(value) > parseMemoryMi(cap)) {
+            log.info("[Resources] {}={} exceeds cap {}, clamping to cap", label, value, cap);
+            return cap.trim();
+        }
+        return value;
+    }
+ 
+    private boolean isResourceCapExempt(String projectName, String environment) {
+        try {
+            return workspaceCustomRepository.isResourceCapExempt(projectName, environment);
+        } catch (Exception e) {
+            log.error("[Resources] Failed to read resource cap exemption for project {} in env {}, applying caps: {}",
+                projectName, environment, e.getMessage());
+            return false;
+        }
+    }
     
     private String convertMemory(String memoryValue) {
         memoryValue = memoryValue.trim();
@@ -924,32 +972,51 @@ public class ArgoCdService {
             String healthStatus = rootNode.path("status").path("health").path("status").asText("");
             String lastSyncPhase = rootNode.path("status").path("operationState").path("phase").asText("");
 
-            String failureMessage = getConfirmedDeploymentFailure(token, rootNode, appName, deployTriggerTime);
+            Map<String, Object> crashLoopStatus = null;
+            String failureMessage;
+            boolean operationFailed = "Failed".equalsIgnoreCase(lastSyncPhase)
+                    || "Error".equalsIgnoreCase(lastSyncPhase);
+            if ("Degraded".equalsIgnoreCase(healthStatus) && !operationFailed) {
+                crashLoopStatus = getNewPodCrashLoopStatus(token, appName, rootNode);
+                failureMessage = getConfirmedDeploymentFailure(
+                        token, rootNode, appName, deployTriggerTime, crashLoopStatus);
+            } else {
+                failureMessage = getConfirmedDeploymentFailure(token, rootNode, appName, deployTriggerTime);
+            }
             if (failureMessage != null) {
                 result.put("status", "DEPLOYMENT_FAILED");
                 result.put("errorMessage", failureMessage);
                 return result;
             }
             if ("Degraded".equalsIgnoreCase(healthStatus)) {
+                if (crashLoopStatus == null) {
+                    crashLoopStatus = getNewPodCrashLoopStatus(token, appName, rootNode);
+                }
+                addCrashLoopEvidence(result, crashLoopStatus);
                 result.put("status", "DEPLOYING");
                 return result;
             }
             if ("Running".equalsIgnoreCase(lastSyncPhase)) {
+                addCrashLoopEvidence(result, getNewPodCrashLoopStatus(token, appName, rootNode));
                 return result; 
             }
  
             String syncStatus = rootNode.path("status").path("sync").path("status").asText("");
             if ("OutOfSync".equalsIgnoreCase(syncStatus)) {
+                addCrashLoopEvidence(result, getNewPodCrashLoopStatus(token, appName, rootNode));
                 return result; 
             }
             if ("Healthy".equalsIgnoreCase(healthStatus)) {
                 if (!isDeploymentReady(rootNode, appName, expectedVersion, deployTriggerTime)) {
+                    result.put("newPodCrashLooping", "false");
+                    result.put("crashLoopReason", "");
                     result.put("status", "DEPLOYING");
                     return result;
                 }
                 result.put("status", "DEPLOYED");
                 return result;
             }
+            addCrashLoopEvidence(result, getNewPodCrashLoopStatus(token, appName, rootNode));
             return result;
         } catch (Exception e) {
             log.error("Failed to check ArgoCD deployment status for {}", appName, e);
@@ -964,6 +1031,11 @@ public class ArgoCdService {
      */
     public String getConfirmedDeploymentFailure(String token, JsonNode rootNode, String appName,
             Date deployTriggerTime) {
+        return getConfirmedDeploymentFailure(token, rootNode, appName, deployTriggerTime, null);
+    }
+
+    private String getConfirmedDeploymentFailure(String token, JsonNode rootNode, String appName,
+            Date deployTriggerTime, Map<String, Object> computedCrashLoopStatus) {
         JsonNode operationState = rootNode.path("status").path("operationState");
         String healthStatus = rootNode.path("status").path("health").path("status").asText("");
         String phase = operationState.path("phase").asText("");
@@ -1002,7 +1074,9 @@ public class ArgoCdService {
                     log.warn("Degraded ArgoCD deployment {} lacks a desired image tag; failure is not proven", appName);
                     return null;
                 }
-                Map<String, Object> crashLoopStatus = getNewPodCrashLoopStatus(token, appName, rootNode);
+                Map<String, Object> crashLoopStatus = computedCrashLoopStatus != null
+                        ? computedCrashLoopStatus
+                        : getNewPodCrashLoopStatus(token, appName, rootNode);
                 if (!Boolean.TRUE.equals(crashLoopStatus.get("newPodCrashLooping"))
                         || Boolean.TRUE.equals(crashLoopStatus.get("fallbackSelected"))
                         || !Boolean.TRUE.equals(crashLoopStatus.get("strongCrashReason"))) {
@@ -1021,6 +1095,16 @@ public class ArgoCdService {
             }
         }
         return null;
+    }
+
+    private void addCrashLoopEvidence(Map<String, String> result, Map<String, Object> crashLoopStatus) {
+        if (crashLoopStatus == null) {
+            return;
+        }
+        result.put("newPodCrashLooping",
+                String.valueOf(Boolean.TRUE.equals(crashLoopStatus.get("newPodCrashLooping"))));
+        Object reason = crashLoopStatus.get("crashLoopReason");
+        result.put("crashLoopReason", reason == null ? "" : String.valueOf(reason));
     }
 
     private boolean isWithinDeploymentGracePeriod(Date deployTriggerTime) {
