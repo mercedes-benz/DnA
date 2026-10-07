@@ -856,6 +856,23 @@ public class GitClient {
 			if (response != null && response.getStatusCode() != null && response.getStatusCode().is2xxSuccessful()) {
 				log.info("Successfully added webhook to git repo {} with response {}", repoName, response.getBody());
 				return response.getBody().get("id").asText();
+			} else if(response != null && response.getStatusCode() != null && response.getStatusCode().value() == 422){
+				
+				ResponseEntity<JsonNode[]> getWebHookResponse =
+						restTemplate.exchange(gitWebHookConfigURL, HttpMethod.GET, entity, JsonNode[].class);
+
+				if (getWebHookResponse != null && getWebHookResponse.getBody() != null) {
+					for (JsonNode hook : getWebHookResponse.getBody()) {
+						JsonNode configNode = hook.get("config");
+						if (configNode != null && configNode.has("url")
+								&& gitWebHookUrl.equals(configNode.get("url").asText())) {
+							log.info("Found existing webhook {} for repo {}", hook.get("id").asText(), repoName);
+							return hook.get("id").asText();
+						}
+					}
+				}
+				log.warn("No matching existing webhook found for repo {} with url {}", repoName, gitWebHookUrl);
+				return null;	
 			}
 			log.error("Failed to add webhook to git repo {} with status {}", repoName, response != null ? response.getStatusCode() : "NULL");
 			return null;

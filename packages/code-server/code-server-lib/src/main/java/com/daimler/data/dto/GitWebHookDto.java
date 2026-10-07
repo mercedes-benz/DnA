@@ -14,6 +14,7 @@ import lombok.NoArgsConstructor;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class GitWebHookDto implements Serializable{
 
+    private String projectName;
     private String repoName;
     private String intRepoName;
     private String prodRepoName;
