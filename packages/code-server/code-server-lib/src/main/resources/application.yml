@@ -130,6 +130,7 @@ codeServer:
   git:
     enterprise:
       url: ${CODE_SERVER_GHE_BASEURI:XXXX}
+      gitUrl: ${CODE_SERVER_GHE_GITURL:XXXX}
     ghe:
       pid: ${CODE_SERVER_GHE_PID:XXXX}
       pat: ${CODE_SERVER_GHE_PAT:XXXX}

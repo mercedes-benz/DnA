@@ -327,25 +327,26 @@ public class WorkspaceJobStatusUpdateController  {
         method = RequestMethod.POST)
     public ResponseEntity<String> receiveWebhookData(
         @RequestHeader("X-GitHub-Event") String eventType, @RequestHeader("X-GitHub-Delivery") String deliveryId,
+		@RequestHeader("X-Github-Hook-Id") String hookId,
         @RequestHeader(value = "X-Hub-Signature-256", required = false) String signature, @RequestBody byte[] rawBody) {
 
         long startTime = System.currentTimeMillis();
-        log.info("action=receiveWebhookData status=received deliveryId={} eventType={} bodySize={}",
-                deliveryId, eventType, rawBody != null ? rawBody.length : 0);
+        log.info("action=receiveWebhookData status=received deliveryId={} eventType={} hookId={} bodySize={}",
+                deliveryId, eventType, hookId, rawBody != null ? rawBody.length : 0);
         try {
             if (signature == null || signature.isBlank()) {
                 log.warn("action=receiveWebhookData status=rejected deliveryId={} reason=missing-signature", deliveryId);
                 return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("Missing signature");
             }
-            gitWebHookService.processGitHubHookEvent(signature, eventType, deliveryId, rawBody);
+            gitWebHookService.processGitHubHookEvent(signature, eventType, deliveryId, hookId, rawBody);
             long duration = System.currentTimeMillis() - startTime;
-            log.info("action=receiveWebhookData status=success deliveryId={} eventType={} durationMs={}",
-                    deliveryId, eventType, duration);
+            log.info("action=receiveWebhookData status=success deliveryId={} eventType={} hookId={} durationMs={}",
+                    deliveryId, eventType, hookId, duration);
             return ResponseEntity.ok("Accepted");
         } catch (Exception e) {
             long duration = System.currentTimeMillis() - startTime;
-            log.error("action=receiveWebhookData status=error deliveryId={} eventType={} durationMs={} error={}",
-                    deliveryId, eventType, duration, e.getMessage(), e);
+            log.error("action=receiveWebhookData status=error deliveryId={} eventType={} hookId={} durationMs={} error={}",
+                    deliveryId, eventType, hookId, duration, e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body("Failed to process event");
         }
     }   

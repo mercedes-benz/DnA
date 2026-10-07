@@ -116,4 +116,11 @@ public interface WorkspaceCustomRepository extends CommonDataRepository<CodeServ
 	 * @return workspace details for the given git repo name
 	 */
 	List<CodeServerWorkspaceNsql> findAllByRepoName(String repoName);
+
+	/**
+	 * get all the workspace by the webhook id 
+	 * @param webhookId web hook id configured in the workspace
+	 * @return list of workspace details 
+	 */
+	List<CodeServerWorkspaceNsql> findAllByWebhookId(String webhookId);
 }
