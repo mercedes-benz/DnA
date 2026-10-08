@@ -1346,6 +1346,8 @@ definitions:
           type: boolean
         agreementVersion:
           type: string
+        agreementUrl:
+          type: string
   
   DnaRolesVO:
     type: object

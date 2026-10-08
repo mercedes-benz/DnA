@@ -2,6 +2,7 @@ package com.daimler.data.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.Mockito.never;
@@ -52,6 +53,7 @@ class FabricWorkspaceControllerTest {
 		CreatedByVO user = new CreatedByVO();
 		user.setId("alice");
 		ReflectionTestUtils.setField(controller, "aliceRoleAgreementVersion", "DRAFT-1.0");
+		ReflectionTestUtils.setField(controller, "aliceRoleAgreementUrl", "https://alice.example.com/agreement");
 		when(userStore.getUserInfo()).thenReturn(userInfo);
 		when(userStore.getVO()).thenReturn(user);
 	}
@@ -108,6 +110,16 @@ class FabricWorkspaceControllerTest {
 	}
 
 	@Test
+	void createRoleRejectsWhenAgreementUrlIsUnconfigured() {
+		ReflectionTestUtils.setField(controller, "aliceRoleAgreementUrl", "XXXX");
+		when(service.canCreateAliceRole("alice", false)).thenReturn(true);
+
+		assertAgreementRequired(controller.createRole(roleRequest(Boolean.TRUE, "DRAFT-1.0")));
+
+		verify(service, never()).createGenericRole(any(), any());
+	}
+
+	@Test
 	void createRoleRejectsNullRequestData() {
 		when(service.canCreateAliceRole("alice", false)).thenReturn(true);
 
@@ -124,6 +136,29 @@ class FabricWorkspaceControllerTest {
 
 		assertEquals(HttpStatus.OK, response.getStatusCode());
 		assertEquals("DRAFT-1.0", response.getBody().getAgreementVersion());
+		assertEquals("https://alice.example.com/agreement", response.getBody().getAgreementUrl());
+	}
+
+	@Test
+	void eligibilityOmitsAgreementUrlWhenUnconfigured() {
+		ReflectionTestUtils.setField(controller, "aliceRoleAgreementUrl", "XXXX");
+		when(service.canCreateAliceRole("alice", false)).thenReturn(true);
+
+		ResponseEntity<AliceRoleEligibilityVO> response = controller.getAliceRoleCreationEligibility();
+
+		assertEquals(HttpStatus.OK, response.getStatusCode());
+		assertNull(response.getBody().getAgreementUrl());
+	}
+
+	@Test
+	void eligibilityOmitsInsecureAgreementUrl() {
+		ReflectionTestUtils.setField(controller, "aliceRoleAgreementUrl", "http://insecure.example.com");
+		when(service.canCreateAliceRole("alice", false)).thenReturn(true);
+
+		ResponseEntity<AliceRoleEligibilityVO> response = controller.getAliceRoleCreationEligibility();
+
+		assertEquals(HttpStatus.OK, response.getStatusCode());
+		assertNull(response.getBody().getAgreementUrl());
 	}
 
 	@Test

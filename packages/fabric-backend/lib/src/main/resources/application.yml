@@ -153,6 +153,7 @@ codeServer:
 
 aliceRoleAgreement:
   version: ${ALICE_ROLE_AGREEMENT_VERSION:DRAFT-1.0}
+  url: ${ALICE_ROLE_AGREEMENT_URL:XXXX}
 
 jwtAuthenticationFilter:
   exclusion:

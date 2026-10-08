@@ -18,14 +18,12 @@ interface roleResponse {
 interface IAliceRoleEligibility {
   canCreateRole: boolean;
   agreementVersion?: string;
+  agreementUrl?: string;
 }
 
-const defaultAgreementUrl = '/agreements/alice-role-creation-agreement.pdf';
-const resolveAgreementUrl = (url: unknown): string => {
-  if (typeof url !== 'string') return defaultAgreementUrl;
-  if (url.startsWith('/') && !url.startsWith('//')) return url;
-  if (url.startsWith('https://')) return url;
-  return defaultAgreementUrl;
+const toSafeAgreementUrl = (url: unknown): string => {
+  if (typeof url === 'string' && /^https:\/\//i.test(url.trim())) return url.trim();
+  return '';
 };
 
 const AliceRoleRequest = () => {
@@ -39,12 +37,13 @@ const AliceRoleRequest = () => {
   const [roleDisplayNameError, setRoleDisplayNameError] = useState('');
   const [eligibility, setEligibility] = useState<'loading' | 'allowed' | 'denied'>('loading');
   const [agreementVersion, setAgreementVersion] = useState('');
+  const [agreementUrl, setAgreementUrl] = useState('');
+  const agreementUnavailable = !agreementUrl || !agreementVersion.trim();
   const [showAgreementModal, setShowAgreementModal] = useState(false);
   const [agreementAccepted, setAgreementAccepted] = useState(false);
   const [rolesCreated, setRolesCreated] = useState<{ static: string[]; dynamic: string[];}>({ static: [], dynamic: [] });
   // const [isDynamicRole, setIsDynamicRole] = useState(false);
   const isDynamicRole = false;
-  const agreementUrl = resolveAgreementUrl(Envs.ALICE_ROLE_AGREEMENT_URL);
   const [showRoleModal, setShowRoleModal] = useState(false);
   const [selectedRoleDetails, setSelectedRoleDetails] = useState<any>(null);
   const [entraGroupMembers, setEntraGroupMembers] = useState<any[]>([]);
@@ -225,7 +224,7 @@ const AliceRoleRequest = () => {
   };
 
   const acceptAgreement = () => {
-    if (!agreementAccepted || agreementVersion.trim().length === 0) return;
+    if (!agreementAccepted || agreementUnavailable) return;
     setAgreementAccepted(false);
     setShowAgreementModal(false);
     submitRole();
@@ -263,6 +262,7 @@ const AliceRoleRequest = () => {
       .then((response: IAliceRoleEligibility) => {
         ProgressIndicator.hide();
         setAgreementVersion(response?.agreementVersion || '');
+        setAgreementUrl(toSafeAgreementUrl(response?.agreementUrl));
         if (response?.canCreateRole === true) {
           setEligibility('allowed');
           fetchRole();
@@ -585,23 +585,19 @@ const AliceRoleRequest = () => {
               content={
                 <div>
                   <p className={Styles.agreementText}>
-                    Please read the agreement below. You must accept it before the role {roleName} is created.
+                    Please read the Alice role creation agreement before the role {roleName} is created.
                   </p>
-                  {agreementVersion.trim().length === 0 && (
+                  {agreementUnavailable ? (
                     <p className={Styles.agreementUnavailable}>
                       The agreement is currently unavailable. Please try again later.
                     </p>
+                  ) : (
+                    <p className={Styles.agreementLink}>
+                      <a href={agreementUrl} target="_blank" rel="noopener noreferrer">
+                        Read the agreement in Alice <i className="icon mbc-icon new-tab" aria-hidden="true" />
+                      </a>
+                    </p>
                   )}
-                  <iframe
-                    className={Styles.agreementFrame}
-                    title="Alice role creation agreement"
-                    src={agreementUrl}
-                  />
-                  <p>
-                    <a href={agreementUrl} target="_blank" rel="noopener noreferrer">
-                      Open the agreement in a new tab
-                    </a>
-                  </p>
                   <label className={`checkbox ${Styles.agreementCheckbox}`}>
                     <span className="wrapper">
                       <input
@@ -631,7 +627,7 @@ const AliceRoleRequest = () => {
                   <button
                     className="btn btn-tertiary"
                     type="button"
-                    disabled={!agreementAccepted || agreementVersion.trim().length === 0}
+                    disabled={!agreementAccepted || agreementUnavailable}
                     onClick={acceptAgreement}
                   >
                     Accept and create role

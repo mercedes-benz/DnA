@@ -110,6 +110,9 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 
 	@Value("${aliceRoleAgreement.version}")
 	private String aliceRoleAgreementVersion;
+
+	@Value("${aliceRoleAgreement.url}")
+	private String aliceRoleAgreementUrl;
 	
 	@Override
 	@ApiOperation(value = "Adds a new fabric workspace.", nickname = "create", notes = "Adds a new non existing workspace.", response = FabricWorkspaceResponseVO.class, tags={ "fabric-workspaces", })
@@ -957,7 +960,8 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 		if (roleRequestVO.getData() == null
 				|| !Boolean.TRUE.equals(roleRequestVO.getData().isAgreementAccepted())
 				|| aliceRoleAgreementVersion == null || aliceRoleAgreementVersion.trim().isEmpty()
-				|| !aliceRoleAgreementVersion.equals(roleRequestVO.getData().getAgreementVersion())) {
+				|| !aliceRoleAgreementVersion.equals(roleRequestVO.getData().getAgreementVersion())
+				|| resolvedAgreementUrl() == null) {
 			return aliceRoleAgreementRequired();
 		}
 		try{
@@ -1009,7 +1013,18 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 		eligibility.setCanCreateRole(
 				service.canCreateAliceRole(requestUser.getId(), userInfo.hasCodespaceAdminAccess()));
 		eligibility.setAgreementVersion(aliceRoleAgreementVersion);
+		eligibility.setAgreementUrl(resolvedAgreementUrl());
 		return new ResponseEntity<>(eligibility, HttpStatus.OK);
+	}
+
+	private String resolvedAgreementUrl() {
+		if (aliceRoleAgreementUrl == null) {
+			return null;
+		}
+		String trimmedUrl = aliceRoleAgreementUrl.trim();
+		return trimmedUrl.regionMatches(true, 0, "https://", 0, "https://".length())
+				? trimmedUrl
+				: null;
 	}
 
 	private ResponseEntity<GenericMessage> aliceRoleAgreementRequired() {
