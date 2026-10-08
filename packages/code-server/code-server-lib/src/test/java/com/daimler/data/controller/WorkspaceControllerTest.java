@@ -55,7 +55,7 @@ class WorkspaceControllerTest {
 				controller.getCodespaceProjectAdminEligibility();
 
 		assertEquals(HttpStatus.OK, response.getStatusCode());
-		assertTrue(response.getBody().getIsProjectOwnerOrAdmin());
+		assertTrue(response.getBody().isIsProjectOwnerOrAdmin());
 		verify(service).isProjectOwnerOrAdmin("alice");
 	}
 
@@ -71,7 +71,7 @@ class WorkspaceControllerTest {
 				controller.getCodespaceProjectAdminEligibility();
 
 		assertEquals(HttpStatus.OK, response.getStatusCode());
-		assertFalse(response.getBody().getIsProjectOwnerOrAdmin());
+		assertFalse(response.getBody().isIsProjectOwnerOrAdmin());
 		verify(service).isProjectOwnerOrAdmin("alice");
 	}
 }
