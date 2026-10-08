@@ -12,7 +12,7 @@ import static org.mockito.Mockito.when;
 
 import java.lang.reflect.Field;
 
-import jakarta.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletRequest;
 
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
