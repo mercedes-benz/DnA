@@ -298,16 +298,16 @@ const AliceRoleRequest = () => {
         <div className={Styles.accessNotice} role="note">
           <i className="icon mbc-icon info" aria-hidden="true" />
           <span>
-            Restricted access: Alice role creation is only available to Fabric workspace owners, Fabric workspace admins
-            and Codespaces admins.
+            Restricted access: Alice role creation is only available to Fabric workspace owners, Fabric workspace admins,
+            Codespaces project owners or admins and Codespaces admins.
           </span>
         </div>
         {eligibility === 'loading' ? null : eligibility === 'denied' ? (
           <div className={Styles.notAuthorized} role="alert">
             <h5>Not authorised</h5>
             <p>
-              You are not authorised to create Alice roles. Only Fabric workspace owners, Fabric workspace admins and
-              Codespaces admins can create Alice roles.
+              You are not authorised to create Alice roles. Only Fabric workspace owners, Fabric workspace admins,
+              Codespaces project owners or admins and Codespaces admins can create Alice roles.
             </p>
           </div>
         ) : (

@@ -148,6 +148,9 @@ authoriser:
   role.fabricRoleName: ${IDENTITY_FABRIC_OPERATIONS_ROLENAME:XXXX}
   appIdPrefix: ${IDENTITY_APPID_PREFIX:XXXX}
 
+codeServer:
+  projectAdminEligibilityUri: ${CODESERVER_PROJECTADMIN_ELIGIBILITY_URI:XXXX}
+
 jwtAuthenticationFilter:
   exclusion:
     urlPatterns: ${AUTH_FILTER_EXCLUSION_PATTERNS:/api/fabric-workspaces/ada/**}

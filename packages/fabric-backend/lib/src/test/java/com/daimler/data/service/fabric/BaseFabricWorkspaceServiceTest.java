@@ -18,6 +18,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.daimler.data.application.client.AuthoriserClient;
+import com.daimler.data.application.client.CodeServerClient;
 import com.daimler.data.db.repo.fabric.FabricWorkspaceCustomRepository;
 
 @ExtendWith(MockitoExtension.class)
@@ -28,6 +29,9 @@ class BaseFabricWorkspaceServiceTest {
 
 	@Mock
 	private AuthoriserClient identityClient;
+
+	@Mock
+	private CodeServerClient codeServerClient;
 
 	@InjectMocks
 	private BaseFabricWorkspaceService service;
@@ -42,7 +46,7 @@ class BaseFabricWorkspaceServiceTest {
 	void codespaceAdminIsAllowedWithoutRepositoryOrAliceCalls() {
 		assertTrue(service.canCreateAliceRole("alice", true));
 
-		verifyNoInteractions(customRepo, identityClient);
+		verifyNoInteractions(customRepo, identityClient, codeServerClient);
 	}
 
 	@Test
@@ -52,11 +56,23 @@ class BaseFabricWorkspaceServiceTest {
 		assertTrue(service.canCreateAliceRole("alice", false));
 
 		verify(identityClient, never()).getAllUserEntitlements("alice");
+		verify(codeServerClient, never()).isCodespaceProjectOwnerOrAdmin();
+	}
+
+	@Test
+	void codespacesProjectOwnerOrAdminIsAllowedWithoutCallingAlice() {
+		when(customRepo.existsByCreator("alice")).thenReturn(false);
+		when(codeServerClient.isCodespaceProjectOwnerOrAdmin()).thenReturn(true);
+
+		assertTrue(service.canCreateAliceRole("alice", false));
+
+		verify(identityClient, never()).getAllUserEntitlements("alice");
 	}
 
 	@Test
 	void workspaceAdminEntitlementIsAllowed() {
 		when(customRepo.existsByCreator("alice")).thenReturn(false);
+		when(codeServerClient.isCodespaceProjectOwnerOrAdmin()).thenReturn(false);
 		when(identityClient.getAllUserEntitlements("alice"))
 				.thenReturn(List.of("dna.fabric_workspace_123_Admin"));
 

@@ -3837,6 +3837,11 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 	 public CodeServerWorkspaceValidateVO validateCodespace(String id, String userId) {
 		 return workspaceCustomRepository.validateCodespace(id, userId);
 	 }
+
+	 @Override
+	 public boolean isProjectOwnerOrAdmin(String userId) {
+		 return workspaceCustomRepository.isProjectOwnerOrAdmin(userId);
+	 }
   
 	 @Override
 	 @Transactional

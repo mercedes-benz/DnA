@@ -29,6 +29,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.application.client.AuthoriserClient;
 import com.daimler.data.application.client.AzureManagementClient;
+import com.daimler.data.application.client.CodeServerClient;
 import com.daimler.data.application.client.FabricWorkspaceClient;
 import com.daimler.data.application.client.RSAEncryptionUtil;
 import com.daimler.data.assembler.ADAProjectsAssembler;
@@ -161,6 +162,9 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 	
 	@Autowired
 	private AuthoriserClient identityClient;
+
+	@Autowired
+	private CodeServerClient codeServerClient;
 	
 	@Autowired
 	private RSAEncryptionUtil encryptionUtil;
@@ -2435,6 +2439,10 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 
 		try {
 			if (customRepo.existsByCreator(userId)) {
+				return true;
+			}
+
+			if (codeServerClient.isCodespaceProjectOwnerOrAdmin()) {
 				return true;
 			}
 

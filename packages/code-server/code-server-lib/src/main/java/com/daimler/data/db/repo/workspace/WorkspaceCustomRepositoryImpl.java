@@ -1026,6 +1026,28 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 	}
 
 	@Override
+	public boolean isProjectOwnerOrAdmin(String userId) {
+		String query = """
+				SELECT EXISTS (SELECT 1 FROM workspace_nsql
+				 WHERE lower(COALESCE(jsonb_extract_path_text(data, 'status'), '')) NOT IN ('deleted', 'create_failed')
+				 AND (lower(jsonb_extract_path_text(data, 'projectDetails', 'projectOwner', 'id')) = lower(:userId)
+				   OR EXISTS (SELECT 1 FROM jsonb_array_elements(
+				        CASE WHEN jsonb_typeof(data -> 'projectDetails' -> 'projectCollaborators') = 'array'
+				             THEN data -> 'projectDetails' -> 'projectCollaborators' ELSE cast('[]' AS jsonb) END) AS collab
+				      WHERE lower(collab ->> 'id') = lower(:userId)
+				        AND lower(COALESCE(collab ->> 'isAdmin', 'false')) = 'true')))
+				""";
+		try {
+			Query queryResult = em.createNativeQuery(query);
+			queryResult.setParameter("userId", userId);
+			return Boolean.TRUE.equals(queryResult.getSingleResult());
+		} catch (Exception e) {
+			log.warn("Failed to check Codespaces project owner or admin eligibility");
+			return false;
+		}
+	}
+
+	@Override
 	public CodeServerWorkspaceNsql findByWorkspaceId(String wsId) {
 
 		CriteriaBuilder cb = em.getCriteriaBuilder();
@@ -1677,4 +1699,3 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 	}
 
 }
-

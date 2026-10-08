@@ -400,6 +400,24 @@ paths:
           description: "Method not allowed"
         500:
           description: "Internal error"
+
+  /workspaces/projectadmin/eligibility:
+    get:
+      tags:
+        - "code-server"
+      summary: "Check whether the current user owns or administers a Codespaces project."
+      operationId: "getCodespaceProjectAdminEligibility"
+      responses:
+        200:
+          description: "Returns whether the current user owns or administers a Codespaces project."
+          schema:
+            $ref: "#/definitions/CodespaceProjectAdminEligibilityVO"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        500:
+          description: "Internal error"
  
   /workspaces/{id}/readme:
     get:
@@ -1862,6 +1880,12 @@ definitions:
         type: boolean
         description: boolean indicating if user has a access to workspace or not.
 
+  CodespaceProjectAdminEligibilityVO:
+    type: object
+    properties:
+      isProjectOwnerOrAdmin:
+        type: boolean
+
   CodeServerWorkspaceVO:
     type: object
     properties:
@@ -2724,5 +2748,4 @@ definitions:
       status:
         type: string
           
-
 

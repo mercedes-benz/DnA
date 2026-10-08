@@ -57,7 +57,7 @@ class FabricWorkspaceControllerTest {
 
 		assertEquals(HttpStatus.FORBIDDEN, response.getStatusCode());
 		assertEquals("FAILED", response.getBody().getSuccess());
-		assertEquals("Only Fabric workspace owners, Fabric workspace admins and Codespaces admins can create Alice roles.",
+		assertEquals("Only Fabric workspace owners, Fabric workspace admins, Codespaces project owners or admins and Codespaces admins can create Alice roles.",
 				response.getBody().getErrors().get(0).getMessage());
 		verify(service, never()).createGenericRole(any(), any());
 	}
