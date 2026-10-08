@@ -44,6 +44,7 @@ spring:
         binder:
           brokers: ${NAAS_BROKER:localhost:9092}    
     vault:
+      enabled: ${CODE_SERVER_SPRING_VAULT_AUTOCONFIG_ENABLED:false}
       uri: ${CODE_SERVER_VAULT_URI:XXXX}
       namespace: ${CODE_SERVER_VAULT_NAMESPACE:XXXX}
       mountpath: ${CODE_SERVER_VAULT_MOUNTPATH:XXXX}
