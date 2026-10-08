@@ -151,6 +151,9 @@ authoriser:
 codeServer:
   projectAdminEligibilityUri: ${CODESERVER_PROJECTADMIN_ELIGIBILITY_URI:XXXX}
 
+aliceRoleAgreement:
+  version: ${ALICE_ROLE_AGREEMENT_VERSION:DRAFT-1.0}
+
 jwtAuthenticationFilter:
   exclusion:
     urlPatterns: ${AUTH_FILTER_EXCLUSION_PATTERNS:/api/fabric-workspaces/ada/**}

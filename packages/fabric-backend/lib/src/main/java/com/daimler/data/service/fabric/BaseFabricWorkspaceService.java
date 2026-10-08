@@ -2267,7 +2267,8 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 						}
 					}
 					//saving role details to user_created_roles table
-					saveCreatedRoleDetails(roleDetail.getId(), requestUser, roleRequestVO.getData().isIsDynamic());
+					saveCreatedRoleDetails(roleDetail.getId(), requestUser, roleRequestVO.getData().isIsDynamic(),
+							roleRequestVO.getData().getAgreementVersion());
 					//create entitlement
 					EntitlementDetailsVO entitlementDetail = this.callGenericEntitlementCreate(roleRequestVO.getData().getRoleName());
 					if(ConstantsUtility.CREATED_STATE.equalsIgnoreCase(entitlementDetail.getState())){
@@ -2489,7 +2490,8 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 	}
 
 	@Transactional
-	public void saveCreatedRoleDetails(String roleName, CreatedByVO requestUser, Boolean isDynamic) throws PersistenceException{
+	public void saveCreatedRoleDetails(String roleName, CreatedByVO requestUser, Boolean isDynamic,
+			String agreementVersion) throws PersistenceException{
 		AuthoriserRolesNsql  roleEntity = new AuthoriserRolesNsql();
 		AuthoriserRoleDeatils roleDetails = new AuthoriserRoleDeatils();
 		List<UserDetails> ownerDetails = new ArrayList<>();
@@ -2497,6 +2499,9 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		ownerDetails.add(assembler.toUserDetails(requestUser));
 		roleDetails.setOwnerDetails(ownerDetails);
 		roleDetails.setIsDynamic(isDynamic);
+		roleDetails.setAgreementAccepted(true);
+		roleDetails.setAgreementVersion(agreementVersion);
+		roleDetails.setAgreementAcceptedOn(new Date());
 
 		roleEntity.setId(roleName);
 		roleEntity.setData(roleDetails);

@@ -43,6 +43,33 @@
     padding: 12px 24px;
   }
 
+  .agreementHint {
+    color: #99a5b3;
+    font-size: 12px;
+    margin: 8px 20px 0 0;
+  }
+
+  .agreementText {
+    margin-bottom: 12px;
+  }
+
+  .agreementUnavailable {
+    margin: 12px 0;
+  }
+
+  .agreementFrame {
+    border: 0;
+    height: 60vh;
+    width: 100%;
+  }
+
+  .agreementCheckbox {
+    align-items: flex-start;
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+  }
+
   .inputWrapper{
     display : flex; 
     .roleRequest {

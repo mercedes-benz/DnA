@@ -21,4 +21,7 @@ public class AuthoriserRoleDeatils implements Serializable{
 
     private List<UserDetails> ownerDetails;
     private Boolean isDynamic;
+    private Boolean agreementAccepted;
+    private String agreementVersion;
+    private Date agreementAcceptedOn;
 }

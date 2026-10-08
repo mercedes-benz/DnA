@@ -107,6 +107,9 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 	
 	@Value("${authoriser.applicationId}")
 	private String applicationId;
+
+	@Value("${aliceRoleAgreement.version}")
+	private String aliceRoleAgreementVersion;
 	
 	@Override
 	@ApiOperation(value = "Adds a new fabric workspace.", nickname = "create", notes = "Adds a new non existing workspace.", response = FabricWorkspaceResponseVO.class, tags={ "fabric-workspaces", })
@@ -951,6 +954,12 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 				|| !service.canCreateAliceRole(requestUser.getId(), userInfo.hasCodespaceAdminAccess())) {
 			return aliceRoleCreationForbidden(requestUser == null ? null : requestUser.getId());
 		}
+		if (roleRequestVO.getData() == null
+				|| !Boolean.TRUE.equals(roleRequestVO.getData().isAgreementAccepted())
+				|| aliceRoleAgreementVersion == null || aliceRoleAgreementVersion.trim().isEmpty()
+				|| !aliceRoleAgreementVersion.equals(roleRequestVO.getData().getAgreementVersion())) {
+			return aliceRoleAgreementRequired();
+		}
 		try{
 
 			response = service.createGenericRole(roleRequestVO,requestUser);
@@ -999,7 +1008,16 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 		AliceRoleEligibilityVO eligibility = new AliceRoleEligibilityVO();
 		eligibility.setCanCreateRole(
 				service.canCreateAliceRole(requestUser.getId(), userInfo.hasCodespaceAdminAccess()));
+		eligibility.setAgreementVersion(aliceRoleAgreementVersion);
 		return new ResponseEntity<>(eligibility, HttpStatus.OK);
+	}
+
+	private ResponseEntity<GenericMessage> aliceRoleAgreementRequired() {
+		GenericMessage response = new GenericMessage();
+		response.setSuccess("FAILED");
+		response.setErrors(List.of(new MessageDescription(
+				"You must accept the current Alice role creation agreement before creating a role.")));
+		return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
 	}
 
 	private ResponseEntity<GenericMessage> aliceRoleCreationForbidden(String userId) {

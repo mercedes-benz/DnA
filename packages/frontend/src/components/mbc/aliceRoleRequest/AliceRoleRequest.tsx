@@ -17,7 +17,16 @@ interface roleResponse {
 
 interface IAliceRoleEligibility {
   canCreateRole: boolean;
+  agreementVersion?: string;
 }
+
+const defaultAgreementUrl = '/agreements/alice-role-creation-agreement.pdf';
+const resolveAgreementUrl = (url: unknown): string => {
+  if (typeof url !== 'string') return defaultAgreementUrl;
+  if (url.startsWith('/') && !url.startsWith('//')) return url;
+  if (url.startsWith('https://')) return url;
+  return defaultAgreementUrl;
+};
 
 const AliceRoleRequest = () => {
   const goback = () => {
@@ -29,9 +38,13 @@ const AliceRoleRequest = () => {
   const [roleDisplayName, setRoleDisplayName] = useState('');
   const [roleDisplayNameError, setRoleDisplayNameError] = useState('');
   const [eligibility, setEligibility] = useState<'loading' | 'allowed' | 'denied'>('loading');
+  const [agreementVersion, setAgreementVersion] = useState('');
+  const [showAgreementModal, setShowAgreementModal] = useState(false);
+  const [agreementAccepted, setAgreementAccepted] = useState(false);
   const [rolesCreated, setRolesCreated] = useState<{ static: string[]; dynamic: string[];}>({ static: [], dynamic: [] });
   // const [isDynamicRole, setIsDynamicRole] = useState(false);
   const isDynamicRole = false;
+  const agreementUrl = resolveAgreementUrl(Envs.ALICE_ROLE_AGREEMENT_URL);
   const [showRoleModal, setShowRoleModal] = useState(false);
   const [selectedRoleDetails, setSelectedRoleDetails] = useState<any>(null);
   const [entraGroupMembers, setEntraGroupMembers] = useState<any[]>([]);
@@ -156,49 +169,68 @@ const AliceRoleRequest = () => {
     return sanitized;
   };
  
-  const createRole = () => {
-    if (validateRole()) {
-      const value = roleName;
-      const data = {
-        "data": {
-          "roleName": value,
-          "isDynamic": isDynamicRole
-        }
+  const submitRole = () => {
+    const value = roleName;
+    const data = {
+      data: {
+        roleName: value,
+        isDynamic: isDynamicRole,
+        agreementAccepted: true,
+        agreementVersion
       }
- 
-      ProgressIndicator.show();
-      ApiClient.createAliceRole(data)
-        .then((res: any) => {
-          ProgressIndicator.hide();
-          if (res.success === 'SUCCESS') {
-            const updatedStatic = isDynamicRole ? rolesCreated.static : [...rolesCreated.static, value];
-            const updatedDynamic = isDynamicRole ? [...rolesCreated.dynamic, value] : rolesCreated.dynamic;
-            setRolesCreated({ static: updatedStatic, dynamic: updatedDynamic });
-            setRoleName(appIdPrefix);
-            setRoleNameError('');
-            setRoleDisplayName('');
-            setRoleDisplayNameError('');
-            Notification.show('Role created successfully')
-          } else {
-            if (res?.errors[0]?.message?.length > 0) {
-              Notification.show(res?.errors[0]?.message, 'alert')
-            }
-            if (res?.warnings[0]?.message?.length > 0) {
-              Notification.show(res?.warnings[0]?.message, 'warning');
-            }
+    };
+
+    ProgressIndicator.show();
+    ApiClient.createAliceRole(data)
+      .then((res: any) => {
+        ProgressIndicator.hide();
+        if (res.success === 'SUCCESS') {
+          const updatedStatic = isDynamicRole ? rolesCreated.static : [...rolesCreated.static, value];
+          const updatedDynamic = isDynamicRole ? [...rolesCreated.dynamic, value] : rolesCreated.dynamic;
+          setRolesCreated({ static: updatedStatic, dynamic: updatedDynamic });
+          setRoleName(appIdPrefix);
+          setRoleNameError('');
+          setRoleDisplayName('');
+          setRoleDisplayNameError('');
+          Notification.show('Role created successfully')
+        } else {
+          if (res?.errors[0]?.message?.length > 0) {
+            Notification.show(res?.errors[0]?.message, 'alert')
           }
-        })
-        .catch((err: { status?: number; message?: string }) => {
-          ProgressIndicator.hide();
-          if (err.status === 403) {
-            setEligibility('denied');
-          } else {
-            Notification.show(err?.message || 'Something went wrong', 'alert');
+          if (res?.warnings[0]?.message?.length > 0) {
+            Notification.show(res?.warnings[0]?.message, 'warning');
           }
-        });
+        }
+      })
+      .catch((err: { status?: number; message?: string }) => {
+        ProgressIndicator.hide();
+        if (err.status === 403) {
+          setEligibility('denied');
+        } else {
+          Notification.show(err?.message || 'Something went wrong', 'alert');
+        }
+      });
+  };
+
+  const openAgreement = () => {
+    if (validateRole()) {
+      setAgreementAccepted(false);
+      setShowAgreementModal(true);
     }
   };
- 
+
+  const cancelAgreement = () => {
+    setAgreementAccepted(false);
+    setShowAgreementModal(false);
+  };
+
+  const acceptAgreement = () => {
+    if (!agreementAccepted || agreementVersion.trim().length === 0) return;
+    setAgreementAccepted(false);
+    setShowAgreementModal(false);
+    submitRole();
+  };
+
   const fetchRole = useCallback(() => {
     ProgressIndicator.show();
     ApiClient.getExistingRoles(Envs.ALICE_APP_ID)
@@ -230,6 +262,7 @@ const AliceRoleRequest = () => {
     ApiClient.getAliceRoleCreationEligibility()
       .then((response: IAliceRoleEligibility) => {
         ProgressIndicator.hide();
+        setAgreementVersion(response?.agreementVersion || '');
         if (response?.canCreateRole === true) {
           setEligibility('allowed');
           fetchRole();
@@ -396,10 +429,13 @@ const AliceRoleRequest = () => {
                     </div>
                   </div>
                   <label className="Create Role">
-                      <button className="btn btn-tertiary" type="button" onClick={createRole}>
+                      <button className="btn btn-tertiary" type="button" onClick={openAgreement}>
                         Create Role
                       </button>
                   </label>
+                  <p className={Styles.agreementHint}>
+                    You will be asked to accept the Alice role creation agreement before the role is created.
+                  </p>
                 </div>
               </div>
               <hr className={Styles.divider} />
@@ -543,6 +579,65 @@ const AliceRoleRequest = () => {
               showAcceptButton={false}
               showCancelButton={false}
               scrollableContent={true}
+            />
+            <Modal
+              title="Alice Role Creation Agreement"
+              content={
+                <div>
+                  <p className={Styles.agreementText}>
+                    Please read the agreement below. You must accept it before the role {roleName} is created.
+                  </p>
+                  {agreementVersion.trim().length === 0 && (
+                    <p className={Styles.agreementUnavailable}>
+                      The agreement is currently unavailable. Please try again later.
+                    </p>
+                  )}
+                  <iframe
+                    className={Styles.agreementFrame}
+                    title="Alice role creation agreement"
+                    src={agreementUrl}
+                  />
+                  <p>
+                    <a href={agreementUrl} target="_blank" rel="noopener noreferrer">
+                      Open the agreement in a new tab
+                    </a>
+                  </p>
+                  <label className={`checkbox ${Styles.agreementCheckbox}`}>
+                    <span className="wrapper">
+                      <input
+                        type="checkbox"
+                        className="ff-only"
+                        checked={agreementAccepted}
+                        onChange={(event) => setAgreementAccepted(event.target.checked)}
+                      />
+                    </span>
+                    <span className="label">
+                      I have read and agree to the Alice Role Creation Agreement (version {agreementVersion})
+                    </span>
+                  </label>
+                </div>
+              }
+              show={showAgreementModal}
+              onCancel={cancelAgreement}
+              buttonAlignment="right"
+              showAcceptButton={false}
+              showCancelButton={false}
+              modalWidth="80vw"
+              footer={
+                <div className="btn-set">
+                  <button className="btn btn-secondary" type="button" onClick={cancelAgreement}>
+                    Cancel
+                  </button>
+                  <button
+                    className="btn btn-tertiary"
+                    type="button"
+                    disabled={!agreementAccepted || agreementVersion.trim().length === 0}
+                    onClick={acceptAgreement}
+                  >
+                    Accept and create role
+                  </button>
+                </div>
+              }
             />
           </>
         )}
