@@ -91,6 +91,7 @@ export class ApiClient {
   public static fabricPost(endpoint: string, body?: any) {
     return this.fetch(getFabricUrl(endpoint), HTTP_METHOD.POST, body);
   }
+
   
   public static fabricGet(endpoint: string, body?: any) {
     return this.fetch(getFabricUrl(endpoint), HTTP_METHOD.GET, body);
@@ -103,6 +104,7 @@ export class ApiClient {
   public static dataProductGet(endpoint: string, body?: any) {
     return this.fetch(getDataProductUrl(endpoint), HTTP_METHOD.GET, body);
   }
+
   
   public static postWithFormData(endpoint: string, formData: FormData) {
     return this.fetchWithFormData(getUrl(endpoint), HTTP_METHOD.POST, formData);
@@ -210,7 +212,9 @@ export class ApiClient {
             message = 'Some Error Occurred';
           }
 
-          throw new Error(message);
+          const apiError: Error & { status?: number } = new Error(message);
+          apiError.status = response.status;
+          throw apiError;
         });
       }
 
@@ -231,7 +235,8 @@ export class ApiClient {
         return Promise.reject({
           error: true,
           message: error?.message || 'Some Error Occured',
-          code: error?.status || "FETCH_ERROR" // use FETCH_ERROR if status code is not available
+          code: error?.status || "FETCH_ERROR", // use FETCH_ERROR if status code is not available
+          status: error?.status,
         });
       }
     });
@@ -543,7 +548,11 @@ export class ApiClient {
   public static createAliceRole(data: any) {
     return this.fabricPost('fabric-workspaces/createrole', data);
   }
-  
+
+  public static getAliceRoleCreationEligibility() {
+    return this.fabricGet('fabric-workspaces/createrole/eligibility');
+  }
+
   public static getExistingRoles(appId: string) {
     return this.fabricGet(`fabric-workspaces/${appId}/dnaroles`);
   }

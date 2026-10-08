@@ -24,6 +24,15 @@
       font-size: 13px;
     }
   }
+  .notAuthorized {
+    background-color: #252a33;
+    margin-top: 10px;
+    padding: 24px 36px;
+
+    p {
+      margin-bottom: 0;
+    }
+  }
   .inputWrapper{
     display : flex; 
     .roleRequest {

@@ -108,6 +108,7 @@ import com.daimler.data.dto.tag.TagVO;
 import com.daimler.data.dto.fabricWorkspace.FabricWorkspacesCollectionVO;
 import com.daimler.data.dto.fabricWorkspace.GroupDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.RoleDetailsVO;
+import com.daimler.data.util.AliceRoleCreationPolicy;
 import com.daimler.data.dto.fabricWorkspace.RolesVO;
 import com.daimler.data.dto.fabricWorkspace.DnaRoleCollectionVO;
 import com.daimler.data.dto.fabricWorkspace.DnaRolesVO;
@@ -2424,6 +2425,35 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 			log.error("Called identity management system to add generic role. Failed to create role with error {} ", e.getMessage());
 		}
 		return createRoleVO;
+	}
+
+	@Override
+	public boolean canCreateAliceRole(String userId, boolean isCodespaceAdmin) {
+		if (isCodespaceAdmin) {
+			return true;
+		}
+
+		try {
+			if (customRepo.existsByCreator(userId)) {
+				return true;
+			}
+
+			return AliceRoleCreationPolicy.hasWorkspaceAdminEntitlement(
+					identityClient.getAllUserEntitlements(userId), applicationId, subgroupPrefix);
+		} catch (Exception e) {
+			log.warn("Failed to determine Alice role creation eligibility for user {}", userId);
+			return false;
+		}
+	}
+
+	@Override
+	public boolean isRoleOwner(String roleId, String userId) {
+		return rolesJpaRepo.findById(roleId)
+				.map(role -> role.getData() != null && role.getData().getOwnerDetails() != null
+						&& role.getData().getOwnerDetails().stream()
+								.anyMatch(owner -> owner != null && owner.getId() != null
+										&& owner.getId().equalsIgnoreCase(userId)))
+				.orElse(false);
 	}
 
 	@Override

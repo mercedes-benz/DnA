@@ -418,6 +418,25 @@ paths:
           500:
             description: "Internal error"
 
+  /fabric-workspaces/createrole/eligibility:
+    get:
+        tags:
+          - "fabric-workspaces"
+        summary: "Check whether the current user can create Alice roles."
+        description: "Returns whether the current user is authorized to create Alice roles."
+        operationId: "getAliceRoleCreationEligibility"
+        responses:
+          200:
+            description: "Returns the Alice role creation eligibility."
+            schema:
+              $ref: "#/definitions/AliceRoleEligibilityVO"
+          401:
+            description: "Request does not have sufficient credentials."
+          403:
+            description: "Request is not authorized."
+          500:
+            description: "Internal error"
+
   /fabric-workspaces/{id}/dnaroles:
     get:
         tags:
@@ -1313,6 +1332,12 @@ definitions:
           type: array
           items:
             $ref: "#/definitions/DnaRolesVO" 
+
+  AliceRoleEligibilityVO:
+      type: object
+      properties:
+        canCreateRole:
+          type: boolean
   
   DnaRolesVO:
     type: object

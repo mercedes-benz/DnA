@@ -81,6 +81,10 @@ public interface FabricWorkspaceService extends CommonService<FabricWorkspaceVO,
 
 	GenericMessage createGenericRole(CreateRoleRequestVO roleRequestVO, CreatedByVO requestUser);
 
+	boolean canCreateAliceRole(String userId, boolean isCodespaceAdmin);
+
+	boolean isRoleOwner(String roleId, String userId);
+
 	DnaRoleCollectionVO getAllUserDnaRoles(String id);
 
 	AuthoriserRoleDetailsVO getRoleDetails(String roleId);

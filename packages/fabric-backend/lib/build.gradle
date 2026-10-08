@@ -254,6 +254,10 @@ dependencies {
     implementation 'org.open-metadata:openmetadata-java-client:1.7.7'
     implementation 'org.open-metadata:openmetadata-spec:1.7.7'
 
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.10.2'
+    testImplementation 'org.mockito:mockito-core:5.11.0'
+    testImplementation 'org.mockito:mockito-junit-jupiter:5.11.0'
+
     // Feign for HTTP client
     implementation 'io.github.openfeign:feign-core:13.6'
     implementation 'io.github.openfeign:feign-jackson:13.6'
