@@ -12,8 +12,6 @@ import static org.mockito.Mockito.when;
 
 import java.lang.reflect.Field;
 
-import javax.servlet.http.HttpServletRequest;
-
 import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -107,12 +105,13 @@ class CodeServerClientTest {
 	}
 
 	private void setRequestHeaders(String userDetails, String authorization) {
-		HttpServletRequest request = org.mockito.Mockito.mock(HttpServletRequest.class);
-		when(request.getHeader("dna-request-userdetails")).thenReturn(userDetails);
-		if (authorization != null) {
-			when(request.getHeader(HttpHeaders.AUTHORIZATION)).thenReturn(authorization);
-		}
-		RequestContextHolder.setRequestAttributes(new ServletRequestAttributes(request));
+		ServletRequestAttributes requestAttributes =
+				org.mockito.Mockito.mock(ServletRequestAttributes.class, org.mockito.Mockito.RETURNS_DEEP_STUBS);
+		org.mockito.Mockito.lenient().when(requestAttributes.getRequest().getHeader("dna-request-userdetails"))
+				.thenReturn(userDetails);
+		org.mockito.Mockito.lenient().when(requestAttributes.getRequest().getHeader(HttpHeaders.AUTHORIZATION))
+				.thenReturn(authorization);
+		RequestContextHolder.setRequestAttributes(requestAttributes);
 	}
 
 	private void setEligibilityUri(String uri) throws ReflectiveOperationException {

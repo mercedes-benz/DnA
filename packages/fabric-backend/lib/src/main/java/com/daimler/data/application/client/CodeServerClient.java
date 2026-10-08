@@ -2,8 +2,6 @@ package com.daimler.data.application.client;
 
 import java.util.Collections;
 
-import javax.servlet.http.HttpServletRequest;
-
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
@@ -46,7 +44,7 @@ public class CodeServerClient {
 				return false;
 			}
 
-			HttpServletRequest request = ((ServletRequestAttributes) requestAttributes).getRequest();
+			var request = ((ServletRequestAttributes) requestAttributes).getRequest();
 			if (request == null) {
 				return false;
 			}
