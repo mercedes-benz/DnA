@@ -1007,7 +1007,7 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 		GenericMessage response = new GenericMessage();
 		response.setSuccess("FAILED");
 		response.setErrors(List.of(new MessageDescription(
-				"Only Fabric workspace admins and Codespaces admins can create Alice roles.")));
+				"Only Fabric workspace owners, Fabric workspace admins and Codespaces admins can create Alice roles.")));
 		return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
 	}
 
