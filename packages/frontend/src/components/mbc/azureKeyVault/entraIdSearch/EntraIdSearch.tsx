@@ -156,10 +156,6 @@ const EntraIdSearch = (props: EntraIdSearchProps) => {
           <label htmlFor="entraIdSearchField" className="input-label">
             {props.label}
             &nbsp;
-            <i
-              className="icon mbc-icon info"
-              tooltip-data="Kindly provide full names of users as shortID doesn't work"
-            />
           </label>
           <div id="searchPanel" className={Styles.searchPanel}>
             <input
