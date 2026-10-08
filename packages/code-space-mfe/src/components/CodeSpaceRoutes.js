@@ -17,6 +17,7 @@ import ManageRecipes from './manageRecipes/ManageRecipes';
 import CodeSpaceRecipe from './codeSpaceRecipe/CodeSpaceRecipe';
 import Tutorials from './codeSpaceTutorials/Tutorials';
 import CodeSpaceAdministration from './codeSpaceAdministration/CodeSpaceAdministration';
+import DeveloperOptions from './developerOptions/DeveloperOptions';
 
 export const protectedRoutes = [
     {
@@ -33,6 +34,11 @@ export const protectedRoutes = [
         component: ManageRecipes,
         exact: false,
         path: '/manageRecipes',
+    },
+    {
+        component: DeveloperOptions,
+        exact: false,
+        path: '/developerOptions',
     },
     {
         component: CodeSpaceSecurityConfig,
