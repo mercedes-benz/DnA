@@ -155,6 +155,11 @@ aliceRoleAgreement:
   version: ${ALICE_ROLE_AGREEMENT_VERSION:DRAFT-1.0}
   url: ${ALICE_ROLE_AGREEMENT_URL:XXXX}
 
+aliceRoleCreation:
+  retry:
+    maxAttempts: ${ALICE_ROLE_CREATION_RETRY_MAX_ATTEMPTS:3}
+    backoffMillis: ${ALICE_ROLE_CREATION_RETRY_BACKOFF_MILLIS:1000}
+
 jwtAuthenticationFilter:
   exclusion:
     urlPatterns: ${AUTH_FILTER_EXCLUSION_PATTERNS:/api/fabric-workspaces/ada/**}

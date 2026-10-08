@@ -13,6 +13,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.UUID;
+import java.util.function.BooleanSupplier;
 import java.util.stream.Collectors;
 
 import javax.persistence.PersistenceException;
@@ -254,6 +255,12 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 	
 	@Value("${fabricWorkspaces.technicalUser.id}")
 	private String fabricTechUserId;
+
+	@Value("${aliceRoleCreation.retry.maxAttempts}")
+	private int aliceRetryMaxAttempts;
+
+	@Value("${aliceRoleCreation.retry.backoffMillis}")
+	private long aliceRetryBackoffMillis;
 	
 	@Value("${authoriser.role.fabricRoleName}")
 	private String fabricOperationsRoleName;
@@ -2218,99 +2225,111 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		GenericMessage response = new GenericMessage();
 		List<MessageDescription> errors = new ArrayList<>();
 		List<MessageDescription> warnings = new ArrayList<>();
+		response.setErrors(errors);
+		response.setWarnings(warnings);
 		try{
+			String rawName = roleRequestVO.getData().getRoleName();
+			String roleId = sanitizeRoleId(rawName);
+			String userId = requestUser.getId();
+			if (roleId == null || roleId.isEmpty()) {
+				response.setSuccess("BAD_REQUEST");
+				errors.add(new MessageDescription("Failed to create role : Invalid role ID."));
+				return response;
+			}
 
-			CreateRoleResponseDto getResponse = identityClient.getRole(roleRequestVO.getData().getRoleName());
-			if(getResponse!=null && getResponse.getId()!=null) {
-				errors.add(new MessageDescription("Failed to create role : Role Already Exists."));
-					response.setErrors(errors);
-					response.setWarnings(warnings);
+			CreateRoleResponseDto existingRole = identityClient.getRole(roleId);
+			if (existingRole != null && existingRole.getId() != null) {
+				if (!isRoleOwnedBy(roleId, userId)) {
+					errors.add(new MessageDescription("Failed to create role : Role Already Exists."));
 					response.setSuccess("CONFLICT");
 					log.error("Failed to create role, Role Already Exists");
 					return response;
-			}else{
-				RoleDetailsVO roleDetail = this.callGenericRoleCreate(roleRequestVO.getData().getRoleName(),requestUser.getId(),roleRequestVO.getData().isIsDynamic());
-				if(ConstantsUtility.CREATED_STATE.equalsIgnoreCase(roleDetail.getState())) {
-					//assign Role Owner privileges
-					if(roleDetail.getRoleOwner()==null || "".equalsIgnoreCase(roleDetail.getRoleOwner())) {
-						HttpStatus assignRoleOwnerPrivileges = identityClient.AssignRoleOwnerPrivilegesToCreator(requestUser.getId(), roleDetail.getId());
-						if(assignRoleOwnerPrivileges.is2xxSuccessful()) {
-							roleDetail.setRoleOwner(requestUser.getId());
-						}else{
-							warnings.add(new MessageDescription("Failed to assign role owner privilage role for user, please contact admin."));
-						}
-					}
-					//assign Global Role Assigner privileges to creator and Technical user
-					if(roleDetail.getRoleOwner()!=null && !"".equalsIgnoreCase(roleDetail.getRoleOwner()) 
-							&& (roleDetail.getGlobalRoleAssigner()==null || "".equalsIgnoreCase(roleDetail.getGlobalRoleAssigner()))) {
-						HttpStatus globalRoleAssignerPrivilegesStatus = identityClient.AssignGlobalRoleAssignerPrivilegesToCreator(requestUser.getId(), roleDetail.getId());
-						if(globalRoleAssignerPrivilegesStatus.is2xxSuccessful()) {
-							HttpStatus globalRoleAssignerPrivilegesStatusforTechUser = identityClient.AssignGlobalRoleAssignerPrivilegesToCreator(fabricTechUserId, roleDetail.getId());
-							if(globalRoleAssignerPrivilegesStatusforTechUser.is2xxSuccessful()) {
-								roleDetail.setGlobalRoleAssigner(requestUser.getId());
-							}else{
-								warnings.add(new MessageDescription("Failed to assign global role assigner privilage role for tech user, please contact admin."));
-							}
-						}else{
-							warnings.add(new MessageDescription("Failed to assign global role assigner privilage role for user, please contact admin."));
-						}
-					}
-					//assign Role Approver privileges
-					if(roleDetail.getRoleOwner()!=null && !"".equalsIgnoreCase(roleDetail.getRoleOwner()) 
-							&& (roleDetail.getGlobalRoleAssigner()!=null && !"".equalsIgnoreCase(roleDetail.getGlobalRoleAssigner()))
-							&& (roleDetail.getRoleApprover()==null || "".equalsIgnoreCase(roleDetail.getRoleApprover()))) {
-						HttpStatus roleApproverPrivilegesStatus = identityClient.AssignRoleApproverPrivilegesToCreator(requestUser.getId(), roleDetail.getId());
-						if(roleApproverPrivilegesStatus.is2xxSuccessful()) {
-							roleDetail.setRoleApprover(requestUser.getId());
-						}else{
-							warnings.add(new MessageDescription("Failed to assign role approver privilage role for user, please contact admin."));
-						}
-					}
-					//saving role details to user_created_roles table
-					saveCreatedRoleDetails(roleDetail.getId(), requestUser, roleRequestVO.getData().isIsDynamic(),
-							roleRequestVO.getData().getAgreementVersion());
-					//create entitlement
-					EntitlementDetailsVO entitlementDetail = this.callGenericEntitlementCreate(roleRequestVO.getData().getRoleName());
-					if(ConstantsUtility.CREATED_STATE.equalsIgnoreCase(entitlementDetail.getState())){
-						//assign entitlement to role
-						HttpStatus assignEntitlementToRoleStatus = identityClient.AssignEntitlementToRole(entitlementDetail.getEntitlementId(), roleDetail.getId());
-						if((assignEntitlementToRoleStatus.is2xxSuccessful() || (assignEntitlementToRoleStatus.compareTo(HttpStatus.CONFLICT) == 0))) {
-							response.setSuccess("SUCCESS");
-							response.setErrors(errors);
-							response.setWarnings(warnings);
-							log.error("Generic role created successfully.");
-							return response;
-						}else {
-							warnings.add(new MessageDescription("Failed to assign entitlement to role, please contact admin."));
-						}
-					}else{
-						errors.add(new MessageDescription("Failed to create role : Error occured while creating entitlement, please try again."));
-						response.setErrors(errors);
-						response.setWarnings(warnings);
-						response.setSuccess("FAILED");
-						log.error("Failed to create role, Error while creating entitlement");
-						return response;
-					}
-				}else{
-					errors.add(new MessageDescription("Failed to create role : Error occured while creating role, please try again."));
-					response.setErrors(errors);
-					response.setWarnings(warnings);
+				}
+				log.info("Resuming setup for existing Alice role {}", roleId);
+			} else {
+				RoleDetailsVO roleDetail = callGenericRoleCreate(rawName, userId,
+						roleRequestVO.getData().isIsDynamic());
+				if (roleDetail == null || !ConstantsUtility.CREATED_STATE.equalsIgnoreCase(roleDetail.getState())) {
 					response.setSuccess("FAILED");
-					log.error("Failed to create role, Error while creating role");
+					errors.add(new MessageDescription(
+							"Failed to create role : Error occured while creating role, please try again."));
 					return response;
 				}
+				roleId = roleDetail.getId();
 			}
-		} catch (PersistenceException e){
-			log.warn("Error occured while saving the created role in DB : {}",e.getMessage());
+
+			final String setupRoleId = roleId;
+			final boolean isDynamic = roleRequestVO.getData().isIsDynamic();
+			List<String> failedSteps = new ArrayList<>();
+			try {
+				saveCreatedRoleDetails(setupRoleId, requestUser, isDynamic,
+						roleRequestVO.getData().getAgreementVersion());
+			} catch (PersistenceException e) {
+				log.warn("Error occured while saving the created role in DB: {}", e.getMessage());
+				failedSteps.add("saving the role in DnA");
+			}
+
+			if (!retryAliceStep("role owner privilege", setupRoleId,
+					() -> isOkOrConflict(identityClient.AssignRoleOwnerPrivilegesToCreator(userId, setupRoleId)))) {
+				failedSteps.add("role owner privilege");
+			}
+
+			boolean assignerOk = retryAliceStep("global role assigner privilege", setupRoleId,
+					() -> isOkOrConflict(identityClient.AssignGlobalRoleAssignerPrivilegesToCreator(userId, setupRoleId)));
+			if (!assignerOk) {
+				failedSteps.add("global role assigner privilege");
+			}
+
+			boolean techAssignerOk = retryAliceStep("global role assigner privilege for the technical user", setupRoleId,
+					() -> isOkOrConflict(identityClient.AssignGlobalRoleAssignerPrivilegesToCreator(fabricTechUserId, setupRoleId)));
+			if (!techAssignerOk) {
+				failedSteps.add("global role assigner privilege for the technical user");
+			}
+
+			if (assignerOk && techAssignerOk) {
+				if (!retryAliceStep("role approver privilege", setupRoleId,
+						() -> isOkOrConflict(identityClient.AssignRoleApproverPrivilegesToCreator(userId, setupRoleId)))) {
+					failedSteps.add("role approver privilege");
+				}
+			} else {
+				failedSteps.add("role approver privilege");
+			}
+
+			final String[] entitlementId = new String[1];
+			boolean entitlementCreated = retryAliceStep("entitlement creation", setupRoleId, () -> {
+				EntitlementDetailsVO entitlement = callGenericEntitlementCreate(rawName);
+				if (entitlement != null && ConstantsUtility.CREATED_STATE.equalsIgnoreCase(entitlement.getState())
+						&& entitlement.getEntitlementId() != null) {
+					entitlementId[0] = entitlement.getEntitlementId();
+					return true;
+				}
+				return false;
+			});
+			if (!entitlementCreated) {
+				failedSteps.add("entitlement creation");
+				failedSteps.add("entitlement assignment");
+			} else if (!retryAliceStep("entitlement assignment", setupRoleId,
+					() -> isOkOrConflict(identityClient.AssignEntitlementToRole(entitlementId[0], setupRoleId)))) {
+				failedSteps.add("entitlement assignment");
+			}
+
+			if (failedSteps.isEmpty()) {
+				response.setSuccess("SUCCESS");
+			} else {
+				response.setSuccess("FAILED");
+				errors.add(new MessageDescription("Role " + setupRoleId
+						+ " was created in Alice, but these setup steps failed: "
+						+ String.join(", ", failedSteps)
+						+ ". Click Create Role again with the same Role ID to complete the setup."));
+			}
+			return response;
 		}catch(Exception e){
-			errors.add(new MessageDescription("Failed to create role for the user  with exception " + e.getMessage()));
-            response.setErrors(errors);
-			response.setWarnings(warnings);
-            response.setSuccess("FAILED");
-            log.error("Failed to create role  Fabric workspace with exception {} ",e.getMessage());
+			log.error("Failed to create Alice role", e);
+			errors.clear();
+			errors.add(new MessageDescription("Failed to create role, please try again."));
+			response.setSuccess("FAILED");
             return response;
 		}
-		return response;
 	}
 
 	public CreateEntitlementRequestDto prepareGenericEntitlementCreateRequestDto(String entitlementName) {
@@ -2343,11 +2362,16 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		requestedEntitlement.setState(ConstantsUtility.PENDING_STATE);
 		try {
 			log.info("Calling identity management system to add Generic entitlement");
-			EntiltlemetDetailsDto getResponse = identityClient.getEntitlement(createRequestDto.getDisplayName());
-			if(getResponse!=null && getResponse.getUuid()!=null) {
-				requestedEntitlement.setEntitlementId(getResponse.getEntitlementId());
+			EntiltlemetDetailsDto getResponse = identityClient.getEntitlement(createRequestDto.getEntitlementId());
+			if (!isFoundEntitlement(getResponse)) {
+				getResponse = identityClient.getEntitlement(createRequestDto.getDisplayName());
+			}
+			if(isFoundEntitlement(getResponse)) {
+				requestedEntitlement.setEntitlementId(getResponse.getEntitlementId() != null
+						? getResponse.getEntitlementId() : createRequestDto.getEntitlementId());
 				requestedEntitlement.setState(ConstantsUtility.CREATED_STATE);
-				log.info("Called identity management system to get generic entitlement. Entitlement fetched successfully with id {} ", getResponse.getUuid());
+				log.info("Called identity management system to get generic entitlement. Entitlement fetched successfully with id {} ",
+						requestedEntitlement.getEntitlementId());
 				return requestedEntitlement;
 			}
 			EntiltlemetDetailsDto entitlementCreateResponse = identityClient.createEntitlement(createRequestDto);
@@ -2356,14 +2380,81 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 				requestedEntitlement.setState(ConstantsUtility.CREATED_STATE);
 				log.info("Called identity management system to add generic entitlement. Entitlement created successfully with id {} ", entitlementCreateResponse.getEntitlementId());
 			}else {
-				requestedEntitlement.setState(ConstantsUtility.FAILED_STATE);
-				log.info("Called identity management system to add generic entitlement : {} . Entitlement creat failed with unknown error",entitlementName);
+				EntiltlemetDetailsDto recoveredEntitlement = identityClient.getEntitlement(createRequestDto.getEntitlementId());
+				if (isFoundEntitlement(recoveredEntitlement)) {
+					requestedEntitlement.setEntitlementId(recoveredEntitlement.getEntitlementId() != null
+							? recoveredEntitlement.getEntitlementId() : createRequestDto.getEntitlementId());
+					requestedEntitlement.setState(ConstantsUtility.CREATED_STATE);
+				} else {
+					requestedEntitlement.setState(ConstantsUtility.FAILED_STATE);
+					log.info("Called identity management system to add generic entitlement: {}. Entitlement creation failed with unknown error",
+							entitlementName);
+				}
 			}
 		}catch(Exception e) {
 			requestedEntitlement.setState(ConstantsUtility.FAILED_STATE);
 			log.error("Called identity management system to add generic entitlement. Failed to create entitlement with error {} ", e.getMessage());
 		}
 		return requestedEntitlement;
+	}
+
+	private boolean isFoundEntitlement(EntiltlemetDetailsDto entitlement) {
+		return entitlement != null
+				&& (entitlement.getEntitlementId() != null || entitlement.getUuid() != null);
+	}
+
+	private boolean retryAliceStep(String stepName, String roleId, BooleanSupplier step) {
+		int attempts = Math.max(1, aliceRetryMaxAttempts);
+		for (int attempt = 1; attempt <= attempts; attempt++) {
+			try {
+				if (step.getAsBoolean()) {
+					return true;
+				}
+			} catch (Exception e) {
+				String message = e.getMessage() == null ? ""
+						: e.getMessage().replaceAll("(?i)(bearer|basic)\\s+[^\\s,;]+", "$1 [REDACTED]")
+								.replaceAll("(?i)((?:access|refresh|id)?[_-]?token|client[_-]?secret|api[_-]?key)\\s*[:=]\\s*[^\\s,;&]+",
+										"$1=[REDACTED]")
+								.replaceAll("[\\r\\n]", " ");
+				log.warn("Alice setup step {} failed for role {} on attempt {} with {}: {}",
+						stepName, roleId, attempt, e.getClass().getSimpleName(), message);
+			}
+			long backoffMillis = aliceRetryBackoffMillis * attempt;
+			if (attempt < attempts && backoffMillis > 0) {
+				try {
+					Thread.sleep(backoffMillis);
+				} catch (InterruptedException e) {
+					Thread.currentThread().interrupt();
+					return false;
+				}
+			}
+		}
+		return false;
+	}
+
+	private static boolean isOkOrConflict(HttpStatus status) {
+		return status != null && (status.is2xxSuccessful() || status == HttpStatus.CONFLICT);
+	}
+
+	private boolean isRoleOwnedBy(String roleId, String userId) {
+		try {
+			Optional<AuthoriserRolesNsql> roleInDna = rolesJpaRepo.findById(roleId);
+			if (roleInDna != null && roleInDna.isPresent()) {
+				AuthoriserRoleDeatils roleData = roleInDna.get().getData();
+				List<UserDetails> owners = roleData == null ? null : roleData.getOwnerDetails();
+				if (owners != null && owners.stream().anyMatch(owner -> owner != null && owner.getId() != null
+						&& userId != null && owner.getId().equalsIgnoreCase(userId))) {
+					return true;
+				}
+			}
+
+			AuthoriserRoleDetailsVO aliceRole = identityClient.getRoleDetails(roleId);
+			List<MembersVO> roleOwners = aliceRole == null ? null : aliceRole.getRoleOwners();
+			return roleOwners != null && roleOwners.stream().anyMatch(owner -> owner != null && owner.getId() != null
+					&& userId != null && owner.getId().equalsIgnoreCase(userId));
+		} catch (Exception e) {
+			return false;
+		}
 	}
 
 	public CreateRoleRequestDto prepareGenericRoleCreateRequestDto(String roleName, boolean isDynamic) {

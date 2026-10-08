@@ -83,6 +83,16 @@ class FabricWorkspaceControllerTest {
 	}
 
 	@Test
+	void createRoleMapsServiceBadRequestToHttp400() {
+		when(service.canCreateAliceRole("alice", false)).thenReturn(true);
+		when(service.createGenericRole(any(), any())).thenReturn(new GenericMessage("BAD_REQUEST"));
+
+		ResponseEntity<GenericMessage> response = controller.createRole(roleRequest(Boolean.TRUE, "DRAFT-1.0"));
+
+		assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+	}
+
+	@Test
 	void createRoleRejectsNullAgreementAcceptance() {
 		when(service.canCreateAliceRole("alice", false)).thenReturn(true);
 

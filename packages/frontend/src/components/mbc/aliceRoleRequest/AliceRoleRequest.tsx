@@ -183,9 +183,13 @@ const AliceRoleRequest = () => {
     ApiClient.createAliceRole(data)
       .then((res: any) => {
         ProgressIndicator.hide();
-        if (res.success === 'SUCCESS') {
-          const updatedStatic = isDynamicRole ? rolesCreated.static : [...rolesCreated.static, value];
-          const updatedDynamic = isDynamicRole ? [...rolesCreated.dynamic, value] : rolesCreated.dynamic;
+        if (res?.success === 'SUCCESS') {
+          const updatedStatic = isDynamicRole || rolesCreated.static.includes(value)
+            ? rolesCreated.static
+            : [...rolesCreated.static, value];
+          const updatedDynamic = isDynamicRole && !rolesCreated.dynamic.includes(value)
+            ? [...rolesCreated.dynamic, value]
+            : rolesCreated.dynamic;
           setRolesCreated({ static: updatedStatic, dynamic: updatedDynamic });
           setRoleName(appIdPrefix);
           setRoleNameError('');
@@ -193,11 +197,11 @@ const AliceRoleRequest = () => {
           setRoleDisplayNameError('');
           Notification.show('Role created successfully')
         } else {
-          if (res?.errors[0]?.message?.length > 0) {
-            Notification.show(res?.errors[0]?.message, 'alert')
+          if (res?.errors?.[0]?.message?.length > 0) {
+            Notification.show(res.errors[0].message, 'alert')
           }
-          if (res?.warnings[0]?.message?.length > 0) {
-            Notification.show(res?.warnings[0]?.message, 'warning');
+          if (res?.warnings?.[0]?.message?.length > 0) {
+            Notification.show(res.warnings[0].message, 'warning');
           }
         }
       })

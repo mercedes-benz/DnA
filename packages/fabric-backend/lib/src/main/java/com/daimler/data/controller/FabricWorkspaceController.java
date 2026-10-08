@@ -973,17 +973,19 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 			}else if("CONFLICT".equalsIgnoreCase(response.getSuccess())){
 				log.info(" Role Already Exists.");
 				return new ResponseEntity<>(response, HttpStatus.CONFLICT);
+			}else if("BAD_REQUEST".equalsIgnoreCase(response.getSuccess())){
+				return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
 			}else{
 				errors.add(new MessageDescription("Failed to create roles with error"));
 				return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 			}
 
 		}catch(Exception e){
-			errors.add(new MessageDescription("Failed to create roles for the user  with exception " + e.getMessage()));
+			errors.add(new MessageDescription("Failed to create role, please try again."));
 			response.setErrors(errors);
 			response.setWarnings(warnings);
 			response.setSuccess("FAILED");
-			log.error("Failed to create role with exception {} ",e.getMessage());
+			log.error("Failed to create role", e);
 			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
 	}
