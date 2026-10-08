@@ -43,6 +43,20 @@ spring:
       kafka:
         binder:
           brokers: ${NAAS_BROKER:localhost:9092}    
+    vault:
+      uri: ${CODE_SERVER_VAULT_URI:XXXX}
+      namespace: ${CODE_SERVER_VAULT_NAMESPACE:XXXX}
+      mountpath: ${CODE_SERVER_VAULT_MOUNTPATH:XXXX}
+      authentication: ${CODE_SERVER_VAULT_AUTHENTICATION:KUBERNETES}
+      kubernetes:
+        role: ${CODE_SERVER_VAULT_ROLE:XXXX}
+        service-account-token-file: ${CODE_SERVER_VAULT_SERVICE_ACCOUNT_TOKEN_FILE:XXXX}
+        kubernetes-path: ${CODE_SERVER_VAULT_KUBERNETES_PATH:XXXX}
+      patpath: ${CODE_SERVER_VAULT_PAT_PATH:dev/UserTokens}
+      kv:
+        enabled: true
+      ssl:
+        enabled: false
 
   datasource:
     hikari:
@@ -95,6 +109,8 @@ server:
 allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:http://*}
 
 codeServer:
+  pat:
+    encryptionkey: ${CODE_SERVER_PAT_ENCRYPTION_KEY:XXXX}
   gitjob.deployuri: ${CODE_SERVER_GITJOB_DEPLOY_URI:XXXX}
   gitjob.manageuri: ${CODE_SERVER_GITJOB_MANAGE_URI:XXXX}
   gitjob.getWorkflowRun: ${CODE_SERVER_GITJOB_GET_WORKFLOW_RUN_URI:xxxx}
