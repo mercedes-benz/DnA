@@ -307,14 +307,15 @@ class BaseFabricWorkspaceServiceTest {
 	@Test
 	void saveCreatedRoleDetailsRecordsAgreementAcceptance() throws Exception {
 		CreatedByVO requestUser = new CreatedByVO();
+		setField("aliceRoleAgreementUrl", "https://alice.example.com/agreement");
 		when(assembler.toUserDetails(requestUser)).thenReturn(new UserDetails());
 
-		service.saveCreatedRoleDetails("role-id", requestUser, false, "DRAFT-1.0");
+		service.saveCreatedRoleDetails("role-id", requestUser, false);
 
 		ArgumentCaptor<AuthoriserRolesNsql> roleCaptor = ArgumentCaptor.forClass(AuthoriserRolesNsql.class);
 		verify(rolesJpaRepo).save(roleCaptor.capture());
 		assertEquals(Boolean.TRUE, roleCaptor.getValue().getData().getAgreementAccepted());
-		assertEquals("DRAFT-1.0", roleCaptor.getValue().getData().getAgreementVersion());
+		assertEquals("https://alice.example.com/agreement", roleCaptor.getValue().getData().getAgreementUrl());
 		assertNotNull(roleCaptor.getValue().getData().getAgreementAcceptedOn());
 	}
 
@@ -353,7 +354,7 @@ class BaseFabricWorkspaceServiceTest {
 	}
 
 	private CreateRoleRequestVO roleRequest(String roleName) {
-		Map<String, Object> data = Map.of("roleName", roleName, "isDynamic", false, "agreementVersion", "DRAFT-1.0");
+		Map<String, Object> data = Map.of("roleName", roleName, "isDynamic", false);
 		return new ObjectMapper().convertValue(Map.of("data", data), CreateRoleRequestVO.class);
 	}
 

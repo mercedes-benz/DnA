@@ -1327,9 +1327,6 @@ definitions:
           agreementAccepted:
             type: boolean
             default: false
-          agreementVersion:
-            type: string
-            maxLength: 50
 
   DnaRoleCollectionVO:
       type: object
@@ -1344,8 +1341,6 @@ definitions:
       properties:
         canCreateRole:
           type: boolean
-        agreementVersion:
-          type: string
         agreementUrl:
           type: string
   

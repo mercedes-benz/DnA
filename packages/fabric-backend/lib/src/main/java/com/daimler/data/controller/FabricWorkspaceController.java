@@ -108,9 +108,6 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 	@Value("${authoriser.applicationId}")
 	private String applicationId;
 
-	@Value("${aliceRoleAgreement.version}")
-	private String aliceRoleAgreementVersion;
-
 	@Value("${aliceRoleAgreement.url}")
 	private String aliceRoleAgreementUrl;
 	
@@ -959,8 +956,6 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 		}
 		if (roleRequestVO.getData() == null
 				|| !Boolean.TRUE.equals(roleRequestVO.getData().isAgreementAccepted())
-				|| aliceRoleAgreementVersion == null || aliceRoleAgreementVersion.trim().isEmpty()
-				|| !aliceRoleAgreementVersion.equals(roleRequestVO.getData().getAgreementVersion())
 				|| resolvedAgreementUrl() == null) {
 			return aliceRoleAgreementRequired();
 		}
@@ -1014,7 +1009,6 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 		AliceRoleEligibilityVO eligibility = new AliceRoleEligibilityVO();
 		eligibility.setCanCreateRole(
 				service.canCreateAliceRole(requestUser.getId(), userInfo.hasCodespaceAdminAccess()));
-		eligibility.setAgreementVersion(aliceRoleAgreementVersion);
 		eligibility.setAgreementUrl(resolvedAgreementUrl());
 		return new ResponseEntity<>(eligibility, HttpStatus.OK);
 	}
@@ -1033,7 +1027,7 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 		GenericMessage response = new GenericMessage();
 		response.setSuccess("FAILED");
 		response.setErrors(List.of(new MessageDescription(
-				"You must accept the current Alice role creation agreement before creating a role.")));
+				"You must accept the Alice role creation agreement before creating a role.")));
 		return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
 	}
 

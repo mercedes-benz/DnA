@@ -234,6 +234,9 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 	
 	@Value("${fabricWorkspaces.subgroupPrefix}")
 	private String subgroupPrefix;
+
+	@Value("${aliceRoleAgreement.url}")
+	private String aliceRoleAgreementUrl;
 	
 	@Value("${authoriser.applicationId}")
 	private String applicationId;
@@ -2262,8 +2265,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 			final boolean isDynamic = roleRequestVO.getData().isIsDynamic();
 			List<String> failedSteps = new ArrayList<>();
 			try {
-				saveCreatedRoleDetails(setupRoleId, requestUser, isDynamic,
-						roleRequestVO.getData().getAgreementVersion());
+				saveCreatedRoleDetails(setupRoleId, requestUser, isDynamic);
 			} catch (PersistenceException e) {
 				log.warn("Error occured while saving the created role in DB: {}", e.getMessage());
 				failedSteps.add("saving the role in DnA");
@@ -2581,8 +2583,8 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 	}
 
 	@Transactional
-	public void saveCreatedRoleDetails(String roleName, CreatedByVO requestUser, Boolean isDynamic,
-			String agreementVersion) throws PersistenceException{
+	public void saveCreatedRoleDetails(String roleName, CreatedByVO requestUser, Boolean isDynamic)
+			throws PersistenceException{
 		AuthoriserRolesNsql  roleEntity = new AuthoriserRolesNsql();
 		AuthoriserRoleDeatils roleDetails = new AuthoriserRoleDeatils();
 		List<UserDetails> ownerDetails = new ArrayList<>();
@@ -2591,7 +2593,7 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		roleDetails.setOwnerDetails(ownerDetails);
 		roleDetails.setIsDynamic(isDynamic);
 		roleDetails.setAgreementAccepted(true);
-		roleDetails.setAgreementVersion(agreementVersion);
+		roleDetails.setAgreementUrl(aliceRoleAgreementUrl == null ? null : aliceRoleAgreementUrl.trim());
 		roleDetails.setAgreementAcceptedOn(new Date());
 
 		roleEntity.setId(roleName);

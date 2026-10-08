@@ -17,7 +17,6 @@ interface roleResponse {
 
 interface IAliceRoleEligibility {
   canCreateRole: boolean;
-  agreementVersion?: string;
   agreementUrl?: string;
 }
 
@@ -36,9 +35,8 @@ const AliceRoleRequest = () => {
   const [roleDisplayName, setRoleDisplayName] = useState('');
   const [roleDisplayNameError, setRoleDisplayNameError] = useState('');
   const [eligibility, setEligibility] = useState<'loading' | 'allowed' | 'denied'>('loading');
-  const [agreementVersion, setAgreementVersion] = useState('');
   const [agreementUrl, setAgreementUrl] = useState('');
-  const agreementUnavailable = !agreementUrl || !agreementVersion.trim();
+  const agreementUnavailable = !agreementUrl;
   const [showAgreementModal, setShowAgreementModal] = useState(false);
   const [agreementAccepted, setAgreementAccepted] = useState(false);
   const [rolesCreated, setRolesCreated] = useState<{ static: string[]; dynamic: string[];}>({ static: [], dynamic: [] });
@@ -174,8 +172,7 @@ const AliceRoleRequest = () => {
       data: {
         roleName: value,
         isDynamic: isDynamicRole,
-        agreementAccepted: true,
-        agreementVersion
+        agreementAccepted: true
       }
     };
 
@@ -265,7 +262,6 @@ const AliceRoleRequest = () => {
     ApiClient.getAliceRoleCreationEligibility()
       .then((response: IAliceRoleEligibility) => {
         ProgressIndicator.hide();
-        setAgreementVersion(response?.agreementVersion || '');
         setAgreementUrl(toSafeAgreementUrl(response?.agreementUrl));
         if (response?.canCreateRole === true) {
           setEligibility('allowed');
@@ -612,7 +608,7 @@ const AliceRoleRequest = () => {
                       />
                     </span>
                     <span className="label">
-                      I have read and agree to the Alice Role Creation Agreement (version {agreementVersion})
+                      I have read and agree to the Alice Role Creation Agreement
                     </span>
                   </label>
                 </div>

@@ -52,7 +52,6 @@ class FabricWorkspaceControllerTest {
 	void setCurrentUser() {
 		CreatedByVO user = new CreatedByVO();
 		user.setId("alice");
-		ReflectionTestUtils.setField(controller, "aliceRoleAgreementVersion", "DRAFT-1.0");
 		ReflectionTestUtils.setField(controller, "aliceRoleAgreementUrl", "https://alice.example.com/agreement");
 		when(userStore.getUserInfo()).thenReturn(userInfo);
 		when(userStore.getVO()).thenReturn(user);
@@ -76,7 +75,7 @@ class FabricWorkspaceControllerTest {
 		when(service.canCreateAliceRole("alice", false)).thenReturn(true);
 		when(service.createGenericRole(any(), any())).thenReturn(new GenericMessage("SUCCESS"));
 
-		ResponseEntity<GenericMessage> response = controller.createRole(roleRequest(Boolean.TRUE, "DRAFT-1.0"));
+		ResponseEntity<GenericMessage> response = controller.createRole(roleRequest(Boolean.TRUE));
 
 		assertEquals(HttpStatus.OK, response.getStatusCode());
 		verify(service).createGenericRole(any(), any());
@@ -87,7 +86,7 @@ class FabricWorkspaceControllerTest {
 		when(service.canCreateAliceRole("alice", false)).thenReturn(true);
 		when(service.createGenericRole(any(), any())).thenReturn(new GenericMessage("BAD_REQUEST"));
 
-		ResponseEntity<GenericMessage> response = controller.createRole(roleRequest(Boolean.TRUE, "DRAFT-1.0"));
+		ResponseEntity<GenericMessage> response = controller.createRole(roleRequest(Boolean.TRUE));
 
 		assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
 	}
@@ -96,7 +95,7 @@ class FabricWorkspaceControllerTest {
 	void createRoleRejectsNullAgreementAcceptance() {
 		when(service.canCreateAliceRole("alice", false)).thenReturn(true);
 
-		assertAgreementRequired(controller.createRole(roleRequest(null, "DRAFT-1.0")));
+		assertAgreementRequired(controller.createRole(roleRequest(null)));
 
 		verify(service, never()).createGenericRole(any(), any());
 	}
@@ -105,16 +104,7 @@ class FabricWorkspaceControllerTest {
 	void createRoleRejectsFalseAgreementAcceptance() {
 		when(service.canCreateAliceRole("alice", false)).thenReturn(true);
 
-		assertAgreementRequired(controller.createRole(roleRequest(Boolean.FALSE, "DRAFT-1.0")));
-
-		verify(service, never()).createGenericRole(any(), any());
-	}
-
-	@Test
-	void createRoleRejectsOutdatedAgreementVersion() {
-		when(service.canCreateAliceRole("alice", false)).thenReturn(true);
-
-		assertAgreementRequired(controller.createRole(roleRequest(Boolean.TRUE, "OLD")));
+		assertAgreementRequired(controller.createRole(roleRequest(Boolean.FALSE)));
 
 		verify(service, never()).createGenericRole(any(), any());
 	}
@@ -124,7 +114,7 @@ class FabricWorkspaceControllerTest {
 		ReflectionTestUtils.setField(controller, "aliceRoleAgreementUrl", "XXXX");
 		when(service.canCreateAliceRole("alice", false)).thenReturn(true);
 
-		assertAgreementRequired(controller.createRole(roleRequest(Boolean.TRUE, "DRAFT-1.0")));
+		assertAgreementRequired(controller.createRole(roleRequest(Boolean.TRUE)));
 
 		verify(service, never()).createGenericRole(any(), any());
 	}
@@ -139,13 +129,12 @@ class FabricWorkspaceControllerTest {
 	}
 
 	@Test
-	void eligibilityIncludesCurrentAgreementVersion() {
+	void eligibilityIncludesAgreementUrl() {
 		when(service.canCreateAliceRole("alice", false)).thenReturn(true);
 
 		ResponseEntity<AliceRoleEligibilityVO> response = controller.getAliceRoleCreationEligibility();
 
 		assertEquals(HttpStatus.OK, response.getStatusCode());
-		assertEquals("DRAFT-1.0", response.getBody().getAgreementVersion());
 		assertEquals("https://alice.example.com/agreement", response.getBody().getAgreementUrl());
 	}
 
@@ -213,19 +202,18 @@ class FabricWorkspaceControllerTest {
 		assertNotNull(response.getBody());
 	}
 
-	private CreateRoleRequestVO roleRequest(Boolean agreementAccepted, String agreementVersion) {
+	private CreateRoleRequestVO roleRequest(Boolean agreementAccepted) {
 		Map<String, Object> data = new HashMap<>();
 		data.put("roleName", "dna_test");
 		data.put("isDynamic", false);
 		data.put("agreementAccepted", agreementAccepted);
-		data.put("agreementVersion", agreementVersion);
 		return new ObjectMapper().convertValue(Map.of("data", data), CreateRoleRequestVO.class);
 	}
 
 	private void assertAgreementRequired(ResponseEntity<GenericMessage> response) {
 		assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
 		assertEquals("FAILED", response.getBody().getSuccess());
-		assertEquals("You must accept the current Alice role creation agreement before creating a role.",
+		assertEquals("You must accept the Alice role creation agreement before creating a role.",
 				response.getBody().getErrors().get(0).getMessage());
 	}
 }
