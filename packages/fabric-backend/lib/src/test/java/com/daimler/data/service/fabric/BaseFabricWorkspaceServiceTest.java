@@ -230,6 +230,7 @@ class BaseFabricWorkspaceServiceTest {
 		when(identityClient.getRole(roleId)).thenReturn(existingAliceRole(roleId));
 		when(rolesJpaRepo.findById(roleId)).thenReturn(Optional.of(roleWithOwner(roleId, "alice")));
 		prepareNewRoleSteps(roleId, HttpStatus.OK, true);
+		stubEntitlement("dna_test", HttpStatus.OK);
 
 		GenericMessage response = service.createGenericRole(roleRequest("dna_test"), requestUser());
 
@@ -249,6 +250,7 @@ class BaseFabricWorkspaceServiceTest {
 		details.setRoleOwners(List.of(owner));
 		when(identityClient.getRoleDetails(roleId)).thenReturn(details);
 		prepareNewRoleSteps(roleId, HttpStatus.OK, true);
+		stubEntitlement("dna_test", HttpStatus.OK);
 
 		GenericMessage response = service.createGenericRole(roleRequest("dna_test"), requestUser());
 
