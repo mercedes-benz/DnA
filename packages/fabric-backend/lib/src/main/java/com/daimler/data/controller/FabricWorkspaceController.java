@@ -56,6 +56,7 @@ import com.daimler.data.dto.fabricWorkspace.KeyVaultCreateRequestVO;
 import com.daimler.data.dto.fabricWorkspace.KeyVaultResponseVO;
 import com.daimler.data.dto.fabricWorkspace.KeyVaultVO;
 import com.daimler.data.dto.fabricWorkspace.KeyVaultCollectionVO;
+import com.daimler.data.dto.fabricWorkspace.AzurePrincipalVO;
 import com.daimler.data.dto.fabricWorkspace.LakehouseColumnCollectionResponseVO;
 import com.daimler.data.dto.fabricWorkspace.LakehouseTableCollectionResponseVO;
 import com.daimler.data.dto.fabricWorkspace.RolesVO;
@@ -1253,6 +1254,32 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 		}
 	}
 
+	@Override
+	public ResponseEntity<List<AzurePrincipalVO>> searchKeyVaultPrincipals(String search, String type) {
+		if (search == null || search.isBlank() || search.trim().length() < 3) {
+			return new ResponseEntity<>(new ArrayList<>(), HttpStatus.OK);
+		}
+		try {
+			List<AzurePrincipalVO> result = keyVaultService.searchPrincipals(search.trim(), type).stream()
+					.map(principal -> {
+						AzurePrincipalVO vo = new AzurePrincipalVO();
+						vo.setId(principal.getId());
+						vo.setDisplayName(principal.getDisplayName());
+						vo.setMail(principal.getMail());
+						vo.setAppId(principal.getAppId());
+						vo.setServicePrincipalType(principal.getServicePrincipalType());
+						vo.setPrincipalType(principal.getPrincipalType());
+						vo.setKind(principal.getKind());
+						vo.setIdentifier(principal.getIdentifier());
+						return vo;
+					}).collect(Collectors.toList());
+			return new ResponseEntity<>(result, HttpStatus.OK);
+		} catch (Exception e) {
+			log.error("Failed to search Entra ID principals of type {} with exception: {}", type, e.getMessage(), e);
+			return new ResponseEntity<>(new ArrayList<>(), HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
 	private boolean canViewAliceRole(String roleId, UserInfo userInfo, CreatedByVO requestUser) {
 		if (userInfo == null || requestUser == null || requestUser.getId() == null) {
 			return false;
@@ -1409,10 +1436,11 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 			return keyVaultService.createKeyVault(vo);
 			
 		} catch (Exception e) {
-			log.error("Failed to create Key Vault with exception: {}", e.getMessage());
+			log.error("Failed to create Key Vault {} with exception: {}", vo.getKeyVaultName(), e.getMessage(), e);
 			errorMessage.setSuccess("FAILED");
 			List<MessageDescription> errors = new ArrayList<>();
-			MessageDescription error = new MessageDescription("Failed to create Key Vault: " + e.getMessage());
+			MessageDescription error = new MessageDescription(
+					"Failed to create the Key Vault due to an unexpected error. Please try again later.");
 			errors.add(error);
 			errorMessage.setErrors(errors);
 			errorMessage.setWarnings(new ArrayList<>());
@@ -1446,8 +1474,7 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 		KeyVaultResponseVO responseVO = new KeyVaultResponseVO();
 		GenericMessage errorMessage = new GenericMessage();
 		KeyVaultVO vo = createRequestVO.getData();
-		vo.setId(id);
-		
+
 		if (vo == null || vo.getKeyVaultName() == null) {
 			log.error("Key Vault mandatory fields cannot be null");
 			MessageDescription invalidMsg = new MessageDescription("Key Vault name cannot be null");
@@ -1468,18 +1495,65 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 			responseVO.setResponses(errorMessage);
 			return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
 		}
-		
+
+		vo.setId(id);
+
 		try {
 			log.info("Received request to update Key Vault: {}", vo.getKeyVaultName());
 			return keyVaultService.updateKeyVault(vo);
 		} catch (Exception e) {
-			log.error("Failed to update Key Vault with exception: {}", e.getMessage());
+			log.error("Failed to update Key Vault {} with exception: {}", id, e.getMessage(), e);
 			errorMessage.setSuccess("FAILED");
 			List<MessageDescription> errors = new ArrayList<>();
-			MessageDescription error = new MessageDescription("Failed to update Key Vault: " + e.getMessage());
+			MessageDescription error = new MessageDescription(
+					"Failed to update the Key Vault due to an unexpected error. Please try again later.");
 			errors.add(error);
 			errorMessage.setErrors(errors);
 			errorMessage.setWarnings(new ArrayList<>());
+			responseVO.setData(null);
+			responseVO.setResponses(errorMessage);
+			return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	@Override
+	@ApiOperation(value = "Delete Azure Key Vault", nickname = "deleteKeyVault",
+		notes = "Deletes the Azure Key Vault resource and records the deletion details. Only the creator can delete it.",
+		response = KeyVaultResponseVO.class, tags={ "fabric-workspaces", })
+	@ApiResponses(value = {
+		@ApiResponse(code = 200, message = "Returns the deleted Key Vault data with success or failure messages", response = KeyVaultResponseVO.class),
+		@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+		@ApiResponse(code = 403, message = "Request is not authorized."),
+		@ApiResponse(code = 404, message = "Key Vault not found."),
+		@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/fabric-workspaces/keyVault/{id}",
+		produces = { "application/json" },
+		method = RequestMethod.DELETE)
+	public ResponseEntity<KeyVaultResponseVO> deleteKeyVault(
+			@ApiParam(value = "Key Vault ID to be deleted", required=true)
+			@PathVariable("id") String id) {
+
+		KeyVaultResponseVO responseVO = new KeyVaultResponseVO();
+		GenericMessage errorMessage = new GenericMessage();
+
+		if (this.userStore.getUserInfo() == null || this.userStore.getVO() == null
+				|| this.userStore.getVO().getId() == null
+				|| "".equalsIgnoreCase(this.userStore.getVO().getId().trim())) {
+			log.error("Unable to get user information from UserStore");
+			errorMessage.setSuccess("FAILED");
+			errorMessage.addErrors(new MessageDescription("Unable to identify the requesting user."));
+			responseVO.setResponses(errorMessage);
+			return new ResponseEntity<>(responseVO, HttpStatus.FORBIDDEN);
+		}
+
+		try {
+			log.info("Received request to delete Key Vault with id: {}", id);
+			return keyVaultService.deleteKeyVault(id);
+		} catch (Exception e) {
+			log.error("Failed to delete Key Vault {} with exception: {}", id, e.getMessage(), e);
+			errorMessage.setSuccess("FAILED");
+			errorMessage.addErrors(new MessageDescription(
+					"Failed to delete the Key Vault due to an unexpected error. Please try again later."));
 			responseVO.setData(null);
 			responseVO.setResponses(errorMessage);
 			return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -1522,15 +1596,12 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 
 		try {
 			collection = keyVaultService.getAllKeyVaults(limit, offset, createdBy);
-			if (!collection.getRecords().isEmpty()) {
-				collection.setTotalCount(collection.getRecords().size());
-			}
 			HttpStatus responseCode = collection.getRecords() != null && !collection.getRecords().isEmpty() 
 					? HttpStatus.OK 
 					: HttpStatus.NO_CONTENT;
 			return new ResponseEntity<>(collection, responseCode);
 		} catch (Exception e) {
-			log.error("Failed to retrieve Key Vaults with exception: {}", e.getMessage());
+			log.error("Failed to retrieve Key Vaults with exception: {}", e.getMessage(), e);
 			GenericMessage errorMessage = new GenericMessage();
 			errorMessage.setSuccess("ERROR");
 			List<MessageDescription> errors = new ArrayList<>();
