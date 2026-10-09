@@ -100,6 +100,10 @@ export class ApiClient {
     return this.fetch(getFabricUrl(endpoint), HTTP_METHOD.PUT, body);
   }
 
+  public static fabricDelete(endpoint: string, body?: any) {
+    return this.fetch(getFabricUrl(endpoint), HTTP_METHOD.DELETE, body);
+  }
+
   public static dataProductGet(endpoint: string, body?: any) {
     return this.fetch(getDataProductUrl(endpoint), HTTP_METHOD.GET, body);
   }
@@ -200,8 +204,9 @@ export class ApiClient {
             window.location.href = sessionExpiredUrl;
           }
 
-          if (result && result.errors) {
-            result.errors.forEach((error: IError) => {
+          const responseErrors = result?.errors || result?.responses?.errors;
+          if (responseErrors?.length) {
+            responseErrors.forEach((error: IError) => {
               message += error.message + ' ';
             });
           } else if (response.status === 409) {
@@ -556,8 +561,14 @@ export class ApiClient {
     return this.fabricGet(`fabric-workspaces/${roleName}/entraGroupMembers`);
   }
 
-  public static getKeyVaults() {
-    return this.fabricGet(`fabric-workspaces/keyVault`);
+  public static getKeyVaults(offset?: number, limit?: number) {
+    return this.fabricGet(`fabric-workspaces/keyVault?offset=${offset || 0}&limit=${limit || 15}`);
+  }
+
+  public static searchKeyVaultPrincipals(search: string, type: string) {
+    return this.fabricGet(
+      `fabric-workspaces/keyVault/principals?search=${encodeURIComponent(search)}&type=${encodeURIComponent(type)}`,
+    );
   }
 
   public static createKeyVault(data: any) {
@@ -566,6 +577,10 @@ export class ApiClient {
 
   public static updateKeyVault(id: string, data: any) {
     return this.fabricPut(`fabric-workspaces/keyVault/${id}`, data);
+  }
+
+  public static deleteKeyVault(id: string) {
+    return this.fabricDelete(`fabric-workspaces/keyVault/${id}`);
   }
 
   public static updateSolution(data: ICreateNewSolutionRequest): Promise<ICreateNewSolutionResult> {
