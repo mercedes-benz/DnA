@@ -485,6 +485,18 @@ const NewCodeSpace = (props) => {
     setCodeSpaceCollaborators([...codeSpaceCollaborators]);
   };
 
+  const refreshCollaborators = () => {
+    CodeSpaceApiClient.getWorkspaceById(props.onEditingCodeSpace.id)
+      .then((response) => {
+        const projectCollaborators = response.data?.projectDetails?.projectCollaborators || [];
+        if (props.onEditingCodeSpace.projectDetails) {
+          props.onEditingCodeSpace.projectDetails.projectCollaborators = projectCollaborators;
+        }
+        setCodeSpaceCollaborators(projectCollaborators);
+      })
+      .catch(() => {});
+  };
+
   const addNewCollaborator = () => {
     if (props.onEditingCodeSpace.projectDetails?.projectCollaborators === null) {
       props.onEditingCodeSpace.projectDetails.projectCollaborators = [];
