@@ -38,6 +38,7 @@ import com.daimler.data.dto.azureKeyVault.KeyVaultResponseDto;
 import com.daimler.data.dto.fabric.MicrosoftGroupDetailDto;
 import com.daimler.data.dto.fabricWorkspace.AuthoriserRoleDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.AuthoriserRoleDetailsResponseVO;
+import com.daimler.data.dto.fabricWorkspace.AliceRoleEligibilityVO;
 import com.daimler.data.dto.fabricWorkspace.CreateRoleRequestVO;
 import com.daimler.data.dto.fabricWorkspace.CreatedByVO;
 import com.daimler.data.dto.fabricWorkspace.CustomGroupNameCollectionVO;
@@ -55,6 +56,7 @@ import com.daimler.data.dto.fabricWorkspace.KeyVaultCreateRequestVO;
 import com.daimler.data.dto.fabricWorkspace.KeyVaultResponseVO;
 import com.daimler.data.dto.fabricWorkspace.KeyVaultVO;
 import com.daimler.data.dto.fabricWorkspace.KeyVaultCollectionVO;
+import com.daimler.data.dto.fabricWorkspace.AzurePrincipalVO;
 import com.daimler.data.dto.fabricWorkspace.LakehouseColumnCollectionResponseVO;
 import com.daimler.data.dto.fabricWorkspace.LakehouseTableCollectionResponseVO;
 import com.daimler.data.dto.fabricWorkspace.RolesVO;
@@ -106,6 +108,9 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 	
 	@Value("${authoriser.applicationId}")
 	private String applicationId;
+
+	@Value("${aliceRoleAgreement.url}")
+	private String aliceRoleAgreementUrl;
 	
 	@Override
 	@ApiOperation(value = "Adds a new fabric workspace.", nickname = "create", notes = "Adds a new non existing workspace.", response = FabricWorkspaceResponseVO.class, tags={ "fabric-workspaces", })
@@ -694,19 +699,24 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 			filteredEntitlements = allEntitlementsList.stream().filter(n-> n.contains( applicationId + "." + subgroupPrefix ) && n.contains(id)).collect(Collectors.toList());
 		}
 		String creatorId = existingFabricWorkspace.getCreatedBy().getId();
+		String initiatedBy = Optional.ofNullable(existingFabricWorkspace.getInitiatedBy()).orElse("");
 		boolean isCreator = requestUser.getId().equalsIgnoreCase(creatorId);
 		boolean isEntitled = filteredEntitlements != null && !filteredEntitlements.isEmpty();
 		boolean isFabricAdmin = currentUserInfo.hasFabricAdminAccess();
-		if (!isCreator && !isEntitled && !isFabricAdmin) {
+		boolean isTechnicalUserInitiator = requestUser.getId() != null
+				&& FabricWorkspaceController.isTechnicalUser(requestUser.getId())
+				&& requestUser.getId().equalsIgnoreCase(initiatedBy);
+		if (!isCreator && !isEntitled && !isFabricAdmin && !isTechnicalUserInitiator) {
 				log.warn("Fabric workspace {} {} does not belong to User {} , Not authorized to use others project",id,existingFabricWorkspace.getName(),requestUser.getId()	);
 				return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
 		}else {
 				String userRole = "";
-				if(!requestUser.getId().equalsIgnoreCase(creatorId)){
-					
-					userRole = utility.getUserRole(filteredEntitlements);
-				}else{
+				if(requestUser.getId().equalsIgnoreCase(creatorId)){
 					userRole = ConstantsUtility.PERMISSION_OWNER;
+				}else if(isTechnicalUserInitiator && (filteredEntitlements == null || filteredEntitlements.isEmpty())){
+					userRole = ConstantsUtility.PERMISSION_ADMIN;
+				}else{
+					userRole = utility.getUserRole(filteredEntitlements);
 				}
 				existingFabricWorkspace.setUserRole(userRole);
 				return new ResponseEntity<>(existingFabricWorkspace, HttpStatus.OK);
@@ -746,9 +756,13 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 		
 		CreatedByVO requestUser = this.userStore.getVO();
 		String creatorId = existingFabricWorkspace.getCreatedBy().getId();
+		String initiatedBy = Optional.ofNullable(existingFabricWorkspace.getInitiatedBy()).orElse("");
 		UserInfo currentUserInfo = this.userStore.getUserInfo();
 		boolean isFabricAdmin = currentUserInfo.hasFabricAdminAccess();
-		if(!requestUser.getId().equalsIgnoreCase(creatorId) && !isFabricAdmin) {
+		boolean isTechnicalUserInitiator = requestUser.getId() != null
+				&& FabricWorkspaceController.isTechnicalUser(requestUser.getId())
+				&& requestUser.getId().equalsIgnoreCase(initiatedBy);
+		if(!requestUser.getId().equalsIgnoreCase(creatorId) && !isFabricAdmin && !isTechnicalUserInitiator) {
 				log.warn("Fabric workspace doesnt belong to User, Not authorized to update",id,existingFabricWorkspace.getName());
 				errors.add(new MessageDescription("User is not the owner of the workspace. Not authorized to update."));
 				responseVO.setData(null);
@@ -757,6 +771,18 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 				responseVO.setResponses(responses);
 				return new ResponseEntity<>(responseVO, HttpStatus.FORBIDDEN);
 		}else {
+			if(isTechnicalUserInitiator) {
+				log.info("Technical user {} authorized to update workspace {} {} as initiator", requestUser.getId(), id, existingFabricWorkspace.getName());
+			}
+			if(isTechnicalUserInitiator && (workspaceUpdateRequestVO.getProjectId() == null || workspaceUpdateRequestVO.getProjectId().isBlank())) {
+				log.warn("Technical user {} attempted to update workspace {} {} without projectId", requestUser.getId(), id, existingFabricWorkspace.getName());
+				errors.add(new MessageDescription("projectId is mandatory when updating a workspace as a technical user."));
+				responseVO.setData(null);
+				responses.setErrors(errors);
+				responses.setSuccess("FAILED");
+				responseVO.setResponses(responses);
+				return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
+			}
 			
 			if(workspaceUpdateRequestVO.getArcherId()!=null)
 				existingFabricWorkspace.setArcherId(workspaceUpdateRequestVO.getArcherId());
@@ -920,8 +946,20 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 		GenericMessage response = new GenericMessage();
 		List<MessageDescription> errors = new ArrayList<>();
 		List<MessageDescription> warnings = new ArrayList<>();
-		//UserInfo userInfo = this.userStore.getUserInfo();
+		UserInfo userInfo = this.userStore.getUserInfo();
+		if (userInfo == null) {
+			return aliceRoleCreationForbidden(null);
+		}
 		CreatedByVO requestUser = this.userStore.getVO();
+		if (requestUser == null || requestUser.getId() == null
+				|| !service.canCreateAliceRole(requestUser.getId(), userInfo.hasCodespaceAdminAccess())) {
+			return aliceRoleCreationForbidden(requestUser == null ? null : requestUser.getId());
+		}
+		if (roleRequestVO.getData() == null
+				|| !Boolean.TRUE.equals(roleRequestVO.getData().isAgreementAccepted())
+				|| resolvedAgreementUrl() == null) {
+			return aliceRoleAgreementRequired();
+		}
 		try{
 
 			response = service.createGenericRole(roleRequestVO,requestUser);
@@ -931,19 +969,76 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 			}else if("CONFLICT".equalsIgnoreCase(response.getSuccess())){
 				log.info(" Role Already Exists.");
 				return new ResponseEntity<>(response, HttpStatus.CONFLICT);
+			}else if("BAD_REQUEST".equalsIgnoreCase(response.getSuccess())){
+				return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
 			}else{
 				errors.add(new MessageDescription("Failed to create roles with error"));
 				return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 			}
 
 		}catch(Exception e){
-			errors.add(new MessageDescription("Failed to create roles for the user  with exception " + e.getMessage()));
+			errors.add(new MessageDescription("Failed to create role, please try again."));
 			response.setErrors(errors);
 			response.setWarnings(warnings);
 			response.setSuccess("FAILED");
-			log.error("Failed to create role with exception {} ",e.getMessage());
+			log.error("Failed to create role", e);
 			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
+	}
+
+	@Override
+	@ApiOperation(value = "Check whether the current user can create Alice roles.", nickname = "getAliceRoleCreationEligibility", notes = "Returns whether the current user is authorized to create Alice roles.", response = AliceRoleEligibilityVO.class, tags={ "fabric-workspaces", })
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "Returns the Alice role creation eligibility.", response = AliceRoleEligibilityVO.class),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/fabric-workspaces/createrole/eligibility",
+        produces = { "application/json" },
+        method = RequestMethod.GET)
+	public ResponseEntity<AliceRoleEligibilityVO> getAliceRoleCreationEligibility() {
+		UserInfo userInfo = this.userStore.getUserInfo();
+		if (userInfo == null) {
+			return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
+		}
+
+		CreatedByVO requestUser = this.userStore.getVO();
+		if (requestUser == null || requestUser.getId() == null || requestUser.getId().trim().isEmpty()) {
+			return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
+		}
+
+		AliceRoleEligibilityVO eligibility = new AliceRoleEligibilityVO();
+		eligibility.setCanCreateRole(
+				service.canCreateAliceRole(requestUser.getId(), userInfo.hasCodespaceAdminAccess()));
+		eligibility.setAgreementUrl(resolvedAgreementUrl());
+		return new ResponseEntity<>(eligibility, HttpStatus.OK);
+	}
+
+	private String resolvedAgreementUrl() {
+		if (aliceRoleAgreementUrl == null) {
+			return null;
+		}
+		String trimmedUrl = aliceRoleAgreementUrl.trim();
+		return trimmedUrl.regionMatches(true, 0, "https://", 0, "https://".length())
+				? trimmedUrl
+				: null;
+	}
+
+	private ResponseEntity<GenericMessage> aliceRoleAgreementRequired() {
+		GenericMessage response = new GenericMessage();
+		response.setSuccess("FAILED");
+		response.setErrors(List.of(new MessageDescription(
+				"You must accept the Alice role creation agreement before creating a role.")));
+		return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+	}
+
+	private ResponseEntity<GenericMessage> aliceRoleCreationForbidden(String userId) {
+		log.warn("User {} is not authorized to create Alice roles", userId);
+		GenericMessage response = new GenericMessage();
+		response.setSuccess("FAILED");
+		response.setErrors(List.of(new MessageDescription(
+				"Only Fabric workspace owners, Fabric workspace admins, Codespaces project owners or admins and Codespaces admins can create Alice roles.")));
+		return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
 	}
 
     @Override
@@ -1097,6 +1192,13 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
     public ResponseEntity<AuthoriserRoleDetailsResponseVO> getRoleDetails(@ApiParam(value = "",required=true) @PathVariable("roleId") String roleId){
 		AuthoriserRoleDetailsResponseVO response = new 	AuthoriserRoleDetailsResponseVO();
 		AuthoriserRoleDetailsVO roleDetailsVO = new AuthoriserRoleDetailsVO();
+		UserInfo userInfo = this.userStore.getUserInfo();
+		CreatedByVO requestUser = userInfo == null ? null : this.userStore.getVO();
+		String userId = requestUser == null ? null : requestUser.getId();
+		if (!canViewAliceRole(roleId, userInfo, requestUser)) {
+			log.warn("User {} is not authorized to view Alice role {}", userId, roleId);
+			return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
+		}
 
 		try{
 
@@ -1129,6 +1231,14 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
         consumes = { "application/json" },
         method = RequestMethod.GET)
      public ResponseEntity<EntraGroupResponseVO> getGroupMemberDetails(@ApiParam(value = "",required=true) @PathVariable("roleName") String roleName){
+		UserInfo userInfo = this.userStore.getUserInfo();
+		CreatedByVO requestUser = userInfo == null ? null : this.userStore.getVO();
+		String userId = requestUser == null ? null : requestUser.getId();
+		if (!canViewAliceRole(roleName, userInfo, requestUser)) {
+			log.warn("User {} is not authorized to view Alice role {}", userId, roleName);
+			return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
+		}
+
 		try {
 			EntraGroupResponseVO groupResponse = service.getEntraGroupMembers(roleName);
 
@@ -1142,6 +1252,41 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 					e.getMessage());
 			return new ResponseEntity<>(HttpStatus.INTERNAL_SERVER_ERROR);
 		}
+	}
+
+	@Override
+	public ResponseEntity<List<AzurePrincipalVO>> searchKeyVaultPrincipals(String search, String type) {
+		if (search == null || search.isBlank() || search.trim().length() < 3) {
+			return new ResponseEntity<>(new ArrayList<>(), HttpStatus.OK);
+		}
+		try {
+			List<AzurePrincipalVO> result = keyVaultService.searchPrincipals(search.trim(), type).stream()
+					.map(principal -> {
+						AzurePrincipalVO vo = new AzurePrincipalVO();
+						vo.setId(principal.getId());
+						vo.setDisplayName(principal.getDisplayName());
+						vo.setMail(principal.getMail());
+						vo.setAppId(principal.getAppId());
+						vo.setServicePrincipalType(principal.getServicePrincipalType());
+						vo.setPrincipalType(principal.getPrincipalType());
+						vo.setKind(principal.getKind());
+						vo.setIdentifier(principal.getIdentifier());
+						return vo;
+					}).collect(Collectors.toList());
+			return new ResponseEntity<>(result, HttpStatus.OK);
+		} catch (Exception e) {
+			log.error("Failed to search Entra ID principals of type {} with exception: {}", type, e.getMessage(), e);
+			return new ResponseEntity<>(new ArrayList<>(), HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	private boolean canViewAliceRole(String roleId, UserInfo userInfo, CreatedByVO requestUser) {
+		if (userInfo == null || requestUser == null || requestUser.getId() == null) {
+			return false;
+		}
+
+		return userInfo.hasSuperAdminAccess() || userInfo.hasFabricAdminAccess()
+				|| service.isRoleOwner(roleId, requestUser.getId());
 	}
 
 	public static boolean isTechnicalUser(String id) {
@@ -1291,10 +1436,11 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 			return keyVaultService.createKeyVault(vo);
 			
 		} catch (Exception e) {
-			log.error("Failed to create Key Vault with exception: {}", e.getMessage());
+			log.error("Failed to create Key Vault {} with exception: {}", vo.getKeyVaultName(), e.getMessage(), e);
 			errorMessage.setSuccess("FAILED");
 			List<MessageDescription> errors = new ArrayList<>();
-			MessageDescription error = new MessageDescription("Failed to create Key Vault: " + e.getMessage());
+			MessageDescription error = new MessageDescription(
+					"Failed to create the Key Vault due to an unexpected error. Please try again later.");
 			errors.add(error);
 			errorMessage.setErrors(errors);
 			errorMessage.setWarnings(new ArrayList<>());
@@ -1328,8 +1474,7 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 		KeyVaultResponseVO responseVO = new KeyVaultResponseVO();
 		GenericMessage errorMessage = new GenericMessage();
 		KeyVaultVO vo = createRequestVO.getData();
-		vo.setId(id);
-		
+
 		if (vo == null || vo.getKeyVaultName() == null) {
 			log.error("Key Vault mandatory fields cannot be null");
 			MessageDescription invalidMsg = new MessageDescription("Key Vault name cannot be null");
@@ -1350,18 +1495,65 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 			responseVO.setResponses(errorMessage);
 			return new ResponseEntity<>(responseVO, HttpStatus.BAD_REQUEST);
 		}
-		
+
+		vo.setId(id);
+
 		try {
 			log.info("Received request to update Key Vault: {}", vo.getKeyVaultName());
 			return keyVaultService.updateKeyVault(vo);
 		} catch (Exception e) {
-			log.error("Failed to update Key Vault with exception: {}", e.getMessage());
+			log.error("Failed to update Key Vault {} with exception: {}", id, e.getMessage(), e);
 			errorMessage.setSuccess("FAILED");
 			List<MessageDescription> errors = new ArrayList<>();
-			MessageDescription error = new MessageDescription("Failed to update Key Vault: " + e.getMessage());
+			MessageDescription error = new MessageDescription(
+					"Failed to update the Key Vault due to an unexpected error. Please try again later.");
 			errors.add(error);
 			errorMessage.setErrors(errors);
 			errorMessage.setWarnings(new ArrayList<>());
+			responseVO.setData(null);
+			responseVO.setResponses(errorMessage);
+			return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
+		}
+	}
+
+	@Override
+	@ApiOperation(value = "Delete Azure Key Vault", nickname = "deleteKeyVault",
+		notes = "Deletes the Azure Key Vault resource and records the deletion details. Only the creator can delete it.",
+		response = KeyVaultResponseVO.class, tags={ "fabric-workspaces", })
+	@ApiResponses(value = {
+		@ApiResponse(code = 200, message = "Returns the deleted Key Vault data with success or failure messages", response = KeyVaultResponseVO.class),
+		@ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+		@ApiResponse(code = 403, message = "Request is not authorized."),
+		@ApiResponse(code = 404, message = "Key Vault not found."),
+		@ApiResponse(code = 500, message = "Internal error") })
+	@RequestMapping(value = "/fabric-workspaces/keyVault/{id}",
+		produces = { "application/json" },
+		method = RequestMethod.DELETE)
+	public ResponseEntity<KeyVaultResponseVO> deleteKeyVault(
+			@ApiParam(value = "Key Vault ID to be deleted", required=true)
+			@PathVariable("id") String id) {
+
+		KeyVaultResponseVO responseVO = new KeyVaultResponseVO();
+		GenericMessage errorMessage = new GenericMessage();
+
+		if (this.userStore.getUserInfo() == null || this.userStore.getVO() == null
+				|| this.userStore.getVO().getId() == null
+				|| "".equalsIgnoreCase(this.userStore.getVO().getId().trim())) {
+			log.error("Unable to get user information from UserStore");
+			errorMessage.setSuccess("FAILED");
+			errorMessage.addErrors(new MessageDescription("Unable to identify the requesting user."));
+			responseVO.setResponses(errorMessage);
+			return new ResponseEntity<>(responseVO, HttpStatus.FORBIDDEN);
+		}
+
+		try {
+			log.info("Received request to delete Key Vault with id: {}", id);
+			return keyVaultService.deleteKeyVault(id);
+		} catch (Exception e) {
+			log.error("Failed to delete Key Vault {} with exception: {}", id, e.getMessage(), e);
+			errorMessage.setSuccess("FAILED");
+			errorMessage.addErrors(new MessageDescription(
+					"Failed to delete the Key Vault due to an unexpected error. Please try again later."));
 			responseVO.setData(null);
 			responseVO.setResponses(errorMessage);
 			return new ResponseEntity<>(responseVO, HttpStatus.INTERNAL_SERVER_ERROR);
@@ -1404,15 +1596,12 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 
 		try {
 			collection = keyVaultService.getAllKeyVaults(limit, offset, createdBy);
-			if (!collection.getRecords().isEmpty()) {
-				collection.setTotalCount(collection.getRecords().size());
-			}
 			HttpStatus responseCode = collection.getRecords() != null && !collection.getRecords().isEmpty() 
 					? HttpStatus.OK 
 					: HttpStatus.NO_CONTENT;
 			return new ResponseEntity<>(collection, responseCode);
 		} catch (Exception e) {
-			log.error("Failed to retrieve Key Vaults with exception: {}", e.getMessage());
+			log.error("Failed to retrieve Key Vaults with exception: {}", e.getMessage(), e);
 			GenericMessage errorMessage = new GenericMessage();
 			errorMessage.setSuccess("ERROR");
 			List<MessageDescription> errors = new ArrayList<>();

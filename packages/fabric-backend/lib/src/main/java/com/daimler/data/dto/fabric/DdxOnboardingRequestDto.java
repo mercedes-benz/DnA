@@ -29,7 +29,7 @@ public class DdxOnboardingRequestDto implements Serializable {
     private String securityLevel;
     private List<String> purposes;
     private List<String> dataProviders;
-    private String divisions;
+    private String division;
     private Boolean isTransferPricing;
     private List<String> criteriaTransferPricing;
     private List<String> qualificationTransferPricing;

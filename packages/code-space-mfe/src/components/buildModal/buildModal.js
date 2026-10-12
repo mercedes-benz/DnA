@@ -404,11 +404,7 @@ const BuildModal = (props) => {
                             <td>
                               <a
                                 target="_blank"
-                                href={
-                                  buildEnvironment === 'int'
-                                    ? buildGitJobLogViewAWSURL(projectDetails?.intBuildDetails?.gitjobRunID)
-                                    : buildGitJobLogViewAWSURL(projectDetails?.prodBuildDetails?.gitjobRunID)
-                                }
+                                href={buildGitJobLogViewAWSURL(item?.gitjobRunID)}
                                 rel="noreferrer"
                                 className={classNames(Styles.newLink)}
                                 style={{
