@@ -2,7 +2,7 @@ spring:
   mvc.pathmatch.matching-strategy: ant_path_matcher
   application:
     name: dna-fabric-workspace-service
-    version: 1.7.10
+    version: 1.7.11
   profile:
     active: production
 
@@ -153,6 +153,17 @@ authoriser:
   clientSecret: ${IDENTITY_CLIENT_SECRET:XXXX}
   role.fabricRoleName: ${IDENTITY_FABRIC_OPERATIONS_ROLENAME:XXXX}
   appIdPrefix: ${IDENTITY_APPID_PREFIX:XXXX}
+
+codeServer:
+  projectAdminEligibilityUri: ${CODESERVER_PROJECTADMIN_ELIGIBILITY_URI:XXXX}
+
+aliceRoleAgreement:
+  url: ${ALICE_ROLE_AGREEMENT_URL:XXXX}
+
+aliceRoleCreation:
+  retry:
+    maxAttempts: ${ALICE_ROLE_CREATION_RETRY_MAX_ATTEMPTS:3}
+    backoffMillis: ${ALICE_ROLE_CREATION_RETRY_BACKOFF_MILLIS:1000}
 
 jwtAuthenticationFilter:
   exclusion:

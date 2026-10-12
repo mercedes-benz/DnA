@@ -38,6 +38,7 @@ import com.daimler.data.dto.azureKeyVault.KeyVaultResponseDto;
 import com.daimler.data.dto.fabric.MicrosoftGroupDetailDto;
 import com.daimler.data.dto.fabricWorkspace.AuthoriserRoleDetailsVO;
 import com.daimler.data.dto.fabricWorkspace.AuthoriserRoleDetailsResponseVO;
+import com.daimler.data.dto.fabricWorkspace.AliceRoleEligibilityVO;
 import com.daimler.data.dto.fabricWorkspace.CreateRoleRequestVO;
 import com.daimler.data.dto.fabricWorkspace.CreatedByVO;
 import com.daimler.data.dto.fabricWorkspace.CustomGroupNameCollectionVO;
@@ -107,6 +108,9 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 	
 	@Value("${authoriser.applicationId}")
 	private String applicationId;
+
+	@Value("${aliceRoleAgreement.url}")
+	private String aliceRoleAgreementUrl;
 	
 	@Override
 	@ApiOperation(value = "Adds a new fabric workspace.", nickname = "create", notes = "Adds a new non existing workspace.", response = FabricWorkspaceResponseVO.class, tags={ "fabric-workspaces", })
@@ -942,8 +946,20 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 		GenericMessage response = new GenericMessage();
 		List<MessageDescription> errors = new ArrayList<>();
 		List<MessageDescription> warnings = new ArrayList<>();
-		//UserInfo userInfo = this.userStore.getUserInfo();
+		UserInfo userInfo = this.userStore.getUserInfo();
+		if (userInfo == null) {
+			return aliceRoleCreationForbidden(null);
+		}
 		CreatedByVO requestUser = this.userStore.getVO();
+		if (requestUser == null || requestUser.getId() == null
+				|| !service.canCreateAliceRole(requestUser.getId(), userInfo.hasCodespaceAdminAccess())) {
+			return aliceRoleCreationForbidden(requestUser == null ? null : requestUser.getId());
+		}
+		if (roleRequestVO.getData() == null
+				|| !Boolean.TRUE.equals(roleRequestVO.getData().isAgreementAccepted())
+				|| resolvedAgreementUrl() == null) {
+			return aliceRoleAgreementRequired();
+		}
 		try{
 
 			response = service.createGenericRole(roleRequestVO,requestUser);
@@ -953,19 +969,76 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 			}else if("CONFLICT".equalsIgnoreCase(response.getSuccess())){
 				log.info(" Role Already Exists.");
 				return new ResponseEntity<>(response, HttpStatus.CONFLICT);
+			}else if("BAD_REQUEST".equalsIgnoreCase(response.getSuccess())){
+				return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
 			}else{
 				errors.add(new MessageDescription("Failed to create roles with error"));
 				return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 			}
 
 		}catch(Exception e){
-			errors.add(new MessageDescription("Failed to create roles for the user  with exception " + e.getMessage()));
+			errors.add(new MessageDescription("Failed to create role, please try again."));
 			response.setErrors(errors);
 			response.setWarnings(warnings);
 			response.setSuccess("FAILED");
-			log.error("Failed to create role with exception {} ",e.getMessage());
+			log.error("Failed to create role", e);
 			return new ResponseEntity<>(response, HttpStatus.INTERNAL_SERVER_ERROR);
 		}
+	}
+
+	@Override
+	@ApiOperation(value = "Check whether the current user can create Alice roles.", nickname = "getAliceRoleCreationEligibility", notes = "Returns whether the current user is authorized to create Alice roles.", response = AliceRoleEligibilityVO.class, tags={ "fabric-workspaces", })
+    @ApiResponses(value = {
+        @ApiResponse(code = 200, message = "Returns the Alice role creation eligibility.", response = AliceRoleEligibilityVO.class),
+        @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+        @ApiResponse(code = 403, message = "Request is not authorized."),
+        @ApiResponse(code = 500, message = "Internal error") })
+    @RequestMapping(value = "/fabric-workspaces/createrole/eligibility",
+        produces = { "application/json" },
+        method = RequestMethod.GET)
+	public ResponseEntity<AliceRoleEligibilityVO> getAliceRoleCreationEligibility() {
+		UserInfo userInfo = this.userStore.getUserInfo();
+		if (userInfo == null) {
+			return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
+		}
+
+		CreatedByVO requestUser = this.userStore.getVO();
+		if (requestUser == null || requestUser.getId() == null || requestUser.getId().trim().isEmpty()) {
+			return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
+		}
+
+		AliceRoleEligibilityVO eligibility = new AliceRoleEligibilityVO();
+		eligibility.setCanCreateRole(
+				service.canCreateAliceRole(requestUser.getId(), userInfo.hasCodespaceAdminAccess()));
+		eligibility.setAgreementUrl(resolvedAgreementUrl());
+		return new ResponseEntity<>(eligibility, HttpStatus.OK);
+	}
+
+	private String resolvedAgreementUrl() {
+		if (aliceRoleAgreementUrl == null) {
+			return null;
+		}
+		String trimmedUrl = aliceRoleAgreementUrl.trim();
+		return trimmedUrl.regionMatches(true, 0, "https://", 0, "https://".length())
+				? trimmedUrl
+				: null;
+	}
+
+	private ResponseEntity<GenericMessage> aliceRoleAgreementRequired() {
+		GenericMessage response = new GenericMessage();
+		response.setSuccess("FAILED");
+		response.setErrors(List.of(new MessageDescription(
+				"You must accept the Alice role creation agreement before creating a role.")));
+		return new ResponseEntity<>(response, HttpStatus.BAD_REQUEST);
+	}
+
+	private ResponseEntity<GenericMessage> aliceRoleCreationForbidden(String userId) {
+		log.warn("User {} is not authorized to create Alice roles", userId);
+		GenericMessage response = new GenericMessage();
+		response.setSuccess("FAILED");
+		response.setErrors(List.of(new MessageDescription(
+				"Only Fabric workspace owners, Fabric workspace admins, Codespaces project owners or admins and Codespaces admins can create Alice roles.")));
+		return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
 	}
 
     @Override
@@ -1119,6 +1192,13 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
     public ResponseEntity<AuthoriserRoleDetailsResponseVO> getRoleDetails(@ApiParam(value = "",required=true) @PathVariable("roleId") String roleId){
 		AuthoriserRoleDetailsResponseVO response = new 	AuthoriserRoleDetailsResponseVO();
 		AuthoriserRoleDetailsVO roleDetailsVO = new AuthoriserRoleDetailsVO();
+		UserInfo userInfo = this.userStore.getUserInfo();
+		CreatedByVO requestUser = userInfo == null ? null : this.userStore.getVO();
+		String userId = requestUser == null ? null : requestUser.getId();
+		if (!canViewAliceRole(roleId, userInfo, requestUser)) {
+			log.warn("User {} is not authorized to view Alice role {}", userId, roleId);
+			return new ResponseEntity<>(response, HttpStatus.FORBIDDEN);
+		}
 
 		try{
 
@@ -1151,6 +1231,14 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
         consumes = { "application/json" },
         method = RequestMethod.GET)
      public ResponseEntity<EntraGroupResponseVO> getGroupMemberDetails(@ApiParam(value = "",required=true) @PathVariable("roleName") String roleName){
+		UserInfo userInfo = this.userStore.getUserInfo();
+		CreatedByVO requestUser = userInfo == null ? null : this.userStore.getVO();
+		String userId = requestUser == null ? null : requestUser.getId();
+		if (!canViewAliceRole(roleName, userInfo, requestUser)) {
+			log.warn("User {} is not authorized to view Alice role {}", userId, roleName);
+			return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
+		}
+
 		try {
 			EntraGroupResponseVO groupResponse = service.getEntraGroupMembers(roleName);
 
@@ -1190,6 +1278,15 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 			log.error("Failed to search Entra ID principals of type {} with exception: {}", type, e.getMessage(), e);
 			return new ResponseEntity<>(new ArrayList<>(), HttpStatus.INTERNAL_SERVER_ERROR);
 		}
+	}
+
+	private boolean canViewAliceRole(String roleId, UserInfo userInfo, CreatedByVO requestUser) {
+		if (userInfo == null || requestUser == null || requestUser.getId() == null) {
+			return false;
+		}
+
+		return userInfo.hasSuperAdminAccess() || userInfo.hasFabricAdminAccess()
+				|| service.isRoleOwner(roleId, requestUser.getId());
 	}
 
 	public static boolean isTechnicalUser(String id) {

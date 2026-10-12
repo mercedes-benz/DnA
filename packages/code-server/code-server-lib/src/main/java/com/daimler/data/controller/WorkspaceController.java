@@ -88,6 +88,7 @@ import com.daimler.data.dto.workspace.CodeServerRecipeDetailsVO.RecipeIdEnum;
 import com.daimler.data.dto.workspace.CodeServerUserGroupByIdResponseVO;
 import com.daimler.data.dto.workspace.CodeServerUserGroupByIdVO;
 import com.daimler.data.dto.workspace.CodeServerUserGroupResponseVO;
+import com.daimler.data.dto.workspace.CodespaceProjectAdminEligibilityVO;
 import com.daimler.data.dto.workspace.CodeServerWorkspaceVO;
 import com.daimler.data.dto.workspace.CodeServerWorkspaceValidateVO;
 import com.daimler.data.dto.workspace.CodeSpaceReadmeVo;
@@ -1930,6 +1931,30 @@ import org.springframework.beans.factory.annotation.Value;
 			 @ApiParam(value = "User ID to be validated", required = true) @PathVariable("userid") String userid) {
 		 CodeServerWorkspaceValidateVO validateVO = service.validateCodespace(id, userid);
 		 return new ResponseEntity<>(validateVO, HttpStatus.OK);
+	 }
+
+	 @ApiOperation(value = "Check whether the current user owns or administers a Codespaces project.",
+			 nickname = "getCodespaceProjectAdminEligibility",
+			 response = CodespaceProjectAdminEligibilityVO.class, tags = { "code-server", })
+	 @ApiResponses(value = {
+			 @ApiResponse(code = 200, message = "Returns Codespaces project owner or admin eligibility",
+					 response = CodespaceProjectAdminEligibilityVO.class),
+			 @ApiResponse(code = 401, message = "Request does not have sufficient credentials."),
+			 @ApiResponse(code = 403, message = "Request is not authorized."),
+			 @ApiResponse(code = 500, message = "Internal error") })
+	 @RequestMapping(value = "/workspaces/projectadmin/eligibility", produces = { "application/json" },
+			 method = RequestMethod.GET)
+	 @Override
+	 public ResponseEntity<CodespaceProjectAdminEligibilityVO> getCodespaceProjectAdminEligibility() {
+		 CreatedByVO currentUser = userStore.getUserInfo() == null ? null : userStore.getVO();
+		 String userId = currentUser != null ? currentUser.getId() : null;
+		 if (userId == null || userId.isBlank()) {
+			 return new ResponseEntity<>(null, HttpStatus.FORBIDDEN);
+		 }
+
+		 CodespaceProjectAdminEligibilityVO eligibility = new CodespaceProjectAdminEligibilityVO();
+		 eligibility.setIsProjectOwnerOrAdmin(service.isProjectOwnerOrAdmin(userId));
+		 return new ResponseEntity<>(eligibility, HttpStatus.OK);
 	 }
  
 	//  @Override
