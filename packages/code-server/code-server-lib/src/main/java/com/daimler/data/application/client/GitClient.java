@@ -1,6 +1,7 @@
 package com.daimler.data.application.client;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -112,6 +113,10 @@ public class GitClient {
 	
 	@Autowired
 	private RestTemplate proxyRestTemplate;
+	
+	@Autowired
+	@Qualifier("gitCollaboratorRestTemplate")
+	private RestTemplate gitCollaboratorRestTemplate;
 	
 	@Value("${codespace.recipe}")
 	private String DnARecipe;
@@ -296,7 +301,7 @@ public class GitClient {
 			headers.set("Authorization", "token "+ pat);
 			String url = baseUri+"/repos/" + orgName + "/"+ repoName+ "/collaborators/" + username;
 			HttpEntity entity = new HttpEntity<>(headers);
-			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.PUT, entity, String.class);
+			ResponseEntity<String> response = gitCollaboratorRestTemplate.exchange(url, HttpMethod.PUT, entity, String.class);
 			if (response != null && response.getStatusCode()!=null) {
 				log.info("completed adding user {}  as collaborator to git repo {} initated by user , with status {} ", username, gitOrgName,response.getStatusCode());
 				return response.getStatusCode();
@@ -332,7 +337,7 @@ public class GitClient {
 			String url = baseUri + "/repos/" + orgName + "/" + repoName + "/collaborators/" + username;
 			String requestJsonString = "{\"permission\":\"push\"}";
 			HttpEntity<String> entity = new HttpEntity<String>(requestJsonString, headers);
-			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.PUT, entity, String.class);
+			ResponseEntity<String> response = gitCollaboratorRestTemplate.exchange(url, HttpMethod.PUT, entity, String.class);
 			if (response != null && response.getStatusCode() != null) {
 				log.info("completed adding user {} as collaborator to git repo {}/{} with status {}", username, orgName, repoName, response.getStatusCode());
 				return response.getStatusCode();
@@ -504,7 +509,7 @@ public class GitClient {
 			String url = baseUri+"/repos/" + orgName + "/"+ repoName+ "/collaborators/" + username;
 			String requestJsonString = "{\"permission\":\"admin\"}";
 			HttpEntity<String> entity = new HttpEntity<String>(requestJsonString, headers);
-			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.PUT, entity, String.class);
+			ResponseEntity<String> response = gitCollaboratorRestTemplate.exchange(url, HttpMethod.PUT, entity, String.class);
 			if (response != null && response.getStatusCode()!=null) {
 				log.info("completed adding user {}  as admin to git repo {} at {} , with status {} ", username, repoName, baseUri, response.getStatusCode());
 				return response.getStatusCode();
@@ -893,7 +898,7 @@ public class GitClient {
 			headers.set("Authorization", "token "+ pat);
 			String url = baseUri+"/repos/" + orgName + "/"+ repoName+ "/collaborators/" + username;			
 			HttpEntity entity = new HttpEntity<>(headers);
-			ResponseEntity<String> response = restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
+			ResponseEntity<String> response = gitCollaboratorRestTemplate.exchange(url, HttpMethod.GET, entity, String.class);
 			if (response != null && response.getStatusCode()!=null) {
 				log.info("completed checking user {} as collaborator for git repo {} at {}, with status ", username, repoName, baseUri, response.getStatusCode());
 				return response.getStatusCode();
