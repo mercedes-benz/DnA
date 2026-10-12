@@ -655,17 +655,17 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, catal
             {isUpdateMode ? (
               <input className="input-field" value={fullCatalogName} disabled />
             ) : (
-              <div className={Styles.catalogNameInput}>
-                <span>{lakehouseName}_</span>
-                <input
-                  className="input-field"
-                  value={catalogSuffix}
-                  onChange={(e) => {
-                    setCatalogSuffix(e.target.value);
-                    if (catalogNameError) setCatalogNameError('');
-                  }}
-                />
-              </div>
+              <input
+                className="input-field"
+                value={`${lakehouseName}_${catalogSuffix}`}
+                onChange={(e) => {
+                  const prefix = `${lakehouseName}_`;
+                  const val = e.target.value;
+                  const suffix = val.startsWith(prefix) ? val.slice(prefix.length) : catalogSuffix;
+                  setCatalogSuffix(suffix);
+                  if (catalogNameError) setCatalogNameError('');
+                }}
+              />
             )}
             <span className={classNames('error-message', catalogNameError.length ? '' : 'hide')}>
               {catalogNameError}
