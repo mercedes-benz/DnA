@@ -38,6 +38,12 @@ const getWorkspaceById = (id, refreshTriggeredByUser) => {
         data: {},
     });
 };
+
+const getPersonalAccessTokens = () => server.get('personal-access-tokens', { data: {} });
+
+const createPersonalAccessToken = (data) => server.post('personal-access-tokens', data);
+
+const revokePersonalAccessToken = (version) => server.delete(`personal-access-tokens/${version}`, { data: {} });
   
 const deleteCodeSpace = (id) => { 
     return server.delete(`workspaces/${id}`, {
@@ -570,6 +576,9 @@ export const CodeSpaceApiClient = {
     editCodeSpace,
     getCodeSpaceStatus,
     getWorkspaceById,
+    getPersonalAccessTokens,
+    createPersonalAccessToken,
+    revokePersonalAccessToken,
     deleteCodeSpace,
     getCodeSpacesGitBranchList,
     deployCodeSpace,

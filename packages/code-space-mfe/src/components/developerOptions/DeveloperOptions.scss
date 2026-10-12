@@ -1,0 +1,108 @@
+.mainPanel {
+  padding: 72px 75px 30px;
+}
+
+.wrapper {
+  width: 100%;
+}
+
+.listHeader {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 12px;
+}
+
+.refreshButton {
+  background: unset;
+  border: 0;
+}
+
+.content {
+  margin-top: 20px;
+}
+
+.emptyState {
+  align-items: center;
+  background-color: #252a33;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  justify-content: center;
+  min-height: 300px;
+}
+
+.tableWrapper {
+  overflow-x: auto;
+  background-color: #252a33;
+  padding: 15px;
+}
+
+.permissionChips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.permissionChip {
+  border: 1px solid #99a5b3;
+  border-radius: 12px;
+  display: inline-block;
+  padding: 2px 8px;
+  white-space: nowrap;
+}
+
+.version {
+  display: block;
+  margin-top: 4px;
+}
+
+.commentRow td {
+  padding-top: 0;
+  opacity: 0.8;
+}
+
+.modalContent {
+  padding: 4px 8px 8px;
+}
+
+.modalHeader {
+  min-height: 22px;
+}
+
+.permissions {
+  border: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 18px 0;
+  padding: 0;
+}
+
+.permissionOption {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+}
+
+.commentLabel {
+  display: block;
+  margin-bottom: 6px;
+}
+
+.modalContent textarea,
+.tokenInput {
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.validationError {
+  color: #f36b6b;
+}
+
+.modalActions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 20px;
+}
