@@ -733,13 +733,26 @@ const Step5_PersonalData = ({ formData, setFormData, errors, clearError, criteri
   );
 };
 
-const ViewDdxTablesModalContent = ({ workspaceId, workspaceName, workspaceOwner, workspaceDivision, lakehouseId, lakehouseName, ddxPublishedLakeHouseDetails, onRefreshWorkspace }) => {
+const ViewDdxTablesModalContent = ({ workspaceId, workspaceName, workspaceOwner, workspaceDivision, lakehouseId, lakehouseName, cdcCatalogName, ddxPublishedLakeHouseDetails, onRefreshWorkspace }) => {
 
-  const isDdxAlreadyPushed = ddxPublishedLakeHouseDetails?.some(d => d.lakeHouseId === lakehouseId);
-
-  const existingProductId = ddxPublishedLakeHouseDetails
+  const lakehouseProducts = ddxPublishedLakeHouseDetails
     ?.find(d => d.lakeHouseId === lakehouseId)
-    ?.dataProducts?.slice()?.sort((a, b) => new Date(b.createdOn) - new Date(a.createdOn))?.[0]?.productId;
+    ?.dataProducts;
+
+  const matchingProducts = cdcCatalogName
+    ? (lakehouseProducts || []).filter(
+        (product) =>
+          product.cdcCatalogName === cdcCatalogName ||
+          (!product.cdcCatalogName && cdcCatalogName === lakehouseName),
+      )
+    : lakehouseProducts;
+
+  const isDdxAlreadyPushed = cdcCatalogName
+    ? (matchingProducts?.length || 0) > 0
+    : ddxPublishedLakeHouseDetails?.some(d => d.lakeHouseId === lakehouseId);
+
+  const existingProductId = matchingProducts
+    ?.slice()?.sort((a, b) => new Date(b.createdOn) - new Date(a.createdOn))?.[0]?.productId;
 
   useEffect(() => {
     Tooltip.defaultSetup();
@@ -897,7 +910,7 @@ const ViewDdxTablesModalContent = ({ workspaceId, workspaceName, workspaceOwner,
     const securityLevel = formData.securityLevel === 'Secret' ? 'Confidential' : formData.securityLevel;
 
     const cdcBaseUrl = (Envs.CDC_SIGNIN_URL || '').replace(/\/$/, '');
-    const cdcDatabaseLink = `${cdcBaseUrl}/database/${workspaceName}.${lakehouseName}`;
+    const cdcDatabaseLink = `${cdcBaseUrl}/database/${workspaceName}.${cdcCatalogName || lakehouseName}`;
 
     const payload = {
       dataProductName: formData.dataProductName || '',

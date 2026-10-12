@@ -24,6 +24,7 @@ public class DdxProduct implements Serializable {
     private Boolean isLakeHousesPublishedToDdx;
     private String productName;
     private String productId;
+    private String cdcCatalogName;
     private UserDetails createdBy;
     private Date createdOn;
     private Date modifiedOn;

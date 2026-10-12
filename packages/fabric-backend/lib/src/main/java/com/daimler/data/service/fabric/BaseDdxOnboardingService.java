@@ -6,6 +6,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -388,7 +389,7 @@ public class BaseDdxOnboardingService implements DdxOnboardingService {
             // 10. Update DDX Lakehouse Details
             log.info("Updating DDX lakehouse details for workspace: {} and lakehouse: {}", workspaceId, lakehouseId);
             try {
-                updateDdxLakeHouseDetails(workspaceId, lakehouseId, fabricDatabaseName, catalogName, onboardingResponse, createdBy);
+                updateDdxLakeHouseDetails(workspaceId, lakehouseId, fabricDatabaseName, catalogName, deriveCdcCatalogName(publishDdxRequest.getCdcDatabaseLink()), onboardingResponse, createdBy);
             } catch (Exception e) {
                 log.error("Failed to update DDX lakehouse details for workspace: {} and lakehouse: {}", workspaceId, lakehouseId, e);
                 // Log the error but continue - the onboarding was successful
@@ -430,7 +431,21 @@ public class BaseDdxOnboardingService implements DdxOnboardingService {
         return DdxOnboardingResultDto.builder().responseMessage(responseMessage).ddxResponse(ddxResponse).build();
     }
 
-    private void updateDdxLakeHouseDetails(String workspaceId, String lakehouseId, String lakehouseName, String catalogName, DdxResponseDto onboardingResponse, CreatedByVO createdBy) {
+    // The cdcDatabaseLink ends with /database/<workspaceName>.<cdcCatalogName>;
+    // the catalog portion is everything after the first '.' in the last path segment.
+    private String deriveCdcCatalogName(String cdcDatabaseLink) {
+        if (cdcDatabaseLink == null) {
+            return null;
+        }
+        String database = cdcDatabaseLink.substring(cdcDatabaseLink.lastIndexOf('/') + 1);
+        int dotIndex = database.indexOf('.');
+        if (dotIndex < 0 || dotIndex == database.length() - 1) {
+            return null;
+        }
+        return database.substring(dotIndex + 1);
+    }
+
+    private void updateDdxLakeHouseDetails(String workspaceId, String lakehouseId, String lakehouseName, String catalogName, String cdcCatalogName, DdxResponseDto onboardingResponse, CreatedByVO createdBy) {
         try {
             // Load the workspace entity directly from the repository to avoid the lossy
             // getById round-trip (VO <-> Entity conversion drops fields like
@@ -452,6 +467,7 @@ public class BaseDdxOnboardingService implements DdxOnboardingService {
             details.setIsLakeHousesPublishedToDdx(true);
             details.setProductName(onboardingResponse.getDataProductName());
             details.setProductId(String.valueOf(onboardingResponse.getDataProductId()));
+            details.setCdcCatalogName(cdcCatalogName);
             details.setCreatedBy(createdBy);
             Date now = new Date();
             details.setCreatedOn(now);
@@ -479,10 +495,11 @@ public class BaseDdxOnboardingService implements DdxOnboardingService {
                 if (products == null) {
                     products = new ArrayList<>();
                 }
-                // Avoid duplicates by productName (unique identifier for DDX products)
+                // Avoid duplicates within the same CDC catalog by productName
                 String productName = onboardingResponse.getDataProductName();
                 boolean exists = products.stream()
-                    .anyMatch(p -> productName != null && productName.equals(p.getProductName()));
+                    .anyMatch(p -> productName != null && productName.equals(p.getProductName())
+                        && Objects.equals(p.getCdcCatalogName(), cdcCatalogName));
                 if (!exists) {
                     products.add(product);
                 }
