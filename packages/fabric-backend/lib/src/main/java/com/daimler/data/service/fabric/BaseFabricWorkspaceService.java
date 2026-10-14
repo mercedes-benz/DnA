@@ -1903,7 +1903,6 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 			return;
 		}
 		ADAProjectDetails projectData = adaProject.getData();
-		workspace.setProjectName(projectData.getProjectName());
 		if (projectData.getCostCenter() != null && !projectData.getCostCenter().isBlank()) {
 			workspace.setCostCenter(projectData.getCostCenter());
 		}

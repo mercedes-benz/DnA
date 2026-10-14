@@ -47,7 +47,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave, user}) => {
   const [reports, setReports] = useState([]);
   const [fabricTags, setFabricTags] = useState([]);
   const [projectList, setProjectList] = useState([]);
-  const [selectedProject, setSelectedProject] = useState(edit && workspace?.projectId ? { projectID: workspace?.projectId, projectName: workspace?.projectName } : {});
+  const [selectedProject, setSelectedProject] = useState(edit && workspace?.projectId ? { projectID: workspace?.projectId } : {});
   const selectedDivision = watch('division');
 
   // const [costCenter, setCostCenter] = useState(edit && workspace?.costCenter !== null ? workspace?.costCenter : '');
@@ -443,7 +443,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave, user}) => {
                     <TypeAheadBox
                       label={'Project Details (Recommended for Billing Purpose)'}
                       placeholder={'Search Project Name'}
-                      defaultValue={selectedProject?.projectName || selectedProject?.projectID}
+                      defaultValue={selectedProject?.projectID}
                       list={filteredProjects}
                       setSelected={(selectedProject) => {
                         setSelectedProject(selectedProject || {});

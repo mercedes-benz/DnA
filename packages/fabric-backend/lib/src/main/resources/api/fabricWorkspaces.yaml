@@ -912,8 +912,6 @@ definitions:
           type: string
       projectId:
           type: string
-      projectName:
-          type: string
       subscription:
           enum: ["PowerBI", "Fabric"]
       lastModifiedOn:
