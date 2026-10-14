@@ -94,6 +94,8 @@ public interface WorkspaceService {
 
 	CodeServerWorkspaceValidateVO validateCodespace(String id, String userId);
 
+	boolean isProjectOwnerOrAdmin(String userId);
+
 	GenericMessage saveSecurityConfig(CodeServerWorkspaceVO vo, Boolean isPublished, String env);
 
 	GenericMessage makeAdmin(CodeServerWorkspaceVO vo);
