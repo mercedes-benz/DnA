@@ -3050,7 +3050,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 						 warnings.add(errMsg);
 					 }
 				 }
-				  HttpStatus addAdminAccessToGitUser = gitClient.addAdminAccessToRepo(projectOwnerId, repoName);
+				  HttpStatus addAdminAccessToGitUser = gitClient.addAdminAccessToRepo(projectOwnerId, repoName, isWorkspaceMigratedToGHE);
 				 if(!addAdminAccessToGitUser.is2xxSuccessful())
 				 {
 					 MessageDescription warnMsg = new MessageDescription("Failed while adding " +projectOwnerId
