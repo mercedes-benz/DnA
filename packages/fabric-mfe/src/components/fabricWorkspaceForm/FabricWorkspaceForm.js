@@ -443,7 +443,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave, user}) => {
                     <TypeAheadBox
                       label={'Project Details (Recommended for Billing Purpose)'}
                       placeholder={'Search Project Name'}
-                      defaultValue={selectedProject?.projectID}
+                      defaultValue={selectedProject?.projectName || selectedProject?.projectID}
                       list={filteredProjects}
                       setSelected={(selectedProject) => {
                         setSelectedProject(selectedProject || {});
