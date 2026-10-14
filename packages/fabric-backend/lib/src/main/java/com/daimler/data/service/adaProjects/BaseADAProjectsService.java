@@ -132,7 +132,7 @@ public class BaseADAProjectsService extends BaseCommonService<ADAProjectDetailsV
 		try {
 			log.info("Creating new ADA Project with projectID {}", project.getProjectID());
 			updateCapacityForFabricWorkspaces(project);
-			log.info("Successfully updated capacity and LeanIX for associated Fabric workspaces for project id {}", project.getProjectID());
+			log.info("Successfully updated capacity, LeanIX and project name for associated Fabric workspaces for project id {}", project.getProjectID());
 			ADAProjectsNsql entity = assembler.toEntity(project);
 			jpaRepo.save(entity);
 			message.setSuccess("CREATED");
@@ -150,7 +150,7 @@ public class BaseADAProjectsService extends BaseCommonService<ADAProjectDetailsV
 		GenericMessage message = new GenericMessage();
 		try {
 			updateCapacityForFabricWorkspaces(project);
-			log.info("Successfully updated capacity and LeanIX for associated Fabric workspaces for project id {}", project.getProjectID());
+			log.info("Successfully updated capacity, LeanIX and project name for associated Fabric workspaces for project id {}", project.getProjectID());
 			ADAProjectsNsql entity = assembler.toEntity(project);
 			entity.setId(id);
 			jpaRepo.save(entity);
@@ -181,6 +181,7 @@ public class BaseADAProjectsService extends BaseCommonService<ADAProjectDetailsV
 			if (existingEntityOpt.isPresent()) {
 				FabricWorkspaceNsql existingEntity = existingEntityOpt.get();
 				existingEntity.getData().setProjectId(projectId);
+				existingEntity.getData().setProjectName(adaProject.getData().getProjectName());
 				fabricWorkspaceRepo.save(existingEntity);
 				log.info("Successfully associated workspace {} with project {}", workspace.getId(), projectId);
 			} else {
@@ -246,6 +247,9 @@ public class BaseADAProjectsService extends BaseCommonService<ADAProjectDetailsV
 					capacity.setSku(adaProject.getCapacity().getSku());
 					capacity.setState(adaProject.getCapacity().getState());
 					workspace.getData().setCapacity(capacity);
+					if (adaProject.getProjectName() != null && !adaProject.getProjectName().isBlank()) {
+						workspace.getData().setProjectName(adaProject.getProjectName());
+					}
 					if (hasLeanIX) {
 						workspace.getData().setAppId(appId);
 						workspace.getData().setLeanIXDetails(leanIXDetails);
@@ -254,8 +258,8 @@ public class BaseADAProjectsService extends BaseCommonService<ADAProjectDetailsV
 				}
 			}
 		} catch (Exception e) {
-			log.error("Error updating capacity and LeanIX for associated Fabric workspaces for project id {}: {}", adaProject.getProjectID(), e.getMessage(), e);
-			throw new RuntimeException("Failed to update capacity and LeanIX for associated Fabric workspaces for project id " + adaProject.getProjectID() + " with error: " + e.getMessage(), e);
+			log.error("Error updating capacity, LeanIX and project name for associated Fabric workspaces for project id {}: {}", adaProject.getProjectID(), e.getMessage(), e);
+			throw new RuntimeException("Failed to update capacity, LeanIX and project name for associated Fabric workspaces for project id " + adaProject.getProjectID() + " with error: " + e.getMessage(), e);
 		}
 	}
 
