@@ -513,12 +513,14 @@ const NewCodeSpace = (props) => {
           Notification.show(
             `Collaborator '${newCollaborator.firstName}' has been added successfully to the Code Space.`,
           );
+          refreshCollaborators();
         } else {
           setCodeSpaceCollaborators([...existingColloborators]);
           Notification.show(
             `Error adding collaborator '${newCollaborator.firstName}' to the Code Space. Please try again later.\n ${res.data.errors[0].message}`,
             'alert',
           );
+          refreshCollaborators();
         }
       })
       .catch((err) => {
@@ -532,6 +534,7 @@ const NewCodeSpace = (props) => {
           setCodeSpaceCollaborators([...existingColloborators]);
           Notification.show('Error in adding new colloborator code space. Please try again later.\n' + err.message, 'alert');
         }
+        refreshCollaborators();
       });
     }
   }

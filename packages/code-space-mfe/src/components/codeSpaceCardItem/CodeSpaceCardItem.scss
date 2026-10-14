@@ -31,6 +31,8 @@
           padding-right: 10px;
           padding-bottom: 5px;
           width: 100%;
+          flex: 1 1 auto;
+          min-width: 0;
           text-align: left;
           display: flex;
           align-items: flex-start;
@@ -48,27 +50,31 @@
           .cardTitleActions {
             display: flex;
             align-items: center;
-            gap: 8px;
+            gap: 6px;
             flex-shrink: 0;
-            padding-top: 2px;
+            padding-top: 4px;
           }
 
           a {
-            min-width: 24px !important;
+            min-width: 18px !important;
           }
         }
 
         .copyNameIcon {
           cursor: pointer;
           color: #c0c8d0;
-          font-size: 18px;
+          font-size: 14px;
           line-height: 1;
 
           &:hover {
             color: #00adef;
           }
         }
-  
+
+        > div + div {
+          flex-shrink: 0;
+        }
+
         &.disable {
           pointer-events: none;
         }
@@ -363,6 +369,8 @@
     vertical-align: middle;
     margin-left: 0;
     text-decoration: none;
+    flex-shrink: 0;
+    transform: scale(0.8);
     &:hover i {
       animation: OpenNewTab 1s infinite;
     }
