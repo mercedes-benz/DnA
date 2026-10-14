@@ -129,6 +129,11 @@ public class UserStore {
 					n -> "FabricAdmin".equalsIgnoreCase(n.getName()));
 		}
 
+		public boolean hasCodespaceAdminAccess() {
+			return this.getUserRole().stream().anyMatch(
+					n -> "CodespaceAdmin".equalsIgnoreCase(n.getName()));
+		}
+
 	}
 
 	@Data
