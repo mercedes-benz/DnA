@@ -47,7 +47,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave, user}) => {
   const [reports, setReports] = useState([]);
   const [fabricTags, setFabricTags] = useState([]);
   const [projectList, setProjectList] = useState([]);
-  const [selectedProject, setSelectedProject] = useState(edit && workspace?.projectId ? { projectID: workspace?.projectId } : {});
+  const [selectedProject, setSelectedProject] = useState(edit && workspace?.projectId ? { projectID: workspace?.projectId, projectName: workspace?.projectName } : {});
   const selectedDivision = watch('division');
 
   // const [costCenter, setCostCenter] = useState(edit && workspace?.costCenter !== null ? workspace?.costCenter : '');
