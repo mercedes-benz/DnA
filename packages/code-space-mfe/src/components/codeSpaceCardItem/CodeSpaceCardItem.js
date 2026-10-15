@@ -459,6 +459,19 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
     }
   };
 
+  const handleCopyCodeSpaceName = (event) => {
+    event.stopPropagation();
+    const projectName = codeSpace?.projectDetails?.projectName;
+
+    if (projectName) {
+      navigator.clipboard.writeText(projectName).then(() => {
+        Notification.show('Copied to Clipboard');
+      }).catch((err) => {
+        console.error('Failed to copy code space name:', err);
+      });
+    }
+  };
+
   const onSyncErrorInfoClick = (e) => {
     e.preventDefault();
     e.stopPropagation();
@@ -686,20 +699,27 @@ const CodeSpaceCardItem = forwardRef((props, ref) => {
           >
             <div className={classNames('btn btn-text', Styles.cardHeadTitle)}>
               <label onClick={onCardNameClick}>{projectDetails?.projectName}</label>
-              {!enableOnboard && !creationFailed && serverStarted && (
-                <a
-                  className={Styles.OpenNewTab}
-                  tooltip-data="Open workspace in new tab"
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    window.open(codeSpace?.workspaceUrl, '_blank');
-                    trackEvent('DnA Code Space', 'Code Space Open', 'Open in New Tab');
-                  }}
-                >
-                  <i className="icon mbc-icon arrow small right" />
-                  <span> &nbsp; </span>
-                </a>
-              )}
+              <div className={Styles.cardTitleActions}>
+                <i
+                  className={classNames('icon mbc-icon copy', Styles.copyNameIcon)}
+                  tooltip-data="Copy code space name"
+                  onClick={handleCopyCodeSpaceName}
+                />
+                {!enableOnboard && !creationFailed && serverStarted && (
+                  <a
+                    className={Styles.OpenNewTab}
+                    tooltip-data="Open workspace in new tab"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      window.open(codeSpace?.workspaceUrl, '_blank');
+                      trackEvent('DnA Code Space', 'Code Space Open', 'Open in New Tab');
+                    }}
+                  >
+                    <i className="icon mbc-icon arrow small right" />
+                    <span> &nbsp; </span>
+                  </a>
+                )}
+              </div>
             </div>
             {!enableOnboard && !creationFailed && !createInProgress && !disableDeployment && (
               <div>
