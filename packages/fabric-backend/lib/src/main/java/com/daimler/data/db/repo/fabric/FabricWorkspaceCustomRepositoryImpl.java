@@ -58,11 +58,12 @@ public class FabricWorkspaceCustomRepositoryImpl extends CommonDataRepositoryImp
 	@Override
 	public long getTotalCount(String userId) {
 		String user = userId.toLowerCase();
-		String getCountStmt = "SELECT count(*) FROM fabric_workspace_nsql " + 
-                      "WHERE (lower(jsonb_extract_path_text(data, 'createdBy', 'id')) = '" + user + "' " + 
-                      "OR lower(COALESCE(jsonb_extract_path_text(data, 'initiatedBy'), '')) = '" + user + "')";
+		String getCountStmt = "SELECT count(*) FROM fabric_workspace_nsql "
+				+ "WHERE (lower(jsonb_extract_path_text(data, 'createdBy', 'id')) = :userId "
+				+ "OR lower(COALESCE(jsonb_extract_path_text(data, 'initiatedBy'), '')) = :userId)";
 
 		Query q = em.createNativeQuery(getCountStmt);
+		q.setParameter("userId", user);
 		BigInteger results = (BigInteger) q.getSingleResult();
 		return results.longValue();
 	}
@@ -70,15 +71,17 @@ public class FabricWorkspaceCustomRepositoryImpl extends CommonDataRepositoryImp
 	@Override
 	public List<FabricWorkspaceNsql> getAll(String userId, int offset, int limit){
 		String user = userId.toLowerCase();
-		String getAllStmt = "SELECT cast(id AS text), cast(data AS text) FROM fabric_workspace_nsql " + 
-                    "WHERE (lower(COALESCE(jsonb_extract_path_text(data, 'createdBy', 'id'), '')) = '" + user + "' " +
-                    "OR lower(COALESCE(jsonb_extract_path_text(data, 'initiatedBy'), '')) = '" + user + "')";
-
-		if (limit > 0)
-			getAllStmt = getAllStmt + " limit " + limit;
-		if (offset >= 0)
-			getAllStmt = getAllStmt + " offset " + offset;
+		String getAllStmt = "SELECT cast(id AS text), cast(data AS text) FROM fabric_workspace_nsql "
+				+ "WHERE (lower(COALESCE(jsonb_extract_path_text(data, 'createdBy', 'id'), '')) = :userId "
+				+ "OR lower(COALESCE(jsonb_extract_path_text(data, 'initiatedBy'), '')) = :userId)";
 		Query q = em.createNativeQuery(getAllStmt);
+		q.setParameter("userId", user);
+		if (limit > 0) {
+			q.setMaxResults(limit);
+		}
+		if (offset > 0) {
+			q.setFirstResult(offset);
+		}
 		ObjectMapper mapper = new ObjectMapper();
 		List<Object[]> results = q.getResultList();
 		List<FabricWorkspaceNsql> convertedResults = results.stream().map(temp -> {
@@ -95,6 +98,17 @@ public class FabricWorkspaceCustomRepositoryImpl extends CommonDataRepositoryImp
 			return entity;
 		}).collect(Collectors.toList());
 		return convertedResults;
+	}
+
+	@Override
+	public boolean existsByCreator(String userId) {
+		String existsStmt = "SELECT EXISTS (SELECT 1 FROM fabric_workspace_nsql "
+				+ "WHERE lower(jsonb_extract_path_text(data, 'createdBy', 'id')) = lower(:userId) "
+				+ "AND lower(COALESCE(jsonb_extract_path_text(data, 'status', 'state'), '')) <> :deletedState)";
+		Query query = em.createNativeQuery(existsStmt);
+		query.setParameter("userId", userId);
+		query.setParameter("deletedState", ConstantsUtility.DELETED_STATE.toLowerCase());
+		return Boolean.TRUE.equals(query.getSingleResult());
 	}
 
 	@Override

@@ -58,7 +58,7 @@ public interface FabricWorkspaceService extends CommonService<FabricWorkspaceVO,
 			String creatorId, String workspaceId);
 
 	List<GroupDetailsVO> autoProcessGroupsUsers(List<GroupDetailsVO> existingGroupsDetails, String workspaceName,
-			String creatorId, String workspaceId, String customGroupName, List<CustomGroupNameCollectionVO> customGroupNameCollection);
+			String creatorId, String workspaceId, String customGroupName, List<CustomGroupNameCollectionVO> customGroupNameCollection, String division);
 
 	FabricWorkspacesCollectionVO getAllLov(int limit, int offset);
 
@@ -80,6 +80,10 @@ public interface FabricWorkspaceService extends CommonService<FabricWorkspaceVO,
 	GenericMessage deleteLakehouseS3Shortcut(String id, String lakehouseId, String shortcutName);
 
 	GenericMessage createGenericRole(CreateRoleRequestVO roleRequestVO, CreatedByVO requestUser);
+
+	boolean canCreateAliceRole(String userId, boolean isCodespaceAdmin);
+
+	boolean isRoleOwner(String roleId, String userId);
 
 	DnaRoleCollectionVO getAllUserDnaRoles(String id);
 
