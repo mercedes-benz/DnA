@@ -24,6 +24,61 @@
       font-size: 13px;
     }
   }
+  .notAuthorized {
+    background-color: #252a33;
+    margin-top: 10px;
+    padding: 24px 36px;
+
+    p {
+      margin-bottom: 0;
+    }
+  }
+
+  .accessNotice {
+    align-items: center;
+    background-color: #252a33;
+    display: flex;
+    gap: 8px;
+    margin-top: 10px;
+    padding: 12px 24px;
+
+    i {
+      font-size: 1.5em;
+      color: red;
+    }
+
+    span {
+      font-size: 1.2em;
+      color: red;
+      font-weight: bold;
+    }
+  }
+
+  .agreementHint {
+    color: #99a5b3;
+    font-size: 12px;
+    margin: 8px 20px 0 0;
+  }
+
+  .agreementText {
+    margin-bottom: 12px;
+  }
+
+  .agreementUnavailable {
+    margin: 12px 0;
+  }
+
+  .agreementLink {
+    margin: 12px 0;
+  }
+
+  .agreementCheckbox {
+    align-items: flex-start;
+    display: flex;
+    gap: 8px;
+    margin-top: 12px;
+  }
+
   .inputWrapper{
     display : flex; 
     .roleRequest {

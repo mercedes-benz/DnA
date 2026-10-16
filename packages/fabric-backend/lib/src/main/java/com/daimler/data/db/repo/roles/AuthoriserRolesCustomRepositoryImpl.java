@@ -58,11 +58,14 @@ public class AuthoriserRolesCustomRepositoryImpl extends CommonDataRepositoryImp
     public List<AuthoriserRolesNsql> getAll(String userId) {
         try {
             
-            String jsonPath = "$.ownerDetails[*] ? (@.id == \"" + userId + "\")";
-            String query = "SELECT * FROM user_created_roles_nsql WHERE jsonb_path_exists(data, cast(:jsonPath AS jsonpath))";
+            String jsonPath = "$.ownerDetails[*] ? (@.id == $uid)";
+            String query = "SELECT * FROM user_created_roles_nsql "
+                    + "WHERE jsonb_path_exists(data, cast(:jsonPath AS jsonpath), "
+                    + "jsonb_build_object('uid', cast(:userId AS text)))";
     
             return em.createNativeQuery(query, AuthoriserRolesNsql.class)
                         .setParameter("jsonPath", jsonPath)
+                        .setParameter("userId", userId)
                         .getResultList();
     
         } catch (Exception e) {
