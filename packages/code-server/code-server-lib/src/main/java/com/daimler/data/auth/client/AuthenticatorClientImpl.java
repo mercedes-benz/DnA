@@ -647,6 +647,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		GenericMessage changePluginStatusResponse = new GenericMessage();
 		GenericMessage attachRequestTransformerPluginResponse = new GenericMessage();
 		GenericMessage kongResponse = new GenericMessage();
+		List<MessageDescription> postFunctionErrors = new ArrayList<>();
 		kongResponse.setSuccess("FAILED");
 
 		try {	
@@ -1069,9 +1070,11 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 												if(isAliceRoleEnabled){
 													if(isEntitlementPrefixEnabled){
 														jsonResponse = gitClient.getFileContent(gitDetails.get(2), gitDetails.get(1), gitDetails.get(0), functionPluginsFolderPath, postFunctionPrefixFileName,codeServerEnvRef);
-													} else if(!selectedAliceRoles.isEmpty() && selectedAliceRoles != null){
+													} else if(selectedAliceRoles != null && !selectedAliceRoles.isEmpty()){
 														jsonResponse = gitClient.getFileContent(gitDetails.get(2), gitDetails.get(1), gitDetails.get(0), functionPluginsFolderPath, postFunctionEntitlementFileName,codeServerEnvRef);
-														LOGGER.info("role post function content is {}",base64DecodeAandMinifyString(jsonResponse.getString("content")));
+														if (jsonResponse != null && jsonResponse.has("content")) {
+															LOGGER.info("role post function content is {}",base64DecodeAandMinifyString(jsonResponse.getString("content")));
+														}
 													} else {
 														jsonResponse = gitClient.getFileContent(gitDetails.get(2), gitDetails.get(1), gitDetails.get(0), functionPluginsFolderPath, postFunctionFrontendFileName,codeServerEnvRef);
 													}
@@ -1098,7 +1101,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 														postFunctionValue.clear();
 														String prefixPostFunctionContent = postFunctionContent.replace("entitlement_prefix_value",commaSeparatedString);
 														postFunctionValue.add(prefixPostFunctionContent);
-													} else if(!selectedAliceRoles.isEmpty() && selectedAliceRoles != null){
+													} else if(selectedAliceRoles != null && !selectedAliceRoles.isEmpty()){
 														LOGGER.info("Role based entitlement filtering");
 														List<String> entitlementIds = new ArrayList<>();
         												for (String role : selectedAliceRoles) {
@@ -1122,8 +1125,32 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 												postFunctionPluginVO.setConfig(postFunctionConfigVO);
 												postFunctionRequestVO.setData(postFunctionPluginVO);
 
-												attachPluginResponse = attachFunctionPluginToService(postFunctionRequestVO,serviceName.toLowerCase()+"-"+env);
-												LOGGER.info("calling kong to attach post function plugin for service: {} env: {} and staus is: {}, errors if any: {}, warnings if any: {}",serviceName,env, attachPluginResponse.getSuccess(),attachPluginResponse.getErrors(),attachPluginResponse.getWarnings());
+												String postFunctionServiceName = serviceName.toLowerCase()+"-"+env;
+												deletePluginResponse = deletePlugin(postFunctionServiceName, POST_FUNCTION_PLUGIN, cloudServiceProvider);
+												LOGGER.info("calling kong to delete existing post function plugin for service: {} env: {} and status is: {}, errors if any: {}, warnings if any: {}", serviceName, env, deletePluginResponse.getSuccess(), deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
+												attachPluginResponse = attachFunctionPluginToService(postFunctionRequestVO, postFunctionServiceName, cloudServiceProvider);
+												if (attachPluginResponse == null || !"SUCCESS".equalsIgnoreCase(attachPluginResponse.getSuccess())) {
+													LOGGER.warn("Failed to attach post-function plugin to service {} on first attempt; errors: {}, warnings: {}", postFunctionServiceName, attachPluginResponse != null ? attachPluginResponse.getErrors() : null, attachPluginResponse != null ? attachPluginResponse.getWarnings() : null);
+													deletePluginResponse = deletePlugin(postFunctionServiceName, POST_FUNCTION_PLUGIN, cloudServiceProvider);
+													LOGGER.info("calling kong to delete post function plugin before retry for service: {} env: {} and status is: {}, errors if any: {}, warnings if any: {}", serviceName, env, deletePluginResponse.getSuccess(), deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
+													attachPluginResponse = attachFunctionPluginToService(postFunctionRequestVO, postFunctionServiceName, cloudServiceProvider);
+												}
+												if (attachPluginResponse == null || !"SUCCESS".equalsIgnoreCase(attachPluginResponse.getSuccess())) {
+													LOGGER.error("Failed to attach post-function plugin to service {} after retry; errors: {}, warnings: {}", postFunctionServiceName, attachPluginResponse != null ? attachPluginResponse.getErrors() : null, attachPluginResponse != null ? attachPluginResponse.getWarnings() : null);
+													if (attachPluginResponse != null && attachPluginResponse.getErrors() != null && !attachPluginResponse.getErrors().isEmpty()) {
+														postFunctionErrors.addAll(attachPluginResponse.getErrors());
+													} else {
+														MessageDescription error = new MessageDescription();
+														error.setMessage("Failed to attach post-function plugin to service " + postFunctionServiceName + " after retry");
+														postFunctionErrors.add(error);
+													}
+												}
+												LOGGER.info("calling kong to attach post function plugin for service: {} env: {} and staus is: {}, errors if any: {}, warnings if any: {}", serviceName, env, attachPluginResponse != null ? attachPluginResponse.getSuccess() : null, attachPluginResponse != null ? attachPluginResponse.getErrors() : null, attachPluginResponse != null ? attachPluginResponse.getWarnings() : null);
+											} else {
+												LOGGER.error("Post-function plugin file could not be fetched from Git for service {}-{}", serviceName, env);
+												MessageDescription error = new MessageDescription();
+												error.setMessage("Post-function plugin file could not be fetched from Git for service " + serviceName + "-" + env);
+												postFunctionErrors.add(error);
 											}
 								// 		}catch(Exception e) {
 								// 			LOGGER.error("Error Occured While fetching postFunction file from Git : {} ",e.getMessage());
@@ -1211,6 +1238,15 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 			// 		attachJwtPluginResponse.getErrors(), attachJwtPluginResponse.getWarnings());
 		}
 
+		if (!postFunctionErrors.isEmpty()) {
+			kongResponse.setSuccess("FAILED");
+			List<MessageDescription> errors = kongResponse.getErrors();
+			if (errors == null) {
+				errors = new ArrayList<>();
+			}
+			errors.addAll(postFunctionErrors);
+			kongResponse.setErrors(errors);
+		}
 		return kongResponse;
 	}
 
@@ -1677,18 +1713,32 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		return false;
 	}
 
-	public GenericMessage attachFunctionPluginToService(AttachFunctionPluginRequestVO attachFunctionPluginRequestVO, String serviceName){
+	@Override
+	public GenericMessage attachFunctionPluginToService(AttachFunctionPluginRequestVO attachFunctionPluginRequestVO, String serviceName) {
+		return attachFunctionPluginToService(attachFunctionPluginRequestVO, serviceName, ConstantsUtility.DHC_CAAS);
+	}
+
+	@Override
+	public GenericMessage attachFunctionPluginToService(AttachFunctionPluginRequestVO attachFunctionPluginRequestVO, String serviceName, String cloudServiceProvider) {
 
 		GenericMessage response = new GenericMessage();
 		String status = "FAILED";
 		List<MessageDescription> warnings = new ArrayList<>();
 		List<MessageDescription> errors = new ArrayList<>();
 		try {
+			boolean isAws = ConstantsUtility.DHC_CAAS_AWS.equalsIgnoreCase(cloudServiceProvider);
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");		
 
-			String attachPluginUri = authenticatorBaseUri + CREATE_SERVICE + "/" + serviceName + ATTACH_FUNCTION_PLUGIN_TO_SERVICE;
+			if (isAws && "NA".equals(apiKey)) {
+				if (awsApiKey != null) {
+					headers.set("apikey", awsApiKey);
+				}
+			} else {
+				headers.set("apikey", apiKey);
+			}
+			String attachPluginUri = (isAws ? authenticatorBaseUriAWS : authenticatorBaseUri) + CREATE_SERVICE + "/" + serviceName + ATTACH_FUNCTION_PLUGIN_TO_SERVICE;
 
 			HttpEntity<AttachFunctionPluginRequestVO> entity = new HttpEntity<AttachFunctionPluginRequestVO>(attachFunctionPluginRequestVO,headers);			
 			ResponseEntity<String> attachFunctionPluginResponse = restTemplate.exchange(attachPluginUri, HttpMethod.POST, entity, String.class);
@@ -1719,16 +1769,28 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 
 	@Override
 	public GenericMessage changePluginStatus(String serviceName, String pluginName, Boolean enablePlugin) {
+		return changePluginStatus(serviceName, pluginName, enablePlugin, ConstantsUtility.DHC_CAAS);
+	}
 
+	@Override
+	public GenericMessage changePluginStatus(String serviceName, String pluginName, Boolean enablePlugin, String cloudServiceProvider) {
 		GenericMessage message = new GenericMessage();
 		MessageDescription messageDescription = new MessageDescription();
 		List<MessageDescription> errors = new ArrayList<>();
 		List<MessageDescription> warnings = new ArrayList<>();
 		try {
-			String changePluginStatusRouteUri = authenticatorBaseUri + CREATE_SERVICE + "/" + serviceName+"/" + ATTACH_PLUGIN_TO_SERVICE + "/" + pluginName+"?enable="+enablePlugin;
+			boolean isAws = ConstantsUtility.DHC_CAAS_AWS.equalsIgnoreCase(cloudServiceProvider);
+			String changePluginStatusRouteUri = (isAws ? authenticatorBaseUriAWS : authenticatorBaseUri) + CREATE_SERVICE + "/" + serviceName+"/" + ATTACH_PLUGIN_TO_SERVICE + "/" + pluginName+"?enable="+enablePlugin;
 			HttpHeaders headers = new HttpHeaders();
 			headers.set("Accept", "application/json");
 			headers.set("Content-Type", "application/json");
+			if (isAws && "NA".equals(apiKey)) {
+				if (awsApiKey != null) {
+					headers.set("apikey", awsApiKey);
+				}
+			} else {
+				headers.set("apikey", apiKey);
+			}
 			HttpEntity entity = new HttpEntity<>(headers);
 			ResponseEntity<String> response = restTemplate.exchange(changePluginStatusRouteUri, HttpMethod.PATCH, entity, String.class);
 			if (response != null) {
