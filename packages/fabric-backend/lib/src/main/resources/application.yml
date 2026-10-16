@@ -206,6 +206,7 @@ databricksIntegration:
 
 server:
   port: 9292
+  forward-headers-strategy: framework
 
 
 #Cors Filter origin Domains  
