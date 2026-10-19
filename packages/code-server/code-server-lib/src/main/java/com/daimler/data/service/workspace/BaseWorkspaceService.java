@@ -2609,16 +2609,33 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 				 }
 				 boolean isSecuredWithCookie = false; //disable for now 
 				 String deploymentType = deployedAppConfigDto.isIsApiRecipe() ? ConstantsUtility.API : ConstantsUtility.UI;
-				 authenticatorClient.callingKongApis(workspaceId, projectName, environment, deployedAppConfigDto.isIsApiRecipe(), deployedAppConfigDto.getClientID(), clientSecret, deployedAppConfigDto.getRedirectUri(), deployedAppConfigDto.getIgnorePaths(), deployedAppConfigDto.getScope(), deployedAppConfigDto.getOneApiVersionShortName(), isSecuredWithCookie, secureWithIAMRequired, deployedAppConfigDto.getSsoType().toString(), secureWithDnaRequired, deployedAppConfigDto.isAliceRoleEnabled(), deployedAppConfigDto.isEntitlementPrefixEnabled(), deployedAppConfigDto.getSelectedAliceRoles(), cloudServiceProvider);
+				 String ssoType = deployedAppConfigDto.getSsoType() != null ? deployedAppConfigDto.getSsoType().toString() : null;
+				 GenericMessage kongResponse = authenticatorClient.callingKongApis(workspaceId, projectName, environment, deployedAppConfigDto.isIsApiRecipe(), deployedAppConfigDto.getClientID(), clientSecret, deployedAppConfigDto.getRedirectUri(), deployedAppConfigDto.getIgnorePaths(), deployedAppConfigDto.getScope(), deployedAppConfigDto.getOneApiVersionShortName(), isSecuredWithCookie, secureWithIAMRequired, ssoType, secureWithDnaRequired, deployedAppConfigDto.isAliceRoleEnabled(), deployedAppConfigDto.isEntitlementPrefixEnabled(), deployedAppConfigDto.getSelectedAliceRoles(), cloudServiceProvider);
 				 workspaceCustomRepository.updateDeployedAppConfig(projectName, environmentJsonbName,
 						 secureWithIAMRequired, deployedAppConfigDto.getOneApiVersionShortName(),
 						 isSecuredWithCookie, deploymentType, deployedAppConfigDto.getClientID(),
 						 deployedAppConfigDto.getRedirectUri(), deployedAppConfigDto.getIgnorePaths(),
-						 deployedAppConfigDto.getScope(), deployedAppConfigDto.getSsoType().toString(),
+						 deployedAppConfigDto.getScope(), ssoType,
 						 secureWithDnaRequired, deployedAppConfigDto.isAliceRoleEnabled(),
 						 deployedAppConfigDto.isEntitlementPrefixEnabled(),
 						 deployedAppConfigDto.getSelectedAliceRoles());
+				 boolean kongHasErrors = kongResponse == null
+						 || (kongResponse.getErrors() != null && !kongResponse.getErrors().isEmpty())
+						 || !"SUCCESS".equalsIgnoreCase(kongResponse.getSuccess());
+				 if (kongHasErrors) {
+					 log.error("Kong configuration failed while updating deployed app config for project {} env {}, errors: {}",
+							 projectName, environment, kongResponse != null ? kongResponse.getErrors() : null);
+					 if (kongResponse != null && kongResponse.getErrors() != null && !kongResponse.getErrors().isEmpty()) {
+						 errors.addAll(kongResponse.getErrors());
+					 } else {
+						 MessageDescription error = new MessageDescription();
+						 error.setMessage("Failed while configuring Kong for deployed app config of workspace project.");
+						 errors.add(error);
+					 }
+					 status = "FAILED";
+				 } else {
 					 status = "SUCCESS";
+				 }
 			 }
 			 
 		 } catch (Exception e) {

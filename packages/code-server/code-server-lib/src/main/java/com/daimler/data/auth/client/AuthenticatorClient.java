@@ -26,8 +26,12 @@ public interface AuthenticatorClient {
 	public RouteResponseVO getRouteByName(String serviceName, String routeName, String cloudServiceProvider);
  
 	public GenericMessage attachFunctionPluginToService(AttachFunctionPluginRequestVO attachFunctionPluginRequestVO, String serviceName);
+
+	public GenericMessage attachFunctionPluginToService(AttachFunctionPluginRequestVO attachFunctionPluginRequestVO, String serviceName, String cloudServiceProvider);
  
 	public GenericMessage changePluginStatus(String serviceName, String pluginName, Boolean isEnabled);
+
+	public GenericMessage changePluginStatus(String serviceName, String pluginName, Boolean isEnabled, String cloudServiceProvider);
 
 	public WorkspacePluginStatusVO getPluginStatus(String serviceName, String pluginName, String cloudServiceProvider);
  
