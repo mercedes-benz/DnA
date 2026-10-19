@@ -635,6 +635,10 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		createRequest.setDescription(vo.getDescription());
 		createRequest.setDisplayName(vo.getName());
 		CapacityVO capacityVO = new CapacityVO();
+		boolean technicalUserRequest = isTechnicalUserRequest(vo);
+		if(technicalUserRequest && vo.getCapacity() != null && vo.getCapacity().getId() != null && !vo.getCapacity().getId().isBlank()) {
+			createRequest.setCapacityId(vo.getCapacity().getId());
+		}
 
 		try {
 			WorkspaceDetailDto createResponse = fabricWorkspaceClient.createWorkspace(createRequest);
@@ -674,7 +678,11 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 				if(createResponse.getId()!=null) {
 					log.info("created fabric workspace project {} successfully with id {}", vo.getName(), createResponse.getId());
 					GenericMessage addUserResponse = fabricWorkspaceClient.addUser(createResponse.getId(), vo.getCreatedBy().getEmail());
-					if(addUserResponse == null || !"SUCCESS".equalsIgnoreCase(addUserResponse.getSuccess())) {
+					boolean ownerAdded = addUserResponse != null && "SUCCESS".equalsIgnoreCase(addUserResponse.getSuccess());
+					if(!ownerAdded && technicalUserRequest) {
+						log.warn("Failed to add owner to workspace {} created by technical user {}, continuing with workspace setup", createResponse.getId(), vo.getInitiatedBy());
+						warnings.add(new MessageDescription("Failed to add owner to workspace " + vo.getName() + ". Please add the owner manually or contact Admin."));
+					}else if(!ownerAdded) {
 						log.error("Failed to add user {} to workspace {}", vo.getCreatedBy().getEmail(), createResponse.getId());
 						boolean workspaceDeleted = false;
 						try {
@@ -728,35 +736,36 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 					data.setHasPii(vo.isHasPii());
 					boolean isPowerBI = vo.getSubscription() != null && vo.getSubscription().name().equalsIgnoreCase("PowerBI");
 					
-					if(vo.getInitiatedBy() == null || (vo.getInitiatedBy() != null && !FabricWorkspaceController.isTechnicalUser(vo.getInitiatedBy()))){
+					if(capacityVO.getId() == null && createResponse.getCapacityId() != null) {
+						capacityVO.setId(createResponse.getCapacityId());
+					}
+					if(technicalUserRequest && capacityVO.getId() != null) {
+						CapacityVO workspaceAssignedCapacity = fabricWorkspaceClient.getCapacityDetails(capacityVO.getId());
+						if(workspaceAssignedCapacity != null) {
+							capacityVO.setName(workspaceAssignedCapacity.getName());
+							capacityVO.setRegion(workspaceAssignedCapacity.getRegion());
+							capacityVO.setSku(workspaceAssignedCapacity.getSku());
+							capacityVO.setState(workspaceAssignedCapacity.getState());
+						}else {
+							log.warn("Failed to fetch details of capacity {} already assigned to workspace {}", capacityVO.getId(), createResponse.getId());
+						}
+					} else {
 						ErrorResponseDto assignCapacityResponse = fabricWorkspaceClient.assignCapacity(createResponse.getId(), isPowerBI);
-						if(assignCapacityResponse!=null && assignCapacityResponse.getErrorCode()!=null && "500".equalsIgnoreCase(assignCapacityResponse.getErrorCode())) {
+						if(isCapacityAssignmentFailed(assignCapacityResponse)) {
+							log.error("Failed to assign capacity to workspace {}: {}", createResponse.getId(), assignCapacityResponse != null ? assignCapacityResponse.getMessage() : "empty response");
 							capacityVO = null;
 							warnings.add(new MessageDescription("Failed to assign capacity, please reassign or update workspace to assign capacity automatically."));
 						}else {
 							if(isPowerBI) {
 								capacityVO.setId(powerbiCapacityId);
 								capacityVO.setName(powerbiCapacityName);
-								capacityVO.setRegion(capacityRegion);
-								capacityVO.setSku(capacitySku);
-								capacityVO.setState(capacityState);
 							} else {
 								capacityVO.setId(fabricCapacityId);
 								capacityVO.setName(fabricCapacityName);
-								capacityVO.setRegion(capacityRegion);
-								capacityVO.setSku(capacitySku);
-								capacityVO.setState(capacityState);
 							}
-						}
-					} else {
-						if(capacityVO.getId() != null){
-							CapacityVO workspaceAssignedCapacity = fabricWorkspaceClient.getCapacityDetails(capacityVO.getId());
-							if(workspaceAssignedCapacity != null){
-								capacityVO.setName(workspaceAssignedCapacity.getName());
-								capacityVO.setRegion(workspaceAssignedCapacity.getRegion());
-								capacityVO.setSku(workspaceAssignedCapacity.getSku());
-								capacityVO.setState(workspaceAssignedCapacity.getState());
-							}
+							capacityVO.setRegion(capacityRegion);
+							capacityVO.setSku(capacitySku);
+							capacityVO.setState(capacityState);
 						}
 					}
 					
@@ -874,6 +883,19 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		
 	}
 	
+	private boolean isTechnicalUserRequest(FabricWorkspaceVO vo) {
+		String initiatedBy = vo.getInitiatedBy();
+		if(initiatedBy != null && FabricWorkspaceController.isTechnicalUser(initiatedBy)) {
+			return true;
+		}
+		String creatorId = vo.getCreatedBy() != null ? vo.getCreatedBy().getId() : null;
+		return creatorId != null && creatorId.equalsIgnoreCase(fabricTechUserId);
+	}
+
+	private boolean isCapacityAssignmentFailed(ErrorResponseDto assignCapacityResponse) {
+		return assignCapacityResponse == null || assignCapacityResponse.getErrorCode() != null;
+	}
+
 	@Override
 	public CreateEntitlementRequestDto prepareEntitlementCreateRequestDto(String workspaceName, String workspaceId, String permissionName) {
 		CreateEntitlementRequestDto entitlementRequestDto = new CreateEntitlementRequestDto();

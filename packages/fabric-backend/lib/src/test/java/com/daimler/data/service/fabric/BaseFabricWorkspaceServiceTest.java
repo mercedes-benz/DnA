@@ -3,6 +3,7 @@ package com.daimler.data.service.fabric;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
@@ -25,16 +26,28 @@ import org.mockito.ArgumentCaptor;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 
 import com.daimler.data.application.client.AuthoriserClient;
+import com.daimler.data.application.client.AzureManagementClient;
 import com.daimler.data.application.client.CodeServerClient;
+import com.daimler.data.application.client.FabricWorkspaceClient;
+import com.daimler.data.assembler.GenericAssembler;
 import com.daimler.data.assembler.FabricWorkspaceAssembler;
 import com.daimler.data.db.entities.AuthoriserRolesNsql;
 import com.daimler.data.db.json.AuthoriserRoleDeatils;
 import com.daimler.data.db.json.UserDetails;
 import com.daimler.data.db.repo.fabric.FabricWorkspaceCustomRepository;
 import com.daimler.data.db.repo.roles.AuthoriserRolesRepository;
+import com.daimler.data.dto.fabric.CreateWorkspaceDto;
+import com.daimler.data.dto.fabric.ErrorResponseDto;
+import com.daimler.data.dto.fabric.WorkspaceDetailDto;
+import com.daimler.data.dto.fabricWorkspace.CapacityVO;
+import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceResponseVO;
+import com.daimler.data.dto.fabricWorkspace.FabricWorkspaceVO;
+import com.daimler.data.service.common.BaseCommonService;
 import com.daimler.data.dto.fabric.CreateEntitlementRequestDto;
 import com.daimler.data.dto.fabric.CreateRoleRequestDto;
 import com.daimler.data.dto.fabric.CreateRoleResponseDto;
@@ -64,6 +77,18 @@ class BaseFabricWorkspaceServiceTest {
 	@Mock
 	private AuthoriserRolesRepository rolesJpaRepo;
 
+	@Mock
+	private FabricWorkspaceClient fabricWorkspaceClient;
+
+	@Mock
+	private AzureManagementClient azureManagementClient;
+
+	@Mock
+	private GenericAssembler<Object, Object> baseAssembler;
+
+	@Mock
+	private JpaRepository<Object, String> baseJpaRepo;
+
 	@InjectMocks
 	private BaseFabricWorkspaceService service;
 
@@ -76,6 +101,152 @@ class BaseFabricWorkspaceServiceTest {
 		setField("fabricTechUserId", "TECHUSER");
 		setField("communityAvailability", "COMMUNITY1,COMMUNITY2");
 		setField("workflowDefinitionId", "1");
+		setField("defaultFolders", new String[0]);
+		setField("fabricCapacityId", "default-capacity");
+		setField("fabricCapacityName", "Default Capacity");
+		setField("powerbiCapacityId", "powerbi-capacity");
+		setField("powerbiCapacityName", "PowerBI Capacity");
+		setField("capacityRegion", "West Europe");
+		setField("capacitySku", "F64");
+		setField("capacityState", "Active");
+		setBaseField("assembler", baseAssembler);
+		setBaseField("jpaRepo", baseJpaRepo);
+		setBaseField("customRepo", customRepo);
+	}
+
+	@Test
+	void technicalUserCreationContinuesAfterAddUserFailureAndAssignsDefaultCapacity() {
+		FabricWorkspaceVO vo = workspaceRequest("TE12345");
+		when(fabricWorkspaceClient.createWorkspace(any(CreateWorkspaceDto.class))).thenReturn(createdWorkspace(null));
+		when(fabricWorkspaceClient.addUser("ws-1", "owner@example.com")).thenReturn(failedMessage());
+		when(fabricWorkspaceClient.assignCapacity("ws-1", false)).thenReturn(new ErrorResponseDto());
+
+		ResponseEntity<FabricWorkspaceResponseVO> response = service.createWorkspace(vo);
+
+		assertEquals(HttpStatus.CREATED, response.getStatusCode());
+		verify(fabricWorkspaceClient, never()).deleteWorkspace(any());
+		verify(fabricWorkspaceClient).assignCapacity("ws-1", false);
+		CapacityVO capacity = savedWorkspace().getCapacity();
+		assertEquals("default-capacity", capacity.getId());
+		assertEquals("Default Capacity", capacity.getName());
+		assertEquals("West Europe", capacity.getRegion());
+		assertEquals("F64", capacity.getSku());
+		assertEquals("Active", capacity.getState());
+		assertTrue(response.getBody().getResponses().getWarnings().stream()
+				.anyMatch(w -> w.getMessage().contains("Failed to add owner")));
+	}
+
+	@Test
+	void technicalUserCreatorIdIsTreatedAsTechnicalRequest() {
+		FabricWorkspaceVO vo = workspaceRequest(null);
+		vo.getCreatedBy().setId("TECHUSER");
+		when(fabricWorkspaceClient.createWorkspace(any(CreateWorkspaceDto.class))).thenReturn(createdWorkspace(null));
+		when(fabricWorkspaceClient.addUser("ws-1", "owner@example.com")).thenReturn(null);
+		when(fabricWorkspaceClient.assignCapacity("ws-1", false)).thenReturn(new ErrorResponseDto());
+
+		ResponseEntity<FabricWorkspaceResponseVO> response = service.createWorkspace(vo);
+
+		assertEquals(HttpStatus.CREATED, response.getStatusCode());
+		verify(fabricWorkspaceClient).assignCapacity("ws-1", false);
+		assertEquals("default-capacity", savedWorkspace().getCapacity().getId());
+	}
+
+	@Test
+	void nonTechnicalUserAddUserFailureStillRollsBack() {
+		FabricWorkspaceVO vo = workspaceRequest(null);
+		when(fabricWorkspaceClient.createWorkspace(any(CreateWorkspaceDto.class))).thenReturn(createdWorkspace(null));
+		when(fabricWorkspaceClient.addUser("ws-1", "owner@example.com")).thenReturn(failedMessage());
+		when(fabricWorkspaceClient.deleteWorkspace("ws-1")).thenReturn(null);
+
+		ResponseEntity<FabricWorkspaceResponseVO> response = service.createWorkspace(vo);
+
+		assertEquals(HttpStatus.INTERNAL_SERVER_ERROR, response.getStatusCode());
+		verify(fabricWorkspaceClient).deleteWorkspace("ws-1");
+		verify(fabricWorkspaceClient, never()).assignCapacity(any(), eq(false));
+	}
+
+	@Test
+	void anyAssignCapacityErrorStoresNoCapacityAndWarns() {
+		FabricWorkspaceVO vo = workspaceRequest(null);
+		ErrorResponseDto assignError = new ErrorResponseDto();
+		assignError.setErrorCode("Failed");
+		assignError.setMessage("Forbidden");
+		when(fabricWorkspaceClient.createWorkspace(any(CreateWorkspaceDto.class))).thenReturn(createdWorkspace(null));
+		when(fabricWorkspaceClient.addUser("ws-1", "owner@example.com")).thenReturn(successMessage());
+		when(fabricWorkspaceClient.assignCapacity("ws-1", false)).thenReturn(assignError);
+
+		ResponseEntity<FabricWorkspaceResponseVO> response = service.createWorkspace(vo);
+
+		assertEquals(HttpStatus.CREATED, response.getStatusCode());
+		assertNull(savedWorkspace().getCapacity());
+		assertTrue(response.getBody().getResponses().getWarnings().stream()
+				.anyMatch(w -> w.getMessage().startsWith("Failed to assign capacity")));
+	}
+
+	@Test
+	void technicalUserRequestedCapacityIsUsedAndDetailsFetched() {
+		FabricWorkspaceVO vo = workspaceRequest("TE12345");
+		CapacityVO requested = new CapacityVO();
+		requested.setId("spire-capacity");
+		vo.setCapacity(requested);
+		when(fabricWorkspaceClient.createWorkspace(any(CreateWorkspaceDto.class))).thenReturn(createdWorkspace("spire-capacity"));
+		when(fabricWorkspaceClient.addUser("ws-1", "owner@example.com")).thenReturn(successMessage());
+		when(fabricWorkspaceClient.getCapacityDetails("spire-capacity")).thenReturn(capacityDetails("spire-capacity"));
+
+		service.createWorkspace(vo);
+
+		ArgumentCaptor<CreateWorkspaceDto> createCaptor = ArgumentCaptor.forClass(CreateWorkspaceDto.class);
+		verify(fabricWorkspaceClient).createWorkspace(createCaptor.capture());
+		assertEquals("spire-capacity", createCaptor.getValue().getCapacityId());
+		verify(fabricWorkspaceClient, never()).assignCapacity(any(), eq(false));
+		CapacityVO capacity = savedWorkspace().getCapacity();
+		assertEquals("spire-capacity", capacity.getId());
+		assertEquals("Spire Capacity", capacity.getName());
+		assertEquals("North Europe", capacity.getRegion());
+		assertEquals("F8", capacity.getSku());
+		assertEquals("Active", capacity.getState());
+	}
+
+	@Test
+	void technicalUserAdoptingExistingWorkspaceKeepsItsCapacity() {
+		FabricWorkspaceVO vo = workspaceRequest("TE12345");
+		WorkspaceDetailDto conflict = new WorkspaceDetailDto();
+		conflict.setErrorCode("409");
+		conflict.setMessage("WorkspaceNameAlreadyExists");
+		WorkspaceDetailDto existing = new WorkspaceDetailDto();
+		existing.setId("ws-1");
+		existing.setDisplayName("ws-name");
+		existing.setCapacityId("existing-capacity");
+		when(fabricWorkspaceClient.createWorkspace(any(CreateWorkspaceDto.class))).thenReturn(conflict);
+		when(fabricWorkspaceClient.getWorkspaceDetailsByName("ws-name")).thenReturn(existing);
+		when(fabricWorkspaceClient.addUser("ws-1", "owner@example.com")).thenReturn(successMessage());
+		when(fabricWorkspaceClient.getCapacityDetails("existing-capacity")).thenReturn(capacityDetails("existing-capacity"));
+
+		ResponseEntity<FabricWorkspaceResponseVO> response = service.createWorkspace(vo);
+
+		assertEquals(HttpStatus.CREATED, response.getStatusCode());
+		verify(fabricWorkspaceClient, never()).assignCapacity(any(), eq(false));
+		assertEquals("existing-capacity", savedWorkspace().getCapacity().getId());
+		assertEquals("Spire Capacity", savedWorkspace().getCapacity().getName());
+	}
+
+	@Test
+	void technicalUserAdoptingWorkspaceWithoutCapacityGetsDefaultCapacity() {
+		FabricWorkspaceVO vo = workspaceRequest("TE12345");
+		WorkspaceDetailDto conflict = new WorkspaceDetailDto();
+		conflict.setErrorCode("409");
+		WorkspaceDetailDto existing = new WorkspaceDetailDto();
+		existing.setId("ws-1");
+		existing.setDisplayName("ws-name");
+		when(fabricWorkspaceClient.createWorkspace(any(CreateWorkspaceDto.class))).thenReturn(conflict);
+		when(fabricWorkspaceClient.getWorkspaceDetailsByName("ws-name")).thenReturn(existing);
+		when(fabricWorkspaceClient.addUser("ws-1", "owner@example.com")).thenReturn(successMessage());
+		when(fabricWorkspaceClient.assignCapacity("ws-1", false)).thenReturn(new ErrorResponseDto());
+
+		service.createWorkspace(vo);
+
+		verify(fabricWorkspaceClient).assignCapacity("ws-1", false);
+		assertEquals("default-capacity", savedWorkspace().getCapacity().getId());
 	}
 
 	@Test
@@ -378,6 +549,59 @@ class BaseFabricWorkspaceServiceTest {
 		AuthoriserRoleDeatils roleDetails = new AuthoriserRoleDeatils();
 		roleDetails.setOwnerDetails(List.of(owner));
 		return new AuthoriserRolesNsql(roleId, roleDetails);
+	}
+
+	private FabricWorkspaceVO workspaceRequest(String initiatedBy) {
+		CreatedByVO owner = new CreatedByVO();
+		owner.setId("owner1");
+		owner.setEmail("owner@example.com");
+		FabricWorkspaceVO vo = new FabricWorkspaceVO();
+		vo.setName("ws-name");
+		vo.setCreatedBy(owner);
+		vo.setInitiatedBy(initiatedBy);
+		return vo;
+	}
+
+	private WorkspaceDetailDto createdWorkspace(String capacityId) {
+		WorkspaceDetailDto created = new WorkspaceDetailDto();
+		created.setId("ws-1");
+		created.setDisplayName("ws-name");
+		created.setCapacityId(capacityId);
+		return created;
+	}
+
+	private CapacityVO capacityDetails(String id) {
+		CapacityVO details = new CapacityVO();
+		details.setId(id);
+		details.setName("Spire Capacity");
+		details.setRegion("North Europe");
+		details.setSku("F8");
+		details.setState("Active");
+		return details;
+	}
+
+	private GenericMessage successMessage() {
+		GenericMessage message = new GenericMessage();
+		message.setSuccess("SUCCESS");
+		return message;
+	}
+
+	private GenericMessage failedMessage() {
+		GenericMessage message = new GenericMessage();
+		message.setSuccess("FAILED");
+		return message;
+	}
+
+	private FabricWorkspaceVO savedWorkspace() {
+		ArgumentCaptor<Object> captor = ArgumentCaptor.forClass(Object.class);
+		verify(baseAssembler).toEntity(captor.capture());
+		return (FabricWorkspaceVO) captor.getValue();
+	}
+
+	private void setBaseField(String name, Object value) throws ReflectiveOperationException {
+		Field field = BaseCommonService.class.getDeclaredField(name);
+		field.setAccessible(true);
+		field.set(service, value);
 	}
 
 	private void setField(String name, Object value) throws ReflectiveOperationException {
