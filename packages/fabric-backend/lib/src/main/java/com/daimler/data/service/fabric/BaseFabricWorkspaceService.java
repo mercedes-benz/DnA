@@ -737,7 +737,6 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 							capacityVO.setState(workspaceAssignedCapacity.getState());
 						}
 					} else {
-						if(vo.getInitiatedBy() == null || (vo.getInitiatedBy() != null && !FabricWorkspaceController.isTechnicalUser(vo.getInitiatedBy()))){
 							ErrorResponseDto assignCapacityResponse = fabricWorkspaceClient.assignCapacity(createResponse.getId(), isPowerBI);
 							if(assignCapacityResponse!=null && assignCapacityResponse.getErrorCode()!=null && "500".equalsIgnoreCase(assignCapacityResponse.getErrorCode())) {
 								capacityVO = null;
@@ -757,7 +756,6 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 									capacityVO.setState(capacityState);
 								}
 							}
-						}
 					}
 					
 					data.setCapacity(capacityVO);
