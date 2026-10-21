@@ -1081,6 +1081,7 @@ import com.daimler.data.dto.workspace.ResourceVO;
 			 entity.getData().setIntiatedOn(isoFormat.parse(isoFormat.format(new Date())));
 			 // entity.getData().setStatus(ConstantsUtility.CREATEREQUESTEDSTATE);
 			 entity.getData().setStatus(ConstantsUtility.CREATEDSTATE);//added
+			 entity.getData().setAutoDeploy(vo.isAutoDeploy());
 			 
 			 if (repoDetails != null && repoDetails.contains("ghe.com")) {
 				 entity.getData().setIsWorkspaceMigratedToGHE(true);
@@ -2926,6 +2927,7 @@ import com.daimler.data.dto.workspace.ResourceVO;
 					 collabData.setGitUserName(collaborator.getGitUserName());
 					 collabData.setIntiatedOn(null);
 					 collabData.setProjectDetails(entity.getData().getProjectDetails());
+					 collabData.setAutoDeploy(entity.getData().getAutoDeploy());
 					 collabData.setStatus(ConstantsUtility.COLLABREQUESTEDSTATE);
 					 collabData.setActiveInGroup(Boolean.FALSE);
 					 Long collabWsSeqId = jpaRepo.getNextWorkspaceSeqId();
