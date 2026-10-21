@@ -57,8 +57,14 @@ public class SwaggerConfig {
                                 .type(SecurityScheme.Type.HTTP)
                                 .scheme("bearer")
                                 .bearerFormat("JWT")
-                                .description("Enter the token without the Bearer prefix.")))
-                .addSecurityItem(new SecurityRequirement().addList("bearerAuth"))
+                                .description("Enter the token without the Bearer prefix."))
+                        .addSecuritySchemes("jsonContentType", new SecurityScheme()
+                                .type(SecurityScheme.Type.APIKEY)
+                                .in(SecurityScheme.In.HEADER)
+                                .name("Content-Type")
+                                .description("Enter : application/json.")))
+                .addSecurityItem(new SecurityRequirement()
+                        .addList("bearerAuth"))
                 .info(new Info()
                         .title("DnA-Fabric-Workspace management REST API documentation.")
                         .description("REST API uri document management. Description of all the available APIs along with request and response formats. Also provides "
@@ -67,19 +73,6 @@ public class SwaggerConfig {
                                 .name("Daimler AG 2020")
                                 .url("https://github.com/Daimler/DnA/blob/master/LICENSE"))
                         .version("1.0.0"));
-    }
-
-    @Bean
-    public OperationCustomizer globalHeaders() {
-        return (operation, handlerMethod) -> {
-            operation.addParametersItem(new Parameter()
-                    .in("header")
-                    .name("Content-Type")
-                    .description("Content-Type")
-                    .required(true)
-                    .schema(new StringSchema()._default("application/json")));
-            return operation;
-        };
     }
 
     @Bean
@@ -101,6 +94,20 @@ public class SwaggerConfig {
                                     .toUriString());
                 }
             });
+        };
+    }
+
+    @Bean
+    public OperationCustomizer globalHeaders() {
+        return (operation, handlerMethod) -> {
+            if (operation.getRequestBody() == null
+                    && operation.getSecurity() == null) {
+                operation.setSecurity(java.util.List.of(
+                        new SecurityRequirement()
+                                .addList("bearerAuth")
+                                .addList("jsonContentType")));
+            }
+            return operation;
         };
     }
 }
