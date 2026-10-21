@@ -129,6 +129,7 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 		GenericMessage errorMessage = new GenericMessage();
 		FabricWorkspaceVO data = new FabricWorkspaceVO();
 		FabricWorkspaceVO workspaceRequestVO = workspaceCreateVO.getData();
+		log.info("Fabric workspace creation workflow invoked, This is a test log!");
 		if(workspaceRequestVO==null || workspaceRequestVO.getName()==null || workspaceRequestVO.getTypeOfProject() ==null ) {
 			log.error("Fabric workspace project mandatory fields cannot be null, please check and send valid input");
 			MessageDescription invalidMsg = new MessageDescription("Fabric workspace name/type of project cannot be null, please check and send valid input");
