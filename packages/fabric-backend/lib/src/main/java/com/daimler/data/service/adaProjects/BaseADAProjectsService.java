@@ -139,6 +139,7 @@ public class BaseADAProjectsService extends BaseCommonService<ADAProjectDetailsV
 				return message;
 			}
 			updateCapacityForFabricWorkspaces(project);
+			project.setRegion(project.getCapacity().getRegion());
 			log.info("Successfully updated capacity for associated Fabric workspaces for project id {}", project.getProjectID());
 			ADAProjectsNsql entity = assembler.toEntity(project);
 			jpaRepo.save(entity);
@@ -235,15 +236,13 @@ public class BaseADAProjectsService extends BaseCommonService<ADAProjectDetailsV
 		try {
 			List<FabricWorkspaceNsql> workspaces = fabricWorkspaceCustomRepository.getAllByProjectId(adaProject.getProjectID());
 			if(adaProject.getCapacity() == null && adaProject.getRegion() == null){
-				log.info("Capacity details and region are null for project id {}. Using default capacity values.", adaProject.getProjectID());
-				adaProject.setCapacity(buildDefaultCapacityVO());
-				adaProject.setRegion(capacityRegion);
+				log.info("Capacity details and region are null for project id {}.", adaProject.getProjectID());
+				throw new RuntimeException("No capacity or region given with the project details, project creation denied please provide project region or capacity");
 			} else if (adaProject.getRegion() != null && adaProject.getCapacity() == null){
 				CapacityNsql capacityNsql = capacityRepo.findById(adaProject.getRegion().toLowerCase()).orElse(null);
 				if(capacityNsql == null) {
-					log.warn("No capacity details found in DB for region {}. Using default capacity values for project id {}.", adaProject.getRegion(), adaProject.getProjectID());
-					adaProject.setCapacity(buildDefaultCapacityVO());
-					adaProject.setRegion(capacityRegion);
+					log.warn("No capacity details found in DB for region {}. and project id {}.", adaProject.getRegion(), adaProject.getProjectID());
+					throw new IllegalArgumentException("Provided region does not have any default capacity, Please contact ADA team!");
 				} else {
 					CapacityVO capacityVO = new CapacityVO();
 					capacityVO.setId(capacityNsql.getData().getId());
@@ -272,7 +271,7 @@ public class BaseADAProjectsService extends BaseCommonService<ADAProjectDetailsV
 			}
 		} catch (Exception e) {
 			log.error("Error updating capacity for associated Fabric workspaces for project id {}: {}", adaProject.getProjectID(), e.getMessage(), e);
-			throw new RuntimeException("Failed to update capacity for associated Fabric workspaces for project id " + adaProject.getProjectID() + " with error: " + e.getMessage(), e);
+			throw new RuntimeException("ERROR while creating the project with id " + adaProject.getProjectID() + " with error: " + e.getMessage(), e);
 		}
 	}
 
