@@ -9,6 +9,7 @@ import ProgressIndicator from '../../common/modules/uilab/js/src/progress-indica
 import { CodeSpaceApiClient } from '../../apis/codespace.api';
 import SelectBox from 'dna-container/SelectBox';
 import Modal from 'dna-container/Modal';
+import ConfirmModal from 'dna-container/ConfirmModal';
 import { SESSION_STORAGE_KEYS } from '../../Utility/constants.js';
 import { regionalDateAndTimeConversionSolution, buildGitJobLogViewAWSURL, buildGitRepoUrl, buildGitCommitUrl } from '../../Utility/utils';
 import TextBox from 'dna-container/TextBox';
@@ -38,6 +39,8 @@ const BuildModal = (props) => {
   const [buildDetails, setBuildDetails] = useState('');
   const [retainBuildImage, setRetainBuildImage] = useState(false);
   const [showIntMigrationModal, setShowIntMigrationModal] = useState(false);
+  const [showDeleteBuildModal, setShowDeleteBuildModal] = useState(false);
+  const [buildVersionToDelete, setBuildVersionToDelete] = useState('');
 
   const projectDetails = props.codeSpaceData?.projectDetails;
   // const intDeploymentMigrated = props.codeSpaceData?.projectDetails?.intDeploymentDetails?.deploymentUrl?.includes(Envs.CODESPACE_AWS_POPUP_URL);
@@ -207,6 +210,22 @@ const BuildModal = (props) => {
     //refresh the logs
   };
 
+  const onBuildDeleteConfirm = (version) => {
+    setBuildVersionToDelete(version);
+    setShowDeleteBuildModal(true);
+  };
+
+  const deleteBuildClose = () => {
+    setShowDeleteBuildModal(false);
+    setBuildVersionToDelete('');
+  };
+
+  const deleteBuildAccept = () => {
+    setShowDeleteBuildModal(false);
+    handleBuildDelete(buildVersionToDelete);
+    setBuildVersionToDelete('');
+  };
+
   const handleBuildDelete = (version) => {
     CodeSpaceApiClient.deleteBuild(projectDetails?.projectName, version)
       .then(() => {
@@ -245,18 +264,19 @@ const BuildModal = (props) => {
   };
 
   return (
-    <Modal
-      title={`Manage Build - ${props?.codeSpaceData?.projectDetails?.projectName || ''}`}
-      showAcceptButton={false}
-      //   acceptButtonTitle={'Deploy'}
-      //   cancelButtonTitle={'Cancel'}
-      //   onAccept={onAcceptCodeBuild}
-      showCancelButton={false}
-      modalWidth="1000px"
-      buttonAlignment="center"
-      show={true}
-      content={
-        <>
+    <>
+      <Modal
+        title={`Manage Build - ${props?.codeSpaceData?.projectDetails?.projectName || ''}`}
+        showAcceptButton={false}
+        //   acceptButtonTitle={'Deploy'}
+        //   cancelButtonTitle={'Cancel'}
+        //   onAccept={onAcceptCodeBuild}
+        showCancelButton={false}
+        modalWidth="1000px"
+        buttonAlignment="center"
+        show={true}
+        content={
+          <>
           <div className={Styles.BuildModal}>
             <p>The code from your workspace will be built and you can check the status on the build logs.</p>
             <div className={classNames(Styles.fourColumnFlexLayout)}>
@@ -484,7 +504,7 @@ const BuildModal = (props) => {
                                       )
                                     }
                                     type="button"
-                                    onClick={() => handleBuildDelete(item.version)}
+                                    onClick={() => onBuildDeleteConfirm(item.version)}
                                     disabled={item.version === latestBuildVersion}
                                     tooltip-data={
                                       item.version === latestBuildVersion
@@ -591,12 +611,24 @@ const BuildModal = (props) => {
               onDeploymentSSEError={props.onDeploymentSSEError}
             />
           )}
-        </>
-      }
-      scrollableContent={false}
-      scrollableBox={true}
-      onCancel={() => props.setShowCodeBuildModal(false)}
-    />
+          </>
+        }
+        scrollableContent={false}
+        scrollableBox={true}
+        onCancel={() => props.setShowCodeBuildModal(false)}
+      />
+      <ConfirmModal
+        title={''}
+        acceptButtonTitle="Yes"
+        cancelButtonTitle="Cancel"
+        showAcceptButton={true}
+        showCancelButton={true}
+        show={showDeleteBuildModal}
+        content={<div><h3>Are you sure you want to delete this build?</h3></div>}
+        onCancel={deleteBuildClose}
+        onAccept={deleteBuildAccept}
+      />
+    </>
   );
 };
 export default BuildModal;
