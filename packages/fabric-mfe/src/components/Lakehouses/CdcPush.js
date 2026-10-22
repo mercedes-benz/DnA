@@ -548,12 +548,30 @@ const ViewTablesModalContent = ({ workspaceId, lakehouseId, lakehouseName, onRef
           return;
         }
 
+        if (!e?.response) {
+          Notification.show(
+            'Failed to publish fabric workspace catalog: the request timed out or the server could not be reached. Please try again later.',
+            'alert'
+          );
+          return;
+        }
+
         const backendMessage =
           e?.response?.data?.responses?.errors?.[0]?.message ||
-          e?.response?.data?.errors?.[0]?.message ||
-          '';
+          e?.response?.data?.errors?.[0]?.message;
 
-        Notification.show(backendMessage, 'alert');
+        if (!backendMessage && [502, 504].includes(e.response.status)) {
+          Notification.show(
+            'Failed to publish fabric workspace catalog: the request timed out or the server could not be reached. Please try again later.',
+            'alert'
+          );
+          return;
+        }
+
+        Notification.show(
+          backendMessage || 'Failed to publish fabric workspace catalog. Please try again or contact support.',
+          'alert'
+        );
       });
 
     // console.log("CDC Payload to be sent:");
