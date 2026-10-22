@@ -214,18 +214,27 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
             response.setResponses(createErrorResponse(FAILED_STATUS,
                     "Failed to publish catalog: " + e.getMessage()));
             if (!hasExistingPublish) {
-                openMetadataClient.deleteDatabaseService(existingFabricWorkspace.getName());
+                rollbackDatabaseService(existingFabricWorkspace.getName());
             }
         } catch (Exception e) {
             log.error("Unexpected error publishing catalog for workspace: {}", existingFabricWorkspace.getName(), e);
             response.setResponses(createErrorResponse(FAILED_STATUS,
                     "Failed to publish catalog: " + e.getMessage()));
             if (!hasExistingPublish) {
-                openMetadataClient.deleteDatabaseService(existingFabricWorkspace.getName());
+                rollbackDatabaseService(existingFabricWorkspace.getName());
             }
         }
 
         return response;
+    }
+
+    private void rollbackDatabaseService(String serviceName) {
+        try {
+            openMetadataClient.deleteDatabaseService(serviceName);
+        } catch (Exception ex) {
+            log.error("Rollback of database service {} failed after publish error; original error is preserved",
+                    serviceName, ex);
+        }
     }
 
     @Override
