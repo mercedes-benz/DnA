@@ -1129,7 +1129,8 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 
 									AttachFunctionPluginRequestVO postFunctionRequestVO = null;
 									try {
-										postFunctionRequestVO = buildPostFunctionPluginRequest(gitDetails, kongServiceName, secureWithDna, isAliceRoleEnabled, isEntitlementPrefixEnabled, selectedAliceRoles);
+										String cookiePath = env != null ? "/" + serviceName.toLowerCase() + "/" + env : "/" + serviceName.toLowerCase();
+										postFunctionRequestVO = buildPostFunctionPluginRequest(gitDetails, kongServiceName, secureWithDna, isAliceRoleEnabled, isEntitlementPrefixEnabled, selectedAliceRoles, cookiePath);
 									} catch (Exception e) {
 										LOGGER.error("Failed to build post function plugin for service {}, keeping existing post function plugin", kongServiceName, e);
 									}
@@ -1255,7 +1256,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		kongResponse.setErrors(errors);
 	}
 
-	private AttachFunctionPluginRequestVO buildPostFunctionPluginRequest(List<String> gitDetails, String kongServiceName, boolean secureWithDna, boolean isAliceRoleEnabled, boolean isEntitlementPrefixEnabled, List<String> selectedAliceRoles) throws Exception {
+	private AttachFunctionPluginRequestVO buildPostFunctionPluginRequest(List<String> gitDetails, String kongServiceName, boolean secureWithDna, boolean isAliceRoleEnabled, boolean isEntitlementPrefixEnabled, List<String> selectedAliceRoles, String cookiePath) throws Exception {
 		boolean hasSelectedRoles = selectedAliceRoles != null && !selectedAliceRoles.isEmpty();
 		String postFunctionFileName;
 		if(secureWithDna){
@@ -1316,6 +1317,10 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 				}
 				postFunctionContent = postFunctionContent.replace("entitelement_list_value",String.join(",", entitlementIds));
 			}
+		}
+
+		if (cookiePath != null && !cookiePath.isEmpty()) {
+			postFunctionContent = postFunctionContent.replace("Path=/;", "Path=" + cookiePath + ";");
 		}
 
 		List<String> postFunctionValue = new ArrayList<>();
