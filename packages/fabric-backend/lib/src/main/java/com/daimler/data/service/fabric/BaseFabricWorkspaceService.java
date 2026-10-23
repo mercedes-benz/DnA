@@ -16,8 +16,8 @@ import java.util.UUID;
 import java.util.function.BooleanSupplier;
 import java.util.stream.Collectors;
 
-import javax.persistence.PersistenceException;
-import javax.persistence.Query;
+import jakarta.persistence.PersistenceException;
+import jakarta.persistence.Query;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -728,36 +728,34 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 					data.setHasPii(vo.isHasPii());
 					boolean isPowerBI = vo.getSubscription() != null && vo.getSubscription().name().equalsIgnoreCase("PowerBI");
 					
-					if(vo.getInitiatedBy() == null || (vo.getInitiatedBy() != null && !FabricWorkspaceController.isTechnicalUser(vo.getInitiatedBy()))){
-						ErrorResponseDto assignCapacityResponse = fabricWorkspaceClient.assignCapacity(createResponse.getId(), isPowerBI);
-						if(assignCapacityResponse!=null && assignCapacityResponse.getErrorCode()!=null && "500".equalsIgnoreCase(assignCapacityResponse.getErrorCode())) {
-							capacityVO = null;
-							warnings.add(new MessageDescription("Failed to assign capacity, please reassign or update workspace to assign capacity automatically."));
-						}else {
-							if(isPowerBI) {
-								capacityVO.setId(powerbiCapacityId);
-								capacityVO.setName(powerbiCapacityName);
-								capacityVO.setRegion(capacityRegion);
-								capacityVO.setSku(capacitySku);
-								capacityVO.setState(capacityState);
-							} else {
-								capacityVO.setId(fabricCapacityId);
-								capacityVO.setName(fabricCapacityName);
-								capacityVO.setRegion(capacityRegion);
-								capacityVO.setSku(capacitySku);
-								capacityVO.setState(capacityState);
-							}
+					if(capacityVO.getId() != null){
+						CapacityVO workspaceAssignedCapacity = fabricWorkspaceClient.getCapacityDetails(capacityVO.getId());
+						if(workspaceAssignedCapacity != null){
+							capacityVO.setName(workspaceAssignedCapacity.getName());
+							capacityVO.setRegion(workspaceAssignedCapacity.getRegion());
+							capacityVO.setSku(workspaceAssignedCapacity.getSku());
+							capacityVO.setState(workspaceAssignedCapacity.getState());
 						}
 					} else {
-						if(capacityVO.getId() != null){
-							CapacityVO workspaceAssignedCapacity = fabricWorkspaceClient.getCapacityDetails(capacityVO.getId());
-							if(workspaceAssignedCapacity != null){
-								capacityVO.setName(workspaceAssignedCapacity.getName());
-								capacityVO.setRegion(workspaceAssignedCapacity.getRegion());
-								capacityVO.setSku(workspaceAssignedCapacity.getSku());
-								capacityVO.setState(workspaceAssignedCapacity.getState());
+							ErrorResponseDto assignCapacityResponse = fabricWorkspaceClient.assignCapacity(createResponse.getId(), isPowerBI);
+							if(assignCapacityResponse!=null && assignCapacityResponse.getErrorCode()!=null && "500".equalsIgnoreCase(assignCapacityResponse.getErrorCode())) {
+								capacityVO = null;
+								warnings.add(new MessageDescription("Failed to assign capacity, please reassign or update workspace to assign capacity automatically."));
+							}else {
+								if(isPowerBI) {
+									capacityVO.setId(powerbiCapacityId);
+									capacityVO.setName(powerbiCapacityName);
+									capacityVO.setRegion(capacityRegion);
+									capacityVO.setSku(capacitySku);
+									capacityVO.setState(capacityState);
+								} else {
+									capacityVO.setId(fabricCapacityId);
+									capacityVO.setName(fabricCapacityName);
+									capacityVO.setRegion(capacityRegion);
+									capacityVO.setSku(capacitySku);
+									capacityVO.setState(capacityState);
+								}
 							}
-						}
 					}
 					
 					data.setCapacity(capacityVO);
