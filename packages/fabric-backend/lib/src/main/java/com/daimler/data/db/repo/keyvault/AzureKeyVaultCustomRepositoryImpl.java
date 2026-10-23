@@ -28,7 +28,13 @@ package com.daimler.data.db.repo.keyvault;
 
 import java.util.List;
 
-import javax.persistence.Query;
+import jakarta.persistence.Query;
+import jakarta.persistence.TypedQuery;
+import jakarta.persistence.criteria.CriteriaBuilder;
+import jakarta.persistence.criteria.CriteriaQuery;
+import jakarta.persistence.criteria.Expression;
+import jakarta.persistence.criteria.Predicate;
+import jakarta.persistence.criteria.Root;
 
 import org.springframework.stereotype.Repository;
 

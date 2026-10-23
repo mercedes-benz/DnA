@@ -35,6 +35,9 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class OpenMetadataClient {
 
+    // OpenMetadata requires dataLength for char/varchar/binary/varbinary columns.
+    private static final int DEFAULT_MAX_DATA_LENGTH = Integer.MAX_VALUE;
+
     private final ApiClient apiClient;
 
     @Value("${cdcIntegration.openmetadata.tags}")
@@ -54,7 +57,7 @@ public class OpenMetadataClient {
     public DatabaseService getDatabaseService(String name) {
         try {
             return apiClient.buildClient(DatabaseServicesApi.class)
-                    .getDatabaseServiceByFQN(name, null, null);
+                    .getDatabaseServiceByFQN(name, null, null, null);
         }catch (Exception e) {
             throw new EntityNotFoundException("DatabaseService", name);
         }
@@ -64,7 +67,7 @@ public class OpenMetadataClient {
         try {
             String fqn = serviceName + "." + dbName;
             return apiClient.buildClient(DatabasesApi.class)
-                    .getDatabaseByFQN(fqn, null, null);
+                    .getDatabaseByFQN(fqn, null, null, null);
         } catch (Exception e) {
             throw new EntityNotFoundException("Database", serviceName + "." + dbName);
         }
@@ -74,7 +77,7 @@ public class OpenMetadataClient {
         try {
             String fqn = dbFQN + "." + schemaName;
             return apiClient.buildClient(DatabaseSchemasApi.class)
-                    .getDBSchemaByFQN(fqn, null, null);
+                    .getDBSchemaByFQN(fqn, null, null, null);
         } catch (Exception e) {
             throw new EntityNotFoundException("Schema", dbFQN + "." + schemaName);
         }
@@ -84,7 +87,7 @@ public class OpenMetadataClient {
         try {
             String fqn = schemaFQN + "." + tableName;
             return apiClient.buildClient(TablesApi.class)
-                    .getTableByFQN(fqn, null, null);
+                    .getTableByFQN(fqn, null, null, null);
         } catch (Exception e) {
             throw new EntityNotFoundException("Table", schemaFQN + "." + tableName);
         }
@@ -94,7 +97,7 @@ public class OpenMetadataClient {
     public DatabaseSchema getSchemaById(String schemaId) {
         try {
             return apiClient.buildClient(DatabaseSchemasApi.class)
-                .getDBSchemaByID(UUID.fromString(schemaId), "database", null);
+                .getDBSchemaByID(UUID.fromString(schemaId), "database", null, null);
         } catch (Exception e) {
             throw new EntityNotFoundException("Schema", schemaId);
         }
@@ -103,7 +106,7 @@ public class OpenMetadataClient {
     public Database getDatabaseById(String databaseId) {
         try {
             return apiClient.buildClient(DatabasesApi.class)
-                .getDatabaseByID(UUID.fromString(databaseId), "service", null);
+                .getDatabaseByID(UUID.fromString(databaseId), "service", null, null);
         } catch (Exception e) {
             throw new EntityNotFoundException("Database", databaseId);
         }
@@ -444,7 +447,7 @@ public class OpenMetadataClient {
     private Table getTableById(String tableId) {
         try {
             return apiClient.buildClient(TablesApi.class)
-                .getTableByID(UUID.fromString(tableId), null, "non-deleted");
+                .getTableByID(UUID.fromString(tableId), null, "non-deleted", null);
         } catch (Exception e) {
             throw new EntityNotFoundException("Table", tableId);
         }
@@ -581,15 +584,20 @@ public class OpenMetadataClient {
             column.setDataTypeDisplay(dataTypeStr);
         } else if (upper.matches("(N?VARCHAR|N?CHAR|BINARY|VARBINARY)\\(.*\\)")) {
             String baseType = upper.replaceAll("\\(.*\\)", "");
-            String lenStr = upper.replaceAll(".*\\((.*)\\)", "$1");
-            column.setDataType(Column.DataTypeEnum.fromValue(baseType));
-            if (!lenStr.equalsIgnoreCase("MAX")) {
-                try {
-                    column.setDataLength(Integer.parseInt(lenStr));
-                } catch (NumberFormatException e) {
-                    // non-numeric length — skip
-                }
+            String lenStr = upper.replaceAll(".*\\((.*)\\)", "$1").trim();
+            column.setDataType(toLengthTypeEnum(baseType));
+            int dataLength;
+            try {
+                dataLength = Integer.parseInt(lenStr);
+            } catch (NumberFormatException e) {
+                dataLength = DEFAULT_MAX_DATA_LENGTH;
             }
+            column.setDataLength(dataLength > 0 ? dataLength : DEFAULT_MAX_DATA_LENGTH);
+            column.setDataTypeDisplay(dataTypeStr);
+
+        } else if (upper.matches("N?VARCHAR|N?CHAR|BINARY|VARBINARY")) {
+            column.setDataType(toLengthTypeEnum(upper));
+            column.setDataLength(DEFAULT_MAX_DATA_LENGTH);
             column.setDataTypeDisplay(dataTypeStr);
 
         } else {
@@ -600,6 +608,14 @@ public class OpenMetadataClient {
             if (!mapped.equals(upper)) {
                 column.setDataTypeDisplay(dataTypeStr);
             }
+        }
+    }
+
+    private Column.DataTypeEnum toLengthTypeEnum(String baseType) {
+        switch (baseType) {
+            case "NVARCHAR": return Column.DataTypeEnum.VARCHAR;
+            case "NCHAR": return Column.DataTypeEnum.CHAR;
+            default: return Column.DataTypeEnum.fromValue(baseType);
         }
     }
 

@@ -2,7 +2,7 @@ spring:
   mvc.pathmatch.matching-strategy: ant_path_matcher
   application:
     name: dna-fabric-workspace-service
-    version: 1.7.12
+    version: 1.8.0
   profile:
     active: production
 
@@ -223,6 +223,8 @@ databricksIntegration:
 
 server:
   port: 9292
+  forward-headers-strategy: framework
+
 
 #Cors Filter origin Domains  
 allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:http://*}
