@@ -3,6 +3,7 @@ package com.daimler.data.auth.client;
 import java.util.Arrays;
 import java.util.ArrayList;
 import java.util.Base64;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Objects;
@@ -11,6 +12,9 @@ import java.util.Map;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.stream.Collectors;
 import java.nio.charset.StandardCharsets;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeParseException;
 
 import org.json.JSONObject;
 import org.slf4j.Logger;
@@ -199,6 +203,9 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 
 	@Value("${kong.functionPluginsFolderPath}")
 	private String functionPluginsFolderPath;
+
+	@Value("${kong.scopedCookiePathFromDate:}")
+	private String scopedCookiePathFromDate;
 	
 	@Value("${kong.preFunctionFrontendFileName}")
 	private String preFunctionFrontendFileName;
@@ -1129,7 +1136,10 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 
 									AttachFunctionPluginRequestVO postFunctionRequestVO = null;
 									try {
-										String cookiePath = env != null ? "/" + serviceName.toLowerCase() + "/" + env : "/" + serviceName.toLowerCase();
+										String cookiePath = null;
+										if (isScopedCookiePathEnabled(workspaceNsql)) {
+											cookiePath = env != null ? "/" + serviceName.toLowerCase() + "/" + env : "/" + serviceName.toLowerCase();
+										}
 										postFunctionRequestVO = buildPostFunctionPluginRequest(gitDetails, kongServiceName, secureWithDna, isAliceRoleEnabled, isEntitlementPrefixEnabled, selectedAliceRoles, cookiePath);
 									} catch (Exception e) {
 										LOGGER.error("Failed to build post function plugin for service {}, keeping existing post function plugin", kongServiceName, e);
@@ -1246,6 +1256,23 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 
 	private void logKongCallElapsed(String operation, String kongServiceName, long startMillis) {
 		LOGGER.info("kongCall {} for {} took {}ms", operation, kongServiceName, System.currentTimeMillis() - startMillis);
+	}
+
+	private boolean isScopedCookiePathEnabled(CodeServerWorkspaceNsql workspaceNsql) {
+		if (scopedCookiePathFromDate == null || scopedCookiePathFromDate.isBlank()) {
+			return false;
+		}
+		Date projectCreatedOn = workspaceNsql.getData().getProjectDetails().getProjectCreatedOn();
+		if (projectCreatedOn == null) {
+			return false;
+		}
+		try {
+			LocalDate fromDate = LocalDate.parse(scopedCookiePathFromDate.trim());
+			return !projectCreatedOn.toInstant().isBefore(fromDate.atStartOfDay(ZoneOffset.UTC).toInstant());
+		} catch (DateTimeParseException e) {
+			LOGGER.error("Invalid kong.scopedCookiePathFromDate value {}, expected yyyy-MM-dd", scopedCookiePathFromDate, e);
+			return false;
+		}
 	}
 
 	private void addKongError(GenericMessage kongResponse, String message) {
