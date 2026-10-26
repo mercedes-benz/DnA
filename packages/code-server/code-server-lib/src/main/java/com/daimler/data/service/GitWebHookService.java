@@ -562,7 +562,7 @@ public class GitWebHookService {
                 .filter(wSpace -> wSpace != null && wSpace.getData() != null
                         && wSpace.getData().getWorkspaceOwner() != null
                         && wSpace.getData().getWorkspaceOwner().getGitUserName() != null
-                        && wSpace.getData().getWorkspaceOwner().getGitUserName().equals(finalGitUserName)
+                        && wSpace.getData().getWorkspaceOwner().getGitUserName().equalsIgnoreCase(finalGitUserName)
                         && wSpace.getData().getStatus() != null
                         && wSpace.getData().getStatus().equals("CREATED"))
                 .findFirst().orElse(null);
