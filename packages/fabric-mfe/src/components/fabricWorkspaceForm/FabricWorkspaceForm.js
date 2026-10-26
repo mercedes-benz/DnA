@@ -18,6 +18,26 @@ import { hostServer } from '../../server/api';
 import { fabricApi} from '../../apis/fabric.api';
 import { USER_ROLE } from '../../utilities/constants';
 
+const toLocalDateKey = (date) =>
+  `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+
+const toDateKey = (value) => {
+  if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}/.test(value)) return value.slice(0, 10);
+  const date = new Date(value);
+  return isNaN(date.getTime()) ? null : toLocalDateKey(date);
+};
+
+const isActiveProject = (project) => {
+  if (!project?.inactiveDate) return true;
+  const inactiveDateKey = toDateKey(project.inactiveDate);
+  return inactiveDateKey === null || inactiveDateKey > toLocalDateKey(new Date());
+};
+
+const toActiveProjectOptions = (records) =>
+  (records || [])
+    .filter(isActiveProject)
+    .map((project) => ({ ...project, id: project.projectID, name: project.projectName || project.projectID }));
+
 const FabricWorkspaceForm = ({ workspace, edit, onSave, user}) => {
   let history = useHistory();
   const isFabricAdmin = user?.roles?.find((role) => role?.id === USER_ROLE.FABRICADMIN) !== undefined;
@@ -48,6 +68,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave, user}) => {
   const [fabricTags, setFabricTags] = useState([]);
   const [projectList, setProjectList] = useState([]);
   const [selectedProject, setSelectedProject] = useState(edit && workspace?.projectId ? { projectID: workspace?.projectId } : {});
+  const [isProjectNameResolved, setIsProjectNameResolved] = useState(!(edit && workspace?.projectId));
   const selectedDivision = watch('division');
 
   // const [costCenter, setCostCenter] = useState(edit && workspace?.costCenter !== null ? workspace?.costCenter : '');
@@ -94,6 +115,23 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave, user}) => {
           Notification.show(err?.message || 'Something went wrong.', 'alert');
         }
       });
+    //eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (!edit || !workspace?.projectId) return;
+    fabricApi
+      .searchProjectDetails(workspace.projectId)
+      .then((res) => {
+        const match = toActiveProjectOptions(res.data?.records).find(
+          (project) => project.projectID === workspace.projectId,
+        );
+        if (match) {
+          setSelectedProject((prev) => (prev?.projectID === workspace.projectId ? match : prev));
+        }
+      })
+      .catch(() => {})
+      .finally(() => setIsProjectNameResolved(true));
     //eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -262,7 +300,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave, user}) => {
       fabricApi
         .searchProjectDetails(searchTerm)
         .then((res) => {
-          setProjectList(res.data?.records || []);
+          setProjectList(toActiveProjectOptions(res.data?.records));
           showSpinner(false);
         })
         .catch((e) => {
@@ -436,6 +474,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave, user}) => {
                 <Controller
                   control={control}
                   name="projectDetails"
+                  defaultValue={edit && workspace?.projectId ? workspace.projectId : ''}
                   rules={{
                     required: false,
                   }}
@@ -443,7 +482,9 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave, user}) => {
                     <TypeAheadBox
                       label={'Project Details (Recommended for Billing Purpose)'}
                       placeholder={'Search Project Name'}
-                      defaultValue={selectedProject?.projectID}
+                      defaultValue={
+                        selectedProject?.projectName || (isProjectNameResolved ? selectedProject?.projectID : '')
+                      }
                       list={filteredProjects}
                       setSelected={(selectedProject) => {
                         setSelectedProject(selectedProject || {});
