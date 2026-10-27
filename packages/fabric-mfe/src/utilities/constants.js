@@ -80,17 +80,12 @@ export const SECURITY_LEVELS = [
   'Public',
 ];
 
-export const PURPOSES = [
-  'Develop a product',
-  'Improve a product',
-  'Improve risk / damage prevention',
-  'Improve predictive car maintenance',
-  'Improve internal processes',
-  'Evaluate new business model',
-  'Improve customer marketing and relationship',
-  'Direct marketing and promotion',
-  'Identify new trends and market developments',
-  'Optimize product portfolio and pricing and revenue stream',
+export const PURPOSES = [ 
+  'Contract', 
+  'Internal Governance Process', 
+  'Marketing, Prevention / Defense / Enforcement of legal claims', 
+  'Product Improvement & Development',
+  'Rating / Scoring / Profiling'
 ];
 
 export const UPDATE_FREQUENCIES = [

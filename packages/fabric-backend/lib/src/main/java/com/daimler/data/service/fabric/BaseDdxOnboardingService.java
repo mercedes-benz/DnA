@@ -41,6 +41,7 @@ import com.daimler.data.dto.fabricWorkspace.DdxUnityDetailsVO;
 // import org.apache.http.impl.client.HttpClients;
 // import org.apache.http.HttpHost;
 import com.daimler.data.dto.fabric.DdxOnboardingRequestDto;
+import com.daimler.data.dto.fabric.DigitalUsageInformationDataDto;
 import com.daimler.data.dto.fabric.DdxOnboardingResultDto;
 import com.daimler.data.dto.fabric.DdxResponseDto;
 import com.daimler.data.service.azure.AzureTokenService;
@@ -342,6 +343,11 @@ public class BaseDdxOnboardingService implements DdxOnboardingService {
                     }
 
                 });
+                publishDdxRequest.setUsageInformationData(
+                        DigitalUsageInformationDataDto.builder()
+                                .legalBasisForProcessingPurposes(null)
+                                .build());
+
                 log.info(" DDX request: {}", publishDdxRequest);
                 log.info("Prepared DDX onboarding request: {}", publishDdxRequest.getDataProductName());
             } catch (RuntimeException e) {
