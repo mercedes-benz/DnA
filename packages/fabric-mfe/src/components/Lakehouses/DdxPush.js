@@ -913,7 +913,7 @@ const ViewDdxTablesModalContent = ({ workspaceId, workspaceName, workspaceOwner,
       cdcDatabaseLink: cdcDatabaseLink,
       cdcDataProductLink: formData.cdcDataProductLink || '',
       securityLevel: securityLevel || '',
-      purposes: formData.purposes || '',
+      purposes: formData.purposes ? [formData.purposes] : [],
       dataProviders: (formData.dataProviders || []).map((u) => u.id),
       division: (formData.divisions || '').replace(/-/g, ' ') || '',
 
