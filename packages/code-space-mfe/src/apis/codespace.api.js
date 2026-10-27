@@ -344,6 +344,19 @@ const acceptSecurityConfigRequest = (id) => { //not used
     });
 };
 
+const getResourceCapExemptions = (offset, limit, projectName) => {
+    const query = `?offset=${offset}&limit=${limit}` + (projectName ? `&projectName=${encodeURIComponent(projectName)}` : '');
+    return server.get(`/workspaces/resourceexemptions${query}`, {
+        data: {},
+    });
+};
+
+const updateResourceCapExemption = (projectName, env, exempt) => {
+    return server.put(`/workspaces/${encodeURIComponent(projectName)}/resourceexemptions?env=${env}&exempt=${exempt}`, {
+        data: {},
+    });
+};
+
 const publishSecurityConfigRequest = (id) => { //not used
     return server.post(`/workspaces/${id}/config/publish`, {
         data: {},
@@ -499,6 +512,12 @@ const subscribeToPodLogs = (projectName, environment, onPodInfo, onPodLogs, onCo
     return sse;
 };
 
+const cancelDeployment = (projectName, environment) => {
+    return server.delete(`workspace/deployment/cancel/${projectName}/${environment}`, {
+        data: {},
+    });
+};
+
 const restartDeployments = (id, env) => {
     return server.post(`/workspaces/${id}/restart?env=${env}`, {data: {},});
 };
@@ -615,6 +634,7 @@ export const CodeSpaceApiClient = {
     subscribeToDeploymentStatus,
     getSyncError,
     subscribeToPodLogs,
+    cancelDeployment,
     restartDeployments,
     migrateWorkplace,
     getCodeSpaceGroups,
@@ -623,5 +643,7 @@ export const CodeSpaceApiClient = {
     editCodeSpaceGroup,
     deleteCodeSpaceGroup,
     getExistingRoles,
-    addWebhook
+    getResourceCapExemptions,
+    updateResourceCapExemption,,
+    addWebhook,
 };

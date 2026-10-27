@@ -400,6 +400,24 @@ paths:
           description: "Method not allowed"
         500:
           description: "Internal error"
+
+  /workspaces/projectadmin/eligibility:
+    get:
+      tags:
+        - "code-server"
+      summary: "Check whether the current user owns or administers a Codespaces project."
+      operationId: "getCodespaceProjectAdminEligibility"
+      responses:
+        200:
+          description: "Returns whether the current user owns or administers a Codespaces project."
+          schema:
+            $ref: "#/definitions/CodespaceProjectAdminEligibilityVO"
+        401:
+          description: "Request does not have sufficient credentials."
+        403:
+          description: "Request is not authorized."
+        500:
+          description: "Internal error"
  
   /workspaces/{id}/readme:
     get:
@@ -1894,6 +1912,12 @@ definitions:
         type: boolean
         description: boolean indicating if user has a access to workspace or not.
 
+  CodespaceProjectAdminEligibilityVO:
+    type: object
+    properties:
+      isProjectOwnerOrAdmin:
+        type: boolean
+
   CodeServerWorkspaceVO:
     type: object
     properties:
@@ -2079,6 +2103,12 @@ definitions:
       lastDeploymentStatus:
         type: string
         description: Status of last deployement
+      newPodCrashLooping:
+        type: boolean
+        description: Whether the deployment's new pod is crash-looping
+      crashLoopReason:
+        type: string
+        description: Human-readable crash-loop reason
       gitjobRunID:
         type: string
         description: "git job run Id of project deployed"
@@ -2136,6 +2166,9 @@ definitions:
       version:
         type: string
         description: "version of the last build"
+      lastBuildFailureReason:
+        type: string
+        description: "Reason for last build failure (e.g. BUILD_TIMEOUT)"  
          
   CodeServerRecipeDetailsVO:
     type: object
@@ -2899,6 +2932,5 @@ definitions:
       full_name:
         type: string
         description: "Full name of the repository (owner/repo)"
-
 
 

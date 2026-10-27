@@ -208,7 +208,7 @@ export default class DescriptionSummary extends React.Component<IDescriptionSumm
                       <span onClick={this.addToBookmarks}>Add to My Bookmarks</span>
                     </li>
                   )}
-                  {this.props.canEdit && (
+                  {Envs.ENABLE_SOLUTIONS && this.props.canEdit && (
                     <li className="contextListItem">
                       <span onClick={this.onEditSolution}>Edit Solution</span>
                     </li>

@@ -115,6 +115,10 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave, user}) => {
     }
   }, [selectedLeanIX, setValue]);
 
+  // subscription radios are disabled for non-admins on edit, so keep the form state in sync
+  useEffect(() => {
+    setValue('subscription', subscription, { shouldValidate: false });
+  }, [subscription, setValue]);
 
   useEffect(() => {
     ProgressIndicator.show();
@@ -815,8 +819,9 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave, user}) => {
                         value="PowerBI"
                         name="subscription"
                         defaultChecked={subscription === 'PowerBI'}
+                        disabled={edit && !isFabricAdmin}
                         {...register('subscription', {
-                          required: '*Missing entry',
+                          required: !(edit && !isFabricAdmin) && '*Missing entry',
                           onChange: (e) => { setSubscription(e.target.value) }
                         })}
                       />
@@ -831,8 +836,9 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave, user}) => {
                         value="Fabric"
                         name="subscription"
                         defaultChecked={subscription === 'Fabric'}
+                        disabled={edit && !isFabricAdmin}
                         {...register('subscription', {
-                          required: '*Missing entry',
+                          required: !(edit && !isFabricAdmin) && '*Missing entry',
                           onChange: (e) => { setSubscription(e.target.value) }
                         })}
                       />
@@ -939,7 +945,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave, user}) => {
               className="btn btn-tertiary"
               type="button"
               onClick={handleSubmit((values) => {
-                edit ? handleEditWorkspace(values) : handleCreateWorkspace(values);
+                  edit ? handleEditWorkspace(values) : handleCreateWorkspace(values);
               })}
             >
               {edit ? 'Save Workspace' : 'Create Workspace'}

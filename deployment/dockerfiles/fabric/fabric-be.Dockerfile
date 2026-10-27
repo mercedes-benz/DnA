@@ -1,11 +1,11 @@
 #Step-1
-FROM gradle:7.4.1-jdk17 AS TEMP_BUILD_IMAGE
+FROM gradle:8.10.2-jdk21 AS TEMP_BUILD_IMAGE
 COPY --chown=gradle:gradle . /home/gradle/src
 WORKDIR /home/gradle/src
 RUN gradle build --no-daemon
 
 #Step-2
-FROM openjdk:17-jdk-alpine
+FROM eclipse-temurin:21-jre-alpine
 RUN apk --no-cache add curl
 USER 1000
 ENV ARTIFACT_NAME=lib-1.0.0.jar
