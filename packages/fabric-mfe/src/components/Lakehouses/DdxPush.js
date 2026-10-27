@@ -10,6 +10,7 @@ import Notification from '../../common/modules/uilab/js/src/notification';
 import { fabricApi } from '../../apis/fabric.api';
 import { BUSINESS_DOMAINS, DIVISION_BUSINESS_DOMAIN_MAP, CLOUD_PROVIDERS, TECHNOLOGIES, PURPOSES, CRITERIA_TRANSFER_PRICING, QUALIFICATION_TRANSFER_PRICING, UPDATE_FREQUENCIES } from '../../utilities/constants';
 import { Envs } from '../../utilities/envs';
+import { useDebouncedCallback } from '../../hooks/useDebouncedCallback';
 
 const Step1_BasicIdentification = ({ formData, setFormData, errors, clearError }) => (
   <div className={Styles.stepForm}>
@@ -65,23 +66,23 @@ const Step2_OwnershipGovernance = ({
 
   const [legalEntityOptions, setLegalEntityOptions] = useState([]);
 
-  const handleLegalEntitySearch = (searchTerm, showSpinner) => {
-    clearError('legalEntityError');
-    if (searchTerm.length > 3) {
-      showSpinner && showSpinner(true);
-      fabricApi.getLegalEntities(searchTerm)
-        .then((response) => {
-          showSpinner && showSpinner(false);
-          setLegalEntityOptions(response?.data || []); 
-        })
-        .catch((err) => {
-          showSpinner && showSpinner(false);
-          Notification.show(err?.response?.data?.errors?.[0]?.message || 'Something went wrong.', 'alert');
-        });
-    } else {
-      setLegalEntityOptions([]);
-    }
-  };
+  const handleLegalEntitySearch = useDebouncedCallback((searchTerm, showSpinner) => {  
+    clearError('legalEntityError');  
+    if (searchTerm.length > 3) {  
+      showSpinner && showSpinner(true);  
+      fabricApi.getLegalEntities(searchTerm)  
+        .then((response) => {  
+          showSpinner && showSpinner(false);  
+          setLegalEntityOptions(response?.data || []);  
+        })  
+        .catch((err) => {  
+          showSpinner && showSpinner(false);  
+          Notification.show(err?.response?.data?.errors?.[0]?.message || 'Something went wrong.', 'alert');  
+        });  
+    } else {  
+      setLegalEntityOptions([]);  
+    }  
+  }, 500);
 
   useEffect(() => {
     if (workspaceOwner) {
