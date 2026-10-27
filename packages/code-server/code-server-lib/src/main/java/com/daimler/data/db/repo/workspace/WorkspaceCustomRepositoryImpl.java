@@ -55,6 +55,7 @@ import com.daimler.data.db.json.CodespaceSecurityConfig;
 import com.daimler.data.db.json.DeploymentAudit;
 import com.daimler.data.db.json.UserInfo;
 import com.daimler.data.db.repo.common.CommonDataRepositoryImpl;
+import com.daimler.data.dto.CodespaceResourceExemptionDto;
 import com.daimler.data.dto.CodespaceSecurityConfigDto;
 import com.daimler.data.dto.GitRunIdDetailsDto;
 import com.daimler.data.dto.workspace.CodeServerWorkspaceValidateVO;
@@ -83,7 +84,44 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 		TypedQuery<CodeServerWorkspaceNsql> getAllQuery = em.createQuery(getAll);
 		return getAllQuery.getResultList();		
 	} 
-			
+
+	@Override
+	public List<CodeServerWorkspaceNsql> findDeploymentReconciliationWorkspaces() {
+		String query = """
+				SELECT *
+				FROM workspace_nsql
+				WHERE lower(jsonb_extract_path_text(data, 'status')) <> 'deleted'
+				  AND (
+					jsonb_extract_path_text(data, 'projectDetails', 'intDeploymentDetails', 'lastDeploymentStatus')
+						IN (:deployRequested, :restartRequested)
+					OR jsonb_extract_path_text(data, 'projectDetails', 'prodDeploymentDetails', 'lastDeploymentStatus')
+						IN (:deployRequested, :restartRequested)
+					OR jsonb_extract_path_text(data, 'projectDetails', 'lastBuildOrDeployedStatus') = :restartRequested
+					OR (
+						jsonb_extract_path_text(data, 'projectDetails', 'intDeploymentDetails', 'lastDeploymentStatus')
+							= :deploymentFailed
+						AND (
+							jsonb_extract_path_text(data, 'projectDetails', 'intDeploymentDetails', 'lastDeployedBy') IS NULL
+							OR jsonb_extract_path_text(data, 'projectDetails', 'intDeploymentDetails', 'lastDeployedOn') IS NULL
+						)
+					)
+					OR (
+						jsonb_extract_path_text(data, 'projectDetails', 'prodDeploymentDetails', 'lastDeploymentStatus')
+							= :deploymentFailed
+						AND (
+							jsonb_extract_path_text(data, 'projectDetails', 'prodDeploymentDetails', 'lastDeployedBy') IS NULL
+							OR jsonb_extract_path_text(data, 'projectDetails', 'prodDeploymentDetails', 'lastDeployedOn') IS NULL
+						)
+					)
+				  )
+				""";
+		Query reconciliationQuery = em.createNativeQuery(query, CodeServerWorkspaceNsql.class);
+		reconciliationQuery.setParameter("deployRequested", "DEPLOY_REQUESTED");
+		reconciliationQuery.setParameter("deploymentFailed", "DEPLOYMENT_FAILED");
+		reconciliationQuery.setParameter("restartRequested", "RESTART_REQUESTED");
+		return reconciliationQuery.getResultList();
+	}
+
 	@Override
 	public List<CodeServerWorkspaceNsql> findAll(String userId, int limit, int offset) {
 		CriteriaBuilder cb = em.getCriteriaBuilder();
@@ -315,10 +353,11 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 		String getQuery = "select jsonb_extract_path_text(data,'workspaceId') as wsid,"
 				+ "jsonb_extract_path_text(data,'workspaceOwner','id') as userid from workspace_nsql "
 				+ "where lower(jsonb_extract_path_text(data,'projectDetails','projectName'))"
-				+ "= '" + projectName.toLowerCase() + "' and lower(jsonb_extract_path_text(data,'status')) <> 'deleted'"
+				+ "= lower(:projectName) and lower(jsonb_extract_path_text(data,'status')) <> 'deleted'"
 				+ "and lower(jsonb_extract_path_text(data,'projectDetails','projectOwner','id'))" + "= '" + projectOwnerId.toLowerCase() + "' ";
 		try {
 			Query q = em.createNativeQuery(getQuery);
+			q.setParameter("projectName", projectName);
 			records = q.getResultList();
 			if(records!=null && !records.isEmpty()) {
 				log.info("Found {} workspaces in project {} which are not in deleted state", records.size(), projectName);
@@ -334,10 +373,11 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 		String id = "";
 		String getQuery = "select id "
 				+ " from workspace_nsql "
-				+ " where lower(jsonb_extract_path_text(data,'projectDetails','projectName'))" + "= '" + projectName.toLowerCase() + "' and lower(jsonb_extract_path_text(data,'workspaceOwner','id')) = '" + userId.toLowerCase() + "'"
+				+ " where lower(jsonb_extract_path_text(data,'projectDetails','projectName'))" + "= lower(:projectName) and lower(jsonb_extract_path_text(data,'workspaceOwner','id')) = '" + userId.toLowerCase() + "'"
 				+ " and lower(jsonb_extract_path_text(data,'status')) <> 'deleted'";
 		try {
 			Query q = em.createNativeQuery(getQuery);
+			q.setParameter("projectName", projectName);
 			id = (String) q.getSingleResult();
 			if (id != null && !id.isEmpty()) {
 				log.info("Found {} workspaces in project {} which are not in deleted state", id, projectName);
@@ -386,9 +426,10 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 				+ " \"department\": " + addQuotes(updatedProjectOwnerDetails.getDepartment()) + ","
 				+ " \"gitUserName\": " + addQuotes(updatedProjectOwnerDetails.getGitUserName()) + ","
 				+ " \"mobileNumber\": " + addQuotes(updatedProjectOwnerDetails.getMobileNumber()) + "}' )\n" + "\\:" + "\\:" + "jsonb \n"
-				+ "where data->'projectDetails'->>'projectName' = '" + projectName + "'" + " and lower(jsonb_extract_path_text(data,'status')) <> 'deleted'";
+				+ "where lower(data->'projectDetails'->>'projectName') = lower(:projectName)" + " and lower(jsonb_extract_path_text(data,'status')) <> 'deleted'";
 		try {
 			Query q = em.createNativeQuery(updateQuery);
+			q.setParameter("projectName", projectName);
 			q.executeUpdate();
 			updateResponse.setSuccess("SUCCESS");
 			updateResponse.setErrors(new ArrayList<>());
@@ -419,7 +460,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 						+ "else (select jsonb_agg(x) from jsonb_array_elements(data->'projectDetails'->'projectCollaborators')"
 						+ " x where x->>'id' != " + "'" + updatedcollaborators.getId() + "'" + ") "
 						+ "end )"
-						+ "where data->'projectDetails'->>'projectName' = '" + projectName + "'" + " and lower(jsonb_extract_path_text(data,'status')) <> 'deleted'";
+						+ "where lower(data->'projectDetails'->>'projectName') = lower(:projectName)" + " and lower(jsonb_extract_path_text(data,'status')) <> 'deleted'";
 			} else {
 				updateQuery = "update workspace_nsql\r\n"
 						+ "set data = jsonb_set(data,'{projectDetails, projectCollaborators}', \r\n"
@@ -433,10 +474,11 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 						+ " \"isAdmin\": " + updatedcollaborators.getIsAdmin()+ ","
 						+ " \"isApprover\": " + updatedcollaborators.getIsApprover()+ ","
 						+ " \"mobileNumber\": " + addQuotes(updatedcollaborators.getMobileNumber()) + "}' )\n"
-						+ "where data->'projectDetails'->>'projectName' = '" + projectName + "'" + " and lower(jsonb_extract_path_text(data,'status')) <> 'deleted'";
+						+ "where lower(data->'projectDetails'->>'projectName') = lower(:projectName)" + " and lower(jsonb_extract_path_text(data,'status')) <> 'deleted'";
 			}
 			try {
 				Query q = em.createNativeQuery(updateQuery);
+				q.setParameter("projectName", projectName);
 				q.executeUpdate();
 				updateResponse.setSuccess("SUCCESS");
 				updateResponse.setErrors(new ArrayList<>());
@@ -459,113 +501,371 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 		updateResponse.setSuccess("FAILED");
 		List<MessageDescription> errors = new ArrayList<>();
 		List<MessageDescription> warnings = new ArrayList<>();
-		Date deployedOn = deploymentDetails.getLastDeployedOn();
-		String longdate = null;
-		String  envString = "intDeploymentDetails";
-		if(deployedOn!=null)
-			longdate = String.valueOf(deployedOn.getTime()) ;
-		else {
-			// Preserve existing lastDeployedOn from DB when caller doesn't set it.
-			// This prevents race conditions where concurrent callers overwrite
-			// a previously-stored timestamp with null during full-object replacement.
-			try {
-				String readEnv = "int".equalsIgnoreCase(environment) ? "intDeploymentDetails" : "prodDeploymentDetails";
-				Query readQuery = em.createNativeQuery(
-					"SELECT data->'projectDetails'->'" + readEnv + "'->>'lastDeployedOn' FROM workspace_nsql WHERE data->'projectDetails'->>'projectName' = :projectName");
-				readQuery.setParameter("projectName", projectName);
-				Object existingValue = readQuery.getSingleResult();
-				if (existingValue != null && !existingValue.toString().isEmpty() && !"null".equals(existingValue.toString())) {
-					longdate = existingValue.toString();
-					log.debug("{} - preserving existing lastDeployedOn={} from DB", projectName, longdate);
-				}
-			} catch (Exception e) {
-				log.warn("{} - could not read existing lastDeployedOn: {}", projectName, e.getMessage());
-			}
-		}
-			if(!"int".equalsIgnoreCase(environment)){
-				envString = "prodDeploymentDetails";
-			}
-			String selectedAliceRolesJson = (deploymentDetails.getSelectedAliceRoles() != null ? deploymentDetails.getSelectedAliceRoles().stream()
-				.map(role -> "\"" + role + "\"")
-				.collect(Collectors.joining(",", "[", "]"))
-				: "[]");
-			String updateQuery = "update workspace_nsql " +
-				"set data = jsonb_set(jsonb_set(jsonb_set(jsonb_set(data,'{projectDetails," + envString + "}', " +
-				"'{\"deploymentUrl\": " + addQuotes(deploymentDetails.getDeploymentUrl()) + "," +
-				" \"lastDeployedBy\": {\"id\": " + addQuotes(deploymentDetails.getLastDeployedBy().getId()) + "," +
-				" \"email\": " + addQuotes(deploymentDetails.getLastDeployedBy().getEmail()) + "," +
-				" \"lastName\": " + addQuotes(deploymentDetails.getLastDeployedBy().getLastName()) + "," +
-				" \"firstName\": " + addQuotes(deploymentDetails.getLastDeployedBy().getFirstName()) + "," +
-				" \"department\": " + addQuotes(deploymentDetails.getLastDeployedBy().getDepartment()) + "," +
-				" \"gitUserName\": " + addQuotes(deploymentDetails.getLastDeployedBy().getGitUserName()) + "," +
-				" \"mobileNumber\": " + addQuotes(deploymentDetails.getLastDeployedBy().getMobileNumber()) + "}," +
-				" \"lastDeployedOn\":" + longdate + "," +
-				" \"secureWithIAMRequired\": " + deploymentDetails.getSecureWithIAMRequired() + "," +
-				// " \"technicalUserDetailsForIAMLogin\": " + addQuotes(deploymentDetails.getTechnicalUserDetailsForIAMLogin()) + "," +
-				" \"lastDeployedBranch\": " + addQuotes(deploymentDetails.getLastDeployedBranch()) + "," +
-				" \"gitjobRunID\": " + addQuotes(deploymentDetails.getGitjobRunID()) + "," +
-				" \"oneApiVersionShortName\": " + addQuotes(deploymentDetails.getOneApiVersionShortName()) + "," +
-				" \"isSecuredWithCookie\": " + deploymentDetails.getIsSecuredWithCookie() + "," +
-				" \"deploymentType\": " + (deploymentDetails.getDeploymentType() != null ? addQuotes(String.valueOf(deploymentDetails.getDeploymentType())) : "null") + "," +
-				" \"clientId\": " + addQuotes(deploymentDetails.getClientId()) + "," +
-				" \"redirectUri\": " + addQuotes(deploymentDetails.getRedirectUri()) + "," +
-				" \"ignorePaths\": " + addQuotes(deploymentDetails.getIgnorePaths()) + "," +
-				" \"scope\": " + addQuotes(deploymentDetails.getScope()) + "," +
-				" \"ssoType\": " + (deploymentDetails.getSsoType() != null ? addQuotes(String.valueOf(deploymentDetails.getSsoType())) : "null") + "," +
-				" \"secureWithDnaRequired\": " + deploymentDetails.getSecureWithDnaRequired() + "," +
-				" \"aliceRoleEnabled\": " + deploymentDetails.getAliceRoleEnabled() + "," +
-				" \"entitlementPrefixEnabled\": " + deploymentDetails.getEntitlementPrefixEnabled() + "," +
-				" \"selectedAliceRoles\": " + selectedAliceRolesJson + "," +				
-				" \"lastDeployedVersion\": " + addQuotes(deploymentDetails.getLastDeployedVersion()) + "," +
-				// " \"lastDeploymentStatus\": " + addQuotes(deploymentDetails.getLastDeploymentStatus()) +"}'),\r\n" + 
-				" \"lastDeploymentStatus\": " + addQuotes(deploymentDetails.getLastDeploymentStatus()) + "," +
-				" \"lastDeploymentError\": " + addQuotes(deploymentDetails.getLastDeploymentError()) +"}'),\r\n" + 
-				"'{projectDetails,lastBuildOrDeployedOn}', '" + longdate + "'),\r\n" +
-				"'{projectDetails,lastBuildOrDeployedEnv}', '" + addQuotes(environment) + "'),\r\n" +
-				"'{projectDetails,lastBuildOrDeployedStatus}', '" + addQuotes(lastBuildOrDeployStatus) + "')\r\n"  ;
-
-			// List<DeploymentAudit> deploymentAuditLogs = deploymentDetails.getDeploymentAuditLogs();
-			// updateQuery += ", \"deploymentAuditLogs\" : ";
-			// if (deploymentAuditLogs != null && !deploymentAuditLogs.isEmpty()) {
-			// 	// Iterate over each DeploymentAudit object and add it to the JSON array
-			// 	updateQuery += "[";
-			// 	for (int i = 0; i < deploymentAuditLogs.size(); i++) {
-			// 		DeploymentAudit auditLog = deploymentAuditLogs.get(i);
-			// 		updateQuery += "{" +
-			// 			" \"triggeredBy\": " + addQuotes(auditLog.getTriggeredBy()) + "," +
-			// 			" \"triggeredOn\": " + addQuotes(String.valueOf(auditLog.getTriggeredOn().getTime())) + "," +
-			// 			" \"deploymentStatus\": " + addQuotes(auditLog.getDeploymentStatus()) + "," +
-			// 			" \"deployedOn\": " + (auditLog.getDeployedOn() != null ? addQuotes(String.valueOf(auditLog.getDeployedOn().getTime())) : "null") + "," +
-			// 			" \"commitId\": " + (auditLog.getCommitId() != null ? addQuotes(String.valueOf(auditLog.getCommitId())) : "null") + "," +
-			// 			" \"approvedBy\": " + (auditLog.getApprovedBy() != null ? addQuotes(String.valueOf(auditLog.getApprovedBy())) : "null") + "," +
-			// 			" \"branch\": " + addQuotes(auditLog.getBranch()) + "}";
-			// 		if(i+1 < deploymentAuditLogs.size()) {
-			// 			updateQuery += ",";
-			// 		}
-			// 	}
-			// 	updateQuery += "]";
-			// }else {
-			// 	updateQuery +=  " []";
-			// }
-			// updateQuery += "}')\r\n";
-			updateQuery += "where data->'projectDetails'->>'projectName' = '" + projectName + "'";
-
 		try {
-			Query q = em.createNativeQuery(updateQuery);
-			log.info("{} - execute update",projectName);
-			q.executeUpdate();
-			Date now = new Date();
-			log.info("{} - execute update completed at time {}",projectName, now);
-			updateResponse.setSuccess("SUCCESS");
-			updateResponse.setErrors(new ArrayList<>());
-			updateResponse.setWarnings(new ArrayList<>());
-			log.info("{} - deployment details updated successfully for project ", projectName);
+			Date deployedOn = deploymentDetails.getLastDeployedOn();
+			String longdate = null;
+			String  envString = "intDeploymentDetails";
+			if(deployedOn!=null)
+				longdate = String.valueOf(deployedOn.getTime()) ;
+			else {
+				// Preserve existing lastDeployedOn from DB when caller doesn't set it.
+				// This prevents race conditions where concurrent callers overwrite
+				// a previously-stored timestamp with null during full-object replacement.
+				try {
+					String readEnv = "int".equalsIgnoreCase(environment) ? "intDeploymentDetails" : "prodDeploymentDetails";
+					Query readQuery = em.createNativeQuery(
+						"SELECT data->'projectDetails'->'" + readEnv + "'->>'lastDeployedOn' FROM workspace_nsql WHERE lower(data->'projectDetails'->>'projectName') = lower(:projectName)");
+					readQuery.setParameter("projectName", projectName);
+					Object existingValue = readQuery.getSingleResult();
+					if (existingValue != null && !existingValue.toString().isEmpty() && !"null".equals(existingValue.toString())) {
+						longdate = existingValue.toString();
+						log.debug("{} - preserving existing lastDeployedOn={} from DB", projectName, longdate);
+					}
+				} catch (Exception e) {
+					log.warn("{} - could not read existing lastDeployedOn: {}", projectName, e.getMessage());
+				}
+			}
+				if(!"int".equalsIgnoreCase(environment)){
+					envString = "prodDeploymentDetails";
+				}
+				String selectedAliceRolesJson = (deploymentDetails.getSelectedAliceRoles() != null ? deploymentDetails.getSelectedAliceRoles().stream()
+					.map(role -> "\"" + role + "\"")
+					.collect(Collectors.joining(",", "[", "]"))
+					: "[]");
+				UserInfo lastDeployedBy = deploymentDetails.getLastDeployedBy();
+				String lastDeployedByJson = lastDeployedBy == null ? "null"
+						: "{\"id\": " + addQuotes(lastDeployedBy.getId()) + ","
+						+ " \"email\": " + addQuotes(lastDeployedBy.getEmail()) + ","
+						+ " \"lastName\": " + addQuotes(lastDeployedBy.getLastName()) + ","
+						+ " \"firstName\": " + addQuotes(lastDeployedBy.getFirstName()) + ","
+						+ " \"department\": " + addQuotes(lastDeployedBy.getDepartment()) + ","
+						+ " \"gitUserName\": " + addQuotes(lastDeployedBy.getGitUserName()) + ","
+						+ " \"mobileNumber\": " + addQuotes(lastDeployedBy.getMobileNumber()) + "}";
+				String updateQuery = "update workspace_nsql " +
+					"set data = jsonb_set(jsonb_set(jsonb_set(jsonb_set(data,'{projectDetails," + envString + "}', " +
+					"'{\"deploymentUrl\": " + addQuotes(deploymentDetails.getDeploymentUrl()) + "," +
+					" \"lastDeployedBy\": " + lastDeployedByJson + "," +
+					" \"lastDeployedOn\":" + longdate + "," +
+					" \"secureWithIAMRequired\": " + deploymentDetails.getSecureWithIAMRequired() + "," +
+					// " \"technicalUserDetailsForIAMLogin\": " + addQuotes(deploymentDetails.getTechnicalUserDetailsForIAMLogin()) + "," +
+					" \"lastDeployedBranch\": " + addQuotes(deploymentDetails.getLastDeployedBranch()) + "," +
+					" \"gitjobRunID\": " + addQuotes(deploymentDetails.getGitjobRunID()) + "," +
+					" \"oneApiVersionShortName\": " + addQuotes(deploymentDetails.getOneApiVersionShortName()) + "," +
+					" \"isSecuredWithCookie\": " + deploymentDetails.getIsSecuredWithCookie() + "," +
+					" \"deploymentType\": " + (deploymentDetails.getDeploymentType() != null ? addQuotes(String.valueOf(deploymentDetails.getDeploymentType())) : "null") + "," +
+					" \"clientId\": " + addQuotes(deploymentDetails.getClientId()) + "," +
+					" \"redirectUri\": " + addQuotes(deploymentDetails.getRedirectUri()) + "," +
+					" \"ignorePaths\": " + addQuotes(deploymentDetails.getIgnorePaths()) + "," +
+					" \"scope\": " + addQuotes(deploymentDetails.getScope()) + "," +
+					" \"ssoType\": " + (deploymentDetails.getSsoType() != null ? addQuotes(String.valueOf(deploymentDetails.getSsoType())) : "null") + "," +
+					" \"secureWithDnaRequired\": " + deploymentDetails.getSecureWithDnaRequired() + "," +
+					" \"aliceRoleEnabled\": " + deploymentDetails.getAliceRoleEnabled() + "," +
+					" \"entitlementPrefixEnabled\": " + deploymentDetails.getEntitlementPrefixEnabled() + "," +
+					" \"selectedAliceRoles\": " + selectedAliceRolesJson + "," +
+					" \"lastDeployedVersion\": " + addQuotes(deploymentDetails.getLastDeployedVersion()) + "," +
+					// " \"lastDeploymentStatus\": " + addQuotes(deploymentDetails.getLastDeploymentStatus()) +"}'),\r\n" +
+					" \"lastDeploymentStatus\": " + addQuotes(deploymentDetails.getLastDeploymentStatus()) + "," +
+					" \"lastDeploymentError\": " + addQuotes(deploymentDetails.getLastDeploymentError()) +"}'),\r\n" +
+					"'{projectDetails,lastBuildOrDeployedOn}', '" + longdate + "'),\r\n" +
+					"'{projectDetails,lastBuildOrDeployedEnv}', '" + addQuotes(environment) + "'),\r\n" +
+					"'{projectDetails,lastBuildOrDeployedStatus}', '" + addQuotes(lastBuildOrDeployStatus) + "')\r\n"  ;
+
+				// List<DeploymentAudit> deploymentAuditLogs = deploymentDetails.getDeploymentAuditLogs();
+				// updateQuery += ", \"deploymentAuditLogs\" : ";
+				// if (deploymentAuditLogs != null && !deploymentAuditLogs.isEmpty()) {
+				// 	// Iterate over each DeploymentAudit object and add it to the JSON array
+				// 	updateQuery += "[";
+				// 	for (int i = 0; i < deploymentAuditLogs.size(); i++) {
+				// 		DeploymentAudit auditLog = deploymentAuditLogs.get(i);
+				// 		updateQuery += "{" +
+				// 			" \"triggeredBy\": " + addQuotes(auditLog.getTriggeredBy()) + "," +
+				// 			" \"triggeredOn\": " + addQuotes(String.valueOf(auditLog.getTriggeredOn().getTime())) + "," +
+				// 			" \"deploymentStatus\": " + addQuotes(auditLog.getDeploymentStatus()) + "," +
+				// 			" \"deployedOn\": " + (auditLog.getDeployedOn() != null ? addQuotes(String.valueOf(auditLog.getDeployedOn().getTime())) : "null") + "," +
+				// 			" \"commitId\": " + (auditLog.getCommitId() != null ? addQuotes(String.valueOf(auditLog.getCommitId())) : "null") + "," +
+				// 			" \"approvedBy\": " + (auditLog.getApprovedBy() != null ? addQuotes(String.valueOf(auditLog.getApprovedBy())) : "null") + "," +
+				// 			" \"branch\": " + addQuotes(auditLog.getBranch()) + "}";
+				// 		if(i+1 < deploymentAuditLogs.size()) {
+				// 			updateQuery += ",";
+				// 		}
+				// 	}
+				// 	updateQuery += "]";
+				// }else {
+				// 	updateQuery +=  " []";
+				// }
+				// updateQuery += "}')\r\n";
+				updateQuery += "where lower(data->'projectDetails'->>'projectName') = lower(:projectName)";
+
+				Query q = em.createNativeQuery(updateQuery);
+				q.setParameter("projectName", projectName);
+				log.info("{} - execute update",projectName);
+				q.executeUpdate();
+				Date now = new Date();
+				log.info("{} - execute update completed at time {}",projectName, now);
+				updateResponse.setSuccess("SUCCESS");
+				updateResponse.setErrors(new ArrayList<>());
+				updateResponse.setWarnings(new ArrayList<>());
+				log.info("{} - deployment details updated successfully for project ", projectName);
 		}catch(Exception e) {
 			MessageDescription errMsg = new MessageDescription("Failed while updating deployment details.");
 			errors.add(errMsg);
-			log.error("failed to update deployment details for project {} and environment {} , branch {} ", projectName,environment,deploymentDetails.getLastDeployedBranch());
+			log.error("failed to update deployment details for project {} and environment {} , branch {} ",
+					projectName, environment,
+					deploymentDetails != null ? deploymentDetails.getLastDeployedBranch() : null, e);
 		}
 		return updateResponse;
+	}
+
+	@Transactional
+	@Override
+	public GenericMessage updateReconciledDeploymentStatus(String projectName, String environment,
+			CodeServerDeploymentDetails deploymentDetails, String lastBuildOrDeployStatus) {
+		DeploymentStatusFields fields = DeploymentStatusFields.reconciled(
+				deploymentDetails, lastBuildOrDeployStatus, environment);
+		return updateDeploymentStatusFields(projectName, environment, fields);
+	}
+
+	@Transactional
+	@Override
+	public GenericMessage updateDeploymentGitJobRunId(String projectName, String environment, String gitjobRunID) {
+		DeploymentStatusFields fields = new DeploymentStatusFields();
+		fields.gitjobRunID = gitjobRunID;
+		return updateDeploymentStatusFields(projectName, environment, fields);
+	}
+
+	@Transactional
+	@Override
+	public GenericMessage updateCancelledDeploymentStatus(String projectName, String environment,
+			String lastDeploymentStatus, String lastDeploymentError, Date lastDeployedOn) {
+		DeploymentStatusFields fields = new DeploymentStatusFields();
+		fields.lastDeploymentStatus = lastDeploymentStatus;
+		fields.lastDeploymentError = lastDeploymentError;
+		fields.errorUpdate = ErrorUpdate.SET;
+		fields.lastDeployedOn = lastDeployedOn;
+		fields.lastBuildOrDeployedStatus = lastDeploymentStatus;
+		fields.lastBuildOrDeployedEnv = environment;
+		fields.lastBuildOrDeployedOn = lastDeployedOn;
+		fields.crashLoopUpdate = CrashLoopUpdate.CLEAR;
+		return updateDeploymentStatusFields(projectName, environment, fields);
+	}
+
+	@Transactional
+	@Override
+	public GenericMessage updateDeploymentCrashLoopStatus(String projectName, String environment,
+			Boolean newPodCrashLooping, String crashLoopReason) {
+		DeploymentStatusFields fields = new DeploymentStatusFields();
+		if (Boolean.TRUE.equals(newPodCrashLooping)) {
+			fields.crashLooping = true;
+			fields.crashLoopReason = crashLoopReason;
+			fields.crashLoopUpdate = CrashLoopUpdate.SET;
+		} else {
+			fields.crashLoopUpdate = CrashLoopUpdate.CLEAR;
+		}
+		return updateDeploymentStatusFields(projectName, environment, fields);
+	}
+
+	private GenericMessage updateDeploymentStatusFields(String projectName, String environment,
+			DeploymentStatusFields fields) {
+		GenericMessage updateResponse = new GenericMessage();
+		updateResponse.setSuccess("FAILED");
+		List<MessageDescription> errors = new ArrayList<>();
+		List<MessageDescription> warnings = new ArrayList<>();
+		String environmentJsonbName = "int".equalsIgnoreCase(environment)
+				? "intDeploymentDetails" : "prodDeploymentDetails";
+		String updateExpression = "data";
+		String deployedByJson = null;
+
+		try {
+			if (fields.lastDeployedBy != null) {
+				deployedByJson = new ObjectMapper().writeValueAsString(fields.lastDeployedBy);
+			}
+
+			if (fields.lastDeploymentStatus != null) {
+				updateExpression = jsonbSet(updateExpression,
+						"{projectDetails," + environmentJsonbName + ",lastDeploymentStatus}",
+						"to_jsonb(CAST(:lastDeploymentStatus AS text))");
+			}
+			if (fields.errorUpdate == ErrorUpdate.SET) {
+				updateExpression = jsonbSet(updateExpression,
+						"{projectDetails," + environmentJsonbName + ",lastDeploymentError}",
+						"to_jsonb(CAST(:lastDeploymentError AS text))");
+			} else if (fields.errorUpdate == ErrorUpdate.CLEAR) {
+				updateExpression = jsonbSet(updateExpression,
+						"{projectDetails," + environmentJsonbName + ",lastDeploymentError}",
+						"CAST('null' AS jsonb)");
+			}
+			if (fields.crashLoopUpdate == CrashLoopUpdate.SET) {
+				updateExpression = jsonbSet(updateExpression,
+						"{projectDetails," + environmentJsonbName + ",newPodCrashLooping}",
+						"to_jsonb(CAST(:newPodCrashLooping AS boolean))");
+				if (fields.crashLoopReason != null) {
+					updateExpression = jsonbSet(updateExpression,
+							"{projectDetails," + environmentJsonbName + ",crashLoopReason}",
+							"to_jsonb(CAST(:crashLoopReason AS text))");
+				} else {
+					updateExpression = jsonbSet(updateExpression,
+							"{projectDetails," + environmentJsonbName + ",crashLoopReason}",
+							"CAST('null' AS jsonb)");
+				}
+			} else if (fields.crashLoopUpdate == CrashLoopUpdate.CLEAR) {
+				updateExpression = jsonbSet(updateExpression,
+						"{projectDetails," + environmentJsonbName + ",newPodCrashLooping}",
+						"to_jsonb(false)");
+				updateExpression = jsonbSet(updateExpression,
+						"{projectDetails," + environmentJsonbName + ",crashLoopReason}",
+						"CAST('null' AS jsonb)");
+			}
+			if (fields.lastDeployedVersion != null) {
+				updateExpression = jsonbSet(updateExpression,
+						"{projectDetails," + environmentJsonbName + ",lastDeployedVersion}",
+						"to_jsonb(CAST(:lastDeployedVersion AS text))");
+			}
+			if (fields.lastDeployedBranch != null) {
+				updateExpression = jsonbSet(updateExpression,
+						"{projectDetails," + environmentJsonbName + ",lastDeployedBranch}",
+						"to_jsonb(CAST(:lastDeployedBranch AS text))");
+			}
+			if (fields.lastDeployedOn != null) {
+				updateExpression = jsonbSet(updateExpression,
+						"{projectDetails," + environmentJsonbName + ",lastDeployedOn}",
+						"to_jsonb(CAST(:lastDeployedOn AS bigint))");
+			}
+			if (deployedByJson != null) {
+				updateExpression = jsonbSet(updateExpression,
+						"{projectDetails," + environmentJsonbName + ",lastDeployedBy}",
+						"CAST(:lastDeployedBy AS jsonb)");
+			}
+			if (fields.gitjobRunID != null) {
+				updateExpression = jsonbSet(updateExpression,
+						"{projectDetails," + environmentJsonbName + ",gitjobRunID}",
+						"to_jsonb(CAST(:gitjobRunID AS text))");
+			}
+			if (fields.lastBuildOrDeployedStatus != null) {
+				updateExpression = jsonbSet(updateExpression,
+						"{projectDetails,lastBuildOrDeployedStatus}",
+						"to_jsonb(CAST(:lastBuildOrDeployedStatus AS text))");
+			}
+			if (fields.lastBuildOrDeployedEnv != null) {
+				updateExpression = jsonbSet(updateExpression,
+						"{projectDetails,lastBuildOrDeployedEnv}",
+						"to_jsonb(CAST(:lastBuildOrDeployedEnv AS text))");
+			}
+			if (fields.lastBuildOrDeployedOn != null) {
+				updateExpression = jsonbSet(updateExpression,
+						"{projectDetails,lastBuildOrDeployedOn}",
+						"to_jsonb(CAST(:lastBuildOrDeployedOn AS bigint))");
+			}
+
+			String updateQuery = "UPDATE workspace_nsql SET data = " + updateExpression
+					+ " WHERE data->'projectDetails'->>'projectName' = :projectName";
+			log.debug("Field-level deployment status update SQL for project {}: {}", projectName, updateQuery);
+			Query query = em.createNativeQuery(updateQuery);
+			query.setParameter("projectName", projectName);
+			if (fields.lastDeploymentStatus != null) {
+				query.setParameter("lastDeploymentStatus", fields.lastDeploymentStatus);
+			}
+			if (fields.errorUpdate == ErrorUpdate.SET) {
+				query.setParameter("lastDeploymentError", fields.lastDeploymentError);
+			}
+			if (fields.crashLoopUpdate == CrashLoopUpdate.SET) {
+				query.setParameter("newPodCrashLooping", fields.crashLooping);
+				if (fields.crashLoopReason != null) {
+					query.setParameter("crashLoopReason", fields.crashLoopReason);
+				}
+			}
+			if (fields.lastDeployedVersion != null) {
+				query.setParameter("lastDeployedVersion", fields.lastDeployedVersion);
+			}
+			if (fields.lastDeployedBranch != null) {
+				query.setParameter("lastDeployedBranch", fields.lastDeployedBranch);
+			}
+			if (fields.lastDeployedOn != null) {
+				query.setParameter("lastDeployedOn", fields.lastDeployedOn.getTime());
+			}
+			if (deployedByJson != null) {
+				query.setParameter("lastDeployedBy", deployedByJson);
+			}
+			if (fields.gitjobRunID != null) {
+				query.setParameter("gitjobRunID", fields.gitjobRunID);
+			}
+			if (fields.lastBuildOrDeployedStatus != null) {
+				query.setParameter("lastBuildOrDeployedStatus", fields.lastBuildOrDeployedStatus);
+			}
+			if (fields.lastBuildOrDeployedEnv != null) {
+				query.setParameter("lastBuildOrDeployedEnv", fields.lastBuildOrDeployedEnv);
+			}
+			if (fields.lastBuildOrDeployedOn != null) {
+				query.setParameter("lastBuildOrDeployedOn", fields.lastBuildOrDeployedOn.getTime());
+			}
+
+			int rows = query.executeUpdate();
+			if (rows == 0) {
+				log.warn("No rows updated for project {}", projectName);
+				return updateResponse;
+			}
+			updateResponse.setSuccess("SUCCESS");
+			updateResponse.setErrors(errors);
+			updateResponse.setWarnings(warnings);
+			log.info("Field-level deployment status updated successfully for project {}", projectName);
+		} catch (JsonProcessingException e) {
+			errors.add(new MessageDescription("Failed while serializing deployed-by details."));
+			log.error("Failed to serialize deployed-by details for project {}", projectName, e);
+			updateResponse.setErrors(errors);
+			updateResponse.setWarnings(warnings);
+		} catch (Exception e) {
+			log.error("Failed to update deployment status fields for project {} and environment {}",
+					projectName, environment, e);
+			throw new IllegalStateException(e.getMessage(), e);
+		}
+		return updateResponse;
+	}
+
+	private enum ErrorUpdate {
+		NONE, SET, CLEAR
+	}
+
+	private enum CrashLoopUpdate {
+		NONE, SET, CLEAR
+	}
+
+	private static class DeploymentStatusFields {
+		private String lastDeploymentStatus;
+		private String lastDeploymentError;
+		private ErrorUpdate errorUpdate = ErrorUpdate.NONE;
+		private Boolean crashLooping;
+		private String crashLoopReason;
+		private CrashLoopUpdate crashLoopUpdate = CrashLoopUpdate.NONE;
+		private String lastDeployedVersion;
+		private String lastDeployedBranch;
+		private Date lastDeployedOn;
+		private UserInfo lastDeployedBy;
+		private String gitjobRunID;
+		private String lastBuildOrDeployedStatus;
+		private String lastBuildOrDeployedEnv;
+		private Date lastBuildOrDeployedOn;
+
+		private static DeploymentStatusFields reconciled(CodeServerDeploymentDetails deploymentDetails,
+				String lastBuildOrDeployStatus, String environment) {
+			DeploymentStatusFields fields = new DeploymentStatusFields();
+			fields.lastDeploymentStatus = deploymentDetails.getLastDeploymentStatus();
+			fields.lastDeploymentError = deploymentDetails.getLastDeploymentError();
+			fields.errorUpdate = deploymentDetails.getLastDeploymentError() == null
+					? ErrorUpdate.CLEAR : ErrorUpdate.SET;
+			fields.crashLoopUpdate = CrashLoopUpdate.CLEAR;
+			fields.lastDeployedVersion = deploymentDetails.getLastDeployedVersion();
+			fields.lastDeployedBranch = deploymentDetails.getLastDeployedBranch();
+			fields.lastDeployedOn = deploymentDetails.getLastDeployedOn();
+			fields.lastDeployedBy = deploymentDetails.getLastDeployedBy();
+			fields.gitjobRunID = deploymentDetails.getGitjobRunID();
+			fields.lastBuildOrDeployedStatus = lastBuildOrDeployStatus;
+			fields.lastBuildOrDeployedEnv = environment;
+			fields.lastBuildOrDeployedOn = deploymentDetails.getLastDeployedOn();
+			return fields;
+		}
+	}
+
+	private String jsonbSet(String expression, String path, String valueExpression) {
+		return "jsonb_set(" + expression + ", '" + path + "', " + valueExpression + ", true)";
 	}
 
 	@Override
@@ -607,10 +907,11 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 				"'{projectDetails," + addQuotes(environment) + ",selectedAliceRoles}', '" + selectedAliceRolesJson
 				+ "')";
 
-		updateQuery += " where data->'projectDetails'->>'projectName' = '" + projectName + "'";
+		updateQuery += " where lower(data->'projectDetails'->>'projectName') = lower(:projectName)";
 
 		try {
 			Query q = em.createNativeQuery(updateQuery);
+			q.setParameter("projectName", projectName);
 			q.executeUpdate();
 			updateResponse.setSuccess("SUCCESS");
 			updateResponse.setErrors(new ArrayList<>());
@@ -642,12 +943,13 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 				"'{projectDetails,lastBuildOrDeployedEnv}', '" + addQuotes(environment) + "'),\r\n" +
 				"'{projectDetails,lastBuildOrDeployedStatus}', '" + addQuotes(status) + "')\r\n"  ;
 
-			updateQuery += "where data->'projectDetails'->>'projectName' = '" + projectName + "'";
+			updateQuery += "where lower(data->'projectDetails'->>'projectName') = lower(:projectName)";
 
 			log.info("updateQuery {}",updateQuery);
 
 		try {
 			Query q = em.createNativeQuery(updateQuery);
+			q.setParameter("projectName", projectName);
 			q.executeUpdate();
 			updateResponse.setSuccess("SUCCESS");
 			updateResponse.setErrors(new ArrayList<>());
@@ -677,31 +979,36 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 			if(!"int".equalsIgnoreCase(environment)){
 				envString = "prodBuildDetails";
 			}
+			UserInfo lastBuildBy = buildDetails.getLastBuildBy();
+			String lastBuildByJson = lastBuildBy == null ? "null"
+					: "{\"id\": " + addQuotes(lastBuildBy.getId()) + ","
+					+ " \"email\": " + addQuotes(lastBuildBy.getEmail()) + ","
+					+ " \"lastName\": " + addQuotes(lastBuildBy.getLastName()) + ","
+					+ " \"firstName\": " + addQuotes(lastBuildBy.getFirstName()) + ","
+					+ " \"department\": " + addQuotes(lastBuildBy.getDepartment()) + ","
+					+ " \"gitUserName\": " + addQuotes(lastBuildBy.getGitUserName()) + ","
+					+ " \"mobileNumber\": " + addQuotes(lastBuildBy.getMobileNumber()) + "}";
 			String updateQuery = "update workspace_nsql " +
 				"set data =   jsonb_set(jsonb_set(jsonb_set(jsonb_set(data,'{projectDetails," + envString + "}', " +
 				"'{\"version\": " + addQuotes(buildDetails.getVersion()) + "," +
-				" \"lastBuildBy\": {\"id\": " + addQuotes(buildDetails.getLastBuildBy().getId()) + "," +
-				" \"email\": " + addQuotes(buildDetails.getLastBuildBy().getEmail()) + "," +
-				" \"lastName\": " + addQuotes(buildDetails.getLastBuildBy().getLastName()) + "," +
-				" \"firstName\": " + addQuotes(buildDetails.getLastBuildBy().getFirstName()) + "," +
-				" \"department\": " + addQuotes(buildDetails.getLastBuildBy().getDepartment()) + "," +
-				" \"gitUserName\": " + addQuotes(buildDetails.getLastBuildBy().getGitUserName()) + "," +
-				" \"mobileNumber\": " + addQuotes(buildDetails.getLastBuildBy().getMobileNumber()) + "}," +
+				" \"lastBuildBy\": " + lastBuildByJson + "," +
 				" \"lastBuildOn\":" + longdate + "," +
 				" \"lastBuildType\": " + addQuotes(buildDetails.getLastBuildType()) + "," +
 				" \"lastBuildBranch\": " + addQuotes(buildDetails.getLastBuildBranch()) + "," +
 				" \"gitjobRunID\": " + addQuotes(buildDetails.getGitjobRunID()) + "," +
+				" \"lastBuildFailureReason\": " + addQuotes(buildDetails.getLastBuildFailureReason()) + "," +
 				" \"lastBuildStatus\": " + addQuotes(buildDetails.getLastBuildStatus()) +"}'),\r\n" + 
 				"'{projectDetails,lastBuildOrDeployedOn}', '" + longdate + "'),\r\n" +
 				"'{projectDetails,lastBuildOrDeployedEnv}', '" + addQuotes(environment) + "'),\r\n" +
 				"'{projectDetails,lastBuildOrDeployedStatus}', '" + addQuotes(buildDetails.getLastBuildStatus()) + "')\r\n"  ;
 
-			updateQuery += "where data->'projectDetails'->>'projectName' = '" + projectName + "'";
+			updateQuery += "where lower(data->'projectDetails'->>'projectName') = lower(:projectName)";
 
 			log.info("updateQuery {}",updateQuery);
 
 		try {
 			Query q = em.createNativeQuery(updateQuery);
+			q.setParameter("projectName", projectName);
 			q.executeUpdate();
 			updateResponse.setSuccess("SUCCESS");
 			updateResponse.setErrors(new ArrayList<>());
@@ -710,7 +1017,8 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 		}catch(Exception e) {
 			MessageDescription errMsg = new MessageDescription("Failed while updating build details.");
 			errors.add(errMsg);
-			log.error("failed to update build details for project {} and environment {} , branch {} exception {} ", projectName,environment,buildDetails.getLastBuildBranch(),e.getMessage());
+			log.error("failed to update build details for project {} and environment {} , branch {} ", projectName,
+					environment, buildDetails.getLastBuildBranch(), e);
 		}
 		return updateResponse;
 	}
@@ -731,9 +1039,10 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 	public void updateDeletedStatusForProject(String projectName) {
 		String updateQuery = "UPDATE workspace_nsql SET data = jsonb_set(data, '{status}', '\"DELETED\"') "
 				+ " where lower(jsonb_extract_path_text(data,'projectDetails','projectName')) "
-				+ "= '" + projectName.toLowerCase() + "' and lower(jsonb_extract_path_text(data,'status')) <> 'deleted'";
+				+ "= lower(:projectName) and lower(jsonb_extract_path_text(data,'status')) <> 'deleted'";
 		try {
 			Query q = em.createNativeQuery(updateQuery);
+			q.setParameter("projectName", projectName);
 			q.executeUpdate();
 			log.info("updated all workspaces under project {} to DELETED state", projectName);
 		}catch(Exception e) {
@@ -797,6 +1106,28 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 	}
 
 	@Override
+	public boolean isProjectOwnerOrAdmin(String userId) {
+		String query = """
+				SELECT EXISTS (SELECT 1 FROM workspace_nsql
+				 WHERE lower(COALESCE(jsonb_extract_path_text(data, 'status'), '')) NOT IN ('deleted', 'create_failed')
+				 AND (lower(jsonb_extract_path_text(data, 'projectDetails', 'projectOwner', 'id')) = lower(:userId)
+				   OR EXISTS (SELECT 1 FROM jsonb_array_elements(
+				        CASE WHEN jsonb_typeof(data -> 'projectDetails' -> 'projectCollaborators') = 'array'
+				             THEN data -> 'projectDetails' -> 'projectCollaborators' ELSE cast('[]' AS jsonb) END) AS collab
+				      WHERE lower(collab ->> 'id') = lower(:userId)
+				        AND lower(COALESCE(collab ->> 'isAdmin', 'false')) = 'true')))
+				""";
+		try {
+			Query queryResult = em.createNativeQuery(query);
+			queryResult.setParameter("userId", userId);
+			return Boolean.TRUE.equals(queryResult.getSingleResult());
+		} catch (Exception e) {
+			log.warn("Failed to check Codespaces project owner or admin eligibility");
+			return false;
+		}
+	}
+
+	@Override
 	public CodeServerWorkspaceNsql findByWorkspaceId(String wsId) {
 
 		CriteriaBuilder cb = em.getCriteriaBuilder();
@@ -838,7 +1169,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 					"cast(jsonb_extract_path_text(data,'projectDetails','projectName') as text) as PROJECT_NAME, cast(id as text) as COLUMN_ID,  " +
                   "cast(jsonb_extract_path_text(data,'projectDetails','projectOwner') as text) as PROJECT_OWNER, " +
                   "cast(jsonb_extract_path_text(data,'projectDetails','securityConfig') as text) as SECURITY_CONFIG " +
-                  "FROM workspace_nsql WHERE lower(jsonb_extract_path_text(data,'projectDetails','projectName'))="+" '"+projectName +"'"+" AND lower(jsonb_extract_path_text(data,'status')) in('created') ";
+                  "FROM workspace_nsql WHERE lower(jsonb_extract_path_text(data,'projectDetails','projectName'))=lower(:projectName) AND lower(jsonb_extract_path_text(data,'status')) in('created') ";
 				  }
 		if (limit > 0)
 			  getQuery = getQuery + " limit " + limit;
@@ -846,6 +1177,9 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 			  getQuery = getQuery + " offset " + offset;
 		try {
 			Query q = em.createNativeQuery(getQuery);
+			if (projectName != null && !projectName.isEmpty()) {
+				q.setParameter("projectName", projectName);
+			}
 			results = q.getResultList();
 
 			ObjectMapper mapper = new ObjectMapper();
@@ -890,9 +1224,10 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 				+ "set data = jsonb_set(data, '{projectDetails,securityConfig}', \r\n"
 				+ " '{\"status\": " + addQuotes(status)
 				+ "}' )\n" + "\\:" + "\\:" + "jsonb \n"
-				+ "where data->'projectDetails'->>'projectName' = '" + projectName + "'" + " and lower(jsonb_extract_path_text(data,'status')) <> 'deleted'";
+				+ "where lower(data->'projectDetails'->>'projectName') = lower(:projectName)" + " and lower(jsonb_extract_path_text(data,'status')) <> 'deleted'";
 		try {
 			Query q = em.createNativeQuery(updateQuery);
+			q.setParameter("projectName", projectName);
 			q.executeUpdate();
 			updateResponse.setSuccess("SUCCESS");
 			updateResponse.setErrors(new ArrayList<>());
@@ -914,10 +1249,11 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 		String getQuery = "select jsonb_extract_path_text(data,'workspaceId') as workspaceId "
 				+ "from workspace_nsql "
 				+ "where lower(jsonb_extract_path_text(data,'projectDetails','projectName'))"
-				+ "in('" + projectName.toLowerCase() + "') and lower(jsonb_extract_path_text(data,'status')) <> 'deleted'";
+				+ "= lower(:projectName) and lower(jsonb_extract_path_text(data,'status')) <> 'deleted'";
 		
 		try {
 			Query q = em.createNativeQuery(getQuery);
+			q.setParameter("projectName", projectName);
 			workspaceIds = q.getResultList();
 			if (workspaceIds != null && !workspaceIds.isEmpty()) {
 				log.info("Found {} workspaces with project name {} which are not in deleted state", workspaceIds.size(), projectName);
@@ -1021,10 +1357,11 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 				+ " \"subDivision\": " + addQuotes(newGovFeilds.getSubDivision()) + ","
 				+ " \"typeOfProject\": " + addQuotes(newGovFeilds.getTypeOfProject()) + ","
 				+ " \"classificationType\": " + addQuotes(newGovFeilds.getClassificationType()) + "}')\n"
-				+ "where data->'projectDetails'->>'projectName' = '" + projectName + "'";
+				+ "where lower(data->'projectDetails'->>'projectName') = lower(:projectName)";
 
 		try {
 			Query q = em.createNativeQuery(updateQuery);
+			q.setParameter("projectName", projectName);
 			q.executeUpdate();
 			updateResponse.setSuccess("SUCCESS");
 			updateResponse.setErrors(new ArrayList<>());
@@ -1085,7 +1422,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 					END AS gitJobRunId
 
 				FROM public.workspace_nsql
-				WHERE jsonb_extract_path_text(data,'projectDetails','projectName') = CAST(? AS text)
+				WHERE lower(jsonb_extract_path_text(data,'projectDetails','projectName')) = lower(CAST(? AS text))
 			""";
 
 		try
@@ -1151,7 +1488,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 			updateQuery =
 				"update workspace_nsql set data = jsonb_set(" +
 				"jsonb_set(data, '{projectDetails,lastBuildOrDeployedStatus}', '" + addQuotes(status) + "', true)," +
-				"'{projectDetails,intDeploymentDetails,deploymentStatus}', '" + addQuotes(status) + "', true)";
+				"'{projectDetails,intDeploymentDetails,lastDeploymentStatus}', '" + addQuotes(status) + "', true)";
 
 		} else if ("prod".equalsIgnoreCase(environment) &&
 			("DEPLOY_REQUESTED".equalsIgnoreCase(status)
@@ -1161,7 +1498,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 			updateQuery =
 				"update workspace_nsql set data = jsonb_set(" +
 				"jsonb_set(data, '{projectDetails,lastBuildOrDeployedStatus}', '" + addQuotes(status) + "', true)," +
-				"'{projectDetails,prodDeploymentDetails,deploymentStatus}', '" + addQuotes(status) + "', true)";
+				"'{projectDetails,prodDeploymentDetails,lastDeploymentStatus}', '" + addQuotes(status) + "', true)";
 
 		} else {
 			log.warn(
@@ -1175,12 +1512,13 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 		}
 
 		updateQuery +=
-			" where data->'projectDetails'->>'projectName' = '" + projectName + "'";
+			" where lower(data->'projectDetails'->>'projectName') = lower(:projectName)";
 
 		try {
 			log.info("Final update query = {}", updateQuery);
 
 			Query q = em.createNativeQuery(updateQuery);
+			q.setParameter("projectName", projectName);
 			int rows = q.executeUpdate();
 
 			if (rows == 0) {
@@ -1274,12 +1612,13 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 		}
 
 		updateQuery +=
-			" where data->>'projectName' = '" + projectName + "'";
+			" where lower(data->>'projectName') = lower(:projectName)";
 
 		try {
 			log.info("Final audit update query = {}", updateQuery);
 
 			Query q = em.createNativeQuery(updateQuery);
+			q.setParameter("projectName", projectName);
 			int rows = q.executeUpdate();
 
 			if (rows == 0) {
@@ -1294,6 +1633,149 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 			log.error("Failed while updating the Build Deploy Audit Status", e);
 			return false;
 		}
+	}
+
+	@Override
+	public boolean isResourceCapExempt(String projectName, String environment) {
+		if (projectName == null || projectName.isEmpty()) {
+			return false;
+		}
+		String flagName = "prod".equalsIgnoreCase(environment) ? "resourceCapExemptProd" : "resourceCapExemptInt";
+		CriteriaBuilder cb = em.getCriteriaBuilder();
+		CriteriaQuery<Long> cq = cb.createQuery(Long.class);
+		Root<CodeServerWorkspaceNsql> root = cq.from(entityClass);
+		CriteriaQuery<Long> exemptCount = cq.select(cb.count(root));
+		Predicate con1 = cb.equal(cb.lower(
+				cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("projectDetails"), cb.literal("projectName"))),
+				projectName.toLowerCase());
+		Predicate con2 = cb.notEqual(cb.lower(
+				cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("status"))),
+				"DELETED".toLowerCase());
+		Predicate con3 = cb.equal(cb.lower(
+				cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("projectDetails"), cb.literal(flagName))),
+				"true");
+		cq.where(cb.and(con1, con2, con3));
+		Long count = em.createQuery(exemptCount).getSingleResult();
+		boolean exempt = count != null && count > 0;
+		log.info("[Resources] Resource cap exemption for project {} in env {} ({}): {}", projectName, environment, flagName, exempt);
+		return exempt;
+	}
+
+	@Override
+	public List<CodespaceResourceExemptionDto> getAllResourceCapExemptions(Integer offset, Integer limit,
+			String projectName) {
+		List<CodespaceResourceExemptionDto> data = new ArrayList<>();
+		boolean filterByProject = projectName != null && !projectName.trim().isEmpty();
+		StringBuilder getQuery = new StringBuilder(
+				"select project_name, project_owner, workspace_count, exempt_int, exempt_prod from ( "
+						+ "select jsonb_extract_path_text(data,'projectDetails','projectName') as project_name, "
+						+ "max(jsonb_extract_path_text(data,'projectDetails','projectOwner')) as project_owner, "
+						+ "count(*) as workspace_count, "
+						+ "bool_or(lower(coalesce(jsonb_extract_path_text(data,'projectDetails','resourceCapExemptInt'),'false')) = 'true') as exempt_int, "
+						+ "bool_or(lower(coalesce(jsonb_extract_path_text(data,'projectDetails','resourceCapExemptProd'),'false')) = 'true') as exempt_prod "
+						+ "from workspace_nsql "
+						+ "where lower(jsonb_extract_path_text(data,'status')) <> 'deleted' ");
+		if (filterByProject) {
+			getQuery.append("and lower(jsonb_extract_path_text(data,'projectDetails','projectName')) like :projectName ");
+		}
+		getQuery.append("group by project_name ) projects order by (exempt_int or exempt_prod) desc, project_name");
+
+		try {
+			Query q = em.createNativeQuery(getQuery.toString());
+			if (filterByProject) {
+				q.setParameter("projectName", "%" + projectName.trim().toLowerCase() + "%");
+			}
+			if (offset != null && offset >= 0) {
+				q.setFirstResult(offset);
+			}
+			if (limit != null && limit > 0) {
+				q.setMaxResults(limit);
+			}
+
+			List<Object[]> results = q.getResultList();
+			ObjectMapper mapper = new ObjectMapper();
+			for (Object[] rowData : results) {
+				if (rowData == null) {
+					continue;
+				}
+				CodespaceResourceExemptionDto rowDetails = new CodespaceResourceExemptionDto();
+				rowDetails.setProjectName((String) rowData[0]);
+				if (rowData[1] != null) {
+					try {
+						rowDetails.setProjectOwner(mapper.readValue(rowData[1].toString(), UserInfo.class));
+					} catch (Exception e) {
+						log.error("Failed to map project owner of project {}", rowData[0]);
+					}
+				}
+				rowDetails.setWorkspaceCount(rowData[2] != null ? ((Number) rowData[2]).intValue() : 0);
+				rowDetails.setExemptInt(Boolean.TRUE.equals(rowData[3]));
+				rowDetails.setExemptProd(Boolean.TRUE.equals(rowData[4]));
+				data.add(rowDetails);
+			}
+			log.info("Found {} codespace projects for the resource cap exemption listing", data.size());
+		} catch (Exception e) {
+			log.error("Failed to query the resource cap exemption listing with exception {}", e.getMessage());
+		}
+		return data;
+	}
+
+	@Override
+	public Integer getResourceCapExemptionsCount(String projectName) {
+		boolean filterByProject = projectName != null && !projectName.trim().isEmpty();
+		StringBuilder countQuery = new StringBuilder(
+				"select count(distinct jsonb_extract_path_text(data,'projectDetails','projectName')) "
+						+ "from workspace_nsql "
+						+ "where lower(jsonb_extract_path_text(data,'status')) <> 'deleted' ");
+		if (filterByProject) {
+			countQuery.append("and lower(jsonb_extract_path_text(data,'projectDetails','projectName')) like :projectName");
+		}
+		try {
+			Query q = em.createNativeQuery(countQuery.toString());
+			if (filterByProject) {
+				q.setParameter("projectName", "%" + projectName.trim().toLowerCase() + "%");
+			}
+			Object count = q.getSingleResult();
+			return count != null ? ((Number) count).intValue() : 0;
+		} catch (Exception e) {
+			log.error("Failed to count codespace projects with exception {}", e.getMessage());
+			return 0;
+		}
+	}
+
+	@Override
+	@Transactional
+	public GenericMessage updateResourceCapExemption(String projectName, String environment, boolean exempt) {
+		GenericMessage updateResponse = new GenericMessage();
+		updateResponse.setSuccess("FAILED");
+		updateResponse.setWarnings(new ArrayList<>());
+		List<MessageDescription> errors = new ArrayList<>();
+		updateResponse.setErrors(errors);
+
+		if (projectName == null || projectName.trim().isEmpty()) {
+			errors.add(new MessageDescription("Project name is mandatory."));
+			return updateResponse;
+		}
+		String flagName = "prod".equalsIgnoreCase(environment) ? "resourceCapExemptProd" : "resourceCapExemptInt";
+		String updateQuery = "update workspace_nsql set data = jsonb_set(data, '{projectDetails," + flagName + "}', "
+				+ "to_jsonb(" + (exempt ? "true" : "false") + "), true) "
+				+ "where lower(jsonb_extract_path_text(data,'projectDetails','projectName')) = :projectName "
+				+ "and lower(jsonb_extract_path_text(data,'status')) <> 'deleted'";
+		try {
+			Query q = em.createNativeQuery(updateQuery);
+			q.setParameter("projectName", projectName.trim().toLowerCase());
+			int updatedRows = q.executeUpdate();
+			if (updatedRows < 1) {
+				errors.add(new MessageDescription("No workspaces found for project " + projectName + "."));
+				log.warn("No workspaces updated while setting {} to {} for project {}", flagName, exempt, projectName);
+				return updateResponse;
+			}
+			updateResponse.setSuccess("SUCCESS");
+			log.info("Set {} to {} on {} workspaces of project {}", flagName, exempt, updatedRows, projectName);
+		} catch (Exception e) {
+			errors.add(new MessageDescription("Failed while updating the resource cap exemption."));
+			log.error("Failed while updating {} for project {} with exception", flagName, projectName, e);
+		}
+		return updateResponse;
 	}
 
 	@Override

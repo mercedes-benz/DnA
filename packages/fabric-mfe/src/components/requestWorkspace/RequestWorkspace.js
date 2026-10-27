@@ -6,70 +6,41 @@ import Notification from '../../common/modules/uilab/js/src/notification';
 import { regionalDateAndTimeConversionSolution } from '../../utilities/utils';
 import { fabricApi } from '../../apis/fabric.api';
 import RoleCard from '../roleCard/RoleCard';
-
-const WorkspaceItem = ({ workspace, onRequest }) => {
-  return (
-    <div className={Styles.workspaceItemContainer}>
-      <div className={Styles.workspaceIcon}>
-        <i className="icon mbc-icon tools-mini"></i>
-      </div>
-      <div className={Styles.workspaceContent}>
-        <h3>{workspace?.name}</h3>
-        <div className={Styles.workspaceMetadata}>
-          <p>Created by: {workspace?.createdBy?.firstName} {workspace?.createdBy?.lastName} | {workspace?.createdOn && <>Created on: {regionalDateAndTimeConversionSolution(workspace?.createdOn)}</>}</p>
-        </div>
-      </div>
-      <div className={Styles.workspaceAction}>
-        <button className="btn btn-primary" onClick={() => onRequest(workspace)}>Request Access</button>
-      </div>
-    </div>
-  )
-}
+import TypeAheadBox from 'dna-container/TypeAheadBox';
 
 const RequestWorkspace = ({ onRefresh }) => {
   const [workspaces, setWorkspaces] = useState([]);
-  const [filteredWorkspaces, setFilteredWorkspaces] = useState([]);
   const [selectedWorkspace, setSelectedWorkspace] = useState({});
   const [roleList, setRoleList] = useState([]);
   const [reason, setReason] = useState('');
   const [reasonError, setReasonError] = useState(false);
   const [currentStep, setCurrentStep] = useState('workspace-selection');
+  const [searchedWorkspace, setSearchedWorkspace] = useState(null);
 
-  useEffect(() => {
-    ProgressIndicator.show();
+  const handleWorkspaceSearch = (searchTerm, showSpinner) => {
+    if (searchTerm.length > 2) {
+      showSpinner(true);
       fabricApi
-        .getFabricWorkspaceLov()
+        .searchFabricWorkspaceLov(0, 0, searchTerm)
         .then((res) => {
-          if(res.status !== 204) {
-            setWorkspaces(res?.data?.records);
-            setFilteredWorkspaces(res?.data?.records);
+          if (res.status !== 204) {
+            setWorkspaces(res?.data?.records || []);
           } else {
             setWorkspaces([]);
           }
-          ProgressIndicator.hide();
+          showSpinner(false);
         })
         .catch((e) => {
-          ProgressIndicator.hide();
+          showSpinner(false);
           Notification.show(
-            e.response.data.errors?.length
-              ? e.response.data.errors[0].message
-              : 'Fetching fabric workspaces failed!',
+            e.response?.data?.errors?.[0]?.message || 'Error while fetching workspaces.',
             'alert',
           );
         });
-  }, []);
-
-  const handleWorkspaceSearch = (e) => {
-    const search = e.target.value;
-    if(search?.length > 0) {
-      const filteredWorkspacesTemp = workspaces.filter(workspace =>
-        workspace.name.toLowerCase().includes(search.toLowerCase())
-      );
-      setFilteredWorkspaces(filteredWorkspacesTemp);
     } else {
-      setFilteredWorkspaces(workspaces);
+      setWorkspaces([]); 
     }
-  }
+  };
  
   useEffect(() => {
     reason.length > 20 && setReasonError(false);   
@@ -185,31 +156,38 @@ const RequestWorkspace = ({ onRefresh }) => {
           <h3 className={Styles.subTitle}>Select Workspace</h3>
           <div className={Styles.flex}>
             <div className={Styles.col}>
-              <div className={classNames('input-field-group', Styles.searchBox)}>
-                {/* <label className={'input-label'}>
-                  Search Workspaces
-                </label> */}
-                <input
-                  type="text"
-                  className={'input-field'}
-                  id="workspaceName"
-                  placeholder="Search for Workspace Name"
-                  autoComplete="off"
-                  maxLength={256}
-                  onChange={handleWorkspaceSearch}
-                />
-                <button className={classNames('btn', Styles.searchBtn)} onClick={() => console.log('search')}><i className="icon mbc-icon search"></i></button>
-              </div>
+              <TypeAheadBox
+                // label={'Search Workspace'}
+                placeholder={'Search for Workspace Name (Enter minimum 3 characters)'}
+                defaultValue={searchedWorkspace?.name}
+                list={workspaces}
+                setSelected={(selectedWorkspace) => {
+                  setSearchedWorkspace(selectedWorkspace || null);
+                  if (selectedWorkspace) {
+                    handleWorkspaceRequest(selectedWorkspace);
+                  }
+                }}
+                onInputChange={handleWorkspaceSearch}
+                required={false}
+                render={(item) => (
+                  <div className={Styles.optionContainer}>
+                    <div className={Styles.optionHeader}>
+                      <span className={Styles.optionText}>
+                        <i className="icon mbc-icon tools-mini"></i> <strong>{item?.name}</strong>
+                      </span>
+                    </div>
+                    <div className={Styles.optionSubText}>
+                      <strong>Created by:</strong> {item?.createdBy?.firstName} {item?.createdBy?.lastName}
+                    </div>
+                    {item?.createdOn && (
+                      <div className={Styles.optionSubText}>
+                        <strong>Created on:</strong> {regionalDateAndTimeConversionSolution(item?.createdOn)}
+                      </div>
+                    )}
+                  </div>
+                )}
+              />
             </div>
-          </div>
-          {/* No workspaces */}
-          {filteredWorkspaces.length === 0 &&
-            <div className={Styles.noWorkspaces}>
-              <i className="icon mbc-icon search"></i> <span>No Workspace Found. Please try again.</span>
-            </div>
-          }
-          <div className={Styles.workspaceList}>
-            {filteredWorkspaces.map(workspace => <WorkspaceItem key={workspace?.id} workspace={workspace} onRequest={handleWorkspaceRequest} />)}
           </div>
         </div>
       }

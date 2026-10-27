@@ -29,5 +29,7 @@ public class GitHubWorkflowJobsResponseDto implements Serializable {
         private String name;
         private String status;
         private String conclusion;
+        @JsonProperty("completed_at")
+        private String completedAt;
     }
 }

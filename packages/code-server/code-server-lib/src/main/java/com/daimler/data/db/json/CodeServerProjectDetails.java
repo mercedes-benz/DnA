@@ -35,4 +35,6 @@ public class CodeServerProjectDetails implements Serializable {
 	private String webHookId;
 	private String intAutoDeployBranchName;
 	private String prodAutoDeployBranchName;
+	private Boolean resourceCapExemptInt;
+	private Boolean resourceCapExemptProd;
 }

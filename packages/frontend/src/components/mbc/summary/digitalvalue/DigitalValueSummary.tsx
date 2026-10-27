@@ -12,6 +12,7 @@ import { ApiClient } from '../../../../services/ApiClient';
 import TeamMemberListItem from '../team/teamMemberListItem/TeamMemberListItem';
 import DigitalValuePopupContent from './DigitalValuePopupContent';
 import { regionalDateAndTimeConversionSolution } from '../../../../services/utils';
+import { Envs } from 'globals/Envs';
 
 import {
   IAttachment,
@@ -305,7 +306,7 @@ export default class DigitalValueSummary extends React.Component<IDigitalValuePr
                         <span onClick={this.addToBookmarks}>Add to My Bookmarks</span>
                       </li>
                     )}
-                    {this.props.canEdit && (
+                    {Envs.ENABLE_SOLUTIONS && this.props.canEdit && (
                       <li className="contextListItem">
                         <span onClick={this.onEditSolution}>Edit Solution</span>
                       </li>

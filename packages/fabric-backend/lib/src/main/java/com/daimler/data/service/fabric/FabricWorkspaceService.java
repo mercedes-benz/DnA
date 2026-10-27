@@ -2,7 +2,7 @@ package com.daimler.data.service.fabric;
 
 import java.util.List;
 
-import javax.validation.Valid;
+import jakarta.validation.Valid;
 
 import org.springframework.http.ResponseEntity;
 
@@ -58,9 +58,15 @@ public interface FabricWorkspaceService extends CommonService<FabricWorkspaceVO,
 			String creatorId, String workspaceId);
 
 	List<GroupDetailsVO> autoProcessGroupsUsers(List<GroupDetailsVO> existingGroupsDetails, String workspaceName,
-			String creatorId, String workspaceId, String customGroupName, List<CustomGroupNameCollectionVO> customGroupNameCollection);
+			String creatorId, String workspaceId, String customGroupName, List<CustomGroupNameCollectionVO> customGroupNameCollection, String division);
 
 	FabricWorkspacesCollectionVO getAllLov(int limit, int offset);
+
+	void updateWorkspaceStatusAndDetails(String id, FabricWorkspaceStatusVO status, String name, String description);
+
+	void updateWorkspaceGroupsAndDetails(String id, List<GroupDetailsVO> groups, String name, String description);
+
+	void updateWorkspaceLakehouses(String id, List<FabricLakehouseVO> lakehouses);
 
 	GenericMessage deleteLakehouse(String id, String lakehouseId);
 
@@ -75,6 +81,10 @@ public interface FabricWorkspaceService extends CommonService<FabricWorkspaceVO,
 
 	GenericMessage createGenericRole(CreateRoleRequestVO roleRequestVO, CreatedByVO requestUser);
 
+	boolean canCreateAliceRole(String userId, boolean isCodespaceAdmin);
+
+	boolean isRoleOwner(String roleId, String userId);
+
 	DnaRoleCollectionVO getAllUserDnaRoles(String id);
 
 	AuthoriserRoleDetailsVO getRoleDetails(String roleId);
@@ -86,4 +96,6 @@ public interface FabricWorkspaceService extends CommonService<FabricWorkspaceVO,
 	ADAProjectDetailsCollectionVO searchProjects(String projectName);
 
 	void populateLeanIXDetailsFromProject(FabricWorkspaceVO workspace);
+
+	FabricWorkspacesCollectionVO searchWorkspacesLov(int limit, int offset, String searchText);
 }

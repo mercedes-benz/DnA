@@ -986,6 +986,10 @@ definitions:
  AttachPluginConfigVO:
     type: object
     properties:
+      session_secret:
+        type: string
+      skip_already_auth_requests:
+        type: string
       client_secret:
         type: string
       discovery:
