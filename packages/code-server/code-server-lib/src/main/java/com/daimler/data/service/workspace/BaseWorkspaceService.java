@@ -6277,6 +6277,10 @@ import com.daimler.data.dto.workspace.ResourceVO;
         }
 		
 		if(isTriggeredByAutoDeploy){
+
+			List<String> teamMembersList = vo.getProjectDetails().getProjectCollaborators().stream().map(collabUser -> collabUser.getId()).collect(Collectors.toList());
+			List<String> teamMembersEmailList = vo.getProjectDetails().getProjectCollaborators().stream().map(collabUser -> collabUser.getEmail()).collect(Collectors.toList());
+			
 			if(environment.equalsIgnoreCase("prod") && ((prodDeployStatus != null && (prodDeployStatus.equalsIgnoreCase("DEPLOY_REQUESTED")
 					|| prodDeployStatus.equalsIgnoreCase("APPROVAL_PENDING"))) || (prodBuildStatus != null && prodBuildStatus.equalsIgnoreCase("BUILD_REQUESTED")))){
 				MessageDescription invalidTypeMsg = new MessageDescription();
@@ -6288,6 +6292,12 @@ import com.daimler.data.dto.workspace.ResourceVO;
 						userId,
 						vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), vo.getWorkspaceId(),
 						prodDeployStatus);
+
+				kafkaProducer.send("Auto Codespace-Deploy Failed For PROD Environment", vo.getWorkspaceId(), "", userId,
+						"Failed to deploy Codespace " + vo.getProjectDetails().getProjectName() + " with branch " + branch
+								+ " on " + environment + " triggered by " + userId,
+						true, teamMembersList, teamMembersEmailList, null);
+
 				return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
 			} else if(environment.equalsIgnoreCase("int") && ((intDeployStatus != null && intDeployStatus.equalsIgnoreCase("DEPLOY_REQUESTED")) 
 				|| (intBuildStatus != null && intBuildStatus.equalsIgnoreCase("BUILD_REQUESTED")))){
@@ -6300,6 +6310,12 @@ import com.daimler.data.dto.workspace.ResourceVO;
 						userId,
 						vo.getProjectDetails().getRecipeDetails().getRecipeId().name(), vo.getWorkspaceId(),
 						intDeployStatus);
+				
+				kafkaProducer.send("Auto Codespace-Deploy Failed For INT Environment", vo.getWorkspaceId(), "", userId,
+						"Failed to deploy Codespace " + vo.getProjectDetails().getProjectName() + " with branch " + branch
+								+ " on " + environment + " triggered by " + userId,
+						true, teamMembersList, teamMembersEmailList, null);
+				
 				return new ResponseEntity<>(errorMessage, HttpStatus.BAD_REQUEST);
 			}
 		} else {
