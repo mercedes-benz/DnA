@@ -291,7 +291,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave, user}) => {
   };
   
   const filteredProjects = projectList.length === 0 ? null : projectList;
-  const isLeanIXDisabled = Boolean(selectedProject?.projectID);
+  const isLeanIXDisabled = Boolean(selectedProject?.projectID && selectedProject?.leanIX?.trim());
   
   
   const handleProjectSearch = (searchTerm, showSpinner) => {
