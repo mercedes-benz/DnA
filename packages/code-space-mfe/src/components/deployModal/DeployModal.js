@@ -13,6 +13,9 @@ import { trackEvent, regionalDateAndTimeConversionSolution, buildGitRepoUrl } fr
 import Tags from 'dna-container/Tags';
 import Tooltip from '../../common/modules/uilab/js/src/tooltip';
 import IntMigrationModal, { needsIntMigration } from '../intMigrationModal/IntMigrationModal';
+import { Envs } from '../../Utility/envs';
+
+const isAutoDeploySettingsVisible = String(Envs.SHOW_AUTO_DEPLOY_SETTINGS).toLowerCase() !== 'false';
 
 const DeployModal = (props) => {
   const projectDetails = props.codeSpaceData?.projectDetails;
@@ -355,94 +358,98 @@ const DeployModal = (props) => {
                 </label>
               </div>
             )}
-            <div className={Styles.autoDeploySection}>
-              <div className={Styles.sectionTitle}>
-                Auto Deployment Settings
-                {!canManageAutoDeploy && <span className={Styles.nonOwnerNote}>(Read only)</span>}
-                <span className={Styles.autoDeployInfo}>
-                  <i className="icon mbc-icon info"></i>
-                  <span className={Styles.autoDeployTooltip}>
-                    Auto deployment is triggered exclusively by <strong>Push</strong> and{' '}
-                    <strong>Pull Request merge</strong> events on the branch selected for the
-                    staging or production environment.
-                    <br /><br />
-                    This feature is not available for repositories hosted outside GitHub Enterprise (GHE).
-                    <br /><br />
-                    <strong>Info:</strong> For private recipes linked to a single repository, auto deployment will
-                    also be enabled for the corresponding branches in other code spaces created from the same
-                    recipe. Since all such code spaces share the same repository, any commit or merge will trigger
-                    an automatic deployment for the specific code space that has auto deployment enabled for that
-                    branch. It is recommended to enable branch protection rules on the selected branches.
+            {isAutoDeploySettingsVisible && (
+              <div className={Styles.autoDeploySection}>
+                <div className={Styles.sectionTitle}>
+                  Auto Deployment Settings
+                  {!canManageAutoDeploy && <span className={Styles.nonOwnerNote}>(Read only)</span>}
+                  <span className={Styles.autoDeployInfo}>
+                    <i className="icon mbc-icon info"></i>
+                    <span className={Styles.autoDeployTooltip}>
+                      Auto deployment is triggered exclusively by <strong>Push</strong> and{' '}
+                      <strong>Pull Request merge</strong> events on the branch selected for the
+                      staging or production environment.
+                      <br /><br />
+                      This feature is not available for repositories hosted outside GitHub Enterprise (GHE).
+                      <br /><br />
+                      <strong>Info:</strong> For private recipes linked to a single repository, auto deployment will
+                      also be enabled for the corresponding branches in other code spaces created from the same
+                      recipe. Since all such code spaces share the same repository, any commit or merge will trigger
+                      an automatic deployment for the specific code space that has auto deployment enabled for that
+                      branch. It is recommended to enable branch protection rules on the selected branches.
+                    </span>
                   </span>
-                </span>
+                </div>
+                <label className="checkbox">
+                  <span className="wrapper">
+                    <input
+                      type="checkbox"
+                      className="ff-only"
+                      checked={autoDeployEnabled}
+                      onChange={(e) => setAutoDeployEnabled(e.target.checked)}
+                      disabled={!canManageAutoDeploy}
+                    />
+                  </span>
+                  <span className="label">Enable Auto Deployment</span>
+                </label>
+                {autoDeployEnabled && (
+                  <div className={`${Styles.branchSelectors}${!canManageAutoDeploy ? ` ${Styles.disabledSection}` : ''}`}>
+                    <div>
+                      <Tags
+                        title={'Staging Branch'}
+                        max={1}
+                        chips={stagingBranchValue}
+                        placeholder={'Type here...'}
+                        tags={branches}
+                        setTags={(val) => { setStagingBranchValue(val); setIsStagingBranchMissing(false); }}
+                        isMandatory={true}
+                        showMissingEntryError={isStagingBranchMissing}
+                        showAllTagsOnFocus={true}
+                        disableSelfTagAdd={true}
+                        suggestionPopupHeight={150}
+                      />
+                    </div>
+                    <div>
+                      <Tags
+                        title={'Production Branch'}
+                        max={1}
+                        chips={prodBranchValue}
+                        placeholder={'Type here...'}
+                        tags={branches}
+                        setTags={(val) => { setProdBranchValue(val); setIsProdBranchMissing(false); }}
+                        isMandatory={true}
+                        showMissingEntryError={isProdBranchMissing}
+                        showAllTagsOnFocus={true}
+                        disableSelfTagAdd={true}
+                        suggestionPopupHeight={150}
+                      />
+                    </div>
+                  </div>
+                )}
+                {autoDeployEnabled && (
+                  <div className={Styles.autoDeployNote}>
+                    <i className="icon mbc-icon alert circle"></i>
+                    <span>
+                      <strong>Note:</strong> It is strongly recommended to enable <strong>branch protection rules</strong> on the selected branch to prevent unintentional deployments.
+                      <br />
+                      Any commit or merge to the selected branch will trigger an automatic deployment.
+                    </span>
+                  </div>
+                )}
               </div>
-              <label className="checkbox">
-                <span className="wrapper">
-                  <input
-                    type="checkbox"
-                    className="ff-only"
-                    checked={autoDeployEnabled}
-                    onChange={(e) => setAutoDeployEnabled(e.target.checked)}
-                    disabled={!canManageAutoDeploy}
-                  />
-                </span>
-                <span className="label">Enable Auto Deployment</span>
-              </label>
-              {autoDeployEnabled && (
-                <div className={`${Styles.branchSelectors}${!canManageAutoDeploy ? ` ${Styles.disabledSection}` : ''}`}>
-                  <div>
-                    <Tags
-                      title={'Staging Branch'}
-                      max={1}
-                      chips={stagingBranchValue}
-                      placeholder={'Type here...'}
-                      tags={branches}
-                      setTags={(val) => { setStagingBranchValue(val); setIsStagingBranchMissing(false); }}
-                      isMandatory={true}
-                      showMissingEntryError={isStagingBranchMissing}
-                      showAllTagsOnFocus={true}
-                      disableSelfTagAdd={true}
-                      suggestionPopupHeight={150}
-                    />
-                  </div>
-                  <div>
-                    <Tags
-                      title={'Production Branch'}
-                      max={1}
-                      chips={prodBranchValue}
-                      placeholder={'Type here...'}
-                      tags={branches}
-                      setTags={(val) => { setProdBranchValue(val); setIsProdBranchMissing(false); }}
-                      isMandatory={true}
-                      showMissingEntryError={isProdBranchMissing}
-                      showAllTagsOnFocus={true}
-                      disableSelfTagAdd={true}
-                      suggestionPopupHeight={150}
-                    />
-                  </div>
-                </div>
-              )}
-              {autoDeployEnabled && (
-                <div className={Styles.autoDeployNote}>
-                  <i className="icon mbc-icon alert circle"></i>
-                  <span>
-                    <strong>Note:</strong> It is strongly recommended to enable <strong>branch protection rules</strong> on the selected branch to prevent unintentional deployments.
-                    <br />
-                    Any commit or merge to the selected branch will trigger an automatic deployment.
-                  </span>
-                </div>
-              )}
-            </div>
+            )}
             <div className={Styles.modalFooter}>
               <div className={Styles.footerLeft}>
-                <button
-                  className="btn btn-tertiary"
-                  type="button"
-                  onClick={onUpdateAutoDeploySettings}
-                  disabled={!canManageAutoDeploy}
-                >
-                  Update Auto Deploy Settings
-                </button>
+                {isAutoDeploySettingsVisible && (
+                  <button
+                    className="btn btn-tertiary"
+                    type="button"
+                    onClick={onUpdateAutoDeploySettings}
+                    disabled={!canManageAutoDeploy}
+                  >
+                    Update Auto Deploy Settings
+                  </button>
+                )}
               </div>
               <div className={Styles.footerRight}>
                 <button
