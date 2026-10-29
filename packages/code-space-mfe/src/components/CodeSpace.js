@@ -471,6 +471,17 @@ const CodeSpace = (props) => {
     }
   };
 
+  const refreshCodeSpaceData = () => {
+    CodeSpaceApiClient.getCodeSpaceStatus(id)
+      .then((res) => {
+        setCodeSpaceData({
+          ...res.data,
+          running: !!res.data.intiatedOn,
+        });
+      })
+      .catch(() => {});
+  };
+
   const handleIntMigrationOk = () => {
     const projectName = codeSpaceData?.projectDetails?.projectName;
     if (projectName) {
@@ -1247,6 +1258,7 @@ const CodeSpace = (props) => {
           startDeployLivelinessCheck={enableDeployLivelinessCheck}
           setCodeDeploying={setCodeDeploying}
           setIsApiCallTakeTime={setIsApiCallTakeTime}
+          onAutoDeploySettingsUpdated={refreshCodeSpaceData}
         />
       )}
 
