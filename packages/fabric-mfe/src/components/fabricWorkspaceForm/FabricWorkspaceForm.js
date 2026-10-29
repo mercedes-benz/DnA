@@ -1,5 +1,5 @@
 import classNames from 'classnames';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useForm, FormProvider, Controller } from 'react-hook-form';
 import { useHistory } from "react-router-dom";
 // styles
@@ -93,6 +93,24 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave, user}) => {
   const [selectedLeanIX, setSelectedLeanIX] = useState(
     edit && workspace?.appId ? { id: workspace?.appId, ...workspace?.leanIXDetails } : []
   );
+  const selectedProjectIdRef = useRef(edit ? workspace?.projectId : undefined);
+
+  // Mirrors the backend: the project's LeanIX resolved via PlanningIT, else the raw value
+  const applyProjectLeanIX = (project) => {
+    const leanIX = project?.leanIX?.trim();
+    if (!leanIX || selectedProjectIdRef.current !== project.projectID) return;
+    const applyIfStillSelected = (item) => {
+      if (selectedProjectIdRef.current === project.projectID) setSelectedLeanIX(item);
+    };
+    fabricApi
+      .getLeanIX(leanIX)
+      .then((res) => {
+        const items = res.data?.data || [];
+        const match = items.find((item) => item?.id?.toLowerCase() === leanIX.toLowerCase()) || items[0];
+        applyIfStillSelected(match || { id: leanIX });
+      })
+      .catch(() => applyIfStillSelected({ id: leanIX }));
+  };
 
   useEffect(() => {
     ProgressIndicator.show();
@@ -128,6 +146,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave, user}) => {
         );
         if (match) {
           setSelectedProject((prev) => (prev?.projectID === workspace.projectId ? match : prev));
+          applyProjectLeanIX(match);
         }
       })
       .catch(() => {})
@@ -291,7 +310,10 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave, user}) => {
   };
   
   const filteredProjects = projectList.length === 0 ? null : projectList;
-  const isLeanIXDisabled = Boolean(selectedProject?.projectID && selectedProject?.leanIX?.trim());
+  // A project known only by ID (edit mode, lookup pending or not found) keeps LeanIX locked, as the backend may still apply its LeanIX
+  const isLeanIXDisabled = Boolean(
+    selectedProject?.projectID && (selectedProject?.leanIX?.trim() || !selectedProject?.projectName),
+  );
   
   
   const handleProjectSearch = (searchTerm, showSpinner) => {
@@ -489,6 +511,8 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave, user}) => {
                       setSelected={(selectedProject) => {
                         setSelectedProject(selectedProject || {});
                         field.onChange(selectedProject?.projectID || '');
+                        selectedProjectIdRef.current = selectedProject?.projectID;
+                        applyProjectLeanIX(selectedProject);
                       }}
                       onInputChange={(value, showSpinner) =>
                         handleProjectSearch(value, showSpinner, selectedDivision)
