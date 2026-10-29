@@ -291,7 +291,10 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave, user}) => {
   };
   
   const filteredProjects = projectList.length === 0 ? null : projectList;
-  const isLeanIXDisabled = Boolean(selectedProject?.projectID && selectedProject?.leanIX?.trim());
+  // A project known only by ID (edit mode, lookup pending or not found) keeps LeanIX locked, as the backend may still apply its LeanIX
+  const isLeanIXDisabled = Boolean(
+    selectedProject?.projectID && (selectedProject?.leanIX?.trim() || !selectedProject?.projectName),
+  );
   
   
   const handleProjectSearch = (searchTerm, showSpinner) => {
