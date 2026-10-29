@@ -644,6 +644,6 @@ export const CodeSpaceApiClient = {
     deleteCodeSpaceGroup,
     getExistingRoles,
     getResourceCapExemptions,
-    updateResourceCapExemption,,
+    updateResourceCapExemption,
     addWebhook,
 };
