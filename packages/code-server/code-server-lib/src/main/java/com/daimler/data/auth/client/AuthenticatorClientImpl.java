@@ -203,9 +203,6 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 
 	@Value("${kong.functionPluginsFolderPath}")
 	private String functionPluginsFolderPath;
-
-	@Value("${kong.scopedCookiePathFromDate:}")
-	private String scopedCookiePathFromDate;
 	
 	@Value("${kong.preFunctionFrontendFileName}")
 	private String preFunctionFrontendFileName;
@@ -1137,7 +1134,7 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 									AttachFunctionPluginRequestVO postFunctionRequestVO = null;
 									try {
 										String cookiePath = null;
-										if (isScopedCookiePathEnabled(workspaceNsql)) {
+										if (isScopedCookiePathEnabled(workspaceNsql, env)) {
 											cookiePath = env != null ? "/" + serviceName.toLowerCase() + "/" + env : "/" + serviceName.toLowerCase();
 										}
 										postFunctionRequestVO = buildPostFunctionPluginRequest(gitDetails, kongServiceName, secureWithDna, isAliceRoleEnabled, isEntitlementPrefixEnabled, selectedAliceRoles, cookiePath);
@@ -1258,21 +1255,11 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 		LOGGER.info("kongCall {} for {} took {}ms", operation, kongServiceName, System.currentTimeMillis() - startMillis);
 	}
 
-	private boolean isScopedCookiePathEnabled(CodeServerWorkspaceNsql workspaceNsql) {
-		if (scopedCookiePathFromDate == null || scopedCookiePathFromDate.isBlank()) {
-			return false;
-		}
-		Date projectCreatedOn = workspaceNsql.getData().getProjectDetails().getProjectCreatedOn();
-		if (projectCreatedOn == null) {
-			return false;
-		}
-		try {
-			LocalDate fromDate = LocalDate.parse(scopedCookiePathFromDate.trim());
-			return !projectCreatedOn.toInstant().isBefore(fromDate.atStartOfDay(ZoneOffset.UTC).toInstant());
-		} catch (DateTimeParseException e) {
-			LOGGER.error("Invalid kong.scopedCookiePathFromDate value {}, expected yyyy-MM-dd", scopedCookiePathFromDate, e);
-			return false;
-		}
+	private boolean isScopedCookiePathEnabled(CodeServerWorkspaceNsql workspaceNsql, String env) {
+		CodeServerDeploymentDetails deploymentDetails = "prod".equalsIgnoreCase(env)
+				? workspaceNsql.getData().getProjectDetails().getProdDeploymentDetails()
+				: workspaceNsql.getData().getProjectDetails().getIntDeploymentDetails();
+		return deploymentDetails != null && Boolean.TRUE.equals(deploymentDetails.getScopedCookiePath());
 	}
 
 	private void addKongError(GenericMessage kongResponse, String message) {

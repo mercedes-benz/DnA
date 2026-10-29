@@ -482,6 +482,7 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 					" \"aliceRoleEnabled\": " + deploymentDetails.getAliceRoleEnabled() + "," +
 					" \"entitlementPrefixEnabled\": " + deploymentDetails.getEntitlementPrefixEnabled() + "," +
 					" \"selectedAliceRoles\": " + selectedAliceRolesJson + "," +
+					" \"scopedCookiePath\": " + deploymentDetails.getScopedCookiePath() + "," +
 					" \"lastDeployedVersion\": " + addQuotes(deploymentDetails.getLastDeployedVersion()) + "," +
 					// " \"lastDeploymentStatus\": " + addQuotes(deploymentDetails.getLastDeploymentStatus()) +"}'),\r\n" +
 					" \"lastDeploymentStatus\": " + addQuotes(deploymentDetails.getLastDeploymentStatus()) + "," +
@@ -843,6 +844,32 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 			log.error("failed to update deployed app config for project {} and environment {} ", projectName,
 					environment);
 		}
+		return updateResponse;
+	}
+
+		@Override
+	public GenericMessage updateScopedCookiePath(String projectName, String environment, Boolean scopedCookiePath) {
+		GenericMessage updateResponse = new GenericMessage();
+		updateResponse.setSuccess("FAILED");
+		List<MessageDescription> errors = new ArrayList<>();
+		String envString = "int".equalsIgnoreCase(environment) ? "intDeploymentDetails" : "prodDeploymentDetails";
+		String updateQuery = "update workspace_nsql set data = jsonb_set(data, '{projectDetails," + envString
+				+ ",scopedCookiePath}', '" + Boolean.TRUE.equals(scopedCookiePath) + "')"
+				+ " where lower(data->'projectDetails'->>'projectName') = lower(:projectName)";
+		try {
+			Query q = em.createNativeQuery(updateQuery);
+			q.setParameter("projectName", projectName);
+			q.executeUpdate();
+			updateResponse.setSuccess("SUCCESS");
+			log.info("scopedCookiePath set to {} for project {} environment {}", scopedCookiePath, projectName,
+					environment);
+		} catch (Exception e) {
+			errors.add(new MessageDescription("Failed while updating scopedCookiePath."));
+			log.error("failed to update scopedCookiePath for project {} and environment {}", projectName, environment,
+					e);
+		}
+		updateResponse.setErrors(errors);
+		updateResponse.setWarnings(new ArrayList<>());
 		return updateResponse;
 	}
 

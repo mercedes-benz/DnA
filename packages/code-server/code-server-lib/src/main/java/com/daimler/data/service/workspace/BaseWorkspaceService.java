@@ -2182,6 +2182,10 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 						 deploymentDetails = entity.getData().getProjectDetails().getProdDeploymentDetails();
 					 }
 			 String lastBuildOrDeployStatus = "";
+			 			 if (deploymentDetails.getLastDeployedOn() == null && !Boolean.TRUE.equals(deploymentDetails.getScopedCookiePath())) {
+				 deploymentDetails.setScopedCookiePath(true);
+				 workspaceCustomRepository.updateScopedCookiePath(projectName, environment, true);
+			 }
 			 String kongSetupError = null;
 			 boolean isApiRecipe = deploymentDetails.getDeploymentType() == ConstantsUtility.UI ? false : true;
 			 boolean secureWithIAMRequired = (deploymentDetails.getSecureWithIAMRequired() != null) ? deploymentDetails.getSecureWithIAMRequired() : false;
