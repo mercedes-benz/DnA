@@ -1959,7 +1959,9 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 			details.setProviderOrgDeptid(matched.getProviderOrgDeptid());
 			workspace.setLeanIXDetails(details);
 		} else {
-			log.warn("No PlanningIT entry found for leanIX id {}", leanIXId);
+			log.warn("No PlanningIT entry found for leanIX id {}, using project leanIX as appId", leanIXId);
+			workspace.setAppId(leanIXId.trim());
+			workspace.setLeanIXDetails(null);
 		}
 	}
 
