@@ -1206,6 +1206,7 @@ const AllCodeSpaces = (props) => {
                     // }
                     setShowCodeDeployModal={(isVisible) => setShowDeployCodeSpaceModal(isVisible)}
                     setCodeDeploying={() => handleDeploymentStatusUpdate(onDeployCodeSpace?.id)}
+                    onAutoDeploySettingsUpdated={() => { getCodeSpacesData(); getCodeSpaceGroupsData(); }}
                     setIsApiCallTakeTime={setIsApiCallTakeTime}
                     startDeploymentStatusListener={startListening}
                     onDeploymentStatusUpdate={(data) => handleDeploymentStatusUpdate(onDeployCodeSpace?.id, data)}

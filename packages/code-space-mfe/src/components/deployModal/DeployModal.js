@@ -13,16 +13,33 @@ import { trackEvent, regionalDateAndTimeConversionSolution, buildGitRepoUrl } fr
 import Tags from 'dna-container/Tags';
 import Tooltip from '../../common/modules/uilab/js/src/tooltip';
 import IntMigrationModal, { needsIntMigration } from '../intMigrationModal/IntMigrationModal';
+import { Envs } from '../../Utility/envs';
+
+const isAutoDeploySettingsVisible = String(Envs.SHOW_AUTO_DEPLOY_SETTINGS).toLowerCase() !== 'false';
 
 const DeployModal = (props) => {
+  const projectDetails = props.codeSpaceData?.projectDetails;
+  const currentUserId = props.userInfo?.id;
+  const isOwner = projectDetails?.projectOwner?.id?.toLowerCase() === currentUserId?.toLowerCase();
+  const isGitRepo = projectDetails?.gitRepoName?.startsWith('https://github.com/') ?? true;
+  const canManageAutoDeploy = isOwner && !isGitRepo;
+
   const [branches, setBranches] = useState([]);
   const [branchValue, setBranchValue] = useState(['main']);
   const [isBranchValueMissing, setIsBranchValueMissing] = useState(false);
   const [deployEnvironment, setDeployEnvironment] = useState('staging');
   const [acceptContinueCodingOnDeployment, setAcceptContinueCodingOnDeployment] = useState(true);
-  const projectDetails = props.codeSpaceData?.projectDetails;
   const [retainBuildImage, setRetainBuildImage] = useState(false);
   const [showIntMigrationModal, setShowIntMigrationModal] = useState(false);
+  const [autoDeployEnabled, setAutoDeployEnabled] = useState(props.codeSpaceData?.autoDeploy || false);
+  const [isStagingBranchMissing, setIsStagingBranchMissing] = useState(false);
+  const [isProdBranchMissing, setIsProdBranchMissing] = useState(false);
+  const [stagingBranchValue, setStagingBranchValue] = useState(
+    projectDetails?.intAutoDeployBranchName ? [projectDetails.intAutoDeployBranchName] : []
+  );
+  const [prodBranchValue, setProdBranchValue] = useState(
+    projectDetails?.prodAutoDeployBranchName ? [projectDetails.prodAutoDeployBranchName] : []
+  );
 
   //details from build
   const version = props?.buildDetails?.version || '';
@@ -37,26 +54,30 @@ const DeployModal = (props) => {
     projectDetails?.intDeploymentDetails?.lastDeployedBranch?.length &&
       setBranchValue([projectDetails?.intDeploymentDetails?.lastDeployedBranch]);
     version?.length && setDeployEnvironment(buildEnvironment);
+    const isWorkspaceMigratedToGHE = props.codeSpaceData?.isWorkspaceMigratedToGHE;
+    const repoUrl = buildGitRepoUrl(projectDetails?.gitRepoName, isWorkspaceMigratedToGHE);
     if (!version?.length) {
       ProgressIndicator.show();
-      const isWorkspaceMigratedToGHE = props.codeSpaceData?.isWorkspaceMigratedToGHE;
-      const repoUrl = buildGitRepoUrl(projectDetails?.gitRepoName, isWorkspaceMigratedToGHE);
-      CodeSpaceApiClient.getCodeSpacesGitBranchList(repoUrl)
-        .then((res) => {
+    }
+    CodeSpaceApiClient.getCodeSpacesGitBranchList(repoUrl)
+      .then((res) => {
+        if (!version?.length) {
           ProgressIndicator.hide();
           props.setShowCodeDeployModal(true);
-          let branches = res?.data;
-          branches.forEach((element) => {
-            element.id = element.name;
-          });
-          setBranches(branches);
-          SelectBox.defaultSetup();
-        })
-        .catch((err) => {
+        }
+        let branchList = res?.data;
+        branchList.forEach((element) => {
+          element.id = element.name;
+        });
+        setBranches(branchList);
+        SelectBox.defaultSetup();
+      })
+      .catch((err) => {
+        if (!version?.length) {
           ProgressIndicator.hide();
           Notification.show('Error in getting code space branch list - ' + err.message, 'alert');
-        });
-    }
+        }
+      });
     // setVault();
     return Tooltip.clear();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -183,15 +204,58 @@ const DeployModal = (props) => {
     proceedWithDeployment();
   };
 
+  const onUpdateAutoDeploySettings = () => {
+    if (!canManageAutoDeploy) {
+      return;
+    }
+    if (autoDeployEnabled) {
+      const stagingMissing = stagingBranchValue.length === 0;
+      const prodMissing = prodBranchValue.length === 0;
+      setIsStagingBranchMissing(stagingMissing);
+      setIsProdBranchMissing(prodMissing);
+      if (stagingMissing || prodMissing) {
+        Notification.show('Please select both Staging and Prod branches for auto deployment.', 'alert');
+        return;
+      }
+      if (stagingBranchValue[0] === prodBranchValue[0]) {
+        Notification.show('Staging and Production branches must be different. Please select distinct branches.', 'alert');
+        return;
+      }
+    }
+    const webhookData = {
+      projectName: projectDetails?.projectName,
+      repoName: projectDetails?.gitRepoName,
+      intRepoName: stagingBranchValue[0] || '',
+      prodRepoName: prodBranchValue[0] || '',
+      webHookEnabled: autoDeployEnabled,
+    };
+    ProgressIndicator.show();
+    CodeSpaceApiClient.addWebhook(webhookData)
+      .then(() => {
+        ProgressIndicator.hide();
+        Notification.show('Auto deploy settings have been updated successfully.');
+        props.onAutoDeploySettingsUpdated?.();
+      })
+      .catch((err) => {
+        ProgressIndicator.hide();
+        const errors = err?.response?.data?.errors;
+        const errorMessage =
+          errors && errors.length
+            ? errors.map((error) => error?.message).filter(Boolean).join('\n')
+            : err.message;
+        Notification.show(
+          'Error in updating auto deploy settings. Please try again later.\n' + errorMessage,
+          'alert',
+        );
+      });
+  };
+
   return (
     <>
       <Modal
         title={`Deploy Code - ${props?.codeSpaceData?.projectDetails?.projectName || ''}`}
-        showAcceptButton={true}
-        acceptButtonTitle={'Deploy'}
-        cancelButtonTitle={'Cancel'}
-        onAccept={onAcceptCodeDeploy}
-        showCancelButton={true}
+        showAcceptButton={false}
+        showCancelButton={false}
         modalWidth="900px"
         buttonAlignment="center"
         show={true}
@@ -294,6 +358,116 @@ const DeployModal = (props) => {
                 </label>
               </div>
             )}
+            {isAutoDeploySettingsVisible && (
+              <div className={Styles.autoDeploySection}>
+                <div className={Styles.sectionTitle}>
+                  Auto Deployment Settings
+                  {!canManageAutoDeploy && <span className={Styles.nonOwnerNote}>(Read only)</span>}
+                  <span className={Styles.autoDeployInfo}>
+                    <i className="icon mbc-icon info"></i>
+                    <span className={Styles.autoDeployTooltip}>
+                      Auto deployment is triggered exclusively by <strong>Push</strong> and{' '}
+                      <strong>Pull Request merge</strong> events on the branch selected for the
+                      staging or production environment.
+                      <br /><br />
+                      This feature is not available for repositories hosted outside GitHub Enterprise (GHE).
+                      <br /><br />
+                      <strong>Info:</strong> For private recipes linked to a single repository, auto deployment will
+                      also be enabled for the corresponding branches in other code spaces created from the same
+                      recipe. Since all such code spaces share the same repository, any commit or merge will trigger
+                      an automatic deployment for the specific code space that has auto deployment enabled for that
+                      branch. It is recommended to enable branch protection rules on the selected branches.
+                    </span>
+                  </span>
+                </div>
+                <label className="checkbox">
+                  <span className="wrapper">
+                    <input
+                      type="checkbox"
+                      className="ff-only"
+                      checked={autoDeployEnabled}
+                      onChange={(e) => setAutoDeployEnabled(e.target.checked)}
+                      disabled={!canManageAutoDeploy}
+                    />
+                  </span>
+                  <span className="label">Enable Auto Deployment</span>
+                </label>
+                {autoDeployEnabled && (
+                  <div className={`${Styles.branchSelectors}${!canManageAutoDeploy ? ` ${Styles.disabledSection}` : ''}`}>
+                    <div>
+                      <Tags
+                        title={'Staging Branch'}
+                        max={1}
+                        chips={stagingBranchValue}
+                        placeholder={'Type here...'}
+                        tags={branches}
+                        setTags={(val) => { setStagingBranchValue(val); setIsStagingBranchMissing(false); }}
+                        isMandatory={true}
+                        showMissingEntryError={isStagingBranchMissing}
+                        showAllTagsOnFocus={true}
+                        disableSelfTagAdd={true}
+                        suggestionPopupHeight={150}
+                      />
+                    </div>
+                    <div>
+                      <Tags
+                        title={'Production Branch'}
+                        max={1}
+                        chips={prodBranchValue}
+                        placeholder={'Type here...'}
+                        tags={branches}
+                        setTags={(val) => { setProdBranchValue(val); setIsProdBranchMissing(false); }}
+                        isMandatory={true}
+                        showMissingEntryError={isProdBranchMissing}
+                        showAllTagsOnFocus={true}
+                        disableSelfTagAdd={true}
+                        suggestionPopupHeight={150}
+                      />
+                    </div>
+                  </div>
+                )}
+                {autoDeployEnabled && (
+                  <div className={Styles.autoDeployNote}>
+                    <i className="icon mbc-icon alert circle"></i>
+                    <span>
+                      <strong>Note:</strong> It is strongly recommended to enable <strong>branch protection rules</strong> on the selected branch to prevent unintentional deployments.
+                      <br />
+                      Any commit or merge to the selected branch will trigger an automatic deployment.
+                    </span>
+                  </div>
+                )}
+              </div>
+            )}
+            <div className={Styles.modalFooter}>
+              <div className={Styles.footerLeft}>
+                {isAutoDeploySettingsVisible && (
+                  <button
+                    className="btn btn-tertiary"
+                    type="button"
+                    onClick={onUpdateAutoDeploySettings}
+                    disabled={!canManageAutoDeploy}
+                  >
+                    Update Auto Deploy Settings
+                  </button>
+                )}
+              </div>
+              <div className={Styles.footerRight}>
+                <button
+                  className="btn btn-primary"
+                  type="button"
+                  onClick={() => props.setShowCodeDeployModal(false)}
+                >
+                  Cancel
+                </button>
+                <button
+                  className="btn btn-tertiary"
+                  type="button"
+                  onClick={onAcceptCodeDeploy}
+                >
+                  Deploy
+                </button>
+              </div>
+            </div>
           </div>
         }
         scrollableContent={false}
