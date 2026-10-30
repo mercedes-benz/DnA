@@ -53,6 +53,5 @@ public class GitOperationsController {
 				repoDetail, isWorkspaceMigratedToGHE, isWorkspaceMigratedToGHE ? "GHE" : "git.i");
 		GitBranchesCollectionDto branchesCollection = gitClient.getBranchesFromRepo(null, repoDetail, isWorkspaceMigratedToGHE);
 		return new ResponseEntity<>(branchesCollection,HttpStatus.OK);
-	}
-	
+	}   
 }

@@ -783,6 +783,7 @@ import com.daimler.data.dto.workspace.DeploymentAuditVO;
 						 UserInfoVO codespaceUser = this.toUserInfoVO(codespaceUserDetails);
 						 vo.setWorkspaceOwner(codespaceUser);
 					 }
+					 vo.setAutoDeploy(data.getAutoDeploy());
 					 CodeServerProjectDetails projectDetails = data.getProjectDetails();
 					 CodeServerProjectDetailsVO projectDetailsVO = new CodeServerProjectDetailsVO();
 					 if (projectDetails != null) {
@@ -853,6 +854,9 @@ import com.daimler.data.dto.workspace.DeploymentAuditVO;
 							 projectDetailsVO.setLastBuildOrDeployedOn(isoFormat.parse(isoFormat.format(projectDetails.getLastBuildOrDeployedOn())));
 						projectDetailsVO.setLastBuildOrDeployedEnv(projectDetails.getLastBuildOrDeployedEnv());
 						projectDetailsVO.setLastBuildOrDeployedStatus(projectDetails.getLastBuildOrDeployedStatus());
+						projectDetailsVO.setWebHookId(projectDetails.getWebHookId());
+						projectDetailsVO.setIntAutoDeployBranchName(projectDetails.getIntAutoDeployBranchName());
+						projectDetailsVO.setProdAutoDeployBranchName(projectDetails.getProdAutoDeployBranchName());
 					 }
 					 vo.setProjectDetails(projectDetailsVO);
 					 
@@ -967,6 +971,8 @@ import com.daimler.data.dto.workspace.DeploymentAuditVO;
 				// 	 projectDetails.setPublishedSecurityConfig(this.toSecurityConfig(codespacePublishSecurityConfigVo));
 				//  }
 				projectDetails.setRecipeName(projectDetailsVO.getRecipeName());
+				projectDetails.setIntAutoDeployBranchName(projectDetailsVO.getIntAutoDeployBranchName());
+				projectDetails.setProdAutoDeployBranchName(projectDetailsVO.getProdAutoDeployBranchName());
 				 data.setProjectDetails(projectDetails);
 				 entity.setData(data);
 			 }

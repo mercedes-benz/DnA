@@ -552,6 +552,10 @@ const deleteCodeSpaceGroup = (id) => {
     });
 };
 
+const addWebhook = (data) => {
+    return server.post(`workspaces/addWebhook`, data);
+};
+
 const getExistingRoles = (appId) => {
     return fabricServer.get(`fabric-workspaces/${appId}/dnaroles`, {
         data: {},
@@ -641,4 +645,5 @@ export const CodeSpaceApiClient = {
     getExistingRoles,
     getResourceCapExemptions,
     updateResourceCapExemption,
+    addWebhook,
 };

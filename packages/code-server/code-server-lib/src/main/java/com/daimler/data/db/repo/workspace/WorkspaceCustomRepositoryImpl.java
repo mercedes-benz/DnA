@@ -29,6 +29,7 @@ package com.daimler.data.db.repo.workspace;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -38,6 +39,7 @@ import javax.persistence.Query;
 import javax.persistence.TypedQuery;
 import javax.persistence.criteria.CriteriaBuilder;
 import javax.persistence.criteria.CriteriaQuery;
+import javax.persistence.criteria.Expression;
 import javax.persistence.criteria.Predicate;
 import javax.persistence.criteria.Root;
 import org.springframework.stereotype.Repository;
@@ -211,6 +213,84 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 		List<CodeServerWorkspaceNsql> entities = byNameQuery.getResultList();
 		if (entities != null && entities.size() > 0)
 			return entities.get(0);
+		else
+			return null;
+	}
+
+	@Override
+	public List<CodeServerWorkspaceNsql> findAllByRepoName(String repoName) {
+		String normalizedRepoName = normalizeRepoName(repoName);
+		String rawRepoName = repoName.trim().toLowerCase();
+
+		List<CodeServerWorkspaceNsql> exactResults = findByRepoName(rawRepoName, normalizedRepoName, false);
+		if (!exactResults.isEmpty()) {
+			return exactResults;
+		}
+
+		return findByRepoName(rawRepoName, normalizedRepoName, true);
+	}
+
+	private List<CodeServerWorkspaceNsql> findByRepoName(String rawRepoName, String normalizedRepoName, boolean useContains) {
+		CriteriaBuilder cb = em.getCriteriaBuilder();
+		CriteriaQuery<CodeServerWorkspaceNsql> cq = cb.createQuery(CodeServerWorkspaceNsql.class);
+		Root<CodeServerWorkspaceNsql> root = cq.from(entityClass);
+		CriteriaQuery<CodeServerWorkspaceNsql> byName = cq.select(root);
+
+		Expression<String> storedRepoName = cb.function(
+				"jsonb_extract_path_text", String.class, root.get("data"),
+				cb.literal("projectDetails"), cb.literal("gitRepoName"));
+
+		// strip everything up to the last '/' then strip a trailing '.git'
+		Expression<String> strippedPath = cb.function(
+				"regexp_replace", String.class, storedRepoName,
+				cb.literal("^.*/"), cb.literal(""));
+		Expression<String> normalizedStoredRepoName = cb.lower(cb.function(
+				"regexp_replace", String.class, strippedPath,
+				cb.literal("\\.git$"), cb.literal("")));
+
+		Expression<String> lowerRawRepoName = cb.lower(storedRepoName);
+
+		Predicate con1;
+		if (useContains) {
+			con1 = cb.or(
+					cb.like(lowerRawRepoName, "%" + rawRepoName + "%"),
+					cb.like(normalizedStoredRepoName, "%" + normalizedRepoName + "%"));
+		} else {
+			con1 = cb.or(
+					cb.equal(lowerRawRepoName, rawRepoName),
+					cb.equal(normalizedStoredRepoName, normalizedRepoName));
+		}
+
+		Predicate con3 = cb.notEqual(cb.lower(
+				cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("status"))),
+				"DELETED".toLowerCase());
+
+		Predicate pMain = cb.and(con1, con3);
+		cq.where(pMain);
+
+		TypedQuery<CodeServerWorkspaceNsql> byNameQuery = em.createQuery(byName);
+		List<CodeServerWorkspaceNsql> entities = byNameQuery.getResultList();
+		return entities != null ? entities : new ArrayList<>();
+	}
+
+	@Override 
+	public List<CodeServerWorkspaceNsql> findAllByWebhookId(String webhookId){
+		CriteriaBuilder cb = em.getCriteriaBuilder();
+		CriteriaQuery<CodeServerWorkspaceNsql> cq = cb.createQuery(CodeServerWorkspaceNsql.class);
+		Root<CodeServerWorkspaceNsql> root = cq.from(entityClass);
+		CriteriaQuery<CodeServerWorkspaceNsql> byName = cq.select(root);
+		Predicate con1 = cb.equal(cb.lower(
+				cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("projectDetails"), cb.literal("webHookId"))),
+				webhookId.toLowerCase());
+		Predicate con3 = cb.notEqual(cb.lower(
+				cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("status"))),
+				"DELETED".toLowerCase());
+		Predicate pMain = cb.and(con1, con3);
+		cq.where(pMain);
+		TypedQuery<CodeServerWorkspaceNsql> byNameQuery = em.createQuery(byName);
+		List<CodeServerWorkspaceNsql> entities = byNameQuery.getResultList();
+		if (entities != null && entities.size() > 0)
+			return entities;
 		else
 			return null;
 	}
@@ -1696,6 +1776,47 @@ public class WorkspaceCustomRepositoryImpl extends CommonDataRepositoryImpl<Code
 			log.error("Failed while updating {} for project {} with exception", flagName, projectName, e);
 		}
 		return updateResponse;
+	}
+
+	@Override
+	public List<CodeServerWorkspaceNsql> findAllbyProjectName(String projectName) {
+		CriteriaBuilder cb = em.getCriteriaBuilder();
+		CriteriaQuery<CodeServerWorkspaceNsql> cq = cb.createQuery(CodeServerWorkspaceNsql.class);
+		Root<CodeServerWorkspaceNsql> root = cq.from(entityClass);
+		CriteriaQuery<CodeServerWorkspaceNsql> byName = cq.select(root);
+		Predicate con1 = cb.equal(cb.lower(
+				cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("projectDetails"), cb.literal("projectName"))),
+				projectName.toLowerCase());
+		Predicate con3 = cb.notEqual(cb.lower(
+				cb.function("jsonb_extract_path_text", String.class, root.get("data"), cb.literal("status"))),
+				"DELETED".toLowerCase());
+		Predicate pMain = cb.and(con1, con3);
+		cq.where(pMain);
+		TypedQuery<CodeServerWorkspaceNsql> byNameQuery = em.createQuery(byName);
+		List<CodeServerWorkspaceNsql> entities = byNameQuery.getResultList();
+		if (entities != null && entities.size() > 0)
+			return entities;
+		else
+			return Collections.emptyList();
+	}
+
+	private String normalizeRepoName(String value) {
+	    if (value == null) {
+	        return null;
+	    }
+
+	    String normalized = value.trim().toLowerCase();
+	    int slash = normalized.lastIndexOf('/');
+
+	    if (slash >= 0) {
+	        normalized = normalized.substring(slash + 1);
+	    }
+
+	    if (normalized.endsWith(".git")) {
+	        normalized = normalized.substring(0, normalized.length() - 4);
+	    }
+
+	    return normalized;
 	}
 
 }
