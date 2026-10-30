@@ -1959,7 +1959,9 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 			details.setProviderOrgDeptid(matched.getProviderOrgDeptid());
 			workspace.setLeanIXDetails(details);
 		} else {
-			log.warn("No PlanningIT entry found for leanIX id {}", leanIXId);
+			log.warn("No PlanningIT entry found for leanIX id {}, using project leanIX as appId", leanIXId);
+			workspace.setAppId(leanIXId.trim());
+			workspace.setLeanIXDetails(null);
 		}
 	}
 
@@ -2759,8 +2761,10 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		try {
 			log.info("Initiating ADA project search in repository. Search term='{}'", projectName);
 			List<ADAProjectsNsql> entities = adaProjectsRepo.searchProjectsByName(projectName);
+			Date today = getStartOfToday();
 
 			List<ADAProjectDetailsVO> projects = entities.stream()
+					.filter(entity -> isProjectActiveOn(entity, today))
 					.map(adaProjectsAssemblerssembler::toVo)
 					.collect(Collectors.toList());
 
@@ -2777,6 +2781,28 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 
 		collection.responses(message);
 		return collection;
+	}
+
+	private boolean isProjectActiveOn(ADAProjectsNsql entity, Date today) {
+		if (entity == null || entity.getData() == null) {
+			return false;
+		}
+		Date inactiveDate = entity.getData().getInactiveDate();
+		return inactiveDate == null || truncateToStartOfDay(inactiveDate).after(today);
+	}
+
+	private Date getStartOfToday() {
+		return truncateToStartOfDay(new Date());
+	}
+
+	private Date truncateToStartOfDay(Date date) {
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTime(date);
+		calendar.set(Calendar.HOUR_OF_DAY, 0);
+		calendar.set(Calendar.MINUTE, 0);
+		calendar.set(Calendar.SECOND, 0);
+		calendar.set(Calendar.MILLISECOND, 0);
+		return calendar.getTime();
 	}
 
 	@Override
