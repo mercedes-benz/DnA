@@ -1,3 +1,4 @@
+import axios from 'axios';
 import { server, hostServer, reportsServer, storageServer, fabricServer, baseURL, readJwt} from '../server/api';
 import { EventSourcePolyfill } from 'event-source-polyfill';
 import { Envs } from '../Utility/envs';
@@ -564,6 +565,19 @@ const getExistingRoles = (appId) => {
     });
 };
 
+const submitHarborDashboardRequest = (payload) => {
+    return axios.post(
+        Envs.HARBOR_DASHBOARD_API_URL,
+        payload,
+        {
+            headers: {
+                'Content-Type': 'application/json',
+                'api-key': Envs.HARBOR_DASHBOARD_API_KEY,
+            },
+        },
+    );
+};
+
 export const CodeSpaceApiClient = {
     getCodeSpacesList,
     createCodeSpace,
@@ -641,4 +655,5 @@ export const CodeSpaceApiClient = {
     getExistingRoles,
     getResourceCapExemptions,
     updateResourceCapExemption,
+    submitHarborDashboardRequest,
 };
