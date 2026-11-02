@@ -2250,7 +2250,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 				responseMessage = this.buildWorkSpace(userId, id, branch, buildRequestDto, isprivateRecipe, environment,lastBuildType);
 				if(responseMessage.getSuccess().equalsIgnoreCase("SUCCESS")){
 					if(deploymentDetails.getDeploymentUrl() == null || deploymentDetails.getDeploymentUrl().isEmpty()){
-						authenticatorClient.callingKongApis(workspaceId, projectName, environment, isApiRecipe, deploymentDetails.getClientId(), "", deploymentDetails.getRedirectUri(), deploymentDetails.getIgnorePaths(), deploymentDetails.getScope(), deploymentDetails.getOneApiVersionShortName(), isSecuredWithCookie, secureWithIAMRequired, deploymentDetails.getSsoType(), secureWithDnaRequired, false, false, deploymentDetails.getSelectedAliceRoles(), cloudServiceProvider);
+						authenticatorClient.callingKongApis(workspaceId, projectName, environment, isApiRecipe, deploymentDetails.getClientId(), "", deploymentDetails.getRedirectUri(), deploymentDetails.getIgnorePaths(), deploymentDetails.getScope(), deploymentDetails.getOneApiVersionShortName(), isSecuredWithCookie, secureWithIAMRequired, deploymentDetails.getSsoType(), secureWithDnaRequired, false, false, deploymentDetails.getSelectedAliceRoles(), cloudServiceProvider, true);
 						try {
 							createOpenTelemetryPlugin(workspaceId, environment, projectName.toLowerCase() + "-" + environment.toLowerCase());
 						} catch (Exception otelEx) {
@@ -2460,7 +2460,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 				 String kongServiceName = projectName.toLowerCase() + "-" + environment.toLowerCase();
 				 if (!authenticatorClient.isKongServiceAndRouteAvailable(kongServiceName, cloudServiceProvider)) {
 					 log.info("Kong service/route {} missing, creating it for deployment of project {}", kongServiceName, projectName);
-					 authenticatorClient.callingKongApis(workspaceId, projectName, environment, isApiRecipe, deploymentDetails.getClientId(), "", deploymentDetails.getRedirectUri(), deploymentDetails.getIgnorePaths(), deploymentDetails.getScope(), deploymentDetails.getOneApiVersionShortName(), isSecuredWithCookie, secureWithIAMRequired, deploymentDetails.getSsoType(), secureWithDnaRequired, false, false, deploymentDetails.getSelectedAliceRoles(), cloudServiceProvider);
+					 authenticatorClient.callingKongApis(workspaceId, projectName, environment, isApiRecipe, deploymentDetails.getClientId(), "", deploymentDetails.getRedirectUri(), deploymentDetails.getIgnorePaths(), deploymentDetails.getScope(), deploymentDetails.getOneApiVersionShortName(), isSecuredWithCookie, secureWithIAMRequired, deploymentDetails.getSsoType(), secureWithDnaRequired, false, false, deploymentDetails.getSelectedAliceRoles(), cloudServiceProvider, true);
 					 try {
 						 createOpenTelemetryPlugin(workspaceId, environment, kongServiceName);
 					 } catch (Exception otelEx) {
@@ -2710,6 +2710,10 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 					 deploymentDetails = entity.getData().getProjectDetails().getProdDeploymentDetails();
 					 configPublishedAppId = entity.getData().getProjectDetails().getSecurityConfig().getProduction().getPublished().getAppID();
 				 }
+				 String cloudServiceProvider = ConstantsUtility.DHC_CAAS;
+				 if(Objects.nonNull(deploymentDetails) && Objects.nonNull(deploymentDetails.getDeploymentUrl()) && deploymentDetails.getDeploymentUrl().contains(codeServerBaseUriAws)){
+					 cloudServiceProvider = ConstantsUtility.DHC_CAAS_AWS;
+				 }
 				 if("oidc".equalsIgnoreCase(pluginName) && !Boolean.TRUE.equals(deploymentDetails.getSecureWithIAMRequired() || deploymentDetails.getSecureWithDnaRequired())){
 					 MessageDescription error = new MessageDescription();
 					 error.setMessage("No OIDC plugin found. Please secure with IAM first.");
@@ -2730,14 +2734,14 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 				 }
 				 if("oidc".equalsIgnoreCase(pluginName)){
 					if(!enable && Objects.nonNull(configPublishedAppId)){
-						authenticatorClient.changePluginStatus(projectName.toLowerCase()+"-"+environment, "oidc", enable);
-						authenticatorClient.changePluginStatus(projectName.toLowerCase()+"-"+environment, "apiauthoriser", enable);
+						authenticatorClient.changePluginStatus(projectName.toLowerCase()+"-"+environment, "oidc", enable, cloudServiceProvider);
+						authenticatorClient.changePluginStatus(projectName.toLowerCase()+"-"+environment, "apiauthoriser", enable, cloudServiceProvider);
 				 	} else {
-						authenticatorClient.changePluginStatus(projectName.toLowerCase()+"-"+environment, "oidc", enable);
+						authenticatorClient.changePluginStatus(projectName.toLowerCase()+"-"+environment, "oidc", enable, cloudServiceProvider);
 					}
 				 }
 				 if("apiauthoriser".equalsIgnoreCase(pluginName)){
-					 authenticatorClient.changePluginStatus(projectName.toLowerCase()+"-"+environment, "apiauthoriser", enable);
+					 authenticatorClient.changePluginStatus(projectName.toLowerCase()+"-"+environment, "apiauthoriser", enable, cloudServiceProvider);
 				 }
 				 status = "SUCCESS";
 			 }
