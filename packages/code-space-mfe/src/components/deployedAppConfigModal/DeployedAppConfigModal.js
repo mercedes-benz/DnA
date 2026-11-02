@@ -46,6 +46,7 @@ const DeployedAppConfigModal = (props) => {
   const [redirectUri, setRedirectUri] = useState('');
   const [scope, setScope] = useState(['openid', 'offline_access']);
   const [pluginEnabled, setPluginEnabled] = useState(false);
+  const [configChanged, setConfigChanged] = useState(false);
   const [showEnablePluginWarning, setShowEnablePluginWarning] = useState(false);
   const [securedWithIAMWarning, setSecuredWithIAMWarning] = useState(false);
   const [enableAliceRole, setEnableAliceRole] = useState(props?.deploymentDetails?.aliceRoleEnabled || false);
@@ -294,6 +295,7 @@ const DeployedAppConfigModal = (props) => {
   };
 
   const onIgnorePathChange = (selectedTags) => {
+    setConfigChanged(true);
     setIgnorePath(selectedTags);
     const ignorePathError = selectedTags.some(
       (item) => item.endsWith('/') || item.includes(' ') || !item.startsWith('/'),
@@ -304,10 +306,12 @@ const DeployedAppConfigModal = (props) => {
   };
 
   const onScopeChange = (selectedTags) => {
+    setConfigChanged(true);
     setScope(selectedTags);
   };
 
   const onRolesChange = (selectedTags) => {
+    setConfigChanged(true);
     const upperCaseTags = selectedTags.map((tag) => tag.toUpperCase());
     setSelectedRoles(upperCaseTags);
     if (enableEntitlementPrefix) {
@@ -481,7 +485,12 @@ const DeployedAppConfigModal = (props) => {
 
   return (
     <React.Fragment>
-      <div className={classNames(Styles.securityConfigMainPanel)}>
+      <div
+        className={classNames(Styles.securityConfigMainPanel)}
+        onChangeCapture={(e) => {
+          if (e.target?.dataset?.pluginToggle !== 'true') setConfigChanged(true);
+        }}
+      >
         <div className={classNames(Styles.wrapper)}>
           <span className="label">
             <p>Deployment Type</p>
@@ -538,6 +547,7 @@ const DeployedAppConfigModal = (props) => {
                       value={pluginEnabled}
                       type="checkbox"
                       className="ff-only"
+                      data-plugin-toggle="true"
                       onChange={() => togglePlugin()}
                       checked={pluginEnabled}
                       maxLength={63}
@@ -827,7 +837,7 @@ const DeployedAppConfigModal = (props) => {
                       </div>
                     </div>
                     {isUiRecipe && (
-                      <div className={classNames(Styles.oneAPILink, Styles.clientIdLabel)}>
+                      <div className={classNames(Styles.oneAPILink, Styles.redirectInfoText)}>
                         Since you are securing your application with our credentials, please contact us on our{' '}
                         <a href={Envs.CODESPACE_TEAMS_LINK} target="_blank" rel="noopener noreferrer">
                           Teams channel
@@ -841,14 +851,8 @@ const DeployedAppConfigModal = (props) => {
                     )}
                   </div>
                 )}
-              </div>
-              <div className={classNames(Styles.wrapper)}>
-                <span className="label">
-                  <p>Additional Configuration</p>
-                </span>
-                <div className={classNames(Styles.align, isUiRecipe ? Styles.flexLayout : '')}>
                   {isUiRecipe && (
-                    <div className={classNames(Styles.redirectFlexLayout)}>
+                    <div className={classNames(Styles.align, Styles.redirectRow)}>
                       <TextBox
                         type="text"
                         label={'Redirect Uri'}
@@ -870,7 +874,12 @@ const DeployedAppConfigModal = (props) => {
                       </div>
                     </div>
                   )}
-
+              </div>
+              <div className={classNames(Styles.wrapper)}>
+                <span className="label">
+                  <p>Additional Configuration</p>
+                </span>
+                <div className={classNames(Styles.align)}>
                   <Tags
                     title={'Ignore Paths'}
                     max={100}
@@ -1005,7 +1014,7 @@ const DeployedAppConfigModal = (props) => {
           </div>
         )}
         <div className={Styles.saveButton}>
-          <button className={'btn btn-tertiary'} type="button" onClick={onSaveConfig}>
+          <button className={'btn btn-tertiary'} type="button" onClick={onSaveConfig} disabled={!configChanged}>
             Save
           </button>
         </div>
