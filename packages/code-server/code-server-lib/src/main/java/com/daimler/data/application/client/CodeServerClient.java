@@ -559,7 +559,11 @@ public class CodeServerClient {
 				log.error("Failed to delete server {} for user {}. Status code: {}", wsId, userId, manageWorkbenchResponse.getStatusCodeValue());
 			}
 		}
-		} catch (Exception e) {
+		} catch (HttpClientErrorException.NotFound e) {
+			log.info("Server {} for user {} not found in JupyterHub, treating as already deleted", wsId, userId);
+			return true;
+		}
+		catch (Exception e) {
 			log.error("Error occurred while deleting server {} for user {}", wsId, userId, e);
 		}
 		
