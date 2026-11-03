@@ -427,6 +427,10 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 	}
 	
 	public GenericMessage callingKongApis(String wsid,String serviceName, String env, boolean apiRecipe, String clientID, String clientSecret, String redirectUriFromUser, String ignorePaths, String scope, String oneApiVersionShortName, boolean isSecuredWithCookie, boolean secureWithIAM, String ssoType, boolean secureWithDna, boolean isAliceRoleEnabled, boolean isEntitlementPrefixEnabled, List<String> selectedAliceRoles, String cloudServiceProvider) {
+		return callingKongApis(wsid, serviceName, env, apiRecipe, clientID, clientSecret, redirectUriFromUser, ignorePaths, scope, oneApiVersionShortName, isSecuredWithCookie, secureWithIAM, ssoType, secureWithDna, isAliceRoleEnabled, isEntitlementPrefixEnabled, selectedAliceRoles, cloudServiceProvider, false);
+	}
+
+	public GenericMessage callingKongApis(String wsid,String serviceName, String env, boolean apiRecipe, String clientID, String clientSecret, String redirectUriFromUser, String ignorePaths, String scope, String oneApiVersionShortName, boolean isSecuredWithCookie, boolean secureWithIAM, String ssoType, boolean secureWithDna, boolean isAliceRoleEnabled, boolean isEntitlementPrefixEnabled, List<String> selectedAliceRoles, String cloudServiceProvider, boolean keepExistingPostFunction) {
 		boolean kongApiForDeploymentURL = !wsid.equalsIgnoreCase(serviceName) && Objects.nonNull(env);
 		CodeServerWorkspaceNsql workspaceNsql = customRepository.findByWorkspaceId(wsid);
 		CodeServerDeploymentDetails intDeploymentDetails = workspaceNsql.getData().getProjectDetails().getIntDeploymentDetails();
@@ -1131,32 +1135,36 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 									// 	}
 									// }
 
-									AttachFunctionPluginRequestVO postFunctionRequestVO = null;
-									try {
-										String cookiePath = null;
-										if (isScopedCookiePathEnabled(workspaceNsql, env)) {
-											cookiePath = env != null ? "/" + serviceName.toLowerCase() + "/" + env : "/" + serviceName.toLowerCase();
-										}
-										postFunctionRequestVO = buildPostFunctionPluginRequest(gitDetails, kongServiceName, secureWithDna, isAliceRoleEnabled, isEntitlementPrefixEnabled, selectedAliceRoles, cookiePath);
-									} catch (Exception e) {
-										LOGGER.error("Failed to build post function plugin for service {}, keeping existing post function plugin", kongServiceName, e);
-									}
-									if (postFunctionRequestVO != null) {
-										kongCallStart = System.currentTimeMillis();
-										deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,POST_FUNCTION_PLUGIN,cloudServiceProvider);
-										logKongCallElapsed("deletePlugin:" + POST_FUNCTION_PLUGIN, kongServiceName, kongCallStart);
-										LOGGER.info("kong deleting post function plugin to service status is: {} and errors if any: {}, warnings if any: {}", deletePluginResponse.getSuccess(),
-										deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
-										kongCallStart = System.currentTimeMillis();
-										GenericMessage attachPostFunctionResponse = attachFunctionPluginToService(postFunctionRequestVO,serviceName.toLowerCase()+"-"+env,cloudServiceProvider);
-										logKongCallElapsed("attachFunctionPluginToService", kongServiceName, kongCallStart);
-										LOGGER.info("calling kong to attach post function plugin for service: {} env: {} and staus is: {}, errors if any: {}, warnings if any: {}",serviceName,env, attachPostFunctionResponse.getSuccess(),attachPostFunctionResponse.getErrors(),attachPostFunctionResponse.getWarnings());
-										if (!"SUCCESS".equalsIgnoreCase(attachPostFunctionResponse.getSuccess())) {
-											LOGGER.error("Failed to attach post function plugin for service {}, errors: {}, warnings: {}", kongServiceName, attachPostFunctionResponse.getErrors(), attachPostFunctionResponse.getWarnings());
-											addKongError(kongResponse, "Failed to attach post function plugin for " + kongServiceName + ". Please retry saving the deployed app config.");
-										}
+									if (keepExistingPostFunction && isPluginPresent(kongServiceName, POST_FUNCTION_PLUGIN, cloudServiceProvider)) {
+										LOGGER.info("Post function plugin already present for {}, keeping it unchanged on deployment", kongServiceName);
 									} else {
-										addKongError(kongResponse, "Failed to build post function plugin for " + kongServiceName + ", existing post function plugin was kept unchanged.");
+										AttachFunctionPluginRequestVO postFunctionRequestVO = null;
+										try {
+											String cookiePath = null;
+											if (isScopedCookiePathEnabled(workspaceNsql, env)) {
+												cookiePath = env != null ? "/" + serviceName.toLowerCase() + "/" + env : "/" + serviceName.toLowerCase();
+											}
+											postFunctionRequestVO = buildPostFunctionPluginRequest(gitDetails, kongServiceName, secureWithDna, isAliceRoleEnabled, isEntitlementPrefixEnabled, selectedAliceRoles, cookiePath);
+										} catch (Exception e) {
+											LOGGER.error("Failed to build post function plugin for service {}, keeping existing post function plugin", kongServiceName, e);
+										}
+										if (postFunctionRequestVO != null) {
+											kongCallStart = System.currentTimeMillis();
+											deletePluginResponse = deletePlugin(serviceName.toLowerCase()+"-"+env,POST_FUNCTION_PLUGIN,cloudServiceProvider);
+											logKongCallElapsed("deletePlugin:" + POST_FUNCTION_PLUGIN, kongServiceName, kongCallStart);
+											LOGGER.info("kong deleting post function plugin to service status is: {} and errors if any: {}, warnings if any: {}", deletePluginResponse.getSuccess(),
+											deletePluginResponse.getErrors(), deletePluginResponse.getWarnings());
+											kongCallStart = System.currentTimeMillis();
+											GenericMessage attachPostFunctionResponse = attachFunctionPluginToService(postFunctionRequestVO,serviceName.toLowerCase()+"-"+env,cloudServiceProvider);
+											logKongCallElapsed("attachFunctionPluginToService", kongServiceName, kongCallStart);
+											LOGGER.info("calling kong to attach post function plugin for service: {} env: {} and staus is: {}, errors if any: {}, warnings if any: {}",serviceName,env, attachPostFunctionResponse.getSuccess(),attachPostFunctionResponse.getErrors(),attachPostFunctionResponse.getWarnings());
+											if (!"SUCCESS".equalsIgnoreCase(attachPostFunctionResponse.getSuccess())) {
+												LOGGER.error("Failed to attach post function plugin for service {}, errors: {}, warnings: {}", kongServiceName, attachPostFunctionResponse.getErrors(), attachPostFunctionResponse.getWarnings());
+												addKongError(kongResponse, "Failed to attach post function plugin for " + kongServiceName + ". Please retry saving the deployed app config.");
+											}
+										} else {
+											addKongError(kongResponse, "Failed to build post function plugin for " + kongServiceName + ", existing post function plugin was kept unchanged.");
+										}
 									}
 								}
 							}
@@ -1253,6 +1261,11 @@ public class AuthenticatorClientImpl  implements AuthenticatorClient{
 
 	private void logKongCallElapsed(String operation, String kongServiceName, long startMillis) {
 		LOGGER.info("kongCall {} for {} took {}ms", operation, kongServiceName, System.currentTimeMillis() - startMillis);
+	}
+
+	private boolean isPluginPresent(String serviceName, String pluginName, String cloudServiceProvider) {
+		WorkspacePluginStatusVO pluginStatus = getPluginStatus(serviceName, pluginName, cloudServiceProvider);
+		return pluginStatus != null && pluginStatus.isEnabled() != null;
 	}
 
 	private boolean isScopedCookiePathEnabled(CodeServerWorkspaceNsql workspaceNsql, String env) {
