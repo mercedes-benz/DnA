@@ -1,4 +1,3 @@
-import axios from 'axios';
 import { server, hostServer, reportsServer, storageServer, fabricServer, baseURL, readJwt} from '../server/api';
 import { EventSourcePolyfill } from 'event-source-polyfill';
 import { Envs } from '../Utility/envs';
@@ -566,16 +565,14 @@ const getExistingRoles = (appId) => {
 };
 
 const submitHarborDashboardRequest = (payload) => {
-    return axios.post(
-        Envs.HARBOR_DASHBOARD_API_URL,
-        payload,
-        {
-            headers: {
-                'Content-Type': 'application/json',
-                'api-key': Envs.HARBOR_DASHBOARD_API_KEY,
-            },
+    return server.get('harbor-dashboard', {
+        params: payload,
+        headers: {
+            Authorization: readJwt(),
+            Accept: '*/*',
+            'Content-Type': 'application/json',
         },
-    );
+    });
 };
 
 export const CodeSpaceApiClient = {
