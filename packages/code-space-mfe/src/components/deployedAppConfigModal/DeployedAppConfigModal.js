@@ -1014,8 +1014,12 @@ const DeployedAppConfigModal = (props) => {
           </div>
         )}
         <div className={Styles.saveButton}>
-          <button className={'btn btn-tertiary'} type="button" onClick={onSaveConfig} disabled={!configChanged}>
-            Save
+          <button
+            className={classNames('btn', configChanged ? 'btn-tertiary' : Styles.disableSaveButton)}
+            type="button"
+            onClick={onSaveConfig}
+            disabled={!configChanged}
+          >Save
           </button>
         </div>
       </div>

@@ -147,6 +147,13 @@
       }
     }
 
+    .disableSaveButton {
+      color: #c0c8d0 !important;
+      background-color: #383f49 !important;
+      border-color: #383f49 !important;
+      cursor: not-allowed;
+    }
+    
     .saveButton {
       display: flex;
       justify-content: flex-end;
