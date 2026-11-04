@@ -32,6 +32,9 @@ public class CodeServerProjectDetails implements Serializable {
 	private Date lastBuildOrDeployedOn;
 	private String lastBuildOrDeployedStatus;
 	private String lastBuildOrDeployedEnv;
+	private String webHookId;
+	private String intAutoDeployBranchName;
+	private String prodAutoDeployBranchName;
 	private Boolean resourceCapExemptInt;
 	private Boolean resourceCapExemptProd;
 }

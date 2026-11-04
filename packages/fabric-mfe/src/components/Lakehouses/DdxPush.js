@@ -10,6 +10,7 @@ import Notification from '../../common/modules/uilab/js/src/notification';
 import { fabricApi } from '../../apis/fabric.api';
 import { BUSINESS_DOMAINS, DIVISION_BUSINESS_DOMAIN_MAP, CLOUD_PROVIDERS, TECHNOLOGIES, PURPOSES, CRITERIA_TRANSFER_PRICING, QUALIFICATION_TRANSFER_PRICING, UPDATE_FREQUENCIES } from '../../utilities/constants';
 import { Envs } from '../../utilities/envs';
+import { useDebouncedCallback } from '../../hooks/useDebouncedCallback';
 
 const Step1_BasicIdentification = ({ formData, setFormData, errors, clearError }) => (
   <div className={Styles.stepForm}>
@@ -65,23 +66,23 @@ const Step2_OwnershipGovernance = ({
 
   const [legalEntityOptions, setLegalEntityOptions] = useState([]);
 
-  const handleLegalEntitySearch = (searchTerm, showSpinner) => {
-    clearError('legalEntityError');
-    if (searchTerm.length > 3) {
-      showSpinner && showSpinner(true);
-      fabricApi.getLegalEntities(searchTerm)
-        .then((response) => {
-          showSpinner && showSpinner(false);
-          setLegalEntityOptions(response?.data || []); 
-        })
-        .catch((err) => {
-          showSpinner && showSpinner(false);
-          Notification.show(err?.response?.data?.errors?.[0]?.message || 'Something went wrong.', 'alert');
-        });
-    } else {
-      setLegalEntityOptions([]);
-    }
-  };
+  const handleLegalEntitySearch = useDebouncedCallback((searchTerm, showSpinner) => {  
+    clearError('legalEntityError');  
+    if (searchTerm.length > 3) {  
+      showSpinner && showSpinner(true);  
+      fabricApi.getLegalEntities(searchTerm)  
+        .then((response) => {  
+          showSpinner && showSpinner(false);  
+          setLegalEntityOptions(response?.data || []);  
+        })  
+        .catch((err) => {  
+          showSpinner && showSpinner(false);  
+          Notification.show(err?.response?.data?.errors?.[0]?.message || 'Something went wrong.', 'alert');  
+        });  
+    } else {  
+      setLegalEntityOptions([]);  
+    }  
+  }, 500);
 
   useEffect(() => {
     if (workspaceOwner) {
@@ -545,22 +546,21 @@ const Step4_ComplianceUsage = ({
             (Please specify the allowed purposes for processing this data)
           </label>
           <div className={classNames('custom-select')}>
-          <select
-            id="purposes"
-            multiple={true}
-            value={formData.purposes || []}
-            onChange={(e) => {
-              const values = Array.from(e?.target?.selectedOptions, opt => opt?.value);
-              setFormData({ ...formData, purposes: values });
-              clearError('purposesError');
-            }}
-          >
-            {purposes.map((p, i) => (
-              <option key={i} value={p}>
-                {p}
-              </option>
-            ))}
-          </select>
+            <select
+              id="purposes"
+              defaultValue={formData.purposes || ''}
+              onChange={(e) => {
+                setFormData({ ...formData, purposes: e.target.value });
+                clearError('purposesError');
+              }}
+            >
+              <option value="">Choose</option>
+              {purposes.map((p, i) => (
+                <option key={i} value={p}>
+                  {p}
+                </option>
+              ))}
+            </select>
           </div>
           {errors.purposesError && <span className="error-message">{errors.purposesError}</span>}
         </div>
@@ -635,7 +635,6 @@ const Step4_ComplianceUsage = ({
     </div>
   );
 };
-
 
 const Step5_PersonalData = ({ formData, setFormData, errors, clearError, criteriaTransferPricing, qualificationTransferPricing }) => {
 
@@ -854,7 +853,7 @@ const ViewDdxTablesModalContent = ({ workspaceId, workspaceName, workspaceOwner,
       if (!formData.securityLevel) {
         newErrors.securityLevelError = '*Missing entry';
       }
-      if (!formData.purposes?.length) {
+      if (!formData.purposes) {
         newErrors.purposesError = '*Missing entry';
       }
       if (typeof formData.personalDataContained === 'undefined') {
@@ -914,7 +913,7 @@ const ViewDdxTablesModalContent = ({ workspaceId, workspaceName, workspaceOwner,
       cdcDatabaseLink: cdcDatabaseLink,
       cdcDataProductLink: formData.cdcDataProductLink || '',
       securityLevel: securityLevel || '',
-      purposes: formData.purposes || [],
+      purposes: formData.purposes ? [formData.purposes] : [],
       dataProviders: (formData.dataProviders || []).map((u) => u.id),
       division: (formData.divisions || '').replace(/-/g, ' ') || '',
 
@@ -962,8 +961,6 @@ const ViewDdxTablesModalContent = ({ workspaceId, workspaceName, workspaceOwner,
         },
       ],
     };
-    //remove for testing
-    console.log('Submit payload:', JSON.stringify(payload, null, 2));
 
     ProgressIndicator.show();
     fabricApi.publishDdxDataProduct(workspaceId, lakehouseId, payload)
