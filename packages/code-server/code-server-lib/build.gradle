@@ -154,6 +154,7 @@ sourceSets {
 dependencies {
 	implementation group: 'org.springframework.cloud', name: 'spring-cloud-stream', version: '3.2.4'
 	implementation group: 'org.springframework.cloud', name: 'spring-cloud-stream-binder-kafka', version: '3.2.4'
+	implementation group: 'org.springframework.cloud', name: 'spring-cloud-starter-vault-config', version: '3.1.1'
 	implementation group: 'org.springframework.kafka', name: 'spring-kafka', version: '2.8.6'
 	
     implementation group: 'org.yaml', name: 'snakeyaml', version: '1.30'
@@ -219,6 +220,8 @@ dependencies {
 
     implementation ('net.javacrumbs.shedlock:shedlock-spring:6.3.1')
     implementation ('net.javacrumbs.shedlock:shedlock-provider-jdbc-template:6.3.1')
+
+	testImplementation 'org.springframework.boot:spring-boot-starter-test'
 }
 
 tasks.named('test') {

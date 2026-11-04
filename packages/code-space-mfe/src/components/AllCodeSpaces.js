@@ -897,6 +897,14 @@ const AllCodeSpaces = (props) => {
                             <button
                                 className={classNames('btn btn-primary', Styles.configIcon)}
                                 type="button"
+                                onClick={() => history.push('/developerOptions')}
+                            >
+                                <IconGear size={'14'} />
+                                <span>&nbsp;Developers options</span>
+                            </button>
+                            <button
+                                className={classNames('btn btn-primary', Styles.configIcon)}
+                                type="button"
                                 onClick={onShowSecurityConfigRequest}
                             >
                                 <IconGear size={'14'} />

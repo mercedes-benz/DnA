@@ -32,6 +32,7 @@ import java.util.Arrays;
 import org.springframework.aop.framework.ProxyFactoryBean;
 import org.springframework.aop.target.ThreadLocalTargetSource;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
 import org.springframework.context.annotation.Bean;
@@ -42,10 +43,12 @@ import org.springframework.web.cors.CorsConfiguration;
 import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
 import org.springframework.web.filter.CorsFilter;
 import org.springframework.web.servlet.config.annotation.CorsRegistry;
+import org.springframework.web.servlet.config.annotation.InterceptorRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.application.filter.JWTAuthenticationFilter;
+import com.daimler.data.application.interceptor.PatAuthorizationInterceptor;
 
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
@@ -55,6 +58,15 @@ public class WebConfig implements WebMvcConfigurer {
 
 	@Autowired
 	private JWTAuthenticationFilter filter;
+
+	@Autowired
+	@Lazy
+	private PatAuthorizationInterceptor patAuthorizationInterceptor;
+
+	@Override
+	public void addInterceptors(InterceptorRegistry registry) {
+		registry.addInterceptor(patAuthorizationInterceptor).addPathPatterns("/external/v1/**");
+	}
 
 	@Override
 	public void addCorsMappings(CorsRegistry registry) {

@@ -28,6 +28,7 @@
 package com.daimler.data.application.auth;
 
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.List;
 
 import org.slf4j.Logger;
@@ -52,12 +53,22 @@ import lombok.ToString;
 public class UserStore {
 
 	private UserInfo userInfo;
+	private String authType;
+	private int patTokenVersion;
+	private List<String> patPermissions = new ArrayList<>();
 
 	private static Logger LOGGER = LoggerFactory.getLogger(UserStore.class);
 
 	public void clear() {
 		this.userInfo = null;
+		this.authType = null;
+		this.patTokenVersion = 0;
+		this.patPermissions = new ArrayList<>();
 		LOGGER.debug("In UserStore.clear , clearing user");
+	}
+
+	public boolean isPatRequest() {
+		return "PAT".equals(authType);
 	}
 
 	public CreatedByVO getVO() {
