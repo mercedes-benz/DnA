@@ -11,8 +11,7 @@ import java.util.Optional;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Component;
 import org.springframework.web.method.HandlerMethod;
@@ -33,8 +32,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Component
 @Lazy
+@Slf4j
 public class PatAuthorizationInterceptor implements HandlerInterceptor {
-	private static final Logger LOGGER = LoggerFactory.getLogger(PatAuthorizationInterceptor.class);
 	private static final String AUTHORIZATION_HEADER = "Authorization";
 	private static final String BEARER_PREFIX = "Bearer ";
 	public static final String PAT_CONTEXT = "PAT_CONTEXT";
@@ -124,6 +123,8 @@ public class PatAuthorizationInterceptor implements HandlerInterceptor {
 			authorized = true;
 			return true;
 		} catch (Exception e) {
+			log.error("Unexpected error during PAT authorization, userId={} tokenVersion={} method={} uri={}",
+					userId, tokenVersion, request.getMethod(), request.getRequestURI(), e);
 			return deny(request, response, userId, tokenVersion, "403_AUTHORIZATION_ERROR",
 					HttpServletResponse.SC_FORBIDDEN, "Forbidden");
 		} finally {
@@ -156,6 +157,8 @@ public class PatAuthorizationInterceptor implements HandlerInterceptor {
 			String projectName = workspace.getProjectDetails().getProjectName();
 			if (projectName == null || payload.getCodeSpaceProjectNames() == null
 					|| !payload.getCodeSpaceProjectNames().contains(projectName)) {
+				log.warn("PAT workspace access denied, userId={} workspaceId={} reason=project_not_in_scope",
+						payload.getUserId(), workspace.getWorkspaceId());
 				return false;
 			}
 			String creator = payload.getUserId();
@@ -164,8 +167,13 @@ public class PatAuthorizationInterceptor implements HandlerInterceptor {
 			boolean collaborator = workspace.getProjectDetails().getProjectCollaborators() != null
 					&& workspace.getProjectDetails().getProjectCollaborators().stream()
 							.anyMatch(user -> Objects.equals(creator, user.getId()));
+			if (!(owner || collaborator)) {
+				log.warn("PAT workspace access denied, userId={} workspaceId={} reason=not_owner_or_collaborator",
+						payload.getUserId(), workspace.getWorkspaceId());
+			}
 			return owner || collaborator;
 		} catch (Exception e) {
+			log.warn("Error evaluating PAT workspace access for userId={}", payload.getUserId(), e);
 			return false;
 		}
 	}
@@ -187,7 +195,7 @@ public class PatAuthorizationInterceptor implements HandlerInterceptor {
 	}
 
 	private void logOutcome(HttpServletRequest request, String userId, int tokenVersion, String outcome) {
-		LOGGER.info("PAT request userId={} tokenVersion={} method={} uri={} outcome={}", userId, tokenVersion,
+		log.info("PAT request userId={} tokenVersion={} method={} uri={} outcome={}", userId, tokenVersion,
 				request.getMethod(), request.getRequestURI(), outcome);
 	}
 }

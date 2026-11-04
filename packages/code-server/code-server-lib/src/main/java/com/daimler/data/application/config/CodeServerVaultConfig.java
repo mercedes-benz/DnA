@@ -14,8 +14,7 @@ import java.util.function.IntFunction;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.vault.authentication.KubernetesAuthentication;
@@ -32,8 +31,8 @@ import org.springframework.web.client.RestOperations;
 import com.daimler.data.dto.pat.PatVaultEntry;
 import com.daimler.data.dto.pat.PatVaultListItem;
 @Configuration
+@Slf4j
 public class CodeServerVaultConfig {
-	private static final Logger LOGGER = LoggerFactory.getLogger(CodeServerVaultConfig.class);
 	private static final Pattern VERSION_PATTERN = Pattern.compile("^v([1-9][0-9]*)$");
 
 	@Value("${spring.cloud.vault.patpath}")
@@ -70,11 +69,14 @@ public class CodeServerVaultConfig {
 			secret.put("permissions", entry.getPermissions());
 			try {
 				vaultTemplate.opsForVersionedKeyValue(mountPath).put(basePath + "/v" + version, secret);
+				log.info("Wrote PAT metadata to vault for userId={} version={}", userId, version);
 				return version;
 			} catch (Exception e) {
-				LOGGER.warn("Unable to write PAT metadata for user {}", userId);
+				log.warn("Unable to write PAT metadata for user {} version={} attempt={}", userId, version,
+						attempt, e);
 			}
 		}
+		log.error("Exhausted retries writing PAT metadata for userId={}", userId);
 		throw new IllegalStateException("Unable to create PAT metadata");
 	}
 
@@ -97,9 +99,10 @@ public class CodeServerVaultConfig {
 					result.add(item);
 				}
 			}
+			log.debug("Listed PAT metadata for userId={} count={}", userId, result.size());
 			return result;
 		} catch (Exception e) {
-			LOGGER.warn("Unable to list PAT metadata for user {}", userId);
+			log.warn("Unable to list PAT metadata for user {}", userId, e);
 			throw new IllegalStateException("Unable to list PAT metadata");
 		}
 	}
@@ -112,10 +115,14 @@ public class CodeServerVaultConfig {
 				return false;
 			}
 			String storedSecret = String.valueOf(response.getData().get("secret"));
-			return MessageDigest.isEqual(storedSecret.getBytes(StandardCharsets.UTF_8),
+			boolean valid = MessageDigest.isEqual(storedSecret.getBytes(StandardCharsets.UTF_8),
 					secret.getBytes(StandardCharsets.UTF_8));
+			if (!valid) {
+				log.warn("PAT secret validation failed for userId={} version={}", userId, version);
+			}
+			return valid;
 		} catch (Exception e) {
-			LOGGER.warn("Unable to validate PAT metadata for user {}", userId);
+			log.warn("Unable to validate PAT metadata for user {} version={}", userId, version, e);
 			return false;
 		}
 	}
@@ -130,9 +137,10 @@ public class CodeServerVaultConfig {
 				return false;
 			}
 			operations.delete(path, response.getVersion());
+			log.info("Deleted PAT metadata from vault for userId={} version={}", userId, version);
 			return true;
 		} catch (Exception e) {
-			LOGGER.warn("Unable to revoke PAT metadata for user {}", userId);
+			log.warn("Unable to revoke PAT metadata for user {} version={}", userId, version, e);
 			throw new IllegalStateException("Unable to revoke PAT");
 		}
 	}
@@ -156,7 +164,7 @@ public class CodeServerVaultConfig {
 			item.setStatus("ACTIVE");
 			return item;
 		} catch (Exception e) {
-			LOGGER.warn("Unable to read PAT metadata for user {}", userId);
+			log.warn("Unable to read PAT metadata for user {} version={}", userId, version, e);
 			throw new IllegalStateException("Unable to read PAT metadata");
 		}
 	}
@@ -220,6 +228,8 @@ public class CodeServerVaultConfig {
 			return KubernetesAuthenticationOptions.builder().jwtSupplier(() -> serviceAccountToken)
 					.role(kubernetesLoginRole).path(kubernetesMountPath).build();
 		} catch (IOException e) {
+			log.error("Unable to read Kubernetes service account token from path={}",
+					kubernetesServiceAccountTokenPath, e);
 			throw new IllegalStateException("Unable to read Kubernetes service account token");
 		}
 	}
