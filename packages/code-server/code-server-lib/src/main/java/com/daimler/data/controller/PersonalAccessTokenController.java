@@ -8,8 +8,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -37,8 +36,8 @@ import com.daimler.data.service.workspace.WorkspaceService;
 
 @RestController
 @RequestMapping("/api")
+@Slf4j
 public class PersonalAccessTokenController {
-	private static final Logger LOGGER = LoggerFactory.getLogger(PersonalAccessTokenController.class);
 	private final UserStore userStore;
 	private final WorkspaceService workspaceService;
 	private final PatCryptoService patCryptoService;
@@ -57,17 +56,22 @@ public class PersonalAccessTokenController {
 		String userId = currentUserId();
 		if (userId == null || request == null || !validPermissions(request.getPermissions())
 				|| request.getComment() != null && request.getComment().length() > 200) {
+			log.warn("Rejected PAT creation request, userId={} reason=invalid_request", userId);
 			return error(HttpStatus.BAD_REQUEST, "Invalid PAT request");
 		}
 		List<String> codeSpaceProjectNames;
 		try {
 			codeSpaceProjectNames = accessibleProjectNames(userId);
 		} catch (Exception e) {
+			log.error("Failed to resolve accessible codespaces for userId={}", userId, e);
 			return error(HttpStatus.INTERNAL_SERVER_ERROR, "Unable to create PAT");
 		}
 		if (codeSpaceProjectNames.isEmpty()) {
+			log.warn("Rejected PAT creation request, userId={} reason=no_accessible_codespaces", userId);
 			return error(HttpStatus.BAD_REQUEST, "No accessible codespaces");
 		}
+		log.info("Creating PAT for userId={} permissions={} codeSpaceProjectCount={}", userId,
+				request.getPermissions(), codeSpaceProjectNames.size());
 
 		String createdAt = Instant.now().toString();
 		String[] token = new String[1];
@@ -98,12 +102,13 @@ public class PersonalAccessTokenController {
 				entry.setPermissions(entryTemplate.getPermissions());
 				return entry;
 			});
-			LOGGER.info("Created PAT for userId={} version={}", userId, version);
+			log.info("Created PAT for userId={} version={}", userId, version);
 			CreatePatResponse response = new CreatePatResponse(version, token[0],
 					token[0].substring(token[0].length() - 4), new ArrayList<>(request.getPermissions()),
 					request.getComment(), createdAt, codeSpaceProjectNames.size());
 			return ResponseEntity.status(HttpStatus.CREATED).header("Cache-Control", "no-store").body(response);
 		} catch (Exception e) {
+			log.error("Failed to create PAT for userId={}", userId, e);
 			return error(HttpStatus.INTERNAL_SERVER_ERROR, "Unable to create PAT");
 		}
 	}
@@ -112,14 +117,17 @@ public class PersonalAccessTokenController {
 	public ResponseEntity<?> listPats() {
 		String userId = currentUserId();
 		if (userId == null) {
+			log.warn("Rejected PAT list request, reason=unauthenticated");
 			return error(HttpStatus.UNAUTHORIZED, "Unauthorized");
 		}
 		try {
 			List<PatVaultListItem> items = vaultConfig.listPatSecrets(userId).stream()
 					.sorted(Comparator.comparingInt(PatVaultListItem::getVersion).reversed())
 					.collect(Collectors.toList());
+			log.info("Listed PATs for userId={} count={}", userId, items.size());
 			return ResponseEntity.ok(new PatListResponse(items, items.size()));
 		} catch (Exception e) {
+			log.error("Failed to list PATs for userId={}", userId, e);
 			return error(HttpStatus.INTERNAL_SERVER_ERROR, "Unable to list PATs");
 		}
 	}
@@ -128,15 +136,18 @@ public class PersonalAccessTokenController {
 	public ResponseEntity<?> revokePat(@PathVariable("version") int version) {
 		String userId = currentUserId();
 		if (userId == null) {
+			log.warn("Rejected PAT revoke request, version={} reason=unauthenticated", version);
 			return error(HttpStatus.UNAUTHORIZED, "Unauthorized");
 		}
 		try {
 			if (!vaultConfig.deletePatSecret(userId, version)) {
+				log.warn("PAT revoke request for userId={} version={} reason=not_found", userId, version);
 				return error(HttpStatus.NOT_FOUND, "PAT not found");
 			}
-			LOGGER.info("Revoked PAT for userId={} version={}", userId, version);
+			log.info("Revoked PAT for userId={} version={}", userId, version);
 			return ResponseEntity.ok(new GenericMessage("Revoked"));
 		} catch (Exception e) {
+			log.error("Failed to revoke PAT for userId={} version={}", userId, version, e);
 			return error(HttpStatus.INTERNAL_SERVER_ERROR, "Unable to revoke PAT");
 		}
 	}
