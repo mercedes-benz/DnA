@@ -11,6 +11,7 @@ import javax.crypto.Cipher;
 import javax.crypto.spec.GCMParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +19,7 @@ import com.daimler.data.dto.pat.PatPayload;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 @Service
+@Slf4j
 public class PatCryptoService {
 	private static final String TOKEN_PREFIX = "cs_pat_v1_";
 	private static final byte[] AAD = "cs_pat_v1".getBytes(StandardCharsets.UTF_8);
@@ -58,6 +60,8 @@ public class PatCryptoService {
 			System.arraycopy(encryptedPayload, 0, encryptedToken, nonce.length, encryptedPayload.length);
 			return TOKEN_PREFIX + Base64.getUrlEncoder().withoutPadding().encodeToString(encryptedToken);
 		} catch (Exception e) {
+			log.error("Unable to encrypt PAT for userId={} tokenVersion={}", payload.getUserId(),
+					payload.getTokenVersion(), e);
 			throw new IllegalStateException("Unable to encrypt PAT");
 		}
 	}
@@ -68,11 +72,13 @@ public class PatCryptoService {
 		}
 		Matcher matcher = TOKEN_PATTERN.matcher(token);
 		if (!matcher.matches()) {
+			log.warn("Rejected PAT decrypt request, reason=malformed_token");
 			return Optional.empty();
 		}
 		try {
 			byte[] encryptedToken = Base64.getUrlDecoder().decode(matcher.group(1));
 			if (encryptedToken.length <= NONCE_LENGTH + TAG_LENGTH_BITS / 8) {
+				log.warn("Rejected PAT decrypt request, reason=token_too_short");
 				return Optional.empty();
 			}
 			byte[] nonce = new byte[NONCE_LENGTH];
@@ -85,10 +91,13 @@ public class PatCryptoService {
 			PatPayload payload = objectMapper.readValue(cipher.doFinal(ciphertext), PatPayload.class);
 			if (payload.getTokenVersion() < 1 || payload.getUserId() == null || payload.getUserId().isBlank()
 					|| payload.getSecret() == null || payload.getSecret().isBlank()) {
+				log.warn("Rejected PAT decrypt request, reason=invalid_payload_fields");
 				return Optional.empty();
 			}
 			return Optional.of(payload);
 		} catch (Exception e) {
+			log.warn("Unable to decrypt PAT token, reason=decryption_failed exceptionType={}",
+					e.getClass().getSimpleName());
 			return Optional.empty();
 		}
 	}
@@ -101,6 +110,7 @@ public class PatCryptoService {
 			}
 			return new SecretKeySpec(key, "AES");
 		} catch (RuntimeException e) {
+			log.error("PAT encryption key is not configured correctly, reason={}", e.getClass().getSimpleName());
 			throw new IllegalStateException("PAT encryption not configured");
 		}
 	}
