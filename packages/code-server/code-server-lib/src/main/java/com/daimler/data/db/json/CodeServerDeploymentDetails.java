@@ -40,5 +40,6 @@ public class CodeServerDeploymentDetails implements Serializable {
 	private String lastDeploymentError;
 	private Boolean newPodCrashLooping;
 	private String crashLoopReason;
+	private Boolean scopedCookiePath;
 	
 }

@@ -24,6 +24,14 @@
         align-self: center;
         // background-color: #090909 !important;
       }
+
+      .redirectInfoText {
+        color: #ACB8C4;
+        font-size: 14px;
+        font-family: 'Roboto-Medium';
+        font-weight: 500;
+        line-height: 1.5;
+      }
   
       .redirectFlexLayout {
         display: flex;
@@ -125,6 +133,27 @@
       margin-left: 1% !important;
     }
 
+    .redirectRow {
+      display: flex;
+      align-items: center;
+      margin-top: 15px;
+
+      >div:first-child {
+        flex: 1;
+      }
+
+      >div:last-child {
+        margin-left: 10px;
+      }
+    }
+
+    .disableSaveButton {
+      color: #c0c8d0 !important;
+      background-color: #383f49 !important;
+      border-color: #383f49 !important;
+      cursor: not-allowed;
+    }
+    
     .saveButton {
       display: flex;
       justify-content: flex-end;
