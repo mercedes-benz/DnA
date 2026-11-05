@@ -22,7 +22,6 @@ import com.daimler.data.application.annotation.RequiresPatAuthorization;
 import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.application.auth.UserStore.UserInfo;
 import com.daimler.data.service.pat.cache.PatSecretValidator;
-import com.daimler.data.service.pat.cache.PatCacheProperties;
 import com.daimler.data.service.pat.ratelimit.RateLimiter;
 import com.daimler.data.service.pat.ratelimit.RateLimitDecision;
 import com.daimler.data.controller.exceptions.GenericMessage;
@@ -44,18 +43,16 @@ public class PatAuthorizationInterceptor implements HandlerInterceptor {
 	private final PatCryptoService patCryptoService;
 	private final PatSecretValidator secretValidator;
 	private final RateLimiter rateLimiter;
-	private final PatCacheProperties cacheProperties;
 	private final WorkspaceService workspaceService;
 	private final UserStore userStore;
 	private final ObjectMapper objectMapper;
 
 	public PatAuthorizationInterceptor(PatCryptoService patCryptoService, PatSecretValidator secretValidator,
 			WorkspaceService workspaceService, UserStore userStore, ObjectMapper objectMapper,
-			RateLimiter rateLimiter, PatCacheProperties cacheProperties) {
+			RateLimiter rateLimiter) {
 		this.patCryptoService = patCryptoService;
 		this.secretValidator = secretValidator;
 		this.rateLimiter = rateLimiter;
-		this.cacheProperties = cacheProperties;
 		this.workspaceService = workspaceService;
 		this.userStore = userStore;
 		this.objectMapper = objectMapper;
@@ -98,7 +95,7 @@ public class PatAuthorizationInterceptor implements HandlerInterceptor {
 			userId = payload.getUserId();
 			tokenVersion = payload.getTokenVersion();
 			RateLimitDecision decision = rateLimiter.tryAcquire(
-					cacheProperties.getKeyPrefix() + "rl:" + userId + ":v" + tokenVersion);
+					userId + ":v" + tokenVersion);
 			response.setHeader("X-RateLimit-Limit", String.valueOf(decision.getLimit()));
 			response.setHeader("X-RateLimit-Remaining", String.valueOf(decision.getRemaining()));
 			if (!decision.isAllowed()) {

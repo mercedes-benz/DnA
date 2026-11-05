@@ -16,6 +16,8 @@ import org.springframework.validation.annotation.Validated;
 public class PatRedisProperties {
 	@NotBlank
 	private String host = "XXXX";
+	@NotBlank
+	private String keyPrefix = "cs:pat:";
 	@Min(1)
 	@Max(65535)
 	private int port = 6379;

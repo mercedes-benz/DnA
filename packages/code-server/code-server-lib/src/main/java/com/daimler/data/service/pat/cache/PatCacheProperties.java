@@ -1,7 +1,6 @@
 package com.daimler.data.service.pat.cache;
 
 import javax.validation.constraints.Min;
-import javax.validation.constraints.NotBlank;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -16,6 +15,4 @@ public class PatCacheProperties {
 	private boolean enabled = true;
 	@Min(1)
 	private long ttlSeconds = 300;
-	@NotBlank
-	private String keyPrefix = "cs:pat:";
 }

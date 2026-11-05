@@ -151,7 +151,8 @@ public class PersonalAccessTokenController {
 				secretStore.evict(userId, version);
 				log.info("Evicted PAT cache entry, userId={} version={}", userId, version);
 			} catch (RuntimeException e) {
-				log.error("PAT cache eviction failed, userId={} version={}", userId, version);
+				log.error("PAT cache eviction failed, userId={} version={} exceptionClass={} message={}",
+						userId, version, e.getClass().getSimpleName(), e.getMessage());
 			}
 			log.info("Revoked PAT for userId={} version={}", userId, version);
 			return ResponseEntity.ok(new GenericMessage("Revoked"));

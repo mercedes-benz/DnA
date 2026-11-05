@@ -26,7 +26,6 @@ import com.daimler.data.application.auth.PatPermissions;
 import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.application.auth.UserStore.UserInfo;
 import com.daimler.data.service.pat.cache.PatSecretValidator;
-import com.daimler.data.service.pat.cache.PatCacheProperties;
 import com.daimler.data.service.pat.ratelimit.RateLimiter;
 import com.daimler.data.service.pat.ratelimit.RateLimitDecision;
 import com.daimler.data.dto.pat.PatPayload;
@@ -56,12 +55,12 @@ class PatAuthorizationInterceptorTest {
 		workspaceService = mock(WorkspaceService.class);
 		userStore = new UserStore();
 		interceptor = new PatAuthorizationInterceptor(crypto, vaultConfig, workspaceService, userStore,
-				new ObjectMapper(), rateLimiter, new PatCacheProperties());
+				new ObjectMapper(), rateLimiter);
 	}
 
 	@Test
 	void rateLimitedRequestReturns429WithoutValidation() throws Exception {
-		when(rateLimiter.tryAcquire("cs:pat:rl:creator:v2"))
+		when(rateLimiter.tryAcquire("creator:v2"))
 				.thenReturn(RateLimitDecision.denied(5, 1501));
 		MockHttpServletResponse response = new MockHttpServletResponse();
 		assertFalse(interceptor.preHandle(authorizedRequest(payload("creator", 2,
@@ -208,7 +207,7 @@ class PatAuthorizationInterceptorTest {
 			try {
 				UserStore requestStore = new UserStore();
 				PatAuthorizationInterceptor requestInterceptor = new PatAuthorizationInterceptor(crypto, vaultConfig,
-						workspaceService, requestStore, new ObjectMapper(), rateLimiter, new PatCacheProperties());
+						workspaceService, requestStore, new ObjectMapper(), rateLimiter);
 				MockHttpServletRequest request = authorizedRequest(payload(userId, 1, List.of(PatPermissions.READ)));
 				HandlerMethod handler = handler("read");
 				if (requestInterceptor.preHandle(request, new MockHttpServletResponse(), handler)) {

@@ -35,7 +35,8 @@ public class CachingPatSecretValidator implements PatSecretValidator {
 		try {
 			cached = store.getSecretHash(userId, version);
 		} catch (RuntimeException e) {
-			log.warn("PAT cache read failed, userId={} version={}", userId, version);
+			log.warn("PAT cache read failed, userId={} version={} exceptionClass={} message={}",
+					userId, version, e.getClass().getSimpleName(), e.getMessage());
 			return delegate.validate(userId, version, secret);
 		}
 		if (cached.isPresent()) {
@@ -50,7 +51,8 @@ public class CachingPatSecretValidator implements PatSecretValidator {
 		try {
 			store.put(userId, version, hash, Duration.ofSeconds(properties.getTtlSeconds()));
 		} catch (RuntimeException e) {
-			log.warn("PAT cache write failed, userId={} version={}", userId, version);
+			log.warn("PAT cache write failed, userId={} version={} exceptionClass={} message={}",
+					userId, version, e.getClass().getSimpleName(), e.getMessage());
 		}
 		return true;
 	}

@@ -7,6 +7,7 @@ import com.daimler.data.service.pat.cache.PatCacheProperties;
 import com.daimler.data.service.pat.ratelimit.PatRateLimitProperties;
 import io.lettuce.core.ClientOptions;
 import io.lettuce.core.SocketOptions;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,10 +18,17 @@ import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.data.redis.core.script.DefaultRedisScript;
 
 @Configuration
+@Slf4j
 @EnableConfigurationProperties({PatRedisProperties.class, PatCacheProperties.class, PatRateLimitProperties.class})
 public class PatRedisConfig {
 	@Bean
-	public LettuceConnectionFactory patRedisConnectionFactory(PatRedisProperties properties) {
+	public LettuceConnectionFactory patRedisConnectionFactory(PatRedisProperties properties,
+			PatCacheProperties cache, PatRateLimitProperties rateLimit) {
+		log.info("PAT Redis configuration, host={} port={} database={} timeoutMillis={} cacheEnabled={} "
+						+ "cacheTtlSeconds={} rateLimitEnabled={} rateLimitMaxRequests={} rateLimitWindowSeconds={}",
+				properties.getHost(), properties.getPort(), properties.getDatabase(), properties.getTimeout(),
+				cache.isEnabled(), cache.getTtlSeconds(), rateLimit.isEnabled(), rateLimit.getMaxRequests(),
+				rateLimit.getWindowSeconds());
 		RedisStandaloneConfiguration server = new RedisStandaloneConfiguration(properties.getHost(), properties.getPort());
 		server.setDatabase(properties.getDatabase());
 		server.setUsername(properties.getUser());

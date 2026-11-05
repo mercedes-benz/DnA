@@ -6,6 +6,7 @@ import static org.mockito.ArgumentMatchers.*;
 
 import java.util.List;
 
+import com.daimler.data.application.config.PatRedisProperties;
 import com.daimler.data.service.pat.ratelimit.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -21,12 +22,13 @@ class RedisSlidingWindowRateLimiterTest {
 	void setUp() {
 		redis = mock(StringRedisTemplate.class);
 		script = new DefaultRedisScript<>("return {1, 4, 0}", List.class);
-		limiter = new RedisSlidingWindowRateLimiter(redis, script, new PatRateLimitProperties());
+		limiter = new RedisSlidingWindowRateLimiter(redis, script, new PatRateLimitProperties(),
+				new PatRedisProperties());
 	}
 
 	@Test
 	void mapsAllowedResult() {
-		when(redis.execute(eq(script), eq(List.of("FAKE-KEY")), eq("7000"), eq("5"), anyString()))
+		when(redis.execute(eq(script), eq(List.of("cs:pat:rl:FAKE-KEY")), eq("7000"), eq("5"), anyString()))
 				.thenReturn(List.of(1L, 4L, 0L));
 		RateLimitDecision result = limiter.tryAcquire("FAKE-KEY");
 		assertTrue(result.isAllowed());
@@ -36,7 +38,7 @@ class RedisSlidingWindowRateLimiterTest {
 
 	@Test
 	void mapsDeniedResultAndRoundsRetryUp() {
-		when(redis.execute(eq(script), eq(List.of("FAKE-KEY")), eq("7000"), eq("5"), anyString()))
+		when(redis.execute(eq(script), eq(List.of("cs:pat:rl:FAKE-KEY")), eq("7000"), eq("5"), anyString()))
 				.thenReturn(List.of(0L, 0L, 1001L));
 		RateLimitDecision result = limiter.tryAcquire("FAKE-KEY");
 		assertFalse(result.isAllowed());
