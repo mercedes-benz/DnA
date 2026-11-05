@@ -10,8 +10,8 @@ import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.Objects;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -23,7 +23,6 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
 import com.daimler.data.api.fabricWorkspace.FabricWorkspacesApi;
 import com.daimler.data.api.fabricWorkspace.LovsApi;
 import com.daimler.data.application.auth.UserStore;
@@ -130,6 +129,7 @@ public class FabricWorkspaceController implements FabricWorkspacesApi, LovsApi
 		GenericMessage errorMessage = new GenericMessage();
 		FabricWorkspaceVO data = new FabricWorkspaceVO();
 		FabricWorkspaceVO workspaceRequestVO = workspaceCreateVO.getData();
+		log.info("Fabric workspace creation workflow invoked, This is a test log!");
 		if(workspaceRequestVO==null || workspaceRequestVO.getName()==null || workspaceRequestVO.getTypeOfProject() ==null ) {
 			log.error("Fabric workspace project mandatory fields cannot be null, please check and send valid input");
 			MessageDescription invalidMsg = new MessageDescription("Fabric workspace name/type of project cannot be null, please check and send valid input");

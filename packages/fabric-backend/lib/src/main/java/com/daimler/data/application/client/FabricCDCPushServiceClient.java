@@ -27,11 +27,11 @@
 
 package com.daimler.data.application.client;
 
-import org.apache.http.HttpStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.HttpMethod;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -114,7 +114,7 @@ public class FabricCDCPushServiceClient {
 
         } catch (Exception e) {
             log.error("Exception occurred while fetching lakehouse tables: {}", e.getMessage());
-			vo.setResponseCode(String.valueOf(HttpStatus.SC_INTERNAL_SERVER_ERROR));
+			vo.setResponseCode(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()));
         }
 
         return vo;
@@ -156,7 +156,7 @@ public class FabricCDCPushServiceClient {
 
 		} catch (Exception e) {
 			log.error("Exception occurred while fetching table schema: {}", e.getMessage());
-			vo.setResponseCode(String.valueOf(HttpStatus.SC_INTERNAL_SERVER_ERROR));
+			vo.setResponseCode(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()));
 		}
 		return vo;
 	}
@@ -208,7 +208,7 @@ public class FabricCDCPushServiceClient {
 		} catch (Exception e) {
 			String errorMessage = "Exception occurred while fetching table schema: " + e.getMessage();
 			log.error("Exception occurred while fetching table schema: {}", e.getMessage());
-			vo.setResponseCode(String.valueOf(HttpStatus.SC_INTERNAL_SERVER_ERROR));
+			vo.setResponseCode(String.valueOf(HttpStatus.INTERNAL_SERVER_ERROR.value()));
 			vo.setErrorMessage(errorMessage);
 		}
 		return vo;

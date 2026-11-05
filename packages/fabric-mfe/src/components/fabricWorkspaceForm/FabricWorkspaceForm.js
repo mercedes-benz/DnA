@@ -1,5 +1,5 @@
 import classNames from 'classnames';
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useForm, FormProvider, Controller } from 'react-hook-form';
 import { useHistory } from "react-router-dom";
 // styles
@@ -17,6 +17,26 @@ import { Envs } from '../../utilities/envs';
 import { hostServer } from '../../server/api';
 import { fabricApi} from '../../apis/fabric.api';
 import { USER_ROLE } from '../../utilities/constants';
+
+const toLocalDateKey = (date) =>
+  `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+
+const toDateKey = (value) => {
+  if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}/.test(value)) return value.slice(0, 10);
+  const date = new Date(value);
+  return isNaN(date.getTime()) ? null : toLocalDateKey(date);
+};
+
+const isActiveProject = (project) => {
+  if (!project?.inactiveDate) return true;
+  const inactiveDateKey = toDateKey(project.inactiveDate);
+  return inactiveDateKey === null || inactiveDateKey > toLocalDateKey(new Date());
+};
+
+const toActiveProjectOptions = (records) =>
+  (records || [])
+    .filter(isActiveProject)
+    .map((project) => ({ ...project, id: project.projectID, name: project.projectName || project.projectID }));
 
 const FabricWorkspaceForm = ({ workspace, edit, onSave, user}) => {
   let history = useHistory();
@@ -48,6 +68,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave, user}) => {
   const [fabricTags, setFabricTags] = useState([]);
   const [projectList, setProjectList] = useState([]);
   const [selectedProject, setSelectedProject] = useState(edit && workspace?.projectId ? { projectID: workspace?.projectId } : {});
+  const [isProjectNameResolved, setIsProjectNameResolved] = useState(!(edit && workspace?.projectId));
   const selectedDivision = watch('division');
 
   // const [costCenter, setCostCenter] = useState(edit && workspace?.costCenter !== null ? workspace?.costCenter : '');
@@ -72,6 +93,24 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave, user}) => {
   const [selectedLeanIX, setSelectedLeanIX] = useState(
     edit && workspace?.appId ? { id: workspace?.appId, ...workspace?.leanIXDetails } : []
   );
+  const selectedProjectIdRef = useRef(edit ? workspace?.projectId : undefined);
+
+  // Mirrors the backend: the project's LeanIX resolved via PlanningIT, else the raw value
+  const applyProjectLeanIX = (project) => {
+    const leanIX = project?.leanIX?.trim();
+    if (!leanIX || selectedProjectIdRef.current !== project.projectID) return;
+    const applyIfStillSelected = (item) => {
+      if (selectedProjectIdRef.current === project.projectID) setSelectedLeanIX(item);
+    };
+    fabricApi
+      .getLeanIX(leanIX)
+      .then((res) => {
+        const items = res.data?.data || [];
+        const match = items.find((item) => item?.id?.toLowerCase() === leanIX.toLowerCase()) || items[0];
+        applyIfStillSelected(match || { id: leanIX });
+      })
+      .catch(() => applyIfStillSelected({ id: leanIX }));
+  };
 
   useEffect(() => {
     ProgressIndicator.show();
@@ -94,6 +133,24 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave, user}) => {
           Notification.show(err?.message || 'Something went wrong.', 'alert');
         }
       });
+    //eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    if (!edit || !workspace?.projectId) return;
+    fabricApi
+      .searchProjectDetails(workspace.projectId)
+      .then((res) => {
+        const match = toActiveProjectOptions(res.data?.records).find(
+          (project) => project.projectID === workspace.projectId,
+        );
+        if (match) {
+          setSelectedProject((prev) => (prev?.projectID === workspace.projectId ? match : prev));
+          applyProjectLeanIX(match);
+        }
+      })
+      .catch(() => {})
+      .finally(() => setIsProjectNameResolved(true));
     //eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -253,7 +310,10 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave, user}) => {
   };
   
   const filteredProjects = projectList.length === 0 ? null : projectList;
-  const isLeanIXDisabled = Boolean(selectedProject?.projectID);
+  // A project known only by ID (edit mode, lookup pending or not found) keeps LeanIX locked, as the backend may still apply its LeanIX
+  const isLeanIXDisabled = Boolean(
+    selectedProject?.projectID && (selectedProject?.leanIX?.trim() || !selectedProject?.projectName),
+  );
   
   
   const handleProjectSearch = (searchTerm, showSpinner) => {
@@ -262,7 +322,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave, user}) => {
       fabricApi
         .searchProjectDetails(searchTerm)
         .then((res) => {
-          setProjectList(res.data?.records || []);
+          setProjectList(toActiveProjectOptions(res.data?.records));
           showSpinner(false);
         })
         .catch((e) => {
@@ -436,6 +496,7 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave, user}) => {
                 <Controller
                   control={control}
                   name="projectDetails"
+                  defaultValue={edit && workspace?.projectId ? workspace.projectId : ''}
                   rules={{
                     required: false,
                   }}
@@ -443,11 +504,15 @@ const FabricWorkspaceForm = ({ workspace, edit, onSave, user}) => {
                     <TypeAheadBox
                       label={'Project Details (Recommended for Billing Purpose)'}
                       placeholder={'Search Project Name'}
-                      defaultValue={selectedProject?.projectID}
+                      defaultValue={
+                        selectedProject?.projectName || (isProjectNameResolved ? selectedProject?.projectID : '')
+                      }
                       list={filteredProjects}
                       setSelected={(selectedProject) => {
                         setSelectedProject(selectedProject || {});
                         field.onChange(selectedProject?.projectID || '');
+                        selectedProjectIdRef.current = selectedProject?.projectID;
+                        applyProjectLeanIX(selectedProject);
                       }}
                       onInputChange={(value, showSpinner) =>
                         handleProjectSearch(value, showSpinner, selectedDivision)

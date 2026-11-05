@@ -133,5 +133,24 @@ public interface WorkspaceCustomRepository extends CommonDataRepository<CodeServ
 	Integer getResourceCapExemptionsCount(String projectName);
 
 	GenericMessage updateResourceCapExemption(String projectName, String environment, boolean exempt);
+	/**
+	 * get the code space details by git repo name, this method will return the workspaceNsql object for the given git repo name 
+	 * @param repoName git repo name
+	 * @return workspace details for the given git repo name
+	 */
+	List<CodeServerWorkspaceNsql> findAllByRepoName(String repoName);
 
+	/**
+	 * get all the workspace by the webhook id 
+	 * @param webhookId web hook id configured in the workspace
+	 * @return list of workspace details 
+	 */
+	List<CodeServerWorkspaceNsql> findAllByWebhookId(String webhookId);
+
+	/**
+	 * get all the workspace by the unique lateral 
+	 * @param uniqueLiteral string unique Literal i.e. will be the JSON key or column 
+	 * @param value the value based on which it will compare i.e. WHERE uniqueLiteral = value
+	 */
+	List<CodeServerWorkspaceNsql> findAllbyProjectName(String projectName);
 }

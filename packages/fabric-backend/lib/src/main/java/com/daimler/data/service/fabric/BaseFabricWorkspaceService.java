@@ -16,8 +16,8 @@ import java.util.UUID;
 import java.util.function.BooleanSupplier;
 import java.util.stream.Collectors;
 
-import javax.persistence.PersistenceException;
-import javax.persistence.Query;
+import jakarta.persistence.PersistenceException;
+import jakarta.persistence.Query;
 
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -728,36 +728,34 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 					data.setHasPii(vo.isHasPii());
 					boolean isPowerBI = vo.getSubscription() != null && vo.getSubscription().name().equalsIgnoreCase("PowerBI");
 					
-					if(vo.getInitiatedBy() == null || (vo.getInitiatedBy() != null && !FabricWorkspaceController.isTechnicalUser(vo.getInitiatedBy()))){
-						ErrorResponseDto assignCapacityResponse = fabricWorkspaceClient.assignCapacity(createResponse.getId(), isPowerBI);
-						if(assignCapacityResponse!=null && assignCapacityResponse.getErrorCode()!=null && "500".equalsIgnoreCase(assignCapacityResponse.getErrorCode())) {
-							capacityVO = null;
-							warnings.add(new MessageDescription("Failed to assign capacity, please reassign or update workspace to assign capacity automatically."));
-						}else {
-							if(isPowerBI) {
-								capacityVO.setId(powerbiCapacityId);
-								capacityVO.setName(powerbiCapacityName);
-								capacityVO.setRegion(capacityRegion);
-								capacityVO.setSku(capacitySku);
-								capacityVO.setState(capacityState);
-							} else {
-								capacityVO.setId(fabricCapacityId);
-								capacityVO.setName(fabricCapacityName);
-								capacityVO.setRegion(capacityRegion);
-								capacityVO.setSku(capacitySku);
-								capacityVO.setState(capacityState);
-							}
+					if(capacityVO.getId() != null){
+						CapacityVO workspaceAssignedCapacity = fabricWorkspaceClient.getCapacityDetails(capacityVO.getId());
+						if(workspaceAssignedCapacity != null){
+							capacityVO.setName(workspaceAssignedCapacity.getName());
+							capacityVO.setRegion(workspaceAssignedCapacity.getRegion());
+							capacityVO.setSku(workspaceAssignedCapacity.getSku());
+							capacityVO.setState(workspaceAssignedCapacity.getState());
 						}
 					} else {
-						if(capacityVO.getId() != null){
-							CapacityVO workspaceAssignedCapacity = fabricWorkspaceClient.getCapacityDetails(capacityVO.getId());
-							if(workspaceAssignedCapacity != null){
-								capacityVO.setName(workspaceAssignedCapacity.getName());
-								capacityVO.setRegion(workspaceAssignedCapacity.getRegion());
-								capacityVO.setSku(workspaceAssignedCapacity.getSku());
-								capacityVO.setState(workspaceAssignedCapacity.getState());
+							ErrorResponseDto assignCapacityResponse = fabricWorkspaceClient.assignCapacity(createResponse.getId(), isPowerBI);
+							if(assignCapacityResponse!=null && assignCapacityResponse.getErrorCode()!=null && "500".equalsIgnoreCase(assignCapacityResponse.getErrorCode())) {
+								capacityVO = null;
+								warnings.add(new MessageDescription("Failed to assign capacity, please reassign or update workspace to assign capacity automatically."));
+							}else {
+								if(isPowerBI) {
+									capacityVO.setId(powerbiCapacityId);
+									capacityVO.setName(powerbiCapacityName);
+									capacityVO.setRegion(capacityRegion);
+									capacityVO.setSku(capacitySku);
+									capacityVO.setState(capacityState);
+								} else {
+									capacityVO.setId(fabricCapacityId);
+									capacityVO.setName(fabricCapacityName);
+									capacityVO.setRegion(capacityRegion);
+									capacityVO.setSku(capacitySku);
+									capacityVO.setState(capacityState);
+								}
 							}
-						}
 					}
 					
 					data.setCapacity(capacityVO);
@@ -1961,7 +1959,9 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 			details.setProviderOrgDeptid(matched.getProviderOrgDeptid());
 			workspace.setLeanIXDetails(details);
 		} else {
-			log.warn("No PlanningIT entry found for leanIX id {}", leanIXId);
+			log.warn("No PlanningIT entry found for leanIX id {}, using project leanIX as appId", leanIXId);
+			workspace.setAppId(leanIXId.trim());
+			workspace.setLeanIXDetails(null);
 		}
 	}
 
@@ -2761,8 +2761,10 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		try {
 			log.info("Initiating ADA project search in repository. Search term='{}'", projectName);
 			List<ADAProjectsNsql> entities = adaProjectsRepo.searchProjectsByName(projectName);
+			Date today = getStartOfToday();
 
 			List<ADAProjectDetailsVO> projects = entities.stream()
+					.filter(entity -> isProjectActiveOn(entity, today))
 					.map(adaProjectsAssemblerssembler::toVo)
 					.collect(Collectors.toList());
 
@@ -2779,6 +2781,28 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 
 		collection.responses(message);
 		return collection;
+	}
+
+	private boolean isProjectActiveOn(ADAProjectsNsql entity, Date today) {
+		if (entity == null || entity.getData() == null) {
+			return false;
+		}
+		Date inactiveDate = entity.getData().getInactiveDate();
+		return inactiveDate == null || truncateToStartOfDay(inactiveDate).after(today);
+	}
+
+	private Date getStartOfToday() {
+		return truncateToStartOfDay(new Date());
+	}
+
+	private Date truncateToStartOfDay(Date date) {
+		Calendar calendar = Calendar.getInstance();
+		calendar.setTime(date);
+		calendar.set(Calendar.HOUR_OF_DAY, 0);
+		calendar.set(Calendar.MINUTE, 0);
+		calendar.set(Calendar.SECOND, 0);
+		calendar.set(Calendar.MILLISECOND, 0);
+		return calendar.getTime();
 	}
 
 	@Override
