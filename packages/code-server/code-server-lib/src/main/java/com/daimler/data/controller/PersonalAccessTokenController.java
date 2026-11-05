@@ -33,6 +33,7 @@ import com.daimler.data.dto.pat.PatVaultListItem;
 import com.daimler.data.dto.workspace.CodeServerWorkspaceVO;
 import com.daimler.data.service.pat.PatCryptoService;
 import com.daimler.data.service.workspace.WorkspaceService;
+import com.daimler.data.service.pat.cache.PatSecretStore;
 
 @RestController
 @RequestMapping("/api")
@@ -42,13 +43,15 @@ public class PersonalAccessTokenController {
 	private final WorkspaceService workspaceService;
 	private final PatCryptoService patCryptoService;
 	private final CodeServerVaultConfig vaultConfig;
+	private final PatSecretStore secretStore;
 
 	public PersonalAccessTokenController(UserStore userStore, WorkspaceService workspaceService,
-			PatCryptoService patCryptoService, CodeServerVaultConfig vaultConfig) {
+			PatCryptoService patCryptoService, CodeServerVaultConfig vaultConfig, PatSecretStore secretStore) {
 		this.userStore = userStore;
 		this.workspaceService = workspaceService;
 		this.patCryptoService = patCryptoService;
 		this.vaultConfig = vaultConfig;
+		this.secretStore = secretStore;
 	}
 
 	@PostMapping("/personal-access-tokens")
@@ -143,6 +146,12 @@ public class PersonalAccessTokenController {
 			if (!vaultConfig.deletePatSecret(userId, version)) {
 				log.warn("PAT revoke request for userId={} version={} reason=not_found", userId, version);
 				return error(HttpStatus.NOT_FOUND, "PAT not found");
+			}
+			try {
+				secretStore.evict(userId, version);
+				log.info("Evicted PAT cache entry, userId={} version={}", userId, version);
+			} catch (RuntimeException e) {
+				log.error("PAT cache eviction failed, userId={} version={}", userId, version);
 			}
 			log.info("Revoked PAT for userId={} version={}", userId, version);
 			return ResponseEntity.ok(new GenericMessage("Revoked"));

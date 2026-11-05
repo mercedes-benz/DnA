@@ -25,7 +25,10 @@ import com.daimler.data.application.annotation.RequiresPatAuthorization;
 import com.daimler.data.application.auth.PatPermissions;
 import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.application.auth.UserStore.UserInfo;
-import com.daimler.data.application.config.CodeServerVaultConfig;
+import com.daimler.data.service.pat.cache.PatSecretValidator;
+import com.daimler.data.service.pat.cache.PatCacheProperties;
+import com.daimler.data.service.pat.ratelimit.RateLimiter;
+import com.daimler.data.service.pat.ratelimit.RateLimitDecision;
 import com.daimler.data.dto.pat.PatPayload;
 import com.daimler.data.dto.workspace.CodeServerProjectDetailsVO;
 import com.daimler.data.dto.workspace.CodeServerWorkspaceVO;
@@ -37,7 +40,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 class PatAuthorizationInterceptorTest {
 	private static final String KEY = java.util.Base64.getEncoder().encodeToString(new byte[32]);
 	private PatCryptoService crypto;
-	private CodeServerVaultConfig vaultConfig;
+	private PatSecretValidator vaultConfig;
+	private RateLimiter rateLimiter;
 	private WorkspaceService workspaceService;
 	private UserStore userStore;
 	private PatAuthorizationInterceptor interceptor;
@@ -45,11 +49,40 @@ class PatAuthorizationInterceptorTest {
 	@BeforeEach
 	void setUp() {
 		crypto = new PatCryptoService(KEY, new ObjectMapper());
-		vaultConfig = mock(CodeServerVaultConfig.class);
+		vaultConfig = mock(PatSecretValidator.class);
+		rateLimiter = mock(RateLimiter.class);
+		when(rateLimiter.tryAcquire(org.mockito.ArgumentMatchers.anyString()))
+				.thenReturn(RateLimitDecision.allowed(5, 4));
 		workspaceService = mock(WorkspaceService.class);
 		userStore = new UserStore();
 		interceptor = new PatAuthorizationInterceptor(crypto, vaultConfig, workspaceService, userStore,
-				new ObjectMapper());
+				new ObjectMapper(), rateLimiter, new PatCacheProperties());
+	}
+
+	@Test
+	void rateLimitedRequestReturns429WithoutValidation() throws Exception {
+		when(rateLimiter.tryAcquire("cs:pat:rl:creator:v2"))
+				.thenReturn(RateLimitDecision.denied(5, 1501));
+		MockHttpServletResponse response = new MockHttpServletResponse();
+		assertFalse(interceptor.preHandle(authorizedRequest(payload("creator", 2,
+				List.of(PatPermissions.READ))), response, handler("read")));
+		assertEquals(429, response.getStatus());
+		assertEquals("2", response.getHeader("Retry-After"));
+		assertEquals("5", response.getHeader("X-RateLimit-Limit"));
+		assertEquals("0", response.getHeader("X-RateLimit-Remaining"));
+		assertTrue(response.getContentAsString().contains("Too many requests"));
+		org.mockito.Mockito.verifyNoInteractions(vaultConfig);
+		assertNull(userStore.getUserInfo());
+	}
+
+	@Test
+	void allowedRequestIncludesRateLimitHeaders() throws Exception {
+		when(vaultConfig.validate("creator", 2, "secret")).thenReturn(true);
+		MockHttpServletResponse response = new MockHttpServletResponse();
+		assertTrue(interceptor.preHandle(authorizedRequest(payload("creator", 2,
+				List.of(PatPermissions.READ))), response, handler("read")));
+		assertEquals("5", response.getHeader("X-RateLimit-Limit"));
+		assertEquals("4", response.getHeader("X-RateLimit-Remaining"));
 	}
 
 	@Test
@@ -77,7 +110,7 @@ class PatAuthorizationInterceptorTest {
 
 	@Test
 	void vaultMismatchReturns401() throws Exception {
-		when(vaultConfig.validatePatSecret("creator", 2, "secret")).thenReturn(false);
+		when(vaultConfig.validate("creator", 2, "secret")).thenReturn(false);
 		MockHttpServletResponse response = new MockHttpServletResponse();
 		MockHttpServletRequest request = authorizedRequest(payload("creator", 2, List.of(PatPermissions.READ)));
 
@@ -89,7 +122,7 @@ class PatAuthorizationInterceptorTest {
 
 	@Test
 	void readOnlyTokenCannotDeploy() throws Exception {
-		when(vaultConfig.validatePatSecret("creator", 2, "secret")).thenReturn(true);
+		when(vaultConfig.validate("creator", 2, "secret")).thenReturn(true);
 		MockHttpServletResponse response = new MockHttpServletResponse();
 		MockHttpServletRequest request = authorizedRequest(payload("creator", 2, List.of(PatPermissions.READ)));
 
@@ -101,7 +134,7 @@ class PatAuthorizationInterceptorTest {
 
 	@Test
 	void projectOutsideTokenScopeReturns403() throws Exception {
-		when(vaultConfig.validatePatSecret("creator", 2, "secret")).thenReturn(true);
+		when(vaultConfig.validate("creator", 2, "secret")).thenReturn(true);
 		stubWorkspace("workspace-1", "another-project", true);
 		MockHttpServletResponse response = new MockHttpServletResponse();
 		MockHttpServletRequest request = authorizedRequest(
@@ -116,7 +149,7 @@ class PatAuthorizationInterceptorTest {
 
 	@Test
 	void creatorNoLongerCollaboratorReturns403() throws Exception {
-		when(vaultConfig.validatePatSecret("creator", 2, "secret")).thenReturn(true);
+		when(vaultConfig.validate("creator", 2, "secret")).thenReturn(true);
 		stubWorkspace("workspace-1", "project", false);
 		MockHttpServletResponse response = new MockHttpServletResponse();
 		MockHttpServletRequest request = authorizedRequest(payload("creator", 2, List.of(PatPermissions.READ)));
@@ -130,7 +163,7 @@ class PatAuthorizationInterceptorTest {
 
 	@Test
 	void successSetsCreatorIdentityWithoutRolesAndCompletionClearsIt() throws Exception {
-		when(vaultConfig.validatePatSecret("creator", 2, "secret")).thenReturn(true);
+		when(vaultConfig.validate("creator", 2, "secret")).thenReturn(true);
 		stubWorkspace("workspace-1", "project", true);
 		MockHttpServletRequest request = authorizedRequest(payload("creator", 2, List.of(PatPermissions.READ)));
 		request.setAttribute(HandlerMapping.URI_TEMPLATE_VARIABLES_ATTRIBUTE, Map.of("id", "workspace-1"));
@@ -150,8 +183,8 @@ class PatAuthorizationInterceptorTest {
 
 	@Test
 	void separateRequestStoresKeepConcurrentIdentitiesIsolated() throws Exception {
-		when(vaultConfig.validatePatSecret("creator-a", 1, "secret")).thenReturn(true);
-		when(vaultConfig.validatePatSecret("creator-b", 1, "secret")).thenReturn(true);
+		when(vaultConfig.validate("creator-a", 1, "secret")).thenReturn(true);
+		when(vaultConfig.validate("creator-b", 1, "secret")).thenReturn(true);
 		CountDownLatch authorized = new CountDownLatch(2);
 		CountDownLatch finish = new CountDownLatch(1);
 		String[] identities = new String[2];
@@ -175,7 +208,7 @@ class PatAuthorizationInterceptorTest {
 			try {
 				UserStore requestStore = new UserStore();
 				PatAuthorizationInterceptor requestInterceptor = new PatAuthorizationInterceptor(crypto, vaultConfig,
-						workspaceService, requestStore, new ObjectMapper());
+						workspaceService, requestStore, new ObjectMapper(), rateLimiter, new PatCacheProperties());
 				MockHttpServletRequest request = authorizedRequest(payload(userId, 1, List.of(PatPermissions.READ)));
 				HandlerMethod handler = handler("read");
 				if (requestInterceptor.preHandle(request, new MockHttpServletResponse(), handler)) {

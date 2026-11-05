@@ -74,6 +74,8 @@ management:
       exposure:
         include: health,info
   health:
+    redis:
+      enabled: false
     db:
       enabled: true
   endpoint:
@@ -110,8 +112,23 @@ server:
 allowedCorsOriginPatternUrl: ${CORS_ORIGIN_URL:http://*}
 
 codeServer:
+  redis:
+    host: ${REDIS_HOST:XXXX}
+    port: ${REDIS_PORT:6379}
+    user: ${REDIS_ROOT_USER:}
+    password: ${REDIS_ROOT_PASSWORD:}
+    database: ${CODE_SERVER_REDIS_DATABASE:1}
+    timeout: ${CODE_SERVER_REDIS_TIMEOUT_MS:2000}
   pat:
     encryptionkey: ${CODE_SERVER_PAT_ENCRYPTION_KEY:XXXX}
+    cache:
+      enabled: ${CODE_SERVER_PAT_CACHE_ENABLED:true}
+      ttlSeconds: ${CODE_SERVER_PAT_CACHE_TTL_SECONDS:300}
+      keyPrefix: ${CODE_SERVER_PAT_REDIS_KEY_PREFIX:cs:pat:}
+    ratelimit:
+      enabled: ${CODE_SERVER_PAT_RATE_LIMIT_ENABLED:true}
+      maxRequests: ${CODE_SERVER_PAT_RATE_LIMIT_MAX_REQUESTS:5}
+      windowSeconds: ${CODE_SERVER_PAT_RATE_LIMIT_WINDOW_SECONDS:7}
   gitjob.deployuri: ${CODE_SERVER_GITJOB_DEPLOY_URI:XXXX}
   gitjob.manageuri: ${CODE_SERVER_GITJOB_MANAGE_URI:XXXX}
   gitjob.getWorkflowRun: ${CODE_SERVER_GITJOB_GET_WORKFLOW_RUN_URI:xxxx}
