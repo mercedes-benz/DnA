@@ -19,7 +19,6 @@ pluginManagement {
     }
     plugins {
       id 'org.hidetake.swagger.generator' version '2.18.2'
-	  id 'maven' version '3.1.2'
     }
 }
 

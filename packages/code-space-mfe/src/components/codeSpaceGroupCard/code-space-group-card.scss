@@ -1,5 +1,6 @@
 .group {
     width: calc(25% - 12px);
+    min-width: 250px;
     min-height: 300px;
     padding: 25px 20px 50px 20px;
     position: relative;
@@ -93,8 +94,24 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    gap: 8px;
     border-bottom: 1px solid #2e3740;
     padding: 0 0 10px 0;
+
+    > div:first-child {
+      flex: 1 1 auto;
+      min-width: 0;
+
+      .flexDisplay {
+        min-width: 0;
+        align-items: center;
+      }
+    }
+
+    > div + div {
+      flex-shrink: 0;
+      align-items: center;
+    }
   
     // button {
     //     position: relative;
@@ -154,7 +171,9 @@
         color: #99a5b3;
         line-height: 1.5;  
         white-space: nowrap;
+        overflow: hidden;
         text-overflow: ellipsis;
+        min-width: 0;
         
         &:hover {
           color:#00adef;
@@ -190,6 +209,7 @@
   }
   
   .csOpenNewTab {
+      flex-shrink: 0;
       border: 1px solid #acb8c4;
       width: 20px;
       height: 20px;
@@ -312,7 +332,6 @@
      .highlight {
       border-color: #00adef;
   }
-  
-  
-  
-  
+
+
+
