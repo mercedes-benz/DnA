@@ -86,6 +86,9 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
     @Value("${uilicious.identifier}")
     private String pidUserIdentifier; 
 
+    @Value("${cdcIntegration.publishEnabled}")
+    private boolean cdcPublishEnabled;
+
     private final FabricWorkspaceCustomRepository customRepo;
     private final FabricWorkspaceRepository jpaRepo;
     private final FabricWorkspaceAssembler assembler;
@@ -152,6 +155,13 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
     @Transactional(propagation = Propagation.NOT_SUPPORTED)
     public PublishCatalogResponseVO publishCatalogMetaData(PublishCatalogRequestVO request, 
             FabricWorkspaceVO existingFabricWorkspace, boolean hasExistingPublish) {
+
+        if (!cdcPublishEnabled) {
+            log.warn("CDC publish is DISABLED (cdcIntegration.publishEnabled=false). Returning mock response for workspace: {}",
+                    existingFabricWorkspace.getName());
+            return buildMockPublishResponse(request, existingFabricWorkspace);
+        }
+
         log.info("Publishing catalog metadata for workspace: {} (hasExistingPublish: {})", 
                 existingFabricWorkspace.getName(), hasExistingPublish);
         
@@ -229,6 +239,65 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
         return response;
     }
 
+    /**
+     * Builds a mock publish response without contacting the CDC portal (OpenMetadata / CDC push service).
+     * Used when cdcIntegration.publishEnabled=false so the flow can be exercised without a live CDC backend.
+     * The response echoes the request metadata and derives per-lakehouse CDC details purely from the request.
+     */
+    private PublishCatalogResponseVO buildMockPublishResponse(PublishCatalogRequestVO request,
+            FabricWorkspaceVO workspace) {
+        PublishCatalogResponseVO response = new PublishCatalogResponseVO();
+        FabricCatalogMetadataDetailsVO details = new FabricCatalogMetadataDetailsVO();
+        details.setMetadata(request.getMetadata());
+
+        List<CdcTableDetailVO> mockCdcDetails = new ArrayList<>();
+        Date now = new Date();
+        CreatedByVO createdBy = (request.getOwners() != null && !request.getOwners().isEmpty())
+                ? request.getOwners().get(0) : null;
+
+        for (FabricLakehouseVO lakehouse : resolveRequestedLakehouses(request, workspace)) {
+            Optional<DatabaseMetadataVO> requestDatabase = resolveLakehouseDatabaseForPersistence(request, workspace, lakehouse);
+            String catalogName = requestDatabase.isPresent()
+                    ? resolveCatalogName(requestDatabase.get(), lakehouse) : lakehouse.getName();
+
+            CdcTableDetailVO cdcDetail = new CdcTableDetailVO();
+            cdcDetail.setWorkspaceId(workspace.getId());
+            cdcDetail.setWorkspaceName(workspace.getName());
+            cdcDetail.setLakeHouseId(lakehouse.getId());
+            cdcDetail.setLakehouseName(lakehouse.getName());
+            cdcDetail.setCatalogName(catalogName);
+            cdcDetail.setIsLakeHousesPublishedToCdc(true);
+            cdcDetail.setMandatoryFields(request.getMandatoryFields());
+            cdcDetail.setCreatedBy(createdBy);
+            cdcDetail.setCreatedOn(now);
+            cdcDetail.setModifiedOn(now);
+            if (requestDatabase.isPresent()) {
+                populateLakehouseDetailsFromRequest(cdcDetail, requestDatabase.get());
+            }
+            mockCdcDetails.add(cdcDetail);
+        }
+
+        details.setPublishedCDCCatalogs(mockCdcDetails);
+        response.setData(details);
+        response.setResponses(new GenericMessage(SUCCESS_STATUS));
+        log.info("Built mock publish response for workspace {} with {} lakehouse catalog entries",
+                workspace.getName(), mockCdcDetails.size());
+
+        try {
+            // Persist mock catalog metadata so the mocked publish is reflected in the DB, same as the real flow.
+            updateLakeHouseDetails(workspace, request.getMetadata());
+            saveCatalogMetadataPerLakehouse(request, details, workspace);
+            log.info("Persisted mock catalog metadata for workspace {}", workspace.getName());
+        } catch (Exception e) {
+            log.error("Failed to persist mock catalog metadata for workspace {}: {}",
+                    workspace.getName(), e.getMessage(), e);
+            response.setResponses(createErrorResponse(FAILED_STATUS,
+                    "Failed to persist mock catalog metadata: " + e.getMessage()));
+        }
+
+        return response;
+    }
+
     @Override
     public PublishCatalogResponseVO getCatalogMetadata(String serviceName) {
         log.info("Fetching catalog metadata for service: {}", serviceName);
@@ -260,6 +329,14 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
     @Override
     public PublishCatalogResponseVO getCatalogMetadata(String serviceName, FabricWorkspaceVO workspace) {
         log.info("Fetching catalog metadata for service: {} with workspace fallback", serviceName);
+
+        // When CDC publish is disabled, OpenMetadata/CDC is not reachable.
+        // Read the catalog metadata purely from the local DB and return it.
+        if (!cdcPublishEnabled) {
+            log.warn("CDC publish is DISABLED (cdcIntegration.publishEnabled=false). "
+                    + "Reading catalog metadata from local DB only for service: {}", serviceName);
+            return getCatalogMetadataFromLocalDb(serviceName, workspace);
+        }
 
         PublishCatalogResponseVO response = new PublishCatalogResponseVO();
 
@@ -301,6 +378,62 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
             throw new EntityNotFoundException("Metadata details", serviceName);
         } catch (Exception e) {
             log.error("Failed to get catalog metadata for service: {}", serviceName, e);
+            throw new OpenMetadataClientException("Failed to get catalog metadata for workspace: " +
+                serviceName + " " + e.getMessage(), e);
+        }
+
+        return response;
+    }
+
+    /**
+     * Reads catalog metadata exclusively from the local DB, without contacting OpenMetadata/CDC.
+     * Used when cdcIntegration.publishEnabled=false so the UI still receives the persisted
+     * (including mock-published) catalog details per lakehouse.
+     */
+    private PublishCatalogResponseVO getCatalogMetadataFromLocalDb(String serviceName, FabricWorkspaceVO workspace) {
+        PublishCatalogResponseVO response = new PublishCatalogResponseVO();
+
+        // Build a minimal metadata envelope so the UI always gets at least the service name.
+        FabricCatalogMetadataVO metadata = new FabricCatalogMetadataVO();
+        metadata.setServiceName(serviceName);
+
+        try {
+            FabricCatalogMetadataDetailsVO catalogMetadataDetails;
+            try {
+                // Preferred: rows located by service name.
+                catalogMetadataDetails = retrieveStoredMetadataDetails(serviceName, metadata);
+            } catch (EntityNotFoundException e) {
+                // Fallback: per-lakehouse rows by lakehouse ID directly.
+                log.info("findAllByServiceName returned empty for {}, falling back to findById per lakehouse", serviceName);
+                catalogMetadataDetails = new FabricCatalogMetadataDetailsVO();
+                catalogMetadataDetails.setMetadata(metadata);
+
+                List<CdcTableDetailVO> allCdcTables = new ArrayList<>();
+                if (workspace.getLakehouses() != null) {
+                    for (FabricLakehouseVO lakehouse : workspace.getLakehouses()) {
+                        Optional<FabricCatalogMetadataNsql> entityOpt = catalogRepo.findById(lakehouse.getId());
+                        if (entityOpt.isPresent()) {
+                            FabricCatalogMetadataDetailsVO vo = catalogAssembler.toVo(entityOpt.get());
+                            if (vo.getPublishedCDCCatalogs() != null) {
+                                allCdcTables.addAll(vo.getPublishedCDCCatalogs());
+                            }
+                        }
+                    }
+                }
+
+                if (allCdcTables.isEmpty()) {
+                    throw new EntityNotFoundException("Catalog metadata", serviceName);
+                }
+                catalogMetadataDetails.setPublishedCDCCatalogs(allCdcTables);
+            }
+
+            prepareSuccessResponse(response, catalogMetadataDetails);
+
+        } catch (EntityNotFoundException e) {
+            log.error("No locally stored catalog metadata found for service: {}", serviceName, e);
+            throw new EntityNotFoundException("Metadata details", serviceName);
+        } catch (Exception e) {
+            log.error("Failed to get catalog metadata from local DB for service: {}", serviceName, e);
             throw new OpenMetadataClientException("Failed to get catalog metadata for workspace: " +
                 serviceName + " " + e.getMessage(), e);
         }

@@ -170,6 +170,7 @@ jwtAuthenticationFilter:
     urlPatterns: ${AUTH_FILTER_EXCLUSION_PATTERNS:/api/fabric-workspaces/ada/**}
 
 cdcIntegration:
+  publishEnabled: ${CDC_PUBLISH_ENABLED:XXXX}
   openmetadata:
     serverUrl: ${OPENMETADATA_SERVER_URL:XXXX}
     jwtToken: ${OPENMETADATA_JWT_TOKEN:XXXX}

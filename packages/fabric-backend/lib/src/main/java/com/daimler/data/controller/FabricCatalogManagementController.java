@@ -73,6 +73,9 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
     @Autowired
     private UserStore userStore;
 
+    @Value("${cdcIntegration.publishEnabled}")
+    private boolean cdcPublishEnabled;
+
     @Autowired
     private FabricWorkspaceService fabricWorkspaceService;
 
@@ -143,7 +146,9 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
 
         try {
 
+            if (cdcPublishEnabled) {
             openMetadataClient.getUserByFqn(requestUser.getId());
+            }
             responseVO = service.publishCatalogMetaData(publishCatalogRequest, existingFabricWorkspace, hasExistingPublish);
             GenericMessage responseMessage = responseVO.getResponses();
             if (("SUCCESS").equalsIgnoreCase(responseMessage.getSuccess())) {
@@ -273,7 +278,9 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
 
         try {
 
+            if (cdcPublishEnabled) {
             openMetadataClient.getUserByFqn(requestUser.getId());
+            }
             responseVO = service.updateCatalogMetaData(updateCatalogRequest, existingFabricWorkspace);
             GenericMessage responseMessage = responseVO.getResponses();
             if (("SUCCESS").equalsIgnoreCase(responseMessage.getSuccess())) {
