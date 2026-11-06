@@ -2788,7 +2788,14 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 			return false;
 		}
 		Date inactiveDate = entity.getData().getInactiveDate();
-		return inactiveDate == null || truncateToStartOfDay(inactiveDate).after(today);
+		return inactiveDate == null || isEpochPlaceholderDate(inactiveDate)
+				|| truncateToStartOfDay(inactiveDate).after(today);
+	}
+
+	// An inactiveDate on 1970-01-01 (UTC) is a placeholder, not a real inactivation date
+	private boolean isEpochPlaceholderDate(Date date) {
+		long time = date.getTime();
+		return time >= 0 && time < 24L * 60 * 60 * 1000;
 	}
 
 	private Date getStartOfToday() {
