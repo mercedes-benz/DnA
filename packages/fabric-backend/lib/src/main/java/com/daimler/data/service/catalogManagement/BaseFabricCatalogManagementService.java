@@ -67,7 +67,6 @@ import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
-import javax.swing.GroupLayout.Group;
 
 @Service
 @Slf4j
@@ -225,14 +224,14 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
             response.setResponses(createErrorResponse(FAILED_STATUS,
                     "Failed to publish catalog: " + e.getMessage()));
             if (!hasExistingPublish) {
-                openMetadataClient.deleteDatabaseService(existingFabricWorkspace.getName());
+                rollbackDatabaseService(existingFabricWorkspace.getName());
             }
         } catch (Exception e) {
             log.error("Unexpected error publishing catalog for workspace: {}", existingFabricWorkspace.getName(), e);
             response.setResponses(createErrorResponse(FAILED_STATUS,
                     "Failed to publish catalog: " + e.getMessage()));
             if (!hasExistingPublish) {
-                openMetadataClient.deleteDatabaseService(existingFabricWorkspace.getName());
+                rollbackDatabaseService(existingFabricWorkspace.getName());
             }
         }
 
@@ -296,6 +295,13 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
         }
 
         return response;
+    private void rollbackDatabaseService(String serviceName) {
+        try {
+            openMetadataClient.deleteDatabaseService(serviceName);
+        } catch (Exception ex) {
+            log.error("Rollback of database service {} failed after publish error; original error is preserved",
+                    serviceName, ex);
+        }
     }
 
     @Override
@@ -2505,9 +2511,9 @@ public class BaseFabricCatalogManagementService extends BaseCommonService<Fabric
 
         if (data.getDdxGroupDetails() != null && !data.getDdxGroupDetails().isEmpty()) {
             // DdxGroupDetail firstGroup = data.getDdxGroupDetails().get(0);
-            List<String> groupNameList = data.getDdxGroupDetails().stream().map(DdxGroupDetail::getGroupName).collect(Collectors.toList());
-            GrantPermissionsVO grantPermissions = new GrantPermissionsVO();
-            grantPermissions.addAll(groupNameList);
+            List<String> grantPermissions = data.getDdxGroupDetails().stream()
+                    .map(DdxGroupDetail::getGroupName)
+                    .collect(Collectors.toList());
             response.setGrantPermissions(grantPermissions);
         }
 

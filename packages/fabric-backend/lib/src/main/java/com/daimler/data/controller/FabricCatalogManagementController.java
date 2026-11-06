@@ -4,9 +4,9 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Collections;
 
-import javax.validation.Valid;
-import javax.validation.constraints.NotNull;
-import javax.ws.rs.ForbiddenException;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotNull;
+import org.springframework.web.server.ResponseStatusException;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -106,7 +106,7 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
         produces = { "application/json" }, 
         consumes = { "application/json" },
         method = RequestMethod.POST)
-    public ResponseEntity<PublishCatalogResponseVO> publishCatalogRequest(@ApiParam(value = "The catalog to publish." ,required=true )  @Valid @RequestBody PublishCatalogRequestVO publishCatalogRequest,@ApiParam(value = "The ID of the workspace.",required=true) @PathVariable("workspaceId") String workspaceId) {
+    public ResponseEntity<PublishCatalogResponseVO> publishCatalogRequest(@ApiParam(value = "The ID of the workspace.",required=true) @PathVariable("workspaceId") String workspaceId,@ApiParam(value = "The catalog to publish." ,required=true )  @Valid @RequestBody PublishCatalogRequestVO publishCatalogRequest) {
 
         PublishCatalogResponseVO responseVO = new PublishCatalogResponseVO();
 
@@ -252,7 +252,7 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
         produces = { "application/json" }, 
         consumes = { "application/json" },
         method = RequestMethod.PUT)
-    public ResponseEntity<PublishCatalogResponseVO> updatePublishedCatalogRequest(@ApiParam(value = "The catalog to publish." ,required=true )  @Valid @RequestBody PublishCatalogRequestVO updateCatalogRequest,@ApiParam(value = "The ID of the workspace.",required=true) @PathVariable("workspaceId") String workspaceId){
+    public ResponseEntity<PublishCatalogResponseVO> updatePublishedCatalogRequest(@ApiParam(value = "The ID of the workspace.",required=true) @PathVariable("workspaceId") String workspaceId,@ApiParam(value = "The catalog to publish." ,required=true )  @Valid @RequestBody PublishCatalogRequestVO updateCatalogRequest){
 
         PublishCatalogResponseVO responseVO = new PublishCatalogResponseVO();
 
@@ -353,7 +353,7 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
         produces = { "application/json" }, 
         consumes = { "application/json" },
         method = RequestMethod.POST)
-    public ResponseEntity<GenericMessage> updateGroupsFromDDX(@ApiParam(value = "The groups update request from DDX." ,required=true )  @Valid @RequestBody UpdateDDXGroupsRequestVO updateDDXGroupsRequest,@ApiParam(value = "The ID of DDX data product .",required=true) @PathVariable("ddxId") String ddxId,@ApiParam(value = "The ID of the workspace.",required=true) @PathVariable("workspaceId") String workspaceId,@ApiParam(value = "The ID of Lakehouse.",required=true) @PathVariable("lakehouseId") String lakehouseId){
+    public ResponseEntity<GenericMessage> updateGroupsFromDDX(@ApiParam(value = "The ID of DDX data product .",required=true) @PathVariable("ddxId") String ddxId,@ApiParam(value = "The ID of the workspace.",required=true) @PathVariable("workspaceId") String workspaceId,@ApiParam(value = "The ID of Lakehouse.",required=true) @PathVariable("lakehouseId") String lakehouseId,@ApiParam(value = "The groups update request from DDX." ,required=true )  @Valid @RequestBody UpdateDDXGroupsRequestVO updateDDXGroupsRequest){
 
         GenericMessage responseMessage = new DDXGroupsResponseMessage();
         // GenericMessage responseMessage = new GenericMessage();
@@ -688,7 +688,7 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
         produces = { "application/json" }, 
         consumes = { "application/json" },
         method = RequestMethod.GET)
-    public ResponseEntity<List<GroupStatusResponseVO>> getGroupsAssignmentStatus(@ApiParam(value = "The groups name to get the status for.", required = true) @Valid @RequestBody UpdateDDXGroupsRequestVO updateDDXGroupsRequest, @ApiParam(value = "The ID of the DDX.", required = true) @PathVariable("ddxId") String ddxId, @ApiParam(value = "The ID of the workspace.", required = true) @PathVariable("workspaceId") String workspaceId, @ApiParam(value = "The ID of Lakehouse.", required = true) @PathVariable("lakehouseId") String lakehouseId) {
+    public ResponseEntity<List<GroupStatusResponseVO>> getGroupsAssignmentStatus(@ApiParam(value = "The ID of the DDX.", required = true) @PathVariable("ddxId") String ddxId, @ApiParam(value = "The ID of the workspace.", required = true) @PathVariable("workspaceId") String workspaceId, @ApiParam(value = "The ID of Lakehouse.", required = true) @PathVariable("lakehouseId") String lakehouseId, @ApiParam(value = "The groups name to get the status for.", required = true) @Valid @RequestBody UpdateDDXGroupsRequestVO updateDDXGroupsRequest) {
         List<GroupStatusResponseVO> groupStatusList = new ArrayList<>();
 
         String workspaceName = null;
@@ -776,7 +776,7 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
 
             MirroredCatalogResponseVO response = service.createMirroredCatalog(createMirroredCatalogRequest);
             return new ResponseEntity<>(response, HttpStatus.OK);
-        } catch (ForbiddenException e) {
+        } catch (ResponseStatusException e) {
             log.error("Error creating mirrored catalog: {}", e.getMessage(), e);
             MirroredCatalogErrorResponseVO errorResponse = new MirroredCatalogErrorResponseVO();
             errorResponse.setDdxCorrelationId(createMirroredCatalogRequest.getDdxCorrelationId());
@@ -904,4 +904,3 @@ public class FabricCatalogManagementController implements FabricCatalogManagemen
     }
 
 }
-
