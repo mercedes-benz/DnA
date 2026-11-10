@@ -542,12 +542,13 @@ const Step4_ComplianceUsage = ({
       <div className={Styles.col}>
         <div className={classNames('input-field-group include-error', errors.purposesError ? 'error' : '')}>
           <label htmlFor="purposes" className="input-label">
-            Purposes <sup>*</sup> &nbsp;
+            Purposes {formData.personalDataContained === true && <sup>*</sup>} &nbsp;
             (Please specify the allowed purposes for processing this data)
           </label>
           <div className={classNames('custom-select')}>
             <select
               id="purposes"
+              disabled={formData.personalDataContained !== true}
               defaultValue={formData.purposes || ''}
               onChange={(e) => {
                 setFormData({ ...formData, purposes: e.target.value });
@@ -597,8 +598,9 @@ const Step4_ComplianceUsage = ({
                   value="false"
                   defaultChecked={formData.personalDataContained === false}
                   onChange={() => {
-                    setFormData({ ...formData, personalDataContained: false });
+                    setFormData({ ...formData, personalDataContained: false, purposes: [] });
                     clearError('personalDataContainedError');
+                    clearError('purposesError');
                   }}
                 />
               </span>
@@ -783,6 +785,7 @@ const ViewDdxTablesModalContent = ({ workspaceId, workspaceName, workspaceOwner,
     dataHubName: 'oneFabric',
     securityLevel: '',
     fulfillsDataCloudFramework: true,
+    personalDataContained: false,
     price: true,
   });
 
@@ -853,7 +856,7 @@ const ViewDdxTablesModalContent = ({ workspaceId, workspaceName, workspaceOwner,
       if (!formData.securityLevel) {
         newErrors.securityLevelError = '*Missing entry';
       }
-      if (!formData.purposes) {
+      if (formData.personalDataContained === true && (!formData.purposes || formData.purposes.length === 0)) {
         newErrors.purposesError = '*Missing entry';
       }
       if (typeof formData.personalDataContained === 'undefined') {
@@ -913,7 +916,7 @@ const ViewDdxTablesModalContent = ({ workspaceId, workspaceName, workspaceOwner,
       cdcDatabaseLink: cdcDatabaseLink,
       cdcDataProductLink: formData.cdcDataProductLink || '',
       securityLevel: securityLevel || '',
-      purposes: formData.purposes ? [formData.purposes] : [],
+      purposes: formData.personalDataContained === true ? (formData.purposes ? [formData.purposes] : []) : [],
       dataProviders: (formData.dataProviders || []).map((u) => u.id),
       division: (formData.divisions || '').replace(/-/g, ' ') || '',
 
