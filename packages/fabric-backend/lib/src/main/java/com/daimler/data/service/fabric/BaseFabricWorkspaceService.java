@@ -2783,19 +2783,20 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 		return collection;
 	}
 
+	private static final long PLACEHOLDER_INACTIVE_DATE_CUTOFF_MILLIS = 946684800000L; // 2000-01-01T00:00:00Z
+
 	private boolean isProjectActiveOn(ADAProjectsNsql entity, Date today) {
 		if (entity == null || entity.getData() == null) {
 			return false;
 		}
 		Date inactiveDate = entity.getData().getInactiveDate();
-		return inactiveDate == null || isEpochPlaceholderDate(inactiveDate)
+		return inactiveDate == null || isPlaceholderInactiveDate(inactiveDate)
 				|| truncateToStartOfDay(inactiveDate).after(today);
 	}
 
-	// An inactiveDate on 1970-01-01 (UTC) is a placeholder, not a real inactivation date
-	private boolean isEpochPlaceholderDate(Date date) {
-		long time = date.getTime();
-		return time >= 0 && time < 24L * 60 * 60 * 1000;
+	// An inactiveDate before 2000-01-01 (UTC) is a placeholder, not a real inactivation date
+	private boolean isPlaceholderInactiveDate(Date date) {
+		return date.getTime() < PLACEHOLDER_INACTIVE_DATE_CUTOFF_MILLIS;
 	}
 
 	private Date getStartOfToday() {
