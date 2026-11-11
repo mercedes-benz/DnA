@@ -733,7 +733,7 @@ paths:
           in: query
           description: "plugin to be disabled or enabled"
           required: true
-          type: string
+          type: "string"
           enum:
           - apiauthoriser
           - oidc
@@ -779,7 +779,7 @@ paths:
           in: query
           description: "plugin status to be fetched"
           required: true
-          type: string
+          type: "string"
           enum:
           - apiauthoriser
           - oidc
@@ -1190,7 +1190,7 @@ paths:
           in: query
           description: cloudServiceProvider variable to select the target provider to start
           required: true
-          type: string
+          type: "string"
           enum:
           - DHC-CaaS
           - DHC-CaaS-AWS
@@ -1975,6 +1975,9 @@ definitions:
         $ref: "#/definitions/CodespaceSecurityConfigVO"
       dataGovernance:
          $ref: "#/definitions/CodeServerGovernanceVO"
+      grafanaDashboardUrl:
+        type: string
+        description: "Grafana/Harbor dashboard URL for the project"
       required:
         -projectName
         -recipeDetails
@@ -2521,6 +2524,9 @@ definitions:
       procedureID:
         type: string
         description: "producerId for the codespace"
+      leanIX:
+        type: string
+        description: "LeanIX identifier for the project; optional"
       tags:
         type: array
         items:
@@ -2747,5 +2753,5 @@ definitions:
     properties:
       status:
         type: string
-          
+
 
