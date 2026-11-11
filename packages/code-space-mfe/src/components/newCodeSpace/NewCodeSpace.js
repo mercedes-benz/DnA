@@ -150,11 +150,23 @@ const NewCodeSpace = (props) => {
 
   const [procedureID, setProcedureID] = useState(projectDetails?.dataGovernance?.procedureID ? projectDetails?.dataGovernance?.procedureID : '');
   const [procedureIDError, setProcedureIDError] = useState('');
+  const [leanIX, setLeanIX] = useState(projectDetails?.dataGovernance?.leanIX ? projectDetails?.dataGovernance?.leanIX : '');
   const [showProgressIndicator, setShowProgressIndicator] = useState(false);
+  const [showSsoInfoPopup, setShowSsoInfoPopup] = useState(false);
 
   const [enableDeployApproval, setEnableDeployApproval] = useState(projectDetails?.dataGovernance?.enableDeployApproval ? true : false);
 
-  const [showSsoInfoPopup, setShowSsoInfoPopup] = useState(false);
+  const isProductionProject = typeOfProject === 'Production';
+
+  useEffect(() => {
+    if (!isProductionProject) {
+      setLeanIX('');
+    }
+  }, [isProductionProject]);
+
+  const onLeanIXChange = (e) => {
+    setLeanIX(e.currentTarget.value);
+  };
 
   const requiredError = '*Missing entry';
   const livelinessIntervalRef = React.useRef();
@@ -865,6 +877,7 @@ const NewCodeSpace = (props) => {
               piiData: PII,
               archerId: archerId,
               procedureID: procedureID,
+              leanIX: isProductionProject ? leanIX : undefined,
               enableDeployApproval: enableDeployApproval,
             },
             recipeDetails: {
@@ -1109,59 +1122,6 @@ const NewCodeSpace = (props) => {
               <div></div>
             </div>
           </div>
-          {/* <div className={Styles.flexLayout}>
-            <div>
-              <TextBox
-                type="password"
-                controlId={'codeSpacePasswordInput'}
-                name="password"
-                labelId={'codeSpacePasswordLabel'}
-                label={'Code Space Password (min 8 chars & alpha numeric)'}
-                placeholder={'Type here'}
-                value={passwordInput.password}
-                errorText={passwordError}
-                required={true}
-                maxLength={20}
-                onChange={handlePasswordChange}
-                onKeyUp={handleValidation}
-              />
-            </div>
-            <div>
-              <TextBox
-                type="password"
-                controlId={'codeSpaceConfirmPasswordInput'}
-                name="confirmPassword"
-                labelId={'codeSpaceConfirmPasswordLabel'}
-                label={'Confirm Code Space Password'}
-                placeholder={'Type here'}
-                value={passwordInput.confirmPassword}
-                errorText={confirmPasswordError}
-                required={true}
-                maxLength={20}
-                onChange={handlePasswordChange}
-                onKeyUp={handleValidation}
-              />
-            </div>
-          </div> */}
-          {/* {isPublicRecipeChoosen && (
-            <div>
-              <div>
-                <TextBox
-                  type="text"
-                  controlId={'githubTokenInput'}
-                  labelId={'githubTokenLabel'}
-                  label={`Your Github(https://github.com/) Username`}
-                  infoTip="Not stored only used for Code Space initial setup"
-                  placeholder={'Type here'}
-                  value={githubUserName}
-                  errorText={githubUserNameError}
-                  required={true}
-                  maxLength={50}
-                  onChange={onGithubUserNameOnChange}
-                />
-              </div>
-            </div>
-          )} */}
           {recipe?.aliasId !== 'default' && <>
             <p>Enter the information to start creating!</p>
             <div>
@@ -1200,7 +1160,6 @@ const NewCodeSpace = (props) => {
               <div className={Styles.addicon}> &nbsp; </div>
               <h3>Hello {namePrefix}, Create your Code Space</h3>
               <p>Enter the information to start creating!</p>
-              {/* <p className={Styles.passwordInfo}>Note: Password should be minimum 8 chars in length and alpha numeric.</p> */}
               <div className={Styles.flexLayout}>
                 <div>
                   <TextBox
@@ -1550,6 +1509,25 @@ const NewCodeSpace = (props) => {
 
               </div>}
 
+              {isProductionProject && (
+                <div className={classNames('input-field-group include-error')}>
+                  <label className={classNames(Styles.inputLabel, 'input-label')}>
+                    LeanIX
+                  </label>
+                  <div>
+                    <input
+                      type="text"
+                      className={classNames('input-field', Styles.projectNameField)}
+                      id="leanIX"
+                      placeholder="Type here"
+                      autoComplete="off"
+                      maxLength={255}
+                      value={leanIX}
+                      onChange={onLeanIXChange}
+                    />
+                  </div>
+                </div>
+              )}
               <div
                 id="recipeContainer"
                 className={classNames('input-field-group include-error', recipeError.length ? 'error' : '', Styles.recipeContainer)}
@@ -1874,280 +1852,264 @@ const NewCodeSpace = (props) => {
                       {typeOfProjectError}
                     </span>
                   </div>
-                  <div className={Styles.flexLayout}>
-                    <div
-                      className={classNames(
-                        Styles.bucketNameInputField,
-                        'input-field-group include-error',
-                        departmentError ? 'error' : '',
-                      )}
-                    >
-                      <div>
-                        <div className={Styles.departmentTags}>
-                          <Tags
-                            title={'Department'}
-                            max={1}
-                            chips={department}
-                            tags={departments}
-                            setTags={(selectedTags) => {
-                              const dept = selectedTags?.map((item) => item.toUpperCase());
-                              setDepartment(dept);
-                              setDepartmentError(false);
-                            }}
-                            isMandatory={true}
-                            showMissingEntryError={departmentError}
-
+                  <div className={classNames('input-field-group')}>
+                    <label className={classNames(Styles.inputLabel, 'input-label')}>
+                      Enable deployment approval workflow <sup>*</sup>
+                    </label>
+                    <div className={Styles.pIIField}>
+                      <label className={classNames('radio')}>
+                        <span className="wrapper">
+                          <input
+                            type="radio"
+                            className="ff-only"
+                            value="true"
+                            name="enableDeployApproval"
+                            defaultChecked={enableDeployApproval === true}
+                            onChange={() => {setEnableDeployApproval(true)}}
                           />
-
-                        </div>
-                      </div>
-                    </div>
-                    <div className={classNames('input-field-group')}>
-                      <label className={classNames(Styles.inputLabel, 'input-label')}>
-                        Enable deployment approval workflow <sup>*</sup>
+                        </span>
+                        <span className="label">Yes</span>
                       </label>
-                      <div className={Styles.pIIField}>
-                        <label className={classNames('radio')}>
-                          <span className="wrapper">
-                            <input
-                              type="radio"
-                              className="ff-only"
-                              value="true"
-                              name="enableDeployApproval"
-                              defaultChecked={enableDeployApproval === true}
-                              onChange={() => {setEnableDeployApproval(true)}}
-                            />
-                          </span>
-                          <span className="label">Yes</span>
-                        </label>
-                        <label className={classNames('radio')}>
-                          <span className="wrapper">
-                            <input
-                              type="radio"
-                              className="ff-only"
-                              value="false"
-                              name="enableDeployApproval"
-                              defaultChecked={enableDeployApproval === false}
-                              onChange={() => {setEnableDeployApproval(false)}}
-                            />
-                          </span>
-                          <span className="label">No</span>
-                        </label>
-                      </div>
+                      <label className={classNames('radio')}>
+                        <span className="wrapper">
+                          <input
+                            type="radio"
+                            className="ff-only"
+                            value="false"
+                            name="enableDeployApproval"
+                            defaultChecked={enableDeployApproval === false}
+                            onChange={() => {setEnableDeployApproval(false)}}
+                          />
+                        </span>
+                        <span className="label">No</span>
+                      </label>
                     </div>
                   </div>
                 </div>
-
-                <div className={Styles.flexLayout}>
-                  <div
-                    className={classNames('input-field-group include-error area', descriptionError.length ? 'error' : '')}
-                  >
-                    <label id="description" className="input-label" htmlFor="description">
-                      Description1 <sup>*</sup>
-                    </label>
-                    <textarea
-                      id="description"
-                      className="input-field-area"
-                      defaultValue={description}
-                      value={description}
-                      required={true}
-                      required-error={requiredError}
-                      onChange={onDescriptionChange}
-                      rows={50}
-                    />
-                    <span className={classNames('error-message', descriptionError.length ? '' : 'hide')}>
-                      {descriptionError}
-                    </span>
-                  </div>
-                  <div>
-                    <div className={!isPlayground ? Styles.flexLayout : ''}>
-                      <div className={classNames('input-field-group include-error', archerIdError.length ? 'error' : '')}>
-                        <label className={classNames(Styles.inputLabel, 'input-label')}>Archer ID</label>
-                        <div>
-                          <input
-                            type="text"
-                            className={classNames('input-field', Styles.projectNameField)}
-                            id="archerId"
-                            placeholder="Type here eg.[INFO-XXXXX]"
-                            autoComplete="off"
-                            maxLength={55}
-                            defaultValue={archerId}
-                            onChange={onArcherIdChange}
-                          />
-                          <span className={classNames('error-message', archerIdError.length ? '' : 'hide')}>
-                            {archerIdError}
-                          </span>
-                        </div>
-                      </div>
-                      <div className={classNames('input-field-group include-error', procedureIDError.length ? 'error' : '')}>
-                        <label className={classNames(Styles.inputLabel, 'input-label')}>Procedure ID</label>
-                        <div>
-                          <input
-                            type="text"
-                            className={classNames('input-field', Styles.projectNameField)}
-                            id="procedureID"
-                            placeholder="Type here eg.[PO-XXXXX / ITPLC-XXXXX]"
-                            autoComplete="off"
-                            maxLength={55}
-                            defaultValue={procedureID}
-                            onChange={onProcedureIDChange}
-                          />
-                          <span className={classNames('error-message', procedureIDError.length ? '' : 'hide')}>
-                            {procedureIDError}
-                          </span>
-                        </div>
+              </div>
+              <div className={Styles.flexLayout}>
+                <div
+                  className={classNames('input-field-group include-error area', descriptionError.length ? 'error' : '')}
+                >
+                  <label id="description" className="input-label" htmlFor="description">
+                    Description1 <sup>*</sup>
+                  </label>
+                  <textarea
+                    id="description"
+                    className="input-field-area"
+                    defaultValue={description}
+                    value={description}
+                    required={true}
+                    required-error={requiredError}
+                    onChange={onDescriptionChange}
+                    rows={50}
+                  />
+                  <span className={classNames('error-message', descriptionError.length ? '' : 'hide')}>
+                    {descriptionError}
+                  </span>
+                </div>
+                <div>
+                  <div className={!isPlayground ? Styles.flexLayout : ''}>
+                    <div className={classNames('input-field-group include-error', archerIdError.length ? 'error' : '')}>
+                      <label className={classNames(Styles.inputLabel, 'input-label')}>Archer ID</label>
+                      <div>
+                        <input
+                          type="text"
+                          className={classNames('input-field', Styles.projectNameField)}
+                          id="archerId"
+                          placeholder="Type here eg.[INFO-XXXXX]"
+                          autoComplete="off"
+                          maxLength={55}
+                          defaultValue={archerId}
+                          onChange={onArcherIdChange}
+                        />
+                        <span className={classNames('error-message', archerIdError.length ? '' : 'hide')}>
+                          {archerIdError}
+                        </span>
                       </div>
                     </div>
-                    {!isPlayground && <div>
-                      <div className={Styles.flexLayout}>
-                        <div
-                          className={classNames('input-field-group include-error',
-                            divisionError.length ? 'error' : '',
-                          )}
-                        >
-                          <label className={classNames(Styles.inputLabel, 'input-label')}>
-                            Division <sup>*</sup>
-                          </label>
-                          <div className={classNames('custom-select')}>
-                            <select
-                              id="divisionField"
-                              defaultValue={division}
-                              required={true}
-                              required-error={requiredError}
-                              onChange={onDivisionChange}
-                              value={division}
-                            >
-                              <option id="divisionOption" value={0}>
-                                Choose
+                    <div className={classNames('input-field-group include-error', procedureIDError.length ? 'error' : '')}>
+                      <label className={classNames(Styles.inputLabel, 'input-label')}>Procedure ID</label>
+                      <div>
+                        <input
+                          type="text"
+                          className={classNames('input-field', Styles.projectNameField)}
+                          id="procedureID"
+                          placeholder="Type here eg.[PO-XXXXX / ITPLC-XXXXX]"
+                          autoComplete="off"
+                          maxLength={55}
+                          defaultValue={procedureID}
+                          onChange={onProcedureIDChange}
+                        />
+                        <span className={classNames('error-message', procedureIDError.length ? '' : 'hide')}>
+                          {procedureIDError}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  {!isPlayground && <div>
+                    <div className={Styles.flexLayout}>
+                      <div
+                        className={classNames('input-field-group include-error',
+                          divisionError.length ? 'error' : '',
+                        )}
+                      >
+                        <label className={classNames(Styles.inputLabel, 'input-label')}>
+                          Division <sup>*</sup>
+                        </label>
+                        <div className={classNames('custom-select')}>
+                          <select
+                            id="divisionField"
+                            defaultValue={division}
+                            required={true}
+                            required-error={requiredError}
+                            onChange={onDivisionChange}
+                            value={division}
+                          >
+                            <option id="divisionOption" value={0}>
+                              Choose
+                            </option>
+                            {divisions?.map((obj) => (
+                              <option id={obj.name + obj.id} key={obj.id} value={obj.id + '@-@' + obj.name}>
+                                {obj.name}
                               </option>
-                              {divisions?.map((obj) => {
-                                return (
+                            ))}
+                          </select>
+                        </div>
+                        <span className={classNames('error-message', divisionError.length ? '' : 'hide')}>
+                          {divisionError}
+                        </span>
+                      </div>
+                      <div className={classNames('input-field-group include-error')}>
+                        <label className={classNames(Styles.inputLabel, 'input-label')}>Sub Division</label>
+                        <div className={classNames('custom-select')}>
+                          <select
+                            id="subDivisionField"
+                            defaultValue={subDivision}
+                            value={subDivision}
+                            required={false}
+                            onChange={onSubDivisionChange}
+                          >
+                            {subDivisions?.some((item) => item.id === '0' && item.name === 'None') ? (
+                              <option id="subDivisionDefault" value={0}>
+                                None
+                              </option>
+                            ) : (
+                              <>
+                                <option id="subDivisionDefault" value={0}>
+                                  Choose
+                                </option>
+                                {subDivisions?.map((obj) => (
                                   <option id={obj.name + obj.id} key={obj.id} value={obj.id + '@-@' + obj.name}>
                                     {obj.name}
                                   </option>
-                                )
-                              })}
-                            </select>
-                          </div>
-                          <span className={classNames('error-message', divisionError.length ? '' : 'hide')}>
-                            {divisionError}
-                          </span>
-                        </div>
-                        <div className={classNames('input-field-group include-error')}>
-                          <label className={classNames(Styles.inputLabel, 'input-label')}>Sub Division</label>
-                          <div className={classNames('custom-select')}>
-                            <select
-                              id="subDivisionField"
-                              defaultValue={subDivision}
-                              value={subDivision}
-                              required={false}
-                              onChange={onSubDivisionChange}
-                            >
-                              {subDivisions?.some((item) => item.id === '0' && item.name === 'None') ? (
-                                <option id="subDivisionDefault" value={0}>
-                                  None
-                                </option>
-                              ) : (
-                                <>
-                                  <option id="subDivisionDefault" value={0}>
-                                    Choose
-                                  </option>
-                                  {subDivisions?.map((obj) => (
-                                    <option id={obj.name + obj.id} key={obj.id} value={obj.id + '@-@' + obj.name}>
-                                      {obj.name}
-                                    </option>
-                                  ))}
-                                </>
-                              )}
-                            </select>
-                          </div>
+                                ))}
+                              </>
+                            )}
+                          </select>
                         </div>
                       </div>
-                    </div>}
-                  </div>
-
-                </div>
-
-
-                {!isPlayground && <div>
-                  <div className={Styles.flexLayout}>
-                    <div
-                      className={classNames(
-                        'input-field-group include-error',
-                        classificationTypeError?.length ? 'error' : '',
-                      )}
-                    >
-                      <label className={classNames(Styles.inputLabel, 'input-label')}>
-                        Data Classification <sup>*</sup>
-                      </label>
-                      <div className={classNames('custom-select')}>
-                        <select
-                          id="classificationField"
-                          defaultValue={classificationType}
-                          required={true}
-                          required-error={requiredError}
-                          onChange={onClassificationChange}
-                          value={classificationType}
-                        >
-                          <option id="classificationOption" value={0}>
-                            Choose
-                          </option>
-                          {dataClassificationDropdown?.map((item) => (
-                            <option id={item.id} key={item.id} value={item.name}>
-                              {item.name}
-                            </option>
-                          ))}
-                        </select>
-                      </div>
-                      <span className={classNames('error-message', classificationTypeError.length ? '' : 'hide')}>
-                        {classificationTypeError}
-                      </span>
                     </div>
-                    <div className={classNames('input-field-group include-error')}>
-                      <label className={classNames(Styles.inputLabel, 'input-label')}>
-                        PII (Personally Identifiable Information) <sup>*</sup>
-                      </label>
-                      <div className={Styles.pIIField}>
-                        <label className={classNames('radio')}>
-                          <span className="wrapper">
-                            <input
-                              type="radio"
-                              className="ff-only"
-                              value="true"
-                              name="pii"
-                              defaultChecked={PII === true}
-                              onChange={onPIIChange}
-                            />
-                          </span>
-                          <span className="label">Yes</span>
-                        </label>
-                        <label className={classNames('radio')}>
-                          <span className="wrapper">
-                            <input
-                              type="radio"
-                              className="ff-only"
-                              value="false"
-                              name="pii"
-                              defaultChecked={PII === false}
-                              onChange={onPIIChange}
-                            />
-                          </span>
-                          <span className="label">No</span>
-                        </label>
-                      </div>
-                    </div>
-                  </div>
-                </div>}
-
-
-                <div className={Styles.newCodeSpaceBtn}>
-                  <button className={' btn btn-tertiary '} onClick={editCodeSpace}>
-                    Save
-                  </button>
+                  </div>}
                 </div>
 
               </div>
 
+
+              {!isPlayground && <div>
+                <div className={Styles.flexLayout}>
+                  <div
+                    className={classNames(
+                      'input-field-group include-error',
+                      classificationTypeError?.length ? 'error' : '',
+                    )}
+                  >
+                    <label className={classNames(Styles.inputLabel, 'input-label')}>
+                      Data Classification <sup>*</sup>
+                    </label>
+                    <div className={classNames('custom-select')}>
+                      <select
+                        id="classificationField"
+                        defaultValue={classificationType}
+                        required={true}
+                        required-error={requiredError}
+                        onChange={onClassificationChange}
+                        value={classificationType}
+                      >
+                        <option id="classificationOption" value={0}>
+                          Choose
+                        </option>
+                        {dataClassificationDropdown?.map((item) => (
+                          <option id={item.id} key={item.id} value={item.name}>
+                            {item.name}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <span className={classNames('error-message', classificationTypeError.length ? '' : 'hide')}>
+                      {classificationTypeError}
+                    </span>
+                  </div>
+                  <div className={classNames('input-field-group include-error')}>
+                    <label className={classNames(Styles.inputLabel, 'input-label')}>
+                      PII (Personally Identifiable Information) <sup>*</sup>
+                    </label>
+                    <div className={Styles.pIIField}>
+                      <label className={classNames('radio')}>
+                        <span className="wrapper">
+                          <input
+                            type="radio"
+                            className="ff-only"
+                            value="true"
+                            name="pii"
+                            defaultChecked={PII === true}
+                            onChange={onPIIChange}
+                          />
+                        </span>
+                        <span className="label">Yes</span>
+                      </label>
+                      <label className={classNames('radio')}>
+                        <span className="wrapper">
+                          <input
+                            type="radio"
+                            className="ff-only"
+                            value="false"
+                            name="pii"
+                            defaultChecked={PII === false}
+                            onChange={onPIIChange}
+                          />
+                        </span>
+                        <span className="label">No</span>
+                      </label>
+                    </div>
+                  </div>
+                </div>
+              </div>}
+
+              {isProductionProject && (
+                <div className={classNames('input-field-group include-error')}>
+                  <label className={classNames(Styles.inputLabel, 'input-label')}>
+                    LeanIX
+                  </label>
+                  <div>
+                    <input
+                      type="text"
+                      className={classNames('input-field', Styles.projectNameField)}
+                      id="leanIX"
+                      placeholder="Type here"
+                      autoComplete="off"
+                      maxLength={255}
+                      value={leanIX}
+                      onChange={onLeanIXChange}
+                    />
+                  </div>
+                </div>
+              )}
+              <div className={Styles.newCodeSpaceBtn}>
+                <button className={' btn btn-tertiary '} onClick={editCodeSpace}>
+                  Save
+                </button>
+              </div>
               <ConfirmModal
                 title={''}
                 acceptButtonTitle="Yes"
@@ -2239,8 +2201,6 @@ const NewCodeSpace = (props) => {
                                           value="deploy"
                                           checked={true}
                                           disabled
-                                        // checked={item?.permission !== null ? item?.canDeploy : false}
-                                        // onChange={(e) => onCollaboratorPermission(e, item.id)}
                                         />
                                       </span>
                                       <label className={Styles.permissionContent}>Deploy</label>
