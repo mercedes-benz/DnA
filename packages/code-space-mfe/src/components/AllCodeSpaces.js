@@ -36,6 +36,7 @@ import DowntimeBanner from './downtimeBanner/DowntimeBanner';
 //   user: IUserInfo;
 // }
 
+
 const AllCodeSpaces = (props) => {
     const recipeName = sessionStorage.getItem(SESSION_STORAGE_KEYS.NAVIGATE_CODESPACE_RECIPE) || '';
     const [loading, setLoading] = useState(true);
@@ -962,6 +963,14 @@ const AllCodeSpaces = (props) => {
                             <button
                                 className={classNames('btn btn-primary', Styles.configIcon)}
                                 type="button"
+                                onClick={() => history.push('/developerOptions')}
+                            >
+                                <IconGear size={'14'} />
+                                <span>&nbsp;Developers options</span>
+                            </button>
+                            <button
+                                className={classNames('btn btn-primary', Styles.configIcon)}
+                                type="button"
                                 onClick={onShowSecurityConfigRequest}
                             >
                                 <IconGear size={'14'} />
@@ -1462,4 +1471,3 @@ const AllCodeSpaces = (props) => {
     );
 };
 export default AllCodeSpaces;
- 
