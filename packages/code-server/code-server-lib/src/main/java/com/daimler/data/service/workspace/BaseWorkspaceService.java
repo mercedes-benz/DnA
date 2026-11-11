@@ -2185,6 +2185,10 @@ import com.daimler.data.dto.workspace.ResourceVO;
 						 deploymentDetails = entity.getData().getProjectDetails().getProdDeploymentDetails();
 					 }
 			 String lastBuildOrDeployStatus = "";
+			 			 if (deploymentDetails.getLastDeployedOn() == null && !Boolean.TRUE.equals(deploymentDetails.getScopedCookiePath())) {
+				 deploymentDetails.setScopedCookiePath(true);
+				 workspaceCustomRepository.updateScopedCookiePath(projectName, environment, true);
+			 }
 			 String kongSetupError = null;
 			 boolean isApiRecipe = deploymentDetails.getDeploymentType() == ConstantsUtility.UI ? false : true;
 			 boolean secureWithIAMRequired = (deploymentDetails.getSecureWithIAMRequired() != null) ? deploymentDetails.getSecureWithIAMRequired() : false;
@@ -2249,7 +2253,7 @@ import com.daimler.data.dto.workspace.ResourceVO;
 				responseMessage = this.buildWorkSpace(userId, id, branch, buildRequestDto, isprivateRecipe, environment,lastBuildType);
 				if(responseMessage.getSuccess().equalsIgnoreCase("SUCCESS")){
 					if(deploymentDetails.getDeploymentUrl() == null || deploymentDetails.getDeploymentUrl().isEmpty()){
-						authenticatorClient.callingKongApis(workspaceId, projectName, environment, isApiRecipe, deploymentDetails.getClientId(), "", deploymentDetails.getRedirectUri(), deploymentDetails.getIgnorePaths(), deploymentDetails.getScope(), deploymentDetails.getOneApiVersionShortName(), isSecuredWithCookie, secureWithIAMRequired, deploymentDetails.getSsoType(), secureWithDnaRequired, false, false, deploymentDetails.getSelectedAliceRoles(), cloudServiceProvider);
+						authenticatorClient.callingKongApis(workspaceId, projectName, environment, isApiRecipe, deploymentDetails.getClientId(), "", deploymentDetails.getRedirectUri(), deploymentDetails.getIgnorePaths(), deploymentDetails.getScope(), deploymentDetails.getOneApiVersionShortName(), isSecuredWithCookie, secureWithIAMRequired, deploymentDetails.getSsoType(), secureWithDnaRequired, false, false, deploymentDetails.getSelectedAliceRoles(), cloudServiceProvider, true);
 						try {
 							createOpenTelemetryPlugin(workspaceId, environment, projectName.toLowerCase() + "-" + environment.toLowerCase());
 						} catch (Exception otelEx) {
@@ -2459,7 +2463,7 @@ import com.daimler.data.dto.workspace.ResourceVO;
 				 String kongServiceName = projectName.toLowerCase() + "-" + environment.toLowerCase();
 				 if (!authenticatorClient.isKongServiceAndRouteAvailable(kongServiceName, cloudServiceProvider)) {
 					 log.info("Kong service/route {} missing, creating it for deployment of project {}", kongServiceName, projectName);
-					 authenticatorClient.callingKongApis(workspaceId, projectName, environment, isApiRecipe, deploymentDetails.getClientId(), "", deploymentDetails.getRedirectUri(), deploymentDetails.getIgnorePaths(), deploymentDetails.getScope(), deploymentDetails.getOneApiVersionShortName(), isSecuredWithCookie, secureWithIAMRequired, deploymentDetails.getSsoType(), secureWithDnaRequired, false, false, deploymentDetails.getSelectedAliceRoles(), cloudServiceProvider);
+					 authenticatorClient.callingKongApis(workspaceId, projectName, environment, isApiRecipe, deploymentDetails.getClientId(), "", deploymentDetails.getRedirectUri(), deploymentDetails.getIgnorePaths(), deploymentDetails.getScope(), deploymentDetails.getOneApiVersionShortName(), isSecuredWithCookie, secureWithIAMRequired, deploymentDetails.getSsoType(), secureWithDnaRequired, false, false, deploymentDetails.getSelectedAliceRoles(), cloudServiceProvider, true);
 					 try {
 						 createOpenTelemetryPlugin(workspaceId, environment, kongServiceName);
 					 } catch (Exception otelEx) {
@@ -2612,16 +2616,33 @@ import com.daimler.data.dto.workspace.ResourceVO;
 				 }
 				 boolean isSecuredWithCookie = false; //disable for now 
 				 String deploymentType = deployedAppConfigDto.isIsApiRecipe() ? ConstantsUtility.API : ConstantsUtility.UI;
-				 authenticatorClient.callingKongApis(workspaceId, projectName, environment, deployedAppConfigDto.isIsApiRecipe(), deployedAppConfigDto.getClientID(), clientSecret, deployedAppConfigDto.getRedirectUri(), deployedAppConfigDto.getIgnorePaths(), deployedAppConfigDto.getScope(), deployedAppConfigDto.getOneApiVersionShortName(), isSecuredWithCookie, secureWithIAMRequired, deployedAppConfigDto.getSsoType().toString(), secureWithDnaRequired, deployedAppConfigDto.isAliceRoleEnabled(), deployedAppConfigDto.isEntitlementPrefixEnabled(), deployedAppConfigDto.getSelectedAliceRoles(), cloudServiceProvider);
+				 String ssoType = deployedAppConfigDto.getSsoType() != null ? deployedAppConfigDto.getSsoType().toString() : null;
+				 GenericMessage kongResponse = authenticatorClient.callingKongApis(workspaceId, projectName, environment, deployedAppConfigDto.isIsApiRecipe(), deployedAppConfigDto.getClientID(), clientSecret, deployedAppConfigDto.getRedirectUri(), deployedAppConfigDto.getIgnorePaths(), deployedAppConfigDto.getScope(), deployedAppConfigDto.getOneApiVersionShortName(), isSecuredWithCookie, secureWithIAMRequired, ssoType, secureWithDnaRequired, deployedAppConfigDto.isAliceRoleEnabled(), deployedAppConfigDto.isEntitlementPrefixEnabled(), deployedAppConfigDto.getSelectedAliceRoles(), cloudServiceProvider);
 				 workspaceCustomRepository.updateDeployedAppConfig(projectName, environmentJsonbName,
 						 secureWithIAMRequired, deployedAppConfigDto.getOneApiVersionShortName(),
 						 isSecuredWithCookie, deploymentType, deployedAppConfigDto.getClientID(),
 						 deployedAppConfigDto.getRedirectUri(), deployedAppConfigDto.getIgnorePaths(),
-						 deployedAppConfigDto.getScope(), deployedAppConfigDto.getSsoType().toString(),
+						 deployedAppConfigDto.getScope(), ssoType,
 						 secureWithDnaRequired, deployedAppConfigDto.isAliceRoleEnabled(),
 						 deployedAppConfigDto.isEntitlementPrefixEnabled(),
 						 deployedAppConfigDto.getSelectedAliceRoles());
+				 boolean kongHasErrors = kongResponse == null
+						 || (kongResponse.getErrors() != null && !kongResponse.getErrors().isEmpty())
+						 || !"SUCCESS".equalsIgnoreCase(kongResponse.getSuccess());
+				 if (kongHasErrors) {
+					 log.error("Kong configuration failed while updating deployed app config for project {} env {}, errors: {}",
+							 projectName, environment, kongResponse != null ? kongResponse.getErrors() : null);
+					 if (kongResponse != null && kongResponse.getErrors() != null && !kongResponse.getErrors().isEmpty()) {
+						 errors.addAll(kongResponse.getErrors());
+					 } else {
+						 MessageDescription error = new MessageDescription();
+						 error.setMessage("Failed while configuring Kong for deployed app config of workspace project.");
+						 errors.add(error);
+					 }
+					 status = "FAILED";
+				 } else {
 					 status = "SUCCESS";
+				 }
 			 }
 			 
 		 } catch (Exception e) {
@@ -2692,6 +2713,10 @@ import com.daimler.data.dto.workspace.ResourceVO;
 					 deploymentDetails = entity.getData().getProjectDetails().getProdDeploymentDetails();
 					 configPublishedAppId = entity.getData().getProjectDetails().getSecurityConfig().getProduction().getPublished().getAppID();
 				 }
+				 String cloudServiceProvider = ConstantsUtility.DHC_CAAS;
+				 if(Objects.nonNull(deploymentDetails) && Objects.nonNull(deploymentDetails.getDeploymentUrl()) && deploymentDetails.getDeploymentUrl().contains(codeServerBaseUriAws)){
+					 cloudServiceProvider = ConstantsUtility.DHC_CAAS_AWS;
+				 }
 				 if("oidc".equalsIgnoreCase(pluginName) && !Boolean.TRUE.equals(deploymentDetails.getSecureWithIAMRequired() || deploymentDetails.getSecureWithDnaRequired())){
 					 MessageDescription error = new MessageDescription();
 					 error.setMessage("No OIDC plugin found. Please secure with IAM first.");
@@ -2712,14 +2737,14 @@ import com.daimler.data.dto.workspace.ResourceVO;
 				 }
 				 if("oidc".equalsIgnoreCase(pluginName)){
 					if(!enable && Objects.nonNull(configPublishedAppId)){
-						authenticatorClient.changePluginStatus(projectName.toLowerCase()+"-"+environment, "oidc", enable);
-						authenticatorClient.changePluginStatus(projectName.toLowerCase()+"-"+environment, "apiauthoriser", enable);
+						authenticatorClient.changePluginStatus(projectName.toLowerCase()+"-"+environment, "oidc", enable, cloudServiceProvider);
+						authenticatorClient.changePluginStatus(projectName.toLowerCase()+"-"+environment, "apiauthoriser", enable, cloudServiceProvider);
 				 	} else {
-						authenticatorClient.changePluginStatus(projectName.toLowerCase()+"-"+environment, "oidc", enable);
+						authenticatorClient.changePluginStatus(projectName.toLowerCase()+"-"+environment, "oidc", enable, cloudServiceProvider);
 					}
 				 }
 				 if("apiauthoriser".equalsIgnoreCase(pluginName)){
-					 authenticatorClient.changePluginStatus(projectName.toLowerCase()+"-"+environment, "apiauthoriser", enable);
+					 authenticatorClient.changePluginStatus(projectName.toLowerCase()+"-"+environment, "apiauthoriser", enable, cloudServiceProvider);
 				 }
 				 status = "SUCCESS";
 			 }
