@@ -1,0 +1,46 @@
+.banner {
+  display: flex;
+  margin: 0;
+  background: #f5a623;
+  color: #252a33;
+  width: 100%;
+  padding: 12px 27px 12px 27px;
+  justify-content: flex-start;
+
+  .content {
+    display: flex;
+    margin: 0;
+    align-items: flex-start;
+
+    .placeholder {
+      display: flex;
+      align-items: center;
+      width: 185px;
+      flex-shrink: 0;
+
+      i {
+        margin-right: 7px;
+      }
+
+      h5 {
+        margin: 0;
+        font-size: var(--font-size-default);
+        font-weight: var(--font-weight-bold);
+      }
+    }
+
+    .messages {
+      margin: 0;
+
+      p {
+        margin: 0;
+        margin-left: 6px;
+        font-size: var(--font-size-default);
+
+        & + p {
+          margin-top: 4px;
+        }
+      }
+    }
+  }
+}
