@@ -298,3 +298,11 @@ deployment:
   onDemandRefreshCooldownSeconds: ${DEPLOYMENT_ON_DEMAND_REFRESH_COOLDOWN_SECONDS:5}
   statusMonitorSeconds: ${DEPLOYMENT_STATUS_MONITOR_SECONDS:20}
   hardRefreshEnabled: ${DEPLOYMENT_HARD_REFRESH_ENABLED:false}
+
+downtime:
+  check:
+    intervalSeconds: ${DOWNTIME_CHECK_INTERVAL_SECONDS:XXXX}
+    artifactory:
+      url: ${DOWNTIME_CHECK_ARTIFACTORY_URL:XXXX}
+    sso:
+      url: ${DOWNTIME_CHECK_SSO_URL:XXXX}
