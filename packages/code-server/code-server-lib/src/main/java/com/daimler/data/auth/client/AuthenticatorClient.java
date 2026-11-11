@@ -16,6 +16,7 @@ public interface AuthenticatorClient {
  
 	public GenericMessage attachApiAuthoriserPluginToService(AttachApiAuthoriserPluginRequestVO attachApiAuthoriserPluginRequestVO, String serviceName, String cloudServiceProvider);
 	public GenericMessage callingKongApis(String wsid, String serviceName, String env, boolean apiRecipe, String clientID, String clientSecret, String redirectUriFromUser, String ignorePaths, String scope, String oneApiVersionShortName, boolean isSecuredWithCookie, boolean secureWithIAM, String ssoType, boolean secureWithDna, boolean isAliceRoleEnabled, boolean isEntitlementPrefixEnabled, List<String> selectedAliceRoles, String cloudServiceProvider);
+	public GenericMessage callingKongApis(String wsid, String serviceName, String env, boolean apiRecipe, String clientID, String clientSecret, String redirectUriFromUser, String ignorePaths, String scope, String oneApiVersionShortName, boolean isSecuredWithCookie, boolean secureWithIAM, String ssoType, boolean secureWithDna, boolean isAliceRoleEnabled, boolean isEntitlementPrefixEnabled, List<String> selectedAliceRoles, String cloudServiceProvider, boolean keepExistingPostFunction);
 	public boolean isKongServiceAndRouteAvailable(String serviceName, String cloudServiceProvider);
 	public void callingApiAuthorizerPlugin(String wsid, String serviceName, String env, boolean apiRecipe, CodespaceSecurityConfig securityConfig, String ssoType, String cloudServiceProvider);
 	public GenericMessage deleteService(String serviceName, String cloudServiceProvider);
@@ -26,8 +27,12 @@ public interface AuthenticatorClient {
 	public RouteResponseVO getRouteByName(String serviceName, String routeName, String cloudServiceProvider);
  
 	public GenericMessage attachFunctionPluginToService(AttachFunctionPluginRequestVO attachFunctionPluginRequestVO, String serviceName);
+
+	public GenericMessage attachFunctionPluginToService(AttachFunctionPluginRequestVO attachFunctionPluginRequestVO, String serviceName, String cloudServiceProvider);
  
 	public GenericMessage changePluginStatus(String serviceName, String pluginName, Boolean isEnabled);
+
+	public GenericMessage changePluginStatus(String serviceName, String pluginName, Boolean isEnabled, String cloudServiceProvider);
 
 	public WorkspacePluginStatusVO getPluginStatus(String serviceName, String pluginName, String cloudServiceProvider);
  
