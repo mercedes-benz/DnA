@@ -37,6 +37,7 @@ import DowntimeBanner from './downtimeBanner/DowntimeBanner';
 // }
 
 const AllCodeSpaces = (props) => {
+    const recipeName = sessionStorage.getItem(SESSION_STORAGE_KEYS.NAVIGATE_CODESPACE_RECIPE) || '';
     const [loading, setLoading] = useState(true);
     const [codeSpaceGroups, setCodeSpaceGroups] = useState([]);
     const [codeSpaces, setCodeSpaces] = useState([]),
@@ -151,9 +152,63 @@ const AllCodeSpaces = (props) => {
     }, []);
 
     useEffect(() => {
+        if(!loading && !groupLoading && recipeName?.length > 0){
+            setShowNewCodeSpaceModal(true);
+        }
+    },[loading, groupLoading]);
+
+    useEffect(() => {
         Tooltip.defaultSetup();
         setFilteredCodespaces(codeSpaces);
     }, [codeSpaces]);
+
+    useEffect(() => {
+    const EDGE = 120;
+    const SPEED = 25;
+
+    let dragging = false;
+    let mouseY = 0;
+    let frameId = null;
+
+    const start = () => { dragging = true; };
+    const stop = () => {
+        dragging = false;
+        mouseY = 0;
+        if (frameId) cancelAnimationFrame(frameId);
+        frameId = null;
+    };
+
+    const handleDragOver = (e) => {
+        e.preventDefault();
+        mouseY = e.clientY;
+        if (!frameId) autoScrollWhileDragging();
+    };
+
+    const autoScrollWhileDragging = () => {
+        if (!dragging) return;
+
+        const scrollEl = document.scrollingElement;
+        const height = window.innerHeight;
+
+        if (mouseY < EDGE) scrollEl.scrollTop -= SPEED;
+        else if (mouseY > height - EDGE) scrollEl.scrollTop += SPEED;
+
+        frameId = requestAnimationFrame(autoScrollWhileDragging);
+    };
+
+    window.addEventListener("dragstart", start, true);
+    window.addEventListener("dragend", stop, true);
+    window.addEventListener("drop", stop, true);
+    window.addEventListener("dragover", handleDragOver, true);
+
+    return () => {
+        window.removeEventListener("dragstart", start, true);
+        window.removeEventListener("dragend", stop, true);
+        window.removeEventListener("drop", stop, true);
+        window.removeEventListener("dragover", handleDragOver, true);
+        if (frameId) cancelAnimationFrame(frameId);
+    };
+}, []);
 
     // const onPaginationPreviousClick = () => {
     //   const currentPageNumberTemp = pagination.currentPageNumber - 1;
@@ -215,7 +270,11 @@ const AllCodeSpaces = (props) => {
             getCodeSpacesData();
             getCodeSpaceGroupsData();
         }
+        if(recipeName?.length > 0){
+            sessionStorage.removeItem('navigateCodespaceRecipe');
+        }
         setShowNewCodeSpaceModal(false);
+        setShowAWSWarningModal(Envs.SHOW_AWS_MIGRATION_WARNING);
         setOnBoardCodeSpace(undefined);
         setIsRetryRequest(false);
         setOnEditCodeSpace(undefined);
@@ -249,11 +308,12 @@ const AllCodeSpaces = (props) => {
         setShowBlueprintModal(true);
     };
 
+  
     const onCodeSpaceBuild = (codeSpace) => {
         setOnDeployCodeSpace(codeSpace);
         setShowBuildCodeSpaceModal(true);
     };
-
+        
     const onShowDeployApprovalModal = (codeSpace) => {
         setOnDeployCodeSpace(codeSpace);
         setShowDeployApprovalModal(true);
@@ -880,6 +940,8 @@ const AllCodeSpaces = (props) => {
                             by Developers for Developers
                         </small>
                     </div>
+
+
                     <div className={classNames(Styles.leftHeader)}>
                         <div className={classNames(Styles.listHeader)}>
                             <button
@@ -987,6 +1049,7 @@ const AllCodeSpaces = (props) => {
                                 onShowCodeSpacesModal={(show, group) => { setShowCodespacesModal(show); setSelectedCodeSpaceGroup(group);  }}
                                 onShowCodeSpaceGroupModal={(show) => { setSelectedCodeSpaceGroup(group); setShowEditCodespaceGroupModal(show); }}
                                 onCodeSpaceGroupDeleteModal={(show, group) => { setSelectedCodeSpaceGroup(group); setShowDeleteCodespaceGroupModal(show); }}
+                                onCodeSpaceGroupEditModal={() => {}}
                                 onCodeSpaceDropped={() => { getCodeSpaceGroupsData(); getCodeSpacesData();}}
                                 onStartStopCodeSpace={onStartStopCodeSpace}
                                 onShowDeployModal={onCodeSpaceDeploy}
@@ -1170,6 +1233,7 @@ const AllCodeSpaces = (props) => {
                     content={
                         <NewCodeSpace
                             user={props.user}
+                            recipeName={recipeName}
                             onBoardingCodeSpace={onBoardCodeSpace}
                             onEditingCodeSpace={onEditCodeSpace}
                             isRetryRequest={isRetryRequest}
@@ -1208,8 +1272,8 @@ const AllCodeSpaces = (props) => {
                     //     onDeployCodeSpace?.projectDetails?.recipeDetails?.recipeId === 'react'
                     // }
                     setShowCodeDeployModal={(isVisible) => setShowDeployCodeSpaceModal(isVisible)}
-                    setCodeDeploying={() => handleDeploymentStatusUpdate(onDeployCodeSpace?.id)}
                     onAutoDeploySettingsUpdated={() => { getCodeSpacesData(); getCodeSpaceGroupsData(); }}
+                    setCodeDeploying={() => handleDeploymentStatusUpdate(onDeployCodeSpace?.id)}
                     setIsApiCallTakeTime={setIsApiCallTakeTime}
                     startDeploymentStatusListener={startListening}
                     onDeploymentStatusUpdate={(data) => handleDeploymentStatusUpdate(onDeployCodeSpace?.id, data)}
