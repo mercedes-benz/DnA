@@ -21,7 +21,9 @@ import org.springframework.web.servlet.HandlerMapping;
 import com.daimler.data.application.annotation.RequiresPatAuthorization;
 import com.daimler.data.application.auth.UserStore;
 import com.daimler.data.application.auth.UserStore.UserInfo;
-import com.daimler.data.application.config.CodeServerVaultConfig;
+import com.daimler.data.service.pat.cache.PatSecretValidator;
+import com.daimler.data.service.pat.ratelimit.RateLimiter;
+import com.daimler.data.service.pat.ratelimit.RateLimitDecision;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import com.daimler.data.dto.pat.PatPayload;
@@ -39,15 +41,18 @@ public class PatAuthorizationInterceptor implements HandlerInterceptor {
 	public static final String PAT_CONTEXT = "PAT_CONTEXT";
 
 	private final PatCryptoService patCryptoService;
-	private final CodeServerVaultConfig vaultConfig;
+	private final PatSecretValidator secretValidator;
+	private final RateLimiter rateLimiter;
 	private final WorkspaceService workspaceService;
 	private final UserStore userStore;
 	private final ObjectMapper objectMapper;
 
-	public PatAuthorizationInterceptor(PatCryptoService patCryptoService, CodeServerVaultConfig vaultConfig,
-			WorkspaceService workspaceService, UserStore userStore, ObjectMapper objectMapper) {
+	public PatAuthorizationInterceptor(PatCryptoService patCryptoService, PatSecretValidator secretValidator,
+			WorkspaceService workspaceService, UserStore userStore, ObjectMapper objectMapper,
+			RateLimiter rateLimiter) {
 		this.patCryptoService = patCryptoService;
-		this.vaultConfig = vaultConfig;
+		this.secretValidator = secretValidator;
+		this.rateLimiter = rateLimiter;
 		this.workspaceService = workspaceService;
 		this.userStore = userStore;
 		this.objectMapper = objectMapper;
@@ -89,7 +94,19 @@ public class PatAuthorizationInterceptor implements HandlerInterceptor {
 			PatPayload payload = decrypted.get();
 			userId = payload.getUserId();
 			tokenVersion = payload.getTokenVersion();
-			if (!vaultConfig.validatePatSecret(userId, tokenVersion, payload.getSecret())) {
+			RateLimitDecision decision = rateLimiter.tryAcquire(
+					userId + ":v" + tokenVersion);
+			response.setHeader("X-RateLimit-Limit", String.valueOf(decision.getLimit()));
+			response.setHeader("X-RateLimit-Remaining", String.valueOf(decision.getRemaining()));
+			if (!decision.isAllowed()) {
+				response.setHeader("Retry-After", String.valueOf(decision.getRetryAfterSeconds()));
+				log.warn("PAT rate limit exceeded, userId={} tokenVersion={} method={} uri={} retryAfter={}",
+						userId, tokenVersion, request.getMethod(), request.getRequestURI(),
+						decision.getRetryAfterSeconds());
+				return deny(request, response, userId, tokenVersion, "429_RATE_LIMITED",
+						429, "Too many requests");
+			}
+			if (!secretValidator.validate(userId, tokenVersion, payload.getSecret())) {
 				return deny(request, response, userId, tokenVersion, "401_REVOKED_OR_INVALID_TOKEN",
 						HttpServletResponse.SC_UNAUTHORIZED, "Unauthorized");
 			}
