@@ -28,6 +28,7 @@ import com.daimler.data.dto.workspace.CodeServerProjectDetailsVO;
 import com.daimler.data.dto.workspace.CodeServerWorkspaceVO;
 import com.daimler.data.dto.workspace.UserInfoVO;
 import com.daimler.data.service.pat.PatCryptoService;
+import com.daimler.data.service.pat.cache.PatSecretStore;
 import com.daimler.data.service.workspace.WorkspaceService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
@@ -36,6 +37,7 @@ class PersonalAccessTokenControllerTest {
 	private WorkspaceService workspaceService;
 	private CodeServerVaultConfig vaultConfig;
 	private PersonalAccessTokenController controller;
+	private PatSecretStore secretStore;
 
 	@BeforeEach
 	void setUp() {
@@ -45,7 +47,29 @@ class PersonalAccessTokenControllerTest {
 		vaultConfig = mock(CodeServerVaultConfig.class);
 		PatCryptoService crypto = new PatCryptoService(
 				Base64.getEncoder().encodeToString(new byte[32]), new ObjectMapper());
-		controller = new PersonalAccessTokenController(userStore, workspaceService, crypto, vaultConfig);
+		secretStore = mock(PatSecretStore.class);
+		controller = new PersonalAccessTokenController(userStore, workspaceService, crypto, vaultConfig, secretStore);
+	}
+
+	@Test
+	void revokeEvictsCachedSecret() {
+		when(vaultConfig.deletePatSecret("creator", 2)).thenReturn(true);
+		assertEquals(200, controller.revokePat(2).getStatusCodeValue());
+		verify(secretStore).evict("creator", 2);
+	}
+
+	@Test
+	void evictionFailureDoesNotFailRevoke() {
+		when(vaultConfig.deletePatSecret("creator", 2)).thenReturn(true);
+		org.mockito.Mockito.doThrow(new IllegalStateException("FAKE Redis failure"))
+				.when(secretStore).evict("creator", 2);
+		assertEquals(200, controller.revokePat(2).getStatusCodeValue());
+	}
+
+	@Test
+	void missingPatDoesNotEvict() {
+		assertEquals(404, controller.revokePat(2).getStatusCodeValue());
+		verify(secretStore, never()).evict("creator", 2);
 	}
 
 	@Test
