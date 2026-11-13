@@ -66,6 +66,7 @@ import com.daimler.data.dto.fabric.CreateWorkspaceDto;
 import com.daimler.data.dto.fabric.CredentialsDto;
 import com.daimler.data.dto.fabric.DatasourceResponseDto;
 import com.daimler.data.dto.fabric.DdxOnboardingRequestDto;
+import com.daimler.data.dto.fabric.DdxOnboardingPDOffRequestDto;
 import com.daimler.data.dto.fabric.ErrorResponseDto;
 import com.daimler.data.dto.fabric.FabricGroupsCollectionDto;
 import com.daimler.data.dto.fabric.FabricOAuthResponse;
@@ -1179,11 +1180,63 @@ public class FabricWorkspaceClient {
 	public DdxResponseDto ddxProductOnboarding(DdxOnboardingRequestDto request) {
 		DdxResponseDto res = new DdxResponseDto();
 		try {
-			// String token = getToken();
-			// if(!Objects.nonNull(token)) {
-			// 	log.error("Failed to fetch token to invoke fabric Apis");
-			// 	return res;
-			// }
+
+			String token = this.userStore.getUserInfo().getAuthToken();
+			log.info("Token fetched successfully for DDX onboarding, invoking API with token: {}", token);
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Authorization", "Bearer "+token);
+			headers.setContentType(MediaType.APPLICATION_JSON);
+			HttpEntity requestEntity = new HttpEntity<>( request, headers);
+			String url = ddxBaseUrl + "/v1/dataproducts";
+
+			ResponseEntity<DdxResponseDto> response = restTemplate.exchange(url , HttpMethod.POST,
+					requestEntity, DdxResponseDto.class);
+
+			if(response.getStatusCode().is2xxSuccessful()) {
+				res = response.getBody();
+				log.info("ddx res: {}",res);
+				log.info("ddx response: {}", response);
+				log.info("ddx response body: {}", response.getBody());
+				log.info("Fabric to DDX Onboarding Successful");
+				return res;
+			}
+			else{
+				res = response.getBody();
+				log.error("Fabric to DDX Onboarding Failed");
+				return res;
+			}
+		}catch(HttpClientErrorException e) {
+			log.error("Failed to call DDX product onboarding API with {} exception ", e.getMessage());
+			try {
+				String responseBody = e.getResponseBodyAsString();
+				ObjectMapper mapper = new ObjectMapper();
+				res = mapper.readValue(responseBody, DdxResponseDto.class);
+				res.setStatus("Failure");
+				return res;
+			} catch (Exception parseEx) {
+				log.error("Failed to parse DDX error response body", parseEx);
+				return DdxResponseDto.builder()
+					.status("Failure")
+					.statusCode(e.getRawStatusCode())
+					.message(e.getMessage())
+					.build();
+			}
+		}catch(Exception e) {
+			log.error("Failed to call DDX product onboarding API with {} exception ", e.getMessage());
+			return DdxResponseDto.builder()
+			.status("Failure")
+        	.statusCode(500)
+        	.message(e.getMessage())
+        	.build();
+		}
+
+
+	}
+
+	public DdxResponseDto ddxOnboardingPDOff(DdxOnboardingPDOffRequestDto request) {
+		DdxResponseDto res = new DdxResponseDto();
+		try {
 
 			String token = this.userStore.getUserInfo().getAuthToken();
 			log.info("Token fetched successfully for DDX onboarding, invoking API with token: {}", token);

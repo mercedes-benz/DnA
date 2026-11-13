@@ -42,6 +42,7 @@ import com.daimler.data.dto.fabricWorkspace.DdxUnityDetailsVO;
 // import org.apache.http.impl.client.HttpClients;
 // import org.apache.http.HttpHost;
 import com.daimler.data.dto.fabric.DdxOnboardingRequestDto;
+import com.daimler.data.dto.fabric.DdxOnboardingPDOffRequestDto;
 import com.daimler.data.dto.fabric.DdxOnboardingResultDto;
 import com.daimler.data.dto.fabric.DdxResponseDto;
 import com.daimler.data.service.azure.AzureTokenService;
@@ -357,7 +358,29 @@ public class BaseDdxOnboardingService implements DdxOnboardingService {
 
             DdxResponseDto onboardingResponse;
             try {
-                onboardingResponse = fabricWorkspaceClient.ddxProductOnboarding(publishDdxRequest);
+                if (Boolean.FALSE.equals(publishDdxRequest.getPersonalDataContained())) {
+                    DdxOnboardingPDOffRequestDto pdOffRequest = DdxOnboardingPDOffRequestDto.builder()
+                        .dataProductName(publishDdxRequest.getDataProductName())
+                        .dataProductDescription(publishDdxRequest.getDataProductDescription())
+                        .informationOwner(publishDdxRequest.getInformationOwner())
+                        .cdcDatabaseLink(publishDdxRequest.getCdcDatabaseLink())
+                        .cdcDataProductLink(publishDdxRequest.getCdcDataProductLink())
+                        .securityLevel(publishDdxRequest.getSecurityLevel())
+                        .dataProviders(publishDdxRequest.getDataProviders())
+                        .division(publishDdxRequest.getDivision())
+                        .isTransferPricing(publishDdxRequest.getIsTransferPricing())
+                        .criteriaTransferPricing(publishDdxRequest.getCriteriaTransferPricing())
+                        .qualificationTransferPricing(publishDdxRequest.getQualificationTransferPricing())
+                        .legalEntity(publishDdxRequest.getLegalEntity())
+                        .fulfillsDataCloudFramework(publishDdxRequest.getFulfillsDataCloudFramework())
+                        .businessDomain(publishDdxRequest.getBusinessDomain())
+                        .personalDataContained(publishDdxRequest.getPersonalDataContained())
+                        .dataProductConnections(publishDdxRequest.getDataProductConnections())
+                        .build();
+                    onboardingResponse = fabricWorkspaceClient.ddxOnboardingPDOff(pdOffRequest);
+                } else {
+                    onboardingResponse = fabricWorkspaceClient.ddxProductOnboarding(publishDdxRequest);
+                }
             } catch (Exception e) {
                 log.error("Failed to call DDX product onboarding API for product: {}", publishDdxRequest.getDataProductName(), e);
                 throw new RuntimeException("DDX onboarding API call failed: " + e.getMessage(), e);
