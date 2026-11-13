@@ -299,5 +299,5 @@ deployment:
 harbor:
   dashboard:
     api:
-      url: ${HARBOR_DASHBOARD_API_URL:""}
-      key: ${HARBOR_DASHBOARD_API_KEY:""}
+      url: ${HARBOR_DASHBOARD_API_URL:XXXX}
+      key: ${HARBOR_DASHBOARD_API_KEY:XXXX}
