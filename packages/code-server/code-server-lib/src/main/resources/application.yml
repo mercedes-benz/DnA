@@ -299,5 +299,5 @@ deployment:
 harbor:
   dashboard:
     api:
-      url: ${HARBOR_DASHBOARD_API_URL:https://code-spaces.dna-prod.app.corpintra.net/harbor-proxy-api/int/dashboards}
-      key: ${HARBOR_DASHBOARD_API_KEY:5Rbk3Rl9500GMmzTXNevtNUhPmIUZQws}
+      url: ${HARBOR_DASHBOARD_API_URL:""}
+      key: ${HARBOR_DASHBOARD_API_KEY:""}
