@@ -1,46 +1,100 @@
 .banner {
   display: flex;
+  align-items: center;
   margin: 0;
   background: #f5a623;
   color: #252a33;
   width: 100%;
-  padding: 12px 27px 12px 27px;
-  justify-content: flex-start;
+  padding: 6px 27px;
 
-  .content {
+    i {
     display: flex;
+    align-items: center;
+    height: auto;
+    margin: 0 7px 0 0;
+    font-size: var(--font-size-default);
+    line-height: 1;
+  }
+ 
+  p {
     margin: 0;
-    align-items: flex-start;
+    font-size: var(--font-size-small);
+    line-height: 1.5;
+  }
 
-    .placeholder {
+  .detailsLink {
+    margin-left: 12px;
+    padding: 0;
+    border: none;
+    background: none;
+    color: #252a33;
+    font-size: var(--font-size-small);
+    font-weight: var(--font-weight-bold);
+    text-decoration: underline;
+    white-space: nowrap;
+    cursor: pointer;
+  }
+}
+
+.detailsModal {
+  .detailsItem {
+    padding: 12px 0;
+    border-bottom: 1px solid var(--color-border, rgba(255, 255, 255, 0.1));
+
+    .itemHeader {
       display: flex;
       align-items: center;
-      width: 185px;
-      flex-shrink: 0;
-
-      i {
-        margin-right: 7px;
-      }
+      justify-content: space-between;
+      margin-bottom: 4px;
 
       h5 {
         margin: 0;
         font-size: var(--font-size-default);
         font-weight: var(--font-weight-bold);
       }
+
+      .downFor {
+        padding: 1px 8px;
+        border: 1px solid #f5a623;
+        border-radius: 10px;
+        background: rgba(245, 166, 35, 0.15);
+        color: #f5a623;
+        font-size: var(--font-size-smallest);
+        white-space: nowrap;
+      }
     }
 
-    .messages {
-      margin: 0;
+    p {
+      margin: 0 0 4px;
+      font-size: var(--font-size-small);
+    }
 
-      p {
-        margin: 0;
-        margin-left: 6px;
-        font-size: var(--font-size-default);
+    .meta {
+      margin-bottom: 4px;
+      font-size: var(--font-size-smallest);
+      opacity: 0.7;
+    }
 
-        & + p {
-          margin-top: 4px;
-        }
-      }
+    .affected {
+      font-size: var(--font-size-smallest);
+    }
+  }
+
+  .footer {
+    margin-top: 8px;
+    padding-top: 8px;
+    border-top: 1px solid var(--color-border, rgba(255, 255, 255, 0.1));
+ 
+    p {
+      margin: 0 0 4px;
+      font-size: var(--font-size-smallest);
+    }
+ 
+    .refreshNote {
+      font-size: 11px;
+      font-style: italic;
+      opacity: 0.6;
+      text-align: right;
     }
   }
 }
