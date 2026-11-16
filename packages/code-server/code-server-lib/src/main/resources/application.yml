@@ -306,3 +306,5 @@ downtime:
       url: ${DOWNTIME_CHECK_ARTIFACTORY_URL:XXXX}
     sso:
       url: ${DOWNTIME_CHECK_SSO_URL:XXXX}
+    harbor:
+      url: ${DOWNTIME_CHECK_HARBOR_URL:XXXX}
