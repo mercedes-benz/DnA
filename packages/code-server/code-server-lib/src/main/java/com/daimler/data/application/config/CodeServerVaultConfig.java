@@ -6,6 +6,7 @@ import java.net.URI;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.security.MessageDigest;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -67,6 +68,7 @@ public class CodeServerVaultConfig {
 			secret.put("createdAt", entry.getCreatedAt());
 			secret.put("codeSpaceProjectNames", entry.getCodeSpaceProjectNames());
 			secret.put("permissions", entry.getPermissions());
+			secret.put("status", "ACTIVE");
 			try {
 				vaultTemplate.opsForVersionedKeyValue(mountPath).put(basePath + "/v" + version, secret);
 				log.info("Wrote PAT metadata to vault for userId={} version={}", userId, version);
@@ -111,10 +113,15 @@ public class CodeServerVaultConfig {
 		try {
 			Versioned<Map<String, Object>> response = createVaultTemplate().opsForVersionedKeyValue(mountPath)
 					.get(versionPath(userId, version));
-			if (response == null || !response.hasData() || response.getData().get("secret") == null) {
+			if (response == null || !response.hasData()) {
 				return false;
 			}
-			String storedSecret = String.valueOf(response.getData().get("secret"));
+			Map<String, Object> data = response.getData();
+			if ("REVOKED".equalsIgnoreCase(stringValue(data.get("status"))) || data.get("secret") == null) {
+				log.warn("PAT secret validation rejected for userId={} version={} reason=revoked", userId, version);
+				return false;
+			}
+			String storedSecret = String.valueOf(data.get("secret"));
 			boolean valid = MessageDigest.isEqual(storedSecret.getBytes(StandardCharsets.UTF_8),
 					secret.getBytes(StandardCharsets.UTF_8));
 			if (!valid) {
@@ -136,8 +143,12 @@ public class CodeServerVaultConfig {
 			if (response == null || !response.hasData()) {
 				return false;
 			}
-			operations.delete(path, response.getVersion());
-			log.info("Deleted PAT metadata from vault for userId={} version={}", userId, version);
+			Map<String, Object> revoked = new HashMap<>();
+			revoked.put("status", "REVOKED");
+			revoked.put("revokedAt", Instant.now().toString());
+			// secret intentionally omitted/cleared
+			operations.put(path, revoked);
+			log.info("Revoked PAT metadata in vault for userId={} version={}", userId, version);
 			return true;
 		} catch (Exception e) {
 			log.warn("Unable to revoke PAT metadata for user {} version={}", userId, version, e);
@@ -156,6 +167,10 @@ public class CodeServerVaultConfig {
 				return item;
 			}
 			Map<String, Object> data = response.getData();
+			if ("REVOKED".equalsIgnoreCase(stringValue(data.get("status"))) || data.get("secret") == null) {
+				item.setStatus("REVOKED");
+				return item;
+			}
 			item.setDisplaySuffix(stringValue(data.get("displaySuffix")));
 			item.setComment(stringValue(data.get("comment")));
 			item.setCreatedAt(stringValue(data.get("createdAt")));
