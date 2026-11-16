@@ -2140,6 +2140,8 @@ definitions:
         type: array
         items:
           type: string
+      scopedCookiePath:
+        type: boolean
       deploymentAuditLogs:
         type: array
         items:
