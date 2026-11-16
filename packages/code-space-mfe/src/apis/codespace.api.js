@@ -556,6 +556,10 @@ const addWebhook = (data) => {
     return server.post(`workspaces/addWebhook`, data);
 };
 
+const getActiveDowntimes = () => {
+    return server.get('downtime/active');
+};
+
 const getExistingRoles = (appId) => {
     return fabricServer.get(`fabric-workspaces/${appId}/dnaroles`, {
         data: {},
@@ -646,4 +650,5 @@ export const CodeSpaceApiClient = {
     getResourceCapExemptions,
     updateResourceCapExemption,
     addWebhook,
+    getActiveDowntimes,
 };

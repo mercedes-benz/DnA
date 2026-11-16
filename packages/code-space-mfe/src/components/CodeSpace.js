@@ -32,6 +32,7 @@ import IntMigrationModal, { needsIntMigration } from './intMigrationModal/IntMig
 import { setRippleAnimation } from '../common/modules/uilab/js/src/util';
 import ConfirmModal from 'dna-container/ConfirmModal';
 import BuildModal from './buildModal/buildModal';
+import DowntimeBanner from './downtimeBanner/DowntimeBanner';
 
 // export interface ICodeSpaceProps {
 //   user: IUserInfo;
@@ -631,6 +632,8 @@ const CodeSpace = (props) => {
   }
 
   return (
+    <>
+      <DowntimeBanner />
     <div
       id="codespace-view"
       className={fullScreenMode ? Styles.codeSpaceWrapperFSmode : '' + ' ' + Styles.codeSpaceWrapper}
@@ -1310,6 +1313,7 @@ const CodeSpace = (props) => {
         <ProgressWithMessage message={`Starting...${serverProgress}%`} />
       )}
     </div>
+    </>
   );
 };
 

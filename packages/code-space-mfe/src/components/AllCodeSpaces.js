@@ -30,6 +30,7 @@ import CodeSpaceGroupCard from './codeSpaceGroupCard/CodeSpaceGroupCard';
 import Spinner from './spinner/Spinner';
 import { SESSION_STORAGE_KEYS } from '../Utility/constants';
 import { useDeploymentStatus } from '../hooks/useDeploymentStatus';
+import DowntimeBanner from './downtimeBanner/DowntimeBanner';
 
 // export interface IAllCodeSpacesProps {
 //   user: IUserInfo;
@@ -853,6 +854,8 @@ const AllCodeSpaces = (props) => {
     const draggableItemRef = useRef();
 
     return (
+        <>
+            <DowntimeBanner />
         <div className={classNames(Styles.mainPanel)}>
             <div className={classNames(Styles.wrapper)}>
                 <div className={classNames(Styles.caption)}>
@@ -1391,6 +1394,7 @@ const AllCodeSpaces = (props) => {
                 />
             )}
         </div>
+        </>
     );
 };
 export default AllCodeSpaces;
