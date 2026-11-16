@@ -1,6 +1,7 @@
 package com.daimler.data.service;
 
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -76,8 +77,13 @@ public class ServiceDowntimeService {
         vo.setId(entity.getId());
         vo.setServiceName(entity.getServiceName());
         vo.setMessage(entity.getMessage());
-        vo.setDetectedAt(entity.getDetectedAt() == null ? null : entity.getDetectedAt().toString());
+                vo.setDetectedAt(toIsoWithOffset(entity.getDetectedAt()));
+        vo.setLastChecked(toIsoWithOffset(entity.getLastChecked()));
         return vo;
+    }
+
+    private String toIsoWithOffset(LocalDateTime value) {
+        return value == null ? null : value.atZone(ZoneId.systemDefault()).toOffsetDateTime().toString();
     }
 
     private static final class ActiveSnapshot {
