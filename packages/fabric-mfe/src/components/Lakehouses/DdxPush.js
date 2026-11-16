@@ -505,9 +505,15 @@ const Step4_ComplianceUsage = ({
   updateFrequencies,
 }) => {
 
+  const isPurposesDisabled = formData.personalDataContained !== true;
+
   useEffect(() => {
-    // SelectBox.defaultSetup();
-  }, []);
+    if (isPurposesDisabled) {
+      const purposesSelect = document.getElementById('purposes');
+      if (purposesSelect) purposesSelect.value = '';
+    }
+    SelectBox.defaultSetup(true);
+  }, [isPurposesDisabled]);
 
   return (
     <div className={Styles.stepForm}>
@@ -545,10 +551,10 @@ const Step4_ComplianceUsage = ({
             Purposes {formData.personalDataContained === true && <sup>*</sup>} &nbsp;
             (Please specify the allowed purposes for processing this data)
           </label>
-          <div className={classNames('custom-select')}>
+          <div className={classNames('custom-select', { disabled: isPurposesDisabled, [Styles.disabledSelect]: isPurposesDisabled })}>
             <select
               id="purposes"
-              disabled={formData.personalDataContained !== true}
+              disabled={isPurposesDisabled}
               defaultValue={formData.purposes || ''}
               onChange={(e) => {
                 setFormData({ ...formData, purposes: e.target.value });
