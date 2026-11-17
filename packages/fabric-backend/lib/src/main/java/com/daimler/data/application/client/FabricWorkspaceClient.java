@@ -69,6 +69,7 @@ import com.daimler.data.dto.fabric.DdxOnboardingRequestDto;
 import com.daimler.data.dto.fabric.ErrorResponseDto;
 import com.daimler.data.dto.fabric.FabricGroupsCollectionDto;
 import com.daimler.data.dto.fabric.FabricOAuthResponse;
+import com.daimler.data.dto.fabric.GatewayPublicKeyDto;
 import com.daimler.data.dto.fabric.LakehouseCollectionDto;
 import com.daimler.data.dto.fabric.LakehouseResponseDto;
 import com.daimler.data.dto.fabric.LakehouseS3ShortcutCollectionDto;
@@ -181,6 +182,9 @@ public class FabricWorkspaceClient {
 	
 	@Value("${fabricWorkspaces.uri.shortcutUrl}")
 	private String shortcutUrl;
+
+	@Value("${fabricWorkspaces.uri.gatewayUrl}")
+	private String gatewayUrl;
 
 	@Value("${fabricWorkspaces.uri.fabricBaseUrl}")
 	private String fabricBaseUrl;
@@ -453,6 +457,40 @@ public class FabricWorkspaceClient {
 			log.error("Failed to delete datasource connection details for id {} with {} exception ", datasourceConnectionId, e.getMessage());
 		}
 		return errorResponse;
+	}
+	
+	public GatewayPublicKeyDto getGatewayPublicKey() {
+		try {
+			String token = getToken();
+			if(!Objects.nonNull(token)) {
+				log.error("Failed to fetch token to invoke fabric Apis for fetching gateway {} public key", gatewayId);
+				return null;
+			}
+			HttpHeaders headers = new HttpHeaders();
+			headers.set("Accept", "application/json");
+			headers.set("Authorization", "Bearer "+token);
+			headers.setContentType(MediaType.APPLICATION_JSON);
+			HttpEntity<String> requestEntity = new HttpEntity<>(headers);
+			String url = gatewayUrl;
+			url = url.replaceFirst(GATEWAY_IDENTIFIER, gatewayId);
+			ResponseEntity<String> response = proxyRestTemplate.exchange(url, HttpMethod.GET,
+					requestEntity, String.class);
+			if (response!=null && response.hasBody()) {
+				ObjectMapper objectMapper = new ObjectMapper();
+				JsonNode publicKeyNode = objectMapper.readTree(response.getBody()).path("publicKey");
+				String exponent = publicKeyNode.path("exponent").asText(null);
+				String modulus = publicKeyNode.path("modulus").asText(null);
+				if (exponent == null || exponent.isBlank() || modulus == null || modulus.isBlank()) {
+					log.error("Gateway {} response did not contain a valid public key", gatewayId);
+					return null;
+				}
+				return new GatewayPublicKeyDto(exponent, modulus);
+			}
+			log.error("Empty response while fetching public key of gateway {}", gatewayId);
+		}catch(Exception e) {
+			log.error("Failed to fetch public key of gateway {} with error {} ", gatewayId, e.getMessage());
+		}
+		return null;
 	}
 	
 	public DatasourceResponseDto createDatasourceConnection(String workspaceName, CreateDatasourceRequestDto createRequest) {

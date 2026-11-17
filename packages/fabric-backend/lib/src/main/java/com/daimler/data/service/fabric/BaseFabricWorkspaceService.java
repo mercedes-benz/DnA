@@ -68,6 +68,7 @@ import com.daimler.data.dto.fabric.CreateRoleRequestDto;
 import com.daimler.data.dto.fabric.CreateRoleResponseDto;
 import com.daimler.data.dto.fabric.CreateCmkKeyResponseDto;
 import com.daimler.data.dto.fabric.CreateWorkspaceDto;
+import com.daimler.data.dto.fabric.GatewayPublicKeyDto;
 import com.daimler.data.dto.fabric.CredentialDetailsDto;
 import com.daimler.data.dto.fabric.DatasourceResponseDto;
 import com.daimler.data.dto.fabric.EntiltlemetDetailsDto;
@@ -2086,7 +2087,13 @@ public class BaseFabricWorkspaceService extends BaseCommonService<FabricWorkspac
 			credentialsDto.setPrivacyLevel("Organizational");
 			
 			String credentialsEncryptedString = "";
-			credentialsEncryptedString = encryptionUtil.encryptCredentialDetails(createRequestVO.getAccessKey(), createRequestVO.getSecretKey());
+			GatewayPublicKeyDto gatewayPublicKey = fabricWorkspaceClient.getGatewayPublicKey();
+			if(gatewayPublicKey != null) {
+				credentialsEncryptedString = encryptionUtil.encryptCredentialDetails(createRequestVO.getAccessKey(), createRequestVO.getSecretKey(), gatewayPublicKey.getModulus(), gatewayPublicKey.getExponent());
+			} else {
+				log.warn("Failed to fetch gateway public key at runtime for workspace {} and lakehouse {}, falling back to configured public key", id, lakehouseId);
+				credentialsEncryptedString = encryptionUtil.encryptCredentialDetails(createRequestVO.getAccessKey(), createRequestVO.getSecretKey());
+			}
 			if(credentialsEncryptedString == null || "".equalsIgnoreCase(credentialsEncryptedString)) {
 				MessageDescription message = new MessageDescription();
 				message.setMessage("Failed to create shortcut, error occured while encrypting connection details with gateway's public key. Please retry again after a while.");

@@ -75,6 +75,10 @@ public class RSAEncryptionUtil {
 	private String exponent;
 	
 	public String encryptCredentialDetails(String accessKey, String secretKey){
+		return encryptCredentialDetails(accessKey, secretKey, modulus, exponent);
+	}
+	
+	public String encryptCredentialDetails(String accessKey, String secretKey, String modulus, String exponent){
 		try {
 			String connectionDetailsString = "{\"credentialData\":[{\"name\":\"username\",\"value\":\"" + accessKey + "\"},{\"name\":\"password\",\"value\":\"" + secretKey + "\"}]}";
 			byte[] plainTextBytes = connectionDetailsString.getBytes("UTF-8");
