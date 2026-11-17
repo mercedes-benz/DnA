@@ -9,7 +9,7 @@ import lombok.Data;
 
 @Data
 @JsonIgnoreProperties(ignoreUnknown = true)
-public class HarborDashboardResponse {
+public class GrafanaDashboardResponse {
 
     @JsonProperty("dashboard_id")
     private Integer dashboardId;

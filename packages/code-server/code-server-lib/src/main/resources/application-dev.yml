@@ -173,9 +173,9 @@ workspace:
   git-job:
     stale-threshold-minutes: ${GIT_JOB_STALE_THRESHOLD_MINUTES:XXXX}
 
-harbor:
+grafana:
   dashboard:
     api:
-      url: ${HARBOR_DASHBOARD_API_URL:XXXX}
-      key: ${HARBOR_DASHBOARD_API_KEY:XXXX}
+      url: ${GRAFANA_DASHBOARD_API_URL:XXXX}
+      key: ${GRAFANA_DASHBOARD_API_KEY:XXXX}
 

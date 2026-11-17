@@ -12,29 +12,29 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.daimler.data.dto.HarborDashboardResponse;
-import com.daimler.data.service.HarborDashboardService;
+import com.daimler.data.dto.GrafanaDashboardResponse;
+import com.daimler.data.service.GrafanaDashboardService;
 
 /**
  * Controller is responsible to integrate Grafana Log Server Dashboard
- * Using the Onboarding rest api provided by HarborDashboard
+ * Using the Onboarding rest api provided by Grafana Dashboard
  * 
- * HarborDashboardController
+ * GrafanaDashboardController
  */
 @RestController
 @RequestMapping("/api")
-public class HarborDashboardController {
+public class GrafanaDashboardController {
 
     @Autowired
-    private HarborDashboardService harborDashboardService;
+    private GrafanaDashboardService grafanaDashboardService;
 
-    @GetMapping("/harbor-dashboard")
-    public ResponseEntity<Map<String, Object>> getHarborDashboardData(
+    @GetMapping("/grafana-dashboard")
+    public ResponseEntity<Map<String, Object>> getGrafanaDashboardData(
             @RequestParam(required = false, name = "project_name") String projectName,
             @RequestParam(required = false, name = "user_emails[]") List<String> userEmails,
             @RequestParam(required = false, name = "workspace_ids[]") List<String> workspaceIds) {
 
-        HarborDashboardResponse responseBody = harborDashboardService.fetchDashboardData(projectName, userEmails, workspaceIds);
+        GrafanaDashboardResponse responseBody = grafanaDashboardService.fetchDashboardData(projectName, userEmails, workspaceIds);
 
         if (responseBody == null) {
             Map<String, Object> emptyResponse = new HashMap<>();

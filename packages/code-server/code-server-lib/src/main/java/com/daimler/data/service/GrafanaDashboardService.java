@@ -13,25 +13,25 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
-import com.daimler.data.dto.HarborDashboardResponse;
+import com.daimler.data.dto.GrafanaDashboardResponse;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
 @Service
-public class HarborDashboardService {
+public class GrafanaDashboardService {
 
-    @Value("${harbor.dashboard.api.url}")
+    @Value("${grafana.dashboard.api.url}")
     private String apiUrl;
 
-    @Value("${harbor.dashboard.api.key}")
+    @Value("${grafana.dashboard.api.key}")
     private String apiKey;
 
     @Autowired
     private RestTemplate restTemplate;
 
-    public HarborDashboardResponse fetchDashboardData(String projectName, List<String> userEmails, List<String> workspaceIds) {
+    public GrafanaDashboardResponse fetchDashboardData(String projectName, List<String> userEmails, List<String> workspaceIds) {
         try {
             Map<String, Object> requestBody = new HashMap<>();
             if (projectName != null && !projectName.trim().isEmpty()) {
@@ -53,7 +53,7 @@ public class HarborDashboardService {
 
             HttpEntity<Map<String, Object>> entity = new HttpEntity<>(requestBody, headers);
 
-            log.info("Calling Harbor dashboard API: {} with payload {}", apiUrl, requestBody);
+            log.info("Calling Grafana dashboard API: {} with payload {}", apiUrl, requestBody);
             ResponseEntity<String> response = restTemplate.exchange(
                     apiUrl,
                     HttpMethod.POST,
@@ -63,15 +63,15 @@ public class HarborDashboardService {
 
             if (response.getStatusCode().is2xxSuccessful() && response.getBody() != null) {
                 ObjectMapper objectMapper = new ObjectMapper();
-                return objectMapper.readValue(response.getBody(), HarborDashboardResponse.class);
+                return objectMapper.readValue(response.getBody(), GrafanaDashboardResponse.class);
             }
 
-            log.warn("Harbor dashboard API call failed with status: {} and body: {}",
+            log.warn("Grafana dashboard API call failed with status: {} and body: {}",
                     response.getStatusCode(), response.getBody());
             return null;
 
         } catch (Exception e) {
-            log.error("Exception while calling Harbor dashboard API: {}", e.getMessage(), e);
+            log.error("Exception while calling Grafana dashboard API: {}", e.getMessage(), e);
             return null;
         }
     }

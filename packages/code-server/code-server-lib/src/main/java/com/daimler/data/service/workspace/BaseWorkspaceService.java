@@ -70,8 +70,8 @@ import org.json.JSONObject;
  import com.daimler.data.assembler.WorkspaceAssembler;
  import com.daimler.data.auth.client.AuthenticatorClient;
  import com.daimler.data.auth.client.DnaAuthClient;
- import com.daimler.data.service.ArgoCdService;
-import com.daimler.data.service.HarborDashboardService;
+import com.daimler.data.service.ArgoCdService;
+import com.daimler.data.service.GrafanaDashboardService;
 import com.daimler.data.service.scheduler.DeploymentStatusMonitorJob;
  import com.daimler.data.controller.exceptions.GenericMessage;
  import com.daimler.data.controller.exceptions.MessageDescription;
@@ -106,7 +106,7 @@ import com.daimler.data.dto.GitHubWorkflowJobsResponseDto;
 import com.daimler.data.dto.GitHubWorkflowRunDto;
 import com.daimler.data.dto.GitLatestCommitIdDto;
 import com.daimler.data.dto.GitRunIdDetailsDto;
-import com.daimler.data.dto.HarborDashboardResponse;
+import com.daimler.data.dto.GrafanaDashboardResponse;
 import com.daimler.data.dto.WorkbenchManageDto;
  import com.daimler.data.dto.WorkbenchManageInputDto;
  import com.daimler.data.dto.solution.ChangeLogVO;
@@ -291,7 +291,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 	 private ArgoCdService argoCdService;
 
 	 @Autowired
-	 private HarborDashboardService harborDashboardService;
+	 private GrafanaDashboardService grafanaDashboardService;
 
 	 @Autowired
 	 private DeploymentStatusMonitorJob deploymentStatusMonitorJob;
@@ -1571,7 +1571,7 @@ import com.daimler.data.dto.workspace.InitializeWorkspaceResponseVO;
 				 }
 				 List<String> onboardWorkspaceIds = new ArrayList<>();
 				 onboardWorkspaceIds.add(ownerwsid);
-				 HarborDashboardResponse dashboardResponse = harborDashboardService.fetchDashboardData(
+				 GrafanaDashboardResponse dashboardResponse = grafanaDashboardService.fetchDashboardData(
 						 projectName,
 						 onboardUserEmails,
 						 onboardWorkspaceIds
