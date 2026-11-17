@@ -101,8 +101,8 @@ public class BasePromptCraftSubscriptionsService extends BaseCommonService<Promp
 	}
 	
 	@Override
-	public List<PromptCraftSubscriptionsVO> getAll(int offset, int limit, String  userId){
-		List<PromptCraftSubscriptionsNsql> subscriptions = customRepo.findAlluserSubscriptions(offset, limit, userId);
+	public List<PromptCraftSubscriptionsVO> getAll(int limit, int offset, String  userId){
+		List<PromptCraftSubscriptionsNsql> subscriptions = customRepo.findAlluserSubscriptions(limit, offset, userId);
 
 		if(subscriptions != null){
 			List<PromptCraftSubscriptionsVO> subscriptionsVO = subscriptions.stream()
@@ -113,6 +113,16 @@ public class BasePromptCraftSubscriptionsService extends BaseCommonService<Promp
 		}
 	}
 	
+	@Override
+	public Long getCount(String userId) {
+		return customRepo.getCount(userId);
+	}
+
+	@Override
+	public Long getCount() {
+		return jpaRepo.count();
+	}
+
 	@Override
 	public PromptCraftSubscriptionsResponseVO createSubscription(PromptCraftSubscriptionsVO vo){
 

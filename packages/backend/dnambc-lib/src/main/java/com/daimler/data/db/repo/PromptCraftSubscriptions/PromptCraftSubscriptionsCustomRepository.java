@@ -35,7 +35,8 @@ import com.daimler.data.db.repo.common.CommonDataRepository;
 
 public interface PromptCraftSubscriptionsCustomRepository extends CommonDataRepository<PromptCraftSubscriptionsNsql, String> {
 
-    List<PromptCraftSubscriptionsNsql> findAlluserSubscriptions(int limt, int offset, String  userId);
+    List<PromptCraftSubscriptionsNsql> findAlluserSubscriptions(int limit, int offset, String  userId);
+
+    Long getCount(String userId);
 
 }
-

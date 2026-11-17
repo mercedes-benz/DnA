@@ -54,7 +54,7 @@ public class PromptCraftSubscriptionsCustomRepositoryImpl
                 String getQuery = "SELECT * FROM promptcraftsubscriptions_nsql " +
                                 "WHERE EXISTS (" +
                                 "  SELECT 1 FROM jsonb_array_elements(data->'projectMembers') AS member " +
-                                "  WHERE member->>'id' = "+"'"+userId +"'"+
+                                "  WHERE member->>'id' = :userId"+
                                 ") ";
 
                 if (limit > 0)
@@ -63,6 +63,18 @@ public class PromptCraftSubscriptionsCustomRepositoryImpl
                         getQuery = getQuery + " offset " + offset;
 
                 Query query = em.createNativeQuery(getQuery, PromptCraftSubscriptionsNsql.class);
+                query.setParameter("userId", userId);
                 return query.getResultList();
+        }
+
+        @Override
+        public Long getCount(String userId) {
+                String countQuery = "SELECT COUNT(*) FROM promptcraftsubscriptions_nsql " +
+                                "WHERE EXISTS (" +
+                                "SELECT 1 FROM jsonb_array_elements(data->'projectMembers') AS member " +
+                                "WHERE member->>'id' = :userId)";
+                Query query = em.createNativeQuery(countQuery);
+                query.setParameter("userId", userId);
+                return ((Number) query.getSingleResult()).longValue();
         }
 }

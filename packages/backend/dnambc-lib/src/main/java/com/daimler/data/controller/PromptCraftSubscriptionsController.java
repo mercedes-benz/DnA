@@ -195,15 +195,16 @@ public class PromptCraftSubscriptionsController  implements PromptCraftSubscript
 
             if(isUserHasAdminAccess(currentUser)){
                 collection = service.getAll(limit,offset);
+                response.setTotalCount(Math.toIntExact(service.getCount()));
                     
             }else{
                 collection = service.getAll(limit,offset,currentUser.getId());
+                response.setTotalCount(Math.toIntExact(service.getCount(currentUser.getId())));
             }
             if (collection != null && collection.size() > 0) {
                 for (PromptCraftSubscriptionsVO subscription : collection) {
                     response.addDataItem(subscription);
                 }
-                response.setTotalCount(collection.size());
                 return new ResponseEntity<>(response, HttpStatus.OK);
             } else {
                 response.setData(null);
@@ -354,5 +355,4 @@ public class PromptCraftSubscriptionsController  implements PromptCraftSubscript
     }
 
 }
-
 

@@ -38,7 +38,9 @@ import com.daimler.data.service.common.CommonService;
 
 public interface PromptCraftSubscriptionsService extends CommonService<PromptCraftSubscriptionsVO, PromptCraftSubscriptionsNsql, String> {
 
-    List<PromptCraftSubscriptionsVO> getAll(int offset, int limit, String  userId);
+    List<PromptCraftSubscriptionsVO> getAll(int limit, int offset, String  userId);
+    Long getCount(String userId);
+    Long getCount();
     PromptCraftSubscriptionsResponseVO createSubscription(PromptCraftSubscriptionsVO promptCraftSubscriptionsVO);
     SubscriptionkeysVO getProjectKeys( String projectName);
     String getPromptCraftSubscriptionUserID( String publicKey, String privateKey);
