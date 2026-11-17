@@ -564,8 +564,8 @@ const getExistingRoles = (appId) => {
     });
 };
 
-const submitHarborDashboardRequest = (payload) => {
-    return server.get('harbor-dashboard', {
+const submitGrafanaDashboardRequest = (payload) => {
+    return server.get('grafana-dashboard', {
         params: payload,
         headers: {
             Authorization: readJwt(),
@@ -652,5 +652,5 @@ export const CodeSpaceApiClient = {
     getExistingRoles,
     getResourceCapExemptions,
     updateResourceCapExemption,
-    submitHarborDashboardRequest,
+    submitGrafanaDashboardRequest,
 };
