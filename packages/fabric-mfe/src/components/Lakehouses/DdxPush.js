@@ -505,15 +505,11 @@ const Step4_ComplianceUsage = ({
   updateFrequencies,
 }) => {
 
-  const isPurposesDisabled = formData.personalDataContained !== true;
+  const showPurposes = formData.personalDataContained === true;
 
   useEffect(() => {
-    if (isPurposesDisabled) {
-      const purposesSelect = document.getElementById('purposes');
-      if (purposesSelect) purposesSelect.value = '';
-    }
     SelectBox.defaultSetup(true);
-  }, [isPurposesDisabled]);
+  }, [showPurposes]);
 
   return (
     <div className={Styles.stepForm}>
@@ -542,34 +538,6 @@ const Step4_ComplianceUsage = ({
             </select>
           </div>
           {errors.securityLevelError && <span className="error-message">{errors.securityLevelError}</span>}
-        </div>
-      </div>
-
-      <div className={Styles.col}>
-        <div className={classNames('input-field-group include-error', errors.purposesError ? 'error' : '')}>
-          <label htmlFor="purposes" className="input-label">
-            Purposes {formData.personalDataContained === true && <sup>*</sup>} &nbsp;
-            (Please specify the allowed purposes for processing this data)
-          </label>
-          <div className={classNames('custom-select', { disabled: isPurposesDisabled, [Styles.disabledSelect]: isPurposesDisabled })}>
-            <select
-              id="purposes"
-              disabled={isPurposesDisabled}
-              defaultValue={formData.purposes || ''}
-              onChange={(e) => {
-                setFormData({ ...formData, purposes: e.target.value });
-                clearError('purposesError');
-              }}
-            >
-              <option value="">Choose</option>
-              {purposes.map((p, i) => (
-                <option key={i} value={p}>
-                  {p}
-                </option>
-              ))}
-            </select>
-          </div>
-          {errors.purposesError && <span className="error-message">{errors.purposesError}</span>}
         </div>
       </div>
 
@@ -604,7 +572,7 @@ const Step4_ComplianceUsage = ({
                   value="false"
                   defaultChecked={formData.personalDataContained === false}
                   onChange={() => {
-                    setFormData({ ...formData, personalDataContained: false, purposes: [] });
+                    setFormData({ ...formData, personalDataContained: false, purposes: '' });
                     clearError('personalDataContainedError');
                     clearError('purposesError');
                   }}
@@ -616,6 +584,35 @@ const Step4_ComplianceUsage = ({
           {errors.personalDataContainedError && <span className="error-message">{errors.personalDataContainedError}</span>}
         </div>
       </div>
+
+      {showPurposes && (
+        <div className={Styles.col}>
+          <div className={classNames('input-field-group include-error', errors.purposesError ? 'error' : '')}>
+            <label htmlFor="purposes" className="input-label">
+              Purposes <sup>*</sup> &nbsp;
+              (Please specify the allowed purposes for processing this data)
+            </label>
+            <div className={classNames('custom-select')}>
+              <select
+                id="purposes"
+                defaultValue={formData.purposes || ''}
+                onChange={(e) => {
+                  setFormData({ ...formData, purposes: e.target.value });
+                  clearError('purposesError');
+                }}
+              >
+                <option value="">Choose</option>
+                {purposes.map((p, i) => (
+                  <option key={i} value={p}>
+                    {p}
+                  </option>
+                ))}
+              </select>
+            </div>
+            {errors.purposesError && <span className="error-message">{errors.purposesError}</span>}
+          </div>
+        </div>
+      )}
 
       <div className={Styles.col}>
         <div className={classNames('input-field-group include-error', errors.updateFrequencyError ? 'error' : '')}>
