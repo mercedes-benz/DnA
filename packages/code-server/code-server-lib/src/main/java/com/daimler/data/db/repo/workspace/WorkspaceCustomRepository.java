@@ -81,6 +81,8 @@ public interface WorkspaceCustomRepository extends CommonDataRepository<CodeServ
 			boolean isAliceRoleEnabled, boolean isEntitlementPrefixEnabled, List<String> selectedAliceRoles);
 
 	GenericMessage updateBuildDetails(String projectName, String environment,CodeServerBuildDetails buildDetails);
+
+	GenericMessage updateScopedCookiePath(String projectName, String environment, Boolean scopedCookiePath);
 	
 	GenericMessage updateLatestBuildOrDeployStatus(String status, String environment,Date date,String projectName);
 
