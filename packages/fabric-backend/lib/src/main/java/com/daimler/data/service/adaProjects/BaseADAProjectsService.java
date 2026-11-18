@@ -244,8 +244,8 @@ public class BaseADAProjectsService extends BaseCommonService<ADAProjectDetailsV
 	}
 	
 	private void updateCapacityForFabricWorkspaces(ADAProjectDetailsVO adaProject){
-		CapacityVO capacityVO = null;
 		try {
+			CapacityVO capacityVO = null;
 			if(adaProject.getCapacity() == null && adaProject.getRegion() == null){
 				log.info("Capacity details and region are null for project id {}.", adaProject.getProjectID());
 				CapacityNsql capacityNsql = capacityRepo.findById(defaultRegion.toLowerCase()).orElse(null);
@@ -261,8 +261,6 @@ public class BaseADAProjectsService extends BaseCommonService<ADAProjectDetailsV
 				capacityVO.setState(capacityNsql.getData().getState());
 				capacityVO.setCreatedOn(capacityNsql.getData().getCreatedOn());
 				capacityVO.setModifiedOn(capacityNsql.getData().getModifiedOn());
-				adaProject.setCapacity(capacityVO);
-				adaProject.setRegion(capacityVO.getRegion());
 			} else {
 				if(adaProject.getCapacity() != null && adaProject.getCapacity().getId() != null){
 					capacityVO = fabricWorkspaceClient.getCapacityDetails(adaProject.getCapacity().getId());
@@ -290,9 +288,9 @@ public class BaseADAProjectsService extends BaseCommonService<ADAProjectDetailsV
 					capacityVO.getRegion(), adaProject.getRegion());
 					throw new RuntimeException("Priovided capacity ID region : " + capacityVO.getRegion() + " and Ada Project resion : " + adaProject.getRegion() + " does not match, project creation/modification not allowed");
 				}
-				adaProject.setCapacity(capacityVO);
-				adaProject.setRegion(capacityVO.getRegion());
 			}
+			adaProject.setCapacity(capacityVO);
+			adaProject.setRegion(capacityVO.getRegion());
 
 			List<FabricWorkspaceNsql> workspaces = fabricWorkspaceCustomRepository.getAllByProjectId(adaProject.getProjectID());
 			if(workspaces != null && !workspaces.isEmpty()) {
