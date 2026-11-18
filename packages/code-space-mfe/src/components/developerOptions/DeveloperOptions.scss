@@ -44,6 +44,26 @@
   gap: 6px;
 }
 
+.actionBtn {
+  background-color: transparent;
+  border: 0;
+  padding: 0;
+  margin-left: 10px;
+  font-size: var(--font-size-smallest);
+
+  i {
+    font-size: var(--font-size-icon-small);
+  }
+
+  &:hover {
+    color: #00adef;
+  }
+
+  &:disabled {
+    opacity: 0.5;
+  }
+}
+
 .permissionChip {
   border: 1px solid #99a5b3;
   border-radius: 12px;
@@ -79,15 +99,8 @@
   padding: 0;
 }
 
-.permissionOption {
-  align-items: center;
-  display: flex;
-  gap: 8px;
-}
-
-.commentLabel {
-  display: block;
-  margin-bottom: 6px;
+.modalContent .input-field-group {
+  margin-bottom: 18px;
 }
 
 .modalContent textarea,
