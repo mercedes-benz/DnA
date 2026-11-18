@@ -76,6 +76,9 @@ public class BaseADAProjectsService extends BaseCommonService<ADAProjectDetailsV
 	@Value("${fabricWorkspaces.capacityState}")
 	private String capacityState;
 
+	@Value("${fabricWorkspaces.defaultRegion}")
+	private String defaultRegion;
+
 	@Autowired
 	private CapacityRepository capacityRepo;
 
@@ -241,13 +244,24 @@ public class BaseADAProjectsService extends BaseCommonService<ADAProjectDetailsV
 	}
 	
 	private void updateCapacityForFabricWorkspaces(ADAProjectDetailsVO adaProject){
+		CapacityVO capacityVO = null;
 		try {
-
 			if(adaProject.getCapacity() == null && adaProject.getRegion() == null){
 				log.info("Capacity details and region are null for project id {}.", adaProject.getProjectID());
-				throw new RuntimeException("No capacity or region given with the project details, project creation denied please provide project region or capacity");
+				CapacityNsql capacityNsql = capacityRepo.findById(defaultRegion.toLowerCase()).orElse(null);
+				if(capacityNsql == null || capacityNsql.getData() == null) {
+					log.warn("No capacity details found in DB for Default region {}. and project id {}.", defaultRegion, adaProject.getProjectID());
+					throw new IllegalArgumentException("Provided region does not have any default capacity, Please contact ADA team!");
+				}
+				capacityVO = new CapacityVO();
+				capacityVO.setId(capacityNsql.getData().getId());
+				capacityVO.setName(capacityNsql.getData().getName());
+				capacityVO.setRegion(capacityNsql.getData().getRegion());
+				capacityVO.setSku(capacityNsql.getData().getSku());
+				capacityVO.setState(capacityNsql.getData().getState());
+				capacityVO.setCreatedOn(capacityNsql.getData().getCreatedOn());
+				capacityVO.setModifiedOn(capacityNsql.getData().getModifiedOn());
 			} else {
-				CapacityVO capacityVO = null;
 				if(adaProject.getCapacity() != null && adaProject.getCapacity().getId() != null){
 					capacityVO = fabricWorkspaceClient.getCapacityDetails(adaProject.getCapacity().getId());
 				} else if (adaProject.getRegion() != null || !adaProject.getRegion().isEmpty()){

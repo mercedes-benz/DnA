@@ -60,6 +60,7 @@ fabricWorkspaces:
   capacitySku: ${FABRIC_CAPACITY_SKU:XXXX}
   capacityRegion: ${FABRIC_CAPACITY_REGION:XXXX}
   capacityState: ${FABRIC_CAPACITY_STATE:Active}
+  defaultRegion: ${FABRIC_CAPACITY_DEFAULT_REGION:XXXX}
   startup.workspaceprovisioning:  ${FABRIC_WORKSPACE_PROVISION_ONSTARTUP:false}
   startup.onboardOwnersToFabricOperationsRole:  ${FABRIC_ONBOARDOWNER_FABRICROLE_ONSTARTUP:true}
   dnaGroupPrefix: ${FABRIC_ONBOARD_GROUP_PREFIX:XXXX}

@@ -181,9 +181,11 @@ public class FabricWorkspaceCustomRepositoryImpl extends CommonDataRepositoryImp
 	@Override
 	public List<FabricWorkspaceNsql> getAllByProjectId(String projectId) {
 		String getAllStmtByProjId = "SELECT id, CAST(data AS text) FROM fabric_workspace_nsql " +
-    "WHERE jsonb_extract_path_text(data, 'projectId') = :projectId";
+    								"WHERE jsonb_extract_path_text(data, 'projectId') = :projectId " +
+									"AND lower(COALESCE(jsonb_extract_path_text(data, 'status', 'state'), '')) <> :deleted";
 		Query q = em.createNativeQuery(getAllStmtByProjId);
 		q.setParameter("projectId", projectId);
+		q.setParameter("deleted", "deleted");
 		ObjectMapper mapper = new ObjectMapper();
 		List<Object[]> results = q.getResultList();
 		List<FabricWorkspaceNsql> convertedResults = results.stream().map(temp -> {
