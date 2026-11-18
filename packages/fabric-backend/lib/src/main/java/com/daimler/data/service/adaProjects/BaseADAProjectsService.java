@@ -261,6 +261,8 @@ public class BaseADAProjectsService extends BaseCommonService<ADAProjectDetailsV
 				capacityVO.setState(capacityNsql.getData().getState());
 				capacityVO.setCreatedOn(capacityNsql.getData().getCreatedOn());
 				capacityVO.setModifiedOn(capacityNsql.getData().getModifiedOn());
+				adaProject.setCapacity(capacityVO);
+				adaProject.setRegion(capacityVO.getRegion());
 			} else {
 				if(adaProject.getCapacity() != null && adaProject.getCapacity().getId() != null){
 					capacityVO = fabricWorkspaceClient.getCapacityDetails(adaProject.getCapacity().getId());
