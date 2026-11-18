@@ -27,6 +27,7 @@ import org.springframework.vault.client.VaultHttpHeaders;
 import org.springframework.vault.core.VaultTemplate;
 import org.springframework.vault.core.VaultVersionedKeyValueOperations;
 import org.springframework.vault.support.Versioned;
+import org.springframework.vault.support.Versioned.Version;
 import org.springframework.web.client.RestOperations;
 
 import com.daimler.data.dto.pat.PatVaultEntry;
@@ -170,7 +171,7 @@ public class CodeServerVaultConfig {
 				// not revoked yet, refuse to hard-delete
 				throw new IllegalStateException("PAT must be revoked before it can be purged");
 			}
-			operations.destroy(path, List.of(response.getVersion().getVersion()));
+			operations.destroy(path, response.getVersion());
 			log.info("Purged PAT metadata from vault for userId={} version={}", userId, version);
 			return true;
 		} catch (Exception e) {
