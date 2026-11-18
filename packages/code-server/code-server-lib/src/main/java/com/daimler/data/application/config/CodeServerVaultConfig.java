@@ -156,6 +156,29 @@ public class CodeServerVaultConfig {
 		}
 	}
 
+	public boolean purgePatSecret(String userId, int version) {
+		try {
+			VaultTemplate vaultTemplate = createVaultTemplate();
+			String path = versionPath(userId, version);
+			VaultVersionedKeyValueOperations operations = vaultTemplate.opsForVersionedKeyValue(mountPath);
+			Versioned<Map<String, Object>> response = operations.get(path);
+			if (response == null || !response.hasData()) {
+				return false;
+			}
+			Map<String, Object> data = response.getData();
+			if (!"REVOKED".equalsIgnoreCase(stringValue(data.get("status")))) {
+				// not revoked yet, refuse to hard-delete
+				throw new IllegalStateException("PAT must be revoked before it can be purged");
+			}
+			operations.destroy(path, List.of(response.getVersion().getVersion()));
+			log.info("Purged PAT metadata from vault for userId={} version={}", userId, version);
+			return true;
+		} catch (Exception e) {
+			log.warn("Unable to purge PAT metadata for user {} version={}", userId, version, e);
+			throw new IllegalStateException("Unable to purge PAT");
+		}
+	}
+
 	private PatVaultListItem readListItem(VaultTemplate vaultTemplate, String userId, int version) {
 		PatVaultListItem item = new PatVaultListItem();
 		item.setVersion(version);

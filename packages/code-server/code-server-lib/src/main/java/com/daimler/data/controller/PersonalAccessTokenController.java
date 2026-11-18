@@ -162,6 +162,29 @@ public class PersonalAccessTokenController {
 		}
 	}
 
+	@DeleteMapping("/personal-access-tokens/{version}/vault")
+	public ResponseEntity<?> purgePat(@PathVariable("version") int version) {
+		String userId = currentUserId();
+		if (userId == null) {
+			log.warn("Rejected PAT purge request, version={} reason=unauthenticated", version);
+			return error(HttpStatus.UNAUTHORIZED, "Unauthorized");
+		}
+		try {
+			if (!vaultConfig.purgePatSecret(userId, version)) {
+				log.warn("PAT purge request for userId={} version={} reason=not_found", userId, version);
+				return error(HttpStatus.NOT_FOUND, "PAT not found");
+			}
+			log.info("Purged PAT for userId={} version={}", userId, version);
+			return ResponseEntity.ok(new GenericMessage("Deleted"));
+		} catch (IllegalStateException e) {
+			log.warn("PAT purge rejected for userId={} version={} reason={}", userId, version, e.getMessage());
+			return error(HttpStatus.CONFLICT, "PAT must be revoked before deletion");
+		} catch (Exception e) {
+			log.error("Failed to purge PAT for userId={} version={}", userId, version, e);
+			return error(HttpStatus.INTERNAL_SERVER_ERROR, "Unable to delete PAT");
+		}
+	}
+
 	private String currentUserId() {
 		return userStore.getUserInfo() == null ? null : userStore.getUserInfo().getId();
 	}
