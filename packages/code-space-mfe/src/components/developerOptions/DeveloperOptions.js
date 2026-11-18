@@ -23,11 +23,13 @@ const DeveloperOptions = () => {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [showRevealModal, setShowRevealModal] = useState(false);
   const [showRevokeModal, setShowRevokeModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [permissions, setPermissions] = useState([]);
   const [comment, setComment] = useState('');
   const [validationError, setValidationError] = useState('');
   const [pending, setPending] = useState(false);
   const [revokeVersion, setRevokeVersion] = useState(null);
+  const [deleteVersion, setDeleteVersion] = useState(null);
   const [revealedToken, setRevealedToken] = useState('');
 
   const loadTokens = () => {
@@ -144,6 +146,25 @@ const DeveloperOptions = () => {
       });
   };
 
+  const deleteTokenVault = () => {
+    setPending(true);
+    ProgressIndicator.show();
+    CodeSpaceApiClient.deletePersonalAccessTokenVault(deleteVersion)
+      .then(() => {
+        setShowDeleteModal(false);
+        setTokens((currentTokens) => currentTokens.filter((token) => token.version !== deleteVersion));
+        setDeleteVersion(null);
+        Notification.show('PAT deleted.');
+      })
+      .catch((error) => {
+        Notification.show(error?.response?.data?.errors?.[0]?.message || error?.message || 'Unable to delete PAT.', 'alert');
+      })
+      .finally(() => {
+        setPending(false);
+        ProgressIndicator.hide();
+      });
+  };
+
   const createModalContent = (
     <div className={Styles.modalContent}>
       <header className={Styles.modalHeader}>
@@ -157,25 +178,31 @@ const DeveloperOptions = () => {
       <fieldset className={Styles.permissions}>
         <legend>Permissions</legend>
         {PAT_PERMISSIONS.map((permission) => (
-          <label key={permission.value} className={Styles.permissionOption}>
-            <input
-              type="checkbox"
-              checked={permissions.includes(permission.value)}
-              onChange={() => togglePermission(permission.value)}
-            />
-            <span>{permission.label}</span>
+          <label key={permission.value} className="checkbox">
+            <span className="wrapper">
+              <input
+                type="checkbox"
+                className="ff-only"
+                checked={permissions.includes(permission.value)}
+                onChange={() => togglePermission(permission.value)}
+              />
+            </span>
+            <span className="label">{permission.label}</span>
           </label>
         ))}
       </fieldset>
       {validationError && <p className={Styles.validationError} role="alert">{validationError}</p>}
-      <label className={Styles.commentLabel} htmlFor="pat-comment">Comment (optional)</label>
-      <textarea
-        id="pat-comment"
-        value={comment}
-        maxLength={200}
-        onChange={(event) => setComment(event.target.value)}
-        rows="3"
-      />
+      <div className="input-field-group area">
+        <label className="input-label" htmlFor="pat-comment">Comment (optional), Max length : 200</label>
+        <textarea
+          id="pat-comment"
+          className="input-field-area"
+          value={comment}
+          maxLength={200}
+          onChange={(event) => setComment(event.target.value)}
+          rows="3"
+        />
+      </div>
       <div className={Styles.modalActions}>
         <button className="btn btn-primary" type="button" onClick={closeCreateModal} disabled={pending}>Cancel</button>
         <button className="btn btn-tertiary" type="button" onClick={createToken} disabled={pending}>
@@ -257,8 +284,22 @@ const DeveloperOptions = () => {
                               setShowRevokeModal(true);
                             }}
                           >
-                            Revoke
+                            {token.status === 'REVOKED' ? 'Revoked' : 'Revoke'}
                           </button>
+                          {token.status === 'REVOKED' && (
+                            <button
+                              className={Styles.actionBtn + ' btn btn-primary'}
+                              type="button"
+                              disabled={pending}
+                              tooltip-data="Delete"
+                              onClick={() => {
+                                setDeleteVersion(token.version);
+                                setShowDeleteModal(true);
+                              }}
+                            >
+                              <i className="icon mbc-icon trash-outline" />
+                            </button>
+                          )}
                         </td>
                       </tr>
                       {token.comment && (
@@ -326,6 +367,29 @@ const DeveloperOptions = () => {
               <div className={Styles.modalActions}>
                 <button className="btn btn-primary" type="button" disabled={pending} onClick={() => setShowRevokeModal(false)}>Cancel</button>
                 <button className="btn btn-tertiary" type="button" disabled={pending} onClick={revokeToken}>Revoke</button>
+              </div>
+            </div>
+          )}
+        />
+      )}
+      {showDeleteModal && (
+        <Modal
+          title="Delete PAT"
+          show={showDeleteModal}
+          showAcceptButton={false}
+          showCancelButton={false}
+          hideCloseButton
+          content={(
+            <div className={Styles.modalContent}>
+              <header className={Styles.modalHeader}>
+                <button className="modal-close-button" type="button" onClick={() => setShowDeleteModal(false)} aria-label="Close">
+                  <i className="icon mbc-icon close thin" />
+                </button>
+              </header>
+              <p>Are you sure you want to delete this personal access token? This action cannot be undone.</p>
+              <div className={Styles.modalActions}>
+                <button className="btn btn-primary" type="button" disabled={pending} onClick={() => setShowDeleteModal(false)}>Cancel</button>
+                <button className="btn btn-tertiary" type="button" disabled={pending} onClick={deleteTokenVault}>Delete</button>
               </div>
             </div>
           )}
