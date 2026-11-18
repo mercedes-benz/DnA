@@ -171,7 +171,7 @@ public class CodeServerVaultConfig {
 				// not revoked yet, refuse to hard-delete
 				throw new IllegalStateException("PAT must be revoked before it can be purged");
 			}
-			operations.destroy(path, response.getVersion());
+			operations.delete(path);
 			log.info("Purged PAT metadata from vault for userId={} version={}", userId, version);
 			return true;
 		} catch (Exception e) {
