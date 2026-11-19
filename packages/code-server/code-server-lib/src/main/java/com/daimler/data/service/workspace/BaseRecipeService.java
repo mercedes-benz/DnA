@@ -407,7 +407,7 @@ public GenericMessage validateGitHubUrl(String gitHubUrl) {
                 .replace("/" + applicationName, "");
 		gitUrl = gitUrl.trim();
 
-        HttpStatus status;
+        String pidError;
 		boolean isGheRepo = gitHubUrl.contains("ghe.com");
 
 		if (isGheRepo) {
@@ -417,19 +417,24 @@ public GenericMessage validateGitHubUrl(String gitHubUrl) {
 			gheWarning.setMessage("GHE_REPO_DETECTED");
 			responseMessage.addWarnings(gheWarning);
 			
-			status = gitClient.validateGitUserWithPid(
-					gitUrl, repoName, applicationName, configuredPid, ghePat);
+			pidError = gitClient.getPidOnboardingError(gitUrl, repoName, applicationName, configuredPid, ghePat);
 		} else {
 			log.info("Non-GHE repo detected – skipping PID validation");
 			return responseMessage;
 		}
-        if (!status.is2xxSuccessful()) {
+          
+                    if (pidError != null) {
             MessageDescription msg = new MessageDescription();
-            msg.setMessage("Unexpected error occured while validating PID onboarding for the given git repo. Please try again.");
+            msg.setMessage(pidError);
             responseMessage.setSuccess("FAILED");
             responseMessage.addErrors(msg);
+            if (!GitClient.PID_VALIDATION_ERROR.equals(pidError)) {
+                MessageDescription pidWarning = new MessageDescription();
+                pidWarning.setMessage("GHE_PID_NOT_AUTHORIZED");
+                responseMessage.addWarnings(pidWarning);
+            }
             return responseMessage;
-        }
+		}
 
     } catch (Exception e) {
         log.error("Validation failed", e);

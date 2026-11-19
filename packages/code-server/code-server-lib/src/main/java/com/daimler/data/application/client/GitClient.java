@@ -31,6 +31,7 @@ import org.springframework.web.client.HttpClientErrorException;
 import com.daimler.data.controller.exceptions.GenericMessage;
 import com.daimler.data.controller.exceptions.MessageDescription;
 import org.springframework.web.client.HttpStatusCodeException;
+import org.springframework.web.client.ResourceAccessException;
 
 import java.net.URI;
 import java.net.URLEncoder;
@@ -417,7 +418,16 @@ public class GitClient {
 		return HttpStatus.INTERNAL_SERVER_ERROR;
 	}
 
+			public static final String PID_VALIDATION_ERROR = "Unexpected error occured while validating PID onboarding for the given git repo. Please try again.";
+
 	public HttpStatus validateGitUserWithPid(String gitBaseUrl, String repoName, String applicationName, String pid, String pat) {
+		return getPidOnboardingError(gitBaseUrl, repoName, applicationName, pid, pat) == null
+				? HttpStatus.OK
+				: HttpStatus.FORBIDDEN;
+	}
+
+	public String getPidOnboardingError(String gitBaseUrl, String repoName, String applicationName, String pid, String pat) {
+		String repo = applicationName + "/" + repoName;
 		try {
 			gitBaseUrl = gitBaseUrl.trim();
 			if (!gitBaseUrl.endsWith("/")) {
@@ -429,68 +439,49 @@ public class GitClient {
 			headers.set("Content-Type", "application/json");
 			headers.set("Authorization", "Bearer " + pat);
 
-			String addUrl = gitBaseUrl + "api/v3/repos/" + applicationName + "/" + repoName + "/collaborators/" + pid;
+			String addUrl = gitBaseUrl + "api/v3/repos/" + repo + "/collaborators/" + pid;
 			try {
 				HttpEntity<String> addEntity = new HttpEntity<>("{\"permission\":\"admin\"}", headers);
 				restTemplate.exchange(addUrl, HttpMethod.PUT, addEntity, String.class);
-				log.info("PID {} added as collaborator to {}/{}", pid, applicationName, repoName);
+				log.info("PID {} added as collaborator to {}", pid, repo);
 			} catch (Exception ex) {
-				log.warn("Could not add PID {} to {}/{}: {}", pid, applicationName, repoName, ex.getMessage());
+				log.warn("Could not add PID {} to {}: {}", pid, repo, ex.getMessage());
 			}
 
-			// Use affiliation=direct to only get explicitly added collaborators
-			String url = gitBaseUrl
-					+ "api/v3/repos/"
-					+ applicationName + "/"
-					+ repoName
-					+ "/collaborators?affiliation=direct&per_page=100";
-
-			log.info("GHE PID Direct Collaborator Check URL: {}", url);
-
-			HttpEntity<?> entity = new HttpEntity<>(headers);
-
+			String url = gitBaseUrl + "api/v3/repos/" + repo + "/collaborators?affiliation=direct&per_page=100";
 			ResponseEntity<String> response =
-					restTemplate.exchange(url, HttpMethod.GET, entity, String.class);
+					restTemplate.exchange(url, HttpMethod.GET, new HttpEntity<>(headers), String.class);
 
-			log.info("GHE PID collaborator list status: {}",
-					response != null ? response.getStatusCode() : "NULL");
-
-			if (response != null && response.getStatusCode() != null && response.getStatusCode().is2xxSuccessful()) {
-				String responseBody = response.getBody();
-				JSONArray collaborators = new JSONArray(responseBody);
-
+			if (response != null && response.getStatusCode() != null
+					&& response.getStatusCode().is2xxSuccessful()) {
+				JSONArray collaborators = new JSONArray(response.getBody());
 				for (int i = 0; i < collaborators.length(); i++) {
 					JSONObject collaborator = collaborators.getJSONObject(i);
-					String login = collaborator.getString("login");
-
-					if (pid.equalsIgnoreCase(login)) {
+					if (pid.equalsIgnoreCase(collaborator.getString("login"))) {
 						JSONObject permissions = collaborator.optJSONObject("permissions");
 						if (permissions != null && permissions.optBoolean("admin", false)) {
-							log.info("PID {} is a DIRECT collaborator with admin access on repo {}/{}", pid, applicationName, repoName);
-							return HttpStatus.OK;
-						} else {
-							log.warn("PID {} is a direct collaborator but does NOT have admin permission on repo {}/{}", pid, applicationName, repoName);
-							return HttpStatus.FORBIDDEN;
+							log.info("PID {} is a direct collaborator with admin access on repo {}", pid, repo);
+							return null;
 						}
+						log.warn("PID {} is a direct collaborator but does not have admin permission on repo {}", pid, repo);
+						return PID_VALIDATION_ERROR;
 					}
 				}
-
-				log.warn("PID {} is NOT a direct collaborator on repo {}/{}", pid, applicationName, repoName);
-				return HttpStatus.FORBIDDEN;
+				log.warn("PID {} is not a direct collaborator on repo {}", pid, repo);
+				return PID_VALIDATION_ERROR;
 			}
-
 		} catch (HttpClientErrorException e) {
-			log.error("GHE PID validation failed: HTTP {} for PID {} repo {}/{}",
-					e.getStatusCode(), pid, applicationName, repoName);
-			return e.getStatusCode();
+			log.error("GHE PID validation failed: HTTP {} for PID {} repo {}", e.getStatusCode(), pid, repo);
+			String body = e.getResponseBodyAsString();
+			if (e.getStatusCode() == HttpStatus.FORBIDDEN && body != null && body.contains("SAML enforcement")) {
+				return pid + " has access to '" + repo + "' but does not have admin rights.";
+			}
+			return PID_VALIDATION_ERROR;
 		} catch (Exception e) {
-			log.error("Unexpected GHE PID validation error for PID {} repo {}/{}: {}",
-					pid, applicationName, repoName, e.getMessage(), e);
+			log.error("Unexpected GHE PID validation error for PID {} repo {}: {}", pid, repo, e.getMessage(), e);
 		}
-
-		return HttpStatus.INTERNAL_SERVER_ERROR;
+		return PID_VALIDATION_ERROR;
 	}
-
 
 	// public HttpStatus addAdminAccessToRepo(String username, String repoName) {
 	// 	return addAdminAccessToRepo(username, repoName, gitBaseUri, personalAccessToken);
